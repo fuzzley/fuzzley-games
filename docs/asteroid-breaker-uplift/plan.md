@@ -769,8 +769,16 @@ The game's layers stay as they are: rules, view, scene, app.
   points' lettering is, tinted and scaled for every halo. The drawing
   vocabulary needs no gradient.
 - **Art.** `src/view/art/` draws the new pieces in the shapes
-  `@fz/phaser/shapes` has: polygons in flat colors. The fuzzball's faces
-  and fur go into `@fz/phaser/fuzzball`, for the other games to share.
+  `@fz/phaser/shapes` has: polygons in flat colors. `@fz/phaser/fuzzball`
+  already combs the fur a share of the way to standing on end and draws the
+  sparks about fur on end (`combedStrands()`, `sparkCommands()`), as Brick
+  Breaker's streak has lifted it since that game's uplift. Static's four
+  steps can be drawn with those; the sheet's own stand every other strand
+  taller and spark between the tips, and slice 4 settles which is kept. The
+  library also holds how far the eyes shift toward what the fuzzball looks
+  at (`FUZZBALL_LOOK`), which the game uses today; the sheet shifts them
+  further. The faces and the fur by force join it there, for the other
+  games to share.
 - **Backdrops.** Drawn once a wave into one texture; one layer of stars
   may be a second that drifts.
 - **Rules.** The crew's line and a loose fuzzball join `src/rules/ship/`

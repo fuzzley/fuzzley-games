@@ -5,7 +5,8 @@ comes next, so the work can be picked up from the last entry alone.
 
 - **Branch:** `claude/asteroid-breaker-uplift-a0bd76`, a worktree at
   `.claude/worktrees/asteroid-breaker-uplift-a0bd76`, cut from `main` at
-  `eb560e1f`. Nothing here is pushed.
+  `eb560e1f` and rebased onto `main` as it stood when the merge was asked
+  for.
 - **Folder:** everything made for the uplift is in
   `docs/asteroid-breaker-uplift/`. Nothing in the game is changed.
 
@@ -44,7 +45,8 @@ sound design hats:
 
 ### 2026-11-14, step 1: reading
 
-- Read `docs/brick-breaker-uplift/plan.md` for the shape an uplift plan
+- Read `docs/brick-breaker-uplift/plan.md` (archived since, under
+  `docs/archive/brick-breaker-uplift/`) for the shape an uplift plan
   takes here: research notes by agents from prose sources, concept art drawn
   by scripts, mocks, decisions the user settles, phases and risks.
 - Read the game's `AGENTS.md`, `src/rules/tuning.ts`, the three catalogs
@@ -281,3 +283,32 @@ never `yarn prettier`, which formats the whole repository.
   shimmer on one bar line, as the game must.
 - **So every sound has passed the user's ear on the page,** the three made
   again and the shimmer among them. `sound/listen-for.md` has each verdict.
+
+### 2026-11-14, onto main
+
+- **The user asked for the merge and the push.** `main` had moved on while
+  this was made: Brick Breaker's own uplift was built and landed, 295 files,
+  to `21dbcad2`. The branch was rebased onto it, as history here is linear.
+  Nothing of the two overlaps: what this folder holds is the same, file for
+  file, as before the rebase.
+- **One thing blocked the rebase:** the chain's WAVs were committed early
+  and later ignored, so they lay untracked where an early commit wanted to
+  write them. They were moved aside for the rebase and put back.
+- **What `main`'s changes made stale here, put right:** the Brick Breaker
+  uplift's plan is archived, and `@fz/phaser/fuzzball` already combs the fur
+  and draws its sparks, which the plan's "Where the code goes" now builds
+  on.
+- **The checks:** `yarn lint`, which the `merge-to-main` skill asks of a
+  plan or a doc. The branch touches nothing under `frontend/`, and `main`
+  changed nothing this folder's scripts read from it, so what they write
+  stands: the sheets, the mocks, the assets and two families of sounds were
+  made again on the rebased tree and came out the same.
+- **Only this entry's commit went through the commit review; the branch's
+  others did not:** they are notes, scripts under `docs/` and what those
+  scripts write, with no code the game runs. The review found the plan's
+  new sentence putting the eyes' look on the wrong side (the library holds
+  it, and the game uses it today) and leaving unsaid which drawing of
+  static the build follows; both are put right.
+- **Next:** nothing is built. What is left before a slice is built is under
+  "Risks" in the plan and "Left open" above; the plan's first slice is
+  sound, which changes no rule.
