@@ -38,8 +38,7 @@
  * as a tall screen lays it out, from the least height to the tallest, to
  * the autopilot's limits for that height (`limitsOf()`). It marks the
  * endgames longer than those allow, but fails only on a play that doesn't
- * clear its level, as the specs hold the tallest field to no endgame's
- * limit.
+ * clear its level, as the specs hold the tallest field to no endgame's limit.
  *
  * With `--marks`, it prints the mark each level's data should hold, the
  * streak its third star asks for, by the one rule that sets every mark:
@@ -180,8 +179,7 @@ const HANGING_SECONDS = 60;
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} height How tall the field is played.
  * @property {boolean} tallerField Whether the field is taller than the
- *   least, which the specs hold to no endgame's limit, and on which `+`
- *   marks nothing.
+ *   least, whose endgames no spec holds to a limit, where `+` marks nothing.
  * @property {number} endgameLimit The most steps a play's endgame may take on that field.
  * @property {(entry: LevelEntry, speed: string, seed: number) => AutopilotReport} playLevel
  */
@@ -398,7 +396,7 @@ function heightOf(height, rules) {
 
 /**
  * Returns an endgame's steps as the game time it takes, marked `!` when it
- * is longer than the specs allow.
+ * is longer than its field allows (`endgameLimit`).
  *
  * @param {number} steps
  * @param {Game} game

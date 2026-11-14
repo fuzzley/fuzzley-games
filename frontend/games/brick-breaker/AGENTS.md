@@ -1054,35 +1054,34 @@ workspace's with the others'.
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
   the autopilot plays every level at every preset speed, all but Custom, from
   the level's number as the seed, as the specs in
-  `src/rules/levels/every_level/` do, through
-  `playLevel()`, and it prints the game time each took, the time spent on the
-  last three bricks the level needed, the paddle's bounces, the lives lost,
-  the longest streak, the most bricks broken since the paddle last met a
-  ball, and the longest the play went between two touches of the paddle,
-  any ball meeting it or leaving it, or from the last to its end
-  (`longestAway`), the longest the paddle had no ball to meet; it fails, as
-  they do, if a play didn't clear its level (`-`) or took longer over its
-  last bricks than they allow (`!`), and marks, failing on none, a
-  play that went past a minute between two touches of the paddle (`^`), one
-  that hangs, its only ball held out of reach or circling what can't
-  break). It is how the difficulty ramp is tuned. `--seeds <n>` plays each
-  level that many times at each speed, from seeds of its own, and prints the
-  middle time, the longest, the longest endgame, the most lives lost, the
-  middle of the longest streaks and the longest any play went between two
-  touches of the paddle, as the capsules one seed lets fall can make a level
-  look far easier or harder than it is; it marks a long endgame too, and, on the
-  least field, a level whose middle time at Relaxed is past 2:00 as printed
-  (`+`, after the time), longer than a level should be, but fails only on a
-  level not cleared. `--height <n>` plays them on a
-  field that many units tall, up to 45, to the autopilot's limits for that
-  height, stretched as far as the paddle lies farther from the bricks
-  (`limitsOf()`), and fails only on a level not cleared. `--marks` prints each level's mark, the streak its third star
-  asks for, by the one rule that sets every level's (`MARK_RULE`): the
-  middle of its best streaks from 12 seeds at Normal on the least field,
-  rounded down to a multiple of 5, and 5 at least; it fails only on a level
-  not cleared, and takes neither `--seeds` nor `--height`. `--help` prints
-  its options and its signs, and an option it can't read, or a height the
-  field can't take, exits with 2, saying why, before anything is played.
+  `src/rules/levels/every_level/` do, through `playLevel()`, and it prints the
+  game time each took, the time spent on the last three bricks the level
+  needed, the paddle's bounces, the lives lost, the longest streak, the most
+  bricks broken since the paddle last met a ball, and the longest the play
+  went between two touches of the paddle, any ball meeting it or leaving it,
+  or from the last to its end (`longestAway`), the longest the paddle had no
+  ball to meet; it fails, as the specs do, if a play didn't clear its level
+  (`-`) or took longer over its last bricks than they allow (`!`), and marks,
+  failing on none, a play that went past a minute between two touches of the
+  paddle (`^`), one that hangs, its only ball held out of reach or circling
+  what can't break). It is how the difficulty ramp is tuned. `--seeds <n>`
+  plays each level that many times at each speed, from seeds of its own, and
+  prints the middle time, the longest, the longest endgame, the most lives
+  lost, the middle of the longest streaks and the longest any play went
+  between two touches of the paddle, as the capsules one seed lets fall can
+  make a level look far easier or harder than it is; it marks a long endgame
+  too, and, on the least field, a level whose middle time at Relaxed is past
+  2:00 as printed (`+`, after the time), longer than a level should be, but
+  fails only on a level not cleared. `--height <n>` plays them on a field that
+  many units tall, up to 45, to the autopilot's limits for that height,
+  stretched as far as the paddle lies farther from the bricks (`limitsOf()`),
+  and fails only on a level not cleared. `--marks` prints each level's mark,
+  the streak its third star asks for, by the one rule that sets every level's
+  (`MARK_RULE`): the middle of its best streaks from 12 seeds at Normal on the
+  least field, rounded down to a multiple of 5, and 5 at least; it fails only
+  on a level not cleared, and takes neither `--seeds` nor `--height`. `--help`
+  prints its options and its signs, and an option it can't read, or a height
+  the field can't take, exits with 2, saying why, before anything is played.
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
