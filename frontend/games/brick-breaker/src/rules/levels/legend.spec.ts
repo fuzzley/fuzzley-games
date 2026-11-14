@@ -22,6 +22,10 @@ describe("brickOf", () => {
   it("lays out a brick that never breaks with no hits", () => {
     expect(brickOf({ kind: "steel" }, 0).hits).toBe(0);
   });
+
+  it("lays a portal out with its pair", () => {
+    expect(brickOf({ kind: "portal", pair: 1 }, 0).pair).toBe(1);
+  });
 });
 
 describe("the shared legend", () => {
@@ -33,6 +37,13 @@ describe("the shared legend", () => {
     expect([LEGEND["u"], LEGEND["U"]]).toEqual([
       { kind: "plated" },
       { kind: "plated", hits: 2 },
+    ]);
+  });
+
+  it("draws a portal of the first pair as @ and of the second as %", () => {
+    expect([LEGEND["@"], LEGEND["%"]]).toEqual([
+      { kind: "portal", pair: 0 },
+      { kind: "portal", pair: 1 },
     ]);
   });
 });

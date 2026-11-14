@@ -56,6 +56,8 @@ export interface Brick {
   goesOffAt: number;
   /** The step a broken brick that regrows may grow back at. */
   regrowsAt: number;
+  /** The pair a portal is of, by which it finds its twin, 0 for any other kind. */
+  readonly pair: number;
 }
 
 /** A brick trait of each kind, by its kind. */
@@ -136,6 +138,9 @@ const TRAIT_RULES: {
   // Its disc is the travel's to meet (`isBumper()`), and its cell the
   // travel's to leave open about it (`isRound()`).
   bumps: {},
+  // Its disc is the travel's to meet (`isPortal()`), and its twin the
+  // travel's to find (`twinOf()`), and it is no thing a hit is taken by.
+  jumps: {},
 };
 
 /** The kinds plated underneath, read at every contact, so a step makes nothing. */
@@ -144,8 +149,11 @@ const PLATED = kindsWith("plated");
 /** The bumpers' kinds, read at every brick a ball passes, so a step makes nothing. */
 const BUMPERS = kindsWith("bumps");
 
+/** The portals' kinds, read at every brick a ball passes, so a step makes nothing. */
+const PORTALS = kindsWith("jumps");
+
 /** The round kinds, read at every look at a cell, so a step makes nothing. */
-const ROUND = BUMPERS;
+const ROUND: ReadonlySet<BrickKindId> = new Set([...BUMPERS, ...PORTALS]);
 
 // Made once and reused, so a step makes nothing.
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
@@ -163,6 +171,7 @@ export function createBrick(placed: LevelBrick, cell: number): Brick {
     shown: true,
     goesOffAt: 0,
     regrowsAt: 0,
+    pair: placed.pair ?? 0,
   };
   for (const trait of brickKind(brick.kind).traits) {
     layRule(brick, trait.kind, trait);
@@ -187,7 +196,7 @@ export function isPlated(brick: Readonly<Brick>): boolean {
 /**
  * Returns whether a brick is round, a disc at its cell's middle rather than
  * a box, so a ball's travel leaves its cell open about it, and the faces of
- * the bricks beside it stay exposed: a bumper.
+ * the bricks beside it stay exposed: a bumper or a portal.
  */
 export function isRound(brick: Readonly<Brick>): boolean {
   return ROUND.has(brick.kind);
@@ -200,6 +209,36 @@ export function isRound(brick: Readonly<Brick>): boolean {
  */
 export function isBumper(brick: Readonly<Brick>): boolean {
   return BUMPERS.has(brick.kind);
+}
+
+/**
+ * Returns whether a brick is a portal: a disc of `PORTAL_RADIUS` at its
+ * cell's middle, which sends a ball that touches it out of its twin's, and
+ * takes no hit from anything.
+ */
+export function isPortal(brick: Readonly<Brick>): boolean {
+  return PORTALS.has(brick.kind);
+}
+
+/**
+ * Returns a portal's twin, the other of its pair in the field, or null for
+ * one with none, which the levels spec holds no level to.
+ */
+export function twinOf(
+  bricks: readonly (Brick | null)[],
+  portal: Readonly<Brick>,
+): Brick | null {
+  for (const brick of bricks) {
+    if (
+      brick &&
+      brick !== portal &&
+      brick.kind === portal.kind &&
+      brick.pair === portal.pair
+    ) {
+      return brick;
+    }
+  }
+  return null;
 }
 
 /** Returns how many of a level's bricks it needs that are not yet broken. */
@@ -219,7 +258,8 @@ export function neededLeft(
  * blast was. Each hit scores the hits it takes, and each brick broken
  * lengthens the streak, which multiplies the score, and may let a capsule
  * fall. Breaking the last brick the level needs clears it, after which, as
- * on a broken brick, a hit does nothing.
+ * on a broken brick, a hit does nothing. A portal takes no hit, and a bolt
+ * spent at it or a blast that reaches it records nothing.
  */
 export function hitBrick(
   field: Field,
@@ -228,7 +268,9 @@ export function hitBrick(
   y: number,
   damage: number | "breaks" = 1,
 ): boolean {
-  if (brick.broken || field.state === "cleared") return false;
+  if (brick.broken || field.state === "cleared" || isPortal(brick)) {
+    return false;
+  }
   runTraits("hit", field, brick);
   const before = brick.hits;
   if (canBreak(brick)) {

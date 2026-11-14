@@ -8,6 +8,7 @@ import {
   eventsOf,
   fieldFrom,
   headingOf,
+  lastEvent,
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
@@ -666,6 +667,183 @@ describe("a bumper", () => {
       right: true,
       events: ["caught", "hit"],
     });
+  });
+});
+
+describe("a portal", () => {
+  // The low portal's disc lies about 13, 10.5, the high one's about 13, 3.5,
+  // each of a half's radius; a ball's middle touches one 0.86 from there.
+  const PORTALS = ["o", "......@", "", "", "", "", "", "", "......@"];
+
+  it("takes a ball that touches it to its twin's middle, going as it went, drawn from there, and says so there", () => {
+    const field = fieldFrom(PORTALS);
+    const ball = throwBall(field, 13, 12, 0);
+
+    stepTimes(field, 4);
+
+    expect({
+      x: ball.x,
+      last: [ball.lastX, ball.lastY],
+      heading: headingOf(ball),
+      portalled: ball.portalled,
+      events: eventsOf(field),
+      cell: lastEvent(field)?.cell,
+    }).toEqual({
+      x: 13,
+      last: [13, 3.5],
+      heading: 0,
+      portalled: true,
+      events: ["portalled"],
+      cell: cellIndex(6, 1),
+    });
+  });
+
+  it("lets a ball out of it pass over every portal, and off the walls, until it touches a brick or the paddle", () => {
+    const field = fieldFrom(PORTALS);
+    const ball = throwBall(field, 13, 12, 0);
+
+    stepTimes(field, 85);
+
+    expect({
+      below: ball.y > 12,
+      falling: ball.dy > 0,
+      portalled: ball.portalled,
+      events: eventsOf(field),
+    }).toEqual({
+      below: true,
+      falling: true,
+      portalled: true,
+      events: ["portalled", "wall"],
+    });
+  });
+
+  it.each([
+    ["a brick", "2", "hit"],
+    ["a bumper, which takes no hit", "O", "bumped"],
+  ])(
+    "lets a ball out of it meet portals again once it touches %s",
+    (_, brick, event) => {
+      // Out of the high portal, it turns off what is above, and falls back
+      // into the portal it came out of, and out of the low one.
+      const field = fieldFrom([
+        `......${brick}`,
+        "",
+        "......@",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "......@",
+      ]);
+      const ball = throwBall(field, 13, 12, 0);
+
+      stepTimes(field, 15);
+
+      expect({
+        falling: ball.dy > 0,
+        events: eventsOf(field),
+        cell: lastEvent(field)?.cell,
+      }).toEqual({
+        falling: true,
+        events: ["portalled", event, "portalled"],
+        cell: cellIndex(6, 8),
+      });
+    },
+  );
+
+  it("sends a ball that meets a brick beside its twin at once back through, as it is still within the twin's disc", () => {
+    // Out of the high portal, the ball meets the brick in the row above
+    // 0.14 on, and, turned back toward the portal's middle, leaves the low
+    // one falling, in the same step.
+    const field = fieldFrom([
+      "",
+      "......2",
+      "......@",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "......@",
+    ]);
+    const ball = throwBall(field, 13, 11.4, 0);
+
+    stepField(field);
+
+    expect({
+      below: ball.y > 10.5,
+      falling: ball.dy > 0,
+      events: eventsOf(field),
+    }).toEqual({
+      below: true,
+      falling: true,
+      events: ["portalled", "hit", "portalled"],
+    });
+  });
+
+  it("lets a ball out of it meet portals again once it touches the paddle", () => {
+    const field = fieldFrom(PORTALS);
+    const ball = throwBall(field, 13, PADDLE_TOP - 2, 180);
+    ball.portalled = true;
+
+    stepTimes(field, 15);
+
+    expect({ rising: ball.dy < 0, portalled: ball.portalled }).toEqual({
+      rising: true,
+      portalled: false,
+    });
+  });
+
+  it("lets a ball out of it meet portals again once the paddle is moved into it", () => {
+    const field = fieldFrom(PORTALS);
+    const ball = throwBall(field, 15.5, 27.6, 180);
+    ball.portalled = true;
+    steerField(field, { ...NO_STEER, to: 14 });
+
+    stepField(field);
+
+    expect({ rising: ball.dy < 0, portalled: ball.portalled }).toEqual({
+      rising: true,
+      portalled: false,
+    });
+  });
+
+  it("lets a ball out of its own middle where it has no twin, as no level has it", () => {
+    const field = fieldFrom(sixthRow("......@"));
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 10);
+
+    expect({
+      x: ball.x,
+      above: ball.y < 7.5,
+      portalled: ball.portalled,
+      events: eventsOf(field),
+    }).toEqual({ x: 13, above: true, portalled: true, events: ["portalled"] });
+  });
+
+  it("leaves the bottom face of a brick above it to be met through its cell", () => {
+    const field = fieldFrom(["o", "", "", "", "......o", "......@"]);
+    const ball = throwBall(field, 12.1, 10, 0);
+
+    stepTimes(field, 30);
+
+    expect({
+      broken: brickAt(field, 6, 4).broken,
+      falling: ball.dy > 0,
+      events: eventsOf(field),
+    }).toEqual({ broken: true, falling: true, events: ["broken"] });
+  });
+
+  it("takes no hit from a blast ball's reach", () => {
+    const field = fieldFrom(["o", "", "", "", ".....o@"]);
+    throwBall(field, 11, 12, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 35);
+
+    expect(eventsOf(field)).toEqual(["caught", "broken"]);
   });
 });
 

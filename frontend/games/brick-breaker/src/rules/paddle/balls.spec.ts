@@ -43,6 +43,14 @@ describe("holdBall", () => {
       lastY: PADDLE_TOP - BALL_RADIUS,
     });
   });
+
+  it("lets a ball it rests meet portals again", () => {
+    const ball = { ...createBall(), portalled: true };
+
+    holdBall(ball, createPaddle(), 0);
+
+    expect(ball.portalled).toBe(false);
+  });
 });
 
 describe("followPaddle", () => {
@@ -92,6 +100,18 @@ describe("splitOff", () => {
       heading: expect.closeTo(30) as unknown,
     });
   });
+
+  it.each([true, false])(
+    "puts a copy in play passing over portals as the ball does, %s, as come out of one when it did",
+    (portalled) => {
+      const ball = { ...heading(0, -1), portalled, jumpedAt: 50 };
+      const copy = { ...createBall(), portalled: !portalled };
+
+      splitOff(ball, copy, 30);
+
+      expect([copy.portalled, copy.jumpedAt]).toEqual([portalled, 50]);
+    },
+  );
 });
 
 describe("releaseBall", () => {
@@ -111,6 +131,14 @@ describe("releaseBall", () => {
       ink: 2,
       heading: expect.closeTo(-15) as unknown,
     });
+  });
+
+  it("lets a ball it puts in play meet portals, as one that never went through one", () => {
+    const ball = { ...createBall(), portalled: true, jumpedAt: 50 };
+
+    releaseBall(ball, 7, 4.5, -15, 2);
+
+    expect([ball.portalled, ball.jumpedAt]).toEqual([false, 0]);
   });
 });
 

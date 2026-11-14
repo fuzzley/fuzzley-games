@@ -2523,6 +2523,16 @@ describe("BricksScene", () => {
 
       expect(tailDotsOf(scene)).toEqual([]);
     });
+
+    it("starts afresh where the ball comes out of a portal, though it went into one near", async () => {
+      const { shell, run, scene } = await flyAcross(20);
+      const ball = ballOf(shell.field, 0);
+      Object.assign(ball, { x: 10, y: 14, lastX: 10, lastY: 14, jumpedAt: 1 });
+
+      run.advance(16);
+
+      expect(tailDotsOf(scene)).toEqual([]);
+    });
   });
 
   describe("a streak's step", () => {

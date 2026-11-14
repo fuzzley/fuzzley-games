@@ -25,7 +25,9 @@ import {
   hitBrick,
   isBumper,
   isPlated,
+  isPortal,
   isRound,
+  twinOf,
 } from "../bricks/bricks";
 import { ballKind } from "../catalog/balls";
 import { isNeeded } from "../catalog/bricks";
@@ -33,6 +35,8 @@ import { nextDraw } from "../draws";
 import {
   brickBox,
   cellIndex,
+  cellMiddleX,
+  cellMiddleY,
   columnAt,
   columnMiddle,
   inGrid,
@@ -59,6 +63,7 @@ import {
   LULL_BOUNCES,
   LULL_TURN,
   MAX_CONTACTS,
+  PORTAL_RADIUS,
   ROWS,
 } from "../tuning";
 import type { FieldEventKind } from "./events";
@@ -71,10 +76,11 @@ type Obstacle = Brick | "wall" | "paddle";
 
 /**
  * Says how a contact meets what it touches: it turns the ball, striking a
- * brick, lets the ball pass through a brick it strikes, or turns the ball
- * off what takes no hit there, a plate's underside or a bumper.
+ * brick, lets the ball pass through a brick it strikes, turns the ball off
+ * what takes no hit there, a plate's underside or a bumper, or takes the
+ * ball to a portal's twin.
  */
-type Touch = "turns" | "passes" | "unhurt";
+type Touch = "turns" | "passes" | "unhurt" | "jumps";
 
 /** Gathers what a ball meets at the earliest moment of a move. */
 interface Contacts {
@@ -103,6 +109,8 @@ interface Contacts {
    */
   readonly unhurt: Brick[];
   unhurtCount: number;
+  /** The portal met, the last in the grid of those met at once, else null. */
+  portal: Brick | null;
 }
 
 /** How close two contacts' moments are for the ball to meet both at once. */
@@ -163,6 +171,7 @@ const met: Contacts = {
   count: 0,
   unhurt: [],
   unhurtCount: 0,
+  portal: null,
 };
 
 /**
@@ -177,7 +186,7 @@ export function travel(field: Field, ball: Ball, distance: number): void {
     move.y = ball.y;
     move.dx = ball.dx * remaining;
     move.dy = ball.dy * remaining;
-    findContacts(field);
+    findContacts(field, ball);
     if (met.t === MISSED) {
       ball.x += move.dx;
       ball.y += move.dy;
@@ -206,9 +215,10 @@ export function liftOffPaddle(field: Field, ball: Ball): void {
 /**
  * Sends a ball off the paddle by where it landed, or holds it there while
  * the paddle catches, and starts the streak again; then lends it the seeker
- * if it is due.
+ * if it is due. It meets portals again.
  */
 function meetPaddle(field: Field, ball: Ball): void {
+  ball.portalled = false;
   endStreak(field);
   if (field.mode === "catch") {
     holdBall(ball, field.paddle, ball.x - field.paddle.x);
@@ -235,9 +245,9 @@ function paddleReach(paddle: Readonly<Paddle>, reach: Box): Box {
 /**
  * Gathers into {@link met} what the ball's {@link move} meets first: the
  * walls, the paddle, and the bricks in the cells it passes, a bumper by its
- * disc.
+ * disc, and a portal by its disc unless the ball passes over portals.
  */
-function findContacts(field: Field): void {
+function findContacts(field: Field, ball: Readonly<Ball>): void {
   met.t = MISSED;
   noteBox(LEFT_WALL, SIDE.right, "wall");
   noteBox(TOP_WALL, SIDE.bottom, "wall");
@@ -256,7 +266,13 @@ function findContacts(field: Field): void {
       const brick = field.bricks[cellIndex(column, row)];
       if (!brick || brick.broken) continue;
       if (isBumper(brick)) {
-        noteDisc(column, row, BUMPER_RADIUS, brick);
+        noteDisc(column, row, BUMPER_RADIUS, brick, "unhurt");
+        continue;
+      }
+      if (isPortal(brick)) {
+        if (!ball.portalled) {
+          noteDisc(column, row, PORTAL_RADIUS, brick, "jumps");
+        }
         continue;
       }
       brickBox(column, row, box);
@@ -333,20 +349,22 @@ function noteBox(
 
 /**
  * Notes what the ball's {@link move} meets of a disc of a radius at a
- * cell's middle, a brick that takes no hit, turning the ball as off a
- * circle, about the line from the disc's middle to the ball's.
+ * cell's middle, a brick that takes no hit: a bumper, which turns the ball
+ * as off a circle, about the line from the disc's middle to the ball's, or
+ * a portal, which takes it to its twin.
  */
 function noteDisc(
   column: number,
   row: number,
   radius: number,
   brick: Brick,
+  touch: Touch,
 ): void {
   const x = columnMiddle(column);
   const y = rowMiddle(row);
   const reach = move.r + radius;
   const t = sweepPoint(move, x, y, reach);
-  if (t === MISSED || !noteContact(t, brick, "unhurt")) return;
+  if (t === MISSED || !noteContact(t, brick, touch)) return;
   met.cornerX += (move.x + move.dx * t - x) / reach;
   met.cornerY += (move.y + move.dy * t - y) / reach;
 }
@@ -369,10 +387,14 @@ function noteContact(t: number, what: Obstacle, touch: Touch): boolean {
     met.hard = false;
     met.count = 0;
     met.unhurtCount = 0;
+    met.portal = null;
   }
   if (what === "wall") met.wall = true;
   else if (what === "paddle") met.paddle = true;
-  else if (touch === "unhurt") {
+  else if (touch === "jumps") {
+    met.portal = what;
+    return false;
+  } else if (touch === "unhurt") {
     if (!isAmong(met.unhurt, met.unhurtCount, what)) {
       met.unhurt[met.unhurtCount++] = what;
     }
@@ -403,12 +425,14 @@ function isAmong(
  * mirror off the walls and bricks, unless it passes through all it met,
  * then says which plates and bumpers it met, and strikes each other brick
  * met, and the bricks around each if the balls' hits reach, a plate's among
- * them.
+ * them; last, takes it to a portal's twin if it met one, turned as anything
+ * met with it turned it. A brick met lets it meet portals again.
  *
  * Every brick met is struck before any hit reaches around, so two met at
  * once are struck alike, whichever the grid lists first.
  */
 function turn(field: Field, ball: Ball): void {
+  if (met.count > 0 || met.unhurtCount > 0) ball.portalled = false;
   if (met.paddle) {
     meetPaddle(field, ball);
     return;
@@ -422,11 +446,30 @@ function turn(field: Field, ball: Ball): void {
     const brick = met.bricks[i];
     if (brick) strike(field, ball, brick);
   }
-  if (!ballKind(field.ballKind).reaches) return;
-  for (let i = 0; i < met.count; i++) {
-    const brick = met.bricks[i];
-    if (brick) hitAround(field, brick, ball.x, ball.y);
+  if (ballKind(field.ballKind).reaches) {
+    for (let i = 0; i < met.count; i++) {
+      const brick = met.bricks[i];
+      if (brick) hitAround(field, brick, ball.x, ball.y);
+    }
   }
+  if (met.portal) jump(field, ball, met.portal);
+}
+
+/**
+ * Takes a ball that touched a portal to its twin's middle, going as it
+ * went, to be drawn there from the step's start, and to pass over every
+ * portal until it touches a brick or the paddle. A portal with no twin,
+ * which no level holds, lets it out of its own middle.
+ */
+function jump(field: Field, ball: Ball, portal: Brick): void {
+  const twin = twinOf(field.bricks, portal) ?? portal;
+  ball.x = cellMiddleX(twin.cell);
+  ball.y = cellMiddleY(twin.cell);
+  ball.lastX = ball.x;
+  ball.lastY = ball.y;
+  ball.portalled = true;
+  ball.jumpedAt = field.steps;
+  field.events.add("portalled", ball.x, ball.y, twin.cell);
 }
 
 /** Returns what a brick met that takes no hit records: a bumper's turn, or a plate's. */

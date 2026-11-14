@@ -98,6 +98,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   opened: { flourishes: [], sound: "gates" },
   seeking: { flourishes: [], sound: "seeker" },
   bumped: { flourishes: [], sound: null },
+  portalled: { flourishes: [], sound: null },
 };
 
 /** What a hit on a brick that never breaks calls for. */

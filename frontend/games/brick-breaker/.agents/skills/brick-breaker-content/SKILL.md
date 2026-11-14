@@ -38,6 +38,8 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   | The effects spec    | `src/view/effects/effects.spec.ts`  | Every event's sound and flourishes, and every kind's voice, each written in a record the compiler holds complete                                |
   | The sounds' spec    | `tools/build-sounds.spec.ts`        | The sprite checked in is what `tools/build-sounds.mjs` writes now, its sounds `SOUNDS`, in order                                                |
 
+  The levels spec holds each level to two portals of each pair or none too.
+
 ## A Level
 
 Its block in a set's file:
@@ -53,10 +55,17 @@ Its block in a set's file:
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
   `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `k` key,
   `=` gate,
-  `O` bumper, `.`
+  `O` bumper,
+  `@` and `%` portals, of two pairs, `.`
   none. A `legend` of its own adds characters, each a kind with its hits or
   the capsule a gift gives.
   A level with a gate has a key, whose last opens it.
+  A level has two portals of each pair or none: a ball that touches one
+  leaves the other. Only the shared legend draws a portal, as its pair is
+  the character's. A brick in the row above or below a portal is met at
+  once by a ball coming out of it toward that brick, which, turned while
+  still within the disc, goes straight back through: leave a row between
+  them where a ball is meant to come out into the room.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
@@ -260,7 +269,7 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   for the rule.
 - Any state it keeps on `Brick`, set by its rule's `laid`.
 - If it makes a kind round, a disc at its cell's middle rather than a box,
-  as a bumper's `bumps` does: its kinds join `ROUND`
+  as a bumper's `bumps` and a portal's `jumps` do: its kinds join `ROUND`
   (`src/rules/bricks/bricks.ts`), which `isRound()` reads, so the travel
   leaves its cell open (`boxed` and `hardBoxed`), and the faces beside it
   stay exposed, while `Field.solid` holds it whole, and `inSight()` with

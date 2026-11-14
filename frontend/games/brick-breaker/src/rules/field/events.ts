@@ -40,7 +40,9 @@ export type FieldEventKind =
   /** The paddle lent a ball it met the seeker. */
   | "seeking"
   /** A ball turned off a bumper, which took no hit. */
-  | "bumped";
+  | "bumped"
+  /** A ball touched a portal, and came out of its twin, here. */
+  | "portalled";
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {

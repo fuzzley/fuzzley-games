@@ -70,6 +70,7 @@ import {
   BRICK_WIDTH,
   BUMPER_RADIUS,
   FRIEND_INKS,
+  PORTAL_RADIUS,
 } from "../../rules/tuning";
 import {
   type BricksPalette,
@@ -1204,6 +1205,7 @@ export const BRICK_ART = {
   key: untintedArt("key", keyMarks),
   gate: untintedArt("gate", gateMarks),
   bumper: roundPlaceholderArt("bumper", 7, BUMPER_RADIUS),
+  portal: roundPlaceholderArt("portal", 3, PORTAL_RADIUS),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /**
