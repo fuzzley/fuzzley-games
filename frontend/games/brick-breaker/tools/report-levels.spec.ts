@@ -1,3 +1,4 @@
+import { SEED_STRIDE } from "@fz/dev/report";
 import { recordingPrinter } from "@fz/dev/script";
 import type { AutopilotReport, LevelEntry, Rules } from "./report-levels.mjs";
 import { run } from "./report-levels.mjs";
@@ -10,7 +11,11 @@ Prints how the autopilot plays every level at every preset speed.
   --seeds <n>     Play each level from n seeds of its own (default: from its
                   number alone)
   --height <n>    Play on a field n units tall (default: the shortest)
-  -h, --help      Show this message`;
+  -h, --help      Show this message
+
+Marks: - for a play that didn't clear its level; ! for a time over the last
+bricks longer than the field allows; and, with --seeds on the least field,
++ for a level whose middle time at Relaxed is past 2:00.`;
 
 /** How a spec's level is played: at a speed, from a seed, on a field. */
 type Played = [level: number, speed: string, seed: number, height: number];
@@ -38,8 +43,11 @@ function lost(): AutopilotReport {
  * cleared in 75 seconds, its last bricks in 30.
  */
 function rulesOf(
-  play: (entry: LevelEntry, speed: string) => AutopilotReport = () =>
-    cleared(75),
+  play: (
+    entry: LevelEntry,
+    speed: string,
+    seed: number,
+  ) => AutopilotReport = () => cleared(75),
   played: Played[] = [],
 ): Rules {
   return {
@@ -54,7 +62,7 @@ function rulesOf(
     limitsOf: (height) => ({ level: 600, endgame: 2 * height }),
     playLevel: (entry, speed, { seed, height }) => {
       played.push([entry.number, speed, seed, height]);
-      return play(entry, speed);
+      return play(entry, speed, seed);
     },
   };
 }
@@ -203,6 +211,75 @@ describe("run", () => {
       code: 0,
       last: "4 plays took longer than the spec allows over their level's last bricks (!).",
     });
+  });
+
+  /**
+   * Returns rules whose plays of each level, from its seeds in turn, clear
+   * it in the seconds given: the wall's in `wall`, the keep's in `keep`.
+   */
+  function timedRules(wall: number[], keep: number[]): Rules {
+    return rulesOf((entry, _, seed) => {
+      const times = entry.number === 1 ? wall : keep;
+      return cleared(times[seed % SEED_STRIDE] ?? 0);
+    });
+  }
+
+  it("marks a level whose middle time at Relaxed is past 2:00 with --seeds, by its middle play, at no other speed, but passes", async () => {
+    const rules = timedRules([100, 121, 200], [100, 120, 200]);
+
+    const { code, out } = await ran(["--seeds", "3"], rules);
+
+    expect({ code, out: out.slice(2) }).toEqual({
+      code: 0,
+      out: [
+        " 1 Wall               2:01+  3:20   0:30     0     2:01  3:20   0:30     0",
+        "12 The castle keep     2:00  3:20   0:30     0     2:00  3:20   0:30     0",
+      ],
+    });
+  });
+
+  it("marks a middle time by the seconds it prints", async () => {
+    const rules = {
+      ...rulesOf((entry) => cleared(entry.number === 1 ? 1206 : 1204)),
+      stepSeconds: 0.1,
+    };
+
+    const { out } = await ran(["--seeds", "1"], rules);
+
+    expect(out.slice(2).map((line) => line.slice(0, 27))).toEqual([
+      " 1 Wall               2:01+",
+      "12 The castle keep     2:00",
+    ]);
+  });
+
+  it("marks no middle time on a taller field", async () => {
+    const rules = timedRules([121], [121]);
+
+    const { out } = await ran(["--seeds", "1", "--height", "35"], rules);
+
+    expect(out[2]).toBe(
+      " 1 Wall                2:01  2:01   0:30     0     2:01  2:01   0:30     0",
+    );
+  });
+
+  it("leaves unmarked a middle time of a play that didn't clear its level, with --seeds", async () => {
+    const rules = rulesOf(() => lost());
+
+    const { out } = await ran(["--seeds", "1"], rules);
+
+    expect(out[2]).toBe(
+      " 1 Wall                   -     -   0:30     3        -     -   0:30     3",
+    );
+  });
+
+  it("marks no time past 2:00 without --seeds", async () => {
+    const rules = rulesOf(() => cleared(121));
+
+    const { out } = await ran([], rules);
+
+    expect(out[2]).toBe(
+      " 1 Wall               2:01   0:30       40     0    2:01   0:30       40     0",
+    );
   });
 
   it("holds the last bricks on a taller field to what it allows, marking those longer, but passes", async () => {
