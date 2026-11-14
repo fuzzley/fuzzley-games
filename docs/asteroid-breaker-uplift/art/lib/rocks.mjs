@@ -862,7 +862,7 @@ export function toneAt(light, tones) {
  * @property {Vec3} [light] Another light than the field's.
  * @property {number} [hits] The hits it has taken and held, each a crack more.
  * @property {Lamp[]} [lamps] Lights near it, such as a blast's, each tinting the faces turned to it.
- * @property {"lit" | "normal" | "ink"} [as] What is drawn: the rock lit (the default), its normal map, or its inks alone, unlit, which is what a lit sprite's texture holds.
+ * @property {"lit" | "normal" | "ink" | "glow"} [as] What is drawn: the rock lit (the default); its normal map; its inks alone, unlit, with nothing it gives off, which is what a lit sprite's texture holds; or only what it gives off, its halos and its glowing seams, which no light falls on.
  */
 
 /**
@@ -990,8 +990,11 @@ export function rockSvg(
     return place(parts.join(""));
   }
   if (as === "ink") flat = true;
+  /** Whether what it gives off is drawn, and whether its body is. */
+  const emits = as !== "ink";
+  const body = as !== "glow";
   // What it gives off shows behind it and around it.
-  for (const glow of rock.glows) {
+  for (const glow of emits ? rock.glows : []) {
     const color = glow.tone === "core" ? inks.core : inks.crystal;
     const [x, y] = at(glow.at);
     const id = `glow-${glow.tone}-${palette.id}`;
@@ -1000,7 +1003,7 @@ export function rockSvg(
     );
     void color;
   }
-  for (const stroke of fine ? rock.aura : []) {
+  for (const stroke of fine && body ? rock.aura : []) {
     parts.push(
       polyline(
         stroke.points.map(at),
@@ -1013,7 +1016,7 @@ export function rockSvg(
       ),
     );
   }
-  if (outline) {
+  if (outline && body) {
     const width = Math.max(2.5, 0.28 * px);
     const edged = [
       rock.rim,
@@ -1031,7 +1034,7 @@ export function rockSvg(
       );
     }
   }
-  for (const facet of rock.facets) {
+  for (const facet of body ? rock.facets : []) {
     const set = tones[facet.part];
     let fill = flat ? set.ink : toneAt(litBy(facet.normal, turn, light), set);
     if (!flat && lamps.length > 0) {
@@ -1067,7 +1070,7 @@ export function rockSvg(
       }),
     );
   }
-  if (hits > 0) {
+  if (hits > 0 && body) {
     for (const crack of cracksOf(rock, hits)) {
       const line = crack.map(at);
       parts.push(
@@ -1097,6 +1100,7 @@ export function rockSvg(
         (stroke.tone !== "core" && stroke.width < 0.06))
     )
       continue;
+    if (stroke.tone === "core" ? !emits : !body) continue;
     const color = toneOf[stroke.tone];
     if (stroke.tone === "core") {
       parts.push(
@@ -1123,7 +1127,7 @@ export function rockSvg(
       ),
     );
   }
-  for (const dot of fine ? rock.dots : []) {
+  for (const dot of fine && body ? rock.dots : []) {
     const [x, y] = at(dot.at);
     parts.push(circle(x, y, Math.max(0.8, dot.r * scale), toneOf[dot.tone]));
   }

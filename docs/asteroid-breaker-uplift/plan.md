@@ -381,17 +381,25 @@ it rests on.
   a semitone a break and stops at the eighth, before either of its last
   two steps.
 - **Takes.** Anything heard often has three to five takes, and the game
-  varies each play a little more: up to 40 cents either way and 1.5 dB.
+  varies each play of a noisy sound a little more: up to 40 cents either
+  way and 1.5 dB. A tuned sound varies by its takes alone, so it stays in
+  key.
+- **The gun stays dry, and a burst ends with air.** A shot is short and
+  nearly dry, since seven a second would smear a room. When the fire stops,
+  one tail plays: the last shot's echo.
 - **Six levels are the mix** (`LEVELS` in `sound/build.mjs`): a shot's
   tick sits 16 dB under a blast, so nothing needs turning down in the
   game, and a crowd of breaks stays under the events that matter.
 - **A phone must still hear it.** Every sound but a bed keeps 35% of its
   energy above 300 Hz, and the build warns of one that doesn't.
 - **The voice.** Eight short calls, each with two or three takes, a
-  source like a small reed through two moving resonances, between 500 and
-  1,600 Hz. It speaks at a dash, a near miss, a rescue, being knocked
-  loose, a wave cleared and a stray's arrival, and never twice in two
-  seconds.
+  source like a small reed through two or three moving resonances, between
+  500 and 1,600 Hz. It speaks at a near miss, a rescue, being knocked
+  loose, a wave cleared and a stray's arrival, at one dash in three, and
+  never twice in four seconds. The research's makers of such voices agree
+  on one thing: fewer than you think.
+- **The comet's warning gets faster, not louder.** The research on
+  warnings has rate carrying urgency and loudness carrying annoyance.
 - **The beds.** One loop a sector, 16 s, in stereo, 12 dB under a shot,
   and two layers over it that fade in with static: a pulse from step two
   and a shimmer at step three. Muted by its own setting.
@@ -400,14 +408,16 @@ How the game plays them is as much of the uplift as the sounds are:
 
 | Rule                 | What                                                                                              |
 | -------------------- | ------------------------------------------------------------------------------------------------- |
-| Takes in turn        | A sound with takes plays the next one each time, never the same twice running                     |
-| Variation            | ±40 cents and ±1.5 dB a play, for every sound at the levels `tick` and `small`                    |
-| Place                | A sound is panned by where it happened across the field, to 60% of full left or right             |
-| Voices               | Four of one sound at once, eight of one family, the oldest giving way                             |
-| Once a frame         | Each sound plays once a frame at most, at the highest it was asked for, as now                    |
-| Ducking              | A sound at the level `huge` turns the `tick` and `small` levels down 6 dB for a third of a second |
-| The last word        | A limiter on everything, so thirty breaks under a blast never clip                                |
-| The voice's patience | The fuzzball speaks at most once in two seconds, the rarer call winning                           |
+| Takes in turn        | A sound with takes plays the next one each time, never the same twice running                           |
+| Variation            | ±40 cents and ±1.5 dB a play, for a noisy sound at the levels `tick` and `small`; never a tuned one     |
+| Place                | A sound is panned by where it happened across the field, to 60% of full left or right, its lows less    |
+| Voices               | Four of one sound at once, eight of one family, twenty-four in all, the oldest and quietest giving way  |
+| Once a frame         | Each sound plays once a frame at most, at the highest it was asked for, as now                          |
+| A crowd              | More than three rocks broken in one frame play as the two largest and one `break-cluster`               |
+| Ducking              | A sound at the level `huge` turns the `tick` and `small` levels down 6 dB for a third of a second       |
+| The last word        | A limiter on everything, so thirty breaks under a blast never clip; busy play at about -17 LUFS         |
+| The voice's patience | The fuzzball speaks at most once in four seconds, the rarer call winning                                |
+| A phone              | Sound starts at the first press; an iPhone on silent stays silent; a setting sums the two ears into one |
 
 ### Play
 
@@ -660,12 +670,18 @@ The game's layers stay as they are: rules, view, scene, app.
   every game drawn with Phaser then has. The sound lab plays the new
   sounds beside the old.
 - **The light.** A rock's faces must take the light as it turns. Two
-  ways, and a spike decides between them before the slice is planned:
-  _a normal map,_ which Phaser 4 lights with `setLighting(true)`, takes
-  blasts as lights for nothing and costs a second atlas and a batch; or
-  _turns baked ahead,_ each outline drawn lit at twelve turns and shown at
-  the nearest, turned the last few degrees, which needs nothing new of
-  the renderer and four times the atlas. The plan's geometry serves both.
+  ways, and a spike decides between them before the slice is planned.
+  _A normal map:_ Phaser 4.2.1, which the game is built on, lights an
+  object with `setLighting(true)`, takes a texture made at run time as
+  another's normal map (`Texture.setDataSource()`), and holds as many
+  lights as the game's config says (`maxLights`), added with
+  `lights.addLight()`. A blast is then a light for nothing. It costs a
+  second atlas and a batch, and it is unused anywhere in this repository,
+  so its cost on a phone and how it turns a spinning sprite's normals are
+  what the spike must show. _Turns baked ahead:_ each outline is drawn lit
+  at twelve turns and shown at the nearest, turned the last few degrees.
+  It needs nothing new of the renderer and several times the atlas, and a
+  blast's light becomes a tint. The plan's geometry serves both.
 - **Glow.** One soft white disc, drawn once into a canvas texture as the
   points' lettering is, tinted and scaled for every halo. The drawing
   vocabulary needs no gradient.
@@ -722,8 +738,9 @@ is, and the autopilot's report is run again after each.
   should start with the user's ear on it. Any sound may need its recipe
   changed, and a few may need a different idea.
 - **The light may cost more than it looks.** Phaser 4's lighting is
-  unused in this repository, and its skills don't say how a texture made
-  at run time gets a normal map. Hence the spike, and the second way.
+  unused in this repository. Its types say a texture made at run time can
+  be another's normal map; nothing here has tried it. Hence the spike, and
+  the second way.
 - **The crew in tow makes the game kinder.** A hit that can be undone is
   worth less than a ship lost. The balance is the strays: how often one
   comes, and how long a loose fuzzball waits. The autopilot can't judge
