@@ -2,7 +2,7 @@
 // level at each speed, as Asteroid Breaker's `report:waves` and Brick
 // Breaker's `report:levels` print theirs.
 
-import { type Stop, misread } from "./script.ts";
+import { type Stop, readCount } from "./script.ts";
 
 /** A wave or a level a report plays: its place in the game, from 1, and its name. */
 export interface ReportEntry {
@@ -150,15 +150,7 @@ export function readSeeds(
   given: string | undefined,
   usage: string,
 ): number | undefined | Stop {
-  if (given === undefined) return undefined;
-  const seeds = Number(given);
-  if (!Number.isInteger(seeds) || seeds < 1) {
-    return misread(
-      `--seeds takes a whole number from 1, not "${given}".`,
-      usage,
-    );
-  }
-  return seeds;
+  return readCount("seeds", given, usage);
 }
 
 /**

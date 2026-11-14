@@ -127,6 +127,26 @@ export function misread(problem: string, usage: string): Stop {
 }
 
 /**
+ * Returns the whole number from 1 an option is given, none where it isn't,
+ * or, for one that isn't, the stop that says so.
+ */
+export function readCount(
+  option: string,
+  given: string | undefined,
+  usage: string,
+): number | undefined | Stop {
+  if (given === undefined) return undefined;
+  const count = Number(given);
+  if (!Number.isInteger(count) || count < 1) {
+    return misread(
+      `--${option} takes a whole number from 1, not "${given}".`,
+      usage,
+    );
+  }
+  return count;
+}
+
+/**
  * Returns whether what a script read, of its command line or of a value on
  * it, is a stop rather than what it asked for.
  */

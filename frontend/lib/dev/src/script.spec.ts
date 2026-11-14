@@ -9,6 +9,7 @@ import {
   isStop,
   misread,
   readArgs,
+  readCount,
   recordingPrinter,
   stopWith,
   wrapped,
@@ -95,6 +96,25 @@ describe("misread", () => {
       message: `--count takes a number.\n\n${USAGE}`,
     });
   });
+});
+
+describe("readCount", () => {
+  it("reads a whole number from 1", () => {
+    expect(readCount("jobs", "3", USAGE)).toBe(3);
+  });
+
+  it("reads none where the option isn't given", () => {
+    expect(readCount("jobs", undefined, USAGE)).toBeUndefined();
+  });
+
+  it.each(["0", "-1", "2.5", "two", ""])(
+    "stops, naming the option and quoting what it was given, for %j",
+    (given) => {
+      expect(readCount("jobs", given, USAGE)).toEqual(
+        misread(`--jobs takes a whole number from 1, not "${given}".`, USAGE),
+      );
+    },
+  );
 });
 
 describe("isStop", () => {

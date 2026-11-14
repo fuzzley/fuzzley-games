@@ -28,7 +28,7 @@ built:
 | 1    | 3   | Margins for the specs nearest Vitest's 5 s                            | done    |
 | 2    | 4   | Chrome's launch limit raised                                          | done    |
 | 3    | 9   | No HTML coverage report on CI                                         | done    |
-| 4    | 2   | The test phase starts the slowest suites first                        | pending |
+| 4    | 2   | The test phase starts the slowest suites first                        | done    |
 | 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes             | pending |
 | 6    | 5   | Prettier's experimental CLI with its cache                            | pending |
 | 7    | 6   | Yarn and its packages cached on CI                                    | pending |
@@ -144,3 +144,103 @@ The second review, of the answers, and its answers:
 3. No spec held the signal half of the check. Fixed: on every platform but
    Windows, a spec runs a shell script that kills itself as the Chrome.
 4. The library's `AGENTS.md` and this log's first bullet lagged. Fixed.
+
+### 2026-11-14: the slowest suites first (#2)
+
+`build(dev): run the workspaces' tests the most spec files first, as foreach starts them by name, and choose them by name for CI's test jobs`
+(step 4):
+
+- Yarn's `foreach` sorts the workspaces it runs by name, whatever its
+  options (`workspace-tools`' `foreach`, in Yarn 4.18.1's bundle), and
+  Yarn's shell runs a job behind `&` but has no `wait` and drops its exit
+  code, so no root script alone can start the Solitaire Collection first.
+  `yarn test` and `yarn test:coverage` now run `tools/run-tests.mjs`, on
+  `@fz/dev/workspaces`.
+- The order is by spec files, the most first: Solitaire 172, Brick Fuzz Pop
+  147, Asteroid Breaker 95, Brick Breaker 77, `@fz/phaser` 60, then under
+  30 each, which is the order of their times on CI's one worker but for
+  Brick Fuzz Pop and Asteroid Breaker, both heavy. It needs no times kept
+  between runs, so a fresh clone and CI order alike.
+- Each runs `yarn run <script> --maxWorkers=<n>` through the shell, `n`
+  the cores over the lanes as a number: Windows finds Yarn's `yarn.cmd`
+  only through its shell, which reads a `%` as the start of a variable.
+- The other half of #2, a heavy suite given every worker when it runs
+  alone, is left out here: started first, the four longest end within 20 s
+  of each other on the devbox, and the shorter ones fill the lanes behind
+  them. On CI, each heavy suite gets a runner's four workers in its own
+  test job (step 8).
+- Tried first, and dropped: the four heavy suites one after another, each
+  with every worker, then the rest in four lanes. Alone on 24 workers they
+  took 41 to 56 s each, 185 s in all, where all fourteen took 91 s with
+  `foreach`: Vitest doesn't use that many workers well.
+- Measured on the devbox's 24 cores, `yarn test:coverage` took 87 s,
+  against 91 s with `foreach`: the four heavy suites start together and are
+  done by 64 s. The 4-core stand-in is measured with the rest in step 11.
+
+The review, and the answers:
+
+1. The runner started no workspace after one failed, "as Yarn's `foreach`
+   does", but only a sequential `foreach` does: `--parallel` queues every
+   workspace at once and stops only for an exit of 130, so the old
+   `yarn test` ran all fourteen and reported every failure. Stopping would
+   have hidden failures behind one flaky timeout. Fixed: every workspace
+   runs, each failure is named, and the run exits 1.
+2. The script's own logic (its command line, the workers, the printing and
+   the code) had no spec. Fixed: it is `runTestsScript()` in
+   `@fz/dev/workspaces`, taking a `Printer`, the cores and the command
+   runner, as `runLayoutScript()` takes its own, with specs over a fake
+   runner; `tools/run-tests.mjs` is one call.
+3. `Math.floor(cores / jobs)` gave one worker fewer than Vitest's `25%` on
+   6, 10, 14, 18 and 22 cores, as Vitest rounds a share. Fixed: rounded.
+4. The usage named `node tools/run-tests.mjs`, which needs a `yarn` on the
+   path that only a Yarn script is sure of. Fixed: it names `yarn test`
+   first, which Yarn hands the options.
+5. `yarn test --reporter=dot` reached every Vitest before and was refused
+   now, and a script no workspace has ran nothing and passed. Fixed: what
+   follows `--` reaches each Vitest, and a script, or a name, no workspace
+   has stops the run with 2.
+6. `script in scripts` took `toString` for a script. Fixed:
+   `Object.hasOwn()`, with a spec.
+7. The specs couldn't tell a folder's name from its path in the filter that
+   leaves out `node_modules/`, and a helper's doc named a clock it didn't
+   have. Fixed: a nested `node_modules/` in the spec, the parameter named
+   `name`, and the helper's doc rewritten.
+8. `workspaces.ts` sat outside the lint fence that keeps the scripts'
+   helpers from loading Vite. Fixed, and `dirname()` for `join(…, "..")`.
+
+Added with the answers, since step 8's test jobs need it: `--only` and
+`--except`, which choose workspaces by name, so a CI job runs two heavy
+suites one after another with every core (`--only a,b --jobs 1`) and
+another the rest (`--except …`), where a workspace added later lands. On
+the devbox, `yarn test` took 67 s.
+
+The second review, of the answers, and its answers:
+
+1. What follows `--` was joined with spaces into a shell's command line,
+   so the shell split it again: `-t "deals a card"` would have reached
+   Vitest as three words, and a `|` or a `*` would have been the shell's.
+   `foreach` handed each as one word. Fixed: `shellQuoted()` quotes each
+   for the platform's shell, single quotes outside Windows and double on
+   it, and the run stops with 2 for an argument Windows' shell can't be
+   handed, with a `%` or a `"`. A spec runs quoted arguments through the
+   real shell and reads them back unchanged.
+2. Specs passed with the summary's sort removed, the table's failure mark
+   gone or the floor of one worker dropped. Fixed: a spec runs two lanes
+   where the first workspace runs longest and fails, so outputs come in
+   the order they end and the table in the order they started, marked;
+   another hands one core to three jobs; `-j`, a list with spaces and a
+   stray comma, and `--only` given twice each have one.
+3. The cores were shared by `--jobs` even where fewer ran, so
+   `--only solitaire` ran on a quarter of them. Fixed: they are shared by
+   the workspaces that run at once.
+4. A stray comma made an empty name, and `--only` given twice kept the
+   last. Fixed: empty names are dropped, and both options take several.
+5. `--jobs` was read by hand where `report.ts`'s `readSeeds()` reads a
+   count, and `chosenOf()` returned its problem as a string. Fixed:
+   `readCount()` in `@fz/dev/script` reads both, `readSeeds()` through it,
+   and `chosenOf()` returns a `Stop`.
+6. A command that couldn't start rejected the whole run, and the other
+   workspaces' output was lost. Fixed: it counts as a failure, printed
+   under its workspace's header.
+7. Two `failed` of different types in one function, and the clock missing
+   from `TestsScriptIo`'s doc. Fixed.
