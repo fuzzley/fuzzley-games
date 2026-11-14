@@ -295,10 +295,10 @@ coverage ran at the commit before.
 
 Review (a fresh reviewer, on the staged change):
 
-1. `+` held a taller field to the least field's 2:00, so `--seeds 20
---height 45`, as the skill suggests in turn, would mark most levels.
-   Fixed: `+` marks only on the least field, said so in the usage,
-   `AGENTS.md` and the skill, with a spec at `--height 35`.
+1. `+` held a taller field to the least field's 2:00, so
+   `--seeds 20 --height 45`, as the skill suggests in turn, would mark
+   most levels. Fixed: `+` marks only on the least field, said so in the
+   usage, `AGENTS.md` and the skill, with a spec at `--height 35`.
 2. Every seed of a spec's level played alike, so a mark judged by the
    longest or the first play would pass. Fixed: the spec's rules hand each
    play its seed, and the spec plays 100, 121 and 200 seconds (marked) and
@@ -538,3 +538,39 @@ Review (a fresh reviewer, on the staged change):
 The reviewer also named, as fine, a blast's reach that breaks a needed
 brick resetting the count but not ending the ball's seeking; it is
 written under the choices above.
+
+### 2026-11-14: R1's review nits
+
+- `tools/report-levels.mjs`: `Game.tallerField`'s doc says `+` marks
+  nothing on such a field.
+- `tools/report-levels.spec.ts`: `timedRules()` sits at the module's top
+  level with the other helpers, takes `readonly number[]`, and throws for
+  a seed it has no time for rather than playing it in no time, so a spec
+  that asks for more seeds than it gives fails loudly.
+- This log: the R1 report entry's first review item no longer breaks the
+  code span `--seeds 20 --height 45` across two lines.
+- Before this commit the branch was rebased onto `brick-breaker-uplift`
+  (9b0f4fed, with P2's ready card and L1's `@fz/phaser/bricks`). The one
+  collision, the cards' paragraph in `AGENTS.md`, kept both sides: P2's
+  ready card and R2's line for double pay. Nothing on the new base touches
+  `src/rules` or `src/testing`, so the reports above stand. P2's bench and
+  panel specs (`src/app/panels/`) counted the specs' eight levels, where
+  double pay's spec level Dare makes nine: they count nine now, a change
+  folded into the double pay commit, where Dare came in.
+
+Checks, on the rebased branch with this change: the workspace's `lint`,
+`typecheck` and `test` (63 files, 2,300 specs, 12.8 s with six workers,
+P2's specs among them), the root's `lint`, and coverage of `pure` and
+`dom` on the rebased tree, at its floors (2,102 specs).
+
+Review (a fresh reviewer, on the staged change):
+
+1. This entry said the panel specs' count was folded into the double pay
+   commit while it still sat in a `fixup!` commit on top, leaving the two
+   commits below it failing those specs. Answered: the fixup is folded in
+   with `git rebase --autosquash brick-breaker-uplift` right after this
+   commit, and the panel specs were run again at the rebuilt double pay
+   commit.
+2. The entry had no checks or review, as the others do. Fixed: these.
+3. `tallerField`'s description had grown to one long line, where the
+   file wraps a long property's with an indented line. Fixed: wrapped so.

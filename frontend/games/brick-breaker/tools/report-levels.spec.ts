@@ -68,6 +68,23 @@ function rulesOf(
 }
 
 /**
+ * Returns rules whose plays of each level, from its seeds in turn, clear
+ * it in the seconds given: the wall's in `wall`, the keep's in `keep`.
+ */
+function timedRules(wall: readonly number[], keep: readonly number[]): Rules {
+  return rulesOf((entry, _, seed) => {
+    const times = entry.number === 1 ? wall : keep;
+    const time = times[seed % SEED_STRIDE];
+    if (time === undefined) {
+      throw new Error(
+        `No time for seed ${String(seed)} of level ${String(entry.number)}.`,
+      );
+    }
+    return cleared(time);
+  });
+}
+
+/**
  * Returns the code the report exits with for a command line, over some
  * rules, and the lines it printed, as its output and as what went wrong.
  */
@@ -212,17 +229,6 @@ describe("run", () => {
       last: "4 plays took longer than the spec allows over their level's last bricks (!).",
     });
   });
-
-  /**
-   * Returns rules whose plays of each level, from its seeds in turn, clear
-   * it in the seconds given: the wall's in `wall`, the keep's in `keep`.
-   */
-  function timedRules(wall: number[], keep: number[]): Rules {
-    return rulesOf((entry, _, seed) => {
-      const times = entry.number === 1 ? wall : keep;
-      return cleared(times[seed % SEED_STRIDE] ?? 0);
-    });
-  }
 
   it("marks a level whose middle time at Relaxed is past 2:00 with --seeds, by its middle play, at no other speed, but passes", async () => {
     const rules = timedRules([100, 121, 200], [100, 120, 200]);
