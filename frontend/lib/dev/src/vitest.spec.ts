@@ -296,8 +296,12 @@ async function placed(
 }
 
 describe("coverage", () => {
-  it("measures every .ts file under src/ with V8, as text and HTML", () => {
-    const settings = coverage({ thresholds: THRESHOLDS });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("measures every .ts file under src/ with V8, as text and HTML off CI", () => {
+    const settings = coverage({ thresholds: THRESHOLDS }, {});
 
     expect(settings).toEqual({
       provider: "v8",
@@ -305,6 +309,26 @@ describe("coverage", () => {
       include: ["src/**/*.ts"],
       thresholds: THRESHOLDS,
     });
+  });
+
+  it("reports as text alone on CI, where nothing reads the HTML", () => {
+    const settings = coverage({ thresholds: THRESHOLDS }, { CI: "true" });
+
+    expect(settings.reporter).toEqual(["text"]);
+  });
+
+  it("writes the HTML where CI is anything but true", () => {
+    const settings = coverage({ thresholds: THRESHOLDS }, { CI: "false" });
+
+    expect(settings.reporter).toEqual(["text", "html"]);
+  });
+
+  it("reads CI from the process unless handed an environment", () => {
+    vi.stubEnv("CI", "true");
+
+    const config = nodeTests({ thresholds: THRESHOLDS });
+
+    expect(config.test?.coverage).toMatchObject({ reporter: ["text"] });
   });
 
   it("leaves Vitest's exclusions alone when it is given none", () => {

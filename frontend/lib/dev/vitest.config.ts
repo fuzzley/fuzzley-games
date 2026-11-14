@@ -11,6 +11,6 @@ export default defineConfig(
       "src/sound_lab_page.ts",
       "src/sound_lab_notes.ts",
     ],
-    thresholds: { statements: 93, branches: 95, functions: 95, lines: 93 },
+    thresholds: { statements: 96, branches: 95, functions: 97, lines: 96 },
   }),
 );
