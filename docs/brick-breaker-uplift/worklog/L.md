@@ -1515,3 +1515,134 @@ The review (a fresh agent), each comment and its answer:
 
 These answers correct the change rather than reshape it, so no second
 review.
+
+### 2026-11-14: the slider, and a brick's move carried along its slide
+
+`feat(brick-breaker): draw the slider's chevrons the way it heads, and carry
+a brick's pop along its slide` (commit 2 of L7).
+
+- `brick_art.ts` draws the slider on its tint's slab with the kit's three
+  chevrons across its middle (`CHEVRONS`), pointing the way it heads, each
+  a line round at its ends and its point: the one toward that end lit in
+  the marks' color, the two trailing it in its tint's trail. A frame for
+  each heading in each tint, `slider-right-N` and `slider-left-N`
+  (`SLIDER_FRAMES`), named by `Brick.heading` (`wayOf()`), 1 right and -1
+  left, throwing for any other, as no level lays one. K3's `placeholderArt()` goes with its last user; How to play's
+  picture is the slider heading right, from the same frames.
+- `palette.ts`: `sliderTrails`, each tint 45% over the marks' color
+  (`SLIDER_TRAIL`).
+- `BrickPainter.slide()` carries the move the brick had under way in the
+  cell it left, as far as it has come, into the cell it stepped into, in
+  place of any move left there, and leaves the cell it left at its size
+  (`carryMove()`). A train's slides come lead first, as the field records
+  them since K3, so each slider's move is carried on before the one behind
+  it takes its cell. K3's point, that a pop or a regrowth on a slider
+  stays with the cell it left, holds of the painter but not of play: a
+  slider breaks at its one hit (`hits: 1`, which the legend can't raise,
+  and every ball takes a hit or more) and never grows back, so it never
+  records `hit` or `grow`. What reaches play is the cell it steps into: a
+  brick there that held a hit and broke while it swelled, at two balls'
+  hits or a blast's and a ball's within `POP_MS`, left its swell running,
+  which then swelled the slider that stepped in. The carry stills that,
+  and carries a slider's own move as the brief asks, for whatever kind
+  holds a hit among the events the painter is handed.
+- Specs: the art spec holds the lit chevron at the end the slider heads,
+  for either heading, its ends and point where the kit puts them, the two
+  trailing it in the trail's ink about the brick's middle and a third of
+  the way, six lines none thinner than a CSS pixel at a phone's unit, a
+  name of its own for each heading in each tint, a slider heading nowhere
+  throwing, and `brickColor()` the tint for either heading. The palette spec holds the trail at 45% over the
+  marks. The contrast spec holds the trailing chevrons to 2:1 against their
+  tint in every palette (the lit one is the marks' color, already held
+  against every brick). The scene spec, through `stepSlidersAfter()`,
+  which steps a pictured field of sliders to its beat after what a spec
+  plays on it: a pop under way on a
+  slider heading either way carried into the cell it slides into, the cell
+  it left at its size, and settled once `POP_MS` is out; a pop on a train's
+  last slider carried a cell on and no further; and, through the rules, a
+  tough brick's swell stilled in the cell a slider steps into after it
+  broke. Each line of `carryMove()`, and its call's `cell - way`, has a
+  spec that fails without it.
+- Docs: the workspace's `AGENTS.md` (`sliderTrails`, the contrast spec, the
+  slider's art, its frame by its heading, `BrickPainter` carrying a move
+  along the slide) and the content skill (a look by its heading, and the
+  moving trait's `slid`, lead first, with its way, which `BrickPainter`
+  slides a brick's picture and its move by).
+
+Choices, where the plan was silent or the kit fell short:
+
+- **Nothing of Machines' kinds is left out under 30 CSS px wide,** the
+  slider's chevrons no more than a bumper's ticks: at units of 11 and 12
+  CSS px, drawn as SVG in every palette, the three chevrons stay a CSS pixel
+  wide and read as three, and the lit one shows the heading. Leaving them
+  out would leave a phone's player a slider they can't tell from a brick,
+  or the way it heads.
+- **No rail under the slider,** where the kit draws one across its cell
+  (`rail()`): a brick's frame slides with it, so a rail drawn in it would
+  slide too, and the field draws nothing between bricks. `sliderMarks()`
+  says so.
+- **The trail is 45% of the tint over the marks,** where the kit's is 55%:
+  at 55% the least of them, over the four palettes, fell to 1.78:1
+  against the slider; at 45% the least is 2.05:1, in Soft pastel.
+- **The frames are named by the way the slider heads, not by its step,**
+  as `Brick.heading` is all the look reads; the slide itself is the
+  painter's offset.
+
+Added outside stream L's files: in `src/scene/bricks_scene.spec.ts`,
+`stepSlidersAfter()` and `popAt()` after `stepSlider()`, `Field` to an
+import, and three specs, the first run for each heading, before "slides a
+slider the way it stepped"; a sentence of the content skill's moving trait
+(K's).
+
+Checks: the workspace's lint, typecheck and tests (77 files, 3,811 specs),
+and its coverage, rules and view at their floor (`brick_painter.ts`, under
+`src/scene/`, is not floored; what it leaves uncovered is its guards and
+`??` fallbacks), and the root's lint under the lock. The atlas at unit 54
+and 3× is 1176 × 1412, 271 frames, inside 4096. After the review's
+answers: the workspace's lint, typecheck, tests (77 files, 3,814 specs) and
+coverage again, and the root's lint under the lock.
+
+In the browser, on port 9104: Pinball, Conveyor and Wormhole at 1280 × 720
+at 2× in Midnight blue and Soft pastel, and at 844 × 390 at 3× (a phone,
+landscape, by touch) in Casino night and Classic felt. Every bumper,
+portal and slider read whole, the Ready cards and the right panel's In this
+level picturing each; trains of sliders turned at the walls.
+A slider mid-step with a pop on it, which play never makes, so the hit was
+put in the field's events: on Conveyor, a hit on every other slider just
+before a beat and the loop held 25 ms into the slide, the popped ones
+swollen at the cells they slid into. No errors or warnings in
+the console. `/tmp/l7-machines.png` is that frame.
+
+The review (a fresh agent), each comment and its answer:
+
+1. _No slider ever holds a hit or grows back, so `carryMove()` never
+   carries anything in play; the specs inject a `hit` the rules never
+   record, and what it changes in play, stilling the cell a slider steps
+   into, has no spec._ Checked and true (`catalog/bricks.ts`, `hitBrick()`).
+   Kept the carry, which the brief asks for and which costs nothing, and
+   added a spec through the rules: a tough brick hit twice beside a slider,
+   swelling then broken, and the slider that steps in at its size. The
+   painter's docs, `AGENTS.md`, the content skill and this entry say what
+   it does in play now.
+2. _The carry specs only hold a slider heading right, so `cell - 1` would
+   pass._ Fixed: the spec runs for either heading.
+3. _`wayOf()` takes any heading but a negative one for right, where
+   `brickFrame()` throws for a brick no level lays._ Fixed: it throws, and
+   a spec holds it.
+4. _The two scene specs repeated `stepSlider()`'s setup; let it take the
+   picture and what to play before the beat._ Fixed with a helper of L's
+   own beside it, `stepSlidersAfter()`, since K3's `stepSlider()` may only
+   be added to; it draws what is played for half a pop, so a swell is under
+   way as the sliders step (which also let the new spec catch the cell left
+   swollen).
+5. _Half the art spec at a phone's unit repeated the spec of every brick's
+   lines a CSS pixel wide._ Fixed: it holds only that all three chevrons
+   are drawn.
+6. _`sliderMarks()` took a number named `way` beside the `SliderWay`
+   names; `Math.max()` found the lit chevron indirectly; the rail's
+   absence was only in this log; the skill said each brick a train moves
+   records `slid`._ Fixed: `heading`, `middles.at(-1)`, a paragraph of
+   `sliderMarks()`'s doc, and "each slider".
+
+These answers correct the change rather than reshape it, so no second
+review.

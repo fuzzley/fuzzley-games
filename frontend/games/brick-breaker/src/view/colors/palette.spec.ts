@@ -111,6 +111,24 @@ describe("bricksPalette", () => {
   });
 
   it.each(["light", "dark"] as const)(
+    "trails a slider's lit chevron with its tint at 45% over the marks' color, in a %s palette",
+    (mode) => {
+      const { sliderTrails } = bricksPalette(
+        { ...ROLES, panel: "#102030" },
+        mode,
+      );
+
+      expect({
+        trail: sliderTrails[4],
+        tints: sliderTrails.length,
+      }).toEqual({
+        trail: mixColors(TILE_INKS[mode][4] ?? NaN, 0x102030, 0.45),
+        tints: TINTS,
+      });
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
     "lays a regrowing brick's earth in the amber tint, in a %s palette",
     (mode) => {
       expect(bricksPalette(ROLES, mode).bricks.regrow).toBe(TILE_INKS[mode][2]);

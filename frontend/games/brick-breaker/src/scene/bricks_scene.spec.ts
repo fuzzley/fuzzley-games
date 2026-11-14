@@ -20,7 +20,7 @@ import { hitBrick } from "../rules/bricks/bricks";
 import { catchCapsule } from "../rules/bricks/capsules";
 import type { Place } from "../rules/levels/levels";
 import type { Ball } from "../rules/paddle/balls";
-import { reshapeField } from "../rules/field/field";
+import { type Field, reshapeField } from "../rules/field/field";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
 import { type Steer, paddleTopOf } from "../rules/paddle/paddle";
 import { stepsIn } from "../rules/stepper";
@@ -514,6 +514,32 @@ async function stepSlider(
   board.run.advance(DROP_IN_MS);
   stepTimes(playWithoutBall(board.shell.field), stepsIn(SLIDER_BEAT_MS));
   return board;
+}
+
+/**
+ * Runs the scene on a field of sliders, landed, plays `before` on it and
+ * draws it for half a pop, so a swell it starts is under way, then steps
+ * the field to its beat, at which the sliders step a cell; the scene has
+ * drawn no frame since.
+ */
+async function stepSlidersAfter(
+  picture: readonly string[],
+  before: (field: Field) => void,
+): Promise<Board> {
+  const board = await startBoard((shell) => {
+    shell.showField(picture);
+  });
+  board.run.advance(DROP_IN_MS);
+  const field = playWithoutBall(board.shell.field);
+  before(field);
+  board.run.advance(POP_MS / 2);
+  stepTimes(field, stepsIn(SLIDER_BEAT_MS));
+  return board;
+}
+
+/** Records a hit a cell's brick held, as a ball there would. */
+function popAt(field: Field, cell: number): void {
+  field.events.add("hit", cellMiddleX(cell), cellMiddleY(cell), cell);
 }
 
 /** Returns how far above its place, and how faded, each of the spec's two bricks is drawn. */
@@ -2518,6 +2544,66 @@ describe("BricksScene", () => {
         partway: sliding > 0 && sliding < 2,
         landed: leftOfPlace(scene, cellIndex(1, 0)),
       }).toEqual({ partway: true, landed: 0 });
+    });
+
+    // A slider breaks at its one hit and never grows back, so no move is
+    // under way on one in play; the painter carries one all the same, as
+    // it is handed the field's events, whatever kind holds a hit.
+    it.each([
+      { way: "right", picture: [">"], from: 0, into: 1 },
+      { way: "left", picture: [".<"], from: 1, into: 0 },
+    ])(
+      "carries a pop under way on a slider heading $way into the cell it slides into, leaving the cell it left at its size",
+      async ({ picture, from, into }) => {
+        const [leftCell, intoCell] = [cellIndex(from, 0), cellIndex(into, 0)];
+        const { run, scene } = await stepSlidersAfter(picture, (field) => {
+          popAt(field, leftCell);
+        });
+        const scaleAt = (cell: number): number =>
+          scene.bricks.images[cell]?.scale ?? NaN;
+
+        run.advance(16);
+        const slid = {
+          left: scaleAt(leftCell),
+          swollen: scaleAt(intoCell) > 1,
+        };
+        run.advance(POP_MS);
+
+        expect({ ...slid, settled: scaleAt(intoCell) }).toEqual({
+          left: 1,
+          swollen: true,
+          settled: 1,
+        });
+      },
+    );
+
+    it("stills the swell a brick left in the cell a slider steps into, as it broke while it swelled", async () => {
+      const into = cellIndex(1, 0);
+      const { run, scene } = await stepSlidersAfter([">2"], (field) => {
+        const tough = brickAt(field, 1, 0);
+        const [x, y] = [cellMiddleX(into), cellMiddleY(into)];
+        hitBrick(field, tough, x, y);
+        hitBrick(field, tough, x, y);
+      });
+
+      run.advance(16);
+
+      expect(scene.bricks.images[into]?.scale).toBe(1);
+    });
+
+    it("carries a pop under way on a train's last slider a cell on, and no further, as the train steps", async () => {
+      const { run, scene } = await stepSlidersAfter([">>"], (field) => {
+        popAt(field, cellIndex(0, 0));
+      });
+
+      run.advance(16);
+
+      expect(
+        [0, 1, 2].map(
+          (column) =>
+            (scene.bricks.images[cellIndex(column, 0)]?.scale ?? 0) > 1,
+        ),
+      ).toEqual([false, true, false]);
     });
 
     it("slides a slider the way it stepped, though it has turned since", async () => {

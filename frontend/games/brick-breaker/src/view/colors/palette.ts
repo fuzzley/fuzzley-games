@@ -142,6 +142,8 @@ export interface BricksPalette {
   readonly tints: readonly number[];
   /** The deeper colors a tough brick takes by its tint: each toward the text by {@link TOUGH_DEEPEN}. */
   readonly toughTints: readonly number[];
+  /** The chevrons trailing the lit one a slider shows its heading by, by its tint: each tint at {@link SLIDER_TRAIL} over the marks' color. */
+  readonly sliderTrails: readonly number[];
   /** The colors a ghost brick takes by its tint, hidden and shown. */
   readonly ghostTints: GhostTints;
   /** The inks of the field's edge: its rim's lip, and the gutter under the paddle and its chevrons. */
@@ -215,6 +217,13 @@ export const GUTTER_DANGER = 0.1;
  * palette, faint as the gutter is.
  */
 export const CHEVRON_DANGER = 0.55;
+
+/**
+ * How much of a slider's tint the chevrons trailing its lit one take over
+ * the marks' color: the art kit's 0.55 lightened toward the marks, so they
+ * keep 2:1 against the slider in every palette, faint as a trail is.
+ */
+export const SLIDER_TRAIL = 0.45;
 
 /** How much of the field a hidden ghost's tint takes, fading it toward the field. */
 export const GHOST_FADE = 0.35;
@@ -309,6 +318,7 @@ export function bricksPalette(
     },
     tints,
     toughTints: tints.map((tint) => mixColors(text, tint, TOUGH_DEEPEN)),
+    sliderTrails: tints.map((tint) => mixColors(tint, panel, SLIDER_TRAIL)),
     ghostTints: {
       hidden: tints.map((tint) => mixColors(panel, tint, GHOST_FADE)),
       shown: tints.map((tint) => mixColors(WHITE, tint, GHOST_LIGHT[mode])),
