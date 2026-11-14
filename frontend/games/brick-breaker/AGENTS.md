@@ -211,8 +211,19 @@ takes for the specs' helpers.
   with no layout were made on the first. `withRunStarted()`, `withRunEnded()`
   and `withLevelPoints()` (through `@fz/core/json`'s `withHigherCount()`),
   which keeps the layout too, move them on, and `isNewBest()` says whether a
-  run's score beats the best. `saved_game.ts` turns a run under way and its
-  field into what storage keeps (`saveGame()`), which the shell keeps under
+  run's score beats the best. `stars.ts` holds the stars each level has won
+  (`StarsRecord`), as bits of `STAR`: clearing it, clearing it clean,
+  without losing a life (`isCleanClear()`, `scoring.ts`'s, as the
+  clearing's bonus is, over `livesLost`, which a run taken up keeps), and
+  reaching its mark (`bestStreak`, at `Level.mark` or past). `starsWon()` says what a level's play has won once it is cleared,
+  at any speed; `withStars()` adds them to what the level holds
+  (`starsHeld()`), so a star once won is kept for good, through a redraw
+  and a new mark; `starsIn()` names the stars among some bits, in
+  `STAR_IDS`' order; and `starsRecordOf()` reads the record as stored,
+  keeping the stars of a level the game has where a play could have won
+  them, and giving every level the progress holds cleared its first star.
+  `saved_game.ts` turns a run under way and its field into what storage
+  keeps (`saveGame()`), which the shell keeps under
   `SAVED_GAME_VERSION`, a run whose level was just cleared as the next level
   not yet begun, and back (`restoreGame()`), paused, dropping a level the game
   doesn't have under that number, a field that doesn't fit its level, a number
