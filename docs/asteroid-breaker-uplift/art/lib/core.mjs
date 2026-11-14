@@ -227,13 +227,16 @@ export function contrast(a, b) {
 // --- SVG ----------------------------------------------------------------
 
 /**
- * Returns a number as SVG writes it, to a tenth.
+ * Returns a number as SVG writes it, to a tenth, or to a hundredth under ten.
  *
  * @param {number} value
  * @returns {string}
  */
 export function num(value) {
-  const rounded = Math.round(value * 10) / 10;
+  // A coordinate needs no more than a tenth of a pixel; a small number, such
+  // as an opacity or a thin line's width, keeps its hundredths.
+  const places = Math.abs(value) < 10 ? 100 : 10;
+  const rounded = Math.round(value * places) / places;
   return Object.is(rounded, -0) ? "0" : String(rounded);
 }
 
