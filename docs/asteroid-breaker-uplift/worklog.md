@@ -231,8 +231,6 @@ this branch. Nothing in the game is changed, and nothing is pushed.
 
 **Left open, for whoever picks this up:**
 
-- **The user's ten choices,** under "What the user settles" in `plan.md`.
-  The mocks and the assets use Bumble, the first of the three pods.
 - **The sounds in the game itself:** on a phone's speaker, under real
   play, for minutes. Nobody has heard that.
 - **The Shield's shell has two sizes in the art:** 1.8 units in
@@ -263,3 +261,19 @@ node docs/asteroid-breaker-uplift/sound/encode.mjs
 binary on this folder from the root
 (`frontend/node_modules/.bin/prettier --write docs/asteroid-breaker-uplift`),
 never `yarn prettier`, which formats the whole repository.
+
+### 2026-11-14, the ten choices settled
+
+- **The user kept all ten as the plan has them,** on being shown each with
+  what it could be instead: the crew in tow as the run's lives; sparks and
+  static in place of the chain's timer; the zap on the dash; Nova and Extra
+  ship gone; the burr; one card between waves; rocks cut in facets and lit;
+  the pod Bumble; a voice and beds; bests starting again when scoring
+  changes. `plan.md`'s "What the user settled" says so.
+- **So the design is settled,** and what is left before a slice is built is
+  under "Risks" in the plan: the lighting's spike, the balance of strays
+  and hits by hand, and the sounds heard in the game itself.
+- **One sound more:** `bed-shimmer`, heard as "too thin and simple right
+  now. It needs more depth and complexity." Its maker is giving it a body
+  in the middle register, phrases in place of single notes, and sixteen
+  seconds in place of eight.

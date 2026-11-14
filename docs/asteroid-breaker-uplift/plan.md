@@ -10,8 +10,9 @@ how it looks and in how it plays; and keep a later progression system in
 mind (levels, powers chosen from a random few) without designing it yet.
 
 This is a design, its mocks and its assets. Nothing in the game is changed.
-The plan makes every choice, so that it reads whole; "What the user settles"
-lists the ones that are the user's more than the plan's.
+The plan makes every choice, so that it reads whole. Ten of its choices
+were the user's more than the plan's, and the user kept all ten as written;
+"What the user settled" lists them.
 
 Everything made for the plan is in this folder,
 `docs/asteroid-breaker-uplift/`:
@@ -166,10 +167,12 @@ crew and static's step.
 
 ![The marks a pod wears](mocks/preview/pod-hud.webp)
 
-## What the user settles
+## What the user settled
 
-Ten choices are the user's more than the plan's. "Decisions" marks each
-**the user's** and says what it could be instead.
+Ten choices were the user's more than the plan's, and were put to them as
+the work was handed over. The same day, 2026-11-14, the user kept all ten
+as written. "Decisions" marks each **the user's** and still says what it
+could be instead.
 
 1. **The crew in tow is the run's lives** (decision 5), and not ships as
    now.
@@ -177,12 +180,13 @@ Ten choices are the user's more than the plan's. "Decisions" marks each
 3. **The zap is the dash at full static** (decision 8), and not a button
    of its own.
 4. **Rocks are cut in facets and lit** (decision 1), and not soft or flat.
-5. **Which pod** (decision 3): the sheet draws three.
+5. **The pod is Bumble** (decision 3), of the three the sheet draws: the
+   round collar with the largest canopy, which the mocks use.
 6. **Nova and Extra ship go** (decision 10).
 7. **The burr** (decision 12): the first thing on the field that is not a
    rock, a comet or a fuzzball.
 8. **The fuzzball has a voice, and a bed plays under each sector**
-   (decisions 15 and 16).
+   (decisions 15 and 16). The user heard both on the audition page first.
 9. **One card between waves** (decision 11).
 10. **Bests start again** at the slice that changes how a run scores
     (decision 18).
@@ -207,8 +211,8 @@ Each says what the plan chose, why, and what it could be instead.
    crystal's gems, a volatile rock's seams, pickups and the comet.
    _Instead:_ additive glow in dark palettes and none in light ones, which
    makes two games.
-3. **The ship becomes a pod built round its pilot** (**the user's**, for
-   which pod). The canopy is round and sits at the pod's middle, so the
+3. **The ship becomes a pod built round its pilot, and the pod is Bumble**
+   (**the user's**, for which pod). The canopy is round and sits at the pod's middle, so the
    fuzzball in it can stay upright while the hull turns around it. It is
    two fifths of the pod's length or more, where today it is a third of a
    small rocket. _Instead:_ today's rocket with a larger window.
