@@ -5,7 +5,7 @@
 //
 // Shape says what each is before color does: an orb is round, so a friend;
 // a mote is a spark; the comet is a long wedge with a tail, so fast and
-// deadly; a burr is a round seed in a whorl of hooks, so it clings.
+// deadly; a burr is a small seed with a few barbed thorns, so it clings.
 
 import {
   TURN,
@@ -644,49 +644,84 @@ export function warningTodaySvg(palette, { unit = 16 } = {}) {
 
 // --- The burr -----------------------------------------------------------
 
-/** How far a burr reaches to its hooks' ends, in field units. */
+/** How far a burr reaches to its spines' ends, in field units. */
 export const BURR_RADIUS = 0.6;
 
 /**
+ * A spine's outline along its own length, as how far out each corner lies
+ * and how far to its barb's side, in shares of the burr's reach: a bold
+ * shaft that comes to a sharp end, with one barb swept back from that end,
+ * as a harpoon's is, so its end stays the sharpest thing on it. The barb
+ * is its fourth corner.
+ */
+const SPINE = /** @type {Point[]} */ ([
+  [0.2, -0.075],
+  [0.74, -0.075],
+  [1.0, 0],
+  [0.58, 0.34],
+  [0.76, 0.075],
+  [0.2, 0.075],
+]);
+
+/** How many pixels a burr must reach for its barbs to be drawn; under it they would only blunt its thorns. */
+const BARBS_FROM = 6.5;
+
+/**
  * @typedef {object} BurrShape A burr, in shares of how far it reaches.
- * @property {Point[]} core Its round seed.
- * @property {Point[][]} spines Each a thin curve out from the seed, hooked at its end.
+ * @property {Point[]} core Its small round seed.
+ * @property {Point[][]} spines Each a thorn's outline, out from the seed, its barb its fourth corner.
  */
 
 /**
- * Returns a burr: a round seed in a whorl of thin spines, long and short
- * by turns, each barbed the same way round at its end, which is what clings.
+ * Returns a burr: a small dark seed with a few bold thorns, each longer
+ * than the seed is wide, sharp, and barbed at its end, all the same way
+ * round, which is what clings.
+ *
+ * It is drawn to be read at 15 px a unit, where it is 18 px across, and at
+ * 9, where it is 11, so its thorns are six and stand apart with field
+ * between them, and each keeps a sharp end. They are set a little
+ * unevenly and reach unevenly, as a seed's do. Never four thorns, whose
+ * barbs would make another sign.
  *
  * @param {number} [seed]
  * @param {{ spines?: number }} [how]
  * @returns {BurrShape}
  */
-export function makeBurr(seed = 1, { spines = 13 } = {}) {
+export function makeBurr(seed = 1, { spines = 6 } = {}) {
   const random = seeded(seed * 269 + 37);
   /** @type {Point[]} */
   const core = [];
-  for (let i = 0; i < 16; i++) core.push(polar((i / 16) * TURN, between(random, 0.43, 0.48)));
+  for (let i = 0; i < 14; i++) core.push(polar((i / 14) * TURN, between(random, 0.29, 0.32)));
+  const first = between(random, 0, TURN);
   /** @type {Point[][]} */
   const whorl = [];
   for (let i = 0; i < spines; i++) {
-    const a = ((i + between(random, -0.2, 0.2)) / spines) * TURN;
-    // Long and short by turns, so its outline is ragged, as a burr's is.
-    const reach = (i % 2 === 0 ? 1 : 0.8) * between(random, 0.93, 1);
-    const tip = polar(a + 0.1, reach * 0.96);
-    whorl.push([polar(a, 0.4), polar(a + 0.02, 0.4 + (reach - 0.4) * 0.55), tip, polar(a + 0.1 + TURN * 0.36, 0.2, tip)]);
+    const a = first + ((i + between(random, -0.15, 0.15)) / spines) * TURN;
+    // Uneven in their reach; the first reaches all the way.
+    const reach = i === 0 ? 1 : between(random, 0.8, 1);
+    const across = polar(a + TURN / 4, 1);
+    whorl.push(
+      SPINE.map(([out, side]) => {
+        const [x, y] = polar(a, out <= 0.2 ? out : 0.2 + (out - 0.2) * reach);
+        return /** @type {Point} */ ([x + across[0] * side, y + across[1] * side]);
+      }),
+    );
   }
   return { core, spines: whorl };
 }
 
 /**
- * Returns the ink a burr is drawn in: the palette's warning, dulled toward
- * the field's muted text, so it is a seed's brown and no ember.
+ * Returns the ink a burr is drawn in: a chestnut brown, between the
+ * palette's warning and danger colors, dulled by the field's muted text
+ * and sunk toward the field. It keeps 3:1 against the field, and is duller
+ * and darker than any accent, the comet or an ember.
  *
  * @param {Palette} palette
  * @returns {string}
  */
 export function burrInk(palette) {
-  return mix(palette.warning, palette.fieldMuted, 0.4);
+  const dull = mix(mix(palette.warning, palette.danger, 0.4), palette.fieldMuted, 0.35);
+  return palette.mode === "light" ? mix(dull, palette.fieldText, 0.3) : mix(dull, palette.field, 0.35);
 }
 
 /**
@@ -694,40 +729,41 @@ export function burrInk(palette) {
  *
  * @param {BurrShape} burr
  * @param {Palette} palette
- * @param {{ unit?: number, turn?: number, scale?: number, opacity?: number }} [how]
+ * @param {{ unit?: number, turn?: number, scale?: number, opacity?: number, clinging?: boolean }} [how]
+ *   Clinging, for a burr on the ship's hull: its outline in the field's
+ *   color is half as wide again, so every thorn is cased apart from the
+ *   hull, whose accent its own ink is too near to stand against.
  * @returns {string}
  */
-export function burrSvg(burr, palette, { unit = 16, turn = 0, scale = 1, opacity } = {}) {
+export function burrSvg(burr, palette, { unit = 16, turn = 0, scale = 1, opacity, clinging = false } = {}) {
   const r = BURR_RADIUS * unit * scale;
-  const tones = tonesOf(burrInk(palette), palette);
+  const ink = burrInk(palette);
   const light = palette.mode === "light";
+  const dark = light ? mix(ink, palette.fieldText, 0.6) : mix(ink, palette.field, 0.6);
   const at = (/** @type {Point} */ p) => {
     const [x, y] = turned(p, turn);
     return /** @type {Point} */ ([x * r, y * r]);
   };
-  const pen = Math.max(1, 0.085 * r);
-  const outline = Math.max(1, 0.12 * unit);
+  // Under 10 px a unit the barbs go first, and the thorns stay sharp.
+  const barbed = r >= BARBS_FROM;
+  const thorn = (/** @type {Point[]} */ spine) => (barbed ? spine : spine.filter((_, i) => i !== 3)).map(at);
+  // A thorn is never thinner than a pixel and a half, however small the burr.
+  const fat = Math.max(0.8, 0.045 * r);
+  const outline = clinging ? Math.max(1.8, 0.17 * unit) : Math.max(1, 0.12 * unit);
   const parts = [];
-  for (const spine of burr.spines) parts.push(polyline(spine.map(at), palette.field, pen + 2 * outline));
+  for (const spine of burr.spines) parts.push(polygon(thorn(spine), palette.field, { stroke: palette.field, "stroke-width": fat + 2 * outline, "stroke-linejoin": "round" }));
   parts.push(polygon(burr.core.map(at), palette.field, { stroke: palette.field, "stroke-width": 2 * outline, "stroke-linejoin": "round" }));
-  for (const spine of burr.spines) parts.push(polyline(spine.map(at), light ? tones.shade : tones.lit, pen));
-  parts.push(polygon(burr.core.map(at), light ? tones.ink : tones.shade));
-  parts.push(circle(-0.08 * r, -0.1 * r, 0.33 * r, light ? tones.lit : tones.ink));
-  if (r >= 8) {
-    parts.push(circle(-0.17 * r, -0.2 * r, 0.09 * r, light ? "#ffffff" : tones.lit, { opacity: 0.85 }));
-    for (const [x, y] of /** @type {Point[]} */ ([[0.14, 0.05], [-0.06, 0.22], [0.22, -0.16]])) {
-      const [dx, dy] = at([x, y]);
-      parts.push(circle(dx, dy, 0.05 * r, tones.deep, { opacity: 0.7 }));
-    }
-  }
+  for (const spine of burr.spines) parts.push(polygon(thorn(spine), ink, { stroke: ink, "stroke-width": fat }));
+  parts.push(polygon(burr.core.map(at), dark, { stroke: dark, "stroke-width": Math.max(0.6, 0.05 * r), "stroke-linejoin": "round" }));
+  if (r >= 7) parts.push(circle(-0.09 * r, -0.1 * r, Math.max(0.8, 0.075 * r), light ? "#ffffff" : mix(ink, "#ffffff", 0.6), { opacity: 0.85 }));
   return place(parts.join(""), seen(opacity));
 }
 
 /** Where three burrs cling to the placeholder ship, in field units from its middle, and each one's turn. */
 export const BURR_HOLDS = /** @type {{ at: Point, turn: number }[]} */ ([
-  { at: [0.42, -0.34], turn: 0.4 },
-  { at: [-0.72, 0.52], turn: 2.1 },
-  { at: [-0.5, -0.5], turn: 4.2 },
+  { at: [0.45, -0.28], turn: 0.4 },
+  { at: [-0.9, 0.8], turn: 2.1 },
+  { at: [-0.75, -0.3], turn: 4.2 },
 ]);
 
 /**
@@ -741,7 +777,7 @@ export function burredShipSvg(palette, { unit = 16, turn = 0 } = {}) {
   const parts = [shipPlaceholder(palette, { unit, turn })];
   BURR_HOLDS.forEach((hold, i) => {
     const [x, y] = turned(hold.at, turn);
-    parts.push(place(burrSvg(makeBurr(i + 2), palette, { unit, turn: hold.turn + turn, scale: 0.82 }), { x: x * unit, y: y * unit }));
+    parts.push(place(burrSvg(makeBurr(i + 2), palette, { unit, turn: hold.turn + turn, scale: 0.82, clinging: true }), { x: x * unit, y: y * unit }));
   });
   return parts.join("");
 }
@@ -776,7 +812,7 @@ export function shakenFx(t, palette, { unit = 16, seed = 1 } = {}) {
       parts.push(polyline([polar(heading + 0.5, 0.25 * unit, [tx, ty]), polar(heading + 0.5, 0.6 * unit, [tx, ty])], energy.body, Math.max(1, 0.07 * unit), { opacity: 0.8 * (1 - s / 0.6) }));
       parts.push(polyline([polar(heading - 0.5, 0.25 * unit, [tx, ty]), polar(heading - 0.5, 0.6 * unit, [tx, ty])], energy.body, Math.max(1, 0.07 * unit), { opacity: 0.8 * (1 - s / 0.6) }));
     }
-    parts.push(place(burrSvg(makeBurr(i + 2), palette, { unit, turn: hold.turn + spin * s, scale: 0.82 * (1 - 0.15 * s) }), { x: x * unit, y: y * unit, opacity: 1 - s ** 3 }));
+    parts.push(place(burrSvg(makeBurr(i + 2), palette, { unit, turn: hold.turn + spin * s, scale: 0.82 * (1 - 0.12 * s), clinging: s === 0 }), { x: x * unit, y: y * unit, opacity: 1 - s ** 3 }));
   });
   return parts.join("");
 }

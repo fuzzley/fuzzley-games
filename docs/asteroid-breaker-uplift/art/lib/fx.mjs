@@ -457,25 +457,21 @@ export function shotTodaySvg(palette, { unit = 16, turn = 0 } = {}) {
  */
 export function muzzleFlashSvg(frame, palette, { unit = 16, turn = 0 } = {}) {
   const tones = energyOf(palette.accent, palette);
-  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * unit, y * unit]));
-  const parts = [];
-  if (frame === 0) {
-    parts.push(
-      glow(0.25 * unit, 0, 1.05 * unit, tones.halo, palette, 0.95),
-      polygon(px([[1.3, 0], [0.3, 0.13], [0.52, 0.62], [0.08, 0.24], [-0.12, 0], [0.08, -0.24], [0.52, -0.62], [0.3, -0.13]]), tones.body),
-      polygon(px([[0.85, 0], [0.18, 0.1], [0, 0], [0.18, -0.1]]), palette.fieldText),
-    );
-  } else {
-    /** @type {Point[]} */
-    const arc = [];
-    for (let i = 0; i <= 8; i++) arc.push(polar(-0.95 + (i / 8) * 1.9, 0.62));
-    parts.push(
-      glow(0.2 * unit, 0, 0.75 * unit, tones.halo, palette, 0.55),
-      polyline(px(arc), tones.body, Math.max(1, 0.09 * unit), { opacity: 0.75 }),
-      polyline(px([[0.75, 0], [1.2, 0]]), tones.body, Math.max(1, 0.09 * unit), { opacity: 0.75 }),
-    );
-  }
-  return place(parts.join(""), { turn: (turn / TURN) * 360 });
+  // The second frame is the first fading: the same star, smaller and fainter,
+  // so a still of either reads as a flash.
+  const size = frame === 0 ? 1 : 0.64;
+  const px = (/** @type {Point[]} */ points) => points.map(([x, y]) => /** @type {Point} */ ([x * unit * size, y * unit * size]));
+  const star = [
+    polygon(px([[1.3, 0], [0.3, 0.13], [0.52, 0.62], [0.08, 0.24], [-0.12, 0], [0.08, -0.24], [0.52, -0.62], [0.3, -0.13]]), tones.body),
+    polygon(px([[0.85, 0], [0.18, 0.1], [0, 0], [0.18, -0.1]]), palette.fieldText),
+  ].join("");
+  return place(
+    [
+      glow(0.25 * unit * size, 0, 1.05 * unit * size, tones.halo, palette, frame === 0 ? 0.95 : 0.5),
+      frame === 0 ? star : place(star, { opacity: 0.55 }),
+    ].join(""),
+    { turn: (turn / TURN) * 360 },
+  );
 }
 
 /**
@@ -1160,6 +1156,21 @@ export function blastRingAt(t, radius, reach) {
 }
 
 /**
+ * Returns the color a blast's soft light is tinted in: the volatile rock's
+ * own ink, lifted a little toward its seams' on a dark field.
+ *
+ * The seams' pale yellow alone, under plain alpha, turns olive over a blue
+ * field, as Midnight blue's is; the rock's coral stays warm over any field.
+ *
+ * @param {Palette} palette
+ * @returns {string}
+ */
+export function blastLight(palette) {
+  const inks = ROCK_INKS[palette.mode];
+  return palette.mode === "light" ? inks.volatile : mix(inks.volatile, inks.core, 0.3);
+}
+
+/**
  * Returns a volatile rock with its seams flaring, about its middle.
  *
  * @param {RockShape} rock
@@ -1174,7 +1185,7 @@ export function flaringSvg(rock, palette, flare, { unit = 16, turn = 0 } = {}) {
   const hot = palette.mode === "light" ? mix(core, "#ffffff", 0.5) : "#ffffff";
   const parts = [rockSvg(rock, palette, { unit, turn, pulse: 1 })];
   if (flare <= 0) return parts.join("");
-  parts.unshift(glow(0, 0, R * (1.25 + 0.6 * flare), palette.mode === "light" ? ROCK_INKS.light.volatile : core, palette, flare));
+  parts.unshift(glow(0, 0, R * (1.25 + 0.6 * flare), blastLight(palette), palette, flare));
   for (const stroke of rock.strokes) {
     if (stroke.tone !== "core") continue;
     const points = stroke.points.map((p) => {
@@ -1247,16 +1258,20 @@ export function blastFx(rock, t, palette, { unit = 16, turn = 0, seed = 1, reach
   }
   // The rock's own shards.
   parts.push(breakFx(rock, (t - BLAST_BEATS.flare) * 1.1, palette, { unit, turn, seed }));
-  // The ring: a soft outside, its own ink, and a hot inner edge.
+  // The ring: a soft outside, its own ink, and a hot inner edge. The soft
+  // outside steps down in two bands, so it reads as light and not as a rim.
+  const soft = blastLight(palette);
   if (s < 1) {
-    parts.push(ring(0, 0, at + band * 0.3, palette.warning, band * 2.2, { opacity: 0.16 * (1 - s) * (palette.mode === "light" ? 0.8 : 1) }));
+    const dim = (1 - s) * (palette.mode === "light" ? 0.75 : 1);
+    parts.push(ring(0, 0, at + band * 0.7, soft, band * 2.4, { opacity: 0.12 * dim }));
+    parts.push(ring(0, 0, at + band * 0.3, soft, band * 1.3, { opacity: 0.26 * dim }));
     parts.push(ring(0, 0, at, inks.volatile, band, { opacity: 0.9 * (1 - s * s) }));
     parts.push(ring(0, 0, at - band * 0.32, hot, Math.max(1, band * 0.36), { opacity: 1 - s }));
   }
   // The flash disc.
   const flashed = shareOf(t, BLAST_BEATS.flare, 175);
   if (flashed < 1) {
-    parts.push(glow(0, 0, R * 2.7, palette.mode === "light" ? inks.volatile : inks.core, palette, 1 - flashed));
+    parts.push(glow(0, 0, R * 2.7, soft, palette, 1 - flashed));
     parts.push(circle(0, 0, R * (1.25 + 0.85 * flashed), hot, { opacity: 0.95 * (1 - flashed) ** 1.5 }));
   }
   // Embers.
