@@ -5,10 +5,15 @@
 //
 //   node docs/brick-breaker-uplift/levels/play-variants.mjs [options] [id...]
 //
-// Played whole, it prints report-k2-variants.txt, K2's record:
+// Each package's record is printed from its variants file, given by its path
+// (`variants-k2.json`, beside the script, by default), as K4's is:
 //
 //   node docs/brick-breaker-uplift/levels/play-variants.mjs \
-//     > docs/brick-breaker-uplift/levels/report-k2-variants.txt
+//     --variants docs/brick-breaker-uplift/levels/variants-k4.json \
+//     > docs/brick-breaker-uplift/levels/report-k4-variants.txt
+//
+// The records saved before K4's lack its last column, the longest any play
+// went between two touches of the paddle.
 //
 // Each level of the variants file, or only those named, is played in the
 // place of the game's level with its id, through the report's own table
@@ -59,6 +64,13 @@ const REPORTED = 12;
  * marks a level `+`, as `tools/report-levels.mjs` does.
  */
 const LONG_LEVEL_SECONDS = 120;
+
+/**
+ * The time between two touches of the paddle, in seconds as printed, past
+ * which the report marks a play `^`, as one that hangs, as
+ * `tools/report-levels.mjs` does.
+ */
+const HANGING_SECONDS = 60;
 
 /**
  * A way of drawing a level.
@@ -154,7 +166,9 @@ function entryOf(game, id, variant) {
  * middle time of the first {@link REPORTED} plays, marked `+` as the report
  * marks it, and of all; the longest play; the longest endgame of the first
  * {@link REPORTED}, marked `!` past the field's limit, and of all; how many
- * endgames ran past the limit; and the most lives lost.
+ * endgames ran past the limit; the most lives lost; and the longest any
+ * play went between two touches of the paddle, marked `^` as the report
+ * marks it.
  *
  * @param {Game} game
  * @returns {ReportColumns<Play>}
@@ -163,8 +177,8 @@ function columnsOf(game) {
   const time = (/** @type {number | undefined} */ steps) =>
     timeOf(steps, game.stepSeconds);
   return {
-    headings: ["mid12", "mid", "most", "last12", "last", ">1m", "lost"],
-    widths: [6, 5, 5, 6, 5, 4, 4],
+    headings: ["mid12", "mid", "most", "last12", "last", ">1m", "lost", "away"],
+    widths: [6, 5, 5, 6, 5, 4, 4, 5],
     cellsOf: (plays) => {
       const reported = plays.slice(0, REPORTED);
       const [reportedMiddle] = middleAndMost(reported.map(stepsOf));
@@ -182,9 +196,23 @@ function columnsOf(game) {
         time(longestEndgame(plays)),
         String(long.length),
         String(Math.max(...plays.map((play) => play.livesLost))),
+        awayOf(Math.max(...plays.map((play) => play.longestAway)), game),
       ];
     },
   };
+}
+
+/**
+ * Returns the steps a play went between two touches of the paddle as the
+ * game time they take, marked `^` past {@link HANGING_SECONDS}, as printed.
+ *
+ * @param {number} steps
+ * @param {Game} game
+ * @returns {string}
+ */
+function awayOf(steps, game) {
+  const hangs = Math.round(steps * game.stepSeconds) > HANGING_SECONDS;
+  return timeOf(steps, game.stepSeconds) + (hangs ? "^" : "");
 }
 
 /**
@@ -319,7 +347,9 @@ const LEGEND = `Levels as drafted and as redrawn, printed by play-variants.mjs. 
 columns: the middle time of the first ${String(REPORTED)} seeds, as \`yarn report:levels
 --seeds ${String(REPORTED)}\` prints it, and of all; the longest play; the longest endgame
 (its last three bricks) of the first ${String(REPORTED)}, marked ! past a minute, and of all;
-how many plays' endgames ran past a minute; and the most lives lost.
+how many plays' endgames ran past a minute; the most lives lost; and the
+longest any play went between two touches of the paddle, marked ^ past a
+minute.
 `;
 
 /**

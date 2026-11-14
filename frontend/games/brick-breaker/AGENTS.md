@@ -282,8 +282,9 @@ takes for the specs' helpers.
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
   its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
   `steel.json`, 11 to 20, `tricks.json`, 21 to 30, `friends.json`,
-  31 to 40, and `machines.json`, from 41. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
-  level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one
+  31 to 40, and `machines.json`, 41 to 47. `levels.ts` lists the sets in
+  order (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, through
+  `levelsOf()`), and `parseLevel()` turns one
   into a `Level` (`level.ts`) to play, or throws an error that names what is
   wrong with its data. A level's data names the layout its bricks are in
   (`layout`, which `layoutOf()` reads), a whole number from 1, the first

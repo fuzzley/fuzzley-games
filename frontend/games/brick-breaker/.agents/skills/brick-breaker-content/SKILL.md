@@ -127,6 +127,15 @@ side, and neither the autopilot nor a seeking ball turns toward one, so the
 last of them are met by chance. One against a side wall, with a side fewer
 to be met from, drags most.
 
+Bricks met only through a portal drag an endgame too: neither the autopilot
+nor a seeking ball aims at a portal, so the ball comes through the one that
+leads to them by chance. Two rooms' draft, eight bricks in a sealed room
+behind each portal, ran an endgame past a minute in one play of six, and so
+did every redraw of it without a blast, one with a row left open between
+the portal and the bricks among them. A blast right over each room's
+portal, where a ball coming out meets it at once, has the whole room in its
+reach and clears it at the first entry: none of 300 plays ran past.
+
 Two bumpers whose middles lie on a line flatter than the flattest a ball
 travels (`FLATTEST`, 20°), near enough that a ball leaving one at the
 flattest still meets the other, can hold a ball between them: it bounces
