@@ -9,6 +9,7 @@ import {
   replayLine,
   solveLevel,
 } from "./solver";
+import { SIM_TIMEOUT_MS } from "./timing";
 
 /** A level of one plain brick, which opens on row 5 of a field 11 deep, under the jump line. */
 const ONE_BRICK = levelFrom(["o........"]);
@@ -78,9 +79,11 @@ describe("solveLevel", () => {
   describe("on a level greedy search at every fourth aim can't clear", () => {
     let thick: Solved;
 
+    // All three searches, the last at every aim and a beam of 4: one search
+    // no batch can split, slowed by coverage.
     beforeAll(() => {
       thick = solved(THICK, 12);
-    });
+    }, SIM_TIMEOUT_MS);
 
     it("widens its search to every aim and a beam of 4", () => {
       expect(thick.search).toEqual({ aimStep: 1, beam: 4 });
