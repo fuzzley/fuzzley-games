@@ -109,11 +109,15 @@ takes for the specs' helpers.
   meets first, the walls, the paddle and the bricks' exposed faces and
   corners, all at one moment, and turns it once, off the paddle by where it
   landed, or as a mirror, by a lull's few degrees at a wall after too many
-  bounces, striking each brick it met; and lifts a ball the paddle is moved
-  into onto its top (`liftOffPaddle()`). Its spec plays the travel through
-  the field's steps. The field counts its steps (`Field.steps`), and a
-  timer is the step its thing happens at, `stepsIn()` steps on from when it
-  was set, as milliseconds summed step by step would creep.
+  bounces, striking each brick it met, but a plated brick a rising ball
+  meets at its underside, its bottom face and corners, which turns any
+  ball, a fire ball too, takes no hit, sets off no blast ball's reach and
+  records `plated` (`isPlated()`, in `src/rules/bricks/bricks.ts`); and
+  lifts a ball the paddle is moved into onto its top (`liftOffPaddle()`).
+  Its spec plays the travel through the field's steps. The field counts
+  its steps (`Field.steps`), and a timer is the step its thing happens at,
+  `stepsIn()` steps on from when it was set, as milliseconds summed step by
+  step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier (`multiplier()`, `@fz/core/math`'s
   `multiplierAt()` over `tuning.ts`'s `STREAK`), keeps the streak, and says
@@ -132,7 +136,9 @@ takes for the specs' helpers.
   or a friend's, the next of `@fz/phaser/color`'s `FUZZBALL_INKS`
   (`FRIEND_INKS` of them) for each friend a level frees
   (`Field.friendsFreed`), kept by a ball split from it, for the view to
-  color it by. `bolts.ts` fires and moves the laser's bolts.
+  color it by. `bolts.ts` fires and moves the laser's bolts, each spent
+  at the first brick above it, hitting it, or hitting nothing at a plate's
+  underside.
 - **`src/rules/bricks/`** — the bricks and the capsules they let fall.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
@@ -189,20 +195,20 @@ takes for the specs' helpers.
   its name, its place, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
   its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
-  `steel.json`, 11 to 20, `tricks.json`, 21 to 30, and `friends.json`, 31.
-  `levels.ts` lists the
-  sets in order (`LEVEL_SETS`), numbers every level from 1 (`LEVELS`, through
-  `levelsOf()`), and `parseLevel()` turns one into a `Level` (`level.ts`) to
-  play, or throws an error that names what is wrong with its data. A level's
-  data names the layout its bricks are in (`layout`, which `layoutOf()`
-  reads), a whole number from 1, the first (`FIRST_LAYOUT`) where it names
-  none; a redraw raises it, so the bests made on the one before are let go,
-  and the level keeps its id. `placeOf()` reads the place a set is in, one of
-  `PLACES` (`Place`), or throws for one it can't be in. `levels.ts`'s spec
-  holds every level to parsing, ids and names of their own, a brick it needs
-  that a ball can reach, and a pace that never falls within a set, and every
-  set to its place; the specs in `every_level/` hold every level to being
-  cleared by the autopilot, as Tests below says.
+  `steel.json`, 11 to 20, `tricks.json`, 21 to 30, and `friends.json`,
+  31 and 32. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
+  level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one
+  into a `Level` (`level.ts`) to play, or throws an error that names what is
+  wrong with its data. A level's data names the layout its bricks are in
+  (`layout`, which `layoutOf()` reads), a whole number from 1, the first
+  (`FIRST_LAYOUT`) where it names none; a redraw raises it, so the bests made
+  on the one before are let go, and the level keeps its id. `placeOf()` reads
+  the place a set is in, one of `PLACES` (`Place`), or throws for one it can't
+  be in. `levels.ts`'s spec holds every level to parsing, ids and names of
+  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, and into a plated brick only from above or a side, and a pace that
+  never falls within a set, and every set to its place; the specs in
+  `every_level/` hold every level to being cleared by the autopilot, as Tests
+  below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -689,8 +695,9 @@ skill covers its setup, floors and fixtures, the repository's
 - `autopilot.ts` plays a level as a good player would (`autoplay()`): it
   keeps the paddle under the ball that will reach it first, lands it a
   seeded distance off the middle or toward a brick the level needs that it
-  can see, catches the good capsules it has time for, and fires, serves and
-  launches at once. `src/rules/levels/autopilot.spec.ts` holds the autopilot
+  can see, but a plated one, whose underside the ball would meet, catches
+  the good capsules it has time for, and fires, serves and launches at
+  once. `src/rules/levels/autopilot.spec.ts` holds the autopilot
   itself, and the catalog spec holds the levels to using every brick kind
   and letting every capsule first fall at the level its `from` names.
 - `every_level.ts` holds every level, at a preset speed, to being cleared by

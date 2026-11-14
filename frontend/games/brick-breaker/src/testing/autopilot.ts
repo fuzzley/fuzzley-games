@@ -1,5 +1,6 @@
 import { clamp, lerp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
+import { isPlated } from "../rules/bricks/bricks";
 import type { Falling } from "../rules/bricks/capsules";
 import { isNeeded } from "../rules/catalog/bricks";
 import { capsule } from "../rules/catalog/capsules";
@@ -258,8 +259,8 @@ function landingX(field: Readonly<Field>, ball: Readonly<Ball>): number {
 
 /**
  * Picks where to send a ball about to land: half the time at a brick the
- * level needs that it can see from where the ball will land, else at a
- * place on the paddle.
+ * level needs that it can see from where the ball will land, but a plated
+ * one, whose underside the ball would meet, else at a place on the paddle.
  */
 function chooseAim(
   field: Field,
@@ -277,6 +278,7 @@ function chooseAim(
       brick &&
       !brick.broken &&
       isNeeded(brick.kind) &&
+      !isPlated(brick) &&
       inSight(field, landing, brick.cell),
   );
   if (seen.length > 0) {

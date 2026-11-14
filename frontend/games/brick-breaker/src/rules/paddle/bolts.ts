@@ -1,4 +1,4 @@
-import { type Brick, hitBrick } from "../bricks/bricks";
+import { type Brick, hitBrick, isPlated } from "../bricks/bricks";
 import type { Field } from "../field/field";
 import { cellIndex, columnAt, rowAt } from "../grid";
 import { stepsIn } from "../stepper";
@@ -45,7 +45,8 @@ export function fireBolts(field: Field): void {
 
 /**
  * Moves each bolt up a step: one that reaches a brick hits it once and
- * stops, steel too, and one that reaches the top wall stops there.
+ * stops, steel too, one that reaches a plated brick's underside is spent
+ * there, hitting nothing, and one that reaches the top wall stops there.
  */
 export function stepBolts(field: Field): void {
   for (const bolt of field.bolts) {
@@ -55,6 +56,10 @@ export function stepBolts(field: Field): void {
     const brick = firstBrickAbove(field, bolt.x, bolt.y, top);
     if (brick) {
       bolt.live = false;
+      if (isPlated(brick)) {
+        field.events.add("plated", bolt.x, bolt.y, brick.cell);
+        continue;
+      }
       hitBrick(field, brick, bolt.x, bolt.y);
       if (field.state === "cleared") return;
     } else {

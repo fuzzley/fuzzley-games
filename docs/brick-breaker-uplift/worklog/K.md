@@ -101,3 +101,87 @@ The review, and the answers:
 Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6`
 (59 files, 2,035 specs, 15.5 s) in the workspace; the root's `yarn lint`
 under the lock (3:10).
+
+### 2026-11-14: the plated brick, with Mushroom (32)
+
+What it does:
+
+- `BRICK_KINDS.plated`, `u` of one hit and `U` of two, needed, 50 a hit,
+  with a new trait, `plated`, whose rule is empty: the travel and the bolts
+  read it through `isPlated()` (`bricks.ts`), from a set of the plated
+  kinds made once, so a contact makes nothing.
+- The travel (`travel.ts`) notes a plated brick's underside, its bottom
+  face and corners, apart from its other sides when the ball rises
+  (`UNDERSIDE`, a `Touch` of `plated`). There any ball turns, a fire ball
+  too, which otherwise passes through what it breaks; the brick takes no
+  hit, the speed doesn't climb, a blast ball's hit doesn't reach around,
+  and the field records `plated`. From above or a side, or by a falling
+  ball at a bottom corner, it takes a hit as any brick does, and a blast
+  brick's blast hits it from any side, as does the reach of a blast ball's
+  hit on a brick beside it, even one met at the same moment as its plate.
+- A bolt reaching a plated brick is spent there, hitting nothing, and the
+  field records `plated` (`bolts.ts`).
+- The levels spec's reach (`shutIn()`, in `levels.spec.ts`) comes into a
+  plated brick only from above or a side, with two specs of its own.
+- The autopilot aims at no plated brick, whose underside the ball would
+  meet (`chooseAim()`).
+- Placeholder look in tint 6, `PICTURED_BRICKS.plated`,
+  `EVENT_EFFECTS.plated`.
+- Mushroom as drafted, its tints too.
+- `AGENTS.md` (the travel, the bolts, the reach, the autopilot's aim) and
+  both skills' legends.
+
+Choices where the plan was silent:
+
+- The underside wins a tie: a ball that meets a plated brick's bottom
+  corner and the end of its side face at one moment turns there and the
+  brick takes no hit, since the corner is the underside's. The travel notes
+  the underside first, and a brick whose plate was met isn't among those
+  struck.
+- A blast ball's reach from another brick it strikes hits a plate as a
+  blast brick's does, from any side, as `plan.md` has it ("A blast takes a
+  hit off it from any side"), though the ball met the plate's underside at
+  the same moment; only the plate's own contact sets off no reach.
+- `isPlated()` is the travel's test of the trait, rather than `hasTrait()`,
+  whose callback would make a closure at every brick a ball passes.
+- The plated brick scores 50 a hit, as the plain and tough bricks do.
+
+Added to other streams' files: `bolts.ts` (the spent bolt), `events.ts`
+(`plated`), `effects.ts` and its spec, `brick_art.ts` and `art.ts` (the
+placeholder), `autopilot.ts` (an import, a line in `chooseAim()`'s filter,
+and its doc comment), `levels.spec.ts` (`isPlated()`, a test in
+`shutIn()`'s flood, its doc comment, and two specs of the reach).
+
+Measured: Mushroom's autopilot middle times over 12 seeds of its own, 1:13
+at Relaxed, 1:31 at Normal, 1:17 at Fast, the longest 4:14, the longest
+endgame 0:58, no life lost; over 40 seeds 1:41, 1:15 and 1:09, no endgame
+past its minute. On the tallest field, over 12 seeds, 1:30, 2:09 and 1:41.
+It stays as drafted.
+
+The review, and the answers:
+
+1. Two branches had no spec to hold them: a falling ball at a bottom
+   corner, which `dy < 0` lets take a hit, and the tie at a corner, which
+   `isStruck()` settled. Fixed: a spec of each. The tie's spec throws the
+   ball straight across along the brick's foot, where a heading of 90°
+   rounds to a hair upward, so the ball rises; it is a single point, so
+   the travel now settles it by order, the underside noted first and a
+   plate kept out of the bricks struck, in place of `isStruck()` at both
+   loops.
+2. The legend's spec checked only the hits, with a condition in its
+   assertion. Fixed: it expects the two specs whole.
+3. A blast ball's reach from a brick beside a plate hits the plate, even
+   when the ball met the plate's underside at the same moment, which the
+   log's words denied. Answered: that is `plan.md`'s "a blast takes a hit
+   off it from any side"; a spec now holds it, and the log says so.
+4. `levels.spec.ts`, R's file, was restyled: `isOpen` moved into a
+   `canEnter()` and the flood's `if` rewrapped. Fixed: `isOpen` stays as it
+   was, and the flood adds one test, through a function of its own,
+   `isPlated()`.
+5. Nits, all taken: the trait's doc said a bolt is turned back, not spent;
+   the autopilot's new import was out of path order; two lines of
+   `AGENTS.md` ran past 80 columns.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6`
+(59 files, 2,070 specs, 12.9 s) in the workspace; the root's `yarn lint`
+under the lock (2:15).

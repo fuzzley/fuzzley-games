@@ -1,4 +1,4 @@
-import { brickKind, isNeeded } from "../catalog/bricks";
+import { brickKind, hasTrait, isNeeded } from "../catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../catalog/capsules";
 import { CELLS, cellIndex, columnOf, rowOf } from "../grid";
 import { COLUMNS, ROWS } from "../tuning";
@@ -36,6 +36,11 @@ function isWall(brick: LevelBrick | null | undefined): boolean {
   return !!brick && brickKind(brick.kind).hits === "never";
 }
 
+/** Returns whether a cell holds a plated brick, which turns a ball from below. */
+function isPlated(brick: LevelBrick | null | undefined): boolean {
+  return !!brick && hasTrait(brick.kind, "plated");
+}
+
 /** Returns each brick of a level's first row, as its kind and hits, up to the first gap. */
 function firstRow(level: Level): [string, number][] {
   const bricks: [string, number][] = [];
@@ -60,8 +65,8 @@ function firstColumn(level: Level): number[] {
 /**
  * Returns the cells of a level's needed bricks that no ball can reach: a
  * flood from the open field below the grid, through every cell but those
- * of bricks that never break, and through the gap above it, finds none of
- * them.
+ * of bricks that never break, into a plated brick only from above or a
+ * side, and through the gap above it, finds none of them.
  */
 function shutIn(level: Level): number[] {
   const key = (column: number, row: number): string =>
@@ -83,7 +88,10 @@ function shutIn(level: Level): number[] {
     ] as const) {
       const [c, r] = [column + across, row + down];
       if (c >= 0 && c < COLUMNS && r >= -1 && r <= ROWS && isOpen(c, r)) {
-        waiting.push([c, r]);
+        // A ball coming up into a plated brick meets its underside, unharmed.
+        if (down >= 0 || !isPlated(level.cells[cellIndex(c, r)])) {
+          waiting.push([c, r]);
+        }
       }
     }
   }
@@ -343,6 +351,22 @@ describe("the reach check", () => {
 
   it("reaches a brick through the gap above the grid", () => {
     const level = parsed({ bricks: ["#o#..........", "###.........."] });
+
+    expect(shutIn(level)).toEqual([]);
+  });
+
+  it("finds a brick shut in by steel over a plate, which turns a ball from below", () => {
+    const level = parsed({
+      bricks: ["###..........", "#o#..........", "#u#.........."],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(1, 1), cellIndex(1, 2)]);
+  });
+
+  it("reaches a brick past a plate hit from its side", () => {
+    const level = parsed({
+      bricks: ["###..........", "#o#..........", "#u..........."],
+    });
 
     expect(shutIn(level)).toEqual([]);
   });

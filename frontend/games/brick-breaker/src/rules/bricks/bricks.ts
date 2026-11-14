@@ -1,9 +1,11 @@
 import type { Box } from "@fz/core/sweep";
 import {
+  BRICK_KIND_IDS,
   type BrickKindId,
   type BrickTrait,
   type TraitKind,
   brickKind,
+  hasTrait,
   isNeeded,
 } from "../catalog/bricks";
 import type { CapsuleId } from "../catalog/capsules";
@@ -121,7 +123,14 @@ const TRAIT_RULES: {
       freeFriend(field, brick);
     },
   },
+  // Its underside is the travel's and the bolts' to read (`isPlated()`).
+  plated: {},
 };
+
+/** The kinds plated underneath, read at every contact, so a step makes nothing. */
+const PLATED: ReadonlySet<BrickKindId> = new Set(
+  BRICK_KIND_IDS.filter((id) => hasTrait(id, "plated")),
+);
 
 // Made once and reused, so a step makes nothing.
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
@@ -149,6 +158,15 @@ export function createBrick(placed: LevelBrick, cell: number): Brick {
 /** Returns whether a brick's kind can break. */
 export function canBreak(brick: Readonly<Brick>): boolean {
   return brickKind(brick.kind).hits !== "never";
+}
+
+/**
+ * Returns whether a brick is plated underneath: a ball rising into its
+ * bottom face or corners turns there, a bolt is spent there, and it takes
+ * no hit.
+ */
+export function isPlated(brick: Readonly<Brick>): boolean {
+  return PLATED.has(brick.kind);
 }
 
 /** Returns how many of a level's bricks it needs that are not yet broken. */

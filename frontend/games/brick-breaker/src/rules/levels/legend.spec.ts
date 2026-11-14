@@ -28,4 +28,11 @@ describe("the shared legend", () => {
   it.each(["2", "3", "4"])("draws a tough brick of %s hits as %s", (digit) => {
     expect(LEGEND[digit]).toEqual({ kind: "tough", hits: Number(digit) });
   });
+
+  it("draws a plated brick of one hit as u and of two as U", () => {
+    expect([LEGEND["u"], LEGEND["U"]]).toEqual([
+      { kind: "plated" },
+      { kind: "plated", hits: 2 },
+    ]);
+  });
 });
