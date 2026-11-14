@@ -852,3 +852,76 @@ test (147 files, 6,489 tests); Brick Breaker's (76 files, 3,221 tests);
 after the review, Sudoku's (29 files, 595 tests) and the library's again;
 the root's lint, typecheck and test under the lock, before the review and
 after (2 min 41 s).
+
+### 2026-11-14: the placeholder and the focus ring at the rim's width
+
+L3's follow-up for this stream. The scene draws the rim round the field
+wider than the layout's wall where the unit allows (`rimWidth()`, in
+`src/view/field/rim.ts`), round at its outer corners; the placeholder drew
+a 2 CSS px wall, square, and the focus ring lay 2 px out from the field,
+over the rim.
+
+- **The board works the rim out in TypeScript** (`rim`), from the scene's
+  metrics or, until it has drawn, its own (`fieldAt`, which the panels,
+  the backdrop and the Cleared card's `shortField` read too): `rimWidth()` over the pixel ratio, in CSS px, and its outer corners'
+  radius, `RIM.corner` times that, which it hands the stylesheet as
+  `--rim-width` and `--rim-corner`, unitless as `--finger-room` is; the
+  wall's 2 px, square, until it is measured. The rim's rule stays in one
+  place, where the scene reads it.
+- **The placeholder draws the rim as the shadow of a box over the field,
+  clipped at the field's foot** (`.field::before`, its `box-shadow`
+  `--rim` wide, its `clip-path: inset(...)` round at `--rim-radius`), not
+  as a border: a border as wide would round the field's own corners where
+  its radius passes the border's width, and its sides would run a mitre's
+  triangle below the foot, where the scene draws nothing. So the field
+  keeps its square corners and the rim its round ones, at its feet too, as
+  the scene draws them; the lip, the gutter and
+  the net it leaves to the scene. The layout check still holds the field
+  inside it where the scene drew it, to the pixel (its wall, the border it
+  reads, is now none).
+- **The focus ring** takes `--rim` for `board-focus-ring()`'s offset, so it
+  lies outside the rim by the focus ring's own offset. At its widest the
+  rim is 8 CSS px past the field's edge (the wall and half the panels'
+  12 px gap), so the ring, 5 px past that, stops a px short of a panel.
+  Brick Fuzz Pop and the mixin are as they were: it already takes an
+  offset.
+- The board's spec holds `--rim-width` and `--rim-corner` to `rimWidth()`
+  of the field the board will lay out at 2×, in CSS px (it fails with the
+  ratio left out, as tried), `--rim-width` to the rim of the field the
+  scene laid out (it fails with the scene's metrics left out), and neither
+  set before the board is measured, so the stylesheet's wall stands.
+
+**Seen in headless Chrome** (port 9204, its own page): at 1280 × 720 at 2×
+the rim is 6 CSS px and the ring, from the keyboard's Tab, lies outside it
+with its 2 px gap, a few px clear of each panel; with the canvas hidden
+and the placeholder shown in its place, the rim's width and its round
+corners, top and feet, match the scene's to the pixel, the scene's lip and
+gutter aside. At 844 × 390 the rim is 3.5 px and the same holds, the ring
+6 px clear of the bench.
+
+**Review** (a fresh agent, on the staged change): it found the clip's
+geometry the scene's `fillRoundedRect()`, the ratio and the defaults right,
+and the ring a px or more clear of the panels at whole and fractional
+ratios. Its comments:
+
+1. The clip cut the field's own feet: the shadow was the field's, so the
+   clip, round at the rim's radius, clipped the field too, under a CSS px
+   tall and some 4 px along at each foot of the 6 px rim at 1280 × 720,
+   against the comment's and this log's square corners. Fixed: the shadow and its clip are a `::before` box's
+   over the field, which clip only the shadow; seen again in headless
+   Chrome, the field's feet square and the rim's round.
+2. The spec held only the board's own metrics. Fixed: two more cases, the
+   rim of the field the scene laid out (with the scene it loads), and none
+   handed before the board is measured; the first named for what it holds,
+   the rim handed the stylesheet.
+3. `this.laid() ?? this.placeholder()` was written out four times. Fixed:
+   `fieldAt`, documented once, which the four read.
+4. Nit: a line of the workspace's `AGENTS.md` ran to 91 columns. Fixed,
+   the lines after it rewrapped.
+
+**Checks:** Brick Breaker's lint, typecheck and test (76 files, 3,224
+tests), its coverage over `pure` and `dom` (every floor held; this
+package's last change to the rules, the previous commit's, whole), its
+build and `check:layout` (every shape and turn, and the Cleared card at
+each shape), and the root's lint under the lock, before the review and
+after the fixes.

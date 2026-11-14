@@ -53,9 +53,11 @@ import { ROLES } from "../../testing/roles";
 import { FIELD_ROLES } from "./field_roles";
 import {
   FINGER_ROOM_CSS_PX,
+  WALL_CSS_PX,
   fieldMetrics,
 } from "../../view/field/field_metrics";
 import { STAR } from "../../rules/run/stars";
+import { RIM, rimWidth } from "../../view/field/rim";
 import { backdropStyle } from "../../view/places/backdrop";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -370,6 +372,41 @@ describe("BoardComponent", () => {
         detectChanges();
 
         expect(board.style.getPropertyValue("--pixel-ratio")).toBe("2");
+      });
+    });
+  });
+
+  describe("the rim round the field", () => {
+    watchResizes();
+
+    it("is the wall's, square, until the board is measured", async () => {
+      vi.stubGlobal("ResizeObserver", undefined);
+
+      const { board } = await renderBoard();
+
+      expect({
+        width: board.style.getPropertyValue("--rim-width"),
+        corner: board.style.getPropertyValue("--rim-corner"),
+      }).toEqual({ width: "", corner: "" });
+    });
+
+    it("is handed the stylesheet as wide and as round as the scene will draw it, in CSS px at the ratio the canvas renders at", async () => {
+      vi.spyOn(window, "devicePixelRatio", "get").mockReturnValue(2);
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      const width =
+        rimWidth(
+          fieldMetrics(viewport(WIDE.width, WIDE.height, 2), FIELD_HEIGHT),
+        ) / 2;
+      expect({
+        width: board.style.getPropertyValue("--rim-width"),
+        corner: board.style.getPropertyValue("--rim-corner"),
+      }).toEqual({
+        width: String(width),
+        corner: String(RIM.corner * width),
       });
     });
   });
@@ -904,6 +941,20 @@ describe("BoardComponent", () => {
           .querySelector<HTMLElement>(".backdrop")
           ?.style.getPropertyValue("--place-at"),
       ).toBe(`${String(x)}px ${String(y)}px`);
+    });
+
+    it("hands the stylesheet the rim the scene drew round the field, in CSS px", async () => {
+      const { board, detectChanges } = await runBoardScene();
+
+      detectChanges();
+
+      const { width } = readRect(board.getAttribute("data-field"))!;
+      const rim = rimWidth({
+        unit: width / FIELD_WIDTH,
+        wall: WALL_CSS_PX,
+        pixelRatio: 1,
+      });
+      expect(board.style.getPropertyValue("--rim-width")).toBe(String(rim));
     });
 
     it("lays the focus ring where the scene laid the field out", async () => {
