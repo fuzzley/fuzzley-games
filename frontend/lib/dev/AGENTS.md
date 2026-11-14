@@ -208,9 +208,11 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
   browser. `checkLayout()` opens a game's page at each of `SHAPES` (a roomy
   window, and a large and a small phone, upright and on its side), waits for a
-  selector and the fonts (for a board drawn with Phaser,
-  `PHASER_CANVAS_READY`, which its canvas matches once the scene has drawn),
-  and returns what is wrong at each: an error the page
+  selector (for a board drawn with Phaser, `PHASER_CANVAS_READY`, which its
+  canvas matches once the scene has drawn), 10 s at most unless the check
+  gives the page longer (`readyTimeoutMs`), as one that plays some way before
+  it matches may need where Chrome draws WebGL in software, then for the
+  fonts, and returns what is wrong at each: an error the page
   reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, a control of the game bar out of the
   window, what is wrong with the check's `board`, where it has one, and what

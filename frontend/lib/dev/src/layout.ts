@@ -156,6 +156,12 @@ export interface LayoutCheck<A extends unknown[] = []> {
   /** A selector the page matches once the game has drawn. */
   readonly ready: string;
   /**
+   * How long the page has to match {@link ready} before the check gives up
+   * on it, 10 s unless given: longer for a page that plays some way first,
+   * which a slow machine's Chrome, drawing WebGL in software, plays slowly.
+   */
+  readonly readyTimeoutMs?: number;
+  /**
    * The board drawn with Phaser, where the game has one, which the check
    * inspects as it does every such board, and its deck, where it has one,
    * once the page says where the board lies.
@@ -191,7 +197,10 @@ export interface LayoutProblem {
   readonly problem: string;
 }
 
-/** How long a game has to draw before a check gives up on it. */
+/**
+ * How long a game has to draw before a check gives up on it, unless the
+ * check gives it longer ({@link LayoutCheck.readyTimeoutMs}).
+ */
 const READY_TIMEOUT_MS = 10_000;
 
 /**
@@ -374,9 +383,10 @@ async function load<A extends unknown[]>(
   if (typeof before === "function") await page.beforeLoad(before);
   else if (before) await page.beforeLoad(before.run, ...before.args);
   await page.navigate(check.url);
-  if (!(await page.evaluate(settle, check.ready, READY_TIMEOUT_MS))) {
+  const timeoutMs = check.readyTimeoutMs ?? READY_TIMEOUT_MS;
+  if (!(await page.evaluate(settle, check.ready, timeoutMs))) {
     throw new Error(
-      `Nothing matched ${check.ready} in ${String(READY_TIMEOUT_MS)} ms.`,
+      `Nothing matched ${check.ready} in ${String(timeoutMs)} ms.`,
     );
   }
   return errors;
