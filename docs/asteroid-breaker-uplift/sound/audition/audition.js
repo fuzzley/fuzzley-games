@@ -250,6 +250,7 @@ function stopAll() {
     button.setAttribute("aria-pressed", "false");
   }
   beds.clear();
+  stacks.clear();
 }
 
 /**
@@ -817,8 +818,78 @@ function drawScenes() {
 }
 
 /** Draws the beds. */
+/**
+ * The beds as the game would layer them, each layer started at the same
+ * moment, so the pulse and the shimmer keep to one beat.
+ */
+const STACKS = [
+  {
+    title: "The pulse and the shimmer, in step",
+    about:
+      "The two layers the game fades in as static builds, started together: the shimmer is twice the pulse's length and keeps its beat only if they start on one bar line.",
+    names: ["bed-pulse", "bed-shimmer"],
+  },
+  {
+    title: "The Inner belt at full static",
+    about:
+      "A sector's bed with both layers over it, as play sounds under everything when static is at its last step.",
+    names: ["bed-inner-belt", "bed-pulse", "bed-shimmer"],
+  },
+];
+
+/** @type {Map<string, AudioBufferSourceNode[]>} */
+const stacks = new Map();
+
+/**
+ * Starts loops together, at one moment, or stops them.
+ *
+ * @param {string[]} names
+ * @param {HTMLButtonElement} button
+ */
+async function toggleStack(names, button) {
+  const key = names.join("+");
+  const held = stacks.get(key);
+  if (held) {
+    for (const source of held) source.stop();
+    stacks.delete(key);
+    button.setAttribute("aria-pressed", "false");
+    return;
+  }
+  const { context: ctx, desk: d } = audio();
+  const loaded = await Promise.all(
+    names.map((name) => buffer(/** @type {string} */ (fileOf(name, 0)))),
+  );
+  const at = ctx.currentTime + 0.1;
+  stacks.set(
+    key,
+    loaded.map((sound) => {
+      const source = ctx.createBufferSource();
+      source.buffer = sound;
+      source.loop = true;
+      source.connect(d.main);
+      source.start(at);
+      playing.add(source);
+      return source;
+    }),
+  );
+  button.setAttribute("aria-pressed", "true");
+}
+
 function drawBeds() {
   $("beds").replaceChildren(
+    ...STACKS.filter(({ names }) => names.every((name) => sounds[name])).map(
+      ({ title, about, names }) => {
+        const button = /** @type {HTMLButtonElement} */ (
+          el("button", { type: "button", "aria-pressed": "false" }, ["Play"])
+        );
+        button.addEventListener("click", () => void toggleStack(names, button));
+        return el("article", { class: "bed" }, [
+          el("h3", {}, [title]),
+          el("p", {}, [about]),
+          el("div", { class: "buttons" }, [button]),
+        ]);
+      },
+    ),
     ...BEDS.filter((name) => sounds[name]).map((name) => {
       const button = /** @type {HTMLButtonElement} */ (
         el("button", { type: "button", "aria-pressed": "false" }, ["Play"])

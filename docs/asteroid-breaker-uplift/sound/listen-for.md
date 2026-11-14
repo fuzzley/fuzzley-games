@@ -203,3 +203,38 @@ ninety-eight sounds have passed the ear on the audition page.
   quarter of a decibel.
 - **A phone hears 5% of each** now that their air is low, which is the
   kit's allowance for a bed: the bells are what a phone keeps.
+
+### The shimmer, made again
+
+After everything else had passed, the user asked for one more pass on
+`bed-shimmer`: "It is too thin and simple right now. It needs more depth
+and complexity." It was eight single glass bells from E6 to E7 in eight
+seconds, 79% of its energy between 1.5 and 3 kHz. **The new one has not
+been heard.**
+
+- **What it is now:** sixteen seconds, eight bars at the pulse's 120 beats
+  a minute, 94 notes in three voices and three registers.
+  - A body, A4 to A5: warm struck pairs a third to a sixth apart, mostly on
+    the first, fourth and seventh eighth of a bar, three against the
+    pulse's four, each note with a hum an octave under it. The loudest of
+    the three.
+  - Bells, E6 to E7, 6 dB under the body: four runs of three to five quick
+    notes, each answered a beat later in the other ear, and single strikes,
+    some with echoes a dotted eighth apart that fall away, some with a
+    grace note before. They ring in a wide room that loses its highs fast.
+  - A plucked figure, G5 to E6: three notes a dotted eighth apart, which
+    comes up and dies away twice.
+- **By the instruments:** 40% of its energy now lies between 300 and
+  700 Hz, where it had none, and half a percent above 3 kHz, where it had
+  4%; its highest strike is 20 dB down in half a second, so nothing is
+  held. Under it the pulse's eighths stay plain.
+- **The game must start it on the pulse's bar line.** It is twice the
+  pulse's length, and the two keep one beat only if they start together.
+  The audition page has both started so, alone and over the Inner belt.
+
+| It may sound                                              | Try first                                         |
+| --------------------------------------------------------- | ------------------------------------------------- |
+| too busy: six notes a second, eight in a run              | thin the plucked figure, or drop a run's answer   |
+| muddy with the pulse: its body shares 300 to 700 Hz       | less of the body's hum, or the body a little down |
+| as if its echoes were other notes: they keep only the hum | let a little of each echo's top back in           |
+| shy at the top: the bells sit 6 dB under the body         | raise the bells; it is one set of numbers         |

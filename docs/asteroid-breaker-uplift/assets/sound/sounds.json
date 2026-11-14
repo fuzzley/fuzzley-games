@@ -63,10 +63,10 @@
     },
     "bed-shimmer": {
       "family": "beds",
-      "about": "Over a bed and its pulse while static is at its highest: eight small glass bells on the key's high notes, far apart and off the beat, each answered once, fainter, in the other ear, in a long room.",
+      "about": "Over a bed and its pulse while static is at its highest: eight bars at the pulse's tempo in three voices. Warm struck pairs of notes from A4 to A5 fall three to a bar against the pulse's four beats; glass bells from E6 to E7, each with a hum an octave under it, play quick runs answered a beat later in the other ear and single strikes whose echoes fall away; a soft plucked figure of three notes turns between them. The bells ring in a long, wide room.",
       "level": "bed",
       "loop": true,
-      "seconds": 8,
+      "seconds": 16,
       "plays": [
         "static at the third step or above"
       ],
