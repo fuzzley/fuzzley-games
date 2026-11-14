@@ -211,7 +211,8 @@ this branch. Nothing in the game is changed, and nothing is pushed.
     long time". Made again as loops of 32 s with no held tone above
     620 Hz. Heard again: the tones "sound good", but the air was "too much
     like static hisses". The air is now a low breath in swells, 10 dB
-    quieter, silent between them. **That last change has not been heard.**
+    quieter, silent between them. Heard a third time: "they are both good
+    now." All ninety-eight sounds have passed the ear on the audition page.
 - **The audition page** starts every mark at "good: use it", at the user's
   ask, and lists only what isn't.
 
@@ -232,7 +233,8 @@ this branch. Nothing in the game is changed, and nothing is pushed.
 
 - **The user's ten choices,** under "What the user settles" in `plan.md`.
   The mocks and the assets use Bumble, the first of the three pods.
-- **The two beds' new air,** unheard.
+- **The sounds in the game itself:** on a phone's speaker, under real
+  play, for minutes. Nobody has heard that.
 - **The Shield's shell has two sizes in the art:** 1.8 units in
   `art/lib/fx.mjs` (`SHELL_RADIUS`, the sprite) and 1.64 in
   `art/lib/ship.mjs` (`RINGS.shield`, the pod's own). The pod's is the one

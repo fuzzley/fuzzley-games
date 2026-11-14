@@ -812,7 +812,8 @@ is, and the autopilot's report is run again after each.
   a voice charms. On 2026-11-14 the user heard every sound and every moment
   on the page in `sound/audition/` and marked ninety-five of the
   ninety-eight good as they are; two beds and the thrust were made again
-  from their notes (`sound/listen-for.md`). What nobody has heard is how
+  from their notes, and passed when heard again (`sound/listen-for.md`).
+  What nobody has heard is how
   they sit in the game: on a phone's speaker, under real play, for minutes
   at a time. A bed is the likeliest to tire there, and slice 1 should end
   with that listen.
