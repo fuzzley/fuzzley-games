@@ -368,3 +368,335 @@ F1's files are F's own; that the second to land marks levels 34 to 40;
 that Wave 1's end ran no build or layout check, and that L2's landing ran
 no library or Brick Fuzz Pop tests, both covered by Wave 2's `yarn
 verify`; review tallies as "answered"; and four wordings.
+
+### R3 landed: 0a644447, 9589287f, d11a2092
+
+- `Field.bestStreak`, kept by the saved game (its version stays 2), in the
+  autopilot's report and `report:levels`' new column; `--marks` and each
+  level's `mark` (C7), required in the level data; the stars record's rules
+  in `src/rules/run/stars.ts` (C6), with `isCleanClear()` shared by the
+  clean clear's bonus and the clean star.
+- The marks: 20 of 33 at the floor of 5; the highest Fuse 30, Low bridge
+  and Storm 20 (`levels/report-r3-marks.txt`). They are the autopilot's
+  streaks, not a player's: to be played by hand (the plan's risk table
+  says so).
+- `report:levels --seeds 12` printed R2's report exactly but for the new
+  column (`levels/report-r3.txt`).
+- The rebase onto 009b350a (this log) was trivial; the agent's checks at
+  its tip stand: Brick Breaker's lint, typecheck and tests (64 files, 2,383
+  specs), coverage at the floors, the root's lint. Fast-forwarded.
+- Four reviews (the stars' commit a second time, its fixes having added
+  API), every comment answered (`worklog/R.md`). R3 left the
+  `brick-breaker-stars` key out of `AGENTS.md`, since nothing writes it
+  yet: P3's.
+- K2 told: rebase, and mark levels 34 to 40 (now required to compile).
+
+### P3 started, K2 and L3 still running
+
+- P's branch fast-forwarded to d11a2092. Started P3 (the stars in the
+  shell) with P2's two follow-ups: `board-focus-ring()` on an inner
+  application, and `takePictures()` lifted into `@fz/phaser`.
+- Running: K2, L3 (with L5), F3a, P3. Waiting: F2 (for L3), L4, L6 and L7
+  (stream L's queue), K3 (after K2), F3b (after K3), K4.
+
+### F3a landed: f8b3b546
+
+- Five new sounds from `tools/build-sounds.mjs`: a plate's clank (the
+  underside only, so a player hears whether a ball did harm), a cage's
+  rattle, a key's chime, the gates' rising sweep, and a soft flutter as the
+  paddle lends the seeker. None is louder than the brick's hit, measured
+  on the built file. `VOICES` in `effects.ts` gives a kind a sound of its
+  own; the effects spec keeps every event's and kind's sound in records
+  the compiler holds whole, so K3's kinds must add theirs. A new
+  `build-sounds.spec.ts` holds the committed sprite to what the script
+  writes.
+- The streak's top note: Phaser's Web Audio path clamps no detune (the
+  ±1200 is only in its doc comments); at 1900 cents the player asked Web
+  Audio for a rate of 2.9966, and the offline render played 1762 Hz for
+  1759 expected. Nothing to fix.
+- The rebase onto d11a2092 (R3) collided in the content skill's
+  description, where R3 and F3a each added triggers: both kept. On the
+  rebased branch: Brick Breaker's typecheck and tests (68 files, 2,753
+  specs), the root's lint. Fast-forwarded.
+- One review, every comment answered (`worklog/F.md`); one left as a
+  follow-up: `withBurst()` is now copied in two games' `build-sounds.mjs`,
+  a lift into `@fz/dev/sounds` for F3b.
+
+### L4 in a worktree of its own
+
+- Nothing in the queues was free to start: F2 waits for L3, K3 for K2,
+  and L4 to L7 queue behind L3 in stream L's worktree. L4 touches little
+  that L3 does (L3's rim and gutter are in `field_painter.ts`, so L4 tiles
+  the place in a new painter), so it was split off into a sixth worktree,
+  `/home/dev/Projects/personal/bbu/L4` on `bbu/L4`, port 9114, its log
+  `worklog/L4.md`. Started L4 (`svgOf()` lifted, the places' art, the
+  field's tile and the page's mask).
+- Running: K2, L3 (with L5), P3, L4.
+
+### K2 landed: ba3a3056, 2c1368ed, 2213ea2a
+
+- Friends' levels 34 to 40, each with its mark (the agent rebased onto R3
+  when told, and put each mark in the commit that adds its level), and
+  Mushroom's cap with plain tips. No `!` or `+` in Friends at twelve seeds
+  (`levels/report-k2.txt`). Redrawn: Walled garden (2:22 at Relaxed in the
+  draft; its floor now gates from wall to wall, 0:57), Trellis (no plate
+  against a side wall: long endgames 15 in 900 → 3). Mushroom's mark fell
+  from 15 to 10.
+- Mushroom isn't wholly fixed: about 1% of its plays still have an
+  endgame past a minute, in every version tried, since neither the
+  autopilot nor a seeking ball aims at a plate. The fix would be in R's
+  `autopilot.ts` or `seeker.ts`; the twelve-seed report is within budget,
+  so it is left as a point for the user.
+- Seen beyond Friends, all points for the user: Lanterns (18) shows `+`
+  (2:01 at Relaxed), since R2's seeker moved it from 1:58, not K2; a level
+  of the thirty, not a new one, so §9's leave to mark a long new level
+  doesn't cover it. With twenty seeds, Spiral (27) and Finale (30) each
+  have one play at Relaxed past the endgame's limit (`!`), a breach of the
+  budget that the twelve-seed report doesn't reach
+  (`levels/report-k2-seeds20.txt`). On the tallest field, Mushroom has one
+  play at Relaxed of 2:11 over its last bricks (`!`), the only one in the
+  forty levels (`levels/report-k2-tallest.txt`).
+- `play-variants.mjs` and `variants-k2.json` in `levels/` measure a level's
+  redraws over many seeds, for K4 too. README and `index.html` now say
+  forty levels.
+- The rebase onto f8b3b546 (F3a) was clean. On the rebased branch: Brick
+  Breaker's typecheck and tests (68 files, 2,825 specs, `sim` included),
+  the root's lint. Fast-forwarded.
+- Four reviews, every comment answered (`worklog/K.md`).
+
+### K3 started
+
+- Machines' kinds, in a changed order: the bumper with Pinball (41), the
+  portal and the nudge with Wormhole (43), then the slider with Conveyor
+  (42) last, after a rebase, so its painter change (an offset where a
+  brick is drawn) lands on L3's brick painter and on F2's drop-in, as
+  §7.1 and §7.3 order. K3 has since rebased itself twice, onto 98d22048
+  and onto 6503c59c (F2 and L6 in), at clean points; the nudge came with
+  the bumper (48fb439c on its branch), not with Wormhole.
+- Running: L3 (with L5), P3, L4, K3.
+
+### L3 (with L5) landed: 1cd5ee0b, 24cda60c, ab7d7e05, a139c929
+
+- The paddle as the kit draws it, with velcro hooks while it catches and
+  cannons while it fires; the capsules as pills, a bad one notched on a
+  gold lip, the Seeker's symbol a sight; the ball's fur lifting with the
+  streak's tier, and a sight under a seeking ball (`FieldView.seeking`);
+  the rim on three sides, capped so it never reaches under a panel
+  (`src/view/field/rim.ts`), the gutter under the paddle with chevrons, and
+  the ring of a regrowing brick as it grows back (`cellFrame()`).
+- The rebase onto 2213ea2a collided with F1 in five places: `art.ts`'s
+  imports (both), and three paragraphs of the workspace's `AGENTS.md` (the
+  view's art and the scene's painters: F1's streak art, tail and streak
+  painters kept beside L3's paddle and sight), and the scene spec's helpers
+  (both sets kept). Each side was kept whole, nothing of either rewritten,
+  so no commit was reviewed again. The first try ran Prettier over a file still holding
+  conflict markers, which mangled them, and staged it; the rebase was
+  aborted at once, back to L3's own tip, and done again with each commit
+  typechecked before going on, and every rebased commit searched for
+  markers (none). On the rebased branch: Brick Breaker's tests (70 files,
+  3,001 specs, `sim` included), and the root's lint. Fast-forwarded.
+- Four reviews, every comment answered (`worklog/L.md`). Left: the
+  board's focus ring could widen to `rimWidth()` (P's, done in P4);
+  `outlinedWith` could be lifted, which touches Brick Fuzz Pop (L8);
+  Friends' inks are L6's; and a ball lost in a streak fades in its flat
+  faced frame, so fur standing on end snaps flat as it goes (the fur's
+  review, item 1): the lost ball's fade is the effects painter's, so F3b's.
+- K3 told to rebase onto it before its slider. Started F2 (the squash and
+  the dip, the drop-in, the mark's ring), its branch at a139c929.
+- Running: P3, L4 (finishing its last commit's review), K3, F2.
+
+### P3 landed: ca8e676b, b5f94b08, 8b21590d, 0504165a
+
+- `board-focus-ring()` now shows its ring while the inner application has
+  the focus, Brick Fuzz Pop's board taking it in the same commit;
+  `settledPictures()` lifted into `@fz/phaser/canvas`, both boards using
+  it; `StarsService` keeping `brick-breaker-stars` (C6) and `GameService`'s
+  `mark`, `starsHeld`, `bestStreak` and `newStars`; `<app-stars>` on the
+  bench (in its first part, so a compact bench keeps them), the Ready card
+  and the cleared card, those just won marked New; the Levels dialog's
+  small stars with one text alternative a level, a count by each set and
+  the total held; How to play's paragraph; the announcer saying the stars
+  won after a clear (`describeStarsWon()`). Outside P's files: an outline
+  star icon in `@fz/ui`, since an unwon star must differ by shape.
+- The rebase onto a139c929 was clean. On the rebased branch: the root's
+  lint, typecheck and tests (every workspace; Brick Breaker 3,044 specs),
+  under the lock, 2 min 35 s; Brick Breaker's and Brick Fuzz Pop's builds
+  and `check:layout`, both holding at every shape. (A first try at the
+  builds ran a yarn held in a shell variable, which zsh doesn't split, so
+  nothing built; the layout checks it ran read the agent's earlier builds.
+  Run again with the shell function, both built and held.) Fast-forwarded.
+- Four reviews, every comment answered (`worklog/P.md`). Follow-ups: at
+  568 × 320 a cleared card with a "Double pay" line runs about 13 px past
+  the field's wall (on the board still; `check:layout` looks only at the
+  Ready card); the "a, b and c" join repeated from Brick Fuzz Pop could go
+  into `@fz/core/format`; the last level's stars aren't on the result
+  card, which the plan doesn't ask for.
+- L's branch fast-forwarded to 0504165a. Started L6 (Friends' art and the
+  friends' inks). Running: K3, F2, L4 (finishing), L6. Waiting: L7 (after
+  K3), F3b (after K3), K4 (after K3), a P package for P3's and L3's
+  follow-ups, Z1 and Z2.
+
+### L4 landed: d5a29412, dd617d8b, 98d22048
+
+- `svgOf()` in `@fz/phaser/shapes`; `src/view/places/`, each place's tile
+  of motifs drawn as the places sheet scatters them, a record keyed by
+  `Place`; the scene's `PlacePainter` washing the set's tile over the field
+  at about 4.5% (baked at full strength, drawn at the place's alpha, so the
+  net and the gutter take only a tint), and the board's `.backdrop`, a
+  layer in the text's color masked by the same tile, a little stronger,
+  past the field. A
+  greyscale busy moment, three balls in play on the workshop's tile, showed
+  the balls first in all four palettes.
+- The agent stopped at its time with the third commit staged and its
+  review unanswered; resumed, it answered the review (the tile had cut
+  gaps in the net; the canvas renderer kept the first bake's frame; four
+  specs tied the drawing to the right place) and committed.
+- The rebase onto 0504165a collided in seven places, each settled by
+  keeping both sides: the palette's `text` beside L3's paddle inks, three
+  paragraphs of the workspace's `AGENTS.md` (L3's contrast paragraph and
+  field painter with L4's `text` sentence, places bullet and
+  `PlacePainter`), the testing skill's line on the shell's levels (P3's
+  Dare mark and L4's `TWO_PLACES`), and an import each in the board's and
+  the scene's specs. Each commit was typechecked as the rebase went, and
+  every commit searched for markers. On the rebased branch: the root's
+  lint, typecheck and tests (every workspace; Brick Breaker 3,213 specs)
+  under the lock, Brick Breaker's build and `check:layout`. Fast-forwarded.
+- Three reviews, every comment answered (`worklog/L4.md`); left with
+  reasons: the place's layer sits second in F's `layers.ts`, not at the
+  end, since a layer's depth is its place in the list; the page's tile is
+  rebuilt at each layout, 0.8 to 1.7 ms.
+- Started P4, a package of the integrator's for stream P's follow-ups: the
+  Cleared card fitted to a small board and held there by `check:layout`,
+  the "a, b and c" join lifted into `@fz/core/format` for both games, and
+  the board's focus ring and placeholder at the rim's width. Running: K3,
+  F2, L6, P4.
+
+### F2 landed: b406e555, 94c630e3, c80f614b
+
+- The ball squashed (the kit's 1.28 by 0.7) and the pad dipped in whole
+  pixels for 90 ms as they meet, in the picture only; the bricks dropped in
+  a column after a column, 160 ms each, 20 ms apart, landing at 400 ms, at
+  once at any key but a shortcut or a repeat; and the ring and count at a
+  level's mark, written once as each field starts (33 of the 40 marks fall
+  on a step already). Without motion, none of it plays and the bricks
+  stand in place from the first frame.
+- The rebase onto 98d22048 collided once, the brick painter's line in the
+  workspace's `AGENTS.md` (L4's `PlacePainter` and F2's drop-in, both
+  kept). On the rebased branch: Brick Breaker's typecheck and tests (75
+  files, 3,267 specs), the root's lint. Fast-forwarded.
+- Three reviews, every comment answered (`worklog/F.md`). For K3: the
+  slide adds its offset beside `dropInHeight()` and keeps `placed` false
+  while a brick slides.
+
+### L6 landed: eccb7b2c, 6503c59c
+
+- Friends' kinds drawn for real: the plated brick in the tough tints, cut
+  away round its steel plate in the marks' color so it reads against every
+  tint (K2's note on Trellis), with nine teeth; the cage over the friend it
+  frees next (`nextFriend()`, matching the rules' count), bent and cracked
+  once hit; the key in gold; the gate, steel between gold ends. Friends
+  fly in their inks, their tails, rings and counts too, and fade in their
+  ink when lost. `cagedFriend()` in `@fz/phaser/bricks` takes an optional fur,
+  Brick Fuzz Pop's unchanged.
+- The rebase onto c80f614b (F2) collided in the ball painter (F2's squash
+  and L6's inks: imports, two doc comments, and `lostInk()` beside F2's
+  reset), the streak painter's doc comment (F2's mark and L6's colors),
+  and the ball painter's line in `AGENTS.md`; each kept both, whole, so no
+  commit was reviewed again. Every commit typechecked and searched for
+  markers. On the rebased branch: the
+  root's lint, typecheck and tests (Brick Breaker 3,493 specs).
+  Fast-forwarded.
+- Two reviews, every comment answered (`worklog/L.md`). Left, for K4: a
+  rules-side `nextFriendInk()` for `freeFriend()` and the art to share;
+  and, for K4 too, a `FieldEvent.ink` set at a loss to replace
+  `BallPainter.lostInk()`'s guess by place. For F3b: an opening flourish
+  for the gates. L6's own log records no coverage run at its last commit;
+  the coverage at Waves 3 and 4's end below covers it. L6 removed
+  `placeholderArt()` with its last user, so K3 was told to restore it.
+- Two small lifts the integrator added, for the user's ask to share code
+  between the games, while the queues wait on K3: L8, the fur's outline
+  with its sparks (`outlinedWith()`, Brick Fuzz Pop's, repeated in Brick
+  Breaker's art) into `@fz/phaser/fuzzball`, each game's atlas hashed
+  before and after; F4, `withBurst()`, copied in both games'
+  `build-sounds.mjs`, into `@fz/dev/sounds`, each game's sprite held to
+  the byte. L8 runs in `bbu/L` and F4 in `bbu/F`, both from 6503c59c;
+  L4's worktree is done with. Running: K3, P4, L8, F4.
+
+### P4 landed: 650f6677, 12afd0eb, 9a1b88ab
+
+- The Cleared card set smaller over a field under 380 CSS px tall, its
+  stars across, its words kept for a screen reader (262 px, inside the
+  field at every shape; it was 299 over a 285 px field at 568 × 320), and
+  `check:layout` checking it at every shape over a kept run on Fuse that
+  clears itself at double pay (`tools/stored_run.mjs`), failing with the
+  old layout; `listed()` in `@fz/core/format`, which Brick Breaker, Brick
+  Fuzz Pop and Sudoku (a third copy the review found) all call; the
+  placeholder's rim as wide and round as the scene's (`--rim-width`,
+  `--rim-corner`), and the focus ring laid outside it, `board-focus-ring()`
+  unchanged.
+- The rebase onto 6503c59c was clean. On the rebased branch: the root's
+  lint, typecheck and tests (Brick Breaker 3,504 specs) under the lock,
+  Brick Breaker's build and `check:layout`. Fast-forwarded.
+- Three reviews, every comment answered (`worklog/P.md`); left: the
+  layout check's `CLEARED_AT` rebuilds `@fz/dev/layout`'s private
+  `PHASER_SHAPES` (a library export for one line).
+
+### For Z2's move to `docs/archive/`
+
+- Code that cites `docs/brick-breaker-uplift/art/` in a comment, to point
+  at `docs/archive/brick-breaker-uplift/art/` after the move:
+  `src/view/art/brick_art.ts`, `art.ts` and `paddle_art.ts`, and
+  `src/view/places/places.ts` and `motifs.ts` (`git grep
+docs/brick-breaker-uplift -- frontend` finds them all).
+- `levels/play-variants.mjs` imports `../../../frontend/...`, which breaks
+  one folder deeper; its imports and `@import`s gain a `../`. The plan's
+  own mock scripts and `art/` generators may hold relative paths too: run
+  each once after the move.
+
+### The log's second review
+
+A fresh reviewer read the log's additions since Wave 2's end against the
+commits, the streams' logs and the plan. Its eight comments, all taken:
+the ends of Waves 3 and 4 weren't recorded (run and recorded below, and a
+heading that read as Wave 4's start renamed); K3's order put the slider
+before F2's drop-in, against §7.1, and missed K3's own rebases and where
+the nudge landed; nothing had checked coverage with L6's code in (run
+below); K2's budget points were miscalled (Lanterns' `+` is R2's and not
+a new level's, Spiral's and Finale's `!` at twenty seeds are breaches,
+and Mushroom's `!` on the tallest field was missing); two follow-ups lost
+(the lost ball's flat fur, now F3b's) or unclear (both L6 items K4's);
+what Z2's move breaks (above); why no rebase that kept two sides of code
+was reviewed again; and four wordings.
+
+### F4 landed: 7718f774
+
+- `withBurst()` in `@fz/dev/sounds` (the two copies were the same, doc
+  comment and all), both brick games' `build-sounds.mjs` calling it; both
+  sprites written again byte for byte (15 sounds, 189,804 bytes; 20,
+  267,244). Its specs fail with each of six faults put in.
+- The rebase onto 9a1b88ab (P4) was clean; the commit touches no file P4
+  did, so its own checks (each game's tests, the library's coverage, the
+  root's lint, typecheck and tests) stand, and the waves' end checks
+  below ran over it. Fast-forwarded.
+- One review, every comment answered (`worklog/F.md`). Follow-ups, none
+  taken: Asteroid Breaker's sounds write the burst out by hand, with no
+  spec holding its sprite; all four games' scripts print the same closing
+  line; a helper for two clashing tones; a library helper for the sound
+  spec both brick games now repeat byte for byte.
+
+### Waves 3 and 4's end
+
+- Wave 3 ended with L3 (a139c929) and Wave 4 with L6 (6503c59c); neither
+  end's checks ran then. They ran on 7718f774, which holds both and P4 and
+  F4 since.
+- `origin/main`, fetched: still eb560e1f, so no rebase.
+- `yarn verify:full` (every workspace's lint, typecheck, tests with their
+  coverage floors, and the build) passed in 4 min, Brick Breaker's `pure`
+  and `dom` at 99.59% statements and 97.63% branches over 3,264 specs,
+  every floor held; then `yarn check:layout`, every game holding at every
+  shape, Brick Breaker's Cleared card too.
+- A first run, on 9a1b88ab, stopped at the root's lint: this log, edited
+  while it ran, wasn't formatted. The layout check after it read Brick
+  Breaker's build from Wave 2's end, which has no cleared card for P4's new
+  check to find, and failed there. Nothing is edited in the integration
+  worktree while its checks run now.
