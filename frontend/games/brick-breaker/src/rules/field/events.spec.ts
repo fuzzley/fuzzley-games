@@ -1,3 +1,4 @@
+import { OWN_INK } from "../paddle/balls";
 import { EVENT_LOG_SIZE, type FieldEvent, FieldEventLog } from "./events";
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
@@ -8,7 +9,7 @@ function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
 }
 
 describe("FieldEventLog", () => {
-  it("records each event's kind, place, brick, capsule and streak, numbered", () => {
+  it("records each event's kind, place, brick, capsule and streak, numbered, in the player's own ink", () => {
     const log = new FieldEventLog();
 
     log.add("wall", 1, 2);
@@ -25,6 +26,7 @@ describe("FieldEventLog", () => {
         capsule: null,
         streak: 0,
         way: 0,
+        ink: OWN_INK,
       },
       {
         serial: 2,
@@ -35,6 +37,7 @@ describe("FieldEventLog", () => {
         capsule: "wide",
         streak: 0,
         way: 0,
+        ink: OWN_INK,
       },
       {
         serial: 3,
@@ -45,6 +48,7 @@ describe("FieldEventLog", () => {
         capsule: null,
         streak: 5,
         way: 0,
+        ink: OWN_INK,
       },
     ]);
   });
@@ -55,6 +59,14 @@ describe("FieldEventLog", () => {
     log.add("slid", 5, 2.5, 2, null, 0, -1);
 
     expect(eventsSince(log, 0).map((event) => event.way)).toEqual([-1]);
+  });
+
+  it("records the ink a lost ball wore", () => {
+    const log = new FieldEventLog();
+
+    log.add("lost", 5, 30, -1, null, 0, 0, 3);
+
+    expect(eventsSince(log, 0).map((event) => event.ink)).toEqual([3]);
   });
 
   it("keeps the latest events, as many as its size", () => {
@@ -72,7 +84,7 @@ describe("FieldEventLog", () => {
 
   it("leaves nothing of the oldest event in the record a new one takes", () => {
     const log = new FieldEventLog();
-    log.add("dropped", 3, 4, 17, "wide", 5);
+    log.add("dropped", 3, 4, 17, "wide", 5, 1, 3);
     for (let i = 1; i < EVENT_LOG_SIZE; i++) log.add("paddle", 0, 0);
 
     log.add("wall", 1, 2);
@@ -87,6 +99,7 @@ describe("FieldEventLog", () => {
         capsule: null,
         streak: 0,
         way: 0,
+        ink: OWN_INK,
       },
     ]);
   });

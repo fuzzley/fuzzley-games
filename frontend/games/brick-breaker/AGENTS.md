@@ -171,7 +171,8 @@ takes for the specs' helpers.
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
   streak as it broke, as the scene plays it once the field has moved on,
-  and a slider's step the way it stepped (`FieldEvent.way`).
+  a slider's step the way it stepped (`FieldEvent.way`), and a lost ball's
+  the ink it wore (`FieldEvent.ink`).
 - **`src/rules/paddle/`** — the paddle and what it sends up the field.
   `paddle.ts` steers the paddle (`Steer`: a pointer's place, a finger's
   drag, held keys) and `balls.ts` turns a ball: off the paddle by where it
@@ -180,7 +181,8 @@ takes for the specs' helpers.
   (`releaseBall()`). Each ball wears an ink: the player's own (`OWN_INK`),
   or a friend's, the next of `@fz/phaser/color`'s `FUZZBALL_INKS`
   (`FRIEND_INKS` of them) for each friend a level frees
-  (`Field.friendsFreed`), kept by a ball split from it, for the view to
+  (`Field.friendsFreed`, `nextFriendInk()`, which the cage's look reads
+  too), kept by a ball split from it, for the view to
   color it by; and a ball may seek (`Ball.seeks`,
   `src/rules/field/seeker.ts`).
   `releaseBall()`, `holdBall()` and `createBall()` let a ball meet portals,
@@ -545,8 +547,9 @@ takes for the specs' helpers.
   and it names
   the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
-  cage's by the friends the field has freed, `nextFriend()`, a portal's by
-  its pair and a slider's by its heading, or as How to
+  cage's by the friends the field has freed, `nextFriend()`, through the
+  rules' `nextFriendInk()`, a portal's by its pair and a slider's by its
+  heading, or as How to
   play pictures a brick on its own, `PICTURED_FIELD`,
   and `regrowingFrame()` at how far it has come, `regrowShare()`, and so
   the frame a cell shows as the field stands, its brick's
@@ -596,10 +599,10 @@ takes for the specs' helpers.
   its slide (`BrickPainter.slideOffsetOf()`),
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
-  in the frame it flew in, its kind's, in the ink the painter last showed
-  it in (`BallPainter.lostInk()`) and with the fur of the streak it was
-  last drawn at (`BallPainter.drawnStreak`), though the streak ends as the
-  last ball is lost, its eyes over it looking ahead, each ring and fade
+  in the frame it flew in, its kind's, in the ink its event keeps
+  (`FieldEvent.ink`) and with the fur of the streak it was last drawn at
+  (`BallPainter.drawnStreak`), though the streak ends as the last ball is
+  lost, its eyes over it looking ahead, each ring and fade
   taken in turn (`@fz/core/turns`'s `Turns`), the gates' opening, each
   gate's frame a particle that thins to a line along its middle and fades
   where it stood (`open()`), as many at once as a level holds, and the

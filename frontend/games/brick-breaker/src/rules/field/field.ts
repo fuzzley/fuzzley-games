@@ -417,7 +417,7 @@ function isCleared(field: Readonly<Field>): boolean {
 function loseBall(field: Field, ball: Ball): void {
   ball.live = false;
   ball.seeks = false;
-  field.events.add("lost", ball.x, field.height);
+  field.events.add("lost", ball.x, field.height, -1, null, 0, 0, ball.ink);
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";
   field.livesLost++;

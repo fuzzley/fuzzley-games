@@ -2,7 +2,6 @@ import { lerp, shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import type { BallKindId } from "../../rules/catalog/balls";
-import { OWN_INK } from "../../rules/paddle/balls";
 import { BALL_RADIUS, MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, ballFrame, ballGrid } from "../../view/art/art";
 import { type Squash, squashAt } from "../../view/effects/flourish";
@@ -128,18 +127,6 @@ export class BallPainter implements Painter {
       ember.fresh = false;
       this.squashPicture(i, now, metrics.unit, image, eyes);
     }
-  }
-
-  /**
-   * Returns the ink of the ball a field lost at a place across it, one shown
-   * in play until it was lost, which its fade wears, or the player's own
-   * where none was.
-   */
-  lostInk(field: FieldView, x: number): number {
-    const lost = field.balls.find(
-      (ball, i) => !ball.live && ball.x === x && this.images[i]?.visible,
-    );
-    return lost?.ink ?? OWN_INK;
   }
 
   /** Puts out every ember, and rounds every ball, as a new field starts. */

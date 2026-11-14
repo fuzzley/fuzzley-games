@@ -1,5 +1,6 @@
 import { keysOf } from "@fz/core/records";
 import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
+import { OWN_INK } from "../../rules/paddle/balls";
 import { fieldFrom } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
@@ -18,7 +19,17 @@ import { HOLD_MS } from "./timing";
 
 /** Returns an event of a kind, at a cell or none, at a length of streak. */
 function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
-  return { serial: 1, kind, x: 0, y: 0, cell, capsule: null, streak, way: 0 };
+  return {
+    serial: 1,
+    kind,
+    x: 0,
+    y: 0,
+    cell,
+    capsule: null,
+    streak,
+    way: 0,
+    ink: OWN_INK,
+  };
 }
 
 /**

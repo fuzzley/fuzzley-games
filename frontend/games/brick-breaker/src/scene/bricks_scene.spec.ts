@@ -2429,7 +2429,7 @@ describe("BricksScene", () => {
       expect(fadingFrames(scene)).toEqual([ballFrame("normal", 0, 2)]);
     });
 
-    it("fades each ball lost at once in its own ink, by where it was lost", async () => {
+    it("fades each ball lost at once in its own ink", async () => {
       const { shell, run, scene } = await startBoard();
       throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180);
       throwBall(shell.field, 9, FIELD_HEIGHT - 0.5, 180, 1).ink = 2;
@@ -2443,7 +2443,7 @@ describe("BricksScene", () => {
       );
     });
 
-    it("fades a lost friend in its ink, not in that of a ball lost there before and since out of sight", async () => {
+    it("fades a lost friend in its ink, not in that of another record lost at its place", async () => {
       const { shell, run, scene } = await startBoard();
       throwBall(shell.field, 13, 20, 0);
       const friend = throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180, 2);
@@ -2455,6 +2455,34 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(fadingFrames(scene)).toEqual([ballFrame("normal", 0, 2)]);
+    });
+
+    it("fades a lost friend in the ink its event keeps, though a cage frees another into its record before the event plays", async () => {
+      const { shell, run, scene } = await startBoard((board) => {
+        board.showField(["co"]);
+      });
+      throwBall(shell.field, 13, 20, 0);
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180, 1).ink = 2;
+      run.advance(16);
+      stepTimes(shell.field, 30);
+
+      hitBrick(
+        shell.field,
+        brickAt(shell.field, 0, 0),
+        1,
+        BRICKS_TOP,
+        "breaks",
+      );
+      run.advance(16);
+
+      const record = ballOf(shell.field, 1);
+      expect({
+        fading: fadingFrames(scene),
+        record: { live: record.live, ink: record.ink },
+      }).toEqual({
+        fading: [ballFrame("normal", 0, 2)],
+        record: { live: true, ink: 0 },
+      });
     });
 
     it("opens each gate where it stood, in its frame, as the last key breaks", async () => {

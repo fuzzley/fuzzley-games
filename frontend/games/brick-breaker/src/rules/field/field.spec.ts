@@ -278,6 +278,15 @@ describe("a cleared level", () => {
   });
 });
 
+/** Returns the inks the field's balls wore as each was lost, in turn. */
+function lostInks(field: Field): number[] {
+  const inks: number[] = [];
+  field.events.forEachSince(0, (event) => {
+    if (event.kind === "lost") inks.push(event.ink);
+  });
+  return inks;
+}
+
 describe("a lost ball", () => {
   it("loses the level's ball once it falls past the floor", () => {
     const field = fieldFrom(FAR_BRICK);
@@ -289,6 +298,16 @@ describe("a lost ball", () => {
       state: "lost",
       events: ["lost"],
     });
+  });
+
+  it("records the ink the ball wore as it is lost, a friend's or the player's own", () => {
+    const field = fieldFrom(FAR_BRICK);
+    throwBall(field, 5, 29.5, 180);
+    throwBall(field, 9, 29.5, 180, 1).ink = 3;
+
+    stepTimes(field, 10);
+
+    expect(lostInks(field)).toEqual([OWN_INK, 3]);
   });
 
   it("stays in play past the floor a field of the least height has, on a taller one", () => {

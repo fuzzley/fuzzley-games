@@ -5,6 +5,7 @@ import {
   BALL_RADIUS,
   FIELD_WIDTH,
   FLATTEST,
+  FRIEND_INKS,
   PADDLE_ANGLE,
   SERVE_ANGLE,
 } from "../tuning";
@@ -60,6 +61,14 @@ export interface Ball {
 
 /** The ink the player's own ball wears, rather than a friend's. */
 export const OWN_INK = -1;
+
+/**
+ * Returns the ink of the friend a level frees next, once it has freed so
+ * many: each of the {@link FRIEND_INKS} in turn, then the first again.
+ */
+export function nextFriendInk(friendsFreed: number): number {
+  return friendsFreed % FRIEND_INKS;
+}
 
 /** The sine of the flattest a ball travels. */
 const FLATTEST_SIN = Math.sin(toRadians(FLATTEST));

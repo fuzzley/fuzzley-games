@@ -4,6 +4,7 @@ import {
   BALL_RADIUS,
   FIELD_WIDTH,
   FLATTEST,
+  FRIEND_INKS,
   PADDLE_TOP,
   SERVE_ANGLE,
 } from "../tuning";
@@ -14,6 +15,7 @@ import {
   followPaddle,
   holdBall,
   isBallInCell,
+  nextFriendInk,
   overlapsBox,
   reflectBall,
   releaseBall,
@@ -147,6 +149,16 @@ describe("releaseBall", () => {
 describe("createBall", () => {
   it("makes a ball the player's own", () => {
     expect(createBall().ink).toBe(OWN_INK);
+  });
+});
+
+describe("nextFriendInk", () => {
+  it("dresses each friend a level frees in the friends' inks in turn, the first again after the last", () => {
+    const inks = [0, 1, FRIEND_INKS - 1, FRIEND_INKS, FRIEND_INKS + 2].map(
+      nextFriendInk,
+    );
+
+    expect(inks).toEqual([0, 1, FRIEND_INKS - 1, 0, 2]);
   });
 });
 

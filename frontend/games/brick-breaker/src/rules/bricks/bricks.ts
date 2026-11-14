@@ -20,9 +20,9 @@ import {
   rowOf,
 } from "../grid";
 import type { LevelBrick } from "../levels/level";
-import { isBallInCell, releaseBall } from "../paddle/balls";
+import { isBallInCell, nextFriendInk, releaseBall } from "../paddle/balls";
 import { stepsIn } from "../stepper";
-import { FRIEND_INKS, FRIEND_SPREAD } from "../tuning";
+import { FRIEND_SPREAD } from "../tuning";
 import { dropFrom } from "./capsules";
 import { stepSliders } from "./sliders";
 
@@ -406,7 +406,7 @@ function freeFriend(field: Field, brick: Readonly<Brick>): void {
   const x = cellMiddleX(brick.cell);
   const y = cellMiddleY(brick.cell);
   const degrees = (nextDraw(field) * 2 - 1) * FRIEND_SPREAD;
-  releaseBall(friend, x, y, degrees, field.friendsFreed % FRIEND_INKS);
+  releaseBall(friend, x, y, degrees, nextFriendInk(field.friendsFreed));
   field.friendsFreed++;
   field.events.add("freed", x, y, brick.cell);
 }
