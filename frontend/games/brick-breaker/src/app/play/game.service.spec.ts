@@ -9,6 +9,7 @@ import { STEP_MS } from "../../rules/stepper";
 import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
+  FIRST_LIFE_POINTS,
   FIRST_LIVES,
   TALLEST_FIELD,
 } from "../../rules/tuning";
@@ -136,6 +137,24 @@ async function endedAt(level: number): Promise<GameService> {
   for (let life = 0; life < FIRST_LIVES; life++) loseBall(game);
   return game;
 }
+
+/** A level whose bricks let a wide paddle or a narrow one fall, at a chance of a half. */
+const MIXED_POOL = levelsOf([
+  {
+    id: "mixed",
+    name: "Mixed",
+    place: "playroom",
+    drops: 0.5,
+    levels: [
+      {
+        id: "mixed",
+        name: "Mixed",
+        capsules: ["wide", "narrow"],
+        bricks: ["ooooo........"],
+      },
+    ],
+  },
+]);
 
 beforeEach(() => {
   TestBed.configureTestingModule({
@@ -944,6 +963,137 @@ describe("GameService", () => {
       game.tryAgain();
 
       expect(game.run()).toBe(run);
+    });
+  });
+
+  describe("what the panels show", () => {
+    it("copies the bricks broken since the paddle", async () => {
+      const game = await launchedAt(SPEC_LEVEL.few);
+
+      playUntil(game, under, () => game.frame().field.streak >= 3);
+
+      expect(game.streak()).toBe(game.frame().field.streak);
+    });
+
+    it("starts the streak afresh on a new run", async () => {
+      const game = await launchedAt(SPEC_LEVEL.few);
+      playUntil(game, under, () => game.frame().field.streak >= 3);
+
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      expect(game.streak()).toBe(0);
+    });
+
+    it("copies an effect as it starts, with its share and its whole seconds left", async () => {
+      const game = await launchedAt(SPEC_LEVEL.wide);
+
+      playUntil(game, underCapsule, () => isWide(game));
+
+      expect(game.effectsInPlay()).toEqual([
+        {
+          capsule: "wide",
+          share: expect.closeTo(1, 2) as unknown,
+          seconds: 20,
+        },
+      ]);
+    });
+
+    it("keeps the effects shown as they are within a whole second", async () => {
+      const game = await launchedAt(SPEC_LEVEL.wide);
+      playUntil(game, underCapsule, () => isWide(game));
+      const shown = game.effectsInPlay();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.effectsInPlay()).toBe(shown);
+    });
+
+    it("copies the effects again as a whole second goes", async () => {
+      const game = await launchedAt(SPEC_LEVEL.catch);
+      playUntil(game, underCapsule, () => game.frame().field.mode === "catch");
+      // Caught, the ball waits on the paddle as the effect's time runs.
+      playUntil(game, under, () => heldBalls(game) > 0);
+      const shown = game.effectsInPlay();
+
+      playFor(game, 1000, STILL);
+
+      expect({
+        again: game.effectsInPlay() !== shown,
+        shown: game.effectsInPlay().map(({ capsule, seconds }) => ({
+          capsule,
+          seconds,
+        })),
+      }).toEqual({
+        again: true,
+        shown: [{ capsule: "catch", seconds: shown[0]!.seconds! - 1 }],
+      });
+    });
+
+    it("shows no effect once the ball is lost", async () => {
+      const game = await launchedAt(SPEC_LEVEL.wide);
+      playUntil(game, underCapsule, () => isWide(game));
+
+      loseBall(game);
+
+      expect(game.effectsInPlay()).toEqual([]);
+    });
+
+    it("counts the lives that wait on the bench, the one on the paddle left out", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+
+      loseBall(game);
+
+      expect(game.livesWaiting()).toBe(FIRST_LIVES - 2);
+    });
+
+    it("waits no lives once the last is lost", async () => {
+      const game = await endedAt(SPEC_LEVEL.steel);
+
+      expect(game.livesWaiting()).toBe(0);
+    });
+
+    it("gives the score the next life comes at", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(game.nextLifeAt()).toBe(FIRST_LIFE_POINTS);
+    });
+
+    it("lists the kinds of brick here, each the level is the first to hold marked new", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      expect(game.kindsHere()).toEqual([
+        { id: "plain", isNew: true },
+        { id: "steel", isNew: false },
+      ]);
+    });
+
+    it("lists the capsules that can fall here", async () => {
+      const game = await gameAt(SPEC_LEVEL.wide);
+
+      expect(game.capsulesHere()).toEqual(["wide"]);
+    });
+
+    it("lists no capsule that hinders the player at a speed that lets none fall", async () => {
+      TestBed.overrideProvider(GAME_LEVELS, { useValue: MIXED_POOL });
+      const game = TestBed.inject(GameService);
+
+      await game.changeSpeed("relaxed");
+
+      expect(game.capsulesHere()).toEqual(["wide"]);
+    });
+
+    it("gives the level after the one in play", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      expect(game.levelAfter()).toBe(SPEC_LEVELS[SPEC_LEVEL.few - 1]);
+    });
+
+    it("gives no level after the last", async () => {
+      const game = await gameAt(SPEC_LEVEL.last);
+
+      expect(game.levelAfter()).toBeNull();
     });
   });
 

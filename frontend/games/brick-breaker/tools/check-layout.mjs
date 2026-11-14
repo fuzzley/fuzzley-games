@@ -16,7 +16,11 @@
  * it; its unit must be at least 10 CSS px (9 in a window under 360 CSS px
  * tall); and, as the ball waits to be served, a field taller than 30
  * units, and only one, must leave a finger's room under it
- * (`--finger-room`), past the canvas's inset (`--fz-canvas-inset-bottom`).
+ * (`--finger-room`), past the canvas's inset (`--fz-canvas-inset-bottom`);
+ * and the panels must both show wherever its room (`data-room`) spares 186
+ * CSS px each side of the field's cells, and nowhere else, on the canvas
+ * and in the window, off the field, each other and the bar, at least 172
+ * CSS px across and down.
  * It prints what is wrong and fails, or says the layout holds.
  */
 import { join } from "node:path";
@@ -31,7 +35,8 @@ import {
 
 /**
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser; its card
- * is Ready's, as the ball waits on the paddle.
+ * is Ready's, as the ball waits on the paddle; and the panels beside it,
+ * shown both, wherever the room spares them, or neither.
  *
  * @type {PhaserBoard}
  */
@@ -44,6 +49,18 @@ const FIELD = {
   placeholder: ".placeholder .field",
   ring: ".ring",
   card: ".card",
+  deck: {
+    drawnAt: "data-panels",
+    zones: ["left", "right"],
+    // `PANEL_WIDTH_CSS_PX.least`, in `@fz/phaser/layout`.
+    least: 172,
+    allOrNone: true,
+    // `PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX.least`, which a side must
+    // spare for the panels at the check's whole pixel ratios, past the
+    // wall (`WALL_CSS_PX`), which the field's cells (`data-field`) leave
+    // out and the panels keep their gap from.
+    spare: { room: "data-room", least: 12 + 172 + 2 },
+  },
 };
 
 /**

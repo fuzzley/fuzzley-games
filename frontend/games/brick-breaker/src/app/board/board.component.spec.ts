@@ -5,6 +5,13 @@ import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
+  cssRectOf,
+  cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+  roomInside,
+} from "@fz/phaser/layout";
+import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
   FakeResizeObserver,
@@ -16,6 +23,7 @@ import {
   runShownScene,
   watchResizes,
 } from "@fz/phaser/testing";
+import { viewport } from "@fz/phaser/testing/pure";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { figures } from "@fz/ui/testing";
@@ -36,15 +44,24 @@ import {
 import { paintRoles } from "@fz/style/testing";
 import { ROLES } from "../../testing/roles";
 import { FIELD_ROLES } from "./field_roles";
-import { FINGER_ROOM_CSS_PX } from "../../view/field/field_metrics";
+import {
+  FINGER_ROOM_CSS_PX,
+  fieldMetrics,
+} from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
-import { BoardComponent } from "./board.component";
+import { BoardComponent, PICTURES_SETTLE_MS } from "./board.component";
 
 const SPACE = browserKey("Space", " ");
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
+
+/** A wide canvas, 1280 by 720 CSS px, which spares the panels room beside the field. */
+const WIDE = { width: 1280, height: 720 } as const;
+
+/** An upright phone's canvas, 390 by 772 CSS px, which spares the panels none. */
+const UPRIGHT = { width: 390, height: 772 } as const;
 
 /** Renders the board beside a button outside it, on a fake canvas. */
 async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
@@ -56,6 +73,7 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
   game: GameService;
   fake: FakePhaserCanvas;
   detectChanges: () => void;
+  destroy: () => void;
 }> {
   const view = await render(
     `<app-board /><button type="button">Elsewhere</button>`,
@@ -73,6 +91,9 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
     fake: TestBed.inject(FakePhaserCanvas),
     detectChanges: () => {
       view.detectChanges();
+    },
+    destroy: () => {
+      view.fixture.destroy();
     },
   };
 }
@@ -115,6 +136,10 @@ async function endedBoard(): Promise<{
 }
 
 describe("BoardComponent", () => {
+  beforeEach(() => {
+    paintRoles(FIELD_ROLES, ROLES);
+  });
+
   describe("the board", () => {
     it("is named for the level on it, and described by its keys", async () => {
       await renderBoard();
@@ -521,11 +546,76 @@ describe("BoardComponent", () => {
     });
   });
 
-  describe("with the scene it loads", () => {
-    beforeEach(() => {
-      paintRoles(FIELD_ROLES, ROLES);
+  describe("the panels", () => {
+    watchResizes();
+
+    it("stand beside the field where the room spares them", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      const { panels } = fieldMetrics(
+        viewport(WIDE.width, WIDE.height),
+        FIELD_HEIGHT,
+      );
+      expect({
+        left: screen.getByRole("region", { name: "The bench" }),
+        right: screen.getByRole("region", { name: "In play" }),
+      }).toEqual({
+        left: expect.toHaveStyle(cssRectStyle(panels!.left)) as unknown,
+        right: expect.toHaveStyle(cssRectStyle(panels!.right)) as unknown,
+      });
     });
 
+    it("stand nowhere where the room spares them none", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, UPRIGHT.width, UPRIGHT.height);
+      detectChanges();
+
+      expect(screen.queryAllByRole("region")).toEqual([]);
+    });
+
+    it("stand outside the application, read as a page is", async () => {
+      const { board, application, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      expect({
+        panels: screen.getAllByRole("region").length,
+        inApplication: within(application).queryAllByRole("region").length,
+      }).toEqual({ panels: 2, inApplication: 0 });
+    });
+
+    it("show the level in play and what is in play on it", async () => {
+      const { board, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      const bench = screen.getByRole("region", { name: "The bench" });
+      const inPlay = screen.getByRole("region", { name: "In play" });
+      expect(within(bench).getByText("Level 3 · Specs")).toBeInTheDocument();
+      expect(within(bench).getByText("Few")).toBeInTheDocument();
+      expect(within(inPlay).getByText("Steel brick")).toBeInTheDocument();
+    });
+
+    it("publish nothing for the layout check before the scene has laid the field out", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      expect({
+        room: board.dataset["room"],
+        panels: board.dataset["panels"],
+      }).toEqual({ room: undefined, panels: undefined });
+    });
+  });
+
+  describe("with the scene it loads", () => {
     /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */
     async function runBoardScene(
       canvas: { width?: number; height?: number } = {},
@@ -536,12 +626,12 @@ describe("BoardComponent", () => {
       game: GameService;
       run: SceneRun<HostedScene>;
       detectChanges: () => void;
+      destroy: () => void;
     }> {
-      const { board, application, component, game, fake, detectChanges } =
-        await renderBoard();
-      const run = await runShownScene(fake, board, canvas);
+      const rendered = await renderBoard();
+      const run = await runShownScene(rendered.fake, rendered.board, canvas);
       run.advance(FRAME_MS);
-      return { board, application, component, game, run, detectChanges };
+      return { ...rendered, run };
     }
 
     it("publishes where the scene laid the field out", async () => {
@@ -605,15 +695,121 @@ describe("BoardComponent", () => {
       expect(again).toBe(asked);
     });
 
-    it("hands How to play new pictures once the scene bakes again", async () => {
-      const { component, run } = await runBoardScene();
-      const asked = component.pictures();
-      run.game.scale.resize(1600, 1000);
-      run.advance(FRAME_MS);
+    describe("as the scene bakes its atlas again", () => {
+      afterEach(() => {
+        vi.useRealTimers();
+      });
 
-      const again = component.pictures();
+      /** Runs the board's scene, then has the specs move the timers the pictures wait on. */
+      async function runTimed(): Promise<{
+        component: BoardComponent;
+        run: SceneRun<HostedScene>;
+        destroy: () => void;
+      }> {
+        const { component, run, destroy } = await runBoardScene();
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        return { component, run, destroy };
+      }
 
-      expect(again).not.toEqual(asked);
+      /** Has the scene bake its atlas again, at the unit a canvas of a CSS size holds. */
+      function bakeAt(
+        run: SceneRun<HostedScene>,
+        { width, height }: { readonly width: number; readonly height: number },
+      ): void {
+        run.game.scale.resize(width, height);
+        run.advance(FRAME_MS);
+      }
+
+      it("keeps the pictures it has until the atlas settles", async () => {
+        const { component, run } = await runTimed();
+        const first = component.pictures();
+        bakeAt(run, WIDE);
+
+        vi.advanceTimersByTime(PICTURES_SETTLE_MS - 1);
+
+        expect(component.pictures()).toBe(first);
+      });
+
+      it("takes the pictures of the new atlas once it has settled", async () => {
+        const { component, run } = await runTimed();
+        const first = component.pictures();
+        bakeAt(run, WIDE);
+
+        vi.advanceTimersByTime(PICTURES_SETTLE_MS);
+
+        expect(component.pictures()).not.toEqual(first);
+      });
+
+      it("waits again for the atlas to settle each time it is baked", async () => {
+        const { component, run } = await runTimed();
+        const first = component.pictures();
+        bakeAt(run, WIDE);
+        vi.advanceTimersByTime(PICTURES_SETTLE_MS / 2);
+        bakeAt(run, UPRIGHT);
+
+        vi.advanceTimersByTime(PICTURES_SETTLE_MS - 1);
+
+        expect(component.pictures()).toBe(first);
+      });
+
+      it("takes no pictures once the board is gone", async () => {
+        const { component, run, destroy } = await runTimed();
+        const first = component.pictures();
+        bakeAt(run, WIDE);
+
+        destroy();
+        vi.advanceTimersByTime(PICTURES_SETTLE_MS);
+
+        expect(component.pictures()).toBe(first);
+      });
+    });
+
+    describe("on a board whose room spares the panels", () => {
+      watchResizes();
+
+      /** Runs the board's scene on a canvas of a CSS size, the board measured at it. */
+      async function runSizedScene(size: {
+        readonly width: number;
+        readonly height: number;
+      }): Promise<{ board: HTMLElement }> {
+        const { board, fake, detectChanges } = await renderBoard();
+        resize(board, size.width, size.height);
+        const run = await runShownScene(fake, board, size);
+        run.advance(FRAME_MS);
+        detectChanges();
+        return { board };
+      }
+
+      it("publishes the room the scene laid the field out in, inside the canvas's insets", async () => {
+        const { board } = await runSizedScene(WIDE);
+
+        expect(board.dataset["room"]).toBe(
+          rectAttribute(
+            cssRectOf(roomInside(viewport(WIDE.width, WIDE.height)), 1),
+          ),
+        );
+      });
+
+      it("publishes where the scene laid the panels out, by their names", async () => {
+        const { board } = await runSizedScene(WIDE);
+
+        const { panels } = fieldMetrics(
+          viewport(WIDE.width, WIDE.height),
+          FIELD_HEIGHT,
+        );
+        expect(board.dataset["panels"]).toBe(
+          namedRectsAttribute([
+            ["left", panels!.left],
+            ["right", panels!.right],
+          ]),
+        );
+      });
+
+      it("publishes that it laid no panels out where the room spares none", async () => {
+        const { board } = await runSizedScene(UPRIGHT);
+
+        expect(board.dataset["panels"]).toBe("");
+      });
     });
 
     it("launches the ball at Space pressed on the board's application", async () => {

@@ -2,7 +2,6 @@ import { lerp } from "@fz/core/math";
 import type { Turns } from "@fz/core/turns";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
-import type { CssRect } from "@fz/phaser/layout";
 import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import {
@@ -129,7 +128,7 @@ class FakeShell implements BricksSceneOptions {
   /** The height the shell makes the field as it ticks, as the game does when the board asks, or null. */
   heightAsked: number | null = null;
   readonly ticks: Tick[] = [];
-  readonly layouts: CssRect[] = [];
+  readonly layouts: FieldMetrics[] = [];
   readonly commands: FieldCommand[] = [];
   /**
    * What the scene handed over at each bake of the atlas to picture How to
@@ -152,8 +151,8 @@ class FakeShell implements BricksSceneOptions {
   readonly sound = (): boolean => this.wantsSound;
   readonly chimes = (): number => this.chimesCalled;
   readonly fingerRoom = (): number => this.fingerSpace;
-  readonly onLayout = (field: CssRect): void => {
-    this.layouts.push(field);
+  readonly onLayout = (metrics: FieldMetrics): void => {
+    this.layouts.push(metrics);
   };
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
@@ -314,7 +313,7 @@ describe("BricksScene", () => {
     it("tells the shell where the field lies", async () => {
       const { shell } = await startBoard();
 
-      expect(shell.layouts).toEqual([metricsAt().css]);
+      expect(shell.layouts).toEqual([metricsAt()]);
     });
 
     it("lays the field out again when the canvas changes size", async () => {
@@ -323,7 +322,7 @@ describe("BricksScene", () => {
       run.game.scale.resize(600, 400);
       run.advance(16);
 
-      expect(shell.layouts.at(-1)).toEqual(metricsAt(600, 400).css);
+      expect(shell.layouts.at(-1)).toEqual(metricsAt(600, 400));
     });
 
     it("lays the field out again as it is reshaped", async () => {
@@ -332,7 +331,7 @@ describe("BricksScene", () => {
       reshapeField(shell.field, TALLEST_FIELD);
       run.advance(16);
 
-      expect(shell.layouts.at(-1)).toEqual(tallestMetrics().css);
+      expect(shell.layouts.at(-1)).toEqual(tallestMetrics());
     });
 
     it("draws a field reshaped in the shell's tick at its new layout that frame", async () => {
@@ -352,7 +351,7 @@ describe("BricksScene", () => {
       shell.fingerSpace = 64;
       run.advance(16);
 
-      expect(shell.layouts.at(-1)).toEqual(metricsAt(400, 400, 64).css);
+      expect(shell.layouts.at(-1)).toEqual(metricsAt(400, 400, 64));
     });
 
     it("bakes the atlas again at a new unit", async () => {

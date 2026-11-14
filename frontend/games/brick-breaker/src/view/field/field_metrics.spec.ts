@@ -1,8 +1,10 @@
 import { NO_INSETS } from "@fz/phaser/insets";
+import { PANEL_GAP_CSS_PX } from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
 import { FIELD_HEIGHT, TALLEST_FIELD } from "../../rules/tuning";
 import {
   FINGER_ROOM_CSS_PX,
+  WALL_CSS_PX,
   fieldHeightFor,
   fieldMetrics,
   fingerRoomOf,
@@ -66,6 +68,40 @@ describe("fieldMetrics", () => {
       width: metrics.width / 2,
       height: metrics.height / 2,
     });
+  });
+
+  it("stands a panel either side of the field, 12 CSS px from its wall, from the wall's top to the field's foot", () => {
+    // Units of 23: the field is 598 by 690 at 341, 15, its wall 2 around it.
+    const { panels } = fieldMetrics(viewport(1280, 720), FIELD_HEIGHT);
+
+    expect(panels).toEqual({
+      left: { x: 7, y: 13, width: 320, height: 692 },
+      right: { x: 953, y: 13, width: 320, height: 692 },
+    });
+  });
+
+  it.each([
+    { width: 632, spare: 186, shown: true },
+    { width: 631, spare: 185, shown: false },
+  ])(
+    "stands the panels only where a side spares 186 CSS px past the cells: $spare",
+    ({ width, shown }) => {
+      // Units of 10: the cells are 260 wide, the narrower side sparing half
+      // of what is left, rounded down to a whole pixel.
+      const { panels } = fieldMetrics(viewport(width, 304), FIELD_HEIGHT);
+
+      expect(panels !== null).toBe(shown);
+    },
+  );
+
+  it("gives the panels in CSS pixels, as far from the wall at two device pixels to one", () => {
+    const { css, panels } = fieldMetrics(viewport(1280, 720, 2), FIELD_HEIGHT);
+
+    const left = panels?.left;
+    expect({
+      gap: left && css.x - WALL_CSS_PX - left.x - left.width,
+      top: left?.y,
+    }).toEqual({ gap: PANEL_GAP_CSS_PX, top: css.y - WALL_CSS_PX });
   });
 });
 

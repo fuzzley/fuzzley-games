@@ -1,0 +1,137 @@
+@use "../styles" as *;
+@use "parts";
+
+// The most lives that wait, `MAX_LIVES` less the one in play.
+$most-waiting: 5;
+
+// A panel under 400 px tall keeps the level and the lives.
+:host {
+  @include board-panel($compact: true);
+
+  align-content: start;
+  gap: var(--fz-space-4);
+}
+
+section {
+  @include parts.part;
+}
+
+.label {
+  @include parts.label;
+}
+
+.muted {
+  color: var(--fz-muted);
+}
+
+// The level's number and set over its name, set large.
+.level {
+  h3 {
+    display: grid;
+    margin: 0;
+    font-size: inherit;
+  }
+
+  .name {
+    font-size: var(--fz-font-lg);
+    font-weight: 700;
+    line-height: var(--fz-leading-tight);
+  }
+}
+
+// A pip a level of the set: those played lit in the accent, this one in the
+// text and those to come faint.
+.pips {
+  display: flex;
+  gap: var(--fz-space-1);
+  margin-top: var(--fz-space-1);
+}
+
+.pip {
+  flex: 1;
+  height: 6px;
+  border-radius: var(--fz-radius-pill);
+  background: var(--fz-edge-3);
+
+  &[data-pip="done"] {
+    background: var(--fz-accent);
+  }
+
+  &[data-pip="here"] {
+    background: var(--fz-text);
+  }
+}
+
+// The lives waiting, each a fuzzball as the field draws a ball, sitting on
+// a plank with a leg near each end, the plank a size container, so the
+// most that wait shrink to fit it on the narrowest panel.
+.plank {
+  position: relative;
+  display: flex;
+  gap: var(--fz-space-1);
+  min-height: var(--fz-space-6);
+  padding: 0 var(--fz-space-2) 6px;
+  container-type: inline-size;
+
+  // The plank's board, over its legs.
+  box-shadow: inset 0 -6px var(--fz-edge-4);
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    width: 6px;
+    height: 10px;
+    border-radius: 2px;
+    background: var(--fz-edge-3);
+  }
+
+  &::before {
+    left: 12%;
+  }
+
+  &::after {
+    right: 12%;
+  }
+}
+
+.ball {
+  --fz-fuzzball-eyes: var(--fz-panel);
+
+  color: var(--fz-text);
+  font-size: min(
+    var(--fz-space-6),
+    (100cqi - #{$most-waiting - 1} * var(--fz-space-1)) / #{$most-waiting}
+  );
+}
+
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--fz-space-2);
+  margin-top: var(--fz-space-2);
+}
+
+// The next level's picture beside its name and its kinds.
+.after {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--fz-space-3);
+  align-items: start;
+
+  .name {
+    font-weight: 700;
+  }
+}
+
+.picture {
+  width: 100%;
+  border-radius: var(--fz-radius-sm);
+  background: var(--fz-panel);
+}
+
+.kinds {
+  font-size: var(--fz-font-xs);
+}
