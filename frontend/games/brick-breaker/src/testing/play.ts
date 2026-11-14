@@ -113,6 +113,12 @@ export const TWO_SETS: readonly LevelEntry[] = levelsOf([
   { id: "second", name: "Second", place: "playroom", drops: 0, levels: [LAST] },
 ]);
 
+/** Two sets of a level each, in two places: the playroom, then the workshop. */
+export const TWO_PLACES: readonly LevelEntry[] = levelsOf([
+  { id: "near", name: "Near", place: "playroom", drops: 0, levels: [BLASTS] },
+  { id: "far", name: "Far", place: "workshop", drops: 0, levels: [LAST] },
+]);
+
 /** Each of the specs' levels' numbers, by what it is set up for. */
 export const SPEC_LEVEL = {
   blasts: 1,

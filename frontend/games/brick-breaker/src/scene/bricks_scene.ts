@@ -17,6 +17,7 @@ import {
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
+import type { Place } from "../rules/levels/levels";
 import type { Steer } from "../rules/paddle/paddle";
 import { PICTURE_FRAMES, type Pictures, facedBallFrame } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
@@ -49,6 +50,7 @@ import { FieldPainter } from "./painters/field_painter";
 import { GlowPainter } from "./painters/glow_painter";
 import { PaddlePainter } from "./painters/paddle_painter";
 import type { PaintContext, Painter } from "./painters/painter";
+import { PlacePainter } from "./painters/place_painter";
 import { StreakPainter } from "./painters/streak_painter";
 import { TagPainter } from "./painters/tag_painter";
 import { TailPainter } from "./painters/tail_painter";
@@ -88,6 +90,8 @@ export interface BricksSceneOptions {
    * play shows them.
    */
   readonly onPictures: (pictures: () => Pictures) => void;
+  /** Returns the place the level's set is in, which the field is tiled with. */
+  readonly place: () => Place;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -104,6 +108,8 @@ export class BricksScene extends Scene {
 
   /** Draws the field, its wall and the net. */
   field!: FieldPainter;
+  /** Tiles the field with the place its set is in. */
+  place!: PlacePainter;
   /** Draws the bricks. */
   bricks!: BrickPainter;
   /** Frames the last bricks a level needs, once they glow. */
@@ -180,6 +186,7 @@ export class BricksScene extends Scene {
     this.bake();
     const layers = this.layers();
     this.field = new FieldPainter(this, layers.field);
+    this.place = new PlacePainter(this, layers.place);
     this.bricks = new BrickPainter(this, layers.bricks);
     this.glow = new GlowPainter(this, layers.bursts);
     this.effects = new EffectsPainter(
@@ -205,6 +212,7 @@ export class BricksScene extends Scene {
     this.balls = new BallPainter(this, layers.balls);
     this.painters = [
       this.field,
+      this.place,
       this.bricks,
       this.glow,
       this.effects,
@@ -225,6 +233,7 @@ export class BricksScene extends Scene {
       now: 0,
       motion: this.options.motion(),
       brokeAt: field.steps,
+      place: this.options.place(),
     };
     this.sounds = new SpritePlayer(this, {
       key: "bricks-sounds",
@@ -287,6 +296,7 @@ export class BricksScene extends Scene {
     context.alpha = alpha;
     context.metrics = this.metrics;
     context.palette = this.painted;
+    context.place = this.options.place();
     for (const painter of this.painters) painter.draw(context);
   }
 

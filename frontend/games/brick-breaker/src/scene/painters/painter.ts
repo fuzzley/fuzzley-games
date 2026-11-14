@@ -1,3 +1,4 @@
+import type { Place } from "../../rules/levels/levels";
 import type { BricksPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { FieldView } from "../../view/field/frame";
@@ -31,6 +32,8 @@ export interface PaintContext extends Baked {
   motion: boolean;
   /** The field's step at which its last brick broke, or it was first drawn. */
   brokeAt: number;
+  /** The place the level's set is in, which the field is tiled with. */
+  place: Place;
 }
 
 /** Draws a part of the field, in the layers it was given, each frame. */

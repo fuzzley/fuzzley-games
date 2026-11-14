@@ -33,6 +33,7 @@ import {
 } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { brickKind } from "../../rules/catalog/bricks";
+import { placeOf } from "../../rules/levels/levels";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
 import {
@@ -54,6 +55,7 @@ import {
   fieldMetrics,
   fingerRoomOf,
 } from "../../view/field/field_metrics";
+import { backdropStyle } from "../../view/places/backdrop";
 import { BenchComponent } from "../panels/bench.component";
 import { InPlayComponent } from "../panels/in_play.component";
 import { GameService } from "../play/game.service";
@@ -269,6 +271,19 @@ export class BoardComponent {
       : "";
   });
 
+  /** The place the level's set is in, which the scene tiles the field with and the page shows past it. */
+  private readonly place = computed(() => placeOf(this.game.level().set));
+
+  /**
+   * How the page shows the place past the field (`backdropStyle()`), from
+   * where the scene laid the field out, or, until it has, where it will; or
+   * null before the board is measured.
+   */
+  protected readonly backdrop = computed(() => {
+    const metrics = this.laid() ?? this.placeholder();
+    return metrics && backdropStyle(this.place(), metrics);
+  });
+
   /** The board's own card over the field, if any, and none while the canvas shows its own. */
   protected readonly card = computed<Card>(() => {
     if (canvasCardOf(this.canvas())) return null;
@@ -400,6 +415,7 @@ export class BoardComponent {
     onPictures: (pictures) => {
       this.takePictures(pictures);
     },
+    place: () => this.place(),
   };
 
   /**

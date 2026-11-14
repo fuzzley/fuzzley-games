@@ -177,9 +177,15 @@ export function placeInks(
   };
 }
 
-/** Returns the inks a place's tile takes over the field, in a palette. */
-export function fieldInks(place: Place, palette: BricksPalette): PlaceInks {
-  return placeInks(palette.text, palette.field, PLACE_ART[place].field);
+/**
+ * Returns the inks the scene bakes a place's tile in for the field, in a
+ * palette, at full strength: the text, and the faint ink {@link FAINT} of
+ * the way to it from the field. The scene washes the tile over the field as
+ * strongly as the place shows there, so what the field's layer draws under
+ * it, as the net, only takes a tint of it.
+ */
+export function fieldInks(palette: BricksPalette): PlaceInks {
+  return placeInks(palette.text, palette.field, 1);
 }
 
 /**
