@@ -193,6 +193,14 @@ game through `runScene()`:
   run prints no error it expects. The board measures its room as a
   `ResizeObserver` reports it, which jsdom lacks, so a describe of the room
   calls `watchResizes()`, and `resize()` lays the board out at a size.
+  The board's spec paints the field's roles before every spec, as the
+  bench draws the next level in the palette, and holds when the scene
+  encodes its pictures by spying on its textures' `getBase64()`.
+- The panels' specs (`src/app/panels/`) render each panel alone, with its
+  inputs, and find it as a region by its name. What is hidden from
+  assistive technology, the meter, the rings, the fuzzballs and the next
+  level's picture, they read under `[aria-hidden='true']`, and a query for
+  what a screen reader hears leaves that out (`ignore`).
 - `GameService` plays the small levels of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecLevels()`): `SPEC_LEVELS`, each set
   up to come to one thing soon, by its number in `SPEC_LEVEL` (`blasts`,

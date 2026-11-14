@@ -13,6 +13,7 @@ import {
   viewChild,
 } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
+import { helpEntries } from "@fz/game-ui/help_catalog";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -31,9 +32,11 @@ import {
   roomInside,
 } from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
+import { brickKind } from "../../rules/catalog/bricks";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
 import {
+  BALL_RADIUS,
   BRICKS_TOP,
   BRICK_HEIGHT,
   FIELD_HEIGHT,
@@ -117,6 +120,7 @@ const CARD_DROP =
     "[style.--down]": "game.fieldHeight()",
     "[style.--finger-room]": "fingerRoom()",
     "[style.--card-drop]": "cardDrop",
+    "[style.--card-foot]": "cardFoot()",
     "[style.--pixel-ratio]": "pixelRatio()",
   },
   templateUrl: "./board.component.html",
@@ -133,6 +137,17 @@ export class BoardComponent {
 
   protected readonly across = FIELD_WIDTH;
   protected readonly cardDrop = CARD_DROP;
+
+  /**
+   * How far below the field's middle the Ready card's foot may reach, in
+   * field units: a ball's width above the ball waiting on the paddle, so a
+   * card too tall for the gap, as one naming a new kind of brick may be,
+   * rises over the bricks rather than over the ball.
+   */
+  protected readonly cardFoot = computed(() => {
+    const height = this.game.fieldHeight();
+    return paddleTopOf(height) - 4 * BALL_RADIUS - height / 2;
+  });
 
   /**
    * The canvas the board makes, as the host sizes it, and the ratio it
@@ -282,6 +297,23 @@ export class BoardComponent {
     return `Level ${String(number)}: ${data.name}`;
   });
 
+  /**
+   * The kinds of brick new in the level, the first by number to hold them,
+   * which the Ready card names as the level opens, before its first serve,
+   * each with its line and its picture once the scene has drawn it; it
+   * reads the pictures only where a kind is new.
+   */
+  protected readonly newKinds = computed(() => {
+    if (this.game.outcome() !== "ready") return [];
+    const ids = this.game
+      .kindsHere()
+      .filter(({ isNew }) => isNew)
+      .map(({ id }) => id);
+    return ids.length === 0
+      ? []
+      : helpEntries(ids, brickKind, this.pictures()?.bricks);
+  });
+
   /** What the Ready card says launches the ball: a tap on a touch screen, else Space or a click. */
   protected readonly launchWords = computed(() =>
     this.viewport.isTouchScreen()
@@ -322,10 +354,12 @@ export class BoardComponent {
 
   /**
    * The pictures of every brick, ball and capsule as the scene last drew
-   * them, for How to play and the panels, or null before it has drawn.
+   * them, for How to play, the panels and the Ready card, or null before it
+   * has drawn.
    *
    * The scene encodes them as this is first read after each bake, so only
-   * How to play reads it, as it opens, and the panels, while they show.
+   * How to play reads it, as it opens, the panels, while they show, and the
+   * Ready card, while it names a kind of brick new in the level.
    */
   readonly pictures = computed(() => this.askPictures()?.() ?? null);
 

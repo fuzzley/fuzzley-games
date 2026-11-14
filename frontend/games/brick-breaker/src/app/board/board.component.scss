@@ -105,9 +105,42 @@
 }
 
 // The Ready card, the one shown while the player aims, between the bricks and
-// the paddle, `--card-drop` units below the field's middle.
+// the paddle, `--card-drop` units below the field's middle, but raised where
+// it is too tall for the gap, so its foot stays `--card-foot` units below
+// the middle, clear of the ball; and no wider than the field, so a new
+// kind's line wraps on it.
 .ready {
-  translate: 0 calc(var(--card-drop) * var(--unit));
+  // `board-card()`'s own most, and the field's width.
+  max-width: min(
+    320px,
+    100cqmin - 4 * var(--room),
+    var(--across) * var(--unit)
+  );
+  translate: 0
+    min(var(--card-drop) * var(--unit), var(--card-foot) * var(--unit) - 50%);
+}
+
+// A kind of brick new in the level, on the Ready card: its picture beside
+// its name and its line, which a small field leaves out.
+.new-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-2);
+  font-size: var(--fz-font-sm);
+  text-align: start;
+
+  // A brick's shape, two units by one.
+  .picture {
+    flex: none;
+    width: calc(2 * var(--fz-space-5));
+    height: var(--fz-space-5);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 // The canvas's own cards, Still loading and couldn't be drawn, sit in the
@@ -123,6 +156,10 @@ fz-canvas-cards {
   .card,
   fz-canvas-cards {
     @include board-card-small;
+  }
+
+  .new-kind .about {
+    display: none;
   }
 }
 

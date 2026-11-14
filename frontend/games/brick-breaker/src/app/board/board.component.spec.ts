@@ -34,8 +34,10 @@ import {
   playToClear,
   provideSpecLevels,
 } from "../../testing/play";
+import { brickKind } from "../../rules/catalog/bricks";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import {
+  BALL_RADIUS,
   FIELD_HEIGHT,
   FIELD_WIDTH,
   FIRST_LIVES,
@@ -273,6 +275,19 @@ describe("BoardComponent", () => {
       );
     });
 
+    it("keeps the Ready card's foot a ball's width above the ball waiting on a taller field's paddle", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, 390, 772);
+      detectChanges();
+
+      // From the field's middle, in units: the ball, two radii, over the
+      // paddle, and the card's foot as far again above it.
+      expect(Number(board.style.getPropertyValue("--card-foot"))).toBeCloseTo(
+        paddleTopOf(TALLEST_FIELD) - 4 * BALL_RADIUS - TALLEST_FIELD / 2,
+      );
+    });
+
     it("stops watching the board once it is gone", async () => {
       const { fixture } = await render(BoardComponent, {
         providers: [provideFakePhaserCanvas(), ...provideSpecLevels()],
@@ -353,6 +368,35 @@ describe("BoardComponent", () => {
       expect(
         screen.getByText("Press Space or click to launch."),
       ).toBeInTheDocument();
+    });
+
+    it("name each kind of brick new in the level, with what it does, as the level opens", async () => {
+      await renderAt(SPEC_LEVEL.wide);
+
+      expect(
+        screen
+          .getAllByText(/^New:/)
+          .map((name) => name.parentElement?.textContent.trim()),
+      ).toEqual([
+        `New: Steel brick. ${brickKind("steel").about}`,
+        `New: Gift brick. ${brickKind("gift").about}`,
+      ]);
+    });
+
+    it("name no kind of brick once a lost ball's next is on the paddle", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+      loseBall(game);
+
+      playUntil(game, () => STILL, game.serving);
+      detectChanges();
+
+      expect(screen.queryByText(/^New:/)).not.toBeInTheDocument();
+    });
+
+    it("name no kind of brick where the level brings none in", async () => {
+      await renderAt(SPEC_LEVEL.few);
+
+      expect(screen.queryByText(/^New:/)).not.toBeInTheDocument();
     });
 
     it("name the level while the scene still loads, before it is slow", async () => {
@@ -685,6 +729,20 @@ describe("BoardComponent", () => {
       expect(component.pictures()).not.toBeNull();
     });
 
+    it("pictures a kind of brick new in the level on the Ready card", async () => {
+      const { component, detectChanges } = await runBoardScene();
+
+      detectChanges();
+
+      const card = screen.getByText(
+        "Press Space or click to launch.",
+      ).parentElement!;
+      expect(within(card).getByRole("presentation")).toHaveAttribute(
+        "src",
+        component.pictures()?.bricks.blast,
+      );
+    });
+
     it("hands How to play the pictures the scene encoded until it bakes again", async () => {
       const { component, run } = await runBoardScene();
       const asked = component.pictures();
@@ -764,24 +822,35 @@ describe("BoardComponent", () => {
       });
     });
 
+    /**
+     * Runs the board's scene, at a level, on a canvas of a CSS size, the
+     * board measured at it, its first frame drawn, before the board shows
+     * what the scene laid out. A describe that calls it calls
+     * `watchResizes()`.
+     */
+    async function runSizedScene(
+      size: { readonly width: number; readonly height: number },
+      level: number = SPEC_LEVEL.blasts,
+    ): Promise<{
+      board: HTMLElement;
+      run: SceneRun<HostedScene>;
+      detectChanges: () => void;
+    }> {
+      const { board, fake, game, detectChanges } = await renderBoard();
+      await game.startAt(level);
+      resize(board, size.width, size.height);
+      const run = await runShownScene(fake, board, size);
+      run.advance(FRAME_MS);
+      return { board, run, detectChanges };
+    }
+
     describe("on a board whose room spares the panels", () => {
       watchResizes();
 
-      /** Runs the board's scene on a canvas of a CSS size, the board measured at it. */
-      async function runSizedScene(size: {
-        readonly width: number;
-        readonly height: number;
-      }): Promise<{ board: HTMLElement }> {
-        const { board, fake, detectChanges } = await renderBoard();
-        resize(board, size.width, size.height);
-        const run = await runShownScene(fake, board, size);
-        run.advance(FRAME_MS);
-        detectChanges();
-        return { board };
-      }
-
       it("publishes the room the scene laid the field out in, inside the canvas's insets", async () => {
-        const { board } = await runSizedScene(WIDE);
+        const { board, detectChanges } = await runSizedScene(WIDE);
+
+        detectChanges();
 
         expect(board.dataset["room"]).toBe(
           rectAttribute(
@@ -791,7 +860,9 @@ describe("BoardComponent", () => {
       });
 
       it("publishes where the scene laid the panels out, by their names", async () => {
-        const { board } = await runSizedScene(WIDE);
+        const { board, detectChanges } = await runSizedScene(WIDE);
+
+        detectChanges();
 
         const { panels } = fieldMetrics(
           viewport(WIDE.width, WIDE.height),
@@ -806,9 +877,44 @@ describe("BoardComponent", () => {
       });
 
       it("publishes that it laid no panels out where the room spares none", async () => {
-        const { board } = await runSizedScene(UPRIGHT);
+        const { board, detectChanges } = await runSizedScene(UPRIGHT);
+
+        detectChanges();
 
         expect(board.dataset["panels"]).toBe("");
+      });
+    });
+
+    describe("as it shows the scene's pictures", () => {
+      watchResizes();
+
+      /**
+       * Returns whether the scene encodes its pictures as the board first
+       * shows, at a level, on a canvas of a CSS size, the board measured
+       * at it.
+       */
+      async function encodesAt(
+        level: number,
+        size: { readonly width: number; readonly height: number },
+      ): Promise<boolean> {
+        const { run, detectChanges } = await runSizedScene(size, level);
+        const encode = vi.spyOn(run.scene.textures, "getBase64");
+
+        detectChanges();
+
+        return encode.mock.calls.length > 0;
+      }
+
+      it("has the scene encode them where the Ready card names a kind new in the level", async () => {
+        expect(await encodesAt(SPEC_LEVEL.blasts, UPRIGHT)).toBe(true);
+      });
+
+      it("has the scene encode none where neither the panels nor a new kind shows them", async () => {
+        expect(await encodesAt(SPEC_LEVEL.few, UPRIGHT)).toBe(false);
+      });
+
+      it("has the scene encode them where the panels show them", async () => {
+        expect(await encodesAt(SPEC_LEVEL.few, WIDE)).toBe(true);
       });
     });
 

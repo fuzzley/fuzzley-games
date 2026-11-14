@@ -263,9 +263,10 @@ describe("AppComponent", () => {
       return run;
     }
 
-    it("has the scene encode no picture before it opens", async () => {
+    it("has the scene encode no picture before it opens, on a level that brings in no kind of brick", async () => {
       const encode = vi.spyOn(Textures.TextureManager.prototype, "getBase64");
-      await renderApp();
+      const game = await renderApp();
+      await game.startAt(SPEC_LEVEL.few);
 
       await runBoardScene();
       await TestBed.inject(ApplicationRef).whenStable();

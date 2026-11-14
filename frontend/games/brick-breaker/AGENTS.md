@@ -327,7 +327,8 @@ takes for the specs' helpers.
   and at each bake the scene hands the shell (`onPictures()`) what
   `@fz/phaser/scene`'s `picturesWhenAsked()` returns, which encodes How to
   play's pictures from the atlas only as the board first asks for them, as
-  How to play opens, and keeps them until the next bake.
+  How to play opens, the panels show or the Ready card names a new kind,
+  and keeps them until the next bake.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the sprite
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the
@@ -378,14 +379,19 @@ takes for the specs' helpers.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
     the empty field and the paddle drawn in CSS until the scene has drawn; the
     focus ring; the pointer hidden while a ball is in play; and the cards:
-    Ready, with the level and how to launch, whenever a ball waits on the
-    paddle; Paused; Cleared, with how the level's points added up and Next
-    level; Ended, once an ended run's result is put away; and, in their
-    place, the canvas's own (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
-    still loading, which a status region in the page from the start says to
-    a screen reader, and couldn't be drawn. The board is Phaser's keyboard
-    target, so the cards' buttons keep their keys from it
-    (`@fz/phaser/canvas`'s `fzKeepKeys`), and take Space and Enter themselves;
+    Ready, with the level, how to launch and, as the level opens, each kind
+    of brick new in it (the first by number to hold it), its picture, name
+    and line, the line left out on a small field, whenever a ball waits on
+    the paddle,
+    between the bricks and the paddle, raised where it is too tall for the
+    gap so it never covers the ball; Paused; Cleared, with how the level's
+    points added up and Next level; Ended, once an ended run's result is
+    put away; and, in their place, the canvas's own (`@fz/phaser/canvas`'s
+    `<fz-canvas-cards>`): still loading, which a status region in the page
+    from the start says to a screen reader, and couldn't be drawn. The
+    board is Phaser's keyboard target, so the cards' buttons keep their
+    keys from it (`@fz/phaser/canvas`'s `fzKeepKeys`), and take Space and
+    Enter themselves;
     Resume and Next level hand the board back the focus, and the board takes
     it as New game's run begins. It measures the canvas it makes, as the host
     sizes it, as it is first drawn and as its size, the zoom or the display
@@ -399,7 +405,8 @@ takes for the specs' helpers.
     stands the panels beside the field, where `fieldMetrics()` lays them:
     the scene's once it has laid the field out, and until then the board's
     own, on the room it measured. The board asks the scene for How to
-    play's pictures as How to play opens or the panels show (`pictures`),
+    play's pictures as How to play opens, the panels show or the Ready card
+    names a new kind (`pictures`),
     takes a later bake's only once the atlas has settled
     (`PICTURES_SETTLE_MS`), and keeps them until the scene bakes again. For
     the layout check (`tools/check-layout.mjs`) it publishes `data-field`
@@ -689,8 +696,9 @@ workspace's with the others'.
   placeholder drew it and inside the focus ring, its card on it; its unit
   is 10 CSS px or more (9 in a window under 360 CSS px tall); as the
   ball waits to be served, a field taller than 30 units, and only one,
-  leaves a finger's room under it, past the room around it; and the
-  panels, a deck shown both or neither (`data-panels`), show both wherever
+  leaves a finger's room under it, past the room around it, and the Ready
+  card's foot lies no lower than `--card-foot` units below the field's
+  middle, clear of the ball; and the panels, a deck shown both or neither (`data-panels`), show both wherever
   the room (`data-room`) spares 186 CSS px each side of the field's cells,
   the gap and the narrowest panel past the wall, and nowhere else).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
