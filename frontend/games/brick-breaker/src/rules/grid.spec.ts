@@ -7,6 +7,7 @@ import {
   columnAt,
   columnOf,
   inGrid,
+  inSight,
   rowAt,
   rowOf,
 } from "./grid";
@@ -60,5 +61,23 @@ describe("brickBox", () => {
     brickBox(3, 4, box);
 
     expect(box).toEqual({ left: 6, top: 6, right: 8, bottom: 7 });
+  });
+});
+
+describe("inSight", () => {
+  /** A grid whose one cell that stops a ball is column 3's in row 2, from 6 to 8 across. */
+  const solid = (column: number, row: number): boolean =>
+    column === 3 && row === 2;
+
+  it("sees a cell along a line that crosses nothing that stops a ball", () => {
+    expect(inSight(solid, 1, 20, cellIndex(0, 0))).toBe(true);
+  });
+
+  it("sees no cell past one that stops a ball", () => {
+    expect(inSight(solid, 7, 20, cellIndex(3, 0))).toBe(false);
+  });
+
+  it("sees a cell that stops a ball itself", () => {
+    expect(inSight(solid, 7, 20, cellIndex(3, 2))).toBe(true);
   });
 });

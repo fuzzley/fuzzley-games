@@ -23,6 +23,11 @@ export type CapsuleEffect =
   /** Every ball in play becomes a kind of ball, for a time. */
   | { readonly kind: "ball"; readonly ball: BallKindId; readonly ms: number }
   /**
+   * Every ball in flight seeks, turning toward the nearest brick the level
+   * needs while it rises, for a time.
+   */
+  | { readonly kind: "seek"; readonly ms: number }
+  /**
    * The balls go at a share of their speed, and climb at a share of the
    * rate, from the base if `fromBase`, for a time.
    */
@@ -137,6 +142,15 @@ export const CAPSULES = {
     weight: 5,
     from: 9,
     effect: { kind: "paddle-mode", mode: "laser", ms: 12_000 },
+  },
+  seeker: {
+    name: "Seeker",
+    about:
+      "Each ball leans toward the nearest brick the level needs as it rises, for 12 seconds.",
+    tone: "good",
+    weight: 4,
+    from: 11,
+    effect: { kind: "seek", ms: 12_000 },
   },
   narrow: {
     name: "Narrow paddle",

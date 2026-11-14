@@ -90,6 +90,20 @@ export const LULL_BOUNCES = 12;
 /** The least and most a lull's turn is, in degrees. */
 export const LULL_TURN = { least: 3, most: 7 } as const;
 
+/** The most a seeking ball turns toward a brick in a second, in degrees. */
+export const SEEKER_TURN = 45;
+
+/**
+ * When the paddle lends a ball it meets the seeker: once the level needs
+ * `needed` bricks or fewer, and `bounces` balls or more have left the paddle
+ * since one it needs last broke.
+ *
+ * `needed` is as many as the view lets glow (`GLOW_BRICKS`) and the
+ * autopilot counts as the endgame (`ENDGAME`), which the rules can't
+ * import; its spec holds the three alike.
+ */
+export const SEEKER_LEND = { needed: 3, bounces: 3 } as const;
+
 /**
  * How fast held keys move the paddle: faster across than any preset speed's
  * top. They go faster only with a Custom ball that climbs past every preset

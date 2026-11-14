@@ -50,6 +50,7 @@ import {
 } from "../tuning";
 import type { Field } from "./field";
 import { endStreak } from "./scoring";
+import { endSeeking, lendAtPaddle } from "./seeker";
 
 /** Something a ball can meet: a brick, a wall or the paddle. */
 type Obstacle = Brick | "wall" | "paddle";
@@ -186,7 +187,8 @@ export function liftOffPaddle(field: Field, ball: Ball): void {
 
 /**
  * Sends a ball off the paddle by where it landed, or holds it there while
- * the paddle catches, and starts the streak again.
+ * the paddle catches, and starts the streak again; then lends it the seeker
+ * if it is due.
  */
 function meetPaddle(field: Field, ball: Ball): void {
   endStreak(field);
@@ -197,6 +199,7 @@ function meetPaddle(field: Field, ball: Ball): void {
     bounceOffPaddle(ball, field.paddle);
   }
   field.events.add("paddle", ball.x, ball.y);
+  lendAtPaddle(field, ball);
 }
 
 /**
@@ -384,14 +387,15 @@ function mirror(field: Field, ball: Ball): void {
 
 /**
  * Hits a brick a ball met, as hard as the balls' kind hits. It speeds the
- * balls up if it can break, and starts the ball's count of bounces again if
- * it breaks one the level needs.
+ * balls up if it can break, and starts the ball's count of bounces again,
+ * and ends its seeking, if it breaks one the level needs.
  */
 function strike(field: Field, ball: Ball, brick: Brick): void {
   if (canBreak(brick)) field.climbed += field.climbRate;
   const damage = ballKind(field.ballKind).damage;
   const broke = hitBrick(field, brick, ball.x, ball.y, damage);
   if (broke && isNeeded(brick.kind)) ball.bounces = 0;
+  if (broke) endSeeking(ball, brick);
 }
 
 /** Returns a lull's turn, in degrees, either way, by the field's next draw. */

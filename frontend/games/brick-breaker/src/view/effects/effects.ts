@@ -62,6 +62,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   freed: { flourishes: [], sound: null },
   plated: { flourishes: [], sound: null },
   opened: { flourishes: [], sound: null },
+  seeking: { flourishes: [], sound: null },
 };
 
 /** What a hit on a brick that never breaks calls for. */

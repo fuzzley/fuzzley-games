@@ -60,6 +60,7 @@ import {
 } from "../tuning";
 import { FieldEventLog } from "./events";
 import { endStreak } from "./scoring";
+import { leftPaddle, seek } from "./seeker";
 import { liftOffPaddle, travel } from "./travel";
 
 /**
@@ -150,6 +151,13 @@ export interface Field {
   mode: PaddleMode | null;
   /** Whether a net under the paddle will turn back the next ball that falls. */
   net: boolean;
+  /** Whether every ball in flight seeks, while a Seeker is in play. */
+  seeking: boolean;
+  /**
+   * How many balls have left the paddle, served, bounced or let go, since a
+   * brick the level needs last broke, by which the paddle lends the seeker.
+   */
+  dryBounces: number;
   /**
    * How many lives caught capsules have brought, counting up, for the run
    * to add those it hasn't yet.
@@ -214,6 +222,8 @@ export function createField(level: Level, setup: FieldSetup): Field {
     ballKind: "normal",
     mode: null,
     net: false,
+    seeking: false,
+    dryBounces: 0,
     livesGained: 0,
     falling: createFalling(),
     effects: createEffects(),
@@ -311,6 +321,7 @@ function stepBalls(field: Field): void {
       if (field.state === "playing") holdCaught(field, ball);
       continue;
     }
+    seek(field, ball);
     travel(field, ball, distance);
     if (isCleared(field)) return;
     if (field.net) turnAtNet(field, ball);
@@ -331,6 +342,7 @@ export function launch(field: Field): void {
     if (serving) serveBall(ball, field.paddle.facing);
     else letGo(field, ball);
     field.events.add("launched", ball.x, ball.y);
+    leftPaddle(field);
   }
 }
 
@@ -368,6 +380,7 @@ function holdCaught(field: Field, ball: Ball): void {
   if (field.steps < ball.letGoAt) return;
   letGo(field, ball);
   field.events.add("launched", ball.x, ball.y);
+  leftPaddle(field);
 }
 
 /** Lets a caught ball go off the paddle, by where it landed. */
@@ -400,6 +413,7 @@ function isCleared(field: Readonly<Field>): boolean {
  */
 function loseBall(field: Field, ball: Ball): void {
   ball.live = false;
+  ball.seeks = false;
   field.events.add("lost", ball.x, field.height);
   if (field.balls.some((each) => each.live)) return;
   field.state = "lost";

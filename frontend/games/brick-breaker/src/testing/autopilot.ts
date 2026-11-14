@@ -1,4 +1,4 @@
-import { clamp, lerp } from "@fz/core/math";
+import { clamp } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
 import { isPlated } from "../rules/bricks/bricks";
 import type { Falling } from "../rules/bricks/capsules";
@@ -14,13 +14,7 @@ import {
   steerField,
   stepField,
 } from "../rules/field/field";
-import {
-  cellIndex,
-  cellMiddleX,
-  cellMiddleY,
-  columnAt,
-  rowAt,
-} from "../rules/grid";
+import { cellMiddleX, cellMiddleY, inSight } from "../rules/grid";
 import type { Level } from "../rules/levels/level";
 import { type LevelEntry, parseLevel } from "../rules/levels/levels";
 import type { Ball } from "../rules/paddle/balls";
@@ -133,9 +127,6 @@ const AIM_AT_BRICK = 0.5;
 
 /** The farthest along the paddle the autopilot lands a ball, as a share of its half. */
 const MOST_REACH = 0.85;
-
-/** How far apart the autopilot looks along its line of sight to a brick. */
-const SIGHT_STEP = 0.25;
 
 /**
  * Plays a level as a good player would, from a seed, and returns how it
@@ -279,7 +270,10 @@ function chooseAim(
       !brick.broken &&
       isNeeded(brick.kind) &&
       !isPlated(brick) &&
-      inSight(field, landing, brick.cell),
+      // Along the ball's middle alone, whether the paddle can send a ball so
+      // steep or not: a guess at what a player sees, which played the levels
+      // better in the report than one that followed the ball's edges too.
+      inSight(field.solid, landing, paddleLine(field), brick.cell),
   );
   if (seen.length > 0) {
     aim.cell = seen[Math.floor(random() * seen.length)]?.cell ?? -1;
@@ -298,30 +292,6 @@ function reachFor(field: Field, aim: Aim, landing: number): number {
       180) /
     Math.PI;
   return clamp(toward / PADDLE_ANGLE, -MOST_REACH, MOST_REACH);
-}
-
-/**
- * Returns whether a straight line from a place on the paddle's line to a
- * brick's middle meets no other brick, as a ball sent at it would travel.
- *
- * It follows only the ball's middle, and leaves aside how steep a ball the
- * paddle can send: a guess at what a player sees, which played the levels
- * better in the report than one that followed the ball's edges too.
- */
-function inSight(field: Field, from: number, cell: number): boolean {
-  const x = cellMiddleX(cell);
-  const y = cellMiddleY(cell);
-  const line = paddleLine(field);
-  const length = Math.hypot(x - from, line - y);
-  for (let along = 0; along < length; along += SIGHT_STEP) {
-    const t = along / length;
-    const column = columnAt(lerp(from, x, t));
-    const row = rowAt(lerp(line, y, t));
-    if (cellIndex(column, row) !== cell && field.solid(column, row)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 /**

@@ -39,6 +39,12 @@ export interface Ball {
    * the view colors it by.
    */
   ink: number;
+  /**
+   * Whether it seeks, lent the seeker by the paddle, until it breaks a brick
+   * the level needs or is lost; every ball in flight seeks besides while a
+   * Seeker is in play (`Field.seeking`).
+   */
+  seeks: boolean;
 }
 
 /** The ink the player's own ball wears, rather than a friend's. */
@@ -65,6 +71,7 @@ export function createBall(): Ball {
     letGoAt: 0,
     bounces: 0,
     ink: OWN_INK,
+    seeks: false,
   };
 }
 
@@ -120,6 +127,7 @@ export function splitOff(
   copy.letGoAt = 0;
   copy.bounces = 0;
   copy.ink = ball.ink;
+  copy.seeks = false;
   turnBall(copy, degrees);
   settleBall(copy, 0, 0);
 }
@@ -148,6 +156,7 @@ export function releaseBall(
   ball.letGoAt = 0;
   ball.bounces = 0;
   ball.ink = ink;
+  ball.seeks = false;
   aim(ball, degrees);
 }
 

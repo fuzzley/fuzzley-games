@@ -391,3 +391,150 @@ Review (a fresh reviewer, on the staged change):
    capsule to pay without asking it to last, while the field pays only for
    an effect in play: it now holds every capsule that pays to an effect of
    a time.
+
+### 2026-11-14: the seeker (C1, C2)
+
+- `src/rules/field/seeker.ts` is the seeker. Each step, before its travel,
+  a ball in flight that seeks and rises turns toward the middle of the
+  nearest brick the level needs that it can see above it, by 45° a second
+  at most
+  (`SEEKER_TURN`, 45 × `STEP_S` a step), then is settled by `settleBall()`
+  as every turn is, so it never travels flatter than `FLATTEST`. A falling
+  ball is left alone. It allocates nothing and draws nothing, so a field
+  plays the same from its seed.
+- The Seeker capsule (`seeker`: good, weight 4, from level 11, 12 s) is
+  the effect group `seek`, which sets `Field.seeking`, and every ball in
+  flight seeks while it lasts. It runs beside a fire or blast ball, as its
+  spec shows. How to play gives it its sentence beside its picture.
+- The lent seeker: `Field.dryBounces` counts the balls that leave the
+  paddle (a serve, a bounce, a caught ball as it is let go, by a launch or
+  by itself) and starts again at 0 as any brick the level needs breaks. As
+  the paddle meets a ball with 3 needed or fewer (`SEEKER_LEND.needed`) and
+  3 or more dry bounces (`SEEKER_LEND.bounces`), it lends that ball the
+  seeker (`Ball.seeks`) and records `seeking`. The ball seeks until it
+  breaks a brick the level needs, or is lost. The autopilot's spec holds
+  `SEEKER_LEND.needed` to `ENDGAME` and `GLOW_BRICKS`.
+- The saved game keeps `dryBounces` (a count, or refused); whether a ball
+  seeks isn't kept, as no ball in flight is. The version stays 2.
+- `seeking` has an entry in `EVENT_EFFECTS` with no flourish and no sound,
+  and the Seeker's symbol in `SYMBOLS` is a plain target (a ring and a
+  dot), for L5 to replace.
+- The autopilot needs no change for the turn: it meets only falling balls
+  (`ball.dy <= 0` is skipped where it picks the ball to meet), and a seeker
+  turns only a rising one. A ball it aims at a brick may be turned on its
+  way toward a nearer one, which it doesn't foresee, as C1 allows. Its
+  line of sight moved to `grid.ts`
+  (`inSight()`), which the seeker uses too: the same walk along the line,
+  moved whole, so it aims exactly as before.
+
+Choices where the plan was silent:
+
+- The target is the nearest needed brick the ball can see above it and
+  break from below, not the nearest needed brick: one whose middle is
+  above the ball's, which a straight line reaches past no solid cell, and
+  no plated brick. The plain nearest brick
+  turned balls into steel and into plates' undersides: Mushroom's
+  endgame at Relaxed failed its sim spec, and the autopilot's spec that it
+  aims only at a brick it can see broke where the two shared a field. It
+  is the rule the autopilot already aimed by, now in one place.
+- A ball split from one that seeks doesn't seek (`splitOff()` clears it):
+  the paddle lent it to one ball. `releaseBall()` clears it too, as K1's
+  doc asks of every field.
+- `seeking` is recorded only as a ball newly takes the lent seeker, not
+  again for one that already seeks.
+- The count of balls off the paddle starts again at any needed brick
+  broken, by a ball, a blast or a bolt (`hitBrick()`), since all of them
+  mean the endgame moved on. A lent ball's seeking ends only at a needed
+  brick it strikes itself, not one its blast reaches, as its count of
+  bounces does.
+
+Added to other streams' files (each an addition): K's `travel.ts`,
+`lendAtPaddle()` at the end of `meetPaddle()` and `endSeeking()` after a
+strike, each with a clause in its doc; K's `bricks.ts`, the count's reset
+where `needed` falls; K's `balls.ts`, `Ball.seeks`, set in `createBall()`,
+`splitOff()` and `releaseBall()`; `field.ts`, `Field.seeking` and
+`Field.dryBounces`, `seek()` before `travel()`, a count after each launch
+and let-go, and a lost ball's seeking ended; `events.ts`, `seeking` at
+the end; `tuning.ts`, `SEEKER_TURN` and `SEEKER_LEND`; `grid.ts`,
+`inSight()`; F's `effects.ts` and its spec, the `seeking` entry; L's
+`symbols.ts`, the `seeker` symbol. The autopilot (`src/testing/`) is R's.
+
+Measurements (the autopilot, 24 seeds a level and speed, all 33 levels;
+mean level time, then mean endgame, in seconds, Relaxed / Normal / Fast),
+on the rules as committed:
+
+| Rules                 | Level time         | Endgame         |
+| --------------------- | ------------------ | --------------- |
+| before                | 77.6 / 69.1 / 57.6 | 7.0 / 7.2 / 5.3 |
+| the lent seeker       | 77.1 / 68.5 / 57.3 | 6.4 / 6.6 / 5.0 |
+| lent, and the capsule | 78.9 / 68.7 / 58.3 | 7.0 / 6.3 / 5.1 |
+
+Lending alone shortens endgames by 5 to 9%. The capsule, falling from
+level 11, changes which capsules the seeds let fall from there on, which
+moves both columns about as much as it saves. (The rows without the
+capsule or lending were played with the capsule's `from` and
+`SEEKER_LEND.bounces` set out of reach in a probe spec, since removed;
+with both out of reach it plays exactly the figures of before.) Hedge
+maze's mean endgame goes from 12.0 / 13.6 / 9.7 s to 10.7 / 9.6 / 7.9 s,
+and Mushroom's from 11.6 / 13.4 / 12.7 s to 10.5 / 12.8 / 7.4 s.
+
+`yarn report:levels --seeds 12` after (81 s) is saved as
+`docs/brick-breaker-uplift/levels/report-r2-after.txt`, with levels 31 to 33. Levels 1 to 10, where only lending is new, keep their middles within
+2 s, and their longest endgames shorten or hold but one (Arch at Relaxed
+0:27 to 0:21, Rocket at Normal 0:29 to 0:23, Castle at Normal 0:22 to
+0:17; Stripes at Fast 0:12 to 0:14). The longest endgames summed over the
+33 levels go from 643 / 663 / 526 s to 595 / 607 / 453 s. From level 11
+the draws change: the sum of middles goes from 43:02 / 39:25 / 32:29 to
+44:36 / 40:54 / 33:12. The largest moves are Vault at Normal (middle 1:02
+to 1:50), Corridors at Normal (longest endgame 0:17 to 0:43), Hedge maze
+at Normal (0:46 to 0:25), Keep at Normal (middle 2:09 to 1:43) and
+Mushroom: at Relaxed its middle goes from 1:13 to 1:34, at Fast its
+longest endgame from 0:58 to 0:16, and one Normal play's endgame takes
+1:01, past the spec's minute (`!`), where the longest before was 0:40.
+The sim specs, one seed a level, all pass, and the report exits 0.
+Mushroom's cap is reached only by its two side gaps; it is one for K2 to
+look at with the report.
+
+Looked at in the browser (port 9404, 1280 × 720): How to play lists the
+Seeker in green with its target symbol, between Laser and Narrow paddle,
+and Narrow paddle and Fast ball each say bricks pay double; no console
+errors.
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (60 files, 2,211 specs, 15.8 s with six workers), the root's
+`lint`, and coverage of `pure` and `dom` (100% of statements, functions
+and lines in `src/rules` and `src/view`, branches at least 95% in each
+file), this package's last commit to touch them.
+
+Review (a fresh reviewer, on the staged change):
+
+1. No spec held the seeker to the nearest brick: in each, the nearest was
+   also the first the walk from the last row up finds. Fixed: a spec with
+   the nearer brick in a higher row than a farther one, which fails if
+   the first found is taken.
+2. The spec of a ball that goes on seeking past a brick the level doesn't
+   need drew steel, which never breaks, so `endSeeking()`'s check went
+   unread. Fixed: it breaks a regrowing brick and still seeks, and fails
+   if any break ends the seeking.
+3. `AGENTS.md` and this log said the seeker changes nothing the autopilot
+   foresees, but its aim does send a ball straight at a brick, which a
+   seeker may bend toward a nearer one. Fixed: both say it meets only
+   falling balls, which a seeker never turns, and that an aimed ball may
+   be turned on its way.
+4. A brick below a rising ball was a target too, which only flattened the
+   ball until it skimmed at `FLATTEST`. Fixed: the target's middle must be
+   above the ball's (which also spares those lines of sight), with a spec;
+   the "no flatter" spec now turns toward a brick in the last row, from
+   below it. This changed play, so the measurements and the after report
+   above were taken again on these rules.
+5. Tidying, each done: the step's turn is in degrees, as `turnBall()`
+   takes it, with the one conversion of the difference; `clamp()` from
+   `@fz/core/math`; `seek()` and `nearestInSight()` take a
+   `Readonly<Field>`.
+6. The after report carries one `!`, on Mushroom at Normal, for the
+   integrator to know. Noted above and in the report to the integrator;
+   K2 is the one to look at the level.
+
+The reviewer also named, as fine, a blast's reach that breaks a needed
+brick resetting the count but not ending the ball's seeking; it is
+written under the choices above.

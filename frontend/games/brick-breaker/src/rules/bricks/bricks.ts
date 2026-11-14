@@ -219,6 +219,7 @@ export function hitBrick(
   field.events.add("broken", x, y, brick.cell, null, field.streak);
   if (isNeeded(brick.kind)) {
     field.needed--;
+    field.dryBounces = 0;
     if (field.needed === 0) {
       field.state = "cleared";
       field.events.add("cleared", x, y);

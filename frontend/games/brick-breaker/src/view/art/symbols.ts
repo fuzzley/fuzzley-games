@@ -2,10 +2,12 @@ import {
   type Area,
   type DrawCommand,
   type LineStyle,
+  discIn,
   dotIn,
   polygon,
   polyline,
   rect,
+  rimIn,
   share,
   star,
   symbolLineStyle,
@@ -143,5 +145,10 @@ export const SYMBOLS = {
       ),
       style,
     ),
+  ],
+  // A plain target, until the kit's symbol replaces it.
+  seeker: (square, style) => [
+    rimIn(square, 0.34, symbolLineStyle(square, style)),
+    discIn(square, 0.12, style),
   ],
 } as const satisfies Readonly<Record<CapsuleId, DrawSymbol>>;
