@@ -5,14 +5,15 @@
 // `backdropSvg()` then draws it for a palette.
 //
 // Every layer is something the game could draw cheaply: a soft shape is one
-// round texture, tinted, stretched and turned; a star, a mote or a glint is a
-// small sprite; and a landmark is flat polygons or billows, baked once into
-// a texture. Nothing here is a filter, a blend mode or a mask.
+// round texture, tinted, stretched and turned; a star, a mote or a filing is
+// a small sprite; and a landmark is flat polygons or billows, baked once
+// into a texture. Nothing here is a filter, a blend mode or a mask.
 //
 // The field stays quiet: every tone is the palette's field with a little of
 // another of its colors mixed in, held to `LIMITS`, and every shape is
 // larger than a boulder or smaller than a small rock, so none is taken for
-// something that plays.
+// something that plays. Nothing has points, as a spark has, and nothing
+// hard is drawn in outline, as line art reads as part of the play.
 
 import {
   TURN,
@@ -76,7 +77,7 @@ import { LIGHT } from "./rocks.mjs";
  * @property {number} light How brightly the light falls on it, 0.3 to a little over 1.
  * @property {Tint} tint
  * @property {boolean} [fine] Whether it is left out under {@link FINE_FROM} pixels a unit.
- * @property {boolean} [small] Whether it is a glint, smaller than a small rock, held to the small marks' limit.
+ * @property {boolean} [small] Whether it is a filing, smaller than a small rock, held to the small marks' limit.
  */
 
 /**
@@ -190,7 +191,7 @@ export const FINE_FROM = 9;
  * `landmark` the landmark's faces, billows and glows, each larger than a
  * boulder. `deep` holds what only darkens a dark field toward the page
  * behind it. `line` holds a hair's width of line, and `small` a mote or a
- * glint smaller than a small rock.
+ * filing smaller than a small rock.
  */
 export const LIMITS = {
   dark: { wash: 0.1, landmark: 0.1, deep: 0.5, line: 0.16, small: 0.26 },
@@ -894,8 +895,8 @@ function ironReach(site) {
   const tilt = (-14 / 360) * TURN;
   const squash = 0.3;
   const reaches = /** @type {[number, number]} */ ([
-    1.42 * radius,
-    1.6 * radius,
+    1.45 * radius,
+    1.58 * radius,
   ]);
   const spans = 16;
   /** @type {Mark[]} */
@@ -933,43 +934,59 @@ function ironReach(site) {
       onRing(middle, reaches[0], squash, tilt, to),
       onRing(middle, reaches[0], squash, tilt, from),
     ].map(moved);
-    // A span catches the light by how it lies around the ring.
+    // A span is a solid thing, cut and lit as the moon is, with no line
+    // drawn on it: a line this near the play reads as something that plays.
+    // Its side, which faces the viewer and not the light, hangs from the
+    // lower of its two long edges.
+    const [a, b, c, d] = /** @type {[Point, Point, Point, Point]} */ (corners);
+    const [low, high] = a[1] + b[1] > d[1] + c[1] ? [a, b] : [d, c];
+    const drop = turned([0, 0.05 * radius], tilt + lean);
+    side.push({
+      is: "flat",
+      points: [
+        low,
+        high,
+        [high[0] + drop[0], high[1] + drop[1]],
+        [low[0] + drop[0], low[1] + drop[1]],
+      ],
+      light: 0.44,
+      tint: "iron",
+    });
+    // Its top catches the light by how it lies around the ring.
     const light =
-      0.74 + 0.32 * Math.max(0, -Math.cos((from + to) / 2 - tilt + 0.9));
+      0.8 + 0.22 * Math.max(0, -Math.cos((from + to) / 2 - tilt + 0.9));
     side.push({ is: "flat", points: corners, light, tint: "iron" });
-    // Its lacing: a chord along each edge, and struts between them.
+    // Its lacing, where there is room to show it: each bay two faces, one
+    // a little lighter than the other.
     const bays = 4;
-    /** @type {Point[]} */
-    const lacing = [];
-    for (let b = 0; b <= bays; b++) {
-      lacing.push(
-        moved(
-          onRing(
-            middle,
-            reaches[b % 2 ? 0 : 1],
-            squash,
-            tilt,
-            lerp(from, to, b / bays),
-          ),
-        ),
-      );
+    const along = (/** @type {number} */ reach, /** @type {number} */ share) =>
+      moved(onRing(middle, reach, squash, tilt, lerp(from, to, share)));
+    for (let bay = 0; bay < bays; bay++) {
+      const start = bay / bays;
+      const end = (bay + 1) / bays;
+      side.push({
+        is: "flat",
+        points: [
+          along(reaches[1], start),
+          along(reaches[1], end),
+          along(reaches[0], start),
+        ],
+        light: light + 0.1,
+        tint: "iron",
+        fine: true,
+      });
+      side.push({
+        is: "flat",
+        points: [
+          along(reaches[0], start),
+          along(reaches[0], end),
+          along(reaches[1], end),
+        ],
+        light: light - 0.18,
+        tint: "iron",
+        fine: true,
+      });
     }
-    side.push({
-      is: "line",
-      points: [...corners, /** @type {Point} */ (corners[0])],
-      width: 0.11,
-      tint: "iron",
-      strength: 0.8,
-      fine: true,
-    });
-    side.push({
-      is: "line",
-      points: lacing,
-      width: 0.08,
-      tint: "iron",
-      strength: 0.6,
-      fine: true,
-    });
   }
   const faces = globe(random, [
     { at: 1, sides: 28 },
@@ -1003,22 +1020,35 @@ function ironReach(site) {
   }
   /** @type {Mark[]} */
   const air = [];
-  // Filings: tiny glints strewn along the lines of the moon's field.
-  const glints = Math.round((30 * width * height) / 2880);
-  for (let i = 0, tries = 0; i < glints && tries < 600; tries++) {
+  // Filings: tiny slivers of metal strewn along the lines of the moon's
+  // field, each lying along its line, blunt at both ends.
+  const filings = Math.round((30 * width * height) / 2880);
+  for (let i = 0, tries = 0; i < filings && tries < 600; tries++) {
     const reach =
       pick(strewn, [0.95, 1.3, 1.7]) * S + between(strewn, -1.6, 1.6);
-    const at = polar(between(strewn, 0, TURN), reach, middle);
+    const angle = between(strewn, 0, TURN);
+    const at = polar(angle, reach, middle);
     if (at[0] < 0 || at[0] > width || at[1] < 0 || at[1] > height) continue;
-    const r = between(strewn, 0.13, 0.24);
+    const long = between(strewn, 0.14, 0.2);
+    const wide = between(strewn, 0.05, 0.07);
+    const cut = wide * 0.6;
+    /** @type {Point[]} */
+    const sliver = [
+      [-long + cut, -wide],
+      [long - cut, -wide],
+      [long, -wide + cut],
+      [long, wide - cut],
+      [long - cut, wide],
+      [-long + cut, wide],
+      [-long, wide - cut],
+      [-long, -wide + cut],
+    ];
     air.push({
       is: "flat",
-      points: [
-        [at[0], at[1] - r],
-        [at[0] + r * 0.7, at[1]],
-        [at[0], at[1] + r],
-        [at[0] - r * 0.7, at[1]],
-      ],
+      points: sliver.map((corner) => {
+        const [x, y] = turned(corner, angle + TURN / 4);
+        return /** @type {Point} */ ([at[0] + x, at[1] + y]);
+      }),
       light: between(strewn, 0.75, 1.1),
       tint: "iron",
       small: true,
@@ -1558,20 +1588,13 @@ function starsSvg(backdrop, palette, px, travel) {
         `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${num(r)}"/>`,
       ];
       if (depth === "bright") {
-        // A glint of four points, thin, never longer than a small rock is wide.
-        const reach = Math.max(2.2, lerp(0.42, 0.62, star.shine) * px);
-        const waist = Math.max(0.5, r * 0.34);
+        // A round halo that fades to nothing, fainter than the star and
+        // never as wide as a small rock. A star has no points: a shape with
+        // points is a spark, which plays.
+        const halo = Math.max(2.4, r * lerp(3, 3.8, star.shine));
+        const tint = palette.mode === "dark" ? "text" : "muted";
         drawn.unshift(
-          `<polygon opacity="0.6" points="${pointsOf([
-            [x, y - reach],
-            [x + waist, y - waist],
-            [x + reach, y],
-            [x + waist, y + waist],
-            [x, y + reach],
-            [x - waist, y + waist],
-            [x - reach, y],
-            [x - waist, y - waist],
-          ])}"/>`,
+          `<circle opacity="0.3" fill="url(#${gradientId(palette, tint, "bell")})" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${num(halo)}"/>`,
         );
       }
       /** @type {string[]} */ (
