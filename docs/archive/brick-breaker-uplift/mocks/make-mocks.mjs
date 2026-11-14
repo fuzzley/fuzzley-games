@@ -3,7 +3,7 @@
 // redraws, each beside what the game has now and how the autopilot played
 // both, and a sheet for each set the plan adds.
 //
-//   node docs/brick-breaker-uplift/mocks/make-mocks.mjs
+//   node docs/archive/brick-breaker-uplift/mocks/make-mocks.mjs
 //
 // It reads the drafts in ../levels/ and draws them with the art in ../art/,
 // so a level changed there is redrawn here. Nothing in it is random, so two

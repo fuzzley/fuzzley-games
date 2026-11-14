@@ -1,19 +1,19 @@
 // Each kind of brick, in each tint and state, on `@fz/phaser/bricks`' slab
-// (`BRICK_SLAB`), as `docs/brick-breaker-uplift/art/bricks.svg` draws it:
-// a plain brick's lip and strip, a tough brick's pips cut out and a crack
-// for each hit taken, steel's frame, rivets and sheen, the blast brick's
-// bomb and a dot toward each brick it reaches, the gift's parcel and bow, a
-// hidden ghost's round dashes and faint eyes or a shown one's body under a
-// scalloped hem, and earth under a cap of moss, and the ring a broken one
-// fills as it grows back (`regrowing()`); and Friends' kinds, as its section
-// C draws them: a plated brick's pips over a plate of steel along its foot,
-// the brick cut away round it, with teeth pointing down, a cage's bars, one
-// bent once it is hit, over the friend it frees next, a key on gold, and a
-// gate's keyhole between gold ends; and Machines' kinds: a bumper and a
-// portal, round, on no slab, the bumper's disc with a ring cut out of it and
-// four ticks kicking out, and the portal's ring round its arms, with its
-// pair's badge, a dot or a diamond; and a slider's three chevrons, the one
-// toward the way it heads lit.
+// (`BRICK_SLAB`), as `docs/archive/brick-breaker-uplift/art/bricks.svg`
+// draws it: a plain brick's lip and strip, a tough brick's pips cut out and
+// a crack for each hit taken, steel's frame, rivets and sheen, the blast
+// brick's bomb and a dot toward each brick it reaches, the gift's parcel and
+// bow, a hidden ghost's round dashes and faint eyes or a shown one's body
+// under a scalloped hem, and earth under a cap of moss, and the ring a
+// broken one fills as it grows back (`regrowing()`); and Friends' kinds, as
+// its section C draws them: a plated brick's pips over a plate of steel
+// along its foot, the brick cut away round it, with teeth pointing down, a
+// cage's bars, one bent once it is hit, over the friend it frees next, a key
+// on gold, and a gate's keyhole between gold ends; and Machines' kinds: a
+// bumper and a portal, round, on no slab, the bumper's disc with a ring cut
+// out of it and four ticks kicking out, and the portal's ring round its
+// arms, with its pair's badge, a dot or a diamond; and a slider's three
+// chevrons, the one toward the way it heads lit.
 // Every number is the art kit's (`art/kit.mjs`), in its box of 200 by 100,
 // drawn at the brick's height over 100, but where a constant's comment here
 // says otherwise. A brick under 30 CSS px wide leaves out its cracks, rivets

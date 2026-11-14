@@ -2,7 +2,7 @@
 // Checks the draft levels of the Brick Breaker uplift, and prints what each
 // asks for.
 //
-//   node docs/brick-breaker-uplift/levels/check-levels.mjs
+//   node docs/archive/brick-breaker-uplift/levels/check-levels.mjs
 //
 // A draft is no level of the game until the autopilot has cleared it, and the
 // kinds the plan adds have no rules for it to play by yet. Until they do,

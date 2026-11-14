@@ -52,8 +52,8 @@ export const FAINT = 0.55;
 
 /**
  * Each place's art, as the uplift's places sheet draws it
- * (docs/brick-breaker-uplift/art/places.svg), so a new place fails to
- * compile until it has its own.
+ * (`docs/archive/brick-breaker-uplift/art/places.svg`), so a new place
+ * fails to compile until it has its own.
  */
 export const PLACE_ART: Readonly<Record<Place, PlaceArt>> = {
   playroom: {

@@ -8,11 +8,14 @@ free space of a wide screen, possibly as Brick Fuzz Pop and Rickashay do;
 and write a detailed plan with mocks for assets, new mechanics and any
 level changes.
 
-This is a design and an order of work. Nothing in the game is changed yet.
-Seven of its choices were the user's more than the plan's, and the user
-kept all seven as written; "What the user settled" lists them.
+This is a design and an order of work, written before anything in the game
+changed. It was built on 2026-11-14, as §12, "As built", of
+[`implementation-plan.md`](implementation-plan.md) says. Seven of its
+choices were the user's more than the plan's, and the user kept all seven
+as written; "What the user settled" lists them.
 
-Everything made for the plan is in this folder, `docs/brick-breaker-uplift/`:
+Everything made for the plan is in this folder,
+`docs/archive/brick-breaker-uplift/`:
 
 - **`plan.md`,** this file.
 - **[`research/`](research/),** three notes on what other paddle brick

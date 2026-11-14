@@ -129,10 +129,10 @@ const BOLT_WIDTH = 0.14;
 
 /**
  * The kit's capsule, after `capsule()` in
- * `docs/brick-breaker-uplift/art/scene.mjs`, 80 tall: how far its lip lies
- * below its body, a good one's and a bad one's; its shine, how far below the
- * body's top and how tall; how far a bad one's ends point; and how wide its
- * symbol is.
+ * `docs/archive/brick-breaker-uplift/art/scene.mjs`, 80 tall: how far its
+ * lip lies below its body, a good one's and a bad one's; its shine, how far
+ * below the body's top and how tall; how far a bad one's ends point; and how
+ * wide its symbol is.
  */
 const KIT_CAPSULE = {
   height: 80,
