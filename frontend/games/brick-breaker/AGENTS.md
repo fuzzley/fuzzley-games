@@ -275,7 +275,8 @@ takes for the specs' helpers.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, how far a broken brick's
-  sound rises along a streak (`detuneOf()`), and `createFrameSounds()`,
+  sound rises along a streak (`detuneOf()`), a note of a major pentatonic
+  scale a brick, up to an octave and a fifth, and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard; `flourish.ts`
   how each flourish moves over its time, beside `@fz/core/math`'s

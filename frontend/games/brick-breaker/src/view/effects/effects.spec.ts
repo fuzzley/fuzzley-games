@@ -77,15 +77,20 @@ describe("flourishesOf", () => {
 });
 
 describe("detuneOf", () => {
-  it.each([
-    [1, 0],
-    [2, 100],
-    [5, 400],
-    [8, 700],
-    [30, 700],
-  ])("raises a brick broken %i into a streak by %i cents", (streak, cents) => {
-    expect(detuneOf(eventOf("broken", 0, streak))).toBe(cents);
+  it("climbs a major pentatonic scale, a note a brick, from the streak's first", () => {
+    const cents = Array.from({ length: 9 }, (_, i) =>
+      detuneOf(eventOf("broken", 0, i + 1)),
+    );
+
+    expect(cents).toEqual([0, 200, 400, 700, 900, 1200, 1400, 1600, 1900]);
   });
+
+  it.each([10, 11, 30])(
+    "holds a brick broken %i into a streak at an octave and a fifth",
+    (streak) => {
+      expect(detuneOf(eventOf("broken", 0, streak))).toBe(1900);
+    },
+  );
 
   it("raises no other event's sound", () => {
     expect(detuneOf(eventOf("hit", 0, 5))).toBe(0);
