@@ -594,22 +594,23 @@ workspace's with the others'.
   config, and the scripts under `tools/` and the two lint configs from
   their JSDoc).
 - **Report the Levels:** `yarn report:levels` (runs `tools/report-levels.mjs`:
-  the autopilot plays every level at every preset speed, all but Custom,
-  from the level's number as the seed, as the autopilot's spec
-  does, through `playLevel()`, and it prints the game time each took, the
-  time spent on the last three bricks
-  the level needed, the paddle's bounces and the lives lost; it fails, as
-  the spec does, if a play didn't clear its level (`-`) or took longer over
-  its last bricks than the spec allows (`!`)). It is how the difficulty ramp
-  is tuned. `--seeds <n>` plays each level that many times at each speed,
-  from seeds of its own, and prints the middle time, the longest, the
-  longest endgame and the most lives lost, as the capsules one seed lets
-  fall can make a level look far easier or harder than it is; it marks a
-  long endgame too, but fails only on a level not cleared. `--height <n>`
-  plays them on a field that many units tall, up to 45, to the autopilot's
-  limits for that height, stretched as far as the paddle lies farther from
-  the bricks (`limitsOf()`), and fails, as the spec does there, only on a
-  level not cleared. `--help` prints its options, and an option it can't
+  the autopilot plays every level at every preset speed, all but Custom, from
+  the level's number as the seed, as the autopilot's spec does, through
+  `playLevel()`, and it prints the game time each took, the time spent on the
+  last three bricks the level needed, the paddle's bounces and the lives lost;
+  it fails, as the spec does, if a play didn't clear its level (`-`) or took
+  longer over its last bricks than the spec allows (`!`)). It is how the
+  difficulty ramp is tuned. `--seeds <n>` plays each level that many times at
+  each speed, from seeds of its own, and prints the middle time, the longest,
+  the longest endgame and the most lives lost, as the capsules one seed lets
+  fall can make a level look far easier or harder than it is; it marks a long
+  endgame too, and, on the least field, a level whose middle time at Relaxed
+  is past 2:00 as printed (`+`, after the time), longer than a level should
+  be, but fails only on a level not cleared. `--height <n>` plays them on a
+  field that many units tall, up to 45, to the autopilot's limits for that
+  height, stretched as far as the paddle lies farther from the bricks
+  (`limitsOf()`), and fails, as the spec does there, only on a level not
+  cleared. `--help` prints its options and its marks, and an option it can't
   read, or a height the field can't take, exits with 2, saying why, before
   anything is played.
 - **Check the Layout:** `yarn check:layout` (runs

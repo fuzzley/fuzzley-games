@@ -21,7 +21,9 @@
  * make a level look far easier or harder than it is. It still marks and
  * counts the endgames longer than the spec allows, but fails only on a play
  * that doesn't clear its level: across many seeds, a few plays are unlucky
- * however a level is drawn.
+ * however a level is drawn. On the least field, it marks a level whose
+ * middle time at Relaxed, as printed, is past 2:00 (`+`), as no level should
+ * be longer than its set there, and fails on none.
  *
  * With `--height`, it plays every level on a field that many units tall,
  * as a tall screen lays it out, from the least height to the tallest, to
@@ -62,7 +64,18 @@ Prints how the autopilot plays every level at every preset speed.
   --seeds <n>     Play each level from n seeds of its own (default: from its
                   number alone)
   --height <n>    Play on a field n units tall (default: the shortest)
-  -h, --help      Show this message`;
+  -h, --help      Show this message
+
+Marks: - for a play that didn't clear its level; ! for a time over the last
+bricks longer than the field allows; and, with --seeds on the least field,
++ for a level whose middle time at Relaxed is past 2:00.`;
+
+/**
+ * The middle time, in seconds as the report prints it, past which `--seeds`
+ * marks a level at the slowest speed, Relaxed, on the least field, as longer
+ * than its set should be.
+ */
+const LONG_LEVEL_SECONDS = 120;
 
 /**
  * What a command line asks the report for.
@@ -78,7 +91,7 @@ Prints how the autopilot plays every level at every preset speed.
  * A level as the rules list it.
  *
  * @typedef {object} LevelEntry
- * @property {number} number Its place in the game, from 1.
+ * @property {number} number Its number in the order played, from 1.
  * @property {{ id: string, name: string }} data
  */
 
@@ -91,6 +104,13 @@ Prints how the autopilot plays every level at every preset speed.
  * @property {number} endgameSteps
  * @property {number} bounces
  * @property {number} livesLost
+ */
+
+/**
+ * A play of a level as the report keeps it: the autopilot's report of it,
+ * and the speed it was played at.
+ *
+ * @typedef {AutopilotReport & { speed: string }} Play
  */
 
 /**
@@ -134,7 +154,7 @@ Prints how the autopilot plays every level at every preset speed.
  *
  * @param {number | undefined} seeds
  * @param {Game} game
- * @returns {ReportColumns<AutopilotReport>}
+ * @returns {ReportColumns<Play>}
  */
 function columnsOf(seeds, game) {
   if (seeds === undefined) {
@@ -158,13 +178,32 @@ function columnsOf(seeds, game) {
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(plays.map(stepsOf));
       return [
-        timeOf(middle, game.stepSeconds),
+        middleOf(middle, plays[0]?.speed, game),
         timeOf(most, game.stepSeconds),
         endgameOf(Math.max(...plays.map((play) => play.endgameSteps)), game),
         String(Math.max(...plays.map((play) => play.livesLost))),
       ];
     },
   };
+}
+
+/**
+ * Returns a level's middle time at a speed, marked `+` where, at the slowest
+ * speed on the least field, it is past {@link LONG_LEVEL_SECONDS}.
+ *
+ * @param {number | undefined} steps
+ * @param {string | undefined} speed
+ * @param {Game} game
+ * @returns {string}
+ */
+function middleOf(steps, speed, game) {
+  const long =
+    !game.tallerField &&
+    speed === game.speeds[0] &&
+    steps !== undefined &&
+    Number.isFinite(steps) &&
+    Math.round(steps * game.stepSeconds) > LONG_LEVEL_SECONDS;
+  return timeOf(steps, game.stepSeconds) + (long ? "+" : "");
 }
 
 /**
@@ -304,7 +343,10 @@ function report(game, seeds, print) {
       entries: game.levels,
       speeds: game.speeds,
       seeds,
-      play: game.playLevel,
+      play: (entry, speed, seed) => ({
+        ...game.playLevel(entry, speed, seed),
+        speed,
+      }),
       ...columnsOf(seeds, game),
     },
     (plays) => [

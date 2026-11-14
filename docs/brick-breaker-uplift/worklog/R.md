@@ -235,3 +235,77 @@ Review (a fresh reviewer, on the staged change):
 
 Checks after the fixes: the workspace's `lint`, `typecheck` and `test`, and
 the root's `lint`.
+
+### 2026-11-14: the report's mark for a long level, and the reports
+
+- `tools/report-levels.mjs` marks, with `--seeds` on the least field, a
+  level whose middle time at Relaxed, as printed, is past 2:00: `+` after
+  the time (`LONG_LEVEL_SECONDS`, at the slowest speed, `speeds[0]`, which
+  the rules hand on slowest first). `+` reads as "over" and collides with
+  neither `-`, a play that didn't clear its level, nor `!`, a long endgame.
+  Like `!` with `--seeds`, it fails nothing. A middle that didn't clear its
+  level shows `-` alone. The usage now ends with a line on all three marks,
+  which `--help` prints, and the file's comment, the workspace's `AGENTS.md`
+  and the content skill say what `+` means.
+- The cells of a level's plays at a speed don't know the speed, so the
+  report's table hands on each play with the speed it was played at
+  (`Play`), from which the middle's cell reads it.
+- `report-levels.spec.ts`: the usage; the mark by the middle play, past
+  2:00 and not at it, while the longest is past it, at Relaxed and not at
+  another speed; by the seconds printed (120.6 s marked, 120.4 s not); none
+  on a taller field; none on a middle that didn't clear; and none without
+  `--seeds`. Its rules hand each play its seed, so a level's plays can
+  differ.
+- `LevelEntry.number` in the report's typedef is "its number in the order
+  played", as `levels.ts` now says it.
+- `yarn report:levels --seeds 12` on R1's whole change took 70 s and
+  printed exactly what the plan's `levels/report-after.txt` holds, all
+  thirty levels: the tints and the places change no play. No level is past
+  2:00 at Relaxed (Lanterns' 1:58 is the longest), so no `+` shows. Saved as
+  `docs/brick-breaker-uplift/levels/report-r1-after.txt`. On the before
+  report's figures, `+` would have fallen on Checker (2:05) and Vault
+  (2:47), and not on Stripes, whose 2:00 as printed isn't past it.
+
+The four redraws, middle time and, in brackets, the longest endgame, before
+and after R1:
+
+| Level     | Relaxed                    | Normal                    | Fast                      |
+| --------- | -------------------------- | ------------------------- | ------------------------- |
+| 1 Stripes | 2:00 (0:24) → 1:29 (0:20)  | 1:32 (0:14) → 1:09 (0:17) | 1:20 (0:13) → 0:55 (0:12) |
+| 4 Checker | 2:05 (0:30) → 1:21 (0:19)  | 1:38 (0:19) → 1:02 (0:26) | 1:14 (0:11) → 0:54 (0:13) |
+| 12 Shelf  | 1:55 (1:02!) → 1:08 (0:28) | 0:58 (0:10) → 0:55 (0:25) | 1:03 (0:47) → 0:38 (0:18) |
+| 20 Vault  | 2:47 (0:44) → 1:41 (0:18)  | 2:25 (0:26) → 1:02 (0:17) | 1:40 (0:23) → 1:18 (0:14) |
+
+Choices where the plan was silent:
+
+- No line under the table counts the `+` levels: `@fz/dev/report`'s tallies
+  count plays, and a long level is a level, not a play. Changing the
+  library for a count the eye reads off one column wasn't worth a lift.
+- The limit is the time as printed, rounded to the second, so a cell never
+  reads `2:00+`; `!` compares steps, as the spec it mirrors does, but `+`
+  has no spec behind it, and the budget is the time a reader sees.
+- `+` is only for the least field, where the 2:00 was set; a taller field's
+  times stretch, as `!`'s limit does, and the plan sets no budget there.
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (59 files, 2,021 specs, 11.4 s with six workers), and the root's
+`lint`; the report run again with the fixed script printed the saved one
+byte for byte. This commit touches neither `src/rules` nor `src/view`; the
+coverage ran at the commit before.
+
+Review (a fresh reviewer, on the staged change):
+
+1. `+` held a taller field to the least field's 2:00, so `--seeds 20
+--height 45`, as the skill suggests in turn, would mark most levels.
+   Fixed: `+` marks only on the least field, said so in the usage,
+   `AGENTS.md` and the skill, with a spec at `--height 35`.
+2. Every seed of a spec's level played alike, so a mark judged by the
+   longest or the first play would pass. Fixed: the spec's rules hand each
+   play its seed, and the spec plays 100, 121 and 200 seconds (marked) and
+   100, 120 and 200 (not).
+3. A cell could read `2:00+`, the steps past 2:00 by less than half a
+   second. Fixed: the mark compares the seconds as printed, with a spec at a
+   tenth of a second a step.
+4. Nothing checked the `"relaxed"` literal against the rules' speeds.
+   Fixed: the mark is the slowest speed's, `speeds[0]`, which the rules hand
+   on slowest first.
