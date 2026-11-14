@@ -1048,15 +1048,21 @@ workspace's with the others'.
   the autopilot plays every level at every preset speed, all but Custom, from
   the level's number as the seed, as the autopilot's spec does, through
   `playLevel()`, and it prints the game time each took, the time spent on the
-  last three bricks the level needed, the paddle's bounces, the lives lost
-  and the longest streak, the most bricks broken since the paddle last met a
-  ball; it fails, as the spec does, if a play didn't clear its level (`-`)
-  or took longer over its last bricks than the spec allows (`!`)). It is how
-  the difficulty ramp is tuned. `--seeds <n>` plays each level that many
-  times at each speed, from seeds of its own, and prints the middle time, the
-  longest, the longest endgame, the most lives lost and the middle of the
-  longest streaks, as the capsules one seed lets fall can make a level look
-  far easier or harder than it is; it marks a long endgame too, and, on the
+  last three bricks the level needed, the paddle's bounces, the lives lost,
+  the longest streak, the most bricks broken since the paddle last met a
+  ball, and the longest the play went between two touches of the paddle,
+  any ball meeting it or leaving it, or from the last to its end
+  (`longestAway`), the longest the paddle had no ball to meet; it fails, as
+  the spec does, if a play didn't clear its level (`-`) or took longer over
+  its last bricks than the spec allows (`!`), and marks, failing on none, a
+  play that went past a minute between two touches of the paddle (`^`), one
+  that hangs, its only ball held out of reach or circling what can't
+  break). It is how the difficulty ramp is tuned. `--seeds <n>` plays each
+  level that many times at each speed, from seeds of its own, and prints the
+  middle time, the longest, the longest endgame, the most lives lost, the
+  middle of the longest streaks and the longest any play went between two
+  touches of the paddle, as the capsules one seed lets fall can make a level
+  look far easier or harder than it is; it marks a long endgame too, and, on the
   least field, a level whose middle time at Relaxed is past 2:00 as printed
   (`+`, after the time), longer than a level should be, but fails only on a
   level not cleared. `--height <n>` plays them on a

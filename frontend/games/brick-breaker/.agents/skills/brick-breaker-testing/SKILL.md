@@ -125,7 +125,9 @@ Run these from `frontend/games/brick-breaker/`, or as
 - `yarn report:levels` plays the same games, `--seeds <n>` many more, and
   `--height <n>` on a taller field, for tuning; a slow endgame on one seed
   in many is luck, but one that leaves the same bricks for last is a level
-  to redraw.
+  to redraw. It prints the longest each play went between two touches of
+  the paddle (the autopilot's `longestAway`), and marks one past a minute
+  (`^`), a play that hangs, which the specs don't hold.
 
 ## The Saved Game
 

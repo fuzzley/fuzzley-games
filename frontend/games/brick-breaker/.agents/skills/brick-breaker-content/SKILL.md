@@ -106,8 +106,12 @@ Then:
    Relaxed on the least field, which the report marks `+`; a long endgame
    (`!`) on one seed in many is luck, but on many seeds, leaving the same
    bricks for last, it is a level to redraw, raising its `layout` once it has
-   shipped. `--height 45` plays it on the tallest field, as an upright phone
-   shows it.
+   shipped. Its `away`, the longest a play went between two touches of the
+   paddle by any ball, is the longest the paddle had nothing to meet: a ball
+   held out of its reach, in a sealed room or above a wall, shows there only
+   while no other ball is in play. Past a minute the report marks it `^`, a
+   play that hangs, its only ball circling what can't break. `--height 45`
+   plays it on the tallest field, as an upright phone shows it.
 4. `yarn report:levels --marks`, and its `mark` set to what it prints. A
    redraw sets it again; a star won under the old mark is kept
    (`src/rules/run/stars.ts`).

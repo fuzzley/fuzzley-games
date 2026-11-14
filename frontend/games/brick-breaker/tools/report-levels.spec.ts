@@ -17,7 +17,8 @@ Prints how the autopilot plays every level at every preset speed.
   -h, --help      Show this message
 
 Signs: - for a play that didn't clear its level; ! for a time over the last
-bricks longer than the field allows; and, with --seeds on the least field,
+bricks longer than the field allows; ^ for a play that went past a minute
+between two touches of the paddle; and, with --seeds on the least field,
 + for a level whose middle time at Relaxed is past 2:00.`;
 
 /** How a spec's level is played: at a speed, from a seed, on a field. */
@@ -32,6 +33,7 @@ function cleared(steps: number, endgame = 30): AutopilotReport {
     bounces: 40,
     livesLost: 0,
     bestStreak: 12,
+    longestAway: 8,
   };
 }
 
@@ -110,14 +112,14 @@ async function ran(
 }
 
 describe("run", () => {
-  it("lays the names out as wide as the longest, each speed's time, last bricks, bounces, lives lost and longest streak beside them, and exits with 0", async () => {
+  it("lays the names out as wide as the longest, each speed's time, last bricks, bounces, lives lost, longest streak and longest between two touches of the paddle beside them, and exits with 0", async () => {
     expect(await ran([])).toEqual({
       code: 0,
       out: [
-        "                     relaxed                               fast",
-        "                      time   last  bounces  lost  streak    time   last  bounces  lost  streak",
-        " 1 Wall               1:15   0:30       40     0      12    1:15   0:30       40     0      12",
-        "12 The castle keep    1:15   0:30       40     0      12    1:15   0:30       40     0      12",
+        "                     relaxed                                      fast",
+        "                      time   last  bounces  lost  streak   away    time   last  bounces  lost  streak   away",
+        " 1 Wall               1:15   0:30       40     0      12   0:08    1:15   0:30       40     0      12   0:08",
+        "12 The castle keep    1:15   0:30       40     0      12   0:08    1:15   0:30       40     0      12   0:08",
       ],
       err: [],
     });
@@ -213,8 +215,62 @@ describe("run", () => {
     const { out } = await ran(["--seeds", "4"], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall                1:15  1:15   0:30     0       9     1:15  1:15   0:30     0       9",
+      " 1 Wall                1:15  1:15   0:30     0       9   0:08     1:15  1:15   0:30     0       9   0:08",
     );
+  });
+
+  it("prints the longest any of a level's plays went between two touches of the paddle at each speed with --seeds", async () => {
+    const aways = [10, 40, 25];
+    const rules = rulesOf((_, __, seed) => {
+      const away = aways[seed % SEED_STRIDE];
+      if (away === undefined)
+        throw new Error(`No time for seed ${String(seed)}.`);
+      return { ...cleared(75), longestAway: away };
+    });
+
+    const { out } = await ran(["--seeds", "3"], rules);
+
+    expect(out[2]).toBe(
+      " 1 Wall                1:15  1:15   0:30     0      12   0:40     1:15  1:15   0:30     0      12   0:40",
+    );
+  });
+
+  it("marks a play that went past a minute between two touches of the paddle, says how many, but passes", async () => {
+    const rules = rulesOf((entry) => ({
+      ...cleared(75),
+      longestAway: entry.number === 1 ? 61 : 60,
+    }));
+
+    const { code, out } = await ran([], rules);
+
+    expect({ code, out: out.slice(2) }).toEqual({
+      code: 0,
+      out: [
+        " 1 Wall               1:15   0:30       40     0      12  1:01^    1:15   0:30       40     0      12  1:01^",
+        "12 The castle keep    1:15   0:30       40     0      12   1:00    1:15   0:30       40     0      12   1:00",
+        "",
+        "2 plays went past a minute between two touches of the paddle (^).",
+      ],
+    });
+  });
+
+  it("marks the longest between two touches of the paddle past a minute with --seeds, by the seconds it prints, on any field", async () => {
+    const rules = {
+      ...rulesOf((entry, _, seed) => ({
+        ...cleared(750, 60),
+        longestAway: entry.number === 1 && seed % SEED_STRIDE === 1 ? 606 : 604,
+      })),
+      stepSeconds: 0.1,
+    };
+
+    const { out } = await ran(["--seeds", "2", "--height", "35"], rules);
+
+    expect(out.slice(2)).toEqual([
+      " 1 Wall                1:15  1:15   0:06     0      12  1:01^     1:15  1:15   0:06     0      12  1:01^",
+      "12 The castle keep     1:15  1:15   0:06     0      12   1:00     1:15  1:15   0:06     0      12   1:00",
+      "",
+      "2 plays went past a minute between two touches of the paddle (^).",
+    ]);
   });
 
   it("marks a play that didn't clear its level, says how many, and exits with 1", async () => {
@@ -227,7 +283,7 @@ describe("run", () => {
     expect({ code, out: out.slice(3) }).toEqual({
       code: 1,
       out: [
-        "12 The castle keep    1:15   0:30       40     0      12       -   0:30       40     3      12",
+        "12 The castle keep    1:15   0:30       40     0      12   0:08       -   0:30       40     3      12   0:08",
         "",
         "1 plays didn't clear their level (-).",
       ],
@@ -242,8 +298,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 1,
       out: [
-        " 1 Wall               1:15  1:01!       40     0      12    1:15  1:01!       40     0      12",
-        "12 The castle keep    1:15   0:30       40     0      12    1:15   0:30       40     0      12",
+        " 1 Wall               1:15  1:01!       40     0      12   0:08    1:15  1:01!       40     0      12   0:08",
+        "12 The castle keep    1:15   0:30       40     0      12   0:08    1:15   0:30       40     0      12   0:08",
         "",
         "2 plays took longer than the spec allows over their level's last bricks (!).",
       ],
@@ -269,8 +325,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 0,
       out: [
-        " 1 Wall               2:01+  3:20   0:30     0      12     2:01  3:20   0:30     0      12",
-        "12 The castle keep     2:00  3:20   0:30     0      12     2:00  3:20   0:30     0      12",
+        " 1 Wall               2:01+  3:20   0:30     0      12   0:08     2:01  3:20   0:30     0      12   0:08",
+        "12 The castle keep     2:00  3:20   0:30     0      12   0:08     2:00  3:20   0:30     0      12   0:08",
       ],
     });
   });
@@ -295,7 +351,7 @@ describe("run", () => {
     const { out } = await ran(["--seeds", "1", "--height", "35"], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall                2:01  2:01   0:30     0      12     2:01  2:01   0:30     0      12",
+      " 1 Wall                2:01  2:01   0:30     0      12   0:08     2:01  2:01   0:30     0      12   0:08",
     );
   });
 
@@ -305,7 +361,7 @@ describe("run", () => {
     const { out } = await ran(["--seeds", "1"], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall                   -     -   0:30     3      12        -     -   0:30     3      12",
+      " 1 Wall                   -     -   0:30     3      12   0:08        -     -   0:30     3      12   0:08",
     );
   });
 
@@ -315,7 +371,7 @@ describe("run", () => {
     const { out } = await ran([], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall               2:01   0:30       40     0      12    2:01   0:30       40     0      12",
+      " 1 Wall               2:01   0:30       40     0      12   0:08    2:01   0:30       40     0      12   0:08",
     );
   });
 
@@ -327,8 +383,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 0,
       out: [
-        " 1 Wall               1:15  1:11!       40     0      12    1:15  1:11!       40     0      12",
-        "12 The castle keep    1:15   1:10       40     0      12    1:15   1:10       40     0      12",
+        " 1 Wall               1:15  1:11!       40     0      12   0:08    1:15  1:11!       40     0      12   0:08",
+        "12 The castle keep    1:15   1:10       40     0      12   0:08    1:15   1:10       40     0      12   0:08",
         "",
         "2 plays took longer than a field 35 tall allows over their level's last bricks (!).",
       ],
