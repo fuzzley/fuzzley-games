@@ -74,15 +74,17 @@ export type Specs = Pick<
   "globals" | "environment" | "setupFiles" | "include" | "pool"
 >;
 
-/** Returns the V8 coverage settings, reported as text and as HTML. */
-export function coverage({
-  include = ["src/**/*.ts"],
-  exclude,
-  thresholds,
-}: Coverage): NonNullable<InlineConfig["coverage"]> {
+/**
+ * Returns the V8 coverage settings, reported as text, and as HTML too unless
+ * `CI` is `true`, since nothing on CI reads it.
+ */
+export function coverage(
+  { include = ["src/**/*.ts"], exclude, thresholds }: Coverage,
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): NonNullable<InlineConfig["coverage"]> {
   return {
     provider: "v8",
-    reporter: ["text", "html"],
+    reporter: env["CI"] === "true" ? ["text"] : ["text", "html"],
     include: [...include],
     // Left out when there is nothing to leave out, so Vitest's own stand.
     ...(exclude === undefined ? {} : { exclude: [...exclude] }),

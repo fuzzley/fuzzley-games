@@ -26,8 +26,8 @@ built:
 | Step | #   | Change                                                                | Status  |
 | ---- | --- | --------------------------------------------------------------------- | ------- |
 | 1    | 3   | Margins for the specs nearest Vitest's 5 s                            | done    |
-| 2    | 4   | Chrome's launch limit raised                                          | pending |
-| 3    | 9   | No HTML coverage report on CI                                         | pending |
+| 2    | 4   | Chrome's launch limit raised                                          | done    |
+| 3    | 9   | No HTML coverage report on CI                                         | done    |
 | 4    | 2   | The test phase starts the slowest suites first                        | pending |
 | 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes             | pending |
 | 6    | 5   | Prettier's experimental CLI with its cache                            | pending |
@@ -90,3 +90,57 @@ The review, and the answers:
    red run, after that fix. Fixed above.
 3. The plan's table and the entry's subject were left as placeholders.
    Fixed, with the note above on spreading the cost.
+
+### 2026-11-14: Chrome's launch, and coverage's HTML on CI (#4, #9)
+
+`build(dev, solitaire): give Chrome a minute to start, and write coverage's HTML report only off CI`
+(steps 2 and 3, one commit, both in `@fz/dev`'s presets):
+
+- In eb560e1f's red run, both Chromes failed 16 s into the layout step:
+  the first two on a fresh runner, started side by side, Asteroid Breaker's
+  and Brick Breaker's, while Snake's, Sudoku's and Brick Fuzz Pop's,
+  started after them, all held. That is a cold start, not a hang, so
+  `LAUNCH_TIMEOUT_MS` goes from 15 s to 60 s. The review's answers below
+  add what a longer limit needs beside it: a Chrome that exits, or can't be
+  run, fails at once rather than after the minute.
+- `coverage()` takes the environment (`process.env` unless given) and
+  reports as text alone where `CI` is `true`, as typescript-eslint reads it;
+  its spec hands it both. The Solitaire Collection's config wrote text, JSON
+  and HTML by hand, and nothing reads the JSON (no script in the repository
+  names `coverage-final.json`), so it takes `coverage()` now too. Under
+  `CI=true` its `test:coverage` passes and writes no `coverage/` folder.
+
+The review, and the answers:
+
+1. No spec held that `coverage()` reads `process.env` unless handed one,
+   which is what every workspace relies on: with a default of `{}`, every
+   spec would pass while CI went on writing HTML. Fixed: a spec stubs
+   `CI` and reads `nodeTests()`'s reporters, and another holds `CI=false`
+   to the HTML, pinning the rule to `"true"`.
+2. A Chrome that dies at start would now cost 60 s and say it "did not
+   start". Fixed: the launch loop throws as soon as Chrome has exited,
+   saying so with its code. Its spec hands `withChrome()` Node as the
+   Chrome, which refuses Chrome's first option and exits at once, on every
+   platform. The exit check alone had taken `@fz/dev` under its 95% branch
+   floor; with the spec, `chrome.ts` rises from 70% to 84% of statements,
+   and the floors the figures have outgrown rise with them: statements and
+   lines 93 to 96, functions 95 to 97 (now 97.5, 95.5, 98.4 and 97.7).
+3. The new prose ("as text and, but where…, as HTML") read wrong. Fixed in
+   both places, and `AGENTS.md` says the Solitaire Collection's config
+   takes `coverage()` too.
+4. The first reporter spec's name now says "off CI".
+
+The second review, of the answers, and its answers:
+
+1. A Chrome path that names nothing still crashed the script: `spawn()`
+   emits its ENOENT as an `'error'` no one heard, before the loop's check,
+   so the profile stayed behind and the layout check's server stayed open.
+   Fixed: `launchChrome()` awaits the child's `'spawn'`, which rejects on
+   the error, with a spec that names no such file.
+2. The exit check ran before the read, so a Chrome that wrote its port
+   file and then exited during the read was returned as started, and
+   `withChrome()`'s wait for its exit, registered after the exit, would
+   hang the step. Fixed: the check runs after the read.
+3. No spec held the signal half of the check. Fixed: on every platform but
+   Windows, a spec runs a shell script that kills itself as the Chrome.
+4. The library's `AGENTS.md` and this log's first bullet lagged. Fixed.

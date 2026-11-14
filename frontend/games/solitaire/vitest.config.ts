@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import { searchForWorkspaceRoot } from "vite";
 import path from "path";
 import angular from "@analogjs/vite-plugin-angular";
-import { phaserFromCommonJs } from "@fz/dev/vitest";
+import { coverage, phaserFromCommonJs } from "@fz/dev/vitest";
 
 export default defineConfig({
   plugins: [angular(), phaserFromCommonJs()],
@@ -21,10 +21,7 @@ export default defineConfig({
     environment: "node",
     setupFiles: ["test/test-setup.ts"],
     include: ["test/**/*.spec.ts"],
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["src/**/*.ts"],
+    coverage: coverage({
       thresholds: {
         // A floor a little under the suite's real figures; raise it as they
         // rise.
@@ -33,7 +30,7 @@ export default defineConfig({
         functions: 96,
         lines: 96,
       },
-    },
+    }),
   },
   resolve: {
     alias: [

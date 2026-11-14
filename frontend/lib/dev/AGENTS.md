@@ -114,7 +114,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   specs share. `angularTests()` is the whole config of a workspace that
   tests Angular code: Analog's plugin, every spec under `src/` in jsdom with
   the globals TestBed needs, after the workspace's `test-setup.ts` there,
-  and V8 coverage of `src/`, less the setup file. `nodeTests()` is the same
+  and V8 coverage of `src/`, less the setup file, reported as text, and as
+  HTML too unless `CI` is `true`, since nothing on CI reads it.
+  `nodeTests()` is the same
   for specs that run in Node. Each is given the workspace's floors and,
   where they differ, the files coverage measures or leaves out.
   `angularTests()` given `projects`, as Snake, Brick Breaker, Asteroid Breaker
@@ -142,7 +144,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   (`keyedBy()`), or a change to how the plugin compiles would be read from
   the cache. The pieces these are made of, `angularSpecs()`, `nodeSpecs()`
   and `coverage()`, are for a config of Vitest projects built by hand, such
-  as the site's. `angularSpecs()` names Analog's pool, `vmThreads`: the
+  as the site's, and `coverage()` for one that is otherwise its own, as the
+  Solitaire Collection's is. `angularSpecs()` names Analog's pool, `vmThreads`: the
   plugin sets it in a config hook, after Vitest has taken the `test` options
   a project sharing the config's Vite server inherits, so such a project, as
   the site's `app` is, would run in `forks`. `angularTests()` loads Phaser
@@ -193,8 +196,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   aliases; `isGameManifest()` is the guard the site reads it with, and
   `GameManifest` its type.
 - `src/chrome.ts`, `@fz/dev/chrome`: what a script that drives a headless
-  Chrome needs. `withChrome()` starts Chrome on a throwaway profile and
-  hands over a `DevToolsConnection`; `withPage()` opens a `Page` in a
+  Chrome needs. `withChrome()` starts Chrome on a throwaway profile, giving
+  it a minute, as the first Chromes on a fresh CI runner can take more than
+  15 s, and throwing as soon as it exits or can't be run at all, and hands
+  over a `DevToolsConnection`; `withPage()` opens a `Page` in a
   browser context of its own at a viewport, which navigates, reloads, runs
   a function in the page, sent as its source, before the page loads
   (`beforeLoad()`) or after (`evaluate()`), and after it with helpers the
@@ -544,7 +549,9 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   as Analog's does, and builds it, finding nothing of the page there;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
-  and the layout spec serves a build it writes with Vite's `preview()`;
+  the Chrome spec starts programs that can't be a Chrome (Node, a script
+  that kills itself, a path to nothing) to hold `withChrome()` to failing
+  at once, and the layout spec serves a build it writes with Vite's `preview()`;
   `src/board_page.spec.ts` runs the inspection of a board drawn with
   Phaser in jsdom, over the rectangles it hands each element, and holds
   the readers to reading back what a board writes and nothing malformed;

@@ -388,8 +388,12 @@ export async function findChrome(
   throw new Error("Found no Chrome; pass --chrome or set CHROME_PATH.");
 }
 
-/** How long Chrome has to start before a script gives up. */
-const LAUNCH_TIMEOUT_MS = 15_000;
+/**
+ * How long Chrome has to start before a script gives up. The first two
+ * Chromes on a fresh CI runner, started side by side by the layout check,
+ * have both taken more than 15 s.
+ */
+const LAUNCH_TIMEOUT_MS = 60_000;
 
 /**
  * Starts a headless Chrome on a profile and returns it with the address of
@@ -412,11 +416,21 @@ async function launchChrome(
     ],
     { stdio: "ignore" },
   );
+  // Rejects where there is no such program to run, rather than leaving its
+  // error unheard.
+  await once(chrome, "spawn");
   // Chrome writes the port it chose, and its endpoint's path, once it listens.
   const portFile = join(profile, "DevToolsActivePort");
   const deadline = Date.now() + LAUNCH_TIMEOUT_MS;
   while (Date.now() < deadline) {
     const contents = await readFile(portFile, "utf8").catch(() => "");
+    // Checked after the read, so a Chrome returned as started was running
+    // once its port was read.
+    if (chrome.exitCode !== null || chrome.signalCode !== null) {
+      throw new Error(
+        `Chrome exited (${chrome.exitCode ?? chrome.signalCode}) before it started.`,
+      );
+    }
     const [port, path] = contents.split("\n");
     if (port && path) {
       return { chrome, endpoint: `ws://127.0.0.1:${port}${path}` };

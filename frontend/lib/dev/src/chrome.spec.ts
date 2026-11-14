@@ -1,9 +1,13 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { runInNewContext } from "node:vm";
 import {
   type ChromeSearch,
   DevToolsConnection,
   type Page,
   findChrome,
+  withChrome,
   withPage,
 } from "./chrome.ts";
 import { FakeBrowser, VIEWPORT } from "./testing/fake_browser.ts";
@@ -339,5 +343,49 @@ describe("findChrome", () => {
     await expect(findChrome(undefined, bare)).rejects.toThrow(
       "Found no Chrome",
     );
+  });
+});
+
+describe("withChrome", () => {
+  // Node takes Chrome's first option for one of its own it doesn't know, and
+  // exits at once, as a Chrome that can't start does.
+  it("says when Chrome exits before it starts, rather than waiting out its limit", async () => {
+    const started = withChrome(
+      { chrome: process.execPath, name: "fz-dev-spec" },
+      () => Promise.resolve(),
+    );
+
+    await expect(started).rejects.toThrow(
+      /^Chrome exited \(\d+\) before it started\.$/,
+    );
+  });
+
+  // A shell script stands for a Chrome the system kills as it starts.
+  it.skipIf(process.platform === "win32")(
+    "says when a signal ends Chrome before it starts",
+    async () => {
+      const folder = await mkdtemp(join(tmpdir(), "fz-dev-chrome-"));
+      onTestFinished(() => rm(folder, { recursive: true, force: true }));
+      const chrome = join(folder, "chrome");
+      await writeFile(chrome, "#!/bin/sh\nkill -KILL $$\n", { mode: 0o755 });
+
+      const started = withChrome({ chrome, name: "fz-dev-spec" }, () =>
+        Promise.resolve(),
+      );
+
+      await expect(started).rejects.toThrow(
+        "Chrome exited (SIGKILL) before it started.",
+      );
+    },
+  );
+
+  it("says when there is no such Chrome to run", async () => {
+    const chrome = join(tmpdir(), "fz-dev-no-such-chrome");
+
+    const started = withChrome({ chrome, name: "fz-dev-spec" }, () =>
+      Promise.resolve(),
+    );
+
+    await expect(started).rejects.toThrow(/ENOENT/);
   });
 });
