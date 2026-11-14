@@ -12,9 +12,9 @@ import type {
   BallRole,
   BallTrack,
   BreakCause,
-  Contact,
   Flight,
   FlightEvent,
+  TurnOff,
   Waypoint,
   ZapPattern,
 } from "../rules/flight/events";
@@ -464,7 +464,7 @@ function turnOf(
   ball: number,
   path: readonly Waypoint[],
   index: number,
-  off: Contact,
+  off: TurnOff,
 ): FlightEvent {
   const { at, x, y } = sure(path[index]);
   const { dx, dy } = headingOn(path, index);
@@ -855,9 +855,9 @@ function columnZap(): FlightFixture {
 }
 
 /**
- * A hot shot punches through a brick, turns off two steel bricks without
- * losing its charge, bounces off the floor once between them, and lands at
- * its second touch; the wall's step sinks the low steel into the floor.
+ * A hot shot punches through a brick, turns off steel without losing its
+ * charge, and lands at its first touch of the floor, as any fuzzball does;
+ * the wall's step sinks the low steel into the floor.
  */
 function hotShot(): FlightFixture {
   const wall = wallFrom(
@@ -876,14 +876,7 @@ function hotShot(): FlightFixture {
     ],
     { lowestRow: 1 },
   );
-  const path = pathOf(0, [
-    WAITS,
-    RIGHT_WALL,
-    UNDER_7_6,
-    [2, RADIUS],
-    [1.5, 0.75],
-    [1, RADIUS],
-  ]);
+  const path = pathOf(0, [WAITS, RIGHT_WALL, UNDER_7_6, [2, RADIUS]]);
   const punched = atOn(path, 1, UNDER_8_5);
   return played({
     start: startOn(wall, { boon: "hot" }),
@@ -896,9 +889,6 @@ function hotShot(): FlightFixture {
       breakOf(punched, 44, ["brick", 1], "fuzzball", 1),
       turnOf(0, path, 2, "face"),
       strikeOf(sure(path[2]).at, 0, 52, [0, 0], 5),
-      turnOf(0, path, 3, "floor"),
-      turnOf(0, path, 4, "face"),
-      strikeOf(sure(path[4]).at, 0, 1, [0, 0], 5),
       landOf(0, path),
     ],
     tracks: [{ ball: 0, role: "player", waypoints: path }],
@@ -1147,7 +1137,7 @@ function lost(): FlightFixture {
 /**
  * Rounds made by hand, by what each shows: a plain shot; a punch; a punch
  * through the wall to the ceiling; a row zapper's zap and the jump it
- * earns; a column zapper's zap; a hot shot's bounce off the floor; a triple
+ * earns; a column zapper's zap; a hot shot that keeps its charge; a triple
  * shot; a friend; a bored fuzzball's yawn; a level cleared; and one lost.
  */
 export const FLIGHT_FIXTURES = {

@@ -90,8 +90,7 @@ export const RECIPES = [
       1.2,
     ),
   },
-  // A side, the ceiling or a hot shot's bounce off the floor: a short, quiet,
-  // woody knock.
+  // A side or the ceiling: a short, quiet, woody knock.
   {
     name: "knock",
     seconds: 0.08,

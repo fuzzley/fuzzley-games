@@ -188,7 +188,7 @@ export const DRAFTS = [
     name: "Switchboard",
     boon: "hot",
     courses: {
-      a: ["#-#3#3#-#", "333|3|333", "22+222+22", "ooooooooo", "o2o2o2o2o"],
+      a: ["#-#3#3#-#", "333|3|333", "22+222+22", "ooooooooo", "ooooooooo"],
       b: ["#3#-#-#3#", "333333333", "22+222+22", "ooooooooo"],
     },
     order: "abbab",

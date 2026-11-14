@@ -177,7 +177,7 @@ describe("HelpComponent", () => {
     await renderHelp();
 
     expect(paragraph("Boons.")).toHaveTextContent(
-      "The hot shot flies at full charge whatever you charged, nothing takes its charge, and it bounces off the floor once before it lands. The triple shot sends 2 more fuzzballs out behind yours, each with the charge you chose.",
+      "The hot shot flies at full charge whatever you charged, and nothing takes its charge. The triple shot sends 2 more fuzzballs out behind yours, each with the charge you chose.",
     );
   });
 

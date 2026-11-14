@@ -23,8 +23,7 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
   notch: "Each notch the charge climbs or falls while it builds.",
   release: "A shot released.",
   boon: "A hot shot or a triple shot released.",
-  knock:
-    "A fuzzball turning off a side or the ceiling, or a hot shot's bounce off the floor.",
+  knock: "A fuzzball turning off a side or the ceiling.",
   strike: "A brick struck that holds.",
   break:
     "A brick broken, raised along the round, as far as an octave; the bricks a frame breaks sound as one, raised for the last of them.",

@@ -657,8 +657,8 @@ describe("the levels", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  // plan.md's table of the drafts: each wall's rows, the bricks it needs and
-  // their hits.
+  // plan.md's table of the drafts, but Switchboard's, eased since in
+  // build.mjs: each wall's rows, the bricks it needs and their hits.
   it.each([
     ["hello-wall", 17, 64, 64],
     ["stripes", 18, 74, 74],
@@ -676,7 +676,7 @@ describe("the levels", () => {
     ["wool-socks", 23, 156, 256],
     ["jailbreak", 23, 103, 244],
     ["honeycomb", 27, 115, 155],
-    ["switchboard", 26, 173, 318],
+    ["switchboard", 26, 173, 310],
     ["powder-keg", 26, 198, 437],
     ["pinball", 27, 147, 192],
     ["prism-break", 23, 162, 258],

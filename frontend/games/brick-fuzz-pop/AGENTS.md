@@ -508,8 +508,7 @@ helpers.
     points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
     named by where it sits under the fingers, as the keys are read by
     `event.code`; and every brick in the catalog, with its picture once the
-    scene hands them over (`HelpPictures`). `help_words.ts` says how often
-    in words where `count()` would read wrong (`howOften()`: "once").
+    scene hands them over (`HelpPictures`).
   - `levels/` — the Levels dialog, `<app-levels>`: each set under its name,
     each level a button named by its number and name, with its stars and
     best once cleared, "Locked" and `aria-disabled` until it opens, the

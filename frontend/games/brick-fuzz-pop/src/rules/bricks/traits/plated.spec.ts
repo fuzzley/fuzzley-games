@@ -118,7 +118,6 @@ describe("PLATED_RULE, flown", () => {
     ]);
   });
 
-  // It bounces off the floor once, and strikes the plate again.
   it("turns a hot shot off its plate with its charge, the brick whole", () => {
     const flown = flyPicture({
       picture: ["....v...."],
@@ -132,10 +131,7 @@ describe("PLATED_RULE, flown", () => {
         charge,
         earthed,
       ]),
-    ).toEqual([
-      [0, MOST_CHARGE, false],
-      [0, MOST_CHARGE, false],
-    ]);
+    ).toEqual([[0, MOST_CHARGE, false]]);
   });
 
   it("takes a hit from a plain fuzzball on a face it isn't plated on", () => {

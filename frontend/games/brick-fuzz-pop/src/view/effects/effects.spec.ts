@@ -1,7 +1,7 @@
 import type {
   BallRole,
-  Contact,
   FlightEvent,
+  TurnOff,
   ZapPattern,
 } from "../../rules/flight/events";
 import type { Boon } from "../../rules/shot";
@@ -40,7 +40,7 @@ function launch(role: BallRole, ball = 0): FlightEvent {
 }
 
 /** Returns a fuzzball's turn off something, at a moment. */
-function turn(off: Contact, { ball = 0, at = AT } = {}): FlightEvent {
+function turn(off: TurnOff, { ball = 0, at = AT } = {}): FlightEvent {
   return { at, kind: "turn", ball, x: 1, y: 1, dx: 1, dy: 0, off };
 }
 
@@ -106,7 +106,6 @@ function soundsOf(fixture: keyof typeof FLIGHT_FIXTURES): SoundName[] {
 const TURNS = [
   ["side", "knock"],
   ["ceiling", "knock"],
-  ["floor", "knock"],
   ["face", null],
   ["corner", null],
   ["bumper", "bump"],
@@ -278,13 +277,7 @@ describe("FlightEffects", () => {
         ...["knock", "knock", "land"],
       ],
     ],
-    [
-      "hotShot",
-      [
-        ...["boon", "knock", "punch", "break"],
-        ...["clank", "knock", "clank", "land"],
-      ],
-    ],
+    ["hotShot", ["boon", "knock", "punch", "break", "clank", "land"]],
   ] as const)("plays the %s fixture's flight as %j", (fixture, sounds) => {
     expect(soundsOf(fixture)).toEqual(sounds);
   });

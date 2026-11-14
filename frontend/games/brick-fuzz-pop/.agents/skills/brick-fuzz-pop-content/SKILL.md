@@ -40,7 +40,7 @@ design, the kinds' table ("The bricks") and the rules a level keeps are in
   | -------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | The compiler               | everywhere                                                       | Every cataloged kind has its art, its color and its legend character, every legend character a cataloged kind, and no art or color a kind the catalog lacks; every trait its rule |
   | `parseLevel()`             | `src/rules/levels/levels.ts`                                     | A wall's shape, its characters, its air, its portals and its steel                                                                                                                |
-  | The levels spec            | `src/rules/levels/levels.spec.ts`                                | The rest of plan.md's rules a level keeps, each kind first used at its level, and each draft as plan.md's table has it                                                            |
+  | The levels spec            | `src/rules/levels/levels.spec.ts`                                | The rest of plan.md's rules a level keeps, each kind first used at its level, and each draft as plan.md's table has it, but Switchboard, eased since                              |
   | The catalog spec           | `src/rules/catalog/catalog.spec.ts`                              | Every kind's name and sentence, its hits, points and traits as the catalog's rules have them, in its levels' order                                                                |
   | The legend spec            | `src/rules/levels/legend.spec.ts`                                | A character for every cataloged kind, its hits within its kind's, and each brick's tint                                                                                           |
   | The replays and the floors | `src/rules/levels/every_level/`, `src/rules/levels/every_floor/` | Every level's certificate on every depth, its par, and the careless player at its set's floor                                                                                     |
@@ -100,7 +100,8 @@ at fault:
 - no kind used before the level that brings it in (its `firstLevel`), and
   each kind first used at that level;
 - each drafted wall's rows, needed bricks and hits as plan.md's table of
-  the drafts has them, a row of the table in the spec for each.
+  the drafts has them, but Switchboard's, eased since in `build.mjs`, a row
+  of the table in the spec for each.
 
 ### Drawing It
 

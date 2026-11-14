@@ -6,9 +6,12 @@ import type { BrickKindId } from "../catalog/bricks";
  */
 export type BallRole = "player" | "mate" | "friend" | "split";
 
-/** Names what a fuzzball turned off: a side wall, the ceiling, the floor, a brick's face or corner, or a bumper. */
+/** Names what a fuzzball meets: a side wall, the ceiling, the floor, a brick's face or corner, or a bumper. */
 export type Contact =
   "side" | "ceiling" | "floor" | "face" | "corner" | "bumper";
+
+/** Names what a fuzzball turns off: whatever it meets but the floor, which it lands on. */
+export type TurnOff = Exclude<Contact, "floor">;
 
 /** Names the cells a zap reaches from its brick: its row, its column, both, both diagonals, or the eight around it. */
 export type ZapPattern = "row" | "column" | "cross" | "x" | "blast";
@@ -53,7 +56,7 @@ export type FlightEvent = At &
         readonly y: number;
         readonly dx: number;
         readonly dy: number;
-        readonly off: Contact;
+        readonly off: TurnOff;
       }
     | {
         /**

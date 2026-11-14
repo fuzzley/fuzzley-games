@@ -115,16 +115,12 @@ describe("the bricks' own rules, flown", () => {
     ).toEqual([[1, 1]]);
   });
 
-  // It bounces off the floor once, and strikes the steel again.
   it("leaves a hot shot its charge on steel, unearthed", () => {
     const flown = flyPicture({ picture: ["....#...."], hot: true });
 
     expect(
       eventsOf(flown, "strike").map(({ charge, earthed }) => [charge, earthed]),
-    ).toEqual([
-      [MOST_CHARGE, false],
-      [MOST_CHARGE, false],
-    ]);
+    ).toEqual([[MOST_CHARGE, false]]);
   });
 
   // Aimed at 45° into the pocket under one tough brick and left of another

@@ -276,7 +276,7 @@ describe("FLIGHT_FIXTURES", () => {
     expect([bricks[53]?.hits, bricks[62]?.hits]).toEqual([1, 1]);
   });
 
-  it("bounces a hot shot off the floor once, its charge whole", () => {
+  it("lands a hot shot at its first touch of the floor, its charge whole", () => {
     const fixture = FLIGHT_FIXTURES.hotShot;
     const offs = eventsOf(fixture, "turn").map(({ off }) => off);
     const strikes = eventsOf(fixture, "strike").map(
@@ -284,9 +284,8 @@ describe("FLIGHT_FIXTURES", () => {
     );
 
     expect([offs, strikes]).toEqual([
-      ["side", "face", "floor", "face"],
+      ["side", "face"],
       [
-        [5, false],
         [5, false],
         [5, false],
       ],
