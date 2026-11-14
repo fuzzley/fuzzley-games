@@ -195,13 +195,14 @@ takes for the specs' helpers.
   `describe.ts` puts what happened into the words the announcer says: a
   level's start, a capsule caught (with its double pay), the lives a frame
   gained and lost (`describeLives()`, from the run before and after), the
-  last few bricks, the gates opened (`describeOpened()`), a clearing, a
-  pause, going on and the end; `endTitle()` says what an ended
-  run is called; `starAsks()` what each of a level's stars asks, "Reach a
-  streak of 15" naming its mark; and `formatCustomPercent()` writes Custom's
-  ball speed as its sliders read it, "150% of Normal". The announcer, the bar, the cards,
-  the result, the levels and How to play all write points grouped in
-  thousands, "4,250", with `@fz/core/format`'s `formatPoints()`.
+  last few bricks, the gates opened (`describeOpened()`), a clearing and
+  the stars it won (`describeStarsWon()`), a pause, going on and the end;
+  `endTitle()` says what an ended run is called; `starAsks()` what each of
+  a level's stars asks, "Reach a streak of 15" naming its mark; and
+  `formatCustomPercent()` writes Custom's ball speed as its sliders read
+  it, "150% of Normal". The announcer, the bar, the cards, the result, the
+  levels and How to play all write points grouped in thousands, "4,250",
+  with `@fz/core/format`'s `formatPoints()`.
   `progress.ts` says which levels a run may start at (`isOpen()`): the first,
   any cleared, and the one after a level cleared, at any speed; `clearedOf()`
   reads the ids stored, keeping those a level still has. `stats.ts` holds the
@@ -503,10 +504,11 @@ takes for the specs' helpers.
     outside one, as the view's `LevelPlay`, and moves the field on through
     `tick()`, which the scene's frames drive, steered as the player steers,
     launches, fires, pauses, goes on and starts levels and runs, says what
-    happened through `@fz/ui/announcer`, adds up a cleared level's points
-    (`tally`), keeps the records, the levels cleared and the stars won
-    through `stats/`, and calls for the chime for a life the points brought and for a new best
-    as its card opens (`chimes`). It extends `@fz/game-ui/run_lifecycle`'s
+    happened through `@fz/ui/announcer`, a clearing's new stars among it,
+    adds up a cleared level's points (`tally`), keeps the records, the
+    levels cleared and the stars won through `stats/`, and calls for the
+    chime for a life the points brought and for a new best as its card
+    opens (`chimes`). It extends `@fz/game-ui/run_lifecycle`'s
     `RunLifecycle`, which holds what every game's run does around its play:
     the keys' `command()`, to which `GameService` adds `launch`, going on to
     the next level as `go` asks (its `nextStage()`), the drawn gate
@@ -620,12 +622,17 @@ takes for the specs' helpers.
     pressed with a mouse or a finger. It hands the board back the focus
     as Resume goes on, and asks the app for the levels, How to play and the
     settings.
-  - `levels/` — the Levels dialog: each set under its name, its levels as
-    buttons in a grid, named by number and name ("3 Pyramid"), then a tick
-    once cleared, with its best at the speed in play, "Cleared" or "Locked"
-    under the name, and the run's own marked `aria-current`. A level not yet
-    open is `aria-disabled`, and can't be chosen. Choosing an open one starts
-    a run there, asking first if one is under way, and closes once it has.
+  - `levels/` — the Levels dialog: a line saying what the stars are won
+    for, that they open nothing (decision 6), and how many every level
+    holds of all there are; each set under its name, with the count of its
+    levels' stars beside it, its levels as buttons in a grid, named by
+    number and name ("3 Pyramid"), then a tick once cleared, its three
+    small stars, filled where held and outlined where not, said as one,
+    "2 of 3 stars", with its best at the speed in play, "Cleared" or
+    "Locked" under the name, and the run's own marked `aria-current`. A
+    level not yet open is `aria-disabled`, and can't be chosen. Choosing an
+    open one starts a run there, asking first if one is under way, and
+    closes once it has.
   - `result/` — the card over an ended run, once the last ball has faded:
     lost or won, where and at what speed, the score and the best at its speed,
     with "New best" and the trophy when it set one, the level reached and the
@@ -634,10 +641,10 @@ takes for the specs' helpers.
     and asks the app for the levels; and Close.
   - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
     the multiplier's ladder worded by `@fz/core/format`'s `tierWords()`,
-    pausing, the controls, and every brick, capsule and ball from the
-    catalogs, each with its name, its sentence and, once the scene has
-    drawn, its picture, which the app asks the board for only while How to
-    play is open.
+    the stars, pausing, the controls, and every brick, capsule and ball
+    from the catalogs, each with its name, its sentence and, once the scene
+    has drawn, its picture, which the app asks the board for only while How
+    to play is open.
   - `settings/` — the settings drawer (the speed, how a finger steers, the
     sound and the palette), `SPEED_CHOICES`, the speeds as the drawer and the
     bar both offer them, and `SettingsService`, which keeps what the player
@@ -821,7 +828,7 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board holds the
   application above, and every level begun, ball lost, pause, going on,
-  level cleared and end is announced.
+  level cleared, star won and end is announced.
 
 ## Development Commands
 

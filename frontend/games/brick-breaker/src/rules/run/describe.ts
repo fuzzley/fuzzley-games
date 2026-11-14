@@ -82,6 +82,39 @@ export function starAsks(id: StarId, mark: number): string {
   }
 }
 
+/**
+ * Returns what is said of the stars a level's clearing won that it didn't
+ * hold before, and what each was won for, or null for none:
+ * "2 new stars, for clearing the level and losing no life."
+ */
+export function describeStarsWon(
+  won: readonly StarId[],
+  mark: number,
+): string | null {
+  if (won.length === 0) return null;
+  const reasons = won.map((id) => starWonFor(id, mark));
+  return `${count(won.length, "new star", "new stars")}, for ${listed(reasons)}.`;
+}
+
+/** Returns what a star is won for, as the announcer says it. */
+function starWonFor(id: StarId, mark: number): string {
+  switch (id) {
+    case "clear":
+      return "clearing the level";
+    case "clean":
+      return "losing no life";
+    case "streak":
+      return `reaching a streak of ${String(mark)}`;
+  }
+}
+
+/** Returns words as a list: "a, b and c". */
+function listed(words: readonly string[]): string {
+  const head = words.slice(0, -1);
+  const last = words.slice(-1).join("");
+  return head.length > 0 ? `${head.join(", ")} and ${last}` : last;
+}
+
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
   return `Paused, with a score of ${formatPoints(run.score)}. Press Enter to go on.`;

@@ -12,7 +12,9 @@ import {
   provideSpecLevels,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
+import { STAR } from "../../rules/run/stars";
 import { ProgressService } from "../stats/progress.service";
+import { StarsService } from "../stats/stars.service";
 import { StatsService } from "../stats/stats.service";
 import { LevelsComponent } from "./levels.component";
 
@@ -44,9 +46,15 @@ async function renderLevels(
   };
 }
 
+/** Keeps a level cleared, as a play that clears it does, with the stars it won: its first alone, unless given. */
+function clearLevel(id: string, won: number = STAR.clear): void {
+  TestBed.inject(ProgressService).recordCleared(id);
+  TestBed.inject(StarsService).recordWon(id, won);
+}
+
 /** Opens the Lives level, as clearing the level before it would. */
 function openLives(): void {
-  TestBed.inject(ProgressService).recordCleared("few");
+  clearLevel("few");
 }
 
 /** Returns the names of a set's levels, as the dialog lists them under its name. */
@@ -54,6 +62,12 @@ function levelsIn(set: string): string[] {
   return within(screen.getByRole("region", { name: set }))
     .getAllByRole("button")
     .map((level) => level.textContent);
+}
+
+/** Returns the count of the stars a set's levels hold, beside its name. */
+function starsCountOf(set: string): string | undefined {
+  return screen.getByRole("heading", { name: set }).nextElementSibling
+    ?.textContent;
 }
 
 describe("LevelsComponent", () => {
@@ -70,8 +84,8 @@ describe("LevelsComponent", () => {
     await renderLevels(TWO_SETS);
 
     expect([levelsIn("First"), levelsIn("Second")]).toEqual([
-      ["1 Blasts", "2 Again Locked"],
-      ["3 Last Locked"],
+      ["1 Blasts 0 of 3 stars", "2 Again 0 of 3 stars Locked"],
+      ["3 Last 0 of 3 stars Locked"],
     ]);
   });
 
@@ -79,21 +93,23 @@ describe("LevelsComponent", () => {
     await renderLevels();
 
     expect(levelsIn("Specs")).toEqual([
-      "1 Blasts",
-      "2 Wide Locked",
-      "3 Steel Locked",
-      "4 Few Locked",
-      "5 Lives Locked",
-      "6 Laser Locked",
-      "7 Catch Locked",
-      "8 Dare Locked",
-      "9 Last Locked",
+      "1 Blasts 0 of 3 stars",
+      "2 Wide 0 of 3 stars Locked",
+      "3 Steel 0 of 3 stars Locked",
+      "4 Few 0 of 3 stars Locked",
+      "5 Lives 0 of 3 stars Locked",
+      "6 Laser 0 of 3 stars Locked",
+      "7 Catch 0 of 3 stars Locked",
+      "8 Dare 0 of 3 stars Locked",
+      "9 Last 0 of 3 stars Locked",
     ]);
   });
 
   it("locks a level not yet open, which can't be chosen", async () => {
     const { user, game, closed } = await renderLevels();
-    const steel = screen.getByRole("button", { name: "3 Steel Locked" });
+    const steel = screen.getByRole("button", {
+      name: "3 Steel 0 of 3 stars Locked",
+    });
 
     await user.click(steel);
 
@@ -105,50 +121,90 @@ describe("LevelsComponent", () => {
   it("shows a level cleared with its best at the speed in play", async () => {
     const { detectChanges } = await renderLevels();
 
-    TestBed.inject(ProgressService).recordCleared("blasts");
+    clearLevel("blasts");
     TestBed.inject(StatsService).recordLevel("blasts", "normal", 4100);
     detectChanges();
 
     expect(levelsIn("Specs").slice(0, 2)).toEqual([
-      "1 Blasts Best 4,100",
-      "2 Wide",
+      "1 Blasts 1 of 3 stars Best 4,100",
+      "2 Wide 0 of 3 stars",
     ]);
   });
 
   it("ticks a level cleared", async () => {
     const { detectChanges } = await renderLevels();
 
-    TestBed.inject(ProgressService).recordCleared("blasts");
+    clearLevel("blasts");
     detectChanges();
 
     // The tick is hidden from assistive technology, which "Cleared" tells.
     expect(
       screen
-        .getByRole("button", { name: "1 Blasts Cleared" })
+        .getByRole("button", { name: "1 Blasts 1 of 3 stars Cleared" })
         .querySelector('fz-icon[name="tick"]'),
     ).not.toBeNull();
   });
 
   it("shows each level's best at the speed in play", async () => {
     const { game, detectChanges } = await renderLevels();
-    TestBed.inject(ProgressService).recordCleared("blasts");
+    clearLevel("blasts");
     TestBed.inject(StatsService).recordLevel("blasts", "normal", 4100);
     TestBed.inject(StatsService).recordLevel("blasts", "fast", 3000);
 
     await game.changeSpeed("fast");
     detectChanges();
 
-    expect(levelsIn("Specs")[0]).toBe("1 Blasts Best 3,000");
+    expect(levelsIn("Specs")[0]).toBe("1 Blasts 1 of 3 stars Best 3,000");
   });
 
   it("says a level was cleared where it has no best at the speed in play", async () => {
     const { detectChanges } = await renderLevels();
 
-    TestBed.inject(ProgressService).recordCleared("blasts");
+    clearLevel("blasts");
     TestBed.inject(StatsService).recordLevel("blasts", "fast", 3000);
     detectChanges();
 
-    expect(levelsIn("Specs")[0]).toBe("1 Blasts Cleared");
+    expect(levelsIn("Specs")[0]).toBe("1 Blasts 1 of 3 stars Cleared");
+  });
+
+  it("draws a level's three stars, filled where held and outlined where not, and says how many it holds", async () => {
+    const { detectChanges } = await renderLevels();
+
+    clearLevel("blasts", STAR.clear | STAR.streak);
+    detectChanges();
+
+    const blasts = screen.getByRole("button", {
+      name: "1 Blasts 2 of 3 stars Cleared",
+    });
+    expect(
+      [...blasts.querySelectorAll(".stars svg")].map((star) =>
+        star.classList.contains("filled"),
+      ),
+    ).toEqual([true, false, true]);
+  });
+
+  it("counts the stars each set's levels hold, by its name", async () => {
+    const { detectChanges } = await renderLevels(TWO_SETS);
+
+    clearLevel("blasts", STAR.clear | STAR.clean);
+    detectChanges();
+
+    expect([starsCountOf("First"), starsCountOf("Second")]).toEqual([
+      "2 of 6 stars",
+      "0 of 3 stars",
+    ]);
+  });
+
+  it("says what stars are for, and how many every level holds of all there are", async () => {
+    const { detectChanges } = await renderLevels();
+
+    clearLevel("blasts", STAR.clear | STAR.clean | STAR.streak);
+    clearLevel("wide");
+    detectChanges();
+
+    expect(screen.getByText(/^Each level has three stars/)).toHaveTextContent(
+      "Each level has three stars to win, at any speed: for clearing it, for clearing it without losing a life, and for reaching its streak, the mark its Ready card names, in a play that clears it. Stars open nothing; they are a record of how well you played. You hold 4 of 27 stars.",
+    );
   });
 
   it("marks the level of the run on the board", async () => {
@@ -158,7 +214,7 @@ describe("LevelsComponent", () => {
     detectChanges();
 
     expect(screen.getByRole("button", { current: true })).toHaveAccessibleName(
-      "2 Wide",
+      "2 Wide 0 of 3 stars",
     );
   });
 
@@ -167,7 +223,9 @@ describe("LevelsComponent", () => {
     openLives();
     detectChanges();
 
-    await user.click(screen.getByRole("button", { name: "5 Lives" }));
+    await user.click(
+      screen.getByRole("button", { name: "5 Lives 0 of 3 stars" }),
+    );
 
     expect(game.level().number).toBe(SPEC_LEVEL.lives);
     expect(closed).toHaveBeenCalledOnce();
@@ -179,7 +237,9 @@ describe("LevelsComponent", () => {
     detectChanges();
     await game.startAt(SPEC_LEVEL.steel);
     game.launch();
-    await user.click(screen.getByRole("button", { name: "5 Lives" }));
+    await user.click(
+      screen.getByRole("button", { name: "5 Lives 0 of 3 stars" }),
+    );
 
     TestBed.inject(ConfirmService).cancel();
     await TestBed.inject(ApplicationRef).whenStable();
