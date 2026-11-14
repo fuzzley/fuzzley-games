@@ -148,6 +148,26 @@ describe("bricksPalette", () => {
     });
   });
 
+  it("draws a bumper in the accent", () => {
+    expect(bricksPalette(ROLES, "light").bricks.bumper).toBe(0x00ff00);
+  });
+
+  it.each(["light", "dark"] as const)(
+    "rings the first pair of portals in the violet tint and the second in the teal, their arms and badges a third of the way to the text, in a %s palette",
+    (mode) => {
+      const [violet = NaN, teal = NaN] = [6, 4].map(
+        (tint) => TILE_INKS[mode][tint],
+      );
+
+      expect(
+        bricksPalette({ ...ROLES, text: "#102030" }, mode).portals,
+      ).toEqual([
+        { ring: violet, glyph: mixColors(0x102030, violet, 0.34) },
+        { ring: teal, glyph: mixColors(0x102030, teal, 0.34) },
+      ]);
+    },
+  );
+
   it.each(["light", "dark"] as const)(
     "dresses the friends in the fuzzballs' inks of a %s palette",
     (mode) => {

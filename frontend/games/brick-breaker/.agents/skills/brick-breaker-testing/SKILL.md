@@ -181,7 +181,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   `bricksPalette()` from them, and holds the tints, the kinds, the balls,
   the friends' inks,
   the capsules, the paddle and the glow to 3:1 against the field, a hidden
-  ghost to 2:1, and the outline and the marks against what they cross.
+  ghost to 2:1, the outline and the marks against what they cross, and the
+  two pairs of portals apart by their hue, with `deltaE()`.
 - `src/view/places/places.spec.ts` draws each place's tile at every scale
   of `FIELD_SCALES` and holds every command inside it, and reads each
   palette's roles as the contrast spec does, holding every place to

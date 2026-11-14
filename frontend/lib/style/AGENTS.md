@@ -143,7 +143,9 @@ relative to `frontend/lib/style/`.
   the test finishes; `rgbOf()` reads a color written as a
   number, `0xrrggbb`, as a game drawn on a canvas keeps its inks; and
   `paint()`, `over()` and `contrast()` measure them as WCAG does, a
-  translucent surface over what shows through it. The library's specs use
+  translucent surface over what shows through it, and `deltaE()` how far
+  apart two colors lie in CIELAB, by CIE76, which tells apart two of one
+  luminance that `contrast()` can't. The library's specs use
   it, and so does every app's contrast spec, so the math is written and
   tested once. It imports nothing of the
   library's, so an app's specs compile it as they are.

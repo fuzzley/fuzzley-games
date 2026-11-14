@@ -239,7 +239,8 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   (`src/view/art/brick_art.ts`), on the slab (`BRICK_SLAB`) with marks that
   tell it apart by their shape,
   but for a round kind, a disc on no slab, which the art spec's slab spec
-  leaves out,
+  leaves out, as a bumper and a portal are drawn through
+  `@fz/phaser/bricks`' `bumperMark()` and `portalMark()`,
   and How to play's picture in
   `PICTURED_BRICKS` (`src/view/art/art.ts`); the compiler asks for both. A
   color of its own, as steel's, blast's, gift's and a regrowing brick's
@@ -247,7 +248,12 @@ Machines, the kinds that move a ball or themselves, starts at 1.16.
   beside the marks' own color in its `kindInks`. The contrast spec holds
   an ink that tells a kind to 3:1 against what it is drawn on, and leaves
   out one that only shades, as the gift's ribbon and the moss's shadow
-  do. A kind that `regrows` shows the ring a regrowing brick fills as it
+  do. Two looks of a kind told apart by ink alone, as a portal's two pairs
+  are, the contrast spec holds apart by hue (`deltaE()`), and a mark of
+  another shape tells them apart besides, for a player who can't tell the
+  inks apart, as a portal's badge, a dot or a diamond, does. A look that
+  differs by what the legend lays a brick with reads it from the
+  `BrickLook` (`pair`), a frame for each, as a portal's does. A kind that `regrows` shows the ring a regrowing brick fills as it
   grows back while it is broken (`regrowingFrame()`, which `cellFrame()`
   picks), with nothing more. A look that reads the field beside its brick
   reads it from the `CellField` its art's `frameOf()` is handed, which

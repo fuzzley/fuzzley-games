@@ -424,14 +424,18 @@ takes for the specs' helpers.
   `capsuleShine`), the sparks about a ball at the streak's top multiplier
   (`streakSparks`), the inks the friends a cage frees wear, by `Ball.ink`,
   `@fz/phaser/color`'s `FUZZBALL_INKS` (`friendInks`), a cage and a gate
-  in the steel and a key in the warning color (`bricks`),
+  in the steel, a key in the warning color and a bumper in the accent
+  (`bricks`), each pair of portals' ring, the violet tint and then the teal
+  (`PORTAL_TINTS`), and its arms and badge, the ring a third of the way to
+  the text (`portals`),
   and a ghost's tints, faded while it hides and paler once
   it shows (`ghostTints`), and the inks of the field's edge (`fieldInks`: the
   rim's lip, and the gutter under the paddle and its chevrons, washed with
   the danger color).
   It keeps the text too, which a place is washed from over the field.
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
-  bricks, the cage, the key and the gate,
+  bricks, the cage, the key, the gate and the bumper, each pair of portals'
+  ring,
   a shown ghost and the moss, every ball kind and every friend's ink, both capsule tones
   and a bad one's gold lip, a ball's sparks and a seeking ball's sight, a
   regrowing brick's ring, the
@@ -443,7 +447,10 @@ takes for the specs' helpers.
   brick, the paddle and its caps, the marks against every brick, capsule,
   the paddle and its caps, steel's frame and rivets against the steel, and a
   plate's rivets and a gate's keyhole too, a plate and its teeth and a
-  cage's bars against the marks' color they stand in, and a
+  cage's bars against the marks' color they stand in, and a portal's arms
+  and badge against the marks' color of its middle and its badge's disc,
+  the two pairs of portals apart by their hue (`@fz/style/testing`'s
+  `deltaE()`), as every tint shares a luminance, and a
   blast brick's spark against the marks it is lit on; its comment says why a
   ball isn't held against the tints, and why a brick's shading, the paddle's
   and a good capsule's is held to nothing.
@@ -519,17 +526,23 @@ takes for the specs' helpers.
   away round it in the marks' color, with its rivets and teeth pointing
   down (`plateTeeth()`), a cage's bars over the friend it frees next, in
   that friend's ink (`cagedFriend()`), one bar bent once it is hit
-  (`cageBars()`), a frame for each ink, a key cut out of gold, and a gate's
-  keyhole between gold ends, leaving out
+  (`cageBars()`), a frame for each ink, a key cut out of gold, a gate's
+  keyhole between gold ends, a bumper, round, on no slab, its disc in the
+  accent with a ring cut out of it and four ticks kicking out
+  (`bumperMark()`), and a portal, round too, a ring in its pair's ink round
+  three arms, with its pair's badge, the first's a dot and the second's a
+  diamond (`portalMark()`), a frame for each pair, so a player who can't
+  tell the inks apart tells them by the badge, leaving out
   the cracks, rivets and sheen of a brick under 30 CSS px wide, a plate's
   shine, a caged friend's fur, and the
   ring's sprout
-  (`showsDetail()`); a round kind without its art yet is a disc of its
-  radius in one tint, on no slab (`roundPlaceholderArt()`), and any other
-  kind without its art yet a slab in one tint (`placeholderArt()`); and it names
+  (`showsDetail()`), though a bumper and a portal are drawn whole at every
+  size; a kind without its art yet is a slab in one tint
+  (`placeholderArt()`); and it names
   the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
-  cage's by the friends the field has freed, `nextFriend()`, or as How to
+  cage's by the friends the field has freed, `nextFriend()`, a portal's by
+  its pair, or as How to
   play pictures a brick on its own, `PICTURED_FIELD`,
   and `regrowingFrame()` at how far it has come, `regrowShare()`, and so
   the frame a cell shows as the field stands, its brick's
