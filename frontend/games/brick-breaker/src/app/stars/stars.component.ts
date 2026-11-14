@@ -8,7 +8,8 @@ import { STAR_IDS, type StarId } from "../../rules/run/stars";
  * the third naming the level's mark: a held one lit, a filled star in gold,
  * and one not yet won an outline, its words quieter; one just won marked
  * new; and, beside the streak's star where it isn't held, the best streak
- * of the play, where one is given.
+ * of the play, where one is given. Laid `across`, they stand side by side,
+ * each over its mark, and what each asks is left to a screen reader.
  *
  * It is a list named "Stars", each star's state said in words a screen
  * reader hears, as the stars and the marks beside them are hidden from it.
@@ -16,6 +17,7 @@ import { STAR_IDS, type StarId } from "../../rules/run/stars";
 @Component({
   selector: "app-stars",
   imports: [IconComponent],
+  host: { "[class.across]": "across()" },
   templateUrl: "./stars.component.html",
   styleUrl: "./stars.component.scss",
 })
@@ -31,6 +33,13 @@ export class StarsComponent {
 
   /** The longest streak of the play, shown beside the streak's star where it isn't held, or null for none. */
   readonly bestStreak = input<number | null>(null);
+
+  /**
+   * Whether the stars stand side by side, each over its mark, what each asks
+   * heard but not shown, as a Cleared card over a short field lays them,
+   * rather than one under another.
+   */
+  readonly across = input(false);
 
   /** Each star as the list shows it, in its order. */
   protected readonly stars = computed(() => {

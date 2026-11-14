@@ -24,22 +24,41 @@
  * and in the window, off the field, each other and the bar, at least 172
  * CSS px across and down, each holding the parts it shows, the level's
  * stars among them, whole, as a panel clips what runs past its foot.
+ *
+ * Then it opens the game at each shape again, at twice the pixels, over a
+ * run kept on Fuse with its fuse lit, which each page takes up and goes on
+ * with, so the fuse burns and clears the level: the Cleared card, at its
+ * tallest, its three stars just won and a line for double pay, must lie on
+ * the field, and the rest hold as above.
  * It prints what is wrong and fails, or says the layout holds.
  */
 import { join } from "node:path";
 import {
   PHASER_CANVAS_READY,
   PHASER_CHECKED_AT,
+  SHAPES,
+  SMALLEST,
+  checkLayout,
   checkPhaserLayout,
   runLayoutScript,
+  shapesAt,
 } from "@fz/dev/layout";
+import {
+  CLEARING_RUN,
+  SAVED_GAME_KEY,
+  loadScreenshotApi,
+  storedRun,
+} from "./stored_run.mjs";
 
-/** @import { BoardBox, PhaserBoard } from "@fz/dev/layout" */
+/** @import { DevToolsConnection } from "@fz/dev/chrome" */
+/** @import { BeforeLoad, BoardBox, LayoutCheck, LayoutProblem, PhaserBoard } from "@fz/dev/layout" */
+/** @import { ScreenshotApi } from "../src/testing/script_api.ts" */
 
 /**
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser; its card
- * is Ready's, as the ball waits on the paddle; and the panels beside it,
- * shown both, wherever the room spares them, or neither.
+ * is Ready's, as the ball waits on the paddle, or Cleared's, over the level
+ * the run kept for it clears; and the panels beside it, shown both, wherever
+ * the room spares them, or neither.
  *
  * @type {PhaserBoard}
  */
@@ -68,8 +87,8 @@ const FIELD = {
 
 /**
  * Returns what is wrong with the field's unit, the room under it, the
- * Ready card's foot and the parts the panels show, given where the field
- * lies. It runs in the page, so it uses nothing from this module.
+ * Ready card's foot, the Cleared card's line for double pay and the parts
+ * the panels show, given where the field lies. It runs in the page, so it uses nothing from this module.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -114,6 +133,12 @@ function inspectField(field) {
       `The Ready card's foot lies ${(card.bottom - lowest).toFixed(1)} CSS px lower than it may, over the ball.`,
     );
   }
+  // Over the run kept for it, the Cleared card shows its tallest, with a
+  // line for double pay, which the field must hold.
+  const cleared = board.querySelector(".card.cleared");
+  if (cleared && !cleared.textContent?.includes("Double pay")) {
+    problems.push("The Cleared card shows no line for double pay.");
+  }
   // A panel clips what runs past its foot, so the parts it shows, a
   // compact one its first two, must fit it whole.
   for (const panel of board.querySelectorAll("app-bench, app-in-play")) {
@@ -127,15 +152,96 @@ function inspectField(field) {
   return problems;
 }
 
+/** The shapes the Cleared card is checked at: every shape, at twice the pixels. */
+const CLEARED_AT = shapesAt(2, [...SHAPES, SMALLEST]);
+
+/** What the page matches once the Cleared card shows. */
+const CLEARED_CARD = "app-board .card.cleared";
+
+/**
+ * Keeps a run where the game keeps one, and goes on with it, by its Paused
+ * card's Resume, once the page has taken it up and drawn its field, in the
+ * page before its own scripts. It is sent as its source, so it uses nothing
+ * from this module.
+ *
+ * @param {string} key Where the game keeps the run.
+ * @param {string} stored The run as storage keeps it.
+ * @param {string} drawn What the page matches once it has drawn the field.
+ */
+function keepRunAndGoOn(key, stored, drawn) {
+  localStorage.setItem(key, stored);
+  const goOn = () => {
+    const outcome = document
+      .querySelector("app-board")
+      ?.getAttribute("data-outcome");
+    if (outcome === "cleared") return;
+    const resume = [
+      ...document.querySelectorAll("app-board .card button"),
+    ].find((button) => button.textContent?.trim() === "Resume");
+    if (document.querySelector(drawn) && resume instanceof HTMLElement) {
+      resume.click();
+    }
+    requestAnimationFrame(goOn);
+  };
+  requestAnimationFrame(goOn);
+}
+
+/**
+ * Returns what runs in the page before its own scripts: {@link keepRunAndGoOn},
+ * handed where the game keeps a run, {@link CLEARING_RUN} as storage keeps
+ * it, and what the page matches once it has drawn the field.
+ *
+ * @param {ScreenshotApi} api
+ * @returns {BeforeLoad<Parameters<typeof keepRunAndGoOn>>}
+ */
+function clearing(api) {
+  return {
+    run: keepRunAndGoOn,
+    args: [
+      SAVED_GAME_KEY,
+      storedRun(api, CLEARING_RUN).stored,
+      PHASER_CANVAS_READY,
+    ],
+  };
+}
+
+/**
+ * Checks the layout at each shape and turn as the ball waits to be served,
+ * then at each shape over a level cleared, and returns what is wrong, the
+ * second pass's shapes named for the Cleared card. It keeps the run first,
+ * so a run that can't be kept fails the check before Chrome opens a page.
+ *
+ * @param {DevToolsConnection} devtools
+ * @param {string} url
+ * @returns {Promise<LayoutProblem[]>}
+ */
+async function checkBoth(devtools, url) {
+  const before = clearing(await loadScreenshotApi());
+  /** @type {LayoutCheck} */
+  const check = {
+    url,
+    ready: PHASER_CANVAS_READY,
+    board: FIELD,
+    inspect: inspectField,
+  };
+  const waiting = await checkPhaserLayout(devtools, check);
+  const cleared = await checkLayout(
+    devtools,
+    { ...check, ready: CLEARED_CARD, before },
+    CLEARED_AT,
+  );
+  return [
+    ...waiting,
+    ...cleared.map(({ shape, problem }) => ({
+      shape: `${shape}, the Cleared card`,
+      problem,
+    })),
+  ];
+}
+
 process.exitCode = await runLayoutScript({
   game: "Brick Breaker",
   root: join(import.meta.dirname, ".."),
-  check: (devtools, url) =>
-    checkPhaserLayout(devtools, {
-      url,
-      ready: PHASER_CANVAS_READY,
-      board: FIELD,
-      inspect: inspectField,
-    }),
-  holds: `at each shape and turn: ${PHASER_CHECKED_AT}`,
+  check: checkBoth,
+  holds: `at each shape and turn: ${PHASER_CHECKED_AT}; and the Cleared card at each shape`,
 });

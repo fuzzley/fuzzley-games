@@ -27,7 +27,7 @@ import {
   takenUpBoard,
   thumbRegionAround,
 } from "@fz/dev/screenshots";
-import { importThroughVite } from "@fz/dev/script";
+import { SAVED_GAME_KEY, loadScreenshotApi, storedRun } from "./stored_run.mjs";
 
 /** @import { Page } from "@fz/dev/chrome" */
 /** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
@@ -38,13 +38,6 @@ const SCREENSHOT_DIR = siteImagesFolder(ROOT, "brick-breaker");
 
 /** The palette the screenshot is taken in. */
 const THEME = "midnight";
-
-/**
- * Where the game keeps the run under way: a copy of `SAVED_GAME_KEY` in
- * `src/app/play/saved_game.service.ts`, the shell's, which the scripts'
- * entries, fenced as the rules are, can't import.
- */
-const SAVED_GAME_KEY = "brick-breaker-game";
 
 /**
  * The field, by its name, its element, and its element's attribute that says
@@ -87,20 +80,6 @@ export const RUN = {
  */
 
 /**
- * Returns what the script takes from the game's own code, `SCREENSHOT_API`
- * in `src/testing/screenshot_api.ts`, loaded through Vite.
- *
- * @returns {Promise<ScreenshotApi>}
- */
-export async function loadScreenshotApi() {
-  const module = await importThroughVite(
-    join(ROOT, "src/testing/screenshot_api.ts"),
-    ROOT,
-  );
-  return /** @type {ScreenshotApi} */ (module["SCREENSHOT_API"]);
-}
-
-/**
  * Returns the run shown: kept as the game keeps it, stamped with the version
  * the shell keeps it under, and its score as the game writes it.
  *
@@ -108,11 +87,8 @@ export async function loadScreenshotApi() {
  * @returns {ShownRun}
  */
 export function shownRun(api) {
-  const saved = api.keptRun(RUN);
-  return {
-    stored: JSON.stringify({ version: api.savedGameVersion, ...saved }),
-    score: api.formatPoints(saved.score),
-  };
+  const { saved, stored } = storedRun(api, RUN);
+  return { stored, score: api.formatPoints(saved.score) };
 }
 
 /**

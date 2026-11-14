@@ -9,6 +9,7 @@ interface StarsOptions {
   readonly mark?: number;
   readonly won?: readonly StarId[];
   readonly bestStreak?: number | null;
+  readonly across?: boolean;
 }
 
 /** Renders the stars and returns each, as the list holds it. */
@@ -17,6 +18,7 @@ async function renderStars({
   mark = 15,
   won,
   bestStreak,
+  across,
 }: StarsOptions = {}): Promise<HTMLElement[]> {
   await render(StarsComponent, {
     inputs: {
@@ -24,11 +26,17 @@ async function renderStars({
       mark,
       ...(won === undefined ? {} : { won }),
       ...(bestStreak === undefined ? {} : { bestStreak }),
+      ...(across === undefined ? {} : { across }),
     },
   });
   return within(screen.getByRole("list", { name: "Stars" })).getAllByRole(
     "listitem",
   );
+}
+
+/** Returns the stars' own element, which a class lays across. */
+function starsElement(): HTMLElement | null {
+  return screen.getByRole("list", { name: "Stars" }).parentElement;
 }
 
 /** Returns whether each star is drawn filled, as one held is, rather than an outline. */
@@ -101,6 +109,33 @@ describe("StarsComponent", () => {
     }).toEqual({
       heard: "Reach a streak of 15, not won yet, best 11",
       shown: true,
+    });
+  });
+
+  it("lies one under another unless asked to lie across", async () => {
+    await renderStars();
+
+    expect(starsElement()).not.toHaveClass("across");
+  });
+
+  it("lies across where asked, each star's words and its best streak still heard", async () => {
+    const stars = await renderStars({
+      held: ["clear"],
+      won: ["clear"],
+      bestStreak: 11,
+      across: true,
+    });
+
+    expect({
+      across: starsElement()?.classList.contains("across"),
+      heard: stars.map(heardIn),
+    }).toEqual({
+      across: true,
+      heard: [
+        "Clear the level, won just now",
+        "Lose no life, not won yet",
+        "Reach a streak of 15, not won yet, best 11",
+      ],
     });
   });
 

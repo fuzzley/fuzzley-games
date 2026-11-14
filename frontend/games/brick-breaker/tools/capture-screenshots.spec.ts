@@ -1,7 +1,8 @@
 import { formatPoints } from "@fz/core/format";
 import { LEVELS } from "../src/rules/levels/levels";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
-import { RUN, loadScreenshotApi, shownRun } from "./capture-screenshots.mjs";
+import { RUN, shownRun } from "./capture-screenshots.mjs";
+import { loadScreenshotApi } from "./stored_run.mjs";
 
 describe("shownRun", () => {
   it("stamps the run kept with the version the shell takes it up under, paused on its level", async () => {

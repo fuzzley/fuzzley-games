@@ -25,6 +25,11 @@ export interface KeptRun {
   readonly broken: readonly Place[];
   /** The bricks hit once without breaking. */
   readonly worn: readonly Place[];
+  /**
+   * How many times over the bricks pay as they are hit, 1 unless given,
+   * and 2 as under a dare, whose double pay the level's tally then shows.
+   */
+  readonly pay?: number;
 }
 
 /**
@@ -56,6 +61,7 @@ export function keptRun(
     seed: levelSeed(run),
   });
   field.steps = stepsIn(kept.playedMs);
+  field.pay = kept.pay ?? 1;
   const brickAt = ([row, column]: Place): Brick => {
     const brick = inGrid(column, row)
       ? field.bricks[cellIndex(column, row)]

@@ -77,6 +77,14 @@ const CARD_DROP =
   (BRICKS_TOP + ROWS * BRICK_HEIGHT + PADDLE_TOP) / 2 - FIELD_HEIGHT / 2;
 
 /**
+ * The least height of the field, in CSS pixels, the Cleared card stands over
+ * at its full size, the level's stars one under another with what each asks:
+ * its tallest, with a line for double pay, and room to spare. Over a shorter
+ * field it sets smaller and lays the stars across, so it fits on the field.
+ */
+const FULL_CLEARED_CARD_FIELD_CSS_PX = 380;
+
+/**
  * Shows the board: the canvas the scene draws the field on, which hears the
  * keys, the mouse and fingers while the board has the focus, a drawing of
  * the empty field in CSS until the scene has drawn, the panels beside the
@@ -346,6 +354,18 @@ export class BoardComponent {
   protected readonly clearedTitle = computed(
     () => `Level ${String(this.game.level().number)} cleared`,
   );
+
+  /**
+   * Whether the field is too short for the Cleared card at its full size,
+   * where the scene laid it out or, until it has, where it will: the card
+   * sets smaller over it, its stars laid across, side by side.
+   */
+  protected readonly shortField = computed(() => {
+    const metrics = this.laid() ?? this.placeholder();
+    return (
+      metrics !== null && metrics.css.height < FULL_CLEARED_CARD_FIELD_CSS_PX
+    );
+  });
 
   /** How the level just cleared added up, a line for each part, for its card. */
   protected readonly tallyLines = computed(() => {

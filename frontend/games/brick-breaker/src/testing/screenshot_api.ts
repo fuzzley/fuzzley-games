@@ -5,9 +5,10 @@ import { keptRun } from "./kept_run";
 import type { ScreenshotApi } from "./script_api";
 
 /**
- * What `tools/capture-screenshots.mjs` takes from the game, which it loads
- * through Vite: the run kept for the page to take up and the version it is
- * kept under, and points as the game writes them.
+ * What the screenshots' and the layout check's scripts take from the game,
+ * which `tools/stored_run.mjs` loads through Vite: the run kept for the
+ * page to take up and the version it is kept under, and points as the game
+ * writes them.
  */
 export const SCREENSHOT_API: ScreenshotApi = {
   keptRun: (run) => keptRun(LEVELS, run),

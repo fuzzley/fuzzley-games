@@ -573,6 +573,57 @@ describe("BoardComponent", () => {
       expect(application).toHaveFocus();
     });
 
+    describe("over a level cleared on a board of a size", () => {
+      watchResizes();
+
+      /** Returns the Cleared card, and its stars' element, over a level cleared on a board of a CSS size. */
+      async function clearedOn(
+        width: number,
+        height: number,
+      ): Promise<{ card: HTMLElement; stars: HTMLElement }> {
+        const { board, game, detectChanges } = await renderAt(
+          SPEC_LEVEL.blasts,
+        );
+        resize(board, width, height);
+        playToClear(game);
+
+        game.tick(FRAME_MS, STILL);
+        detectChanges();
+
+        const card = screen.getByText("Level 1 cleared").parentElement!;
+        const list = within(card).getByRole("list", { name: "Stars" });
+        return { card, stars: list.parentElement! };
+      }
+
+      it("set the Cleared card smaller over a field too short for it at its full size, its stars laid across, each still heard", async () => {
+        // A phone on its side, 568 by 320 CSS px, leaves a field 285 tall.
+        const { card, stars } = await clearedOn(504, 320);
+
+        expect({
+          short: card.classList.contains("short"),
+          across: stars.classList.contains("across"),
+          heard: starsHeard(card),
+        }).toEqual({
+          short: true,
+          across: true,
+          heard: [
+            "Clear the level, won just now",
+            "Lose no life, won just now",
+            "Reach a streak of 5, won just now",
+          ],
+        });
+      });
+
+      it("keep the Cleared card at its full size over a field tall enough, its stars listed", async () => {
+        const { card, stars } = await clearedOn(WIDE.width, WIDE.height);
+
+        expect({
+          short: card.classList.contains("short"),
+          across: stars.classList.contains("across"),
+        }).toEqual({ short: false, across: false });
+      });
+    });
+
     describe("where motion is welcome", () => {
       beforeEach(() => {
         installFakeViewport(1024, 768);
