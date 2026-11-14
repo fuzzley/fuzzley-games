@@ -28,6 +28,7 @@ function cleared(steps: number, endgame = 30): AutopilotReport {
     endgameSteps: endgame,
     bounces: 40,
     livesLost: 0,
+    bestStreak: 12,
   };
 }
 
@@ -101,14 +102,14 @@ async function ran(
 }
 
 describe("run", () => {
-  it("lays the names out as wide as the longest, each speed's time, last bricks, bounces and lives lost beside them, and exits with 0", async () => {
+  it("lays the names out as wide as the longest, each speed's time, last bricks, bounces, lives lost and longest streak beside them, and exits with 0", async () => {
     expect(await ran([])).toEqual({
       code: 0,
       out: [
-        "                     relaxed                       fast",
-        "                      time   last  bounces  lost    time   last  bounces  lost",
-        " 1 Wall               1:15   0:30       40     0    1:15   0:30       40     0",
-        "12 The castle keep    1:15   0:30       40     0    1:15   0:30       40     0",
+        "                     relaxed                               fast",
+        "                      time   last  bounces  lost  streak    time   last  bounces  lost  streak",
+        " 1 Wall               1:15   0:30       40     0      12    1:15   0:30       40     0      12",
+        "12 The castle keep    1:15   0:30       40     0      12    1:15   0:30       40     0      12",
       ],
       err: [],
     });
@@ -186,6 +187,20 @@ describe("run", () => {
     },
   );
 
+  it("prints the higher middle of a level's longest streaks at each speed with --seeds", async () => {
+    const streaks = [30, 5, 9, 7];
+    const rules = rulesOf((_, __, seed) => ({
+      ...cleared(75),
+      bestStreak: streaks[seed % SEED_STRIDE] ?? 0,
+    }));
+
+    const { out } = await ran(["--seeds", "4"], rules);
+
+    expect(out[2]).toBe(
+      " 1 Wall                1:15  1:15   0:30     0       9     1:15  1:15   0:30     0       9",
+    );
+  });
+
   it("marks a play that didn't clear its level, says how many, and exits with 1", async () => {
     const rules = rulesOf((entry, speed) =>
       entry.number === 12 && speed === "fast" ? lost() : cleared(75),
@@ -196,7 +211,7 @@ describe("run", () => {
     expect({ code, out: out.slice(3) }).toEqual({
       code: 1,
       out: [
-        "12 The castle keep    1:15   0:30       40     0       -   0:30       40     3",
+        "12 The castle keep    1:15   0:30       40     0      12       -   0:30       40     3      12",
         "",
         "1 plays didn't clear their level (-).",
       ],
@@ -211,8 +226,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 1,
       out: [
-        " 1 Wall               1:15  1:01!       40     0    1:15  1:01!       40     0",
-        "12 The castle keep    1:15   0:30       40     0    1:15   0:30       40     0",
+        " 1 Wall               1:15  1:01!       40     0      12    1:15  1:01!       40     0      12",
+        "12 The castle keep    1:15   0:30       40     0      12    1:15   0:30       40     0      12",
         "",
         "2 plays took longer than the spec allows over their level's last bricks (!).",
       ],
@@ -238,8 +253,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 0,
       out: [
-        " 1 Wall               2:01+  3:20   0:30     0     2:01  3:20   0:30     0",
-        "12 The castle keep     2:00  3:20   0:30     0     2:00  3:20   0:30     0",
+        " 1 Wall               2:01+  3:20   0:30     0      12     2:01  3:20   0:30     0      12",
+        "12 The castle keep     2:00  3:20   0:30     0      12     2:00  3:20   0:30     0      12",
       ],
     });
   });
@@ -264,7 +279,7 @@ describe("run", () => {
     const { out } = await ran(["--seeds", "1", "--height", "35"], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall                2:01  2:01   0:30     0     2:01  2:01   0:30     0",
+      " 1 Wall                2:01  2:01   0:30     0      12     2:01  2:01   0:30     0      12",
     );
   });
 
@@ -274,7 +289,7 @@ describe("run", () => {
     const { out } = await ran(["--seeds", "1"], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall                   -     -   0:30     3        -     -   0:30     3",
+      " 1 Wall                   -     -   0:30     3      12        -     -   0:30     3      12",
     );
   });
 
@@ -284,7 +299,7 @@ describe("run", () => {
     const { out } = await ran([], rules);
 
     expect(out[2]).toBe(
-      " 1 Wall               2:01   0:30       40     0    2:01   0:30       40     0",
+      " 1 Wall               2:01   0:30       40     0      12    2:01   0:30       40     0      12",
     );
   });
 
@@ -296,8 +311,8 @@ describe("run", () => {
     expect({ code, out: out.slice(2) }).toEqual({
       code: 0,
       out: [
-        " 1 Wall               1:15  1:11!       40     0    1:15  1:11!       40     0",
-        "12 The castle keep    1:15   1:10       40     0    1:15   1:10       40     0",
+        " 1 Wall               1:15  1:11!       40     0      12    1:15  1:11!       40     0      12",
+        "12 The castle keep    1:15   1:10       40     0      12    1:15   1:10       40     0      12",
         "",
         "2 plays took longer than a field 35 tall allows over their level's last bricks (!).",
       ],

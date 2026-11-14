@@ -6,22 +6,23 @@
  *
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
- * level needed, how many times its paddle met a ball, and the lives it
- * lost. It plays each through the autopilot's `playLevel()`, as the specs
- * in `src/rules/levels/every_level/` do, so the report and the specs play
- * the same games, and it fails as the specs do: when a play doesn't clear
- * its level (`-`), or takes longer than the specs allow over its last
+ * level needed, how many times its paddle met a ball, the lives it lost,
+ * and its longest streak, the most bricks it broke since the paddle last
+ * met a ball. It plays each through the autopilot's `playLevel()`, as the
+ * specs in `src/rules/levels/every_level/` do, so the report and the specs
+ * play the same games, and it fails as the specs do: when a play doesn't
+ * clear its level (`-`), or takes longer than the specs allow over its last
  * bricks (`!`). It loads the rules and the autopilot through Vite, as the
  * game's build does. The report is how the difficulty ramp is tuned: a level
  * that takes long, or costs lives at Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each level that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the longest
- * endgame and the most lives lost, since the capsules one seed lets fall can
- * make a level look far easier or harder than it is. It still marks and
- * counts the endgames longer than the spec allows, but fails only on a play
- * that doesn't clear its level: across many seeds, a few plays are unlucky
- * however a level is drawn. On the least field, it marks a level whose
+ * endgame, the most lives lost and the middle of the longest streaks, since
+ * the capsules one seed lets fall can make a level look far easier or
+ * harder than it is. It still marks and counts the endgames longer than the
+ * spec allows, but fails only on a play that doesn't clear its level: across
+ * many seeds, a few plays are unlucky however a level is drawn. On the least field, it marks a level whose
  * middle time at Relaxed, as printed, is past 2:00 (`+`), as no level should
  * be longer than its set there, and fails on none.
  *
@@ -104,6 +105,7 @@ const LONG_LEVEL_SECONDS = 120;
  * @property {number} endgameSteps
  * @property {number} bounces
  * @property {number} livesLost
+ * @property {number} bestStreak
  */
 
 /**
@@ -161,8 +163,8 @@ const LONG_LEVEL_SECONDS = 120;
 function columnsOf(seeds, game) {
   if (seeds === undefined) {
     return {
-      headings: ["time", "last", "bounces", "lost"],
-      widths: [5, 6, 8, 5],
+      headings: ["time", "last", "bounces", "lost", "streak"],
+      widths: [5, 6, 8, 5, 7],
       cellsOf: ([play]) =>
         play
           ? [
@@ -170,13 +172,14 @@ function columnsOf(seeds, game) {
               endgameOf(play.endgameSteps, game),
               String(play.bounces),
               String(play.livesLost),
+              String(play.bestStreak),
             ]
           : [],
     };
   }
   return {
-    headings: ["middle", "most", "last", "lost"],
-    widths: [6, 5, 6, 5],
+    headings: ["middle", "most", "last", "lost", "streak"],
+    widths: [6, 5, 6, 5, 7],
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(plays.map(stepsOf));
       return [
@@ -184,9 +187,22 @@ function columnsOf(seeds, game) {
         timeOf(most, game.stepSeconds),
         endgameOf(Math.max(...plays.map((play) => play.endgameSteps)), game),
         String(Math.max(...plays.map((play) => play.livesLost))),
+        String(middleStreakOf(plays)),
       ];
     },
   };
+}
+
+/**
+ * Returns the middle of some plays' longest streaks, the higher of the two
+ * middles for an even number of them.
+ *
+ * @param {readonly AutopilotReport[]} plays
+ * @returns {number}
+ */
+function middleStreakOf(plays) {
+  // A level's plays at a speed are never none: --seeds plays one at least.
+  return middleAndMost(plays.map((play) => play.bestStreak))[0] ?? 0;
 }
 
 /**

@@ -82,6 +82,7 @@ const AIMS: readonly number[] = [-1.4, -0.6, 0.3, 1.1];
 /** Every state of the crowd's play that a field taken up must keep. */
 const PLAYED_STATES: readonly string[] = [
   "a ball lost",
+  "a best streak",
   "a fuse lit",
   "a gate opened",
   "a ghost shown",
@@ -115,9 +116,9 @@ function fieldFor(run: Run): Field {
  * Returns a field of the first level well into play, and its run caught up
  * with it: its first plain brick, its regrowing brick and its blast brick
  * broken, the blast's fuse lit, its tough brick and its first hidden one hit
- * once, points from a streak and from double pay, a climb, draws, two
- * balls off the paddle since a brick it needs broke, and a life gained and
- * one lost.
+ * once, a best streak of 6 and the points it added, points from double
+ * pay, a climb, draws, two balls off the paddle since a brick it needs
+ * broke, and a life gained and one lost.
  */
 function playedField(): { run: Run; field: Field } {
   const field = fieldOf(1);
@@ -126,6 +127,7 @@ function playedField(): { run: Run; field: Field } {
     const brick = field.bricks[cell];
     if (brick) hitBrick(field, brick, 0, 0);
   }
+  field.bestStreak = 6;
   field.streakPoints = 10;
   field.darePoints = 20;
   field.climbed = 2.5;
@@ -185,6 +187,7 @@ function statesOf(field: Readonly<Field>): string[] {
     field.streakPoints > 0 && "streak points",
     field.darePoints > 0 && "dare points",
     field.dryBounces > 0 && "dry bounces",
+    field.bestStreak > 0 && "a best streak",
   ];
   for (const brick of field.bricks) {
     if (!brick) continue;
@@ -281,6 +284,7 @@ describe("saveGame", () => {
         steps: PLAYED_AT,
         draws: 4,
         dryBounces: 2,
+        bestStreak: 6,
       },
       bricks: [
         { ...base, broken: true, ...timers },
@@ -471,6 +475,25 @@ describe("restoreGame", () => {
     [
       "balls left the paddle that aren't whole",
       (saved) => withField(saved, { dryBounces: 1.5 }),
+    ],
+    [
+      "a field kept before the best streak was",
+      (saved) => {
+        const { bestStreak: _, ...field } = fieldIn(saved);
+        return { ...saved, field };
+      },
+    ],
+    [
+      "a best streak below none",
+      (saved) => withField(saved, { bestStreak: -1 }),
+    ],
+    [
+      "a best streak that isn't whole",
+      (saved) => withField(saved, { bestStreak: 6.5 }),
+    ],
+    [
+      "streak points with no streak long enough to multiply",
+      (saved) => withField(saved, { bestStreak: 4 }),
     ],
     [
       "more steps than can be counted",

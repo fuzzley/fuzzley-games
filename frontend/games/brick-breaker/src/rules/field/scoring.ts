@@ -28,13 +28,17 @@ export function scoreHit(
   field.darePoints += points * times * (field.pay - 1);
 }
 
-/** Lengthens the streak by a brick broken, then scores the hit that broke it. */
+/**
+ * Lengthens the streak by a brick broken, keeping the longest it has been,
+ * then scores the hit that broke it.
+ */
 export function scoreBreak(
   field: Field,
   brick: Readonly<Brick>,
   taken: number,
 ): void {
   field.streak++;
+  field.bestStreak = Math.max(field.bestStreak, field.streak);
   scoreHit(field, brick, taken);
 }
 

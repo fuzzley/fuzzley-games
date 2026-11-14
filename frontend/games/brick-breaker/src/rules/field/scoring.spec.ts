@@ -7,6 +7,7 @@ import {
 } from "../../testing/field_picture";
 import { hitBrick } from "../bricks/bricks";
 import { catchCapsule } from "../bricks/capsules";
+import { BRICK_KINDS } from "../catalog/bricks";
 import { stepsIn } from "../stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 import type { Field } from "./field";
@@ -200,6 +201,42 @@ describe("a streak", () => {
       streak: 0,
       livesLost: 1,
     });
+  });
+
+  it("is kept at its longest as the paddle starts it again", () => {
+    const field = fieldFrom(["oooo", ...KEEPER]);
+    hitTop(field, 0, 1, 2);
+    throwBall(field, 13, 26, 180);
+    stepTimes(field, 10);
+
+    hitTop(field, 3);
+
+    expect({ streak: field.streak, best: field.bestStreak }).toEqual({
+      streak: 1,
+      best: 3,
+    });
+  });
+
+  it("is kept at its longest across the level's lives", () => {
+    const field = fieldFrom(["oo", ...KEEPER]);
+    hitTop(field, 0, 1);
+    throwBall(field, 5, 29.5, 180);
+
+    stepTimes(field, 10);
+
+    expect({ lost: field.livesLost, best: field.bestStreak }).toEqual({
+      lost: 1,
+      best: 2,
+    });
+  });
+
+  it("is kept at its longest with the bricks a blast breaks", () => {
+    const field = fieldFrom(["ooo", "o*o", "ooo", ...KEEPER]);
+    hitBrick(field, brickAt(field, 1, 1), 0, 0);
+
+    stepTimes(field, stepsIn(BRICK_KINDS.blast.traits[0].delayMs));
+
+    expect(field.bestStreak).toBe(9);
   });
 
   it("goes on as a ball is lost while another plays on", () => {
