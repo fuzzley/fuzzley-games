@@ -1,6 +1,8 @@
 import { recordOf } from "@fz/core/records";
 import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
+import { showsDetail } from "@fz/phaser/bricks";
 import {
+  type Area,
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
@@ -8,12 +10,11 @@ import {
   centered,
   circle,
   frameAround,
-  inset,
   lineWidth,
-  middleSquare,
   polygon,
   ring,
   roundRect,
+  widthOf,
   within,
 } from "@fz/phaser/shapes";
 import { BALL_KIND_IDS, type BallKindId } from "../../rules/catalog/balls";
@@ -39,17 +40,31 @@ import { paddleFrames } from "./paddle_art";
 import { streakArt } from "./streak_art";
 import { SYMBOLS } from "./symbols";
 
-/** Describes a capsule's shape as drawn: its size, its outline's width, and its outline's and its body's colors. */
+/**
+ * Describes a capsule as drawn: its size, its outline's width, and its
+ * outline's, its body's, its lip's and its shine's colors.
+ */
 export interface CapsuleShape {
   readonly width: number;
   readonly height: number;
   readonly line: number;
   readonly outline: number;
   readonly body: number;
+  readonly lip: number;
+  readonly shine: number;
 }
 
-/** Draws a capsule's outline and its body, filling its frame. */
-export type DrawCapsule = (shape: CapsuleShape) => readonly DrawCommand[];
+/**
+ * Says how a capsule is drawn: its outline, its lip, its body and a good
+ * one's shine, filling its frame, and the square its symbol takes.
+ */
+export interface CapsuleLook {
+  readonly commands: readonly DrawCommand[];
+  readonly symbol: Area;
+}
+
+/** Draws a capsule at a scale, and says where its symbol goes. */
+export type DrawCapsule = (shape: CapsuleShape, scale: ArtScale) => CapsuleLook;
 
 /** The names of the frames that aren't a brick's, a ball's, a capsule's, a tag's or the paddle's. */
 export const FRAMES = {
@@ -82,11 +97,26 @@ const EMBER_SIZE = 0.2;
 /** How wide a bolt is, in field units. */
 const BOLT_WIDTH = 0.14;
 
-/** How much of a capsule's height inside its outline its symbol takes. */
-const SYMBOL_SHARE = 0.85;
+/**
+ * The kit's capsule, after `capsule()` in
+ * `docs/brick-breaker-uplift/art/scene.mjs`, 80 tall: how far its lip lies
+ * below its body, a good one's and a bad one's; its shine, how far below the
+ * body's top and how tall; how far a bad one's ends point; and how wide its
+ * symbol is.
+ */
+const KIT_CAPSULE = {
+  height: 80,
+  drop: { good: 6, bad: 8 },
+  shine: { below: 6, height: 7 },
+  point: 22,
+  symbol: 40,
+} as const;
 
-/** How deep a bad capsule's notches are, as a share of its height. */
-const NOTCH = 0.3;
+/**
+ * How much of its face's height a capsule's symbol takes where a brick is
+ * too small for its finest detail, and its shine is left out.
+ */
+const SYMBOL_SHARE = 0.85;
 
 // Made once, so finding a frame's name makes nothing.
 const BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
@@ -106,39 +136,145 @@ const TAG_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
   (id) => `tag-${id}`,
 );
 
-/** How each tone of capsule is shaped: a good one with rounded ends, a bad one with notched ends. */
+/**
+ * How each tone of capsule is drawn, as the kit draws it: a good one a pill
+ * with a shine along its top, a bad one pointed at each end, each on a lip
+ * that shows below it, outlined, its symbol about its middle.
+ */
 export const CAPSULE_ART = {
-  good: ({ width, height, line, outline, body }) => {
-    const whole = { x: 0, y: 0, width, height };
-    return [
-      roundRect(whole, height / 2, { color: outline }),
-      roundRect(inset(whole, line), height / 2 - line, { color: body }),
-    ];
+  good: (shape, scale) => {
+    const { width, height, line, outline, body, lip, shine } = shape;
+    const drop = capsuleDrop(KIT_CAPSULE.drop.good, scale);
+    const face = faceOf(shape, drop);
+    const detail = showsDetail(scale, BRICK_WIDTH);
+    const shineArea = {
+      x: width / 4,
+      y: line + kitLength(KIT_CAPSULE.shine.below, height),
+      width: width / 2,
+      height: kitLength(KIT_CAPSULE.shine.height, height),
+    };
+    return {
+      commands: [
+        roundRect({ x: 0, y: 0, width, height }, height / 2, {
+          color: outline,
+        }),
+        roundRect({ ...face, y: face.y + drop }, face.height / 2, {
+          color: lip,
+        }),
+        roundRect(face, face.height / 2, { color: body }),
+        ...(detail
+          ? [roundRect(shineArea, shineArea.height / 2, { color: shine })]
+          : []),
+      ],
+      // Below its shine, it sits at the pill's middle rather than its face's.
+      symbol: symbolSquare(
+        shape,
+        detail,
+        face,
+        detail ? height / 2 : face.y + face.height / 2,
+      ),
+    };
   },
-  bad: ({ width, height, line, outline, body }) => {
-    const notch = height * NOTCH;
+  bad: (shape, scale) => {
+    const { width, height, line, outline, body, lip } = shape;
+    const drop = capsuleDrop(KIT_CAPSULE.drop.bad, scale);
+    const point = kitLength(KIT_CAPSULE.point, height);
     const half = height / 2;
-    // How far across a notch's slanted edges move to lie a line's width in.
-    const across = (line * Math.hypot(notch, half)) / half;
-    const corner = across + (notch * line) / half;
-    const shape = (
-      by: number,
-      toCorner: number,
-      toNotch: number,
-    ): readonly Point[] => [
-      { x: toCorner, y: by },
-      { x: width - toCorner, y: by },
-      { x: width - toNotch, y: half },
-      { x: width - toCorner, y: height - by },
-      { x: toCorner, y: height - by },
-      { x: toNotch, y: half },
-    ];
-    return [
-      polygon(shape(0, 0, notch), { color: outline }),
-      polygon(shape(line, corner, notch + across), { color: body }),
-    ];
+    // Where the outline's slanted edges lie a line's width in: where they
+    // meet its middle, and where they meet its top and its foot.
+    const tip = (line * Math.hypot(point, half)) / half;
+    const corner = point + tip - (point * line) / half;
+    const face = faceOf(shape, drop);
+    // The face's ends point at a line's width in from the outline's upper
+    // edges, its lip's from its lower ones, as the lip lies `drop` below.
+    const facePoints = (by: number): readonly Point[] => {
+      const top = face.y + by;
+      const foot = top + face.height;
+      const middle = (top + foot) / 2;
+      const end = tip + (point * drop) / height;
+      return [
+        { x: corner, y: top },
+        { x: width - corner, y: top },
+        { x: width - end, y: middle },
+        { x: width - corner, y: foot },
+        { x: corner, y: foot },
+        { x: end, y: middle },
+      ];
+    };
+    return {
+      commands: [
+        polygon(
+          [
+            { x: point, y: 0 },
+            { x: width - point, y: 0 },
+            { x: width, y: half },
+            { x: width - point, y: height },
+            { x: point, y: height },
+            { x: 0, y: half },
+          ],
+          { color: outline },
+        ),
+        polygon(facePoints(drop), { color: lip }),
+        polygon(facePoints(0), { color: body }),
+      ],
+      symbol: symbolSquare(
+        shape,
+        showsDetail(scale, BRICK_WIDTH),
+        face,
+        face.y + face.height / 2,
+      ),
+    };
   },
 } as const satisfies Readonly<Record<CapsuleTone, DrawCapsule>>;
+
+/**
+ * Returns how far a capsule's lip lies below its body, in whole device
+ * pixels, a CSS pixel at least, so a bad one's gold shows at any size.
+ */
+function capsuleDrop(kit: number, scale: ArtScale): number {
+  return widthOf((kit * CAPSULE_HEIGHT) / KIT_CAPSULE.height, scale);
+}
+
+/**
+ * Returns the box a capsule's face fills: a line's width in from its
+ * outline, and short of its foot by its lip, which shows below.
+ */
+function faceOf({ width, height, line }: CapsuleShape, drop: number): Area {
+  return {
+    x: line,
+    y: line,
+    width: width - 2 * line,
+    height: height - 2 * line - drop,
+  };
+}
+
+/** Returns a length of the kit's capsule on a capsule so many device pixels tall. */
+function kitLength(length: number, height: number): number {
+  return (length * height) / KIT_CAPSULE.height;
+}
+
+/**
+ * Returns the square a capsule's symbol takes, about a point down its
+ * middle: as wide as the kit's, half the capsule's height, or, where a brick
+ * is too small for its finest detail, {@link SYMBOL_SHARE} of its face's
+ * height, so it still reads.
+ */
+function symbolSquare(
+  { width, height }: CapsuleShape,
+  detail: boolean,
+  face: Area,
+  middle: number,
+): Area {
+  const side = detail
+    ? kitLength(KIT_CAPSULE.symbol, height)
+    : face.height * SYMBOL_SHARE;
+  return {
+    x: (width - side) / 2,
+    y: middle - side / 2,
+    width: side,
+    height: side,
+  };
+}
 
 /** Returns the name of a kind of ball's frame as it flies: its body and fur, without its eyes. */
 export function ballFrame(kind: BallKindId): string {
@@ -192,31 +328,39 @@ function ballArt(
   ];
 }
 
+/** Returns how a capsule of a tone is drawn in a palette at a scale: its size in whole device pixels, its outline's width and its colors. */
+export function capsuleShape(
+  tone: CapsuleTone,
+  palette: BricksPalette,
+  scale: ArtScale,
+): CapsuleShape {
+  return {
+    width: Math.round(CAPSULE_WIDTH * scale.unit),
+    height: Math.round(CAPSULE_HEIGHT * scale.unit),
+    line: lineWidth(scale),
+    outline: palette.outline,
+    body: palette.capsules[tone],
+    lip: palette.capsuleLips[tone],
+    shine: palette.capsuleShine,
+  };
+}
+
 /** Returns a capsule's frame: its tone's shape and color, outlined, with its symbol. */
 function capsuleArt(
   id: CapsuleId,
   palette: BricksPalette,
   scale: ArtScale,
 ): ArtFrame {
-  const width = Math.round(CAPSULE_WIDTH * scale.unit);
-  const height = Math.round(CAPSULE_HEIGHT * scale.unit);
-  const line = lineWidth(scale);
   const { tone } = capsule(id);
-  const side = (height - 2 * line) * SYMBOL_SHARE;
-  const square = middleSquare({ x: 0, y: 0, width, height }, side);
+  const shape = capsuleShape(tone, palette, scale);
+  const { commands, symbol } = CAPSULE_ART[tone](shape, scale);
   return {
     name: CAPSULE_FRAMES[id],
-    width,
-    height,
+    width: shape.width,
+    height: shape.height,
     commands: [
-      ...CAPSULE_ART[tone]({
-        width,
-        height,
-        line,
-        outline: palette.outline,
-        body: palette.capsules[tone],
-      }),
-      ...SYMBOLS[id](square, { color: palette.mark, width: line }),
+      ...commands,
+      ...SYMBOLS[id](symbol, { color: palette.mark, width: shape.line }),
     ],
   };
 }

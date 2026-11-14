@@ -1,6 +1,8 @@
 import {
   type ArtFrame,
+  type ArtScale,
   type DrawCommand,
+  type Point,
   atlasSize,
   extentOf,
   lineWidth,
@@ -8,23 +10,32 @@ import {
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
-import { CAPSULE_IDS } from "../../rules/catalog/capsules";
-import { BALL_RADIUS } from "../../rules/tuning";
+import {
+  CAPSULE_IDS,
+  type CapsuleTone,
+  capsule,
+} from "../../rules/catalog/capsules";
+import { BALL_RADIUS, CAPSULE_HEIGHT } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
   ART_SCALE,
   FIELD_SCALES,
+  SMALL_SCALE,
 } from "../../testing/art_frames";
 import {
+  CAPSULE_ART,
+  type CapsuleLook,
   FRAMES,
   PICTURE_FRAMES,
   atlasFrames,
   ballFrame,
   capsuleFrame,
+  capsuleShape,
   facedBallFrame,
   tagFrame,
 } from "./art";
+import { SYMBOLS } from "./symbols";
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
@@ -185,41 +196,173 @@ describe("a ball's frames", () => {
   });
 });
 
+/** Returns a capsule's look in the specs' palette at a scale, as its frame draws it. */
+function capsuleLook(tone: CapsuleTone, scale: ArtScale): CapsuleLook {
+  return CAPSULE_ART[tone](capsuleShape(tone, ART_PALETTE, scale), scale);
+}
+
+/** Returns where what a command draws starts and ends down its frame. */
+function rowsOf(command: DrawCommand | undefined): {
+  top: number;
+  bottom: number;
+} {
+  if (!command) return { top: NaN, bottom: NaN };
+  const { y, height } = extentOf(command);
+  return { top: y, bottom: y + height };
+}
+
+/** Returns how far a point lies from the line through two others. */
+function distanceFrom(point: Point, [from, to]: readonly Point[]): number {
+  if (!from || !to) return NaN;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  return (
+    Math.abs(dy * (point.x - from.x) - dx * (point.y - from.y)) /
+    Math.hypot(dx, dy)
+  );
+}
+
+/**
+ * Returns the edges of a bad capsule's hexagon at its left end, each from a
+ * corner to the point between them: the upper, then the lower.
+ */
+function leftEdges(command: DrawCommand | undefined): {
+  upper: readonly Point[];
+  lower: readonly Point[];
+} {
+  const points = command?.kind === "polygon" ? command.points : [];
+  const [upper, , , , lower, point] = points;
+  return upper && lower && point
+    ? { upper: [upper, point], lower: [lower, point] }
+    : { upper: [], lower: [] };
+}
+
 describe("a capsule's frame", () => {
   it.each(CAPSULE_IDS)(
-    "outlines the %s capsule in the outline's color, then fills it in its tone's, its symbol in the marks'",
+    "draws the %s capsule as its tone does, then its symbol in the square its tone gives, in the marks' color",
     (id) => {
       const frame = frameNamed(ART_FRAMES, capsuleFrame(id));
+      const { commands, symbol } = capsuleLook(capsule(id).tone, ART_SCALE);
 
-      expect({
-        outline: frame.commands[0]?.color,
-        symbol: new Set(
-          frame.commands.slice(2).map((command) => command.color),
-        ),
-      }).toEqual({
-        outline: ART_PALETTE.outline,
-        symbol: new Set([ART_PALETTE.mark]),
-      });
+      expect(frame.commands).toEqual([
+        ...commands,
+        ...SYMBOLS[id](symbol, {
+          color: ART_PALETTE.mark,
+          width: lineWidth(ART_SCALE),
+        }),
+      ]);
     },
   );
 
-  it("draws a good capsule's body in the accent and a bad one's in the danger color", () => {
-    const good = frameNamed(ART_FRAMES, capsuleFrame("wide"));
-    const bad = frameNamed(ART_FRAMES, capsuleFrame("narrow"));
+  it("outlines a good capsule, then lays its accent over a darker lip, a shine along its top", () => {
+    const { commands } = capsuleLook("good", ART_SCALE);
 
-    expect([good.commands[1]?.color, bad.commands[1]?.color]).toEqual([
+    expect(commands.map((command) => command.color)).toEqual([
+      ART_PALETTE.outline,
+      ART_PALETTE.capsuleLips.good,
       ART_PALETTE.capsules.good,
+      ART_PALETTE.capsuleShine,
+    ]);
+  });
+
+  it("outlines a bad capsule, then lays its danger color over a gold lip, as it pays double", () => {
+    const { commands } = capsuleLook("bad", ART_SCALE);
+
+    expect(commands.map((command) => command.color)).toEqual([
+      ART_PALETTE.outline,
+      ART_PALETTE.capsuleLips.bad,
       ART_PALETTE.capsules.bad,
     ]);
   });
 
-  it("rounds a good capsule's ends and notches a bad one's", () => {
-    const good = frameNamed(ART_FRAMES, capsuleFrame("wide"));
-    const bad = frameNamed(ART_FRAMES, capsuleFrame("narrow"));
+  it("rounds a good capsule's ends and points a bad one's", () => {
+    const kinds = (["good", "bad"] as const).map(
+      (tone) => capsuleLook(tone, ART_SCALE).commands[0]?.kind,
+    );
 
-    expect([good.commands[0]?.kind, bad.commands[0]?.kind]).toEqual([
-      "roundRect",
-      "polygon",
+    expect(kinds).toEqual(["roundRect", "polygon"]);
+  });
+
+  it.each(
+    (["good", "bad"] as const).flatMap((tone) =>
+      [ART_SCALE, SMALL_SCALE].map((scale) => ({ tone, scale })),
+    ),
+  )(
+    "shows a $tone capsule's lip below its body, a CSS pixel or more, at a unit of $scale.unit",
+    ({ tone, scale }) => {
+      const { commands } = capsuleLook(tone, scale);
+      const outline = rowsOf(commands[0]);
+      const lip = rowsOf(commands[1]);
+      const body = rowsOf(commands[2]);
+      const line = lineWidth(scale);
+      const drop = lip.bottom - body.bottom;
+
+      expect({
+        tops: [lip.top - line, body.top - line],
+        lipFoot: outline.bottom - lip.bottom,
+        dropped: drop >= scale.pixelRatio && Number.isInteger(drop),
+      }).toEqual({ tops: [drop, 0], lipFoot: line, dropped: true });
+    },
+  );
+
+  it("keeps a bad capsule's outline a line wide along its pointed ends, its body's above and its lip's below", () => {
+    const { commands } = capsuleLook("bad", ART_SCALE);
+    const outline = leftEdges(commands[0]);
+    const lip = leftEdges(commands[1]);
+    const body = leftEdges(commands[2]);
+    const distances = [
+      ...body.upper.map((point) => distanceFrom(point, outline.upper)),
+      ...lip.lower.map((point) => distanceFrom(point, outline.lower)),
+    ].map((distance) => Number(distance.toFixed(6)));
+
+    expect(distances).toEqual(
+      Array.from({ length: 4 }, () => lineWidth(ART_SCALE)),
+    );
+  });
+
+  it("leaves out a good capsule's shine where a brick is too small for its finest detail", () => {
+    const { commands } = capsuleLook("good", SMALL_SCALE);
+
+    expect(commands.map((command) => command.color)).not.toContain(
+      ART_PALETTE.capsuleShine,
+    );
+  });
+
+  it("draws a symbol half a capsule's height wide, about the middle of a bad one's body and of a good one below its shine", () => {
+    const height = Math.round(CAPSULE_HEIGHT * ART_SCALE.unit);
+    const [good, bad] = (["good", "bad"] as const).map((tone) => {
+      const { commands, symbol } = capsuleLook(tone, ART_SCALE);
+      const body = rowsOf(commands[2]);
+      return {
+        side: symbol.width,
+        middle: symbol.y + symbol.height / 2,
+        body: (body.top + body.bottom) / 2,
+      };
+    });
+
+    expect({
+      sides: [good?.side, bad?.side],
+      middles: [good?.middle, bad?.middle],
+    }).toEqual({
+      sides: [height / 2, height / 2],
+      middles: [height / 2, bad?.body],
+    });
+  });
+
+  it("draws a symbol wider, about the middle of a capsule's body, where a brick is too small for its finest detail", () => {
+    const height = Math.round(CAPSULE_HEIGHT * SMALL_SCALE.unit);
+    const looks = (["good", "bad"] as const).map((tone) => {
+      const { commands, symbol } = capsuleLook(tone, SMALL_SCALE);
+      const body = rowsOf(commands[2]);
+      return {
+        wider: symbol.width > height / 2,
+        middled: symbol.y + symbol.height / 2 === (body.top + body.bottom) / 2,
+      };
+    });
+
+    expect(looks).toEqual([
+      { wider: true, middled: true },
+      { wider: true, middled: true },
     ]);
   });
 
@@ -229,6 +372,35 @@ describe("a capsule's frame", () => {
     expect(drawnIn(frame, "polyline", ART_PALETTE.mark)).toMatchObject([
       { points: { length: 4 } },
     ]);
+  });
+
+  it("draws the Seeker's sight: a ring, a dot in it, and a tick out from the ring to the edge each way", () => {
+    const tag = frameNamed(ART_FRAMES, tagFrame("seeker"));
+    const middle = { x: tag.width / 2, y: tag.height / 2 };
+    const ticks = tag.commands.flatMap((command) =>
+      command.kind === "line" ? [command] : [],
+    );
+
+    expect({
+      ring: drawnIn(tag, "ring", ART_PALETTE.capsules.good),
+      dot: drawnIn(tag, "circle", ART_PALETTE.capsules.good),
+      from: ticks.map(({ from }) =>
+        Number(Math.hypot(from.x - middle.x, from.y - middle.y).toFixed(6)),
+      ),
+      to: ticks.map(({ to }) => to),
+    }).toMatchObject({
+      ring: [{ ...middle, radius: 0.3 * tag.width }],
+      dot: [{ ...middle, radius: 0.1 * tag.width }],
+      from: Array.from({ length: 4 }, () =>
+        Number((0.3 * tag.width).toFixed(6)),
+      ),
+      to: [
+        { x: middle.x, y: 0 },
+        { x: tag.width, y: middle.y },
+        { x: middle.x, y: tag.height },
+        { x: 0, y: middle.y },
+      ],
+    });
   });
 });
 

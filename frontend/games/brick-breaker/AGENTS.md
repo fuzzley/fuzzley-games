@@ -345,22 +345,29 @@ takes for the specs' helpers.
   ribbon, a regrowing brick's moss and the shadow under it), the inks of
   the paddle's parts beside its body in the accent (`paddleInks`: its lip,
   its caps, its pad, a catching paddle's hooks and a laser's cannons and
-  bolts), and a ghost's tints, faded while it hides and paler once it shows
-  (`ghostTints`).
+  bolts), the lip each tone of capsule sits on, a good one's its accent
+  darkened and a bad one's gold, and a good one's shine (`capsuleLips`,
+  `capsuleShine`), and a ghost's tints, faded while it hides and paler once
+  it shows (`ghostTints`).
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
-  bricks, a shown ghost and the moss, every ball kind, both capsule tones,
-  the paddle, its caps, hooks and cannons, and the last bricks' glow to 3:1
-  against the field in every palette, a tough brick's deeper tints too, and
-  a hidden ghost to 2:1, faint by design; each ball and capsule against its
-  outline, the outline against every tint, brick, the paddle and its caps,
-  the marks against every brick, capsule, the paddle and its caps, steel's
-  frame and rivets against the steel, and a blast brick's spark against the
-  marks it is lit on; its comment says why a ball isn't held against the
-  tints, and why a brick's shading, and the paddle's, is held to nothing.
+  bricks, a shown ghost and the moss, every ball kind, both capsule tones
+  and a bad one's gold lip, the paddle, its caps, hooks and cannons, and the
+  last bricks' glow to 3:1 against the field in every palette, a tough
+  brick's deeper tints too, and a hidden ghost to 2:1, faint by design; each
+  ball and capsule against its outline, the outline against every tint,
+  brick, the paddle and its caps, the marks against every brick, capsule,
+  the paddle and its caps, steel's frame and rivets against the steel, and a
+  blast brick's spark against the marks it is lit on; its comment says why a
+  ball isn't held against the tints, and why a brick's shading, the paddle's
+  and a good capsule's is held to nothing.
 - **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
   the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
-  as it flies and with its eyes, the balls' eyes, each capsule's shape
-  (`CAPSULE_ART`), its tag, the bolt and the flourishes, names the frame
+  as it flies and with its eyes, the balls' eyes, each capsule as the kit
+  draws its tone (`CAPSULE_ART`), a good one a pill with a shine along its
+  top and a bad one pointed at each end, each outlined on a lip that shows
+  below it, a bad one's gold, as it pays double, its symbol half its height
+  wide, or wider, its shine left out, where a brick is too small for its
+  finest detail, its tag, the bolt and the flourishes, names the frame
   a ball, a capsule or a tag shows (`ballFrame()`, `facedBallFrame()` and
   the rest), and How to play's pictures (`PICTURE_FRAMES`);
   each ball is `@fz/phaser/fuzzball`'s fuzzball, outlined, its fur
@@ -389,13 +396,14 @@ takes for the specs' helpers.
   along a paddle so wide (`hookCount()`), an odd number, so each stands
   where it stood as the paddle widens and they come and go in pairs, twice
   as far apart and a bolt left out where a brick is too small for its
-  finest detail; `symbols.ts` draws each capsule's symbol (`SYMBOLS`);
-  `streak_art.ts` the frames a streak's flourishes show (`STREAK_FRAMES`),
-  white, which the scene tints as the balls are: a dot of a ball's tail
-  and the ring about a ball as its streak steps; they are drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), whose
-  builders take no size below nothing, since a canvas not yet laid out
-  gives a unit too small for the insets, and laid out by its areas, points
-  and stars (`within()`, `share()`, `inset()`, `middleSquare()`,
+  finest detail; `symbols.ts` draws each capsule's symbol (`SYMBOLS`), the
+  Seeker's a sight, a ring with a dot in it and four ticks; `streak_art.ts`
+  the frames a streak's flourishes show (`STREAK_FRAMES`), white, which the
+  scene tints as the balls are: a dot of a ball's tail and the ring about a
+  ball as its streak steps; they are drawn in `@fz/phaser/shapes`'s commands
+  (`DrawCommand`), whose builders take no size below nothing, since a
+  canvas not yet laid out gives a unit too small for the insets, and laid
+  out by its areas, points and stars (`within()`, `share()`, `pointAt()`,
   `frameAround()`, `star()`).
 - **`src/scene/`** — the Phaser scene. `BricksScene`
   (`bricks_scene.ts`) is handed plain functions over the game

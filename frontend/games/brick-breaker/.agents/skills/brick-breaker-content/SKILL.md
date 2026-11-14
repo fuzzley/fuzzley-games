@@ -125,9 +125,12 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   pay double while its effect is in play, after the streak's multiplier,
   which its `about` says ("pay double"), and its effect lasts a time, as the
   catalog spec holds; a good one leaves `pays` out.
-- Its shape in `CAPSULE_ART` (`src/view/art/art.ts`) and its symbol in
-  `SYMBOLS` (`src/view/art/symbols.ts`); the compiler asks for both, and its
-  tag under the paddle is drawn from the same.
+- Its symbol in `SYMBOLS` (`src/view/art/symbols.ts`), drawn in a square
+  in shares of it, reaching no further than its edges, which the compiler
+  asks for; its tag under the paddle is drawn from the same. Its tone's
+  shape, in `CAPSULE_ART` (`src/view/art/art.ts`), lays it across the
+  capsule's face, and a bad one's gold lip says it pays double; the
+  compiler asks for a new tone's.
 - The announcer says its name as it is caught, and "Double pay." for one
   that pays; How to play lists it.
 

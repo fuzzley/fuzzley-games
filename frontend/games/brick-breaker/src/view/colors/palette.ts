@@ -80,6 +80,14 @@ export interface BricksPalette {
   readonly balls: Readonly<Record<BallKindId, number>>;
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
   /**
+   * The lip each tone of capsule sits on: a good one's its body at
+   * {@link CAPSULE_LIP_SHADE} black, and a bad one's gold, the warning
+   * color, as it pays double.
+   */
+  readonly capsuleLips: Readonly<Record<CapsuleTone, number>>;
+  /** The shine along a good capsule's top: the accent at {@link CAPSULE_SHINE} white. */
+  readonly capsuleShine: number;
+  /**
    * Steel in text at {@link STEEL_WASH}, a blast brick in the danger color, a
    * gift in the accent, and a regrowing brick's earth in the amber tint.
    */
@@ -137,6 +145,12 @@ export const CAP_TOWARD_TEXT: Readonly<Record<ColorMode, number>> = {
 /** How much white the paddle's pad takes over the accent. */
 export const PAD_LIGHT = 0.55;
 
+/** How much black a good capsule's lip takes over its body. */
+export const CAPSULE_LIP_SHADE = 0.3;
+
+/** How much white the shine along a good capsule's top takes over the accent. */
+export const CAPSULE_SHINE = 0.5;
+
 /** How much of the field a hidden ghost's tint takes, fading it toward the field. */
 export const GHOST_FADE = 0.35;
 
@@ -188,6 +202,11 @@ export function bricksPalette(
     },
     balls: { normal: text, fire: warning, blast: danger },
     capsules: { good: accent, bad: danger },
+    capsuleLips: {
+      good: mixColors(BLACK, accent, CAPSULE_LIP_SHADE),
+      bad: warning,
+    },
+    capsuleShine: mixColors(WHITE, accent, CAPSULE_SHINE),
     bricks: {
       steel,
       blast: danger,

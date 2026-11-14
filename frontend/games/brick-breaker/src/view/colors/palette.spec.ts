@@ -51,6 +51,18 @@ describe("bricksPalette", () => {
     });
   });
 
+  it("lays a good capsule on its accent at 30% black, with a shine at half white, and a bad one on gold, the warning color", () => {
+    const palette = bricksPalette(ROLES, "light");
+
+    expect({
+      lips: palette.capsuleLips,
+      shine: palette.capsuleShine,
+    }).toEqual({
+      lips: { good: mixColors(0x000000, 0x00ff00, 0.3), bad: 0xffa500 },
+      shine: mixColors(0xffffff, 0x00ff00, 0.5),
+    });
+  });
+
   it.each([
     ["light", 0.45],
     ["dark", 0.6],
