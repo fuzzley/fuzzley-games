@@ -126,7 +126,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   take-up must keep to have been reached: a fuse lit, a ghost shown, a
   regrowing brick broken and grown back, a tough brick worn, a gate opened,
   streak points, dare points (a Fast ball caught as it starts pays them),
-  draws and a ball lost. A new state kept on a brick or the field belongs in
+  draws, balls off the paddle since a needed brick broke (`dryBounces`)
+  and a ball lost. A new state kept on a brick or the field belongs in
   that list.
 - A spoiled entry is a stored game read back from JSON (`stored()`) with one
   thing changed, and each is expected to be refused.

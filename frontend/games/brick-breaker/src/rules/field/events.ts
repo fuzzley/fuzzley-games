@@ -36,7 +36,9 @@ export type FieldEventKind =
   /** A ball fell past the floor. */
   | "lost"
   /** The last brick the level needs broke. */
-  | "cleared";
+  | "cleared"
+  /** The paddle lent a ball it met the seeker. */
+  | "seeking";
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {

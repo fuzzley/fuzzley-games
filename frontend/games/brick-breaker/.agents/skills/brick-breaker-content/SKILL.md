@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, report:levels, long level, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, report:levels, long level, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -111,8 +111,8 @@ thought rather than speed starts lower: Friends runs from 1.12.
   never fall at Relaxed), its `weight` against the others in a pool, the
   level it first falls `from`, and its `effect`. A bad one `pays` 2: bricks
   pay double while its effect is in play, after the streak's multiplier,
-  which its `about` says ("pay double"), as the catalog spec holds; a good
-  one leaves `pays` out.
+  which its `about` says ("pay double"), and its effect lasts a time, as the
+  catalog spec holds; a good one leaves `pays` out.
 - Its shape in `CAPSULE_ART` (`src/view/art/art.ts`) and its symbol in
   `SYMBOLS` (`src/view/art/symbols.ts`); the compiler asks for both, and its
   tag under the paddle is drawn from the same.
@@ -123,10 +123,14 @@ thought rather than speed starts lower: Friends runs from 1.12.
 
 - A member of the `CapsuleEffect` union (`src/rules/catalog/capsules.ts`):
   its kind is its group, so catching one replaces whatever of its kind is
-  in play.
+  in play, and runs beside the other groups' effects, as the Seeker's
+  `seek` runs beside a fire or blast ball's `ball`. Each group in play
+  shows a tag under the paddle, in `EFFECT_RULES`' order (`EFFECT_KINDS`).
 - Its rule in `EFFECT_RULES` (`src/rules/bricks/capsules.ts`): `start` as it is
   caught, and `end` to undo it as its time runs out, the next of its group
-  is caught, or a life is lost.
+  is caught, or a life is lost. Most set a field of `Field` the rules read
+  as they play, as `seek` sets `seeking`, which `src/rules/field/seeker.ts`
+  reads.
 - Its record in `createEffects()`. The compiler asks for each.
 - The effects in play aren't kept across a reload, so the saved game needs
   nothing.

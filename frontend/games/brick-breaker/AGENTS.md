@@ -62,7 +62,9 @@ and off the clock, `Math.random()` and the page (`SCRIPT_HELPERS` in
 `eslint.config.js`, handed to `phaserGameLayers()` as `heldAsRules`), and a
 file of `src/testing/` they import must join that list, as lint says. So
 the autopilot's endgame, as few bricks as the view lets glow, is a number
-of its own (`ENDGAME`), which its spec holds to the view's `GLOW_BRICKS`.
+of its own (`ENDGAME`), which its spec holds to the view's `GLOW_BRICKS`,
+as it holds the rules' own copy, the bricks at which the paddle lends the
+seeker (`SEEKER_LEND.needed`, in `tuning.ts`).
 
 ## Layout
 
@@ -86,8 +88,10 @@ takes for the specs' helpers.
   which turns a frame's time into steps, twelve at most a frame.
   `draws.ts` draws the field's random numbers (`nextDraw()`) from its seed
   and how many came before, so a field taken up draws as it would have.
-  `grid.ts` is the bricks' grid, 13 by 16: a cell's index, and
-  `brickBox()`, the one place a brick's box is worked out. The rest of the
+  `grid.ts` is the bricks' grid, 13 by 16: a cell's index,
+  `brickBox()`, the one place a brick's box is worked out, and
+  `inSight()`, whether a line to a cell's middle crosses no cell that stops
+  a ball, by which the autopilot aims and the seeker looks. The rest of the
   physics' geometry is `@fz/core/sweep`'s: when a ball's move first touches
   a face of a box, pushed out by its radius, or a corner, as a share of the
   move, so however fast a ball goes it can't pass through a brick, bricks,
@@ -114,6 +118,7 @@ takes for the specs' helpers.
   ball, a fire ball too, takes no hit, sets off no blast ball's reach and
   records `plated` (`isPlated()`, in `src/rules/bricks/bricks.ts`); and
   lifts a ball the paddle is moved into onto its top (`liftOffPaddle()`).
+  As the paddle meets a ball, it may lend it the seeker.
   Its spec plays the travel through the field's steps. The field counts
   its steps (`Field.steps`), and a timer is the step its thing happens at,
   `stepsIn()` steps on from when it was set, as milliseconds summed step by
@@ -126,6 +131,20 @@ takes for the specs' helpers.
   streak, and says what clearing a level adds, and how a cleared level's
   points add up (`tallyOf()`, the pay's line among them) and come to
   (`pointsOf()`).
+  `seeker.ts` is the seeker: each step, before its travel, a ball in flight
+  that seeks and rises turns toward the middle of the nearest brick the
+  level needs that it can see above it and break from below, through no
+  cell that stops a ball and at no plate (`seek()`), by `SEEKER_TURN`
+  degrees a second at most, then is settled as every turn is, so it still
+  rises; a falling ball is left alone, and meets the paddle where its line
+  says.
+  Every ball in flight seeks while a Seeker is in play (`Field.seeking`).
+  The paddle lends the seeker to a ball it meets (`lendAtPaddle()`,
+  `Ball.seeks`, recording `seeking`) once the level needs
+  `SEEKER_LEND.needed` bricks or fewer and `SEEKER_LEND.bounces` balls have
+  left it, served, bounced or let go, since a brick the level needs last
+  broke (`Field.dryBounces`); that ball seeks until it breaks a brick the
+  level needs or is lost, and a ball split from it doesn't.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
@@ -139,9 +158,10 @@ takes for the specs' helpers.
   or a friend's, the next of `@fz/phaser/color`'s `FUZZBALL_INKS`
   (`FRIEND_INKS` of them) for each friend a level frees
   (`Field.friendsFreed`), kept by a ball split from it, for the view to
-  color it by. `bolts.ts` fires and moves the laser's bolts, each spent
-  at the first brick above it, hitting it, or hitting nothing at a plate's
-  underside.
+  color it by; and a ball may seek (`Ball.seeks`,
+  `src/rules/field/seeker.ts`). `bolts.ts` fires and moves the laser's
+  bolts, each spent at the first brick above it, hitting it, or hitting
+  nothing at a plate's underside.
 - **`src/rules/bricks/`** — the bricks and the capsules they let fall.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
@@ -619,11 +639,12 @@ can't trust rather than failing:
   brick's hits left, whether it is broken or shown (an open gate is kept
   broken), and the steps its blast
   and its regrowth are due at, with the field's count of steps, its draws,
-  how far the balls' speed has climbed, and what the streaks and double pay
-  added. The balls in flight, the capsules and the effects are not kept
-  (decision 16). Its version is 2: a run kept under 1, by the rules before
-  double pay and the gates, is dropped rather than played by rules it
-  wasn't played by.
+  how far the balls' speed has climbed, what the streaks and double pay
+  added, and the balls that have left the paddle since a brick the level
+  needs broke. The balls in flight, the capsules and the effects are not
+  kept (decision 16), nor whether a ball seeks. Its version is 2: a run
+  kept under 1, by the rules before double pay, the seeker and the gates,
+  is dropped rather than played by rules it wasn't played by.
 
 ## In This Repository
 
@@ -773,6 +794,9 @@ skill covers its setup, floors and fixtures, the repository's
   once. `src/rules/levels/autopilot.spec.ts` holds the autopilot
   itself, and the catalog spec holds the levels to using every brick kind
   and letting every capsule first fall at the level its `from` names.
+  The autopilot needs no change for the seeker: it meets only falling
+  balls, which a seeker never turns, though a ball it aims at a brick may
+  be turned on its way toward a nearer one.
 - `every_level.ts` holds every level, at a preset speed, to being cleared by
   the autopilot within eight minutes of game time, its last three bricks
   within one, and on the tallest field within those eight minutes stretched

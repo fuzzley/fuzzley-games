@@ -31,6 +31,8 @@ export interface SavedField {
   readonly climbed: number;
   readonly steps: number;
   readonly draws: number;
+  /** The balls that have left the paddle since a brick the level needs broke, toward lending the seeker. */
+  readonly dryBounces: number;
 }
 
 /** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
@@ -63,7 +65,13 @@ export interface TakenUp {
 /** What of a field storage keeps. */
 export type SavableField = Pick<
   Field,
-  "bricks" | "streakPoints" | "darePoints" | "climbed" | "steps" | "draws"
+  | "bricks"
+  | "streakPoints"
+  | "darePoints"
+  | "climbed"
+  | "steps"
+  | "draws"
+  | "dryBounces"
 >;
 
 /**
@@ -179,6 +187,7 @@ export function takeUpField(
   field.climbed = saved.climbed;
   field.steps = saved.steps;
   field.draws = saved.draws;
+  field.dryBounces = saved.dryBounces;
 }
 
 /** Returns a run and its field as storage keeps them, naming its level by its id. */
@@ -216,6 +225,7 @@ function savedField(field: SavableField): SavedField {
     climbed: field.climbed,
     steps: field.steps,
     draws: field.draws,
+    dryBounces: field.dryBounces,
   };
 }
 
@@ -230,7 +240,7 @@ function restoredField(
   levelScore: number,
 ): SavedField | null {
   if (!isRecord(value)) return null;
-  const { streakPoints, darePoints, climbed, steps, draws } = value;
+  const { streakPoints, darePoints, climbed, steps, draws, dryBounces } = value;
   if (
     !isCount(streakPoints) ||
     !isCount(darePoints) ||
@@ -238,7 +248,8 @@ function restoredField(
     !isFiniteNumber(climbed) ||
     climbed < 0 ||
     !isCount(steps) ||
-    !isCount(draws)
+    !isCount(draws) ||
+    !isCount(dryBounces)
   ) {
     return null;
   }
@@ -260,7 +271,15 @@ function restoredField(
     if (isNeeded(placed.kind) && !restored.broken) needsMore = true;
   }
   if (!needsMore || !gatesAsKeysSay(cells, bricks)) return null;
-  return { bricks, streakPoints, darePoints, climbed, steps, draws };
+  return {
+    bricks,
+    streakPoints,
+    darePoints,
+    climbed,
+    steps,
+    draws,
+    dryBounces,
+  };
 }
 
 /**

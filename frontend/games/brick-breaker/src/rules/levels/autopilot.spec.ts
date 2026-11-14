@@ -11,7 +11,7 @@ import {
 import { GLOW_BRICKS } from "../../view/effects/timing";
 import { PRESET_SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
-import { COLUMNS, FIELD_HEIGHT, TALLEST_FIELD } from "../tuning";
+import { COLUMNS, FIELD_HEIGHT, SEEKER_LEND, TALLEST_FIELD } from "../tuning";
 import type { Level } from "./level";
 import { type LevelData, type LevelEntry, parseLevel } from "./levels";
 
@@ -103,8 +103,11 @@ describe("the autopilot", () => {
     }).toEqual({ level: true, endgame: true });
   });
 
-  it("starts a level's endgame at as few bricks as the view lets glow", () => {
-    expect(ENDGAME).toBe(GLOW_BRICKS);
+  it("starts a level's endgame at as few bricks as the view lets glow, where the paddle lends the seeker", () => {
+    expect({ endgame: ENDGAME, seeker: SEEKER_LEND.needed }).toEqual({
+      endgame: GLOW_BRICKS,
+      seeker: GLOW_BRICKS,
+    });
   });
 
   it("counts a level of three bricks as endgame from its start", () => {

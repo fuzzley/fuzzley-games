@@ -1,8 +1,12 @@
-import type { Box } from "@fz/core/sweep";
+import { lerp } from "@fz/core/math";
+import type { Box, Solid } from "@fz/core/sweep";
 import { BRICKS_TOP, BRICK_HEIGHT, BRICK_WIDTH, COLUMNS, ROWS } from "./tuning";
 
 /** How many cells the grid has. */
 export const CELLS = COLUMNS * ROWS;
+
+/** How far apart a line of sight across the grid is looked along, in field units. */
+const SIGHT_STEP = 0.25;
 
 /** Returns a cell's index in the grid, row by row from the top left. */
 export function cellIndex(column: number, row: number): number {
@@ -52,6 +56,30 @@ export function cellMiddleX(cell: number): number {
 /** Returns where a cell's middle is, down. */
 export function cellMiddleY(cell: number): number {
   return rowMiddle(rowOf(cell));
+}
+
+/**
+ * Returns whether a straight line from a place to a cell's middle crosses no
+ * other cell that stops a ball, as `solid` says.
+ *
+ * It follows the line alone, not a ball's width about it.
+ */
+export function inSight(
+  solid: Solid,
+  x: number,
+  y: number,
+  cell: number,
+): boolean {
+  const toX = cellMiddleX(cell);
+  const toY = cellMiddleY(cell);
+  const length = Math.hypot(toX - x, toY - y);
+  for (let along = 0; along < length; along += SIGHT_STEP) {
+    const t = along / length;
+    const column = columnAt(lerp(x, toX, t));
+    const row = rowAt(lerp(y, toY, t));
+    if (cellIndex(column, row) !== cell && solid(column, row)) return false;
+  }
+  return true;
 }
 
 /**

@@ -90,6 +90,7 @@ const PLAYED_STATES: readonly string[] = [
   "a tough brick worn",
   "dare points",
   "draws",
+  "dry bounces",
   "streak points",
 ];
 
@@ -114,8 +115,9 @@ function fieldFor(run: Run): Field {
  * Returns a field of the first level well into play, and its run caught up
  * with it: its first plain brick, its regrowing brick and its blast brick
  * broken, the blast's fuse lit, its tough brick and its first hidden one hit
- * once, points from a streak and from double pay, a climb, draws, and a life
- * gained and one lost.
+ * once, points from a streak and from double pay, a climb, draws, two
+ * balls off the paddle since a brick it needs broke, and a life gained and
+ * one lost.
  */
 function playedField(): { run: Run; field: Field } {
   const field = fieldOf(1);
@@ -128,6 +130,7 @@ function playedField(): { run: Run; field: Field } {
   field.darePoints = 20;
   field.climbed = 2.5;
   field.draws = 4;
+  field.dryBounces = 2;
   field.livesGained = 1;
   field.livesLost = 1;
   const run = catchUp(
@@ -181,6 +184,7 @@ function statesOf(field: Readonly<Field>): string[] {
     field.draws > 0 && "draws",
     field.streakPoints > 0 && "streak points",
     field.darePoints > 0 && "dare points",
+    field.dryBounces > 0 && "dry bounces",
   ];
   for (const brick of field.bricks) {
     if (!brick) continue;
@@ -276,6 +280,7 @@ describe("saveGame", () => {
         climbed: 2.5,
         steps: PLAYED_AT,
         draws: 4,
+        dryBounces: 2,
       },
       bricks: [
         { ...base, broken: true, ...timers },
@@ -459,6 +464,14 @@ describe("restoreGame", () => {
       (saved) => withField(saved, { climbed: Infinity }),
     ],
     ["steps below none", (saved) => withField(saved, { steps: -1 })],
+    [
+      "balls left the paddle below none",
+      (saved) => withField(saved, { dryBounces: -1 }),
+    ],
+    [
+      "balls left the paddle that aren't whole",
+      (saved) => withField(saved, { dryBounces: 1.5 }),
+    ],
     [
       "more steps than can be counted",
       (saved) => withField(saved, { steps: 2 ** 60 }),

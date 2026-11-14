@@ -91,6 +91,14 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
       field.ballKind = "normal";
     },
   },
+  seek: {
+    start: (field) => {
+      field.seeking = true;
+    },
+    end: (field) => {
+      field.seeking = false;
+    },
+  },
   pace: {
     start: (field, { scale, climb, fromBase }) => {
       if (fromBase) field.climbed = 0;
@@ -147,6 +155,7 @@ export function createEffects(): Effects {
     "paddle-size": none(),
     "paddle-mode": none(),
     ball: none(),
+    seek: none(),
     pace: none(),
     split: none(),
     life: none(),
