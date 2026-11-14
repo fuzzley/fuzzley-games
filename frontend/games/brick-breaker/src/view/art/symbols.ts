@@ -4,6 +4,8 @@ import {
   type LineStyle,
   discIn,
   dotIn,
+  line,
+  pointAt,
   polygon,
   polyline,
   rect,
@@ -14,6 +16,32 @@ import {
   within,
 } from "@fz/phaser/shapes";
 import type { CapsuleId } from "../../rules/catalog/capsules";
+
+/**
+ * The Seeker's sight's four ticks, up, right, down and left, each from its
+ * ring out to the square's edge, in shares of the square across and down.
+ */
+const SIGHT_TICKS: readonly (readonly [
+  readonly [number, number],
+  readonly [number, number],
+])[] = [
+  [
+    [0.5, 0.2],
+    [0.5, 0],
+  ],
+  [
+    [0.8, 0.5],
+    [1, 0.5],
+  ],
+  [
+    [0.5, 0.8],
+    [0.5, 1],
+  ],
+  [
+    [0.2, 0.5],
+    [0, 0.5],
+  ],
+];
 
 /** Draws a capsule's symbol in a square, in a style, its lines its width or wider. */
 export type DrawSymbol = (
@@ -146,9 +174,15 @@ export const SYMBOLS = {
       style,
     ),
   ],
-  // A plain target, until the kit's symbol replaces it.
   seeker: (square, style) => [
-    rimIn(square, 0.34, symbolLineStyle(square, style)),
-    discIn(square, 0.12, style),
+    rimIn(square, 0.3, symbolLineStyle(square, style)),
+    discIn(square, 0.1, style),
+    ...SIGHT_TICKS.map(([from, to]) =>
+      line(
+        pointAt(square, ...from),
+        pointAt(square, ...to),
+        symbolLineStyle(square, style),
+      ),
+    ),
   ],
 } as const satisfies Readonly<Record<CapsuleId, DrawSymbol>>;

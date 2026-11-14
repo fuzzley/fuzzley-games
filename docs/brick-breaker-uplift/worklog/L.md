@@ -682,3 +682,96 @@ The review (a fresh agent), and what I did:
 
 Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
 files, 2,556); the root's lint under the lock.
+
+### 2026-11-14: the capsules, the gold lip and the Seeker's sight
+
+`feat(brick-breaker): draw the capsules as the kit does, a bad one on a
+gold lip, and give the seeker its sight` (commit 2 of L3, with L5).
+
+- `src/view/art/art.ts`: `CAPSULE_ART` draws each tone as the kit's
+  `capsule()` does, its lengths a share of the kit's 80 tall
+  (`KIT_CAPSULE`): a good one a pill outlined in the field's color, its
+  accent over a darker lip that shows below it and a shine along its top;
+  a bad one a hexagon pointed at each end, its danger color over a gold
+  lip. Each tone's entry now takes the scale and says the square its
+  symbol takes (`CapsuleLook`), so the frame lays the symbol where the
+  tone puts it, and `capsuleShape()` sizes and colors a capsule of a tone
+  for the frame and the spec alike: half the capsule's height wide, as the kit's, about the
+  pill's middle below a good one's shine and the middle of a bad one's
+  face. The lip lies 6 of 80 below a good one's body and 8 below a bad
+  one's, in whole device pixels and a CSS pixel at least (`widthOf()`), so
+  the gold shows at every size. A bad one's body and lip lie a line's
+  width in from the outline's slanted edges, the body's from the upper
+  ones and the lip's from the lower, as the old notched shape's did.
+  Where a brick is too small for its finest detail the shine is left out
+  and the symbol takes 0.85 of the face's height, as it took of the
+  capsule's inside before, so it still reads.
+- `symbols.ts`: the Seeker's symbol is the kit's sight, a ring 0.3 of the
+  square, a dot 0.1 in it and four ticks, cut straight, from the ring to
+  the square's edge, up, right, down and left. R2's placeholder target is
+  gone. The other symbols stay as they are, the Net's bar among them,
+  where the kit draws a zigzag.
+- `palette.ts` gains `capsuleLips` (a good one's the accent at 30% black,
+  a bad one's the warning color, gold) and `capsuleShine` (the accent at
+  half white), the kit's mixes.
+- `contrast.spec.ts` holds a bad capsule's gold lip to 3:1 against the
+  field (5.1 to 9.0); a good one's lip and shine are shading, held to
+  nothing, as the comment now says. The gold against the danger color is
+  1.0 to 1.5: it tells by its hue and its place under a shape that already
+  tells the tone, not by its contrast with the body.
+- Specs: `art.spec.ts` holds each capsule's frame as its tone's commands
+  then its symbol in the marks' color, each tone's colors in order, a pill
+  and a hexagon, the lip a CSS pixel or more below the body at both
+  scales, a bad one's outline a line wide along its pointed ends, the
+  shine left out small, the symbol's size and middle at both scales, and
+  the Seeker's sight; `palette.spec.ts` the new inks.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, `src/view/art/`)
+  and the `brick-breaker-content` skill (a capsule's symbol and its tone's
+  shape).
+- In the browser (Classic felt, 1280 × 720 at 2×), the wide, seeker,
+  narrow and fast capsules beside the kit's sheet: the same pill, shine,
+  hexagon and lip; the gold reads as the kit's does, a dark band under the
+  red.
+
+Choices, where the plan was silent:
+
+- **The symbol grows where a brick is too small for its finest detail,**
+  to 0.85 of the face's height, as the shine is left out, rather than
+  keeping the kit's half of the capsule's height: on a small phone that
+  is 5 CSS px, where the old capsule drew 7.
+- **The Seeker's ticks reach the square's edge, 0.5 from the middle,**
+  where the kit's reach 0.52, so its tag, drawn to the edges of its frame,
+  stays inside it.
+- **A good one's symbol sits about the pill's middle** (40 of 80) where
+  the kit puts it at 39: the face's middle (37) would bring the Seeker's
+  top tick onto the shine.
+- `capsule_painter.ts` needs no change: the frames are the same size.
+
+The review (a fresh agent), and what I did:
+
+1. _No spec tied the frame's symbol to the square its tone gives; the
+   frame could have drawn it anywhere._ Fixed: each capsule's spec expects
+   the frame's commands to be its tone's, then `SYMBOLS[id]` in that
+   square, in the marks' color.
+2. _The spec sized the capsule as the frame does, by hand, and the good
+   tone asked `showsDetail()` twice._ Fixed: `capsuleShape()` is exported
+   and used by both, and `symbolSquare()` takes whether the capsule shows
+   its finest detail.
+3. _`capsuleDrop()` handed `widthOf()` the capsule's height as a unit;
+   `kitCapsule()` was a third name for `kitLength()`._ Fixed: the drop is
+   `widthOf()` of the kit's share of `CAPSULE_HEIGHT` at the scale, and the
+   helper is `kitLength()`, as `brick_art.ts` names it.
+4. _`AGENTS.md` still named `inset()` and `middleSquare()`, which the art
+   no longer uses, and not `pointAt()`._ Fixed.
+5. _`CAPSULE_ART`'s comment put the symbol in the face's middle;
+   `CapsuleLook`'s left out the shine; the skill said the compiler asks for
+   a capsule's shape, which only a new tone needs._ Fixed, all three.
+6. _`art.spec.ts`' line check skips straight lines, so the Seeker's ticks
+   go unchecked; `toFixed(6)` reads worse than `expect.closeTo()`._ The
+   first is left for the next commit, which settles that check for the
+   fur; the Seeker's ticks take `symbolLineStyle()`, the style's width at
+   least. The second is left: `expect.closeTo()` is typed `any`, which the
+   lint rejects in an object matched with `toEqual()`.
+
+Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
+files, 2,571); the root's lint under the lock.
