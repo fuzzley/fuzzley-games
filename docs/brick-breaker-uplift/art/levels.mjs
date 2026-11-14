@@ -17,6 +17,7 @@ const here = import.meta.dirname;
  * @property {number} [mark] The streak its third star asks for.
  * @property {string} [teaches] What the level is built around, in the drafts.
  * @property {string} [why] Why a level of the game is redrawn.
+ * @property {string[]} [was] The bricks a redrawn level of the game had before.
  * @property {{ every: number, most: number }} [bunnies]
  */
 

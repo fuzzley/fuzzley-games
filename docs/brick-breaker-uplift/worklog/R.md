@@ -72,3 +72,36 @@ Review (a fresh reviewer, on the staged change):
 4. The content skill didn't lead a redraw to `layout`. Fixed: `layout` and
    `redraw` among its triggers, and the report's step says a redraw of a
    level that has shipped raises its `layout`.
+
+### 2026-11-14: the four redraws
+
+- Stripes, Checker, Shelf and Vault take their bricks from
+  `docs/brick-breaker-uplift/levels/revisions.json`, each at `"layout": 2`,
+  their ids, names, paces and pools as they were, so the progress on them
+  stays and their bests start again.
+- `yarn report:levels --seeds 12` on this commit took 70 s and printed
+  exactly what the plan's `levels/report-after.txt` holds, all thirty
+  levels: the redraws play as the plan's copy played them.
+- The workspace's `AGENTS.md` and skills name none of the four, so neither
+  changes.
+- The plan's `mocks/make-mocks.mjs` and `levels/check-levels.mjs` took the
+  bricks before a redraw from the game's files, which now hold the redraw.
+  Each redraw in `levels/revisions.json` now keeps its bricks before as
+  `was`, taken from 79b1ed92, which both scripts read (and
+  `art/levels.mjs`'s `LevelData` types). `make-mocks.mjs` run again writes
+  the three sheets byte for byte as committed, and `check-levels.mjs` says
+  Stripes was 78 bricks again.
+
+Checks: the workspace's `lint`, `typecheck` and `test` (59 files, 2,012
+specs, 11.5 s with six workers, every level cleared at every speed in
+time), and the root's `lint`.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The plan's mock script would draw the redraw on both sides of
+   `level-changes.svg` the next time it ran, and `check-levels.mjs` already
+   printed "was 50 and 50" for Stripes: both read the bricks before from the
+   game. Fixed as above, with `was` in `revisions.json`.
+2. `stats.spec.ts` named its level on the first layout "stripes", which is
+   now the game's redrawn one, so it read as the opposite of the game.
+   Fixed: its levels are `first`, `second` and `redrawn`.

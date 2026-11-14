@@ -230,9 +230,11 @@ function main() {
           faults.push(`needs bricks no ball reaches: ${left.join(" ")}`);
       }
       const { needed, hits, kinds } = asksOf(level);
-      const was = redrawn
+      const game = redrawn
         ? GAME_LEVELS.find((entry) => entry.id === level.id)
         : undefined;
+      // The game now has the redraw, so its bricks before are the draft's own.
+      const was = game && { ...game, bricks: level.was ?? game.bricks };
       const before = was ? asksOf(was) : undefined;
       const label = was ? String(was.number) : String((number += 1));
       console.log(

@@ -1,7 +1,7 @@
 {
   "id": "revisions",
   "name": "Redrawn levels",
-  "says": "Levels of the game the plan redraws. Each keeps its id, its name and everything its file holds but its bricks. The autopilot has played each from twelve seeds at every speed: report-before.txt and report-after.txt.",
+  "says": "Levels of the game the plan redraws. Each keeps its id, its name and everything its file holds but its bricks; its `was` holds the bricks it had before, as the game had them at layout 1. The autopilot has played each from twelve seeds at every speed: report-before.txt and report-after.txt.",
   "levels": [
     {
       "id": "stripes",
@@ -12,6 +12,16 @@
         ".............",
         "oooooo.oooooo",
         "oooooo.oooooo",
+        "ooooooooooooo",
+        "ooooooooooooo"
+      ],
+      "was": [
+        ".............",
+        ".............",
+        "ooooooooooooo",
+        "ooooooooooooo",
+        "ooooooooooooo",
+        "ooooooooooooo",
         "ooooooooooooo",
         "ooooooooooooo"
       ]
@@ -29,6 +39,16 @@
         "o.o.o.o.o.o.o",
         ".o.o.o.o.o.o.",
         "o.o.o.o.o.o.o"
+      ],
+      "was": [
+        ".............",
+        "2o2o2o2o2o2o2",
+        "o.o.o.o.o.o.o",
+        "2o2o2o2o2o2o2",
+        ".............",
+        "o2o2o2o2o2o2o",
+        "2.2.2.2.2.2.2",
+        "o2o2o2o2o2o2o"
       ]
     },
     {
@@ -45,6 +65,17 @@
         ".ooooooooooo.",
         ".............",
         "#...#...#...#"
+      ],
+      "was": [
+        ".............",
+        ".33333333333.",
+        ".22222222222.",
+        ".22222222222.",
+        ".oo?ooooo?oo.",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".............",
+        "##...###...##"
       ]
     },
     {
@@ -60,6 +91,17 @@
         "2222222222222",
         "ooooooooooooo",
         "ooooooooooooo",
+        "ooooooooooooo"
+      ],
+      "was": [
+        ".............",
+        "33.#######.33",
+        "333#.?3?.#333",
+        "322#.ooo.#223",
+        "222##...##222",
+        "3333333333333",
+        "2222222222222",
+        "2222222222222",
         "ooooooooooooo"
       ]
     }
