@@ -1,6 +1,7 @@
 import { clamp, easeOutCubic, fadeAlpha } from "@fz/core/math";
 import { mixColors } from "@fz/phaser/color";
 import { STEP_MS, stepsIn } from "../../rules/stepper";
+import { BRICK_HEIGHT, COLUMNS } from "../../rules/tuning";
 import type { FieldView } from "../field/frame";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS, HOLD_MS } from "./timing";
 
@@ -73,6 +74,39 @@ export function squashAt(done: number, squash: Squash): void {
 /** Returns how far the pad has dipped, in field units, a share through its dip. */
 export function padDip(done: number): number {
   return PAD_DIP * meetDepth(done);
+}
+
+/** How far above its place a brick starts as it drops in, in field units. */
+export const DROP_IN_HEIGHT = 2 * BRICK_HEIGHT;
+
+/**
+ * How much of the drop-in's time each column takes to drop, the rest
+ * spread between the columns' starts, the first column's at once.
+ */
+const COLUMN_DROP = 0.4;
+
+/**
+ * Returns how far a column is through its own drop, a share through the
+ * bricks' drop-in: each column starting a step after the one to its left,
+ * the first at once and the last landing as the drop-in ends.
+ */
+function columnDropDone(column: number, done: number): number {
+  const start = (column / (COLUMNS - 1)) * (1 - COLUMN_DROP);
+  return clamp((done - start) / COLUMN_DROP, 0, 1);
+}
+
+/**
+ * Returns how far above its place a brick in a column stands, in field
+ * units, a share through the bricks' drop-in: dropping fast, then slowing
+ * as it lands.
+ */
+export function dropInHeight(column: number, done: number): number {
+  return DROP_IN_HEIGHT * (1 - easeOutCubic(columnDropDone(column, done)));
+}
+
+/** Returns how opaque a brick in a column is, a share through the bricks' drop-in: fading in as it drops. */
+export function dropInAlpha(column: number, done: number): number {
+  return easeOutCubic(columnDropDone(column, done));
 }
 
 /** Returns the scale of a blast's ring, spreading fast, then slowing. */

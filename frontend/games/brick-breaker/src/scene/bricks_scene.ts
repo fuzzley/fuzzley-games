@@ -438,7 +438,7 @@ export class BricksScene extends Scene {
 
   /** Puts the field where it was measured, and tells the shell where. */
   private layOut(): void {
-    this.bricks.layout(this.metrics);
+    this.bricks.layout();
     this.effects.layout(this.metrics);
     this.steering.measure(this.metrics);
     this.options.onLayout(this.metrics);
@@ -466,13 +466,13 @@ export class BricksScene extends Scene {
 
   /**
    * Starts drawing a new field, from its first event, stopping what the
-   * last one set off, and drops its bricks in where motion is welcome.
+   * last one set off, and drops its bricks in where motion is welcome, a
+   * column after a column.
    */
   private startField(field: FieldView): void {
     this.shownField = field;
     this.played = 0;
     this.context.brokeAt = field.steps;
-    this.tweens.killAll();
     this.bricks.still();
     this.effects.reset();
     this.balls.reset();
@@ -480,12 +480,13 @@ export class BricksScene extends Scene {
     this.tails.reset();
     this.streak.reset();
     this.heldAt = Infinity;
+    // The new field's flourishes run by the scene's time, as nothing holds.
+    this.context.now = flourishTime(this.frameTime, this.heldAt);
     // A chord still waiting, as a level cleared without motion is gone on
     // from at once, plays now rather than go unheard.
     this.delayed.playDue(Infinity, this.frameSounds);
     this.bricks.show(field);
-    if (this.context.motion) this.bricks.dropIn(this.metrics);
-    else this.bricks.layout(this.metrics);
+    if (this.context.motion) this.bricks.dropIn(this.context.now);
   }
 
   /**
@@ -519,11 +520,13 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Holds a key that pushes the paddle, and passes on what any other key
-   * asks, once per press, leaving the browser its shortcuts.
+   * Lands the bricks dropping in, holds a key that pushes the paddle, and
+   * passes on what any other key asks, each once per press, not at a held
+   * key's repeat, leaving the browser its shortcuts.
    */
   private press(event: KeyboardEvent): void {
     if (isShortcut(event)) return;
+    if (!event.repeat) this.bricks.land();
     if (this.steering.press(event.code)) return;
     if (event.repeat) return;
     const command = commandOfKey(event.code);

@@ -654,3 +654,97 @@ Review:
 6. The ball painter called a slot `ball`, as `draw()` calls the record.
    Fixed: `slot`. `nearestBall()` stays in `streak.ts`, where F1 put it;
    moving it would change F1's file for a name.
+
+### 2026-11-14: the bricks drop in a column after a column, and a key lands them
+
+What it does:
+
+- A level's bricks drop in a column after a column, left to right, over
+  400 ms (`DROP_IN_MS`, from a row after a row over 360 ms and 45 ms more a
+  row). Each column takes 160 ms of it (`COLUMN_DROP`, 0.4), each starting
+  20 ms after the one to its left, the first at once and the last landing
+  as the drop-in ends (`columnDropDone()`). A brick falls from two brick
+  heights above its place (`DROP_IN_HEIGHT`), fast, then slowing, and fades
+  in as it falls (`dropInHeight()`, `dropInAlpha()`, in `flourish.ts`), as
+  the tween before did.
+- It is an offset the brick painter adds to where it draws a brick, one
+  call, `dropInHeight(column, done)`, in `BrickPainter.place()`, which puts
+  each cell's image at its place each frame while the bricks drop in, and
+  leaves them be once all stand at their places. The tween is gone: the
+  drop runs by the flourishes' time (`PaintContext.now`), as F1's
+  flourishes do, so landing the bricks is setting one number. `layout()`
+  takes no layout now: it has the next frame put each image at its place,
+  at whatever drop it has come to. K3's slide can add its own offset in
+  `place()`, beside the drop, and keep `placed` false while it moves a
+  brick, as its doc says: `place()` draws nothing once every image stands
+  at its place.
+- A key skips it: any key the scene hears, but a shortcut or a held key's
+  repeat, lands every brick at once (`BrickPainter.land()`, from
+  `press()`), whatever else it asks, as a launch, a push of the paddle or a
+  pause.
+- Where motion isn't welcome, no drop starts, and a new field lands any
+  drop the last one left (`still()` lands too), so a player who turns
+  motion off mid-drop sees the next level in place at once.
+- The scene sets the flourishes' time again as a new field starts
+  (`startField()`), as nothing holds there: after a clear's hold, that time
+  ran 120 ms behind the scene's, and a drop begun by it jumped 120 ms on
+  the next frame. `PaintContext.now`'s doc says so. The scene's
+  `tweens.killAll()` went with the tween, the game's only one.
+- Specs: `flourish.spec.ts` (every brick two units up and unseen at the
+  start, the first column at once and the next after it, the columns in
+  order at four points of the drop-in, the last landing as it ends and not
+  before, all landed and whole at its end), `timing.spec.ts` (400 ms), and
+  the scene's spec: a column after the one to its left, the last still
+  falling 16 ms before the drop-in ends and landed as it ends, landed at
+  once at a launch, a push of the paddle and a key the game doesn't use,
+  still dropping at a shortcut and at a held key's repeat, still dropping
+  on a new layout and landing at its places, standing at a new
+  layout's places, a new level's dropping from its start after a held clear
+  as it would after none, and, without motion, a new level's in place at
+  once though the last level's still dropped. Each fails with its bug put
+  back (the columns reversed, the last column landing early, no landing at
+  a key, landing at a shortcut or a repeat, `layout()` doing nothing, the
+  flourishes' time left behind, `still()` not landing).
+- `AGENTS.md`: `flourish.ts`, `timing.ts`, `BrickPainter`, the keys, and
+  the bricks in place at once among what motion's absence leaves out.
+
+Choices where the plan was silent:
+
+- **Columns overlap.** Thirteen columns one after another in 400 ms would
+  each fall in 31 ms, a flicker; each falls in 160 ms instead, starting
+  20 ms after the last, so the drop reads as a wave from left to right.
+- **A column drops as one.** The kit's still of a level arriving
+  (`art/sheet-kit.mjs`) staggers its rows too, lower rows first, with a
+  speed line over each brick; its note, and the plan, say a column after a
+  column, which is what is built. The fade and the two brick heights are
+  the drop's before.
+- **Any key lands them and still does what it asks.** The plan says "a
+  key press"; a key swallowed by the skip would cost a launch. A shortcut
+  is the browser's, so it lands nothing. A tap or a click doesn't land
+  them, as the plan names keys: a ball launched by a tap reaches the bricks
+  after they have landed.
+
+Checks, after the review's fixes: the workspace's lint and typecheck pass,
+and its tests, 70 files and 3041 specs; the root's lint passes.
+
+Review:
+
+1. A held key's repeats landed the drop: holding an arrow while pressing
+   Space for the next level, the first repeat after the new field landed it
+   though no key was pressed. Fixed: a repeat lands nothing, as it commands
+   nothing; a spec holds it.
+2. The scene's `tweens.killAll()` was dead once the tween went. Removed.
+3. Specs that passed with the timing broken: the last column's "not
+   before" was `closeTo(0)` at 0.99, which a last column landing early also
+   passed, and the scene's check was 48 ms early. Fixed: the curve's spec
+   holds the last column above its place at 0.99, the scene's 16 ms before
+   the end, each failing with the columns' starts spread over 13 steps
+   rather than 12. Booleans in assertions are gone: the heights are held to
+   `dropInHeight()`'s, and the order to its sort, with the first column
+   landed and the last not yet fallen halfway.
+4. `COLUMN_DROP` and `columnDropDone()` were exported for nothing. Fixed.
+5. K3 needs to know `place()` stops once `placed`. Said in `placed`'s doc
+   and above.
+6. Nits, each fixed: `PaintContext.now`'s doc, the painter's class doc
+   (the bricks land as the drop-in ends too). The `flourishTime()` call in
+   `startField()` stays, for one source of that time.

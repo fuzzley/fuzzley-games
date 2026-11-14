@@ -1,10 +1,14 @@
 import { stepsIn } from "../../rules/stepper";
+import { COLUMNS } from "../../rules/tuning";
 import {
+  DROP_IN_HEIGHT,
   GLOW_LEAST,
   POP_SWELL,
   RING_FROM,
   STREAK_RING_FROM,
   countAlpha,
+  dropInAlpha,
+  dropInHeight,
   flourishTime,
   glowAlpha,
   isHolding,
@@ -83,6 +87,57 @@ describe("a ball's squash and the pad's dip", () => {
 
   it("dip the pad a tenth of a unit at the deepest, and raise it again", () => {
     expect([padDip(0), padDip(1)]).toEqual([0.1, 0]);
+  });
+});
+
+describe("the bricks' drop-in", () => {
+  /** Every column, left to right. */
+  const EVERY_COLUMN = Array.from({ length: COLUMNS }, (_, column) => column);
+
+  /** Returns how far above its place each column's bricks stand, left to right, a share through the drop-in. */
+  function heightsAt(done: number): readonly number[] {
+    return EVERY_COLUMN.map((column) => dropInHeight(column, done));
+  }
+
+  it("stands every brick two units above its place, unseen, as it starts", () => {
+    expect({
+      heights: new Set(heightsAt(0)),
+      alphas: new Set(EVERY_COLUMN.map((column) => dropInAlpha(column, 0))),
+    }).toEqual({ heights: new Set([2]), alphas: new Set([0]) });
+  });
+
+  it("drops the first column at once, and the next only after it", () => {
+    expect([dropInHeight(0, 0.02), dropInHeight(1, 0.02)]).toEqual([
+      expect.closeTo(1.71, 2),
+      DROP_IN_HEIGHT,
+    ]);
+  });
+
+  it.each([0.2, 0.4, 0.6, 0.8])(
+    "drops a column after a column, left to right, %f of the way through",
+    (done) => {
+      const heights = heightsAt(done);
+
+      expect(heights).toEqual([...heights].sort((a, b) => a - b));
+    },
+  );
+
+  it("has the first columns landed and the last yet to fall halfway through", () => {
+    expect([dropInHeight(0, 0.5), dropInHeight(COLUMNS - 1, 0.5)]).toEqual([
+      0,
+      DROP_IN_HEIGHT,
+    ]);
+  });
+
+  it("keeps the last column falling till it ends", () => {
+    expect(dropInHeight(COLUMNS - 1, 0.99)).toBeGreaterThan(0);
+  });
+
+  it("has landed every brick, whole, by its end", () => {
+    expect({
+      heights: new Set(heightsAt(1)),
+      alphas: new Set(EVERY_COLUMN.map((column) => dropInAlpha(column, 1))),
+    }).toEqual({ heights: new Set([0]), alphas: new Set([1]) });
   });
 });
 

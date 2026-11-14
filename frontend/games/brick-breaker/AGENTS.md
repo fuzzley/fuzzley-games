@@ -333,11 +333,16 @@ takes for the specs' helpers.
   the paddle, wider and flatter and its foot pressed into the pad, as the
   art kit's still of the paddle giving draws it (`DEEPEST_SQUASH`,
   `squashAt()`), and the pad dips, a tenth of a unit, deepest as they meet,
-  then easing back (`padDip()`), the time the flourishes run by, which stands still while the last brick's hit holds
+  then easing back (`padDip()`), how far above its place a brick stands
+  as a level's bricks drop in, a column after a column, the first at once
+  and the last landing as the drop-in ends, and how faded
+  (`dropInHeight()`, `dropInAlpha()`), the time the flourishes run by,
+  which stands still while the last brick's hit holds
   (`flourishTime()`, `isHolding()`), and how bright the last bricks a
   level needs glow once none has broken for a while, pulsing only where
-  motion is welcome; and `timing.ts` how long each flourish lasts, a ball's
-  squash and the pad's dip among them (`MEET_MS`), how long the last
+  motion is welcome; and `timing.ts` how long each flourish lasts, the
+  bricks' drop-in (`DROP_IN_MS`) and a ball's squash and the pad's dip
+  (`MEET_MS`) among them, how long the last
   brick's hit holds as its level clears (`HOLD_MS`), how long the paddle
   stands empty after the last ball is lost (`SERVE_MS`), and how long the
   cards wait.
@@ -485,8 +490,9 @@ takes for the specs' helpers.
   palette, and washed over the field as strongly as the place shows there,
   so the net and the gutter under it only take a tint of it,
   `BrickPainter` an image for each cell, made once, dropped in as a level
-  starts, swollen at a hit a brick holds, its ring shown while it grows
-  back and grown back as it
+  starts, a column after a column, each drawn its column's height above its
+  place till it lands, or at once at a key, swollen at a hit a brick holds,
+  its ring shown while it grows back and grown back as it
   regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
@@ -537,7 +543,8 @@ takes for the specs' helpers.
   in `sounds/`, which `yarn build:sounds` writes, and mutes the game while the
   settings want none; it plays the chime, the level cleared's, each time the
   game's count of `chimes()` goes up, but for one called for while the
-  clear's chord waits, which is that chord. The keys, clicks and taps go back
+  clear's chord waits, which is that chord. Any key it hears but a
+  shortcut lands the bricks dropping in. The keys, clicks and taps go back
   through `command()`, the keys heard through `@fz/phaser/scene`'s
   `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
   every key and finger held is let go as the player looks away
@@ -809,8 +816,9 @@ takes for the specs' helpers.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
   ball's tail, a streak's step, the last brick's hold, a ball's squash and
-  the pad's dip, and the last bricks' pulse, are left out, and the cards
-  open without waiting; the clear's chord still waits out the hold.
+  the pad's dip, and the last bricks' pulse, are left out, a level's bricks
+  show in place at once, and the cards open without waiting; the clear's
+  chord still waits out the hold.
 
 ## Styling
 

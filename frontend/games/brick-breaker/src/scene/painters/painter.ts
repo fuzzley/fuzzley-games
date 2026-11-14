@@ -24,8 +24,8 @@ export interface PaintContext extends Baked {
   alpha: number;
   /**
    * The time the flourishes run by, in milliseconds: the scene's, but
-   * standing still while the last brick's hit holds, and behind it after
-   * (`flourishTime()`).
+   * standing still while the last brick's hit holds, and behind it after,
+   * till a new field starts (`flourishTime()`).
    */
   now: number;
   /** Whether the player welcomes motion. */

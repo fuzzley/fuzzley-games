@@ -1,5 +1,6 @@
 import {
   CLEARED_MS,
+  DROP_IN_MS,
   FADE_MS,
   HOLD_MS,
   MEET_MS,
@@ -43,6 +44,7 @@ describe("the plan's times", () => {
     ["a streak's step", STREAK_MS, 300],
     ["the last brick's hold", HOLD_MS, 120],
     ["a ball's squash and the pad's dip", MEET_MS, 90],
+    ["the bricks' drop-in", DROP_IN_MS, 400],
   ])(
     "holds %s to %i ms, as the plan's table of flourishes says",
     (_, ms, planned) => {
