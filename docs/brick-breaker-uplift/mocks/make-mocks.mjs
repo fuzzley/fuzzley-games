@@ -160,7 +160,9 @@ function changesSheet() {
     ),
   ];
   set.levels.forEach((level, i) => {
-    const was = gameLevel(level.id);
+    const game = gameLevel(level.id);
+    // The game now has the redraw, so its bricks before are the draft's own.
+    const was = { ...game, bricks: level.was ?? game.bricks };
     const x = MARGIN + (i % 2) * (cardW + 24);
     const y = 118 + Math.floor(i / 2) * (cardH + 24);
     const before = asksOf(was);

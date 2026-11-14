@@ -6,15 +6,14 @@
     {
       "id": "stripes",
       "name": "Stripes",
+      "layout": 2,
       "pace": 1.0,
       "capsules": [],
       "bricks": [
         ".............",
         ".............",
-        "ooooooooooooo",
-        "ooooooooooooo",
-        "ooooooooooooo",
-        "ooooooooooooo",
+        "oooooo.oooooo",
+        "oooooo.oooooo",
         "ooooooooooooo",
         "ooooooooooooo"
       ]
@@ -51,6 +50,7 @@
     {
       "id": "checker",
       "name": "Checker",
+      "layout": 2,
       "pace": 1.02,
       "bricks": [
         ".............",
@@ -58,9 +58,9 @@
         "o.o.o.o.o.o.o",
         "2o2o2o2o2o2o2",
         ".............",
-        "o2o2o2o2o2o2o",
-        "2.2.2.2.2.2.2",
-        "o2o2o2o2o2o2o"
+        "o.o.o.o.o.o.o",
+        ".o.o.o.o.o.o.",
+        "o.o.o.o.o.o.o"
       ]
     },
     {

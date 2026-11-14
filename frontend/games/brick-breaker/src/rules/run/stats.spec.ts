@@ -17,8 +17,8 @@ function levelOf(id: string): LevelData {
   return { id, name: id, capsules: [], bricks: ["o"] };
 }
 
-/** A level as first drawn, which names no layout. */
-const STRIPES = levelOf("stripes");
+/** A level on its first layout, which its data leaves out. */
+const FIRST = levelOf("first");
 
 /** A level drawn again, on its second layout. */
 const REDRAWN: LevelData = { ...levelOf("redrawn"), layout: 2 };
@@ -29,7 +29,7 @@ const LEVELS = levelsOf([
     id: "set",
     name: "Set",
     drops: 0,
-    levels: [STRIPES, levelOf("gifts"), REDRAWN],
+    levels: [FIRST, levelOf("second"), REDRAWN],
   },
 ]);
 
@@ -61,8 +61,8 @@ describe("statsOf", () => {
         custom: { runs: 1, best: 300, furthest: 2 },
       },
       levels: {
-        stripes: { normal: 4100, fast: 2.5, custom: 700 },
-        gifts: { relaxed: "high" },
+        first: { normal: 4100, fast: 2.5, custom: 700 },
+        second: { relaxed: "high" },
         gone: { normal: 100 },
       },
     };
@@ -74,45 +74,45 @@ describe("statsOf", () => {
         fast: NONE,
         custom: { runs: 1, best: 300, furthest: 2 },
       },
-      levels: { stripes: { normal: 4100, custom: 700 } },
-      layouts: { stripes: 1 },
+      levels: { first: { normal: 4100, custom: 700 } },
+      layouts: { first: 1 },
     });
   });
 
   it("reads bests stored with no layout, as before layouts were kept, as made on the first", () => {
     const stored = {
-      levels: { stripes: { normal: 4100 }, redrawn: { normal: 2500 } },
+      levels: { first: { normal: 4100 }, redrawn: { normal: 2500 } },
     };
 
     const { levels, layouts } = statsOf(stored, LEVELS);
 
     expect({ levels, layouts }).toEqual({
-      levels: { stripes: { normal: 4100 } },
-      layouts: { stripes: 1 },
+      levels: { first: { normal: 4100 } },
+      layouts: { first: 1 },
     });
   });
 
   it("keeps a level's bests made on the layout it has now", () => {
     const stored = {
-      levels: { stripes: { normal: 4100 }, redrawn: { normal: 2500 } },
-      layouts: { stripes: 1, redrawn: 2 },
+      levels: { first: { normal: 4100 }, redrawn: { normal: 2500 } },
+      layouts: { first: 1, redrawn: 2 },
     };
 
     const { levels, layouts } = statsOf(stored, LEVELS);
 
     expect({ levels, layouts }).toEqual({
-      levels: { stripes: { normal: 4100 }, redrawn: { normal: 2500 } },
-      layouts: { stripes: 1, redrawn: 2 },
+      levels: { first: { normal: 4100 }, redrawn: { normal: 2500 } },
+      layouts: { first: 1, redrawn: 2 },
     });
   });
 
   it.each([
-    ["another layout than its own", { stripes: 2, redrawn: 1 }],
-    ["a layout that is no number", { stripes: "1", redrawn: "2" }],
-    ["no layout at all", { stripes: null, redrawn: null }],
+    ["another layout than its own", { first: 2, redrawn: 1 }],
+    ["a layout that is no number", { first: "1", redrawn: "2" }],
+    ["a null layout", { first: null, redrawn: null }],
   ])("drops a level's bests made on %s", (_, layouts) => {
     const stored = {
-      levels: { stripes: { normal: 4100 }, redrawn: { normal: 2500 } },
+      levels: { first: { normal: 4100 }, redrawn: { normal: 2500 } },
       layouts,
     };
 
@@ -123,7 +123,7 @@ describe("statsOf", () => {
 
   it("reads back the stats it keeps", () => {
     const stats = withLevelPoints(
-      withLevelPoints(noStats(), STRIPES, "normal", 4100),
+      withLevelPoints(noStats(), FIRST, "normal", 4100),
       REDRAWN,
       "fast",
       2500,
@@ -211,27 +211,27 @@ describe("isNewBest", () => {
 
 describe("withLevelPoints", () => {
   it("keeps a level's best points at each speed", () => {
-    const once = withLevelPoints(noStats(), STRIPES, "normal", 4100);
+    const once = withLevelPoints(noStats(), FIRST, "normal", 4100);
 
-    const stats = withLevelPoints(once, STRIPES, "fast", 3000);
+    const stats = withLevelPoints(once, FIRST, "fast", 3000);
 
-    expect(stats.levels).toEqual({ stripes: { normal: 4100, fast: 3000 } });
+    expect(stats.levels).toEqual({ first: { normal: 4100, fast: 3000 } });
   });
 
   it("keeps the layout each level's points were made on, the first where its data names none", () => {
-    const once = withLevelPoints(noStats(), STRIPES, "normal", 4100);
+    const once = withLevelPoints(noStats(), FIRST, "normal", 4100);
 
     const stats = withLevelPoints(once, REDRAWN, "normal", 2500);
 
-    expect(stats.layouts).toEqual({ stripes: 1, redrawn: 2 });
+    expect(stats.layouts).toEqual({ first: 1, redrawn: 2 });
   });
 
   it.each([2500, 4100])(
     "gives back the same stats for %i points, at a best of 4100",
     (points) => {
-      const stats = withLevelPoints(noStats(), STRIPES, "normal", 4100);
+      const stats = withLevelPoints(noStats(), FIRST, "normal", 4100);
 
-      expect(withLevelPoints(stats, STRIPES, "normal", points)).toBe(stats);
+      expect(withLevelPoints(stats, FIRST, "normal", points)).toBe(stats);
     },
   );
 });
