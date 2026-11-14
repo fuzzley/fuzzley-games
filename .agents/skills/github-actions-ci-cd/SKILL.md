@@ -1,6 +1,6 @@
 ---
 name: github-actions-ci-cd
-description: The Verify workflow (.github/workflows/verify.yml), its jobs side by side and what each checks in the frontend and the Docker image, the caches they restore, the docs-only run, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, setup-frontend, changes-code.sh, actions/cache, check-image.sh, docker check, games.json, deploy, live branch, rollback.
+description: The Verify workflow (.github/workflows/verify.yml), its jobs side by side and what each checks in the frontend and the Docker image, the caches they restore, the docs-only run, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, setup-frontend, changes-code.sh, actions/cache, dependabot, yarn dedupe, check-image.sh, docker check, games.json, deploy, live branch, rollback.
 ---
 
 # GitHub Actions CI
@@ -21,7 +21,8 @@ progress. Each job but `changes`, `docker` and `promote` sets up the
 frontend with the composite action `.github/actions/setup-frontend`, handed
 the workflow's `COREPACK_VERSION`: Node from `.node-version`, that Corepack,
 the Yarn it downloads and Yarn's package cache, each restored with
-`actions/cache`, and an immutable install in `frontend/`.
+`actions/cache`, the lockfile deduped on a Dependabot npm pull request
+(principle 6), and an immutable install in `frontend/`.
 
 1. **`changes`** — runs `.github/scripts/changes-code.sh`, which says
    whether anything but Markdown and `docs/` changed, a moved file by both
@@ -93,7 +94,10 @@ passes on `main` moves it forward again.
 ## Principles
 
 1. **`yarn install --immutable`.** CI must fail on a lockfile that does not
-   match `package.json` rather than quietly resolving something else.
+   match `package.json` rather than quietly resolving something else. The
+   one exception is a Dependabot npm pull request's lockfile, deduped
+   before the install (principle 6); the commit that lands the update is
+   checked on `main` with `--immutable` like any other.
 2. **Corepack before Yarn.** `corepack enable` has to run before any `yarn`
    command, or the runner's bundled Yarn 1 answers instead of the version
    `frontend/package.json` pins. Node 26 no longer bundles Corepack, so
@@ -117,8 +121,17 @@ passes on `main` moves it forward again.
    that its major version is the same; move both together.
 6. **Updates come as pull requests.** Dependabot (`.github/dependabot.yml`)
    proposes npm, GitHub Actions and Docker image updates weekly, a day after
-   their release, and `verify.yml` checks each pull request. A merge to
-   `main` deploys once it passes, so none merges on its own.
+   their release, its npm updates in three pull requests (Angular's
+   packages, the lint and test tools, and every other package), and
+   `verify.yml` checks each pull request. Dependabot doesn't run
+   `yarn dedupe`, so `setup-frontend` dedupes the lockfile of an npm pull
+   request Dependabot opened before it installs, and each job but `docker`,
+   which builds the image from the lockfile as Dependabot wrote it, checks
+   the update as it would land. The pull request keeps Dependabot's
+   lockfile, so where the dedupe changed it, `lint` warns that merging it
+   would fail lint on `main`, and the update lands by hand, deduped, in one
+   commit on `main`. A merge to `main` deploys once it passes, so none
+   merges on its own.
 7. **No secrets in CI.** The workflows use a made-up measurement ID; the real
    one lives in Secret Manager and reaches only Cloud Run. It needs no
    token beyond its own `GITHUB_TOKEN`. Never echo a secret, and never
