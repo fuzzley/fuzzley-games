@@ -9,7 +9,7 @@ import {
 } from "../rules/field/field";
 import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/levels/legend";
-import type { LevelBrick } from "../rules/levels/level";
+import { FIRST_LAYOUT, type LevelBrick } from "../rules/levels/level";
 import type { Ball } from "../rules/paddle/balls";
 import type { Steer } from "../rules/paddle/paddle";
 import type { Speed } from "../rules/speed";
@@ -72,6 +72,7 @@ export function fieldFrom(
   );
   const field = createField(
     {
+      layout: FIRST_LAYOUT,
       cells,
       pace: options.pace ?? 1,
       drops: options.drops ?? 0,

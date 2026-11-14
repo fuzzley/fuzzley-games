@@ -164,12 +164,14 @@ takes for the specs' helpers.
   any cleared, and the one after a level cleared, at any speed; `clearedOf()`
   reads the ids stored, keeping those a level still has. `stats.ts` holds the
   records, each speed's runs, best score and furthest level, and each level's
-  best points at each speed: `statsOf()` reads them as stored, keeping what
-  makes sense and the bests of a level the game still has, `withRunStarted()`,
-  `withRunEnded()` and `withLevelPoints()` (through `@fz/core/json`'s
-  `withHigherCount()`) move them on, and `isNewBest()` says whether a run's
-  score beats the best. `saved_game.ts` turns a run under way and its field
-  into what storage keeps (`saveGame()`), which the shell keeps under
+  best points at each speed, with the layout they were made on (`layouts`).
+  `statsOf()` reads them as stored, keeping what makes sense and the bests of
+  a level the game still has made on the layout it has now, as bests stored
+  with no layout were made on the first. `withRunStarted()`, `withRunEnded()`
+  and `withLevelPoints()` (through `@fz/core/json`'s `withHigherCount()`),
+  which keeps the layout too, move them on, and `isNewBest()` says whether a
+  run's score beats the best. `saved_game.ts` turns a run under way and its
+  field into what storage keeps (`saveGame()`), which the shell keeps under
   `SAVED_GAME_VERSION`, a run whose level was just cleared as the next level
   not yet begun, and back (`restoreGame()`), paused, dropping a level the game
   doesn't have under that number, a field that doesn't fit its level, a number
@@ -186,10 +188,14 @@ takes for the specs' helpers.
   `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every level
   from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one into
   a `Level` (`level.ts`) to play, or throws an error that names what is
-  wrong with its data. Its spec holds every level to parsing, ids and names
-  of their own, a brick it needs that a ball can reach, and a pace that
-  never falls within a set; the specs in `every_level/` hold every level to
-  being cleared by the autopilot, as Tests below says.
+  wrong with its data. A level's data names the layout its bricks are in
+  (`layout`, which `layoutOf()` reads), a whole number from 1, the first
+  (`FIRST_LAYOUT`) where it names none; a redraw raises it, so the bests
+  made on the one before are let go, and the level keeps its id. Its spec
+  holds every level to parsing, ids and names of their own, a brick it needs
+  that a ball can reach, and a pace that never falls within a set; the
+  specs in `every_level/` hold every level to being cleared by the
+  autopilot, as Tests below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `bricks.ts`
   (`BRICK_KINDS`, each kind's hits, whether a level needs it, its points
@@ -419,7 +425,8 @@ takes for the specs' helpers.
     library's `TuningSlider`, which `src/view/` couldn't import.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, each speed's runs, best
-    score and furthest level, and each level's best points at each speed; and
+    score and furthest level, and each level's best points at each speed,
+    with the layout they were made on, which it finds by the level's id; and
     `ProgressService`, the levels cleared, at any speed, which open the
     levels after them.
   - `styles/` — `global.scss`, loaded once from `main.ts`, and
@@ -523,7 +530,11 @@ can't trust rather than failing:
   finger steers the paddle, and whether the field plays its sounds.
 - `brick-breaker-stats`: for each speed, the runs, the best run's score and
   the furthest level reached; and for each level's id, its best points at
-  each speed it was cleared at. Ids no level has any more are dropped.
+  each speed it was cleared at, and the layout they were made on. Ids no
+  level has any more are dropped, and so are a level's bests made on another
+  layout than its own, as a redrawn level's are; bests stored before the
+  layouts were kept read as made on the first, so the entry's version
+  stayed.
 - `brick-breaker-progress`: the ids of the levels cleared, at any speed,
   which open the levels after them. Ids no level has any more are dropped.
 - `brick-breaker-game`: the run under way and its level's bricks, each

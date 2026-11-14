@@ -169,6 +169,10 @@ describe("parseLevel", () => {
     expect([parsed().pace, parsed({ pace: 1.2 }).pace]).toEqual([1, 1.2]);
   });
 
+  it("lays its bricks out on the first layout, or the one it names", () => {
+    expect([parsed().layout, parsed({ layout: 2 }).layout]).toEqual([1, 2]);
+  });
+
   it.each<[string, Partial<LevelData>, string]>([
     [
       "a row of the wrong length",
@@ -239,6 +243,16 @@ describe("parseLevel", () => {
       "a tint that isn't one",
       { tints: ["9............"] },
       `"9", in row 1 of its tints, is no tint`,
+    ],
+    [
+      "a layout before the first",
+      { layout: 0 },
+      "its layout, 0, is no whole number from 1",
+    ],
+    [
+      "a layout that isn't whole",
+      { layout: 1.5 },
+      "its layout, 1.5, is no whole number from 1",
     ],
     ["a pace too slow", { pace: 0.7 }, "its pace, 0.7, is outside 0.8 to 1.4"],
     ["a pace too fast", { pace: 1.5 }, "its pace, 1.5, is outside 0.8 to 1.4"],

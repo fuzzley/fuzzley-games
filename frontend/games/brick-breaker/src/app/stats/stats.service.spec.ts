@@ -1,8 +1,10 @@
 import { TestBed } from "@angular/core/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import { levelsOf } from "../../rules/levels/levels";
 import type { EndedRun } from "../../rules/run/stats";
 import type { Speed } from "../../rules/speed";
 import { provideSpecLevels } from "../../testing/play";
+import { GAME_LEVELS } from "../tokens";
 import { STATS_KEY, StatsService } from "./stats.service";
 
 /** What the player's browser keeps, empty for each test. */
@@ -39,6 +41,7 @@ describe("StatsService", () => {
     expect(stats.stats()).toEqual({
       speeds: { relaxed: NONE, normal: NONE, fast: NONE, custom: NONE },
       levels: {},
+      layouts: {},
     });
   });
 
@@ -123,6 +126,34 @@ describe("StatsService", () => {
         custom: NONE,
       },
       levels: { blasts: { normal: 4100 } },
+      layouts: { blasts: 1 },
     });
+  });
+
+  it("stores the layout a level's points were made on", () => {
+    const redrawn = levelsOf([
+      {
+        id: "set",
+        name: "Set",
+        drops: 0,
+        levels: [{ id: "redrawn", name: "Redrawn", layout: 2, bricks: ["o"] }],
+      },
+    ]);
+    TestBed.overrideProvider(GAME_LEVELS, { useValue: redrawn });
+
+    TestBed.inject(StatsService).recordLevel("redrawn", "normal", 2500);
+
+    expect(stored()).toMatchObject({
+      levels: { redrawn: { normal: 2500 } },
+      layouts: { redrawn: 2 },
+    });
+  });
+
+  it("keeps nothing for a level the game doesn't have", () => {
+    const stats = TestBed.inject(StatsService);
+
+    stats.recordLevel("gone", "normal", 4100);
+
+    expect(stats.stats().levels).toEqual({});
   });
 });

@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, pace, drops, report:levels, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, pace, drops, report:levels, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -41,6 +41,10 @@ Its block in a set's file:
 
 - `id`, kebab-case, for good: the records and the progress are kept by it,
   so it never changes once shipped. `name`, what the player sees.
+- `layout`, the number of the layout its bricks are in, a whole number
+  from 1, left out for the first. Redrawing a level that has shipped raises
+  it, so the bests made on the old bricks are let go, while the progress,
+  kept by the id, stays.
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
@@ -67,8 +71,9 @@ Then:
 3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle
    time should sit with its set's, rising through the game, and a long
    endgame (`!`) on one seed in many is luck, but on many seeds, leaving
-   the same bricks for last, it is a level to redraw. `--height 45` plays
-   it on the tallest field, as an upright phone shows it.
+   the same bricks for last, it is a level to redraw, raising its `layout`
+   once it has shipped. `--height 45` plays it on the tallest field, as an
+   upright phone shows it.
 
 What drags an endgame, as the levels so far have shown: bricks above steel,
 a channel one cell wide at a wall, the inner corners of an enclosure, a
