@@ -728,3 +728,110 @@ Review (a fresh reviewer, on the staged change):
 6. The speed's check found the constant it looked for, and the rule's
    numbers were written out in the usage and the refusal too. Fixed:
    `includes()`, and both strings take `MARK_RULE`'s seeds and step.
+
+### 2026-11-14: the stars record (C6)
+
+- `src/rules/run/stars.ts`: `STAR`, the bits (clear 1, clean 2, streak 4),
+  with `StarId` and `STAR_IDS`, the three in their order; and
+  `StarsRecord`, `{ levels }`, each level's id and its bits, a level with
+  none left out. Its version, 1, is the shell's to keep beside its key, as
+  the stats' and the progress's are (second review, item 3).
+- `starsWon(field)`: none until the field is cleared; then the clear, the
+  clean clear where `isCleanClear()` says so (now `scoring.ts`'s, which the
+  clearing's bonus reads too, so the bonus and the star can't drift apart),
+  and the streak where `bestStreak` is at the level's mark or past. A
+  life lost is already the field's: `Field.livesLost` counts the level's
+  last balls lost, and a run taken up restores it from `Run.levelLost`
+  (`takeUpField()`), as the clean clear's bonus reads it, so nothing new
+  is kept for it.
+- `withStars(record, id, won)`: the bits held (`starsHeld()`) and won
+  together, or the same record, not a copy, where nothing is new, as
+  `withHigherCount()` does, so a stored signal writes nothing for a play
+  that won nothing new. `starsIn(bits)` names the stars among some bits,
+  so the shell reads stars by name and never by bit.
+- `starsRecordOf(value, levels, cleared)`: reads the stored fields whole,
+  as `statsOf()` does; keeps a level's bits only for a level the game has
+  and only where they are a count up to 7 with the clear among them (a
+  clean or streak star comes only with a clear); and gives every level in
+  `cleared` (the progress, as `clearedOf()` reads it) its first star. It
+  reads no layout and no mark, so stars won are kept through a redraw and
+  a new mark.
+- Specs: every star, the streak's star by the best streak and not the
+  last, one short of the mark, a life lost, and none before the clear; the
+  stars named among some bits, all, and none; a level's stars held, or
+  none; the record read as stored, kept for a redrawn level with a new
+  mark, unknown ids dropped, four shapes of record read as none and seven
+  of a level's bits dropped, the progress's first star beside stored ones,
+  and none for a cleared id the game doesn't have; and the merge, adding,
+  keeping what a later play didn't win, adding a level, and the same
+  record for nothing new.
+- The workspace's `AGENTS.md` names `stars.ts` in `src/rules/run/`; the
+  content skill says a star won under an old mark is kept, and that a
+  redraw keeps the stars as it keeps the progress.
+
+Choices where the plan was silent:
+
+- `starsWon()` takes no speed: decision 5 and C6 say a star is won at any
+  speed, Custom among them. P3 may hold Custom back if the user wants.
+- The record is `{ levels }` rather than the ids at its top, since
+  `writeVersioned()` writes the version among the same fields, as the
+  stats keep `levels` beside `speeds`.
+- The key, `brick-breaker-stars`, is the shell's to name, as the other
+  keys are (`STATS_KEY`, `PROGRESS_KEY`), so P3's service declares it,
+  and P3 lists it under "What It Keeps", where every entry is one the
+  game stores: until P3, nothing does (review item 1 below).
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (64 files, 2,382 specs, 12.6 s with six workers), the root's
+`lint`, and, as R3's last commit to touch `src/rules`, the coverage of
+`pure` and `dom` (2,184 specs): every file of `src/rules` and `src/view`
+at 100% of statements, functions and lines, and branches at 95% or more,
+`stars.ts`, `scoring.ts` and `saved_game.ts` at 100% of each.
+
+Review (a fresh reviewer, on the staged change):
+
+1. `AGENTS.md` said the shell keeps the record under `STARS_VERSION`, and
+   listed `brick-breaker-stars` under "What It Keeps", whose every entry
+   is in `localStorage`; nothing stores it until P3, and an `AGENTS.md`
+   describes code that exists. Fixed: `AGENTS.md` names the record's shape
+   only; the key's entry is P3's, with its service. The
+   brief asked for the storage keys; the repository's rule wins, and the
+   report to the integrator says so.
+2. The merge's spec went from the clear to the clear and the clean, which
+   a replace or a `Math.max()` passes too, though a max would lose a clean
+   star won after a streak star. Fixed: held the clear and the streak, won
+   the clear and the clean, expecting all three; a `Math.max()` fails it.
+3. Nothing read a star back by name, so every place the shell shows stars
+   would do its own bit work. Fixed: `StarId`, `STAR_IDS`, `starsIn()` and
+   `starsHeld()`, with specs.
+4. `starsWon()` repeated the clean clear's `livesLost === 0`, which
+   `clearingPoints()` holds too. Fixed: `isCleanClear()` in `scoring.ts`,
+   read by both, with a spec.
+5. Nits, each fixed: `withStars()` says it takes the bits `starsWon()`
+   returns; the saved game's sentence in `AGENTS.md` rewrapped; the content
+   skill's `layout` says a redraw keeps the stars too; `wonOf()`'s boolean
+   is `isStars`, as `won` is bits everywhere else in the file.
+
+The fixes added API, so the change was reviewed again, whole (a second
+fresh reviewer):
+
+1. No spec reached `wonOf()`'s bound of 7: the 8 it stored lacks the
+   clear, so the clear's check dropped it first. Fixed: 9, with the clear,
+   is dropped too.
+2. The spec short of the mark played 5 at a mark of 10, so `>= mark - 1`
+   would pass. Fixed: 5 at a mark of 6, beside 5 at 5, brackets the `>=`.
+3. `STARS_VERSION` sat in the rules, read by nothing there, while the
+   stats' and the progress's versions sit beside their keys in their
+   services; the saved game's is in the rules only for the screenshots'
+   script. Fixed: it is gone from the rules and `AGENTS.md`; P3 keeps the
+   version, 1, beside the key, as `STATS_VERSION` is.
+4. `withStars()` takes bits the reader would drop, such as a streak
+   without the clear. Left: its bits come from `starsWon()`, as its doc
+   says, and refusing them there would be a second reader of the same
+   rule.
+5. Nits, each fixed: two of this entry's lines rewrapped, and `STAR_IDS`
+   is "in the order they are shown", as a play wins its stars at once.
+
+Checks after these fixes: the workspace's `lint`, `typecheck` and `test`
+(64 files, 2,383 specs, 12.8 s with six workers), the root's `lint`, and
+the coverage of `pure` and `dom` again (2,185 specs), at the same floors.

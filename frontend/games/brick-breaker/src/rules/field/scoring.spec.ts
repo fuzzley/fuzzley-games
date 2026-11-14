@@ -11,7 +11,13 @@ import { BRICK_KINDS } from "../catalog/bricks";
 import { stepsIn } from "../stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 import type { Field } from "./field";
-import { clearingPoints, multiplier, pointsOf, tallyOf } from "./scoring";
+import {
+  clearingPoints,
+  isCleanClear,
+  multiplier,
+  pointsOf,
+  tallyOf,
+} from "./scoring";
 
 /** Hits the bricks of the first row once each, in the columns given, in turn. */
 function hitTop(field: Field, ...columns: number[]): void {
@@ -32,6 +38,12 @@ describe("multiplier", () => {
     [50, 4],
   ])("scores a streak of %i %i times", (streak, times) => {
     expect(multiplier(streak)).toBe(times);
+  });
+});
+
+describe("isCleanClear", () => {
+  it("calls a level cleared without losing a life clean, and no other", () => {
+    expect([isCleanClear(0), isCleanClear(1)]).toEqual([true, false]);
   });
 });
 

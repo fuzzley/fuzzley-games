@@ -47,9 +47,14 @@ export function endStreak(field: Field): void {
   field.streak = 0;
 }
 
+/** Returns whether a level cleared after losing so many lives was cleared clean: without losing one. */
+export function isCleanClear(livesLost: number): boolean {
+  return livesLost === 0;
+}
+
 /** Returns what clearing a level adds, more for one cleared without losing a life. */
 export function clearingPoints(livesLost: number): number {
-  return CLEAR_POINTS + (livesLost === 0 ? CLEAN_POINTS : 0);
+  return CLEAR_POINTS + (isCleanClear(livesLost) ? CLEAN_POINTS : 0);
 }
 
 /** Describes how a cleared level's points add up, for its card. */

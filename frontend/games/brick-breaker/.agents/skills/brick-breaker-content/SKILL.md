@@ -43,8 +43,8 @@ Its block in a set's file:
   so it never changes once shipped. `name`, what the player sees.
 - `layout`, the number of the layout its bricks are in, a whole number
   from 1, left out for the first. Redrawing a level that has shipped raises
-  it, so the bests made on the old bricks are let go, while the progress,
-  kept by the id, stays.
+  it, so the bests made on the old bricks are let go, while the progress
+  and the stars, kept by the id, stay.
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
@@ -88,7 +88,8 @@ Then:
    shipped. `--height 45` plays it on the tallest field, as an upright phone
    shows it.
 4. `yarn report:levels --marks`, and its `mark` set to what it prints. A
-   redraw sets it again.
+   redraw sets it again; a star won under the old mark is kept
+   (`src/rules/run/stars.ts`).
 
 What drags an endgame, as the levels so far have shown: bricks above steel,
 a channel one cell wide at a wall, the inner corners of an enclosure, a
