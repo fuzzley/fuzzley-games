@@ -109,11 +109,15 @@ thought rather than speed starts lower: Friends runs from 1.12.
 
 - Its entry in `CAPSULES`: its `name` and `about`, its `tone` (`bad` ones
   never fall at Relaxed), its `weight` against the others in a pool, the
-  level it first falls `from`, and its `effect`.
+  level it first falls `from`, and its `effect`. A bad one `pays` 2: bricks
+  pay double while its effect is in play, after the streak's multiplier,
+  which its `about` says ("pay double"), as the catalog spec holds; a good
+  one leaves `pays` out.
 - Its shape in `CAPSULE_ART` (`src/view/art/art.ts`) and its symbol in
   `SYMBOLS` (`src/view/art/symbols.ts`); the compiler asks for both, and its
   tag under the paddle is drawn from the same.
-- The announcer says its name as it is caught; How to play lists it.
+- The announcer says its name as it is caught, and "Double pay." for one
+  that pays; How to play lists it.
 
 ## A New Kind of Effect
 

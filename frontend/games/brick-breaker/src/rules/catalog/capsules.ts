@@ -70,6 +70,11 @@ export interface Capsule {
   readonly from: number;
   /** What catching it does. */
   readonly effect: CapsuleEffect;
+  /**
+   * How many times over bricks pay while its effect is in play, after the
+   * streak's multiplier; left out for one that changes no pay.
+   */
+  readonly pays?: number;
 }
 
 /** Every capsule, by id, in How to play's order. */
@@ -135,11 +140,13 @@ export const CAPSULES = {
   },
   narrow: {
     name: "Narrow paddle",
-    about: "The paddle shrinks to two thirds of its width for 15 seconds.",
+    about:
+      "The paddle shrinks to two thirds of its width for 15 seconds, and bricks pay double while it lasts.",
     tone: "bad",
     weight: 5,
     from: 11,
     effect: { kind: "paddle-size", width: 2.6, ms: 15_000 },
+    pays: 2,
   },
   fire: {
     name: "Fire ball",
@@ -151,7 +158,8 @@ export const CAPSULES = {
   },
   fast: {
     name: "Fast ball",
-    about: "The balls go a quarter faster for 12 seconds.",
+    about:
+      "The balls go a quarter faster for 12 seconds, and bricks pay double while they do.",
     tone: "bad",
     weight: 4,
     from: 14,
@@ -162,6 +170,7 @@ export const CAPSULES = {
       fromBase: false,
       ms: 12_000,
     },
+    pays: 2,
   },
   blast: {
     name: "Blast ball",

@@ -336,6 +336,9 @@ export class BoardComponent {
     return [
       { label: "Bricks", points: formatPoints(tally.bricks) },
       { label: "Streaks", points: formatPoints(tally.streaks) },
+      ...(tally.dares > 0
+        ? [{ label: "Double pay", points: formatPoints(tally.dares) }]
+        : []),
       { label: "Bonus", points: formatPoints(tally.bonus) },
     ];
   });

@@ -480,6 +480,21 @@ describe("BoardComponent", () => {
       expect(screen.getByText("Score 2,100")).toBeInTheDocument();
     });
 
+    it("add a line for what double pay added, where a bad capsule paid", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.dare);
+      playToClear(game);
+
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+
+      expect(figures()).toEqual([
+        ["Bricks", "600"],
+        ["Streaks", "100"],
+        ["Double pay", "600"],
+        ["Bonus", "1,500"],
+      ]);
+    });
+
     it("go on to the next level at Next level, handing the board the focus", async () => {
       const { application, game, detectChanges } = await renderAt(
         SPEC_LEVEL.blasts,

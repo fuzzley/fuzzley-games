@@ -114,6 +114,13 @@ export interface Field {
   score: number;
   /** What the streaks added to the level's points, beyond the bricks' own. */
   streakPoints: number;
+  /** What double pay added to the level's points, beyond the bricks' and the streaks'. */
+  darePoints: number;
+  /**
+   * How many times over a hit pays, after the streak's multiplier: the most
+   * any effect in play pays (`Capsule.pays`), 1 with none.
+   */
+  pay: number;
   /**
    * The bricks broken since the paddle last met a ball, or the last ball
    * was lost, which multiply the score.
@@ -195,6 +202,8 @@ export function createField(level: Level, setup: FieldSetup): Field {
     paddle,
     score: 0,
     streakPoints: 0,
+    darePoints: 0,
+    pay: 1,
     streak: 0,
     livesLost: 0,
     climbed: 0,

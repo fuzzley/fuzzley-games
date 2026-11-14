@@ -7,6 +7,7 @@ import {
   provideMemoryStorage,
   setPageVisibility,
 } from "@fz/ui/testing";
+import { SAVED_GAME_VERSION } from "../../rules/run/saved_game";
 import { FIRST_LIVES } from "../../rules/tuning";
 import {
   SPEC_LEVEL,
@@ -45,10 +46,9 @@ function stored(): Record<string, unknown> | null {
 
 /** Returns the game as it would be stored now, read back from JSON. */
 function current(game: GameService): Record<string, unknown> {
-  return JSON.parse(JSON.stringify({ version: 1, ...game.saved() })) as Record<
-    string,
-    unknown
-  >;
+  return JSON.parse(
+    JSON.stringify({ version: SAVED_GAME_VERSION, ...game.saved() }),
+  ) as Record<string, unknown>;
 }
 
 /** Starts the service, as the app does on load, and returns the game. */
@@ -312,7 +312,16 @@ describe("SavedGameService", () => {
 
     it("leaves out a run kept in another shape", async () => {
       await brokeSome();
-      store({ ...stored(), version: 2 });
+      store({ ...stored(), version: SAVED_GAME_VERSION + 1 });
+
+      const game = reload();
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("leaves out a run kept by the build before the uplift", async () => {
+      await brokeSome();
+      store({ ...stored(), version: 1 });
 
       const game = reload();
 

@@ -35,6 +35,28 @@ const BLASTS: LevelData = {
   bricks: ["........*****"],
 };
 
+/** A row of a level's bricks with none in it. */
+const NO_BRICKS = ".".repeat(13);
+
+/**
+ * A gift that lets a narrow paddle fall into the paddle kept under the ball
+ * the gift sends straight back, which goes on to set off a row of blasts
+ * far above it, each paying double.
+ */
+const DARE: LevelData = {
+  id: "dare",
+  name: "Dare",
+  capsules: [],
+  legend: { n: { kind: "gift", capsule: "narrow" } },
+  bricks: [
+    NO_BRICKS,
+    NO_BRICKS,
+    ".....*****...",
+    ...Array.from({ length: 12 }, () => NO_BRICKS),
+    ".........n...",
+  ],
+};
+
 /** The last level, blasts again, clearing which wins the run. */
 const LAST: LevelData = { ...BLASTS, id: "last", name: "Last" };
 
@@ -65,6 +87,7 @@ const SET: LevelSetData = {
     giftsOf("life", "Lives"),
     giftsOf("laser", "Laser"),
     giftsOf("catch", "Catch"),
+    DARE,
     LAST,
   ],
 };
@@ -93,7 +116,8 @@ export const SPEC_LEVEL = {
   lives: 5,
   laser: 6,
   catch: 7,
-  last: 8,
+  dare: 8,
+  last: 9,
 } as const;
 
 /** Returns the providers that hand `GameService` the specs' levels, or those given, and a seed of its own. */

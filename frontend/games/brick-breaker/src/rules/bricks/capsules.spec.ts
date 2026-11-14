@@ -436,6 +436,73 @@ describe("an effect", () => {
   });
 });
 
+describe("double pay", () => {
+  it.each(["narrow", "fast"] as const)(
+    "starts as %s, a bad capsule, is caught",
+    (id) => {
+      const field = fieldOf("o");
+
+      catchCapsule(field, id, 0, 0);
+
+      expect(field.pay).toBe(2);
+    },
+  );
+
+  it("stays double, no more, with two bad capsules in play at once", () => {
+    const field = fieldOf("o");
+    catchCapsule(field, "narrow", 0, 0);
+
+    catchCapsule(field, "fast", 0, 0);
+
+    expect(field.pay).toBe(2);
+  });
+
+  it("stays double while one of two bad capsules is in play", () => {
+    const field = fieldOf("o");
+    catchCapsule(field, "narrow", 0, 0);
+    stepTimes(field, stepsOf("narrow") / 3);
+    catchCapsule(field, "fast", 0, 0);
+
+    stepTimes(field, (stepsOf("narrow") * 2) / 3);
+
+    expect({
+      narrow: field.effects["paddle-size"].capsule,
+      pay: field.pay,
+    }).toEqual({ narrow: null, pay: 2 });
+  });
+
+  it("ends as a bad capsule's time runs out", () => {
+    const field = fieldOf("o");
+    catchCapsule(field, "narrow", 0, 0);
+
+    stepTimes(field, stepsOf("narrow"));
+
+    expect(field.pay).toBe(1);
+  });
+
+  it("ends as a good capsule takes a bad one's place", () => {
+    const field = fieldOf("o");
+    catchCapsule(field, "narrow", 0, 0);
+
+    catchCapsule(field, "wide", 0, 0);
+
+    expect(field.pay).toBe(1);
+  });
+
+  it("ends as the last ball is lost", () => {
+    const field = fieldOf("o");
+    catchCapsule(field, "narrow", 0, 0);
+    throwBall(field, 5, 29.5, 180);
+
+    stepTimes(field, 10);
+
+    expect({ lost: field.livesLost, pay: field.pay }).toEqual({
+      lost: 1,
+      pay: 1,
+    });
+  });
+});
+
 describe("Slow", () => {
   it("brings the balls back to their base, and climbs half as fast", () => {
     const field = fieldOf("");

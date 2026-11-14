@@ -16,9 +16,10 @@ export function describeLevel(entry: LevelEntry, needed: number): string {
   return `Level ${String(entry.number)}, ${entry.data.name}. ${count(needed, "brick", "bricks")}.`;
 }
 
-/** Returns what is said as a capsule is caught: its name. */
+/** Returns what is said as a capsule is caught: its name, and that it pays double if it does. */
 export function describeCaught(id: CapsuleId): string {
-  return `${capsule(id).name}.`;
+  const { name, pays } = capsule(id);
+  return pays === undefined ? `${name}.` : `${name}. Double pay.`;
 }
 
 /**

@@ -6,6 +6,7 @@ import {
   throwBall,
 } from "../../testing/field_picture";
 import { hitBrick } from "../bricks/bricks";
+import { catchCapsule } from "../bricks/capsules";
 import { stepsIn } from "../stepper";
 import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 import type { Field } from "./field";
@@ -43,10 +44,18 @@ describe("clearingPoints", () => {
 });
 
 describe("tallyOf", () => {
-  it("parts a level's points into the bricks', the streaks' and the bonus", () => {
-    expect(tallyOf({ score: 4200, streakPoints: 700, livesLost: 1 })).toEqual({
-      bricks: 3500,
+  it("parts a level's points into the bricks', the streaks', double pay's and the bonus", () => {
+    expect(
+      tallyOf({
+        score: 4200,
+        streakPoints: 700,
+        darePoints: 600,
+        livesLost: 1,
+      }),
+    ).toEqual({
+      bricks: 2900,
       streaks: 700,
+      dares: 600,
       bonus: CLEAR_POINTS,
     });
   });
@@ -54,7 +63,9 @@ describe("tallyOf", () => {
 
 describe("pointsOf", () => {
   it("adds up a level's tally", () => {
-    expect(pointsOf({ bricks: 3500, streaks: 700, bonus: 1000 })).toBe(5200);
+    expect(
+      pointsOf({ bricks: 2900, streaks: 700, dares: 600, bonus: 1000 }),
+    ).toBe(5200);
   });
 });
 
@@ -114,6 +125,56 @@ describe("a level's score", () => {
     stepTimes(field, stepsIn(100));
 
     expect(field.streak).toBe(9);
+  });
+});
+
+describe("double pay", () => {
+  it("doubles a hit's points while a bad capsule is in play, keeping apart what it added", () => {
+    const field = fieldFrom(["o", ...KEEPER]);
+    catchCapsule(field, "narrow", 0, 0);
+
+    hitTop(field, 0);
+
+    expect({ score: field.score, dares: field.darePoints }).toEqual({
+      score: 2 * 50,
+      dares: 50,
+    });
+  });
+
+  it("doubles a hit's points after the streak's multiplier", () => {
+    const field = fieldFrom(["oooooo", ...KEEPER]);
+    catchCapsule(field, "fast", 0, 0);
+
+    hitTop(field, 0, 1, 2, 3, 4, 5);
+
+    expect(tallyOf(field)).toEqual({
+      bricks: 6 * 50,
+      streaks: 2 * 50,
+      dares: 4 * 50 + 2 * 100,
+      bonus: CLEAR_POINTS + CLEAN_POINTS,
+    });
+  });
+
+  it("still doubles a hit's points, no more, with two bad capsules in play at once", () => {
+    const field = fieldFrom(["o", ...KEEPER]);
+    catchCapsule(field, "narrow", 0, 0);
+    catchCapsule(field, "fast", 0, 0);
+
+    hitTop(field, 0);
+
+    expect(field.score).toBe(2 * 50);
+  });
+
+  it("pays once over with a good capsule in play", () => {
+    const field = fieldFrom(["o", ...KEEPER]);
+    catchCapsule(field, "wide", 0, 0);
+
+    hitTop(field, 0);
+
+    expect({ score: field.score, dares: field.darePoints }).toEqual({
+      score: 50,
+      dares: 0,
+    });
   });
 });
 

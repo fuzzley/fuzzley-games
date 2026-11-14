@@ -1,4 +1,5 @@
 import { hitBrick } from "../bricks/bricks";
+import { catchCapsule } from "../bricks/capsules";
 import { BRICK_KINDS, hasTrait } from "../catalog/bricks";
 import {
   type Field,
@@ -87,6 +88,7 @@ const PLAYED_STATES: readonly string[] = [
   "a regrowing brick broken",
   "a regrowing brick grown back",
   "a tough brick worn",
+  "dare points",
   "draws",
   "streak points",
 ];
@@ -112,7 +114,8 @@ function fieldFor(run: Run): Field {
  * Returns a field of the first level well into play, and its run caught up
  * with it: its first plain brick, its regrowing brick and its blast brick
  * broken, the blast's fuse lit, its tough brick and its first hidden one hit
- * once, a streak, a climb, draws, and a life gained and one lost.
+ * once, points from a streak and from double pay, a climb, draws, and a life
+ * gained and one lost.
  */
 function playedField(): { run: Run; field: Field } {
   const field = fieldOf(1);
@@ -122,6 +125,7 @@ function playedField(): { run: Run; field: Field } {
     if (brick) hitBrick(field, brick, 0, 0);
   }
   field.streakPoints = 10;
+  field.darePoints = 20;
   field.climbed = 2.5;
   field.draws = 4;
   field.livesGained = 1;
@@ -176,6 +180,7 @@ function statesOf(field: Readonly<Field>): string[] {
     field.livesLost > 0 && "a ball lost",
     field.draws > 0 && "draws",
     field.streakPoints > 0 && "streak points",
+    field.darePoints > 0 && "dare points",
   ];
   for (const brick of field.bricks) {
     if (!brick) continue;
@@ -267,6 +272,7 @@ describe("saveGame", () => {
       score: run.score,
       counts: {
         streakPoints: 10,
+        darePoints: 20,
         climbed: 2.5,
         steps: PLAYED_AT,
         draws: 4,
@@ -351,6 +357,8 @@ describe("restoreGame", () => {
       createRun({ id: 1, seed: 5, speed: "normal", lastLevel: 3, level: 3 }),
     );
     const field = fieldFor(run);
+    // Its effect isn't kept, but the points it pays are.
+    catchCapsule(field, "fast", 0, 0);
     const misses: number[] = [];
     const seen = new Set<string>();
 
@@ -428,6 +436,19 @@ describe("restoreGame", () => {
       "streak points beyond the level's",
       (saved) => withField(saved, { streakPoints: 1e6 }),
     ],
+    [
+      "dare points beyond the level's",
+      (saved) => withField(saved, { darePoints: 1e6 }),
+    ],
+    [
+      "streak and dare points beyond the level's together",
+      (saved) => {
+        const level = Number(saved["score"]) - Number(saved["banked"]);
+        const streaks = Number(fieldIn(saved)["streakPoints"]);
+        return withField(saved, { darePoints: level - streaks + 1 });
+      },
+    ],
+    ["dare points below none", (saved) => withField(saved, { darePoints: -1 })],
     ["a climb below nothing", (saved) => withField(saved, { climbed: -1 })],
     [
       "a climb that isn't a number",

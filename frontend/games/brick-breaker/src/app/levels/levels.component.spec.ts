@@ -86,7 +86,8 @@ describe("LevelsComponent", () => {
       "5 Lives Locked",
       "6 Laser Locked",
       "7 Catch Locked",
-      "8 Last Locked",
+      "8 Dare Locked",
+      "9 Last Locked",
     ]);
   });
 
