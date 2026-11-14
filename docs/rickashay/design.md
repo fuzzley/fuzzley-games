@@ -281,10 +281,19 @@ answers there. Each of the rest says what it could be instead.
     seeing one ("The sketch", 9), so this one setting moves the game
     further than any other number in it. Instead: the first turn and one
     more, the least that is fair; or the fifth, for a gentler game.
-18. **Aiming:** by touch, pull back anywhere and let go; by mouse, point
-    and click; by keys, a degree at a time, or a quarter of one with Shift.
-    Two buttons nudge the aim a quarter of a degree, and a setting has a
-    shot wait for a Release button, so lifting a finger can't spoil an aim.
+18. **Aiming:** a finger and a mouse alike point and hold: press where to
+    aim, the guide follows as the finger or the mouse drags, and letting
+    go releases. Holding charges nothing, as there is nothing to charge.
+    Pulling back is a setting, for the mouse and fingers alike. By keys, a
+    degree at a time, or a quarter of one with Shift. Two buttons nudge
+    the aim a quarter of a degree, and a setting has a shot wait for a
+    Release button, so lifting a finger can't spoil an aim. Brick Fuzz
+    Pop's fingers have aimed this way since 2026-11-13, as a phone had no
+    room under its field to pull back into. It costs a finger's view of
+    the guide where it presses, which Release with a button gives back,
+    and a stray tap fires. Instead: a finger pulls back by default, which
+    keeps it off the guide and swallows a tap, but wants room below its
+    press.
 19. **The fuzzball waits where it lands** (**the user's**), and the next
     round leaves from there (Brick Fuzz Pop's decision 8). So an aim also
     chooses where the next one starts, as Bounzy's does, and a long flight
@@ -805,27 +814,41 @@ long flight isn't out of reach.
 
 ### Controls
 
-- **Pull back,** a finger's default: press anywhere on the field and drag.
-  The aim is opposite the drag, so the finger never covers the guide. The
-  pull's length means nothing but care: the further the finger is from
-  where it pressed, the finer it turns the aim. Let go to release; let go
-  inside a dead zone of half a unit to call it off.
-- **Point,** a mouse's default: the guide follows the pointer, and a click
-  releases. The wheel nudges the aim a quarter of a degree.
+- **Point and hold,** the default, for a finger and a mouse alike. A
+  finger presses where to aim, and the guide follows as it drags; nothing
+  flies until it lets go, however long it holds, still or moving. A
+  mouse's guide follows it unpressed, and a press keeps the aim the guide
+  shows, a nudge included, until the mouse moves, so a click releases
+  what the guide shows. The aim runs from the fuzzball to the finger or
+  the pointer, so the further from the fuzzball, the finer it turns.
+- **Pull back,** a setting, for a finger and a mouse alike: press anywhere
+  on the field and drag. The aim is opposite the drag, so a finger never
+  covers the guide, but it wants room below its press, and on a phone the
+  screen ends close under the field. The pull's length means nothing but
+  care: the further it is from where it pressed, the finer it turns the
+  aim. Let go to release; let go inside a dead zone of half a unit to
+  call it off.
+- **Calling a shot off,** either way of aiming: a right-click, or a second
+  finger on the field, while a shot is pressed.
 - **Nudge,** two buttons in the bar while a shot is being aimed, a quarter
-  of a degree each, for a finger that can't hold still.
+  of a degree each, for a finger that can't hold still. A mouse's wheel
+  nudges the same.
 - **Release with a button,** a setting, off by default: the aim stays
   where the finger or the pointer left it, and the bar's Release button
-  sends it. Lifting a finger then can't move an aim.
+  sends it. Lifting a finger then can't move an aim, and shows the guide
+  it covered. A mouse's guide, once its press lets go, stops following it
+  until it presses again, so the way to the button can't move the aim
+  either.
 - **Keys,** by `event.code`: Left and Right swing the aim a degree, four
   aims, or a quarter of one with Shift held; Space releases. A and D do
   the same. F holds the flight fast, and X skips it. G reads the guide and
   R the wall's lowest rows ("Accessibility"). The run's keys are the
   libraries'.
 - **Aims are numbered** 0 to 656, as Brick Fuzz Pop's.
-- **Settings:** Aiming (by the pointer, pull back, point); Release with a
-  button; the aim guide (to the first turn, the third, the fifth); the
-  flight's speed (Normal, Fast); sound; the palette.
+- **Settings:** Aiming (point and hold, pull back), for the mouse and
+  fingers alike; Release with a button; the aim guide (to the first turn,
+  the third, the fifth); the flight's speed (Normal, Fast); sound; the
+  palette.
 
 ### The feel, in numbers
 
@@ -853,7 +876,7 @@ where a number is that game's, this takes whatever it settles on.
 | Fast-forward       | 4 times, held                                                                                                               |
 | The wall's step    | Brick Fuzz Pop's: 260 ms a row; a jump 480 ms in all                                                                        |
 | The guide          | to the third turn and 1.5 units past it; a setting, the first or the fifth                                                  |
-| Pull back          | a dead zone of 0.5 units                                                                                                    |
+| Pull back          | the setting's dead zone, 0.5 units, to call a shot off                                                                      |
 | Points             | 10 a strike, times the rally's step; 100 for each floor bounce earned; 100 for a jump                                       |
 | The rally's step   | 2 from the flight's 5th strike, 3 from its 10th, 4 from its 25th, 5 from its 45th (`@fz/core/math`'s `multiplierAt()`)      |
 | Stars              | one for clearing; one for clearing within par; one for a flight at the rally mark, in a game that clears; 200 points a star |
