@@ -155,8 +155,12 @@ All of it passed the ear. What their maker doubted, for the record:
 Four passed the ear as they were: `bed-iron-reach`, `bed-storm`,
 `bed-shimmer` and `bed-pulse`, "the best one". Two were made again from
 what the ear said of both: "Tone is too difficult to listen to for a long
-time, needs to be softer and maybe have more variation." **Neither has been
-heard since.**
+time, needs to be softer and maybe have more variation."
+
+**Heard again the same day:** the tones "sound good", but both beds'
+"'wind' sounds sound too much like static hisses. They need to be
+softer/quieter or less drawn out maybe." Their air was made again for
+that, as the last point below says, and **has not been heard since.**
 
 - **What was taken to be wrong.** The beds that passed are made of noise
   and of things that come and go: far metal rings, wind, soft mallet notes.
@@ -182,11 +186,18 @@ heard since.**
 | `bed-inner-belt` | like a slow tune: seven bells in 32 s is near a melody               | take two of the bells out                      |
 | `bed-inner-belt` | still: its low C holds through every change                          | let the bass move, at the cost of a dip        |
 | `bed-endless`    | too forward for "deep": its second voice sits 10 dB under the C      | 3 dB less of it                                |
-| either           | hissy: its air is 28 dB down                                         | turn the air down; it is one number            |
 | `bed-iron-reach` | like an organ: its drone is plain sines (it passed the ear as it is) | a little drive, or a slow drift of pitch       |
 | `bed-pulse`      | nagging, at steady eighths (it passed the ear as "the best one")     | drop the off-beats                             |
 
+- **The air, after the second listen.** It was pink noise in a band round
+  1.1 kHz (700 Hz in Endless), open to 3.6 kHz, never under a sixth of its
+  level, 28 dB down: a steady hiss. It is now a low breath: a band round
+  520 Hz (380 in Endless) with nothing above 1.2 kHz (900 Hz), 10 dB
+  quieter, which comes in slow swells and is silent between them, for
+  about half the loop. If it still hisses, it can go altogether: each
+  bed's tones and bells stand without it.
 - **Each loop's seam** was drawn twice end to end and shows nothing; the
   level is level across it within 0.2 dB. Summed to one ear, a bed loses a
   quarter of a decibel.
-- **A phone hears 9% of each,** which is the kit's allowance for a bed.
+- **A phone hears 5% of each** now that their air is low, which is the
+  kit's allowance for a bed: the bells are what a phone keeps.
