@@ -376,15 +376,16 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `src/sounds.ts`, `@fz/dev/sounds`: a game's sound effects, synthesized. A
   `Sound` is a name, a length, a peak and a wave, made of `glide()` (a tone
   gliding between two pitches), `envelope()`, `thud()` (seeded noise),
-  `note()` and `arpeggio()` (a chord's notes struck one after another, as a
-  chime is), and `looped()`, a wave of noise that ends just as it starts, at
-  an even loudness, for a sound marked `loop`, which a game loops as a held
-  key's hum; `writeSoundSprite()` renders a list of them, throwing for an
-  empty list, two of one name or a silent one, at 16,000 samples a second,
-  each but a looping one faded out at its end, a tenth of a second apart,
-  into `sounds.wav` and the spritemap Phaser plays it by, `sounds.json`, the
-  same bytes every run. A game's `tools/build-sounds.mjs` holds its recipes
-  and calls it.
+  `note()`, `withBurst()` (a tone under a burst of `thud()`'s noise, as a
+  knock or a boom has), `arpeggio()` (a chord's notes struck one after
+  another, as a chime is), and `looped()`, a wave of noise that ends just
+  as it starts, at an even loudness, for a sound marked `loop`, which a
+  game loops as a held key's hum; `writeSoundSprite()` renders a list of
+  them, throwing for an empty list, two of one name or a silent one, at
+  16,000 samples a second, each but a looping one faded out at its end, a
+  tenth of a second apart, into `sounds.wav` and the spritemap Phaser
+  plays it by, `sounds.json`, the same bytes every run. A game's
+  `tools/build-sounds.mjs` holds its recipes and calls it.
 - `src/zzfx.ts`, `@fz/dev/zzfx`: ZzFX's synthesis
   (https://github.com/KilledByAPixel/ZzFX, v1.4.0, MIT, its notice kept at
   the top), ported to render the same samples from the same parameters, in

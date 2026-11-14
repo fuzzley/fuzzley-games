@@ -869,3 +869,128 @@ page through Angular's dev tools and the paddle kept under the ball.
   whole, from the first frame.
 - No error or warning in the console. The page was closed and the server
   stopped.
+
+## F4. The burst lifted into `@fz/dev/sounds`
+
+A package the integrator added for the user's ask to share library code
+between the games; it isn't in the plan's §6, so its brief is its scope:
+lift the `withBurst()` both brick games' sound scripts copy, F3a's item 8
+above. The branch was at the integration tip, 6503c59c, as the package
+began.
+
+### 2026-11-14: `withBurst()` moves into the library
+
+What it does:
+
+- `frontend/lib/dev/src/sounds.ts` gains `withBurst()`, given a tone, a
+  seed, a decay and a loudness: the tone, which the caller shapes, under a
+  burst of `thud()`'s noise from the seed, struck at 0 s, scaled by
+  `loudness`, rising over 1 ms (`BURST_ATTACK_S`, beside
+  `ARPEGGIO_ATTACK_S`), then falling to about a third every `decay` seconds.
+  Its sum is the scripts' own, `tone(t) + loudness * burst(t) * shape(t)`,
+  in the same order.
+- Its specs, in `frontend/lib/dev/src/sounds.spec.ts`: the tone played
+  under the seed's noise, half risen at half a millisecond, and, from
+  another seed, the noise fallen to e⁻¹ at one decay, scaled by the
+  loudness while the tone isn't. They fail with the rise at 2 ms, the decay
+  doubled, the loudness ignored or applied to the tone too, the tone
+  dropped, or the seed fixed.
+- `tools/build-sounds.mjs` here and Brick Fuzz Pop's import it and lose
+  their copies, and `thud` with them, which only the copies used; Brick
+  Fuzz Pop's `@import` loses `Wave` too. No recipe changed a character.
+- `AGENTS.md`: the library's sounds entry names `withBurst()`; this game's
+  and Brick Fuzz Pop's Make the Sounds say their recipes are made of the
+  library's synths, `withBurst()` laying a burst of noise under a tone,
+  without naming which sounds, so a new recipe leaves them true.
+
+The two copies were the same, character for character, the doc comment
+too (one text replaced in both), so there was no difference to explain and
+nothing to choose between.
+
+The sprites: both scripts run after the change wrote "15 sounds, 5.93 s,
+189804 bytes" and "20 sounds, 8.35 s, 267244 bytes", and `git status`
+showed neither `src/scene/sounds/` changed; each game's
+`tools/build-sounds.spec.ts`, which holds its sprite to what its recipes
+make, to the byte, passes.
+
+Choices where the brief was silent:
+
+- **The name and the arguments stay as the scripts had them,** so no
+  recipe changed, and F3b's portal and bumper write it as F3a's voices did.
+  The library's other synths take their numbers in a row too (`glide()`,
+  `arpeggio()`).
+- **Asteroid Breaker stays as it is.** Its script writes the same sum
+  inline three times, but it is another game, outside the brief.
+
+Left, named for a follow-up rather than lifted:
+
+1. Asteroid Breaker's `breakOf()`, `blast` and `lost` are `withBurst()`
+   written out (`blast` is `withBurst(boom, 11, 0.08, 2)`; the other two
+   at a loudness of 1, which multiplies exactly), so moving it would keep
+   its bytes. It has no byte spec: run its script and compare the sprite.
+2. Both scripts end alike: written only when run, then "Wrote N sounds,
+   X s, Y bytes." Snake's and Asteroid Breaker's print the same line, at
+   import. Small, but worth lifting only with all four moved at once.
+3. Two clashing partials, two `note()`s of a held pitch summed with the
+   second weighted (steel and the plate here, Brick Fuzz Pop's clank,
+   Asteroid Breaker's rung): one shape, but five numbers apiece, and the
+   key's ding is near it and not quite (a brighter ring, a slower rise).
+   Not clearly one helper.
+4. Notes summed in a closure, `first(t) + second(t)` (the capsule's catch
+   here, Brick Fuzz Pop's portal and danger, three of Asteroid Breaker's,
+   and the cage's ticks by `reduce()`): a `mix()` of waves would serve
+   them and `arpeggio()`'s own sum. A new piece of the library rather than
+   a copy, so not lifted here.
+5. The two `tools/build-sounds.spec.ts` are the same, byte for byte: the
+   recipes are the view's `SOUNDS`, none loops, and the sprite is what the
+   recipes make. A library helper could hold the third (the sprite checked
+   in against `renderSoundSprite()`), but the first two read the game's own
+   `SOUNDS` and spritemap, and `@fz/dev` has no testing entry for specs to
+   take it from; a follow-up, with Asteroid Breaker's and Snake's sprites,
+   which no spec holds to their scripts yet, moved onto it too.
+6. Whole recipes, the same but for their names: the bloop (`broken` here,
+   `break` there) and the clear's chord (`cleared` here, `chime` there, and
+   Asteroid Breaker's `cleared`); the knock (`hit`, `strike`) differs only
+   in its seed, and the blast in its seed and its lowest pitch. Left in
+   each game: a recipe is the game's own voice, which it may retune alone,
+   so sharing one would tie two games' sounds together.
+7. `SPRITE_FOLDER`, `join(import.meta.dirname, "../src/scene/sounds")`, is
+   the same line in both: a path from the script, the game's own, too
+   small to lift.
+
+Checks, after the review's fixes: the library's lint and typecheck pass,
+and its tests, 16 files and 549 specs; its `test:coverage` holds the floor (all files 96.02% of
+statements, 95.26% of branches, 97.18% of functions, 96.22% of lines;
+`sounds.ts` 100% of statements, functions and lines, its two uncovered
+branches the `?? 0`s that were there before). Brick Breaker's lint and
+typecheck pass, and its tests, 75 files and 3493 specs, in 19.0 s; Brick
+Fuzz Pop's lint and typecheck pass, and its tests, 147 files and 6489
+specs (both games' before the review's fixes, which touched neither
+script; the root's tests ran them again after). The root's lint, typecheck
+and tests, every workspace's, pass, under the lock.
+
+Outside stream F's files (the brief's own scope):
+`frontend/lib/dev/src/sounds.ts` and its spec, `frontend/lib/dev/AGENTS.md`,
+and Brick Fuzz Pop's `tools/build-sounds.mjs` and `AGENTS.md`; no stream
+owns them in §7.3.
+
+Review:
+
+1. The specs passed with the loudness scaling the tone too (the first
+   spec's loudness was 1, the second's tone silent), and with the seed
+   fixed at 7, which both used. Fixed: the second spec plays a tone of 0.25
+   from seed 11 at a loudness of 2; both mutations now fail it.
+2. The follow-ups missed the plainest repeats: two recipes the same but
+   for their names, the knock and the blast nearly so, `SPRITE_FOLDER`,
+   and the two sound specs, byte for byte the same. Added as 5 to 7 above,
+   each with why it stays.
+3. The doc comment said the noise is "`loudness` times as strong as the
+   tone", which the scale of `thud()`'s noise doesn't bear out, didn't say
+   the burst is struck at 0 s, whenever the tone starts, and read as if the
+   result were shaped. Fixed: "Returns a tone, which the caller shapes,
+   under a burst of `thud()`'s noise from a seed, as a knock or a boom
+   has: the noise struck at 0 s, scaled by `loudness`, …"; the log's line
+   too.
+4. This game's `AGENTS.md` named which sounds take the burst, which F3b's
+   recipes could leave stale. Fixed: "laying a burst of noise under a
+   tone, as a knock or a boom has", as Brick Fuzz Pop's reads.

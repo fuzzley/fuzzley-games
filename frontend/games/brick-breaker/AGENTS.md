@@ -1013,12 +1013,13 @@ workspace's with the others'.
   as above).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the fifteen sounds, from the paddle's bop to the
-  seeker's flutter, with `@fz/dev/sounds` into
-  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
-  same bytes every run, both checked in; their names and order are the
-  view's `SOUNDS`, and `tools/build-sounds.spec.ts` holds the sprite to
-  them and to what the script writes now, so a recipe is changed there and
-  the script run, never the sprite edited).
+  seeker's flutter, with `@fz/dev/sounds`' synths, its `withBurst()` laying a
+  burst of noise under a tone, as a knock or a boom has, into
+  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same
+  bytes every run, both checked in; their names and order are the view's
+  `SOUNDS`, and `tools/build-sounds.spec.ts` holds the sprite to them and to
+  what the script writes now, so a recipe is changed there and the script run,
+  never the sprite edited).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept

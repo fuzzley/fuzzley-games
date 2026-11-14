@@ -17,30 +17,14 @@ import {
   envelope,
   glide,
   note,
-  thud,
+  withBurst,
   writeSoundSprite,
 } from "@fz/dev/sounds";
 
-/** @import { Sound, Wave } from "@fz/dev/sounds" */
+/** @import { Sound } from "@fz/dev/sounds" */
 
 /** Where the sprite and its map are written. */
 export const SPRITE_FOLDER = join(import.meta.dirname, "../src/scene/sounds");
-
-/**
- * Returns a tone under a burst of noise, each shaped by an envelope of its
- * own, the noise `loudness` times the tone.
- *
- * @param {Wave} tone The tone, shaped already.
- * @param {number} seed Which noise the burst draws.
- * @param {number} decay How long the burst takes to fade, in seconds.
- * @param {number} loudness How loud the burst is beside the tone.
- * @returns {Wave}
- */
-function withBurst(tone, seed, decay, loudness) {
-  const burst = thud(seed);
-  const shape = envelope(0.001, decay);
-  return (t) => tone(t) + loudness * burst(t) * shape(t);
-}
 
 /**
  * The recipes, in `SOUNDS`' order.

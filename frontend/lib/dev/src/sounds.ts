@@ -59,6 +59,9 @@ const ARPEGGIO_BRIGHT = 0.25;
 /** How long an arpeggio's note takes to rise, in seconds, so it never clicks. */
 const ARPEGGIO_ATTACK_S = 0.005;
 
+/** How long a burst of noise takes to rise, in seconds: at once, as a knock. */
+const BURST_ATTACK_S = 0.001;
+
 /**
  * Returns a tone that glides exponentially from one pitch to another, in
  * Hz, then holds, with a share of its second harmonic for brightness.
@@ -115,6 +118,23 @@ export function thud(seed: number): Wave {
 /** Returns a tone shaped by an envelope, starting `at` seconds in. */
 export function note(at: number, tone: Wave, shape: Wave): Wave {
   return (t) => (t < at ? 0 : tone(t - at) * shape(t - at));
+}
+
+/**
+ * Returns a tone, which the caller shapes, under a burst of {@link thud}'s
+ * noise from a seed, as a knock or a boom has: the noise struck at 0 s,
+ * scaled by `loudness`, rising over 1 ms, then falling to about a third
+ * every `decay` seconds.
+ */
+export function withBurst(
+  tone: Wave,
+  seed: number,
+  decay: number,
+  loudness: number,
+): Wave {
+  const burst = thud(seed);
+  const shape = envelope(BURST_ATTACK_S, decay);
+  return (t) => tone(t) + loudness * burst(t) * shape(t);
 }
 
 /**
