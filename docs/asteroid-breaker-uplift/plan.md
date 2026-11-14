@@ -328,8 +328,19 @@ sparks. Three materials, each drawn one way.
   far wash, stars in three depths, one landmark cut off by the field's
   edge, a little air (dust, glints, wind) and a vignette. In a light
   palette a place is a pale wash and dark specks on white.
-- **Nearly still.** The farthest stars stay; one layer may drift a few
-  units a minute. Where motion isn't welcome nothing moves.
+- **Each landmark:** the limb of a ringed planet low in the Inner belt; a
+  cratered moon in a broken ring of girders in the Iron reach; a
+  thunderhead up one side of the Storm, with forks inside it; and a
+  galaxy's band across Endless, under the constellation the game already
+  draws there.
+- **Quiet by measure.** Nothing large in a backdrop stands out from the
+  field by more than 1.3 to 1, where a rock keeps 3 to 1; the sheet prints
+  each place's figure in each palette.
+- **Nearly still.** The wash, the far stars and the landmark stay. The
+  nearer stars slide against the pod's travel by 3% of it at most, each
+  place's air drifts on a wind of its own, and a fork in the Storm's cloud
+  flickers once in eleven seconds or so. Where motion isn't welcome nothing
+  moves.
 
 ![Energy and effects](art/preview/energy-and-effects.webp)
 
