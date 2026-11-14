@@ -278,7 +278,12 @@ takes for the specs' helpers.
   sound rises along a streak (`detuneOf()`), a note of a major pentatonic
   scale a brick, up to an octave and a fifth, and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
-  sound once a frame at most, at the highest it was heard; `flourish.ts`
+  sound once a frame at most, at the highest it was heard; `streak.ts` the
+  streak's steps, the multiplier's tiers (`STREAK_STEPS`), and how many a
+  streak has reached (`streakTier()`); `tail.ts` a ball's tail in a streak:
+  the places the ball passed, a gap apart (`Trail`), kept on records made
+  once, and how many dots it shows at each step, eight at most, each fainter
+  and smaller than the one before; `flourish.ts`
   how each flourish moves over its time, beside `@fz/core/math`'s
   `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), the
   color a broken brick's shard takes as it falls (`shardTint()`), dimming
@@ -336,7 +341,9 @@ takes for the specs' helpers.
   the cracks, rivets and sheen of a brick under 30 CSS px wide
   (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`)
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
-  capsule's symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s
+  capsule's symbol (`SYMBOLS`); `streak_art.ts` the frames a streak's
+  flourishes show (`STREAK_FRAMES`), white, which the scene tints as the
+  balls are: a dot of a ball's tail; they are drawn in `@fz/phaser/shapes`'s
   commands (`DrawCommand`), whose builders take no size below nothing, since
   a canvas not yet laid out gives a unit too small for the insets, and laid
   out by its areas, points and stars (`within()`, `share()`, `inset()`,
@@ -357,7 +364,9 @@ takes for the specs' helpers.
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in
-  play and their emptying rings, and `BallPainter` the balls, each with
+  play and their emptying rings, `TailPainter` a tail behind each ball in
+  play while the field is in a streak, a dot at each of its last places,
+  and `BallPainter` the balls, each with
   its eyes looking the way it goes, with a fire ball's embers, one for each
   ember's width it goes. Each is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
@@ -623,8 +632,9 @@ takes for the specs' helpers.
   placeholder to it. The panels take `fieldMetrics()`' own, the board's
   until the scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
-  `allowsMotion`): without it the flourishes, the shards, rings, shake and
-  the last bricks' pulse, are left out, and the cards open without waiting.
+  `allowsMotion`): without it the flourishes, the shards, rings, shake, a
+  ball's tail and the last bricks' pulse, are left out, and the cards open
+  without waiting.
 
 ## Styling
 

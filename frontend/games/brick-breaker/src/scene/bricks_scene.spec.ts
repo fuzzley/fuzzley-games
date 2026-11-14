@@ -26,6 +26,7 @@ import {
   BRICKS_TOP,
   COLUMNS,
   FIELD_HEIGHT,
+  MAX_BALLS,
   NET_DEPTH,
   PADDLE_HEIGHT,
   PADDLE_TOP,
@@ -61,6 +62,7 @@ import {
 } from "../view/field/field_metrics";
 import { SOUNDS } from "../view/effects/effects";
 import { shardTint } from "../view/effects/flourish";
+import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
 import type { TouchSteering } from "../view/steering/steering";
@@ -276,6 +278,26 @@ function moveAcross(
     ball.lastX = ball.x;
     run.advance(frameMs, frameMs);
   }
+}
+
+/** Returns the dots of the first ball's tail that show, nearest first. */
+function tailDotsOf(scene: BricksScene): GameObjects.Image[] {
+  return (scene.tails.byBall[0]?.dots ?? []).filter((dot) => dot.visible);
+}
+
+/**
+ * Starts a board whose first ball flies across the field from 2 to 14 at
+ * height 20, half a unit a frame, the field in a streak so long.
+ */
+async function flyAcross(
+  streak: number,
+  setUp?: (shell: FakeShell) => void,
+): Promise<Board> {
+  const board = await startBoard(setUp);
+  const ball = throwBall(board.shell.field, 2, 20, 90);
+  board.shell.field.streak = streak;
+  moveAcross(board.run, ball, 14, 24, 16);
+  return board;
 }
 
 /** Returns how many of a set of images show. */
@@ -1519,6 +1541,105 @@ describe("BricksScene", () => {
     });
   });
 
+  describe("a ball's tail", () => {
+    it.each([
+      [4, 0],
+      [5, 4],
+      [10, 6],
+      [20, TAIL_MOST],
+    ])(
+      "follows a ball in a streak of %i with %i dots",
+      async (streak, dots) => {
+        const { scene } = await flyAcross(streak);
+
+        const shown = tailDotsOf(scene);
+
+        expect(shown).toHaveLength(dots);
+      },
+    );
+
+    it("lays its dots at the ball's last places, a gap apart behind it, nearest first", async () => {
+      const { scene } = await flyAcross(20);
+      const metrics = metricsAt();
+
+      const places = tailDotsOf(scene).map(({ x, y }) => ({ x, y }));
+
+      expect(places).toEqual(
+        Array.from({ length: TAIL_MOST }, (_, dot) => ({
+          x: toCanvasX(metrics, 14 - (dot + 1) * TAIL_GAP),
+          y: toCanvasY(metrics, 20),
+        })),
+      );
+    });
+
+    it("fades and shrinks its dots from the nearest back, in the balls' color", async () => {
+      const { scene } = await flyAcross(20);
+
+      const dots = tailDotsOf(scene);
+
+      expect({
+        fainter: dots.every((dot, i) => dot.alpha < (dots[i - 1]?.alpha ?? 1)),
+        smaller: dots.every((dot, i) => dot.scale < (dots[i - 1]?.scale ?? 2)),
+        tints: new Set(dots.map((dot) => dot.tint)),
+      }).toEqual({
+        fainter: true,
+        smaller: true,
+        tints: new Set([LIGHT.balls.normal]),
+      });
+    });
+
+    it("follows each ball in flight with a tail of its own", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 2, 20, 90);
+      const second = throwBall(shell.field, 2, 10, 90, 1);
+      shell.field.streak = 20;
+
+      moveAcross(run, second, 14, 24, 16);
+
+      expect(
+        scene.tails.byBall.map(
+          ({ dots }) => dots.filter((dot) => dot.visible).length,
+        ),
+      ).toEqual(
+        Array.from({ length: MAX_BALLS }, (_, ball) =>
+          ball === 1 ? TAIL_MOST : 0,
+        ),
+      );
+    });
+
+    it("follows a ball where it is drawn, between its last place and its next", async () => {
+      const { shell, run, scene } = await flyAcross(20);
+      const ball = ballOf(shell.field, 0);
+      ball.lastX = 14;
+      ball.x = 16;
+
+      shell.alpha = 0.5;
+      run.advance(16);
+
+      expect(tailDotsOf(scene)[0]?.x).toBe(
+        toCanvasX(metricsAt(), 15 - TAIL_GAP),
+      );
+    });
+
+    it("goes as the paddle ends the streak", async () => {
+      const { shell, run, scene } = await flyAcross(20);
+
+      shell.field.streak = 0;
+      run.advance(16);
+
+      expect(tailDotsOf(scene)).toEqual([]);
+    });
+
+    it("goes as the ball comes to rest on the paddle", async () => {
+      const { shell, run, scene } = await flyAcross(20);
+
+      ballOf(shell.field, 0).held = true;
+      run.advance(16);
+
+      expect(tailDotsOf(scene)).toEqual([]);
+    });
+  });
+
   describe("where the player prefers less motion", () => {
     it("plays no flourish", async () => {
       const { shell, run, scene } = await startBoard(stillness);
@@ -1547,6 +1668,14 @@ describe("BricksScene", () => {
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("draws no ball's tail in a streak", async () => {
+      const { scene } = await flyAcross(20, stillness);
+
+      const shown = tailDotsOf(scene);
+
+      expect(shown).toEqual([]);
     });
 
     it("holds the last bricks' glow still", async () => {
@@ -1613,6 +1742,17 @@ describe("BricksScene", () => {
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("starts each ball's tail anew", async () => {
+      const { shell, run, scene } = await flyAcross(20);
+
+      shell.showField(ROWS_DRAWN);
+      throwBall(shell.field, 14.5, 20, 90);
+      shell.field.streak = 20;
+      run.advance(16);
+
+      expect(tailDotsOf(scene)).toEqual([]);
     });
 
     it("plays the new level's events from its first", async () => {
