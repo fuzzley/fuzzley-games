@@ -77,7 +77,7 @@ export class BrickPainter implements Painter {
   show(field: FieldView): void {
     for (let cell = 0; cell < this.images.length; cell++) {
       const brick = field.bricks[cell];
-      const frame = brick ? cellFrame(brick, field.steps) : null;
+      const frame = brick ? cellFrame(brick, field) : null;
       if (frame === this.shown[cell]) continue;
       this.shown[cell] = frame;
       const image = this.images[cell];

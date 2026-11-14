@@ -1,4 +1,4 @@
-import { TILE_INKS, mixColors } from "@fz/phaser/color";
+import { FUZZBALL_INKS, TILE_INKS, mixColors } from "@fz/phaser/color";
 import { TINTS } from "../../rules/levels/level";
 import { type PaletteRoles, bricksPalette, tintAt } from "./palette";
 
@@ -128,6 +128,34 @@ describe("bricksPalette", () => {
       spark: 0xffa500,
     });
   });
+
+  it("draws a cage and a gate in the steel and a key in the warning color, and plates a plated brick in the steel, its shine at 40% white", () => {
+    const palette = bricksPalette(ROLES, "light");
+    const { steel } = palette.bricks;
+
+    expect({
+      cage: palette.bricks.cage,
+      gate: palette.bricks.gate,
+      key: palette.bricks.key,
+      plate: palette.kindInks.plate,
+      plateShine: palette.kindInks.plateShine,
+    }).toEqual({
+      cage: steel,
+      gate: steel,
+      key: 0xffa500,
+      plate: steel,
+      plateShine: mixColors(0xffffff, steel, 0.4),
+    });
+  });
+
+  it.each(["light", "dark"] as const)(
+    "dresses the friends in the fuzzballs' inks of a %s palette",
+    (mode) => {
+      expect(bricksPalette(ROLES, mode).friendInks).toEqual(
+        FUZZBALL_INKS[mode],
+      );
+    },
+  );
 
   it.each([
     ["light", 0.72, 0.12],

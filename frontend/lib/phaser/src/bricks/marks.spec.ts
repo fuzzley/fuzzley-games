@@ -523,6 +523,21 @@ describe("cagedFriend", () => {
       ),
     );
   });
+
+  it("draws the friend in the fur it is handed, such as none", () => {
+    const middle = { x: 40, y: 30 };
+    const inks = { body: 0x110000, eyes: 0x220000 };
+
+    expect(cagedFriend(middle, 1.5, inks, [])).toEqual(
+      moved(
+        [
+          ...fuzzballCommands(1.5, { color: inks.body, fur: [] }),
+          ...eyesCommands(1.5, { color: inks.eyes }),
+        ],
+        middle,
+      ),
+    );
+  });
 });
 
 describe("cageBars", () => {

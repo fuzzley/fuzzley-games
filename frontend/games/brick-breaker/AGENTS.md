@@ -362,19 +362,24 @@ takes for the specs' helpers.
   marks take beside them, mixed as the uplift's art kit mixes them
   (`kindInks`: steel's frame and rivets, a blast brick's spark, a gift's
   ribbon, a regrowing brick's moss and the shadow under it, and the ring a
-  broken one fills as it grows back, over its track), the inks of
+  broken one fills as it grows back, over its track, and a plated brick's
+  plate of steel and its shine), the inks of
   the paddle's parts beside its body in the accent (`paddleInks`: its lip,
   its caps, its pad, a catching paddle's hooks and a laser's cannons and
   bolts), the lip each tone of capsule sits on, a good one's its accent
   darkened and a bad one's gold, and a good one's shine (`capsuleLips`,
   `capsuleShine`), the sparks about a ball at the streak's top multiplier
-  (`streakSparks`), and a ghost's tints, faded while it hides and paler once
+  (`streakSparks`), the inks the friends a cage frees wear, by `Ball.ink`,
+  `@fz/phaser/color`'s `FUZZBALL_INKS` (`friendInks`), a cage and a gate
+  in the steel and a key in the warning color (`bricks`),
+  and a ghost's tints, faded while it hides and paler once
   it shows (`ghostTints`), and the inks of the field's edge (`fieldInks`: the
   rim's lip, and the gutter under the paddle and its chevrons, washed with
   the danger color).
   It keeps the text too, which a place is washed from over the field.
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
-  bricks, a shown ghost and the moss, every ball kind, both capsule tones
+  bricks, the cage, the key and the gate,
+  a shown ghost and the moss, every ball kind and every friend's ink, both capsule tones
   and a bad one's gold lip, a ball's sparks and a seeking ball's sight, a
   regrowing brick's ring, the
   paddle, its caps, hooks and cannons, and the
@@ -384,6 +389,8 @@ takes for the specs' helpers.
   the gutter's chevrons to 2:1 against it, the outline against every tint,
   brick, the paddle and its caps, the marks against every brick, capsule,
   the paddle and its caps, steel's frame and rivets against the steel, and a
+  plate's rivets and a gate's keyhole too, a plate and its teeth and a
+  cage's bars against the marks' color they stand in, and a
   blast brick's spark against the marks it is lit on; its comment says why a
   ball isn't held against the tints, and why a brick's shading, the paddle's
   and a good capsule's is held to nothing.
@@ -453,12 +460,22 @@ takes for the specs' helpers.
   dashes and faint eyes, its body under a scalloped hem once it shows, and
   a regrowing brick's earth under a cap of moss with a sprout, and, broken,
   the ring it fills as it grows back, a frame for each of `REGROW_RING_STEPS`,
-  leaving out
-  the cracks, rivets and sheen of a brick under 30 CSS px wide, and the
+  a plated brick's pips over a plate of steel along its foot, the brick cut
+  away round it in the marks' color, with its rivets and teeth pointing
+  down (`plateTeeth()`), a cage's bars over the friend it frees next, in
+  that friend's ink (`cagedFriend()`), one bar bent once it is hit
+  (`cageBars()`), a frame for each ink, a key cut out of gold, and a gate's
+  keyhole between gold ends, leaving out
+  the cracks, rivets and sheen of a brick under 30 CSS px wide, a plate's
+  shine, a caged friend's fur, and the
   ring's sprout
-  (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`,
+  (`showsDetail()`); and it names the frame a brick shows as it and the
+  field beside it stand (`brickFrame()`, given the field as `CellField`, a
+  cage's by the friends the field has freed, `nextFriend()`, or as How to
+  play pictures a brick on its own, `PICTURED_FIELD`,
   and `regrowingFrame()` at how far it has come, `regrowShare()`, and so
-  the frame a cell shows, its brick's or, broken, its ring, `cellFrame()`)
+  the frame a cell shows as the field stands, its brick's
+  or, broken, its ring, and nothing of an open gate, `cellFrame()`)
   and the color its shards take (`brickColor()`); `paddle_art.ts` draws the
   paddle's frames as the kit draws its paddle (`PADDLE_FRAMES`): its left
   end, a cap over its lip with a bolt in it, a laser's cannon, a barrel on

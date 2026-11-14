@@ -1009,3 +1009,163 @@ floors (100% of statements, functions and lines, 95% of branches);
 frame name, which no streak reaches, and `brick_painter.ts`' at 82%, all
 in code this package didn't touch (a move's `??` start, `move()`'s
 guard and `dropIn()`'s delay).
+
+## L6. Friends' art
+
+Friends' four kinds drawn for real on the slab, replacing K1's
+placeholders, as `art/bricks.svg` section C draws them, and the friends'
+balls in their inks.
+
+### 2026-11-14: the plate, the cage, the key and the gate
+
+`feat(brick-breaker): draw friends' kinds, a plate with teeth, a cage over
+the friend it frees next, a key and a gate` (commit 1 of L6).
+
+- `brick_art.ts` draws each kind in `BRICK_SLAB`, every number the kit's
+  (`plated()`, `cage()`, `key()`, `gate()` in `art/kit.mjs`):
+  - **The plated brick** (`u`, `U`), in a tough brick's deeper tint, as the
+    kit's: a pip for each hit left, higher and smaller than a tough
+    brick's, a crack for a hit taken (a `U` hit once), and a plate of steel
+    along its foot, a little wider than the slab, with its shine, two
+    rivets and nine teeth pointing down (`plateTeeth()`, `rivets()`).
+    Frames: 3 looks (one hit, two, two with one taken) × 8 tints. The
+    tough brick and it share the code that names and draws a brick that
+    wears (`wornArt()`, `wornFrame()`, `wornFrames()`), and the cracks
+    (`crackOf()`, `cracksOf()`).
+  - **The cage**, in the steel: its inside cut out in the marks' color, the
+    friend in it (`cagedFriend()`), six bars of steel over it, the first
+    right of the middle broken into two bent ends once it is hit
+    (`cageBars()`), and a crack in its frame. Frames: whole and hit × the
+    eight friends' inks.
+  - **The key**, in the warning color, its key cut out in the marks'
+    color: a ring for its bow, its shaft and two teeth.
+  - **The gate**, in the steel, with a gold end each side in the key's
+    color, round outside and square inside, and a keyhole in the steel's
+    dark line. An open gate is broken, so its cell shows nothing, as the
+    rules keep it (C15); nothing else is drawn of an opened gate.
+  - Under 30 CSS px wide a brick leaves out the plate's shine, rivets and
+    crack, the cage's crack, and the caged friend's fur.
+- **A cage shows the friend it frees next.** The rules dress each friend
+  in the next ink as it is freed (`friendsFreed % FRIEND_INKS`, C14), not
+  in one a cage holds, so every standing cage shows that friend
+  (`nextFriend()`), and they all turn to the next once one is freed. So
+  `BrickArt.frameOf()` takes the friends the field has freed, `brickFrame()`
+  takes it too (0, the first, for How to play's pictures), and
+  `cellFrame()` takes the field beside the brick (`CellField`: its steps
+  and its friends freed) where it took the steps.
+- `palette.ts`: `bricks.cage` and `bricks.gate` (the steel) and
+  `bricks.key` (the warning color), `kindInks.plate` (the steel) and
+  `kindInks.plateShine` (40% white, the kit's), and `friendInks`
+  (`FUZZBALL_INKS` of the mode).
+- `@fz/phaser/bricks`' `cagedFriend()` takes the fur to draw, the
+  fuzzball's own unless given, so a cage drawn small leaves it out. Brick
+  Fuzz Pop's calls are unchanged.
+- Specs: `brick_art.spec.ts` holds the plate's pips, cracks, plate (its
+  place on whole pixels), shine, rivets, cut and nine teeth, and what is
+  left out small; the cage's friend in the next ink, the first again after
+  the last, and in the ink the rules dress the friend it frees in (a field
+  that has freed ten, broken by `hitBrick()`), its inside, six bars over
+  the friend and mirrored, the bent bar and the crack once hit, and the
+  fur and crack left out small; the key's bow, shaft and teeth; the gate's
+  ends, covers and keyhole, mirrored; and each kind's `brickColor()`.
+  `palette.spec.ts` holds the new inks. `contrast.spec.ts` holds every
+  friend's ink as a ball (against the field, its outline, the marks it
+  wears as eyes and the gutter), the cage, key and gate among the bricks,
+  steel's dark line against the plate and the gate (their rivets and
+  keyhole), and the plate and the cage's bars against the marks' color
+  they stand in. The scene's spec holds a cage's frame at the friends
+  freed, and the gates shown shut and hidden as the last key opens them.
+  The lib's spec holds `cagedFriend()` with no fur.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, `src/view/art/`),
+  the content skill (the kinds in colors of their own, a look that reads
+  the field) and the testing skill (the friends' inks in the contrast
+  spec).
+
+Choices, where the plan was silent or the kit fell short:
+
+- **The brick is cut away round its plate in the marks' color,** from a
+  seam of a CSS pixel or more above the plate (3 kit units) down to its
+  foot, round at the foot's corners, and the teeth stand in that cut in
+  the steel, where the kit draws the plate straight on the brick and its
+  teeth in the steel at 34% black. The steel keeps no contrast with a
+  brick's tint (1.0:1 to 1.4:1 against the tough tints in the four
+  palettes), and the dark teeth none with the field (1.3:1 in the dark
+  palettes) or the lip (1.5:1 to 2.6:1); against the marks' color the
+  plate and its teeth keep 3.3:1 to 5.1:1. This is what makes a plate read
+  as a plate against every tint at every size, as K2's note asked: in
+  Trellis a plated brick and the plain one beside it in its row's tint now
+  differ by the plate.
+- **The cage's inside is the marks' color,** not the kit's field 18%
+  toward the steel: at 18% the bars keep 2.76:1 against it in Soft pastel
+  and a friend's ink 2.92:1; in the marks' color 3.3:1 and 3.5:1 at the
+  least.
+- **Every standing cage shows the same friend,** the next freed, as said
+  above; a cage that holds a friend of its own would free one in another
+  ink, which C14 settles.
+- **The friend's eyes are the marks' color,** as a ball's are, not the
+  kit's ink with glints.
+- **The plate's rivets and the gate's keyhole are steel's dark line**
+  (60% black), as steel's frame and rivets are since L2, not the kit's 34%
+  and 40%.
+- **Nine teeth at every size,** as the kit; they are a CSS pixel tall on a
+  phone, where the plate's band carries it.
+- **The gate's gold is the warning color, the key's,** so in a light
+  palette it is the key's orange-brown, as the kit's light sheet has it.
+
+Measured: the atlas at a unit of 54 at 3 to a CSS pixel stays inside the
+4096 px side the art spec holds (it passes).
+
+What I added outside stream L's files: `src/view/field/frame.ts`'s
+`FieldView` gains `friendsFreed` as its last member, which `Field` has
+since K1; `src/scene/painters/brick_painter.ts` (F2's for now) hands
+`cellFrame()` the field rather than its steps, one line. K1's
+`placeholderArt()` in `brick_art.ts` goes with the last kind that used
+it; K3, drawing its three kinds' placeholders at the same time, needs it
+back (it is in git at 0504165a).
+
+Checks: the workspace's lint, typecheck and tests (72 files, 3250 specs),
+`@fz/phaser`'s lint, typecheck and tests (59 files, 906 specs), and the
+root's lint, typecheck and tests, all pass.
+
+The review (a fresh agent), each comment and its answer:
+
+1. _The new specs count parts but never say what is drawn over what, so a
+   reorder that hides the plate's teeth, the gate's square inner ends or
+   the caged friend would pass._ Fixed: specs hold the teeth over the cut,
+   the plate over the teeth and its shine and rivets over it; the gate's
+   steel over its gold ends and its keyhole over its steel; and the friend
+   over the cage's inside, with the bars over the friend as before.
+2. _`nextFriend()` repeats the rules' `friendsFreed % FRIEND_INKS`._ Left,
+   for K (or Z1): `freeFriend()` in `src/rules/bricks/bricks.ts` is K's, so
+   L doesn't change it. A `nextFriendInk()` in the rules that both call
+   would keep the choice in one place; until then the art spec breaks a
+   cage on a field that has freed ten and holds `nextFriend()` to the ink
+   the rules dress the friend in.
+3. _`BrickArt.frameOf()` takes a bare count of friends freed, though the
+   skill says a look reads the field from `CellField`; and
+   `brickFrame()`'s default shows the first friend silently._ Fixed in
+   part: `frameOf()` takes the `CellField`, and `brickFrame()` takes one,
+   or `PICTURED_FIELD` (its first step, no friend freed) where none is
+   given. The default stays: How to play and many specs, some of them
+   other streams' in flight, picture a brick on its own, and the painter
+   goes through `cellFrame()`, which always hands the field on.
+4. _The spec that ties the cage to the rules checks no frame, and hits
+   the cage in a loop whose counter is never read._ Fixed: it breaks the
+   cage in one call (`"breaks"`) and is named for what it checks ("names
+   the friend the rules free next, the ink they dress it in"); a new
+   `cellFrame` spec holds a standing cage's frame to the next friend's ink.
+5. _The scene's gate spec holds two cases in one._ Fixed: "shows each
+   gate shut while a key is left" and "hides every gate as the last key
+   opens them", on one setup (`withGates()`).
+6. _`cagedFriend()`'s doc comment opens with two sentences._ Fixed: the
+   fur is a paragraph of its own.
+
+The browser, on port 9104 at 1280 × 720 at 2× in Midnight blue: Hello's
+two cages, each a coral friend behind its bars; Mushroom's underside of
+plates, each a band of steel with teeth under its orange; Drawbridge's
+row of gates, steel between gold ends with a keyhole each, its three keys,
+and the gates gone at once as the third key broke (three balls put in
+play under the keys); Trellis's plates against their rows' tints, plainly
+apart from the plain bricks beside them. At 844 × 390 at 3× in Classic
+felt: Nest's three cages, their friends without fur, and Mushroom's and
+Drawbridge's plates, gates and keys, the teeth a CSS pixel tall.

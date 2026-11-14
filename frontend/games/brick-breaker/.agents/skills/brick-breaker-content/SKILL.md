@@ -60,8 +60,9 @@ Its block in a set's file:
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
   3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast,
-  gift and regrowing bricks are drawn in colors of their own, whatever
-  their tint. By
+  gift and regrowing bricks, cages, keys and gates are drawn in colors of
+  their own, whatever their tint; a tough or plated brick takes its tint a
+  little deeper. By
   custom a picture leaves steel `.`, as Finale does, and marks a blast or
   gift brick with the tint of the part it sits in, as Rocket does, so the
   grid reads as the picture. Changing tints changes no play, so no bests:
@@ -210,7 +211,10 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   out one that only shades, as the gift's ribbon and the moss's shadow
   do. A kind that `regrows` shows the ring a regrowing brick fills as it
   grows back while it is broken (`regrowingFrame()`, which `cellFrame()`
-  picks), with nothing more.
+  picks), with nothing more. A look that reads the field beside its brick
+  reads it from the `CellField` its art's `frameOf()` is handed, which
+  `cellFrame()` hands on, as a cage shows the friend the field frees next
+  (`nextFriend()`), a frame for each of the friends' inks.
 - Its character in the shared legend, or a level's own legend.
 - Its voice: the sound of a hit it holds and of its breaking, which the
   effects spec's `VOICES_OF_KINDS` asks for, and its field of every kind

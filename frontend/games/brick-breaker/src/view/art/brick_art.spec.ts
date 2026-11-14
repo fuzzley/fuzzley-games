@@ -1,4 +1,9 @@
-import { BRICK_SLAB, slabCommands, slabFace } from "@fz/phaser/bricks";
+import {
+  BRICK_SLAB,
+  slabBody,
+  slabCommands,
+  slabFace,
+} from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -8,9 +13,13 @@ import {
   type LineCommand,
   type Point,
   type PolygonCommand,
+  type RectCommand,
+  type RingCommand,
+  type RoundRectCommand,
   extentOf,
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
+import { hitBrick } from "../../rules/bricks/bricks";
 import {
   BRICK_KINDS,
   BRICK_KIND_IDS,
@@ -19,6 +28,7 @@ import {
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
+import { FRIEND_INKS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -26,14 +36,24 @@ import {
   FIELD_SCALES,
   SMALL_SCALE,
 } from "../../testing/art_frames";
+import {
+  KEEPER,
+  ballOf,
+  brickAt,
+  fieldFrom,
+  throwBall,
+} from "../../testing/field_picture";
 import { atlasFrames } from "./art";
 import {
   BRICK_ART,
   type BrickLook,
+  type CellField,
+  PICTURED_FIELD,
   REGROW_RING_STEPS,
   brickColor,
   brickFrame,
   cellFrame,
+  nextFriend,
   regrowShare,
   regrowingFrame,
 } from "./brick_art";
@@ -79,6 +99,11 @@ function lookOf(kind: BrickKindId, tint = 0): BrickLook {
   return { kind, tint, whole, hits: whole, shown: true };
 }
 
+/** Returns a field, as a brick is pictured on its own, that has freed so many friends. */
+function freedSoMany(friendsFreed: number): CellField {
+  return { ...PICTURED_FIELD, friendsFreed };
+}
+
 /** Returns the frame a brick shows, among frames. */
 function frameOf(look: BrickLook, frames = ART_FRAMES): ArtFrame {
   return frameNamed(frames, brickFrame(look));
@@ -95,6 +120,34 @@ function circlesIn(frame: ArtFrame, color: number): readonly CircleCommand[] {
 function polygonsIn(frame: ArtFrame, color: number): readonly PolygonCommand[] {
   return drawnIn(frame, "polygon", color).flatMap((command) =>
     command.kind === "polygon" ? [command] : [],
+  );
+}
+
+/** Returns the rectangles of a kind, plain or rounded, a frame draws in a color. */
+function rectsIn(
+  frame: ArtFrame,
+  kind: "rect" | "roundRect",
+  color: number,
+): readonly (RectCommand | RoundRectCommand)[] {
+  return drawnIn(frame, kind, color).flatMap((command) =>
+    command.kind === "rect" || command.kind === "roundRect" ? [command] : [],
+  );
+}
+
+/** Returns the rings a frame draws in a color. */
+function ringsIn(frame: ArtFrame, color: number): readonly RingCommand[] {
+  return drawnIn(frame, "ring", color).flatMap((command) =>
+    command.kind === "ring" ? [command] : [],
+  );
+}
+
+/** Returns where in a frame's drawing each of some of its commands comes, so a spec can say what is drawn over what. */
+function placesOf(
+  frame: ArtFrame,
+  commands: readonly (DrawCommand | undefined)[],
+): readonly number[] {
+  return commands.map((command) =>
+    command ? frame.commands.indexOf(command) : NaN,
   );
 }
 
@@ -137,6 +190,19 @@ function circleInside(points: readonly Point[]): Point & { radius: number } {
     ),
     radius: billionths((2 * area) / around),
   };
+}
+
+/** Returns the largest of some circles. */
+function largest(circles: readonly CircleCommand[]): CircleCommand | undefined {
+  return [...circles].sort((a, b) => b.radius - a.radius)[0];
+}
+
+/** Returns the friends' inks a frame draws in, by their place among them. */
+function friendInkIn(frame: ArtFrame): readonly number[] {
+  const colors = new Set(frame.commands.map(({ color }) => color));
+  return ART_PALETTE.friendInks.flatMap((ink, i) =>
+    colors.has(ink) ? [i] : [],
+  );
 }
 
 /** Returns where a command's middle lies, across and down. */
@@ -452,6 +518,348 @@ describe("a regrowing brick's frame", () => {
   });
 });
 
+describe("a plated brick's frame", () => {
+  const { plate, plateShine, steelLine } = ART_PALETTE.kindInks;
+
+  /** Returns the frame a plated brick shows, taking so many hits whole with some left. */
+  function platedWith(
+    whole: number,
+    hits: number,
+    frames = ART_FRAMES,
+  ): ArtFrame {
+    return frameOf(
+      { kind: "plated", tint: 0, whole, hits, shown: true },
+      frames,
+    );
+  }
+
+  /** Returns a frame's plate, the one rounded rectangle in the steel. */
+  function plateOf(
+    frame: ArtFrame,
+  ): RoundRectCommand | RectCommand | undefined {
+    return rectsIn(frame, "roundRect", plate)[0];
+  }
+
+  it.each([
+    [1, 1],
+    [2, 2],
+    [2, 1],
+  ])(
+    "shows a pip cut out for each hit left, taking %i whole with %i left, and a crack for each taken",
+    (whole, hits) => {
+      const frame = platedWith(whole, hits);
+
+      expect({
+        pips: circlesIn(frame, ART_PALETTE.mark).length,
+        cracks: polygonsIn(frame, ART_PALETTE.mark).length,
+      }).toEqual({ pips: hits, cracks: whole - hits });
+    },
+  );
+
+  it("lays its pips in a row higher than a tough brick's, clear above its plate", () => {
+    const frame = platedWith(2, 2);
+    const pips = circlesIn(frame, ART_PALETTE.mark);
+    const top = plateOf(frame)?.y ?? 0;
+
+    expect({
+      downs: new Set(pips.map(({ y }) => billionths(y))),
+      clear: pips.every(({ y, radius }) => y + radius < top),
+    }).toEqual({
+      downs: new Set([billionths(0.38 * frame.height)]),
+      clear: true,
+    });
+  });
+
+  it("lays a plate of steel along its foot, a little wider than the brick, its top and foot on whole pixels, with a shine along its top and a rivet near each end", () => {
+    const frame = platedWith(1, 1);
+
+    expect({
+      plate: plateOf(frame),
+      shine: rectsIn(frame, "roundRect", plateShine).length,
+      rivets: circlesIn(frame, steelLine).map(({ x, y }) => ({
+        x: billionths(x / frame.width),
+        y: billionths(y / frame.height),
+      })),
+    }).toEqual({
+      plate: {
+        kind: "roundRect",
+        x: (2 * frame.height) / 100,
+        y: Math.round((66 * frame.height) / 100),
+        width: (196 * frame.height) / 100,
+        height:
+          Math.round((88 * frame.height) / 100) -
+          Math.round((66 * frame.height) / 100),
+        radius: (6 * frame.height) / 100,
+        color: plate,
+      },
+      shine: 1,
+      rivets: [
+        { x: 0.11, y: 0.79 },
+        { x: 0.89, y: 0.79 },
+      ],
+    });
+  });
+
+  it("cuts the brick away in the marks' color from a CSS pixel above its plate to its foot, so the steel stands apart from any tint", () => {
+    const frame = platedWith(1, 1);
+    const body = slabBody(cellOf(frame), BRICK_SLAB);
+    const [square] = rectsIn(frame, "rect", ART_PALETTE.mark);
+    const [round] = rectsIn(frame, "roundRect", ART_PALETTE.mark);
+
+    expect({
+      top: square?.y,
+      across: [square?.x, square?.width, round?.x, round?.width],
+      foot: round && round.y + round.height,
+    }).toEqual({
+      top: (plateOf(frame)?.y ?? 0) - CSS_PIXEL,
+      across: [body.x, body.width, body.x, body.width],
+      foot: body.y + body.height,
+    });
+  });
+
+  it("points nine teeth of steel down from under its plate, past the brick's foot", () => {
+    const frame = platedWith(1, 1);
+    const teeth = polygonsIn(frame, plate);
+
+    expect({
+      count: teeth.length,
+      tips: new Set(
+        teeth.map(({ points }) =>
+          billionths(Math.max(...points.map(({ y }) => y))),
+        ),
+      ),
+      feet: new Set(
+        teeth.map(({ points }) =>
+          billionths(Math.min(...points.map(({ y }) => y))),
+        ),
+      ),
+    }).toEqual({
+      count: 9,
+      tips: new Set([billionths(0.97 * frame.height)]),
+      feet: new Set([billionths(0.86 * frame.height)]),
+    });
+  });
+
+  it("draws its teeth over the cut, its plate over their feet, and its shine and rivets over its plate", () => {
+    const frame = platedWith(1, 1);
+    const cut = placesOf(frame, [
+      ...rectsIn(frame, "rect", ART_PALETTE.mark),
+      ...rectsIn(frame, "roundRect", ART_PALETTE.mark),
+    ]);
+    const teeth = placesOf(frame, polygonsIn(frame, plate));
+    const [steel = NaN] = placesOf(frame, [plateOf(frame)]);
+    const over = placesOf(frame, [
+      ...rectsIn(frame, "roundRect", plateShine),
+      ...circlesIn(frame, steelLine),
+    ]);
+
+    expect({
+      teeth: Math.min(...teeth) > Math.max(...cut),
+      plate: steel > Math.max(...teeth),
+      over: Math.min(...over) > steel,
+    }).toEqual({ teeth: true, plate: true, over: true });
+  });
+
+  it("keeps its pips, plate, cut and teeth, but leaves out its crack, shine and rivets, where a brick is under 30 CSS pixels wide", () => {
+    const frame = platedWith(2, 1, SMALL_FRAMES);
+
+    expect({
+      pips: circlesIn(frame, ART_PALETTE.mark).length,
+      plate: plateOf(frame) !== undefined,
+      cut: rectsIn(frame, "rect", ART_PALETTE.mark).length,
+      teeth: polygonsIn(frame, plate).length,
+      cracks: polygonsIn(frame, ART_PALETTE.mark).length,
+      shine: rectsIn(frame, "roundRect", plateShine).length,
+      rivets: circlesIn(frame, steelLine).length,
+    }).toEqual({
+      pips: 1,
+      plate: true,
+      cut: 1,
+      teeth: 9,
+      cracks: 0,
+      shine: 0,
+      rivets: 0,
+    });
+  });
+});
+
+describe("a cage's frames", () => {
+  const cage = lookOf("cage");
+  const hit: BrickLook = { ...cage, hits: 1 };
+  const steel = ART_PALETTE.bricks.cage;
+
+  it("holds the friend a field frees next, in that friend's ink, the first again after the last", () => {
+    const frames = [0, 3, FRIEND_INKS].map((freed) =>
+      frameNamed(ART_FRAMES, brickFrame(cage, freedSoMany(freed))),
+    );
+
+    expect(frames.map(friendInkIn)).toEqual([[0], [3], [0]]);
+  });
+
+  it("names the friend the rules free next, the ink they dress it in", () => {
+    const field = fieldFrom(["c", ...KEEPER]);
+    throwBall(field, 20, 25, 0);
+    field.friendsFreed = FRIEND_INKS + 2;
+    const shown = nextFriend(field.friendsFreed);
+
+    hitBrick(field, brickAt(field, 0, 0), 0, 0, "breaks");
+
+    expect(ballOf(field, 1).ink).toBe(shown);
+  });
+
+  it("cuts out its inside in the marks' color, and stands six bars of steel over its friend, its body about its middle and fur, and its eyes", () => {
+    const frame = frameNamed(ART_FRAMES, brickFrame(cage, freedSoMany(2)));
+    const ink = ART_PALETTE.friendInks[2] ?? NaN;
+    const body = largest(circlesIn(frame, ink));
+
+    expect({
+      inside: rectsIn(frame, "roundRect", ART_PALETTE.mark).length,
+      bars: rectsIn(frame, "rect", steel).length,
+      body: body && {
+        x: billionths(body.x / frame.width),
+        y: billionths(body.y / frame.height),
+      },
+      fur: drawnIn(frame, "line", ink).length > 0,
+      eyes: polygonsIn(frame, ART_PALETTE.mark).length,
+    }).toEqual({
+      inside: 1,
+      bars: 6,
+      body: { x: 0.5, y: 0.47 },
+      fur: true,
+      eyes: 2,
+    });
+  });
+
+  it("draws its friend over its inside, and its bars over its friend, mirrored about its middle", () => {
+    const frame = frameNamed(ART_FRAMES, brickFrame(cage));
+    const bars = rectsIn(frame, "rect", steel);
+    const middles = bars.map(({ x, width }) => x + width / 2);
+    const [inside = NaN] = placesOf(
+      frame,
+      rectsIn(frame, "roundRect", ART_PALETTE.mark),
+    );
+    const ink = ART_PALETTE.friendInks[0];
+    const friend = placesOf(
+      frame,
+      frame.commands.filter(({ color }) => color === ink),
+    );
+
+    expect({
+      friend: Math.min(...friend) > inside,
+      bars: Math.min(...placesOf(frame, bars)) > Math.max(...friend),
+      mirrored: middles.map((middle, i) =>
+        billionths(middle + (middles[middles.length - 1 - i] ?? 0)),
+      ),
+    }).toEqual({
+      friend: true,
+      bars: true,
+      mirrored: middles.map(() => frame.width),
+    });
+  });
+
+  it("breaks the first bar right of its middle into two bent ends once hit, and cracks its frame", () => {
+    const whole = frameNamed(ART_FRAMES, brickFrame(cage));
+    const broken = frameNamed(ART_FRAMES, brickFrame(hit));
+
+    expect({
+      bars: rectsIn(broken, "rect", steel).map(({ x }) => x),
+      ends: polygonsIn(broken, steel).length,
+      cracks:
+        polygonsIn(broken, ART_PALETTE.mark).length -
+        polygonsIn(whole, ART_PALETTE.mark).length,
+    }).toEqual({
+      bars: rectsIn(whole, "rect", steel)
+        .map(({ x }) => x)
+        .filter((_, i) => i !== 3),
+      ends: 2,
+      cracks: 1,
+    });
+  });
+
+  it("keeps its bent bar, but leaves out its crack and its friend's fur, where a brick is under 30 CSS pixels wide", () => {
+    const frame = frameNamed(SMALL_FRAMES, brickFrame(hit));
+    const ink = ART_PALETTE.friendInks[0] ?? NaN;
+
+    expect({
+      ends: polygonsIn(frame, steel).length,
+      eyes: polygonsIn(frame, ART_PALETTE.mark).length,
+      body: circlesIn(frame, ink).length,
+      fur: drawnIn(frame, "line", ink).length,
+    }).toEqual({ ends: 2, eyes: 2, body: 1, fur: 0 });
+  });
+});
+
+describe("a key brick's frame", () => {
+  const frame = frameOf(lookOf("key"));
+
+  it("cuts a key out of its gold, in the marks' color: a ring for its bow, its shaft and two teeth hanging from it", () => {
+    const [bow] = ringsIn(frame, ART_PALETTE.mark);
+    const parts = rectsIn(frame, "rect", ART_PALETTE.mark);
+
+    expect({
+      bow: bow && {
+        x: billionths(bow.x / frame.width),
+        y: billionths(bow.y / frame.height),
+      },
+      shaft: parts[0] && billionths(parts[0].y + parts[0].height / 2),
+      teeth: parts.slice(1).map(({ y }) => billionths(y)),
+    }).toEqual({
+      bow: { x: 0.32, y: 0.46 },
+      shaft: billionths(0.46 * frame.height),
+      teeth: [0.46, 0.46].map((y) => billionths(y * frame.height)),
+    });
+  });
+});
+
+describe("a gate's frame", () => {
+  const frame = frameOf(lookOf("gate"));
+  const gold = ART_PALETTE.bricks.key;
+
+  it("ends its steel in the key's gold each side, square inside, and cuts a keyhole between them in the steel's dark line", () => {
+    const ends = rectsIn(frame, "roundRect", gold);
+    const covers = rectsIn(frame, "rect", ART_PALETTE.bricks.gate);
+    const { steelLine } = ART_PALETTE.kindInks;
+
+    expect({
+      ends: ends.length,
+      covers: covers.length,
+      keyhole: [
+        circlesIn(frame, steelLine).length,
+        polygonsIn(frame, steelLine).length,
+      ],
+    }).toEqual({ ends: 2, covers: 2, keyhole: [1, 1] });
+  });
+
+  it("mirrors its gold ends about its middle, each to the slab's face", () => {
+    const [left, right] = rectsIn(frame, "roundRect", gold);
+    const face = slabFace(cellOf(frame), BRICK_SLAB);
+
+    expect({
+      mirrored: left && right && billionths(left.x + right.x + right.width),
+      down: [left?.y, left?.height],
+    }).toEqual({ mirrored: frame.width, down: [face.y, face.height] });
+  });
+
+  it("draws its steel over the inner side of each gold end, and its keyhole over its steel", () => {
+    const ends = placesOf(frame, rectsIn(frame, "roundRect", gold));
+    const covers = placesOf(
+      frame,
+      rectsIn(frame, "rect", ART_PALETTE.bricks.gate),
+    );
+    const keyhole = placesOf(
+      frame,
+      frame.commands.filter(
+        ({ color }) => color === ART_PALETTE.kindInks.steelLine,
+      ),
+    );
+
+    expect({
+      covers: Math.min(...covers) > Math.max(...ends),
+      keyhole: Math.min(...keyhole) > Math.max(...covers),
+    }).toEqual({ covers: true, keyhole: true });
+  });
+});
+
 /** How many of the field's steps a regrowing brick takes to grow back. */
 const GROWING_BACK = stepsIn(10_000);
 
@@ -527,18 +935,33 @@ describe("cellFrame", () => {
   };
 
   it("shows a brick that stands in its own frame", () => {
-    expect(cellFrame(regrow, 100)).toBe(brickFrame(regrow));
+    expect(cellFrame(regrow, { steps: 100, friendsFreed: 0 })).toBe(
+      brickFrame(regrow),
+    );
+  });
+
+  it("shows a standing cage holding the friend the field beside it frees next", () => {
+    const cage = { ...regrow, ...lookOf("cage") };
+
+    const name = cellFrame(cage, freedSoMany(3));
+
+    expect(name && friendInkIn(frameNamed(ART_FRAMES, name))).toEqual([3]);
   });
 
   it("shows a broken regrowing brick's ring, as far as it has come", () => {
     const broken = { ...regrow, ...brokenRegrow() };
 
-    expect(cellFrame(broken, 100 + GROWING_BACK / 2)).toBe(regrowingFrame(0.5));
+    expect(
+      cellFrame(broken, { steps: 100 + GROWING_BACK / 2, friendsFreed: 0 }),
+    ).toBe(regrowingFrame(0.5));
   });
 
   it("shows nothing of a brick broken for good", () => {
     expect(
-      cellFrame({ ...regrow, kind: "plain", broken: true }, 100),
+      cellFrame(
+        { ...regrow, kind: "plain", broken: true },
+        { steps: 100, friendsFreed: 0 },
+      ),
     ).toBeNull();
   });
 });
@@ -632,6 +1055,10 @@ describe("brickColor", () => {
     ["blast", ART_PALETTE.bricks.blast],
     ["gift", ART_PALETTE.bricks.gift],
     ["regrow", ART_PALETTE.bricks.regrow],
+    ["cage", ART_PALETTE.bricks.cage],
+    ["plated", ART_PALETTE.toughTints[2]],
+    ["key", ART_PALETTE.bricks.key],
+    ["gate", ART_PALETTE.bricks.gate],
   ] as const)("draws a %s brick in its body's color", (kind, color) => {
     const look: BrickLook = { kind, tint: 2, whole: 2, hits: 1, shown: true };
 
@@ -651,20 +1078,6 @@ describe("brickColor", () => {
         hits: 1,
         shown,
       };
-
-      expect(brickColor(look, ART_PALETTE)).toBe(color);
-    },
-  );
-
-  it.each([
-    ["cage", ART_PALETTE.tints[4]],
-    ["plated", ART_PALETTE.tints[5]],
-    ["key", ART_PALETTE.tints[2]],
-    ["gate", ART_PALETTE.tints[6]],
-  ] as const)(
-    "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
-    (kind, color) => {
-      const look: BrickLook = { kind, tint: 0, whole: 2, hits: 1, shown: true };
 
       expect(brickColor(look, ART_PALETTE)).toBe(color);
     },

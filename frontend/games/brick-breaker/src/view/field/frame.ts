@@ -48,6 +48,8 @@ export interface FieldView {
   readonly steps: number;
   /** Whether every ball in flight seeks, while a Seeker is in play. */
   readonly seeking: boolean;
+  /** How many friends the level has freed, by which a cage shows the one it frees next. */
+  readonly friendsFreed: number;
 }
 
 /** Describes the field between one step and the next. */

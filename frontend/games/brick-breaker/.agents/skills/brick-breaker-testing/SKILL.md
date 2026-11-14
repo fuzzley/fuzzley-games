@@ -158,6 +158,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   roles from the global stylesheet, by the names the board reads them by
   (`PALETTES.rolesIn()`, from `src/testing/roles.ts`), builds
   `bricksPalette()` from them, and holds the tints, the kinds, the balls,
+  the friends' inks,
   the capsules, the paddle and the glow to 3:1 against the field, a hidden
   ghost to 2:1, and the outline and the marks against what they cross.
 - `src/view/places/places.spec.ts` draws each place's tile at every scale
