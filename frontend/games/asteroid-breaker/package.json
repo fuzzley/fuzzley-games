@@ -18,7 +18,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim \"$@\"",
     "test:watch": "vitest",
-    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit && tsc -p tsconfig.node.json && tsc -p tsconfig.scripts.json",
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit --incremental --tsBuildInfoFile tsconfig.spec.tsbuildinfo && tsc -p tsconfig.node.json --incremental --tsBuildInfoFile tsconfig.node.tsbuildinfo && tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo",
     "lint": "eslint src tools eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""
   },
