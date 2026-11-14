@@ -82,3 +82,50 @@ Four agents, each writing one note in `research/`:
 - `the-game-today.md`: an inventory of the game as it is, from its own
   code: every piece of art, flourish and sound, every place the fuzzball
   shows, and the autopilot's figures for every wave.
+
+### 2026-11-14, steps 2 to 6 under way together
+
+- **Research in:** `the-game-today.md` (1,300 lines, with the autopilot's
+  figures: a wave takes it 7 to 31 s on a phone's field, 20 to 63 s on the
+  widest, and it loses a ship in 4 plays of 90), `mechanics.md` and
+  `look-and-feel.md`. `sound.md` is still being read.
+- **A slip:** the mechanics agent ran `yarn prettier` to check its note,
+  which in this repository formats everything. Only this folder's files
+  changed, in format alone; they were checked to build as before and
+  committed as a style commit.
+- **The art's direction is settled and written,** `art/README.md`: cut
+  stone, soft fuzz, bright sparks. A rock is a dome of flat facets lit by
+  one light that stays put as the rock turns. It was tried first as a
+  throwaway sheet in three palettes, then kept: `art/lib/rocks.mjs` and
+  the sheet `art/rocks.svg`.
+- **The art's kit** (`art/lib/`): `core` (seeded random, vectors, colors,
+  SVG), `palettes` (the site's four, the game's inks, a lit thing's four
+  tones), `rocks`, `sheet` (how every sheet is laid out), `raster` (an
+  SVG as a PNG or a WebP, through the frontend's sharp). Previews are kept
+  as WebP; the PNGs the sheets are checked by are ignored.
+- **Three art agents are drawing,** each a module or two and a sheet:
+  the fuzzball and the pod (`fuzzball`, `ship`, `pilot-and-pod`), the
+  four places (`backdrop`, `sectors`), and energy, effects, pickups and
+  hazards (`fx`, `things`, `energy-and-effects`, `pickups-and-hazards`).
+- **The sound's kit is written and tested** (`sound/lib/`): `synth`
+  (oscillators that don't alias, three noises, a filter that can be swept,
+  struck partials, a resonator bank, a plucked string, drive, echo, a small
+  room, a compressor, a limiter, a scatter of grains, a loop's seam), `music`
+  (the key and the chain's ladder) and `analyze` (loudness, bands, a
+  spectrogram, a sheet of them). `sound/build.mjs` renders a family's
+  recipes into WAVs, a report and a sheet. Its self-test passed: a saw's
+  aliases 113 dB under its harmonics, pink noise at 3.05 dB an octave, the
+  filter at 12.5 dB an octave.
+- **Today's sounds, measured** with the same instruments: nothing above
+  8 kHz in any of the fourteen, and a phone's speaker keeps 4% of a large
+  rock's break, 13% of a blast and 36% of the thrust.
+- **`plan.md` is drafted whole.** Its play rests on three ideas the
+  research backs: the crew rides in tow and is the run's lives (a hit
+  knocks one loose, to be caught again); rocks shed sparks that build
+  static, which is the multiplier, the fur's lift and, when full, a zap on
+  the next dash; and less of what was weak (ships by points, two pickups,
+  the chain's timer, one of two cards between waves). It names ten
+  choices as the user's.
+- **Next:** the sound research, then three agents on the sounds' recipes;
+  the art agents' sheets, reviewed; the scene mocks; the assets written
+  out; the page to hear the sounds on.
