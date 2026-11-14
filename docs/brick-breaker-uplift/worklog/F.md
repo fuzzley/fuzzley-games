@@ -1092,3 +1092,127 @@ Review:
    `cellMiddleX(cellIndex(6, 8))`, the low portal's column.
 5. `wavering()`'s `settle` is what the library calls `decay`. Renamed;
    "ahead and behind" is "ahead of and behind".
+
+### 2026-11-14: the gates open with a flourish, and a lost ball fades in its fur
+
+What it does:
+
+- **The gates' opening.** `opened` now calls for a flourish, `"open"`,
+  beside the gates' sweep. The effects painter opens every gate of the
+  field (`EffectsPainter.open()`, the bricks with the `locked` trait, all
+  broken at once by the rules): each, in its own frame (`brickFrame()`),
+  thins to a line along its middle and fades where it stood, over
+  `OPEN_MS`, 360 ms, as long as the gates' sweep takes to rise (its glide,
+  160 to 480 Hz over 0.36 s). How tall it stands is `openingHeight()` in
+  `flourish.ts`, 1 − done², slow at first, as a heavy door, then quicker;
+  it fades evenly. The brick painter hides the gates at once, as before;
+  the flourish is a copy over them in the bursts' layer.
+- Each gate is a particle of an emitter of its own (`EffectsPainter.gates`),
+  as the shards are, so a level opens as many gates as it holds, Drawbridge
+  13 and the drafts' Switchyard 24; a fixed pool of images would have had
+  to guess the most. Phaser makes a particle the first time it has none
+  spare, as it does a shard, so the first opening in a scene makes one for
+  each gate, and later ones reuse them. As the last brick's hit
+  holds, the opening gates stand still with the shards (`hold()`), and a
+  new field puts them out (`reset()`).
+- **The lost ball's fur.** A lost ball fades in the frame it flew in: its
+  kind, its ink (`BallPainter.lostInk()`, as L6 left it) and the fur of
+  the streak it was last drawn at (`BallPainter.drawnStreak`, beside
+  `drawnKind`, since the rules end the streak as the last ball is lost),
+  through `ballFrame()`. That frame has no eyes, so each fade is two images
+  (`Fade`): the body and the eyes (`FRAMES.eyes`) over it, at its middle,
+  looking ahead, as the faced frame drew them, both fading together. So
+  fur standing on end at ×3 stays on end as the ball fades.
+- Specs: `flourish.spec.ts` (the gate's height whole, three quarters at
+  half its time, gone at its end), `effects.spec.ts` (`opened`'s flourish)
+  and the scene's: each gate opening where it stood, in its frame, whole;
+  thinned and faded by the curve halfway; all gone once the time is up and
+  both still there just before; held as the last brick's hit holds, then
+  going on; none without motion, the gates hidden at once; none left by a
+  new level. A lost ball fades in its flying frame with its eyes over it,
+  both fading; a ball lost at a streak of 12 fades in ×3's fur though the
+  field's streak is 0 by then; a friend lost at a streak of 20 in its ink
+  and ×4's fur; the faces of the earlier specs are the flying frames now;
+  and no eyes show without motion or after a new level. Each fails with
+  its bug put back (no `open()`, no `"open"`, the gates not held or not
+  put out, no thinning, the field's streak for the painter's, no
+  `drawnStreak`, no eyes, the eyes not fading).
+- `AGENTS.md`: `effects.ts`' `"open"`, `flourish.ts`' `openingHeight()`,
+  `timing.ts`' `OPEN_MS`, the effects painter's fade and gates, the hold,
+  and the gates' opening among what motion's absence leaves out.
+
+Choices where the plan was silent:
+
+- **A fade rather than shards.** A gate opens, it doesn't break; shards
+  would say a key's hit broke a row of steel, and Switchyard's 24 gates
+  would throw 144 of them. A gate thinning to its middle line reads as a
+  bar drawn back, as the sweep's "heavy doors slide open" says.
+- **Timed to the sweep,** 360 ms, so the gates are gone as the sound tops
+  out; a medium dose, about the shards' 350 ms and under the fade's 600.
+- **The eyes look ahead,** as the faced frame had them, rather than the way
+  the ball went: a lost ball has always faced the player as it fades.
+- **`lostInk()` stays as L6 left it,** finding the ball by its place; if K4
+  adds `FieldEvent.ink`, it takes the ink's place in `ballFrame()`'s call,
+  and the streak still comes from the painter, since a lost event carries
+  none.
+
+Browser (headless, my own page on 9304, 1280 × 720 at 2×, runs kept by
+`tools/stored_run.mjs`' rules and the scene reached through its painter's
+prototype):
+
+- Drawbridge: breaking the last key played the chime at 400 cents and the
+  sweep; 13 gates opened at once, the brick painter hiding them; at a
+  quarter of their time each stood 94% tall at 76% alpha, at 55% of it 70%
+  tall at 45% alpha, in the gate's frame (`/tmp/f3b/drawbridge-opening2-crop.png`),
+  thinning toward their middle line.
+- A ball lost at ×3 on Pinball faded in `ball-normal-x3`, its fur on end,
+  its eyes over it, though the field's streak was 0.
+- Pinball: a ball under a bumper boinged and the bumper swelled to 1.12
+  and settled; a ball bouncing among the bumpers boinged at each turn.
+- Wormhole: a ball rising into the low portal whooshed and came out of the
+  high one.
+- No error or warning in the console. The page was closed and the server
+  stopped. Sound can't be heard headless; the sounds were reasoned from
+  the sprite (above).
+
+Left, for L or the integrator: `facedBallFrame()` is used now only by
+specs, and the friends' faced frames (`ball-friend-<ink>-faced`, 8 of the
+atlas's) by nothing; How to play still shows each kind's faced frame
+(`FACED_BALL_FRAMES`). L's `art.ts` is left as it is.
+
+Added to shared files: `bricks_scene.ts` (the `"open"` case and the fade's
+frame, one call), the ball painter's `drawnStreak` (F2's file), the scene's
+spec (helpers, eight specs, seven changed), and lines of `AGENTS.md`.
+
+Checks: the workspace's lint and typecheck pass, and its tests, 77 files
+and 3715 specs, in 20.8 s; its coverage of `pure` and `dom` holds the
+floor (all files 99.59% of statements, 97.46% of branches, 99.78% of
+functions, 99.93% of lines; `effects.ts`, `flourish.ts`, `timing.ts` and
+the effects painter whole, the ball painter's and the scene's uncovered
+branches those before); the root's lint passes. After the review's
+fixes, which touched only a spec, the scene's spec passes again, 225
+specs, and the workspace's lint and typecheck, and the root's lint.
+
+Review:
+
+1. The spec of the gates' curve read each gate's height and alpha against
+   its own time done, so gates that never moved, at 0, passed. Fixed: it
+   holds the time done to half, within 0.05, and fails with the gates'
+   life a hundred times as long; the hold's spec holds both gates going on
+   (`[true, true]`), where `every()` passed with none.
+2. `GATED`'s comment had the key over the gates and the plain brick in
+   their column, and left out why the plain brick is there. Fixed: it keeps
+   the level in play once the key breaks, so the rules record `opened`.
+   `withGates()`, the bricks' describe's (L6's and K1's), builds the same
+   field; left, for the integrator to fold onto `GATED` if it likes.
+3. The log said nothing is made per gate, but Phaser makes a particle the
+   first time it has none spare. Reworded, above. Not reserved: this
+   game's shards and embers don't reserve either, and a sure bound, a
+   gate in every cell, would make 208 particles for Drawbridge's 13.
+4. "Under the shards' 350 ms" was over it. Fixed: "about".
+
+Not changed, as the review noted: a key's hit that clears the level
+records no `opened` (the rules' choice, K's), so its gates go at once in
+the hold; no level comes to it while it holds needed bricks behind its
+gates, as Drawbridge's wall, Walled garden's garden and Reunion's fort
+are.

@@ -52,7 +52,8 @@ const SEMITONE_CENTS = 100;
  * streak's step or its reaching the level's mark, a ring about the ball and
  * the streak's count beside it, the last brick's hit holding as the level
  * clears, and, as a ball meets the paddle, the ball's squash and the pad's
- * dip, and a slider's slide into its next cell. Each moves, so none plays
+ * dip, a slider's slide into its next cell, and the gates' opening, each
+ * thinning to a line and fading where it stood. Each moves, so none plays
  * where motion isn't welcome.
  */
 export type Flourish =
@@ -66,7 +67,8 @@ export type Flourish =
   | "hold"
   | "squash"
   | "dip"
-  | "slide";
+  | "slide"
+  | "open";
 
 /** Says what an event calls for: the flourishes it plays, and its sound. */
 export interface EventEffects {
@@ -99,7 +101,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   cleared: { flourishes: ["hold"], sound: CHIME },
   freed: { flourishes: [], sound: "cage" },
   plated: { flourishes: [], sound: "plate" },
-  opened: { flourishes: [], sound: "gates" },
+  opened: { flourishes: ["open"], sound: "gates" },
   seeking: { flourishes: [], sound: "seeker" },
   bumped: { flourishes: ["pop"], sound: "bumper" },
   portalled: { flourishes: [], sound: "portal" },

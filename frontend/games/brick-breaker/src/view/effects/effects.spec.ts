@@ -44,7 +44,7 @@ const VOICES_OF_EVENTS: Readonly<
   cleared: ["cleared", ["hold"]],
   freed: ["cage", []],
   plated: ["plate", []],
-  opened: ["gates", []],
+  opened: ["gates", ["open"]],
   seeking: ["seeker", []],
   bumped: ["bumper", ["pop"]],
   portalled: ["portal", []],

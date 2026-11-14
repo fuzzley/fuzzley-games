@@ -35,6 +35,12 @@ export const SHAKE_MS = 160;
 /** How hard it shakes, as a share of the canvas. */
 export const SHAKE_INTENSITY = 0.006;
 
+/**
+ * How long the gates take to open as the last key breaks, as long as their
+ * sweep takes to rise.
+ */
+export const OPEN_MS = 360;
+
 /** How long a lost ball takes to fade. */
 export const FADE_MS = 600;
 
