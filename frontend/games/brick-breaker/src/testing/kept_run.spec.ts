@@ -56,6 +56,15 @@ describe("keptRun", () => {
     expect(keptRun(LEVELS, KEPT).score).toBe(400);
   });
 
+  it("keeps the points at double pay where it says the bricks pay twice over, as under a dare", () => {
+    const kept = keptRun(LEVELS, { ...KEPT, pay: 2 });
+
+    expect({ score: kept.score, dares: kept.field?.darePoints }).toEqual({
+      score: 800,
+      dares: 400,
+    });
+  });
+
   it("keeps the level played for as long as it names", () => {
     expect(keptRun(LEVELS, KEPT).field?.steps).toBe(stepsIn(20_000));
   });

@@ -694,3 +694,114 @@ Nit: two AGENTS.md entries ran past the file's width. Fixed, rewrapped.
 tests), its coverage (`pure` and `dom`, every floor held, the run's rules
 whole), the build and `check:layout` at every shape, and the root's lint,
 all pass.
+
+## P4. The follow-ups P3 and L3 left
+
+The integrator's package, not in the implementation plan's §6: the Cleared
+card on a small board, one "a, b and c" in `@fz/core/format`, and the focus
+ring and the placeholder at the rim's width.
+
+### 2026-11-14: before any change
+
+- The branch held the integration tip, 98d22048 (P1 to P3, R1 to R3, K1,
+  K2, L1 to L5, F1 and F3a).
+
+### 2026-11-14: the Cleared card fits a short field
+
+Measured first, in headless Chrome on the dev server (port 9204, its own
+page), over a run kept on Fuse that clears with every star new and a line
+for double pay: at 568 × 320 the card, set small there, stood 299 CSS px
+tall over a field of 285, 7 px past it above and below; at 320 × 480,
+where the board is no small one and the card takes its full size, 356 px
+over a field of 330, 13 px past it each way; at 844 × 390, 356 px over 360,
+2 px to spare.
+
+- **Over a field under 380 CSS px tall** (`FULL_CLEARED_CARD_FIELD_CSS_PX`,
+  the full card's 356 and room to spare), the board's `shortField` sets the
+  Cleared card smaller (`board-card-small`, as a small board's cards are),
+  its tally's lines closer, and hands `<app-stars>` `across`: the three
+  stars side by side, each a little larger over its mark (New, or the best
+  streak), what each asks visually hidden, so a screen reader still hears
+  "Clear the level, won just now". The card is then 262 px tall: 34 px to
+  spare each way at 320 × 480, 49 at 844 × 390 and 12 at 568 × 320, and
+  4 over a field at the least unit the layout allows, 9 CSS px.
+- **The board decides from where the field lies** (`laid ?? placeholder`),
+  not a container query: the field's height is the scene's metrics', which
+  the board holds, where a query on the board's size would only guess at
+  it from the room, the finger's room and the rounding of the unit.
+- **The stars lie across, rather than losing their words to a line,** as
+  the Ready card drops its kind's line on a small field: on so narrow a card
+  a star's words take a line each with or without the rest, and three
+  stars side by side, each over its New, take one line and a mark's height.
+- **The layout check holds it.** `tools/check-layout.mjs` opens the game
+  again at each shape, at 2×, over a run it keeps (`CLEARING_RUN`): Fuse,
+  level 13, its tough row broken at double pay (`keptRun()`'s new `pay`)
+  and the blast brick in the middle of its fuse broken, its fuse lit. A
+  script before the page's own (`keepRunAndGoOn()`) keeps the run and
+  presses its Paused card's Resume once the field is drawn; the fuse burns
+  along the row and clears the level with the ball still on the paddle, so
+  no steering or timing is needed, and the check waits for the Cleared
+  card (`.card.cleared`) before it inspects. The board's own inspection
+  then holds the card on the field, and `inspectField()` holds that it
+  shows a line for double pay. Tried with the old layout (the threshold set
+  to 0): "small phone landscape, the Cleared card: The card over the field
+  runs off it.", and the same at the smallest phone; with the new, the
+  layout holds at every shape and turn and the Cleared card at each shape,
+  in 29 s in all.
+- `tools/stored_run.mjs` keeps and stores the runs the two scripts hand a
+  page, as Brick Fuzz Pop's does: the saved game's key, `loadScreenshotApi()`,
+  `storedRun()` and `CLEARING_RUN`, moved from or beside the screenshots'
+  script, which imports them now. `tools/stored_run.spec.ts` holds the run
+  to clearing its level, taken up by the rules and stepped with the ball on
+  the paddle, with double pay and every star, so a change to Fuse or the
+  blasts fails in the specs, not only in Chrome.
+- The board's spec lays a level cleared on a board of 504 × 320 (the 568 ×
+  320 window's) and of 1280 × 720: the card set small, its stars across and
+  still heard, on the first; full, its stars listed, on the second (each
+  fails with the threshold at 0 or at 10,000, as tried). The stars' spec
+  holds them across where asked, every word still heard.
+
+**Outside this stream's files,** none of them another stream's:
+`src/testing/kept_run.ts` and `script_api.ts` gain an optional `pay`, with
+a case in `kept_run.spec.ts`, and `script_api.ts` and `screenshot_api.ts`
+say both scripts take the API; `tools/capture-screenshots.mjs` takes its
+saved game's key and `loadScreenshotApi()` from `stored_run.mjs`, and
+`shownRun()` stamps its run through `storedRun()`; its spec takes
+`loadScreenshotApi()` from there too.
+
+**Seen in headless Chrome** (port 9204, its own page) over the kept run:
+at 568 × 320 and 844 × 390 the card shows three gold stars across, each
+over a New badge, then the four lines of the tally with Double pay 13,100,
+the score and Next level, inside the field's wall; at 844 × 390 the bench
+beside it lists the stars with their words; at 320 × 480 the same card
+sits between the field's top and the paddle.
+
+**Review** (a fresh agent, on the staged change): it found the threshold,
+the stars across, `pay` and the check's flow sound. Its comments:
+
+1. The layout check took its run's pieces from the screenshots' script,
+   and its spec imported the layout script, which then needed an
+   `import.meta.main` guard, where Brick Fuzz Pop keeps them in
+   `tools/stored_run.mjs`. Fixed: `tools/stored_run.mjs` holds the key,
+   `loadScreenshotApi()`, `storedRun()` (handing back the saved run and its
+   stored form, as Brick Fuzz Pop's does) and `CLEARING_RUN`; both scripts
+   import it, the spec is `tools/stored_run.spec.ts` (with `storedRun()`'s
+   two cases), and the guard is gone.
+2. Docs behind the code: `inspectField()`'s and `FIELD`'s docs, the script
+   API's comments naming only the screenshots, the lists of what `pure`
+   runs in `tools/`, and an AGENTS.md line run to 131 columns. Fixed, each;
+   AGENTS.md's tools paragraph names `stored_run.mjs`.
+3. The script before the page's own stopped watching once the run played,
+   so a pause after Resume would wait out the check's ten seconds. Fixed:
+   it watches until the level is cleared, pressing Resume whenever it
+   shows.
+4. Nit: `CLEARED_AT` rebuilds `@fz/dev/layout`'s private `PHASER_SHAPES`.
+   Left: exporting it is a library change, with the root's typecheck and
+   test, for one line, and the pass names the same public pieces the
+   library exports for a check's shapes (`SHAPES`, `SMALLEST`,
+   `shapesAt()`).
+
+**Checks:** Brick Breaker's lint, typecheck and test (76 files, 3,221
+tests), its build and `check:layout` (every shape and turn, and the Cleared
+card at each shape), and the root's lint under the lock, before the review
+and again after the fixes.

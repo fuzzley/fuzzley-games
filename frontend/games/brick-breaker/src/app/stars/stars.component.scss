@@ -41,3 +41,29 @@ li {
 .best {
   font-size: var(--fz-font-xs);
 }
+
+// Across, side by side, each star larger over its mark, what it asks heard
+// but not shown, so the three take a line and a mark's height.
+:host(.across) {
+  .stars {
+    grid-auto-flow: column;
+    align-items: start;
+    justify-content: center;
+    gap: var(--fz-space-4);
+  }
+
+  li {
+    flex-direction: column;
+    gap: var(--fz-space-1);
+  }
+
+  .star {
+    --fz-icon-size: 1.5em;
+
+    margin: 0;
+  }
+
+  .asks {
+    @include visually-hidden;
+  }
+}

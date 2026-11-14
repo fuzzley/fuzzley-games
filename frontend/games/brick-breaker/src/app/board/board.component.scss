@@ -160,6 +160,17 @@ fz-canvas-cards {
   }
 }
 
+// Over a field too short for it at its full size, the Cleared card sets
+// smaller, as a small field's cards do, its stars laid across and its tally's
+// lines closer, so it fits on the field.
+.cleared.short {
+  @include board-card-small;
+
+  .tally {
+    gap: 0;
+  }
+}
+
 // Each part of a cleared level's points on a line, its name and its points
 // at either end.
 .tally {

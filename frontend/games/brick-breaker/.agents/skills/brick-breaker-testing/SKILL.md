@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-testing
-description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, SCREENSHOT_API, script_api, shownRun, brick breaker coverage, frontend/games/brick-breaker tests.
+description: How Brick Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom and throwBall, the autopilot that holds every level to being cleared, the saved game's round trip, the scene run for real with runScene and a FakeShell, the shell's specs on its small levels through provideSpecLevels and tick, and the contrast spec over every palette. Triggers on: brick breaker spec, brick breaker test, fieldFrom, throwBall, playWithoutBall, autopilot spec, playLevel, FakeShell, startBoard, provideSpecLevels, SPEC_LEVEL, playToClear, keptRun, SCREENSHOT_API, script_api, shownRun, CLEARING_RUN, storedRun, stored_run, check-layout, brick breaker coverage, frontend/games/brick-breaker tests.
 ---
 
 # Testing Brick Breaker
@@ -43,7 +43,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   - `pure`, the specs of the rules and the view, but for the simulations,
     and the scripts' in `tools/`, the report's, which plays levels it makes
     up, the screenshots', which holds the run it stores to what the rules
-    take up, and the sounds', which holds the sprite checked in to what
+    take up, the stored runs', which holds the layout check's to clearing
+    its level, and the sounds', which holds the sprite checked in to what
     `tools/build-sounds.mjs` writes now, to the byte, in Node, with neither
     the setup below nor Analog's plugin;
   - `sim`, the specs that play every level
@@ -142,6 +143,18 @@ Run these from `frontend/games/brick-breaker/`, or as
   `src/testing/screenshot_api.spec.ts` holds to the rules'.
   `tools/capture-screenshots.spec.ts` holds the script's run (`RUN`) so,
   stamped with that version and taken up by the rules (`shownRun()`).
+  A run's `pay` of 2 breaks its bricks at double pay, as under a dare, so
+  the level's tally has a line for it.
+- `tools/stored_run.mjs` loads `SCREENSHOT_API` (`loadScreenshotApi()`),
+  through which it keeps and stores the runs the scripts hand a page
+  (`storedRun()`). `tools/check-layout.mjs` checks the Cleared card
+  over one (`CLEARING_RUN`): Fuse with its tough row broken at double pay
+  and its fuse lit, which the page goes on with, by its Paused card's
+  Resume, so the fuse clears the level with no ball launched.
+  `tools/stored_run.spec.ts` holds that run to clearing its level, taken up
+  by the rules and stepped with the ball on the paddle, with double pay and
+  every star, so a change to Fuse or the blasts fails there, not only in
+  the browser.
 
 ## The View
 

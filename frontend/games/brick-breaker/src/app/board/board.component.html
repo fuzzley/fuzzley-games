@@ -94,13 +94,14 @@
       </div>
     }
     @case ("cleared") {
-      <div class="card">
+      <div class="card cleared" [class.short]="shortField()">
         <p class="card-title">{{ clearedTitle() }}</p>
         <app-stars
           [held]="game.starsHeld()"
           [mark]="game.mark()"
           [won]="game.newStars()"
           [bestStreak]="game.bestStreak()"
+          [across]="shortField()"
         />
         <dl class="tally">
           @for (line of tallyLines(); track line.label) {

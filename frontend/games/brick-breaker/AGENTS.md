@@ -634,8 +634,10 @@ takes for the specs' helpers.
     ball; Paused; Cleared, with the level's stars, those just won marked new
     and the play's best streak beside a streak's star not won, over how the
     level's points added up, a line for double pay only where it paid, and
-    Next level; Ended, once an ended run's result is put away; and, in their
-    place, the canvas's own (`@fz/phaser/canvas`'s
+    Next level, set smaller over a field under 380 CSS px tall, its stars
+    laid across and its tally's lines closer, so it fits on the field;
+    Ended, once an ended run's result is put away; and, in their place,
+    the canvas's own (`@fz/phaser/canvas`'s
     `<fz-canvas-cards>`): still loading, which a status region in the page
     from the start says to a screen reader, and couldn't be drawn. The
     board is Phaser's keyboard target, so the cards' buttons keep their
@@ -689,9 +691,11 @@ takes for the specs' helpers.
     held a filled star in the warning's gold, one not yet won `@fz/ui`'s
     outline of it, its words muted, so its shape tells it as well as its
     color, one just won marked New, and, where given, the play's best
-    streak beside the streak's star not won; each star's state is said in
-    words only a screen reader hears, the stars and the marks hidden from
-    it. The bench and the Ready and Cleared cards show it.
+    streak beside the streak's star not won; or, laid `across`, side by
+    side, each over its mark, what each asks heard but not shown; each
+    star's state is said in words only a screen reader hears, the stars and
+    the marks hidden from it. The bench and the Ready and Cleared cards show
+    it.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another (while the
     run is at Custom, its menu offers the slider for the ball's speed
@@ -781,6 +785,8 @@ takes for the specs' helpers.
   sprite checked in; `report-levels.mjs` reports how the autopilot plays
   every level; `check-layout.mjs` checks the build's layout in headless
   Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
+  The last two hand a page a run to take up, kept by the rules and stored
+  as the game stores one, through `stored_run.mjs`.
   The report and the screenshots' script read their command lines with
   `@fz/dev/script`'s `readArgs()` and load what they take from the game
   through Vite, with its `importThroughVite()`; the report prints its table
@@ -990,7 +996,14 @@ workspace's with the others'.
   middle, clear of the ball; and the panels, a deck shown both or neither (`data-panels`), show both wherever
   the room (`data-room`) spares 186 CSS px each side of the field's cells,
   the gap and the narrowest panel past the wall, and nowhere else, each
-  holding the parts it shows, the level's stars among them, whole).
+  holding the parts it shows, the level's stars among them, whole; then,
+  at each shape again, over a run kept on Fuse, level 13, its tough row
+  broken at double pay and its fuse lit (`CLEARING_RUN`, in
+  `tools/stored_run.mjs`, kept by `keptRun()` and gone on with by its
+  Paused card's Resume), which the fuse
+  clears with no ball launched, the Cleared card at its tallest, every star
+  just won and a line for double pay, lies on the field, and the rest holds
+  as above).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the fifteen sounds, from the paddle's bop to the
   seeker's flutter, with `@fz/dev/sounds` into
@@ -1029,8 +1042,8 @@ specs in three projects, each starting only what its own need. `sim` runs
 the specs that play every level, in Node, without the coverage that would
 quadruple their time, as the other rules specs alone hold the rules to
 their floor. `pure` runs the other specs of the rules and the view, and the
-report's, the screenshots' script's and the sounds' in `tools/`, in Node
-too, which has no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
+report's, the screenshots' script's, the stored runs' and the sounds' in
+`tools/`, in Node too, which has no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
 `src/testing/`'s, in jsdom, after `src/test-setup.ts`, which installs
 `@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
 real Phaser through `runScene()`, with a fake shell over a pictured field.
@@ -1088,9 +1101,11 @@ skill covers its setup, floors and fixtures, the repository's
   a level's stars (`starsHeard()`), and a panel's part by its heading
   (`partHeaded()`).
 - `kept_run.ts` keeps a run begun at a level, the bricks it names broken or
-  worn through the rules (`keptRun()`), for the screenshots' script.
-- `screenshot_api.ts` holds what `tools/capture-screenshots.mjs` takes from
-  the game, in one object (`SCREENSHOT_API`) the script loads through Vite:
+  worn through the rules (`keptRun()`), at double pay where it says, for
+  the screenshots' script and the layout check.
+- `screenshot_api.ts` holds what the screenshots' and the layout check's
+  scripts take from the game, in one object (`SCREENSHOT_API`) that
+  `tools/stored_run.mjs` loads through Vite:
   the run kept, points as the game writes them and the version the shell
   keeps a run under (`SAVED_GAME_VERSION`, beside `SavedGame` in the
   rules). Its type is in `script_api.ts`, which imports nothing, so the
