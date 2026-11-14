@@ -1,5 +1,5 @@
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
-import { type Viewport, roomInside } from "@fz/phaser/layout";
+import { PANEL_GAP_CSS_PX, type Viewport, roomInside } from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
 import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
 import { thirdsOf } from "../../rules/wall/wall";
@@ -10,7 +10,6 @@ import {
   type FieldMetrics,
   LINTEL,
   MARGIN_CSS_PX,
-  PANEL_GAP_CSS_PX,
   bandPixels,
   fieldMetrics,
   fieldShape,

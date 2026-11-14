@@ -75,7 +75,7 @@ const FIELD = {
   deck: {
     drawnAt: "data-panels",
     zones: ["left", "right"],
-    // `PANEL_WIDTH_CSS_PX.least`, in src/view/field/field_metrics.ts.
+    // `PANEL_WIDTH_CSS_PX.least`, in `@fz/phaser/layout`.
     least: 172,
     allOrNone: true,
   },
@@ -98,9 +98,10 @@ function inspectField(field) {
   const problems = [];
   const board = document.querySelector("app-board");
   if (!field || !board) return problems;
-  // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in src/rules/tuning.ts; and
-  // `FLOOR_BAND`, `LINTEL`, `PANEL_GAP_CSS_PX` and
-  // `PANEL_WIDTH_CSS_PX.least`, in src/view/field/field_metrics.ts.
+  // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in src/rules/tuning.ts;
+  // `FLOOR_BAND` and `LINTEL`, in src/view/field/field_metrics.ts; and
+  // `PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX.least`, in
+  // `@fz/phaser/layout`.
   const columns = 9;
   const fewestRows = 11;
   const mostRows = 22;

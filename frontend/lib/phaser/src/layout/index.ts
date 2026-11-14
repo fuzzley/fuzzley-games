@@ -20,3 +20,9 @@ export {
   namedRectsAttribute,
   rectAttribute,
 } from "./rect_attribute";
+export {
+  PANEL_GAP_CSS_PX,
+  PANEL_WIDTH_CSS_PX,
+  type SidePanels,
+  sidePanels,
+} from "./side_panels";
