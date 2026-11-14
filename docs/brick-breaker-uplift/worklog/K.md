@@ -296,3 +296,126 @@ The review, and the answers:
 Checks: `yarn lint`, `yarn typecheck`, `yarn test --maxWorkers=6` (59
 files, 2,112 specs, 12.8 s) and `yarn test:coverage --maxWorkers=6`, above
 its floor, in the workspace; the root's `yarn lint` under the lock (1:06).
+
+## K2. Friends' other seven levels, 34 to 40
+
+The branch held the integration tip (e4d98c05, with P1, R1, K1, L1, P2 and
+R2) as the package began. R3 landed while it ran, making a level's `mark`
+needed: once the branch was rebased onto it (d11a2092), each new level's
+mark was set by C7's rule, as `yarn report:levels --marks` prints it, in the
+commit that adds the level. `yarn report:levels --seeds 12` at the start read as
+`report-r2-after.txt` does, line for line, so that report is K2's before and
+none is saved apart.
+
+Mushroom (32), which R2 left with an endgame of 1:01 at Normal (`!`), is
+looked at in the package's last commit.
+
+How the levels were measured: by the report, and, for a level as drafted and
+as redrawn, by `docs/brick-breaker-uplift/levels/play-variants.mjs`. It
+plays each way of drawing a level in `variants-k2.json`, beside it, through
+the report's own table, from the seeds the report gives the level. It plays
+12, as the report does, and up to 300 where a level's longest endgames
+needed telling apart from luck. What it printed is `report-k2-variants.txt`.
+The package's last commit saves the report of every level: `report-k2.txt`
+(`--seeds 12`), the same on the tallest field (`report-k2-tallest.txt`,
+`--height 45`) and from 20 seeds (`report-k2-seeds20.txt`). They hold the
+figures each entry quotes, and that commit says if any has moved.
+
+### 2026-11-14: Nest, Stepping stones, Birdhouse and Walled garden (34 to 37)
+
+What it does:
+
+- `friends.json` gains Nest (34), Stepping stones (35), Birdhouse (36) and
+  Walled garden (37), each from its draft, with its pace, its `teaches` note
+  dropped, and its `mark` the rule's rather than the draft's guess: 5 for
+  each, their middle best streaks at Normal being 6, 6, 9 and 4, where the
+  drafts guessed 15, 10, 15 and 15.
+- Walled garden is redrawn: its floor is gates from wall to wall
+  (`..#=======#..`), where the draft stood five gates between two steel
+  corners (`..##=====##..`).
+- `AGENTS.md`: `friends.json` holds 31 to 37.
+- `play-variants.mjs`, `variants-k2.json` and `report-k2-variants.txt` in
+  `docs/brick-breaker-uplift/levels/`, with Stepping stones and Walled
+  garden.
+
+Why Walled garden was redrawn: as drafted, `--seeds 12` gave it a middle of
+2:22 at Relaxed (`+`) and endgames past a minute at every speed (2:15, 1:10
+and 1:02, `!`); over 40 seeds, 17 of 120 plays' endgames ran past a minute.
+The draft stands the room's side columns, 3 and 9, on the steel corners of
+its floor: bricks shaded from below by a single steel cell, in the inner
+corners of an enclosure, which the content skill lists as what drags an
+endgame. With gates the floor's whole width, those columns are open from
+below once the keys are broken. Over 40 seeds it took 0:57, 0:53 and 0:41,
+its longest endgame 0:23, none past a minute. It is still the level the
+draft drew: the keys over the wall, the gate its floor.
+
+Stepping stones stays as drafted. `--seeds 12` holds it within the budgets,
+its longest endgame 0:43. Over 300 seeds, 11 of 900 plays' endgames ran past
+a minute, most at Relaxed. Its stair is plates, which a ball breaks only
+from above or a side, and the autopilot aims at no plated brick, so it finds
+the last ones by chance. A stair moved a column right and a row shorter, off
+the left wall, had 7 of 900, within chance of the draft, so it wasn't kept.
+
+Nest answers `plan.md`'s question of whether three friends are too many: its
+three cages free three balls, and it takes 0:37, 0:39 and 0:33, beside
+Hello's 0:26 and Drawbridge's 0:58, with no endgame past 0:05. The friends
+make its ring quick to clear, not trivial.
+
+Measured: each speed's middle time, Relaxed, Normal and Fast; the longest
+endgame and the most lives lost at any speed, from 12 seeds; and the middle
+times on the tallest field and from 20 seeds.
+
+| Level              | 12 seeds (R / N / F) | longest endgame | lost | tallest field, 12 seeds | 20 seeds           |
+| ------------------ | -------------------- | --------------- | ---- | ----------------------- | ------------------ |
+| 34 Nest            | 0:37 / 0:39 / 0:33   | 0:05            | 0    | 0:52 / 0:51 / 0:49      | 0:37 / 0:39 / 0:27 |
+| 35 Stepping stones | 0:57 / 0:43 / 0:31   | 0:43            | 0    | 1:11 / 0:59 / 1:11      | 0:51 / 0:37 / 0:32 |
+| 36 Birdhouse       | 0:45 / 0:32 / 0:29   | 0:07            | 0    | 0:54 / 1:06 / 1:02      | 0:46 / 0:32 / 0:30 |
+| 37 Walled garden   | 0:57 / 0:54 / 0:41   | 0:15            | 0    | 1:29 / 1:06 / 0:59      | 0:57 / 0:59 / 0:45 |
+
+The `sim` specs, which play each level from its number at every speed and
+on the tallest field, pass for all 37 levels in 7.5 s.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (63
+files, 2,337 specs, 13.7 s) in the workspace; the root's `yarn lint` under
+the lock (2:02).
+
+The review, and the answers:
+
+1. Figures came from a scratch script no one could run again, and the table's
+   had no saved output. Fixed: the script is `play-variants.mjs`, with the
+   ways it plays in `variants-k2.json`, and prints the record whole; the
+   package's last commit saves the three reports the table reads from. A
+   claim of which bricks the draft of Walled garden left last, which only
+   the scratch script showed, is now said from the picture.
+2. `README.md` and `index.html`'s descriptions still say thirty levels in
+   three sets. Taken at the commit of levels 38 to 40, where Friends is
+   whole.
+3. The entry didn't answer `plan.md`'s question of Nest's three friends.
+   Fixed: a paragraph above.
+4. Nits, all taken: a sentence without a verb, the table's lead naming
+   three of its five columns, and the record's order, names, columns and
+   alignment, now the script's.
+
+The script reshaped the change, so it had a second review, and the answers:
+
+1. The script copied the report's seeds and its table's layout, so its
+   figures could drift from the report's unseen. Fixed: it prints through
+   `printReport()`, which gives each level its seeds as the report does, and
+   passes the least field's height as the report passes it.
+2. The heading didn't pick up Mushroom's `!`, which R2 handed to K2. Fixed:
+   a sentence says which commit looks at it.
+3. The record printed no `+`, though its legend says the first column is
+   the report's. Fixed: it marks the middle at Relaxed past 2:00, as the
+   report does.
+4. Most of the table waits on reports saved at the last commit, which a
+   rule landing before then could move. Answered: that commit says if any
+   figure here has moved.
+5. A level id the file lacks was skipped without a word, and `kept` was
+   never checked. Fixed: it reads its command line with `readArgs()`, exits
+   with 2 naming an unknown id, throws for a `kept` that names no way, and
+   takes another file with `--variants`.
+6. Its JSDoc spelled out types the game exports, and cast nothing it loaded.
+   Fixed: it imports `LevelEntry`, `LevelSetData`, `AutopilotReport` and
+   `Speed`, and casts what Vite loads, as `report-levels.mjs` does.
+7. Nits, all taken: the long sentence on how the levels were measured, and
+   two constants' comments.
