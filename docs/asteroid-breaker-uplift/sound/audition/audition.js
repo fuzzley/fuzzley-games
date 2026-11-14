@@ -11,6 +11,20 @@ import { CHAIN_CENTS } from "/sound/lib/music.mjs";
 
 const NOTES_KEY = "asteroid-breaker-uplift-audition-notes";
 
+/**
+ * What a sound of the uplift's can be marked, by the word kept for it: the
+ * new sound is good as it is, the idea is right but the sound needs work,
+ * or the game should go without this sound.
+ *
+ * @type {Record<string, string>}
+ */
+const MARKS = {
+  "": "mark",
+  keep: "good: use it",
+  change: "needs work",
+  drop: "don't use it",
+};
+
 /** The families whose sounds are tuned, so no play of them is detuned at random. */
 const TUNED = new Set(["chain", "pickups", "stingers", "voice", "rescue", "beds"]);
 
@@ -561,7 +575,7 @@ function showNotes() {
   const notes = readNotes();
   const lines = Object.entries(notes)
     .filter(([, { mark, note }]) => mark || note)
-    .map(([name, { mark, note }]) => `| \`${name}\` | ${mark ?? ""} | ${note ?? ""} |`);
+    .map(([name, { mark, note }]) => `| \`${name}\` | ${mark ? (MARKS[mark] ?? mark) : ""} | ${note ?? ""} |`);
   $("notes").textContent =
     lines.length === 0
       ? "Nothing marked yet."
@@ -593,7 +607,7 @@ function markers(name) {
   const kept = readNotes()[name] ?? {};
   const mark = /** @type {HTMLSelectElement} */ (
     el("select", { "aria-label": `Mark ${name}` }, [
-      ...["", "keep", "change", "drop"].map((value) => el("option", { value }, [value || "mark"])),
+      ...Object.entries(MARKS).map(([value, label]) => el("option", { value }, [label])),
     ])
   );
   mark.value = kept.mark ?? "";
