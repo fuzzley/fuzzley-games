@@ -185,3 +185,114 @@ The review, and the answers:
 Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6`
 (59 files, 2,070 specs, 12.9 s) in the workspace; the root's `yarn lint`
 under the lock (2:15).
+
+### 2026-11-14: keys and gates, with Drawbridge (33)
+
+What it does:
+
+- `BRICK_KINDS.key` (`k`), one hit, needed, 100 a hit, with a new trait,
+  `unlocks`, whose `broken` rule counts it off `Field.keysLeft`; the hit
+  that breaks the level's last key marks every gate broken at once and
+  records `opened` at the key's middle, with no cell (`openGates()`).
+  `unbrokenKeys()` counts a level's keys left, for `createField()` and the
+  saved game's take-up.
+- `BRICK_KINDS.gate` (`=`), which never breaks, isn't needed and scores
+  nothing, with a new trait, `locked`, whose rule is empty. Until it opens
+  it stands as steel: `Field.solid` and `hardSolid` read it as a brick
+  that can't break, so the travel turns every ball there, a fire ball too,
+  and a bolt is spent on it as on steel. Once open it is broken, out of the
+  balls', the bolts' and the autopilot's way, with nothing more to change.
+- The announcer says "The gates are open." (`describeOpened()` in
+  `describe.ts`), as `GameService` hears `opened`.
+- The saved game keeps an open gate as broken, refuses a gate open while
+  a key is left or shut once none is (`gatesAsKeysSay()`), lets a gate be
+  broken with no hits, which no other brick that breaks may be
+  (`brokenAsItComes()`, in place of the condition it replaces), and counts
+  the keys left again on take-up. `SAVED_GAME_VERSION` stays.
+- The levels spec's reach (`shutIn()`) floods past a gate only once it has
+  reached every key, and `give %s a key for its gates` holds every level
+  with a gate to having a key, each with specs of its own.
+- Placeholder looks in tints 3 (key) and 7 (gate), `PICTURED_BRICKS`, and
+  `EVENT_EFFECTS.opened`, with no flourish and no sound.
+- Drawbridge as drafted, its `teaches` and `mark` notes dropped.
+- `AGENTS.md` (`bricks.ts`, `describe.ts`, the saved game, `friends.json`,
+  the reach, What It Keeps), the content skill's legend and checks, and the
+  testing skill's legend, levels spec and round trip.
+
+Choices where the plan was silent:
+
+- `opened` is recorded at the last key's middle, as the hit that opened
+  the gates was there, with no cell, as it is no one brick's.
+- The key scores 100 a hit, as the blast and gift bricks do, each a brick
+  a player aims for.
+- A level with gates and no key never opens them, and the levels spec
+  refuses one, as the package asks.
+- The autopilot needs nothing new: it aims only at bricks it can see
+  through `Field.solid`, which holds a shut gate as steel.
+- The saved game's round trip takes a gate opened in the crowd (a row
+  `=.....k.....=`), and the take-up's specs play a level of their own
+  (`GATE_LEVELS`), apart from the shared `LEVELS`, whose last level
+  another spec reads.
+- The game service's spec plays a level of its own, handed in through
+  `GAME_LEVELS`, whose two keys a row of blast bricks between them breaks
+  soon after the launch.
+- The hit that breaks the last key and clears the level at once still
+  opens the gates, as the saved game's check asks, but says nothing of
+  them, since the clearing is said; a blast that breaks it while a ball
+  waits to be served says so.
+
+Added to other streams' files: `saved_game.ts` (the take-up's count,
+`gatesAsKeysSay()`, and `brokenAsItComes()` replacing one condition of
+`restoredBrick()`) and its spec, `describe.ts` and its spec
+(`describeOpened()`), `game.service.ts` (a line in `hear`, its doc) and its
+spec, `field.ts` (`keysLeft`), `events.ts` (`opened`), `effects.ts` and its
+spec, `brick_art.ts` and its spec, `art.ts`, `levels.spec.ts` (`isKey()`,
+`isGate()`, `shutIn()`'s second flood, three specs) and the testing skill.
+
+Measured: Drawbridge's autopilot middle times over 12 seeds of its own,
+0:54 at Relaxed, 0:47 at Normal, 0:39 at Fast, no life lost, no long
+endgame; on the tallest field 1:27, 1:17 and 1:05. It stays as drafted.
+
+`yarn report:levels --seeds 12`, saved in
+`docs/brick-breaker-uplift/levels/report-k1.txt`: levels 1 to 30 read as
+`report-before.txt` does, the play it marks too long over its last bricks
+being Shelf's at Relaxed, there before and R's to redraw. Friends' middle
+times (Relaxed, Normal, Fast): Hello 0:26, 0:22, 0:21; Mushroom 1:13, 1:31,
+1:11; Drawbridge 0:54, 0:47, 0:39. None was redrawn.
+
+In the browser, at 1280 × 720: Drawbridge shows its gates and keys in
+their placeholder tints; a run kept with every key broken, taken up, shows
+the gates gone and the keys broken.
+
+The commit also holds a spec of the plated brick, `travel.spec.ts`' "says
+so once as a ball rises into its bottom face's end and corner at once",
+which covers the travel noting a plate it has already noted, a branch the
+last commit left without one.
+
+The review, and the answers:
+
+1. A gate's spec in `travel.spec.ts` broke the level's only needed brick,
+   the key, so the field was cleared, and `throwBall()` put it back in
+   play. Fixed: both gate specs keep a plain brick the level needs, and
+   break the key beside it.
+2. The hit that broke the last key and cleared the level at once recorded
+   `opened` after `cleared`, which the announcer would say with the
+   clearing. Fixed: `openGates()` still opens them but says nothing once
+   the level is cleared, with a spec that fails without it. It checks
+   `cleared` alone, so a key broken by a blast while a ball waits says so.
+3. The docs' edits rewrapped lines that weren't K's: the content skill's
+   table, padded wider, and paragraphs of `AGENTS.md` around `capsules.ts`,
+   `takeUpField()` and `nextLifeAfter()`. Fixed: the table's row is
+   reworded to fit, so no other row changes, and every edit to
+   `AGENTS.md` and the skills puts its words on lines of their own,
+   leaving the lines beside them as they were.
+4. `restoredField()`'s and `restoredBrick()`'s doc comments didn't name the
+   gates' states they now refuse or allow. Fixed.
+5. A spec of the plated brick came in unmentioned. Answered: it is named
+   above.
+6. Nits, both taken: `describeOpened` imported in order, and `hear()`
+   returns once it has said the gates are open.
+
+Checks: `yarn lint`, `yarn typecheck`, `yarn test --maxWorkers=6` (59
+files, 2,112 specs, 12.8 s) and `yarn test:coverage --maxWorkers=6`, above
+its floor, in the workspace; the root's `yarn lint` under the lock (1:06).

@@ -24,7 +24,8 @@ import {
  * regrowing one, a blast brick, another plain one and another hidden one;
  * then a row of plain bricks; then, in a set whose bricks draw for capsules,
  * a crowd of every brick that changes as it is played, over a row of blast
- * bricks the ball sets off at once, too many to clear in a few seconds.
+ * bricks the ball sets off at once, too many to clear in a few seconds, and
+ * a key between two gates under them.
  */
 const LEVELS = levelsOf([
   {
@@ -55,6 +56,7 @@ const LEVELS = levelsOf([
           "3*3~3+3~3*3+3",
           "+~+~+~+~+~+~+",
           "*************",
+          "=.....k.....=",
         ],
       },
     ],
@@ -80,6 +82,7 @@ const AIMS: readonly number[] = [-1.4, -0.6, 0.3, 1.1];
 const PLAYED_STATES: readonly string[] = [
   "a ball lost",
   "a fuse lit",
+  "a gate opened",
   "a ghost shown",
   "a regrowing brick broken",
   "a regrowing brick grown back",
@@ -190,6 +193,7 @@ function statesOf(field: Readonly<Field>): string[] {
         !brick.broken &&
         brick.hits < brick.whole &&
         "a tough brick worn",
+      brick.broken && hasTrait(brick.kind, "locked") && "a gate opened",
     );
   }
   return states.filter((state) => state !== false);
@@ -501,6 +505,85 @@ describe("restoreGame", () => {
     ],
   ])("leaves out %s", (_, spoil) => {
     expect(restoreGame(spoil(stored()), LEVELS, 7)).toBeNull();
+  });
+});
+
+describe("a level's keys and gates", () => {
+  /** A level of two keys, a gate and a plain brick. */
+  const GATE_LEVELS = levelsOf([
+    {
+      id: "gates",
+      name: "Gates",
+      place: "garden",
+      drops: 0,
+      levels: [
+        { id: "gates", name: "Gates", capsules: [], bricks: ["kk=o........."] },
+      ],
+    },
+  ]);
+
+  /** Returns a new field of the level of gates for a run, as the game makes it. */
+  function gatesFieldFor(run: Run): Field {
+    const [entry] = GATE_LEVELS;
+    if (!entry) throw new Error("No level of gates.");
+    return createField(parseLevel(entry), {
+      speed: run.speed,
+      seed: levelSeed(run),
+    });
+  }
+
+  /**
+   * Returns a run on the level of keys and a gate as storage keeps it, read
+   * back from JSON, with the keys in the cells given broken.
+   */
+  function storedGates(keys: readonly number[]): Record<string, unknown> {
+    const run = startLevel(
+      createRun({
+        id: 1,
+        seed: 1,
+        speed: "normal",
+        lastLevel: 1,
+        level: 1,
+      }),
+    );
+    const field = gatesFieldFor(run);
+    for (const cell of keys) {
+      const key = field.bricks[cell];
+      if (key) hitBrick(field, key, 0, 0);
+    }
+    return JSON.parse(
+      JSON.stringify(saveGame(catchUp(run, field), field, GATE_LEVELS)),
+    ) as Record<string, unknown>;
+  }
+
+  /** Returns a field taken up from a run storage kept, or null for one left out. */
+  function takenUpFrom(stored: Record<string, unknown>): Field | null {
+    const takenUp = restoreGame(stored, GATE_LEVELS, 7);
+    if (!takenUp) return null;
+    const field = gatesFieldFor(takenUp.run);
+    takeUpField(field, takenUp.field, takenUp.run);
+    return field;
+  }
+
+  it.each([
+    ["a key left, its gate shut", [0], 1, false],
+    ["no key left, its gate open", [0, 1], 0, true],
+  ] as const)("takes up a field with %s", (_, keys, keysLeft, opened) => {
+    const field = takenUpFrom(storedGates(keys));
+
+    expect({
+      keysLeft: field?.keysLeft,
+      opened: field?.bricks[2]?.broken,
+    }).toEqual({ keysLeft, opened });
+  });
+
+  it.each([
+    ["a gate open with a key left", [0], true],
+    ["a gate shut with no key left", [0, 1], false],
+  ] as const)("leaves out %s", (_, keys, broken) => {
+    const stored = withBricks(storedGates(keys), { 2: { broken } });
+
+    expect(restoreGame(stored, GATE_LEVELS, 7)).toBeNull();
   });
 });
 

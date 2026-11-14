@@ -490,6 +490,66 @@ describe("a cage", () => {
   });
 });
 
+describe("keys and gates", () => {
+  it("count the keys a level lays", () => {
+    expect(fieldFrom(["kk=k", ...KEEPER]).keysLeft).toBe(3);
+  });
+
+  it("stand the gates as steel while a key is left", () => {
+    const field = fieldFrom(["k=k", ...KEEPER]);
+
+    hitAt(field, 0, 0);
+    hitAt(field, 1, 0, 5);
+
+    expect({
+      gate: brickAt(field, 1, 0).broken,
+      keysLeft: field.keysLeft,
+      needed: field.needed,
+      events: eventsOf(field),
+    }).toEqual({
+      gate: false,
+      keysLeft: 1,
+      needed: 2,
+      events: ["broken", "hit", "hit", "hit", "hit", "hit"],
+    });
+  });
+
+  it("open every gate as the last key breaks, and say so where it was", () => {
+    const field = fieldFrom(["k=..", "..=k", ...KEEPER]);
+    hitAt(field, 0, 0);
+
+    hitAt(field, 3, 1);
+
+    expect({
+      gates: [brickAt(field, 1, 0).broken, brickAt(field, 2, 1).broken],
+      keysLeft: field.keysLeft,
+      events: eventsOf(field),
+      opened: lastEvent(field),
+    }).toMatchObject({
+      gates: [true, true],
+      keysLeft: 0,
+      events: ["broken", "broken", "opened"],
+      opened: {
+        x: cellMiddleX(cellIndex(3, 1)),
+        y: cellMiddleY(cellIndex(3, 1)),
+        cell: -1,
+      },
+    });
+  });
+
+  it("open the gates unsaid as the last key clears the level", () => {
+    const field = fieldFrom(["k="]);
+
+    hitAt(field, 0, 0);
+
+    expect({
+      gate: brickAt(field, 1, 0).broken,
+      state: field.state,
+      events: eventsOf(field),
+    }).toEqual({ gate: true, state: "cleared", events: ["broken", "cleared"] });
+  });
+});
+
 describe("neededLeft", () => {
   it("counts the bricks a level needs that are not yet broken", () => {
     const field = fieldFrom(["o2#+~*"]);

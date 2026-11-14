@@ -21,6 +21,8 @@ export type FieldEventKind =
   | "freed"
   /** A plated brick's underside turned a ball or spent a bolt, and took no hit. */
   | "plated"
+  /** The level's last key broke, and every gate opened. */
+  | "opened"
   /** A capsule began to fall. */
   | "dropped"
   /** The paddle caught a capsule. */

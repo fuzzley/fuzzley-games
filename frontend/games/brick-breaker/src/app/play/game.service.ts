@@ -19,6 +19,7 @@ import {
   describeFewLeft,
   describeLevel,
   describeLives,
+  describeOpened,
   describePause,
   describeResume,
   describeTakenUp,
@@ -407,11 +408,15 @@ export class GameService extends RunLifecycle {
   }
 
   /**
-   * Hears an event of the field: a capsule caught is said by its name, but
-   * an extra life, which `describeLives()` says as the run takes it. Made
-   * once, so hearing makes nothing.
+   * Hears an event of the field: the gates opened are said, and a capsule
+   * caught by its name, but an extra life, which `describeLives()` says as
+   * the run takes it. Made once, so hearing makes nothing.
    */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
+    if (event.kind === "opened") {
+      this.news.push(describeOpened());
+      return;
+    }
     if (event.kind !== "caught" || event.capsule === null) return;
     if (capsule(event.capsule).effect.kind === "life") return;
     this.news.push(describeCaught(event.capsule));

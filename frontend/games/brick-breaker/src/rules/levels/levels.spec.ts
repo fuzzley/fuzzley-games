@@ -41,6 +41,16 @@ function isPlated(brick: LevelBrick | null | undefined): boolean {
   return !!brick && hasTrait(brick.kind, "plated");
 }
 
+/** Returns whether a cell holds a key, the last of which opens the gates. */
+function isKey(brick: LevelBrick | null | undefined): boolean {
+  return !!brick && hasTrait(brick.kind, "unlocks");
+}
+
+/** Returns whether a cell holds a gate, a wall until the last key breaks. */
+function isGate(brick: LevelBrick | null | undefined): boolean {
+  return !!brick && hasTrait(brick.kind, "locked");
+}
+
 /** Returns each brick of a level's first row, as its kind and hits, up to the first gap. */
 function firstRow(level: Level): [string, number][] {
   const bricks: [string, number][] = [];
@@ -66,13 +76,17 @@ function firstColumn(level: Level): number[] {
  * Returns the cells of a level's needed bricks that no ball can reach: a
  * flood from the open field below the grid, through every cell but those
  * of bricks that never break, into a plated brick only from above or a
- * side, and through the gap above it, finds none of them.
+ * side, and through the gap above it, finds none of them. Once it reaches
+ * every key, the gates open, and it floods again past them.
  */
-function shutIn(level: Level): number[] {
+function shutIn(level: Level, gatesOpen = false): number[] {
   const key = (column: number, row: number): string =>
     `${String(column)},${String(row)}`;
   const isOpen = (column: number, row: number): boolean =>
-    row < 0 || row >= ROWS || !isWall(level.cells[cellIndex(column, row)]);
+    row < 0 ||
+    row >= ROWS ||
+    !isWall(level.cells[cellIndex(column, row)]) ||
+    (gatesOpen && isGate(level.cells[cellIndex(column, row)]));
   const reached = new Set<string>();
   const waiting: [number, number][] = [];
   for (let column = 0; column < COLUMNS; column++) waiting.push([column, ROWS]);
@@ -95,13 +109,18 @@ function shutIn(level: Level): number[] {
       }
     }
   }
-  return level.cells.flatMap((brick, cell) =>
+  const shut = level.cells.flatMap((brick, cell) =>
     brick &&
     isNeeded(brick.kind) &&
     !reached.has(key(columnOf(cell), rowOf(cell)))
       ? [cell]
       : [],
   );
+  const opens =
+    !gatesOpen &&
+    level.cells.some(isKey) &&
+    !shut.some((cell) => isKey(level.cells[cell]));
+  return opens ? shutIn(level, true) : shut;
 }
 
 describe("parseLevel", () => {
@@ -371,6 +390,34 @@ describe("the reach check", () => {
     expect(shutIn(level)).toEqual([]);
   });
 
+  it("finds a brick past a gate whose key no ball reaches", () => {
+    const level = parsed({
+      bricks: [
+        "o............",
+        "=============",
+        ".............",
+        "###..........",
+        "#k#..........",
+        "###..........",
+      ],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(0, 0), cellIndex(1, 4)]);
+  });
+
+  it("reaches a brick past a gate once a ball reaches every key", () => {
+    const level = parsed({
+      bricks: [
+        "o............",
+        "=============",
+        ".............",
+        "k...........k",
+      ],
+    });
+
+    expect(shutIn(level)).toEqual([]);
+  });
+
   it("finds a brick shut in by steel that leaves its corners open", () => {
     const level = parsed({
       bricks: [".#...........", "#o#..........", ".#..........."],
@@ -382,6 +429,9 @@ describe("the reach check", () => {
 
 describe("the levels", () => {
   const named = LEVELS.map((entry) => [entry.data.name, entry] as const);
+  const gated = named.filter(([, entry]) =>
+    parseLevel(entry).cells.some(isGate),
+  );
 
   it.each(named)("parse %s", (_, entry) => {
     expect(() => parseLevel(entry)).not.toThrow();
@@ -408,6 +458,10 @@ describe("the levels", () => {
     expect(level.cells.some((brick) => brick && isNeeded(brick.kind))).toBe(
       true,
     );
+  });
+
+  it.each(gated)("give %s a key for its gates", (_, entry) => {
+    expect(parseLevel(entry).cells.some(isKey)).toBe(true);
   });
 
   it.each(named)("let a ball reach every brick %s needs", (_, entry) => {

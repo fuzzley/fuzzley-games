@@ -125,6 +125,14 @@ const TRAIT_RULES: {
   },
   // Its underside is the travel's and the bolts' to read (`isPlated()`).
   plated: {},
+  unlocks: {
+    broken: (field, brick) => {
+      field.keysLeft--;
+      if (field.keysLeft === 0) openGates(field, brick);
+    },
+  },
+  // The last key's rule opens it.
+  locked: {},
 };
 
 /** The kinds plated underneath, read at every contact, so a step makes nothing. */
@@ -221,6 +229,15 @@ export function hitBrick(
   return true;
 }
 
+/** Returns how many of a level's keys are not yet broken. */
+export function unbrokenKeys(
+  bricks: readonly (Readonly<Brick> | null)[],
+): number {
+  return bricks.filter(
+    (brick) => brick && hasTrait(brick.kind, "unlocks") && !brick.broken,
+  ).length;
+}
+
 /** Hits once each of the eight bricks around a brick. */
 export function hitAround(
   field: Field,
@@ -272,6 +289,19 @@ function layRule<K extends TraitKind>(
   trait: TraitOf[K],
 ): void {
   TRAIT_RULES[kind].laid?.(brick, trait);
+}
+
+/**
+ * Opens every gate at once, out of the balls' way, as the last key breaks,
+ * and says so where the key was, unless that hit cleared the level, after
+ * which nothing more is said.
+ */
+function openGates(field: Field, key: Readonly<Brick>): void {
+  for (const brick of field.bricks) {
+    if (brick && hasTrait(brick.kind, "locked")) brick.broken = true;
+  }
+  if (field.state === "cleared") return;
+  field.events.add("opened", cellMiddleX(key.cell), cellMiddleY(key.cell));
 }
 
 /** Sets a blast off: the eight bricks around it each take a hit. */

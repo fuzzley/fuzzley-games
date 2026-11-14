@@ -55,6 +55,39 @@ const RICH_LEVELS = levelsOf([
   },
 ]);
 
+/**
+ * A level whose two keys, at the ends of a row of blast bricks a hit sets
+ * off, open the gate between them and the row the level needs.
+ */
+const GATE_LEVELS = levelsOf([
+  {
+    id: "gates",
+    name: "Gates",
+    place: "garden",
+    drops: 0,
+    levels: [
+      {
+        id: "gates",
+        name: "Gates",
+        capsules: [],
+        bricks: [
+          "o".repeat(13),
+          "=".repeat(13),
+          ".".repeat(13),
+          "k***********k",
+        ],
+      },
+    ],
+  },
+]);
+
+/** Returns whether the field's gates have opened. */
+function gatesOpen(game: GameService): boolean {
+  return game
+    .frame()
+    .field.bricks.some((brick) => brick?.kind === "gate" && brick.broken);
+}
+
 /** Returns whether the paddle has been made wide. */
 function isWide(game: GameService): boolean {
   return game.frame().field.effects["paddle-size"].capsule === "wide";
@@ -457,6 +490,17 @@ describe("GameService", () => {
       game.tick(SERVE_MS, STILL);
 
       expect(game.frame().field.state).toBe("lost");
+    });
+  });
+
+  describe("the gates", () => {
+    it("says they are open as the last key breaks", async () => {
+      TestBed.overrideProvider(GAME_LEVELS, { useValue: GATE_LEVELS });
+      const game = await launchedAt(1);
+
+      playUntil(game, under, () => gatesOpen(game));
+
+      expect(said()).toBe("The gates are open.");
     });
   });
 

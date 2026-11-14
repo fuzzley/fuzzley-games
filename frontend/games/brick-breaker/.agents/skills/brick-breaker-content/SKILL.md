@@ -26,14 +26,14 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   numbered from 1 across the sets (`LEVELS`).
 - **The checks** that hold it whole:
 
-  | Check               | Where                               | What it holds                                                                                                                          |
-  | ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                                         |
-  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level                    |
-  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set, every set in its place |
-  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                   |
-  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                 |
-  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                            |
+  | Check               | Where                               | What it holds                                                                                                                                   |
+  | ------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                                                  |
+  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level                             |
+  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, needed bricks in reach, a key for a gate, a pace that never falls in a set, every set in its place |
+  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                            |
+  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                          |
+  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                                     |
 
 ## A Level
 
@@ -48,9 +48,11 @@ Its block in a set's file:
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
-  `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `.`
+  `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `k` key,
+  `=` gate, `.`
   none. A `legend` of its own adds characters, each a kind with its hits or
   the capsule a gift gives.
+  A level with a gate has a key, whose last opens it.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,

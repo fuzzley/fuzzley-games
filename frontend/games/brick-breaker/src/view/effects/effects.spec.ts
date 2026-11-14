@@ -32,6 +32,7 @@ const EVENTS = [
   ["cleared", "cleared", []],
   ["freed", null, []],
   ["plated", null, []],
+  ["opened", null, []],
 ] as const;
 
 describe("effectsOf", () => {

@@ -7,6 +7,7 @@ import {
   describeFewLeft,
   describeLevel,
   describeLives,
+  describeOpened,
   describePause,
   describeResume,
   describeTakenUp,
@@ -147,6 +148,12 @@ describe("describe", () => {
       expect(describeEnd(runAt({ outcome }), newBest)).toBe(words);
     },
   );
+});
+
+describe("describeOpened", () => {
+  it("says the gates are open", () => {
+    expect(describeOpened()).toBe("The gates are open.");
+  });
 });
 
 describe("endTitle", () => {

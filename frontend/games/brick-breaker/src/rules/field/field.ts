@@ -6,6 +6,7 @@ import {
   createBrick,
   neededLeft,
   stepBricks,
+  unbrokenKeys,
 } from "../bricks/bricks";
 import {
   type Effects,
@@ -104,6 +105,8 @@ export interface Field {
   readonly hardSolid: Solid;
   /** How many bricks the level needs broken still. */
   needed: number;
+  /** How many of the level's keys are left unbroken; the gates open as the last breaks. */
+  keysLeft: number;
   /** The balls, in play and waiting, as many as there may ever be. */
   readonly balls: readonly Ball[];
   readonly paddle: Paddle;
@@ -187,6 +190,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
       return !!brick && !brick.broken && !canBreak(brick);
     },
     needed: neededLeft(bricks),
+    keysLeft: unbrokenKeys(bricks),
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
     score: 0,
