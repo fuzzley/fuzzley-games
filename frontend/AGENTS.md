@@ -15,15 +15,18 @@ keeps its own in an `AGENTS.md` in its folder. Paths are relative to
   (`--include "games/*"`), each `foreach` running them side by side
   (`--parallel`, as many at once as half the machine's cores), each
   workspace's output printed whole once it is done, so no workspace's step
-  may wait on another's. `yarn test` runs four at a time, each Vitest on a
-  quarter of the cores (`--maxWorkers=25%`), which fits a machine of four
-  cores or more, as CI's is; more would starve the specs of their five
-  seconds. Its dependencies are only the tools that run from here: Prettier, ESLint, TypeScript and `@fz/dev`
+  may wait on another's. `yarn test` and `yarn test:coverage` run through
+  `tools/run-tests.mjs` instead, since `foreach` starts workspaces by name:
+  it starts those with the most spec files first, which takes the longest
+  suites, such as the Solitaire Collection's, off the end, four at a time,
+  each Vitest on a quarter of the cores (`--maxWorkers`, as a number),
+  which fits a machine of four cores or more, as CI's is; more would starve
+  the specs of their five seconds. Its dependencies are only the tools that run from here: Prettier, ESLint, TypeScript and `@fz/dev`
   for the `.agents/` scripts and its own `tools/`, with the
   `eslint.config.js` and `tsconfig.scripts.json` beside it, and `semver` for
   the constraints.
   `tools/` holds the scripts that act on every workspace at once, such as
-  `yarn stop`'s. `yarn.lock` and `.yarnrc.yml` exist only here. A backend,
+  `yarn stop`'s and `yarn test`'s. `yarn.lock` and `.yarnrc.yml` exist only here. A backend,
   when there is one, goes in a folder of its own beside `frontend/`.
 - **`yarn.config.cjs`** holds the constraints `yarn lint` checks every
   `package.json` against: a package has the same range in every workspace
@@ -104,8 +107,8 @@ step, and its `AGENTS.md` says what they do.
 - **Preview Build:** `yarn preview` (serves the site's production build locally).
 - **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, whichever workspace started it, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them). Don't run it while a build runs: it stops the Dart Sass a build spawns too.
 - **Check the Layout:** `yarn check:layout` (runs each game's `check:layout`, where it has one, as Sudoku, Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop do: it serves the game's build and opens it in headless Chrome at a roomy window, an upright phone and one on its side, each as a large phone and a small one, failing on an error the page reports, a page that scrolls, a control of the game bar out of the window, a board drawn with Phaser out of its shape or its place, a deck beside it that lacks a zone it must show (one shown all or none may show none of them, or, told the room it needs, must show exactly where that room is spare) or whose zones lie off the canvas or over the board, each other or the bar, or what the game's own inspection finds, with `@fz/dev/layout`; Snake's, Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's turn the phone too). It checks the builds `yarn build` made, and CI runs it after `yarn verify:full`.
-- **Run Unit Tests:** `yarn test` (runs each workspace's `test`, every spec once, without coverage).
-- **Run Unit Tests with Coverage:** `yarn test:coverage` (runs each workspace's `test:coverage`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`; Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's then run the specs that play or lay out every level or wave, or time a flight, without it). A workspace's `test:coverage` that runs Vitest twice, as those three do, hands each run its arguments (`"$@"`), the root's `--maxWorkers=25%` among them, since Yarn adds them to the last command of a script that names none. A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead, naming its project where the workspace has several (`yarn vitest run --project pure <path>`), or Vitest starts every project. CI runs it, through `yarn verify:full`; run it before merging into `main`, as the `merge-to-main` skill says.
+- **Run Unit Tests:** `yarn test` (runs each workspace's `test`, every spec once, without coverage, the workspaces with the most spec files first, and prints when each started and how long it ran; `yarn test --jobs <n>` runs another number at once, `--only` and `--except` take workspaces' names by commas, what follows `--` reaches each Vitest, and `yarn test --help` says so; `yarn test:coverage` takes the same).
+- **Run Unit Tests with Coverage:** `yarn test:coverage` (runs each workspace's `test:coverage`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`; Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's then run the specs that play or lay out every level or wave, or time a flight, without it). A workspace's `test:coverage` that runs Vitest twice, as those three do, hands each run its arguments (`"$@"`), the root's `--maxWorkers` among them, since Yarn adds them to the last command of a script that names none. A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead, naming its project where the workspace has several (`yarn vitest run --project pure <path>`), or Vitest starts every project. CI runs it, through `yarn verify:full`; run it before merging into `main`, as the `merge-to-main` skill says.
 - **Type Checking:** `yarn typecheck` (runs `tsc` over the `.agents` scripts, the root's `tools/`, the constraints and its `eslint.config.js` from their JSDoc (`tsconfig.scripts.json`), then each workspace's `typecheck`, which checks its lint configs too). Vitest strips types without checking them, so this is the only check a spec's types get.
 - **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents`, the root's `tools/`, those constraints and `eslint.config.js` itself with that config, runs each workspace's `lint` with its own config, over its lint configs too, then checks formatting with `yarn prettier:check`).
 - **Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`), the check while working.
