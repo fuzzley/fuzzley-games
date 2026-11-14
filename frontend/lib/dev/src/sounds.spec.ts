@@ -11,6 +11,7 @@ import {
   note,
   renderSoundSprite,
   thud,
+  withBurst,
   writeSoundSprite,
 } from "./sounds.ts";
 
@@ -146,6 +147,27 @@ describe("note", () => {
     );
 
     expect(played(0.6)).toBeCloseTo(0.1 * 0.25);
+  });
+});
+
+describe("withBurst", () => {
+  it("plays its tone under its seed's noise, which rises over 1 ms", () => {
+    const noise = thud(7);
+
+    const knock = withBurst((t) => t, 7, 0.1, 1);
+
+    expect(knock(0.0005)).toBeCloseTo(
+      0.0005 + 0.5 * Math.exp(-0.005) * noise(0.0005),
+      12,
+    );
+  });
+
+  it("fades the noise to about a third every decay, scaled by its loudness, not the tone", () => {
+    const noise = thud(11);
+
+    const blast = withBurst(() => 0.25, 11, 0.1, 2);
+
+    expect(blast(0.1)).toBeCloseTo(0.25 + 2 * Math.exp(-1) * noise(0.1), 12);
   });
 });
 

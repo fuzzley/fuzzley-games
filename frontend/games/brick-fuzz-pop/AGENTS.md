@@ -651,12 +651,13 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   writes, so change the script and run it rather than edit the file).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the twenty sounds, from the charge's notch to a lost
-  level's, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and
-  their spritemap, `sounds.json`, the same bytes every run; their names and
-  order are the view's `SOUNDS`, which the scene's spec holds them to, and
-  `tools/build-sounds.spec.ts` fails while the sprite isn't what the
-  recipes make, so change a recipe and run the script rather than edit the
-  sprite).
+  level's, with `@fz/dev/sounds`' synths, its `withBurst()` laying a burst of
+  noise, a crackle, a knock or a rumble, under a tone, into
+  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same
+  bytes every run; their names and order are the view's `SOUNDS`, which the
+  scene's spec holds them to, and `tools/build-sounds.spec.ts` fails while the
+  sprite isn't what the recipes make, so change a recipe and run the script
+  rather than edit the sprite).
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9006/sound-lab/` (`tools/sound-lab.ts`: each sound in
   the sprite, and eight scenes of a round played as the game would play
