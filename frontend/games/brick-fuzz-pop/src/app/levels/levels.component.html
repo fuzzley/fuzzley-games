@@ -36,8 +36,10 @@
                 [attr.aria-disabled]="level.open ? null : 'true'"
                 (click)="choose(level)"
               >
-                <span class="number">{{ level.number }}</span
-                >&ngsp;<span class="name">{{ level.name }}</span>
+                <span class="number">{{ level.number }}</span>&ngsp;<span
+                  class="name"
+                  >{{ level.name }}</span
+                >
                 @if (level.cleared) {
                   &ngsp;<span class="stars">
                     @for (star of level.stars; track star) {
