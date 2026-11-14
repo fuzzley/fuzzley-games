@@ -5,6 +5,7 @@ import type { BallKindId } from "../../rules/catalog/balls";
 import type { EffectKind, PaddleMode } from "../../rules/catalog/capsules";
 import type { FieldEvent } from "../../rules/field/events";
 import type { FieldState } from "../../rules/field/field";
+import type { Level } from "../../rules/levels/level";
 import type { Ball } from "../../rules/paddle/balls";
 import type { Bolt } from "../../rules/paddle/bolts";
 import type { Paddle } from "../../rules/paddle/paddle";
@@ -17,6 +18,8 @@ export type { Steer } from "../../rules/paddle/paddle";
  * change: the rules' `Field` is one.
  */
 export interface FieldView {
+  /** The level in play, of which the view reads the streak its third star asks for. */
+  readonly level: Readonly<Pick<Level, "mark">>;
   readonly state: FieldState;
   /** How tall it is, from the top wall to the floor, in field units. */
   readonly height: number;

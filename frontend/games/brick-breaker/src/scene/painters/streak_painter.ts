@@ -32,23 +32,28 @@ interface Step extends FieldPlace {
 }
 
 /**
- * Draws a streak's step, where motion is welcome: a ring about the ball
- * nearest the brick that took the streak there, spreading as it fades, and
- * the streak's count beside the ball, the one thing written over the field,
- * both following the ball, in the balls' color. Each count is a `Text` in
- * the page's font, written once for its step, and again only at a bake,
- * once the page has loaded the font, or for balls of another kind, so a
- * step played writes nothing; a step played takes the place of one still
- * playing.
+ * Draws a streak's step, or its reaching the level's mark, where motion is
+ * welcome: a ring about the ball nearest the brick that took the streak
+ * there, spreading as it fades, and the streak's count beside the ball, the
+ * one thing written over the field, both following the ball, in the balls'
+ * color. Each count is a `Text` in the page's font, written once for its
+ * step, and again only at a bake, once the page has loaded the font, or for
+ * balls of another kind, so a step played writes nothing; the mark's is
+ * written as each field starts, unless a step's count says it already. A
+ * step played takes the place of one still playing.
  */
 export class StreakPainter implements Painter {
   /** The ring, white, tinted as the balls are. */
   readonly ring: GameObjects.Image;
   /** A count for each step, by the streak it steps at. */
   readonly counts: ReadonlyMap<number, GameObjects.Text>;
+  /** The count of the level's mark, where no step's count says it. */
+  readonly markCount: GameObjects.Text;
 
   /** The family the counts are written in: the page's, as the canvas has it. */
   private readonly family: string;
+  /** Every count, the steps' and the mark's. */
+  private readonly texts: readonly GameObjects.Text[];
   /** The step playing, or the last one played. */
   private readonly step: Step = {
     at: -Infinity,
@@ -62,7 +67,10 @@ export class StreakPainter implements Painter {
   /** The color the counts are written in, the balls'. */
   private countColor: number;
 
-  /** Makes the ring, and writes each step's count at the field's scale, in the palette. */
+  /**
+   * Makes the ring, writes each step's count at the field's scale, in the
+   * palette, and makes the mark's, which each field writes as it starts.
+   */
   constructor(scene: Scene, layer: GameObjects.Layer, baked: Readonly<Baked>) {
     this.family = familyOf(scene.game.canvas);
     this.ring = scene.add
@@ -76,11 +84,13 @@ export class StreakPainter implements Painter {
         scene.add.text(0, 0, String(streak), style).setVisible(false),
       ]),
     );
-    layer.add([this.ring, ...this.counts.values()]);
-    rewriteOnceLoaded(scene, this.family, this.counts.values());
+    this.markCount = scene.add.text(0, 0, "", style).setVisible(false);
+    this.texts = [...this.counts.values(), this.markCount];
+    layer.add([this.ring, ...this.texts]);
+    rewriteOnceLoaded(scene, this.family, this.texts);
   }
 
-  /** Plays a step a broken brick took the streak to, about the ball in flight nearest it. */
+  /** Plays a step, or the mark, a broken brick took the streak to, about the ball in flight nearest it. */
   play(event: Readonly<FieldEvent>, field: FieldView, now: number): void {
     const { step } = this;
     step.count?.setVisible(false);
@@ -88,7 +98,7 @@ export class StreakPainter implements Painter {
     step.x = event.x;
     step.y = event.y;
     step.ball = nearestBall(field.balls, event.x, event.y);
-    step.count = this.counts.get(event.streak) ?? null;
+    step.count = this.countOf(event.streak, field.level.mark);
   }
 
   /**
@@ -135,21 +145,33 @@ export class StreakPainter implements Painter {
   refresh(baked: Readonly<Baked>): void {
     const style = countStyle(this.family, baked);
     this.countColor = baked.palette.balls.normal;
-    for (const count of this.counts.values()) count.setStyle(style);
+    for (const count of this.texts) count.setStyle(style);
   }
 
-  /** Stops the step playing, as a new field starts. */
-  reset(): void {
+  /**
+   * Stops the step playing, and writes the new field's mark, unless a
+   * step's count says it already, as a new field starts.
+   */
+  reset(field: FieldView): void {
     this.step.at = -Infinity;
     this.ring.setVisible(false);
     this.step.count?.setVisible(false);
+    const { mark } = field.level;
+    if (!this.counts.has(mark)) this.markCount.setText(String(mark));
+  }
+
+  /** Returns the count a streak so long shows at a level's mark: its step's, the mark's, or none. */
+  private countOf(streak: number, mark: number): GameObjects.Text | null {
+    const count = this.counts.get(streak);
+    if (count) return count;
+    return streak === mark ? this.markCount : null;
   }
 
   /** Writes each count again in the color of balls of another kind. */
   private writeIn(color: number): void {
     this.countColor = color;
     const css = cssHex(color);
-    for (const count of this.counts.values()) count.setColor(css);
+    for (const count of this.texts) count.setColor(css);
   }
 }
 

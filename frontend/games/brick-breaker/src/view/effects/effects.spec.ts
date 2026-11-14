@@ -173,7 +173,19 @@ describe("effectsOf", () => {
     },
   );
 
-  it.each([1, 4, 6, 11, 21])(
+  it.each([15, 25, 30])(
+    "steps the streak as a brick breaks it to the level's mark of %i",
+    (mark) => {
+      const event = eventOf("broken", 0, mark);
+
+      expect(effectsOf(event, fieldFrom(["2#"], { mark }))).toEqual({
+        sound: "broken",
+        flourishes: ["shards", "streak"],
+      });
+    },
+  );
+
+  it.each([1, 4, 6, 11, 15, 21, 25])(
     "plays no step as a brick breaks the streak to %i",
     (streak) => {
       expect(effectsOf(eventOf("broken", 0, streak), field)).toEqual({

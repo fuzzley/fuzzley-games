@@ -631,6 +631,10 @@ Choices where the plan was silent:
 - **A caught ball squashes too,** as it meets the paddle as much as a ball
   sent off does; the net's turn (`netted`) is not the paddle, and doesn't.
 
+Added to other streams' files: `bricks_scene.ts` (the squash's and the
+dip's cases in `flourish()`, and the paddle's painter's reset in
+`startField()`), and lines of `AGENTS.md`.
+
 Checks, after the review's fixes: the workspace's lint and typecheck pass,
 and its tests, 70 files and 3020 specs; the root's lint passes.
 
@@ -724,6 +728,13 @@ Choices where the plan was silent:
   them, as the plan names keys: a ball launched by a tap reaches the bricks
   after they have landed.
 
+Added to, and changed in, other streams' files: `bricks_scene.ts`
+(`layOut()` and `startField()` calling the brick painter's `layout()` and
+`dropIn()` as they are now, the flourishes' time set in `startField()`,
+`press()` landing the bricks, and the tween's `tweens.killAll()` gone with
+the tween), `src/scene/painters/painter.ts` (L's: a clause of
+`PaintContext.now`'s doc), and lines of `AGENTS.md`.
+
 Checks, after the review's fixes: the workspace's lint and typecheck pass,
 and its tests, 70 files and 3041 specs; the root's lint passes.
 
@@ -748,3 +759,113 @@ Review:
 6. Nits, each fixed: `PaintContext.now`'s doc, the painter's class doc
    (the bricks land as the drop-in ends too). The `flourishTime()` call in
    `startField()` stays, for one source of that time.
+
+### 2026-11-14: the ball rings at the level's mark, as at a streak's step
+
+What it does:
+
+- `FieldView` reads the level's mark (`level`, `Pick<Level, "mark">`), as
+  the rules' `Field` holds it, so the view needs nothing more from the
+  scene.
+- `isStreakStep(streak, mark)` is true at the mark too, so a brick broken
+  taking the streak to the level's mark calls for the step's flourish,
+  `"streak"`, beside its shards and its own sound (`effectsOf()`), and none
+  where motion isn't welcome. It plays each time the streak comes to the
+  mark, as a step does, though the star is won once.
+- `StreakPainter` writes a `Text` of its own for the mark (`markCount`) in
+  `reset(field)`, as each field starts, unless a step's count says it
+  already: a mark of 5, 10 or 20 plays the step's count alone, writing no
+  second. `play()` takes the step's count, else the mark's (`countOf()`),
+  and the mark's count is styled, colored and written again once the font
+  loads with the steps' (`texts`). Of the 40 levels, 33 have their mark on
+  a step; the 6 at 15 and the 1 at 30 write their own.
+- Specs: `streak.spec.ts` (a step at a mark of 30, 15 now among the
+  streaks that aren't one, and a streak at marks of 15, 25 and 30 a step),
+  `effects.spec.ts` (the step played at marks of 10, 15 and 25, and none at
+  15 or 25 at the spec field's mark of 5), and the scene's spec: the ring
+  and "15" at a mark of 15, the count in the balls' kind's color at a
+  step and at the mark, a mark of 10 showing the step's count and not the
+  mark's, each level's mark written as it starts (15, then 30), and no
+  ring or count at the mark without motion; the palette's and the font's
+  specs hold the mark's count with the steps'. Each fails with its bug put
+  back (no mark in `effectsOf()`, `countOf()` ignoring the mark, nothing
+  written at `reset()`, the mark's count taken before the step's, and
+  `writeIn()`, `refresh()` or the font's rewrite missing the mark's).
+- `AGENTS.md`: `frame.ts`, `effects.ts`, `streak.ts` and `StreakPainter`;
+  the content skill's `mark`. The lines changed keep to the file's width,
+  and the lines about them, other streams', stay as they were.
+
+Choices where the plan was silent:
+
+- **The count is the streak's,** "15", in the steps' font, color and
+  corner, as the plan asks for the same flourish; a star or a word would be
+  new art.
+- **Written as a field starts,** not as the mark is reached, as writing a
+  `Text` measures it anew, which the frame mustn't; a mark changes only
+  with the level.
+- **The fur stays at its tier.** The design's flourish table says a step
+  lifts the fur, "the same at the level's mark"; the fur follows the
+  multiplier's tier (L3's `STREAK_FUR`), and a mark of 15 or 30 falls
+  inside a tier, so a lift there would need a fur that matches no
+  multiplier. The implementation plan (F1's list) asks for the ring and
+  the count at the mark, which is what plays.
+
+Added to, and changed in, other streams' files: `src/view/field/frame.ts`
+(owned by none: `FieldView`'s new member `level`, which the rules' `Field`
+already has), `bricks_scene.ts` (the streak painter's `reset()`, F1's line,
+handed the field), `src/scene/painters/streak_painter.ts` (F1's, among L's
+painters: the mark's count, `countOf()`, `reset(field)`, the loops of
+`refresh()`, `writeIn()` and the font's rewrite over every count, and the
+docs of the class, the constructor and `play()`), the content skill's
+`mark` line, and lines of `AGENTS.md`.
+
+Checks, after the review's fixes: the workspace's lint and typecheck pass,
+and its tests, 70 files and 3055 specs; with coverage, `dom` and `pure`, 67 files and 2815 specs,
+the view's floor held (every view file this package changed at 100%); the
+root's lint passes; Prettier passes on every file changed.
+
+Review:
+
+1. The log didn't say what this change, and the package's two before it,
+   added to other streams' files. Fixed: a line in each of the three
+   entries.
+2. The spec of a mark on a step held visibility by position and didn't
+   check that no second count was written. Fixed: it holds the counts
+   shown by their text, "10" alone, and the mark's count unwritten; it
+   fails with the guard in `reset()` taken out.
+3. The painter kept a copy of the mark that `play()` is handed anyway.
+   Fixed: `countOf(streak, mark)` reads `field.level.mark`, so the effects
+   and the painter read it from one place. The guard in `reset()` stays,
+   as the plan asks for no second count, and spec 2 pins it.
+4. The design's step lifts the fur, "the same at the level's mark", and
+   the log didn't say why the fur doesn't lift at a mark of 15. Added
+   under the choices.
+5. The content skill's `mark` line read as if the report printed the
+   step. Fixed: the report's clause first, then the ring's.
+6. Nits: the constructor's doc now says it makes the mark's count, and the
+   effects spec's marks are 15, 25 and 30, each off a step, as a mark of 10
+   passed with the mark ignored.
+
+### 2026-11-14: the browser check
+
+Served on 9304 and played in headless Chrome at 1280 × 720, on level 5,
+Window, whose mark is 15, its unit 19 px, with the scene reached from the
+page through Angular's dev tools and the paddle kept under the ball.
+
+- The drop-in, paused 150 ms in: the left columns stood at their places,
+  the right still above them and faint, in order across the field.
+- A key the game doesn't use (Q) pressed on the board landed every brick
+  the next frame, each at its row's place and whole.
+- The frame the paddle's event played, the ball was 1.28 times as wide and
+  0.7 times as tall, and the pad 2 px lower (a tenth of 19 px, rounded),
+  the body still; the canvas read back at four times its size showed the
+  ball flattened onto the pad's strip.
+- The mark: the field's streak set to 14 and a brick broken with the
+  rules' `hitBrick()`, the ring stood about the ball and "15" beside it,
+  the ball in its ×3 fur.
+- With `prefers-reduced-motion: reduce` emulated: a ball met the paddle
+  and stayed round, the pad didn't move, the mark played no ring or count,
+  and the run taken up after a reload showed its bricks at their places,
+  whole, from the first frame.
+- No error or warning in the console. The page was closed and the server
+  stopped.

@@ -16,9 +16,12 @@ export function streakTier(streak: number): number {
   return tier;
 }
 
-/** Returns whether a brick broken at a streak so long took it to a step. */
-export function isStreakStep(streak: number): boolean {
-  return STREAK_STEPS.includes(streak);
+/**
+ * Returns whether a brick broken at a streak so long took it to a step, or
+ * to the level's mark, the streak its third star asks for.
+ */
+export function isStreakStep(streak: number, mark: number): boolean {
+  return streak === mark || STREAK_STEPS.includes(streak);
 }
 
 /** How tall a streak's count is written, and how wide the outline round it, in field units. */

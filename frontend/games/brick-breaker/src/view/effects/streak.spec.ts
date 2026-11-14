@@ -56,11 +56,19 @@ describe("isStreakStep", () => {
     [5, true],
     [6, false],
     [10, true],
+    [15, false],
     [20, true],
     [25, false],
-  ])("says a streak of %i is a step: %s", (streak, step) => {
-    expect(isStreakStep(streak)).toBe(step);
+  ])("says a streak of %i is a step, at a mark of 30: %s", (streak, step) => {
+    expect(isStreakStep(streak, 30)).toBe(step);
   });
+
+  it.each([15, 25, 30])(
+    "says a streak at the level's mark of %i is a step too",
+    (mark) => {
+      expect(isStreakStep(mark, mark)).toBe(true);
+    },
+  );
 });
 
 describe("countCorner", () => {

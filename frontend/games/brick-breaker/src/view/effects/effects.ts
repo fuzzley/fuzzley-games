@@ -46,10 +46,11 @@ const SEMITONE_CENTS = 100;
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
  * shards, a blast's ring, the field's shake, a lost ball's fade, a
- * regrown brick's growing back, a streak's step, a ring about the ball
- * and the streak's count beside it, the last brick's hit holding as the
- * level clears, and, as a ball meets the paddle, the ball's squash and the
- * pad's dip. Each moves, so none plays where motion isn't welcome.
+ * regrown brick's growing back, a streak's step or its reaching the
+ * level's mark, a ring about the ball and the streak's count beside it,
+ * the last brick's hit holding as the level clears, and, as a ball meets
+ * the paddle, the ball's squash and the pad's dip. Each moves, so none
+ * plays where motion isn't welcome.
  */
 export type Flourish =
   | "pop"
@@ -101,7 +102,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
 /** What a hit on a brick that never breaks calls for. */
 const UNBROKEN_HIT: EventEffects = { flourishes: ["pop"], sound: "steel" };
 
-/** What a brick broken as it takes the streak to a step calls for: what any broken brick does, and the step. */
+/** What a brick broken as it takes the streak to a step, or to the level's mark, calls for: what any broken brick does, and the step. */
 const BROKEN_AT_STEP: EventEffects = {
   ...EVENT_EFFECTS.broken,
   flourishes: [...EVENT_EFFECTS.broken.flourishes, "streak"],
@@ -128,7 +129,7 @@ const VOICES: Readonly<Partial<Record<BrickKindId, BrickVoice>>> = {
 interface BrickEffects {
   readonly hit: EventEffects;
   readonly broken: EventEffects;
-  /** What it calls for as it breaks taking the streak to a step. */
+  /** What it calls for as it breaks taking the streak to a step, or to the level's mark. */
   readonly brokenAtStep: EventEffects;
 }
 
@@ -172,7 +173,9 @@ export function effectsOf(
   const effects = brick ? BRICK_EFFECTS[brick.kind] : UNVOICED;
   if (event.kind === "hit") return effects.hit;
   if (event.kind === "broken") {
-    return isStreakStep(event.streak) ? effects.brokenAtStep : effects.broken;
+    return isStreakStep(event.streak, field.level.mark)
+      ? effects.brokenAtStep
+      : effects.broken;
   }
   return EVENT_EFFECTS[event.kind];
 }
