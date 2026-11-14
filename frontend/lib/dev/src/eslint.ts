@@ -299,9 +299,10 @@ const SHELL_LIBRARIES = [
 ];
 
 // @fz/phaser's entries that know no Phaser and no framework, the folders
-// lib/phaser/eslint.config.js fences as its pure entries, and the fuzzball
-// drawn in their shapes, so the two lists change together.
+// lib/phaser/eslint.config.js fences as its pure entries, and the fuzzball and
+// the bricks drawn in their shapes, so the two lists change together.
 const PURE_PHASER_ENTRIES = [
+  "@fz/phaser/bricks",
   "@fz/phaser/color",
   "@fz/phaser/fuzzball",
   "@fz/phaser/insets",

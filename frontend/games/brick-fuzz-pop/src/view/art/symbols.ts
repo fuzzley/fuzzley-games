@@ -1,13 +1,15 @@
 // What the bricks' art is laid out by: a brick's cell at a scale, whether a
-// scale draws the finest detail, a crack's width and the ways along a tile's
-// edges, an eighth of a turn and the lightning bolt a brick is marked with;
-// and, from `@fz/phaser/shapes`, the geometry it shares with Brick Breaker's
-// art, under the names its kinds take it by: a point at shares of an area, an
-// outline whose edges lie on whole device pixels, a die's pips, a point
-// turned, a diamond and a line drawn as a band. The art's numbers are the
-// design's (`docs/archive/brick-fuzz-pop/art/make-art.mjs`), each written as
-// a share of the cell its 100-unit square is.
+// scale draws the finest detail, by `@fz/phaser/bricks`' rule, a crack's width
+// and the ways along a tile's edges, an eighth of a turn and the lightning
+// bolt a brick is marked with; and, from `@fz/phaser/shapes`, the geometry it
+// shares with Brick Breaker's art, under the names its kinds take it by: a
+// point at shares of an area, an outline whose edges lie on whole device
+// pixels, a die's pips, a point turned, a diamond and a line drawn as a band.
+// The art's numbers are the design's
+// (`docs/archive/brick-fuzz-pop/art/make-art.mjs`), each written as a share
+// of the cell its 100-unit square is.
 
+import { showsDetail } from "@fz/phaser/bricks";
 import {
   type Area,
   type ArtFrame,
@@ -31,9 +33,6 @@ export {
   turned,
 } from "@fz/phaser/shapes";
 
-/** How many CSS pixels a unit is, at least, where a brick shows its finest detail: its cracks, steel's rivets and the bomb's dots. */
-const DETAIL_CSS = 30;
-
 /** How wide a crack is, in field units: a tough brick's, or a cage's. */
 export const CRACK_WIDTH = 0.032;
 
@@ -46,9 +45,9 @@ export const ACROSS: Point = { x: 1, y: 0 };
 /** The way along a tile's left or right edge, which a crack from it is cut along. */
 export const DOWN: Point = { x: 0, y: 1 };
 
-/** Returns whether a scale draws a brick's finest detail, at a unit of {@link DETAIL_CSS} CSS pixels or more. */
+/** Returns whether a scale draws a brick's finest detail, its cracks, steel's rivets and the bomb's dots, by `showsDetail()`'s rule for a tile a unit wide. */
 export function detailed(scale: ArtScale): boolean {
-  return scale.unit / scale.pixelRatio >= DETAIL_CSS;
+  return showsDetail(scale, 1);
 }
 
 /**

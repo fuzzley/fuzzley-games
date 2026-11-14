@@ -134,6 +134,20 @@ take the pure ones.
   in a frame of their own; and `FUZZBALL_LOOK`, how far its scene moves
   that frame toward what the fuzzball looks at. It imports nothing but
   `shapes` and `@fz/style/fuzzball`.
+- `src/bricks/`: what a brick game draws a brick with, in the shapes'
+  commands, which Brick Fuzz Pop's tiles are drawn through.
+  `slabCommands()` draws the slab a brick stands on, a body with a darker
+  lip along its foot and a lighter strip along its top, laid out by a
+  `SlabShares`, each length a share of its cell's short side, so a square
+  tile and a brick twice as wide as tall take the same code: `TILE_SLAB` is
+  Brick Fuzz Pop's tile, and `BRICK_SLAB` a brick two units wide and one
+  tall as Brick Breaker's uplift's art kit draws one. `slabBody()` and
+  `slabRadius()` give its body and its corners' radius, which a mark laid
+  over it follows, and `topCap()` the polygon over a body's top, round its
+  corners, down to a foot, that a cap of moss is cut from. `showsDetail()`
+  says whether a brick so many units wide is drawn wide enough, 30 CSS
+  pixels, for its finest detail. It imports nothing but `shapes`, `color`
+  and `fuzzball`.
 - `src/host/`: the host a canvas runs its scenes in. Its index names only
   the types an app's scene and board take of it, `HostedScene`,
   `SceneSurroundings` and `HostOptions`, so no app builds a host past the
@@ -298,7 +312,8 @@ take the pure ones.
   `watchResizes()`, `resize()` and `watchUploads()` use, and which
   `package.json` declares an optional peer, as `@fz/dev`'s does.
 - **The pure entries import nothing but each other,** but `fuzzball`, which
-  takes `@fz/style`'s fuzzball too, as ESLint checks, so a game's
+  takes `@fz/style`'s fuzzball too, and `bricks` only `shapes`, `color` and
+  `fuzzball`, which it draws above, as ESLint checks, so a game's
   Phaser-free code can take them, and `@fz/dev`'s view fence lets them all
   in (`PURE_PHASER_ENTRIES`); and `src/testing/pure/` nothing
   but them, so a spec in Node can take it. What reads the page, a

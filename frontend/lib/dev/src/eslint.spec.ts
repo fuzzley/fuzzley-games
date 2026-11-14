@@ -467,11 +467,11 @@ describe("phaserGameLayers", () => {
     });
   });
 
-  it("lets the view take @fz/core and @fz/phaser's pure entries, the fuzzball's among them", async () => {
+  it("lets the view take @fz/core and @fz/phaser's pure entries, the fuzzball's and the bricks' among them", async () => {
     const problems = await lint(
       {
         "src/view/paint.ts":
-          'import "@fz/core/math";\nimport "@fz/phaser/shapes";\nimport "@fz/phaser/fuzzball";\n',
+          'import "@fz/core/math";\nimport "@fz/phaser/shapes";\nimport "@fz/phaser/fuzzball";\nimport "@fz/phaser/bricks";\n',
       },
       phaserGameLayers(),
     );
