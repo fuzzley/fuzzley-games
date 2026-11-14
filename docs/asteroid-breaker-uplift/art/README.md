@@ -60,12 +60,30 @@ middle, in pixels, given a palette and how many pixels a field unit takes
 `@fz/phaser/shapes`'s commands, from the geometry `make-assets.mjs` writes
 out.
 
-| File               | What it draws                                                     |
-| ------------------ | ----------------------------------------------------------------- |
-| `lib/core.mjs`     | The seeded random, vectors, colors and SVG helpers                |
-| `lib/palettes.mjs` | The site's four palettes, the game's inks and a lit thing's tones |
-| `lib/rocks.mjs`    | The seven kinds of rock, cut and lit                              |
-| `lib/raster.mjs`   | An SVG written as a PNG or a WebP, with sharp                     |
+| File               | What it draws                                                              |
+| ------------------ | -------------------------------------------------------------------------- |
+| `lib/core.mjs`     | The seeded random, vectors, colors and SVG helpers                         |
+| `lib/palettes.mjs` | The site's four palettes, the game's inks and a lit thing's tones          |
+| `lib/rocks.mjs`    | The seven kinds of rock, cut and lit, their cracks and their normal maps   |
+| `lib/fuzzball.mjs` | The fuzzball as an actor: its faces, its look, its fur by force and static |
+| `lib/ship.mjs`     | The three pods and their states, and the bail-out                          |
+| `lib/strays.mjs`   | A stray's bubble, and the tow line                                         |
+| `lib/crew.mjs`     | The bar's crew and its face cam                                            |
+| `lib/backdrop.mjs` | The four places: wash, stars, landmark, air and vignette                   |
+| `lib/fx.mjs`       | Energy (halos, shots, arcs) and every effect as a function of time         |
+| `lib/things.mjs`   | The pickups' orbs, sparks, the comet and its warning, the burr             |
+| `lib/strips.mjs`   | An effect drawn as a strip of frames, for the sheets                       |
+| `lib/sheet.mjs`    | How every sheet is laid out                                                |
+| `lib/atlas.mjs`    | Pictures packed into an atlas, and its map                                 |
+| `lib/raster.mjs`   | An SVG written as a PNG or a WebP, with sharp                              |
+
+`make-art.mjs` draws every sheet again (`sheets/<name>.mjs` each draws
+one), and `make-assets.mjs` writes the art out as the game could use it,
+into `../assets/art/`. Both write the same bytes every run.
+
+```bash
+node docs/asteroid-breaker-uplift/art/make-art.mjs
+```
 
 Rules for a new piece of the kit:
 

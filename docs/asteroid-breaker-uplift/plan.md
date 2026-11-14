@@ -302,10 +302,15 @@ sparks. Three materials, each drawn one way.
 
 - **The pod.** A hull in the palette's accent, cut and lit as the rocks
   are, round a glass canopy at its middle. A clear prow and engines behind
-  say which way it points at 14 px long.
+  say which way it points at 14 px long. The sheet draws three to choose
+  from: Bumble, a round collar with a beak of a prow and an engine each
+  side; Dart, a slim rocket with a dome as wide as its body, nearest to
+  today's ship; and Crescent, a swept wing wrapped round the canopy. The
+  mocks use Bumble, whose canopy is the largest.
 - **The pilot** is the brand's fuzzball exactly, at rest. It stays upright
-  as the pod turns. It has ten faces, drawn with its eyes alone: at rest,
-  looking, blinking, set, startled, happy, dizzy, sleepy, pleading and
+  as the pod turns. It has nine faces, drawn with its eyes alone, and a
+  look that shifts them toward where the pod points or what threatens it:
+  at rest, blinking, set, startled, happy, dizzy, sleepy, pleading and
   squeezed shut. Its fur shows force (it lags a thrust and sweeps flat in
   a dash) and static (four steps, from flat to on end and sparking).
 - **The state of the pod is on the pod.** Static is the fur and a thin
@@ -342,8 +347,9 @@ sparks. Three materials, each drawn one way.
 ![Pickups and hazards](art/preview/pickups-and-hazards.webp)
 
 - **Pickups are round glass orbs,** since round is a friend, each with a
-  bold symbol, grouped by the shape of its rim: weapons, protection, and
-  what changes the field.
+  bold symbol, grouped by its rim: one ring for a weapon, a doubled ring
+  for protection, a ring cut in four arcs for what changes the field. The
+  sheet draws all eight the game has; the plan keeps six.
 - **The comet** is a long cut wedge in the danger color with a glowing
   tail, and its warning is chevrons at the edge with a faint line along
   its lane.
@@ -488,8 +494,8 @@ hand and by the autopilot as each slice is built.
 | Extra ship | one more ship                      | gone: a stray is the extra ship, rescued      |
 
 - **A pickup says what it is** by its symbol and by its rim: a weapon's
-  orb has a notched rim, protection a double one, and what changes the
-  field a dashed one.
+  rim is one ring, protection's is doubled, and the rim of what changes the
+  field is cut in four arcs.
 - **A pickup dropped and a pickup fading are heard and seen,** which
   neither is now.
 
@@ -544,7 +550,7 @@ pickups. A wave that waits for the player.
 
 | Where            | Now                                             | In the plan                                                               |
 | ---------------- | ----------------------------------------------- | ------------------------------------------------------------------------- |
-| At the controls  | 5 to 14 px in a window, one face                | 7 to 27 px in a canopy, ten faces, fur that shows force and static        |
+| At the controls  | 5 to 14 px in a window, one face                | 6 to 25 px in a canopy, nine faces, fur that shows force and static       |
 | The lives        | Icons in the bar                                | Fuzzballs in tow behind the pod, and in the bar                           |
 | A hit            | The ship bursts, and the pilot is gone for good | One is knocked loose, to be caught again in 6 s                           |
 | A stray          | 500 points, and a color for a later pilot       | A life, in tow at once, sweeping up sparks                                |
