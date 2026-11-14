@@ -73,8 +73,9 @@ Run these from `frontend/games/brick-breaker/`, or as
   `u` and `U` plated, of one hit and two, `k` key, `=` gate,
   `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
-  chance of a capsule, the capsules that may fall, the one every gift gives
-  and the field's height, 30 by default, as a tall screen makes it up to 45.
+  level's mark, 5 by default, the chance of a capsule, the capsules that may
+  fall, the one every gift gives and the field's height, 30 by default, as a
+  tall screen makes it up to 45.
   `KEEPER` is a picture of one brick far down the field, so a level doesn't
   clear while a spec plays on.
 - A field is in play once a ball is: `throwBall(field, x, y, degrees)` puts
@@ -91,8 +92,9 @@ Run these from `frontend/games/brick-breaker/`, or as
 
 - `src/rules/levels/levels.spec.ts` holds every level to parsing, ids and
   names of its own, a needed brick a ball can reach, a key wherever it has
-  a gate, and a pace that never falls within a set, and every set to its
-  place.
+  a gate, a pace that never falls within a set and a mark that is a
+  multiple of 5, 5 at least; and every set to its place. A level the specs
+  draw for themselves names a mark too, as every level's data does.
 - `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.

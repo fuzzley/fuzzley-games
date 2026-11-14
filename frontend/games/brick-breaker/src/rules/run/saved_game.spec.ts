@@ -35,8 +35,20 @@ const LEVELS = levelsOf([
     place: "playroom",
     drops: 0,
     levels: [
-      { id: "mixed", name: "Mixed", capsules: [], bricks: ["o3#~+*o~....."] },
-      { id: "row", name: "Row", capsules: [], bricks: ["ooo.........."] },
+      {
+        id: "mixed",
+        name: "Mixed",
+        mark: 5,
+        capsules: [],
+        bricks: ["o3#~+*o~....."],
+      },
+      {
+        id: "row",
+        name: "Row",
+        mark: 5,
+        capsules: [],
+        bricks: ["ooo.........."],
+      },
     ],
   },
   {
@@ -48,6 +60,7 @@ const LEVELS = levelsOf([
       {
         id: "crowd",
         name: "Crowd",
+        mark: 5,
         capsules: [],
         bricks: [
           "4444444444444",
@@ -574,7 +587,13 @@ describe("a level's keys and gates", () => {
       place: "garden",
       drops: 0,
       levels: [
-        { id: "gates", name: "Gates", capsules: [], bricks: ["kk=o........."] },
+        {
+          id: "gates",
+          name: "Gates",
+          mark: 5,
+          capsules: [],
+          bricks: ["kk=o........."],
+        },
       ],
     },
   ]);

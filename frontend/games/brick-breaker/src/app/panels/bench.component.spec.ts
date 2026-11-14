@@ -70,6 +70,7 @@ const HAUNTED = levelsOf([
       {
         id: "haunted",
         name: "Haunted",
+        mark: 5,
         capsules: [],
         bricks: ["o............", "..~.........."],
       },

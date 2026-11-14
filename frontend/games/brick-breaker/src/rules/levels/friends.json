@@ -8,6 +8,7 @@
       "id": "hello",
       "name": "Hello",
       "pace": 1.12,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -22,6 +23,7 @@
       "id": "mushroom",
       "name": "Mushroom",
       "pace": 1.12,
+      "mark": 15,
       "bricks": [
         ".............",
         "....ooooo....",
@@ -51,6 +53,7 @@
       "id": "drawbridge",
       "name": "Drawbridge",
       "pace": 1.13,
+      "mark": 5,
       "bricks": [
         ".............",
         "..ooooooooo..",

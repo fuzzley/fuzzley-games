@@ -137,7 +137,9 @@ describe("StatsService", () => {
         name: "Set",
         place: "playroom",
         drops: 0,
-        levels: [{ id: "redrawn", name: "Redrawn", layout: 2, bricks: ["o"] }],
+        levels: [
+          { id: "redrawn", name: "Redrawn", layout: 2, mark: 5, bricks: ["o"] },
+        ],
       },
     ]);
     TestBed.overrideProvider(GAME_LEVELS, { useValue: redrawn });

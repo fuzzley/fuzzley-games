@@ -9,6 +9,7 @@
       "name": "Stripes",
       "layout": 2,
       "pace": 1.0,
+      "mark": 5,
       "capsules": [],
       "bricks": [
         ".............",
@@ -23,6 +24,7 @@
       "id": "gifts",
       "name": "Gifts",
       "pace": 1.0,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -38,6 +40,7 @@
       "id": "pyramid",
       "name": "Pyramid",
       "pace": 1.01,
+      "mark": 5,
       "bricks": [
         ".............",
         "......2......",
@@ -62,6 +65,7 @@
       "name": "Checker",
       "layout": 2,
       "pace": 1.02,
+      "mark": 5,
       "bricks": [
         ".............",
         "2o2o2o2o2o2o2",
@@ -77,6 +81,7 @@
       "id": "window",
       "name": "Window",
       "pace": 1.03,
+      "mark": 15,
       "bricks": [
         ".............",
         ".............",
@@ -93,6 +98,7 @@
       "id": "arch",
       "name": "Arch",
       "pace": 1.03,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -122,6 +128,7 @@
       "id": "diamond",
       "name": "Diamond",
       "pace": 1.04,
+      "mark": 5,
       "bricks": [
         ".............",
         "......3......",
@@ -151,6 +158,7 @@
       "id": "waves",
       "name": "Waves",
       "pace": 1.05,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -172,6 +180,7 @@
       "id": "rocket",
       "name": "Rocket",
       "pace": 1.05,
+      "mark": 5,
       "bricks": [
         "......4......",
         ".....444.....",
@@ -207,6 +216,7 @@
       "id": "castle",
       "name": "Castle",
       "pace": 1.06,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",

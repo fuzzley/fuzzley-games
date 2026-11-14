@@ -27,7 +27,13 @@ function parsed(changes: Partial<LevelData> = {}, number = 3): Level {
   return parseLevel({
     number,
     set: SET,
-    data: { id: "spec", name: "Spec", bricks: ["o2#?........."], ...changes },
+    data: {
+      id: "spec",
+      name: "Spec",
+      mark: 5,
+      bricks: ["o2#?........."],
+      ...changes,
+    },
   });
 }
 
@@ -207,6 +213,10 @@ describe("parseLevel", () => {
     expect([parsed().layout, parsed({ layout: 2 }).layout]).toEqual([1, 2]);
   });
 
+  it("asks the streak its mark names for its third star", () => {
+    expect(parsed({ mark: 15 }).mark).toBe(15);
+  });
+
   it.each<[string, Partial<LevelData>, string]>([
     [
       "a row of the wrong length",
@@ -315,6 +325,12 @@ describe("parseLevel", () => {
       { legend: { T: { kind: "tough", hits: 1 } } },
       `"T" has 1 for its hits, which a tough brick can't take`,
     ],
+    ["a mark of none", { mark: 0 }, "its mark, 0, is no whole number from 1"],
+    [
+      "a mark that isn't whole",
+      { mark: 7.5 },
+      "its mark, 7.5, is no whole number from 1",
+    ],
     [
       "a tint below the first",
       { tints: ["0............"] },
@@ -354,6 +370,7 @@ describe("parseLevel", () => {
     ["the fastest pace", { pace: 1.4 }],
     ["no chance of a capsule", { drops: 0 }],
     ["every chance of one", { drops: 1 }],
+    ["the least mark", { mark: 1 }],
   ])("parses a level of %s", (_, changes) => {
     expect(() => parsed(changes)).not.toThrow();
   });
@@ -460,6 +477,18 @@ describe("the levels", () => {
     );
   });
 
+  it.each(named)(
+    "give %s a mark of a multiple of 5, 5 at least, as the report's rule sets it",
+    (_, entry) => {
+      const { mark } = parseLevel(entry);
+
+      expect({ fives: mark % 5, least: mark >= 5 }).toEqual({
+        fives: 0,
+        least: true,
+      });
+    },
+  );
+
   it.each(gated)("give %s a key for its gates", (_, entry) => {
     expect(parseLevel(entry).cells.some(isKey)).toBe(true);
   });
@@ -518,6 +547,7 @@ describe("levelsOf", () => {
       levels: levelIds.map((levelId) => ({
         id: levelId,
         name: levelId,
+        mark: 5,
         capsules: [],
         bricks: ["o"],
       })),

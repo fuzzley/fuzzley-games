@@ -20,6 +20,8 @@ export interface PictureOptions {
   readonly speed?: Speed;
   readonly seed?: number;
   readonly pace?: number;
+  /** The streak the level's third star asks for, 5 by default. */
+  readonly mark?: number;
   /** The chance a needed brick lets a capsule fall, none by default. */
   readonly drops?: number;
   /** The capsules that can fall, none by default. */
@@ -75,6 +77,7 @@ export function fieldFrom(
       layout: FIRST_LAYOUT,
       cells,
       pace: options.pace ?? 1,
+      mark: options.mark ?? 5,
       drops: options.drops ?? 0,
       capsules: options.capsules ?? [],
     },

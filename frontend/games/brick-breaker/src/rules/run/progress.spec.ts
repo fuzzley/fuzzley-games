@@ -11,6 +11,7 @@ const LEVELS = levelsOf([
     levels: ["a", "b", "c", "d"].map((id) => ({
       id,
       name: id,
+      mark: 5,
       capsules: [],
       bricks: ["o"],
     })),
