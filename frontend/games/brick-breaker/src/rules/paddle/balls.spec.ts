@@ -1,4 +1,5 @@
 import { headingOf } from "../../testing/field_picture";
+import { cellIndex, cellMiddleX, cellMiddleY } from "../grid";
 import {
   BALL_RADIUS,
   FIELD_WIDTH,
@@ -12,6 +13,7 @@ import {
   createBall,
   followPaddle,
   holdBall,
+  isBallInCell,
   overlapsBox,
   reflectBall,
   releaseBall,
@@ -247,5 +249,23 @@ describe("overlapsBox", () => {
     const ball = { ...createBall(), x, y };
 
     expect(overlapsBox(ball, box)).toBe(overlaps);
+  });
+});
+
+describe("isBallInCell", () => {
+  const cell = cellIndex(3, 2);
+
+  it.each([
+    ["a ball in play in it", true, cellMiddleX(cell), true],
+    ["a ball in play just over its side", true, cellMiddleX(cell) + 1.3, true],
+    ["a ball in play off its side", true, cellMiddleX(cell) + 1.4, false],
+    ["a ball out of play in it", false, cellMiddleX(cell), false],
+  ])("says whether %s is in a cell", (_, live, x, inCell) => {
+    const balls = [
+      createBall(),
+      { ...createBall(), live, x, y: cellMiddleY(cell) },
+    ];
+
+    expect(isBallInCell(balls, cell)).toBe(inCell);
   });
 });

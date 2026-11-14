@@ -188,7 +188,7 @@ export class BricksScene extends Scene {
     this.field = new FieldPainter(this, layers.field);
     this.place = new PlacePainter(this, layers.place);
     this.bricks = new BrickPainter(this, layers.bricks);
-    this.glow = new GlowPainter(this, layers.bursts);
+    this.glow = new GlowPainter(this, layers.bursts, this.bricks);
     this.effects = new EffectsPainter(
       this,
       layers.bursts,
@@ -371,6 +371,9 @@ export class BricksScene extends Scene {
         return;
       case "dip":
         this.paddle.dip(this.context.now);
+        return;
+      case "slide":
+        this.bricks.slide(event.cell, event.way, this.context.now);
         return;
       case "fade":
         // The last ball's effect ends as it is lost, so it fades as it was drawn.

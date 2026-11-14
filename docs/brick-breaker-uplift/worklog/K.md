@@ -934,3 +934,170 @@ The review, and the answers:
 
 These fixes correct the change, as the review's own fixes have it, rather
 than reshape it, so no second review.
+
+### 2026-11-14: the slider, with Conveyor (42), and Wormhole to 43
+
+The branch was rebased twice before this commit, at clean points, as the
+integrator asked: onto L3 (a139c929), then onto L6 and F2 (6503c59c), each
+commit typechecked and its specs run as it was replayed.
+
+What it does:
+
+- `BRICK_KINDS.slider`, drawn `>` heading right and `<` heading left,
+  broken at a hit, needed, 50 points, with a new trait, `slides`, whose
+  rule is empty: `src/rules/bricks/sliders.ts`, new, moves it. Its heading
+  is the legend's (`BrickSpec.heading`), laid on the level's brick
+  (`LevelBrick.heading`) and on the field's (`Brick.heading`), which turns.
+- `stepSliders()`, which `stepBricks()` calls before the traits' step, on
+  each step the beat divides (`SLIDER_BEAT_MS`, 800 ms, 96 steps): it finds
+  every train first, row by row from the top and each row from the left,
+  the unbroken sliders that touch and head the same way, then steps each in
+  that order. A train whose lead's next cell is a wall or an unbroken brick
+  turns and stands; one with a ball touching that cell (`isBallInCell()`,
+  in `balls.ts`, which the regrowing brick's rule waits on too) waits,
+  whole; any other steps a cell, each slider recording `slid` at its new
+  cell, the lead's first, with its way (`FieldEvent.way`), and the brick
+  broken in the cell stepped
+  into, if any, takes the cell the tail left. Two trains that meet head on
+  both turn. The lists it finds trains in are made once.
+- `Field.bricks` is the list by cell it was, which the slider changes in
+  place through a cast of its own (`cellsOf()`), the one thing that moves a
+  brick: `Brick.cell` is where it stands now, no longer read-only, and
+  `Brick.home`, new, the cell the level drew it in. `solid`, the travel,
+  the seeker, the bolts, the autopilot and the painters read the list as
+  before, so they find a slider where it stands; a spec holds a ball
+  breaking a slider at the cell it stepped into.
+- The saved game keeps each brick at its home, as before, with its cell and
+  heading (`KEPT_OF_BRICK`), and `takeUpField()` puts each back in its
+  cell (`placeBricks()`). `restoredPlace()` refuses a cell out of the
+  brick's row or the grid, a whole brick away from home that neither slides
+  nor regrows (a regrowing brick a train stepped over grows back where it
+  was put, as a spec of the round trip holds), a slider heading other than
+  1 or -1 and any other kind heading at all; `standApart()` refuses two
+  bricks in one cell. A brick kept without a cell or a heading is refused,
+  as C20 lets a save change shape without a second rise, so
+  `SAVED_GAME_VERSION` stays 2. The round trip's crowd gains two trains,
+  and `PLAYED_STATES` "a slider stepped" and "a slider turned", as the
+  content skill asks; a describe of its own holds the refusals and a field
+  taken up with each brick at its cell, which the crowd's round trip alone
+  doesn't, as the save is by home.
+- The slide: the scene hands `slid` to `BrickPainter.slide()`, with the
+  event's way, and `place()` adds an x offset (`slideOffsetOf()`), from
+  the cell it left, easing out over `SLIDE_MS` (120 ms, `timing.ts`), beside
+  F2's drop-in, and keeps `placed` false while any slide runs
+  (`isSliding()`). `GlowPainter` adds the same offset, so a glowing
+  slider's frame slides with it. Where motion isn't welcome the flourish
+  isn't played and the slider shows at its new cell at once; scene specs
+  hold each.
+- A placeholder look: a slab in tint 7, violet, through `placeholderArt()`,
+  which L6 removed with its last user and this commit restores, from
+  `0504165a`, as the integrator said, its `frameOf` taking no field; How to
+  play's picture in `PICTURED_BRICKS`. `VOICES_OF_KINDS.slider` knocks and
+  bloops as any brick that breaks; `EVENT_EFFECTS.slid` plays the new
+  flourish, `slide`, with no sound; `EVERY_KIND` holds a slider, in a row
+  of its own.
+- `parseLevel()` refuses a slider in a level's own legend, which can't say
+  its way, as it does a portal.
+- Conveyor, from the draft, its `teaches` note dropped and its mark 5 by
+  the rule, where the draft guessed 10, as its middle best streak at Normal
+  is 9. It is level 42, before Wormhole, which is 43 now, plays from its
+  new number's seeds and takes the mark 10 there (its middle best streak at
+  Normal is 12).
+- `AGENTS.md` (the sliders, `Brick.cell` and `Brick.home`, the saved game's
+  places, the slide, `placeholderArt()`), both skills' legends, the content
+  skill's level rules and a moving trait, the testing skill's states;
+  `README.md` and `index.html`: forty-three levels, and sliders among the
+  kinds.
+
+Choices where the plan was silent, and where it is departed from:
+
+- C18 turns a train at "a wall or another brick"; a broken brick doesn't
+  turn one, as it is no longer in a ball's way, so the train steps into its
+  cell and it takes the cell the tail left. A regrowing brick so moved
+  grows back there.
+- Trains are found before any steps and stepped in reading order, so of two
+  heading into one empty cell the first found takes it and the other turns,
+  rather than both turning.
+- The placeholder's tint is violet, which no plain row of Conveyor wears:
+  in orange, as first drawn, its sliders looked like its top row in the
+  browser.
+- A pop or a regrowth drawn on a slider stays with its cell's image, so one
+  under way as the slider steps finishes at the cell it left; a pop lasts
+  120 ms of the beat's 800.
+
+Added to other streams' files: `level.ts` (`LevelBrick.heading`),
+`events.ts` (`slid`, `FieldEvent.way`, a parameter of `add()`, a line of
+`blankEvent()`) and its spec (`way` on its events, a spec), `balls.ts`
+(`isBallInCell()`, an import) and its spec (a describe), `tuning.ts`
+(`SLIDER_BEAT_MS`), `levels.ts` (the
+refusal of a legend's slider) and its spec (an error), `legend.spec.ts`
+(two specs), `saved_game.ts` (two members of `KEPT_OF_BRICK`, a line of
+`takeUpField()`, `byHome()` in `savedField()`, a parameter and a line of
+`restoredBrick()`, `standApart()` in `restoredField()`, `restoredPlace()`,
+`byHome()` and `standApart()`, an import, a sentence of `SavedField`'s
+doc and a phrase each of `restoredField()`'s and `restoredBrick()`'s) and its spec (a row of the crowd, two states, `DRAWN_HEADINGS`, two
+lines of `statesOf()`, each brick's cell and heading in the save's spec, a
+describe), `brick_painter.ts` (three fields, `slide()`, `slideOffsetOf()`,
+`isSliding()`, two lines of `place()`, two of `still()`, two of the
+constructor, a phrase of the class's doc, imports), `glow_painter.ts` (a
+field, a parameter of the constructor, the offset in `draw()`, a phrase
+of its doc, an import), `bricks_scene.ts` (a case, the glow's argument),
+`bricks_scene.spec.ts` (`leftOfPlace()`, `stepSlider()`, four specs,
+imports), `timing.ts`
+(`SLIDE_MS`), `effects.ts` (a member of `Flourish`, a line of its doc, an
+entry) and its spec, `brick_art.ts` (`placeholderArt()`, the slider's
+entry) and its spec (a row of the placeholder tints, `home` and `heading`
+on `cellFrame()`'s brick), `art.ts` (`PICTURED_BRICKS.slider`),
+`README.md` and `index.html`.
+
+Measured: `yarn report:levels --seeds 12` (1:35), saved as
+`levels/report-k3.txt`, reads as `report-k2.txt` for levels 1 to 40, line
+for line, and has no `!` or `+` for 41 to 43 (Lanterns' `+`, 18, is as
+before). Middle times at Relaxed, Normal and Fast: Pinball 0:35, 0:37,
+0:27; Conveyor 0:35, 0:36, 0:25, its longest endgame 0:19; Wormhole, as 43,
+0:30, 0:31, 0:23, its longest endgame 0:15. No life lost. Conveyor's
+sliders step 114 to 382 times a play, in six plays at each speed from the
+report's seeds. `--marks` gives every level the mark its data holds, once
+Conveyor's and Wormhole's are set.
+The fixes below moved no play: the report reads the same after them.
+
+The `sim` specs pass for all 43 levels (258 specs, 8.6 s).
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (76
+files, 3,690 specs) in the workspace, the coverage of `pure` and `dom`
+above its floor (statements 99.59%, branches 97.45%; `sliders.ts` 100% of
+its statements and lines, its uncovered branches the `??` of an index
+the compiler can't prove), and the root's `yarn lint` under the lock.
+
+In the browser, on headless Chrome at 1280×720, from a page of my own on
+port 9504, each level taken up from a kept run: Pinball's bumpers and
+Wormhole's portals stand as discs; Conveyor's trains step a cell a beat,
+turn at the walls and bunch there, and its How to play and level panels
+picture the slider; a ball sent up through Wormhole's low portal came out
+of the high one (`portalled` at cell 19), bounced off the top and broke the
+wall from above. The page is closed and the server stopped.
+
+The review, and the answers:
+
+1. A glowing slider's frame stood at its new cell while the slider slid
+   in. Fixed: `BrickPainter.slideOffsetOf()` is public, `GlowPainter`
+   adds it, and a scene spec holds the frame on the sliding brick.
+2. The scene read a slide's way from the field as it played the event,
+   safe only while a frame's steps are far fewer than a beat's. Fixed: the
+   event carries it (`FieldEvent.way`), and a scene spec slides a slider
+   the way it stepped though it has turned since.
+3. Two specs' names said more than they checked. Fixed: the broken
+   slider's spec says the train steps over it, and the spec of a train
+   that turns or waits is two, the waiting one with a ball ahead.
+4. The ball-in-cell check was written twice. Fixed: `isBallInCell()` in
+   `balls.ts`, beside `overlapsBox()`, which the sliders and the regrowing
+   brick both call, with a spec; `bricks.ts`'s `isBallIn()` is gone.
+5. Three doc comments left the sliders out. Fixed: `restoredField()`,
+   `restoredBrick()` and `BrickPainter`'s.
+6. Nits: `isSlider()` is no longer exported; the check of a cell past the
+   grid is gone, the row's check refusing it, and its spec stays as the
+   row's; `heading` stays a `number`, as a turn writes `-heading`, which
+   TypeScript widens, so a `-1 | 0 | 1` type would ask a cast at each turn,
+   while the legend's spec and the saved game's check hold the values.
+
+These fixes correct the change rather than reshape it, so no second review.

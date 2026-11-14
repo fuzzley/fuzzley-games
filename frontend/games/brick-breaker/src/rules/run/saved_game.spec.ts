@@ -1,4 +1,5 @@
-import { hitBrick } from "../bricks/bricks";
+import { playWithoutBall, stepTimes } from "../../testing/field_picture";
+import { type Brick, hitBrick } from "../bricks/bricks";
 import { catchCapsule } from "../bricks/capsules";
 import { BRICK_KINDS, hasTrait } from "../catalog/bricks";
 import {
@@ -9,9 +10,15 @@ import {
   steerField,
   stepField,
 } from "../field/field";
+import { CELLS, cellIndex } from "../grid";
 import { levelsOf, parseLevel } from "../levels/levels";
 import { stepsIn } from "../stepper";
-import { FIELD_WIDTH, FIRST_LIFE_POINTS, MAX_LIVES } from "../tuning";
+import {
+  FIELD_WIDTH,
+  FIRST_LIFE_POINTS,
+  MAX_LIVES,
+  SLIDER_BEAT_MS,
+} from "../tuning";
 import { type Run, catchUp, createRun, levelSeed, startLevel } from "./run";
 import {
   type SavedGame,
@@ -25,8 +32,8 @@ import {
  * regrowing one, a blast brick, another plain one and another hidden one;
  * then a row of plain bricks; then, in a set whose bricks draw for capsules,
  * a crowd of every brick that changes as it is played, over a row of blast
- * bricks the ball sets off at once, too many to clear in a few seconds, and
- * a key between two gates under them.
+ * bricks the ball sets off at once, too many to clear in a few seconds, a
+ * key between two gates under them, and two trains of sliders under those.
  */
 const LEVELS = levelsOf([
   {
@@ -71,6 +78,7 @@ const LEVELS = levelsOf([
           "+~+~+~+~+~+~+",
           "*************",
           "=.....k.....=",
+          ">>.........<<",
         ],
       },
     ],
@@ -101,12 +109,17 @@ const PLAYED_STATES: readonly string[] = [
   "a ghost shown",
   "a regrowing brick broken",
   "a regrowing brick grown back",
+  "a slider stepped",
+  "a slider turned",
   "a tough brick worn",
   "dare points",
   "draws",
   "dry bounces",
   "streak points",
 ];
+
+/** The way each brick of the crowd heads as the level draws it, by its cell. */
+const DRAWN_HEADINGS = fieldOf(3).bricks.map((brick) => brick?.heading ?? 0);
 
 /** Returns a new field of one of the levels. */
 function fieldOf(level: number): Field {
@@ -219,6 +232,10 @@ function statesOf(field: Readonly<Field>): string[] {
         brick.hits < brick.whole &&
         "a tough brick worn",
       brick.broken && hasTrait(brick.kind, "locked") && "a gate opened",
+      brick.cell !== brick.home &&
+        hasTrait(brick.kind, "slides") &&
+        "a slider stepped",
+      brick.heading !== DRAWN_HEADINGS[brick.home] && "a slider turned",
     );
   }
   return states.filter((state) => state !== false);
@@ -278,6 +295,8 @@ describe("saveGame", () => {
     const { run, field } = playedField();
     const base = { hits: 0, broken: false, shown: true };
     const timers = { goesOffAt: 0, regrowsAt: 0 };
+    /** Where a brick that stays at home stands, heading nowhere. */
+    const at = (cell: number): object => ({ cell, heading: 0 });
 
     const saved = saveGame(run, field, LEVELS);
 
@@ -300,24 +319,26 @@ describe("saveGame", () => {
         bestStreak: 6,
       },
       bricks: [
-        { ...base, broken: true, ...timers },
-        { ...base, hits: 2, ...timers },
-        { ...base, ...timers },
-        { ...base, hits: 1, ...timers },
+        { ...base, broken: true, ...timers, ...at(0) },
+        { ...base, hits: 2, ...timers, ...at(1) },
+        { ...base, ...timers, ...at(2) },
+        { ...base, hits: 1, ...timers, ...at(3) },
         {
           ...base,
           broken: true,
           goesOffAt: 0,
           regrowsAt: PLAYED_AT + stepsIn(BRICK_KINDS.regrow.traits[0].afterMs),
+          ...at(4),
         },
         {
           ...base,
           broken: true,
           goesOffAt: PLAYED_AT + stepsIn(BRICK_KINDS.blast.traits[0].delayMs),
           regrowsAt: 0,
+          ...at(5),
         },
-        { ...base, hits: 1, ...timers },
-        { ...base, hits: 2, shown: false, ...timers },
+        { ...base, hits: 1, ...timers, ...at(6) },
+        { ...base, hits: 2, shown: false, ...timers, ...at(7) },
         null,
       ],
     });
@@ -660,6 +681,137 @@ describe("a level's keys and gates", () => {
     const stored = withBricks(storedGates(keys), { 2: { broken } });
 
     expect(restoreGame(stored, GATE_LEVELS, 7)).toBeNull();
+  });
+});
+
+describe("a level's sliders", () => {
+  /** A level of a train of two sliders before a plain brick, and a regrowing brick under them. */
+  const SLIDER_LEVELS = levelsOf([
+    {
+      id: "sliders",
+      name: "Sliders",
+      place: "playroom",
+      drops: 0,
+      levels: [
+        {
+          id: "sliders",
+          name: "Sliders",
+          mark: 5,
+          capsules: [],
+          bricks: [".>>o.........", ".............", ">+..........."],
+        },
+      ],
+    },
+  ]);
+
+  /** The field's beat, in steps. */
+  const BEAT = stepsIn(SLIDER_BEAT_MS);
+
+  /** The steps a regrowing brick waits before it grows back. */
+  const REGROW_STEPS = stepsIn(BRICK_KINDS.regrow.traits[0].afterMs);
+
+  /** Returns a run on the level of sliders, begun. */
+  function sliderRun(): Run {
+    return startLevel(
+      createRun({ id: 1, seed: 1, speed: "normal", lastLevel: 1, level: 1 }),
+    );
+  }
+
+  /** Returns a new field of the level of sliders for a run, as the game makes it. */
+  function slidersFieldFor(run: Run): Field {
+    const [entry] = SLIDER_LEVELS;
+    if (!entry) throw new Error("No level of sliders.");
+    return createField(parseLevel(entry), {
+      speed: run.speed,
+      seed: levelSeed(run),
+    });
+  }
+
+  /**
+   * Returns the level of sliders played with no ball for some steps, its
+   * plain brick and its regrowing one broken first, so the trains step
+   * over them.
+   */
+  function playedSliders(steps: number): { run: Run; field: Field } {
+    const run = sliderRun();
+    const field = playWithoutBall(slidersFieldFor(run));
+    for (const cell of [3, cellIndex(1, 2)]) {
+      const brick = field.bricks[cell];
+      if (brick) hitBrick(field, brick, 0, 0);
+    }
+    stepTimes(field, steps);
+    return { run: catchUp(run, field), field };
+  }
+
+  /** Returns a run on the level of sliders as storage keeps it, read back from JSON. */
+  function storedSliders(steps: number): Record<string, unknown> {
+    const { run, field } = playedSliders(steps);
+    return JSON.parse(
+      JSON.stringify(saveGame(run, field, SLIDER_LEVELS)),
+    ) as Record<string, unknown>;
+  }
+
+  /** Returns a field taken up from a run storage kept, or null for one left out. */
+  function takenUpFrom(stored: Record<string, unknown>): Field | null {
+    const takenUp = restoreGame(stored, SLIDER_LEVELS, 7);
+    if (!takenUp) return null;
+    const field = slidersFieldFor(takenUp.run);
+    takeUpField(field, takenUp.field, takenUp.run);
+    return field;
+  }
+
+  /** Returns where each brick of a field stands, the way it heads and whether it is broken, by its home. */
+  function placesOf(field: Field | null): object[] {
+    return (field?.bricks ?? [])
+      .filter((brick): brick is Brick => brick !== null)
+      .map(({ home, cell, heading, broken }) => ({
+        home,
+        cell,
+        heading,
+        broken,
+      }))
+      .sort((a, b) => a.home - b.home);
+  }
+
+  it.each([
+    ["stepped", BEAT * 2],
+    ["turned at the wall", BEAT * 11],
+    ["stepped back, a regrowing brick grown where they left it", REGROW_STEPS],
+  ])(
+    "takes up a field whose sliders have %s, each brick where it stood",
+    (_, steps) => {
+      const { field: played } = playedSliders(steps);
+
+      const field = takenUpFrom(storedSliders(steps));
+
+      expect({
+        places: placesOf(field),
+        atTheirCells: field?.bricks.every(
+          (brick, cell) => !brick || brick.cell === cell,
+        ),
+      }).toEqual({ places: placesOf(played), atTheirCells: true });
+    },
+  );
+
+  it.each<[string, Record<number, unknown>]>([
+    ["a brick kept with no cell", { 1: { cell: undefined } }],
+    ["a brick kept with no heading", { 1: { heading: undefined } }],
+    ["a brick out of its row", { 1: { cell: cellIndex(1, 1) } }],
+    ["a brick out of the grid", { 1: { cell: CELLS } }],
+    ["a brick in a cell that isn't whole", { 1: { cell: 1.5 } }],
+    ["two bricks in one cell", { 1: { cell: 2 } }],
+    [
+      "a whole brick that doesn't slide away from home",
+      { 3: { cell: 0, broken: false, hits: 1 } },
+    ],
+    ["a slider heading nowhere", { 1: { heading: 0 } }],
+    ["a slider heading two cells at a step", { 1: { heading: 2 } }],
+    ["a slider heading a way that isn't whole", { 1: { heading: 0.5 } }],
+    ["a brick that doesn't slide heading a way", { 3: { heading: 1 } }],
+  ])("leaves out %s", (_, changes) => {
+    const stored = withBricks(storedSliders(0), changes);
+
+    expect(restoreGame(stored, SLIDER_LEVELS, 7)).toBeNull();
   });
 });
 

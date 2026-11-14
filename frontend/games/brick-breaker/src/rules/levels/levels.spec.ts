@@ -409,6 +409,11 @@ describe("parseLevel", () => {
       { legend: { P: { kind: "portal" } } },
       `"P" is a portal, which only the shared legend's "@" and "%" draw, each of its pair`,
     ],
+    [
+      "a legend's slider, whose heading only the shared legend draws",
+      { legend: { S: { kind: "slider" } } },
+      `"S" is a slider, which only the shared legend's ">" and "<" draw, each its way`,
+    ],
   ])("names %s", (_, changes, problem) => {
     expect(() => parsed(changes)).toThrow(`Level "spec": ${problem}.`);
   });

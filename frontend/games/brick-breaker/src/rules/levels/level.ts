@@ -27,6 +27,8 @@ export interface LevelBrick {
   readonly capsule: CapsuleId | null;
   /** The pair a portal is of, of a level's two, by which it finds its twin. */
   readonly pair?: number;
+  /** The way a slider first heads along its row, 1 right or -1 left. */
+  readonly heading?: number;
 }
 
 /** Describes a level, ready to play. */

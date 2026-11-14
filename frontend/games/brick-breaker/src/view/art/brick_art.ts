@@ -1088,6 +1088,20 @@ function regrowingFrames(
 }
 
 /**
+ * Returns how a kind is drawn until it has art of its own: as a plain brick
+ * in one tint, whatever the level tints it, in every state.
+ */
+function placeholderArt(kind: BrickKindId, tint: number): BrickArt {
+  return {
+    frameOf: () => kind,
+    colorOf: (_, palette) => tintAt(palette.tints, tint),
+    frames: (palette, scale) => [
+      drawBrick(kind, scale, (cell) => slab(cell, tintAt(palette.tints, tint))),
+    ],
+  };
+}
+
+/**
  * Returns how a round kind is drawn until it has art of its own: as a disc
  * in one tint, of the radius a ball meets it at, in field units, at its
  * cell's middle, in every state.
@@ -1206,6 +1220,7 @@ export const BRICK_ART = {
   gate: untintedArt("gate", gateMarks),
   bumper: roundPlaceholderArt("bumper", 7, BUMPER_RADIUS),
   portal: roundPlaceholderArt("portal", 3, PORTAL_RADIUS),
+  slider: placeholderArt("slider", 6),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /**

@@ -30,7 +30,12 @@ export type BrickTrait =
    * Is a portal, a disc at its cell's middle: a ball that touches it leaves
    * its twin's middle, going as it went; its cell is open about it.
    */
-  | { readonly kind: "jumps" };
+  | { readonly kind: "jumps" }
+  /**
+   * Steps a cell along its row on the field's beat, with the sliders it
+   * touches heading its way, and turns at a wall or a brick.
+   */
+  | { readonly kind: "slides" };
 
 /** A brick trait's kind, such as "blasts". */
 export type TraitKind = BrickTrait["kind"];
@@ -181,6 +186,16 @@ export const BRICK_KINDS = {
     needed: false,
     points: 0,
     traits: [{ kind: "jumps" }],
+  },
+  slider: {
+    name: "Slider",
+    about:
+      "Breaks at a hit. Sliders in a row step a cell together each beat, and turn at a wall or a brick.",
+    hits: 1,
+    mostHits: 1,
+    needed: true,
+    points: 50,
+    traits: [{ kind: "slides" }],
   },
 } as const satisfies Readonly<Record<string, BrickKind>>;
 

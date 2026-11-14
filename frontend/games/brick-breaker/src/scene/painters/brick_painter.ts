@@ -1,14 +1,19 @@
 import { easeOutCubic, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY, columnOf } from "../../rules/grid";
-import { COLUMNS, ROWS } from "../../rules/tuning";
+import { BRICK_WIDTH, COLUMNS, ROWS } from "../../rules/tuning";
 import { cellFrame } from "../../view/art/brick_art";
 import {
   dropInAlpha,
   dropInHeight,
   popScale,
 } from "../../view/effects/flourish";
-import { DROP_IN_MS, POP_MS, REGROW_MS } from "../../view/effects/timing";
+import {
+  DROP_IN_MS,
+  POP_MS,
+  REGROW_MS,
+  SLIDE_MS,
+} from "../../view/effects/timing";
 import {
   type FieldMetrics,
   toCanvasX,
@@ -38,7 +43,7 @@ const MOVES: Readonly<
  * back, or hidden; drops them in as a level starts, a column after a
  * column, each drawn its column's height above its place, landing as the
  * drop-in ends or at once at a key; swells one at a hit it holds and grows
- * one back.
+ * one back; and slides a slider in from the cell it left.
  */
 export class BrickPainter implements Painter {
   /** An image for each cell, row by row. */
@@ -51,6 +56,12 @@ export class BrickPainter implements Painter {
   private readonly movedAt: number[];
   /** When the bricks began to drop in, in the flourishes' time, or -Infinity once they are landed. */
   private droppedAt = -Infinity;
+  /** When each cell's brick slid into it, in the flourishes' time, or -Infinity. */
+  private readonly slidAt: number[];
+  /** The way each cell's brick slid into it, 1 right or -1 left. */
+  private readonly slidWay: number[];
+  /** When the last slide began, in the flourishes' time, or -Infinity. */
+  private lastSlidAt = -Infinity;
   /**
    * Whether every image stands at its place, so a frame needn't put it
    * there; an offset `place()` adds, as the drop-in's is, keeps it false
@@ -65,6 +76,8 @@ export class BrickPainter implements Painter {
     this.shown = this.images.map(() => null);
     this.moves = this.images.map(() => null);
     this.movedAt = this.images.map(() => 0);
+    this.slidAt = this.images.map(() => -Infinity);
+    this.slidWay = this.images.map(() => 0);
     layer.add([...this.images]);
   }
 
@@ -106,6 +119,15 @@ export class BrickPainter implements Painter {
     this.move(cell, "grow", now);
   }
 
+  /** Slides a slider that stepped into a cell, its way, from the cell it left. */
+  slide(cell: number, way: number, now: number): void {
+    if (cell < 0 || cell >= this.slidAt.length) return;
+    this.slidAt[cell] = now;
+    this.slidWay[cell] = way;
+    this.lastSlidAt = now;
+    this.placed = false;
+  }
+
   /** Scales each moving brick for the time, and stills those whose move is over. */
   private animate(now: number): void {
     for (let cell = 0; cell < this.moves.length; cell++) {
@@ -122,6 +144,8 @@ export class BrickPainter implements Painter {
   still(): void {
     this.moves.fill(null);
     for (const image of this.images) image.setScale(1);
+    this.slidAt.fill(-Infinity);
+    this.lastSlidAt = -Infinity;
     this.land();
   }
 
@@ -155,11 +179,25 @@ export class BrickPainter implements Painter {
       const column = columnOf(cell);
       this.images[cell]
         ?.setPosition(
-          toCanvasX(metrics, cellMiddleX(cell)),
+          toCanvasX(metrics, cellMiddleX(cell) + this.slideOffsetOf(cell, now)),
           toCanvasY(metrics, cellMiddleY(cell) - dropInHeight(column, done)),
         )
         .setAlpha(dropInAlpha(column, done));
     }
-    this.placed = done === 1;
+    this.placed = done === 1 && !this.isSliding(now);
+  }
+
+  /**
+   * Returns how far across a cell's brick is drawn from its place as it
+   * slides, in field units: from the cell it left, easing to none.
+   */
+  slideOffsetOf(cell: number, now: number): number {
+    const done = shareDone(this.slidAt[cell] ?? -Infinity, now, SLIDE_MS);
+    return -(this.slidWay[cell] ?? 0) * BRICK_WIDTH * (1 - easeOutCubic(done));
+  }
+
+  /** Returns whether a brick is sliding still. */
+  private isSliding(now: number): boolean {
+    return shareDone(this.lastSlidAt, now, SLIDE_MS) < 1;
   }
 }

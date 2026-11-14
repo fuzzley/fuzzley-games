@@ -11,6 +11,8 @@ export interface BrickSpec {
   readonly capsule?: CapsuleId;
   /** The pair a portal is of, 0 or 1, by which it finds its twin. */
   readonly pair?: number;
+  /** The way a slider first heads along its row, 1 right or -1 left. */
+  readonly heading?: number;
 }
 
 /** The character of a cell with no brick. */
@@ -35,6 +37,8 @@ export const LEGEND: Readonly<Record<string, BrickSpec>> = {
   O: { kind: "bumper" },
   "@": { kind: "portal", pair: 0 },
   "%": { kind: "portal", pair: 1 },
+  ">": { kind: "slider", heading: 1 },
+  "<": { kind: "slider", heading: -1 },
 };
 
 /** Returns the brick a spec lays out, in a tint from 0 to 7. */
@@ -46,5 +50,6 @@ export function brickOf(spec: BrickSpec, tint: number): LevelBrick {
     tint,
     capsule: spec.capsule ?? null,
     ...(spec.pair === undefined ? {} : { pair: spec.pair }),
+    ...(spec.heading === undefined ? {} : { heading: spec.heading }),
   };
 }

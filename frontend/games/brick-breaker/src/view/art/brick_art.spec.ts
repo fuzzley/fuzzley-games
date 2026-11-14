@@ -940,6 +940,8 @@ describe("cellFrame", () => {
     goesOffAt: 0,
     regrowsAt: 0,
     pair: 0,
+    home: 0,
+    heading: 0,
   };
 
   it("shows a brick that stands in its own frame", () => {
@@ -1126,6 +1128,7 @@ describe("brickColor", () => {
   it.each([
     ["bumper", ART_PALETTE.tints[7]],
     ["portal", ART_PALETTE.tints[3]],
+    ["slider", ART_PALETTE.tints[6]],
   ] as const)(
     "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
     (kind, color) => {

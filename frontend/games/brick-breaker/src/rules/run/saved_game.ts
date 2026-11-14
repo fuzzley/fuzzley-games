@@ -1,10 +1,11 @@
 import { isCount, isFiniteNumber, isRecord, isWhole } from "@fz/core/json";
 import { pick } from "@fz/core/records";
 import { type Brick, neededLeft, unbrokenKeys } from "../bricks/bricks";
+import { placeBricks } from "../bricks/sliders";
 import { hasTrait, isNeeded } from "../catalog/bricks";
 import type { Field } from "../field/field";
 import { multiplier } from "../field/scoring";
-import { CELLS } from "../grid";
+import { CELLS, rowOf } from "../grid";
 import type { LevelBrick } from "../levels/level";
 import { type LevelEntry, parseLevel } from "../levels/levels";
 import { type Speed, isSpeed } from "../speed";
@@ -18,6 +19,8 @@ const KEPT_OF_BRICK = [
   "shown",
   "goesOffAt",
   "regrowsAt",
+  "cell",
+  "heading",
 ] as const satisfies readonly (keyof Brick)[];
 
 /** A brick of the level in play as storage keeps it: what play has changed of it. */
@@ -25,7 +28,7 @@ export type SavedBrick = Readonly<Pick<Brick, (typeof KEPT_OF_BRICK)[number]>>;
 
 /** The level in play's field as storage keeps it: its bricks, and the counts its timers and points run by. */
 export interface SavedField {
-  /** A brick for each cell of the grid, null where the level has none. */
+  /** A brick for each cell of the grid, null where the level has none, each at its home. */
   readonly bricks: readonly (SavedBrick | null)[];
   readonly streakPoints: number;
   readonly darePoints: number;
@@ -184,6 +187,7 @@ export function takeUpField(
     const kept = saved.bricks[cell];
     if (brick && kept) Object.assign(brick, kept);
   }
+  placeBricks(field);
   field.needed = neededLeft(field.bricks);
   field.keysLeft = unbrokenKeys(field.bricks);
   field.streakPoints = saved.streakPoints;
@@ -222,7 +226,7 @@ function savedRun(
 /** Returns what storage keeps of a field. */
 function savedField(field: SavableField): SavedField {
   return {
-    bricks: field.bricks.map((brick) =>
+    bricks: byHome(field.bricks).map((brick) =>
       brick ? pick(brick, KEPT_OF_BRICK) : null,
     ),
     streakPoints: field.streakPoints,
@@ -239,7 +243,8 @@ function savedField(field: SavableField): SavedField {
  * Returns a level's field as storage kept it, or null if it can't be
  * trusted: it doesn't fit the level, a number is out of its range, its
  * streak points came with no streak long enough to multiply, the level
- * needs nothing more, or its gates stand otherwise than its keys say.
+ * needs nothing more, its gates stand otherwise than its keys say, or two
+ * of its bricks stand in one cell.
  */
 function restoredField(
   value: unknown,
@@ -275,12 +280,14 @@ function restoredField(
       bricks.push(null);
       continue;
     }
-    const restored = restoredBrick(brick, placed);
+    const restored = restoredBrick(brick, placed, cell);
     if (!restored) return null;
     bricks.push(restored);
     if (isNeeded(placed.kind) && !restored.broken) needsMore = true;
   }
-  if (!needsMore || !gatesAsKeysSay(cells, bricks)) return null;
+  if (!needsMore || !gatesAsKeysSay(cells, bricks) || !standApart(bricks)) {
+    return null;
+  }
   return {
     bricks,
     streakPoints,
@@ -296,10 +303,15 @@ function restoredField(
 /**
  * Returns a brick as storage kept it, or null if a number is out of its
  * range or it is in a state its kind never comes to: broken with hits left
- * or whole without, but a gate, either way, hidden once hit, or with a fuse
- * or a regrowth its kind doesn't have.
+ * or whole without, but a gate, either way, hidden once hit, with a fuse
+ * or a regrowth its kind doesn't have, or at a place it never comes to
+ * ({@link restoredPlace}).
  */
-function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
+function restoredBrick(
+  value: unknown,
+  placed: LevelBrick,
+  home: number,
+): SavedBrick | null {
   if (!isRecord(value)) return null;
   const { hits, broken, shown, goesOffAt, regrowsAt } = value;
   if (
@@ -321,7 +333,54 @@ function restoredBrick(value: unknown, placed: LevelBrick): SavedBrick | null {
   ) {
     return null;
   }
-  return { hits, broken, shown, goesOffAt, regrowsAt };
+  const place = restoredPlace(value, placed, home, broken);
+  if (!place) return null;
+  return { hits, broken, shown, goesOffAt, regrowsAt, ...place };
+}
+
+/**
+ * Returns where a brick kept stands and the way it heads, or null for a
+ * place it never comes to: out of the row the level drew it in, away from
+ * home whole when it neither slides nor grows back where a train left it,
+ * or heading as its kind doesn't.
+ */
+function restoredPlace(
+  value: Readonly<Record<string, unknown>>,
+  placed: LevelBrick,
+  home: number,
+  broken: boolean,
+): Pick<SavedBrick, "cell" | "heading"> | null {
+  const { cell, heading } = value;
+  if (!isCount(cell) || rowOf(cell) !== rowOf(home) || !isWhole(heading)) {
+    return null;
+  }
+  const { kind } = placed;
+  const slides = hasTrait(kind, "slides");
+  if (
+    (slides ? Math.abs(heading) !== 1 : heading !== 0) ||
+    (cell !== home && !broken && !slides && !hasTrait(kind, "regrows"))
+  ) {
+    return null;
+  }
+  return { cell, heading };
+}
+
+/** Returns a field's bricks each at its home, the cell the level drew it in. */
+function byHome(bricks: readonly (Brick | null)[]): (Brick | null)[] {
+  const homes: (Brick | null)[] = Array.from({ length: CELLS }, () => null);
+  for (const brick of bricks) if (brick) homes[brick.home] = brick;
+  return homes;
+}
+
+/** Returns whether no two bricks kept stand in one cell. */
+function standApart(bricks: readonly (SavedBrick | null)[]): boolean {
+  const taken = new Set<number>();
+  for (const brick of bricks) {
+    if (!brick) continue;
+    if (taken.has(brick.cell)) return false;
+    taken.add(brick.cell);
+  }
+  return true;
 }
 
 /**

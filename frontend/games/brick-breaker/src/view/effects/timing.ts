@@ -17,6 +17,9 @@ export const EMBERS_MS = 60;
 /** How long a regrowing brick takes to grow back. */
 export const REGROW_MS = 500;
 
+/** How long a slider takes to slide from the cell it left into the next. */
+export const SLIDE_MS = 120;
+
 /** How long the shards of a broken brick fly, fading and dimming as they fall. */
 export const SHARDS_MS = 350;
 

@@ -36,6 +36,7 @@ import {
   PADDLE_HEIGHT,
   PADDLE_TOP,
   ROWS,
+  SLIDER_BEAT_MS,
   TALLEST_FIELD,
 } from "../rules/tuning";
 import {
@@ -100,6 +101,7 @@ import {
   RING_MS,
   SHARDS,
   SHARDS_MS,
+  SLIDE_MS,
   STREAK_MS,
 } from "../view/effects/timing";
 import { ATLAS } from "./atlas";
@@ -422,6 +424,29 @@ function heightAbove(
 ): number {
   const y = scene.bricks.images[cell]?.y ?? NaN;
   return (toCanvasY(metrics, cellMiddleY(cell)) - y) / metrics.unit;
+}
+
+/** Returns how far left of its place a cell's brick is drawn, in field units. */
+function leftOfPlace(scene: BricksScene, cell: number): number {
+  const metrics = metricsAt();
+  const x = scene.bricks.images[cell]?.x ?? NaN;
+  return (toCanvasX(metrics, cellMiddleX(cell)) - x) / metrics.unit;
+}
+
+/**
+ * Runs the scene on a slider, landed, and steps the field to its beat, at
+ * which the slider steps a cell right; the scene has drawn no frame since.
+ */
+async function stepSlider(
+  setUp: (shell: FakeShell) => void = () => undefined,
+): Promise<Board> {
+  const board = await startBoard((shell) => {
+    setUp(shell);
+    shell.showField([">"]);
+  });
+  board.run.advance(DROP_IN_MS);
+  stepTimes(playWithoutBall(board.shell.field), stepsIn(SLIDER_BEAT_MS));
+  return board;
 }
 
 /** Returns how far above its place, and how faded, each of the spec's two bricks is drawn. */
@@ -2313,6 +2338,43 @@ describe("BricksScene", () => {
       });
     });
 
+    it("slides a slider that stepped from the cell it left into its new one", async () => {
+      const { run, scene } = await stepSlider();
+
+      run.advance(SLIDE_MS / 2);
+      const sliding = leftOfPlace(scene, cellIndex(1, 0));
+      run.advance(SLIDE_MS);
+
+      expect({
+        partway: sliding > 0 && sliding < 2,
+        landed: leftOfPlace(scene, cellIndex(1, 0)),
+      }).toEqual({ partway: true, landed: 0 });
+    });
+
+    it("slides a slider the way it stepped, though it has turned since", async () => {
+      const { shell, run, scene } = await stepSlider();
+      brickAt(shell.field, 1, 0).heading = -1;
+
+      run.advance(SLIDE_MS / 2);
+
+      expect(leftOfPlace(scene, cellIndex(1, 0))).toBeGreaterThan(0);
+    });
+
+    it("frames a glowing slider where it is drawn as it slides", async () => {
+      const { shell, run, scene } = await stepSlider();
+      shell.field.steps += stepsIn(GLOW_AFTER_MS);
+
+      run.advance(SLIDE_MS / 2);
+
+      expect({
+        sliding: leftOfPlace(scene, cellIndex(1, 0)) > 0,
+        framed: scene.glow.images[0]?.x,
+      }).toEqual({
+        sliding: true,
+        framed: scene.bricks.images[cellIndex(1, 0)]?.x,
+      });
+    });
+
     it("leaves an ember for each gap a fire ball goes, however often it is drawn", async () => {
       const { shell, run, scene } = await startBoard();
       const ball = throwBall(shell.field, 4, 20, 0);
@@ -2929,6 +2991,18 @@ describe("BricksScene", () => {
           toCanvasY(metrics, shell.field.paddle.top) +
           paddleShape(metrics).pad.top,
       });
+    });
+
+    it("shows a slider that stepped at its new cell at once", async () => {
+      const { run, scene } = await stepSlider(stillness);
+
+      run.advance(16);
+
+      expect({
+        left: scene.bricks.images[cellIndex(0, 0)]?.visible,
+        shown: scene.bricks.images[cellIndex(1, 0)]?.visible,
+        behind: leftOfPlace(scene, cellIndex(1, 0)),
+      }).toEqual({ left: false, shown: true, behind: 0 });
     });
 
     it("plays no streak's step", async () => {

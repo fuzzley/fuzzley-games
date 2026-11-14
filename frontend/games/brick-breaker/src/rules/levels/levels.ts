@@ -302,6 +302,12 @@ function specOf(
       `"${character}" is a portal, which only the shared legend's "@" and "%" draw, each of its pair`,
     );
   }
+  if (hasTrait(kind, "slides")) {
+    throw wrong(
+      data,
+      `"${character}" is a slider, which only the shared legend's ">" and "<" draw, each its way`,
+    );
+  }
   const { hits: least, mostHits } = brickKind(kind);
   if (
     hits !== undefined &&
