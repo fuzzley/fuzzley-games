@@ -888,31 +888,71 @@ export function cracksOf(rock, hits) {
   /** @type {Point[][]} */
   const cracks = [];
   const first = between(random, 0, TURN);
+  /** A point at an angle, a share of the way out to the rock's own edge there. */
+  const inside = (/** @type {number} */ angle, /** @type {number} */ share) =>
+    polar(angle, share * reachAt(rock.rim, angle));
+  /** A line's points, each brought inside the edge if it strays past it. */
+  const held = (/** @type {Point[]} */ line) =>
+    line.map(([x, y]) => {
+      const most = 0.94 * reachAt(rock.rim, Math.atan2(y, x));
+      const far = Math.hypot(x, y);
+      return /** @type {Point} */ (
+        far > most ? [(x * most) / far, (y * most) / far] : [x, y]
+      );
+    });
   for (let i = 0; i < hits; i++) {
     const angle = first + i * 2.4 + between(random, -0.3, 0.3);
-    const from = polar(angle, 0.9);
+    const from = inside(angle, 0.94);
     const to = polar(
       angle + between(random, -0.5, 0.5),
       between(random, 0.05, 0.3),
     );
-    const line = jagged(random, from, to, 5, 0.09);
+    const line = held(jagged(random, from, to, 5, 0.09));
     cracks.push(line);
     // A branch off its middle.
     const mid = /** @type {Point} */ (line[2]);
     cracks.push(
-      jagged(
-        random,
-        mid,
-        polar(
-          angle + (random() < 0.5 ? -1 : 1) * between(random, 0.5, 0.9),
-          between(random, 0.45, 0.7),
+      held(
+        jagged(
+          random,
+          mid,
+          inside(
+            angle + (random() < 0.5 ? -1 : 1) * between(random, 0.5, 0.9),
+            between(random, 0.5, 0.78),
+          ),
+          3,
+          0.1,
         ),
-        3,
-        0.1,
       ),
     );
   }
   return cracks;
+}
+
+/**
+ * Returns how far an outline reaches from its middle at an angle: where a
+ * ray from the middle leaves it.
+ *
+ * @param {readonly Point[]} outline Around the middle, in order.
+ * @param {number} angle
+ * @returns {number}
+ */
+export function reachAt(outline, angle) {
+  const dx = Math.cos(angle);
+  const dy = Math.sin(angle);
+  let reach = 0;
+  for (let i = 0; i < outline.length; i++) {
+    const [ax, ay] = /** @type {Point} */ (outline[i]);
+    const [bx, by] = /** @type {Point} */ (outline[(i + 1) % outline.length]);
+    const ex = bx - ax;
+    const ey = by - ay;
+    const cross = dx * ey - dy * ex;
+    if (Math.abs(cross) < 1e-12) continue;
+    const along = (ax * ey - ay * ex) / cross;
+    const share = (ax * dy - ay * dx) / cross;
+    if (along > 0 && share >= 0 && share <= 1) reach = Math.max(reach, along);
+  }
+  return reach || 1;
 }
 
 /**
