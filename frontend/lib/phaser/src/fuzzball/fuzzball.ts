@@ -1,7 +1,7 @@
 // The fuzzball, `@fz/style`'s mark, in the shapes' commands: its strands of
 // fur read from its path, its body and fur, outlined where a game asks and
-// in fur a game may comb its own way, and its eyes, which a game draws in a
-// frame of their own so its scene can turn them.
+// in fur combed by `combedStrands()` or a game's own way, and its eyes,
+// which a game draws in a frame of their own so its scene can turn them.
 
 import { FUZZBALL } from "@fz/style/fuzzball";
 import {
@@ -28,7 +28,7 @@ export interface FuzzballStyle {
   readonly color: number;
   /** An outline beneath the body and fur, its width wider all round. */
   readonly outline?: LineStyle;
-  /** Its strands of fur, the fuzzball's own unless a game combs them its own way. */
+  /** Its strands of fur, the fuzzball's own unless combed, by `combedStrands()` or a game's own way. */
   readonly fur?: readonly Strand[];
 }
 

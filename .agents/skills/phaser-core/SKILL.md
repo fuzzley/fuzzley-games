@@ -122,11 +122,15 @@ holds.
   commands, and imports nothing else, so a game's view takes it as it takes
   the pure entries: `fuzzballCommands()`, its body and fur, `by` device
   pixels to a unit of its 32-unit grid (`FUZZBALL_GRID`), outlined where a
-  game asks and in fur it may comb its own way (`FUZZBALL_STRANDS`, each a
+  game asks and in fur combed by `combedStrands()` or its own way
+  (`FUZZBALL_STRANDS`, each a
   `Strand` about the body's middle), `furReach()`, how far that fur
   reaches, and `eyesCommands()`, its eyes and their glints, which a game
   bakes as a frame of their own so its scene moves them toward what the
-  fuzzball looks at, by `FUZZBALL_LOOK`.
+  fuzzball looks at, by `FUZZBALL_LOOK`. `combedStrands()` combs the fur a
+  share of the way to standing on end, as Brick Fuzz Pop's charge lifts
+  it, and `sparkCommands()` draws the sparks about fur on end, so a game
+  that lifts its fur takes the one comb rather than its own.
 - **`@fz/phaser/bricks`** is what a brick game draws a brick with, in
   `shapes`'s commands, a pure entry a game's view takes too, importing
   only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles are drawn

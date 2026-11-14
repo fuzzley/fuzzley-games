@@ -128,12 +128,19 @@ take the pure ones.
   middle on its grid (`FUZZBALL_GRID`, `aboutBody()`), and how far a fur
   reaches (`furReach()`); `fuzzballCommands()`, its body and fur, `by`
   device pixels to a unit of the grid, in a `FuzzballStyle`: a color, an
-  outline beneath where a game wants one, and fur a game combs its own way;
+  outline beneath where a game wants one, and fur combed by
+  `combedStrands()` or a game's own way;
   `eyesCommands()`, its eyes, with their glints where an `EyesStyle` gives
   them a color and each is half a device pixel or more, which a game bakes
   in a frame of their own; and `FUZZBALL_LOOK`, how far its scene moves
-  that frame toward what the fuzzball looks at. It imports nothing but
-  `shapes` and `@fz/style/fuzzball`.
+  that frame toward what the fuzzball looks at. `src/fuzzball/combing.ts`
+  combs its fur toward standing on end, as a charge or a streak lifts it
+  (`combedStrands()`, a share of the way from 0, as it grew, through 0.5,
+  straight and leaning half way out, to 1, on end), and draws the sparks
+  about fur on end (`sparkCommands()`), which, drawn again beneath the body
+  in an outline's color and its width wider either side, outline them as
+  one with it. It imports
+  nothing but `shapes` and `@fz/style/fuzzball`.
 - `src/bricks/`: what a brick game draws a brick with, in the shapes'
   commands, which Brick Fuzz Pop's tiles are drawn through.
   `slabCommands()` draws the slab a brick stands on, a body with a darker
