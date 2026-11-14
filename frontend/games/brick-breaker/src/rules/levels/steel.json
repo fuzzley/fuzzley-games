@@ -8,6 +8,7 @@
       "id": "pillars",
       "name": "Pillars",
       "pace": 1.06,
+      "mark": 5,
       "bricks": [
         ".............",
         "22.222.222.22",
@@ -24,6 +25,7 @@
       "name": "Shelf",
       "layout": 2,
       "pace": 1.07,
+      "mark": 10,
       "bricks": [
         ".............",
         ".33333333333.",
@@ -40,6 +42,7 @@
       "id": "fuse",
       "name": "Fuse",
       "pace": 1.07,
+      "mark": 30,
       "bricks": [
         ".............",
         "ooooooooooooo",
@@ -53,6 +56,7 @@
       "id": "minefield",
       "name": "Minefield",
       "pace": 1.08,
+      "mark": 10,
       "bricks": [
         ".............",
         ".............",
@@ -69,6 +73,7 @@
       "id": "hidden",
       "name": "Hidden",
       "pace": 1.09,
+      "mark": 5,
       "bricks": [
         ".............",
         "ooooooooooooo",
@@ -83,6 +88,7 @@
       "id": "corridors",
       "name": "Corridors",
       "pace": 1.09,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -97,6 +103,7 @@
       "id": "cage",
       "name": "Cage",
       "pace": 1.1,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -112,6 +119,7 @@
       "id": "lanterns",
       "name": "Lanterns",
       "pace": 1.11,
+      "mark": 5,
       "bricks": [
         ".............",
         "3333333333333",
@@ -141,6 +149,7 @@
       "id": "gears",
       "name": "Gears",
       "pace": 1.11,
+      "mark": 10,
       "bricks": [
         ".............",
         "..#.#...#.#..",
@@ -171,6 +180,7 @@
       "name": "Vault",
       "layout": 2,
       "pace": 1.12,
+      "mark": 5,
       "bricks": [
         ".............",
         "22.#######.22",

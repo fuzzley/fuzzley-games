@@ -8,6 +8,7 @@
       "id": "garden",
       "name": "Garden",
       "pace": 1.12,
+      "mark": 5,
       "bricks": [
         ".............",
         "ooooooooooooo",
@@ -21,6 +22,7 @@
       "id": "hedge-maze",
       "name": "Hedge maze",
       "pace": 1.13,
+      "mark": 5,
       "bricks": [
         ".............",
         ".............",
@@ -35,6 +37,7 @@
       "id": "low-bridge",
       "name": "Low bridge",
       "pace": 1.14,
+      "mark": 20,
       "bricks": [
         ".............",
         "3333333333333",
@@ -58,6 +61,7 @@
       "id": "hourglass",
       "name": "Hourglass",
       "pace": 1.15,
+      "mark": 15,
       "bricks": [
         ".............",
         "3333333333333",
@@ -91,6 +95,7 @@
       "id": "chain-reaction",
       "name": "Chain reaction",
       "pace": 1.16,
+      "mark": 15,
       "bricks": [
         ".............",
         "4444444444444",
@@ -106,6 +111,7 @@
       "id": "fog",
       "name": "Fog",
       "pace": 1.17,
+      "mark": 15,
       "bricks": [
         ".............",
         ".............",
@@ -121,6 +127,7 @@
       "id": "spiral",
       "name": "Spiral",
       "pace": 1.18,
+      "mark": 5,
       "bricks": [
         ".............",
         ".######......",
@@ -138,6 +145,7 @@
       "id": "keep",
       "name": "Keep",
       "pace": 1.19,
+      "mark": 10,
       "bricks": [
         ".............",
         ".............",
@@ -153,6 +161,7 @@
       "id": "storm",
       "name": "Storm",
       "pace": 1.19,
+      "mark": 20,
       "bricks": [
         ".............",
         ".............",
@@ -175,6 +184,7 @@
       "id": "finale",
       "name": "Finale",
       "pace": 1.2,
+      "mark": 15,
       "bricks": [
         ".............",
         ".............",

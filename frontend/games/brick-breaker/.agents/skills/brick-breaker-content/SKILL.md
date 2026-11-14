@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, report:levels, long level, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -64,9 +64,10 @@ Its block in a set's file:
   grid reads as the picture. Changing tints changes no play, so no bests:
   `layout` stays.
 - `pace`, the ball's speed against its speed's own, which never falls
-  within a set; `drops`, the chance a needed brick lets a capsule fall, if
-  not its set's; `capsules`, the pool, if not every capsule whose level has
-  come.
+  within a set; `mark`, the streak its third star asks for, which
+  `yarn report:levels --marks` prints by one rule for every level; `drops`,
+  the chance a needed brick lets a capsule fall, if not its set's;
+  `capsules`, the pool, if not every capsule whose level has come.
 
 Its number is its place across the sets: a level put before others moves
 their numbers, and with them the levels each capsule first falls from. The
@@ -86,6 +87,8 @@ Then:
    bricks for last, it is a level to redraw, raising its `layout` once it has
    shipped. `--height 45` plays it on the tallest field, as an upright phone
    shows it.
+4. `yarn report:levels --marks`, and its `mark` set to what it prints. A
+   redraw sets it again.
 
 What drags an endgame, as the levels so far have shown: bricks above steel,
 a channel one cell wide at a wall, the inner corners of an enclosure, a

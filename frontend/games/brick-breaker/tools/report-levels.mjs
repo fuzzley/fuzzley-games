@@ -3,6 +3,7 @@
  * Prints how the autopilot plays every level at every preset speed.
  *
  *   yarn report:levels [--seeds <n>] [--height <n>]
+ *   yarn report:levels --marks
  *
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
@@ -32,6 +33,12 @@
  * endgames longer than those allow, but fails only on a play that doesn't
  * clear its level, as the spec holds the tallest field.
  *
+ * With `--marks`, it prints the mark each level's data should hold, the
+ * streak its third star asks for, by the one rule that sets every mark:
+ * the middle of the level's best streaks from twelve seeds at Normal on the
+ * least field, rounded down to a multiple of 5, and never under 5. It fails
+ * only on a play that doesn't clear its level.
+ *
  * It exits with 1 where it fails, and with 2, saying why, for a command line
  * it can't read, before it plays anything.
  */
@@ -53,10 +60,17 @@ import {
   stopWith,
 } from "@fz/dev/script";
 
-/** @import { ReportColumns } from "@fz/dev/report" */
+/** @import { ReportColumns, Tally } from "@fz/dev/report" */
 /** @import { ScriptIo, Stop } from "@fz/dev/script" */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+/**
+ * The rule `--marks` sets each level's mark by: the middle of its best
+ * streaks from `seeds` seeds at `speed`, rounded down to a multiple of
+ * `step`, and `step` at least.
+ */
+const MARK_RULE = { seeds: 12, speed: "normal", step: 5 };
 
 const USAGE = `Usage: yarn report:levels [options]
 
@@ -65,9 +79,12 @@ Prints how the autopilot plays every level at every preset speed.
   --seeds <n>     Play each level from n seeds of its own (default: from its
                   number alone)
   --height <n>    Play on a field n units tall (default: the shortest)
+  --marks         Print each level's mark, the streak its third star asks
+                  for: the middle of its best streaks from ${String(MARK_RULE.seeds)} seeds at
+                  Normal, rounded down to a multiple of ${String(MARK_RULE.step)}, and ${String(MARK_RULE.step)} at least
   -h, --help      Show this message
 
-Marks: - for a play that didn't clear its level; ! for a time over the last
+Signs: - for a play that didn't clear its level; ! for a time over the last
 bricks longer than the field allows; and, with --seeds on the least field,
 + for a level whose middle time at Relaxed is past 2:00.`;
 
@@ -86,6 +103,7 @@ const LONG_LEVEL_SECONDS = 120;
  *   from, or none for its number alone.
  * @property {string | undefined} height How tall a field `--height` asks
  *   for, as it was given, which the rules hold to their heights.
+ * @property {boolean} marks Whether it asks for each level's mark instead.
  */
 
 /**
@@ -244,13 +262,24 @@ function stepsOf(play) {
  */
 function readCommandLine(args) {
   const read = readArgs(args, {
-    options: { ...SEEDS_OPTION, height: { type: "string" } },
+    options: {
+      ...SEEDS_OPTION,
+      height: { type: "string" },
+      marks: { type: "boolean" },
+    },
     usage: USAGE,
   });
   if (isStop(read)) return read;
+  const { height, marks = false } = read.values;
+  if (marks && (read.values.seeds !== undefined || height !== undefined)) {
+    return misread(
+      `--marks plays ${String(MARK_RULE.seeds)} seeds at Normal on the least field, so it takes neither --seeds nor --height.`,
+      USAGE,
+    );
+  }
   const seeds = readSeeds(read.values.seeds, USAGE);
   if (isStop(seeds)) return seeds;
-  return { seeds, height: read.values.height };
+  return { seeds, height, marks };
 }
 
 /**
@@ -368,11 +397,7 @@ function report(game, seeds, print) {
       ...columnsOf(seeds, game),
     },
     (plays) => [
-      {
-        count: plays.filter((play) => !play.cleared).length,
-        says: "didn't clear their level (-)",
-        fails: true,
-      },
+      unclearedTally(plays, true),
       {
         count: plays.filter((play) => play.endgameSteps > game.endgameLimit)
           .length,
@@ -382,6 +407,69 @@ function report(game, seeds, print) {
     ],
     print,
   );
+}
+
+/**
+ * Prints each level's mark by {@link MARK_RULE}, a line at a time, beside
+ * the middle of its best streaks, and how many plays didn't clear their
+ * level, and returns the code to exit with: 1 where a play didn't, and 0
+ * otherwise.
+ *
+ * @param {Game} game
+ * @param {(line: string) => void} print
+ * @returns {number}
+ */
+function reportMarks(game, print) {
+  if (!game.speeds.includes(MARK_RULE.speed)) {
+    throw new Error(
+      `The rules have no speed "${MARK_RULE.speed}" to set marks at.`,
+    );
+  }
+  return printReport(
+    {
+      entries: game.levels,
+      speeds: [MARK_RULE.speed],
+      seeds: MARK_RULE.seeds,
+      play: game.playLevel,
+      headings: ["streak", "mark"],
+      widths: [7, 5],
+      cellsOf: (plays) => {
+        const streak = middleStreakOf(plays);
+        return [String(streak), String(markOf(streak))];
+      },
+    },
+    (plays) => [unclearedTally(plays, false)],
+    print,
+  );
+}
+
+/**
+ * Returns a level's mark from the middle of its plays' best streaks, by
+ * {@link MARK_RULE}: rounded down to a multiple of its step, and its step at
+ * least.
+ *
+ * @param {number} streak
+ * @returns {number}
+ */
+function markOf(streak) {
+  const { step } = MARK_RULE;
+  return Math.max(step, Math.floor(streak / step) * step);
+}
+
+/**
+ * Counts the plays that didn't clear their level, which fail the report.
+ *
+ * @param {readonly AutopilotReport[]} plays
+ * @param {boolean} signed Whether the table signs such a play with `-`,
+ *   which the count then names.
+ * @returns {Tally}
+ */
+function unclearedTally(plays, signed) {
+  return {
+    count: plays.filter((play) => !play.cleared).length,
+    says: `didn't clear their level${signed ? " (-)" : ""}`,
+    fails: true,
+  };
 }
 
 /**
@@ -406,6 +494,7 @@ export async function run(
   if (isStop(request)) return stopWith(request, printer);
   const game = gameOf(await load(), request.height);
   if (isStop(game)) return stopWith(game, printer);
+  if (request.marks) return reportMarks(game, print);
   return report(game, request.seeds, print);
 }
 

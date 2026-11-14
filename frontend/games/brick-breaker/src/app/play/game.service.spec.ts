@@ -48,10 +48,17 @@ const RICH_LEVELS = levelsOf([
       {
         id: "rich",
         name: "Rich",
+        mark: 5,
         capsules: [],
         bricks: Array.from({ length: 6 }, () => "*".repeat(13)),
       },
-      { id: "after", name: "After", capsules: [], bricks: ["*".repeat(13)] },
+      {
+        id: "after",
+        name: "After",
+        mark: 5,
+        capsules: [],
+        bricks: ["*".repeat(13)],
+      },
     ],
   },
 ]);
@@ -70,6 +77,7 @@ const GATE_LEVELS = levelsOf([
       {
         id: "gates",
         name: "Gates",
+        mark: 5,
         capsules: [],
         bricks: [
           "o".repeat(13),
@@ -149,6 +157,7 @@ const MIXED_POOL = levelsOf([
       {
         id: "mixed",
         name: "Mixed",
+        mark: 5,
         capsules: ["wide", "narrow"],
         bricks: ["ooooo........"],
       },

@@ -14,7 +14,7 @@ const NONE = { runs: 0, best: 0, furthest: 0 };
 
 /** Returns a level of one brick, named by its id. */
 function levelOf(id: string): LevelData {
-  return { id, name: id, capsules: [], bricks: ["o"] };
+  return { id, name: id, mark: 5, capsules: [], bricks: ["o"] };
 }
 
 /** A level on its first layout, which its data leaves out. */

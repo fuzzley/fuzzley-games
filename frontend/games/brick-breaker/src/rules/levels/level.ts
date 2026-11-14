@@ -26,6 +26,8 @@ export interface Level {
   readonly cells: readonly (LevelBrick | null)[];
   /** The ball's speed against the speed's own. */
   readonly pace: number;
+  /** The streak its third star asks for: the most bricks broken since the paddle last met a ball. */
+  readonly mark: number;
   /** The chance a brick the level needs lets a capsule fall as it breaks. */
   readonly drops: number;
   /** The capsules that can fall in it. */

@@ -1,0 +1,35 @@
+                    normal
+                     streak  mark
+ 1 Stripes                5     5
+ 2 Gifts                  7     5
+ 3 Pyramid                4     5
+ 4 Checker                6     5
+ 5 Window                16    15
+ 6 Arch                   4     5
+ 7 Diamond                4     5
+ 8 Waves                  8     5
+ 9 Rocket                 8     5
+10 Castle                 9     5
+11 Pillars                4     5
+12 Shelf                 10    10
+13 Fuse                  34    30
+14 Minefield             12    10
+15 Hidden                 7     5
+16 Corridors              4     5
+17 Cage                   5     5
+18 Lanterns               9     5
+19 Gears                 11    10
+20 Vault                  6     5
+21 Garden                 7     5
+22 Hedge maze             7     5
+23 Low bridge            22    20
+24 Hourglass             16    15
+25 Chain reaction        16    15
+26 Fog                   16    15
+27 Spiral                 8     5
+28 Keep                  10    10
+29 Storm                 20    20
+30 Finale                16    15
+31 Hello                  9     5
+32 Mushroom              17    15
+33 Drawbridge             9     5

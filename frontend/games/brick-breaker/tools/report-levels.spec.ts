@@ -11,9 +11,12 @@ Prints how the autopilot plays every level at every preset speed.
   --seeds <n>     Play each level from n seeds of its own (default: from its
                   number alone)
   --height <n>    Play on a field n units tall (default: the shortest)
+  --marks         Print each level's mark, the streak its third star asks
+                  for: the middle of its best streaks from 12 seeds at
+                  Normal, rounded down to a multiple of 5, and 5 at least
   -h, --help      Show this message
 
-Marks: - for a play that didn't clear its level; ! for a time over the last
+Signs: - for a play that didn't clear its level; ! for a time over the last
 bricks longer than the field allows; and, with --seeds on the least field,
 + for a level whose middle time at Relaxed is past 2:00.`;
 
@@ -83,6 +86,11 @@ function timedRules(wall: readonly number[], keep: readonly number[]): Rules {
     }
     return cleared(time);
   });
+}
+
+/** Returns rules with the speed `--marks` plays at, Normal, between their two. */
+function withNormal(rules: Rules): Rules {
+  return { ...rules, speeds: ["relaxed", "normal", "fast"] };
 }
 
 /**
@@ -171,6 +179,14 @@ describe("run", () => {
       `--height takes a whole number from 30 to 40, not "32.5".`,
     ],
     [["--level", "3"], "Unknown option '--level'"],
+    [
+      ["--marks", "--seeds", "3"],
+      "--marks plays 12 seeds at Normal on the least field, so it takes neither --seeds nor --height.",
+    ],
+    [
+      ["--marks", "--height", "35"],
+      "--marks plays 12 seeds at Normal on the least field, so it takes neither --seeds nor --height.",
+    ],
   ])(
     "prints what is wrong with %j, a blank line and the usage as an error, and exits with 2, playing nothing",
     async (args, problem) => {
@@ -317,5 +333,57 @@ describe("run", () => {
         "2 plays took longer than a field 35 tall allows over their level's last bricks (!).",
       ],
     });
+  });
+
+  it("plays each level from 12 seeds of its own at Normal alone, on the least field, with --marks", async () => {
+    const played: Played[] = [];
+
+    await ran(["--marks"], withNormal(rulesOf(undefined, played)));
+
+    expect(played).toEqual([
+      ...Array.from({ length: 12 }, (_, i) => [1, "normal", 1000 + i, 30]),
+      ...Array.from({ length: 12 }, (_, i) => [12, "normal", 12_000 + i, 30]),
+    ]);
+  });
+
+  it("prints the higher middle of each level's best streaks and its mark, rounded down to a multiple of 5 and 5 at least, with --marks", async () => {
+    const streaks = {
+      1: [9, 30, 12, 21, 16, 19, 3, 18, 25, 14, 19, 11],
+      12: [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2],
+    };
+    const rules = rulesOf((entry, _, seed) => ({
+      ...cleared(75),
+      bestStreak: streaks[entry.number === 1 ? 1 : 12][seed % SEED_STRIDE] ?? 0,
+    }));
+
+    expect(await ran(["--marks"], withNormal(rules))).toEqual({
+      code: 0,
+      out: [
+        "                     normal",
+        "                      streak  mark",
+        " 1 Wall                   18    15",
+        "12 The castle keep         1     5",
+      ],
+      err: [],
+    });
+  });
+
+  it("fails on a play that didn't clear its level, with --marks", async () => {
+    const rules = rulesOf((_, __, seed) =>
+      seed === 1005 ? lost() : cleared(75),
+    );
+
+    const { code, out } = await ran(["--marks"], withNormal(rules));
+
+    expect({ code, last: out.at(-1) }).toEqual({
+      code: 1,
+      last: "1 plays didn't clear their level.",
+    });
+  });
+
+  it("throws where the rules have no Normal speed to set marks at", async () => {
+    await expect(ran(["--marks"])).rejects.toThrow(
+      `The rules have no speed "normal" to set marks at.`,
+    );
   });
 });

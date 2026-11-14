@@ -17,6 +17,7 @@ function giftsOf(capsule: string, name: string): LevelData {
   return {
     id: capsule,
     name,
+    mark: 5,
     capsules: [],
     legend: { g: { kind: "gift", capsule } },
     bricks: ["#".repeat(13), ".............", "g".repeat(13)],
@@ -31,6 +32,7 @@ function giftsOf(capsule: string, name: string): LevelData {
 const BLASTS: LevelData = {
   id: "blasts",
   name: "Blasts",
+  mark: 5,
   capsules: [],
   bricks: ["........*****"],
 };
@@ -46,6 +48,7 @@ const NO_BRICKS = ".".repeat(13);
 const DARE: LevelData = {
   id: "dare",
   name: "Dare",
+  mark: 5,
   capsules: [],
   legend: { n: { kind: "gift", capsule: "narrow" } },
   bricks: [
@@ -74,6 +77,7 @@ const SET: LevelSetData = {
     {
       id: "steel",
       name: "Steel",
+      mark: 5,
       capsules: [],
       bricks: ["......o......", ".............", "#".repeat(13)],
     },
@@ -81,6 +85,7 @@ const SET: LevelSetData = {
     {
       id: "few",
       name: "Few",
+      mark: 5,
       capsules: [],
       bricks: ["ooooo........", ".............", "*".repeat(13)],
     },

@@ -46,6 +46,11 @@ export interface LevelData {
   readonly tints?: readonly string[];
   /** The ball's speed against the speed's own, 1 by default. */
   readonly pace?: number;
+  /**
+   * The streak its third star asks for, a whole number from 1, which
+   * `yarn report:levels --marks` sets for every level by one rule.
+   */
+  readonly mark: number;
   /** The chance a needed brick lets a capsule fall; else its set's. */
   readonly drops?: number;
   /** The capsules that can fall; else every one whose level has come. */
@@ -130,6 +135,7 @@ const LEVEL_KEYS: Readonly<Record<keyof LevelData, true>> = {
   bricks: true,
   tints: true,
   pace: true,
+  mark: true,
   drops: true,
   capsules: true,
   legend: true,
@@ -168,6 +174,12 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
       `its pace, ${String(pace)}, is outside ${String(PACE.least)} to ${String(PACE.most)}`,
     );
   }
+  if (!Number.isInteger(data.mark) || data.mark < 1) {
+    throw wrong(
+      data,
+      `its mark, ${String(data.mark)}, is no whole number from 1`,
+    );
+  }
   const drops = data.drops ?? set.drops;
   if (drops < 0 || drops > 1) {
     throw wrong(
@@ -181,6 +193,7 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
       brickAt(data, legend, cell),
     ),
     pace,
+    mark: data.mark,
     drops,
     capsules: poolOf(data, number),
   };

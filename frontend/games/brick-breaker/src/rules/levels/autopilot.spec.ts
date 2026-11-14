@@ -24,7 +24,13 @@ function entryOf(
   capsules: readonly string[] = [],
 ): LevelEntry {
   const bricks = rows.map((row) => row.padEnd(COLUMNS, "."));
-  const data: LevelData = { id: "spec", name: "Spec", bricks, capsules };
+  const data: LevelData = {
+    id: "spec",
+    name: "Spec",
+    mark: 5,
+    bricks,
+    capsules,
+  };
   return {
     number: 1,
     set: {

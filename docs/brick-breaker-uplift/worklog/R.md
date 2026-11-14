@@ -647,3 +647,84 @@ Review (a fresh reviewer, on the staged change):
    doc no longer promises 0 for no plays, and a comment says a cell always
    has one; `SavedField.bestStreak` says "toward the level's third star", as
    the mark comes in the next commit; and this entry gained its checks.
+
+### 2026-11-14: each level's mark (C7), and the report's rule
+
+- `report:levels --marks` plays each level from 12 seeds of its own at
+  Normal, on the least field, the seeds `--seeds 12` plays, and prints the
+  middle of its best streaks (the higher middle of the twelve) and its
+  mark, rounded down to a multiple of 5 and 5 at least (`MARK_RULE`,
+  `markOf()`). It fails, as `--seeds` does, only on a play that doesn't
+  clear its level; it refuses `--seeds` and `--height` beside it (exit 2),
+  as the rule fixes both; and it throws if the rules lose the speed
+  `normal`, rather than playing a speed they don't have. The tally of
+  plays not cleared is now one function, `unclearedTally()`, which both
+  tables count by.
+- `LevelData.mark`, required, and `Level.mark`. `parseLevel()` refuses a
+  mark that isn't a whole number from 1, naming the level; the levels spec
+  holds every level of the game to a multiple of 5, 5 at least, and
+  reads a level's mark. The sim specs don't recompute it.
+- `yarn report:levels --marks` took 29 s. Saved as
+  `docs/brick-breaker-uplift/levels/report-r3-marks.txt`. Its streaks are
+  the Normal column of `report-r3.txt`, as they should be (the same seeds).
+  The marks, into each set's JSON after `pace`, as the plan's drafts had
+  it: 1 Stripes 5, 2 Gifts 5, 3 Pyramid 5, 4 Checker 5, 5 Window 15,
+  6 Arch 5, 7 Diamond 5, 8 Waves 5, 9 Rocket 5, 10 Castle 5, 11 Pillars 5,
+  12 Shelf 10, 13 Fuse 30, 14 Minefield 10, 15 Hidden 5, 16 Corridors 5,
+  17 Cage 5, 18 Lanterns 5, 19 Gears 10, 20 Vault 5, 21 Garden 5, 22 Hedge
+  maze 5, 23 Low bridge 20, 24 Hourglass 15, 25 Chain reaction 15, 26 Fog
+  15, 27 Spiral 5, 28 Keep 10, 29 Storm 20, 30 Finale 15, 31 Hello 5,
+  32 Mushroom 15, 33 Drawbridge 5. Twenty of the thirty-three sit at the
+  floor: most levels give a ball a few bricks a trip from the paddle, and
+  only blasts, or a ball caught above the bricks, run a streak up (Fuse,
+  Low bridge, Storm). They are the autopilot's, not a player's, for the
+  user to play by hand (the plan's risks).
+- Every level a spec draws names a mark, 5, so that `BLASTS` in
+  `src/testing/play.ts`, five blast bricks broken in one streak, reaches
+  it; `fieldFrom()` takes a `mark`, 5 by default.
+
+Added to other streams' files (a field in a literal each): K's
+`friends.json`, the `mark` key of levels 31 to 33; P's
+`src/app/play/game.service.spec.ts`, `src/app/panels/bench.component.spec.ts`
+and `src/app/stats/stats.service.spec.ts`, `mark: 5` in their levels (the
+game service's one-line "after" level written out over lines, as the
+formatter puts it); `src/testing/field_picture.ts` and `play.ts`, the
+`mark` option and the spec levels' marks.
+
+Choices where the plan was silent:
+
+- `mark` is required in a level's data, so the compiler asks a new level
+  for one, as R1 made `place` required of a set. K2's levels 34 to 40,
+  landing after this, won't compile until they have theirs.
+- `parseLevel()` checks only that a mark is a whole number from 1; the rule
+  of fives is the levels spec's, over the game's own levels, as C7 says, so
+  a spec may draw a level with any mark.
+- The middle best streak counts every play, cleared or not; a play not
+  cleared fails the report anyway.
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (63 files, 2,352 specs, 18.0 s with six workers), and the root's
+`lint`.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The `--marks` spec would pass with the mark rounded to the nearest 5,
+   not down: its middles were 17 and 1. Fixed: the first level's middle is
+   18 (its lower middle 16), which rounds down to 15 and to the nearest to
+   20; the second's streaks are written out rather than worked out.
+2. The content skill's table of checks was re-padded whole by the
+   formatter as its levels row grew, a restyle of a shared file every
+   stream adds to. Fixed: the table is as it was; the levels spec's marks
+   are in the prose of both skills and `AGENTS.md`.
+3. No spec held the least mark, 1, to parsing, so a parser that asked for
+   5 would pass. Fixed: "the least mark" among the levels that parse.
+4. The content skill said a star won under the old mark is kept, which is
+   the next commit's record. Fixed: it goes in with `stars.ts`.
+5. "Marks" named both a level's streak mark and the table's signs in
+   `--help`, and `--marks` counted plays not cleared as "(-)", a sign its
+   table doesn't show. Fixed: the usage's paragraph is "Signs:", and
+   `AGENTS.md` says `--help` prints its options and its signs;
+   `unclearedTally()` names the sign only for the tables that show it.
+6. The speed's check found the constant it looked for, and the rule's
+   numbers were written out in the usage and the refusal too. Fixed:
+   `includes()`, and both strings take `MARK_RULE`'s seeds and step.

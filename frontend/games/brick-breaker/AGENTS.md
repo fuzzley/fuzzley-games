@@ -234,11 +234,15 @@ takes for the specs' helpers.
   wrong with its data. A level's data names the layout its bricks are in
   (`layout`, which `layoutOf()` reads), a whole number from 1, the first
   (`FIRST_LAYOUT`) where it names none; a redraw raises it, so the bests made
-  on the one before are let go, and the level keeps its id. `placeOf()` reads
+  on the one before are let go, and the level keeps its id. It names the
+  streak its third star asks for too (`mark`, `Level.mark`), a whole number
+  from 1, which `yarn report:levels --marks` sets for every level by one
+  rule, as Development Commands says. `placeOf()` reads
   the place a set is in, one of `PLACES` (`Place`), or throws for one it can't
   be in. `levels.ts`'s spec holds every level to parsing, ids and names of
   their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, into a plated brick only from above or a side, and past a gate only once it reaches every key, a key wherever it has a gate, and a pace that
-  never falls within a set, and every set to its place; the specs in
+  never falls within a set, a mark that is a multiple of 5, 5 at least, and
+  every set to its place; the specs in
   `every_level/` hold every level to being cleared by the autopilot, as Tests
   below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
@@ -772,9 +776,13 @@ workspace's with the others'.
   field that many units tall, up to 45, to the autopilot's limits for that
   height, stretched as far as the paddle lies farther from the bricks
   (`limitsOf()`), and fails, as the spec does there, only on a level not
-  cleared. `--help` prints its options and its marks, and an option it can't
-  read, or a height the field can't take, exits with 2, saying why, before
-  anything is played.
+  cleared. `--marks` prints each level's mark, the streak its third star
+  asks for, by the one rule that sets every level's (`MARK_RULE`): the
+  middle of its best streaks from 12 seeds at Normal on the least field,
+  rounded down to a multiple of 5, and 5 at least; it fails only on a level
+  not cleared, and takes neither `--seeds` nor `--height`. `--help` prints
+  its options and its signs, and an option it can't read, or a height the
+  field can't take, exits with 2, saying why, before anything is played.
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
