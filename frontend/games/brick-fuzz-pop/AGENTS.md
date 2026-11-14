@@ -43,12 +43,12 @@ the layers below it, as `@fz/dev`'s `phaserGameLayers()` fences them in
 `eslint.config.js`: the rules, the view, the scene, which draws the field
 on Phaser, and the shell, `src/app/`, which takes the scene only by type.
 
-| Layer | May import                                                                                                                                                  | May not import                                                                          |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| rules | `@fz/core`                                                                                                                                                  | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
-| view  | the rules, `@fz/core`, `@fz/phaser/color`, `@fz/phaser/fuzzball`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`; `@fz/style/themes` by type | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
-| scene | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                                                           | Angular, RxJS, the shell's libraries, the shell                                         |
-| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type                                  | Phaser, and the scene or those three entries by a value import                          |
+| Layer | May import                                                                                                                                                                       | May not import                                                                          |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| rules | `@fz/core`                                                                                                                                                                       | Phaser, Angular, RxJS, any other `@fz/*`, the view, scene and shell, the specs' helpers |
+| view  | the rules, `@fz/core`, `@fz/phaser/bricks`, `@fz/phaser/color`, `@fz/phaser/fuzzball`, `@fz/phaser/insets`, `@fz/phaser/layout`, `@fz/phaser/shapes`; `@fz/style/themes` by type | Phaser, Angular, RxJS, any other `@fz/*`, the scene and shell                           |
+| scene | Phaser, `@fz/core`, `@fz/phaser`'s entries but the canvas, the view and the rules                                                                                                | Angular, RxJS, the shell's libraries, the shell                                         |
+| app   | Angular, every `@fz/*` library, the rules and the view; the scene and `@fz/phaser`'s host, scene helpers and sound by type                                                       | Phaser, and the scene or those three entries by a value import                          |
 
 The rules and the view, but their specs, read only what they are handed:
 no clock or timer, no number drawn from no seed, no seed mixed by hand,
@@ -265,7 +265,8 @@ helpers.
   `art.ts`'s `BRICK_ART` says how each kind is drawn, typed over the
   catalog's ids, so a kind without art fails to compile, with the frames a
   brick stacks in its cell (`brickLayers()`); each kind's art is a file of
-  `kinds/` (`brick.ts`'s tile in the eight tints, `tough.ts`'s pips and
+  `kinds/` (`brick.ts`'s tile, `@fz/phaser/bricks`' slab, in the eight
+  tints, `tough.ts`'s pips and
   cracks, `steel.ts`, `zapper.ts`'s four zappers, `shell.ts`'s body and pips
   and `moss.ts`'s cap and pips, each showing its hits left, `bomb.ts`'s
   bomb, `wool.ts`'s patch and `cage.ts`'s bars, whole or hit, over the

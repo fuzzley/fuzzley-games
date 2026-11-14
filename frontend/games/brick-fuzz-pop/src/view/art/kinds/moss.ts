@@ -4,13 +4,13 @@
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Its tile is the plain brick's
 // in amber, the moss's body, and its cap and its pips are frames over it.
 
+import { topCap } from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
   type ArtScale,
   type DrawCommand,
   ORIGIN,
-  arcPoints,
   circle,
   ellipsePoints,
   placed,
@@ -103,21 +103,13 @@ function capCommands(
     x: body.x + radius + ((body.width - 2 * radius) * at) / (SCALLOPS - 1),
     y: foot,
   }));
-  const left = { x: body.x + corner, y: body.y + corner };
-  const right = { x: body.x + body.width - corner, y: body.y + corner };
-  const cap = [
-    { x: body.x, y: foot },
-    ...arcPoints(left, corner, Math.PI, 1.5 * Math.PI),
-    ...arcPoints(right, corner, 1.5 * Math.PI, 2 * Math.PI),
-    { x: body.x + body.width, y: foot },
-  ];
   return [
     ...scallops.map((middle) =>
       circle({ x: middle.x, y: middle.y + SHADOW_DROP * cell.height }, radius, {
         color: shadow,
       }),
     ),
-    polygon(cap, { color: face }),
+    polygon(topCap(body, corner, foot), { color: face }),
     ...scallops.map((middle) => circle(middle, radius, { color: face })),
     ...stroke(within(cell, STEM), {
       color: glyph,

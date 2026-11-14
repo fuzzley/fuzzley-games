@@ -103,6 +103,39 @@ export default defineConfig(
     },
   },
   {
+    // What a brick game draws a brick with is a pure entry too, drawn above
+    // the shapes, the colors and the fuzzball, which a game's view takes as
+    // it takes the others, so it imports nothing but those three.
+    files: ["src/bricks/**/*.ts"],
+    ignores: ["**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "phaser",
+                "@angular/*",
+                "@fz/*",
+                "rxjs",
+                "rxjs/*",
+                "../*",
+                "!../color",
+                "!../fuzzball",
+                "!../shapes",
+                // An entry through its index alone, never its files.
+                "../*/*",
+              ],
+              message:
+                "The bricks' entry imports nothing but the shapes, the colors and the fuzzball, so code with no Phaser can take it.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // What measures the page for a canvas knows no Phaser and no framework,
     // so the host and the canvas both take it. It reads the page, so it is
     // no pure entry, and a game's view, which reads none, can't take it.
