@@ -335,9 +335,21 @@ async function flyAcross(
   return board;
 }
 
-/** Returns the count of a streak's step that shows, if one does. */
+/** Returns every count the streak's painter writes: each step's, then the mark's. */
+function countsOf(scene: BricksScene): GameObjects.Text[] {
+  return [...scene.streak.counts.values(), scene.streak.markCount];
+}
+
+/** Returns the count of a streak's step, or of its mark, that shows, if one does. */
 function countShown(scene: BricksScene): GameObjects.Text | undefined {
-  return [...scene.streak.counts.values()].find((count) => count.visible);
+  return countsOf(scene).find((count) => count.visible);
+}
+
+/** Returns what sets a shell's field up with a mark, the streak its third star asks for. */
+function markedAt(mark: number): (shell: FakeShell) => void {
+  return (shell) => {
+    shell.field = fieldFrom(ROWS_DRAWN, { mark });
+  };
 }
 
 /**
@@ -2437,11 +2449,9 @@ describe("BricksScene", () => {
       shell.colors = DARK;
       run.advance(16);
 
-      expect(
-        new Set(
-          [...scene.streak.counts.values()].map(({ style }) => style.color),
-        ),
-      ).toEqual(new Set([cssHex(DARK.balls.normal)]));
+      expect(new Set(countsOf(scene).map(({ style }) => style.color))).toEqual(
+        new Set([cssHex(DARK.balls.normal)]),
+      );
     });
 
     it("spreads the ring and fades it and the count, then hides both once its time is up", async () => {
@@ -2508,7 +2518,7 @@ describe("BricksScene", () => {
       const { scene } = await startBoard(undefined, (game) => {
         game.canvas.style.fontFamily = "Figtree";
       });
-      const counts = [...scene.streak.counts.values()];
+      const counts = countsOf(scene);
       // What a count measures can't be read through Phaser's types, so the
       // spec reads that each count was measured again.
       const measured = vi.spyOn(GameObjects.TextStyle.prototype, "update");
@@ -2532,19 +2542,23 @@ describe("BricksScene", () => {
       });
     });
 
-    it("writes the ring and the count in the color of the balls' kind", async () => {
-      const { scene } = await stepTo(5, (shell) => {
-        shell.field.ballKind = "fire";
-      });
+    it.each([5, 15])(
+      "writes the ring and the count of %i in the color of the balls' kind, at a mark of 15",
+      async (streak) => {
+        const { scene } = await stepTo(streak, (shell) => {
+          markedAt(15)(shell);
+          shell.field.ballKind = "fire";
+        });
 
-      expect({
-        ring: scene.streak.ring.tint,
-        count: countShown(scene)?.style.color,
-      }).toEqual({
-        ring: LIGHT.balls.fire,
-        count: cssHex(LIGHT.balls.fire),
-      });
-    });
+        expect({
+          ring: scene.streak.ring.tint,
+          count: countShown(scene)?.style.color,
+        }).toEqual({
+          ring: LIGHT.balls.fire,
+          count: cssHex(LIGHT.balls.fire),
+        });
+      },
+    );
 
     it("shows the newest step's count alone", async () => {
       const { shell, run, scene } = await stepTo(5);
@@ -2554,10 +2568,40 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(
-        [...scene.streak.counts.values()]
+        countsOf(scene)
           .filter((count) => count.visible)
           .map((count) => count.text),
       ).toEqual(["10"]);
+    });
+
+    it("rings the ball and shows the streak's count as a broken brick takes it to the level's mark", async () => {
+      const { scene } = await stepTo(15, markedAt(15));
+
+      expect({
+        ring: scene.streak.ring.visible,
+        count: countShown(scene)?.text,
+      }).toEqual({ ring: true, count: "15" });
+    });
+
+    it("shows a mark on a step with the step's count alone, writing no second", async () => {
+      const { scene } = await stepTo(10, markedAt(10));
+
+      expect({
+        shown: countsOf(scene)
+          .filter((count) => count.visible)
+          .map((count) => count.text),
+        mark: scene.streak.markCount.text,
+      }).toEqual({ shown: ["10"], mark: "" });
+    });
+
+    it("writes each level's mark as it starts", async () => {
+      const { shell, run, scene } = await startBoard(markedAt(15));
+      const first = scene.streak.markCount.text;
+
+      markedAt(30)(shell);
+      run.advance(16);
+
+      expect([first, scene.streak.markCount.text]).toEqual(["15", "30"]);
     });
   });
 
@@ -2731,6 +2775,18 @@ describe("BricksScene", () => {
 
     it("plays no streak's step", async () => {
       const { scene } = await stepTo(5, stillness);
+
+      expect({
+        ring: scene.streak.ring.visible,
+        count: countShown(scene),
+      }).toEqual({ ring: false, count: undefined });
+    });
+
+    it("plays nothing as a broken brick takes the streak to the level's mark", async () => {
+      const { scene } = await stepTo(15, (shell) => {
+        markedAt(15)(shell);
+        stillness(shell);
+      });
 
       expect({
         ring: scene.streak.ring.visible,

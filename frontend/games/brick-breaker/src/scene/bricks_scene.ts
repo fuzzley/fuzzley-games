@@ -478,7 +478,7 @@ export class BricksScene extends Scene {
     this.balls.reset();
     this.paddle.reset();
     this.tails.reset();
-    this.streak.reset();
+    this.streak.reset(field);
     this.heldAt = Infinity;
     // The new field's flourishes run by the scene's time, as nothing holds.
     this.context.now = flourishTime(this.frameTime, this.heldAt);

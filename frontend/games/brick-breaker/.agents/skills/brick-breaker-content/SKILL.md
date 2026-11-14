@@ -68,7 +68,9 @@ Its block in a set's file:
   `layout` stays.
 - `pace`, the ball's speed against its speed's own, which never falls
   within a set; `mark`, the streak its third star asks for, which
-  `yarn report:levels --marks` prints by one rule for every level; `drops`,
+  `yarn report:levels --marks` prints by one rule for every level, and at
+  which the field rings the ball and writes the count as at a streak's
+  step; `drops`,
   the chance a needed brick lets a capsule fall, if not its set's;
   `capsules`, the pool, if not every capsule whose level has come.
 

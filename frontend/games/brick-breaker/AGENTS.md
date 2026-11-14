@@ -286,8 +286,9 @@ takes for the specs' helpers.
   to the field's foot, which the scene hands the shell with the field as it
   lays it out (`onLayout()`);
   `frame.ts` is what the scene reads: `FieldView`, the field it can't
-  change, and `FieldFrame`, whose events are `@fz/core/event_log`'s
-  `EventLogView`; `layers.ts` the order the field is drawn in, back to front,
+  change, and of its level the mark, and `FieldFrame`, whose events are
+  `@fz/core/event_log`'s `EventLogView`; `layers.ts` the order the field is
+  drawn in, back to front,
   in one list; and `tags.ts` where the tags of the effects in play lie under
   the paddle, and how much of each one's time is left. `rim.ts` says how
   wide the rim the scene draws round the field is (`rimWidth()`): 0.3 of a
@@ -296,8 +297,9 @@ takes for the specs' helpers.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
-  step adding the step's, and a ball meeting the paddle squashing the ball
-  and dipping the pad, in the picture alone. A plate's underside clanks as
+  step, or at the level's mark, adding the step's, and a ball meeting the
+  paddle squashing the ball and dipping the pad, in the picture alone.
+  A plate's underside clanks as
   it turns a ball back or a bolt is spent on it (`plated`), a cage rattles
   as it frees its friend (`freed`),
   the gates sweep low and rising as they open (`opened`), and a soft
@@ -315,9 +317,10 @@ takes for the specs' helpers.
   long a sound waits (`soundDelayOf()`), the clear's chord waiting out the last
   brick's hold, with motion or without, in a `DelayedSound`; `streak.ts` the
   streak's steps, the multiplier's tiers (`STREAK_STEPS`), how many a
-  streak has reached (`streakTier()`), whether a broken brick took it to one
-  (`isStreakStep()`), the ball nearest a place, of those in flight or of
-  all in play, a ball held on the paddle too (`nearestBall()`),
+  streak has reached (`streakTier()`), whether a broken brick took it to
+  one, or to the level's mark (`isStreakStep()`), the ball nearest a place,
+  of those in flight or of all in play, a ball held on the paddle too
+  (`nearestBall()`),
   and where a step's count lies beside its ball, inside the field
   (`countCorner()`), and how it is written (`COUNT_TEXT`); `tail.ts` a
   ball's tail in a streak: the places the ball passed, a gap apart
@@ -506,10 +509,12 @@ takes for the specs' helpers.
   its own, `TagPainter` the effects in
   play and their emptying rings, `TailPainter` a tail behind each ball in
   play while the field is in a streak, a dot at each of its last places,
-  `StreakPainter` a streak's step, a ring about the ball and the streak's
-  count beside it, the one thing written over the field, a Phaser `Text`
-  for each step in the page's font, written once, and again as the atlas is
-  baked and once the page has loaded the font, and `BallPainter` the
+  `StreakPainter` a streak's step, or its reaching the level's mark, a
+  ring about the ball and the streak's count beside it, the one thing
+  written over the field, a Phaser `Text` for each step in the page's font,
+  written once, and again as the atlas is baked and once the page has
+  loaded the font, and one for the level's mark, written as each field
+  starts unless a step's count says it already, and `BallPainter` the
   balls, each in its kind's frame at the streak, with its eyes looking the
   way it goes, a sight under it while it seeks (`Ball.seeks`, or every ball
   in flight while a Seeker is in play), with a fire ball's embers, one for
