@@ -60,7 +60,7 @@ fractional width and a field overrunning its room mid-flight. Its comments:
    doc comment, `AGENTS.md` and the skill say 184 at a whole ratio and
    how far it strays at another, and the two specs are retitled. The
    deck's check in this package's third commit holds the rule exactly,
-   which `checkPhaserLayout()`'s whole ratios (1× and 2×) allow.
+   which `checkPhaserLayout()`'s one ratio, 2×, allows.
 2. No spec pinned `room.x` on the right side. Fixed: a spec where the
    right side is the narrower, beside the one where the left is.
 3. No spec pinned the rounding of the widest width, or the float
@@ -139,3 +139,73 @@ before the fixes and after, and its coverage; Brick Fuzz Pop's lint
 build, and its `check:layout`, which holds at every shape and turn (19 s);
 the root's lint, typecheck and test, under the lock, before the fixes and
 after.
+
+### 2026-11-14: the deck's `spare` in `@fz/dev/board-page`
+
+`PhaserDeck` gains `spare`, a `DeckSpare`: the attribute that says where
+the board's room lies (`room`, such as `data-room`) and the CSS px the room
+must spare on the board's narrower side for the deck to show (`least`).
+`inspectPhaserDeck()` holds a deck with one to showing exactly there: it
+reports a deck that shows none of its zones where the room spares enough,
+one that shows (lists any zone, even one it can't read) where it spares too
+little, and a board that doesn't say where its room lies. Brick Fuzz Pop's
+`tools/check-layout.mjs` gives its deck a spare of `data-room` and 184
+(`12 + 172`) and drops its own copy of the check, and `readNamedRects`
+with it; its inspection still reads `data-room` for the field's shape,
+and leaves a missing one to the deck's inspection, so it is said once.
+
+- **The board's place** is read from its attribute (`drawnAt`), in the
+  canvas's frame the room is written in, as Brick Fuzz Pop's own check
+  read it, so the comparison is exact and what it says needs no rounding.
+- **The spare is held exactly,** within a hundredth of a CSS px, as Brick
+  Fuzz Pop's own check held it. `sidePanels()` asks 184 CSS px only at a
+  whole pixel ratio (the first commit's review), and `checkPhaserLayout()`
+  checks only at 2×, so the check is exact where it runs; `DeckSpare`'s
+  doc says a game that rounds is checked only at whole ratios. A band of a
+  device pixel and a half was weighed and left out: it would loosen the
+  check at every ratio it runs at, for ratios it never runs at.
+- **`spare` sits beside `allOrNone`** rather than replacing it, as the plan
+  words it, and a deck with a spare is shown all or none whatever
+  `allOrNone` says, so the two can't contradict each other. Asteroid
+  Breaker's deck, shown always, takes neither.
+- **Brick Breaker, in P2,** gives its deck the least its own `sidePanels()`
+  call needs, measured from the field `data-field` names: 184 where it
+  keeps the gap from the same rectangle it writes there, or 184 and its
+  wall (186) where it writes the cells and keeps the gap from the wall.
+
+**Review** (a fresh agent): it found Brick Fuzz Pop's panels held to the
+same rule as before, a missing room said once in practice, the function
+safe to send into the page, and Asteroid Breaker untouched. Its comments:
+
+1. The spec of the message's rounding passed with the rounding removed,
+   as 120.1 − 100.1 is exactly 20 in doubles. Answered by 4, which drops
+   the rounding and that spec.
+2. No spec pinned "held exactly": every row passed with a tolerance of
+   half a CSS px. Fixed: a room sparing 19.98 against 20, with the deck
+   shown, is reported.
+3. The type took a spare without `allOrNone`, and the reports then
+   contradicted each other. Fixed: a spare implies all or none in the
+   inspection, the doc says so, and a spec holds it.
+4. The board's left edge was rebuilt from the window's frame; reading the
+   board's attribute is exact and simpler. Taken: `misplaced()` takes the
+   board's rectangle as drawn, and leaves a missing one to the board's
+   inspection, which a spec holds.
+5. A missing room went unsaid where the deck's attribute was missing too,
+   against the doc. Answered in the doc: where the deck's attribute is
+   missing, the inspection says that alone, as it did for every other
+   problem before. Brick Fuzz Pop's board writes both together.
+6. Docs: `checkPhaserLayout()` checks at 2× only, not 1× and 2×;
+   `DeckSpare`'s doc said holding exactly caused whole-ratio checking;
+   and the layout check's header had a stub line. Fixed.
+
+These correct the change rather than reshape it, so it wasn't reviewed
+again.
+
+**Checks:** `@fz/dev`'s lint, typecheck and test (16 files, 547 specs),
+and its coverage (`src/board_page.ts` whole but for a branch it had
+before); Brick Fuzz Pop's lint and typecheck, which check the layout
+script, and its `check:layout` on its build, which holds at every shape and
+turn; told a spare of 12, it fails where a small phone on its side spares
+132 CSS px and shows no panels, so the check runs. Asteroid Breaker's build
+and `check:layout`, its deck shown always, which holds. The root's lint,
+typecheck and test, under the lock.

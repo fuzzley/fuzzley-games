@@ -13,19 +13,18 @@
  * canvas at the board's pixel ratio, keep its shape, 9 units across
  * (`--across`) by its depth, floor's band and lintel down (`--down`), and
  * lie in the window, where the placeholder drew it, to the pixel, and
- * inside the focus ring, its card on it; and the panels, where they show,
- * must both show, on the canvas and in the window, off the field, each
- * other and the bar, at least 172 CSS px across and down. The field's unit
- * must be at least 24 CSS px, and its unit, depth (`data-depth`), floor's
- * band (`--band`) and lintel (`--lintel`) the ones its room (`data-room`)
- * asks for; it must lie in its room, filling the room's width where it is
- * deeper than 11 rows and its height where it is 11, within a device pixel
- * a cell; the panels must show wherever 184 CSS px are spare each side of
- * it, and nowhere else; and, as the level waits for its first shot
- * (`data-outcome`), the wall must stand on the row the level opens on at
- * the field's depth (`data-wall`), after a turn of the window too, as the
- * rules begin a level with no round played again on a depth the field
- * takes.
+ * inside the focus ring, its card on it; and the panels must both show
+ * wherever its room (`data-room`) spares 184 CSS px each side of it, and
+ * nowhere else, on the canvas and in the window, off the field, each other
+ * and the bar, at least 172 CSS px across and down. The field's unit must
+ * be at least 24 CSS px, and its unit, depth (`data-depth`), floor's band
+ * (`--band`) and lintel (`--lintel`) the ones its room asks for; it must
+ * lie in its room, filling the room's width where it is deeper than 11
+ * rows and its height where it is 11, within a device pixel a cell; and,
+ * as the level waits for its first shot (`data-outcome`), the wall must
+ * stand on the row the level opens on at the field's depth (`data-wall`),
+ * after a turn of the window too, as the rules begin a level with no round
+ * played again on a depth the field takes.
  *
  * Then it does it all again over a run kept as the game keeps one, a round
  * played, which each page takes up paused: the wall must stand as many
@@ -38,7 +37,6 @@ import {
   PHASER_CANVAS_READY,
   PHASER_CHECKED_AT,
   checkPhaserLayout,
-  readNamedRects,
   readRect,
   runLayoutScript,
 } from "@fz/dev/layout";
@@ -59,7 +57,7 @@ const ROOT = join(import.meta.dirname, "..");
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser, from
  * the lintel's top to the floor's band's bottom, its card Ready's as a
  * level waits for its first shot, or Paused's over a run taken up; and the
- * panels beside it, shown both or neither.
+ * panels beside it, shown both, wherever the room spares them, or neither.
  *
  * @type {PhaserBoard}
  */
@@ -78,17 +76,19 @@ const FIELD = {
     // `PANEL_WIDTH_CSS_PX.least`, in `@fz/phaser/layout`.
     least: 172,
     allOrNone: true,
+    // `PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX.least`, which a side must
+    // spare for the panels at the check's whole pixel ratios.
+    spare: { room: "data-room", least: 12 + 172 },
   },
 };
 
 /**
  * Returns what is wrong with the field's unit and shape, where it lies in
- * its room, the panels beside it and where the wall stands, given where the
- * field lies: on the row a level opens on as it waits for its first shot,
- * or, where the page took up the run the check keeps (`LAYOUT_RUN`), on
- * the row the run kept it on. It runs in the page, so it uses nothing from
- * this module, and reads the board's rectangles with `readRect()` and
- * `readNamedRects()`, which are sent with it.
+ * its room and where the wall stands, given where the field lies: on the
+ * row a level opens on as it waits for its first shot, or, where the page
+ * took up the run the check keeps (`LAYOUT_RUN`), on the row the run kept
+ * it on. It runs in the page, so it uses nothing from this module, and
+ * reads the board's rectangles with `readRect()`, which is sent with it.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -98,16 +98,13 @@ function inspectField(field) {
   const problems = [];
   const board = document.querySelector("app-board");
   if (!field || !board) return problems;
-  // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in src/rules/tuning.ts;
-  // `FLOOR_BAND` and `LINTEL`, in src/view/field/field_metrics.ts; and
-  // `PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX.least`, in
-  // `@fz/phaser/layout`.
+  // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in src/rules/tuning.ts; and
+  // `FLOOR_BAND` and `LINTEL`, in src/view/field/field_metrics.ts.
   const columns = 9;
   const fewestRows = 11;
   const mostRows = 22;
   const band = { least: 0.6, most: 1.1 };
   const lintel = { least: 0.5, most: 1 };
-  const panelSpare = 12 + 172;
   // The plan's floor for a unit, which a small phone on its side meets
   // exactly.
   const leastUnit = 24;
@@ -126,12 +123,8 @@ function inspectField(field) {
     return problems;
   }
   const room = readRect(board.getAttribute("data-room"));
-  if (!room) {
-    problems.push(
-      "app-board doesn't say where the field's room lies (data-room).",
-    );
-    return problems;
-  }
+  // The panels' inspection says where it is missing.
+  if (!room) return problems;
 
   /**
    * Returns a size rounded down to a whole number, a hair under one
@@ -218,23 +211,6 @@ function inspectField(field) {
   } else if (depth === fewestRows && leftDown >= Math.ceil(asked)) {
     problems.push(
       `The field, ${depth} rows deep, leaves ${leftDown} device px of its room's height.`,
-    );
-  }
-
-  // The narrower side, where the room spares an odd number of pixels.
-  const side = Math.min(
-    drawn.x - room.x,
-    room.x + room.width - drawn.x - drawn.width,
-  );
-  const panels = readNamedRects(board.getAttribute("data-panels") ?? "");
-  const roomForPanels = side >= panelSpare - 0.01;
-  if (roomForPanels && panels.length === 0) {
-    problems.push(
-      `The panels don't show, with ${side} CSS px spare each side of the field.`,
-    );
-  } else if (!roomForPanels && panels.length > 0) {
-    problems.push(
-      `The panels show with ${side} CSS px spare a side of the field, under ${panelSpare}.`,
     );
   }
 

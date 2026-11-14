@@ -106,9 +106,38 @@ export interface PhaserDeck {
    * deck that lists no zone at all passes too.
    *
    * The check can't then tell a deck hidden for want of room from one never
-   * shown, so the game's own inspection holds where it must show.
+   * shown, so its {@link spare} says where it must show, or else the game's
+   * own inspection does.
    */
   readonly allOrNone?: boolean;
+  /**
+   * Where a deck shown all or none must show: wherever the board's room
+   * spares so much beside the board, and nowhere else. A deck with a spare
+   * is shown all or none, whatever {@link allOrNone} says.
+   */
+  readonly spare?: DeckSpare;
+}
+
+/**
+ * Says how much of a board's room a deck shown all or none needs beside the
+ * board, as a wide room's panels need a gap and their least width.
+ *
+ * It is held exactly, so a game that rounds the deck's sizes to whole
+ * device pixels, as `@fz/phaser/layout`'s `sidePanels()` does, is checked
+ * only at whole pixel ratios, as `checkPhaserLayout()` checks at 2×.
+ */
+export interface DeckSpare {
+  /**
+   * The attribute of the board's element that says where the board's room
+   * lies on the canvas, as "x y width height" in CSS px, which
+   * {@link readRect} reads, such as `data-room`.
+   */
+  readonly room: string;
+  /**
+   * The CSS px the room must spare on the board's narrower side for the
+   * deck to show, such as 184.
+   */
+  readonly least: number;
 }
 
 /** Says where a rectangle lies, in CSS px. */
@@ -257,11 +286,13 @@ export function inspectPhaserBoard(board: PhaserBoard): BoardInspection {
 
 /**
  * Returns what is wrong with the deck laid over a board's canvas beside the
- * board where it lies: a zone the deck names missing, unless the deck is
- * shown all or none and lists no zone; a zone unknown, unreadable or listed
- * twice; or one off the canvas, out of the window, over the board, another
- * zone or a control of the game bar, or smaller than the deck's least. It
- * runs in the page.
+ * board where it lies: the board not saying where the deck lies, which it
+ * then says alone; a zone the deck names missing, unless the deck is shown
+ * all or none and lists no zone; a deck with a spare shown where its room
+ * spares too little, or not shown where it spares enough, or a room the
+ * board doesn't say; a zone unknown, unreadable or listed twice; or one off
+ * the canvas, out of the window, over the board, another zone or a control
+ * of the game bar, or smaller than the deck's least. It runs in the page.
  */
 export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
   /** Returns whether two rectangles share more than half a pixel's width. */
@@ -272,6 +303,43 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
       a.top < b.top + b.height - 0.5 &&
       b.top < a.top + a.height - 0.5
     );
+  }
+
+  /**
+   * Returns what is wrong with where a deck with a spare shows, or doesn't,
+   * given where the board's room and the board lie on the canvas: the room
+   * unsaid, or the deck shown, or not, against what the room spares on the
+   * board's narrower side.
+   */
+  function misplaced(
+    spare: DeckSpare,
+    room: CanvasRect | null,
+    drawn: CanvasRect | null,
+    showing: boolean,
+  ): string[] {
+    if (!room) {
+      return [
+        `${board.element} doesn't say where the ${board.name}'s room lies (${spare.room}).`,
+      ];
+    }
+    // The board's own inspection says where the board's place is missing.
+    if (!drawn) return [];
+    const side = Math.min(
+      drawn.x - room.x,
+      room.x + room.width - drawn.x - drawn.width,
+    );
+    const fits = side >= spare.least - 0.01;
+    if (fits && !showing) {
+      return [
+        `The deck shows none of its zones, with ${side} CSS px spare each side of the ${board.name}.`,
+      ];
+    }
+    if (!fits && showing) {
+      return [
+        `The deck shows with ${side} CSS px spare a side of the ${board.name}, under ${spare.least}.`,
+      ];
+    }
+    return [];
   }
 
   const { deck } = board;
@@ -306,10 +374,17 @@ export function inspectPhaserDeck(board: PhaserBoard, box: BoardBox): string[] {
   }
   // A deck shown all or none may list nothing; one that lists anything,
   // even a zone it can't read, must show them all.
-  if (!deck.allOrNone || entries.length > 0) {
+  const allOrNone = deck.allOrNone === true || deck.spare !== undefined;
+  if (!allOrNone || entries.length > 0) {
     for (const zone of deck.zones) {
       if (!zones.has(zone)) problems.push(`The deck shows no ${zone} zone.`);
     }
+  }
+  const { spare } = deck;
+  if (spare) {
+    const room = readRect(element.getAttribute(spare.room));
+    const drawn = readRect(element.getAttribute(board.drawnAt));
+    problems.push(...misplaced(spare, room, drawn, entries.length > 0));
   }
 
   const controls = [
