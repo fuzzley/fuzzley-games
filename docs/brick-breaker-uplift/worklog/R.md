@@ -105,3 +105,81 @@ Review (a fresh reviewer, on the staged change):
 2. `stats.spec.ts` named its level on the first layout "stripes", which is
    now the game's redrawn one, so it read as the opposite of the game.
    Fixed: its levels are `first`, `second` and `redrawn`.
+
+### 2026-11-14: the seven pictures' tints
+
+Each picture took its rows' stripes; each now has tints of its own, as
+Rocket and Finale have, in `TILE_INKS`' order (1 red, 2 orange, 3 amber,
+4 green, 5 teal, 6 blue, 7 violet, 8 pink). No brick changes, so no layout
+does. Steel, blast and gift bricks are drawn in colors of their own
+whatever their tint; by the custom Rocket and Finale set, steel is left
+`.` and a blast or gift brick is marked with the tint of the part it sits
+in, so the grid reads as the picture.
+
+- **Pyramid:** a face in the sun, amber (3), from the left to the middle
+  column, and a face in shade, orange (2), to the right. Weighed: none
+  other; the two faces were the first choice and held.
+- **Arch:** a toy rainbow, as a playroom has: the rim of tough bricks red
+  (1), and inside it two bands by their distance from the rim, amber (3)
+  and green (4); the red band runs down the pillars to the floor. Weighed:
+  red, orange, amber, whose warm bands ran together; red, amber, blue,
+  which read less as a rainbow.
+- **Diamond:** a gem, deepening from its heart: plain bricks teal (5), the
+  ring of twos blue (6), the rim of threes violet (7). Weighed: blue and
+  teal alone, flatter; a playing card's red diamond in red, pink and orange,
+  which read as a blot.
+- **Castle:** blue stone (6), red caps on the towers (1), lit windows amber
+  (3), and the keep's body amber (3), its gifts marked 3. Weighed: a teal
+  body, too near the blue stone; violet stone over an orange body, fine but
+  less of a castle.
+- **Lanterns:** an orange beam (2), paper lanterns amber (3) round their
+  blast bricks, a row hanging from the beam and a row set in a blue wall
+  (6), over a violet floor (7). Weighed: red lanterns, which lost their red
+  blast bricks inside them; pink lanterns in the wall; a violet beam, which
+  ran into the floor's frame.
+- **Gears:** an amber hub (3) in each ring of blast bricks, which are marked
+  3 and keep their own color, the steel teeth left alone, over a bed of
+  three rows in blue (6), the tough rows deeper by the palette's own mix.
+  Weighed: a violet bed; a teal bed with red hubs, lost among the red blast
+  bricks.
+- **Hourglass:** a violet frame top and bottom (7), sand amber (3) in both
+  bulbs. Weighed: a red or an orange frame, both nearer the sand.
+
+How they were judged: each drawn as a page of cells in the light and dark
+inks, the choices above beside each other (a scratch page, not kept: it was
+a means to the choice, and the log names what it weighed), then the chosen
+ones looked at in the game, served on port 9404 in a headless Chrome page
+of its own, at 1280 × 720: Pyramid, Arch, Diamond, Castle, Lanterns, Gears
+and Hourglass on the default light palette, and Castle on Midnight blue.
+Each read as its picture, the marks and the tough bricks' deeper tints
+clear on every tint. The redrawn Stripes showed its notch. The page was
+closed and the server stopped.
+
+The content skill now names the eight tints by number, says that steel,
+blast and gift bricks are drawn in their own colors whatever their tint,
+the custom for marking them, and that tints change no play, so no layout.
+
+The plan's `art/sheet-field.mjs` draws the game's Castle with the game's
+tints, so `art/make-art.mjs` run again would draw it in these; that is the
+game as it now is, so it is left reading the game. `mocks/make-mocks.mjs`
+run again writes its sheets as committed.
+
+Checks: the workspace's `lint`, `typecheck` and `test` (59 files, 2,012
+specs, 15.7 s with six workers), and the root's `lint`.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The skill said steel, blast and gift bricks' own colors were why steel
+   is left `.` and the others tinted, as if their tints showed. Fixed: the
+   skill says they are drawn in their own colors whatever their tint, and
+   that leaving steel `.` and marking the others is a custom, Finale's and
+   Rocket's; it numbers the eight tints.
+2. The log's Gears and Castle bullets described rings and gifts as amber,
+   which draw in their own colors. Fixed: they say what shows and what is
+   only marked.
+3. The comparison pages weren't kept and the log didn't name the choices
+   weighed. Answered: each bullet now names what was weighed and why it
+   lost; the pages were scratch, drawn by a throwaway script, and aren't
+   the plan's assets, so they stay out of the tree.
+4. The Lanterns bullet read as both rows set in the wall. Fixed.
+5. The notes came after Checks, unlike the earlier entries. Fixed.

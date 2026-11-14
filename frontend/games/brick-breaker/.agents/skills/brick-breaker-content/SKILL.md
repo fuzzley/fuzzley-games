@@ -52,6 +52,13 @@ Its block in a set's file:
   with its hits or the capsule a gift gives.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
+  The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
+  3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast and
+  gift bricks are drawn in colors of their own, whatever their tint. By
+  custom a picture leaves steel `.`, as Finale does, and marks a blast or
+  gift brick with the tint of the part it sits in, as Rocket does, so the
+  grid reads as the picture. Changing tints changes no play, so no bests:
+  `layout` stays.
 - `pace`, the ball's speed against its speed's own, which never falls
   within a set; `drops`, the chance a needed brick lets a capsule fall, if
   not its set's; `capsules`, the pool, if not every capsule whose level has
