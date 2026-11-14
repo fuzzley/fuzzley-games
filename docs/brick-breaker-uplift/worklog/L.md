@@ -583,3 +583,102 @@ and B, a crack shows on a tough brick hit in play, and at 844 × 390 the
 steel keeps only its frame and the tough bricks no cracks, as section E's
 24 px row shows. `/tmp/l2-bricks-game.png` is Finale at 1280 × 720 in
 Midnight blue.
+
+## L3 and L5. The paddle, the capsules, the ball and the field's edge
+
+The integrator folded L5 (the gold lip and the Seeker's symbol) into L3,
+since both redraw the capsules and R2, which L5 waited for, had landed.
+Started from the integration tip 57b9848b (P1, R1, K1, L1, P2, R2 and L2).
+L2's ring of a brick growing back came with it, as the brick painter is
+stream L's.
+
+### 2026-11-14: the paddle
+
+`feat(brick-breaker): draw the paddle as the kit does, with velcro hooks
+while it catches and cannons while it fires` (commit 1 of L3).
+
+- `src/view/art/paddle_art.ts`, new: the paddle's frames as the kit's
+  `paddle()` (`art/scene.mjs`) draws them, every length the kit's, a share
+  of its 75 tall: its left end (`PADDLE_FRAMES.end`), its lip's round end
+  under its cap with a bolt in the marks' color toward the outer side; a
+  laser's cannon, a barrel in the warning color on a base in the lip's;
+  and one velcro hook in the text, a stem curled over at its head. Each is
+  drawn about the point the scene puts it at (`centered()`), so an image's
+  middle is that point. `paddleShape()` says how the parts lie at a scale
+  (the paddle's height, its bar and lip in whole device pixels, where the
+  body starts over the caps, the pad and the hooks' pitch), and
+  `hookCount()` how many hooks stand along a paddle so wide, about its
+  middle, `MOST_HOOKS` at most (the kit's along the widest paddle, and one
+  more). Where a brick is too small for its finest detail (`showsDetail()`,
+  under 15 CSS px a unit) the bolts are left out and the hooks stand twice
+  as far apart.
+- `paddle_painter.ts` draws it from those frames and three rectangles a
+  pixel wide, scaled across, as the body was: the lip between the caps'
+  middles, the body over the caps' inner halves and the pad along its top,
+  each part placed by a function of its own (`placeBar()`, `placePad()`,
+  `placeHooks()`, `placeCannons()`), so F2's dip of the pad has one place
+  to go. The right end is the left flipped. A pool of `MOST_HOOKS` images,
+  made once, shows as many hooks as fit; the catching paddle's rim is gone.
+- `palette.ts` gains `paddleInks`: the lip (the accent at 32% black), the
+  caps (the accent toward the text, 45% in a light palette and 60% in a
+  dark one), the pad (the accent at 55% white), the hooks (the text) and
+  the cannons and their bolts (the warning color). The bolt's frame takes
+  the cannons' color, as the kit's bolts are gold.
+- `contrast.spec.ts` holds the caps, the hooks and the cannons to 3:1
+  against the field, and the outline and the marks (the caps' bolts) to
+  3:1 against the caps; the lip and the pad are shading, held to nothing.
+  The figures, against the field: caps 7.8 to 11.0, hooks 11.9 to 14.9,
+  cannons 5.1 to 9.0, lip 3.6 to 8.4; the pad against the body 1.5 to 3.1.
+- Specs: `paddle_art.spec.ts` (the shape at every field scale, the hooks'
+  count, cap and spread, each frame's commands, the bolt left out small,
+  the hook a CSS pixel wide); `art.spec.ts` gives up the old end's check
+  and holds the bolt in the cannons' color; the scene's spec holds the
+  caps' middles, the lip, body and pad's sizes and places, the right end
+  flipped, the hooks a pitch apart about the middle and more as it widens,
+  the cannons on its top, and the colors anew in a new palette.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, `src/view/art/`,
+  `src/scene/`).
+
+Choices, where the plan was silent:
+
+- **The pad is square at its ends.** The kit rounds it 5.5 of 75, two
+  device pixels at 1280 × 720; a rectangle scaled across keeps it crisp at
+  any width, as the body does, and the rounding doesn't show.
+- **The hooks stand about the paddle's middle, an odd number of them,**
+  where the kit starts them at its left; each stands a whole number of
+  pitches from the middle, so as the paddle widens or narrows (16 units a
+  second) none moves, and they come and go in pairs at both ends.
+- **The bolts are gold** (the cannons' color), as the kit draws them, where
+  they were the paddle's accent.
+- The board's placeholder, a pill in the accent drawn in CSS until the
+  scene has drawn (stream P's `board.component.scss`), stays as it is.
+
+The review (a fresh agent), and what I did:
+
+1. _The hooks jumped half a pitch each time their count rose by one, as a
+   paddle widens through ten counts in an eighth of a second, and the log
+   said they came and went at both ends._ Fixed: `hookCount()` stands an
+   odd number, so each stands a whole number of pitches from the middle;
+   `MOST_HOOKS` is odd too (29), and a spec holds the count odd over a
+   paddle widening by quarter pitches.
+2. _No spec held the paddle's parts' order or frames._ Fixed: the scene's
+   spec holds the lip, the ends, the body, the pad, the hooks and the
+   cannons in that order in their layer, and the end, hook and cannon
+   frames.
+3. _The palette spec couldn't tell the text from black, as its roles' text
+   is black._ Fixed for the paddle's inks: it runs on a text of `#102030`.
+   The tough tint's spec, L2's, has the same weakness and is left as it is.
+4. _`MOST_HOOKS` took the kit's 100 to a unit for granted, and its spec
+   used 6 for the widest paddle._ Fixed: the width is
+   `WIDEST_PADDLE / PADDLE_HEIGHT * KIT_HEIGHT`, and `WIDEST_PADDLE` is
+   exported for the spec.
+5. _Small things._ Fixed: the contrast spec's comment and `AGENTS.md` are
+   wrapped again; the hook's width is `widthOf()` on the paddle's height,
+   a whole number of device pixels and a CSS pixel at least; the shape's
+   spec drops the sum that held by construction; the hook's spec holds the
+   stem's foot below the paddle's top, not only its round end; the small
+   end's spec draws only the paddle's frames; the scene's specs take the
+   field's paddle width throughout.
+
+Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
+files, 2,556); the root's lint under the lock.

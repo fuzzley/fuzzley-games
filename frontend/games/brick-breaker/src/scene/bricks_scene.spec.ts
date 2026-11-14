@@ -3,7 +3,6 @@ import type { Turns } from "@fz/core/turns";
 import { cssHex } from "@fz/phaser/color";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
-import { lineWidth } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import {
   type SceneRun,
@@ -29,7 +28,6 @@ import {
   FIELD_HEIGHT,
   MAX_BALLS,
   NET_DEPTH,
-  PADDLE_HEIGHT,
   PADDLE_TOP,
   ROWS,
   TALLEST_FIELD,
@@ -54,6 +52,7 @@ import {
   tagFrame,
 } from "../view/art/art";
 import { brickColor, brickFrame } from "../view/art/brick_art";
+import { PADDLE_FRAMES, hookCount, paddleShape } from "../view/art/paddle_art";
 import type { FieldCommand } from "../view/steering/controls";
 import {
   type FieldMetrics,
@@ -456,7 +455,7 @@ describe("BricksScene", () => {
       );
     });
 
-    it("has every image take up its frame anew at a new unit, and the paddle its new height", async () => {
+    it("has every image take up its frame anew at a new unit, and the paddle's bar its new height", async () => {
       const { run, scene } = await startBoard();
 
       run.game.scale.resize(600, 600);
@@ -473,7 +472,7 @@ describe("BricksScene", () => {
         paddle: scene.paddle.body.height,
       }).toEqual({
         stale: [],
-        paddle: Math.round(PADDLE_HEIGHT * metricsAt(600, 600).unit),
+        paddle: paddleShape(metricsAt(600, 600)).bar,
       });
     });
 
@@ -661,24 +660,67 @@ describe("BricksScene", () => {
   });
 
   describe("the paddle", () => {
-    it("is drawn at its width, its middle at the paddle's and its top on the paddle's line", async () => {
+    it("is drawn at its width, its middle at the paddle's, its top on the paddle's line and its caps' middles a cap's radius in from its ends", async () => {
       const { shell, scene } = await startBoard();
       const metrics = metricsAt();
+      const { bar } = paddleShape(metrics);
       const paddle = shell.field.paddle;
       const x = toCanvasX(metrics, paddle.x);
+      const top = toCanvasY(metrics, PADDLE_TOP);
       const width = Math.round(paddle.width * metrics.unit);
-      const [left, right] = scene.paddle.ends;
 
       expect({
-        left: (left?.x ?? 0) - (left?.displayWidth ?? 0) / 2,
-        right: (right?.x ?? 0) + (right?.displayWidth ?? 0) / 2,
+        ends: scene.paddle.ends.map((end) => [end.x, end.y]),
         middle: scene.paddle.body.x,
         top: scene.paddle.body.y,
       }).toEqual({
-        left: x - width / 2,
-        right: x + width / 2,
+        ends: [
+          [x - width / 2 + bar / 2, top + bar / 2],
+          [x + width / 2 - bar / 2, top + bar / 2],
+        ],
         middle: x,
-        top: toCanvasY(metrics, PADDLE_TOP),
+        top,
+      });
+    });
+
+    it("lays its body over its caps' inner halves, its lip under its bar between the caps' middles, and its pad along its top", async () => {
+      const { shell, scene } = await startBoard();
+      const metrics = metricsAt();
+      const { bar, lip, inner, pad } = paddleShape(metrics);
+      const width = Math.round(shell.field.paddle.width * metrics.unit);
+      const top = toCanvasY(metrics, PADDLE_TOP);
+      const { body, lip: under, pad: over } = scene.paddle;
+
+      expect({
+        body: [body.displayWidth, body.displayHeight],
+        lip: [under.displayWidth, under.displayHeight, under.y],
+        pad: [over.displayWidth, over.displayHeight, over.y],
+      }).toEqual({
+        body: [width - 2 * inner, bar],
+        lip: [width - bar, bar, top + lip],
+        pad: [width - 2 * (inner + pad.inset), pad.height, top + pad.top],
+      });
+    });
+
+    it("flips its right end, so its bolt lies toward its outer side", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.paddle.ends.map((end) => end.flipX)).toEqual([false, true]);
+    });
+
+    it("draws its lip, then its ends, its body and its pad over them, then its hooks and cannons, each from its frame", async () => {
+      const { scene } = await startBoard();
+      const { lip, ends, body, pad, hooks, cannons } = scene.paddle;
+      const parts = [lip, ...ends, body, pad, ...hooks, ...cannons];
+
+      expect({
+        order: parts.map((part) => lip.displayList?.getIndex(part)),
+        frames: [ends[0], hooks[0], cannons[0]].map(
+          (image) => image?.frame.name,
+        ),
+      }).toEqual({
+        order: parts.map((_, i) => i),
+        frames: [PADDLE_FRAMES.end, PADDLE_FRAMES.hook, PADDLE_FRAMES.cannon],
       });
     });
 
@@ -712,21 +754,26 @@ describe("BricksScene", () => {
       ["catch", false, true],
       [null, false, false],
     ] as const)(
-      "shows, in %s mode, the cannons: %s, and the rim: %s",
-      async (mode, cannons, rim) => {
+      "shows, in %s mode, the cannons: %s, and the hooks: %s",
+      async (mode, cannons, hooks) => {
         const { shell, run, scene } = await startBoard();
+        const metrics = metricsAt();
+        const fit = hookCount(
+          Math.round(shell.field.paddle.width * metrics.unit),
+          paddleShape(metrics),
+        );
 
         shell.field.mode = mode;
         run.advance(16);
 
         expect({
           cannons: scene.paddle.cannons.map((cannon) => cannon.visible),
-          rim: scene.paddle.rim.visible,
-        }).toEqual({ cannons: [cannons, cannons], rim });
+          hooks: showing(scene.paddle.hooks),
+        }).toEqual({ cannons: [cannons, cannons], hooks: hooks ? fit : 0 });
       },
     );
 
-    it("puts a laser's cannons over its ends, above it", async () => {
+    it("stands a laser's cannons on its top, over its ends", async () => {
       const { shell, run, scene } = await startBoard();
       const metrics = metricsAt();
       const x = toCanvasX(metrics, shell.field.paddle.x);
@@ -739,38 +786,56 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(
-        scene.paddle.cannons.map((cannon) => [
-          cannon.x,
-          cannon.y + cannon.height / 2,
-        ]),
+        scene.paddle.cannons.map((cannon) => [cannon.x, cannon.y]),
       ).toEqual([
         [x - inset, top],
         [x + inset, top],
       ]);
     });
 
-    it("lays a catching paddle's rim a line below its top, along its body", async () => {
+    it("stands a catching paddle's hooks on its top, a pitch apart about its middle", async () => {
       const { shell, run, scene } = await startBoard();
       const metrics = metricsAt();
-      const width = Math.round(shell.field.paddle.width * metrics.unit);
+      const shape = paddleShape(metrics);
+      const x = toCanvasX(metrics, shell.field.paddle.x);
+      const count = hookCount(
+        Math.round(shell.field.paddle.width * metrics.unit),
+        shape,
+      );
+      /** Rounds away what adding to the paddle's place leaves of a float's last digits. */
+      const near = (offset: number): number => Number(offset.toFixed(6));
 
       shell.field.mode = "catch";
       run.advance(16);
 
+      const shown = scene.paddle.hooks.filter((hook) => hook.visible);
       expect({
-        x: scene.paddle.rim.x,
-        y: scene.paddle.rim.y,
-        width: scene.paddle.rim.displayWidth,
+        offsets: shown.map((hook) => near(hook.x - x)),
+        tops: new Set(shown.map((hook) => hook.y)),
       }).toEqual({
-        x: toCanvasX(metrics, shell.field.paddle.x),
-        y: toCanvasY(metrics, PADDLE_TOP) + lineWidth(metrics),
-        width: width - scene.paddle.body.height,
+        offsets: Array.from({ length: count }, (_, i) =>
+          near((i - (count - 1) / 2) * shape.hooks.pitch),
+        ),
+        tops: new Set([toCanvasY(metrics, PADDLE_TOP)]),
       });
+    });
+
+    it("stands more hooks along it as it widens", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.mode = "catch";
+      run.advance(16);
+      const before = showing(scene.paddle.hooks);
+
+      shell.field.paddle.width = 6;
+      run.advance(16);
+
+      expect(showing(scene.paddle.hooks)).toBeGreaterThan(before);
     });
 
     it("keeps its ends round as it widens", async () => {
       const { shell, run, scene } = await startBoard();
-      const height = scene.paddle.body.height;
+      const widths = scene.paddle.ends.map((end) => end.displayWidth);
+      const { inner } = paddleShape(metricsAt());
 
       shell.field.paddle.width = 6;
       run.advance(16);
@@ -779,8 +844,8 @@ describe("BricksScene", () => {
         ends: scene.paddle.ends.map((end) => end.displayWidth),
         body: scene.paddle.body.displayWidth,
       }).toEqual({
-        ends: [height, height],
-        body: Math.round(6 * metricsAt().unit) - height,
+        ends: widths,
+        body: Math.round(6 * metricsAt().unit) - 2 * inner,
       });
     });
 
@@ -794,8 +859,14 @@ describe("BricksScene", () => {
       expect({
         before,
         body: scene.paddle.body.fillColor,
-        rim: scene.paddle.rim.fillColor,
-      }).toEqual({ before: LIGHT.paddle, body: DARK.paddle, rim: DARK.mark });
+        lip: scene.paddle.lip.fillColor,
+        pad: scene.paddle.pad.fillColor,
+      }).toEqual({
+        before: LIGHT.paddle,
+        body: DARK.paddle,
+        lip: DARK.paddleInks.lip,
+        pad: DARK.paddleInks.pad,
+      });
     });
   });
 

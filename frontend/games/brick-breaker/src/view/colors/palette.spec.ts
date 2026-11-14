@@ -51,6 +51,24 @@ describe("bricksPalette", () => {
     });
   });
 
+  it.each([
+    ["light", 0.45],
+    ["dark", 0.6],
+  ] as const)(
+    "gives the paddle a lip at 32% black, caps toward the text, a pale pad, hooks in the text and cannons in the warning color, in a %s palette",
+    (mode, cap) => {
+      const { paddleInks } = bricksPalette({ ...ROLES, text: "#102030" }, mode);
+
+      expect(paddleInks).toEqual({
+        lip: mixColors(0x000000, 0x00ff00, 0.32),
+        cap: mixColors(0x102030, 0x00ff00, cap),
+        pad: mixColors(0xffffff, 0x00ff00, 0.55),
+        hook: 0x102030,
+        cannon: 0xffa500,
+      });
+    },
+  );
+
   it("frames the last bricks' glow in the text", () => {
     expect(bricksPalette(ROLES, "light").glow).toBe(0x000000);
   });

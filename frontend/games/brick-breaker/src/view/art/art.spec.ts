@@ -9,7 +9,7 @@ import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../../rules/catalog/capsules";
-import { BALL_RADIUS, PADDLE_HEIGHT } from "../../rules/tuning";
+import { BALL_RADIUS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -259,23 +259,12 @@ describe("the atlas", () => {
     expect(names.has(name)).toBe(true);
   });
 
-  it("draws the paddle's end as a disc in its color, as tall as the paddle", () => {
-    const end = frameNamed(ART_FRAMES, FRAMES.paddle);
-    const height = Math.round(PADDLE_HEIGHT * ART_SCALE.unit);
+  it("draws a bolt in the cannons' color", () => {
+    const bolt = frameNamed(ART_FRAMES, FRAMES.bolt);
 
-    expect(end).toMatchObject({
-      width: height,
-      height,
-      commands: [
-        {
-          kind: "circle",
-          x: height / 2,
-          y: height / 2,
-          radius: height / 2,
-          color: ART_PALETTE.paddle,
-        },
-      ],
-    });
+    expect(new Set(bolt.commands.map((command) => command.color))).toEqual(
+      new Set([ART_PALETTE.paddleInks.cannon]),
+    );
   });
 
   it("frames a brick's cell in the glow's color, a line past it on each side", () => {

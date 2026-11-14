@@ -342,22 +342,25 @@ takes for the specs' helpers.
   the marks a brick's kind and state are told apart by, the inks a kind's
   marks take beside them, mixed as the uplift's art kit mixes them
   (`kindInks`: steel's frame and rivets, a blast brick's spark, a gift's
-  ribbon, a regrowing brick's moss and the shadow under it), and a ghost's
-  tints, faded while it hides and paler once it shows (`ghostTints`).
+  ribbon, a regrowing brick's moss and the shadow under it), the inks of
+  the paddle's parts beside its body in the accent (`paddleInks`: its lip,
+  its caps, its pad, a catching paddle's hooks and a laser's cannons and
+  bolts), and a ghost's tints, faded while it hides and paler once it shows
+  (`ghostTints`).
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
   bricks, a shown ghost and the moss, every ball kind, both capsule tones,
-  the paddle and the last bricks' glow to 3:1 against the field in every
-  palette, a tough brick's deeper tints too, and a hidden ghost to 2:1,
-  faint by design; each ball and capsule against its outline, the outline
-  against every tint, brick and the paddle, the marks against every brick,
-  capsule and the paddle, steel's frame and rivets against the steel, and a
-  blast brick's spark against the marks it is lit on; its comment says why
-  a ball isn't held against the tints, and why a brick's shading is held to
-  nothing.
+  the paddle, its caps, hooks and cannons, and the last bricks' glow to 3:1
+  against the field in every palette, a tough brick's deeper tints too, and
+  a hidden ghost to 2:1, faint by design; each ball and capsule against its
+  outline, the outline against every tint, brick, the paddle and its caps,
+  the marks against every brick, capsule, the paddle and its caps, steel's
+  frame and rivets against the steel, and a blast brick's spark against the
+  marks it is lit on; its comment says why a ball isn't held against the
+  tints, and why a brick's shading, and the paddle's, is held to nothing.
 - **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
   the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
   as it flies and with its eyes, the balls' eyes, each capsule's shape
-  (`CAPSULE_ART`), its tag, the paddle and the flourishes, names the frame
+  (`CAPSULE_ART`), its tag, the bolt and the flourishes, names the frame
   a ball, a capsule or a tag shows (`ballFrame()`, `facedBallFrame()` and
   the rest), and How to play's pictures (`PICTURE_FRAMES`);
   each ball is `@fz/phaser/fuzzball`'s fuzzball, outlined, its fur
@@ -377,15 +380,23 @@ takes for the specs' helpers.
   a regrowing brick's earth under a cap of moss with a sprout, leaving out
   the cracks, rivets and sheen of a brick under 30 CSS px wide
   (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`)
-  and the color its shards take (`brickColor()`); `symbols.ts` draws each
-  capsule's symbol (`SYMBOLS`); `streak_art.ts` the frames a streak's
-  flourishes show (`STREAK_FRAMES`), white, which the scene tints as the
-  balls are: a dot of a ball's tail and the ring about a ball as its streak
-  steps; they are drawn in `@fz/phaser/shapes`'s
-  commands (`DrawCommand`), whose builders take no size below nothing, since
-  a canvas not yet laid out gives a unit too small for the insets, and laid
-  out by its areas, points and stars (`within()`, `share()`, `inset()`,
-  `middleSquare()`, `frameAround()`, `star()`).
+  and the color its shards take (`brickColor()`); `paddle_art.ts` draws the
+  paddle's frames as the kit draws its paddle (`PADDLE_FRAMES`): its left
+  end, a cap over its lip with a bolt in it, a laser's cannon, a barrel on
+  a base, and a catching paddle's velcro hook, each about the point the
+  scene puts it at, and says how the paddle's parts lie at a scale, which
+  the scene's rectangles match (`paddleShape()`), and how many hooks stand
+  along a paddle so wide (`hookCount()`), an odd number, so each stands
+  where it stood as the paddle widens and they come and go in pairs, twice
+  as far apart and a bolt left out where a brick is too small for its
+  finest detail; `symbols.ts` draws each capsule's symbol (`SYMBOLS`);
+  `streak_art.ts` the frames a streak's flourishes show (`STREAK_FRAMES`),
+  white, which the scene tints as the balls are: a dot of a ball's tail
+  and the ring about a ball as its streak steps; they are drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), whose
+  builders take no size below nothing, since a canvas not yet laid out
+  gives a unit too small for the insets, and laid out by its areas, points
+  and stars (`within()`, `share()`, `inset()`, `middleSquare()`,
+  `frameAround()`, `star()`).
 - **`src/scene/`** — the Phaser scene. `BricksScene`
   (`bricks_scene.ts`) is handed plain functions over the game
   (`BricksSceneOptions`): each frame it hands the game the time and the
@@ -399,9 +410,11 @@ takes for the specs' helpers.
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
   each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and the
   field's shake, `CapsulePainter` and `BoltPainter` what
-  falls and rises, `PaddlePainter` the paddle as two round ends and a
-  rectangle between their middles, which keep their shape at any width on
-  either renderer, with its cannons and rim, `TagPainter` the effects in
+  falls and rises, `PaddlePainter` the paddle, its ends frames of the atlas
+  and its lip, body and pad rectangles scaled across, which keep their
+  shape at any width on either renderer, with a laser's cannons over its
+  ends or a catching paddle's hooks along its top, each part placed by a
+  function of its own, `TagPainter` the effects in
   play and their emptying rings, `TailPainter` a tail behind each ball in
   play while the field is in a streak, a dot at each of its last places,
   `StreakPainter` a streak's step, a ring about the ball and the streak's
@@ -414,8 +427,8 @@ takes for the specs' helpers.
   writes over each frame, so the scene draws them in a loop over its list
   of painters, which a new one joins as `create()` makes it. After a bake,
   `@fz/phaser/scene`'s `retakeFrames()` has every image take up its frame
-  anew, and the paddle's painter sizes and paints its body and rim to match
-  (`refresh()`), the effects' painter takes the field's color its
+  anew, and the paddle's painter sizes and paints its lip, body and pad to
+  match (`refresh()`), the effects' painter takes the field's color its
   shards dim toward, and the streak's painter writes its counts at the new
   unit, in the new palette.
   Each thing that moves is drawn between its last place and its next. Every
