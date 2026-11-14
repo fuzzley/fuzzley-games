@@ -59,6 +59,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   netted: { flourishes: [], sound: "paddle" },
   lost: { flourishes: ["fade", "shake"], sound: "lost" },
   cleared: { flourishes: [], sound: CHIME },
+  freed: { flourishes: [], sound: null },
 };
 
 /** What a hit on a brick that never breaks calls for. */

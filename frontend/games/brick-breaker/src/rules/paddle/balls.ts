@@ -33,7 +33,16 @@ export interface Ball {
    * brick the level needs.
    */
   bounces: number;
+  /**
+   * The ink it wears: {@link OWN_INK} for the player's own, else a friend's,
+   * an index into each mode's `FUZZBALL_INKS` (`@fz/phaser/color`), which
+   * the view colors it by.
+   */
+  ink: number;
 }
+
+/** The ink the player's own ball wears, rather than a friend's. */
+export const OWN_INK = -1;
 
 /** The sine of the flattest a ball travels. */
 const FLATTEST_SIN = Math.sin(toRadians(FLATTEST));
@@ -55,6 +64,7 @@ export function createBall(): Ball {
     offset: 0,
     letGoAt: 0,
     bounces: 0,
+    ink: OWN_INK,
   };
 }
 
@@ -91,7 +101,7 @@ export function followPaddle(ball: Ball, paddle: Readonly<Paddle>): void {
 
 /**
  * Puts a ball in play where another is, heading as it does turned by an
- * angle, in degrees, clockwise on the field.
+ * angle, in degrees, clockwise on the field, wearing its ink.
  */
 export function splitOff(
   ball: Readonly<Ball>,
@@ -109,8 +119,36 @@ export function splitOff(
   copy.offset = 0;
   copy.letGoAt = 0;
   copy.bounces = 0;
+  copy.ink = ball.ink;
   turnBall(copy, degrees);
   settleBall(copy, 0, 0);
+}
+
+/**
+ * Puts a ball in play at a place, heading at an angle from straight up, in
+ * degrees, positive to the right, wearing an ink.
+ *
+ * It sets every field {@link createBall} does, so a record a ball left in
+ * any state starts afresh: a field a ball gains is set here too.
+ */
+export function releaseBall(
+  ball: Ball,
+  x: number,
+  y: number,
+  degrees: number,
+  ink: number,
+): void {
+  ball.live = true;
+  ball.held = false;
+  ball.x = x;
+  ball.y = y;
+  ball.lastX = x;
+  ball.lastY = y;
+  ball.offset = 0;
+  ball.letGoAt = 0;
+  ball.bounces = 0;
+  ball.ink = ink;
+  aim(ball, degrees);
 }
 
 /**

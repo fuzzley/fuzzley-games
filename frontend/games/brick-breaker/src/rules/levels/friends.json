@@ -1,0 +1,22 @@
+{
+  "id": "friends",
+  "name": "Friends",
+  "place": "garden",
+  "drops": 0.14,
+  "levels": [
+    {
+      "id": "hello",
+      "name": "Hello",
+      "pace": 1.12,
+      "bricks": [
+        ".............",
+        ".............",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".oo.ooooo.oo.",
+        ".o.c.ooo.c.o.",
+        ".oo.ooooo.oo."
+      ]
+    }
+  ]
+}

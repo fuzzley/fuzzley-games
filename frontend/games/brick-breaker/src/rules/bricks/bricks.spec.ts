@@ -1,16 +1,20 @@
 import {
   KEEPER,
+  ballOf,
   brickAt,
   eventsOf,
   fieldFrom,
+  headingOf,
   lastEvent,
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
 import { BRICK_KINDS } from "../catalog/bricks";
 import type { Field } from "../field/field";
-import { cellIndex } from "../grid";
+import { cellIndex, cellMiddleX, cellMiddleY } from "../grid";
+import { OWN_INK } from "../paddle/balls";
 import { stepsIn } from "../stepper";
+import { FRIEND_INKS, FRIEND_SPREAD, MAX_BALLS } from "../tuning";
 import { hitBrick, neededLeft } from "./bricks";
 
 /** The steps a blast waits before it goes off. */
@@ -319,6 +323,159 @@ describe("a brick that regrows", () => {
     stepTimes(field, 30);
 
     expect(brickAt(field, 0, 0).broken).toBe(false);
+  });
+});
+
+describe("a cage", () => {
+  /** Returns a field in play from rows of bricks, its ball far below them. */
+  function inPlay(rows: readonly string[], seed = 1): Field {
+    const field = fieldFrom([...rows, ...KEEPER], { seed });
+    throwBall(field, 20, 25, 0);
+    return field;
+  }
+
+  /** Returns the heading of the friend a cage frees on a field in play from a seed. */
+  function freedHeading(seed: number): number {
+    const field = inPlay(["c"], seed);
+    hitAt(field, 0, 0, 2);
+    return headingOf(ballOf(field, 1));
+  }
+
+  it("holds at its first hit, freeing nobody", () => {
+    const field = inPlay(["c"]);
+
+    hitAt(field, 0, 0);
+
+    expect({
+      hits: brickAt(field, 0, 0).hits,
+      live: field.balls.filter((ball) => ball.live).length,
+      events: eventsOf(field),
+    }).toEqual({ hits: 1, live: 1, events: ["hit"] });
+  });
+
+  it("frees a friend at its middle as it breaks, and says so", () => {
+    const field = inPlay(["...", "..c"]);
+
+    hitAt(field, 2, 1, 2);
+
+    expect({
+      friend: ballOf(field, 1),
+      events: eventsOf(field),
+    }).toMatchObject({
+      friend: {
+        live: true,
+        held: false,
+        x: cellMiddleX(cellIndex(2, 1)),
+        y: cellMiddleY(cellIndex(2, 1)),
+        ink: 0,
+      },
+      events: ["hit", "broken", "freed"],
+    });
+  });
+
+  it(`sends its friend up within ${String(FRIEND_SPREAD)}° of straight up, either way, by the field's draw`, () => {
+    const headings = [1, 2, 3, 4, 5, 6, 7, 8].map(freedHeading);
+
+    expect({
+      within: headings.every((heading) => Math.abs(heading) <= FRIEND_SPREAD),
+      left: headings.some((heading) => heading < 0),
+      right: headings.some((heading) => heading > 0),
+    }).toEqual({ within: true, left: true, right: true });
+  });
+
+  it("draws the friend's heading as the field's next draw", () => {
+    const field = inPlay(["c"]);
+    hitAt(field, 0, 0);
+    const draws = field.draws;
+
+    hitAt(field, 0, 0);
+
+    expect(field.draws).toBe(draws + 1);
+  });
+
+  it("dresses each friend in the next ink, the first again after the last", () => {
+    const field = inPlay(["cc"]);
+    field.friendsFreed = FRIEND_INKS - 1;
+
+    hitAt(field, 0, 0, 2);
+    hitAt(field, 1, 0, 2);
+
+    expect([ballOf(field, 1).ink, ballOf(field, 2).ink]).toEqual([
+      FRIEND_INKS - 1,
+      0,
+    ]);
+  });
+
+  it("breaks, freeing nobody and drawing nothing, with every ball the field holds in play", () => {
+    const field = inPlay(["c"]);
+    for (let i = 1; i < MAX_BALLS; i++) throwBall(field, 20, 25, 0, i);
+
+    hitAt(field, 0, 0, 2);
+
+    expect({
+      broken: brickAt(field, 0, 0).broken,
+      draws: field.draws,
+      friendsFreed: field.friendsFreed,
+      events: eventsOf(field),
+    }).toEqual({
+      broken: true,
+      draws: 0,
+      friendsFreed: 0,
+      events: ["hit", "broken"],
+    });
+  });
+
+  it("breaks, freeing nobody and drawing nothing, while the level isn't in play", () => {
+    const field = fieldFrom(["c", ...KEEPER]);
+
+    hitAt(field, 0, 0, 2);
+
+    expect({
+      live: field.balls.filter((ball) => ball.live).length,
+      draws: field.draws,
+      friendsFreed: field.friendsFreed,
+      events: eventsOf(field),
+    }).toEqual({
+      live: 1,
+      draws: 0,
+      friendsFreed: 0,
+      events: ["hit", "broken"],
+    });
+  });
+
+  it("frees nobody as it clears the level", () => {
+    const field = fieldFrom(["c"]);
+    throwBall(field, 20, 25, 0);
+
+    hitAt(field, 0, 0, 2);
+
+    expect({
+      live: field.balls.filter((ball) => ball.live).length,
+      events: eventsOf(field),
+    }).toEqual({ live: 1, events: ["hit", "broken", "cleared"] });
+  });
+
+  it("leaves its friend in play once the player's ball is lost, at no life's cost", () => {
+    const field = inPlay(["c"]);
+    hitAt(field, 0, 0, 2);
+    throwBall(field, 5, 29.5, 180);
+
+    stepTimes(field, 10);
+
+    expect({
+      state: field.state,
+      livesLost: field.livesLost,
+      own: ballOf(field).live,
+      friend: ballOf(field, 1).live,
+    }).toEqual({ state: "playing", livesLost: 0, own: false, friend: true });
+  });
+
+  it("leaves the player's own ball in its own ink", () => {
+    const field = inPlay(["c"]);
+
+    hitAt(field, 0, 0, 2);
+
+    expect(ballOf(field).ink).toBe(OWN_INK);
   });
 });
 

@@ -30,6 +30,7 @@ const EVENTS = [
   ["netted", "paddle", []],
   ["lost", "lost", ["fade", "shake"]],
   ["cleared", "cleared", []],
+  ["freed", null, []],
 ] as const;
 
 describe("effectsOf", () => {

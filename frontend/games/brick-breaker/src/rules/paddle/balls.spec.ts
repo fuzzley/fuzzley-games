@@ -8,13 +8,16 @@ import {
 } from "../tuning";
 import {
   type Ball,
+  OWN_INK,
   createBall,
   followPaddle,
   holdBall,
   overlapsBox,
   reflectBall,
+  releaseBall,
   serveBall,
   settleBall,
+  splitOff,
   turnBall,
 } from "./balls";
 import { createPaddle } from "./paddle";
@@ -71,6 +74,49 @@ describe("followPaddle", () => {
     followPaddle(ball, { ...createPaddle(), x });
 
     expect(ball.x).toBe(at);
+  });
+});
+
+describe("splitOff", () => {
+  it("puts a copy in play where the ball is, wearing its ink", () => {
+    const ball = { ...heading(0, -1), x: 5, y: 9, ink: 3 };
+    const copy = createBall();
+
+    splitOff(ball, copy, 30);
+
+    expect({
+      copy: { live: copy.live, x: copy.x, y: copy.y, ink: copy.ink },
+      heading: headingOf(copy),
+    }).toEqual({
+      copy: { live: true, x: 5, y: 9, ink: 3 },
+      heading: expect.closeTo(30) as unknown,
+    });
+  });
+});
+
+describe("releaseBall", () => {
+  it("puts a ball in play at a place, heading at an angle, wearing an ink", () => {
+    const ball = createBall();
+
+    releaseBall(ball, 7, 4.5, -15, 2);
+
+    expect({
+      ball: { live: ball.live, held: ball.held, x: ball.x, y: ball.y },
+      last: [ball.lastX, ball.lastY],
+      ink: ball.ink,
+      heading: headingOf(ball),
+    }).toEqual({
+      ball: { live: true, held: false, x: 7, y: 4.5 },
+      last: [7, 4.5],
+      ink: 2,
+      heading: expect.closeTo(-15) as unknown,
+    });
+  });
+});
+
+describe("createBall", () => {
+  it("makes a ball the player's own", () => {
+    expect(createBall().ink).toBe(OWN_INK);
   });
 });
 

@@ -294,6 +294,22 @@ function burst(body: Area, color: number): DrawCommand {
   );
 }
 
+/**
+ * Returns how a kind is drawn until it has art of its own: as a plain brick
+ * in one tint, whatever the level tints it, in every state.
+ */
+function placeholderArt(kind: BrickKindId, tint: number): BrickArt {
+  return {
+    frameOf: () => kind,
+    colorOf: (_, palette) => tintAt(palette.tints, tint),
+    frames: (palette, scale) => [
+      drawBrick(kind, scale, (body) => [
+        filled(body, scale, tintAt(palette.tints, tint)),
+      ]),
+    ],
+  };
+}
+
 /** How each kind of brick is drawn: its frames, and which one a brick shows. */
 export const BRICK_ART = {
   plain: {
@@ -375,6 +391,7 @@ export const BRICK_ART = {
         ]),
       ),
   },
+  cage: placeholderArt("cage", 4),
 } as const satisfies Readonly<Record<BrickKindId, BrickArt>>;
 
 /** Returns the name of the frame a brick shows, as it stands; it throws for a brick no level can lay. */

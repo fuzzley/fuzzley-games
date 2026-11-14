@@ -48,8 +48,8 @@ Its block in a set's file:
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
-  `+` regrowing, `.` none. A `legend` of its own adds characters, each a kind
-  with its hits or the capsule a gift gives.
+  `+` regrowing, `c` cage, `.` none. A `legend` of its own adds
+  characters, each a kind with its hits or the capsule a gift gives.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
@@ -99,7 +99,8 @@ of a capsule its levels share) and `levels`, imported in
 shows each set under its name. The levels spec lists each set's place by its
 id, so a new set adds its own there. It holds a set's paces from falling only
 within it, so a new set's paces start where the last set's end, kept so by
-hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2.
+hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
+thought rather than speed starts lower: Friends runs from 1.12.
 
 ## A Capsule With an Effect That Exists
 
