@@ -878,3 +878,134 @@ The review (a fresh agent), and what I did:
 
 Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
 files, 2,613); the root's lint under the lock.
+
+### 2026-11-14: the rim, the gutter and the ring of a brick growing back
+
+`feat(brick-breaker): rim the field, wash the gutter under the paddle and
+ring a brick as it grows back` (commit 4 of L3).
+
+- `field_painter.ts` draws the field's edge as the kit's `fieldScene()`
+  does: a rim on the left, the top and the right, 0.3 of a unit wide in
+  whole device pixels, never narrower than the layout's wall nor further
+  past it than half the gap the panels keep from it (`rimWidth()`, in a new
+  file of the view's, `src/view/field/rim.ts`), round at its outer corners (1.6 of its width), over a
+  darker lip that shows at the foot of each side (0.35 of its width); then
+  the field; then the gutter, from 0.45 of a unit under the paddle's foot
+  to the field's, washed with the danger color, with a chevron pointing
+  down it every two units across, the first one unit in; then the net. It
+  draws again when the paddle's top moves too, as a taller field moves it.
+  Each part is a function of its own (`drawRim()`, `drawGutter()`).
+- `brick_art.ts` draws the place a broken regrowing brick has left, as the
+  kit's `regrowing()` does: a track round the cell's middle, the ring
+  filled along it from the top, clockwise, as its time comes, and a sprout
+  in it, left out where a brick is too small for its finest detail. The
+  ring fills in `REGROW_RING_STEPS` (24) steps, each a frame of the
+  regrowing brick's (`regrowingFrame()`), and `regrowShare()` says how far
+  a broken brick has come from the field's step, its `regrowsAt` and its
+  kind's `regrows` trait, 1 while a ball keeps it from growing back.
+  `cellFrame()` picks what a cell shows: its brick's frame, a broken
+  regrowing brick's ring, or nothing.
+- `brick_painter.ts` shows `cellFrame()` in each cell, so a broken
+  regrowing brick's ring until it grows back, when its own frame grows
+  from nothing as before.
+- `palette.ts` gains `fieldInks` (the rim's lip, the wall at 30% black;
+  the gutter, the danger color at 10% over the field; the chevrons, at
+  55%) and, in `kindInks`, `regrowRing` (the green tint) and `regrowTrack`
+  (it at 30% over the field).
+- Specs: `brick_art.spec.ts` holds `regrowShare()` at the break, half way,
+  at its time and past it, and for a whole or never-regrowing brick;
+  `cellFrame()` for a brick that stands, a broken regrowing one half way
+  and one broken for good; `regrowingFrame()`'s 25 frames; the ring filled 0, a quarter, a half and
+  the whole way round from the top, about the cell's middle, its sprout in
+  and out by detail, and its frames among the regrowing brick's.
+  `rim.spec.ts` holds the rim at 0.3 of a unit, at the wall's width where
+  that is wider, and short of half the panels' gap at 1×, 1.25×, 2× and
+  3×. `contrast.spec.ts` holds the ring to 3:1 against the field, every
+  ball and capsule (3.9 at the least), the sparks at ×4, a seeking ball's
+  sight and a bad capsule's gold lip to 3:1 against the gutter they fall
+  through, and the chevrons to 2:1 against it (2.05 to 2.39); the gutter,
+  the rim's lip and the ring's track are shading, held to nothing. The
+  scene's spec holds the rim's box and its lip, the order of the fills
+  (the rim's lip, the rim, the field, the gutter, the net), the gutter's
+  rectangle on a field of 30 units and on the tallest, a chevron every two
+  units across, each stroked in the chevrons' ink, and the first one's
+  points, and a broken regrowing brick's frame half way through its time;
+  the palette's, the new inks.
+- Docs: the workspace's `AGENTS.md` (`src/view/field/`, `src/view/colors/`,
+  `src/view/art/`, `src/scene/`) and the `brick-breaker-content` skill (a
+  kind that regrows shows the ring, which `cellFrame()` picks), each an
+  insertion.
+
+Choices, where the plan was silent:
+
+- **The chevrons are 55% of the danger color, not the kit's 30%,** which
+  is 1.36 to 1.46 against the gutter; at 55% they keep 2:1, faint as the
+  gutter is.
+- **The rim is wider than the layout's wall** (2 CSS px), at the kit's 0.3
+  of a unit, where the unit allows: it paints into the canvas's room round
+  the field, which the layout leaves. It stops half way across the 12 CSS
+  px the panels keep from the wall, so it never reaches under a panel,
+  however large the unit (8 CSS px at the most). The board's focus ring and
+  its placeholder (stream P's `board.component.scss`, `--wall`) still
+  frame the field 2 CSS px wide; P can widen them to `rimWidth()`'s, as a
+  follow-up.
+- **The ring fills in 24 frames,** as the kit's arc has 24 pieces: one
+  every 0.42 s of the 10 s, steady enough on a ring that small.
+- **The sprout is left out under 15 CSS px a unit,** where its leaves are a
+  device pixel or two; the ring alone says the brick grows back.
+
+The browser check, before this commit, on the dev server at port 9104 in
+headless Chrome, each part held still on a launched field: at 1280 × 720
+at 2×, in Classic felt and in Midnight blue, a catching paddle's hooks
+and a laser's cannons, a good and a bad capsule of each kind falling, the
+Seeker's sight in each, balls at ×2, ×3 and ×4, one seeking under its
+sight, a regrowing brick's ring part way round with its sprout, and the
+rim and the gutter with its chevrons; at 844 × 390 at 3× (12 CSS px a
+unit), the same in both palettes, the hooks twice as far apart, the
+capsules' symbols larger and their shine gone, and the ring without its
+sprout. Each matched the kit's sheets (`paddle-and-capsules.svg`,
+`bricks.svg`, `field.svg`) as drawn at play size. `/tmp/l3-game.png` is
+the 1280 × 720 view in Classic felt.
+
+The review (a fresh general-purpose agent, on the commit before these
+answers), each finding and its answer:
+
+1. The rim runs under a side panel past about 49 CSS px a unit. Fixed:
+   `rimWidth()` stops at the wall plus half the panels' gap, in device
+   pixels (`Math.floor`, so it never reaches the panel's edge), specced at
+   four pixel ratios; the "stays clear of the panels" above is corrected.
+2. `rimWidth()` sits in the scene, where the board can't call it. Fixed:
+   moved to `src/view/field/rim.ts`, specced in `pure`; a file of its own
+   rather than in `field_metrics.ts`, so this stream only adds to
+   `src/view/field/`.
+3. The specs pass with the fills out of order. Fixed: a spec holds the
+   fills' colors in turn, the net's included.
+4. No spec draws the gutter on a taller field. Fixed: one does, under the
+   tallest field's paddle. The `paddleTop` key is kept: it costs one
+   comparison and keeps the gutter under the paddle should the two ever
+   move apart from the metrics.
+5. The painter picks the cell's frame. Fixed: `cellFrame()` in
+   `brick_art.ts`, specced in Node, a brick broken for good included; the
+   painter only calls it.
+6. `REGROW_STEPS` reads as the field's steps. Fixed: `REGROW_RING_STEPS`,
+   and the spec's `REGROW_STEPS_OF_FIELD` is `GROWING_BACK`.
+7. The gutter's contrast leaves out the sparks and the gold lip. Fixed: the
+   sparks, the sight and the gold lip are held to 3:1 against it too; all
+   pass in the four palettes.
+8. Nits: the regrow share's title says "at step %i"; the chevron count is
+   `FIELD_WIDTH / 2`; `strokedPaths()` keeps each path's `lineStyle` color,
+   and the chevrons are held to one color; `@fz/core/math` comes first in
+   `brick_art.ts`, and `brick_painter.ts` no longer imports the rules'
+   bricks. All fixed.
+
+Checks, at this commit: the workspace's `lint`, `typecheck` and
+`test --maxWorkers=6` (65 files, 2,684 tests) pass, and so does the root's
+`yarn lint`, under the shared lock.
+
+Coverage, at this commit (the last of L3 to touch `src/view`): the pure
+and dom projects (62 files, 2,486 tests) pass the view's and the rules'
+floors (100% of statements, functions and lines, 95% of branches);
+`art.ts`' own branches are at 90%, the two `??` fallbacks for a streak's
+frame name, which no streak reaches, and `brick_painter.ts`' at 82%, all
+in code this package didn't touch (a move's `??` start, `move()`'s
+guard and `dropIn()`'s delay).
