@@ -1176,3 +1176,87 @@ The review, and the answers:
 4. Nit, taken: `AGENTS.md`'s paragraph reflowed.
 5. Nit, taken: the spec of the column with `--seeds` throws for a seed it
    has no time for, as `timedRules()` does.
+
+### 2026-11-14: the friend's next ink in one place, and the lost ball's ink on its event
+
+The two follow-ups L6 left for K (`worklog/L.md`, L6's review answers 2 of
+each commit). The level drafts were set aside while it was made and
+checked, so its checks ran on the 43 levels.
+
+What it does:
+
+- `nextFriendInk()` (`src/rules/paddle/balls.ts`, beside `OWN_INK`): the
+  ink of the friend a level frees next, once it has freed so many, each of
+  the `FRIEND_INKS` in turn. `freeFriend()` (`bricks.ts`) dresses a friend
+  by it, and the view's `nextFriend()` (`brick_art.ts`), by which a cage
+  shows the friend it frees, returns it, so the formula lives once.
+- `FieldEvent.ink`: the ink a lost ball wore, `OWN_INK` for any other
+  event, which `add()` takes last and `loseBall()` sets. The scene fades a
+  lost ball in the ink its event keeps (`facedBallFrame(kind, event.ink)`),
+  and `BallPainter.lostInk()`, which guessed the ball by its place among
+  those the painter showed, is gone. The guess failed where a cage freed a
+  friend into the lost ball's record in the step it was lost.
+- Specs: `nextFriendInk()`'s turn of inks (`balls.spec.ts`); a lost ball's
+  and a lost friend's inks on their events (`field.spec.ts`); the log
+  recording the ink, and leaving no ink nor way of the oldest event in the
+  record a new one takes (`events.spec.ts`); the events the effects spec
+  builds whole; and a scene spec of a lost friend whose record is back in
+  play, freed into it by a cage in another ink before its event plays,
+  which fails with the guess. Two scene specs' names drop the guess's
+  words, "by where it was lost" and "since out of sight".
+- `AGENTS.md` (the events, the balls' inks, the cage's look, the
+  effects painter's fade) and the content skill (a cage's look reads the
+  rules' `nextFriendInk()`).
+
+F3b, which changed the lost ball's fade beside this, landed first
+(0fab9b28), and the commit was rebased onto it: the scene's `fade` case
+keeps F3b's frame, `ballFrame(drawnKind, drawnStreak, …)`, with the event's
+ink in place of `lostInk()`, which lost its last caller and is gone, and
+`AGENTS.md`'s line on the fade keeps F3b's words with the event's ink. The
+scene's fade specs read F3b's `ballFrame()`, the new one too.
+
+F3b's note for K's rules, that a key whose hit clears the level records no
+`opened`, so the gates vanish at once in the hold with no flourish, is
+left: K1 chose it, so the announcer doesn't say the gates opened over the
+clearing ("open the gates unsaid as the last key clears the level", in
+`bricks.spec.ts`), and playing the flourish unsaid would ask the game
+service to tell the two apart. No level reaches it, as each level with
+gates needs a brick behind them, Machines' two included.
+
+Added to other streams' files: `balls.ts` (`nextFriendInk()`, an import)
+and its spec (a describe), `events.ts` (`FieldEvent.ink`, a parameter and
+a line of `add()`, a line of `blankEvent()`, an import) and its spec (the
+ink on each event, a spec, two arguments of one call), `field.ts` (the
+ink's argument of `loseBall()`'s one call) and its spec (`lostInks()`, a
+spec), `brick_art.ts` (`nextFriend()`'s body, an import), `bricks_scene.ts`
+(the fade's ink), `ball_painter.ts` (`lostInk()` and an import taken out,
+as the follow-up asks), `bricks_scene.spec.ts` (a spec, a spec's name),
+`effects.spec.ts` (`eventOf()`'s event, an import).
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (77
+files, 3,710 specs) in the workspace, the coverage of `pure` and `dom`
+above its floor (statements 99.59%, branches 97.44% over all it measures),
+and the root's `yarn lint` under the lock.
+
+The review, and the answers:
+
+1. The new scene spec put the lost friend's record back in play by hand,
+   where the rules can: a cage freeing a friend takes the first record out
+   of play. Fixed: the board starts on a cage beside a brick, and the spec
+   breaks the cage through `hitBrick()` once the friend is lost, holding
+   the record in play in the freed friend's ink and the fade in the lost
+   one's. Checked: it fails with the guess.
+2. `FieldEvent.ink`'s doc comment opened with two sentences. Fixed: the
+   why is a paragraph of its own. `way`'s, above it, is another stream's
+   and left.
+3. `nextFriend()` is now an alias of `nextFriendInk()`, and L6's spec
+   that ties the cage to the rules checks one against the other. Left, as
+   both are stream L's (`brick_art.ts` and its spec): for L or Z1, the
+   cage's look may call `nextFriendInk()` and drop `nextFriend()` and that
+   spec.
+4. A scene spec's name still named the guess ("since out of sight").
+   Fixed: "not in that of another record lost at its place".
+5. For Z1: `add()` takes eight arguments in turn, and `loseBall()` passes
+   four placeholders to reach the ink. An options object would read
+   better, but restyles `events.ts` and every caller, which §7.3 keeps
+   from this package.

@@ -72,6 +72,7 @@ import {
   brickKind,
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
+import { nextFriendInk } from "../../rules/paddle/balls";
 import { stepsIn } from "../../rules/stepper";
 import { BRICK_HEIGHT, BRICK_WIDTH, FRIEND_INKS } from "../../rules/tuning";
 import {
@@ -588,7 +589,7 @@ function nameAt(names: readonly string[] | undefined, at: number): string {
 
 /** Returns the ink of the friend a cage shows, the one a field that has freed so many frees next, as the rules dress it. */
 export function nextFriend(friendsFreed: number): number {
-  return friendsFreed % FRIEND_INKS;
+  return nextFriendInk(friendsFreed);
 }
 
 /** A cage's frames, as it stands, for each friend's ink it may hold. */

@@ -1,5 +1,6 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { CapsuleId } from "../catalog/capsules";
+import { OWN_INK } from "../paddle/balls";
 
 /** Names something that happened on the field, for the scene to play. */
 export type FieldEventKind =
@@ -69,6 +70,14 @@ export interface FieldEvent extends NumberedEvent {
    * The event keeps it, as a train may have turned by the time it plays.
    */
   way: number;
+  /**
+   * The ink a lost ball wore, for its fade; {@link OWN_INK} for any other
+   * event.
+   *
+   * The event keeps it, as the ball's record may be put back in play by the
+   * time it plays.
+   */
+  ink: number;
 }
 
 /** How many events the log keeps, far more than a frame's steps make. */
@@ -85,6 +94,7 @@ function blankEvent(): FieldEvent {
     capsule: null,
     streak: 0,
     way: 0,
+    ink: OWN_INK,
   };
 }
 
@@ -103,6 +113,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     capsule: CapsuleId | null = null,
     streak = 0,
     way = 0,
+    ink = OWN_INK,
   ): void {
     const event = this.next();
     event.kind = kind;
@@ -112,5 +123,6 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     event.capsule = capsule;
     event.streak = streak;
     event.way = way;
+    event.ink = ink;
   }
 }
