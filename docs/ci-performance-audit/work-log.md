@@ -23,20 +23,20 @@ starts from the last entry.
 The recommendations, as the report numbers them, in the order they are
 built:
 
-| Step | #   | Change                                                                | Status  |
-| ---- | --- | --------------------------------------------------------------------- | ------- |
-| 1    | 3   | Margins for the specs nearest Vitest's 5 s                            | done    |
-| 2    | 4   | Chrome's launch limit raised                                          | done    |
-| 3    | 9   | No HTML coverage report on CI                                         | done    |
-| 4    | 2   | The test phase starts the slowest suites first                        | done    |
-| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes             | done    |
-| 6    | 5   | Prettier's experimental CLI with its cache                            | done    |
-| 7    | 6   | Yarn and its packages cached on CI                                    | pending |
-| 8    | 1   | `verify` split into parallel jobs, the layout check in one of its own | pending |
-| 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`          | pending |
-| 10   | 10  | Dependabot's pull requests deduped and grouped                        | pending |
-| 11   | —   | The audit run again, and its report                                   | pending |
-| 12   | —   | Merged into `main` and pushed                                         | pending |
+| Step | #   | Change                                                              | Status  |
+| ---- | --- | ------------------------------------------------------------------- | ------- |
+| 1    | 3   | Margins for the specs nearest Vitest's 5 s                          | done    |
+| 2    | 4   | Chrome's launch limit raised                                        | done    |
+| 3    | 9   | No HTML coverage report on CI                                       | done    |
+| 4    | 2   | The test phase starts the slowest suites first                      | done    |
+| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes           | done    |
+| 6    | 5   | Prettier's experimental CLI with its cache                          | done    |
+| 7    | 6   | Yarn and its packages cached on CI                                  | done    |
+| 8    | 1   | `verify` split into parallel jobs, the layout check after the build | done    |
+| 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`        | done    |
+| 10   | 10  | Dependabot's pull requests deduped and grouped                      | pending |
+| 11   | —   | The audit run again, and its report                                 | pending |
+| 12   | —   | Merged into `main` and pushed                                       | pending |
 
 ## Log
 
@@ -302,3 +302,93 @@ The review, and the answers:
    `.prettierignore` leaves out the build output, the vendored and copied
    skills and the uplift's assets; 2,179 is what it checks. Noted here,
    and the new report says which it counts.
+
+### 2026-11-14: Verify in jobs side by side, its caches, and the docs-only run (#1, #6, #7, #4)
+
+`ci: run Verify's checks in jobs side by side, restore Yarn's, Prettier's and tsc's caches, and only lint a push of Markdown and docs/`
+
+- `verify.yml`'s one job is now `changes`, `lint`, `typecheck`, three
+  `test` jobs, `build` and `docker`, side by side, and `promote` once they
+  pass. Every job but `changes`, `docker` and `promote` sets up with the
+  composite action `.github/actions/setup-frontend`.
+- #6: the action restores Corepack's Yarn, keyed on the Corepack and the
+  Yarn pinned, so a run downloads it from repo.yarnpkg.com only when either
+  moves (the ENETUNREACH flake of Nov 14), and Yarn's own cache, keyed on
+  the lockfile, so an install downloads nothing until the lockfile
+  changes.
+  Both through `actions/cache`: `setup-node`'s `cache: yarn` looks up the
+  cache folder before Corepack is enabled, so it asks the runner's Yarn 1.
+  `lint` restores Prettier's cache and `typecheck` `tsc`'s build info, each
+  keyed on the lockfile and the commit, restoring the newest under the same
+  lockfile, since each keys its files on their contents (the entry above).
+  The jobs run on GitHub's runners, not in a `container:`, so Prettier's
+  cache is restored at the path it was written at.
+- The three `test` jobs, timed on 4 cores with `CI=true`: Asteroid Breaker
+  then Brick Breaker 117 s, Brick Fuzz Pop then the Solitaire Collection
+  111 s, and the other ten, four at a time, 85 s. The pairs first tried,
+  Solitaire with Brick Breaker and the two others, took 102 s and 128 s.
+  Each pair run two at once, each on two cores (`--jobs 2`), took 110 s and
+  108 s, within the noise, so each suite runs alone with all four.
+- The other jobs on 4 cores: `lint` 112 s cold and 88 s with Prettier's
+  cache, `typecheck` 69 s cold and 50 s with `tsc`'s build info, and
+  `build` 28 s then the layout check 64 s. `lint`'s `foreach` runs two
+  workspaces at a time there (half the cores); four at a time took 72 s
+  against 83 s, but `lint` already ends before the tests, so it stays.
+- #4's second half: the layout check runs in `build`, after the build it
+  checks, rather than in a job of its own, which would have to set up again
+  and download the build as an artifact, for a job of 28 s and 64 s on 4
+  cores.
+- #7: `changes` runs `.github/scripts/changes-code.sh`, which compares the
+  commit with `live` on a push (the last commit of `main` that passed, as
+  only `promote` moves it) and with the base on a pull request, and says
+  `code=false` only where everything changed is Markdown or under `docs/`.
+  A manual run, a base that isn't behind the commit, or nothing changed,
+  checks everything. `lint` runs either way, with `skills:check` over the
+  Markdown. Checked: no import, glob or read of a `.md` file in
+  `frontend/`, the only Markdown under an assets folder is in `docs/`, and
+  the `Dockerfile` copies only `frontend/`. Tested in a scratch repository:
+  a push of `docs/` and Markdown alone (false), code moved into `docs/`
+  (true), a `.ts` renamed `.md` (true), code (true), a manual run (true), a
+  pull request of docs from its base (false), no `live` (true) and nothing
+  changed (true).
+- `promote` needs every job, and runs where `!cancelled()`, `changes` and
+  `lint` passed, and either `code` is false, with the rest skipped, or all
+  of them passed. A skipped job's dependants are skipped unless their `if`
+  says otherwise, which `!cancelled()` does.
+- The `github-actions-ci-cd` skill describes the jobs, the caches, the
+  docs-only run and the new condition, with a principle on caches: each
+  keyed on content, so a stale entry is a miss, never a pass, and ESLint's
+  `--cache`, which isn't, kept off CI. `frontend/AGENTS.md` says how CI runs
+  the tests and the layout check.
+
+The review, and the answers:
+
+1. `git diff --name-only` names a moved file by its new path alone, so
+   code moved into `docs/`, or a `.ts` renamed `.md`, read as docs, and
+   `promote` would have moved `live` on lint alone. Fixed: `--no-renames`
+   lists both paths, which also spares fetching blobs to find renames in
+   the partial clone; both cases are among the tests above.
+2. Yarn 4 keeps a global cache it never prunes, so restoring the last
+   lockfile's cache under `restore-keys` and saving it under the new key
+   would have saved every package any lockfile ever named. Fixed: no
+   `restore-keys`, so a new lockfile downloads its packages afresh, once
+   per job, about 10 s.
+3. `frontend/*/*/tsconfig.*.tsbuildinfo` also matched the games' and the
+   site's links in `frontend/node_modules/`, archiving their build info
+   twice and walking every package. Fixed: `lib/*` and `games/*` by name.
+4. The action read the caller's `COREPACK_VERSION` without saying so, and
+   a workflow without it would install the latest Corepack. Fixed: a
+   `corepack-version` input every job passes, and the install step stops
+   for an empty one, as GitHub doesn't hold a caller to a required input.
+5. Wording: a pull request's base is `main`'s tip, not the last commit that
+   passed, which the script, the workflow and the skill now say, with the
+   push to `main` compared with `live` again; the skill says `promote`
+   doesn't set up the frontend either, and rules ESLint's `--cache` out by
+   what its rules read, whatever its strategy, as Prettier's and `tsc`'s
+   caches key on all they read; and the script says so where there is no
+   `live`. Fixed. A comment over the `test` matrix says `--except` must
+   leave out exactly the four the pairs run.
+6. Six jobs race to save a new Corepack or Yarn cache, and all but one log
+   that another job is saving it. Left: it is a line of noise in a log,
+   and splitting restore from save would take a second action or an input
+   for one job to save.

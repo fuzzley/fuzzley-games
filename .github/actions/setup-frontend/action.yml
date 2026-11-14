@@ -1,0 +1,65 @@
+name: Set up the frontend
+description: >-
+  Node from .node-version, Corepack, Yarn and the frontend's packages, each
+  restored from its cache where it can be, then installed in frontend/.
+
+# Each of the Verify workflow's jobs runs this on a runner of its own.
+
+inputs:
+  corepack-version:
+    description: >-
+      The Corepack to install, the Dockerfile's: Node 26 no longer bundles
+      it.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version-file: .node-version
+
+    - name: Read the Yarn that frontend/package.json pins
+      id: pins
+      shell: bash
+      run: echo "yarn=$(node -p "require('./frontend/package.json').packageManager")" >> "$GITHUB_OUTPUT"
+
+    # Corepack downloads the pinned Yarn from repo.yarnpkg.com, which once
+    # failed a run (ENETUNREACH), so the Yarn it keeps is cached by version.
+    - name: Restore Corepack's Yarn
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/node/corepack
+        key: corepack-${{ runner.os }}-${{ inputs.corepack-version }}-${{ steps.pins.outputs.yarn }}
+
+    # GitHub doesn't hold a caller to an input it requires, and npm would
+    # install the latest Corepack for none.
+    - name: Install Corepack
+      shell: bash
+      env:
+        COREPACK_VERSION: ${{ inputs.corepack-version }}
+      run: |
+        : "${COREPACK_VERSION:?Pass corepack-version, the Corepack the Dockerfile installs.}"
+        npm install -g "corepack@$COREPACK_VERSION" && corepack enable
+
+    - name: Find Yarn's cache
+      id: yarn
+      shell: bash
+      working-directory: frontend
+      run: echo "cache=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+
+    # The packages the lockfile names, as Yarn keeps them. Yarn never prunes
+    # its global cache, so a cache restored from another lockfile would be
+    # saved again with every package it ever held: a new lockfile downloads
+    # its packages afresh instead.
+    - name: Restore Yarn's cache
+      uses: actions/cache@v6
+      with:
+        path: ${{ steps.yarn.outputs.cache }}
+        key: yarn-${{ runner.os }}-${{ hashFiles('frontend/yarn.lock') }}
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: frontend
+      run: yarn install --immutable

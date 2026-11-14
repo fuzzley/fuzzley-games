@@ -1,6 +1,6 @@
 ---
 name: github-actions-ci-cd
-description: The Verify workflow (.github/workflows/verify.yml), what it checks in the frontend and the Docker image, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, check-image.sh, docker check, games.json, deploy, live branch, rollback.
+description: The Verify workflow (.github/workflows/verify.yml), its jobs side by side and what each checks in the frontend and the Docker image, the caches they restore, the docs-only run, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, setup-frontend, changes-code.sh, actions/cache, check-image.sh, docker check, games.json, deploy, live branch, rollback.
 ---
 
 # GitHub Actions CI
@@ -14,41 +14,66 @@ their intent, not a substitute for their contents.
 
 ## Verify
 
-Two independent jobs and one that waits for both, on push to `main`, any pull
-request, or a manual `workflow_dispatch`. A newer push to the same ref cancels
-a run in progress.
+On push to `main`, any pull request, or a manual `workflow_dispatch`, each
+check on a runner of its own, so they run side by side, and one job that
+waits for them all. A newer push to the same ref cancels a run in
+progress. Each job but `changes`, `docker` and `promote` sets up the
+frontend with the composite action `.github/actions/setup-frontend`, handed
+the workflow's `COREPACK_VERSION`: Node from `.node-version`, that Corepack,
+the Yarn it downloads and Yarn's package cache, each restored with
+`actions/cache`, and an immutable install in `frontend/`.
 
-1. **`verify`** — checkout, Node from `.node-version`, a check that the
-   `Dockerfile` builds on the same major version and installs the same
-   Corepack as the job's `COREPACK_VERSION`, that Corepack, an immutable
-   install in `frontend/`, then `yarn verify:full` (lint, type-check,
-   test with each workspace's coverage floors, build). The build builds the games in `frontend/games/` and copies the
-   ones `frontend/site/games.json` lists into the site. Then
-   `yarn check:layout` opens each game's build that has a layout check in
-   the runner's Chrome, at a roomy window and a large and a small phone,
-   upright and on its side (`@fz/dev/layout`).
-2. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
-   `check-image.sh` on it, which serves the image with a placeholder analytics
-   ID and requests its pages: the Angular routes answer with `index.html`, a
-   missing file under `/assets/` is a 404, the `Cache-Control` and security
-   headers match `nginx.conf.template` and `nginx/`, the site's pages carry
-   the Content Security Policy and the games don't, `theme.js` sets the
-   palette, `env.js` carries the ID, `version.json` names the commit, and
-   neither nginx's 404 nor its `Server` header names its version. For each game in `frontend/site/games.json` it checks `/play/<slug>/` is
-   the game's own page with the analytics tags, never the site's
-   `index.html`, with its own fingerprinted assets and the site's icons,
-   and that `version.json` names its build: its workspace and the image's
-   commit.
-3. **`promote`** — on `main` only (a push or a dispatch), once both jobs pass:
+1. **`changes`** — runs `.github/scripts/changes-code.sh`, which says
+   whether anything but Markdown and `docs/` changed, a moved file by both
+   its paths: since `live`, the last commit of `main` that passed, for a
+   push, and since the base, for a pull request, whose push to `main` is
+   compared with `live` again. Where nothing else did, only `lint` runs; a
+   manual run, or a base it can't compare with, checks everything.
+2. **`lint`** — a check that the `Dockerfile` builds on the same major
+   version of Node and installs the same Corepack as the workflow, then
+   `yarn lint`, with Prettier's cache restored from the last run.
+3. **`typecheck`** — `yarn typecheck`, with `tsc`'s build info
+   (`tsconfig.*.tsbuildinfo`) restored from the last run, so each pass
+   checks again only what changed.
+4. **`test`** — the tests with each workspace's coverage floors
+   (`test:coverage`), through `frontend/tools/run-tests.mjs`, in three
+   jobs of about the same length: Asteroid Breaker and Brick Breaker, then
+   Brick Fuzz Pop and the Solitaire Collection, each pair one suite after
+   the other with all four cores (`--only … --jobs 1`), and every other
+   workspace four at a time (`--except …`), where a workspace added later
+   lands.
+5. **`build`** — `yarn build`, which builds the games in
+   `frontend/games/` and copies the ones `frontend/site/games.json` lists
+   into the site, then `yarn check:layout`, which opens each game's build
+   that has a layout check in the runner's Chrome, at a roomy window and a
+   large and a small phone, upright and on its side (`@fz/dev/layout`).
+6. **`docker`** — builds the `Dockerfile` with `COMMIT_SHA` and runs
+   `check-image.sh` on it, which serves the image with a placeholder
+   analytics ID and requests its pages: the Angular routes answer with
+   `index.html`, a missing file under `/assets/` is a 404, the
+   `Cache-Control` and security headers match `nginx.conf.template` and
+   `nginx/`, the site's pages carry the Content Security Policy and the
+   games don't, `theme.js` sets the palette, `env.js` carries the ID,
+   `version.json` names the commit, and neither nginx's 404 nor its
+   `Server` header names its version. For each game in
+   `frontend/site/games.json` it checks `/play/<slug>/` is the game's own
+   page with the analytics tags, never the site's `index.html`, with its
+   own fingerprinted assets and the site's icons, and that `version.json`
+   names its build: its workspace and the image's commit.
+7. **`promote`** — on `main` only (a push or a dispatch), once every check
+   passes, or `lint` alone where `changes` found only Markdown and `docs/`:
    moves `live`, the branch Cloud Run deploys, to the run's commit with a
-   plain push. It only moves `live` forward: a run that finishes after a newer
-   one leaves `live` alone, and it fails if `live` holds commits `main`
-   doesn't.
+   plain push. It only moves `live` forward: a run that finishes after a
+   newer one leaves `live` alone, and it fails if `live` holds commits
+   `main` doesn't.
 
 The build fails when the catalog links a game a build lacks, or names one
 differently (the `checkGameImages` and `checkGameManifests` plugins in
 `frontend/site/tools/vite-plugins.ts`), so a game renamed or removed in its
-workspace fails `verify` rather than shipping a broken link.
+workspace fails `build` rather than shipping a broken link.
+
+`yarn verify:full` and `yarn check:layout` run the same checks on one
+machine, one after another.
 
 ## Deployment Waits for Verify
 
@@ -71,32 +96,43 @@ passes on `main` moves it forward again.
    match `package.json` rather than quietly resolving something else.
 2. **Corepack before Yarn.** `corepack enable` has to run before any `yarn`
    command, or the runner's bundled Yarn 1 answers instead of the version
-   `frontend/package.json` pins. Node 26 no longer bundles Corepack, so the
-   job installs the version the `Dockerfile` does; move both together. If
-   you add dependency caching, restore it with `actions/cache` rather than
-   `setup-node`'s `cache: yarn`, which looks up Yarn's cache folder before
-   Corepack runs.
-3. **The image checks follow the server.** A new route in
+   `frontend/package.json` pins. Node 26 no longer bundles Corepack, so
+   each job installs the version the `Dockerfile` does; move both together.
+   Caches are restored with `actions/cache`, never `setup-node`'s
+   `cache: yarn`, which looks up Yarn's cache folder before Corepack runs.
+3. **A cache only saves time.** Each one the jobs restore is keyed on
+   everything its result reads: Corepack's Yarn on its version, Yarn's
+   packages on the lockfile, Prettier's on each file's contents and
+   Prettier's options, and `tsc`'s on each file's contents and what it
+   imports, so the last run's serves any commit and a stale entry is a
+   miss, never a pass. ESLint's `--cache` keys a file's result on that file
+   alone, whatever its strategy, while the type-aware rules read the files
+   it imports, so it doesn't belong on CI.
+4. **The image checks follow the server.** A new route in
    `frontend/site/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
    matching expectation in `check-image.sh`.
-4. **One Node version.** The workflow takes Node from `.node-version`. The
-   `Dockerfile` pins its own image, by version and digest, so `verify` checks
+5. **One Node version.** The workflow takes Node from `.node-version`. The
+   `Dockerfile` pins its own image, by version and digest, so `lint` checks
    that its major version is the same; move both together.
-5. **Updates come as pull requests.** Dependabot (`.github/dependabot.yml`)
+6. **Updates come as pull requests.** Dependabot (`.github/dependabot.yml`)
    proposes npm, GitHub Actions and Docker image updates weekly, a day after
    their release, and `verify.yml` checks each pull request. A merge to
    `main` deploys once it passes, so none merges on its own.
-6. **No secrets in CI.** The workflows use a made-up measurement ID; the real
+7. **No secrets in CI.** The workflows use a made-up measurement ID; the real
    one lives in Secret Manager and reaches only Cloud Run. It needs no
    token beyond its own `GITHUB_TOKEN`. Never echo a secret, and never
    `set -x` a step that handles one.
 
 ## Troubleshooting
 
-- **`verify` failures.** Reproduce with `yarn verify:full` in `frontend/`, and
-  a layout check's with `yarn check:layout` after it, which needs Chrome
-  (`CHROME_PATH`, or the usual install location).
+- **A check's failure.** Reproduce it in `frontend/` with the job's own
+  command (`yarn lint`, `yarn typecheck`, the `test` job's
+  `node tools/run-tests.mjs test:coverage …`, or `yarn build` and then
+  `yarn check:layout`, which needs Chrome: `CHROME_PATH`, or the usual
+  install location), or all of them with `yarn verify:full` and
+  `yarn check:layout`. CI's runner has four cores, so
+  `CI=true taskset -c 0-3 <command>` on Linux comes closest to it.
   `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the
   `.agents` scripts), then each workspace's, such as the site's: `ngc`
   over `frontend/site/tsconfig.app.json`, then `tsc` over
