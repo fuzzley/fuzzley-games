@@ -3,8 +3,8 @@
 // screens, the new mechanics and the places. It illustrates the plan and is
 // not the game's code: the game would redraw this art itself.
 //
-// Run it with `node docs/brick-breaker-uplift/art/make-art.mjs`. It needs
-// nothing but Node, writes every file beside itself, and writes the same
+// Run it with `node docs/archive/brick-breaker-uplift/art/make-art.mjs`.
+// It needs nothing but Node and writes every file beside itself, the same
 // bytes each time. `kit.mjs` holds the bricks and balls, `scene.mjs` the
 // field and what stands around it, and `sheets.mjs` what a sheet is laid out
 // with.

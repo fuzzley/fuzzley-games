@@ -1,8 +1,8 @@
 // Each place's motifs, as the uplift's places sheet draws them
-// (docs/brick-breaker-uplift/art/scene.mjs, `motif()`): a few shapes about a
-// middle, sized and turned by the tile that lays them out, in shares of
-// their size, stroked round at their ends and corners, as the sheet strokes
-// them, but for a cog's outline, or filled.
+// (`docs/archive/brick-breaker-uplift/art/scene.mjs`, `motif()`): a few
+// shapes about a middle, sized and turned by the tile that lays them out,
+// in shares of their size, stroked round at their ends and corners, as the
+// sheet strokes them, but for a cog's outline, or filled.
 
 import {
   type Area,

@@ -13,6 +13,13 @@ Its skills, in `.agents/skills/`, cover how its specs run and what they
 share (`brick-breaker-testing`), and what adding a level, a set, a capsule,
 a ball or a brick kind takes (`brick-breaker-content`).
 
+The decisions behind the game's look, its panels and stars, its sounds and
+flourishes, the seeker, double pay and its levels 31 to 50 are the uplift's,
+in `docs/archive/brick-breaker-uplift/plan.md` and
+`docs/archive/brick-breaker-uplift/implementation-plan.md`; the art kit and
+the places sheet the view's art follows, below, are the uplift's too, in
+`docs/archive/brick-breaker-uplift/art/`.
+
 ## Technology Stack
 
 - **Field:** [Phaser 4](https://phaser.io/), through `@fz/phaser`'s canvas,

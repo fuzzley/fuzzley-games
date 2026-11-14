@@ -15,6 +15,8 @@ This file is how to build it:
 - how it ends: the checks, the archive and the merge (§11).
 
 Where this file and `plan.md`'s "Phases" disagree, this file is the newer.
+§12, "As built", says where the build left this plan, what its work logs
+decided, and what it left for the user.
 
 **What it was written from:**
 
@@ -523,7 +525,7 @@ boing for a bumper, synthesized by `tools/build-sounds.mjs`, each named in
   layout.
 - The report marks a level whose middle time at Relaxed is past 2:00.
 - `report:levels --seeds 12` run before and after, the reports saved in
-  `docs/brick-breaker-uplift/levels/`.
+  `docs/archive/brick-breaker-uplift/levels/`.
 - **Done when** every level spec and `sim` spec passes, and the report,
   being seeded, matches `levels/report-after.txt` for the four redraws.
 
@@ -591,8 +593,8 @@ the longest time between two touches of the paddle, and shows no play that
 hangs (`plan.md`, "Risks").
 
 **Done when,** for each: every `sim` spec passes with the levels so far, the
-report is saved in `docs/brick-breaker-uplift/levels/`, and the coverage
-floor holds.
+report is saved in `docs/archive/brick-breaker-uplift/levels/`, and the
+coverage floor holds.
 
 ### Z: finishing (the integrator)
 
@@ -846,3 +848,205 @@ and pushed, once it is done. So, after Z1:
    the tip, the change's own code covered, then a fast-forward push to
    `main`, the local `main` brought up to it where its checkout allows, and
    the stream branches and worktrees removed.
+
+---
+
+## 12. As built (2026-11-14)
+
+Built on 2026-11-14, on the branch `brick-breaker-uplift`, cut from `main`,
+in a day: twenty-five packages in five waves and the finish, up to four
+agents at a time, each in a worktree of its own; every commit reviewed by a
+fresh agent before it was made, but for one delta of Z1's rebase, reviewed
+after it landed; and each package rebased onto the tip and checked there,
+by its agent or the integrator, before the branch fast-forwarded to it. The
+sections above are the plan as it was written; the design in `plan.md` is
+as it was when the build began. This section holds what neither says:
+where the build left the packages, what the work logs decided that a later
+change could trip on, the numbers, and what was left for the user. The
+logs were deleted before the merge, as the user asked; they are in git's
+history under `docs/brick-breaker-uplift/worklog/`, at the commit before
+the one that moved this folder here. Like the rest, this describes the code
+as it was, so check a path against the tree before following one.
+
+### Where the build left the packages
+
+- **Four packages more than §6 planned, and one fewer.**
+  - L5 (the bad capsule's gold lip and the Seeker's symbol) was folded into
+    L3, since both redraw the capsules and R2 had landed.
+  - F3 split in two: F3a, Friends' voices and the seeker's cue, while F2
+    waited on L3; and F3b, Machines' voices, after K3.
+  - The integrator added P4, for P3's and L3's follow-ups: the Cleared
+    card fitted to a small field and held there by `check:layout`, the
+    placeholder's rim and the focus ring at the rim's width, and the
+    "a, b and c" join lifted.
+  - The integrator added L8 and F4, lifts for the user's ask to share code
+    between the games: `fuzzballWearing()` and `wornSparks()`, and
+    `withBurst()`.
+- **L4 ran in a worktree of its own beside L3,** since nothing else was
+  free to start and it touched little L3 did.
+- **Z1 dropped the friends' faced frames,** which the atlas held and
+  nothing showed, and `facedBallFrame()`, which only specs called. Its read
+  through the docs was two fresh audits against the code, one of Brick
+  Breaker's `AGENTS.md`, `README.md` and skills, one of the shared docs the
+  branch changed; every finding was fixed but one, the deck's example
+  spare, right as an example. It took the site's screenshots again on the
+  uplift's look, the thumbnail now the whole page, as the preview is, since
+  a crop of its shape around the field and the panels would take in part of
+  the game bar; the screenshot `plan.md` shows of the game before is kept
+  beside it, as `before.webp`.
+- **The art kept here is as it was drawn.** `art/make-art.mjs` draws
+  `field.svg`'s next level from the game's level data as it is now, which
+  the build changed, so running it again changes that sheet.
+- **K3 ran in another order:** the bumper with Pinball (41), the nudge off
+  anything that can't break coming with it, then the portal with Wormhole,
+  then the slider with Conveyor (42) last, so its offset landed on L3's
+  brick painter and F2's drop-in. Wormhole moved to 43.
+- **Bumpers and portals are discs, not slabs,** against §5.2. The travel
+  alone opens a round cell, so the seeker and the autopilot still take one
+  as blocking their sight.
+- **The lifts beyond §4's four:** `slabFace()` in `@fz/phaser/bricks` (L2);
+  `settledPictures()` in `@fz/phaser/canvas`, both boards' pictures taken
+  through it (P3); `board-focus-ring()` showing while an inner application
+  has the focus, Brick Fuzz Pop's board taking it too (P3); an outline star
+  icon in `@fz/ui`, since an unwon star must differ by shape (P3);
+  `listed()` in `@fz/core/format`, called by Brick Breaker, Brick Fuzz Pop
+  and Sudoku (P4); `withBurst()` in `@fz/dev/sounds` (F4);
+  `fuzzballWearing()` and `wornSparks()` in `@fz/phaser/fuzzball`, Brick
+  Fuzz Pop's `outlinedWith()` and Brick Breaker's `streakBallCommands()`
+  gone (L8); `cagedFriend()` taking an optional fur (L6); and `deltaE()` in
+  `@fz/style/testing` (L7). L1's, L2's and L8's lifts, which touched Brick
+  Fuzz Pop's drawing, were each held by hashing every frame of its atlas
+  before and after, 235,200 frames over four palettes, units 1 to 140 and
+  six pixel ratios; none differed. Brick Breaker's 846,720 held the same
+  through L8. L6's fur is an optional argument, which Brick Fuzz Pop's
+  calls don't pass, so they draw as before.
+- **The kit's numbers moved where they failed the contrast spec,** among
+  them steel's frame and rivets at 60% black (the kit's 34% gave 1.9:1), the
+  shown ghost 12% toward white in light palettes, and the slider's trail
+  chevrons at 45% of its tint (55% fell under 2:1).
+- **Nothing of Machines' three kinds is left out under 15 CSS px a unit,**
+  against the brief: a portal's badge must show at every size, and a slider
+  without its chevrons can't be told from a plain brick. Drawn at 11 and
+  12 px in every palette, each reads whole.
+- **The slider's step is silent,** a metronome no player started.
+- **The Cleared card is set smaller over a field under 380 CSS px tall**
+  (P4): its stars across, its words kept for a screen reader, 262 px
+  inside the field at every shape, where it was 299 over a 285 px field at
+  568 × 320.
+- **The place's tile is a layer second in `layers.ts`,** not last, since a
+  layer's depth is its place in the list; the page's tile is rebuilt at
+  each layout, in 0.8 to 1.7 ms.
+- **Phaser's Web Audio path clamps no detune,** so the streak's top note,
+  1900 cents, plays as asked (1762 Hz for 1759), past the ±1200 its doc
+  comments give.
+- **Phaser's `phaser-text-and-bitmaptext` skill** was copied in beside the
+  others, as the streak's count is a Phaser `Text`.
+
+### What the logs decided
+
+- **Every field a stream adds to `Ball` is set in the cage's
+  `releaseBall()` too** (`seeks`, `portalled`), which repeats the other
+  balls' reset, with a doc comment saying so.
+- **The seeker turns toward the nearest needed brick it can see above it**
+  (`inSight()` in `grid.ts`, the autopilot's sight test), not the plain
+  nearest, which sent balls into steel and plates' undersides and failed
+  Mushroom's `sim` spec at Relaxed.
+- **`SAVED_GAME_VERSION` rose once, to 2,** for the whole branch: the pay
+  (`darePoints`), the gates, the best streak, and each slider by its home
+  with its cell and heading.
+- **A level's `mark` is required in its data,** set by R3's rule from the
+  autopilot's streaks.
+- **A broken brick doesn't stop a train of sliders,** and the brick painter
+  carries a move under way along a slide (`carryMove()`).
+- **A plate clanks only when struck from below,** so a player hears whether
+  a ball did harm.
+- **`VOICES` in `effects.ts` gives a kind a sound of its own,** and the
+  effects spec keeps every event's and kind's sound in records the
+  compiler holds whole, so a new kind adds its sound. `build-sounds.spec.ts`
+  holds the committed sprite to what the script writes.
+- **A lost ball fades in the frame it flew in,** its kind, its ink and the
+  streak's fur (`BallPainter.drawnStreak`, since the rules reset the streak
+  as the last ball goes).
+- **The last brick's hit is held 120 ms before the clear's chord,** with
+  motion reduced too; none of the other flourishes plays without motion,
+  and the bricks stand in place from the first frame.
+- **The bricks drop in at once at any key but a shortcut or a repeat.**
+- **Stars are won at any speed,** Custom and the debug menu's scales among
+  them, as a run's records are at any of them.
+- **The Ready card rises over the bricks where it is too tall for the
+  gap,** its foot held clear of the ball by `check-layout.mjs`; a compact
+  panel's parts are each one element, since the rule hides children past
+  the second that isn't an `<h2>`.
+
+### The numbers
+
+- **What the game holds:** fifty levels in five sets, where it had thirty in
+  three; fourteen kinds of brick, the cage, plated brick, key, gate,
+  bumper, portal and slider among them; twelve capsules, the Seeker new;
+  and seventeen sounds, where it had ten, each new one quieter than the
+  brick's hit, measured on the built file, and those before them written
+  again byte for byte.
+- **Specs:** Brick Breaker's 1,820 in `pure` and `dom` and 180 in `sim`
+  before; 3,914 after, 300 of them `sim`, which plays all fifty levels at
+  every preset speed. Coverage, `dom` and `pure` together, at the tip
+  before the merge: 99.57% of statements, 97.34% of branches, 99.78% of
+  functions and 99.93% of lines.
+- **The levels at twelve seeds** (`report:levels --seeds 12`,
+  [`levels/report-k4.txt`](levels/report-k4.txt)): every level cleared in every
+  play, no endgame past the limit (`!`), and no play gone a minute between
+  two touches of the paddle (`^`); Lanterns (18) alone is marked `+`, its
+  middle time at Relaxed 2:01. The twenty new levels' middle times at
+  Relaxed run from 0:25 (Reunion, 40) to 1:37 (Mushroom, 32).
+- **The marks** (`report:levels --marks`): 35 of the fifty at the floor of
+  5; the highest Fuse's (13), 30, then Low bridge's and Storm's, 20.
+
+### What was left for the user
+
+- **No one has played the uplift by hand.** The autopilot and scripted
+  input have played every level; the marks are the autopilot's streaks,
+  not a player's, and the flourishes' times and the sounds' levels are
+  first choices. Play it, and set the marks again where they feel wrong.
+- **Mushroom (32):** about 1% of its plays still have an endgame past a
+  minute, in every version tried, since neither the autopilot nor a seeking
+  ball aims at a plate; the fix would be in `autopilot.ts` or `seeker.ts`.
+  On the tallest field, one play at Relaxed spent 2:11 over its last bricks
+  (`!`, [`levels/report-k4-tallest.txt`](levels/report-k4-tallest.txt)).
+- **Grand machine (50) breaches §9's budget for the last bricks:** one
+  play at Relaxed past the endgame's limit at twenty seeds (1:31) and one
+  on the tallest field (2:12), the roof bricks over its strongrooms left
+  last; 7 of its 300 plays at Relaxed ran an endgame past a minute. It was
+  kept as drafted, as no variant of its roofs and strongrooms did better by
+  more than chance.
+- **Spiral (27) and Finale (30)** each have one play at Relaxed past the
+  endgame's limit at twenty seeds (`!`,
+  [`levels/report-k4-seeds20.txt`](levels/report-k4-seeds20.txt)), which the
+  twelve-seed report doesn't reach.
+- **Lanterns (18) shows `+`,** 2:01 at Relaxed, since R2's seeker moved it
+  from 1:58: a level of the thirty, so §9's leave to mark a long new level
+  doesn't cover it.
+- **No level lays a two-hit plated brick:** Pachinko, the only draft to
+  lay one, dragged its endgames with cups of two hits. The kind still takes
+  one or two (`U` two), and How to play, the Ready card and "In this level"
+  picture it at two hits, its line saying "one or two hits", so a player on
+  any of the five levels with plates (Mushroom, Stepping stones, Trellis,
+  Tilt and Pachinko) is shown a plate unlike the level's. Draw a level with
+  `U`, picture the kind at one hit, or drop `U` from the legend.
+- **A key whose hit clears its level records no `opened`,** so its gates
+  vanish during the last brick's hold rather than opening; no level comes
+  to it.
+- **In Soft pastel the bumper and the first portal pair are both violet,**
+  told apart by shape.
+- **The panel's "In this level" shows each kind in How to play's picture,**
+  so a plain brick is red there whatever the level's tints.
+- **The last level's stars aren't on the result card,** which the plan
+  doesn't ask for.
+- **Follow-ups not taken, among them:** a library export of
+  `@fz/dev/layout`'s `PHASER_SHAPES`, which the layout check's `CLEARED_AT`
+  rebuilds; a lift of cutting a slab below a line (Brick Breaker's
+  `plateCut()`, Brick Fuzz Pop's plated `outlineOf()` and `cutAt()`), which
+  would move Brick Fuzz Pop's numbers; the crack cut out of a brick, likely
+  too thin to lift; Asteroid Breaker's sounds, which write the burst out by
+  hand with no spec on its sprite; a library helper for the sound spec both
+  brick games repeat; and `FieldEventLog.add()`'s eight arguments in a row,
+  kept, as the log's ring is filled in place and an options object would
+  make one at every event.

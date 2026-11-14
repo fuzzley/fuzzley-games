@@ -42,7 +42,7 @@ function readSet(path) {
 
 const GAME = join(
   here,
-  "../../../frontend/games/brick-breaker/src/rules/levels",
+  "../../../../frontend/games/brick-breaker/src/rules/levels",
 );
 const DRAFTS = join(here, "../levels");
 

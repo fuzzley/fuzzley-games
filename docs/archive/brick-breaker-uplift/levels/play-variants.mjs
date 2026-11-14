@@ -3,14 +3,15 @@
 // `yarn report:levels --seeds` plays a level, and prints how each way went,
 // for the record of a package's redraws.
 //
-//   node docs/brick-breaker-uplift/levels/play-variants.mjs [options] [id...]
+//   node docs/archive/brick-breaker-uplift/levels/play-variants.mjs \
+//     [options] [id...]
 //
 // Each package's record is printed from its variants file, given by its path
 // (`variants-k2.json`, beside the script, by default), as K4's is:
 //
-//   node docs/brick-breaker-uplift/levels/play-variants.mjs \
-//     --variants docs/brick-breaker-uplift/levels/variants-k4.json \
-//     > docs/brick-breaker-uplift/levels/report-k4-variants.txt
+//   node docs/archive/brick-breaker-uplift/levels/play-variants.mjs \
+//     --variants docs/archive/brick-breaker-uplift/levels/variants-k4.json \
+//     > docs/archive/brick-breaker-uplift/levels/report-k4-variants.txt
 //
 // The records saved before K4's lack its last column, the longest any play
 // went between two touches of the paddle.
@@ -29,7 +30,7 @@ import {
   middleAndMost,
   printReport,
   timeOf,
-} from "../../../frontend/lib/dev/src/report.ts";
+} from "../../../../frontend/lib/dev/src/report.ts";
 import {
   CONSOLE,
   importThroughVite,
@@ -37,18 +38,18 @@ import {
   misread,
   readArgs,
   stopWith,
-} from "../../../frontend/lib/dev/src/script.ts";
+} from "../../../../frontend/lib/dev/src/script.ts";
 
-/** @import { LevelEntry, LevelSetData } from "../../../frontend/games/brick-breaker/src/rules/levels/levels.ts" */
-/** @import { AutopilotReport } from "../../../frontend/games/brick-breaker/src/testing/autopilot.ts" */
-/** @import { Speed } from "../../../frontend/games/brick-breaker/src/rules/speed.ts" */
-/** @import { ReportColumns, Tally } from "../../../frontend/lib/dev/src/report.ts" */
-/** @import { Stop } from "../../../frontend/lib/dev/src/script.ts" */
+/** @import { LevelEntry, LevelSetData } from "../../../../frontend/games/brick-breaker/src/rules/levels/levels.ts" */
+/** @import { AutopilotReport } from "../../../../frontend/games/brick-breaker/src/testing/autopilot.ts" */
+/** @import { Speed } from "../../../../frontend/games/brick-breaker/src/rules/speed.ts" */
+/** @import { ReportColumns, Tally } from "../../../../frontend/lib/dev/src/report.ts" */
+/** @import { Stop } from "../../../../frontend/lib/dev/src/script.ts" */
 
 const HERE = import.meta.dirname;
-const GAME = join(HERE, "../../../frontend/games/brick-breaker");
+const GAME = join(HERE, "../../../../frontend/games/brick-breaker");
 
-const USAGE = `Usage: node docs/brick-breaker-uplift/levels/play-variants.mjs [options] [id...]
+const USAGE = `Usage: node docs/archive/brick-breaker-uplift/levels/play-variants.mjs [options] [id...]
 
 Plays each way of drawing a level in a variants file, or only the levels whose
 ids are given, as yarn report:levels --seeds plays the level.

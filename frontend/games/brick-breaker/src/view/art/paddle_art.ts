@@ -1,9 +1,9 @@
 // The paddle's frames, after `paddle()` in
-// `docs/brick-breaker-uplift/art/scene.mjs`: a bar in the accent on a darker
-// lip, a pale pad along its top and a cap at each end with a bolt in it;
-// velcro hooks along its top while it catches, and a cannon over each end
-// while it fires. The kit draws the paddle 75 tall, and every length here is
-// the kit's, as a share of the paddle's height.
+// `docs/archive/brick-breaker-uplift/art/scene.mjs`: a bar in the accent on
+// a darker lip, a pale pad along its top and a cap at each end with a bolt
+// in it; velcro hooks along its top while it catches, and a cannon over each
+// end while it fires. The kit draws the paddle 75 tall, and every length
+// here is the kit's, as a share of the paddle's height.
 //
 // The scene draws the paddle at any width from these frames and a few
 // rectangles it sizes by `paddleShape()`, so the frames hold only what keeps
