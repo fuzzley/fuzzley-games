@@ -31,8 +31,10 @@
             [attr.aria-disabled]="sector.open ? null : 'true'"
             (click)="choose(sector)"
           >
-            <span class="name">{{ sector.name }}</span
-            >&ngsp;<span class="waves">{{ sector.waves }}</span>
+            <span class="name">{{ sector.name }}</span>&ngsp;<span
+              class="waves"
+              >{{ sector.waves }}</span
+            >
             @if (sector.status; as status) {
               &ngsp;<span class="status">{{ status }}</span>
             }
