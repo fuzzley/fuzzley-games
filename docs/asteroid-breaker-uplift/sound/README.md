@@ -8,7 +8,8 @@ sound designers teach; this page is what anyone writing a recipe keeps to.
 Nobody building these sounds can hear them. The scripts measure every take
 and draw its spectrum, which catches what is broken, thin, dull or too
 quiet for a phone, and no more. **The page in `audition/` is where a person
-hears them, and a person's ear decides.**
+hears them, and a person's ear decides.** [`listen-for.md`](listen-for.md) holds
+what that ear has said so far, and what each sound's maker doubted.
 
 ## The direction: struck things, small voices, one key
 
