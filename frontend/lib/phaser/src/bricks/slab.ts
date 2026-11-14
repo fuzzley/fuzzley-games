@@ -78,6 +78,12 @@ export function slabBody(cell: Area, shares: SlabShares): Area {
   return inset(cell, Math.max(0, Math.min(gap, Math.floor((side - 1) / 2))));
 }
 
+/** Returns a slab's face in its cell: its body above the lip along its foot, the lip a whole number of device pixels tall, which a mark laid down to the lip reaches. */
+export function slabFace(cell: Area, shares: SlabShares): Area {
+  const body = slabBody(cell, shares);
+  return { ...body, height: body.height - lipOf(cell, shares) };
+}
+
 /** Returns how round a slab's corners are in its cell, in device pixels, which a mark laid over the slab follows. */
 export function slabRadius(cell: Area, shares: SlabShares): number {
   return shortSide(cell) * shares.corner;
@@ -95,13 +101,13 @@ export function slabCommands(
 ): readonly DrawCommand[] {
   const side = shortSide(cell);
   const body = slabBody(cell, shares);
+  const face = slabFace(cell, shares);
   const radius = slabRadius(cell, shares);
-  const lip = Math.round(side * shares.lip);
   return [
-    roundRect({ ...body, y: body.y + lip, height: body.height - lip }, radius, {
+    roundRect({ ...face, y: face.y + lipOf(cell, shares) }, radius, {
       color: mixColors(BLACK, ink, shares.lipShade),
     }),
-    roundRect({ ...body, height: body.height - lip }, radius, { color: ink }),
+    roundRect(face, radius, { color: ink }),
     polygon(topStrip(body, radius, Math.round(side * shares.strip)), {
       color: mixColors(WHITE, ink, shares.stripLight),
     }),
@@ -157,6 +163,11 @@ function topCorners(
     left: { x: body.x + radius, y: body.y + radius },
     right: { x: body.x + body.width - radius, y: body.y + radius },
   };
+}
+
+/** Returns how tall a slab's lip is in its cell, in whole device pixels. */
+function lipOf(cell: Area, shares: SlabShares): number {
+  return Math.round(shortSide(cell) * shares.lip);
 }
 
 /** Returns the shorter of an area's two sides. */

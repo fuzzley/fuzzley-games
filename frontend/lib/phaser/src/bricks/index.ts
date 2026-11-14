@@ -28,6 +28,7 @@ export {
   showsDetail,
   slabBody,
   slabCommands,
+  slabFace,
   slabRadius,
   topCap,
 } from "./slab";

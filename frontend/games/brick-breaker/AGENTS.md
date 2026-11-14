@@ -293,13 +293,21 @@ takes for the specs' helpers.
   the palette's roles (`bricksPalette()`), with the brick tints from
   `@fz/phaser/color`'s `TILE_INKS`, eight for light palettes and eight for
   dark, the outline every ball and capsule takes over the bricks it crosses,
-  and the marks a brick's kind and state are told apart by. `contrast.spec.ts` holds
-  every tint, the steel, blast and gift bricks, every ball kind, both
-  capsule tones, the paddle and the last bricks' glow to 3:1 against the
-  field in every palette, a tough brick's deeper tints too, each ball and
-  capsule against its outline, the outline against every tint, brick and
-  the paddle, and the marks against every brick, capsule and the paddle; its
-  comment says why a ball isn't held against the tints.
+  the marks a brick's kind and state are told apart by, the inks a kind's
+  marks take beside them, mixed as the uplift's art kit mixes them
+  (`kindInks`: steel's frame and rivets, a blast brick's spark, a gift's
+  ribbon, a regrowing brick's moss and the shadow under it), and a ghost's
+  tints, faded while it hides and paler once it shows (`ghostTints`).
+  `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
+  bricks, a shown ghost and the moss, every ball kind, both capsule tones,
+  the paddle and the last bricks' glow to 3:1 against the field in every
+  palette, a tough brick's deeper tints too, and a hidden ghost to 2:1,
+  faint by design; each ball and capsule against its outline, the outline
+  against every tint, brick and the paddle, the marks against every brick,
+  capsule and the paddle, steel's frame and rivets against the steel, and a
+  blast brick's spark against the marks it is lit on; its comment says why
+  a ball isn't held against the tints, and why a brick's shading is held to
+  nothing.
 - **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
   the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
   as it flies and with its eyes, the balls' eyes, each capsule's shape
@@ -312,8 +320,17 @@ takes for the specs' helpers.
   (`FUZZBALL_LOOK`); `fuzzball_art.ts` combs the fur for each kind
   (`FUR`): the fuzzball's own for a normal ball, risen into a flame for a
   fire ball and stood on end for a blast ball, so a kind shows by its shape
-  as well as its color; `brick_art.ts` draws a brick kind in each tint and
-  state (`BRICK_ART`), and names the frame a brick shows (`brickFrame()`)
+  as well as its color; `brick_art.ts` draws each brick kind in each tint
+  and state (`BRICK_ART`), one flattened frame a look, on
+  `@fz/phaser/bricks`' slab (`BRICK_SLAB`) with that entry's marks, as the
+  uplift's art kit draws them: a tough brick's pips in a row
+  (`pipRow()`), cut out, and a crack for each hit taken (`bandAlong()`),
+  steel's frame, rivets and sheen, the blast brick's bomb and a dot toward
+  each brick it reaches, a gift's ribbon and bow, a hidden ghost's round
+  dashes and faint eyes, its body under a scalloped hem once it shows, and
+  a regrowing brick's earth under a cap of moss with a sprout, leaving out
+  the cracks, rivets and sheen of a brick under 30 CSS px wide
+  (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`)
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
   capsule's symbol (`SYMBOLS`); they are drawn in `@fz/phaser/shapes`'s
   commands (`DrawCommand`), whose builders take no size below nothing, since
@@ -577,11 +594,12 @@ takes for the specs' helpers.
   or goes on until the field is drawn (`GameService.setDrawn()`, which the
   board calls from its canvas), since a level nobody can see would be lost.
 - **Its colors are the palette's and the tiles' inks.** `bricksPalette()`
-  takes the field, its wall, the paddle, the balls, the capsules and the
-  steel, blast and gift bricks from the page's roles, which `ThemeService`
-  reads, and the bricks' tints from `@fz/phaser/color`'s `TILE_INKS`, eight
-  for light palettes and eight for dark; `src/view/colors/contrast.spec.ts`
-  holds them apart in every palette.
+  takes the field, its wall, the paddle, the balls, the capsules, the
+  steel, blast and gift bricks and the inks of their marks from the page's
+  roles, which `ThemeService` reads, and the bricks' tints, a regrowing
+  brick's earth and moss among them, from `@fz/phaser/color`'s
+  `TILE_INKS`, eight for light palettes and eight for dark;
+  `src/view/colors/contrast.spec.ts` holds them apart in every palette.
 - **The field takes the board's shape as it waits to serve.** On a board
   with room for more than 30 units of height, at the unit its width allows,
   over a finger's room to steer by, the field grows to as many as fit, up
@@ -784,8 +802,11 @@ skill covers its setup, floors and fixtures, the repository's
   of the field reads as the field it plays; a field may be drawn taller
   (`height`).
 - `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs (`ART_FRAMES`), among which `@fz/phaser/testing/pure`'s
-  `frameNamed()` finds a frame by its name.
+  specs (`ART_FRAMES`), a brick in full detail, among which
+  `@fz/phaser/testing/pure`'s `frameNamed()` finds a frame by its name, and
+  gives a scale a brick is too small at for its finest detail
+  (`SMALL_SCALE`) and the scales a field is drawn at, both among them
+  (`FIELD_SCALES`).
 - `autopilot.ts` plays a level as a good player would (`autoplay()`): it
   keeps the paddle under the ball that will reach it first, lands it a
   seeded distance off the middle or toward a brick the level needs that it

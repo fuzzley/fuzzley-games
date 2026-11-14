@@ -15,6 +15,9 @@ function named(
   ]);
 }
 
+/** The contrast a hidden ghost keeps against the field: faint by design, as the art draws it, yet there to be found. */
+const FAINT = 2;
+
 // Everything a player follows, aims at or dodges is held to 3:1, the bar for
 // graphics, against the field, in every palette, and so is the last bricks'
 // glow; the wall, which only frames the field, is left at a wash of the text,
@@ -22,9 +25,15 @@ function named(
 // also clear every tint: the tints and the warning and danger colors all sit
 // on the same side of the field, so a color 3:1 from both the field and a
 // tint would need 9:1 from the field, which only the text reaches. So each is
-// outlined, in a color held to 3:1 against everything it crosses. The marks that tell a brick's
-// kind and state apart, a ball's kind, and a capsule's symbol, are held to
-// 3:1 against what they are drawn on.
+// outlined, in a color held to 3:1 against everything it crosses. The marks
+// that tell a brick's kind and state apart, a ball's kind, and a capsule's
+// symbol are held to 3:1 against what they are drawn on: the marks' color
+// against every brick, a moss cap and a shown ghost among them, steel's
+// frame and rivets against the steel, and a blast brick's spark against the
+// mark it is lit on. A hidden ghost is held only to FAINT, since it is meant
+// to be hard to see, and a brick's shading (its lip and strip, steel's
+// sheen, a gift's ribbon, the moss's shadows) to nothing, since none tells
+// a kind: a gift's bow is outlined in the marks' color.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = bricksPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -35,6 +44,12 @@ describe("the field's contrast", () => {
     const toughTints = palette.toughTints.map(
       (tint, i) => [`tough tint ${String(i + 1)}`, tint] as const,
     );
+    const shownGhosts = palette.ghostTints.shown.map(
+      (tint, i) => [`shown ghost's tint ${String(i + 1)}`, tint] as const,
+    );
+    const hiddenGhosts = palette.ghostTints.hidden.map(
+      (tint, i) => [`hidden ghost's tint ${String(i + 1)}`, tint] as const,
+    );
     const outlined = [
       ...named(palette.balls, "ball"),
       ...named(palette.capsules, "capsule"),
@@ -42,7 +57,9 @@ describe("the field's contrast", () => {
     const crossed = [
       ...tints,
       ...toughTints,
+      ...shownGhosts,
       ...named(palette.bricks, "brick"),
+      ["moss", palette.kindInks.moss] as const,
       ["paddle", palette.paddle] as const,
     ];
 
@@ -52,6 +69,15 @@ describe("the field's contrast", () => {
         expect(
           contrast(rgbOf(color), rgbOf(palette.field)),
         ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it.each(hiddenGhosts)(
+      "keeps the %s at 2:1 or more against the field, faint but there",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(color), rgbOf(palette.field)),
+        ).toBeGreaterThanOrEqual(FAINT);
       },
     );
 
@@ -81,5 +107,20 @@ describe("the field's contrast", () => {
         ).toBeGreaterThanOrEqual(3);
       },
     );
+
+    it("keeps steel's frame and rivets at 3:1 or more against the steel", () => {
+      expect(
+        contrast(
+          rgbOf(palette.kindInks.steelLine),
+          rgbOf(palette.bricks.steel),
+        ),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
+    it("keeps a blast brick's spark at 3:1 or more against the marks it is lit on", () => {
+      expect(
+        contrast(rgbOf(palette.kindInks.spark), rgbOf(palette.mark)),
+      ).toBeGreaterThanOrEqual(3);
+    });
   });
 });

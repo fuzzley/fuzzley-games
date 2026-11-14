@@ -402,3 +402,184 @@ Checks, after the answers: `@fz/phaser` lint, typecheck, tests (58 files, 893) a
 tests (147 files, 6,489); the root's lint, typecheck and tests under the
 lock; the art's hashes unchanged (235,200 frames, none differing), before
 and after the answers.
+
+### 2026-11-14: the seven kinds on the slab
+
+`feat(brick-breaker): draw every kind of brick on the slab with the marks
+that tell it` (commit 2 of L2).
+
+- `brick_art.ts` draws every kind and state on `@fz/phaser/bricks`' slab
+  (`BRICK_SLAB`), one flattened frame a look, as `art/bricks.svg` sections
+  A, B and E draw them, every number the kit's in its box of 200 by 100:
+  a plain brick's lip and strip; a tough brick's slab in its deeper tint,
+  its pips in a row (`pipRow()`, which replaces Brick Breaker's own
+  `pips()`), cut out, and up to three cracks, one a hit taken
+  (`bandAlong()`, cut along the edge each starts on); steel's frame
+  (`crispOutline()`), four rivets (`rivets()`) and sheen (`sheen()`); the
+  blast brick's bomb (`bombMark()`) and six dots, Brick Breaker's own; a
+  gift's ribbon on whole pixels and a bow of two loops and a knot, each
+  outlined inside its edge in the marks' color; a hidden ghost's round
+  dashes, a dash in each corner and the rest along each side
+  (`dashes()`, `stroke()`), and faint eyes, on no slab; a shown ghost's
+  body under its top corners (`topCap()`) to a hem of six scallops, its
+  eyes cut out; and a regrowing brick's amber earth under a cap of moss
+  (`scallopedCap()`) with a sprout cut out of it (`sproutMark()`). The
+  growing back stays as the brick painter draws it, a brick scaled up from
+  nothing, as the package's brief asks (see what is left, below). Cage,
+  plated, key and gate keep their placeholder tints, on the slab. The
+  gift's ribbon and the hidden ghost's dashes reach down to the slab's lip
+  through `slabFace()`, new in `@fz/phaser/bricks`: the slab's body above
+  its lip, which `slabCommands()` now draws its body as, so a mark and the
+  slab agree on where the lip is. Brick Fuzz Pop's atlas hashes as it did
+  before L2, all 235,200 frames. A brick under 30 CSS px wide (`showsDetail(scale, BRICK_WIDTH)`)
+  leaves out its cracks, rivets and sheen.
+- `palette.ts` gains the roles the kit's mixes read: `kindInks` (steel's
+  frame and rivets, the bomb's spark, the gift's ribbon, the moss and its
+  shadow), `ghostTints` (hidden, faded 35% toward the field; shown, paler
+  toward white) and `bricks.regrow`, the amber earth. A tough brick's tint
+  moves 12% toward the text (`TOUGH_DEEPEN`), not 25%. `tintAt()` moves
+  here from `brick_art.ts`, its one copy.
+- `contrast.spec.ts` holds the new bodies (a shown ghost's tints, the
+  moss, the regrowing brick's earth) to 3:1 against the field, the outline
+  and the marks, as every brick is; steel's frame and rivets to 3:1
+  against the steel; the spark to 3:1 against the marks it is lit on; and a
+  hidden ghost to 2:1 against the field (`FAINT`).
+- The specs: `brick_art.spec.ts` holds every slabbed look on the slab in
+  the color its shards take, every line of every brick a CSS pixel wide at
+  five scales, pips counted and in their row, cracks counted and left out
+  small, steel's frame, four rivets and sheen and only its frame small, the
+  blast's six dots and its bomb and spark, the gift's ribbon on whole
+  pixels, down to the slab's face, and its bow's loops and knot each
+  outlined a CSS pixel inside its edge, about the same middle, and
+  mirrored, both ghosts, the moss's nine scallops over nine shadows and
+  the sprout, and each kind's `brickColor()`. `art.spec.ts` holds the
+  atlas inside 4096 px a side at a unit of 54 at 3 to a CSS pixel (it is
+  878 × 1034, 140 frames), and How to play's ghost hidden by its frame's
+  name (`ghost-<tint>`). `palette.spec.ts` holds each new role's mix.
+  `slab.spec.ts` holds `slabFace()` in three cells, and as the body
+  `slabCommands()` draws. `src/testing/art_frames.ts` draws at a unit of
+  40 at 2× (a brick 40 CSS px wide, in full detail) rather than 24, and
+  gives `SMALL_SCALE`, the old 24, a brick too small for detail, and
+  `FIELD_SCALES`, the scales both art specs draw at.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, `src/view/art/`,
+  its colors, `art_frames.ts`), the `brick-breaker-content` skill (a
+  regrowing brick's own colors, a kind's inks, which of them the contrast
+  spec holds) and the `brick-breaker-testing` skill (the scales, a hidden
+  ghost's 2:1); `frontend/lib/phaser/AGENTS.md` and the `phaser-core`
+  skill (`slabFace()`).
+
+Choices, where the plan was silent or the kit fell short:
+
+- **Steel's frame and rivets are the steel at 60% black, not the kit's
+  34%.** At 34% they stand 1.9:1 to 2.0:1 from the steel in the four
+  palettes; a mark that tells a kind is held to 3:1, as the marks' color
+  is, and 60% gives 3.1:1 to 3.7:1. They read a little darker than the
+  sheet's.
+- **A shown ghost is 12% toward white in a light palette, not 18%.** At 18%
+  Soft pastel's violet shown ghost is 2.8:1 against the field; at 12% every
+  tint is 3.1:1 or more. Dark palettes keep the kit's 30%.
+- **A hidden ghost keeps the kit's faint 35% fade, held to 2:1.** It is
+  2.3:1 to 3.0:1 against the field, faint as its kind asks, and the spec
+  says so in its comment. The sheen, the ribbon band (1.5:1 against the
+  gift in dark palettes), the moss against the earth and the scallops'
+  shadows are shading, held to nothing: the gift's bow is outlined in the
+  marks' color, which holds 3:1 against the gift.
+- **A regrowing brick is one look, untinted,** amber earth under green
+  moss, as the kit's `regrow()` takes no tint, so it joins steel, blast and
+  gift among the kinds drawn in colors of their own; Finale's one regrowing
+  brick no longer takes its picture's tint.
+- **The sheen is `sheen()` in a square 1.222 of the brick's height,** set
+  so its first stroke runs on the kit's. Its second lies 4.4 of the kit's
+  units on along itself, toward the lower left, and both are 5.6 wide
+  against the kit's 5: under a CSS pixel at the 38 CSS px a brick is at
+  1280 × 720 (0.8 px), so the library's piece is kept rather than a copy.
+- **The bomb is `bombMark()` in a square 1.08 of the brick's height,** its
+  body at (96, 52) and 21 round against the kit's (96, 50) and 23, as the
+  library's bomb, fitted by its body at 1.18, puts its spark 6 units above
+  the brick's top, outside its frame; at 1.08 the spark's top is half a
+  unit inside it.
+- **The sprout is `sproutMark()` in a square 1.2 of the brick's height,**
+  its foot at the kit's (100, 34): its leaves 11.4 out (the kit's 11), 9.8
+  long (10), its stem 4.1 wide (4).
+- **The bow's loops and knot are the kit's shapes, outlined inside their
+  edges,** a line of 3 kit units wide, a CSS pixel at least, so nothing
+  reaches past the frame at any scale; the kit strokes them about their
+  edges, so its bow is 1.5 units larger all round. A loop's inside is the
+  loop with each side moved in by the line (`shrunk()`, about the middle of
+  the circle inside it).
+- **A ghost's dashes run along the body above its lip,** their outer edge
+  on it, as the kit's dashed rectangle does; a dash sits in each corner,
+  and `dashes()` spaces the rest along each side, a gap clear of the
+  corners, rather than the kit's one dash pattern round the whole, so the
+  four sides match.
+- **Dots and pips are a CSS pixel across at least** (`dotRadius()`), so the
+  blast's dots show on a phone.
+- `brickColor()` gives a ghost its tint as it stands, faded while hidden
+  and pale once shown, for its shards.
+- Frames: the shown ghost has its own eight (`ghost-shown-<tint>`) where it
+  took the plain brick's; the regrowing brick has one (`regrow`) where it
+  had eight.
+
+What I added outside stream L's files: nothing.
+
+Left for later packages:
+
+- **The ring of a brick growing back,** in L2's line of the
+  implementation plan and the sheet's section B (`regrowing()`: the place
+  a broken regrowing brick has left, a ring filling as its ten seconds
+  pass, and a sprout), is not drawn: the package's brief kept the growing
+  back as Brick Breaker draws it, and Brick Breaker draws nothing in that
+  place until the brick grows back, scaled up from nothing over half a
+  second. Drawing it takes the brick painter (`src/scene/painters/`, not
+  stream L's) drawing the place with the share of `regrowsAt` gone, and a
+  frame for it here; the coordinator should give it to a package.
+- `brick_art.ts`'s header cites `docs/brick-breaker-uplift/art/`, which
+  Z2's move to `docs/archive/` must follow.
+- L6 draws cage, plated, key and gate for real.
+
+Review (a fresh agent), and what I did:
+
+1. _How to play's hidden-ghost spec matched the shown ghost's new frames
+   too (`/^ghost-/`)._ Fixed: it holds the hidden frame's name,
+   `/^ghost-\d+$/`.
+2. _L2's ring of a brick growing back is not drawn and not recorded._
+   Recorded under what is left, above, for the coordinator: the brief
+   kept the growing back as Brick Breaker draws it, and drawing the ring
+   takes the scene's brick painter, outside stream L.
+3. _`lipTop()` repeated the slab's private lip, right only while a brick
+   is twice as wide as tall, and the gift spec hard-coded 0.09._ Fixed:
+   `@fz/phaser/bricks` exports `slabFace()`, which `slabCommands()` draws
+   its body as; the gift's ribbon, the hidden ghost's dashes and the gift
+   spec take it, and `lipTop()` is gone. Brick Fuzz Pop's atlas hashes
+   unchanged.
+4. _`shrunk()` and the dashed outline are general geometry, in a game, and
+   the gift spec would pass with the inset halved or doubled._ The spec is
+   fixed: each loop's ribbon has the circle inside its outline, the same
+   middle, a CSS pixel smaller, and the knot's the same, which fails with
+   the inset halved (tried). The geometry stays in the game: Brick Breaker
+   is its one user, and the plan lifts nothing more in L2.
+5. _Doc comments: the bomb's body called the kit's; the header's "every
+   number is the kit's"; two first paragraphs of two sentences; the
+   content skill asking the contrast spec to hold every ink._ Fixed: the
+   bomb's comment gives its (96, 52) against the kit's (96, 50); the header
+   says every number is the kit's but where a constant's comment says
+   otherwise; the sheen's and bomb's squares open with one sentence (and
+   the sheen's drift is 4.4 units, as measured); the skill says the spec
+   holds an ink that tells a kind and leaves out one that only shades.
+6. _The specs' scales twice; `art.spec.ts`'s width helper skipping
+   straight lines; inline types for a cell and a kit's square._ The scales
+   are `FIELD_SCALES`, in `art_frames.ts`, for both. Counting straight
+   lines in `art.spec.ts` fails every ball's frame at units 10 to 24,
+   since a fuzzball's fur tapers to 0.49 px, the ball's look and L3's, so
+   its helper says why it skips them and `brick_art.spec.ts` keeps the
+   bricks' check. `cellOf()` returns an `Area`, and the kit's squares are a
+   `KitSquare`.
+
+The browser, on port 9104: Finale (level 30) at 1280 × 720 at 2× in
+Midnight blue and Soft pastel, and at 844 × 390 at 3× (a brick 24 CSS px
+wide) in Soft pastel and Casino night; Drawbridge (33) at 1280 × 720 in
+Classic felt for the placeholders. Each kind draws as the sheet's section A
+and B, a crack shows on a tough brick hit in play, and at 844 × 390 the
+steel keeps only its frame and the tough bricks no cracks, as section E's
+24 px row shows. `/tmp/l2-bricks-game.png` is Finale at 1280 × 720 in
+Midnight blue.

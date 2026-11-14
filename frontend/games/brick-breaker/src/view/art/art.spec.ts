@@ -1,7 +1,7 @@
 import {
   type ArtFrame,
-  type ArtScale,
   type DrawCommand,
+  atlasSize,
   extentOf,
   lineWidth,
 } from "@fz/phaser/shapes";
@@ -10,7 +10,12 @@ import { BALL_KIND_IDS } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS } from "../../rules/catalog/capsules";
 import { BALL_RADIUS, PADDLE_HEIGHT } from "../../rules/tuning";
-import { ART_FRAMES, ART_PALETTE, ART_SCALE } from "../../testing/art_frames";
+import {
+  ART_FRAMES,
+  ART_PALETTE,
+  ART_SCALE,
+  FIELD_SCALES,
+} from "../../testing/art_frames";
 import {
   FRAMES,
   PICTURE_FRAMES,
@@ -20,14 +25,6 @@ import {
   facedBallFrame,
   tagFrame,
 } from "./art";
-
-/** The scales a field is drawn at, from the smallest unit the layout allows to a large one at a pixel ratio of 3. */
-const SCALES: readonly ArtScale[] = [
-  { unit: 10, pixelRatio: 1 },
-  { unit: 13, pixelRatio: 1.25 },
-  { unit: 24, pixelRatio: 2 },
-  { unit: 54, pixelRatio: 3 },
-];
 
 /** Returns whether a command draws within its frame, give or take a rounding. */
 function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
@@ -41,7 +38,11 @@ function drawsWithin(command: DrawCommand, frame: ArtFrame): boolean {
   );
 }
 
-/** Returns how wide a command's line is, or null for one that fills. */
+/**
+ * Returns how wide a command's line is, or null for one that fills or a
+ * straight line, which a fuzzball's fur tapers to under a CSS pixel in;
+ * `brick_art.spec.ts` holds a brick's straight lines.
+ */
 function widthOf(command: DrawCommand): number | null {
   return command.kind === "ring" || command.kind === "polyline"
     ? command.width
@@ -78,7 +79,7 @@ describe("atlasFrames at every unit down to a device pixel", () => {
   );
 });
 
-describe.each(SCALES)(
+describe.each(FIELD_SCALES)(
   "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
     const frames = atlasFrames(ART_PALETTE, scale);
@@ -152,7 +153,7 @@ describe("a ball's frames", () => {
     },
   );
 
-  it.each(SCALES)(
+  it.each(FIELD_SCALES)(
     "keeps a normal ball's fur within the ball's edge at a unit of $unit device pixels",
     (scale) => {
       const frame = frameNamed(
@@ -246,6 +247,14 @@ describe("the atlas", () => {
     expect(wanted.filter((name) => !names.has(name))).toEqual([]);
   });
 
+  it("packs inside 4096 device pixels a side at a unit of 54, 3 to a CSS pixel, as WebGL takes on every device", () => {
+    const { width, height } = atlasSize(
+      atlasFrames(ART_PALETTE, { unit: 54, pixelRatio: 3 }),
+    );
+
+    expect(Math.max(width, height)).toBeLessThanOrEqual(4096);
+  });
+
   it.each(Object.values(FRAMES))("holds the %s's frame", (name) => {
     expect(names.has(name)).toBe(true);
   });
@@ -326,6 +335,6 @@ describe("PICTURE_FRAMES", () => {
   });
 
   it("pictures a ghost brick still hidden", () => {
-    expect(PICTURE_FRAMES.bricks.ghost).toMatch(/^ghost-/);
+    expect(PICTURE_FRAMES.bricks.ghost).toMatch(/^ghost-\d+$/);
   });
 });

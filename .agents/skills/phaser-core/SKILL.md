@@ -135,11 +135,11 @@ holds.
   `shapes`'s commands, a pure entry a game's view takes too, importing
   only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles are drawn
   through it. It holds the slab a brick stands on (`slabCommands()`, with
-  its `slabBody()` and `slabRadius()`), laid out by a `SlabShares` whose
-  every length is a share of the cell's short side, so a square tile
-  (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as wide as tall
-  (`BRICK_SLAB`, as Brick Breaker's uplift's art kit draws one) take the
-  same code; `topCap()`, what covers a slab's top down to a foot;
+  its `slabBody()`, `slabFace()` and `slabRadius()`), laid out by a
+  `SlabShares` whose every length is a share of the cell's short side, so a
+  square tile (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as wide as
+  tall (`BRICK_SLAB`, as Brick Breaker's uplift's art kit draws one) take
+  the same code; `topCap()`, what covers a slab's top down to a foot;
   `showsDetail()`, whether a brick so many units wide is drawn wide enough
   for its finest detail; and the marks drawn over a slab, their inks
   handed in: each at shares of a square it is handed, its lines' widths

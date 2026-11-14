@@ -1,4 +1,14 @@
-import type { ArtFrame } from "@fz/phaser/shapes";
+import { BRICK_SLAB, slabCommands, slabFace } from "@fz/phaser/bricks";
+import { mixColors } from "@fz/phaser/color";
+import {
+  type Area,
+  type ArtFrame,
+  type CircleCommand,
+  type DrawCommand,
+  type Point,
+  type PolygonCommand,
+  extentOf,
+} from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import {
   BRICK_KINDS,
@@ -7,9 +17,24 @@ import {
   hasTrait,
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
-import { ART_FRAMES, ART_PALETTE, ART_SCALE } from "../../testing/art_frames";
+import {
+  ART_FRAMES,
+  ART_PALETTE,
+  ART_SCALE,
+  FIELD_SCALES,
+  SMALL_SCALE,
+} from "../../testing/art_frames";
 import { atlasFrames } from "./art";
-import { type BrickLook, brickColor, brickFrame } from "./brick_art";
+import { BRICK_ART, type BrickLook, brickColor, brickFrame } from "./brick_art";
+
+/** A CSS pixel in device pixels at the scale the specs draw at. */
+const CSS_PIXEL = ART_SCALE.pixelRatio;
+
+/** Where a triangle's missing corner stands in, so a spec with too few fails on its sizes rather than its types. */
+const ORIGIN: Point = { x: 0, y: 0 };
+
+/** The atlas's frames at a scale too small for a brick's finest detail. */
+const SMALL_FRAMES = atlasFrames(ART_PALETTE, SMALL_SCALE);
 
 /** Returns every look a brick of a kind can have: each whole, each count of hits left, shown or not, in each tint. */
 function looksOf(kind: BrickKindId): readonly BrickLook[] {
@@ -36,6 +61,79 @@ function looksOf(kind: BrickKindId): readonly BrickLook[] {
   );
 }
 
+/** Returns a look of a brick of a kind, whole, in a tint. */
+function lookOf(kind: BrickKindId, tint = 0): BrickLook {
+  const { hits } = BRICK_KINDS[kind];
+  const whole = hits === "never" ? 0 : hits;
+  return { kind, tint, whole, hits: whole, shown: true };
+}
+
+/** Returns the frame a brick shows, among frames. */
+function frameOf(look: BrickLook, frames = ART_FRAMES): ArtFrame {
+  return frameNamed(frames, brickFrame(look));
+}
+
+/** Returns the circles a frame draws in a color. */
+function circlesIn(frame: ArtFrame, color: number): readonly CircleCommand[] {
+  return drawnIn(frame, "circle", color).flatMap((command) =>
+    command.kind === "circle" ? [command] : [],
+  );
+}
+
+/** Returns the polygons a frame draws in a color. */
+function polygonsIn(frame: ArtFrame, color: number): readonly PolygonCommand[] {
+  return drawnIn(frame, "polygon", color).flatMap((command) =>
+    command.kind === "polygon" ? [command] : [],
+  );
+}
+
+/** Returns how wide a command's line is, straight lines too, or null for one that fills. */
+function lineOf(command: DrawCommand): number | null {
+  return command.kind === "line" ||
+    command.kind === "polyline" ||
+    command.kind === "ring"
+    ? command.width
+    : null;
+}
+
+/** Returns a frame's whole cell. */
+function cellOf(frame: ArtFrame): Area {
+  return { x: 0, y: 0, width: frame.width, height: frame.height };
+}
+
+/** Returns a number to a billionth, so two worked out alike but for a rounding are equal. */
+function billionths(value: number): number {
+  return Math.round(value * 1e9) / 1e9;
+}
+
+/** Returns the middle and the radius of the circle inside a triangle, each to a billionth. */
+function circleInside(points: readonly Point[]): Point & { radius: number } {
+  const [a = ORIGIN, b = ORIGIN, c = ORIGIN] = points;
+  const across = [
+    Math.hypot(b.x - c.x, b.y - c.y),
+    Math.hypot(c.x - a.x, c.y - a.y),
+    Math.hypot(a.x - b.x, a.y - b.y),
+  ] as const;
+  const around = across[0] + across[1] + across[2];
+  const area =
+    Math.abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) / 2;
+  return {
+    x: billionths(
+      (a.x * across[0] + b.x * across[1] + c.x * across[2]) / around,
+    ),
+    y: billionths(
+      (a.y * across[0] + b.y * across[1] + c.y * across[2]) / around,
+    ),
+    radius: billionths((2 * area) / around),
+  };
+}
+
+/** Returns where a command's middle lies, across and down. */
+function middleOf(command: DrawCommand): Point {
+  const { x, y, width, height } = extentOf(command);
+  return { x: x + width / 2, y: y + height / 2 };
+}
+
 describe("brickFrame", () => {
   const names = new Set(
     atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
@@ -52,7 +150,7 @@ describe("brickFrame", () => {
     },
   );
 
-  it("shows a ghost brick, once it shows, as a plain one", () => {
+  it("shows a ghost brick, once it shows, as a frame of its own, not a plain brick's nor a hidden ghost's", () => {
     const ghost: BrickLook = {
       kind: "ghost",
       tint: 3,
@@ -61,22 +159,18 @@ describe("brickFrame", () => {
       shown: true,
     };
 
-    expect(brickFrame(ghost)).toBe(
-      brickFrame({ ...ghost, kind: "plain", whole: 1 }),
-    );
+    expect(
+      new Set([
+        brickFrame(ghost),
+        brickFrame({ ...ghost, shown: false }),
+        brickFrame({ ...ghost, kind: "plain", whole: 1 }),
+      ]).size,
+    ).toBe(3);
   });
 
-  it("shows a hidden ghost brick as a frame of its own", () => {
-    const ghost: BrickLook = {
-      kind: "ghost",
-      tint: 3,
-      whole: 2,
-      hits: 2,
-      shown: false,
-    };
-
-    expect(brickFrame(ghost)).not.toBe(
-      brickFrame({ ...ghost, kind: "plain", whole: 1, hits: 1, shown: true }),
+  it("shows a regrowing brick as one frame, whatever the level tints it", () => {
+    expect(brickFrame(lookOf("regrow", 0))).toBe(
+      brickFrame(lookOf("regrow", 5)),
     );
   });
 
@@ -101,19 +195,70 @@ describe("brickFrame", () => {
   );
 });
 
+describe("every brick's frame", () => {
+  // Every look but a ghost's, which stands on no slab, hidden or shown.
+  const slabbed = BRICK_KIND_IDS.filter((kind) => kind !== "ghost").flatMap(
+    (kind) => looksOf(kind).filter((look) => look.tint === 2),
+  );
+
+  it.each(slabbed)(
+    "stands a $kind brick, $hits of $whole hits left, on the slab in the color its shards take",
+    (look) => {
+      const frame = frameOf(look);
+
+      expect(frame.commands.slice(0, 3)).toEqual(
+        slabCommands(cellOf(frame), brickColor(look, ART_PALETTE), BRICK_SLAB),
+      );
+    },
+  );
+
+  it.each(FIELD_SCALES)(
+    "draws every line of every brick a CSS pixel wide or more, at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const thin = BRICK_KIND_IDS.flatMap((kind) =>
+        BRICK_ART[kind].frames(ART_PALETTE, scale),
+      ).filter((frame) =>
+        frame.commands.some((command) => {
+          const width = lineOf(command);
+          return width !== null && width < scale.pixelRatio;
+        }),
+      );
+
+      expect(thin.map((frame) => frame.name)).toEqual([]);
+    },
+  );
+});
+
 describe("a tough brick's frame", () => {
   /** Returns the frame a tough brick of four hits shows with some left. */
-  function toughWith(hits: number): ArtFrame {
-    return frameNamed(
-      ART_FRAMES,
-      brickFrame({ kind: "tough", tint: 0, whole: 4, hits, shown: true }),
+  function toughWith(hits: number, frames = ART_FRAMES): ArtFrame {
+    return frameOf(
+      { kind: "tough", tint: 0, whole: 4, hits, shown: true },
+      frames,
     );
   }
 
-  it.each([1, 2, 3, 4])("shows a pip for each of %i hits left", (hits) => {
-    const frame = toughWith(hits);
+  it.each([1, 2, 3, 4])(
+    "shows a pip cut out for each of %i hits left",
+    (hits) => {
+      const frame = toughWith(hits);
 
-    expect(drawnIn(frame, "circle", ART_PALETTE.mark)).toHaveLength(hits);
+      expect(circlesIn(frame, ART_PALETTE.mark)).toHaveLength(hits);
+    },
+  );
+
+  it("lays its pips in a row across the brick's middle, a step apart", () => {
+    const frame = toughWith(3);
+    const pips = circlesIn(frame, ART_PALETTE.mark);
+    const step = 0.3 * frame.height;
+
+    expect({
+      downs: new Set(pips.map(({ y }) => billionths(y))),
+      acrosses: pips.map(({ x }) => billionths(x)),
+    }).toEqual({
+      downs: new Set([billionths(0.485 * frame.height)]),
+      acrosses: [-step, 0, step].map((by) => billionths(frame.width / 2 + by)),
+    });
   });
 
   it.each([1, 2, 3, 4])(
@@ -121,61 +266,178 @@ describe("a tough brick's frame", () => {
     (hits) => {
       const frame = toughWith(hits);
 
-      expect(drawnIn(frame, "polyline", ART_PALETTE.mark)).toHaveLength(
-        4 - hits,
-      );
+      expect(polygonsIn(frame, ART_PALETTE.mark)).toHaveLength(4 - hits);
     },
   );
 
-  it("is drawn in the deeper tint", () => {
-    const frame = toughWith(4);
+  it("leaves out its cracks, but not its pips, where a brick is under 30 CSS pixels wide", () => {
+    const frame = toughWith(2, SMALL_FRAMES);
 
-    expect(frame.commands[0]).toMatchObject({
-      kind: "roundRect",
-      color: ART_PALETTE.toughTints[0],
-    });
+    expect({
+      pips: circlesIn(frame, ART_PALETTE.mark).length,
+      cracks: polygonsIn(frame, ART_PALETTE.mark).length,
+    }).toEqual({ pips: 2, cracks: 0 });
   });
 });
 
-describe("a brick's mark", () => {
-  it.each([
-    ["tough", { whole: 3, hits: 2 }],
-    ["steel", { whole: 0, hits: 0 }],
-    ["blast", {}],
-    ["gift", {}],
-    ["regrow", {}],
-  ] as const)(
-    "is drawn on a %s brick's body in the marks' color",
-    (kind, stands) => {
-      const frame = frameNamed(
-        ART_FRAMES,
-        brickFrame({
-          kind,
-          tint: 0,
-          whole: 1,
-          hits: 1,
-          shown: true,
-          ...stands,
-        }),
-      );
+describe("a steel brick's frame", () => {
+  const { steelLine } = ART_PALETTE.kindInks;
+  const sheen = mixColors(0xffffff, ART_PALETTE.bricks.steel, 0.5);
 
-      expect(frame.commands.slice(1).map((command) => command.color)).toContain(
-        ART_PALETTE.mark,
-      );
-    },
-  );
+  it("frames it in the steel's line, a rivet in each corner of the frame, and two strokes of sheen", () => {
+    const frame = frameOf(lookOf("steel"));
+    const rivets = circlesIn(frame, steelLine);
 
-  it("is cut out of a gift brick in its body's color", () => {
-    const gift = frameNamed(
-      ART_FRAMES,
-      brickFrame({ kind: "gift", tint: 0, whole: 1, hits: 1, shown: true }),
+    expect({
+      frame: polygonsIn(frame, steelLine).length,
+      rivets: new Set(rivets.map(({ x, y }) => `${String(x)} ${String(y)}`))
+        .size,
+      sheen: drawnIn(frame, "line", sheen).length,
+    }).toEqual({ frame: 1, rivets: 4, sheen: 2 });
+  });
+
+  it("keeps its frame, but leaves out its rivets and sheen, where a brick is under 30 CSS pixels wide", () => {
+    const frame = frameOf(lookOf("steel"), SMALL_FRAMES);
+
+    expect(frame.commands.slice(3).map(({ color }) => color)).toEqual([
+      steelLine,
+    ]);
+  });
+});
+
+describe("a blast brick's frame", () => {
+  const frame = frameOf(lookOf("blast"));
+
+  it("puts a dot toward each brick around it that it reaches, three down each end", () => {
+    const dots = circlesIn(frame, ART_PALETTE.mark).filter(
+      ({ radius }) => billionths(radius) === billionths(0.04 * frame.height),
     );
 
-    expect(gift.commands.map((command) => command.color)).toEqual([
-      ART_PALETTE.bricks.gift,
-      ART_PALETTE.mark,
-      ART_PALETTE.bricks.gift,
-    ]);
+    expect({
+      count: dots.length,
+      acrosses: new Set(dots.map(({ x }) => billionths(x / frame.width))),
+      downs: new Set(dots.map(({ y }) => billionths(y / frame.height))),
+    }).toEqual({
+      count: 6,
+      acrosses: new Set([0.11, 0.89]),
+      downs: new Set([0.22, 0.46, 0.7]),
+    });
+  });
+
+  it("cuts out its bomb, round, toward its middle, and lights its spark", () => {
+    const body = circlesIn(frame, ART_PALETTE.mark).find(
+      ({ radius }) => radius > 0.2 * frame.height,
+    );
+
+    expect({
+      across: Math.round(((body?.x ?? 0) / frame.width) * 100),
+      sparks: polygonsIn(frame, ART_PALETTE.kindInks.spark).length,
+    }).toEqual({ across: 48, sparks: 1 });
+  });
+});
+
+describe("a gift brick's frame", () => {
+  const frame = frameOf(lookOf("gift"));
+  const { ribbon } = ART_PALETTE.kindInks;
+
+  it("runs a ribbon down its middle, from the body's top to its lip, its sides on whole pixels", () => {
+    const [band] = drawnIn(frame, "rect", ribbon);
+    const face = slabFace(cellOf(frame), BRICK_SLAB);
+
+    expect(band).toEqual({
+      kind: "rect",
+      x: 36,
+      y: face.y,
+      width: 8,
+      height: face.height,
+      color: ribbon,
+    });
+  });
+
+  it("ties a bow of two loops and a knot, each outlined in the marks' color a CSS pixel inside its edge", () => {
+    const outlines = polygonsIn(frame, ART_PALETTE.mark).map(({ points }) =>
+      circleInside(points),
+    );
+    const loops = polygonsIn(frame, ribbon).map(({ points }) =>
+      circleInside(points),
+    );
+    const knots = [
+      ...circlesIn(frame, ART_PALETTE.mark),
+      ...circlesIn(frame, ribbon),
+    ].map(({ x, y, radius }) => ({ x, y, radius }));
+
+    expect({ loops, knot: knots[1] }).toEqual({
+      loops: outlines.map((outline) => ({
+        ...outline,
+        radius: billionths(outline.radius - CSS_PIXEL),
+      })),
+      knot: { ...knots[0], radius: (knots[0]?.radius ?? 0) - CSS_PIXEL },
+    });
+  });
+
+  it("mirrors its loops about the brick's middle", () => {
+    const [right, left] = polygonsIn(frame, ART_PALETTE.mark).map(middleOf);
+
+    expect(billionths((right?.x ?? 0) + (left?.x ?? 0))).toBe(frame.width);
+  });
+});
+
+describe("a ghost brick's frames", () => {
+  const ghost: BrickLook = {
+    kind: "ghost",
+    tint: 4,
+    whole: 2,
+    hits: 2,
+    shown: false,
+  };
+  const hidden = ART_PALETTE.ghostTints.hidden[4] ?? NaN;
+  const shown = ART_PALETTE.ghostTints.shown[4] ?? NaN;
+
+  it("draws a hidden ghost on no slab, in its faded tint alone: round dashes, and two faint eyes", () => {
+    const frame = frameOf(ghost);
+
+    expect({
+      colors: new Set(frame.commands.map(({ color }) => color)),
+      kinds: new Set(frame.commands.map(({ kind }) => kind)),
+      eyes: polygonsIn(frame, hidden).length,
+    }).toEqual({
+      colors: new Set([hidden]),
+      kinds: new Set(["line", "circle", "polygon"]),
+      eyes: 2,
+    });
+  });
+
+  it("draws a shown ghost as a body under a hem of six scallops in its paler tint, its two eyes cut out", () => {
+    const frame = frameOf({ ...ghost, hits: 1, shown: true });
+
+    expect({
+      body: polygonsIn(frame, shown).length,
+      scallops: circlesIn(frame, shown).length,
+      eyes: polygonsIn(frame, ART_PALETTE.mark).length,
+    }).toEqual({ body: 1, scallops: 6, eyes: 2 });
+  });
+});
+
+describe("a regrowing brick's frame", () => {
+  const frame = frameOf(lookOf("regrow"));
+  const { moss, mossShadow } = ART_PALETTE.kindInks;
+
+  it("caps its earth with moss down to nine scallops, each over a shadow", () => {
+    expect({
+      cap: polygonsIn(frame, moss).length,
+      scallops: circlesIn(frame, moss).length,
+      shadows: circlesIn(frame, mossShadow).length,
+    }).toEqual({ cap: 1, scallops: 9, shadows: 9 });
+  });
+
+  it("cuts a sprout out of its cap, a stem and two leaves, about the brick's middle", () => {
+    const leaves = polygonsIn(frame, ART_PALETTE.mark).map(middleOf);
+
+    expect({
+      stem: drawnIn(frame, "line", ART_PALETTE.mark).length,
+      leaves: leaves.length,
+      middle: billionths(((leaves[0]?.x ?? 0) + (leaves[1]?.x ?? 0)) / 2),
+    }).toEqual({ stem: 1, leaves: 2, middle: frame.width / 2 });
   });
 });
 
@@ -183,16 +445,33 @@ describe("brickColor", () => {
   it.each([
     ["plain", ART_PALETTE.tints[2]],
     ["tough", ART_PALETTE.toughTints[2]],
-    ["ghost", ART_PALETTE.tints[2]],
-    ["regrow", ART_PALETTE.tints[2]],
     ["steel", ART_PALETTE.bricks.steel],
     ["blast", ART_PALETTE.bricks.blast],
     ["gift", ART_PALETTE.bricks.gift],
+    ["regrow", ART_PALETTE.bricks.regrow],
   ] as const)("draws a %s brick in its body's color", (kind, color) => {
     const look: BrickLook = { kind, tint: 2, whole: 2, hits: 1, shown: true };
 
     expect(brickColor(look, ART_PALETTE)).toBe(color);
   });
+
+  it.each([
+    [false, ART_PALETTE.ghostTints.hidden[2]],
+    [true, ART_PALETTE.ghostTints.shown[2]],
+  ] as const)(
+    "draws a ghost brick, shown %s, in its tint as it stands",
+    (shown, color) => {
+      const look: BrickLook = {
+        kind: "ghost",
+        tint: 2,
+        whole: 2,
+        hits: 1,
+        shown,
+      };
+
+      expect(brickColor(look, ART_PALETTE)).toBe(color);
+    },
+  );
 
   it.each([
     ["cage", ART_PALETTE.tints[4]],
