@@ -275,7 +275,13 @@ take the pure ones.
   (`KeepKeysDirective`) stops key events on a button from reaching the element
   around it that Phaser's keyboard listens on, so the button takes the key
   rather than the scene, and Phaser's capture never cancels Space's keyup, at
-  which the button clicks.
+  which the button clicks. `settledPictures()`, called as a board is made,
+  returns what the board hands the pictures of each bake of its scene's
+  atlas to, which hands them on to where the board says: the first at once,
+  and a later one only once no other has come for `PICTURES_SETTLE_MS`
+  (250), so a resize under way, which bakes the atlas at each new unit, has
+  nothing encoded until it stops, and nothing waiting is handed on once the
+  board is destroyed.
 - `src/testing/`: what a spec runs a scene in. `installHeadlessPhaser()`,
   which a test setup calls, gives jsdom the 2D and WebGL contexts, drawing
   nothing, that Phaser needs, the 2D measuring text as a font whose every

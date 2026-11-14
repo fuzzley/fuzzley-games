@@ -563,7 +563,7 @@ takes for the specs' helpers.
     play's pictures as How to play opens, the panels show or the Ready card
     names a new kind (`pictures`),
     takes a later bake's only once the atlas has settled
-    (`PICTURES_SETTLE_MS`), and keeps them until the scene bakes again. For
+    (`settledPictures()`), and keeps them until the scene bakes again. For
     the layout check (`tools/check-layout.mjs`) it publishes `data-field`
     (the field's cells), `data-room` and `data-panels` (`""` where none
     show), once the scene has laid the field out. The canvas and its focus

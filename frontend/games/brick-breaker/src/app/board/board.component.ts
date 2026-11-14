@@ -1,6 +1,5 @@
 import {
   Component,
-  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
@@ -23,6 +22,7 @@ import {
   boardHostOptions,
   canvasCardOf,
   canvasRoom,
+  settledPictures,
 } from "@fz/phaser/canvas";
 import {
   cssRectOf,
@@ -59,13 +59,6 @@ import { InPlayComponent } from "../panels/in_play.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
-
-/**
- * How long the scene's atlas must stay as it was last baked before the
- * pictures of it are handed on, in milliseconds: a resize under way bakes
- * it again at each new unit, and each picture handed on is encoded again.
- */
-export const PICTURES_SETTLE_MS = 250;
 
 /** Names a card of the board's own laid over the field, or none. */
 type Card = "ready" | "paused" | "cleared" | "ended" | null;
@@ -366,8 +359,15 @@ export class BoardComponent {
    */
   readonly pictures = computed(() => this.askPictures()?.() ?? null);
 
-  /** The timer that hands on the last bake's pictures once the atlas settles. */
-  private picturesTimer: ReturnType<typeof setTimeout> | undefined;
+  /**
+   * Takes the pictures of each bake of the scene's atlas: the first at
+   * once, and a later one once the atlas has settled.
+   */
+  private readonly takePictures = settledPictures<() => Pictures>(
+    (pictures) => {
+      this.askPictures.set(pictures);
+    },
+  );
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BricksSceneOptions = {
@@ -413,9 +413,6 @@ export class BoardComponent {
       this.game.setDrawn(this.canvas().state() === "ready");
     });
     this.askForTheRoom();
-    inject(DestroyRef).onDestroy(() => {
-      clearTimeout(this.picturesTimer);
-    });
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
@@ -457,23 +454,6 @@ export class BoardComponent {
         this.game.setFieldHeight(height);
       });
     });
-  }
-
-  /**
-   * Takes the pictures of the atlas the scene baked: the first at once,
-   * each later one once the atlas has stayed as it is for
-   * {@link PICTURES_SETTLE_MS}, so a resize under way, which bakes it at
-   * each new unit, has nothing encoded until it stops.
-   */
-  private takePictures(pictures: () => Pictures): void {
-    clearTimeout(this.picturesTimer);
-    if (this.askPictures() === null) {
-      this.askPictures.set(pictures);
-      return;
-    }
-    this.picturesTimer = setTimeout(() => {
-      this.askPictures.set(pictures);
-    }, PICTURES_SETTLE_MS);
   }
 
   /**

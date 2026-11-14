@@ -20,6 +20,7 @@ import {
   type SceneSource,
   boardHostOptions,
   canvasRoom,
+  settledPictures,
 } from "@fz/phaser/canvas";
 import { cssHex } from "@fz/phaser/color";
 import { AnnouncerService } from "@fz/ui/announcer";
@@ -44,13 +45,6 @@ import { ComingNextComponent } from "../panels/coming_next.component";
 import { InThisWallComponent } from "../panels/in_this_wall.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
-
-/**
- * How long the scene's atlas must stay as it was last baked before the
- * pictures of it are handed on, in milliseconds: a resize under way bakes
- * it again at each new unit, and each picture handed on is encoded again.
- */
-export const PICTURES_SETTLE_MS = 250;
 
 /** What the announcer says as the board's WebGL context is lost, and as it is back. */
 export const BOARD_CONTEXT_WORDS = {
@@ -363,11 +357,15 @@ export class BoardComponent {
     );
   });
 
-  /** The timer that hands the game the last bake's pictures once the atlas settles. */
-  private picturesTimer: ReturnType<typeof setTimeout> | undefined;
-
-  /** Whether the board has handed the game any pictures yet. */
-  private picturesHanded = false;
+  /**
+   * Hands the game the pictures of each bake of the scene's atlas: the
+   * first at once, and a later one once the atlas has settled.
+   */
+  private readonly takePictures = settledPictures<() => Pictures>(
+    (pictures) => {
+      this.game.onPictures(pictures);
+    },
+  );
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: WallSceneOptions = {
@@ -435,9 +433,6 @@ export class BoardComponent {
       untracked(() => {
         this.game.setRoom(room);
       });
-    });
-    inject(DestroyRef).onDestroy(() => {
-      clearTimeout(this.picturesTimer);
     });
   }
 
@@ -529,23 +524,5 @@ export class BoardComponent {
    */
   private takeFocusBack(): void {
     this.play().nativeElement.focus();
-  }
-
-  /**
-   * Hands the game the pictures of the atlas the scene baked: the first at
-   * once, each later one once the atlas has stayed as it is for
-   * {@link PICTURES_SETTLE_MS}, so a resize under way, which bakes it at
-   * each new unit, has nothing encoded until it stops.
-   */
-  private takePictures(pictures: () => Pictures): void {
-    clearTimeout(this.picturesTimer);
-    if (!this.picturesHanded) {
-      this.picturesHanded = true;
-      this.game.onPictures(pictures);
-      return;
-    }
-    this.picturesTimer = setTimeout(() => {
-      this.game.onPictures(pictures);
-    }, PICTURES_SETTLE_MS);
   }
 }

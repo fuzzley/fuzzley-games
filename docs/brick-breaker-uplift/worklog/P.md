@@ -455,3 +455,58 @@ before the review and after; Brick Fuzz Pop's lint, typecheck and test
 (147 files, 6,489 specs) and Brick Breaker's (67 files, 2,715 specs, with
 `sim`); the root's lint, typecheck and test, under the lock (2 min 39 s),
 and its lint again after the fixes.
+
+### 2026-11-14: the boards' settling of their pictures, lifted into `@fz/phaser/canvas`
+
+P2's second follow-up. Brick Breaker's board took a bake's pictures as
+Brick Fuzz Pop's did, in a copy of its `takePictures()`, its timer and
+`PICTURES_SETTLE_MS`. `@fz/phaser/canvas` gains
+`src/canvas/settled_pictures.ts`: `settledPictures(hand)`, called as a
+board is made, returns what the board hands each bake's pictures to, which
+hands them on to `hand`, the first at once and a later one only once no
+other has come for `PICTURES_SETTLE_MS` (250), and drops one still waiting
+as the board is destroyed. Brick Breaker's board hands them to its own
+signal, Brick Fuzz Pop's to its game (`onPictures()`), as each did; their
+specs of the wait take `PICTURES_SETTLE_MS` from the library and are
+otherwise unchanged.
+
+- **In the canvas entry,** beside `canvasRoom()`, which a board also calls
+  as it is made: the pictures themselves are `@fz/phaser/scene`'s
+  (`picturesWhenAsked()`), but the shell may import the scene's helpers only
+  by type, and what waits on the bakes is the board's, in Angular.
+- **A function, not a signal:** the two boards hand the pictures on to
+  different places, so the helper takes where, rather than holding them.
+- **Generic in what it hands on,** as each game's `Pictures` is its own.
+- Its spec, in the library, holds each case on a board of its own: the first at
+  once, a later one held a millisecond short of the wait and handed on at it,
+  the wait begun again at each bake, a burst handing on only its last, nothing
+  handed on once the board is gone, and a refusal outside an injection context.
+  `src/canvas/` stays whole.
+
+**Review** (a fresh agent): it found both boards' behaviour unchanged
+(Brick Breaker's `askPictures() === null` and the closure's flag are one
+test, since nothing sets it back to null), the layering and the idioms
+`canvasRoom()`'s, and no reference to the old code left. Its comments:
+
+1. "Waits again at each bake" passed with a throttle that keeps its first
+   timer, as it checked only the end. Fixed: two cases, as the boards'
+   specs have them: a millisecond short of the wait after the last bake,
+   nothing new; at it, only the last of the burst.
+2. The refusal outside an injection context checked a bare `toThrow()`,
+   which `inject()` throws anyway. Fixed: it expects the error to name
+   `settledPictures()`, as `canvasRoom()`'s spec does.
+3. The `phaser-core` skill didn't name the helper. Fixed: beside
+   `canvasRoom()` in the canvas entry, and where `picturesWhenAsked()` says
+   a scene hands its shell new pictures at each bake.
+4. Nits: the games' `AGENTS.md` left short lines where the helper's name
+   came in; each now names `settledPictures()` alone, in the line the
+   constant held, so neither paragraph moves. The library's "as the board
+   says" is "to where the board says". This entry said "a frame short",
+   which is a millisecond.
+
+**Checks:** `@fz/phaser`'s lint, typecheck, test (59 files, 904 specs) and
+coverage (`src/canvas/` whole but for two branches it had before); Brick
+Fuzz Pop's lint, typecheck and test (147 files, 6,489 specs); Brick
+Breaker's (67 files, 2,715 specs, with `sim`); the root's lint, typecheck
+and test, under the lock; after the fixes, the library's spec and lint and
+the root's lint again.
