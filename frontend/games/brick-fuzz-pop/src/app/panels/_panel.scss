@@ -1,7 +1,7 @@
 // The look the two panels beside a wide room's field share: a card's over
 // the board, with no colors of their own. The board lays each over its
 // room with `cssRectStyle()`, so a panel takes no size of its own, and it
-// takes no pointer, so a pull back can start over it.
+// takes no pointer, so a press can start over it.
 @use "../styles" as *;
 
 @mixin panel {

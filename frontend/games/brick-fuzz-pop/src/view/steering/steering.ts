@@ -11,12 +11,7 @@ import {
   RADIUS,
 } from "../../rules/tuning";
 import { type FieldMetrics, type Place, toField } from "../field/field_metrics";
-import {
-  BY_POINTER,
-  type PointerAiming,
-  type PointerAimings,
-  STRAIGHT_UP,
-} from "./aiming";
+import { type PointerAiming, STRAIGHT_UP } from "./aiming";
 import { type SteerKey, commandOfKey, heldKeyOf, steerKeyOf } from "./controls";
 
 /**
@@ -147,17 +142,18 @@ function chargeOf(notches: number): Charge {
  * frame at a time: the aim, the charge, the shot let fly, and fast-forward
  * held.
  *
- * Each kind of pointer aims its own way ({@link PointerAimings}). Pulled
- * back, a press anywhere on the canvas aims opposite the drag, charging a
- * notch each {@link PULL_NOTCH} past the {@link DEAD_ZONE}. Pointed, the
- * aim follows the pointer, a mouse's even unpressed and as the fuzzball
- * waits somewhere new, and a press held charges a notch each
- * {@link HOLD_NOTCH_MS} by the frames' clock. Either flies as it is let go,
- * wherever that is, at the aim and the charge its last move and the last
- * frame showed. Only the mouse's main button presses, and its
- * right button calls a charge off; a second press while one is held, a
- * touch the browser takes away, or a pointer lost ({@link callOff}) calls
- * the shot off, and never lets it fly.
+ * The mouse and fingers aim the way the settings choose
+ * ({@link PointerAiming}). Pointed, the aim follows the pointer, a finger's
+ * from its press and a mouse's even unpressed and as the fuzzball waits
+ * somewhere new, and a press held charges a notch each
+ * {@link HOLD_NOTCH_MS} by the frames' clock, whether it moves or not.
+ * Pulled back, a press anywhere on the canvas aims opposite the drag,
+ * charging a notch each {@link PULL_NOTCH} past the {@link DEAD_ZONE}.
+ * Either flies as it is let go, wherever that is, at the aim and the charge
+ * its last move and the last frame showed. Only the mouse's main button
+ * presses, and its right button calls a charge off; a second press while
+ * one is held, a touch the browser takes away, or a pointer lost
+ * ({@link callOff}) calls the shot off, and never lets it fly.
  *
  * The scene reads it every frame, follows {@link MOST_FINGERS}, hands a
  * pointer let go past the canvas to {@link pointerUp}, and calls
@@ -168,7 +164,8 @@ function chargeOf(notches: number): Charge {
 export class Steering {
   /** The keys held: fast-forward, F. */
   private readonly keys = new HeldKeys(heldKeyOf);
-  private aimings: PointerAimings = BY_POINTER;
+  /** How the mouse and fingers aim from their next press on. */
+  private aiming: PointerAiming = "pointAndHold";
   private aim: Aim = STRAIGHT_UP;
   private charge: Charge = 0;
   /** Where the fuzzball waits across the floor, which a pointer aims from. */
@@ -176,7 +173,7 @@ export class Steering {
   /** The pointer pressed, by its id, or null: one at a time aims. */
   private pressed: number | null = null;
   /** How the pointer pressed aims. */
-  private way: PointerAiming = BY_POINTER.finger;
+  private way: PointerAiming = "pointAndHold";
   /** Where the pointer was pressed, in device pixels. */
   private pressX = 0;
   private pressY = 0;
@@ -218,12 +215,12 @@ export class Steering {
   }
 
   /**
-   * Takes how each kind of pointer aims from its next press on; a mouse
+   * Takes how the mouse and fingers aim from their next press on; a mouse
    * that no longer points stops aiming at its place.
    */
-  aimWith(aimings: PointerAimings): void {
-    this.aimings = aimings;
-    if (aimings.mouse !== "pointAndHold") this.pointed = false;
+  aimWith(aiming: PointerAiming): void {
+    this.aiming = aiming;
+    if (aiming !== "pointAndHold") this.pointed = false;
   }
 
   /**
@@ -273,7 +270,7 @@ export class Steering {
       return;
     }
     this.pressed = pointer.id;
-    this.way = pointer.wasTouch ? this.aimings.finger : this.aimings.mouse;
+    this.way = this.aiming;
     this.pressX = pointer.x;
     this.pressY = pointer.y;
     this.charge = 0;
@@ -286,7 +283,7 @@ export class Steering {
    */
   pointerMove(pointer: PointerView): void {
     if (this.pressed === null) {
-      if (!pointer.wasTouch && this.aimings.mouse === "pointAndHold") {
+      if (!pointer.wasTouch && this.aiming === "pointAndHold") {
         this.pointAt(pointer);
       }
       return;

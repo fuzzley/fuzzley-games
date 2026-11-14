@@ -3,6 +3,7 @@ import { booleanOr } from "@fz/core/json";
 import { isOneOf } from "@fz/core/records";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import type { FlightSpeed } from "../../view/round_play";
+import type { PointerAiming } from "../../view/steering/aiming";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 const SETTINGS_KEY = "brick-fuzz-pop-settings";
@@ -10,14 +11,17 @@ const SETTINGS_KEY = "brick-fuzz-pop-settings";
 /** The shape the settings are kept in; a reader drops any other. */
 const SETTINGS_VERSION = 1;
 
-/** The ways a pointer may aim, in the order the settings offer them. */
-export const AIMINGS = ["byPointer", "pullBack", "pointAndHold"] as const;
+/** The ways the mouse and fingers may aim, in the order the settings offer them. */
+export const AIMINGS = [
+  "pointAndHold",
+  "pullBack",
+] as const satisfies readonly PointerAiming[];
 
 /**
- * Names how a pointer aims and charges: each its own way (a finger pulls
- * back, a mouse points and holds), or both alike. The keys aim either way.
+ * Names how the mouse and fingers aim and charge: the view's, which aims
+ * them. The keys aim either way.
  */
-export type Aiming = (typeof AIMINGS)[number];
+export type Aiming = PointerAiming;
 
 /** The flight's speeds, in the order the settings offer them. */
 export const FLIGHT_SPEEDS = [
@@ -44,7 +48,7 @@ export interface Settings {
 
 /** The settings a player starts with. */
 export const DEFAULT_SETTINGS: Settings = {
-  aiming: "byPointer",
+  aiming: "pointAndHold",
   flightSpeed: "normal",
   speedUpLongFlights: true,
   guide: true,
@@ -69,7 +73,10 @@ export class SettingsService {
   }
 }
 
-/** Returns the settings stored, each one that makes sense, else the default. */
+/**
+ * Returns the settings stored, each one that makes sense, else the default,
+ * as "By the pointer", a way of aiming no longer offered, is read.
+ */
 function settingsFrom(saved: StoredFields | null): Settings {
   if (!saved) return DEFAULT_SETTINGS;
   const { aiming, flightSpeed, speedUpLongFlights, guide, sound } = saved;

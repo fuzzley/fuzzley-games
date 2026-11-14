@@ -1418,6 +1418,19 @@ describe("BoardComponent", () => {
       expect(game.phase()).toBe("flying");
     });
 
+    it("hands the scene the settings' way of aiming, so a click that pulls back nowhere flies nothing", async () => {
+      const { game, run } = await runBoardScene();
+      TestBed.inject(SettingsService).update({ aiming: "pullBack" });
+      run.advance(FRAME_MS);
+
+      run.pointer("down", 195, 300);
+      run.advance(FRAME_MS);
+      run.pointer("up", 195, 300);
+      run.advance(FRAME_MS);
+
+      expect(game.phase()).toBe("aiming");
+    });
+
     it("lets go of a key held down on it as the focus leaves it", async () => {
       const { board, game, run } = await runBoardScene();
       release(game);

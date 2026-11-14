@@ -379,7 +379,7 @@ export class BoardComponent {
     boon: () => this.game.boon(),
     crew: () => this.game.crew(),
     guide: () => this.game.guide(),
-    aimings: () => this.game.aimings(),
+    pointerAiming: () => this.game.pointerAiming(),
     palette: () => this.game.palette(),
     shape: () => this.game.shape(),
     motion: () => this.game.motion(),

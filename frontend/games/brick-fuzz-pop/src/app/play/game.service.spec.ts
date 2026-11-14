@@ -54,7 +54,6 @@ import {
 } from "../../view/field/field_metrics";
 import { FLIGHT_PACE } from "../../view/round_play";
 import { DebugService } from "../debug/debug.service";
-import { BY_POINTER } from "../../view/steering/aiming";
 import { waitingRows } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
@@ -1516,15 +1515,15 @@ describe("GameService", () => {
       );
     });
 
-    it("hands the steering each kind of pointer's way of aiming, as the settings say", () => {
+    it("hands the steering the mouse's and fingers' way of aiming, as the settings say", () => {
       const game = gameOf();
-      const byPointer = game.aimings();
+      const first = game.pointerAiming();
 
       TestBed.inject(SettingsService).update({ aiming: "pullBack" });
 
-      expect([byPointer, game.aimings()]).toEqual([
-        BY_POINTER,
-        { mouse: "pullBack", finger: "pullBack" },
+      expect([first, game.pointerAiming()]).toEqual([
+        "pointAndHold",
+        "pullBack",
       ]);
     });
 

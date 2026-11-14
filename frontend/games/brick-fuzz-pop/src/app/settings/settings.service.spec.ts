@@ -18,11 +18,11 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player aiming by the pointer at Normal, long flights sped up, with the guide and sound", () => {
+  it("starts a new player pointing and holding at Normal, long flights sped up, with the guide and sound", () => {
     const settings = TestBed.inject(SettingsService);
 
     expect(settings.settings()).toEqual({
-      aiming: "byPointer",
+      aiming: "pointAndHold",
       flightSpeed: "normal",
       speedUpLongFlights: true,
       guide: true,
@@ -45,7 +45,7 @@ describe("SettingsService", () => {
 
   it("keeps the settings for the next visit", () => {
     const kept = {
-      aiming: "pointAndHold",
+      aiming: "pullBack",
       flightSpeed: "fast",
       speedUpLongFlights: false,
       guide: false,
@@ -99,13 +99,25 @@ describe("SettingsService", () => {
   });
 
   it("takes a setting kept before it was offered as its default", () => {
-    store({ version: 1, aiming: "pointAndHold" });
+    store({ version: 1, aiming: "pullBack" });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({
+      ...DEFAULT_SETTINGS,
+      aiming: "pullBack",
+    });
+  });
+
+  it("points and holds where the player kept aiming by the pointer, no longer offered", () => {
+    store({ version: 1, aiming: "byPointer", guide: false });
 
     const settings = TestBed.inject(SettingsService);
 
     expect(settings.settings()).toEqual({
       ...DEFAULT_SETTINGS,
       aiming: "pointAndHold",
+      guide: false,
     });
   });
 

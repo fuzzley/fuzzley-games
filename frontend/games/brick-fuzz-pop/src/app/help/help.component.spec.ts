@@ -113,12 +113,22 @@ describe("HelpComponent", () => {
     );
   });
 
-  it("aims a mouse by pointing and a finger by pulling back", async () => {
+  it("aims a mouse and a finger by pointing", async () => {
     await renderHelp();
 
     expect([column(0)[0], column(1)[0]]).toEqual([
       expect.stringMatching(/^Point; the guide follows/),
-      expect.stringMatching(/^Press anywhere on the field and drag away/),
+      "Press where to aim; the guide follows as you drag",
+    ]);
+  });
+
+  it("charges a finger held, still or dragging, and calls it off at a second", async () => {
+    await renderHelp();
+
+    expect([column(1)[1], column(1)[2], column(1)[3]]).toEqual([
+      "Keep pressing, still or dragging: the charge climbs a notch at a time to 5, then back down and round again",
+      "Let go; a tap flies plain",
+      "Touch the field with a second finger",
     ]);
   });
 
@@ -131,11 +141,11 @@ describe("HelpComponent", () => {
     ]);
   });
 
-  it("says the settings can swap the ways of aiming", async () => {
+  it("says the settings can have the mouse and fingers pull back instead", async () => {
     await renderHelp();
 
     expect(paragraph("Ways of aiming.")).toHaveTextContent(
-      "Aiming can have a mouse pull back, or a finger point and hold",
+      "Aiming can have the mouse and fingers pull back instead: press anywhere on the field and drag away from where to aim",
     );
   });
 

@@ -15,8 +15,8 @@ import { waitingRows } from "./panels";
  * each brick's ink, the next to come in lowest, as many as fit; how many
  * are left; and the jump, in a sentence.
  *
- * It is a region named by its heading, and takes no pointer, so a pull
- * back can start over it. The board lays it over its room with
+ * It is a region named by its heading, and takes no pointer, so a press
+ * can start over it. The board lays it over its room with
  * `cssRectStyle()`; the squares are hidden from assistive technology, as
  * the sentence beside them says what they show.
  */

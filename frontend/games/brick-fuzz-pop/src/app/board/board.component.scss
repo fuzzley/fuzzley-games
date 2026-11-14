@@ -62,7 +62,7 @@
 
 // The rows waiting, in the lintel over the ceiling's line, in the field's
 // text: as large as the lintel holds, and no larger than the page's small
-// text, taking no pointer, so a pull back can start over it.
+// text, taking no pointer, so a press can start over it.
 .lintel {
   position: absolute;
   display: flex;

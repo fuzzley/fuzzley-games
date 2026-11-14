@@ -237,16 +237,16 @@ helpers.
   keys by `event.code`; `steering.ts`'s `Steering` turns the keys, the
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
   charge, a shot let fly, fast-forward held and whether the keys moved it,
-  aiming a pointer from where the fuzzball waits: pulled back past a dead
-  zone, a notch at a time, or pointed and held, the hold counted by the
-  frames' clock, at most `LONGEST_FRAME_MS` a frame, each kind of pointer
-  its own way. Escape calls off a charge building, which the frame says as a
-  key's change is, and otherwise passes on to pause, as only the steering
-  knows a charge builds. `aiming.ts` holds how each kind of pointer aims
-  (`PointerAimings`), the settings' "by the pointer" (`BY_POINTER`) and the
-  aim straight up the steering starts at (`STRAIGHT_UP`), which the
-  steering, the scene and the shell take from it, so the shell's chunk
-  carries no `Steering`.
+  aiming a pointer from where the fuzzball waits, the mouse and fingers
+  alike, the way the settings choose: pointed and held, a finger aiming at
+  once and charging held still or dragging, the hold counted by the frames'
+  clock, at most `LONGEST_FRAME_MS` a frame, or pulled back past a dead
+  zone, a notch at a time. Escape calls off a charge building, which the
+  frame says as a key's change is, and otherwise passes on to pause, as
+  only the steering knows a charge builds. `aiming.ts` holds the ways a
+  pointer aims (`PointerAiming`) and the aim straight up the steering starts
+  at (`STRAIGHT_UP`), which the steering, the scene and the shell take from
+  it, so the shell's chunk carries no `Steering`.
 - **`src/view/colors/`** — the field's colors: the page's roles it is drawn
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its
@@ -471,8 +471,9 @@ helpers.
     shot being aimed carries it. `panels.ts` reads the wall for both
     (`waitingRows()`, `kindsIn()`).
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
-    (by the pointer, a finger pulling back and a mouse pointing and holding,
-    or either way for both), the flight's speed, long flights sped up, the
+    (pointing and holding, or pulling back, the mouse and fingers alike; a
+    "by the pointer" kept from before, which had a finger pull back, is read
+    as pointing and holding), the flight's speed, long flights sped up, the
     aim guide, sound and the palette, each applied at once; `SettingsService`
     keeps them. Where `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a
     development build and in a production one at `?debug`, the debug menu
