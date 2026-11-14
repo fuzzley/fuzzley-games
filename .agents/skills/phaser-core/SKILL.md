@@ -121,6 +121,8 @@ holds.
   brick's pips as a die's face or a row (`diePips()`, `pipRow()`) and a
   symbol's dots and rims in a square (`dotIn()`, `discIn()`, `rimIn()`)
   are there too, so a game draws with them rather than its own copies.
+  `svgOf()` writes a drawing's commands as an SVG document, so a page shows
+  the drawing a scene bakes, as an image or a CSS mask, from one list.
 - **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
   commands, and imports nothing else, so a game's view takes it as it takes
   the pure entries: `fuzzballCommands()`, its body and fur, `by` device

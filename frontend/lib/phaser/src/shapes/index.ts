@@ -50,6 +50,7 @@ export {
   stroke,
   widthOf,
 } from "./shapes";
+export { type Drawing, svgOf } from "./svg";
 export { discIn, dotIn, rimIn, symbolLineStyle } from "./symbols";
 export {
   bounded,

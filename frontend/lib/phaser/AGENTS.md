@@ -121,7 +121,10 @@ take the pure ones.
   atlas of a set of frames is, packed as `bakeAtlas()` packs them, in rows,
   tallest first, frames of one height in the order given
   (`src/shapes/packing.ts`), so a game's spec can hold it to a size without
-  Phaser. It imports nothing.
+  Phaser. `svgOf()` writes a `Drawing`, a size and its commands, as an SVG
+  document (`src/shapes/svg.ts`), each shape as a canvas draws it, its
+  colors with `cssHex()`, so a page shows the drawing a scene bakes, as an
+  image or a CSS mask. It imports nothing but `color`.
 - `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
   every game draws the one fuzzball: its strands of fur, read from its path
   (`strandsOf()`, `FUZZBALL_STRANDS`), each a `Strand` about its body's
