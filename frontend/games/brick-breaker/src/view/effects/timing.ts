@@ -71,3 +71,11 @@ export function resultDelayMs(motion: boolean): number {
 
 /** How long a streak's step plays: the ring about its ball and the count beside it. */
 export const STREAK_MS = 300;
+
+/**
+ * How long the last brick's hit holds as its level clears, the flourishes
+ * the scene times and the shards standing still, before the clear's chord
+ * plays; the camera's shake and a fire ball's embers, which Phaser times,
+ * run on.
+ */
+export const HOLD_MS = 120;

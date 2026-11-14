@@ -2,6 +2,7 @@ import { FrameSounds } from "@fz/core/frame_sounds";
 import { canBreak } from "../../rules/bricks/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "../field/frame";
 import { isStreakStep } from "./streak";
+import { HOLD_MS } from "./timing";
 
 /** Every sound of the game's sprite, in the sprite's order. */
 export const SOUNDS = [
@@ -35,12 +36,12 @@ const SEMITONE_CENTS = 100;
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
  * shards, a blast's ring, the field's shake, a lost ball's fade, a
- * regrown brick's growing back and a streak's step, a ring about the ball
- * and the streak's count beside it. Each moves, so none plays where motion
- * isn't welcome.
+ * regrown brick's growing back, a streak's step, a ring about the ball
+ * and the streak's count beside it, and the last brick's hit holding as the
+ * level clears. Each moves, so none plays where motion isn't welcome.
  */
 export type Flourish =
-  "pop" | "shards" | "ring" | "shake" | "fade" | "grow" | "streak";
+  "pop" | "shards" | "ring" | "shake" | "fade" | "grow" | "streak" | "hold";
 
 /** Says what an event calls for: the flourishes it plays, and its sound. */
 export interface EventEffects {
@@ -67,7 +68,7 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   fired: { flourishes: [], sound: "fired" },
   netted: { flourishes: [], sound: "paddle" },
   lost: { flourishes: ["fade", "shake"], sound: "lost" },
-  cleared: { flourishes: [], sound: CHIME },
+  cleared: { flourishes: ["hold"], sound: CHIME },
   freed: { flourishes: [], sound: null },
   plated: { flourishes: [], sound: null },
   opened: { flourishes: [], sound: null },
@@ -112,6 +113,51 @@ export function detuneOf(event: Readonly<FieldEvent>): number {
   if (event.kind !== "broken") return 0;
   const note = STREAK_NOTES[Math.max(0, event.streak - 1)] ?? TOP_NOTE;
   return note * SEMITONE_CENTS;
+}
+
+/**
+ * Returns how long the sound of an event that calls for these effects
+ * waits, in milliseconds: one that holds the last brick's hit waits out the
+ * hold, with motion or without, so the last brick's note is heard alone
+ * before it, as the clear's chord does; any other not at all.
+ */
+export function soundDelayOf(effects: EventEffects): number {
+  return effects.flourishes.includes("hold") ? HOLD_MS : 0;
+}
+
+/**
+ * Keeps a sound that waits to play, as the clear's chord waits out the last
+ * brick's hold, till a frame's sounds hear it. One waits at most, as only
+ * the clear's chord waits.
+ */
+export class DelayedSound {
+  private sound: SoundName | null = null;
+  private detune = 0;
+  /** When it plays, in the scene's time. */
+  private due = Infinity;
+
+  /** Keeps a sound, raised so far, to play once a time comes. */
+  wait(sound: SoundName, detune: number, due: number): void {
+    this.sound = sound;
+    this.detune = detune;
+    this.due = due;
+  }
+
+  /** Returns whether a sound waits to play. */
+  isWaiting(sound: SoundName): boolean {
+    return this.sound === sound;
+  }
+
+  /**
+   * Has a frame's sounds hear the sound waiting, once its time has come;
+   * at Infinity, whenever it was due, as a new field starts.
+   */
+  playDue(now: number, sounds: FrameSounds<SoundName>): void {
+    if (this.sound === null || now < this.due) return;
+    sounds.hear(this.sound, this.detune);
+    this.sound = null;
+    this.due = Infinity;
+  }
 }
 
 /** Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays once a frame at most. */

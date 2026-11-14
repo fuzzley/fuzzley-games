@@ -21,7 +21,11 @@ export interface PaintContext extends Baked {
   field: FieldView;
   /** How far the field is from its last step to its next, from 0 to 1. */
   alpha: number;
-  /** The scene's time, in milliseconds, by which the flourishes run. */
+  /**
+   * The time the flourishes run by, in milliseconds: the scene's, but
+   * standing still while the last brick's hit holds, and behind it after
+   * (`flourishTime()`).
+   */
   now: number;
   /** Whether the player welcomes motion. */
   motion: boolean;

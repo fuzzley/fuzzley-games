@@ -112,6 +112,11 @@ export class EffectsPainter implements Painter {
     balls.add(this.fades.all.map(({ image }) => image));
   }
 
+  /** Holds the shards where they are while the last brick's hit holds, and lets them fly on after. */
+  hold(holding: boolean): void {
+    this.shards.active = !holding;
+  }
+
   /** Sets how fast the shards fly and fall for the field's unit. */
   layout(metrics: FieldMetrics): void {
     this.shards.updateConfig({
@@ -165,7 +170,7 @@ export class EffectsPainter implements Painter {
       .setVisible(true);
   }
 
-  /** Moves each ring and fade on to the scene's time, and hides those that are over. */
+  /** Moves each ring and fade on to the time the flourishes run by, and hides those that are over. */
   draw({ now }: Readonly<PaintContext>): void {
     for (const { image: ring, at } of this.rings.all) {
       if (!ring.visible) continue;
