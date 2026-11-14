@@ -8,6 +8,7 @@ import {
   effectsOf,
   flourishesOf,
 } from "./effects";
+import { STREAK_STEPS } from "./streak";
 
 /** Returns an event of a kind, at a cell or none, at a length of streak. */
 function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
@@ -55,6 +56,26 @@ describe("effectsOf", () => {
       flourishes: ["pop"],
     });
   });
+
+  it.each(STREAK_STEPS)(
+    "steps the streak as a brick breaks it to %i",
+    (streak) => {
+      expect(effectsOf(eventOf("broken", 0, streak), field)).toEqual({
+        sound: "broken",
+        flourishes: ["shards", "streak"],
+      });
+    },
+  );
+
+  it.each([1, 4, 6, 11, 21])(
+    "plays no step as a brick breaks the streak to %i",
+    (streak) => {
+      expect(effectsOf(eventOf("broken", 0, streak), field)).toEqual({
+        sound: "broken",
+        flourishes: ["shards"],
+      });
+    },
+  );
 });
 
 describe("flourishesOf", () => {
@@ -91,6 +112,10 @@ describe("detuneOf", () => {
       expect(detuneOf(eventOf("broken", 0, streak))).toBe(1900);
     },
   );
+
+  it("raises a broken brick's sound none before the streak starts", () => {
+    expect(detuneOf(eventOf("broken", 0, 0))).toBe(0);
+  });
 
   it("raises no other event's sound", () => {
     expect(detuneOf(eventOf("hit", 0, 5))).toBe(0);

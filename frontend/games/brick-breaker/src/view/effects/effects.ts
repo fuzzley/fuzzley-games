@@ -1,6 +1,7 @@
 import { FrameSounds } from "@fz/core/frame_sounds";
 import { canBreak } from "../../rules/bricks/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "../field/frame";
+import { isStreakStep } from "./streak";
 
 /** Every sound of the game's sprite, in the sprite's order. */
 export const SOUNDS = [
@@ -19,22 +20,27 @@ export const SOUNDS = [
 /** Names a sound of the game's sprite. */
 export type SoundName = (typeof SOUNDS)[number];
 
+/** The highest note a streak climbs to, in semitones above its first: an octave and a fifth. */
+const TOP_NOTE = 19;
+
 /**
  * The notes a streak climbs, a note a brick, in semitones above its first: a
- * major pentatonic scale, up to an octave and a fifth, where it holds.
+ * major pentatonic scale, up to {@link TOP_NOTE}, where it holds.
  */
-const STREAK_NOTES = [0, 2, 4, 7, 9, 12, 14, 16, 19] as const;
+const STREAK_NOTES = [0, 2, 4, 7, 9, 12, 14, 16, TOP_NOTE] as const;
 
 /** The cents in a semitone. */
 const SEMITONE_CENTS = 100;
 
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
- * shards, a blast's ring, the field's shake, a lost ball's fade and a
- * regrown brick's growing back. Each moves, so none plays where motion
+ * shards, a blast's ring, the field's shake, a lost ball's fade, a
+ * regrown brick's growing back and a streak's step, a ring about the ball
+ * and the streak's count beside it. Each moves, so none plays where motion
  * isn't welcome.
  */
-export type Flourish = "pop" | "shards" | "ring" | "shake" | "fade" | "grow";
+export type Flourish =
+  "pop" | "shards" | "ring" | "shake" | "fade" | "grow" | "streak";
 
 /** Says what an event calls for: the flourishes it plays, and its sound. */
 export interface EventEffects {
@@ -71,6 +77,12 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
 /** What a hit on a brick that never breaks calls for. */
 const UNBROKEN_HIT: EventEffects = { flourishes: ["pop"], sound: "steel" };
 
+/** What a brick broken as it takes the streak to a step calls for: what any broken brick does, and the step. */
+const BROKEN_AT_STEP: EventEffects = {
+  ...EVENT_EFFECTS.broken,
+  flourishes: [...EVENT_EFFECTS.broken.flourishes, "streak"],
+};
+
 /** The flourishes played where motion isn't welcome. */
 const STILL: readonly Flourish[] = [];
 
@@ -81,6 +93,9 @@ export function effectsOf(
 ): EventEffects {
   const brick = field.bricks[event.cell];
   if (event.kind === "hit" && brick && !canBreak(brick)) return UNBROKEN_HIT;
+  if (event.kind === "broken" && isStreakStep(event.streak)) {
+    return BROKEN_AT_STEP;
+  }
   return EVENT_EFFECTS[event.kind];
 }
 
@@ -94,9 +109,9 @@ export function effectsOf(
  * Web Audio plays it as a rate, which nothing clamps.
  */
 export function detuneOf(event: Readonly<FieldEvent>): number {
-  if (event.kind !== "broken" || event.streak < 1) return 0;
-  const note = Math.min(event.streak, STREAK_NOTES.length) - 1;
-  return (STREAK_NOTES[note] ?? 0) * SEMITONE_CENTS;
+  if (event.kind !== "broken") return 0;
+  const note = STREAK_NOTES[Math.max(0, event.streak - 1)] ?? TOP_NOTE;
+  return note * SEMITONE_CENTS;
 }
 
 /** Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays once a frame at most. */

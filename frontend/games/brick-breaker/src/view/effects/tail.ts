@@ -1,6 +1,6 @@
 import { SPEED_INFO } from "../../rules/speed";
 import { MAX_STEPS_PER_FRAME, STEP_S } from "../../rules/tuning";
-import { STREAK_STEPS, streakTier } from "./streak";
+import { type FieldPlace, STREAK_STEPS, streakTier } from "./streak";
 
 /** The most dots a ball's tail has, at the streak's last step. */
 export const TAIL_MOST = 8;
@@ -25,12 +25,6 @@ export const TAIL_ALPHA = 0.6;
  */
 export const TAIL_LEAST = 0.4;
 
-/** Says where a ball was, in field units. */
-interface Place {
-  x: number;
-  y: number;
-}
-
 /**
  * Keeps the places a ball has passed, a gap apart, for its tail: the last
  * {@link TAIL_MOST} it laid before its latest, which lies within a gap of
@@ -39,7 +33,7 @@ interface Place {
  */
 export class Trail {
   /** The places, a ring, the newest at {@link newest}. */
-  private readonly places: readonly Place[] = Array.from(
+  private readonly places: readonly FieldPlace[] = Array.from(
     { length: TAIL_MOST },
     () => ({ x: 0, y: 0 }),
   );
@@ -48,9 +42,9 @@ export class Trail {
   /** How many places it keeps. */
   private kept = 0;
   /** The place it laid last, which it keeps once it lays the next. */
-  private readonly laid: Place = { x: 0, y: 0 };
+  private readonly laid: FieldPlace = { x: 0, y: 0 };
   /** Where it last followed the ball to. */
-  private readonly followed: Place = { x: 0, y: 0 };
+  private readonly followed: FieldPlace = { x: 0, y: 0 };
   /** Whether it has a ball to follow, laid where it was first followed. */
   private following = false;
 
@@ -97,12 +91,12 @@ export class Trail {
    *
    * @throws {RangeError} For a place it doesn't keep.
    */
-  placeOf(back: number): Readonly<Place> {
+  placeOf(back: number): Readonly<FieldPlace> {
     return this.placeAt(back);
   }
 
   /** Keeps a place as the newest, letting the oldest go once it keeps the most. */
-  private keep({ x, y }: Readonly<Place>): void {
+  private keep({ x, y }: Readonly<FieldPlace>): void {
     this.newest = (this.newest + 1) % TAIL_MOST;
     this.kept = Math.min(this.kept + 1, TAIL_MOST);
     const place = this.placeAt(0);
@@ -111,7 +105,7 @@ export class Trail {
   }
 
   /** Returns the record of a place it keeps, from the newest back, or throws a RangeError. */
-  private placeAt(back: number): Place {
+  private placeAt(back: number): FieldPlace {
     const place =
       back >= 0 && back < this.kept
         ? this.places[(this.newest - back + TAIL_MOST) % TAIL_MOST]

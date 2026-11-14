@@ -194,3 +194,122 @@ Review:
    `placeOf()`; `tailLength()` counts `STREAK_STEPS`; the layer and the
    scene's painter are `tails`, the painter's records `byBall`; the log's
    jump; a spec's name.
+
+### 2026-11-14: a streak's step, a ring about the ball and the count beside it
+
+What it does:
+
+- A brick broken as it takes the streak to a step of the multiplier (5, 10
+  and 20, `STREAK_STEPS`) calls for a new flourish, `"streak"`, beside its
+  shards (`effectsOf()`, `isStreakStep()`), so none plays where motion
+  isn't welcome. It plays over 300 ms (`STREAK_MS`): a ring about the ball
+  in flight nearest the brick (`nearestBall()`), spreading from 40% of its
+  widest, fast then slowing, as it fades (`streakRingScale()`), and the
+  streak's count beside the ball, above it and to its right, or to its left
+  by the right wall, or below it by the top (`countCorner()`), whole for
+  half its time and then fading (`countAlpha()`). Both follow the ball as
+  it is drawn, and a new step takes the place of one still playing.
+- `StreakPainter` (`src/scene/painters/streak_painter.ts`), in a layer of
+  its own, `streak`, between the tails and the balls: the ring, an atlas
+  frame (`STREAK_FRAMES.ring` in `streak_art.ts`), tinted as the balls are,
+  and a Phaser `Text` for each step's count, made once.
+- The scene plays the flourish, resets the painter on a new field, and the
+  painter writes its counts again at each bake (`refresh()`).
+- `detuneOf()` reads its notes with the top note as the fallback, which
+  left no branch the specs can't reach.
+- Specs: `effects.spec.ts` (which breaks step, and none without motion),
+  `streak.spec.ts` (`isStreakStep()`, `countCorner()`, `nearestBall()`),
+  `flourish.spec.ts` (the ring's and the count's curves),
+  `streak_art.spec.ts` (the ring's frame), `layers.spec.ts`, and the
+  scene's spec: the ring about the ball in its color, each step's count
+  beside the ball in whole pixels, the count's colors, a new palette, the
+  ring spreading and both fading and hiding, following the ball, nothing
+  between steps, the newest count alone, the page's font loaded, none
+  without motion, and none after a new level.
+- `AGENTS.md`: `effects.ts`, `streak.ts`, `flourish.ts`, `streak_art.ts`,
+  `StreakPainter`, its `refresh()`, and the step among what motion's absence
+  leaves out. The repository's `phaser-text-and-bitmaptext` skill, copied
+  from Phaser's package as `phaser-core` says, and listed there.
+
+How the digits are drawn: a Phaser `Text` in the page's font, the
+family the canvas inherits (`getComputedStyle()`), Figtree on the site, bold.
+The game's canvas is drawn a pixel to a device pixel, so a `Text` written
+at its size in device pixels (1.1 units), at its default resolution of 1,
+with its origin at its top left corner and its place rounded to a whole
+pixel, shows each of its pixels as one: crisp, with no texture scaled. Each
+step's count is written once, as the scene is made, at each bake (a new
+unit or palette), once more when the page has loaded the font, as a canvas
+writes in a fallback rather than wait for one, and again only for balls of
+another kind; a step played writes nothing. Atlas digits would have meant
+ten glyphs drawn in shapes in L's `art.ts` and a count laid out by hand;
+the page's font is the one its words and the panels are written in. The
+count is outlined in the balls' outline color, as a ball is, so it reads
+over the bricks and the field in every palette.
+
+The scene reads the font itself, from its own canvas and the page's font
+set, where Asteroid Breaker's board reads it and hands its scene the family
+through an option: here that would add an option to the shared
+`BricksSceneOptions` and a font loader to the board, both other streams'
+files, for what the scene can do alone. If a third game needs it, the two
+ways can be lifted into one in `@fz/phaser`.
+
+Where R3 and P3 hook in:
+
+- R3's `Level.mark` reaches the view through the field (a `mark` on
+  `FieldView`, from the level). `effectsOf()` already takes the field, so
+  `isStreakStep(streak)` becomes `isStreakStep(streak, field.mark)`, true at
+  the mark too, and the event plays the same `"streak"` flourish.
+- `StreakPainter.counts` holds a `Text` for each step, keyed by its streak,
+  made once. The mark changes with the level, so R3 adds a slot of its own
+  beside them, a `Text` made once with the others, written with the mark
+  as each field starts: the scene's `startField()` calls
+  `this.streak.reset()`, which takes the field to do it (`reset(field)`,
+  and the call changed with it). `play()` then takes the mark's `Text` for
+  a streak at the mark (`field.mark`), else `counts.get()`; a streak at
+  neither already finds none and plays the ring alone. A mark on a step
+  needs no second count.
+- P3's stars beside the ball at the mark go in the same painter, beside
+  the count (`countCorner()` says where).
+
+Choices where the plan was silent:
+
+- The count is the streak's length, 5, 10 or 20, not the multiplier: the
+  plan calls it the count, and the bar shows the multiplier.
+- The ring and the count take the balls' kind's color, the count outlined
+  as a ball is; the ring reaches three times as far as a ball.
+- With no ball in flight (lost in the same step), the ring stays where the
+  brick was hit.
+
+Checks: the workspace's lint and typecheck pass, and its tests, 65 files
+and 2309 specs; the root's lint passes.
+
+Added to other streams' files: `bricks_scene.ts` (an import, the painter's
+field, its making, its place in the list, the flourish's case, its reset),
+`src/scene/painters/streak_painter.ts` (new, among L's painters),
+`src/view/art/streak_art.ts` (the ring's frame, in my file in L's folder),
+`.agents/skills/phaser-core/SKILL.md` (the text skill listed, and gone from
+the ones not copied), and the new `.agents/skills/phaser-text-and-bitmaptext/`.
+
+Review:
+
+1. The count was always written in a normal ball's color while the ring
+   took the balls' kind's, and the log said both did. Fixed: the count is
+   written again in the kind's color when it differs, once a kind; a spec
+   steps with a fire ball.
+2. The font's `.catch()` swallowed errors from the rewrite too. Fixed: only
+   the load's rejection is ignored.
+3. The font spec cleaned up after its `expect()`, and counted calls. Fixed
+   the cleanup, with `onTestFinished()`. Kept the spy: a style's `metrics`,
+   the state suggested instead, isn't in Phaser's types, so the spec reads
+   which styles were measured again, and holds them to the counts'.
+4. The log said the page's font matched the bar's figures, which are in
+   the mono font, and didn't say why the scene, not the shell, reads the
+   font as Asteroid Breaker's board does. Fixed in the log (above).
+5. The R3 hook needed `reset(field)` and a slot for the mark spelled out.
+   Done above.
+6. The log didn't list the new painter among L's or the ring in
+   `streak_art.ts`. Listed.
+7. Small items, each fixed: `STREAK_RING_RADIUS`, three times
+   `BALL_RADIUS`; `tail.ts` takes `FieldPlace` from `streak.ts`; the
+   effects spec's step without motion passed for any event and is gone (the
+   scene's spec holds it); the spec's imports in order.

@@ -274,21 +274,27 @@ takes for the specs' helpers.
   the paddle, and how much of each one's time is left.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
-  flourishes it plays where motion is welcome, how far a broken brick's
-  sound rises along a streak (`detuneOf()`), a note of a major pentatonic
+  flourishes it plays where motion is welcome, a brick broken at a streak's
+  step adding the step's, how far a broken brick's sound rises along a
+  streak (`detuneOf()`), a note of a major pentatonic
   scale a brick, up to an octave and a fifth, and `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard; `streak.ts` the
-  streak's steps, the multiplier's tiers (`STREAK_STEPS`), and how many a
-  streak has reached (`streakTier()`); `tail.ts` a ball's tail in a streak:
-  the places the ball passed, a gap apart (`Trail`), kept on records made
-  once, and how many dots it shows at each step, eight at most, each fainter
-  and smaller than the one before; `flourish.ts`
+  streak's steps, the multiplier's tiers (`STREAK_STEPS`), how many a
+  streak has reached (`streakTier()`), whether a broken brick took it to one
+  (`isStreakStep()`), the ball in flight nearest a place (`nearestBall()`),
+  and where a step's count lies beside its ball, inside the field
+  (`countCorner()`), and how it is written (`COUNT_TEXT`); `tail.ts` a
+  ball's tail in a streak: the places the ball passed, a gap apart
+  (`Trail`), kept on records made once, and how many dots it shows at each
+  step, eight at most, each fainter and smaller than the one before;
+  `flourish.ts`
   how each flourish moves over its time, beside `@fz/core/math`'s
   `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), the
   color a broken brick's shard takes as it falls (`shardTint()`), dimming
   from its brick's color to mostly the field's (`SHARD_DIMMED`), so a shard
-  never looks like a ball, and how
+  never looks like a ball, how a streak's step's ring spreads and its count
+  fades (`streakRingScale()`, `countAlpha()`), and how
   bright the last bricks a level needs glow once none has broken for a
   while, pulsing only where motion is welcome; and `timing.ts` how long
   each flourish lasts, how long the paddle stands empty after the last ball
@@ -343,7 +349,8 @@ takes for the specs' helpers.
   and the color its shards take (`brickColor()`); `symbols.ts` draws each
   capsule's symbol (`SYMBOLS`); `streak_art.ts` the frames a streak's
   flourishes show (`STREAK_FRAMES`), white, which the scene tints as the
-  balls are: a dot of a ball's tail; they are drawn in `@fz/phaser/shapes`'s
+  balls are: a dot of a ball's tail and the ring about a ball as its streak
+  steps; they are drawn in `@fz/phaser/shapes`'s
   commands (`DrawCommand`), whose builders take no size below nothing, since
   a canvas not yet laid out gives a unit too small for the insets, and laid
   out by its areas, points and stars (`within()`, `share()`, `inset()`,
@@ -366,16 +373,20 @@ takes for the specs' helpers.
   either renderer, with its cannons and rim, `TagPainter` the effects in
   play and their emptying rings, `TailPainter` a tail behind each ball in
   play while the field is in a streak, a dot at each of its last places,
-  and `BallPainter` the balls, each with
-  its eyes looking the way it goes, with a fire ball's embers, one for each
-  ember's width it goes. Each is a `Painter`
+  `StreakPainter` a streak's step, a ring about the ball and the streak's
+  count beside it, the one thing written over the field, a Phaser `Text`
+  for each step in the page's font, written once, and again as the atlas is
+  baked and once the page has loaded the font, and `BallPainter` the
+  balls, each with its eyes looking the way it goes, with a fire ball's
+  embers, one for each ember's width it goes. Each is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame, so the scene draws them in a loop over its list
   of painters, which a new one joins as `create()` makes it. After a bake,
   `@fz/phaser/scene`'s `retakeFrames()` has every image take up its frame
   anew, and the paddle's painter sizes and paints its body and rim to match
-  (`refresh()`), and the effects' painter takes the field's color its
-  shards dim toward.
+  (`refresh()`), the effects' painter takes the field's color its
+  shards dim toward, and the streak's painter writes its counts at the new
+  unit, in the new palette.
   Each thing that moves is drawn between its last place and its next. Every
   game object is made as the scene is created, and a new field stops what
   the last one set off. The scene plays each of the field's events once,
@@ -633,8 +644,8 @@ takes for the specs' helpers.
   until the scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
-  ball's tail and the last bricks' pulse, are left out, and the cards open
-  without waiting.
+  ball's tail, a streak's step and the last bricks' pulse, are left out, and
+  the cards open without waiting.
 
 ## Styling
 

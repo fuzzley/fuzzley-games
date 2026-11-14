@@ -45,6 +45,7 @@ import { FieldPainter } from "./painters/field_painter";
 import { GlowPainter } from "./painters/glow_painter";
 import { PaddlePainter } from "./painters/paddle_painter";
 import type { PaintContext, Painter } from "./painters/painter";
+import { StreakPainter } from "./painters/streak_painter";
 import { TagPainter } from "./painters/tag_painter";
 import { TailPainter } from "./painters/tail_painter";
 import spritemap from "./sounds/sounds.json";
@@ -115,6 +116,8 @@ export class BricksScene extends Scene {
   tags!: TagPainter;
   /** Draws a tail behind each ball in a streak. */
   tails!: TailPainter;
+  /** Draws a streak's step: a ring about the ball and the streak's count. */
+  streak!: StreakPainter;
   /** Draws the balls. */
   balls!: BallPainter;
   /** Plays the sounds. */
@@ -185,6 +188,10 @@ export class BricksScene extends Scene {
     );
     this.tags = new TagPainter(this, layers.tags);
     this.tails = new TailPainter(this, layers.tails);
+    this.streak = new StreakPainter(this, layers.streak, {
+      metrics: this.metrics,
+      palette: this.painted,
+    });
     this.balls = new BallPainter(this, layers.balls);
     this.painters = [
       this.field,
@@ -196,6 +203,7 @@ export class BricksScene extends Scene {
       this.paddle,
       this.tags,
       this.tails,
+      this.streak,
       this.balls,
     ];
     const { field, alpha } = this.options.frame();
@@ -315,6 +323,9 @@ export class BricksScene extends Scene {
       case "shake":
         this.effects.shake();
         return;
+      case "streak":
+        this.streak.play(event, field, this.context.now);
+        return;
       case "fade":
         // The last ball's effect ends as it is lost, so it fades as it was drawn.
         this.effects.fade(
@@ -420,6 +431,7 @@ export class BricksScene extends Scene {
     this.effects.reset();
     this.balls.reset();
     this.tails.reset();
+    this.streak.reset();
     this.bricks.show(field);
     if (this.context.motion) this.bricks.dropIn(this.metrics);
     else this.bricks.layout(this.metrics);

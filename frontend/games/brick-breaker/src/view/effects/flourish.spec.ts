@@ -3,10 +3,13 @@ import {
   GLOW_LEAST,
   POP_SWELL,
   RING_FROM,
+  STREAK_RING_FROM,
+  countAlpha,
   glowAlpha,
   popScale,
   ringScale,
   shardTint,
+  streakRingScale,
 } from "./flourish";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
 
@@ -21,6 +24,24 @@ describe("the flourishes' curves", () => {
 
   it("spreads a blast's ring from a share of its widest to all of it", () => {
     expect([ringScale(0), ringScale(1)]).toEqual([RING_FROM, 1]);
+  });
+
+  it("spreads a streak's ring from about the ball to its widest, fast, then slowing", () => {
+    const scales = [0, 0.5, 1].map(streakRingScale);
+
+    expect({
+      scales: [scales[0], scales[2]],
+      fast: (scales[1] ?? 0) - STREAK_RING_FROM > (1 - STREAK_RING_FROM) / 2,
+    }).toEqual({ scales: [STREAK_RING_FROM, 1], fast: true });
+  });
+
+  it("shows a streak's count whole for half its step, then fades it out", () => {
+    expect([0, 0.5, 0.75, 1].map(countAlpha)).toEqual([
+      1,
+      1,
+      expect.closeTo(0.5),
+      0,
+    ]);
   });
 });
 
