@@ -60,6 +60,7 @@ import {
   toFieldX,
 } from "../view/field/field_metrics";
 import { SOUNDS } from "../view/effects/effects";
+import { shardTint } from "../view/effects/flourish";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
 import type { TouchSteering } from "../view/steering/steering";
@@ -73,6 +74,7 @@ import {
   REGROW_MS,
   RING_MS,
   SHARDS,
+  SHARDS_MS,
 } from "../view/effects/timing";
 import { ATLAS } from "./atlas";
 import spritemap from "./sounds/sounds.json";
@@ -224,17 +226,37 @@ function placed(image: GameObjects.Image | undefined): object {
   };
 }
 
-/** Returns where each shard alive is, and how fast it falls. */
-function shardsOf(scene: BricksScene): readonly {
+/** Describes a shard alive, as a spec reads it. */
+interface Shard {
   readonly x: number;
   readonly y: number;
+  /** How fast it falls. */
   readonly fall: number;
-}[] {
-  const shards: { x: number; y: number; fall: number }[] = [];
-  scene.effects.shards.forEachAlive((shard) => {
-    shards.push({ x: shard.x, y: shard.y, fall: shard.velocityY });
-  }, null);
-  return shards;
+  readonly tint: number;
+  readonly alpha: number;
+  /** How much of its time is done, from 0 to 1, as its tint was last set. */
+  readonly done: number;
+}
+
+/** Returns each shard alive, the oldest first, as Phaser keeps them in no such order. */
+function shardsOf(scene: BricksScene): readonly Shard[] {
+  const shards: Shard[] = [];
+  scene.effects.shards.forEachAlive(
+    ({ x, y, velocityY, tint, alpha, lifeT }) => {
+      shards.push({ x, y, fall: velocityY, tint, alpha, done: lifeT });
+    },
+    null,
+  );
+  return shards.sort((a, b) => b.done - a.done);
+}
+
+/** Returns the tint each shard should have, dimmed from its brick's color toward a field's. */
+function dimmedTints(
+  shards: readonly Shard[],
+  color: number,
+  field: number,
+): readonly number[] {
+  return shards.map(({ done }) => shardTint(color, field, done));
 }
 
 /**
@@ -1168,12 +1190,9 @@ describe("BricksScene", () => {
 
       run.advance(16);
 
-      const tints = new Set<number>();
-      scene.effects.shards.forEachAlive((shard) => tints.add(shard.tint), null);
-
       expect({
         places: shardsOf(scene).map(({ x, y }) => ({ x, y })),
-        tints,
+        tints: new Set(shardsOf(scene).map(({ tint }) => tint)),
       }).toEqual({
         places: Array.from({ length: SHARDS }, () => middle),
         tints: new Set([brickColor(plain, LIGHT)]),
@@ -1196,6 +1215,109 @@ describe("BricksScene", () => {
       }).toEqual({
         apart: true,
         falling: Array.from({ length: SHARDS }, () => true),
+      });
+    });
+
+    it("fades and dims a broken brick's shards toward the field as they fall", async () => {
+      const { shell, run, scene } = await startBoard();
+      const plain = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
+      const color = brickColor(plain, LIGHT);
+      run.advance(16);
+
+      run.advance(SHARDS_MS / 2);
+      const falling = shardsOf(scene);
+
+      expect({
+        count: falling.length,
+        faded: falling.every(({ alpha }) => alpha < 0.6),
+        tints: falling.map(({ tint }) => tint),
+      }).toEqual({
+        count: SHARDS,
+        faded: true,
+        tints: dimmedTints(falling, color, LIGHT.field),
+      });
+    });
+
+    it("keeps dimming a broken brick's shards from its color as the field is laid out again", async () => {
+      const { shell, run, scene } = await startBoard();
+      const plain = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
+      const color = brickColor(plain, LIGHT);
+      run.advance(16);
+
+      shell.fingerSpace = 40;
+      run.advance(SHARDS_MS / 2);
+      const falling = shardsOf(scene);
+
+      expect({
+        count: falling.length,
+        tints: falling.map(({ tint }) => tint),
+      }).toEqual({
+        count: SHARDS,
+        tints: dimmedTints(falling, color, LIGHT.field),
+      });
+    });
+
+    it("dims the shards toward a new palette's field", async () => {
+      const { shell, run, scene } = await startBoard();
+      const plain = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, plain, 1, BRICKS_TOP + 1);
+      const color = brickColor(plain, LIGHT);
+      run.advance(16);
+
+      shell.colors = DARK;
+      run.advance(SHARDS_MS / 2);
+      const falling = shardsOf(scene);
+
+      expect({
+        count: falling.length,
+        tints: falling.map(({ tint }) => tint),
+      }).toEqual({
+        count: SHARDS,
+        tints: dimmedTints(falling, color, DARK.field),
+      });
+    });
+
+    it("has shed a broken brick's shards once their time is up", async () => {
+      const { shell, run, scene } = await startBoard();
+      hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, BRICKS_TOP + 1);
+      run.advance(16);
+
+      run.advance(SHARDS_MS + 16);
+
+      expect(shardsOf(scene)).toEqual([]);
+    });
+
+    it("keeps each broken brick's shards in its own color as another breaks", async () => {
+      const { shell, run, scene } = await startBoard();
+      const first = brickAt(shell.field, 0, 0);
+      const second = brickAt(shell.field, 1, 0);
+      hitBrick(shell.field, first, 1, BRICKS_TOP + 1);
+      run.advance(16);
+
+      hitBrick(shell.field, second, 3, BRICKS_TOP + 1, "breaks");
+      run.advance(16);
+      run.advance(SHARDS_MS / 4);
+      const falling = shardsOf(scene);
+
+      expect({
+        count: falling.length,
+        tints: falling.map(({ tint }) => tint),
+      }).toEqual({
+        count: 2 * SHARDS,
+        tints: [
+          ...dimmedTints(
+            falling.slice(0, SHARDS),
+            brickColor(first, LIGHT),
+            LIGHT.field,
+          ),
+          ...dimmedTints(
+            falling.slice(SHARDS),
+            brickColor(second, LIGHT),
+            LIGHT.field,
+          ),
+        ],
       });
     });
 
@@ -1411,7 +1533,7 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect({
-        shards: scene.effects.shards.getAliveParticleCount(),
+        shards: shardsOf(scene).length,
         embers: scene.balls.embers.getAliveParticleCount(),
         rings: showing(imagesOf(scene.effects.rings)),
         fades: showing(imagesOf(scene.effects.fades)),
@@ -1477,7 +1599,7 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect({
-        shards: scene.effects.shards.getAliveParticleCount(),
+        shards: shardsOf(scene).length,
         embers: scene.balls.embers.getAliveParticleCount(),
         rings: showing(imagesOf(scene.effects.rings)),
         fades: showing(imagesOf(scene.effects.fades)),

@@ -1,9 +1,10 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
-import type { GameObjects, Scene } from "phaser";
+import { GameObjects, type Scene } from "phaser";
 import { MAX_BALLS } from "../../rules/tuning";
 import { FRAMES, facedBallFrame } from "../../view/art/art";
-import { ringScale } from "../../view/effects/flourish";
+import type { BricksPalette } from "../../view/colors/palette";
+import { ringScale, shardTint } from "../../view/effects/flourish";
 import {
   FADE_MS,
   RING_MS,
@@ -18,7 +19,7 @@ import {
   toCanvasY,
 } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
-import type { PaintContext, Painter } from "./painter";
+import type { Baked, PaintContext, Painter } from "./painter";
 
 /** How many blasts' rings may spread at once; a chain goes off a few at a time. */
 const RING_POOL = 8;
@@ -43,29 +44,58 @@ function burstOf(image: GameObjects.Image): Burst {
   return { image: image.setVisible(false), at: -Infinity, x: 0, y: 0 };
 }
 
+/** Flies as a broken brick's shard, keeping its brick's color for its tint to dim from. */
+class Shard extends GameObjects.Particles.Particle {
+  /** The color of the brick it broke from. */
+  thrownIn = 0xffffff;
+}
+
 /**
  * Draws what bursts from the field as things happen on it: a broken brick's
  * shards, a blast's ring, a lost ball's fade, and the field's shake. Each is
  * made once, and the scene plays them only where motion is welcome.
  */
 export class EffectsPainter implements Painter {
-  /** Throws a broken brick's shards, tinted as the brick was. */
+  /**
+   * Throws a broken brick's shards, in the brick's color, each dimming from
+   * it toward the field's as it falls.
+   */
   readonly shards: GameObjects.Particles.ParticleEmitter;
   /** A ring for each blast that may spread at once, each played in turn. */
   readonly rings: Turns<Burst>;
   /** A fading ball for each ball that may be lost at once, each played in turn. */
   readonly fades: Turns<Burst>;
 
+  /** The color the shards thrown next take, their brick's. */
+  private nextColor = 0xffffff;
+  /** The field's color, which the shards dim toward. */
+  private field: number;
+
   constructor(
     private readonly scene: Scene,
     bursts: GameObjects.Layer,
     balls: GameObjects.Layer,
+    palette: BricksPalette,
   ) {
+    this.field = palette.field;
     this.shards = scene.add.particles(0, 0, ATLAS, {
       frame: FRAMES.shard,
       emitting: false,
       lifespan: SHARDS_MS,
       alpha: { start: 1, end: 0 },
+      particleClass: Shard,
+      // Each shard keeps its own brick's color, which an emitter's `color`
+      // ramp, shared by every shard it holds, couldn't.
+      tint: {
+        onEmit: (shard) => {
+          if (shard instanceof Shard) shard.thrownIn = this.nextColor;
+          return this.nextColor;
+        },
+        onUpdate: (shard, _key, done, tint) =>
+          shard instanceof Shard
+            ? shardTint(shard.thrownIn, this.field, done)
+            : tint,
+      },
       rotate: { min: 0, max: 360 },
       // Set for the field's unit as it is laid out; given here, as
       // `updateConfig()` changes only the keys a config already has.
@@ -93,11 +123,15 @@ export class EffectsPainter implements Painter {
     });
   }
 
+  /** Dims the shards toward the field's color as the atlas was baked in. */
+  refresh({ palette }: Readonly<Baked>): void {
+    this.field = palette.field;
+  }
+
   /** Throws a broken brick's shards from its middle, in its color. */
   shatter(x: number, y: number, color: number, metrics: FieldMetrics): void {
-    this.shards
-      .setParticleTint(color)
-      .explode(SHARDS, toCanvasX(metrics, x), toCanvasY(metrics, y));
+    this.nextColor = color;
+    this.shards.explode(SHARDS, toCanvasX(metrics, x), toCanvasY(metrics, y));
   }
 
   /** Spreads a blast's ring from where it went off. */

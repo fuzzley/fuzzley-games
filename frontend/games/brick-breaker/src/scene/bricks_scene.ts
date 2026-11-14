@@ -166,7 +166,12 @@ export class BricksScene extends Scene {
     this.field = new FieldPainter(this, layers.field);
     this.bricks = new BrickPainter(this, layers.bricks);
     this.glow = new GlowPainter(this, layers.bursts);
-    this.effects = new EffectsPainter(this, layers.bursts, layers.balls);
+    this.effects = new EffectsPainter(
+      this,
+      layers.bursts,
+      layers.balls,
+      this.painted,
+    );
     this.capsules = new CapsulePainter(this, layers.capsules);
     this.bolts = new BoltPainter(this, layers.bolts);
     this.paddle = new PaddlePainter(

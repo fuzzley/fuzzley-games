@@ -280,7 +280,10 @@ takes for the specs' helpers.
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
   sound once a frame at most, at the highest it was heard; `flourish.ts`
   how each flourish moves over its time, beside `@fz/core/math`'s
-  `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), and how
+  `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), the
+  color a broken brick's shard takes as it falls (`shardTint()`), dimming
+  from its brick's color to mostly the field's (`SHARD_DIMMED`), so a shard
+  never looks like a ball, and how
   bright the last bricks a level needs glow once none has broken for a
   while, pulsing only where motion is welcome; and `timing.ts` how long
   each flourish lasts, how long the paddle stands empty after the last ball
@@ -347,9 +350,10 @@ takes for the specs' helpers.
   and the net, `BrickPainter` an image for each cell, made once, dropped in
   as a level starts, swollen at a hit a brick holds and grown back as it
   regrows, `GlowPainter` the frames around the last bricks a level needs,
-  `EffectsPainter` a broken brick's shards, a blast's ring, a lost ball's
-  fade, each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and
-  the field's shake, `CapsulePainter` and `BoltPainter` what
+  `EffectsPainter` a broken brick's shards, each keeping its brick's color
+  to dim from as it falls and fades, a blast's ring, a lost ball's fade,
+  each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and the
+  field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle as two round ends and a
   rectangle between their middles, which keep their shape at any width on
   either renderer, with its cannons and rim, `TagPainter` the effects in
@@ -361,7 +365,8 @@ takes for the specs' helpers.
   of painters, which a new one joins as `create()` makes it. After a bake,
   `@fz/phaser/scene`'s `retakeFrames()` has every image take up its frame
   anew, and the paddle's painter sizes and paints its body and rim to match
-  (`refresh()`).
+  (`refresh()`), and the effects' painter takes the field's color its
+  shards dim toward.
   Each thing that moves is drawn between its last place and its next. Every
   game object is made as the scene is created, and a new field stops what
   the last one set off. The scene plays each of the field's events once,

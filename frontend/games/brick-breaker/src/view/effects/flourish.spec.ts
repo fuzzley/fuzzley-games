@@ -6,6 +6,7 @@ import {
   glowAlpha,
   popScale,
   ringScale,
+  shardTint,
 } from "./flourish";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
 
@@ -20,6 +21,24 @@ describe("the flourishes' curves", () => {
 
   it("spreads a blast's ring from a share of its widest to all of it", () => {
     expect([ringScale(0), ringScale(1)]).toEqual([RING_FROM, 1]);
+  });
+});
+
+describe("shardTint", () => {
+  it("throws a shard in its brick's color", () => {
+    expect(shardTint(0xc06000, 0x000000, 0)).toBe(0xc06000);
+  });
+
+  it("dims a shard most of the way to a dark field's color by its end", () => {
+    expect(shardTint(0xc06000, 0x000000, 1)).toBe(0x3a1d00);
+  });
+
+  it("dims a shard toward a light field, paler", () => {
+    expect(shardTint(0x000000, 0xffffff, 1)).toBe(0xb3b3b3);
+  });
+
+  it("dims a shard halfway through its flight halfway to its end", () => {
+    expect(shardTint(0xc06000, 0x000000, 0.5)).toBe(0x7d3e00);
   });
 });
 
