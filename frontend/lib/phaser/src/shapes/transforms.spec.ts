@@ -1,6 +1,7 @@
 import {
   type DrawCommand,
   ORIGIN,
+  type Point,
   circle,
   line,
   polygon,
@@ -9,7 +10,14 @@ import {
   ring,
   roundRect,
 } from "./shapes";
-import { bounded, centered, placed, scaledBy, shifted } from "./transforms";
+import {
+  bounded,
+  centered,
+  placed,
+  scaledBy,
+  shifted,
+  turned,
+} from "./transforms";
 
 /** The style the specs draw lines in. */
 const PEN = { color: 9, width: 2 };
@@ -23,6 +31,29 @@ describe("placed", () => {
 
   it("leaves scaled points about the origin, given no place", () => {
     expect(placed([{ x: 1, y: -2 }], 3)).toEqual([{ x: 3, y: -6 }]);
+  });
+});
+
+describe("turned", () => {
+  /** Returns a point to a billionth, so two worked out alike but for a rounding are equal. */
+  function billionths({ x, y }: Point): Point {
+    return { x: Number(x.toFixed(9)) + 0, y: Number(y.toFixed(9)) + 0 };
+  }
+
+  it.each([
+    [90, { x: 0, y: 2 }],
+    [-90, { x: 0, y: -2 }],
+    [180, { x: -2, y: 0 }],
+    [0, { x: 2, y: 0 }],
+  ])(
+    "turns a point by %i degrees about the origin, clockwise down the screen",
+    (degrees, to) => {
+      expect(billionths(turned({ x: 2, y: 0 }, degrees))).toEqual(to);
+    },
+  );
+
+  it("turns a point off both axes, keeping its distance from the origin", () => {
+    expect(billionths(turned({ x: 3, y: 4 }, 90))).toEqual({ x: -4, y: 3 });
   });
 });
 

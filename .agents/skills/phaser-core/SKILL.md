@@ -110,12 +110,14 @@ holds.
   and `extentOf()` gives back an `Area`. The art's line (`lineWidth()`),
   round-ended lines (`stroke()`), the points of curves (`arcPoints()` and
   the rest), what moves, scales and frames a drawing (`shifted()`,
-  `scaledBy()`, `centered()`, `bounded()`), what lays a frame out in an
-  area and draws in it (`within()`, `share()`, `inset()`,
-  `middleSquare()`, `frameAround()`, `outlineRoundRect()`, `star()` and
-  `dashes()`) and a symbol's dots and rims in a square (`dotIn()`,
-  `discIn()`, `rimIn()`) are there too, so a game draws with them rather
-  than its own copies.
+  `scaledBy()`, `centered()`, `bounded()`, and `turned()` for a point),
+  what lays a frame out in an area and draws in it (`within()`,
+  `pointAt()`, `share()`, `inset()`, `middleSquare()`, `frameAround()`,
+  `outlineRoundRect()`, `crispOutline()` on whole pixels, `star()`,
+  `diamond()` and `dashes()`), a line drawn as a band (`bandAlong()`), a
+  brick's pips as a die's face or a row (`diePips()`, `pipRow()`) and a
+  symbol's dots and rims in a square (`dotIn()`, `discIn()`, `rimIn()`)
+  are there too, so a game draws with them rather than its own copies.
 - **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
   commands, and imports nothing else, so a game's view takes it as it takes
   the pure entries: `fuzzballCommands()`, its body and fur, `by` device

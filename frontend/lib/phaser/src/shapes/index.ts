@@ -1,14 +1,19 @@
 export {
   type Dash,
+  crispEdge,
+  crispOutline,
   dashes,
+  diamond,
   frameAround,
   inset,
   middleSquare,
   outlineRoundRect,
+  pointAt,
   share,
   star,
   within,
 } from "./areas";
+export { bandAlong } from "./bands";
 export {
   arcPoints,
   cubicPoints,
@@ -16,6 +21,7 @@ export {
   quadraticPoints,
 } from "./curves";
 export { type FrameSize, atlasSize } from "./packing";
+export { diePips, pipRow } from "./pips";
 export {
   type Area,
   type ArtFrame,
@@ -45,4 +51,11 @@ export {
   widthOf,
 } from "./shapes";
 export { discIn, dotIn, rimIn, symbolLineStyle } from "./symbols";
-export { bounded, centered, placed, scaledBy, shifted } from "./transforms";
+export {
+  bounded,
+  centered,
+  placed,
+  scaledBy,
+  shifted,
+  turned,
+} from "./transforms";

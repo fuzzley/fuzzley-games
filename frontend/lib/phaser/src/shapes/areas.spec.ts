@@ -1,9 +1,13 @@
 import {
+  crispEdge,
+  crispOutline,
   dashes,
+  diamond,
   frameAround,
   inset,
   middleSquare,
   outlineRoundRect,
+  pointAt,
   share,
   star,
   within,
@@ -95,6 +99,10 @@ describe("the areas", () => {
       { x: 30, y: 40 },
       { x: 50, y: 25 },
     ]);
+  });
+
+  it("place a point at shares of an area across and down, as within() places each", () => {
+    expect(pointAt(AREA, 0.25, 0.75)).toEqual({ x: 20, y: 35 });
   });
 
   it("take the part of an area that shares of it give", () => {
@@ -283,6 +291,70 @@ describe("star", () => {
       { x: 8, y: 10 },
       { x: 9.293, y: 9.293 },
     ]);
+  });
+});
+
+describe("diamond", () => {
+  it("gives a diamond's corners about a middle, from its top clockwise, each a reach from it", () => {
+    expect(diamond({ x: 10, y: 20 }, 3)).toEqual([
+      { x: 10, y: 17 },
+      { x: 13, y: 20 },
+      { x: 10, y: 23 },
+      { x: 7, y: 20 },
+    ]);
+  });
+});
+
+describe("crispEdge", () => {
+  it.each([
+    [
+      "an even number of pixels wide about a whole square, the square itself",
+      { x: 4, y: 4, width: 20, height: 20 },
+      2,
+      { x: 4, y: 4, width: 20, height: 20 },
+    ],
+    [
+      "an odd number wide about a whole area twice as wide as tall, half a pixel in on every side alike",
+      { x: 4, y: 4, width: 20, height: 10 },
+      3,
+      { x: 4.5, y: 4.5, width: 19, height: 9 },
+    ],
+    [
+      "about an area off whole pixels, its band's outer edges each moved in to one",
+      { x: 4.3, y: 4.7, width: 20, height: 10 },
+      2,
+      { x: 5, y: 5, width: 19, height: 9 },
+    ],
+  ])("gives a band %s", (_, area, width, edge) => {
+    expect(crispEdge(area, width)).toEqual(edge);
+  });
+});
+
+describe("crispOutline", () => {
+  it.each([
+    ["a square", { x: 4, y: 4, width: 20, height: 20 }],
+    ["an area twice as wide as tall", { x: 4, y: 4, width: 20, height: 10 }],
+  ])(
+    "outlines %s as outlineRoundRect() does where the line is an even number of pixels wide",
+    (_, area) => {
+      expect(crispOutline(area, 3, { color: 5, width: 2 })).toEqual(
+        outlineRoundRect(area, 3, { color: 5, width: 2 }),
+      );
+    },
+  );
+
+  it("draws a band an odd number of pixels wide about its crisp edge, half a pixel in on every side", () => {
+    expect(
+      crispOutline({ x: 4, y: 4, width: 20, height: 10 }, 3, {
+        color: 5,
+        width: 3,
+      }),
+    ).toEqual(
+      outlineRoundRect({ x: 4.5, y: 4.5, width: 19, height: 9 }, 3, {
+        color: 5,
+        width: 3,
+      }),
+    );
   });
 });
 
