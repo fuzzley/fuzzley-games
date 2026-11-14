@@ -1,0 +1,91 @@
+<h2 id="in-play-title" class="fz-visually-hidden">In play</h2>
+@let streak = shownStreak();
+<section class="streak">
+  <h3 class="label">Streak</h3>
+  <p class="count">
+    <span class="times" [attr.data-counts]="streak.counts">{{
+      streak.times
+    }}</span>
+    <span class="since">
+      <span class="bricks">{{ streak.bricks }}</span>
+      <span class="muted">since the paddle</span>
+    </span>
+  </p>
+  <div class="meter" aria-hidden="true" [style.--filled]="streak.filled">
+    @for (tick of streak.ticks; track tick.label) {
+      <span
+        class="tick"
+        [style.--at]="tick.at"
+        [attr.data-reached]="tick.reached"
+        >{{ tick.label }}</span
+      >
+    }
+  </div>
+</section>
+<section class="effects">
+  <h3 class="label">In effect</h3>
+  <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+  <ul role="list">
+    @for (effect of shownEffects(); track effect.id) {
+      <li>
+        <span class="ring" aria-hidden="true" [attr.data-tone]="effect.tone">
+          <svg viewBox="0 0 36 36">
+            <circle class="track" cx="18" cy="18" r="15" />
+            <circle
+              class="share"
+              cx="18"
+              cy="18"
+              r="15"
+              pathLength="100"
+              [attr.stroke-dasharray]="effect.dash"
+            />
+          </svg>
+          @if (effect.picture; as picture) {
+            <img [src]="picture" alt="" />
+          }
+        </span>
+        <span class="name">{{ effect.name }}</span>
+        <span class="muted" aria-hidden="true">{{ effect.left }}</span>
+        <span class="fz-visually-hidden">{{ effect.leftWords }}</span>
+      </li>
+    } @empty {
+      <li class="muted">No capsule in effect</li>
+    }
+  </ul>
+</section>
+<section class="kinds">
+  <h3 class="label">In this level</h3>
+  <ul role="list">
+    @for (kind of shownKinds(); track kind.id) {
+      <li>
+        @if (kind.picture; as picture) {
+          <img [src]="picture" alt="" />
+        }
+        <span class="name">
+          {{ kind.name }}
+          @if (kind.isNew) {
+            <span class="fz-badge fz-badge-accent">New here</span>
+          }
+        </span>
+        <span class="about">{{ kind.about }}</span>
+      </li>
+    }
+  </ul>
+</section>
+<section class="capsules">
+  <h3 class="label">Capsules here</h3>
+  <ul role="list">
+    @for (capsule of shownCapsules(); track capsule.id) {
+      <li>
+        @if (capsule.picture; as picture) {
+          <img [src]="picture" alt="" />
+        }
+        <span [class.fz-visually-hidden]="capsule.nameHidden">{{
+          capsule.name
+        }}</span>
+      </li>
+    } @empty {
+      <li class="muted">None fall here</li>
+    }
+  </ul>
+</section>

@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   Injector,
   afterNextRender,
@@ -22,7 +23,13 @@ import {
   canvasCardOf,
   canvasRoom,
 } from "@fz/phaser/canvas";
-import { type CssRect, cssRectStyle, rectAttribute } from "@fz/phaser/layout";
+import {
+  cssRectOf,
+  cssRectStyle,
+  namedRectsAttribute,
+  rectAttribute,
+  roomInside,
+} from "@fz/phaser/layout";
 import { ThemeService } from "@fz/ui/theme";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import { endTitle } from "../../rules/run/describe";
@@ -38,10 +45,24 @@ import {
 } from "../../rules/tuning";
 import type { BricksSceneOptions } from "../../scene/bricks_scene";
 import type { Pictures } from "../../view/art/art";
-import { fieldHeightFor, fingerRoomOf } from "../../view/field/field_metrics";
+import {
+  type FieldMetrics,
+  fieldHeightFor,
+  fieldMetrics,
+  fingerRoomOf,
+} from "../../view/field/field_metrics";
+import { BenchComponent } from "../panels/bench.component";
+import { InPlayComponent } from "../panels/in_play.component";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { fieldPalette } from "./field_palette";
+
+/**
+ * How long the scene's atlas must stay as it was last baked before the
+ * pictures of it are handed on, in milliseconds: a resize under way bakes
+ * it again at each new unit, and each picture handed on is encoded again.
+ */
+export const PICTURES_SETTLE_MS = 250;
 
 /** Names a card of the board's own laid over the field, or none. */
 type Card = "ready" | "paused" | "cleared" | "ended" | null;
@@ -59,24 +80,37 @@ const CARD_DROP =
 /**
  * Shows the board: the canvas the scene draws the field on, which hears the
  * keys, the mouse and fingers while the board has the focus, a drawing of
- * the empty field in CSS until the scene has drawn, and the cards that say
- * how to launch, that the level is paused, how a level cleared added up,
- * and how to start again once an ended run's result is put away, or the
- * canvas's own (`<fz-canvas-cards>`), that the board is still loading on a
- * slow connection, or that it couldn't be drawn.
+ * the empty field in CSS until the scene has drawn, the panels beside the
+ * field where the room spares them (the bench and in play), and the cards
+ * that say how to launch, that the level is paused, how a level cleared
+ * added up, and how to start again once an ended run's result is put away,
+ * or the canvas's own (`<fz-canvas-cards>`), that the board is still
+ * loading on a slow connection, or that it couldn't be drawn.
  *
  * Only the canvas and its ring are an application to assistive
  * technology, so a screen reader hands it the keys rather than reading with
  * them; the canvas in it is hidden, the announcer says what happens, and
- * the cards beside it read as a page does. Phaser hears the keys on the
- * board's own element, to which they rise from the application; a card's
- * button keeps its own (`fzKeepKeys`).
+ * the panels and the cards beside it read as a page does. Phaser hears the
+ * keys on the board's own element, to which they rise from the
+ * application; a card's button keeps its own (`fzKeepKeys`).
+ *
+ * The panels show from where `fieldMetrics()` lays them, the scene's once
+ * it has laid the field out and the board's own on the room it measured
+ * until then, so they stand where they will before the scene first draws.
  */
 @Component({
   selector: "app-board",
-  imports: [CanvasCardsComponent, KeepKeysDirective, PhaserCanvasComponent],
+  imports: [
+    BenchComponent,
+    CanvasCardsComponent,
+    InPlayComponent,
+    KeepKeysDirective,
+    PhaserCanvasComponent,
+  ],
   host: {
     "[attr.data-field]": "fieldRect()",
+    "[attr.data-room]": "roomRect()",
+    "[attr.data-panels]": "panelZones()",
     "[attr.data-outcome]": "game.outcome()",
     "[class.in-play]": "inPlay()",
     "[style.--across]": "across",
@@ -149,13 +183,28 @@ export class BoardComponent {
     () => this.game.outcome() === "playing" && !this.game.serving(),
   );
 
-  /** Where the scene last laid the field out, in CSS pixels on the canvas. */
-  private readonly laidOut = signal<CssRect | null>(null);
+  /** Where the scene last laid the field and the panels out, or null before it has. */
+  private readonly laid = signal<FieldMetrics | null>(null);
+
+  /**
+   * Where the scene will lay the field and the panels out, on the room the
+   * board measured, the finger's room under it, at the game's height; or
+   * null before the board is measured.
+   */
+  private readonly placeholder = computed(() => {
+    const room = this.room();
+    if (!room) return null;
+    const insets = {
+      ...room.insets,
+      bottom: room.insets.bottom + this.fingerRoom(),
+    };
+    return fieldMetrics({ ...room, insets }, this.game.fieldHeight());
+  });
 
   /** The field's rectangle, for the layout check: x, y, width and height. */
   protected readonly fieldRect = computed(() => {
-    const rect = this.laidOut();
-    return rect && rectAttribute(rect);
+    const laid = this.laid();
+    return laid && rectAttribute(laid.css);
   });
 
   /**
@@ -163,8 +212,50 @@ export class BoardComponent {
    * the stylesheet works it out until then.
    */
   protected readonly ringStyle = computed(() => {
-    const rect = this.laidOut();
-    return rect && cssRectStyle(rect);
+    const laid = this.laid();
+    return laid && cssRectStyle(laid.css);
+  });
+
+  /**
+   * Where the panels lie beside the field: where the scene laid them out,
+   * or, until it has, where it will; or null where the room spares none,
+   * or before the board is measured.
+   */
+  protected readonly panelStyles = computed(() => {
+    const panels = (this.laid() ?? this.placeholder())?.panels;
+    return panels
+      ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
+      : null;
+  });
+
+  /**
+   * The room inside the canvas's insets the board last measured, for the
+   * layout check, written as the field's rectangle is, once the scene has
+   * laid the field out.
+   */
+  protected readonly roomRect = computed(() => {
+    const room = this.room();
+    return this.laid() && room
+      ? rectAttribute(cssRectOf(roomInside(room), room.pixelRatio))
+      : null;
+  });
+
+  /**
+   * Where the scene laid the panels out, for the layout check, by their
+   * names, as "left x y width height, right x y width height", or nothing
+   * where the room spares none; or null before the scene has laid the
+   * field out.
+   */
+  protected readonly panelZones = computed(() => {
+    const laid = this.laid();
+    if (!laid) return null;
+    const { panels } = laid;
+    return panels
+      ? namedRectsAttribute([
+          ["left", panels.left],
+          ["right", panels.right],
+        ])
+      : "";
   });
 
   /** The board's own card over the field, if any, and none while the canvas shows its own. */
@@ -224,19 +315,22 @@ export class BoardComponent {
    * The field's colors, from the palette on the page, a new object when the
    * field's roles or the mode change.
    */
-  private readonly palette = fieldPalette(inject(ThemeService));
+  protected readonly palette = fieldPalette(inject(ThemeService));
 
   /** Asks the scene for its pictures of the atlas it last baked, or null before it has baked. */
   private readonly askPictures = signal<(() => Pictures) | null>(null);
 
   /**
    * The pictures of every brick, ball and capsule as the scene last drew
-   * them, for How to play, or null before it has drawn.
+   * them, for How to play and the panels, or null before it has drawn.
    *
    * The scene encodes them as this is first read after each bake, so only
-   * How to play reads it, as it opens.
+   * How to play reads it, as it opens, and the panels, while they show.
    */
   readonly pictures = computed(() => this.askPictures()?.() ?? null);
+
+  /** The timer that hands on the last bake's pictures once the atlas settles. */
+  private picturesTimer: ReturnType<typeof setTimeout> | undefined;
 
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: BricksSceneOptions = {
@@ -250,14 +344,14 @@ export class BoardComponent {
     sound: () => this.settings.settings().sound,
     chimes: () => this.game.chimes(),
     fingerRoom: () => this.fingerRoom(),
-    onLayout: (field) => {
-      this.laidOut.set(field);
+    onLayout: (metrics) => {
+      this.laid.set(metrics);
     },
     command: (command) => {
       this.game.command(command);
     },
     onPictures: (pictures) => {
-      this.askPictures.set(pictures);
+      this.takePictures(pictures);
     },
   };
 
@@ -282,6 +376,9 @@ export class BoardComponent {
       this.game.setDrawn(this.canvas().state() === "ready");
     });
     this.askForTheRoom();
+    inject(DestroyRef).onDestroy(() => {
+      clearTimeout(this.picturesTimer);
+    });
   }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
@@ -323,6 +420,23 @@ export class BoardComponent {
         this.game.setFieldHeight(height);
       });
     });
+  }
+
+  /**
+   * Takes the pictures of the atlas the scene baked: the first at once,
+   * each later one once the atlas has stayed as it is for
+   * {@link PICTURES_SETTLE_MS}, so a resize under way, which bakes it at
+   * each new unit, has nothing encoded until it stops.
+   */
+  private takePictures(pictures: () => Pictures): void {
+    clearTimeout(this.picturesTimer);
+    if (this.askPictures() === null) {
+      this.askPictures.set(pictures);
+      return;
+    }
+    this.picturesTimer = setTimeout(() => {
+      this.askPictures.set(pictures);
+    }, PICTURES_SETTLE_MS);
   }
 
   /**

@@ -2,7 +2,7 @@ import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
-import type { CssRect, Viewport } from "@fz/phaser/layout";
+import type { Viewport } from "@fz/phaser/layout";
 import {
   canvasChanged,
   onFirstFrame,
@@ -71,8 +71,8 @@ export interface BricksSceneOptions {
   readonly chimes: () => number;
   /** Returns the room to leave under the field for a finger, in CSS pixels. */
   readonly fingerRoom: () => number;
-  /** Takes where the field now lies on the canvas, in CSS pixels. */
-  readonly onLayout: (field: CssRect) => void;
+  /** Takes where the field, and the panels beside it, now lie on the canvas. */
+  readonly onLayout: (metrics: FieldMetrics) => void;
   /** Takes what a key, a click or a tap asks of the game. */
   readonly command: (command: FieldCommand) => void;
   /**
@@ -374,7 +374,7 @@ export class BricksScene extends Scene {
     this.bricks.layout(this.metrics);
     this.effects.layout(this.metrics);
     this.steering.measure(this.metrics);
-    this.options.onLayout(this.metrics.css);
+    this.options.onLayout(this.metrics);
   }
 
   /**

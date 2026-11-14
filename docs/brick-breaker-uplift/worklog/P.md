@@ -259,3 +259,86 @@ measures), the focus paths sound and the tools unaffected. Its comments:
 **Checks:** Brick Breaker's lint, typecheck and test (59 files, 2,001
 specs, with `sim`), before the review and the board's and app's specs
 after; the root's lint, under the lock (33 s).
+
+### 2026-11-14: the bench and in play beside a wide room's field
+
+The two panels of C9, C10 and C11, as Brick Fuzz Pop's stand: `fieldMetrics()`
+lays them with `sidePanels()`, the board stands them over its room, and
+`src/app/panels/` holds the bench, `<app-bench>`, on the left, and in play,
+`<app-in-play>`, on the right, each a region named by a heading only a
+screen reader hears, its parts small labelled sections under it. No stars
+yet: P3 adds them.
+
+- **The gap is kept from the wall,** so the panels stand level with it,
+  from its top to the field's foot, and look set beside the field rather
+  than its cells. `data-field` stays the cells, as the field's checks read
+  it, so the deck's spare is measured past them: 12 + 172 + 2 = 186 CSS
+  px, which `tools/check-layout.mjs` says and `field_metrics.spec.ts`
+  holds at 632 and 631 px wide.
+- **The scene hands the shell the whole `FieldMetrics`** through
+  `onLayout()`, rather than the field's rectangle, so the board takes the
+  panels from the same layout as the field. This changes a line of
+  `src/scene/bricks_scene.ts` and its spec, which streams F and L own:
+  a signature, not an addition, which a rebase of theirs will meet.
+- **Before the scene lays out,** the board lays out its own, from the room
+  it measured with the finger's room and the game's height, so the panels
+  stand where they will; `data-room` and `data-panels` (`""` where none
+  show) wait for the scene's, as Brick Fuzz Pop's do.
+- **Pictures settle,** as Brick Fuzz Pop's do: the first bake's at once,
+  a later one's after 250 ms of no other (`PICTURES_SETTLE_MS`), since the
+  panels read them while they show and each bake of a resize would encode
+  every picture again.
+- **`GameService`'s signals change on events only:** the streak as a
+  brick breaks or the ball meets the paddle, the effects as one starts,
+  ends or ticks down a whole second (`showsEffects()`, which makes nothing
+  so it can be asked each frame), the rest from the run and the level. The
+  level after this one is `levelAfter`, since `nextLevel()` is a method.
+  `nextLifeOf()` says null at six lives, so the bench says "6 lives at
+  most" rather than a score that brings nothing.
+- **What a compact panel keeps:** the bench its level and its lives, in
+  play its streak and its effects; the next level, the kinds and the
+  capsules drop. How to play has every kind, and the Ready card, in the
+  next commit, names a kind new here.
+- **The kinds here include the plain brick,** as C9 has level 1's plain
+  bricks new there. The new kinds from K1 (cage, plated, key, gate) show
+  from the catalog with their pictures as the atlas draws them.
+- **Capsules here** are those a gift is pinned to and, where any brick may
+  draw from the pool (the level's chance, or a gift with none pinned), the
+  level's pool, but for the bad ones at Relaxed, which lets none fall.
+- **The ring of an effect** is an SVG circle dashed by its share, stepped
+  with the whole seconds, never animated in CSS.
+- `web-game-accessibility`'s line on Brick Fuzz Pop's application now
+  says the same of Brick Breaker's.
+
+**Review** (a fresh agent): it found the layout, the signals, the
+pictures' settling and the check sound, and worked the 1280 × 720 figures
+and the 632/631 px threshold by hand. Its comments:
+
+1. The meter's tick lines sat half a label left of their marks, the ×4's
+   a whole label short, as the span carried the line and was shifted to
+   centre its words. Fixed: a `::before` draws the line at the span's
+   middle (its end for the last), so it stands at `--at`; the spec now
+   reads each tick's `--at`.
+2. The bench's doc said the pips were hidden, which are one picture named
+   by the level's place. Fixed.
+3. Five lives waiting ran off the plank on a panel under about 186 px
+   wide. Fixed: the plank is an inline-size container, and each fuzzball
+   is at most 24 px and at least small enough for five and their gaps.
+4. Specs that would pass with the code broken: the meter's fill and the
+   ticks' places, the next level's bricks' places, and the capsules at a
+   speed other than Normal. Fixed: specs for the fill at 12 and past 20,
+   each tick's place, each brick's `x`, `y` and opacity on a level with
+   bricks in two rows and columns, and the capsules at Relaxed on a pool
+   with a narrow paddle in it (which fails with the speed hard-coded, as
+   tried).
+5. `AGENTS.md`'s "The board holds an application" left out the panels,
+   and two lines ran past 80 columns. Fixed.
+6. Optional: `takePictures()` copies Brick Fuzz Pop's board; left, as a
+   lift into `@fz/phaser/canvas` changes Brick Fuzz Pop too, and is noted
+   for the integrator. The board spec's `canvasOf()` only wrapped
+   `viewport()`; dropped.
+
+**Checks:** Brick Breaker's lint, typecheck and test (62 files, 2,214
+specs, with `sim`), its `dom` and `pure` specs with coverage before the
+review (2,013 specs, `app/panels` whole), its build; the root's lint,
+under the lock.

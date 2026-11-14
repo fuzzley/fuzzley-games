@@ -236,7 +236,11 @@ takes for the specs' helpers.
   a unit a whole number of device pixels, with `toCanvasX()`/`toCanvasY()`
   and `toFieldX()`/`toFieldY()` between the two, and says how tall a field
   a canvas has room for (`fieldHeightFor()`) and the room a board with room
-  for a taller one leaves under the field for a finger (`fingerRoomOf()`);
+  for a taller one leaves under the field for a finger (`fingerRoomOf()`),
+  and stands the panels beside it where the room spares them
+  (`@fz/phaser/layout`'s `sidePanels()`), kept from the wall, from its top
+  to the field's foot, which the scene hands the shell with the field as it
+  lays it out (`onLayout()`);
   `frame.ts` is what the scene reads: `FieldView`, the field it can't
   change, and `FieldFrame`, whose events are `@fz/core/event_log`'s
   `EventLogView`; `layers.ts` the order the field is drawn in, back to front,
@@ -353,6 +357,15 @@ takes for the specs' helpers.
     (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
     the question, through `@fz/ui/confirm`, before a run is lost. A launch at
     any stage but a level ready or in play does as `go` does.
+    For the panels it holds signals that change only as the field comes to
+    something, never at a step: the streak (`streak`), the effects in play,
+    each with its whole seconds left (`effectsInPlay`, copied again only as
+    one starts, ends or ticks down a second, `panels/`' `showsEffects()`),
+    the lives waiting and the score the next comes at (`livesWaiting`,
+    `nextLifeAt`), the kinds of brick in the level, each new where it is
+    the first to hold it (`kindsHere`), the capsules that can fall in it at
+    the speed in play (`capsulesHere`) and the level after it
+    (`levelAfter`).
     `src/app/tokens.ts` holds what a spec hands it instead of the game's own:
     the levels (`GAME_LEVELS`); the seeds come from `@fz/game-ui/random`'s
     `GAME_RANDOM`.
@@ -382,14 +395,39 @@ takes for the specs' helpers.
     the field, which the scene lays the field out above.
     `fieldPalette()` colors the field from the roles `field_roles.ts` names
     (`FIELD_ROLES`), through `ThemeService`'s `roles()`, and its `mode`,
-    and a finger steers as the settings say. The board asks the scene for
-    How to play's pictures as How to play opens (`pictures`), and keeps them
-    until the scene bakes again. The canvas and its focus ring are an
-    application (`.play`), named for its level, "Brick Breaker, level 3:
-    Pyramid", which takes the focus at a press and as Resume, Next level
-    and each run hand it back; the cards beside it read as a page does, and
-    Phaser hears the keys on the board's own element, to which they rise
-    from the application.
+    and a finger steers as the settings say. Where the room spares them, it
+    stands the panels beside the field, where `fieldMetrics()` lays them:
+    the scene's once it has laid the field out, and until then the board's
+    own, on the room it measured. The board asks the scene for How to
+    play's pictures as How to play opens or the panels show (`pictures`),
+    takes a later bake's only once the atlas has settled
+    (`PICTURES_SETTLE_MS`), and keeps them until the scene bakes again. For
+    the layout check (`tools/check-layout.mjs`) it publishes `data-field`
+    (the field's cells), `data-room` and `data-panels` (`""` where none
+    show), once the scene has laid the field out. The canvas and its focus
+    ring are an application (`.play`), named for its level, "Brick Breaker,
+    level 3: Pyramid", which takes the focus at a press and as Resume, Next
+    level and each run hand it back; the panels and the cards beside it
+    read as a page does, and Phaser hears the keys on the board's own
+    element, to which they rise from the application.
+  - `panels/` — the two panels beside a wide room's field, each a region
+    named by its heading, which only a screen reader hears, taking no
+    pointer and no size of its own, to be laid over its room with
+    `cssRectStyle()`, each part one element under it, so a panel under 400
+    px tall keeps the first two (`board-panel($compact: true)`): the bench,
+    `<app-bench>`, the level's number, set and name over a pip for each
+    level of its set, the lives waiting, each a fuzzball on a plank, and
+    the score the next comes at, and the level after this one, its bricks
+    drawn in their tints, hidden from assistive technology, with its name
+    and its kinds; and in play, `<app-in-play>`, the streak's multiplier,
+    the bricks since the paddle and a meter ticked at each multiplier, the
+    effects in play, each a ring emptying by its share, with its name and
+    its whole seconds left, the kinds of brick in the level, through
+    `helpEntries()`, a kind new here marked, and the capsules that can fall
+    in it, each with its picture once the scene has drawn it. Nothing in
+    them moves between the game's signals. `panels.ts` reads the levels and
+    the field for both (`placeInSet()`, `kindsIn()`, `firstLevels()`,
+    `kindsHere()`, `capsulesHere()`, `effectsInPlay()`, `nextLifeOf()`).
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, which asks before it starts a run at another (while the
     run is at Custom, its menu offers the slider for the ball's speed
@@ -487,9 +525,9 @@ takes for the specs' helpers.
 - **The board holds an application** for assistive technology, focusable,
   named for its level and described by its keys, around the canvas and its
   ring alone; the canvas in it is hidden, the announcer says what happens,
-  and the cards beside it read as a page does. Pause and Sound keep the
-  focus on the board when pressed with a mouse or a finger, so the keys go
-  on working.
+  and the panels and the cards beside it read as a page does. Pause and
+  Sound keep the focus on the board when pressed with a mouse or a finger,
+  so the keys go on working.
 - **Phaser's input is the board's.** The keyboard's target is the board's
   element, to which the keys rise from its application, so they reach the
   game only while the application has the focus; a card's button keeps its
@@ -524,7 +562,8 @@ takes for the specs' helpers.
   board measures it; the ring takes the scene's own rectangle once it has
   drawn, which the board writes for the layout check (`data-field`) with
   `@fz/phaser/layout`'s `rectAttribute()`, and the layout check holds the
-  placeholder to it.
+  placeholder to it. The panels take `fieldMetrics()`' own, the board's
+  until the scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake and
   the last bricks' pulse, are left out, and the cards open without waiting.
@@ -648,9 +687,12 @@ workspace's with the others'.
   size times the board's pixel ratio and the field keeps its shape, 26
   units by the height the board gives it, inside the window, where the
   placeholder drew it and inside the focus ring, its card on it; its unit
-  is 10 CSS px or more (9 in a window under 360 CSS px tall); and, as the
+  is 10 CSS px or more (9 in a window under 360 CSS px tall); as the
   ball waits to be served, a field taller than 30 units, and only one,
-  leaves a finger's room under it, past the room around it).
+  leaves a finger's room under it, past the room around it; and the
+  panels, a deck shown both or neither (`data-panels`), show both wherever
+  the room (`data-room`) spares 186 CSS px each side of the field's cells,
+  the gap and the narrowest panel past the wall, and nowhere else).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which synthesizes the ten sounds, from the paddle's bop to a level's
   chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their

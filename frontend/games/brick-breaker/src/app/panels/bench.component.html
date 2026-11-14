@@ -1,0 +1,61 @@
+<h2 id="bench-title" class="fz-visually-hidden">The bench</h2>
+<section class="level">
+  <h3>
+    <span class="label">{{ heading().where }}</span>
+    <span class="name">{{ heading().name }}</span>
+  </h3>
+  <div class="pips" role="img" [attr.aria-label]="place().words">
+    @for (pip of place().pips; track $index) {
+      <span class="pip" [attr.data-pip]="pip"></span>
+    }
+  </div>
+</section>
+<section class="lives">
+  <h3 class="label">Lives</h3>
+  <div class="plank" aria-hidden="true">
+    @for (life of lives(); track life) {
+      <fz-fuzzball class="ball" />
+    }
+  </div>
+  <p class="figures">
+    <span>{{ waiting() }}</span>
+    <span class="muted">{{ nextLife() }}</span>
+  </p>
+</section>
+<section class="next">
+  <h3 class="label">Next</h3>
+  @if (after(); as after) {
+    <div class="after">
+      <svg
+        class="picture"
+        aria-hidden="true"
+        preserveAspectRatio="xMidYMin meet"
+        [attr.viewBox]="after.viewBox"
+      >
+        @for (brick of after.bricks; track $index) {
+          <rect
+            rx="0.15"
+            [attr.x]="brick.x"
+            [attr.y]="brick.y"
+            [attr.width]="brick.width"
+            [attr.height]="brick.height"
+            [attr.fill]="brick.color"
+            [attr.opacity]="brick.opacity"
+          />
+        }
+      </svg>
+      <div>
+        <p class="muted">{{ after.title }}</p>
+        <p class="name">{{ after.name }}</p>
+        <!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+        <ul class="kinds muted" role="list">
+          @for (kind of after.kinds; track kind) {
+            <li>{{ kind }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  } @else {
+    <p class="muted">The last level.</p>
+  }
+</section>

@@ -1,0 +1,32 @@
+// What the two panels' parts share: the small heading over each, and the
+// words set quieter beside the figures.
+
+/// Styles a part's heading, in small capitals in the muted text, as the
+/// sheets draw it.
+@mixin label {
+  margin: 0;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/// Styles a part: its heading and its lines stacked, a little apart.
+@mixin part {
+  display: grid;
+  align-content: start;
+  gap: var(--fz-space-1);
+  min-width: 0;
+  margin: 0;
+
+  p,
+  ul {
+    margin: 0;
+  }
+
+  ul {
+    padding: 0;
+    list-style: none;
+  }
+}

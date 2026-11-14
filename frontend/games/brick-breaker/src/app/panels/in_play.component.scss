@@ -1,0 +1,220 @@
+@use "../styles" as *;
+@use "parts";
+
+// A panel under 400 px tall keeps the streak and the effects in play. The
+// kinds take the height the streak and the effects leave, and a kind or a
+// capsule that doesn't fit is cut off.
+:host {
+  @include board-panel($compact: true);
+
+  align-content: start;
+  gap: var(--fz-space-4);
+}
+
+section {
+  @include parts.part;
+}
+
+.label {
+  @include parts.label;
+}
+
+.muted {
+  color: var(--fz-muted);
+}
+
+// The multiplier large, in the warning's gold once it counts, beside the
+// bricks since the paddle.
+.count {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-3);
+}
+
+.times {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-3xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+
+  &[data-counts="true"] {
+    color: var(--fz-warning);
+  }
+}
+
+.since {
+  display: grid;
+  font-size: var(--fz-font-xs);
+}
+
+.bricks {
+  font-size: var(--fz-font-sm);
+  font-weight: 700;
+}
+
+// The meter, filled in gold as far as the streak, to the highest
+// multiplier's start, each multiplier's start ticked and named under it.
+.meter {
+  position: relative;
+  height: 6px;
+  margin: var(--fz-space-2) 0 var(--fz-space-5);
+  border-radius: var(--fz-radius-pill);
+  background:
+    linear-gradient(var(--fz-warning), var(--fz-warning)) 0 0 / var(--filled)
+      100% no-repeat,
+    var(--fz-edge-3);
+}
+
+// Each tick's words centered under its line, which stands at its mark
+// whatever the words' width.
+.tick {
+  position: absolute;
+  top: -3px;
+  left: var(--at);
+  padding-top: 14px;
+  color: var(--fz-muted);
+  font-size: var(--fz-font-2xs);
+  font-weight: 700;
+  line-height: 1;
+  translate: -50% 0;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 12px;
+    border-left: 2px solid var(--fz-edge-4);
+    translate: -50% 0;
+  }
+
+  &[data-reached="true"] {
+    color: var(--fz-warning);
+
+    &::before {
+      border-color: var(--fz-warning);
+    }
+  }
+
+  // The last at the meter's end, its words ending there, inside the panel.
+  &:last-child {
+    translate: -100% 0;
+
+    &::before {
+      left: auto;
+      right: 0;
+      translate: none;
+    }
+  }
+}
+
+// Each effect's ring, emptying by its share, about its capsule, then its
+// name and its time left.
+.effects li {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-2);
+
+  .name {
+    flex: 1;
+    font-weight: 600;
+  }
+}
+
+.ring {
+  --tone: var(--fz-accent);
+
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--fz-space-8);
+  height: var(--fz-space-8);
+
+  &[data-tone="bad"] {
+    --tone: var(--fz-danger);
+  }
+
+  svg {
+    position: absolute;
+    inset: 0;
+    rotate: -90deg;
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 3;
+  }
+
+  .track {
+    stroke: color-mix(in srgb, var(--tone) 28%, transparent);
+  }
+
+  .share {
+    stroke: var(--tone);
+  }
+
+  img {
+    position: relative;
+    max-width: 70%;
+  }
+}
+
+// Each kind's picture beside its name and what it does, as How to play
+// lists them.
+.kinds {
+  min-height: 0;
+  overflow: hidden;
+
+  ul {
+    display: grid;
+    gap: var(--fz-space-2);
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: var(--fz-space-8) 1fr;
+    column-gap: var(--fz-space-2);
+    align-items: center;
+  }
+
+  img {
+    grid-row: span 2;
+    justify-self: center;
+    max-width: var(--fz-space-8);
+    max-height: var(--fz-space-8);
+  }
+
+  .name,
+  .about {
+    grid-column: 2;
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .about {
+    color: var(--fz-muted);
+    font-size: var(--fz-font-xs);
+  }
+}
+
+.fz-badge {
+  margin-inline-start: var(--fz-space-1);
+  font-size: var(--fz-font-2xs);
+  vertical-align: middle;
+}
+
+// The capsules in a row, as their pictures show them.
+.capsules ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fz-space-1) var(--fz-space-2);
+
+  img {
+    display: block;
+    height: var(--fz-space-4);
+  }
+}

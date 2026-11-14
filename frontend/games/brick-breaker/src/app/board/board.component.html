@@ -28,6 +28,25 @@
   button's: Space and Enter press it.
 </p>
 
+@if (panelStyles(); as panels) {
+  <app-bench
+    [style]="panels.left"
+    [level]="game.level()"
+    [livesWaiting]="game.livesWaiting()"
+    [nextLifeAt]="game.nextLifeAt()"
+    [levelAfter]="game.levelAfter()"
+    [palette]="palette()"
+  />
+  <app-in-play
+    [style]="panels.right"
+    [streak]="game.streak()"
+    [effects]="game.effectsInPlay()"
+    [kinds]="game.kindsHere()"
+    [capsules]="game.capsulesHere()"
+    [pictures]="pictures()"
+  />
+}
+
 @let shownCard = card();
 <div class="cards">
   <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->

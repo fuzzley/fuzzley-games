@@ -1,4 +1,11 @@
-import { type CssRect, type Viewport, fitCells } from "@fz/phaser/layout";
+import {
+  type CssRect,
+  type SidePanels,
+  type Viewport,
+  fitCells,
+  roomInside,
+  sidePanels,
+} from "@fz/phaser/layout";
 import { FIELD_HEIGHT, FIELD_WIDTH, TALLEST_FIELD } from "../../rules/tuning";
 
 /** Says where the field lies on the canvas. */
@@ -19,6 +26,12 @@ export interface FieldMetrics {
   readonly pixelRatio: number;
   /** The field, without its wall, in CSS pixels. */
   readonly css: CssRect;
+  /**
+   * Where a panel stands either side of the field, in CSS pixels, or null
+   * where the room spares too little for them (`sidePanels()`): kept from
+   * the wall, from the wall's top to the field's foot.
+   */
+  readonly panels: SidePanels | null;
 }
 
 /** How thick the wall is, in CSS pixels. */
@@ -74,7 +87,13 @@ export function fingerRoomOf(roomFor: number): number {
  * Returns where a field `down` units tall lies on a canvas: the largest that
  * fits inside the chrome, a unit a whole number of device pixels so every
  * brick's edge is sharp, centered with room for a wall on every side, though
- * the wall is drawn only on the left, the top and the right.
+ * the wall is drawn only on the left, the top and the right; and where the
+ * panels beside it stand, if the room spares them.
+ *
+ * The panels keep their gap from the wall, which the field's rectangle
+ * leaves out, so a side must spare {@link WALL_CSS_PX} more past the
+ * field's cells than `sidePanels()` asks: 186 CSS px at a whole pixel
+ * ratio.
  */
 export function fieldMetrics(viewport: Viewport, down: number): FieldMetrics {
   const fit = fitCells(viewport, {
@@ -82,6 +101,12 @@ export function fieldMetrics(viewport: Viewport, down: number): FieldMetrics {
     down,
     frameCss: WALL_CSS_PX,
   });
+  const walled = {
+    x: fit.x - fit.frame,
+    y: fit.y - fit.frame,
+    width: fit.width + 2 * fit.frame,
+    height: fit.height + fit.frame,
+  };
   return {
     unit: fit.cell,
     x: fit.x,
@@ -91,6 +116,7 @@ export function fieldMetrics(viewport: Viewport, down: number): FieldMetrics {
     wall: fit.frame,
     pixelRatio: viewport.pixelRatio,
     css: fit.css,
+    panels: sidePanels(roomInside(viewport), walled, viewport.pixelRatio),
   };
 }
 

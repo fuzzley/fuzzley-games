@@ -112,8 +112,9 @@ Breaker's and Brick Fuzz Pop's do (`frontend/games/snake/src/app/board/`,
 `frontend/games/brick-fuzz-pop/src/app/board/`), is no grid: it is one
 focusable element with `role="application"`, named for the game and
 described by its keys, so a screen reader hands it the arrow keys; the
-canvas in it is hidden. Brick Fuzz Pop's is its field alone, named for the
-game and the level, its panels and cards beside it read as a page is.
+canvas in it is hidden. Brick Breaker's and Brick Fuzz Pop's are their
+fields alone, named for the game and the level, their panels and cards
+beside them read as a page is.
 
 - It waits for the player: nothing moves until the player starts it, Snake by
   its first direction, Brick Breaker by a launch, Asteroid Breaker by a wave's

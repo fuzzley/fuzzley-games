@@ -62,6 +62,15 @@ import type { FieldCommand } from "../../view/steering/controls";
 import type { FieldFrame } from "../../view/field/frame";
 import { LevelPlay } from "../../view/level_play";
 import { clearedDelayMs, resultDelayMs } from "../../view/effects/timing";
+import {
+  type EffectInPlay,
+  capsulesHere,
+  effectsInPlay,
+  firstLevels,
+  kindsHere,
+  nextLifeOf,
+  showsEffects,
+} from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -77,13 +86,17 @@ import { GAME_LEVELS } from "../tokens";
  * something the run takes: points, a life, a clearing. The field changes
  * 120 times a second, so no signal holds it; the scene reads it through
  * {@link frame}, and what the shell shows of it is copied into signals
- * that change only when it does.
+ * that change only when it does, such as the streak a brick or the paddle
+ * moves, and the effects in play as one starts, ends or ticks down a whole
+ * second.
  */
 @Injectable({ providedIn: "root" })
 export class GameService extends RunLifecycle {
   private readonly viewport = inject(GameViewportService);
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   private readonly levels = inject(GAME_LEVELS);
+  /** The first level, by number, that holds each kind of brick. */
+  private readonly firsts = firstLevels(this.levels);
   private readonly settings = inject(SettingsService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
@@ -100,6 +113,8 @@ export class GameService extends RunLifecycle {
 
   private readonly servingState = signal(true);
   private readonly multiplierState = signal(1);
+  private readonly streakState = signal(0);
+  private readonly effectsState = signal<readonly EffectInPlay[]>([]);
   private readonly clearedOpenState = signal(false);
   private readonly tallyState = signal<LevelTally | null>(null);
   private readonly resultOpenState = signal(false);
@@ -115,6 +130,24 @@ export class GameService extends RunLifecycle {
   /** The level in play, or the last one cleared. */
   readonly level = computed(() => this.levelEntry(this.runState().level));
 
+  /** The level in play, or the last one cleared, laid out to play, for what the panels say of it. */
+  private readonly levelLaid = computed(() => parseLevel(this.level()));
+
+  /** The level after the one in play, or null after the last, for the bench to show coming. */
+  readonly levelAfter = computed(
+    () => this.levels[this.level().number] ?? null,
+  );
+
+  /** The kinds of brick the level holds, in How to play's order, each marked where the level is the first to hold it. */
+  readonly kindsHere = computed(() =>
+    kindsHere(this.levelLaid(), this.level().number, this.firsts),
+  );
+
+  /** The capsules that can fall in the level at the run's speed, in How to play's order. */
+  readonly capsulesHere = computed(() =>
+    capsulesHere(this.levelLaid(), this.speed()),
+  );
+
   /** The run's speed, which changes only as a new run begins. */
   readonly speed = computed(() => this.runState().speed);
 
@@ -128,6 +161,12 @@ export class GameService extends RunLifecycle {
 
   /** The lives the run has left. */
   readonly lives = computed(() => this.runState().lives);
+
+  /** The lives that wait for the one in play, or on the paddle, to be lost. */
+  readonly livesWaiting = computed(() => Math.max(0, this.lives() - 1));
+
+  /** The score the run's next life comes at, or null while it holds the most lives it may. */
+  readonly nextLifeAt = computed(() => nextLifeOf(this.runState()));
 
   /** The best score at the run's speed, as of the last run that ended. */
   readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);
@@ -162,6 +201,16 @@ export class GameService extends RunLifecycle {
 
   /** How many times a hit now scores, by the streak, for the bar while it is more than one. */
   readonly multiplier = this.multiplierState.asReadonly();
+
+  /** The bricks broken since the paddle last met a ball, or the last ball was lost. */
+  readonly streak = this.streakState.asReadonly();
+
+  /**
+   * The effects in play, in the order the field's tags show them, each
+   * with its share and whole seconds left, written as one starts, ends or
+   * ticks down a whole second, so nothing that shows them moves between.
+   */
+  readonly effectsInPlay = this.effectsState.asReadonly();
 
   /** Whether the card over a cleared level is showing, which opens once its last shards have flown. */
   readonly clearedOpen = this.clearedOpenState.asReadonly();
@@ -405,6 +454,15 @@ export class GameService extends RunLifecycle {
     }
     this.servingState.set(field.state === "serve");
     this.multiplierState.set(multiplier(field.streak));
+    this.streakState.set(field.streak);
+    this.followEffects(field);
+  }
+
+  /** Copies the effects in play on a field, if they are no longer those shown. */
+  private followEffects(field: Field): void {
+    if (!showsEffects(this.effectsState(), field)) {
+      this.effectsState.set(effectsInPlay(field));
+    }
   }
 
   /**
@@ -540,6 +598,8 @@ export class GameService extends RunLifecycle {
     this.fitField();
     this.servingState.set(true);
     this.multiplierState.set(1);
+    this.streakState.set(0);
+    this.followEffects(this.levelPlay.field);
     this.clearedOpenState.set(false);
   }
 
