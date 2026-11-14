@@ -4,6 +4,7 @@
 import {
   NO_STEER,
   ballOf,
+  brickAt,
   eventsOf,
   fieldFrom,
   headingOf,
@@ -341,6 +342,165 @@ describe("the bricks", () => {
     expect({ state: field.state, events: eventsOf(field) }).toEqual({
       state: "cleared",
       events: ["broken", "cleared"],
+    });
+  });
+});
+
+describe("a plated brick", () => {
+  it("turns a ball rising into its underside, takes no hit, and says so", () => {
+    const field = fieldFrom(sixthRow("......u"));
+    const ball = throwBall(field, 13, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      hits: brickAt(field, 6, 5).hits,
+      heading: Math.abs(headingOf(ball)),
+      climbed: field.climbed,
+      events: eventsOf(field),
+    }).toEqual({ hits: 1, heading: 180, climbed: 0, events: ["plated"] });
+  });
+
+  it("turns a ball rising into its bottom corner, taking no hit", () => {
+    // The brick lies from 12 to 14 across and 7 to 8 down; the ball rises
+    // straight at its bottom left corner.
+    const field = fieldFrom(sixthRow("......u"));
+    const ball = throwBall(field, 10, 10, 45);
+
+    stepTimes(field, 20);
+
+    expect({
+      hits: brickAt(field, 6, 5).hits,
+      heading: Math.round(headingOf(ball)),
+      events: eventsOf(field),
+    }).toEqual({ hits: 1, heading: -135, events: ["plated"] });
+  });
+
+  it("turns a ball that meets its bottom corner and its side's end at once, taking no hit", () => {
+    // Heading straight across along the line of its foot, at 8 down, the
+    // ball touches the corner and the end of the left face together; a
+    // heading of 90° rounds to a hair upward, so it rises.
+    const field = fieldFrom(sixthRow("......u"));
+    throwBall(field, 9, 8, 90);
+
+    stepTimes(field, 20);
+
+    expect({
+      hits: brickAt(field, 6, 5).hits,
+      events: eventsOf(field),
+    }).toEqual({ hits: 1, events: ["plated"] });
+  });
+
+  it("takes a hit at its bottom corner from a falling ball", () => {
+    // Falling a little as it goes right, the ball passes under the left
+    // face and meets the bottom left corner, at 12, 8.
+    const field = fieldFrom(sixthRow("......u"));
+    throwBall(field, 10, 7.95, 95);
+
+    stepTimes(field, 20);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      events: eventsOf(field),
+    }).toEqual({ broken: true, events: ["broken"] });
+  });
+
+  it("takes the reach of a blast ball's hit on a brick beside it", () => {
+    // The ball rises into the seam between the two, meeting the plate's
+    // underside and the plain brick's at once.
+    const field = fieldFrom(sixthRow(".....ou"));
+    throwBall(field, 12, 10, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: [brickAt(field, 5, 5).broken, brickAt(field, 6, 5).broken],
+      events: eventsOf(field),
+    }).toEqual({
+      broken: [true, true],
+      events: ["caught", "plated", "broken", "broken"],
+    });
+  });
+
+  it.each([
+    ["above", 13, 4, 180],
+    ["the left", 9, 7.5, 90],
+    ["the right", 17, 7.5, -90],
+  ])("takes a hit from %s", (_, x, y, heading) => {
+    const field = fieldFrom(sixthRow("......u"));
+    throwBall(field, x, y, heading);
+
+    stepTimes(field, 20);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      events: eventsOf(field),
+    }).toEqual({ broken: true, events: ["broken"] });
+  });
+
+  it("takes a hit of two from above, and holds", () => {
+    const field = fieldFrom(sixthRow("......U"));
+    throwBall(field, 13, 4, 180);
+
+    stepTimes(field, 20);
+
+    expect(brickAt(field, 6, 5).hits).toBe(1);
+  });
+
+  it("turns a fire ball rising into its underside, taking no hit", () => {
+    const field = fieldFrom(sixthRow("......u"));
+    const ball = throwBall(field, 13, 10, 0);
+    catchCapsule(field, "fire", 0, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      falling: ball.dy > 0,
+    }).toEqual({ broken: false, falling: true });
+  });
+
+  it("breaks under a fire ball from a side, which passes through", () => {
+    const field = fieldFrom(sixthRow("......u"));
+    const ball = throwBall(field, 9, 7.5, 90);
+    catchCapsule(field, "fire", 0, 0);
+
+    stepTimes(field, 20);
+
+    expect({
+      broken: brickAt(field, 6, 5).broken,
+      onward: ball.dx > 0,
+    }).toEqual({ broken: true, onward: true });
+  });
+
+  it("sets off no blast around it as a blast ball turns off its underside", () => {
+    const field = fieldFrom(["o", "", "", "", ".....ooo", ".....ouo"]);
+    throwBall(field, 13, 12, 0);
+    catchCapsule(field, "blast", 0, 0);
+
+    stepTimes(field, 35);
+
+    expect({
+      broken: field.bricks.filter((brick) => brick?.broken).length,
+      events: eventsOf(field),
+    }).toEqual({ broken: 0, events: ["caught", "plated"] });
+  });
+
+  it("takes no hit as a ball rises into the seam beside a brick that does", () => {
+    const field = fieldFrom(sixthRow(".....ou"));
+    const ball = throwBall(field, 12, 10, 0);
+
+    stepTimes(field, 15);
+
+    expect({
+      broken: [brickAt(field, 5, 5).broken, brickAt(field, 6, 5).broken],
+      heading: Math.abs(headingOf(ball)),
+      events: eventsOf(field),
+    }).toEqual({
+      broken: [true, false],
+      heading: 180,
+      events: ["plated", "broken"],
     });
   });
 });

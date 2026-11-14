@@ -171,6 +171,25 @@ describe("a bolt", () => {
     }).toEqual({ steel: false, upper: false });
   });
 
+  it("is spent at a plated brick's underside, which takes no hit, and says so", () => {
+    const field = laserField([".....o", "", "", "", ".....u"]);
+    fireBolts(field);
+
+    stepTimes(field, TO_TOP);
+
+    expect({
+      plated: field.bricks[cellIndex(5, 4)]?.hits,
+      upper: isBroken(field, 5, 0),
+      bolts: boltsOf(field),
+      events: eventsOf(field),
+    }).toEqual({
+      plated: 1,
+      upper: false,
+      bolts: [],
+      events: ["caught", "fired", "plated"],
+    });
+  });
+
   it("stops at the top wall", () => {
     const field = laserField([]);
     fireBolts(field);

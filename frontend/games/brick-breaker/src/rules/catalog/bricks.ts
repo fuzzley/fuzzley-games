@@ -11,7 +11,12 @@ export type BrickTrait =
   /** Grows back a while after it breaks, once no ball is in its place. */
   | { readonly kind: "regrows"; readonly afterMs: number }
   /** Frees a friend as it breaks, a ball more, which leaves upward. */
-  | { readonly kind: "frees" };
+  | { readonly kind: "frees" }
+  /**
+   * Turns back a ball rising into its underside, its bottom face and
+   * corners, and spends a bolt there, taking no hit.
+   */
+  | { readonly kind: "plated" };
 
 /** A brick trait's kind, such as "blasts". */
 export type TraitKind = BrickTrait["kind"];
@@ -112,6 +117,16 @@ export const BRICK_KINDS = {
     needed: true,
     points: 50,
     traits: [{ kind: "frees" }],
+  },
+  plated: {
+    name: "Plated brick",
+    about:
+      "Takes one or two hits from above or a side; from below, its plate turns the ball back unhurt.",
+    hits: 1,
+    mostHits: 2,
+    needed: true,
+    points: 50,
+    traits: [{ kind: "plated" }],
   },
 } as const satisfies Readonly<Record<string, BrickKind>>;
 

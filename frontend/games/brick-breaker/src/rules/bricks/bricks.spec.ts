@@ -326,6 +326,17 @@ describe("a brick that regrows", () => {
   });
 });
 
+describe("a plated brick", () => {
+  it("takes a hit from a blast below it", () => {
+    const field = fieldFrom(["u", "*", ...KEEPER]);
+    hitAt(field, 0, 1);
+
+    stepTimes(field, FUSE_STEPS);
+
+    expect(brickAt(field, 0, 0).broken).toBe(true);
+  });
+});
+
 describe("a cage", () => {
   /** Returns a field in play from rows of bricks, its ball far below them. */
   function inPlay(rows: readonly string[], seed = 1): Field {

@@ -70,7 +70,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   bricks, a row of up to 13 characters from the top, in the shared legend's
   characters (`src/rules/levels/legend.ts`: `o` plain, `2` to `4` tough,
   `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrowing, `c` cage,
-  `.` none). The
+  `u` and `U` plated, of one hit and two, `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
   chance of a capsule, the capsules that may fall, the one every gift gives
   and the field's height, 30 by default, as a tall screen makes it up to 45.

@@ -48,8 +48,9 @@ Its block in a set's file:
 - `bricks`: a row of 13 characters for each of up to 16 rows, from the
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
-  `+` regrowing, `c` cage, `.` none. A `legend` of its own adds
-  characters, each a kind with its hits or the capsule a gift gives.
+  `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `.`
+  none. A `legend` of its own adds characters, each a kind with its hits or
+  the capsule a gift gives.
 - `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
   `.` for its row's; without them each row takes the next tint, as stripes.
   The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,

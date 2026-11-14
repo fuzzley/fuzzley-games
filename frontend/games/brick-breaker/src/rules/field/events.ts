@@ -19,6 +19,8 @@ export type FieldEventKind =
   | "regrown"
   /** A cage broke and freed a friend, a ball more. */
   | "freed"
+  /** A plated brick's underside turned a ball or spent a bolt, and took no hit. */
+  | "plated"
   /** A capsule began to fall. */
   | "dropped"
   /** The paddle caught a capsule. */

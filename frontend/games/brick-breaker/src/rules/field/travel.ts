@@ -16,7 +16,13 @@ import {
   sweepCorner,
   sweepFace,
 } from "@fz/core/sweep";
-import { type Brick, canBreak, hitAround, hitBrick } from "../bricks/bricks";
+import {
+  type Brick,
+  canBreak,
+  hitAround,
+  hitBrick,
+  isPlated,
+} from "../bricks/bricks";
 import { ballKind } from "../catalog/balls";
 import { isNeeded } from "../catalog/bricks";
 import { nextDraw } from "../draws";
@@ -48,6 +54,13 @@ import { endStreak } from "./scoring";
 /** Something a ball can meet: a brick, a wall or the paddle. */
 type Obstacle = Brick | "wall" | "paddle";
 
+/**
+ * Says how a contact meets what it touches: it turns the ball, striking a
+ * brick, lets the ball pass through a brick it strikes, or turns the ball
+ * off a plate's underside, striking nothing.
+ */
+type Touch = "turns" | "passes" | "plated";
+
 /** Gathers what a ball meets at the earliest moment of a move. */
 interface Contacts {
   /** The moment, as a share of the move, or {@link MISSED}. */
@@ -65,6 +78,13 @@ interface Contacts {
   /** The bricks met, the first `count` of them. */
   readonly bricks: Brick[];
   count: number;
+  /**
+   * The plated bricks whose undersides were met, the first `plateCount` of
+   * them, which take no hit, even where another of their sides was met too,
+   * so none of them is among the bricks met.
+   */
+  readonly plates: Brick[];
+  plateCount: number;
 }
 
 /** How close two contacts' moments are for the ball to meet both at once. */
@@ -77,6 +97,9 @@ const AT_ONCE = 1e-9;
  * step as it crept down.
  */
 const CLOSED_GAP = 2 * BALL_RADIUS + 0.1;
+
+/** A plate's underside, which a rising ball meets: its bottom face and corners. */
+const UNDERSIDE = SIDE.bottom | SIDE.bottomLeft | SIDE.bottomRight;
 
 /** How far the walls reach beyond the field, which no ball goes near. */
 const FAR = 1000;
@@ -119,6 +142,8 @@ const met: Contacts = {
   turns: false,
   bricks: [],
   count: 0,
+  plates: [],
+  plateCount: 0,
 };
 
 /**
@@ -208,36 +233,39 @@ function findContacts(field: Field): void {
       const brick = field.bricks[cellIndex(column, row)];
       if (!brick || brick.broken) continue;
       brickBox(column, row, box);
-      if (passes && canBreak(brick)) {
-        noteBox(box, ALL_SIDES, brick, true);
-      } else {
-        noteBox(box, exposureOf(solid, column, row), brick);
-      }
+      const passing = passes && canBreak(brick);
+      const sides = passing ? ALL_SIDES : exposureOf(solid, column, row);
+      // The underside is noted first, so a ball that meets it and another
+      // side at once, where a side's end meets a bottom corner, strikes no
+      // brick there.
+      const underside = dy < 0 && isPlated(brick) ? sides & UNDERSIDE : 0;
+      if (underside !== 0) noteBox(box, underside, brick, "plated");
+      noteBox(box, sides & ~underside, brick, passing ? "passes" : "turns");
     }
   }
 }
 
 /**
  * Notes what the ball's {@link move} meets of a box's faces and corners,
- * which turn it, unless it `passes` through the box.
+ * as they touch it: each turns it, unless it passes through the box.
  */
 function noteBox(
   target: Readonly<Box>,
   sides: number,
   what: Obstacle,
-  passes = false,
+  touch: Touch = "turns",
 ): void {
   for (const face of FACES) {
     if ((sides & face) === 0) continue;
     const t = sweepFace(move, target, face);
-    if (t === MISSED || !noteContact(t, what, passes)) continue;
+    if (t === MISSED || !noteContact(t, what, touch)) continue;
     met.faceX += FACE_NORMAL[face].x;
     met.faceY += FACE_NORMAL[face].y;
   }
   for (const corner of CORNERS) {
     if ((sides & corner) === 0) continue;
     const t = sweepCorner(move, target, corner);
-    if (t === MISSED || !noteContact(t, what, passes)) continue;
+    if (t === MISSED || !noteContact(t, what, touch)) continue;
     const at = CORNER_AT[corner];
     met.cornerX += (move.x + move.dx * t - target[at.x]) / move.r;
     met.cornerY += (move.y + move.dy * t - target[at.y]) / move.r;
@@ -248,7 +276,7 @@ function noteBox(
  * Notes a contact, if it is as early as the earliest so far, and returns
  * whether it turns the ball, which one it passes through doesn't.
  */
-function noteContact(t: number, what: Obstacle, passes: boolean): boolean {
+function noteContact(t: number, what: Obstacle, touch: Touch): boolean {
   if (t > met.t + AT_ONCE) return false;
   if (t < met.t - AT_ONCE) {
     met.t = t;
@@ -260,26 +288,40 @@ function noteContact(t: number, what: Obstacle, passes: boolean): boolean {
     met.paddle = false;
     met.turns = false;
     met.count = 0;
+    met.plateCount = 0;
   }
   if (what === "wall") met.wall = true;
   else if (what === "paddle") met.paddle = true;
-  else if (!hasMet(what)) met.bricks[met.count++] = what;
-  if (passes) return false;
+  else if (touch === "plated") {
+    if (!isAmong(met.plates, met.plateCount, what)) {
+      met.plates[met.plateCount++] = what;
+    }
+  } else if (
+    !isAmong(met.bricks, met.count, what) &&
+    !isAmong(met.plates, met.plateCount, what)
+  ) {
+    met.bricks[met.count++] = what;
+  }
+  if (touch === "passes") return false;
   met.turns = true;
   return true;
 }
 
-/** Returns whether a brick is among those met at the earliest moment. */
-function hasMet(brick: Brick): boolean {
-  for (let i = 0; i < met.count; i++) if (met.bricks[i] === brick) return true;
+/** Returns whether a brick is among the first `count` of a list of those met. */
+function isAmong(
+  bricks: readonly Brick[],
+  count: number,
+  brick: Brick,
+): boolean {
+  for (let i = 0; i < count; i++) if (bricks[i] === brick) return true;
   return false;
 }
 
 /**
  * Turns a ball at what it met: off the paddle by where it landed, or as a
  * mirror off the walls and bricks, unless it passes through all it met,
- * then strikes each brick met, and the bricks around each if the balls'
- * hits reach.
+ * then says which plates it met, and strikes each other brick met, and the
+ * bricks around each if the balls' hits reach, a plate's among them.
  *
  * Every brick met is struck before any hit reaches around, so two met at
  * once are struck alike, whichever the grid lists first.
@@ -290,6 +332,10 @@ function turn(field: Field, ball: Ball): void {
     return;
   }
   if (met.turns) mirror(field, ball);
+  for (let i = 0; i < met.plateCount; i++) {
+    const plate = met.plates[i];
+    if (plate) field.events.add("plated", ball.x, ball.y, plate.cell);
+  }
   for (let i = 0; i < met.count; i++) {
     const brick = met.bricks[i];
     if (brick) strike(field, ball, brick);
