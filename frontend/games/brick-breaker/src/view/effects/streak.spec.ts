@@ -98,4 +98,10 @@ describe("nearestBall", () => {
   it("finds none where no ball is in flight", () => {
     expect(nearestBall([ballAt(10, 10, "held")], 10, 10)).toBe(-1);
   });
+
+  it("finds a ball on the paddle too, taking every ball in play, but none out of play", () => {
+    const balls = [ballAt(10, 10, "out"), ballAt(2, 2), ballAt(10, 11, "held")];
+
+    expect(nearestBall(balls, 10, 10, "inPlay")).toBe(2);
+  });
 });

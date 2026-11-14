@@ -366,6 +366,12 @@ export class BricksScene extends Scene {
       case "hold":
         this.heldAt = this.frameTime;
         return;
+      case "squash":
+        this.balls.squash(event, field, this.context.now);
+        return;
+      case "dip":
+        this.paddle.dip(this.context.now);
+        return;
       case "fade":
         // The last ball's effect ends as it is lost, so it fades as it was drawn.
         this.effects.fade(
@@ -470,6 +476,7 @@ export class BricksScene extends Scene {
     this.bricks.still();
     this.effects.reset();
     this.balls.reset();
+    this.paddle.reset();
     this.tails.reset();
     this.streak.reset();
     this.heldAt = Infinity;

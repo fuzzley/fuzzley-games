@@ -2,7 +2,9 @@ import {
   CLEARED_MS,
   FADE_MS,
   HOLD_MS,
+  MEET_MS,
   SHARDS_MS,
+  STREAK_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -33,4 +35,18 @@ describe("resultDelayMs", () => {
   it("waits for nothing where it isn't", () => {
     expect(resultDelayMs(false)).toBe(0);
   });
+});
+
+describe("the plan's times", () => {
+  it.each([
+    ["a broken brick's shards", SHARDS_MS, 350],
+    ["a streak's step", STREAK_MS, 300],
+    ["the last brick's hold", HOLD_MS, 120],
+    ["a ball's squash and the pad's dip", MEET_MS, 90],
+  ])(
+    "holds %s to %i ms, as the plan's table of flourishes says",
+    (_, ms, planned) => {
+      expect(ms).toBe(planned);
+    },
+  );
 });

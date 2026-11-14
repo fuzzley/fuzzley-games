@@ -55,19 +55,23 @@ export function countCorner(
   corner.y = top >= 0 ? top : ball.y + COUNT_BESIDE;
 }
 
+/** Names the balls a search takes: those in flight, or every ball in play, one held on the paddle too. */
+export type BallsTaken = "flying" | "inPlay";
+
 /**
- * Returns the ball in flight nearest a place, by its place among the
- * field's balls, or -1 where none is in flight.
+ * Returns the ball nearest a place among those it takes, by its place
+ * among the field's balls, or -1 where it takes none.
  */
 export function nearestBall(
   balls: readonly Readonly<Pick<Ball, "live" | "held" | "x" | "y">>[],
   x: number,
   y: number,
+  taking: BallsTaken = "flying",
 ): number {
   let nearest = -1;
   let least = Infinity;
   for (const [i, ball] of balls.entries()) {
-    if (!ball.live || ball.held) continue;
+    if (!ball.live || (ball.held && taking === "flying")) continue;
     const distance = Math.hypot(ball.x - x, ball.y - y);
     if (distance < least) {
       least = distance;

@@ -24,6 +24,57 @@ export function popScale(done: number): number {
   return 1 + POP_SWELL * Math.sin(Math.PI * done);
 }
 
+/** How deep the pad dips as a ball meets the paddle, at the deepest, in field units. */
+const PAD_DIP = 0.1;
+
+/**
+ * Says how a ball's picture is squashed: its width and its height as shares
+ * of its own, and how far its middle drops toward the paddle, as a share of
+ * its radius.
+ */
+export interface Squash {
+  across: number;
+  down: number;
+  drop: number;
+}
+
+/**
+ * How a ball is squashed against the paddle at the deepest, as the art
+ * kit's still of the paddle giving draws it: wider and flatter, its middle
+ * dropped so its foot presses into the pad.
+ */
+export const DEEPEST_SQUASH: Readonly<Squash> = {
+  across: 1.28,
+  down: 0.7,
+  drop: 0.35,
+};
+
+/**
+ * Returns how deep a ball's squash and the pad's dip are, as a share of
+ * their deepest, a share through them: deepest as the two meet, holding
+ * there a moment, then easing back to nothing.
+ */
+export function meetDepth(done: number): number {
+  return (1 + Math.cos(Math.PI * done)) / 2;
+}
+
+/**
+ * Writes how a ball's picture is squashed a share through its meeting with
+ * the paddle: as {@link DEEPEST_SQUASH} as they meet, round again by its
+ * end.
+ */
+export function squashAt(done: number, squash: Squash): void {
+  const depth = meetDepth(done);
+  squash.across = 1 + (DEEPEST_SQUASH.across - 1) * depth;
+  squash.down = 1 + (DEEPEST_SQUASH.down - 1) * depth;
+  squash.drop = DEEPEST_SQUASH.drop * depth;
+}
+
+/** Returns how far the pad has dipped, in field units, a share through its dip. */
+export function padDip(done: number): number {
+  return PAD_DIP * meetDepth(done);
+}
+
 /** Returns the scale of a blast's ring, spreading fast, then slowing. */
 export function ringScale(done: number): number {
   return RING_FROM + (1 - RING_FROM) * easeOutCubic(done);

@@ -1,4 +1,4 @@
-import { lerp } from "@fz/core/math";
+import { lerp, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { BOLT_INSET } from "../../rules/tuning";
 import {
@@ -9,6 +9,8 @@ import {
   paddleShape,
 } from "../../view/art/paddle_art";
 import type { BricksPalette } from "../../view/colors/palette";
+import { padDip } from "../../view/effects/flourish";
+import { MEET_MS } from "../../view/effects/timing";
 import {
   type FieldMetrics,
   toCanvasX,
@@ -19,8 +21,9 @@ import type { Baked, PaintContext, Painter } from "./painter";
 
 /**
  * Draws the paddle as the art kit does at any width: its lip, a cap at each
- * end, its body between the caps and its pad along its top, with a catching
- * paddle's velcro hooks along its top or a laser's cannons over its ends.
+ * end, its body between the caps and its pad along its top, which dips for
+ * a moment as a ball meets it, with a catching paddle's velcro hooks along
+ * its top or a laser's cannons over its ends.
  *
  * The ends, the hooks and the cannons are frames of the atlas, which keep
  * their shape; the lip, the body and the pad are rectangles a pixel wide,
@@ -42,6 +45,8 @@ export class PaddlePainter implements Painter {
   readonly cannons: readonly GameObjects.Image[];
   /** How its parts lie at the unit the atlas was baked at. */
   private shape: PaddleShape;
+  /** When a ball last met it, in the flourishes' time, from which its pad dips. */
+  private dippedAt = -Infinity;
 
   /** Makes the paddle at the field's scale, in the palette. */
   constructor(
@@ -86,14 +91,17 @@ export class PaddlePainter implements Painter {
     this.pad.setSize(1, pad.height).setFillStyle(palette.paddleInks.pad);
   }
 
-  /** Draws the paddle between its last place and its next, at its width, with what its mode adds. */
-  draw({ field, alpha, metrics }: Readonly<PaintContext>): void {
+  /**
+   * Draws the paddle between its last place and its next, at its width, its
+   * pad dipped as far as a ball's meeting has come, with what its mode adds.
+   */
+  draw({ field, alpha, metrics, now }: Readonly<PaintContext>): void {
     const { paddle, mode } = field;
     const x = toCanvasX(metrics, lerp(paddle.lastX, paddle.x, alpha));
     const top = toCanvasY(metrics, paddle.top);
     const width = Math.round(paddle.width * metrics.unit);
     this.placeBar(x, top, width);
-    this.placePad(x, top, width);
+    this.placePad(x, top, width, this.dipOf(now, metrics.unit));
     this.placeHooks(x, top, width, mode === "catch");
     this.placeCannons(
       x,
@@ -101,6 +109,21 @@ export class PaddlePainter implements Painter {
       width / 2 - BOLT_INSET * metrics.unit,
       mode === "laser",
     );
+  }
+
+  /** Dips the pad from now, as a ball meets the paddle. */
+  dip(now: number): void {
+    this.dippedAt = now;
+  }
+
+  /** Stops the pad's dip, as a new field starts. */
+  reset(): void {
+    this.dippedAt = -Infinity;
+  }
+
+  /** Returns how far the pad has dipped by now, in whole device pixels at a unit. */
+  private dipOf(now: number, unit: number): number {
+    return Math.round(padDip(shareDone(this.dippedAt, now, MEET_MS)) * unit);
   }
 
   /** Puts the lip, the caps and the body at a width, their middle at `x` and the bar's top at `top`. */
@@ -117,11 +140,11 @@ export class PaddlePainter implements Painter {
     this.body.setPosition(x, top).setScale(Math.max(0, width - 2 * inner), 1);
   }
 
-  /** Puts the pad along the body's top, short of its ends. */
-  private placePad(x: number, top: number, width: number): void {
+  /** Puts the pad along the body's top, short of its ends, dipped by `dip`. */
+  private placePad(x: number, top: number, width: number, dip: number): void {
     const { inner, pad } = this.shape;
     this.pad
-      .setPosition(x, top + pad.top)
+      .setPosition(x, top + pad.top + dip)
       .setScale(Math.max(0, width - 2 * (inner + pad.inset)), 1);
   }
 

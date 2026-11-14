@@ -25,6 +25,7 @@ import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
 import { type Steer, paddleTopOf } from "../rules/paddle/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
+  BALL_RADIUS,
   BOLT_INSET,
   BRICKS_TOP,
   COLUMNS,
@@ -40,6 +41,7 @@ import {
 import {
   ballOf,
   brickAt,
+  eventsOf,
   fieldFrom,
   playWithoutBall,
   stepTimes,
@@ -67,7 +69,7 @@ import {
   toFieldX,
 } from "../view/field/field_metrics";
 import { SOUNDS } from "../view/effects/effects";
-import { shardTint } from "../view/effects/flourish";
+import { DEEPEST_SQUASH, shardTint } from "../view/effects/flourish";
 import { STREAK_STEPS } from "../view/effects/streak";
 import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
@@ -87,6 +89,7 @@ import {
   GLOW_AFTER_MS,
   GLOW_PULSE_MS,
   HOLD_MS,
+  MEET_MS,
   POP_MS,
   REGROW_MS,
   RING_MS,
@@ -361,6 +364,36 @@ function clearLevel(shell: FakeShell): void {
     "breaks",
   );
 }
+
+/**
+ * Starts a board and has a ball fall onto the paddle's middle, stepped by
+ * the rules till they record its meeting, then draws the frame that plays
+ * it.
+ */
+async function meetPaddle(setUp?: (shell: FakeShell) => void): Promise<Board> {
+  const board = await startBoard(setUp);
+  const { field } = board.shell;
+  throwBall(field, field.paddle.x, PADDLE_TOP - 1, 180);
+  stepTimes(field, 12);
+  if (!eventsOf(field).includes("paddle")) {
+    throw new Error("The ball never met the paddle.");
+  }
+  board.run.advance(16);
+  return board;
+}
+
+/** Sets a shell's paddle up to catch the balls it meets. */
+function catching(shell: FakeShell): void {
+  shell.field.mode = "catch";
+}
+
+/** Returns how an image is scaled, across and down. */
+function scaleOf(image: GameObjects.Image | undefined): readonly number[] {
+  return [image?.scaleX ?? NaN, image?.scaleY ?? NaN];
+}
+
+/** The scale of a ball as it meets the paddle, wider and flatter, across and down. */
+const SQUASHED = [DEEPEST_SQUASH.across, DEEPEST_SQUASH.down];
 
 /** Describes a path a graphics fills: its color, and the box it spans. */
 interface FilledPath {
@@ -2392,6 +2425,89 @@ describe("BricksScene", () => {
     });
   });
 
+  describe("a ball meeting the paddle", () => {
+    it("squashes the ball wider and flatter, its eyes with it", async () => {
+      const { scene } = await meetPaddle();
+
+      expect({
+        ball: scaleOf(scene.balls.images[0]),
+        eyes: scaleOf(scene.balls.eyes[0]),
+      }).toEqual({ ball: SQUASHED, eyes: SQUASHED });
+    });
+
+    it("drops a caught ball and its eyes toward the paddle as it squashes, pressing its foot into the pad", async () => {
+      const { run, scene } = await meetPaddle(catching);
+      const dropped = DEEPEST_SQUASH.drop * BALL_RADIUS * metricsAt().unit;
+      const [image, eyes] = [scene.balls.images[0], scene.balls.eyes[0]];
+      const squashed = { ball: image?.y ?? NaN, eyes: eyes?.y ?? NaN };
+
+      run.advance(MEET_MS);
+
+      expect([
+        squashed.ball - (image?.y ?? NaN),
+        squashed.eyes - (eyes?.y ?? NaN),
+      ]).toEqual([expect.closeTo(dropped), expect.closeTo(dropped)]);
+    });
+
+    it("rounds the ball again once their meeting is over", async () => {
+      const { run, scene } = await meetPaddle();
+
+      run.advance(MEET_MS);
+
+      expect({
+        ball: scaleOf(scene.balls.images[0]),
+        eyes: scaleOf(scene.balls.eyes[0]),
+      }).toEqual({ ball: [1, 1], eyes: [1, 1] });
+    });
+
+    it("squashes the ball nearest where they met, and no other", async () => {
+      const { scene } = await meetPaddle((shell) => {
+        throwBall(shell.field, 20, 10, 0, 1);
+      });
+
+      expect(scene.balls.images.slice(0, 2).map(scaleOf)).toEqual([
+        SQUASHED,
+        [1, 1],
+      ]);
+    });
+
+    it("squashes a ball the paddle catches", async () => {
+      const { shell, scene } = await meetPaddle(catching);
+
+      expect({
+        held: ballOf(shell.field, 0).held,
+        ball: scaleOf(scene.balls.images[0]),
+      }).toEqual({ held: true, ball: SQUASHED });
+    });
+
+    it("dips the pad a tenth of a unit, in whole pixels, the rest of the paddle still", async () => {
+      const { shell, scene } = await meetPaddle();
+      const metrics = metricsAt();
+      const top = toCanvasY(metrics, shell.field.paddle.top);
+
+      expect({
+        pad: scene.paddle.pad.y,
+        body: scene.paddle.body.y,
+      }).toEqual({
+        pad:
+          top + paddleShape(metrics).pad.top + Math.round(0.1 * metrics.unit),
+        body: top,
+      });
+    });
+
+    it("raises the pad again once their meeting is over", async () => {
+      const { shell, run, scene } = await meetPaddle();
+      const metrics = metricsAt();
+
+      run.advance(MEET_MS);
+
+      expect(scene.paddle.pad.y).toBe(
+        toCanvasY(metrics, shell.field.paddle.top) +
+          paddleShape(metrics).pad.top,
+      );
+    });
+  });
+
   describe("the last brick's hold", () => {
     it("holds the last brick's shards where they were thrown, then lets them fly", async () => {
       const { shell, run, scene } = await startBoard();
@@ -2459,6 +2575,21 @@ describe("BricksScene", () => {
         fades: 0,
         shaking: false,
         scaled: 0,
+      });
+    });
+
+    it("squashes no ball and dips no pad as they meet", async () => {
+      const { shell, scene } = await meetPaddle(stillness);
+      const metrics = metricsAt();
+
+      expect({
+        ball: scaleOf(scene.balls.images[0]),
+        pad: scene.paddle.pad.y,
+      }).toEqual({
+        ball: [1, 1],
+        pad:
+          toCanvasY(metrics, shell.field.paddle.top) +
+          paddleShape(metrics).pad.top,
       });
     });
 
@@ -2555,6 +2686,24 @@ describe("BricksScene", () => {
         ring: scene.streak.ring.visible,
         count: countShown(scene),
       }).toEqual({ ring: false, count: undefined });
+    });
+
+    it("rounds a ball and raises the pad the last level's meeting left", async () => {
+      const { shell, run, scene } = await meetPaddle();
+      const metrics = metricsAt();
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect({
+        ball: scaleOf(scene.balls.images[0]),
+        pad: scene.paddle.pad.y,
+      }).toEqual({
+        ball: [1, 1],
+        pad:
+          toCanvasY(metrics, shell.field.paddle.top) +
+          paddleShape(metrics).pad.top,
+      });
     });
 
     it("starts each ball's tail anew", async () => {

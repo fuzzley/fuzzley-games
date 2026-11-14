@@ -296,9 +296,10 @@ takes for the specs' helpers.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
-  step adding the step's. A plate's underside clanks as it turns a ball
-  back or a bolt is spent on it (`plated`), a cage rattles as it frees its
-  friend (`freed`),
+  step adding the step's, and a ball meeting the paddle squashing the ball
+  and dipping the pad, in the picture alone. A plate's underside clanks as
+  it turns a ball back or a bolt is spent on it (`plated`), a cage rattles
+  as it frees its friend (`freed`),
   the gates sweep low and rising as they open (`opened`), and a soft
   flutter rises as the paddle lends a ball the seeker (`seeking`). A kind
   of brick with a voice of its own (`VOICES`) sounds in it: a cage's bars
@@ -315,7 +316,8 @@ takes for the specs' helpers.
   brick's hold, with motion or without, in a `DelayedSound`; `streak.ts` the
   streak's steps, the multiplier's tiers (`STREAK_STEPS`), how many a
   streak has reached (`streakTier()`), whether a broken brick took it to one
-  (`isStreakStep()`), the ball in flight nearest a place (`nearestBall()`),
+  (`isStreakStep()`), the ball nearest a place, of those in flight or of
+  all in play, a ball held on the paddle too (`nearestBall()`),
   and where a step's count lies beside its ball, inside the field
   (`countCorner()`), and how it is written (`COUNT_TEXT`); `tail.ts` a
   ball's tail in a streak: the places the ball passed, a gap apart
@@ -327,14 +329,18 @@ takes for the specs' helpers.
   color a broken brick's shard takes as it falls (`shardTint()`), dimming
   from its brick's color to mostly the field's (`SHARD_DIMMED`), so a shard
   never looks like a ball, how a streak's step's ring spreads and its count
-  fades (`streakRingScale()`, `countAlpha()`), the time the flourishes run
-  by, which stands still while the last brick's hit holds
+  fades (`streakRingScale()`, `countAlpha()`), how a ball squashes against
+  the paddle, wider and flatter and its foot pressed into the pad, as the
+  art kit's still of the paddle giving draws it (`DEEPEST_SQUASH`,
+  `squashAt()`), and the pad dips, a tenth of a unit, deepest as they meet,
+  then easing back (`padDip()`), the time the flourishes run by, which stands still while the last brick's hit holds
   (`flourishTime()`, `isHolding()`), and how bright the last bricks a
   level needs glow once none has broken for a while, pulsing only where
-  motion is welcome; and `timing.ts` how long
-  each flourish lasts, how long the last brick's hit holds as its level
-  clears (`HOLD_MS`), how long the paddle stands empty after the last ball
-  is lost (`SERVE_MS`), and how long the cards wait.
+  motion is welcome; and `timing.ts` how long each flourish lasts, a ball's
+  squash and the pad's dip among them (`MEET_MS`), how long the last
+  brick's hit holds as its level clears (`HOLD_MS`), how long the paddle
+  stands empty after the last ball is lost (`SERVE_MS`), and how long the
+  cards wait.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`, the commands and the held pushes; `steering.ts` the
   `Steering` that turns the keys held (`@fz/core/keys`'s `HeldKeys`), the
@@ -488,9 +494,10 @@ takes for the specs' helpers.
   field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle, its ends frames of the atlas
   and its lip, body and pad rectangles scaled across, which keep their
-  shape at any width on either renderer, with a laser's cannons over its
-  ends or a catching paddle's hooks along its top, each part placed by a
-  function of its own, `TagPainter` the effects in
+  shape at any width on either renderer, its pad dipped in whole pixels for
+  a moment as a ball meets it, with a laser's cannons over its ends or a
+  catching paddle's hooks along its top, each part placed by a function of
+  its own, `TagPainter` the effects in
   play and their emptying rings, `TailPainter` a tail behind each ball in
   play while the field is in a streak, a dot at each of its last places,
   `StreakPainter` a streak's step, a ring about the ball and the streak's
@@ -500,7 +507,9 @@ takes for the specs' helpers.
   balls, each in its kind's frame at the streak, with its eyes looking the
   way it goes, a sight under it while it seeks (`Ball.seeks`, or every ball
   in flight while a Seeker is in play), with a fire ball's embers, one for
-  each ember's width it goes. Each is a `Painter`
+  each ember's width it goes, and a ball and its eyes squashed and dropped
+  toward the paddle for a moment as it meets it, caught or sent off. Each
+  is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame, so the scene draws them in a loop over its list
   of painters, which a new one joins as `create()` makes it. After a bake,
@@ -799,9 +808,9 @@ takes for the specs' helpers.
   until the scene's, so they never wait on the scene to stand.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it the flourishes, the shards, rings, shake, a
-  ball's tail, a streak's step, the last brick's hold and the last bricks'
-  pulse, are left out, and the cards open without waiting; the clear's
-  chord still waits out the hold.
+  ball's tail, a streak's step, the last brick's hold, a ball's squash and
+  the pad's dip, and the last bricks' pulse, are left out, and the cards
+  open without waiting; the clear's chord still waits out the hold.
 
 ## Styling
 

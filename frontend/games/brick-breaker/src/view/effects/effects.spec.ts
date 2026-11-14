@@ -30,7 +30,7 @@ const VOICES_OF_EVENTS: Readonly<
 > = {
   launched: [null, []],
   wall: ["wall", []],
-  paddle: ["paddle", []],
+  paddle: ["paddle", ["squash", "dip"]],
   hit: ["hit", ["pop"]],
   broken: ["broken", ["shards"]],
   blast: ["blast", ["ring", "shake"]],

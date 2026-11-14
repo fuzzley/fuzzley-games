@@ -47,11 +47,21 @@ const SEMITONE_CENTS = 100;
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
  * shards, a blast's ring, the field's shake, a lost ball's fade, a
  * regrown brick's growing back, a streak's step, a ring about the ball
- * and the streak's count beside it, and the last brick's hit holding as the
- * level clears. Each moves, so none plays where motion isn't welcome.
+ * and the streak's count beside it, the last brick's hit holding as the
+ * level clears, and, as a ball meets the paddle, the ball's squash and the
+ * pad's dip. Each moves, so none plays where motion isn't welcome.
  */
 export type Flourish =
-  "pop" | "shards" | "ring" | "shake" | "fade" | "grow" | "streak" | "hold";
+  | "pop"
+  | "shards"
+  | "ring"
+  | "shake"
+  | "fade"
+  | "grow"
+  | "streak"
+  | "hold"
+  | "squash"
+  | "dip";
 
 /** Says what an event calls for: the flourishes it plays, and its sound. */
 export interface EventEffects {
@@ -70,7 +80,7 @@ export const CHIME: SoundName = "cleared";
 const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   launched: { flourishes: [], sound: null },
   wall: { flourishes: [], sound: "wall" },
-  paddle: { flourishes: [], sound: "paddle" },
+  paddle: { flourishes: ["squash", "dip"], sound: "paddle" },
   hit: { flourishes: ["pop"], sound: "hit" },
   broken: { flourishes: ["shards"], sound: "broken" },
   blast: { flourishes: ["ring", "shake"], sound: "blast" },

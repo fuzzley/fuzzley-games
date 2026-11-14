@@ -8,9 +8,12 @@ import {
   flourishTime,
   glowAlpha,
   isHolding,
+  meetDepth,
+  padDip,
   popScale,
   ringScale,
   shardTint,
+  squashAt,
   streakRingScale,
 } from "./flourish";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS, HOLD_MS } from "./timing";
@@ -44,6 +47,42 @@ describe("the flourishes' curves", () => {
       expect.closeTo(0.5),
       0,
     ]);
+  });
+});
+
+describe("a ball's squash and the pad's dip", () => {
+  /** Returns how a ball is squashed a share through its meeting with the paddle, across, down and dropped. */
+  function squashOf(done: number): readonly number[] {
+    const squash = { across: 0, down: 0, drop: 0 };
+    squashAt(done, squash);
+    return [squash.across, squash.down, squash.drop];
+  }
+
+  it("are deepest as the two meet, and gone by their end", () => {
+    expect([meetDepth(0), meetDepth(1)]).toEqual([1, 0]);
+  });
+
+  it("hold near their deepest a moment, then ease back, halfway at half their time", () => {
+    expect([meetDepth(0.1), meetDepth(0.5)]).toEqual([
+      expect.closeTo(0.976, 2),
+      expect.closeTo(0.5),
+    ]);
+  });
+
+  it("squash a ball as the kit's still draws it at the deepest, wider and flatter, its middle dropped toward the paddle", () => {
+    expect(squashOf(0)).toEqual([
+      expect.closeTo(1.28),
+      expect.closeTo(0.7),
+      0.35,
+    ]);
+  });
+
+  it("round a ball again by the end, where it was put", () => {
+    expect(squashOf(1)).toEqual([1, 1, 0]);
+  });
+
+  it("dip the pad a tenth of a unit at the deepest, and raise it again", () => {
+    expect([padDip(0), padDip(1)]).toEqual([0.1, 0]);
   });
 });
 
