@@ -10,7 +10,7 @@ import { CELLS, columnOf, rowOf } from "../grid";
 import { COLUMNS, ROWS } from "../tuning";
 import basics from "./basics.json";
 import { type BrickSpec, LEGEND, NO_BRICK, brickOf } from "./legend";
-import { type Level, type LevelBrick, TINTS } from "./level";
+import { FIRST_LAYOUT, type Level, type LevelBrick, TINTS } from "./level";
 import steel from "./steel.json";
 import tricks from "./tricks.json";
 
@@ -30,6 +30,11 @@ export interface LevelData {
   readonly id: string;
   /** Names it to the player. */
   readonly name: string;
+  /**
+   * The number of the layout its bricks are in, a whole number from 1, 1 by
+   * default, which a redraw raises, so the bests made on another are let go.
+   */
+  readonly layout?: number;
   /** Its bricks, a row of 13 characters for each of up to 16 rows. */
   readonly bricks: readonly string[];
   /**
@@ -77,6 +82,11 @@ export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
 
+/** Returns the number of the layout a level's bricks are in, unchecked: {@link parseLevel} checks it. */
+export function layoutOf(data: Pick<LevelData, "layout">): number {
+  return data.layout ?? FIRST_LAYOUT;
+}
+
 /** The slowest and the fastest a level's pace may be. */
 const PACE = { least: 0.8, most: 1.4 } as const;
 
@@ -84,6 +94,7 @@ const PACE = { least: 0.8, most: 1.4 } as const;
 const LEVEL_KEYS: Readonly<Record<keyof LevelData, true>> = {
   id: true,
   name: true,
+  layout: true,
   bricks: true,
   tints: true,
   pace: true,
@@ -108,6 +119,13 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
   if (extra !== null) {
     throw wrong(data, `it has a "${extra}", which no level has`);
   }
+  const layout = layoutOf(data);
+  if (!Number.isInteger(layout) || layout < FIRST_LAYOUT) {
+    throw wrong(
+      data,
+      `its layout, ${String(layout)}, is no whole number from ${String(FIRST_LAYOUT)}`,
+    );
+  }
   const legend = legendOf(data);
   checkGrid(data, data.bricks, "bricks");
   if (data.tints) checkTints(data, data.tints);
@@ -126,6 +144,7 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
     );
   }
   return {
+    layout,
     cells: Array.from({ length: CELLS }, (_, cell) =>
       brickAt(data, legend, cell),
     ),

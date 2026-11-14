@@ -45,8 +45,13 @@ export class StatsService {
     return newBest;
   }
 
-  /** Keeps a cleared level's points, if they are its best at the speed. */
+  /**
+   * Keeps a cleared level's points, if they are its best at the speed, with
+   * the layout they were made on; a level the game doesn't have keeps none.
+   */
   recordLevel(id: string, speed: Speed, points: number): void {
-    this.state.set(withLevelPoints(this.state(), id, speed, points));
+    const level = this.levels.find(({ data }) => data.id === id);
+    if (!level) return;
+    this.state.set(withLevelPoints(this.state(), level.data, speed, points));
   }
 }
