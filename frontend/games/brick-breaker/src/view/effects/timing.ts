@@ -13,8 +13,8 @@ export const EMBERS_MS = 60;
 /** How long a regrowing brick takes to grow back. */
 export const REGROW_MS = 500;
 
-/** How long the shards of a broken brick fly. */
-export const SHARDS_MS = 420;
+/** How long the shards of a broken brick fly, fading and dimming as they fall. */
+export const SHARDS_MS = 350;
 
 /** How many shards a broken brick scatters. */
 export const SHARDS = 6;

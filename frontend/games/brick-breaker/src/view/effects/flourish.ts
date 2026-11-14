@@ -1,4 +1,5 @@
 import { easeOutCubic } from "@fz/core/math";
+import { mixColors } from "@fz/phaser/color";
 import { STEP_MS, stepsIn } from "../../rules/stepper";
 import type { FieldView } from "../field/frame";
 import { GLOW_AFTER_MS, GLOW_BRICKS, GLOW_PULSE_MS } from "./timing";
@@ -12,6 +13,12 @@ export const RING_FROM = 0.25;
 /** How faint the last bricks' glow gets between pulses. */
 export const GLOW_LEAST = 0.35;
 
+/**
+ * How much of its brick's color a shard keeps once it has dimmed, the rest
+ * the field's.
+ */
+export const SHARD_DIMMED = 0.3;
+
 /** Returns the scale of a brick that holds a hit, a share through its pop: swelling, then settling back. */
 export function popScale(done: number): number {
   return 1 + POP_SWELL * Math.sin(Math.PI * done);
@@ -20,6 +27,16 @@ export function popScale(done: number): number {
 /** Returns the scale of a blast's ring, spreading fast, then slowing. */
 export function ringScale(done: number): number {
   return RING_FROM + (1 - RING_FROM) * easeOutCubic(done);
+}
+
+/**
+ * Returns the color a broken brick's shard takes, a share through its
+ * flight: its brick's as it is thrown, dimming toward the field's as it
+ * falls, so a shard loses the contrast a ball keeps and never looks like
+ * one.
+ */
+export function shardTint(color: number, field: number, done: number): number {
+  return mixColors(color, field, 1 - (1 - SHARD_DIMMED) * done);
 }
 
 /**
