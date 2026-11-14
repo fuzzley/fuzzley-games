@@ -1376,3 +1376,202 @@ The review, and the answers:
 7. No `sim` timing and no Checks line. Fixed, above.
 8. Nits, taken: `AGENTS.md`'s long line reflowed, a long line here wrapped,
    and the repeated note of the rebase cut to its one new fact.
+
+### 2026-11-14: Switchyard, Pachinko and Grand machine (48 to 50), and the reports
+
+What it does:
+
+- `machines.json` gains Switchyard (48), Pachinko (49) and Grand machine
+  (50), each from its draft, with its pace, its `teaches` note dropped, and
+  its `mark` the rule's: 5 for each, their middle best streaks at Normal
+  being 6, 7 and 6, where the drafts guessed 15, 10 and 15. Machines is
+  whole: ten levels, paced 1.16 to 1.22, each mark 5 but Wormhole's 10.
+- Switchyard is redrawn: each of its rooms is a shaft a cell wide at a
+  wall, its key over its portal, and the strongroom, as drafted, stands
+  between the shafts near the top of the field, its low portals five rows
+  under it (`##=========##`, `#k=ooooooo=k#`, `#@=o?o?o?o=%#`,
+  `##=ooooooo=##`, `..=========..`, where the draft stood two rooms of three
+  by two, closed in steel, each holding two keys, in the top corners, over
+  the strongroom in the middle of the field).
+- Pachinko is redrawn: its cups are plated bricks of one hit (`u`), where
+  the draft's took two (`U`).
+- `variants-k4.json` and its record gain the three levels.
+  `play-variants.mjs` gives `away` a cell wide enough for its `^`, so the
+  record is printed whole again: 44 to 47 are as they were but for spacing.
+- The reports of every level, as the entry for 44 to 47 said:
+  `report-k4.txt` (`--seeds 12`) and `report-k4-seeds20.txt` (`--seeds 20`);
+  and `report-k4-tallest.txt` (`--seeds 12 --height 45`), as it marks a `!`
+  for Grand machine.
+- `AGENTS.md`: `machines.json` holds 41 to 50. The content skill: Machines
+  runs 1.16 to 1.22; a plated brick of two hits drags more than one of one;
+  a room behind a portal, and a pocket left only by narrow channels, hold a
+  ball away from the paddle, as Switchyard's draft showed. `README.md` and
+  `index.html`: fifty levels.
+
+How the levels were measured: as for 44 to 47, by the report and by
+`play-variants.mjs`, from 100 seeds, or 300 where a level's longest endgames
+needed telling apart from luck.
+
+Why Switchyard was redrawn: as drafted, `--seeds 12` marked its middle time
+at Relaxed (2:45, `+`), and over 100 seeds the longest at Relaxed and at
+Normal went past a minute between two touches of the paddle (1:23 and 1:11,
+`^`). Its gates stay shut till all four keys break, and the pocket over the
+strongroom, between the rooms' steel and the gates, is left only by the
+channels at the walls. A probe of the autopilot (not saved), playing the
+draft from 100 seeds, found the ball there, outside the rooms, for all but
+one to three seconds of each of its 26 waits past 40 seconds. A key over
+each room's portal, the rooms as drafted, cut its middle times by more than
+half and still held a ball 2:16 at Normal. Shafts of two keys over their
+portals, where the rooms were, held a ball 0:37 to 0:55, and with the
+strongroom moved to the top, between them, 0:15 to 0:22. With the shafts at
+the walls and the strongroom's gates beside them, nothing open over it while
+they stand, a ball came back to the paddle within 0:15 in two ways. With
+two keys to a shaft, the strongroom in the top row and the low portals four
+rows under it, the level was the set's longest by half a minute at Relaxed
+(1:18, 1:06 and 0:55), past a minute at Normal too. With one key to a
+shaft, the strongroom a row lower, under a row of nothing, and the low
+portals five rows under it, its middles were 0:50, 0:38 and 0:34. That is
+kept: they sit with the set's, as the content skill's step 3 asks, a little
+past Tilt's 0:47 at Relaxed. Shafts of one key with the strongroom at the
+top were quicker still (0:41, 0:34 and 0:29), but a column of steel between
+each shaft and the strongroom cut the strongroom to five cells wide with two
+gifts, where the kept way keeps the draft's seven and three.
+It is the draft's level still: keys in sealed rooms, the portals the only
+way to them, and gates that open as the last key breaks. A ball that comes
+out of a shaft's portal heading up breaks its key and goes straight back;
+one heading down meets the steel under the portal and goes straight back
+too.
+
+Why Pachinko was redrawn: `--seeds 12` held the draft within the budgets,
+its longest endgame 0:57, but over 300 seeds 21 of 900 plays' endgames ran
+past a minute, twice Tilt's 10 and Stepping stones' 11. Read from the
+picture, its last bricks are its cups, plated bricks of two hits, met from
+above or a side by chance. Cups of one hit ran 2 of 900 past a minute, its
+middle times 0:33, 0:28 and 0:21. That is kept: it is still a row of
+plated cups that fill from above, under its pegs. Four cups ran 12 of 900,
+and the end cups plain 17, so neither was kept. No cup stands against a
+wall. With it, no level holds a plated brick of two hits (`U`), the only
+draft that drew one being Pachinko's, though the legend still offers it and
+How to play and the Ready card picture the plated brick at two hits
+(`PICTURED_BRICKS` in `src/view/art/art.ts`). Four cups of two hits, at 12
+of 900 past a minute, would have kept one, but cups of one hit were clearly
+quicker over their last bricks, so the picture at one hit, and whether `U`
+stays in the legend, are left to the art's and the catalog's owners.
+
+Grand machine stays as drafted. `--seeds 12` holds it within the budgets,
+its longest endgame 0:47. Over 300 seeds, 12 of 900 plays' endgames ran
+past a minute, as Tilt's and Stepping stones'. A probe of the autopilot
+(not saved) showed what those twelve had left as their endgames began: in
+each, two or three bricks of the strongrooms' roofs, and in half of them a
+strongroom's top corner too; never a slider. A roof's bricks are met from
+the corridor a row high under the ceiling, which a ball comes into up the
+channels a cell wide at the walls, up the channel between the strongrooms,
+or through the portal at the top, and no variant changed those ways in.
+Its roof shortened to the middle six or eight, its strongrooms' top
+corners gone, or both, ran 8, 10, 9 and 13 of 900; a blast in the middle of
+each strongroom's roof 7, and blasts at each roof's ends 6. All are within
+chance of the draft, so none was kept. From 20 seeds, one play at Relaxed
+took 1:31 over its last bricks (`!`, in `report-k4-seeds20.txt`): 7 of its
+300 plays at Relaxed ran past a minute, so 20 seeds meet one about two
+times in five, and 12 about one in four. On the tallest field
+(`--seeds 12 --height 45`, saved as `report-k4-tallest.txt`), one play at
+Relaxed took 2:12 over its last bricks (`!`), the only `!` there of 50
+levels but Mushroom's, which K2 found; what it had left wasn't probed. As
+for the trains of sliders, which the brief asked to watch for bunching: its
+two share a row, ran a cell apart in the browser, and none of the twelve
+long endgames above waited on a slider.
+
+Nelson's check for Switchyard, which `plan.md`'s "Risks" asks of it as of
+Two rooms: the longest any play went without a ball to meet at the paddle
+is 0:07 from the report's 12 seeds, and 0:15 over 300 plays, under Castle's
+0:19. As for Two rooms, a ball comes out of a shaft as soon as it meets the
+portal again, so the level isn't given a second ball in play. No play of
+any level hangs: none of the three reports marks a `^`, and the record
+marks one only for Switchyard's draft and its redraw of a key over each
+portal.
+
+Measured: as for 44 to 47.
+
+| Level            | 12 seeds (R / N / F) | longest endgame | lost | away | 20 seeds           |
+| ---------------- | -------------------- | --------------- | ---- | ---- | ------------------ |
+| 48 Switchyard    | 0:50 / 0:38 / 0:34   | 0:13            | 0    | 0:07 | 0:44 / 0:37 / 0:31 |
+| 49 Pachinko      | 0:33 / 0:28 / 0:21   | 0:27            | 0    | 0:05 | 0:35 / 0:27 / 0:20 |
+| 50 Grand machine | 0:38 / 0:26 / 0:23   | 0:47            | 0    | 0:08 | 0:41 / 0:39 / 0:28 |
+
+`report-k4.txt` has no `!`, no `+` and no `^` for 41 to 50; its only mark
+is Lanterns' `+` (18), there since R2. From 20 seeds, the marks are
+Lanterns' `+` and Spiral's and Finale's `!`, as K2 found, and Grand
+machine's `!` above.
+
+The `sim` specs pass for all 50 levels (300 specs, 8.8 s).
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (77
+files, 3,803 specs, 19.6 s) in the workspace; the coverage floor on the
+rules and view (`pure` and `dom`, 3,503 specs: 99.59% of statements, 97.45%
+of branches); the root's `yarn lint` under the lock.
+
+In the browser (port 9504, 1280 by 720): Switchyard, Pachinko and Grand
+machine opened from the Levels dialog, each drawn as its picture, its
+Ready card asking a streak of 5: Switchyard's shafts and strongroom,
+Pachinko's cups with their plates underneath, and Grand machine, its next
+level "the last level". Switchyard and Grand machine were launched, with
+nothing in the console: Switchyard's ball went up through a low portal and
+broke its shaft's key, and Grand machine's trains slid. Switchyard was
+opened again as redrawn after the review.
+
+The review, and the answers:
+
+1. "Every entry breaks the key" was untrue of a ball that goes into a low
+   portal heading down: it comes out of the shaft's heading down, as the
+   portal sends it on as it went, meets the steel under the portal and goes
+   straight back, breaking nothing. Fixed, in the skill and above.
+2. Grand machine's roof is reached up the channels at the walls too, which
+   no variant changed. Fixed: the reading above says so, and that half the
+   long endgames left a strongroom's top corner as well. Keeping the draft
+   still rests on the record: 6 to 13 of 900 for every variant, against
+   its 12.
+3. Two keys to a shaft were argued from the draft, not the record, where
+   one key fit the set and the skill's step 3. Taken: Switchyard keeps one
+   key to a shaft, at the walls (0:50, 0:38 and 0:34; away 0:15 over 300
+   plays; no endgame past a minute), its mark still 5 (its middle best
+   streak at Normal 6). The record says so, and the three reports and the
+   marks were run again: only Switchyard's line moved. Above, why this way
+   and not the quicker one with the strongroom at the top. As it reshaped
+   the change, it had a second review.
+4. Nits, all taken: the draft's `^` figures are said to be the longest of
+   100 seeds; `report-k4-seeds20.txt` is saved as the entry for 44 to 47
+   said, and only the tallest field's report for its `!`; "none of the
+   three reports"; the short line reflowed; Grand machine's variant
+   renamed "its strongrooms' top corners gone", and its record printed
+   again; and the draft's ball in the pocket is said to be the probe's
+   finding (the skill and above), as a probe was run for it: every wait of
+   the draft's past 40 seconds was spent there but for a second or three.
+
+The second review, and the answers:
+
+1. Since Pachinko's redraw, no level holds a plated brick of two hits,
+   though the legend, the catalog's line and the picture still offer one,
+   and the four cups that kept it ran 12 of 900, as Grand machine's draft
+   did. Kept as redrawn: Grand machine stays as drafted because no variant
+   ran clearly quicker, and for Pachinko one did (2 of 900). The gap is
+   said above, and left to the art's and the catalog's owners.
+2. Switchyard's comparison of one key and two put down to the second key
+   what the strongroom a row higher, and its portals two rows higher, did
+   too, and the quicker variant's difference was misdescribed. Fixed: each
+   way is named whole, and the other's difference is the column of steel
+   between each shaft and the strongroom.
+3. The skill said more than the record: Pachinko's cups of two hits are
+   its draft's; 0:15 is over 300 plays; a ball comes straight back off the
+   steel over a shaft once the key is gone; and the draft's channels are
+   two cells wide. All fixed.
+4. Nits, taken: the sentence on the sliders says what it answers, and that
+   the tallest field's `!` play wasn't probed; Grand machine's paragraph
+   reflowed.
+
+Rebased onto L's art (6f2cec81 and 1b71cd8e), which changed no rule, so no
+play moved. `AGENTS.md`'s line on the frame a brick shows kept both sides:
+a cage's through the rules' `nextFriendInk()`, and a portal's by its pair
+and a slider's by its heading. Each commit typechecked as the rebase went;
+at the tip, `yarn lint`, `yarn test --maxWorkers=6` (77 files, 3,916
+specs), the coverage floor (3,616 specs: 99.57% of statements, 97.35% of
+branches), the `sim` specs and the root's `yarn lint` pass.

@@ -125,7 +125,9 @@ and clears them fast.
 Plated bricks drag an endgame too. A ball breaks one only from above or a
 side, and neither the autopilot nor a seeking ball turns toward one, so the
 last of them are met by chance. One against a side wall, with a side fewer
-to be met from, drags most.
+to be met from, drags most, and one of two hits more than one of one:
+Pachinko's draft, its cups of two hits, ran 21 endgames of 900 past a
+minute, and with cups of one hit 2.
 
 Bricks met only through a portal drag an endgame too: neither the autopilot
 nor a seeking ball aims at a portal, so the ball comes through the one that
@@ -135,6 +137,19 @@ did every redraw of it without a blast, one with a row left open between
 the portal and the bricks among them. A blast right over each room's
 portal, where a ball coming out meets it at once, has the whole room in its
 reach and clears it at the first entry: none of 300 plays ran past.
+
+A room behind a portal holds the ball away from the paddle while it is in
+there, and a pocket left only by narrow channels holds it longer, which the
+report's `away` shows while no other ball is in play. Switchyard's draft,
+its keys in rooms of three by two over a strongroom in the middle of the
+field, held a ball past a minute (`^`), and a probe of the autopilot found
+it in the pocket over the strongroom, whose gates stay shut till the keys
+break, left only by channels two cells wide at the walls. With its
+strongroom near the top and each room a shaft a cell wide at a wall, steel
+over and under it and its key over its portal, every ball that comes out
+goes straight back: one heading up breaks the key, or meets the steel once
+the key is gone, and one heading down meets the steel under the portal.
+Over 300 plays, the longest the paddle waited was 0:15.
 
 Two bumpers whose middles lie on a line flatter than the flattest a ball
 travels (`FLATTEST`, 20°), near enough that a ball leaving one at the
@@ -166,7 +181,7 @@ id, so a new set adds its own there, and its nudge beside it. It holds a set's p
 within it, so a new set's paces start where the last set's end, kept so by
 hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
 thought rather than speed starts lower: Friends runs 1.12 to 1.18.
-Machines, the kinds that move a ball or themselves, starts at 1.16.
+Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
 
 ## A Place
 

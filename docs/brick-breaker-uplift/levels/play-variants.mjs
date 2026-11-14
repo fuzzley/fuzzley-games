@@ -178,7 +178,7 @@ function columnsOf(game) {
     timeOf(steps, game.stepSeconds);
   return {
     headings: ["mid12", "mid", "most", "last12", "last", ">1m", "lost", "away"],
-    widths: [6, 5, 5, 6, 5, 4, 4, 5],
+    widths: [6, 5, 5, 6, 5, 4, 4, 6],
     cellsOf: (plays) => {
       const reported = plays.slice(0, REPORTED);
       const [reportedMiddle] = middleAndMost(reported.map(stepsOf));
