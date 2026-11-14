@@ -344,8 +344,12 @@ sparks. Three materials, each drawn one way.
 
 ![Energy and effects](art/preview/energy-and-effects.webp)
 
-- **Shots** are a bright core, a halo and a short tail, one shape for each
-  weapon. **Static** is a jagged arc with a near-white core.
+- **Shots** are a bright middle, a body and a halo, and a short tail, one
+  shape for each weapon: the gun's bolt, Spread's three lighter ones,
+  Rapid's small darts, Lance's long needle. The middle stays the field's
+  text color, as a shot is now; the body and the halo take the accent, the
+  pod's own color. **Static** is a jagged arc with a near-white middle, and
+  the accent's densest ink on a white field.
 - **A rock's break is its own facets flying apart,** tumbling and fading
   to the field's color so that no shard is taken for a small rock, with a
   ring of dust, a few sparks of light, and the sparks it sheds. The whole
@@ -574,8 +578,11 @@ pickups. A wave that waits for the player.
 
 ### Feel
 
-Each is off where motion isn't welcome, where a still mark stands in for
-it, as each sheet shows.
+Each is off where motion isn't welcome. There, what tells the player
+something keeps a still mark (a crack on a rock that held a hit, one ring
+at a blast's reach, at a dash's start and round a spent Shield, a
+warning's chevrons held), and what only dresses a moment shows nothing, as
+the sheet says of each.
 
 | Moment                    | What is added                                                                   | How long    |
 | ------------------------- | ------------------------------------------------------------------------------- | ----------- |
