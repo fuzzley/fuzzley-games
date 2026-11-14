@@ -700,3 +700,236 @@ was reviewed again; and four wordings.
   Breaker's build from Wave 2's end, which has no cleared card for P4's new
   check to find, and failed there. Nothing is edited in the integration
   worktree while its checks run now.
+
+### L8 landed: a20e0d82
+
+- `fuzzballWearing(by, style, worn)` in `@fz/phaser/fuzzball`: the
+  fuzzball outlined as one with what it wears, building the outline itself
+  rather than each game cutting it off `fuzzballCommands()`, which is now
+  it wearing nothing; and `wornSparks()` beside `sparkCommands()`. Brick
+  Fuzz Pop's `outlinedWith()` and its helpers, and Brick Breaker's
+  `streakBallCommands()`, are gone. Every atlas frame hashed the same
+  before and after (Brick Fuzz Pop's 235,200, Brick Breaker's 846,720).
+- The rebase onto f31d1cbd was clean, git merging both games' `AGENTS.md`,
+  which P4 and F4 changed too. On the rebased branch: the root's lint,
+  typecheck and tests under the lock. Fast-forwarded.
+- One review, every comment answered (`worklog/L.md`). Follow-ups, left for
+  the user: cutting a slab below a line across it (Brick Breaker's
+  `plateCut()`, Brick Fuzz Pop's plated `outlineOf()` and `cutAt()`, the
+  mirror of `topCap()`), which would move Brick Fuzz Pop's numbers; the
+  crack cut out of a brick, likely too thin to lift.
+- Running: K3 alone, whose slider waits on nothing more. L7, F3b and K4
+  wait on K3; Z1 and Z2 on them.
+
+### K3 landed: beae5f5c, 20269873, b76415ac
+
+- The bumper with Pinball (41) and the nudge off anything that can't break
+  from Machines on (C19); the portal with Wormhole; the slider with
+  Conveyor (42), Wormhole moved to 43 and its mark set again by the rule
+  (10). Bumpers and portals are discs, not slabs (a departure from §5.2,
+  in `worklog/K.md`); the travel alone opens a round cell, so the seeker
+  and the autopilot still take it as blocking their sight. A broken brick
+  doesn't stop a train; the saved game keeps each brick by its home with
+  its cell and heading (`SAVED_GAME_VERSION` still 2). The brick and glow
+  painters add a slide's offset (`slideOffsetOf()`) beside F2's drop-in,
+  its way on the event (`FieldEvent.way`). The slider is drawn by
+  `placeholderArt()`, restored, and the bumper and the portal by a new
+  `roundPlaceholderArt()`.
+- No `!` or `+` on 41 to 43 (`levels/report-k3.txt`, levels 1 to 40 line
+  for line as K2's); middle times at Relaxed, Normal and Fast: Pinball
+  0:35, 0:37, 0:27; Conveyor 0:35, 0:36, 0:25; Wormhole 0:30, 0:31, 0:23.
+- K3 had rebased itself onto 6503c59c; the integrator's rebase onto
+  a20e0d82 (L8) was clean, git merging `art.ts` and the testing skill by
+  itself. Each rebased commit typechecked and was searched for markers. On
+  the rebased branch: Brick Breaker's typecheck and tests (77 files, 3,701
+  specs, 258 of them `sim`), the root's lint. Fast-forwarded.
+- Four reviews (the bumper's twice), every comment answered
+  (`worklog/K.md`). Left: a pop or regrowth drawn on a slider stays on the
+  cell it left (L7's, the brick painter's); trains bunch at the walls on
+  Conveyor (K4 watches for it).
+
+### Wave 5's rest
+
+- L's and F's branches fast-forwarded to b76415ac. Started L7 (Machines'
+  art, and drawings that follow a slide), F3b (the boing and the whoosh,
+  the slider's step if any, the gates' opening flourish, and a lost ball
+  fading in the frame it flew in) and K4 (Machines' levels 44 to 50, the
+  report's longest time between touches of the paddle, and L6's two rules
+  follow-ups for K: `nextFriendInk()` and `FieldEvent.ink`). Running: L7,
+  F3b, K4. Then Z1 and Z2.
+
+### F3b landed: 9325eb47, 0fab9b28
+
+- The bumper's boing (also at a bolt's or a blast's hit, which rang as
+  steel) and a pop as it kicks the ball; the portal's whoosh; the slider's
+  step left silent, a metronome no player started. Both new sounds are
+  quieter than the brick's hit, measured; the sprite's first fifteen sounds
+  are byte for byte as before. The gates open with a flourish, each thinning
+  to its middle and fading over 360 ms, the sweep's length; a lost ball
+  fades in the frame it flew in, its kind, ink and the streak's fur, with
+  its eyes (`BallPainter.drawnStreak`, since the rules reset the streak as
+  the last ball goes).
+- It sat on the tip already, so it landed as the agent checked it: Brick
+  Breaker's lint, typecheck and tests (77 files, 3,715 specs), coverage at
+  the floors, the root's lint. Fast-forwarded.
+- Two reviews, every comment answered (`worklog/F.md`). Left:
+  `facedBallFrame()` is used only by specs now, and friends' faced frames
+  by nothing (How to play still uses `FACED_BALL_FRAMES`), for Z1;
+  `withGates()` in the scene spec could fold onto `GATED`; if a key's hit
+  clears the level no `opened` is recorded, so its gates vanish during the
+  hold (no level reaches it), told to K4 with where `lostInk()` now sits.
+
+### L7 landed: 6f2cec81, 1b71cd8e
+
+- The bumper through `bumperMark()` in the accent; the portal through
+  `portalMark()`, `@` violet with a dot and `%` teal with a hollow diamond,
+  the two pairs held apart by hue (`deltaE()`, new in `@fz/style/testing`,
+  27 at least, as the fuzzballs' inks are) as well as by badge; the slider
+  its tint's body with the kit's three chevrons pointing the way it heads,
+  the front one in the marks' color. `roundPlaceholderArt()` and
+  `placeholderArt()` gone. The brick painter carries a move under way along
+  a slide (`carryMove()`): a slider breaks at its one hit and never
+  regrows, so in play this keeps a broken brick's leftover swell off the
+  slider that steps into its cell.
+- Nothing is left out of the three under 15 CSS px a unit, against the
+  brief: a portal's badge must show at every size, and a slider without its
+  chevrons can't be told from a plain brick; drawn at 11 and 12 px in every
+  palette, each read whole. The trail chevrons at 45% of the tint, not the
+  kit's 55%, which fell under 2:1. In Soft pastel the bumper and the first
+  portal pair are both violet, told apart by shape. The `%` pair is in no
+  level yet (K4's drafts may use it).
+- The rebase onto 0fab9b28 (F3b) collided once, the brick painter's line
+  in `AGENTS.md` (F3b's bumper swell and L7's carried move), both kept,
+  whole. Each commit typechecked and was searched for markers. On the
+  rebased branch: the root's lint, typecheck and tests (Brick Breaker 3,828
+  specs) under the lock. Fast-forwarded.
+- Two reviews, every comment answered (`worklog/L.md`).
+
+### Z1: the browser pass and the docs read through
+
+- The screenshots captured again on the uplift's look
+  (`yarn capture:screenshots --url 'http://[::1]:9014/'`, since the dev
+  server binds `::1` on this machine).
+- A pass in a browser over the sets, the palettes and the shapes, from runs
+  the rules kept (`tools/stored_run.mjs`) for a level of each set but
+  Basics: Drawbridge (33) in Classic felt at 1280 × 720, Conveyor (42) in
+  Casino night on a phone on its side (844 × 390), Wormhole (43) in
+  Midnight blue on an upright phone (390 × 844), Pinball (41) in Soft
+  pastel at 1280 × 720, Hedge maze (22) in Classic felt at 568 × 320, and
+  Shelf (12) in Midnight blue on a tablet (1024 × 768). Basics shows in the
+  screenshots, Rocket (9) in Midnight blue at 1280 × 720. Nothing was
+  wrong: no page scrolled, every panel, card and badge sat where it should,
+  and each place's motif read faintly under the bricks, the playroom's
+  under Rocket's too. One point for the user: "In this level" draws each
+  kind in How to play's picture, so a plain brick is red there whatever
+  the level's tints.
+- Two fresh audits read the docs the branch changed against the code: Brick
+  Breaker's `AGENTS.md`, `README.md` and two skills (nine definite
+  findings, twelve possible, and one count K4 changes), and the shared
+  docs (two definite, four possible). All were fixed in a docs commit but
+  the deck's example spare, 184, which is right as an example. Among them:
+  `--marks` prints marks and writes none; the saved game keeps a brick's
+  cell and heading; history wording and the plan's decisions cited by
+  number, both dropped; `settledPictures()` named for the boards that use
+  it; Pinball's lowest bumper three rows below the others, not one.
+- F3b's follow-ups done in a refactor commit: a friend's faced frame, drawn
+  into the atlas and shown by nothing, and `facedBallFrame()`, called only
+  by specs, are gone; the art spec holds each ball's picture to its frame at
+  ×1 with the eyes over it, and fails if the picture's fur is changed; the
+  scene spec's gates take `GATED` and `openGates()`. One review, every
+  comment taken.
+- The docs commit's review: every comment taken. It found the fixes half
+  carried through: dropping "the uplift's places sheet" left "as the sheet
+  does" pointing at nothing, while "the kit" stayed elsewhere. So the
+  game's docs keep citing the uplift's art kit and places sheet, as Brick
+  Fuzz Pop's cite its plan, and Z2 points them at the archive with the move;
+  the libraries cite no game's plan. Also taken: the app's stylesheet as
+  the one without the toolkit in two more places, history wording in two
+  code comments, the testing skill's triggers, the friends' inks, and
+  ragged lines. Left for after K4, which changes the same lines: the
+  report's singular "the spec" in `AGENTS.md` and `report-levels.mjs`.
+- Both commits waited on `bbu/z1`, branched from the tip in L4's worktree,
+  which L4 was done with, as 13fdd55c and 22c7d406, ids from before its
+  rebase onto K4. They landed after K4, below.
+
+### K4 landed: c9056bb4, 30255fec, 00e61ecd, 4244da14
+
+- The report's `away` column, the longest a play goes between two touches
+  of the paddle, marked `^` past a minute and failing on none; L6's two
+  follow-ups, `nextFriendInk()`, the one rule a freed friend's ink and the
+  cage's picture take, and `FieldEvent.ink` on a lost ball, so
+  `BallPainter.lostInk()` is gone; and Machines' levels 44 to 50: Tilt,
+  Typewriter, Two rooms, Clockwork, Switchyard, Pachinko and Grand machine,
+  each with its mark (all 5). Middle times at Relaxed, Normal and Fast run
+  from Two rooms' 0:32, 0:25, 0:18 to Switchyard's 0:50, 0:38, 0:34.
+- Redrawn from the drafts: Two rooms has a blast over each portal (the
+  draft's endgames past a minute, 52 in 300, fell to none); Switchyard's
+  shafts hold one key each, at the walls, its strongroom near the top (the
+  draft showed `+` and `^`, a ball held in the pocket over the strongroom);
+  Pachinko's cups take one hit (`u`), not two (21 long endgames in 900 to
+  2). Tilt and Grand machine kept as drafted, 10 and 12 in 900, like
+  Stepping stones' 11.
+- At twelve seeds, nothing marked on 44 to 50, and levels 1 to 43 as K3's
+  report but for the new column (`levels/report-k4.txt`); Lanterns' `+`
+  stays. At twenty seeds, Grand machine has a `!` at Relaxed (1:31), beside
+  Spiral's and Finale's; on the tallest field, a `!` too (2:12), beside
+  Mushroom's (`levels/report-k4-seeds20.txt`, `report-k4-tallest.txt`).
+  Its long endgames leave the roof bricks over the strongrooms. Both of its
+  `!`s breach §9's budget for the last bricks, and no variant of its roofs
+  and strongrooms did better by more than chance (`worklog/K.md`): a point
+  for the user, with Spiral's and Finale's.
+- No level lays a two-hit plated brick now: the kind takes one or two hits
+  (`U` two), and every plate in a level is a one-hit `u`. How to play, the
+  Ready card and "In this level" picture it at two hits, and its line says
+  "one or two hits", so a player on any of the five levels with plates
+  (Mushroom, Stepping stones, Trellis, Tilt and Pachinko) is shown a plate
+  unlike the level's: a point for the user, draw a level with `U` or
+  picture the kind at one hit.
+- Two handoffs closed: K3's trains bunching at the walls, since
+  Typewriter's and Clockwork's stand a beat there as Conveyor's do but no
+  endgame waits on them, and Grand machine's two ran a cell apart in the
+  browser, none of its long endgames waiting on a slider; and L7's `%`
+  pair, which Two rooms and Switchyard lay.
+- F3b's note, that a key whose hit clears the level records no `opened`,
+  so its gates vanish during the hold: left, as K1 chose and no level
+  reaches it.
+- It sat on the tip, 1b71cd8e, so it landed as the agent checked it: Brick
+  Breaker's lint, typecheck and tests (77 files, 3,916 specs, 300 of them
+  `sim`, all fifty levels at every speed), coverage at the floors (99.57%
+  statements, 97.35% branches), and the root's lint; the integrator ran
+  Brick Breaker's typecheck at the tip again. Fast-forwarded. A browser
+  check by the agent drew Switchyard, Pachinko and Grand machine at
+  1280 × 720 with nothing in the console.
+- Five reviews (48 to 50 twice, its fixes having redrawn Switchyard), every
+  comment answered (`worklog/K.md`). Left: `nextFriend()` in the view, now
+  only `nextFriendInk()` again (gone in Z1); `events.add()`'s eight
+  arguments in a row, kept, since the log's ring is filled in place and an
+  options object would allocate at every event.
+
+### Z1 landed: 193c7baf, c997ddc0, a3d6af34
+
+- The rebase onto 4244da14 (K4) collided once, in Brick Breaker's
+  `AGENTS.md`: the report's paragraph, where K4 had added the `away` column
+  and the docs commit had made "the spec" the specs in `every_level/`; both
+  kept, and the change held back for K4 made there: the report's specs,
+  plural, in `AGENTS.md`, `report-levels.mjs` and its spec. The commit's
+  message amended to match. That delta went unreviewed till after it had
+  landed; its review found "the specs" put on `endgameOf()`'s `!`, which
+  marks any field's limit, "they" left far from the specs in the
+  paragraph, and the paragraph ragged, all fixed in a follow-up on
+  `bbu/z2`. Then a third commit removed `nextFriend()`, K4's leftover: the
+  cage's frame takes the rules' `nextFriendInk()` itself, and its spec
+  holds the frame's friend ink to the ball the cage's next hit frees. One
+  review, every comment taken.
+- Brick Breaker's tests ran on the branch's tip (77 files, 3,914 specs, two
+  fewer with `facedBallFrame()` gone); its lint and typecheck and the
+  root's lint ran before the spec's last edit, and again on the tip once it
+  had landed, all passing. Fast-forwarded; the tip holds no conflict
+  markers.
+- The screenshots were committed on `bbu/z2` as 1f37d02d, to land with Z2.
+  A review found the thumbnail, cropped around the field alone, cut
+  through both panels, and a crop around the panels too took in part of
+  the game bar, so the thumbnail is the whole page, as the preview is; the
+  plan's picture of the game before is kept beside it as `before.webp`.
+- Left for the end, on the final tip with Z2's move: `yarn verify:full`,
+  `yarn check:layout` and a fetch of `origin/main`, still eb560e1f now.
