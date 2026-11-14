@@ -19,11 +19,14 @@ export const SOUNDS = [
 /** Names a sound of the game's sprite. */
 export type SoundName = (typeof SOUNDS)[number];
 
-/** How far a sound rises for each brick of a streak, in cents: a semitone. */
-const STREAK_STEP_CENTS = 100;
+/**
+ * The notes a streak climbs, a note a brick, in semitones above its first: a
+ * major pentatonic scale, up to an octave and a fifth, where it holds.
+ */
+const STREAK_NOTES = [0, 2, 4, 7, 9, 12, 14, 16, 19] as const;
 
-/** The most a streak raises a sound, in cents: a fifth. */
-const STREAK_MOST_CENTS = 700;
+/** The cents in a semitone. */
+const SEMITONE_CENTS = 100;
 
 /**
  * Names a flourish the scene plays: a hit brick's pop, a broken one's
@@ -83,12 +86,17 @@ export function effectsOf(
 
 /**
  * Returns how far an event's sound is raised, in cents: a broken brick's by
- * a semitone for each brick of its streak before it, up to a fifth, which
- * rewards a streak by ear; any other's not at all.
+ * a note of a major pentatonic scale for each brick of its streak before
+ * it, up to an octave and a fifth, so a streak sounds like a run; any
+ * other's not at all.
+ *
+ * The top, 1900 cents, is past the ±1200 Phaser's docs give, on purpose:
+ * Web Audio plays it as a rate, which nothing clamps.
  */
 export function detuneOf(event: Readonly<FieldEvent>): number {
-  if (event.kind !== "broken" || event.streak < 2) return 0;
-  return Math.min((event.streak - 1) * STREAK_STEP_CENTS, STREAK_MOST_CENTS);
+  if (event.kind !== "broken" || event.streak < 1) return 0;
+  const note = Math.min(event.streak, STREAK_NOTES.length) - 1;
+  return (STREAK_NOTES[note] ?? 0) * SEMITONE_CENTS;
 }
 
 /** Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays once a frame at most. */

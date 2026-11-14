@@ -1603,7 +1603,7 @@ describe("BricksScene", () => {
       expect(scene.sound.mute).toBe(true);
     });
 
-    it("play a broken brick's, risen along its streak", async () => {
+    it("play a broken brick's, risen along its streak's scale", async () => {
       const { shell, run } = await startBoard();
       const played = soundsPlayed();
       shell.field.streak = 4;
@@ -1611,7 +1611,7 @@ describe("BricksScene", () => {
       hitBrick(shell.field, brickAt(shell.field, 0, 0), 1, 3);
       run.advance(16);
 
-      expect(played).toEqual([["broken", 400]]);
+      expect(played).toEqual([["broken", 900]]);
     });
 
     it("play the chime each time the shell calls for it", async () => {
