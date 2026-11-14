@@ -231,13 +231,13 @@ export function contrast(a, b) {
 // --- SVG ----------------------------------------------------------------
 
 /**
- * Returns a number as SVG writes it, to two places.
+ * Returns a number as SVG writes it, to a tenth.
  *
  * @param {number} value
  * @returns {string}
  */
 export function num(value) {
-  const rounded = Math.round(value * 100) / 100;
+  const rounded = Math.round(value * 10) / 10;
   return Object.is(rounded, -0) ? "0" : String(rounded);
 }
 
