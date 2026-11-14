@@ -1260,3 +1260,119 @@ The review, and the answers:
    four placeholders to reach the ink. An options object would read
    better, but restyles `events.ts` and every caller, which §7.3 keeps
    from this package.
+
+### 2026-11-14: Tilt, Typewriter, Two rooms and Clockwork (44 to 47)
+
+F3b, under this commit since the rebase, changed no rule, so no play moved.
+
+What it does:
+
+- `machines.json` gains Tilt (44), Typewriter (45), Two rooms (46) and
+  Clockwork (47), each from its draft, with its pace and Clockwork's tints,
+  its `teaches` note dropped, and its `mark` the rule's: 5 for each, their
+  middle best streaks at Normal being 7, 9, 9 and 7, where the drafts
+  guessed 10, 15, 10 and 10.
+- Two rooms is redrawn: the brick over each room's portal is a blast
+  (`#o*o#`, where the draft had `#ooo#`).
+- `variants-k4.json` and its record, `report-k4-variants.txt`, with the four
+  levels; `play-variants.mjs` prints the longest any play went between two
+  touches of the paddle too (`away`), marked `^` past a minute as the report
+  marks it, and its header says how each package's record is printed.
+- `AGENTS.md`: `machines.json` holds 41 to 47. The content skill: bricks met
+  only through a portal drag an endgame. `README.md` and `index.html`:
+  forty-seven levels.
+
+How the levels were measured: by the report, and, as drafted and as
+redrawn, by `play-variants.mjs`, as K2 did, from 100 seeds, or 300 where a
+level's longest endgames needed telling apart from luck.
+
+Why Two rooms was redrawn: as drafted, `--seeds 12` marked its endgames at
+every speed (1:09, 2:06 and 1:39, `!`), and over 100 seeds 52 of 300 plays'
+endgames ran past a minute. Its rooms' bricks are met only through their
+portals, at which neither the autopilot nor a seeking ball aims, and the
+brick over a room's portal is met at once by a ball coming out of it, which
+goes straight back: read from the picture, each entry breaks a brick or
+two on the portal's line, and the room's sides and corners, off it, are
+left for last. The four redraws without a blast ran 40 to 68 of 300 past a
+minute: a row left open between the portal and the bricks, with none beside
+the portal; the room a shaft of three over its portal; no bricks beside the
+portal; and the low portals nearer the middle. A blast right over each
+portal, met at once, has the whole room in its reach and clears it at the
+first entry: none of 300 ran past a minute, its longest endgame 0:40, and
+its middle times fell to 0:33, 0:27 and 0:22 over 100 seeds. Gifts round the
+blast cleared the level about a third quicker at Relaxed (0:23, 0:24 and
+0:18), its endgames alike, and was not kept: the smaller change is two
+cells, and the level is already the set's quickest at Fast (0:18), a second
+or two behind the quickest at Relaxed and Normal. It is still two sealed
+rooms of gifts, a portal the only door to each.
+
+Nelson's check, which `plan.md`'s "Risks" asks of Two rooms: the longest a
+play went without a ball to meet at the paddle (`away`) is 0:13 from the
+report's 12 seeds, under Castle's 0:19, and 0:21 over 300 plays, where the
+draft's was 0:16. A ball in a room while another is played isn't counted
+there, so the figure is the paddle's wait, not the room's hold. A ball comes
+out of a room as soon as it meets the portal again, and a room once burst is
+empty, so the level isn't given a second ball in play: its wait from the
+report's seeds is shorter than the thirty's longest.
+
+Tilt stays as drafted. `--seeds 12` holds it within the budgets, its
+longest endgame 0:37. Over 300 seeds, 10 of 900 plays' endgames ran past a
+minute, as Stepping stones' 11 of 900, which K2 kept. Read from the
+picture, its last bricks are its funnel's plates, met from above or a side
+by chance, as the content skill says; none stands against a wall. With the
+arms' tips plain, or gone, 6 of 900 ran past a minute, within chance of the
+draft, so neither was kept.
+
+Typewriter and Clockwork stay as drafted: over 100 seeds no endgame ran
+past a minute, their longest 0:26 and 0:33, as the record holds. Their
+trains turn at the walls and stand there a beat, as K3 saw Conveyor's bunch,
+and no endgame waits on them: a train at a wall is met from below as any
+brick is.
+
+Measured: each speed's middle time, Relaxed, Normal and Fast; the longest
+endgame, the most lives lost and the longest any play went between two
+touches of the paddle, at any speed, from 12 seeds; and the middle times
+from 20 seeds (`report-k4.txt` and `report-k4-seeds20.txt`, saved with the
+set's last commit).
+
+| Level         | 12 seeds (R / N / F) | longest endgame | lost | away | 20 seeds           |
+| ------------- | -------------------- | --------------- | ---- | ---- | ------------------ |
+| 44 Tilt       | 0:47 / 0:34 / 0:29   | 0:37            | 0    | 0:08 | 0:37 / 0:32 / 0:29 |
+| 45 Typewriter | 0:35 / 0:24 / 0:21   | 0:16            | 0    | 0:05 | 0:35 / 0:26 / 0:19 |
+| 46 Two rooms  | 0:32 / 0:25 / 0:18   | 0:12            | 0    | 0:13 | 0:32 / 0:25 / 0:21 |
+| 47 Clockwork  | 0:41 / 0:27 / 0:21   | 0:22            | 0    | 0:05 | 0:36 / 0:31 / 0:26 |
+
+On the tallest field (`--seeds 12 --height 45`, not saved), the four take
+0:51 to 1:24 at Relaxed, with no `!` and no `^`; the only `!` there of 47
+levels is Mushroom's, as K2 found.
+
+The `sim` specs pass for all 47 levels (282 specs, 8.2 s).
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (77
+files, 3,768 specs, 19.5 s) in the workspace; the root's `yarn lint` under
+the lock.
+
+The review, and the answers:
+
+1. Typewriter's and Clockwork's 100 seeds had no saved record. Fixed: both
+   are in `variants-k4.json`, as drafted, and the record printed again; and
+   Tilt's last bricks are said to be read from the picture.
+2. "The ball away in a room for 0:21" misread `away`, and `plan.md`'s
+   question of Two rooms went unanswered. Fixed: the paragraph on Nelson's
+   check above, which says what `away` shows and why no second ball.
+3. `play-variants.mjs`' header said the older records print as they were,
+   which the new column makes untrue, and named a file the script reads from
+   the working directory. Fixed: it says each record is printed from its
+   variants file, by its path, shows K4's with the repository's paths, and
+   says the older records lack the column.
+4. The skill's paragraph said more than the record: a row left open, as the
+   skill advises beside a portal, still dragged, and the blast is right over
+   the portal on purpose. Fixed: it says both.
+5. Phrasings: "the four without a blast", the open row's variant named for
+   both its changes, the gifts' quicker middles, and Two rooms the set's
+   quickest at Fast. All fixed.
+6. The record's `away` was never marked `^`. Fixed: it is, past a minute as
+   printed, as the report marks it, and its legend says so.
+7. No `sim` timing and no Checks line. Fixed, above.
+8. Nits, taken: `AGENTS.md`'s long line reflowed, a long line here wrapped,
+   and the repeated note of the rebase cut to its one new fact.
