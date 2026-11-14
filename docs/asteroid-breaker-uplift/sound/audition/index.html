@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Asteroid Breaker: the uplift's sounds</title>
+    <link rel="stylesheet" href="audition.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Asteroid Breaker: the uplift's sounds</h1>
+      <p>
+        Every sound here was made by a synth written for the plan, from
+        arithmetic alone, and measured as it was built.
+        <strong>None was heard.</strong> This page is where they are heard,
+        beside the sounds the game ships today, and your ear decides. Mark
+        each as you go and copy your notes at the foot of the page.
+      </p>
+    </header>
+
+    <section class="bar" aria-label="How the sounds play">
+      <label>
+        Volume
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.8" />
+      </label>
+      <label><input id="vary" type="checkbox" checked /> Vary each play</label>
+      <label><input id="pan" type="checkbox" checked /> Pan by place</label>
+      <label><input id="duck" type="checkbox" checked /> Duck under big sounds</label>
+      <label><input id="limit" type="checkbox" checked /> Limiter</label>
+      <label><input id="phone" type="checkbox" /> As a phone's speaker</label>
+      <button id="stop" type="button">Stop everything</button>
+      <span id="status" role="status"></span>
+    </section>
+
+    <main>
+      <section aria-labelledby="scenes-heading">
+        <h2 id="scenes-heading">Moments of play</h2>
+        <p class="lead">
+          Each is a few seconds of the game as it would sound, played with
+          today's sounds, with the uplift's, or one after the other.
+        </p>
+        <div id="scenes" class="scenes"></div>
+      </section>
+
+      <section aria-labelledby="beds-heading">
+        <h2 id="beds-heading">The beds</h2>
+        <p class="lead">
+          One loop a sector, under everything, and two layers that fade in
+          over it as static builds. The game has none today.
+        </p>
+        <div id="beds" class="beds"></div>
+      </section>
+
+      <section aria-labelledby="families-heading">
+        <h2 id="families-heading">Every sound</h2>
+        <p class="lead">
+          By family, each take on a button of its own, with the picture of
+          its spectrum the build drew: time across, pitch up from 40 Hz to
+          20 kHz.
+        </p>
+        <div id="families"></div>
+      </section>
+
+      <section aria-labelledby="notes-heading">
+        <h2 id="notes-heading">Your notes</h2>
+        <p class="lead">
+          What you marked, kept in this browser. Copy it into the
+          conversation, or into the work log.
+        </p>
+        <button id="copy" type="button">Copy the notes</button>
+        <button id="clear" type="button">Clear the notes</button>
+        <pre id="notes"></pre>
+      </section>
+    </main>
+    <script type="module" src="audition.js"></script>
+  </body>
+</html>
