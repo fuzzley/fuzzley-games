@@ -493,3 +493,120 @@ The review, and the answers:
    300 seeds' middles, quicker at every speed.
 5. Nit, taken: `index.html` says forty levels, and only the README says
    four sets.
+
+### 2026-11-14: Mushroom (32), its cap's tips plain, and the reports
+
+What it does:
+
+- Mushroom's plated row, the cap's underside, keeps its plates under
+  columns 2 to 10, and its tips, columns 1 and 11, are plain bricks of the
+  cap (`.ouuuuuuuuuo.`, tinted as the cap), where the draft plated all
+  eleven. Its layout stays the first, as it has never shipped. Its mark
+  falls from 15 to 10, as `--marks` prints it, its middle best streak at
+  Normal now 11.
+- `variants-k2.json` and its record gain Mushroom's six ways.
+- The reports of every level: `report-k2.txt` (`--seeds 12`),
+  `report-k2-tallest.txt` (`--seeds 12 --height 45`) and
+  `report-k2-seeds20.txt` (`--seeds 20`).
+
+Why Mushroom was redrawn: R2's `--seeds 12` gave a play at Normal an
+endgame of 1:01 (`!`). It is no one seed's luck: over 300 seeds the draft ran
+14 of 900 endgames past a minute, at every speed. Read from the picture and
+the content skill, its last bricks are its plates. A ball meets them only
+from above or a side, and neither the autopilot nor a seeking ball turns
+toward one, so the last of them are met by chance. The cap above them is
+reached only up the two gaps a cell wide at the walls. K1's 40 seeds, before
+R2, had none past a minute, where 14 in 900 would give about two in 120
+plays, so whether R2's seeker added to it can't be told from luck.
+
+Five redraws were played over 300 seeds, each changing only the plated row.
+Past a minute ran: with the cap's tips plain, 6 of 900; the tips left open,
+11; a plate of seven, 8; two plain bricks each end, 9; a plate of five, 13.
+These can't be told apart from one another, and the fall from the draft's
+14 may be partly luck. Nor does a plate of fewer bricks run fewer, so the
+count of plates isn't the whole of it. The plain tips are kept as the
+fewest and the smallest change, two cells, and its `--seeds 12` holds no `!`
+and no `+`: 1:37, 1:21 and 1:15, its longest endgame 0:57. That is close to
+a re-roll. Its longest endgame of the first 12 at Relaxed rose from 0:28 to
+0:57, and over 300 seeds its longest at Relaxed from 1:47 to 2:04, and its
+longest play there from 5:03 to 5:27. The long endgames are the plated
+brick's, in every way played. A cure would be in the autopilot or the
+seeker, which aim at no plate, not in the level's data, and they are R's.
+
+It is still the level the draft drew: a cap plated underneath, which a ball
+goes up an edge to get into. Its edge now opens from below as well as from
+the side. It stays the set's longest level, at every speed past a minute where the
+other nine take 0:58 or less. It took 1:34 at Relaxed as drafted, under the
+plan's 2:00, and no redraw played made it much quicker, so it is left so.
+
+The reports, after the rebase onto R3:
+
+- `report-k2.txt` marks nothing in Friends, no `!` and no `+`. The one mark
+  left in it is Lanterns' (18) `+` at Relaxed (2:01), there since R2 and
+  R's.
+- The reports' figures for levels 34 to 40 that the entries above quote
+  (from 12 seeds, the tallest field and 20 seeds) read in `report-k2.txt`,
+  `report-k2-tallest.txt` and `report-k2-seeds20.txt` as quoted, so none has
+  moved. The record was printed whole again after the rebase, and only
+  Mushroom's part of it is new.
+- On the tallest field, one play of Mushroom's at Relaxed took 2:11 over its
+  last bricks, past that field's longer limit (`!`). It is the only `!` there
+  of all forty levels. The spec doesn't hold a taller field's endgames, as
+  luck decides more of them, and the draft wasn't played on that field, so
+  whether the redraw changed it there is unknown.
+- From 20 seeds, the marks are R's levels': Lanterns' `+` (2:12) and two
+  plays past a minute at Relaxed, Spiral's (27) and Finale's (30).
+
+Friends' middle times from `--seeds 12`, Relaxed, Normal and Fast, and the
+marks:
+
+| Level              | Relaxed | Normal | Fast | Mark |
+| ------------------ | ------- | ------ | ---- | ---- |
+| 31 Hello           | 0:26    | 0:24   | 0:20 | 5    |
+| 32 Mushroom        | 1:37    | 1:21   | 1:15 | 10   |
+| 33 Drawbridge      | 0:58    | 0:47   | 0:41 | 5    |
+| 34 Nest            | 0:37    | 0:39   | 0:33 | 5    |
+| 35 Stepping stones | 0:57    | 0:43   | 0:31 | 5    |
+| 36 Birdhouse       | 0:45    | 0:32   | 0:29 | 5    |
+| 37 Walled garden   | 0:57    | 0:54   | 0:41 | 5    |
+| 38 Beehive         | 0:32    | 0:24   | 0:21 | 15   |
+| 39 Trellis         | 0:37    | 0:39   | 0:30 | 5    |
+| 40 Reunion         | 0:25    | 0:23   | 0:21 | 5    |
+
+Friends' middle times at Relaxed add up to 7:51, Tricks' to 12:27.
+
+In the browser, on port 9504 at 1280 × 720, with every Friends level opened
+by a progress kept for it: Mushroom shows its red cap with plain red tips
+either side of its plates, Birdhouse its roof, house, cage and pole, Walled
+garden its keys over the steel room and the gates the floor's whole width,
+and Trellis its mesh, the walls' cells plain. Until L6 draws the plate, a
+plated brick is a plain slab in tint 6, so a plain brick in a row striped
+that tint, as in Trellis's sixth row, looks the same.
+
+The `sim` specs pass for all 40 levels in 8.2 s.
+
+Checks: `yarn lint`, `yarn typecheck`, `yarn test --maxWorkers=6` and the
+coverage of `pure` and `dom`, above its floor, in the workspace; the root's
+`yarn lint` under the lock. Each of the two commits before this was checked
+again after the rebase and its marks: the workspace's lint, typecheck and
+tests at each, and the root's lint at the second.
+
+The review, and the answers:
+
+1. The entry claimed the plain tips halve the long endgames, but the six
+   ways' counts can't be told apart, the kept one the best of five, and it
+   explained them by the plates without a play to show it. Fixed: it says
+   the counts can't be told apart, keeps the plain tips as the fewest and
+   the smallest change, quotes the endgames that rose at Relaxed, and reads
+   the plates' part from the picture.
+2. The tallest field's only `!` was put down to luck with nothing to set it
+   against. Fixed: it says it is the only one, and that the draft wasn't
+   played there.
+3. "Every figure quoted reads there" overreached the reports. Fixed: it
+   names the reports' figures, and says the record was printed whole again,
+   only Mushroom's part new.
+4. The entry didn't say Mushroom stays the set's longest, and called a sum of
+   middles what the set takes. Fixed: a paragraph on it, and the sum named
+   as one.
+5. Nits, taken: four long sentences split, and Lanterns' `+` from 20 seeds
+   named.

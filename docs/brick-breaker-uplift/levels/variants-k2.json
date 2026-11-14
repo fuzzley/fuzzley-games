@@ -1,6 +1,103 @@
 {
   "levels": [
     {
+      "id": "mushroom",
+      "seeds": 300,
+      "kept": "its cap's tips plain",
+      "variants": [
+        {
+          "name": "as drafted",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            ".uuuuuuuuuuu.",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        },
+        {
+          "name": "its cap's tips plain",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            ".ouuuuuuuuuo.",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        },
+        {
+          "name": "its cap's tips open",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            "..uuuuuuuuu..",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        },
+        {
+          "name": "a plate of seven",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            "...uuuuuuu...",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        },
+        {
+          "name": "two plain each end",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            ".oouuuuuuuoo.",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        },
+        {
+          "name": "a plate of five",
+          "bricks": [
+            ".............",
+            "....ooooo....",
+            "..oo2ooo2oo..",
+            ".ooooo?ooooo.",
+            ".o2ooooooo2o.",
+            ".ooouuuuuooo.",
+            ".....ooo.....",
+            ".....ooo.....",
+            ".....ooo.....",
+            "....ooooo...."
+          ]
+        }
+      ]
+    },
+    {
       "id": "stepping-stones",
       "seeds": 300,
       "kept": "as drafted",

@@ -4,6 +4,16 @@ columns: the middle time of the first 12 seeds, as `yarn report:levels
 (its last three bricks) of the first 12, marked ! past a minute, and of all;
 how many plays' endgames ran past a minute; and the most lives lost.
 
+32 Mushroom, 300 seeds. Kept: its cap's tips plain.
+                          relaxed                                     normal                                      fast
+                           mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost
+32 as drafted               1:34  1:23  5:03   0:28  1:47    6    0     1:33  1:26  4:48  1:01!  1:24    7    0     0:55  1:05  3:40   0:16  1:27    1    0
+32 its cap's tips plain     1:37  1:19  5:27   0:57  2:04    4    0     1:21  1:15  3:33   0:27  1:28    2    0     1:15  1:01  2:55   0:28  0:47    0    0
+32 its cap's tips open      1:52  1:18  4:14   0:52  2:09   10    0     1:15  1:15  3:40   0:39  1:06    1    0     0:56  1:03  2:54   0:54  0:55    0    0
+32 a plate of seven         1:40  1:15  3:54   0:39  1:19    4    0     1:12  1:09  3:23   0:18  1:06    3    0     0:57  0:56  2:52   0:52  1:08    1    0
+32 two plain each end       1:21  1:13  3:48   0:19  1:27    6    0     1:02  1:11  3:12  1:22!  1:22    3    0     1:10  0:51  2:37   0:37  0:58    0    0
+32 a plate of five          1:28  1:00  3:16   0:36  1:32    6    0     0:59  0:52  3:43   0:56  1:46    6    0     0:54  0:45  2:32   0:15  1:05    1    0
+
 35 Stepping stones, 300 seeds. Kept: as drafted.
                                  relaxed                                     normal                                      fast
                                   mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost    mid12   mid  most last12  last  >1m lost
