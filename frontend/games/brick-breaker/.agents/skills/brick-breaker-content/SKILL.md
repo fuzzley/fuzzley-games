@@ -158,7 +158,8 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
 - Its fur in `FUR` (`src/view/art/fuzzball_art.ts`), combed into a shape
   of its own so it shows apart from the other kinds without its color, and
   its color in `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`);
-  the compiler asks for both.
+  the compiler asks for both. Only a normal ball's fur lifts with the
+  streak (`STREAK_FUR`); another kind keeps its own at any streak.
 - A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
 - The physics needs nothing new while one that passes breaks what it
   passes through at a hit, as the catalog spec holds. Every ball's radius

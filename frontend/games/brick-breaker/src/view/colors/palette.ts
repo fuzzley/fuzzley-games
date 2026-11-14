@@ -87,6 +87,8 @@ export interface BricksPalette {
   readonly capsuleLips: Readonly<Record<CapsuleTone, number>>;
   /** The shine along a good capsule's top: the accent at {@link CAPSULE_SHINE} white. */
   readonly capsuleShine: number;
+  /** The sparks about a normal ball once the streak reaches its top multiplier: the warning color. */
+  readonly streakSparks: number;
   /**
    * Steel in text at {@link STEEL_WASH}, a blast brick in the danger color, a
    * gift in the accent, and a regrowing brick's earth in the amber tint.
@@ -207,6 +209,7 @@ export function bricksPalette(
       bad: warning,
     },
     capsuleShine: mixColors(WHITE, accent, CAPSULE_SHINE),
+    streakSparks: warning,
     bricks: {
       steel,
       blast: danger,

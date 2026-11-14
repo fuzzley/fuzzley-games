@@ -29,11 +29,14 @@ interface EmberPlace {
 
 /**
  * Draws the balls: an image for each the field may hold, made once, each
- * the fuzzball in the balls' kind, its eyes looking the way it goes, with a
- * fire ball's trail of embers where motion is welcome, an ember for each
- * gap it goes, however often it is drawn.
+ * the fuzzball in the balls' kind, a normal ball's fur lifted by the
+ * streak, its eyes looking the way it goes, a sight under a ball that
+ * seeks, with a fire ball's trail of embers where motion is welcome, an
+ * ember for each gap it goes, however often it is drawn.
  */
 export class BallPainter implements Painter {
+  /** Each ball's sight, under it, shown while it seeks. */
+  readonly sights: readonly GameObjects.Image[];
   readonly images: readonly GameObjects.Image[];
   /** Each ball's eyes, over it. */
   readonly eyes: readonly GameObjects.Image[];
@@ -53,34 +56,42 @@ export class BallPainter implements Painter {
       alpha: { start: 1, end: 0 },
       scale: { start: 1, end: 0.4 },
     });
-    this.images = Array.from({ length: MAX_BALLS }, () =>
-      scene.add.image(0, 0, ATLAS, ballFrame("normal")).setVisible(false),
+    this.sights = Array.from({ length: MAX_BALLS }, () =>
+      scene.add.image(0, 0, ATLAS, FRAMES.sight).setVisible(false),
+    );
+    this.images = this.sights.map(() =>
+      scene.add.image(0, 0, ATLAS, ballFrame("normal", 0)).setVisible(false),
     );
     this.eyes = this.images.map(() =>
       scene.add.image(0, 0, ATLAS, FRAMES.eyes).setVisible(false),
     );
     this.embersAt = this.images.map(() => ({ x: 0, y: 0, fresh: true }));
-    layer.add([this.embers, ...this.images, ...this.eyes]);
+    layer.add([this.embers, ...this.sights, ...this.images, ...this.eyes]);
   }
 
   /**
-   * Draws each ball in play between its last place and its next, and hides
-   * the rest, leaving embers along each fire ball's way if motion is
+   * Draws each ball in play between its last place and its next, in its
+   * kind's frame at the streak, its sight under it while it seeks, and
+   * hides the rest, leaving embers along each fire ball's way if motion is
    * welcome.
    */
   draw({ field, alpha, metrics, motion }: Readonly<PaintContext>): void {
     this.drawnKind = field.ballKind;
-    const frame = ballFrame(field.ballKind);
+    const frame = ballFrame(field.ballKind, field.streak);
     const trails = motion && field.ballKind === "fire";
     const by = ballGrid(metrics);
     for (let i = 0; i < this.images.length; i++) {
       const image = this.images[i];
       const eyes = this.eyes[i];
+      const sight = this.sights[i];
       const ball = field.balls[i];
       const ember = this.embersAt[i];
-      if (!image || !eyes || !ember) continue;
+      if (!image || !eyes || !sight || !ember) continue;
       image.setVisible(ball?.live === true);
       eyes.setVisible(ball?.live === true);
+      sight.setVisible(
+        ball?.live === true && !ball.held && (ball.seeks || field.seeking),
+      );
       if (!ball?.live) {
         ember.fresh = true;
         continue;
@@ -94,6 +105,7 @@ export class BallPainter implements Painter {
         image.x + ball.dx * FUZZBALL_LOOK.across * by,
         image.y + ball.dy * FUZZBALL_LOOK.down * by,
       );
+      sight.setPosition(image.x, image.y);
       if (trails && !ember.fresh) {
         this.trail(ember, image.x, image.y, metrics);
       } else {

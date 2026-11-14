@@ -43,6 +43,8 @@ export interface FieldView {
   readonly streak: number;
   /** How many steps the field has taken, by which its timers run. */
   readonly steps: number;
+  /** Whether every ball in flight seeks, while a Seeker is in play. */
+  readonly seeking: boolean;
 }
 
 /** Describes the field between one step and the next. */

@@ -37,6 +37,10 @@ describe("bricksPalette", () => {
     });
   });
 
+  it("sparks about a ball at the streak's top multiplier in the warning color", () => {
+    expect(bricksPalette(ROLES, "light").streakSparks).toBe(0xffa500);
+  });
+
   it("draws a good capsule and a gift brick in the accent, a bad capsule and a blast brick in the danger color", () => {
     const palette = bricksPalette(ROLES, "light");
 
