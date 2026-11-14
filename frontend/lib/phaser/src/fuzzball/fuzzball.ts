@@ -1,7 +1,8 @@
 // The fuzzball, `@fz/style`'s mark, in the shapes' commands: its strands of
-// fur read from its path, its body and fur, outlined where a game asks and
-// in fur combed by `combedStrands()` or a game's own way, and its eyes,
-// which a game draws in a frame of their own so its scene can turn them.
+// fur read from its path, its body and fur, outlined where a game asks, as
+// one with what it wears where it wears something, and in fur combed by
+// `combedStrands()` or a game's own way, and its eyes, which a game draws
+// in a frame of their own so its scene can turn them.
 
 import { FUZZBALL } from "@fz/style/fuzzball";
 import {
@@ -30,6 +31,20 @@ export interface FuzzballStyle {
   readonly outline?: LineStyle;
   /** Its strands of fur, the fuzzball's own unless combed, by `combedStrands()` or a game's own way. */
   readonly fur?: readonly Strand[];
+}
+
+/**
+ * Describes what a fuzzball wears, such as sparks or flames, which its
+ * outline takes in as one with it: the outlines of its parts, the parts
+ * that lie beneath its body and fur, and those that lie over them.
+ */
+export interface Worn {
+  /** The outlines of what it wears, drawn over the fuzzball's own and beneath all the rest. */
+  readonly outlines?: readonly DrawCommand[];
+  /** What lies beneath its body and fur. */
+  readonly beneath?: readonly DrawCommand[];
+  /** What lies over its body and fur. */
+  readonly over?: readonly DrawCommand[];
 }
 
 /** Says what the fuzzball's eyes are drawn in, and their glints, where a game wants them. */
@@ -115,7 +130,23 @@ export function furReach(fur: readonly Strand[] = FUZZBALL_STRANDS): number {
  */
 export function fuzzballCommands(
   by: number,
+  style: FuzzballStyle,
+): readonly DrawCommand[] {
+  return fuzzballWearing(by, style, {});
+}
+
+/**
+ * Returns the fuzzball's body and fur about its body's middle, `by` device
+ * pixels to a unit of its grid, outlined as one with what it wears: its
+ * outline first, all of it, where it has one, then the outlines of what it
+ * wears, then what lies beneath its body, then the body and each strand
+ * round at its ends, then what lies over them, so no outline covers any of
+ * it.
+ */
+export function fuzzballWearing(
+  by: number,
   { color, outline, fur = FUZZBALL_STRANDS }: FuzzballStyle,
+  { outlines = [], beneath = [], over = [] }: Worn,
 ): readonly DrawCommand[] {
   const strands = fur.map(({ from, control, to }) => {
     const start = scaled(from, by);
@@ -132,9 +163,13 @@ export function fuzzballCommands(
       stroke(points, { color: ink, width: width + 2 * wider }),
     ),
   ];
-  return outline
-    ? [...drawn(outline.color, outline.width), ...drawn(color, 0)]
-    : drawn(color, 0);
+  return [
+    ...(outline ? drawn(outline.color, outline.width) : []),
+    ...outlines,
+    ...beneath,
+    ...drawn(color, 0),
+    ...over,
+  ];
 }
 
 /**

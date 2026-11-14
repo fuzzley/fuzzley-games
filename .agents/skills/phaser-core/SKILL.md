@@ -136,6 +136,9 @@ holds.
   share of the way to standing on end, as Brick Fuzz Pop's charge lifts
   it, and `sparkCommands()` draws the sparks about fur on end, so a game
   that lifts its fur takes the one comb rather than its own.
+  `fuzzballWearing()` outlines a fuzzball as one with what it wears (a
+  `Worn`), such as the sparks (`wornSparks()`) or Brick Fuzz Pop's
+  flames, so no outline covers any of it.
 - **`@fz/phaser/bricks`** is what a brick game draws a brick with, in
   `shapes`'s commands, a pure entry a game's view takes too, importing
   only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles are drawn

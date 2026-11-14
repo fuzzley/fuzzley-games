@@ -1,9 +1,9 @@
 import { recordOf } from "@fz/core/records";
 import {
-  type Strand,
   eyesCommands,
   fuzzballCommands,
-  sparkCommands,
+  fuzzballWearing,
+  wornSparks,
 } from "@fz/phaser/fuzzball";
 import { showsDetail } from "@fz/phaser/bricks";
 import {
@@ -11,7 +11,6 @@ import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
-  type LineStyle,
   ORIGIN,
   type Point,
   centered,
@@ -431,7 +430,7 @@ function friendBallArt(
 /**
  * Returns a normal ball's frames in a color, by their names: the fuzzball,
  * outlined in the palette's outline, as it flies at each step of the
- * streak, and with its eyes.
+ * streak, as one with its sparks where it has them, and with its eyes.
  */
 function normalBallArt(
   names: NormalBallFrames,
@@ -441,17 +440,25 @@ function normalBallArt(
 ): readonly ArtFrame[] {
   const by = ballGrid(scale);
   const outline = { color: palette.outline, width: lineWidth(scale) };
-  const sparkStyle = {
-    color: palette.streakSparks,
-    // A unit of the fuzzball's grid, as the kit's, a CSS pixel at least.
-    width: widthOf(by / scale.unit, scale),
-  };
+  const sparks = wornSparks(
+    by,
+    {
+      color: palette.streakSparks,
+      // A unit of the fuzzball's grid, as the kit's, a CSS pixel at least.
+      width: widthOf(by / scale.unit, scale),
+    },
+    outline,
+  );
   const body = fuzzballCommands(by, { color, outline, fur: FUR.normal });
   return [
-    ...STREAK_FUR.map(({ fur, sparks }, step) =>
+    ...STREAK_FUR.map((look, step) =>
       centered(
         names.flying[step] ?? BALL_FRAMES.normal,
-        streakBallCommands(by, color, outline, fur, sparks ? sparkStyle : null),
+        fuzzballWearing(
+          by,
+          { color, outline, fur: look.fur },
+          look.sparks ? sparks : {},
+        ),
       ),
     ),
     facedArt(names.faced, body, by, palette),
@@ -469,34 +476,6 @@ function facedArt(
     ...body,
     ...eyesCommands(by, { color: palette.mark }),
   ]);
-}
-
-/**
- * Returns a normal ball at a step of the streak, `by` device pixels to a
- * unit of the fuzzball's grid: its fur as combed, outlined, and its sparks
- * where it has them, outlined as one with it, so no outline covers any of
- * it.
- */
-function streakBallCommands(
-  by: number,
-  color: number,
-  outline: LineStyle,
-  fur: readonly Strand[],
-  sparks: LineStyle | null,
-): readonly DrawCommand[] {
-  const whole = fuzzballCommands(by, { color, outline, fur });
-  if (!sparks) return whole;
-  const body = fuzzballCommands(by, { color, fur });
-  return [
-    // The fuzzball draws its outline first, all of it, then its body.
-    ...whole.slice(0, whole.length - body.length),
-    ...sparkCommands(by, {
-      color: outline.color,
-      width: sparks.width + 2 * outline.width,
-    }),
-    ...body,
-    ...sparkCommands(by, sparks),
-  ];
 }
 
 /**

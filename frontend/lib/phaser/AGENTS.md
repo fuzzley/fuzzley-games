@@ -132,7 +132,11 @@ take the pure ones.
   reaches (`furReach()`); `fuzzballCommands()`, its body and fur, `by`
   device pixels to a unit of the grid, in a `FuzzballStyle`: a color, an
   outline beneath where a game wants one, and fur combed by
-  `combedStrands()` or a game's own way;
+  `combedStrands()` or a game's own way; `fuzzballWearing()`, the same
+  outlined as one with what it wears, such as sparks or flames, so no
+  outline covers any of it: a `Worn`, the outlines of its parts, drawn
+  over the fuzzball's own, the parts beneath its body and fur, and those
+  over them;
   `eyesCommands()`, its eyes, with their glints where an `EyesStyle` gives
   them a color and each is half a device pixel or more, which a game bakes
   in a frame of their own; and `FUZZBALL_LOOK`, how far its scene moves
@@ -140,9 +144,10 @@ take the pure ones.
   combs its fur toward standing on end, as a charge or a streak lifts it
   (`combedStrands()`, a share of the way from 0, as it grew, through 0.5,
   straight and leaning half way out, to 1, on end), and draws the sparks
-  about fur on end (`sparkCommands()`), which, drawn again beneath the body
-  in an outline's color and its width wider either side, outline them as
-  one with it. It imports
+  about fur on end (`sparkCommands()`), and those sparks as a fuzzball
+  wears them (`wornSparks()`), again beneath its body in an outline's
+  color and its width wider either side, so `fuzzballWearing()` outlines
+  them as one with it. It imports
   nothing but `shapes` and `@fz/style/fuzzball`.
 - `src/bricks/`: what a brick game draws a brick with, in the shapes'
   commands, which Brick Fuzz Pop's tiles are drawn through.

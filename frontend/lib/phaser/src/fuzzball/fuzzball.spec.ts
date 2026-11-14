@@ -1,5 +1,6 @@
 import { FUZZBALL } from "@fz/style/fuzzball";
-import type { DrawCommand } from "../shapes";
+import { type DrawCommand, ORIGIN, circle } from "../shapes";
+import { combedStrands, sparkCommands, wornSparks } from "./combing";
 import {
   FUZZBALL_GRID,
   FUZZBALL_STRANDS,
@@ -8,6 +9,7 @@ import {
   eyesCommands,
   furReach,
   fuzzballCommands,
+  fuzzballWearing,
   strandsOf,
 } from "./fuzzball";
 
@@ -144,6 +146,66 @@ describe("fuzzballCommands", () => {
     );
 
     expect(lines).toHaveLength(8);
+  });
+});
+
+describe("fuzzballWearing", () => {
+  const outline = { color: 9, width: 2 };
+
+  /** Returns a dot in a color, to tell apart where a part is drawn. */
+  function part(color: number): DrawCommand {
+    return circle(ORIGIN, 1, { color });
+  }
+
+  it("draws its outline, then what it wears' outlines, then what lies beneath, then its body and fur, then what lies over", () => {
+    const plain = fuzzballCommands(1, { color: 7 });
+    const outlined = fuzzballCommands(1, { color: 7, outline });
+
+    const drawn = fuzzballWearing(
+      1,
+      { color: 7, outline },
+      { outlines: [part(1)], beneath: [part(2)], over: [part(3)] },
+    );
+
+    expect(drawn).toEqual([
+      ...outlined.slice(0, outlined.length - plain.length),
+      part(1),
+      part(2),
+      ...plain,
+      part(3),
+    ]);
+  });
+
+  it("starts at what it wears' outlines without an outline of its own", () => {
+    const plain = fuzzballCommands(1, { color: 7 });
+
+    expect(
+      fuzzballWearing(
+        1,
+        { color: 7 },
+        { outlines: [part(1)], over: [part(3)] },
+      ),
+    ).toEqual([part(1), ...plain, part(3)]);
+  });
+
+  it("outlines its sparks as one with it, so no outline covers any of it", () => {
+    const fur = combedStrands(1);
+    const spark = { color: 5, width: 1 };
+    // Its own outline is a command for each of its body's and fur's.
+    const outlines =
+      fuzzballCommands(2, { color: 7, fur }).length +
+      sparkCommands(2, spark).length;
+
+    const colors = fuzzballWearing(
+      2,
+      { color: 7, outline, fur },
+      wornSparks(2, spark, outline),
+    ).map(({ color }) => color);
+
+    expect({
+      outlines: new Set(colors.slice(0, outlines)),
+      after: colors.slice(outlines).includes(outline.color),
+    }).toEqual({ outlines: new Set([outline.color]), after: false });
   });
 });
 

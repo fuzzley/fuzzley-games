@@ -1,4 +1,4 @@
-export { combedStrands, sparkCommands } from "./combing";
+export { combedStrands, sparkCommands, wornSparks } from "./combing";
 export {
   type EyesStyle,
   FUZZBALL_GRID,
@@ -6,9 +6,11 @@ export {
   FUZZBALL_STRANDS,
   type FuzzballStyle,
   type Strand,
+  type Worn,
   aboutBody,
   eyesCommands,
   furReach,
   fuzzballCommands,
+  fuzzballWearing,
   strandsOf,
 } from "./fuzzball";
