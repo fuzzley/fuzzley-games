@@ -1,0 +1,147 @@
+{
+ "frames": {
+  "comet-head": {
+   "frame": {
+    "x": 2,
+    "y": 2,
+    "w": 92,
+    "h": 92
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 92,
+    "h": 92
+   },
+   "sourceSize": {
+    "w": 92,
+    "h": 92
+   },
+   "group": "hazards",
+   "units": "field",
+   "px": 24,
+   "size": {
+    "w": 3.8333,
+    "h": 3.8333
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "reach": 1.8
+  },
+  "pod-bumble": {
+   "frame": {
+    "x": 180,
+    "y": 2,
+    "w": 74,
+    "h": 74
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 74,
+    "h": 74
+   },
+   "sourceSize": {
+    "w": 74,
+    "h": 74
+   },
+   "group": "pods",
+   "units": "field",
+   "px": 24,
+   "size": {
+    "w": 3.0833,
+    "h": 3.0833
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "reach": 1.44
+  },
+  "pod-crescent": {
+   "frame": {
+    "x": 96,
+    "y": 2,
+    "w": 82,
+    "h": 82
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 82,
+    "h": 82
+   },
+   "sourceSize": {
+    "w": 82,
+    "h": 82
+   },
+   "group": "pods",
+   "units": "field",
+   "px": 24,
+   "size": {
+    "w": 3.4167,
+    "h": 3.4167
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "reach": 1.5926
+  },
+  "pod-dart": {
+   "frame": {
+    "x": 2,
+    "y": 96,
+    "w": 72,
+    "h": 72
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 72,
+    "h": 72
+   },
+   "sourceSize": {
+    "w": 72,
+    "h": 72
+   },
+   "group": "pods",
+   "units": "field",
+   "px": 24,
+   "size": {
+    "w": 3,
+    "h": 3
+   },
+   "anchor": {
+    "x": 0.5,
+    "y": 0.5
+   },
+   "reach": 1.3829
+  }
+ },
+ "meta": {
+  "images": [
+   "hulls-ink-dark.png",
+   "hulls-ink-light.png",
+   "hulls-normal.png",
+   "hulls-lit-dark.png",
+   "hulls-lit-light.png"
+  ],
+  "size": {
+   "w": 256,
+   "h": 170
+  },
+  "unit": 24,
+  "scale": "1"
+ }
+}
