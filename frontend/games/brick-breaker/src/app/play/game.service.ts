@@ -57,6 +57,7 @@ import {
   takeUpField,
 } from "../../rules/run/saved_game";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
+import { type StarId, starsWon } from "../../rules/run/stars";
 import { FIELD_HEIGHT } from "../../rules/tuning";
 import type { FieldCommand } from "../../view/steering/controls";
 import type { FieldFrame } from "../../view/field/frame";
@@ -73,6 +74,7 @@ import {
 } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
+import { StarsService } from "../stats/stars.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS } from "../tokens";
 
@@ -80,7 +82,8 @@ import { GAME_LEVELS } from "../tokens";
  * Plays the game: holds the run and the level in play's field, moves the
  * field on by the time the board's frames take, steered as the player
  * steers, launches, fires, pauses and starts levels and runs as the player
- * asks, says what happened, and keeps the records and the levels cleared.
+ * asks, says what happened, and keeps the records, the levels cleared and
+ * the stars won.
  *
  * The run is a signal, which changes only when the field comes to
  * something the run takes: points, a life, a clearing. The field changes
@@ -100,6 +103,7 @@ export class GameService extends RunLifecycle {
   private readonly settings = inject(SettingsService);
   private readonly stats = inject(StatsService);
   private readonly progress = inject(ProgressService);
+  private readonly stars = inject(StarsService);
 
   private readonly runState = signal<Run>(
     this.create(this.settings.settings().speed, 1),
@@ -114,9 +118,11 @@ export class GameService extends RunLifecycle {
   private readonly servingState = signal(true);
   private readonly multiplierState = signal(1);
   private readonly streakState = signal(0);
+  private readonly bestStreakState = signal(0);
   private readonly effectsState = signal<readonly EffectInPlay[]>([]);
   private readonly clearedOpenState = signal(false);
   private readonly tallyState = signal<LevelTally | null>(null);
+  private readonly newStarsState = signal<readonly StarId[]>([]);
   private readonly resultOpenState = signal(false);
   private readonly resultClosedState = signal(false);
   private readonly newBestState = signal(false);
@@ -142,6 +148,12 @@ export class GameService extends RunLifecycle {
   readonly kindsHere = computed(() =>
     kindsHere(this.levelLaid(), this.level().number, this.firsts),
   );
+
+  /** The streak the level's third star asks for, its mark. */
+  readonly mark = computed(() => this.level().data.mark);
+
+  /** The stars the level in play, or the last one cleared, holds, in the order they are shown. */
+  readonly starsHeld = computed(() => this.stars.heldBy(this.level().data.id));
 
   /** The capsules that can fall in the level at the run's speed, in How to play's order. */
   readonly capsulesHere = computed(() =>
@@ -205,6 +217,9 @@ export class GameService extends RunLifecycle {
   /** The bricks broken since the paddle last met a ball, or the last ball was lost. */
   readonly streak = this.streakState.asReadonly();
 
+  /** The longest streak of the level's play so far, across its lives, which its third star asks to reach its mark. */
+  readonly bestStreak = this.bestStreakState.asReadonly();
+
   /**
    * The effects in play, in the order the field's tags show them, each
    * with its share and whole seconds left, written as one starts, ends or
@@ -217,6 +232,13 @@ export class GameService extends RunLifecycle {
 
   /** How the last level cleared added up, for its card, or null until a level of this run is cleared. */
   readonly tally = this.tallyState.asReadonly();
+
+  /**
+   * The stars the last level cleared won that it didn't hold before, in the
+   * order they are shown, for its card; none until a level of this run is
+   * cleared.
+   */
+  readonly newStars = this.newStarsState.asReadonly();
 
   /** Whether the card over an ended run is showing, which opens once the last ball has faded. */
   readonly resultOpen = this.resultOpenState.asReadonly();
@@ -400,6 +422,7 @@ export class GameService extends RunLifecycle {
     this.numbers.takeUp(run.id);
     this.begin(run);
     takeUpField(this.levelPlay.field, field, run);
+    this.bestStreakState.set(this.levelPlay.field.bestStreak);
     this.announcer.say(describeTakenUp(run, this.level()));
   }
 
@@ -455,6 +478,7 @@ export class GameService extends RunLifecycle {
     this.servingState.set(field.state === "serve");
     this.multiplierState.set(multiplier(field.streak));
     this.streakState.set(field.streak);
+    this.bestStreakState.set(field.bestStreak);
     this.followEffects(field);
   }
 
@@ -508,11 +532,17 @@ export class GameService extends RunLifecycle {
     }
   }
 
-  /** Keeps a level cleared, which opens the next, and its points if they are its best. */
+  /**
+   * Keeps a level cleared, which opens the next, its points if they are its
+   * best, and the stars its play won.
+   */
   private keepCleared(run: Run, tally: LevelTally): void {
     const id = this.level().data.id;
     this.progress.recordCleared(id);
     this.stats.recordLevel(id, run.speed, pointsOf(tally));
+    this.newStarsState.set(
+      this.stars.recordWon(id, starsWon(this.levelPlay.field)),
+    );
   }
 
   /** Keeps an ended run's score and reach, and says how it ended. */
@@ -585,6 +615,7 @@ export class GameService extends RunLifecycle {
     this.showField(run);
     this.runState.set(run);
     this.tallyState.set(null);
+    this.newStarsState.set([]);
     this.newBestState.set(false);
     this.resultOpenState.set(false);
     this.resultClosedState.set(false);
@@ -599,6 +630,7 @@ export class GameService extends RunLifecycle {
     this.servingState.set(true);
     this.multiplierState.set(1);
     this.streakState.set(0);
+    this.bestStreakState.set(0);
     this.followEffects(this.levelPlay.field);
     this.clearedOpenState.set(false);
   }

@@ -510,3 +510,109 @@ Fuzz Pop's lint, typecheck and test (147 files, 6,489 specs); Brick
 Breaker's (67 files, 2,715 specs, with `sim`); the root's lint, typecheck
 and test, under the lock; after the fixes, the library's spec and lint and
 the root's lint again.
+
+### 2026-11-14: the stars kept, and shown on the bench and the Ready and Cleared cards
+
+C6's record in the shell, and three of the places a star shows.
+
+- **`src/app/stats/stars.service.ts`,** `StarsService`, keeps
+  `brick-breaker-stars` at version 1 (`STARS_KEY`, `STARS_VERSION` beside
+  it, as the stats' and the progress's are), a `storedSignal()` read
+  through R3's `starsRecordOf()` with `ProgressService.cleared()`, so a
+  level cleared before stars were kept holds its first. `recordWon(id,
+won)` adds what `starsWon()` gave through `withStars()` and returns the
+  stars the level didn't hold before; `heldBy(id)` names those it holds.
+  The shell reads stars by name (`starsIn()`), never by bit. "What It
+  Keeps" lists the key.
+- **`GameService`** gains `mark` and `starsHeld` (§5.3), and `bestStreak`,
+  the field's, copied each frame as the streak is, and `newStars`, the
+  stars a level's clearing won that it didn't hold before, for its card,
+  forgotten as a new run begins. `keepCleared()` keeps them for a level
+  cleared and for the last, which wins the run.
+- **`src/app/stars/`,** `<app-stars>`: a list named "Stars", a star a line,
+  each with what it asks (`describe.ts`'s new `starAsks()`: "Clear the
+  level", "Lose no life", "Reach a streak of 15", the bench's art's words
+  in one mood, the third naming the mark). Held, `@fz/ui`'s filled star in
+  the warning's gold; not yet won, an outline of it, its words muted, so
+  its shape tells it as well as its color; one just won marked New (the
+  in-play panel's badge); and beside the streak's star not held, where the
+  card gives it, the play's best streak, "best 11", as `art/mechanics.svg`
+  draws it. A screen reader hears each star's state in words, "Lose no
+  life, won just now", the stars and the marks hidden from it.
+- **`@fz/ui`'s icons gain `star-outline`,** the star drawn a ninth smaller
+  about its middle, so its outline reaches as far as the filled star does.
+  The frontend's rule is that an icon is `<fz-icon>`, never an inline
+  `<svg>`, and the icon's styles can't be reached from a component to
+  outline the filled one; Brick Fuzz Pop's levels show only the stars won
+  for want of it. `@fz/ui` is no stream's, and this is an addition: a name
+  in `ICON_NAMES` and a case, which its specs hold to a drawing of its own
+  and to an outline.
+- **The bench** shows the stars in its first part, under the level's pips,
+  so a compact panel, which keeps its first two parts, keeps them and the
+  lives, as `art/panels.mjs`'s compact bench does. The plan's list of the
+  bench's parts names the stars second, which would have dropped the lives
+  from a phone on its side; the art keeps both.
+- **The Ready card** names the stars under the level's name as the level
+  opens, before its first serve, as it names a kind new here, and not at a
+  serve after a lost ball, where the card would only stand taller; on
+  every board, panels or none, as the plan's "Cards" says.
+- **The Cleared card** shows them over its tally, those just won marked,
+  the play's best streak beside the third where it wasn't won.
+- **`tools/check-layout.mjs`** holds each panel to holding the parts it
+  shows whole, as a panel clips what runs past its foot (tried: told to
+  report every panel, it finds both at each shape that shows them).
+- The spec level Dare's mark is 10, past the five its blasts make, so it
+  clears without its third star; nothing else read its mark.
+
+**Choices where the plan was silent:** stars are kept at any speed, Custom
+and the debug menu's scales among them, as decision 5 and C6 say and runs
+at those keep their records; the announcer's words come in the next commit.
+
+**Seen in headless Chrome** (port 9204, its own page): at 1280 × 720 the
+bench's three stars under its pips and the Ready card's under the level's
+name; level 1 played to its clear by steering the paddle under the ball
+from the page, the Cleared card shows two stars lit and marked New and the
+third an outline with "best 4" (`/tmp/p3-stars.png`, 1280 × 720 at 2×). At
+844 × 390 both compact panels keep their first two parts, the stars among
+the bench's, and fit; the Ready card rises over the lowest row of bricks,
+clear of the ball, and the Cleared card fits the field. At 568 × 320, no
+panels, the Ready card of level 33, with its two new kinds, covers most of
+the bricks before the first serve but stays on the field; the Cleared card
+fits the field with 11 px to spare, so one with a line for double pay
+would reach a few pixels over the field's wall, on the board still. Laying
+the stars across a card was tried and saves nothing there, as no two fit a
+line of so small a card.
+
+**Review** (a fresh agent, on the staged change), four comments:
+
+1. Nothing held the board's bench to the game's stars: binding the bench's
+   `stars` or `mark` to a constant passed every spec. Fixed: the board's
+   panels block gains a case that keeps Dare's first star, lays the panels
+   out and reads the bench's stars, "Reach a streak of 10" naming Dare's
+   own mark (tried: with `[stars]="[]"` it fails).
+2. `bestStreak` read 0 after a reload until play went on, since `takeUp()`
+   lays a new field, which sets it to 0, and only then lays the kept one's
+   counts over it, and a run is taken up paused. No card read it there yet,
+   but the signal's word is the field's. Fixed: `takeUp()` copies the kept
+   field's longest streak, and `SavedGameService`'s spec takes up the
+   streak of a level's play (tried: without the line it fails).
+3. The specs read what a screen reader hears of a star twice over, and
+   found a panel's part by its heading twice. Fixed: `src/testing/heard.ts`
+   holds `heardIn()`, `starsHeard()` and `partHeaded()`, which the stars',
+   the bench's, the in-play panel's and the board's specs use; AGENTS.md's
+   Tests and the testing skill name it.
+4. The last level's stars show nowhere new, as a won run goes to its
+   result; and a Cleared card with a double-pay line, at 568 × 320, would
+   reach past the field's wall, which `check:layout`, looking only at the
+   Ready card, can't see. Left: the plan names no stars on the result card,
+   and the next commit's announcer says the last level's stars as the run
+   is won (`newStars` is set for it), and the Levels dialog shows them. The
+   tall Cleared card is a follow-up for the integrator: tightening the
+   stars' rows saves about 11 px of the 24 the line adds, so it wants the
+   card laid out anew at that size (the stars beside the tally, say), more
+   than this package's change; it stays on the board, over the field's
+   wall and room, and only there.
+
+**Checks:** Brick Breaker's lint, typecheck and test (69 files, 2,748
+tests), `@fz/ui`'s (24 files, 317 tests), the root's lint, typecheck and
+test, and `check:layout` at every shape after a build, all pass.

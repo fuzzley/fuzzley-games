@@ -13,6 +13,7 @@ import {
   describeTakenUp,
   endTitle,
   formatCustomPercent,
+  starAsks,
 } from "./describe";
 import { type Run, createRun } from "./run";
 
@@ -124,6 +125,14 @@ describe("describe", () => {
     expect(describeCleared(runAt({ outcome: "cleared" }))).toBe(
       "Level 3 cleared! Score 4,250.",
     );
+  });
+
+  it.each([
+    ["clear", "Clear the level"],
+    ["clean", "Lose no life"],
+    ["streak", "Reach a streak of 15"],
+  ] as const)("names what the %s star asks", (id, words) => {
+    expect(starAsks(id, 15)).toBe(words);
   });
 
   it("says a run is paused, with the score, and how to go on", () => {

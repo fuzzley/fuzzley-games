@@ -32,6 +32,8 @@
   <app-bench
     [style]="panels.left"
     [level]="game.level()"
+    [stars]="game.starsHeld()"
+    [mark]="game.mark()"
     [livesWaiting]="game.livesWaiting()"
     [nextLifeAt]="game.nextLifeAt()"
     [levelAfter]="game.levelAfter()"
@@ -55,6 +57,9 @@
     @case ("ready") {
       <div class="card ready">
         <p class="card-title">{{ levelTitle() }}</p>
+        @if (opening()) {
+          <app-stars [held]="game.starsHeld()" [mark]="game.mark()" />
+        }
         <p>{{ launchWords() }}</p>
         @for (kind of newKinds(); track kind.id) {
           <div class="new-kind">
@@ -86,6 +91,12 @@
     @case ("cleared") {
       <div class="card">
         <p class="card-title">{{ clearedTitle() }}</p>
+        <app-stars
+          [held]="game.starsHeld()"
+          [mark]="game.mark()"
+          [won]="game.newStars()"
+          [bestStreak]="game.bestStreak()"
+        />
         <dl class="tally">
           @for (line of tallyLines(); track line.label) {
             <div>

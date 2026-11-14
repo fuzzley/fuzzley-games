@@ -224,6 +224,14 @@ describe("SavedGameService", () => {
       });
     });
 
+    it("takes up the longest streak of the level's play", async () => {
+      const best = (await brokeSome()).bestStreak();
+
+      const game = reload();
+
+      expect(game.bestStreak()).toBe(best);
+    });
+
     it("takes up a Custom run's ball at the speed the settings keep", async () => {
       const before = start();
       before.setCustomPercent(200);
