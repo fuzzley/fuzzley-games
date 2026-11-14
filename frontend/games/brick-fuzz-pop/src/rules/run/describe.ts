@@ -1,4 +1,4 @@
-import { count, formatPoints } from "@fz/core/format";
+import { count, formatPoints, listed } from "@fz/core/format";
 import { brickKind } from "../catalog/bricks";
 import {
   CEILINGWARD,
@@ -229,11 +229,7 @@ function platedWords(plates: number): string {
       rest &= ~covered;
     }
   }
-  const listed =
-    faces.length > 1
-      ? `${faces.slice(0, -1).join(", ")} and ${faces.slice(-1).join("")}`
-      : faces.join("");
-  return `plated toward ${listed}`;
+  return `plated toward ${listed(faces)}`;
 }
 
 /** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */

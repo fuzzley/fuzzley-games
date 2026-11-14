@@ -805,3 +805,50 @@ the stars across, `pay` and the check's flow sound. Its comments:
 tests), its build and `check:layout` (every shape and turn, and the Cleared
 card at each shape), and the root's lint under the lock, before the review
 and again after the fixes.
+
+### 2026-11-14: "a, b and c" in `@fz/core/format`
+
+P3's review's third comment. `@fz/core/format` gains `listed(words)`,
+words as a list, as a sentence says one: "a, b and c", the last two joined
+by "and", one word as it is and none as nothing, with its spec in the
+library (none, one, two and three words). Brick Breaker's announcer, which
+kept it in `describe.ts`, Brick Fuzz Pop's `platedWords()`, which joined
+the plates' faces inline the same way, and Sudoku's hints, which kept the
+same join as `inWords()`, all call it; Brick Fuzz Pop's and Sudoku's specs
+pass unchanged, so their words are as they were.
+
+- **The name** is P3's, `listed()`, beside `count()` and `tierWords()`,
+  each named for what it hands back.
+- **The library's docs:** `lib/core/AGENTS.md`'s `src/format.ts` entry,
+  its `package.json` description and the games' list of its helpers in
+  `frontend/games/AGENTS.md`, which repeats it, and the `fuzzley-ui` skill
+  (the paragraph of what `@fz/core` holds besides its row, and a row in the
+  table of what to reach for, inside its columns, so the table isn't
+  padded again).
+- **Outside this stream's files,** none of them another stream's: Brick
+  Fuzz Pop's `src/rules/run/describe.ts` and Sudoku's `src/rules/describe.ts`,
+  each now calling `listed()`.
+
+**Review** (a fresh agent, on the staged change): it found `listed()`
+Brick Breaker's own function line for line and Brick Fuzz Pop's words the
+same for every input, its plates' empty case included. Its comments:
+
+1. Sudoku's `inWords()` was a third copy of the same join, which the
+   games' rule, to share `@fz/core`'s helpers rather than keep copies,
+   would have left behind. Fixed: Sudoku's hints call `listed()`, its
+   `inWords()` is gone, and its specs, which name one, two and three notes
+   and lines, pass unchanged; `lib/core/AGENTS.md` names it among the
+   callers.
+2. `frontend/games/AGENTS.md`'s list of `@fz/core`'s helpers, which repeats
+   the package's description, didn't gain "words in a list". Fixed, the
+   paragraph rewrapped.
+3. Optional: `words.slice(-1).join("")` builds an array to read one word.
+   Taken: `words.at(-1) ?? ""`, as Sudoku's was, whose `?? ""` the
+   library's spec of no words reaches, so its branches stay covered.
+
+**Checks:** `@fz/core`'s lint, typecheck and coverage (373 tests, every
+line, branch and function covered); Brick Fuzz Pop's lint, typecheck and
+test (147 files, 6,489 tests); Brick Breaker's (76 files, 3,221 tests);
+after the review, Sudoku's (29 files, 595 tests) and the library's again;
+the root's lint, typecheck and test under the lock, before the review and
+after (2 min 41 s).

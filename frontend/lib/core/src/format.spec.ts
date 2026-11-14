@@ -1,4 +1,4 @@
-import { count, formatPoints, tierWords } from "./format";
+import { count, formatPoints, listed, tierWords } from "./format";
 
 describe("count", () => {
   it("names one in the singular", () => {
@@ -18,6 +18,17 @@ describe("formatPoints", () => {
     [1234567, "1,234,567"],
   ])("writes %i points as %j", (points, written) => {
     expect(formatPoints(points)).toBe(written);
+  });
+});
+
+describe("listed", () => {
+  it.each([
+    [[], ""],
+    [["a"], "a"],
+    [["a", "b"], "a and b"],
+    [["a", "b", "c"], "a, b and c"],
+  ])("lists %j as %j", (words, list) => {
+    expect(listed(words)).toBe(list);
   });
 });
 

@@ -56,7 +56,10 @@ Each file is an entry point of its own, imported by name, such as
   `unknownKey()`, a key a data file holds that its type doesn't name, as a
   typo would leave.
 - `src/format.ts`: `count()`, a count with its noun, such as "1 hint" or
-  "2 hints"; `formatPoints()`, points grouped in thousands, "4,250"; and
+  "2 hints"; `formatPoints()`, points grouped in thousands, "4,250";
+  `listed()`, words as a list, "a, b and c", as Sudoku names the notes and
+  the lines a hint points to, Brick Fuzz Pop the faces a brick's plates
+  cover and Brick Breaker the stars a level won; and
   `tierWords(tiers, noun)`, a ladder of multipliers in words, from the
   least, as How to play says it: "×2 from 5 bricks, ×3 from 10 bricks".
 - `src/math.ts`: `clamp()`, a number kept between a least and a most;

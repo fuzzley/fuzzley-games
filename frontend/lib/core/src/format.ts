@@ -11,6 +11,17 @@ export function formatPoints(points: number): string {
 }
 
 /**
+ * Returns words as a list, as a sentence says one: "a, b and c", the last
+ * two joined by "and", one word as it is and none as nothing.
+ */
+export function listed(words: readonly string[]): string {
+  const last = words.at(-1) ?? "";
+  return words.length > 1
+    ? `${words.slice(0, -1).join(", ")} and ${last}`
+    : last;
+}
+
+/**
  * Returns a ladder of multipliers in words, from the least, as How to play
  * says it: "×2 from 5 bricks, ×3 from 10 bricks".
  *
