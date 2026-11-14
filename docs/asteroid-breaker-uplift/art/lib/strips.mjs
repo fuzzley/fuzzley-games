@@ -53,18 +53,56 @@ export function clipped(x, y, width, height, inner) {
  * @param {Strip} strip
  * @returns {{ svg: string, width: number, height: number }}
  */
-export function strip(x, y, palette, { times, cell, height, draw, anchor = [0.5, 0.5], label, still, stillWords = "reduced motion", words }) {
+export function strip(
+  x,
+  y,
+  palette,
+  {
+    times,
+    cell,
+    height,
+    draw,
+    anchor = [0.5, 0.5],
+    label,
+    still,
+    stillWords = "reduced motion",
+    words,
+  },
+) {
   const count = times.length + (still ? 1 : 0);
   const width = count * cell;
-  const parts = [panel(x, y, width, height, palette, label === undefined ? {} : { label })];
+  const parts = [
+    panel(x, y, width, height, palette, label === undefined ? {} : { label }),
+  ];
   const line = palette.mode === "light" ? SHEET.line : palette.fieldLine;
   for (let i = 0; i < count; i++) {
     const left = x + i * cell;
     const t = times[i];
-    const inner = t === undefined ? /** @type {() => string} */ (still)() : draw(t, i);
-    parts.push(clipped(left + 1, y + 1, cell - 2, height - 2, place(inner, { x: left + cell * anchor[0], y: y + height * anchor[1] })));
-    if (i > 0) parts.push(rect(left - 0.5, y + 6, 1, height - 12, line, { opacity: t === undefined ? 1 : 0.6 }));
-    parts.push(caption(left + cell / 2, y + height + 15, t === undefined ? stillWords : words ? words(t) : `${t} ms`, { anchor: "middle", size: 11 }));
+    const inner =
+      t === undefined ? /** @type {() => string} */ (still)() : draw(t, i);
+    parts.push(
+      clipped(
+        left + 1,
+        y + 1,
+        cell - 2,
+        height - 2,
+        place(inner, { x: left + cell * anchor[0], y: y + height * anchor[1] }),
+      ),
+    );
+    if (i > 0)
+      parts.push(
+        rect(left - 0.5, y + 6, 1, height - 12, line, {
+          opacity: t === undefined ? 1 : 0.6,
+        }),
+      );
+    parts.push(
+      caption(
+        left + cell / 2,
+        y + height + 15,
+        t === undefined ? stillWords : words ? words(t) : `${t} ms`,
+        { anchor: "middle", size: 11 },
+      ),
+    );
   }
   return { svg: parts.join(""), width, height: height + 22 };
 }
@@ -80,11 +118,26 @@ export function strip(x, y, palette, { times, cell, height, draw, anchor = [0.5,
  * @param {{ seed?: number, count?: number, unit?: number }} [how]
  * @returns {string}
  */
-export function specks(x, y, width, height, palette, { seed = 1, count = 12, unit = 22 } = {}) {
+export function specks(
+  x,
+  y,
+  width,
+  height,
+  palette,
+  { seed = 1, count = 12, unit = 22 } = {},
+) {
   const random = seeded(seed * 83 + 3);
   const parts = [];
   for (let i = 0; i < count; i++) {
-    parts.push(circle(x + between(random, 0, width), y + between(random, 0, height), Math.max(0.7, 0.14 * unit), palette.fieldMuted, { opacity: 0.5 }));
+    parts.push(
+      circle(
+        x + between(random, 0, width),
+        y + between(random, 0, height),
+        Math.max(0.7, 0.14 * unit),
+        palette.fieldMuted,
+        { opacity: 0.5 },
+      ),
+    );
   }
   return parts.join("");
 }
@@ -100,6 +153,17 @@ export function specks(x, y, width, height, palette, { seed = 1, count = 12, uni
  * @param {{ anchor?: "start" | "middle" | "end", size?: number }} [how]
  * @returns {string}
  */
-export function note(x, y, words, palette, { anchor = "start", size = 11 } = {}) {
-  return text(x, y, words, { fill: palette.fieldMuted, "font-size": size, "text-anchor": anchor, "letter-spacing": 0.3 });
+export function note(
+  x,
+  y,
+  words,
+  palette,
+  { anchor = "start", size = 11 } = {},
+) {
+  return text(x, y, words, {
+    fill: palette.fieldMuted,
+    "font-size": size,
+    "text-anchor": anchor,
+    "letter-spacing": 0.3,
+  });
 }

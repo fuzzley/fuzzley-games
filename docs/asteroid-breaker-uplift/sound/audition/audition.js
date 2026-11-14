@@ -29,7 +29,14 @@ const MARKS = {
 const GOOD = "keep";
 
 /** The families whose sounds are tuned, so no play of them is detuned at random. */
-const TUNED = new Set(["chain", "pickups", "stingers", "voice", "rescue", "beds"]);
+const TUNED = new Set([
+  "chain",
+  "pickups",
+  "stingers",
+  "voice",
+  "rescue",
+  "beds",
+]);
 
 /** The levels the plan varies and ducks: what is heard many times a second. */
 const SMALL = new Set(["tick", "small"]);
@@ -109,7 +116,9 @@ function wire() {
     const next = line[i + 1];
     if (next) node.connect(next);
   });
-  volume.gain.value = Number(/** @type {HTMLInputElement} */ ($("volume")).value);
+  volume.gain.value = Number(
+    /** @type {HTMLInputElement} */ ($("volume")).value,
+  );
 }
 
 /**
@@ -171,7 +180,10 @@ async function playNew(cue, at, take) {
     (cue.gain ?? 1) * (vary ? 10 ** (((Math.random() * 2 - 1) * 1.5) / 20) : 1);
   const place = ctx.createStereoPanner();
   place.pan.value = checked("pan") ? (cue.pan ?? 0) * 0.6 : 0;
-  source.connect(level).connect(place).connect(SMALL.has(sound.level) ? d.quiet : d.main);
+  source
+    .connect(level)
+    .connect(place)
+    .connect(SMALL.has(sound.level) ? d.quiet : d.main);
   const when = Math.max(at, ctx.currentTime);
   if (cue.loopFor !== undefined) {
     source.loop = true;
@@ -232,7 +244,9 @@ function stopAll() {
     }
   }
   playing.clear();
-  for (const button of document.querySelectorAll("button[aria-pressed='true']")) {
+  for (const button of document.querySelectorAll(
+    "button[aria-pressed='true']",
+  )) {
     button.setAttribute("aria-pressed", "false");
   }
   beds.clear();
@@ -255,7 +269,8 @@ async function playCues(cues, old, after = 0.12) {
     }),
   );
   const start = audio().context.currentTime + after;
-  for (const cue of cues) void (old ? playOld(cue, start + cue.t) : playNew(cue, start + cue.t));
+  for (const cue of cues)
+    void (old ? playOld(cue, start + cue.t) : playNew(cue, start + cue.t));
   return Math.max(0, ...cues.map((cue) => cue.t + (cue.loopFor ?? 1))) + after;
 }
 
@@ -268,7 +283,12 @@ const burst = (
   /** @type {number} */ every,
   /** @type {number} */ from = 0,
   /** @type {Partial<Cue>} */ more = {},
-) => Array.from({ length: count }, (_, i) => ({ t: from + i * every, s, ...more }));
+) =>
+  Array.from({ length: count }, (_, i) => ({
+    t: from + i * every,
+    s,
+    ...more,
+  }));
 
 /** A chain of stone breaks: when each comes, its size and where on the field. */
 const CHAIN = [
@@ -293,27 +313,61 @@ const SCENES = [
   {
     id: "gun",
     title: "The gun, three seconds",
-    about: "Seven shots a second. Today it is one sample each time; the uplift takes five in turn and ends the burst with a tail.",
+    about:
+      "Seven shots a second. Today it is one sample each time; the uplift takes five in turn and ends the burst with a tail.",
     old: burst("fired", 21, 0.143),
     new: [...burst("shot-gun", 21, 0.143), { t: 3.02, s: "shot-tail" }],
   },
   {
     id: "weapons",
     title: "Rapid, Spread and Lance",
-    about: "Each weapon has a shot of its own. Today all three are the gun's tick.",
-    old: [...burst("fired", 18, 0.07), ...burst("fired", 9, 0.143, 1.6), ...burst("fired", 7, 0.143, 3.2)],
-    new: [...burst("shot-rapid", 18, 0.07), ...burst("shot-spread", 9, 0.143, 1.6), ...burst("shot-lance", 7, 0.143, 3.2)],
+    about:
+      "Each weapon has a shot of its own. Today all three are the gun's tick.",
+    old: [
+      ...burst("fired", 18, 0.07),
+      ...burst("fired", 9, 0.143, 1.6),
+      ...burst("fired", 7, 0.143, 3.2),
+    ],
+    new: [
+      ...burst("shot-rapid", 18, 0.07),
+      ...burst("shot-spread", 9, 0.143, 1.6),
+      ...burst("shot-lance", 7, 0.143, 3.2),
+    ],
   },
   {
     id: "chain",
     title: "A chain of stone",
-    about: "Fourteen breaks in four seconds. Today each is a semitone higher, to the eighth. The uplift lays a bell under each break that climbs the scale, runs the sparks up it, and chimes as the multiplier steps.",
-    old: CHAIN.map(([t, size], i) => ({ t: Number(t), s: String(size), detune: Math.min(i * 100, 700) })),
+    about:
+      "Fourteen breaks in four seconds. Today each is a semitone higher, to the eighth. The uplift lays a bell under each break that climbs the scale, runs the sparks up it, and chimes as the multiplier steps.",
+    old: CHAIN.map(([t, size], i) => ({
+      t: Number(t),
+      s: String(size),
+      detune: Math.min(i * 100, 700),
+    })),
     new: CHAIN.flatMap(([t, size, pan], i) => [
       { t: Number(t), s: `break-stone-${size}`, pan: Number(pan) },
-      { t: Number(t) + 0.02, s: "chain-ping", detune: CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)], pan: Number(pan) },
-      { t: Number(t) + 0.22, s: "spark", detune: CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)] - 1200, pan: Number(pan) * 0.5 },
-      ...(size === "small" ? [] : [{ t: Number(t) + 0.3, s: "spark", detune: (CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)] ?? 0) - 1000 }]),
+      {
+        t: Number(t) + 0.02,
+        s: "chain-ping",
+        detune: CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)],
+        pan: Number(pan),
+      },
+      {
+        t: Number(t) + 0.22,
+        s: "spark",
+        detune: CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)] - 1200,
+        pan: Number(pan) * 0.5,
+      },
+      ...(size === "small"
+        ? []
+        : [
+            {
+              t: Number(t) + 0.3,
+              s: "spark",
+              detune:
+                (CHAIN_CENTS[Math.min(i, CHAIN_CENTS.length - 1)] ?? 0) - 1000,
+            },
+          ]),
       ...(i === 4 ? [{ t: Number(t) + 0.05, s: "chain-x2" }] : []),
       ...(i === 9 ? [{ t: Number(t) + 0.05, s: "chain-x3" }] : []),
     ]),
@@ -321,7 +375,8 @@ const SCENES = [
   {
     id: "materials",
     title: "Five materials",
-    about: "A large rock of each: stone, ice, crystal, iron (two hits ring off first), lodestone. Today four of the five are one thump.",
+    about:
+      "A large rock of each: stone, ice, crystal, iron (two hits ring off first), lodestone. Today four of the five are one thump.",
     old: [
       { t: 0, s: "large" },
       { t: 0.9, s: "large" },
@@ -344,8 +399,14 @@ const SCENES = [
   {
     id: "sizes",
     title: "Large, medium, small",
-    about: "One stone broken down: a large rock, its two medium pieces, their four small ones.",
-    old: [{ t: 0, s: "large" }, { t: 0.5, s: "medium" }, { t: 0.75, s: "medium" }, ...burst("small", 4, 0.2, 1.2)],
+    about:
+      "One stone broken down: a large rock, its two medium pieces, their four small ones.",
+    old: [
+      { t: 0, s: "large" },
+      { t: 0.5, s: "medium" },
+      { t: 0.75, s: "medium" },
+      ...burst("small", 4, 0.2, 1.2),
+    ],
     new: [
       { t: 0, s: "break-stone-large" },
       { t: 0.5, s: "break-stone-medium", pan: -0.3 },
@@ -356,8 +417,13 @@ const SCENES = [
   {
     id: "blast",
     title: "A volatile chain",
-    about: "Four volatile rocks set each other off, 90 ms apart, and the stones round them break.",
-    old: [...burst("blast", 4, 0.09, 0.1), ...burst("medium", 3, 0.11, 0.25), ...burst("small", 4, 0.09, 0.5)],
+    about:
+      "Four volatile rocks set each other off, 90 ms apart, and the stones round them break.",
+    old: [
+      ...burst("blast", 4, 0.09, 0.1),
+      ...burst("medium", 3, 0.11, 0.25),
+      ...burst("small", 4, 0.09, 0.5),
+    ],
     new: [
       { t: 0, s: "fuse-volatile" },
       { t: 0.1, s: "blast-volatile", pan: -0.3 },
@@ -371,15 +437,26 @@ const SCENES = [
   {
     id: "boulder",
     title: "The boulder",
-    about: "Five hits held, then the sixth breaks it. Today all six are a large rock's thump.",
+    about:
+      "Five hits held, then the sixth breaks it. Today all six are a large rock's thump.",
     old: burst("large", 6, 0.5),
-    new: [...burst("hit-boulder", 5, 0.5), { t: 2.5, s: "break-boulder" }, { t: 4.3, s: "sector-clear" }, { t: 4.4, s: "voice-cheer" }],
+    new: [
+      ...burst("hit-boulder", 5, 0.5),
+      { t: 2.5, s: "break-boulder" },
+      { t: 4.3, s: "sector-clear" },
+      { t: 4.4, s: "voice-cheer" },
+    ],
   },
   {
     id: "zap",
     title: "A dash, a near miss, a zap",
-    about: "A dash, with the fuzzball's whee. A rock passes close. Static fills, and the next dash is a zap that arcs to six rocks. Today a dash has one whoosh, and the Nova pickup's ring is the blast.",
-    old: [{ t: 0, s: "dashed" }, { t: 3.4, s: "dashed" }, { t: 3.45, s: "blast" }],
+    about:
+      "A dash, with the fuzzball's whee. A rock passes close. Static fills, and the next dash is a zap that arcs to six rocks. Today a dash has one whoosh, and the Nova pickup's ring is the blast.",
+    old: [
+      { t: 0, s: "dashed" },
+      { t: 3.4, s: "dashed" },
+      { t: 3.45, s: "blast" },
+    ],
     new: [
       { t: 0, s: "dash" },
       { t: 0.02, s: "voice-whee" },
@@ -387,7 +464,11 @@ const SCENES = [
       { t: 1.36, s: "voice-eep" },
       { t: 2.3, s: "static-full" },
       { t: 3.4, s: "zap-dash" },
-      ...Array.from({ length: 6 }, (_, i) => ({ t: 3.46 + i * 0.05, s: "zap-arc", pan: (i - 2.5) / 3 })),
+      ...Array.from({ length: 6 }, (_, i) => ({
+        t: 3.46 + i * 0.05,
+        s: "zap-arc",
+        pan: (i - 2.5) / 3,
+      })),
       ...burst("break-stone-medium", 3, 0.07, 3.55),
       { t: 3.6, s: "break-ice-small" },
       { t: 5.9, s: "dash-ready" },
@@ -396,8 +477,12 @@ const SCENES = [
   {
     id: "crew",
     title: "A hit, and two rescues",
-    about: "The pod is hit and a fuzzball is knocked loose, then caught again. A stray drifts in and is caught. Today a hit is a ship lost, and a stray brought home is two notes.",
-    old: [{ t: 0, s: "lost" }, { t: 5.2, s: "home" }],
+    about:
+      "The pod is hit and a fuzzball is knocked loose, then caught again. A stray drifts in and is caught. Today a hit is a ship lost, and a stray brought home is two notes.",
+    old: [
+      { t: 0, s: "lost" },
+      { t: 5.2, s: "home" },
+    ],
     new: [
       { t: 0, s: "pod-hit" },
       { t: 0.04, s: "crew-loose" },
@@ -414,8 +499,13 @@ const SCENES = [
   {
     id: "comet",
     title: "The comet",
-    about: "Its warning, its crossing, and two rocks it smashes. Today the comet itself makes no sound.",
-    old: [{ t: 0, s: "warned" }, { t: 2.1, s: "large" }, { t: 2.4, s: "medium" }],
+    about:
+      "Its warning, its crossing, and two rocks it smashes. Today the comet itself makes no sound.",
+    old: [
+      { t: 0, s: "warned" },
+      { t: 2.1, s: "large" },
+      { t: 2.4, s: "medium" },
+    ],
     new: [
       { t: 0, s: "comet-warning", pan: -0.8 },
       { t: 1.5, s: "comet-pass" },
@@ -426,7 +516,8 @@ const SCENES = [
   {
     id: "pickups",
     title: "Six pickups",
-    about: "One drops and is caught, then each of the six is caught in turn, and an effect runs out. Today every catch is the same two notes.",
+    about:
+      "One drops and is caught, then each of the six is caught in turn, and an effect runs out. Today every catch is the same two notes.",
     old: [...burst("caught", 7, 0.9, 0.6)],
     new: [
       { t: 0, s: "pickup-drop" },
@@ -443,8 +534,12 @@ const SCENES = [
   {
     id: "shield",
     title: "The Shield, a burr, the field slowed",
-    about: "A Shield forms and is spent. A burr clings and a dash sheds it. Slow bends the field down and back.",
-    old: [{ t: 0.6, s: "rung" }, { t: 2.4, s: "dashed" }],
+    about:
+      "A Shield forms and is spent. A burr clings and a dash sheds it. Slow bends the field down and back.",
+    old: [
+      { t: 0.6, s: "rung" },
+      { t: 2.4, s: "dashed" },
+    ],
     new: [
       { t: 0, s: "shield-up" },
       { t: 0.6, s: "shield-break" },
@@ -459,7 +554,8 @@ const SCENES = [
   {
     id: "wave",
     title: "A wave, start to end",
-    about: "The first move, the engine held for two seconds, shots and breaks, the last rock, the tally counting up and the crew cheering.",
+    about:
+      "The first move, the engine held for two seconds, shots and breaks, the last rock, the tally counting up and the crew cheering.",
     old: [
       { t: 0.1, s: "thrust", loopFor: 2 },
       ...burst("fired", 14, 0.143, 0.6),
@@ -481,13 +577,18 @@ const SCENES = [
       { t: 2.3, s: "break-stone-small", pan: -0.2 },
       { t: 2.9, s: "wave-clear" },
       { t: 3.0, s: "voice-cheer" },
-      ...Array.from({ length: 16 }, (_, i) => ({ t: 4.2 + i * 0.06, s: "tally-tick", detune: i * 50 })),
+      ...Array.from({ length: 16 }, (_, i) => ({
+        t: 4.2 + i * 0.06,
+        s: "tally-tick",
+        detune: i * 50,
+      })),
     ],
   },
   {
     id: "engine",
     title: "The engine",
-    about: "The thrust held for three seconds, with its start and its stop: a burn through a hollow throat that never settles on a note. It was chosen by ear from three.",
+    about:
+      "The thrust held for three seconds, with its start and its stop: a burn through a hollow throat that never settles on a note. It was chosen by ear from three.",
     old: [{ t: 0, s: "thrust", loopFor: 3 }],
     new: [
       { t: 0, s: "thrust-start" },
@@ -498,7 +599,8 @@ const SCENES = [
   {
     id: "end",
     title: "The run ends, and a new best",
-    about: "The pod is lost with no one in tow, and everyone floats home. Then what a new best would add.",
+    about:
+      "The pod is lost with no one in tow, and everyone floats home. Then what a new best would add.",
     old: [{ t: 0, s: "lost" }],
     new: [
       { t: 0, s: "pod-lost" },
@@ -511,7 +613,8 @@ const SCENES = [
   {
     id: "ui",
     title: "The start, a level, the menus",
-    about: "A run begins. The sound held back for a progression system's level. Moving, choosing and going back in a menu, pausing and going on.",
+    about:
+      "A run begins. The sound held back for a progression system's level. Moving, choosing and going back in a menu, pausing and going on.",
     old: [],
     new: [
       { t: 0, s: "run-start" },
@@ -527,7 +630,14 @@ const SCENES = [
 ];
 
 /** The beds, and the layers laid over them, with the gain each loops at. */
-const BEDS = ["bed-inner-belt", "bed-iron-reach", "bed-storm", "bed-endless", "bed-pulse", "bed-shimmer"];
+const BEDS = [
+  "bed-inner-belt",
+  "bed-iron-reach",
+  "bed-storm",
+  "bed-endless",
+  "bed-pulse",
+  "bed-shimmer",
+];
 /** @type {Map<string, AudioBufferSourceNode>} */
 const beds = new Map();
 
@@ -570,7 +680,8 @@ async function toggleBed(name, button) {
  */
 function el(tag, attributes = {}, children = []) {
   const node = document.createElement(tag);
-  for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+  for (const [name, value] of Object.entries(attributes))
+    node.setAttribute(name, value);
   node.append(...children);
   return node;
 }
@@ -589,7 +700,10 @@ function showNotes() {
   const notes = readNotes();
   const lines = Object.entries(notes)
     .filter(([, { mark, note }]) => (mark && mark !== GOOD) || note)
-    .map(([name, { mark, note }]) => `| \`${name}\` | ${MARKS[mark ?? GOOD] ?? mark} | ${note ?? ""} |`);
+    .map(
+      ([name, { mark, note }]) =>
+        `| \`${name}\` | ${MARKS[mark ?? GOOD] ?? mark} | ${note ?? ""} |`,
+    );
   $("notes").textContent =
     lines.length === 0
       ? "Every sound is good to use as it is: nothing is marked otherwise, and nothing has a note."
@@ -627,7 +741,9 @@ function markers(name) {
   const kept = readNotes()[name] ?? {};
   const mark = /** @type {HTMLSelectElement} */ (
     el("select", { "aria-label": `Mark ${name}` }, [
-      ...Object.entries(MARKS).map(([value, label]) => el("option", { value }, [label])),
+      ...Object.entries(MARKS).map(([value, label]) =>
+        el("option", { value }, [label]),
+      ),
     ])
   );
   mark.value = kept.mark ?? GOOD;
@@ -637,7 +753,11 @@ function markers(name) {
     keep(name, "mark", mark.value);
   });
   const note = /** @type {HTMLInputElement} */ (
-    el("input", { type: "text", placeholder: "a note", "aria-label": `A note on ${name}` })
+    el("input", {
+      type: "text",
+      placeholder: "a note",
+      "aria-label": `A note on ${name}`,
+    })
   );
   note.value = kept.note ?? "";
   note.addEventListener("change", () => keep(name, "note", note.value));
@@ -648,9 +768,21 @@ function markers(name) {
 function drawScenes() {
   $("scenes").replaceChildren(
     ...SCENES.map((scene) => {
-      const missing = [...new Set(scene.new.map((cue) => cue.s).filter((name) => !sounds[name]))];
-      const button = (/** @type {string} */ label, /** @type {() => void} */ press, primary = false) => {
-        const b = el("button", { type: "button", ...(primary ? { class: "primary" } : {}) }, [label]);
+      const missing = [
+        ...new Set(
+          scene.new.map((cue) => cue.s).filter((name) => !sounds[name]),
+        ),
+      ];
+      const button = (
+        /** @type {string} */ label,
+        /** @type {() => void} */ press,
+        primary = false,
+      ) => {
+        const b = el(
+          "button",
+          { type: "button", ...(primary ? { class: "primary" } : {}) },
+          [label],
+        );
         b.addEventListener("click", press);
         return b;
       };
@@ -658,7 +790,9 @@ function drawScenes() {
         el("h3", {}, [scene.title]),
         el("p", {}, [scene.about]),
         el("div", { class: "buttons" }, [
-          ...(scene.old.length > 0 ? [button("Today", () => void playCues(scene.old, true))] : []),
+          ...(scene.old.length > 0
+            ? [button("Today", () => void playCues(scene.old, true))]
+            : []),
           button("Uplift", () => void playCues(scene.new, false), true),
           ...(scene.old.length > 0
             ? [
@@ -670,7 +804,13 @@ function drawScenes() {
             : []),
           ...markers(`scene: ${scene.title}`),
         ]),
-        ...(missing.length > 0 ? [el("p", { class: "missing" }, [`Not built yet: ${missing.join(", ")}`])] : []),
+        ...(missing.length > 0
+          ? [
+              el("p", { class: "missing" }, [
+                `Not built yet: ${missing.join(", ")}`,
+              ]),
+            ]
+          : []),
       ]);
     }),
   );
@@ -698,14 +838,30 @@ function drawFamilies() {
   /** @type {Map<string, [string, Sound][]>} */
   const families = new Map();
   for (const [name, sound] of Object.entries(sounds)) {
-    families.set(sound.family, [...(families.get(sound.family) ?? []), [name, sound]]);
+    families.set(sound.family, [
+      ...(families.get(sound.family) ?? []),
+      [name, sound],
+    ]);
   }
   $("families").replaceChildren(
     ...[...families].flatMap(([family, list]) => [
       el("h3", {}, [`${family} (${list.length})`]),
-      el("img", { class: "sheet", src: `/sound/sheets/${family}.png`, alt: `The spectrum of each take of the ${family} family`, loading: "lazy" }),
+      el("img", {
+        class: "sheet",
+        src: `/sound/sheets/${family}.png`,
+        alt: `The spectrum of each take of the ${family} family`,
+        loading: "lazy",
+      }),
       el("table", {}, [
-        el("thead", {}, [el("tr", {}, ["Sound", "Takes", "Level", "What it is", "Mark", "Note"].map((h) => el("th", {}, [h])))]),
+        el("thead", {}, [
+          el(
+            "tr",
+            {},
+            ["Sound", "Takes", "Level", "What it is", "Mark", "Note"].map((h) =>
+              el("th", {}, [h]),
+            ),
+          ),
+        ]),
         el(
           "tbody",
           {},
@@ -717,9 +873,27 @@ function drawFamilies() {
                 "td",
                 { class: "takes" },
                 sound.files.map((_, take) => {
-                  const b = el("button", { type: "button", class: "take", "aria-label": `Play ${name}, take ${take + 1}` }, [`${take + 1}`]);
-                  b.addEventListener("click", () =>
-                    void playNew({ t: 0, s: name, ...(sound.loop ? { loopFor: sound.seconds * 2 } : {}) }, 0, take),
+                  const b = el(
+                    "button",
+                    {
+                      type: "button",
+                      class: "take",
+                      "aria-label": `Play ${name}, take ${take + 1}`,
+                    },
+                    [`${take + 1}`],
+                  );
+                  b.addEventListener(
+                    "click",
+                    () =>
+                      void playNew(
+                        {
+                          t: 0,
+                          s: name,
+                          ...(sound.loop ? { loopFor: sound.seconds * 2 } : {}),
+                        },
+                        0,
+                        take,
+                      ),
                   );
                   return b;
                 }),
@@ -739,7 +913,10 @@ function drawFamilies() {
 for (const id of ["limit", "phone"]) $(id).addEventListener("change", wire);
 $("volume").addEventListener("input", wire);
 $("stop").addEventListener("click", stopAll);
-$("copy").addEventListener("click", () => void navigator.clipboard.writeText($("notes").textContent ?? ""));
+$("copy").addEventListener(
+  "click",
+  () => void navigator.clipboard.writeText($("notes").textContent ?? ""),
+);
 $("clear").addEventListener("click", () => {
   localStorage.removeItem(NOTES_KEY);
   showNotes();
@@ -754,8 +931,12 @@ const [manifest, sprite] = await Promise.all([
 ]);
 sounds = manifest.sounds;
 today = sprite.spritemap;
-const takes = Object.values(sounds).reduce((sum, sound) => sum + sound.files.length, 0);
-$("status").textContent = `${Object.keys(sounds).length} sounds, ${takes} takes; today's ${Object.keys(today).length}.`;
+const takes = Object.values(sounds).reduce(
+  (sum, sound) => sum + sound.files.length,
+  0,
+);
+$("status").textContent =
+  `${Object.keys(sounds).length} sounds, ${takes} takes; today's ${Object.keys(today).length}.`;
 drawScenes();
 drawBeds();
 drawFamilies();

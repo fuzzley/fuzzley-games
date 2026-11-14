@@ -70,71 +70,214 @@ function shotsPanel(px, py, palette) {
   const parts = [panel(px, py, HALF, 478, palette)];
   const u = 22;
   // One pull of each.
-  parts.push(note(px + 16, py + 46, "One pull of each, at 22 px a unit", palette));
+  parts.push(
+    note(px + 16, py + 46, "One pull of each, at 22 px a unit", palette),
+  );
   const y1 = py + 84;
-  const columns = /** @type {const} */ (["today", "gun", "spread", "rapid", "lance"]);
+  const columns = /** @type {const} */ ([
+    "today",
+    "gun",
+    "spread",
+    "rapid",
+    "lance",
+  ]);
   columns.forEach((name, i) => {
     const cx = px + 84 + i * 146;
-    if (name === "today") parts.push(place(shotTodaySvg(palette, { unit: u }), { x: cx, y: y1 }));
-    else if (name === "spread") parts.push(place(volleySvg("spread", palette, { unit: u, distance: 3.3 }), { x: cx - 2.4 * u, y: y1 }));
+    if (name === "today")
+      parts.push(place(shotTodaySvg(palette, { unit: u }), { x: cx, y: y1 }));
+    else if (name === "spread")
+      parts.push(
+        place(volleySvg("spread", palette, { unit: u, distance: 3.3 }), {
+          x: cx - 2.4 * u,
+          y: y1,
+        }),
+      );
     else if (name === "rapid") {
-      parts.push(place(shotSvg("rapid", palette, { unit: u }), { x: cx - 14, y: y1 }));
-      parts.push(place(shotSvg("rapid", palette, { unit: u }), { x: cx - 14 + 2.24 * u, y: y1 }));
-    } else parts.push(place(shotSvg(name, palette, { unit: u }), { x: cx + (name === "lance" ? 22 : 8), y: y1 }));
-    parts.push(note(cx, y1 + 38, name === "today" ? "today's dash" : name, palette, { anchor: "middle" }));
+      parts.push(
+        place(shotSvg("rapid", palette, { unit: u }), { x: cx - 14, y: y1 }),
+      );
+      parts.push(
+        place(shotSvg("rapid", palette, { unit: u }), {
+          x: cx - 14 + 2.24 * u,
+          y: y1,
+        }),
+      );
+    } else
+      parts.push(
+        place(shotSvg(name, palette, { unit: u }), {
+          x: cx + (name === "lance" ? 22 : 8),
+          y: y1,
+        }),
+      );
+    parts.push(
+      note(cx, y1 + 38, name === "today" ? "today's dash" : name, palette, {
+        anchor: "middle",
+      }),
+    );
   });
   // The gun in flight.
-  parts.push(note(px + 16, py + 158, "The gun in flight, seven shots a second: a flash at the muzzle, a spark where one lands", palette));
+  parts.push(
+    note(
+      px + 16,
+      py + 158,
+      "The gun in flight, seven shots a second: a flash at the muzzle, a spark where one lands",
+      palette,
+    ),
+  );
   const y2 = py + 196;
-  parts.push(specks(px + 110, y2 - 34, 500, 68, palette, { seed: 4, count: 13, unit: u }));
+  parts.push(
+    specks(px + 110, y2 - 34, 500, 68, palette, {
+      seed: 4,
+      count: 13,
+      unit: u,
+    }),
+  );
   const muzzle = px + 56 + 1.2 * u;
-  for (const far of [3.4, 7.9, 12.4, 16.9, 21.4]) parts.push(place(shotSvg("gun", palette, { unit: u }), { x: muzzle + far * u, y: y2 }));
-  parts.push(place(muzzleFlashSvg(0, palette, { unit: u }), { x: muzzle, y: y2 }));
-  parts.push(place(shipPlaceholder(palette, { unit: u }), { x: px + 56, y: y2 }));
+  for (const far of [3.4, 7.9, 12.4, 16.9, 21.4])
+    parts.push(
+      place(shotSvg("gun", palette, { unit: u }), {
+        x: muzzle + far * u,
+        y: y2,
+      }),
+    );
+  parts.push(
+    place(muzzleFlashSvg(0, palette, { unit: u }), { x: muzzle, y: y2 }),
+  );
+  parts.push(
+    place(shipPlaceholder(palette, { unit: u }), { x: px + 56, y: y2 }),
+  );
   const rock = makeRock("stone", "medium", 5);
   const rockAt = /** @type {Point} */ ([px + 676, y2]);
-  const rim = rimPoint(rock.outline.map((p) => turned(p, 0.4)), TURN / 2);
-  parts.push(place(rockSvg(rock, palette, { unit: u, turn: 0.4 }), { x: rockAt[0], y: rockAt[1] }));
-  parts.push(place(impactFx(35, palette, { unit: u, toward: TURN / 2, seed: 3 }), { x: rockAt[0] + rim[0] * rock.radius * u, y: rockAt[1] }));
+  const rim = rimPoint(
+    rock.outline.map((p) => turned(p, 0.4)),
+    TURN / 2,
+  );
+  parts.push(
+    place(rockSvg(rock, palette, { unit: u, turn: 0.4 }), {
+      x: rockAt[0],
+      y: rockAt[1],
+    }),
+  );
+  parts.push(
+    place(impactFx(35, palette, { unit: u, toward: TURN / 2, seed: 3 }), {
+      x: rockAt[0] + rim[0] * rock.radius * u,
+      y: rockAt[1],
+    }),
+  );
   // The flash's two frames and the spark's three.
-  parts.push(note(px + 16, py + 252, "At 30 px a unit: the muzzle flash at 0 and 30 ms, and the spark at 0, 50 and 110 ms", palette));
+  parts.push(
+    note(
+      px + 16,
+      py + 252,
+      "At 30 px a unit: the muzzle flash at 0 and 30 ms, and the spark at 0, 50 and 110 ms",
+      palette,
+    ),
+  );
   const y3 = py + 296;
   const big = 30;
   const large = makeRock("stone", "large", 2);
-  const largeRim = rimPoint(large.outline.map((p) => turned(p, 1.1)), TURN / 2);
+  const largeRim = rimPoint(
+    large.outline.map((p) => turned(p, 1.1)),
+    TURN / 2,
+  );
   [0, 1, 2, 3, 4].forEach((i) => {
     const cx = px + 86 + i * 146;
     if (i < 2) {
-      parts.push(place(muzzleFlashSvg(/** @type {0 | 1} */ (i), palette, { unit: big }), { x: cx - 6, y: y3 }));
-      parts.push(place(shipPlaceholder(palette, { unit: big }), { x: cx - 6 - 1.2 * big, y: y3 }));
+      parts.push(
+        place(
+          muzzleFlashSvg(/** @type {0 | 1} */ (i), palette, { unit: big }),
+          { x: cx - 6, y: y3 },
+        ),
+      );
+      parts.push(
+        place(shipPlaceholder(palette, { unit: big }), {
+          x: cx - 6 - 1.2 * big,
+          y: y3,
+        }),
+      );
     } else {
       const at = cx + 14 - largeRim[0] * large.radius * big;
       parts.push(
-        clipped(cx - 66, y3 - 40, 132, 80, [
-          place(rockSvg(large, palette, { unit: big, turn: 1.1 }), { x: at, y: y3 }),
-          place(impactFx([0, 50, 110][i - 2] ?? 0, palette, { unit: big, toward: TURN / 2, seed: 3 }), { x: cx + 14, y: y3 }),
-        ].join("")),
+        clipped(
+          cx - 66,
+          y3 - 40,
+          132,
+          80,
+          [
+            place(rockSvg(large, palette, { unit: big, turn: 1.1 }), {
+              x: at,
+              y: y3,
+            }),
+            place(
+              impactFx([0, 50, 110][i - 2] ?? 0, palette, {
+                unit: big,
+                toward: TURN / 2,
+                seed: 3,
+              }),
+              { x: cx + 14, y: y3 },
+            ),
+          ].join(""),
+        ),
       );
     }
   });
   // Every weapon at 6 px a unit.
-  parts.push(note(px + 16, py + 356, "At 6 px a unit, among the field's specks", palette));
+  parts.push(
+    note(
+      px + 16,
+      py + 356,
+      "At 6 px a unit, among the field's specks",
+      palette,
+    ),
+  );
   const small = 6;
-  parts.push(specks(px + 110, py + 362, 610, 100, palette, { seed: 9, count: 30, unit: small }));
-  /** @type {const} */ (["today", "gun", "rapid", "lance", "spread"]).forEach((name, k) => {
-    const y = py + 374 + k * 16.5 + (name === "spread" ? 12 : 0);
-    parts.push(note(px + 16, y + 4, name === "today" ? "today" : name, palette, { size: 10 }));
-    const ship = px + 82;
-    parts.push(place(shipPlaceholder(palette, { unit: small }), { x: ship, y }));
-    const from = ship + 1.2 * small;
-    const apart = name === "rapid" ? 2.24 : 4.48;
-    const most = name === "spread" ? 16 : 96;
-    for (let far = 2.6; far < most; far += apart) {
-      if (name === "today") parts.push(place(shotTodaySvg(palette, { unit: small }), { x: from + far * small, y }));
-      else if (name === "spread") parts.push(place(volleySvg("spread", palette, { unit: small, distance: far }), { x: from, y }));
-      else parts.push(place(shotSvg(name, palette, { unit: small }), { x: from + far * small, y }));
-    }
-  });
+  parts.push(
+    specks(px + 110, py + 362, 610, 100, palette, {
+      seed: 9,
+      count: 30,
+      unit: small,
+    }),
+  );
+  /** @type {const} */ (["today", "gun", "rapid", "lance", "spread"]).forEach(
+    (name, k) => {
+      const y = py + 374 + k * 16.5 + (name === "spread" ? 12 : 0);
+      parts.push(
+        note(px + 16, y + 4, name === "today" ? "today" : name, palette, {
+          size: 10,
+        }),
+      );
+      const ship = px + 82;
+      parts.push(
+        place(shipPlaceholder(palette, { unit: small }), { x: ship, y }),
+      );
+      const from = ship + 1.2 * small;
+      const apart = name === "rapid" ? 2.24 : 4.48;
+      const most = name === "spread" ? 16 : 96;
+      for (let far = 2.6; far < most; far += apart) {
+        if (name === "today")
+          parts.push(
+            place(shotTodaySvg(palette, { unit: small }), {
+              x: from + far * small,
+              y,
+            }),
+          );
+        else if (name === "spread")
+          parts.push(
+            place(
+              volleySvg("spread", palette, { unit: small, distance: far }),
+              { x: from, y },
+            ),
+          );
+        else
+          parts.push(
+            place(shotSvg(name, palette, { unit: small }), {
+              x: from + far * small,
+              y,
+            }),
+          );
+      }
+    },
+  );
   return parts.join("");
 }
 
@@ -152,14 +295,30 @@ function shotsPanel(px, py, palette) {
 function staticPanel(px, py, palette) {
   const parts = [panel(px, py, HALF, 322, palette)];
   const u = 22;
-  parts.push(note(px + 16, py + 46, "A zap arc, leaping anew every 45 ms and gone in 180", palette));
+  parts.push(
+    note(
+      px + 16,
+      py + 46,
+      "A zap arc, leaping anew every 45 ms and gone in 180",
+      palette,
+    ),
+  );
   [0, 50, 140].forEach((t, i) => {
     const y = py + 96 + i * 78;
-    parts.push(place(zapFx([0, 0], [11.6, 0], t, palette, { unit: u, seed: 3 }), { x: px + 36, y }));
+    parts.push(
+      place(zapFx([0, 0], [11.6, 0], t, palette, { unit: u, seed: 3 }), {
+        x: px + 36,
+        y,
+      }),
+    );
     parts.push(note(px + 36 + 11.6 * u + 20, y + 4, `${t} ms`, palette));
   });
   // A zap dash: the ship, three rocks, and an arc to each.
-  const scene = (/** @type {number} */ unit, /** @type {number} */ sx, /** @type {number} */ sy) => {
+  const scene = (
+    /** @type {number} */ unit,
+    /** @type {number} */ sx,
+    /** @type {number} */ sy,
+  ) => {
     /** @type {{ rock: RockShape, at: Point, turn: number }[]} */
     const rocks = [
       { rock: makeRock("stone", "medium", 3), at: [6.6, -3.1], turn: 0.5 },
@@ -167,26 +326,68 @@ function staticPanel(px, py, palette) {
       { rock: makeRock("ice", "medium", 4), at: [2.4, 4.9], turn: 1.3 },
     ];
     const inner = [];
-    for (const { rock, at, turn } of rocks) inner.push(place(rockSvg(rock, palette, { unit, turn }), { x: at[0] * unit, y: at[1] * unit }));
+    for (const { rock, at, turn } of rocks)
+      inner.push(
+        place(rockSvg(rock, palette, { unit, turn }), {
+          x: at[0] * unit,
+          y: at[1] * unit,
+        }),
+      );
     inner.push(glow(0, 0, 2.3 * unit, palette.accent, palette, 0.8));
     rocks.forEach(({ rock, at, turn }, i) => {
       const back = Math.atan2(-at[1], -at[0]);
-      const rim = rimPoint(rock.outline.map((p) => turned(p, turn)), back);
+      const rim = rimPoint(
+        rock.outline.map((p) => turned(p, turn)),
+        back,
+      );
       /** @type {Point} */
-      const to = [at[0] + rim[0] * rock.radius * 0.96, at[1] + rim[1] * rock.radius * 0.96];
-      inner.push(arcSvg(makeArc([0.4, 0], to, 7 + i * 3, { branches: i === 0 ? 2 : 1 }), palette, { unit }));
-      inner.push(spark(to[0] * unit, to[1] * unit, 0.5 * unit, palette.accent, palette, { turn: i * 0.5 }));
+      const to = [
+        at[0] + rim[0] * rock.radius * 0.96,
+        at[1] + rim[1] * rock.radius * 0.96,
+      ];
+      inner.push(
+        arcSvg(
+          makeArc([0.4, 0], to, 7 + i * 3, { branches: i === 0 ? 2 : 1 }),
+          palette,
+          { unit },
+        ),
+      );
+      inner.push(
+        spark(to[0] * unit, to[1] * unit, 0.5 * unit, palette.accent, palette, {
+          turn: i * 0.5,
+        }),
+      );
     });
     inner.push(shipPlaceholder(palette, { unit, turn: 0.25 }));
     return place(inner.join(""), { x: sx, y: sy });
   };
-  parts.push(note(px + 396, py + 46, "A zap dash: arcs leap from the ship to three rocks", palette));
+  parts.push(
+    note(
+      px + 396,
+      py + 46,
+      "A zap dash: arcs leap from the ship to three rocks",
+      palette,
+    ),
+  );
   parts.push(scene(u, px + 430, py + 162));
   parts.push(scene(6, px + 672, py + 96));
-  parts.push(note(px + 700, py + 146, "6 px a unit", palette, { anchor: "middle", size: 10 }));
+  parts.push(
+    note(px + 700, py + 146, "6 px a unit", palette, {
+      anchor: "middle",
+      size: 10,
+    }),
+  );
   parts.push(note(px + 640, py + 222, "Sparks", palette));
-  [0.55, 0.38, 0.24].forEach((r, i) => parts.push(spark(px + 652 + i * 36, py + 252, r * u, palette.accent, palette)));
-  [0.55, 0.38, 0.24].forEach((r, i) => parts.push(spark(px + 656 + i * 20, py + 288, r * 6, palette.accent, palette)));
+  [0.55, 0.38, 0.24].forEach((r, i) =>
+    parts.push(
+      spark(px + 652 + i * 36, py + 252, r * u, palette.accent, palette),
+    ),
+  );
+  [0.55, 0.38, 0.24].forEach((r, i) =>
+    parts.push(
+      spark(px + 656 + i * 20, py + 288, r * 6, palette.accent, palette),
+    ),
+  );
   return parts.join("");
 }
 
@@ -205,27 +406,41 @@ const BREAK_TIMES = [0, 40, 110, 200, 320, 440];
  * @returns {string}
  */
 function breakRow(x, y, palette, kind, seed) {
-  const other = /** @type {RockSize} */ (kind === "crystal" ? "medium" : "small");
+  const other = /** @type {RockSize} */ (
+    kind === "crystal" ? "medium" : "small"
+  );
   const large = makeRock(kind, "large", seed);
   const lesser = makeRock(kind, other, seed + 1);
   const name = `${kind[0]?.toUpperCase()}${kind.slice(1)}`;
   const lesserUnit = kind === "crystal" ? 13 : 20;
   const drop = (/** @type {number} */ unit) =>
-    kind === "crystal" ? { drop: (/** @type {number} */ shown) => place(orbSvg("spread", palette, { unit }), { scale: shown }) } : {};
+    kind === "crystal"
+      ? {
+          drop: (/** @type {number} */ shown) =>
+            place(orbSvg("spread", palette, { unit }), { scale: shown }),
+        }
+      : {};
   return [
     strip(x, y, palette, {
       times: BREAK_TIMES,
       cell: 166,
       height: 196,
       label: `${name}, large, at 15 px a unit (${palette.name})`,
-      draw: (t) => breakFx(large, t, palette, { unit: 15, turn: 0.3, seed, ...drop(15) }),
+      draw: (t) =>
+        breakFx(large, t, palette, { unit: 15, turn: 0.3, seed, ...drop(15) }),
     }).svg,
     strip(x + 996 + 20, y, palette, {
       times: BREAK_TIMES,
       cell: 84,
       height: 196,
       label: `${name}, ${other}, at ${lesserUnit} px a unit`,
-      draw: (t) => breakFx(lesser, t, palette, { unit: lesserUnit, turn: 0.8, seed: seed + 1, ...drop(lesserUnit) }),
+      draw: (t) =>
+        breakFx(lesser, t, palette, {
+          unit: lesserUnit,
+          turn: 0.8,
+          seed: seed + 1,
+          ...drop(lesserUnit),
+        }),
     }).svg,
   ].join("");
 }
@@ -256,8 +471,32 @@ const held = {
     const boulder = makeRock("boulder", "boulder", 2);
     const times = [0, 30, 60, 110, 160, 220];
     return [
-      strip(x, y, DARK, { times, cell: 126, height: 150, label: "Iron, large, at 16 px a unit", draw: (t) => heldHitFx(iron, t, DARK, { unit: 16, turn: 0.2, toward: TURN * 0.56, seed: 2 }) }).svg,
-      strip(x + 764, y, DARK, { times, cell: 126, height: 150, label: "The boulder, at 9.5 px a unit", draw: (t) => heldHitFx(boulder, t, DARK, { unit: 9.5, turn: 0.4, toward: TURN * 0.42, seed: 4 }) }).svg,
+      strip(x, y, DARK, {
+        times,
+        cell: 126,
+        height: 150,
+        label: "Iron, large, at 16 px a unit",
+        draw: (t) =>
+          heldHitFx(iron, t, DARK, {
+            unit: 16,
+            turn: 0.2,
+            toward: TURN * 0.56,
+            seed: 2,
+          }),
+      }).svg,
+      strip(x + 764, y, DARK, {
+        times,
+        cell: 126,
+        height: 150,
+        label: "The boulder, at 9.5 px a unit",
+        draw: (t) =>
+          heldHitFx(boulder, t, DARK, {
+            unit: 9.5,
+            turn: 0.4,
+            toward: TURN * 0.42,
+            seed: 4,
+          }),
+      }).svg,
     ].join("");
   },
 };
@@ -271,21 +510,39 @@ const held = {
  * @param {{ unit?: number, cell?: number, height?: number, still?: boolean, label?: string }} [how]
  * @returns {{ svg: string, width: number, height: number }}
  */
-function blastStrip(x, y, palette, { unit = 11.5, cell = 190, height = 184, still = true, label } = {}) {
+function blastStrip(
+  x,
+  y,
+  palette,
+  { unit = 11.5, cell = 190, height = 184, still = true, label } = {},
+) {
   const rock = makeRock("volatile", "large", 3);
-  const neighbour = { rock: makeRock("volatile", "medium", 6), at: /** @type {Point} */ ([5.5, -1.7]), turn: 0.7 };
+  const neighbour = {
+    rock: makeRock("volatile", "medium", 6),
+    at: /** @type {Point} */ ([5.5, -1.7]),
+    turn: 0.7,
+  };
   return strip(x, y, palette, {
     times: [0, 60, 100, 170, 250, 340, 440],
     cell,
     height,
     anchor: [0.4, 0.54],
-    label: label ?? `Volatile, large, its blast 6 units out, at ${unit} px a unit (${palette.name})`,
-    draw: (t) => blastFx(rock, t, palette, { unit, turn: 0.3, seed: 3, neighbour }),
+    label:
+      label ??
+      `Volatile, large, its blast 6 units out, at ${unit} px a unit (${palette.name})`,
+    draw: (t) =>
+      blastFx(rock, t, palette, { unit, turn: 0.3, seed: 3, neighbour }),
     ...(still
       ? {
           still: () =>
             [
-              place(rockSvg(neighbour.rock, palette, { unit, turn: neighbour.turn }), { x: neighbour.at[0] * unit, y: neighbour.at[1] * unit }),
+              place(
+                rockSvg(neighbour.rock, palette, {
+                  unit,
+                  turn: neighbour.turn,
+                }),
+                { x: neighbour.at[0] * unit, y: neighbour.at[1] * unit },
+              ),
               blastFx(rock, 0, palette, { unit, still: true }),
             ].join(""),
         }
@@ -338,27 +595,74 @@ const thrust = {
     const big = 30;
     /** @type {(0 | 1 | 2)[]} */ ([0, 1, 2]).forEach((frame) => {
       const cx = x + 150 + frame * 190;
-      parts.push(place(flameSvg(frame, DARK, { unit: big }), { x: cx - 0.56 * big, y: y + 80 }));
-      parts.push(place(shipPlaceholder(DARK, { unit: big }), { x: cx, y: y + 80 }));
-      parts.push(note(cx - 10, y + 134, `flame, frame ${frame + 1}`, DARK, { anchor: "middle" }));
+      parts.push(
+        place(flameSvg(frame, DARK, { unit: big }), {
+          x: cx - 0.56 * big,
+          y: y + 80,
+        }),
+      );
+      parts.push(
+        place(shipPlaceholder(DARK, { unit: big }), { x: cx, y: y + 80 }),
+      );
+      parts.push(
+        note(cx - 10, y + 134, `flame, frame ${frame + 1}`, DARK, {
+          anchor: "middle",
+        }),
+      );
     });
     const u = 22;
     const sx = x + 850;
-    parts.push(place(exhaustFx(1000, DARK, { unit: u, seed: 2 }), { x: sx - 1.1 * u, y: y + 80 }));
-    parts.push(place(flameSvg(1, DARK, { unit: u }), { x: sx - 0.56 * u, y: y + 80 }));
+    parts.push(
+      place(exhaustFx(1000, DARK, { unit: u, seed: 2 }), {
+        x: sx - 1.1 * u,
+        y: y + 80,
+      }),
+    );
+    parts.push(
+      place(flameSvg(1, DARK, { unit: u }), { x: sx - 0.56 * u, y: y + 80 }),
+    );
     parts.push(place(shipPlaceholder(DARK, { unit: u }), { x: sx, y: y + 80 }));
-    parts.push(note(sx - 30, y + 134, "under thrust, at 22 px a unit", DARK, { anchor: "middle" }));
+    parts.push(
+      note(sx - 30, y + 134, "under thrust, at 22 px a unit", DARK, {
+        anchor: "middle",
+      }),
+    );
     [0, 80, 160, 240, 320, 390].forEach((age, i) => {
       const cx = x + 1010 + i * 84;
-      parts.push(place(puffSvg(age, DARK, { unit: u, sway: 0.4 }), { x: cx + 50, y: y + 80 }));
-      parts.push(note(cx + 20, y + 134, `${age} ms`, DARK, { anchor: "middle" }));
+      parts.push(
+        place(puffSvg(age, DARK, { unit: u, sway: 0.4 }), {
+          x: cx + 50,
+          y: y + 80,
+        }),
+      );
+      parts.push(
+        note(cx + 20, y + 134, `${age} ms`, DARK, { anchor: "middle" }),
+      );
     });
-    parts.push(note(x + 1010 + 20, y + 46, "one puff's life", DARK, { anchor: "middle" }));
+    parts.push(
+      note(x + 1010 + 20, y + 46, "one puff's life", DARK, {
+        anchor: "middle",
+      }),
+    );
     const sm = 6;
-    parts.push(place(exhaustFx(1000, DARK, { unit: sm, seed: 2 }), { x: x + 640 - 1.1 * sm, y: y + 60 }));
-    parts.push(place(flameSvg(1, DARK, { unit: sm }), { x: x + 640 - 0.56 * sm, y: y + 60 }));
-    parts.push(place(shipPlaceholder(DARK, { unit: sm }), { x: x + 640, y: y + 60 }));
-    parts.push(note(x + 632, y + 134, "6 px a unit", DARK, { anchor: "middle" }));
+    parts.push(
+      place(exhaustFx(1000, DARK, { unit: sm, seed: 2 }), {
+        x: x + 640 - 1.1 * sm,
+        y: y + 60,
+      }),
+    );
+    parts.push(
+      place(flameSvg(1, DARK, { unit: sm }), {
+        x: x + 640 - 0.56 * sm,
+        y: y + 60,
+      }),
+    );
+    parts.push(
+      place(shipPlaceholder(DARK, { unit: sm }), { x: x + 640, y: y + 60 }),
+    );
+    parts.push(
+      note(x + 632, y + 134, "6 px a unit", DARK, { anchor: "middle" }),
+    );
     return parts.join("");
   },
 };
@@ -376,7 +680,11 @@ const dash = {
       anchor: [38 / 217, 0.52],
       label: "A dash to the right, at 14 px a unit",
       draw: (t) => dashFx(t, DARK, { unit: 14, seed: 2 }),
-      still: () => [dashFx(0, DARK, { unit: 14, still: true }), place(shipPlaceholder(DARK, { unit: 14 }), { x: 7.48 * 14 })].join(""),
+      still: () =>
+        [
+          dashFx(0, DARK, { unit: 14, still: true }),
+          place(shipPlaceholder(DARK, { unit: 14 }), { x: 7.48 * 14 }),
+        ].join(""),
     }).svg,
 };
 
@@ -395,7 +703,14 @@ function novaRocks(palette, unit) {
     ["ice", "small", 3, [2.8, 8.2]],
     ["iron", "medium", 2, [-3.6, -8.4]],
   ];
-  return rocks.map(([kind, size, seed, at]) => place(rockSvg(makeRock(kind, size, seed), palette, { unit, turn: seed }), { x: at[0] * unit, y: at[1] * unit })).join("");
+  return rocks
+    .map(([kind, size, seed, at]) =>
+      place(
+        rockSvg(makeRock(kind, size, seed), palette, { unit, turn: seed }),
+        { x: at[0] * unit, y: at[1] * unit },
+      ),
+    )
+    .join("");
 }
 
 /** @type {Section} */
@@ -409,8 +724,18 @@ const nova = {
       cell: 217,
       height: 226,
       label: "A Nova, at 8.6 px a unit",
-      draw: (t) => [novaRocks(DARK, 8.6), novaFx(t, DARK, { unit: 8.6 }), shipPlaceholder(DARK, { unit: 8.6, turn: -TURN / 4 })].join(""),
-      still: () => [novaRocks(DARK, 8.6), novaFx(0, DARK, { unit: 8.6, still: true }), shipPlaceholder(DARK, { unit: 8.6, turn: -TURN / 4 })].join(""),
+      draw: (t) =>
+        [
+          novaRocks(DARK, 8.6),
+          novaFx(t, DARK, { unit: 8.6 }),
+          shipPlaceholder(DARK, { unit: 8.6, turn: -TURN / 4 }),
+        ].join(""),
+      still: () =>
+        [
+          novaRocks(DARK, 8.6),
+          novaFx(0, DARK, { unit: 8.6, still: true }),
+          shipPlaceholder(DARK, { unit: 8.6, turn: -TURN / 4 }),
+        ].join(""),
     }).svg,
 };
 
@@ -426,8 +751,16 @@ const shieldAndCatch = {
         cell: 108,
         height: 130,
         label: "A Shield spent, at 15 px a unit",
-        draw: (t) => [shieldFx(t, DARK, { unit: 15, seed: 2 }), shipPlaceholder(DARK, { unit: 15, turn: -TURN / 4 })].join(""),
-        still: () => [shieldFx(0, DARK, { unit: 15, still: true }), shipPlaceholder(DARK, { unit: 15, turn: -TURN / 4 })].join(""),
+        draw: (t) =>
+          [
+            shieldFx(t, DARK, { unit: 15, seed: 2 }),
+            shipPlaceholder(DARK, { unit: 15, turn: -TURN / 4 }),
+          ].join(""),
+        still: () =>
+          [
+            shieldFx(0, DARK, { unit: 15, still: true }),
+            shipPlaceholder(DARK, { unit: 15, turn: -TURN / 4 }),
+          ].join(""),
       }).svg,
       strip(x + 764, y, DARK, {
         times: [0, 50, 110, 170, 220, 280],
@@ -438,7 +771,12 @@ const shieldAndCatch = {
         draw: (t) =>
           [
             shipPlaceholder(DARK, { unit: 18, turn: -TURN / 4 }),
-            caughtFx(t, DARK, { unit: 18, from: [1.7, -1.2], orb: (scale) => place(orbSvg("rapid", DARK, { unit: 18 }), { scale }) }),
+            caughtFx(t, DARK, {
+              unit: 18,
+              from: [1.7, -1.2],
+              orb: (scale) =>
+                place(orbSvg("rapid", DARK, { unit: 18 }), { scale }),
+            }),
           ].join(""),
       }).svg,
     ].join(""),
@@ -453,14 +791,28 @@ const shieldAndCatch = {
  * @param {{ unit?: number, cell?: number, height?: number, still?: boolean, label?: string, times?: number[] }} [how]
  * @returns {{ svg: string, width: number, height: number }}
  */
-function lostStrip(x, y, palette, { unit = 16, cell = 190, height = 190, still = true, label, times = [0, 40, 100, 190, 300, 420, 540] } = {}) {
+function lostStrip(
+  x,
+  y,
+  palette,
+  {
+    unit = 16,
+    cell = 190,
+    height = 190,
+    still = true,
+    label,
+    times = [0, 40, 100, 190, 300, 420, 540],
+  } = {},
+) {
   return strip(x, y, palette, {
     times,
     cell,
     height,
     label: label ?? `A ship lost, at ${unit} px a unit (${palette.name})`,
     draw: (t) => shipLostFx(t, palette, { unit, turn: -TURN / 4, seed: 3 }),
-    ...(still ? { still: () => shipLostFx(0, palette, { unit, still: true }) } : {}),
+    ...(still
+      ? { still: () => shipLostFx(0, palette, { unit, still: true }) }
+      : {}),
   });
 }
 
@@ -486,10 +838,29 @@ function clearedField(palette, t, unit) {
   /** @type {Point} */
   const at = [50 * unit - w / 2, 14 * unit - h / 2];
   return [
-    rect(-w / 2, -h / 2, w, h, "none", { stroke: palette.fieldLine, "stroke-width": 1.5 }),
-    clipped(-w / 2, -h / 2, w, h, place(clearedFx(t, palette, { unit, reach: 56 }), { x: at[0], y: at[1] })),
-    t < 60 ? place(breakFx(makeRock("stone", "small", 2), t * 4, palette, { unit: unit * 2 }), { x: at[0], y: at[1] }) : "",
-    place(shipPlaceholder(palette, { unit: unit * 2, turn: 0.4 }), { x: 22 * unit - w / 2, y: 26 * unit - h / 2 }),
+    rect(-w / 2, -h / 2, w, h, "none", {
+      stroke: palette.fieldLine,
+      "stroke-width": 1.5,
+    }),
+    clipped(
+      -w / 2,
+      -h / 2,
+      w,
+      h,
+      place(clearedFx(t, palette, { unit, reach: 56 }), { x: at[0], y: at[1] }),
+    ),
+    t < 60
+      ? place(
+          breakFx(makeRock("stone", "small", 2), t * 4, palette, {
+            unit: unit * 2,
+          }),
+          { x: at[0], y: at[1] },
+        )
+      : "",
+    place(shipPlaceholder(palette, { unit: unit * 2, turn: 0.4 }), {
+      x: 22 * unit - w / 2,
+      y: 26 * unit - h / 2,
+    }),
   ].join("");
 }
 
@@ -506,7 +877,13 @@ const rescueAndClear = {
         height: 150,
         anchor: [0.5, 0.66],
         label: "A stray rescued, at 18 px a unit",
-        draw: (t) => [place(bubblePlaceholder(DARK, { unit: 18 }), { opacity: 1 - shareOf(t, 0, 110) }), rescuedFx(t, DARK, { unit: 18, seed: 2 })].join(""),
+        draw: (t) =>
+          [
+            place(bubblePlaceholder(DARK, { unit: 18 }), {
+              opacity: 1 - shareOf(t, 0, 110),
+            }),
+            rescuedFx(t, DARK, { unit: 18, seed: 2 }),
+          ].join(""),
       }).svg,
       strip(x + 764, y, DARK, {
         times: [0, 150, 320, 500, 680],
@@ -524,7 +901,12 @@ const onWhite = {
   heading: "On a white field",
   note: "The three that matter most, on Classic felt, where space is white. Nothing here is added to the field's light: a flash is the rock's own ink made paler, a halo is a tint, and a ring's hot edge is a denser ink, so each still shows.",
   height: 228 + 206 + 212,
-  draw: (x, y) => [breakRow(x, y, LIGHT, "stone", 3), blastStrip(x, y + 228, LIGHT).svg, lostStrip(x, y + 228 + 206, LIGHT).svg].join(""),
+  draw: (x, y) =>
+    [
+      breakRow(x, y, LIGHT, "stone", 3),
+      blastStrip(x, y + 228, LIGHT).svg,
+      lostStrip(x, y + 228 + 206, LIGHT).svg,
+    ].join(""),
 };
 
 /**
@@ -538,9 +920,28 @@ const onWhite = {
 function smallRow(x, y, palette) {
   const stone = makeRock("stone", "large", 3);
   return [
-    strip(x, y, palette, { times: BREAK_TIMES, cell: 84, height: 84, label: palette.name, draw: (t) => breakFx(stone, t, palette, { unit: 6, turn: 0.3, seed: 3 }) }).svg,
-    blastStrip(x + 512, y, palette, { unit: 6, cell: 94, height: 84, still: false, label: "" }).svg,
-    lostStrip(x + 512 + 666, y, palette, { unit: 6, cell: 57, height: 84, still: false, label: "", times: [0, 40, 100, 190, 300, 420] }).svg,
+    strip(x, y, palette, {
+      times: BREAK_TIMES,
+      cell: 84,
+      height: 84,
+      label: palette.name,
+      draw: (t) => breakFx(stone, t, palette, { unit: 6, turn: 0.3, seed: 3 }),
+    }).svg,
+    blastStrip(x + 512, y, palette, {
+      unit: 6,
+      cell: 94,
+      height: 84,
+      still: false,
+      label: "",
+    }).svg,
+    lostStrip(x + 512 + 666, y, palette, {
+      unit: 6,
+      cell: 57,
+      height: 84,
+      still: false,
+      label: "",
+      times: [0, 40, 100, 190, 300, 420],
+    }).svg,
   ].join("");
 }
 
@@ -558,13 +959,15 @@ const SECTIONS = /** @type {Section[]} */ ([
     heading: "Shots",
     note: "One shot for each weapon, beside today's plain dash. Each is a bright middle in the field's text color, as the shot is today, in a body and a soft halo of the accent, the ship's own color, with a short tapering tail, so it is longer than it is wide and has a direction, which no speck has. The gun's bolt; Spread's three lighter bolts; Rapid's small darts, twice as close; Lance's long needle.",
     height: 478,
-    draw: (x, y) => [shotsPanel(x, y, DARK), shotsPanel(x + HALF + GAP, y, LIGHT)].join(""),
+    draw: (x, y) =>
+      [shotsPanel(x, y, DARK), shotsPanel(x + HALF + GAP, y, LIGHT)].join(""),
   },
   {
     heading: "Static",
     note: "The fuzzball's own energy: a jagged arc with a branch or two, a near-white middle in a halo of the accent. On a white field the middle is the accent's densest ink and the halo a tint of it. Sparks are four-point ticks.",
     height: 322,
-    draw: (x, y) => [staticPanel(x, y, DARK), staticPanel(x + HALF + GAP, y, LIGHT)].join(""),
+    draw: (x, y) =>
+      [staticPanel(x, y, DARK), staticPanel(x + HALF + GAP, y, LIGHT)].join(""),
   },
   breaks,
   held,
@@ -594,9 +997,13 @@ export async function build() {
   resetClips();
   const draft = sheetFile(sheet);
   resetClips();
-  const svg = sheetFile({ ...sheet, defs: [rockDefs(DARK), rockDefs(LIGHT), glowDefs(draft)].join("") });
+  const svg = sheetFile({
+    ...sheet,
+    defs: [rockDefs(DARK), rockDefs(LIGHT), glowDefs(draft)].join(""),
+  });
   await writeText(join(ART, "energy-and-effects.svg"), svg);
   await writeRaster(svg, join(ART, "preview/energy-and-effects.png"));
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) await build();
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href)
+  await build();

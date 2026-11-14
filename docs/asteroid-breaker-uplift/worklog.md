@@ -30,15 +30,15 @@ sound design hats:
 
 ## The order of work
 
-| Step | What                                                               | State |
-| ---- | ------------------------------------------------------------------ | ----- |
-| 1    | Read the earlier designs and the game as it is                     | done  |
-| 2    | Research: mechanics, look and feel, sound; an audit of the game    | begun |
-| 3    | The design: `plan.md`, with its decisions                          |       |
-| 4    | Mocks: the art sheets and the scenes, now and after                |       |
-| 5    | Real art: sprites, atlases and backdrops                           |       |
-| 6    | Real sound: a synth, the effects, the bed, and a page to hear them |       |
-| 7    | Review, format, and a last entry here                              |       |
+| Step | What                                                                | State |
+| ---- | ------------------------------------------------------------------- | ----- |
+| 1    | Read the earlier designs and the game as it is                      | done  |
+| 2    | Research: mechanics, look and feel, sound; an audit of the game     | done  |
+| 3    | The design: `plan.md`, with its decisions                           | done  |
+| 4    | Mocks: the art sheets and the scenes, now and after                 | done  |
+| 5    | Real art: geometry, atlases, sprites and backdrops                  | done  |
+| 6    | Real sound: a synth, the effects, the beds, and a page to hear them | done  |
+| 7    | Review, format, and a last entry here                               | done  |
 
 ## Log
 
@@ -171,3 +171,93 @@ Four agents, each writing one note in `research/`:
   plan's pictures and names brought in line with what was drawn; a format
   pass over the folder from the repository's root (never `yarn prettier`,
   which formats everything).
+
+### 2026-11-14, all seven steps done
+
+**Where it stands.** The plan, its research, the art and its sheets, the
+mocks, the sounds and the assets are all written, checked and committed on
+this branch. Nothing in the game is changed, and nothing is pushed.
+
+**What was added since the last entry:**
+
+- **The art's five sheets** (`art/*.svg`, previews in `art/preview/`):
+  rocks, pilot-and-pod, sectors, energy-and-effects, pickups-and-hazards.
+  `node docs/asteroid-breaker-uplift/art/make-art.mjs` draws them all.
+- **The mocks** (`mocks/*.svg`, previews in `mocks/preview/`), seven, by
+  `mocks/make-mocks.mjs`. Staging them found faults in the art, which went
+  back to the artists and were fixed before the mocks were staged again:
+  cracks past a rock's edge (`reachAt()` in `art/lib/rocks.mjs`), bright
+  stars shaped like sparks and girders drawn in outline
+  (`art/lib/backdrop.mjs`: nothing in a backdrop has points or an outline
+  now), a burr like a flower (six barbed thorns in a dull brown now), a
+  blast's ring that went olive on Midnight blue, a muzzle flash's second
+  frame.
+- **The art's assets** (`assets/art/`, about 5 MB, with a README):
+  `art/make-assets.mjs` writes geometry for every piece, the rocks' and the
+  hulls' atlases in layers, 106 sprites, one atlas of the small pieces and
+  sixteen pictures of the four places.
+- **The sounds:** ninety-eight in 178 takes, nine families, every one
+  building with no warning. `assets/sound/sprite/` holds them packed
+  (about 1 MB as Ogg, 1.3 MB as M4A) with their map, `assets/sound/beds/`
+  each bed. The WAVs (22 MB) are ignored; the build writes them again.
+- **The user heard every sound** on the audition page the day they were
+  made and marked ninety-five good as they are.
+  `sound/listen-for.md` holds the verdicts and what each sound's maker
+  doubted. Three were made again:
+  - `thrust`: marked "needs work". Offered a burner, a throat and a purr,
+    the user chose the throat, which is `thrust` now, at the seed it was
+    heard at.
+  - `bed-inner-belt` and `bed-endless`: "too difficult to listen to for a
+    long time". Made again as loops of 32 s with no held tone above
+    620 Hz. Heard again: the tones "sound good", but the air was "too much
+    like static hisses". The air is now a low breath in swells, 10 dB
+    quieter, silent between them. **That last change has not been heard.**
+- **The audition page** starts every mark at "good: use it", at the user's
+  ask, and lists only what isn't.
+
+**What the plan changed as it was drawn and staged:**
+
+- The pod wears four marks, not five: the fur (static), the canopy's rim
+  (the dash), a glass shell (the Shield) and a dashed ring (can't be
+  touched). A weapon's time left stays in the field's tags.
+- The bar carries the multiplier as a number and four pips, on a phone
+  beside the face cam, since a phone's pod can't show static's steps.
+- The tow line keeps the plan's spacing (0.7 in radius, 1.6 apart); the
+  pilot's sheet draws it looser, and staged at that it was too long.
+- A loose fuzzball's bubble swells to a stray's size, to be found.
+- Shots take the accent for their body and halo; their middle stays the
+  field's text.
+
+**Left open, for whoever picks this up:**
+
+- **The user's ten choices,** under "What the user settles" in `plan.md`.
+  The mocks and the assets use Bumble, the first of the three pods.
+- **The two beds' new air,** unheard.
+- **The Shield's shell has two sizes in the art:** 1.8 units in
+  `art/lib/fx.mjs` (`SHELL_RADIUS`, the sprite) and 1.64 in
+  `art/lib/ship.mjs` (`RINGS.shield`, the pod's own). The pod's is the one
+  the mocks show.
+- **`art/lib/strays.mjs`'s `towSvg()`** draws everyone in tow smiling,
+  whatever happens; the mocks draw their own faces where it matters.
+- **The folder is heavy** beside the earlier uplifts': the five sheets are
+  1 to 3 MB of SVG each, since every facet is a polygon, and the rocks'
+  atlases 3.4 MB.
+- **`.prettierignore`** gained two lines, for `assets/` and
+  `sound/report/`, which scripts write. `yarn prettier:check` passes.
+- **`.claude/launch.json`** (not in git) has `uplift-sounds`, the audition
+  page's server on port 9120.
+
+**To check that everything still builds,** from the repository's root:
+
+```bash
+node docs/asteroid-breaker-uplift/art/make-art.mjs
+node docs/asteroid-breaker-uplift/mocks/make-mocks.mjs
+node docs/asteroid-breaker-uplift/art/make-assets.mjs
+node docs/asteroid-breaker-uplift/sound/build.mjs
+node docs/asteroid-breaker-uplift/sound/encode.mjs
+```
+
+`git status` should then show nothing changed. To format, run Prettier's
+binary on this folder from the root
+(`frontend/node_modules/.bin/prettier --write docs/asteroid-breaker-uplift`),
+never `yarn prettier`, which formats the whole repository.
