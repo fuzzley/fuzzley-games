@@ -472,29 +472,33 @@ describe("cast", () => {
 describe("cast, against a scan of every brick", () => {
   // Seeded random walls of every shape of brick, and four shots at each, on
   // the floor and in the field, a third of them on quarter units, touching
-  // faces, seams and corners.
-  it("meets what the scan meets, at the same moments, on 2,000 walls", () => {
-    const random = createRandom(20261110);
-    const shots = Array.from({ length: 2000 }, () =>
-      randomField(random),
-    ).flatMap((field) =>
-      Array.from({ length: 4 }, () => randomShot(field, random)),
-    );
-    const contacts = createContacts();
-
-    const casts = shots.map((shot) => {
-      const { field, x, y, dx, dy, limit, crosses, passing } = shot;
-      const { wall, depth, kinds } = field;
-      const flown = castField(wall, depth, kinds);
-      return castOf(
-        cast(flown, x, y, dx, dy, limit, contacts, crosses, passing),
+  // faces, seams and corners: 2,000 walls in four batches, so each keeps
+  // well inside a spec's time.
+  it.each([20261115, 20261116, 20261117, 20261118])(
+    "meets what the scan meets, at the same moments, on 500 walls (seed %i)",
+    (seed) => {
+      const random = createRandom(seed);
+      const shots = Array.from({ length: 500 }, () =>
+        randomField(random),
+      ).flatMap((field) =>
+        Array.from({ length: 4 }, () => randomShot(field, random)),
       );
-    });
+      const contacts = createContacts();
 
-    expect(casts).toEqual(
-      shots.map(({ field, x, y, dx, dy, limit, crosses, passing }) =>
-        castByScan(field, x, y, dx, dy, limit, crosses, passing),
-      ),
-    );
-  });
+      const casts = shots.map((shot) => {
+        const { field, x, y, dx, dy, limit, crosses, passing } = shot;
+        const { wall, depth, kinds } = field;
+        const flown = castField(wall, depth, kinds);
+        return castOf(
+          cast(flown, x, y, dx, dy, limit, contacts, crosses, passing),
+        );
+      });
+
+      expect(casts).toEqual(
+        shots.map(({ field, x, y, dx, dy, limit, crosses, passing }) =>
+          castByScan(field, x, y, dx, dy, limit, crosses, passing),
+        ),
+      );
+    },
+  );
 });

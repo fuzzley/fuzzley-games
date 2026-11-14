@@ -261,6 +261,12 @@ brick than a fuzzball may.
 shows the times without the replays and the floors. A test in `sim` that can run past half a second alone
 takes `SIM_TIMEOUT_MS` (`src/testing/timing.ts`) as its describe's
 `timeout`, since `yarn test` runs `sim` beside every workspace's specs.
+A check in `pure` runs there too, two or three times slower under
+`yarn test:coverage`, so one that long is split into seeded batches, as the
+random walls of `src/rules/flight/flight.spec.ts` and
+`src/rules/flight/cast.spec.ts` are, each well inside Vitest's 5 s; only a
+search no batch can split, as `src/testing/solver.spec.ts`'s on `THICK`,
+hands its hook `SIM_TIMEOUT_MS`.
 
 ## The View
 
