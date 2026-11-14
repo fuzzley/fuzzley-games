@@ -33,6 +33,20 @@ export interface KindInks {
   readonly mossShadow: number;
 }
 
+/** The inks the paddle's parts take beside its body, in the accent, mixed as the art kit mixes them. */
+export interface PaddleInks {
+  /** Its lip, under its bar, and a cannon's base: the accent at {@link PADDLE_LIP_SHADE} black. */
+  readonly lip: number;
+  /** The cap at each of its ends: the accent toward the text by {@link CAP_TOWARD_TEXT} for the palette's mode. */
+  readonly cap: number;
+  /** The pad along its top: the accent at {@link PAD_LIGHT} white. */
+  readonly pad: number;
+  /** A catching paddle's velcro hooks: the text. */
+  readonly hook: number;
+  /** A laser's cannons, and the bolts they fire: the warning color. */
+  readonly cannon: number;
+}
+
 /** The colors a ghost brick takes by its tint, 0 to 7, while it is hidden and once it shows. */
 export interface GhostTints {
   /** Each tint at {@link GHOST_FADE} of the field, so a hidden ghost shows faintly. */
@@ -59,7 +73,10 @@ export interface BricksPalette {
   readonly wall: number;
   /** The frame around each of the last bricks a level needs, once they glow: the text. */
   readonly glow: number;
+  /** The paddle's body: the accent. */
   readonly paddle: number;
+  /** The inks of the paddle's other parts. */
+  readonly paddleInks: PaddleInks;
   readonly balls: Readonly<Record<BallKindId, number>>;
   readonly capsules: Readonly<Record<CapsuleTone, number>>;
   /**
@@ -108,6 +125,18 @@ export const MOSS_LIGHT: Readonly<Record<ColorMode, number>> = {
 /** How much black the shadow under the moss's scallops takes over the green tint. */
 export const MOSS_SHADE = 0.38;
 
+/** How much black the paddle's lip takes over the accent. */
+export const PADDLE_LIP_SHADE = 0.32;
+
+/** How far the paddle's caps move from the accent toward the text, in each mode, so they stand out pale on a dark field and deep on a light one. */
+export const CAP_TOWARD_TEXT: Readonly<Record<ColorMode, number>> = {
+  light: 0.45,
+  dark: 0.6,
+};
+
+/** How much white the paddle's pad takes over the accent. */
+export const PAD_LIGHT = 0.55;
+
 /** How much of the field a hidden ghost's tint takes, fading it toward the field. */
 export const GHOST_FADE = 0.35;
 
@@ -150,6 +179,13 @@ export function bricksPalette(
     wall: mixColors(text, panel, WALL_WASH),
     glow: text,
     paddle: accent,
+    paddleInks: {
+      lip: mixColors(BLACK, accent, PADDLE_LIP_SHADE),
+      cap: mixColors(text, accent, CAP_TOWARD_TEXT[mode]),
+      pad: mixColors(WHITE, accent, PAD_LIGHT),
+      hook: text,
+      cannon: warning,
+    },
     balls: { normal: text, fire: warning, blast: danger },
     capsules: { good: accent, bad: danger },
     bricks: {

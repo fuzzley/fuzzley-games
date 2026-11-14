@@ -12,7 +12,6 @@ import {
   lineWidth,
   middleSquare,
   polygon,
-  rect,
   ring,
   roundRect,
   within,
@@ -32,11 +31,11 @@ import {
   BRICK_WIDTH,
   CAPSULE_HEIGHT,
   CAPSULE_WIDTH,
-  PADDLE_HEIGHT,
 } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import { FUR, REACH } from "./fuzzball_art";
+import { paddleFrames } from "./paddle_art";
 import { streakArt } from "./streak_art";
 import { SYMBOLS } from "./symbols";
 
@@ -52,12 +51,9 @@ export interface CapsuleShape {
 /** Draws a capsule's outline and its body, filling its frame. */
 export type DrawCapsule = (shape: CapsuleShape) => readonly DrawCommand[];
 
-/** The names of the frames that aren't a brick's, a ball's, a capsule's or a tag's. */
+/** The names of the frames that aren't a brick's, a ball's, a capsule's, a tag's or the paddle's. */
 export const FRAMES = {
-  /** Each of the paddle's round ends, a disc as tall as the paddle, its body between their middles. */
-  paddle: "paddle",
-  /** A laser's cannon, over each end of the paddle. */
-  cannon: "cannon",
+  /** A laser's bolt, in the cannons' color. */
   bolt: "bolt",
   /** A broken brick's shard, white, so the scene tints it as the brick was. */
   shard: "shard",
@@ -85,9 +81,6 @@ const EMBER_SIZE = 0.2;
 
 /** How wide a bolt is, in field units. */
 const BOLT_WIDTH = 0.14;
-
-/** How wide a cannon is, and how tall, in field units. */
-const CANNON = { width: 0.3, height: 0.4 } as const;
 
 /** How much of a capsule's height inside its outline its symbol takes. */
 const SYMBOL_SHARE = 0.85;
@@ -246,19 +239,12 @@ function tagArt(
   };
 }
 
-/** Returns the frames of the balls' eyes, the paddle and what it carries, the bolts and the flourishes. */
+/** Returns the frames of the balls' eyes, the bolts and the flourishes. */
 function otherArt(
   palette: BricksPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const line = lineWidth(scale);
-  const paddle = Math.round(PADDLE_HEIGHT * scale.unit);
-  const cannon = {
-    x: 0,
-    y: 0,
-    width: Math.max(2 * line, Math.round(CANNON.width * scale.unit)),
-    height: Math.max(2 * line, Math.round(CANNON.height * scale.unit)),
-  };
   const bolt = {
     x: 0,
     y: 0,
@@ -280,37 +266,12 @@ function otherArt(
       eyesCommands(ballGrid(scale), { color: palette.mark }),
     ),
     {
-      name: FRAMES.paddle,
-      width: paddle,
-      height: paddle,
-      commands: [
-        circle({ x: paddle / 2, y: paddle / 2 }, paddle / 2, {
-          color: palette.paddle,
-        }),
-      ],
-    },
-    {
-      name: FRAMES.cannon,
-      width: cannon.width,
-      height: cannon.height,
-      commands: [
-        roundRect(cannon, line, { color: palette.paddle }),
-        rect(
-          {
-            x: (cannon.width - line) / 2,
-            y: line,
-            width: line,
-            height: cannon.height - 2 * line,
-          },
-          { color: palette.mark },
-        ),
-      ],
-    },
-    {
       name: FRAMES.bolt,
       width: bolt.width,
       height: bolt.height,
-      commands: [roundRect(bolt, bolt.width / 2, { color: palette.paddle })],
+      commands: [
+        roundRect(bolt, bolt.width / 2, { color: palette.paddleInks.cannon }),
+      ],
     },
     {
       name: FRAMES.shard,
@@ -360,8 +321,8 @@ function otherArt(
 /**
  * Returns every frame the atlas holds, drawn in a palette at a scale: each
  * brick kind in each tint and state, each ball as it flies and with its
- * eyes, each capsule and its tag, the balls' eyes, the paddle and what it
- * carries, the bolt and the flourishes.
+ * eyes, each capsule and its tag, the balls' eyes, the paddle's ends,
+ * cannons and hooks, the bolt and the flourishes.
  */
 export function atlasFrames(
   palette: BricksPalette,
@@ -372,6 +333,7 @@ export function atlasFrames(
     ...BALL_KIND_IDS.flatMap((kind) => ballArt(kind, palette, scale)),
     ...CAPSULE_IDS.map((id) => capsuleArt(id, palette, scale)),
     ...CAPSULE_IDS.map((id) => tagArt(id, palette, scale)),
+    ...paddleFrames(palette, scale),
     ...otherArt(palette, scale),
     ...streakArt(scale),
   ];

@@ -1,8 +1,13 @@
 import { lerp } from "@fz/core/math";
-import { lineWidth } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
-import { BOLT_INSET, PADDLE_HEIGHT } from "../../rules/tuning";
-import { FRAMES } from "../../view/art/art";
+import { BOLT_INSET } from "../../rules/tuning";
+import {
+  MOST_HOOKS,
+  PADDLE_FRAMES,
+  type PaddleShape,
+  hookCount,
+  paddleShape,
+} from "../../view/art/paddle_art";
 import type { BricksPalette } from "../../view/colors/palette";
 import {
   type FieldMetrics,
@@ -13,22 +18,30 @@ import { ATLAS } from "../atlas";
 import type { Baked, PaintContext, Painter } from "./painter";
 
 /**
- * Draws the paddle: a body between the middles of its two round ends, so
- * the ends keep their shape as its width changes, with a laser's cannons
- * over its ends or a catching paddle's rim along its top.
+ * Draws the paddle as the art kit does at any width: its lip, a cap at each
+ * end, its body between the caps and its pad along its top, with a catching
+ * paddle's velcro hooks along its top or a laser's cannons over its ends.
  *
- * The body and the rim are rectangles a pixel wide, scaled across, which
- * draw crisp at any width on either of Phaser's renderers.
+ * The ends, the hooks and the cannons are frames of the atlas, which keep
+ * their shape; the lip, the body and the pad are rectangles a pixel wide,
+ * scaled across, which draw crisp at any width on either of Phaser's
+ * renderers.
  */
 export class PaddlePainter implements Painter {
-  /** Its body, from the middle of one end to the middle of the other. */
-  readonly body: GameObjects.Rectangle;
-  /** Its round ends, left and right. */
+  /** Its lip, under its bar, from the middle of one cap to the other. */
+  readonly lip: GameObjects.Rectangle;
+  /** Its ends, left and right, each a cap over its lip; the right one flipped. */
   readonly ends: readonly GameObjects.Image[];
-  /** A catching paddle's rim, a line below its top, along its body. */
-  readonly rim: GameObjects.Rectangle;
+  /** Its body, over the caps' inner halves. */
+  readonly body: GameObjects.Rectangle;
+  /** Its pad, along its body's top. */
+  readonly pad: GameObjects.Rectangle;
+  /** A catching paddle's velcro hooks, as many as stand along its body, the rest hidden. */
+  readonly hooks: readonly GameObjects.Image[];
   /** A laser's cannons, left and right. */
   readonly cannons: readonly GameObjects.Image[];
+  /** How its parts lie at the unit the atlas was baked at. */
+  private shape: PaddleShape;
 
   /** Makes the paddle at the field's scale, in the palette. */
   constructor(
@@ -37,28 +50,40 @@ export class PaddlePainter implements Painter {
     metrics: FieldMetrics,
     palette: BricksPalette,
   ) {
-    this.body = scene.add.rectangle(0, 0, 1, 1).setOrigin(0.5, 0);
-    this.ends = [0, 1].map(() => scene.add.image(0, 0, ATLAS, FRAMES.paddle));
-    this.rim = scene.add
-      .rectangle(0, 0, 1, 1)
-      .setOrigin(0.5, 0)
-      .setVisible(false);
-    this.cannons = [0, 1].map(() =>
-      scene.add.image(0, 0, ATLAS, FRAMES.cannon).setVisible(false),
+    this.shape = paddleShape(metrics);
+    this.lip = scene.add.rectangle(0, 0, 1, 1).setOrigin(0.5, 0);
+    this.ends = [false, true].map((right) =>
+      scene.add.image(0, 0, ATLAS, PADDLE_FRAMES.end).setFlipX(right),
     );
-    layer.add([this.body, ...this.ends, this.rim, ...this.cannons]);
+    this.body = scene.add.rectangle(0, 0, 1, 1).setOrigin(0.5, 0);
+    this.pad = scene.add.rectangle(0, 0, 1, 1).setOrigin(0.5, 0);
+    this.hooks = Array.from({ length: MOST_HOOKS }, () =>
+      scene.add.image(0, 0, ATLAS, PADDLE_FRAMES.hook).setVisible(false),
+    );
+    this.cannons = [0, 1].map(() =>
+      scene.add.image(0, 0, ATLAS, PADDLE_FRAMES.cannon).setVisible(false),
+    );
+    layer.add([
+      this.lip,
+      ...this.ends,
+      this.body,
+      this.pad,
+      ...this.hooks,
+      ...this.cannons,
+    ]);
     this.refresh({ metrics, palette });
   }
 
   /**
-   * Sizes the body and the rim at the unit the atlas was baked at, and paints
-   * them in its palette, so they match the ends.
+   * Sizes the lip, the body and the pad at the unit the atlas was baked at,
+   * and paints them in its palette, so they match the ends.
    */
   refresh({ metrics, palette }: Readonly<Baked>): void {
-    this.body
-      .setSize(1, Math.round(PADDLE_HEIGHT * metrics.unit))
-      .setFillStyle(palette.paddle);
-    this.rim.setSize(1, lineWidth(metrics)).setFillStyle(palette.mark);
+    this.shape = paddleShape(metrics);
+    const { bar, pad } = this.shape;
+    this.lip.setSize(1, bar).setFillStyle(palette.paddleInks.lip);
+    this.body.setSize(1, bar).setFillStyle(palette.paddle);
+    this.pad.setSize(1, pad.height).setFillStyle(palette.paddleInks.pad);
   }
 
   /** Draws the paddle between its last place and its next, at its width, with what its mode adds. */
@@ -67,25 +92,66 @@ export class PaddlePainter implements Painter {
     const x = toCanvasX(metrics, lerp(paddle.lastX, paddle.x, alpha));
     const top = toCanvasY(metrics, paddle.top);
     const width = Math.round(paddle.width * metrics.unit);
-    const height = this.body.height;
-    const span = Math.max(0, width - height);
-    this.body.setPosition(x, top).setScale(span, 1);
+    this.placeBar(x, top, width);
+    this.placePad(x, top, width);
+    this.placeHooks(x, top, width, mode === "catch");
+    this.placeCannons(
+      x,
+      top,
+      width / 2 - BOLT_INSET * metrics.unit,
+      mode === "laser",
+    );
+  }
+
+  /** Puts the lip, the caps and the body at a width, their middle at `x` and the bar's top at `top`. */
+  private placeBar(x: number, top: number, width: number): void {
+    const { bar, lip, inner } = this.shape;
+    const between = Math.max(0, width - bar);
+    this.lip.setPosition(x, top + lip).setScale(between, 1);
     for (let i = 0; i < this.ends.length; i++) {
       this.ends[i]?.setPosition(
-        x + (i === 0 ? -span : span) / 2,
-        top + height / 2,
+        x + (i === 0 ? -between : between) / 2,
+        top + bar / 2,
       );
     }
-    this.rim
-      .setVisible(mode === "catch")
-      .setPosition(x, top + this.rim.height)
-      .setScale(span, 1);
-    const inset = width / 2 - BOLT_INSET * metrics.unit;
+    this.body.setPosition(x, top).setScale(Math.max(0, width - 2 * inner), 1);
+  }
+
+  /** Puts the pad along the body's top, short of its ends. */
+  private placePad(x: number, top: number, width: number): void {
+    const { inner, pad } = this.shape;
+    this.pad
+      .setPosition(x, top + pad.top)
+      .setScale(Math.max(0, width - 2 * (inner + pad.inset)), 1);
+  }
+
+  /** Stands as many hooks as fit along the body's top about its middle, while it catches, and hides the rest. */
+  private placeHooks(
+    x: number,
+    top: number,
+    width: number,
+    catching: boolean,
+  ): void {
+    const count = catching ? hookCount(width, this.shape) : 0;
+    const { pitch } = this.shape.hooks;
+    for (let i = 0; i < this.hooks.length; i++) {
+      this.hooks[i]
+        ?.setVisible(i < count)
+        .setPosition(x + (i - (count - 1) / 2) * pitch, top);
+    }
+  }
+
+  /** Stands a cannon `inset` either side of the middle, on the paddle's top, while it fires. */
+  private placeCannons(
+    x: number,
+    top: number,
+    inset: number,
+    firing: boolean,
+  ): void {
     for (let i = 0; i < this.cannons.length; i++) {
-      const cannon = this.cannons[i];
-      cannon
-        ?.setVisible(mode === "laser")
-        .setPosition(x + (i === 0 ? -inset : inset), top - cannon.height / 2);
+      this.cannons[i]
+        ?.setVisible(firing)
+        .setPosition(x + (i === 0 ? -inset : inset), top);
     }
   }
 }
