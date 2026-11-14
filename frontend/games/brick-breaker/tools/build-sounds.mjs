@@ -1,4 +1,4 @@
-// Writes Brick Breaker's sounds: fifteen short effects synthesized with
+// Writes Brick Breaker's sounds: seventeen short effects synthesized with
 // @fz/dev/sounds, the same bytes every run, into one WAV sprite and the
 // spritemap Phaser plays it by, both in src/scene/sounds/. Their names and
 // order are src/view/effects/effects.ts's SOUNDS, and
@@ -10,10 +10,12 @@
 
 import { join } from "node:path";
 import {
+  SAMPLE_RATE,
   arpeggio,
   envelope,
   glide,
   note,
+  thud,
   withBurst,
   writeSoundSprite,
 } from "@fz/dev/sounds";
@@ -35,6 +37,48 @@ export const SPRITE_FOLDER = join(import.meta.dirname, "../src/scene/sounds");
 function tick(at, pitch, loudness) {
   const struck = note(at, glide(pitch, pitch, 1, 0.5), envelope(0.0005, 0.008));
   return (t) => loudness * struck(t);
+}
+
+/**
+ * Returns a tone that wavers in pitch as a struck spring does: played
+ * faster and slower `rate` times a second, by as much as `depth` of its
+ * pitch at first, the wavering dying away to about a third every `decay`
+ * seconds.
+ *
+ * @param {Wave} tone The tone that wavers.
+ * @param {number} rate How many times a second it wavers.
+ * @param {number} depth How far it wavers at first, as a share of its pitch.
+ * @param {number} decay How fast the wavering dies away, in seconds.
+ * @returns {Wave}
+ */
+function wavering(tone, rate, depth, decay) {
+  // Read the tone a little ahead of and behind its time, which plays it
+  // faster and slower by the change in that reach.
+  const reach = depth / (2 * Math.PI * rate);
+  return (t) =>
+    tone(t + reach * Math.exp(-t / decay) * Math.sin(2 * Math.PI * rate * t));
+}
+
+/** How long a rush of air is smoothed over, in seconds, so only the lowest band of its noise is left. */
+const AIR_SMOOTHING_S = 0.0005;
+
+/**
+ * Returns a rush of air: `thud()`'s noise from a seed, smoothed so only its
+ * lowest band is left, carried up about a tone's pitch, so the band sweeps
+ * as the tone glides.
+ *
+ * @param {number} seed The noise's seed.
+ * @param {Wave} carrier The tone whose pitch the band is carried about.
+ * @returns {Wave}
+ */
+function rushing(seed, carrier) {
+  const air = thud(seed);
+  const span = Math.round(AIR_SMOOTHING_S * SAMPLE_RATE);
+  return (t) => {
+    let sum = 0;
+    for (let back = 0; back < span; back++) sum += air(t - back / SAMPLE_RATE);
+    return (sum / span) * carrier(t);
+  };
 }
 
 /**
@@ -211,6 +255,38 @@ export const RECIPES = [
     sample: (() => {
       const rise = note(0, glide(880, 1760, 0.2, 0), envelope(0.04, 0.08));
       return (t) => rise(t) * (0.6 + 0.4 * Math.sin(2 * Math.PI * 30 * t));
+    })(),
+  },
+  // A bumper turning a ball, or a bolt or a blast striking it: a springy
+  // boing, a note leaping up an octave and wavering as it settles.
+  {
+    name: "bumper",
+    seconds: 0.24,
+    peak: 0.35,
+    sample: note(
+      0,
+      wavering(glide(220, 440, 0.04, 0.25), 15, 0.2, 0.1),
+      envelope(0.002, 0.07),
+    ),
+  },
+  // A ball through a portal: a whoosh of air, swept up as it goes in and back
+  // down as it comes out of the twin.
+  {
+    name: "portal",
+    seconds: 0.3,
+    peak: 0.4,
+    sample: (() => {
+      const into = note(
+        0,
+        rushing(31, glide(500, 2000, 0.12)),
+        envelope(0.04, 0.07),
+      );
+      const out = note(
+        0.1,
+        rushing(37, glide(2000, 500, 0.16)),
+        envelope(0.02, 0.07),
+      );
+      return (t) => into(t) + out(t);
     })(),
   },
 ];

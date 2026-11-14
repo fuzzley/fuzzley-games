@@ -46,8 +46,8 @@ const VOICES_OF_EVENTS: Readonly<
   plated: ["plate", []],
   opened: ["gates", []],
   seeking: ["seeker", []],
-  bumped: [null, []],
-  portalled: [null, []],
+  bumped: ["bumper", ["pop"]],
+  portalled: ["portal", []],
   slid: [null, ["slide"]],
 };
 
@@ -75,7 +75,7 @@ const VOICES_OF_KINDS: Readonly<
   plated: ["hit", "broken"],
   key: ["hit", "key"],
   gate: ["steel", null],
-  bumper: ["steel", null],
+  bumper: ["bumper", null],
   portal: ["steel", null],
   slider: ["hit", "broken"],
 };

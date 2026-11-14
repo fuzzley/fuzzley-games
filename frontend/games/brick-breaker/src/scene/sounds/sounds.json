@@ -74,6 +74,16 @@
       "start": 5.67,
       "end": 5.93,
       "loop": false
+    },
+    "bumper": {
+      "start": 6.03,
+      "end": 6.27,
+      "loop": false
+    },
+    "portal": {
+      "start": 6.37,
+      "end": 6.67,
+      "loop": false
     }
   }
 }

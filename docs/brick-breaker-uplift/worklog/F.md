@@ -994,3 +994,101 @@ Review:
 4. This game's `AGENTS.md` named which sounds take the burst, which F3b's
    recipes could leave stale. Fixed: "laying a burst of noise under a
    tone, as a knock or a boom has", as Brick Fuzz Pop's reads.
+
+## F3b. Machines' voices, the gates' opening and the lost ball's fur
+
+The second half of F3: the voices of K3's kinds, a boing for a bumper and
+a whoosh for a portal, and two flourishes other packages left to stream F:
+the gates' opening (L6's note) and the fur of a ball lost in a streak (L3's
+fur review, item 1). The branch was at the integration tip, b76415ac, as
+the package began.
+
+### 2026-11-14: a boing for a bumper and a whoosh for a portal
+
+What it does:
+
+- Two new sounds, synthesized by `tools/build-sounds.mjs` as the rest are
+  and named at the end of `SOUNDS`:
+  - `bumper`, a springy boing: a note leaping an octave, 220 to 440 Hz in
+    40 ms, with a quarter of its second harmonic, wavering in pitch 15
+    times a second, by a fifth (20%) of its pitch at first, about three
+    semitones, the wavering dying away over 0.1 s (`wavering()`, which
+    reads the tone a little ahead of and behind its time), 0.24 s;
+  - `portal`, a whoosh: a band of `thud()`'s noise, smoothed over half a
+    millisecond so only its lowest band is left and carried up about a
+    gliding tone (`rushing()`), swept up from 500 to 2000 Hz as the ball
+    goes in, then down from 2000 to 500 Hz as it comes out of the twin,
+    0.3 s, the going in a little quieter than the coming out (its loudest
+    20 ms 0.085 by RMS against 0.115), so the whoosh swells as the ball
+    passes. Rendered, its brightness (the spectrum's centroid) climbs from
+    0.76 kHz to 1.8 kHz at 100 ms and falls to 0.6 kHz by its end.
+- `EVENT_EFFECTS` gives K3's events their sounds: `bumped` the boing, with
+  the pop a brick that holds a hit plays, and `portalled` the whoosh, as
+  the ball comes out of the twin. `VOICES` gives the bumper its boing for
+  a hit too, as a bolt or a blast strikes it, which rang as steel: K3 left
+  the bumper its voice "on either event".
+- `slid` stays silent (below).
+- The sprite (`sounds.wav`, 190 KB to 213 KB, 6.67 s, and `sounds.json`)
+  is written again; its first fifteen sounds are the old file's samples
+  exactly, at the same places.
+- Specs: `effects.spec.ts`' voices (`VOICES_OF_EVENTS`, `VOICES_OF_KINDS`),
+  and the scene's: a ball turning off a bumper boings and swells it, then
+  settles it back; a bolt's strike on a bumper boings; a ball out of a
+  portal's twin whooshes; a slider's step plays nothing. Each fails with
+  its bug put back (the bumper's voice, `bumped`'s sound and pop,
+  `portalled`'s sound, a sound on `slid`).
+- `AGENTS.md`: `effects.ts`' voices, the brick painter's pop, and Make the
+  Sounds' seventeen, to the portal's whoosh.
+
+Choices where the plan was silent:
+
+- **A slider's step makes no sound.** The plan names none. A step comes on
+  every beat, 800 ms, whatever the player does: Conveyor's trains would
+  tick 75 times a minute under every other sound, a metronome the player
+  didn't start. The game's sounds say what a ball meets and the run's
+  turns, and a slider still knocks and bloops as any brick when a ball
+  meets it; the slide shows the step, and without motion the slider is
+  seen at its new cell at once. A medium dose, as the plan asks.
+- **A bumper pops as a ball turns off it,** as it already did at a bolt's
+  hit and as steel swells at a ball's: a bumper kicks the ball back, as a
+  pinball's does, so it swells as it kicks. A plate's underside, which
+  records `plated` rather than `hit` too, stays still, as F3a left it: it
+  is armour that turns a ball without giving, and its clank says so. The
+  pop is one line, and none plays where motion isn't welcome.
+- **A portal's whoosh goes in and comes out.** The ball's move is at once,
+  and `portalled` is recorded at the twin, so the one sound carries both:
+  up as it goes in, down as it comes out, as Brick Fuzz Pop's portal
+  whoops up and back down, in noise rather than a tone, so it reads as
+  air rushing rather than a note.
+- **The names** are the kinds', as F3a's are the surfaces' and events':
+  `bumper`, `portal`.
+
+How loud, measured as F3a did, on the rendered sprite (peak; the loudest
+30 ms, RMS): hit 0.50, 0.219; bumper 0.35, 0.193; portal 0.40, 0.109.
+Neither is louder than the brick's knock by either. The boing's peak is
+0.35 rather than 0.4, which would have made it 0.221 by RMS, a sine
+holding its loudness longer than the knock's burst.
+
+Added to shared files: the scene's spec (`bricks_scene.spec.ts`), a
+helper (`turnOffBumper()`, `BUMPER`) and five specs; lines of `AGENTS.md`.
+
+Checks, after the review's fixes: the workspace's lint and typecheck
+pass, and its tests, 77 files and 3706 specs, in 19.0 s; the root's lint
+passes.
+
+Review:
+
+1. The portal's going in was 8 dB quieter than its coming out:
+   `envelope()` falls from 0 s, so a 60 ms rise against a 50 ms fall
+   topped out at 0.31. Fixed: `envelope(0.04, 0.07)`, which tops out at
+   0.56, so the rising sweep is heard, still a little under the coming
+   out (above). The sprite was written again and measured.
+2. The log's reason for the bumper's pop was wrong: a plate's underside
+   records `plated`, not `hit`, and stays still too. Kept the pop and the
+   plate's stillness, and reworded the choice above to say why each.
+3. "By a fifth of it" read as a musical fifth. Fixed: "a fifth (20%) of
+   its pitch, about three semitones".
+4. The portal's scene spec threw its ball at a literal 13. Fixed:
+   `cellMiddleX(cellIndex(6, 8))`, the low portal's column.
+5. `wavering()`'s `settle` is what the library calls `decay`. Renamed;
+   "ahead and behind" is "ahead of and behind".

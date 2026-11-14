@@ -408,6 +408,27 @@ async function meetPaddle(setUp?: (shell: FakeShell) => void): Promise<Board> {
   return board;
 }
 
+/** The cell of the bumper {@link turnOffBumper} turns a ball off. */
+const BUMPER = cellIndex(6, 5);
+
+/**
+ * Starts a board and has a ball rise into a bumper, stepped by the rules
+ * till they record its turn, then draws the frame that plays it.
+ */
+async function turnOffBumper(): Promise<Board> {
+  const board = await startBoard((shell) => {
+    shell.showField(["o", "", "", "", "", "......O"]);
+  });
+  const { field } = board.shell;
+  throwBall(field, cellMiddleX(BUMPER), 10, 0);
+  stepTimes(field, 15);
+  if (!eventsOf(field).includes("bumped")) {
+    throw new Error("The ball never met the bumper.");
+  }
+  board.run.advance(16);
+  return board;
+}
+
 /** Sets a shell's paddle up to catch the balls it meets. */
 function catching(shell: FakeShell): void {
   shell.field.mode = "catch";
@@ -2055,6 +2076,20 @@ describe("BricksScene", () => {
       });
     });
 
+    it("swells a bumper a ball turns off, and settles it back", async () => {
+      const { run, scene } = await turnOffBumper();
+      const image = scene.bricks.images[BUMPER];
+
+      run.advance(POP_MS / 2);
+      const swollen = image?.scale ?? 0;
+      run.advance(POP_MS);
+
+      expect({ swollen: swollen > 1, settled: image?.scale }).toEqual({
+        swollen: true,
+        settled: 1,
+      });
+    });
+
     it("throws a broken brick's shards from its middle, in its color", async () => {
       const { shell, run, scene } = await startBoard();
       const plain = brickAt(shell.field, 0, 0);
@@ -3307,6 +3342,54 @@ describe("BricksScene", () => {
         ["broken", 0],
         ["cage", 0],
       ]);
+    });
+
+    it("boing a bumper as a ball turns off it", async () => {
+      const played = soundsPlayed();
+
+      await turnOffBumper();
+
+      expect(played).toEqual([["bumper", 0]]);
+    });
+
+    it("boing a bumper as a bolt strikes it", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.showField(["oO"]);
+      });
+      const played = soundsPlayed();
+
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      run.advance(16);
+
+      expect(played).toEqual([["bumper", 0]]);
+    });
+
+    it("whoosh as a ball comes out of a portal's twin", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.showField(["o", "......@", "", "", "", "", "", "", "......@"]);
+      });
+      throwBall(shell.field, cellMiddleX(cellIndex(6, 8)), 12, 0);
+      stepTimes(shell.field, 4);
+      const played = soundsPlayed();
+
+      run.advance(16);
+
+      expect({ events: eventsOf(shell.field), played }).toEqual({
+        events: ["portalled"],
+        played: [["portal", 0]],
+      });
+    });
+
+    it("play nothing as a slider steps on the field's beat", async () => {
+      const { shell, run } = await stepSlider();
+      const played = soundsPlayed();
+
+      run.advance(16);
+
+      expect({ events: eventsOf(shell.field), played }).toEqual({
+        events: ["slid"],
+        played: [],
+      });
     });
 
     it("play the clear's chord once the last brick's hit has held", async () => {
