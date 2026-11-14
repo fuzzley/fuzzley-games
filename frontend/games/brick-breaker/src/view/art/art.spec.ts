@@ -34,7 +34,6 @@ import {
   ballFrame,
   capsuleFrame,
   capsuleShape,
-  facedBallFrame,
   tagFrame,
 } from "./art";
 import { SYMBOLS } from "./symbols";
@@ -71,16 +70,26 @@ const FRIENDS = Array.from({ length: FRIEND_INKS }, (_, ink) => ink);
  * of its fur, whose strands taper under a CSS pixel on a small field and
  * show by the outline beneath them.
  */
-const FUR_COLORS: ReadonlyMap<string, number> = new Map(
-  BALL_KIND_IDS.flatMap((kind) =>
+const FUR_COLORS: ReadonlyMap<string, number> = new Map([
+  ...BALL_KIND_IDS.flatMap((kind) =>
     [OWN_INK, ...FRIENDS].flatMap((ink) =>
-      [
-        ...STREAKS.map((streak) => ballFrame(kind, streak, ink)),
-        facedBallFrame(kind, ink),
-      ].map((name) => [name, ballColor(kind, ink, ART_PALETTE)] as const),
+      STREAKS.map(
+        (streak) =>
+          [
+            ballFrame(kind, streak, ink),
+            ballColor(kind, ink, ART_PALETTE),
+          ] as const,
+      ),
     ),
   ),
-);
+  ...BALL_KIND_IDS.map(
+    (kind) =>
+      [
+        PICTURE_FRAMES.balls[kind],
+        ballColor(kind, OWN_INK, ART_PALETTE),
+      ] as const,
+  ),
+]);
 
 /** Returns whether a command is a strand of a ball's fur, or a part of one, in a frame. */
 function isFur(command: DrawCommand, frame: ArtFrame): boolean {
@@ -268,19 +277,6 @@ describe("a ball's frames", () => {
     },
   );
 
-  it.each(BALL_KIND_IDS)(
-    "draws a %s ball with its eyes in the marks' color, as large as it flies",
-    (kind) => {
-      const faced = frameNamed(ART_FRAMES, facedBallFrame(kind));
-      const flying = frameNamed(ART_FRAMES, ballFrame(kind, 0));
-
-      expect({
-        size: [faced.width, faced.height],
-        eyes: drawnIn(faced, "polygon", ART_PALETTE.mark).length,
-      }).toEqual({ size: [flying.width, flying.height], eyes: 2 });
-    },
-  );
-
   it.each(FIELD_SCALES)(
     "keeps a normal ball's fur within the ball's edge at a unit of $unit device pixels",
     (scale) => {
@@ -408,36 +404,11 @@ describe("a ball's frames", () => {
   it.each(["fire", "blast"] as const)(
     "draws a friend as a %s ball while the balls are, in that kind's look",
     (kind) => {
-      expect([
-        ballFrame(kind, 20, 2),
-        facedBallFrame(kind, 2),
-        ballColor(kind, 2, ART_PALETTE),
-      ]).toEqual([
-        ballFrame(kind, 20),
-        facedBallFrame(kind),
-        ART_PALETTE.balls[kind],
-      ]);
+      expect([ballFrame(kind, 20, 2), ballColor(kind, 2, ART_PALETTE)]).toEqual(
+        [ballFrame(kind, 20), ART_PALETTE.balls[kind]],
+      );
     },
   );
-
-  it("draws a friend with its eyes in the marks' color, in its ink, as large as it flies", () => {
-    const faced = frameNamed(ART_FRAMES, facedBallFrame("normal", 2));
-    const flying = frameNamed(ART_FRAMES, ballFrame("normal", 0, 2));
-
-    expect({
-      size: [faced.width, faced.height],
-      eyes: drawnIn(faced, "polygon", ART_PALETTE.mark).length,
-      colors: new Set(faced.commands.map((command) => command.color)),
-    }).toEqual({
-      size: [flying.width, flying.height],
-      eyes: 2,
-      colors: new Set([
-        ART_PALETTE.outline,
-        ART_PALETTE.friendInks[2],
-        ART_PALETTE.mark,
-      ]),
-    });
-  });
 
   it("colors a normal ball by its ink, a friend's own or the balls' where it is the player's", () => {
     expect([
@@ -671,10 +642,9 @@ describe("the atlas", () => {
       ...BALL_KIND_IDS.flatMap((kind) =>
         STREAKS.map((streak) => ballFrame(kind, streak)),
       ),
-      ...FRIENDS.flatMap((ink) => [
-        ...STREAKS.map((streak) => ballFrame("normal", streak, ink)),
-        facedBallFrame("normal", ink),
-      ]),
+      ...FRIENDS.flatMap((ink) =>
+        STREAKS.map((streak) => ballFrame("normal", streak, ink)),
+      ),
       ...CAPSULE_IDS.map(capsuleFrame),
       ...CAPSULE_IDS.map(tagFrame),
     ];
@@ -772,6 +742,27 @@ describe("PICTURE_FRAMES", () => {
     atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
   );
 
+  it.each(BALL_KIND_IDS)(
+    "pictures a %s ball as it flies outside a streak, with its eyes over it in the marks' color",
+    (kind) => {
+      const faced = frameNamed(ART_FRAMES, PICTURE_FRAMES.balls[kind]);
+      const flying = frameNamed(ART_FRAMES, ballFrame(kind, 0));
+
+      expect({
+        size: [faced.width, faced.height],
+        body: faced.commands.slice(0, flying.commands.length),
+        eyes: faced.commands.slice(flying.commands.length),
+      }).toEqual({
+        size: [flying.width, flying.height],
+        body: flying.commands,
+        eyes: [
+          expect.objectContaining({ kind: "polygon", color: ART_PALETTE.mark }),
+          expect.objectContaining({ kind: "polygon", color: ART_PALETTE.mark }),
+        ],
+      });
+    },
+  );
+
   it("pictures every brick kind, ball kind and capsule from a frame the atlas holds", () => {
     const pictured = [
       ...Object.values(PICTURE_FRAMES.bricks),
@@ -785,14 +776,6 @@ describe("PICTURE_FRAMES", () => {
     }).toEqual({
       count: BRICK_KIND_IDS.length + BALL_KIND_IDS.length + CAPSULE_IDS.length,
       missing: [],
-    });
-  });
-
-  it("pictures each ball with its eyes", () => {
-    expect(PICTURE_FRAMES.balls).toEqual({
-      normal: facedBallFrame("normal"),
-      fire: facedBallFrame("fire"),
-      blast: facedBallFrame("blast"),
     });
   });
 

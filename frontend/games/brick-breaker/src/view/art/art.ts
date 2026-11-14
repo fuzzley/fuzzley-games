@@ -148,12 +148,6 @@ const KIT_CAPSULE = {
  */
 const SYMBOL_SHARE = 0.85;
 
-/** Names a normal ball's frames in one color, the player's or a friend's: as it flies, at each step of the streak, and with its eyes. */
-interface NormalBallFrames {
-  readonly flying: readonly string[];
-  readonly faced: string;
-}
-
 // Made once, so finding a frame's name makes nothing.
 const BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
   BALL_KIND_IDS,
@@ -166,19 +160,13 @@ const FACED_BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
   BALL_KIND_IDS,
   (kind) => `ball-${kind}-faced`,
 );
-const OWN_BALL_FRAMES: NormalBallFrames = {
-  flying: STREAK_BALL_FRAMES,
-  faced: FACED_BALL_FRAMES.normal,
-};
-const FRIEND_BALL_FRAMES: readonly NormalBallFrames[] = Array.from(
+const FRIEND_BALL_FRAMES: readonly (readonly string[])[] = Array.from(
   { length: FRIEND_INKS },
-  (_, ink) => ({
-    flying: STREAK_FUR.map(
+  (_, ink) =>
+    STREAK_FUR.map(
       (_, step) =>
         `ball-friend-${String(ink)}${step === 0 ? "" : `-x${String(step + 1)}`}`,
     ),
-    faced: `ball-friend-${String(ink)}-faced`,
-  }),
 );
 const CAPSULE_FRAMES: Readonly<Record<CapsuleId, string>> = recordOf(
   CAPSULE_IDS,
@@ -340,14 +328,7 @@ export function ballFrame(
   ink = OWN_INK,
 ): string {
   if (kind !== "normal") return BALL_FRAMES[kind];
-  return normalFramesOf(ink).flying[streakStep(streak)] ?? BALL_FRAMES.normal;
-}
-
-/** Returns the name of a ball's frame with its eyes looking ahead, by the balls' kind and its ink, for a ball shown still. */
-export function facedBallFrame(kind: BallKindId, ink = OWN_INK): string {
-  return kind === "normal"
-    ? normalFramesOf(ink).faced
-    : FACED_BALL_FRAMES[kind];
+  return normalFramesOf(ink)[streakStep(streak)] ?? BALL_FRAMES.normal;
 }
 
 /**
@@ -366,11 +347,12 @@ export function ballColor(
 }
 
 /**
- * Returns the names of a normal ball's frames in its ink: a friend's, or
- * the player's own for {@link OWN_INK}, which names no friend.
+ * Returns the names of a normal ball's frames in its ink, at each step of
+ * the streak: a friend's, or the player's own for {@link OWN_INK}, which
+ * names no friend.
  */
-function normalFramesOf(ink: number): NormalBallFrames {
-  return FRIEND_BALL_FRAMES[ink] ?? OWN_BALL_FRAMES;
+function normalFramesOf(ink: number): readonly string[] {
+  return FRIEND_BALL_FRAMES[ink] ?? STREAK_BALL_FRAMES;
 }
 
 /**
@@ -401,9 +383,6 @@ function ballArt(
   palette: BricksPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  if (kind === "normal") {
-    return normalBallArt(OWN_BALL_FRAMES, palette.balls.normal, palette, scale);
-  }
   const by = ballGrid(scale);
   const outline = { color: palette.outline, width: lineWidth(scale) };
   const body = fuzzballCommands(by, {
@@ -411,10 +390,11 @@ function ballArt(
     outline,
     fur: FUR[kind],
   });
-  return [
-    centered(BALL_FRAMES[kind], body),
-    facedArt(FACED_BALL_FRAMES[kind], body, by, palette),
-  ];
+  const flying =
+    kind === "normal"
+      ? normalBallArt(STREAK_BALL_FRAMES, palette.balls[kind], palette, scale)
+      : [centered(BALL_FRAMES[kind], body)];
+  return [...flying, facedArt(FACED_BALL_FRAMES[kind], body, by, palette)];
 }
 
 /** Returns the friends' frames, a normal ball's in each friend's ink. */
@@ -430,10 +410,10 @@ function friendBallArt(
 /**
  * Returns a normal ball's frames in a color, by their names: the fuzzball,
  * outlined in the palette's outline, as it flies at each step of the
- * streak, as one with its sparks where it has them, and with its eyes.
+ * streak, as one with its sparks where it has them.
  */
 function normalBallArt(
-  names: NormalBallFrames,
+  names: readonly string[],
   color: number,
   palette: BricksPalette,
   scale: ArtScale,
@@ -449,20 +429,16 @@ function normalBallArt(
     },
     outline,
   );
-  const body = fuzzballCommands(by, { color, outline, fur: FUR.normal });
-  return [
-    ...STREAK_FUR.map((look, step) =>
-      centered(
-        names.flying[step] ?? BALL_FRAMES.normal,
-        fuzzballWearing(
-          by,
-          { color, outline, fur: look.fur },
-          look.sparks ? sparks : {},
-        ),
+  return STREAK_FUR.map((look, step) =>
+    centered(
+      names[step] ?? BALL_FRAMES.normal,
+      fuzzballWearing(
+        by,
+        { color, outline, fur: look.fur },
+        look.sparks ? sparks : {},
       ),
     ),
-    facedArt(names.faced, body, by, palette),
-  ];
+  );
 }
 
 /** Returns a ball's frame with its eyes, in the marks' color, over its body, `by` device pixels to a unit of the fuzzball's grid. */
@@ -645,10 +621,10 @@ function otherArt(
 
 /**
  * Returns every frame the atlas holds, drawn in a palette at a scale: each
- * brick kind in each tint and state, each ball as it flies and with its
- * eyes, a friend in each friend's ink too, each capsule and its tag, the
- * balls' eyes, the paddle's ends, cannons and hooks, the bolt and the
- * flourishes.
+ * brick kind in each tint and state, each ball kind as it flies and with
+ * its eyes, a normal ball as it flies in each friend's ink too, each
+ * capsule and its tag, the balls' eyes, the paddle's ends, cannons and
+ * hooks, the bolt and the flourishes.
  */
 export function atlasFrames(
   palette: BricksPalette,

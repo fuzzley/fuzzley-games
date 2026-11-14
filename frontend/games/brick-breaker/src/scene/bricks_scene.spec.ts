@@ -1174,10 +1174,10 @@ describe("BricksScene", () => {
     /** The cells of the gates `withGates()` lays. */
     const gates = [1, 3].map((column) => cellIndex(column, 0));
 
-    /** Sets a shell up, still, on a field of a key and two gates, beside a plain brick that keeps the level in play once the key breaks. */
+    /** Sets a shell up, still, on {@link GATED}'s field. */
     function withGates(shell: FakeShell): void {
       stillness(shell);
-      shell.field = fieldFrom(["k=.=", "o"]);
+      shell.field = fieldFrom(GATED);
     }
 
     it("shows each gate shut while a key is left", async () => {
@@ -1196,7 +1196,7 @@ describe("BricksScene", () => {
     it("hides every gate as the last key opens them", async () => {
       const { shell, run, scene } = await startBoard(withGates);
 
-      hitBrick(shell.field, brickAt(shell.field, 0, 0), 0, 0);
+      openGates(shell);
       run.advance(16);
 
       expect(gates.map((cell) => scene.bricks.images[cell]?.visible)).toEqual([

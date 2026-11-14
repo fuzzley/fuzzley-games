@@ -501,9 +501,8 @@ takes for the specs' helpers.
   wide, or wider, its shine left out, where a brick is too small for its
   finest detail, its tag, a seeking ball's sight, a ring round it in a
   good capsule's color with a tick out from it each way, outlined, the bolt
-  and the flourishes, names the frame
-  a ball, a capsule or a tag shows (`ballFrame()`, a normal ball's by the
-  streak, a friend's in its ink, `facedBallFrame()` and
+  and the flourishes, names the frame a ball, a capsule or a tag shows
+  (`ballFrame()`, a normal ball's by the streak, a friend's in its ink, and
   the rest), the color a ball is drawn in, which its tail and its streak's
   ring take (`ballColor()`, a friend's ink while the balls are normal, else
   its kind's), and How to play's pictures (`PICTURE_FRAMES`);
