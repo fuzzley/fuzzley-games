@@ -26,6 +26,8 @@ export const SOUNDS = [
   "key",
   "gates",
   "seeker",
+  "bumper",
+  "portal",
 ] as const;
 
 /** Names a sound of the game's sprite. */
@@ -44,14 +46,14 @@ const STREAK_NOTES = [0, 2, 4, 7, 9, 12, 14, 16, TOP_NOTE] as const;
 const SEMITONE_CENTS = 100;
 
 /**
- * Names a flourish the scene plays: a hit brick's pop, a broken one's
- * shards, a blast's ring, the field's shake, a lost ball's fade, a
- * regrown brick's growing back, a streak's step or its reaching the
- * level's mark, a ring about the ball and the streak's count beside it,
- * the last brick's hit holding as the level clears, and, as a ball meets
- * the paddle, the ball's squash and the pad's dip, and a slider's slide
- * into its next cell. Each moves, so none plays where motion isn't
- * welcome.
+ * Names a flourish the scene plays: the pop of a brick that holds a hit or
+ * of a bumper a ball turns off, a broken brick's shards, a blast's ring,
+ * the field's shake, a lost ball's fade, a regrown brick's growing back, a
+ * streak's step or its reaching the level's mark, a ring about the ball and
+ * the streak's count beside it, the last brick's hit holding as the level
+ * clears, and, as a ball meets the paddle, the ball's squash and the pad's
+ * dip, and a slider's slide into its next cell. Each moves, so none plays
+ * where motion isn't welcome.
  */
 export type Flourish =
   | "pop"
@@ -99,8 +101,8 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   plated: { flourishes: [], sound: "plate" },
   opened: { flourishes: [], sound: "gates" },
   seeking: { flourishes: [], sound: "seeker" },
-  bumped: { flourishes: [], sound: null },
-  portalled: { flourishes: [], sound: null },
+  bumped: { flourishes: ["pop"], sound: "bumper" },
+  portalled: { flourishes: [], sound: "portal" },
   slid: { flourishes: ["slide"], sound: null },
 };
 
@@ -121,13 +123,15 @@ interface BrickVoice {
 
 /**
  * The kinds of brick that sound in a voice of their own: a cage's bars
- * rattle as a hit bends one, and a key chimes as it breaks. Any other knocks
- * as it holds, or rings as steel if it never breaks, and bloops as it
- * breaks.
+ * rattle as a hit bends one, a key chimes as it breaks, and a bumper boings
+ * as a bolt or a blast strikes it, as it does when a ball turns off it. Any
+ * other knocks as it holds, or rings as steel if it never breaks, and
+ * bloops as it breaks.
  */
 const VOICES: Readonly<Partial<Record<BrickKindId, BrickVoice>>> = {
   cage: { hit: "cage" },
   key: { broken: "key" },
+  bumper: { hit: "bumper" },
 };
 
 /** Says what a brick's hit and its breaking call for, in its kind's voice. */

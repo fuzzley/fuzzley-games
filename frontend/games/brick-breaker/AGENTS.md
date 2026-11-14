@@ -345,16 +345,18 @@ takes for the specs' helpers.
   flourishes it plays where motion is welcome, a brick broken at a streak's
   step, or at the level's mark, adding the step's, and a ball meeting the
   paddle squashing the ball and dipping the pad, and a slider's step
-  sliding it in from the cell it left (`slid`), in the picture alone.
-  A plate's underside clanks as
-  it turns a ball back or a bolt is spent on it (`plated`), a cage rattles
-  as it frees its friend (`freed`),
-  the gates sweep low and rising as they open (`opened`), and a soft
-  flutter rises as the paddle lends a ball the seeker (`seeking`). A kind
-  of brick with a voice of its own (`VOICES`) sounds in it: a cage's bars
-  rattle as a hit bends one, and a key chimes as it breaks; any other
-  knocks as it holds, rings as steel if it never breaks, and bloops as it
-  breaks. `detuneOf()` says how far a broken brick's sound, its bloop or a
+  sliding it in from the cell it left (`slid`), in the picture alone, with
+  no sound, as it comes on every beat. A plate's underside clanks as it
+  turns a ball back or a bolt is spent on it (`plated`), a cage rattles as
+  it frees its friend (`freed`), the gates sweep low and rising as they
+  open (`opened`), a soft flutter rises as the paddle lends a ball the
+  seeker (`seeking`), a bumper boings and pops as a ball turns off it
+  (`bumped`), and air whooshes up and back down as a ball goes through a
+  portal (`portalled`). A kind of brick with a voice of its own (`VOICES`)
+  sounds in it: a cage's bars rattle as a hit bends one, a key chimes as
+  it breaks, and a bumper boings as a bolt or a blast strikes it; any
+  other knocks as it holds, rings as steel if it never breaks, and bloops
+  as it breaks. `detuneOf()` says how far a broken brick's sound, its bloop or a
   key's chime, rises along a streak, a note of a major pentatonic scale a
   brick, up to an octave and a fifth, which Phaser plays as the sound's
   rate, nearly three times as fast, past the ±1200 cents its docs give and
@@ -563,9 +565,9 @@ takes for the specs' helpers.
   so the net and the gutter under it only take a tint of it,
   `BrickPainter` an image for each cell, made once, dropped in as a level
   starts, a column after a column, each drawn its column's height above its
-  place till it lands, or at once at a key, swollen at a hit a brick holds,
-  its ring shown while it grows back and grown back as it
-  regrows, and slid from the cell it left into a slider's new one, an
+  place till it lands, or at once at a key, swollen at a hit a brick holds
+  or as a ball turns off a bumper, its ring shown while it grows back and
+  grown back as it regrows, and slid from the cell it left into a slider's new one, an
   offset beside the drop-in's (`slide`, over `SLIDE_MS`), `GlowPainter`
   the frames around the last bricks a level needs, a slider's following
   its slide (`BrickPainter.slideOffsetOf()`),
@@ -1065,8 +1067,8 @@ workspace's with the others'.
   just won and a line for double pay, lies on the field, and the rest holds
   as above).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
-  which synthesizes the fifteen sounds, from the paddle's bop to the
-  seeker's flutter, with `@fz/dev/sounds`' synths, its `withBurst()` laying a
+  which synthesizes the seventeen sounds, from the paddle's bop to the
+  portal's whoosh, with `@fz/dev/sounds`' synths, its `withBurst()` laying a
   burst of noise under a tone, as a knock or a boom has, into
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same
   bytes every run, both checked in; their names and order are the view's
