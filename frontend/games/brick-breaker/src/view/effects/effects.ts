@@ -1,5 +1,10 @@
 import { FrameSounds } from "@fz/core/frame_sounds";
-import { canBreak } from "../../rules/bricks/bricks";
+import { recordOf } from "@fz/core/records";
+import {
+  BRICK_KIND_IDS,
+  type BrickKindId,
+  brickKind,
+} from "../../rules/catalog/bricks";
 import type { FieldEvent, FieldEventKind, FieldView } from "../field/frame";
 import { isStreakStep } from "./streak";
 import { HOLD_MS } from "./timing";
@@ -16,6 +21,11 @@ export const SOUNDS = [
   "fired",
   "lost",
   "cleared",
+  "plate",
+  "cage",
+  "key",
+  "gates",
+  "seeker",
 ] as const;
 
 /** Names a sound of the game's sprite. */
@@ -53,7 +63,10 @@ export interface EventEffects {
 /** The sound a level cleared plays, which a life by points and a new best share. */
 export const CHIME: SoundName = "cleared";
 
-/** What each event calls for, but a hit on steel, which rings. */
+/**
+ * What each event calls for, but a hit on a brick that never breaks, which
+ * rings, and a hit or a break on a brick of a kind with a voice of its own.
+ */
 const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   launched: { flourishes: [], sound: null },
   wall: { flourishes: [], sound: "wall" },
@@ -69,10 +82,10 @@ const EVENT_EFFECTS: Readonly<Record<FieldEventKind, EventEffects>> = {
   netted: { flourishes: [], sound: "paddle" },
   lost: { flourishes: ["fade", "shake"], sound: "lost" },
   cleared: { flourishes: ["hold"], sound: CHIME },
-  freed: { flourishes: [], sound: null },
-  plated: { flourishes: [], sound: null },
-  opened: { flourishes: [], sound: null },
-  seeking: { flourishes: [], sound: null },
+  freed: { flourishes: [], sound: "cage" },
+  plated: { flourishes: [], sound: "plate" },
+  opened: { flourishes: [], sound: "gates" },
+  seeking: { flourishes: [], sound: "seeker" },
 };
 
 /** What a hit on a brick that never breaks calls for. */
@@ -84,6 +97,59 @@ const BROKEN_AT_STEP: EventEffects = {
   flourishes: [...EVENT_EFFECTS.broken.flourishes, "streak"],
 };
 
+/** Says which sounds a kind of brick makes in a voice of its own: as a hit leaves it standing, and as it breaks. */
+interface BrickVoice {
+  readonly hit?: SoundName;
+  readonly broken?: SoundName;
+}
+
+/**
+ * The kinds of brick that sound in a voice of their own: a cage's bars
+ * rattle as a hit bends one, and a key chimes as it breaks. Any other knocks
+ * as it holds, or rings as steel if it never breaks, and bloops as it
+ * breaks.
+ */
+const VOICES: Readonly<Partial<Record<BrickKindId, BrickVoice>>> = {
+  cage: { hit: "cage" },
+  key: { broken: "key" },
+};
+
+/** Says what a brick's hit and its breaking call for, in its kind's voice. */
+interface BrickEffects {
+  readonly hit: EventEffects;
+  readonly broken: EventEffects;
+  /** What it calls for as it breaks taking the streak to a step. */
+  readonly brokenAtStep: EventEffects;
+}
+
+/** Returns effects with a voice's sound in place of theirs, where it has one. */
+function voiced(
+  effects: EventEffects,
+  sound: SoundName | undefined,
+): EventEffects {
+  return sound === undefined ? effects : { ...effects, sound };
+}
+
+/**
+ * Returns what a brick's hit and its breaking call for, in a voice, a hit
+ * ringing as steel's does on a brick that never breaks.
+ */
+function brickEffects(voice: BrickVoice, breaks: boolean): BrickEffects {
+  return {
+    hit: voiced(breaks ? EVENT_EFFECTS.hit : UNBROKEN_HIT, voice.hit),
+    broken: voiced(EVENT_EFFECTS.broken, voice.broken),
+    brokenAtStep: voiced(BROKEN_AT_STEP, voice.broken),
+  };
+}
+
+/** What a hit and a break call for on a brick of each kind, made once, so playing an event makes nothing. */
+const BRICK_EFFECTS = recordOf(BRICK_KIND_IDS, (kind) =>
+  brickEffects(VOICES[kind] ?? {}, brickKind(kind).hits !== "never"),
+);
+
+/** What a hit and a break call for where the field has no brick at their cell. */
+const UNVOICED = brickEffects({}, true);
+
 /** The flourishes played where motion isn't welcome. */
 const STILL: readonly Flourish[] = [];
 
@@ -93,21 +159,23 @@ export function effectsOf(
   field: FieldView,
 ): EventEffects {
   const brick = field.bricks[event.cell];
-  if (event.kind === "hit" && brick && !canBreak(brick)) return UNBROKEN_HIT;
-  if (event.kind === "broken" && isStreakStep(event.streak)) {
-    return BROKEN_AT_STEP;
+  const effects = brick ? BRICK_EFFECTS[brick.kind] : UNVOICED;
+  if (event.kind === "hit") return effects.hit;
+  if (event.kind === "broken") {
+    return isStreakStep(event.streak) ? effects.brokenAtStep : effects.broken;
   }
   return EVENT_EFFECTS[event.kind];
 }
 
 /**
- * Returns how far an event's sound is raised, in cents: a broken brick's by
- * a note of a major pentatonic scale for each brick of its streak before
- * it, up to an octave and a fifth, so a streak sounds like a run; any
- * other's not at all.
+ * Returns how far an event's sound is raised, in cents: a broken brick's,
+ * its bloop or a key's chime, by a note of a major pentatonic scale for each
+ * brick of its streak before it, up to an octave and a fifth, so a streak
+ * sounds like a run; any other's not at all.
  *
  * The top, 1900 cents, is past the ±1200 Phaser's docs give, on purpose:
- * Web Audio plays it as a rate, which nothing clamps.
+ * Phaser's Web Audio sound plays a detune as its source's playback rate,
+ * 2^(cents / 1200), which neither it nor Web Audio clamps.
  */
 export function detuneOf(event: Readonly<FieldEvent>): number {
   if (event.kind !== "broken") return 0;

@@ -49,6 +49,31 @@
       "start": 3.03,
       "end": 3.81,
       "loop": false
+    },
+    "plate": {
+      "start": 3.91,
+      "end": 4.11,
+      "loop": false
+    },
+    "cage": {
+      "start": 4.21,
+      "end": 4.41,
+      "loop": false
+    },
+    "key": {
+      "start": 4.51,
+      "end": 4.87,
+      "loop": false
+    },
+    "gates": {
+      "start": 4.97,
+      "end": 5.57,
+      "loop": false
+    },
+    "seeker": {
+      "start": 5.67,
+      "end": 5.93,
+      "loop": false
     }
   }
 }
