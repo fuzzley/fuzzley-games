@@ -53,6 +53,16 @@ describe("the autopilot", () => {
     expect(report).toMatchObject({ cleared: true, livesLost: 0 });
   });
 
+  // The blasts go first, in a streak of five, and the brick behind the
+  // steel last, alone.
+  it("reports the longest streak it reached, not the last", () => {
+    const level = levelOf(["o", "#", "", "....*****"]);
+
+    const report = autoplay(level, "normal", 1);
+
+    expect(report.bestStreak).toBe(5);
+  });
+
   it("stops at its limit on a level it can't clear", () => {
     const level = levelOf(["###", "#o#", "###"]);
 

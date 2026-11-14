@@ -3,6 +3,7 @@ import { pick } from "@fz/core/records";
 import { type Brick, neededLeft, unbrokenKeys } from "../bricks/bricks";
 import { hasTrait, isNeeded } from "../catalog/bricks";
 import type { Field } from "../field/field";
+import { multiplier } from "../field/scoring";
 import { CELLS } from "../grid";
 import type { LevelBrick } from "../levels/level";
 import { type LevelEntry, parseLevel } from "../levels/levels";
@@ -33,6 +34,8 @@ export interface SavedField {
   readonly draws: number;
   /** The balls that have left the paddle since a brick the level needs broke, toward lending the seeker. */
   readonly dryBounces: number;
+  /** The longest streak of the level's play, toward the level's third star. */
+  readonly bestStreak: number;
 }
 
 /** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
@@ -72,6 +75,7 @@ export type SavableField = Pick<
   | "steps"
   | "draws"
   | "dryBounces"
+  | "bestStreak"
 >;
 
 /**
@@ -188,6 +192,7 @@ export function takeUpField(
   field.steps = saved.steps;
   field.draws = saved.draws;
   field.dryBounces = saved.dryBounces;
+  field.bestStreak = saved.bestStreak;
 }
 
 /** Returns a run and its field as storage keeps them, naming its level by its id. */
@@ -226,13 +231,15 @@ function savedField(field: SavableField): SavedField {
     steps: field.steps,
     draws: field.draws,
     dryBounces: field.dryBounces,
+    bestStreak: field.bestStreak,
   };
 }
 
 /**
  * Returns a level's field as storage kept it, or null if it can't be
- * trusted: it doesn't fit the level, a number is out of its range, the
- * level needs nothing more, or its gates stand otherwise than its keys say.
+ * trusted: it doesn't fit the level, a number is out of its range, its
+ * streak points came with no streak long enough to multiply, the level
+ * needs nothing more, or its gates stand otherwise than its keys say.
  */
 function restoredField(
   value: unknown,
@@ -241,6 +248,7 @@ function restoredField(
 ): SavedField | null {
   if (!isRecord(value)) return null;
   const { streakPoints, darePoints, climbed, steps, draws, dryBounces } = value;
+  const { bestStreak } = value;
   if (
     !isCount(streakPoints) ||
     !isCount(darePoints) ||
@@ -249,7 +257,9 @@ function restoredField(
     climbed < 0 ||
     !isCount(steps) ||
     !isCount(draws) ||
-    !isCount(dryBounces)
+    !isCount(dryBounces) ||
+    !isCount(bestStreak) ||
+    (streakPoints > 0 && multiplier(bestStreak) === 1)
   ) {
     return null;
   }
@@ -279,6 +289,7 @@ function restoredField(
     steps,
     draws,
     dryBounces,
+    bestStreak,
   };
 }
 

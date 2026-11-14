@@ -574,3 +574,76 @@ Review (a fresh reviewer, on the staged change):
 2. The entry had no checks or review, as the others do. Fixed: these.
 3. `tallerField`'s description had grown to one long line, where the
    file wraps a long property's with an indented line. Fixed: wrapped so.
+
+## R3. Stars and marks
+
+### 2026-11-14: before any change
+
+- The branch held the integration tip, e4d98c05 (P1, R1, K1, L1, P2 and
+  R2). Nothing after R2's report changed a rule, so R2's
+  `report-r2-after.txt` stands as the report before.
+
+### 2026-11-14: the best streak (C8), kept by the saved game, and the report's column
+
+- `Field.bestStreak`, the longest the streak has been in the level's
+  play, across its lives. `scoreBreak()` keeps it as it lengthens the
+  streak, the one place the streak grows, so a blast's bricks and a bolt's
+  count as they do in the streak.
+- The saved game keeps it (`SavedField.bestStreak`), so a streak reached
+  before a reload still counts. The version stays 2 (C20). As R2 did for
+  `darePoints`, a field kept without it, or with one that isn't a count, is
+  refused; so is a field whose streak points came with no best streak long
+  enough to multiply (under 5), a state no play comes to. The round trip
+  reaches "a best streak", and `playedField()` sets one of 6.
+- The autopilot's report gains `bestStreak`. `report:levels` prints it as
+  a column, `streak`: a play's own, or, with `--seeds`, the middle of the
+  plays' (`@fz/dev/report`'s `middleAndMost()`, the higher middle of an
+  even count, as the middle time is), the measure `--marks` sets a mark by.
+- Specs: the streak kept at its longest as the paddle starts it again,
+  across a life lost, and with a blast's bricks (`scoring.spec.ts`); the
+  autopilot reporting a play's longest streak, not its last; the report's
+  column in both forms, and the higher middle of four plays' streaks.
+
+Added to other streams' files: `Field.bestStreak` in `field.ts` (shared),
+set in `createField()`.
+
+`yarn report:levels --seeds 12` (86 s) prints, but for the new column,
+exactly what `report-r2-after.txt` holds, so the column changes no play.
+Saved as `docs/brick-breaker-uplift/levels/report-r3.txt`. The middle best
+streaks at Normal run from 4 (Pyramid, Arch, Diamond, Pillars, Corridors)
+to 34 (Fuse).
+
+Choices where the plan was silent:
+
+- The column is the middle of the best streaks with `--seeds`, not the
+  most, so the Normal column reads as `--marks` will round it.
+- A saved field's best streak is checked against its streak points, which
+  can't come without a streak of 5, but not against the bricks, since a
+  regrowing brick can be broken again and again in one streak.
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (63 files, 2,309 specs, 13.5 s with six workers), and the root's
+`lint`. The coverage runs at R3's last commit to touch `src/rules`.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The report spec's middle streak, 12, was also the last play's and the
+   fixture's default, so a column that printed the last play's would pass,
+   and no spec held the higher middle of an even count, which `--marks`
+   reads of twelve. Fixed: four plays of 30, 5, 9 and 7, expecting 9.
+2. The autopilot's spec played one brick, whose best streak is also its
+   last. Fixed: a row of blasts below a brick behind steel; seed 1 breaks
+   the blasts, five in a streak, then the brick alone, and the spec pins 5.
+   Checked by reporting `field.streak` instead, which fails it with 1.
+3. The blast's spec stepped a hard-coded 100 ms. Fixed: it steps the blast
+   brick's delay from the catalog, as `saved_game.spec.ts` does. The spec
+   beside it, from before the uplift, is left as it was.
+4. No spoiled entry dropped the key, so reading a missing best streak as 0
+   would pass. Fixed: "a field kept before the best streak was" is refused.
+5. Doc nits, each fixed: the script's header rewrapped; two `AGENTS.md`
+   paragraphs rewrapped; "between two touches of the paddle", which a lost
+   ball and a clear make untrue, is now "since the paddle last met a ball"
+   in the autopilot's doc, the script and `AGENTS.md`; `middleStreakOf()`'s
+   doc no longer promises 0 for no plays, and a comment says a cell always
+   has one; `SavedField.bestStreak` says "toward the level's third star", as
+   the mark comes in the next commit; and this entry gained its checks.

@@ -127,6 +127,8 @@ export interface Field {
    * was lost, which multiply the score.
    */
   streak: number;
+  /** The longest the streak has been in the level's play, across its lives. */
+  bestStreak: number;
   /**
    * How many times the level's last ball has been lost, counting up, for
    * the run to take a life for each one it hasn't yet.
@@ -213,6 +215,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     darePoints: 0,
     pay: 1,
     streak: 0,
+    bestStreak: 0,
     livesLost: 0,
     climbed: 0,
     climbRate: 1,

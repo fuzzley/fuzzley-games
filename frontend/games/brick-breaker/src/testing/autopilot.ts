@@ -100,6 +100,8 @@ export interface AutopilotReport {
   readonly caught: number;
   /** How many times it lost the last ball. */
   readonly livesLost: number;
+  /** The longest streak it reached: the most bricks broken since the paddle last met a ball. */
+  readonly bestStreak: number;
 }
 
 /** Says where the autopilot means to send the ball it is about to meet. */
@@ -174,6 +176,7 @@ export function autoplay(
     bounces,
     caught,
     livesLost: field.livesLost,
+    bestStreak: field.bestStreak,
   };
 }
 

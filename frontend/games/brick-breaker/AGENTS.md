@@ -128,8 +128,9 @@ takes for the specs' helpers.
   `multiplierAt()` over `tuning.ts`'s `STREAK`), times the field's pay
   (`Field.pay`: double while a bad capsule is in play), keeping apart what
   the streak and the pay added (`streakPoints`, `darePoints`), keeps the
-  streak, and says what clearing a level adds, and how a cleared level's
-  points add up (`tallyOf()`, the pay's line among them) and come to
+  streak and the longest it has been in the level's play, across its lives
+  (`bestStreak`), and says what clearing a level adds, and how a cleared
+  level's points add up (`tallyOf()`, the pay's line among them) and come to
   (`pointsOf()`).
   `seeker.ts` is the seeker: each step, before its travel, a ball in flight
   that seeks and rises turns toward the middle of the nearest brick the
@@ -696,11 +697,12 @@ can't trust rather than failing:
   broken), and the steps its blast
   and its regrowth are due at, with the field's count of steps, its draws,
   how far the balls' speed has climbed, what the streaks and double pay
-  added, and the balls that have left the paddle since a brick the level
-  needs broke. The balls in flight, the capsules and the effects are not
-  kept (decision 16), nor whether a ball seeks. Its version is 2: a run
-  kept under 1, by the rules before double pay, the seeker and the gates,
-  is dropped rather than played by rules it wasn't played by.
+  added, the balls that have left the paddle since a brick the level needs
+  broke, and the longest streak of the level's play. The balls in flight,
+  the capsules and the effects are not kept (decision 16), nor whether a
+  ball seeks. Its version is 2: a run kept under 1, by the rules before
+  double pay, the seeker and the gates, is dropped rather than played by
+  rules it wasn't played by.
 
 ## In This Repository
 
@@ -755,16 +757,18 @@ workspace's with the others'.
   the autopilot plays every level at every preset speed, all but Custom, from
   the level's number as the seed, as the autopilot's spec does, through
   `playLevel()`, and it prints the game time each took, the time spent on the
-  last three bricks the level needed, the paddle's bounces and the lives lost;
-  it fails, as the spec does, if a play didn't clear its level (`-`) or took
-  longer over its last bricks than the spec allows (`!`)). It is how the
-  difficulty ramp is tuned. `--seeds <n>` plays each level that many times at
-  each speed, from seeds of its own, and prints the middle time, the longest,
-  the longest endgame and the most lives lost, as the capsules one seed lets
-  fall can make a level look far easier or harder than it is; it marks a long
-  endgame too, and, on the least field, a level whose middle time at Relaxed
-  is past 2:00 as printed (`+`, after the time), longer than a level should
-  be, but fails only on a level not cleared. `--height <n>` plays them on a
+  last three bricks the level needed, the paddle's bounces, the lives lost
+  and the longest streak, the most bricks broken since the paddle last met a
+  ball; it fails, as the spec does, if a play didn't clear its level (`-`)
+  or took longer over its last bricks than the spec allows (`!`)). It is how
+  the difficulty ramp is tuned. `--seeds <n>` plays each level that many
+  times at each speed, from seeds of its own, and prints the middle time, the
+  longest, the longest endgame, the most lives lost and the middle of the
+  longest streaks, as the capsules one seed lets fall can make a level look
+  far easier or harder than it is; it marks a long endgame too, and, on the
+  least field, a level whose middle time at Relaxed is past 2:00 as printed
+  (`+`, after the time), longer than a level should be, but fails only on a
+  level not cleared. `--height <n>` plays them on a
   field that many units tall, up to 45, to the autopilot's limits for that
   height, stretched as far as the paddle lies farther from the bricks
   (`limitsOf()`), and fails, as the spec does there, only on a level not
