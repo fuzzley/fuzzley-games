@@ -395,6 +395,68 @@ function countsOf(scene: BricksScene): GameObjects.Text[] {
   return [...scene.streak.counts.values(), scene.streak.markCount];
 }
 
+/**
+ * Stands in for the page's font loading, holding each load until the spec
+ * lets them all finish or fail, and returns the fonts asked for and what
+ * finishes or fails them.
+ */
+function holdFontLoads(): {
+  readonly asked: readonly string[];
+  readonly finish: () => void;
+  readonly fail: () => void;
+} {
+  const asked: string[] = [];
+  const held: { finish: () => void; fail: () => void }[] = [];
+  Object.defineProperty(document, "fonts", {
+    configurable: true,
+    value: {
+      load: (font: string): Promise<[]> => {
+        asked.push(font);
+        return new Promise((resolve, reject) => {
+          held.push({
+            finish: () => {
+              resolve([]);
+            },
+            fail: () => {
+              reject(new DOMException("The face didn't load.", "NetworkError"));
+            },
+          });
+        });
+      },
+    },
+  });
+  onTestFinished(() => {
+    Reflect.deleteProperty(document, "fonts");
+  });
+  return {
+    asked,
+    finish: () => {
+      for (const load of held) load.finish();
+    },
+    fail: () => {
+      for (const load of held) load.fail();
+    },
+  };
+}
+
+/**
+ * Watches for a text's style measured again, and returns what reads the
+ * styles measured so far.
+ *
+ * What a count measures can't be read through Phaser's types, so a spec
+ * reads that it was measured again.
+ */
+function watchMeasures(): () => unknown[] {
+  const measured = vi.spyOn(GameObjects.TextStyle.prototype, "update");
+  onTestFinished(() => {
+    measured.mockRestore();
+  });
+  return () =>
+    measured.mock.contexts.filter(
+      (_, i) => measured.mock.calls[i]?.[0] === true,
+    );
+}
+
 /** Returns the count of a streak's step, or of its mark, that shows, if one does. */
 function countShown(scene: BricksScene): GameObjects.Text | undefined {
   return countsOf(scene).find((count) => count.visible);
@@ -2988,48 +3050,57 @@ describe("BricksScene", () => {
     });
 
     it("writes each count again in the page's font once the page has loaded it", async () => {
-      const asked: string[] = [];
-      let loaded = (): void => undefined;
-      Object.defineProperty(document, "fonts", {
-        configurable: true,
-        value: {
-          load: (font: string): Promise<[]> => {
-            asked.push(font);
-            return new Promise((resolve) => {
-              loaded = () => {
-                resolve([]);
-              };
-            });
-          },
-        },
-      });
-      onTestFinished(() => {
-        Reflect.deleteProperty(document, "fonts");
-      });
+      const fonts = holdFontLoads();
       const { scene } = await startBoard(undefined, (game) => {
         game.canvas.style.fontFamily = "Figtree";
       });
       const counts = countsOf(scene);
-      // What a count measures can't be read through Phaser's types, so the
-      // spec reads that each count was measured again.
-      const measured = vi.spyOn(GameObjects.TextStyle.prototype, "update");
-      onTestFinished(() => {
-        measured.mockRestore();
-      });
+      const measuredAgain = watchMeasures();
 
-      loaded();
+      fonts.finish();
       await Promise.resolve();
 
       expect({
         families: new Set(counts.map(({ style }) => style.fontFamily)),
-        asked,
-        measuredAgain: measured.mock.contexts.filter(
-          (_, i) => measured.mock.calls[i]?.[0] === true,
-        ),
+        asked: fonts.asked,
+        measuredAgain: measuredAgain(),
       }).toEqual({
         families: new Set(["Figtree"]),
         asked: ["700 16px Figtree"],
         measuredAgain: counts.map(({ style }) => style),
+      });
+    });
+
+    it("writes no count again once the scene has ended before the page loaded its font", async () => {
+      const fonts = holdFontLoads();
+      const { run, scene } = await startBoard(undefined, (game) => {
+        game.canvas.style.fontFamily = "Figtree";
+      });
+      const measuredAgain = watchMeasures();
+      run.game.scene.stop(scene.key);
+
+      fonts.finish();
+      await Promise.resolve();
+
+      expect({ asked: fonts.asked, measuredAgain: measuredAgain() }).toEqual({
+        asked: ["700 16px Figtree"],
+        measuredAgain: [],
+      });
+    });
+
+    it("leaves each count in the fallback where the page can't load its font", async () => {
+      const fonts = holdFontLoads();
+      await startBoard(undefined, (game) => {
+        game.canvas.style.fontFamily = "Figtree";
+      });
+      const measuredAgain = watchMeasures();
+
+      fonts.fail();
+      await Promise.resolve();
+
+      expect({ asked: fonts.asked, measuredAgain: measuredAgain() }).toEqual({
+        asked: ["700 16px Figtree"],
+        measuredAgain: [],
       });
     });
 
