@@ -877,7 +877,7 @@ describe("BricksScene", () => {
       const shown = scene.balls.images.filter((image) => image.visible);
 
       expect(shown.map((image) => image.frame.name)).toEqual([
-        ballFrame("normal"),
+        ballFrame("normal", 0),
       ]);
     });
 
@@ -902,7 +902,82 @@ describe("BricksScene", () => {
       shell.field.ballKind = "fire";
       run.advance(16);
 
-      expect(scene.balls.images[0]?.frame.name).toBe(ballFrame("fire"));
+      expect(scene.balls.images[0]?.frame.name).toBe(ballFrame("fire", 0));
+    });
+
+    it("lift a normal ball's fur as the streak climbs", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.field.streak = 20;
+      run.advance(16);
+
+      expect(scene.balls.images[0]?.frame.name).toBe(ballFrame("normal", 20));
+    });
+
+    it("stand a sight under a ball that seeks, where it is drawn, and none under one that doesn't", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 3, 20, 0, 0).seeks = true;
+      throwBall(shell.field, 6, 20, 0, 1);
+
+      run.advance(16);
+
+      expect(scene.balls.sights.slice(0, 2).map(placed)).toEqual([
+        {
+          visible: true,
+          frame: FRAMES.sight,
+          x: toCanvasX(metricsAt(), 3),
+          y: toCanvasY(metricsAt(), 20),
+        },
+        expect.objectContaining({ visible: false }),
+      ]);
+    });
+
+    it("stand a sight under every ball in flight while a Seeker is in play", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.seeking = true;
+      throwBall(shell.field, 3, 20, 0, 0);
+      throwBall(shell.field, 6, 20, 0, 1);
+
+      run.advance(16);
+
+      expect(
+        scene.balls.sights.slice(0, 2).map((sight) => sight.visible),
+      ).toEqual([true, true]);
+    });
+
+    it("stand no sight under a ball held on the paddle, though a Seeker is in play", async () => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.seeking = true;
+
+      run.advance(16);
+
+      expect({
+        ball: scene.balls.images[0]?.visible,
+        sight: scene.balls.sights[0]?.visible,
+      }).toEqual({ ball: true, sight: false });
+    });
+
+    it("hide a ball's sight with it once it is lost", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 3, 20, 0).seeks = true;
+      run.advance(16);
+
+      ballOf(shell.field).live = false;
+      run.advance(16);
+
+      expect(scene.balls.sights[0]?.visible).toBe(false);
+    });
+
+    it("lay each sight under the balls, and their eyes over them", async () => {
+      const { scene } = await startBoard();
+      const { sights, images, eyes } = scene.balls;
+      const index = (image: GameObjects.Image | undefined): number =>
+        image?.displayList?.getIndex(image) ?? NaN;
+
+      expect([
+        index(sights.at(-1)) < index(images[0]),
+        index(images.at(-1)) < index(eyes[0]),
+      ]).toEqual([true, true]);
     });
 
     it("hide a ball once it is lost", async () => {

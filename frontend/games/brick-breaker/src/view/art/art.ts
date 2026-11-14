@@ -1,15 +1,23 @@
 import { recordOf } from "@fz/core/records";
-import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
+import {
+  type Strand,
+  eyesCommands,
+  fuzzballCommands,
+  sparkCommands,
+} from "@fz/phaser/fuzzball";
 import { showsDetail } from "@fz/phaser/bricks";
 import {
   type Area,
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
+  type LineStyle,
+  ORIGIN,
   type Point,
   centered,
   circle,
   frameAround,
+  line,
   lineWidth,
   polygon,
   ring,
@@ -35,7 +43,7 @@ import {
 } from "../../rules/tuning";
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
-import { FUR, REACH } from "./fuzzball_art";
+import { FUR, REACH, STREAK_FUR, streakStep } from "./fuzzball_art";
 import { paddleFrames } from "./paddle_art";
 import { streakArt } from "./streak_art";
 import { SYMBOLS } from "./symbols";
@@ -78,6 +86,12 @@ export const FRAMES = {
   ember: "ember",
   /** A blast's ring, at its widest. */
   ring: "ring",
+  /**
+   * A seeking ball's sight, about its middle, as the Seeker's symbol is
+   * drawn: a ring round the ball, clear of its fur, and four ticks out from
+   * it.
+   */
+  sight: "sight",
   /** The frame around each of the last bricks a level needs, once they glow. */
   glow: "glow",
 } as const;
@@ -87,6 +101,21 @@ const TAG_SIZE = 0.8;
 
 /** How wide a blast's ring is at its widest, in field units. */
 const RING_SIZE = 4;
+
+/**
+ * A seeking ball's sight, as shares of a ball's radius: how far its ring
+ * lies from the ball's middle, clear of fur on end and its sparks, and how
+ * far out its ticks reach.
+ */
+const SIGHT = { ring: 1.7, ticks: 2.4 } as const;
+
+/** The ways a sight's ticks point: up, right, down and left. */
+const SIGHT_WAYS: readonly Point[] = [
+  { x: 0, y: -1 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+  { x: -1, y: 0 },
+];
 
 /** How big a shard is, in field units. */
 const SHARD_SIZE = 0.35;
@@ -122,6 +151,9 @@ const SYMBOL_SHARE = 0.85;
 const BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
   BALL_KIND_IDS,
   (kind) => `ball-${kind}`,
+);
+const STREAK_BALL_FRAMES: readonly string[] = STREAK_FUR.map((_, step) =>
+  step === 0 ? BALL_FRAMES.normal : `ball-normal-x${String(step + 1)}`,
 );
 const FACED_BALL_FRAMES: Readonly<Record<BallKindId, string>> = recordOf(
   BALL_KIND_IDS,
@@ -276,9 +308,15 @@ function symbolSquare(
   };
 }
 
-/** Returns the name of a kind of ball's frame as it flies: its body and fur, without its eyes. */
-export function ballFrame(kind: BallKindId): string {
-  return BALL_FRAMES[kind];
+/**
+ * Returns the name of a kind of ball's frame as it flies at a streak: its
+ * body and fur, without its eyes, a normal ball's fur lifted by the
+ * streak's multiplier.
+ */
+export function ballFrame(kind: BallKindId, streak: number): string {
+  return kind === "normal"
+    ? (STREAK_BALL_FRAMES[streakStep(streak)] ?? BALL_FRAMES.normal)
+    : BALL_FRAMES[kind];
 }
 
 /** Returns the name of a kind of ball's frame with its eyes looking ahead, for a ball shown still. */
@@ -306,7 +344,8 @@ export function tagFrame(id: CapsuleId): string {
 
 /**
  * Returns a kind of ball's frames: the fuzzball in its kind's fur and color,
- * outlined in the palette's outline, as it flies and with its eyes.
+ * outlined in the palette's outline, as it flies, a normal ball's at each
+ * step of the streak, and with its eyes.
  */
 function ballArt(
   kind: BallKindId,
@@ -314,18 +353,97 @@ function ballArt(
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const by = ballGrid(scale);
-  const body = fuzzballCommands(by, {
-    color: palette.balls[kind],
-    outline: { color: palette.outline, width: lineWidth(scale) },
-    fur: FUR[kind],
-  });
+  const color = palette.balls[kind];
+  const outline = { color: palette.outline, width: lineWidth(scale) };
+  const body = fuzzballCommands(by, { color, outline, fur: FUR[kind] });
   return [
-    centered(BALL_FRAMES[kind], body),
+    ...(kind === "normal"
+      ? normalBallFrames(palette, scale)
+      : [centered(BALL_FRAMES[kind], body)]),
     centered(FACED_BALL_FRAMES[kind], [
       ...body,
       ...eyesCommands(by, { color: palette.mark }),
     ]),
   ];
+}
+
+/** Returns a normal ball's frames as it flies, one for each step of the streak. */
+function normalBallFrames(
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly ArtFrame[] {
+  const by = ballGrid(scale);
+  const color = palette.balls.normal;
+  const outline = { color: palette.outline, width: lineWidth(scale) };
+  const sparkStyle = {
+    color: palette.streakSparks,
+    // A unit of the fuzzball's grid, as the kit's, a CSS pixel at least.
+    width: widthOf(by / scale.unit, scale),
+  };
+  return STREAK_FUR.map(({ fur, sparks }, step) =>
+    centered(
+      STREAK_BALL_FRAMES[step] ?? BALL_FRAMES.normal,
+      streakBallCommands(by, color, outline, fur, sparks ? sparkStyle : null),
+    ),
+  );
+}
+
+/**
+ * Returns a normal ball at a step of the streak, `by` device pixels to a
+ * unit of the fuzzball's grid: its fur as combed, outlined, and its sparks
+ * where it has them, outlined as one with it, so no outline covers any of
+ * it.
+ */
+function streakBallCommands(
+  by: number,
+  color: number,
+  outline: LineStyle,
+  fur: readonly Strand[],
+  sparks: LineStyle | null,
+): readonly DrawCommand[] {
+  const whole = fuzzballCommands(by, { color, outline, fur });
+  if (!sparks) return whole;
+  const body = fuzzballCommands(by, { color, fur });
+  return [
+    // The fuzzball draws its outline first, all of it, then its body.
+    ...whole.slice(0, whole.length - body.length),
+    ...sparkCommands(by, {
+      color: outline.color,
+      width: sparks.width + 2 * outline.width,
+    }),
+    ...body,
+    ...sparkCommands(by, sparks),
+  ];
+}
+
+/**
+ * Returns a seeking ball's sight about the ball's middle, in a good
+ * capsule's color, as the Seeker's is: a ring round the ball and a tick out
+ * from it each way, up, right, down and left, outlined as a ball is, so it
+ * shows over a brick of any tint.
+ */
+function sightCommands(
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  const width = lineWidth(scale);
+  const radius = SIGHT.ring * BALL_RADIUS * scale.unit;
+  const reach = SIGHT.ticks * BALL_RADIUS * scale.unit;
+  // Each outline reaches past its tick's end, as the tick is cut square.
+  const drawn = (color: number, wider: number): readonly DrawCommand[] => {
+    const style = { color, width: width + 2 * wider };
+    return [
+      ring(ORIGIN, radius, style),
+      ...SIGHT_WAYS.map(({ x, y }) =>
+        line(
+          { x: x * radius, y: y * radius },
+          { x: x * (reach + wider), y: y * (reach + wider) },
+          style,
+        ),
+      ),
+    ];
+  };
+  return [...drawn(palette.outline, width), ...drawn(palette.capsules.good, 0)];
 }
 
 /** Returns how a capsule of a tone is drawn in a palette at a scale: its size in whole device pixels, its outline's width and its colors. */
@@ -453,6 +571,7 @@ function otherArt(
         }),
       ],
     },
+    centered(FRAMES.sight, sightCommands(palette, scale)),
     {
       name: FRAMES.glow,
       width: glow.width,

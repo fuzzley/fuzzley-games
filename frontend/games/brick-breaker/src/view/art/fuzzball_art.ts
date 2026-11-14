@@ -1,8 +1,15 @@
 // The balls' fur: `@fz/phaser`'s fuzzball, its fur combed for each kind of
-// ball, so a kind shows by its shape as well as its color.
+// ball, so a kind shows by its shape as well as its color, and a normal
+// ball's lifted by the streak, as the uplift's art kit's `ball()` draws it.
 
-import { FUZZBALL_STRANDS, type Strand, furReach } from "@fz/phaser/fuzzball";
+import {
+  FUZZBALL_STRANDS,
+  type Strand,
+  combedStrands,
+  furReach,
+} from "@fz/phaser/fuzzball";
 import type { BallKindId } from "../../rules/catalog/balls";
+import { multiplier } from "../../rules/field/scoring";
 
 /** How far a fire ball's fur rises at its crown, on the fuzzball's grid. */
 const FLAME_RISE = 7;
@@ -61,3 +68,28 @@ export const FUR: Readonly<Record<BallKindId, readonly Strand[]>> = {
  * strand's width included, on the fuzzball's grid: the ball's edge.
  */
 export const REACH = furReach(FUR.normal);
+
+/** Says how a normal ball's fur stands at a step of the streak: its strands, and whether sparks fly about it. */
+export interface StreakFur {
+  readonly fur: readonly Strand[];
+  readonly sparks: boolean;
+}
+
+/**
+ * How a normal ball's fur stands at each of the streak's multipliers, from
+ * ×1 up: flat, lifted half way, on end, and on end with sparks about it.
+ */
+export const STREAK_FUR: readonly StreakFur[] = [
+  { fur: FUR.normal, sparks: false },
+  { fur: combedStrands(0.5), sparks: false },
+  { fur: combedStrands(1), sparks: false },
+  { fur: combedStrands(1), sparks: true },
+];
+
+/**
+ * Returns the step of {@link STREAK_FUR} a normal ball wears at a streak:
+ * its multiplier's, counted from 0, or the last for one past them all.
+ */
+export function streakStep(streak: number): number {
+  return Math.min(multiplier(streak), STREAK_FUR.length) - 1;
+}

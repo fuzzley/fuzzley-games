@@ -775,3 +775,106 @@ The review (a fresh agent), and what I did:
 
 Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
 files, 2,571); the root's lint under the lock.
+
+### 2026-11-14: the fur by the streak, and a seeking ball's sight
+
+`feat(brick-breaker): lift a ball's fur with the streak and mark a seeking
+ball with a sight` (commit 3 of L3).
+
+- `src/view/art/fuzzball_art.ts`: `STREAK_FUR`, a normal ball's fur at
+  each of the streak's multipliers, as the kit's `ball()` combs it with
+  `combedStrands()`: flat at ×1 (the fuzzball's own), half way at ×2, on
+  end at ×3, and on end with sparks about it at ×4; `streakStep()` turns
+  a streak into its step, through the rules' `multiplier()`.
+- `art.ts`: `ballFrame(kind, streak)` names a normal ball's frame at the
+  streak (`ball-normal`, then `ball-normal-x2` to `-x4`); a fire or blast
+  ball keeps its own fur at any streak, as the kit's does. The ×4 frame's
+  sparks are `sparkCommands()`, a unit of the fuzzball's grid wide, a CSS
+  pixel at least, drawn over the body and again beneath it in the outline,
+  the outline's width wider either side, as Brick Fuzz Pop outlines its
+  own. `FRAMES.sight` is a seeking ball's sight: a ring 1.7 of a ball's
+  radius from its middle, clear of fur on end and its sparks and their
+  outline at every field scale, and a tick out from it to 2.4 each way, in a good capsule's color, over an
+  outline, so it shows over a brick of any tint. The faced frames, which
+  How to play pictures, stay flat.
+- `ball_painter.ts`: each ball takes its kind's frame at the field's
+  streak, and a pool of sights, made once and laid under the balls, shows
+  one under each ball in flight that seeks (`Ball.seeks`, or every ball
+  while a Seeker is in play), none under a ball held on the paddle.
+- `palette.ts` gains `streakSparks`, the warning color, as the kit's.
+- **Outside my files, added only:** `src/view/field/frame.ts`'s
+  `FieldView` gains `seeking` (`Field.seeking`) as its last member, so the
+  ball painter can read it; the frame's spec already holds the field to
+  the view.
+- `art.spec.ts`' line check is settled: it now holds straight lines too,
+  every line a CSS pixel wide or more but a ball's fur, which tapers to
+  half a device pixel at a unit of 10, and a new check holds the outline
+  beneath each strand of that fur a CSS pixel or more either side, so the
+  thinnest still shows; another holds everything a ball draws at ×4 inside
+  the sight's ring, at every field scale. The ball's specs hold the fur reaching further at ×2 and on
+  end at ×3 and ×4, a frame for each multiplier and none between them,
+  fire and blast balls the same at any streak, the sparks only at ×4, over
+  the body and outlined beneath it, and the sight's ring, ticks and
+  outline; `fuzzball_art.spec.ts` holds `STREAK_FUR` to the kit's and to
+  the rules' tiers, and `streakStep()` at each tier's edges; the contrast
+  spec holds the sparks and the sight to 3:1 against the field (the
+  warning color and the accent, which the fire ball and the good capsules
+  already met); the scene's spec holds the frame at a streak, the sight
+  under a seeking ball and not another, under every ball in flight while a
+  Seeker is in play but not one held, hidden with a lost ball, and laid
+  under the balls.
+- Docs: the workspace's `AGENTS.md` (`src/view/colors/`, `src/view/art/`,
+  `src/scene/`) and the `brick-breaker-content` skill (only a normal
+  ball's fur lifts).
+- In the browser (Classic felt, 1280 × 720 at 2×), four balls held still
+  at each step, one seeking: the fur lifts and stands as the kit's sheet
+  draws it at play size, the sparks show as gold flecks about the ball at
+  ×4, and the sight rings the ball clear of its sparks.
+
+Choices, where the plan was silent:
+
+- **A seeking ball wears a sight,** the Seeker's symbol drawn round it in
+  the good capsules' color, under it: the kit marks a seeker only by the
+  dotted way it takes, which the game doesn't draw, and the Seeker's own
+  symbol says what lent it.
+- **No sight under a ball held on the paddle,** though it may seek once
+  launched: the rules turn only a ball in flight.
+- **The sight stands still,** neither turning nor pulsing, so it asks
+  nothing of the player's preference for motion.
+- The kit also redraws the fire ball (red under a crown of flame) and the
+  blast ball (red, sparking); neither is in L3's list, so both keep their
+  look.
+
+The review (a fresh agent), and what I did:
+
+1. _A ball lost on a streak fades in its flat faced frame, so fur on end
+   snaps flat as it is lost._ Left: the fade is the lost-ball flourish,
+   which `bricks_scene.ts` hands `facedBallFrame()` and which F1 is
+   reworking with the effects; a faced frame for each step (three more)
+   and the ball painter's last streak would do it. A follow-up for F1 or
+   the integrator.
+2. _The sight's ring was said to be clear of the sparks, but no spec held
+   it, and at a unit of 13 the sparks' outline cut 0.25 px into it._ Fixed:
+   the ring is 1.7 of a ball's radius (the ticks 2.4), and a spec at every
+   field scale holds everything the ×4 frame draws inside the ring's inner
+   edge; with 1.6 it fails at 13, as the review worked out.
+3. _The fur's outline spec held the outline's whole width, not a CSS pixel
+   either side._ Fixed: it pairs each strand with the outline beneath it,
+   by their points, and holds half the difference to a CSS pixel.
+4. _The atlas's spec handed `ballFrame()` the array's index as a streak._
+   Fixed: it asks for every kind at every step.
+5. _The outlining as one with the sparks copies Brick Fuzz Pop's
+   `outlinedWith()`; the sparks' style and `sparks: sparking` read badly,
+   and the normal ball's frames want a function._ The names and the
+   function are fixed (`normalBallFrames()`, `sparkStyle`). The shared
+   helper is left: lifting it into `@fz/phaser/fuzzball` would change Brick
+   Fuzz Pop's art, which this package doesn't touch; a follow-up.
+6. _One scene spec acted twice, and its held half didn't show the ball
+   was drawn._ Fixed: two specs, the held one holding the ball shown and
+   its sight hidden.
+7. _`AGENTS.md`'s edits rewrapped whole paragraphs, in a file other
+   streams add to, and left a long line._ Fixed: the words are inserted
+   with the lines round them kept as they were.
+
+Checks, after the answers: Brick Breaker's lint, typecheck and tests (64
+files, 2,613); the root's lint under the lock.

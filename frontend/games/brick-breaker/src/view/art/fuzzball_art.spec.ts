@@ -1,6 +1,12 @@
-import { FUZZBALL_STRANDS, type Strand, furReach } from "@fz/phaser/fuzzball";
+import {
+  FUZZBALL_STRANDS,
+  type Strand,
+  combedStrands,
+  furReach,
+} from "@fz/phaser/fuzzball";
 import { BALL_KIND_IDS } from "../../rules/catalog/balls";
-import { FUR, REACH } from "./fuzzball_art";
+import { STREAK } from "../../rules/tuning";
+import { FUR, REACH, STREAK_FUR, streakStep } from "./fuzzball_art";
 
 /** Returns how far a strand's tip lies from the body's middle. */
 function reachOf({ to }: Strand): number {
@@ -58,5 +64,35 @@ describe("FUR", () => {
 describe("REACH", () => {
   it("reaches as far as the fuzzball's own fur, which a normal ball wears", () => {
     expect(REACH).toBe(furReach());
+  });
+});
+
+describe("STREAK_FUR", () => {
+  it("holds a step for each of the streak's multipliers, ×1 and each tier's", () => {
+    expect(STREAK_FUR).toHaveLength(STREAK.length + 1);
+  });
+
+  it("combs a normal ball's fur flat, half way, then on end twice, sparking only at the last, as the kit's `ball()` does", () => {
+    expect(STREAK_FUR).toEqual([
+      { fur: FUZZBALL_STRANDS, sparks: false },
+      { fur: combedStrands(0.5), sparks: false },
+      { fur: combedStrands(1), sparks: false },
+      { fur: combedStrands(1), sparks: true },
+    ]);
+  });
+});
+
+describe("streakStep", () => {
+  it.each([
+    [0, 0],
+    [4, 0],
+    [5, 1],
+    [9, 1],
+    [10, 2],
+    [19, 2],
+    [20, 3],
+    [200, 3],
+  ])("steps a streak of %i to %i", (streak, step) => {
+    expect(streakStep(streak)).toBe(step);
   });
 });

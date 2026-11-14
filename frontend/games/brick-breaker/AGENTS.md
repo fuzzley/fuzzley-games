@@ -347,11 +347,13 @@ takes for the specs' helpers.
   its caps, its pad, a catching paddle's hooks and a laser's cannons and
   bolts), the lip each tone of capsule sits on, a good one's its accent
   darkened and a bad one's gold, and a good one's shine (`capsuleLips`,
-  `capsuleShine`), and a ghost's tints, faded while it hides and paler once
+  `capsuleShine`), the sparks about a ball at the streak's top multiplier
+  (`streakSparks`), and a ghost's tints, faded while it hides and paler once
   it shows (`ghostTints`).
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
   bricks, a shown ghost and the moss, every ball kind, both capsule tones
-  and a bad one's gold lip, the paddle, its caps, hooks and cannons, and the
+  and a bad one's gold lip, a ball's sparks and a seeking ball's sight, the
+  paddle, its caps, hooks and cannons, and the
   last bricks' glow to 3:1 against the field in every palette, a tough
   brick's deeper tints too, and a hidden ghost to 2:1, faint by design; each
   ball and capsule against its outline, the outline against every tint,
@@ -367,8 +369,11 @@ takes for the specs' helpers.
   top and a bad one pointed at each end, each outlined on a lip that shows
   below it, a bad one's gold, as it pays double, its symbol half its height
   wide, or wider, its shine left out, where a brick is too small for its
-  finest detail, its tag, the bolt and the flourishes, names the frame
-  a ball, a capsule or a tag shows (`ballFrame()`, `facedBallFrame()` and
+  finest detail, its tag, a seeking ball's sight, a ring round it in a
+  good capsule's color with a tick out from it each way, outlined, the bolt
+  and the flourishes, names the frame
+  a ball, a capsule or a tag shows (`ballFrame()`, a normal ball's by the
+  streak, `facedBallFrame()` and
   the rest), and How to play's pictures (`PICTURE_FRAMES`);
   each ball is `@fz/phaser/fuzzball`'s fuzzball, outlined, its fur
   reaching the ball's edge (`REACH`), and its eyes in the marks' color, a
@@ -376,7 +381,11 @@ takes for the specs' helpers.
   (`FUZZBALL_LOOK`); `fuzzball_art.ts` combs the fur for each kind
   (`FUR`): the fuzzball's own for a normal ball, risen into a flame for a
   fire ball and stood on end for a blast ball, so a kind shows by its shape
-  as well as its color; `brick_art.ts` draws each brick kind in each tint
+  as well as its color, and a normal ball's at each of the streak's
+  multipliers (`STREAK_FUR`, `streakStep()`), as the kit's `ball()` does,
+  with `combedStrands()`: flat, lifted half way at ×2, on end at ×3, and on
+  end with sparks about it at ×4 (`sparkCommands()`), outlined as one with
+  it; `brick_art.ts` draws each brick kind in each tint
   and state (`BRICK_ART`), one flattened frame a look, on
   `@fz/phaser/bricks`' slab (`BRICK_SLAB`) with that entry's marks, as the
   uplift's art kit draws them: a tough brick's pips in a row
@@ -429,8 +438,10 @@ takes for the specs' helpers.
   count beside it, the one thing written over the field, a Phaser `Text`
   for each step in the page's font, written once, and again as the atlas is
   baked and once the page has loaded the font, and `BallPainter` the
-  balls, each with its eyes looking the way it goes, with a fire ball's
-  embers, one for each ember's width it goes. Each is a `Painter`
+  balls, each in its kind's frame at the streak, with its eyes looking the
+  way it goes, a sight under it while it seeks (`Ball.seeks`, or every ball
+  in flight while a Seeker is in play), with a fire ball's embers, one for
+  each ember's width it goes. Each is a `Painter`
   (`painters/painter.ts`), which draws from the one `PaintContext` the scene
   writes over each frame, so the scene draws them in a loop over its list
   of painters, which a new one joins as `create()` makes it. After a bake,
