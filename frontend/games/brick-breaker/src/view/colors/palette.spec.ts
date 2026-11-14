@@ -141,6 +141,30 @@ describe("bricksPalette", () => {
     },
   );
 
+  it.each(["light", "dark"] as const)(
+    "rings a regrowing brick growing back in the green tint, over a track of it at 30% over the field, in a %s palette",
+    (mode) => {
+      const green = TILE_INKS[mode][3] ?? NaN;
+
+      expect(
+        bricksPalette({ ...ROLES, panel: "#102030" }, mode).kindInks,
+      ).toMatchObject({
+        regrowRing: green,
+        regrowTrack: mixColors(green, 0x102030, 0.3),
+      });
+    },
+  );
+
+  it("shades the rim's lip 30% black, and washes the gutter and its chevrons with the danger color, 10% and 55% over the field", () => {
+    const palette = bricksPalette({ ...ROLES, panel: "#102030" }, "light");
+
+    expect(palette.fieldInks).toEqual({
+      rimLip: mixColors(0x000000, palette.wall, 0.3),
+      gutter: mixColors(0xff0000, 0x102030, 0.1),
+      chevron: mixColors(0xff0000, 0x102030, 0.55),
+    });
+  });
+
   it.each([
     ["light", 0.12],
     ["dark", 0.3],

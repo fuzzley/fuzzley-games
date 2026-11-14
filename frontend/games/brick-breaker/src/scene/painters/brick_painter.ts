@@ -2,7 +2,7 @@ import { easeOutCubic, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY, rowOf } from "../../rules/grid";
 import { BRICK_HEIGHT, COLUMNS, ROWS } from "../../rules/tuning";
-import { brickFrame } from "../../view/art/brick_art";
+import { cellFrame } from "../../view/art/brick_art";
 import { popScale } from "../../view/effects/flourish";
 import {
   DROP_IN_MS,
@@ -38,8 +38,9 @@ const MOVES: Readonly<
 
 /**
  * Draws the bricks: an image for each cell of the grid, made once, each
- * showing its brick's frame or hidden; drops them in as a level starts,
- * swells one at a hit it holds and grows one back.
+ * showing its brick's frame, a broken regrowing brick's ring as it grows
+ * back, or hidden; drops them in as a level starts, swells one at a hit it
+ * holds and grows one back.
  */
 export class BrickPainter implements Painter {
   /** An image for each cell, row by row. */
@@ -81,7 +82,7 @@ export class BrickPainter implements Painter {
   show(field: FieldView): void {
     for (let cell = 0; cell < this.images.length; cell++) {
       const brick = field.bricks[cell];
-      const frame = brick && !brick.broken ? brickFrame(brick) : null;
+      const frame = brick ? cellFrame(brick, field.steps) : null;
       if (frame === this.shown[cell]) continue;
       this.shown[cell] = frame;
       const image = this.images[cell];

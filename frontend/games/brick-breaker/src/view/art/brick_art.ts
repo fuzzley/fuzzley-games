@@ -4,12 +4,14 @@
 // for each hit taken, steel's frame, rivets and sheen, the blast brick's
 // bomb and a dot toward each brick it reaches, the gift's parcel and bow, a
 // hidden ghost's round dashes and faint eyes or a shown one's body under a
-// scalloped hem, and earth under a cap of moss. Every number is the art
+// scalloped hem, and earth under a cap of moss, and the ring a broken one
+// fills as it grows back (`regrowing()`). Every number is the art
 // kit's (`art/kit.mjs`), in its box of 200 by 100, drawn at the brick's
 // height over 100, but where a constant's comment here says otherwise. A brick
 // under 30 CSS px wide leaves out its cracks, rivets and sheen
 // (`showsDetail()`).
 
+import { clamp } from "@fz/core/math";
 import {
   BRICK_SLAB,
   bombMark,
@@ -39,12 +41,18 @@ import {
   pipRow,
   polygon,
   rect,
+  ring,
   stroke,
   widthOf,
 } from "@fz/phaser/shapes";
 import type { Brick } from "../../rules/bricks/bricks";
-import { BRICK_KINDS, type BrickKindId } from "../../rules/catalog/bricks";
+import {
+  BRICK_KINDS,
+  type BrickKindId,
+  brickKind,
+} from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
+import { stepsIn } from "../../rules/stepper";
 import { BRICK_HEIGHT, BRICK_WIDTH } from "../../rules/tuning";
 import {
   type BricksPalette,
@@ -205,6 +213,24 @@ const MOSS_CAP = { foot: 30, count: 9, radius: 12, drop: 4 } as const;
 
 /** The square `sproutMark()` draws a regrowing brick's sprout in, its foot in the cap at the kit's (100, 34). */
 const SPROUT_SQUARE: KitSquare = { x: 40, y: -2, side: 120 };
+
+/**
+ * The ring a broken regrowing brick fills as it grows back, after the kit's
+ * `regrowing()`: its middle, its radius and its line's width.
+ */
+const REGROW_RING = { middle: [100, 50], radius: 30, width: 6 } as const;
+
+/** The square `sproutMark()` draws the sprout in the ring in, its foot at the kit's (100, 66), 1.1 times a cap's. */
+const REGROWING_SPROUT: KitSquare = { x: 34, y: 26.4, side: 132 };
+
+/** How many steps of its own a regrowing brick's ring fills in as it grows back, each a frame. */
+export const REGROW_RING_STEPS = 24;
+
+/** Each frame a broken regrowing brick shows as it grows back, its ring empty, then filled a step more, then full. */
+const REGROWING_FRAMES: readonly string[] = Array.from(
+  { length: REGROW_RING_STEPS + 1 },
+  (_, step) => `regrowing-${String(step)}`,
+);
 
 /** Returns a length of the kit's in a brick's cell. */
 function kitLength(cell: Area, length: number): number {
@@ -573,6 +599,52 @@ function regrowMarks(
 }
 
 /**
+ * Returns the place a regrowing brick has left, as it grows back, its ring
+ * filled a share of the way round from its top, clockwise: the ring's track
+ * and what of it is filled, and, where a brick shows its finest detail, a
+ * sprout in the ring.
+ */
+function regrowing(
+  cell: Area,
+  share: number,
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly DrawCommand[] {
+  const middle = kitPoint(cell, REGROW_RING.middle);
+  const radius = kitLength(cell, REGROW_RING.radius);
+  const style = {
+    color: palette.kindInks.regrowRing,
+    width: kitWidth(scale, REGROW_RING.width),
+  };
+  const top = -Math.PI / 2;
+  return [
+    ring(middle, radius, { ...style, color: palette.kindInks.regrowTrack }),
+    ...(share > 0
+      ? stroke(arcPoints(middle, radius, top, top + 2 * Math.PI * share), style)
+      : []),
+    ...(showsDetail(scale, BRICK_WIDTH)
+      ? sproutMark(
+          kitSquare(cell, REGROWING_SPROUT),
+          palette.kindInks.regrowRing,
+          scale.pixelRatio,
+        )
+      : []),
+  ];
+}
+
+/** Returns the frames a broken regrowing brick shows as it grows back, one for each step of its ring. */
+function regrowingFrames(
+  palette: BricksPalette,
+  scale: ArtScale,
+): readonly ArtFrame[] {
+  return REGROWING_FRAMES.map((name, step) =>
+    drawBrick(name, scale, (cell) =>
+      regrowing(cell, step / REGROW_RING_STEPS, palette, scale),
+    ),
+  );
+}
+
+/**
  * Returns how a kind is drawn until it has art of its own: as a plain brick
  * in one tint, whatever the level tints it, in every state.
  */
@@ -606,6 +678,9 @@ function untintedArt(
     ],
   };
 }
+
+/** How a regrowing brick is drawn whole; broken, it shows its ring as it grows back besides. */
+const REGROW_ART = untintedArt("regrow", regrowMarks);
 
 /** How each kind of brick is drawn: its frames, and which one a brick shows. */
 export const BRICK_ART = {
@@ -656,7 +731,13 @@ export const BRICK_ART = {
       ),
     ],
   },
-  regrow: untintedArt("regrow", regrowMarks),
+  regrow: {
+    ...REGROW_ART,
+    frames: (palette, scale) => [
+      ...REGROW_ART.frames(palette, scale),
+      ...regrowingFrames(palette, scale),
+    ],
+  },
   cage: placeholderArt("cage", 4),
   plated: placeholderArt("plated", 5),
   key: placeholderArt("key", 2),
@@ -671,4 +752,44 @@ export function brickFrame(brick: BrickLook): string {
 /** Returns the color a brick is drawn in, which its shards take. */
 export function brickColor(brick: BrickLook, palette: BricksPalette): number {
   return BRICK_ART[brick.kind].colorOf(brick, palette);
+}
+
+/**
+ * Returns how far a broken brick that regrows has come toward growing back
+ * at a step of the field, from 0 as it breaks to 1 once it may, or null for
+ * one that is whole or never regrows.
+ */
+export function regrowShare(
+  brick: Pick<Brick, "kind" | "broken" | "regrowsAt">,
+  steps: number,
+): number | null {
+  if (!brick.broken) return null;
+  const trait = brickKind(brick.kind).traits.find(
+    (each) => each.kind === "regrows",
+  );
+  if (trait?.kind !== "regrows") return null;
+  const growing = stepsIn(trait.afterMs);
+  return clamp(1 - (brick.regrowsAt - steps) / growing, 0, 1);
+}
+
+/** Returns the name of the frame a broken regrowing brick shows as it grows back, its ring filled a share of the way. */
+export function regrowingFrame(share: number): string {
+  return nameAt(
+    REGROWING_FRAMES,
+    Math.floor(clamp(share, 0, 1) * REGROW_RING_STEPS),
+  );
+}
+
+/**
+ * Returns the frame a cell shows of its brick at a step of the field: the
+ * brick's own while it stands, its ring while a broken one grows back, and
+ * none for one broken for good.
+ */
+export function cellFrame(
+  brick: Readonly<Brick>,
+  steps: number,
+): string | null {
+  if (!brick.broken) return brickFrame(brick);
+  const share = regrowShare(brick, steps);
+  return share === null ? null : regrowingFrame(share);
 }

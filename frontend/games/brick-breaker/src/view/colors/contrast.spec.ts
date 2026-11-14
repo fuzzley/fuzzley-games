@@ -22,22 +22,26 @@ const FAINT = 2;
 // graphics, against the field, in every palette, the paddle's caps, its hooks
 // and its cannons among it, a bad capsule's gold lip, which says it pays
 // double, the sparks about a ball at the streak's top multiplier and a
-// seeking ball's sight, each outlined as a ball is, and so is the last
-// bricks' glow; the wall, which only frames the field, is left at a wash of
-// the text, as Snake's is. A ball or a capsule crosses bricks too, and its
-// color can't also clear every tint: the tints and the warning and danger
-// colors all sit on the same side of the field, so a color 3:1 from both the
-// field and a tint would need 9:1 from the field, which only the text
-// reaches. So each is outlined, in a color held to 3:1 against everything it
-// crosses. The marks that tell a brick's kind and state apart, a ball's kind,
-// and a capsule's symbol are held to 3:1 against what they are drawn on: the
-// marks' color against every brick, a moss cap and a shown ghost among them,
-// steel's frame and rivets against the steel, and a blast brick's spark
-// against the mark it is lit on; the bolts in the paddle's caps are the
-// marks' color too. A hidden ghost is held only to FAINT, since it is meant
-// to be hard to see, and a brick's shading (its lip and strip, steel's sheen,
-// a gift's ribbon, the moss's shadows), the paddle's (its lip and pad) and a
-// good capsule's (its lip and shine) to nothing, since none tells a kind: a
+// seeking ball's sight, each outlined as a ball is, and the ring a broken
+// regrowing brick fills as it grows back, and so is the last bricks' glow;
+// the wall, which only frames the field, is left at a wash of the text, as
+// Snake's is. A ball or a capsule falls through the gutter under the paddle,
+// washed with the danger color, so each is held to 3:1 against it too, and
+// the gutter's chevrons to FAINT against it, faint as the gutter is. A ball
+// or a capsule crosses bricks too, and its color can't also clear every tint:
+// the tints and the warning and danger colors all sit on the same side of the
+// field, so a color 3:1 from both the field and a tint would need 9:1 from
+// the field, which only the text reaches. So each is outlined, in a color
+// held to 3:1 against everything it crosses. The marks that tell a brick's
+// kind and state apart, a ball's kind, and a capsule's symbol are held to 3:1
+// against what they are drawn on: the marks' color against every brick, a
+// moss cap and a shown ghost among them, steel's frame and rivets against the
+// steel, and a blast brick's spark against the mark it is lit on; the bolts
+// in the paddle's caps are the marks' color too. A hidden ghost is held only
+// to FAINT, since it is meant to be hard to see, and a brick's shading (its
+// lip and strip, steel's sheen, a gift's ribbon, the moss's shadows), the
+// paddle's (its lip and pad), a good capsule's (its lip and shine), the rim's
+// lip and the regrowing ring's track to nothing, since none tells a kind: a
 // gift's bow is outlined in the marks' color.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
@@ -79,6 +83,9 @@ describe("the field's contrast", () => {
       ["sparks about a ball at ×4", palette.streakSparks] as const,
       ["seeking ball's sight", palette.capsules.good] as const,
     ];
+    const regrowing = [
+      ["regrowing brick's ring", palette.kindInks.regrowRing] as const,
+    ];
 
     it.each([
       ...crossed,
@@ -86,6 +93,7 @@ describe("the field's contrast", () => {
       ...paddleMarks,
       ...capsuleMarks,
       ...ballMarks,
+      ...regrowing,
       ["glow", palette.glow] as const,
     ])("keeps the %s at 3:1 or more against the field", (_, color) => {
       expect(
@@ -128,6 +136,24 @@ describe("the field's contrast", () => {
         ).toBeGreaterThanOrEqual(3);
       },
     );
+
+    it.each([...outlined, ...ballMarks, ...capsuleMarks])(
+      "keeps the %s at 3:1 or more against the gutter it falls through",
+      (_, color) => {
+        expect(
+          contrast(rgbOf(color), rgbOf(palette.fieldInks.gutter)),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
+
+    it("keeps the gutter's chevrons at 2:1 or more against the gutter, faint as it is", () => {
+      expect(
+        contrast(
+          rgbOf(palette.fieldInks.chevron),
+          rgbOf(palette.fieldInks.gutter),
+        ),
+      ).toBeGreaterThanOrEqual(FAINT);
+    });
 
     it("keeps steel's frame and rivets at 3:1 or more against the steel", () => {
       expect(

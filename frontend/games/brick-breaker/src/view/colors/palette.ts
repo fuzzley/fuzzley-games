@@ -31,6 +31,20 @@ export interface KindInks {
   readonly moss: number;
   /** The shadow under each scallop of its cap: the green tint at {@link MOSS_SHADE} black. */
   readonly mossShadow: number;
+  /** The ring a broken regrowing brick fills as it grows back, and its sprout: the green tint. */
+  readonly regrowRing: number;
+  /** The track that ring fills along: the green tint at {@link REGROW_TRACK} over the field. */
+  readonly regrowTrack: number;
+}
+
+/** The inks of the field's edge, mixed as the art kit mixes them. */
+export interface FieldInks {
+  /** The lip at the foot of the rim round the field: the wall at {@link RIM_LIP_SHADE} black. */
+  readonly rimLip: number;
+  /** The gutter under the paddle, where a ball is lost: the danger color at {@link GUTTER_DANGER} over the field. */
+  readonly gutter: number;
+  /** The chevrons down the gutter: the danger color at {@link CHEVRON_DANGER} over the field. */
+  readonly chevron: number;
 }
 
 /** The inks the paddle's parts take beside its body, in the accent, mixed as the art kit mixes them. */
@@ -69,7 +83,7 @@ export interface BricksPalette {
    * symbol: the field's color, which every brick and capsule keeps 3:1 from.
    */
   readonly mark: number;
-  /** The wall around the field: text at {@link WALL_WASH}. */
+  /** The rim round the field, on its left, its top and its right: text at {@link WALL_WASH}. */
   readonly wall: number;
   /** The frame around each of the last bricks a level needs, once they glow: the text. */
   readonly glow: number;
@@ -102,6 +116,8 @@ export interface BricksPalette {
   readonly toughTints: readonly number[];
   /** The colors a ghost brick takes by its tint, hidden and shown. */
   readonly ghostTints: GhostTints;
+  /** The inks of the field's edge: its rim's lip, and the gutter under the paddle and its chevrons. */
+  readonly fieldInks: FieldInks;
 }
 
 /** How much of the text the wall takes. */
@@ -153,6 +169,22 @@ export const CAPSULE_LIP_SHADE = 0.3;
 /** How much white the shine along a good capsule's top takes over the accent. */
 export const CAPSULE_SHINE = 0.5;
 
+/** How much of the green tint a regrowing brick's ring's track takes over the field. */
+export const REGROW_TRACK = 0.3;
+
+/** How much black the lip at the foot of the field's rim takes over the wall. */
+export const RIM_LIP_SHADE = 0.3;
+
+/** How much of the danger color the gutter under the paddle takes over the field. */
+export const GUTTER_DANGER = 0.1;
+
+/**
+ * How much of the danger color the gutter's chevrons take over the field:
+ * the art kit's 0.3 deepened, so they keep 2:1 against the gutter in every
+ * palette, faint as the gutter is.
+ */
+export const CHEVRON_DANGER = 0.55;
+
 /** How much of the field a hidden ghost's tint takes, fading it toward the field. */
 export const GHOST_FADE = 0.35;
 
@@ -188,11 +220,12 @@ export function bricksPalette(
   const tints = TILE_INKS[mode];
   const steel = mixColors(text, panel, STEEL_WASH);
   const green = tintAt(tints, MOSS_TINT);
+  const wall = mixColors(text, panel, WALL_WASH);
   return {
     field: panel,
     outline: panel,
     mark: panel,
-    wall: mixColors(text, panel, WALL_WASH),
+    wall,
     glow: text,
     paddle: accent,
     paddleInks: {
@@ -222,12 +255,19 @@ export function bricksPalette(
       ribbon: mixColors(WHITE, accent, RIBBON_LIGHT[mode]),
       moss: mixColors(WHITE, green, MOSS_LIGHT[mode]),
       mossShadow: mixColors(BLACK, green, MOSS_SHADE),
+      regrowRing: green,
+      regrowTrack: mixColors(green, panel, REGROW_TRACK),
     },
     tints,
     toughTints: tints.map((tint) => mixColors(text, tint, TOUGH_DEEPEN)),
     ghostTints: {
       hidden: tints.map((tint) => mixColors(panel, tint, GHOST_FADE)),
       shown: tints.map((tint) => mixColors(WHITE, tint, GHOST_LIGHT[mode])),
+    },
+    fieldInks: {
+      rimLip: mixColors(BLACK, wall, RIM_LIP_SHADE),
+      gutter: mixColors(danger, panel, GUTTER_DANGER),
+      chevron: mixColors(danger, panel, CHEVRON_DANGER),
     },
   };
 }

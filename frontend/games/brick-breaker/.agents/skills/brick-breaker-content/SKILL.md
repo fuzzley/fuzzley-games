@@ -182,7 +182,9 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   beside the marks' own color in its `kindInks`. The contrast spec holds
   an ink that tells a kind to 3:1 against what it is drawn on, and leaves
   out one that only shades, as the gift's ribbon and the moss's shadow
-  do.
+  do. A kind that `regrows` shows the ring a regrowing brick fills as it
+  grows back while it is broken (`regrowingFrame()`, which `cellFrame()`
+  picks), with nothing more.
 - Its character in the shared legend, or a level's own legend.
 - Its voice: the sound of a hit it holds and of its breaking, which the
   effects spec's `VOICES_OF_KINDS` asks for, and its field of every kind

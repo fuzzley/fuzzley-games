@@ -5,6 +5,7 @@ import {
   type ArtFrame,
   type CircleCommand,
   type DrawCommand,
+  type LineCommand,
   type Point,
   type PolygonCommand,
   extentOf,
@@ -17,6 +18,7 @@ import {
   hasTrait,
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
+import { stepsIn } from "../../rules/stepper";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -25,7 +27,16 @@ import {
   SMALL_SCALE,
 } from "../../testing/art_frames";
 import { atlasFrames } from "./art";
-import { BRICK_ART, type BrickLook, brickColor, brickFrame } from "./brick_art";
+import {
+  BRICK_ART,
+  type BrickLook,
+  REGROW_RING_STEPS,
+  brickColor,
+  brickFrame,
+  cellFrame,
+  regrowShare,
+  regrowingFrame,
+} from "./brick_art";
 
 /** A CSS pixel in device pixels at the scale the specs draw at. */
 const CSS_PIXEL = ART_SCALE.pixelRatio;
@@ -438,6 +449,178 @@ describe("a regrowing brick's frame", () => {
       leaves: leaves.length,
       middle: billionths(((leaves[0]?.x ?? 0) + (leaves[1]?.x ?? 0)) / 2),
     }).toEqual({ stem: 1, leaves: 2, middle: frame.width / 2 });
+  });
+});
+
+/** How many of the field's steps a regrowing brick takes to grow back. */
+const GROWING_BACK = stepsIn(10_000);
+
+/** Returns a regrowing brick, broken at step 100, as the field holds it. */
+function brokenRegrow(): Parameters<typeof regrowShare>[0] {
+  return {
+    kind: "regrow",
+    broken: true,
+    regrowsAt: 100 + GROWING_BACK,
+  };
+}
+
+/** Returns the lines of a regrowing brick's ring that fill it, those whose ends lie on it, about its frame's middle, the sprout's stem aside. */
+function arcOf(frame: ArtFrame): readonly LineCommand[] {
+  const middle = { x: frame.width / 2, y: frame.height / 2 };
+  const radius = billionths((30 * frame.height) / 100);
+  const onRing = ({ x, y }: Point): boolean =>
+    billionths(Math.hypot(x - middle.x, y - middle.y)) === radius;
+  return drawnIn(frame, "line", ART_PALETTE.kindInks.regrowRing).flatMap(
+    (command) =>
+      command.kind === "line" && onRing(command.from) && onRing(command.to)
+        ? [command]
+        : [],
+  );
+}
+
+/** Returns how far round, clockwise, a regrowing brick's ring is filled, in turns, and where from. */
+function filledOf(frame: ArtFrame): { turns: number; from: Point | null } {
+  const middle = { x: frame.width / 2, y: frame.height / 2 };
+  const angle = ({ x, y }: Point): number =>
+    Math.atan2(y - middle.y, x - middle.x);
+  const arc = arcOf(frame);
+  const turned = arc.reduce((sum, { from, to }) => {
+    const step = angle(to) - angle(from);
+    return sum + (step < 0 ? step + 2 * Math.PI : step);
+  }, 0);
+  const from = arc[0]?.from ?? null;
+  return {
+    turns: billionths(turned / (2 * Math.PI)),
+    from: from && { x: billionths(from.x), y: billionths(from.y) },
+  };
+}
+
+describe("regrowShare", () => {
+  it.each([
+    [100, 0],
+    [100 + GROWING_BACK / 2, 0.5],
+    [100 + GROWING_BACK, 1],
+    [200 + GROWING_BACK, 1],
+  ])(
+    "says a regrowing brick broken at step 100 has come, at step %i, %f of the way",
+    (steps, share) => {
+      expect(regrowShare(brokenRegrow(), steps)).toBe(share);
+    },
+  );
+
+  it("says nothing of a regrowing brick that stands whole, or a broken brick that never regrows", () => {
+    expect([
+      regrowShare({ ...brokenRegrow(), broken: false }, 100),
+      regrowShare({ ...brokenRegrow(), kind: "plain" }, 100),
+    ]).toEqual([null, null]);
+  });
+});
+
+describe("cellFrame", () => {
+  const regrow = {
+    ...lookOf("regrow"),
+    cell: 0,
+    capsule: null,
+    broken: false,
+    goesOffAt: 0,
+    regrowsAt: 0,
+  };
+
+  it("shows a brick that stands in its own frame", () => {
+    expect(cellFrame(regrow, 100)).toBe(brickFrame(regrow));
+  });
+
+  it("shows a broken regrowing brick's ring, as far as it has come", () => {
+    const broken = { ...regrow, ...brokenRegrow() };
+
+    expect(cellFrame(broken, 100 + GROWING_BACK / 2)).toBe(regrowingFrame(0.5));
+  });
+
+  it("shows nothing of a brick broken for good", () => {
+    expect(
+      cellFrame({ ...regrow, kind: "plain", broken: true }, 100),
+    ).toBeNull();
+  });
+});
+
+describe("regrowingFrame", () => {
+  it("names a frame for each step of the ring, empty as it breaks and full once it may grow back", () => {
+    const names = Array.from({ length: REGROW_RING_STEPS + 1 }, (_, step) =>
+      regrowingFrame(step / REGROW_RING_STEPS),
+    );
+
+    expect({
+      names: new Set(names).size,
+      between: regrowingFrame(0.5 / REGROW_RING_STEPS),
+      past: regrowingFrame(2),
+    }).toEqual({
+      names: REGROW_RING_STEPS + 1,
+      between: regrowingFrame(0),
+      past: regrowingFrame(1),
+    });
+  });
+});
+
+describe("a regrowing brick's ring as it grows back", () => {
+  const { regrowRing, regrowTrack } = ART_PALETTE.kindInks;
+
+  it.each([0, 0.25, 0.5, 1])(
+    "draws its track whole and fills %f of it round from its top, clockwise",
+    (share) => {
+      const frame = frameNamed(ART_FRAMES, regrowingFrame(share));
+      const top = {
+        x: billionths(frame.width / 2),
+        y: billionths(frame.height / 2 - (30 * frame.height) / 100),
+      };
+
+      expect({
+        track: drawnIn(frame, "ring", regrowTrack).length,
+        filled: filledOf(frame),
+      }).toEqual({
+        track: 1,
+        filled: { turns: share, from: share === 0 ? null : top },
+      });
+    },
+  );
+
+  it("draws the track about the cell's middle, and the arc that fills it along it", () => {
+    const frame = frameNamed(ART_FRAMES, regrowingFrame(0.5));
+
+    expect({
+      track: drawnIn(frame, "ring", regrowTrack),
+      arc: arcOf(frame).length > 0,
+    }).toMatchObject({
+      track: [
+        {
+          x: frame.width / 2,
+          y: frame.height / 2,
+          radius: (30 * frame.height) / 100,
+        },
+      ],
+      arc: true,
+    });
+  });
+
+  it("stands a sprout in the ring, and leaves it out where a brick is too small for its finest detail", () => {
+    const sprouts = [ART_FRAMES, SMALL_FRAMES].map(
+      (frames) =>
+        polygonsIn(frameNamed(frames, regrowingFrame(0.5)), regrowRing).length,
+    );
+
+    expect(sprouts).toEqual([2, 0]);
+  });
+
+  it("holds every frame of the ring among a regrowing brick's", () => {
+    const names = new Set(
+      BRICK_ART.regrow
+        .frames(ART_PALETTE, ART_SCALE)
+        .map((frame) => frame.name),
+    );
+    const wanted = Array.from({ length: REGROW_RING_STEPS + 1 }, (_, step) =>
+      regrowingFrame(step / REGROW_RING_STEPS),
+    );
+
+    expect(wanted.filter((name) => !names.has(name))).toEqual([]);
   });
 });
 

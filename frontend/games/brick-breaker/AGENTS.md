@@ -287,7 +287,10 @@ takes for the specs' helpers.
   change, and `FieldFrame`, whose events are `@fz/core/event_log`'s
   `EventLogView`; `layers.ts` the order the field is drawn in, back to front,
   in one list; and `tags.ts` where the tags of the effects in play lie under
-  the paddle, and how much of each one's time is left.
+  the paddle, and how much of each one's time is left. `rim.ts` says how
+  wide the rim the scene draws round the field is (`rimWidth()`): 0.3 of a
+  unit, never narrower than the wall, nor further past it than half the
+  gap the panels keep from it.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
@@ -342,21 +345,26 @@ takes for the specs' helpers.
   the marks a brick's kind and state are told apart by, the inks a kind's
   marks take beside them, mixed as the uplift's art kit mixes them
   (`kindInks`: steel's frame and rivets, a blast brick's spark, a gift's
-  ribbon, a regrowing brick's moss and the shadow under it), the inks of
+  ribbon, a regrowing brick's moss and the shadow under it, and the ring a
+  broken one fills as it grows back, over its track), the inks of
   the paddle's parts beside its body in the accent (`paddleInks`: its lip,
   its caps, its pad, a catching paddle's hooks and a laser's cannons and
   bolts), the lip each tone of capsule sits on, a good one's its accent
   darkened and a bad one's gold, and a good one's shine (`capsuleLips`,
   `capsuleShine`), the sparks about a ball at the streak's top multiplier
   (`streakSparks`), and a ghost's tints, faded while it hides and paler once
-  it shows (`ghostTints`).
+  it shows (`ghostTints`), and the inks of the field's edge (`fieldInks`: the
+  rim's lip, and the gutter under the paddle and its chevrons, washed with
+  the danger color).
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
   bricks, a shown ghost and the moss, every ball kind, both capsule tones
-  and a bad one's gold lip, a ball's sparks and a seeking ball's sight, the
+  and a bad one's gold lip, a ball's sparks and a seeking ball's sight, a
+  regrowing brick's ring, the
   paddle, its caps, hooks and cannons, and the
   last bricks' glow to 3:1 against the field in every palette, a tough
   brick's deeper tints too, and a hidden ghost to 2:1, faint by design; each
-  ball and capsule against its outline, the outline against every tint,
+  ball and capsule against its outline and the gutter it falls through,
+  the gutter's chevrons to 2:1 against it, the outline against every tint,
   brick, the paddle and its caps, the marks against every brick, capsule,
   the paddle and its caps, steel's frame and rivets against the steel, and a
   blast brick's spark against the marks it is lit on; its comment says why a
@@ -393,9 +401,14 @@ takes for the specs' helpers.
   steel's frame, rivets and sheen, the blast brick's bomb and a dot toward
   each brick it reaches, a gift's ribbon and bow, a hidden ghost's round
   dashes and faint eyes, its body under a scalloped hem once it shows, and
-  a regrowing brick's earth under a cap of moss with a sprout, leaving out
-  the cracks, rivets and sheen of a brick under 30 CSS px wide
-  (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`)
+  a regrowing brick's earth under a cap of moss with a sprout, and, broken,
+  the ring it fills as it grows back, a frame for each of `REGROW_RING_STEPS`,
+  leaving out
+  the cracks, rivets and sheen of a brick under 30 CSS px wide, and the
+  ring's sprout
+  (`showsDetail()`); and it names the frame a brick shows (`brickFrame()`,
+  and `regrowingFrame()` at how far it has come, `regrowShare()`, and so
+  the frame a cell shows, its brick's or, broken, its ring, `cellFrame()`)
   and the color its shards take (`brickColor()`); `paddle_art.ts` draws the
   paddle's frames as the kit draws its paddle (`PADDLE_FRAMES`): its left
   end, a cap over its lip with a bolt in it, a laser's cannon, a barrel on
@@ -419,9 +432,13 @@ takes for the specs' helpers.
   (`BricksSceneOptions`): each frame it hands the game the time and the
   steering its `Steering` read from the keys and the pointer, reads the
   frame and the palette, and has its painters, in `src/scene/painters/`,
-  draw, each in its layer of `LAYERS`: `FieldPainter` the field, its wall
-  and the net, `BrickPainter` an image for each cell, made once, dropped in
-  as a level starts, swollen at a hit a brick holds and grown back as it
+  draw, each in its layer of `LAYERS`: `FieldPainter` the field, the rim
+  round it on the left, the top and the right, wider than the layout's wall
+  where the unit allows (`rimWidth()`), the gutter
+  under the paddle with chevrons pointing down
+  it, and the net, `BrickPainter` an image for each cell, made once, dropped in
+  as a level starts, swollen at a hit a brick holds, its ring shown while
+  it grows back and grown back as it
   regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,

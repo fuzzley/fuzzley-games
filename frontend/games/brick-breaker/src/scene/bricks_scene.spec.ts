@@ -26,8 +26,10 @@ import {
   BRICKS_TOP,
   COLUMNS,
   FIELD_HEIGHT,
+  FIELD_WIDTH,
   MAX_BALLS,
   NET_DEPTH,
+  PADDLE_HEIGHT,
   PADDLE_TOP,
   ROWS,
   TALLEST_FIELD,
@@ -51,7 +53,7 @@ import {
   facedBallFrame,
   tagFrame,
 } from "../view/art/art";
-import { brickColor, brickFrame } from "../view/art/brick_art";
+import { brickColor, brickFrame, regrowingFrame } from "../view/art/brick_art";
 import { PADDLE_FRAMES, hookCount, paddleShape } from "../view/art/paddle_art";
 import type { FieldCommand } from "../view/steering/controls";
 import {
@@ -67,6 +69,7 @@ import { STREAK_STEPS } from "../view/effects/streak";
 import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
+import { rimWidth } from "../view/field/rim";
 import type { TouchSteering } from "../view/steering/steering";
 import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {
@@ -346,6 +349,74 @@ function clearLevel(shell: FakeShell): void {
   );
 }
 
+/** Describes a path a graphics fills: its color, and the box it spans. */
+interface FilledPath {
+  readonly color: number;
+  readonly left: number;
+  readonly top: number;
+  readonly right: number;
+  readonly bottom: number;
+}
+
+/** Returns each path a graphics fills, in turn, in the color it is filled in and the box it spans. */
+function filledPaths(graphics: GameObjects.Graphics): readonly FilledPath[] {
+  const paths: FilledPath[] = [];
+  let color = 0;
+  let xs: number[] = [];
+  let ys: number[] = [];
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "fillStyle") color = command.color;
+    if (command.kind === "beginPath") [xs, ys] = [[], []];
+    if (command.kind === "moveTo" || command.kind === "lineTo") {
+      xs.push(command.x);
+      ys.push(command.y);
+    }
+    if (command.kind === "arc") {
+      xs.push(command.x - command.radius, command.x + command.radius);
+      ys.push(command.y - command.radius, command.y + command.radius);
+    }
+    if (command.kind === "fillPath") {
+      paths.push({
+        color,
+        left: Math.min(...xs),
+        top: Math.min(...ys),
+        right: Math.max(...xs),
+        bottom: Math.max(...ys),
+      });
+    }
+  }
+  return paths;
+}
+
+/** Describes a path a graphics strokes: its color, and its points. */
+interface StrokedPath {
+  readonly color: number;
+  readonly points: readonly { x: number; y: number }[];
+}
+
+/** Returns each path a graphics strokes, in turn, in its color and its points. */
+function strokedPaths(graphics: GameObjects.Graphics): readonly StrokedPath[] {
+  const paths: StrokedPath[] = [];
+  let color = NaN;
+  let points: { x: number; y: number }[] = [];
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "lineStyle") color = command.color;
+    if (command.kind === "beginPath") points = [];
+    if (command.kind === "moveTo" || command.kind === "lineTo") {
+      points.push({ x: command.x, y: command.y });
+    }
+    if (command.kind === "strokePath") paths.push({ color, points });
+  }
+  return paths;
+}
+
+/** Returns the colors a graphics fills in, in turn. */
+function fillsOf(graphics: GameObjects.Graphics): readonly number[] {
+  return commandsOf(graphics).flatMap((command) =>
+    command.kind === "fillStyle" ? [command.color] : [],
+  );
+}
+
 /** Returns how many of a set of images show. */
 function showing(images: readonly GameObjects.Image[]): number {
   return images.filter((image) => image.visible).length;
@@ -521,6 +592,119 @@ describe("BricksScene", () => {
       );
     });
 
+    it("rims it on its left, its top and its right, wider than the wall, its lip showing at the foot of each side", async () => {
+      const { scene } = await startBoard();
+      const metrics = metricsAt();
+      const rim = rimWidth(metrics);
+      const [lip, wall] = filledPaths(scene.field.graphics);
+      const box = {
+        left: metrics.x - rim,
+        top: metrics.y - rim,
+        right: metrics.x + metrics.width + rim,
+      };
+
+      expect({ lip, wall, wider: rim > metrics.wall }).toEqual({
+        lip: {
+          ...box,
+          color: LIGHT.fieldInks.rimLip,
+          bottom: metrics.y + metrics.height,
+        },
+        wall: {
+          ...box,
+          color: LIGHT.wall,
+          bottom: metrics.y + metrics.height - Math.round(0.35 * rim),
+        },
+        wider: true,
+      });
+    });
+
+    it("washes the gutter under the paddle to the field's foot, in the danger color", async () => {
+      const { shell, scene } = await startBoard();
+      const metrics = metricsAt();
+      const top = Math.round(
+        toCanvasY(metrics, shell.field.paddle.top + PADDLE_HEIGHT + 0.45),
+      );
+      const commands = commandsOf(scene.field.graphics);
+      const gutter = commands.findIndex(
+        (command) =>
+          command.kind === "fillStyle" &&
+          command.color === LIGHT.fieldInks.gutter,
+      );
+
+      expect(commands[gutter + 1]).toEqual({
+        kind: "fillRect",
+        x: metrics.x,
+        y: top,
+        width: metrics.width,
+        height: metrics.y + metrics.height - top,
+      });
+    });
+
+    it("points a chevron down the gutter every two units across, in its own color", async () => {
+      const { shell, scene } = await startBoard();
+      const metrics = metricsAt();
+      const top = Math.round(
+        toCanvasY(metrics, shell.field.paddle.top + PADDLE_HEIGHT + 0.45),
+      );
+      const chevrons = strokedPaths(scene.field.graphics);
+      const points = chevrons[0]?.points.map(({ x, y }) => ({
+        x: Number(((x - metrics.x) / metrics.unit).toFixed(6)),
+        y: Number(((y - top) / metrics.unit).toFixed(6)),
+      }));
+
+      expect({
+        count: chevrons.length,
+        colors: new Set(chevrons.map(({ color }) => color)),
+        first: points,
+      }).toEqual({
+        count: FIELD_WIDTH / 2,
+        colors: new Set([LIGHT.fieldInks.chevron]),
+        first: [
+          { x: 0.72, y: 0.38 },
+          { x: 1, y: 0.62 },
+          { x: 1.28, y: 0.38 },
+        ],
+      });
+    });
+
+    it("lays the rim, then the field over it, then the gutter over the field, then the net", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.field.net = true;
+      run.advance(16);
+
+      expect(fillsOf(scene.field.graphics)).toEqual([
+        LIGHT.fieldInks.rimLip,
+        LIGHT.wall,
+        LIGHT.field,
+        LIGHT.fieldInks.gutter,
+        LIGHT.capsules.good,
+      ]);
+    });
+
+    it("washes the gutter under the paddle of a taller field", async () => {
+      const { shell, run, scene } = await startBoard();
+      reshapeField(shell.field, TALLEST_FIELD);
+
+      run.advance(16);
+
+      const commands = commandsOf(scene.field.graphics);
+      const gutter = commands.findIndex(
+        (command) =>
+          command.kind === "fillStyle" &&
+          command.color === LIGHT.fieldInks.gutter,
+      );
+      expect(commands[gutter + 1]).toMatchObject({
+        kind: "fillRect",
+        y: Math.round(
+          toCanvasY(
+            tallestMetrics(),
+            paddleTopOf(TALLEST_FIELD) + PADDLE_HEIGHT + 0.45,
+          ),
+        ),
+      });
+    });
+
     it("shows the net while there is one", async () => {
       const { shell, run, scene } = await startBoard();
 
@@ -585,6 +769,23 @@ describe("BricksScene", () => {
       expect(scene.bricks.images[cellIndex(1, 0)]?.frame.name).toBe(
         brickFrame(tough),
       );
+    });
+
+    it("shows a broken regrowing brick's ring, filled as far as its time to grow back has come", async () => {
+      const { shell, run, scene } = await startBoard((shell) => {
+        stillness(shell);
+        shell.field = fieldFrom(["+"]);
+      });
+      const brick = brickAt(shell.field, 0, 0);
+      hitBrick(shell.field, brick, 0, 0);
+      shell.field.steps = brick.regrowsAt - stepsIn(10_000) / 2;
+
+      run.advance(16);
+
+      expect(placed(scene.bricks.images[cellIndex(0, 0)])).toMatchObject({
+        visible: true,
+        frame: regrowingFrame(0.5),
+      });
     });
 
     it("hides a brick once it breaks", async () => {
