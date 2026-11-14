@@ -89,6 +89,10 @@ describe("bricksPalette", () => {
     expect(bricksPalette(ROLES, "light").glow).toBe(0x000000);
   });
 
+  it("keeps the text, for a place's pattern to be washed from", () => {
+    expect(bricksPalette(ROLES, "light").text).toBe(0x000000);
+  });
+
   it("washes the wall with a fifth of the text, and steel with more than half", () => {
     const palette = bricksPalette(ROLES, "light");
 

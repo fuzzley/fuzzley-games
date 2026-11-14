@@ -358,6 +358,7 @@ takes for the specs' helpers.
   it shows (`ghostTints`), and the inks of the field's edge (`fieldInks`: the
   rim's lip, and the gutter under the paddle and its chevrons, washed with
   the danger color).
+  It keeps the text too, which a place is washed from over the field.
   `contrast.spec.ts` holds every tint, the steel, blast, gift and regrowing
   bricks, a shown ghost and the moss, every ball kind, both capsule tones
   and a bad one's gold lip, a ball's sparks and a seeking ball's sight, a
@@ -372,6 +373,32 @@ takes for the specs' helpers.
   blast brick's spark against the marks it is lit on; its comment says why a
   ball isn't held against the tints, and why a brick's shading, the paddle's
   and a good capsule's is held to nothing.
+- **`src/view/places/`** — the place each set of levels is in, drawn as
+  a dim, still pattern to lie under the bricks and over the page past the
+  field. `places.ts` holds each place's art (`PLACE_ART`, keyed by
+  `Place`, so a new place fails to compile without its own): its motif,
+  whether a drawing board's grid lies under them, as the workshop's does,
+  and how much of the text it takes over the field and, a little more,
+  over the page; `placeTile()` lays a place's tile out at a scale, in its
+  inks (`PlaceInks`), a side of `tileSide()` whole device pixels:
+  `TILE_MOTIFS` motifs each way, `MOTIF_STEP` field units apart, every
+  other row half a step along, each a little off its place and of its own
+  size, drawn from the tile's own seed, as the uplift's places sheet
+  scatters them, and each moved a pixel in from an edge it would come
+  near, so the tile repeats without a seam, and empty at a unit under a
+  device pixel; `placeInks()` washes its inks from the text over what lies
+  behind it, the grid's `FAINT` as strong, and `fieldInks()` gives those
+  over the field in a palette. `motifs.ts` draws each place's motifs as the
+  sheet does, in shares of their size about a middle: the playroom's rings,
+  blocks and wedges, the workshop's cogs, each outlined in one mitred
+  polyline, and crosses, the fun fair's bunting and stars, the garden's
+  leaves on their stems and the arcade's rings and arrows; and it says
+  what a motif's command may cover, a polyline's mitres too (`coverOf()`),
+  at corners no sharper than `SHARPEST`. `places.spec.ts` holds every set
+  to a place it draws, every command inside its tile at every scale a
+  field is drawn at, and each place to 1.05:1 to 1.2:1 against the field
+  and the page in every palette, so it reads but never competes with what
+  is played.
 - **`src/view/art/`** — the atlas's frames. `art.ts` draws every frame of
   the atlas (`atlasFrames()`) as plain commands in device pixels, each ball
   as it flies and with its eyes, the balls' eyes, each capsule as the kit
