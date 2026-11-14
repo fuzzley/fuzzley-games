@@ -89,7 +89,7 @@ Run these from `frontend/games/brick-breaker/`, or as
 
 - `src/rules/levels/levels.spec.ts` holds every level to parsing, ids and
   names of its own, a needed brick a ball can reach and a pace that never
-  falls within a set.
+  falls within a set, and every set to its place.
 - `src/rules/catalog/catalog.spec.ts` holds the catalogs to their rules, and the
   levels to using every brick kind and letting every capsule first fall at
   the level its `from` names.

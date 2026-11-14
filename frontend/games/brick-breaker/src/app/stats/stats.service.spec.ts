@@ -135,6 +135,7 @@ describe("StatsService", () => {
       {
         id: "set",
         name: "Set",
+        place: "playroom",
         drops: 0,
         levels: [{ id: "redrawn", name: "Redrawn", layout: 2, bricks: ["o"] }],
       },

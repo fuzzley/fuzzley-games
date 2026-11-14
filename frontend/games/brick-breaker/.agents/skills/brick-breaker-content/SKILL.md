@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, pace, drops, report:levels, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, report:levels, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -26,14 +26,14 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   numbered from 1 across the sets (`LEVELS`).
 - **The checks** that hold it whole:
 
-  | Check               | Where                               | What it holds                                                                                                        |
-  | ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                       |
-  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level  |
-  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set       |
-  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field |
-  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette               |
-  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                          |
+  | Check               | Where                               | What it holds                                                                                                                          |
+  | ------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                                         |
+  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level                    |
+  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, a needed brick a ball can reach, a pace that never falls in a set, every set in its place |
+  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                   |
+  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                 |
+  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                            |
 
 ## A Level
 
@@ -90,13 +90,15 @@ and clears them fast.
 
 ## A Set
 
-Its file in `src/rules/levels/`, with its `id`, `name`, `drops` (the
-chance of a capsule its levels share) and `levels`, imported in
-`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog shows
-each set under its name. The levels spec holds a set's paces from falling
-only within it, so a new set's paces start where the last set's end, kept
-so by hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to
-1.2.
+Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
+`PLACES` in `src/rules/levels/levels.ts`, which `placeOf()` checks:
+`playroom`, `workshop`, `funfair`, `garden` or `arcade`), `drops` (the chance
+of a capsule its levels share) and `levels`, imported in
+`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. The Levels dialog
+shows each set under its name. The levels spec lists each set's place by its
+id, so a new set adds its own there. It holds a set's paces from falling only
+within it, so a new set's paces start where the last set's end, kept so by
+hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2.
 
 ## A Capsule With an Effect That Exists
 

@@ -27,7 +27,13 @@ function entryOf(
   const data: LevelData = { id: "spec", name: "Spec", bricks, capsules };
   return {
     number: 1,
-    set: { id: "spec", name: "Spec", drops: 0, levels: [data] },
+    set: {
+      id: "spec",
+      name: "Spec",
+      place: "playroom",
+      drops: 0,
+      levels: [data],
+    },
     data,
   };
 }

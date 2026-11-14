@@ -1,6 +1,7 @@
 {
   "id": "tricks",
   "name": "Tricks",
+  "place": "funfair",
   "drops": 0.14,
   "levels": [
     {

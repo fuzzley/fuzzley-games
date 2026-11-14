@@ -28,6 +28,7 @@ const LEVELS = levelsOf([
   {
     id: "set",
     name: "Set",
+    place: "playroom",
     drops: 0,
     levels: [FIRST, levelOf("second"), REDRAWN],
   },

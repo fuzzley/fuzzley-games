@@ -1,6 +1,7 @@
 {
   "id": "steel",
   "name": "Steel",
+  "place": "workshop",
   "drops": 0.12,
   "levels": [
     {

@@ -42,6 +42,7 @@ const LAST: LevelData = { ...BLASTS, id: "last", name: "Last" };
 const SET: LevelSetData = {
   id: "specs",
   name: "Specs",
+  place: "playroom",
   drops: 0,
   levels: [
     BLASTS,
@@ -76,10 +77,11 @@ export const TWO_SETS: readonly LevelEntry[] = levelsOf([
   {
     id: "first",
     name: "First",
+    place: "playroom",
     drops: 0,
     levels: [BLASTS, { ...BLASTS, id: "again", name: "Again" }],
   },
-  { id: "second", name: "Second", drops: 0, levels: [LAST] },
+  { id: "second", name: "Second", place: "playroom", drops: 0, levels: [LAST] },
 ]);
 
 /** Each of the specs' levels' numbers, by what it is set up for. */

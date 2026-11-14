@@ -1,4 +1,5 @@
 import { unknownKey } from "@fz/core/json";
+import { isOneOf } from "@fz/core/records";
 import { brickKind, hasTrait, isBrickKindId } from "../catalog/bricks";
 import {
   CAPSULE_IDS,
@@ -52,10 +53,24 @@ export interface LevelData {
   readonly legend?: Readonly<Record<string, BrickSpecData>>;
 }
 
+/** Every place a set of levels can be in. */
+export const PLACES = [
+  "playroom",
+  "workshop",
+  "funfair",
+  "garden",
+  "arcade",
+] as const;
+
+/** Names a place a set of levels is in. */
+export type Place = (typeof PLACES)[number];
+
 /** Describes a set of levels, as its file holds it. */
 export interface LevelSetData {
   readonly id: string;
   readonly name: string;
+  /** The place it is in, a {@link Place} as text until {@link placeOf} checks it. */
+  readonly place: string;
   /** The chance a needed brick lets a capsule fall, in a level that doesn't say. */
   readonly drops: number;
   readonly levels: readonly LevelData[];
@@ -63,7 +78,7 @@ export interface LevelSetData {
 
 /** Describes a level of the game: its data, its set, and its number. */
 export interface LevelEntry {
-  /** Its place in the game, from 1. */
+  /** Its number in the order played, from 1. */
   readonly number: number;
   readonly set: LevelSetData;
   readonly data: LevelData;
@@ -81,6 +96,17 @@ export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {
 
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);
+
+/**
+ * Returns the place a set of levels is in, or throws an error that names a
+ * place it can't be in.
+ */
+export function placeOf(set: LevelSetData): Place {
+  if (!isOneOf(set.place, PLACES)) {
+    throw new Error(`Set "${set.id}": its place, "${set.place}", is no place.`);
+  }
+  return set.place;
+}
 
 /** Returns the number of the layout a level's bricks are in, unchecked: {@link parseLevel} checks it. */
 export function layoutOf(data: Pick<LevelData, "layout">): number {
