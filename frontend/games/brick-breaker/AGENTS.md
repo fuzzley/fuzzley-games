@@ -438,8 +438,10 @@ takes for the specs' helpers.
   good capsule's color with a tick out from it each way, outlined, the bolt
   and the flourishes, names the frame
   a ball, a capsule or a tag shows (`ballFrame()`, a normal ball's by the
-  streak, `facedBallFrame()` and
-  the rest), and How to play's pictures (`PICTURE_FRAMES`);
+  streak, a friend's in its ink, `facedBallFrame()` and
+  the rest), the color a ball is drawn in, which its tail and its streak's
+  ring take (`ballColor()`, a friend's ink while the balls are normal, else
+  its kind's), and How to play's pictures (`PICTURE_FRAMES`);
   each ball is `@fz/phaser/fuzzball`'s fuzzball, outlined, its fur
   reaching the ball's edge (`REACH`), and its eyes in the marks' color, a
   frame of their own the scene moves toward the way the ball goes
@@ -488,7 +490,7 @@ takes for the specs' helpers.
   finest detail; `symbols.ts` draws each capsule's symbol (`SYMBOLS`), the
   Seeker's a sight, a ring with a dot in it and four ticks; `streak_art.ts`
   the frames a streak's flourishes show (`STREAK_FRAMES`), white, which the
-  scene tints as the balls are: a dot of a ball's tail and the ring about a
+  scene tints as their ball is: a dot of a ball's tail and the ring about a
   ball as its streak steps; they are drawn in `@fz/phaser/shapes`'s commands
   (`DrawCommand`), whose builders take no size below nothing, since a
   canvas not yet laid out gives a unit too small for the insets, and laid
@@ -516,6 +518,7 @@ takes for the specs' helpers.
   regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
+  in the ink the painter last showed it in (`BallPainter.lostInk()`),
   each ring and fade taken in turn (`@fz/core/turns`'s `Turns`), and the
   field's shake, `CapsulePainter` and `BoltPainter` what
   falls and rises, `PaddlePainter` the paddle, its ends frames of the atlas
@@ -532,7 +535,8 @@ takes for the specs' helpers.
   written once, and again as the atlas is baked and once the page has
   loaded the font, and one for the level's mark, written as each field
   starts unless a step's count says it already, and `BallPainter` the
-  balls, each in its kind's frame at the streak, with its eyes looking the
+  balls, each in its kind's frame at the streak, a friend's in its ink
+  (`Ball.ink`), with its eyes looking the
   way it goes, a sight under it while it seeks (`Ball.seeks`, or every ball
   in flight while a Seeker is in play), with a fire ball's embers, one for
   each ember's width it goes, and a ball and its eyes squashed and dropped

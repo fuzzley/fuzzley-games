@@ -315,6 +315,13 @@ function moveAcross(
   }
 }
 
+/** Returns the frames of the lost balls' fades that show. */
+function fadingFrames(scene: BricksScene): readonly string[] {
+  return imagesOf(scene.effects.fades)
+    .filter((fade) => fade.visible)
+    .map((fade) => fade.frame.name);
+}
+
 /** Returns the dots of the first ball's tail that show, nearest first. */
 function tailDotsOf(scene: BricksScene): GameObjects.Image[] {
   return (scene.tails.byBall[0]?.dots ?? []).filter((dot) => dot.visible);
@@ -1516,6 +1523,34 @@ describe("BricksScene", () => {
       expect(scene.balls.images[0]?.frame.name).toBe(ballFrame("normal", 20));
     });
 
+    it("draw a friend in its ink, its fur lifted by the streak as a normal ball's is", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 6, 20, 0, 1).ink = 2;
+
+      shell.field.streak = 20;
+      run.advance(16);
+
+      expect(
+        scene.balls.images.slice(0, 2).map((image) => image.frame.name),
+      ).toEqual([ballFrame("normal", 20), ballFrame("normal", 20, 2)]);
+    });
+
+    it("stand a sight under a friend that seeks, as under the player's own ball", async () => {
+      const { shell, run, scene } = await startBoard();
+      const friend = throwBall(shell.field, 6, 20, 0, 1);
+      friend.ink = 2;
+      friend.seeks = true;
+
+      run.advance(16);
+
+      expect(placed(scene.balls.sights[1])).toEqual({
+        visible: true,
+        frame: FRAMES.sight,
+        x: toCanvasX(metricsAt(), 6),
+        y: toCanvasY(metricsAt(), 20),
+      });
+    });
+
     it("stand a sight under a ball that seeks, where it is drawn, and none under one that doesn't", async () => {
       const { shell, run, scene } = await startBoard();
       throwBall(shell.field, 3, 20, 0, 0).seeks = true;
@@ -2222,6 +2257,46 @@ describe("BricksScene", () => {
       }).toEqual({ kind: "normal", fading: [facedBallFrame("fire")] });
     });
 
+    it("fades a lost friend in its ink", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 13, 20, 0);
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180, 1).ink = 2;
+      run.advance(16);
+
+      stepTimes(shell.field, 30);
+      run.advance(16);
+
+      expect(fadingFrames(scene)).toEqual([facedBallFrame("normal", 2)]);
+    });
+
+    it("fades each ball lost at once in its own ink, by where it was lost", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180);
+      throwBall(shell.field, 9, FIELD_HEIGHT - 0.5, 180, 1).ink = 2;
+      run.advance(16);
+
+      stepTimes(shell.field, 30);
+      run.advance(16);
+
+      expect([...fadingFrames(scene)].sort()).toEqual(
+        [facedBallFrame("normal"), facedBallFrame("normal", 2)].sort(),
+      );
+    });
+
+    it("fades a lost friend in its ink, not in that of a ball lost there before and since out of sight", async () => {
+      const { shell, run, scene } = await startBoard();
+      throwBall(shell.field, 13, 20, 0);
+      const friend = throwBall(shell.field, 3, FIELD_HEIGHT - 0.5, 180, 2);
+      friend.ink = 2;
+      run.advance(16);
+      stepTimes(shell.field, 30);
+
+      Object.assign(ballOf(shell.field, 1), { x: friend.x, ink: 4 });
+      run.advance(16);
+
+      expect(fadingFrames(scene)).toEqual([facedBallFrame("normal", 2)]);
+    });
+
     it("grows a regrown brick back from nothing", async () => {
       const { shell, run, scene } = await startBoard();
       const cell = cellIndex(0, 0);
@@ -2384,6 +2459,18 @@ describe("BricksScene", () => {
         smaller: true,
         tints: new Set([LIGHT.balls.normal]),
       });
+    });
+
+    it("tints a friend's tail by its ink", async () => {
+      const { scene } = await flyAcross(20, (shell) => {
+        ballOf(shell.field, 0).ink = 2;
+      });
+
+      const dots = tailDotsOf(scene);
+
+      expect(new Set(dots.map((dot) => dot.tint))).toEqual(
+        new Set([LIGHT.friendInks[2]]),
+      );
     });
 
     it("follows each ball in flight with a tail of its own", async () => {
@@ -2608,6 +2695,18 @@ describe("BricksScene", () => {
         });
       },
     );
+
+    it("writes the ring and the count in a friend's ink, about a friend", async () => {
+      const { scene } = await stepTo(5, (shell) => {
+        ballOf(shell.field, 0).ink = 2;
+      });
+      const ink = LIGHT.friendInks[2] ?? NaN;
+
+      expect({
+        ring: scene.streak.ring.tint,
+        count: countShown(scene)?.style.color,
+      }).toEqual({ ring: ink, count: cssHex(ink) });
+    });
 
     it("shows the newest step's count alone", async () => {
       const { shell, run, scene } = await stepTo(5);

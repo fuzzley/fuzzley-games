@@ -2,6 +2,8 @@ import { fadeAlpha, lerp, shareDone } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
 import { whenSceneEnds } from "@fz/phaser/scene";
 import type { GameObjects, Scene, Types } from "phaser";
+import { OWN_INK } from "../../rules/paddle/balls";
+import { ballColor } from "../../view/art/art";
 import { STREAK_FRAMES } from "../../view/art/streak_art";
 import { countAlpha, streakRingScale } from "../../view/effects/flourish";
 import {
@@ -35,15 +37,16 @@ interface Step extends FieldPlace {
  * Draws a streak's step, or its reaching the level's mark, where motion is
  * welcome: a ring about the ball nearest the brick that took the streak
  * there, spreading as it fades, and the streak's count beside the ball, the
- * one thing written over the field, both following the ball, in the balls'
- * color. Each count is a `Text` in the page's font, written once for its
- * step, and again only at a bake, once the page has loaded the font, or for
- * balls of another kind, so a step played writes nothing; the mark's is
- * written as each field starts, unless a step's count says it already. A
- * step played takes the place of one still playing.
+ * one thing written over the field, both following the ball, in its color.
+ * Each count is a `Text` in the page's font, written once for its step, and
+ * again only at a bake, once the page has loaded the font, or for a ball of
+ * another color, so a step played about a ball of the same color writes
+ * nothing; the mark's is written as each field starts, unless a step's
+ * count says it already. A step played takes the place of one still
+ * playing.
  */
 export class StreakPainter implements Painter {
-  /** The ring, white, tinted as the balls are. */
+  /** The ring, white, tinted as its ball is. */
   readonly ring: GameObjects.Image;
   /** A count for each step, by the streak it steps at. */
   readonly counts: ReadonlyMap<number, GameObjects.Text>;
@@ -64,7 +67,7 @@ export class StreakPainter implements Painter {
   };
   /** Where the count's top left corner lies, in field units, written each frame it shows. */
   private readonly corner: FieldPlace = { x: 0, y: 0 };
-  /** The color the counts are written in, the balls'. */
+  /** The color the counts are written in, that of the ball they last followed. */
   private countColor: number;
 
   /**
@@ -117,7 +120,7 @@ export class StreakPainter implements Painter {
       step.x = lerp(ball.lastX, ball.x, alpha);
       step.y = lerp(ball.lastY, ball.y, alpha);
     }
-    const color = palette.balls[field.ballKind];
+    const color = ballColor(field.ballKind, ball?.ink ?? OWN_INK, palette);
     ring
       .setPosition(toCanvasX(metrics, step.x), toCanvasY(metrics, step.y))
       .setScale(streakRingScale(done))
@@ -167,7 +170,7 @@ export class StreakPainter implements Painter {
     return streak === mark ? this.markCount : null;
   }
 
-  /** Writes each count again in the color of balls of another kind. */
+  /** Writes each count again in another ball's color. */
   private writeIn(color: number): void {
     this.countColor = color;
     const css = cssHex(color);

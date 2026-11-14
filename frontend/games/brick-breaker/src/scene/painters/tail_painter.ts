@@ -1,6 +1,8 @@
 import { lerp } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
+import { OWN_INK } from "../../rules/paddle/balls";
 import { MAX_BALLS } from "../../rules/tuning";
+import { ballColor } from "../../view/art/art";
 import { STREAK_FRAMES } from "../../view/art/streak_art";
 import {
   TAIL_MOST,
@@ -24,7 +26,7 @@ interface Tail {
  * Draws a tail behind each ball in play while the field is in a streak,
  * where motion is welcome: a dot at each of the ball's last places, a gap
  * apart, more at each step of the streak, each fainter and smaller than the
- * one before, in the balls' color. Every dot is made once.
+ * one before, in its ball's color. Every dot is made once.
  */
 export class TailPainter implements Painter {
   /** Each ball's tail, by its place in the field's balls. */
@@ -53,7 +55,6 @@ export class TailPainter implements Painter {
     motion,
   }: Readonly<PaintContext>): void {
     const length = motion ? tailLength(field.streak) : 0;
-    const color = palette.balls[field.ballKind];
     for (let i = 0; i < this.byBall.length; i++) {
       const tail = this.byBall[i];
       if (!tail) continue;
@@ -68,6 +69,7 @@ export class TailPainter implements Painter {
         trail.clear();
       }
       const shown = Math.min(length, trail.length);
+      const color = ballColor(field.ballKind, ball?.ink ?? OWN_INK, palette);
       for (let dot = 0; dot < dots.length; dot++) {
         const image = dots[dot];
         if (!image) continue;
