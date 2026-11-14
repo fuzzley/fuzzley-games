@@ -587,11 +587,6 @@ function nameAt(names: readonly string[] | undefined, at: number): string {
   return name;
 }
 
-/** Returns the ink of the friend a cage shows, the one a field that has freed so many frees next, as the rules dress it. */
-export function nextFriend(friendsFreed: number): number {
-  return nextFriendInk(friendsFreed);
-}
-
 /** A cage's frames, as it stands, for each friend's ink it may hold. */
 const CAGE_FRAMES: Readonly<Record<CageLook, readonly string[]>> = {
   whole: Array.from({ length: FRIEND_INKS }, (_, ink) => `cage-${String(ink)}`),
@@ -1326,7 +1321,7 @@ export const BRICK_ART = {
     frameOf: (brick, field) =>
       nameAt(
         CAGE_FRAMES[brick.hits < brick.whole ? "hit" : "whole"],
-        nextFriend(field.friendsFreed),
+        nextFriendInk(field.friendsFreed),
       ),
     colorOf: (_, palette) => palette.bricks.cage,
     frames: (palette, scale) =>
