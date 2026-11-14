@@ -226,6 +226,17 @@ describe("the toolkit's mixins", () => {
     );
   });
 
+  it("show a board's ring only while the application inside its host has the focus from the keyboard, where it holds one", () => {
+    const css = compiled(
+      '@include fz.board-focus-ring(2px, $application: ".play");',
+    );
+
+    expect(css).toContain(
+      ".play:focus-visible .it{outline-color:var(--fz-focus-ring-color)}",
+    );
+    expect(css).not.toContain(":host");
+  });
+
   it("center a board's card in a grid over all of the board but its foot", () => {
     expect(compiled("@include fz.board-card-layer(var(--finger));")).toBe(
       ".it{position:absolute;inset:0 0 var(--finger);display:grid;place-items:center;pointer-events:none}",

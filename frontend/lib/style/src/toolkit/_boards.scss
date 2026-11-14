@@ -26,17 +26,25 @@
 /// as wide as its wall or frame, and the shared focus ring's offset beyond
 /// that, letting the pointer through.
 ///
-/// It shows while the board's host has the focus from the keyboard, so it
-/// belongs in the board's own stylesheet, the one whose `:host` takes
-/// `canvas-board-host`.
-@mixin board-focus-ring($offset) {
+/// It shows while the board's application has the focus from the keyboard:
+/// the host, or, given `$application`, the element inside the host that
+/// selector names, which the ring must sit inside, as where a board keeps
+/// its cards and panels beside the application. So it belongs in the
+/// board's own stylesheet, the one whose `:host` takes `canvas-board-host`.
+@mixin board-focus-ring($offset, $application: null) {
   border-radius: var(--fz-radius-sm);
   outline: var(--fz-focus-ring-width) solid transparent;
   outline-offset: calc($offset + var(--fz-focus-ring-offset));
   pointer-events: none;
 
-  :host(:focus-visible) & {
-    outline-color: var(--fz-focus-ring-color);
+  @if $application {
+    #{$application}:focus-visible & {
+      outline-color: var(--fz-focus-ring-color);
+    }
+  } @else {
+    :host(:focus-visible) & {
+      outline-color: var(--fz-focus-ring-color);
+    }
   }
 }
 

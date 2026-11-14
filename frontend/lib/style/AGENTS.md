@@ -92,9 +92,12 @@ relative to `frontend/lib/style/`.
   A board drawn on a canvas takes `canvas-board-host` on its `:host`: a
   size container that clips its parts, with no outline and nothing for a
   finger steering on it to set off. Its focus shows in
-  `board-focus-ring($offset)`, which also writes the `:host(:focus-visible)`
-  rule that shows it, on an element over what the ring goes around,
-  `$offset` its wall's or frame's width. The toolkit emits no CSS, so any
+  `board-focus-ring($offset, $application)`, on an element over what the
+  ring goes around, `$offset` its wall's or frame's width. The mixin also
+  writes the rule that shows the ring while the application has the focus
+  from the keyboard: the host (`:host(:focus-visible)`), or the element
+  around the ring inside it that `$application` names, as Brick Breaker's
+  and Brick Fuzz Pop's `.play` is. The toolkit emits no CSS, so any
   stylesheet can load it, and `src/toolkit.spec.ts` checks what each mixin
   writes.
 - `src/lint/stylelint.ts`: the stylelint rules every app's stylesheets

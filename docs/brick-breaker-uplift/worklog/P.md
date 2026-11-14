@@ -404,3 +404,54 @@ follows a taller field) and the pictures' gate lazy. Its comments:
 **Checks:** Brick Breaker's lint, typecheck and test (62 files, 2,222
 specs, with `sim`), its build and `check:layout` (every shape and turn);
 the root's lint, under the lock.
+
+## P3. Stars in the shell
+
+### 2026-11-14: before any change
+
+- The branch held the integration tip, d11a2092 (P1, R1, K1, L1, P2, R2,
+  L2, F1 and R3).
+
+### 2026-11-14: the board's focus ring on the application inside it
+
+P2's first follow-up. `@fz/style`'s `board-focus-ring($offset)` wrote a
+`:host(:focus-visible)` rule, which can't match in Brick Breaker or Brick
+Fuzz Pop now that each holds its application on an inner `.play`; each
+board wrote its own `.play:focus-visible > .ring` beside it. The mixin
+gains `$application`, the selector of the element inside the host that
+holds the application: with it, the ring shows while that element has the
+focus from the keyboard (`.play:focus-visible .ring`), and the `:host` rule
+is left out; without it, as Snake and Asteroid Breaker call it, it writes
+what it wrote. Both boards call it with `$application: ".play"` and drop
+their own rule.
+
+- **A descendant, not a child:** the ring shows wherever it sits inside the
+  application, so a board that wraps it needn't say so; in both boards it
+  is a child of `.play`, as before.
+- **Brick Fuzz Pop's look is unchanged:** its compiled rule differs only in
+  the combinator, and the dead `:host` rule is gone. Seen in headless
+  Chrome (port 9204, its own page) at 1280 × 720: Tab onto the board shows
+  the ring around the frame in the focus ring's color; Tab on to the bar's
+  link leaves it transparent. Brick Breaker's the same, around its wall.
+- `lib/style/AGENTS.md` and the `fuzzley-ui` skill's row say what the
+  option does; the skill's row stays inside its column, so the table isn't
+  padded again.
+
+**Review** (a fresh agent): it found the mixin sound, Snake's and Asteroid
+Breaker's CSS unchanged, the dropped `:host` rule dead in both boards, and
+Brick Fuzz Pop's ring matching the same element with the same specificity.
+Its comments:
+
+1. The new spec packed two `includes()` into an object of booleans, which
+   hides the CSS when it fails. Fixed: `toContain()` and `not.toContain()`,
+   as the rest of the file reads.
+2. In `lib/style/AGENTS.md`, "which also writes" read as if it followed the
+   width, and a line ran short. Fixed: two sentences, rewrapped.
+3. The mixin's doc put the rule a caller must keep, the ring inside the
+   element, last among asides. Fixed: it says it plainly.
+
+**Checks:** `@fz/style`'s lint, typecheck and test (13 files, 304 specs),
+before the review and after; Brick Fuzz Pop's lint, typecheck and test
+(147 files, 6,489 specs) and Brick Breaker's (67 files, 2,715 specs, with
+`sim`); the root's lint, typecheck and test, under the lock (2 min 39 s),
+and its lint again after the fixes.
