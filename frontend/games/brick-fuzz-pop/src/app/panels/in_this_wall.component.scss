@@ -1,7 +1,7 @@
-@use "panel";
+@use "../styles" as *;
 
 :host {
-  @include panel.panel;
+  @include board-panel;
 
   // The kinds take the height the crew and the boon leave, so those always
   // show, and a kind that doesn't fit is cut off.
