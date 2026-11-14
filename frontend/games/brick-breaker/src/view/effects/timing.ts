@@ -68,3 +68,6 @@ export function clearedDelayMs(motion: boolean): number {
 export function resultDelayMs(motion: boolean): number {
   return motion ? FADE_MS : 0;
 }
+
+/** How long a streak's step plays: the ring about its ball and the count beside it. */
+export const STREAK_MS = 300;

@@ -11,8 +11,11 @@ describe("depthOf", () => {
     expect(depthOf("field")).toBe(0);
   });
 
-  it("draws the balls' tails just behind the balls", () => {
-    expect(depthOf("tails")).toBe(depthOf("balls") - 1);
+  it("draws the balls' tails, then a streak's step, just behind the balls", () => {
+    expect([depthOf("tails"), depthOf("streak")]).toEqual([
+      depthOf("balls") - 2,
+      depthOf("balls") - 1,
+    ]);
   });
 
   it("draws the balls at the front, so nothing hides them", () => {

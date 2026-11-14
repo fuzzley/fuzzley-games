@@ -1,5 +1,6 @@
 import { lerp } from "@fz/core/math";
 import type { Turns } from "@fz/core/turns";
+import { cssHex } from "@fz/phaser/color";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
 import { lineWidth } from "@fz/phaser/shapes";
@@ -13,7 +14,7 @@ import {
   runKeyedScene,
   strokesOf,
 } from "@fz/phaser/testing";
-import { Core, type Game, type GameObjects, Textures } from "phaser";
+import { Core, type Game, GameObjects, Textures } from "phaser";
 import { hitBrick } from "../rules/bricks/bricks";
 import { catchCapsule } from "../rules/bricks/capsules";
 import type { Ball } from "../rules/paddle/balls";
@@ -62,6 +63,7 @@ import {
 } from "../view/field/field_metrics";
 import { SOUNDS } from "../view/effects/effects";
 import { shardTint } from "../view/effects/flourish";
+import { STREAK_STEPS } from "../view/effects/streak";
 import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
@@ -77,6 +79,7 @@ import {
   RING_MS,
   SHARDS,
   SHARDS_MS,
+  STREAK_MS,
 } from "../view/effects/timing";
 import { ATLAS } from "./atlas";
 import spritemap from "./sounds/sounds.json";
@@ -297,6 +300,29 @@ async function flyAcross(
   const ball = throwBall(board.shell.field, 2, 20, 90);
   board.shell.field.streak = streak;
   moveAcross(board.run, ball, 14, 24, 16);
+  return board;
+}
+
+/** Returns the count of a streak's step that shows, if one does. */
+function countShown(scene: BricksScene): GameObjects.Text | undefined {
+  return [...scene.streak.counts.values()].find((count) => count.visible);
+}
+
+/**
+ * Starts a board with a ball in flight at (6, 12) and the field's streak one
+ * short of a length, then breaks the plain brick there, taking the streak to
+ * it.
+ */
+async function stepTo(
+  streak: number,
+  setUp?: (shell: FakeShell) => void,
+): Promise<Board> {
+  const board = await startBoard(setUp);
+  const { field } = board.shell;
+  throwBall(field, 6, 12, 0);
+  field.streak = streak - 1;
+  hitBrick(field, brickAt(field, 0, 0), 6, 12);
+  board.run.advance(16);
   return board;
 }
 
@@ -1640,6 +1666,190 @@ describe("BricksScene", () => {
     });
   });
 
+  describe("a streak's step", () => {
+    it("rings the ball as a broken brick takes the streak to a step, in the balls' color", async () => {
+      const { scene } = await stepTo(5);
+      const metrics = metricsAt();
+
+      const { ring } = scene.streak;
+
+      expect({
+        visible: ring.visible,
+        x: ring.x,
+        y: ring.y,
+        tint: ring.tint,
+      }).toEqual({
+        visible: true,
+        x: toCanvasX(metrics, 6),
+        y: toCanvasY(metrics, 12),
+        tint: LIGHT.balls.normal,
+      });
+    });
+
+    it.each(STREAK_STEPS)(
+      "shows a streak of %i beside the ball, above it and to its right, in whole pixels",
+      async (streak) => {
+        const { scene } = await stepTo(streak);
+        const metrics = metricsAt();
+
+        const count = countShown(scene);
+
+        expect({
+          text: count?.text,
+          right: (count?.x ?? 0) > toCanvasX(metrics, 6),
+          above:
+            (count?.y ?? 0) + (count?.height ?? 0) < toCanvasY(metrics, 12),
+          whole: Number.isInteger(count?.x) && Number.isInteger(count?.y),
+        }).toEqual({
+          text: String(streak),
+          right: true,
+          above: true,
+          whole: true,
+        });
+      },
+    );
+
+    it("writes the count in the balls' color, outlined as a ball is", async () => {
+      const { scene } = await stepTo(5);
+
+      const style = countShown(scene)?.style;
+
+      expect({ color: style?.color, stroke: style?.stroke }).toEqual({
+        color: cssHex(LIGHT.balls.normal),
+        stroke: cssHex(LIGHT.outline),
+      });
+    });
+
+    it("writes each count again in a new palette", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect(
+        new Set(
+          [...scene.streak.counts.values()].map(({ style }) => style.color),
+        ),
+      ).toEqual(new Set([cssHex(DARK.balls.normal)]));
+    });
+
+    it("spreads the ring and fades it and the count, then hides both once its time is up", async () => {
+      const { run, scene } = await stepTo(5);
+      const { ring } = scene.streak;
+      const started = ring.scale;
+
+      run.advance(STREAK_MS * 0.75);
+      const playing = {
+        spread: ring.scale > started,
+        ring: ring.alpha < 1,
+        count: (countShown(scene)?.alpha ?? 1) < 1,
+      };
+      run.advance(STREAK_MS);
+
+      expect({ playing, ring: ring.visible, count: countShown(scene) }).toEqual(
+        {
+          playing: { spread: true, ring: true, count: true },
+          ring: false,
+          count: undefined,
+        },
+      );
+    });
+
+    it("follows the ball as it goes", async () => {
+      const { shell, run, scene } = await stepTo(5);
+      const ball = ballOf(shell.field, 0);
+
+      ball.x = 8;
+      ball.lastX = 8;
+      run.advance(16);
+
+      expect(scene.streak.ring.x).toBe(toCanvasX(metricsAt(), 8));
+    });
+
+    it("plays nothing as a broken brick lengthens the streak between steps", async () => {
+      const { scene } = await stepTo(6);
+
+      expect({
+        ring: scene.streak.ring.visible,
+        count: countShown(scene),
+      }).toEqual({ ring: false, count: undefined });
+    });
+
+    it("writes each count again in the page's font once the page has loaded it", async () => {
+      const asked: string[] = [];
+      let loaded = (): void => undefined;
+      Object.defineProperty(document, "fonts", {
+        configurable: true,
+        value: {
+          load: (font: string): Promise<[]> => {
+            asked.push(font);
+            return new Promise((resolve) => {
+              loaded = () => {
+                resolve([]);
+              };
+            });
+          },
+        },
+      });
+      onTestFinished(() => {
+        Reflect.deleteProperty(document, "fonts");
+      });
+      const { scene } = await startBoard(undefined, (game) => {
+        game.canvas.style.fontFamily = "Figtree";
+      });
+      const counts = [...scene.streak.counts.values()];
+      // What a count measures can't be read through Phaser's types, so the
+      // spec reads that each count was measured again.
+      const measured = vi.spyOn(GameObjects.TextStyle.prototype, "update");
+      onTestFinished(() => {
+        measured.mockRestore();
+      });
+
+      loaded();
+      await Promise.resolve();
+
+      expect({
+        families: new Set(counts.map(({ style }) => style.fontFamily)),
+        asked,
+        measuredAgain: measured.mock.contexts.filter(
+          (_, i) => measured.mock.calls[i]?.[0] === true,
+        ),
+      }).toEqual({
+        families: new Set(["Figtree"]),
+        asked: ["700 16px Figtree"],
+        measuredAgain: counts.map(({ style }) => style),
+      });
+    });
+
+    it("writes the ring and the count in the color of the balls' kind", async () => {
+      const { scene } = await stepTo(5, (shell) => {
+        shell.field.ballKind = "fire";
+      });
+
+      expect({
+        ring: scene.streak.ring.tint,
+        count: countShown(scene)?.style.color,
+      }).toEqual({
+        ring: LIGHT.balls.fire,
+        count: cssHex(LIGHT.balls.fire),
+      });
+    });
+
+    it("shows the newest step's count alone", async () => {
+      const { shell, run, scene } = await stepTo(5);
+
+      shell.field.streak = 9;
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 6, 12, "breaks");
+      run.advance(16);
+
+      expect(
+        [...scene.streak.counts.values()]
+          .filter((count) => count.visible)
+          .map((count) => count.text),
+      ).toEqual(["10"]);
+    });
+  });
+
   describe("where the player prefers less motion", () => {
     it("plays no flourish", async () => {
       const { shell, run, scene } = await startBoard(stillness);
@@ -1668,6 +1878,15 @@ describe("BricksScene", () => {
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("plays no streak's step", async () => {
+      const { scene } = await stepTo(5, stillness);
+
+      expect({
+        ring: scene.streak.ring.visible,
+        count: countShown(scene),
+      }).toEqual({ ring: false, count: undefined });
     });
 
     it("draws no ball's tail in a streak", async () => {
@@ -1742,6 +1961,18 @@ describe("BricksScene", () => {
         shaking: false,
         scaled: 0,
       });
+    });
+
+    it("stops the last level's streak's step", async () => {
+      const { shell, run, scene } = await stepTo(5);
+
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect({
+        ring: scene.streak.ring.visible,
+        count: countShown(scene),
+      }).toEqual({ ring: false, count: undefined });
     });
 
     it("starts each ball's tail anew", async () => {

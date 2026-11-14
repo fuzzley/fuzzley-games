@@ -479,7 +479,8 @@ One skill for each, with its API and pitfalls:
 - **Assets and textures:** `phaser-loading-assets`,
   `phaser-sprites-and-images`, `phaser-render-textures`
 - **Drawing:** `phaser-game-object-components`,
-  `phaser-graphics-and-shapes`, `phaser-groups-and-containers`
+  `phaser-graphics-and-shapes`, `phaser-groups-and-containers`,
+  `phaser-text-and-bitmaptext`
 - **Motion and time:** `phaser-tweens`, `phaser-time-and-timers`,
   `phaser-particles`
 - **Input:** `phaser-input-keyboard-mouse-touch`
@@ -491,7 +492,7 @@ One skill for each, with its API and pitfalls:
 
 All but this one and `phaser-canvas-performance` are copies of the
 `skills/` folder Phaser's package ships, in
-`frontend/node_modules/phaser/skills/`, which also covers animations, text,
+`frontend/node_modules/phaser/skills/`, which also covers animations,
 curves, geometry, the data manager, actions, physics and tile maps. When a
 game starts using one of those, copy its folder into `.agents/skills/` as
 `phaser-<name>`, with its `name` and its `../<skill>/` paths prefixed the
