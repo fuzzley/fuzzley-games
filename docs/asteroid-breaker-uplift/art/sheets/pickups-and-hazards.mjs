@@ -298,27 +298,41 @@ function burrPanel(px, py, width, palette) {
   const y = py + 112;
   parts.push(place(burrSvg(burr, palette, { unit: 80 }), { x: px + 86, y }));
   parts.push(note(px + 86, py + 198, "at 80 px a unit", palette, { anchor: "middle", size: 10 }));
-  parts.push(place(burrSvg(burr, palette, { unit: 22, turn: 0.3 }), { x: px + 200, y: y - 24 }));
-  parts.push(place(burrSvg(makeBurr(2), palette, { unit: 22, turn: 1.4, scale: 0.78 }), { x: px + 238, y: y + 22 }));
-  parts.push(note(px + 218, py + 198, "drifting, 22 px", palette, { anchor: "middle", size: 10 }));
-  parts.push(place(burrSvg(burr, palette, { unit: 6, turn: 0.3 }), { x: px + 300, y: y - 12 }));
-  parts.push(place(burrSvg(makeBurr(2), palette, { unit: 6, turn: 1.4, scale: 0.78 }), { x: px + 314, y: y + 8 }));
-  parts.push(note(px + 306, py + 198, "6 px", palette, { anchor: "middle", size: 10 }));
-  // Beside a small stone, a small piece of ice and a mote.
-  parts.push(place(rockSvg(makeRock("stone", "small", 3), palette, { unit: 22, turn: 0.4 }), { x: px + 392, y }));
-  parts.push(place(rockSvg(makeRock("ice", "small", 2), palette, { unit: 22, turn: 0.9 }), { x: px + 452, y }));
-  parts.push(place(burrSvg(burr, palette, { unit: 22, turn: 0.3 }), { x: px + 506, y }));
-  parts.push(place(moteSvg(2, palette, { unit: 22 }), { x: px + 546, y }));
-  parts.push(note(px + 468, py + 198, "a small stone, small ice, a burr, a mote", palette, { anchor: "middle", size: 10 }));
-  // Clinging.
-  parts.push(place(burredShipSvg(palette, { unit: 34, turn: -0.4 }), { x: px + 680, y }));
-  parts.push(note(px + 680, py + 198, "three clinging to the ship", palette, { anchor: "middle", size: 10 }));
+  // At the two sizes it is judged at: a laptop's and a phone's.
+  /** @type {[number, number, string][]} */ ([
+    [15, px + 200, "15 px a unit: 18 px"],
+    [9, px + 318, "9 px a unit: 11 px"],
+  ]).forEach(([unit, left, words]) => {
+    parts.push(place(burrSvg(burr, palette, { unit, turn: 0.3 }), { x: left, y: y - 22 }));
+    parts.push(place(burrSvg(makeBurr(2), palette, { unit, turn: 1.4 }), { x: left + 2.6 * unit, y: y - 2 }));
+    parts.push(place(burrSvg(makeBurr(3), palette, { unit, turn: 2.2, scale: 0.82 }), { x: left + 0.9 * unit, y: y + 26 }));
+    parts.push(note(left + 1.3 * unit, py + 198, words, palette, { anchor: "middle", size: 10 }));
+  });
+  // Beside a small stone, a small piece of ice, a mote and an orb.
+  const unit = 15;
+  let x = px + 420;
+  for (const [svg, step] of /** @type {[string, number][]} */ ([
+    [rockSvg(makeRock("stone", "small", 3), palette, { unit, turn: 0.4 }), 34],
+    [rockSvg(makeRock("ice", "small", 2), palette, { unit, turn: 0.9 }), 32],
+    [burrSvg(burr, palette, { unit, turn: 0.3 }), 28],
+    [moteSvg(2, palette, { unit }), 34],
+    [orbSvg("slow", palette, { unit }), 0],
+  ])) {
+    parts.push(place(svg, { x, y }));
+    x += step;
+  }
+  parts.push(note(px + 484, py + 198, "a small stone, small ice, a burr, a mote, an orb", palette, { anchor: "middle", size: 10 }));
+  // Clinging: close up, and at the two sizes.
+  parts.push(place(burredShipSvg(palette, { unit: 34, turn: -0.4 }), { x: px + 676, y }));
+  parts.push(place(burredShipSvg(palette, { unit: 15, turn: -0.4 }), { x: px + 778, y: y - 24 }));
+  parts.push(place(burredShipSvg(palette, { unit: 9, turn: -0.4 }), { x: px + 782, y: y + 30 }));
+  parts.push(note(px + 714, py + 198, "three clinging to the ship, at 34, 15 and 9 px", palette, { anchor: "middle", size: 10 }));
   // Shaken off.
   [40, 150, 280].forEach((t, i) => {
-    const left = px + 790 + i * 240;
-    parts.push(clipped(left, py + 40, 232, 140, place(shakenFx(t, palette, { unit: 15, seed: 2 }), { x: left + 46, y })));
+    const left = px + 856 + i * 218;
+    parts.push(clipped(left, py + 40, 212, 140, place(shakenFx(t, palette, { unit: 15, seed: 2 }), { x: left + 44, y })));
     parts.push(rect(left - 4, py + 44, 1, 140, palette.fieldLine));
-    parts.push(note(left + 116, py + 198, `shaken off by a dash, ${t} ms`, palette, { anchor: "middle", size: 10 }));
+    parts.push(note(left + 106, py + 198, `shaken off by a dash, ${t} ms`, palette, { anchor: "middle", size: 10 }));
   });
   return parts.join("");
 }
@@ -363,7 +377,7 @@ const SECTIONS = /** @type {Section[]} */ ([
   },
   {
     heading: "The burr",
-    note: "A hazard that harms nothing: a round seed, 0.6 units to its hooks' ends, in a whorl of thirteen thin spines, long and short by turns, each barbed the same way round. It clings to the ship and slows it until a dash shakes it off. Its core is round and soft-lit, not cut, so it is no rock; its spines are thin barbed lines, not ice's flat shards; and it is a seed's dull brown, not the comet's red. Reduced motion: shaken burrs are simply gone.",
+    note: "A hazard that harms nothing: a small dark seed with six bold thorns, each longer than the seed is wide, sharp, and barbed at its end, all the same way round. It clings to the ship and slows it until a dash shakes it off. It is judged at 15 px a unit, where it is 18 px across, and at 9, where it is 11 and its barbs are left out so its thorns stay sharp. Its ink is a dull chestnut brown, between the warning and danger colors and sunk toward the field, at 3.5 to 1 against it or better: no accent's gold, no comet's red. It is mostly gaps, so no rock; it is brown and does not glow, so no spark; it has six arms and a core, so no orb. On the hull its outline in the field's color is half as wide again, so each thorn is cased apart from the accent. Reduced motion: shaken burrs are simply gone.",
     height: 2 * 230 - 12,
     draw: (x, y, width) => [burrPanel(x, y, width, DARK), burrPanel(x, y + 230, width, LIGHT)].join(""),
   },
@@ -377,7 +391,7 @@ const SECTIONS = /** @type {Section[]} */ ([
 export async function build() {
   const sheet = {
     title: "Asteroid Breaker uplift: pickups, motes and hazards",
-    lead: "Concept art, drawn by lib/things.mjs. Shape says what each thing is before color does: an orb is round, a mote is a spark, the comet is a wedge with a tail, a burr is a seed in a whorl of hooks. Every tone is a role of the palette or a mix of two.",
+    lead: "Concept art, drawn by lib/things.mjs. Shape says what each thing is before color does: an orb is round, a mote is a spark, the comet is a wedge with a tail, a burr is a small seed with barbed thorns. Every tone is a role of the palette or a mix of two.",
     sections: SECTIONS,
   };
   resetClips();
