@@ -4,9 +4,26 @@
 
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { TURN, circle, mix, path, place, polygon, polyline, seeded, between } from "../lib/core.mjs";
+import {
+  TURN,
+  circle,
+  mix,
+  path,
+  place,
+  polygon,
+  polyline,
+  seeded,
+  between,
+} from "../lib/core.mjs";
 import { PALETTES, ROCK_INKS, tonesOf } from "../lib/palettes.mjs";
-import { ROCK_KINDS, ROCK_RADIUS, SIZES_OF, makeRock, rockDefs, rockSvg } from "../lib/rocks.mjs";
+import {
+  ROCK_KINDS,
+  ROCK_RADIUS,
+  SIZES_OF,
+  makeRock,
+  rockDefs,
+  rockSvg,
+} from "../lib/rocks.mjs";
 import { caption, panel, sheetFile } from "../lib/sheet.mjs";
 import { writeRaster, writeText } from "../lib/raster.mjs";
 
@@ -48,9 +65,15 @@ const TOLD_BY = {
  * @returns {string}
  */
 function blob(points) {
-  const mid = (/** @type {Point} */ a, /** @type {Point} */ b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const mid = (/** @type {Point} */ a, /** @type {Point} */ b) => [
+    (a[0] + b[0]) / 2,
+    (a[1] + b[1]) / 2,
+  ];
   const n = points.length;
-  const first = mid(/** @type {Point} */ (points[n - 1]), /** @type {Point} */ (points[0]));
+  const first = mid(
+    /** @type {Point} */ (points[n - 1]),
+    /** @type {Point} */ (points[0]),
+  );
   let d = `M${first[0]?.toFixed(2)} ${first[1]?.toFixed(2)}`;
   for (let i = 0; i < n; i++) {
     const p = /** @type {Point} */ (points[i]);
@@ -81,35 +104,109 @@ function todayRock(kind, size, palette, unit, turn = 0) {
   const points = [];
   for (let i = 0; i < sides; i++) {
     const angle = (i / sides) * TURN;
-    const reach = r * (kind === "ice" ? (i % 2 ? 0.66 : 1.05) : between(random, 0.82, 1.08));
-    points.push([Math.cos(angle) * reach, Math.sin(angle) * reach * (kind === "lodestone" ? 0.7 : 1)]);
+    const reach =
+      r *
+      (kind === "ice" ? (i % 2 ? 0.66 : 1.05) : between(random, 0.82, 1.08));
+    points.push([
+      Math.cos(angle) * reach,
+      Math.sin(angle) * reach * (kind === "lodestone" ? 0.7 : 1),
+    ]);
   }
   const ink = kind === "crystal" ? inks.stone : inks[kind];
   const body =
     kind === "ice" || kind === "iron"
-      ? polygon(points, ink, { "stroke-linejoin": "round", stroke: ink, "stroke-width": r * 0.08 })
+      ? polygon(points, ink, {
+          "stroke-linejoin": "round",
+          stroke: ink,
+          "stroke-width": r * 0.08,
+        })
       : path(blob(points), { fill: ink });
   const marks = [];
   const hole = palette.field;
   if (kind === "stone" || kind === "boulder") {
-    for (const [x, y, s] of [[-0.3, -0.2, 0.16], [0.25, 0.1, 0.2], [-0.05, 0.4, 0.11]]) {
+    for (const [x, y, s] of [
+      [-0.3, -0.2, 0.16],
+      [0.25, 0.1, 0.2],
+      [-0.05, 0.4, 0.11],
+    ]) {
       marks.push(circle((x ?? 0) * r, (y ?? 0) * r, (s ?? 0) * r, hole));
     }
   } else if (kind === "crystal") {
-    marks.push(polygon([[0, -0.45 * r], [0.3 * r, 0], [0, 0.45 * r], [-0.3 * r, 0]], inks.crystal));
+    marks.push(
+      polygon(
+        [
+          [0, -0.45 * r],
+          [0.3 * r, 0],
+          [0, 0.45 * r],
+          [-0.3 * r, 0],
+        ],
+        inks.crystal,
+      ),
+    );
   } else if (kind === "ice") {
-    marks.push(polyline([[-0.4 * r, -0.1 * r], [0.1 * r, 0.05 * r], [0.35 * r, 0.4 * r]], hole, r * 0.07));
+    marks.push(
+      polyline(
+        [
+          [-0.4 * r, -0.1 * r],
+          [0.1 * r, 0.05 * r],
+          [0.35 * r, 0.4 * r],
+        ],
+        hole,
+        r * 0.07,
+      ),
+    );
   } else if (kind === "iron") {
-    for (const [x, y] of [[-0.45, -0.4], [0.45, -0.4], [0.45, 0.4], [-0.45, 0.4]]) {
+    for (const [x, y] of [
+      [-0.45, -0.4],
+      [0.45, -0.4],
+      [0.45, 0.4],
+      [-0.45, 0.4],
+    ]) {
       marks.push(circle((x ?? 0) * r, (y ?? 0) * r, 0.08 * r, hole));
     }
   } else if (kind === "volatile") {
     marks.push(circle(0, 0, 0.36 * r, inks.core));
-    marks.push(polyline([[-0.7 * r, -0.3 * r], [-0.3 * r, -0.1 * r]], ink === hole ? hole : mix(ink, "#000000", 0.35), r * 0.06));
-    marks.push(polyline([[0.3 * r, 0.2 * r], [0.7 * r, 0.45 * r]], mix(ink, "#000000", 0.35), r * 0.06));
+    marks.push(
+      polyline(
+        [
+          [-0.7 * r, -0.3 * r],
+          [-0.3 * r, -0.1 * r],
+        ],
+        ink === hole ? hole : mix(ink, "#000000", 0.35),
+        r * 0.06,
+      ),
+    );
+    marks.push(
+      polyline(
+        [
+          [0.3 * r, 0.2 * r],
+          [0.7 * r, 0.45 * r],
+        ],
+        mix(ink, "#000000", 0.35),
+        r * 0.06,
+      ),
+    );
   } else if (kind === "lodestone") {
-    marks.push(polyline([[-0.5 * r, -0.4 * r], [-0.5 * r, 0.4 * r]], hole, r * 0.09));
-    marks.push(polyline([[0.5 * r, -0.4 * r], [0.5 * r, 0.4 * r]], hole, r * 0.09));
+    marks.push(
+      polyline(
+        [
+          [-0.5 * r, -0.4 * r],
+          [-0.5 * r, 0.4 * r],
+        ],
+        hole,
+        r * 0.09,
+      ),
+    );
+    marks.push(
+      polyline(
+        [
+          [0.5 * r, -0.4 * r],
+          [0.5 * r, 0.4 * r],
+        ],
+        hole,
+        r * 0.09,
+      ),
+    );
   }
   return place(body + marks.join(""), { turn: (turn * 360) / TURN });
 }
@@ -131,8 +228,16 @@ function softRock(kind, palette, unit, turn, id) {
   const r = rock.radius * unit;
   const c = Math.cos(turn);
   const s = Math.sin(turn);
-  const points = rock.outline.map(([x, y]) => /** @type {Point} */ ([(x * c - y * s) * r, (x * s + y * c) * r]));
-  const tones = tonesOf(kind === "crystal" ? ROCK_INKS[palette.mode].stone : ROCK_INKS[palette.mode][kind], palette);
+  const points = rock.outline.map(
+    ([x, y]) =>
+      /** @type {Point} */ ([(x * c - y * s) * r, (x * s + y * c) * r]),
+  );
+  const tones = tonesOf(
+    kind === "crystal"
+      ? ROCK_INKS[palette.mode].stone
+      : ROCK_INKS[palette.mode][kind],
+    palette,
+  );
   const d = blob(points);
   return [
     `<clipPath id="${id}"><path d="${d}"/></clipPath>`,
@@ -161,12 +266,30 @@ sections.push({
         const size = kind === "boulder" ? "boulder" : "large";
         const unit = kind === "boulder" ? 13 : 22;
         const cx = x + 110 + i * ((width - 220) / 6);
-        out.push(place(todayRock(kind, size, palette, unit, 0.3), { x: cx, y: top + 96 }));
-        out.push(place(rockSvg(makeRock(kind, size, 3), palette, { turn: 0.3, unit }), { x: cx, y: top + 232 }));
-        out.push(caption(cx, top + 312, `${NAMES[kind]}: ${TOLD_BY[kind]}`, { fill: palette.fieldMuted, anchor: "middle", size: 11 }));
+        out.push(
+          place(todayRock(kind, size, palette, unit, 0.3), {
+            x: cx,
+            y: top + 96,
+          }),
+        );
+        out.push(
+          place(
+            rockSvg(makeRock(kind, size, 3), palette, { turn: 0.3, unit }),
+            { x: cx, y: top + 232 },
+          ),
+        );
+        out.push(
+          caption(cx, top + 312, `${NAMES[kind]}: ${TOLD_BY[kind]}`, {
+            fill: palette.fieldMuted,
+            anchor: "middle",
+            size: 11,
+          }),
+        );
       });
       out.push(caption(x + 14, top + 44, "now", { fill: palette.fieldMuted }));
-      out.push(caption(x + 14, top + 172, "after", { fill: palette.fieldMuted }));
+      out.push(
+        caption(x + 14, top + 172, "after", { fill: palette.fieldMuted }),
+      );
     });
     return out.join("");
   },
@@ -208,18 +331,54 @@ sections.push({
   note: "A rock that takes more than one hit shows each it has taken as a crack more, in from its edge, the same cracks every time. The boulder holds five before its sixth breaks it; iron holds two when large and one when medium; a large lodestone holds one.",
   height: 300 + 12 + 170,
   draw: (x, y, width) => {
-    const out = [panel(x, y, width, 300, DARK, { label: "Boulder, 0 to 5 hits held, 14 px a unit" })];
+    const out = [
+      panel(x, y, width, 300, DARK, {
+        label: "Boulder, 0 to 5 hits held, 14 px a unit",
+      }),
+    ];
     const boulder = makeRock("boulder", "boulder", 2);
     for (let hits = 0; hits <= 5; hits++) {
-      out.push(place(rockSvg(boulder, DARK, { turn: 0.5, unit: 14, hits }), { x: x + 130 + hits * ((width - 260) / 5), y: y + 160 }));
-      out.push(caption(x + 130 + hits * ((width - 260) / 5), y + 284, `${hits}`, { fill: DARK.fieldMuted, anchor: "middle" }));
+      out.push(
+        place(rockSvg(boulder, DARK, { turn: 0.5, unit: 14, hits }), {
+          x: x + 130 + hits * ((width - 260) / 5),
+          y: y + 160,
+        }),
+      );
+      out.push(
+        caption(x + 130 + hits * ((width - 260) / 5), y + 284, `${hits}`, {
+          fill: DARK.fieldMuted,
+          anchor: "middle",
+        }),
+      );
     }
     const top = y + 312;
-    out.push(panel(x, top, width, 170, LIGHT, { label: "Iron (large 0 to 2, medium 0 to 1) and lodestone (large 0 to 1), 22 px a unit" }));
+    out.push(
+      panel(x, top, width, 170, LIGHT, {
+        label:
+          "Iron (large 0 to 2, medium 0 to 1) and lodestone (large 0 to 1), 22 px a unit",
+      }),
+    );
     /** @type {[RockKind, RockSize, number][]} */
-    const held = [["iron", "large", 0], ["iron", "large", 1], ["iron", "large", 2], ["iron", "medium", 0], ["iron", "medium", 1], ["lodestone", "large", 0], ["lodestone", "large", 1]];
+    const held = [
+      ["iron", "large", 0],
+      ["iron", "large", 1],
+      ["iron", "large", 2],
+      ["iron", "medium", 0],
+      ["iron", "medium", 1],
+      ["lodestone", "large", 0],
+      ["lodestone", "large", 1],
+    ];
     held.forEach(([kind, size, hits], i) => {
-      out.push(place(rockSvg(makeRock(kind, size, 4), LIGHT, { turn: 0.2, unit: 22, hits }), { x: x + 120 + i * ((width - 240) / 6), y: top + 92 }));
+      out.push(
+        place(
+          rockSvg(makeRock(kind, size, 4), LIGHT, {
+            turn: 0.2,
+            unit: 22,
+            hits,
+          }),
+          { x: x + 120 + i * ((width - 240) / 6), y: top + 92 },
+        ),
+      );
     });
     return out.join("");
   },
@@ -237,12 +396,22 @@ sections.push({
       out.push(panel(x, top, width, 200, palette));
       [6, 10].forEach((unit, row) => {
         let cx = x + 80;
-        out.push(caption(x + 14, top + 66 + row * 86, `${unit} px a unit`, { fill: palette.fieldMuted, size: 11 }));
+        out.push(
+          caption(x + 14, top + 66 + row * 86, `${unit} px a unit`, {
+            fill: palette.fieldMuted,
+            size: 11,
+          }),
+        );
         for (const kind of ROCK_KINDS) {
           for (const size of SIZES_OF[kind]) {
             const r = ROCK_RADIUS[size] * unit;
             cx += r + 9;
-            out.push(place(rockSvg(makeRock(kind, size, 3), palette, { turn: 0.4, unit }), { x: cx, y: top + 60 + row * 86 }));
+            out.push(
+              place(
+                rockSvg(makeRock(kind, size, 3), palette, { turn: 0.4, unit }),
+                { x: cx, y: top + 60 + row * 86 },
+              ),
+            );
             cx += r + 9;
           }
           cx += 22;
@@ -267,7 +436,15 @@ sections.push({
       out.push(panel(left, top, w, 150, palette));
       ROCK_KINDS.forEach((kind, k) => {
         const size = kind === "boulder" ? "boulder" : "large";
-        out.push(place(rockSvg(makeRock(kind, size, 6), palette, { turn: 1.1, unit: kind === "boulder" ? 9 : 15 }), { x: left + 70 + k * ((w - 130) / 6), y: top + 84 }));
+        out.push(
+          place(
+            rockSvg(makeRock(kind, size, 6), palette, {
+              turn: 1.1,
+              unit: kind === "boulder" ? 9 : 15,
+            }),
+            { x: left + 70 + k * ((w - 130) / 6), y: top + 84 },
+          ),
+        );
       });
     });
     return out.join("");
@@ -287,13 +464,34 @@ sections.push({
       const turns = [0.3, 2.3, 4.3];
       ["Flat (now)", "Soft", "Cut (the plan)"].forEach((name, way) => {
         const cx = x + 60 + way * ((width - 60) / 3);
-        out.push(caption(cx + 190, top + 176, name, { fill: palette.fieldMuted, anchor: "middle" }));
+        out.push(
+          caption(cx + 190, top + 176, name, {
+            fill: palette.fieldMuted,
+            anchor: "middle",
+          }),
+        );
         turns.forEach((turn, t) => {
           const at = { x: cx + 60 + t * 130, y: top + 92 };
           const kind = /** @type {RockKind} */ (["stone", "ice", "iron"][t]);
-          if (way === 0) out.push(place(todayRock(kind, "large", palette, 18, turn), at));
-          if (way === 1) out.push(place(softRock(kind, palette, 18, turn, `soft-${palette.id}-${t}`), at));
-          if (way === 2) out.push(place(rockSvg(makeRock(kind, "large", 3), palette, { turn, unit: 18 }), at));
+          if (way === 0)
+            out.push(place(todayRock(kind, "large", palette, 18, turn), at));
+          if (way === 1)
+            out.push(
+              place(
+                softRock(kind, palette, 18, turn, `soft-${palette.id}-${t}`),
+                at,
+              ),
+            );
+          if (way === 2)
+            out.push(
+              place(
+                rockSvg(makeRock(kind, "large", 3), palette, {
+                  turn,
+                  unit: 18,
+                }),
+                at,
+              ),
+            );
         });
       });
     });
@@ -310,7 +508,13 @@ sections.push({
     const out = [];
     /** @type {RockKind[]} */
     const kinds = ["stone", "iron", "ice"];
-    const labels = ["inks", "normal map", "lit", "lit, a quarter turn on", "lit, beside a blast"];
+    const labels = [
+      "inks",
+      "normal map",
+      "lit",
+      "lit, a quarter turn on",
+      "lit, beside a blast",
+    ];
     kinds.forEach((kind, row) => {
       const top = y + row * 162;
       out.push(panel(x, top, width, 150, DARK, { label: NAMES[kind] }));
@@ -326,14 +530,36 @@ sections.push({
               : i === 3
                 ? { turn: 0.3 + TURN / 4 }
                 : i === 4
-                  ? { lamps: [{ at: /** @type {Point} */ ([110, 40]), color: ROCK_INKS.dark.core, strength: 1, reach: 260 }] }
+                  ? {
+                      lamps: [
+                        {
+                          at: /** @type {Point} */ ([110, 40]),
+                          color: ROCK_INKS.dark.core,
+                          strength: 1,
+                          reach: 260,
+                        },
+                      ],
+                    }
                   : {};
         if (i === 4) {
-          out.push(`<circle cx="${cx + 110}" cy="${top + 80 + 40}" r="46" fill="url(#glow-core-casino)" opacity="0.9"/>`);
+          out.push(
+            `<circle cx="${cx + 110}" cy="${top + 80 + 40}" r="46" fill="url(#glow-core-casino)" opacity="0.9"/>`,
+          );
           out.push(circle(cx + 110, top + 120, 9, ROCK_INKS.dark.core));
         }
-        out.push(place(rockSvg(rock, DARK, { turn: 0.3, unit, outline: i !== 1, ...look }), { x: cx, y: top + 80 }));
-        out.push(caption(cx, top + 140, label, { fill: DARK.fieldMuted, anchor: "middle", size: 11 }));
+        out.push(
+          place(
+            rockSvg(rock, DARK, { turn: 0.3, unit, outline: i !== 1, ...look }),
+            { x: cx, y: top + 80 },
+          ),
+        );
+        out.push(
+          caption(cx, top + 140, label, {
+            fill: DARK.fieldMuted,
+            anchor: "middle",
+            size: 11,
+          }),
+        );
       });
     });
     return out.join("");
