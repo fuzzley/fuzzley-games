@@ -79,20 +79,16 @@
   background-color: var(--fz-accent);
 }
 
-// Around the wall, while the application has the focus from the keyboard:
-// `.play` holds the focus, not the host the mixin looks at.
+// Around the wall, while the application, `.play`, has the focus from the
+// keyboard.
 .ring {
-  @include board-focus-ring(var(--wall));
+  @include board-focus-ring(var(--wall), $application: ".play");
 
   position: absolute;
   inset: 0 0 var(--finger);
   width: calc(var(--across) * var(--unit));
   height: calc(var(--down) * var(--unit));
   margin: auto;
-
-  .play:focus-visible > & {
-    outline-color: var(--fz-focus-ring-color);
-  }
 }
 
 // Over the field, a card in its middle, clear of the finger's room.

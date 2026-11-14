@@ -50,14 +50,10 @@
   box-shadow: inset 0 var(--frame) var(--fz-field-line);
 }
 
-// Around the frame, while the application has the focus from the keyboard:
-// `.play` holds the focus, not the host the mixin looks at.
+// Around the frame, while the application, `.play`, has the focus from the
+// keyboard.
 .ring {
-  @include board-focus-ring(var(--frame));
-
-  .play:focus-visible > & {
-    outline-color: var(--fz-focus-ring-color);
-  }
+  @include board-focus-ring(var(--frame), $application: ".play");
 }
 
 // The rows waiting, in the lintel over the ceiling's line, in the field's
