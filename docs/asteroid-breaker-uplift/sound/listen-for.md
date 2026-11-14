@@ -9,6 +9,27 @@ verdict should be written back.
 
 A sound not listed measured as meant; it may still not sound as meant.
 
+## Heard, 2026-11-14
+
+The user listened to all fifteen moments of play and all ninety-eight
+sounds on the audition page, the same day they were built, and marked each.
+
+- **Good to use as they are: ninety-five sounds and all fifteen moments.**
+  Every doubt listed below for the rocks, the hazards, the pickups, the
+  stingers, the voice and the rescues passed the ear, so none of what "try
+  first" suggests there has been done. They stay on the page for whoever
+  hears them next, in the game and on a phone.
+- **`bed-pulse`: "the best one."**
+- **Needs work, three:**
+
+| Sound            | What the ear said                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| `bed-inner-belt` | "Tone is too difficult to listen to for a long time, needs to be softer and maybe have more variation." |
+| `bed-endless`    | The same.                                                                                              |
+| `thrust`         | Needs work; no note.                                                                                   |
+
+What was done about each is under "Beds" and "Ship" below.
+
 ## Rocks
 
 | Sound                 | It may sound                                             | Try first                                                       |
@@ -95,3 +116,24 @@ A sound not listed measured as meant; it may still not sound as meant.
   chord of C; `run-end` A G E C slowing, then a D left hanging; `new-best`
   eleven notes up two octaves and a shower; `level-up` C E G C rolled into
   a held chord.
+
+## Voice and rescues
+
+All of it passed the ear. What their maker doubted, for the record:
+
+| Sound         | It might have sounded                                 | Would have tried                        |
+| ------------- | ----------------------------------------------------- | --------------------------------------- |
+| every call    | like a synth's "wah", not a creature                  | wider or narrower resonances            |
+| every call    | loud for its level: it sits where the ear is keenest  | play the voice 3 dB down in the game    |
+| `voice-yay`   | warbling: its trill is 55 cents either way at 15 Hz   | half the depth                          |
+| `voice-cheer` | rough: two of its voices meet on one note             | spread their notes                      |
+| `crew-loose`  | sharp for its 45 ms                                   | a lower low-pass                        |
+
+- **How the voice is made:** a narrow pulse with a little saw and a breath
+  of noise, on a pitch that glides without overshooting, through three
+  resonances that follow a path of mouth shapes, a child's vowels raised for
+  a small throat. It first measured as a whistle, its second and third
+  harmonics 13 to 25 dB under the first; they now sit 2 to 12 dB under.
+- **The voice plays 3 dB down in the game,** by its maker's figures: at the
+  level `medium` a call measures about 3 dB louder to the ear than a struck
+  sound at the same level.

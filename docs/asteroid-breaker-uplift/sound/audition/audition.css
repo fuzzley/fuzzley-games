@@ -227,3 +227,8 @@ pre {
     12px/1.5 Consolas,
     monospace;
 }
+
+select.flagged {
+  border-color: var(--accent);
+  font-weight: 600;
+}

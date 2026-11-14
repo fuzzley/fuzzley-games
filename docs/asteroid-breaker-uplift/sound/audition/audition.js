@@ -12,18 +12,21 @@ import { CHAIN_CENTS } from "/sound/lib/music.mjs";
 const NOTES_KEY = "asteroid-breaker-uplift-audition-notes";
 
 /**
- * What a sound of the uplift's can be marked, by the word kept for it: the
- * new sound is good as it is, the idea is right but the sound needs work,
- * or the game should go without this sound.
+ * What a sound of the uplift's can be marked, by the word kept for it. A
+ * sound is good as it is until it is marked otherwise, so only what needs
+ * work, or should go, needs a hand: the idea is right but the sound isn't
+ * yet, or the game should go without this sound.
  *
  * @type {Record<string, string>}
  */
 const MARKS = {
-  "": "mark",
   keep: "good: use it",
   change: "needs work",
   drop: "don't use it",
 };
+
+/** The mark a sound has until it is given another. */
+const GOOD = "keep";
 
 /** The families whose sounds are tuned, so no play of them is detuned at random. */
 const TUNED = new Set(["chain", "pickups", "stingers", "voice", "rescue", "beds"]);
@@ -574,12 +577,18 @@ function readNotes() {
 function showNotes() {
   const notes = readNotes();
   const lines = Object.entries(notes)
-    .filter(([, { mark, note }]) => mark || note)
-    .map(([name, { mark, note }]) => `| \`${name}\` | ${mark ? (MARKS[mark] ?? mark) : ""} | ${note ?? ""} |`);
+    .filter(([, { mark, note }]) => (mark && mark !== GOOD) || note)
+    .map(([name, { mark, note }]) => `| \`${name}\` | ${MARKS[mark ?? GOOD] ?? mark} | ${note ?? ""} |`);
   $("notes").textContent =
     lines.length === 0
-      ? "Nothing marked yet."
-      : ["| Sound | Mark | Note |", "| --- | --- | --- |", ...lines].join("\n");
+      ? "Every sound is good to use as it is: nothing is marked otherwise, and nothing has a note."
+      : [
+          "Every sound not listed here is good to use as it is.",
+          "",
+          "| Sound | Mark | Note |",
+          "| --- | --- | --- |",
+          ...lines,
+        ].join("\n");
 }
 
 /**
@@ -610,8 +619,12 @@ function markers(name) {
       ...Object.entries(MARKS).map(([value, label]) => el("option", { value }, [label])),
     ])
   );
-  mark.value = kept.mark ?? "";
-  mark.addEventListener("change", () => keep(name, "mark", mark.value));
+  mark.value = kept.mark ?? GOOD;
+  mark.classList.toggle("flagged", mark.value !== GOOD);
+  mark.addEventListener("change", () => {
+    mark.classList.toggle("flagged", mark.value !== GOOD);
+    keep(name, "mark", mark.value);
+  });
   const note = /** @type {HTMLInputElement} */ (
     el("input", { type: "text", placeholder: "a note", "aria-label": `A note on ${name}` })
   );

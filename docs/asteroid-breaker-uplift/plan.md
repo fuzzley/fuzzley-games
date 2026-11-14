@@ -439,6 +439,7 @@ How the game plays them is as much of the uplift as the sounds are:
 | The last word        | A limiter on everything, so thirty breaks under a blast never clip; busy play at about -17 LUFS         |
 | The voice's patience | The fuzzball speaks at most once in four seconds, the rarer call winning                                |
 | Rapid                | Its shot plays 3 dB under the gun's, since twice as many are heard                                      |
+| The voice's level    | A call plays 3 dB down: held in the ear's keenest band, it is louder than a struck sound at its level   |
 | A phone              | Sound starts at the first press; an iPhone on silent stays silent; a setting sums the two ears into one |
 
 ### Play

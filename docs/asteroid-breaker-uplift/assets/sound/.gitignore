@@ -1,0 +1,4 @@
+# The takes as WAV, 22 MB of them, which sound/build.mjs writes again, the
+# same bytes every run. What is kept is what a game would ship: sprite/ and
+# beds/, which sound/encode.mjs packs from them.
+wav/
