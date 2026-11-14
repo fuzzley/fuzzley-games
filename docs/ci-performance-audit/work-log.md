@@ -29,8 +29,8 @@ built:
 | 2    | 4   | Chrome's launch limit raised                                          | done    |
 | 3    | 9   | No HTML coverage report on CI                                         | done    |
 | 4    | 2   | The test phase starts the slowest suites first                        | done    |
-| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes             | pending |
-| 6    | 5   | Prettier's experimental CLI with its cache                            | pending |
+| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes             | done    |
+| 6    | 5   | Prettier's experimental CLI with its cache                            | done    |
 | 7    | 6   | Yarn and its packages cached on CI                                    | pending |
 | 8    | 1   | `verify` split into parallel jobs, the layout check in one of its own | pending |
 | 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`          | pending |
@@ -244,3 +244,61 @@ The second review, of the answers, and its answers:
    under its workspace's header.
 7. Two `failed` of different types in one function, and the clock missing
    from `TestsScriptIo`'s doc. Fixed.
+
+### 2026-11-14: tsc's build info, and Prettier's cache (#8, #5)
+
+`build: keep tsc's build info between type-checks, and check formatting with Prettier's experimental CLI and its cache`
+(steps 5 and 6, one commit, both the root's and the workspaces' scripts):
+
+- Every `tsc` pass in a `typecheck` script, the spec, Node, scripts and
+  libraries' passes and the root's, runs with `--incremental` and
+  `--tsBuildInfoFile tsconfig.<name>.tsbuildinfo`, beside its config. The
+  file is named on the command line because the specs' and the app's
+  configs share the presets, which can't name a file for each, and kept out
+  of `dist/out-tsc/`, where the Angular configs' `outDir` would put it,
+  since Vite's build empties `dist/`. `ngc` stays as it is.
+- Measured on 4 cores: `yarn typecheck` 69 s cold, 50 s warm; Snake's spec
+  pass alone on one core 5.4 s plain, 3.1 s warm. A type error added to a
+  spec file after a warm run fails the warm pass, and passes again once
+  removed: `tsc` keys each file on its contents, so build info from
+  another commit is safe to restore on CI (step 7).
+- `yarn prettier` and `yarn prettier:check` run `--experimental-cli` with
+  `--cache-location frontend/node_modules/.cache/prettier/cache.json`; its
+  default is a folder under the system's temp. The two CLIs check the same
+  2,179 files (each listed every file it would change at
+  `--print-width 20`, and the lists were the same). Its cache misses for a
+  file whose contents changed with its time kept, and for changed options,
+  so it too is safe to restore on CI, where each run checks out at the
+  same path: the cache keys its options on the ignore and config files'
+  absolute folders, so a job run at another path, as in a `container:`,
+  would miss every file. Measured on 4 cores: 25.4 s cold, 1.2 s warm,
+  against 31 s for the classic CLI.
+- "Beside ESLint", as #5 asks, would save at most the cold 25 s; with the
+  cache restored on CI it takes about a second, so it stays at the end of
+  `yarn lint` rather than in a job of its own.
+- Not done: ignoring the build info in `.dockerignore`. A checkout has
+  none, so only a local image build would carry it, and an image change
+  asks for the image built and served (the `merge-to-main` skill).
+
+The review, and the answers:
+
+1. `frontend/AGENTS.md` said the experimental CLI checks "the same files
+   as the classic one, side by side". Side by side means in parallel
+   elsewhere in that file, and it checks one file at a time; and the
+   two pick the same files today only because the experimental CLI's
+   extra reading, every folder's `.gitignore` and `.prettierignore`
+   rather than the root's alone, finds nothing more to leave out. Fixed:
+   it says what the CLI reads. Its `--parallel`, which the review
+   suggested trying, was measured on 4 cores cold: 24.7 s, against 25.0 s
+   without, so it isn't used.
+2. Prettier's cache keys its version hash on the ignore and config files
+   by their absolute folders, so a checkout at another path misses every
+   file. GitHub's runners check out at the same path every run, so it
+   hits there, but a job moved into a `container:` (`/__w/…`) would
+   restore a cache that never hits. Noted below for step 8. `tsc`'s build
+   info holds paths relative to its config, so it is restored anywhere.
+3. The report says Prettier checks 2,514 files, this entry 2,179. The
+   report counted the tracked files of a type Prettier formats, before
+   `.prettierignore` leaves out the build output, the vendored and copied
+   skills and the uplift's assets; 2,179 is what it checks. Noted here,
+   and the new report says which it counts.
