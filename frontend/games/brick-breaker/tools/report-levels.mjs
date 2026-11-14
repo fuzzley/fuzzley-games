@@ -143,7 +143,9 @@ const LONG_LEVEL_SECONDS = 120;
  * @property {readonly string[]} speeds The preset speeds, slowest first: all but Custom.
  * @property {number} stepSeconds The game time a step takes, in seconds.
  * @property {number} height How tall the field is played.
- * @property {boolean} tallerField Whether the field is taller than the least, which the spec holds to no endgame's limit.
+ * @property {boolean} tallerField Whether the field is taller than the
+ *   least, which the spec holds to no endgame's limit, and on which `+`
+ *   marks nothing.
  * @property {number} endgameLimit The most steps a play's endgame may take on that field.
  * @property {(entry: LevelEntry, speed: string, seed: number) => AutopilotReport} playLevel
  */
