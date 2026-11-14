@@ -1,0 +1,26 @@
+{
+  "id": "machines",
+  "name": "Machines",
+  "place": "arcade",
+  "drops": 0.14,
+  "nudge": "unbreakable",
+  "levels": [
+    {
+      "id": "pinball",
+      "name": "Pinball",
+      "pace": 1.16,
+      "mark": 5,
+      "bricks": [
+        ".............",
+        ".ooooooooooo.",
+        ".ooooooooooo.",
+        ".oo?ooooo?oo.",
+        ".............",
+        "...O.....O...",
+        ".............",
+        ".............",
+        "......O......"
+      ]
+    }
+  ]
+}

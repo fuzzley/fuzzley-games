@@ -52,7 +52,8 @@ Its block in a set's file:
   top, in the shared legend's characters (`src/rules/levels/legend.ts`):
   `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
   `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `k` key,
-  `=` gate, `.`
+  `=` gate,
+  `O` bumper, `.`
   none. A `legend` of its own adds characters, each a kind with its hits or
   the capsule a gift gives.
   A level with a gate has a key, whose last opens it.
@@ -108,20 +109,37 @@ side, and neither the autopilot nor a seeking ball turns toward one, so the
 last of them are met by chance. One against a side wall, with a side fewer
 to be met from, drags most.
 
+Two bumpers whose middles lie on a line flatter than the flattest a ball
+travels (`FLATTEST`, 20°), near enough that a ball leaving one at the
+flattest still meets the other, can hold a ball between them: it bounces
+back and forth at the flattest, and each turn of the nudge flatter is undone
+as the ball is held to it. Pinball's draft had two 6 units apart at 18°,
+and a play that bounced there for minutes; with its lowest bumper a row
+lower, at 27°, none did. Its two level with each other, 12 units apart,
+can't: a ball leaving one at the flattest passes the other 4.4 units off
+its middle, far beyond the 0.86 it meets the disc at.
+
 ## A Set
 
 Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
 `PLACES` in `src/rules/levels/levels.ts`, which `placeOf()` checks:
 `playroom`, `workshop`, `funfair`, `garden` or `arcade`), `drops` (the chance
-of a capsule its levels share) and `levels`, imported in
+of a capsule its levels share),
+`nudge`, where a lull's nudge turns a ball in its levels (`NUDGES` in
+`src/rules/levels/level.ts`: `walls`, the default, or `unbreakable`, off
+anything that can't break, as Machines and every set after it nudges, so a
+ball looping off steel or bumpers is turned out of its loop, unless two
+bumpers hold it at the flattest, as above),
+and `levels`, imported in
 `src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. Its place's look is
 its art in `PLACE_ART` (`src/view/places/places.ts`), which a place new to
 the game needs, as "A Place" below says. The Levels dialog
 shows each set under its name. The levels spec lists each set's place by its
-id, so a new set adds its own there. It holds a set's paces from falling only
+id, so a new set adds its own there, and its nudge beside it. It holds a set's paces from falling only
 within it, so a new set's paces start where the last set's end, kept so by
 hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
 thought rather than speed starts lower: Friends runs 1.12 to 1.18.
+Machines, the kinds that move a ball or themselves, starts at 1.16.
 
 ## A Place
 
@@ -205,7 +223,10 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   and its `traits`.
 - Its look in every tint and state in `BRICK_ART`
   (`src/view/art/brick_art.ts`), on the slab (`BRICK_SLAB`) with marks that
-  tell it apart by their shape, and How to play's picture in
+  tell it apart by their shape,
+  but for a round kind, a disc on no slab, which the art spec's slab spec
+  leaves out,
+  and How to play's picture in
   `PICTURED_BRICKS` (`src/view/art/art.ts`); the compiler asks for both. A
   color of its own, as steel's, blast's, gift's and a regrowing brick's
   earth, goes in `bricksPalette()`'s `bricks`, and an ink its marks take
@@ -238,6 +259,12 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   damage, `broken` as it breaks, and `step` at each step; the compiler asks
   for the rule.
 - Any state it keeps on `Brick`, set by its rule's `laid`.
+- If it makes a kind round, a disc at its cell's middle rather than a box,
+  as a bumper's `bumps` does: its kinds join `ROUND`
+  (`src/rules/bricks/bricks.ts`), which `isRound()` reads, so the travel
+  leaves its cell open (`boxed` and `hardBoxed`), and the faces beside it
+  stay exposed, while `Field.solid` holds it whole, and `inSight()` with
+  it; the travel meets its disc by `sweepPoint()` (`noteDisc()`).
 - An event it records, as a cage's freeing records `freed`: a member of
   `FieldEventKind` (`src/rules/field/events.ts`), and its entry in
   `EVENT_EFFECTS` (`src/view/effects/effects.ts`), its sound and the

@@ -99,6 +99,15 @@ takes for the specs' helpers.
   and corners of a brick a ball can touch, read through the field's `solid`,
   or `hardSolid` for a ball that passes through what can break, so bricks
   side by side make one face and a corner is only where nothing touches it.
+  A round brick, a bumper, is a disc rather than a box, met as a point is
+  (`sweepPoint()`). `solid` holds its cell whole, but the travel reads it
+  with a round brick's cell left open (`boxed` and `hardBoxed` in
+  `src/rules/field/travel.ts`, by `isRound()` in
+  `src/rules/bricks/bricks.ts`), so the faces of the bricks beside it stay
+  exposed. A ball passes a lone bumper only through the cells beside it, as
+  its disc leaves less than a ball's width either side within its cell, so
+  `inSight()` takes it as blocking a line of sight; two side by side leave
+  a ball room between them, which it takes as blocked too, to be safe.
 - **`src/rules/field/`** — the field. `field.ts`: `Field`, a level in play,
   which each step changes in place, from records made once, so a step makes
   nothing but a random draw's generator, for a lull or a capsule.
@@ -113,10 +122,16 @@ takes for the specs' helpers.
   meets first, the walls, the paddle and the bricks' exposed faces and
   corners, all at one moment, and turns it once, off the paddle by where it
   landed, or as a mirror, by a lull's few degrees at a wall after too many
-  bounces, striking each brick it met, but a plated brick a rising ball
+  bounces,
+  or, where the level's set nudges off anything that can't break
+  (`Level.nudge`, from Machines on), off steel, a shut gate or a bumper too,
+  striking each brick it met, but a plated brick a rising ball
   meets at its underside, its bottom face and corners, which turns any
   ball, a fire ball too, takes no hit, sets off no blast ball's reach and
-  records `plated` (`isPlated()`, in `src/rules/bricks/bricks.ts`); and
+  records `plated` (`isPlated()`, in `src/rules/bricks/bricks.ts`), and a
+  bumper (`isBumper()`), a disc of `BUMPER_RADIUS` at its cell's middle,
+  off which any ball turns as off a circle, about the line from its middle
+  to the ball's, taking no hit and recording `bumped`; and
   lifts a ball the paddle is moved into onto its top (`liftOffPaddle()`).
   As the paddle meets a ball, it may lend it the seeker.
   Its spec plays the travel through the field's steps. The field counts
@@ -161,8 +176,8 @@ takes for the specs' helpers.
   (`Field.friendsFreed`), kept by a ball split from it, for the view to
   color it by; and a ball may seek (`Ball.seeks`,
   `src/rules/field/seeker.ts`). `bolts.ts` fires and moves the laser's
-  bolts, each spent at the first brick above it, hitting it, or hitting
-  nothing at a plate's underside.
+  bolts, each spent at the first brick above it, hitting it, a bumper as
+  steel, or hitting nothing at a plate's underside.
 - **`src/rules/bricks/`** — the bricks and the capsules they let fall.
   `bricks.ts` holds `Brick`, `hitBrick()`, which a ball or a blast calls,
   and `TRAIT_RULES`, what each trait of `src/rules/catalog/bricks.ts` does
@@ -240,8 +255,8 @@ takes for the specs' helpers.
   its name, its place, its chance of a capsule and its levels, each a picture
   of its bricks in the characters of `legend.ts`'s shared legend, with any of
   its own, and, for a picture, a grid of tints: `basics.json`, levels 1 to 10,
-  `steel.json`, 11 to 20, `tricks.json`, 21 to 30, and `friends.json`,
-  31 to 40. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
+  `steel.json`, 11 to 20, `tricks.json`, 21 to 30, `friends.json`,
+  31 to 40, and `machines.json`, from 41. `levels.ts` lists the sets in order (`LEVEL_SETS`), numbers every
   level from 1 (`LEVELS`, through `levelsOf()`), and `parseLevel()` turns one
   into a `Level` (`level.ts`) to play, or throws an error that names what is
   wrong with its data. A level's data names the layout its bricks are in
@@ -252,10 +267,15 @@ takes for the specs' helpers.
   from 1, which `yarn report:levels --marks` sets for every level by one
   rule, as Development Commands says. `placeOf()` reads
   the place a set is in, one of `PLACES` (`Place`), or throws for one it can't
-  be in. `levels.ts`'s spec holds every level to parsing, ids and names of
-  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, into a plated brick only from above or a side, and past a gate only once it reaches every key, a key wherever it has a gate, and a pace that
+  be in.
+  A set's `nudge`, one of `NUDGES` (`level.ts`), says where a lull's nudge
+  turns a ball in its levels: at the walls alone, by default, or, from
+  Machines on, off anything that can't break (`unbreakable`), which
+  `parseLevel()` checks. `levels.ts`'s spec holds every level to parsing, ids and names of
+  their own, a brick it needs that a ball can reach, through any cell but one of a brick that never breaks, a bumper's among them, into a plated brick only from above or a side, and past a gate only once it reaches every key, a key wherever it has a gate, and a pace that
   never falls within a set, a mark that is a multiple of 5, 5 at least, and
-  every set to its place; the specs in
+  every set to its place,
+  and its nudge; the specs in
   `every_level/` hold every level to being cleared by the autopilot, as Tests
   below says.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
@@ -472,7 +492,9 @@ takes for the specs' helpers.
   the cracks, rivets and sheen of a brick under 30 CSS px wide, a plate's
   shine, a caged friend's fur, and the
   ring's sprout
-  (`showsDetail()`); and it names the frame a brick shows as it and the
+  (`showsDetail()`); a round kind without its art yet is a disc of its
+  radius in one tint, on no slab (`roundPlaceholderArt()`); and it names
+  the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
   cage's by the friends the field has freed, `nextFriend()`, or as How to
   play pictures a brick on its own, `PICTURED_FIELD`,

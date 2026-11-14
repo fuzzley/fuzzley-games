@@ -83,7 +83,11 @@ function firstColumn(level: Level): number[] {
  * flood from the open field below the grid, through every cell but those
  * of bricks that never break, into a plated brick only from above or a
  * side, and through the gap above it, finds none of them. Once it reaches
- * every key, the gates open, and it floods again past them.
+ * every key, the gates open, and it floods again past them. A bumper's cell
+ * stops it as steel does, as its disc is a cell high, and leaves less than
+ * a ball's width either side of it within its cell, so a ball passes a lone
+ * bumper only through the cells beside it; two side by side leave a ball
+ * room between them, which the flood takes as shut, to be safe.
  */
 function shutIn(level: Level, gatesOpen = false): number[] {
   const key = (column: number, row: number): string =>
@@ -211,6 +215,33 @@ describe("parseLevel", () => {
 
   it("lays its bricks out on the first layout, or the one it names", () => {
     expect([parsed().layout, parsed({ layout: 2 }).layout]).toEqual([1, 2]);
+  });
+
+  it("nudges a ball at the walls alone, or where its set says", () => {
+    const data: LevelData = {
+      id: "spec",
+      name: "Spec",
+      mark: 5,
+      bricks: ["o............"],
+    };
+    const nudge = parseLevel({
+      number: 3,
+      set: { ...SET, nudge: "unbreakable" },
+      data,
+    }).nudge;
+
+    expect([parsed().nudge, nudge]).toEqual(["walls", "unbreakable"]);
+  });
+
+  it("names its set and its nudge where there is none of it", () => {
+    const parse = (): Level =>
+      parseLevel({
+        number: 3,
+        set: { ...SET, nudge: "everywhere" },
+        data: { id: "spec", name: "Spec", mark: 5, bricks: ["o............"] },
+      });
+
+    expect(parse).toThrow(`Set "spec": its nudge, "everywhere", is no nudge.`);
   });
 
   it("asks the streak its mark names for its third star", () => {
@@ -407,6 +438,14 @@ describe("the reach check", () => {
     expect(shutIn(level)).toEqual([]);
   });
 
+  it("finds a brick shut in by steel over a bumper, whose disc leaves no ball room to pass beside it", () => {
+    const level = parsed({
+      bricks: ["###..........", "#o#..........", "#O#.........."],
+    });
+
+    expect(shutIn(level)).toEqual([cellIndex(1, 1)]);
+  });
+
   it("finds a brick past a gate whose key no ball reaches", () => {
     const level = parsed({
       bricks: [
@@ -506,6 +545,21 @@ describe("the levels", () => {
     },
   );
 
+  it("nudge a ball off what can't break from Machines on, and at the walls alone before", () => {
+    const nudges = LEVELS.map((entry) => [
+      entry.set.id,
+      parseLevel(entry).nudge,
+    ]);
+
+    expect(Object.fromEntries(nudges)).toEqual({
+      basics: "walls",
+      steel: "walls",
+      tricks: "walls",
+      friends: "walls",
+      machines: "unbreakable",
+    });
+  });
+
   it("number every level in the order played, from 1", () => {
     expect(LEVELS.map((entry) => entry.number)).toEqual(
       LEVELS.map((_, i) => i + 1),
@@ -522,6 +576,7 @@ describe("placeOf", () => {
       steel: "workshop",
       tricks: "funfair",
       friends: "garden",
+      machines: "arcade",
     });
   });
 

@@ -73,11 +73,14 @@ Run these from `frontend/games/brick-breaker/`, or as
   characters (`src/rules/levels/legend.ts`: `o` plain, `2` to `4` tough,
   `#` steel, `*` blast, `?` gift, `~` ghost, `+` regrowing, `c` cage,
   `u` and `U` plated, of one hit and two, `k` key, `=` gate,
+  `O` bumper,
   `.` none). The
   options set what a picture can't show: the speed, the seed, the pace, the
   level's mark, 5 by default, the chance of a capsule, the capsules that may
   fall, the one every gift gives and the field's height, 30 by default, as a
   tall screen makes it up to 45.
+  Its `nudge` sets where a lull's nudge turns a ball, at the walls alone by
+  default.
   `KEEPER` is a picture of one brick far down the field, so a level doesn't
   clear while a spec plays on.
 - A field is in play once a ball is: `throwBall(field, x, y, degrees)` puts

@@ -28,7 +28,7 @@ import {
 } from "../../rules/catalog/bricks";
 import { TINTS } from "../../rules/levels/level";
 import { stepsIn } from "../../rules/stepper";
-import { FRIEND_INKS } from "../../rules/tuning";
+import { BRICK_WIDTH, BUMPER_RADIUS, FRIEND_INKS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -273,10 +273,11 @@ describe("brickFrame", () => {
 });
 
 describe("every brick's frame", () => {
-  // Every look but a ghost's, which stands on no slab, hidden or shown.
-  const slabbed = BRICK_KIND_IDS.filter((kind) => kind !== "ghost").flatMap(
-    (kind) => looksOf(kind).filter((look) => look.tint === 2),
-  );
+  // Every look but a ghost's, which stands on no slab, hidden or shown, and
+  // a bumper's, which is round.
+  const slabbed = BRICK_KIND_IDS.filter(
+    (kind) => kind !== "ghost" && !hasTrait(kind, "bumps"),
+  ).flatMap((kind) => looksOf(kind).filter((look) => look.tint === 2));
 
   it.each(slabbed)(
     "stands a $kind brick, $hits of $whole hits left, on the slab in the color its shards take",
@@ -1047,6 +1048,22 @@ describe("a regrowing brick's ring as it grows back", () => {
   });
 });
 
+describe("a bumper's frame", () => {
+  it("is a disc of the bumper's radius at its cell's middle, in one tint, as it has no art of its own yet", () => {
+    const frame = frameOf(lookOf("bumper", 2));
+
+    expect(frame.commands).toEqual([
+      {
+        kind: "circle",
+        x: frame.width / 2,
+        y: frame.height / 2,
+        radius: BUMPER_RADIUS * (frame.width / BRICK_WIDTH),
+        color: ART_PALETTE.tints[7],
+      },
+    ]);
+  });
+});
+
 describe("brickColor", () => {
   it.each([
     ["plain", ART_PALETTE.tints[2]],
@@ -1078,6 +1095,15 @@ describe("brickColor", () => {
         hits: 1,
         shown,
       };
+
+      expect(brickColor(look, ART_PALETTE)).toBe(color);
+    },
+  );
+
+  it.each([["bumper", ART_PALETTE.tints[7]]] as const)(
+    "draws a %s brick, which has no art of its own yet, in one tint, whatever the level tints it",
+    (kind, color) => {
+      const look: BrickLook = { kind, tint: 0, whole: 2, hits: 1, shown: true };
 
       expect(brickColor(look, ART_PALETTE)).toBe(color);
     },

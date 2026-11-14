@@ -59,6 +59,9 @@ export const PADDLE_RESIZE_SPEED = 16;
 /** The ball's radius. */
 export const BALL_RADIUS = 0.36;
 
+/** The radius of a bumper's disc, at its cell's middle. */
+export const BUMPER_RADIUS = 0.5;
+
 /** The most balls in play at once. */
 export const MAX_BALLS = 8;
 

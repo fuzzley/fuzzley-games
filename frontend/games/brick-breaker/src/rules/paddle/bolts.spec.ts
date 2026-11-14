@@ -171,6 +171,23 @@ describe("a bolt", () => {
     }).toEqual({ steel: false, upper: false });
   });
 
+  it("stops at a bumper's cell, which takes the hit as steel does", () => {
+    const field = laserField([".....o", "", "", "", ".....O"]);
+    fireBolts(field);
+
+    stepTimes(field, TO_TOP);
+
+    expect({
+      bumper: isBroken(field, 5, 4),
+      upper: isBroken(field, 5, 0),
+      events: eventsOf(field),
+    }).toEqual({
+      bumper: false,
+      upper: false,
+      events: ["caught", "fired", "hit"],
+    });
+  });
+
   it("is spent at a plated brick's underside, which takes no hit, and says so", () => {
     const field = laserField([".....o", "", "", "", ".....u"]);
     fireBolts(field);

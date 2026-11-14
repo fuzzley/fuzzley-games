@@ -12,7 +12,15 @@ import { COLUMNS, ROWS } from "../tuning";
 import basics from "./basics.json";
 import friends from "./friends.json";
 import { type BrickSpec, LEGEND, NO_BRICK, brickOf } from "./legend";
-import { FIRST_LAYOUT, type Level, type LevelBrick, TINTS } from "./level";
+import {
+  FIRST_LAYOUT,
+  type Level,
+  type LevelBrick,
+  NUDGES,
+  type Nudge,
+  TINTS,
+} from "./level";
+import machines from "./machines.json";
 import steel from "./steel.json";
 import tricks from "./tricks.json";
 
@@ -79,6 +87,11 @@ export interface LevelSetData {
   readonly place: string;
   /** The chance a needed brick lets a capsule fall, in a level that doesn't say. */
   readonly drops: number;
+  /**
+   * Where a lull's nudge turns a ball in its levels, a {@link Nudge} as text
+   * until {@link parseLevel} checks it: at the walls alone by default.
+   */
+  readonly nudge?: string;
   readonly levels: readonly LevelData[];
 }
 
@@ -96,6 +109,7 @@ export const LEVEL_SETS: readonly LevelSetData[] = [
   steel,
   tricks,
   friends,
+  machines,
 ];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
@@ -196,6 +210,7 @@ export function parseLevel({ number, set, data }: LevelEntry): Level {
     mark: data.mark,
     drops,
     capsules: poolOf(data, number),
+    nudge: nudgeOf(set),
   };
 }
 
@@ -340,6 +355,19 @@ function tintAt(data: LevelData, column: number, row: number): number {
     );
   }
   return tint - 1;
+}
+
+/**
+ * Returns where a lull's nudge turns a ball in a set's levels, as it says,
+ * at the walls alone where it doesn't, or throws an error that names a
+ * nudge there is none of.
+ */
+function nudgeOf(set: LevelSetData): Nudge {
+  const nudge = set.nudge ?? "walls";
+  if (!isOneOf(nudge, NUDGES)) {
+    throw new Error(`Set "${set.id}": its nudge, "${nudge}", is no nudge.`);
+  }
+  return nudge;
 }
 
 /** Returns the capsules that can fall in a level: its own, or those whose level has come. */

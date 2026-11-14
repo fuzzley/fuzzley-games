@@ -9,7 +9,11 @@ import {
 } from "../rules/field/field";
 import { CELLS, cellIndex, columnOf, rowOf } from "../rules/grid";
 import { LEGEND, NO_BRICK, brickOf } from "../rules/levels/legend";
-import { FIRST_LAYOUT, type LevelBrick } from "../rules/levels/level";
+import {
+  FIRST_LAYOUT,
+  type LevelBrick,
+  type Nudge,
+} from "../rules/levels/level";
 import type { Ball } from "../rules/paddle/balls";
 import type { Steer } from "../rules/paddle/paddle";
 import type { Speed } from "../rules/speed";
@@ -30,6 +34,8 @@ export interface PictureOptions {
   readonly gift?: CapsuleId;
   /** How tall the field is, {@link FIELD_HEIGHT} by default. */
   readonly height?: number;
+  /** Where a lull's nudge turns a ball, at the walls alone by default. */
+  readonly nudge?: Nudge;
 }
 
 /** Rows that lay one brick far down the field, which keeps a level from clearing. */
@@ -80,6 +86,7 @@ export function fieldFrom(
       mark: options.mark ?? 5,
       drops: options.drops ?? 0,
       capsules: options.capsules ?? [],
+      nudge: options.nudge ?? "walls",
     },
     { speed: options.speed ?? "normal", seed: options.seed ?? 1 },
   );
