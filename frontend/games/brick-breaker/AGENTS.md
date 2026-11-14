@@ -120,9 +120,12 @@ takes for the specs' helpers.
   step would creep.
   `scoring.ts` scores each hit by its kind's points for the hits it took,
   times the streak's multiplier (`multiplier()`, `@fz/core/math`'s
-  `multiplierAt()` over `tuning.ts`'s `STREAK`), keeps the streak, and says
-  what clearing a level adds, and how a cleared level's points add up
-  (`tallyOf()`) and come to (`pointsOf()`).
+  `multiplierAt()` over `tuning.ts`'s `STREAK`), times the field's pay
+  (`Field.pay`: double while a bad capsule is in play), keeping apart what
+  the streak and the pay added (`streakPoints`, `darePoints`), keeps the
+  streak, and says what clearing a level adds, and how a cleared level's
+  points add up (`tallyOf()`, the pay's line among them) and come to
+  (`pointsOf()`).
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s `EventLog` of
   256 numbered records, which `add()` fills, the scene plays and the shell
   hears, each from the last one it read; a broken brick's carries the
@@ -151,7 +154,9 @@ takes for the specs' helpers.
   weight from the level's pool, from `src/rules/draws.ts`'s seeded draws;
   moves them down to be caught or missed; and holds `EFFECT_RULES`, what
   each effect of `src/rules/catalog/capsules.ts` does as it starts and ends,
-  one of each group in play at a time.
+  one of each group in play at a time; as each starts and ends, it sets the
+  field's pay to the most the effects in play pay (`Capsule.pays`), 1 with
+  none.
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, as Snake's is, from the first level to the end: the level in
   play, the points banked and the score, the lives and the points of the
@@ -167,10 +172,10 @@ takes for the specs' helpers.
   once, and so does a field with nothing new, so the shell can tell a frame
   that changed the run.
   `describe.ts` puts what happened into the words the announcer says: a
-  level's start, a capsule caught, the lives a frame gained and lost
-  (`describeLives()`, from the run before and after), the last few bricks,
-  the gates opened (`describeOpened()`), a
-  clearing, a pause, going on and the end; `endTitle()` says what an ended
+  level's start, a capsule caught (with its double pay), the lives a frame
+  gained and lost (`describeLives()`, from the run before and after), the
+  last few bricks, the gates opened (`describeOpened()`), a clearing, a
+  pause, going on and the end; `endTitle()` says what an ended
   run is called; and `formatCustomPercent()` writes Custom's ball speed as
   its sliders read it, "150% of Normal". The announcer, the bar, the cards,
   the result, the levels and How to play all write points grouped in
@@ -221,7 +226,8 @@ takes for the specs' helpers.
   and its traits), `balls.ts` (`BALL_KINDS`, each kind's damage, whether it
   passes through what it breaks and reaches the bricks around) and
   `capsules.ts` (`CAPSULES`, each capsule's tone, weight, first level and
-  effect, whose kind is its group). Each has its ids in How to play's order
+  effect, whose kind is its group, and, for a bad one, how many times over
+  bricks pay while it lasts, `pays`). Each has its ids in How to play's order
   and a function that returns an entry as the shape every entry has.
   `catalog.spec.ts` holds every entry to the catalogs' rules.
 - **`src/view/`** — what to draw and when the field moves on, without
@@ -385,8 +391,9 @@ takes for the specs' helpers.
     the paddle,
     between the bricks and the paddle, raised where it is too tall for the
     gap so it never covers the ball; Paused; Cleared, with how the level's
-    points added up and Next level; Ended, once an ended run's result is
-    put away; and, in their place, the canvas's own (`@fz/phaser/canvas`'s
+    points added up, a line for double pay only where it paid, and Next
+    level; Ended, once an ended run's result is put away; and, in their
+    place, the canvas's own (`@fz/phaser/canvas`'s
     `<fz-canvas-cards>`): still loading, which a status region in the page
     from the start says to a screen reader, and couldn't be drawn. The
     board is Phaser's keyboard target, so the cards' buttons keep their
@@ -612,8 +619,11 @@ can't trust rather than failing:
   brick's hits left, whether it is broken or shown (an open gate is kept
   broken), and the steps its blast
   and its regrowth are due at, with the field's count of steps, its draws,
-  how far the balls' speed has climbed, and the streak's points. The balls
-  in flight, the capsules and the effects are not kept (decision 16).
+  how far the balls' speed has climbed, and what the streaks and double pay
+  added. The balls in flight, the capsules and the effects are not kept
+  (decision 16). Its version is 2: a run kept under 1, by the rules before
+  double pay and the gates, is dropped rather than played by rules it
+  wasn't played by.
 
 ## In This Repository
 

@@ -42,6 +42,13 @@ describe("describe", () => {
     expect(describeCaught("wide")).toBe("Wide paddle.");
   });
 
+  it("says a capsule that pays pays double as it is caught", () => {
+    expect([describeCaught("narrow"), describeCaught("fast")]).toEqual([
+      "Narrow paddle. Double pay.",
+      "Fast ball. Double pay.",
+    ]);
+  });
+
   it.each([
     [2, "Ball lost. 2 lives left."],
     [1, "Ball lost. 1 life left."],

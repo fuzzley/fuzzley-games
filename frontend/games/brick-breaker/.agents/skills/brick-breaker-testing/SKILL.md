@@ -125,7 +125,7 @@ Run these from `frontend/games/brick-breaker/`, or as
   and taking up the run and its field at each, and expects every state a
   take-up must keep to have been reached: a fuse lit, a ghost shown, a
   regrowing brick broken and grown back, a tough brick worn, a gate opened,
-  streak points,
+  streak points, dare points (a Fast ball caught as it starts pays them),
   draws and a ball lost. A new state kept on a brick or the field belongs in
   that list.
 - A spoiled entry is a stored game read back from JSON (`stored()`) with one
@@ -204,7 +204,8 @@ game through `runScene()`:
 - `GameService` plays the small levels of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecLevels()`): `SPEC_LEVELS`, each set
   up to come to one thing soon, by its number in `SPEC_LEVEL` (`blasts`,
-  `wide`, `steel`, `few`, `lives`, `laser`, `catch` and `last`), or
+  `wide`, `steel`, `few`, `lives`, `laser`, `catch`, `dare`, whose narrow
+  paddle pays double as `under()` plays it, and `last`), or
   `TWO_SETS`. It runs on the time it is given: `game.tick(FRAME_MS, steer)`,
   steered `STILL`, `under()` the ball, `awayFrom()` it or `underCapsule()`;
   `playUntil()`, `playFor()`, `loseBall()`, `playToClear()` and

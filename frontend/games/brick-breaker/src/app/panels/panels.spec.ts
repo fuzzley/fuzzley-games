@@ -50,7 +50,7 @@ describe("nextLifeOf", () => {
 
 describe("placeInSet", () => {
   it.each([
-    { levels: SPEC_LEVELS, number: 3, place: { at: 3, of: 8 } },
+    { levels: SPEC_LEVELS, number: 3, place: { at: 3, of: 9 } },
     { levels: TWO_SETS, number: 3, place: { at: 1, of: 1 } },
   ])(
     "counts a level's place in its own set: level $number is $place.at of $place.of",

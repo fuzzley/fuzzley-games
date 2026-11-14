@@ -309,3 +309,85 @@ Review (a fresh reviewer, on the staged change):
 4. Nothing checked the `"relaxed"` literal against the rules' speeds.
    Fixed: the mark is the slowest speed's, `speeds[0]`, which the rules hand
    on slowest first.
+
+## R2. The seeker and double pay
+
+### 2026-11-14: before any change
+
+- The branch held the integration tip, d839e569, and was rebased mid-package
+  onto bfc1a8c8, which holds K1 (levels 31 to 33). The work so far was set
+  aside in a temporary commit for the rebase and unpacked after; the one
+  collision, `restoredField()`'s last lines in `saved_game.ts`, kept both
+  sides (K1's gates and R2's `darePoints`).
+- `yarn report:levels --seeds 12` on bfc1a8c8 took 77 s; its first thirty
+  levels print exactly what `report-r1-after.txt` holds. Saved as
+  `docs/brick-breaker-uplift/levels/report-r2-before.txt`.
+
+### 2026-11-14: double pay (C4), and the saved game's version (C20)
+
+- `Capsule.pays`, 2 for Narrow paddle and Fast ball, left out for the rest.
+  `Field.pay` is the most the effects in play pay, 1 with none, set by
+  `settlePay()` in `src/rules/bricks/capsules.ts` as each effect starts and
+  ends, so two at once still double and the pay ends with the last of them,
+  or with the last ball lost.
+- A hit scores its points times the streak's multiplier times the pay;
+  `Field.darePoints` keeps what the pay added, apart from `streakPoints`.
+  `LevelTally.dares` is it, which `tallyOf()` takes out of the bricks' line
+  and `pointsOf()` adds back. The cleared card shows "Double pay" between
+  Streaks and Bonus, only where it isn't nothing.
+- Both bad capsules' `about` says bricks pay double while they last, and the
+  announcer says "Narrow paddle. Double pay." (`describeCaught()`). The
+  catalog spec holds a capsule to paying double, and saying so, exactly when
+  it is bad. Relaxed drops no bad capsule, as before (its spec stands).
+- The saved game keeps `darePoints` beside `streakPoints`, refusing one that
+  isn't a count or that, with the streaks', passes the level's points.
+  `SAVED_GAME_VERSION` rises to 2, once for the branch, covering K1's gates
+  as well (C20). The round trip catches a Fast ball as it starts, so its
+  play reaches dare points, which `PLAYED_STATES` now asks for.
+
+Added to other streams' files: P's `src/app/board/board.component.ts`, the
+"Double pay" line in `tallyLines`, and its spec's case for it;
+`src/app/play/game.service.spec.ts`, `dares` in the tally's sum and two
+cases (the announcer's words, the tally's dares); `src/app/levels/`'s spec,
+the new spec level in its list; `src/app/play/saved_game.service.spec.ts`
+and `src/app/app.component.spec.ts`, the version read from
+`SAVED_GAME_VERSION` where they wrote 1, and a case for a run kept under 1.
+To `src/testing/play.ts`, the spec level `dare` (before `last`, now 9): a
+narrow paddle's gift the ball, kept under by `under()`, sends straight
+back into the paddle, then a row of blast bricks above, paying double. In
+K's and others' shared files: `Field.darePoints` and `Field.pay` in
+`field.ts`.
+
+Choices where the plan was silent:
+
+- `Field.pay` is a field the effects set, rather than worked out at each
+  hit, as the contract names it, so a hit reads one number.
+- The announcer adds "Double pay." to a paying capsule's name, the card's
+  words for it, rather than a longer sentence.
+- How to play's Scoring paragraph (P's) is left alone: each bad capsule's
+  sentence says it pays double, beside its picture.
+
+Checks, after the review's fixes: the workspace's `lint`, `typecheck` and
+`test` (59 files, 2,165 specs, 12.3 s with six workers), and the root's
+`lint`.
+
+Review (a fresh reviewer, on the staged change):
+
+1. The change rewrote the doc comment of P's `tallyLines` into two lines,
+   beyond the line it added. Fixed: the comment is P's again.
+2. Five specs of when the pay starts and ends sat in `scoring.spec.ts`,
+   though `settlePay()` is `bricks/capsules.ts`'s. Fixed: they are
+   `capsules.spec.ts`'s "double pay", reading `Field.pay`; `scoring.spec.ts`
+   keeps what a hit scores under it (once, after the multiplier, with two
+   at once, with a good capsule).
+3. The shell's spec that the tally adds up to the score still cleared only
+   Blasts, where nothing pays double, and a second case repeated the board
+   spec's 600. Fixed: the sum is checked on Blasts and on Dare, and the
+   repeat is gone.
+4. Smaller points, each fixed: a garbled comment in the saved game
+   service's spec, removed; `playedField()`'s doc now names the dare
+   points it sets; two `AGENTS.md` sentences rewrapped, one reworded ("a
+   capsule caught (with its double pay)"). And the catalog spec asked a bad
+   capsule to pay without asking it to last, while the field pays only for
+   an effect in play: it now holds every capsule that pays to an effect of
+   a time.

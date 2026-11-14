@@ -573,6 +573,18 @@ describe("GameService", () => {
       expect(heldBalls(game)).toBe(0);
     });
 
+    it("says a bad capsule pays double as it is caught", async () => {
+      const game = await launchedAt(SPEC_LEVEL.dare);
+
+      playUntil(
+        game,
+        under,
+        () => game.frame().field.effects["paddle-size"].capsule === "narrow",
+      );
+
+      expect(said()).toBe("Narrow paddle. Double pay.");
+    });
+
     it("says an extra life once, with the lives there are", async () => {
       const game = await launchedAt(SPEC_LEVEL.lives);
 
@@ -600,15 +612,18 @@ describe("GameService", () => {
       });
     });
 
-    it("adds up the level's points for its card", async () => {
-      const game = await clearedAt(SPEC_LEVEL.blasts);
+    it.each([SPEC_LEVEL.blasts, SPEC_LEVEL.dare])(
+      "adds up level %i's points for its card",
+      async (level) => {
+        const game = await clearedAt(level);
 
-      const tally = game.tally();
+        const tally = game.tally();
 
-      expect(tally && tally.bricks + tally.streaks + tally.bonus).toBe(
-        game.score(),
-      );
-    });
+        expect(
+          tally && tally.bricks + tally.streaks + tally.dares + tally.bonus,
+        ).toBe(game.score());
+      },
+    );
 
     it("forgets the level's points as a new run begins", async () => {
       const game = await clearedAt(SPEC_LEVEL.blasts);

@@ -14,7 +14,7 @@ export function multiplier(streak: number): number {
 
 /**
  * Adds a hit on a brick to the level's score: its kind's points for each of
- * the hits it took, times the streak's multiplier.
+ * the hits it took, times the streak's multiplier, times the field's pay.
  */
 export function scoreHit(
   field: Field,
@@ -23,8 +23,9 @@ export function scoreHit(
 ): void {
   const points = brickKind(brick.kind).points * taken;
   const times = multiplier(field.streak);
-  field.score += points * times;
+  field.score += points * times * field.pay;
   field.streakPoints += points * (times - 1);
+  field.darePoints += points * times * (field.pay - 1);
 }
 
 /** Lengthens the streak by a brick broken, then scores the hit that broke it. */
@@ -53,22 +54,30 @@ export interface LevelTally {
   readonly bricks: number;
   /** What the streaks added beyond them. */
   readonly streaks: number;
+  /** What double pay added beyond the bricks and the streaks. */
+  readonly dares: number;
   /** What clearing the level added. */
   readonly bonus: number;
 }
 
 /** Returns a cleared level's points, its tally's lines added up. */
-export function pointsOf({ bricks, streaks, bonus }: LevelTally): number {
-  return bricks + streaks + bonus;
+export function pointsOf({
+  bricks,
+  streaks,
+  dares,
+  bonus,
+}: LevelTally): number {
+  return bricks + streaks + dares + bonus;
 }
 
 /** Returns how a level's points add up, as its field stands once it is cleared. */
 export function tallyOf(
-  field: Pick<Field, "score" | "streakPoints" | "livesLost">,
+  field: Pick<Field, "score" | "streakPoints" | "darePoints" | "livesLost">,
 ): LevelTally {
   return {
-    bricks: field.score - field.streakPoints,
+    bricks: field.score - field.streakPoints - field.darePoints,
     streaks: field.streakPoints,
+    dares: field.darePoints,
     bonus: clearingPoints(field.livesLost),
   };
 }

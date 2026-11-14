@@ -21,7 +21,7 @@ import { Textures } from "phaser";
 import { createField } from "../rules/field/field";
 import { parseLevel } from "../rules/levels/levels";
 import { createRun, startLevel } from "../rules/run/run";
-import { saveGame } from "../rules/run/saved_game";
+import { SAVED_GAME_VERSION, saveGame } from "../rules/run/saved_game";
 import { FIRST_LIVES } from "../rules/tuning";
 import {
   SPEC_LEVEL,
@@ -72,7 +72,10 @@ function storeRun(): void {
   const field = createField(parseLevel(entry), { speed: "normal", seed: 1 });
   storage.setItem(
     SAVED_GAME_KEY,
-    JSON.stringify({ version: 1, ...saveGame(run, field, SPEC_LEVELS) }),
+    JSON.stringify({
+      version: SAVED_GAME_VERSION,
+      ...saveGame(run, field, SPEC_LEVELS),
+    }),
   );
 }
 

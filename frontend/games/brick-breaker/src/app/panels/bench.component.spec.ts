@@ -111,13 +111,14 @@ describe("BenchComponent", () => {
   it("says how far through its set the level is, under a pip for each of its levels", async () => {
     const panel = await renderBench();
 
-    const pips = within(panel).getByRole("img", { name: "3 of 8 in Specs" });
+    const pips = within(panel).getByRole("img", { name: "3 of 9 in Specs" });
     expect(
       Array.from(pips.children, (pip) => pip.getAttribute("data-pip")),
     ).toEqual([
       "done",
       "done",
       "here",
+      "to-come",
       "to-come",
       "to-come",
       "to-come",

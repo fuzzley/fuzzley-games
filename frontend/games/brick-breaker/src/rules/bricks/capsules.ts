@@ -223,6 +223,7 @@ export function catchCapsule(
     const inEffect = field.effects[effect.kind];
     inEffect.capsule = id;
     inEffect.endsAt = "ms" in effect ? field.steps + stepsIn(effect.ms) : 0;
+    settlePay(field);
   }
   field.events.add("caught", x, y, -1, id);
 }
@@ -243,6 +244,7 @@ export function endEffect(field: Field, kind: EffectKind): void {
   inEffect.capsule = null;
   inEffect.endsAt = 0;
   EFFECT_RULES[kind].end?.(field);
+  settlePay(field);
 }
 
 /** Ends every effect, as a life is lost. */
@@ -253,6 +255,16 @@ export function endEffects(field: Field): void {
 /** Lets go of the falling capsules, as a life is lost. */
 export function clearFalling(field: Field): void {
   for (const falling of field.falling) falling.live = false;
+}
+
+/** Sets how many times over the field's hits pay: the most the effects in play pay, 1 with none. */
+function settlePay(field: Field): void {
+  let pay = 1;
+  for (const kind of EFFECT_KINDS) {
+    const id = field.effects[kind].capsule;
+    if (id) pay = Math.max(pay, capsule(id).pays ?? 1);
+  }
+  field.pay = pay;
 }
 
 /** Runs an effect's start rule. */

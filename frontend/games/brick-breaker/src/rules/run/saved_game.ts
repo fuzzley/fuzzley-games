@@ -27,13 +27,14 @@ export interface SavedField {
   /** A brick for each cell of the grid, null where the level has none. */
   readonly bricks: readonly (SavedBrick | null)[];
   readonly streakPoints: number;
+  readonly darePoints: number;
   readonly climbed: number;
   readonly steps: number;
   readonly draws: number;
 }
 
 /** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
-export const SAVED_GAME_VERSION = 1;
+export const SAVED_GAME_VERSION = 2;
 
 /** A run under way as storage keeps it. */
 export interface SavedGame {
@@ -62,7 +63,7 @@ export interface TakenUp {
 /** What of a field storage keeps. */
 export type SavableField = Pick<
   Field,
-  "bricks" | "streakPoints" | "climbed" | "steps" | "draws"
+  "bricks" | "streakPoints" | "darePoints" | "climbed" | "steps" | "draws"
 >;
 
 /**
@@ -174,6 +175,7 @@ export function takeUpField(
   field.needed = neededLeft(field.bricks);
   field.keysLeft = unbrokenKeys(field.bricks);
   field.streakPoints = saved.streakPoints;
+  field.darePoints = saved.darePoints;
   field.climbed = saved.climbed;
   field.steps = saved.steps;
   field.draws = saved.draws;
@@ -210,6 +212,7 @@ function savedField(field: SavableField): SavedField {
       brick ? pick(brick, KEPT_OF_BRICK) : null,
     ),
     streakPoints: field.streakPoints,
+    darePoints: field.darePoints,
     climbed: field.climbed,
     steps: field.steps,
     draws: field.draws,
@@ -227,10 +230,11 @@ function restoredField(
   levelScore: number,
 ): SavedField | null {
   if (!isRecord(value)) return null;
-  const { streakPoints, climbed, steps, draws } = value;
+  const { streakPoints, darePoints, climbed, steps, draws } = value;
   if (
     !isCount(streakPoints) ||
-    streakPoints > levelScore ||
+    !isCount(darePoints) ||
+    streakPoints + darePoints > levelScore ||
     !isFiniteNumber(climbed) ||
     climbed < 0 ||
     !isCount(steps) ||
@@ -256,7 +260,7 @@ function restoredField(
     if (isNeeded(placed.kind) && !restored.broken) needsMore = true;
   }
   if (!needsMore || !gatesAsKeysSay(cells, bricks)) return null;
-  return { bricks, streakPoints, climbed, steps, draws };
+  return { bricks, streakPoints, darePoints, climbed, steps, draws };
 }
 
 /**

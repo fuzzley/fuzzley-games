@@ -196,6 +196,28 @@ describe("the capsules", () => {
     },
   );
 
+  // The card's line and the announcer call it double pay.
+  it.each(CAPSULE_IDS)(
+    "let %s pay double only if it is bad, and say so",
+    (id) => {
+      const { tone, pays, about } = capsule(id);
+      const bad = tone === "bad";
+
+      expect({ pays, says: about.includes("pay double") }).toEqual({
+        pays: bad ? 2 : undefined,
+        says: bad,
+      });
+    },
+  );
+
+  // The field pays as long as an effect is in play, and only one that ends is.
+  it.each(CAPSULE_IDS.filter((id) => capsule(id).pays !== undefined))(
+    "let %s, which pays, last a time",
+    (id) => {
+      expect("ms" in capsule(id).effect).toBe(true);
+    },
+  );
+
   it.each(BALL_KIND_IDS.filter((id) => id !== "normal"))(
     "let a capsule make a ball %s",
     (id) => {
