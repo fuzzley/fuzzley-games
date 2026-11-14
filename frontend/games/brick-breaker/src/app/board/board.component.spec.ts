@@ -3,6 +3,7 @@ import { By } from "@angular/platform-browser";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readRect } from "@fz/dev/board-page";
 import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import { PICTURES_SETTLE_MS } from "@fz/phaser/canvas";
 import type { HostedScene } from "@fz/phaser/host";
 import {
   cssRectOf,
@@ -52,7 +53,7 @@ import {
 } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
-import { BoardComponent, PICTURES_SETTLE_MS } from "./board.component";
+import { BoardComponent } from "./board.component";
 
 const SPACE = browserKey("Space", " ");
 

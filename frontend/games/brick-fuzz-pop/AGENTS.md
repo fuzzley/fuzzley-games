@@ -432,7 +432,7 @@ helpers.
     restored, takes the card away, the run left paused for the player to go
     on, the announcer saying each (`BOARD_CONTEXT_WORDS`); and hands the game
     a later bake's pictures only once the atlas has settled
-    (`PICTURES_SETTLE_MS`), reading them only while the panels or the Ready
+    (`settledPictures()`), reading them only while the panels or the Ready
     card show them. On the lintel it says how many rows wait ("5 rows
     waiting", "No rows waiting"), read as the page is where neither the bar's
     Rows left nor Coming next says it and hidden from assistive technology

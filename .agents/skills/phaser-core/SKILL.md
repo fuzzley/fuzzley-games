@@ -50,8 +50,11 @@ holds.
   canvas it makes, as the host sizes it, and the ratio it renders at, as
   signals (`viewport`, `pixelRatio`), measured as it is first drawn and each
   time its size, the zoom or the display changes, so its placeholder lays the
-  board out as the scene will, and `fzKeepKeys` keeps a button's keys from the
-  board around it.
+  board out as the scene will, `fzKeepKeys` keeps a button's keys from the
+  board around it, and `settledPictures(hand)`, called as a board is made
+  too, hands on to `hand` the pictures of each bake of the scene's atlas the
+  board is handed: the first at once, and a later one only once the atlas
+  has settled (`PICTURES_SETTLE_MS`).
 - **`@fz/phaser/host`**: the types a scene and a board take of the host,
   and nothing else: `HostedScene`, `SceneSurroundings` and `HostOptions`.
   The host itself, `PhaserHost`, which keeps one Phaser game, and so one
@@ -321,7 +324,8 @@ scene without shutting it down first, so the end is whichever comes first.
   frames as it emits and needs nothing. `picturesWhenAsked()` returns a
   function that, as it is first called, encodes the frames that records and
   lists of names give, as How to play shows them, and returns the same
-  pictures after; a scene hands its shell a new one at each bake, so
+  pictures after; a scene hands its shell a new one at each bake, which
+  the board takes through `@fz/phaser/canvas`'s `settledPictures()`, so
   nothing is encoded until How to play shows it. Anything else drawn at run
   time redraws itself through `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in

@@ -16,3 +16,4 @@ export {
   type CanvasState,
   PhaserCanvasComponent,
 } from "./phaser_canvas.component";
+export { PICTURES_SETTLE_MS, settledPictures } from "./settled_pictures";

@@ -4,6 +4,7 @@ import { formatPoints } from "@fz/core/format";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readNamedRects, readRect } from "@fz/dev/board-page";
 import { installFakeViewport } from "@fz/game-ui/testing";
+import { PICTURES_SETTLE_MS } from "@fz/phaser/canvas";
 import type { HostedScene } from "@fz/phaser/host";
 import { cssHex } from "@fz/phaser/color";
 import {
@@ -67,11 +68,7 @@ import {
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";
-import {
-  BOARD_CONTEXT_WORDS,
-  BoardComponent,
-  PICTURES_SETTLE_MS,
-} from "./board.component";
+import { BOARD_CONTEXT_WORDS, BoardComponent } from "./board.component";
 
 /** A roomy canvas, 1600 by 900 CSS px, which spares the panels room beside the field. */
 const WIDE = { width: 1600, height: 900 } as const;
