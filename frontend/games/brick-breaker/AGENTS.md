@@ -373,9 +373,9 @@ takes for the specs' helpers.
   blast brick's spark against the marks it is lit on; its comment says why a
   ball isn't held against the tints, and why a brick's shading, the paddle's
   and a good capsule's is held to nothing.
-- **`src/view/places/`** — the place each set of levels is in, drawn as
-  a dim, still pattern to lie under the bricks and over the page past the
-  field. `places.ts` holds each place's art (`PLACE_ART`, keyed by
+- **`src/view/places/`** — the place each set of levels is in, a dim,
+  still pattern under the bricks and over the page past the field.
+  `places.ts` holds each place's art (`PLACE_ART`, keyed by
   `Place`, so a new place fails to compile without its own): its motif,
   whether a drawing board's grid lies under them, as the workshop's does,
   and how much of the text it takes over the field and, a little more,
@@ -388,13 +388,20 @@ takes for the specs' helpers.
   near, so the tile repeats without a seam, and empty at a unit under a
   device pixel; `placeInks()` washes its inks from the text over what lies
   behind it, the grid's `FAINT` as strong, and `fieldInks()` gives those
-  over the field in a palette. `motifs.ts` draws each place's motifs as the
-  sheet does, in shares of their size about a middle: the playroom's rings,
-  blocks and wedges, the workshop's cogs, each outlined in one mitred
-  polyline, and crosses, the fun fair's bunting and stars, the garden's
-  leaves on their stems and the arcade's rings and arrows; and it says
+  the scene bakes a tile in for the field, in a palette, at full strength,
+  to wash it over the field as strongly as the place shows there.
+  `motifs.ts` draws each place's motifs as the sheet does, in shares of
+  their size about a middle: the playroom's rings, blocks and wedges, the
+  workshop's cogs, each outlined in one mitred polyline, and crosses, the
+  fun fair's bunting and stars, the garden's leaves on their stems and the
+  arcade's rings and arrows; and it says
   what a motif's command may cover, a polyline's mitres too (`coverOf()`),
-  at corners no sharper than `SHARPEST`. `places.spec.ts` holds every set
+  at corners no sharper than `SHARPEST`. `backdrop.ts` says how the page
+  shows a place past a field laid out so (`backdropStyle()`), as the
+  custom properties the board's stylesheet reads: the field's own tile, at
+  its scale, written by `@fz/phaser/shapes`' `svgOf()` in the mask's inks
+  (`MASK_INKS`) as a `data:` URL, its size in CSS pixels, its corner at the
+  field's and its wash over the page. `places.spec.ts` holds every set
   to a place it draws, every command inside its tile at every scale a
   field is drawn at, and each place to 1.05:1 to 1.2:1 against the field
   and the page in every palette, so it reads but never competes with what
@@ -463,11 +470,17 @@ takes for the specs' helpers.
   frame and the palette, and has its painters, in `src/scene/painters/`,
   draw, each in its layer of `LAYERS`: `FieldPainter` the field, the rim
   round it on the left, the top and the right, wider than the layout's wall
-  where the unit allows (`rimWidth()`), the gutter
-  under the paddle with chevrons pointing down
-  it, and the net, `BrickPainter` an image for each cell, made once, dropped in
-  as a level starts, swollen at a hit a brick holds, its ring shown while
-  it grows back and grown back as it
+  where the unit allows (`rimWidth()`), the gutter under the paddle with
+  chevrons pointing down it, and the net, `PlacePainter` over it the
+  pattern of the place the level's set is in (`BricksSceneOptions.place`),
+  a tile sprite of `src/view/places/`' tile from the field's top left
+  corner, baked at full strength into a texture of its own,
+  `PLACE_TEXTURE`, again only for a new place, unit, pixel ratio or
+  palette, and washed over the field as strongly as the place shows there,
+  so the net and the gutter under it only take a tint of it,
+  `BrickPainter` an image for each cell, made once, dropped in as a level
+  starts, swollen at a hit a brick holds, its ring shown while it grows
+  back and grown back as it
   regrows, `GlowPainter` the frames around the last bricks a level needs,
   `EffectsPainter` a broken brick's shards, each keeping its brick's color
   to dim from as it falls and fades, a blast's ring, a lost ball's fade,
@@ -564,7 +577,12 @@ takes for the specs' helpers.
     first shows, and it takes up the run kept (`takeUp()`), paused with the
     ball on the paddle, its bricks as they were.
   - `board/` — `<fz-phaser-canvas>` with the scene, loaded with `import()`;
-    the empty field and the paddle drawn in CSS until the scene has drawn; the
+    the empty field and the paddle drawn in CSS until the scene has drawn;
+    the place the level's set is in over the page past the field
+    (`.backdrop`, in `_backdrop.scss`), the text masked by the tile of
+    `backdropStyle()`, a little stronger than the scene's over the field,
+    laid from the scene's field, or, until the scene has laid it out, the
+    board's own, and under everything else on the board; the
     focus ring; the pointer hidden while a ball is in play; and the cards:
     Ready, with the level, how to launch and, as the level opens, its stars
     (`stars/`) and each kind of brick new in it (the first by number to
@@ -1015,9 +1033,10 @@ skill covers its setup, floors and fixtures, the repository's
   (`PALETTES`, `stylesheetPalettes()`'s), which the contrast spec reads the
   field's roles from (`rolesIn()`).
 - `play.ts` holds the small levels the shell's specs play, each set up to
-  come to one thing soon, and two sets, of two levels and then one
-  (`TWO_SETS`), handed to `GameService` through `GAME_LEVELS` with a seed of
-  its own through `GAME_RANDOM` (`provideSpecLevels()`), and plays them
+  come to one thing soon, two sets, of two levels and then one
+  (`TWO_SETS`), and two sets in two places (`TWO_PLACES`), handed to
+  `GameService` through `GAME_LEVELS` with a seed of its own through
+  `GAME_RANDOM` (`provideSpecLevels()`), and plays them
   through `tick()`, with `@fz/core/testing`'s `playUntil()`, steering the
   paddle from the frame it reads (`under()`, `awayFrom()`, `loseBall()`,
   `playToClear()`, `clearToNext()`).

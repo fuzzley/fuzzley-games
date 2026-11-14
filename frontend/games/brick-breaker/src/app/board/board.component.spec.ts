@@ -30,12 +30,15 @@ import { userEvent } from "@testing-library/user-event";
 import { figures } from "@fz/ui/testing";
 import {
   SPEC_LEVEL,
+  SPEC_LEVELS,
   STILL,
+  TWO_PLACES,
   loseBall,
   playToClear,
   provideSpecLevels,
 } from "../../testing/play";
 import { brickKind } from "../../rules/catalog/bricks";
+import type { LevelEntry } from "../../rules/levels/levels";
 import { paddleTopOf } from "../../rules/paddle/paddle";
 import {
   BALL_RADIUS,
@@ -53,6 +56,7 @@ import {
   fieldMetrics,
 } from "../../view/field/field_metrics";
 import { STAR } from "../../rules/run/stars";
+import { backdropStyle } from "../../view/places/backdrop";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { StarsService } from "../stats/stars.service";
@@ -69,8 +73,11 @@ const WIDE = { width: 1280, height: 720 } as const;
 /** An upright phone's canvas, 390 by 772 CSS px, which spares the panels none. */
 const UPRIGHT = { width: 390, height: 772 } as const;
 
-/** Renders the board beside a button outside it, on a fake canvas. */
-async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
+/** Renders the board beside a button outside it, on a fake canvas, its game playing some levels. */
+async function renderBoard(
+  options: FakeCanvasOptions = {},
+  levels: readonly LevelEntry[] = SPEC_LEVELS,
+): Promise<{
   /** The board's element, `app-board`, which Phaser hears the keys on and the layout check reads. */
   board: HTMLElement;
   /** The application inside it, which takes the focus. */
@@ -85,7 +92,10 @@ async function renderBoard(options: FakeCanvasOptions = {}): Promise<{
     `<app-board /><button type="button">Elsewhere</button>`,
     {
       imports: [BoardComponent],
-      providers: [provideFakePhaserCanvas(options), ...provideSpecLevels()],
+      providers: [
+        provideFakePhaserCanvas(options),
+        ...provideSpecLevels(levels),
+      ],
     },
   );
   const debug = view.fixture.debugElement.query(By.directive(BoardComponent));
@@ -744,6 +754,66 @@ describe("BoardComponent", () => {
     });
   });
 
+  describe("the place over the page", () => {
+    watchResizes();
+
+    /** Returns the custom properties the board shows the place over the page with, as its element has them. */
+    function backdropOf(board: HTMLElement): Record<string, string> | null {
+      // The backdrop is only drawn, so it has no role to find it by.
+      const backdrop = board.querySelector<HTMLElement>(".backdrop");
+      if (!backdrop) return null;
+      return Object.fromEntries(
+        ["--place-tile", "--place-size", "--place-at", "--place-wash"].map(
+          (name) => [name, backdrop.style.getPropertyValue(name)],
+        ),
+      );
+    }
+
+    it("shows the place of the level's set past the field, from where the field will lie", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      const style = backdropStyle(
+        "playroom",
+        fieldMetrics(viewport(WIDE.width, WIDE.height), FIELD_HEIGHT),
+      );
+      expect(backdropOf(board)).toEqual({
+        ...style,
+        "--place-wash": String(style["--place-wash"]),
+      });
+    });
+
+    it("shows the place of the set the level in play is in", async () => {
+      const { board, game, detectChanges } = await renderBoard({}, TWO_PLACES);
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      await game.startAt(2);
+      detectChanges();
+
+      const metrics = fieldMetrics(
+        viewport(WIDE.width, WIDE.height),
+        FIELD_HEIGHT,
+      );
+      expect(backdropOf(board)?.["--place-tile"]).toBe(
+        backdropStyle("workshop", metrics)["--place-tile"],
+      );
+    });
+
+    it("lies under the application and the panels, so it takes nothing from them", async () => {
+      const { board, detectChanges } = await renderBoard();
+
+      resize(board, WIDE.width, WIDE.height);
+      detectChanges();
+
+      expect(board.firstElementChild?.classList.contains("backdrop")).toBe(
+        true,
+      );
+    });
+  });
+
   describe("with the scene it loads", () => {
     /** Runs the scene the board hands its canvas, as Phaser would, on a canvas of a size in CSS px. */
     async function runBoardScene(
@@ -769,6 +839,20 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(readRect(board.getAttribute("data-field"))).not.toBeNull();
+    });
+
+    it("lays the place over the page from where the scene laid the field out", async () => {
+      const { board, detectChanges } = await runBoardScene();
+
+      detectChanges();
+
+      const { x, y } = readRect(board.getAttribute("data-field"))!;
+      // The backdrop is only drawn, so it has no role to find it by.
+      expect(
+        board
+          .querySelector<HTMLElement>(".backdrop")
+          ?.style.getPropertyValue("--place-at"),
+      ).toBe(`${String(x)}px ${String(y)}px`);
     });
 
     it("lays the focus ring where the scene laid the field out", async () => {

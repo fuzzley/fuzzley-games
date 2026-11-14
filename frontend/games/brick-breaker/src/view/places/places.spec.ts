@@ -1,9 +1,14 @@
-import { colorNumber } from "@fz/phaser/color";
+import { colorNumber, mixColors } from "@fz/phaser/color";
 import { type DrawCommand, extentOf } from "@fz/phaser/shapes";
 import { THEMES } from "@fz/style/themes";
 import { contrast, rgbOf } from "@fz/style/testing";
 import { FIELD_ROLES } from "../../app/board/field_roles";
-import { LEVEL_SETS, PLACES, placeOf } from "../../rules/levels/levels";
+import {
+  LEVEL_SETS,
+  PLACES,
+  type Place,
+  placeOf,
+} from "../../rules/levels/levels";
 import { ART_SCALE, FIELD_SCALES } from "../../testing/art_frames";
 import { PALETTES } from "../../testing/roles";
 import { bricksPalette } from "../colors/palette";
@@ -183,7 +188,7 @@ describe("placeInks", () => {
 });
 
 describe("fieldInks", () => {
-  it("washes a place's inks from the palette's text over the field, 4.5% of it", () => {
+  it("bakes the motifs in the palette's text, and the faint ink 55% of the way to it from the field", () => {
     const palette = bricksPalette(
       {
         panel: "#ffffff",
@@ -195,10 +200,7 @@ describe("fieldInks", () => {
       "light",
     );
 
-    expect(fieldInks("funfair", palette)).toEqual({
-      motif: 0xf4f4f4,
-      faint: 0xf9f9f9,
-    });
+    expect(fieldInks(palette)).toEqual({ motif: 0x000000, faint: 0x737373 });
   });
 });
 
@@ -218,20 +220,24 @@ describe("a place's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = bricksPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
     const page = colorNumber(PALETTES.role(id, "page"));
-    const againstField = (ink: number): number =>
-      contrast(rgbOf(ink), rgbOf(palette.field));
+    /** Returns the contrast an ink of a place's tile keeps against the field, washed over it as strongly as the place shows there. */
+    const againstField = (ink: number, place: Place): number =>
+      contrast(
+        rgbOf(mixColors(ink, palette.field, PLACE_ART[place].field)),
+        rgbOf(palette.field),
+      );
 
     it.each(PLACES)("shows the %s over the field, dimly", (place) => {
-      const { motif } = fieldInks(place, palette);
+      const { motif } = fieldInks(palette);
 
-      expect(againstField(motif)).toSatisfy(isDim);
+      expect(againstField(motif, place)).toSatisfy(isDim);
     });
 
     it("shows the workshop's grid over the field, fainter than its motifs", () => {
-      const { motif, faint } = fieldInks("workshop", palette);
+      const { motif, faint } = fieldInks(palette);
 
-      expect(againstField(faint)).toSatisfy(
-        (ratio: number) => ratio > 1 && ratio < againstField(motif),
+      expect(againstField(faint, "workshop")).toSatisfy(
+        (ratio: number) => ratio > 1 && ratio < againstField(motif, "workshop"),
       );
     });
 

@@ -165,7 +165,8 @@ Run these from `frontend/games/brick-breaker/`, or as
   palette's roles as the contrast spec does, holding every place to
   1.05:1 to 1.2:1 against the field and the page: there, but dim.
   `motifs.spec.ts` beside it draws each motif about the origin at a size
-  of 100 pixels, every place's from `PLACES`.
+  of 100 pixels, every place's from `PLACES`, and `backdrop.spec.ts`
+  reads the page's tile back out of its `url()` with `decodeURIComponent()`.
 
 ## The Scene
 
@@ -174,7 +175,8 @@ game through `runScene()`:
 
 - `FakeShell` plays the shell's part of `BricksSceneOptions`: it hands the
   scene a field (`showField(rows)` for a new one, as a level starts), a
-  palette, the motion, touch and sound settings and the chimes, and keeps
+  palette, the place its set is in (`whereabouts`), the motion, touch and
+  sound settings and the chimes, and keeps
   the frames' times and steering, the layouts, the commands and what the
   scene hands back at each bake to picture How to play's art with
   (`bakes`), which `askPictures()` asks as the board does.
@@ -221,8 +223,9 @@ game through `runScene()`:
   `wide`, `steel`, `few`, `lives`, `laser`, `catch`, `dare`, whose narrow
   paddle pays double as `under()` plays it and whose mark, 10, lies past
   the streak its blasts make, so it clears without its third star, and
-  `last`), or
-  `TWO_SETS`. It runs on the time it is given: `game.tick(FRAME_MS, steer)`,
+  `last`), `TWO_SETS`, or
+  `TWO_PLACES`, a level in the playroom and one in the workshop. It runs on
+  the time it is given: `game.tick(FRAME_MS, steer)`,
   steered `STILL`, `under()` the ball, `awayFrom()` it or `underCapsule()`;
   `playUntil()`, `playFor()`, `loseBall()`, `playToClear()` and
   `clearToNext()` play on to a point. `FRAME_MS`, `playUntil()` and

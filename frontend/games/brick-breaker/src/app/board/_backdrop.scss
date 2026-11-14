@@ -1,0 +1,19 @@
+// The place the level's set is in, over the page past the field: the tile
+// the scene tiles the field with, written as SVG (`backdropStyle()`), as a
+// mask over the text, which shows it as far as the tile is light, a little
+// stronger than the scene washes it over the field. It lies from the
+// field's top left corner, so the two patterns lie alike, and never moves.
+// The component hands it the tile, its size, its corner and its wash; it is
+// shown only once they are known, and its wash is none until then.
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fz-text);
+  opacity: var(--place-wash, 0);
+  pointer-events: none;
+  mask-image: var(--place-tile);
+  mask-mode: luminance;
+  mask-position: var(--place-at);
+  mask-size: var(--place-size);
+  mask-repeat: repeat;
+}

@@ -136,7 +136,10 @@ thought rather than speed starts lower: Friends runs 1.12 to 1.18.
   played; the motifs spec, `src/view/places/motifs.spec.ts`, holds its
   motif, as it holds every one of `PLACES`, to its ink, to two thirds of
   its size and to no polyline's corner sharper than `SHARPEST`, as
-  `coverOf()` counts on.
+  `coverOf()` counts on. The scene tiles the field with it, and the board
+  masks the page with it, with nothing more to add. Look at it in a
+  browser too, in greyscale, with three balls in play: the ball still
+  shows first.
 
 ## A Capsule With an Effect That Exists
 

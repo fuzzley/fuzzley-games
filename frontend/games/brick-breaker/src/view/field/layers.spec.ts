@@ -11,6 +11,13 @@ describe("depthOf", () => {
     expect(depthOf("field")).toBe(0);
   });
 
+  it("draws the place's pattern over the field, under the bricks", () => {
+    expect([depthOf("field"), depthOf("place")]).toEqual([
+      depthOf("bricks") - 2,
+      depthOf("bricks") - 1,
+    ]);
+  });
+
   it("draws the balls' tails, then a streak's step, just behind the balls", () => {
     expect([depthOf("tails"), depthOf("streak")]).toEqual([
       depthOf("balls") - 2,

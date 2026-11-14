@@ -4,7 +4,9 @@ import { cssHex } from "@fz/phaser/color";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { NO_INSETS } from "@fz/phaser/insets";
 import { SpritePlayer } from "@fz/phaser/sound";
+import { atlasFrameOf } from "@fz/phaser/scene";
 import {
+  type GraphicsCommand,
   type SceneRun,
   colorsOf,
   commandsOf,
@@ -16,6 +18,7 @@ import {
 import { Core, type Game, GameObjects, Textures } from "phaser";
 import { hitBrick } from "../rules/bricks/bricks";
 import { catchCapsule } from "../rules/bricks/capsules";
+import type { Place } from "../rules/levels/levels";
 import type { Ball } from "../rules/paddle/balls";
 import { reshapeField } from "../rules/field/field";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
@@ -70,6 +73,12 @@ import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
 import { type BricksPalette, bricksPalette } from "../view/colors/palette";
 import { rimWidth } from "../view/field/rim";
+import {
+  PLACE_ART,
+  fieldInks,
+  placeTile,
+  tileSide,
+} from "../view/places/places";
 import type { TouchSteering } from "../view/steering/steering";
 import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {
@@ -93,6 +102,7 @@ import {
   makeBricksScene,
 } from "./bricks_scene";
 import type { Burst } from "./painters/effects_painter";
+import { PLACE_TEXTURE } from "./painters/place_painter";
 
 const LIGHT = bricksPalette(
   {
@@ -136,6 +146,8 @@ class FakeShell implements BricksSceneOptions {
   wantsSound = true;
   chimesCalled = 0;
   fingerSpace = 0;
+  /** The place the level's set is in. */
+  whereabouts: Place = "playroom";
   /** The height the shell makes the field as it ticks, as the game does when the board asks, or null. */
   heightAsked: number | null = null;
   readonly ticks: Tick[] = [];
@@ -171,6 +183,7 @@ class FakeShell implements BricksSceneOptions {
   readonly onPictures = (pictures: () => Pictures): void => {
     this.bakes.push(pictures);
   };
+  readonly place = (): Place => this.whereabouts;
 
   /**
    * Asks the scene for How to play's pictures of the atlas as last baked, as
@@ -735,6 +748,164 @@ describe("BricksScene", () => {
           toCanvasY(tallestMetrics(), paddleTopOf(TALLEST_FIELD) + NET_DEPTH),
         ),
       });
+    });
+  });
+
+  describe("the place", () => {
+    /** Returns the commands of each `Graphics` the scene bakes into a texture from now on, until the test finishes. */
+    function bakesFromNow(
+      scene: BricksScene,
+    ): readonly (readonly GraphicsCommand[])[] {
+      const bakes: (readonly GraphicsCommand[])[] = [];
+      const make = scene.make.graphics.bind(scene.make);
+      const made = vi
+        .spyOn(scene.make, "graphics")
+        .mockImplementation((config, addToScene) => {
+          const graphics = make(config, addToScene);
+          const generate = graphics.generateTexture.bind(graphics);
+          vi.spyOn(graphics, "generateTexture").mockImplementation(
+            (key, width, height) => {
+              bakes.push(commandsOf(graphics));
+              return generate(key, width, height);
+            },
+          );
+          return graphics;
+        });
+      onTestFinished(() => {
+        made.mockRestore();
+      });
+      return bakes;
+    }
+
+    /** Returns the commands a place's tile is drawn in, for the field laid out so, in a palette. */
+    function tileCommands(
+      scene: BricksScene,
+      place: Place,
+      metrics: FieldMetrics,
+      palette: BricksPalette,
+    ): readonly GraphicsCommand[] {
+      const graphics = scene.make.graphics({}, false);
+      const tile = placeTile(place, metrics, fieldInks(palette));
+      atlasFrameOf({ name: "tile", ...tile }).draw(graphics);
+      const commands = commandsOf(graphics);
+      graphics.destroy();
+      return commands;
+    }
+
+    it("tiles the field with the tile of its set's place, from its top left corner", async () => {
+      const { scene } = await startBoard();
+
+      const { tiles } = scene.place;
+      const { x, y, width, height } = metricsAt();
+      expect({
+        texture: tiles.texture.key,
+        tile: [tiles.frame.width, tiles.frame.height],
+        laid: [tiles.x, tiles.y, tiles.width, tiles.height],
+        from: [tiles.tilePositionX, tiles.tilePositionY],
+      }).toEqual({
+        texture: PLACE_TEXTURE,
+        tile: [tileSide(metricsAt()), tileSide(metricsAt())],
+        laid: [x, y, width, height],
+        from: [0, 0],
+      });
+    });
+
+    it("washes its tile over the field as strongly as the place shows there, so the net under it only takes a tint", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.place.tiles.alpha).toBe(PLACE_ART.playroom.field);
+    });
+
+    it("lies over the field and under the bricks", async () => {
+      const { scene } = await startBoard();
+
+      const order = scene.children.list;
+      const depth = (object: GameObjects.GameObject | undefined): number =>
+        order.findIndex((layer) => layer === object?.displayList);
+      expect([
+        depth(scene.field.graphics),
+        depth(scene.place.tiles),
+        depth(scene.bricks.images[0]),
+      ]).toEqual([0, 1, 2]);
+    });
+
+    it("bakes the tile of the place the level's set is in, in the palette's inks at full strength", async () => {
+      const { shell, run, scene } = await startBoard();
+      const bakes = bakesFromNow(scene);
+
+      shell.whereabouts = "workshop";
+      run.advance(16);
+
+      expect(bakes).toEqual([
+        tileCommands(scene, "workshop", metricsAt(), shell.colors),
+      ]);
+    });
+
+    it("bakes the tile again, into a texture of its own, as the level's set is in another place", async () => {
+      const { shell, run, scene } = await startBoard();
+      const shown = scene.place.tiles.frame;
+
+      shell.whereabouts = "workshop";
+      run.advance(16);
+
+      // A texture of its own, as Phaser's canvas renderer copies a tile
+      // sprite's frame only when it is handed another.
+      expect(scene.place.tiles.frame).not.toBe(shown);
+    });
+
+    it("bakes nothing for a new level in the same place", async () => {
+      const { shell, run, scene } = await startBoard();
+      const shown = scene.place.tiles.frame;
+
+      shell.showField(["oo"]);
+      run.advance(16);
+
+      expect(scene.place.tiles.frame).toBe(shown);
+    });
+
+    it("bakes the tile again in a new palette", async () => {
+      const { shell, run, scene } = await startBoard();
+      const bakes = bakesFromNow(scene);
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect(bakes).toContainEqual(
+        tileCommands(scene, "playroom", metricsAt(), DARK),
+      );
+    });
+
+    it("bakes the tile again at a new unit, and tiles the field laid out anew", async () => {
+      const { run, scene } = await startBoard();
+
+      run.game.scale.resize(600, 600);
+      run.advance(16);
+
+      const { tiles } = scene.place;
+      const { x, y, width, height, unit } = metricsAt(600, 600);
+      expect({
+        tile: tiles.frame.width,
+        laid: [tiles.x, tiles.y, tiles.width, tiles.height],
+      }).toEqual({
+        tile: tileSide({ unit, pixelRatio: 1 }),
+        laid: [x, y, width, height],
+      });
+    });
+
+    it("tiles a field reshaped taller down to its floor, from the same corner", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      reshapeField(shell.field, TALLEST_FIELD);
+      run.advance(16);
+
+      const { tiles } = scene.place;
+      const { x, y, width, height } = tallestMetrics();
+      expect([tiles.x, tiles.y, tiles.width, tiles.height]).toEqual([
+        x,
+        y,
+        width,
+        height,
+      ]);
     });
   });
 
