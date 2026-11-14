@@ -291,12 +291,22 @@ takes for the specs' helpers.
 - **`src/view/effects/`** — what each event calls for, and how long it
   lasts. `effects.ts` says what each event calls for, its sound and the
   flourishes it plays where motion is welcome, a brick broken at a streak's
-  step adding the step's, how far a broken brick's sound rises along a
-  streak (`detuneOf()`), a note of a major pentatonic
-  scale a brick, up to an octave and a fifth, and `createFrameSounds()`,
+  step adding the step's. A plate's underside clanks as it turns a ball
+  back or a bolt is spent on it (`plated`), a cage rattles as it frees its
+  friend (`freed`),
+  the gates sweep low and rising as they open (`opened`), and a soft
+  flutter rises as the paddle lends a ball the seeker (`seeking`). A kind
+  of brick with a voice of its own (`VOICES`) sounds in it: a cage's bars
+  rattle as a hit bends one, and a key chimes as it breaks; any other
+  knocks as it holds, rings as steel if it never breaks, and bloops as it
+  breaks. `detuneOf()` says how far a broken brick's sound, its bloop or a
+  key's chime, rises along a streak, a note of a major pentatonic scale a
+  brick, up to an octave and a fifth, which Phaser plays as the sound's
+  rate, nearly three times as fast, past the ±1200 cents its docs give and
+  clamped by nothing. It holds `createFrameSounds()`,
   `@fz/core/frame_sounds`'s `FrameSounds` of its `SOUNDS`, which plays each
-  sound once a frame at most, at the highest it was heard, and how long a
-  sound waits (`soundDelayOf()`), the clear's chord waiting out the last
+  sound once a frame at most, at the highest it was heard, and says how
+  long a sound waits (`soundDelayOf()`), the clear's chord waiting out the last
   brick's hold, with motion or without, in a `DelayedSound`; `streak.ts` the
   streak's steps, the multiplier's tiers (`STREAK_STEPS`), how many a
   streak has reached (`streakTier()`), whether a broken brick took it to one
@@ -607,7 +617,8 @@ takes for the specs' helpers.
   out, and lint holds what the scripts load as it does the rules
   (`SCRIPT_HELPERS`), as Layers above says.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
-  synthesizes the sounds; `report-levels.mjs` reports how the autopilot plays
+  synthesizes the sounds, which its spec beside it, in `pure`, holds to the
+  sprite checked in; `report-levels.mjs` reports how the autopilot plays
   every level; `check-layout.mjs` checks the build's layout in headless
   Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
   The report and the screenshots' script read their command lines with
@@ -812,10 +823,13 @@ workspace's with the others'.
   the room (`data-room`) spares 186 CSS px each side of the field's cells,
   the gap and the narrowest panel past the wall, and nowhere else).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
-  which synthesizes the ten sounds, from the paddle's bop to a level's
-  chime, with `@fz/dev/sounds` into `src/scene/sounds/sounds.wav` and their
-  spritemap, `sounds.json`, the same bytes every run; their names and order
-  are the view's `SOUNDS`, which the scene's spec holds them to).
+  which synthesizes the fifteen sounds, from the paddle's bop to the
+  seeker's flutter, with `@fz/dev/sounds` into
+  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
+  same bytes every run, both checked in; their names and order are the
+  view's `SOUNDS`, and `tools/build-sounds.spec.ts` holds the sprite to
+  them and to what the script writes now, so a recipe is changed there and
+  the script run, never the sprite edited).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept
@@ -846,8 +860,8 @@ specs in three projects, each starting only what its own need. `sim` runs
 the specs that play every level, in Node, without the coverage that would
 quadruple their time, as the other rules specs alone hold the rules to
 their floor. `pure` runs the other specs of the rules and the view, and the
-report's and the screenshots' script's in `tools/`, in Node too, which has
-no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
+report's, the screenshots' script's and the sounds' in `tools/`, in Node
+too, which has no page, as nothing they test touches one. `dom` runs every other spec, the scene's, the shell's and
 `src/testing/`'s, in jsdom, after `src/test-setup.ts`, which installs
 `@fz/phaser/testing`'s headless Phaser first, so the scene's spec runs
 real Phaser through `runScene()`, with a fake shell over a pictured field.

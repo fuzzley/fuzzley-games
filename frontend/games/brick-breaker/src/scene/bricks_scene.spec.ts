@@ -38,6 +38,7 @@ import {
   ballOf,
   brickAt,
   fieldFrom,
+  playWithoutBall,
   stepTimes,
   throwBall,
 } from "../testing/field_picture";
@@ -2168,6 +2169,53 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(played).toEqual([["broken", 900]]);
+    });
+
+    it("play a key's chime, risen along its streak's scale, and the gates' sweep as the last key opens them", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.showField(["ok="]);
+      });
+      const played = soundsPlayed();
+      shell.field.streak = 2;
+
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      run.advance(16);
+
+      expect(played).toEqual([
+        ["key", 400],
+        ["gates", 0],
+      ]);
+    });
+
+    it("rattle a cage's bars as a hit bends one", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.showField(["oc"]);
+      });
+      const played = soundsPlayed();
+
+      hitBrick(shell.field, brickAt(shell.field, 1, 0), 3, BRICKS_TOP + 1);
+      run.advance(16);
+
+      expect(played).toEqual([["cage", 0]]);
+    });
+
+    it("play a broken brick's bloop and a cage's rattle as it frees its friend", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.showField(["oc"]);
+        playWithoutBall(each.field);
+      });
+      const cage = brickAt(shell.field, 1, 0);
+      hitBrick(shell.field, cage, 3, BRICKS_TOP + 1);
+      run.advance(16);
+      const played = soundsPlayed();
+
+      hitBrick(shell.field, cage, 3, BRICKS_TOP + 1);
+      run.advance(16);
+
+      expect(played).toEqual([
+        ["broken", 0],
+        ["cage", 0],
+      ]);
     });
 
     it("play the clear's chord once the last brick's hit has held", async () => {

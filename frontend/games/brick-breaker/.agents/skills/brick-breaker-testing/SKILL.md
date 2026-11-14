@@ -42,9 +42,10 @@ Run these from `frontend/games/brick-breaker/`, or as
   starts only what its specs need:
   - `pure`, the specs of the rules and the view, but for the simulations,
     and the scripts' in `tools/`, the report's, which plays levels it makes
-    up, and the screenshots', which holds the run it stores to what the
-    rules take up, in Node, with neither the setup below nor Analog's
-    plugin;
+    up, the screenshots', which holds the run it stores to what the rules
+    take up, and the sounds', which holds the sprite checked in to what
+    `tools/build-sounds.mjs` writes now, to the byte, in Node, with neither
+    the setup below nor Analog's plugin;
   - `sim`, the specs that play every level
     (`src/rules/levels/every_level/`), in Node too, without coverage;
   - `dom`, every other spec, the scene's, the shell's and

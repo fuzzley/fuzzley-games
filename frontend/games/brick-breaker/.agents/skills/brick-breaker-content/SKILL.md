@@ -1,6 +1,6 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, legend, tints, layout, redraw, place, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
+description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, EVENT_EFFECTS, voice, sound, build-sounds, legend, tints, layout, redraw, place, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
 ---
 
 # Adding to Brick Breaker
@@ -34,6 +34,8 @@ specs run in the `brick-breaker-testing` skill. Paths are relative to
   | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                            |
   | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                          |
   | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                                     |
+  | The effects spec    | `src/view/effects/effects.spec.ts`  | Every event's sound and flourishes, and every kind's voice, each written in a record the compiler holds complete                                |
+  | The sounds' spec    | `tools/build-sounds.spec.ts`        | The sprite checked in is what `tools/build-sounds.mjs` writes now, its sounds `SOUNDS`, in order                                                |
 
 ## A Level
 
@@ -173,6 +175,14 @@ thought rather than speed starts lower: Friends runs from 1.12.
   out one that only shades, as the gift's ribbon and the moss's shadow
   do.
 - Its character in the shared legend, or a level's own legend.
+- Its voice: the sound of a hit it holds and of its breaking, which the
+  effects spec's `VOICES_OF_KINDS` asks for, and its field of every kind
+  (`EVERY_KIND`) holds one of. A kind knocks as it holds and bloops as it
+  breaks, or rings as steel if it never breaks; one that sounds in a voice
+  of its own takes its line in `VOICES` (`src/view/effects/effects.ts`),
+  and a sound of its own is a recipe in `tools/build-sounds.mjs` and a name
+  at the end of `SOUNDS`, written into the sprite by `yarn build:sounds`.
+  A broken brick's sound, whichever, rises along the streak.
 - A level that brings it in: the catalog spec fails while a kind is used by
   none.
 
@@ -184,6 +194,12 @@ thought rather than speed starts lower: Friends runs from 1.12.
   damage, `broken` as it breaks, and `step` at each step; the compiler asks
   for the rule.
 - Any state it keeps on `Brick`, set by its rule's `laid`.
+- An event it records, as a cage's freeing records `freed`: a member of
+  `FieldEventKind` (`src/rules/field/events.ts`), and its entry in
+  `EVENT_EFFECTS` (`src/view/effects/effects.ts`), its sound and the
+  flourishes it plays, which the compiler asks for, as the effects spec's
+  `VOICES_OF_EVENTS` does. A sound of its own is made as a kind's is,
+  above.
 - **The saved game keeps that state:** in `src/rules/run/saved_game.ts`, its
   key joins `KEPT_OF_BRICK`, from which `SavedBrick` is typed and by which
   `savedField()` writes it and `takeUpField()` lays it on the new field,

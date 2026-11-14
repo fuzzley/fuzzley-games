@@ -415,3 +415,151 @@ and the paddle kept under the ball.
 - Not checked: how the scale's top notes sound. Headless Chrome plays
   nothing to listen to; 1900 cents, nearly three times the sound's rate,
   is for F3 to hear.
+
+## F3a. Friends' voices
+
+The first half of F3, as the integrator split it: the voices of K1's kinds
+now, Machines' (the portal's whoosh, the bumper's boing) after K3. The
+branch was at the integration tip, 586d482f, as the package began.
+
+### 2026-11-14: a voice for each of Friends' kinds, and the seeker's cue
+
+What it does:
+
+- Five new sounds, synthesized by `tools/build-sounds.mjs` as the ten are
+  and named at the end of `SOUNDS`: `plate`, a clank, two clashing partials
+  (523 and 1370 Hz) over a knock, lower, duller and briefer than steel's
+  ring; `cage`, a rattle of five tinny ticks, settling; `key`, a bell's
+  ding, 880 Hz under a 2.76× partial that tells it from the clear chord's
+  notes, 0.36 s; `gates`, a low sweep rising 160 to 480 Hz under a soft rumble; and
+  `seeker`, a soft flutter rising an octave from 880 Hz.
+- `EVENT_EFFECTS` gives K1's and R2's events their sounds: `plated` the
+  clank, `freed` the rattle, `opened` the sweep, `seeking` the flutter.
+- `VOICES` in `effects.ts`: the kinds that sound in a voice of their own, a
+  cage rattling as a hit bends a bar and a key chiming as it breaks. What
+  each kind's hit and break call for is made once, by kind
+  (`BRICK_EFFECTS`), so playing an event is one lookup and still makes
+  nothing; a hit on a kind that never breaks rings as steel there, unless
+  its voice says otherwise, a gate among them.
+- `tools/build-sounds.mjs` exports its recipes (`RECIPES`) and folder and
+  writes only when run, and takes Brick Fuzz Pop's `withBurst()`, which the
+  hit and the blast are now written with, to the same bytes: the new
+  sprite's first ten sounds are the old file's samples exactly, at the same
+  places.
+- `tools/build-sounds.spec.ts`, as Brick Fuzz Pop's: the recipes are
+  `SOUNDS`, in order, none loops, and the sprite checked in is what the
+  script writes now, to the byte. The sprite (`sounds.wav`, 122 KB to
+  190 KB, 5.93 s, and `sounds.json`) is checked in, as before.
+- Specs: `effects.spec.ts`'s events are a record keyed by every event
+  (`VOICES_OF_EVENTS`), and every kind's voice another
+  (`VOICES_OF_KINDS`), so a new event or kind fails to compile until its
+  sound is written there: the "list of voices" the plan's §8 names. A field
+  holding a brick of every kind (`EVERY_KIND`) plays each kind's hit, break
+  and break at a step, and the specs fail with a kind's voice dropped. The
+  scene's spec plays the last key broken at a streak of 3 (the chime at 400
+  cents, then the sweep), a cage's first hit (a rattle) and its second (a
+  bloop and a rattle as it frees its friend).
+- `AGENTS.md`: `effects.ts`'s voices and `detuneOf()`'s range, the tools'
+  spec, Make the Sounds, the `pure` project. `brick-breaker-content`: two
+  checks in its table, a kind's voice, a trait's event and its sound, and
+  the triggers. `brick-breaker-testing`: the sounds' spec in `pure`.
+
+Choices where the plan was silent:
+
+- **A hit on a plated brick knocks, as a brick's does.** Only the plate's
+  underside clanks (`plated`); a hit from above or a side strikes the brick
+  and takes a hit off it. So the ear tells a ball that did harm from one the
+  plate turned back.
+- **A cage's hit rattles too,** as it bends a bar; its freeing plays the
+  bloop of any brick broken, along the streak, and the rattle as the friend
+  leaves. Nest's friends "rattle" in the plan as they bounce in a ring;
+  that is their motion, not a sound of its own.
+- **A key's chime rises along the streak, as the bloop does.** A key is a
+  brick broken, so it takes the streak's note, in its own voice, and the run
+  stays a run. At the top note the chime is a third as long, 0.12 s. Its
+  ring falls to a third of its start in 120 ms (a decay of 0.1 s), so a key
+  that is a level's last brick has mostly gone as the clear's chord comes,
+  as the bloop has.
+- **The seeker gets a cue.** A soft flutter (peak 0.25, the lowest of the
+  sprite's) as the paddle lends a ball the seeker. It fits "a
+  medium dose": it plays at most once a lend, only in a level's last few
+  bricks after three dry bounces, and at the paddle's own bop, so it colors
+  a moment that already sounds rather than adding one; and it says what the
+  turn, at 45° a second, shows slowly and L3's mark shows only to the eye.
+- **The sounds' names** are the surfaces' and events' they belong to, as the
+  ten's are (`steel`, `paddle`, `cleared`), not the kind of noise: `plate`,
+  `cage`, `key`, `gates`, `seeker`. "Chime" is already `CHIME`, the clear's.
+- **The gates' sweep rises,** where a lost ball's tone falls and a blast's
+  boom drops, so an opening never sounds like a loss.
+
+How loud, measured on the rendered sprite (peak; the loudest 30 ms, RMS):
+hit 0.50, 0.219; plate 0.45, 0.157; cage 0.40, 0.109; key 0.40, 0.181;
+gates 0.40, 0.214; seeker 0.25, 0.118. None is louder than the brick's
+knock by either; the gates' sweep lasts longer (0.6 s, as a lost ball's
+0.56 s), and sits low, where the ear hears less.
+
+The streak's top notes, item 3 of the brief. In Phaser 4.2.1's source
+(`node_modules/phaser/src/sound/`), the game's manager is
+`WebAudioSoundManager` wherever the page has Web Audio
+(`SoundManagerCreator`; the game's config sets no `audio`), and the headless
+page reported it so. A play's `detune` goes into the marker's config;
+`WebAudioSound.applyConfig()` sets `detune`, whose setter clamps nothing
+and calls `calculateRate()`: `BaseSound.calculateRate()` makes
+`totalRate = rate × manager.rate × 2^(detune / 1200)`, and
+`WebAudioSound.calculateRate()` hands it to the source's
+`playbackRate.setValueAtTime()`. The ±1200 is only in the doc comments.
+`createAndStartBufferSource()` starts the source with the marker's
+duration, which Web Audio counts in the buffer's seconds, so a faster play
+still plays the whole sound and stops at its end, never into the next. The
+HTML5 Audio manager, only for a browser without Web Audio, sets the
+element's `playbackRate`, which keeps the pitch by default; no browser the
+game runs in takes it.
+
+In headless Chrome, on 9304, with Web Audio's `start()` and
+`setValueAtTime()` watched from an init script, the scene's own
+`SpritePlayer.playRisen()` asked for: `broken` at 0, 700, 1200 and 1900
+cents, rates 1, 1.498, 2.000 and 2.9966, each from 0.61 s for 0.14 s; `key`
+at 1900, 2.9966; the new four at 1. The playback rate's `maxValue` is the
+float's largest. Rendered in an `OfflineAudioContext` at those rates, the
+bloop's held note is 588 Hz, 1176 Hz and 1762 Hz (587 × 2.9966 is 1759, 3
+cents off, the estimate's own error), lasting 0.14 s, 0.07 s and 0.047 s;
+the key's ding, as first written (0.45 s, before the review shortened its
+ring, which changes no pitch), renders at 3.002 times its own pitch at
+1900 cents, in 0.15 s. So the top notes play at the pitch asked, with no clamp and no
+fallback, and nothing in my files needed a fix. No error or warning in the
+console; the page was closed and the server stopped.
+
+Checks, after the review's fixes: the workspace's lint and typecheck pass,
+and its tests, 67 files and 2670 specs, in 16.2 s; its coverage of `pure`
+and `dom` holds the floor (all files 99.49% of statements, 97.52% of
+branches, 99.72% of functions, 99.92% of lines; the rules and the view
+whole, `effects.ts` among them); the root's lint passes.
+
+Added to shared files: the scene's spec (`bricks_scene.spec.ts`), two specs
+at the end of its sounds' first ones and `playWithoutBall` in its imports.
+No other stream's file changed.
+
+Review:
+
+1. A `hit` voice in `VOICES` was ignored for a kind that never breaks, as
+   `effectsOf()` rang steel before it read the voice, so a K3 kind's line
+   there would compile and be dropped. Fixed: the steel ring is the default
+   hit of a kind that never breaks, made once in `brickEffects()`, and a
+   voice overrides it; `effectsOf()` is one lookup.
+2. `AGENTS.md` and the script said a plate turns a bolt back; a bolt is
+   spent there. Fixed both.
+3. `EVENT_EFFECTS`'s doc named only steel's exception. Fixed: it names the
+   voices too.
+4. The cage's scene spec acted twice. Fixed: two specs, the second hit
+   arranged after the first.
+5. A key that is a level's last brick rang on into the clear's chord, its
+   ring 45% at 120 ms. Fixed: a decay of 0.1 s and 0.36 s long, 30% at
+   120 ms, less again along a streak.
+6. `BrickVoice`'s doc was a noun phrase. Fixed: "Says which sounds…".
+7. The spec "is shown a field that holds a brick of every kind" repeated
+   what `cellOf()`'s throw reports for each kind. Dropped; two lines of
+   `AGENTS.md` past the wrap were refilled.
+8. `withBurst()` is now in both Brick Fuzz Pop's and Brick Breaker's
+   scripts, the same. Left: lifting it into `@fz/dev/sounds` is a library
+   change with Brick Fuzz Pop's sprite to hold, beyond this package's
+   files; a follow-up for the integrator's list.

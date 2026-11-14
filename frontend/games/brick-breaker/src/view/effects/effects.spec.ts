@@ -1,7 +1,10 @@
+import { keysOf } from "@fz/core/records";
+import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
 import { fieldFrom } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   DelayedSound,
+  type Flourish,
   SOUNDS,
   type SoundName,
   createFrameSounds,
@@ -18,27 +21,77 @@ function eventOf(kind: FieldEventKind, cell = -1, streak = 0): FieldEvent {
   return { serial: 1, kind, x: 0, y: 0, cell, capsule: null, streak };
 }
 
+/**
+ * Every event's voice: the sound it plays and what of it moves, on a tough
+ * brick. A new event fails to compile until its voice is written here.
+ */
+const VOICES_OF_EVENTS: Readonly<
+  Record<FieldEventKind, readonly [SoundName | null, readonly Flourish[]]>
+> = {
+  launched: [null, []],
+  wall: ["wall", []],
+  paddle: ["paddle", []],
+  hit: ["hit", ["pop"]],
+  broken: ["broken", ["shards"]],
+  blast: ["blast", ["ring", "shake"]],
+  regrown: [null, ["grow"]],
+  dropped: [null, []],
+  caught: ["caught", []],
+  missed: [null, []],
+  fired: ["fired", []],
+  netted: ["paddle", []],
+  lost: ["lost", ["fade", "shake"]],
+  cleared: ["cleared", ["hold"]],
+  freed: ["cage", []],
+  plated: ["plate", []],
+  opened: ["gates", []],
+  seeking: ["seeker", []],
+};
+
 /** Every event, with the sound it plays and what of it moves. */
-const EVENTS = [
-  ["launched", null, []],
-  ["wall", "wall", []],
-  ["paddle", "paddle", []],
-  ["hit", "hit", ["pop"]],
-  ["broken", "broken", ["shards"]],
-  ["blast", "blast", ["ring", "shake"]],
-  ["regrown", null, ["grow"]],
-  ["dropped", null, []],
-  ["caught", "caught", []],
-  ["missed", null, []],
-  ["fired", "fired", []],
-  ["netted", "paddle", []],
-  ["lost", "lost", ["fade", "shake"]],
-  ["cleared", "cleared", ["hold"]],
-  ["freed", null, []],
-  ["plated", null, []],
-  ["opened", null, []],
-  ["seeking", null, []],
-] as const;
+const EVENTS = keysOf(VOICES_OF_EVENTS).map(
+  (kind) => [kind, ...VOICES_OF_EVENTS[kind]] as const,
+);
+
+/**
+ * Every kind of brick's voice: the sound of a hit that leaves it standing,
+ * and of its breaking, or null for one that never breaks. A new kind fails
+ * to compile until its voice is written here, and the field below holds one.
+ */
+const VOICES_OF_KINDS: Readonly<
+  Record<BrickKindId, readonly [SoundName, SoundName | null]>
+> = {
+  plain: ["hit", "broken"],
+  tough: ["hit", "broken"],
+  steel: ["steel", null],
+  blast: ["hit", "broken"],
+  gift: ["hit", "broken"],
+  ghost: ["hit", "broken"],
+  regrow: ["hit", "broken"],
+  cage: ["cage", "broken"],
+  plated: ["hit", "broken"],
+  key: ["hit", "key"],
+  gate: ["steel", null],
+};
+
+/** A field that holds a brick of every kind. */
+const EVERY_KIND = fieldFrom(["o2#*?~+cuk="]);
+
+/** Returns the cell of the field's brick of a kind, or throws for a kind it holds none of. */
+function cellOf(kind: BrickKindId): number {
+  const brick = EVERY_KIND.bricks.find((each) => each?.kind === kind);
+  if (!brick) throw new Error(`The field holds no ${kind} brick.`);
+  return brick.cell;
+}
+
+/** A streak's first step, at which a brick broken plays the step. */
+const FIRST_STEP = 5;
+
+/** Every kind that breaks, with the sound of its breaking. */
+const BREAKING_KINDS = BRICK_KIND_IDS.flatMap((kind) => {
+  const broken = VOICES_OF_KINDS[kind][1];
+  return broken === null ? [] : [[kind, broken] as const];
+});
 
 describe("effectsOf", () => {
   const field = fieldFrom(["2#"]);
@@ -47,6 +100,56 @@ describe("effectsOf", () => {
     "plays, for %s, the %s sound and the flourishes %j",
     (kind, sound, flourishes) => {
       expect(effectsOf(eventOf(kind, 0), field)).toEqual({
+        sound,
+        flourishes,
+      });
+    },
+  );
+
+  it.each(BRICK_KIND_IDS.map((kind) => [kind, VOICES_OF_KINDS[kind][0]]))(
+    "plays, for a hit on a %s brick that holds, the %s sound and a pop",
+    (kind, sound) => {
+      const event = eventOf("hit", cellOf(kind));
+
+      expect(effectsOf(event, EVERY_KIND)).toEqual({
+        sound,
+        flourishes: ["pop"],
+      });
+    },
+  );
+
+  it.each(BREAKING_KINDS)(
+    "plays, for a %s brick broken, the %s sound and its shards",
+    (kind, sound) => {
+      const event = eventOf("broken", cellOf(kind), 1);
+
+      expect(effectsOf(event, EVERY_KIND)).toEqual({
+        sound,
+        flourishes: ["shards"],
+      });
+    },
+  );
+
+  it.each(BREAKING_KINDS)(
+    "plays, for a %s brick broken at a streak's step, the %s sound and the step",
+    (kind, sound) => {
+      const event = eventOf("broken", cellOf(kind), FIRST_STEP);
+
+      expect(effectsOf(event, EVERY_KIND)).toEqual({
+        sound,
+        flourishes: ["shards", "streak"],
+      });
+    },
+  );
+
+  it.each([
+    ["hit", 0, "hit", ["pop"]],
+    ["broken", 1, "broken", ["shards"]],
+    ["broken", FIRST_STEP, "broken", ["shards", "streak"]],
+  ] as const)(
+    "plays, for a %s with no brick at its cell, at a streak of %i, the %s sound and %j",
+    (kind, streak, sound, flourishes) => {
+      expect(effectsOf(eventOf(kind, -1, streak), field)).toEqual({
         sound,
         flourishes,
       });
