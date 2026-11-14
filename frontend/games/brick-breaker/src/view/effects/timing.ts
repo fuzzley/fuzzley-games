@@ -1,8 +1,9 @@
-/** How long a row of bricks takes to drop into place as a level starts, in milliseconds. */
-export const DROP_IN_MS = 360;
-
-/** How long each row waits after the one above it before it drops in. */
-export const DROP_IN_STAGGER_MS = 45;
+/**
+ * How long a level's bricks take to drop in as it starts, a column after a
+ * column, from the first column's start to the last's landing, in
+ * milliseconds.
+ */
+export const DROP_IN_MS = 400;
 
 /** How long a brick that holds a hit takes to swell and settle. */
 export const POP_MS = 120;

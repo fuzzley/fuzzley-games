@@ -69,7 +69,12 @@ import {
   toFieldX,
 } from "../view/field/field_metrics";
 import { SOUNDS } from "../view/effects/effects";
-import { DEEPEST_SQUASH, shardTint } from "../view/effects/flourish";
+import {
+  DEEPEST_SQUASH,
+  DROP_IN_HEIGHT,
+  dropInHeight,
+  shardTint,
+} from "../view/effects/flourish";
 import { STREAK_STEPS } from "../view/effects/streak";
 import { TAIL_GAP, TAIL_MOST } from "../view/effects/tail";
 import type { FieldFrame } from "../view/field/frame";
@@ -385,6 +390,28 @@ async function meetPaddle(setUp?: (shell: FakeShell) => void): Promise<Board> {
 /** Sets a shell's paddle up to catch the balls it meets. */
 function catching(shell: FakeShell): void {
   shell.field.mode = "catch";
+}
+
+/**
+ * Returns how far above its place on the field a cell's brick is drawn, in
+ * field units, on the spec's canvas or a layout given.
+ */
+function heightAbove(
+  scene: BricksScene,
+  cell: number,
+  metrics = metricsAt(),
+): number {
+  const y = scene.bricks.images[cell]?.y ?? NaN;
+  return (toCanvasY(metrics, cellMiddleY(cell)) - y) / metrics.unit;
+}
+
+/** Returns how far above its place, and how faded, each of the spec's two bricks is drawn. */
+function landed(scene: BricksScene): object {
+  const cells = [cellIndex(0, 0), cellIndex(1, 0)];
+  return {
+    heights: cells.map((cell) => heightAbove(scene, cell)),
+    alphas: cells.map((cell) => scene.bricks.images[cell]?.alpha),
+  };
 }
 
 /** Returns how an image is scaled, across and down. */
@@ -1028,20 +1055,103 @@ describe("BricksScene", () => {
       });
     });
 
-    it("drop a lower row in after a higher one", async () => {
+    it("drop a column in after the one to its left", async () => {
       const { run, scene } = await startBoard((shell) => {
-        shell.showField(["o", "", "", "o"]);
+        shell.showField(["o.....o.....o"]);
       });
-      const metrics = metricsAt();
 
-      run.advance(DROP_IN_MS + 32);
+      run.advance(DROP_IN_MS / 2);
+
+      expect(
+        [0, 6, 12].map((column) => heightAbove(scene, cellIndex(column, 0))),
+      ).toEqual([0, expect.closeTo(dropInHeight(6, 0.5)), DROP_IN_HEIGHT]);
+    });
+
+    it("keep the last column falling till the drop-in ends", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.showField([".".repeat(COLUMNS - 1) + "o"]);
+      });
+
+      run.advance(DROP_IN_MS - 16);
+
+      expect(heightAbove(scene, cellIndex(COLUMNS - 1, 0))).toBeGreaterThan(0);
+    });
+
+    it("land the last column as the drop-in ends", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.showField([".".repeat(COLUMNS - 1) + "o"]);
+      });
+
+      run.advance(DROP_IN_MS);
+
+      expect(heightAbove(scene, cellIndex(COLUMNS - 1, 0))).toBe(0);
+    });
+
+    it.each([
+      ["a launch", "Space", " "],
+      ["a push of the paddle", "ArrowLeft", "ArrowLeft"],
+      ["a key the game doesn't use", "KeyQ", "q"],
+    ] as const)("land at once, whole, at %s", async (_, code, key) => {
+      const { run, scene } = await startBoard();
+
+      run.key("keydown", code, key);
+      run.advance(16);
+
+      expect(landed(scene)).toEqual({ heights: [0, 0], alphas: [1, 1] });
+    });
+
+    it.each([
+      ["a shortcut, which is the browser's", { ctrlKey: true }, {}],
+      ["a held key's repeat", {}, { repeat: true }],
+    ] as const)("keep dropping in at %s", async (_, shortcut, repeat) => {
+      const { run, scene } = await startBoard();
+
+      run.key("keydown", "ArrowLeft", "ArrowLeft", {
+        ...shortcut,
+        ...repeat,
+      });
+      run.advance(16);
+
+      expect(heightAbove(scene, 0)).toBeCloseTo(
+        dropInHeight(0, 16 / DROP_IN_MS),
+      );
+    });
+
+    it("keep dropping in on a new layout, and land at its places", async () => {
+      const { run, scene } = await startBoard();
+      const metrics = metricsAt(600, 400);
+      run.advance(DROP_IN_MS / 4);
+
+      run.game.scale.resize(600, 400);
+      run.advance(16);
+      const dropping = heightAbove(scene, 0, metrics);
+      run.advance(DROP_IN_MS);
 
       expect({
-        top: scene.bricks.images[cellIndex(0, 0)]?.y,
-        lower:
-          (scene.bricks.images[cellIndex(0, 3)]?.y ?? 0) <
-          toCanvasY(metrics, BRICKS_TOP + 3.5),
-      }).toEqual({ top: toCanvasY(metrics, BRICKS_TOP + 0.5), lower: true });
+        dropping,
+        landed: placed(scene.bricks.images[0]),
+      }).toEqual({
+        dropping: expect.closeTo(
+          dropInHeight(0, (DROP_IN_MS / 4 + 16) / DROP_IN_MS),
+        ) as number,
+        landed: expect.objectContaining({
+          x: toCanvasX(metrics, 1),
+          y: toCanvasY(metrics, BRICKS_TOP + 0.5),
+        }) as object,
+      });
+    });
+
+    it("stand at their places on a new layout", async () => {
+      const { run, scene } = await startBoard(stillness);
+      const metrics = metricsAt(600, 400);
+
+      run.game.scale.resize(600, 400);
+      run.advance(16);
+
+      expect(scene.bricks.images[cellIndex(1, 0)]).toMatchObject({
+        x: toCanvasX(metrics, 3),
+        y: toCanvasY(metrics, BRICKS_TOP + 0.5),
+      });
     });
 
     it("drop in again as a new level starts", async () => {
@@ -1054,6 +1164,21 @@ describe("BricksScene", () => {
       expect(scene.bricks.images[0]?.alpha).toBeLessThan(1);
     });
 
+    it("drop a new level's in from its start, though the last level's hit held as it cleared", async () => {
+      const held = await startBoard();
+      const unheld = await startBoard();
+      clearLevel(held.shell);
+      for (const { shell, run } of [held, unheld]) {
+        run.advance(HOLD_MS + 200);
+        shell.showField(ROWS_DRAWN);
+        run.advance(16);
+      }
+
+      for (const { run } of [held, unheld]) run.advance(16);
+
+      expect(heightAbove(held.scene, 0)).toBe(heightAbove(unheld.scene, 0));
+    });
+
     it("show in place at once where the player prefers less motion", async () => {
       const { scene } = await startBoard(stillness);
 
@@ -1061,6 +1186,17 @@ describe("BricksScene", () => {
         y: toCanvasY(metricsAt(), BRICKS_TOP + 0.5),
         alpha: 1,
       });
+    });
+
+    it("show a new level's in place at once once the player turns motion off, though the last level's still dropped in", async () => {
+      const { shell, run, scene } = await startBoard();
+      run.advance(DROP_IN_MS / 4);
+
+      stillness(shell);
+      shell.showField(ROWS_DRAWN);
+      run.advance(16);
+
+      expect(landed(scene)).toEqual({ heights: [0, 0], alphas: [1, 1] });
     });
   });
 

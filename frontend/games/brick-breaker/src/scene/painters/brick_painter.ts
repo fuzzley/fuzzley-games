@@ -1,15 +1,14 @@
 import { easeOutCubic, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
-import { cellMiddleX, cellMiddleY, rowOf } from "../../rules/grid";
-import { BRICK_HEIGHT, COLUMNS, ROWS } from "../../rules/tuning";
+import { cellMiddleX, cellMiddleY, columnOf } from "../../rules/grid";
+import { COLUMNS, ROWS } from "../../rules/tuning";
 import { cellFrame } from "../../view/art/brick_art";
-import { popScale } from "../../view/effects/flourish";
 import {
-  DROP_IN_MS,
-  DROP_IN_STAGGER_MS,
-  POP_MS,
-  REGROW_MS,
-} from "../../view/effects/timing";
+  dropInAlpha,
+  dropInHeight,
+  popScale,
+} from "../../view/effects/flourish";
+import { DROP_IN_MS, POP_MS, REGROW_MS } from "../../view/effects/timing";
 import {
   type FieldMetrics,
   toCanvasX,
@@ -18,9 +17,6 @@ import {
 import type { FieldView } from "../../view/field/frame";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
-
-/** How far above its place a brick starts as it drops in, in field units. */
-const DROP_FROM = 2 * BRICK_HEIGHT;
 
 /** Names how a brick moves for a moment: swelling at a hit it holds, or growing back. */
 type BrickMove = "pop" | "grow";
@@ -39,8 +35,10 @@ const MOVES: Readonly<
 /**
  * Draws the bricks: an image for each cell of the grid, made once, each
  * showing its brick's frame, a broken regrowing brick's ring as it grows
- * back, or hidden; drops them in as a level starts, swells one at a hit it
- * holds and grows one back.
+ * back, or hidden; drops them in as a level starts, a column after a
+ * column, each drawn its column's height above its place, landing as the
+ * drop-in ends or at once at a key; swells one at a hit it holds and grows
+ * one back.
  */
 export class BrickPainter implements Painter {
   /** An image for each cell, row by row. */
@@ -51,11 +49,16 @@ export class BrickPainter implements Painter {
   private readonly moves: (BrickMove | null)[];
   /** When each cell's move started, in the scene's time. */
   private readonly movedAt: number[];
+  /** When the bricks began to drop in, in the flourishes' time, or -Infinity once they are landed. */
+  private droppedAt = -Infinity;
+  /**
+   * Whether every image stands at its place, so a frame needn't put it
+   * there; an offset `place()` adds, as the drop-in's is, keeps it false
+   * while it moves a brick.
+   */
+  private placed = false;
 
-  constructor(
-    private readonly scene: Scene,
-    layer: GameObjects.Layer,
-  ) {
+  constructor(scene: Scene, layer: GameObjects.Layer) {
     this.images = Array.from({ length: COLUMNS * ROWS }, () =>
       scene.add.image(0, 0, ATLAS).setVisible(false),
     );
@@ -65,17 +68,9 @@ export class BrickPainter implements Painter {
     layer.add([...this.images]);
   }
 
-  /** Puts each cell's image at its place on the field, and ends any drop. */
-  layout(metrics: FieldMetrics): void {
-    this.scene.tweens.killTweensOf(this.images);
-    this.images.forEach((image, cell) => {
-      image
-        .setPosition(
-          toCanvasX(metrics, cellMiddleX(cell)),
-          toCanvasY(metrics, cellMiddleY(cell)),
-        )
-        .setAlpha(1);
-    });
+  /** Has each cell's image put at its place as it is next drawn, as the field is laid out again. */
+  layout(): void {
+    this.placed = false;
   }
 
   /** Shows each cell's brick as it stands, changing only the images whose brick changed. */
@@ -91,10 +86,14 @@ export class BrickPainter implements Painter {
     }
   }
 
-  /** Shows each cell's brick as it stands, each moving brick scaled for the time. */
-  draw({ field, now }: Readonly<PaintContext>): void {
+  /**
+   * Shows each cell's brick as it stands, each moving brick scaled for the
+   * time, and each dropping in where its column has come to.
+   */
+  draw({ field, metrics, now }: Readonly<PaintContext>): void {
     this.show(field);
     this.animate(now);
+    this.place(metrics, now);
   }
 
   /** Swells a brick that held a hit, and settles it back. */
@@ -119,10 +118,22 @@ export class BrickPainter implements Painter {
     }
   }
 
-  /** Stills every brick at its size, as a new field starts. */
+  /** Stills every brick, at its size and at its place, as a new field starts. */
   still(): void {
     this.moves.fill(null);
     for (const image of this.images) image.setScale(1);
+    this.land();
+  }
+
+  /** Drops the bricks in from now, a column after a column, as a level starts. */
+  dropIn(now: number): void {
+    this.droppedAt = now;
+    this.placed = false;
+  }
+
+  /** Lands every brick dropping in at once, as a key skips the drop-in. */
+  land(): void {
+    this.droppedAt = -Infinity;
   }
 
   /** Starts a brick's move. */
@@ -132,26 +143,23 @@ export class BrickPainter implements Painter {
     this.movedAt[cell] = now;
   }
 
-  /** Drops the bricks shown into place, in one tween, a row at a time from the top, as a level starts. */
-  dropIn(metrics: FieldMetrics): void {
-    this.layout(metrics);
-    const drop = DROP_FROM * metrics.unit;
-    const cells: number[] = [];
-    const targets: GameObjects.Image[] = [];
-    this.images.forEach((image, cell) => {
-      if (!this.shown[cell]) return;
-      cells.push(cell);
-      targets.push(image.setY(image.y - drop).setAlpha(0));
-    });
-    if (targets.length === 0) return;
-    this.scene.tweens.add({
-      targets,
-      y: `+=${String(drop)}`,
-      alpha: 1,
-      duration: DROP_IN_MS,
-      delay: (_target: unknown, _key: string, _value: number, at: number) =>
-        rowOf(cells[at] ?? 0) * DROP_IN_STAGGER_MS,
-      ease: "Cubic.Out",
-    });
+  /**
+   * Puts each cell's image at its place on the field, its column's height
+   * above it and faded as far while the bricks drop in, unless every image
+   * already stands at its place.
+   */
+  private place(metrics: FieldMetrics, now: number): void {
+    if (this.placed) return;
+    const done = shareDone(this.droppedAt, now, DROP_IN_MS);
+    for (let cell = 0; cell < this.images.length; cell++) {
+      const column = columnOf(cell);
+      this.images[cell]
+        ?.setPosition(
+          toCanvasX(metrics, cellMiddleX(cell)),
+          toCanvasY(metrics, cellMiddleY(cell) - dropInHeight(column, done)),
+        )
+        .setAlpha(dropInAlpha(column, done));
+    }
+    this.placed = done === 1;
   }
 }
