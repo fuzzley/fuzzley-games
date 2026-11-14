@@ -102,6 +102,13 @@ export interface AutopilotReport {
   readonly livesLost: number;
   /** The longest streak it reached: the most bricks broken since the paddle last met a ball. */
   readonly bestStreak: number;
+  /**
+   * The most steps it played between two touches of the paddle, any ball
+   * meeting it or leaving it, or from the last to the play's end: the
+   * longest the paddle had no ball to meet. A ball held out of its reach,
+   * or circling for good, shows there only while no other ball is in play.
+   */
+  readonly longestAway: number;
 }
 
 /** Says where the autopilot means to send the ball it is about to meet. */
@@ -153,6 +160,9 @@ export function autoplay(
   let seen = field.events.latest;
   let steps = 0;
   let endgameSteps = 0;
+  // The ball waits on the paddle until it is served, at the first step.
+  let touchedAt = -1;
+  let longestAway = 0;
   for (; steps < limit && !isCleared(field); steps++) {
     if (field.needed <= ENDGAME) endgameSteps++;
     if (field.state === "lost") serve(field);
@@ -166,8 +176,12 @@ export function autoplay(
         aim.ball = -1;
       }
       if (event.kind === "caught") caught++;
+      if (event.kind === "paddle" || event.kind === "launched") {
+        touchedAt = steps;
+      }
     });
     seen = field.events.latest;
+    longestAway = Math.max(longestAway, steps - touchedAt);
   }
   return {
     cleared: isCleared(field),
@@ -177,6 +191,7 @@ export function autoplay(
     caught,
     livesLost: field.livesLost,
     bestStreak: field.bestStreak,
+    longestAway,
   };
 }
 

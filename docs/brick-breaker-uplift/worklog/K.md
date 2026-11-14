@@ -1101,3 +1101,78 @@ The review, and the answers:
    while the legend's spec and the saved game's check hold the values.
 
 These fixes correct the change rather than reshape it, so no second review.
+
+## K4. Machines' other seven levels, 44 to 50
+
+The branch held the integration tip (b76415ac, with K3) as the package
+began. Stream L's L7 (Machines' art) and stream F's F3b (Machines' voices,
+the gates' and the lost ball's flourishes) ran beside it.
+
+### 2026-11-14: the report's longest time between two touches of the paddle
+
+What it does:
+
+- The autopilot's report gains `longestAway`: the most steps a play went
+  between two touches of the paddle, a ball meeting it (`paddle`) or leaving
+  it (`launched`, a serve or a caught ball let go), or from the last to the
+  play's end. A ball held out of the paddle's reach, in a sealed room or
+  above a wall, or circling what can't break for good, shows there, as
+  `plan.md`'s "Risks" asks. Any ball's touch counts, so a ball away in a
+  room while another is played isn't counted: the measure is how long the
+  paddle has nothing to meet, as Nelson's check of a ball that vanishes
+  for ten seconds is.
+- `yarn report:levels` prints it in a column of its own, `away`: a play's,
+  or, with `--seeds`, the longest of the plays at that speed. It marks one
+  past a minute, as printed, with `^`, a play that hangs, says how many
+  under the table, and fails on none, as the specs don't hold it. A play
+  that hangs for good doesn't clear, and is `-` as before.
+- Specs: the report's spec gives every play a time away and reads it in
+  every table, and three specs hold the column with `--seeds`, the mark with
+  and without, and the mark by the seconds printed on a taller field. The
+  autopilot's spec holds the count from the serve to the play's end, and its
+  starting afresh as the paddle meets a ball, and only then. Each fails with
+  the serve's restart taken out, or with a restart at a wall put in.
+- `AGENTS.md` (Development Commands' report), the content skill (what a
+  level's `away` shows) and the testing skill (the column and its mark).
+
+Choices where the plan was silent:
+
+- The mark's minute: a stretch that long between two touches is no bounce
+  but a loop. It is the endgame's limit on the least field too, and kept
+  in seconds on a taller one, as a loop is no shorter there. Nelson's ten
+  seconds is a question for a level's design, a second ball in play, not a
+  sign that a play hangs: Castle's longest is 0:19.
+- `src` and `tools` both: the autopilot is R's (`src/testing/autopilot.ts`,
+  `tools/report-levels.mjs`), where this adds a field, a count, a column, a
+  sign and a constant, restyling nothing.
+
+Measured: `yarn report:levels --seeds 12` reads as `report-k3.txt` for
+levels 1 to 43, line for line, with the new column beside: the autopilot's
+count changes no play. The longest any play went between two touches of
+the paddle is Castle's (10), 0:19 at Relaxed; Machines' three take 0:08 at
+the most, and no play is marked `^`.
+
+Checks: `yarn lint`, `yarn typecheck` and `yarn test --maxWorkers=6` (77
+files, 3,706 specs, 19.2 s) in the workspace; the root's `yarn lint` under
+the lock.
+
+The review, and the answers:
+
+1. The spec of the count started afresh would pass with it started afresh
+   at any event, a wall's too. Fixed: it holds the longest stretch to at
+   least the steps the paddle's touches share among the stretches they cut
+   the play into, which a restart at the top wall halves. Checked: it fails
+   so.
+2. Nothing held the restart as a ball leaves the paddle: the count started
+   at 0, the step the ball is served at. Fixed: it starts at the step
+   before the first, as the ball waits on the paddle until the serve, so
+   the first spec's 49 steps hold the serve's restart, and fail without it.
+   No play's figure moves, as every play is served at its first step.
+3. The docs said `away` shows a ball held in a sealed room, which it can't
+   while another ball meets the paddle. Fixed: the autopilot's doc
+   comment, `AGENTS.md`, the content skill and the report's header say it
+   is the longest the paddle had no ball to meet, and a ball held out of
+   reach shows only while no other is in play.
+4. Nit, taken: `AGENTS.md`'s paragraph reflowed.
+5. Nit, taken: the spec of the column with `--seeds` throws for a seed it
+   has no time for, as `timedRules()` does.

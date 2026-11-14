@@ -8,24 +8,31 @@
  * For each level and speed it prints the game time the autopilot took to
  * clear the level, the time of that it spent on the last three bricks the
  * level needed, how many times its paddle met a ball, the lives it lost,
- * and its longest streak, the most bricks it broke since the paddle last
- * met a ball. It plays each through the autopilot's `playLevel()`, as the
- * specs in `src/rules/levels/every_level/` do, so the report and the specs
- * play the same games, and it fails as the specs do: when a play doesn't
- * clear its level (`-`), or takes longer than the specs allow over its last
- * bricks (`!`). It loads the rules and the autopilot through Vite, as the
- * game's build does. The report is how the difficulty ramp is tuned: a level
- * that takes long, or costs lives at Relaxed, is one to look at again.
+ * its longest streak, the most bricks it broke since the paddle last met a
+ * ball, and the longest it went between two touches of the paddle, any ball
+ * meeting it or leaving it, or from the last to the play's end. It plays
+ * each through the autopilot's `playLevel()`, as the specs in
+ * `src/rules/levels/every_level/` do, so the report and the specs play the
+ * same games, and it fails as the specs do: when a play doesn't clear its
+ * level (`-`), or takes longer than the specs allow over its last bricks
+ * (`!`). It marks a play that went past a minute between two touches of
+ * the paddle (`^`), its only ball held out of reach or circling what can't
+ * break, as one that hangs, and fails on none. It loads the rules and the
+ * autopilot through Vite, as the game's build does. The report is how the
+ * difficulty ramp is tuned: a level that takes long, or costs lives at
+ * Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each level that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the longest
- * endgame, the most lives lost and the middle of the longest streaks, since
- * the capsules one seed lets fall can make a level look far easier or
- * harder than it is. It still marks and counts the endgames longer than the
- * spec allows, but fails only on a play that doesn't clear its level: across
- * many seeds, a few plays are unlucky however a level is drawn. On the least field, it marks a level whose
- * middle time at Relaxed, as printed, is past 2:00 (`+`), as no level should
- * be longer than its set there, and fails on none.
+ * endgame, the most lives lost, the middle of the longest streaks and the
+ * longest any play went between two touches of the paddle, since the
+ * capsules one seed lets fall can make a level look far easier or harder
+ * than it is. It still marks and counts the endgames longer than the spec
+ * allows, but fails only on a play that doesn't clear its level: across
+ * many seeds, a few plays are unlucky however a level is drawn. On the
+ * least field, it marks a level whose middle time at Relaxed, as printed,
+ * is past 2:00 (`+`), as no level should be longer than its set there, and
+ * fails on none.
  *
  * With `--height`, it plays every level on a field that many units tall,
  * as a tall screen lays it out, from the least height to the tallest, to
@@ -85,7 +92,8 @@ Prints how the autopilot plays every level at every preset speed.
   -h, --help      Show this message
 
 Signs: - for a play that didn't clear its level; ! for a time over the last
-bricks longer than the field allows; and, with --seeds on the least field,
+bricks longer than the field allows; ^ for a play that went past a minute
+between two touches of the paddle; and, with --seeds on the least field,
 + for a level whose middle time at Relaxed is past 2:00.`;
 
 /**
@@ -94,6 +102,12 @@ bricks longer than the field allows; and, with --seeds on the least field,
  * than its set should be.
  */
 const LONG_LEVEL_SECONDS = 120;
+
+/**
+ * The time between two touches of the paddle, in seconds as the report
+ * prints it, past which it marks a play as one that hangs.
+ */
+const HANGING_SECONDS = 60;
 
 /**
  * What a command line asks the report for.
@@ -124,6 +138,7 @@ const LONG_LEVEL_SECONDS = 120;
  * @property {number} bounces
  * @property {number} livesLost
  * @property {number} bestStreak
+ * @property {number} longestAway
  */
 
 /**
@@ -181,8 +196,8 @@ const LONG_LEVEL_SECONDS = 120;
 function columnsOf(seeds, game) {
   if (seeds === undefined) {
     return {
-      headings: ["time", "last", "bounces", "lost", "streak"],
-      widths: [5, 6, 8, 5, 7],
+      headings: ["time", "last", "bounces", "lost", "streak", "away"],
+      widths: [5, 6, 8, 5, 7, 6],
       cellsOf: ([play]) =>
         play
           ? [
@@ -191,13 +206,14 @@ function columnsOf(seeds, game) {
               String(play.bounces),
               String(play.livesLost),
               String(play.bestStreak),
+              awayOf(play.longestAway, game),
             ]
           : [],
     };
   }
   return {
-    headings: ["middle", "most", "last", "lost", "streak"],
-    widths: [6, 5, 6, 5, 7],
+    headings: ["middle", "most", "last", "lost", "streak", "away"],
+    widths: [6, 5, 6, 5, 7, 6],
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(plays.map(stepsOf));
       return [
@@ -206,6 +222,7 @@ function columnsOf(seeds, game) {
         endgameOf(Math.max(...plays.map((play) => play.endgameSteps)), game),
         String(Math.max(...plays.map((play) => play.livesLost))),
         String(middleStreakOf(plays)),
+        awayOf(Math.max(...plays.map((play) => play.longestAway)), game),
       ];
     },
   };
@@ -240,6 +257,30 @@ function middleOf(steps, speed, game) {
     Number.isFinite(steps) &&
     Math.round(steps * game.stepSeconds) > LONG_LEVEL_SECONDS;
   return timeOf(steps, game.stepSeconds) + (long ? "+" : "");
+}
+
+/**
+ * Returns the steps a play went between two touches of the paddle as the
+ * game time they take, marked `^` where it hangs.
+ *
+ * @param {number} steps
+ * @param {Game} game
+ * @returns {string}
+ */
+function awayOf(steps, game) {
+  return timeOf(steps, game.stepSeconds) + (hangs(steps, game) ? "^" : "");
+}
+
+/**
+ * Returns whether a play that went so many steps between two touches of
+ * the paddle hangs: past {@link HANGING_SECONDS}, as printed.
+ *
+ * @param {number} steps
+ * @param {Game} game
+ * @returns {boolean}
+ */
+function hangs(steps, game) {
+  return Math.round(steps * game.stepSeconds) > HANGING_SECONDS;
 }
 
 /**
@@ -370,8 +411,8 @@ function endgameOf(steps, game) {
 
 /**
  * Prints the report of the game, a line at a time, a level's line as it is
- * played, and how many plays didn't clear their level or took longer over
- * their last bricks than the field allows, and returns the code to exit
+ * played, and how many plays didn't clear their level, took longer over
+ * their last bricks than the field allows or hung, and returns the code to exit
  * with: 1 where a play didn't clear its level, or, played from each level's
  * number on the least field, took too long over its last bricks, and 0
  * otherwise.
@@ -403,6 +444,11 @@ function report(game, seeds, print) {
           .length,
         says: `took longer than ${limit} over their level's last bricks (!)`,
         fails: seeds === undefined && !game.tallerField,
+      },
+      {
+        count: plays.filter((play) => hangs(play.longestAway, game)).length,
+        says: "went past a minute between two touches of the paddle (^)",
+        fails: false,
       },
     ],
     print,

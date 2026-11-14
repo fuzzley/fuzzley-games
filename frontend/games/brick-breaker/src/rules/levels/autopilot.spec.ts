@@ -69,6 +69,33 @@ describe("the autopilot", () => {
     expect(report.bestStreak).toBe(5);
   });
 
+  // The ball is served at the first step, and is still rising at the
+  // fiftieth.
+  it("counts the steps since a ball last left the paddle to the play's end in the longest between two touches of it", () => {
+    const report = autoplay(levelOf(["o"]), "normal", 1, { limit: 50 });
+
+    expect({ steps: report.steps, away: report.longestAway }).toEqual({
+      steps: 50,
+      away: 49,
+    });
+  });
+
+  // The paddle's touches, the serve and each bounce, cut the play into
+  // stretches, of which the longest is at least the steps they share, which
+  // a count started afresh at a wall too would fall short of.
+  it("starts the steps between two touches of the paddle afresh as it meets a ball, and only then", () => {
+    const report = autoplay(levelOf(["###", "#o#", "###"]), "normal", 1, {
+      limit: 600,
+    });
+    const shared = (report.steps - 1 - report.bounces) / (report.bounces + 1);
+
+    expect({
+      bounced: report.bounces > 1,
+      afresh: report.longestAway < report.steps - 1,
+      onlyThen: report.longestAway >= shared,
+    }).toEqual({ bounced: true, afresh: true, onlyThen: true });
+  });
+
   it("stops at its limit on a level it can't clear", () => {
     const level = levelOf(["###", "#o#", "###"]);
 
