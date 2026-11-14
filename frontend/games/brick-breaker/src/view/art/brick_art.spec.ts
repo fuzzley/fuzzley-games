@@ -55,7 +55,6 @@ import {
   brickColor,
   brickFrame,
   cellFrame,
-  nextFriend,
   regrowShare,
   regrowingFrame,
 } from "./brick_art";
@@ -697,15 +696,17 @@ describe("a cage's frames", () => {
     expect(frames.map(friendInkIn)).toEqual([[0], [3], [0]]);
   });
 
-  it("names the friend the rules free next, the ink they dress it in", () => {
+  it("shows the friend the rules free next, in the ink they dress it in", () => {
     const field = fieldFrom(["c", ...KEEPER]);
     throwBall(field, 20, 25, 0);
     field.friendsFreed = FRIEND_INKS + 2;
-    const shown = nextFriend(field.friendsFreed);
+    const caged = brickAt(field, 0, 0);
+    hitBrick(field, caged, 0, 0);
+    const shown = frameNamed(ART_FRAMES, brickFrame(caged, field));
 
-    hitBrick(field, brickAt(field, 0, 0), 0, 0, "breaks");
+    hitBrick(field, caged, 0, 0);
 
-    expect(ballOf(field, 1).ink).toBe(shown);
+    expect(friendInkIn(shown)).toEqual([ballOf(field, 1).ink]);
   });
 
   it("cuts out its inside in the marks' color, and stands six bars of steel over its friend, its body about its middle and fur, and its eyes", () => {

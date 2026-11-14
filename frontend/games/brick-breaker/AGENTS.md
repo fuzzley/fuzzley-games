@@ -549,8 +549,8 @@ takes for the specs' helpers.
   and it names
   the frame a brick shows as it and the
   field beside it stand (`brickFrame()`, given the field as `CellField`, a
-  cage's by the friends the field has freed, `nextFriend()`, through the
-  rules' `nextFriendInk()`, a portal's by its pair and a slider's by its
+  cage's by the friends the field has freed, through the rules'
+  `nextFriendInk()`, a portal's by its pair and a slider's by its
   heading, or as How to
   play pictures a brick on its own, `PICTURED_FIELD`,
   and `regrowingFrame()` at how far it has come, `regrowShare()`, and so

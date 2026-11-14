@@ -289,7 +289,7 @@ Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
   picks), with nothing more. A look that reads the field beside its brick
   reads it from the `CellField` its art's `frameOf()` is handed, which
   `cellFrame()` hands on, as a cage shows the friend the field frees next
-  (`nextFriend()`, by the rules' `nextFriendInk()`), a frame for each of
+  (by the rules' `nextFriendInk()`), a frame for each of
   the friends' inks.
 - Its character in the shared legend, or a level's own legend.
 - Its voice: the sound of a hit it holds and of its breaking, which the
