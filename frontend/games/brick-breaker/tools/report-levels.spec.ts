@@ -290,7 +290,7 @@ describe("run", () => {
     });
   });
 
-  it("fails on a play from a level's number that took longer over its last bricks than the spec allows on the least field", async () => {
+  it("fails on a play from a level's number that took longer over its last bricks than the specs allow on the least field", async () => {
     const rules = rulesOf((entry) => cleared(75, entry.number === 1 ? 61 : 30));
 
     const { code, out } = await ran([], rules);
@@ -301,7 +301,7 @@ describe("run", () => {
         " 1 Wall               1:15  1:01!       40     0      12   0:08    1:15  1:01!       40     0      12   0:08",
         "12 The castle keep    1:15   0:30       40     0      12   0:08    1:15   0:30       40     0      12   0:08",
         "",
-        "2 plays took longer than the spec allows over their level's last bricks (!).",
+        "2 plays took longer than the specs allow over their level's last bricks (!).",
       ],
     });
   });
@@ -313,7 +313,7 @@ describe("run", () => {
 
     expect({ code, last: out.at(-1) }).toEqual({
       code: 0,
-      last: "4 plays took longer than the spec allows over their level's last bricks (!).",
+      last: "4 plays took longer than the specs allow over their level's last bricks (!).",
     });
   });
 

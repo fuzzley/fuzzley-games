@@ -77,7 +77,7 @@ export function withStars(
 /**
  * Returns the stars record as stored, keeping the stars of each level the
  * game has where they are stars a play wins, and giving every level the
- * progress has cleared its first star, as one cleared before stars were.
+ * progress has cleared its first star, whatever the record says.
  */
 export function starsRecordOf(
   value: unknown,

@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, Graphics, pathDetailThreshold.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, Graphics, pathDetailThreshold.
 ---
 
 # Phaser games here
@@ -141,19 +141,18 @@ holds.
   flames, so no outline covers any of it.
 - **`@fz/phaser/bricks`** is what a brick game draws a brick with, in
   `shapes`'s commands, a pure entry a game's view takes too, importing
-  only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles are drawn
-  through it. It holds the slab a brick stands on (`slabCommands()`, with
-  its `slabBody()`, `slabFace()` and `slabRadius()`), laid out by a
-  `SlabShares` whose every length is a share of the cell's short side, so a
-  square tile (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as wide as
-  tall (`BRICK_SLAB`, as Brick Breaker's uplift's art kit draws one) take
-  the same code; `topCap()`, what covers a slab's top down to a foot;
-  `showsDetail()`, whether a brick so many units wide is drawn wide enough
-  for its finest detail; and the marks drawn over a slab, their inks
-  handed in: each at shares of a square it is handed, its lines' widths
-  too, a CSS pixel at least at the pixel ratio it is handed, a square
-  tile's cell or, on a wider brick, a square of its own, as large as the
-  mark, which may reach past the brick's edges, `bombMark()`,
+  only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles and Brick
+  Breaker's bricks are drawn through it. It holds the slab a brick stands on
+  (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`),
+  laid out by a `SlabShares` whose every length is a share of the cell's short
+  side, so a square tile (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as
+  wide as tall (`BRICK_SLAB`, Brick Breaker's) take the same code; `topCap()`,
+  what covers a slab's top down to a foot; `showsDetail()`, whether a brick so
+  many units wide is drawn wide enough for its finest detail; and the marks
+  drawn over a slab, their inks handed in: each at shares of a square it is
+  handed, its lines' widths too, a CSS pixel at least at the pixel ratio it is
+  handed, a square tile's cell or, on a wider brick, a square of its own, as
+  large as the mark, which may reach past the brick's edges, `bombMark()`,
   `sproutMark()`, `sheen()`, `portalMark()` and `bumperMark()`, and laid
   out across a brick by places and sizes given,
   `scallopedCap()`, `rivets()`, `cagedFriend()`, `cageBars()` and
@@ -330,8 +329,11 @@ scene without shutting it down first, so the end is whichever comes first.
   function that, as it is first called, encodes the frames that records and
   lists of names give, as How to play shows them, and returns the same
   pictures after; a scene hands its shell a new one at each bake, which
-  the board takes through `@fz/phaser/canvas`'s `settledPictures()`, so
-  nothing is encoded until How to play shows it. Anything else drawn at run
+  a board takes as it comes, as Asteroid Breaker's does, or through
+  `@fz/phaser/canvas`'s `settledPictures()`, which hands on the first bake
+  at once and a later one only once a resize stops, where its panels show the
+  pictures, as Brick Breaker's and Brick Fuzz Pop's do, so nothing is encoded
+  until How to play or a panel shows it. Anything else drawn at run
   time redraws itself through `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels. `viewportOf(scene, insets)` is the `Viewport` a scene lays

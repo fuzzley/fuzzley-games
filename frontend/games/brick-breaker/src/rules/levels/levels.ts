@@ -56,7 +56,7 @@ export interface LevelData {
   readonly pace?: number;
   /**
    * The streak its third star asks for, a whole number from 1, which
-   * `yarn report:levels --marks` sets for every level by one rule.
+   * `yarn report:levels --marks` prints for every level by one rule.
    */
   readonly mark: number;
   /** The chance a needed brick lets a capsule fall; else its set's. */
