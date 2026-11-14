@@ -32,9 +32,12 @@ The rest follows from those:
   tail is fast and deadly: a comet. Spiky clings: a burr. Each kind of rock
   has a silhouette and a mark of its own, and none is told by its ink alone.
 - **The field stays quiet.** Nothing in the backdrop is as bright, as sharp
-  or as saturated as anything that plays. A backdrop's tones are mixes of
-  the field's color with at most a tenth of another color in a dark palette
-  and a twentieth in a light one, and nothing in it moves faster than a
+  or as saturated as anything that plays. A wash mixes at most a tenth of
+  another color into the field's in a dark palette and a twentieth in a
+  light one; a landmark's faces take a tenth in either, or no sector could
+  be told by them on white. Nothing large in a backdrop stands out from the
+  field by more than 1.3 to 1 (`LIMITS` in `lib/backdrop.mjs`, and the
+  figures under the sectors' sheet), and nothing in it moves faster than a
   slow drift.
 - **Only the palette's colors.** Every tone is a role of the palette in use,
   one of the game's own inks (the rocks', the pilots'), or a mix of two of
