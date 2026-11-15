@@ -3,7 +3,7 @@ import type { FlightEvent, TurnOff } from "../../rules/flight/events";
 import type { Boon } from "../../rules/shot";
 import { AT_ONCE } from "../../rules/tuning";
 
-/** The game's twenty sounds, in the order the sprite holds them. */
+/** The game's twenty-one sounds, in the order the sprite holds them. */
 export const SOUNDS = [
   "notch",
   "release",
@@ -20,6 +20,7 @@ export const SOUNDS = [
   "cage",
   "land",
   "yawn",
+  "drop",
   "step",
   "jump",
   "danger",

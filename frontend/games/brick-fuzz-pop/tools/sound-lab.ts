@@ -9,7 +9,13 @@ import {
   type LabSound,
   mountSoundLab,
 } from "@fz/dev/sound-lab-page";
-import { BORED, MOST_CHARGE, ZAP_DELAY } from "../src/rules/tuning";
+import {
+  BORED,
+  MOST_CHARGE,
+  MOST_FUZZBALLS,
+  RADIUS,
+  ZAP_DELAY,
+} from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sounds.json";
 import spriteUrl from "../src/scene/sounds/sounds.wav?url";
 import {
@@ -37,6 +43,7 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
   cage: "A cage opened and its friend freed.",
   land: "A fuzzball landing on the floor.",
   yawn: "A bored fuzzball's yawn, before it drops to the floor.",
+  drop: "Drop, every fuzzball in the air brought straight down to the floor at once: one sound however many come down.",
   step: "The wall coming down a row.",
   jump: "The wall jumping a third of the field.",
   danger: "A brick standing over the danger line.",
@@ -52,6 +59,20 @@ const NOTCH_S = 0.25;
 
 /** How long after the press a charge held to the most is let go, in seconds. */
 const CHARGED_S = (MOST_CHARGE + 1) * NOTCH_S;
+
+/** When the fuzzballs of "A drop" are brought down, in seconds. */
+const DROP_S = 14 * UNIT_S;
+
+/**
+ * Where the fuzzballs of "A drop" are as they are brought down, as many as a
+ * shot can have in the air: by turns left and right of the middle, closing
+ * in on it from the side walls, each 1.2 units higher than the last, as a
+ * deep field holds them, so no two land in one frame.
+ */
+const DROPPED = Array.from({ length: MOST_FUZZBALLS }, (_, i) => ({
+  x: (i % 2 === 0 ? -1 : 1) * (1 - i / MOST_FUZZBALLS),
+  y: 1.5 + 1.2 * i,
+}));
 
 /**
  * Returns the one break the game plays for the bricks a frame breaks, raised
@@ -227,6 +248,24 @@ const SCENES: readonly LabScene<SoundName>[] = [
       })),
       { at: BORED * UNIT_S, sound: "yawn", x: 0.2 },
       { at: BORED * UNIT_S + 0.8, sound: "land", x: 0.2 },
+    ],
+  },
+  {
+    name: "A drop",
+    what: `As many fuzzballs as a shot can have in the air, ${String(MOST_FUZZBALLS)}, breaking bricks and knocking about, brought straight down at once by Drop: one drop for them all, then each lands as it reaches the floor from where it was.`,
+    cues: [
+      ...breaks(0, 2 * UNIT_S, { first: 4, count: 6, from: -0.8, to: 0.8 }),
+      ...[0, 1, 2].map((i): LabCue<SoundName> => ({
+        at: (1 + 4 * i) * UNIT_S,
+        sound: "knock",
+        x: i % 2 === 0 ? -1 : 1,
+      })),
+      { at: DROP_S, sound: "drop" },
+      ...DROPPED.map(({ x, y }): LabCue<SoundName> => ({
+        at: DROP_S + (y - RADIUS) * UNIT_S,
+        sound: "land",
+        x,
+      })),
     ],
   },
 ];

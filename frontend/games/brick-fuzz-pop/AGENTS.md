@@ -285,7 +285,7 @@ helpers.
   `atlasFrames()` is every frame the atlas holds, the kinds' in the
   catalog's order, then the fuzzballs'.
 - **`src/view/effects/`** — what each moment calls for, and how long it
-  lasts. `effects.ts` names the twenty sounds (`SOUNDS`, in the sprite's
+  lasts. `effects.ts` names the twenty-one sounds (`SOUNDS`, in the sprite's
   order); its `FlightEffects` reads a flight in order (`begin()`, then
   `effectsOf()` for each event) and gives each event's sound and
   flourishes, a punch told from a break by its fuzzball's turn at the
@@ -651,7 +651,7 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   `src/rules/aims.spec.ts` fails while the file isn't what the script
   writes, so change the script and run it rather than edit the file).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
-  which synthesizes the twenty sounds, from the charge's notch to a lost
+  which synthesizes the twenty-one sounds, from the charge's notch to a lost
   level's, with `@fz/dev/sounds`' synths, its `withBurst()` laying a burst of
   noise, a crackle, a knock or a rumble, under a tone, into
   `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the same
@@ -661,7 +661,7 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   rather than edit the sprite).
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9006/sound-lab/` (`tools/sound-lab.ts`: each sound in
-  the sprite, and eight scenes of a round played as the game would play
+  the sprite, and nine scenes of a round played as the game would play
   them, its breaks raised by the view's `breakDetune()`; no build holds it).
 - **Certify the Levels:** `yarn certify:levels` (runs
   `tools/certify-levels.mjs`, which finds a line that clears each level on
