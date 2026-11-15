@@ -97,6 +97,7 @@ import {
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
+  BOULDER_HOLD_MS,
   BREAK_MS,
   BURST_SHARDS,
   EXHAUST_MS,
@@ -105,7 +106,6 @@ import {
   KICK_MS,
   POINTS_MS,
   RING_MS,
-  SHAKE_DELAY_MS,
   SHAKE_MS,
   TRAIL_MS,
 } from "../view/effects/timing";
@@ -311,6 +311,18 @@ function logBreak(
   shell.field.events.addBreak(rock, 1, wayX, wayY);
 }
 
+/** Logs a boulder broken in the middle of a shell's field, struck from above. */
+function logBoulderBreak(shell: FakeShell): void {
+  const boulder = placeRock(
+    shell.field,
+    "boulder",
+    MIDDLE.x,
+    MIDDLE.y,
+    "boulder",
+  );
+  logBreak(shell, boulder, 0, 1);
+}
+
 /** Logs a ship lost in the middle of a shell's field, its pilot the third color. */
 function logShipLost(shell: FakeShell): void {
   shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2, shell.field.crew);
@@ -362,7 +374,9 @@ function playingIn(scene: BeltScene, shell: FakeShell): Shown {
 function logEveryFlourish(shell: FakeShell): void {
   const { events } = shell.field;
   const rock = keeperOf(shell.field);
+  const boulder = placeRock(shell.field, "boulder", 10, 10, "boulder");
   events.addBreak(rock, 1, 1, 0);
+  events.addBreak(boulder, 1, 0, 1);
   events.addRock("hit", rock);
   events.addRock("blast", rock, 6);
   events.addDash(MIDDLE.x, MIDDLE.y, 0);
@@ -387,7 +401,7 @@ describe("the events", () => {
     shell.field = fieldFrom(KEEPER);
     shell.field.events.addScore(10, 10, 80, 1);
 
-    run.advance(SHAKE_DELAY_MS, 16);
+    run.advance(BOULDER_HOLD_MS + 32, 16);
 
     expect({
       ...playingIn(scene, shell),
@@ -790,6 +804,44 @@ describe("a broken rock", () => {
     logBreak(shell, rock, 1, 0);
 
     run.advance(16);
+
+    expect(scrolledBy(scene, shell)).toEqual({ x: 0, y: 0 });
+  });
+
+  it("holds the field still, unkicked, for a boulder's first beat", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+
+    const scrolls = overTime(run, BOULDER_HOLD_MS - 16, 16, () =>
+      scrolledBy(scene, shell),
+    );
+
+    expect(scrolls.filter(({ x, y }) => x !== 0 || y !== 0)).toEqual([]);
+  });
+
+  it("shakes the field along a boulder's blow, both ways, once its first beat is past", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+    run.advance(BOULDER_HOLD_MS, 16);
+
+    const scrolls = overTime(run, SHAKE_MS - BOULDER_HOLD_MS, 16, () =>
+      scrolledBy(scene, shell),
+    );
+
+    // The blow came straight down, so the field shakes up and down alone.
+    expect({
+      across: scrolls.filter(({ x }) => x !== 0),
+      down: scrolls.some(({ y }) => y > 0),
+      up: scrolls.some(({ y }) => y < 0),
+    }).toEqual({ across: [], down: true, up: true });
+  });
+
+  it("rests the field within 0.3 s of a boulder's blow", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+    run.advance(16);
+
+    run.advance(SHAKE_MS, 16);
 
     expect(scrolledBy(scene, shell)).toEqual({ x: 0, y: 0 });
   });
@@ -1916,38 +1968,6 @@ describe("a lost ship", () => {
     expect(shardTints(scene)).toEqual(
       Array.from({ length: BURST_SHARDS }, () => ART_PALETTE.accent),
     );
-  });
-
-  it("holds the field still for a moment", async () => {
-    const { shell, run, scene } = await startBoard();
-    logShipLost(shell);
-
-    const scrolls = overTime(run, SHAKE_DELAY_MS - 16, 16, () =>
-      scrolledBy(scene, shell),
-    );
-
-    expect(scrolls.filter(({ x, y }) => x !== 0 || y !== 0)).toEqual([]);
-  });
-
-  it("shakes the field once the moment is past", async () => {
-    const { shell, run, scene } = await startBoard();
-    logShipLost(shell);
-    run.advance(SHAKE_DELAY_MS);
-
-    const scrolls = overTime(run, SHAKE_MS - 50, 16, () =>
-      scrolledBy(scene, shell),
-    );
-
-    expect(scrolls.some(({ x, y }) => x !== 0 && y !== 0)).toBe(true);
-  });
-
-  it("rests the field once the shake has died away", async () => {
-    const { shell, run, scene } = await startBoard();
-    logShipLost(shell);
-
-    run.advance(SHAKE_DELAY_MS + SHAKE_MS + 32);
-
-    expect(scrolledBy(scene, shell)).toEqual({ x: 0, y: 0 });
   });
 
   it("pops its pilot out in a bubble where it was lost, in its ink", async () => {

@@ -1,5 +1,10 @@
-import type { Flourish } from "../view/effects/effects";
-import { ringColorOf, ringReachOf, wayOf } from "../view/effects/flourish";
+import { type Flourish, holdMsOf } from "../view/effects/effects";
+import {
+  flashDue,
+  ringColorOf,
+  ringReachOf,
+  wayOf,
+} from "../view/effects/flourish";
 import { BURST_SHARDS } from "../view/effects/timing";
 import type { FieldEvent } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
@@ -34,10 +39,19 @@ export type FlourishStage = Pick<
 
 /**
  * Plays each flourish on what shows it: the painter that draws it from then
- * on, frame by frame, or the field's camera.
+ * on, frame by frame, or the field's camera, and keeps the field's flashes
+ * apart, whatever flashes: one each `FLASH_GAP_MS` at most.
  */
 export class FlourishPlayer {
+  /** When the field last flashed, in milliseconds, or −Infinity before it first did. */
+  private flashedAt = -Infinity;
+
   constructor(private readonly painters: FlourishPainters) {}
+
+  /** Forgets the last flash, as a new field starts. */
+  start(): void {
+    this.flashedAt = -Infinity;
+  }
 
   /** Plays one of an event's flourishes, as the stage stands. */
   play(
@@ -56,6 +70,8 @@ export class FlourishPlayer {
         camera.kick(event.wayX, event.wayY, now);
         return;
       case "flash":
+        if (!flashDue(this.flashedAt, now)) return;
+        this.flashedAt = now;
         rocks.flashSlot(event.slot, now);
         return;
       case "spark":
@@ -79,7 +95,7 @@ export class FlourishPlayer {
         }
         return;
       case "shake":
-        camera.shake(now);
+        camera.shake(event.wayX, event.wayY, holdMsOf(event), now);
         return;
     }
   }

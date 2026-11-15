@@ -28,7 +28,6 @@ import {
   KICK_MS,
   POINTS_RISE,
   SHAKE_CSS_PX,
-  SHAKE_DELAY_MS,
   SHAKE_MS,
 } from "./timing";
 
@@ -63,11 +62,11 @@ export const EXHAUST_RATE = 40;
 export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 /**
- * How fast the field shakes along each axis, in turns a second, apart, so
- * it doesn't swing along a line, and slow enough that a screen's 60 frames
- * a second catch each swing, rather than a slow beat of it.
+ * How fast the field swings along a blow as it shakes, in swings a second,
+ * slow enough that a screen's 60 frames a second catch each swing, rather
+ * than a slow beat of it.
  */
-const SHAKE_RATES = { x: 13, y: 17 } as const;
+const SHAKE_RATE = 13;
 
 /** How fast each idle motion turns, in turns a second: a breath and a bob. */
 const RATES = { breath: 0.64, bob: 0.35 } as const;
@@ -218,55 +217,62 @@ export function bailOutShown(done: number, seconds: number): boolean {
 }
 
 /**
- * Writes how far the field is shaken from where it rests into a record and
- * returns it, a share of the shake along each axis, a time after a ship is
- * lost, in milliseconds: still for a moment, then all of it, dying away.
+ * Returns how far the field is shaken the way a blow came from where it
+ * rests, as a share of the shake, back the other way below 0, a time after
+ * the blow, in milliseconds: none while it holds still first, for so long,
+ * then swinging along the blow, its way first, and dying away, still again
+ * {@link SHAKE_MS} after the blow.
  */
-export function shakeOf(sinceMs: number, into: Moving): Moving {
-  const done = (sinceMs - SHAKE_DELAY_MS) / SHAKE_MS;
-  into.x = 0;
-  into.y = 0;
-  if (!(done >= 0 && done < 1)) return into;
-  const left = 1 - done;
-  const seconds = sinceMs / 1000;
-  into.x = left * Math.sin(2 * Math.PI * SHAKE_RATES.x * seconds);
-  into.y = left * Math.sin(2 * Math.PI * SHAKE_RATES.y * seconds);
-  return into;
+export function shakeShare(sinceMs: number, holdMs: number): number {
+  const shaking = sinceMs - holdMs;
+  const shakingMs = SHAKE_MS - holdMs;
+  // A hold as long as the shake, or longer, leaves no time to shake in.
+  if (!(shaking >= 0 && shaking < shakingMs)) return 0;
+  const left = 1 - shaking / shakingMs;
+  return left * Math.sin((2 * Math.PI * SHAKE_RATE * shaking) / 1000);
 }
 
 /**
- * Says what last jolted the field, each at a time, in milliseconds, or
- * −Infinity for none: a kick, as a large rock broke, and the way its blow
- * came, a share along each axis; and a ship lost, which shakes it.
+ * Describes a blow that jolted the field: when, in milliseconds, or
+ * −Infinity for none, and the way it came, a share along each axis.
  */
-export interface Jolts {
-  kickedAt: number;
+export interface Jolt {
+  at: number;
   wayX: number;
   wayY: number;
-  lostAt: number;
+}
+
+/** Describes a blow that shook the field, and how long the field held still first, in milliseconds. */
+export interface Shake extends Jolt {
+  holdMs: number;
+}
+
+/** Says what last jolted the field: a kick, as a large rock broke, and a shake, as a boulder broke. */
+export interface Jolts {
+  readonly kick: Jolt;
+  readonly shake: Shake;
 }
 
 /**
  * Writes how far the field's camera is scrolled from where it rests into a
  * record and returns it, in device pixels at a pixel ratio, at a time:
  * against the way the last kick's blow came, settling, and as far as
- * {@link shakeOf} shakes it since the last ship was lost.
+ * {@link shakeShare} shakes it along the last shake's blow.
  */
 export function cameraShift(
-  jolts: Readonly<Jolts>,
+  { kick, shake }: Readonly<Jolts>,
   now: number,
   pixelRatio: number,
   into: Moving,
 ): Moving {
-  const kick =
-    KICK_CSS_PX *
-    pixelRatio *
-    kickShare(shareDone(jolts.kickedAt, now, KICK_MS));
-  const shake = SHAKE_CSS_PX * pixelRatio;
-  shakeOf(now - jolts.lostAt, into);
-  // The field moves the way the blow came, so its camera the other.
-  into.x = into.x * shake - jolts.wayX * kick;
-  into.y = into.y * shake - jolts.wayY * kick;
+  const kicked =
+    KICK_CSS_PX * pixelRatio * kickShare(shareDone(kick.at, now, KICK_MS));
+  const shaken =
+    SHAKE_CSS_PX * pixelRatio * shakeShare(now - shake.at, shake.holdMs);
+  // The field moves the way each blow came, so its camera the other, taken
+  // from 0 so that a camera at rest is at 0, not −0.
+  into.x = 0 - kick.wayX * kicked - shake.wayX * shaken;
+  into.y = 0 - kick.wayY * kicked - shake.wayY * shaken;
   return into;
 }
 

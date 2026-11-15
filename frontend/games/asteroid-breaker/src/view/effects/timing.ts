@@ -38,14 +38,21 @@ export const POINTS_RISE = 1;
 /** How long a rock's points take to rise and fade. */
 export const POINTS_MS = 600;
 
-/** How hard the field shakes as a ship is lost, in CSS pixels. */
+/** How hard the field shakes along a blow, in CSS pixels. */
 export const SHAKE_CSS_PX = 6;
 
-/** How long the shake takes to die away. */
+/**
+ * How long after its blow the field is still again from a shake, in
+ * milliseconds, the time it holds still first among them: within the 0.3 s
+ * `plan.md`'s budget gives a shake.
+ */
 export const SHAKE_MS = 300;
 
-/** How long the field holds still as a ship is lost, before it shakes. */
-export const SHAKE_DELAY_MS = 80;
+/**
+ * How long the field holds still as a boulder breaks, in milliseconds, its
+ * first beat, before it moves on and shakes.
+ */
+export const BOULDER_HOLD_MS = 90;
 
 /** How long a lost ship's pilot floats off in its bubble before it is gone. */
 export const BAIL_OUT_MS = 1400;
@@ -78,9 +85,8 @@ export function clearedDelayMs(motion: boolean): number {
 
 /**
  * Returns how long the result card waits after a run ends, for the last
- * ship's burst to fly and its shake to die away: none where motion is
- * unwelcome, where neither happens.
+ * pod's burst to fly: none where motion is unwelcome, where it doesn't.
  */
 export function resultDelayMs(motion: boolean): number {
-  return motion ? Math.max(BURST_MS, SHAKE_DELAY_MS + SHAKE_MS) : 0;
+  return motion ? BURST_MS : 0;
 }

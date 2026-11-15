@@ -4,7 +4,7 @@ import { type Moving, across, wrap } from "../../rules/torus";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import { ROCK_REACH, rockFrame } from "../../view/art/rock_art";
 import { STRUCK_LIGHT } from "../../view/colors/rock_light";
-import { flashAlpha, flashDue } from "../../view/effects/flourish";
+import { flashAlpha } from "../../view/effects/flourish";
 import { FLASH_MS } from "../../view/effects/timing";
 import { toCanvas } from "../../view/field/field_metrics";
 import { type FieldView, wrappedBetween } from "../../view/field/frame";
@@ -20,8 +20,7 @@ const FIRST_FRAME = rockFrame({ kind: "stone", size: "small", outline: 0 });
  * each slot of the field's, its body in its outline, with the cracks of the
  * hits it has taken and held, turned as far as it has turned, on both sides
  * of an edge it reaches across; and a held hit's flash, a light at its
- * rock's edge toward the ship that lights the faces struck, no sooner after
- * the last than is safe.
+ * rock's edge toward the ship that lights the faces struck.
  */
 export class RockPainter implements Painter {
   /**
@@ -66,9 +65,11 @@ export class RockPainter implements Painter {
     }
   }
 
-  /** Flashes the rock in a slot that held a hit, unless the field flashed too lately. */
+  /**
+   * Flashes the rock in a slot that held a hit; the scene's
+   * `FlourishPlayer` keeps the field's flashes apart.
+   */
   flashSlot(slot: number, now: number): void {
-    if (!flashDue(this.flashed.at, now)) return;
     this.flashed.slot = slot;
     this.flashed.at = now;
   }

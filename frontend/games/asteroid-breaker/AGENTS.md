@@ -349,7 +349,10 @@ takes for the specs' helpers.
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and hands the
   scene the run's seed, the place its sector is shown in and, in Endless,
-  the constellation. `run_frames.ts`
+  the constellation; where motion is welcome, it holds the field still,
+  its clock skipped, for as long as an event it heard calls for
+  (`holdMsOf()`), keeping a fire or a dash pressed meanwhile for the
+  field's next step. `run_frames.ts`
   holds `RunFrames`, which `GameService` hands each frame of it: it plays the
   wave on, starting it at the player's first move, catches the run up with
   what its field came to, waits out the beat before a card, counts the Cleared
@@ -477,7 +480,10 @@ takes for the specs' helpers.
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says which flourishes each event calls for, with motion and
-  without (`effectsOf()`); `sounds.ts` every sound of the sprite, the plan's
+  without (`effectsOf()`), the field's shake a boulder's alone and its kick
+  a large rock's, and how long an event holds the field still
+  (`holdMsOf()`), a boulder's break's first beat (`BOULDER_HOLD_MS`);
+  `sounds.ts` every sound of the sprite, the plan's
   but the beds, by name, each with its family, level, takes and whether it
   is tuned, its family's (`SOUNDS`, the mix the scene hands its player, and
   `SoundTake`, a take's name in the sprite), which sound each event plays
@@ -534,7 +540,9 @@ takes for the specs' helpers.
   `flourish.ts` says how each flourish moves over its time, beside
   `@fz/core/math`'s `shareDone()` and its curves (`easeOutCubic()`,
   `fadeAlpha()`), among them how far the kick and the shake scroll the
-  field's camera (`cameraShift()`) and when a dash lays each of its outlines
+  field's camera (`cameraShift()`), the shake along its blow, once the
+  field has held still, and still within `SHAKE_MS` of it
+  (`shakeShare()`), and when a dash lays each of its outlines
   (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome; `timing.ts` how long each flourish
@@ -903,7 +911,9 @@ takes for the specs' helpers.
   and the flourishes an event calls for only where motion is welcome, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
   painter that draws it, or on `FieldCamera`, from the context the scene
-  wrote for the frame; `flourish_player.spec.ts` holds what each flourish
+  wrote for the frame, and lets the field flash once each `FLASH_GAP_MS`
+  at most, whatever flashes (`flashDue()`), afresh on each new field;
+  `flourish_player.spec.ts` holds what each flourish
   plays, and `flourishes.spec.ts` what the scene draws for each event.
   `atlas.ts` bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
   `atlasFrameOf()` into three atlases: the field's and the rocks', again on

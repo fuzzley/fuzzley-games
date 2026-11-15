@@ -1,6 +1,6 @@
 import type { Cameras } from "phaser";
 import type { Moving } from "../rules/torus";
-import { type Jolts, cameraShift } from "../view/effects/flourish";
+import { type Jolt, type Jolts, cameraShift } from "../view/effects/flourish";
 import type { FieldMetrics } from "../view/field/field_metrics";
 import type { PaintContext, Painter } from "./painters/painter";
 
@@ -16,10 +16,8 @@ import type { PaintContext, Painter } from "./painters/painter";
 export class FieldCamera implements Painter {
   /** What last jolted the field. */
   private readonly jolts: Jolts = {
-    kickedAt: -Infinity,
-    wayX: 0,
-    wayY: 0,
-    lostAt: -Infinity,
+    kick: { at: -Infinity, wayX: 0, wayY: 0 },
+    shake: { at: -Infinity, wayX: 0, wayY: 0, holdMs: 0 },
   };
   /** How far the camera is scrolled from where it rests, written each frame. */
   private readonly shift: Moving = { x: 0, y: 0 };
@@ -37,14 +35,16 @@ export class FieldCamera implements Painter {
 
   /** Kicks the field the way a blow came, a share along each axis. */
   kick(wayX: number, wayY: number, now: number): void {
-    this.jolts.kickedAt = now;
-    this.jolts.wayX = wayX;
-    this.jolts.wayY = wayY;
+    joltAt(this.jolts.kick, wayX, wayY, now);
   }
 
-  /** Shakes the field, from a ship lost, after a moment's pause. */
-  shake(now: number): void {
-    this.jolts.lostAt = now;
+  /**
+   * Shakes the field along the way a blow came, a share along each axis,
+   * once it has held still for so long, in milliseconds.
+   */
+  shake(wayX: number, wayY: number, holdMs: number, now: number): void {
+    joltAt(this.jolts.shake, wayX, wayY, now);
+    this.jolts.shake.holdMs = holdMs;
   }
 
   /**
@@ -67,12 +67,19 @@ export class FieldCamera implements Painter {
 
   /** Rests the field, as a new field starts. */
   start(): void {
-    this.jolts.kickedAt = -Infinity;
-    this.jolts.lostAt = -Infinity;
+    this.jolts.kick.at = -Infinity;
+    this.jolts.shake.at = -Infinity;
   }
 
   /** Scrolls the camera to the field's corner on the canvas, shifted as last worked out. */
   private scrollOver(metrics: FieldMetrics): void {
     this.camera.setScroll(metrics.x + this.shift.x, metrics.y + this.shift.y);
   }
+}
+
+/** Writes a blow into a jolt: when, and the way it came. */
+function joltAt(jolt: Jolt, wayX: number, wayY: number, now: number): void {
+  jolt.at = now;
+  jolt.wayX = wayX;
+  jolt.wayY = wayY;
 }

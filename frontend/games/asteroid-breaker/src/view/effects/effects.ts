@@ -6,14 +6,16 @@ import {
   rockKindOf,
   rockSizeOf,
 } from "../field/frame";
+import { BOULDER_HOLD_MS } from "./timing";
 
 /**
  * Names a flourish the scene plays: a broken rock's break (its shards, dust
- * and sparks), the field's kick at a large break, a held hit's flash and
- * spark, a blast's, a vent's, a spent Shield's or a lost pod's ring, the
- * points scored, a dash's trail, a lost pod's burst, its pilot bailing out, and
- * the field's shake. Each but the points moves, so plays only where motion
- * is welcome; the points show either way, rising only where it is.
+ * and sparks), the field's kick at a large rock's break, a held hit's flash
+ * and spark, a blast's, a vent's, a spent Shield's or a lost pod's ring,
+ * the points scored, a dash's trail, a lost pod's burst, its pilot bailing out, and
+ * the field's shake at a boulder's break. Each but the points moves, so
+ * plays only where motion is welcome; the points show either way, rising
+ * only where it is.
  */
 export type Flourish =
   | "break"
@@ -49,13 +51,21 @@ function moving(flourishes: readonly Flourish[] = NONE): EventEffects {
 /** What an event calls for that the scene plays no flourish of. */
 const QUIET = moving();
 
-/** What a rock of each size calls for as it breaks: its break, and a large one's kick. */
+/** What a rock of each size kicks or shakes the field with as it breaks. */
+const JOLTS: Readonly<Record<RockSize, readonly Flourish[]>> = {
+  boulder: ["shake"],
+  large: ["kick"],
+  medium: NONE,
+  small: NONE,
+};
+
+/**
+ * What a rock of each size calls for as it breaks: its break, a large
+ * one's kick and a boulder's shake.
+ */
 const BROKEN: Readonly<Record<RockSize, EventEffects>> = recordOf(
   ROCK_SIZES,
-  (size) =>
-    moving(
-      size === "boulder" || size === "large" ? ["break", "kick"] : ["break"],
-    ),
+  (size) => moving(["break", ...JOLTS[size]]),
 );
 
 /** What a rock of each size that holds a hit calls for: its flash and spark. */
@@ -85,7 +95,9 @@ const EVENT_EFFECTS: Readonly<
   dropped: QUIET,
   caught: QUIET,
   faded: QUIET,
-  lost: moving(["burst", "ring", "shake", "bailout"]),
+  // The run's end holds the field still, unshaken: `plan.md`'s budget
+  // shakes it for a hit and a boulder alone.
+  lost: moving(["burst", "ring", "bailout"]),
   // The crew's own flourishes are a later package's to choose.
   knocked: QUIET,
   recaught: QUIET,
@@ -120,6 +132,17 @@ export function effectsOf(event: Readonly<FieldEvent>): EventEffects {
     default:
       return EVENT_EFFECTS[event.kind];
   }
+}
+
+/**
+ * Returns how long the field holds still as an event happens, in
+ * milliseconds, where motion is welcome: a boulder's break's first beat,
+ * and nothing else's.
+ */
+export function holdMsOf(event: Readonly<FieldEvent>): number {
+  return event.kind === "broken" && event.size === "boulder"
+    ? BOULDER_HOLD_MS
+    : 0;
 }
 
 /**
