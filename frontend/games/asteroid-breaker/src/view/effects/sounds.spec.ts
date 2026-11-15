@@ -26,6 +26,7 @@ import {
   FIRST_MOVE,
   GUARD_END,
   LADDER,
+  LODESTONE_HUM,
   PLAY_ORDER,
   SOUNDS,
   SOUND_NAMES,
@@ -220,17 +221,15 @@ const EVERY_EVENT: readonly FieldEvent[] = [
 /**
  * The sounds of the sprite the view plays for nothing yet: no event the
  * field logs, and no change of its state, calls for them. The burrs wait
- * on their rules, the line's twang on its turn; the lodestone's hum, a
- * loop held as the thrust's is, has nothing to hold it yet; no rock that
- * blasts comes small; the stingers but a wave's start and its clearing
- * are the shell's moments; the fuzzball's eep has no call yet at the near
- * miss, and it hums at no moment the plan gives it.
+ * on their rules, the line's twang on its turn; no rock that blasts comes
+ * small; the stingers but a wave's start and its clearing are the shell's
+ * moments; the fuzzball's eep has no call yet at the near miss, and it
+ * hums at no moment the plan gives it.
  */
 const UNPLAYED: readonly SoundName[] = [
   "burr-cling",
   "burr-shed",
   "burr-pop",
-  "lodestone-hum",
   "tow-twang",
   "blast-volatile-small",
   "run-start",
@@ -353,7 +352,7 @@ describe("soundOf", () => {
     expect(SHOTS.map(([weapon]) => weapon)).toEqual(WEAPON_IDS);
   });
 
-  it("plays, of the sprite's sounds, none but those of events the field logs and of its state, the thrust's hum apart", () => {
+  it("plays, of the sprite's sounds, none but those of events the field logs and of its state, the hums apart", () => {
     const played = new Set([
       ...EVERY_EVENT.flatMap((event) => [
         soundOf(event),
@@ -374,7 +373,10 @@ describe("soundOf", () => {
     ]);
 
     expect(
-      SOUND_NAMES.filter((name) => name !== THRUST && !played.has(name)),
+      SOUND_NAMES.filter(
+        (name) =>
+          name !== THRUST && name !== LODESTONE_HUM && !played.has(name),
+      ),
     ).toEqual(UNPLAYED);
   });
 

@@ -93,6 +93,12 @@ export class FakeShell implements BeltSceneOptions {
   wantsSound = true;
   /** Whether the ship thrusts while its wave plays on, as the game would say. */
   thrusts = false;
+  /** Whether a lodestone is on the field while its wave plays on, as the game would say. */
+  lodestoneOn = false;
+  /** How many times a break scores, as the game would say. */
+  times = 1;
+  /** The place the wave after this one is played in. */
+  nextPlace: PlaceId = PLACE_IDS[0];
   setting: BoardSetting = BOARD;
   /**
    * Whether each frame's time moves the field on, as the game does, steered
@@ -140,6 +146,9 @@ export class FakeShell implements BeltSceneOptions {
   readonly motion = (): boolean => this.welcomesMotion;
   readonly sound = (): boolean => this.wantsSound;
   readonly thrusting = (): boolean => this.thrusts;
+  readonly lodestoneHums = (): boolean => this.lodestoneOn;
+  readonly multiplier = (): number => this.times;
+  readonly placeAfter = (): PlaceId => this.nextPlace;
   readonly board = (): BoardSetting => this.setting;
   readonly font = (): PointsFont => this.typeface;
   readonly onLayout = (layout: FieldLayout): void => {

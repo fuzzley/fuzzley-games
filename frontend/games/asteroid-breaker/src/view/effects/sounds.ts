@@ -202,6 +202,9 @@ export type SoundTake = { [Name in SoundName]: TakeOf<Name> }[SoundName];
 /** The sound the thrust hums while it is held, which no event plays. */
 export const THRUST: SoundName = "thrust";
 
+/** The sound a lodestone hums while it is on the field, which no event plays. */
+export const LODESTONE_HUM: SoundName = "lodestone-hum";
+
 /** The bell under each break, at the ladder's note for static's multiplier it scored at. */
 export const LADDER: SoundName = "chain-ping";
 

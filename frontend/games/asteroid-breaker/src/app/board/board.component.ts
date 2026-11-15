@@ -250,6 +250,9 @@ export class BoardComponent {
     motion: () => this.viewport.allowsMotion(),
     sound: () => this.settings().sound,
     thrusting: () => this.game.thrusting(),
+    lodestoneHums: () => this.game.lodestoneHums(),
+    multiplier: () => this.game.multiplier(),
+    placeAfter: () => this.game.placeAfter(),
     board: () => this.board(),
     onLayout: (layout) => {
       this.laid.set(layout);

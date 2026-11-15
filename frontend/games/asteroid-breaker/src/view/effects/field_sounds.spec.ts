@@ -3,6 +3,7 @@ import type { RockKindId, RockSize } from "../../rules/catalog/rocks";
 import type { LoggedRock } from "../../rules/field/events";
 import { type Field, steerField } from "../../rules/field/field";
 import { endEffects } from "../../rules/rocks/pickups";
+import { hitRock } from "../../rules/rocks/rocks";
 import { STILL } from "../../rules/ship/ship";
 import {
   KEEPER,
@@ -11,6 +12,7 @@ import {
   placeComet,
   shipOf,
   stepTimes,
+  wholeRocks,
 } from "../../testing/field_picture";
 import {
   BURST_PULLS,
@@ -19,6 +21,7 @@ import {
   MOST_BREAKS_HEARD,
   SPARK_RUN_STEPS,
   TAIL_WITHIN_MS,
+  hasLodestone,
 } from "./field_sounds";
 import type { SoundName } from "./sounds";
 
@@ -844,5 +847,29 @@ describe("FieldSounds", () => {
 
       expect(frame()).toEqual([]);
     });
+  });
+});
+
+describe("hasLodestone", () => {
+  it("finds a lodestone on the field", () => {
+    const field = fieldFrom(KEEPER, { kind: "lodestone" });
+
+    expect(hasLodestone(field)).toBe(true);
+  });
+
+  it("finds none on a field of other rocks", () => {
+    const field = fieldFrom(KEEPER);
+
+    expect(hasLodestone(field)).toBe(false);
+  });
+
+  it("finds none once the last lodestone has broken", () => {
+    const field = fieldFrom(["S"], { kind: "lodestone" });
+    const [lodestone] = wholeRocks(field);
+    if (!lodestone) throw new Error("No lodestone.");
+
+    hitRock(field, lodestone, 0, 0);
+
+    expect(hasLodestone(field)).toBe(false);
   });
 });

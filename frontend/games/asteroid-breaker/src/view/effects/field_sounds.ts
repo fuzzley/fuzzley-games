@@ -6,7 +6,8 @@
 // field's state says without an event: a burst of fire let go, the thrust
 // pressed and let go, the first move, the dash charged, the ship's guard
 // over, a comet come in, and an effect started or run out; and the
-// fuzzball's call, as its voice allows.
+// fuzzball's call, as its voice allows. Beside it, whether a lodestone is
+// on the field, which its hum is held for.
 
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
@@ -439,6 +440,14 @@ export class FieldSounds {
       this.nextRank = rank;
     }
   }
+}
+
+/** Returns whether a lodestone is on a field, whole, which its hum is held for. */
+export function hasLodestone(field: FieldView): boolean {
+  for (const rock of field.rocks) {
+    if (rock.live && rock.kind === "lodestone") return true;
+  }
+  return false;
 }
 
 /** Returns whether a comet's record warns of a comet, yet to come in. */
