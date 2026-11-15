@@ -12,13 +12,16 @@ import { BOULDER_HOLD_MS } from "./timing";
  * Names a flourish the scene plays: the muzzle's flash as a shot leaves, a
  * broken rock's break (its shards, dust and sparks), the field's kick at a
  * large rock's break, a held hit's flash and spark, a blast (its flash,
- * ring, embers and light), a vent's, a spent Shield's or a lost pod's ring, the
+ * ring, embers and light), a ring sweeping out (a spent Shield's, a lost
+ * pod's, a vent's, a pickup let go's or fading's, or a stray's drifting
+ * in), the
  * points scored, a dash's trail, a lost pod's burst, its pilot bailing
- * out, the field's shake at a boulder's break and the boulder's beats,
- * and, as a wave's last rock goes, the flourishes slowed and the wave's
- * ring. Each but the points and a blast moves, so plays only where motion
- * is welcome; the points show either way, rising only where it is, and a
- * blast's ring stands still at its reach where it isn't.
+ * out, the field's shake at a boulder's break and the boulder's beats, as
+ * a wave's last rock goes the flourishes slowed and the wave's ring, and a
+ * still ring marking where something happened. Each but the points, a
+ * blast and a still mark moves, so plays only where motion is welcome; the
+ * points show either way, rising only where it is, a blast's ring stands
+ * still at its reach where it isn't, and a still mark shows only there.
  */
 export type Flourish =
   | "muzzle"
@@ -35,7 +38,8 @@ export type Flourish =
   | "shake"
   | "boulder"
   | "slow"
-  | "wave";
+  | "wave"
+  | "mark";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without. */
 export interface EventEffects {
@@ -90,8 +94,10 @@ const EVENT_EFFECTS: Readonly<
   Record<Exclude<FieldEventKind, "broken" | "hit">, EventEffects>
 > = {
   fired: moving(["muzzle"]),
-  dashed: moving(["trail"]),
-  shielded: moving(["ring"]),
+  // A dash's start and a spent Shield keep a still ring, which tells the
+  // player where each happened.
+  dashed: { flourishes: ["trail"], still: ["mark"] },
+  shielded: { flourishes: ["ring"], still: ["mark"] },
   warned: QUIET,
   // The Cleared card tells the player, so the clearing's slow and its
   // ring keep no still mark.
@@ -104,9 +110,12 @@ const EVENT_EFFECTS: Readonly<
   // its boulder holds, which the hit plays.
   shed: QUIET,
   vented: moving(["ring"]),
-  dropped: QUIET,
+  // A pickup let go, one fading out and a stray drifting in each show a
+  // ring as their sound plays, as nothing is told by sound alone.
+  dropped: moving(["ring"]),
   caught: QUIET,
-  faded: QUIET,
+  faded: moving(["ring"]),
+  strayed: moving(["ring"]),
   // The run's end holds the field still, unshaken: `plan.md`'s budget
   // shakes it for a hit and a boulder alone.
   lost: moving(["burst", "ring", "bailout"]),
@@ -114,7 +123,6 @@ const EVENT_EFFECTS: Readonly<
   knocked: QUIET,
   recaught: QUIET,
   floated: QUIET,
-  strayed: QUIET,
   joined: QUIET,
   home: QUIET,
   scored: { flourishes: ["points"], still: ["points"] },

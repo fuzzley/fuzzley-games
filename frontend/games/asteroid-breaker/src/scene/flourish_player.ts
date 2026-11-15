@@ -5,7 +5,7 @@ import {
   bailOutWayOf,
   flashDue,
   ringColorOf,
-  ringReachOf,
+  ringOf,
 } from "../view/effects/flourish";
 import { FlourishClock } from "../view/effects/flourish_clock";
 import { BURST_SHARDS, SLOWED_MS } from "../view/effects/timing";
@@ -135,8 +135,13 @@ export class FlourishPlayer {
       case "spark":
         debris.holdHit(event, field, palette, now);
         return;
-      case "ring":
-        rings.ring(x, y, ringReachOf(event), ringColorOf(event, palette), now);
+      case "ring": {
+        const { reach, wraps } = ringOf(event);
+        rings.ring(x, y, reach, ringColorOf(event, palette), wraps, now);
+        return;
+      }
+      case "mark":
+        rings.mark(x, y, ringOf(event).reach, palette.accent, now);
         return;
       case "points":
         points.show(event, now);

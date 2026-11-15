@@ -482,7 +482,9 @@ takes for the specs' helpers.
   `effects.ts` says which flourishes each event calls for, with motion and
   without (`effectsOf()`), the field's shake and the beats a boulder's
   alone and its kick a large rock's, the slow and the wave's ring as a
-  wave is cleared, and how long an event holds the field still
+  wave is cleared, a ring seen as a pickup is let go or fades and as a
+  stray drifts in, and where motion isn't welcome a still mark at a
+  dash's start and round a spent Shield, and how long an event holds the field still
   (`holdMsOf()`), a boulder's break's first beat (`BOULDER_HOLD_MS`);
   `sounds.ts` every sound of the sprite, the plan's
   but the beds, by name, each with its family, level, takes and whether it
@@ -547,12 +549,15 @@ takes for the specs' helpers.
   (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome, and the way a lost pod's pilot's bubble rises
-  (`bailOutWayOf()`); `timing.ts` how long each flourish lasts, as
+  (`bailOutWayOf()`), and how far each event's ring reaches, a vent's as
+  far as its blast, and whether it wraps (`RINGS`, `ringOf()`), and its
+  color, a vent's the warning's (`ringColorOf()`); `timing.ts` how long each flourish lasts, as
   `plan.md`'s table has it, a rock's break (`BREAK_MS`) and a held hit's
   spark (`HELD_MS`) among them, the muzzle's flash (`MUZZLE_MS`), a blast
   (`BLAST_MS`), a boulder's beats (`BOULDER_HOLD_MS`,
   `BOULDER_THROW_MS`), the slow as a wave's last rock goes (`SLOW_MS`,
-  `SLOW_PACE`, `SLOWED_MS`) and the wave's ring after it (`WAVE_RING_MS`), and how long
+  `SLOW_PACE`, `SLOWED_MS`) and the wave's ring after it (`WAVE_RING_MS`),
+  how long a still mark stands (`STILL_MARK_MS`), and how long
   the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
   bubble to rise and go); `boulder.ts` how a boulder's break looks over its
   beats, as the kit's `boulderFx()` draws it: its colors (`boulderInks()`),
@@ -924,8 +929,10 @@ takes for the specs' helpers.
   welcome; `BoulderPainter` a boulder's break in its beats, over the
   break every rock has: its cracks running out while the field holds
   still, its glow through the halo painter and the ring it throws;
-  `RingPainter` a spent Shield's and a lost pod's rings, and the wave's
-  ring, once, for the field's camera to cut off,
+  `RingPainter` the rings that sweep out from a spent Shield, a lost pod,
+  a vent, a pickup let go or fading and a stray drifting in, the still marks
+  where motion isn't welcome, and the wave's ring, once, for the field's
+  camera to cut off,
   `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
   stroked again each frame: each of the zap's that it hears of
   (`hear()`), as it struck (`strikeOf()`), from where the pod is drawn,
@@ -956,7 +963,9 @@ takes for the specs' helpers.
   none, and a new field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
   and the flourishes an event calls for where motion is welcome, and where
-  it isn't only what of them stays still, a blast's ring at its reach, each
+  it isn't only what of them stays still, the points and the still marks,
+  a blast's ring at its reach and a ring at a dash's start and round a
+  spent Shield, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
   painter that draws it, on `FieldCamera` or on the flourishes' clock it
   keeps, whose time the scene draws by (`PaintContext`'s `now`), from the
@@ -1381,12 +1390,14 @@ takes for the specs' helpers.
   own rectangle once it has drawn (`data-field`), and the layout check
   holds the placeholder to it.
 - **Motion follows the player's preference** (`GameViewportService`'s
-  `allowsMotion`): without it every flourish but the points is left out,
-  the points showing where they were scored without rising; the pickups'
-  breath, the bob of a stray and of the crew in their bubbles, a
-  warning's chevrons, the flame's flicker and the pilots' blinks hold
-  still, though one knocked loose still blinks through its last seconds,
-  as a pickup does, the rim's flash fades without growing, and
+  `allowsMotion`): without it every flourish is left out but the points,
+  showing where they were scored without rising, and what tells the
+  player something, as a still mark: one ring at a blast's reach, at a
+  dash's start and round a spent Shield; the pickups' breath, the bob of a
+  stray and of the crew in their bubbles, a warning's chevrons, the
+  flame's flicker and the pilots' blinks hold still, though one knocked
+  loose still blinks through its last seconds, as a pickup does, the
+  rim's flash fades without growing, and
   the pilot's fur leans at once rather than easing; and the cards open
   without waiting, the Cleared card's sum whole at once.
 

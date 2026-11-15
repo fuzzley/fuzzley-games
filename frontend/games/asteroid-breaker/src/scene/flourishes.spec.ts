@@ -95,6 +95,7 @@ import {
   LOST_RING_REACH,
   SHIELD_RING_REACH,
   MOST_POINTS_CHARACTERS,
+  RINGS,
   bailOutWayOf,
   trailAlpha,
   trailLaidAfter,
@@ -119,6 +120,7 @@ import {
   RING_MS,
   SHAKE_MS,
   SLOW_MS,
+  STILL_MARK_MS,
   TRAIL_MS,
 } from "../view/effects/timing";
 import { CRACK_REACH, boulderInks } from "../view/effects/boulder";
@@ -437,7 +439,7 @@ describe("the events", () => {
     }).toEqual({ ...NOTHING_PLAYING, points: ["+80"] });
   });
 
-  it("plays nothing that moves where motion isn't welcome, but shows the points and a blast's still ring", async () => {
+  it("plays nothing that moves where motion isn't welcome, but shows the points and the still marks, a blast's and a dash's", async () => {
     const { shell, run, scene } = await startBoard((board) => {
       withShip(board);
       stillness(board);
@@ -447,11 +449,12 @@ describe("the events", () => {
     run.advance(48);
 
     // The blast's still ring, about the keeper in the field's corner, is
-    // drawn on each side of both edges.
+    // drawn on each side of both edges; the dash's start keeps a still
+    // ring, in the middle.
     expect({
       ...playingIn(scene, shell),
       points: pointsShown(scene).length,
-    }).toEqual({ ...NOTHING_PLAYING, blasts: 4, points: 1 });
+    }).toEqual({ ...NOTHING_PLAYING, blasts: 4, rings: 1, points: 1 });
   });
 
   it("makes every particle as the scene starts, and none as they play", async () => {
@@ -1884,6 +1887,132 @@ describe("the wave's clearing", () => {
     run.advance(CLEARED_MS + 32, 16);
 
     expect(trianglesOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+});
+
+describe("the still marks", () => {
+  it.each([
+    [
+      "a dash's start",
+      (shell: FakeShell): void => {
+        shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
+      },
+      RINGS.dashed.reach,
+    ],
+    [
+      "a spent Shield",
+      (shell: FakeShell): void => {
+        shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
+      },
+      RINGS.shielded.reach,
+    ],
+  ] as const)(
+    "marks %s with a ring standing still at its reach where motion isn't welcome, for its time",
+    async (_, log, reach) => {
+      const { shell, run, scene } = await startBoard(stillness);
+      log(shell);
+      const alphas = (): readonly number[] =>
+        commandsOf(scene.kit.rings.graphics).flatMap((command) =>
+          command.kind === "lineStyle" ? [command.alpha] : [],
+        );
+      const ringsNow = (): readonly (readonly number[])[] =>
+        strokesOf(scene.kit.rings.graphics).map(
+          ({ x, y, radius, color }, i) => [
+            x,
+            y,
+            radius,
+            color,
+            alphas()[i] ?? 0,
+          ],
+        );
+      run.advance(48, 16);
+      const early = ringsNow();
+      run.advance(STILL_MARK_MS / 2, 16);
+      const later = ringsNow();
+
+      run.advance(STILL_MARK_MS, 16);
+
+      const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+      const ring = [
+        at.x,
+        at.y,
+        reach * metricsOf(shell).unit,
+        ART_PALETTE.accent,
+        0.9,
+      ];
+      expect([early, later, ringsNow()]).toEqual([[ring], [ring], []]);
+    },
+  );
+
+  it("marks no dash's start where motion is welcome", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addDash(MIDDLE.x, MIDDLE.y, 0);
+
+    run.advance(48, 16);
+
+    expect(strokesOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+});
+
+describe("the sights", () => {
+  it.each([
+    [
+      "a pickup let go from a rock",
+      (shell: FakeShell): void => {
+        shell.field.events.addPickup("dropped", 30, 20, "spread");
+      },
+    ],
+    [
+      "a pickup fading out",
+      (shell: FakeShell): void => {
+        shell.field.events.addPickup("faded", 30, 20, "spread");
+      },
+    ],
+    [
+      "a stray drifting in",
+      (shell: FakeShell): void => {
+        shell.field.events.addPilot("strayed", 30, 20, 3, shell.field.crew);
+      },
+    ],
+  ] as const)(
+    "sweeps a ring out from %s, in the accent, as its sound plays",
+    async (_, log) => {
+      const { shell, run, scene } = await startBoard();
+      log(shell);
+      run.advance(48, 16);
+      const [first] = strokesOf(scene.kit.rings.graphics);
+
+      run.advance(100, 16);
+
+      const [ring] = strokesOf(scene.kit.rings.graphics);
+      expect({
+        at: ring && [ring.x, ring.y, ring.color],
+        spreads: (ring?.radius ?? 0) > (first?.radius ?? Infinity),
+      }).toEqual({
+        at: [
+          onCanvas(metricsOf(shell), 30, 20).x,
+          onCanvas(metricsOf(shell), 30, 20).y,
+          ART_PALETTE.accent,
+        ],
+        spreads: true,
+      });
+    },
+  );
+
+  it("sweeps a stray's ring out once at the edge it comes in by, not past it", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addPilot("strayed", 0, MIDDLE.y, 3, shell.field.crew);
+
+    run.advance(48, 16);
+
+    expect(
+      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => [x, y]),
+    ).toEqual([
+      [
+        onCanvas(metricsOf(shell), 0, MIDDLE.y).x,
+        onCanvas(metricsOf(shell), 0, MIDDLE.y).y,
+      ],
+    ]);
   });
 });
 

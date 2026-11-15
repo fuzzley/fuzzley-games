@@ -13,6 +13,7 @@ import {
   SHAKE_MS,
   SLOW_MS,
   SLOW_PACE,
+  STILL_MARK_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -68,6 +69,10 @@ describe("the table's rows", () => {
 
   it("slows the flourishes to a third for 250 ms as the last rock goes", () => {
     expect([SLOW_MS, SLOW_PACE]).toEqual([250, 1 / 3]);
+  });
+
+  it("stands a still mark as long as a blast's still ring", () => {
+    expect(STILL_MARK_MS).toBe(BLAST_MS);
   });
 
   it("plays a held hit's spark for 150 ms", () => {
