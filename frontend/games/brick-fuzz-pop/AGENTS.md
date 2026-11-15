@@ -403,8 +403,8 @@ helpers.
   question before a run is lost, each wired to `GameService`; hands the board
   the focus as the page loads, as each run begins and as the last dialog over
   the board closes (`refocusWhenUncovered()`), and after the bar's Resume;
-  and pauses the level in play as the player looks away from the room
-  (`[fzPlayRoom]`).
+  and hands the game why the player looked away from the room
+  (`[fzPlayRoom]`), which pauses the level in play (`lookAway()`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and asking
     for each action: from the desktop width (`fitsActionLabels`), unless the
     window is compact, the level, the rounds against par, the rows left, the
@@ -544,7 +544,11 @@ helpers.
     each flight lands, or as it would have landed for one still in the air
     as another run begins. It plays every flight fast while fast-forward
     is on, a setting the bar's Fast-forward (`fastForward()`) and F
-    (`fieldCommand()`) switch, F saying which.
+    (`fieldCommand()`) switch, F saying which. As the player looks away
+    (`lookAway()`), it pauses the level in play, a flight in the air
+    where it is; but as the page is hidden, which may never be seen again,
+    it first lands the round in the air at once, as it would have flown,
+    whatever the run's stage, so the records keep up with the saved game.
     The bar's rounds and score follow the playback, though the
     run takes a round in as it is released: a round counts as its flight
     lands, each break's points as the flight plays it back, and a jump's
@@ -619,9 +623,11 @@ its reader drops what it can't trust rather than failing:
   with no round played, which is laid out afresh. It is written as a round
   is released, as the run will stand once the round lands, so a page
   reloaded mid-flight comes back after it; as the run changes course or a
-  new one begins; and as the page is hidden, never at a frame. A run on its
-  first level with no round played, or one ended, keeps nothing. A key
-  added to it later is read as optional.
+  new one begins; and as the page is hidden, never at a frame. A flight in
+  the air as the page is hidden lands at once, so the records, kept as it
+  lands, are not left behind the run kept. A run on its first level with
+  no round played, or one ended, keeps nothing. A key added to it later is
+  read as optional.
 
 ## Development Commands
 

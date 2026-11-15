@@ -30,6 +30,7 @@ import { CERTIFICATE_FILES } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent } from "./help/help.component";
 import { GameService } from "./play/game.service";
+import { ProgressService } from "./stats/progress.service";
 import { LOAD_HELP } from "./tokens";
 
 /** What a spec gets back from rendering the app. */
@@ -137,6 +138,13 @@ function helpDialogs(): HTMLElement[] {
   return screen
     .queryAllByRole("dialog", { hidden: true })
     .filter((dialog) => dialog.getAttribute("aria-label") === "How to play");
+}
+
+/** Moves the focus out of the room from the board, as switching to another window does. */
+function leaveRoom(): void {
+  const board = screen.getByRole("application");
+  board.focus();
+  board.blur();
 }
 
 /** Returns one of the bar's buttons by its name. */
@@ -463,7 +471,41 @@ describe("AppComponent", () => {
       expect(game.outcome()).toBe("paused");
     });
 
-    it("says so in the page's live region", async () => {
+    it("lands a flight in the air as the page goes out of sight, keeping the level it clears", async () => {
+      const { game } = await renderApp("cleared");
+      release(game);
+
+      setPageVisibility("hidden");
+
+      expect({
+        flying: game.flying(),
+        cleared: TestBed.inject(ProgressService).cleared().size,
+      }).toEqual({ flying: false, cleared: 1 });
+    });
+
+    it("lands a flight paused as the focus left the room once the page goes out of sight", async () => {
+      const { game } = await renderApp("cleared");
+      release(game);
+      leaveRoom();
+
+      setPageVisibility("hidden");
+
+      expect({
+        flying: game.flying(),
+        cleared: TestBed.inject(ProgressService).cleared().size,
+      }).toEqual({ flying: false, cleared: 1 });
+    });
+
+    it("pauses a flight in the air where it is as the focus leaves the room", async () => {
+      const { game } = await renderApp("cleared");
+      release(game);
+
+      leaveRoom();
+
+      expect([game.outcome(), game.flying()]).toEqual(["paused", true]);
+    });
+
+    it("says so in the page's live region, with the score of the round it landed", async () => {
       const { game } = await renderApp("step");
       playRoundOut(game);
       release(game);
@@ -472,7 +514,7 @@ describe("AppComponent", () => {
 
       expect(
         await screen.findByText(
-          `Paused, with a score of ${String(SPEC_POINTS.step)}. Press Enter to go on.`,
+          `Paused, with a score of ${String(2 * SPEC_POINTS.step)}. Press Enter to go on.`,
           // The settings drawer's own region, for while it is open, says it too.
           { ignore: "dialog *" },
         ),

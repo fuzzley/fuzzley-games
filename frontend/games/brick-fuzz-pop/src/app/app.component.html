@@ -4,7 +4,7 @@
   it.
 -->
 <main class="stage">
-  <div class="room" fzPlayRoom (away)="pauseRun()">
+  <div class="room" fzPlayRoom (away)="game.lookAway($event)">
     <app-board />
   </div>
 </main>
