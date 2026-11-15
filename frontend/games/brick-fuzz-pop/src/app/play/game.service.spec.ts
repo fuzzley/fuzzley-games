@@ -22,7 +22,7 @@ import {
   describeShot,
   describeTakenUp,
 } from "../../rules/run/describe";
-import { levelOf, openingOf } from "../../rules/run/run";
+import { levelOf, openingOf, startLevel, takeRound } from "../../rules/run/run";
 import {
   type TakenUp,
   restoreGame,
@@ -45,6 +45,7 @@ import {
   release,
   scriptedRounds,
 } from "../../testing/play";
+import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { PALETTES } from "../../testing/roles";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
 import {
@@ -53,6 +54,7 @@ import {
   fieldShape,
 } from "../../view/field/field_metrics";
 import { FLIGHT_PACE } from "../../view/round_play";
+import type { Steer } from "../../view/steering/steering";
 import { DebugService } from "../debug/debug.service";
 import { waitingRows } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
@@ -162,15 +164,25 @@ interface AskingGame {
   readonly asked: readonly Parameters<RoundPlayer>[];
 }
 
-/** Returns the game, its rounds played as a script says, keeping what it asked of each. */
+/** Returns the game, its rounds played as a script says, keeping what it asked of each, a drop among it. */
 function askingGameOf(...script: readonly SpecRound[]): AskingGame {
   const asked: Parameters<RoundPlayer>[] = [];
   const rounds = scriptedRounds(...script);
-  const game = gameWith((start, shot, boon, rules) => {
-    asked.push([start, shot, boon, rules]);
-    return rounds(start, shot, boon);
+  const game = gameWith((...round) => {
+    asked.push(round);
+    return rounds(...round);
   });
   return { game, asked };
+}
+
+/** Releases the round aimed, plays a frame of its flight, and drops it, returning the round dropped. */
+function droppedAfterAFrame(game: GameService): Round {
+  release(game);
+  game.tick(FRAME_MS, STILL);
+  game.drop();
+  const round = game.round();
+  if (round === null) throw new Error("No round flies.");
+  return round;
 }
 
 /** Returns the game, its rounds played as a script says, its field set to a depth by the debug menu. */
@@ -796,6 +808,212 @@ describe("GameService", () => {
       game.tick(FRAME_MS, STILL);
 
       expect(game.view()).toEqual(view);
+    });
+  });
+
+  describe("dropping a flight", () => {
+    it("flies the round again from the same start, shot, level's boon and rules, dropped at the moment the playback has reached", () => {
+      const { game, asked } = askingGameOf("step");
+      const start = game.start();
+      const shot = { aim: 100, charge: 3 } as const;
+      const steer: Steer = { ...RELEASE, ...shot };
+      game.tick(0, steer);
+      // The steering writes its steer again each frame.
+      steer.aim = 200;
+      steer.release = false;
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+      game.tick(100, steer);
+
+      game.drop();
+
+      expect(asked).toEqual([
+        [start, shot, "hot", RULES],
+        [
+          start,
+          shot,
+          "hot",
+          RULES,
+          {
+            stop: "drop",
+            at: (FLIGHT_PACE.unitsPerSecond.normal / 1000) * 100,
+          },
+        ],
+      ]);
+    });
+
+    it("takes the round dropped into the run as it stood before the release, in place of the whole round", () => {
+      const game = gameOf("cleared");
+      const before = game.run();
+
+      droppedAfterAFrame(game);
+
+      expect(game.run()).toEqual(
+        takeRound(startLevel(before), {
+          // The whole round's less its brick's, broken after the drop.
+          points:
+            SPEC_POINTS.cleared - FLIGHT_FIXTURES.cleared.round.outcome.points,
+          jumped: false,
+          result: "on",
+        }),
+      );
+    });
+
+    it("plays the round dropped on, its fuzzballs coming down, and aims the next round from it", () => {
+      const game = gameOf("cleared");
+      const dropped = droppedAfterAFrame(game);
+
+      playOut(game);
+
+      expect({
+        drops: dropped.flight.events.some(({ kind }) => kind === "drop"),
+        phase: game.phase(),
+        start: game.start(),
+      }).toEqual({ drops: true, phase: "aiming", start: dropped.next });
+    });
+
+    it("keeps no clear of a level the round dropped leaves on", () => {
+      const game = gameOf("cleared");
+      droppedAfterAFrame(game);
+
+      playOut(game);
+
+      expect({
+        outcome: game.outcome(),
+        card: game.card(),
+        cleared: TestBed.inject(ProgressService).cleared().size,
+      }).toEqual({ outcome: "playing", card: null, cleared: 0 });
+    });
+
+    it("keeps the clear of a level the round dropped after its last break still clears, as it lands", () => {
+      const game = gameOf("cleared");
+      release(game);
+      playUntil(
+        game,
+        () => STILL,
+        () => game.score() > 0,
+      );
+      game.drop();
+
+      playOut(game);
+
+      expect({
+        outcome: game.outcome(),
+        cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
+      }).toEqual({ outcome: "cleared", cleared: true });
+    });
+
+    it("leaves the bar's score as the flight played it back", () => {
+      const game = gameOf("cleared");
+      release(game);
+      playUntil(
+        game,
+        () => STILL,
+        () => game.score() > 0,
+      );
+      const score = game.score();
+
+      game.drop();
+
+      expect(game.score()).toBe(score);
+    });
+
+    it("holds a flight dropped while paused still, the run left paused", () => {
+      const game = gameOf("step");
+      release(game);
+      game.tick(FRAME_MS, STILL);
+      game.pause();
+      const place = placeOf(game);
+      game.drop();
+
+      game.tick(100, STILL);
+
+      expect({ outcome: game.outcome(), place: placeOf(game) }).toEqual({
+        outcome: "paused",
+        place,
+      });
+    });
+
+    it("brings a flight dropped while paused down as the run goes on", () => {
+      const game = gameOf("step");
+      release(game);
+      game.tick(FRAME_MS, STILL);
+      game.pause();
+      game.drop();
+      const dropped = game.round();
+      game.resume();
+
+      playOut(game);
+
+      expect(game.start()).toBe(dropped?.next);
+    });
+
+    it("does nothing while a round is aimed", () => {
+      const { game, asked } = askingGameOf("step");
+      const run = game.run();
+
+      game.drop();
+
+      expect({ asked, run: game.run(), round: game.round() }).toEqual({
+        asked: [],
+        run,
+        round: null,
+      });
+    });
+
+    it("does nothing at a second drop", () => {
+      const { game, asked } = askingGameOf("step");
+      const dropped = droppedAfterAFrame(game);
+      game.tick(FRAME_MS, STILL);
+
+      game.drop();
+
+      expect({ asked: asked.length, round: game.round() }).toEqual({
+        asked: 2,
+        round: dropped,
+      });
+    });
+
+    it("is offered from a round's release, paused or not", () => {
+      const game = gameOf("step");
+      const aimed = game.droppable();
+      release(game);
+      const released = game.droppable();
+
+      game.pause();
+
+      expect([aimed, released, game.droppable()]).toEqual([false, true, true]);
+    });
+
+    it("is offered no more once the flight is dropped, though it still flies", () => {
+      const game = gameOf("step");
+
+      droppedAfterAFrame(game);
+
+      expect([game.droppable(), game.flying()]).toEqual([false, true]);
+    });
+
+    it("is offered no more once the flight lands, while the wall comes down", () => {
+      installFakeViewport(1280);
+      const game = gameOf("step");
+      release(game);
+
+      playUntil(
+        game,
+        () => STILL,
+        () => !game.flying(),
+      );
+
+      expect([game.droppable(), game.phase()]).toEqual([false, "settling"]);
+    });
+
+    it("is offered no more as another run begins while the flight is in the air", async () => {
+      const game = gameOf("step");
+      release(game);
+      game.pause();
+
+      await answered(game.newGame(), true);
+
+      expect(game.droppable()).toBe(false);
     });
   });
 
@@ -2148,6 +2366,16 @@ describe("GameService", () => {
       ]);
     });
 
+    it("lets none of its flights be dropped", async () => {
+      const { game, asked } = askingGameOf("step");
+      await game.playLine(1, () => LINE);
+      game.tick(FRAME_MS, STILL);
+
+      game.drop();
+
+      expect([asked.length, game.droppable()]).toEqual([1, false]);
+    });
+
     it("lets none of its shots fly while the level is paused", async () => {
       const { game, asked } = askingGameOf("step");
       await game.playLine(1, () => LINE);
@@ -2451,6 +2679,26 @@ describe("GameService", () => {
       expect(TestBed.inject(ProgressService).cleared().has(FIRST_ID)).toBe(
         true,
       );
+    });
+
+    it("comes back after a reload mid-flight, after the round a drop flew again", () => {
+      const storage = new MemoryStorage();
+      const dropping = keptIn(storage, "cleared");
+      release(dropping);
+      TestBed.tick();
+      dropping.tick(FRAME_MS, STILL);
+      dropping.drop();
+      const next = dropping.round()?.next;
+      TestBed.tick();
+      afresh();
+
+      const game = keptIn(storage);
+
+      expect({
+        level: game.level().number,
+        rounds: game.rounds(),
+        start: game.start(),
+      }).toEqual({ level: 1, rounds: 1, start: next });
     });
 
     it("comes back paused after a reload mid-flight, after the round in the air", () => {

@@ -345,12 +345,17 @@ Phaser game:
   `GameService` the game's first three levels (`SPEC_LEVELS`), a random
   that always gives the same seed (`SPEC_RANDOM`), and a round player:
   `scriptedRounds(...)` plays the rounds named in turn, the last again
-  once they run out, each a fixture's flight and points of the spec's own
-  (`SPEC_POINTS`): `"step"` brings the wall a row down, `"freed"` a row
-  down with a friend freed in `FREED_INK`, `"jump"` a jump down with the
-  level's boon, `"cleared"` empties it, and `"lost"` brings it a row down
-  and the level is lost. A spec that wants the real rules hands it
-  `playRound()`.
+  once they run out, each with the flight the rules fly a fixture's round
+  in and points of the spec's own (`SPEC_POINTS`): `"step"` brings the
+  wall a row down, `"freed"` a row down with a friend freed in
+  `FREED_INK`, `"jump"` a jump down with the level's boon, `"cleared"`
+  empties it, and `"lost"` brings it a row down and the level is lost.
+  Handed a drop, it plays the last round named again, its flight dropped
+  there by the rules, so it is the whole flight up to the drop, as
+  `RoundPlay.dropTo()` takes it; it comes to what the rules' round of its
+  fixture dropped there comes to, with its points: a `"cleared"` round
+  dropped before its brick breaks is a step. A spec that wants the real
+  rules hands it `playRound()`.
 - Play them a frame at a time: `release()`, `playOut()`, `playRoundOut()`
   and `playUntilCard()`, steered `STILL` or `RELEASE`, with
   `@fz/core/testing`'s `FRAME_MS` and `playUntil()`. `GameService` keeps
