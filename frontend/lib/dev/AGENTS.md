@@ -541,18 +541,6 @@ too. Paths are relative to `frontend/lib/dev/`.
   - `src/synth_voice.ts`: the fuzzball's voice: `sing()` sings a `Call`, a
     reed at a pitch that glides, through three resonances that move as a
     mouth does (`MOUTHS`), along paths `along()` draws smoothly.
-- `src/zzfx.ts`, `@fz/dev/zzfx`: ZzFX's synthesis
-  (https://github.com/KilledByAPixel/ZzFX, v1.4.0, MIT, its notice kept at
-  the top), ported to render the same samples from the same parameters, in
-  Node or a page, with nothing drawn at random, so a sound designed by ear
-  in ZzFX's designer renders the same samples every run. `zzfxSamples()`
-  renders a `ZzfxSound`, its parameters named as `ZZFX_PARAMETERS` lists
-  them, in ZzFX's order, at 44,100 samples a second (`ZZFX_SAMPLE_RATE`)
-  unless given another, and leaves ZzFX's randomness to whatever plays the
-  samples; `parseZzfx()` reads a sound as the designer copies one
-  (`zzfx(...[,,925,.04])`, or the list alone), or returns null;
-  `formatZzfx()` writes one back so; and `zzfxCode()` writes one as an
-  object of its parameters, to keep in code.
 - `src/sound_lab.ts`, `@fz/dev/sound-lab`: a game's sound lab, a page only
   its dev server serves. `soundLab({ entry, title })` is the plugin a game's
   `vite.config.ts` adds: it applies to the dev server alone
@@ -732,8 +720,6 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   read on tones they make (`src/synth_measure.spec.ts`), the key
   (`src/synth_music.spec.ts`), the impacts (`src/synth_impacts.spec.ts`)
   and the voice (`src/synth_voice.spec.ts`);
-  `src/zzfx.spec.ts` holds the port to the samples ZzFX v1.4.0 renders
-  itself, and reads and writes the designer's lists;
   `src/workspaces.spec.ts` reads workspaces it writes, runs fake runs in
   lanes, real commands through the shell, and the script over fake ones;
   `src/verify.spec.ts` reads what branches of repositories it writes

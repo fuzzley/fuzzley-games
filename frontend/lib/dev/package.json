@@ -20,7 +20,6 @@
     "./synth": "./src/synth.ts",
     "./sound-lab": "./src/sound_lab.ts",
     "./sound-lab-page": "./src/sound_lab_page.ts",
-    "./zzfx": "./src/zzfx.ts",
     "./workspaces": "./src/workspaces.ts",
     "./verify": "./src/verify.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
