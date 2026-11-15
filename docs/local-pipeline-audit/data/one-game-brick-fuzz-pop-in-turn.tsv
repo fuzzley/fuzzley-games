@@ -1,0 +1,7 @@
+# brick-fuzz-pop, one after another, as its scripts run, without the root's checks
+part	wall_s	exit
+lint	23.3	0
+typecheck	9.6	0
+test	28.4	0
+layout	25.2	0
+whole	86.5	

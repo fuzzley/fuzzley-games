@@ -1,0 +1,8 @@
+# brick-fuzz-pop, side by side, ESLint --concurrency=4: root exited 1 as Prettier found report.md mid-edit, after running every check
+part	wall_s	exit
+root	3.6	1
+typecheck	5.6	0
+lint	17.7	0
+test	33.4	0
+layout	34.3	0
+whole	34.4	

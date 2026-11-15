@@ -1,0 +1,15 @@
+run	wall_s	exit
+brick-breaker, 24 cores, one page at a time	30.1	0
+brick-fuzz-pop, 24 cores, one page at a time	18.7	0
+snake, 24 cores, one page at a time	13.2	0
+asteroid-breaker, 24 cores, one page at a time	9.3	0
+sudoku, 24 cores, one page at a time	3.2	0
+brick-breaker, 4 cores, software WebGL, one page at a time	41.0	0
+brick-fuzz-pop, 4 cores, software WebGL, one page at a time	21.8	0
+brick-breaker, 24 cores, all at once	19.7	0
+brick-fuzz-pop, 24 cores, all at once	10.2	0
+snake, 24 cores, all at once	8.0	0
+asteroid-breaker, 24 cores, all at once	5.1	0
+sudoku, 24 cores, all at once	2.6	0
+brick-breaker, 4 cores, software WebGL, all at once	32.5	0
+brick-fuzz-pop, 4 cores, software WebGL, all at once	14.5	0

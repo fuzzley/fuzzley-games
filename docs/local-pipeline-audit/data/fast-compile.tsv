@@ -1,0 +1,16 @@
+run	wall_s	exit
+Brick Breaker build, fastCompile=0	5.9	0
+Brick Breaker build, fastCompile=1	2.9	0
+Brick Breaker build, fastCompile=0	6.0	0
+Brick Breaker build, fastCompile=1	2.8	0
+Brick Breaker layout check, on the fastCompile build	30.2	0
+Sudoku one spec, FAST=0, prime	7.3	0
+Sudoku one spec, FAST=0, again	7.3	0
+Sudoku one spec, FAST=0, again	7.2	0
+Sudoku one spec, FAST=1, prime	4.6	0
+Sudoku one spec, FAST=1, again	2.6	1
+Sudoku one spec, FAST=1, again	2.6	1
+Sudoku one spec, API=1, prime	7.8	0
+Sudoku one spec, API=1, again	7.7	0
+Sudoku one spec, API=1, again	7.7	0
+Sudoku every spec, API=1	11.7	1

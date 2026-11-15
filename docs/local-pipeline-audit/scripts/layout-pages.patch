@@ -1,0 +1,58 @@
+diff --git a/frontend/lib/dev/src/layout.ts b/frontend/lib/dev/src/layout.ts
+index 7244163d..b58034c2 100644
+--- a/frontend/lib/dev/src/layout.ts
++++ b/frontend/lib/dev/src/layout.ts
+@@ -220,16 +220,15 @@ export async function checkLayout<A extends unknown[] = []>(
+   check: LayoutCheck<A>,
+   shapes: readonly Shape[] = SHAPES,
+ ): Promise<LayoutProblem[]> {
+-  const problems: LayoutProblem[] = [];
+-  for (const shape of shapes) {
++  const all = await Promise.all(shapes.map(async (shape) => {
+     const found = await withPage(devtools, shape.viewport, async (page) => {
+       const errors = await load(page, check);
+       const wrong = await inspect(page, check);
+       return [...errors, ...wrong];
+     });
+-    problems.push(...found.map((problem) => ({ shape: shape.name, problem })));
+-  }
+-  return problems;
++    return found.map((problem) => ({ shape: shape.name, problem }));
++  }));
++  return all.flat();
+ }
+ 
+ /**
+@@ -242,8 +241,7 @@ export async function checkTurns<A extends unknown[] = []>(
+   check: LayoutCheck<A>,
+   turns: readonly Turn[] = TURNS,
+ ): Promise<LayoutProblem[]> {
+-  const problems: LayoutProblem[] = [];
+-  for (const turn of turns) {
++  const all = await Promise.all(turns.map(async (turn) => {
+     const found = await withPage(devtools, turn.from, async (page) => {
+       const errors = await load(page, check);
+       await page.send("Emulation.setDeviceMetricsOverride", {
+@@ -254,9 +252,9 @@ export async function checkTurns<A extends unknown[] = []>(
+       const wrong = await inspect(page, check);
+       return [...errors, ...wrong];
+     });
+-    problems.push(...found.map((problem) => ({ shape: turn.name, problem })));
+-  }
+-  return problems;
++    return found.map((problem) => ({ shape: turn.name, problem }));
++  }));
++  return all.flat();
+ }
+ 
+ /**
+@@ -269,8 +267,7 @@ export async function checkPhaserLayout<A extends unknown[] = []>(
+   devtools: DevToolsConnection,
+   check: LayoutCheck<A>,
+ ): Promise<LayoutProblem[]> {
+-  const shaped = await checkLayout(devtools, check, PHASER_SHAPES);
+-  const turned = await checkTurns(devtools, check, PHASER_TURNS);
++  const [shaped, turned] = await Promise.all([checkLayout(devtools, check, PHASER_SHAPES), checkTurns(devtools, check, PHASER_TURNS)]);
+   return [...shaped, ...turned];
+ }
+ 
