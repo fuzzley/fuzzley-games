@@ -136,7 +136,8 @@ Each file is an entry point of its own, imported by name, such as
   bed's layers keep to one bar line by `loopPhase()`, where in its loop a
   layer started late plays from, and fade by `fadedShare()`, a fade's share
   after a step at the pace `FADE_SECONDS` sets, and `fadeGain()`, its gain,
-  a quarter sine, so two layers crossing keep one loudness. It imports
+  a quarter sine, so two layers crossing keep one loudness, as
+  `@fz/phaser/sound`'s `LayerPlayer` plays them. It imports
   nothing, so a page that plays by it can compile it alone.
 - `src/keys.ts`: `isShortcut()`, whether a key was pressed with Ctrl, Alt
   or Meta held, as the browser's and the system's shortcuts are, which a

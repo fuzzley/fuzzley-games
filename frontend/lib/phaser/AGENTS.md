@@ -267,8 +267,25 @@ take the pure ones.
   `limitSound()`, set as `LIMITER` says), once for the game, and
   `followMono()` sums the two ears into one, or lets them be two
   (`playMono()`, the speakers taking one channel), each only where the game
-  plays through Web Audio, which the headless game doesn't. It imports
-  Phaser and `@fz/core`, never Angular.
+  plays through Web Audio, which the headless game doesn't. Beside it,
+  `LayerPlayer` plays looped layers of sound, such as a sector's bed and
+  the layers that join it, each a `SoundLayer` (a key, a URL or several,
+  and a volume): made in `create()`, it asks for a layer's file the first
+  time a scene holds it, or earlier where the scene asks it to `fetch()`
+  it, as the next sector's bed, and loops each while a scene holds it
+  (`hold()`, called each frame), after the scene's update, once its file
+  has loaded; the first to start sets a bar line, on the sound's own clock
+  (`src/sound/output.ts`'s `soundTime()`, the audio context's under Web
+  Audio, which stands still while the browser holds the sound back, else
+  the scene's), each starting a moment ahead so Web Audio starts it on
+  time, and each started while another plays starts as far into its loop
+  as `@fz/core`'s `loopPhase()` says, so they keep in step; each fades in
+  and out by its volume, on the same clock, over `FADE_SECONDS` unless it
+  is given another time, by `fadedShare()` and `fadeGain()`, so a bed let
+  go as another is held crosses into it at one loudness, stops once faded
+  out, and every one stops as the scene ends; one whose sound another
+  destroyed, as the sound manager's `removeAll()` does, starts again while
+  it is held. It imports Phaser and `@fz/core`, never Angular.
 - `src/canvas/`: `<fz-phaser-canvas>`, the Angular component an app shows its
   scenes in, which makes the one host it keeps, through the
   `PHASER_CANVAS_HOST` token. Its `scene` input is a `SceneSource`, a function
