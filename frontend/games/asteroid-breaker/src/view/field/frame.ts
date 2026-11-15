@@ -66,6 +66,10 @@ export interface FieldView {
   readonly steps: number;
   /** Whether every rock it held is gone. */
   readonly cleared: boolean;
+  /** How many breaks the chain had counted as of the last, 0 once a hit ends it. */
+  readonly chain: number;
+  /** The step the last break counted in the chain came at. */
+  readonly lastBreakAt: number;
 }
 
 /** Describes the field between one step and the next. */

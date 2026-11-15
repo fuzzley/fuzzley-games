@@ -457,6 +457,15 @@ takes for the specs' helpers.
   it, in SVG (`rockPictures()`);
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
   pilots, each `@fz/phaser/fuzzball`'s fuzzball in its ink, in the ship's window or adrift;
+  `faces.ts` the face the pilot at the controls shows as the field stands,
+  as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
+  the steps at which what it answers last happened (`FaceMoments`), noted
+  from the field's events (`hearFace()`) and its near misses
+  (`watchFace()`), a stray adrift's (`adriftFaceOf()`), each blinking now
+  and then by the field's steps (`isBlinking()`), where the pilot looks,
+  at the nearest rock or comet or the way the pod points (`lookOf()`),
+  how far its fur lifts with the chain (`liftOf()`), and the push it
+  leans from, eased so it lags a thrust (`pushOf()`, `easeLean()`);
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), with its
   builders, curves and transforms, and `shapes.ts` holds the game's own
