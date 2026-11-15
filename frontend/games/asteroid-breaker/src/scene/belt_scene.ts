@@ -408,7 +408,7 @@ export class BeltScene extends Scene {
       rocks: new RockPainter(this, layers.rocks),
       pickups: new PickupPainter(this, layers.pickups),
       strays: new StrayPainter(this, layers.strays),
-      hazards: new HazardPainter(this, layers.hazards),
+      hazards: new HazardPainter(this, layers.hazards, layers.lanes),
       shots: new ShotPainter(this, layers.shots),
       ship: new PodPainter(this, layers.ship),
       trail: new TrailPainter(this, layers.effects),

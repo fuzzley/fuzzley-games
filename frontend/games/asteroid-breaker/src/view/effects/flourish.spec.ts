@@ -14,7 +14,6 @@ import {
   GOLDEN_ANGLE,
   LOST_RING_REACH,
   MOST_POINTS_CHARACTERS,
-  PULSE_LEAST,
   SHIELD_RING_REACH,
   type Jolts,
   TRAIL_MOST,
@@ -28,7 +27,6 @@ import {
   flashDue,
   kickShare,
   pointsLabel,
-  pulseAlpha,
   riseOf,
   ringColorOf,
   ringReachOf,
@@ -450,28 +448,6 @@ describe("bobShare", () => {
   it("holds a stray at its place where motion isn't welcome", () => {
     expect(new Set(overTime((seconds) => bobShare(seconds, 1, false)))).toEqual(
       new Set([0]),
-    );
-  });
-});
-
-describe("pulseAlpha", () => {
-  it("starts a comet's warning full, faintest half a pulse on, and full again a pulse on", () => {
-    // It pulses 0.8 times a second, so a pulse lasts 1.25 s.
-    expect(pulseAlpha(0, true)).toBe(1);
-    expect(pulseAlpha(0.625, true)).toBeCloseTo(PULSE_LEAST, 9);
-    expect(pulseAlpha(1.25, true)).toBeCloseTo(1, 9);
-  });
-
-  it("pulses a comet's warning between full and its faintest", () => {
-    const alphas = overTime((seconds) => pulseAlpha(seconds, true));
-
-    expect(Math.max(...alphas)).toBeCloseTo(1, 3);
-    expect(Math.min(...alphas)).toBeCloseTo(PULSE_LEAST, 3);
-  });
-
-  it("holds a comet's warning full where motion isn't welcome", () => {
-    expect(new Set(overTime((seconds) => pulseAlpha(seconds, false)))).toEqual(
-      new Set([1]),
     );
   });
 });

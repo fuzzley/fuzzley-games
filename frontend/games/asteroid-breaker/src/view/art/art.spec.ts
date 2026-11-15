@@ -7,7 +7,7 @@ import {
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { FUZZBALL_FACES, MOST_LIFT } from "@fz/style/fuzzball";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
-import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
+import { STRAY_RADIUS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,
@@ -44,7 +44,7 @@ import {
 } from "./pod_art";
 import { isFine, rockFrames } from "./rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "./shapes";
-import { pickupFrame } from "./things";
+import { COMET_FRAMES, pickupFrame } from "./things";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -242,7 +242,7 @@ describe.each(PIXEL_RATIOS)("deckFrames at %f to a CSS pixel", (pixelRatio) => {
 const LIT_ATLAS_SIDE = 4096;
 
 describe("litFrames", () => {
-  it("holds every rock's frame, then the pod's hull", () => {
+  it("holds every rock's frame, then the pod's hull and the comet's head", () => {
     const fine = isFine(ART_SCALE);
 
     const names = litFrames(ART_PALETTE, ART_SCALE, fine).map(
@@ -252,6 +252,7 @@ describe("litFrames", () => {
     expect(names).toEqual([
       ...rockFrames(ART_PALETTE, ART_SCALE, fine).map(({ ink }) => ink.name),
       POD_FRAMES.hull,
+      COMET_FRAMES.head,
     ]);
   });
 
@@ -374,12 +375,6 @@ describe("the other frames", () => {
     });
   });
 
-  it("keeps the comet's tail within the margin it leaves the field by, so it is out of sight as the comet goes", () => {
-    expect(frameNamed(ART_FRAMES, FRAMES.comet).width / 2).toBeLessThanOrEqual(
-      COMET_MARGIN * ART_SCALE.unit,
-    );
-  });
-
   it("frames the comet's picture about its head and tail together", () => {
     const frame = frameNamed(ART_FRAMES, PICTURE_FRAMES.comet);
     const edge = frame.commands.flatMap(edgeOf);
@@ -407,23 +402,6 @@ describe("the other frames", () => {
     expect(reach).toBeLessThan(
       rim?.kind === "ring" ? rim.radius - rim.width / 2 : 0,
     );
-  });
-
-  it("draws the comet's tail and its head, outlined, in the comet's color", () => {
-    expect(
-      frameNamed(ART_FRAMES, FRAMES.comet).commands.map(
-        (command) => command.color,
-      ),
-    ).toEqual([ART_PALETTE.comet, ART_PALETTE.outline, ART_PALETTE.comet]);
-  });
-
-  it("draws the warning as two chevrons in the comet's color, round at their ends and corners", () => {
-    const warning = frameNamed(ART_FRAMES, FRAMES.warning);
-
-    expect([
-      drawnIn(warning, "line", ART_PALETTE.comet).length,
-      drawnIn(warning, "circle", ART_PALETTE.comet).length,
-    ]).toEqual([4, 6]);
   });
 
   it.each([FRAMES.shard, FRAMES.spark, FRAMES.puff])(

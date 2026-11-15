@@ -376,13 +376,20 @@ takes for the specs' helpers.
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
   the tags of the effects in play lie, at the field's bottom left, and how
-  much of each one's time is left; `warning.ts` where a comet's warning is
-  drawn; and `specks.ts` where the places' stars lie, in three depths, far,
-  mid and bright, as many of each as the largest field holds, each depth
-  from a stream of its own of the seed (`starsOf()`), and how many a field
-  shows by its area (`starCount()`), and where an Endless wave's
-  constellation lies, from the run's seed mixed with the wave's number in
-  `mixSeed()`'s `"scenery"` stream (`constellationAt()`).
+  much of each one's time is left; `warning.ts` where a comet's warning
+  stands, on the field's edge where the comet will come in, along its way
+  (`warningAt()`), how far its lane runs across the field
+  (`laneLength()`), which of its chevrons is lit, each in turn and
+  quickening as the comet comes, or none, all held still, where motion
+  isn't welcome (`chevronLit()`), and how strongly a comet's tail shows,
+  fading as it lies off the field, to nothing at the margin it comes in
+  from and leaves past (`tailShare()`); and `specks.ts` where the places'
+  stars lie, in three depths, far, mid and bright, as many of each as the
+  largest field holds, each depth from a stream of its own of the seed
+  (`starsOf()`), and how many a field shows by its area (`starCount()`),
+  and where an Endless wave's constellation lies, from the run's seed
+  mixed with the wave's number in `mixSeed()`'s `"scenery"` stream
+  (`constellationAt()`).
 - **`src/view/places/`** — the place behind the play in each sector, ported
   from the uplift's kit (`docs/asteroid-breaker-uplift/art/lib/backdrop.mjs`),
   its landmark cut from the same draws, so it is the kit's to the facet.
@@ -480,9 +487,9 @@ takes for the specs' helpers.
   `@fz/core/math`'s `shareDone()` and its curves (`easeOutCubic()`,
   `fadeAlpha()`), among them how far the kick and the shake scroll the
   field's camera (`cameraShift()`) and when a dash lays each of its outlines
-  (`trailOutlinesLaid()`), and how the pickups breathe, a stray bobs, a
-  comet's warning pulses and the pod's exhaust streams (`exhaustDue()`),
-  each only where motion is welcome; `timing.ts` how long each flourish
+  (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
+  stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
+  motion is welcome; `timing.ts` how long each flourish
   lasts and how long the cards wait (`clearedDelayMs()`, `resultDelayMs()`);
   and `haptics.ts` how the phone buzzes as the ship takes a hit or a wave is
   cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
@@ -520,7 +527,8 @@ takes for the specs' helpers.
   as WebGL lights from a point (`farLight()`); and the light of a held
   hit's flash (`STRUCK_LIGHT`). `contrast.spec.ts` holds each kind of
   rock's ink, and its darkest and brightest faces under the palette's
-  light, the pod, its hull's and its trim's darkest and brightest faces,
+  light, the pod, its hull's and its trim's and the comet's head's darkest
+  and brightest faces,
   the pickups, the comet, the shots, the flame and a stray's bubble's rim
   to 3:1 against the field in every palette, the outline against
   everything it outlines, the marks against every rock and every face, a
@@ -533,7 +541,8 @@ takes for the specs' helpers.
   the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
   its unit rounded down to whole device pixels, 32 at most (`bakedScale()`),
   the deck's frames apart (`deckFrames()`), gathers the rocks' atlas's,
-  the rocks' and then the pod's hull (`litFrames()`), and names the frames
+  the rocks', then the pod's hull and the comet's head (`litFrames()`),
+  and names the frames
   How to play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
   `rock_art.ts` draws the rocks' own atlas: each kind
   in each size it comes in and six outlines (`ROCK_OUTLINES`), cut in
@@ -614,7 +623,17 @@ takes for the specs' helpers.
   (`orbLook()`): swelling as it breathes, its halo wider and stronger
   with it, and dim with no halo for the off half of each blink in its
   last seconds (`ORB_DIM`), rather than gone, from rest
-  (`restingLook()`), and a pickup's by its slot (`pickupLook()`);
+  (`restingLook()`), and a pickup's by its slot (`pickupLook()`); and the
+  comet as the kit's `makeComet()` cuts it (`COMET`), a long wedge in
+  facets: its head in the danger color, outlined, for the rocks' atlas to
+  light (`cometHeadFrame()`), its glowing leading edge as a fine mark, and
+  its tail of streaks in its energy's tones about the tail's own middle
+  (`TAIL_BEHIND`), its halos the scene's (`COMET_HALOS`); its warning on
+  the edge it comes in by, a bar and three chevrons, banded, with each
+  chevron lit or all held still (`warningFrame()`), each chevron's halo
+  while it is lit (`CHEVRON_HALOS`), and its lane across the field, a wash
+  the scene stretches and runs of dashes it lays end to end (`LANE`); and
+  How to play's picture of the comet, its head lit as the field lights it;
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -633,12 +652,14 @@ takes for the specs' helpers.
   helpers over them: the scale the atlas is baked at, the outline's width,
   the dashed rings and the outlines grown outward (`outward()`). Each piece
   that wraps says how far its frame reaches from its middle (`SHOT_REACH`,
-  by weapon, `MUZZLE_REACH`, `PICKUP_REACH`, `ROCK_REACH`, `POD_REACH`), its own
-  extent and its outline at the widest a line gets (`MOST_LINE`), a rock's
-  and the pod's mitred out at a sharp corner as far as an outline may
-  reach (`MOST_MITER`), and the pod's covering its rings too, which the
-  scene draws its copies past the edges by, and its spec holds what it
-  draws within it. `points_art.ts` letters the points scored instead, in the
+  by weapon, `MUZZLE_REACH`, `PICKUP_REACH`, `ROCK_REACH`, `POD_REACH`),
+  its own extent and its outline at the widest a line gets (`MOST_LINE`),
+  a rock's and the pod's mitred out at a sharp corner as far as an outline
+  may reach (`MOST_MITER`), and the pod's covering its rings too, which
+  the scene draws its copies past the edges by, and its spec holds what it
+  draws within it; so does each part of the comet, which crosses
+  (`COMET_REACH`, within the margin it leaves by, `TAIL_REACH`,
+  `WARNING_REACH`). `points_art.ts` letters the points scored instead, in the
   page's font, from what a canvas measures of it (`letterPoints()`), at the
   field's unit rounded down to whole device pixels, with no cap
   (`letteringUnit()`): each character but the space a frame filled in the
@@ -691,8 +712,10 @@ takes for the specs' helpers.
   rock's, turning with it, each shot's, along its travel, in the accent,
   as its weapon's says, and each pickup's, round, in the accent, as wide
   and as strong as its orb breathes, none while it blinks dim, by the
-  same `pickupLook()`; made as many as all a field's rocks, shots and pickups
-  could give off at once, and as many more as another painter
+  same `pickupLook()`, and each comet's, once, for the field's camera to
+  cut off, its head's and its tail's, as strongly as its tail shows, and
+  its warning's lit chevron's; made as many as all a field's rocks, shots,
+  pickups and comets could give off at once, and as many more as another painter
   reserves (`reserve()`) to show its own after it
   draws, through `glow()`, or `glowOnce()` for a thing that crosses rather
   than wraps, shown once where it lies, as `Copies`' `showOnce()` shows it,
@@ -703,11 +726,15 @@ takes for the specs' helpers.
   `PickupPainter` the pickups, each as its orb, as large and as opaque
   as `pickupLook()` says, each slot a phase apart,
   `StrayPainter` the stray adrift, pleading, and a lost pod's pilot
-  bailing out, wide eyed, `HazardPainter` the comets and their warnings,
+  bailing out, wide eyed, `HazardPainter` the comets, each its head lit
+  as the rocks are, from the rocks' atlas, its edge over it and its tail
+  behind it, fading as it lies off the field, and their warnings, their
+  chevrons lit in turn, with their lanes across the field in a layer of
+  their own under all that lies on it (`lanes`),
   `ShotPainter` the shots, each in its weapon's frame, `PodPainter` the
-  pod, its flame, its pilot, its face as the field shows it, which it hears the field's events for
-  (`hear()`), and its rings, `TrailPainter` a dash's trail of the pod's
-  ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
+  pod, its flame, its pilot, its face as the field shows it, which it
+  hears the field's events for (`hear()`), and its rings, `TrailPainter` a
+  dash's trail of the pod's ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
   `DebrisPainter` each rock's break, from the view's `breaks.ts`: its
   dust, the rock whole and flashing and its own facets as shards, in its
   layer under the rocks (`breaks`), so none hides a piece it leaves, filled
@@ -1135,7 +1162,7 @@ takes for the specs' helpers.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it every flourish but the points is left out,
   the points showing where they were scored without rising; the pickups'
-  breath, a stray's bob, a warning's pulse, the flame's flicker and the
+  breath, a stray's bob, a warning's chevrons, the flame's flicker and the
   pilots' blinks hold still, the rim's flash fades without growing, and
   the pilot's fur leans at once rather than easing; and the cards open
   without waiting, the Cleared card's sum whole at once.

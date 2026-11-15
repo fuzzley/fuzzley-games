@@ -1,9 +1,8 @@
 // How each flourish moves over its time, and how what idles on the field
-// moves while motion is welcome: a pickup's breath, a stray's bob, a
-// comet's warning's pulse and the exhaust the flame streams. Where motion
-// isn't welcome each holds still at its look at rest. A sign that blinks,
-// a pickup about to fade or the ring of a pod nothing can touch, is no
-// motion, so it blinks either way. The pilots' blinks and the flame's
+// moves while motion is welcome: a pickup's breath, a stray's bob and the
+// exhaust the flame streams. Where motion isn't welcome each holds still at
+// its look at rest. A sign that blinks, a pickup about to fade or the ring
+// of a pod nothing can touch, is no motion, so it blinks either way. The pilots' blinks and the flame's
 // flicker go by the field's steps, in `src/view/art/`.
 
 import { formatPoints } from "@fz/core/format";
@@ -37,9 +36,6 @@ import {
 
 /** How far a stray bobs in its bubble, up and down, as a share of its radius. */
 export const BOB = 0.12;
-
-/** How faint a comet's warning gets between pulses. */
-export const PULSE_LEAST = 0.6;
 
 /** How opaque a held hit's flash starts: a light wash of the rock's own frame, over it. */
 export const FLASH_MOST = 0.7;
@@ -78,8 +74,8 @@ export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
  */
 const SHAKE_RATES = { x: 13, y: 17 } as const;
 
-/** How fast each idle motion turns, in turns a second: a breath, a bob and a pulse. */
-const RATES = { breath: 0.64, bob: 0.35, pulse: 0.8 } as const;
+/** How fast each idle motion turns, in turns a second: a breath and a bob. */
+const RATES = { breath: 0.64, bob: 0.35 } as const;
 
 /**
  * How many times a second a blinking thing blinks, under the three flashes a
@@ -318,23 +314,6 @@ export function bobShare(
   motion: boolean,
 ): number {
   return motion ? BOB * wave(RATES.bob, seconds, phase) : 0;
-}
-
-/**
- * Returns how far through its swing an idle motion is at a time, from 0 to 1
- * and back once a turn, 1 as it starts.
- */
-function swing(rate: number, seconds: number): number {
-  return (1 + wave(rate, seconds, Math.PI / 2)) / 2;
-}
-
-/**
- * Returns how opaque a comet's warning is as it pulses, full as it starts: full
- * where motion isn't welcome.
- */
-export function pulseAlpha(seconds: number, motion: boolean): number {
-  if (!motion) return 1;
-  return PULSE_LEAST + (1 - PULSE_LEAST) * swing(RATES.pulse, seconds);
 }
 
 /**

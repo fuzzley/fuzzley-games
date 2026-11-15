@@ -22,15 +22,12 @@ import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
 import type { FieldEventKind, LoggedRock } from "../rules/field/events";
 import { type Field, steerField } from "../rules/field/field";
-import { COMET_RECORDS } from "../rules/hazards/comets";
 import { hitRock, setOffBlasts } from "../rules/rocks/rocks";
 import { atControls } from "../rules/ship/pilots";
 import { STILL, type Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import { across } from "../rules/torus";
 import {
-  COMET_MARGIN,
-  COMET_WARNING_MS,
   DASH_RECHARGE_MS,
   SHOT_EVERY_MS,
   STATIC_MOST,
@@ -107,7 +104,6 @@ import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
 import { PATIENCE_MS } from "../view/effects/voice";
 import { BED_NAMES, type BedName } from "../view/effects/beds";
-import { PULSE_LEAST } from "../view/effects/flourish";
 import type { BeltPalette } from "../view/colors/palette";
 import { farLight } from "../view/colors/rock_light";
 import {
@@ -118,7 +114,6 @@ import {
 } from "../view/field/field_metrics";
 import { LAYERS, LAYER_CAMERAS } from "../view/field/layers";
 import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
-import { WARNING_INSET } from "../view/field/warning";
 import { placeColors } from "../view/places/colors";
 import type { Flicker } from "../view/places/marks";
 import { NEAR_SLIDE, flickerAt } from "../view/places/motion";
@@ -1080,88 +1075,6 @@ describe("the stray", () => {
     const { bubble, pilot, eyes } = scene.kit.strays.adrift;
 
     expect([bubble, pilot, eyes].map(shownAt)).toEqual([null, null, null]);
-  });
-});
-
-describe("the comets", () => {
-  it("draw a comet crossing where it is, turned the way it flies", async () => {
-    const { shell, run, scene } = await startBoard();
-    placeComet(shell.field, 30, 20, 0.5);
-
-    run.advance(16);
-
-    const [comet] = scene.kit.hazards.comets;
-    const [warning] = scene.kit.hazards.warnings;
-    expect({
-      comet: comet && shownAt(comet),
-      turned: comet?.rotation,
-      warning: warning && shownAt(warning),
-    }).toEqual({
-      comet: onCanvas(metricsOf(shell), 30, 20),
-      turned: 0.5,
-      warning: null,
-    });
-  });
-
-  it("draw a comet between its last place and its next, off the field as it comes in", async () => {
-    const { shell, run, scene } = await startBoard((each) => {
-      each.alpha = 0.5;
-    });
-    const comet = placeComet(shell.field, -1, 20);
-    comet.lastX = -2;
-
-    run.advance(16);
-
-    const [image] = scene.kit.hazards.comets;
-    expect(image && shownAt(image)).toEqual(
-      onCanvas(metricsOf(shell), -1.5, 20),
-    );
-  });
-
-  it("warn of a comet at the edge it will come in by, pointing in, and draw it not yet", async () => {
-    const { shell, run, scene } = await startBoard(stillness);
-    const comet = placeComet(shell.field, -COMET_MARGIN, 20);
-    comet.warnSteps = 100;
-
-    run.advance(16);
-
-    const [image] = scene.kit.hazards.comets;
-    const [warning] = scene.kit.hazards.warnings;
-    expect({
-      comet: image && shownAt(image),
-      warning: warning && shownAt(warning),
-      turned: warning?.rotation,
-      alpha: warning?.alpha,
-    }).toEqual({
-      comet: null,
-      warning: onCanvas(metricsOf(shell), WARNING_INSET, 20),
-      turned: 0,
-      alpha: 1,
-    });
-  });
-
-  it.each([
-    ["full as it starts", 0, 1],
-    ["at its faintest half a pulse on", 625, PULSE_LEAST],
-  ])(
-    "pulse a warning where motion is welcome, %s",
-    async (_, warnedMs, alpha) => {
-      const { shell, run, scene } = await startBoard();
-      placeComet(shell.field, -COMET_MARGIN, 20).warnSteps =
-        stepsIn(COMET_WARNING_MS) - stepsIn(warnedMs);
-
-      run.advance(16);
-
-      expect(scene.kit.hazards.warnings[0]?.alpha).toBeCloseTo(alpha, 9);
-    },
-  );
-
-  it("draw nothing for a record out of play", async () => {
-    const { scene } = await startBoard();
-
-    expect(
-      [...scene.kit.hazards.comets, ...scene.kit.hazards.warnings].map(shownAt),
-    ).toEqual(Array(2 * COMET_RECORDS).fill(null));
   });
 });
 
@@ -2341,8 +2254,10 @@ describe("baking", () => {
       ART_PALETTE,
       bakedScale(metrics),
       isFine(metrics),
-    ).find((frame) => frame.name === FRAMES.comet);
-    expect(scene.textures.getFrame(ATLAS, FRAMES.comet).width).toBe(art?.width);
+    ).find((frame) => frame.name === FRAMES.bubble);
+    expect(scene.textures.getFrame(ATLAS, FRAMES.bubble).width).toBe(
+      art?.width,
+    );
   });
 
   it.each([

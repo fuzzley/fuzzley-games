@@ -4,15 +4,12 @@ import {
   type ArtScale,
   type DrawCommand,
   ORIGIN,
-  type Point,
   arcPoints,
-  bounded,
   centered,
   circle,
   lineWidth,
   placed,
   polygon,
-  quadraticPoints,
   ring,
   shifted,
   stroke,
@@ -41,18 +38,19 @@ import {
 } from "./pilot_art";
 import { podFrames, podHullFrame } from "./pod_art";
 import { type LitFrame, rockFrames } from "./rock_art";
-import { dashedRing, outlineWidth } from "./shapes";
+import { dashedRing } from "./shapes";
 import { SYMBOLS } from "./symbols";
-import { PICKUP_FRAMES, thingsFrames } from "./things";
+import {
+  COMET_FRAMES,
+  PICKUP_FRAMES,
+  cometHeadFrame,
+  thingsFrames,
+} from "./things";
 
-/** The names of the frames that aren't a rock's, a pilot's, the pod's or a pickup's. */
+/** The names of the frames that aren't a rock's, a pilot's, the pod's, a pickup's, the comet's or the field's energy's. */
 export const FRAMES = {
   /** A stray's bubble, its pilot drawn in it. */
   bubble: "bubble",
-  /** The comet's head and tail, the head's middle the frame's. */
-  comet: "comet",
-  /** The chevron at the edge a comet will come in by. */
-  warning: "warning",
   /** A broken rock's shard, white, so the scene tints it as the rock was. */
   shard: "shard",
   /** The spark off a rock that holds, white. */
@@ -64,11 +62,6 @@ export const FRAMES = {
    * as the fuzzball is everywhere but in a pilot's ink.
    */
   strayPicture: "stray-picture",
-  /**
-   * How to play's picture of the comet, framed by its head and tail together,
-   * as a picture is taken whole.
-   */
-  cometPicture: "comet-picture",
 } as const;
 
 /** The names of the deck's frames, each white, so the scene tints it as it is held or at rest. */
@@ -104,17 +97,6 @@ const GLINT = { reach: 0.78, from: -2.5, to: -1.75 } as const;
 
 /** How far below its bubble's middle a stray's pilot sits, as a share of its radius. */
 export const STRAY_DROP = 0.05;
-
-/**
- * The comet's head's radius, a little past the reach it meets things
- * within, and its tail's length from the head's middle, within the margin
- * the comet leaves the field by, so all of it has gone from sight as it
- * goes, in field units; and how far along the tail its sides bend in.
- */
-const COMET = { head: 1.1, tail: 2.8, bend: 0.55 } as const;
-
-/** How wide the warning's chevrons are drawn, in field units. */
-const WARNING_LINE = 0.32;
 
 /** How big each flourish's frame is drawn, in field units: a shard across and down, a spark from its middle to each tip, and a puff's radius. */
 export const FLOURISH = {
@@ -175,53 +157,10 @@ function bubbleCommands(
   ];
 }
 
-/** Returns the comet's head and tail about its head's middle, its tail behind it along x. */
-function cometCommands(
-  palette: BeltPalette,
-  scale: ArtScale,
-): readonly DrawCommand[] {
-  const head = COMET.head * scale.unit;
-  const top = { x: 0, y: -1 };
-  const tip = { x: -COMET.tail, y: 0 };
-  const bend = -COMET.bend * COMET.tail;
-  const tail = [
-    top,
-    ...quadraticPoints(top, { x: bend, y: -0.55 }, tip),
-    ...quadraticPoints(tip, { x: bend, y: 0.55 }, { x: 0, y: 1 }),
-  ];
-  return [
-    polygon(placed(tail, scale.unit), { color: palette.comet }),
-    circle(ORIGIN, head + outlineWidth(scale), { color: palette.outline }),
-    circle(ORIGIN, head, { color: palette.comet }),
-  ];
-}
-
-/** Returns the warning's two chevrons, pointing along x, in the comet's color. */
-function warningCommands(
-  palette: BeltPalette,
-  scale: ArtScale,
-): readonly DrawCommand[] {
-  const style = { color: palette.comet, width: widthOf(WARNING_LINE, scale) };
-  const chevron = (points: readonly Point[]): readonly DrawCommand[] =>
-    stroke(placed(points, scale.unit), style);
-  return [
-    ...chevron([
-      { x: -0.45, y: -0.8 },
-      { x: 0.35, y: 0 },
-      { x: -0.45, y: 0.8 },
-    ]),
-    ...chevron([
-      { x: -1.15, y: -0.55 },
-      { x: -0.6, y: 0 },
-      { x: -1.15, y: 0.55 },
-    ]),
-  ];
-}
-
 /**
  * Returns the frames of what isn't a rock, a pilot, the pod, a pickup or
- * the field's energy: a stray's bubble, the comet and its warning, the
- * flourishes, and the stray's and the comet's pictures.
+ * the field's energy: a stray's bubble, the flourishes, and the stray's
+ * picture.
  */
 function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
   const shard = FLOURISH.shard * scale.unit;
@@ -230,8 +169,6 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
   const drop = STRAY_DROP * STRAY_RADIUS * scale.unit;
   return [
     centered(FRAMES.bubble, bubbleCommands(palette, scale)),
-    centered(FRAMES.comet, cometCommands(palette, scale)),
-    centered(FRAMES.warning, warningCommands(palette, scale)),
     centered(FRAMES.shard, [
       polygon(
         placed(
@@ -271,17 +208,16 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
         ...eyesCommands(adrift, palette),
       ].map((command) => shifted(command, { x: 0, y: drop })),
     ]),
-    bounded(FRAMES.cometPicture, cometCommands(palette, scale)),
   ];
 }
 
 /**
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, the fine marks only where the field keeps them: the pod's but its
- * hull, which the rocks' atlas lights, the pilots and their eyes, the
- * pickups and their tags, each weapon's shot and the muzzle's flash, a
- * stray's bubble, the comet and its
- * warning, the flourishes and the stray's picture.
+ * hull, and the comet's but its head, which the rocks' atlas lights, the
+ * pilots and their eyes, the pickups and their tags, the comet's warning
+ * and lane, each weapon's shot and the muzzle's flash, a stray's bubble,
+ * the flourishes, and the stray's and the comet's pictures.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
  * would make it too large for some devices, with the fine marks as
@@ -305,14 +241,18 @@ export function atlasFrames(
 /**
  * Returns every frame of the rocks' atlas and its normal map, each in its
  * inks and as its normal map: the rocks' (`rockFrames()`), then the pod's
- * hull, which the scene lights as it lights them.
+ * hull and the comet's head, which the scene lights as it lights them.
  */
 export function litFrames(
   palette: BeltPalette,
   scale: ArtScale,
   fine: boolean,
 ): readonly LitFrame[] {
-  return [...rockFrames(palette, scale, fine), podHullFrame(palette, scale)];
+  return [
+    ...rockFrames(palette, scale, fine),
+    podHullFrame(palette, scale),
+    cometHeadFrame(palette, scale),
+  ];
 }
 
 /** Returns a button's frames: its disc, its ring and its symbol, white. */
@@ -391,5 +331,5 @@ export interface Pictures {
 export const PICTURE_FRAMES: Omit<Pictures, "rocks"> = {
   pickups: PICKUP_FRAMES,
   stray: FRAMES.strayPicture,
-  comet: FRAMES.cometPicture,
+  comet: COMET_FRAMES.picture,
 };
