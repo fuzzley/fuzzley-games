@@ -9,7 +9,6 @@ import {
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BOB,
-  BREATH,
   EXHAUST_RATE,
   FLASH_MOST,
   GOLDEN_ANGLE,
@@ -22,7 +21,7 @@ import {
   bailOutShown,
   blinkShown,
   bobShare,
-  breathScale,
+  breathShare,
   cameraShift,
   exhaustDue,
   flashAlpha,
@@ -419,22 +418,24 @@ describe("shardCount", () => {
   });
 });
 
-describe("breathScale", () => {
-  it("swells a pickup and shrinks it by its breath as it idles", () => {
-    const scales = overTime((seconds) => breathScale(seconds, 0, true));
+describe("breathShare", () => {
+  it("breathes a pickup all the way out and all the way in as it idles", () => {
+    const shares = overTime((seconds) => breathShare(seconds, 0, true));
 
-    expect(Math.max(...scales)).toBeCloseTo(1 + BREATH, 3);
-    expect(Math.min(...scales)).toBeCloseTo(1 - BREATH, 3);
+    expect([Math.min(...shares), Math.max(...shares)]).toEqual([
+      expect.closeTo(0, 3),
+      expect.closeTo(1, 3),
+    ]);
   });
 
   it("breathes two pickups apart, by their phases", () => {
-    expect(breathScale(0, 1, true)).not.toBeCloseTo(breathScale(0, 0, true));
+    expect(breathShare(0, 1, true)).not.toBeCloseTo(breathShare(0, 0, true));
   });
 
-  it("holds a pickup at its size where motion isn't welcome", () => {
+  it("holds a pickup breathed out where motion isn't welcome", () => {
     expect(
-      new Set(overTime((seconds) => breathScale(seconds, 1, false))),
-    ).toEqual(new Set([1]));
+      new Set(overTime((seconds) => breathShare(seconds, 1, false))),
+    ).toEqual(new Set([0]));
   });
 });
 

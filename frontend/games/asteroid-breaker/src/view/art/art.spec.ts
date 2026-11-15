@@ -14,21 +14,17 @@ import {
   ART_SCALE,
   ART_SCALES,
   PIXEL_RATIOS,
-  distanceToEdge,
   edgeOf,
-  reachOf,
 } from "../../testing/art_frames";
 import { TAG_RADIUS } from "../field/tags";
 import {
   DECK_FRAMES,
   FRAMES,
-  PICKUP_REACH,
   PICTURE_FRAMES,
   STRAY_DROP,
   atlasFrames,
   deckFrames,
   litFrames,
-  pickupFrame,
   tagFrame,
 } from "./art";
 import {
@@ -47,7 +43,8 @@ import {
   gaugeFrame,
 } from "./pod_art";
 import { isFine, rockFrames } from "./rock_art";
-import { MOST_BAKED_UNIT, bakedScale, outlineWidth } from "./shapes";
+import { MOST_BAKED_UNIT, bakedScale } from "./shapes";
+import { pickupFrame } from "./things";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -221,25 +218,6 @@ describe.each(ART_SCALES)(
   },
 );
 
-describe("PICKUP_REACH", () => {
-  it.each(ART_SCALES)(
-    "holds every pickup, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
-    (scale) => {
-      const pickups: readonly string[] = PICKUP_IDS.map(pickupFrame);
-
-      const beyond = atlasFrames(ART_PALETTE, scale, isFine(scale))
-        .filter(
-          (frame) =>
-            pickups.includes(frame.name) &&
-            reachOf(frame) > PICKUP_REACH * scale.unit + SLACK,
-        )
-        .map((frame) => frame.name);
-
-      expect(beyond).toEqual([]);
-    },
-  );
-});
-
 describe.each(PIXEL_RATIOS)("deckFrames at %f to a CSS pixel", (pixelRatio) => {
   holdsFrames(() => deckFrames(pixelRatio), pixelRatio);
 
@@ -373,43 +351,6 @@ describe("the deck's frames", () => {
       [DECK_FRAMES.dashDisc]: 96,
       [DECK_FRAMES.knob]: 80,
     });
-  });
-});
-
-describe("a pickup's frame", () => {
-  it.each(PICKUP_IDS)(
-    "outlines the %s pickup, fills it in the accent, and draws its symbol in the color on the accent",
-    (id) => {
-      const frame = frameNamed(ART_FRAMES, pickupFrame(id));
-
-      expect({
-        hexagon: frame.commands.slice(0, 2).map((command) => command.color),
-        symbol: new Set(
-          frame.commands.slice(2).map((command) => command.color),
-        ),
-      }).toEqual({
-        hexagon: [ART_PALETTE.outline, ART_PALETTE.accent],
-        symbol: new Set([ART_PALETTE.onAccent]),
-      });
-    },
-  );
-});
-
-describe("a pickup's outline", () => {
-  const frame = frameNamed(ART_FRAMES, pickupFrame("spread"));
-  const [outline, hexagon] = frame.commands.map((command) =>
-    command.kind === "polygon" ? command.points : [],
-  );
-  const apart = (outline ?? []).map((point) =>
-    distanceToEdge(point, hexagon ?? []),
-  );
-
-  it("lies no nearer its hexagon than an outline's width anywhere", () => {
-    expect(Math.min(...apart)).toBeCloseTo(outlineWidth(ART_SCALE), 6);
-  });
-
-  it("lies no farther from its hexagon than an outline's width anywhere", () => {
-    expect(Math.max(...apart)).toBeCloseTo(outlineWidth(ART_SCALE), 6);
   });
 });
 

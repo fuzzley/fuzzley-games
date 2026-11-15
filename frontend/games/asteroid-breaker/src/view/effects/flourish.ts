@@ -35,9 +35,6 @@ import {
   SHAKE_MS,
 } from "./timing";
 
-/** How much a pickup swells and shrinks as it breathes, as a share of its size. */
-export const BREATH = 0.05;
-
 /** How far a stray bobs in its bubble, up and down, as a share of its radius. */
 export const BOB = 0.12;
 
@@ -300,15 +297,15 @@ function wave(rate: number, seconds: number, phase: number): number {
 }
 
 /**
- * Returns how large a pickup is drawn as it breathes, against its size, a phase
- * on, as its slot's own.
+ * Returns how far a pickup has breathed in, from 0, breathed out, to 1, a
+ * phase on, as its slot's own, or 0 where motion isn't welcome.
  */
-export function breathScale(
+export function breathShare(
   seconds: number,
   phase: number,
   motion: boolean,
 ): number {
-  return motion ? 1 + BREATH * wave(RATES.breath, seconds, phase) : 1;
+  return motion ? (1 + wave(RATES.breath, seconds, phase)) / 2 : 0;
 }
 
 /**

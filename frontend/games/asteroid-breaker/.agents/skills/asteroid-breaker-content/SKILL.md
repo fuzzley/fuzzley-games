@@ -27,7 +27,8 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   (`rockGlows`, `src/view/colors/palette.ts`), its ink in each set of inks
   (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
-  `src/view/art/symbols.ts`), a weapon's shot's art (`SHOTS`,
+  `src/view/art/symbols.ts`), an effect's group's rim on its orb
+  (`ORB_RIMS`, `src/view/art/things.ts`), a weapon's shot's art (`SHOTS`,
   `src/view/art/energy.ts`), an effect's rule (`EFFECT_RULES`,
   `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
   `src/rules/field/spawn.ts`), a size's radius and speed
@@ -174,8 +175,9 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
   does as it starts and as it ends, reaching only what of the field the
   pickups act on (`PickupField`); its record in play is made from its
-  kind, and its sounds as a pickup caught starts it and as its time runs
-  out, or none, in `START_SOUNDS` and `END_SOUNDS`
+  kind, its group's rim on its pickups' orbs in `ORB_RIMS`
+  (`src/view/art/things.ts`), and its sounds as a pickup caught starts it
+  and as its time runs out, or none, in `START_SOUNDS` and `END_SOUNDS`
   (`src/view/effects/sounds.ts`). The saved game keeps no
   effect in play, as it keeps no pickup or shot.
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle

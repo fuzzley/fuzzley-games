@@ -32,7 +32,6 @@ import {
   COMET_MARGIN,
   COMET_WARNING_MS,
   DASH_RECHARGE_MS,
-  PICKUP_BLINK_MS,
   SHOT_EVERY_MS,
   STATIC_MOST,
   STRAY_RADIUS,
@@ -65,7 +64,6 @@ import {
   PICTURE_TORUS,
   fieldFrom,
   placeComet,
-  placePickup,
   placeRock,
   placeSpark,
   placeStray,
@@ -74,12 +72,10 @@ import {
 import {
   DECK_FRAMES,
   FRAMES,
-  PICKUP_REACH,
   PICTURE_FRAMES,
   STRAY_DROP,
   atlasFrames,
   deckFrames,
-  pickupFrame,
   tagFrame,
 } from "../view/art/art";
 import { BLINK_MS, DASH_LEAN } from "../view/art/faces";
@@ -111,12 +107,7 @@ import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
 import { PATIENCE_MS } from "../view/effects/voice";
 import { BED_NAMES, type BedName } from "../view/effects/beds";
-import {
-  BREATH,
-  GOLDEN_ANGLE,
-  PULSE_LEAST,
-  breathScale,
-} from "../view/effects/flourish";
+import { PULSE_LEAST } from "../view/effects/flourish";
 import type { BeltPalette } from "../view/colors/palette";
 import { farLight } from "../view/colors/rock_light";
 import {
@@ -141,18 +132,6 @@ import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import type { Copies } from "./painters/copies";
 import { PLACE_TEXTURES, flashTexture } from "./painters/place_painter";
 import spritemap from "./sounds/sprite.json";
-
-/**
- * Returns the time of the first frame, a frame of 16 ms at a time on from a
- * time, at which a pickup in a slot has breathed out past half its breath.
- */
-function breathingOut(now: number, slot: number): number {
-  let at = now + 16;
-  while (breathScale(at / 1000, slot * GOLDEN_ANGLE, true) < 1 + BREATH / 2) {
-    at += 16;
-  }
-  return at;
-}
 
 /** Describes how the scene lights the rocks: its ambient, and where its field's light stands and how strong it is. */
 interface Lighting {
@@ -1002,120 +981,6 @@ describe("the pod", () => {
         ship.guard,
       ].filter(isShown),
     ).toEqual([]);
-  });
-});
-
-describe("the pickups", () => {
-  it("draw a pickup floating where it is, in its frame, still where motion isn't welcome", async () => {
-    const { shell, run, scene } = await startBoard(stillness);
-    const floating = placePickup(shell.field, "magnet", 30, 20);
-
-    run.advance(16);
-
-    const copies =
-      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
-    expect([
-      shown(copies),
-      copies?.images[0]?.frame.name,
-      copies?.images[0]?.scale,
-    ]).toEqual([
-      [onCanvas(metricsOf(shell), 30, 20), null, null, null],
-      pickupFrame("magnet"),
-      zoomOf(shell),
-    ]);
-  });
-
-  it("draw a pickup between its last place and its next, on both sides of an edge it reaches across", async () => {
-    const { shell, run, scene } = await startBoard((each) => {
-      each.alpha = 0.5;
-    });
-    const floating = placePickup(shell.field, "spread", 0.5, 20);
-    floating.lastX = 1;
-
-    run.advance(16);
-
-    const metrics = metricsOf(shell);
-    const { width } = shell.field.torus;
-    expect(
-      shown(scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)]),
-    ).toEqual([
-      onCanvas(metrics, 0.75, 20),
-      onCanvas(metrics, 0.75 + width, 20),
-      null,
-      null,
-    ]);
-  });
-
-  it("draw a pickup breathing out on both sides of an edge it reaches across only as it breathes", async () => {
-    const { shell, run, scene } = await startBoard();
-    const floating = placePickup(shell.field, "spread", 30, 20);
-    const slot = shell.field.pickups.indexOf(floating);
-    const at = breathingOut(scene.time.now, slot);
-    const breath = breathScale(at / 1000, slot * GOLDEN_ANGLE, true);
-    // Halfway between its reach at rest and its reach as it breathes.
-    const x = (PICKUP_REACH * (1 + breath)) / 2;
-    floating.x = x;
-    floating.lastX = x;
-
-    run.advance(at - scene.time.now);
-
-    const metrics = metricsOf(shell);
-    expect(shown(scene.kit.pickups.pickups[slot])).toEqual([
-      onCanvas(metrics, x, 20),
-      onCanvas(metrics, x + shell.field.torus.width, 20),
-      null,
-      null,
-    ]);
-  });
-
-  it("breathe where motion is welcome, each a phase apart from the next", async () => {
-    const { shell, run, scene } = await startBoard();
-    placePickup(shell.field, "spread", 20, 20);
-    placePickup(shell.field, "magnet", 40, 20);
-
-    run.advance(16);
-
-    const [first, second] = scene.kit.pickups.pickups.map(
-      (copies) => copies.images[0]?.scale,
-    );
-    expect(first).not.toBe(second);
-  });
-
-  it("blink through their last seconds", async () => {
-    const { shell, run, scene } = await startBoard();
-    const floating = placePickup(shell.field, "spread", 30, 20);
-    floating.lifeSteps = stepsIn(PICKUP_BLINK_MS);
-    const copies =
-      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
-
-    const seen = overASecond(run, () => isShown(copies));
-
-    expect(seen).toEqual(new Set([true, false]));
-  });
-
-  it("show steadily before their last seconds", async () => {
-    const { shell, run, scene } = await startBoard();
-    const floating = placePickup(shell.field, "spread", 30, 20);
-    floating.lifeSteps = stepsIn(PICKUP_BLINK_MS) + 1;
-    const copies =
-      scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)];
-
-    const seen = overASecond(run, () => isShown(copies));
-
-    expect(seen).toEqual(new Set([true]));
-  });
-
-  it("draw nothing for a record out of play", async () => {
-    const { shell, run, scene } = await startBoard();
-    const floating = placePickup(shell.field, "spread", 30, 20);
-    run.advance(16);
-    floating.live = false;
-
-    run.advance(16);
-
-    expect(
-      shown(scene.kit.pickups.pickups[shell.field.pickups.indexOf(floating)]),
-    ).toEqual([null, null, null, null]);
   });
 });
 

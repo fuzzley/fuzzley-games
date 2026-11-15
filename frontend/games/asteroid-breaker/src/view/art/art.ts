@@ -41,8 +41,9 @@ import {
 } from "./pilot_art";
 import { podFrames, podHullFrame } from "./pod_art";
 import { type LitFrame, rockFrames } from "./rock_art";
-import { MOST_LINE, dashedRing, outlineWidth } from "./shapes";
+import { dashedRing, outlineWidth } from "./shapes";
 import { SYMBOLS } from "./symbols";
+import { PICKUP_FRAMES, thingsFrames } from "./things";
 
 /** The names of the frames that aren't a rock's, a pilot's, the pod's or a pickup's. */
 export const FRAMES = {
@@ -89,20 +90,6 @@ export const DECK_FRAMES = {
   dashSymbol: "dash-symbol",
 } as const;
 
-/** How far a pickup's hexagon reaches to its corners, and how round they are, in field units. */
-const PICKUP = { reach: 0.95, corner: 0.27 } as const;
-
-/**
- * How far a pickup's frame reaches from its middle, in field units, before
- * it breathes: its hexagon's corners, rounded in from its sharp ones, and
- * its outline at its widest.
- */
-export const PICKUP_REACH =
-  PICKUP.reach - PICKUP.corner * (1 / Math.cos(Math.PI / 6) - 1) + MOST_LINE;
-
-/** How wide a pickup's symbol's square is, in field units. */
-const SYMBOL_SIDE = 1;
-
 /** How wide a tag's symbol's square is, in field units, within its ring. */
 const TAG_SYMBOL_SIDE = 1.2;
 
@@ -148,17 +135,6 @@ const BUTTON_SYMBOL = 0.9;
 /** What the frames the scene tints are filled in. */
 const WHITE = { color: 0xffffff } as const;
 
-// Made once, so finding a frame's name makes nothing.
-const PICKUP_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
-  PICKUP_IDS,
-  (id) => `pickup-${id}`,
-);
-
-/** Returns the name of a pickup's frame, as it drifts. */
-export function pickupFrame(id: PickupId): string {
-  return PICKUP_FRAMES[id];
-}
-
 /** The names of the tags' frames, for each pickup. */
 const TAG_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
   PICKUP_IDS,
@@ -168,54 +144,6 @@ const TAG_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
 /** Returns the name of a pickup's tag, at the field's bottom left while its effect lasts. */
 export function tagFrame(id: PickupId): string {
   return TAG_FRAMES[id];
-}
-
-/**
- * Returns a regular polygon's outline with rounded corners: each corner an arc
- * about a point that far from its middle, the first corner at an angle.
- */
-function roundedRegular(
-  sides: number,
-  reach: number,
-  corner: number,
-  first: number,
-): readonly Point[] {
-  const half = Math.PI / sides;
-  return Array.from({ length: sides }, (_, i) => {
-    const angle = first + 2 * half * i;
-    return arcPoints(
-      { x: Math.cos(angle) * reach, y: Math.sin(angle) * reach },
-      corner,
-      angle - half,
-      angle + half,
-    );
-  }).flat();
-}
-
-/**
- * Returns a pickup's frame: a rounded hexagon in the accent, outlined, with its
- * symbol in the color on the accent.
- */
-function pickupArt(
-  id: PickupId,
-  palette: BeltPalette,
-  scale: ArtScale,
-): ArtFrame {
-  const corner = PICKUP.corner * scale.unit;
-  // How far a corner's arc's middle lies from the hexagon's, its arc touching
-  // the sharp hexagon's sides.
-  const reach = PICKUP.reach * scale.unit - corner / Math.cos(Math.PI / 6);
-  const side = SYMBOL_SIDE * scale.unit;
-  const hexagon = (round: number): readonly Point[] =>
-    roundedRegular(6, reach, round, Math.PI / 6);
-  return centered(PICKUP_FRAMES[id], [
-    polygon(hexagon(corner + outlineWidth(scale)), { color: palette.outline }),
-    polygon(hexagon(corner), { color: palette.accent }),
-    ...SYMBOLS[id](
-      { x: -side / 2, y: -side / 2, width: side, height: side },
-      { color: palette.onAccent, width: lineWidth(scale) },
-    ),
-  ]);
 }
 
 /** Returns a pickup's tag: its symbol alone, in the accent, which the scene draws a ring round. */
@@ -367,7 +295,7 @@ export function atlasFrames(
   return [
     ...podFrames(palette, scale, fine),
     ...pilotFrames(palette, scale, fine),
-    ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
+    ...thingsFrames(palette, scale, fine),
     ...PICKUP_IDS.map((id) => tagArt(id, palette, scale)),
     ...energyFrames(palette, scale, fine),
     ...otherArt(palette, scale),
