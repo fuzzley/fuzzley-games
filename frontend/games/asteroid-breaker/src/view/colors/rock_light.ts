@@ -7,21 +7,24 @@ import { clamp } from "@fz/core/math";
 import type { ColorMode } from "@fz/style/themes";
 import type { RockLight } from "../art/rocks/light";
 
-/** The way across the field to the light, as the art kit's: from the upper left. */
-const ACROSS = { x: -0.52, y: -0.62 } as const;
+/**
+ * The way across the field to the light, as the art kit's: from the upper
+ * left, which the rocks and the places' landmarks are lit from.
+ */
+export const LIGHT_ACROSS = { x: -0.52, y: -0.62 } as const;
 
 /**
  * Returns a light at a height, above 0, along the field, up to 1, straight
- * over it, along {@link ACROSS}, that leaves an ambient on a face turned
+ * over it, along {@link LIGHT_ACROSS}, that leaves an ambient on a face turned
  * away from it and shows a face toward the viewer at 1, its own ink.
  */
 export function lightAt(height: number, ambient: number): RockLight {
-  const along = Math.hypot(ACROSS.x, ACROSS.y);
+  const along = Math.hypot(LIGHT_ACROSS.x, LIGHT_ACROSS.y);
   const sideways = Math.sqrt(1 - height * height);
   return {
     way: {
-      x: (ACROSS.x / along) * sideways,
-      y: (ACROSS.y / along) * sideways,
+      x: (LIGHT_ACROSS.x / along) * sideways,
+      y: (LIGHT_ACROSS.y / along) * sideways,
       z: height,
     },
     ambient,

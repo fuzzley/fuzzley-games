@@ -1,6 +1,6 @@
 // The pilots: `@fz/phaser`'s fuzzball in each pilot's ink, its eyes a frame
 // of their own so the scene turns them toward what the pilot looks at; and
-// the constellation that traces it among the specks.
+// the constellation that traces it among the stars.
 
 import {
   FUZZBALL_GRID,

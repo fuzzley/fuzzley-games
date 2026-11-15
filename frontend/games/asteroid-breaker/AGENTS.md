@@ -343,7 +343,7 @@ takes for the specs' helpers.
   wind (`storm.ts`), and Endless's galaxy's band from corner to corner,
   under the wave's constellation (`endless.ts`); `globes.ts` cuts their
   globes, craters, rings and forks, lit from the field's upper left as the
-  rocks are. `colors.ts` mixes every mark from the palette's own colors and
+  rocks are, along `rock_light.ts`' `LIGHT_ACROSS`. `colors.ts` mixes every mark from the palette's own colors and
   the game's inks, a little of one into the field, held to a limit for each
   kind of mark and the palette's mode (`LIMITS`), never a color of its own
   (`placeColors()`, `tintOf()`): in a dark palette a deep wash and pale
@@ -405,7 +405,8 @@ takes for the specs' helpers.
   own, shaded and deep, with white and the palette's field or its text
   (`tonesOf()`), each channel rounded as the art kit rounds it
   (`mixTone()`). `rock_light.ts` holds the light the rocks are lit by, far
-  off to the upper left, high in a light palette and low in a dark one,
+  off to the upper left, along the way the places' landmarks are lit too
+  (`LIGHT_ACROSS`), high in a light palette and low in a dark one,
   each leaving a face toward the viewer in its own ink (`ROCK_LIGHTS`,
   `lightAt()`); what it makes of an ink, at a rock's darkest face and its
   brightest (`inLight()`, `faceExtremes()`); where the scene stands it,
@@ -855,7 +856,7 @@ takes for the specs' helpers.
   (`GameService.setDrawn()`, which the board calls from its canvas), since a
   wave nobody can see would be lost.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes
-  the field, its line, the specks, the ship, the pickups, the shots, the
+  the field, its line, the ship, the pickups, the shots, the
   flame and the comets from the page's roles, which `ThemeService` reads,
   the rocks' inks from `src/view/colors/inks.ts`, their tones and the
   light they are lit by from `tones.ts` and `rock_light.ts` beside it, and

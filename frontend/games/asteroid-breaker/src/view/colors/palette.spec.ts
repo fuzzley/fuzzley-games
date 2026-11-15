@@ -54,12 +54,10 @@ describe("beltPalette", () => {
     expect([palette.shot, palette.comet]).toEqual([0x000000, 0xff0000]);
   });
 
-  it("draws the specks in the field's muted text, faintly, and a stray's bubble and its rim in washes of its text", () => {
+  it("draws a stray's bubble and its rim in washes of the field's text", () => {
     const palette = beltPalette(ROLES, "light");
 
-    expect([palette.speck, palette.bubble, palette.rim]).toEqual([
-      0xc9c9c9, 0xebebeb, 0x7d7d7d,
-    ]);
+    expect([palette.bubble, palette.rim]).toEqual([0xebebeb, 0x7d7d7d]);
   });
 
   it("draws the stick's base and the buttons at rest in a wash of the field's text", () => {

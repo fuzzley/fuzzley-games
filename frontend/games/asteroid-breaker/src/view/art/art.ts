@@ -53,8 +53,6 @@ export const FRAMES = {
   comet: "comet",
   /** The chevron at the edge a comet will come in by. */
   warning: "warning",
-  /** A speck of the field, white, so the scene tints it, as it does the constellation's. */
-  speck: "speck",
   /** A broken rock's shard, white, so the scene tints it as the rock was. */
   shard: "shard",
   /** The spark off a rock that holds, white. */
@@ -141,9 +139,8 @@ const COMET = { head: 1.1, tail: 2.8, bend: 0.55 } as const;
 /** How wide the warning's chevrons are drawn, in field units. */
 const WARNING_LINE = 0.32;
 
-/** How big a speck is at its largest, a shard and a spark, and a puff's radius, in field units. */
+/** How big each flourish's frame is drawn, in field units: a shard across and down, a spark from its middle to each tip, and a puff's radius. */
 export const FLOURISH = {
-  speck: 0.18,
   shard: 0.5,
   spark: 0.3,
   puff: 0.4,
@@ -343,9 +340,6 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
     centered(FRAMES.bubble, bubbleCommands(palette, scale)),
     centered(FRAMES.comet, cometCommands(palette, scale)),
     centered(FRAMES.warning, warningCommands(palette, scale)),
-    centered(FRAMES.speck, [
-      circle(ORIGIN, FLOURISH.speck * scale.unit, WHITE),
-    ]),
     centered(FRAMES.shard, [
       polygon(
         placed(

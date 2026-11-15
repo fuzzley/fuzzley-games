@@ -36,6 +36,14 @@ function reach({ x, y }: { x: number; y: number }): number {
   return Math.hypot(x, y);
 }
 
+describe("LIGHT", () => {
+  it("comes from the kit's way, the upper left and the viewer's side, at length one", () => {
+    expect(LIGHT.map((way) => Number(way.toFixed(4)))).toEqual([
+      -0.5223, -0.6227, 0.5826,
+    ]);
+  });
+});
+
 describe("lightOn", () => {
   it("lights a face that looks straight at the light the most, a little over 1", () => {
     expect(lightOn(LIGHT)).toBeCloseTo(1.25);

@@ -37,8 +37,6 @@ export interface BeltPalette {
   readonly field: number;
   /** The frame around the field, the tags' rings, and the deck's buttons' rings at rest and its stick's edge: the field's line. */
   readonly line: number;
-  /** The specks on the field: its muted text at {@link SPECK_STRENGTH}. */
-  readonly speck: number;
   /** The deck's symbols at rest, and its stick, faint, where it waits and where its thrust ring is unlit: the field's muted text. */
   readonly muted: number;
   /**
@@ -95,9 +93,6 @@ export interface BeltPalette {
   readonly eyes: number;
 }
 
-/** How much of the field's muted text a speck takes over the field. */
-export const SPECK_STRENGTH = 1 / 3;
-
 /** How much of the field's text a stray's bubble takes over the field. */
 export const BUBBLE_WASH = 0.06;
 
@@ -122,7 +117,6 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
     page: colorNumber(roles.page),
     field,
     line: colorNumber(roles.fieldLine),
-    speck: mixColors(fieldMuted, field, SPECK_STRENGTH),
     muted: fieldMuted,
     outline: field,
     mark: field,
