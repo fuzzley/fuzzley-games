@@ -28,9 +28,9 @@ import {
   type SoundName,
   TAIL,
   THRUST,
+  bellCentsOf,
   endSoundOf,
   ladderCentsOf,
-  multiplierSoundOf,
   secondSoundOf,
   soundOf,
   volumeOf,
@@ -40,22 +40,22 @@ import {
 interface Made {
   readonly size?: RockSize | null;
   readonly rock?: RockKindId | null;
-  readonly chain?: number;
+  readonly times?: number;
   readonly pickup?: PickupId | null;
   readonly weapon?: WeaponId | null;
 }
 
 /**
- * Returns an event of a kind, of a rock of a kind and size, at a count in
- * its chain, of a pickup, or fired by a weapon, as given; a rock's size
- * alone names a stone.
+ * Returns an event of a kind, of a rock of a kind and size, scored at one
+ * of static's multipliers, of a pickup, or fired by a weapon, as given; a
+ * rock's size alone names a stone.
  */
 function eventOf(
   kind: FieldEventKind,
   {
     size = null,
     rock = size === null ? null : "stone",
-    chain = 0,
+    times = 0,
     pickup = null,
     weapon = null,
   }: Made = {},
@@ -73,9 +73,10 @@ function eventOf(
     inTow: 0,
     runOver: false,
     points: 0,
-    times: 0,
+    times,
     reach: 0,
-    chain,
+    step: 0,
+    fell: false,
     slot: -1,
     wayX: 0,
     wayY: 0,
@@ -94,15 +95,15 @@ function sizesOf(kind: RockKindId): RockSize[] {
 
 /**
  * Returns an event for each of a rock's that the field logs of a kind at a
- * size: its break, counted in a chain and smashed, a hit it holds where it
+ * size: its break, scored and smashed, a hit it holds where it
  * takes more than one, its ring where it rings, and its blast where it
  * blasts.
  */
 function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
   const holds = (hitsOf(rock)[size] ?? 0) > 1;
   return [
-    eventOf("broken", { rock, size, chain: 1 }),
-    eventOf("broken", { rock, size, chain: 0 }),
+    eventOf("broken", { rock, size, times: 1 }),
+    eventOf("broken", { rock, size, times: 0 }),
     ...(holds ? [eventOf("hit", { rock, size })] : []),
     ...(holds && hasTrait(rock, "rings")
       ? [eventOf("rung", { rock, size })]
@@ -115,7 +116,6 @@ function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
 const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["dashed", "dash"],
   ["shielded", "shield-break"],
-  ["nova", "blast-volatile"],
   ["warned", "comet-warning"],
   ["cleared", "wave-clear"],
   ["dropped", "pickup-drop"],
@@ -128,6 +128,7 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["joined", "stray-catch"],
   ["home", "stray-catch"],
   ["scored", null],
+  ["stepped", null],
 ];
 
 /** Each kind of rock at each size it comes in, with the sound it breaks with. */
@@ -170,15 +171,14 @@ const SHOTS: readonly (readonly [WeaponId, SoundName])[] = [
   ["lance", "shot-lance"],
 ];
 
-/** Each pickup, with the sound its catch plays, or null for one heard by what it starts. */
-const CATCHES: readonly (readonly [PickupId, SoundName | null])[] = [
+/** Each pickup, with the sound its catch plays. */
+const CATCHES: readonly (readonly [PickupId, SoundName])[] = [
   ["spread", "pickup-spread"],
   ["rapid", "pickup-rapid"],
   ["shield", "pickup-shield"],
   ["lance", "pickup-lance"],
   ["magnet", "pickup-magnet"],
   ["slow", "pickup-slow"],
-  ["nova", null],
 ];
 
 /** An event of every kind the field logs, in every case its sound turns on. */
@@ -196,6 +196,9 @@ const EVERY_EVENT: readonly FieldEvent[] = [
  * field logs, and no change of its state, calls for them.
  */
 const UNPLAYED: readonly SoundName[] = [
+  "chain-x2",
+  "chain-x3",
+  "chain-x4",
   "comet-pass",
   "burr-cling",
   "burr-shed",
@@ -267,7 +270,7 @@ describe("soundOf", () => {
   it.each(BREAKS)(
     "breaks a %s rock that is %s with the %s sound",
     (rock, size, sound) => {
-      expect(soundOf(eventOf("broken", { rock, size, chain: 1 }))).toBe(sound);
+      expect(soundOf(eventOf("broken", { rock, size, times: 1 }))).toBe(sound);
     },
   );
 
@@ -280,11 +283,11 @@ describe("soundOf", () => {
   });
 
   it.each(ROCK_KIND_IDS)(
-    "plays a comet's smash for a %s rock smashed, which counts in no chain",
+    "plays a comet's smash for a %s rock smashed, which scored nothing",
     (rock) => {
       const [size = "large"] = sizesOf(rock);
 
-      expect(soundOf(eventOf("broken", { rock, size, chain: 0 }))).toBe(
+      expect(soundOf(eventOf("broken", { rock, size, times: 0 }))).toBe(
         "comet-smash",
       );
     },
@@ -333,7 +336,6 @@ describe("soundOf", () => {
   it("plays, of the sprite's sounds, none but those of events the field logs and of its state, the thrust's hum apart", () => {
     const played = new Set([
       ...EVERY_EVENT.flatMap((event) => [soundOf(event), secondSoundOf(event)]),
-      ...Array.from({ length: 30 }, (_, i) => multiplierSoundOf(i + 1)),
       ...EFFECT_KINDS.map(endSoundOf),
       LADDER,
       CROWD,
@@ -350,7 +352,7 @@ describe("soundOf", () => {
     "throws for a rock's %s event that names no size",
     (kind) => {
       expect(() =>
-        soundOf(eventOf(kind, { rock: "stone", size: null, chain: 1 })),
+        soundOf(eventOf(kind, { rock: "stone", size: null, times: 1 })),
       ).toThrow(RangeError);
     },
   );
@@ -359,14 +361,14 @@ describe("soundOf", () => {
     "throws for a rock's %s event that names no rock",
     (kind) => {
       expect(() =>
-        soundOf(eventOf(kind, { rock: null, size: "small", chain: 1 })),
+        soundOf(eventOf(kind, { rock: null, size: "small", times: 1 })),
       ).toThrow(RangeError);
     },
   );
 
   it("throws for a break of a rock at a size its kind doesn't come in", () => {
     expect(() =>
-      soundOf(eventOf("broken", { rock: "crystal", size: "small", chain: 1 })),
+      soundOf(eventOf("broken", { rock: "crystal", size: "small", times: 1 })),
     ).toThrow(RangeError);
   });
 
@@ -404,14 +406,11 @@ describe("ladderCentsOf", () => {
     [10, 2400],
     [20, 3100],
     [40, 3100],
-  ])(
-    "rings the bell under a break %i into its chain %i cents up",
-    (chain, cents) => {
-      expect(ladderCentsOf(chain)).toBe(cents);
-    },
-  );
+  ])("rises %i notes up the ladder %i cents", (note, cents) => {
+    expect(ladderCentsOf(note)).toBe(cents);
+  });
 
-  it("climbs a step of the ladder for each break of a chain, from the first", () => {
+  it("climbs a step of the ladder for each note, from the first", () => {
     expect(
       Array.from({ length: CHAIN_CENTS.length }, (_, i) =>
         ladderCentsOf(i + 1),
@@ -420,22 +419,17 @@ describe("ladderCentsOf", () => {
   });
 });
 
-describe("multiplierSoundOf", () => {
+describe("bellCentsOf", () => {
   it.each([
-    [5, "chain-x2"],
-    [10, "chain-x3"],
-    [20, "chain-x4"],
+    [1, 0],
+    [2, 1200],
+    [3, 2400],
+    [4, 3100],
+    [5, 3100],
   ])(
-    "chimes as the %ith break of a chain reaches a multiplier: %s",
-    (chain, sound) => {
-      expect(multiplierSoundOf(chain)).toBe(sound);
-    },
-  );
-
-  it.each([1, 4, 6, 9, 11, 21])(
-    "chimes at no other break, the %ith among them",
-    (chain) => {
-      expect(multiplierSoundOf(chain)).toBeNull();
+    "rings the bell under a break scored at ×%i %i cents up, on the C or the fifth the ladder lands on",
+    (times, cents) => {
+      expect(bellCentsOf(times)).toBe(cents);
     },
   );
 });
@@ -446,7 +440,6 @@ describe("endSoundOf", () => {
     ["pull", "effect-end"],
     ["pace", "slow-off"],
     ["guard", null],
-    ["nova", null],
   ] as const)("ends a %s effect's time with %s", (kind: EffectKind, sound) => {
     expect(endSoundOf(kind)).toBe(sound);
   });

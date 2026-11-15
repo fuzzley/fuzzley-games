@@ -55,9 +55,9 @@
       </dd>
     </div>
     @if (fitsEveryFigure()) {
-      @if (chain(); as times) {
-        <div class="metric chain">
-          <dt><span class="label">Chain</span></dt>
+      @if (multiplier(); as times) {
+        <div class="metric multiplier">
+          <dt><span class="label">Static</span></dt>
           <dd class="value">{{ times }}</dd>
         </div>
       }

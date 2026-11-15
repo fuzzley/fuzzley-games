@@ -40,13 +40,18 @@ export interface Run {
   readonly straysBanked: number;
   /** The strays brought home so far, the wave in play's included. */
   readonly strays: number;
+  /**
+   * The pilot's static as the wave in play started, or as the last wave was
+   * cleared, which the next wave's field starts with.
+   */
+  readonly charge: number;
   readonly outcome: Outcome;
 }
 
 /** Describes what a run takes from the field of the wave under way. */
 export interface WaveProgress extends Pick<
   Field,
-  "cleared" | "score" | "crew"
+  "cleared" | "score" | "crew" | "charge"
 > {
   readonly strays: Pick<Strays, "broughtHome">;
 }
@@ -58,7 +63,7 @@ export interface RunStart extends RunNumber {
   readonly wave: number;
 }
 
-/** Returns a new run, waiting for its first wave to start, with its first crew and no points. */
+/** Returns a new run, waiting for its first wave to start, with its first crew, no points and no static. */
 export function createRun({ id, seed, speed, wave }: RunStart): Run {
   return {
     id,
@@ -71,6 +76,7 @@ export function createRun({ id, seed, speed, wave }: RunStart): Run {
     crew: createCrew(),
     straysBanked: 0,
     strays: 0,
+    charge: 0,
     outcome: "ready",
   };
 }
@@ -135,7 +141,8 @@ export function resume(run: Run, field: Pick<Field, "steps">): Run {
 /**
  * Returns the run caught up with the wave under way, as its field now
  * stands: its points, its crew and the strays it brought home, then its
- * end, with no one left at the controls, or its clearing, banked once.
+ * end, with no one left at the controls, or its clearing, banked once with
+ * the static the next wave starts with.
  *
  * So a run over stays over though a blast clears its wave after the hit
  * that ended it. A run whose field has nothing new is returned as it is, so
@@ -155,6 +162,7 @@ export function catchUp(run: Run, field: WaveProgress): Run {
     ...caughtUp,
     banked: caughtUp.score,
     straysBanked: caughtUp.strays,
+    charge: field.charge.level,
     outcome: "cleared",
   };
 }
@@ -172,6 +180,7 @@ export function waveStart(run: Run): WaveStart {
   return {
     seed: waveSeed(run),
     crew: run.crew,
+    charge: run.charge,
   };
 }
 

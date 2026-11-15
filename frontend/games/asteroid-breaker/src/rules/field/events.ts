@@ -6,7 +6,7 @@ import type { Crew, Pilot } from "../ship/pilots";
 
 /**
  * Names something that happened at a place on the field, its event naming
- * little else: the Nova's reach, a dash's way, a pull's weapon.
+ * little else: a dash's way, a pull's weapon.
  */
 export type PlaceEventKind =
   /** The ship fired a pull of its weapon, which its event names. */
@@ -15,8 +15,6 @@ export type PlaceEventKind =
   | "dashed"
   /** A rock touched the shielded ship, and the shield went. */
   | "shielded"
-  /** The Nova's ring swept out from the ship. */
-  | "nova"
   /** A comet's warning began, at the edge it will come in by. */
   | "warned"
   /** The wave's last rock went, so the wave is cleared. */
@@ -71,6 +69,11 @@ export type PilotEventKind =
 /** Names points scored at a place, a break's or a stray's, which its event says. */
 export type ScoreEventKind = "scored";
 
+/** Names something that happened to the pilot's static, at the ship, which its event says. */
+export type StaticEventKind =
+  /** Static came to another step, up or down: the multiplier's, or full. */
+  "stepped";
+
 /** Describes a rock as its events record it, as the rocks' slots hold it. */
 export interface LoggedRock {
   readonly x: number;
@@ -87,7 +90,8 @@ export type FieldEventKind =
   | RockEventKind
   | PickupEventKind
   | PilotEventKind
-  | ScoreEventKind;
+  | ScoreEventKind
+  | StaticEventKind;
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -115,17 +119,22 @@ export interface FieldEvent extends NumberedEvent {
    * loose floating home with it; false for any other event.
    */
   runOver: boolean;
-  /** The points it scored before the chain's multiplier, 0 for an event that scored none. */
+  /** The points it scored before static's multiplier, 0 for an event that scored none. */
   points: number;
-  /** The chain's multiplier it scored at, 0 for an event that scored none. */
+  /**
+   * Static's multiplier it scored at, a rock's break's among them, 0 for an
+   * event that scored none, as a rock a comet smashed.
+   */
   times: number;
-  /** How far a blast or the Nova reaches, 0 for any other event. */
+  /** How far a blast reaches, 0 for any other event. */
   reach: number;
   /**
-   * The count a broken rock is in its chain, 0 for one smashed, which counts in
-   * none, and for any other event.
+   * The step static came to as it stepped, 0 for any other event: the
+   * multiplier's, from 0 at ×1, and full past them.
    */
-  chain: number;
+  step: number;
+  /** Whether static fell to its step rather than rising to it; false for any other event. */
+  fell: boolean;
   /**
    * The slot of the rock it happened to, where a hit it holds flashes, or −1
    * for an event of no rock.
@@ -165,7 +174,8 @@ const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
   points: 0,
   times: 0,
   reach: 0,
-  chain: 0,
+  step: 0,
+  fell: false,
   slot: -1,
   wayX: 0,
   wayY: 0,
@@ -190,16 +200,13 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     super(EVENT_LOG_SIZE, blankEvent);
   }
 
-  /** Records the Nova's ring, with how far it reaches. */
-  add(kind: "nova", x: number, y: number, reach: number): void;
   /** Records an event of nothing but its place. */
   add(
-    kind: Exclude<PlaceEventKind, "nova" | "dashed" | "fired">,
+    kind: Exclude<PlaceEventKind, "dashed" | "fired">,
     x: number,
     y: number,
-  ): void;
-  add(kind: PlaceEventKind, x: number, y: number, reach = 0): void {
-    this.record(kind, x, y).reach = reach;
+  ): void {
+    this.record(kind, x, y);
   }
 
   /** Records a pull of fire, at the ship's place, with the weapon that fired it. */
@@ -227,18 +234,19 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   }
 
   /**
-   * Records a rock broken, at its place, with its kind, size and slot, the
-   * count it is in its chain, and the way the blow came: `alongX` and
-   * `alongY`, of any length, or both 0 for none.
+   * Records a rock broken, at its place, with its kind, size and slot,
+   * static's multiplier it scored at, 0 for one that scored nothing, and
+   * the way the blow came: `alongX` and `alongY`, of any length, or both 0
+   * for none.
    */
   addBreak(
     rock: LoggedRock,
-    chain: number,
+    times: number,
     alongX: number,
     alongY: number,
   ): void {
     const event = this.recordRock("broken", rock);
-    event.chain = chain;
+    event.times = times;
     setWay(event, alongX, alongY);
   }
 
@@ -280,11 +288,18 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     setWay(event, alongX, alongY);
   }
 
-  /** Records points scored at a place, before the chain's multiplier, and the multiplier. */
+  /** Records points scored at a place, before static's multiplier, and the multiplier. */
   addScore(x: number, y: number, points: number, times: number): void {
     const event = this.record("scored", x, y);
     event.points = points;
     event.times = times;
+  }
+
+  /** Records static coming to another step, at the ship, and whether it fell to it. */
+  addStep(x: number, y: number, step: number, fell: boolean): void {
+    const event = this.record("stepped", x, y);
+    event.step = step;
+    event.fell = fell;
   }
 
   /**

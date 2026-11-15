@@ -34,7 +34,8 @@ function eventOf(
     points: 0,
     times: 0,
     reach: 0,
-    chain: 0,
+    step: 0,
+    fell: false,
     slot: -1,
     wayX: 0,
     wayY: 0,
@@ -50,7 +51,6 @@ const EVENTS: readonly (readonly [
   ["fired", [], []],
   ["dashed", ["trail"], []],
   ["shielded", ["ring"], []],
-  ["nova", ["ring"], []],
   ["warned", [], []],
   ["cleared", [], []],
   ["rung", ["flash", "spark"], []],
@@ -66,6 +66,7 @@ const EVENTS: readonly (readonly [
   ["joined", [], []],
   ["home", [], []],
   ["scored", ["points"], ["points"]],
+  ["stepped", [], []],
 ];
 
 /** Each size of rock, with its break's flourishes, a large one's kicking the field. */

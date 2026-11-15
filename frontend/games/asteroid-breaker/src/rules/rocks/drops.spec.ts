@@ -35,7 +35,7 @@ function onlyPickup(field: Field): Floating {
  * chance, from a pool.
  */
 function droppedFrom(seed: number, drops = 1): PickupId[] {
-  const field = fieldFrom(["S"], { seed, drops, pool: ["spread", "nova"] });
+  const field = fieldFrom(["S"], { seed, drops, pool: ["spread", "lance"] });
   breakAll(field);
   return floatingPickups(field).map((floating) => floating.id);
 }
@@ -148,23 +148,23 @@ describe("a broken rock", () => {
   it("draws the pickups by their weight", () => {
     const drawn = Array.from({ length: 1100 }, (_, seed) => droppedFrom(seed));
 
-    const novas = drawn.filter(([id]) => id === "nova").length;
+    const lances = drawn.filter(([id]) => id === "lance").length;
 
-    // The Nova weighs 4 against Spread's 10: about 314 of 1,100.
-    expect(novas).toBeGreaterThan(264);
-    expect(novas).toBeLessThan(364);
+    // The Lance weighs 6 against Spread's 10: about 413 of 1,100.
+    expect(lances).toBeGreaterThan(363);
+    expect(lances).toBeLessThan(463);
   });
 
   it("lets the same pickups go the same way from the same seed", () => {
     const first = fieldFrom(["SSS"], {
       seed: 3,
       drops: 0.5,
-      pool: ["spread", "nova"],
+      pool: ["spread", "lance"],
     });
     const second = fieldFrom(["SSS"], {
       seed: 3,
       drops: 0.5,
-      pool: ["spread", "nova"],
+      pool: ["spread", "lance"],
     });
 
     breakAll(first);

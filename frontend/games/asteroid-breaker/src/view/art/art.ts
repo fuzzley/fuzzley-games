@@ -23,7 +23,6 @@ import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
 import type { RockKindId } from "../../rules/catalog/rocks";
 import { STRAY_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
-import { isTagged } from "../field/tags";
 import {
   DASH_RADIUS_CSS_PX,
   type DeckButton,
@@ -170,22 +169,15 @@ export function pickupFrame(id: PickupId): string {
   return PICKUP_FRAMES[id];
 }
 
-/** The names of the tags' frames, for each pickup whose effect lasts. */
-const TAG_FRAMES: ReadonlyMap<PickupId, string> = new Map(
-  PICKUP_IDS.filter(isTagged).map((id) => [id, `tag-${id}`]),
+/** The names of the tags' frames, for each pickup. */
+const TAG_FRAMES: Readonly<Record<PickupId, string>> = recordOf(
+  PICKUP_IDS,
+  (id) => `tag-${id}`,
 );
 
-/**
- * Returns the name of a pickup's tag, at the field's bottom left while its
- * effect lasts.
- *
- * @throws {RangeError} For a pickup whose effect is over as it starts,
- *   which shows no tag.
- */
+/** Returns the name of a pickup's tag, at the field's bottom left while its effect lasts. */
 export function tagFrame(id: PickupId): string {
-  const name = TAG_FRAMES.get(id);
-  if (name === undefined) throw new RangeError(`"${id}" shows no tag`);
-  return name;
+  return TAG_FRAMES[id];
 }
 
 /**
@@ -404,7 +396,7 @@ export function atlasFrames(
     ...podFrames(palette, scale, fine),
     ...pilotFrames(palette, scale, fine),
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
-    ...[...TAG_FRAMES.keys()].map((id) => tagArt(id, palette, scale)),
+    ...PICKUP_IDS.map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
   ];
 }

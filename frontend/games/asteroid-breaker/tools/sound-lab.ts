@@ -77,6 +77,7 @@ function sceneField(): Field {
     strayFirstMs: 0,
     cometEvery: null,
     crew: createCrew(),
+    charge: 0,
   });
 }
 
@@ -139,18 +140,18 @@ function letGo(field: Field): void {
   steerField(field, STILL);
 }
 
-/** Returns a rock's break at a time, its count in its chain, 0 for one a comet smashed. */
+/** Returns a rock's break at a time, at static's multiplier it scored at, 0 for one a comet smashed. */
 function broken(
   at: number,
   kind: RockKindId,
   size: RockSize,
-  chain: number,
+  times: number,
   x: number,
 ): Moment {
   return {
     at,
     act: (field) => {
-      field.events.addBreak(rock(kind, size, x), chain, 0, 0);
+      field.events.addBreak(rock(kind, size, x), times, 0, 0);
     },
   };
 }
@@ -165,14 +166,19 @@ function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
   }));
 }
 
-/** The ten small rocks of a chain, each its time, its count in the chain and its place. */
-const CHAIN_OF_TEN = Array.from({ length: 10 }, (_, i) => ({
+/**
+ * Ten small rocks broken one after another, each its time, its count in
+ * the chain the game counted before the uplift, static's multiplier it
+ * scores at now, climbing from ×1 to ×4, and its place.
+ */
+const TEN_BREAKS = Array.from({ length: 10 }, (_, i) => ({
   at: 0.1 + i * 0.12,
   chain: i + 1,
+  times: Math.min(1 + Math.floor(i / 3), 4),
   x: -0.8 + i * 0.18,
 }));
 
-/** A large rock's pieces, each its size, its time, its count in the chain and its place. */
+/** A large rock's pieces, each its size, its time, its count in the chain the game counted before the uplift and its place. */
 const RUBBLE: readonly {
   size: Exclude<RockSize, "boulder">;
   at: number;
@@ -196,17 +202,17 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
     before: shots(0, 2),
   },
   {
-    name: "A chain of breaks",
-    what: "Ten small rocks broken one after another under fire. Before, each rose a semitone on the last, up to a fifth; after, each breaks at its own pitch, a bell under it climbs the chain's ladder, and a chime rings as the chain reaches ×2 and ×3.",
+    name: "Breaks as static climbs",
+    what: "Ten small rocks broken one after another under fire. Before, each rose a semitone on the last in a chain, up to a fifth; after, each breaks at its own pitch, and a bell under it rings the ladder's note for static's multiplier as static climbs from ×1 to ×4.",
     cues: heard([
       ...burst(0, 1.3),
-      ...CHAIN_OF_TEN.map(({ at, chain, x }) =>
-        broken(at, "stone", "small", chain, x),
+      ...TEN_BREAKS.map(({ at, times, x }) =>
+        broken(at, "stone", "small", times, x),
       ),
     ]),
     before: [
       ...shots(0, 1.3),
-      ...CHAIN_OF_TEN.map(({ at, chain, x }) => ({
+      ...TEN_BREAKS.map(({ at, chain, x }) => ({
         at,
         sound: "small" as const,
         detune: chainDetune(chain),
@@ -216,12 +222,10 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A large rock to rubble",
-    what: "A large rock broken under fire, its pieces broken in turn, down to the small ones, as one chain.",
+    what: "A large rock broken under fire, its pieces broken in turn, down to the small ones, at ×1. Before, as one chain, each rose a semitone on the last.",
     cues: heard([
       ...burst(0, 1.4),
-      ...RUBBLE.map(({ size, at, chain, x }) =>
-        broken(at, "stone", size, chain, x),
-      ),
+      ...RUBBLE.map(({ size, at, x }) => broken(at, "stone", size, 1, x)),
     ]),
     before: [
       ...shots(0, 1.4, -0.1),
@@ -245,13 +249,13 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
         },
       },
       broken(0.4, "ice", "large", 1, -0.5),
-      broken(0.4, "iron", "medium", 2, 0.4),
-      broken(0.4, "stone", "small", 3, -0.2),
-      broken(0.4, "stone", "small", 4, 0.2),
+      broken(0.4, "iron", "medium", 1, 0.4),
+      broken(0.4, "stone", "small", 1, -0.2),
+      broken(0.4, "stone", "small", 1, 0.2),
       ...burst(0.9, 1.6),
-      broken(1.05, "stone", "small", 5, 0.7),
-      broken(1.33, "iron", "small", 6, -0.6),
-      broken(1.6, "stone", "small", 7, 0.1),
+      broken(1.05, "stone", "small", 1, 0.7),
+      broken(1.33, "iron", "small", 1, -0.6),
+      broken(1.6, "stone", "small", 1, 0.1),
     ]),
     before: [
       ...shots(0, 0.3),

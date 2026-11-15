@@ -48,11 +48,11 @@ describe("HelpComponent", () => {
     ]);
   });
 
-  it("says how a chain, a stray and a clearing add up, from the tuning", async () => {
+  it("says how static, a stray and a clearing add up, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "Breaks each within 1.5 seconds of the last make a chain, which multiplies each break's points: ×2 from 5 breaks, ×3 from 10 breaks, ×4 from 20 breaks. A stray caught scores 500, or 1,000 as it goes straight home, times the chain. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
+      "Static multiplies what is scored: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. It drains after 2 seconds, and a hit knocks it down a step. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
     );
   });
 

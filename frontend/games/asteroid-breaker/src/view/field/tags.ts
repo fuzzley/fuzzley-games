@@ -1,6 +1,6 @@
 import { clamp } from "@fz/core/math";
-import { type PickupId, pickup } from "../../rules/catalog/pickups";
-import { type InEffect, lasts } from "../../rules/rocks/pickups";
+import { pickup } from "../../rules/catalog/pickups";
+import type { InEffect } from "../../rules/rocks/pickups";
 import { stepsIn } from "../../rules/stepper";
 
 /** How far in from the field's left and bottom edges the first tag's middle lies, in field units. */
@@ -32,9 +32,4 @@ export function timeLeft(effect: Readonly<InEffect>, steps: number): number {
   // An effect that lasts until it is used has no time to run out.
   if (!("ms" in started)) return 1;
   return clamp((effect.endsAt - steps) / stepsIn(started.ms), 0, 1);
-}
-
-/** Returns whether a pickup shows a tag while its effect is in play: one whose effect lasts, rather than being over as it starts. */
-export function isTagged(id: PickupId): boolean {
-  return lasts(pickup(id).effect.kind);
 }

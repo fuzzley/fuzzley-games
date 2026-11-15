@@ -10,7 +10,7 @@ import {
 /**
  * Names a flourish the scene plays: a broken rock's shards and dust, the
  * field's kick at a large break, a held hit's flash and spark, a blast's,
- * the Nova's, a spent Shield's or a lost ship's ring, the points scored, a
+ * a spent Shield's or a lost ship's ring, the points scored, a
  * dash's trail, a lost ship's burst, its pilot bailing out, and the
  * field's shake. Each but the points moves, so plays only where motion is
  * welcome; the points show either way, rising only where it is.
@@ -77,7 +77,6 @@ const EVENT_EFFECTS: Readonly<
   fired: QUIET,
   dashed: moving(["trail"]),
   shielded: moving(["ring"]),
-  nova: moving(["ring"]),
   warned: QUIET,
   cleared: QUIET,
   rung: moving(["flash", "spark"]),
@@ -94,6 +93,8 @@ const EVENT_EFFECTS: Readonly<
   joined: QUIET,
   home: QUIET,
   scored: { flourishes: ["points"], still: ["points"] },
+  // Static's own flourishes are a later package's to choose.
+  stepped: QUIET,
 };
 
 /**

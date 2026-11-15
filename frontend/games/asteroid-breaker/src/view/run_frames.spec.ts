@@ -5,7 +5,12 @@ import { type Run, createRun, pause, startWave } from "../rules/run/run";
 import { type Crew, aboard } from "../rules/ship/pilots";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS, stepsIn } from "../rules/stepper";
-import { CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../rules/tuning";
+import {
+  CLEAN_POINTS,
+  CLEAR_POINTS,
+  STATIC_HOLD_MS,
+  STATIC_STEPS,
+} from "../rules/tuning";
 import { type WaveData, wavesOf } from "../rules/waves/waves";
 import {
   KEEPER,
@@ -60,6 +65,9 @@ const LAST_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 2 };
 /** Fire held, a first move and a shot. */
 const FIRE: Readonly<Steer> = { ...STILL, fire: true };
 
+/** Where static's first step, ×2, starts. */
+const FIRST_STEP = STATIC_STEPS[2].from;
+
 /** A turn of the keys, a first move that fires no shot. */
 const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 
@@ -68,7 +76,8 @@ const NOTHING: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
-  chain: null,
+  multiplier: null,
+  step: null,
   tally: null,
   opens: null,
   countMs: 0,
@@ -198,7 +207,7 @@ describe("RunFrames", () => {
         steps: game.play.field.steps,
         said: game.said,
       }).toEqual({
-        change: { ...NOTHING, chain: 1 },
+        change: { ...NOTHING, multiplier: 1, step: 0 },
         steps: 0,
         said: [],
       });
@@ -258,7 +267,8 @@ describe("RunFrames", () => {
       expect({ ...change, kept: game.run === run }).toEqual({
         ...NOTHING,
         moved: true,
-        chain: 1,
+        multiplier: 1,
+        step: 0,
         kept: true,
       });
     });
@@ -337,23 +347,23 @@ describe("RunFrames", () => {
       expect(cameHome).toEqual([]);
     });
 
-    it("scores twice once five breaks count on in a chain", () => {
+    it("scores twice once static reaches the multiplier's first step", () => {
       const game = underWay(OPEN);
-      game.play.field.chain = 5;
+      game.play.field.charge.level = FIRST_STEP;
 
-      const { chain } = tick(game);
+      const { multiplier, step } = tick(game);
 
-      expect(chain).toBe(2);
+      expect({ multiplier, step }).toEqual({ multiplier: 2, step: 1 });
     });
 
-    it("scores once again when the chain's time is up", () => {
+    it("scores once again as static drains below that step", () => {
       const game = underWay(OPEN);
-      game.play.field.chain = 5;
-      for (let frame = 0; frame < stepsIn(CHAIN_MS); frame++) tick(game);
+      game.play.field.charge.level = FIRST_STEP;
+      for (let frame = 0; frame < stepsIn(STATIC_HOLD_MS); frame++) tick(game);
 
-      const { chain } = tick(game);
+      const { multiplier, step } = tick(game);
 
-      expect(chain).toBe(1);
+      expect({ multiplier, step }).toEqual({ multiplier: 1, step: 0 });
     });
   });
 
@@ -376,22 +386,22 @@ describe("RunFrames", () => {
 
       expect(tally).toEqual({
         rocks: pointsFor("stone", "small"),
-        chains: 0,
+        static: 0,
         strays: 0,
         cleared: CLEAR_POINTS,
         clean: CLEAN_POINTS,
       });
     });
 
-    it("ends the chain, though it counts as the last rock breaks", () => {
+    it("keeps static as the wave clears, adding what it multiplied to the wave's points apart", () => {
       const game = underWay(PEBBLE);
-      game.play.field.chain = 5;
+      game.play.field.charge.level = FIRST_STEP;
 
-      const { chain, tally } = playTo(game, "cleared", FIRE);
+      const { multiplier, tally } = playTo(game, "cleared", FIRE);
 
-      expect({ chain, chains: tally?.chains }).toEqual({
-        chain: 1,
-        chains: pointsFor("stone", "small"),
+      expect({ multiplier, static: tally?.static }).toEqual({
+        multiplier: 2,
+        static: pointsFor("stone", "small"),
       });
     });
 
@@ -617,7 +627,7 @@ describe("RunFrames", () => {
   });
 
   describe("a paused wave", () => {
-    it("stays as it is, its chain too", () => {
+    it("stays as it is, its static too", () => {
       const game = underWay(OPEN);
       tick(game);
       game.run = pause(game.run);

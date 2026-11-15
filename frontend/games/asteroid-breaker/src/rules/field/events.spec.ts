@@ -34,7 +34,8 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     points: 0,
     times: 0,
     reach: 0,
-    chain: 0,
+    step: 0,
+    fell: false,
     slot: -1,
     wayX: 0,
     wayY: 0,
@@ -82,7 +83,7 @@ describe("FieldEventLog", () => {
     ]);
   });
 
-  it("records a rock broken with its place, kind, size and slot, the count it is in its chain, and the way the blow came", () => {
+  it("records a rock broken with its place, kind, size and slot, static's multiplier it scored at, and the way the blow came", () => {
     const log = new FieldEventLog();
 
     log.addBreak(rockAt(1, 2, "ice", "medium", 5), 4, 3, 4);
@@ -95,7 +96,7 @@ describe("FieldEventLog", () => {
         rock: "ice",
         size: "medium",
         slot: 5,
-        chain: 4,
+        times: 4,
         wayX: 0.6,
         wayY: 0.8,
       }),
@@ -192,7 +193,7 @@ describe("FieldEventLog", () => {
     expect(eventsSince(log, 0)).toMatchObject([{ wayX: 0, wayY: 0 }]);
   });
 
-  it("records points scored with the chain's multiplier they were scored at", () => {
+  it("records points scored with static's multiplier they were scored at", () => {
     const log = new FieldEventLog();
 
     log.addScore(1, 2, 120, 3);
@@ -212,13 +213,16 @@ describe("FieldEventLog", () => {
     ]);
   });
 
-  it("records the Nova's ring with its reach", () => {
+  it.each([
+    ["rising", false],
+    ["falling", true],
+  ])("records static %s to a step with the step", (_, fell) => {
     const log = new FieldEventLog();
 
-    log.add("nova", 1, 2, 12);
+    log.addStep(1, 2, 3, fell);
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "nova", x: 1, y: 2, reach: 12 }),
+      eventOf({ kind: "stepped", x: 1, y: 2, step: 3, fell }),
     ]);
   });
 
@@ -238,10 +242,11 @@ describe("FieldEventLog", () => {
   });
 
   it("leaves nothing of an older event in a record the ring comes round to", () => {
-    // The six records it comes round to held a blast, a pickup's event, a
-    // pilot's, points, a break and a pull of fire, each with what it alone
-    // records; the blast's is taken by a pickup's event, which writes no
-    // reach, and the rest by warnings, which write no pickup or weapon.
+    // The seven records it comes round to held a blast, a pickup's event, a
+    // pilot's, points, a break, a pull of fire and a step of static, each
+    // with what it alone records; the blast's is taken by a pickup's event,
+    // which writes no reach, and the rest by warnings, which write no
+    // pickup, weapon or step.
     const log = new FieldEventLog();
     log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
     log.addPickup("dropped", 3, 4, "spread");
@@ -252,12 +257,13 @@ describe("FieldEventLog", () => {
       lastGiven: 7,
     });
     log.addScore(3, 4, 90, 4);
-    log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
+    log.addBreak(rockAt(3, 4, "stone", "large", 9), 3, 1, 1);
     log.addFired(3, 4, "spread");
-    for (let i = 6; i < EVENT_LOG_SIZE; i++) log.add("warned", 0, 0);
+    log.addStep(3, 4, 2, true);
+    for (let i = 7; i < EVENT_LOG_SIZE; i++) log.add("warned", 0, 0);
 
-    log.addPickup("faded", 1, 2, "nova");
-    for (let i = 0; i < 5; i++) log.add("warned", 1, 2);
+    log.addPickup("faded", 1, 2, "magnet");
+    for (let i = 0; i < 6; i++) log.add("warned", 1, 2);
 
     expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
       eventOf({
@@ -265,9 +271,9 @@ describe("FieldEventLog", () => {
         kind: "faded",
         x: 1,
         y: 2,
-        pickup: "nova",
+        pickup: "magnet",
       }),
-      ...[2, 3, 4, 5, 6].map((n) =>
+      ...[2, 3, 4, 5, 6, 7].map((n) =>
         eventOf({ serial: EVENT_LOG_SIZE + n, kind: "warned", x: 1, y: 2 }),
       ),
     ]);

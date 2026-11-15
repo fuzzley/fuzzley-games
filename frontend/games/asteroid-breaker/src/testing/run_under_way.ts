@@ -30,7 +30,8 @@ export type Spoil<T = Readonly<Record<string, unknown>>> = readonly [string, T];
  * Returns a run under way on its third wave at Fast, begun at the second,
  * with 500 points banked and 300 scored on the wave, two strays banked,
  * a pilot at the controls, three in tow and one gone home, its first crew
- * and those strays all, changed as a spec says.
+ * and those strays all, and static at 12 as the wave started, changed as a
+ * spec says.
  */
 export function runUnderWay(change: Partial<Run> = {}): Run {
   return {
@@ -41,6 +42,7 @@ export function runUnderWay(change: Partial<Run> = {}): Run {
     straysBanked: 2,
     strays: 2,
     crew: { pilot: 3, tow: [0, 1, 5], home: [6], lastGiven: 6 },
+    charge: 12,
     outcome: "playing",
     ...change,
   };

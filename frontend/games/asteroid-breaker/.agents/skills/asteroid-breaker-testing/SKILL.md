@@ -123,7 +123,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   a run brings to them with `src/testing/records.ts`'s `runRecords()`,
   nothing but what it names.
 - A spec that holds a table of the rules to rising or falling, the rocks'
-  sizes and speeds and the chain's rows in `src/rules/tuning.spec.ts` or
+  sizes and speeds and static's steps in `src/rules/tuning.spec.ts` or
   each kind's points in `src/rules/catalog/catalog.spec.ts`, takes how
   much each number differs from the one before from
   `src/testing/numbers.ts`'s `stepsBetween()`, and asserts none goes the
@@ -329,12 +329,14 @@ game through `runScene()`:
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless
-  begins at wave 4; or `STRAY_WAVES`, `ONE_STRAY_WAVES`, `CHAIN_WAVES` and
+  begins at wave 4; or `STRAY_WAVES`, `ONE_STRAY_WAVES` and
   `SECTOR_WAVES`, each set up for one thing. It runs on the time it is
   given: `game.tick(FRAME_MS, steer)`, steered `STILL`, by `shoot()`,
   `ram()`, `toPickup()` or `toStray()`; `playUntil()`, `playFor()`,
-  `loseShip()`, `endRun()`, `bringStraysHome()`, `chainUp()`,
-  `playToClear()` and `clearToNext()` play on to a point, and `pauseIn()`,
+  `loseShip()`, `endRun()`, `bringStraysHome()`, `playToClear()` and
+  `clearToNext()` play on to a point, `takeUpCharged()` takes the run in
+  play up again with the pilot's static at a level, as a run kept with it
+  comes back, and `pauseIn()`,
   `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows;
   `pressOn()` goes on from the Cleared card as a flight key does,
   `command("go")` and then a frame holding it, which starts the next wave,

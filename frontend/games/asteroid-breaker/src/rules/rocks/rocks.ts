@@ -14,7 +14,8 @@ import {
 } from "../catalog/rocks";
 import { drawIn, nextDraw } from "../draws";
 import { type DropField, dropFrom } from "./drops";
-import { type ScoreField, chainCountOf, scoreBreak } from "../field/scoring";
+import { type ScoreField, scoreBreak } from "../field/scoring";
+import { multiplierOf } from "../sparks/charge";
 import { stepsIn } from "../stepper";
 import {
   type Place,
@@ -111,7 +112,7 @@ export type CourseField = Readonly<
 
 /**
  * Names how hard something hits a rock: a hit takes one of its hits off, as
- * a shot, a blast and the Nova do; a blow that breaks takes all it has
+ * a shot and a blast do; a blow that breaks takes all it has
  * left, as the Shield's does; and one that smashes breaks it as well, but
  * for nothing, letting no pickup go, as a comet's does.
  */
@@ -236,8 +237,8 @@ export function addRock(
 }
 
 /**
- * Hits a whole rock once, as a shot, a blast, the Nova, a comet or the
- * Shield does, and returns whether it broke; a rock not whole takes nothing.
+ * Hits a whole rock once, as a shot, a blast, a comet or the Shield does,
+ * and returns whether it broke; a rock not whole takes nothing.
  *
  * One broken leaves the field, scores and may let a pickup go unless it was
  * smashed, its traits run, and it splits into pieces of the size after its own,
@@ -261,11 +262,9 @@ export function hitRock(
     return false;
   }
   rock.live = false;
-  // A smashed rock counts in no chain.
-  const counts = blow !== "smashes";
-  const chain = counts ? chainCountOf(field) : 0;
-  field.events.addBreak(rock, chain, alongX, alongY);
-  if (counts) {
+  const times = blow === "smashes" ? 0 : multiplierOf(field.charge.level);
+  field.events.addBreak(rock, times, alongX, alongY);
+  if (blow !== "smashes") {
     scoreBreak(field, rock);
     dropFrom(field, rock);
   }
@@ -396,7 +395,7 @@ function kindOfPieces(
 
 /**
  * Hits every whole rock within a reach of a place, the reach touching the
- * rock's own, each pushed away from the place, as a blast and the Nova do.
+ * rock's own, each pushed away from the place, as a blast does.
  *
  * It reaches only rocks laid before the step under way, so it never hits
  * the pieces it breaks rocks into, and blasts going off in a step hit the

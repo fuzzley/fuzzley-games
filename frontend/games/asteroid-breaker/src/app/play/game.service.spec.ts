@@ -18,11 +18,12 @@ import type { SpeedStats } from "../../rules/run/stats";
 import { STILL, type Steer } from "../../rules/ship/ship";
 import { STEP_MS } from "../../rules/stepper";
 import {
-  CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
   FIELD_SHORT_SIDE,
   FIRST_CREW,
+  STATIC_HOLD_MS,
+  STATIC_STEPS,
 } from "../../rules/tuning";
 import { endlessWave } from "../../rules/waves/endless";
 import {
@@ -33,14 +34,12 @@ import {
 } from "../../rules/waves/waves";
 import { speedOf } from "../../testing/field_picture";
 import {
-  CHAIN_WAVES,
   SECTOR_WAVES,
   SPEC_RANDOM,
   SPEC_WAVE,
   SPEC_WAVES,
   STRAY_WAVES,
   bringStraysHome,
-  chainUp,
   clearIn,
   clearToNext,
   endRun,
@@ -49,6 +48,7 @@ import {
   pressOn,
   provideSpecWaves,
   shoot,
+  takeUpCharged,
 } from "../../testing/play";
 import type { Feel } from "../../view/debug_tuning";
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
@@ -90,9 +90,10 @@ const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 /** The points the specs' medium stone and its two small pieces score. */
 const PEBBLE_POINTS = 100;
 
-/** What a run has of its own as it begins: no chain, no cards, nothing set. */
+/** What a run has of its own as it begins: no static, no cards, nothing set. */
 const BEGUN_OWN = {
-  chain: 1,
+  multiplier: 1,
+  step: 0,
   tally: null,
   clearedOpen: false,
   tallyMs: 0,
@@ -157,10 +158,11 @@ async function endedAt(wave: number): Promise<GameService> {
   return game;
 }
 
-/** Returns what the run on the board has of its own: its chain, its cards and what it set. */
+/** Returns what the run on the board has of its own: its static, its cards and what it set. */
 function ownOf(game: GameService): Record<string, unknown> {
   return {
-    chain: game.chain(),
+    multiplier: game.multiplier(),
+    step: game.step(),
     tally: game.tally(),
     clearedOpen: game.clearedOpen(),
     tallyMs: game.tallyMs(),
@@ -294,40 +296,53 @@ describe("GameService", () => {
     });
   });
 
-  describe("the chain", () => {
-    it("scores a new run's breaks once", () => {
+  describe("static", () => {
+    /** Where static's last step but full, ×4, starts. */
+    const TOP_STEP = STATIC_STEPS[0].from;
+
+    it("scores a new run's points once, on no step", () => {
       const game = TestBed.inject(GameService);
 
-      expect(game.chain()).toBe(1);
+      expect([game.multiplier(), game.step()]).toEqual([1, 0]);
     });
 
-    it("scores twice once five breaks count on in a chain", () => {
-      const game = gameOver(CHAIN_WAVES);
+    it("takes up a run with the static its field was kept with, before it goes on", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
 
-      chainUp(game);
+      takeUpCharged(game, 25);
 
-      expect(game.chain()).toBe(2);
+      expect([game.multiplier(), game.step()]).toEqual([3, 2]);
     });
 
-    it("keeps the chain through a pause, as its time stands still", () => {
-      const game = gameOver(CHAIN_WAVES);
-      chainUp(game);
+    it("keeps static through a pause, as its drain stands still", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      takeUpCharged(game, STATIC_STEPS[1].from);
 
-      game.pause();
-      playFor(game, 2 * CHAIN_MS, STILL);
+      playFor(game, 2 * STATIC_HOLD_MS, STILL);
 
-      expect(game.chain()).toBe(2);
+      expect([game.multiplier(), game.step()]).toEqual([3, 2]);
     });
 
-    it("ends the chain as a new run begins", async () => {
-      const game = gameOver(CHAIN_WAVES);
-      chainUp(game);
+    it("lays the next wave out with the static the run carries to it", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      const saved = game.saved();
+      game.takeUp(takenUp(game, saved && { ...saved, charge: 25 }));
+      game.resume();
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect([game.outcome(), game.multiplier()]).toEqual(["playing", 3]);
+    });
+
+    it("begins a new run with no static", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      takeUpCharged(game, TOP_STEP);
 
       const starting = game.newGame();
       TestBed.inject(ConfirmService).accept();
       await starting;
 
-      expect(game.chain()).toBe(1);
+      expect(game.multiplier()).toBe(1);
     });
   });
 
@@ -339,7 +354,7 @@ describe("GameService", () => {
 
       expect(game.tally()).toEqual({
         rocks: PEBBLE_POINTS,
-        chains: 0,
+        static: 0,
         strays: 0,
         cleared: CLEAR_POINTS,
         clean: CLEAN_POINTS,
@@ -1135,7 +1150,7 @@ describe("GameService", () => {
       playUntil(game, () => STILL, game.resultOpen);
     }
 
-    it("tries again with none of the last run's chain, cards or marks", () => {
+    it("tries again with none of the last run's static, cards or marks", () => {
       const game = gameOver(STRAY_WAVES);
       endWithAllCleared(game);
 
@@ -1144,7 +1159,7 @@ describe("GameService", () => {
       expect(ownOf(game)).toEqual(BEGUN_OWN);
     });
 
-    it("takes up a run with none of the last run's chain, cards or marks", () => {
+    it("takes up a run with none of the last run's static, cards or marks", () => {
       const { game, saved } = begunAndKept();
       endWithAllCleared(game);
 
@@ -1170,17 +1185,6 @@ describe("GameService", () => {
       game.takeUp(takenUp(game, saved, STRAY_WAVES));
 
       expect(ownOf(game)).toEqual(BEGUN_OWN);
-    });
-
-    it("ends the chain as a run is taken up", () => {
-      const game = gameOver(CHAIN_WAVES);
-      game.tick(FRAME_MS, shoot(game));
-      const saved = game.saved();
-      chainUp(game);
-
-      game.takeUp(takenUp(game, saved, CHAIN_WAVES));
-
-      expect(game.chain()).toBe(1);
     });
   });
 

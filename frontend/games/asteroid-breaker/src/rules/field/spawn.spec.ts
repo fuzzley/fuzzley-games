@@ -66,6 +66,7 @@ const SETUP: FieldSetup = {
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
+  charge: 0,
 };
 
 /**

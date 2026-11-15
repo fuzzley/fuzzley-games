@@ -4,43 +4,29 @@ import {
   kindsLoggedOn,
   fieldFrom,
   loggedOn,
-  placeRock,
   placeStray,
   shipOf,
-  stepTimes,
   wholeRocks,
 } from "../../testing/field_picture";
-import { ROCK_KINDS, pointsFor } from "../catalog/rocks";
+import { pointsFor } from "../catalog/rocks";
 import { type Blow, type Rock, hitRock } from "../rocks/rocks";
 import type { Crew, Pilot } from "../ship/pilots";
-import { stepsIn } from "../stepper";
 import {
-  CHAIN,
-  CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
   MOST_CREW,
+  STATIC_STEPS,
   STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../tuning";
 import { type Field, stepField } from "./field";
-import {
-  chainCountOf,
-  chainMultiplier,
-  clearingPoints,
-  multiplier,
-  scoreStray,
-  tallyOf,
-} from "./scoring";
+import { clearingPoints, scoreStray, tallyOf } from "./scoring";
 
 /** A small stone's points. */
 const SMALL = pointsFor("stone", "small");
 
-/** The steps a chain's time lasts. */
-const CHAIN_STEPS = stepsIn(CHAIN_MS);
-
-/** The shortest chain that scores more than once, the table's last row. */
-const [, , SHORTEST] = CHAIN;
+/** Static's first step that scores more than once, the table's last row. */
+const [, , FIRST_STEP] = STATIC_STEPS;
 
 /** A picture of a ship in the field's middle, the keeper beside it. */
 const SHIP_PICTURE = [...KEEPER, "", "", ".........^"];
@@ -76,49 +62,14 @@ function onlySmall(field: Field): Rock {
   return rock;
 }
 
-/**
- * Breaks a field's whole small rocks one after another, a number of steps
- * apart, the first at the step it stands at, and returns the points each
- * scored.
- */
-function breakSmalls(field: Field, apart = 0): number[] {
+/** Breaks a field's whole small rocks one after another, and returns the points each scored. */
+function breakSmalls(field: Field): number[] {
   return smallRocks(field).map((rock) => {
     const before = field.score;
     hitRock(field, rock, 0, 0);
-    field.steps += apart;
     return field.score - before;
   });
 }
-
-describe("multiplier", () => {
-  it.each(CHAIN)(
-    "scores a break $times times from the $from-th in a chain",
-    ({ from, times }) => {
-      expect(multiplier(from)).toBe(times);
-    },
-  );
-
-  it("scores a break once before the shortest chain that scores more", () => {
-    expect(multiplier(SHORTEST.from - 1)).toBe(1);
-  });
-});
-
-describe("chainMultiplier", () => {
-  it.each([
-    [
-      "the chain's multiplier while its time lasts",
-      CHAIN_STEPS,
-      SHORTEST.times,
-    ],
-    ["1 once its time is up", CHAIN_STEPS + 1, 1],
-  ])("says %s", (_, after, times) => {
-    const field = stones(0);
-    field.chain = SHORTEST.from;
-    field.steps = after;
-
-    expect(chainMultiplier(field)).toBe(times);
-  });
-});
 
 describe("clearingPoints", () => {
   it("adds more for a wave cleared without a hit taken", () => {
@@ -159,11 +110,9 @@ describe("a broken rock", () => {
     expect(field.score).toBe(points);
   });
 
-  it("logs its points at its place, before the chain's multiplier, and the multiplier", () => {
-    const field = stones(SHORTEST.from);
-    const last = smallRocks(field).at(-1);
-    if (!last) throw new Error("The picture has small rocks.");
-    const { x, y } = last;
+  it("logs its points at its place, before static's multiplier, and the multiplier", () => {
+    const field = stones(1, { charge: FIRST_STEP.from });
+    const { x, y } = onlySmall(field);
 
     breakSmalls(field);
 
@@ -173,112 +122,43 @@ describe("a broken rock", () => {
         x,
         y,
         points: SMALL,
-        times: SHORTEST.times,
+        times: FIRST_STEP.times,
       }),
     ]);
   });
 });
 
-describe("chainCountOf", () => {
-  it("counts a break the first of a chain on a field with none", () => {
-    expect(chainCountOf(stones(1))).toBe(1);
+describe("static's multiplier", () => {
+  it.each(STATIC_STEPS)(
+    "scores a break $times times from $from static",
+    ({ from, times }) => {
+      const field = stones(1, { charge: from });
+
+      expect(breakSmalls(field)).toEqual([SMALL * times]);
+    },
+  );
+
+  it("scores a break once below its first step", () => {
+    const field = stones(1, { charge: FIRST_STEP.from - 1 });
+
+    expect(breakSmalls(field)).toEqual([SMALL]);
   });
 
-  it("counts a break the next of the chain within its time", () => {
-    const field = stones(2);
+  it("keeps apart what it added", () => {
+    const field = stones(2, { charge: FIRST_STEP.from });
 
     breakSmalls(field);
 
-    expect(chainCountOf(field)).toBe(3);
-  });
-
-  it("counts a break the first of a new chain once the last's time is up", () => {
-    const field = stones(2);
-
-    breakSmalls(field, CHAIN_STEPS + 1);
-
-    expect(chainCountOf(field)).toBe(1);
-  });
-});
-
-describe("the chain", () => {
-  it("scores a break more from the shortest chain that scores more", () => {
-    const field = stones(SHORTEST.from);
-
-    const scored = breakSmalls(field);
-
-    expect(scored).toEqual([
-      ...Array<number>(SHORTEST.from - 1).fill(SMALL),
-      SMALL * SHORTEST.times,
+    expect([field.rockPoints, field.staticPoints]).toEqual([
+      2 * SMALL,
+      2 * SMALL * (FIRST_STEP.times - 1),
     ]);
-  });
-
-  it("keeps apart what its multiplier added", () => {
-    const field = stones(SHORTEST.from);
-
-    breakSmalls(field);
-
-    expect(field.chainPoints).toBe(SMALL * (SHORTEST.times - 1));
-  });
-
-  it.each([
-    [
-      "goes on through breaks just within its time",
-      CHAIN_STEPS,
-      SHORTEST.times,
-    ],
-    ["starts again from a break just past it", CHAIN_STEPS + 1, 1],
-  ])("%s of the last", (_, apart, times) => {
-    const field = stones(SHORTEST.from);
-
-    const scored = breakSmalls(field, apart);
-
-    expect(scored.at(-1)).toBe(SMALL * times);
-  });
-
-  it("counts the breaks a blast makes", () => {
-    const field = fieldFrom(KEEPER);
-    const volatile = placeRock(field, "medium", 30, 20, "volatile");
-    for (const [x, y] of [
-      [27, 20],
-      [33, 20],
-      [30, 17],
-      [30, 23],
-    ] as const) {
-      placeRock(field, "small", x, y);
-    }
-    hitRock(field, volatile, 0, 0);
-
-    stepTimes(field, stepsIn(ROCK_KINDS.volatile.traits[0].delayMs));
-
-    expect([smallRocks(field), field.chain]).toEqual([[], 5]);
-  });
-
-  it("counts no rock a comet smashes", () => {
-    const field = stones(2);
-    const [first, second] = smallRocks(field);
-    if (!first || !second) throw new Error("The picture has two small rocks.");
-    hitRock(field, first, 0, 0);
-
-    hitRock(field, second, 0, 0, "smashes");
-
-    expect(field.chain).toBe(1);
-  });
-
-  it("ends as the ship takes a hit", () => {
-    const field = fieldFrom(["^B"]);
-    field.chain = SHORTEST.from;
-
-    stepField(field);
-
-    expect([field.hits, field.chain]).toEqual([1, 0]);
   });
 });
 
 describe("a stray caught", () => {
-  it("scores its points times the chain's multiplier as it joins the line, without counting on in it, its own among the strays'", () => {
-    const field = fieldFrom(SHIP_PICTURE);
-    field.chain = SHORTEST.from;
+  it("scores its points times static's multiplier as it joins the line, its own among the strays'", () => {
+    const field = fieldFrom(SHIP_PICTURE, { charge: FIRST_STEP.from });
     const ship = shipOf(field);
     placeStray(field, ship.x, ship.y);
 
@@ -288,12 +168,10 @@ describe("a stray caught", () => {
       home: field.strays.broughtHome,
       score: field.score,
       strays: field.strayPoints,
-      chain: field.chain,
     }).toEqual({
       home: 1,
-      score: STRAY_POINTS * SHORTEST.times,
+      score: STRAY_POINTS * FIRST_STEP.times,
       strays: STRAY_POINTS,
-      chain: SHORTEST.from,
     });
   });
 
@@ -367,55 +245,47 @@ describe("a run over", () => {
 });
 
 describe("tallyOf", () => {
-  it("parts a cleared wave's points into the rocks', the chains', the strays' and the clearing's", () => {
-    const field = fieldFrom([
-      "",
-      ".........^",
-      "",
-      "",
-      "S".repeat(SHORTEST.from),
-    ]);
+  /** A picture of the ship and a row of small stones below it. */
+  const PICTURE = ["", ".........^", "", "", "SSS"];
+
+  it("parts a cleared wave's points into the rocks', static's, the strays' and the clearing's", () => {
+    const field = fieldFrom(PICTURE);
     const ship = shipOf(field);
     placeStray(field, ship.x, ship.y);
     stepField(field);
+    field.charge.level = FIRST_STEP.from;
     breakSmalls(field);
 
     stepField(field);
 
     expect(tallyOf(field)).toEqual({
-      rocks: SMALL * SHORTEST.from,
-      chains: SMALL * (SHORTEST.times - 1),
+      rocks: SMALL * 3,
+      static: SMALL * 3 * (FIRST_STEP.times - 1),
       strays: STRAY_POINTS,
       cleared: CLEAR_POINTS,
       clean: CLEAN_POINTS,
     });
   });
 
-  it("counts what the chain added to a stray's points among the chains', the parts adding up to the wave's score", () => {
-    const field = fieldFrom([
-      "",
-      ".........^",
-      "",
-      "",
-      "S".repeat(SHORTEST.from),
-    ]);
+  it("counts what static added to a stray's points among static's, the parts adding up to the wave's score", () => {
+    const field = fieldFrom(PICTURE, { charge: FIRST_STEP.from });
     breakSmalls(field);
     const ship = shipOf(field);
     placeStray(field, ship.x, ship.y);
 
     stepField(field);
 
-    const rocks = SMALL * SHORTEST.from;
-    const chains = (SMALL + STRAY_POINTS) * (SHORTEST.times - 1);
+    const rocks = SMALL * 3;
+    const added = (rocks + STRAY_POINTS) * (FIRST_STEP.times - 1);
     expect([tallyOf(field), field.score]).toEqual([
       {
         rocks,
-        chains,
+        static: added,
         strays: STRAY_POINTS,
         cleared: CLEAR_POINTS,
         clean: CLEAN_POINTS,
       },
-      rocks + chains + STRAY_POINTS + CLEAR_POINTS + CLEAN_POINTS,
+      rocks + added + STRAY_POINTS + CLEAR_POINTS + CLEAN_POINTS,
     ]);
   });
 
@@ -428,7 +298,7 @@ describe("tallyOf", () => {
 
     expect(tallyOf(field)).toEqual({
       rocks: SMALL,
-      chains: 0,
+      static: 0,
       strays: 0,
       cleared: CLEAR_POINTS,
       clean: 0,

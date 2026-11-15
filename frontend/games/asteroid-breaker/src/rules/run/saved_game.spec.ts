@@ -12,7 +12,7 @@ import type { Field, PlayerSetup } from "../field/field";
 import { type SavedField, savedField } from "../field/kept_field";
 import { knockLastLoose } from "../hazards/loose";
 import { STILL } from "../ship/ship";
-import { STRAY_POINTS } from "../tuning";
+import { STATIC_MOST, STRAY_POINTS } from "../tuning";
 import { WAVES } from "../waves/waves";
 import { type Run, createRun } from "./run";
 import {
@@ -22,6 +22,7 @@ import {
   hasScored,
   hasSoundCrew,
   hasSoundScore,
+  hasSoundStatic,
   hasSoundStrays,
   hasSpeedAndSeed,
   readRun,
@@ -85,6 +86,14 @@ const CREW_SPOILS: readonly Spoil[] = [
   ],
   ["one of its crew neither aboard nor at home", { home: [] }],
   ["a last color given that is none", { lastGiven: 8 }],
+];
+
+/** Static a run kept may hold that no run has, each failing `hasSoundStatic()`. */
+const STATIC_SPOILS: readonly Spoil[] = [
+  ["no static", { charge: undefined }],
+  ["static that isn't a number", { charge: "12" }],
+  ["static below nothing", { charge: -1 }],
+  ["static past its most", { charge: STATIC_MOST + 1 }],
 ];
 
 /** Returns a run and its field as storage keeps them, read back as storage would. */
@@ -171,7 +180,7 @@ describe("saveGame", () => {
     expect(saveGame(run, laidOutField(run), WAVES, KEEPING)).toBeNull();
   });
 
-  it("keeps a run under way: its wave by number and id, its points, its crew and its strays", () => {
+  it("keeps a run under way: its wave by number and id, its points, its crew, its strays and the static its wave started with", () => {
     const saved = stored();
 
     expect(saved).toMatchObject({
@@ -188,6 +197,7 @@ describe("saveGame", () => {
       lastGiven: 6,
       straysBanked: 2,
       strays: 2,
+      charge: 12,
     });
   });
 
@@ -420,6 +430,7 @@ describe("readRun", () => {
     ...SCORE_SPOILS,
     ...STRAY_SPOILS,
     ...CREW_SPOILS,
+    ...STATIC_SPOILS,
   ])("drops a run of %s", (_, change) => {
     expect(readRun(tampered(change), WAVES, 9)).toBeNull();
   });
@@ -487,6 +498,16 @@ describe("hasSoundCrew", () => {
 
   it.each(CREW_SPOILS)("fails a run of %s", (_, change) => {
     expect(hasSoundCrew(tampered(change), STRAYS)).toBe(false);
+  });
+});
+
+describe("hasSoundStatic", () => {
+  it("holds a run kept to the static its wave started with", () => {
+    expect(hasSoundStatic(storedValues())).toBe(true);
+  });
+
+  it.each(STATIC_SPOILS)("fails a run of %s", (_, change) => {
+    expect(hasSoundStatic(tampered(change))).toBe(false);
   });
 });
 

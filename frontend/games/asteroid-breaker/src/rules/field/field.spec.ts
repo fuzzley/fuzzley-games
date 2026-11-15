@@ -20,6 +20,7 @@ import { ROCK_KINDS, type RockSize } from "../catalog/rocks";
 import { knockLastLoose } from "../hazards/loose";
 import { type Rock, hitRock, rockHitRadius, rocksLeft } from "../rocks/rocks";
 import { type Crew, createCrew } from "../ship/pilots";
+import { TUNED_SPARKING } from "../sparks/charge";
 import {
   STILL,
   type Steer,
@@ -45,6 +46,7 @@ import {
   SHIP_LENGTH,
   SHOT_RADIUS,
   SHOT_SPEED,
+  STATIC_HOLD_MS,
   STEP_S,
   STRAY_FIRST_MS,
   STRETCH_GUARD_MS,
@@ -82,6 +84,7 @@ const SETUP: FieldSetup = {
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
+  charge: 0,
 };
 
 /** Steering that holds fire and nothing else. */
@@ -95,13 +98,14 @@ const SECTOR: SectorData = { id: "spec", name: "Spec", drops: 0.05, waves: [] };
 
 /**
  * How the specs' waves start: on a desktop's field at Relaxed, a run's crew
- * handed on, nothing held.
+ * and static handed on, nothing held.
  */
 const START: WaveSetup = {
   torus: { width: 73, height: 40 },
   speed: "relaxed",
   seed: 5,
   crew: { pilot: 3, tow: [0], home: [6], lastGiven: 6 },
+  charge: 12,
   held: STILL,
 };
 
@@ -219,10 +223,10 @@ function played(seed: number): Field {
 
 /**
  * Returns a field whose shielded ship a large iron rock, which takes several
- * hits, has just come to touch.
+ * hits, has just come to touch, its static at a level, none unless given.
  */
-function rockOnShield(): Field {
-  const field = fieldFrom(["^", "", "L"], { kind: "iron" });
+function rockOnShield(charge = 0): Field {
+  const field = fieldFrom(["^", "", "L"], { kind: "iron", charge });
   catchOn(field, "shield");
   onlyRock(field).y = 4;
   return field;
@@ -292,15 +296,13 @@ describe("a shielded ship", () => {
     ]);
   });
 
-  it("keeps the chain going through the rock it breaks, as a shot would", () => {
-    const field = rockOnShield();
-    field.chain = 4;
-    field.lastBreakAt = field.steps;
+  it("scores the rock it breaks at static's multiplier, as a shot would, and keeps static as it is", () => {
+    const field = rockOnShield(25);
 
     stepField(field);
 
     const scored = loggedOn(field).find((event) => event.kind === "scored");
-    expect([scored?.times, field.chain]).toEqual([2, 5]);
+    expect([scored?.times, field.charge.level]).toEqual([3, 25]);
   });
 
   it("keeps its shield while it is guarded otherwise", () => {
@@ -334,7 +336,24 @@ describe("fieldFor", () => {
       strayFirstMs: STRAY_FIRST_MS * share,
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
       crew: START.crew,
+      charge: 12,
     });
+  });
+
+  it("starts with the static its run hands it, no spark gathered yet", () => {
+    const field = fieldFor(waveOf(), START);
+
+    expect(field.charge).toEqual({ level: 12, lastSparkAt: 0 });
+  });
+
+  it("works static as tuning.ts says unless its setup gives another", () => {
+    const sparking = { ...TUNED_SPARKING, drain: 5 };
+
+    const [tuned, given] = [START, { ...START, sparking }].map(
+      (setup) => fieldFor(waveOf(), setup).sparking,
+    );
+
+    expect([tuned, given]).toEqual([TUNED_SPARKING, sparking]);
   });
 
   it("lays its rocks out, grown by the field's area, fairly round its ship waiting in the middle", () => {
@@ -829,27 +848,39 @@ describe("stepField", () => {
     it("keeps the effects in play and the pickups floating at a hit that knocks one loose", () => {
       const field = fieldFrom(["^", "", "L"]);
       catchOn(field, "spread");
-      placePickup(field, "nova", 40, 20);
+      placePickup(field, "magnet", 40, 20);
       onlyRock(field).y = 4;
 
       stepField(field);
 
       expect([field.weapon, floatingPickups(field)]).toEqual([
         "spread",
-        [expect.objectContaining({ id: "nova" })],
+        [expect.objectContaining({ id: "magnet" })],
       ]);
     });
 
-    it("ends the chain at a hit, the rock it breaks counted in it first", () => {
-      const field = fieldFrom(["^", "", "L"]);
+    it("knocks static down a step at a hit, the rock it breaks scored at static's multiplier first", () => {
+      const field = fieldFrom(["^", "", "L"], { charge: 25 });
       onlyRock(field).y = 4;
-      field.chain = 4;
-      field.lastBreakAt = field.steps;
 
       stepField(field);
 
-      const scored = loggedOn(field).find((event) => event.kind === "scored");
-      expect([scored?.times, field.chain]).toEqual([2, 0]);
+      expect([
+        loggedOn(field).find((event) => event.kind === "scored")?.times,
+        field.charge.level,
+        kindsLoggedOn(field).filter((kind) => kind === "stepped"),
+      ]).toEqual([3, 10, ["stepped"]]);
+    });
+
+    it("costs static one step at a hit after its hold has run out, holding it at the foot of the step below", () => {
+      const field = fieldFrom(["^", "", "L"], { charge: 25 });
+      onlyRock(field).y = 4;
+      field.steps = stepsIn(STATIC_HOLD_MS) + 100;
+
+      stepField(field);
+      stepField(field);
+
+      expect(field.charge.level).toBe(10);
     });
 
     it("ends the run at a hit with no one in tow, the pilot bailing out home, logged", () => {
@@ -937,7 +968,7 @@ describe("stepField", () => {
       const field = fieldFrom(["^", "", "L"], { pace: 1.2, crew: ALONE });
       catchOn(field, "spread");
       catchOn(field, "slow");
-      placePickup(field, "nova", 40, 20);
+      placePickup(field, "magnet", 40, 20);
       onlyRock(field).y = 4;
 
       stepField(field);
@@ -1064,7 +1095,7 @@ describe("stepField", () => {
     it("ends every effect and lets the pickups go as the wave is cleared", () => {
       const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
       catchOn(field, "spread");
-      placePickup(field, "nova", 40, 10);
+      placePickup(field, "magnet", 40, 10);
       hitRock(field, onlyRock(field), 0, 0);
 
       stepField(field);

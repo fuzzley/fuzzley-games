@@ -168,6 +168,7 @@ export function autoplay(
     speed,
     seed,
     crew: createCrew(),
+    charge: 0,
     held: STILL,
   });
   return playField(field, rest);
@@ -230,8 +231,8 @@ export function playField(
 
 /** Returns whether a cleared wave's tally adds up to its score. */
 function addsUp(field: Field): boolean {
-  const { rocks, chains, strays, cleared, clean } = tallyOf(field);
-  return rocks + chains + strays + cleared + clean === field.score;
+  const { rocks, static: added, strays, cleared, clean } = tallyOf(field);
+  return rocks + added + strays + cleared + clean === field.score;
 }
 
 /** Returns whether a comet is warned of, waiting off its edge to cross. */

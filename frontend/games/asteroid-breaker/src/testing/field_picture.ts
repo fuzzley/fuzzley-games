@@ -63,6 +63,8 @@ export interface PictureOptions {
   readonly cometEvery?: Span | null;
   /** The crew it starts with, a run's first by default. */
   readonly crew?: Crew;
+  /** The pilot's static it starts with, none by default. */
+  readonly charge?: number;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -117,6 +119,7 @@ export function fieldFrom(
     strayFirstMs: options.strayFirstMs ?? STRAY_FIRST_MS,
     cometEvery: options.cometEvery ?? null,
     crew: options.crew ?? createCrew(),
+    charge: options.charge ?? 0,
   });
   field.ship = null;
   rows.forEach((row, down) => {

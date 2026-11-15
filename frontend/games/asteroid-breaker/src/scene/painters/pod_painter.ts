@@ -46,8 +46,8 @@ import type { PaintContext, Painter } from "./painter";
  * Draws the pod in play, each part on both sides of an edge it reaches
  * across: its hull, lit, turned as it heads, its flame behind its engines
  * as long as its thrust, and its streaks in a dash; and, upright about its
- * middle, its canopy's glass, its pilot in its ink, its fur lifted by the
- * chain and leaning from a push, its face and look as the field shows
+ * middle, its canopy's glass, its pilot in its ink, its fur lifted by
+ * static and leaning from a push, its face and look as the field shows
  * them (`faceOf()`), the rim, filling as the dash recharges and flashing
  * once as it comes charged, the glint, the Shield's shell over its wash,
  * and the guard's dashed ring, blinking, while nothing can touch it.
@@ -187,8 +187,8 @@ export class PodPainter implements Painter {
   }
 
   /**
-   * Draws the pilot upright in the canopy, in its ink: its fur lifted by the
-   * chain and leaning from the push on it, eased over the time since the
+   * Draws the pilot upright in the canopy, in its ink: its fur lifted by
+   * static and leaning from the push on it, eased over the time since the
    * last frame, in milliseconds, turned the way it leans; static's sparks
    * about it on end; and its eyes at the face the field shows, moved the
    * way it looks.

@@ -22,9 +22,9 @@ interface Ring extends Playing {
 }
 
 /**
- * Draws the rings that sweep out from a blast, the Nova, a spent Shield and
- * a lost ship, fading as they go, on both sides of an edge they reach
- * across. The scene plays them only where motion is welcome.
+ * Draws the rings that sweep out from a blast, a spent Shield and a lost
+ * ship, fading as they go, on both sides of an edge they reach across. The
+ * scene plays them only where motion is welcome.
  */
 export class RingPainter implements Painter {
   /** Every ring sweeping out, drawn again each frame. */

@@ -302,23 +302,29 @@ export const COMET_TILT = 30;
  */
 export const ENTRY_ALONG: Span = { least: 0.15, most: 0.85 };
 
-/** How long after a break the next must come to count on in the chain. */
-export const CHAIN_MS = 1500;
-
 /**
- * How a chain of breaks scores: from the count a break is in the chain,
- * how many times its points it scores, the longest first.
+ * How static multiplies what is scored: from the static the pilot holds,
+ * how many times its points it scores, the highest first.
  */
-export const CHAIN = [
-  { from: 20, times: 4 },
-  { from: 10, times: 3 },
-  { from: 5, times: 2 },
+export const STATIC_STEPS = [
+  { from: 30, times: 4 },
+  { from: 20, times: 3 },
+  { from: 10, times: 2 },
 ] as const satisfies readonly MultiplierTier[];
 
-/** The points a stray caught into the line in tow scores, before the chain's multiplier. */
+/** The most static the pilot holds: full, at which the next dash is a zap. */
+export const STATIC_MOST = 40;
+
+/** How long static holds after the last spark gathered before it drains. */
+export const STATIC_HOLD_MS = 2000;
+
+/** How fast static drains once it no longer holds, in a second. */
+export const STATIC_DRAIN = 2;
+
+/** The points a stray caught into the line in tow scores, before static's multiplier. */
 export const STRAY_POINTS = 500;
 
-/** The points a stray caught with the most in tow scores as it goes straight home, before the chain's multiplier. */
+/** The points a stray caught with the most in tow scores as it goes straight home, before static's multiplier. */
 export const STRAY_HOME_POINTS = 1000;
 
 /** The points a cleared wave adds. */

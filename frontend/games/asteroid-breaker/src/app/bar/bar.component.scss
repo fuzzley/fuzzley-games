@@ -6,7 +6,7 @@
 
 @include bar-title;
 
-// The wave, the score, the ships and the chain, each a card.
+// The wave, the score, the ships and the multiplier, each a card.
 @include bar-figures(72px, var(--fz-space-2));
 
 // The ships' icon is the pilot at the controls, hidden as the other figures'
@@ -23,8 +23,8 @@
   padding-block: 2px;
 }
 
-// The multiplier in the accent, so a chain catches the eye.
-.chain .value {
+// The multiplier in the accent, so static catches the eye.
+.multiplier .value {
   color: var(--fz-accent);
 }
 

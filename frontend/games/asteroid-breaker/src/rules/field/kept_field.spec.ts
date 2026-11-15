@@ -15,6 +15,7 @@ import { type Torus, middleOf, wrap } from "../torus";
 import {
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
+  STATIC_MOST,
   STRAY_HOME_POINTS,
   STRAY_POINTS,
   TOW_HOOK,
@@ -32,8 +33,10 @@ import {
   hasDroppedInTime,
   hasKeptCounts,
   hasMoved,
+  hasSparkedInTime,
   isKeptRock,
   isSoundRock,
+  isStatic,
   isStrayPoints,
   layOutKeptField,
   readField,
@@ -99,12 +102,22 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["a next stray's step that isn't a count", { nextStrayAt: -1 }],
   ["a next comet's step that isn't a count", { nextCometAt: -1 }],
   ["a pickup let go at a step that isn't a count", { lastDropAt: -1 }],
-  ["chain points that aren't a count", { chainPoints: -1 }],
+  ["static's points that aren't a count", { staticPoints: -1 }],
   ["rocks' points that aren't a count", { rockPoints: 0.5 }],
   ["no rocks' points", { rockPoints: undefined }],
   ["strays' points that aren't a count", { strayPoints: 0.5 }],
   ["no strays' points", { strayPoints: undefined }],
   ["hits that aren't a count", { hits: -1 }],
+  ["a spark gathered at a step that isn't a count", { lastSparkAt: 0.5 }],
+];
+
+/** Static a field kept may hold that isn't static, each failing `isStatic()`. */
+const STATIC_SPOILS: readonly Spoil<unknown>[] = [
+  ["no static", undefined],
+  ["static that isn't a number", "full"],
+  ["static that isn't finite", Infinity],
+  ["static below nothing", -1],
+  ["static past its most", STATIC_MOST + 1],
 ];
 
 /** Steps a field kept may hold that a field kept never has, each failing `hasMoved()`. */
@@ -118,6 +131,14 @@ const MOVE_SPOILS: readonly Spoil<Partial<SavedField>>[] = [
  */
 const DROP_SPOILS: readonly Spoil<Partial<SavedField>>[] = [
   ["a pickup let go after its last step", { lastDropAt: STEPS + 1 }],
+];
+
+/**
+ * Steps a spark was gathered at that a field kept hasn't come to, each
+ * failing `hasSparkedInTime()`.
+ */
+const SPARK_SPOILS: readonly Spoil<Partial<SavedField>>[] = [
+  ["a spark gathered after its last step", { lastSparkAt: STEPS + 1 }],
 ];
 
 /** What a field kept may hold that its wave doesn't, each failing `fitsItsWave()`. */
@@ -164,11 +185,7 @@ const RUN_FIT_SPOILS: readonly (readonly [
     { straysSent: 1, strayPoints: STRAY_POINTS },
     { points: 300, straysHome: 1 },
   ],
-  [
-    "more points from the chain than its wave has",
-    { chainPoints: 301 },
-    SO_FAR,
-  ],
+  ["more points from static than its wave has", { staticPoints: 301 }, SO_FAR],
   ["more points from the rocks than its wave has", { rockPoints: 301 }, SO_FAR],
   [
     "fewer points from the rocks than its wave has",
@@ -176,8 +193,8 @@ const RUN_FIT_SPOILS: readonly (readonly [
     SO_FAR,
   ],
   [
-    "more points from the rocks and the chain together than its wave has",
-    { rockPoints: 200, chainPoints: 101 },
+    "more points from the rocks and static together than its wave has",
+    { rockPoints: 200, staticPoints: 101 },
     SO_FAR,
   ],
 ];
@@ -333,10 +350,12 @@ describe("savedField", () => {
       nextStrayAt: field.strays.nextAt,
       nextCometAt: field.comets.nextAt,
       lastDropAt: field.lastDropAt,
-      chainPoints: field.chainPoints,
+      staticPoints: field.staticPoints,
       rockPoints: field.rockPoints,
       strayPoints: field.strayPoints,
       hits: field.hits,
+      lastSparkAt: field.charge.lastSparkAt,
+      charge: field.charge.level,
     });
   });
 
@@ -407,10 +426,15 @@ describe("readField", () => {
     expect(read(keptWith({ laidOut }))).toBeNull();
   });
 
+  it.each(STATIC_SPOILS)("drops a field of %s", (_, charge) => {
+    expect(read(keptWith({ charge }))).toBeNull();
+  });
+
   it.each([
     ...COUNT_SPOILS,
     ...MOVE_SPOILS,
     ...DROP_SPOILS,
+    ...SPARK_SPOILS,
     ...WAVE_FIT_SPOILS,
   ])("drops a field of %s", (_, change) => {
     expect(read(keptWith(change))).toBeNull();
@@ -473,6 +497,30 @@ describe("hasDroppedInTime", () => {
   });
 });
 
+describe("hasSparkedInTime", () => {
+  it("holds a field kept to a spark gathered at its last step", () => {
+    expect(hasSparkedInTime({ ...kept(), lastSparkAt: STEPS })).toBe(true);
+  });
+
+  it.each(SPARK_SPOILS)("fails a field of %s", (_, change) => {
+    expect(hasSparkedInTime({ ...kept(), ...change })).toBe(false);
+  });
+});
+
+describe("isStatic", () => {
+  it.each([
+    ["none", 0],
+    ["part of a step", 12.5],
+    ["full", STATIC_MOST],
+  ])("holds static at %s", (_, charge) => {
+    expect(isStatic(charge)).toBe(true);
+  });
+
+  it.each(STATIC_SPOILS)("fails %s", (_, charge) => {
+    expect(isStatic(charge)).toBe(false);
+  });
+});
+
 describe("fitsItsWave", () => {
   it("fits a field kept to its wave", () => {
     expect(fitsItsWave(kept(), waveOf(runUnderWay()))).toBe(true);
@@ -516,7 +564,7 @@ describe("fitsItsRun", () => {
   );
 
   it.each([
-    ["chain", { chainPoints: 300, rockPoints: 0 }],
+    ["static", { staticPoints: 300, rockPoints: 0 }],
     ["rocks", { rockPoints: 300 }],
   ])("fits a field whose %s scored every point on its wave", (_, change) => {
     expect(fitsItsRun({ ...kept(), ...change }, SO_FAR)).toBe(true);
@@ -612,10 +660,12 @@ describe("layOutKeptField", () => {
       nextStrayAt: 600,
       nextCometAt: 900,
       lastDropAt: 60,
-      chainPoints: 80,
+      staticPoints: 80,
       rockPoints: 120,
       strayPoints: STRAY_POINTS,
       hits: 1,
+      lastSparkAt: 100,
+      charge: 23.5,
     };
 
     const field = layOut(saved);

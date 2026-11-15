@@ -1,4 +1,5 @@
 import { type Crew, createCrew } from "../ship/pilots";
+import { createCharge } from "../sparks/charge";
 import {
   type Outcome,
   type Run,
@@ -29,21 +30,24 @@ function playing(changes: Partial<Run> = {}): Run {
 }
 
 /**
- * Returns what a wave's field in play hands the run: no points, the run's crew
- * and no stray home, changed as given.
+ * Returns what a wave's field in play hands the run: no points, the run's
+ * crew, no stray home and the static the wave started with, changed as
+ * given.
  */
 function progressOf(
   run: Run,
-  changes: Partial<Omit<WaveProgress, "strays">> & {
+  changes: Partial<Omit<WaveProgress, "strays" | "charge">> & {
     broughtHome?: number;
+    level?: number;
   } = {},
 ): WaveProgress {
-  const { broughtHome = 0, ...rest } = changes;
+  const { broughtHome = 0, level = run.charge, ...rest } = changes;
   return {
     cleared: false,
     score: 0,
     crew: run.crew,
     strays: { broughtHome },
+    charge: createCharge(level),
     ...rest,
   };
 }
@@ -58,7 +62,7 @@ const NO_PILOT: Crew = { pilot: null, tow: [], home: [4], lastGiven: 4 };
 const NOT_UNDER_WAY: readonly Outcome[] = ["ready", "cleared", "over"];
 
 describe("createRun", () => {
-  it("waits at its first wave, with its first crew and no points", () => {
+  it("waits at its first wave, with its first crew, no points and no static", () => {
     const run = createRun({ id: 7, seed: 3, speed: "fast", wave: 4 });
 
     expect(run).toEqual({
@@ -72,6 +76,7 @@ describe("createRun", () => {
       crew: createCrew(),
       straysBanked: 0,
       strays: 0,
+      charge: 0,
       outcome: "ready",
     });
   });
@@ -318,6 +323,25 @@ describe("catchUp", () => {
     ]).toEqual([2600, 2600, 3, 3, "cleared"]);
   });
 
+  it("keeps the static the wave under way started with, which a wave laid out afresh starts with", () => {
+    const before = playing({ charge: 12 });
+
+    const run = catchUp(before, progressOf(before, { score: 450, level: 30 }));
+
+    expect(run.charge).toBe(12);
+  });
+
+  it("takes the static a cleared wave ends with, for the next to start with", () => {
+    const before = playing({ charge: 12 });
+
+    const run = catchUp(
+      before,
+      progressOf(before, { cleared: true, level: 30 }),
+    );
+
+    expect(run.charge).toBe(30);
+  });
+
   it("clears a wave whose field has nothing else new", () => {
     const before = playing({ banked: 2000, score: 2000 });
 
@@ -375,12 +399,13 @@ describe("waveSeed", () => {
 });
 
 describe("waveStart", () => {
-  it("hands the wave's field its seed and the run's crew", () => {
-    const run = playing({ wave: 6, crew: WITH_A_STRAY });
+  it("hands the wave's field its seed, the run's crew and its static", () => {
+    const run = playing({ wave: 6, crew: WITH_A_STRAY, charge: 12 });
 
     expect(waveStart(run)).toEqual({
       seed: waveSeed(run),
       crew: WITH_A_STRAY,
+      charge: 12,
     });
   });
 });

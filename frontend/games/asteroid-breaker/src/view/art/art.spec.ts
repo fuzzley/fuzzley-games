@@ -18,7 +18,7 @@ import {
   edgeOf,
   reachOf,
 } from "../../testing/art_frames";
-import { TAG_RADIUS, isTagged } from "../field/tags";
+import { TAG_RADIUS } from "../field/tags";
 import {
   DECK_FRAMES,
   FRAMES,
@@ -336,25 +336,22 @@ describe("the atlas", () => {
     ...Object.values(FRAMES),
     ...POD_ATLAS_FRAMES,
     ...PICKUP_IDS.map(pickupFrame),
-    ...PICKUP_IDS.filter(isTagged).map(tagFrame),
+    ...PICKUP_IDS.map(tagFrame),
   ])("holds the %s frame", (name) => {
     expect(names.has(name)).toBe(true);
   });
 });
 
 describe("a tag's frame", () => {
-  it.each(PICKUP_IDS.filter(isTagged))(
-    "draws %s's symbol alone, in the accent",
-    (id) => {
-      const frame = frameNamed(ART_FRAMES, tagFrame(id));
+  it.each(PICKUP_IDS)("draws %s's symbol alone, in the accent", (id) => {
+    const frame = frameNamed(ART_FRAMES, tagFrame(id));
 
-      expect(new Set(frame.commands.map((command) => command.color))).toEqual(
-        new Set([ART_PALETTE.accent]),
-      );
-    },
-  );
+    expect(new Set(frame.commands.map((command) => command.color))).toEqual(
+      new Set([ART_PALETTE.accent]),
+    );
+  });
 
-  it.each(PICKUP_IDS.filter(isTagged))(
+  it.each(PICKUP_IDS)(
     "keeps %s's symbol within its ring, clear of the ring's line",
     (id) => {
       const frame = frameNamed(ART_FRAMES, tagFrame(id));
@@ -371,10 +368,6 @@ describe("a tag's frame", () => {
       );
     },
   );
-
-  it("names no tag for the Nova, which is over as it starts", () => {
-    expect(() => tagFrame("nova")).toThrow(RangeError);
-  });
 });
 
 describe("the deck's frames", () => {

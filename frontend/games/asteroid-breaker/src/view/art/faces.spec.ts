@@ -1,13 +1,14 @@
+import { MOST_LIFT } from "@fz/style/fuzzball";
 import type { Field } from "../../rules/field/field";
 import type { FieldEventKind } from "../../rules/field/events";
 import { rockHitRadius } from "../../rules/rocks/rocks";
 import { stepsIn } from "../../rules/stepper";
 import type { Moving } from "../../rules/torus";
 import {
-  CHAIN,
-  CHAIN_MS,
   COMET_RADIUS,
   SHIP_HIT_RADIUS,
+  STATIC_MOST,
+  STATIC_STEPS,
 } from "../../rules/tuning";
 import {
   fieldFrom,
@@ -33,6 +34,9 @@ import {
   pushOf,
   watchFace,
 } from "./faces";
+
+/** The level static's first step starts from. */
+const FIRST_STEP_FROM = Math.min(...STATIC_STEPS.map(({ from }) => from));
 
 /** The ship's place in `podField()`'s picture. */
 const POD = { x: 6, y: 6 } as const;
@@ -416,37 +420,40 @@ describe("lookOf", () => {
 });
 
 describe("liftOf", () => {
-  it("lies flat with no chain", () => {
+  it("lies flat with no static", () => {
     expect(liftOf(podField())).toBe(0);
   });
 
-  it.each(CHAIN.map(({ from, times }) => [from, times - 1]))(
-    "lifts at each of the chain's tiers, a chain of %i to %i",
-    (chain, lift) => {
+  it("lies flat just short of static's first step", () => {
+    const field = podField();
+    field.charge.level = FIRST_STEP_FROM - 1;
+
+    expect(liftOf(field)).toBe(0);
+  });
+
+  it.each(STATIC_STEPS.map(({ from, times }) => [from, times - 1]))(
+    "lifts at each of static's steps, from %i to %i",
+    (level, lift) => {
       const field = podField();
-      field.chain = chain;
-      field.lastBreakAt = field.steps;
+      field.charge.level = level;
 
       expect(liftOf(field)).toBe(lift);
     },
   );
 
-  it("falls flat as the wave is cleared", () => {
+  it("stands on end at full static", () => {
     const field = podField();
-    field.chain = 20;
-    field.lastBreakAt = field.steps;
-    field.cleared = true;
+    field.charge.level = STATIC_MOST;
 
-    expect(liftOf(field)).toBe(0);
+    expect(liftOf(field)).toBe(MOST_LIFT);
   });
 
-  it("falls flat as the chain's time runs out", () => {
+  it("stays lifted over a cleared wave, as static is carried to the next", () => {
     const field = podField();
-    field.chain = 20;
-    field.lastBreakAt = field.steps;
-    field.steps += stepsIn(CHAIN_MS) + 1;
+    field.charge.level = STATIC_MOST;
+    field.cleared = true;
 
-    expect(liftOf(field)).toBe(0);
+    expect(liftOf(field)).toBe(MOST_LIFT);
   });
 });
 

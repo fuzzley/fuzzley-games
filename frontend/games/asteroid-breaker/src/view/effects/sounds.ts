@@ -13,7 +13,6 @@ import {
   hasTrait,
 } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
-import { CHAIN } from "../../rules/tuning";
 import {
   type FieldEvent,
   type FieldEventKind,
@@ -201,7 +200,7 @@ export type SoundTake = { [Name in SoundName]: TakeOf<Name> }[SoundName];
 /** The sound the thrust hums while it is held, which no event plays. */
 export const THRUST: SoundName = "thrust";
 
-/** The bell under each break of a chain, at its step of the ladder. */
+/** The bell under each break, at the ladder's note for static's multiplier it scored at. */
 export const LADDER: SoundName = "chain-ping";
 
 /** The patter a crowd of breaks in one frame plays as, beside its largest two. */
@@ -227,12 +226,11 @@ export function volumeOf(name: SoundName): number {
 }
 
 /**
- * The chain's ladder, in cents above `chain-ping` as recorded, for each
- * break of a chain from the first: the sound kit's `CHAIN_CENTS`
- * (`@fz/dev/synth`), copied, as the game imports nothing of `@fz/dev`. It
- * climbs the key, lands on C as the multiplier steps up at the fifth and
- * the tenth break, then circles in the top octave, and rings a fifth above
- * at the twentieth.
+ * The ladder, in cents above `chain-ping` as recorded, for each of its
+ * notes from the first: the sound kit's `CHAIN_CENTS` (`@fz/dev/synth`),
+ * copied, as the game imports nothing of `@fz/dev`. It climbs the key,
+ * lands on C at its fifth and tenth notes, then circles in the top
+ * octave, and rings a fifth above at its twentieth.
  */
 export const CHAIN_CENTS: readonly number[] = [
   0, 200, 400, 700, 1200, 1400, 1600, 1900, 2100, 2400, 2600, 2800, 3100, 2800,
@@ -240,46 +238,41 @@ export const CHAIN_CENTS: readonly number[] = [
 ];
 
 /**
- * Returns how far the bell under a break that is `chain` in its chain
- * rises, in cents: its step of the ladder, the last for a chain past it.
+ * Returns how far the ladder's note, counted from 1, rises, in cents: the
+ * last for one past it.
  */
-export function ladderCentsOf(chain: number): number {
-  const step = Math.min(Math.max(chain, 1), CHAIN_CENTS.length) - 1;
+export function ladderCentsOf(note: number): number {
+  const step = Math.min(Math.max(note, 1), CHAIN_CENTS.length) - 1;
   return CHAIN_CENTS[step] ?? 0;
 }
 
-/** The chime each multiplier plays as a chain reaches it. */
-const MULTIPLIER_SOUNDS: Readonly<
-  Record<(typeof CHAIN)[number]["times"], SoundName>
-> = {
-  2: "chain-x2",
-  3: "chain-x3",
-  4: "chain-x4",
-};
+/**
+ * The ladder's note, counted from 1, the bell under a break rings at for
+ * each of static's multipliers it scored at: the C the kit's ladder lands
+ * on at ×1, ×2 and ×3, and the fifth above it rings at ×4.
+ */
+const BELL_NOTES: readonly number[] = [1, 5, 10, 20];
 
 /**
- * Returns the chime a break plays as its chain reaches a multiplier, from
- * the count it is in its chain, or null for one that reaches none.
+ * Returns how far the bell under a break scored at one of static's
+ * multipliers rises, in cents: the ladder's note for it, the last for one
+ * past ×4.
  */
-export function multiplierSoundOf(chain: number): SoundName | null {
-  for (const tier of CHAIN) {
-    if (tier.from === chain) return MULTIPLIER_SOUNDS[tier.times];
-  }
-  return null;
+export function bellCentsOf(times: number): number {
+  const at = Math.min(Math.max(times, 1), BELL_NOTES.length) - 1;
+  return ladderCentsOf(BELL_NOTES[at] ?? 1);
 }
 
 /**
  * The sound each lasting effect plays as its time runs out, or null for
  * one that has no time: a weapon or the Magnet a soft fall on glass, and
- * Slow the field coming back; the Shield is spent rather than ending, and
- * the Nova is over as it starts.
+ * Slow the field coming back; the Shield is spent rather than ending.
  */
 const END_SOUNDS: Readonly<Record<EffectKind, SoundName | null>> = {
   weapon: "effect-end",
   guard: null,
   pull: "effect-end",
   pace: "slow-off",
-  nova: null,
 };
 
 /** Returns the sound an effect of a group plays as its time runs out, or null for none. */
@@ -350,18 +343,14 @@ const BLAST_SOUNDS: Readonly<Record<RockSize, SoundName>> = {
   small: "blast-volatile-small",
 };
 
-/**
- * The sound each pickup's catch plays, each its own short signature, or
- * null for the Nova, whose ring is heard.
- */
-const CATCH_SOUNDS: Readonly<Record<PickupId, SoundName | null>> = {
+/** The sound each pickup's catch plays, each its own short signature. */
+const CATCH_SOUNDS: Readonly<Record<PickupId, SoundName>> = {
   spread: "pickup-spread",
   rapid: "pickup-rapid",
   shield: "pickup-shield",
   lance: "pickup-lance",
   magnet: "pickup-magnet",
   slow: "pickup-slow",
-  nova: null,
 };
 
 /**
@@ -388,9 +377,6 @@ const EVENT_SOUNDS: Readonly<
 > = {
   dashed: "dash",
   shielded: "shield-break",
-  // The plan names no sound for it, and the Nova goes with sparks and
-  // static; it plays a blast, as it did before.
-  nova: "blast-volatile",
   warned: "comet-warning",
   cleared: "wave-clear",
   rung: "hit-iron",
@@ -404,6 +390,8 @@ const EVENT_SOUNDS: Readonly<
   joined: "stray-catch",
   home: "stray-catch",
   scored: null,
+  // Static's steps play no sound yet.
+  stepped: null,
 };
 
 /**
@@ -423,7 +411,7 @@ export function secondSoundOf(event: Readonly<FieldEvent>): SoundName | null {
  * Returns the sound an event plays, or null for none.
  *
  * A rock's break plays its kind's at its size, but one a comet smashed,
- * which counts in no chain, plays the comet's smash; a hit it holds plays
+ * which scored nothing, plays the comet's smash; a hit it holds plays
  * its kind's knock, but a rock that rings logs its ring too, which is heard
  * for both. A pull of fire plays its weapon's shot.
  *
@@ -435,7 +423,7 @@ export function secondSoundOf(event: Readonly<FieldEvent>): SoundName | null {
 export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
   switch (event.kind) {
     case "broken":
-      return event.chain === 0 ? "comet-smash" : breakSoundOf(event);
+      return event.times === 0 ? "comet-smash" : breakSoundOf(event);
     case "hit": {
       const kind = rockKindOf(event);
       return hasTrait(kind, "rings") ? null : HIT_SOUNDS[kind];

@@ -12,6 +12,7 @@ import type { Rock } from "../../rules/rocks/rocks";
 import type { Crew } from "../../rules/ship/pilots";
 import type { Ship, Steer } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
+import type { Charge } from "../../rules/sparks/charge";
 import type { TowLink } from "../../rules/ship/tow";
 import {
   type Moving,
@@ -66,10 +67,8 @@ export interface FieldView {
   readonly steps: number;
   /** Whether every rock it held is gone. */
   readonly cleared: boolean;
-  /** How many breaks the chain had counted as of the last, 0 once a hit ends it. */
-  readonly chain: number;
-  /** The step the last break counted in the chain came at. */
-  readonly lastBreakAt: number;
+  /** Static as it stands, which the pilot's fur shows. */
+  readonly charge: Readonly<Charge>;
 }
 
 /** Describes the field between one step and the next. */
