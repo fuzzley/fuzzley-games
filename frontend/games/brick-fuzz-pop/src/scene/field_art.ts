@@ -1,9 +1,9 @@
 // The frames the scene adds to the atlas beside the art's: the dots the
-// field is drawn with and the warning frame; the meter's pips and the
-// guide, which the art's frame names list but no art draws; and what
-// bursts from the wall as a round plays. Each is baked so it is round and
-// sharp, where a live Graphics would draw it unsmoothed and anew every
-// frame.
+// field is drawn with and the warning frame; the meter's pips, the guide
+// and the gauge over an aiming finger, which the art's frame names list but
+// no art draws; and what bursts from the wall as a round plays. Each is
+// baked so it is round and sharp, where a live Graphics would draw it
+// unsmoothed and anew every frame.
 
 import {
   type ArtFrame,
@@ -16,11 +16,18 @@ import {
   polygon,
   ring,
   stroke,
+  turned,
   widthOf,
 } from "@fz/phaser/shapes";
 import { FRAMES } from "../view/art/frames";
 import { cellOf } from "../view/art/symbols";
 import type { WallPalette } from "../view/colors/palette";
+import {
+  GAUGE_PIP_CSS_PX,
+  GAUGE_PLATE_MIDDLE,
+  GAUGE_REACH_CSS_PX,
+  GAUGE_SPREAD_DEGREES,
+} from "../view/gauge/gauge";
 
 /**
  * The names of the scene's own frames: a dot at each corner the field's
@@ -70,6 +77,17 @@ const METER_RIM = 0.03;
 
 /** How wide a dot of the guide is, in field units, as the art draws it: 4.6 of a cell of 40. */
 const GUIDE_DOT = 0.115;
+
+/**
+ * Says how the gauge over an aiming finger is drawn, in CSS pixels, as a
+ * finger's measures are: its plate's width, a pip of 13 on it with 5.5 to
+ * spare either side; the rim outside it either side; and an unlit pip's
+ * ring.
+ */
+const GAUGE_CSS_PX = { plate: 24, rim: 1.5, ring: 2 } as const;
+
+/** The most degrees a straight piece of the gauge's plate turns through along its curves, so its edges show no corner. */
+const GAUGE_ARC_STEP = 4;
 
 /**
  * Says how the guide outlines a brick the shot would punch through, in
@@ -127,10 +145,11 @@ export function fieldFrames(
 /**
  * Returns the frames the scene draws for a round in play, in a palette at
  * a scale: the meter's pips, lit in the meter's on and unlit, ringed in its
- * off, the guide's dot and its outline round a cell, a shard in white for
- * a tint to color, a streak in the fuzzball's color, a piece of bolt in the
- * sparks' and the ring in the danger line's, every line a CSS pixel wide at
- * least.
+ * off, the guide's dot and its outline round a cell, the gauge's plate and
+ * its pips, lit and unlit as the meter's, sized by the pixel ratio alone, a
+ * shard in white for a tint to color, a streak in the fuzzball's color, a
+ * piece of bolt in the sparks' and the ring in the danger line's, every
+ * line a CSS pixel wide at least.
  */
 export function flightFrames(
   palette: WallPalette,
@@ -138,9 +157,26 @@ export function flightFrames(
 ): readonly ArtFrame[] {
   return [
     dotFrame(FRAMES.meterOn, widthOf(METER_PIP, scale), palette.meter.on),
-    unlitPipFrame(palette, scale),
+    unlitPipFrame(
+      FRAMES.meterOff,
+      widthOf(METER_PIP, scale),
+      widthOf(METER_RIM, scale),
+      palette,
+    ),
     dotFrame(FRAMES.guideDot, widthOf(GUIDE_DOT, scale), palette.guide),
     punchFrame(palette, scale),
+    gaugePlateFrame(palette, scale),
+    dotFrame(
+      FRAMES.gaugeOn,
+      cssWidthOf(GAUGE_PIP_CSS_PX, scale),
+      palette.meter.on,
+    ),
+    unlitPipFrame(
+      FRAMES.gaugeOff,
+      cssWidthOf(GAUGE_PIP_CSS_PX, scale),
+      cssWidthOf(GAUGE_CSS_PX.ring, scale),
+      palette,
+    ),
     shardFrame(scale),
     streakFrame(palette, scale),
     boltFrame(palette, scale),
@@ -186,14 +222,21 @@ function warningFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
   };
 }
 
-/** Returns the meter's unlit pip: a dot of the field's color in a rim of the meter's off, as wide as a lit one. */
-function unlitPipFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
-  const side = widthOf(METER_PIP, scale);
-  const rim = widthOf(METER_RIM, scale);
+/**
+ * Returns an unlit pip, the meter's or the gauge's: a dot of the field's
+ * color some device pixels wide, as a lit one is, in a rim of the meter's
+ * off.
+ */
+function unlitPipFrame(
+  name: string,
+  side: number,
+  rim: number,
+  palette: WallPalette,
+): ArtFrame {
   const half = side / 2;
   const middle = { x: half, y: half };
   return {
-    name: FRAMES.meterOff,
+    name,
     width: side,
     height: side,
     commands: [
@@ -222,6 +265,77 @@ function punchFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
       }),
     ],
   };
+}
+
+/**
+ * Returns the gauge's plate, unturned, about its middle: a band in the
+ * gauge's plate color along the arc the pips lie on about the touch, round
+ * at both ends past the first pip and the last, over a band of its rim's
+ * color a rim wider either side.
+ */
+function gaugePlateFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
+  const reach = GAUGE_REACH_CSS_PX * scale.pixelRatio;
+  const half = cssWidthOf(GAUGE_CSS_PX.plate, scale) / 2;
+  const rim = cssWidthOf(GAUGE_CSS_PX.rim, scale);
+  // The touch the plate curves about lies straight under its middle.
+  const touch = { x: 0, y: GAUGE_PLATE_MIDDLE * reach };
+  return centered(FRAMES.gaugePlate, [
+    polygon(arcBand(touch, reach, half + rim), { color: palette.gauge.rim }),
+    polygon(arcBand(touch, reach, half), { color: palette.gauge.plate }),
+  ]);
+}
+
+/**
+ * Returns the outline of a band some width either side of the arc the
+ * gauge's pips lie on about a touch, round at both ends, as a polygon's
+ * points: its outer edge, its last end, its inner edge back and its first
+ * end.
+ */
+function arcBand(touch: Point, reach: number, half: number): readonly Point[] {
+  const spread = GAUGE_SPREAD_DEGREES;
+  const first = pointAbout(touch, reach, -spread);
+  const last = pointAbout(touch, reach, spread);
+  return [
+    ...arcAbout(touch, reach + half, -spread, spread),
+    ...arcAbout(last, half, spread, spread + 180).slice(1, -1),
+    ...arcAbout(touch, reach - half, spread, -spread),
+    ...arcAbout(first, half, 180 - spread, 360 - spread).slice(1, -1),
+  ];
+}
+
+/**
+ * Returns the points along an arc about a middle, from an angle to another,
+ * in degrees clockwise from straight up the screen, both ends among them,
+ * a piece every {@link GAUGE_ARC_STEP} degrees at most.
+ */
+function arcAbout(
+  middle: Point,
+  radius: number,
+  from: number,
+  to: number,
+): readonly Point[] {
+  const pieces = Math.ceil(Math.abs(to - from) / GAUGE_ARC_STEP);
+  return Array.from({ length: pieces + 1 }, (_, i) =>
+    pointAbout(middle, radius, from + ((to - from) * i) / pieces),
+  );
+}
+
+/** Returns the point some way from a middle at an angle, in degrees clockwise from straight up the screen. */
+function pointAbout(middle: Point, radius: number, degrees: number): Point {
+  const way = turned({ x: 0, y: -radius }, degrees);
+  return { x: middle.x + way.x, y: middle.y + way.y };
+}
+
+/**
+ * Returns a width given in CSS pixels in whole device pixels, a CSS pixel
+ * at least, for the gauge, which is measured as a finger is rather than as
+ * the field.
+ */
+function cssWidthOf(css: number, scale: ArtScale): number {
+  return Math.max(
+    Math.ceil(scale.pixelRatio),
+    Math.round(css * scale.pixelRatio),
+  );
 }
 
 /** Returns a shard: a sliver of a triangle in white, which a tint colors as its brick. */

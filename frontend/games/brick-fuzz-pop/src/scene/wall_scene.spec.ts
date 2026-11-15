@@ -3,7 +3,14 @@ import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
-import { outlineRoundRect } from "@fz/phaser/shapes";
+import {
+  type ArtFrame,
+  type Point,
+  atlasSize,
+  extentOf,
+  outlineRoundRect,
+  turned,
+} from "@fz/phaser/shapes";
 import {
   type SceneRun,
   commandsOf,
@@ -33,7 +40,12 @@ import {
 } from "../rules/tuning";
 import { AIMS } from "../rules/aims";
 import { type Brick, type Wall, thirdsOf } from "../rules/wall/wall";
-import { ART_PALETTE, looksOf } from "../testing/art_frames";
+import {
+  ART_PALETTE,
+  PIXEL_RATIOS,
+  billionths,
+  looksOf,
+} from "../testing/art_frames";
 import { marginInsets } from "../testing/canvases";
 import {
   FLIGHT_FIXTURES,
@@ -65,6 +77,11 @@ import {
   type SoundName,
 } from "../view/effects/effects";
 import {
+  GAUGE_PLATE_MIDDLE,
+  createGaugePlace,
+  gaugeOf,
+} from "../view/gauge/gauge";
+import {
   FRAME_CSS_PX,
   type FieldMetrics,
   type FieldShape,
@@ -87,7 +104,7 @@ import {
 import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import type { FieldCommand } from "../view/steering/controls";
 import { MOST_FINGERS, type Steer, aimToward } from "../view/steering/steering";
-import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf } from "./atlas";
+import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf, wallAtlasFrames } from "./atlas";
 import {
   FIELD_FRAMES,
   FLIGHT_FRAMES,
@@ -4289,7 +4306,154 @@ describe("flightFrames", () => {
     });
   });
 
-  it("names of the art's frames only those the art leaves to the scene, the meter's and the guide's", () => {
+  it("draws the gauge's lit pip 13 CSS px across, in the meter's on", () => {
+    const pip = frameNamed(FRAMED, FRAMES.gaugeOn);
+
+    expect({ side: [pip.width, pip.height], commands: pip.commands }).toEqual({
+      side: [13, 13],
+      commands: [
+        { kind: "circle", x: 6.5, y: 6.5, radius: 6.5, color: LIGHT.meter.on },
+      ],
+    });
+  });
+
+  it("draws the gauge's unlit pip as wide, a dot of the field's color in a ring of the meter's off 2 CSS px wide", () => {
+    const pip = frameNamed(FRAMED, FRAMES.gaugeOff);
+
+    expect({ side: [pip.width, pip.height], commands: pip.commands }).toEqual({
+      side: [13, 13],
+      commands: [
+        { kind: "circle", x: 6.5, y: 6.5, radius: 6.5, color: LIGHT.field },
+        {
+          kind: "ring",
+          x: 6.5,
+          y: 6.5,
+          radius: 5.5,
+          width: 2,
+          color: LIGHT.meter.off,
+        },
+      ],
+    });
+  });
+
+  it("draws the gauge's plate 24 CSS px wide in its plate's color, along the arc 74 CSS px about the touch its pips lie on, over its rim 2 px wider either side, both round past the first pip and the last", () => {
+    const plate = frameNamed(FRAMED, FRAMES.gaugePlate);
+
+    const touch = gaugeTouchIn(plate, 1);
+
+    expect({
+      side: [plate.width, plate.height],
+      colors: plate.commands.map(({ color }) => color),
+      halves: plate.commands.map((command) =>
+        command.kind === "polygon"
+          ? widthsAbout(command.points, touch, 74)
+          : [],
+      ),
+    }).toEqual({
+      side: [132, 50],
+      colors: [LIGHT.gauge.rim, LIGHT.gauge.plate],
+      halves: [[14], [12]],
+    });
+  });
+
+  it("fills the gauge's plate and its rim along the whole arc and round both ends: each band's area the arc's band's and a disc as wide, to a hundredth, drawn in pieces of 4 degrees at most", () => {
+    const plate = frameNamed(FRAMED, FRAMES.gaugePlate);
+
+    const bands = plate.commands.map((command) =>
+      command.kind === "polygon" ? command.points : [],
+    );
+
+    // The arc's band, 88 degrees of a ring 74 px about the touch, and a disc
+    // as wide, its two round ends; and a chord of 4 degrees round the outer
+    // edge, the rim's 88 px about the touch.
+    const areaOf = (half: number): number =>
+      (88 / 360) * Math.PI * ((74 + half) ** 2 - (74 - half) ** 2) +
+      Math.PI * half ** 2;
+    const shares = bands.map(
+      (points, at) =>
+        Math.round((polygonArea(points) / areaOf(at === 0 ? 14 : 12)) * 100) /
+        100,
+    );
+    expect(shares).toEqual([1, 1]);
+    expect(Math.max(...bands.map(longestStep))).toBeLessThanOrEqual(
+      2 * 88 * Math.sin((2 * Math.PI) / 180) + 1e-9,
+    );
+  });
+
+  it("lays the gauge's plate, turned about its middle as gaugeOf() turns it, under each pip gaugeOf() places, along the arc it is drawn about, as wide about it at 2 device pixels to a CSS pixel", () => {
+    const scale = { unit: 80, pixelRatio: 2 };
+    const plate = frameNamed(flightFrames(LIGHT, scale), FRAMES.gaugePlate);
+    const field = { x: 24, y: 80, width: 720, height: 1360, pixelRatio: 2 };
+    // A touch in the ceiling's left corner, which turns the gauge 116 degrees.
+    const place = gaugeOf(field, 64, 160, createGaugePlace());
+
+    const inFrame = place.pips.map((pip) => {
+      const back = turned(
+        { x: pip.x - place.plate.x, y: pip.y - place.plate.y },
+        -place.turn,
+      );
+      return { x: plate.width / 2 + back.x, y: plate.height / 2 + back.y };
+    });
+
+    const touch = gaugeTouchIn(plate, 2);
+    expect({
+      turn: place.turn,
+      pips: inFrame.map((pip) => ({
+        fromArc: billionths(fromGaugeArc(pip, touch, 148)),
+        degrees: billionths(degreesAbout(pip, touch)),
+      })),
+      halves: plate.commands.map((command) =>
+        command.kind === "polygon"
+          ? widthsAbout(command.points, touch, 148)
+          : [],
+      ),
+    }).toEqual({
+      turn: 116,
+      pips: [-44, -22, 0, 22, 44].map((degrees) => ({
+        fromArc: 0,
+        degrees,
+      })),
+      // 24 CSS px of plate and 1.5 of rim, rounded: 48 and 3 device pixels.
+      halves: [[27], [24]],
+    });
+  });
+
+  it("keeps the gauge's plate and its rim inside the field, where gaugeOf() places it over a touch pressed against a side wall or the ceiling", () => {
+    const scale = { unit: 80, pixelRatio: 2 };
+    const plate = frameNamed(flightFrames(LIGHT, scale), FRAMES.gaugePlate);
+    const rim = plate.commands.flatMap((command) =>
+      command.kind === "polygon" ? command.points : [],
+    );
+    const field = { x: 24, y: 80, width: 720, height: 1360, pixelRatio: 2 };
+    // 20 CSS px from a side wall, 40 CSS px under the ceiling, or both.
+    const touches = [
+      { x: 64, y: 760 },
+      { x: 704, y: 760 },
+      { x: 384, y: 160 },
+      { x: 64, y: 160 },
+      { x: 704, y: 160 },
+    ];
+
+    const clearances = touches.map(({ x, y }) => {
+      const place = gaugeOf(field, x, y, createGaugePlace());
+      return Math.min(
+        ...rim.map((point) => {
+          const way = turned(
+            { x: point.x - plate.width / 2, y: point.y - plate.height / 2 },
+            place.turn,
+          );
+          return clearanceIn(field, {
+            x: place.plate.x + way.x,
+            y: place.plate.y + way.y,
+          });
+        }),
+      );
+    });
+
+    expect(Math.min(...clearances)).toBeGreaterThan(0);
+  });
+
+  it("names of the art's frames only those the art leaves to the scene, the meter's, the guide's and the gauge's", () => {
     const names = FRAMED.map(({ name }) => name);
 
     expect(
@@ -4299,6 +4463,9 @@ describe("flightFrames", () => {
       FRAMES.meterOff,
       FRAMES.guideDot,
       FRAMES.guidePunch,
+      FRAMES.gaugePlate,
+      FRAMES.gaugeOn,
+      FRAMES.gaugeOff,
     ]);
   });
 
@@ -4308,6 +4475,83 @@ describe("flightFrames", () => {
     expect(FRAMED.filter(({ name }) => field.includes(name))).toEqual([]);
   });
 });
+
+describe.each(PIXEL_RATIOS)(
+  "the gauge's frames at %s device pixels to a CSS pixel",
+  (pixelRatio) => {
+    /** The gauge's frames in the light palette at a scale. */
+    const gaugeFrames = (unit: number): readonly ArtFrame[] =>
+      flightFrames(LIGHT, { unit, pixelRatio }).filter(({ name }) =>
+        name.startsWith("gauge-"),
+      );
+
+    it("sizes the gauge's frames by the pixel ratio alone, the same at the least unit the field takes and the most the atlas is baked at", () => {
+      expect(gaugeFrames(Math.ceil(24 * pixelRatio))).toEqual(
+        gaugeFrames(MOST_BAKED_UNIT),
+      );
+    });
+
+    it("draws each of the gauge's frames within it, every line a CSS pixel wide or more", () => {
+      const frames = gaugeFrames(MOST_BAKED_UNIT);
+
+      const straying = frames.filter((frame) =>
+        frame.commands.some((command) => {
+          const { x, y, width, height } = extentOf(command);
+          return (
+            x < 0 ||
+            y < 0 ||
+            x + width > frame.width ||
+            y + height > frame.height ||
+            (command.kind === "ring" && command.width < pixelRatio)
+          );
+        }),
+      );
+
+      expect({
+        names: frames.map(({ name }) => name),
+        straying: straying.map(({ name }) => name),
+      }).toEqual({
+        names: [FRAMES.gaugePlate, FRAMES.gaugeOn, FRAMES.gaugeOff],
+        straying: [],
+      });
+    });
+
+    it("draws the gauge's pips 13 CSS px across, in whole device pixels", () => {
+      const frames = gaugeFrames(MOST_BAKED_UNIT);
+
+      const sides = [FRAMES.gaugeOn, FRAMES.gaugeOff].map(
+        (name) => frameNamed(frames, name).width,
+      );
+
+      expect(sides).toEqual([
+        Math.round(13 * pixelRatio),
+        Math.round(13 * pixelRatio),
+      ]);
+    });
+
+    it("sizes the gauge's plate in even device pixels, so its middle, where gaugeOf() puts it, is a pixel's corner", () => {
+      const plate = frameNamed(gaugeFrames(MOST_BAKED_UNIT), FRAMES.gaugePlate);
+
+      expect([plate.width % 2, plate.height % 2]).toEqual([0, 0]);
+    });
+  },
+);
+
+describe.each(PIXEL_RATIOS)(
+  "the atlas at %s device pixels to a CSS pixel",
+  (pixelRatio) => {
+    it("fits every frame it bakes, the art's and the scene's, in 2048 × 2048 at the most it is baked at", () => {
+      const frames = wallAtlasFrames(LIGHT, {
+        unit: MOST_BAKED_UNIT,
+        pixelRatio,
+      });
+
+      const { width, height } = atlasSize(frames);
+
+      expect(Math.max(width, height)).toBeLessThanOrEqual(2048);
+    });
+  },
+);
 
 describe("fieldFrames", () => {
   /** The scale of a unit of 40 CSS pixels at a pixel to one, the art's mock of a phone's. */
@@ -4450,6 +4694,86 @@ describe("pictureFrames", () => {
     ).toEqual([]);
   });
 });
+
+/**
+ * Returns where the touch the gauge's plate curves about lies in its frame,
+ * at a pixel ratio: straight under the frame's middle, the plate's, by its
+ * share of the reach.
+ */
+function gaugeTouchIn(plate: ArtFrame, pixelRatio: number): Point {
+  return {
+    x: plate.width / 2,
+    y: plate.height / 2 + GAUGE_PLATE_MIDDLE * 74 * pixelRatio,
+  };
+}
+
+/** Returns a point's angle about another, in degrees clockwise from straight up the screen. */
+function degreesAbout(point: Point, about: Point): number {
+  return (Math.atan2(point.x - about.x, about.y - point.y) * 180) / Math.PI;
+}
+
+/**
+ * Returns how far a point lies from the arc the gauge's pips lie on about a
+ * touch, some device pixels out, from 44 degrees left of straight up to 44
+ * right: from the arc where it lies between its ends, else from the nearer
+ * end.
+ */
+function fromGaugeArc(point: Point, touch: Point, reach: number): number {
+  const degrees = degreesAbout(point, touch);
+  if (Math.abs(degrees) <= 44) {
+    return Math.abs(Math.hypot(point.x - touch.x, point.y - touch.y) - reach);
+  }
+  const end = turned({ x: 0, y: -reach }, Math.sign(degrees) * 44);
+  return Math.hypot(point.x - touch.x - end.x, point.y - touch.y - end.y);
+}
+
+/** Returns how far each of a band's points lies from the gauge's arc, in whole device pixels, each once. */
+function widthsAbout(
+  points: readonly Point[],
+  touch: Point,
+  reach: number,
+): readonly number[] {
+  return [
+    ...new Set(
+      points.map(
+        (point) => Math.round(fromGaugeArc(point, touch, reach) * 1e6) / 1e6,
+      ),
+    ),
+  ];
+}
+
+/** Returns how far a point lies inside a field's edges, the nearest of them: less than 0 outside it. */
+function clearanceIn(
+  field: { x: number; y: number; width: number; height: number },
+  { x, y }: Point,
+): number {
+  return Math.min(
+    x - field.x,
+    field.x + field.width - x,
+    y - field.y,
+    field.y + field.height - y,
+  );
+}
+
+/** Returns the area a polygon through points in turn encloses. */
+function polygonArea(points: readonly Point[]): number {
+  let twice = 0;
+  for (const [at, { x, y }] of points.entries()) {
+    const next = points[(at + 1) % points.length] ?? { x, y };
+    twice += x * next.y - next.x * y;
+  }
+  return Math.abs(twice) / 2;
+}
+
+/** Returns the longest straight piece between two points in turn round a polygon. */
+function longestStep(points: readonly Point[]): number {
+  return Math.max(
+    ...points.map(({ x, y }, at) => {
+      const next = points[(at + 1) % points.length] ?? { x, y };
+      return Math.hypot(next.x - x, next.y - y);
+    }),
+  );
+}
 
 /** Returns whether the atlas holds a frame of a name. */
 function atlasHas(scene: WallScene, name: string): boolean {

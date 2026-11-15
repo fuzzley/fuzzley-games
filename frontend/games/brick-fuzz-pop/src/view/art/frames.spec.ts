@@ -34,9 +34,9 @@ describe("FRAME_NAMES", () => {
   // a shell's body and 2 of its pips, 2 moss pips and its cap, 4 zappers,
   // the bomb, the bumper, the prism, 2 portals, wool, 8 cages' insides and
   // 2 cages' bars, 6 fuzzballs, the hot shot, 8 friends, their eyes, 2
-  // meter pips and 2 of the guide's marks.
+  // meter pips, 2 of the guide's marks, and the gauge's plate and 2 pips.
   it("lists every frame the art draws", () => {
-    expect(FRAME_NAMES).toHaveLength(74);
+    expect(FRAME_NAMES).toHaveLength(77);
   });
 
   it("lists each frame once", () => {
@@ -59,6 +59,9 @@ describe("FRAME_NAMES", () => {
         "meter-off",
         "guide-dot",
         "guide-punch",
+        "gauge-plate",
+        "gauge-on",
+        "gauge-off",
       ]),
     );
   });

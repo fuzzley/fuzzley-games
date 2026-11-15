@@ -109,6 +109,12 @@ export interface WallPalette {
   readonly dangerLine: number;
   /** The meter's pips, lit in the warning color and unlit in the field's muted text. */
   readonly meter: { readonly on: number; readonly off: number };
+  /**
+   * The gauge over an aiming finger, whose pips are the meter's: its plate
+   * in the lintel's color, the {@link band}'s, and the plate's rim, the
+   * field's muted text at {@link GAUGE_RIM_WASH}.
+   */
+  readonly gauge: { readonly plate: number; readonly rim: number };
   /** Each friend's ink, by the ink it was freed with: the {@link FUZZBALL_INKS} of the palette's mode. */
   readonly friends: readonly number[];
 }
@@ -147,6 +153,9 @@ export const MOSS_LIGHT: Readonly<Record<ColorMode, number>> = {
 /** How much of the field's text a portal's arms and badge take over its ring's ink. */
 export const PORTAL_GLOW = 0.34;
 
+/** How much of the field's muted text the gauge's rim takes over the field: a faint edge round its plate, which no rule of contrast covers. */
+export const GAUGE_RIM_WASH = 0.6;
+
 const WHITE = 0xffffff;
 const BLACK = 0x000000;
 
@@ -162,6 +171,8 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
   const mark = field;
   const tints = TILE_INKS[mode];
   const ink = (name: TintName): number => inkAt(tints, TINT[name]);
+  const muted = colorNumber(roles.fieldMuted);
+  const band = mixColors(text, field, BAND_WASH);
   const steel = mixColors(text, field, STEEL_WASH);
   const zapper: KindInks = { body: warning, face: line, glyph: warning };
   const portal = (name: TintName): KindInks => {
@@ -175,7 +186,7 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
   return {
     field,
     line,
-    band: mixColors(text, field, BAND_WASH),
+    band,
     mark,
     tints,
     steel,
@@ -216,7 +227,8 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
     text,
     jumpLine: accent,
     dangerLine: danger,
-    meter: { on: warning, off: colorNumber(roles.fieldMuted) },
+    meter: { on: warning, off: muted },
+    gauge: { plate: band, rim: mixColors(muted, field, GAUGE_RIM_WASH) },
     friends: FUZZBALL_INKS[mode],
   };
 }

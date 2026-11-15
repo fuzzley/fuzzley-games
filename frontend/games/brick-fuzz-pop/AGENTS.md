@@ -265,9 +265,12 @@ helpers.
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its
   mode's tile and fuzzball inks: every color a rule of contrast covers,
-  though not the shading the art mixes from them. `contrast.spec.ts` holds
-  them to 3:1 in each of the game's four palettes, and the field's text to
-  4.5:1 against the lintel, where the board counts the rows waiting.
+  though not the shading the art mixes from them, and the gauge's plate,
+  in the lintel's color, and the faint rim round it, which no rule covers.
+  `contrast.spec.ts` holds them to 3:1 in each of the game's four
+  palettes, the gauge's pips against its plate among them, and the field's
+  text to 4.5:1 against the lintel, where the board counts the rows
+  waiting.
   `brick_colors.ts` says the color each kind of brick is drawn in, which
   its shards take (`brickColor()`): its tint's ink, its pair's or its own,
   typed over the catalog's ids, so a kind without one fails to compile,
@@ -358,12 +361,14 @@ helpers.
     nothing drawn shows past the frame; and moves the viewport as a lost
     level's shake has the field.
   - `atlas.ts` — bakes the art's frames, the scene's own (`field_art.ts`:
-    the field's dots and the warning frame; the meter's pips and the
-    guide's dot and outline, which `FRAMES` names and no art draws; and
-    `FLIGHT_FRAMES`'s shard, streak, bolt and ring) and a picture of each
-    kind (`pictures.ts`) into one atlas (`bakeWallAtlas()`), at 128 device
-    px a unit at most; the scene hands the shell the pictures How to play
-    and the panels show, `{ bricks }` by kind, through `onPictures`.
+    the field's dots and the warning frame; the meter's pips, the guide's
+    dot and outline, and the plate and pips of the gauge over an aiming
+    finger, sized by the pixel ratio alone, which `FRAMES` names and no art
+    draws; and `FLIGHT_FRAMES`'s shard, streak, bolt and ring) and a
+    picture of each kind (`pictures.ts`) into one atlas (`bakeWallAtlas()`
+    bakes what `wallAtlasFrames()` lists), at 128 device px a unit at most;
+    the scene hands the shell the pictures How to play and the panels show,
+    `{ bricks }` by kind, through `onPictures`.
   - `painters/` — each a `Painter` (`painter.ts`), drawing from the
     `PaintContext` the scene writes over each frame, from pools made once,
     the dots on whole pixels (`dots.ts`'s `placeDot()`), each in its layers

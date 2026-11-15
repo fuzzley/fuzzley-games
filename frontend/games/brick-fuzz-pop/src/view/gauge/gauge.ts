@@ -13,7 +13,11 @@ export const GAUGE_REACH_CSS_PX = 74;
 /** How wide a pip of the gauge is, in CSS pixels: twice the meter's on a phone. */
 export const GAUGE_PIP_CSS_PX = 13;
 
-/** How near the field's side walls, its ceiling and its floor a pip's middle may come, in CSS pixels. */
+/**
+ * How near the field's side walls, its ceiling and its floor a pip's middle
+ * may come, in CSS pixels: past the plate and its rim, which the art draws
+ * 13.5 CSS px either side of the pips' arc, so the gauge shows whole.
+ */
 const GAUGE_ROOM_CSS_PX = 16;
 
 /**
