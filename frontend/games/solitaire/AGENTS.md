@@ -282,7 +282,7 @@ others', and check its formatting and skill references there.
 - **Production Build:** `yarn build` (generates bundled production assets in `dist/`, with Phaser in a chunk of its own, from `gameConfig()`).
 - **Run Unit Tests:** `yarn test` (runs the whole suite once, without coverage), `yarn test:coverage` (the same, with coverage, failing below the floor) or `yarn test:watch`; `yarn vitest run <path>` runs one spec without coverage.
 - **Linting:** `yarn lint` (runs ESLint over `src`, `test`, `tools`, the Vite configs and the lint configs, with `@fz/dev`'s blocks, `scripts()` among them for `tools/`, `eslint.config.js` and `stylelint.config.js`, the tier fences above, and the one rule the Phaser adapter is let off, then `yarn lint:styles`, which runs stylelint over every stylesheet with `@fz/style`'s preset (`stylelint.config.js`): the standard SCSS rules, no colour written outside `_palette.scss`, Sass modules, nesting at most three deep).
-- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app (`tsconfig.app.json`), then `tsc` over the tests (`tsconfig.spec.json`), the Vite configs (`tsconfig.node.json`) and the Node scripts in `tools/` and the two lint configs from their JSDoc (`tsconfig.scripts.json`), emitting nothing, each with `@fz/dev`'s compiler options).
+- **Type Checking:** `yarn typecheck` (runs the Angular compiler's checks over the app (`tsconfig.app.json`), then `tsc7` over the tests (`tsconfig.spec.json`), the Vite configs (`tsconfig.node.json`) and the Node scripts in `tools/` and the two lint configs from their JSDoc (`tsconfig.scripts.json`), emitting nothing, each with `@fz/dev`'s compiler options).
 
 ---
 

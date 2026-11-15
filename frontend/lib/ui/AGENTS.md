@@ -182,7 +182,7 @@ own, which `yarn workspace @fz/ui <script>` runs alone.
   `eslint.config.js` and `stylelint.config.js`. Then `lint:styles` runs
   stylelint with `@fz/style`'s preset.
 - **`typecheck`** runs the Angular compiler's checks over the sources
-  (`tsconfig.lib.json`), emitting nothing, then `tsc` over the specs
+  (`tsconfig.lib.json`), emitting nothing, then `tsc7` over the specs
   (`tsconfig.spec.json`), the Vitest config (`tsconfig.node.json`) and the
   two lint configs from their JSDoc (`tsconfig.scripts.json`).
 - **`test`** runs Vitest with jsdom and Testing Library, as the site's specs

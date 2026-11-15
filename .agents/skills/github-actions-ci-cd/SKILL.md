@@ -33,9 +33,10 @@ the Yarn it downloads and Yarn's package cache, each restored with
 2. **`lint`** — a check that the `Dockerfile` builds on the same major
    version of Node and installs the same Corepack as the workflow, then
    `yarn lint`, with Prettier's cache restored from the last run.
-3. **`typecheck`** — `yarn typecheck`, with `tsc`'s build info
-   (`tsconfig.*.tsbuildinfo`) restored from the last run, so each pass
-   checks again only what changed.
+3. **`typecheck`** — `yarn typecheck`: `ngc` on TypeScript 6 over each
+   Angular workspace's app or library, and every other pass on TypeScript
+   7 (`@fz/dev`'s `tsc7`), which checks the whole of each cold faster than
+   TypeScript 6 checked what changed, so nothing is cached.
 4. **`test`** — the tests with each workspace's coverage floors
    (`test:coverage`), through `frontend/tools/run-tests.mjs`, in three
    jobs of about the same length: Asteroid Breaker and Brick Breaker, then
@@ -107,11 +108,10 @@ passes on `main` moves it forward again.
 3. **A cache only saves time.** Each one the jobs restore is keyed on
    everything its result reads: Corepack's Yarn on its version, Yarn's
    packages on the lockfile, Prettier's on each file's contents and
-   Prettier's options, and `tsc`'s on each file's contents and what it
-   imports, so the last run's serves any commit and a stale entry is a
-   miss, never a pass. ESLint's `--cache` keys a file's result on that file
-   alone, whatever its strategy, while the type-aware rules read the files
-   it imports, so it doesn't belong on CI.
+   Prettier's options, so the last run's serves any commit and a stale
+   entry is a miss, never a pass. ESLint's `--cache` keys a file's result
+   on that file alone, whatever its strategy, while the type-aware rules
+   read the files it imports, so it doesn't belong on CI.
 4. **The image checks follow the server.** A new route in
    `frontend/site/src/app/routes.ts`, a changed header in `nginx.conf.template`
    or a new variable in `docker-entrypoint.d/40-generate-env-config.sh` gets a
@@ -146,9 +146,9 @@ passes on `main` moves it forward again.
   install location), or all of them with `yarn verify:full` and
   `yarn check:layout`. CI's runner has four cores, so
   `CI=true taskset -c 0-3 <command>` on Linux comes closest to it.
-  `yarn typecheck` runs `tsc` over `frontend/tsconfig.scripts.json` (the
+  `yarn typecheck` runs `tsc7` over `frontend/tsconfig.scripts.json` (the
   `.agents` scripts), then each workspace's, such as the site's: `ngc`
-  over `frontend/site/tsconfig.app.json`, then `tsc` over
+  over `frontend/site/tsconfig.app.json`, then `tsc7` over
   `frontend/site/tsconfig.spec.json`, `frontend/site/tsconfig.node.json` and
   `frontend/site/tsconfig.scripts.json`. A formatting failure in `yarn lint`
   is fixed by `yarn prettier`.

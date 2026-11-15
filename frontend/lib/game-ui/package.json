@@ -21,7 +21,7 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "ngc -p tsconfig.lib.json --noEmit && tsc -p tsconfig.spec.json --noEmit --incremental --tsBuildInfoFile tsconfig.spec.tsbuildinfo && tsc -p tsconfig.node.json --incremental --tsBuildInfoFile tsconfig.node.tsbuildinfo && tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit && tsc7 -p tsconfig.spec.json --noEmit && tsc7 -p tsconfig.node.json && tsc7 -p tsconfig.scripts.json",
     "lint": "eslint src eslint.config.js stylelint.config.js vitest.config.ts && yarn lint:styles",
     "lint:styles": "stylelint \"src/**/*.scss\""
   },

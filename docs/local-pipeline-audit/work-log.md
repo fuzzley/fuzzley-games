@@ -11,15 +11,15 @@ The log of the work that acts on [report.md](report.md), the audit of Nov 14, 20
 
 The changes, in the order they are committed, with the report's numbers. TypeScript 7 comes before the layout check's pages because it was built first; the two touch different files.
 
-| Step | #   | Change                                                                                                                               | Status |
-| ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| 1    | —   | The audit's report, scripts and data                                                                                                 |        |
-| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          |        |
-| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    |        |
-| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               |        |
-| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |        |
-| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |        |
-| 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       |        |
+| Step | #   | Change                                                                                                                               | Status   |
+| ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| 1    | —   | The audit's report, scripts and data                                                                                                 | 05b6fd8b |
+| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          |          |
+| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    |          |
+| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               |          |
+| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |          |
+| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |          |
+| 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       |          |
 
 What the plan leaves out, and why:
 
@@ -32,8 +32,8 @@ What the plan leaves out, and why:
 
 ### 2026-11-14: the audit's report, scripts and data (step 1)
 
-`docs(local-pipeline-audit): add the audit of the local pipeline, its scripts and its data`
-(step 1): `report.md`, this log, the scripts each figure came from in [`scripts/`](scripts/), and their tables in [`data/`](data/). The raw logs stay outside the repository, under `local-pipeline-audit-2026-11-14/logs/`, beside the checkout.
+`docs(local-pipeline-audit): audit the local lint, typecheck, test, build and layout pipeline at e6740e04, with its scripts, data and the plan that acts on it`
+(05b6fd8b, step 1): `report.md`, this log, the scripts each figure came from in [`scripts/`](scripts/), and their tables in [`data/`](data/). The raw logs stay outside the repository, under `local-pipeline-audit-2026-11-14/logs/`, beside the checkout.
 
 The first review, and the answers. Every figure it touched was measured again at e6740e04 with the scripts as committed, one script at a time on a quiet devbox, with this branch's later changes stashed:
 
@@ -80,3 +80,25 @@ The second review, and the answers. It found the first review's points 1–4 and
 9. **The report called the changed-only run `yarn verify --changed`.** Fixed: `yarn verify:changed`, as a script of its own, since Yarn would hand `--changed` to `yarn verify`'s last command alone; plain `yarn verify` keeps its chain until #4.
 
 The smaller points, all fixed: the most-changed workspaces are the three Breaker games, at 46–51%, with Snake and Solitaire at 39–40%; the model's shares have a decimal, 18.5% within 30 s and 18.5% at the full time, the 11.1% and 7.4% that reach every workspace; and `one-game.sh`, the summary and the side-by-side finding name the root's checks it runs, its skills, constraints, dedupe and Prettier checks, not its ESLint or `tsc`.
+
+The second review's fixes correct what it found rather than reshape the change, so the commit went in on them.
+
+### 2026-11-14: TypeScript 7 for the plain passes (step 2)
+
+`build(dev): type-check every pass but ngc's on TypeScript 7, through a tsc7 binary of @fz/dev's, keeping no build info`
+(step 2):
+
+- `@fz/dev` depends on TypeScript 7.0.2 under the alias `@typescript/native`, and declares a `tsc7` binary, `bin/tsc7.mjs` on `src/tsc7.ts`. Every workspace's `typecheck`, and the root's, runs it for each plain pass; `ngc` stays on TypeScript 6, as ESLint and Analog's plugin do. The alias lives in `@fz/dev` alone, the one workspace that declares it. In a scratch project, the alias beside `typescript` took `node_modules/.bin/tsc` while `yarn tsc` still ran 6. Here `frontend/node_modules/.bin/tsc` is TypeScript 6's, and `@fz/dev`'s own `.bin` holds only `tsc7`; no script runs a plain `tsc` any more either way.
+- No pass keeps build info. The `--incremental` flags go, and with them the step of CI's `typecheck` job that restored `tsconfig.*.tsbuildinfo`. `.gitignore` still ignores those files, for checkouts that hold some.
+- The image installs TypeScript 7's Linux package, which declares no C library, but never runs it: its build runs `yarn build` alone. Its build stage, built locally, installed with `--immutable` and built, and TypeScript 7 runs there too (`tsc -v` printed 7.0.2).
+- The docs: `frontend/AGENTS.md`'s Type Checking, `@fz/dev`'s `AGENTS.md`, and the `github-actions-ci-cd` skill's `typecheck` job, its rule for caches and its troubleshooting.
+- Checked: the root's `yarn lint`; `yarn typecheck`, in 12 s against 17 s; `yarn test`, every workspace; and `bash -n` over the workflows' 15 run blocks.
+
+The review, and the answers:
+
+1. **The binary had no spec, though CI's typecheck depends on its exit code.** Fixed: `src/tsc7.spec.ts` runs `bin/tsc7.mjs` as a workspace's script does, over a clean project and one with a type error, and holds it to 0 and 1. With its `process.exitCode =` taken out, the spec fails.
+2. **Six workspaces' `AGENTS.md` still said their plain passes run `tsc`.** Fixed: the site's, `@fz/core`'s, `@fz/style`'s, `@fz/ui`'s, Minesweeper's and the Solitaire Collection's say `tsc7`.
+3. **`frontend/AGENTS.md`'s Type Checking tied the missing compiler API to the wrong clause, and kept "names each file" from the build-info sentence.** Fixed, as the review worded it.
+4. **This entry's line on the image was edited after staging.** Fixed: staged with this commit.
+5. **The audit's scripts still time TypeScript 6's passes with build info.** Left as they are, since they record how the audit measured at e6740e04. Step 7 times the pipeline with `bench.sh` and `one-game.sh` changed to run each workspace's own `typecheck` as it stands, or the "after" figures would time TypeScript 6.
+6. **Each pass starts Node twice,** once for the binary and once for TypeScript 7's launcher. Left: about 40 passes against `yarn typecheck`'s 12 s, and step 7's timings show whether it matters. Its point on why `yarn tsc` stays on 6 inside `@fz/dev` is answered in the first bullet above.

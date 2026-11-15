@@ -9,9 +9,10 @@ export default defineConfig(
     files: ["src/**/*.ts", "vitest.config.ts"],
   }),
   tests({ files: ["src/**/*.spec.ts", "src/testing/**/*.ts"] }),
-  scripts({ files: ["eslint.config.js"] }),
+  scripts({ files: ["eslint.config.js", "bin/**/*.mjs"] }),
   // What the scripts load of this library, from @fz/dev/script, /report,
-  // /screenshots and /workspaces, loads Vite only once a script asks for it.
+  // /screenshots and /workspaces, and what the tsc7 binary loads, loads
+  // Vite only once a script asks for it.
   {
     files: [
       "src/script.ts",
@@ -22,6 +23,7 @@ export default defineConfig(
       "src/board_page.ts",
       "src/layout_page.ts",
       "src/chrome.ts",
+      "src/tsc7.ts",
     ],
     rules: {
       "@typescript-eslint/no-restricted-imports": [

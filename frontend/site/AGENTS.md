@@ -111,7 +111,7 @@ own, which `yarn workspace site <script>` runs alone.
   preset (`stylelint.config.js`): the standard SCSS rules, no hex, named or
   functional color at all, no `@import`, nesting at most three deep.
 - **`typecheck`** runs the Angular compiler's checks over the app, emitting
-  nothing, then `tsc` over the specs (`tsconfig.spec.json`), over
+  nothing, then `tsc7` over the specs (`tsconfig.spec.json`), over
   `vite.config.ts` (`tsconfig.node.json`), and over the `tools` scripts and
   the two lint configs from their JSDoc (`tsconfig.scripts.json`), each
   extending `@fz/dev`'s compiler options.
