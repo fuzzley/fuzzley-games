@@ -2,7 +2,7 @@ import { formatPoints } from "@fz/core/format";
 import { easeOutCubic, shareDone } from "@fz/core/math";
 import { keysOf } from "@fz/core/records";
 import type { WaveTally } from "../rules/field/scoring";
-import type { EndMarks } from "../rules/run/describe";
+import { type EndMarks, marksWords } from "../rules/run/describe";
 import type { Run } from "../rules/run/run";
 import { SPEED_INFO, type Speed } from "../rules/speed";
 import type { WaveEntry } from "../rules/waves/waves";
@@ -84,14 +84,13 @@ export function endSubtitle(entry: WaveEntry, speed: Speed): string {
 /**
  * Returns what a screen reader hears of the result card as it opens: where
  * the run ended and at what speed, its score, and the best it set and all
- * thirty cleared, if it did, as the announcer says them of the run's end.
+ * thirty cleared, if it did, in the announcer's words for them
+ * (`marksWords()`).
  */
 export function endDescription(
   run: Pick<Run, "speed" | "score">,
   entry: WaveEntry,
-  { newBest, clearedAll }: EndMarks,
+  marks: EndMarks,
 ): string {
-  const best = newBest ? " A new best!" : "";
-  const all = clearedAll ? " Cleared all thirty!" : "";
-  return `${endSubtitle(entry, run.speed)}. Score ${formatPoints(run.score)}.${best}${all}`;
+  return `${endSubtitle(entry, run.speed)}. Score ${formatPoints(run.score)}.${marksWords(marks)}`;
 }

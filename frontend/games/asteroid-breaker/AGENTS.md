@@ -297,7 +297,9 @@ takes for the specs' helpers.
   home, with how many ride in tow, a pickup caught, static coming to full,
   a zap, a burr clinging ("A burr clings."), a clearing, a pause, going
   on, a run taken up and the end, in the words the result card and the
-  card over an ended run take up (`END_TITLE`, "Everyone is home."). The announcer,
+  card over an ended run take up (`END_TITLE`, "Everyone is home."), and
+  what it set, which a screen reader hears of the result card too
+  (`marksWords()`). The announcer,
   the bar, the cards, the result, the sectors and How to play all write
   points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
@@ -408,7 +410,8 @@ takes for the specs' helpers.
   wave to come (`nextWaveWords()`), and what the cards over an ended run say
   of the wave it ended on (`endWords()`), the result card with its speed
   (`endSubtitle()`), and what a screen reader hears of the result card as
-  it opens, its score and marks too (`endDescription()`); `bests.ts`
+  it opens, its score and marks too, the marks in the announcer's words
+  (`endDescription()`, `describe.ts`' `marksWords()`); `bests.ts`
   whether a best was made under earlier rules than these
   (`isEarlierBest()`, by the rules' `RULES_VERSION`), which the next run
   to score beats and takes the place of, what the result calls one

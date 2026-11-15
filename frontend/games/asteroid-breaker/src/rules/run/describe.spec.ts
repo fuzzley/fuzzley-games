@@ -11,6 +11,7 @@ import {
   describeResume,
   describeTakenUp,
   describeWave,
+  marksWords,
 } from "./describe";
 import { FULL_STEP } from "../sparks/charge";
 import { type Run, createRun } from "./run";
@@ -302,6 +303,17 @@ describe("describeTakenUp", () => {
     expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
       "Your last run is paused on wave 4, Thaw, with a score of 9,020 and no one in tow. Press Enter to go on.",
     );
+  });
+});
+
+describe("marksWords", () => {
+  it.each([
+    ["nothing", false, false, ""],
+    ["a new best", true, false, " A new best!"],
+    ["all thirty cleared", false, true, " Cleared all thirty!"],
+    ["both, the best first", true, true, " A new best! Cleared all thirty!"],
+  ])("says of a run that set %s", (_, newBest, clearedAll, said) => {
+    expect(marksWords({ newBest, clearedAll })).toBe(said);
   });
 });
 
