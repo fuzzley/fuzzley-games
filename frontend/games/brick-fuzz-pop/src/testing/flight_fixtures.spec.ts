@@ -652,6 +652,14 @@ describe("orderProblemsOf()", () => {
     );
   });
 
+  it("finds a fuzzball dropped twice at a moment", () => {
+    const events = [launch(0), drop(1), drop(1), land(2)];
+
+    expect(orderProblemsOf(events)).toContain(
+      "Event 2, a drop at 1, is out of order by fuzzball among the drops.",
+    );
+  });
+
   it("finds drops at a moment out of order by fuzzball", () => {
     const events = [
       launch(0),
