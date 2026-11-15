@@ -17,9 +17,11 @@ import {
   FULL_STEP,
   TUNED_SPARKING,
   drainStatic,
+  isStaticFull,
   knockStaticDown,
   multiplierOf,
   raiseStatic,
+  spendStatic,
   stepOf,
 } from "./charge";
 
@@ -101,6 +103,49 @@ describe("raiseStatic", () => {
       STATIC_MOST,
       [{ step: FULL_STEP, fell: false }],
     ]);
+  });
+});
+
+describe("isStaticFull", () => {
+  it.each([
+    [STATIC_MOST - 0.1, false],
+    [STATIC_MOST, true],
+  ])("finds static at %f full: %s", (level, full) => {
+    expect(isStaticFull(fieldAt(level))).toBe(full);
+  });
+
+  it("finds static full at the most the field's sparking holds", () => {
+    const field = fieldAt(32);
+    field.sparking = { ...TUNED_SPARKING, most: 32 };
+
+    expect(isStaticFull(field)).toBe(true);
+  });
+});
+
+describe("spendStatic", () => {
+  it("spends an amount of static, holding it from the step", () => {
+    const field = fieldAt(STATIC_MOST);
+    field.steps = 300;
+
+    spendStatic(field, 20);
+
+    expect(field.charge).toEqual({ level: STATIC_MOST - 20, lastSparkAt: 300 });
+  });
+
+  it("logs static falling to its step at the ship", () => {
+    const field = fieldAt(STATIC_MOST);
+
+    spendStatic(field, 20);
+
+    expect(stepsLoggedOn(field)).toEqual([{ step: 2, fell: true }]);
+  });
+
+  it("spends static no lower than nothing", () => {
+    const field = fieldAt(5);
+
+    spendStatic(field, 20);
+
+    expect(field.charge.level).toBe(0);
   });
 });
 

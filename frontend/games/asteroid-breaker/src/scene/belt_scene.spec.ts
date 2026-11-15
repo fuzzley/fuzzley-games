@@ -2820,6 +2820,24 @@ const EVERY_EVENT: Readonly<
     },
     [],
   ],
+  grazed: [
+    (field) => {
+      field.events.addGraze(30, 20, 1, 0);
+    },
+    [],
+  ],
+  zapped: [
+    (field) => {
+      field.events.addZap(30, 20, 0);
+    },
+    [],
+  ],
+  arced: [
+    (field) => {
+      field.events.addArc(loggedRock("stone", "small"), 3, 4);
+    },
+    [],
+  ],
 };
 
 /** Returns a rock of a kind and size at the middle of the board's field, as its events record it. */

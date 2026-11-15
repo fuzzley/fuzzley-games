@@ -4,6 +4,7 @@
 import { drawIn } from "../draws";
 import type { DropSetup } from "../rocks/drops";
 import { type RockField, hitRock, rockHitRadius } from "../rocks/rocks";
+import type { NearPass } from "../sparks/grazes";
 import type { Ship } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
@@ -51,6 +52,12 @@ export interface Comet extends Crossing {
   readonly smashedAt: number[];
   /** How many steps it has broken rocks in, which says which of `smashedAt` the next takes. */
   smashes: number;
+  /**
+   * How its pass by the pod stands, which a near miss is counted from:
+   * spent as it is warned of, so nothing of the comet last in its record is
+   * left, and clear until its middle comes onto the field.
+   */
+  pass: NearPass;
 }
 
 /** Describes a wave's comets: a record for each on its way at once, and when the next comes. */
@@ -89,6 +96,7 @@ export function createComets(): Comets {
       warnSteps: 0,
       smashedAt: Array.from({ length: COMET_PASSES }, () => -1),
       smashes: 0,
+      pass: "spent",
     })),
     nextAt: 0,
   };
@@ -171,6 +179,7 @@ function sendComet(field: CometField): void {
   comet.warnSteps = stepsIn(COMET_WARNING_MS);
   comet.smashedAt.fill(-1);
   comet.smashes = 0;
+  comet.pass = "spent";
   const at = edgeOf(comet, field.torus);
   field.events.add("warned", at.x, at.y);
 }

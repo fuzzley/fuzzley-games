@@ -92,7 +92,9 @@ import {
   drainStatic,
   knockStaticDown,
 } from "../sparks/charge";
+import { countGrazes, spendPasses } from "../sparks/grazes";
 import { clearSparks, createSparks, stepSparks } from "../sparks/sparks";
+import { zap } from "../sparks/zap";
 import { layOut, safestPlace } from "./spawn";
 import { SPEED_INFO, type Speed } from "../speed";
 import {
@@ -156,7 +158,10 @@ export interface WaveSetup extends WaveStart {
   readonly gunnery?: Gunnery;
   /** How the crew ride in tow: `tuning.ts`'s unless given. */
   readonly towing?: Towing;
-  /** How sparks and static work: `tuning.ts`'s unless the debug menu tunes it. */
+  /**
+   * How sparks, static and the zap work: `tuning.ts`'s unless the debug
+   * menu tunes it.
+   */
   readonly sparking?: Sparking;
   /**
    * How fast its rocks fly against their size's speed, which its layout
@@ -215,7 +220,7 @@ export interface Field extends RockField {
   hits: number;
   /** The pilot's static, which multiplies what is scored and goes on to the next wave. */
   readonly charge: Charge;
-  /** How sparks and static work, which the debug menu tunes in play. */
+  /** How sparks, static and the zap work, which the debug menu tunes in play. */
   sparking: Sparking;
   readonly strays: Strays;
   /** A slot for each of the crew that can be knocked loose at once, out on the field or not. */
@@ -333,16 +338,17 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 
 /**
  * Moves the field on by a step: blasts due go off, effects whose time is
- * up end and static drains, the ship flies by the frame's steering, its
- * line in tow following it, and fires, its shots and the rocks fly, each
- * shot meets the first rock in its way, the comets fly, breaking what they
- * meet, a rock or a comet hits a ship it touches that isn't guarded, or
- * spends its shield, and the pickups, the sparks, the stray and the crew
- * knocked loose float on, the ship catching those it touches and gathering
- * the sparks it reaches. Once no rock is left, the wave is cleared: its
- * effects end, its pickups, sparks, stray and comets go, the crew knocked
- * loose come back, and everything else stands still where it is. A wave
- * holds still from its start until the player's first move.
+ * up end and static drains, the ship flies by the frame's steering, a dash
+ * begun at full static zapping, its line in tow following it, and fires,
+ * its shots and the rocks fly, each shot meets the first rock in its way,
+ * the comets fly, breaking what they meet, a rock or a comet hits a ship it
+ * touches that isn't guarded, or spends its shield, one that passed near
+ * untouched is a near miss, and the pickups, the sparks, the stray and the
+ * crew knocked loose float on, the ship catching those it touches and
+ * gathering the sparks it reaches. Once no rock is left, the wave is
+ * cleared: its effects end, its pickups, sparks, stray and comets go, the
+ * crew knocked loose come back, and everything else stands still where it
+ * is. A wave holds still from its start until the player's first move.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
  * the shot's, for its points.
@@ -356,6 +362,7 @@ export function stepField(field: Field): void {
   const { ship, steer, torus } = field;
   if (ship && flyShip(ship, steer, torus, field.flight)) {
     field.events.addDash(ship.x, ship.y, ship.angle);
+    zap(field, ship, ship.angle);
   }
   stepTow(field);
   const fired = stepShots(field, steer.fire || steer.autoFire);
@@ -370,6 +377,7 @@ export function stepField(field: Field): void {
   }
   stepComets(field);
   if (ship) meetDangers(field, ship);
+  countGrazes(field);
   stepPickups(field);
   stepSparks(field);
   stepStrays(field);
@@ -380,13 +388,14 @@ export function stepField(field: Field): void {
 /**
  * Stretches a paused field to a new shape, as `stretchField()` does, its
  * ship untouchable for a second from the step that follows, as the
- * stretch may bring a rock nearer it; a field of that shape already is
- * left as it is.
+ * stretch may bring a rock nearer it, and no pass under way a near miss;
+ * a field of that shape already is left as it is.
  */
 export function reshapeField(field: Field, torus: Torus): void {
   const { width, height } = field.torus;
   if (torus.width === width && torus.height === height) return;
   stretchField(field, torus);
+  spendPasses(field);
   if (field.ship) guardShip(field.ship, STRETCH_GUARD_MS);
 }
 

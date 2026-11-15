@@ -13,6 +13,8 @@ import {
   STATIC_MOST,
   STATIC_STEPS,
   STEP_S,
+  ZAP_ARCS,
+  ZAP_REACH,
 } from "../tuning";
 
 /**
@@ -27,16 +29,17 @@ export interface Charge {
   level: number;
   /**
    * The step static holds from a while before it drains: the last spark
-   * gathered's, or the hit's that last knocked it down, so a hit costs one
-   * step and not the drain's below it as well.
+   * gathered's or near miss's, or the hit's or the zap's that last brought
+   * it down, so a hit costs one step and not the drain's below it as well.
    */
   lastSparkAt: number;
 }
 
 /**
- * Says how sparks and static work, a value the field holds, as it holds its
- * flight, so it can change in play: how far the ship draws sparks in from,
- * how much static holds and how fast it drains.
+ * Says how sparks, static and the zap work, a value the field holds, as it
+ * holds its flight, so it can change in play: how far the ship draws sparks
+ * in from, how much static holds and how fast it drains, and how many rocks
+ * a zap arcs to and from how far.
  */
 export interface Sparking {
   /** How near the ship it draws a spark in from, before the speed's and a Magnet's reach. */
@@ -45,13 +48,19 @@ export interface Sparking {
   readonly most: number;
   /** How fast static drains once it no longer holds, in a second. */
   readonly drain: number;
+  /** How many rocks a zap arcs to at most. */
+  readonly arcs: number;
+  /** How near a dash's path a rock lies for a zap to arc to it. */
+  readonly zapReach: number;
 }
 
-/** How sparks and static work, as `tuning.ts` has it. */
+/** How sparks, static and the zap work, as `tuning.ts` has it. */
 export const TUNED_SPARKING: Readonly<Sparking> = {
   reach: SPARK_DRAW_REACH,
   most: STATIC_MOST,
   drain: STATIC_DRAIN,
+  arcs: ZAP_ARCS,
+  zapReach: ZAP_REACH,
 };
 
 /**
@@ -89,9 +98,17 @@ export function multiplierOf(level: number): number {
   return multiplierAt(level, STATIC_STEPS);
 }
 
+/** Returns whether static is full, at which the next dash is a zap. */
+export function isStaticFull(
+  field: Readonly<Pick<ChargeField, "charge" | "sparking">>,
+): boolean {
+  return field.charge.level >= field.sparking.most;
+}
+
 /**
- * Raises static by an amount, up to its most, as a spark is gathered, and
- * holds it from this step before it drains.
+ * Raises static by an amount, up to its most, as a spark is gathered or a
+ * rock or a comet passes near, and holds it from this step before it
+ * drains.
  */
 export function raiseStatic(field: ChargeField, amount: number): void {
   field.charge.lastSparkAt = field.steps;
@@ -99,8 +116,17 @@ export function raiseStatic(field: ChargeField, amount: number): void {
 }
 
 /**
- * Drains static a step's worth, once it has held since the last spark
- * gathered, down to nothing.
+ * Spends an amount of static, down to nothing, as a zap does, and holds it
+ * from this step before it drains, as a hit's step down does.
+ */
+export function spendStatic(field: ChargeField, amount: number): void {
+  field.charge.lastSparkAt = field.steps;
+  setLevel(field, field.charge.level - amount);
+}
+
+/**
+ * Drains static a step's worth, once it has held since the step it holds
+ * from, down to nothing.
  */
 export function drainStatic(field: ChargeField): void {
   const { charge, sparking } = field;

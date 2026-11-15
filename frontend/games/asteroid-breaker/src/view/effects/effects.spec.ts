@@ -68,6 +68,9 @@ const EVENTS: readonly (readonly [
   ["scored", ["points"], ["points"]],
   ["sparked", [], []],
   ["stepped", [], []],
+  ["grazed", [], []],
+  ["zapped", [], []],
+  ["arced", [], []],
 ];
 
 /** Each size of rock, with its break's flourishes, a large one's kicking the field. */

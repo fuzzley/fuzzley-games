@@ -172,28 +172,40 @@ takes for the specs' helpers.
   catch them, and holds `EFFECT_RULES`, what each effect of
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
   group in play at a time.
-- **`src/rules/sparks/`** — the sparks and the pilot's static. `sparks.ts`
-  sheds a broken rock's sparks into slots made once (`shedSparks()`,
-  `MOST_SPARKS`, the oldest's taken past them), its size's in
-  `SPARKS_SHED` and its kind's `sheds` trait's more, only from one a shot
-  or a blast broke; each flies out a little way and hangs for its life,
-  blinking through its last second (`sparkBlinks()`), unless the ship
-  draws it in, from the field's sparking's reach, farther at Relaxed, or
-  the Magnet's (`drawReach()`), and the pod or a bubble in tow gathers it
-  (`stepSparks()`), which scores it, logged `sparked` with who gathered it
-  (`scoring.ts`'s `scoreSpark()`), and raises static; the clearing lets
-  them all go (`clearSparks()`).
+- **`src/rules/sparks/`** — the sparks, the pilot's static, the near
+  misses and the zap. `sparks.ts` sheds a broken rock's sparks into slots
+  made once (`shedSparks()`, `MOST_SPARKS`, the oldest's taken past them),
+  its size's in `SPARKS_SHED` and its kind's `sheds` trait's more, only
+  from one a shot or a blast broke; each flies out a little way and hangs
+  for its life, blinking through its last second (`sparkBlinks()`), unless
+  the ship draws it in, from the field's sparking's reach, farther at
+  Relaxed, or the Magnet's (`drawReach()`), and the pod or a bubble in tow
+  gathers it (`stepSparks()`), which scores it, logged `sparked` with who
+  gathered it (`scoring.ts`'s `scoreSpark()`), and raises static; the
+  clearing lets them all go (`clearSparks()`).
   `charge.ts` holds static on the field (`Field.charge`, its level and the
-  step it holds from, the last spark's or the last hit's), how sparks and
-  static work (`Sparking`, a value record the field holds, from
-  `tuning.ts`'s `TUNED_SPARKING`: the spark's reach, static's most and its
-  drain), its rise (`raiseStatic()`), its step
-  (`stepOf()`, from 0 at ×1 to `FULL_STEP` once full) and its multiplier
+  step it holds from, the last spark's or near miss's, or the last hit's
+  or zap's), how sparks, static and the zap work (`Sparking`, a value
+  record the field holds, from `tuning.ts`'s `TUNED_SPARKING`: the spark's
+  reach, static's most and its drain, and the zap's arcs and reach), its
+  rise (`raiseStatic()`), its step (`stepOf()`, from 0 at ×1 to
+  `FULL_STEP` once full, `isStaticFull()`) and its multiplier
   (`multiplierOf()`, `@fz/core/math`'s `multiplierAt()` over
   `STATIC_STEPS`); it drains after `STATIC_HOLD_MS` with no spark
   (`drainStatic()`), a hit knocks it to the foot of the step below
-  (`knockStaticDown()`), and each step it comes to, rising or falling, is
-  logged at the ship (`stepped`).
+  (`knockStaticDown()`), a zap spends it (`spendStatic()`), and each step
+  it comes to, rising or falling, is logged at the ship (`stepped`).
+  `grazes.ts` counts the near misses (`countGrazes()`): a whole rock, or a
+  comet with its middle on the field, that comes within `GRAZE_MARGIN` of
+  the pod's hit circle, from clear, and draws off untouched is logged at
+  the ship (`grazed`) and adds `GRAZE_STATIC`, once a pass, each rock's and
+  comet's pass (`NearPass`) spent as it is laid or warned of and as the
+  field is stretched (`spendPasses()`). `zap.ts` zaps (`zap()`): a dash
+  begun at full static arcs from the pod to the sparking's `arcs` whole
+  rocks nearest the path the dash flies (`DASH_PATH`), their edges within
+  its `zapReach`, logged as `zapped` at the pod and `arced` at each rock,
+  which takes a hit, and then spends `ZAP_COST` of static; with no rock in
+  reach the dash is no zap.
 - **`src/rules/hazards/`** — what crosses the field once, from an edge,
   without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
   which the ship catches by touching (`stepStrays()`), into the line in tow
@@ -232,8 +244,8 @@ takes for the specs' helpers.
   wave's start and its rocks, a stray drifting in, caught or brought
   straight home, one of the crew knocked loose, caught again or floating
   home, with how many ride in tow, a pickup caught, static coming to full,
-  a clearing, a pause, going on, a run taken up and the end; and `whereLost()` says where an
-  ended run was lost. The
+  a zap, a clearing, a pause, going on, a run taken up and the end; and
+  `whereLost()` says where an ended run was lost. The
   announcer, the bar, the cards, the result, the sectors and How to play
   all write points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
@@ -1078,9 +1090,8 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every run and sector opened, with what is new there, wave
   begun, stray drifting in or caught, one of the crew knocked loose,
-  caught again or floating home, pickup caught, static
-  full, pause, going on, wave cleared, with the wave to come, and end is
-  announced.
+  caught again or floating home, pickup caught, static full, zap, pause,
+  going on, wave cleared, with the wave to come, and end is announced.
 
 ## Development Commands
 

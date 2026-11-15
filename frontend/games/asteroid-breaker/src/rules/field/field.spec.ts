@@ -1347,6 +1347,15 @@ describe("reshapeField", () => {
     expect(isGuarded(shipOf(field))).toBe(guarded);
   });
 
+  it("spends every pass by the pod under way, as the stretch moves what was near it", () => {
+    const field = flying();
+    onlyRock(field).pass = "near";
+
+    reshapeField(field, { width: 36, height: 80 });
+
+    expect(onlyRock(field).pass).toBe("spent");
+  });
+
   it("leaves a field of its shape as it is, its ship touchable", () => {
     const field = flying();
 

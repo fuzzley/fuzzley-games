@@ -44,6 +44,7 @@ describe("warnedFor", () => {
       warnSteps,
       smashedAt: [],
       smashes: 0,
+      pass: "spent",
     };
   }
 

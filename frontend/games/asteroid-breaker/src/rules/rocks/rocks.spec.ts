@@ -333,6 +333,15 @@ describe("addRock", () => {
     });
   });
 
+  it("lays a rock with its pass by the pod spent, as no near miss of the rock last in its slot", () => {
+    const field = rockField();
+    for (const slot of field.rocks) slot.pass = "near";
+
+    const rock = lay(field, "stone", "large", 36, 20);
+
+    expect(rock.pass).toBe("spent");
+  });
+
   it("flies a rock along its heading", () => {
     const field = rockField();
 

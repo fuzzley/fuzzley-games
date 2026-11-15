@@ -15,7 +15,7 @@ export function describeWave(entry: WaveEntry, rocks: number): string {
  * crew: a stray drifting in, caught into the line in tow or brought
  * straight home, one of the crew knocked loose, caught again or floating
  * home, with how many ride in tow after a hit or a catch, a pickup caught,
- * by its name, and static coming to full; or null for any other, the hit
+ * by its name, static coming to full and a zap; or null for any other, the hit
  * that ends the run and the crew floating home with it among them, as the
  * run's end is said.
  *
@@ -39,6 +39,8 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
       return event.pickup === null ? null : `${pickup(event.pickup).name}.`;
     case "stepped":
       return event.step === FULL_STEP && !event.fell ? "Static full." : null;
+    case "zapped":
+      return "Zap!";
     default:
       return null;
   }
