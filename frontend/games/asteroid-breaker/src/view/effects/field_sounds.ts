@@ -5,7 +5,8 @@
 // spark gathered up the ladder; a zap in place of its dash; and what the
 // field's state says without an event: a burst of fire let go, the thrust
 // pressed and let go, the first move, the dash charged, the ship's guard
-// over, a comet come in, and an effect started or run out.
+// over, a comet come in, and an effect started or run out; and the
+// fuzzball's call, as its voice allows.
 
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
@@ -40,6 +41,7 @@ import {
   startSoundOf,
   volumeOf,
 } from "./sounds";
+import { Voice } from "./voice";
 
 /** Plays a sound: risen by some cents, at a place across the field from -1 to 1, at a volume. */
 export type PlaySound = (
@@ -109,7 +111,9 @@ interface Heard {
  * under the bell's, in a run of sparks each gathered within
  * {@link SPARK_RUN_STEPS} of the field's steps of the last, which static's
  * fall to a lower step or a new field ends. A zap plays in place of the
- * dash that set it off. It makes nothing as it hears or plays.
+ * dash that set it off. The fuzzball calls as its {@link Voice} allows,
+ * where the event it calls at happened. It makes nothing as it hears or
+ * plays.
  */
 export class FieldSounds {
   /** A record for each of the sprite's sounds, made once, by name. */
@@ -118,6 +122,8 @@ export class FieldSounds {
   private readonly sounds: readonly Heard[];
   /** Whether a sound was heard since the sounds last played. */
   private heardAny = false;
+  /** The fuzzball's voice, which calls at some of the events heard. */
+  private readonly voice = new Voice();
 
   /** How many rocks broke in the frame and scored. */
   private breaks = 0;
@@ -198,6 +204,7 @@ export class FieldSounds {
    */
   hearField(field: FieldView, now: number): void {
     this.now = now;
+    this.voice.hearField(field);
     if (field !== this.field) {
       this.startField(field);
       return;
@@ -310,17 +317,19 @@ export class FieldSounds {
 
   /**
    * Hears what an event of the field calls for, where it happened on a field
-   * so wide: its sound and the one after it, for a break that scored its
-   * multiplier for the frame's bell, its own sound kept for the frame's
-   * crowd, and for a spark gathered its note of the ladder. A spark and a
-   * pull of fire are timed by the frame `hearField()` last heard, so the
-   * frame's field is heard first.
+   * so wide: its sound and the one after it, the fuzzball's call where it
+   * calls at it, for a break that scored its multiplier for the frame's
+   * bell, its own sound kept for the frame's crowd, and for a spark
+   * gathered its note of the ladder. A spark and a pull of fire are timed
+   * by the frame `hearField()` last heard, so the frame's field is heard
+   * first.
    *
    * @throws {RangeError} For an event its sound can't be told for, as
    *   `soundOf()` does.
    */
   hear(event: Readonly<FieldEvent>, width: number): void {
     const across = acrossOf(event.x, width);
+    this.voice.hear(event, across);
     const sound = soundOf(event);
     if (event.kind === "broken" && event.times > 0 && sound !== null) {
       this.keepBreak(sound, ROCK_SIZES.indexOf(rockSizeOf(event)), across);
@@ -350,9 +359,11 @@ export class FieldSounds {
    * Plays each sound heard since the last time, once, the loudest level
    * first, the bell at the highest of static's multipliers the frame's
    * breaks scored at, a crowd of breaks as its largest two and its patter,
-   * a zap without its dash, and forgets them.
+   * a zap without its dash, and the fuzzball's rarest call, where its
+   * patience allows, and forgets them.
    */
   playEach(play: PlaySound): void {
+    this.voice.speak(this.noteCall);
     if (!this.heardAny) return;
     if (this.zapped) this.byName[DASH].heard = false;
     if (this.topTimes > 0) {
@@ -391,6 +402,11 @@ export class FieldSounds {
     const cents = ladderCentsOf(this.sparks) - SPARK_ABOVE_BELL_CENTS;
     this.note(SPARK, cents, across);
   }
+
+  /** Notes the fuzzball's call, made once for its voice to speak through. */
+  private readonly noteCall = (call: SoundName, across: number): void => {
+    this.note(call, 0, across);
+  };
 
   /** Notes a sound heard, risen by some cents at a place, where it rose the most. */
   private note(name: SoundName, detune: number, across: number): void {

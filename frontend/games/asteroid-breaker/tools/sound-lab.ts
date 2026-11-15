@@ -60,9 +60,6 @@ const SHOT_EVERY_S = SHOT_EVERY_MS / 1000;
 /** How long a frame of a scene takes, in seconds, as the game's at 60 a second. */
 const FRAME_S = 1 / 60;
 
-/** A step of the field's clock far on, at which a scene's effect runs out. */
-const RUNS_OUT_AT = 1000;
-
 /** What a scene does to its field at a time: events logged, or the ship steered. */
 interface Moment {
   /** When, in seconds from the scene's start. */
@@ -108,28 +105,32 @@ function withShip(at: number, act: (ship: Ship) => void): Moment {
   };
 }
 
+/** Returns the field's step at a time of a scene, in seconds from its start. */
+function stepAt(at: number): number {
+  return stepsIn(at * 1000);
+}
+
 /**
- * Returns a pickup caught at a time, its effect in play: one with a time
- * until a scene says it runs out, and one without until it is spent.
+ * Returns a pickup caught at a time, its effect in play until a time it
+ * runs out at, in seconds, or, given none, until it is spent.
  */
-function caught(at: number, id: PickupId): Moment {
+function caught(at: number, id: PickupId, runsOutAt?: number): Moment {
   return {
     at,
     act: (field) => {
       field.events.addPickup("caught", SHIP.x, SHIP.y, id);
-      const { effect } = pickup(id);
-      const inEffect = field.effects[effect.kind];
+      const inEffect = field.effects[pickup(id).effect.kind];
       inEffect.pickup = id;
-      inEffect.endsAt = "ms" in effect ? RUNS_OUT_AT : 0;
+      inEffect.endsAt = runsOutAt === undefined ? 0 : stepAt(runsOutAt);
     },
   };
 }
 
 /**
  * Returns the sounds of a scene as the game plays them: each frame's
- * moments acted on a field, then the field and its events heard by the
- * view's `FieldSounds`, as the scene hears them, at the frame's time, and
- * what it plays; with the hums held beside them.
+ * moments acted on a field whose clock stands at the frame's time, then
+ * the field and its events heard by the view's `FieldSounds`, as the scene
+ * hears them, and what it plays; with the hums held beside them.
  */
 function heard(
   moments: readonly Moment[],
@@ -142,6 +143,7 @@ function heard(
   let since = field.events.latest;
   const times = [...new Set(moments.map(({ at }) => at))].sort((a, b) => a - b);
   for (const at of times) {
+    field.steps = stepAt(at);
     for (const moment of moments) if (moment.at === at) moment.act(field);
     sounds.hearField(field, at * 1000);
     field.events.forEachSince(since, (event) => {
@@ -372,14 +374,13 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
           field.events.addPickup("caught", SHIP.x, SHIP.y, "rapid");
           field.weapon = "rapid";
           field.effects.weapon.pickup = "rapid";
-          field.effects.weapon.endsAt = RUNS_OUT_AT;
+          field.effects.weapon.endsAt = stepAt(2.6);
         },
       },
       ...burst(1.1, 2.1, SHOT_EVERY_S / 2),
       {
         at: 2.6,
         act: (field) => {
-          field.steps = RUNS_OUT_AT;
           endEffect(field, "weapon");
         },
       },
@@ -395,7 +396,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A stray and the crew in tow",
-    what: "A stray drifts in, and the ship catches it into the line in tow; a rock knocks it loose, the ship untouchable for a moment after, a time that ends with a tick, and the ship catches it again. Before, a stray caught went home, and a hit cost a ship.",
+    what: "A stray drifts in, and the ship catches it into the line in tow; a rock knocks it loose, the ship untouchable for a moment after, a time that ends with a tick, and the ship catches it again. The fuzzball says ooh as the stray drifts in, then keeps its patience, four seconds, through the catch and the knock, and says yay at the catch again. Before, a stray caught went home, and a hit cost a ship.",
     cues: heard([
       {
         at: 0,
@@ -478,7 +479,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
     what: "A Shield caught, raised, then Slow caught, the field slowing; a rock spends the Shield, the ship untouchable for a second after, a time that ends with a tick; and Slow's time runs out, the field coming back. Before, each catch played one sound, and the Shield spent played iron's ring.",
     cues: heard([
       caught(0, "shield"),
-      caught(1.2, "slow"),
+      caught(1.2, "slow", 4.5),
       {
         at: 2.5,
         act: (field) => {
@@ -493,7 +494,6 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
       {
         at: 4.5,
         act: (field) => {
-          field.steps = RUNS_OUT_AT;
           endEffect(field, "pace");
         },
       },
@@ -522,7 +522,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A dash",
-    what: "A dash, then, after, the tick as it has charged again, two and a half seconds on.",
+    what: "A dash, the first, which the fuzzball whees at, as it does at one dash in three, then the tick as it has charged again, two and a half seconds on.",
     cues: heard([
       {
         at: 0,
@@ -542,7 +542,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A wave cleared, then the run's end",
-    what: "A wave cleared, then a hit with no one in tow, which ends the run. Before, the end was a ship lost.",
+    what: "A wave cleared, the fuzzball cheering, then a hit with no one in tow, which ends the run, and its aww. Before, the end was a ship lost.",
     cues: heard([
       {
         at: 0,
@@ -551,7 +551,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
         },
       },
       {
-        at: 2.5,
+        at: 4.5,
         act: (field) => {
           field.events.addPilot("lost", SHIP.x, SHIP.y, PILOT, field.crew);
         },
@@ -559,7 +559,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
     ]),
     before: [
       { at: 0, sound: "cleared" },
-      { at: 2.5, sound: "lost" },
+      { at: 4.5, sound: "lost" },
     ],
   },
 ];

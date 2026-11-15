@@ -42,6 +42,7 @@ import {
   startSoundOf,
   volumeOf,
 } from "./sounds";
+import { callOf } from "./voice";
 
 /** Describes what an event of the spec's names beside its kind. */
 interface Made {
@@ -219,10 +220,11 @@ const EVERY_EVENT: readonly FieldEvent[] = [
 /**
  * The sounds of the sprite the view plays for nothing yet: no event the
  * field logs, and no change of its state, calls for them. The burrs wait
- * on their rules, the line's twang on its turn; the lodestone's hum, a loop held as the thrust's is,
- * has nothing to hold it yet; no rock that blasts comes small; and the
- * stingers but a wave's start and its clearing, and the calls, are the
- * shell's and the voice's to play.
+ * on their rules, the line's twang on its turn; the lodestone's hum, a
+ * loop held as the thrust's is, has nothing to hold it yet; no rock that
+ * blasts comes small; the stingers but a wave's start and its clearing
+ * are the shell's moments; the fuzzball's eep has no call yet at the near
+ * miss, and it hums at no moment the plan gives it.
  */
 const UNPLAYED: readonly SoundName[] = [
   "burr-cling",
@@ -242,13 +244,7 @@ const UNPLAYED: readonly SoundName[] = [
   "ui-back",
   "pause",
   "resume",
-  "voice-whee",
   "voice-eep",
-  "voice-ouch",
-  "voice-yay",
-  "voice-ooh",
-  "voice-aww",
-  "voice-cheer",
   "voice-hum",
 ];
 
@@ -359,7 +355,11 @@ describe("soundOf", () => {
 
   it("plays, of the sprite's sounds, none but those of events the field logs and of its state, the thrust's hum apart", () => {
     const played = new Set([
-      ...EVERY_EVENT.flatMap((event) => [soundOf(event), secondSoundOf(event)]),
+      ...EVERY_EVENT.flatMap((event) => [
+        soundOf(event),
+        secondSoundOf(event),
+        callOf(event),
+      ]),
       ...EFFECT_KINDS.map(endSoundOf),
       ...EFFECT_KINDS.map(startSoundOf),
       LADDER,
@@ -494,12 +494,20 @@ describe("volumeOf", () => {
     );
   });
 
-  it.each(SOUND_NAMES.filter((name) => name !== "shot-rapid"))(
-    "plays %s at its level",
+  it.each(SOUND_NAMES.filter((name) => SOUNDS[name].family === "voice"))(
+    "plays the call %s 3 dB down",
     (name) => {
-      expect(volumeOf(name)).toBe(1);
+      expect(volumeOf(name)).toBe(gainOf(-3));
     },
   );
+
+  it.each(
+    SOUND_NAMES.filter(
+      (name) => name !== "shot-rapid" && SOUNDS[name].family !== "voice",
+    ),
+  )("plays %s at its level", (name) => {
+    expect(volumeOf(name)).toBe(1);
+  });
 });
 
 describe("PLAY_ORDER", () => {
