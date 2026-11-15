@@ -1,15 +1,32 @@
-// What the sound lab works out of samples and of each play: how loud a
-// sound is, so a candidate is heard as loud as the sound it would replace, a
-// loop's seam, and how a play is varied and placed across the field, by
-// `@fz/core/sound_mix`'s rules at the lab's own numbers.
+// What the sound lab works out of each play: how a play is varied and placed
+// across the field by `@fz/core/sound_mix`'s rules at the lab's own numbers,
+// and how a scene's sounds play by a game's own mix, at the game's numbers.
 
-import { panOf, variedDetune, variedGain } from "@fz/core/sound_mix";
+import {
+  DUCK_AT_START,
+  NO_TAKE,
+  ROOM,
+  type SoundMix,
+  type Voice,
+  duckedGainUnder,
+  ducksOthers,
+  isDucked,
+  isVaried,
+  nextTake,
+  panOf,
+  takeMarkers,
+  variedDetune,
+  variedGain,
+  voiceGivingWay,
+} from "@fz/core/sound_mix";
 
-/** The stretch a sound's loudness is measured over, in seconds: about as long as the ear sums a short sound over. */
-const LOUDNESS_WINDOW_S = 0.05;
-
-/** How far apart the stretches measured start, in seconds. */
-const LOUDNESS_HOP_S = 0.01;
+export {
+  DUCK,
+  LIMITER,
+  type SoundMix,
+  VARIATION,
+  VOICES,
+} from "@fz/core/sound_mix";
 
 /** How far a varied play is raised or lowered at most, in cents. */
 export const VARY_CENTS = 60;
@@ -26,62 +43,6 @@ export interface Variation {
   readonly detune: number;
   /** What its loudness is multiplied by. */
   readonly gain: number;
-}
-
-/**
- * Returns how loud samples are: the RMS of their loudest stretch of 50 ms,
- * or of them all where they are shorter, which tells a short, sharp sound
- * from a long, quiet one as the ear does, where the RMS of the whole would
- * count the tail's silence against it.
- */
-export function loudnessOf(samples: Float32Array, sampleRate: number): number {
-  const window = Math.max(1, Math.round(LOUDNESS_WINDOW_S * sampleRate));
-  const hop = Math.max(1, Math.round(LOUDNESS_HOP_S * sampleRate));
-  let loudest = 0;
-  for (let from = 0; from === 0 || from + window <= samples.length;) {
-    const to = Math.min(from + window, samples.length);
-    let sum = 0;
-    for (let i = from; i < to; i++) sum += (samples[i] ?? 0) ** 2;
-    loudest = Math.max(loudest, Math.sqrt(sum / Math.max(to - from, 1)));
-    from += hop;
-  }
-  return loudest;
-}
-
-/** Returns what to multiply a sound by to make it as loud as another, or 1 where it is silent. */
-export function gainToMatch(loudness: number, target: number): number {
-  return loudness > 0 ? target / loudness : 1;
-}
-
-/** Returns a gain in decibels. */
-export function decibelsOf(gain: number): number {
-  return 20 * Math.log10(gain);
-}
-
-/**
- * Returns samples that loop without a seam: the last `fadeSeconds` of them
- * faded into their first, at an even loudness, and cut off, so the loop's
- * end runs on into its start. It throws where the fade is longer than half
- * of them, which would fade the start into itself.
- */
-export function seamless(
-  samples: Float32Array,
-  sampleRate: number,
-  fadeSeconds: number,
-): Float32Array<ArrayBuffer> {
-  const fade = Math.round(fadeSeconds * sampleRate);
-  if (fade * 2 > samples.length) {
-    throw new RangeError("A loop's fade must be at most half its length.");
-  }
-  const loop = samples.slice(0, samples.length - fade);
-  for (let i = 0; i < fade; i++) {
-    // Equal-power weights, as the start and the tail are unrelated.
-    const into = ((i / fade) * Math.PI) / 2;
-    loop[i] =
-      Math.sin(into) * (samples[i] ?? 0) +
-      Math.cos(into) * (samples[samples.length - fade + i] ?? 0);
-  }
-  return loop;
 }
 
 /**
@@ -107,4 +68,164 @@ export function variedPlay(random: () => number): Variation {
  */
 export function panAt(x: number): number {
   return panOf(x, PAN_WIDTH);
+}
+
+/** How long a looping sound is held where its cue doesn't say, in seconds. */
+export const HOLD_S = 1;
+
+/**
+ * Describes a sound a scene plays, as a game would play it: when, which,
+ * risen how far, where across the field and how loud.
+ */
+export interface MixCue<Name extends string> {
+  /** When it plays, in seconds from the scene's start. */
+  readonly at: number;
+  readonly sound: Name;
+  /** How far the game raises it, in cents. */
+  readonly detune?: number;
+  /** Where across the field it happens, from -1 at its left edge to 1 at its right. */
+  readonly x?: number;
+  /** What the game multiplies its loudness by, 1 unless given. */
+  readonly volume?: number;
+  /** How long a looping sound is held, in seconds, {@link HOLD_S} unless given. */
+  readonly holdFor?: number;
+}
+
+/** Describes the takes of a sprite, by their names in it. */
+export interface TakeSprite {
+  /** Returns how long a take sounds, in seconds. */
+  lengthOf(take: string): number;
+  /** Returns whether a take loops, as the game holds a hum. */
+  loops(take: string): boolean;
+}
+
+/** Describes a take played as the lab schedules it. */
+export interface TakePlay {
+  /** The take, by its name in the sprite. */
+  readonly take: string;
+  /** When it starts, in seconds from the scene's start. */
+  readonly at: number;
+  /** How far it is raised, in cents. */
+  readonly detune: number;
+  /** What its loudness is multiplied by. */
+  readonly gain: number;
+  /** Where it is panned, from -1 at the left to 1 at the right. */
+  readonly pan: number;
+  /** When it stops short, in seconds from the scene's start, or null where it plays to its end. */
+  readonly stopsAt: number | null;
+}
+
+/** A take played as the lab plans it, its stop written as a later play takes its voice. */
+type Planned = { -readonly [Key in keyof TakePlay]: TakePlay[Key] };
+
+/** Returns how long a take sounds raised by some cents, which play it faster: its length over the rate. */
+export function soundingFor(length: number, detune: number): number {
+  return length / 2 ** (detune / 1200);
+}
+
+/**
+ * Plans how a game's sounds play by its mix, as `@fz/phaser/sound`'s
+ * `SpritePlayer` plays them handed it, for the sound lab to schedule: each
+ * sound's takes in turn, from one scene to the next as in the game.
+ */
+export class GameMix<Name extends string> {
+  /** The take of each sound played last, by name. */
+  private readonly lastTakes = new Map<Name, number>();
+  private readonly mix: SoundMix<Name>;
+  /** Draws each play's variation. */
+  private readonly random: () => number;
+
+  /**
+   * Makes a game's mix, handed how it mixes each sound and the source its
+   * plays' variation is drawn from.
+   */
+  constructor(mix: SoundMix<Name>, random: () => number) {
+    this.mix = mix;
+    this.random = random;
+  }
+
+  /** Returns a sound's takes, by their names in the sprite, in turn. */
+  takesOf(name: Name): readonly string[] {
+    return takeMarkers(name, this.mix[name].takes);
+  }
+
+  /**
+   * Returns how a scene's cues play by the mix, in the order of their
+   * times, those at one time in the order given, as a frame plays its
+   * sounds, the loudest first: each its sound's next take; varied where the
+   * mix varies it; panned by its place, where it has one; ducked as it
+   * starts under a huge sound started a moment before, or with it; and the
+   * voice that gives way to it, where as many sound as the mix lets, stopped
+   * as it starts, each sounding as long as its take at the rate it is
+   * raised to. A looping sound plays its first take plainly, for as long as
+   * it is held, and among no voices, as a game holds its hum.
+   */
+  plan(cues: readonly MixCue<Name>[], sprite: TakeSprite): TakePlay[] {
+    const plays: Planned[] = [];
+    // The plays that sound as a voice, with the voice each sounds as.
+    const voiced: { play: Planned; voice: Voice; endsAt: number }[] = [];
+    let latestDuck = Number.NEGATIVE_INFINITY;
+    let earlierDuck = Number.NEGATIVE_INFINITY;
+    const ordered = [...cues].sort((one, other) => one.at - other.at);
+    for (const cue of ordered) {
+      const { family, level, tuned } = this.mix[cue.sound];
+      const takes = this.takesOf(cue.sound);
+      const first = takes[0] ?? cue.sound;
+      if (sprite.loops(first)) {
+        const held = cue.holdFor ?? HOLD_S;
+        plays.push({
+          take: first,
+          at: cue.at,
+          detune: 0,
+          gain: 1,
+          pan: 0,
+          stopsAt: cue.at + held,
+        });
+        continue;
+      }
+      const turn = nextTake(
+        this.lastTakes.get(cue.sound) ?? NO_TAKE,
+        takes.length,
+      );
+      this.lastTakes.set(cue.sound, turn);
+      const take = takes[turn] ?? first;
+      let detune = cue.detune ?? 0;
+      let gain = cue.volume ?? 1;
+      if (isVaried({ level, tuned })) {
+        detune += variedDetune(this.random);
+        gain *= variedGain(this.random);
+      }
+      if (isDucked(level)) {
+        gain *= duckedGainUnder(
+          cue.at - latestDuck,
+          cue.at - earlierDuck,
+          DUCK_AT_START,
+        );
+      }
+      if (ducksOthers(level)) {
+        earlierDuck = latestDuck;
+        latestDuck = cue.at;
+      }
+      const sounding = voiced.filter(({ endsAt }) => endsAt > cue.at);
+      const giving = voiceGivingWay(
+        sounding.map(({ voice }) => voice),
+        cue.sound,
+        family,
+      );
+      const gives = giving === ROOM ? undefined : sounding[giving];
+      if (gives !== undefined) {
+        gives.play.stopsAt = cue.at;
+        gives.endsAt = cue.at;
+      }
+      const pan = cue.x === undefined ? 0 : panOf(cue.x);
+      const play = { take, at: cue.at, detune, gain, pan, stopsAt: null };
+      plays.push(play);
+      voiced.push({
+        play,
+        voice: { name: cue.sound, family, level, started: plays.length },
+        endsAt: cue.at + soundingFor(sprite.lengthOf(take), detune),
+      });
+    }
+    return plays;
+  }
 }

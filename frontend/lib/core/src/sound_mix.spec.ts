@@ -1,7 +1,9 @@
 import {
   DUCK,
+  DUCK_AT_START,
   type Duck,
   FADE_SECONDS,
+  LIMITER,
   NO_TAKE,
   PAN_WIDTH,
   ROOM,
@@ -448,6 +450,30 @@ describe("duckedGainUnder", () => {
     expect(
       duckedGainUnder(0.5, 0.7, { ...DUCK, decibels: 12, heldUntil: 1 }),
     ).toBe(gainOf(-12));
+  });
+});
+
+describe("DUCK_AT_START", () => {
+  it("ducks a play as the mix does, down from its start", () => {
+    expect(duckedGain(0, DUCK_AT_START)).toBe(gainOf(-6));
+  });
+
+  it("lets it up as the mix does", () => {
+    expect(duckedGain(1 / 3 + 0.05, DUCK_AT_START)).toBe(
+      duckedGain(1 / 3 + 0.05),
+    );
+  });
+});
+
+describe("LIMITER", () => {
+  it("holds the peaks from 3 dB under full scale, hard and fast", () => {
+    expect(LIMITER).toEqual({
+      threshold: -3,
+      knee: 0,
+      ratio: 20,
+      attack: 0.003,
+      release: 0.1,
+    });
   });
 });
 

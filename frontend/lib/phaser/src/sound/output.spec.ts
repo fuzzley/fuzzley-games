@@ -1,5 +1,6 @@
+import { LIMITER } from "@fz/core/sound_mix";
 import { Sound } from "phaser";
-import { LIMITER, limitSound, playMono, soundTime } from "./output";
+import { limitSound, playMono, soundTime } from "./output";
 
 /** Stands in for an audio node, keeping what it is connected to. */
 class FakeNode {
@@ -114,16 +115,6 @@ describe("limitSound", () => {
     expect({ made: compressors.length, master: master.to }).toEqual({
       made: 1,
       master: [compressors[0]],
-    });
-  });
-
-  it("holds every peak to 3 dB under full scale, hard and fast", () => {
-    expect(LIMITER).toEqual({
-      threshold: -3,
-      knee: 0,
-      ratio: 20,
-      attack: 0.003,
-      release: 0.1,
     });
   });
 
