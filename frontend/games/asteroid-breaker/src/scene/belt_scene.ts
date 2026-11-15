@@ -79,6 +79,7 @@ import { FlourishPlayer } from "./flourish_player";
 import { ArcPainter } from "./painters/arc_painter";
 import { DebrisPainter } from "./painters/debris_painter";
 import { BlastPainter } from "./painters/blast_painter";
+import { BoulderPainter } from "./painters/boulder_painter";
 import { DeckPainter } from "./painters/deck_painter";
 import { ExhaustPainter } from "./painters/exhaust_painter";
 import { FieldPainter } from "./painters/field_painter";
@@ -232,6 +233,8 @@ export interface BeltKit {
   readonly exhaust: ExhaustPainter;
   /** Draws what flies off a rock or a ship as it is hit: shards, dust and sparks. */
   readonly debris: DebrisPainter;
+  /** Draws a boulder's break in its beats: its cracks, its glow and the ring it throws. */
+  readonly boulders: BoulderPainter;
   /** Draws the volatile rocks' blasts, and lights the rocks near them. */
   readonly blasts: BlastPainter;
   /** Draws the rings that sweep out. */
@@ -365,6 +368,7 @@ export class BeltScene extends Scene {
       kit.trail,
       kit.exhaust,
       kit.debris,
+      kit.boulders,
       kit.blasts,
       kit.rings,
       kit.arcs,
@@ -374,6 +378,7 @@ export class BeltScene extends Scene {
     ];
     this.flourishPlayer = new FlourishPlayer({
       debris: kit.debris,
+      boulders: kit.boulders,
       blasts: kit.blasts,
       rings: kit.rings,
       trail: kit.trail,
@@ -441,6 +446,7 @@ export class BeltScene extends Scene {
       trail: new TrailPainter(this, layers.effects),
       exhaust: new ExhaustPainter(this, layers.effects),
       debris: new DebrisPainter(this, layers.breaks, layers.effects),
+      boulders: new BoulderPainter(this, layers.effects, halos),
       blasts: new BlastPainter(this, layers.effects, halos),
       rings: new RingPainter(this, layers.effects),
       arcs: new ArcPainter(this, layers.arcs, halos),
@@ -468,7 +474,9 @@ export class BeltScene extends Scene {
    * each label of points it stamps.
    */
   override update(time: number, delta: number): void {
-    this.context.now = time;
+    // The flourishes' time, which runs with the page's but for a moment
+    // slowed, as a wave's last rock goes.
+    this.context.now = this.flourishPlayer.clock.at(time);
     let moved = this.fit();
     this.options.tick(delta, this.steering.read());
     this.switches = this.options.sound();

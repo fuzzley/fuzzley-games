@@ -14,9 +14,10 @@
  * pod; the muzzle's flash as a shot leaves, under the ship, which covers
  * its back, as the kit draws it; the ship and its pilot; the flourishes,
  * back to front a dash's trail, the exhaust, a lost ship's shards, the
- * sparks and glints of breaks and held hits, and the rings; static's arcs,
- * the zap's and those crawling over the pod's hull at full static, over
- * the flourishes; the points rising; and the frame and the deck.
+ * sparks and glints of breaks and held hits, a boulder's break's beats,
+ * the blasts, and the rings; static's arcs, the zap's and those crawling
+ * over the pod's hull at full static, over the flourishes; the points
+ * rising; and the frame and the deck.
  */
 export const LAYERS = [
   "place",

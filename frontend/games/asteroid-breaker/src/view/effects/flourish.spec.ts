@@ -9,6 +9,7 @@ import {
 } from "../../rules/tuning";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
+  BAIL_OUT_LEAN,
   BOB,
   EXHAUST_RATE,
   FLASH_MOST,
@@ -21,6 +22,7 @@ import {
   type Shake,
   TRAIL_MOST,
   bailOutShown,
+  bailOutWayOf,
   blinkShown,
   bobShare,
   breathShare,
@@ -241,6 +243,21 @@ describe("ringColorOf", () => {
       expect(ringColorOf(reaching(kind, 0), PALETTE)).toBe(PALETTE.accent);
     },
   );
+});
+
+describe("bailOutWayOf", () => {
+  it.each([1, 2, 3, 40])(
+    "rises up the field, leaning no more than its lean, for the event %d",
+    (serial) => {
+      const way = bailOutWayOf(serial);
+
+      expect(Math.abs(way + Math.PI / 2)).toBeLessThanOrEqual(BAIL_OUT_LEAN);
+    },
+  );
+
+  it("leans the bubbles of events one after another apart", () => {
+    expect(bailOutWayOf(1)).not.toBe(bailOutWayOf(2));
+  });
 });
 
 describe("wayOf", () => {

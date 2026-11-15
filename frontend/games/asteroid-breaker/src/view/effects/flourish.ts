@@ -238,6 +238,18 @@ export function wayOf(serial: number): number {
   return serial * GOLDEN_ANGLE;
 }
 
+/** How far a lost pod's pilot's bubble leans off straight up as it rises, in radians at most. */
+export const BAIL_OUT_LEAN = 0.35;
+
+/**
+ * Returns the way a lost pod's pilot's bubble rises, in radians: up the
+ * field, leaning a little either way by its event's serial, so runs' ends
+ * one after another rise apart.
+ */
+export function bailOutWayOf(serial: number): number {
+  return -Math.PI / 2 + BAIL_OUT_LEAN * Math.sin(wayOf(serial));
+}
+
 /**
  * Returns whether a pilot bailing out shows, a share through its bail-out, at a
  * time, in seconds: steadily, then blinking as it goes.

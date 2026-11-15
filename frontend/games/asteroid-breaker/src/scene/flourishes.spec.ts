@@ -21,6 +21,7 @@ import {
   SHELL_FONT,
   WIDER,
   type FakeShell,
+  type StrokedLine,
   layersOf,
   linesOf,
   metricsOf,
@@ -94,10 +95,10 @@ import {
   LOST_RING_REACH,
   SHIELD_RING_REACH,
   MOST_POINTS_CHARACTERS,
+  bailOutWayOf,
   trailAlpha,
   trailLaidAfter,
   trailReach,
-  wayOf,
 } from "../view/effects/flourish";
 import {
   BAIL_OUT_BLINK_MS,
@@ -106,7 +107,9 @@ import {
   BLAST_MS,
   BLAST_RING_MS,
   BOULDER_HOLD_MS,
+  BOULDER_THROW_MS,
   BREAK_MS,
+  CLEARED_MS,
   BURST_SHARDS,
   EXHAUST_MS,
   FLASH_MS,
@@ -115,8 +118,11 @@ import {
   POINTS_MS,
   RING_MS,
   SHAKE_MS,
+  SLOW_MS,
   TRAIL_MS,
 } from "../view/effects/timing";
+import { CRACK_REACH, boulderInks } from "../view/effects/boulder";
+import { farthestCorner } from "../view/effects/cleared";
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
@@ -346,6 +352,8 @@ interface Shown {
   readonly rings: number;
   readonly blasts: number;
   readonly blastLit: boolean;
+  readonly boulders: number;
+  readonly waves: number;
   readonly trail: boolean;
   readonly bailing: boolean;
   readonly scrolled: { readonly x: number; readonly y: number };
@@ -360,6 +368,8 @@ const NOTHING_PLAYING: Shown = {
   rings: 0,
   blasts: 0,
   blastLit: false,
+  boulders: 0,
+  waves: 0,
   trail: false,
   bailing: false,
   scrolled: { x: 0, y: 0 },
@@ -377,6 +387,8 @@ function playingIn(scene: BeltScene, shell: FakeShell): Shown {
     rings: strokesOf(scene.kit.rings.graphics).length,
     blasts: roundsOf(scene.kit.blasts.graphics).length,
     blastLit: scene.kit.blasts.light.visible,
+    boulders: commandsOf(scene.kit.boulders.graphics).length,
+    waves: trianglesOf(scene.kit.rings.graphics).length,
     trail: scene.kit.trail.outlines
       .flatMap(({ images }) => images)
       .some((image) => image.visible),
@@ -397,6 +409,7 @@ function logEveryFlourish(shell: FakeShell): void {
   events.addDash(MIDDLE.x, MIDDLE.y, 0);
   logShipLost(shell);
   events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+  events.add("cleared", MIDDLE.x, MIDDLE.y);
 }
 
 describe("the events", () => {
@@ -1659,6 +1672,221 @@ describe("a blast", () => {
   });
 });
 
+describe("a boulder's break", () => {
+  /** Returns the lines a boulder's cracks are drawn in. */
+  function cracksIn(scene: BeltScene): readonly StrokedLine[] {
+    return linesOf(scene.kit.boulders.graphics);
+  }
+
+  it("cracks it from its middle toward its rim as it breaks, in a soft line, its core and a hot line", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+
+    run.advance(32, 16);
+
+    const { glow, core, hot } = boulderInks(shell.colors);
+    const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+    const radius = ROCK_RADIUS.boulder * metricsOf(shell).unit;
+    const cracks = cracksIn(scene);
+    expect({
+      colors: new Set(cracks.map(({ color }) => color)),
+      fromMiddle: cracks.every(
+        ({ fromX, fromY }) =>
+          Math.hypot(fromX - at.x, fromY - at.y) < 0.15 * radius,
+      ),
+      outward: cracks.every(
+        ({ fromX, fromY, toX, toY }) =>
+          Math.hypot(toX - at.x, toY - at.y) >
+          Math.hypot(fromX - at.x, fromY - at.y),
+      ),
+    }).toEqual({
+      colors: new Set([glow, core, hot]),
+      fromMiddle: true,
+      outward: true,
+    });
+  });
+
+  it("runs its cracks out to its rim while the field holds still", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+    const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+    const longest = (): number =>
+      Math.max(
+        ...cracksIn(scene).map(({ toX, toY }) =>
+          Math.hypot(toX - at.x, toY - at.y),
+        ),
+      );
+    run.advance(32, 16);
+    const early = longest();
+
+    run.advance(BOULDER_HOLD_MS, 16);
+
+    expect([early < longest(), longest()]).toEqual([
+      true,
+      expect.closeTo(
+        CRACK_REACH * ROCK_RADIUS.boulder * metricsOf(shell).unit,
+        6,
+      ),
+    ]);
+  });
+
+  it("glows about it in its glow's color as it cracks", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+
+    run.advance(48, 16);
+
+    expect(halosIn(scene, boulderInks(shell.colors).glow)).toHaveLength(1);
+  });
+
+  it("throws a ring out from it in its core once the field moves on, and none before", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+    run.advance(16);
+    const before = trianglesOf(scene.kit.boulders.graphics).length;
+
+    run.advance(BOULDER_HOLD_MS + 100, 16);
+
+    const ring = roundsOf(scene.kit.boulders.graphics);
+    const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+    expect({
+      before,
+      ring: ring.map((round) => [isAt(round, at), round.color]),
+      outside:
+        (ring[0]?.inner ?? 0) >
+        ROCK_RADIUS.boulder * metricsOf(shell).unit * 0.9,
+    }).toEqual({
+      before: 0,
+      ring: [[true, boulderInks(shell.colors).core]],
+      outside: true,
+    });
+  });
+
+  it("puts it all away once its beats are over", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBoulderBreak(shell);
+
+    run.advance(BOULDER_HOLD_MS + BOULDER_THROW_MS + 32, 16);
+
+    expect({
+      drawn: commandsOf(scene.kit.boulders.graphics),
+      glow: halosIn(scene, boulderInks(shell.colors).glow).length,
+    }).toEqual({ drawn: [], glow: 0 });
+  });
+});
+
+describe("the wave's clearing", () => {
+  /** Logs a stone broken at a place on a shell's field, then the wave cleared. */
+  function logClearing(shell: FakeShell, x: number, y: number): void {
+    logBreak(shell, placeRock(shell.field, "small", x, y), 1, 0);
+    shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
+  }
+
+  /** Returns the wave's ring's line, the last band the ring painter fills, or null with none. */
+  function waveRing(scene: BeltScene): FilledRound | null {
+    return roundsOf(scene.kit.rings.graphics).at(-1) ?? null;
+  }
+
+  it("slows the flourishes to a third for a moment, its last points rising at a third of their pace", async () => {
+    /** Returns how far a wave's last points have risen a while after they are scored, the wave cleared or not. */
+    async function risen(cleared: boolean): Promise<number> {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+      if (cleared) shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
+      run.advance(16);
+      const [points] = scene.kit.points.scored.all;
+      const scored = points?.image.y ?? 0;
+      run.advance(SLOW_MS - 50, 16);
+      return scored - (points?.image.y ?? 0);
+    }
+
+    const slowed = await risen(true);
+    const paced = await risen(false);
+
+    expect(slowed / paced).toBeCloseTo(1 / 3, 2);
+  });
+
+  it("has the wave's ring wait out the slow", async () => {
+    const { shell, run, scene } = await startBoard();
+    logClearing(shell, 20, 12);
+    run.advance(16);
+
+    run.advance(SLOW_MS - 50, 16);
+    const slowed = waveRing(scene);
+    run.advance(100, 16);
+
+    expect([slowed, waveRing(scene) === null]).toEqual([null, false]);
+  });
+
+  it("crosses the field with the wave's ring from where its last rock went, in the accent, toward the farthest corner", async () => {
+    const { shell, run, scene } = await startBoard();
+    logClearing(shell, 20, 12);
+    run.advance(SLOW_MS + 50, 16);
+    const at = onCanvas(metricsOf(shell), 20, 12);
+    const radius = (): number => {
+      const ring = waveRing(scene);
+      return ring === null ? 0 : (ring.inner + ring.outer) / 2;
+    };
+    const first = radius();
+
+    run.advance(200, 16);
+
+    const ring = waveRing(scene);
+    expect({
+      at: ring !== null && isAt(ring, at),
+      color: ring?.color,
+      crosses: radius() > first,
+      within:
+        radius() <
+        farthestCorner(20, 12, PICTURE_TORUS) * metricsOf(shell).unit,
+    }).toEqual({
+      at: true,
+      color: energyOf(ART_PALETTE.accent, ART_PALETTE).body,
+      crosses: true,
+      within: true,
+    });
+  });
+
+  it("crosses it from where the clearing is logged with no rock broken", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
+
+    run.advance(SLOW_MS + 50, 16);
+
+    const ring = waveRing(scene);
+    expect(
+      ring !== null &&
+        isAt(ring, onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y)),
+    ).toBe(true);
+  });
+
+  it("draws the wave's ring with its sides within half a pixel of its circle, however far it has crossed", async () => {
+    const { shell, run, scene } = await startBoard();
+    logClearing(shell, 1, 1);
+
+    run.advance(CLEARED_MS - 60, 16);
+
+    const kinds = commandsOf(scene.kit.rings.graphics).map(({ kind }) => kind);
+    const last = kinds.lastIndexOf("fillStyle");
+    const sides =
+      kinds.slice(last).filter((kind) => kind === "fillTriangle").length / 2;
+    const ring = waveRing(scene);
+    const { pixelRatio } = metricsOf(shell);
+    expect(
+      (ring?.outer ?? Infinity) * (1 - Math.cos(Math.PI / sides)),
+    ).toBeLessThanOrEqual(0.5 * pixelRatio);
+  });
+
+  it("is gone as the Cleared card opens", async () => {
+    const { shell, run, scene } = await startBoard();
+    logClearing(shell, 20, 12);
+
+    run.advance(CLEARED_MS + 32, 16);
+
+    expect(trianglesOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+});
+
 describe("the rings", () => {
   it("sweeps a spent Shield's ring out from where it was spent, in the accent", async () => {
     const { shell, run, scene } = await startBoard();
@@ -2530,7 +2758,7 @@ describe("a lost ship", () => {
     ]);
   });
 
-  it("floats the pilot off the way the event's serial says", async () => {
+  it("floats the pilot up the field, leaning the way the event's serial says", async () => {
     const { shell, run, scene } = await startBoard();
     logShipLost(shell);
     run.advance(16);
@@ -2545,7 +2773,7 @@ describe("a lost ship", () => {
     );
     expect([distance, way]).toEqual([
       expect.closeTo(BAIL_OUT_SPEED * 0.5 * metricsOf(shell).unit, 6),
-      expect.closeTo(normalized(wayOf(lastSerial(shell))), 6),
+      expect.closeTo(normalized(bailOutWayOf(lastSerial(shell))), 6),
     ]);
   });
 
@@ -2556,7 +2784,7 @@ describe("a lost ship", () => {
     run.advance(16);
 
     const { pilot, eyes } = scene.kit.strays.bailing;
-    const back = wayOf(lastSerial(shell)) + Math.PI;
+    const back = bailOutWayOf(lastSerial(shell)) + Math.PI;
     const shift = eyesShift(
       { x: Math.cos(back), y: Math.sin(back) },
       "adrift",

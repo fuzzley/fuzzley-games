@@ -1,14 +1,18 @@
+import type { Moving } from "../rules/torus";
+import { farthestCorner } from "../view/effects/cleared";
 import { type Flourish, holdMsOf } from "../view/effects/effects";
 import {
+  bailOutWayOf,
   flashDue,
   ringColorOf,
   ringReachOf,
-  wayOf,
 } from "../view/effects/flourish";
-import { BURST_SHARDS } from "../view/effects/timing";
+import { FlourishClock } from "../view/effects/flourish_clock";
+import { BURST_SHARDS, SLOWED_MS } from "../view/effects/timing";
 import type { FieldEvent } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
 import type { BlastPainter } from "./painters/blast_painter";
+import type { BoulderPainter } from "./painters/boulder_painter";
 import type { DebrisPainter } from "./painters/debris_painter";
 import type { MuzzlePainter } from "./painters/muzzle_painter";
 import type { PaintContext } from "./painters/painter";
@@ -21,6 +25,7 @@ import type { TrailPainter } from "./painters/trail_painter";
 /** Holds what the flourishes play on: the painters that draw them, and the field's camera. */
 export interface FlourishPainters {
   readonly debris: DebrisPainter;
+  readonly boulders: BoulderPainter;
   readonly blasts: BlastPainter;
   readonly rings: RingPainter;
   readonly trail: TrailPainter;
@@ -43,18 +48,27 @@ export type FlourishStage = Pick<
 
 /**
  * Plays each flourish on what shows it: the painter that draws it from then
- * on, frame by frame, or the field's camera, and keeps the field's flashes
- * apart, whatever flashes: one each `FLASH_GAP_MS` at most.
+ * on, frame by frame, the field's camera, or the flourishes' own clock,
+ * which it keeps; and keeps the field's flashes apart, whatever flashes:
+ * one each `FLASH_GAP_MS` at most.
  */
 export class FlourishPlayer {
+  /** The flourishes' time, which the scene takes each frame from the page's. */
+  readonly clock = new FlourishClock();
   /** When the field last flashed, in milliseconds, or −Infinity before it first did. */
   private flashedAt = -Infinity;
+  /** Where the field's last rock broke, which the wave's ring crosses the field from. */
+  private readonly broke: Moving = { x: 0, y: 0 };
+  /** Whether a rock has broken on the field. */
+  private hasBroken = false;
 
   constructor(private readonly painters: FlourishPainters) {}
 
-  /** Forgets the last flash, as a new field starts. */
+  /** Forgets the last flash and the last break, and ends a slow, as a new field starts. */
   start(): void {
     this.flashedAt = -Infinity;
+    this.hasBroken = false;
+    this.clock.start();
   }
 
   /** Returns whether the field may flash now, the last flash far enough past, and if so notes that it flashes. */
@@ -72,6 +86,7 @@ export class FlourishPlayer {
   ): void {
     const {
       debris,
+      boulders,
       blasts,
       rings,
       trail,
@@ -88,7 +103,26 @@ export class FlourishPlayer {
         return;
       case "break":
         debris.breakRock(event, field, now);
+        this.broke.x = x;
+        this.broke.y = y;
+        this.hasBroken = true;
         return;
+      case "boulder":
+        boulders.breakBoulder(event, now);
+        return;
+      case "slow":
+        this.clock.slow();
+        return;
+      case "wave": {
+        const from = this.hasBroken ? this.broke : event;
+        rings.wave(
+          from.x,
+          from.y,
+          farthestCorner(from.x, from.y, field.torus),
+          now + SLOWED_MS,
+        );
+        return;
+      }
       case "kick":
         camera.kick(event.wayX, event.wayY, now);
         return;
@@ -115,7 +149,7 @@ export class FlourishPlayer {
         return;
       case "bailout":
         if (event.pilot !== null) {
-          strays.bailOut(x, y, event.pilot, wayOf(event.serial), now);
+          strays.bailOut(x, y, event.pilot, bailOutWayOf(event.serial), now);
         }
         return;
       case "shake":

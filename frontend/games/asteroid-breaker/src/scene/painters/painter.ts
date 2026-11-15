@@ -52,7 +52,11 @@ export interface PaintContext {
    * up to the bake's largest.
    */
   zoom: number;
-  /** The scene's time, in milliseconds, by which the flourishes and idle motions run. */
+  /**
+   * The flourishes' time, in milliseconds, by which they and the idle
+   * motions run: the page's, but slowed for a moment as a wave's last rock
+   * goes and behind it after, as the flourish player's clock keeps it.
+   */
   now: number;
   /** Whether the player welcomes motion. */
   motion: boolean;

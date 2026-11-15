@@ -14,10 +14,11 @@ import { BOULDER_HOLD_MS } from "./timing";
  * large rock's break, a held hit's flash and spark, a blast (its flash,
  * ring, embers and light), a vent's, a spent Shield's or a lost pod's ring, the
  * points scored, a dash's trail, a lost pod's burst, its pilot bailing
- * out, and the field's shake at a boulder's break. Each but the points and
- * a blast moves, so plays only where motion is welcome; the points show
- * either way, rising only where it is, and a blast's ring stands still at
- * its reach where it isn't.
+ * out, the field's shake at a boulder's break and the boulder's beats,
+ * and, as a wave's last rock goes, the flourishes slowed and the wave's
+ * ring. Each but the points and a blast moves, so plays only where motion
+ * is welcome; the points show either way, rising only where it is, and a
+ * blast's ring stands still at its reach where it isn't.
  */
 export type Flourish =
   | "muzzle"
@@ -31,7 +32,10 @@ export type Flourish =
   | "trail"
   | "burst"
   | "bailout"
-  | "shake";
+  | "shake"
+  | "boulder"
+  | "slow"
+  | "wave";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without. */
 export interface EventEffects {
@@ -55,21 +59,21 @@ function moving(flourishes: readonly Flourish[] = NONE): EventEffects {
 /** What an event calls for that the scene plays no flourish of. */
 const QUIET = moving();
 
-/** What a rock of each size kicks or shakes the field with as it breaks. */
-const JOLTS: Readonly<Record<RockSize, readonly Flourish[]>> = {
-  boulder: ["shake"],
+/**
+ * What a rock of each size plays as it breaks besides the break every rock
+ * has: a large one's kick, and a boulder's shake and its beats.
+ */
+const OWN_BREAKS: Readonly<Record<RockSize, readonly Flourish[]>> = {
+  boulder: ["shake", "boulder"],
   large: ["kick"],
   medium: NONE,
   small: NONE,
 };
 
-/**
- * What a rock of each size calls for as it breaks: its break, a large
- * one's kick and a boulder's shake.
- */
+/** What a rock of each size calls for as it breaks: its break, and its own. */
 const BROKEN: Readonly<Record<RockSize, EventEffects>> = recordOf(
   ROCK_SIZES,
-  (size) => moving(["break", ...JOLTS[size]]),
+  (size) => moving(["break", ...OWN_BREAKS[size]]),
 );
 
 /** What a rock of each size that holds a hit calls for: its flash and spark. */
@@ -89,7 +93,9 @@ const EVENT_EFFECTS: Readonly<
   dashed: moving(["trail"]),
   shielded: moving(["ring"]),
   warned: QUIET,
-  cleared: QUIET,
+  // The Cleared card tells the player, so the clearing's slow and its
+  // ring keep no still mark.
+  cleared: moving(["slow", "wave"]),
   rung: moving(["flash", "spark"]),
   // A blast keeps one still ring at its reach, which tells the player how
   // far it reached.

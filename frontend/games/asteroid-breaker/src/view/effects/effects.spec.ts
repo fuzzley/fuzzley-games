@@ -54,7 +54,7 @@ const EVENTS: readonly (readonly [
   ["dashed", ["trail"], []],
   ["shielded", ["ring"], []],
   ["warned", [], []],
-  ["cleared", [], []],
+  ["cleared", ["slow", "wave"], []],
   ["rung", ["flash", "spark"], []],
   ["blast", ["blast"], ["blast"]],
   ["shed", [], []],
@@ -79,10 +79,10 @@ const EVENTS: readonly (readonly [
 
 /**
  * Each size of rock, with its break's flourishes, a large one's kicking the
- * field and a boulder's shaking it.
+ * field and a boulder's shaking it and playing its beats.
  */
 const BREAKS: readonly (readonly [RockSize, readonly Flourish[]])[] = [
-  ["boulder", ["break", "shake"]],
+  ["boulder", ["break", "shake", "boulder"]],
   ["large", ["break", "kick"]],
   ["medium", ["break"]],
   ["small", ["break"]],
