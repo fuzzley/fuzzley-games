@@ -48,7 +48,8 @@ beforeEach(() => {
   TestBed.configureTestingModule({
     providers: [provideMemoryStorage(storage)],
   });
-  // The field's colors, as a stylesheet would give the page, which the bar's face cam draws in.
+  // The field's colors, as a stylesheet would give the page, which the bar's
+  // face cam and the scene draw in.
   paintRoles(FIELD_ROLES, ROLES);
 });
 
@@ -349,10 +350,6 @@ describe("AppComponent", () => {
     });
 
     describe("with the scene it loads", () => {
-      beforeEach(() => {
-        paintRoles(FIELD_ROLES, ROLES);
-      });
-
       /** Runs the scene the board hands its canvas, its first frame drawn. */
       async function runBoardScene(): Promise<SceneRun<HostedScene>> {
         const run = await runShownScene(

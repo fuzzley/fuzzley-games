@@ -128,19 +128,16 @@
 
 // On a field short of the room a card takes at its full size, as on a phone
 // upright over its deck or one on its side, the layer's own cards set
-// smaller, and the Cleared card's sum closer; last, so it overrides what is
-// set above.
-@container room (width < 280px) or (height < 420px) {
+// smaller, and the Cleared card's sum closer: the Cleared card, with its
+// trophy, is 473px high, with a 24px margin to keep either side. After the
+// rules it overrides.
+@container room (width < 280px) or (height < 530px) {
   .card {
     @include board-card-small;
   }
 
   .card-icon {
     --fz-icon-size: 28px;
-  }
-
-  .sector .card-title {
-    font-size: var(--fz-font-xl);
   }
 
   .aside {
@@ -162,9 +159,60 @@
   }
 }
 
+// The sector's card ends above the ship waiting in the field's middle,
+// whose nose reaches 1.2 units up from it, a unit and a half with room to
+// spare, 3.75% of a field 40 units down; so it says less, and sets
+// smaller, the shorter the field. At its tallest, over a run begun in
+// Endless whose ship fires by itself, its foot lies 342px down the field
+// at its full size, the margin over it included, 301px without its waves,
+// 248px set small, and 147px with no more of what is new than how to fly,
+// under the 12px margin of a field under 375px; under 320px it says only
+// the sector and the wave. `sector_card.spec.ts` holds what is new in each
+// sector to that card's lines.
+@container room (height < 750px) {
+  .sector .waves {
+    display: none;
+  }
+}
+
+@container room (width < 280px) or (height < 660px) {
+  .sector {
+    @include board-card-small;
+
+    .card-title {
+      font-size: var(--fz-font-xl);
+    }
+
+    .aside {
+      font-size: var(--fz-font-xs);
+    }
+  }
+}
+
+@container room (height < 545px) {
+  .sector .news > :not(.fly),
+  .sector .news:not(:has(.fly)) {
+    display: none;
+  }
+}
+
+@container room (height < 320px) {
+  .sector .news {
+    display: none;
+  }
+}
+
+// On a field where the Cleared card with its trophy would run past it, as
+// on a small phone upright, the trophy goes; its title says the same.
+@container room (height < 340px) {
+  .card-icon {
+    display: none;
+  }
+}
+
 // On a field shorter still, as on the smallest phone upright or a small one
 // on its side, the Cleared card's sum shows its total alone.
-@container room (height < 300px) {
+@container room (height < 310px) {
   .tally {
     > div:not(.total) {
       display: none;

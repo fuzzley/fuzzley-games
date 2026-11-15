@@ -18,7 +18,7 @@
               <p>{{ line }}</p>
             }
             @if (sector.opensRun) {
-              <p>{{ flyWords() }}</p>
+              <p class="fly">{{ flyWords() }}</p>
             }
           </div>
           <p class="aside">{{ sector.wave }} · starts when you fly</p>
@@ -45,7 +45,7 @@
         </div>
       }
       @case ("cleared") {
-        <div class="card">
+        <div class="card cleared">
           @if (game.beforeEndless()) {
             <fz-icon class="card-icon" name="trophy" />
           }

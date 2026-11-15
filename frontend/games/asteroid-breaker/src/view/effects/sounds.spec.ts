@@ -231,7 +231,6 @@ const UNPLAYED: readonly SoundName[] = [
   "burr-cling",
   "burr-shed",
   "burr-pop",
-  "tow-twang",
   "blast-volatile-small",
   "run-start",
   "sector-clear",
@@ -421,12 +420,27 @@ describe("secondSoundOf", () => {
     ]).toEqual(["pod-hit", "crew-loose"]);
   });
 
-  it.each(EVENTS.filter(([kind]) => kind !== "knocked"))(
-    "plays nothing after the first sound of %s",
-    (kind) => {
-      expect(secondSoundOf(eventOf(kind))).toBeNull();
+  it.each([
+    ["a stray caught into the line", "joined", "stray-catch"],
+    ["one caught again", "recaught", "crew-caught"],
+  ] as const)(
+    "plays the line springing after the catch of %s, as it joins the line",
+    (_, kind, catchSound) => {
+      expect([soundOf(eventOf(kind)), secondSoundOf(eventOf(kind))]).toEqual([
+        catchSound,
+        "tow-twang",
+      ]);
     },
   );
+
+  it.each(
+    EVENTS.filter(
+      ([kind]) =>
+        kind !== "knocked" && kind !== "joined" && kind !== "recaught",
+    ),
+  )("plays nothing after the first sound of %s", (kind) => {
+    expect(secondSoundOf(eventOf(kind))).toBeNull();
+  });
 });
 
 describe("ladderCentsOf", () => {

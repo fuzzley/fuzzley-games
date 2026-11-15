@@ -29,7 +29,8 @@ import {
   takenUpBoard,
   thumbRegionAround,
 } from "@fz/dev/screenshots";
-import { CONSOLE, importThroughVite } from "@fz/dev/script";
+import { CONSOLE } from "@fz/dev/script";
+import { SAVED_GAME_KEY, loadScreenshotApi, storedRun } from "./stored_run.mjs";
 
 /** @import { DevToolsConnection, Page } from "@fz/dev/chrome" */
 /** @import { Missed, ScreenshotScript, Shot } from "@fz/dev/screenshots" */
@@ -41,13 +42,6 @@ const SCREENSHOT_DIR = siteImagesFolder(ROOT, "asteroid-breaker");
 
 /** The palette the screenshot is taken in. */
 const THEME = "casino";
-
-/**
- * Where the game keeps the run under way: a copy of `SAVED_GAME_KEY` in
- * `src/app/play/saved_game.service.ts`, the shell's, which the scripts'
- * entries, fenced as the rules are, can't import.
- */
-const SAVED_GAME_KEY = "asteroid-breaker-game";
 
 /** What the announcer says as a stray comes in, which the screenshot waits for. */
 const STRAY_WORDS = "A stray fuzzball drifts in.";
@@ -81,20 +75,6 @@ export const RUN = {
  *
  * @typedef {{stored: string, score: string, afterStrayMs: number}} ShownRun
  */
-
-/**
- * Returns what the script takes from the game's own code, `SCREENSHOT_API`
- * in `src/testing/screenshot_api.ts`, loaded through Vite.
- *
- * @returns {Promise<ScreenshotApi>}
- */
-export async function loadScreenshotApi() {
-  const module = await importThroughVite(
-    join(ROOT, "src/testing/screenshot_api.ts"),
-    ROOT,
-  );
-  return /** @type {ScreenshotApi} */ (module["SCREENSHOT_API"]);
-}
 
 /**
  * Returns the field's shape as the board laid it out, once the scene has
@@ -227,7 +207,7 @@ async function shapeAndCapture(devtools, url, load) {
 export function shownRun(api, torus) {
   const saved = api.keptRun({ ...RUN, torus });
   return {
-    stored: JSON.stringify({ version: api.savedGameVersion, ...saved }),
+    stored: storedRun(api, saved),
     score: api.formatPoints(saved.score),
     // The ship's guard, which blinks it, began as it first moved, the run's
     // lead on the stray before the stray came.

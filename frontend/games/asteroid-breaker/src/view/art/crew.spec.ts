@@ -146,6 +146,15 @@ describe("towFaceOf", () => {
     expect(towFaceOf(field, 1, createFaceMoments(), true)).toBe("eep");
   });
 
+  it("rests at a place no one rides, startled by no rock passing its link", () => {
+    const field = towField();
+    field.crew = { ...field.crew, tow: [1] };
+    const at = linkOf(field, 1);
+    placeRock(field, "small", at.x + 1, at.y);
+
+    expect(towFaceOf(field, 1, createFaceMoments(), true)).toBe("rest");
+  });
+
   it("sleeps while the pod waits", () => {
     const field = towField();
     shipOf(field).waiting = true;
@@ -215,6 +224,16 @@ describe("towLookOf", () => {
   it("looks straight out from a place no one rides, its link left where it was laid", () => {
     const field = towField();
     field.crew = { ...field.crew, tow: [1] };
+
+    expect(towLookOf(field, 1, blank())).toEqual({ x: 0, y: 0 });
+  });
+
+  it("looks straight out while it rides right on the one ahead", () => {
+    const field = towField();
+    const ahead = linkOf(field, 0);
+    const at = linkOf(field, 1);
+    at.x = ahead.x;
+    at.y = ahead.y;
 
     expect(towLookOf(field, 1, blank())).toEqual({ x: 0, y: 0 });
   });

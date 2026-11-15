@@ -505,10 +505,13 @@ const EVENT_SOUNDS: Readonly<
 
 /**
  * The sound an event plays after its first, where it has one: the line
- * snapping as one is knocked loose, after the pod's hit.
+ * snapping as one is knocked loose, after the pod's hit, and springing as
+ * one joins it, a stray caught or one caught again, after the catch.
  */
 const SECOND_SOUNDS: Readonly<Partial<Record<FieldEventKind, SoundName>>> = {
   knocked: "crew-loose",
+  joined: "tow-twang",
+  recaught: "tow-twang",
 };
 
 /** Returns the sound an event plays after its first, or null for none. */

@@ -1,14 +1,9 @@
 import { formatPoints } from "@fz/core/format";
 import { recordingPrinter } from "@fz/dev/script";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
-import { NEW_SHIP_GUARD_MS } from "../src/rules/tuning";
 import { WAVES } from "../src/rules/waves/waves";
-import {
-  RUN,
-  loadScreenshotApi,
-  run,
-  shownRun,
-} from "./capture-screenshots.mjs";
+import { RUN, run, shownRun } from "./capture-screenshots.mjs";
+import { loadScreenshotApi } from "./stored_run.mjs";
 
 /** A field on its side, as a page of 1280 by 720 lays one out. */
 const FIELD = { width: 72, height: 40 };
@@ -95,19 +90,5 @@ describe("shownRun", () => {
 
     const stored = JSON.parse(shown.stored) as { score: number };
     expect(shown.score).toBe(formatPoints(stored.score));
-  });
-});
-
-describe("loadScreenshotApi", () => {
-  it("keeps the run the screenshots show, loaded through Vite as the script loads it", async () => {
-    const api = await loadScreenshotApi();
-
-    const kept = api.keptRun({ ...RUN, torus: FIELD });
-
-    expect({
-      scored: kept.score > 0,
-      points: api.formatPoints(4250),
-      guardMs: api.newShipGuardMs,
-    }).toEqual({ scored: true, points: "4,250", guardMs: NEW_SHIP_GUARD_MS });
   });
 });

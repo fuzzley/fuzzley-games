@@ -7,6 +7,15 @@ import {
   wavesInWords,
 } from "./sector_card";
 
+/**
+ * The longest line of what is new that the sector's card was measured with,
+ * Endless's second, from which `board_card.component.scss` steps the card
+ * down by the field's height, above the ship waiting in its middle; a longer
+ * line could wrap once more and reach the ship.
+ */
+const LONGEST_MEASURED =
+  "Comets cross every one, and a boulder comes every tenth.";
+
 /** The waves each of the game's sectors spans, Endless last. */
 const SPANS = sectorSpans(WAVES);
 
@@ -84,6 +93,15 @@ describe("SECTOR_NEWS", () => {
     "says what is new in %s in a sentence or two",
     (_, news) => {
       expect([1, 2]).toContain(news.length);
+    },
+  );
+
+  it.each(Object.entries(SECTOR_NEWS))(
+    "says what is new in %s in lines no longer than the sector's card was measured with",
+    (_, news) => {
+      expect(Math.max(...news.map(({ length }) => length))).toBeLessThanOrEqual(
+        LONGEST_MEASURED.length,
+      );
     },
   );
 });

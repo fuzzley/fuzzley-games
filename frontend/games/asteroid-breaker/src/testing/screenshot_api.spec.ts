@@ -2,7 +2,7 @@ import { formatPoints } from "@fz/core/format";
 import { SAVED_GAME_VERSION } from "../rules/run/saved_game";
 import { NEW_SHIP_GUARD_MS } from "../rules/tuning";
 import { WAVES } from "../rules/waves/waves";
-import { type KeptRun, keptRun } from "./kept_run";
+import { type RunBegun, type KeptRun, clearingRun, keptRun } from "./kept_run";
 import { SCREENSHOT_API } from "./screenshot_api";
 
 /** A run on Crowd, wave 9, a second before its first stray, on a field of 72 by 40. */
@@ -19,6 +19,19 @@ describe("SCREENSHOT_API", () => {
     const kept = SCREENSHOT_API.keptRun(KEPT);
 
     expect(kept).toEqual(keptRun(WAVES, KEPT));
+  });
+
+  it("keeps a run that clears its wave as clearingRun() does", () => {
+    const clearing: RunBegun = {
+      wave: WAVES.length,
+      speed: "normal",
+      seed: 30,
+      torus: { width: 72, height: 40 },
+    };
+
+    const kept = SCREENSHOT_API.clearingRun(clearing);
+
+    expect(kept).toEqual(clearingRun(WAVES, clearing));
   });
 
   it("writes points as the game does", () => {
