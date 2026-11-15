@@ -542,9 +542,10 @@ helpers.
     its options and the guide (`guide()`), says what happens and keeps the
     records: a run's start as its first round is released, and the rest as
     each flight lands, or as it would have landed for one still in the air
-    as another run begins. It plays every flight fast while fast-forward
-    is on, a setting the bar's Fast-forward (`fastForward()`) and F
-    (`fieldCommand()`) switch, F saying which. As the player looks away
+    as another run begins; and, as a run on the record is taken up, the
+    levels it cleared before its own. It plays every flight fast while
+    fast-forward is on, a setting the bar's Fast-forward (`fastForward()`)
+    and F (`fieldCommand()`) switch, F saying which. As the player looks away
     (`lookAway()`), it pauses the level in play, a flight in the air
     where it is; but as the page is hidden, which may never be seen again,
     it first lands the round in the air at once, as it would have flown,
@@ -610,8 +611,10 @@ its reader drops what it can't trust rather than failing:
   it is in the air.
 - `brick-fuzz-pop-progress` (version 1): the ids of the levels cleared,
   which open the levels after them, each kept as the flight that clears it
-  lands, or as another run begins while it is in the air. Ids no level has
-  any more are dropped.
+  lands, or as another run begins while it is in the air; and, as a run on
+  the record is taken up, every level it cleared before the one it is on,
+  which a page killed with a flight in the air, hidden from nobody, would
+  otherwise lose. Ids no level has any more are dropped.
 - `brick-fuzz-pop-game` (version 1, `SAVED_GAME_VERSION`): the run under
   way, by `SavedGameService`: its level by number and id, the level it
   started at, the depth the level began on, its rounds and jumps, the

@@ -99,11 +99,17 @@ function afresh(): void {
   TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
 }
 
-/** Returns the game as the page starts it, the saved game made first, which keeps it in a store. */
-function keptIn(storage: MemoryStorage): GameService {
+/**
+ * Returns the game as the page starts it, the saved game made first, which
+ * keeps it in a store, its rounds played as a script says.
+ */
+function keptIn(
+  storage: MemoryStorage,
+  ...script: readonly SpecRound[]
+): GameService {
   TestBed.configureTestingModule({
     providers: [
-      ...provideSpecPlay(),
+      ...provideSpecPlay(scriptedRounds(...script)),
       ...provideGame(),
       provideMemoryStorage(storage),
     ],
@@ -1512,6 +1518,57 @@ describe("GameService", () => {
       expect(game.run().id).toBe(41);
     });
 
+    it("marks the levels it cleared before the one it is on as cleared", () => {
+      const played = carded("cleared");
+      played.nextLevel();
+      playUntilCard(played);
+      const taken = kept(played, 2);
+      afresh();
+      const game = gameOf("step");
+
+      game.takeUp(taken);
+
+      expect(TestBed.inject(ProgressService).cleared()).toEqual(
+        new Set([FIRST_ID, SECOND_ID]),
+      );
+    });
+
+    it("marks only the levels from the one it began at", async () => {
+      const played = gameOf("cleared");
+      await played.startAt(2);
+      playUntilCard(played);
+      const taken = kept(played, 2);
+      afresh();
+      const game = gameOf("step");
+
+      game.takeUp(taken);
+
+      expect(TestBed.inject(ProgressService).cleared()).toEqual(
+        new Set([SECOND_ID]),
+      );
+    });
+
+    it("leaves the stats as they were as it marks the levels it cleared", () => {
+      const taken = kept(carded("cleared"), 2);
+      afresh();
+      const game = gameOf("step");
+      const stats = TestBed.inject(StatsService).stats();
+
+      game.takeUp(taken);
+
+      expect(TestBed.inject(StatsService).stats()).toBe(stats);
+    });
+
+    it("marks no level cleared for a run the debug menu took off the record", () => {
+      const taken = kept(carded("cleared"), 2, true);
+      afresh();
+      const game = gameOf("step");
+
+      game.takeUp(taken);
+
+      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
+    });
+
     it("takes up whether the run is played on retuned numbers", () => {
       const game = gameOf("step");
       playRoundOut(game);
@@ -2381,6 +2438,19 @@ describe("GameService", () => {
       });
 
       expect(TestBed.inject(KEPT_GAME)).toBe(TestBed.inject(GameService));
+    });
+
+    it("comes back after a page killed mid-flight with the level the flight in the air cleared marked cleared", () => {
+      const storage = new MemoryStorage();
+      released(keptIn(storage, "cleared"));
+      TestBed.tick();
+      afresh();
+
+      keptIn(storage);
+
+      expect(TestBed.inject(ProgressService).cleared().has(FIRST_ID)).toBe(
+        true,
+      );
     });
 
     it("comes back paused after a reload mid-flight, after the round in the air", () => {
