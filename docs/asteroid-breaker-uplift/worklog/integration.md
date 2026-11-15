@@ -585,3 +585,340 @@ imports it only from `sound_lab_mix.ts`, never from what Node runs.
   tip's frame against `da697c6e9`, the build's start, which §9's budget
   is set against, in one sitting, since each package measured against
   the tip it started from.
+
+### 2026-11-15, R2 landed, R3 started
+
+- **R2 landed** as `7bd46f7f` to `8e136c0e`, nine commits: the chain and
+  Nova out, static the multiplier in their place, carried wave to wave;
+  sparks shed by rocks shot or blasted, drawn in and gathered by the pod
+  and those in tow; near misses once a pass, and the zap from a dash begun
+  at full static; each best kept with its rules' number (`RULES_VERSION`
+  2); the autopilot drawing sparks in on its way and the report's most
+  static; the debug menu's sliders; the sparks played up the ladder,
+  static's steps by their chimes, a near miss, the zap and its arcs; one
+  rule for the dash ready again (`isDashReady()`), which the dash, the
+  pod's rim, the deck's ring, `dash-ready` and the autopilot all read; and
+  the pilot eeping at the rules' near miss, the face's own watch gone.
+- **Settled on its own rebases:** onto `7040517b` (L1's rocks, L3's places
+  and S3's sounds), where the chain R2 took out met S3's sounds built on
+  it: a break's event carries `times`, static's multiplier it scored at (0
+  for a smash), in place of the chain, the bell rings once a frame at the
+  ladder's note for the highest of them (`bellCentsOf()`), the chain's
+  chimes go, and the lab's "A chain of breaks" became "Breaks as static
+  climbs"; its entry 7's reviewer read the sounds after it, but no one
+  read that settle's delta when it landed (see "two settles read late",
+  below). Then onto L6's tip, putting `FieldView.charge` in place of the
+  `chain` and `lastBreakAt` L6 had added and lifting the fur by static's
+  multiplier less one (`liftOf()`), read by entry 8's reviewer. The
+  integrator rebased it onto `931b2231` (L2's, and the log), where nothing
+  met.
+- **Checks on the rebased tip:** an install, the root's lint (which lints
+  every workspace) under the lock, the game's typecheck and its coverage
+  at every floor over 6,766 specs (5,146 in the `pure` and `dom` projects,
+  1,620 in `sim`, every wave at every speed); R2's `report:waves` figures,
+  both fields, match its own entry 5's line for line.
+- **Outside its files:** the view's `run_frames.ts`, `run_state.ts` and
+  `tally.ts`; F's `effects.ts` and `flourish.ts`, and docs in `timing.ts`
+  and `ring_painter.ts`; `art.ts`, `symbols.ts`, `tags.ts` and docs in
+  `palette.ts`; S3's `sounds.ts`, `field_sounds.ts` and the sound lab, as
+  §5.1 has it; L6's `frame.ts`, `faces.ts` and `pod_painter.ts`, as it was
+  asked; `deck_painter.ts`; the shell's `GameService` (`multiplier` and
+  `step` in place of `chain`), the bar's figure, How to play's scoring line
+  and the sound setting's sentence, and the stats service's docs;
+  `src/testing/play.ts`' `takeUpCharged()` in place of `chainUp()`; L4's
+  `warning.spec.ts`; and the game's `README.md`.
+- **Its figures:** drawing in sparks makes the autopilot's plays longer: the
+  wide field's longest 1:19 against R1's 1:03, about the quarter §9 asks a
+  package to explain, and on the narrow field Boulder at Relaxed 0:24 against
+  0:17 on R2's own branch before the detour, 41% more, which R2's log
+  explains; against R1, more of the crew knocked loose on both fields (six
+  plays against three on the narrow, seven against five on the wide). R2's log
+  says the detour may want shortening. R3, tuning the waves' tails, owns the
+  autopilot's detour, and was told.
+- **Left, each with an owner:** P1's `run_frames.ts` calls `watchFace()`,
+  which R2 removed: P1 was told to drop it on its rebase, `hearFace()`
+  hearing `grazed` already. P4 draws the sparks and the hull's arcs at
+  full static, and "under earlier rules" in the result and the sectors
+  from `bestRules`/`sectorRules`; P1 lifted the bar's pilot's fur on its
+  rebase, so that's done; S4 the near miss's voice and the beds' layers on
+  static; Z1 the screenshots, whose wave-9 run flies differently now; the
+  sound lab's scenes for the sparks and the zap, of which S4 built the
+  zap's ("A near miss, then a zap"), the sparks' left to P4, add-only to
+  the lab, and P4 told; the spark slider says nothing of what it comes to
+  at Relaxed, for Z1's notes.
+- **R3 started** from `8e136c0e`, with R2's, L2's and L1's notes in its
+  brief. P1, S4 and L4 were told what R2 changed in their files and to
+  rebase before they report.
+
+### 2026-11-15, P1 landed, P3 started
+
+- **P1 landed** as `96f37551`, fast-forward: `<app-face-cam>`, the pilot
+  at the controls in the canopy's glass with the field's face and fur's
+  lift (`GameService.face()` by L6's `faceOf()`, `lift()` by `liftOf()`),
+  colored by the view's `podTones()` so it can't drift from the pod, first
+  in the bar's Ships figure and hidden from screen readers; the Static
+  figure as "×N" and four pips at every multiplier, only "×N" read aloud;
+  four cards on a roomy bar, one on a compact bar with the ships' count a
+  badge on the face cam and New game in the overflow menu, as Brick Fuzz
+  Pop has it.
+- **Settled on its own rebase onto R2's tip:** R2's `multiplier()` and
+  `step()` kept and P1's own `multiplier()` dropped; P1's fur lift named
+  `lift` (0 to 3, `liftOf()`), apart from static's step (0 to 4);
+  `watchFace()`'s call removed from `run_frames.ts`, as R2 removed it; the
+  bar keeping R2's "Static" label and P1's figure at every multiplier;
+  R2's "only past ×1" specs giving way to P1's. No one read this settle's
+  delta when it landed (see "two settles read late", below).
+- **Its checks on that tip:** the game's typecheck, lint and 6,823 specs
+  in 122 files, the root's lint under the lock, the build and the layout
+  check at every shape and turn, and the coverage at every floor; in a
+  browser at 360 × 640 in a light palette, the one card's three figures,
+  the pilot sleepy at ×1 and its fur on end at ×4. Before the rebase, on
+  the chain, it was seen at 1280 × 800 and 360 × 640 in a light and a dark
+  palette, and at 640 × 360, 320 × 480 and 1000 × 800.
+- **Outside its files:** `GameService`'s `face` and `lift`, `RunState`'s
+  and `FrameChange`'s, `RunFrames`' face moments reset per field, the
+  specs' `poseIn()`, one line in `app.component.spec.ts`, and one sentence
+  of `lib/game-ui/AGENTS.md`.
+- **Left, each with an owner:** the bar's title cut short at 1280 px with four
+  cards, worse as the score grows, which P3 was to weigh as it made the crew a
+  count past three and didn't take up, so it is P4's, which owns the bar now,
+  and P4 was told; the redundant nested `paintRoles` in the app's spec, P3's,
+  which P3 did. P1 answered two questions left to it: auto-fire shows no "set"
+  face, as it would hold for the whole wave, and `<fz-fuzzball>` needed no
+  `@fz/ui` change; so those are done. For §12: a new run state has lift 0 and
+  a resting face until its first frame; a shared fuzzball pose reader in
+  `@fz/ui/testing`, a library change no package needs.
+- **P3 started** from `96f37551`, with P1's, R2's and L6's notes in its
+  brief.
+
+### 2026-11-15, S4 landed
+
+- **S4 landed** as `a1bd0ff3` to `d2df10a8`, eight commits, fast-forward:
+  `@fz/dev/zzfx` out; one step in `@fz/core/sound_mix` working out a play's
+  take, variation and duck, which `SpritePlayer` and the sound lab share;
+  the sounds read from how the field changed (the thrust pressed and let
+  go, the first move, a guard over, a comet come in, the Shield and Slow
+  started); the fuzzball's voice, the rarest call of a frame, once in four
+  seconds at most, 3 dB down; each place's bed, the pulse joining at ×3
+  and the shimmer at ×4, and the lodestone's hum while one is whole; the
+  eep at a near miss; and the effects, the voice, the bed and mono as
+  switches in the settings drawer, read as optional.
+- **Settled on its own rebases:** onto R2's tip, three commits meeting R2
+  in the sound files, their specs and the docs, both kept (R2's sparks, zap
+  and `isDashReady()` beside S4's state sounds, Nova out of the sounds
+  started, the beds on `GameService.multiplier()`), the range-diff read by
+  a fresh reviewer; then onto P1's, where nothing met.
+- **Its checks on that tip:** the game's lint, typecheck and coverage at every
+  floor over 7,126 specs in 124 files; under the lock the root's lint and
+  typecheck and the tests of every workspace using `@fz/phaser/sound` (Snake,
+  Asteroid Breaker, Brick Breaker, Brick Fuzz Pop). In a browser, through the
+  player's state and the network log: the sprite first, the bed under the
+  first card, the layers fetched but silent until ×3 and ×4, the shimmer faded
+  out as static fell, every layer on the bed's bar line, mono switching the
+  speakers between one channel and two, the bed's switch fading it out and in.
+- **Outside its files:** `GameService`'s `placeAfter` and
+  `lodestoneHums()`, the board's three new scene options, the specs'
+  `FakeShell` switches, R2's zap and near-miss specs expecting the
+  calls.
+- **For §12, for the user to judge:** a call within four seconds of
+  another is dropped, a cheer or the run's end's "aww" among them, by the
+  plan's "never twice in four seconds" (a one-line change in
+  `Voice.speak()` lets the rarer through); the beds stay decoded once
+  fetched, 26 MB for the first wave and 42 to 46 MB at most, which
+  releasing a bed once crossed out (a `LayerPlayer` change) would cap.
+  `plan.md`'s decision 15 says "within two seconds" where its table says
+  four; four was built, the user says which, and Z1 makes the two agree.
+- **Left, each with an owner:** `tow-twang`, P3's; the burr's sounds,
+  R4's; `blast-volatile-small`, kept for a small rock that blasts, which
+  R3's brief names among its sounds (a vent may be one), R3 told again;
+  the shell's stingers and UI sounds and `voice-hum`, still unplayed, for
+  §12; the eep's second moment in the kit, a rock passing close to one of
+  the crew in tow, for §12, as no rule logs it (the bubbles can't be hit,
+  and a graze is counted at the pod alone). A sound family added later is
+  routed in `isSwitchedOn()`, which sends calls to the voice's switch and
+  the rest to the effects'.
+- **S3's two cases,** left to S4: `crew-caught` beside `wave-clear`, as a
+  wave's clearing takes the loose back, and `crew-home` for a loose one
+  caught with the line full, which the rules log as a timeout is. S4 kept
+  both, by reasoning rather than by ear, so whether they sound right goes
+  to §12 for the user; telling a catch on a full line from a timeout would
+  take a new rules event.
+- **No package was ready** for the slot it freed: F1 waited on L4, P4 on
+  P3, R4 on R3.
+
+### 2026-11-15, L4 landed, F1 started
+
+- **L4 landed** as `76354df9` to `9054ad1a`, eight commits, fast-forward:
+  `@fz/phaser`'s soft disc; halos round a crystal's gems and a volatile
+  rock's core on a new `halos` layer; the four shots and the muzzle's
+  flash as the kit cuts them, `energyOf()` moved into `energy.ts`; one
+  `canvasTexture()` spec helper in `@fz/phaser/testing`; the six pickups
+  as glass orbs, their rims by group; the comet as a cut wedge with its
+  tail, its chevrons and its lane on a new `lanes` layer under the rocks;
+  and the flame's halo.
+- **Settled on its own rebases:** onto `8944df8d` (L2's and L6's), the
+  `LAYERS` doc and its spec's title, the game's `AGENTS.md` and the content
+  skill, each keeping both sides, and the shots meeting L6's `fine` on
+  `atlasFrames()`, which they now pass on to `energyFrames()`; onto R2's
+  `8e136c0e`, `field_picture.ts`' imports and `atlasFrames()` side by
+  side, and in the orbs' work `art.ts`, `symbols.ts` and `ORB_RIMS`, each
+  losing the Nova as R2 took it out; onto P1's tip, nothing; onto S4's, the
+  content skill, the game's `AGENTS.md` and `belt_scene.spec.ts`' imports,
+  each keeping both sides, and `placeComet`, which a spec of S4's calls,
+  restored to that file's imports in L4's comet commit.
+- **Its checks on that tip:** the game's lint, typecheck and 7,294 specs,
+  `@fz/phaser`'s lint, typecheck and 1,078 specs, and under one hold of the
+  lock the root's lint and typecheck and the other users' tests (Brick
+  Breaker, Brick Fuzz Pop, Solitaire, Snake); the coverage at every floor.
+  In a browser, all four palettes at 1,400 × 800 and 360 × 640, beside the
+  kit's sheets.
+- **Its frame budget:** 4.25 ms at its start (`7040517b`), 5.27 ms at the
+  tip it rebased onto and 5.21 ms on its branch, pooled medians in one
+  sitting, within the 5.67 ms a third over its start allows. Wave 9 has
+  only stones, so the trace held the shots' and the pickups' halos but no
+  rock's, comet's or flame's: F1 traces a wave with crystals, volatile
+  rocks and a comet while thrusting too, and was told. The packages landed
+  meanwhile added about a quarter, so F1, rather than Z1 alone as the
+  second verify run had it, measures the tip against `da697c6e9`, the
+  build's start, in its sitting, and says plainly if the whole is past a
+  third.
+- **Outside its files:** `palette.ts`' `haloStrength` and `rockGlows`,
+  `layers.ts`' `halos` and `lanes`, `belt_scene.ts`, `copies.ts`'
+  `showOnce()`, `field_picture.ts`' `placeShot()`, the `energyOf()`
+  import in L2's files, F's `flourish.ts`, where `breathShare()` takes the
+  place of `breathScale()` and `BREATH`, and the warning's pulse
+  (`pulseAlpha()`, `PULSE_LEAST`) goes, `art.ts`, whose pickups' frames
+  moved to `things.ts` and whose old comet disc went, `tuning.ts`'
+  `COMET_MARGIN` doc (R's), the contrast spec, and the docs.
+- **Left, each with an owner:** the muzzle's flash, art waiting for F1 to
+  play it, and a blast's light, which L4 didn't add, F1's; the halo
+  painter for P4's sparks (`reserve()`, `glow()`, `glowOnce()`); the
+  burr's art and its wrapping draw for R4. For §12: no halos for L2's gem
+  shards and held hits (`DebrisPainter` would take the halo painter), none
+  for the puffs (the kit has none), the flame's halo unflickering, and an
+  orb blinking dim rather than vanishing, even with motion unwelcome,
+  which F1 weighs under the still forms.
+- **F1 started** from `9054ad1a`, with what the look and sound packages
+  left it in its brief (L2's dust flourish that plays nothing and the
+  constants breaks no longer use, L3's `BLEED_CSS_PX`, L1's empty `flash`
+  layer, L6's pod bursting at the run's end and its flourish on the rim's
+  flash as the dash comes ready, S3's sight for `dropped`, `faded` and
+  `strayed`, and L2's move of `BREAK_MS` and `HELD_MS` to `timing.ts`), L4's
+  notes, and the build's frame to measure against its start.
+
+### 2026-11-15, P3 landed, P4 started
+
+- **P3 landed** as `a4ab7cbb` to `c0a7732a`, five commits, fast-forward:
+  the line in tow under the pod (`TowPainter` on a `tow` layer under the
+  ship, by the rules in three new files, `src/view/field/tow_line.ts`,
+  `src/view/art/crew.ts` and `src/view/field/near.ts`), each who rides it
+  in a bubble in its ink
+  answering what passes, each knocked loose swelling and blinking; the
+  crew in the bar, a count past three (`src/view/crew_line.ts`, new), and
+  the shell speaking of the crew
+  rather than ships; the crew on the Paused card, cheering on the Cleared
+  card and as the fuzzballs who flew when everyone is home; How to play's
+  crew as the ship's lives; the tow line's twang as one joins it; the
+  layout check opening the Cleared card with its trophy over a run kept
+  to clear (`clearingRun`, `tools/stored_run.mjs`); and the sector's card
+  stepping down by the field's height to stay above the waiting ship.
+- **Settled on its own rebases:** onto S4's tip, nothing; onto L4's, in its
+  first commit, `layers.ts` and its spec (L4's lanes and halos with the
+  tow layer under the ship), the game's `AGENTS.md` and the testing skill,
+  each keeping both sides; `belt_scene.ts` merged cleanly.
+- **Its checks on that tip:** the game's lint, typecheck and 7,421 specs in
+  136 files, the root's lint under the lock, the coverage at every floor,
+  `build` and `check:layout` at every shape and turn, the Cleared card at
+  every shape.
+- **Its frame budget:** wave 9 on the widest field with five in tow, 4.39
+  ms at its start (`96f37551`) and 5.38 ms on its branch, means of two
+  each in one sitting, 23% more within the 5.85 ms its start allows; the
+  branch's figure includes S4's and L4's changes, which landed meanwhile.
+- **Outside its files:** the new `tow_line.ts`, `crew.ts`, `near.ts`
+  (`faces.ts`' `lookOf()` now uses it, with the same answers), `crew_line.ts`
+  and `tools/stored_run.mjs`, doc comments in L6's `pilot_art.ts` and
+  `stray_painter.ts`, `layers.ts`, `belt_scene.ts`, two `SECOND_SOUNDS`
+  entries in `sounds.ts` (add-only), S1's recipe `tools/sounds/rescue.mjs`
+  (its `about` and `plays`) and the sound lab's plays, `kept_run.ts`,
+  `screenshot_api.ts`, `script_api.ts`, `pilots.ts`,
+  `capture-screenshots.mjs`, `app.component.spec.ts`, the game's `AGENTS.md`
+  and the testing skill.
+- **Left, each with an owner:** `describe.ts`' `whereLost()`, without
+  callers now, and `describeEnd()`'s "Game over." where the cards say
+  "Everyone is home.", sent to R3; `tools/stored_run.mjs`' `CLEARING_RUN`
+  naming wave 30, the last written wave, which `stored_run.spec.ts` holds
+  it to, sent to R3 should it add waves, and in R4's brief; the sector
+  card's height steps, measured for today's words, to measure again should
+  a sector's card say more, R3's set pieces and R4's burr, R3 told and
+  R4's brief saying so; the Cleared card's steps, measured with its six
+  lines, Sparks and Static among them since R2, P4's should it make the
+  card taller, P4 told. P3 declined, with reasons in its
+  log, sharing `StrayPainter`'s drawing (L6's file), folding two rock
+  scans per bubble into one, opening more than the first wave's card in
+  the layout check, and a duplicate round trip in `kept_run.spec.ts`.
+- **P4 started** from `c0a7732a`, with P3's, R2's and L4's notes in its
+  brief and the build's frame to measure.
+
+### 2026-11-15, a third verify run on the tip
+
+- **On `c0a7732a`,** sixteen packages landed, under the lock: every
+  workspace's tests, two at a time on four workers each, the build and
+  Asteroid Breaker's layout check in 3 min 49 s (14:38:09 to 14:41:58),
+  then the root's typecheck, all passing. Asteroid Breaker has 7,421 specs
+  now (6,558 at the last run), `@fz/phaser` 1,078 and `@fz/core` 470;
+  `@fz/dev` has 889, 17 fewer, since S4 took out `@fz/dev/zzfx`, which
+  nothing imported; the other workspaces' counts are as they were.
+- **The layout** holds at every shape and turn, and now also the Cleared
+  card with its trophy, which P3's check opens.
+- **Late:** the last run set this one after three landings; it came after
+  five, missed at S4's landing, the third, and run after P3's. Each of the
+  five ran its own checks, and S4 and L4, which changed
+  libraries, the tests of every user of what they changed, so what this
+  run adds is the other workspaces' tests, the build and the root's
+  typecheck over all five together.
+- **`origin/main`** has moved to `7fbd968a`, one commit: the Brick Fuzz
+  Pop tune-up's plan, all of it under `docs/brick-fuzz-pop-tune-up/`,
+  which nothing in this build reads. §7.5 rebases onto `origin/main`
+  whenever it moves, so the faster checks serve the build; this commit
+  brings none, and a rebase now would have the three packages running
+  rebase with `--onto` for nothing, so this departs from §7.5 and waits.
+  The branch is rebased onto `origin/main` at the first move that brings
+  code or checks, and in any case in Z1 before the merge; the tune-up's
+  build, under way in another session, may by then touch `brick-fuzz-pop`
+  and the libraries.
+- **The next run** is due after three more landings.
+
+### 2026-11-15, two settles read late
+
+- **Why:** the review of the entries above found two settles §7.5 asks a
+  fresh reviewer to read that no one had: R2's onto `7040517b`, where the
+  chain it took out met S3's sounds, landed in `7bd46f7f`, `b6c59b4d`
+  and `fbe2183a`; and P1's onto R2, where the fur's lift and static's
+  step came apart, in `96f37551`. A fresh agent read both at `c0a7732a`.
+- **Found:** no bug in play; both settles keep both sides' intent. Only a
+  comet's smash logs `times` 0, and only it plays `comet-smash`, with no
+  bell; the bell rings once a frame at the highest multiplier, where the
+  first break at it broke; `liftOf()` is static's multiplier less one,
+  and the multiplier and step reset at the run's end and carry over a
+  cleared wave; dropping `watchFace()` lost nothing.
+- **Taken, by the integrator, as `ef124990`:** the bell's notes keyed by
+  static's multipliers, so a new step fails to compile without its note,
+  and `FieldSounds`' docs saying every break but a comet's smash rings the
+  bell, as a break after the run ended still does (its own commit review's
+  three findings taken, as its message says). Its checks, after the last
+  edit: the game's lint, typecheck and 7,423 specs in 136 files, and the
+  root's lint under the lock. R3, F1 and P4 take it as they rebase before
+  reporting, R3 told, as it adds to `sounds.ts`; the next verify run
+  covers it.
+- **Sent to their owners:** to P4, the bar, the pilot and the face cam
+  being its files now, a spec telling the fur's lift from static's step
+  at full static, where alone they differ (no spec would fail with the two
+  swapped), the docs that still call the lift "static's step", and the
+  pips counted from `STATIC_STEPS[0]`, which trusts the table's order; to
+  R3, `events.ts`' docs of `times` and `addBreak()`, which say 0 for an
+  event that scored nothing, where a break after the run ended scores
+  nothing at its multiplier.
+- **Declined:** dropping `FieldSounds`' own tracking of the frame's
+  highest multiplier for `note()`'s keeping of the highest rise. The two
+  agree only while the bell's notes rise with the multiplier; the
+  tracking states the rule itself.
