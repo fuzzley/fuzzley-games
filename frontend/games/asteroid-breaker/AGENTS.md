@@ -422,12 +422,17 @@ takes for the specs' helpers.
   `@fz/phaser/scene`'s `drawCanvasTexture()`, which uploads the atlas once,
   written.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
-  sprite in `sounds/`, which `yarn build:sounds` writes, a broken rock's
-  risen along its chain, holds the thrust's hum while the ship thrusts, and
-  mutes the game while the settings want none. The keys go back through
-  `command()`, heard through `@fz/phaser/scene`'s `onKeyDown()` and
-  `onKeyUp()`, which hand over each key event once, and every key and
-  finger held is let go as the player looks away (`onPlayerAway()`).
+  sprite in `sounds/`, `sounds.wav` and its map, `sounds.json`, which
+  nothing builds any more, as the recipes that made it are gone, a broken
+  rock's risen along its chain, holds the thrust's hum while the ship
+  thrusts, and mutes the game while the settings want none. Beside it lie
+  the uplift's sounds, which `yarn build:sounds` encodes and nothing loads:
+  the sprite, `sprite.ogg` and `sprite.m4a`, its map, `sprite.json`, each
+  take's length (`sprite_lengths.json`), and the beds, in `sounds/beds/`.
+  The keys go back through `command()`, heard through `@fz/phaser/scene`'s
+  `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
+  every key and finger held is let go as the player looks away
+  (`onPlayerAway()`).
 - **`src/app/`** — the shell, one folder per feature, as in Brick Breaker.
   `app.component` lays the board in the room beside the bar, with the
   `<fz-announcer>` the game is announced through, the dialogs, and the
@@ -607,27 +612,39 @@ takes for the specs' helpers.
   clock as it does the rules (`heldAsRules`), flagging a file of
   `src/testing/` they import off that list.
 - **`tools/`** — the scripts run from the workspace. `build-sounds.mjs`
-  synthesizes the sounds; `report-waves.mjs` reports how the autopilot plays
-  every wave; `check-layout.mjs` checks the build's layout in headless
-  Chrome; `capture-screenshots.mjs` makes the screenshots the site shows.
+  builds the sounds from their recipes in `tools/sounds/`;
+  `report-waves.mjs` reports how the autopilot plays every wave;
+  `check-layout.mjs` checks the build's layout in headless Chrome;
+  `capture-screenshots.mjs` makes the screenshots the site shows.
   A script that takes from the game loads one entry in `src/testing/`
   through Vite (`@fz/dev/script`'s `importThroughVite()`), which exports
-  one object of a type in `src/testing/script_api.ts`. The report and the
-  screenshots' script read their command lines with `@fz/dev/script`'s
-  `readArgs()`, the report printing its table with `@fz/dev/report` and
-  the screenshots run by `@fz/dev/screenshots`' `runScreenshotScript()`,
-  export what they work out, and run as `run()`, given what to load and
-  where to print, which returns the code to exit with, so their specs
-  beside them, in `pure`, hold them whole on an API of their own.
+  one object of a type in `src/testing/script_api.ts`. The report, the
+  screenshots' script and the sound build read their command lines with
+  `@fz/dev/script`'s `readArgs()`, the report printing its table with
+  `@fz/dev/report` and the screenshots run by `@fz/dev/screenshots`'
+  `runScreenshotScript()`, export what they work out, and run as `run()`,
+  given what to load, or to build, and where to print, which returns the
+  code to exit with, so their specs beside them, in `pure`, hold them whole
+  on an API of their own.
+  `tools/sounds/` holds a module for each family of sounds (`beds`,
+  `chain`, `hazards`, `pickups`, `rescue`, `rocks`, `ship`, `stingers` and
+  `voice`), whose `SOUNDS` are its recipes, each a `Recipe` of
+  `build-sounds.mjs`: its name, what plays it, how many takes it has, its
+  level and whether it loops, and how to make a take from its seed, on
+  `@fz/dev/synth`; `ship_parts.mjs` holds what the ship's, the pickups' and
+  the stingers' share, the game's own instrument, kept here rather than in
+  the synth, as no other game plays it. The takes the build renders go to
+  `tools/sounds/wav/`, which git ignores.
   `sound-lab.ts` is no script but the sound lab's page, which the dev
   server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
-  `vite.config.ts`): the sprite in `src/scene/sounds/` beside a candidate
-  designed with ZzFX for each of the shot, the three breaks, the blast and
-  the thrust, and scenes played as the game plays them, the gun at
-  `SHOT_EVERY_MS` and a chain raised by the view's `CHAIN_STEP_CENTS` up to
-  `CHAIN_MOST_CENTS`, as `detuneOf()` raises it. The app's tsconfig leaves
-  it out; `tsconfig.node.json` checks it, with Vite's client types for the
-  sprite's address.
+  `vite.config.ts`): the sprite the game plays,
+  `src/scene/sounds/sounds.wav`, beside a candidate designed with ZzFX for
+  each of the shot, the three breaks, the blast and the thrust, and scenes
+  played as the game plays them, the gun at `SHOT_EVERY_MS` and a chain
+  raised by the view's `CHAIN_STEP_CENTS` up to `CHAIN_MOST_CENTS`, as
+  `detuneOf()` raises it. The app's tsconfig leaves it out;
+  `tsconfig.node.json` checks it, with Vite's client types for the sprite's
+  address.
 
 ## The Field
 
@@ -865,11 +882,31 @@ workspace's with the others'.
   and the margin leave it, inside its frame (`data-room`), both ways, or
   one way where its long side is 88).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
-  which synthesizes the fourteen sounds, from a shot's tick to a wave's
-  chime and the thrust's hum, with `@fz/dev/sounds` into
-  `src/scene/sounds/sounds.wav` and their spritemap, `sounds.json`, the
-  same bytes every run; their names and order are the view's `SOUNDS`,
-  which the scene's spec holds them to).
+  which renders every take of every recipe in `tools/sounds/`, each from a
+  seed of its name and its number, the same bytes every run, centered and
+  faded at its ends unless it loops, brought to its level and kept under -1
+  dB, says what of it is off (a phone losing most of it, the limiter pulling
+  it down, a loop's seam, an end off zero), and writes it as a WAV into
+  `tools/sounds/wav/<family>/`; then packs every take but the beds' with
+  `@fz/dev/sounds`' `packSoundSprite()`, the sounds by name, 0.06 s apart
+  and none faded (`SPRITE_LAYOUT`), into `tools/sounds/wav/sprite.wav`, its
+  map, `sprite.json`, and each take's length, `sprite_lengths.json`. With
+  ffmpeg on the path, it encodes the sprite as Ogg Vorbis and M4A into
+  `src/scene/sounds/`, the map and the lengths beside them, and each bed
+  into `src/scene/sounds/beds/`, all of them or, should an encode fail,
+  none; without, it says so and leaves them as they are, as the encodes
+  there are the uplift's kit's, which the user heard, made from the takes
+  the build renders byte for byte. `--family` and `--only`, each given as
+  often as wanted, render those families or sounds alone and pack nothing;
+  `--help` prints its options, and a family or a sound it doesn't have exits
+  with 2, saying why, before anything is rendered.
+  `tools/build-sounds.spec.ts` holds the shipped map to the recipes, every
+  take of every sound but the beds by name and in order, which loop, and
+  where each lies as the packer lays out its recorded length, to the byte;
+  the beds and the sprite to being encoded; five short takes, rendered, to
+  the bytes of the kit's WAVs of them, their recorded lengths and their
+  levels; and the build whole, on families and folders of its own, an encode
+  that fails changing nothing.)
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9005/sound-lab/`, or
   `http://localhost:4200/play/asteroid-breaker/sound-lab/` under the root's
