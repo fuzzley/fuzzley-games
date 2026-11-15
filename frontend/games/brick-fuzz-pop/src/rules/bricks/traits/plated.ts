@@ -34,9 +34,10 @@ function facesOf(side: number): number {
 /**
  * A plated brick shields itself from a fuzzball that strikes a plated face,
  * or a corner both of whose faces are plated, and earths its charge, so the
- * fuzzball turns plain; `strike()` keeps a hot shot's. A strike elsewhere
- * hurts it as a tough brick's would, and a zap or a blast, which meets no
- * face, always does.
+ * fuzzball turns plain; `strike()` keeps a hot shot's. The shielded strike
+ * counts as a touch against the fuzzball's boredom, though not as a hit. A
+ * strike elsewhere hurts it as a tough brick's would, and a zap or a blast,
+ * which meets no face, always does.
  */
 export const PLATED_RULE: TraitRule<TraitOf["plated"]> = {
   struck: (struck) => {

@@ -4,8 +4,8 @@ import type { TraitRule } from "../../flight/hooks";
 /**
  * A shelled brick is hurt only by charge, a zap or a blast, and earths
  * nothing: a fuzzball with no charge, a friend or a prism's two among
- * them, takes no hit off it and turns, and the strike doesn't count as a
- * hit against its boredom.
+ * them, takes no hit off it and turns, and the strike counts as a touch
+ * against its boredom, though not as a hit.
  */
 export const SHELLED_RULE: TraitRule<TraitOf["shelled"]> = {
   struck: (struck) => {

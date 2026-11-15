@@ -14,7 +14,7 @@ import { SIM_TIMEOUT_MS } from "./timing";
 /** A level of one plain brick, which opens on row 5 of a field 11 deep, under the jump line. */
 const ONE_BRICK = levelFrom(["o........"]);
 
-/** A level of one tough brick, which aim 4 clears at charge 2, and aim 12 at charge 0: tried charge by charge, aim 12's would come first. */
+/** A level of one tough brick, which aim 0 clears at charge 2, and aim 12 at charge 0: tried charge by charge, aim 12's would come first. */
 const ONE_TOUGH = levelFrom(["2........"]);
 
 /** A level of nine bricks of six hits three rows over the wall's lowest, which the solver clears in three rounds on a field 11 deep, the first jumping the wall. */
@@ -25,8 +25,8 @@ const HIGH_SIXES = levelFrom([
   ".........",
 ]);
 
-/** A level of eighteen bricks of six hits, which takes every aim and a beam to clear on a field 12 deep. */
-const THICK = levelFrom(["666666666", "666666666"]);
+/** A level of thirteen bricks of six hits, four of them between steel, which takes every aim and a beam to clear on a field 11 deep. */
+const THICK = levelFrom(["666666666", "#6#6#6#6#"]);
 
 /** Returns a line of shots that take no hit under {@link NO_HITS}. */
 function missesOf(count: number): Line {
@@ -43,7 +43,7 @@ function solved(level: Level, depth: number): Solved {
 describe("solveLevel", () => {
   it("clears a level of one brick greedily, at every fourth aim, in a round", () => {
     expect(solveLevel(ONE_BRICK, 11)).toEqual({
-      line: [[4, 0]],
+      line: [[0, 0]],
       jumps: 0,
       search: { aimStep: 4, beam: 1 },
     });
@@ -53,7 +53,7 @@ describe("solveLevel", () => {
     const later = replayLine(ONE_TOUGH, 11, [[12, 0]]);
 
     expect([solveLevel(ONE_TOUGH, 11)?.line, later.cleared]).toEqual([
-      [[4, 2]],
+      [[0, 2]],
       true,
     ]);
   });
@@ -88,7 +88,7 @@ describe("solveLevel", () => {
     // All three searches, the last at every aim and a beam of 4: one search
     // no batch can split, slowed by coverage.
     beforeAll(() => {
-      thick = solved(THICK, 12);
+      thick = solved(THICK, 11);
     }, SIM_TIMEOUT_MS);
 
     it("widens its search to every aim and a beam of 4", () => {
@@ -96,7 +96,7 @@ describe("solveLevel", () => {
     });
 
     it("keeps every brick the level needs out of the danger row between rounds", () => {
-      const { leastRow } = replayLine(THICK, 12, thick.line);
+      const { leastRow } = replayLine(THICK, 11, thick.line);
 
       expect(leastRow).toBe(DANGER_ROW + 1);
     });

@@ -7,6 +7,7 @@ import type { Boon, Shot } from "../shot";
 import {
   BORED,
   COLUMNS,
+  IDLE_SHARE,
   JUMP_POINTS,
   SIDE_MARGIN,
   TRIPLE_MATES,
@@ -60,7 +61,11 @@ export interface Round {
 
 /** Holds the rules' numbers the debug menu may retune, which the rules are handed rather than read. */
 export interface RoundRules {
-  /** How far a fuzzball flies without taking a hit off a brick before it yawns. */
+  /**
+   * How far a fuzzball flies without touching a brick that can break before
+   * it yawns; `IDLE_SHARE` times as far without taking a hit, whatever it
+   * touched.
+   */
   readonly bored: number;
 }
 
@@ -143,9 +148,18 @@ export function playRoundBy(
   };
 }
 
-/** Returns what a round's flight is played by: the catalog's kinds, the bricks' own rules, and the numbers the round is handed. */
+/**
+ * Returns what a round's flight is played by: the catalog's kinds, the
+ * bricks' own rules, and the numbers the round is handed, the most a
+ * fuzzball flies without a hit `IDLE_SHARE` times its boredom.
+ */
 export function flightRulesOf(rules: RoundRules): FlightRules {
-  return { bored: rules.bored, kinds: BRICK_KINDS, traits: TRAIT_RULES };
+  return {
+    bored: rules.bored,
+    mostIdle: rules.bored * IDLE_SHARE,
+    kinds: BRICK_KINDS,
+    traits: TRAIT_RULES,
+  };
 }
 
 /** Returns how a round's fuzzballs leave as a shot from where it starts sends them: a boon's hot shot or mates, and the crew behind. */

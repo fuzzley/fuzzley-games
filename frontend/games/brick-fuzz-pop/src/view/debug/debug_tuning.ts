@@ -23,7 +23,11 @@ export interface TunedNumbers {
   readonly longFlightSpeedUp: number;
   /** How far the guide runs on past the first turn, in field units. */
   readonly guidePastTurn: number;
-  /** How far a fuzzball flies without taking a hit off a brick before it yawns, in field units. */
+  /**
+   * How far a fuzzball flies without touching a brick that can break before
+   * it yawns, in field units; the rules derive the most it flies without a
+   * hit from it.
+   */
   readonly bored: number;
 }
 
@@ -82,7 +86,7 @@ export const TUNING_SLIDERS: readonly TuningSlider[] = [
     most: 12,
     step: 0.5,
   },
-  { id: "bored", name: "Bored after", least: 10, most: 300, step: 5 },
+  { id: "bored", name: "Bored after", least: 10, most: 600, step: 5 },
 ];
 
 /** Returns a tuned number in its unit, as the debug menu writes it: "14 u/s", "×4", "8 s", "1.5 units". */

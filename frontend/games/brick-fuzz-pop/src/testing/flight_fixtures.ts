@@ -1036,17 +1036,21 @@ function sideTurns(
 
 /**
  * A plain shot at the lowest aim, on a field 22 deep, rattles up between
- * the side walls to a row of steel, turns off it without taking a hit, and
- * yawns at the bored distance, then drops to the floor.
+ * the side walls to a row of steel, turns off it without taking a hit or
+ * touching a brick that can break, and yawns at the bored distance on its
+ * way back down, then drops to the floor. The steel stands in row 14, the
+ * lowest a shot this flat can fly to and still be in the air at the bored
+ * distance, and the brick beside it, out of the shot's way, keeps the wall
+ * from jumping.
  */
 function bored(): FlightFixture {
   const wall = wallFrom(
-    ["ooooooooo", "2o2o2o2o2", "ooooooooo", "ooooooooo", "#########"],
-    { lowestRow: 8 },
+    ["ooooooooo", "2o2o2o2o2", "ooooooooo", "ooooooooo", "######o##"],
+    { lowestRow: 14 },
   );
   const radians = (FIRST_AIM_DEGREES * Math.PI) / 180;
   const dy = Math.sin(radians);
-  const toSteel = (8 - RADIUS - RADIUS) / dy;
+  const toSteel = (14 - RADIUS - RADIUS) / dy;
   const up = sideTurns(WAITS, { dx: Math.cos(radians), dy }, toSteel);
   const down = sideTurns(up.end, { dx: up.dx, dy: -dy }, BORED - toSteel);
   const [yawnX, yawnY] = down.end;

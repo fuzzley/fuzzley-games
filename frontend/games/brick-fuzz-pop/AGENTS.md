@@ -302,7 +302,8 @@ helpers.
   (`TUNED_NUMBERS`): the flight's speeds at Normal and Fast, how much
   faster fast-forward plays, when a long flight speeds up and by how much,
   how far the guide runs past its first turn and how far a fuzzball flies
-  without a hit before it yawns. It holds the menu's sliders
+  without touching a brick that can break before it yawns, the rules letting
+  it fly `IDLE_SHARE` times as far without a hit. It holds the menu's sliders
   (`TUNING_SLIDERS`), each number in its unit (`formatTuning()`) and as the
   lines it would replace (`tuningLines()`), the pace a tuning would hand
   `RoundPlay` (`paceOf()`) and the rules it would hand `playRound()`
