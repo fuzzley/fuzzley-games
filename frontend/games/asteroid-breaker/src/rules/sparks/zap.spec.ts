@@ -189,6 +189,34 @@ describe("zap", () => {
     expect(arcedSlots(field)).toEqual([boulder.slot]);
   });
 
+  it.each([
+    ["small", "its slot left empty"],
+    ["medium", "a piece of it laid in its slot"],
+  ] as const)(
+    "arcs to no %s rock a storm boulder's vent broke as the zap hit it, %s",
+    (size, _) => {
+      const field = fieldAt();
+      const ship = shipOf(field);
+      const boulder = placeRock(
+        field,
+        "boulder",
+        ship.x + 5,
+        ship.y + 4,
+        "stormheart",
+      );
+      const rock = placeRock(field, size, ship.x + 5, ship.y - 1.5);
+      // Laid a step before, as a vent passes by a rock laid on its own step.
+      rock.laidAt = -1;
+
+      zapRight(field);
+
+      expect([
+        arcedSlots(field),
+        kindsLoggedOn(field).filter((kind) => kind === "broken"),
+      ]).toEqual([[boulder.slot], ["broken"]]);
+    },
+  );
+
   it("arcs to the rock sooner along the path of two as near it first", () => {
     const field = fieldAt();
     field.sparking = { ...TUNED_SPARKING, arcs: 1 };

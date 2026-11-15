@@ -10,7 +10,7 @@ import {
 /**
  * Names a flourish the scene plays: a broken rock's shards and dust, the
  * field's kick at a large break, a held hit's flash and spark, a blast's,
- * a spent Shield's or a lost ship's ring, the points scored, a
+ * a vent's, a spent Shield's or a lost ship's ring, the points scored, a
  * dash's trail, a lost ship's burst, its pilot bailing out, and the
  * field's shake. Each but the points moves, so plays only where motion is
  * welcome; the points show either way, rising only where it is.
@@ -81,6 +81,10 @@ const EVENT_EFFECTS: Readonly<
   cleared: QUIET,
   rung: moving(["flash", "spark"]),
   blast: moving(["ring"]),
+  // A piece knocked off comes away under the flash and spark of the hit
+  // its boulder holds, which the hit plays.
+  shed: QUIET,
+  vented: moving(["ring"]),
   dropped: QUIET,
   caught: QUIET,
   faded: QUIET,

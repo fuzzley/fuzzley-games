@@ -1,4 +1,5 @@
 import { createRandom } from "@fz/core/random";
+import { keysOf } from "@fz/core/records";
 import type { Point } from "@fz/phaser/shapes";
 import {
   ROCK_KIND_IDS,
@@ -8,6 +9,9 @@ import {
 import type { RockKindId, RockSize } from "../../../rules/catalog/rocks";
 import type { RockShape } from "./rock_shape";
 import { cutOf, makeRock } from "./rock_shape";
+
+/** The set pieces, each a boulder of its own, which the kit draws none of. */
+const SET_PIECES = ["crumbling", "ironclad", "stormheart"] as const;
 
 // One rock of each kind, cut from the seed 3, as the art kit's `makeRock()`
 // (`docs/asteroid-breaker-uplift/art/lib/rocks.mjs`) cuts it, its numbers
@@ -1586,7 +1590,7 @@ describe("makeRock()", () => {
     expect(draws).toEqual(KIT_DRAWS);
   });
 
-  it.each(ROCK_KIND_IDS)("cuts a %s rock as the kit cuts it", (kind) => {
+  it.each(keysOf(KIT_ROCKS))("cuts a %s rock as the kit cuts it", (kind) => {
     const kit = KIT_ROCKS[kind];
 
     const rock = makeRock(kind, kit.size, 3);
@@ -1649,6 +1653,45 @@ describe("makeRock()", () => {
     const cutting = (): RockShape => makeRock("boulder", "small", 3);
 
     expect(cutting).toThrow(RangeError);
+  });
+});
+
+describe("makeRock()'s set pieces", () => {
+  it.each(SET_PIECES)("cuts a %s boulder as the plain one is cut", (kind) => {
+    expect(cutOf(kind, "boulder")).toEqual(cutOf("boulder", "boulder"));
+  });
+
+  it("fissures a crumbling boulder round its rim, beside its seam", () => {
+    const rock = makeRock("crumbling", "boulder", 3);
+
+    const fissures = rock.lines.slice(1);
+
+    expect({
+      deep: rock.lines.every(({ tone }) => tone === "deep"),
+      fissures: fissures.length,
+      fromRim: fissures.every(({ points: [from] }) =>
+        from === undefined ? false : Math.hypot(from.x, from.y) > 0.85,
+      ),
+    }).toEqual({ deep: true, fissures: 5, fromRim: true });
+  });
+
+  it("rivets an ironclad boulder round its rind, its plates seamed and sheened", () => {
+    const rock = makeRock("ironclad", "boulder", 3);
+
+    expect({
+      rivets: rock.dots.length,
+      seams: rock.lines.filter(({ tone }) => tone === "deep").length,
+      sheens: rock.lines.filter(({ tone }) => tone === "sheen").length,
+    }).toEqual({ rivets: 11, seams: 5, sheens: 1 });
+  });
+
+  it("glows a storm boulder's seams from its heart, as a volatile rock's do", () => {
+    const rock = makeRock("stormheart", "boulder", 3);
+
+    expect({
+      seams: rock.lines.filter(({ tone }) => tone === "core").length,
+      glows: rock.glows.map(({ tone }) => tone),
+    }).toEqual({ seams: 15, glows: ["core", "core"] });
   });
 });
 

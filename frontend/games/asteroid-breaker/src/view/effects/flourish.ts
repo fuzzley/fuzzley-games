@@ -193,14 +193,17 @@ export function ringReachOf(event: Readonly<FieldEvent>): number {
 }
 
 /**
- * Returns the color an event's ring sweeps out in: a blast's in the warning
- * color, and a spent Shield's and a lost ship's in the accent.
+ * Returns the color an event's ring sweeps out in: a blast's and a vent's
+ * in the warning color, and a spent Shield's and a lost ship's in the
+ * accent.
  */
 export function ringColorOf(
   event: Readonly<FieldEvent>,
   palette: Pick<BeltPalette, "flame" | "accent">,
 ): number {
-  return event.kind === "blast" ? palette.flame : palette.accent;
+  return event.kind === "blast" || event.kind === "vented"
+    ? palette.flame
+    : palette.accent;
 }
 
 /**

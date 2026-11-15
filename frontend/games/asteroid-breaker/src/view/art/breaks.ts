@@ -109,7 +109,25 @@ interface BreakStyle {
   readonly sparkWidth: number;
 }
 
-/** How each kind of rock comes apart, as the kit has it. */
+/** How a boulder comes apart, as the kit has it, which a set piece's builds on. */
+const BOULDER_BREAK: BreakStyle = {
+  heroes: 11,
+  reach: [0.7, 1.25],
+  spin: 1.8,
+  shrink: 0.4,
+  sparks: 10,
+  glints: 0,
+  dust: 1.5,
+  cut: "facets",
+  pieces: 3,
+  sparkWidth: 0.1,
+};
+
+/**
+ * How each kind of rock comes apart, as the kit has it, and each set
+ * piece as a boulder does: the iron-rinded one in heavy plates and wide
+ * sparks, as iron does, and the one with a volatile heart with less dust.
+ */
 const BREAK_STYLES: Readonly<Record<RockKindId, BreakStyle>> = {
   stone: {
     heroes: 6,
@@ -184,18 +202,18 @@ const BREAK_STYLES: Readonly<Record<RockKindId, BreakStyle>> = {
     pieces: 2,
     sparkWidth: 0.1,
   },
-  boulder: {
-    heroes: 11,
-    reach: [0.7, 1.25],
-    spin: 1.8,
-    shrink: 0.4,
-    sparks: 10,
-    glints: 0,
-    dust: 1.5,
-    cut: "facets",
-    pieces: 3,
-    sparkWidth: 0.1,
+  boulder: BOULDER_BREAK,
+  crumbling: BOULDER_BREAK,
+  ironclad: {
+    ...BOULDER_BREAK,
+    spin: 0.9,
+    shrink: 0.6,
+    sparks: 12,
+    dust: 0.6,
+    cut: "plates",
+    sparkWidth: 0.14,
   },
+  stormheart: { ...BOULDER_BREAK, dust: 0.8 },
 };
 
 /** Describes a piece of a broken rock that flies off and fades: one of its facets. */

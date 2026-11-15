@@ -11,6 +11,7 @@ import {
   type RockKindId,
   type RockSize,
   hasTrait,
+  rockKind,
 } from "../../rules/catalog/rocks";
 import { WEAPON_IDS, type WeaponId } from "../../rules/catalog/weapons";
 import { hitRock } from "../../rules/rocks/rocks";
@@ -108,11 +109,20 @@ function sizesOf(kind: RockKindId): RockSize[] {
   return ROCK_SIZES.filter((size) => hitsOf(kind)[size] !== undefined);
 }
 
+/** The kind and size of each piece a set piece knocks off, as its `chips` trait names it. */
+const CHIPPED: ReadonlySet<string> = new Set(
+  ROCK_KIND_IDS.flatMap((id) =>
+    rockKind(id).traits.flatMap((trait) =>
+      trait.kind === "chips" ? [`${trait.into} ${trait.size}`] : [],
+    ),
+  ),
+);
+
 /**
  * Returns an event for each of a rock's that the field logs of a kind at a
  * size: its break, scored and smashed, a hit it holds where it
- * takes more than one, its ring where it rings, and its blast where it
- * blasts.
+ * takes more than one, its ring where it rings, its blast where it blasts,
+ * and, for a piece a boulder knocks off, its shedding.
  */
 function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
   const holds = (hitsOf(rock)[size] ?? 0) > 1;
@@ -124,6 +134,9 @@ function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
       ? [eventOf("rung", { rock, size })]
       : []),
     ...(hasTrait(rock, "blasts") ? [eventOf("blast", { rock, size })] : []),
+    ...(CHIPPED.has(`${rock} ${size}`)
+      ? [eventOf("shed", { rock, size })]
+      : []),
   ];
 }
 
@@ -147,6 +160,7 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["grazed", "near-miss"],
   ["zapped", "zap-dash"],
   ["arced", "zap-arc"],
+  ["vented", "blast-volatile-small"],
 ];
 
 /** Static stepping to each step, rising or falling, with its sound. */
@@ -178,6 +192,9 @@ const BREAKS: readonly (readonly [RockKindId, RockSize, SoundName])[] = [
   ["lodestone", "large", "break-lodestone-large"],
   ["lodestone", "medium", "break-lodestone-medium"],
   ["lodestone", "small", "break-lodestone-small"],
+  ["crumbling", "boulder", "break-boulder"],
+  ["ironclad", "boulder", "break-boulder"],
+  ["stormheart", "boulder", "break-boulder"],
 ];
 
 /** Each kind of rock, with the sound a hit it holds plays, or null for one heard by its ring. */
@@ -189,6 +206,9 @@ const HITS: readonly (readonly [RockKindId, SoundName | null])[] = [
   ["iron", null],
   ["volatile", "hit-stone"],
   ["lodestone", "hit-stone"],
+  ["crumbling", "hit-boulder"],
+  ["ironclad", "hit-boulder"],
+  ["stormheart", "hit-boulder"],
 ];
 
 /** Each weapon, with the sound its pull of fire plays. */
@@ -223,15 +243,13 @@ const EVERY_EVENT: readonly FieldEvent[] = [
 /**
  * The sounds of the sprite the view plays for nothing yet: no event the
  * field logs, and no change of its state, calls for them. The burrs wait
- * on their rules, the line's twang on its turn; no rock that blasts comes
- * small; the stingers but a wave's start and its clearing are the shell's
- * moments; and the fuzzball hums at no moment the plan gives it.
+ * on their rules; the stingers but a wave's start and its clearing are the
+ * shell's moments; and the fuzzball hums at no moment the plan gives it.
  */
 const UNPLAYED: readonly SoundName[] = [
   "burr-cling",
   "burr-shed",
   "burr-pop",
-  "blast-volatile-small",
   "run-start",
   "sector-clear",
   "run-end",
@@ -329,6 +347,34 @@ describe("soundOf", () => {
     });
 
     expect(sounds.filter((sound) => sound !== null)).toEqual(["hit-iron"]);
+  });
+
+  it.each([
+    ["stone", "break-stone-medium"],
+    ["iron", "break-iron-medium"],
+  ] as const)(
+    "plays a medium %s piece a boulder sheds by its own break, %s",
+    (rock, sound) => {
+      expect(soundOf(eventOf("shed", { rock, size: "medium" }))).toBe(sound);
+    },
+  );
+
+  it("plays an ironclad boulder's first held hits by its knock and its ring", () => {
+    const field = fieldFrom(KEEPER);
+    const boulder = placeRock(field, "boulder", 30, 20, "ironclad");
+    const from = field.events.latest;
+    hitRock(field, boulder, 0, 0);
+
+    const sounds: (SoundName | null)[] = [];
+    field.events.forEachSince(from, (event) => {
+      sounds.push(soundOf(event));
+    });
+
+    expect(sounds.filter((sound) => sound !== null)).toEqual([
+      "hit-boulder",
+      "hit-iron",
+      "break-iron-medium",
+    ]);
   });
 
   it.each([

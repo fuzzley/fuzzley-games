@@ -80,7 +80,7 @@
       "name": "Boulder",
       "pace": 1.08,
       "rocks": [
-        { "kind": "boulder", "size": "boulder", "count": 1 },
+        { "kind": "crumbling", "size": "boulder", "count": 1 },
         { "kind": "stone", "size": "large", "count": 4 },
         { "kind": "ice", "size": "large", "count": 2 }
       ]

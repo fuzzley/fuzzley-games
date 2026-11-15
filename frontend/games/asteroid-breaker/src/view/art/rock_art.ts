@@ -146,18 +146,45 @@ function hitsOf(kind: RockKindId, size: RockSize): number {
   return rockKind(kind).hits[size] ?? 0;
 }
 
+/**
+ * How many outlines each set piece is drawn in, fewer than the rules draw,
+ * so their frames, each a boulder's, keep the atlas inside its most a
+ * side: two, so a wave of several needn't draw them all alike.
+ */
+const SET_PIECE_OUTLINES: Readonly<Partial<Record<RockKindId, number>>> = {
+  crumbling: 2,
+  ironclad: 2,
+  stormheart: 2,
+};
+
+/** Returns how many outlines a kind of rock is drawn in: each the rules draw, but a set piece's few. */
+export function outlinesOf(kind: RockKindId): number {
+  return SET_PIECE_OUTLINES[kind] ?? ROCK_OUTLINES;
+}
+
+/**
+ * Returns the outline a rock is drawn in: its own, taken round its kind's
+ * few where it has fewer, and one the rules never draw left as it is.
+ */
+function drawnOutline(rock: Pick<Rock, "kind" | "outline">): number {
+  const { outline } = rock;
+  return outline >= 0 && outline < ROCK_OUTLINES
+    ? outline % outlinesOf(rock.kind)
+    : outline;
+}
+
 /** Every kind and size of rock's outlines, each cut once from its seed. */
 const ROCK_SHAPES: BySize<readonly RockShape[]> = bySize((kind, size) =>
-  Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+  Array.from({ length: outlinesOf(kind) }, (_, outline) =>
     makeRock(kind, size, FIRST_SEED + outline),
   ),
 );
 
-/** Returns how one of a kind and size of rock's outlines is cut. */
+/** Returns how one of a kind and size of rock's outlines is cut, as it is drawn. */
 export function rockShape(
   rock: Pick<Rock, "kind" | "size" | "outline">,
 ): RockShape {
-  const shape = ROCK_SHAPES[rock.kind][rock.size]?.[rock.outline];
+  const shape = ROCK_SHAPES[rock.kind][rock.size]?.[drawnOutline(rock)];
   if (shape === undefined) {
     throw new RangeError(
       `No ${rock.size} ${rock.kind} rock has outline ${String(rock.outline)}.`,
@@ -181,7 +208,7 @@ function frameName(
 // each outline's names, by the hits taken, from none.
 const ROCK_FRAMES: BySize<readonly (readonly string[])[]> = bySize(
   (kind, size) =>
-    Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+    Array.from({ length: outlinesOf(kind) }, (_, outline) =>
       Array.from({ length: hitsOf(kind, size) }, (__, taken) =>
         frameName(kind, size, outline, taken),
       ),
@@ -190,15 +217,15 @@ const ROCK_FRAMES: BySize<readonly (readonly string[])[]> = bySize(
 
 /**
  * Returns the name of the frame a rock is drawn in, by its kind, size and
- * outline, and the hits it has taken and held, whole where it has none
- * left to count.
+ * outline as it is drawn, and the hits it has taken and held, whole where
+ * it has none left to count.
  */
 export function rockFrame(
   rock: Pick<Rock, "kind" | "size" | "outline"> & Partial<Pick<Rock, "hits">>,
 ): string {
   const whole = hitsOf(rock.kind, rock.size);
   const taken = whole - (rock.hits ?? whole);
-  const name = ROCK_FRAMES[rock.kind][rock.size]?.[rock.outline]?.[taken];
+  const name = ROCK_FRAMES[rock.kind][rock.size]?.[drawnOutline(rock)]?.[taken];
   if (name === undefined) {
     throw new RangeError(
       `No ${rock.size} ${rock.kind} rock has outline ${String(rock.outline)} with ${String(rock.hits)} hits left.`,

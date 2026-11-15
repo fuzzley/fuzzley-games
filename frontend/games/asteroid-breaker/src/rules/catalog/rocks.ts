@@ -31,8 +31,11 @@ export type RockTrait =
       readonly reach: BySize;
       readonly delayMs: number;
     }
-  /** Always lets a pickup go as it breaks. */
-  | { readonly kind: "gives" }
+  /** Always lets pickups go as it breaks, as many as it says. */
+  | {
+      readonly kind: "gives";
+      readonly count: number;
+    }
   /** Drifts toward the ship, never past its size's speed. */
   | {
       readonly kind: "drawn";
@@ -46,13 +49,36 @@ export type RockTrait =
       readonly kind: "sheds";
       /** How many more. */
       readonly sparks: number;
+    }
+  /**
+   * Knocks a piece off itself with each of its first hits it holds, as many
+   * as it says, the piece flying off from its rim, away from the ship.
+   */
+  | {
+      readonly kind: "chips";
+      /** What each piece is, at the size it says. */
+      readonly into: PieceKind;
+      readonly size: RockSize;
+      /** How many of the first hits it holds knock a piece off. */
+      readonly upTo: number;
+      /** Whether each hit that knocks one off rings, as iron's does. */
+      readonly rings: boolean;
+    }
+  /**
+   * Vents a blast from its heart with each hit it holds, which gives every
+   * rock within its reach a hit, but a boulder, itself among them; it never
+   * hurts the ship.
+   */
+  | {
+      readonly kind: "vents";
+      readonly reach: number;
     };
 
 /** A rock trait's kind, such as "blasts". */
 export type RockTraitKind = RockTrait["kind"];
 
-/** Names what a rock's pieces are: itself, stone, or the kind its wave names. */
-export type PieceKind = "self" | "stone" | "wave";
+/** Names what a rock's pieces are: itself, stone, iron, or the kind its wave names. */
+export type PieceKind = "self" | "stone" | "iron" | "wave";
 
 /** Describes a kind of rock: its sizes, what breaking it takes and what it does. */
 export interface RockKind {
@@ -64,7 +90,7 @@ export interface RockKind {
   readonly hits: BySize;
   /**
    * What it breaks into, pieces of the size after its own, by kind and
-   * count: itself, stone, or the kind its wave names; null for a kind that
+   * count: itself, stone, iron, or the kind its wave names; null for a kind that
    * breaks into nothing at any size. A small rock breaks into nothing
    * whatever this says.
    */
@@ -102,7 +128,10 @@ export const ROCK_KINDS = {
     splits: { into: "stone", count: 2 },
     speed: 1,
     points: { large: 20, medium: 40 },
-    traits: [{ kind: "gives" }, { kind: "sheds", sparks: 2 }],
+    traits: [
+      { kind: "gives", count: 1 },
+      { kind: "sheds", sparks: 2 },
+    ],
   },
   ice: {
     name: "Ice",
@@ -115,7 +144,8 @@ export const ROCK_KINDS = {
   },
   boulder: {
     name: "Boulder",
-    about: "Ends each sector: six hits break it into three large rocks.",
+    about:
+      "Comes every tenth wave of Endless: six hits break it into three large rocks.",
     hits: { boulder: 6 },
     splits: { into: "wave", count: 3 },
     speed: 1,
@@ -150,6 +180,45 @@ export const ROCK_KINDS = {
     speed: 1,
     points: { large: 25, medium: 50, small: 80 },
     traits: [{ kind: "drawn", pull: 1 }],
+  },
+  crumbling: {
+    name: "Crumbling boulder",
+    about:
+      "Ends the first sector: each of the five hits it holds knocks a medium stone off it, and its sixth breaks it into three large rocks and lets two pickups go.",
+    hits: { boulder: 6 },
+    splits: { into: "wave", count: 3 },
+    speed: 1,
+    points: { boulder: 200 },
+    traits: [
+      { kind: "chips", into: "stone", size: "medium", upTo: 5, rings: false },
+      { kind: "gives", count: 2 },
+    ],
+  },
+  ironclad: {
+    name: "Ironclad boulder",
+    about:
+      "Ends the second sector: its iron rind rings off the first three hits it holds, each knocking a plate off it as a medium iron rock, and its sixth hit breaks it into three large rocks and lets two pickups go.",
+    hits: { boulder: 6 },
+    splits: { into: "wave", count: 3 },
+    speed: 1,
+    points: { boulder: 200 },
+    traits: [
+      { kind: "chips", into: "iron", size: "medium", upTo: 3, rings: true },
+      { kind: "gives", count: 2 },
+    ],
+  },
+  stormheart: {
+    name: "Storm boulder",
+    about:
+      "Ends the third sector: each hit it holds vents a blast from its volatile heart, which gives every rock within 6 units but a boulder a hit, and its sixth breaks it into three large rocks and lets two pickups go.",
+    hits: { boulder: 6 },
+    splits: { into: "wave", count: 3 },
+    speed: 1,
+    points: { boulder: 200 },
+    traits: [
+      { kind: "vents", reach: 6 },
+      { kind: "gives", count: 2 },
+    ],
   },
 } as const satisfies Readonly<Record<string, RockKind>>;
 

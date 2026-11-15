@@ -304,12 +304,24 @@ describe("the waves", () => {
     "hold %s whole: ten waves, a boulder in the last alone, the sector's test",
     (_, sector) => {
       const boulders = sector.waves.map((wave) =>
-        wave.rocks.some((rocks) => rocks.kind === "boulder"),
+        wave.rocks.some((rocks) => rocks.size === "boulder"),
       );
 
       expect(boulders).toEqual([...Array<boolean>(9).fill(false), true]);
     },
   );
+
+  it("end each sector with a set piece of its own", () => {
+    const pieces = SECTORS.map((sector) =>
+      sector.waves
+        .at(-1)
+        ?.rocks.flatMap((rocks) =>
+          rocks.size === "boulder" ? [rocks.kind] : [],
+        ),
+    );
+
+    expect(pieces).toEqual([["crumbling"], ["ironclad"], ["stormheart"]]);
+  });
 
   it("are thirty, in three sectors", () => {
     expect({ waves: WAVES.length, sectors: SECTORS.length }).toEqual({

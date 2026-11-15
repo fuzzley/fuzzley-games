@@ -93,7 +93,7 @@
       "pace": 1.16,
       "waveKind": "iron",
       "rocks": [
-        { "kind": "boulder", "size": "boulder", "count": 1 },
+        { "kind": "ironclad", "size": "boulder", "count": 1 },
         { "kind": "iron", "size": "large", "count": 6 },
         { "kind": "stone", "size": "large", "count": 2 }
       ]

@@ -2,6 +2,7 @@ import { stepsBetween } from "../../testing/numbers";
 import { EFFECT_KINDS } from "../rocks/pickups";
 import { stepsIn } from "../stepper";
 import { SHOT_LIFE_MS } from "../tuning";
+import { ENDLESS_FROM, endlessWave } from "../waves/endless";
 import { WAVES, parseWave } from "../waves/waves";
 import { PICKUPS, PICKUP_IDS, isPickupId, pickup } from "./pickups";
 import {
@@ -9,6 +10,7 @@ import {
   ROCK_KINDS,
   ROCK_KIND_IDS,
   ROCK_SIZES,
+  type RockKindId,
   type RockSize,
   type RockTrait,
   isRockKindId,
@@ -66,9 +68,22 @@ function settingsOf(trait: RockTrait): number[] {
     case "sheds":
       return [trait.sparks];
     case "gives":
+      return [trait.count];
+    case "chips":
+      return [trait.upTo];
+    case "vents":
+      return [trait.reach];
     case "rings":
       return [];
   }
+}
+
+/** Returns how many pickups a kind of rock always lets go as it breaks. */
+function givesOf(id: RockKindId): number {
+  return rockKind(id).traits.reduce(
+    (sum, trait) => sum + (trait.kind === "gives" ? trait.count : 0),
+    0,
+  );
 }
 
 /** Spells a count from one to eight, as the catalogs' sentences do. */
@@ -101,8 +116,20 @@ const BLASTING = ROCK_ENTRIES.flatMap(([id, kind]) =>
 /** Every wave of the game, ready to play, in the order played. */
 const PARSED = WAVES.map(parseWave);
 
-/** Every kind of rock a wave lays. */
-const LAID = new Set(PARSED.flatMap((wave) => wave.rocks.map((r) => r.kind)));
+/** Every kind of rock a wave lays: the thirty's, and Endless's first wave of boulders'. */
+const LAID = new Set(
+  [...PARSED, endlessWave(1, ENDLESS_FROM + 9)].flatMap((wave) =>
+    wave.rocks.map((r) => r.kind),
+  ),
+);
+
+/** The kinds of rock that come as a boulder: the plain one, and each sector's set piece. */
+const BOULDERS: readonly RockKindId[] = [
+  "boulder",
+  "crumbling",
+  "ironclad",
+  "stormheart",
+];
 
 describe("ROCK_KINDS", () => {
   it.each(ROCK_ENTRIES)("has %s laid by a wave", (id) => {
@@ -123,7 +150,7 @@ describe("ROCK_KINDS", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it.each([
+  it.each<readonly [string, string, string]>([
     [
       "the boulder's hits",
       ROCK_KINDS.boulder.about,
@@ -154,6 +181,35 @@ describe("ROCK_KINDS", () => {
       ROCK_KINDS.crystal.about,
       `sheds ${spelled(CRYSTAL_SPARKS)} more sparks`,
     ],
+    [
+      "the crumbling boulder's stones",
+      ROCK_KINDS.crumbling.about,
+      `each of the ${spelled(ROCK_KINDS.crumbling.traits[0].upTo)} hits it holds knocks a ${ROCK_KINDS.crumbling.traits[0].size} stone off`,
+    ],
+    [
+      "the ironclad boulder's plates",
+      ROCK_KINDS.ironclad.about,
+      `first ${spelled(ROCK_KINDS.ironclad.traits[0].upTo)} hits it holds, each knocking a plate off it as a ${ROCK_KINDS.ironclad.traits[0].size} iron rock`,
+    ],
+    [
+      "the storm boulder's vented blast",
+      ROCK_KINDS.stormheart.about,
+      `within ${String(ROCK_KINDS.stormheart.traits[0].reach)} units`,
+    ],
+    ...BOULDERS.slice(1).flatMap(
+      (id): (readonly [string, string, string])[] => [
+        [
+          `the ${id} boulder's pieces`,
+          rockKind(id).about,
+          `into ${spelled(rockKind(id).splits?.count ?? 0)} large`,
+        ],
+        [
+          `the ${id} boulder's pickups`,
+          rockKind(id).about,
+          `lets ${spelled(givesOf(id))} pickups go`,
+        ],
+      ],
+    ),
   ])("spells out %s as they are", (_, about, counted) => {
     expect(about).toContain(counted);
   });
@@ -181,12 +237,12 @@ describe("ROCK_KINDS", () => {
   );
 
   it.each(ROCK_ENTRIES)(
-    "keeps the boulder's size, and pieces of the wave's kind, to the boulder, not %s",
+    "keeps the boulder's size, and pieces of the wave's kind, to the boulders, %s's whether one or not",
     (id, kind) => {
       expect([
         kind.hits.boulder !== undefined,
         kind.splits?.into === "wave",
-      ]).toEqual([id === "boulder", id === "boulder"]);
+      ]).toEqual([BOULDERS.includes(id), BOULDERS.includes(id)]);
     },
   );
 

@@ -395,7 +395,7 @@ type BySize<Kind extends RockKindId> = Readonly<
  * The sound each kind of rock breaks with at each size it comes in, its
  * material's: stone knocks and crumbles, ice is glass, a crystal chimes,
  * iron clanks, a lodestone wobbles, a volatile rock's fuse sizzles before
- * its blast, and the boulder breaks in three beats.
+ * its blast, and every boulder, a set piece too, breaks in three beats.
  */
 const BREAK_SOUNDS: { readonly [Kind in RockKindId]: BySize<Kind> } = {
   stone: {
@@ -421,12 +421,16 @@ const BREAK_SOUNDS: { readonly [Kind in RockKindId]: BySize<Kind> } = {
     medium: "break-lodestone-medium",
     small: "break-lodestone-small",
   },
+  crumbling: { boulder: "break-boulder" },
+  ironclad: { boulder: "break-boulder" },
+  stormheart: { boulder: "break-boulder" },
 };
 
 /**
- * The sound each kind of rock holds a hit with: a boulder's deep knock, and
- * a knock and a crack for the rest, as nothing came off; a rock that rings
- * logs its ring as it holds a hit, and the ring is heard for both.
+ * The sound each kind of rock holds a hit with: every boulder's deep knock,
+ * and a knock and a crack for the rest, as nothing came off; a rock that
+ * rings logs its ring as it holds a hit, and the ring is heard for both,
+ * but an iron-rinded boulder's ring is heard over its knock.
  */
 const HIT_SOUNDS: Readonly<Record<RockKindId, SoundName>> = {
   stone: "hit-stone",
@@ -436,6 +440,9 @@ const HIT_SOUNDS: Readonly<Record<RockKindId, SoundName>> = {
   iron: "hit-iron",
   volatile: "hit-stone",
   lodestone: "hit-stone",
+  crumbling: "hit-boulder",
+  ironclad: "hit-boulder",
+  stormheart: "hit-boulder",
 };
 
 /**
@@ -483,13 +490,14 @@ const STEPS_UP = [...STATIC_STEPS].sort((one, other) => one.from - other.from);
 
 /**
  * The sound each event plays, or null for one that plays none, but those
- * a rock's kind and size, a pickup, a weapon or static's step decide.
+ * a rock's kind and size, a pickup, a weapon or static's step decide: a
+ * blast vented from a boulder's heart plays a small blast's.
  */
 const EVENT_SOUNDS: Readonly<
   Record<
     Exclude<
       FieldEventKind,
-      "broken" | "hit" | "blast" | "caught" | "fired" | "stepped"
+      "broken" | "hit" | "blast" | "shed" | "caught" | "fired" | "stepped"
     >,
     SoundName | null
   >
@@ -499,6 +507,7 @@ const EVENT_SOUNDS: Readonly<
   warned: "comet-warning",
   cleared: "wave-clear",
   rung: "hit-iron",
+  vented: "blast-volatile-small",
   dropped: "pickup-drop",
   faded: "pickup-fade",
   lost: "pod-lost",
@@ -537,7 +546,8 @@ export function secondSoundOf(event: Readonly<FieldEvent>): SoundName | null {
  * A rock's break plays its kind's at its size, but one a comet smashed,
  * which scored nothing, plays the comet's smash; a hit it holds plays
  * its kind's knock, but a rock that rings logs its ring too, which is heard
- * for both. A pull of fire plays its weapon's shot. Static rising to a step
+ * for both; and a piece a boulder sheds plays its own break, as it comes
+ * away. A pull of fire plays its weapon's shot. Static rising to a step
  * plays the chime of the multiplier it reaches, or full's, and falling to
  * one plays its fall.
  *
@@ -551,6 +561,8 @@ export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
   switch (event.kind) {
     case "broken":
       return event.times === 0 ? "comet-smash" : breakSoundOf(event);
+    case "shed":
+      return breakSoundOf(event);
     case "hit": {
       const kind = rockKindOf(event);
       return hasTrait(kind, "rings") ? null : HIT_SOUNDS[kind];

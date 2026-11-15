@@ -55,7 +55,11 @@ export function zap(
   if (arcs.length === 0) return false;
   field.events.addZap(pod.x, pod.y, heading);
   const { width, height } = field.torus;
-  for (const rock of arcs) {
+  const laidAt = arcs.map((rock) => rock.laidAt);
+  for (const [arc, rock] of arcs.entries()) {
+    // A storm boulder's vent, as the zap hits it, may break a rock arced to
+    // after it, and lay a piece in its slot.
+    if (!rock.live || rock.laidAt !== laidAt[arc]) continue;
     const alongX = across(pod.x, rock.x, width);
     const alongY = across(pod.y, rock.y, height);
     field.events.addArc(rock, alongX, alongY);

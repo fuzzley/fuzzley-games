@@ -174,12 +174,16 @@ takes for the specs' helpers.
   but for one within 12 units of the ship, which flies on as it flies
   (`LAST_FEW_NEAR`). It holds `TRAIT_RULES`, what each trait of
   `src/rules/catalog/rocks.ts` does, typed so that a trait without its
-  rule fails to compile, and sets off the blasts
-  (`setOffBlasts()`, `hitWithin()`), and says whether the field's whole
-  rocks are its wave's last few (`isLastFew()`). `drops.ts` lets a pickup
-  go from a broken rock (`dropFrom()`), always from a crystal, after a
-  drought and otherwise by the wave's chance, drawn by weight from the
-  wave's pool;
+  rule fails to compile: a set piece's held hits each knocking a piece off
+  its rim (`chips`, logged `shed`, ringing first where its rind does) or
+  venting a blast from its heart that spares the boulders (`vents`, logged
+  `vented`); and it sets off the blasts (`setOffBlasts()`, `hitWithin()`,
+  which spares what its last argument names), and says whether the
+  field's whole rocks are its wave's last few (`isLastFew()`). `drops.ts`
+  lets a pickup go from a broken rock (`dropFrom()`), always from a kind
+  that `gives`, as many as it says, a crystal one and a set piece two,
+  and otherwise one after a drought or by the wave's chance, drawn by
+  weight from the wave's pool;
   `pickups.ts` floats the pickups, draws them in to the ship and has it
   catch them, and holds `EFFECT_RULES`, what each effect of
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
@@ -311,7 +315,8 @@ takes for the specs' helpers.
   names what is wrong with its data, a key no wave has among it. Its spec
   holds every wave to parsing, ids in kebab-case and names of their own, a
   pace that never slows within a sector, and each sector to ten waves, a
-  boulder in its last alone.
+  boulder in its last alone, its set piece: the crumbling boulder, the
+  ironclad and two storm boulders.
   `endless.ts` makes Endless's waves, from wave 31 (`ENDLESS_FROM`), from
   the run's seed and the wave's number, mixed in `mixSeed()`'s `"makeup"`
   stream, apart from its field's (`endlessWave()`), so a run kept
@@ -324,7 +329,9 @@ takes for the specs' helpers.
 - **`src/rules/catalog/`** — what the game can hold, each a readonly object
   written `as const satisfies`, so its ids survive as a type: `rocks.ts`
   (`ROCK_KINDS`, each kind's hits and points at each size it comes in, what
-  it breaks into, its speed and its traits; and `ROCK_SIZES`, boulder,
+  it breaks into, its speed and its traits, the three sectors' set pieces
+  among them, and the plain boulder, which only Endless lays; and
+  `ROCK_SIZES`, boulder,
   large, medium and small), `pickups.ts` (`PICKUPS`, each pickup's weight,
   the first wave it may come in, `from`, and its effect, whose kind is its
   group) and `weapons.ts` (`WEAPONS`, the gun and the three a pickup hands
@@ -463,7 +470,9 @@ takes for the specs' helpers.
   but the beds, by name, each with its family, level, takes and whether it
   is tuned, its family's (`SOUNDS`, the mix the scene hands its player, and
   `SoundTake`, a take's name in the sprite), which sound each event plays
-  (`soundOf()`), a rock's break by its kind and size, a catch by its pickup,
+  (`soundOf()`), a rock's break by its kind and size, a piece knocked off a
+  set piece its own break, a set piece's heart venting
+  `blast-volatile-small`, a catch by its pickup,
   a pull of fire by its weapon, static rising to a step by the multiplier's
   chime it reaches or full's (`static-full`), and falling to one by its fall
   (`static-down`), a spark gathered `spark`, a near miss `near-miss`, a zap
@@ -573,7 +582,8 @@ takes for the specs' helpers.
   and names the frames
   How to play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
   `rock_art.ts` draws the rocks' own atlas: each kind
-  in each size it comes in and six outlines (`ROCK_OUTLINES`), cut in
+  in each size it comes in and six outlines (`ROCK_OUTLINES`), a set piece
+  in two, which a rock's outline is mapped onto (`outlinesOf()`), cut in
   facets as `rocks/` cuts it (`rockShape()`), whole and with the cracks of
   each count of hits it can take and hold, in the palette's marks, its
   fine marks only where the field, as laid out, has 10 CSS pixels a unit

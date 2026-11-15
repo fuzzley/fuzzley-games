@@ -31,6 +31,7 @@ import {
   dashesAlong,
   isFine,
   largestOf,
+  outlinesOf,
   rockColor,
   rockFrame,
   rockFrames,
@@ -60,10 +61,10 @@ const KINDS_AND_SIZES: readonly (readonly [RockKindId, RockSize])[] =
     sizesOf(kind).map((size) => [kind, size] as const),
   );
 
-/** Every rock a frame is drawn for: each kind, size and outline, whole and with each count of hits it can take and hold. */
+/** Every rock a frame is drawn for: each kind, size and outline it is drawn in, whole and with each count of hits it can take and hold. */
 const DRAWN: readonly DrawnRock[] = KINDS_AND_SIZES.flatMap(([kind, size]) => {
   const whole = rockKind(kind).hits[size] ?? 0;
-  return Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+  return Array.from({ length: outlinesOf(kind) }, (_, outline) =>
     Array.from({ length: whole }, (__, taken) => ({
       kind,
       size,
@@ -401,15 +402,35 @@ describe("a rock's frame", () => {
   );
 
   it.each(KINDS_AND_SIZES)(
-    "draws a %s %s rock in six outlines, each its own",
+    "draws a %s %s rock in each outline it is drawn in, each its own",
     (kind, size) => {
-      const outlines = Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+      const outlines = Array.from({ length: outlinesOf(kind) }, (_, outline) =>
         JSON.stringify(outlinesIn(inkOf({ kind, size, outline }))[0]),
       );
 
-      expect(new Set(outlines).size).toBe(ROCK_OUTLINES);
+      expect(new Set(outlines).size).toBe(outlinesOf(kind));
     },
   );
+
+  it.each([
+    ["boulder", ROCK_OUTLINES],
+    ["crumbling", 2],
+    ["ironclad", 2],
+    ["stormheart", 2],
+  ] as const)(
+    "draws a %s in %i outlines, a set piece in few, so the atlas holds them",
+    (kind, outlines) => {
+      expect(outlinesOf(kind)).toBe(outlines);
+    },
+  );
+
+  it("draws a set piece's outline from the rules' taken round its few", () => {
+    const rock = { kind: "stormheart", size: "boulder" } as const;
+
+    expect(rockFrame({ ...rock, outline: 5 })).toBe(
+      rockFrame({ ...rock, outline: 1 }),
+    );
+  });
 });
 
 describe("the hits a rock shows taken", () => {
@@ -499,7 +520,11 @@ describe("a rock's fine marks", () => {
 
   it.each(
     ROCK_KIND_IDS.map(
-      (kind) => [kind, kind !== "stone" && kind !== "volatile"] as const,
+      (kind) =>
+        [
+          kind,
+          kind !== "stone" && kind !== "volatile" && kind !== "stormheart",
+        ] as const,
     ),
   )(
     "leaves out only a %s rock's fine marks for a field that keeps none, if it has any: %s",
