@@ -4,6 +4,7 @@ import { PRISM, STAND_IN_RULES } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
+import { positionAt } from "../flight/events";
 import { levelStart } from "../levels/level";
 import { LEVELS, parseLevel } from "../levels/levels";
 import { BORED, COLUMNS, SIDE_MARGIN, TRIPLE_MATES } from "../tuning";
@@ -118,6 +119,46 @@ describe("playRound()", () => {
   });
 });
 
+describe("playRound(), dropped", () => {
+  // The charged shot punches through three bricks, at cells 8, 16 and 24,
+  // one after another, as the round worked out by hand says; dropped
+  // between the first and the second, on its way up the diagonal.
+  const { start, shot, levelBoon, round } = FLIGHT_FIXTURES.punchThrough;
+  const breaks = eventsOf(round, "break");
+  const at =
+    ((breaks[0]?.at ?? Number.NaN) + (breaks[1]?.at ?? Number.NaN)) / 2;
+
+  it("leaves every brick the whole round broke after the drop's moment standing in the wall it leaves", () => {
+    const later = breaks.filter((each) => each.at > at).map(({ cell }) => cell);
+
+    const dropped = playRound(start, shot, levelBoon, RULES, {
+      stop: "drop",
+      at,
+    });
+
+    expect(later.map((cell) => dropped.next.wall.bricks[cell])).toEqual([
+      start.wall.bricks[16],
+      start.wall.bricks[24],
+    ]);
+  });
+
+  it("comes to what the round had done by the drop, the next starting under where the player's fuzzball was", () => {
+    const player = round.flight.tracks[0];
+    const was = player === undefined ? null : positionAt(player, at);
+
+    const dropped = playRound(start, shot, levelBoon, RULES, {
+      stop: "drop",
+      at,
+    });
+
+    expect({
+      broken: dropped.outcome.broken,
+      points: dropped.outcome.points,
+      x: dropped.next.x,
+    }).toEqual(near({ broken: 1, points: breaks[0]?.points, x: was?.x }));
+  });
+});
+
 describe("playRoundBy()", () => {
   it("flies by the kinds it is handed", () => {
     const start = startAt(["....o...."]);
@@ -130,6 +171,22 @@ describe("playRoundBy()", () => {
     const round = playRoundBy(start, { aim: UP, charge: 0 }, "hot", rules);
 
     expect(eventsOf(round, "split").map(({ cell }) => cell)).toEqual([4]);
+  });
+
+  it("flies the round dropped at the moment it is handed", () => {
+    const start = startAt(["....o...."]);
+
+    const round = playRoundBy(
+      start,
+      { aim: UP, charge: 0 },
+      "hot",
+      flightRulesOf(RULES),
+      { stop: "drop", at: 1 },
+    );
+
+    expect(eventsOf(round, "drop").map(({ at, ball }) => [at, ball])).toEqual([
+      [1, 0],
+    ]);
   });
 });
 
