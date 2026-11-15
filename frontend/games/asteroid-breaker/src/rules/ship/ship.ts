@@ -207,6 +207,15 @@ export function rechargeShare(ship: Readonly<Ship>): number {
 }
 
 /**
+ * Returns whether a ship's dash is charged, so it can dash again: once its
+ * recharge has run, the step its share comes whole, by which the pod's rim
+ * flashes and `dash-ready` plays.
+ */
+export function isDashReady(ship: Readonly<Ship>): boolean {
+  return ship.rechargeSteps === 0;
+}
+
+/**
  * Keeps a waiting ship waiting through a frame's steering that doesn't move
  * it afresh, taking the steering as held and leaving its timers as they
  * are, and returns whether it did, as a wave's first ship does while the
@@ -253,7 +262,7 @@ export function flyShip(
   let dashed = false;
   if (!ship.waiting) {
     turnShip(ship, steer, flight);
-    dashed = steer.dash && !ship.held.dash && ship.rechargeSteps === 0;
+    dashed = steer.dash && !ship.held.dash && isDashReady(ship);
     if (dashed) startDash(ship);
     if (ship.dashSteps === 0) pushShip(ship, steer.thrust, flight);
     ship.x = wrap(ship.x + ship.vx * STEP_S, torus.width);

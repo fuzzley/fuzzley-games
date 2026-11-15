@@ -1,6 +1,6 @@
 import { strokeShareArc } from "@fz/phaser/scene";
 import type { GameObjects, Scene } from "phaser";
-import { rechargeShare } from "../../rules/ship/ship";
+import { isDashReady, rechargeShare } from "../../rules/ship/ship";
 import type { Place } from "../../rules/torus";
 import { DECK_FRAMES } from "../../view/art/art";
 import type { BeltPalette } from "../../view/colors/palette";
@@ -107,15 +107,15 @@ export class DeckPainter implements Painter {
     this.drawStick(deck, steering.stickView, palette);
     this.drawButton(this.fire, deck.fire, steering.isPressed("fire"), palette);
     this.drawButton(this.dash, deck.dash, steering.isPressed("dash"), palette);
-    const charged = field.ship ? rechargeShare(field.ship) : 1;
-    if (charged >= 1) return;
+    const { ship } = field;
+    if (!ship || isDashReady(ship)) return;
     const { x, y, radius, width } = rechargeRing(
       deck.dash,
       metrics.pixelRatio,
       this.ring,
     );
     this.recharge.lineStyle(width, palette.accent);
-    strokeShareArc(this.recharge, x, y, radius, charged);
+    strokeShareArc(this.recharge, x, y, radius, rechargeShare(ship));
   }
 
   /** Draws the stick faint where it waits, or where a finger holds it, lit as it thrusts. */

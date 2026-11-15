@@ -27,6 +27,7 @@ import {
   createShip,
   flyShip,
   guardShip,
+  isDashReady,
   isGuarded,
   rechargeShare,
   thrustOf,
@@ -758,6 +759,26 @@ describe("rechargeShare", () => {
     shares.push(rechargeShare(ship));
 
     expect(shares).toEqual([0, 0.5, 1]);
+  });
+});
+
+describe("isDashReady", () => {
+  it("finds a ship that never dashed ready", () => {
+    expect(isDashReady(flying(0))).toBe(true);
+  });
+
+  it("finds a ship's dash charging from its dash until its recharge's time has run", () => {
+    const ship = flying(0);
+    const ready: boolean[] = [];
+
+    flyShip(ship, steer({ dash: true }), FIELD);
+    ready.push(isDashReady(ship));
+    flySteps(ship, STILL, stepsIn(DASH_RECHARGE_MS) - 1);
+    ready.push(isDashReady(ship));
+    flySteps(ship, STILL, 1);
+    ready.push(isDashReady(ship));
+
+    expect(ready).toEqual([false, false, true]);
   });
 });
 

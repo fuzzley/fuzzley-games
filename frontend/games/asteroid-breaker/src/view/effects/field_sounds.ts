@@ -11,6 +11,7 @@ import { acrossOf } from "@fz/core/sound_mix";
 import type { EffectKind } from "../../rules/catalog/pickups";
 import { ROCK_SIZES } from "../../rules/catalog/rocks";
 import { EFFECT_KINDS } from "../../rules/rocks/pickups";
+import { isDashReady } from "../../rules/ship/ship";
 import { stepsIn } from "../../rules/stepper";
 import { STATIC_HOLD_MS } from "../../rules/tuning";
 import { type FieldEvent, type FieldView, rockSizeOf } from "../field/frame";
@@ -131,8 +132,8 @@ export class FieldSounds {
   private sparkAt = 0;
   /** Whether the frame heard a zap, which plays in place of its dash. */
   private zapped = false;
-  /** Whether the ship's dash was charging as of the last frame. */
-  private charging = false;
+  /** Whether the ship's dash was recharging as of the last frame. */
+  private recharging = false;
   /** The step each group's effect ended at as of the last frame, 0 for one that has no time. */
   private readonly endsAt: Record<EffectKind, number> = recordOf(
     EFFECT_KINDS,
@@ -164,7 +165,7 @@ export class FieldSounds {
       this.field = field;
       this.pulls = 0;
       this.sparks = 0;
-      this.charging = isCharging(field);
+      this.recharging = isRecharging(field);
       for (const kind of EFFECT_KINDS) {
         this.endsAt[kind] = field.effects[kind].endsAt;
       }
@@ -178,11 +179,11 @@ export class FieldSounds {
       this.pulls = 0;
     }
     const at = ship === null ? 0 : acrossOf(ship.x, torus.width);
-    const charging = isCharging(field);
-    if (this.charging && !charging && ship !== null) {
+    const recharging = isRecharging(field);
+    if (this.recharging && !recharging && ship !== null) {
       this.note(CHARGED, 0, at);
     }
-    this.charging = charging;
+    this.recharging = recharging;
     for (const kind of EFFECT_KINDS) this.hearEnding(field, kind, at);
   }
 
@@ -313,7 +314,10 @@ export class FieldSounds {
   }
 }
 
-/** Returns whether a field's ship is charging its dash. */
-function isCharging(field: FieldView): boolean {
-  return field.ship !== null && field.ship.rechargeSteps > 0;
+/**
+ * Returns whether a field's ship is recharging its dash, not yet ready by
+ * `isDashReady()`, by which the pod's rim flashes too.
+ */
+function isRecharging({ ship }: FieldView): boolean {
+  return ship !== null && !isDashReady(ship);
 }

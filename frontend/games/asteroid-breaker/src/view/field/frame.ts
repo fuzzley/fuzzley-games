@@ -12,8 +12,8 @@ import type { Rock } from "../../rules/rocks/rocks";
 import type { Crew } from "../../rules/ship/pilots";
 import type { Ship, Steer } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
-import type { Charge } from "../../rules/sparks/charge";
 import type { TowLink } from "../../rules/ship/tow";
+import type { Charge } from "../../rules/sparks/charge";
 import {
   type Moving,
   type Place,
