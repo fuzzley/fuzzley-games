@@ -24,6 +24,7 @@ import {
   STRAY_SPEED,
   STRAY_TILT,
   STRAY_TURN,
+  TOW_LINK,
 } from "../tuning";
 import { nextStrayAfter } from "./strays";
 
@@ -408,6 +409,21 @@ describe("a stray adrift", () => {
       expect.closeTo(SHIP_X),
       expect.closeTo(SHIP_Y + STRAY_STEP),
       3,
+    ]);
+  });
+
+  it("lays one brought home a link behind the last in tow, at the line's end", () => {
+    const field = fieldFrom(PICTURE, {
+      crew: { pilot: 0, tow: [1], home: [], lastGiven: 6 },
+    });
+    placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
+
+    stepField(field);
+
+    const [first, second] = field.tow;
+    expect([second!.x, second!.y]).toEqual([
+      expect.closeTo(first!.x),
+      expect.closeTo(first!.y + TOW_LINK),
     ]);
   });
 

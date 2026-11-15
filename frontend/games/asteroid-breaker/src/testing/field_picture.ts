@@ -8,6 +8,7 @@ import type { Floating } from "../rules/rocks/drops";
 import { type Rock, addRock } from "../rules/rocks/rocks";
 import { type Crew, type Pilot, createCrew } from "../rules/ship/pilots";
 import { STILL, type Ship, createShip } from "../rules/ship/ship";
+import { layTow } from "../rules/ship/tow";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
 import {
@@ -83,8 +84,9 @@ export const KEEPER: readonly string[] = ["L"];
  * for each {@link CELL} units down, each character a cell that many units
  * across: B for a boulder, and L, M and S for a large, a medium and a small
  * rock of the options' kind, each standing still in its cell's middle;
- * ^ for the ship there, flying, its nose up; and . or a space for nothing.
- * With no ^, the field has no ship.
+ * ^ for the ship there, flying, its nose up, its crew's line in tow laid
+ * straight out behind it; and . or a space for nothing. With no ^, the
+ * field has no ship.
  *
  * @throws {Error} For a row too long, too many rows, more than one ship,
  *   more rocks than the cap or a character it doesn't know, so a spec plays
@@ -275,11 +277,12 @@ export function speedOf(thing: {
   return Math.hypot(thing.vx, thing.vy);
 }
 
-/** Puts a flying ship on a field at a place, its nose up. */
+/** Puts a flying ship on a field at a place, its nose up, its crew's line in tow behind it. */
 function placeShip(field: Field, x: number, y: number): void {
   if (field.ship) throw new Error("A picture holds one ship at most.");
   field.ship = createShip(x, y, STILL);
   field.ship.waiting = false;
+  layTow(field);
 }
 
 /** Returns the size of rock a picture's character stands for. */

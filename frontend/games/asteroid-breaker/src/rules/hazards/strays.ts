@@ -12,6 +12,7 @@ import {
   given,
   nextPilot,
 } from "../ship/pilots";
+import { type TowField, trailLink } from "../ship/tow";
 import { stepsIn } from "../stepper";
 import { type Place, moveAlong } from "../torus";
 import {
@@ -66,13 +67,12 @@ export interface Strays {
 /**
  * Describes what the strays act on: the points a stray brought home scores,
  * the draws and the size it comes in by, its setup, which says how many
- * come, their records, the ship that brings them home, the crew they join,
- * and a Magnet's pull.
+ * come, their records, the ship that brings them home, the crew and the
+ * line in tow they join, and a Magnet's pull.
  */
-export interface StrayField extends ScoreField, CrossingField {
+export interface StrayField extends ScoreField, CrossingField, TowField {
   readonly setup: StraySetup;
   readonly strays: Strays;
-  readonly ship: Readonly<Place> | null;
   crew: Crew;
   /** The effects in play, of which a Magnet draws a stray in. */
   readonly effects: { readonly pull: { readonly pickup: PickupId | null } };
@@ -170,14 +170,16 @@ function pullIn(
 }
 
 /**
- * Brings the stray adrift home, for its points: it rides last in tow, or
- * waits at home with the most of the crew aboard.
+ * Brings the stray adrift home, for its points: it rides last in tow, laid
+ * at the line's end, or waits at home with the most of the crew aboard.
  */
 function bringStrayHome(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
   strays.broughtHome += 1;
+  const inTow = field.crew.tow.length;
   field.crew = bringHome(field.crew, stray.pilot);
+  if (field.crew.tow.length > inTow) trailLink(field, inTow);
   field.events.addPilot("home", stray.x, stray.y, stray.pilot, field.crew);
   scoreStray(field, stray.x, stray.y);
   strayGone(field);

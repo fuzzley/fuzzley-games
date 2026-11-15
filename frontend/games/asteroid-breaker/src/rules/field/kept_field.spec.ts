@@ -1,4 +1,4 @@
-import { stepTimes } from "../../testing/field_picture";
+import { shipOf, stepTimes } from "../../testing/field_picture";
 import {
   type Spoil,
   UNDER_WAY_TORUS as TORUS,
@@ -11,8 +11,14 @@ import { type RockKindId, rockKind } from "../catalog/rocks";
 import { nextStrayAfter } from "../hazards/strays";
 import { ROCK_OUTLINES, rocksLeft } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
-import { type Torus, middleOf } from "../torus";
-import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE, STRAY_POINTS } from "../tuning";
+import { type Torus, middleOf, wrap } from "../torus";
+import {
+  FIELD_LONGEST_SIDE,
+  FIELD_SHORT_SIDE,
+  STRAY_POINTS,
+  TOW_HOOK,
+  TOW_LINK,
+} from "../tuning";
 import type { Field } from "./field";
 import { fillFor, stretchField } from "./fill";
 import {
@@ -632,5 +638,16 @@ describe("layOutKeptField", () => {
       waiting: true,
     });
     expect(safestPlace(field)).not.toEqual(middleOf(TORUS));
+  });
+
+  it("lays the line in tow straight out behind the ship", () => {
+    const field = layOut(kept());
+
+    const ship = shipOf(field);
+    const [first] = field.tow;
+    expect([first!.x, first!.y]).toEqual([
+      expect.closeTo(ship.x),
+      expect.closeTo(wrap(ship.y + TOW_HOOK + TOW_LINK, field.torus.height)),
+    ]);
   });
 });

@@ -4,7 +4,7 @@
 // comes later by it, as its wave lasts longer; comets come more often by
 // the square root of it, as each crosses a longer field.
 
-import { type Torus, wrap } from "../torus";
+import { type Torus, across, wrap } from "../torus";
 import {
   FIELD_SHORT_SIDE,
   PICKUPS_AT_ONCE,
@@ -31,12 +31,13 @@ export interface Fill {
 
 /**
  * Describes what of the field a stretch moves: its size, and every place on
- * it, the ship's, the shots', the rocks', the pickups', the stray's and the
- * comets'.
+ * it, the ship's, the line in tow's, the shots', the rocks', the pickups',
+ * the stray's and the comets'.
  */
 export interface StretchField {
   torus: Torus;
   readonly ship: Stretched | null;
+  readonly tow: readonly Stretched[];
   readonly shots: { readonly slots: readonly Stretched[] };
   readonly rocks: readonly Stretched[];
   readonly pickups: readonly Stretched[];
@@ -90,9 +91,10 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
 
 /**
  * Stretches a field to a new shape, as a pause lets the room change: every
- * place on it moves to the same share of the way across and down, a stray
- * or a comet off the field keeping as far off it, nothing is added or
- * taken away, and nothing's speed changes.
+ * place on it moves to the same share of the way across and down, but the
+ * line in tow, which moves with the ship and keeps its shape, a stray or a
+ * comet off the field keeping as far off it, nothing is added or taken
+ * away, and nothing's speed changes.
  *
  * The mouse's aim the ship holds is left as it is, as the view keeps the
  * place the mouse last pointed at through a stretch, so a still mouse
@@ -100,8 +102,15 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
  */
 export function stretchField(field: StretchField, torus: Torus): void {
   const from = field.torus;
+  const { ship } = field;
+  const was = ship && {
+    x: ship.x,
+    y: ship.y,
+    lastX: ship.lastX,
+    lastY: ship.lastY,
+  };
   const wrapping = [
-    ...(field.ship ? [field.ship] : []),
+    ...(ship ? [ship] : field.tow),
     ...field.shots.slots,
     ...field.rocks,
     ...field.pickups,
@@ -113,11 +122,38 @@ export function stretchField(field: StretchField, torus: Torus): void {
     place.lastX = wrap(place.lastX, torus.width);
     place.lastY = wrap(place.lastY, torus.height);
   }
+  if (ship && was) {
+    for (const link of field.tow) keepBehind(link, was, ship, from, torus);
+  }
   // A stray and a comet cross without wrapping, from off the field.
   for (const place of [field.strays.adrift, ...field.comets.slots]) {
     stretch(place, from, torus);
   }
   field.torus = torus;
+}
+
+/**
+ * Moves a link of the line in tow with its ship's stretch, as far from the
+ * ship the short way across the wrap as it was, where it was a step ago
+ * too, so the line keeps its shape and its links their length.
+ */
+function keepBehind(
+  link: Stretched,
+  was: Readonly<Stretched>,
+  ship: Readonly<Stretched>,
+  from: Torus,
+  to: Torus,
+): void {
+  link.x = wrap(ship.x + across(was.x, link.x, from.width), to.width);
+  link.y = wrap(ship.y + across(was.y, link.y, from.height), to.height);
+  link.lastX = wrap(
+    ship.lastX + across(was.lastX, link.lastX, from.width),
+    to.width,
+  );
+  link.lastY = wrap(
+    ship.lastY + across(was.lastY, link.lastY, from.height),
+    to.height,
+  );
 }
 
 /** Moves a place and where it was a step ago by a stretch from one shape to another. */
