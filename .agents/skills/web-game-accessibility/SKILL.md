@@ -132,8 +132,8 @@ beside them read as a page is.
   Normal's speed to twice it; Asteroid Breaker three speeds, the slowest
   with slower rocks, fewer and slower comets, and more pickups; Brick Fuzz
   Pop two speeds of a flight, long flights sped up or not, and a flight
-  fast-forwarded or skipped whenever the player likes, since nothing in it
-  is timed.
+  fast-forwarded whenever the player likes, since nothing in it is timed
+  but Drop, which brings it down where it is and which no level needs.
 - The run's turning points are announced, not each move: the start, a
   pause, going on, and the end with the score; a run taken up after a
   reload says it is paused.
