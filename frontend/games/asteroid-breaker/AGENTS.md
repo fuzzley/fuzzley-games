@@ -77,11 +77,12 @@ takes for the specs' helpers.
   field's short side is 40, `FIELD_SHORT_SIDE`, and its long side as many
   as its room's shape holds, up to 88, `FIELD_LONGEST_SIDE`); `speed.ts`
   the three speeds (`SPEEDS`, `SPEED_INFO`), Relaxed, Normal and Fast, each
-  how fast the rocks and the comets go, how often a comet comes and how
-  likely a pickup is; and `stepper.ts` binds `@fz/core/clock`'s
-  `createStepper()` to the field's step, 1/120 s (`STEP_MS`): `stepsIn(ms)`,
-  a time in those steps, and the field's clock (`createFieldClock()`),
-  which turns a frame's time into steps, twelve at most a frame.
+  how fast the rocks and the comets go, how often a comet comes, how
+  likely a pickup is and how far the ship draws sparks in from; and
+  `stepper.ts` binds `@fz/core/clock`'s `createStepper()` to the field's
+  step, 1/120 s (`STEP_MS`): `stepsIn(ms)`, a time in those steps, and the
+  field's clock (`createFieldClock()`), which turns a frame's time into
+  steps, twelve at most a frame.
   `torus.ts` is the wrap: the field for a room's shape
   (`torusFor()`), the shortest way and distance between two places across
   the edges (`across()`, `distance()`), and where a thing reaching past an
@@ -112,12 +113,12 @@ takes for the specs' helpers.
   than that, and a trait's step rule sees only the course its rock flies by
   (`CourseField`), so the layout flies a copy of a rock ahead without
   touching the field.
-  `scoring.ts` scores each break by its kind and size, times static's
-  multiplier (`src/rules/sparks/`), a stray caught, more as it goes
-  straight home, and a wave's clearing, more for one cleared without a hit
-  taken, and says how a cleared wave's points add up (`tallyOf()`), each
-  part counted as it scores, what static added apart from the rocks' and
-  the strays' own.
+  `scoring.ts` scores each break by its kind and size, each spark
+  gathered and each stray caught, more as it goes straight home, times
+  static's multiplier (`src/rules/sparks/`), and a wave's clearing, more
+  for one cleared without a hit taken, and says how a cleared wave's points
+  add up (`tallyOf()`), each part counted as it scores, what static added
+  apart from the rocks', the sparks' and the strays' own.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read; a pull of fire
@@ -171,10 +172,22 @@ takes for the specs' helpers.
   catch them, and holds `EFFECT_RULES`, what each effect of
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
   group in play at a time.
-- **`src/rules/sparks/`** — the pilot's static. `charge.ts` holds it on the
-  field (`Field.charge`, its level and the step the last spark was gathered
-  at), how it works (`Sparking`, a value record the field holds, from
-  `tuning.ts`'s `TUNED_SPARKING`: its most and its drain), its step
+- **`src/rules/sparks/`** — the sparks and the pilot's static. `sparks.ts`
+  sheds a broken rock's sparks into slots made once (`shedSparks()`,
+  `MOST_SPARKS`, the oldest's taken past them), its size's in
+  `SPARKS_SHED` and its kind's `sheds` trait's more, only from one a shot
+  or a blast broke; each flies out a little way and hangs for its life,
+  blinking through its last second (`sparkBlinks()`), unless the ship
+  draws it in, from the field's sparking's reach, farther at Relaxed, or
+  the Magnet's (`drawReach()`), and the pod or a bubble in tow gathers it
+  (`stepSparks()`), which scores it, logged `sparked` with who gathered it
+  (`scoring.ts`'s `scoreSpark()`), and raises static; the clearing lets
+  them all go (`clearSparks()`).
+  `charge.ts` holds static on the field (`Field.charge`, its level and the
+  step it holds from, the last spark's or the last hit's), how sparks and
+  static work (`Sparking`, a value record the field holds, from
+  `tuning.ts`'s `TUNED_SPARKING`: the spark's reach, static's most and its
+  drain), its rise (`raiseStatic()`), its step
   (`stepOf()`, from 0 at ×1 to `FULL_STEP` once full) and its multiplier
   (`multiplierOf()`, `@fz/core/math`'s `multiplierAt()` over
   `STATIC_STEPS`); it drains after `STATIC_HOLD_MS` with no spark
@@ -1036,7 +1049,7 @@ can't trust rather than failing:
   off, the counts its draws, strays, comets and points run by, and the
   pilot's static. A wave not yet moved is kept as not yet begun, a wave
   just cleared as the next not yet begun, and a stray adrift, the comets,
-  the pickups, the shots and the effects in play go. It is
+  the pickups, the sparks, the shots and the effects in play go. It is
   written as a wave starts, as its crew changes, as it pauses or goes on,
   and as the page is hidden or goes away, never at a step, forgotten once
   the run ends or another begins, and taken up paused at startup, fitted to
@@ -1223,11 +1236,11 @@ of its own beside it:
 - `field_picture.ts` lays a field out from a picture of its rocks and its
   ship (`fieldFrom()`), each character a cell 4 units across (`CELL`), on a
   field of 72 by 40 unless it says another (`PICTURE_TORUS`), lays a rock, a
-  pickup, a stray, one of the crew knocked loose or a comet on it where a
-  spec says (`placeRock()`, `placePickup()`, `placeStray()`,
-  `placeLoose()`, `placeComet()`), steps it and reads it back, from its
-  events to how fast a thing on it flies (`speedOf()`), so a spec of the
-  field reads as the field it plays.
+  pickup, a spark, a stray, one of the crew knocked loose or a comet on it
+  where a spec says (`placeRock()`, `placePickup()`, `placeSpark()`,
+  `placeStray()`, `placeLoose()`, `placeComet()`), steps it and reads it
+  back, from its events to how fast a thing on it flies (`speedOf()`), so a
+  spec of the field reads as the field it plays.
 - `crossings.ts` reads where a stray or a comet waits to come in
   (`entryOf()`), whether a run of them came in off every edge within their
   margin and tilt (`entriesOf()`), and where an event was logged against

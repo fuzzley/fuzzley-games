@@ -4,6 +4,7 @@ import {
   placeComet,
   placePickup,
   placeRock,
+  placeSpark,
   placeStray,
   shipOf,
 } from "../../testing/field_picture";
@@ -188,6 +189,18 @@ describe("stretchField", () => {
     stretchField(field, { width: 36, height: 80 });
 
     expect([loose!.x, loose!.y, loose!.lastX, loose!.lastY]).toEqual([
+      27, 60, 26, 62,
+    ]);
+  });
+
+  it("moves a spark to the same share of the way across and down, and where it was a step ago", () => {
+    const field = fieldOfAll();
+    const spark = placeSpark(field, 54, 30);
+    Object.assign(spark, { lastX: 52, lastY: 31 });
+
+    stretchField(field, { width: 36, height: 80 });
+
+    expect([spark.x, spark.y, spark.lastX, spark.lastY]).toEqual([
       27, 60, 26, 62,
     ]);
   });

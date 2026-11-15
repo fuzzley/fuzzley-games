@@ -16,6 +16,7 @@ import { drawIn, nextDraw } from "../draws";
 import { type DropField, dropFrom } from "./drops";
 import { type ScoreField, scoreBreak } from "../field/scoring";
 import { multiplierOf } from "../sparks/charge";
+import { type ShedField, shedSparks } from "../sparks/sparks";
 import { stepsIn } from "../stepper";
 import {
   type Place,
@@ -77,7 +78,7 @@ export interface Rock {
 }
 
 /** Describes what the rocks' rules act on, which the field holds. */
-export interface RockField extends DropField, ScoreField {
+export interface RockField extends DropField, ScoreField, ShedField {
   readonly torus: Torus;
   /**
    * A slot for each rock the field holds at most, its cap; a free slot holds
@@ -154,6 +155,8 @@ const TRAIT_RULES: {
   },
   // Nothing of the rocks': the pickup it lets go is the pickups' to drop.
   gives: {},
+  // Nothing of the rocks': the sparks it sheds are the sparks' to shed.
+  sheds: {},
   drawn: {
     step: (field, rock, { pull }) => {
       pullTowardShip(field, rock, pull);
@@ -241,9 +244,10 @@ export function addRock(
  * and returns whether it broke; a rock not whole takes nothing.
  *
  * One broken leaves the field, scores and may let a pickup go unless it was
- * smashed, its traits run, and it splits into pieces of the size after its own,
- * pushed along the way the hit came: `alongX` and `alongY`, of any length,
- * or both 0 for no push. Its slot is free as it breaks, and one of its
+ * smashed, sheds its sparks only if it was hit, as one broken against the
+ * ship or smashed sheds none, its traits run, and it splits into pieces of
+ * the size after its own, pushed along the way the hit came: `alongX` and
+ * `alongY`, of any length, or both 0 for no push. Its slot is free as it breaks, and one of its
  * pieces may lie there by the time this returns, so a caller takes what it
  * broke from before the hit, or from the break's event.
  */
@@ -268,6 +272,7 @@ export function hitRock(
     scoreBreak(field, rock);
     dropFrom(field, rock);
   }
+  if (blow === "hit") shedSparks(field, rock);
   runTraits("broken", field, rock);
   split(field, rock, alongX, alongY);
   return true;

@@ -354,6 +354,7 @@ describe("GameService", () => {
 
       expect(game.tally()).toEqual({
         rocks: PEBBLE_POINTS,
+        sparks: 0,
         static: 0,
         strays: 0,
         cleared: CLEAR_POINTS,

@@ -321,6 +321,44 @@ export const STATIC_HOLD_MS = 2000;
 /** How fast static drains once it no longer holds, in a second. */
 export const STATIC_DRAIN = 2;
 
+/** How many sparks a rock of each size sheds as it breaks; a kind may shed more. */
+export const SPARKS_SHED: Readonly<Record<RockSize, number>> = {
+  boulder: 8,
+  large: 3,
+  medium: 2,
+  small: 1,
+};
+
+/** How many sparks can be out at once; a new one past them takes the oldest's slot. */
+export const MOST_SPARKS = 64;
+
+/** How far a spark flies out from the rock that shed it, before it hangs. */
+export const SPARK_FLIGHT: Span = { least: 1, most: 2 };
+
+/** How long a spark takes to fly out. */
+export const SPARK_FLIGHT_MS = 250;
+
+/** How long a spark lasts from its shedding, unless it is gathered. */
+export const SPARK_LIFE_MS = 4000;
+
+/** How long before it goes a spark blinks. */
+export const SPARK_BLINK_MS = 1000;
+
+/** How near the ship a spark is drawn in to it from, unless the speed or a Magnet draws from farther. */
+export const SPARK_DRAW_REACH = 5;
+
+/** How fast a spark is drawn in to the ship. */
+export const SPARK_PULL_SPEED = 12;
+
+/** How near the pod's middle, or a bubble's in tow, a spark is as it is gathered. */
+export const SPARK_GATHER_REACH = 1.2;
+
+/** The points a spark gathered scores, before static's multiplier. */
+export const SPARK_POINTS = 5;
+
+/** How much static a spark gathered adds. */
+export const SPARK_STATIC = 1;
+
 /** The points a stray caught into the line in tow scores, before static's multiplier. */
 export const STRAY_POINTS = 500;
 

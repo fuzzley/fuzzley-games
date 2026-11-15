@@ -243,6 +243,7 @@ describe("BoardCardComponent", () => {
 
     expect(figures()).toEqual([
       ["Rocks", "100"],
+      ["Sparks", "0"],
       ["Static", "0"],
       ["Strays brought home", "0"],
       ["Wave cleared", "500"],
@@ -349,12 +350,13 @@ describe("BoardCardComponent", () => {
       detectChanges();
 
       expect(figures()).toEqual([
-        ["Rocks", "19"],
+        ["Rocks", "23"],
+        ["Sparks", "0"],
         ["Static", "0"],
         ["Strays brought home", "0"],
         ["Wave cleared", "0"],
         ["No hit taken", "0"],
-        ["Total", "19"],
+        ["Total", "23"],
       ]);
     });
 

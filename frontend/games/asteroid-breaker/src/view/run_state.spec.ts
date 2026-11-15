@@ -40,6 +40,7 @@ const CLEARED_FRAME: FrameChange = { ...QUIET, countMs: 16 };
 /** How a cleared wave's points added up. */
 const TALLY: WaveTally = {
   rocks: 400,
+  sparks: 30,
   static: 80,
   strays: 0,
   cleared: 500,

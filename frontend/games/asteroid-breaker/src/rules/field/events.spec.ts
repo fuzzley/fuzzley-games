@@ -203,6 +203,16 @@ describe("FieldEventLog", () => {
     ]);
   });
 
+  it("records a spark gathered with who gathered it, its points and static's multiplier", () => {
+    const log = new FieldEventLog();
+
+    log.addSpark(1, 2, 4, 5, 2);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "sparked", x: 1, y: 2, pilot: 4, points: 5, times: 2 }),
+    ]);
+  });
+
   it("records an event of a place with only its place", () => {
     const log = new FieldEventLog();
 

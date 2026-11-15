@@ -9,12 +9,17 @@ import {
 import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
+import { SPEED_INFO } from "../../rules/speed";
 import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
   MOST_CREW,
+  SPARK_DRAW_REACH,
+  SPARK_POINTS,
+  SPARK_STATIC,
   STATIC_HOLD_MS,
+  STATIC_MOST,
   STATIC_STEPS,
   STRAYS_FROM,
   STRAY_HOME_POINTS,
@@ -24,7 +29,8 @@ import type { Pictures } from "../../view/art/art";
 
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
-  multiplier: `Static multiplies what is scored: ${tierWords(STATIC_STEPS, "static")}. It drains after ${String(STATIC_HOLD_MS / 1000)} seconds, and a hit knocks it down a step.`,
+  sparks: `Each rock a shot or a blast breaks sheds sparks, which the ship draws in from ${String(SPARK_DRAW_REACH)} units, ${String(Math.round(SPARK_DRAW_REACH * SPEED_INFO.relaxed.sparkReach))} at ${SPEED_INFO.relaxed.name}, and the ship and those in tow gather: each scores ${String(SPARK_POINTS)} and adds ${String(SPARK_STATIC)} static, up to ${String(STATIC_MOST)}.`,
+  multiplier: `Static multiplies what is scored: ${tierWords(STATIC_STEPS, "static")}. It drains after ${String(STATIC_HOLD_MS / 1000)} seconds with no spark, and a hit knocks it down a step.`,
   strays: `A stray caught scores ${formatPoints(STRAY_POINTS)}, or ${formatPoints(STRAY_HOME_POINTS)} as it goes straight home, times static's multiplier.`,
   clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no hit was taken on it.`,
 };

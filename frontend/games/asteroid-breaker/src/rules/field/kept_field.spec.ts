@@ -104,6 +104,8 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["a pickup let go at a step that isn't a count", { lastDropAt: -1 }],
   ["static's points that aren't a count", { staticPoints: -1 }],
   ["rocks' points that aren't a count", { rockPoints: 0.5 }],
+  ["sparks' points that aren't a count", { sparkPoints: 0.5 }],
+  ["no sparks' points", { sparkPoints: undefined }],
   ["no rocks' points", { rockPoints: undefined }],
   ["strays' points that aren't a count", { strayPoints: 0.5 }],
   ["no strays' points", { strayPoints: undefined }],
@@ -195,6 +197,11 @@ const RUN_FIT_SPOILS: readonly (readonly [
   [
     "more points from the rocks and static together than its wave has",
     { rockPoints: 200, staticPoints: 101 },
+    SO_FAR,
+  ],
+  [
+    "more points from the rocks and the sparks together than its wave has",
+    { rockPoints: 200, sparkPoints: 101 },
     SO_FAR,
   ],
 ];
@@ -352,6 +359,7 @@ describe("savedField", () => {
       lastDropAt: field.lastDropAt,
       staticPoints: field.staticPoints,
       rockPoints: field.rockPoints,
+      sparkPoints: field.sparkPoints,
       strayPoints: field.strayPoints,
       hits: field.hits,
       lastSparkAt: field.charge.lastSparkAt,
@@ -565,6 +573,7 @@ describe("fitsItsRun", () => {
 
   it.each([
     ["static", { staticPoints: 300, rockPoints: 0 }],
+    ["sparks", { sparkPoints: 300, rockPoints: 0 }],
     ["rocks", { rockPoints: 300 }],
   ])("fits a field whose %s scored every point on its wave", (_, change) => {
     expect(fitsItsRun({ ...kept(), ...change }, SO_FAR)).toBe(true);
@@ -661,7 +670,8 @@ describe("layOutKeptField", () => {
       nextCometAt: 900,
       lastDropAt: 60,
       staticPoints: 80,
-      rockPoints: 120,
+      rockPoints: 100,
+      sparkPoints: 20,
       strayPoints: STRAY_POINTS,
       hits: 1,
       lastSparkAt: 100,

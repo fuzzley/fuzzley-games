@@ -2808,6 +2808,12 @@ const EVERY_EVENT: Readonly<
     },
     [],
   ],
+  sparked: [
+    (field) => {
+      field.events.addSpark(30, 20, 0, 10, 1);
+    },
+    [],
+  ],
   stepped: [
     (field) => {
       field.events.addStep(30, 20, 1, false);

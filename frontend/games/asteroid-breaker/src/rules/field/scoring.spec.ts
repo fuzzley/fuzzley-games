@@ -15,12 +15,13 @@ import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   MOST_CREW,
+  SPARK_POINTS,
   STATIC_STEPS,
   STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../tuning";
 import { type Field, stepField } from "./field";
-import { clearingPoints, scoreStray, tallyOf } from "./scoring";
+import { clearingPoints, scoreSpark, scoreStray, tallyOf } from "./scoring";
 
 /** A small stone's points. */
 const SMALL = pointsFor("stone", "small");
@@ -244,6 +245,51 @@ describe("a run over", () => {
   });
 });
 
+describe("scoreSpark", () => {
+  it("scores a spark its points times static's multiplier, its own among the sparks' and what static added among static's", () => {
+    const field = fieldFrom(SHIP_PICTURE, { charge: FIRST_STEP.from });
+
+    const scored = scoreSpark(field, 10, 12, 3);
+
+    expect({
+      scored,
+      score: field.score,
+      sparks: field.sparkPoints,
+      added: field.staticPoints,
+    }).toEqual({
+      scored: true,
+      score: SPARK_POINTS * FIRST_STEP.times,
+      sparks: SPARK_POINTS,
+      added: SPARK_POINTS * (FIRST_STEP.times - 1),
+    });
+  });
+
+  it("logs the spark at its place with the pilot who gathered it, its points and the multiplier", () => {
+    const field = fieldFrom(SHIP_PICTURE, { charge: FIRST_STEP.from });
+
+    scoreSpark(field, 10, 12, 3);
+
+    expect(loggedOn(field)).toEqual([
+      expect.objectContaining({
+        kind: "sparked",
+        x: 10,
+        y: 12,
+        pilot: 3,
+        points: SPARK_POINTS,
+        times: FIRST_STEP.times,
+      }),
+    ]);
+  });
+
+  it("scores and logs nothing once the run is over", () => {
+    const field = fieldFrom(SHIP_PICTURE, { crew: crewOf(null) });
+
+    const scored = scoreSpark(field, 10, 12, 3);
+
+    expect([scored, field.score, loggedOn(field)]).toEqual([false, 0, []]);
+  });
+});
+
 describe("tallyOf", () => {
   /** A picture of the ship and a row of small stones below it. */
   const PICTURE = ["", ".........^", "", "", "SSS"];
@@ -260,6 +306,7 @@ describe("tallyOf", () => {
 
     expect(tallyOf(field)).toEqual({
       rocks: SMALL * 3,
+      sparks: 0,
       static: SMALL * 3 * (FIRST_STEP.times - 1),
       strays: STRAY_POINTS,
       cleared: CLEAR_POINTS,
@@ -280,6 +327,7 @@ describe("tallyOf", () => {
     expect([tallyOf(field), field.score]).toEqual([
       {
         rocks,
+        sparks: 0,
         static: added,
         strays: STRAY_POINTS,
         cleared: CLEAR_POINTS,
@@ -287,6 +335,17 @@ describe("tallyOf", () => {
       },
       rocks + added + STRAY_POINTS + CLEAR_POINTS + CLEAN_POINTS,
     ]);
+  });
+
+  it("counts the sparks' own points apart, and what static added to them among static's", () => {
+    const field = fieldFrom(SHIP_PICTURE, { charge: FIRST_STEP.from });
+    scoreSpark(field, 10, 12, 3);
+    scoreSpark(field, 10, 12, 3);
+
+    expect(tallyOf(field)).toMatchObject({
+      sparks: SPARK_POINTS * 2,
+      static: SPARK_POINTS * 2 * (FIRST_STEP.times - 1),
+    });
   });
 
   it("counts no clean wave's points for one that took a hit", () => {
@@ -298,6 +357,7 @@ describe("tallyOf", () => {
 
     expect(tallyOf(field)).toEqual({
       rocks: SMALL,
+      sparks: 0,
       static: 0,
       strays: 0,
       cleared: CLEAR_POINTS,

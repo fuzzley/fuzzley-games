@@ -48,11 +48,11 @@ describe("HelpComponent", () => {
     ]);
   });
 
-  it("says how static, a stray and a clearing add up, from the tuning", async () => {
+  it("says how sparks, static, a stray and a clearing add up, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "Static multiplies what is scored: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. It drains after 2 seconds, and a hit knocks it down a step. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
+      "Each rock a shot or a blast breaks sheds sparks, which the ship draws in from 5 units, 8 at Relaxed, and the ship and those in tow gather: each scores 5 and adds 1 static, up to 40. Static multiplies what is scored: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. It drains after 2 seconds with no spark, and a hit knocks it down a step. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
     );
   });
 

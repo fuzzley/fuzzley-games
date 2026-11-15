@@ -150,13 +150,14 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
-  or as its blast goes off. A step rule acts on the rock alone, seeing only
-  the course it flies by (`CourseField`), since the layout flies a copy of
-  a rock ahead by it. What a trait leaves on a rock between steps,
-  such as a blast's fuse, is kept by the saved game (`KEPT_OF_ROCK`,
-  `src/rules/field/kept_field.ts`), with the check its kept value must pass
-  in `ROCK_CHECKS`, which the compiler asks for, and its round trip must
-  reach it.
+  or as its blast goes off; one another part reads, as the pickups read
+  `gives` and the sparks `sheds`, has an empty rule. A step rule acts on
+  the rock alone, seeing only the course it flies by (`CourseField`), since
+  the layout flies a copy of a rock ahead by it. What a trait leaves on a
+  rock between steps, such as a blast's fuse, is kept by the saved game
+  (`KEPT_OF_ROCK`, `src/rules/field/kept_field.ts`), with the check its
+  kept value must pass in `ROCK_CHECKS`, which the compiler asks for, and
+  its round trip must reach it.
 
 ## A Pickup or an Effect
 

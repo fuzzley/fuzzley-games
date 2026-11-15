@@ -19,6 +19,7 @@ import {
   drainStatic,
   knockStaticDown,
   multiplierOf,
+  raiseStatic,
   stepOf,
 } from "./charge";
 
@@ -70,6 +71,36 @@ describe("multiplierOf", () => {
     [STATIC_MOST, 4],
   ])("scores static at %i %i times", (level, times) => {
     expect(multiplierOf(level)).toBe(times);
+  });
+});
+
+describe("raiseStatic", () => {
+  it("raises static by an amount, holding it from the step", () => {
+    const field = fieldAt(5);
+    field.steps = 300;
+
+    raiseStatic(field, 1);
+
+    expect(field.charge).toEqual({ level: 6, lastSparkAt: 300 });
+  });
+
+  it("logs static rising to a step at the ship", () => {
+    const field = fieldAt(9);
+
+    raiseStatic(field, 1);
+
+    expect(stepsLoggedOn(field)).toEqual([{ step: 1, fell: false }]);
+  });
+
+  it("raises static no higher than its most, full", () => {
+    const field = fieldAt(STATIC_MOST - 0.5);
+
+    raiseStatic(field, 2);
+
+    expect([field.charge.level, stepsLoggedOn(field)]).toEqual([
+      STATIC_MOST,
+      [{ step: FULL_STEP, fell: false }],
+    ]);
   });
 });
 

@@ -40,7 +40,13 @@ export type RockTrait =
       readonly pull: number;
     }
   /** Rings a shot off that doesn't break it. */
-  | { readonly kind: "rings" };
+  | { readonly kind: "rings" }
+  /** Sheds more sparks as it breaks than its size does. */
+  | {
+      readonly kind: "sheds";
+      /** How many more. */
+      readonly sparks: number;
+    };
 
 /** A rock trait's kind, such as "blasts". */
 export type RockTraitKind = RockTrait["kind"];
@@ -90,12 +96,13 @@ export const ROCK_KINDS = {
   },
   crystal: {
     name: "Crystal",
-    about: "Always lets a pickup go, and breaks into two stones.",
+    about:
+      "Always lets a pickup go, sheds two more sparks, and breaks into two stones.",
     hits: { large: 1, medium: 1 },
     splits: { into: "stone", count: 2 },
     speed: 1,
     points: { large: 20, medium: 40 },
-    traits: [{ kind: "gives" }],
+    traits: [{ kind: "gives" }, { kind: "sheds", sparks: 2 }],
   },
   ice: {
     name: "Ice",

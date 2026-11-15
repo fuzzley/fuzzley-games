@@ -78,6 +78,7 @@ function sceneField(): Field {
     cometEvery: null,
     crew: createCrew(),
     charge: 0,
+    sparkReach: 1,
   });
 }
 

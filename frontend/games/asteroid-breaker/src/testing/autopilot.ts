@@ -231,8 +231,9 @@ export function playField(
 
 /** Returns whether a cleared wave's tally adds up to its score. */
 function addsUp(field: Field): boolean {
-  const { rocks, static: added, strays, cleared, clean } = tallyOf(field);
-  return rocks + added + strays + cleared + clean === field.score;
+  const tally = tallyOf(field);
+  const { rocks, sparks, static: added, strays, cleared, clean } = tally;
+  return rocks + sparks + added + strays + cleared + clean === field.score;
 }
 
 /** Returns whether a comet is warned of, waiting off its edge to cross. */

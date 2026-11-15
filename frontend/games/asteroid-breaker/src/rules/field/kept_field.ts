@@ -91,8 +91,8 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
  * points run by, and the pilot's static.
  *
  * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
- * the comets on their way, the pickups, the shots and the effects in play
- * go.
+ * the comets on their way, the pickups, the sparks, the shots and the
+ * effects in play go.
  */
 export interface SavedField {
   /**
@@ -118,6 +118,8 @@ export interface SavedField {
   readonly staticPoints: number;
   /** The rocks' own points among the wave's, for its tally. */
   readonly rockPoints: number;
+  /** The sparks' own points among the wave's, for its tally. */
+  readonly sparkPoints: number;
   /** The strays' own points among the wave's, for its tally. */
   readonly strayPoints: number;
   /** How many hits the ship has taken, which a clean wave has none of. */
@@ -138,6 +140,7 @@ const KEPT_COUNTS = [
   "lastDropAt",
   "staticPoints",
   "rockPoints",
+  "sparkPoints",
   "strayPoints",
   "hits",
   "lastSparkAt",
@@ -159,6 +162,7 @@ export type SavableField = Pick<
   | "lastDropAt"
   | "staticPoints"
   | "rockPoints"
+  | "sparkPoints"
   | "strayPoints"
   | "hits"
   | "charge"
@@ -195,6 +199,7 @@ export function savedField(field: SavableField): SavedField {
     lastDropAt: field.lastDropAt,
     staticPoints: field.staticPoints,
     rockPoints: field.rockPoints,
+    sparkPoints: field.sparkPoints,
     strayPoints: field.strayPoints,
     hits: field.hits,
     lastSparkAt: field.charge.lastSparkAt,
@@ -304,21 +309,21 @@ export function fitsItsWave(
  * Returns whether a field kept agrees with what its run has scored on its
  * wave: no more strays brought home than it has sent, the strays' own
  * points what those strays score, each joining the line or going straight
- * home, and its points, the rocks', static's and the strays', adding up to
- * the wave's.
+ * home, and its points, the rocks', the sparks', static's and the strays',
+ * adding up to the wave's.
  */
 export function fitsItsRun(
   field: Pick<
     SavedField,
-    "straysSent" | "staticPoints" | "rockPoints" | "strayPoints"
+    "straysSent" | "staticPoints" | "rockPoints" | "sparkPoints" | "strayPoints"
   >,
   { points, straysHome }: WaveSoFar,
 ): boolean {
-  const { staticPoints, rockPoints, strayPoints } = field;
+  const { staticPoints, rockPoints, sparkPoints, strayPoints } = field;
   return (
     straysHome <= field.straysSent &&
     isStrayPoints(strayPoints, straysHome) &&
-    rockPoints + staticPoints + strayPoints === points
+    rockPoints + sparkPoints + staticPoints + strayPoints === points
   );
 }
 
@@ -411,6 +416,7 @@ export function layOutKeptField(
   field.score = soFar.points;
   field.staticPoints = saved.staticPoints;
   field.rockPoints = saved.rockPoints;
+  field.sparkPoints = saved.sparkPoints;
   field.strayPoints = saved.strayPoints;
   field.hits = saved.hits;
   field.charge.level = saved.charge;

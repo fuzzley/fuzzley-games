@@ -386,6 +386,7 @@ describe("RunFrames", () => {
 
       expect(tally).toEqual({
         rocks: pointsFor("stone", "small"),
+        sparks: 0,
         static: 0,
         strays: 0,
         cleared: CLEAR_POINTS,
