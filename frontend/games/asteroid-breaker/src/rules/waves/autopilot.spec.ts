@@ -1,5 +1,6 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import { TURN } from "../angles";
 import { waveToPlay } from "./endless";
 import {
   ENDLESS_PLAYED,
@@ -12,6 +13,7 @@ import {
 import {
   fieldFrom,
   placeComet,
+  placeLoose,
   placePickup,
   placeRock,
   placeStray,
@@ -23,7 +25,8 @@ import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { STILL, type Steer } from "../ship/ship";
 import { SPEEDS } from "../speed";
-import { SHOT_SPEED, STRAY_SPEED, TOP_SPEED } from "../tuning";
+import { stepsIn } from "../stepper";
+import { LOOSE_LIFE_MS, SHOT_SPEED, STRAY_SPEED, TOP_SPEED } from "../tuning";
 import {
   type SectorData,
   type Wave,
@@ -63,13 +66,20 @@ const SHIP_ALONE: readonly string[] = ["", "", "", "", "....^"];
 /** A crew of the one ship in play. */
 const ONE_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 0 };
 
+/** A crew of the pilot at the controls and one in tow. */
+const ONE_IN_TOW: Crew = { pilot: 0, tow: [1], home: [], lastGiven: 1 };
+
+/** The steps one knocked loose is out before it floats home. */
+const LOOSE_LIFE_STEPS = stepsIn(LOOSE_LIFE_MS);
+
 /**
- * Returns a field of one large rock and a crew of a pilot with no one in
- * tow, whose run a comet crossing it ends at the first step, unless
+ * Returns a field of one large rock and a crew, by default of a pilot with
+ * no one in tow, which a comet crossing it hits at the first step, knocking
+ * the last in tow loose or, with no one in tow, ending its run, unless
  * something guards it: the ship can't dash yet, which would carry it clear.
  */
-function doomedField(): Field {
-  const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)], { crew: ONE_SHIP });
+function doomedField(crew: Crew = ONE_SHIP): Field {
+  const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)], { crew });
   const ship = shipOf(field);
   ship.rechargeSteps = 120;
   placeComet(field, ship.x, ship.y);
@@ -162,6 +172,33 @@ describe("the autopilot", () => {
     const report = playField(field, { limit: 120, invulnerable: true });
 
     expect(report.hits).toBe(0);
+  });
+
+  it("counts the crew its hits knock loose and those that float home uncaught", () => {
+    const field = doomedField(ONE_IN_TOW);
+    placeLoose(field, 50, 30).knockedAt = field.steps + 1 - LOOSE_LIFE_STEPS;
+
+    const report = playField(field, { untilStep: 1 });
+
+    expect(report).toMatchObject({ hits: 1, knocked: 1, floated: 1 });
+  });
+
+  it("counts none floated home as the hit that ends its run floats them", () => {
+    const field = doomedField();
+    placeLoose(field, 50, 30);
+
+    const report = playField(field);
+
+    expect(report).toMatchObject({ hits: 1, knocked: 0, floated: 0 });
+  });
+
+  it("catches one of the crew knocked loose again, before the wave is cleared", () => {
+    const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)]);
+    placeLoose(field, 18, 10);
+
+    playField(field, { untilStep: 120 });
+
+    expect([field.cleared, field.crew.tow]).toEqual([false, [1, 2, 6]]);
   });
 
   it("ends a wave held still for a first move that never comes at its limit", () => {
@@ -489,6 +526,49 @@ describe("a frame of the autopilot's", () => {
       1,
     ]);
   });
+
+  it("heads for where one of the crew knocked loose will be as it reaches it at its top speed", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    placeLoose(field, 18, 6);
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.thrust]).toEqual([
+      expect.closeTo(Math.atan2(-12, STRAY_SPEED * (12 / TOP_SPEED))),
+      1,
+    ]);
+  });
+
+  it("heads for one of the crew knocked loose before a stray adrift", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    placeStray(field, 6, 18, TURN / 4);
+    placeLoose(field, 18, 6);
+
+    const steer = steerOf(field);
+
+    expect(steer.heading).toBeCloseTo(
+      Math.atan2(-12, STRAY_SPEED * (12 / TOP_SPEED)),
+    );
+  });
+
+  it.each([
+    ["it has no time to reach before it floats home", 1, [1, 2]],
+    ["the line in tow has no room for", LOOSE_LIFE_STEPS, [1, 2, 3, 4, 5]],
+  ])(
+    "heads for a stray adrift past one of the crew knocked loose %s",
+    (_, stepsLeft, tow) => {
+      const field = fieldFrom(SHIP_ALONE, { crew: { ...ONE_IN_TOW, tow } });
+      placeStray(field, 6, 18, TURN / 4);
+      placeLoose(field, 18, 6).knockedAt =
+        field.steps + stepsLeft - LOOSE_LIFE_STEPS;
+
+      const steer = steerOf(field);
+
+      expect(steer.heading).toBeCloseTo(
+        Math.atan2(STRAY_SPEED * (12 / TOP_SPEED), -12),
+      );
+    },
+  );
 
   it("chases a pickup against its own drift", () => {
     const field = fieldFrom(SHIP_ALONE);

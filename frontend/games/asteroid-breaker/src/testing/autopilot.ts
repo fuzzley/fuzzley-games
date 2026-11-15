@@ -12,7 +12,9 @@ import {
 } from "../rules/field/field";
 import { tallyOf } from "../rules/field/scoring";
 import type { Comet } from "../rules/hazards/comets";
+import { type Loose, stepsLeftOf } from "../rules/hazards/loose";
 import { createCrew } from "../rules/ship/pilots";
+import { hasRoomInTow } from "../rules/ship/tow";
 import { rockHitRadius } from "../rules/rocks/rocks";
 import { STILL, type Ship, type Steer, guardShip } from "../rules/ship/ship";
 import type { Speed } from "../rules/speed";
@@ -95,6 +97,10 @@ export interface AutopilotReport {
   readonly steps: number;
   /** The hits its ship took, the Shield's but none, the last ending the run once no one was in tow. */
   readonly hits: number;
+  /** The crew its hits knocked loose. */
+  readonly knocked: number;
+  /** The crew knocked loose that floated home, out of the run, while the run went on. */
+  readonly floated: number;
   /** The strays the wave sent across the field. */
   readonly straysSent: number;
   /** The strays it brought home. */
@@ -179,6 +185,8 @@ export function playField(
   const { limit = AUTOPILOT_LIMIT, untilStep = Infinity } = options;
   const steer: Steer = { ...STILL };
   let caught = 0;
+  let knocked = 0;
+  let floated = 0;
   let cometsCrossed = 0;
   const warned = field.comets.slots.map(isWarned);
   let seen = field.events.latest;
@@ -195,6 +203,8 @@ export function playField(
     stepField(field);
     field.events.forEachSince(seen, (event) => {
       if (event.kind === "caught") caught++;
+      if (event.kind === "knocked") knocked++;
+      if (event.kind === "floated" && !event.runOver) floated++;
     });
     seen = field.events.latest;
     for (const [slot, comet] of field.comets.slots.entries()) {
@@ -208,6 +218,8 @@ export function playField(
     cleared,
     steps: field.steps,
     hits: field.hits,
+    knocked,
+    floated,
     straysSent: field.strays.sent,
     straysHome: field.strays.broughtHome,
     caught,
@@ -256,11 +268,12 @@ function hasPilot(field: Field): boolean {
  * Steers a field's ship for a frame, writing the steering into the record
  * the frame before wrote: it flees a rock or a comet whose course comes
  * near the ship, dashing when one is about to meet it; else catches the
- * stray adrift, or the pickup it has time for; else turns toward the rock
- * it can hit soonest, leading it, and closes on it beyond its shots' reach,
- * but waits for one nearly as fast as the ship to come round the field,
- * by the row or the column it runs along if it runs along one. Whichever
- * it does, it fires once lined up with that rock.
+ * one of the crew knocked loose it has time and room in tow for, the stray
+ * adrift, or the pickup it has time for; else turns toward the rock it can
+ * hit soonest, leading it, and closes on it beyond its shots' reach, but
+ * waits for one nearly as fast as the ship to come round the field, by the
+ * row or the column it runs along if it runs along one. Whichever it does,
+ * it fires once lined up with that rock.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;
@@ -501,10 +514,14 @@ interface Goal extends Place {
 }
 
 /**
- * Returns the stray adrift, or the pickup floating that the ship can reach
- * soonest before it fades, for the ship to catch, or null for neither.
+ * Returns what the ship catches: the one of the crew knocked loose it can
+ * reach soonest before it floats home, with room in tow for it, else the
+ * stray adrift, else the pickup floating it can reach soonest before it
+ * fades, or null for none.
  */
 function goalOf(field: Field, ship: Readonly<Ship>): Goal | null {
+  const loose = looseToCatch(field, ship);
+  if (loose) return loose;
   const { adrift } = field.strays;
   if (adrift.live) {
     return {
@@ -525,6 +542,33 @@ function goalOf(field: Field, ship: Readonly<Ship>): Goal | null {
     }
   }
   return best;
+}
+
+/**
+ * Returns the one of the crew knocked loose the ship can reach soonest,
+ * at its top speed, before it floats home, or null for none, or with the
+ * line in tow full, when one caught floats home all the same.
+ */
+function looseToCatch(field: Field, ship: Readonly<Ship>): Goal | null {
+  if (!hasRoomInTow(field)) return null;
+  let best: Readonly<Loose> | null = null;
+  let soonest = Infinity;
+  for (const loose of field.loose) {
+    if (!loose.live) continue;
+    const reach = distanceTo(field.torus, ship, loose) / TOP_SPEED;
+    const left = stepsLeftOf(loose, field.steps) * STEP_S;
+    if (reach < left && reach < soonest) {
+      best = loose;
+      soonest = reach;
+    }
+  }
+  if (!best) return null;
+  return {
+    x: best.x,
+    y: best.y,
+    vx: best.wayX * best.speed,
+    vy: best.wayY * best.speed,
+  };
 }
 
 /**

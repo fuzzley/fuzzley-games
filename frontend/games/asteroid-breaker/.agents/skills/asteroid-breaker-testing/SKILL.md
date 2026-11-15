@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -104,8 +104,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   kind, the chance of a pickup and the pool, the strays and the comets, and
   the crew, a run's first unless given. `KEEPER` is a picture of one large
   rock, so a wave doesn't clear while a spec plays on.
-- `placeRock()`, `placePickup()`, `catchOn()`, `placeStray()` and
-  `placeComet()` put more on a field; `stepTimes(field, n)` steps it;
+- `placeRock()`, `placePickup()`, `catchOn()`, `placeStray()`,
+  `placeLoose()` and `placeComet()` put more on a field, `placeLoose()`
+  leaving the crew as it is; `stepTimes(field, n)` steps it;
   `shipOf()`, `wholeRocks()`, `floatingPickups()`, `loggedOn()` and
   `kindsLoggedOn()` read it back, and `speedOf()` how fast a rock, the ship, a
   shot or a pickup on it flies.

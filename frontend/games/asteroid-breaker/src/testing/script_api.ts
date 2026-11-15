@@ -38,8 +38,10 @@ export interface WavePlayed {
   readonly cleared: boolean;
   /** The steps the wave ran. */
   readonly steps: number;
-  /** The hits its ship took, the last ending the run once no one was in tow. */
-  readonly hits: number;
+  /** The crew its hits knocked loose. */
+  readonly knocked: number;
+  /** The crew knocked loose that floated home, out of the run, while the run went on. */
+  readonly floated: number;
   /** The strays the wave sent across the field. */
   readonly straysSent: number;
   /** The strays it brought home. */

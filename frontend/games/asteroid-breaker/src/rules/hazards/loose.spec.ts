@@ -28,6 +28,7 @@ import {
   knockLastLoose,
   loosePilots,
   stepLoose,
+  stepsLeftOf,
   takeAllBack,
   withLooseGoneHome,
 } from "./loose";
@@ -346,6 +347,18 @@ describe("stepLoose", () => {
     stepOn(field);
 
     expect(loose.y).toBeGreaterThan(SHIP_Y + field.pullReach + 1);
+  });
+});
+
+describe("stepsLeftOf", () => {
+  it.each([
+    ["all its life as it is knocked loose", 0, stepsIn(LOOSE_LIFE_MS)],
+    ["fewer as it ages", 100, stepsIn(LOOSE_LIFE_MS) - 100],
+    ["none once it is due to float home", stepsIn(LOOSE_LIFE_MS), 0],
+  ])("gives one knocked loose %s", (_, age, left) => {
+    const [field, loose] = knocked();
+
+    expect(stepsLeftOf(loose, field.steps + age)).toBe(left);
   });
 });
 
