@@ -54,7 +54,6 @@ import {
   type Streak,
   breakOf,
   dustAt,
-  energyOf,
   glintAt,
   impactOf,
   impactTickAt,
@@ -66,6 +65,7 @@ import {
   towardShip,
   wholeAt,
 } from "../view/art/breaks";
+import { energyOf } from "../view/art/energy";
 import {
   PEN_STEPS,
   POINTS_TEXT,

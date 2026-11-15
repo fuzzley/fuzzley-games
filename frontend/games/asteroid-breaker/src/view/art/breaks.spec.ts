@@ -25,7 +25,6 @@ import {
   type Tick,
   breakOf,
   dustAt,
-  energyOf,
   glintAt,
   impactFlashAt,
   impactOf,
@@ -43,6 +42,7 @@ import {
   towardShip,
   wholeAt,
 } from "./breaks";
+import { energyOf } from "./energy";
 import { FIRST_SEED, rockShape, sizesOf } from "./rock_art";
 import { litBy } from "./rocks/light";
 import { type RockShape, makeRock } from "./rocks/rock_shape";
@@ -1022,22 +1022,6 @@ describe("sparkAt() and tickAt()", () => {
       expect.closeTo(from, 9),
       0.14 * ART_SCALE.unit,
     ]);
-  });
-});
-
-describe("energyOf()", () => {
-  it("lifts a color nearly to white for its middle on a dark field", () => {
-    expect(energyOf(0x804020, DARK)).toEqual({
-      hot: mixTone(0x804020, 0xffffff, 0.82),
-      body: mixTone(0x804020, 0xffffff, 0.22),
-    });
-  });
-
-  it("sinks it toward the field's text for its middle on a light field, its body its own", () => {
-    expect(energyOf(0x804020, ART_PALETTE)).toEqual({
-      hot: mixTone(0x804020, ART_PALETTE.shot, 0.45),
-      body: 0x804020,
-    });
   });
 });
 

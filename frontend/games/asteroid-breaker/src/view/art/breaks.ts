@@ -27,6 +27,7 @@ import {
   rockColor,
   rockShape,
 } from "./rock_art";
+import type { Energy } from "./energy";
 import type { Facet, Part } from "./rocks/cut";
 import { litBy } from "./rocks/light";
 import type { RockShape } from "./rocks/rock_shape";
@@ -717,33 +718,6 @@ export function roundOf(
     if (radius * round.sag <= most) return round;
   }
   return FINEST_ROUND;
-}
-
-/** Describes the tones something that gives off light is drawn in: its bright middle and its body. */
-export interface Energy {
-  /** Near white on a dark field, and its densest ink on a light one. */
-  readonly hot: number;
-  /** Its own color, a little lifted on a dark field. */
-  readonly body: number;
-}
-
-/**
- * Returns the tones something of a color that gives off light is drawn in.
- * On a dark field its middle is the color lifted nearly to white; a light
- * field is already the brightest thing there is, so there its middle is
- * the color's densest ink, mixed toward the field's text, as the shots
- * are drawn in: ink on paper.
- */
-export function energyOf(
-  color: number,
-  palette: Pick<BeltPalette, "mode" | "shot">,
-): Energy {
-  return palette.mode === "light"
-    ? { hot: mixTone(color, palette.shot, 0.45), body: color }
-    : {
-        hot: mixTone(color, 0xffffff, 0.82),
-        body: mixTone(color, 0xffffff, 0.22),
-      };
 }
 
 /** Returns a share that rises to 1 at a peak and falls back, for a thing that shows and goes. */

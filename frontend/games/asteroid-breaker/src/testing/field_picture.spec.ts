@@ -1,7 +1,11 @@
+import { stepsIn } from "../rules/stepper";
+import { SHOT_LIFE_MS, SHOT_SPEED } from "../rules/tuning";
 import {
   CELL,
+  KEEPER,
   PICTURE_TORUS,
   fieldFrom,
+  placeShot,
   shipOf,
   wholeRocks,
 } from "./field_picture";
@@ -42,5 +46,36 @@ describe("fieldFrom", () => {
 
   it("refuses a rock of a kind that doesn't come in its size", () => {
     expect(() => fieldFrom(["S"], { kind: "crystal" })).toThrow(RangeError);
+  });
+});
+
+describe("placeShot", () => {
+  it("puts a shot of a weapon in flight in the first free slot, where it says, heading its way at a shot's speed", () => {
+    const field = fieldFrom(KEEPER);
+
+    const shot = placeShot(field, "lance", 30, 20, Math.PI / 2);
+
+    expect([
+      field.shots.slots.indexOf(shot),
+      shot.weapon,
+      [shot.x, shot.y, shot.lastX, shot.lastY],
+      [shot.vx, shot.vy].map((speed) => Math.round(speed * 1e9) / 1e9 + 0),
+      shot.lifeSteps,
+    ]).toEqual([
+      0,
+      "lance",
+      [30, 20, 30, 20],
+      [0, SHOT_SPEED],
+      stepsIn(SHOT_LIFE_MS),
+    ]);
+  });
+
+  it("puts the next in the slot after it", () => {
+    const field = fieldFrom(KEEPER);
+    placeShot(field, "gun", 10, 10);
+
+    const shot = placeShot(field, "gun", 20, 10);
+
+    expect(field.shots.slots.indexOf(shot)).toBe(1);
   });
 });

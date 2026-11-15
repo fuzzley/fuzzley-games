@@ -1,5 +1,6 @@
 import type { PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
+import type { WeaponId } from "../rules/catalog/weapons";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
 import { type Field, createField, stepField } from "../rules/field/field";
 import type { Comet } from "../rules/hazards/comets";
@@ -9,6 +10,7 @@ import type { Floating } from "../rules/rocks/drops";
 import { type Rock, addRock } from "../rules/rocks/rocks";
 import { type Crew, type Pilot, createCrew } from "../rules/ship/pilots";
 import { STILL, type Ship, createShip } from "../rules/ship/ship";
+import type { Shot } from "../rules/ship/shots";
 import type { Spark } from "../rules/sparks/sparks";
 import { layTow } from "../rules/ship/tow";
 import { stepsIn } from "../rules/stepper";
@@ -18,6 +20,8 @@ import {
   PICKUPS_AT_ONCE,
   PICKUP_LIFE_MS,
   ROCK_CAP,
+  SHOT_LIFE_MS,
+  SHOT_SPEED,
   STRAY_FIRST_MS,
   STRAY_SPEED,
   type Span,
@@ -163,6 +167,33 @@ export function placeRock(
   rock.vx = 0;
   rock.vy = 0;
   return rock;
+}
+
+/**
+ * Puts a shot of a weapon in flight on a field, in its first free slot, at
+ * a place, heading a way, in radians, at a shot's speed, with a shot's life
+ * ahead of it.
+ */
+export function placeShot(
+  field: Field,
+  weapon: WeaponId,
+  x: number,
+  y: number,
+  heading = 0,
+): Shot {
+  const shot = field.shots.slots.find((each) => each.lifeSteps === 0);
+  if (!shot) throw new Error("No slot was free for the shot.");
+  Object.assign(shot, {
+    x,
+    y,
+    lastX: x,
+    lastY: y,
+    vx: Math.cos(heading) * SHOT_SPEED,
+    vy: Math.sin(heading) * SHOT_SPEED,
+    weapon,
+    lifeSteps: stepsIn(SHOT_LIFE_MS),
+  });
+  return shot;
 }
 
 /** Returns the field's ship, failing the spec if it has none. */
