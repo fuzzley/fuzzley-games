@@ -66,6 +66,12 @@ describe("wallPalette", () => {
     ]);
   });
 
+  it("lays the gauge's plate in the band's wash, as the lintel is, rimmed in three fifths of the field's muted text over the field", () => {
+    const palette = wallPalette(ROLES, "light");
+
+    expect(palette.gauge).toEqual({ plate: palette.band, rim: 0xa7a7a7 });
+  });
+
   it("mixes steel from three fifths of the field's text over the field", () => {
     expect(wallPalette(ROLES, "light").steel).toBe(STEEL);
   });

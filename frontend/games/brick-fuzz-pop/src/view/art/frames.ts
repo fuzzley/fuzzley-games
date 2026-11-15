@@ -76,6 +76,10 @@ export const FRAMES = {
   /** A dot of the guide, and its outline of a brick the shot would punch through. */
   guideDot: "guide-dot",
   guidePunch: "guide-punch",
+  /** The plate of the gauge over an aiming finger, an arc about the touch, and a pip of it, lit or not. */
+  gaugePlate: "gauge-plate",
+  gaugeOn: "gauge-on",
+  gaugeOff: "gauge-off",
 } as const;
 
 /** A frame's name, such as "tile-3" or "steel". */
@@ -143,4 +147,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   FRAMES.meterOff,
   FRAMES.guideDot,
   FRAMES.guidePunch,
+  FRAMES.gaugePlate,
+  FRAMES.gaugeOn,
+  FRAMES.gaugeOff,
 ];

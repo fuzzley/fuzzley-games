@@ -27,9 +27,11 @@ function between(one: number, other: number): number {
 // every ink they are cut from, a fuzzball's eyes against each fuzzball. A
 // friend keeps 3:1 against the bar, where the crew waits, and against a
 // cage's inside, where it waits to be freed; and the fuzzball and its meter,
-// which wait on the floor, against the floor's band. The lintel's count of
-// the rows waiting, the board's text in the field's, keeps 4.5:1, the bar
-// for text, against the lintel, in the band's ink.
+// which wait on the floor, against the floor's band. The gauge over an
+// aiming finger shows the meter's pips again on a plate of its own, so its
+// lit pips and its unlit pips' rim keep 3:1 against the plate. The lintel's
+// count of the rows waiting, the board's text in the field's, keeps 4.5:1,
+// the bar for text, against the lintel, in the band's ink.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = wallPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -138,6 +140,18 @@ describe("the field's contrast", () => {
       "keeps the %s at 3:1 or more against the floor's band",
       (_, color) => {
         expect(between(color, palette.band)).toBeGreaterThanOrEqual(GRAPHIC);
+      },
+    );
+
+    it.each([
+      ["lit pips", palette.meter.on],
+      ["unlit pips' rim", palette.meter.off],
+    ] as const)(
+      "keeps the gauge's %s at 3:1 or more against its plate",
+      (_, color) => {
+        expect(between(color, palette.gauge.plate)).toBeGreaterThanOrEqual(
+          GRAPHIC,
+        );
       },
     );
 
