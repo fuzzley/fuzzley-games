@@ -285,18 +285,18 @@ take the pure ones.
   by the name the mix gives it, its takes in turn, named as `takeMarkers()`
   names them, which it checks the sprite holds as it is made; a noisy
   sound at a busy level varied; a play given a place across the field
-  (`play()`'s `across`, or `playAt()`, made once as `playRisen()` is)
-  panned; the voices of a sound, of its family and in all held to `VOICES`,
-  one of another sound that gives way stopped; a `tick` or `small` sound
-  played under a `huge` one ducked, by the lower of the last two ducks'
-  gains; and a held sound by its first take, neither varied nor ducked. A
-  mixed play starts from its marker's own config, every key of it reset,
-  whatever the last play's was. With a mix it puts a limiter between the
-  game's master volume and its speakers (`src/sound/output.ts`'s
-  `limitSound()`, set as `LIMITER` says), once for the game, and
-  `followMono()` sums the two ears into one, or lets them be two
-  (`playMono()`, the speakers taking one channel), each only where the game
-  plays through Web Audio, which the headless game doesn't. Beside it,
+  (`play()`'s `across`, or `playAt()`, made once as `playRisen()` is,
+  which takes a volume too) panned; the voices of a sound, of its family
+  and in all held to `VOICES`, one of another sound that gives way
+  stopped; a `tick` or `small` sound played under a `huge` one ducked, by
+  the lower of the last two ducks' gains; and a held sound by its first
+  take, neither varied nor ducked. A mixed play starts from its marker's own
+  config, every key of it reset, whatever the last play's was. With a mix it
+  puts a limiter between the game's master volume and its speakers
+  (`src/sound/output.ts`'s `limitSound()`, set as `LIMITER` says), once for
+  the game, and `followMono()` sums the two ears into one, or lets them be
+  two (`playMono()`, the speakers taking one channel), each only where the
+  game plays through Web Audio, which the headless game doesn't. Beside it,
   `LayerPlayer` plays looped layers of sound, such as a sector's bed and
   the layers that join it, each a `SoundLayer` (a key, a URL or several,
   and a volume): made in `create()`, it asks for a layer's file the first

@@ -376,19 +376,30 @@ takes for the specs' helpers.
   whether it is tuned, its family's (`SOUNDS`, the mix the scene hands its
   player, and `SoundTake`, a take's name in the sprite), which sound each
   event plays (`soundOf()`), a rock's break by its kind and size, a catch by
-  its pickup, a pull of fire by its weapon, how far a broken rock's sound
-  rises along a chain (`detuneOf()`), and `createFrameSounds()`,
-  `@fz/core/frame_sounds`'s `FrameSounds` of them, which plays each sound
-  once a frame at most, at the highest it was heard; the thrust's hum
-  (`THRUST`) is one of them, which no event plays, and so is each sound no
-  event plays yet. `flourish.ts` says how each flourish moves
-  over its time, beside `@fz/core/math`'s `shareDone()` and its curves
-  (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
-  shake scroll the field's camera (`cameraShift()`) and when a dash lays
-  each of its outlines (`trailOutlinesLaid()`), and how the pickups
-  breathe, a stray bobs, a comet's warning pulses, the flame flickers, its
-  exhaust streams (`exhaustDue()`) and the pilots blink, each only where
-  motion is welcome;
+  its pickup, a pull of fire by its weapon, and the one after it, where it
+  has one (`secondSoundOf()`: the line snapping as one is knocked loose),
+  the chain's ladder (`CHAIN_CENTS`, the kit's, copied) and the step of it
+  a break's bell rings at (`ladderCentsOf()`), the chime as a chain reaches
+  a multiplier (`multiplierSoundOf()`), what an effect plays as its time
+  runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
+  Rapid's shot 3 dB under the gun's), and the order a frame plays them in,
+  the loudest level first (`PLAY_ORDER`); the thrust's hum (`THRUST`) is
+  one of them, which no event plays, and so is each sound nothing calls for
+  yet. `field_sounds.ts`' `FieldSounds` gathers a frame's: each event's
+  sounds, where it happened across the field (`@fz/core/sound_mix`'s
+  `acrossOf()`), a bell at the highest step of the chain the frame's
+  breaks reached, more than three breaks a frame as the largest two and
+  `break-cluster`, and what the field's state says by how it changed since
+  the frame before (fire let go just after a burst, `shot-tail`; the dash
+  charged again, `dash-ready`; an effect run out); then plays each once,
+  at the most it rose, the loudest first, making nothing. `flourish.ts` says
+  how each flourish moves over its time, beside `@fz/core/math`'s
+  `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), among them
+  how far the kick and the shake scroll the field's camera (`cameraShift()`)
+  and when a dash lays each of its outlines (`trailOutlinesLaid()`), and how
+  the pickups breathe, a stray bobs, a comet's warning pulses, the flame
+  flickers, its exhaust streams (`exhaustDue()`) and the pilots blink, each
+  only where motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,
@@ -576,9 +587,11 @@ takes for the specs' helpers.
   the view's takes (`SoundTake`), so a take the map lacks fails to compile;
   it plays by the view's mix (`SOUNDS`), each sound's takes in turn, a busy
   noisy one varied, the voices held to the mix's limits and the busy levels
-  ducked under a huge one, through a limiter; a broken rock's risen along
-  its chain; holds the thrust's hum while the ship thrusts; and mutes the
-  game while the settings want none. Beside the sprite lie each take's
+  ducked under a huge one, through a limiter; each frame's sounds as the
+  view's `FieldSounds` gathers them, each risen, placed across the field
+  and at its volume as the view says, through the player's `playAt()`; holds
+  the thrust's hum while the ship thrusts; and mutes the game while the
+  settings want none. Beside the sprite lie each take's
   length (`sprite_lengths.json`), which `yarn build:sounds` writes with it,
   and the beds, in `sounds/beds/`, which nothing loads yet.
   The keys go back through `command()`, heard through `@fz/phaser/scene`'s
@@ -794,8 +807,8 @@ takes for the specs' helpers.
   holds, with the names it plays them under (`tools/sound-lab/before.ts`),
   beside a candidate designed with ZzFX for each of the shot, the three
   breaks, the blast and the thrust, and scenes played as the game played
-  them, the gun at `SHOT_EVERY_MS` and a chain raised by the view's
-  `CHAIN_STEP_CENTS` up to `CHAIN_MOST_CENTS`, as `detuneOf()` raises it.
+  them, the gun at `SHOT_EVERY_MS` and a chain raised a semitone a break up
+  to a fifth, as the game raised it then (`beforeChainDetune()`).
   The app's tsconfig leaves it out; `tsconfig.node.json` checks it, with
   Vite's client types for the sprite's address.
 
@@ -1062,7 +1075,8 @@ workspace's with the others'.
   take of every sound but the beds by name and in order, which loop, and
   where each lies as the packer lays out its recorded length, to the byte;
   the view's mix to the recipes, every sound but the beds by name, family,
-  level and takes; the beds and the sprite to being encoded; five short takes, rendered, to
+  level and takes; the view's ladder to the kit's `CHAIN_CENTS`; the beds
+  and the sprite to being encoded; five short takes, rendered, to
   the bytes of the kit's WAVs of them, their recorded lengths and their
   levels; and the build whole, on families and folders of its own, an encode
   that fails changing nothing.)

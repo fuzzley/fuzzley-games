@@ -5,10 +5,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { recordingPrinter } from "@fz/dev/script";
 import { spritemapOf, takeNames } from "@fz/dev/sounds";
-import { loudness, osc, wav } from "@fz/dev/synth";
+import {
+  CHAIN_CENTS as KIT_CHAIN_CENTS,
+  loudness,
+  osc,
+  wav,
+} from "@fz/dev/synth";
 import shipped from "../src/scene/sounds/sprite.json";
 import recorded from "../src/scene/sounds/sprite_lengths.json";
-import { SOUNDS, SOUND_NAMES } from "../src/view/effects/sounds";
+import { CHAIN_CENTS, SOUNDS, SOUND_NAMES } from "../src/view/effects/sounds";
 import {
   BED_FAMILY,
   type Encode,
@@ -139,6 +144,12 @@ describe("the view's mix", () => {
         takes: recipe.takes ?? 1,
       })),
     );
+  });
+});
+
+describe("the view's ladder", () => {
+  it("is the kit's, which the chain's bell was tuned to", () => {
+    expect(CHAIN_CENTS).toEqual(KIT_CHAIN_CENTS);
   });
 });
 

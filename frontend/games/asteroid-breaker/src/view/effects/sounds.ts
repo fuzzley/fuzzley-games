@@ -1,11 +1,11 @@
-import { FrameSounds } from "@fz/core/frame_sounds";
 import { keysOf } from "@fz/core/records";
 import {
   type MixedSound,
   SOUND_LEVELS,
   type SoundLevel,
+  gainOf,
 } from "@fz/core/sound_mix";
-import type { PickupId } from "../../rules/catalog/pickups";
+import type { EffectKind, PickupId } from "../../rules/catalog/pickups";
 import {
   type ROCK_KINDS,
   type RockKindId,
@@ -13,6 +13,7 @@ import {
   hasTrait,
 } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
+import { CHAIN } from "../../rules/tuning";
 import {
   type FieldEvent,
   type FieldEventKind,
@@ -180,7 +181,7 @@ export const SOUND_NAMES = keysOf(SOUNDS);
  * loudest level first, so a huge one has started as the busy ones start,
  * which the mix ducks only under a huge sound played before them.
  */
-const PLAY_ORDER: readonly SoundName[] = [...SOUND_NAMES].sort(
+export const PLAY_ORDER: readonly SoundName[] = [...SOUND_NAMES].sort(
   (a, b) =>
     SOUND_LEVELS.indexOf(SOUNDS[b].level) -
     SOUND_LEVELS.indexOf(SOUNDS[a].level),
@@ -200,11 +201,91 @@ export type SoundTake = { [Name in SoundName]: TakeOf<Name> }[SoundName];
 /** The sound the thrust hums while it is held, which no event plays. */
 export const THRUST: SoundName = "thrust";
 
-/** How far a break's sound rises for each break of its chain before it, in cents: a semitone. */
-export const CHAIN_STEP_CENTS = 100;
+/** The bell under each break of a chain, at its step of the ladder. */
+export const LADDER: SoundName = "chain-ping";
 
-/** The most a chain raises a break's sound, in cents: a fifth. */
-export const CHAIN_MOST_CENTS = 700;
+/** The patter a crowd of breaks in one frame plays as, beside its largest two. */
+export const CROWD: SoundName = "break-cluster";
+
+/** The echo a burst of fire ends with as fire is let go. */
+export const TAIL: SoundName = "shot-tail";
+
+/** The tick the dash makes as it has charged again. */
+export const CHARGED: SoundName = "dash-ready";
+
+/**
+ * How far each sound plays from its level, in decibels, where it isn't
+ * there: the Rapid's shot 3 dB under the gun's, as twice as many are heard.
+ */
+const DECIBELS: Readonly<Partial<Record<SoundName, number>>> = {
+  "shot-rapid": -3,
+};
+
+/** Returns the volume a sound plays at, 1 at its level. */
+export function volumeOf(name: SoundName): number {
+  return gainOf(DECIBELS[name] ?? 0);
+}
+
+/**
+ * The chain's ladder, in cents above `chain-ping` as recorded, for each
+ * break of a chain from the first: the sound kit's `CHAIN_CENTS`
+ * (`@fz/dev/synth`), copied, as the game imports nothing of `@fz/dev`. It
+ * climbs the key, lands on C as the multiplier steps up at the fifth and
+ * the tenth break, then circles in the top octave, and rings a fifth above
+ * at the twentieth.
+ */
+export const CHAIN_CENTS: readonly number[] = [
+  0, 200, 400, 700, 1200, 1400, 1600, 1900, 2100, 2400, 2600, 2800, 3100, 2800,
+  2600, 2800, 3100, 2800, 2600, 3100,
+];
+
+/**
+ * Returns how far the bell under a break that is `chain` in its chain
+ * rises, in cents: its step of the ladder, the last for a chain past it.
+ */
+export function ladderCentsOf(chain: number): number {
+  const step = Math.min(Math.max(chain, 1), CHAIN_CENTS.length) - 1;
+  return CHAIN_CENTS[step] ?? 0;
+}
+
+/** The chime each multiplier plays as a chain reaches it. */
+const MULTIPLIER_SOUNDS: Readonly<
+  Record<(typeof CHAIN)[number]["times"], SoundName>
+> = {
+  2: "chain-x2",
+  3: "chain-x3",
+  4: "chain-x4",
+};
+
+/**
+ * Returns the chime a break plays as its chain reaches a multiplier, from
+ * the count it is in its chain, or null for one that reaches none.
+ */
+export function multiplierSoundOf(chain: number): SoundName | null {
+  for (const tier of CHAIN) {
+    if (tier.from === chain) return MULTIPLIER_SOUNDS[tier.times];
+  }
+  return null;
+}
+
+/**
+ * The sound each lasting effect plays as its time runs out, or null for
+ * one that has no time: a weapon or the Magnet a soft fall on glass, and
+ * Slow the field coming back; the Shield is spent rather than ending, and
+ * the Nova is over as it starts.
+ */
+const END_SOUNDS: Readonly<Record<EffectKind, SoundName | null>> = {
+  weapon: "effect-end",
+  guard: null,
+  pull: "effect-end",
+  pace: "slow-off",
+  nova: null,
+};
+
+/** Returns the sound an effect of a group plays as its time runs out, or null for none. */
+export function endSoundOf(kind: EffectKind): SoundName | null {
+  return END_SOUNDS[kind];
+}
 
 /** Gives a sound for each size a kind of rock comes in. */
 type BySize<Kind extends RockKindId> = Readonly<
@@ -313,17 +394,30 @@ const EVENT_SOUNDS: Readonly<
   warned: "comet-warning",
   cleared: "wave-clear",
   rung: "hit-iron",
-  dropped: null,
-  faded: null,
+  dropped: "pickup-drop",
+  faded: "pickup-fade",
   lost: "pod-lost",
   knocked: "pod-hit",
   recaught: "crew-caught",
   floated: "crew-home",
-  strayed: null,
+  strayed: "stray-appear",
   joined: "stray-catch",
   home: "stray-catch",
   scored: null,
 };
+
+/**
+ * The sound an event plays after its first, where it has one: the line
+ * snapping as one is knocked loose, after the pod's hit.
+ */
+const SECOND_SOUNDS: Readonly<Partial<Record<FieldEventKind, SoundName>>> = {
+  knocked: "crew-loose",
+};
+
+/** Returns the sound an event plays after its first, or null for none. */
+export function secondSoundOf(event: Readonly<FieldEvent>): SoundName | null {
+  return SECOND_SOUNDS[event.kind] ?? null;
+}
 
 /**
  * Returns the sound an event plays, or null for none.
@@ -384,23 +478,4 @@ function pickupOf(event: Readonly<FieldEvent>): PickupId {
     throw new RangeError(`A "${event.kind}" event names no pickup`);
   }
   return event.pickup;
-}
-
-/**
- * Returns how far an event's sound is raised, in cents: a broken rock's by
- * a semitone for each break of its chain before it, up to a fifth, which
- * rewards a chain by ear; any other's, and a smashed rock's, not at all, as
- * they count in no chain.
- */
-export function detuneOf(event: Readonly<FieldEvent>): number {
-  const before = Math.max(event.chain - 1, 0);
-  return Math.min(before * CHAIN_STEP_CENTS, CHAIN_MOST_CENTS);
-}
-
-/**
- * Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays
- * once a frame at most, the loudest level first.
- */
-export function createFrameSounds(): FrameSounds<SoundName> {
-  return new FrameSounds(PLAY_ORDER);
 }

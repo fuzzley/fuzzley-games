@@ -12,12 +12,12 @@ import {
 } from "@fz/dev/sound-lab-page";
 import type { ZzfxSound } from "@fz/dev/zzfx";
 import { SHOT_EVERY_MS } from "../src/rules/tuning";
-import { CHAIN_MOST_CENTS, CHAIN_STEP_CENTS } from "../src/view/effects/sounds";
 import {
   BEFORE_PLAYS,
   BEFORE_SOUNDS,
   BEFORE_SPRITE,
   type BeforeName,
+  beforeChainDetune as chainDetune,
 } from "./sound-lab/before";
 
 /**
@@ -98,11 +98,6 @@ const CANDIDATES: Readonly<Partial<Record<BeforeName, ZzfxSound>>> = {
 
 /** The time between the gun's shots while fire is held, in seconds. */
 const SHOT_EVERY_S = SHOT_EVERY_MS / 1000;
-
-/** Returns how far the game raises the break that is `count` in its chain, in cents, as the view's `detuneOf()` does. */
-function chainDetune(count: number): number {
-  return Math.min(Math.max(count - 1, 0) * CHAIN_STEP_CENTS, CHAIN_MOST_CENTS);
-}
 
 /** Returns the gun's shots while fire is held from one time to another, in seconds, at a place across the field. */
 function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {

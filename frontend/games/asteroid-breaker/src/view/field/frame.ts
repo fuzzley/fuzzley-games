@@ -10,7 +10,7 @@ import type { Floating } from "../../rules/rocks/drops";
 import type { Effects } from "../../rules/rocks/pickups";
 import type { Rock } from "../../rules/rocks/rocks";
 import type { Crew } from "../../rules/ship/pilots";
-import type { Ship } from "../../rules/ship/ship";
+import type { Ship, Steer } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
 import type { TowLink } from "../../rules/ship/tow";
 import {
@@ -58,6 +58,8 @@ export interface FieldView {
   readonly effects: Effects;
   /** Whether a Shield guards the ship from the next rock to touch it. */
   readonly shielded: boolean;
+  /** The frame's steering, which each step until the next follows: fire held, for one. */
+  readonly steer: Readonly<Steer>;
   /** Who is at the controls, in tow and gone home. */
   readonly crew: Crew;
   /** How many steps the wave has taken, by which its timers run. */

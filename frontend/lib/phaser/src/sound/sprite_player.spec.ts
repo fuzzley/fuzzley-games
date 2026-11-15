@@ -779,7 +779,23 @@ describe("SpritePlayer with a mix", () => {
 
     playAt("ring", 300, -0.5);
 
-    expect(started[0]?.config).toMatchObject({ detune: 300, pan: -0.3 });
+    expect(started[0]?.config).toMatchObject({
+      detune: 300,
+      pan: -0.3,
+      volume: 1,
+    });
+  });
+
+  it("plays a sound at a place at a volume, the next at its own", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    const { playAt, playRisen } = player;
+
+    playAt("ring", 0, 0, 0.5);
+    playRisen("ring", 0);
+    playAt("ring", 0, 0);
+
+    expect(started.map(({ config }) => config.volume)).toEqual([0.5, 1, 1]);
   });
 
   it("keeps a play's own pan where it is given no place", async () => {

@@ -1,4 +1,4 @@
-import { takeMarkers } from "@fz/core/sound_mix";
+import { gainOf, takeMarkers } from "@fz/core/sound_mix";
 import { NO_INSETS } from "@fz/phaser/insets";
 import {
   type PaintCommand,
@@ -18,6 +18,8 @@ import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
+import type { RockKindId, RockSize } from "../rules/catalog/rocks";
+import type { FieldEventKind, LoggedRock } from "../rules/field/events";
 import { type Field, steerField } from "../rules/field/field";
 import { COMET_RECORDS } from "../rules/hazards/comets";
 import { hitRock, setOffBlasts } from "../rules/rocks/rocks";
@@ -30,6 +32,7 @@ import {
   COMET_WARNING_MS,
   DASH_RECHARGE_MS,
   PICKUP_BLINK_MS,
+  SHOT_EVERY_MS,
   STRAY_RADIUS,
 } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
@@ -85,7 +88,7 @@ import {
 } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
-import { SOUNDS, SOUND_NAMES } from "../view/effects/sounds";
+import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
 import {
   BREATH,
   GOLDEN_ANGLE,
@@ -2318,6 +2321,151 @@ describe("a new field", () => {
   });
 });
 
+/** Logs an event of a kind on a field, at its middle, as the rules would. */
+type EventLogger = (field: Field) => void;
+
+/**
+ * Logs each event the field logs, as the rules would, with the sounds the
+ * scene plays for it, none for one the plan gives none.
+ */
+const EVERY_EVENT: Readonly<
+  Record<FieldEventKind, readonly [EventLogger, readonly SoundName[]]>
+> = {
+  fired: [
+    (field) => {
+      field.events.addFired(30, 20, "gun");
+    },
+    ["shot-gun"],
+  ],
+  dashed: [
+    (field) => {
+      field.events.addDash(30, 20, 0);
+    },
+    ["dash"],
+  ],
+  shielded: [
+    (field) => {
+      field.events.add("shielded", 30, 20);
+    },
+    ["shield-break"],
+  ],
+  nova: [
+    (field) => {
+      field.events.add("nova", 30, 20, 12);
+    },
+    ["blast-volatile"],
+  ],
+  warned: [
+    (field) => {
+      field.events.add("warned", 0, 20);
+    },
+    ["comet-warning"],
+  ],
+  cleared: [
+    (field) => {
+      field.events.add("cleared", 30, 20);
+    },
+    ["wave-clear"],
+  ],
+  hit: [
+    (field) => {
+      field.events.addRock("hit", loggedRock("boulder", "boulder"));
+    },
+    ["hit-boulder"],
+  ],
+  rung: [
+    (field) => {
+      field.events.addRock("rung", loggedRock("iron", "large"));
+    },
+    ["hit-iron"],
+  ],
+  broken: [
+    (field) => {
+      field.events.addBreak(loggedRock("ice", "medium"), 1, 0, 0);
+    },
+    ["break-ice-medium", "chain-ping"],
+  ],
+  blast: [
+    (field) => {
+      field.events.addRock("blast", loggedRock("volatile", "large"), 6);
+    },
+    ["blast-volatile"],
+  ],
+  dropped: [
+    (field) => {
+      field.events.addPickup("dropped", 30, 20, "spread");
+    },
+    ["pickup-drop"],
+  ],
+  caught: [
+    (field) => {
+      field.events.addPickup("caught", 30, 20, "magnet");
+    },
+    ["pickup-magnet"],
+  ],
+  faded: [
+    (field) => {
+      field.events.addPickup("faded", 30, 20, "slow");
+    },
+    ["pickup-fade"],
+  ],
+  lost: [
+    (field) => {
+      field.events.addPilot("lost", 30, 20, 0, field.crew);
+    },
+    ["pod-lost"],
+  ],
+  knocked: [
+    (field) => {
+      field.events.addKnocked(30, 20, 1, field.crew, 1, 0);
+    },
+    ["pod-hit", "crew-loose"],
+  ],
+  recaught: [
+    (field) => {
+      field.events.addPilot("recaught", 30, 20, 1, field.crew);
+    },
+    ["crew-caught"],
+  ],
+  floated: [
+    (field) => {
+      field.events.addPilot("floated", 30, 20, 1, field.crew);
+    },
+    ["crew-home"],
+  ],
+  strayed: [
+    (field) => {
+      field.events.addPilot("strayed", 0, 20, 4, field.crew);
+    },
+    ["stray-appear"],
+  ],
+  joined: [
+    (field) => {
+      field.events.addPilot("joined", 30, 20, 4, field.crew);
+    },
+    ["stray-catch"],
+  ],
+  home: [
+    (field) => {
+      field.events.addPilot("home", 30, 20, 4, field.crew);
+    },
+    ["stray-catch"],
+  ],
+  // Points scored are seen, never heard: the break or the stray that
+  // scored them is.
+  scored: [
+    (field) => {
+      field.events.addScore(30, 20, 90, 2);
+    },
+    [],
+  ],
+};
+
+/** Returns a rock of a kind and size at the middle of the board's field, as its events record it. */
+function loggedRock(kind: RockKindId, size: RockSize): LoggedRock {
+  return { x: 30, y: 20, kind, size, slot: 0 };
+}
+
 describe("the sounds", () => {
   /**
    * Returns each sound the scenes play from now on, with how far it rose,
@@ -2329,6 +2477,30 @@ describe("the sounds", () => {
     vi.spyOn(SpritePlayer.prototype, "play").mockImplementation(
       (name: string, config) => {
         played.push([name, config?.detune ?? 0]);
+      },
+    );
+    return played;
+  }
+
+  /**
+   * Returns each sound the scenes play from now on, with how far it rose,
+   * where across the field and at what volume, as they play it.
+   */
+  function playsHeard(): {
+    name: string;
+    detune: number;
+    across: number | undefined;
+    volume: number;
+  }[] {
+    const played: ReturnType<typeof playsHeard> = [];
+    vi.spyOn(SpritePlayer.prototype, "play").mockImplementation(
+      (name: string, config, across) => {
+        played.push({
+          name,
+          detune: config?.detune ?? 0,
+          across,
+          volume: config?.volume ?? 1,
+        });
       },
     );
     return played;
@@ -2369,7 +2541,20 @@ describe("the sounds", () => {
     expect(scene.sound.mute).toBe(true);
   });
 
-  it("play a broken rock's by its kind and size, risen along its chain", async () => {
+  it.each(Object.entries(EVERY_EVENT))(
+    "play, for each %s the field logs, its sounds",
+    async (_, [log, sounds]) => {
+      const { shell, run } = await startBoard(withShip);
+      const played = soundsPlayed();
+
+      log(shell.field);
+      run.advance(16);
+
+      expect(played.map(([name]) => name)).toEqual(sounds);
+    },
+  );
+
+  it("play a broken rock's by its kind and size, with a bell at its step of the chain's ladder and a chime as it reaches a multiplier", async () => {
     const { shell, run } = await startBoard();
     const rock = placeRock(shell.field, "small", 30, 20);
     run.advance(16);
@@ -2380,10 +2565,14 @@ describe("the sounds", () => {
     hitRock(shell.field, rock, 0, 0);
     run.advance(16);
 
-    expect(played).toEqual([["break-stone-small", 400]]);
+    expect(played).toEqual([
+      ["chain-x2", 0],
+      ["chain-ping", 1200],
+      ["break-stone-small", 0],
+    ]);
   });
 
-  it("play two breaks of a frame as one, at the higher", async () => {
+  it("play two breaks of a frame as one, the bell at the higher step", async () => {
     const { shell, run } = await startBoard();
     const first = placeRock(shell.field, "small", 30, 20);
     const second = placeRock(shell.field, "small", 10, 20);
@@ -2394,7 +2583,82 @@ describe("the sounds", () => {
     hitRock(shell.field, second, 0, 0);
     run.advance(16);
 
-    expect(played).toEqual([["break-stone-small", 100]]);
+    expect(played).toEqual([
+      ["chain-ping", 200],
+      ["break-stone-small", 0],
+    ]);
+  });
+
+  it("play each where it happened across the field, at its volume", async () => {
+    const { shell, run } = await startBoard(withShip);
+    const played = playsHeard();
+    const { width } = shell.field.torus;
+
+    shell.field.events.add("warned", 0, 20);
+    shell.field.events.addFired(width * 0.75, 20, "rapid");
+    run.advance(16);
+
+    expect(played).toEqual([
+      { name: "comet-warning", detune: 0, across: -1, volume: 1 },
+      { name: "shot-rapid", detune: 0, across: 0.5, volume: gainOf(-3) },
+    ]);
+  });
+
+  it("play more than three breaks of a frame as the two largest and the crowd's patter", async () => {
+    const { shell, run } = await startBoard();
+    const played = soundsPlayed();
+
+    shell.field.events.addBreak(loggedRock("stone", "small"), 1, 0, 0);
+    shell.field.events.addBreak(loggedRock("ice", "large"), 2, 0, 0);
+    shell.field.events.addBreak(loggedRock("iron", "medium"), 3, 0, 0);
+    shell.field.events.addBreak(loggedRock("ice", "small"), 4, 0, 0);
+    run.advance(16);
+
+    expect(played.map(([name]) => name)).toEqual([
+      "break-ice-large",
+      "break-iron-medium",
+      "break-cluster",
+      "chain-ping",
+    ]);
+  });
+
+  it("end a burst of fire with its tail as fire is let go", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    steerField(shell.field, { ...STILL, fire: true });
+    run.advance(SHOT_EVERY_MS * 3);
+    const played = soundsPlayed();
+
+    steerField(shell.field, STILL);
+    run.advance(16);
+
+    expect(played).toEqual([["shot-tail", 0]]);
+  });
+
+  it("tick as the dash has charged again", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    steerField(shell.field, { ...STILL, dash: true });
+    run.advance(16);
+    steerField(shell.field, STILL);
+    const played = soundsPlayed();
+
+    run.advance(DASH_RECHARGE_MS);
+
+    expect(played).toEqual([["dash-ready", 0]]);
+  });
+
+  it("play an effect's end as its time runs out", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    shell.field.effects.weapon.pickup = "lance";
+    shell.field.effects.weapon.endsAt = shell.field.steps + stepsIn(100);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    run.advance(100);
+
+    expect(played).toEqual([["effect-end", 0]]);
   });
 
   it("play a blast before the breaks it sets off in its frame, which it ducks", async () => {
@@ -2411,6 +2675,7 @@ describe("the sounds", () => {
 
     expect(played.map(([name]) => name)).toEqual([
       "blast-volatile",
+      "chain-ping",
       "break-stone-small",
     ]);
   });

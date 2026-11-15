@@ -174,6 +174,9 @@ export class SpritePlayer<Name extends string> {
   /** How a risen sound is played, made once and changed for each: Phaser copies it as the sound starts. */
   private readonly risen: Types.Sound.SoundConfig = { detune: 0 };
 
+  /** How a sound played at a place is played, made once and changed for each, as `risen` is. */
+  private readonly placed: Types.Sound.SoundConfig = { detune: 0, volume: 1 };
+
   /** How a mixed sound is played, made once and changed for each, as `risen` is. */
   private readonly mixed: PlayConfig & Types.Sound.SoundConfig = {
     ...PLAIN_PLAY,
@@ -313,12 +316,19 @@ export class SpritePlayer<Name extends string> {
 
   /**
    * Plays a sound risen by some cents at a place across the field, from -1
-   * at its left edge to 1 at its right, through `play()`, which a mix pans
-   * it by; a function made once, as `playRisen()` is.
+   * at its left edge to 1 at its right, and at a volume, 1 as recorded,
+   * through `play()`, which a mix pans it by and varies and ducks it from;
+   * a function made once, as `playRisen()` is.
    */
-  readonly playAt = (name: Name, detune: number, across: number): void => {
-    this.risen.detune = detune;
-    this.play(name, this.risen, across);
+  readonly playAt = (
+    name: Name,
+    detune: number,
+    across: number,
+    volume = 1,
+  ): void => {
+    this.placed.detune = detune;
+    this.placed.volume = volume;
+    this.play(name, this.placed, across);
   };
 
   /**
