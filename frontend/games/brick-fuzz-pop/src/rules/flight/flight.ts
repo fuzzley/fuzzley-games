@@ -75,10 +75,12 @@ export interface FlightStart {
   readonly friends: number;
 }
 
-/** Holds what a flight is played by: the number it may be retuned by, and the kinds of brick and their traits' rules. */
+/** Holds what a flight is played by: the numbers it may be retuned by, and the kinds of brick and their traits' rules. */
 export interface FlightRules {
-  /** How far a fuzzball flies without taking a hit off a brick before it yawns. */
+  /** How far a fuzzball flies without touching a brick that can break before it yawns. */
   readonly bored: number;
+  /** How far a fuzzball flies without taking a hit off a brick before it yawns, whatever it touched. */
+  readonly mostIdle: number;
   readonly kinds: BrickKinds;
   readonly traits: TraitRules;
 }
@@ -136,8 +138,10 @@ interface Ball {
   /** The moment it is at its place. */
   at: number;
   charge: number;
+  /** From when it has flown without touching a brick that can break. */
+  touchedFrom: number;
   /** From when it has flown without taking a hit off a brick. */
-  idleFrom: number;
+  hitFrom: number;
   /** How many times running it has turned again where it turned, at the same moment. */
   still: number;
   /** When it last turned, or -1. */
@@ -441,7 +445,8 @@ class Flying implements Hooks {
       dy,
       at,
       charge,
-      idleFrom: at,
+      touchedFrom: at,
+      hitFrom: at,
       still: 0,
       turnedAt: -1,
       crosses: true,
@@ -473,8 +478,8 @@ class Flying implements Hooks {
 
   /**
    * Plans what a fuzzball in flight does next: meets what it meets first,
-   * crosses into a cell before it, or comes home, bored or capped, if it
-   * meets nothing first.
+   * crosses into a cell before it, or comes home if it meets nothing first:
+   * bored, too long without a hit, or capped.
    *
    * It casts to `AT_ONCE` past the moment it comes home, so what it meets
    * at that moment is gathered with all it meets at once; met only past
@@ -483,7 +488,8 @@ class Flying implements Hooks {
   private plan(ball: Ball): void {
     ball.planned = true;
     const home = Math.min(
-      ball.idleFrom + this.rules.bored,
+      ball.touchedFrom + this.rules.bored,
+      ball.hitFrom + this.rules.mostIdle,
       ball.launchAt + MOST_FLIGHT,
     );
     const limit = Math.max(0, home - ball.at);
@@ -705,7 +711,8 @@ class Flying implements Hooks {
   /**
    * Strikes the brick a fuzzball meets, unless it struck it already at this
    * moment, and returns whether it passes through it: whether a charged
-   * fuzzball broke it.
+   * fuzzball broke it. A strike on a brick whose kind can break keeps the
+   * fuzzball from boredom, whether or not it took a hit.
    */
   private strikeOnce(ball: Ball, { cell, side }: Readonly<Met>): boolean {
     const earlier = this.struckCells.indexOf(cell);
@@ -721,7 +728,10 @@ class Flying implements Hooks {
     );
     ball.charge = charge;
     if (took > 0) {
-      ball.idleFrom = ball.at;
+      ball.touchedFrom = ball.at;
+      ball.hitFrom = ball.at;
+    } else if (kind.hits !== "never") {
+      ball.touchedFrom = ball.at;
     }
     this.struckCells.push(cell);
     this.passedCells.push(passes);
@@ -872,7 +882,8 @@ class Flying implements Hooks {
   /**
    * Brings a fuzzball home from where it is at the moment: it yawns, and
    * drops straight down to the floor through whatever lies between, counted
-   * if a cap brought it.
+   * if a cap brought it, `MOST_FLIGHT` or the still turns, and not if
+   * boredom or the most it flies without a hit did.
    */
   private comeHome(ball: Ball, capped: boolean): void {
     this.travel(ball, this.now - ball.at);

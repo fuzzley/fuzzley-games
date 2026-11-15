@@ -122,7 +122,7 @@ describe("playRoundBy()", () => {
   it("flies by the kinds it is handed", () => {
     const start = startAt(["....o...."]);
     const rules = {
-      bored: BORED,
+      ...flightRulesOf(RULES),
       kinds: { ...BRICK_KINDS, brick: PRISM },
       traits: STAND_IN_RULES,
     };
@@ -134,11 +134,12 @@ describe("playRoundBy()", () => {
 });
 
 describe("flightRulesOf()", () => {
-  it("flies by the catalog's kinds and the bricks' own rules, at the bored distance handed", () => {
+  it("flies by the catalog's kinds and the bricks' own rules, at the bored distance handed and twice it without a hit", () => {
     const rules = flightRulesOf({ bored: 7 });
 
     expect(rules).toEqual({
       bored: 7,
+      mostIdle: 14,
       kinds: BRICK_KINDS,
       traits: TRAIT_RULES,
     });

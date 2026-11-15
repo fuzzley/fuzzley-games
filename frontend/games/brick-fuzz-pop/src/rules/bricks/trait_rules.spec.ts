@@ -80,7 +80,19 @@ describe("the bricks' own rules, flown", () => {
     ]);
   });
 
-  it("counts no strike a shell shields as a hit against a fuzzball's boredom", () => {
+  // Straight up, it strikes the shell at 2.5 and turns down to land at 5.
+  it.each([
+    [
+      "counts a strike a shell shields as a touch, which keeps a fuzzball from boredom",
+      8,
+      [],
+    ],
+    [
+      "counts it as no hit, so the most a fuzzball flies without one still brings it home",
+      4.5,
+      [4.5],
+    ],
+  ])("%s", (_, mostIdle, yawned) => {
     const flown = fly(
       {
         wall: wallFrom(["....S...."], { lowestRow: 3 }),
@@ -92,10 +104,10 @@ describe("the bricks' own rules, flown", () => {
         mates: 0,
         friends: 0,
       },
-      { bored: 4, kinds: BRICK_KINDS, traits: TRAIT_RULES },
+      { bored: 4, mostIdle, kinds: BRICK_KINDS, traits: TRAIT_RULES },
     );
 
-    expect(eventsOf(flown, "yawn").map(({ at }) => at)).toEqual([4]);
+    expect(eventsOf(flown, "yawn").map(({ at }) => at)).toEqual(yawned);
   });
 
   it("has a zap break a shell", () => {

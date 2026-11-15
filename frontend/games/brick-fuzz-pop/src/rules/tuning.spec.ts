@@ -6,6 +6,7 @@ import {
   COLUMNS,
   FIRST_AIM_DEGREES,
   FIRST_X,
+  IDLE_SHARE,
   LEAST_DEPTH,
   MOST_DEPTH,
   MOST_FLIGHT,
@@ -48,8 +49,12 @@ describe("the tuning", () => {
     );
   });
 
-  it("bores a fuzzball long before its flight is capped", () => {
-    expect(BORED).toBeLessThan(MOST_FLIGHT);
+  it("lets a fuzzball fly further without a hit than without a touch", () => {
+    expect(IDLE_SHARE).toBeGreaterThan(1);
+  });
+
+  it("brings an idle fuzzball home long before its flight is capped", () => {
+    expect(BORED * IDLE_SHARE).toBeLessThan(MOST_FLIGHT);
   });
 
   // So a zap is never met at the moment of the break that set it off, as

@@ -55,13 +55,21 @@ export const FRIEND_INKS = 8;
 export const MOST_FUZZBALLS = 16;
 
 /**
- * How far a fuzzball flies without taking a hit off a brick before it yawns
- * and drops to the floor: `RULES.bored` unless the debug menu retunes it.
+ * How far a fuzzball flies without touching a brick that can break before it
+ * yawns and drops to the floor: `RULES.bored` unless the debug menu retunes
+ * it.
  */
-export const BORED = 60;
+export const BORED = 180;
+
+/**
+ * How many times as far as boredom a fuzzball flies without taking a hit off
+ * a brick before it yawns whatever it touched, so no rattle between faces
+ * that shield their bricks outlasts it.
+ */
+export const IDLE_SHARE = 2;
 
 /** The farthest one fuzzball flies before it comes home, as a bored one does. */
-export const MOST_FLIGHT = 600;
+export const MOST_FLIGHT = 900;
 
 /** How many turns running, with no flight between them, bring a fuzzball home. */
 export const STILL_TURNS = 8;

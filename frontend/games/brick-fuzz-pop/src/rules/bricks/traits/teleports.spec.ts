@@ -1,9 +1,8 @@
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
 import { wallFrom } from "../../../testing/wall_picture";
-import { BRICK_KINDS } from "../../catalog/bricks";
 import { fly } from "../../flight/flight";
-import { AIMS_PER_DEGREE, BORED, FIRST_AIM_DEGREES } from "../../tuning";
-import { TRAIT_RULES } from "../trait_rules";
+import { RULES, flightRulesOf } from "../../round/round";
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../../tuning";
 
 /** A portal's twin, its pair's other portal, 3 rows over it and 4 columns right. */
 const PAIR = ["......@..", ".........", ".........", "..@......"];
@@ -65,7 +64,7 @@ describe("TELEPORTS_RULE, flown", () => {
         mates: 0,
         friends: 0,
       },
-      { bored: BORED, kinds: BRICK_KINDS, traits: TRAIT_RULES },
+      flightRulesOf(RULES),
     );
 
     expect([

@@ -3,11 +3,11 @@
 // value matched as near as the flight's arithmetic finds it.
 
 import { expect } from "vitest";
-import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
 import type { Flight, FlightEvent } from "../rules/flight/events";
 import { type Flown, fly } from "../rules/flight/flight";
-import { AIMS_PER_DEGREE, BORED, FIRST_AIM_DEGREES } from "../rules/tuning";
+import { RULES, flightRulesOf } from "../rules/round/round";
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../rules/tuning";
 import { wallFrom } from "./wall_picture";
 
 /** Describes a shot at a wall drawn as a picture. */
@@ -42,7 +42,7 @@ export function flyPicture({
   const aim = (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
   return fly(
     { wall, depth: 11, x, aim, charge, hot, mates: 0, friends },
-    { bored: BORED, kinds, traits: TRAIT_RULES },
+    { ...flightRulesOf(RULES), kinds },
   );
 }
 

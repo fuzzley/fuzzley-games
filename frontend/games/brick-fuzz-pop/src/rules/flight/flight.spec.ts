@@ -23,6 +23,7 @@ import {
   AIMS_PER_DEGREE,
   BORED,
   FIRST_AIM_DEGREES,
+  IDLE_SHARE,
   MOST_CHARGE,
   MOST_FLIGHT,
   RADIUS,
@@ -31,7 +32,7 @@ import {
 } from "../tuning";
 import { FLOORWARD, LEFT } from "../grid";
 import type { Wall } from "../wall/wall";
-import { flightStartOf } from "../round/round";
+import { RULES, flightRulesOf, flightStartOf } from "../round/round";
 import {
   type FlightRules,
   type FlightStart,
@@ -57,6 +58,8 @@ interface Shot extends Partial<Omit<FlightStart, "wall" | "aim">> {
   readonly wall: Wall;
   readonly aim: number;
   readonly bored?: number;
+  /** How far it flies without a hit before it yawns: `IDLE_SHARE` times its boredom unless given. */
+  readonly mostIdle?: number;
   readonly kinds?: BrickKinds;
   readonly traits?: TraitRules;
   readonly stop?: FlightStop;
@@ -73,11 +76,12 @@ function flyShot({
   mates = 0,
   friends = 0,
   bored = BORED,
+  mostIdle = bored * IDLE_SHARE,
   kinds = STAND_INS,
   traits = STAND_IN_RULES,
   stop,
 }: Shot): Flown {
-  const rules: FlightRules = { bored, kinds, traits };
+  const rules: FlightRules = { bored, mostIdle, kinds, traits };
   return fly({ wall, depth, x, aim, charge, hot, mates, friends }, rules, stop);
 }
 
@@ -90,13 +94,10 @@ describe("fly, against the rounds made by hand", () => {
   it.each(Object.entries(FLIGHT_FIXTURES))(
     "flies %s's round as it was worked out",
     (_, fixture) => {
-      const rules = {
-        bored: BORED,
-        kinds: BRICK_KINDS,
-        traits: TRAIT_RULES,
-      };
-
-      const { flight } = fly(flightStartOf(fixture.start, fixture.shot), rules);
+      const { flight } = fly(
+        flightStartOf(fixture.start, fixture.shot),
+        flightRulesOf(RULES),
+      );
 
       expect(flight).toEqual(near(fixture.round.flight));
     },
@@ -125,7 +126,7 @@ describe("fly", () => {
   it("leaves the wall it is handed as it was, and returns the wall it leaves", () => {
     const fixture = FLIGHT_FIXTURES.punch;
     const before = structuredClone(fixture.start.wall);
-    const rules = { bored: BORED, kinds: BRICK_KINDS, traits: STAND_IN_RULES };
+    const rules = { ...flightRulesOf(RULES), traits: STAND_IN_RULES };
 
     const { wall } = fly(flightStartOf(fixture.start, fixture.shot), rules);
 
@@ -209,9 +210,14 @@ describe("fly", () => {
     ).toEqual([[5, 1]]);
   });
 
-  it("yawns as it reaches the bored distance from its last hit", () => {
+  it("yawns as it reaches the bored distance from its last touch", () => {
     const fixture = FLIGHT_FIXTURES.punch;
-    const rules = { bored: 7.5, kinds: BRICK_KINDS, traits: STAND_IN_RULES };
+    const rules = {
+      bored: 7.5,
+      mostIdle: 15,
+      kinds: BRICK_KINDS,
+      traits: STAND_IN_RULES,
+    };
 
     const flown = fly(flightStartOf(fixture.start, fixture.shot), rules);
 
@@ -248,25 +254,111 @@ describe("fly", () => {
     ]);
   });
 
-  // A rule made up for the spec kicks a fuzzball straight across, so it
-  // flies between the side walls for ever, never bored.
-  it("brings a fuzzball home at the 600-unit cap, and counts it", () => {
-    const wall = wallOf(3, ["....-...."]);
-    const traits: TraitRules = {
-      ...STAND_IN_RULES,
-      kicks: {
-        met: (hooks, ball) => {
-          hooks.kick(ball, 1, 0);
-        },
-      },
-    };
+  // Straight up, it strikes the plated face at 2.5 and lands at 5, though
+  // it would be bored at 4 had the strike not kept it from boredom; a shell
+  // does the same, in trait_rules.spec.ts.
+  it("counts a strike on a plated face that takes no hit as a touch, which keeps it from boredom", () => {
+    const wall = wallOf(3, ["....v...."]);
 
-    const flown = flyShot({ wall, aim: UP, traits, bored: 2 * MOST_FLIGHT });
+    const flown = flyShot({ wall, aim: UP, traits: TRAIT_RULES, bored: 4 });
+
+    expect([
+      eventsOf(flown, "strike").map(({ at, took }) => [at, took]),
+      eventsOf(flown, "yawn"),
+      eventsOf(flown, "land").map(({ at }) => at),
+    ]).toEqual([[[2.5, 0]], [], [5]]);
+  });
+
+  // Straight up, it meets the steel at 2.5, or the bumper's disc a little
+  // later, at about 2.62, and turns down; neither can break, so it grows
+  // bored at 4 all the same.
+  it.each([
+    ["steel", "#"],
+    ["a bumper", "B"],
+  ])("counts no strike on %s as a touch", (_, brick) => {
+    const wall = wallOf(3, [`....${brick}....`]);
+
+    const flown = flyShot({
+      wall,
+      aim: UP,
+      kinds: BRICK_KINDS,
+      traits: TRAIT_RULES,
+      bored: 4,
+    });
+
+    expect([
+      eventsOf(flown, "strike").length,
+      eventsOf(flown, "yawn").map(({ at }) => at),
+    ]).toEqual([1, [4]]);
+  });
+
+  it("counts a hit as a touch too", () => {
+    const wall = wallOf(3, ["....2...."]);
+
+    const flown = flyShot({ wall, aim: UP, bored: 4 });
+
+    expect([
+      eventsOf(flown, "strike").map(({ at, took }) => [at, took]),
+      eventsOf(flown, "yawn"),
+    ]).toEqual([[[2.5, 1]], []]);
+  });
+
+  // A rule made up for the spec kicks a fuzzball straight across from the
+  // bumper, so it flies between the side walls for ever, and the bumper's
+  // kick doesn't keep it from boredom.
+  it("grows bored at the bored distance though a bumper keeps it in the air", () => {
+    const flown = flyShot({
+      wall: wallOf(3, ["....-...."]),
+      aim: UP,
+      traits: KICKED_ACROSS,
+    });
+
+    expect([
+      eventsOf(flown, "yawn").map(({ at }) => at),
+      flown.flight.capped,
+    ]).toEqual([[BORED], 0]);
+  });
+
+  // Kicked across as above, it rattles between two shells, which a plain
+  // fuzzball touches but takes no hit off.
+  it("brings a fuzzball home once it has flown the most it may without a hit, whatever it touched, and doesn't count it as capped", () => {
+    const wall = wallOf(2, ["....-....", "S.......S"]);
+    const traits: TraitRules = { ...TRAIT_RULES, kicks: KICKED_ACROSS.kicks };
+
+    const flown = flyShot({ wall, aim: UP, traits });
+
+    expect([
+      eventsOf(flown, "yawn").map(({ at }) => at),
+      flown.flight.capped,
+    ]).toEqual([[BORED * IDLE_SHARE], 0]);
+  });
+
+  // Kicked across as above, it rattles between two bricks of a thousand
+  // hits, taking one off each at every strike.
+  it("brings a fuzzball still taking hits home at the cap, and counts it", () => {
+    const wall = withHits(wallOf(2, ["....-....", "o.......o"]), 1000);
+
+    const flown = flyShot({ wall, aim: UP, traits: KICKED_ACROSS });
 
     expect([
       eventsOf(flown, "yawn").map(({ at }) => at),
       flown.flight.capped,
     ]).toEqual([[MOST_FLIGHT], 1]);
+  });
+
+  // Straight up, it breaks the prism at 2.5 and turns down; the two it
+  // splits into leave from there, 30° either side, and land 2.5 / cos 30°
+  // later, before they have flown 4 without a hit.
+  it("counts how far a split flies without a hit from where it split off", () => {
+    const wall = wallOf(3, ["....o...."]);
+    const kinds = { ...BRICK_KINDS, brick: PRISM };
+
+    const flown = flyShot({ wall, aim: UP, kinds, mostIdle: 4 });
+
+    expect([
+      eventsOf(flown, "yawn"),
+      eventsOf(flown, "land").map(({ ball }) => ball),
+    ]).toEqual([[], [0, 1, 2]]);
   });
 
   // The sketch's flight that never ended, ported to a rule made up for the
@@ -1091,6 +1183,26 @@ describe("fly's hooks", () => {
     ]);
   });
 });
+
+/** The stand-ins' rules with a bumper's kick made up for the specs, which sends a fuzzball straight across to the right. */
+const KICKED_ACROSS: TraitRules = {
+  ...STAND_IN_RULES,
+  kicks: {
+    met: (hooks, ball) => {
+      hooks.kick(ball, 1, 0);
+    },
+  },
+};
+
+/** Returns a wall with each of its bricks given as many hits. */
+function withHits(wall: Wall, hits: number): Wall {
+  return {
+    ...wall,
+    bricks: wall.bricks.map((brick) =>
+      brick === null ? null : { ...brick, hits, full: hits },
+    ),
+  };
+}
 
 /** Returns the stand-ins' rules with steel's noting each strike on it, as its brick's rules see it. */
 function notingStrikes(seen: Omit<Struck, "hurts" | "earths">[]): TraitRules {

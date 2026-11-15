@@ -9,9 +9,9 @@ import type { Flight } from "../rules/flight/events";
 import type { FlightRules, FlightStart } from "../rules/flight/flight";
 import type { TraitRules } from "../rules/flight/hooks";
 import { brickBox, columnOf, fieldRowOf, shapeOf } from "../rules/grid";
+import { RULES, flightRulesOf } from "../rules/round/round";
 import {
   AIM_COUNT,
-  BORED,
   COLUMNS,
   MOST_CHARGE,
   MOST_FRIENDS,
@@ -64,7 +64,7 @@ export function randomFlight(random: () => number): RandomFlight {
     mates: boon >= 1 && boon < 2 ? TRIPLE_MATES : 0,
     friends: whole(random, 0, MOST_FRIENDS),
   };
-  return { start, rules: { bored: BORED, kinds, traits } };
+  return { start, rules: { ...flightRulesOf(RULES), kinds, traits } };
 }
 
 /** Returns a wall whose bricks each have one to three hits, drawn from a source. */

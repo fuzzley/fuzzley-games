@@ -167,7 +167,7 @@ export interface Flight {
   readonly tracks: readonly BallTrack[];
   /** The last event's `at`: the last landing's, or a zap's that lands after it, so no event comes later. */
   readonly length: number;
-  /** How many fuzzballs the 600-unit cap or the still turns brought home: 0 in play. */
+  /** How many fuzzballs the cap of `MOST_FLIGHT` or the still turns brought home, not boredom: 0 in play. */
   readonly capped: number;
 }
 
