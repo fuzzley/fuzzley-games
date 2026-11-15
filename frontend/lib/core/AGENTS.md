@@ -112,6 +112,31 @@ Each file is an entry point of its own, imported by name, such as
   sprite's sounds, which gathers the sounds a frame's events call for
   (`hear()`) and plays each once (`playEach()`), at the most it rose, in
   the sprite's order.
+- `src/sound_mix.ts`: how a game's sounds play in the mix, decided apart
+  from what plays them, each number a parameter, the mix's own its
+  default, and what is drawn at random drawn by a source handed in. A
+  sprite's sound is a `MixedSound` of a `SoundMix`: its family, its
+  `SoundLevel` (`SOUND_LEVELS`, from `tick`, the quietest, to `huge`), how
+  many takes the sprite holds of it, named as `takeMarkers()` names them
+  (the sound's own name for one, else `<name>-1` on), and whether it is
+  tuned. `nextTake()` gives the take after the last, from `NO_TAKE`, in
+  turn; `isVaried()` says whether a play is varied, a noisy sound at the
+  levels `VARIATION` names, `tick` and `small`, never a tuned one, and
+  `variedDetune()` and `variedGain()` how far, up to 40 cents and 1.5 dB
+  either way from a number drawn, `gainOf()` turning decibels into a gain;
+  `acrossOf()` puts a place across a field from -1 to 1, and `panOf()` pans
+  it, to `PAN_WIDTH` (60%) of full left or right; `voiceGivingWay()` says
+  which voice sounding (a `Voice`) gives way to a play, or that there is
+  `ROOM`, as `VOICES` limits them, four of a sound, eight of a family and
+  twenty-four in all, the quietest by its level and then the oldest first;
+  `ducksOthers()`, `isDucked()` and `duckedGain()` are `DUCK`'s, a `huge`
+  sound turning `tick` and `small` down 6 dB for a third of a second, and
+  `duckedGainUnder()` the lower gain of two ducks that overlap; and a
+  bed's layers keep to one bar line by `loopPhase()`, where in its loop a
+  layer started late plays from, and fade by `fadedShare()`, a fade's share
+  after a step at the pace `FADE_SECONDS` sets, and `fadeGain()`, its gain,
+  a quarter sine, so two layers crossing keep one loudness. It imports
+  nothing, so a page that plays by it can compile it alone.
 - `src/keys.ts`: `isShortcut()`, whether a key was pressed with Ctrl, Alt
   or Meta held, as the browser's and the system's shortcuts are, which a
   game leaves to them unless it takes one as its own, in its scene and in
