@@ -1,7 +1,13 @@
+import { type SoundMix, gainOf } from "@fz/core/sound_mix";
 import { type Scene, Sound, type Types } from "phaser";
 import type { HostedScene } from "../host";
 import { type SceneRun, cacheSounds, runBareScene } from "../testing";
+import { limitSound, playMono } from "./output";
 import { MOST_AT_ONCE, type SoundSprite, SpritePlayer } from "./sprite_player";
+
+// The headless game plays through no Web Audio, so what a player asks of
+// its output is watched as it asks; output.spec.ts holds what each does.
+vi.mock("./output", { spy: true });
 
 /** A sprite of two sounds. */
 const SPRITE: SoundSprite<"ping" | "pong"> = {
@@ -39,6 +45,37 @@ describe("SpritePlayer", () => {
     new SpritePlayer(scene, SPRITE);
 
     expect(load).toHaveBeenCalledWith(SPRITE.key, SPRITE.spritemap, SPRITE.url);
+  });
+
+  it("asks Phaser to load the sprite in each of its formats, in the order given", async () => {
+    const scene = await startScene();
+    const load = vi.spyOn(scene.load, "audioSprite");
+
+    new SpritePlayer(scene, { ...SPRITE, url: ["sounds.ogg", "sounds.m4a"] });
+
+    expect(load).toHaveBeenCalledWith(SPRITE.key, SPRITE.spritemap, [
+      "sounds.ogg",
+      "sounds.m4a",
+    ]);
+  });
+
+  it("sums the game's ears into one as the player asks", async () => {
+    const scene = await startScene();
+    const player = new SpritePlayer(scene, SPRITE);
+    vi.mocked(playMono).mockClear();
+
+    player.followMono(true);
+
+    expect(playMono).toHaveBeenCalledExactlyOnceWith(scene.sound, true);
+  });
+
+  it("puts no limiter on the game's sound without a mix", async () => {
+    const scene = await startScene();
+    vi.mocked(limitSound).mockClear();
+
+    new SpritePlayer(scene, SPRITE);
+
+    expect(limitSound).not.toHaveBeenCalled();
   });
 
   it("plays a sound of the sprite, with its config", async () => {
@@ -359,26 +396,29 @@ describe("SpritePlayer's sounds made once", () => {
   });
 });
 
+/** The markers' configs of the sprite of two sounds: pong's loops, as a sound held does. */
+const PING_PONG: Readonly<Record<string, Types.Sound.SoundConfig>> = {
+  ping: { detune: 0, volume: 1, loop: false },
+  pong: { detune: 0, volume: 1, loop: true },
+};
+
 /**
  * Has the sounds the game makes of the sprite hold a marker for each of
  * its sounds, as Phaser's do where audio plays, and has a play write its
  * config into its marker's, as Phaser's does; returns the config each play
  * started with, in turn.
  */
-function markSounds(scene: Scene): Types.Sound.SoundConfig[] {
+function markSounds(
+  scene: Scene,
+  markers: Readonly<Record<string, Types.Sound.SoundConfig>> = PING_PONG,
+): Types.Sound.SoundConfig[] {
   const configs: Types.Sound.SoundConfig[] = [];
   const add = scene.sound.addAudioSprite.bind(scene.sound);
   vi.spyOn(scene.sound, "addAudioSprite").mockImplementation((key) => {
     const sound = add(key);
-    // Pong's loops, as a sound held does.
-    sound.markers["ping"] = {
-      name: "ping",
-      config: { detune: 0, volume: 1, loop: false },
-    };
-    sound.markers["pong"] = {
-      name: "pong",
-      config: { detune: 0, volume: 1, loop: true },
-    };
+    for (const [name, config] of Object.entries(markers)) {
+      sound.markers[name] = { name, config: { ...config } };
+    }
     return sound;
   });
   vi.spyOn(Sound.NoAudioSound.prototype, "play").mockImplementation(function (
@@ -537,5 +577,411 @@ describe("SpritePlayer's held sounds", () => {
     scene.game.scene.stop(scene.scene.key);
 
     expect(heldIn(scene)).toBe(0);
+  });
+});
+
+/** A sprite of a sound in three takes, and of the other sounds of the mix below in one each. */
+const MIXED_SPRITE: SoundSprite<string> = {
+  key: "mixed-sounds",
+  spritemap: {
+    spritemap: Object.fromEntries(
+      ["tap-1", "tap-2", "tap-3", "ring", "knock", "boom", "chime"].map(
+        (marker, at) => [marker, { start: at, end: at + 0.5, loop: false }],
+      ),
+    ),
+  },
+  url: ["sounds.ogg", "sounds.m4a"],
+};
+
+/** The markers' configs of the sprite above, as Phaser would give them: tap's second take loops, and ring is a little quiet. */
+const MIXED_MARKERS: Readonly<Record<string, Types.Sound.SoundConfig>> = {
+  "tap-1": { detune: 0, volume: 1, loop: false },
+  "tap-2": { detune: 0, volume: 1, loop: true },
+  "tap-3": { detune: 0, volume: 1, loop: false },
+  ring: { detune: 0, volume: 0.8, loop: false },
+};
+
+/** Names a sound of the mix below. */
+type Mixed = "tap" | "ring" | "knock" | "boom" | "chime";
+
+/**
+ * How the sprite above is mixed: two hits at the busy level `small` and
+ * one at `medium`, of one family, a blast at `huge` and a tuned bell at
+ * `tick`.
+ */
+const MIX: SoundMix<Mixed> = {
+  tap: { family: "hits", level: "small", takes: 3, tuned: false },
+  ring: { family: "hits", level: "medium", takes: 1, tuned: false },
+  knock: { family: "hits", level: "small", takes: 1, tuned: false },
+  boom: { family: "blasts", level: "huge", takes: 1, tuned: false },
+  chime: { family: "bells", level: "tick", takes: 1, tuned: true },
+};
+
+/** Returns a random source that draws the numbers given, in turn, and then the middle one, which varies nothing. */
+function drawing(...numbers: number[]): () => number {
+  let next = 0;
+  return () => numbers[next++] ?? 0.5;
+}
+
+/** Describes a play the game started: on which sound, of which marker, with what config. */
+interface Started {
+  readonly sound: Sound.BaseSound;
+  readonly marker: string;
+  readonly config: Types.Sound.SoundConfig;
+}
+
+/**
+ * Has each sound the game plays play on until it is stopped, as one does
+ * where audio plays, and returns each play, in turn, its config as it was
+ * handed over.
+ */
+function playOnUntilStopped(): Started[] {
+  const started: Started[] = [];
+  vi.spyOn(Sound.NoAudioSound.prototype, "play").mockImplementation(function (
+    this: Sound.NoAudioSound,
+    marker,
+    config,
+  ) {
+    Object.assign(this, { isPlaying: true });
+    started.push({
+      sound: this,
+      marker: typeof marker === "string" ? marker : "",
+      config: { ...config },
+    });
+    return true;
+  });
+  vi.spyOn(Sound.NoAudioSound.prototype, "stop").mockImplementation(function (
+    this: Sound.NoAudioSound,
+  ) {
+    Object.assign(this, { isPlaying: false });
+    return true;
+  });
+  return started;
+}
+
+describe("SpritePlayer with a mix", () => {
+  let run: SceneRun<HostedScene> | null = null;
+
+  /** Starts a bare scene with a player of the mixed sprite, loaded and wanted, drawing its variation from a source. */
+  async function startMixed(
+    random: () => number = drawing(),
+    mix: SoundMix<string> = MIX,
+    sprite: SoundSprite<string> = MIXED_SPRITE,
+  ): Promise<{ scene: Scene; player: SpritePlayer<string> }> {
+    run = await runBareScene();
+    const player = new SpritePlayer(run.scene, sprite, { mix, random });
+    cacheSounds(run.scene, sprite.key);
+    player.follow(true);
+    return { scene: run.scene, player };
+  }
+
+  /** Moves the scene's clock on, as frames do. */
+  function wait(ms: number): void {
+    run?.advance(ms);
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    run?.destroy();
+    run = null;
+  });
+
+  it("plays a sound's takes in turn", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+
+    for (let play = 0; play < 4; play++) player.play("tap");
+
+    expect(started.map(({ marker }) => marker)).toEqual([
+      "tap-1",
+      "tap-2",
+      "tap-3",
+      "tap-1",
+    ]);
+  });
+
+  it("plays a sound of one take by its own name", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+
+    player.play("ring");
+
+    expect(started.map(({ marker }) => marker)).toEqual(["ring"]);
+  });
+
+  it("refuses a mix whose take the sprite lacks", async () => {
+    run = await runBareScene();
+    const { scene } = run;
+
+    expect(
+      () =>
+        new SpritePlayer(scene, MIXED_SPRITE, {
+          mix: { ...MIX, ring: { ...MIX.ring, takes: 2 } },
+        }),
+    ).toThrow(RangeError);
+  });
+
+  it("puts a limiter on the game's sound", async () => {
+    vi.mocked(limitSound).mockClear();
+
+    const { scene } = await startMixed();
+
+    expect(limitSound).toHaveBeenCalledExactlyOnceWith(scene.sound);
+  });
+
+  it("refuses a mix of a sound with no takes", async () => {
+    run = await runBareScene();
+    const { scene } = run;
+
+    expect(
+      () =>
+        new SpritePlayer(scene, MIXED_SPRITE, {
+          mix: { ...MIX, ring: { ...MIX.ring, takes: 0 } },
+        }),
+    ).toThrow(RangeError);
+  });
+
+  it("varies a busy noisy sound's play from what its source draws", async () => {
+    const { player } = await startMixed(drawing(0, 1));
+    const started = playOnUntilStopped();
+
+    player.play("tap", { detune: 100, volume: 0.5 });
+
+    expect(started[0]?.config.detune).toBe(60);
+    expect(started[0]?.config.volume).toBeCloseTo(0.5 * gainOf(1.5), 12);
+  });
+
+  it.each<[string, Mixed]>([
+    ["a tuned sound's", "chime"],
+    ["a sound's at a level not busy", "ring"],
+  ])("leaves %s play as it was asked", async (_, name) => {
+    const { player } = await startMixed(drawing(0, 1));
+    const started = playOnUntilStopped();
+
+    player.play(name, { detune: 100, volume: 0.5 });
+
+    expect(started[0]?.config).toMatchObject({ detune: 100, volume: 0.5 });
+  });
+
+  it("pans a play at the field's edge 60% of the way to that side", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+
+    player.play("ring", undefined, 1);
+
+    expect(started[0]?.config.pan).toBe(0.6);
+  });
+
+  it("plays a sound risen at a place, for a frame's sounds", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    const { playAt } = player;
+
+    playAt("ring", 300, -0.5);
+
+    expect(started[0]?.config).toMatchObject({ detune: 300, pan: -0.3 });
+  });
+
+  it("keeps a play's own pan where it is given no place", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+
+    player.play("ring", { pan: 0.2 });
+
+    expect(started[0]?.config.pan).toBe(0.2);
+  });
+
+  it("starts each play from its marker's own config, whatever the last play's was", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("ring", { rate: 2, loop: true, pan: 0.5 });
+
+    player.play("ring");
+
+    expect(started[1]?.config).toEqual({
+      mute: false,
+      volume: 1,
+      rate: 1,
+      detune: 0,
+      seek: 0,
+      loop: false,
+      delay: 0,
+      pan: 0,
+    });
+  });
+
+  it("plays each take with its marker's own config", async () => {
+    const { scene, player } = await startMixed();
+    const configs = markSounds(scene, MIXED_MARKERS);
+
+    player.play("tap");
+    player.play("tap");
+
+    expect(configs.map(({ loop }) => loop)).toEqual([false, true]);
+  });
+
+  it("starts a play from its marker's own config, whatever the play before asked", async () => {
+    const { scene, player } = await startMixed();
+    const configs = markSounds(scene, MIXED_MARKERS);
+    player.play("ring", { volume: 0.3 });
+
+    player.play("ring");
+
+    expect(configs[1]?.volume).toBe(0.8);
+  });
+
+  it("places no play at a spatial source, nor the plays after it", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("ring", { source: { x: 1, y: 2 } });
+
+    player.play("ring");
+
+    expect(started.map(({ config }) => "source" in config)).toEqual([
+      false,
+      false,
+    ]);
+  });
+
+  it("ducks a busy sound played in a huge one's own frame 6 dB", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("boom");
+
+    player.play("tap");
+
+    expect(started[1]?.config.volume).toBe(gainOf(-6));
+  });
+
+  it("ducks a busy sound played just after a huge one 6 dB", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("boom");
+    wait(100);
+
+    player.play("tap");
+
+    expect(started[1]?.config.volume).toBe(gainOf(-6));
+  });
+
+  it("lets a busy sound played once the duck is done be", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("boom");
+    wait(500);
+
+    player.play("tap");
+
+    expect(started[1]?.config.volume).toBe(1);
+  });
+
+  it("holds the busy levels down as a second huge sound starts inside the first's duck", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("boom");
+    wait(200);
+    player.play("boom");
+
+    player.play("tap");
+
+    expect(started[2]?.config.volume).toBe(gainOf(-6));
+  });
+
+  it("ducks nothing under a sound that isn't huge", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("ring");
+    wait(100);
+
+    player.play("tap");
+
+    expect(started[1]?.config.volume).toBe(1);
+  });
+
+  it("leaves a huge sound itself be", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    player.play("boom");
+    wait(100);
+
+    player.play("boom");
+
+    expect(started[1]?.config.volume).toBe(1);
+  });
+
+  it("starts the oldest of a sound's four voices over for its fifth", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    for (let play = 0; play < 4; play++) player.play("tap");
+
+    player.play("tap");
+
+    expect(started[4]?.sound).toBe(started[0]?.sound);
+  });
+
+  it("stops the quietest of a family's eight voices, the oldest of those, for a ninth of another sound", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    for (let play = 0; play < 4; play++) player.play("ring");
+    for (let play = 0; play < 4; play++) player.play("tap");
+
+    player.play("knock");
+
+    expect({
+      stopped: started.map(({ sound }) => sound.isPlaying).indexOf(false),
+      sounding: started.filter(({ sound }) => sound.isPlaying).length,
+    }).toEqual({ stopped: 4, sounding: 8 });
+  });
+
+  it("leaves another family's voices be where a family is full", async () => {
+    const { player } = await startMixed();
+    const started = playOnUntilStopped();
+    for (let play = 0; play < 4; play++) player.play("ring");
+    for (let play = 0; play < 4; play++) player.play("tap");
+
+    player.play("boom");
+
+    expect(started.every(({ sound }) => sound.isPlaying)).toBe(true);
+  });
+
+  it("stops the oldest of twenty-four voices for another", async () => {
+    const names = Array.from({ length: 7 }, (_, at) => `sound-${String(at)}`);
+    const { player } = await startMixed(
+      drawing(),
+      Object.fromEntries(
+        names.map((name) => [
+          name,
+          { family: name, level: "medium", takes: 1, tuned: false },
+        ]),
+      ),
+      {
+        ...MIXED_SPRITE,
+        spritemap: {
+          spritemap: Object.fromEntries(
+            names.map((name) => [name, { start: 0, end: 1, loop: false }]),
+          ),
+        },
+      },
+    );
+    const started = playOnUntilStopped();
+    for (const name of names.slice(0, 6)) {
+      for (let play = 0; play < 4; play++) player.play(name);
+    }
+
+    player.play("sound-6");
+
+    expect({
+      first: started[0]?.sound.isPlaying,
+      sounding: started.filter(({ sound }) => sound.isPlaying).length,
+    }).toEqual({ first: false, sounding: 24 });
+  });
+
+  it("loops a sound's first take while it is held", async () => {
+    const { player } = await startMixed();
+    const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
+
+    player.hold("tap", true);
+
+    expect(play).toHaveBeenCalledWith("tap-1", { loop: true });
   });
 });

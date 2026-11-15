@@ -113,7 +113,8 @@ Each file is an entry point of its own, imported by name, such as
   (`hear()`) and plays each once (`playEach()`), at the most it rose, in
   the sprite's order.
 - `src/sound_mix.ts`: how a game's sounds play in the mix, decided apart
-  from what plays them, each number a parameter, the mix's own its
+  from what plays them, as `@fz/phaser/sound`'s `SpritePlayer` plays a
+  sprite handed a mix, each number a parameter, the mix's own its
   default, and what is drawn at random drawn by a source handed in. A
   sprite's sound is a `MixedSound` of a `SoundMix`: its family, its
   `SoundLevel` (`SOUND_LEVELS`, from `tick`, the quietest, to `huge`), how
@@ -186,8 +187,9 @@ Each file is an entry point of its own, imported by name, such as
   Only specs and their helpers import it, as `@fz/dev`'s ESLint checks of
   every library's testing entry.
 
-Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`, and
-`@fz/game-ui`'s run lifecycle the run's stages and commands. The Solitaire
+Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`,
+`@fz/game-ui`'s run lifecycle the run's stages and commands, and
+`@fz/phaser`'s sound player the mix. The Solitaire
 Collection keeps two of its own in its engine: a JSON reader, whose errors
 name the path a bug report relies on, and `shuffle()`, whose order differs
 from `shuffled()`'s and Montana's kept gaps depend on.

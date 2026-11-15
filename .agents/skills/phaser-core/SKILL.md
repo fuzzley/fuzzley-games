@@ -72,7 +72,12 @@ holds.
   a scene holds it (`hold()`); a sprite that fails to load leaves the game
   silent, not broken. It plays each sound on sound objects made once and
   played again, at most `MOST_AT_ONCE` of a sound at once, rather than
-  Phaser's `playAudioSprite()`, which makes one for each play.
+  Phaser's `playAudioSprite()`, which makes one for each play. Handed a
+  mix (`@fz/core/sound_mix`'s `SoundMix`), it plays by it: each sound's
+  takes in turn, a busy noisy one varied, a play at a place across the
+  field panned (`playAt()`), the voices of a sound, a family and all
+  limited, the busy levels ducked under a huge sound, and a limiter after
+  the game's master volume; `followMono()` sums the two ears into one.
   `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
   sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an
@@ -273,7 +278,10 @@ out of the first download.
 - A sound's `play(marker, config)` writes the config into the marker's
   own, so a later play of that marker without the config keeps it;
   `SpritePlayer` puts back what the marker held as it was made before
-  each play.
+  each play. Under `noAudio` a sound's `stop()` does nothing either, and
+  the manager has no audio context, so what wires Web Audio itself, as the
+  limiter does, checks first that the manager is a `WebAudioSoundManager`,
+  and its spec fakes one.
 - `tweens.killAll()` stops every tween a scene runs, for a new run that
   must not inherit the last one's.
 - Before it fills or strokes a path, a WebGL `Graphics` drops each point
