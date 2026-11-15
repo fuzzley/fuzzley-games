@@ -96,7 +96,7 @@ const START: WaveSetup = {
   torus: { width: 73, height: 40 },
   speed: "relaxed",
   seed: 5,
-  crew: { flying: [3, 0], home: [6], lastGiven: 6 },
+  crew: { pilot: 3, tow: [0], home: [6], lastGiven: 6 },
   held: STILL,
 };
 
@@ -727,13 +727,13 @@ describe("stepField", () => {
 
     it("bails the pilot at the controls out of a lost ship, logging it with the ships left, and hands the controls to the next", () => {
       const field = fieldFrom(["^B"], {
-        crew: { flying: [4, 1, 6], home: [2], lastGiven: 6 },
+        crew: { pilot: 4, tow: [1, 6], home: [2], lastGiven: 6 },
       });
 
       stepField(field);
 
       expect([field.crew, loggedOn(field)]).toEqual([
-        { flying: [1, 6], home: [2], lastGiven: 6 },
+        { pilot: 1, tow: [6], home: [2], lastGiven: 6 },
         [
           expect.objectContaining({
             kind: "lost",
@@ -1141,7 +1141,7 @@ describe("stepField", () => {
 
     it("brings no ship once the crew has none left", () => {
       const field = fieldFrom(["^B"], {
-        crew: { flying: [0], home: [], lastGiven: 0 },
+        crew: { pilot: 0, tow: [], home: [], lastGiven: 0 },
       });
 
       stepTimes(field, NEXT_SHIP_STEP + 60);

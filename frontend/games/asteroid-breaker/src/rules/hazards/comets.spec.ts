@@ -516,9 +516,9 @@ describe("a comet", () => {
 
     stepField(field);
 
-    expect([field.shipsLost, field.crew.flying, loggedOn(field)]).toEqual([
+    expect([field.shipsLost, field.crew, loggedOn(field)]).toEqual([
       1,
-      [1, 2],
+      expect.objectContaining({ pilot: 1, tow: [2] }),
       [expect.objectContaining({ kind: "lost", pilot: 0 })],
     ]);
   });

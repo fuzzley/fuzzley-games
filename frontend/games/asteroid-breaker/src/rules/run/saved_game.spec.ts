@@ -69,11 +69,12 @@ const STRAY_SPOILS: readonly Spoil[] = [
 
 /** Crews a run kept may hold that no run has, each failing `hasSoundCrew()`. */
 const CREW_SPOILS: readonly Spoil[] = [
-  ["no one flying", { flying: [] }],
-  ["pilots flying that aren't a list", { flying: 3 }],
-  ["more ships than a run can have", { flying: [0, 1, 2, 3, 4, 5, 6] }],
+  ["no one at the controls", { pilot: null }],
+  ["a pilot at the controls of no color", { pilot: 8 }],
+  ["pilots in tow that aren't a list", { tow: 3 }],
+  ["more aboard than a run can have", { pilot: 0, tow: [1, 2, 3, 4, 5, 6] }],
   ["a pilot of no color", { home: [8] }],
-  ["a pilot of no color behind one of a color", { flying: [3, 8] }],
+  ["a pilot of no color in tow behind one of a color", { tow: [0, 8] }],
   ["pilots at home that aren't a list", { home: 6 }],
   ["more strays at home than the run brought home", { home: [6, 2, 1] }],
   ["a last color given that is none", { lastGiven: 8 }],
@@ -169,7 +170,8 @@ describe("saveGame", () => {
       seed: 7,
       banked: 500,
       score: 800,
-      flying: [3, 0],
+      pilot: 3,
+      tow: [0],
       home: [6],
       lastGiven: 6,
       straysBanked: 2,
@@ -441,8 +443,8 @@ describe("hasSoundCrew", () => {
     expect(hasSoundCrew(storedValues(), STRAYS)).toBe(true);
   });
 
-  it("holds a crew of as many ships as a run can have", () => {
-    const value = tampered({ flying: [0, 1, 2, 3, 4, 5] });
+  it("holds a crew of as many aboard as a run can have", () => {
+    const value = tampered({ pilot: 0, tow: [1, 2, 3, 4, 5] });
 
     expect(hasSoundCrew(value, STRAYS)).toBe(true);
   });

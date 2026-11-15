@@ -22,11 +22,11 @@ import {
   FAIR_DISTANCE,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
-  FIRST_SHIPS,
+  FIRST_CREW,
   HEADING_EASE,
   HEADING_TURN_RATE,
   KEY_TURN_RAMP_MS,
-  MAX_SHIPS,
+  MOST_CREW,
   PICKUP_BLINK_MS,
   PICKUP_CATCH_REACH,
   PICKUP_DRIFT,
@@ -175,16 +175,16 @@ describe("the tuning", () => {
     expect(DROUGHT_MS).toBeGreaterThan(PICKUP_LIFE_MS);
   });
 
-  it("starts a run with a ship at least", () => {
-    expect(FIRST_SHIPS).toBeGreaterThan(0);
+  it("starts a run with a pilot at the controls at least", () => {
+    expect(FIRST_CREW).toBeGreaterThan(0);
   });
 
-  it("starts a run with no more ships than it can have", () => {
-    expect(FIRST_SHIPS).toBeLessThanOrEqual(MAX_SHIPS);
+  it("starts a run with no more of the crew than it can have aboard", () => {
+    expect(FIRST_CREW).toBeLessThanOrEqual(MOST_CREW);
   });
 
   it("gives a full crew and a stray adrift a color each", () => {
-    expect(MAX_SHIPS + 1).toBeLessThanOrEqual(PILOT_COLORS);
+    expect(MOST_CREW + 1).toBeLessThanOrEqual(PILOT_COLORS);
   });
 
   it("flies a stray slower than the ship's top speed, so the ship can catch it", () => {

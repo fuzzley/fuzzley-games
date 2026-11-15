@@ -14,6 +14,7 @@ import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
+import { pilotsAboard } from "../../rules/ship/pilots";
 import type { Speed } from "../../rules/speed";
 import { PilotComponent } from "../pilot/pilot.component";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
@@ -83,11 +84,11 @@ export class BarComponent {
     () => !this.viewport.isCompact() && this.viewport.fitsActionLabels(),
   );
 
-  /** The pilots of the run's ships, the one at the controls first. */
-  protected readonly pilots = computed(() => this.game.crew().flying);
+  /** The pilots aboard, the one at the controls first. */
+  protected readonly pilots = computed(() => pilotsAboard(this.game.crew()));
 
   /** The pilot at the controls, beside the ships' number, or null once none is left. */
-  protected readonly atControls = computed(() => this.pilots()[0] ?? null);
+  protected readonly atControls = computed(() => this.game.crew().pilot);
 
   /** The ships as words, since the pilots are pictures. */
   protected readonly shipsText = computed(() =>

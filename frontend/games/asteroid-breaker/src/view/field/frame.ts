@@ -46,7 +46,7 @@ export interface FieldView {
   readonly effects: Effects;
   /** Whether a Shield guards the ship from the next rock to touch it. */
   readonly shielded: boolean;
-  /** Who flies the run's ships, the pilot at the controls first, and who waits at home. */
+  /** Who is at the controls, in tow and at home. */
   readonly crew: Crew;
   /** How many steps the wave has taken, by which its timers run. */
   readonly steps: number;

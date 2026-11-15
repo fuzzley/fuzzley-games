@@ -15,9 +15,9 @@ import {
 } from "./describe";
 import { type Run, createRun } from "./run";
 
-/** Returns a crew of pilots flying and at home. */
-function crewOf(flying: readonly Pilot[], home: readonly Pilot[] = []): Crew {
-  return { flying, home, lastGiven: 7 };
+/** Returns a crew of a pilot at the controls or none, and those in tow. */
+function crewOf(pilot: Pilot | null, tow: readonly Pilot[] = []): Crew {
+  return { pilot, tow, home: [], lastGiven: 7 };
 }
 
 /** Returns the event a log records as `add` writes it. */
@@ -66,7 +66,7 @@ describe("describeWave", () => {
 describe("describeEvent", () => {
   it("says a stray drifts in", () => {
     const strayed = eventOf((log) => {
-      log.addPilot("strayed", 1, 2, 5, crewOf([0, 1]));
+      log.addPilot("strayed", 1, 2, 5, crewOf(0, [1]));
     });
 
     expect(describeEvent(strayed)).toBe("A stray fuzzball drifts in.");
@@ -74,7 +74,7 @@ describe("describeEvent", () => {
 
   it("says a stray brought home, and the ships the crew had then", () => {
     const home = eventOf((log) => {
-      log.addPilot("home", 1, 2, 5, crewOf([0, 5]));
+      log.addPilot("home", 1, 2, 5, crewOf(0, [5]));
     });
 
     expect(describeEvent(home)).toBe("Brought home. 2 ships.");
@@ -82,7 +82,7 @@ describe("describeEvent", () => {
 
   it("says a ship lost, and the ships left then", () => {
     const lost = eventOf((log) => {
-      log.addPilot("lost", 1, 2, 0, crewOf([1]));
+      log.addPilot("lost", 1, 2, 0, crewOf(1));
     });
 
     expect(describeEvent(lost)).toBe("Ship lost. 1 ship left.");
@@ -90,7 +90,7 @@ describe("describeEvent", () => {
 
   it("says nothing of the last ship lost, which the run's end says", () => {
     const lost = eventOf((log) => {
-      log.addPilot("lost", 1, 2, 0, crewOf([]));
+      log.addPilot("lost", 1, 2, 0, crewOf(null));
     });
 
     expect(describeEvent(lost)).toBeNull();
@@ -176,7 +176,7 @@ describe("describeResume", () => {
 
 describe("describeTakenUp", () => {
   it("says the wave the run is paused on, its score, its ships, and how to go on", () => {
-    const run = { ...runAt(4, 9_020), crew: crewOf([0, 3]) };
+    const run = { ...runAt(4, 9_020), crew: crewOf(0, [3]) };
 
     expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
       "Your last run is paused on wave 4, Thaw, with a score of 9,020 and 2 ships. Press Enter to go on.",

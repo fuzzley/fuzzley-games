@@ -196,11 +196,11 @@ export const SHIELD_GUARD_MS = 1000;
 /** How long the ship stays untouchable once a pause that stretched the field to a new shape ends. */
 export const STRETCH_GUARD_MS = 1000;
 
-/** How many ships a run starts with, each with its pilot. */
-export const FIRST_SHIPS = 3;
+/** How many of the crew a run starts with: the pilot at the controls and those in tow. */
+export const FIRST_CREW = 3;
 
-/** The most ships a run has at once; a stray brought home past it waits at home. */
-export const MAX_SHIPS = 6;
+/** The most of the crew aboard at once; a stray brought home past it waits at home. */
+export const MOST_CREW = 6;
 
 /** The first wave a stray crosses, in a wave that doesn't say how many. */
 export const STRAYS_FROM = 3;

@@ -15,7 +15,7 @@ import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
-  MAX_SHIPS,
+  MOST_CREW,
   STRAYS_FROM,
   STRAY_POINTS,
 } from "../../rules/tuning";
@@ -42,7 +42,7 @@ const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays d
 const ADRIFT = {
   stray: {
     name: "Stray fuzzball",
-    about: `Crosses the field once in its bubble, which shots pass through. Fly into it to bring it home, and it flies one more ship at once, up to ${String(MAX_SHIPS)}.`,
+    about: `Crosses the field once in its bubble, which shots pass through. Fly into it to bring it home, and it flies one more ship at once, up to ${String(MOST_CREW)}.`,
   },
   comet: {
     name: "Comet",

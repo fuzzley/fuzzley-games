@@ -22,7 +22,7 @@ import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   FIELD_SHORT_SIDE,
-  FIRST_SHIPS,
+  FIRST_CREW,
 } from "../../rules/tuning";
 import { endlessWave } from "../../rules/waves/endless";
 import {
@@ -210,7 +210,7 @@ describe("GameService", () => {
         outcome: "ready",
         wave: 1,
         speed: "normal",
-        ships: FIRST_SHIPS,
+        ships: FIRST_CREW,
         score: 0,
       });
     });
@@ -258,7 +258,7 @@ describe("GameService", () => {
     it("flies a new run's ships with pilots in the first colors, and no one at home", () => {
       const game = TestBed.inject(GameService);
 
-      expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [] });
+      expect(game.crew()).toMatchObject({ pilot: 0, tow: [1, 2], home: [] });
     });
 
     it("flies a stray brought home at once, in the next color, keeping it among those brought home", () => {
@@ -270,7 +270,7 @@ describe("GameService", () => {
         crew: game.crew(),
         broughtHome: game.broughtHome(),
       }).toMatchObject({
-        crew: { flying: [0, 1, 2, 3], home: [] },
+        crew: { pilot: 0, tow: [1, 2, 3], home: [] },
         broughtHome: [3],
       });
     });
@@ -936,7 +936,7 @@ describe("GameService", () => {
       }).toEqual({
         outcome: "ready",
         wave: SPEC_WAVE.pebble,
-        ships: FIRST_SHIPS,
+        ships: FIRST_CREW,
       });
     });
 

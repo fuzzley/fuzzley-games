@@ -49,10 +49,10 @@ function progressOf(
 }
 
 /** A crew with one ship more, flown by a stray brought home. */
-const WITH_A_STRAY: Crew = { flying: [0, 1, 2, 3], home: [], lastGiven: 3 };
+const WITH_A_STRAY: Crew = { pilot: 0, tow: [1, 2, 3], home: [], lastGiven: 3 };
 
-/** A crew with no one flying, its last ship lost. */
-const NONE_FLYING: Crew = { flying: [], home: [4], lastGiven: 4 };
+/** A crew with no one at the controls, its last ship lost. */
+const NO_PILOT: Crew = { pilot: null, tow: [], home: [4], lastGiven: 4 };
 
 /** The outcomes of a run with no wave under way. */
 const NOT_UNDER_WAY: readonly Outcome[] = ["ready", "cleared", "over"];
@@ -285,13 +285,13 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      progressOf(before, { score: 300, crew: NONE_FLYING }),
+      progressOf(before, { score: 300, crew: NO_PILOT }),
     );
 
     expect([run.score, run.banked, run.crew, run.outcome]).toEqual([
       2300,
       2000,
-      NONE_FLYING,
+      NO_PILOT,
       "over",
     ]);
   });
@@ -332,7 +332,7 @@ describe("catchUp", () => {
 
     const run = catchUp(
       before,
-      progressOf(before, { cleared: true, score: 600, crew: NONE_FLYING }),
+      progressOf(before, { cleared: true, score: 600, crew: NO_PILOT }),
     );
 
     expect([run.score, run.banked, run.outcome]).toEqual([2600, 2000, "over"]);

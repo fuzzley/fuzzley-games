@@ -14,7 +14,7 @@ import { type Field, stepField } from "../field/field";
 import { guardShip } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
-  MAX_SHIPS,
+  MOST_CREW,
   PICKUP_PULL_SPEED,
   STEP_S,
   STRAY_CATCH_REACH,
@@ -152,9 +152,9 @@ describe("a wave's strays", () => {
     expect(field.strays.adrift.live).toBe(false);
   });
 
-  it("gives a stray a color no pilot wears, flying or at home", () => {
+  it("gives a stray a color no pilot wears, aboard or at home", () => {
     const field = strayDue({
-      crew: { flying: [3, 0], home: [4], lastGiven: 2 },
+      crew: { pilot: 3, tow: [0], home: [4], lastGiven: 2 },
     });
 
     stepField(field);
@@ -381,9 +381,9 @@ describe("a stray adrift", () => {
     expect(stray.live).toBe(live);
   });
 
-  it("flies one more ship once brought home, counted and logged", () => {
+  it("rides last in tow once brought home, counted and logged", () => {
     const field = fieldFrom(PICTURE, {
-      crew: { flying: [0, 1], home: [], lastGiven: 6 },
+      crew: { pilot: 0, tow: [1], home: [], lastGiven: 6 },
     });
     placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
 
@@ -391,7 +391,7 @@ describe("a stray adrift", () => {
 
     const logged = loggedOn(field).find((each) => each.kind === "home");
     expect([
-      field.crew.flying,
+      field.crew.tow,
       field.strays.broughtHome,
       field.strays.nextAt,
       logged?.kind,
@@ -400,7 +400,7 @@ describe("a stray adrift", () => {
       logged?.y,
       logged?.ships,
     ]).toEqual([
-      [0, 1, 5],
+      [1, 5],
       1,
       field.steps + stepsIn(STRAY_NEXT_MS),
       "home",
@@ -411,16 +411,16 @@ describe("a stray adrift", () => {
     ]);
   });
 
-  it("waits at home once brought home with the most ships flying, behind those home before it, logged so", () => {
+  it("waits at home once brought home with the most of the crew aboard, behind those home before it, logged so", () => {
     const field = fieldFrom(PICTURE, {
-      crew: { flying: [0, 1, 2, 3, 4, 6], home: [7], lastGiven: 7 },
+      crew: { pilot: 0, tow: [1, 2, 3, 4, 6], home: [7], lastGiven: 7 },
     });
     placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
 
     stepField(field);
 
     const logged = loggedOn(field).find((each) => each.kind === "home");
-    expect([field.crew.home, logged?.ships]).toEqual([[7, 5], MAX_SHIPS]);
+    expect([field.crew.home, logged?.ships]).toEqual([[7, 5], MOST_CREW]);
   });
 
   it("is brought home by a guarded ship", () => {

@@ -44,6 +44,7 @@ import {
   saveGame,
   takeUpField,
 } from "../../rules/run/saved_game";
+import { aboard } from "../../rules/ship/pilots";
 import { STILL, type Steer, thrustOf } from "../../rules/ship/ship";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { recordsOf } from "../../rules/run/stats";
@@ -154,11 +155,11 @@ export class GameService extends RunLifecycle {
   /** The run's points so far. */
   readonly score = computed(() => this.run().score);
 
-  /** Who flies the run's ships and who waits at home, as the field last left them. */
+  /** Who is at the controls, in tow and at home, as the field last left them. */
   readonly crew = computed(() => this.run().crew);
 
-  /** How many ships the run has, the one in play among them, as the field last left the crew. */
-  readonly ships = computed(() => this.crew().flying.length);
+  /** How many of the crew are aboard, the one at the controls among them, as the field last left them. */
+  readonly ships = computed(() => aboard(this.crew()));
 
   /**
    * How many times a break scores, by the chain the wave in play counts: 1

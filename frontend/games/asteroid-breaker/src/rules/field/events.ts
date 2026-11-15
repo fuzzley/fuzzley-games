@@ -1,7 +1,7 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { PickupId } from "../catalog/pickups";
 import type { RockKindId, RockSize } from "../catalog/rocks";
-import type { Crew, Pilot } from "../ship/pilots";
+import { type Crew, type Pilot, aboard } from "../ship/pilots";
 
 /** Names something that happened at a place on the field, which its event names nothing else of. */
 export type PlaceEventKind =
@@ -44,7 +44,7 @@ export type PilotEventKind =
   | "lost"
   /** A stray came in at an edge. */
   | "strayed"
-  /** The ship brought a stray home, which flies one more ship at once or waits at home. */
+  /** The ship brought a stray home, which rides last in tow or waits at home. */
   | "home";
 
 /** Names points scored at a place, a break's or a stray's, which its event says. */
@@ -220,7 +220,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   ): void {
     const event = this.record(kind, x, y);
     event.pilot = pilot;
-    event.ships = crew.flying.length;
+    event.ships = aboard(crew);
   }
 
   /** Records points scored at a place, before the chain's multiplier, and the multiplier. */
