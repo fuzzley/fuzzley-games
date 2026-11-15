@@ -342,7 +342,10 @@ Phaser game:
   `playRound()`.
 - Play them a frame at a time: `release()`, `playOut()`, `playRoundOut()`
   and `playUntilCard()`, steered `STILL` or `RELEASE`, with
-  `@fz/core/testing`'s `FRAME_MS` and `playUntil()`.
+  `@fz/core/testing`'s `FRAME_MS` and `playUntil()`. `GameService` keeps
+  the records as a flight lands, but a run's start, counted as its first
+  round is released, so a spec that reads the stats or the progress after
+  a release plays the flight out first.
 - The shell loads How to play as it first opens, and the debug menu where
   it is offered, through `onDemand()` (`src/app/on_demand.ts`), each load
   a pending task, so a spec waits for it with `whenStable()`: after

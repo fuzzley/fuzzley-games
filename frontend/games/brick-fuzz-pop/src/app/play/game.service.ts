@@ -129,8 +129,9 @@ type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
  * time, takes what it comes to into the run, pauses, goes on and starts
  * levels and runs as the player asks, lays the field out on the board's
  * room between rounds, says what happened, and keeps the records and the
- * levels cleared, but for a run the debug menu takes off the record. It
- * plays on the numbers the debug menu tunes, at the depth it sets.
+ * levels cleared as each flight lands, a run's start as its first round is
+ * released, but for a run the debug menu takes off the record. It plays on
+ * the numbers the debug menu tunes, at the depth it sets.
  *
  * The run and what the shell shows beside the field are one signal,
  * replaced whole as each run begins, which changes only as the run or its
@@ -742,8 +743,8 @@ export class GameService extends RunLifecycle implements KeptGame {
   /**
    * Releases the round aimed at a shot, if the board is drawn and its level
    * waits for the first shot or is under way: the rules play it whole, on
-   * the numbers handed, the run takes it in, its records kept as the run
-   * will stand once it lands, and the view starts playing its flight back.
+   * the numbers handed, the run takes it in, counted in the records as it
+   * plays its first round, and the view starts playing its flight back.
    * Returns whether the shot flew.
    */
   private release({ aim, charge }: Readonly<Shot>, rules: RoundRules): boolean {
@@ -758,26 +759,20 @@ export class GameService extends RunLifecycle implements KeptGame {
       rules,
     );
     const run = takeRound(started, round.outcome);
-    const landed = afterLanding(run);
-    const newBest = this.keepRecords(state.run, landed);
+    this.keepStart(state.run);
     this.play.release(round);
     // The run and the round in one value, so the saved game, which keeps
     // the round's next start, never reads one without the other.
-    this.runState.set({
-      ...state,
-      run,
-      round,
-      phase: "flying",
-      newBest,
-    });
+    this.runState.set({ ...state, run, round, phase: "flying" });
     return true;
   }
 
   /**
    * Plays the round on by a frame's time and takes in what the frame came
-   * to: the run landed as the flight ends, while it is under way, the next
-   * round aimed as an ongoing round's wall comes to rest, the card that
-   * opened, and the words for all of it.
+   * to: the run landed as the flight ends, while it is under way, with
+   * what the landing brings to the records, the next round aimed as an
+   * ongoing round's wall comes to rest, the card that opened, and the words
+   * for all of it.
    */
   private playFrame(deltaMs: number, paused: boolean): void {
     const change = this.play.advance(deltaMs, this.frameOptions(paused));
@@ -786,12 +781,16 @@ export class GameService extends RunLifecycle implements KeptGame {
       this.play.phase !== "flying" && before.run.ending !== null
         ? landRound(before.run)
         : before.run;
+    let state = before;
+    if (run !== before.run) {
+      state = { ...before, run, newBest: this.keepRecords(run) };
+    }
     const { settled } = change;
     if (settled !== null && settled.outcome.result === "on") {
       this.aim(this.onDepth(settled.next, run));
     }
     const taken = withFrame(
-      run === before.run ? before : { ...before, run },
+      state,
       this.play,
       // The last level's Cleared card is the run's result.
       change.opens === "cleared" && run.outcome === "won"
@@ -832,14 +831,22 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Keeps what a round released brings to the records, from the run as it
-   * will stand once it lands, but for a run off the record: a run started
-   * at its first round, a level cleared and the levels it opens, and the
-   * run's end, returning whether that set a new best.
+   * Counts a run started in the records, from the run as it stood before
+   * its round was released, if that is its first, but for a run off the
+   * record.
    */
-  private keepRecords(before: Run, landed: Run): boolean {
+  private keepStart(before: Run): void {
+    if (this.debug.runOffRecord() || isInProgress(before)) return;
+    this.stats.recordStart();
+  }
+
+  /**
+   * Keeps what a run's landing brings to the records, from the run landed,
+   * but for a run off the record: a level cleared and the levels it opens,
+   * and the run's end, returning whether that set a new best.
+   */
+  private keepRecords(landed: Run): boolean {
     if (this.debug.runOffRecord()) return false;
-    if (!isInProgress(before)) this.stats.recordStart();
     const result = levelResultOf(landed);
     if (result !== null) {
       const { id } = levelEntryOf(this.levels, landed.level).data;
@@ -910,16 +917,23 @@ export class GameService extends RunLifecycle implements KeptGame {
    * Puts a run on the board, its state replaced whole, so nothing of the
    * last run's reaches it, its round aimed from where it starts, and tells
    * the debug menu how it begins: a new run, by whether its level is open,
-   * or one storage kept, by whether it was off the record.
+   * or one storage kept, by whether it was off the record. The last run's
+   * round not yet landed in it lands in the records first, as it would
+   * have flown, as nothing can change it once the run is left, so the
+   * level it clears is open to the new run.
    */
   private begin(
     run: Run,
     start: RoundStart = openingOf(run, levelOf(run, this.levels)),
-    keeping: RunStart = { locked: !this.progress.isOpen(run.level) },
+    keeping?: RunStart,
   ): void {
+    const left = this.runState().run;
+    if (left.ending !== null) this.keepRecords(afterLanding(left));
     this.aim(start);
     this.lineShots = [];
-    this.debug.startRun(keeping);
+    this.debug.startRun(
+      keeping ?? { locked: !this.progress.isOpen(run.level) },
+    );
     this.runState.set(newRunState(run, start));
     this.began();
   }

@@ -1011,7 +1011,15 @@ describe("GameService", () => {
   });
 
   describe("the records", () => {
-    it("counts a run started as it plays its first round, and not again at its second", () => {
+    it("counts a run started as its first round is released, before it lands", () => {
+      const game = gameOf("step");
+
+      release(game);
+
+      expect(TestBed.inject(StatsService).stats().runs).toBe(1);
+    });
+
+    it("counts a run started once, not again at its second round", () => {
       const game = gameOf("step");
       playRoundOut(game);
 
@@ -1020,10 +1028,22 @@ describe("GameService", () => {
       expect(TestBed.inject(StatsService).stats().runs).toBe(1);
     });
 
-    it("keeps a level cleared as its last round is released, before it lands", () => {
+    it("keeps no level cleared while the flight that clears it is in the air", () => {
       const game = gameOf("cleared");
 
       release(game);
+
+      expect({
+        cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
+        levels: TestBed.inject(StatsService).stats().levels,
+      }).toEqual({ cleared: false, levels: {} });
+    });
+
+    it("keeps a level cleared, with its stars, as the flight that clears it lands", () => {
+      const game = gameOf("cleared");
+      release(game);
+
+      playOut(game);
 
       expect({
         cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
@@ -1031,7 +1051,7 @@ describe("GameService", () => {
       }).toEqual({ cleared: true, stars: 3 });
     });
 
-    it("keeps the run's end, and a new best, as the round that ends it is released", () => {
+    it("keeps no run's end while the flight that ends it is in the air", () => {
       const game = gameOf("step", "lost");
       playRoundOut(game);
 
@@ -1040,7 +1060,97 @@ describe("GameService", () => {
       expect({
         best: TestBed.inject(StatsService).stats().best,
         newBest: game.newBest(),
+      }).toEqual({ best: 0, newBest: false });
+    });
+
+    it("keeps the run's end, and a new best, as the flight that ends it lands", () => {
+      const game = gameOf("step", "lost");
+      playRoundOut(game);
+      release(game);
+
+      playOut(game);
+
+      expect({
+        best: TestBed.inject(StatsService).stats().best,
+        newBest: game.newBest(),
       }).toEqual({ best: SPEC_POINTS.step, newBest: true });
+    });
+
+    it("says the new best the landing kept as the run's result opens", () => {
+      const game = gameOf("step", "lost");
+      playRoundOut(game);
+
+      playUntilCard(game);
+
+      expect(said()).toBe(describeEnd(game.run(), true));
+    });
+
+    it("keeps nothing of a flight skipped while paused, its level's end held", () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.pause();
+
+      game.skip();
+
+      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
+    });
+
+    it("keeps the level a flight skipped while paused cleared once the level goes on", () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.pause();
+      game.skip();
+      game.resume();
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(TestBed.inject(ProgressService).cleared().has(FIRST_ID)).toBe(
+        true,
+      );
+    });
+
+    it("keeps the level a flight paused in the air clears as another run begins", async () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.pause();
+
+      await answered(game.startAt(1), true);
+
+      expect(TestBed.inject(ProgressService).cleared().has(FIRST_ID)).toBe(
+        true,
+      );
+    });
+
+    it("keeps the run's end a flight paused in the air ends as another run begins", async () => {
+      const game = gameOf("step", "lost");
+      playRoundOut(game);
+      release(game);
+      game.pause();
+
+      await answered(game.newGame(), true);
+
+      expect(TestBed.inject(StatsService).stats().best).toBe(SPEC_POINTS.step);
+    });
+
+    it("keeps the next level open to a run begun on it while the flight that clears it is in the air", async () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.pause();
+
+      await answered(game.startAt(2), true);
+
+      expect(game.tuned()).toBe(false);
+    });
+
+    it("keeps nothing of a flight still in the air as another run begins, where the run left was off the record", async () => {
+      const game = gameOf("cleared");
+      await game.startAt(2);
+      release(game);
+      game.pause();
+
+      await answered(game.startAt(1), true);
+
+      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
     });
 
     it("keeps nothing for a run played on retuned numbers", () => {
@@ -1049,7 +1159,7 @@ describe("GameService", () => {
       game.takeUp(kept(game, game.run().id + 1, true));
       game.resume();
 
-      release(game);
+      playRoundOut(game);
 
       expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
     });
@@ -1715,7 +1825,7 @@ describe("GameService", () => {
       const game = gameOf("cleared");
       await game.startAt(3);
 
-      release(game);
+      playRoundOut(game);
 
       expect({
         tuned: game.tuned(),
@@ -1728,7 +1838,7 @@ describe("GameService", () => {
       const game = gameOf("cleared");
       await game.startAt(1);
 
-      release(game);
+      playRoundOut(game);
 
       expect([
         game.tuned(),
@@ -1740,7 +1850,17 @@ describe("GameService", () => {
       const game = gameOf("cleared");
       TestBed.inject(DebugService).tuning.tune("bored", 40);
 
+      playRoundOut(game);
+
+      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
+    });
+
+    it("keeps no records for a run whose number is retuned while its flight is in the air", () => {
+      const game = gameOf("cleared");
       release(game);
+      TestBed.inject(DebugService).tuning.tune("bored", 40);
+
+      playOut(game);
 
       expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
     });
