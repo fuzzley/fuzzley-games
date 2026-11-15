@@ -256,6 +256,14 @@ describe("BoardComponent", () => {
       );
     });
 
+    it("describes the key that switches fast-forward", async () => {
+      await renderBoard();
+
+      expect(screen.getByRole("application")).toHaveAccessibleDescription(
+        /Space lets the shot fly\. The left index finger's home key switches fast-forward on or off,/,
+      );
+    });
+
     it("is named for the level the run goes on to", async () => {
       const rendered = await renderBoard({ rounds: scriptedRounds("cleared") });
       playToCard(rendered);
