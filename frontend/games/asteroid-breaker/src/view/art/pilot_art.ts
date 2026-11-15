@@ -62,8 +62,9 @@ const BUBBLE_WITHIN = 0.93;
 
 /**
  * The radius of the bubble a lost pod's pilot bails out in, in field units:
- * a bubble in tow's, as the kit draws it, which the scene draws a stray's
- * bubble and its pilot adrift scaled to.
+ * the art kit's bubble in tow, larger than the game's, which the line's
+ * spacing holds to `crew.ts`' `TOW_RADIUS`, and which the scene draws a
+ * stray's bubble and its pilot adrift scaled to.
  */
 export const BAIL_OUT_RADIUS = 0.86;
 

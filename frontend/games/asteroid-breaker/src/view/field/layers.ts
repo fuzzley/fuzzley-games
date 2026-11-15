@@ -8,10 +8,12 @@
  * effects in play, under all that moves, so they hide nothing a player must
  * see; a broken rock's dust and shards, under the rocks, so none hides a
  * piece it leaves; the rocks; the pickups; the strays adrift and the pilots
- * bailing out; the comets and their warnings; the shots; the ship and its
- * pilot; a held hit's flash; the flourishes, back to front a dash's trail,
- * the exhaust, a lost ship's shards, the sparks and glints of breaks and
- * held hits, and the rings; the points rising; and the frame and the deck.
+ * bailing out; the comets and their warnings; the shots; the crew in tow
+ * and those knocked loose, under the ship, so the line ties on under the
+ * pod; the ship and its pilot; a held hit's flash; the flourishes, back to
+ * front a dash's trail, the exhaust, a lost ship's shards, the sparks and
+ * glints of breaks and held hits, and the rings; the points rising; and the
+ * frame and the deck.
  */
 export const LAYERS = [
   "place",
@@ -25,6 +27,7 @@ export const LAYERS = [
   "strays",
   "hazards",
   "shots",
+  "tow",
   "ship",
   "flash",
   "effects",
@@ -60,6 +63,7 @@ export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   strays: "field",
   hazards: "field",
   shots: "field",
+  tow: "field",
   ship: "field",
   flash: "field",
   effects: "field",

@@ -31,7 +31,7 @@ interface Bubbled {
   readonly parts: readonly GameObjects.Image[];
 }
 
-/** How much smaller a pilot bailing out is drawn than a stray adrift, its bubble a bubble in tow's. */
+/** How much smaller a pilot bailing out is drawn than a stray adrift, its bubble the art kit's bubble in tow. */
 export const BAIL_OUT_SCALE = BAIL_OUT_RADIUS / STRAY_RADIUS;
 
 /**
@@ -44,7 +44,7 @@ interface Drawing {
   scale: number;
 }
 
-/** How a pilot bailing out is drawn: wide eyed, its fur stood out in a fright, in a bubble in tow's size. */
+/** How a pilot bailing out is drawn: wide eyed, its fur stood out in a fright, in the art kit's bubble in tow. */
 const BAILING: Readonly<Drawing> = {
   fur: ADRIFT_FRAMES.puffed,
   eyes: eyesFrame("adrift", "eep"),

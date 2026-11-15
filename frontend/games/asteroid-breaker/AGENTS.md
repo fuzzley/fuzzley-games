@@ -372,9 +372,18 @@ takes for the specs' helpers.
   drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`),
   where the ship is drawn and turned (`shipAt()`), the kind and size of
   the rock an event names (`rockKindOf()`, `rockSizeOf()`), and the weapon
-  a pull of fire names (`weaponOf()`). `layers.ts` is the order
+  a pull of fire names (`weaponOf()`). `near.ts` finds the nearest whole
+  rock or crossing comet within a reach of a circle on the field, across
+  the wrap, and the way to it (`nearestThreat()`), which a pilot keeps an
+  eye on, at the controls or in tow. `tow_line.ts` says where the line in
+  tow is drawn, from the hook behind the pod where it is drawn through each
+  in tow between its last place and its next, each the short way across
+  the wrap from the one ahead, as one chain, and how far off its copies
+  past the edges lie (`towLineAt()`, into a `TowLine` made once), and how
+  wide it is drawn (`towLineWidth()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
-  that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
+  that draws each layer (`LAYER_CAMERAS`, `drawnBy()`), the crew in tow
+  under the ship, so the line ties on under the pod. `tags.ts` says where
   the tags of the effects in play lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning
   stands, on the field's edge where the comet will come in, along its way
@@ -647,6 +656,16 @@ takes for the specs' helpers.
   at the nearest rock or comet or the way the pod points (`lookOf()`),
   how far its fur lifts with static, a step a multiplier (`liftOf()`), and the push it
   leans from, eased so it lags a thrust (`pushOf()`, `easeLean()`);
+  `crew.ts` the crew on the field beside it: the face each in tow shows,
+  from the same moments, happy over a clearing or a catch, eep as one is
+  knocked loose or a rock or a comet passes close to its bubble
+  (`STARTLE_REACH`), sleepy while the pod waits (`towFaceOf()`), where it
+  looks, at what is near or the one ahead (`towLookOf()`), and, for each
+  knocked loose, its bubble swelling from a bubble in tow's
+  (`TOW_RADIUS`) to a stray's (`looseRadius()`), its fright
+  (`isLooseFrightened()`, `looseFaceOf()`), its eyes on the pod
+  (`looseLookOf()`) and its blinking through its last seconds
+  (`looseBlinks()`, `LOOSE_BLINK_MS`);
   `symbols.ts` each pickup's symbol, as the kit cuts it, its lines, its
   fills grown a little past their edges, and its cuts in the color of what
   it lies on, where it is given one (`SymbolStyle`), and each button's
@@ -737,10 +756,16 @@ takes for the specs' helpers.
   behind it, fading as it lies off the field, and their warnings, their
   chevrons lit in turn, with their lanes across the field in a layer of
   their own under all that lies on it (`lanes`),
-  `ShotPainter` the shots, each in its weapon's frame, `PodPainter` the
-  pod, its flame, its pilot, its face as the field shows it, which it
-  hears the field's events for (`hear()`), and its rings, `TrailPainter` a
-  dash's trail of the pod's ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
+  `ShotPainter` the shots, each in its weapon's frame, `TowPainter` the
+  crew under the pod: the line in tow, a `Graphics` drawn again each frame,
+  and again past each edge it reaches across, each in tow in its bubble,
+  in its ink, with the face and the look the view gives it, from the
+  field's events it hears (`hear()`), and each knocked loose, swelling,
+  wide eyed and then pleading, blinking through its last seconds,
+  `PodPainter` the pod, its flame, its pilot, its face as the field shows
+  it, which it hears the field's events for (`hear()`), and its rings,
+  `TrailPainter` a dash's trail of the pod's ghosts, `ExhaustPainter` the
+  exhaust, a puff from each engine in turn,
   `DebrisPainter` each rock's break, from the view's `breaks.ts`: its
   dust, the rock whole and flashing and its own facets as shards, in its
   layer under the rocks (`breaks`), so none hides a piece it leaves, filled
@@ -1168,8 +1193,10 @@ takes for the specs' helpers.
 - **Motion follows the player's preference** (`GameViewportService`'s
   `allowsMotion`): without it every flourish but the points is left out,
   the points showing where they were scored without rising; the pickups'
-  breath, a stray's bob, a warning's chevrons, the flame's flicker and the
-  pilots' blinks hold still, the rim's flash fades without growing, and
+  breath, the bob of a stray and of the crew in their bubbles, a
+  warning's chevrons, the flame's flicker and the pilots' blinks hold
+  still, though one knocked loose still blinks through its last seconds,
+  as a pickup does, the rim's flash fades without growing, and
   the pilot's fur leans at once rather than easing; and the cards open
   without waiting, the Cleared card's sum whole at once.
 

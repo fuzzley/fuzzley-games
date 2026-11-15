@@ -92,6 +92,7 @@ import { RockPainter } from "./painters/rock_painter";
 import { ShotPainter } from "./painters/shot_painter";
 import { StrayPainter } from "./painters/stray_painter";
 import { TagPainter } from "./painters/tag_painter";
+import { TowPainter } from "./painters/tow_painter";
 import { TrailPainter } from "./painters/trail_painter";
 import bedEndlessM4a from "./sounds/beds/bed-endless.m4a?url";
 import bedEndlessOgg from "./sounds/beds/bed-endless.ogg?url";
@@ -211,6 +212,8 @@ export interface BeltKit {
   readonly hazards: HazardPainter;
   /** Draws the shots. */
   readonly shots: ShotPainter;
+  /** Draws the line in tow, those who ride it, and those knocked loose. */
+  readonly tow: TowPainter;
   /** Draws the pod, its pilot, its flame and its rings. */
   readonly ship: PodPainter;
   /** Draws a dash's trail. */
@@ -343,6 +346,7 @@ export class BeltScene extends Scene {
       kit.strays,
       kit.hazards,
       kit.shots,
+      kit.tow,
       kit.ship,
       kit.trail,
       kit.exhaust,
@@ -410,6 +414,7 @@ export class BeltScene extends Scene {
       strays: new StrayPainter(this, layers.strays),
       hazards: new HazardPainter(this, layers.hazards, layers.lanes),
       shots: new ShotPainter(this, layers.shots),
+      tow: new TowPainter(this, layers.tow),
       ship: new PodPainter(this, layers.ship),
       trail: new TrailPainter(this, layers.effects),
       exhaust: new ExhaustPainter(this, layers.effects),
@@ -510,12 +515,13 @@ export class BeltScene extends Scene {
 
   /**
    * Plays what an event calls for, once, for `forEachSince()`, which takes
-   * it each frame: tells the pod's pilot's face of it, keeps its sound to
-   * play with the frame's others, and plays its flourishes where motion is
-   * welcome, and its points either way.
+   * it each frame: tells the pod's pilot's face of it, and the faces of
+   * those in tow, keeps its sound to play with the frame's others, and
+   * plays its flourishes where motion is welcome, and its points either way.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     this.kit.ship.hear(event, this.shownField.steps);
+    this.kit.tow.hear(event, this.shownField.steps);
     this.fieldSounds.hear(event, this.shownField.torus.width);
     const flourishes = flourishesOf(effectsOf(event), this.context.motion);
     for (const flourish of flourishes) {

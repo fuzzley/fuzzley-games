@@ -5,19 +5,14 @@
 // leans from, eased, so the fur lags a thrust and settles after.
 
 import type { FuzzballFace } from "@fz/style/fuzzball";
-import { reaches } from "../../rules/hazards/crossing";
-import { rockHitRadius } from "../../rules/rocks/rocks";
 import type { Pilot } from "../../rules/ship/pilots";
-import { type Ship, thrustOf } from "../../rules/ship/ship";
+import { thrustOf } from "../../rules/ship/ship";
 import { multiplierOf } from "../../rules/sparks/charge";
 import { stepsIn } from "../../rules/stepper";
-import { type Moving, type Torus, across } from "../../rules/torus";
-import {
-  COMET_RADIUS,
-  HIT_GUARD_MS,
-  SHIP_HIT_RADIUS,
-} from "../../rules/tuning";
+import type { Moving } from "../../rules/torus";
+import { HIT_GUARD_MS, SHIP_HIT_RADIUS } from "../../rules/tuning";
 import type { FieldEvent, FieldView } from "../field/frame";
+import { nearestThreat } from "../field/near";
 
 /**
  * Describes the steps at which what the pilot's face answers for a while
@@ -167,7 +162,9 @@ export function lookOf(field: FieldView, angle: number, into: Moving): Moving {
   if (!ship) {
     into.x = 0;
     into.y = 0;
-  } else if (!watchThreat(field, ship, into)) {
+  } else if (
+    nearestThreat(field, ship, SHIP_HIT_RADIUS, WATCH_REACH, into) === Infinity
+  ) {
     into.x = Math.cos(angle);
     into.y = Math.sin(angle);
   }
@@ -228,60 +225,4 @@ export function easeLean(
   lean.x = push.x + (lean.x - push.x) * kept;
   lean.y = push.y + (lean.y - push.y) * kept;
   return lean;
-}
-
-/**
- * Writes the way to the nearest live rock or crossing comet within
- * `WATCH_REACH` of the pod's hit circle, a unit long, into a record, and
- * returns whether there is one.
- */
-function watchThreat(
-  field: FieldView,
-  ship: Readonly<Ship>,
-  way: Moving,
-): boolean {
-  const { torus } = field;
-  let gap = Infinity;
-  let nearX = 0;
-  let nearY = 0;
-  for (const rock of field.rocks) {
-    if (!rock.live) continue;
-    const beyond = gapTo(ship, torus, rock.x, rock.y, rockHitRadius(rock.size));
-    if (beyond < gap) {
-      gap = beyond;
-      nearX = rock.x;
-      nearY = rock.y;
-    }
-  }
-  const watched = COMET_RADIUS + SHIP_HIT_RADIUS + WATCH_REACH;
-  for (const comet of field.comets.slots) {
-    if (comet.warnSteps > 0 || !comet.live) continue;
-    if (!reaches(comet, ship, watched, torus)) continue;
-    const beyond = gapTo(ship, torus, comet.x, comet.y, COMET_RADIUS);
-    if (beyond < gap) {
-      gap = beyond;
-      nearX = comet.x;
-      nearY = comet.y;
-    }
-  }
-  if (gap > WATCH_REACH) return false;
-  const dx = across(ship.x, nearX, torus.width);
-  const dy = across(ship.y, nearY, torus.height);
-  const far = Math.hypot(dx, dy);
-  way.x = far > 0 ? dx / far : 0;
-  way.y = far > 0 ? dy / far : 0;
-  return true;
-}
-
-/** Returns how far beyond the pod's hit circle a thing of a radius at a place lies, across the wrap. */
-function gapTo(
-  ship: Readonly<Ship>,
-  torus: Torus,
-  x: number,
-  y: number,
-  radius: number,
-): number {
-  const dx = across(ship.x, x, torus.width);
-  const dy = across(ship.y, y, torus.height);
-  return Math.hypot(dx, dy) - radius - SHIP_HIT_RADIUS;
 }
