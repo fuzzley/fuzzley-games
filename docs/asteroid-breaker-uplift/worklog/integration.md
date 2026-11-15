@@ -123,3 +123,214 @@ had a second review, which found fourteen points, each checked and taken:
 
 Also taken: `@fz/phaser` comes to depend on `@fz/core`, and `@fz/dev`
 imports it only from `sound_lab_mix.ts`, never from what Node runs.
+
+### 2026-11-15, the pause ends and wave one starts
+
+- **The CI session finished:** it merged its local pipeline audit into
+  `origin/main` as `6a5b58e6` (eight commits) and Verify passed there in
+  3 min 32 s. The build resumed then.
+- **Rebased** `asteroid-breaker-uplift`, whose plan commit was `3a0d4f76`
+  on `e6740e04`, onto `origin/main` at `6a5b58e6`, taking the CI changes in
+  (`tsc7` for every typecheck pass but Angular's, the layout check's pages
+  in parallel, Node's compile cache for the tests, `yarn verify:changed`),
+  reinstalled, and ran the root's lint (37.8 s, clean). The plan is now
+  `da697c6e9`.
+- **Wave one started** from `da697c6e9`, each package in its own worktree
+  with the common brief and its own: L0 (alpha), R1 (the crew in tow), S1
+  (the synth and the sounds), S2 (the mix) and P2 (one card between waves).
+
+### 2026-11-15, L0 landed, L1 started
+
+- **L0 landed** as `7fdcc371`, alpha on every drawing command,
+  fast-forward from `da697c6e9`, so nothing needed settling and its own
+  checks stand for the tip: the library's lint, typecheck, tests and
+  coverage, the root's lint and typecheck, and the tests of every game
+  using `@fz/phaser/shapes` or `/scene` (Asteroid Breaker, Brick Fuzz Pop,
+  Brick Breaker, Solitaire, Snake), each unchanged. Two reviews; the first
+  removed a `faded()` helper that wasn't the kit's group opacity, which a
+  drawing meant at part strength gets by baking at full strength and
+  `setAlpha()`.
+- **The common brief corrected:** the root's `yarn test --only …` sets its
+  own `--maxWorkers` and Vitest rejects a second, so a library's users are
+  tested each with `yarn workspace <name> test --maxWorkers=4`, two at a
+  time, in one hold of the lock. S1 and S2 were told, and
+  `implementation-plan.md` §9 says so now.
+- **L1 started** from `7fdcc371`, in the slot L0 freed. L5 and L3, also
+  waiting on L0 alone, wait for the next slots.
+
+### 2026-11-15, P2 landed, L5 started
+
+- **P2 landed** as `2099d621`, one card between waves and a sector's card,
+  rebased from `da697c6e9` onto L0's tip with nothing to settle (L0
+  changed only `@fz/phaser`). On the rebased commit the game's typecheck
+  passed and its 5,274 specs in 96 files passed on four workers (53 s);
+  its lint, layout check and coverage stand from its own tip, since the
+  rebase brought only `@fz/phaser`'s change, and the root's lint ran over
+  it at S1's landing. Two reviews, ten findings, all taken; its log holds
+  them.
+- **Outside its files** P2 moved `wavesInWords()` from the Sectors dialog
+  into `src/app/play/sector_card.ts`, and added docs to `check-layout.mjs`,
+  the game's `AGENTS.md` and its two skills.
+- **R1 was told** what P2 changed in `game.service.ts`, the board's card,
+  `run_frames.ts`, `run_state.ts` and `tally.ts`, and asked to rebase onto
+  the tip before it reports, settling the crew row (`crew().flying`) and
+  the tally's labels with P2's card flow, so the package that knows the
+  crew settles them.
+- **Left for later packages:** P1, the bar's comment on the Ready card,
+  which is gone; P3, the crew's cheer on the Cleared card's
+  `app-pilot-row.crew`, the layout check opening the Cleared card too, the
+  trophy's card a little taller than a field just over its height, and the
+  sector card over the waiting ship at 320 × 480.
+- **L5 started** from `2099d621`.
+
+### 2026-11-15, S1 landed, L3 started
+
+- **S1 landed** as `861a9622` to `c97a30ae`: `@fz/dev/synth`, and the
+  game's recipes, build and the kit's encodes beside today's sprite.
+  Rebased onto P2's tip with nothing to settle, though both added to the
+  game's `AGENTS.md` and testing skill. On the rebased tip the root's lint
+  passed (37 s, under the lock), and the game's typecheck and its 5,291
+  specs in 97 files passed on four workers; `@fz/dev`'s typecheck, tests
+  and coverage stand from S1's own tip, which P2's change doesn't reach.
+- **What S1 proved:** the kit's build and the game's render the same 178
+  takes, the sprite's 172 and six beds, every WAV byte for byte
+  (29,426,490 bytes), and the same map and sprite WAV handed to ffmpeg;
+  `synth.spec.ts` holds 36 renders to the kit's digests. Without ffmpeg
+  the build writes nothing into `src/scene/sounds/`, so the shipped
+  encodes are the kit's.
+- **Left for S3**, in its brief: the game still plays
+  `sounds.wav`/`sounds.json`, which nothing rebuilds now; they go to
+  `tools/sound-lab/` when the game plays the new `sprite.{ogg,m4a,json}`;
+  `tools/sound-lab.ts:23`'s comment cites recipes that are gone. **Left
+  open:** the synth's `seeded()` repeats `@fz/core`'s Mulberry32, which S2's
+  fences explain (below). Nobody has heard the sounds in the game yet.
+- **L3 started** from `c97a30ae`. S3 waits on S2.
+
+### 2026-11-15, ffmpeg installed
+
+- **The user installed ffmpeg** (7.1.5, Debian's, with `libvorbis` and the
+  native `aac`), so the build's last step, unchecked until now, ran here:
+  `yarn build:sounds` on the tip rendered all 178 takes, packed the
+  sprite's 172 and encoded the sprite and the six beds, fourteen files, in
+  51 s.
+- **The map is the kit's:** `sprite.json` and `sprite_lengths.json` came
+  out unchanged, so the packing is proved on a machine that encodes.
+- **The encodes differ from the kit's,** as two builds of a lossy encoder
+  do: three of the fourteen came out byte for byte (the Iron reach's, the
+  pulse's and the Storm's M4A), and eleven differed. Decoded and compared
+  with the kit's, the Ogg sprite's difference is 43 dB under the signal (16
+  bytes apart), the M4A sprite's 24 dB (about 1 KB apart, as AAC's
+  quantizing differs), and the pulse's Ogg's 73 dB (6 bytes apart).
+- **The kit's encodes stay,** as C2 says, since they are what the user
+  heard, and were restored by name. Now that ffmpeg is here, a full
+  `build:sounds` in any worktree overwrites them: after a build that
+  changes no recipe, they are restored by name before a commit. S3's brief
+  says so, and S4's will.
+
+### 2026-11-15, S2 landed, S3 started
+
+- **S2 landed** as `09d607a2` to `94a1a90d`, four commits:
+  `@fz/core/sound_mix`, `SpritePlayer`'s mix, limiter, mono switch and
+  sources in several formats, `LayerPlayer` for the beds, and the sound
+  lab on the mix's formulas at its own numbers.
+- **Settled on the rebase onto S1:** `frontend/lib/dev/eslint.config.js`,
+  where S1 had added a block letting the synth assert a bounded read
+  (`x[i]!`) and S2 the fences keeping `@fz/core` out of every module but
+  the lab's mix. They are independent, so both stay, the synth's first.
+  `lib/dev/AGENTS.md` merged by itself, and reads whole. The range-diff
+  shows two deltas and nothing else: L0's line in `lib/phaser/AGENTS.md`'s
+  `src/scene/` entry, beside S2's `src/sound/` edit, and the config's
+  union, which the integrator read and the lint checked. The fence also
+  answers why the synth keeps its own `seeded()`: Node runs the synth, and
+  no module Node runs may import `@fz/core`.
+- **Checks on the rebased tip:** an install (the lockfile gains
+  `@fz/core` for `@fz/phaser` and `@fz/dev`), `@fz/dev`'s 892 specs, and
+  under the lock the root's lint and typecheck, and Asteroid Breaker's
+  5,291 specs and Brick Fuzz Pop's 6,489, the other game whose sound lab is
+  `@fz/dev`'s page. All passed. `@fz/core`'s and `@fz/phaser`'s specs stand
+  from S2's own tip, since S1 changed neither.
+- **Left by S2,** for the user at Z1, since no package is asked to: the
+  lows aren't panned less than the highs, a voice that gives way stops
+  with no fade, and a sound already playing isn't ducked. For S4, in its
+  brief: `followMono()` for the mono switch, `LayerPlayer` with a
+  `SoundLayer` for each bed and layer, held every frame, and `fetch()` on
+  the next sector's bed ahead of the change.
+- **S3 started** from `94a1a90d`, with S1's and S2's notes in its brief.
+
+### 2026-11-15, R1 landed, R2 started
+
+- **R1 landed** as `bd9af6f2` to `4e9f6339`, five commits, fast-forward:
+  it had rebased itself onto P2's tip, settling three conflicts by keeping
+  both sides (`run_frames.ts`' docs, the board card spec's imports, the
+  game's `AGENTS.md`), and onto S2's tip with none.
+- **One settlement added code:** P2's Cleared card read the old
+  `crew().flying`, so R1's second commit, already reviewed, gained
+  `pilotsAboard()` in `pilots.ts` with its spec, which the bar and the card
+  both read. No reviewer saw that delta, so the integrator read it: three
+  lines, the pilot then those in tow, none once no one is at the controls,
+  each case held by the spec, its two users `computed()` over
+  `GameService.crew()`. Sound.
+- **Its checks** ran on S2's tip: the game's lint, typecheck and 5,357
+  specs in 99 files (the `sim` project at every speed among them), the
+  root's lint under the lock, and the coverage at its floors.
+- **Its figures:** every wave cleared at every speed on the narrow field
+  and the wide, times and strays as before; at most two knocked loose and
+  one floated home a play, and no run ended, over twelve seeds. In a
+  browser the announcer read a hit, a fuzzball floating home, no one in
+  tow and the game's end, in order.
+- **Outside its files:** `play.ts`' spec waves and `loseShip()`,
+  `run_frames.ts` (a stray brought home is `joined` or `home`, `knocked`
+  buzzes), `effects.ts` (the new events silent), `frame.ts`' `tow` and
+  `loose`, How to play's stray row and clean bonus, and the shell's specs.
+- **Left:** P3 draws `FieldView.loose`, which nothing draws yet, pairs
+  `field.tow[i]` with `field.crew.tow[i]`, finishes How to play, renames
+  `loseShip()` and the shell's "ship lost" spec titles (P2's names, which
+  P3 owns now), and removes `toPickup()`, unused; the tally's "No ship
+  lost" is R2's; `gained` is gone, though its sound is still in the old
+  sprite, which S3 moves out.
+- **S3 was told** to rebase onto `4e9f6339` and wire `knocked`,
+  `recaught`, `floated` and `joined`. **R2 started** from `4e9f6339`.
+
+### 2026-11-15, L5 landed
+
+- **L5 landed** as `3c244ca1` to `c0e8b0e3`, three commits: the nine
+  faces, the look and the fur by force and by static as data in
+  `@fz/style/fuzzball`, commands in `@fz/phaser/fuzzball`, and
+  `<fz-fuzzball [face] [lift]>`. Rebased from `2099d621` onto R1's tip with
+  nothing to settle, though L0, S2 and L5 all added to the `phaser-core`
+  skill. On the rebased tip: an install, and under the lock the root's lint
+  and typecheck, Asteroid Breaker's 5,357 specs and `@fz/phaser`'s 1,032,
+  all passing. `@fz/style`'s and `@fz/ui`'s specs, and the brick games',
+  the site's and `@fz/game-ui`'s, stand from L5's own tip, which nothing
+  landed since reaches but `@fz/phaser`, run here again.
+- **Its frame budget:** wave 9 at a quarter of the CPU, median frame
+  5.21 → 5.56 ms and 3.95 → 4.70 ms in two pairs, within a third. L5
+  changed no game's code, so the gap is the machine's load, which other
+  sessions' pages shared.
+- **Left:** for P1, `<fz-fuzzball>` has no look, lean or small-form input,
+  though `fuzzballDrawing()` takes them, should the face cam need one; for
+  L6, the sparks' colors on a canvas; for the user at Z1, the halos drawn
+  under all the cores, where the kit interleaves them.
+- **No package is ready for the slot:** L6 and L2 wait on L1, P1 on L6, L4
+  and S4 on S3. Four run: L1, L3, S3 and R2.
+- **The log's review** found ten points, each checked and taken: two
+  slips (the AGENTS.md L0's line is in, and the takes counted), hashes a
+  reader can find for every landing, the encodes' warning made plain, the
+  review of R1's settled delta, the checks of each landing said in full,
+  an owner for everything a package left, L5's frame figures explained,
+  §9's command corrected, and a verify run, which follows.
+
+### 2026-11-15, a verify run on the tip
+
+- **On `c0e8b0e3`,** six packages landed, under the lock, what
+  `yarn verify` adds to each landing's lint and typecheck: every
+  workspace's tests, two at a time on four workers each, then the build,
+  then Asteroid Breaker's layout check, in 3 min 13 s, all passing.
+- **The specs:** Solitaire 6,874, Brick Fuzz Pop 6,489, Asteroid Breaker
+  5,357, Brick Breaker 3,916, `@fz/phaser` 1,032, `@fz/dev` 892, Sudoku
+  607, `@fz/core` 460, Snake 423, `@fz/style` 402, Minesweeper 375,
+  `@fz/ui` 335, `@fz/game-ui` 335 and the site 177.
+- **The layout** holds at every shape and turn with the deck shown, P2's
+  card over a waiting wave and R1's crew in the bar among them.
+- **The next run** is due after three more landings, or sooner after one
+  that changes a library many games use.
