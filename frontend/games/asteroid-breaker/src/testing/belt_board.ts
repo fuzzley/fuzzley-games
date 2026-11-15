@@ -1,6 +1,6 @@
 import { advanceClock } from "@fz/core/clock";
 import type { RunCommand } from "@fz/core/run";
-import { type SceneRun, runKeyedScene } from "@fz/phaser/testing";
+import { type SceneRun, commandsOf, runKeyedScene } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { GameObjects, type Scene } from "phaser";
 import { type Field, reshapeField, stepField } from "../rules/field/field";
@@ -291,6 +291,69 @@ export function shardTints(scene: BeltScene): readonly number[] {
     tints.push(shard.tint);
   }, null);
   return tints;
+}
+
+/** Describes a triangle a `Graphics` fills: its corners, x and y of each in turn, in its fill's color and alpha. */
+export interface FilledTriangle {
+  readonly points: readonly number[];
+  readonly color: number;
+  readonly alpha: number;
+}
+
+/** Returns each triangle a `Graphics` fills, in order, each in the fill style set before it. */
+export function trianglesOf(
+  graphics: GameObjects.Graphics,
+): readonly FilledTriangle[] {
+  const triangles: FilledTriangle[] = [];
+  let color = 0;
+  let alpha = 1;
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "fillStyle") ({ color, alpha } = command);
+    if (command.kind === "fillTriangle") {
+      triangles.push({ points: command.points, color, alpha });
+    }
+  }
+  return triangles;
+}
+
+/** Describes a straight line a `Graphics` strokes, in the line style set before it. */
+export interface StrokedLine {
+  readonly fromX: number;
+  readonly fromY: number;
+  readonly toX: number;
+  readonly toY: number;
+  readonly width: number;
+  readonly color: number;
+  readonly alpha: number;
+}
+
+/** Returns each straight line a `Graphics` strokes, a path of one move and one line, in order. */
+export function linesOf(
+  graphics: GameObjects.Graphics,
+): readonly StrokedLine[] {
+  const lines: StrokedLine[] = [];
+  let style = { width: 1, color: 0, alpha: 1 };
+  let from: { readonly x: number; readonly y: number } | null = null;
+  let to: { readonly x: number; readonly y: number } | null = null;
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "lineStyle") style = command;
+    if (command.kind === "beginPath") from = to = null;
+    if (command.kind === "moveTo") from = command;
+    if (command.kind === "lineTo") to = command;
+    if (command.kind === "strokePath" && from && to) {
+      const { width, color, alpha } = style;
+      lines.push({
+        fromX: from.x,
+        fromY: from.y,
+        toX: to.x,
+        toY: to.y,
+        width,
+        color,
+        alpha,
+      });
+    }
+  }
+  return lines;
 }
 
 /**

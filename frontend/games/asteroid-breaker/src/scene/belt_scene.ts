@@ -348,7 +348,7 @@ export class BeltScene extends Scene {
       ship: new PodPainter(this, layers.ship),
       trail: new TrailPainter(this, layers.effects),
       exhaust: new ExhaustPainter(this, layers.effects),
-      debris: new DebrisPainter(this, layers.effects),
+      debris: new DebrisPainter(this, layers.breaks, layers.effects),
       rings: new RingPainter(this, layers.effects),
       points: new PointsPainter(this, layers.points),
       deck: new DeckPainter(this, layers.deck),

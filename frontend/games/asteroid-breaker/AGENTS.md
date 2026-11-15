@@ -471,10 +471,12 @@ takes for the specs' helpers.
   shader would light its facet and fading into the field's color
   (`shardAt()`), the dust's ring and puffs (`dustAt()`, `puffAt()`), the
   sparks (`sparkAt()`, in `energyOf()`'s tones) and the glints
-  (`glintAt()`), all of it gone by `BREAK_MS`, 450 ms; and a held hit's
-  sparks thrown back about the way the shot came from its rock's rim
-  (`impactOf()`, `impactTickAt()`, `impactFlashAt()`, `rimToward()`,
-  `towardShip()`), gone by `HELD_MS`;
+  (`glintAt()`), all of it gone by `BREAK_MS`, 450 ms, and never farther
+  from its middle than its `reach`; a held hit's sparks thrown back about
+  the way the shot came from its rock's rim (`impactOf()`,
+  `impactTickAt()`, `impactFlashAt()`, `rimToward()`, `towardShip()`),
+  gone by `HELD_MS` and within `HELD_REACH`; and the polygons a round of
+  dust is drawn as, as few corners as its size spares (`roundOf()`);
   `pod_art.ts` the pod, as the art kit's `ship.mjs` draws it: its hull,
   cut in facets as a rock is and baked into the rocks' atlas, lit, with
   its normal map (`podHullFrame()`), and its other frames in the field's
@@ -570,7 +572,18 @@ takes for the specs' helpers.
   face as the field shows it, which it hears the field's events for
   (`hear()`), and its rings, `TrailPainter` a dash's trail of the pod's
   ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
-  `DebrisPainter` the shards, the dust and the sparks, `RingPainter` the
+  `DebrisPainter` each rock's break, from the view's `breaks.ts`: its
+  dust, the rock whole and flashing and its own facets as shards, in its
+  layer under the rocks (`breaks`), so none hides a piece it leaves, filled
+  in triangles on two `Graphics` drawn again each frame, the dust's under
+  the shards', its rounds as polygons of as few corners as their size
+  spares rather than `Graphics`' circles, which take a hundred corners
+  each, and its sparks and glints and each held hit's spark over all that
+  moves, under the rings; each piece is worked out once and drawn about
+  the break and each copy of it past an edge it reaches across; it finds
+  the outline and the turn a broken rock was drawn in from its slot, or,
+  once a piece has taken that, from what it last drew there; it throws a
+  lost pod's burst of shards too, as particles; `RingPainter` the
   rings, `PointsPainter` the points scored, each label stamped once on a
   room of a sheet (a `DynamicTexture`), every outline and then every fill,
   as a canvas writes a line, and shown and faded as one image, and

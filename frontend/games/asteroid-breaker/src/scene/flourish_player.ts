@@ -1,14 +1,7 @@
-import { ROCK_RADIUS } from "../rules/tuning";
-import { rockColor } from "../view/art/rock_art";
 import type { Flourish } from "../view/effects/effects";
-import {
-  ringColorOf,
-  ringReachOf,
-  shardCount,
-  wayOf,
-} from "../view/effects/flourish";
+import { ringColorOf, ringReachOf, wayOf } from "../view/effects/flourish";
 import { BURST_SHARDS } from "../view/effects/timing";
-import { type FieldEvent, rockKindOf, rockSizeOf } from "../view/field/frame";
+import type { FieldEvent } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
 import type { DebrisPainter } from "./painters/debris_painter";
 import type { PaintContext } from "./painters/painter";
@@ -57,23 +50,10 @@ export class FlourishPlayer {
     const { x, y } = event;
     switch (flourish) {
       case "shards":
-        debris.shatter(
-          x,
-          y,
-          rockColor(rockKindOf(event), palette),
-          shardCount(event.serial),
-          metrics,
-          zoom,
-        );
+        debris.breakRock(event, field, now);
         return;
       case "dust":
-        debris.puff(
-          x,
-          y,
-          ROCK_RADIUS[rockSizeOf(event)],
-          rockColor(rockKindOf(event), palette),
-          now,
-        );
+        // A break draws its dust with its shards.
         return;
       case "kick":
         camera.kick(event.wayX, event.wayY, now);
@@ -82,14 +62,7 @@ export class FlourishPlayer {
         rocks.flashSlot(event.slot, now);
         return;
       case "spark":
-        debris.spark(
-          x,
-          y,
-          ROCK_RADIUS[rockSizeOf(event)],
-          wayOf(event.serial),
-          palette.flame,
-          now,
-        );
+        debris.holdHit(event, field, palette, now);
         return;
       case "ring":
         rings.ring(x, y, ringReachOf(event), ringColorOf(event, palette), now);

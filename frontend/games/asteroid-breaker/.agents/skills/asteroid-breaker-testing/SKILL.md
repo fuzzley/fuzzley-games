@@ -283,9 +283,11 @@ game through `runScene()`:
   A spec that calls `runScene()` itself cleans up after itself.
 - Drive it with the run's `advance(ms)`, keys and the pointer, and change
   the shell's frame as the rules would; assert on the game objects
-  (`@fz/phaser/testing`'s `imagesIn()` and `strokesOf()`, and
-  `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the field
-  camera's `scrolledBy()`), the lights the rocks are lit by (the scene's
+  (`@fz/phaser/testing`'s `imagesIn()`, `strokesOf()` and `commandsOf()`,
+  and `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the
+  triangles and the lines a `Graphics` draws, `trianglesOf()` and
+  `linesOf()`, as a break's are, the field camera's `scrolledBy()`), the
+  lights the rocks are lit by (the scene's
   `lights`, a held hit's flash among them), the sounds (`humsIn()` after
   `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`,
   or a spy on `SpritePlayer`'s `play()`, which the sprite, not loaded
