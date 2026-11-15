@@ -8,10 +8,12 @@ import { availableParallelism } from "node:os";
 import { dirname, join } from "node:path";
 import {
   CONSOLE,
+  type Env,
   type Printer,
   type Stop,
   isStop,
   misread,
+  onCi,
   readArgs,
   readCount,
   stopWith,
@@ -25,6 +27,37 @@ export interface Workspace {
   readonly folder: string;
   /** How many spec files it holds, which stands for how long its tests run. */
   readonly specs: number;
+}
+
+/** A workspace a root declares, with the scripts it has and the workspaces it depends on. */
+export interface DeclaredWorkspace {
+  /** Its name, as its `package.json` gives it. */
+  readonly name: string;
+  /** Its folder. */
+  readonly folder: string;
+  /** The names of its scripts. */
+  readonly scripts: readonly string[];
+  /** The workspaces it depends on, by their names, through a `workspace:` range. */
+  readonly dependsOn: readonly string[];
+}
+
+/** Runs a command line in a folder, in an environment, as `runCommand()` does. */
+export type RunCommand = (
+  command: string,
+  folder: string,
+  env: Env,
+) => Promise<Ran>;
+
+/** A line of the table a runner prints once its runs end. */
+export interface TimedRun {
+  /** What ran, such as a workspace's name. */
+  readonly name: string;
+  /** When it started, in milliseconds after the first did. */
+  readonly startedMs: number;
+  /** How long it ran, in milliseconds. */
+  readonly tookMs: number;
+  /** What the table says after it where it didn't pass, such as `exited with 1`, or nothing. */
+  readonly note: string;
 }
 
 /** What one workspace's run of a script came to. */
@@ -44,9 +77,6 @@ export interface Ran {
   readonly output: string;
 }
 
-/** The environment a command runs in, each variable by its name. */
-export type Env = Readonly<Record<string, string | undefined>>;
-
 /**
  * Says where `runTestsScript()` prints, how many cores it shares out, the
  * platform whose shell it quotes for, the environment it runs in, how it
@@ -61,7 +91,7 @@ export interface TestsScriptIo extends Partial<Printer> {
   /** The environment the script runs in, which says whether it runs on CI. */
   readonly env?: Env;
   /** Runs a command line in a folder, in an environment. */
-  readonly run?: (command: string, folder: string, env: Env) => Promise<Ran>;
+  readonly run?: RunCommand;
   /** Reads a clock in milliseconds. */
   readonly now?: () => number;
 }
@@ -101,20 +131,43 @@ export function workspacesWithScript(
   root: string,
   script: string,
 ): Workspace[] {
+  return declaredWorkspaces(root)
+    .filter(({ scripts }) => scripts.includes(script))
+    .map(({ name, folder }) => ({ name, folder, specs: specFiles(folder) }))
+    .sort((a, b) => b.specs - a.specs || a.name.localeCompare(b.name));
+}
+
+/**
+ * Returns the workspaces a root's `package.json` declares, in the order of
+ * its patterns, and of their paths within each, each with its scripts and
+ * the workspaces it depends on.
+ */
+export function declaredWorkspaces(root: string): DeclaredWorkspace[] {
   const { workspaces = [] } = readPackage(root);
-  const found: Workspace[] = [];
+  const found: DeclaredWorkspace[] = [];
   for (const pattern of workspaces) {
-    for (const path of globSync(`${pattern}/package.json`, { cwd: root })) {
+    const paths = globSync(`${pattern}/package.json`, { cwd: root }).sort();
+    for (const path of paths) {
       const folder = dirname(join(root, path));
-      const { name, scripts = {} } = readPackage(folder);
-      if (name !== undefined && Object.hasOwn(scripts, script)) {
-        found.push({ name, folder, specs: specFiles(folder) });
-      }
+      const {
+        name,
+        scripts = {},
+        dependencies = {},
+        devDependencies = {},
+      } = readPackage(folder);
+      if (name === undefined) continue;
+      const ranges = Object.entries({ ...dependencies, ...devDependencies });
+      found.push({
+        name,
+        folder,
+        scripts: Object.keys(scripts),
+        dependsOn: ranges
+          .filter(([, range]) => range.startsWith("workspace:"))
+          .map(([dependency]) => dependency),
+      });
     }
   }
-  return found.sort(
-    (a, b) => b.specs - a.specs || a.name.localeCompare(b.name),
-  );
+  return found;
 }
 
 /**
@@ -267,28 +320,22 @@ export async function runTestsScript(
   const outcomes = await runInLanes(
     chosen,
     lanes,
-    async (workspace) => {
-      const { code, output } = await run(
-        command.join(" "),
-        workspace.folder,
-        testsEnv,
-      ).catch((error: unknown) => ({ code: 1, output: String(error) }));
-      print(`➤ ${workspace.name}: ${script} exited with ${code}`);
-      print(output.trimEnd());
-      return code;
-    },
+    (workspace) =>
+      printedRun(
+        `${workspace.name}: ${script}`,
+        () => run(command.join(" "), workspace.folder, testsEnv),
+        print,
+      ),
     now,
   );
 
-  print(`\n${"Started".padStart(9)}${"Took".padStart(9)}  Workspace`);
-  for (const { workspace, startedMs, tookMs, code } of [...outcomes].sort(
-    (a, b) => a.startedMs - b.startedMs,
-  )) {
-    const note = code === 0 ? "" : `  exited with ${code}`;
-    print(
-      `${seconds(startedMs).padStart(9)}${seconds(tookMs).padStart(9)}  ${workspace.name}${note}`,
-    );
-  }
+  const rows = outcomes.map(({ workspace, startedMs, tookMs, code }) => ({
+    name: workspace.name,
+    startedMs,
+    tookMs,
+    note: code === 0 ? "" : `exited with ${code}`,
+  }));
+  for (const line of timesTable("Workspace", rows)) print(line);
   const failed = outcomes.filter(({ code }) => code !== 0);
   if (failed.length === 0) return 0;
   const names = failed.map(({ workspace }) => workspace.name).join(", ");
@@ -297,12 +344,52 @@ export async function runTestsScript(
 }
 
 /**
+ * Starts a run and prints what it printed, whole, under a line that says
+ * how it exited, and returns the code it exited with, or 1 where it
+ * couldn't start.
+ */
+export async function printedRun(
+  label: string,
+  start: () => Promise<Ran>,
+  print: (line: string) => void,
+): Promise<number> {
+  const { code, output } = await start().catch((error: unknown) => ({
+    code: 1,
+    output: String(error),
+  }));
+  print(`➤ ${label} exited with ${code}`);
+  print(output.trimEnd());
+  return code;
+}
+
+/**
+ * Returns the table a runner prints once its runs end, under a blank line:
+ * when each started and how long it ran, in the order they started, under
+ * a heading that names what ran.
+ */
+export function timesTable(
+  heading: string,
+  runs: readonly TimedRun[],
+): string[] {
+  const lines = [`\n${"Started".padStart(9)}${"Took".padStart(9)}  ${heading}`];
+  for (const { name, startedMs, tookMs, note } of [...runs].sort(
+    (a, b) => a.startedMs - b.startedMs,
+  )) {
+    const after = note === "" ? "" : `  ${note}`;
+    lines.push(
+      `${seconds(startedMs).padStart(9)}${seconds(tookMs).padStart(9)}  ${name}${after}`,
+    );
+  }
+  return lines;
+}
+
+/**
  * Returns an environment with Node's compile cache in a root's
  * `node_modules/.cache/node-compile-cache/`, unless it runs on CI or names
  * a cache already.
  */
-function compileCached(env: Env, root: string): Env {
-  if (env["CI"] === "true" || env["NODE_COMPILE_CACHE"] !== undefined) {
+export function compileCached(env: Env, root: string): Env {
+  if (onCi(env) || env["NODE_COMPILE_CACHE"] !== undefined) {
     return env;
   }
   const cache = join(root, "node_modules/.cache/node-compile-cache");
@@ -360,6 +447,8 @@ interface Package {
   readonly name?: string;
   readonly workspaces?: readonly string[];
   readonly scripts?: Readonly<Record<string, string>>;
+  readonly dependencies?: Readonly<Record<string, string>>;
+  readonly devDependencies?: Readonly<Record<string, string>>;
 }
 
 /** Returns the `package.json` in a folder. */

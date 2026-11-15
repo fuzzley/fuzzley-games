@@ -8,6 +8,7 @@ import {
   importThroughVite,
   isStop,
   misread,
+  onCi,
   readArgs,
   readCount,
   recordingPrinter,
@@ -42,6 +43,17 @@ function stopped(stop: Stop): {
   const code = stopWith(stop, printer);
   return { code, out: printer.out, err: printer.err };
 }
+
+describe("onCi", () => {
+  it.each<[Record<string, string>, boolean]>([
+    [{ CI: "true" }, true],
+    [{ CI: "false" }, false],
+    [{ CI: "1" }, false],
+    [{}, false],
+  ])("reads %j as CI's: %s", (env, ci) => {
+    expect(onCi(env)).toBe(ci);
+  });
+});
 
 describe("readArgs", () => {
   it("gives each option its value, or its default", () => {

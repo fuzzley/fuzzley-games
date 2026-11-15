@@ -17,7 +17,7 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 | 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | edcd1961 |
 | 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | ed629c55 |
 | 4    | 1   | The layout check's pages side by side, a few at a time                                                                               | 7ed7026a |
-| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |          |
+| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 | bf297ad9 |
 | 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |          |
 | 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       |          |
 
@@ -159,7 +159,7 @@ These fixes reshaped the change, so it had a second review, which found nothing 
 ### 2026-11-15: Node's compile cache for the tests' Vitest runs (step 5)
 
 `perf(dev): keep node's compile cache for each vitest run yarn test starts, off CI`
-(step 5):
+(bf297ad9, step 5):
 
 - `runTestsScript()`, which `yarn test` and `yarn test:coverage` run, hands each workspace's run of `test` an environment with `NODE_COMPILE_CACHE` set to the root's `node_modules/.cache/node-compile-cache/`. It leaves the environment as it is where `CI` is `true`, as a runner starts with no cache, where `NODE_COMPILE_CACHE` names one already, and for `test:coverage`, as Node says coverage can be less precise in code read from the cache. Vitest doesn't turn the cache on itself, where tsc, ESLint, Vite and Prettier do. `NODE_DISABLE_COMPILE_CACHE=1` turns it off.
 - `runCommand()` takes the environment to run in, the process's unless given, and `TestsScriptIo` takes the one the script runs in, for its specs.
@@ -173,3 +173,71 @@ The review, and the answers:
 2. **The whole run was timed with the cache empty and full, but not off.** Fixed: 67.2 s off, beside the others above. `frontend/AGENTS.md` names `NODE_DISABLE_COMPILE_CACHE=1`, which turns it off.
 3. **Whether a run is on CI is read in three modules, and `Env` is spelt out in two.** Step 6 moves `Env` and a reader of `CI` into `@fz/dev/script`, as its runner needs both too.
 4. **Nits.** Fixed: `fakeCommands()`'s doc says it records the environment; the pass-through cases read "leaves the environment as it is on CI" and "where it names a cache already"; and `@fz/dev`'s `AGENTS.md` keeps the reason CI is left out apart from the tools that keep a cache.
+
+### 2026-11-15: `yarn verify:changed` (step 6)
+
+`feat(dev): verify only the workspaces a branch's changes reach, each step side by side under a budget of cores and memory, through yarn verify:changed`
+(step 6):
+
+- `@fz/dev/verify` is the runner, and the root's `tools/verify-changed.mjs` runs it as `yarn verify:changed`.
+  - It finds the files the branch changed since it left `--base` (`origin/main`), in its commits, staged, unstaged or untracked.
+  - A changed file reaches the workspace that holds it and every workspace that depends on that one, through `workspace:` ranges. Every workspace is reached for a change to `.node-version` or to a file of the root's other than those only its own scripts read: its `tools/`, its ESLint and constraints configs, its `tsconfig.scripts.json`, `LICENSE` and `.gitignore`.
+  - It runs the root's `lint:root`, `typecheck:root` and `prettier:check`, and each reached workspace's lint, typecheck, tests, build and layout check. A layout check waits on its game's build, and the site's build, once the site or a game is reached, waits on every game's build, reached or not, so it never takes a build another branch left in a `dist/`.
+- The budget: each task claims cores and memory, and starts once its claims fit, or at once where nothing else runs.
+  - The cores are the machine's. The memory is what is available as the run starts (`process.availableMemory()`, which a container's limit holds to), less 3 GB, which is what the audit's runs side by side kept where every spec passed.
+  - The tests share three quarters of both among four suites at most, at a GB a worker and two workers at least. Every other step claims about what it took alone on the largest workspace: lint 2 GB, typecheck 1, build 1.5, the layout check 1.5. `scripts/step-memory.sh` measured those into `data/step-memory.tsv`, sampling the fall in `MemAvailable`.
+  - The longest way to the end starts first, by the times kept the last time each task passed, in `node_modules/.cache/fz-verify/times.json`, or by a guess from its script.
+  - Every task runs whatever another's comes to; one waiting on a task that didn't pass is skipped. The tests keep Node's compile cache, as `yarn test` does.
+- A changed file reaches what it does by its path from the repository's root, as git writes it, and Markdown reaches no workspace, wherever it lies.
+- The root's `lint` and `typecheck` now start with the new `lint:root` and `typecheck:root`, which hold what they ran before the workspaces'. CI's jobs run `yarn lint` and `yarn typecheck` as before.
+- `@fz/dev/script` holds `Env` and `onCi()`, which `layout.ts`, `workspaces.ts` and `verify.ts` use. `vitest.ts` keeps its own: every workspace's config loads it, and their tsconfigs can't import a sibling's `.ts`. A first try made four libraries' typechecks fail. `@fz/dev/workspaces` adds `declaredWorkspaces()` and exports `compileCached()`.
+- The docs:
+  - `frontend/AGENTS.md`'s Verify What Changed, and its One Workspace While Editing. The latter covers the rest of the audit's #6, `yarn test --only <name> -- --changed` and ESLint's `--concurrency 4` for one game, which reruns every spec once a `package.json` has changed.
+  - `@fz/dev`'s `AGENTS.md`.
+  - `.agents/AGENTS.md`'s Building and Checking.
+- Measured, on this branch, every workspace reached by `frontend/package.json`:
+  - The first run took 121.3 s, in the order the guesses gave, with five tasks failing: `@fz/dev`'s lint, on an unneeded `String()`, and the typechecks of `@fz/core`, `@fz/game-ui`, `@fz/phaser` and `@fz/ui`, on `vitest.ts` importing `script.ts`. Run again, with every task passing and ordered by the first run's times, it took 113.3 s, then 111.3 s, and 110.7 s after the review's fixes.
+  - The tests ran on 3 workers each, as the memory, 17.4 GB, allowed. Asteroid Breaker's took 85 s of the run.
+  - `yarn verify` then `yarn check:layout` are timed in step 7.
+- Checked: `@fz/dev`'s lint, typecheck and `test:coverage`, 711 specs, at 95.71% of branches against its floor of 95; `yarn lint`; `yarn typecheck`; and `yarn verify:changed` itself, every task passing, in 110 s after the second review's fixes.
+- Each of these broken fails its specs:
+  - the memory taken out of a task's fit;
+  - the dependents taken out of the reach;
+  - the kept times never read;
+  - Markdown reaching what its folder does;
+  - `--no-relative` taken out of `git diff`, under `diff.relative`;
+  - git's names read without `-z`, or what is untracked listed from the root's folder alone.
+- Taking out the skip of a task whose prerequisite failed failed nothing, as the task was skipped anyway once nothing else ran. The runner now skips through that one path.
+
+The review, and the answers:
+
+1. **The reach compared absolute paths from git and from Node, and failed open:** where they differed, as a drive letter's case or a junction can make them on Windows, every file fell outside the root, and the run passed on the root's checks alone. Fixed: the root's place in the repository comes from `git rev-parse --show-prefix`, and each workspace's folder is matched as a path from the repository's root, as git writes the files. A spec holds the reach to a root whose own path is spelt otherwise, and one to a root at the repository's root.
+2. **A Markdown file outside a workspace, such as `frontend/games/AGENTS.md`, reached every workspace, and one inside ran all its steps.** Fixed: Markdown reaches none, wherever it lies, as CI's `changes-code.sh` holds; the cases name the games' `AGENTS.md` and `CLAUDE.md`, a game's, and a game's skill.
+3. **Specs that would pass with the code broken.** Fixed:
+   - A spec writes the kept times and holds `--dry-run` to starting first the task they make the longest. Another holds a file that isn't JSON to the order of none kept.
+   - The spec of the times kept checks the time itself, 2.5 s, on a clock only the timed task moves.
+   - The task too big for the budget is held to running alone. The specs' repository ignores `node_modules/`, as the real one does, or the kept times would reach every workspace.
+4. **Names, and the read of the disk.** Fixed:
+   - The flag is `keepsCompileCache`, as `test:coverage` is tests too.
+   - `tasksOf()` takes `hasBuild`, which `runVerifyChanged()` gives it. That checks for the `index.html` the site's copy of the games refuses a build without, as well as `game.json`.
+5. **Git's output.** Fixed:
+   - Names are read with `-z`, so a name git would quote is read as it is.
+   - What is untracked is listed from the repository's root (`:/`).
+   - The error for a base git can't find keeps git's as its `cause`. A spec holds each.
+6. **Docs that overstated.** Fixed:
+   - `tasksOf()`'s doc and `@fz/dev`'s `AGENTS.md` say the workers are sized as if four suites shared three quarters of the budget, which doesn't cap how many run.
+   - The rule that the scripts' helpers load Vite only when asked names `/verify`.
+   - This entry names the five tasks that failed.
+7. **Code repeated from `workspaces.ts`.** Fixed: `printedRun()` and `timesTable()` are `@fz/dev/workspaces`', which both runners use, with `RunCommand` for the runner both take. `declaredWorkspaces()` no longer counts spec files; `workspacesWithScript()` counts them for those it keeps.
+
+The first review's fixes reshaped the reach and the runner, so the change had a second review, which found nothing blocking. Its answers:
+
+1. **The site's build could take another branch's game builds,** as a game it didn't reach was built only where its `dist/` lacked `index.html` or `game.json`. Fixed: every game builds whenever the site does, and `hasBuild` is gone. The builds run beside the site's lint, typecheck and tests, so they add a few seconds at most. A spec holds a site change to building every game first.
+2. **A spec named a file with `"` in it, which NTFS refuses.** Fixed: it is `naïve name.txt`, which git quotes for the `ï` alone.
+3. **`diff.relative` in a user's git config made `git diff` drop every file outside `frontend/`.** Fixed: `--no-relative`. A spec sets `diff.relative` in its repository and holds a change outside the folder to reaching what it does; with the flag taken out, it fails.
+4. **Two claims sat under what was measured:** lint's 2 GB under Brick Fuzz Pop's 2.1, and a worker's GB under the Solitaire Collection's 9.0 over 8 workers. Left: the claims are about what each took, and the comment and this entry now say "about". The 3 GB of headroom takes what a claim falls short of, and raising them would only run fewer at once on a machine that ran every step side by side without a spec failing.
+5. **Untested branches, and the coverage floor not run.** Fixed: specs for a change to `yarn.lock`, which says it reaches every workspace, a times file that isn't an object, on a machine of one core, and `hasBuild`'s path, which item 1 took out. `yarn workspace @fz/dev test:coverage` runs in the checks.
+6. **`freemem()` ignores a container's memory limit.** Fixed: `process.availableMemory()`, which takes it into account.
+7. **Nits.** Fixed: each doc comment's first paragraph is one sentence; `@fz/dev`'s `AGENTS.md` lists `LICENSE` and `.gitignore`; the extension is `MARKDOWN`; the loop is a `do … while`.
+
+The second review's fixes correct what it found rather than reshape the change, so the commit went in on them.

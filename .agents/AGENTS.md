@@ -59,9 +59,10 @@ Run every `yarn` command from `frontend/`, with Yarn 4, never NPM.
 `yarn start` serves the site and the games at `http://localhost:4200/`,
 `yarn dev:all` serves them there from every app's own dev server, so an edit
 to any of them shows as soon as it is saved, `yarn verify` lints,
-type-checks, tests without coverage, then builds, and `yarn verify:full` runs
+type-checks, tests without coverage, then builds, `yarn verify:full` runs
 what CI runs: the same, with the tests' coverage held to each workspace's
-floors.
+floors, and `yarn verify:changed` checks only the workspaces a branch's
+changes reach, their steps side by side.
 `frontend/AGENTS.md` lists every command and what it checks.
 
 Merging into `main` follows the `merge-to-main` skill: a change to code

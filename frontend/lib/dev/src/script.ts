@@ -12,6 +12,14 @@ export interface Stop {
   readonly message: string;
 }
 
+/** The environment a script or a command runs in, each variable by its name. */
+export type Env = Readonly<Record<string, string | undefined>>;
+
+/** Returns whether an environment is CI's, which GitHub Actions marks with `CI` set to `true`. */
+export function onCi(env: Env): boolean {
+  return env["CI"] === "true";
+}
+
 /** Says where a script prints. */
 export interface Printer {
   /** Prints a line of its output. */
