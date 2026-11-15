@@ -44,6 +44,8 @@ export interface Settings {
   readonly guide: boolean;
   /** Whether the field plays its sounds. */
   readonly sound: boolean;
+  /** Whether fast-forward is on, every flight played faster until it is switched off. */
+  readonly fastForward: boolean;
 }
 
 /** The settings a player starts with. */
@@ -53,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   speedUpLongFlights: true,
   guide: true,
   sound: true,
+  fastForward: false,
 };
 
 /** Holds and keeps the player's settings. */
@@ -79,7 +82,8 @@ export class SettingsService {
  */
 function settingsFrom(saved: StoredFields | null): Settings {
   if (!saved) return DEFAULT_SETTINGS;
-  const { aiming, flightSpeed, speedUpLongFlights, guide, sound } = saved;
+  const { aiming, flightSpeed, speedUpLongFlights, guide, sound, fastForward } =
+    saved;
   return {
     aiming: isOneOf(aiming, AIMINGS) ? aiming : DEFAULT_SETTINGS.aiming,
     flightSpeed: isOneOf(flightSpeed, FLIGHT_SPEEDS)
@@ -91,5 +95,6 @@ function settingsFrom(saved: StoredFields | null): Settings {
     ),
     guide: booleanOr(guide, DEFAULT_SETTINGS.guide),
     sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
+    fastForward: booleanOr(fastForward, DEFAULT_SETTINGS.fastForward),
   };
 }

@@ -3,13 +3,14 @@ import { By } from "@angular/platform-browser";
 import { IconComponent, type IconName } from "@fz/ui/icon";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import type { Mock } from "vitest";
 import { FastForwardComponent } from "./fast_forward.component";
 
 /** What a spec gets back from rendering the button. */
 interface Rendered {
   readonly user: UserEvent;
-  /** What the button asked for, each press's wish to play fast or not. */
-  readonly asked: boolean[];
+  /** Heard at each press the button passed on. */
+  readonly pressed: Mock<() => void>;
   /** Returns the name of the icon the button shows. */
   readonly icon: () => IconName;
 }
@@ -23,35 +24,29 @@ function iconIn(debugElement: DebugElement): IconName {
 }
 
 /**
- * Renders the button as the flight stands, beside a board that can take the
- * focus, and keeps what it asks for.
+ * Renders the button, fast-forward on or off, beside a board that can take
+ * the focus, and listens to it.
  */
-async function renderFastForward({
-  fast = false,
-  flying = true,
-} = {}): Promise<Rendered> {
-  const asked: boolean[] = [];
+async function renderFastForward({ fast = false } = {}): Promise<Rendered> {
+  const pressed = vi.fn<() => void>();
   const { debugElement } = await render(
     `<button type="button">Board</button>
     <button
       appFastForward
       type="button"
       [fast]="fast"
-      [flying]="flying"
-      (fastForward)="ask($event)"
+      (fastForward)="pressed()"
     ></button>`,
     {
       imports: [FastForwardComponent],
-      componentProperties: {
-        fast,
-        flying,
-        ask: (wanted: boolean) => {
-          asked.push(wanted);
-        },
-      },
+      componentProperties: { fast, pressed },
     },
   );
-  return { user: userEvent.setup(), asked, icon: () => iconIn(debugElement) };
+  return {
+    user: userEvent.setup(),
+    pressed,
+    icon: () => iconIn(debugElement),
+  };
 }
 
 /** Returns the button. */
@@ -66,61 +61,45 @@ describe("FastForwardComponent", () => {
     expect(icon()).toBe("fast-forward");
   });
 
-  it("isn't pressed while the flight plays at its speed", async () => {
+  it("isn't pressed while fast-forward is off", async () => {
     await renderFastForward();
 
     expect(fastForward()).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("is pressed while the flight plays fast", async () => {
+  it("is pressed while fast-forward is on", async () => {
     await renderFastForward({ fast: true });
 
     expect(fastForward()).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("can be pressed while a flight is under way", async () => {
+  it("is never dimmed, as it can be pressed at any time", async () => {
     await renderFastForward();
 
     expect(fastForward()).not.toHaveAttribute("aria-disabled");
   });
 
-  it("is dimmed while there is no flight", async () => {
-    await renderFastForward({ flying: false });
+  it.each([
+    ["off", false],
+    ["on", true],
+  ])(
+    "asks to switch fast-forward at a press while it is %s",
+    async (_, fast) => {
+      const { user, pressed } = await renderFastForward({ fast });
 
-    expect(fastForward()).toHaveAttribute("aria-disabled", "true");
-  });
+      await user.click(fastForward());
 
-  it("asks for the flight fast", async () => {
-    const { user, asked } = await renderFastForward();
-
-    await user.click(fastForward());
-
-    expect(asked).toEqual([true]);
-  });
-
-  it("asks for the flight at its speed again while it plays fast", async () => {
-    const { user, asked } = await renderFastForward({ fast: true });
-
-    await user.click(fastForward());
-
-    expect(asked).toEqual([false]);
-  });
+      expect(pressed).toHaveBeenCalledOnce();
+    },
+  );
 
   it("asks from the keyboard", async () => {
-    const { user, asked } = await renderFastForward();
+    const { user, pressed } = await renderFastForward();
     fastForward().focus();
 
     await user.keyboard("{Enter}");
 
-    expect(asked).toEqual([true]);
-  });
-
-  it("asks nothing while dimmed", async () => {
-    const { user, asked } = await renderFastForward({ flying: false });
-
-    await user.click(fastForward());
-
-    expect(asked).toEqual([]);
+    expect(pressed).toHaveBeenCalledOnce();
   });
 
   it("keeps the focus where it was through a press with a pointer", async () => {

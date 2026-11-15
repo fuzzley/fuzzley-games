@@ -46,6 +46,7 @@ const MID_FLIGHT: BarInputs = {
 type Output =
   | "pauseRun"
   | "resumeRun"
+  | "fastForward"
   | "skipFlight"
   | "toggleSound"
   | "openLevels"
@@ -58,8 +59,6 @@ interface RenderedBar {
   readonly user: UserEvent;
   /** Each output that carries nothing, by its name, listened to. */
   readonly heard: Readonly<Record<Output, Mock<() => void>>>;
-  /** What Fast-forward asked for, each press's wish to play fast or not. */
-  readonly fastAsked: boolean[];
 }
 
 /** Renders the bar, handed a level mid-flight but for what a spec says, and listens to it. */
@@ -69,6 +68,7 @@ async function renderBar(
   const heard: Record<Output, Mock<() => void>> = {
     pauseRun: vi.fn(),
     resumeRun: vi.fn(),
+    fastForward: vi.fn(),
     skipFlight: vi.fn(),
     toggleSound: vi.fn(),
     openLevels: vi.fn(),
@@ -76,21 +76,11 @@ async function renderBar(
     openHelp: vi.fn(),
     openSettings: vi.fn(),
   };
-  const fastAsked: boolean[] = [];
   await render(BarComponent, {
     inputs: { ...MID_FLIGHT, ...inputs },
-    on: {
-      ...heard,
-      fastForward: (fast: boolean) => {
-        fastAsked.push(fast);
-      },
-    },
+    on: heard,
   });
-  return {
-    user: userEvent.setup(),
-    heard,
-    fastAsked,
-  };
+  return { user: userEvent.setup(), heard };
 }
 
 /** Returns the terms of the figures the bar shows, in order. */
@@ -299,23 +289,18 @@ describe("BarComponent", () => {
       );
     });
 
-    it("asks for the flight fast", async () => {
-      const { user, fastAsked } = await renderBar();
+    it.each([
+      ["with a flight in the air", true],
+      ["while aiming", false],
+    ])("asks to switch fast-forward %s", async (_, flying) => {
+      const { user, heard } = await renderBar({ flying });
 
       await user.click(screen.getByRole("button", { name: "Fast-forward" }));
 
-      expect(fastAsked).toEqual([true]);
+      expect(heard.fastForward).toHaveBeenCalledOnce();
     });
 
-    it("asks for the flight at its speed again while it plays fast", async () => {
-      const { user, fastAsked } = await renderBar({ fast: true });
-
-      await user.click(screen.getByRole("button", { name: "Fast-forward" }));
-
-      expect(fastAsked).toEqual([false]);
-    });
-
-    it("shows Fast-forward pressed while the flight plays fast", async () => {
+    it("shows Fast-forward pressed while it is on", async () => {
       await renderBar({ fast: true });
 
       expect(
@@ -339,17 +324,22 @@ describe("BarComponent", () => {
       expect(heard.skipFlight).toHaveBeenCalledOnce();
     });
 
-    it.each(["Fast-forward", "Skip"])(
-      "dims %s while there is no flight",
-      async (name) => {
-        await renderBar({ flying: false });
+    it("dims Skip while there is no flight", async () => {
+      await renderBar({ flying: false });
 
-        expect(screen.getByRole("button", { name })).toHaveAttribute(
-          "aria-disabled",
-          "true",
-        );
-      },
-    );
+      expect(screen.getByRole("button", { name: "Skip" })).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
+    });
+
+    it("leaves Fast-forward live while there is no flight", async () => {
+      await renderBar({ flying: false });
+
+      expect(
+        screen.getByRole("button", { name: "Fast-forward" }),
+      ).not.toHaveAttribute("aria-disabled");
+    });
 
     it("shows the sound on, pressed", async () => {
       await renderBar();

@@ -160,8 +160,6 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   private room = FIRST_SHAPE;
   private readonly shapeState = signal(FIRST_SHAPE);
-  /** Whether the player asked for the flight in the air to play fast, from the bar. */
-  private readonly fastAsked = signal(false);
   /** Whether fast-forward is held, as the last frame's steering said. */
   private readonly fastHeld = signal(false);
   private readonly metricsState = signal<FieldMetrics | null>(null);
@@ -299,9 +297,13 @@ export class GameService extends RunLifecycle implements KeptGame {
   /** Whether a flight is under way, paused or not. */
   readonly flying = computed(() => this.phase() === "flying");
 
-  /** Whether a flight in the air plays fast: asked for from the bar, or held on F. */
+  /**
+   * Whether flights play fast: fast-forward switched on, as the settings
+   * keep it from flight to flight, or held on F while a flight is in the
+   * air.
+   */
   readonly fast = computed(
-    () => this.flying() && (this.fastAsked() || this.fastHeld()),
+    () => this.settings().fastForward || (this.flying() && this.fastHeld()),
   );
 
   /** Whether the player wants sound. */
@@ -576,9 +578,11 @@ export class GameService extends RunLifecycle implements KeptGame {
     if (this.outcome() === "paused") this.playFrame(0, false);
   }
 
-  /** Plays the flight in the air fast, or not, as the bar asks, until the next is released. */
-  fastForward(fast: boolean): void {
-    this.fastAsked.set(fast);
+  /** Switches fast-forward on or off, and keeps it in the settings. */
+  fastForward(): void {
+    this.settingsService.update({
+      fastForward: !this.settings().fastForward,
+    });
   }
 
   /** Turns the sound on or off, and keeps it in the settings. */
@@ -762,7 +766,6 @@ export class GameService extends RunLifecycle implements KeptGame {
     const landed = afterLanding(run);
     const newBest = this.keepRecords(state.run, landed);
     this.play.release(round);
-    this.fastAsked.set(false);
     // The run and the round in one value, so the saved game, which keeps
     // the round's next start, never reads one without the other.
     this.runState.set({
@@ -920,7 +923,6 @@ export class GameService extends RunLifecycle implements KeptGame {
     keeping: RunStart = { locked: !this.progress.isOpen(run.level) },
   ): void {
     this.aim(start);
-    this.fastAsked.set(false);
     this.lineShots = [];
     this.debug.startRun(keeping);
     this.runState.set(newRunState(run, start));

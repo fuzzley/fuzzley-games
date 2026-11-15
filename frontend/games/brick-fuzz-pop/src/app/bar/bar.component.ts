@@ -35,10 +35,11 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
  *
  * Every action is round at every size, its name heard and shown under the
  * pointer, which is what leaves room for the five figures. Pause,
- * Fast-forward and Skip stay at every size, the two dimmed while there is
- * no flight, so nothing moves as one starts. On a compact screen Sound, Levels,
- * New game, How to play and Settings move into the overflow menu, as on the
- * narrowest the link home does too.
+ * Fast-forward and Skip stay at every size, Skip dimmed while there is no
+ * flight, so nothing moves as one starts, and Fast-forward a switch, live at
+ * any time. On a compact screen Sound, Levels, New game, How to play and
+ * Settings move into the overflow menu, as on the narrowest the link home
+ * does too.
  */
 @Component({
   selector: "app-bar",
@@ -85,13 +86,13 @@ export class BarComponent {
   readonly outcome = input.required<RunStage>();
 
   /**
-   * Whether a flight is under way, paused or not, which Fast-forward and
-   * Skip need: a player who tabs to them from the board leaves the play
-   * room, which pauses the run, and can still press them.
+   * Whether a flight is under way, paused or not, which Skip needs: a
+   * player who tabs to it from the board leaves the play room, which pauses
+   * the run, and can still press it.
    */
   readonly flying = input.required<boolean>();
 
-  /** Whether the flight plays fast, which shows Fast-forward pressed. */
+  /** Whether fast-forward is on, which shows Fast-forward pressed. */
   readonly fast = input.required<boolean>();
 
   /** Whether the player wants sound. */
@@ -112,8 +113,8 @@ export class BarComponent {
    */
   readonly resumeRun = output();
 
-  /** Emitted with whether the flight should play fast from now on, as the player presses Fast-forward. */
-  readonly fastForward = output<boolean>();
+  /** Emitted as the player presses Fast-forward, to switch it on or off. */
+  readonly fastForward = output();
 
   /** Emitted as the player skips the flight, to land it at once. */
   readonly skipFlight = output();

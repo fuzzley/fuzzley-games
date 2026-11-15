@@ -587,6 +587,20 @@ describe("GameService", () => {
       expect(heard).toEqual([describeRound(round.outcome, round.next)]);
     });
 
+    it("plays the flight four times as fast while fast-forward is on", () => {
+      const slow = gameOf("step");
+      release(slow);
+      slow.tick(400, STILL);
+      afresh();
+      const fast = gameOf("step");
+      release(fast);
+      fast.fastForward();
+
+      fast.tick(100, STILL);
+
+      expect(placeOf(fast)).toEqual(placeOf(slow));
+    });
+
     it("plays the flight four times as fast while fast-forward is held", () => {
       const slow = gameOf("step");
       release(slow);
@@ -619,34 +633,49 @@ describe("GameService", () => {
       expect(game.fast()).toBe(false);
     });
 
-    it("plays fast as the bar asks", () => {
+    it("switches fast-forward on while aiming", () => {
       const game = gameOf("step");
-      release(game);
 
-      game.fastForward(true);
+      game.fastForward();
 
       expect(game.fast()).toBe(true);
     });
 
-    it("plays fast no more once the flight lands", () => {
+    it("switches fast-forward off at the next press", () => {
       const game = gameOf("step");
+      game.fastForward();
       release(game);
-      game.fastForward(true);
 
-      playOut(game);
+      game.fastForward();
 
       expect(game.fast()).toBe(false);
     });
 
-    it("forgets the bar's fast-forward as the next round is released", () => {
+    it("keeps fast-forward on in the settings", () => {
+      const game = gameOf("step");
+
+      game.fastForward();
+
+      expect(TestBed.inject(SettingsService).settings().fastForward).toBe(true);
+    });
+
+    it("plays fast while the settings have fast-forward on", () => {
+      const game = gameOf("step");
+
+      TestBed.inject(SettingsService).update({ fastForward: true });
+
+      expect(game.fast()).toBe(true);
+    });
+
+    it("keeps fast-forward on as the flight lands and the next is released", () => {
       const game = gameOf("step");
       release(game);
-      game.fastForward(true);
+      game.fastForward();
       playOut(game);
 
       release(game);
 
-      expect(game.fast()).toBe(false);
+      expect(game.fast()).toBe(true);
     });
 
     it("plays the flight at the settings' speed", () => {
@@ -1177,14 +1206,14 @@ describe("GameService", () => {
       expect(game.runs()).toBe(1);
     });
 
-    it("forgets the bar's fast-forward", async () => {
+    it("keeps fast-forward on", async () => {
       const game = gameOf("step");
       release(game);
-      game.fastForward(true);
+      game.fastForward();
 
       await answered(game.newGame(), true);
 
-      expect(game.fast()).toBe(false);
+      expect(game.fast()).toBe(true);
     });
 
     it("forgets the last run's cards and what it set", async () => {
