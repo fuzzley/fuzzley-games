@@ -1,7 +1,7 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { PickupId } from "../catalog/pickups";
 import type { RockKindId, RockSize } from "../catalog/rocks";
-import { type Crew, type Pilot, aboard } from "../ship/pilots";
+import type { Crew, Pilot } from "../ship/pilots";
 
 /** Names something that happened at a place on the field, which its event names nothing else of. */
 export type PlaceEventKind =
@@ -38,13 +38,30 @@ export type PickupEventKind =
   /** A pickup's time ran out before the ship caught it. */
   | "faded";
 
-/** Names something that happened to a pilot, which its event names. */
+/**
+ * Names something that happened to a pilot, which its event names.
+ *
+ * A stray caught is one brought home, whether it joined the line or went
+ * straight home, and counts where the run counts strays brought home; one
+ * of the crew that floats home counts in none of them.
+ */
 export type PilotEventKind =
-  /** A rock or a comet took the ship, and its pilot bailed out. */
+  /** A hit with no one in tow ended the run, and the pilot at the controls bailed out home. */
   | "lost"
+  /** A hit knocked the last in tow loose, the way the blow came. */
+  | "knocked"
+  /** The ship caught one knocked loose again, back at the line in tow's end. */
+  | "recaught"
+  /**
+   * One knocked loose floated home, out of the run: its time ran out, the
+   * run ended, or the ship caught it with the most in tow.
+   */
+  | "floated"
   /** A stray came in at an edge. */
   | "strayed"
-  /** The ship brought a stray home, which rides last in tow or waits at home. */
+  /** The ship caught a stray, which joined the line in tow's end. */
+  | "joined"
+  /** The ship caught a stray with the most in tow, which went straight home. */
   | "home";
 
 /** Names points scored at a place, a break's or a stray's, which its event says. */
@@ -84,8 +101,14 @@ export interface FieldEvent extends NumberedEvent {
   pickup: PickupId | null;
   /** The pilot it happened to, or null for an event of none. */
   pilot: Pilot | null;
-  /** The ships the crew has as an event of a pilot leaves it, 0 for any other event. */
-  ships: number;
+  /** How many ride in tow as an event of a pilot leaves the crew, 0 for any other event. */
+  inTow: number;
+  /**
+   * Whether no one is at the controls as an event of a pilot leaves the
+   * crew, the run over: the hit that ended it, and each of the crew knocked
+   * loose floating home with it; false for any other event.
+   */
+  runOver: boolean;
   /** The points it scored before the chain's multiplier, 0 for an event that scored none. */
   points: number;
   /** The chain's multiplier it scored at, 0 for an event that scored none. */
@@ -104,8 +127,9 @@ export interface FieldEvent extends NumberedEvent {
   slot: number;
   /**
    * The way it went, a share along each axis: the blow that broke a rock,
-   * for the field's kick, or the ship as it dashed, for its trail; 0 along
-   * both for a blow that came no way, and for any other event.
+   * for the field's kick, the one that knocked one of the crew loose, or
+   * the ship as it dashed, for its trail; 0 along both
+   * for a blow that came no way, and for any other event.
    */
   wayX: number;
   wayY: number;
@@ -129,7 +153,8 @@ const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
   size: null,
   pickup: null,
   pilot: null,
-  ships: 0,
+  inTow: 0,
+  runOver: false,
   points: 0,
   times: 0,
   reach: 0,
@@ -142,6 +167,14 @@ const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
 /** Returns a record for the log's ring, before an event fills it. */
 function blankEvent(): FieldEvent {
   return { serial: 0, ...BLANK_EVENT };
+}
+
+/** Writes the way a blow came into an event, a share along each axis, or none for a blow of no length. */
+function setWay(event: FieldEvent, alongX: number, alongY: number): void {
+  const along = Math.hypot(alongX, alongY);
+  if (along === 0) return;
+  event.wayX = alongX / along;
+  event.wayY = alongY / along;
 }
 
 /** Keeps the field's latest events, for the scene to play and the shell to hear. */
@@ -194,10 +227,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   ): void {
     const event = this.recordRock("broken", rock);
     event.chain = chain;
-    const along = Math.hypot(alongX, alongY);
-    if (along === 0) return;
-    event.wayX = alongX / along;
-    event.wayY = alongY / along;
+    setWay(event, alongX, alongY);
   }
 
   /** Records an event that happened to a pickup. */
@@ -210,17 +240,32 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     this.record(kind, x, y).pickup = pickup;
   }
 
-  /** Records an event that happened to a pilot, and the ships the crew has as it leaves it. */
+  /** Records an event that happened to a pilot but a knock, and how many ride in tow as it leaves the crew. */
   addPilot(
-    kind: PilotEventKind,
+    kind: Exclude<PilotEventKind, "knocked">,
     x: number,
     y: number,
     pilot: Pilot,
     crew: Crew,
   ): void {
-    const event = this.record(kind, x, y);
-    event.pilot = pilot;
-    event.ships = aboard(crew);
+    this.recordPilot(kind, x, y, pilot, crew);
+  }
+
+  /**
+   * Records one of the crew knocked loose, at the ship, with how many ride
+   * in tow as it leaves the crew and the way the blow came: `alongX` and
+   * `alongY`, of any length, or both 0 for none.
+   */
+  addKnocked(
+    x: number,
+    y: number,
+    pilot: Pilot,
+    crew: Crew,
+    alongX: number,
+    alongY: number,
+  ): void {
+    const event = this.recordPilot("knocked", x, y, pilot, crew);
+    setWay(event, alongX, alongY);
   }
 
   /** Records points scored at a place, before the chain's multiplier, and the multiplier. */
@@ -228,6 +273,24 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     const event = this.record("scored", x, y);
     event.points = points;
     event.times = times;
+  }
+
+  /**
+   * Returns the next record for an event of a pilot, its kind, place and
+   * pilot, how many ride in tow and whether the run is over filled in.
+   */
+  private recordPilot(
+    kind: PilotEventKind,
+    x: number,
+    y: number,
+    pilot: Pilot,
+    crew: Crew,
+  ): FieldEvent {
+    const event = this.record(kind, x, y);
+    event.pilot = pilot;
+    event.inTow = crew.tow.length;
+    event.runOver = crew.pilot === null;
+    return event;
   }
 
   /**

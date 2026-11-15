@@ -180,6 +180,18 @@ describe("stretchField", () => {
     ]);
   });
 
+  it("moves the crew knocked loose to the same share of the way across and down, and where each was a step ago", () => {
+    const field = fieldOfAll();
+    const [loose] = field.loose;
+    Object.assign(loose!, { live: true, x: 54, y: 30, lastX: 52, lastY: 31 });
+
+    stretchField(field, { width: 36, height: 80 });
+
+    expect([loose!.x, loose!.y, loose!.lastX, loose!.lastY]).toEqual([
+      27, 60, 26, 62,
+    ]);
+  });
+
   it("moves the line in tow with the ship, as far from it as it was, so its links keep their length", () => {
     const field = fieldOfAll();
     const ship = shipOf(field);

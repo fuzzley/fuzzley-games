@@ -214,7 +214,7 @@ describe("AppComponent", () => {
       TestBed.tick();
 
       expect(document.querySelector("fz-announcer")).toHaveTextContent(
-        "Your last run is paused on wave 2, Gift, with a score of 0 and 3 ships. Press Enter to go on.",
+        "Your last run is paused on wave 2, Gift, with a score of 0 and 2 in tow. Press Enter to go on.",
       );
     });
   });

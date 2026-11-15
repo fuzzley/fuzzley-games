@@ -129,18 +129,18 @@ export function stepComets(field: CometField): void {
   }
 }
 
-/** Returns whether a crossing comet touches a ship. */
-export function touchesComet(
+/** Returns the first crossing comet that touches a ship, or null where none does. */
+export function touchingComet(
   field: Pick<CometField, "comets" | "torus">,
   ship: Readonly<Ship>,
-): boolean {
+): Comet | null {
   for (const comet of field.comets.slots) {
     if (!comet.live || comet.warnSteps > 0) continue;
     if (reaches(comet, ship, COMET_RADIUS + SHIP_HIT_RADIUS, field.torus)) {
-      return true;
+      return comet;
     }
   }
-  return false;
+  return null;
 }
 
 /** Lets the comets go, as the wave is cleared. */

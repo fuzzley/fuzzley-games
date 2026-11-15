@@ -17,8 +17,9 @@ import {
 } from "../../testing/field_picture";
 import { PICKUPS } from "../catalog/pickups";
 import { ROCK_KINDS, type RockSize } from "../catalog/rocks";
+import { knockLastLoose } from "../hazards/loose";
 import { type Rock, hitRock, rockHitRadius, rocksLeft } from "../rocks/rocks";
-import { createCrew } from "../ship/pilots";
+import { type Crew, createCrew } from "../ship/pilots";
 import {
   STILL,
   type Steer,
@@ -29,12 +30,14 @@ import {
   isGuarded,
 } from "../ship/ship";
 import { TUNED_GUNNERY } from "../ship/shots";
+import { TUNED_TOWING } from "../ship/tow";
 import { STEP_MS, stepsIn } from "../stepper";
 import { across, distance } from "../torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
-  NEW_SHIP_MS,
+  HIT_GUARD_MS,
+  LOOSE_SWELL_MS,
   PICKUP_PULL_REACH,
   ROCK_RADIUS,
   SHIELD_GUARD_MS,
@@ -64,7 +67,7 @@ import {
   steerField,
   stepField,
 } from "./field";
-import { liesFairly, safestPlace } from "./spawn";
+import { liesFairly } from "./spawn";
 
 const SETUP: FieldSetup = {
   torus: PICTURE_TORUS,
@@ -102,8 +105,8 @@ const START: WaveSetup = {
   held: STILL,
 };
 
-/** The step a ship lost in a field's first step is followed by the next in line at. */
-const NEXT_SHIP_STEP = 1 + stepsIn(NEW_SHIP_MS);
+/** A crew of a pilot at the controls with no one in tow, whose run a hit ends. */
+const ALONE: Crew = { pilot: 4, tow: [], home: [2], lastGiven: 6 };
 
 /** The volatile rock's beat, in steps. */
 const BEAT = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs);
@@ -232,13 +235,13 @@ describe("a shielded ship", () => {
     stepField(field);
 
     expect({
-      lost: field.shipsLost,
+      hits: field.hits,
       shielded: field.shielded,
       inEffect: field.effects.guard.pickup,
       sizes: sizesOf(field),
       events: kindsLoggedOn(field),
     }).toEqual({
-      lost: 0,
+      hits: 0,
       shielded: false,
       inEffect: null,
       sizes: ["medium", "medium"],
@@ -258,8 +261,8 @@ describe("a shielded ship", () => {
 
   it.each([
     ["keeps the ship from the pieces while the shield's guard holds", 0, 0],
-    ["lets the pieces take the ship once the shield's guard is over", 1, 1],
-  ])("%s", (_, after, lost) => {
+    ["lets the pieces hit the ship once the shield's guard is over", 1, 1],
+  ])("%s", (_, after, hits) => {
     const field = rockOnShield();
     stepField(field);
     for (const piece of wholeRocks(field)) {
@@ -269,7 +272,7 @@ describe("a shielded ship", () => {
 
     stepTimes(field, stepsIn(SHIELD_GUARD_MS) + after);
 
-    expect(field.shipsLost).toBe(lost);
+    expect(field.hits).toBe(hits);
   });
 
   it("spends its shield on one rock, its guard keeping it from another touching it in the step", () => {
@@ -283,10 +286,21 @@ describe("a shielded ship", () => {
 
     stepField(field);
 
-    expect([field.shipsLost, sizesOf(field)]).toEqual([
+    expect([field.hits, sizesOf(field)]).toEqual([
       0,
       ["large", "medium", "medium"],
     ]);
+  });
+
+  it("keeps the chain going through the rock it breaks, as a shot would", () => {
+    const field = rockOnShield();
+    field.chain = 4;
+    field.lastBreakAt = field.steps;
+
+    stepField(field);
+
+    const scored = loggedOn(field).find((event) => event.kind === "scored");
+    expect([scored?.times, field.chain]).toEqual([2, 5]);
   });
 
   it("keeps its shield while it is guarded otherwise", () => {
@@ -365,6 +379,16 @@ describe("fieldFor", () => {
       gunnery: field.gunnery,
       rockSpeed: field.rockSpeed,
     }).toEqual({ flight: TUNED_FLIGHT, gunnery: TUNED_GUNNERY, rockSpeed: 1 });
+  });
+
+  it("tows its crew as tuning.ts says unless its setup gives another", () => {
+    const towing = { mostInTow: 2 };
+
+    const [tuned, given] = [START, { ...START, towing }].map(
+      (setup) => fieldFor(waveOf(), setup).towing,
+    );
+
+    expect([tuned, given]).toEqual([TUNED_TOWING, towing]);
   });
 
   it("flies a wave as its setup tunes it", () => {
@@ -446,19 +470,21 @@ describe("createField", () => {
     });
   });
 
-  it("starts with the wave's crew, no stray sent and no comet on its way", () => {
+  it("starts with the wave's crew, no hit taken, none knocked loose, no stray sent and no comet on its way", () => {
     const field = createField(SETUP);
 
     expect({
       crew: field.crew,
-      lost: field.shipsLost,
+      hits: field.hits,
+      loose: field.loose.filter((loose) => loose.live),
       adrift: field.strays.adrift.live,
       sent: field.strays.sent,
       broughtHome: field.strays.broughtHome,
       comets: field.comets.slots.filter((comet) => comet.live),
     }).toEqual({
       crew: SETUP.crew,
-      lost: 0,
+      hits: 0,
+      loose: [],
       adrift: false,
       sent: 0,
       broughtHome: 0,
@@ -739,42 +765,134 @@ describe("stepField", () => {
     });
   });
 
-  describe("losing a ship", () => {
-    it("loses the ship to a rock that touches it, logging it", () => {
-      const field = fieldFrom(["^B"]);
+  describe("taking a hit", () => {
+    it("knocks the last in tow loose at a rock that touches the ship, which breaks a size down, logging it with how many ride in tow", () => {
+      const field = fieldFrom(["^", "", "L"]);
+      onlyRock(field).y = 4;
 
       stepField(field);
 
-      expect([field.ship, field.shipsLost, kindsLoggedOn(field)]).toEqual([
-        null,
-        1,
-        ["lost"],
-      ]);
+      expect({
+        hits: field.hits,
+        tow: field.crew.tow,
+        loose: field.loose.filter((loose) => loose.live).map((l) => l.pilot),
+        flying: field.ship !== null,
+        sizes: sizesOf(field),
+        events: kindsLoggedOn(field),
+        knocked: [loggedOn(field)[0]?.pilot, loggedOn(field)[0]?.inTow],
+      }).toEqual({
+        hits: 1,
+        tow: [1],
+        loose: [2],
+        flying: true,
+        sizes: ["medium", "medium"],
+        events: ["knocked", "broken", "scored"],
+        knocked: [2, 1],
+      });
     });
 
-    it("bails the pilot at the controls out of a lost ship, logging it with the ships left, and hands the controls to the next", () => {
-      const field = fieldFrom(["^B"], {
-        crew: { pilot: 4, tow: [1, 6], home: [2], lastGiven: 6 },
-      });
+    it("logs the way the blow came as one is knocked loose, from the rock toward the ship", () => {
+      const field = fieldFrom(["^", "", "L"]);
+      onlyRock(field).y = 4;
 
       stepField(field);
 
-      expect([field.crew, loggedOn(field)]).toEqual([
-        { pilot: 1, tow: [6], home: [2], lastGiven: 6 },
-        [
-          expect.objectContaining({
-            kind: "lost",
-            pilot: 4,
-            ships: 2,
-          }),
-        ],
-      ]);
+      expect(loggedOn(field)[0]).toMatchObject({ wayX: 0, wayY: -1 });
+    });
+
+    it("knocks the last in tow loose at a comet, which flies on", () => {
+      const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
+      const comet = placeComet(field, 3, 2);
+
+      stepField(field);
+
+      expect([field.hits, field.crew.tow, comet.live]).toEqual([1, [1], true]);
     });
 
     it.each([
-      ["loses the ship to a rock just within", -0.01, 1],
+      ["untouchable through the guard a hit leaves", 0, 1],
+      ["hit again after", 1, 2],
+    ])("keeps the ship %s", (_, after, hits) => {
+      const field = fieldFrom(["^", "", "L"]);
+      onlyRock(field).y = 4;
+      stepField(field);
+      for (const piece of wholeRocks(field)) {
+        piece.vx = 0;
+        piece.vy = 0;
+      }
+
+      stepTimes(field, stepsIn(HIT_GUARD_MS) + after);
+
+      expect(field.hits).toBe(hits);
+    });
+
+    it("keeps the effects in play and the pickups floating at a hit that knocks one loose", () => {
+      const field = fieldFrom(["^", "", "L"]);
+      catchOn(field, "spread");
+      placePickup(field, "nova", 40, 20);
+      onlyRock(field).y = 4;
+
+      stepField(field);
+
+      expect([field.weapon, floatingPickups(field)]).toEqual([
+        "spread",
+        [expect.objectContaining({ id: "nova" })],
+      ]);
+    });
+
+    it("ends the chain at a hit, the rock it breaks counted in it first", () => {
+      const field = fieldFrom(["^", "", "L"]);
+      onlyRock(field).y = 4;
+      field.chain = 4;
+      field.lastBreakAt = field.steps;
+
+      stepField(field);
+
+      const scored = loggedOn(field).find((event) => event.kind === "scored");
+      expect([scored?.times, field.chain]).toEqual([2, 0]);
+    });
+
+    it("ends the run at a hit with no one in tow, the pilot bailing out home, logged", () => {
+      const field = fieldFrom(["^B"], { crew: ALONE });
+
+      stepField(field);
+
+      expect([field.ship, field.hits, field.crew, loggedOn(field)]).toEqual([
+        null,
+        1,
+        { pilot: null, tow: [], home: [2, 4], lastGiven: 6 },
+        [expect.objectContaining({ kind: "lost", pilot: 4, inTow: 0 })],
+      ]);
+    });
+
+    it("leaves the rock that ends the run whole", () => {
+      const field = fieldFrom(["^B"], { crew: ALONE });
+
+      stepField(field);
+
+      expect(sizesOf(field)).toEqual(["boulder"]);
+    });
+
+    it("floats the crew knocked loose home as a hit ends the run", () => {
+      const field = fieldFrom(["^", "", "L"], {
+        crew: { pilot: 4, tow: [1], home: [2], lastGiven: 6 },
+      });
+      knockLastLoose(field, shipOf(field));
+      onlyRock(field).y = 4;
+
+      stepField(field);
+
+      expect({
+        home: field.crew.home,
+        loose: field.loose.filter((loose) => loose.live),
+        events: kindsLoggedOn(field),
+      }).toEqual({ home: [2, 4, 1], loose: [], events: ["lost", "floated"] });
+    });
+
+    it.each([
+      ["hits the ship with a rock just within", -0.01, 1],
       ["keeps the ship from a rock just past", 0.01, 0],
-    ])("%s its reach", (_, beyond, lost) => {
+    ])("%s its reach", (_, beyond, hits) => {
       const field = fieldFrom(["^", "", "L"]);
       const [rock] = wholeRocks(field);
       if (!rock) throw new Error("The picture has no rock.");
@@ -782,17 +900,17 @@ describe("stepField", () => {
 
       stepField(field);
 
-      expect(field.shipsLost).toBe(lost);
+      expect(field.hits).toBe(hits);
     });
 
-    it("loses the ship to a rock across an edge", () => {
+    it("hits the ship with a rock across an edge", () => {
       const field = fieldFrom(["^"]);
       shipOf(field).x = 0.5;
       placeRock(field, "small", 71.5, 2);
 
       stepField(field);
 
-      expect(field.shipsLost).toBe(1);
+      expect(field.hits).toBe(1);
     });
 
     it("keeps the ship from where a rock beside it broke", () => {
@@ -803,7 +921,7 @@ describe("stepField", () => {
 
       stepField(field);
 
-      expect(field.shipsLost).toBe(0);
+      expect(field.hits).toBe(0);
     });
 
     it("keeps a guarded ship from a rock that touches it", () => {
@@ -812,11 +930,11 @@ describe("stepField", () => {
 
       stepField(field);
 
-      expect(field.shipsLost).toBe(0);
+      expect(field.hits).toBe(0);
     });
 
-    it("ends every effect and lets the pickups go as the ship is lost", () => {
-      const field = fieldFrom(["^", "", "L"], { pace: 1.2 });
+    it("ends every effect and lets the pickups go as a hit ends the run", () => {
+      const field = fieldFrom(["^", "", "L"], { pace: 1.2, crew: ALONE });
       catchOn(field, "spread");
       catchOn(field, "slow");
       placePickup(field, "nova", 40, 20);
@@ -825,13 +943,13 @@ describe("stepField", () => {
       stepField(field);
 
       expect({
-        lost: field.shipsLost,
+        hits: field.hits,
         weapon: field.weapon,
         pace: field.pace,
         inEffect: [field.effects.weapon.pickup, field.effects.pace.pickup],
         floating: floatingPickups(field),
       }).toEqual({
-        lost: 1,
+        hits: 1,
         weapon: "gun",
         pace: 1.2,
         inEffect: [null, null],
@@ -839,8 +957,8 @@ describe("stepField", () => {
       });
     });
 
-    it("lets the shots in flight outlive a lost ship", () => {
-      const field = fieldFrom(["^", "B"]);
+    it("lets the shots in flight outlive the ship", () => {
+      const field = fieldFrom(["^", "B"], { crew: ALONE });
       stepBy(field, FIRE);
 
       stepBy(field, FIRE, 5);
@@ -849,6 +967,14 @@ describe("stepField", () => {
         1,
         ["fired", "lost"],
       ]);
+    });
+
+    it("brings no ship once the run is over", () => {
+      const field = fieldFrom(["^B"], { crew: ALONE });
+
+      stepTimes(field, 240);
+
+      expect(field.ship).toBeNull();
     });
 
     it("flies its rocks on without a ship, and fires nothing", () => {
@@ -862,6 +988,38 @@ describe("stepField", () => {
       expect([rock.x, kindsLoggedOn(field)]).toEqual([
         expect.closeTo(14 + 3),
         [],
+      ]);
+    });
+  });
+
+  describe("the crew knocked loose", () => {
+    it("lets the ship catch one knocked loose again once it has swelled", () => {
+      const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
+      knockLastLoose(field, shipOf(field));
+      const [loose] = field.loose;
+      loose!.speed = 0;
+      loose!.x = shipOf(field).x;
+      loose!.y = shipOf(field).y;
+
+      stepTimes(field, stepsIn(LOOSE_SWELL_MS));
+
+      expect([field.crew.tow, kindsLoggedOn(field)]).toEqual([
+        [1, 2],
+        ["recaught"],
+      ]);
+    });
+
+    it("takes the crew knocked loose back as the wave is cleared", () => {
+      const field = fieldFrom(["^", "", "", "", "", "", "........S"]);
+      knockLastLoose(field, shipOf(field));
+      hitRock(field, onlyRock(field), 0, 0);
+
+      stepField(field);
+
+      expect([field.cleared, field.crew.tow, kindsLoggedOn(field)]).toEqual([
+        true,
+        [1, 2],
+        ["broken", "scored", "recaught", "cleared"],
       ]);
     });
   });
@@ -994,7 +1152,7 @@ describe("stepField", () => {
 
       stepTimes(field, BEAT);
 
-      expect([field.shipsLost, sizesOf(field)]).toEqual([0, []]);
+      expect([field.hits, sizesOf(field)]).toEqual([0, []]);
     });
 
     it("sets blasts off before the shots fly, so a shot meets what a blast left in its step", () => {
@@ -1018,7 +1176,7 @@ describe("stepField", () => {
 
       stepBy(field, FIRE);
 
-      expect([field.shipsLost, sizesOf(field)]).toEqual([0, []]);
+      expect([field.hits, sizesOf(field)]).toEqual([0, []]);
     });
 
     it("lands the shots before the comets fly, so a rock both meet in a step is the shot's", () => {
@@ -1045,24 +1203,24 @@ describe("stepField", () => {
       expect(floatingPickups(field)).toHaveLength(1);
     });
 
-    it("lets a rock take the ship before it can catch a Shield", () => {
+    it("lets a rock hit the ship before it can catch a Shield", () => {
       const field = fieldFrom(["^", "", "L"]);
       onlyRock(field).y = 4;
       placePickup(field, "shield", 2, 2);
 
       stepField(field);
 
-      expect(field.shipsLost).toBe(1);
+      expect([field.hits, field.crew.tow]).toEqual([1, [1]]);
     });
 
-    it("lets a rock take the ship before it can bring a stray home", () => {
-      const field = fieldFrom(["^", "", "L"]);
+    it("lets a rock end the run before the ship can catch a stray", () => {
+      const field = fieldFrom(["^", "", "L"], { crew: ALONE });
       onlyRock(field).y = 4;
       const stray = placeStray(field, 2, 2);
 
       stepField(field);
 
-      expect([field.shipsLost, stray.live]).toEqual([1, true]);
+      expect([field.hits, stray.live]).toEqual([1, true]);
     });
 
     it("ends an effect whose time is up before the ship fires", () => {
@@ -1122,117 +1280,6 @@ describe("stepField", () => {
       expect([field.steps, shipOf(field).waiting]).toEqual([0, true]);
     });
   });
-
-  describe("the next ship", () => {
-    it("brings no ship for a second after one is lost", () => {
-      const field = fieldFrom(["^B"]);
-
-      stepTimes(field, NEXT_SHIP_STEP - 1);
-
-      expect(field.ship).toBeNull();
-    });
-
-    // A large rock beside the middle keeps the next ship from it.
-    it("brings the next in line a second after, waiting where it is safest", () => {
-      const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
-
-      stepTimes(field, NEXT_SHIP_STEP);
-
-      const safest = safestPlace(field);
-      const ship = shipOf(field);
-      expect([ship.x, ship.y, ship.waiting]).toEqual([
-        safest.x,
-        safest.y,
-        true,
-      ]);
-      expect([safest.x, safest.y]).not.toEqual([36, 20]);
-    });
-
-    it("lays the line in tow straight out behind the next ship", () => {
-      const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
-
-      stepTimes(field, NEXT_SHIP_STEP);
-
-      const ship = shipOf(field);
-      const [first] = field.tow;
-      expect([first!.x, first!.y]).toEqual([
-        expect.closeTo(ship.x),
-        expect.closeTo(ship.y + TOW_HOOK + TOW_LINK),
-      ]);
-    });
-
-    it("flies the rocks on while the next ship waits", () => {
-      const field = fieldFrom(["^B", "", "", "", "", "..........L"]);
-      stepTimes(field, NEXT_SHIP_STEP);
-      const rock = rockOfSize(field, "large");
-      rock.vx = 3;
-
-      stepTimes(field, 120);
-
-      expect([shipOf(field).waiting, rock.x]).toEqual([
-        true,
-        expect.closeTo(42 + 3, 9),
-      ]);
-    });
-
-    it("gives the next ship what the player holds as it comes, no move until it changes", () => {
-      const field = fieldFrom(["^B"]);
-
-      stepBy(field, THRUST, NEXT_SHIP_STEP + 60);
-
-      expect(shipOf(field).waiting).toBe(true);
-    });
-
-    it("lets the next ship fly with the player's first move, and keeps it", () => {
-      const field = fieldFrom(["^B"]);
-      stepTimes(field, NEXT_SHIP_STEP);
-
-      stepBy(field, THRUST, 60);
-
-      expect(shipOf(field).waiting).toBe(false);
-    });
-
-    it("brings no ship once the crew has none left", () => {
-      const field = fieldFrom(["^B"], {
-        crew: { pilot: 0, tow: [], home: [], lastGiven: 0 },
-      });
-
-      stepTimes(field, NEXT_SHIP_STEP + 60);
-
-      expect([field.ship, field.shipDueAt]).toEqual([null, null]);
-    });
-
-    // The shots in flight, or a blast, can break the last rock in the wait.
-    it("brings no ship once the wave is cleared while one is due", () => {
-      const field = fieldFrom(["^"]);
-      const ship = shipOf(field);
-      const rock = placeRock(field, "small", ship.x, ship.y);
-      stepField(field);
-      hitRock(field, rock, 0, 0);
-
-      stepTimes(field, NEXT_SHIP_STEP);
-
-      expect([field.cleared, field.ship, field.shipDueAt]).toEqual([
-        true,
-        null,
-        null,
-      ]);
-    });
-
-    it("brings the next ship as its step starts, so a drawn rock is pulled toward it in that step", () => {
-      const field = fieldFrom(["^B", "", "", "", "", "..........L"], {
-        kind: "lodestone",
-      });
-      stepTimes(field, NEXT_SHIP_STEP - 1);
-      const rock = rockOfSize(field, "large");
-      rock.vx = 0;
-      rock.vy = 0;
-
-      stepField(field);
-
-      expect(speedOf(rock)).toBeGreaterThan(0);
-    });
-  });
 });
 
 describe("reshapeField", () => {
@@ -1252,23 +1299,6 @@ describe("reshapeField", () => {
     expect([field.torus, placesOf(field)]).toEqual([
       { width: 72, height: 80 },
       [[2, 4]],
-    ]);
-  });
-
-  it("brings the next ship, due as the field was stretched, onto its new shape", () => {
-    const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
-    stepField(field);
-    reshapeField(field, { width: 36, height: 80 });
-
-    stepTimes(field, NEXT_SHIP_STEP - 1);
-
-    const safest = safestPlace(field);
-    const ship = shipOf(field);
-    expect([field.torus, ship.x, ship.y, ship.waiting]).toEqual([
-      { width: 36, height: 80 },
-      safest.x,
-      safest.y,
-      true,
     ]);
   });
 

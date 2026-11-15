@@ -4,8 +4,11 @@ import { MOST_CREW, TOW_HOOK, TOW_LINK } from "../tuning";
 import type { Crew, Pilot } from "./pilots";
 import { STILL, type Ship, createShip } from "./ship";
 import {
+  type LineField,
   type TowLink,
   createTow,
+  hasRoomInTow,
+  joinLine,
   layTow,
   settleTow,
   stepTow,
@@ -44,6 +47,17 @@ function towBehind(
   };
   layTow(field);
   return field;
+}
+
+/**
+ * Returns a line in tow as {@link towBehind} lays it behind a ship at
+ * (20, 10), its field letting as many ride as given.
+ */
+function lineBehind(
+  tow: readonly Pilot[],
+  mostInTow: number,
+): Towed & LineField {
+  return { ...towBehind(20, 10, tow), towing: { mostInTow } };
 }
 
 /** Returns where a link is, rounded so a spec can compare it. */
@@ -160,11 +174,58 @@ describe("trailLink", () => {
     expect(lastPlaceOf(field.tow[1]!)).toEqual(placeOf(field.tow[1]!));
   });
 
+  it("leaves the line as it is with no ship", () => {
+    const field = { ...towBehind(20, 10, [1]), ship: null };
+    field.crew = { ...field.crew, tow: [1, 2] };
+    const before = field.tow.map(placeOf);
+
+    trailLink(field, 1);
+
+    expect(field.tow.map(placeOf)).toEqual(before);
+  });
+
   it("throws for a link past those the field made", () => {
     const field = towBehind(20, 10);
 
     expect(() => {
       trailLink(field, MOST_CREW - 1);
+    }).toThrow(RangeError);
+  });
+});
+
+describe("hasRoomInTow", () => {
+  it.each([
+    ["has room while fewer ride than the field lets", [1, 2], true],
+    ["has none once as many ride as the field lets", [1, 2, 3], false],
+  ])("%s", (_, tow, room) => {
+    expect(hasRoomInTow(lineBehind(tow, 3))).toBe(room);
+  });
+
+  it("has none past the links the line was made with, whatever the field lets", () => {
+    const field = lineBehind([1, 2], MOST_CREW + 2);
+    const short = { ...field, tow: field.tow.slice(0, 2) };
+
+    expect(hasRoomInTow(short)).toBe(false);
+  });
+});
+
+describe("joinLine", () => {
+  it("has a pilot join the line's end, laid a link behind the last", () => {
+    const field = lineBehind([1], 3);
+
+    joinLine(field, 5);
+
+    expect([field.crew.tow, placeOf(field.tow[1]!)]).toEqual([
+      [1, 5],
+      [20, round(10 + FIRST_BEHIND + TOW_LINK)],
+    ]);
+  });
+
+  it("throws for a line with no room", () => {
+    const field = lineBehind([1], 1);
+
+    expect(() => {
+      joinLine(field, 5);
     }).toThrow(RangeError);
   });
 });

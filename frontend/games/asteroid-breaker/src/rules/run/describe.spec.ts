@@ -72,23 +72,64 @@ describe("describeEvent", () => {
     expect(describeEvent(strayed)).toBe("A stray fuzzball drifts in.");
   });
 
-  it("says a stray brought home, and the ships the crew had then", () => {
+  it("says a stray caught into the line in tow, and how many ride in tow then", () => {
+    const joined = eventOf((log) => {
+      log.addPilot("joined", 1, 2, 5, crewOf(0, [1, 5]));
+    });
+
+    expect(describeEvent(joined)).toBe("Caught. 2 in tow.");
+  });
+
+  it("says a stray brought straight home", () => {
     const home = eventOf((log) => {
-      log.addPilot("home", 1, 2, 5, crewOf(0, [5]));
+      log.addPilot("home", 1, 2, 5, crewOf(0, [1, 2, 3, 4, 6]));
     });
 
-    expect(describeEvent(home)).toBe("Brought home. 2 ships.");
+    expect(describeEvent(home)).toBe(
+      "Brought straight home, with the line full.",
+    );
   });
 
-  it("says a ship lost, and the ships left then", () => {
-    const lost = eventOf((log) => {
-      log.addPilot("lost", 1, 2, 0, crewOf(1));
+  it.each([
+    ["how many ride in tow then", [1], "Hit! One knocked loose. 1 in tow."],
+    [
+      "that no one rides in tow then",
+      [],
+      "Hit! One knocked loose. No one in tow.",
+    ],
+  ])("says one knocked loose, and %s", (_, tow, said) => {
+    const knocked = eventOf((log) => {
+      log.addKnocked(1, 2, 3, crewOf(0, tow), 0, 1);
     });
 
-    expect(describeEvent(lost)).toBe("Ship lost. 1 ship left.");
+    expect(describeEvent(knocked)).toBe(said);
   });
 
-  it("says nothing of the last ship lost, which the run's end says", () => {
+  it("says one knocked loose caught again, and how many ride in tow then", () => {
+    const recaught = eventOf((log) => {
+      log.addPilot("recaught", 1, 2, 3, crewOf(0, [1, 3]));
+    });
+
+    expect(describeEvent(recaught)).toBe("Caught again. 2 in tow.");
+  });
+
+  it("says one knocked loose floats home", () => {
+    const floated = eventOf((log) => {
+      log.addPilot("floated", 1, 2, 3, crewOf(0, [1]));
+    });
+
+    expect(describeEvent(floated)).toBe("A fuzzball floats home.");
+  });
+
+  it("says nothing of one floating home as the run ends, which the run's end says", () => {
+    const floated = eventOf((log) => {
+      log.addPilot("floated", 1, 2, 3, crewOf(null));
+    });
+
+    expect(describeEvent(floated)).toBeNull();
+  });
+
+  it("says nothing of the hit that ends the run, which the run's end says", () => {
     const lost = eventOf((log) => {
       log.addPilot("lost", 1, 2, 0, crewOf(null));
     });
@@ -175,11 +216,19 @@ describe("describeResume", () => {
 });
 
 describe("describeTakenUp", () => {
-  it("says the wave the run is paused on, its score, its ships, and how to go on", () => {
-    const run = { ...runAt(4, 9_020), crew: crewOf(0, [3]) };
+  it("says the wave the run is paused on, its score, how many ride in tow, and how to go on", () => {
+    const run = { ...runAt(4, 9_020), crew: crewOf(0, [3, 1]) };
 
     expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
-      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and 2 ships. Press Enter to go on.",
+      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and 2 in tow. Press Enter to go on.",
+    );
+  });
+
+  it("says no one rides in tow of a run paused with none", () => {
+    const run = { ...runAt(4, 9_020), crew: crewOf(0) };
+
+    expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
+      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and no one in tow. Press Enter to go on.",
     );
   });
 });

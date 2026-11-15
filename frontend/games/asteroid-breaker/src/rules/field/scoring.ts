@@ -1,5 +1,5 @@
 // The points a wave scores: each rock broken by its kind and size, times
-// the chain's multiplier, a stray brought home, and the wave's clearing.
+// the chain's multiplier, a stray caught, and the wave's clearing.
 // Once no one is at the controls the run is over, and nothing scores, so
 // its score doesn't hang on how its last steps fall into frames.
 
@@ -9,13 +9,7 @@ import type { FieldEventLog } from "./events";
 import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
-import {
-  CHAIN,
-  CHAIN_MS,
-  CLEAN_POINTS,
-  CLEAR_POINTS,
-  STRAY_POINTS,
-} from "../tuning";
+import { CHAIN, CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 
 /**
  * Describes what of the field its points change, which the rocks' rules hand on
@@ -24,7 +18,7 @@ import {
 export interface ScoreField {
   /** The wave's points, its clearing's among them once it is cleared. */
   score: number;
-  /** How many breaks the chain had counted as of the last, 0 once a lost ship ends it. */
+  /** How many breaks the chain had counted as of the last, 0 once a hit ends it. */
   chain: number;
   /** The step the last break counted in the chain came at. */
   lastBreakAt: number;
@@ -32,23 +26,26 @@ export interface ScoreField {
   chainPoints: number;
   /** The rocks' own points among the wave's, before the chain's multiplier. */
   rockPoints: number;
+  /** The strays' own points among the wave's, before the chain's multiplier. */
+  strayPoints: number;
   /** How many steps the field has taken, by which the chain's time runs. */
   readonly steps: number;
   /** Who is aboard: with no one at the controls, the run is over. */
   readonly crew: Crew;
-  /** How many ships it has lost, which a clean wave has none of. */
-  readonly shipsLost: number;
+  /**
+   * How many hits the ship has taken, which a clean wave has none of; a hit
+   * the Shield takes counts none.
+   */
+  readonly hits: number;
   /** What happened, for the scene to play. */
   readonly events: FieldEventLog;
 }
 
 /** Describes what of a cleared wave's field says how its points add up. */
-export interface TallyField extends Pick<
+export type TallyField = Pick<
   ScoreField,
-  "rockPoints" | "chainPoints" | "shipsLost"
-> {
-  readonly strays: { readonly broughtHome: number };
-}
+  "rockPoints" | "chainPoints" | "strayPoints" | "hits"
+>;
 
 /** Describes how a cleared wave's points add up, for its card. */
 export interface WaveTally {
@@ -60,7 +57,7 @@ export interface WaveTally {
   readonly strays: number;
   /** What clearing the wave added. */
   readonly cleared: number;
-  /** What clearing it without losing a ship added besides. */
+  /** What clearing it without a hit taken added besides. */
   readonly clean: number;
 }
 
@@ -99,26 +96,32 @@ export function chainCountOf(field: Readonly<ScoreField>): number {
 }
 
 /**
- * Scores a stray brought home at a place, times the chain's multiplier, without
- * counting it on in the chain.
+ * Scores a stray caught at a place its points, times the chain's
+ * multiplier, without counting it on in the chain; its own points count
+ * among the strays', for the tally.
  */
-export function scoreStray(field: ScoreField, x: number, y: number): void {
-  score(field, STRAY_POINTS, x, y);
+export function scoreStray(
+  field: ScoreField,
+  x: number,
+  y: number,
+  points: number,
+): void {
+  if (score(field, points, x, y)) field.strayPoints += points;
 }
 
-/** Ends the chain, as the ship is lost. */
+/** Ends the chain, as a hit is taken. */
 export function endChain(field: ScoreField): void {
   field.chain = 0;
 }
 
-/** Returns what clearing a wave adds, more for one cleared without losing a ship. */
-export function clearingPoints(shipsLost: number): number {
-  return CLEAR_POINTS + (shipsLost === 0 ? CLEAN_POINTS : 0);
+/** Returns what clearing a wave adds, more for one cleared without a hit taken. */
+export function clearingPoints(hits: number): number {
+  return CLEAR_POINTS + (hits === 0 ? CLEAN_POINTS : 0);
 }
 
 /** Scores a cleared wave what its clearing adds. */
 export function scoreClearing(field: ScoreField): void {
-  if (!isOver(field)) field.score += clearingPoints(field.shipsLost);
+  if (!isOver(field)) field.score += clearingPoints(field.hits);
 }
 
 /**
@@ -129,9 +132,9 @@ export function tallyOf(field: Readonly<TallyField>): WaveTally {
   return {
     rocks: field.rockPoints,
     chains: field.chainPoints,
-    strays: field.strays.broughtHome * STRAY_POINTS,
+    strays: field.strayPoints,
     cleared: CLEAR_POINTS,
-    clean: field.shipsLost === 0 ? CLEAN_POINTS : 0,
+    clean: field.hits === 0 ? CLEAN_POINTS : 0,
   };
 }
 

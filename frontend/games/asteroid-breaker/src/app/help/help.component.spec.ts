@@ -50,15 +50,15 @@ describe("HelpComponent", () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "Breaks each within 1.5 seconds of the last make a chain, which multiplies each break's points: ×2 from 5 breaks, ×3 from 10 breaks, ×4 from 20 breaks. A stray brought home scores 500, times the chain. A wave cleared adds 500 points, and 500 more when no ship was lost on it.",
+      "Breaks each within 1.5 seconds of the last make a chain, which multiplies each break's points: ×2 from 5 breaks, ×3 from 10 breaks, ×4 from 20 breaks. A stray caught scores 500, or 1,000 as it goes straight home, times the chain. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
     );
   });
 
-  it("says a stray brought home flies one more ship, up to the most, from the tuning", async () => {
+  it("says a stray caught joins the line in tow, up to the most, or goes straight home, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Stray fuzzball.").closest("li")).toHaveTextContent(
-      "Fly into it to bring it home, and it flies one more ship at once, up to 6.",
+      "Fly into it to catch it: it joins the line in tow, up to 5, or, with the line full, goes straight home.",
     );
   });
 

@@ -11,6 +11,7 @@ import {
 import { RADIANS_PER_DEGREE } from "../angles";
 import { PICKUPS } from "../catalog/pickups";
 import { type Field, stepField } from "../field/field";
+import { knockLastLoose } from "./loose";
 import { guardShip } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
@@ -153,14 +154,25 @@ describe("a wave's strays", () => {
     expect(field.strays.adrift.live).toBe(false);
   });
 
-  it("gives a stray a color no pilot wears, aboard or at home", () => {
+  it("gives a stray a color no pilot aboard wears, nor any knocked loose", () => {
     const field = strayDue({
-      crew: { pilot: 3, tow: [0], home: [4], lastGiven: 2 },
+      crew: { pilot: 3, tow: [0, 4, 5], home: [], lastGiven: 2 },
+    });
+    knockLastLoose(field, shipOf(field));
+
+    stepField(field);
+
+    expect(field.strays.adrift.pilot).toBe(6);
+  });
+
+  it("gives a stray the color of one gone home, out of the run", () => {
+    const field = strayDue({
+      crew: { pilot: 3, tow: [0], home: [4], lastGiven: 3 },
     });
 
     stepField(field);
 
-    expect(field.strays.adrift.pilot).toBe(5);
+    expect(field.strays.adrift.pilot).toBe(4);
   });
 
   it.each(SEEDS.slice(0, 8))(
@@ -382,7 +394,7 @@ describe("a stray adrift", () => {
     expect(stray.live).toBe(live);
   });
 
-  it("rides last in tow once brought home, counted and logged", () => {
+  it("joins the line in tow's end once caught, counted brought home and logged", () => {
     const field = fieldFrom(PICTURE, {
       crew: { pilot: 0, tow: [1], home: [], lastGiven: 6 },
     });
@@ -390,7 +402,7 @@ describe("a stray adrift", () => {
 
     stepField(field);
 
-    const logged = loggedOn(field).find((each) => each.kind === "home");
+    const logged = loggedOn(field).find((each) => each.kind === "joined");
     expect([
       field.crew.tow,
       field.strays.broughtHome,
@@ -399,20 +411,20 @@ describe("a stray adrift", () => {
       logged?.pilot,
       logged?.x,
       logged?.y,
-      logged?.ships,
+      logged?.inTow,
     ]).toEqual([
       [1, 5],
       1,
       field.steps + stepsIn(STRAY_NEXT_MS),
-      "home",
+      "joined",
       5,
       expect.closeTo(SHIP_X),
       expect.closeTo(SHIP_Y + STRAY_STEP),
-      3,
+      2,
     ]);
   });
 
-  it("lays one brought home a link behind the last in tow, at the line's end", () => {
+  it("lays one caught a link behind the last in tow, at the line's end", () => {
     const field = fieldFrom(PICTURE, {
       crew: { pilot: 0, tow: [1], home: [], lastGiven: 6 },
     });
@@ -427,7 +439,7 @@ describe("a stray adrift", () => {
     ]);
   });
 
-  it("waits at home once brought home with the most of the crew aboard, behind those home before it, logged so", () => {
+  it("goes straight home once caught with the most in tow, behind those home before it, counted and logged so", () => {
     const field = fieldFrom(PICTURE, {
       crew: { pilot: 0, tow: [1, 2, 3, 4, 6], home: [7], lastGiven: 7 },
     });
@@ -436,7 +448,23 @@ describe("a stray adrift", () => {
     stepField(field);
 
     const logged = loggedOn(field).find((each) => each.kind === "home");
-    expect([field.crew.home, logged?.ships]).toEqual([[7, 5], MOST_CREW]);
+    expect([field.crew.home, field.strays.broughtHome, logged?.inTow]).toEqual([
+      [7, 5],
+      1,
+      MOST_CREW - 1,
+    ]);
+  });
+
+  it("goes straight home once caught with as many in tow as the field's towing holds", () => {
+    const field = fieldFrom(PICTURE, {
+      crew: { pilot: 0, tow: [1, 2], home: [], lastGiven: 7 },
+    });
+    field.towing = { mostInTow: 2 };
+    placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
+
+    stepField(field);
+
+    expect([field.crew.tow, field.crew.home]).toEqual([[1, 2], [5]]);
   });
 
   it("is brought home by a guarded ship", () => {

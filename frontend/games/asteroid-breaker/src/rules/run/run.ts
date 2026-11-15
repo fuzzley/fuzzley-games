@@ -8,8 +8,8 @@ import type { Speed } from "../speed";
 
 /**
  * Says where a run stands: a wave waiting for the player's first move, under
- * way or paused, a wave cleared, or ended with no ship left. No run is won:
- * Endless goes on until the ships run out.
+ * way or paused, a wave cleared, or ended by a hit with no one in tow. No
+ * run is won: Endless goes on until a hit ends it.
  */
 export type Outcome = Exclude<RunStage, "won">;
 
@@ -137,8 +137,8 @@ export function resume(run: Run, field: Pick<Field, "steps">): Run {
  * stands: its points, its crew and the strays it brought home, then its
  * end, with no one left at the controls, or its clearing, banked once.
  *
- * So a run over stays over though a blast clears its wave after the last
- * ship is lost. A run whose field has nothing new is returned as it is, so
+ * So a run over stays over though a blast clears its wave after the hit
+ * that ended it. A run whose field has nothing new is returned as it is, so
  * the shell can tell a frame that changed it.
  */
 export function catchUp(run: Run, field: WaveProgress): Run {

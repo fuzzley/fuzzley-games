@@ -242,12 +242,12 @@ describe("BoardCardComponent", () => {
     detectChanges();
 
     expect(figures()).toEqual([
-      ["Rocks", "40"],
+      ["Rocks", "100"],
       ["Chains", "0"],
       ["Strays brought home", "0"],
       ["Wave cleared", "500"],
       ["No ship lost", "500"],
-      ["Total", "1,040"],
+      ["Total", "1,100"],
     ]);
   });
 
@@ -349,12 +349,12 @@ describe("BoardCardComponent", () => {
       detectChanges();
 
       expect(figures()).toEqual([
-        ["Rocks", "8"],
+        ["Rocks", "19"],
         ["Chains", "0"],
         ["Strays brought home", "0"],
         ["Wave cleared", "0"],
         ["No ship lost", "0"],
-        ["Total", "8"],
+        ["Total", "19"],
       ]);
     });
 
@@ -365,7 +365,7 @@ describe("BoardCardComponent", () => {
       playFor(game, TALLY_COUNT_MS, STILL);
       detectChanges();
 
-      expect(figure("Total")).toBe("1,040");
+      expect(figure("Total")).toBe("1,100");
     });
   });
 
@@ -394,7 +394,7 @@ describe("BoardCardComponent", () => {
     detectChanges();
 
     expect(screen.getByText("Lost on wave 1")).toBeInTheDocument();
-    expect(screen.getByText("Score 0")).toBeInTheDocument();
+    expect(screen.getByText("Score 60")).toBeInTheDocument();
   });
 
   it("starts a new game from the card over an ended run", async () => {

@@ -1,3 +1,4 @@
+import { shipOf } from "../../testing/field_picture";
 import {
   IN_ENDLESS,
   type Spoil,
@@ -9,7 +10,9 @@ import {
 } from "../../testing/run_under_way";
 import type { Field, PlayerSetup } from "../field/field";
 import { type SavedField, savedField } from "../field/kept_field";
+import { knockLastLoose } from "../hazards/loose";
 import { STILL } from "../ship/ship";
+import { STRAY_POINTS } from "../tuning";
 import { WAVES } from "../waves/waves";
 import { type Run, createRun } from "./run";
 import {
@@ -74,9 +77,13 @@ const CREW_SPOILS: readonly Spoil[] = [
   ["pilots in tow that aren't a list", { tow: 3 }],
   ["more aboard than a run can have", { pilot: 0, tow: [1, 2, 3, 4, 5, 6] }],
   ["a pilot of no color", { home: [8] }],
-  ["a pilot of no color in tow behind one of a color", { tow: [0, 8] }],
+  ["a pilot of no color in tow behind one of a color", { tow: [0, 1, 8] }],
   ["pilots at home that aren't a list", { home: 6 }],
-  ["more strays at home than the run brought home", { home: [6, 2, 1] }],
+  [
+    "more aboard and at home than its first crew and the strays it brought home",
+    { home: [6, 2] },
+  ],
+  ["one of its crew neither aboard nor at home", { home: [] }],
   ["a last color given that is none", { lastGiven: 8 }],
 ];
 
@@ -136,7 +143,12 @@ function strayHomeAt(score: number): Record<string, unknown> {
     ...saved,
     score,
     strays: 3,
-    field: { ...fieldIn(saved), straysSent: 1 },
+    home: [6, 7],
+    field: {
+      ...fieldIn(saved),
+      straysSent: 1,
+      strayPoints: STRAY_POINTS,
+    },
   };
 }
 
@@ -171,12 +183,25 @@ describe("saveGame", () => {
       banked: 500,
       score: 800,
       pilot: 3,
-      tow: [0],
+      tow: [0, 1, 5],
       home: [6],
       lastGiven: 6,
       straysBanked: 2,
       strays: 2,
     });
+  });
+
+  it("keeps the crew knocked loose as gone home, so the page going away gives none back", () => {
+    const run = runUnderWay();
+    const field = playedField(run);
+    knockLastLoose(field, shipOf(field));
+
+    const saved = storedOf({ ...run, crew: field.crew }, field);
+
+    expect([saved.tow, saved.home]).toEqual([
+      [0, 1],
+      [6, 5],
+    ]);
   });
 
   it("keeps the strays brought home and whether the run was tuned", () => {
@@ -225,6 +250,17 @@ describe("restoreGame", () => {
     const takenUp = restoreGame(stored(run), WAVES, 9);
 
     expect(takenUp?.run).toEqual({ ...run, id: 9, outcome: "paused" });
+  });
+
+  it("takes up a run kept with one knocked loose, gone home", () => {
+    const run = runUnderWay();
+    const field = playedField(run);
+    knockLastLoose(field, shipOf(field));
+
+    const saved = storedOf({ ...run, crew: field.crew }, field);
+    const takenUp = restoreGame(saved, WAVES, 9);
+
+    expect(takenUp?.run.crew).toMatchObject({ tow: [0, 1], home: [6, 5] });
   });
 
   it("takes up the field kept as it was", () => {
@@ -372,8 +408,8 @@ describe("readRun", () => {
     });
   });
 
-  it("reads a run with strays at home brought home on its wave in play", () => {
-    const value = tampered({ strays: 3, home: [6, 2, 1] });
+  it("reads a run with a stray brought home on its wave in play", () => {
+    const value = tampered({ strays: 3, home: [6, 2] });
 
     expect(readRun(value, WAVES, 9)).not.toBeNull();
   });
@@ -444,9 +480,9 @@ describe("hasSoundCrew", () => {
   });
 
   it("holds a crew of as many aboard as a run can have", () => {
-    const value = tampered({ pilot: 0, tow: [1, 2, 3, 4, 5] });
+    const value = tampered({ pilot: 0, tow: [1, 2, 3, 4, 5], home: [] });
 
-    expect(hasSoundCrew(value, STRAYS)).toBe(true);
+    expect(hasSoundCrew(value, 3)).toBe(true);
   });
 
   it.each(CREW_SPOILS)("fails a run of %s", (_, change) => {

@@ -15,6 +15,7 @@ import { type Torus, middleOf, wrap } from "../torus";
 import {
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
+  STRAY_HOME_POINTS,
   STRAY_POINTS,
   TOW_HOOK,
   TOW_LINK,
@@ -33,6 +34,7 @@ import {
   hasMoved,
   isKeptRock,
   isSoundRock,
+  isStrayPoints,
   layOutKeptField,
   readField,
   readTorus,
@@ -100,7 +102,9 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["chain points that aren't a count", { chainPoints: -1 }],
   ["rocks' points that aren't a count", { rockPoints: 0.5 }],
   ["no rocks' points", { rockPoints: undefined }],
-  ["ships lost that aren't a count", { shipsLost: -1 }],
+  ["strays' points that aren't a count", { strayPoints: 0.5 }],
+  ["no strays' points", { strayPoints: undefined }],
+  ["hits that aren't a count", { hits: -1 }],
 ];
 
 /** Steps a field kept may hold that a field kept never has, each failing `hasMoved()`. */
@@ -137,12 +141,27 @@ const RUN_FIT_SPOILS: readonly (readonly [
 ])[] = [
   [
     "a stray brought home that it never sent",
-    {},
+    { strayPoints: STRAY_POINTS },
     { points: 300 + STRAY_POINTS, straysHome: 1 },
   ],
   [
-    "fewer points than a stray brought home on it scores",
+    "no strays' points for a stray brought home on it",
     { straysSent: 1 },
+    { points: 300, straysHome: 1 },
+  ],
+  [
+    "strays' points that no stray brought home on it scores",
+    { strayPoints: STRAY_POINTS },
+    { points: 300 + STRAY_POINTS, straysHome: 0 },
+  ],
+  [
+    "strays' points the strays brought home on it don't add up to",
+    { straysSent: 2, strayPoints: STRAY_POINTS + 1 },
+    { points: 301 + STRAY_POINTS, straysHome: 2 },
+  ],
+  [
+    "more points from the strays than its wave has",
+    { straysSent: 1, strayPoints: STRAY_POINTS },
     { points: 300, straysHome: 1 },
   ],
   [
@@ -316,7 +335,8 @@ describe("savedField", () => {
       lastDropAt: field.lastDropAt,
       chainPoints: field.chainPoints,
       rockPoints: field.rockPoints,
-      shipsLost: field.shipsLost,
+      strayPoints: field.strayPoints,
+      hits: field.hits,
     });
   });
 
@@ -482,11 +502,18 @@ describe("fitsItsRun", () => {
     expect(fitsItsRun(kept(), SO_FAR)).toBe(true);
   });
 
-  it("fits a stray sent and brought home, its points scored", () => {
-    const soFar = { points: 300 + STRAY_POINTS, straysHome: 1 };
+  it.each([
+    ["into the line in tow", STRAY_POINTS],
+    ["straight home", STRAY_HOME_POINTS],
+  ])(
+    "fits a stray sent and brought home %s, its points scored",
+    (_, points) => {
+      const field = { ...kept(), straysSent: 1, strayPoints: points };
+      const soFar = { points: 300 + points, straysHome: 1 };
 
-    expect(fitsItsRun({ ...kept(), straysSent: 1 }, soFar)).toBe(true);
-  });
+      expect(fitsItsRun(field, soFar)).toBe(true);
+    },
+  );
 
   it.each([
     ["chain", { chainPoints: 300, rockPoints: 0 }],
@@ -497,6 +524,29 @@ describe("fitsItsRun", () => {
 
   it.each(RUN_FIT_SPOILS)("fails a field of %s", (_, change, soFar) => {
     expect(fitsItsRun({ ...kept(), ...change }, soFar)).toBe(false);
+  });
+});
+
+describe("isStrayPoints", () => {
+  it.each([
+    ["no points for no strays", 0, 0],
+    ["each stray's into the line in tow", 2 * STRAY_POINTS, 2],
+    ["each stray's straight home", 2 * STRAY_HOME_POINTS, 2],
+    [
+      "some strays' into the line and some straight home",
+      STRAY_POINTS + 2 * STRAY_HOME_POINTS,
+      3,
+    ],
+  ])("holds %s", (_, points, strays) => {
+    expect(isStrayPoints(points, strays)).toBe(true);
+  });
+
+  it.each([
+    ["points for no strays", STRAY_POINTS, 0],
+    ["fewer points than a stray's", STRAY_POINTS - 1, 1],
+    ["more points than the strays' straight home", 3 * STRAY_HOME_POINTS, 2],
+  ])("fails %s", (_, points, strays) => {
+    expect(isStrayPoints(points, strays)).toBe(false);
   });
 });
 
@@ -564,7 +614,8 @@ describe("layOutKeptField", () => {
       lastDropAt: 60,
       chainPoints: 80,
       rockPoints: 120,
-      shipsLost: 1,
+      strayPoints: STRAY_POINTS,
+      hits: 1,
     };
 
     const field = layOut(saved);

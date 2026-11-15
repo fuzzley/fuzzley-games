@@ -1,6 +1,6 @@
-// A wave in play: the ship, its shots, the rocks, the pickups, the strays
-// and the comets, stepped in place from records made once, as Brick
-// Breaker's field is.
+// A wave in play: the ship, its line in tow, its shots, the rocks, the
+// pickups, the strays, the crew knocked loose and the comets, stepped in
+// place from records made once, as Brick Breaker's field is.
 
 import type { RockKindId } from "../catalog/rocks";
 import type { WeaponId } from "../catalog/weapons";
@@ -14,8 +14,16 @@ import {
   createComets,
   scheduleFirstComet,
   stepComets,
-  touchesComet,
+  touchingComet,
 } from "../hazards/comets";
+import {
+  type Loose,
+  createLoose,
+  floatAllHome,
+  knockLastLoose,
+  stepLoose,
+  takeAllBack,
+} from "../hazards/loose";
 import {
   type StraySetup,
   type Strays,
@@ -34,7 +42,9 @@ import {
 } from "../rocks/pickups";
 import { type Crew, atControls, bailOut } from "../ship/pilots";
 import {
+  TUNED_TOWING,
   type TowLink,
+  type Towing,
   createTow,
   layTow,
   settleTow,
@@ -76,10 +86,15 @@ import {
 } from "../ship/shots";
 import { layOut, safestPlace } from "./spawn";
 import { SPEED_INFO, type Speed } from "../speed";
-import { stepsIn } from "../stepper";
-import { type Torus, across, distanceSquared, middleOf } from "../torus";
 import {
-  NEW_SHIP_MS,
+  type Place,
+  type Torus,
+  across,
+  distanceSquared,
+  middleOf,
+} from "../torus";
+import {
+  HIT_GUARD_MS,
   PICKUP_PULL_REACH,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
@@ -122,6 +137,8 @@ export interface WaveSetup extends WaveStart {
   readonly flight?: Flight;
   /** How its shots fly and fire: `tuning.ts`'s unless the debug menu tunes it. */
   readonly gunnery?: Gunnery;
+  /** How the crew ride in tow: `tuning.ts`'s unless given. */
+  readonly towing?: Towing;
   /**
    * How fast its rocks fly against their size's speed, which its layout
    * keeps clear of the ship at: 1 unless the debug menu tunes it.
@@ -140,7 +157,7 @@ export interface Field extends RockField {
   readonly setup: FieldSetup;
   /** The field's size, its setup's until a pause stretches it to another shape. */
   torus: Torus;
-  /** The ship in play, or null once it is lost, until the next comes. */
+  /** The ship in play, the one a run flies, or null once a hit with no one in tow ends the run. */
   ship: Ship | null;
   /**
    * A link for each of the most that ride in tow, the first nearest the
@@ -148,8 +165,8 @@ export interface Field extends RockField {
    * order.
    */
   readonly tow: readonly TowLink[];
-  /** The step the next ship in line comes at, or null while none is coming. */
-  shipDueAt: number | null;
+  /** How the crew ride in tow, as its setup gave it. */
+  towing: Towing;
   readonly shots: Shots;
   /** The weapon in hand. */
   weapon: WeaponId;
@@ -170,13 +187,16 @@ export interface Field extends RockField {
   /** How near the ship a pickup is drawn in to it from. */
   pullReach: number;
   /**
-   * Who is at the controls, in tow and at home, which the wave changes as it
-   * loses ships and brings strays home, for the run to take.
+   * Who is at the controls, in tow and gone home, which the wave changes as
+   * hits knock the crew loose and the ship catches them and strays, for the
+   * run to take.
    */
   crew: Crew;
-  /** How many ships it has lost. */
-  shipsLost: number;
+  /** How many hits the ship has taken, but those the Shield took. */
+  hits: number;
   readonly strays: Strays;
+  /** A slot for each of the crew that can be knocked loose at once, out on the field or not. */
+  readonly loose: readonly Loose[];
   readonly comets: Comets;
   /** Whether every rock it held is gone, after which everything stands still. */
   cleared: boolean;
@@ -188,8 +208,8 @@ export interface Field extends RockField {
  *
  * Its counts and its cap grow with the field's area, as `fillFor()` says,
  * and the speed sets its rocks' pace, its chance of a pickup, at most 1,
- * and how often its comets come. It flies as the setup's flight, gunnery
- * and rocks' speed say, its rocks laid out fairly for theirs.
+ * and how often its comets come. It flies as the setup's flight, gunnery,
+ * towing and rocks' speed say, its rocks laid out fairly for theirs.
  */
 export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   const { torus, seed, crew } = setup;
@@ -218,6 +238,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   );
   field.flight = setup.flight ?? TUNED_FLIGHT;
   field.gunnery = setup.gunnery ?? TUNED_GUNNERY;
+  field.towing = setup.towing ?? TUNED_TOWING;
   field.rockSpeed = setup.rockSpeed ?? 1;
   layOut(field, fill.rocks, wave.formation, middleOf(torus));
   return field;
@@ -241,7 +262,7 @@ export function createField(
     waveKind: setup.waveKind,
     ship: createShip(middle.x, middle.y, held),
     tow: createTow(),
-    shipDueAt: null,
+    towing: TUNED_TOWING,
     shots: createShots(),
     weapon: "gun",
     flight: TUNED_FLIGHT,
@@ -258,13 +279,15 @@ export function createField(
     shielded: false,
     pullReach: PICKUP_PULL_REACH,
     crew: setup.crew,
-    shipsLost: 0,
+    hits: 0,
     score: 0,
     chain: 0,
     lastBreakAt: 0,
     chainPoints: 0,
     rockPoints: 0,
+    strayPoints: 0,
     strays: createStrays(setup.strayFirstMs),
+    loose: createLoose(),
     comets: createComets(),
     cleared: false,
     events: new FieldEventLog(),
@@ -284,24 +307,19 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  * up end, the ship flies by the frame's steering, its line in tow following
  * it, and fires, its shots and the rocks fly, each shot meets the first
  * rock in its way, the comets fly, breaking what they meet, a rock or a
- * comet takes a ship it touches that isn't guarded, or spends its shield,
- * and the pickups and the stray float on, the ship catching those it
- * touches. Once no rock is left, the wave is cleared: its effects end, its
- * pickups, stray and comets go, and everything else stands still where it
- * is. A wave holds still from its
- * start until the player's first move, and a ship lost is followed a
- * second later by the next in line, waiting where it is safest.
+ * comet hits a ship it touches that isn't guarded, or spends its shield,
+ * and the pickups, the stray and the crew knocked loose float on, the ship
+ * catching those it touches. Once no rock is left, the wave is cleared:
+ * its effects end, its pickups, stray and comets go, the crew knocked loose
+ * come back, and everything else stands still where it is. A wave holds
+ * still from its start until the player's first move.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
- * the shot's, for its points; and the next ship comes as its step starts,
- * so a drawn rock is pulled toward it from that step.
+ * the shot's, for its points.
  */
 export function stepField(field: Field): void {
   if (field.cleared || holdStill(field)) return;
   field.steps += 1;
-  if (field.shipDueAt !== null && field.steps >= field.shipDueAt) {
-    bringShip(field);
-  }
   setOffBlasts(field);
   stepEffects(field);
   const { ship, steer, torus } = field;
@@ -323,6 +341,7 @@ export function stepField(field: Field): void {
   if (ship) meetDangers(field, ship);
   stepPickups(field);
   stepStrays(field);
+  stepLoose(field);
   if (rocksLeft(field) === 0) clear(field);
 }
 
@@ -350,14 +369,13 @@ function holdStill(field: Field): boolean {
 }
 
 /**
- * Brings the next ship in line to wait where it is safest, given what the
- * player holds as it comes, so a key held since the last was lost is no
- * move, with the line in tow straight out behind it.
+ * Brings the ship to wait where it is safest, as a run taken up does, given
+ * what the player holds as it comes, so a key held is no move, with the
+ * line in tow straight out behind it.
  */
 export function bringShip(field: Field): void {
   const { x, y } = safestPlace(field);
   field.ship = createShip(x, y, field.steer);
-  field.shipDueAt = null;
   layTow(field);
 }
 
@@ -388,30 +406,30 @@ function firstMet(field: Field, shot: Readonly<Shot>): Rock | null {
 
 /**
  * Lets the first whole rock or crossing comet to touch a ship that isn't
- * guarded take it, or, while it is shielded, spend the shield on it: a rock
- * breaks a size down, and a comet, which can't be broken, flies on. The
- * ship is kept untouchable a while after, so a rock's pieces can fly clear.
+ * guarded hit it, or, while it is shielded, spend the shield on it, before
+ * anyone in tow: a rock breaks a size down, and a comet, which can't be
+ * broken, flies on. The ship is kept untouchable a while after, so a rock's
+ * pieces can fly clear, and a hit ends the chain, the rock it breaks
+ * counted in it first.
  */
 function meetDangers(field: Field, ship: Ship): void {
   if (isGuarded(ship)) return;
   const rock = touchingRock(field, ship);
-  if (rock === null && !touchesComet(field, ship)) return;
-  if (!field.shielded) {
-    loseShip(field, ship);
+  const danger = rock ?? touchingComet(field, ship);
+  if (danger === null) return;
+  const { shielded } = field;
+  if (shielded) {
+    endEffect(field, "guard");
+    guardShip(ship, SHIELD_GUARD_MS);
+    field.events.add("shielded", ship.x, ship.y);
+  } else if (field.crew.tow.length > 0) {
+    knockOneLoose(field, ship, danger);
+  } else {
+    endRun(field, ship);
     return;
   }
-  const { torus } = field;
-  endEffect(field, "guard");
-  guardShip(ship, SHIELD_GUARD_MS);
-  field.events.add("shielded", ship.x, ship.y);
-  if (rock === null) return;
-  hitRock(
-    field,
-    rock,
-    across(ship.x, rock.x, torus.width),
-    across(ship.y, rock.y, torus.height),
-    "breaks",
-  );
+  if (rock) breakOnShip(field, ship, rock);
+  if (!shielded) endChain(field);
 }
 
 /** Returns the first whole rock that touches a ship, or null for none. */
@@ -426,19 +444,54 @@ function touchingRock(field: Field, ship: Readonly<Ship>): Rock | null {
 }
 
 /**
- * Loses the field's ship, which its shots in flight outlive, its pilot
- * bailing out, logged with the ships left, and the next in line taking the
- * controls, due to come a second later, and with it the chain, every
- * effect and the pickups floating.
+ * Takes a hit with someone in tow: the last in tow is knocked loose, logged
+ * at the ship with the way the blow came, and the ship is kept untouchable
+ * a while; the effects in play and the pickups floating stay.
  */
-function loseShip(field: Field, ship: Readonly<Ship>): void {
+function knockOneLoose(
+  field: Field,
+  ship: Ship,
+  danger: Readonly<Place>,
+): void {
+  const pilot = knockLastLoose(field, ship);
+  const { torus } = field;
+  field.hits += 1;
+  field.events.addKnocked(
+    ship.x,
+    ship.y,
+    pilot,
+    field.crew,
+    across(danger.x, ship.x, torus.width),
+    across(danger.y, ship.y, torus.height),
+  );
+  guardShip(ship, HIT_GUARD_MS);
+}
+
+/** Breaks a rock that hit the ship a size down, its pieces pushed away from the ship. */
+function breakOnShip(field: Field, ship: Readonly<Ship>, rock: Rock): void {
+  const { torus } = field;
+  hitRock(
+    field,
+    rock,
+    across(ship.x, rock.x, torus.width),
+    across(ship.y, rock.y, torus.height),
+    "breaks",
+  );
+}
+
+/**
+ * Ends the run with a hit with no one in tow: the ship bursts, which its
+ * shots in flight outlive, its pilot bailing out home, logged, the crew
+ * knocked loose floating home, and with it the chain, every effect and the
+ * pickups floating.
+ */
+function endRun(field: Field, ship: Readonly<Ship>): void {
   const pilot = atControls(field.crew);
   field.crew = bailOut(field.crew);
+  field.hits += 1;
   field.events.addPilot("lost", ship.x, ship.y, pilot, field.crew);
   field.ship = null;
-  field.shipDueAt =
-    field.crew.pilot === null ? null : field.steps + stepsIn(NEW_SHIP_MS);
-  field.shipsLost += 1;
+  floatAllHome(field);
   endChain(field);
   endEffects(field);
   clearPickups(field);
@@ -446,18 +499,18 @@ function loseShip(field: Field, ship: Readonly<Ship>): void {
 
 /**
  * Clears the wave, for its clearing's points, ending its effects, letting
- * its pickups, its stray and its comets go and bringing no next ship, and
- * sets where everything else moving was a step ago to where it is, so a
- * cleared field is drawn standing still.
+ * its pickups, its stray and its comets go, taking the crew knocked loose
+ * back, and sets where everything else moving was a step ago to where it
+ * is, so a cleared field is drawn standing still.
  */
 function clear(field: Field): void {
   field.cleared = true;
-  field.shipDueAt = null;
   scoreClearing(field);
   endEffects(field);
   clearPickups(field);
   clearStrays(field);
   clearComets(field);
+  takeAllBack(field);
   const { ship } = field;
   const middle = middleOf(field.torus);
   field.events.add("cleared", middle.x, middle.y);

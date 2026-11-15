@@ -1,5 +1,6 @@
 // The stray fuzzballs a wave sends across the field, one at a time, which
-// the ship brings home by touching.
+// the ship catches by touching: each joins the line in tow, or, with the
+// most in tow, goes straight home.
 
 import { RADIANS_PER_DEGREE } from "../angles";
 import type { PickupId } from "../catalog/pickups";
@@ -8,23 +9,26 @@ import { type ScoreField, scoreStray } from "../field/scoring";
 import {
   type Crew,
   type Pilot,
-  bringHome,
   given,
+  goHome,
   nextPilot,
 } from "../ship/pilots";
-import { type TowField, trailLink } from "../ship/tow";
+import { type LineField, hasRoomInTow, joinLine } from "../ship/tow";
 import { stepsIn } from "../stepper";
 import { type Place, moveAlong } from "../torus";
 import {
   PICKUP_PULL_SPEED,
   STEP_S,
   STRAY_CATCH_REACH,
+  STRAY_HOME_POINTS,
+  STRAY_POINTS,
   STRAY_NEXT_MS,
   STRAY_RADIUS,
   STRAY_SPEED,
   STRAY_TILT,
   STRAY_TURN,
 } from "../tuning";
+import { type Loose, loosePilots } from "./loose";
 import {
   type Crossing,
   type CrossingField,
@@ -60,20 +64,22 @@ export interface Strays {
   sent: number;
   /** The step the next comes at, while none is adrift and the wave has one left to send. */
   nextAt: number;
-  /** How many the ship has brought home. */
+  /** How many the ship has caught, each brought home, into the line or straight home. */
   broughtHome: number;
 }
 
 /**
- * Describes what the strays act on: the points a stray brought home scores,
- * the draws and the size it comes in by, its setup, which says how many
- * come, their records, the ship that brings them home, the crew and the
- * line in tow they join, and a Magnet's pull.
+ * Describes what the strays act on: the points a stray caught scores, the
+ * draws and the size it comes in by, its setup, which says how many come,
+ * their records, the ship that catches them, the crew and the line in tow
+ * they join, how many ride in tow at most, the crew knocked loose, whose
+ * colors a stray sent skips, and a Magnet's pull.
  */
-export interface StrayField extends ScoreField, CrossingField, TowField {
+export interface StrayField extends ScoreField, CrossingField, LineField {
   readonly setup: StraySetup;
   readonly strays: Strays;
   crew: Crew;
+  readonly loose: readonly Readonly<Loose>[];
   /** The effects in play, of which a Magnet draws a stray in. */
   readonly effects: { readonly pull: { readonly pickup: PickupId | null } };
   /** How near the ship a stray is drawn in to it from. */
@@ -96,8 +102,8 @@ export function createStrays(firstMs: number): Strays {
 /**
  * Moves the stray adrift on a step, or sends the next once it is due: one
  * within a Magnet's reach of the ship is drawn in toward it, any other
- * crosses on its curve until it has left the field, and the ship brings
- * home one that touches it, guarded or not.
+ * crosses on its curve until it has left the field, and the ship catches
+ * one that touches it, guarded or not.
  */
 export function stepStrays(field: StrayField): void {
   const { strays, ship, torus } = field;
@@ -119,7 +125,7 @@ export function stepStrays(field: StrayField): void {
     }
   }
   if (ship !== null && reaches(stray, ship, STRAY_CATCH_REACH, torus)) {
-    bringStrayHome(field);
+    catchStray(field);
   }
 }
 
@@ -129,14 +135,17 @@ export function clearStrays(field: Pick<StrayField, "strays">): void {
 }
 
 /**
- * Returns the step the next stray comes at once one has gone at a step, brought
- * home or off the field.
+ * Returns the step the next stray comes at once one has gone at a step,
+ * caught or off the field.
  */
 export function nextStrayAfter(step: number): number {
   return step + stepsIn(STRAY_NEXT_MS);
 }
 
-/** Sends a stray in off an edge, in the next color in turn, on a curve drawn to one side. */
+/**
+ * Sends a stray in off an edge, in the next color in turn that none of the
+ * crew aboard or knocked loose wears, on a curve drawn to one side.
+ */
 function sendStray(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
@@ -144,7 +153,7 @@ function sendStray(field: StrayField): void {
   const anticlockwise = nextDraw(field) < 0.5;
   stray.turn =
     (anticlockwise ? -1 : 1) * drawIn(field, STRAY_TURN) * RADIANS_PER_DEGREE;
-  stray.pilot = nextPilot(field.crew, null);
+  stray.pilot = nextPilot(field.crew, loosePilots(field));
   field.crew = given(field.crew, stray.pilot);
   strays.sent += 1;
   const at = edgeOf(stray, field.torus);
@@ -170,18 +179,24 @@ function pullIn(
 }
 
 /**
- * Brings the stray adrift home, for its points: it rides last in tow, laid
- * at the line's end, or waits at home with the most of the crew aboard.
+ * Catches the stray adrift, bringing it home: it joins the line in tow's
+ * end, laid there, for a stray's points, or, with the most in tow, goes
+ * straight home, for more.
  */
-function bringStrayHome(field: StrayField): void {
+function catchStray(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
+  const { x, y, pilot } = stray;
   strays.broughtHome += 1;
-  const inTow = field.crew.tow.length;
-  field.crew = bringHome(field.crew, stray.pilot);
-  if (field.crew.tow.length > inTow) trailLink(field, inTow);
-  field.events.addPilot("home", stray.x, stray.y, stray.pilot, field.crew);
-  scoreStray(field, stray.x, stray.y);
+  if (hasRoomInTow(field)) {
+    joinLine(field, pilot);
+    field.events.addPilot("joined", x, y, pilot, field.crew);
+    scoreStray(field, x, y, STRAY_POINTS);
+  } else {
+    field.crew = goHome(field.crew, pilot);
+    field.events.addPilot("home", x, y, pilot, field.crew);
+    scoreStray(field, x, y, STRAY_HOME_POINTS);
+  }
   strayGone(field);
 }
 

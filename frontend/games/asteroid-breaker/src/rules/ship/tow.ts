@@ -6,8 +6,30 @@
 
 import { type Moving, type Place, type Torus, across, wrap } from "../torus";
 import { MOST_CREW, TOW_HOOK, TOW_LINK } from "../tuning";
-import type { Crew } from "./pilots";
+import { type Crew, type Pilot, joinTow } from "./pilots";
 import type { Ship } from "./ship";
+
+/**
+ * Says how the crew ride in tow, a value the field holds, as it holds its
+ * flight, so it can change in play: how many at most, no more than the
+ * links the line is made with.
+ */
+export interface Towing {
+  /** The most that ride in tow; a stray caught past it goes straight home. */
+  readonly mostInTow: number;
+}
+
+/** How the crew ride in tow, as `tuning.ts` has it. */
+export const TUNED_TOWING: Readonly<Towing> = { mostInTow: MOST_CREW - 1 };
+
+/**
+ * Describes what of the field a pilot joining the line in tow changes: the
+ * line, the crew it joins, and how many may ride.
+ */
+export interface LineField extends TowField {
+  crew: Crew;
+  readonly towing: Readonly<Towing>;
+}
 
 /** Describes where one of the crew rides in tow, stepped in place. */
 export interface TowLink extends Moving {
@@ -71,6 +93,31 @@ export function trailLink(field: TowField, link: number): void {
   const backX = way > 0 ? wayX / way : -Math.cos(ship.angle);
   const backY = way > 0 ? wayY / way : -Math.sin(ship.angle);
   place(field, link, ahead.x + backX * TOW_LINK, ahead.y + backY * TOW_LINK);
+}
+
+/**
+ * Returns whether the line in tow has room for one more: fewer ride than
+ * the field's towing lets, and than the links it was made with.
+ */
+export function hasRoomInTow(
+  field: Pick<LineField, "tow" | "crew" | "towing">,
+): boolean {
+  const most = Math.min(field.towing.mostInTow, field.tow.length);
+  return field.crew.tow.length < most;
+}
+
+/**
+ * Has a pilot join the line in tow's end, laid a link behind the last, as a
+ * stray caught or one knocked loose caught again does.
+ *
+ * @throws {RangeError} For a line with no room, as {@link hasRoomInTow} says.
+ */
+export function joinLine(field: LineField, pilot: Pilot): void {
+  if (!hasRoomInTow(field)) {
+    throw new RangeError("The line in tow has no room for another.");
+  }
+  field.crew = joinTow(field.crew, pilot);
+  trailLink(field, field.crew.tow.length - 1);
 }
 
 /**

@@ -56,13 +56,14 @@ export interface FrameChange {
    */
   readonly countMs: number;
   /**
-   * How the phone buzzes for the frame: as it loses a ship, or else as it
-   * clears the wave; or null for neither.
+   * How the phone buzzes for the frame: as the ship takes a hit, knocking
+   * one of the crew loose or ending the run, or else as it clears the wave;
+   * or null for neither.
    *
-   * A loss outranks a clearing in the same frame, which buzzes for the loss
+   * A hit outranks a clearing in the same frame, which buzzes for the hit
    * alone, as a second buzz would cut the first short and the Cleared card
-   * shows the clearing. A clearing a frame or more after a loss buzzes all
-   * the same, and may cut the loss's buzz short.
+   * shows the clearing. A clearing a frame or more after a hit buzzes all
+   * the same, and may cut the hit's buzz short.
    */
   readonly buzz: Buzz | null;
 }
@@ -207,14 +208,15 @@ export class RunFrames {
 
   /**
    * Hears an event of the field, and gathers what to say of it, the strays
-   * brought home and the buzz of a ship lost. Made once, so hearing makes
-   * nothing.
+   * brought home, into the line or straight home, and the buzz of a hit.
+   * Made once, so hearing makes nothing.
    */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
-    if (event.kind === "home" && event.pilot !== null) {
-      this.cameHome.push(event.pilot);
+    const caught = event.kind === "joined" || event.kind === "home";
+    if (caught && event.pilot !== null) this.cameHome.push(event.pilot);
+    if (event.kind === "lost" || event.kind === "knocked") {
+      this.change.buzz = LOST_BUZZ;
     }
-    if (event.kind === "lost") this.change.buzz = LOST_BUZZ;
     const said = describeEvent(event);
     if (said !== null) this.said.push(said);
   };
@@ -223,7 +225,7 @@ export class RunFrames {
    * Takes the run the field brought it to and, as the run ends or the wave
    * is cleared, starts the wait before the card over it: a clearing is said
    * at once, with the wave it goes on to, its tally taken, and buzzes unless
-   * a ship was lost in the frame, and an end is said once the shell's
+   * the ship took a hit in the frame, and an end is said once the shell's
    * records say what it set. Each comes once, as no frame plays a field past
    * them.
    */

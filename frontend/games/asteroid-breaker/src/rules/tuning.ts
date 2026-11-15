@@ -71,9 +71,6 @@ export const DASH_RECHARGE_MS = 2500;
 /** The speed a dash adds along the ship's heading to what it flew at before, to its top speed. */
 export const DASH_CARRY = 4;
 
-/** How long after a ship is lost the next in line comes, to wait where it is safest. */
-export const NEW_SHIP_MS = 1000;
-
 /** How long a new ship stays untouchable once it first moves. */
 export const NEW_SHIP_GUARD_MS = 2000;
 
@@ -193,13 +190,25 @@ export const DROUGHT_MS = 25_000;
 /** How long the ship stays untouchable as its shield goes, so the pieces of the rock it broke can fly clear. */
 export const SHIELD_GUARD_MS = 1000;
 
+/** How long the ship stays untouchable once a hit knocks one of the crew loose. */
+export const HIT_GUARD_MS = 1500;
+
 /** How long the ship stays untouchable once a pause that stretched the field to a new shape ends. */
 export const STRETCH_GUARD_MS = 1000;
 
-/** How many of the crew a run starts with: the pilot at the controls and those in tow. */
+/**
+ * How many of the crew a run starts with: the pilot at the controls and those in tow.
+ *
+ * A run kept is held to it, its crew aboard and at home its first crew and
+ * the strays it caught, so a change to it raises `SAVED_GAME_VERSION`.
+ */
 export const FIRST_CREW = 3;
 
-/** The most of the crew aboard at once; a stray brought home past it waits at home. */
+/**
+ * The most of the crew aboard at once, the pilot and the rest in tow, and so
+ * the most links the line in tow is made with; a stray caught past it goes
+ * straight home.
+ */
 export const MOST_CREW = 6;
 
 /**
@@ -227,7 +236,7 @@ export const STRAY_FIRST_MS = 6000;
 /** How long after a stray has gone, brought home or off the field, the next comes. */
 export const STRAY_NEXT_MS = 8000;
 
-/** How fast a stray crosses the field. */
+/** How fast a stray crosses the field, and one of the crew knocked loose drifts once it slows. */
 export const STRAY_SPEED = 3.2;
 
 /**
@@ -237,8 +246,24 @@ export const STRAY_SPEED = 3.2;
  */
 export const STRAY_RADIUS = 1.15;
 
-/** How near the ship's middle a stray's is as the ship brings it home. */
+/** How near the ship's middle a stray's, or one knocked loose, is as the ship catches it. */
 export const STRAY_CATCH_REACH = 2;
+
+/** How fast one of the crew a hit knocks loose flies off from the ship, before it slows to a stray's drift. */
+export const LOOSE_SPEED = 6;
+
+/** How long the speed one knocked loose has beyond a stray's drift takes to halve. */
+export const LOOSE_SLOWING_MS = 300;
+
+/**
+ * How long one knocked loose takes to swell from a bubble in tow's size to
+ * a stray's, before which the ship can't catch it, so a ship flying on
+ * doesn't catch it again as it leaves.
+ */
+export const LOOSE_SWELL_MS = 500;
+
+/** How long after it is knocked loose one of the crew floats home, out of the run, unless the ship catches it. */
+export const LOOSE_LIFE_MS = 6000;
 
 /** How far off straight across the field a stray comes in, in degrees, toward its edge's middle. */
 export const STRAY_TILT = 20;
@@ -290,11 +315,14 @@ export const CHAIN = [
   { from: 5, times: 2 },
 ] as const satisfies readonly MultiplierTier[];
 
-/** The points a stray brought home scores, before the chain's multiplier. */
+/** The points a stray caught into the line in tow scores, before the chain's multiplier. */
 export const STRAY_POINTS = 500;
+
+/** The points a stray caught with the most in tow scores as it goes straight home, before the chain's multiplier. */
+export const STRAY_HOME_POINTS = 1000;
 
 /** The points a cleared wave adds. */
 export const CLEAR_POINTS = 500;
 
-/** The points a wave cleared without losing a ship adds besides. */
+/** The points a wave cleared without a hit taken adds besides. */
 export const CLEAN_POINTS = 500;

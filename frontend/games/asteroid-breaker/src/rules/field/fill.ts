@@ -32,7 +32,7 @@ export interface Fill {
 /**
  * Describes what of the field a stretch moves: its size, and every place on
  * it, the ship's, the line in tow's, the shots', the rocks', the pickups',
- * the stray's and the comets'.
+ * the stray's, the crew knocked loose's and the comets'.
  */
 export interface StretchField {
   torus: Torus;
@@ -42,6 +42,7 @@ export interface StretchField {
   readonly rocks: readonly Stretched[];
   readonly pickups: readonly Stretched[];
   readonly strays: { readonly adrift: Stretched };
+  readonly loose: readonly Stretched[];
   readonly comets: { readonly slots: readonly Stretched[] };
 }
 
@@ -114,6 +115,7 @@ export function stretchField(field: StretchField, torus: Torus): void {
     ...field.shots.slots,
     ...field.rocks,
     ...field.pickups,
+    ...field.loose,
   ];
   for (const place of wrapping) {
     stretch(place, from, torus);
