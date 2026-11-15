@@ -58,7 +58,7 @@ export interface BeltPalette {
   readonly accent: number;
   /** A pressed button's symbol: the color the palette sets on its accent. */
   readonly onAccent: number;
-  /** The ship's flame, its exhaust, a held hit's spark and a blast's ring: the warning color. */
+  /** The ship's flame, its exhaust, a held hit's spark and a blast's embers: the warning color. */
   readonly flame: number;
   /** The shots, the clearest thing on the field, and the points scored: the field's text. */
   readonly shot: number;

@@ -1,5 +1,5 @@
 import { easeOutCubic } from "@fz/core/math";
-import { strokesOf } from "@fz/phaser/testing";
+import { commandsOf, strokesOf } from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { NOSE } from "../rules/ship/shots";
@@ -56,6 +56,7 @@ async function startPlayer(): Promise<
   const { scene } = board;
   const player = new FlourishPlayer({
     debris: scene.kit.debris,
+    blasts: scene.kit.blasts,
     rings: scene.kit.rings,
     trail: scene.kit.trail,
     rocks: scene.kit.rocks,
@@ -117,6 +118,14 @@ function boulderBrokenFrom(
   );
   return eventOf((log) => {
     log.addBreak(boulder, 1, wayX, wayY);
+  });
+}
+
+/** Returns the blast of a medium volatile rock placed in the middle of a shell's field, reaching 4. */
+function blastFrom(shell: FakeShell): FieldEvent {
+  const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, "volatile");
+  return eventOf((log) => {
+    log.addRock("blast", rock, 4);
   });
 }
 
@@ -338,12 +347,11 @@ describe("FlourishPlayer", () => {
     expect(scene.kit.rocks.flashes[0].visible).toBe(true);
   });
 
-  it("sweeps a blast's ring out from where it went off, toward its reach, in the flame's color", async () => {
+  it("sweeps a spent Shield's ring out from where it was spent, toward its reach, in the accent", async () => {
     const { shell, scene, player } = await startPlayer();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
     const context = contextAt(shell, NOW + RING_MS / 2);
     const event = eventOf((log) => {
-      log.addRock("blast", rock, 6);
+      log.add("shielded", MIDDLE.x, MIDDLE.y);
     });
 
     player.play("ring", event, contextAt(shell, NOW));
@@ -355,8 +363,59 @@ describe("FlourishPlayer", () => {
     ).toEqual({
       ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
       radius: ringReachOf(event) * easeOutCubic(1 / 2) * context.metrics.unit,
-      color: ART_PALETTE.flame,
+      color: ART_PALETTE.accent,
     });
+  });
+
+  it("sets a blast off where its rock went off, lighting the rocks near it", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+
+    player.play("blast", blastFrom(shell), context);
+    scene.kit.blasts.draw(context);
+
+    const { light } = scene.kit.blasts;
+    const at = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y);
+    expect({
+      ring: commandsOf(scene.kit.blasts.graphics).length > 0,
+      lit: [light.visible, light.x, light.y],
+    }).toEqual({ ring: true, lit: [true, at.x, at.y] });
+  });
+
+  it("sets a blast off with no light within the gap after the field last flashed", async () => {
+    const { shell, scene, player } = await startPlayer();
+    player.play("flash", hitAt(shell, 20, 20), contextAt(shell, NOW));
+    const later = contextAt(shell, NOW + FLASH_GAP_MS - 1);
+
+    player.play("blast", blastFrom(shell), later);
+    scene.kit.blasts.draw(later);
+
+    expect(scene.kit.blasts.light.visible).toBe(false);
+  });
+
+  it("keeps the field's flashes apart after a blast, as after a held hit", async () => {
+    const { shell, scene, player } = await startPlayer();
+    player.play("blast", blastFrom(shell), contextAt(shell, NOW));
+    const later = contextAt(shell, NOW + FLASH_GAP_MS - 1);
+
+    player.play("flash", hitAt(shell, 20, 20), later);
+    scene.kit.rocks.draw(later);
+
+    expect(scene.kit.rocks.flashes[0].visible).toBe(false);
+  });
+
+  it("takes no turn of the field's flashes for a blast where motion isn't welcome", async () => {
+    const { shell, scene, player } = await startPlayer();
+    player.play("blast", blastFrom(shell), {
+      ...contextAt(shell, NOW),
+      motion: false,
+    });
+    const later = contextAt(shell, NOW + 1);
+
+    player.play("flash", hitAt(shell, 20, 20), later);
+    scene.kit.rocks.draw(later);
+
+    expect(scene.kit.rocks.flashes[0].visible).toBe(true);
   });
 
   it("shows the points an event scored where it scored them", async () => {

@@ -56,7 +56,7 @@ const EVENTS: readonly (readonly [
   ["warned", [], []],
   ["cleared", [], []],
   ["rung", ["flash", "spark"], []],
-  ["blast", ["ring"], []],
+  ["blast", ["blast"], ["blast"]],
   ["shed", [], []],
   ["vented", ["ring"], []],
   ["dropped", [], []],

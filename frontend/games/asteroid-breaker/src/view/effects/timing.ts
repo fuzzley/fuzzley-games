@@ -16,20 +16,27 @@ export const BURST_MS = 500;
 /** How many shards a lost pod bursts into. */
 export const BURST_SHARDS = 12;
 
+/** How long a blast lasts, from its flash to its last ember gone, in milliseconds, as long as its row in `plan.md`'s table. */
+export const BLAST_MS = 600;
+
+/** How long a blast's flash takes to fade, in milliseconds. */
+export const BLAST_FLASH_MS = 140;
+
+/** How long a blast's ring takes to sweep out to its reach, in milliseconds. */
+export const BLAST_RING_MS = 480;
+
 /** How long a rock that holds a hit flashes light. */
 export const FLASH_MS = 60;
 
 /**
  * How long after a flash the field flashes again at the soonest, so it
  * flashes under three times a second, as flashing is safe, however fast
- * the hits come; a hit held sooner sparks alone.
+ * the hits come: a hit held sooner sparks alone, and a blast sooner sweeps
+ * its ring and throws its embers, but neither flashes nor lights the rocks.
  */
 export const FLASH_GAP_MS = 340;
 
-/**
- * How long a blast's, a spent Shield's or a lost ship's ring takes to sweep
- * out to its reach and fade.
- */
+/** How long a spent Shield's or a lost ship's ring takes to sweep out to its reach and fade. */
 export const RING_MS = 300;
 
 /** How far the field kicks away from the shot as a large rock breaks, in CSS pixels. */

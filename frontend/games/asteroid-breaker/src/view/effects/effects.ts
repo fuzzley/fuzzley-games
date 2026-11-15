@@ -11,11 +11,13 @@ import { BOULDER_HOLD_MS } from "./timing";
 /**
  * Names a flourish the scene plays: the muzzle's flash as a shot leaves, a
  * broken rock's break (its shards, dust and sparks), the field's kick at a
- * large rock's break, a held hit's flash and spark, a blast's, a vent's, a
- * spent Shield's or a lost pod's ring, the points scored, a dash's trail, a lost
- * pod's burst, its pilot bailing out, and the field's shake at a boulder's
- * break. Each but the points moves, so plays only where motion is welcome;
- * the points show either way, rising only where it is.
+ * large rock's break, a held hit's flash and spark, a blast (its flash,
+ * ring, embers and light), a vent's, a spent Shield's or a lost pod's ring, the
+ * points scored, a dash's trail, a lost pod's burst, its pilot bailing
+ * out, and the field's shake at a boulder's break. Each but the points and
+ * a blast moves, so plays only where motion is welcome; the points show
+ * either way, rising only where it is, and a blast's ring stands still at
+ * its reach where it isn't.
  */
 export type Flourish =
   | "muzzle"
@@ -23,6 +25,7 @@ export type Flourish =
   | "kick"
   | "flash"
   | "spark"
+  | "blast"
   | "ring"
   | "points"
   | "trail"
@@ -88,7 +91,9 @@ const EVENT_EFFECTS: Readonly<
   warned: QUIET,
   cleared: QUIET,
   rung: moving(["flash", "spark"]),
-  blast: moving(["ring"]),
+  // A blast keeps one still ring at its reach, which tells the player how
+  // far it reached.
+  blast: { flourishes: ["blast"], still: ["blast"] },
   // A piece knocked off comes away under the flash and spark of the hit
   // its boulder holds, which the hit plays.
   shed: QUIET,
