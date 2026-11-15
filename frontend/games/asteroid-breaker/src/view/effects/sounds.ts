@@ -270,6 +270,37 @@ export function volumeOf(name: SoundName): number {
 }
 
 /**
+ * Says what of the game's sound the player wants, as the settings switch
+ * it: any at all, by the bar's Sound button, then each part of it.
+ */
+export interface SoundSwitches {
+  /** Whether the game plays any sound, as the bar's Sound button says; off, it mutes every part. */
+  readonly sound: boolean;
+  /** Whether the sprite's sounds but the fuzzball's calls play: the field's, the hums and the stingers. */
+  readonly effects: boolean;
+  /** Whether the fuzzball's calls play. */
+  readonly voice: boolean;
+  /** Whether the beds play under the waves. */
+  readonly bed: boolean;
+  /** Whether the two ears are summed into one, for one ear or one speaker. */
+  readonly mono: boolean;
+}
+
+/**
+ * Returns whether a sound of the sprite plays by the player's switches:
+ * none without the sound, then a call of the fuzzball's by the voice's and
+ * any other by the effects'.
+ */
+export function isSwitchedOn(
+  name: SoundName,
+  switches: SoundSwitches,
+): boolean {
+  const part =
+    SOUNDS[name].family === "voice" ? switches.voice : switches.effects;
+  return switches.sound && part;
+}
+
+/**
  * The ladder, in cents above `chain-ping` as recorded, for each of its
  * notes from the first: the sound kit's `CHAIN_CENTS` (`@fz/dev/synth`),
  * copied, as the game imports nothing of `@fz/dev`. It climbs the key,

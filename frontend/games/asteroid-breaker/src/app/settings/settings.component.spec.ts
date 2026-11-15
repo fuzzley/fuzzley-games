@@ -40,6 +40,20 @@ async function renderSettings({
   };
 }
 
+/** Each checkbox of the sound's switches, by its name, and the switch it turns. */
+const SOUND_BOXES = [
+  ["Play sounds", "sound"],
+  ["Play the effects", "effects"],
+  ["Play the fuzzball's voice", "voice"],
+  ["Play a bed under each sector", "bed"],
+  ["One speaker", "mono"],
+] as const;
+
+/** The boxes of the parts of the sound, each on until turned off. */
+const PARTS = SOUND_BOXES.filter(
+  ([, part]) => part === "effects" || part === "voice" || part === "bed",
+);
+
 describe("SettingsComponent", () => {
   it("stays shut until asked to open", async () => {
     await render(SettingsComponent, {
@@ -159,6 +173,67 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("checkbox", { name: "Play sounds" }));
 
     expect(store.settings().sound).toBe(false);
+  });
+
+  describe("the sound's parts", () => {
+    it("hold every switch of the sound in one group, Sound", async () => {
+      await renderSettings();
+
+      const group = screen.getByRole("group", { name: "Sound" });
+
+      expect(
+        SOUND_BOXES.map(([name]) =>
+          within(group).queryByRole("checkbox", { name }),
+        ),
+      ).not.toContain(null);
+    });
+
+    it.each(PARTS)("check %s until told otherwise", async (name) => {
+      await renderSettings();
+
+      expect(screen.getByRole("checkbox", { name })).toBeChecked();
+    });
+
+    it.each(PARTS)("turn %s off at its checkbox", async (name, part) => {
+      const { user, store } = await renderSettings();
+
+      await user.click(screen.getByRole("checkbox", { name }));
+
+      expect(store.settings()[part]).toBe(false);
+    });
+
+    it("play in two ears until told otherwise", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("checkbox", { name: "One speaker" }),
+      ).not.toBeChecked();
+    });
+
+    it("play in one ear at its checkbox", async () => {
+      const { user, store } = await renderSettings();
+
+      await user.click(screen.getByRole("checkbox", { name: "One speaker" }));
+
+      expect(store.settings().mono).toBe(true);
+    });
+
+    it.each(SOUND_BOXES)(
+      "show %s as its own switch says, the others as theirs",
+      async (_, part) => {
+        const { store } = await renderSettings();
+
+        store.update({ [part]: !store.settings()[part] });
+        TestBed.tick();
+
+        expect(
+          SOUND_BOXES.map(
+            ([name]) =>
+              screen.getByRole<HTMLInputElement>("checkbox", { name }).checked,
+          ),
+        ).toEqual(SOUND_BOXES.map(([, each]) => store.settings()[each]));
+      },
+    );
   });
 
   it("offers the palettes", async () => {

@@ -8,6 +8,7 @@ import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import type { Speed } from "../../rules/speed";
+import type { SoundSwitches } from "../../view/effects/sounds";
 import {
   TUNING_SLIDERS,
   type TuningNumber,
@@ -50,9 +51,10 @@ const DECK_CHOICES: readonly ChoiceOption<DeckShowing>[] = DECK_SHOWINGS.map(
 /**
  * Shows the settings in a drawer: the speed, when the deck shows, which side
  * holds its stick, whether the ship fires by itself, haptics, the sound and
- * the palette, and where `DEBUG_MENU` offers it the debug menu
- * (`<fz-debug-tuning>`), the numbers that set the feel, tuned on the field
- * in play: a slider for each, and whether shots carry the ship's speed.
+ * its switches, the effects, the voice, the bed and mono, and the palette,
+ * and where `DEBUG_MENU` offers it the debug menu (`<fz-debug-tuning>`),
+ * the numbers that set the feel, tuned on the field in play: a slider for
+ * each, and whether shots carry the ship's speed.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -139,9 +141,14 @@ export class SettingsComponent {
     this.store.update({ haptics });
   }
 
-  /** Turns the sound on or off, as its checkbox says. */
-  protected setSound(sound: boolean): void {
-    this.store.update({ sound });
+  /**
+   * Turns a switch of the sound on or off, as its checkbox says: the sound,
+   * the effects, the voice, the bed, or mono.
+   */
+  protected setSound(part: keyof SoundSwitches, on: boolean): void {
+    const change: Partial<Record<keyof SoundSwitches, boolean>> = {};
+    change[part] = on;
+    this.store.update(change);
   }
 
   /** Tunes a number, as its slider in the debug menu says. */

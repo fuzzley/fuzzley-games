@@ -18,7 +18,7 @@ import type { Pictures } from "../view/art/art";
 import { type PointsFont, letteringUnit } from "../view/art/points_art";
 import { bakedScale } from "../view/art/shapes";
 import { type BeltPalette, beltPalette } from "../view/colors/palette";
-import { SOUND_NAMES } from "../view/effects/sounds";
+import { SOUND_NAMES, type SoundSwitches } from "../view/effects/sounds";
 import {
   type BoardSetting,
   type FieldLayout,
@@ -90,7 +90,14 @@ export class FakeShell implements BeltSceneOptions {
   place: PlaceId = PLACE_IDS[0];
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
-  wantsSound = true;
+  /** What of the sound the player wants, as the settings would switch it: all of it but mono. */
+  switches: SoundSwitches = {
+    sound: true,
+    effects: true,
+    voice: true,
+    bed: true,
+    mono: false,
+  };
   /** Whether the ship thrusts while its wave plays on, as the game would say. */
   thrusts = false;
   /** Whether a lodestone is on the field while its wave plays on, as the game would say. */
@@ -144,7 +151,7 @@ export class FakeShell implements BeltSceneOptions {
   });
   readonly palette = (): BeltPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
-  readonly sound = (): boolean => this.wantsSound;
+  readonly sound = (): SoundSwitches => this.switches;
   readonly thrusting = (): boolean => this.thrusts;
   readonly lodestoneHums = (): boolean => this.lodestoneOn;
   readonly multiplier = (): number => this.times;

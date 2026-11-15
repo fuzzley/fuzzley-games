@@ -31,17 +31,20 @@ export function limitSound(manager: Sound.BaseSoundManager): void {
 /**
  * Sums a game's two ears into one, for one ear or one speaker, where a
  * sound panned away would be lost, or lets them be two again, where it
- * plays through Web Audio; where it plays otherwise, it does nothing.
+ * plays through Web Audio; where it plays otherwise, or its speakers say
+ * they take no channel, which none could be set to, it does nothing.
  */
 export function playMono(manager: Sound.BaseSoundManager, mono: boolean): void {
   if (!(manager instanceof Sound.WebAudioSoundManager)) return;
   const { destination } = manager.context;
+  if (destination.maxChannelCount < 1) return;
   // The speakers take what they are given in as many channels as they
   // count, mixing two down to one as Web Audio's "speakers" rules say; a
   // speaker of one channel counts no more.
-  destination.channelCount = mono
-    ? 1
-    : Math.min(2, destination.maxChannelCount);
+  const channels = mono ? 1 : Math.min(2, destination.maxChannelCount);
+  if (destination.channelCount !== channels) {
+    destination.channelCount = channels;
+  }
 }
 
 /**

@@ -27,10 +27,21 @@ class FakeCompressor extends FakeNode {
 
 /** Stands in for the speakers, as many channels as they count. */
 class FakeDestination extends FakeNode {
-  channelCount = 2;
+  /** How many times the channels were set. */
+  sets = 0;
+  private channels = 2;
 
   constructor(readonly maxChannelCount = 2) {
     super();
+  }
+
+  get channelCount(): number {
+    return this.channels;
+  }
+
+  set channelCount(count: number) {
+    this.sets += 1;
+    this.channels = count;
   }
 }
 
@@ -150,6 +161,25 @@ describe("playMono", () => {
     playMono(manager, false);
 
     expect(destination.channelCount).toBe(1);
+  });
+
+  it.each([true, false])(
+    "sets nothing, mono %s, where the speakers say they take no channel",
+    (mono) => {
+      const { manager, destination } = fakeWebAudio(0);
+
+      playMono(manager, mono);
+
+      expect(destination.sets).toBe(0);
+    },
+  );
+
+  it("sets nothing where the speakers already take the channels asked", () => {
+    const { manager, destination } = fakeWebAudio();
+
+    playMono(manager, false);
+
+    expect(destination.sets).toBe(0);
   });
 
   it("does nothing where the game plays no Web Audio", () => {

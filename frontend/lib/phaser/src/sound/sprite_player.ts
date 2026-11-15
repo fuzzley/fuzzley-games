@@ -152,6 +152,9 @@ export class SpritePlayer<Name extends string> {
   /** Whether the player wanted sound when last asked, or null before. */
   private wanted: boolean | null = null;
 
+  /** Whether the player wanted the ears summed when last asked, or null before. */
+  private mono: boolean | null = null;
+
   /** The sounds held, each looping until it is let go, by name. */
   private readonly heldSounds = new Map<Name, Sound.BaseSound>();
 
@@ -249,10 +252,13 @@ export class SpritePlayer<Name extends string> {
   /**
    * Sums the game's two ears into one, as the player wants for one ear or
    * one speaker, or lets them be two; every scene a host shows shares it.
-   * It does nothing where the game plays its sound other than through Web
-   * Audio.
+   * It changes the output only as the player's choice changes, so a scene
+   * may ask each frame, and does nothing where the game plays its sound
+   * other than through Web Audio.
    */
   followMono(mono: boolean): void {
+    if (mono === this.mono) return;
+    this.mono = mono;
     playMono(this.scene.sound, mono);
   }
 
