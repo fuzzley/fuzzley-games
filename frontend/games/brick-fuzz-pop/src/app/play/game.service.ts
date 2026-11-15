@@ -160,8 +160,6 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   private room = FIRST_SHAPE;
   private readonly shapeState = signal(FIRST_SHAPE);
-  /** Whether fast-forward is held, as the last frame's steering said. */
-  private readonly fastHeld = signal(false);
   private readonly metricsState = signal<FieldMetrics | null>(null);
   private readonly picturesState = signal<(() => Pictures) | null>(null);
   /** The aim the steering last gave, which the guide shows. */
@@ -297,14 +295,8 @@ export class GameService extends RunLifecycle implements KeptGame {
   /** Whether a flight is under way, paused or not. */
   readonly flying = computed(() => this.phase() === "flying");
 
-  /**
-   * Whether flights play fast: fast-forward switched on, as the settings
-   * keep it from flight to flight, or held on F while a flight is in the
-   * air.
-   */
-  readonly fast = computed(
-    () => this.settings().fastForward || (this.flying() && this.fastHeld()),
-  );
+  /** Whether fast-forward is on, every flight played fast, as the settings keep it from flight to flight. */
+  readonly fast = computed(() => this.settings().fastForward);
 
   /** Whether the player wants sound. */
   readonly soundOn = computed(() => this.settings().sound);
@@ -421,7 +413,6 @@ export class GameService extends RunLifecycle implements KeptGame {
    * the round on, taking what it came to into the run.
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
-    this.fastHeld.set(steer.fast);
     this.aimedAt = steer.aim;
     this.charged = steer.charge;
     if (steer.keyed) this.announcer.say(describeShot(steer, this.boon()));
@@ -551,14 +542,18 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Does what a key on the board asks: skips the flight, reads the wall's
-   * lowest rows, or pauses, goes on or starts a run as the keys every run
-   * shares ask.
+   * Does what a key on the board asks: skips the flight, switches
+   * fast-forward on or off and says which, reads the wall's lowest rows, or
+   * pauses, goes on or starts a run as the keys every run shares ask.
    */
   fieldCommand(command: FieldCommand): void {
     switch (command) {
       case "skip":
         this.skip();
+        return;
+      case "fast":
+        this.fastForward();
+        this.announcer.say(fastForwardWords(this.fast()));
         return;
       case "read":
         this.announcer.say(describeRows(this.start()));
@@ -928,6 +923,14 @@ export class GameService extends RunLifecycle implements KeptGame {
     this.runState.set(newRunState(run, start));
     this.began();
   }
+}
+
+/**
+ * Returns what is said as F switches fast-forward on or off, which the bar's
+ * button says for a press by being pressed or not.
+ */
+function fastForwardWords(on: boolean): string {
+  return on ? "Fast-forward on." : "Fast-forward off.";
 }
 
 /** Returns whether two shapes of field are alike in every measure. */

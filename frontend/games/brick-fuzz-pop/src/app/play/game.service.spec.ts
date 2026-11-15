@@ -601,44 +601,20 @@ describe("GameService", () => {
       expect(placeOf(fast)).toEqual(placeOf(slow));
     });
 
-    it("plays the flight four times as fast while fast-forward is held", () => {
-      const slow = gameOf("step");
-      release(slow);
-      slow.tick(400, STILL);
-      afresh();
-      const fast = gameOf("step");
-      release(fast);
-
-      fast.tick(100, { ...STILL, fast: true });
-
-      expect(placeOf(fast)).toEqual(placeOf(slow));
-    });
-
-    it("plays fast while fast-forward is held", () => {
-      const game = gameOf("step");
-      release(game);
-
-      game.tick(FRAME_MS, { ...STILL, fast: true });
-
-      expect(game.fast()).toBe(true);
-    });
-
-    it("plays fast no more once fast-forward is let go", () => {
-      const game = gameOf("step");
-      release(game);
-      game.tick(FRAME_MS, { ...STILL, fast: true });
-
-      game.tick(FRAME_MS, STILL);
-
-      expect(game.fast()).toBe(false);
-    });
-
     it("switches fast-forward on while aiming", () => {
       const game = gameOf("step");
 
       game.fastForward();
 
       expect(game.fast()).toBe(true);
+    });
+
+    it("says nothing as the bar switches fast-forward, its button showing it", () => {
+      const game = gameOf("step");
+
+      game.fastForward();
+
+      expect(said()).toBe("");
     });
 
     it("switches fast-forward off at the next press", () => {
@@ -1627,6 +1603,24 @@ describe("GameService", () => {
 
       expect(said()).toBe(describeRows(game.start()));
     });
+
+    it.each([
+      ["on", false, true, "Fast-forward on."],
+      ["off", true, false, "Fast-forward off."],
+    ])(
+      "switches fast-forward %s at its key, and says so",
+      (_, before, after, words) => {
+        const game = gameOf("step");
+        TestBed.inject(SettingsService).update({ fastForward: before });
+
+        game.fieldCommand("fast");
+
+        expect({ fast: game.fast(), said: said() }).toEqual({
+          fast: after,
+          said: words,
+        });
+      },
+    );
 
     it("skips the flight at its key", () => {
       const game = gameOf("step");

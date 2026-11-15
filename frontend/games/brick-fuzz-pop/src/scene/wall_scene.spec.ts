@@ -843,7 +843,6 @@ describe("WallScene", () => {
         aim: STRAIGHT_UP,
         charge: 0,
         release: false,
-        fast: false,
         keyed: false,
       });
     });
@@ -2275,6 +2274,7 @@ describe("WallScene", () => {
     it.each<[string, string, FieldCommand]>([
       ["KeyP", "p", "toggle"],
       ["KeyX", "x", "skip"],
+      ["KeyF", "f", "fast"],
       ["KeyR", "r", "read"],
       ["NumpadEnter", "Enter", "go"],
     ])("ask what %s asks of the game", async (code, key, command) => {
@@ -2484,21 +2484,6 @@ describe("WallScene", () => {
       }).toEqual({ charge: 0, commands: [] });
     });
 
-    it("hands the shell fast-forward while F is held, until it is let go", async () => {
-      const { shell, run } = await startBoard();
-      run.key("keydown", "KeyF", "f");
-      run.advance(16);
-      const held = shell.steers.at(-1)?.fast;
-
-      run.key("keyup", "KeyF", "f");
-      run.advance(16);
-
-      expect({ held, let: shell.steers.at(-1)?.fast }).toEqual({
-        held: true,
-        let: false,
-      });
-    });
-
     it("follows two fingers, so a second press can call the shot off", async () => {
       const { scene } = await startBoard();
 
@@ -2682,12 +2667,11 @@ describe("WallScene", () => {
       }).toEqual({ pulled: 2, charge: 0, flown: false });
     });
 
-    it("lets go of every key and the press as the player looks away", async () => {
+    it("calls the press off as the player looks away", async () => {
       const { shell, run } = await startBoard((each) => {
         each.waiting = 4.5;
       });
       const at = toCanvas(metricsAt(), 4.5, 6);
-      run.key("keydown", "KeyF", "f");
       run.pointer("down", at.x, at.y);
       run.advance(600);
 
@@ -2697,10 +2681,9 @@ describe("WallScene", () => {
       run.advance(16);
 
       expect({
-        fast: shell.steers.at(-1)?.fast,
         charge: shell.steers.at(-1)?.charge,
         flown: shell.steers.some((steer) => steer.release),
-      }).toEqual({ fast: false, charge: 0, flown: false });
+      }).toEqual({ charge: 0, flown: false });
     });
 
     it("hands the steering how the mouse and fingers aim as the settings change", async () => {

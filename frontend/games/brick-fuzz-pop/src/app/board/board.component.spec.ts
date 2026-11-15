@@ -1300,6 +1300,17 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("paused");
     });
 
+    it("switches fast-forward at the left index finger's home key, and says so", async () => {
+      const { game, run } = await runBoardScene();
+
+      run.key("keydown", "KeyF", "f");
+
+      expect({
+        fast: game.fast(),
+        said: TestBed.inject(AnnouncerService).message(),
+      }).toEqual({ fast: true, said: "Fast-forward on." });
+    });
+
     it("reads the wall's lowest rows at the key above the left index finger's home key", async () => {
       const { game, run } = await runBoardScene();
 
@@ -1428,20 +1439,18 @@ describe("BoardComponent", () => {
       expect(game.phase()).toBe("aiming");
     });
 
-    it("lets go of a key held down on it as the focus leaves it", async () => {
+    it("calls a press on it off as the focus leaves it, so letting go flies nothing", async () => {
       const { board, game, run } = await runBoardScene();
-      release(game);
       board.focus();
-      run.key("keydown", "KeyF", "f");
+      run.pointer("down", 195, 300);
       run.advance(FRAME_MS);
 
       screen.getByRole("button", { name: "Elsewhere" }).focus();
       run.advance(FRAME_MS);
+      run.pointer("up", 195, 300);
+      run.advance(FRAME_MS);
 
-      expect({ flying: game.flying(), fast: game.fast() }).toEqual({
-        flying: true,
-        fast: false,
-      });
+      expect(game.phase()).toBe("aiming");
     });
 
     describe("as the scene bakes its atlas again", () => {

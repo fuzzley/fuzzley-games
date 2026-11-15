@@ -88,7 +88,6 @@ export const STILL: Readonly<Steer> = {
   aim: STRAIGHT_UP,
   charge: 0,
   release: false,
-  fast: false,
   keyed: false,
 };
 

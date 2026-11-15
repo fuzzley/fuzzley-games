@@ -8,7 +8,6 @@ import {
   canvasChanged,
   onFirstFrame,
   onKeyDown,
-  onKeyUp,
   onPlayerAway,
   picturesWhenAsked,
   retakeFrames,
@@ -68,7 +67,6 @@ const UNSTEERED: Readonly<Steer> = {
   aim: STRAIGHT_UP,
   charge: 0,
   release: false,
-  fast: false,
   keyed: false,
 };
 
@@ -568,17 +566,14 @@ export class WallScene extends Scene {
   /**
    * Hands the keys, the mouse, its wheel and the fingers to the steering, a
    * pointer let go past the canvas too, turns the keys it doesn't take into
-   * commands, and lets go of every key and finger as the player looks
-   * away, so none sticks and no charge builds on.
+   * commands, and calls the shot off as the player looks away, so no press
+   * sticks and no charge builds on.
    */
   private listen(): void {
     const { steering } = this;
     this.input.keyboard?.addCapture(CAPTURED_KEYS);
     onKeyDown(this, (event) => {
       this.press(event);
-    });
-    onKeyUp(this, (event) => {
-      steering.keyUp(event.code);
     });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
       steering.pointerDown(pointer);
@@ -598,7 +593,7 @@ export class WallScene extends Scene {
       },
     );
     onPlayerAway(this, () => {
-      steering.letGo();
+      steering.callOff();
     });
   }
 

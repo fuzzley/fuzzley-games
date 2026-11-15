@@ -1,4 +1,3 @@
-import { HeldKeys } from "@fz/core/keys";
 import { clamp } from "@fz/core/math";
 import type { Viewport } from "@fz/phaser/layout";
 import type { Aim, Charge } from "../../rules/shot";
@@ -12,7 +11,7 @@ import {
 } from "../../rules/tuning";
 import { type FieldMetrics, type Place, toField } from "../field/field_metrics";
 import { type PointerAiming, STRAIGHT_UP } from "./aiming";
-import { type SteerKey, commandOfKey, heldKeyOf, steerKeyOf } from "./controls";
+import { type SteerKey, commandOfKey, steerKeyOf } from "./controls";
 
 /**
  * How far a pull back runs before it aims or charges, in field units; a
@@ -95,8 +94,6 @@ export interface Steer {
   charge: Charge;
   /** Whether the shot was let fly this frame, at the aim and the charge. */
   release: boolean;
-  /** Whether fast-forward is held. */
-  fast: boolean;
   /**
    * Whether the keys turned the aim or changed the charge this frame,
    * Escape calling a charge off among them, which the announcer says.
@@ -139,8 +136,7 @@ function chargeOf(notches: number): Charge {
 
 /**
  * Turns the player's keys, mouse and fingers into the shot being aimed, a
- * frame at a time: the aim, the charge, the shot let fly, and fast-forward
- * held.
+ * frame at a time: the aim, the charge and the shot let fly.
  *
  * The mouse and fingers aim the way the settings choose
  * ({@link PointerAiming}). Pointed, the aim follows the pointer, a finger's
@@ -157,13 +153,11 @@ function chargeOf(notches: number): Charge {
  *
  * The scene reads it every frame, follows {@link MOST_FINGERS}, hands a
  * pointer let go past the canvas to {@link pointerUp}, and calls
- * {@link letGo} as the player looks away. A charge may build, and a shot be
+ * {@link callOff} as the player looks away. A charge may build, and a shot be
  * let fly, at any time: the round reads a shot let fly only while it aims,
  * and a charge built meanwhile waits for the next shot.
  */
 export class Steering {
-  /** The keys held: fast-forward, F. */
-  private readonly keys = new HeldKeys(heldKeyOf);
   /** How the mouse and fingers aim from their next press on. */
   private aiming: PointerAiming = "pointAndHold";
   private aim: Aim = STRAIGHT_UP;
@@ -198,7 +192,6 @@ export class Steering {
     aim: STRAIGHT_UP,
     charge: 0,
     release: false,
-    fast: false,
     keyed: false,
   };
 
@@ -226,18 +219,14 @@ export class Steering {
   /**
    * Takes a key pressed, and returns whether the steering took it, so the
    * scene asks nothing more of it: a key that turns the aim, changes the
-   * charge or lets the shot fly, a held key, and the key that pauses while
-   * a charge builds, a flight's included, which calls it off instead and
-   * has the frame say so, as a key that changes the charge does.
+   * charge or lets the shot fly, and the key that pauses while a charge
+   * builds, a flight's included, which calls it off instead and has the
+   * frame say so, as a key that changes the charge does.
    */
   keyDown(press: KeyPress): boolean {
     const key = steerKeyOf(press.code);
     if (key !== null) {
       this.steerBy(key, press);
-      return true;
-    }
-    if (heldKeyOf(press.code) !== null) {
-      this.keys.press(press.code);
       return true;
     }
     if (commandOfKey(press.code) === "pause" && this.isBuilding()) {
@@ -246,11 +235,6 @@ export class Steering {
       return true;
     }
     return false;
-  }
-
-  /** Takes a key let go, by `event.code`. */
-  keyUp(code: string): void {
-    this.keys.release(code);
   }
 
   /**
@@ -325,19 +309,14 @@ export class Steering {
 
   /**
    * Calls the shot being made off: the pointer pressed is let go of without
-   * flying, as a lost one is, and the charge drops to none.
+   * flying, as a lost one is or as the player looks away, so no press
+   * sticks, and the charge drops to none.
    */
   callOff(): void {
     this.pressed = null;
     this.armed = false;
     this.heldMs = 0;
     this.charge = 0;
-  }
-
-  /** Forgets every key held and calls the shot off, as the player looks away, so none sticks. */
-  letGo(): void {
-    this.keys.letGo();
-    this.callOff();
   }
 
   /**
@@ -365,7 +344,6 @@ export class Steering {
     steer.release = this.released;
     steer.aim = this.released ? this.releasedAim : this.aim;
     steer.charge = this.released ? this.releasedCharge : this.charge;
-    steer.fast = this.keys.isHeld("fast");
     steer.keyed = this.keyed;
     this.released = false;
     this.keyed = false;

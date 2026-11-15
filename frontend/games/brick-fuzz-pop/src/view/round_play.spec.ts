@@ -448,14 +448,14 @@ describe("RoundPlay, aiming", () => {
 });
 
 describe("RoundPlay's flight", () => {
-  it.each<[FlightSpeed, boolean, number]>([
-    ["normal", false, 14],
-    ["fast", false, 22],
-    ["normal", true, 56],
-    ["fast", true, 88],
+  it.each<[FlightSpeed, string, boolean, number]>([
+    ["normal", "off", false, 14],
+    ["fast", "off", false, 22],
+    ["normal", "on", true, 56],
+    ["fast", "on", true, 88],
   ])(
-    "flies at %s, fast-forward held %s, %i units a second",
-    (speed, fast, unitsPerSecond) => {
+    "flies at %s, fast-forward %s, %i units a second",
+    (speed, _, fast, unitsPerSecond) => {
       const play = playing(bored);
 
       playMs(play, 100, options({ speed, fast }));
