@@ -8,7 +8,6 @@ import {
   waveSetupOf,
 } from "../../testing/run_under_way";
 import { type RockKindId, rockKind } from "../catalog/rocks";
-import { nextStrayAfter } from "../hazards/strays";
 import { ROCK_OUTLINES, rocksLeft } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
 import { type Torus, middleOf, wrap } from "../torus";
@@ -17,6 +16,7 @@ import {
   FIELD_SHORT_SIDE,
   STATIC_MOST,
   STRAY_HOME_POINTS,
+  STRAY_NEXT_MS,
   STRAY_POINTS,
   TOW_HOOK,
   TOW_LINK,
@@ -166,6 +166,11 @@ const RUN_FIT_SPOILS: readonly (readonly [
     "a stray brought home that it never sent",
     { strayPoints: STRAY_POINTS },
     { points: 300 + STRAY_POINTS, straysHome: 1 },
+  ],
+  [
+    "a stray brought home beside its lifeline, which was all it sent",
+    { lifelineSent: true, strayPoints: 2 * STRAY_POINTS },
+    { points: 300 + 2 * STRAY_POINTS, straysHome: 2 },
   ],
   [
     "no strays' points for a stray brought home on it",
@@ -354,6 +359,7 @@ describe("savedField", () => {
       steps: STEPS,
       draws: field.draws,
       straysSent: field.strays.sent,
+      lifelineSent: field.strays.lifelineSent,
       nextStrayAt: field.strays.nextAt,
       nextCometAt: field.comets.nextAt,
       lastDropAt: field.lastDropAt,
@@ -388,11 +394,25 @@ describe("savedField", () => {
 
   it("counts a stray adrift as gone, the next coming as long after as it would", () => {
     const field = playedField(runUnderWay());
+    field.strays.sent = 1;
     field.strays.adrift.live = true;
 
     const saved = savedField(field);
 
-    expect(saved.nextStrayAt).toBe(nextStrayAfter(STEPS));
+    expect(saved.nextStrayAt).toBe(STEPS + stepsIn(STRAY_NEXT_MS));
+  });
+
+  it("counts a lifeline adrift as sent and gone, the wave's first still at its time", () => {
+    const field = playedField(runUnderWay());
+    field.strays.lifelineSent = true;
+    field.strays.adrift.live = true;
+
+    const saved = savedField(field);
+
+    expect([saved.lifelineSent, saved.nextStrayAt]).toEqual([
+      true,
+      field.strays.nextAt,
+    ]);
   });
 });
 
@@ -444,6 +464,13 @@ describe("readField", () => {
     ["a word of it that isn't yes or no", "yes"],
   ])("drops a field with %s", (_, hadMore) => {
     expect(read(keptWith({ hadMore }))).toBeNull();
+  });
+
+  it.each([
+    ["no word of whether its wave has thrown its pilot a lifeline", undefined],
+    ["a word of it that isn't yes or no", 1],
+  ])("drops a field with %s", (_, lifelineSent) => {
+    expect(read(keptWith({ lifelineSent }))).toBeNull();
   });
 
   it.each([
@@ -579,6 +606,18 @@ describe("fitsItsRun", () => {
     },
   );
 
+  it("fits a lifeline brought home as a stray the wave sent", () => {
+    const field = {
+      ...kept(),
+      straysSent: 0,
+      lifelineSent: true,
+      strayPoints: STRAY_POINTS,
+    };
+    const soFar = { points: 300 + STRAY_POINTS, straysHome: 1 };
+
+    expect(fitsItsRun(field, soFar)).toBe(true);
+  });
+
   it.each([
     ["static", { staticPoints: 300, rockPoints: 0 }],
     ["sparks", { sparkPoints: 300, rockPoints: 0 }],
@@ -674,6 +713,7 @@ describe("layOutKeptField", () => {
       ...kept(),
       draws: 9,
       straysSent: 1,
+      lifelineSent: !kept().lifelineSent,
       nextStrayAt: 600,
       nextCometAt: 900,
       lastDropAt: 60,

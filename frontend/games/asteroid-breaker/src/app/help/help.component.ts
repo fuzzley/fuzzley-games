@@ -49,7 +49,7 @@ const PICKUPS_INTRO =
   "A broken rock may let a pickup go. Fly into it to catch it before it fades; a crystal always lets one go.";
 
 /** What How to play says of strays and the comet before listing them. */
-const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays drift in from wave ${String(STRAYS_FROM)}; comets come in the later waves.`;
+const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays drift in from wave ${String(STRAYS_FROM)}, and a pilot left with no one in tow, and no one to catch again, is sent one at once, once a wave; comets come in the later waves.`;
 
 /** What How to play says of a stray and the comet, with no catalog of their own. */
 const ADRIFT = {

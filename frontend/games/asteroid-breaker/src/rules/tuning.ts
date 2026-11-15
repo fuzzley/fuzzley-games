@@ -250,11 +250,11 @@ export const TOW_LINK = 1.6;
 export const STRAYS_FROM = 3;
 
 /**
- * How far into a wave on a field of 40 by 40 its first stray comes, so a
- * wave cleared quickly on a phone still meets one; later on a larger field,
- * by its area.
+ * How far into a wave's play its first stray comes, on a field of any
+ * shape, so it comes within the wave's first 5 seconds of play, while it
+ * can still matter.
  */
-export const STRAY_FIRST_MS = 6000;
+export const STRAY_FIRST_MS = 4000;
 
 /** How long after a stray has gone, brought home or off the field, the next comes. */
 export const STRAY_NEXT_MS = 8000;

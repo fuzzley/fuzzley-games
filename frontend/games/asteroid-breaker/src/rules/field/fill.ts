@@ -1,9 +1,8 @@
 // A wave's counts are written for a field of 40 by 40, and a field of
 // another shape holds more of everything by its area: its rocks, the cap
 // on them, its last few rocks, the pickups floating at once and the
-// strays, the first of which comes later by it, as its wave lasts longer;
-// comets come more often by the square root of it, as each crosses a
-// longer field.
+// strays; comets come more often by the square root of it, as each
+// crosses a longer field.
 
 import { type Torus, across, wrap } from "../torus";
 import {
@@ -11,7 +10,6 @@ import {
   LAST_FEW,
   PICKUPS_AT_ONCE,
   ROCK_CAP,
-  STRAY_FIRST_MS,
   type Span,
 } from "../tuning";
 import type { Wave, WaveRocks } from "../waves/waves";
@@ -27,8 +25,6 @@ export interface Fill {
   /** How many pickups may float before chance lets no more go. */
   readonly pickupsAtOnce: number;
   readonly strays: number;
-  /** How far into the wave its first stray comes, in milliseconds. */
-  readonly strayFirstMs: number;
   /** The time from one comet to the next, in milliseconds, or null for a wave without comets. */
   readonly cometEvery: Span | null;
 }
@@ -88,7 +84,6 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
     lastFew: lastFewOn(torus),
     pickupsAtOnce: grown(PICKUPS_AT_ONCE, share),
     strays: grown(wave.strays, share),
-    strayFirstMs: STRAY_FIRST_MS * share,
     cometEvery: every && {
       least: every.least / sooner,
       most: every.most / sooner,

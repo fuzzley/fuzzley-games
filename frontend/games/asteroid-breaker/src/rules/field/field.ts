@@ -109,6 +109,7 @@ import {
   PICKUP_PULL_REACH,
   SHIELD_GUARD_MS,
   SHIP_HIT_RADIUS,
+  STRAY_FIRST_MS,
   STRETCH_GUARD_MS,
 } from "../tuning";
 import type { Wave } from "../waves/waves";
@@ -262,7 +263,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       pool: wave.pool,
       pickupsAtOnce: fill.pickupsAtOnce,
       strays: fill.strays,
-      strayFirstMs: fill.strayFirstMs,
+      strayFirstMs: STRAY_FIRST_MS,
       cometEvery: every && {
         least: every.least / cometRate,
         most: every.most / cometRate,

@@ -114,9 +114,9 @@ export interface AutopilotReport {
   readonly knocked: number;
   /** The crew knocked loose that floated home, out of the run, while the run went on. */
   readonly floated: number;
-  /** The strays the wave sent across the field. */
+  /** The strays the wave sent across the field, a lone pilot's lifeline not among them. */
   readonly straysSent: number;
-  /** The strays it brought home. */
+  /** The strays it brought home, a lifeline among them. */
   readonly straysHome: number;
   /** The pickups it caught. */
   readonly caught: number;

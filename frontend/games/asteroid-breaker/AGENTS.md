@@ -222,10 +222,14 @@ takes for the specs' helpers.
 - **`src/rules/hazards/`** — what crosses the field once, from an edge,
   without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
   which the ship catches by touching (`stepStrays()`), into the line in tow
-  or, with it full, straight home, and `comets.ts` the comets, warned of at
-  their edge, which break the rocks they meet a size down and hit a ship
-  (`stepComets()`, `touchingComet()`); each says what a wave sends of it
-  (`StraySetup`, `CometSetup`). `loose.ts` holds the crew knocked loose, a
+  or, with it full, straight home: a wave's first 4 seconds into its play
+  on any field (`STRAY_FIRST_MS`), and a lifeline to a pilot left with no
+  one in tow and none knocked loose to catch again, one more sent at once,
+  once a wave (`lifelineSent`), which leaves the wave's first at its time.
+  `comets.ts` sends the comets, warned of at their edge, which break the
+  rocks they meet a size down and hit a ship (`stepComets()`,
+  `touchingComet()`); each says what a wave sends of it (`StraySetup`,
+  `CometSetup`). `loose.ts` holds the crew knocked loose, a
   slot made once for each that can be (`createLoose()`): one a hit knocks
   out of the line flies off away from the ship (`knockLastLoose()`),
   slowing to a stray's drift and wrapping, drawn in by a Magnet, until the
@@ -1294,10 +1298,11 @@ can't trust rather than failing:
   wave started, and whether it was flown on tuned numbers; and its field's
   size as laid out and as it is now, its rocks, whole or with a blast to go
   off, the counts its draws, strays, comets and points run by, the
-  pilot's static, and whether its wave has held more rocks than its last
-  few. A wave not yet moved is kept as not yet begun, a wave
-  just cleared as the next not yet begun, and a stray adrift, the comets,
-  the pickups, the sparks, the shots and the effects in play go. It is
+  pilot's static, whether its wave has thrown its pilot a lifeline, and
+  whether it has held more rocks than its last few. A wave not yet moved
+  is kept as not yet begun, a wave just cleared as the next not yet
+  begun, and a stray adrift, the comets, the pickups, the sparks, the
+  shots and the effects in play go. It is
   written as a wave starts, as its crew changes, as it pauses or goes on,
   and as the page is hidden or goes away, never at a step, forgotten once
   the run ends or another begins, and taken up paused at startup, fitted to

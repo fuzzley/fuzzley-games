@@ -71,7 +71,9 @@ Its block in a sector's file, its keys those of `WaveData`
 - `pace`, the rocks' speed against their own, rising through a sector;
   `drops`, the chance a broken rock lets a pickup go, if not its sector's;
   `pickups`, the pool, if not every pickup whose wave has come; `strays`,
-  if not one from wave 3; `comets`, `{ "every": [least, most] }` in
+  if not one from wave 3, the first 4 seconds into its play on any field
+  (a pilot left with no one in tow, and none knocked loose to catch again,
+  is thrown one more at once, once a wave, whatever the wave says); `comets`, `{ "every": [least, most] }` in
   seconds, for a wave that has them; `waveKind`, the rock its boulders
   break into, if not stone.
 

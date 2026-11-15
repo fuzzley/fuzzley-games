@@ -88,8 +88,8 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
 /**
  * The wave in play's field as storage keeps it: the size it was laid out
  * at and its size now, its rocks, the counts its draws, strays, comets and
- * points run by, the pilot's static, and whether its wave has held more
- * rocks than its last few.
+ * points run by, the pilot's static, whether its wave has thrown its pilot
+ * a lifeline and whether it has held more rocks than its last few.
  *
  * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
  * the comets on their way, the pickups, the sparks, the shots and the
@@ -107,8 +107,10 @@ export interface SavedField {
   readonly rocks: readonly SavedRock[];
   readonly steps: number;
   readonly draws: number;
-  /** How many strays the wave has sent. */
+  /** How many strays the wave has sent, as its setup says, its lifeline not among them. */
   readonly straysSent: number;
+  /** Whether the wave has thrown its pilot a lifeline, a stray sent at once to a pilot with no one in tow. */
+  readonly lifelineSent: boolean;
   /** The step the next stray comes at. */
   readonly nextStrayAt: number;
   /** The step the next comet's warning starts at. */
@@ -199,8 +201,9 @@ export function savedField(field: SavableField): SavedField {
     steps: field.steps,
     draws: field.draws,
     straysSent: strays.sent,
+    lifelineSent: strays.lifelineSent,
     nextStrayAt: strays.adrift.live
-      ? nextStrayAfter(field.steps)
+      ? nextStrayAfter(strays, field.steps)
       : strays.nextAt,
     nextCometAt: field.comets.nextAt,
     lastDropAt: field.lastDropAt,
@@ -219,9 +222,9 @@ export function savedField(field: SavableField): SavedField {
  * Returns a wave's field as storage kept it, or null if it can't be
  * trusted: a count that isn't one, a size no board lays a field out at, a
  * rock that can't be trusted, a pickup let go or a spark gathered after its
- * last step, static past its most, a `hadMore` that isn't true or false,
- * or a field that hasn't moved, doesn't fit its wave or doesn't agree with
- * what its run has scored on it.
+ * last step, static past its most, a `lifelineSent` or `hadMore` that
+ * isn't true or false, or a field that hasn't moved, doesn't fit its wave
+ * or doesn't agree with what its run has scored on it.
  */
 export function readField(
   value: unknown,
@@ -232,12 +235,13 @@ export function readField(
   const laidOut = readTorus(value["laidOut"]);
   const torus = readTorus(value["torus"]);
   const kept = value["rocks"];
-  const { charge, hadMore } = value;
+  const { charge, lifelineSent, hadMore } = value;
   if (
     !laidOut ||
     !torus ||
     !hasKeptCounts(value) ||
     !isStatic(charge) ||
+    typeof lifelineSent !== "boolean" ||
     typeof hadMore !== "boolean"
   ) {
     return null;
@@ -251,6 +255,7 @@ export function readField(
     rocks,
     ...pick(value, KEPT_COUNTS),
     charge,
+    lifelineSent,
     hadMore,
   };
   const sound =
@@ -323,21 +328,27 @@ export function fitsItsWave(
 
 /**
  * Returns whether a field kept agrees with what its run has scored on its
- * wave: no more strays brought home than it has sent, the strays' own
- * points what those strays score, each joining the line or going straight
- * home, and its points, the rocks', the sparks', static's and the strays',
- * adding up to the wave's.
+ * wave: no more strays brought home than it has sent, its lifeline among
+ * them, the strays' own points what those strays score, each joining the
+ * line or going straight home, and its points, the rocks', the sparks',
+ * static's and the strays', adding up to the wave's.
  */
 export function fitsItsRun(
   field: Pick<
     SavedField,
-    "straysSent" | "staticPoints" | "rockPoints" | "sparkPoints" | "strayPoints"
+    | "straysSent"
+    | "lifelineSent"
+    | "staticPoints"
+    | "rockPoints"
+    | "sparkPoints"
+    | "strayPoints"
   >,
   { points, straysHome }: WaveSoFar,
 ): boolean {
   const { staticPoints, rockPoints, sparkPoints, strayPoints } = field;
+  const sent = field.straysSent + (field.lifelineSent ? 1 : 0);
   return (
-    straysHome <= field.straysSent &&
+    straysHome <= sent &&
     isStrayPoints(strayPoints, straysHome) &&
     rockPoints + sparkPoints + staticPoints + strayPoints === points
   );
@@ -425,6 +436,7 @@ export function layOutKeptField(
   field.steps = saved.steps;
   field.draws = saved.draws;
   field.strays.sent = saved.straysSent;
+  field.strays.lifelineSent = saved.lifelineSent;
   field.strays.nextAt = saved.nextStrayAt;
   field.strays.broughtHome = soFar.straysHome;
   field.comets.nextAt = saved.nextCometAt;

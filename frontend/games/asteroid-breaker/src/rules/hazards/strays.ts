@@ -1,6 +1,8 @@
 // The stray fuzzballs a wave sends across the field, one at a time, which
 // the ship catches by touching: each joins the line in tow, or, with the
-// most in tow, goes straight home.
+// most in tow, goes straight home. A pilot left with no one in tow, and
+// none knocked loose to catch again, is thrown one at once, once a wave,
+// beyond those the wave sends.
 
 import { RADIANS_PER_DEGREE } from "../angles";
 import type { PickupId } from "../catalog/pickups";
@@ -60,8 +62,14 @@ export interface Stray extends Crossing {
 export interface Strays {
   /** The record of the stray adrift, one at a time. */
   readonly adrift: Stray;
-  /** How many the wave has sent. */
+  /** How many the wave has sent, as its setup says, its lifeline not among them. */
   sent: number;
+  /**
+   * Whether the wave has thrown its pilot a lifeline: a stray sent at once
+   * to a pilot with no one in tow, none knocked loose to catch again and no
+   * stray adrift, as it is once a wave.
+   */
+  lifelineSent: boolean;
   /** The step the next comes at, while none is adrift and the wave has one left to send. */
   nextAt: number;
   /** How many the ship has caught, each brought home, into the line or straight home. */
@@ -89,29 +97,37 @@ export interface StrayField extends ScoreField, CrossingField, LineField {
 }
 
 /**
- * Returns a wave's strays, none adrift and none sent, the first due a time into
- * it, in milliseconds.
+ * Returns a wave's strays, none adrift, none sent and no lifeline, the first
+ * due a time into it, in milliseconds.
  */
 export function createStrays(firstMs: number): Strays {
   return {
     adrift: { ...blankCrossing(), pilot: 0, turn: 0 },
     sent: 0,
+    lifelineSent: false,
     nextAt: stepsIn(firstMs),
     broughtHome: 0,
   };
 }
 
 /**
- * Moves the stray adrift on a step, or sends the next once it is due: one
- * within a Magnet's reach of the ship is drawn in toward it, any other
- * crosses on its curve until it has left the field, and the ship catches
- * one that touches it, guarded or not.
+ * Moves the stray adrift on a step, or sends the next: a lifeline at once
+ * to a pilot alone, once a wave, or the wave's next once it is due. One within a Magnet's reach of the ship is drawn in toward it,
+ * any other crosses on its curve until it has left the field, and the
+ * ship catches one that touches it, guarded or not.
  */
 export function stepStrays(field: StrayField): void {
   const { strays, ship, torus } = field;
   const stray = strays.adrift;
   if (!stray.live) {
-    if (strays.sent < field.setup.strays && field.steps >= strays.nextAt) {
+    if (!strays.lifelineSent && isAlone(field)) {
+      strays.lifelineSent = true;
+      sendStray(field);
+    } else if (
+      strays.sent < field.setup.strays &&
+      field.steps >= strays.nextAt
+    ) {
+      strays.sent += 1;
       sendStray(field);
     }
     return;
@@ -137,11 +153,15 @@ export function clearStrays(field: Pick<StrayField, "strays">): void {
 }
 
 /**
- * Returns the step the next stray comes at once one has gone at a step,
- * caught or off the field.
+ * Returns the step a wave's next stray comes at once one has gone at a
+ * step, caught or off the field: {@link STRAY_NEXT_MS} after, but for the
+ * wave's first, which a lifeline crossing before it leaves at its time.
  */
-export function nextStrayAfter(step: number): number {
-  return step + stepsIn(STRAY_NEXT_MS);
+export function nextStrayAfter(
+  strays: Readonly<Pick<Strays, "sent" | "nextAt">>,
+  step: number,
+): number {
+  return strays.sent === 0 ? strays.nextAt : step + stepsIn(STRAY_NEXT_MS);
 }
 
 /**
@@ -149,17 +169,29 @@ export function nextStrayAfter(step: number): number {
  * crew aboard or knocked loose wears, on a curve drawn to one side.
  */
 function sendStray(field: StrayField): void {
-  const { strays } = field;
-  const stray = strays.adrift;
+  const stray = field.strays.adrift;
   comeIn(field, stray, STRAY_RADIUS, STRAY_TILT);
   const anticlockwise = nextDraw(field) < 0.5;
   stray.turn =
     (anticlockwise ? -1 : 1) * drawIn(field, STRAY_TURN) * RADIANS_PER_DEGREE;
   stray.pilot = nextPilot(field.crew, loosePilots(field));
   field.crew = given(field.crew, stray.pilot);
-  strays.sent += 1;
   const at = edgeOf(stray, field.torus);
   field.events.addPilot("strayed", at.x, at.y, stray.pilot, field.crew);
+}
+
+/**
+ * Returns whether the pilot flies alone, the run not over: no one in tow,
+ * and none knocked loose left to catch again.
+ */
+function isAlone(field: StrayField): boolean {
+  const { ship, crew } = field;
+  return (
+    ship !== null &&
+    crew.pilot !== null &&
+    crew.tow.length === 0 &&
+    loosePilots(field).length === 0
+  );
 }
 
 /**
@@ -202,8 +234,9 @@ function catchStray(field: StrayField): void {
   strayGone(field);
 }
 
-/** Ends the stray adrift's crossing, the next due a while after. */
+/** Ends the stray adrift's crossing, the next due a while after, or the wave's first at its time. */
 function strayGone(field: Pick<StrayField, "strays" | "steps">): void {
-  field.strays.adrift.live = false;
-  field.strays.nextAt = nextStrayAfter(field.steps);
+  const { strays } = field;
+  strays.adrift.live = false;
+  strays.nextAt = nextStrayAfter(strays, field.steps);
 }

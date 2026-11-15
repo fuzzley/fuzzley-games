@@ -114,6 +114,18 @@ describe("HelpComponent", () => {
     ).toBeVisible();
   });
 
+  it("says a pilot left with no one in tow is sent a stray", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(
+      within(
+        screen.getByRole("region", { name: "Strays and comets" }),
+      ).getByText(
+        /a pilot left with no one in tow, and no one to catch again, is sent one at once/,
+      ),
+    ).toBeVisible();
+  });
+
   it("says what an iron rock does", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 

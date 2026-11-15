@@ -37,6 +37,8 @@ import { across, distance } from "../torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
+  FIELD_LONGEST_SIDE,
+  FIELD_SHORT_SIDE,
   HIT_GUARD_MS,
   LOOSE_SWELL_MS,
   PICKUP_PULL_REACH,
@@ -336,7 +338,7 @@ describe("fieldFor", () => {
       pool: wave.pool,
       pickupsAtOnce: 4,
       strays: 2,
-      strayFirstMs: STRAY_FIRST_MS * share,
+      strayFirstMs: STRAY_FIRST_MS,
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
       crew: START.crew,
       charge: 12,
@@ -439,6 +441,41 @@ describe("fieldFor", () => {
       untuned.map((velocity) => velocity.map((v) => v * 2)),
     );
   });
+
+  it.each([
+    [
+      "the narrowest field",
+      { width: FIELD_SHORT_SIDE, height: FIELD_SHORT_SIDE },
+    ],
+    [
+      "the widest field on its side",
+      { width: FIELD_LONGEST_SIDE, height: FIELD_SHORT_SIDE },
+    ],
+    [
+      "the widest field upright",
+      { width: FIELD_SHORT_SIDE, height: FIELD_LONGEST_SIDE },
+    ],
+  ])(
+    "brings a wave's first stray onto %s within the first 5 seconds of play",
+    (_, torus) => {
+      const field = fieldFor(waveOf(), { ...START, torus });
+      stepBy(field, THRUST);
+
+      stepBy(field, STILL, stepsIn(5000) - 1);
+
+      const { adrift, sent, broughtHome } = field.strays;
+      const onField =
+        adrift.live &&
+        adrift.x >= 0 &&
+        adrift.x < torus.width &&
+        adrift.y >= 0 &&
+        adrift.y < torus.height;
+      expect({ sent, there: onField || broughtHome > 0 }).toEqual({
+        sent: 1,
+        there: true,
+      });
+    },
+  );
 });
 
 describe("createField", () => {
