@@ -821,8 +821,10 @@ What the specs share is in `src/testing/`:
 - `random_flights.ts` draws seeded flights at random walls
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may
-  (`clearanceProblemsOf()`), on which `flight.spec.ts` holds `fly()` to
-  every flight's checks.
+  (`clearanceProblemsOf()`), and where a flight dropped at a moment strays
+  from the whole flight to it (`dropProblemsOf()`), on which
+  `flight.spec.ts` holds `fly()` to every flight's checks, whole and
+  dropped.
 - `flights.ts` flies a shot at a wall drawn as a picture by the bricks' own
   rules (`flyPicture()`), picks a flight's events of a kind (`eventsOf()`),
   and matches a value as near as the flight's arithmetic finds it

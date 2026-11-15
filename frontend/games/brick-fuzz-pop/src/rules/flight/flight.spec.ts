@@ -7,6 +7,7 @@ import {
 import { eventsOf, near } from "../../testing/flights";
 import {
   clearanceProblemsOf,
+  dropProblemsOf,
   randomFlight,
 } from "../../testing/random_flights";
 import {
@@ -225,6 +226,20 @@ describe("fly", () => {
     expect(eventsOf(flown, "yawn").map(({ at }) => at)).toEqual([
       lastHit + 7.5,
     ]);
+  });
+
+  // Bored at 0.7, straight up, the player's fuzzball yawns as its mate
+  // leaves.
+  it("yawns in its turn by fuzzball among the events of its moment", () => {
+    const wall = wallOf(3, ["....#...."]);
+
+    const flown = flyShot({ wall, aim: UP, mates: 1, bored: 0.7 });
+
+    expect(
+      flown.flight.events
+        .filter(({ at }) => at === 0.7)
+        .map(({ kind }) => kind),
+    ).toEqual(["yawn", "launch"]);
   });
 
   // Aimed at an inside corner, it meets the face above 3e-10 before the face
@@ -1406,6 +1421,47 @@ describe("fly, on random walls", () => {
           ...clearanceProblemsOf(flight, wall, start.depth, rules.kinds),
           ...(flight.capped > 0 ? [`${flight.capped} capped`] : []),
         ];
+      });
+
+      expect(problems).toEqual([]);
+    },
+  );
+});
+
+describe("fly, dropped on random walls", () => {
+  // The seeded random walls' flights, every other one bored after 1 to 16
+  // units, so a fuzzball is often on its way home at the drop, each dropped
+  // at a moment drawn in it and at the moment of one of its events, drawn
+  // too, so a drop often falls with a launch, a turn, a split or a zap:
+  // 1,000 flights in four batches, each flown three times.
+  it.each([20261115, 20261116, 20261117, 20261118])(
+    "is the whole flight to the drop, each fuzzball in the air dropping then and none leaving after, in order and clear of the bricks (seed %i)",
+    (seed) => {
+      const random = createRandom(seed);
+      const flights = Array.from({ length: 250 }, () => randomFlight(random));
+
+      const problems = flights.flatMap(({ start, rules: drawn }, index) => {
+        const bored = 1 + random() * 15;
+        const rules =
+          index % 2 === 0
+            ? drawn
+            : { ...drawn, bored, mostIdle: bored * IDLE_SHARE };
+        const whole = fly(start, rules);
+        const { events, length } = whole.flight;
+        const moments = [
+          random() * length,
+          events[Math.floor(random() * events.length)]?.at ?? 0,
+        ];
+        return moments.flatMap((at) => {
+          const dropped = fly(start, rules, { stop: "drop", at });
+          const { flight, wall } = dropped;
+          return [
+            ...dropProblemsOf(whole, dropped, at),
+            ...orderProblemsOf(flight.events),
+            ...trackProblemsOf(flight),
+            ...clearanceProblemsOf(flight, wall, start.depth, rules.kinds),
+          ].map((problem) => `Flight ${index}, dropped at ${at}: ${problem}`);
+        });
       });
 
       expect(problems).toEqual([]);

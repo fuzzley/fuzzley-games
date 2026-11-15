@@ -130,7 +130,18 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   `flight_fixtures.ts`'s `orderProblemsOf()` and `trackProblemsOf()` find
   where a flight's events leave the order and the paths
   `src/rules/flight/events.ts` describes. `src/rules/flight/flight.spec.ts`
-  holds `fly()` to all three over its seeded random flights.
+  holds `fly()` to all three over its seeded random flights, and each
+  flight dropped at a moment drawn in it and at one of its events', every
+  other one bored soon, to them and to `random_flights.ts`'s
+  `dropProblemsOf()`, which finds where a dropped flight strays from the
+  whole flight to its drop: an event up to the drop's moment not the whole
+  flight's, a fuzzball in the air then not dropping where it was, a landing
+  not straight down from its drop, or not the whole flight's for a fuzzball
+  already on its way home, a zap set off by then not landing as the whole
+  flight lands it, anything else after the drops but what those zaps
+  break, free and set off after the moment, more fuzzballs capped, or a
+  wall that keeps a brick its events break, lost one they don't, or keeps
+  fewer hits than the whole flight's.
   `cast_reference.ts` casts by a scan of every brick (`castByScan()`), on
   seeded walls and shots (`randomField()`, `randomShot()`), which `cast()`
   is held to.

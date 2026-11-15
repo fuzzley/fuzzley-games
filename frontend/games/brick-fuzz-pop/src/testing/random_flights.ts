@@ -1,12 +1,18 @@
 // Seeded random flights, for the specs that hold fly() to what every flight
-// keeps, and the check that a flight's fuzzballs keep clear of the bricks
-// they fly past.
+// keeps, the check that a flight's fuzzballs keep clear of the bricks they
+// fly past, and the check that a flight dropped is the whole flight to the
+// drop.
 
 import type { Box } from "@fz/core/sweep";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
-import type { Flight } from "../rules/flight/events";
-import type { FlightRules, FlightStart } from "../rules/flight/flight";
+import {
+  type Flight,
+  type FlightEvent,
+  type Waypoint,
+  positionAt,
+} from "../rules/flight/events";
+import type { FlightRules, FlightStart, Flown } from "../rules/flight/flight";
 import type { TraitRules } from "../rules/flight/hooks";
 import { brickBox, columnOf, fieldRowOf, shapeOf } from "../rules/grid";
 import { RULES, flightRulesOf } from "../rules/round/round";
@@ -18,9 +24,11 @@ import {
   RADIUS,
   SIDE_MARGIN,
   TRIPLE_MATES,
+  ZAP_DELAY,
 } from "../rules/tuning";
 import type { Wall } from "../rules/wall/wall";
 import { randomField } from "./cast_reference";
+import { eventsOf } from "./flights";
 import { PRISM, STAND_INS, STAND_IN_RULES } from "./stand_ins";
 
 /** Describes a flight drawn at random: how its fuzzballs leave, and the rules it is flown by. */
@@ -247,4 +255,200 @@ function pointDistance(x: number, y: number, a: Place, b: Place): number {
       ? 0
       : Math.min(1, Math.max(0, ((x - a.x) * dx + (y - a.y) * dy) / length));
   return Math.hypot(a.x + dx * t - x, a.y + dy * t - y);
+}
+
+/**
+ * Returns where a flight dropped at a moment strays from the whole flight of
+ * the same start, a sentence for each.
+ *
+ * Up to the moment, it is the whole flight, event for event. Then each
+ * fuzzball in the air drops where it was then, and nothing follows but each
+ * fuzzball's landing, straight down from its drop or as the whole flight
+ * lands one already on its way home, the zaps the whole flight set off by
+ * then, as it lands them, and what they break and free after the moment,
+ * the zaps those breaks set off among it. It counts no more fuzzballs
+ * capped than the whole flight, and its wall has lost the bricks its own
+ * events break and no others, each keeping at least the hits the whole
+ * flight leaves it, as a drop only takes away.
+ */
+export function dropProblemsOf(
+  whole: Flown,
+  dropped: Flown,
+  at: number,
+): string[] {
+  const problems: string[] = [];
+  const kept = whole.flight.events.filter((event) => event.at <= at);
+  const { events } = dropped.flight;
+  for (const [index, event] of kept.entries()) {
+    if (JSON.stringify(events[index]) !== JSON.stringify(event)) {
+      problems.push(
+        `The whole flight's event ${index}, a ${event.kind} at ${event.at}, isn't the dropped flight's.`,
+      );
+    }
+  }
+  const pending = zapsSetOffBy(whole, at);
+  const homing = homingAfter(kept);
+  const drops = new Map<number, Waypoint>();
+  // The moment each brick broken after the drop's moment sets off its zap.
+  const setOff = new Map<number, number>();
+  for (const [offset, event] of events.slice(kept.length).entries()) {
+    const named = `The dropped flight's event ${kept.length + offset}, a ${event.kind} at ${event.at},`;
+    switch (event.kind) {
+      case "drop": {
+        drops.set(event.ball, event);
+        const track = whole.flight.tracks[event.ball];
+        const was = track === undefined ? null : positionAt(track, at);
+        if (
+          event.at !== at ||
+          was === null ||
+          Math.abs(was.x - event.x) > NEAR ||
+          Math.abs(was.y - event.y) > NEAR
+        ) {
+          problems.push(`${named} isn't where its fuzzball was at ${at}.`);
+        }
+        break;
+      }
+      case "land": {
+        const drop = drops.get(event.ball);
+        const down =
+          drop !== undefined
+            ? { at: drop.at + drop.y - RADIUS, x: drop.x }
+            : homing.has(event.ball)
+              ? eventsOf(whole, "land").find(({ ball }) => ball === event.ball)
+              : undefined;
+        if (
+          down === undefined ||
+          Math.abs(down.at - event.at) > NEAR ||
+          Math.abs(down.x - event.x) > NEAR
+        ) {
+          problems.push(
+            `${named} isn't where and when its fuzzball comes down.`,
+          );
+        }
+        break;
+      }
+      case "zap": {
+        const index = pending.findIndex(
+          (zap) =>
+            zap.at === event.at &&
+            zap.cell === event.cell &&
+            zap.pattern === event.pattern,
+        );
+        if (index >= 0) {
+          pending.splice(index, 1);
+        } else if (setOff.get(event.cell) !== event.at) {
+          problems.push(
+            `${named} is neither a zap the whole flight set off by ${at} nor one a brick broken after it set off.`,
+          );
+        }
+        break;
+      }
+      case "break":
+        if (event.by === "fuzzball" || event.at <= at) {
+          problems.push(`${named} isn't a zap's or a blast's after ${at}.`);
+        }
+        setOff.set(event.cell, event.at + ZAP_DELAY);
+        break;
+      case "free":
+        if (event.at <= at) {
+          problems.push(`${named} isn't after ${at}.`);
+        }
+        break;
+      default:
+        problems.push(`${named} comes after the drop.`);
+        break;
+    }
+  }
+  for (const zap of pending) {
+    problems.push(
+      `The whole flight's zap from cell ${zap.cell} at ${zap.at}, set off by ${at}, isn't the dropped flight's.`,
+    );
+  }
+  const inAir = inTheAir(kept);
+  const dropping = [...drops.keys()];
+  if (dropping.join() !== inAir.join()) {
+    problems.push(
+      `Fuzzballs [${dropping.join()}] drop, where [${inAir.join()}] were in the air at ${at}.`,
+    );
+  }
+  if (dropped.flight.capped > whole.flight.capped) {
+    problems.push(
+      `It counts ${dropped.flight.capped} capped, more than the whole flight's ${whole.flight.capped}.`,
+    );
+  }
+  return [...problems, ...droppedWallProblemsOf(whole, dropped)];
+}
+
+/** Returns a whole flight's zaps that land after a moment, set off by the bricks it breaks by then. */
+function zapsSetOffBy(whole: Flown, at: number) {
+  const broken = new Set(
+    eventsOf(whole, "break")
+      .filter((event) => event.at <= at)
+      .map(({ cell }) => cell),
+  );
+  return eventsOf(whole, "zap").filter(
+    (zap) => zap.at > at && broken.has(zap.cell),
+  );
+}
+
+/**
+ * Returns where a dropped flight's wall strays from its events and the whole
+ * flight's wall: a brick kept that it breaks, lost that it doesn't, or the
+ * wall never had, or with fewer hits than the whole flight leaves it.
+ */
+function droppedWallProblemsOf(whole: Flown, dropped: Flown): string[] {
+  const problems: string[] = [];
+  const brokenInWhole = new Set(
+    eventsOf(whole, "break").map(({ cell }) => cell),
+  );
+  const brokenInDropped = new Set(
+    eventsOf(dropped, "break").map(({ cell }) => cell),
+  );
+  for (const [cell, brick] of dropped.wall.bricks.entries()) {
+    const wholeBrick = whole.wall.bricks[cell] ?? null;
+    const broken = brokenInDropped.has(cell);
+    const atStart = wholeBrick !== null || brokenInWhole.has(cell);
+    if (brick === null) {
+      if (atStart && !broken) {
+        problems.push(
+          `Cell ${cell} has lost a brick the dropped flight doesn't break.`,
+        );
+      }
+    } else if (broken) {
+      problems.push(`Cell ${cell} keeps a brick the dropped flight breaks.`);
+    } else if (!atStart) {
+      problems.push(`Cell ${cell} has a brick the wall never had.`);
+    } else if (wholeBrick !== null && brick.hits < wholeBrick.hits) {
+      problems.push(
+        `Cell ${cell} keeps ${brick.hits} hits, fewer than the whole flight's ${wholeBrick.hits}.`,
+      );
+    }
+  }
+  return problems;
+}
+
+/** Returns the fuzzballs on their way home after a flight's events: those that yawned and haven't landed. */
+function homingAfter(events: readonly FlightEvent[]): Set<number> {
+  const homing = new Set<number>();
+  for (const event of events) {
+    if (event.kind === "yawn") {
+      homing.add(event.ball);
+    } else if (event.kind === "land") {
+      homing.delete(event.ball);
+    }
+  }
+  return homing;
+}
+
+/** Returns the fuzzballs in the air after a flight's events, by ball: those launched, and neither landed nor yawned. */
+function inTheAir(events: readonly FlightEvent[]): number[] {
+  const air = new Set<number>();
+  for (const event of events) {
+    if (event.kind === "launch") {
+      air.add(event.ball);
+    } else if (event.kind === "land" || event.kind === "yawn") {
+      air.delete(event.ball);
+    }
+  }
+  return [...air].sort((a, b) => a - b);
 }
