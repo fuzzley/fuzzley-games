@@ -410,8 +410,13 @@ helpers.
     sent it, and the one waiting on the floor, its fur combed by the charge,
     looking along the aim, in its boon's look, which flares in at the jump,
     a triple shot's two mates beside it. `MeterPainter` draws the charge's
-    five pips under it. `GuidePainter` draws the guide `guide()` hands over,
-    the rules' `Guide` (`src/rules/flight/guide.ts`): up to 128 dots
+    five pips under it. `GaugePainter` draws them again over a finger that
+    aims, in a layer of its own, `gauge`, over the fuzzballs: a plate and
+    five pips where `gaugeOf()` places them, lit as the meter's, only while
+    the steer says a finger aims and a fuzzball waits, a gauge shown anew
+    turned by where its finger is, not the way the last one leaned.
+    `GuidePainter` draws the guide `guide()` hands over, the rules' `Guide`
+    (`src/rules/flight/guide.ts`): up to 128 dots
     (`MOST_GUIDE_DOTS`), one at each of its places but where it would crowd
     the count's (`FieldPainter.crowdsCount()`), and 31 outlines
     (`MOST_PUNCHED`), one round each brick the shot would punch through.
