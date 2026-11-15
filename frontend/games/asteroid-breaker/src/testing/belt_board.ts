@@ -95,7 +95,7 @@ export class FakeShell implements BeltSceneOptions {
   thrusts = false;
   /** Whether a lodestone is on the field while its wave plays on, as the game would say. */
   lodestoneOn = false;
-  /** How many times a break scores, as the game would say. */
+  /** Static's multiplier, how many times what is scored scores, as the game would say. */
   times = 1;
   /** The place the wave after this one is played in. */
   nextPlace: PlaceId = PLACE_IDS[0];

@@ -156,7 +156,7 @@ export interface BeltSceneOptions {
   readonly thrusting: () => boolean;
   /** Returns whether a lodestone is on the field while its wave plays on, which the lodestone's hum follows. */
   readonly lodestoneHums: () => boolean;
-  /** Returns how many times a break scores, which the layers over the bed join by. */
+  /** Returns static's multiplier, how many times what is scored scores, which the layers over the bed join by. */
   readonly multiplier: () => number;
   /** Returns the place the wave after this one is played in, whose bed is fetched ahead. */
   readonly placeAfter: () => PlaceId;
