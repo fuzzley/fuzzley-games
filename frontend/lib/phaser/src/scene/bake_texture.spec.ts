@@ -1,15 +1,6 @@
 import { GameObjects, type Scene, Textures } from "phaser";
-import { runBareScene, watchUploads } from "../testing";
+import { canvasTexture, runBareScene, watchUploads } from "../testing";
 import { bakeTexture } from "./bake_texture";
-
-/** Returns the canvas texture under a key, failing if there is none. */
-function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
-  const texture = scene.textures.get(key);
-  if (!(texture instanceof Textures.CanvasTexture)) {
-    throw new Error(`No canvas texture "${key}"`);
-  }
-  return texture;
-}
 
 /** What a scene's bakes did, from when {@link recordBakes} began to watch them. */
 interface Bakes {

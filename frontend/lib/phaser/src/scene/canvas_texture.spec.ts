@@ -1,15 +1,6 @@
 import { Display, type Scene, Textures } from "phaser";
-import { runBareScene, watchUploads } from "../testing";
+import { canvasTexture, runBareScene, watchUploads } from "../testing";
 import { type DrawCanvas, drawCanvasTexture } from "./canvas_texture";
-
-/** Returns the canvas texture under a key, failing if there is none. */
-function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
-  const texture = scene.textures.get(key);
-  if (!(texture instanceof Textures.CanvasTexture)) {
-    throw new Error(`No canvas texture "${key}"`);
-  }
-  return texture;
-}
 
 /** Returns a canvas's size, as "24×16". */
 function sizeOf({ width, height }: HTMLCanvasElement): string {

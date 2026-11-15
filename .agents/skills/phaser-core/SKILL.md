@@ -473,7 +473,10 @@ browser, through a game's screenshots and its `check:layout`.
   command, so `commandsOf()` keeps its own, and its spec
   (`frontend/lib/phaser/src/testing/graphics_commands.spec.ts`) draws every
   command and reads it back, so a release that numbers them anew fails
-  there first, and no spec reads a buffer by those numbers itself.
+  there first, and no spec reads a buffer by those numbers itself. A
+  texture painted on a canvas, as `paintTexture()` or `softDisc()` paints
+  one, is found by `canvasTexture()`, which throws for a key that names
+  none.
 - **A spec in Node,** of a game's view, takes `@fz/phaser/testing/pure`,
   which loads no Phaser: `viewport()` is a canvas's `Viewport` from a CSS
   size, a pixel ratio and its chrome, and the art's specs read a game's

@@ -1,4 +1,3 @@
-import { type Scene, Textures } from "phaser";
 import {
   type DrawCommand,
   type PaintCommand,
@@ -11,7 +10,7 @@ import {
   roundRect,
   wash,
 } from "../shapes";
-import { runBareScene, watchUploads } from "../testing";
+import { canvasTexture, runBareScene, watchUploads } from "../testing";
 import { bakeTexture } from "./bake_texture";
 import { paintCommands, paintTexture } from "./paint_canvas";
 import { atlasFrameOf } from "./shapes_frame";
@@ -217,15 +216,6 @@ describe("paintTexture", () => {
   const SQUARE = [
     rect({ x: 0, y: 0, width: 24, height: 16 }, { color: 0x112233 }),
   ];
-
-  /** Returns the canvas texture under a key, failing if there is none. */
-  function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
-    const texture = scene.textures.get(key);
-    if (!(texture instanceof Textures.CanvasTexture)) {
-      throw new Error(`No canvas texture "${key}"`);
-    }
-    return texture;
-  }
 
   it("paints the commands into a canvas texture of the size", async () => {
     const run = await runBareScene();
