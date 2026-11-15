@@ -385,28 +385,32 @@ too. Paths are relative to `frontend/lib/dev/`.
   catalog with it too.
 - `src/workspaces.ts`, `@fz/dev/workspaces`: what the root's
   `tools/run-tests.mjs` is, which `yarn test` and `yarn test:coverage` run.
-  `runTestsScript()` reads the command line (the script, `--jobs`,
-  `--only` and `--except`, which take names by commas and may be given
-  more than once, and what follows `--`, which each Vitest is handed, each
-  argument quoted for the platform's shell by `shellQuoted()`, which can't
-  hand Windows' a `%` or a `"`), runs the script in each workspace chosen,
-  at most `--jobs` at once, four unless given, each Vitest on its share of
-  the cores, as a number, among the workspaces that run at once
-  (`--maxWorkers`, rounded as Vitest rounds a share, so one run alone gets
-  them all), and prints each workspace's output whole once it ends, then
-  when each started and how long it ran; it returns 1 where any failed or
-  couldn't start, every workspace run all the same, and 2 for a command
-  line it can't read, a name no workspace with the script has, or none left
-  to run.
-  `workspacesWithScript()` reads the workspaces a root's `package.json`
-  declares, keeps those with a script, and orders them by how many spec
-  files each holds, the most first, outside `node_modules/`, `dist/` and
-  `coverage/`, which stands for how long a suite runs closely enough to
+  `runTestsScript()` reads the command line (the script, `--jobs`, `--only`
+  and `--except`, which take names by commas and may be given more than once,
+  and what follows `--`, which each Vitest is handed, each argument quoted for
+  the platform's shell by `shellQuoted()`, which can't hand Windows' a `%` or
+  a `"`), runs the script in each workspace chosen, at most `--jobs` at once,
+  four unless given, each Vitest on its share of the cores, as a number, among
+  the workspaces that run at once (`--maxWorkers`, rounded as Vitest rounds a
+  share, so one run alone gets them all), each run of `test` off CI, where a
+  runner starts with no cache, keeping Node's compile cache in the root's
+  `node_modules/.cache/node-compile-cache/` unless `NODE_COMPILE_CACHE` names
+  one, as Vitest doesn't keep one itself, where tsc, ESLint, Vite and Prettier
+  do, and each run of `test:coverage` keeping none, as Node says coverage can
+  be less precise in code read from it, and prints each workspace's output
+  whole once it ends, then when each started and how long it ran; it returns 1
+  where any failed or couldn't start, every workspace run all the same, and 2
+  for a command line it can't read, a name no workspace with the script has,
+  or none left to run. `workspacesWithScript()` reads the workspaces a root's
+  `package.json` declares, keeps those with a script, and orders them by how
+  many spec files each holds, the most first, outside `node_modules/`, `dist/`
+  and `coverage/`, which stands for how long a suite runs closely enough to
   start the longest first, as Yarn's `foreach`, which starts them by name,
-  can't. `runInLanes()` runs them in that order, at most so many at once,
-  and says when each started and how long it ran. `runCommand()` runs a
-  command line through the platform's shell, where Windows finds Yarn's
-  `.cmd`, and returns its code and all it printed.
+  can't. `runInLanes()` runs them in that order, at most so many at once, and
+  says when each started and how long it ran. `runCommand()` runs a command
+  line through the platform's shell, where Windows finds Yarn's `.cmd`, in the
+  process's environment unless given another, and returns its code and all it
+  printed.
 - `src/tsc7.ts` and `bin/tsc7.mjs`, the `tsc7` binary: TypeScript 7's
   `tsc`, run on its arguments, for the type-check passes that need no
   compiler API, which every workspace's `typecheck` runs, and the root's.

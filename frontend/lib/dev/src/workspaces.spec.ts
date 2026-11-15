@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { recordingPrinter } from "./script.ts";
 import {
+  type Env,
   type Ran,
   type Workspace,
   runCommand,
@@ -100,18 +101,22 @@ function recordedRun(codes: Readonly<Record<string, number>> = {}): {
 /**
  * Returns a command runner that answers each folder ending in a name with
  * its code, 0 unless given, and its folder's name as its output, recording
- * each command line and the folder it ran in.
+ * each command line, the folder it ran in and the environment it ran in.
  */
 function fakeCommands(codes: Readonly<Record<string, number>> = {}): {
-  readonly run: (command: string, folder: string) => Promise<Ran>;
+  readonly run: (command: string, folder: string, env: Env) => Promise<Ran>;
   readonly ran: [string, string][];
+  readonly envs: Env[];
 } {
   const ran: [string, string][] = [];
+  const envs: Env[] = [];
   return {
     ran,
-    run: (command, folder) => {
+    envs,
+    run: (command, folder, env) => {
       const name = folder.split(/[\\/]/).at(-1) ?? "";
       ran.push([command, name]);
+      envs.push(env);
       return Promise.resolve({ code: codes[name] ?? 0, output: `${name}\n` });
     },
   };
@@ -268,6 +273,18 @@ describe("runCommand", () => {
     expect(ran.output).toBe("found");
   });
 
+  it("runs in the environment it is given", async () => {
+    const folder = await folderOf({});
+
+    const ran = await runCommand(
+      `node -e "process.stdout.write(process.env.FZ_GIVEN)"`,
+      folder,
+      { ...process.env, FZ_GIVEN: "given" },
+    );
+
+    expect(ran.output).toBe("given");
+  });
+
   it("rejects when the command can't start there", async () => {
     const folder = await folderOf({});
 
@@ -366,6 +383,61 @@ describe("runTestsScript", () => {
     expect(commands.ran).toEqual([["yarn run test --maxWorkers=4", "big"]]);
   });
 
+  it("keeps Node's compile cache in the root's node_modules/.cache/, off CI", async () => {
+    const root = await rootOfThree();
+    const commands = fakeCommands();
+
+    await runTestsScript(["test", "--only", "big"], root, {
+      ...recordingPrinter(),
+      env: { CI: "false", PATH: "/bin" },
+      run: commands.run,
+    });
+
+    expect(commands.envs).toEqual([
+      {
+        CI: "false",
+        PATH: "/bin",
+        NODE_COMPILE_CACHE: join(
+          root,
+          "node_modules/.cache/node-compile-cache",
+        ),
+      },
+    ]);
+  });
+
+  it.each<[string, Env]>([
+    ["on CI", { CI: "true" }],
+    ["where it names a cache already", { NODE_COMPILE_CACHE: "/elsewhere" }],
+  ])("leaves the environment as it is %s", async (_, env) => {
+    const root = await rootOfThree();
+    const commands = fakeCommands();
+
+    await runTestsScript(["test", "--only", "big"], root, {
+      ...recordingPrinter(),
+      env,
+      run: commands.run,
+    });
+
+    expect(commands.envs).toEqual([env]);
+  });
+
+  it("leaves the environment as it is for test:coverage, as coverage can be less precise in code read from the cache", async () => {
+    const root = await folderOf({
+      "package.json": JSON.stringify({ workspaces: ["lib/*"] }),
+      "lib/big/package.json": packageOf("big", "test:coverage"),
+    });
+    const commands = fakeCommands();
+    const env = { CI: "false" };
+
+    await runTestsScript(["test:coverage"], root, {
+      ...recordingPrinter(),
+      env,
+      run: commands.run,
+    });
+
+    expect(commands.envs).toEqual([env]);
+  });
+
   it("hands Vitest what follows --, each quoted for the shell", async () => {
     const root = await rootOfThree();
     const commands = fakeCommands();
@@ -385,9 +457,9 @@ describe("runTestsScript", () => {
     const root = await rootOfThree();
     const printer = recordingPrinter();
     let clock = 0;
-    const run = (command: string, folder: string): Promise<Ran> => {
+    const run = (command: string, folder: string, env: Env): Promise<Ran> => {
       clock += 1500;
-      return fakeCommands().run(command, folder);
+      return fakeCommands().run(command, folder, env);
     };
 
     const code = await runTestsScript(["test", "--jobs", "1"], root, {
@@ -419,12 +491,16 @@ describe("runTestsScript", () => {
     const printer = recordingPrinter();
     let tick = 0;
     // `big` runs longest, so `mid` and `small` end first, side by side.
-    const run = async (command: string, folder: string): Promise<Ran> => {
+    const run = async (
+      command: string,
+      folder: string,
+      env: Env,
+    ): Promise<Ran> => {
       if (folder.endsWith("big")) {
         for (let turn = 0; turn < 10; turn++) await Promise.resolve();
         return { code: 3, output: "big\n" };
       }
-      return fakeCommands().run(command, folder);
+      return fakeCommands().run(command, folder, env);
     };
 
     await runTestsScript(["test", "--jobs", "2"], root, {
@@ -466,10 +542,10 @@ describe("runTestsScript", () => {
     const root = await rootOfThree();
     const printer = recordingPrinter();
     const commands = fakeCommands();
-    const run = (command: string, folder: string): Promise<Ran> =>
+    const run = (command: string, folder: string, env: Env): Promise<Ran> =>
       folder.endsWith("mid")
         ? Promise.reject(new Error("spawn ENOENT"))
-        : commands.run(command, folder);
+        : commands.run(command, folder, env);
 
     const code = await runTestsScript(["test", "--jobs", "1"], root, {
       ...printer,

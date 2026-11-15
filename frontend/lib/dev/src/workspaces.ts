@@ -44,18 +44,24 @@ export interface Ran {
   readonly output: string;
 }
 
+/** The environment a command runs in, each variable by its name. */
+export type Env = Readonly<Record<string, string | undefined>>;
+
 /**
  * Says where `runTestsScript()` prints, how many cores it shares out, the
- * platform whose shell it quotes for, how it runs a command and the clock it
- * times them by, each its own unless a spec hands it another.
+ * platform whose shell it quotes for, the environment it runs in, how it
+ * runs a command and the clock it times them by, each its own unless a spec
+ * hands it another.
  */
 export interface TestsScriptIo extends Partial<Printer> {
   /** How many cores the machine has. */
   readonly cores?: number;
   /** The platform whose shell reads the command lines. */
   readonly platform?: NodeJS.Platform;
-  /** Runs a command line in a folder. */
-  readonly run?: (command: string, folder: string) => Promise<Ran>;
+  /** The environment the script runs in, which says whether it runs on CI. */
+  readonly env?: Env;
+  /** Runs a command line in a folder, in an environment. */
+  readonly run?: (command: string, folder: string, env: Env) => Promise<Ran>;
   /** Reads a clock in milliseconds. */
   readonly now?: () => number;
 }
@@ -158,10 +164,15 @@ export async function runInLanes(
  * that only a shell starts, so the command line is the caller's to keep to
  * what every shell reads alike.
  */
-export function runCommand(command: string, cwd: string): Promise<Ran> {
+export function runCommand(
+  command: string,
+  cwd: string,
+  env: Env = process.env,
+): Promise<Ran> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, {
       cwd,
+      env,
       shell: true,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -197,7 +208,11 @@ export function shellQuoted(
  * Each workspace's Vitest is handed its share of the cores as a number,
  * never as a share such as 25%, which Windows' shell reads as the start of
  * a variable, and the cores are shared by the workspaces that run at once,
- * so one run alone gets them all.
+ * so one run alone gets them all. Off CI, where a runner starts with no
+ * cache, each run of `test` keeps Node's compile cache under the root's
+ * `node_modules/.cache/`, which Vitest doesn't turn on itself, as tsc,
+ * ESLint, Vite and Prettier do. A run of `test:coverage` doesn't, as Node
+ * says coverage can be less precise in code read from the cache.
  */
 export async function runTestsScript(
   args: readonly string[],
@@ -207,6 +222,7 @@ export async function runTestsScript(
     printError = CONSOLE.printError,
     cores = availableParallelism(),
     platform = process.platform,
+    env = process.env,
     run = runCommand,
     now,
   }: TestsScriptIo = {},
@@ -247,6 +263,7 @@ export async function runTestsScript(
   const lanes = Math.min(jobs, chosen.length);
   const workers = Math.max(1, Math.round(cores / lanes));
   const command = [`yarn run ${script} --maxWorkers=${workers}`, ...quoted];
+  const testsEnv = script === "test" ? compileCached(env, root) : env;
   const outcomes = await runInLanes(
     chosen,
     lanes,
@@ -254,6 +271,7 @@ export async function runTestsScript(
       const { code, output } = await run(
         command.join(" "),
         workspace.folder,
+        testsEnv,
       ).catch((error: unknown) => ({ code: 1, output: String(error) }));
       print(`➤ ${workspace.name}: ${script} exited with ${code}`);
       print(output.trimEnd());
@@ -276,6 +294,19 @@ export async function runTestsScript(
   const names = failed.map(({ workspace }) => workspace.name).join(", ");
   printError(`\n${script} failed in ${names}.`);
   return 1;
+}
+
+/**
+ * Returns an environment with Node's compile cache in a root's
+ * `node_modules/.cache/node-compile-cache/`, unless it runs on CI or names
+ * a cache already.
+ */
+function compileCached(env: Env, root: string): Env {
+  if (env["CI"] === "true" || env["NODE_COMPILE_CACHE"] !== undefined) {
+    return env;
+  }
+  const cache = join(root, "node_modules/.cache/node-compile-cache");
+  return { ...env, NODE_COMPILE_CACHE: cache };
 }
 
 /**
