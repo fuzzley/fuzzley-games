@@ -1,3 +1,4 @@
+import { keysOf } from "@fz/core/records";
 import {
   ROCK_SIZES,
   type RockKindId,
@@ -13,6 +14,7 @@ import {
   flourishesOf,
   holdMsOf,
 } from "./effects";
+import { RINGS } from "./flourish";
 import { BOULDER_HOLD_MS } from "./timing";
 
 /** Returns an event of a kind, of a rock of a kind and size or of none. */
@@ -51,22 +53,22 @@ const EVENTS: readonly (readonly [
   readonly Flourish[],
 ])[] = [
   ["fired", ["muzzle"], []],
-  ["dashed", ["trail"], []],
-  ["shielded", ["ring"], []],
+  ["dashed", ["trail"], ["mark"]],
+  ["shielded", ["ring"], ["mark"]],
   ["warned", [], []],
   ["cleared", ["slow", "wave"], []],
   ["rung", ["flash", "spark"], []],
   ["blast", ["blast"], ["blast"]],
   ["shed", [], []],
   ["vented", ["ring"], []],
-  ["dropped", [], []],
+  ["dropped", ["ring"], []],
   ["caught", [], []],
-  ["faded", [], []],
+  ["faded", ["ring"], []],
   ["lost", ["burst", "ring", "bailout"], []],
   ["knocked", [], []],
   ["recaught", [], []],
   ["floated", [], []],
-  ["strayed", [], []],
+  ["strayed", ["ring"], []],
   ["joined", [], []],
   ["home", [], []],
   ["scored", ["points"], ["points"]],
@@ -182,6 +184,20 @@ describe("holdMsOf", () => {
       expect(holdMsOf(eventOf(kind))).toBe(0);
     },
   );
+});
+
+describe("the rings", () => {
+  it("rings out for exactly the events the rings' table has a ring for, moving or still", () => {
+    const ringing = EVENTS.flatMap(([kind, flourishes, still]) =>
+      [...flourishes, ...still].some(
+        (flourish) => flourish === "ring" || flourish === "mark",
+      )
+        ? [kind]
+        : [],
+    );
+
+    expect([...ringing].sort()).toEqual([...keysOf(RINGS)].sort());
+  });
 });
 
 describe("flourishesOf", () => {

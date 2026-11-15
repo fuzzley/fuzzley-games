@@ -7,6 +7,7 @@
 
 import { formatPoints } from "@fz/core/format";
 import { shareDone } from "@fz/core/math";
+import { isKeyOf } from "@fz/core/records";
 import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { NOSE } from "../../rules/ship/shots";
 import { stepsIn } from "../../rules/stepper";
@@ -19,7 +20,7 @@ import {
   STRAY_POINTS,
 } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
-import type { Drawn, FieldEvent } from "../field/frame";
+import type { Drawn, FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
@@ -50,6 +51,42 @@ export const SHIELD_RING_REACH = 3;
 
 /** How far a lost ship's ring sweeps out from where it was lost, in field units. */
 export const LOST_RING_REACH = 5;
+
+/**
+ * Describes an event's ring: how far it reaches, in field units, as it
+ * sweeps out or stands still, and whether it wraps, drawn past each edge it
+ * reaches across, or is drawn once, as what crosses the field is.
+ */
+export interface Ring {
+  readonly reach: number;
+  readonly wraps: boolean;
+}
+
+/**
+ * Describes an event's ring as `RINGS` holds it: as {@link Ring} has it,
+ * but for a reach of null, which leaves it to the event, as a vent's.
+ */
+export interface RingLook {
+  readonly reach: number | null;
+  readonly wraps: boolean;
+}
+
+/**
+ * Each event's ring: a spent Shield's and a lost pod's; a vent's, as far as
+ * its blast reaches; a pickup let go from a rock, one fading out and a stray
+ * drifting in, each seen as its sound plays, the stray's at the edge it
+ * comes in by, which it doesn't wrap past; and the still mark at a dash's
+ * start, where motion isn't welcome.
+ */
+export const RINGS = {
+  shielded: { reach: SHIELD_RING_REACH, wraps: true },
+  lost: { reach: LOST_RING_REACH, wraps: true },
+  vented: { reach: null, wraps: true },
+  dropped: { reach: 2, wraps: true },
+  faded: { reach: 1.5, wraps: true },
+  strayed: { reach: 2.5, wraps: false },
+  dashed: { reach: 2, wraps: true },
+} as const satisfies Readonly<Partial<Record<FieldEventKind, RingLook>>>;
 
 /** How fast a pilot bailing out floats off, in field units a second. */
 export const BAIL_OUT_SPEED = 2.2;
@@ -203,25 +240,25 @@ export function riseOf(done: number, motion: boolean): number {
 }
 
 /**
- * Returns how far an event's ring sweeps out, in field units: a spent
- * Shield's and a lost pod's to their own, and a vent's to its reach.
+ * Returns an event's ring, as `RINGS` says, as far as the event itself
+ * reaches where the table leaves it to the event, as a vent's.
+ *
+ * @throws {RangeError} For an event that plays no ring.
  */
-export function ringReachOf(
+export function ringOf(
   event: Readonly<Pick<FieldEvent, "kind" | "reach">>,
-): number {
-  switch (event.kind) {
-    case "shielded":
-      return SHIELD_RING_REACH;
-    case "lost":
-      return LOST_RING_REACH;
-    default:
-      return event.reach;
+): Ring {
+  const { kind } = event;
+  if (!isKeyOf(kind, RINGS)) {
+    throw new RangeError(`A "${kind}" event plays no ring`);
   }
+  const { reach, wraps }: RingLook = RINGS[kind];
+  return { reach: reach ?? event.reach, wraps };
 }
 
 /**
  * Returns the color an event's ring sweeps out in: a vent's in the warning
- * color, and a spent Shield's and a lost pod's in the accent.
+ * color, and every other in the accent.
  */
 export function ringColorOf(
   { kind }: Readonly<Pick<FieldEvent, "kind">>,

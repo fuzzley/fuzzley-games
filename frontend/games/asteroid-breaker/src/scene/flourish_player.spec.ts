@@ -19,7 +19,7 @@ import {
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { ADRIFT_FRAMES } from "../view/art/pilot_art";
 import { breakOf, impactOf, shardPushOf, rimToward } from "../view/art/breaks";
-import { ringReachOf } from "../view/effects/flourish";
+import { RINGS, ringOf } from "../view/effects/flourish";
 import {
   BOULDER_HOLD_MS,
   BURST_SHARDS,
@@ -27,6 +27,7 @@ import {
   RING_MS,
   SHAKE_MS,
   SLOWED_MS,
+  STILL_MARK_MS,
 } from "../view/effects/timing";
 import { type FieldEvent, shipAt } from "../view/field/frame";
 import { Steering } from "../view/steering/steering";
@@ -458,7 +459,27 @@ describe("FlourishPlayer", () => {
       ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
     ).toEqual({
       ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
-      radius: ringReachOf(event) * easeOutCubic(1 / 2) * context.metrics.unit,
+      radius: ringOf(event).reach * easeOutCubic(1 / 2) * context.metrics.unit,
+      color: ART_PALETTE.accent,
+    });
+  });
+
+  it("marks where a dash started with a ring standing still at its reach", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW + STILL_MARK_MS / 2);
+    const event = eventOf((log) => {
+      log.addDash(MIDDLE.x, MIDDLE.y, 0);
+    });
+
+    player.play("mark", event, contextAt(shell, NOW));
+    scene.kit.rings.draw(context);
+
+    const [ring] = strokesOf(scene.kit.rings.graphics);
+    expect(
+      ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
+    ).toEqual({
+      ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
+      radius: RINGS.dashed.reach * context.metrics.unit,
       color: ART_PALETTE.accent,
     });
   });

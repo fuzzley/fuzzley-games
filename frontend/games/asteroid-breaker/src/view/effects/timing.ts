@@ -36,7 +36,17 @@ export const FLASH_MS = 60;
  */
 export const FLASH_GAP_MS = 340;
 
-/** How long a spent Shield's or a lost ship's ring takes to sweep out to its reach and fade. */
+/**
+ * How long a still mark stands where motion isn't welcome, a ring at a
+ * dash's start or round a spent Shield, as long as a blast's still ring.
+ */
+export const STILL_MARK_MS = 600;
+
+/**
+ * How long a ring takes to sweep out to its reach and fade: a spent
+ * Shield's, a lost ship's, a vent's, a pickup let go's or fading's, or a
+ * stray's.
+ */
 export const RING_MS = 300;
 
 /** How far the field kicks away from the shot as a large rock breaks, in CSS pixels. */

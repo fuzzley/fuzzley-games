@@ -9,36 +9,48 @@ import {
   type WaveRing,
   waveRingAt,
 } from "../../view/effects/cleared";
-import { RING_MS } from "../../view/effects/timing";
+import { RING_MS, STILL_MARK_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { COPY_SHARES } from "./copy_shares";
 import type { PaintContext, Painter } from "./painter";
 import { strokeRound } from "./rounds";
 
-/** How many rings may sweep out at once. */
+/** How many rings may show at once, sweeping out or standing still. */
 const POOL = 12;
 
-/** How opaque a ring is as it starts. */
+/** How opaque a ring is as it starts, and a still mark throughout. */
 const RING_ALPHA = 0.9;
 
 /** How wide a ring is drawn, in field units. */
 export const RING_WIDTH = 0.25;
 
-/** Describes a ring sweeping out to its reach, in its color. */
+/** No copies past the edges, for a ring that doesn't wrap. */
+const NO_COPIES: Readonly<Moving> = { x: 0, y: 0 };
+
+/** Describes a ring: where, how far it reaches, in its color, whether it stands still, and whether it wraps. */
 interface Ring extends Playing {
   reach: number;
   color: number;
+  /** Whether it stands still at its reach, a mark where motion isn't welcome, rather than sweeping out. */
+  still: boolean;
+  /** Whether it is drawn past each edge it reaches across, or once, for the field's camera to cut off. */
+  wraps: boolean;
 }
 
 /**
- * Draws the rings that sweep out from a spent Shield and a lost pod,
- * fading as they go, on both sides of an edge they reach across; and the
- * wave's ring, which crosses the whole field from where its last rock went
- * as the view's `cleared.ts` says, once, for the field's camera to cut off
- * at its edges, its soft outside and its line each a band, as the
- * accent's energy. The scene plays them only where motion is welcome.
+ * Draws the rings that sweep out, fading as they go, from a spent Shield, a
+ * lost pod, a vent, a pickup let go or fading and a stray drifting in, and
+ * the still marks where motion isn't welcome, at a dash's start and round
+ * a spent Shield, each on both sides of an edge it reaches across but a
+ * stray's, which comes in at the edge and is drawn once, as the stray is;
+ * and the wave's ring, which crosses the whole field from where its last
+ * rock went as the view's `cleared.ts` says, once, for the field's camera
+ * to cut off at its edges, its soft outside and its line each a band, in
+ * the accent's energy. The scene plays all but the marks only where
+ * motion is welcome.
  */
 export class RingPainter implements Painter {
-  /** Every ring sweeping out, drawn again each frame. */
+  /** Every ring and mark showing, drawn again each frame. */
   readonly graphics: GameObjects.Graphics;
 
   private readonly rings = new Turns<Ring>(POOL, () => ({
@@ -47,6 +59,8 @@ export class RingPainter implements Painter {
     y: 0,
     reach: 0,
     color: 0,
+    still: false,
+    wraps: true,
   }));
   /** How far a ring's copies past the edges are from it on the field, written each frame. */
   private readonly offsets: Moving = { x: 0, y: 0 };
@@ -71,11 +85,24 @@ export class RingPainter implements Painter {
     layer.add(this.graphics);
   }
 
-  /** Sweeps a ring out from a place to a reach, in field units, in a color. */
-  ring(x: number, y: number, reach: number, color: number, now: number): void {
-    const ring = this.rings.play(x, y, now);
-    ring.reach = reach;
-    ring.color = color;
+  /**
+   * Sweeps a ring out from a place to a reach, in field units, in a color,
+   * drawn past each edge it reaches across if it wraps, or once.
+   */
+  ring(
+    x: number,
+    y: number,
+    reach: number,
+    color: number,
+    wraps: boolean,
+    now: number,
+  ): void {
+    this.play(x, y, reach, color, false, wraps, now);
+  }
+
+  /** Marks a place with a ring standing still at a reach, in field units, in a color, for `STILL_MARK_MS`. */
+  mark(x: number, y: number, reach: number, color: number, now: number): void {
+    this.play(x, y, reach, color, true, true, now);
   }
 
   /** Crosses the field with the wave's ring from a place to a reach, in field units, from a time on, in place of the last. */
@@ -88,38 +115,44 @@ export class RingPainter implements Painter {
   }
 
   /**
-   * Draws each ring sweeping out, a share through its time, on both sides of an
-   * edge it reaches across, and the wave's ring.
+   * Draws each ring sweeping out, a share through its time, and each mark
+   * standing still, on both sides of an edge it reaches across if it wraps,
+   * and the wave's ring.
    */
   draw({ field, metrics, now, palette }: Readonly<PaintContext>): void {
-    const { torus } = field;
     const graphics = this.graphics.clear();
     for (const ring of this.rings.all) {
-      const done = shareDone(ring.at, now, RING_MS);
+      const done = shareDone(
+        ring.at,
+        now,
+        ring.still ? STILL_MARK_MS : RING_MS,
+      );
       if (done === 1) continue;
-      const reach = ring.reach * easeOutCubic(done);
+      const reach = ring.still ? ring.reach : ring.reach * easeOutCubic(done);
       graphics.lineStyle(
         RING_WIDTH * metrics.unit,
         ring.color,
-        RING_ALPHA * fadeAlpha(done),
+        ring.still ? RING_ALPHA : RING_ALPHA * fadeAlpha(done),
       );
       // The stroke is centered on the circle, so half its width lies past it.
-      const { x: across, y: down } = copyOffsets(
-        ring.x,
-        ring.y,
-        reach + RING_WIDTH / 2,
-        torus,
-        this.offsets,
-      );
-      this.stroke(ring.x, ring.y, reach, metrics);
-      if (across !== 0) {
-        this.stroke(ring.x + across, ring.y, reach, metrics);
-      }
-      if (down !== 0) {
-        this.stroke(ring.x, ring.y + down, reach, metrics);
-      }
-      if (across !== 0 && down !== 0) {
-        this.stroke(ring.x + across, ring.y + down, reach, metrics);
+      const { x: across, y: down } = ring.wraps
+        ? copyOffsets(
+            ring.x,
+            ring.y,
+            reach + RING_WIDTH / 2,
+            field.torus,
+            this.offsets,
+          )
+        : NO_COPIES;
+      for (const [acrossShare, downShare] of COPY_SHARES) {
+        if (acrossShare === 1 && across === 0) continue;
+        if (downShare === 1 && down === 0) continue;
+        this.stroke(
+          ring.x + acrossShare * across,
+          ring.y + downShare * down,
+          reach,
+          metrics,
+        );
       }
     }
     this.drawWave(now, palette, metrics);
@@ -171,6 +204,23 @@ export class RingPainter implements Painter {
       this.tones = energyOf(palette.accent, palette);
     }
     return this.tones;
+  }
+
+  /** Plays a ring, sweeping out or standing still, in the next record of the pool. */
+  private play(
+    x: number,
+    y: number,
+    reach: number,
+    color: number,
+    still: boolean,
+    wraps: boolean,
+    now: number,
+  ): void {
+    const ring = this.rings.play(x, y, now);
+    ring.reach = reach;
+    ring.color = color;
+    ring.still = still;
+    ring.wraps = wraps;
   }
 
   /** Strokes one of a ring's copies about a place on the field, out to a reach, in field units. */

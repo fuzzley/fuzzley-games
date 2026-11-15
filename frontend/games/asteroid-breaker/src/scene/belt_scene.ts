@@ -550,8 +550,9 @@ export class BeltScene extends Scene {
    * it each frame: tells the pod's pilot's face of it, and the faces of
    * those in tow, and the arcs a zap's arc to a rock, keeps its sound to
    * play with the frame's others, and plays its flourishes where motion is
-   * welcome, and where it isn't what of them stays still: its points, and a
-   * blast's ring at its reach.
+   * welcome, and where it isn't what of them stays still: its points, and
+   * its still mark, a blast's ring at its reach or a ring at a dash's start
+   * or round a spent Shield.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     this.kit.ship.hear(event, this.shownField.steps);

@@ -36,7 +36,7 @@ import {
   pointsLabel,
   riseOf,
   ringColorOf,
-  ringReachOf,
+  ringOf,
   shakeShare,
   trailAlpha,
   trailLaidAfter,
@@ -217,16 +217,27 @@ describe("riseOf", () => {
   });
 });
 
-describe("ringReachOf", () => {
-  it("sweeps a vent's ring out to its reach", () => {
-    expect(ringReachOf(reaching("vented", 7))).toBe(7);
+describe("ringOf", () => {
+  it.each([
+    ["shielded", SHIELD_RING_REACH, true],
+    ["lost", LOST_RING_REACH, true],
+    ["dropped", 2, true],
+    ["faded", 1.5, true],
+    ["strayed", 2.5, false],
+    ["dashed", 2, true],
+  ] as const)(
+    "rings a %s event out to %d, wrapping: %s",
+    (kind, reach, wraps) => {
+      expect(ringOf(reaching(kind, 0))).toEqual({ reach, wraps });
+    },
+  );
+
+  it("rings a vent out as far as its blast reaches, wrapping", () => {
+    expect(ringOf(reaching("vented", 7))).toEqual({ reach: 7, wraps: true });
   });
 
-  it.each([
-    ["shielded", SHIELD_RING_REACH],
-    ["lost", LOST_RING_REACH],
-  ] as const)("sweeps a %s ring out to its own reach", (kind, reach) => {
-    expect(ringReachOf(reaching(kind, 0))).toBe(reach);
+  it("throws for an event that plays no ring", () => {
+    expect(() => ringOf(reaching("fired", 0))).toThrow(RangeError);
   });
 });
 
