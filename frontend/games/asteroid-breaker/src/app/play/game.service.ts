@@ -238,8 +238,8 @@ export class GameService extends RunLifecycle {
    */
   readonly clearedAll = computed(() => this.runState().clearedAll);
 
-  /** What the run's end set, which is said of it as it ends. */
-  private readonly endMarks = computed((): EndMarks => ({
+  /** What the run's end set, which is said of it as it ends and as its result card opens. */
+  readonly endMarks = computed((): EndMarks => ({
     newBest: this.newBest(),
     clearedAll: this.clearedAll(),
   }));
