@@ -130,6 +130,9 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["scored", null],
   ["sparked", null],
   ["stepped", null],
+  ["grazed", null],
+  ["zapped", null],
+  ["arced", null],
 ];
 
 /** Each kind of rock at each size it comes in, with the sound it breaks with. */

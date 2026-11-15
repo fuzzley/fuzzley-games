@@ -154,6 +154,14 @@ describe("describeEvent", () => {
     expect(describeEvent(full)).toBe("Static full.");
   });
 
+  it("says a zap", () => {
+    const zapped = eventOf((log) => {
+      log.addZap(1, 2, 0);
+    });
+
+    expect(describeEvent(zapped)).toBe("Zap!");
+  });
+
   it.each([
     [
       "a pickup let go",
@@ -189,6 +197,18 @@ describe("describeEvent", () => {
       "static falling a step",
       (log: FieldEventLog) => {
         log.addStep(1, 2, FULL_STEP - 1, true);
+      },
+    ],
+    [
+      "a near miss",
+      (log: FieldEventLog) => {
+        log.addGraze(1, 2, 1, 0);
+      },
+    ],
+    [
+      "a zap's arc",
+      (log: FieldEventLog) => {
+        log.addArc({ x: 1, y: 2, kind: "stone", size: "small", slot: 0 }, 3, 4);
       },
     ],
   ])("says nothing of %s", (_, add) => {

@@ -93,9 +93,12 @@ const EVENT_EFFECTS: Readonly<
   joined: QUIET,
   home: QUIET,
   scored: { flourishes: ["points"], still: ["points"] },
-  // Sparks' and static's own flourishes are a later package's to choose.
+  // Sparks', static's and the zap's own flourishes are a later package's to choose.
   sparked: QUIET,
   stepped: QUIET,
+  grazed: QUIET,
+  zapped: QUIET,
+  arced: QUIET,
 };
 
 /**

@@ -16,6 +16,7 @@ import { drawIn, nextDraw } from "../draws";
 import { type DropField, dropFrom } from "./drops";
 import { type ScoreField, scoreBreak } from "../field/scoring";
 import { multiplierOf } from "../sparks/charge";
+import type { NearPass } from "../sparks/grazes";
 import { type ShedField, shedSparks } from "../sparks/sparks";
 import { stepsIn } from "../stepper";
 import {
@@ -75,6 +76,8 @@ export interface Rock {
    * stays taken until then, so its blast counts toward the cap.
    */
   goesOffAt: number;
+  /** How its pass by the pod stands, which a near miss is counted from: spent as it is laid. */
+  pass: NearPass;
 }
 
 /** Describes what the rocks' rules act on, which the field holds. */
@@ -188,6 +191,7 @@ export function createRocks(cap: number): Rock[] {
     hits: 0,
     laidAt: 0,
     goesOffAt: 0,
+    pass: "spent",
   }));
 }
 
@@ -236,6 +240,7 @@ export function addRock(
   rock.outline = Math.floor(nextDraw(field) * ROCK_OUTLINES);
   rock.hits = whole;
   rock.laidAt = field.steps;
+  rock.pass = "spent";
   return rock;
 }
 

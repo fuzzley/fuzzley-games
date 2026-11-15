@@ -4,6 +4,7 @@ import {
   catchOn,
   fieldFrom,
   floatingPickups,
+  kindsLoggedOn,
   loggedOn,
   placeComet,
   placeRock,
@@ -218,6 +219,15 @@ describe("a wave's comets", () => {
       after >= stepsIn(EVERY.least),
       after <= stepsIn(EVERY.most),
     ]).toEqual([true, true]);
+  });
+
+  it("warns of a comet with its pass by the pod spent, as no near miss of the comet last in its record", () => {
+    const field = cometDue();
+    for (const slot of field.comets.slots) slot.pass = "near";
+
+    stepField(field);
+
+    expect(kindsLoggedOn(field)).not.toContain("grazed");
   });
 
   it("warns of none while every record is taken, and draws the next", () => {

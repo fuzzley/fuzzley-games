@@ -315,7 +315,10 @@ export const STATIC_STEPS = [
 /** The most static the pilot holds: full, at which the next dash is a zap. */
 export const STATIC_MOST = 40;
 
-/** How long static holds after the last spark gathered before it drains. */
+/**
+ * How long static holds before it drains: after a spark gathered or a near
+ * miss raises it, or a hit or a zap brings it down.
+ */
 export const STATIC_HOLD_MS = 2000;
 
 /** How fast static drains once it no longer holds, in a second. */
@@ -358,6 +361,24 @@ export const SPARK_POINTS = 5;
 
 /** How much static a spark gathered adds. */
 export const SPARK_STATIC = 1;
+
+/**
+ * How near the pod's hit circle a rock or a comet passes, without touching
+ * it, for a near miss.
+ */
+export const GRAZE_MARGIN = 0.5;
+
+/** How much static a near miss adds. */
+export const GRAZE_STATIC = 2;
+
+/** How many rocks a zap arcs to at most, the nearest its path. */
+export const ZAP_ARCS = 6;
+
+/** How near a dash's path a rock lies for a zap to arc to it. */
+export const ZAP_REACH = 6;
+
+/** How much static a zap spends. */
+export const ZAP_COST = 20;
 
 /** The points a stray caught into the line in tow scores, before static's multiplier. */
 export const STRAY_POINTS = 500;

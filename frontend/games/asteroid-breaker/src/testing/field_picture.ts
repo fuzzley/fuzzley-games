@@ -296,6 +296,7 @@ export function placeComet(
   comet.warnSteps = 0;
   comet.smashedAt.fill(-1);
   comet.smashes = 0;
+  comet.pass = "spent";
   return comet;
 }
 

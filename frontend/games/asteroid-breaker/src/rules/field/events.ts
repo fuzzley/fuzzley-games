@@ -75,7 +75,19 @@ export type SparkEventKind = "sparked";
 /** Names something that happened to the pilot's static, at the ship, which its event says. */
 export type StaticEventKind =
   /** Static came to another step, up or down: the multiplier's, or full. */
-  "stepped";
+  | "stepped"
+  /**
+   * A rock or a comet passed near the pod's hit circle without touching it,
+   * a near miss, which adds to static.
+   */
+  | "grazed";
+
+/** Names what a zap, a dash begun at full static, does, which its event says. */
+export type ZapEventKind =
+  /** A dash began at full static, at the pod, the way it heads. */
+  | "zapped"
+  /** A zap's arc leapt from the pod to a rock, which takes a hit. */
+  | "arced";
 
 /** Describes a rock as its events record it, as the rocks' slots hold it. */
 export interface LoggedRock {
@@ -95,7 +107,8 @@ export type FieldEventKind =
   | PilotEventKind
   | ScoreEventKind
   | SparkEventKind
-  | StaticEventKind;
+  | StaticEventKind
+  | ZapEventKind;
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -130,7 +143,7 @@ export interface FieldEvent extends NumberedEvent {
    * event that scored none, as a rock a comet smashed.
    */
   times: number;
-  /** How far a blast reaches, 0 for any other event. */
+  /** How far a blast reaches, or how far an arc leapt from the pod, 0 for any other event. */
   reach: number;
   /**
    * The step static came to as it stepped, 0 for any other event: the
@@ -146,9 +159,10 @@ export interface FieldEvent extends NumberedEvent {
   slot: number;
   /**
    * The way it went, a share along each axis: the blow that broke a rock,
-   * for the field's kick, the one that knocked one of the crew loose, or
-   * the ship as it dashed, for its trail; 0 along both
-   * for a blow that came no way, and for any other event.
+   * for the field's kick, the one that knocked one of the crew loose, the
+   * ship as it dashed or zapped, for its trail, the way to what passed near
+   * the pod, or an arc's from the pod; 0 along both for a blow that came no
+   * way, and for any other event.
    */
   wayX: number;
   wayY: number;
@@ -220,9 +234,26 @@ export class FieldEventLog extends EventLog<FieldEvent> {
 
   /** Records the ship starting a dash, at its place, and the way it heads, in radians. */
   addDash(x: number, y: number, heading: number): void {
-    const event = this.record("dashed", x, y);
-    event.wayX = Math.cos(heading);
-    event.wayY = Math.sin(heading);
+    this.recordHeading("dashed", x, y, heading);
+  }
+
+  /**
+   * Records a zap, a dash begun at full static, at the pod, and the way it
+   * heads, in radians, before its arcs.
+   */
+  addZap(x: number, y: number, heading: number): void {
+    this.recordHeading("zapped", x, y, heading);
+  }
+
+  /**
+   * Records a zap's arc to a rock, at the rock's place, with its kind, size
+   * and slot, the way it leapt from the pod and how far: `alongX` and
+   * `alongY`, from the pod to the rock.
+   */
+  addArc(rock: LoggedRock, alongX: number, alongY: number): void {
+    const event = this.recordRock("arced", rock);
+    event.reach = Math.hypot(alongX, alongY);
+    setWay(event, alongX, alongY);
   }
 
   /**
@@ -325,6 +356,14 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   }
 
   /**
+   * Records a near miss, at the ship, and the way to what passed near it:
+   * `alongX` and `alongY`, of any length.
+   */
+  addGraze(x: number, y: number, alongX: number, alongY: number): void {
+    setWay(this.record("grazed", x, y), alongX, alongY);
+  }
+
+  /**
    * Returns the next record for an event of a pilot, its kind, place and
    * pilot, how many ride in tow and whether the run is over filled in.
    */
@@ -342,11 +381,26 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     return event;
   }
 
+  /** Records an event at a place, the way it heads, in radians, as a share along each axis. */
+  private recordHeading(
+    kind: "dashed" | "zapped",
+    x: number,
+    y: number,
+    heading: number,
+  ): void {
+    const event = this.record(kind, x, y);
+    event.wayX = Math.cos(heading);
+    event.wayY = Math.sin(heading);
+  }
+
   /**
    * Returns the next record for an event of a rock, its kind and the rock's
    * place, kind, size and slot filled in.
    */
-  private recordRock(kind: RockEventKind, rock: LoggedRock): FieldEvent {
+  private recordRock(
+    kind: RockEventKind | "arced",
+    rock: LoggedRock,
+  ): FieldEvent {
     const event = this.record(kind, rock.x, rock.y);
     event.rock = rock.kind;
     event.size = rock.size;

@@ -236,6 +236,52 @@ describe("FieldEventLog", () => {
     ]);
   });
 
+  it("records a near miss at the ship, with the way to what passed", () => {
+    const log = new FieldEventLog();
+
+    log.addGraze(1, 2, 0, -3);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "grazed", x: 1, y: 2, wayX: 0, wayY: -1 }),
+    ]);
+  });
+
+  it("records a zap at the pod, with the way it heads", () => {
+    const log = new FieldEventLog();
+
+    log.addZap(1, 2, Math.PI / 2);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "zapped",
+        x: 1,
+        y: 2,
+        wayX: Math.cos(Math.PI / 2),
+        wayY: 1,
+      }),
+    ]);
+  });
+
+  it("records a zap's arc at its rock, with the rock's kind, size and slot, and the way and how far it leapt from the pod", () => {
+    const log = new FieldEventLog();
+
+    log.addArc(rockAt(7, 8, "ice", "medium", 5), 3, 4);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "arced",
+        x: 7,
+        y: 8,
+        rock: "ice",
+        size: "medium",
+        slot: 5,
+        reach: 5,
+        wayX: 0.6,
+        wayY: 0.8,
+      }),
+    ]);
+  });
+
   it("keeps the latest events, as many as its size", () => {
     const log = new FieldEventLog();
 
