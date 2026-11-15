@@ -16,4 +16,5 @@ export {
 } from "./scene_lifetime";
 export { atlasFrameOf } from "./shapes_frame";
 export { strokeShareArc } from "./share_arc";
+export { softDisc } from "./soft_disc";
 export { canvasChanged, viewportOf } from "./viewport";

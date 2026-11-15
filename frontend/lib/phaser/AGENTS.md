@@ -264,7 +264,12 @@ take the pure ones.
   own radial gradient, each at its alpha under the context's, and
   `paintTexture()`, which paints them into the canvas texture of a key
   through `drawCanvasTexture()` and paints it again after a lost context,
-  as `bakeTexture()` does, for a picture with washes, such as a backdrop. It
+  as `bakeTexture()` does, for a picture with washes, such as a backdrop;
+  and, in `src/scene/soft_disc.ts`, `softDisc()`, a soft disc a size
+  across painted into the canvas texture of a key through `paintTexture()`,
+  white, fading from its middle to nothing at its edge, which a scene
+  shows as a halo, an image of it tinted, scaled and faded under plain
+  alpha, never an additive blend, which adds nothing to a white field. It
   imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL, or its URLs in several formats, of which

@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture, softDisc, halo.
 ---
 
 # Phaser games here
@@ -363,7 +363,11 @@ scene without shutting it down first, so the end is whichever comes first.
   until How to play or a panel shows it. `paintTexture()` paints a picture
   from paint commands, washes among them, into a canvas texture, and paints
   it again after a lost context too: a key is drawn again the last way
-  either drew it. Anything else drawn at run time redraws itself through
+  either drew it. `softDisc()` paints a white disc fading to nothing through
+  it, once, which a scene shows as a halo, an image tinted, scaled and faded
+  under plain alpha, so a halo costs an image, never a gradient drawn each
+  frame, and shows on a white field, where an additive blend shows nothing.
+  Anything else drawn at run time redraws itself through
   `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels. `viewportOf(scene, insets)` is the `Viewport` a scene lays
