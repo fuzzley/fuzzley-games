@@ -1,3 +1,4 @@
+import { takeMarkers } from "@fz/core/sound_mix";
 import { NO_INSETS } from "@fz/phaser/insets";
 import {
   type PaintCommand,
@@ -19,7 +20,7 @@ import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { Field } from "../rules/field/field";
 import { COMET_RECORDS } from "../rules/hazards/comets";
-import { hitRock } from "../rules/rocks/rocks";
+import { hitRock, setOffBlasts } from "../rules/rocks/rocks";
 import { atControls } from "../rules/ship/pilots";
 import type { Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
@@ -83,7 +84,7 @@ import {
 } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
-import { SOUNDS } from "../view/effects/sounds";
+import { SOUNDS, SOUND_NAMES } from "../view/effects/sounds";
 import {
   BREATH,
   GOLDEN_ANGLE,
@@ -113,7 +114,7 @@ import { type BeltScene, SOUNDS_KEY, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import { PLACE_TEXTURES, flashTexture } from "./painters/place_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
-import spritemap from "./sounds/sounds.json";
+import spritemap from "./sounds/sprite.json";
 
 /**
  * Returns the time of the first frame, a frame of 16 ms at a time on from a
@@ -2336,16 +2337,20 @@ describe("the sounds", () => {
     vi.restoreAllMocks();
   });
 
-  it("are the view's, in the sprite's order", () => {
-    expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
+  it("are every take of the view's sounds, and no other", () => {
+    expect(Object.keys(spritemap.spritemap).sort()).toEqual(
+      SOUND_NAMES.flatMap((name) =>
+        takeMarkers(name, SOUNDS[name].takes),
+      ).sort(),
+    );
   });
 
-  it("loop the thrust's hum alone", () => {
+  it("loop the hums of the thrust and the lodestones alone", () => {
     expect(
       Object.entries(spritemap.spritemap)
         .filter(([, sound]) => sound.loop)
         .map(([name]) => name),
-    ).toEqual(["thrust"]);
+    ).toEqual(["lodestone-hum", "thrust"]);
   });
 
   it("can be heard while the player wants them", async () => {
@@ -2363,7 +2368,7 @@ describe("the sounds", () => {
     expect(scene.sound.mute).toBe(true);
   });
 
-  it("play a broken rock's by its size, risen along its chain", async () => {
+  it("play a broken rock's by its kind and size, risen along its chain", async () => {
     const { shell, run } = await startBoard();
     const rock = placeRock(shell.field, "small", 30, 20);
     run.advance(16);
@@ -2374,7 +2379,7 @@ describe("the sounds", () => {
     hitRock(shell.field, rock, 0, 0);
     run.advance(16);
 
-    expect(played).toEqual([["small", 400]]);
+    expect(played).toEqual([["break-stone-small", 400]]);
   });
 
   it("play two breaks of a frame as one, at the higher", async () => {
@@ -2388,7 +2393,25 @@ describe("the sounds", () => {
     hitRock(shell.field, second, 0, 0);
     run.advance(16);
 
-    expect(played).toEqual([["small", 100]]);
+    expect(played).toEqual([["break-stone-small", 100]]);
+  });
+
+  it("play a blast before the breaks it sets off in its frame, which it ducks", async () => {
+    const { shell, run } = await startBoard();
+    const volatile = placeRock(shell.field, "large", 30, 20, "volatile");
+    placeRock(shell.field, "small", 32, 20);
+    hitRock(shell.field, volatile, 0, 0);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    shell.field.steps = volatile.goesOffAt;
+    setOffBlasts(shell.field);
+    run.advance(16);
+
+    expect(played.map(([name]) => name)).toEqual([
+      "blast-volatile",
+      "break-stone-small",
+    ]);
   });
 
   it("hum while the ship thrusts", async () => {

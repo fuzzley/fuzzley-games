@@ -26,8 +26,10 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
   `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
   `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
-  `src/rules/field/spawn.ts`), and a size's radius and speed
-  (`src/rules/tuning.ts`) and its sounds (`src/view/effects/sounds.ts`).
+  `src/rules/field/spawn.ts`), a size's radius and speed
+  (`src/rules/tuning.ts`), and the sounds of `src/view/effects/sounds.ts`:
+  a kind's break at each size it comes in (`BREAK_SOUNDS`) and its held
+  hit (`HIT_SOUNDS`), and a pickup's catch (`CATCH_SOUNDS`).
   The rest is made from the ids, a pickup's frame, an effect's record in
   play and a lasting effect's tag among them, so a new id that compiles has
   everything drawn and played.
@@ -41,7 +43,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 
   | Check               | Where                                                                | What it holds                                                                                                                                                          |
   | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                                                           | Every rock kind has its cut and ink, every trait its rule, every pickup its symbol, every effect its rule, every formation its layout                                  |
+  | The compiler        | everywhere                                                           | Every rock kind has its cut, ink and sounds, every trait its rule, every pickup its symbol and catch's sound, every effect its rule, every formation its layout        |
   | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
   | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
   | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
@@ -134,8 +136,10 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   its traits. Then how it is cut and marked at each size in `KIND_CUTS`,
   which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), and its
   ink in both sets of inks, checked at 3:1 against the field, at its
-  darkest and brightest faces too, by the contrast spec; and a wave that
-  lays it, which the catalog spec asks for.
+  darkest and brightest faces too, by the contrast spec; its sounds, its
+  break at each size it comes in in `BREAK_SOUNDS` and its held hit in
+  `HIT_SOUNDS` (`src/view/effects/sounds.ts`), by the plan's names in
+  `SOUNDS`; and a wave that lays it, which the catalog spec asks for.
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
@@ -151,9 +155,10 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 
 - **A pickup:** an entry in `PICKUPS`: its name and sentence, its weight in
   the pool, the wave it joins from, and its effect. Then its symbol in
-  `SYMBOLS` (`src/view/art/symbols.ts`); its frame, and its tag in the row at
-  the field's bottom left where its effect lasts, are made from it. The
-  catalog spec holds every pickup to coming first at its `from`.
+  `SYMBOLS` (`src/view/art/symbols.ts`) and its catch's sound in
+  `CATCH_SOUNDS` (`src/view/effects/sounds.ts`); its frame, and its tag in
+  the row at the field's bottom left where its effect lasts, are made from
+  it. The catalog spec holds every pickup to coming first at its `from`.
 - **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`)
   and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
   does as it starts and, where it lasts, as it ends, reaching only what of

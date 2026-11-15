@@ -8,6 +8,7 @@ import { spritemapOf, takeNames } from "@fz/dev/sounds";
 import { loudness, osc, wav } from "@fz/dev/synth";
 import shipped from "../src/scene/sounds/sprite.json";
 import recorded from "../src/scene/sounds/sprite_lengths.json";
+import { SOUNDS, SOUND_NAMES } from "../src/view/effects/sounds";
 import {
   BED_FAMILY,
   type Encode,
@@ -114,6 +115,30 @@ describe("the shipped sprite", () => {
         .flatMap((bed) => [`${bed}.m4a`, `${bed}.ogg`])
         .sort(),
     });
+  });
+});
+
+describe("the view's mix", () => {
+  it("names every sound of the sprite, at its recipe's family, level and takes", () => {
+    const recipes = Object.entries(FAMILIES)
+      .filter(([family]) => family !== BED_FAMILY)
+      .flatMap(([family, ofFamily]) =>
+        ofFamily.map((recipe) => ({ family, recipe })),
+      );
+
+    expect(
+      SOUND_NAMES.map((name) => {
+        const { family, level, takes } = SOUNDS[name];
+        return { name, family, level, takes };
+      }),
+    ).toEqual(
+      recipes.map(({ family, recipe }) => ({
+        name: recipe.name,
+        family,
+        level: recipe.level,
+        takes: recipe.takes ?? 1,
+      })),
+    );
   });
 });
 
