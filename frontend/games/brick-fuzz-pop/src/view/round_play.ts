@@ -198,19 +198,20 @@ const NO_EVENT: FlightEvent = { at: 0, kind: "land", ball: 0, x: 0 };
  * Plays a game's rounds one after another, as the shell hands them: the
  * round aimed, then, once it is released, its flight played back by the
  * frames' time at the speed set, fast-forwarded, sped up after a while,
- * skipped or paused, and its wall's step or jump, after which the next
- * round is aimed, or the level's card waited for and another level's
+ * skipped, dropped or paused, and its wall's step or jump, after which the
+ * next round is aimed, or the level's card waited for and another level's
  * first round aimed.
  *
  * Its view is one record, written again each frame, and a frame of play
  * makes nothing: each fuzzball is followed along its track from where it
  * was the frame before, and the bricks each event leaves are worked out
- * once, as the round is released. Make one for the game: its logs number
- * events on through every level and run, so their readers need no other.
+ * once, as the round is released or dropped. Make one for the game: its
+ * logs number events on through every level and run, so their readers
+ * need no other.
  */
 export class RoundPlay {
   private aimed: RoundStart;
-  /** The round released, until the next is aimed: null exactly while a round is aimed. */
+  /** The round in play, released or dropped, until the next is aimed: null exactly while a round is aimed. */
   private played: Round | null = null;
   private playPhase: RoundPhase = "aiming";
   /** Reads the round's flight in order, saying what each event calls for. */
@@ -236,6 +237,8 @@ export class RoundPlay {
   private scoredPoints = 0;
   /** Whether a skip waits for the next frame played, or has landed the flight, until the next round is aimed. */
   private skipping = false;
+  /** Whether the round in play's flight has been dropped, until the next is released. */
+  private dropped = false;
   /** Whether the player's fuzzball has landed, where it waits for the next round. */
   private playerLanded = false;
   /** How long the wall has settled, and how long it takes to, in milliseconds. */
@@ -258,7 +261,7 @@ export class RoundPlay {
   private spare: PlayedWall = playedWall();
   /** Whether the frame being played has copied the wall shown yet, which it does once. */
   private wallCopied = false;
-  /** The bricks the flight's events leave, in order, worked out as the round is released. */
+  /** The bricks the flight's events not yet played leave, in order, worked out as the round is released or dropped. */
   private readonly changes: WallChange[] = [];
   /** The index of the next of {@link changes} to make. */
   private nextChange = 0;
@@ -308,6 +311,25 @@ export class RoundPlay {
   }
 
   /**
+   * The moment of the round in play's flight the playback has reached, in
+   * field units, where a drop flies the round again to: 0 while a round is
+   * aimed, and the flight's length once it has landed.
+   */
+  get moment(): number {
+    const round = this.played;
+    return round === null ? 0 : Math.min(this.at, round.flight.length);
+  }
+
+  /**
+   * Whether a drop would bring the round in play's fuzzballs down: while
+   * its flight plays, until it has been dropped, after which each one in
+   * the air is coming down already and none is left to leave.
+   */
+  get droppable(): boolean {
+    return this.playPhase === "flying" && !this.dropped;
+  }
+
+  /**
    * Where the player's fuzzball waits on the floor, across the field: where
    * the round aimed starts, or, once its flight's fuzzball has landed, where
    * the next starts; null while it is in the air.
@@ -345,13 +367,39 @@ export class RoundPlay {
     this.flownMs = 0;
     this.next = 0;
     this.playerLanded = false;
+    this.dropped = false;
     this.settledMs = 0;
     this.atRest = false;
+    for (const state of this.balls) {
+      state.launched = false;
+      state.landed = false;
+    }
     this.indexFlight(round);
-    this.indexWall(this.aimed.wall, round);
+    this.indexWall(this.aimed.wall, round, 0);
     // Both copies sized for the wall at once, so no frame grows them.
     copyWall(this.aimed.wall, this.changing);
     copyWall(this.aimed.wall, this.spare);
+  }
+
+  /**
+   * Plays on with the round in play flown again from the same start and
+   * dropped at {@link moment} or later, in its place, from where the
+   * playback is; does nothing unless the round is {@link droppable}.
+   *
+   * The dropped flight's events up to the moment reached are the ones
+   * played already, so the log, the points and the wall keep what they took
+   * from them, and its fuzzballs come down along their new tracks from
+   * where they are. A second drop does nothing, as the round flown again from
+   * its start, dropped later, would not be the one played since the first.
+   */
+  dropTo(round: Round): void {
+    if (!this.droppable) return;
+    this.dropped = true;
+    this.played = round;
+    this.indexFlight(round);
+    // The wall shown is the one the events played leave, so only the
+    // changes of the events after them are worked out.
+    this.indexWall(this.shown.wall, round, this.next);
   }
 
   /**
@@ -610,18 +658,25 @@ export class RoundPlay {
   }
 
   /**
-   * Indexes a released round's flight once: each fuzzball's track by its
-   * number, none of them launched, and the flight's last landing.
+   * Indexes a round's flight once, as it is released or dropped: each
+   * fuzzball's track by its number, one in the air going on along the leg
+   * of its new track it flies, and the flight's last landing.
    */
   private indexFlight(round: Round): void {
     const { tracks, events } = round.flight;
     this.growTo(tracks.length);
-    for (const state of this.balls) {
-      state.launched = false;
-      state.landed = false;
-    }
-    for (const track of tracks) {
-      this.stateOf(track.ball).waypoints = track.waypoints;
+    for (const { ball, waypoints } of tracks) {
+      const state = this.stateOf(ball);
+      state.waypoints = waypoints;
+      if (state.launched && !state.landed) {
+        // A dropped track is the one it replaces up to the drop, waypoint
+        // for waypoint, so the leg it flies starts where it did and ends at
+        // the new track's waypoint of the same index: the one it had, the
+        // drop's, or the landing straight down from the leg's start. One
+        // launched at the drop's moment has none, as it lands then, before
+        // it is placed again.
+        state.to = waypoints[state.leg] ?? state.to;
+      }
     }
     this.lastLanding = -1;
     events.forEach(({ kind }, index) => {
@@ -630,20 +685,22 @@ export class RoundPlay {
   }
 
   /**
-   * Works out once, as a round is released, the bricks its flight's events
-   * leave, in order: a strike leaves its brick the hits it says, a zap
+   * Works out once, as a round is released or dropped, the bricks its
+   * flight's events from an index on leave, in order, from the wall as it
+   * stands before them: a strike leaves its brick the hits it says, a zap
    * takes its hits off each brick it reaches, and a break leaves none.
    */
-  private indexWall(start: Wall, round: Round): void {
+  private indexWall(wall: Wall, round: Round, from: number): void {
     const { changes } = this;
     changes.length = 0;
     this.nextChange = 0;
-    const left = [...start.bricks];
+    const left = [...wall.bricks];
     const leave = (event: number, cell: number, brick: Brick | null): void => {
       left[cell] = brick;
       changes.push({ event, cell, brick });
     };
     round.flight.events.forEach((event, index) => {
+      if (index < from) return;
       switch (event.kind) {
         case "strike": {
           const brick = left[event.cell];

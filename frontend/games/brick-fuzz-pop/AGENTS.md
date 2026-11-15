@@ -223,7 +223,9 @@ helpers.
 - **`src/view/`** — what to draw and when, without Phaser, tested in Node.
   `round_play.ts` holds `RoundPlay`, which plays a round's flight back a
   frame at a time, counting its breaks' points as it reaches them
-  (`scored`), and settles its wall, one for the whole game, and
+  (`scored`), takes the round flown again, dropped at the moment it has
+  reached, once a flight, and plays on from there (`moment`, `droppable`,
+  `dropTo()`), and settles its wall, one for the whole game, and
   `RoundView`, the round as the scene draws it at a moment, its events
   numbered in `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds
   `RunState`, the run on the board and where its round stands, which
