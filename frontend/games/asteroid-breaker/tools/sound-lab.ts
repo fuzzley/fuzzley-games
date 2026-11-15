@@ -18,7 +18,7 @@ import {
   CHAIN_STEP_CENTS,
   SOUNDS,
   type SoundName,
-} from "../src/view/effects/effects";
+} from "../src/view/effects/sounds";
 
 /** What plays each sound in the game, as `tools/build-sounds.mjs` describes its recipe. */
 const PLAYS: Readonly<Record<SoundName, string>> = {

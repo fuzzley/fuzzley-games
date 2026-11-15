@@ -1,6 +1,6 @@
 import { ROCK_RADIUS } from "../rules/tuning";
 import { rockColor } from "../view/art/rock_art";
-import { type Flourish, rockKindOf, rockSizeOf } from "../view/effects/effects";
+import type { Flourish } from "../view/effects/effects";
 import {
   ringColorOf,
   ringReachOf,
@@ -8,7 +8,7 @@ import {
   wayOf,
 } from "../view/effects/flourish";
 import { BURST_SHARDS } from "../view/effects/timing";
-import type { FieldEvent } from "../view/field/frame";
+import { type FieldEvent, rockKindOf, rockSizeOf } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
 import type { DebrisPainter } from "./painters/debris_painter";
 import type { PaintContext } from "./painters/painter";

@@ -1,4 +1,4 @@
-import type { FieldEventLog } from "../../rules/field/events";
+import { type FieldEvent, FieldEventLog } from "../../rules/field/events";
 import type { Field } from "../../rules/field/field";
 import { STILL, type Ship, createShip } from "../../rules/ship/ship";
 import type { Moving, Torus } from "../../rules/torus";
@@ -7,6 +7,8 @@ import {
   type FieldView,
   type Stepped,
   angleBetween,
+  rockKindOf,
+  rockSizeOf,
   shipAt,
   wrappedBetween,
 } from "./frame";
@@ -125,5 +127,40 @@ describe("shipAt", () => {
     expect(
       shipAt({ ship: null, torus: TORUS }, 0.5, { x: 0, y: 0, angle: 0 }),
     ).toBeNull();
+  });
+});
+
+describe("the rock an event names", () => {
+  /** Returns the latest event of a log. */
+  function latestOf(log: FieldEventLog): FieldEvent {
+    let latest: FieldEvent | undefined;
+    log.forEachSince(log.latest - 1, (event) => {
+      latest = event;
+    });
+    if (latest === undefined) throw new Error("The log has an event.");
+    return latest;
+  }
+
+  it("reads the kind and size of the rock an event happened to", () => {
+    const log = new FieldEventLog();
+    log.addBreak({ x: 1, y: 2, kind: "ice", size: "medium", slot: 0 }, 1, 0, 0);
+
+    const event = latestOf(log);
+
+    expect([rockKindOf(event), rockSizeOf(event)]).toEqual(["ice", "medium"]);
+  });
+
+  it("throws for an event that names no rock", () => {
+    const log = new FieldEventLog();
+    log.add("fired", 0, 0);
+
+    expect(() => rockKindOf(latestOf(log))).toThrow(RangeError);
+  });
+
+  it("throws for an event that names no rock's size", () => {
+    const log = new FieldEventLog();
+    log.add("fired", 0, 0);
+
+    expect(() => rockSizeOf(latestOf(log))).toThrow(RangeError);
   });
 });

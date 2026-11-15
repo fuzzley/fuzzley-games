@@ -27,7 +27,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
   `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
   `src/rules/field/spawn.ts`), and a size's radius and speed
-  (`src/rules/tuning.ts`) and its sounds (`src/view/effects/effects.ts`).
+  (`src/rules/tuning.ts`) and its sounds (`src/view/effects/sounds.ts`).
   The rest is made from the ids, a pickup's frame, an effect's record in
   play and a lasting effect's tag among them, so a new id that compiles has
   everything drawn and played.

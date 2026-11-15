@@ -314,8 +314,9 @@ takes for the specs' helpers.
   wave's place, and where a thing that
   wraps is drawn between its last place and its next, the shortest way across
   the wrap (`wrappedBetween()`; one that crosses, as a comet or a stray, is
-  drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`), and
-  where the ship is drawn and turned (`shipAt()`). `layers.ts` is the order
+  drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`),
+  where the ship is drawn and turned (`shipAt()`), and the kind and size of
+  the rock an event names (`rockKindOf()`, `rockSizeOf()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
   the tags of the lasting effects lie, at the field's bottom left, and how
@@ -367,8 +368,9 @@ takes for the specs' helpers.
   it (`nearSlide()`, `NEAR_SLIDE`). `quiet.spec.ts` holds each place's
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
-  `effects.ts` says what each event calls for, its sound and its flourishes
-  (`effectsOf()`), how far a broken rock's sound rises along a chain
+  `effects.ts` says which flourishes each event calls for, with motion and
+  without (`effectsOf()`); `sounds.ts` which sound each event plays
+  (`soundOf()`), how far a broken rock's sound rises along a chain
   (`detuneOf()`), and `createFrameSounds()`, `@fz/core/frame_sounds`'s
   `FrameSounds` of its `SOUNDS`, which plays each sound once a frame at
   most, at the highest it was heard; the thrust's hum (`THRUST`) is one of

@@ -83,7 +83,7 @@ import {
 } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
-import { SOUNDS } from "../view/effects/effects";
+import { SOUNDS } from "../view/effects/sounds";
 import {
   BREATH,
   GOLDEN_ANGLE,
