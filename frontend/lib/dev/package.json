@@ -23,15 +23,19 @@
     "./workspaces": "./src/workspaces.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
   },
+  "bin": {
+    "tsc7": "./bin/tsc7.mjs"
+  },
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p tsconfig.lib.json --incremental --tsBuildInfoFile tsconfig.lib.tsbuildinfo && tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo",
+    "typecheck": "tsc7 -p tsconfig.lib.json && tsc7 -p tsconfig.scripts.json",
     "lint": "eslint ."
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
     "@fz/style": "workspace:*",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "angular-eslint": "^22.6.0",
     "eslint-plugin-jsdoc": "^65.4.6",
     "sharp": "^0.35.5",

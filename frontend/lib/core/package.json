@@ -26,7 +26,7 @@
   "scripts": {
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc -p tsconfig.lib.json --incremental --tsBuildInfoFile tsconfig.lib.tsbuildinfo && tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo",
+    "typecheck": "tsc7 -p tsconfig.lib.json && tsc7 -p tsconfig.scripts.json",
     "lint": "eslint ."
   },
   "devDependencies": {

@@ -231,7 +231,7 @@ own, which `yarn workspace @fz/style <script>` runs alone.
   (`stylelint.config.js`, the library's own preset with the palettes, the
   shadows and `src/testing/fixtures/palettes.scss` let off its color
   rules).
-- **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
+- **`typecheck`** runs `tsc7` over the sources, the specs and the Vitest
   config (`tsconfig.lib.json`), then over the two lint configs from their
   JSDoc (`tsconfig.scripts.json`).
 - **`test`** runs Vitest in Node, but `src/testing/paint_roles.spec.ts`, in

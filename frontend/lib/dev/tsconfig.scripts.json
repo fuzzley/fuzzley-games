@@ -1,5 +1,6 @@
 {
-  // The ESLint config, type-checked from its JSDoc, with the blocks it imports.
+  // The ESLint config and the binaries, type-checked from their JSDoc, with
+  // what they import.
   "extends": "./tsconfig/scripts.json",
-  "include": ["eslint.config.js"]
+  "include": ["eslint.config.js", "bin/**/*.mjs"]
 }

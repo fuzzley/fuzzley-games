@@ -212,7 +212,7 @@ Run these from `frontend/lib/core/`, or as `yarn workspace @fz/core
 
 - **Run Tests:** `yarn test` (Vitest in Node), or `yarn test:coverage`
   (with coverage, failing below the floor `vitest.config.ts` sets).
-- **Type Checking:** `yarn typecheck` (`tsc` over the sources, the specs
+- **Type Checking:** `yarn typecheck` (`tsc7` over the sources, the specs
   and the Vitest config, `tsconfig.lib.json`, then over `eslint.config.js`
   from its JSDoc, `tsconfig.scripts.json`).
 - **Linting:** `yarn lint` (ESLint over the library, its config with

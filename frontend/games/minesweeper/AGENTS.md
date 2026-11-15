@@ -154,7 +154,7 @@ workspace's with the others'.
   `stylelint.config.js`, and the fence around `src/rules/`; then
   `yarn lint:styles`, stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the Angular compiler over the app,
-  then `tsc` over the specs, the Vite configs, and the scripts in `tools/`
+  then `tsc7` over the specs, the Vite configs, and the scripts in `tools/`
   and the two lint configs from their JSDoc, emitting nothing, each with
   `@fz/dev`'s compiler options).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs

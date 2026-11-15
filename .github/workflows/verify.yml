@@ -106,20 +106,6 @@ jobs:
         with:
           corepack-version: ${{ env.COREPACK_VERSION }}
 
-      # tsc's build info, which lets each `tsc` pass check again only what
-      # changed; it keys each file on its contents, so the last run's serves
-      # any commit.
-      - name: Restore tsc's build info
-        uses: actions/cache@v6
-        with:
-          path: |
-            frontend/tsconfig.*.tsbuildinfo
-            frontend/lib/*/tsconfig.*.tsbuildinfo
-            frontend/games/*/tsconfig.*.tsbuildinfo
-            frontend/site/tsconfig.*.tsbuildinfo
-          key: tsc-${{ hashFiles('frontend/yarn.lock') }}-${{ github.sha }}
-          restore-keys: tsc-${{ hashFiles('frontend/yarn.lock') }}-
-
       - name: Type-check
         working-directory: frontend
         run: yarn typecheck

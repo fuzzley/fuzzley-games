@@ -392,6 +392,13 @@ too. Paths are relative to `frontend/lib/dev/`.
   and says when each started and how long it ran. `runCommand()` runs a
   command line through the platform's shell, where Windows finds Yarn's
   `.cmd`, and returns its code and all it printed.
+- `src/tsc7.ts` and `bin/tsc7.mjs`, the `tsc7` binary: TypeScript 7's
+  `tsc`, run on its arguments, for the type-check passes that need no
+  compiler API, which every workspace's `typecheck` runs, and the root's.
+  This library depends on TypeScript 7 under an alias, `@typescript/native`,
+  so its `tsc` binary takes nothing from TypeScript 6's, which `ngc`, ESLint
+  and Analog's plugin load as `typescript`, as 7 has no compiler API yet;
+  `runTsc7()` returns the code it exits with, which the binary exits with.
 - `src/report.ts`, `@fz/dev/report`: the table a game's report prints of how its
   autopilot plays each wave or level at each speed or depth, as Asteroid
   Breaker's `report:waves` and Brick Breaker's and Brick Fuzz Pop's
@@ -550,10 +557,11 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
 - **`lint`** runs ESLint with its own blocks (`eslint.config.js`), over
   that config too, and holds the modules the scripts load to Vite's types
   alone.
-- **`typecheck`** runs `tsc` over the sources, the specs and the Vitest
-  config (`tsconfig.lib.json`), then over the ESLint config from its
-  JSDoc, with the blocks it imports (`tsconfig.scripts.json`); the
-  solution, `tsconfig.json`, references both.
+- **`typecheck`** runs `tsc7` over the sources, the specs and the Vitest
+  config (`tsconfig.lib.json`), then over the ESLint config and the
+  binaries from their JSDoc, with what they import
+  (`tsconfig.scripts.json`); the solution, `tsconfig.json`, references
+  both.
 - **`test`** runs Vitest in Node. `src/eslint.spec.ts` lints files written
   into a folder of their own with the blocks, so a block that stops catching
   what it should fails here; `src/vitest.spec.ts` and `src/vite.spec.ts`
@@ -571,6 +579,8 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   itself, and reads and writes the designer's lists;
   `src/workspaces.spec.ts` reads workspaces it writes, runs fake runs in
   lanes, real commands through the shell, and the script over fake ones;
+  `src/tsc7.spec.ts` runs TypeScript 7 over projects it writes, holding
+  `runTsc7()` to its exit code;
   `src/sound_lab_mix.spec.ts` measures, matches, loops, varies and pans
   samples it makes up; `src/sound_lab.spec.ts` serves a game it writes,
   with the lab under a base, behind a plugin that turns Vite's compiler off
