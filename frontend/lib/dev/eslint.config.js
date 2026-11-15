@@ -11,12 +11,13 @@ export default defineConfig(
   tests({ files: ["src/**/*.spec.ts", "src/testing/**/*.ts"] }),
   scripts({ files: ["eslint.config.js", "bin/**/*.mjs"] }),
   // What the scripts load of this library, from @fz/dev/script, /report,
-  // /screenshots and /workspaces, and what the tsc7 binary loads, loads
-  // Vite only once a script asks for it.
+  // /screenshots, /workspaces and /verify, and what the tsc7 binary loads,
+  // loads Vite only once a script asks for it.
   {
     files: [
       "src/script.ts",
       "src/workspaces.ts",
+      "src/verify.ts",
       "src/report.ts",
       "src/screenshots.ts",
       "src/screenshot_page.ts",

@@ -363,26 +363,28 @@ too. Paths are relative to `frontend/lib/dev/`.
   `setUpPage()` runs in the page is in `src/screenshot_page.ts`;
   `src/screenshot_page.spec.ts` runs it and `describePhaserPage()` in jsdom,
   each as the page is sent it, from its source alone.
-- `src/script.ts`, `@fz/dev/script`: what a workspace's Node scripts
-  share. `readArgs()` reads a command line's options, `--help` (`-h`) among
-  them, which every script takes, and the words after them where the
-  script takes any, or returns a `Stop`: the usage and 0 for `--help`, and
-  what is wrong, a blank line, the usage and 2 for one it can't read, as
-  `misread()` returns for a value the script itself refuses, and
-  `readCount()` for an option that isn't a whole number from 1; `isStop()`
-  tells a stop from what the script asked for. `stopWith()` prints a stop,
-  the usage as output and the rest as what went wrong, and returns its
-  code, and `wrapped()` breaks what a usage says into lines of 78 columns.
-  A script's `run()` takes a `ScriptIo`: where it prints, `CONSOLE` unless a
-  spec hands it another `Printer`, and what it loads, so its spec holds it
-  whole. A spec hands it `recordingPrinter()`'s, which keeps each line
-  printed, its output in `out` and what went wrong in `err`, for the spec to
-  read back. `importThroughVite()` loads a module of an app's TypeScript
-  through Vite's `runnerImport()`, as Node can't load it as it is: its modules
-  are named without extensions and import JSON, and `@fz/core` isn't written
-  for Node to strip its types. It loads Vite only once called, so a script
-  that loads nothing through it doesn't wait on Vite; the site loads its
-  catalog with it too.
+- `src/script.ts`, `@fz/dev/script`: what a workspace's Node scripts share.
+  `readArgs()` reads a command line's options, `--help` (`-h`) among them,
+  which every script takes, and the words after them where the script takes
+  any, or returns a `Stop`: the usage and 0 for `--help`, and what is wrong, a
+  blank line, the usage and 2 for one it can't read, as `misread()` returns
+  for a value the script itself refuses, and `readCount()` for an option that
+  isn't a whole number from 1; `isStop()` tells a stop from what the script
+  asked for. `stopWith()` prints a stop, the usage as output and the rest as
+  what went wrong, and returns its code, and `wrapped()` breaks what a usage
+  says into lines of 78 columns. A script's `run()` takes a `ScriptIo`: where
+  it prints, `CONSOLE` unless a spec hands it another `Printer`, and what it
+  loads, so its spec holds it whole. A spec hands it `recordingPrinter()`'s,
+  which keeps each line printed, its output in `out` and what went wrong in
+  `err`, for the spec to read back. `importThroughVite()` loads a module of an
+  app's TypeScript through Vite's `runnerImport()`, as Node can't load it as
+  it is: its modules are named without extensions and import JSON, and
+  `@fz/core` isn't written for Node to strip its types. It loads Vite only
+  once called, so a script that loads nothing through it doesn't wait on Vite;
+  the site loads its catalog with it too. `Env` is the environment a script or
+  a command runs in, and `onCi()` says whether it is CI's, `CI` set to `true`;
+  `vitest.ts` reads it itself, as the configs that load it can't import a
+  sibling's `.ts`.
 - `src/workspaces.ts`, `@fz/dev/workspaces`: what the root's
   `tools/run-tests.mjs` is, which `yarn test` and `yarn test:coverage` run.
   `runTestsScript()` reads the command line (the script, `--jobs`, `--only`
@@ -410,7 +412,48 @@ too. Paths are relative to `frontend/lib/dev/`.
   says when each started and how long it ran. `runCommand()` runs a command
   line through the platform's shell, where Windows finds Yarn's `.cmd`, in the
   process's environment unless given another, and returns its code and all it
-  printed.
+  printed. `declaredWorkspaces()` reads every workspace a root declares, with
+  its scripts and the workspaces it depends on through a `workspace:` range;
+  `compileCached()` hands an environment Node's compile cache, as
+  `runTestsScript()` does; `printedRun()` prints what a run printed under a
+  line that says how it exited; and `timesTable()` makes the table of when
+  each run started and how long it ran.
+- `src/verify.ts`, `@fz/dev/verify`: what the root's
+  `tools/verify-changed.mjs` is, which `yarn verify:changed` runs.
+  `runVerifyChanged()` reads the command line (`--base`, `origin/main` unless
+  given, `--coverage`, `--dry-run` and `--help`), finds the files the branch
+  changed since it left the base, in its commits, staged, unstaged or
+  untracked anywhere in the repository, by their paths from its root, as git
+  writes them (`changedSince()`), and the workspaces they reach (`reachOf()`),
+  matched by those paths rather than by absolute ones, which two names of one
+  folder could make differ: those holding one, and every workspace that
+  depends on those, or every workspace for a file of the root's but those only
+  its own scripts read, its `tools/`, its lint and constraints configs, its
+  `tsconfig.scripts.json`, `LICENSE` and `.gitignore`, or for `.node-version`.
+  Markdown reaches none, wherever it lies, as only the root's skill-reference
+  check and Prettier read it, as CI's `changes-code.sh` holds too. It makes
+  the tasks that verify them (`tasksOf()`): the root's `lint:root`,
+  `typecheck:root` and `prettier:check`, which run whatever changed, and each
+  workspace's `lint`, `typecheck`, `test` (or `test:coverage`), `build` and
+  `check:layout` where it has the script, a layout check after its game's
+  build, and the site's build, once the site or a game is reached, after every
+  game's build, so it never takes a build another branch left in a `dist/`.
+  Each task claims cores and memory: the tests their workers, a GB each, sized
+  as if four suites at most shared three quarters of the cores and of the
+  memory, two at least, though the budget alone decides how many run at once,
+  and every other step about what it took alone on the largest workspace, as
+  `docs/local-pipeline-audit/data/step-memory.tsv` records. `runTasks()` runs
+  them under the budget, the cores and the memory available as it starts
+  (`process.availableMemory()`, which a container's limit holds to) less 3 GB,
+  the longest way to the end first, by the times it kept the last time each
+  passed, in the root's `node_modules/.cache/fz-verify/times.json`, or a guess
+  by its script; a task starts once those it waits on have passed and its
+  claims fit, or at once where nothing else runs, and is skipped where one it
+  waits on didn't pass, every other running whatever another's comes to. It
+  prints each task's output once it ends, then when each started and how long
+  it ran, as `yarn test` does, through `@fz/dev/workspaces`' `printedRun()`
+  and `timesTable()`, and returns 1 where any failed or was skipped, and 2 for
+  a command line it can't read or a base git can't find.
 - `src/tsc7.ts` and `bin/tsc7.mjs`, the `tsc7` binary: TypeScript 7's
   `tsc`, run on its arguments, for the type-check passes that need no
   compiler API, which every workspace's `typecheck` runs, and the root's.
@@ -554,12 +597,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   TypeScript is only the kind Node can strip (`erasableSyntaxOnly`), as in
   `@fz/style`. The sound lab's page is the one module Node never loads,
   since it imports its stylesheet, which only a game's dev server compiles.
-- **The scripts' helpers load Vite only when asked.** What
-  `@fz/dev/script`, `/report`, `/screenshots` and `/workspaces` load
-  imports Vite, and the modules here that import it, by type alone, so a
-  script that loads
-  nothing through `importThroughVite()` doesn't wait on Vite; lint holds
-  them to it.
+- **The scripts' helpers load Vite only when asked.** What `@fz/dev/script`,
+  `/report`, `/screenshots`, `/workspaces` and `/verify` load imports Vite,
+  and the modules here that import it, by type alone, so a script that loads
+  nothing through `importThroughVite()` doesn't wait on Vite; lint holds them
+  to it.
 - **Nothing here reaches an app's bundle.** It holds only what checks,
   builds or scripts a workspace, and the sound lab, which a dev server
   alone serves; what an app runs belongs in the other libraries.
@@ -598,6 +640,9 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   itself, and reads and writes the designer's lists;
   `src/workspaces.spec.ts` reads workspaces it writes, runs fake runs in
   lanes, real commands through the shell, and the script over fake ones;
+  `src/verify.spec.ts` reads what branches of repositories it writes
+  changed, works out what a change reaches and the tasks that verify it,
+  runs tasks on a fake clock under budgets, and the script over a fake shell;
   `src/tsc7.spec.ts` runs TypeScript 7 over projects it writes, holding
   `runTsc7()` to its exit code;
   `src/sound_lab_mix.spec.ts` measures, matches, loops, varies and pans

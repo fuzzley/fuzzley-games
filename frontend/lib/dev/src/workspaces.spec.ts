@@ -1,11 +1,11 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { recordingPrinter } from "./script.ts";
+import { type Env, recordingPrinter } from "./script.ts";
 import {
-  type Env,
   type Ran,
   type Workspace,
+  declaredWorkspaces,
   runCommand,
   runInLanes,
   runTestsScript,
@@ -121,6 +121,38 @@ function fakeCommands(codes: Readonly<Record<string, number>> = {}): {
     },
   };
 }
+
+describe("declaredWorkspaces", () => {
+  it("reads each workspace's scripts and the workspaces it depends on through workspace: ranges", async () => {
+    const root = await folderOf({
+      "package.json": JSON.stringify({ workspaces: ["lib/*"] }),
+      "lib/a/package.json": JSON.stringify({
+        name: "a",
+        scripts: { lint: "eslint", test: "vitest" },
+      }),
+      "lib/b/package.json": JSON.stringify({
+        name: "b",
+        dependencies: { a: "workspace:*", semver: "^7.0.0" },
+        devDependencies: { c: "workspace:^" },
+      }),
+      "lib/c/package.json": JSON.stringify({ name: "c" }),
+    });
+
+    const declared = declaredWorkspaces(root);
+
+    expect(
+      declared.map(({ name, scripts, dependsOn }) => ({
+        name,
+        scripts,
+        dependsOn,
+      })),
+    ).toEqual([
+      { name: "a", scripts: ["lint", "test"], dependsOn: [] },
+      { name: "b", scripts: [], dependsOn: ["a", "c"] },
+      { name: "c", scripts: [], dependsOn: [] },
+    ]);
+  });
+});
 
 describe("workspacesWithScript", () => {
   it("finds the workspaces with the script, the most spec files first, then by name", async () => {

@@ -27,8 +27,10 @@ import {
 } from "./layout_page.ts";
 import {
   CONSOLE,
+  type Env,
   type Printer,
   isStop,
+  onCi,
   readArgs,
   readCount,
   stopWith,
@@ -355,7 +357,7 @@ export interface LayoutScriptOptions extends Partial<Printer> {
   /** The command line's arguments, the process's by default. */
   readonly args?: readonly string[];
   /** The environment, which says whether it runs on CI, the process's by default. */
-  readonly env?: Readonly<Record<string, string | undefined>>;
+  readonly env?: Env;
   /** Starts the headless Chrome, `withChrome()` by default. */
   readonly runChrome?: typeof withChrome;
 }
@@ -366,10 +368,8 @@ export interface LayoutScriptOptions extends Partial<Printer> {
  * draw WebGL in software, each page's frames the slower the more draw at
  * once, and a check waits on the game's frames.
  */
-function defaultPagesAtOnce(
-  env: Readonly<Record<string, string | undefined>>,
-): number {
-  return env["CI"] === "true" ? 2 : 4;
+function defaultPagesAtOnce(env: Env): number {
+  return onCi(env) ? 2 : 4;
 }
 
 /**
