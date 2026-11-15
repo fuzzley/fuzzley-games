@@ -167,7 +167,8 @@ export function landRound(run: Run): Run {
  * nothing can change how the round ends: a level cleared
  * (`levelResultOf()`) and the run ended (`isNewBest()`, then
  * `withRunEnded()`). The saved game keeps a run so as its round is
- * released, ahead of the records until the flight lands.
+ * released, ahead of the records until the flight lands, so land a flight
+ * in the air at once as the page is hidden, whatever the run's stage.
  */
 export function afterLanding(run: Run): Run {
   switch (run.ending) {

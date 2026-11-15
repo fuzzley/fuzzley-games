@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
+import type { AwayReason } from "@fz/game-ui/play_room";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -616,6 +617,17 @@ export class GameService extends RunLifecycle implements KeptGame {
     this.runState.set({ ...state, run, start });
   }
 
+  /**
+   * Pauses the level in play as the player looks away from the room, a
+   * flight in the air paused where it is; but as the page is hidden, which
+   * may never be seen again, lands the round in the air at once first, as
+   * it would have flown, so its records are kept with the saved game.
+   */
+  lookAway(reason: AwayReason): void {
+    if (reason === "hidden") this.landAtOnce();
+    this.pause();
+  }
+
   /** Pauses the level in play, a round in the air or not, and says so. */
   pause(): void {
     const state = this.runState();
@@ -768,18 +780,36 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Plays the round on by a frame's time and takes in what the frame came
-   * to: the run landed as the flight ends, while it is under way, with
-   * what the landing brings to the records, the next round aimed as an
-   * ongoing round's wall comes to rest, the card that opened, and the words
-   * for all of it.
+   * Lands the round in the air at once, whatever the run's stage: its
+   * flight at a frame of no time, as a skip does, and the run, with the
+   * records, as {@link afterLanding} lands it, a paused run left paused
+   * but where its level ends.
    */
-  private playFrame(deltaMs: number, paused: boolean): void {
+  private landAtOnce(): void {
+    const flying = this.flying();
+    if (flying) this.play.skip();
+    // A paused frame plays the view on not at all, so a flight it has
+    // landed already, skipped while paused, lands in the run alone.
+    this.playFrame(0, !flying, afterLanding);
+  }
+
+  /**
+   * Plays the round on by a frame's time and takes in what the frame came
+   * to: the run landed as the flight ends, while it is under way, or as
+   * the move handed lands it, with what the landing brings to the records,
+   * the next round aimed as an ongoing round's wall comes to rest, the card
+   * that opened, and the words for all of it.
+   */
+  private playFrame(
+    deltaMs: number,
+    paused: boolean,
+    land: (run: Run) => Run = landRound,
+  ): void {
     const change = this.play.advance(deltaMs, this.frameOptions(paused));
     const before = this.runState();
     const run =
       this.play.phase !== "flying" && before.run.ending !== null
-        ? landRound(before.run)
+        ? land(before.run)
         : before.run;
     let state = before;
     if (run !== before.run) {

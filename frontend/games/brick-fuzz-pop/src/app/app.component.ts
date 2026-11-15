@@ -59,7 +59,8 @@ export const HELP_FAILED_WORDS =
  * The board takes the focus as a run begins, as the page loads, after a
  * dialog over it closes, and after the bar's Resume, so the keys steer at
  * once. The level in play pauses whenever the player looks away from the
- * room (`[fzPlayRoom]`).
+ * room (`[fzPlayRoom]`), a flight in the air landing at once first as the
+ * page is hidden.
  */
 @Component({
   selector: "app-root",
@@ -157,11 +158,6 @@ export class AppComponent {
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
     this.dropHelpAtKeys();
-  }
-
-  /** Pauses the level in play as the player looks away from the room. */
-  protected pauseRun(): void {
-    this.game.pause();
   }
 
   /** Goes on with the paused level, as the bar's Resume asks, and hands the board the focus back from it. */

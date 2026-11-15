@@ -113,6 +113,14 @@ describe("HelpComponent", () => {
     );
   });
 
+  it("says a flight in the air lands at once as the game goes out of sight", async () => {
+    await renderHelp();
+
+    expect(paragraph("No hurry.")).toHaveTextContent(
+      "the game pauses itself when you switch away, turn the screen or open a dialog; a flight still in the air as the game goes out of sight, as when you switch tabs, lands at once, as it would have flown.",
+    );
+  });
+
   it("says fast-forward is said as its key switches it", async () => {
     await renderHelp();
 

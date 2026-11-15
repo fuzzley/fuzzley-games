@@ -1222,6 +1222,147 @@ describe("GameService", () => {
     });
   });
 
+  describe("looking away", () => {
+    it.each(["focus", "turned"] as const)(
+      "pauses a flight in the air where it is as the player looks away by %s",
+      (reason) => {
+        const game = gameOf("step");
+        release(game);
+        const place = placeOf(game);
+
+        game.lookAway(reason);
+
+        expect({
+          outcome: game.outcome(),
+          flying: game.flying(),
+          place: placeOf(game),
+        }).toEqual({ outcome: "paused", flying: true, place });
+      },
+    );
+
+    it("lands a flight in the air at once as the page is hidden, and pauses, saying so with the round's points", () => {
+      const game = gameOf("step");
+      release(game);
+
+      game.lookAway("hidden");
+
+      expect({
+        outcome: game.outcome(),
+        flying: game.flying(),
+        rounds: game.rounds(),
+        said: said(),
+      }).toEqual({
+        outcome: "paused",
+        flying: false,
+        rounds: 1,
+        said: describePause({ ...game.run(), score: SPEC_POINTS.step }),
+      });
+    });
+
+    it("keeps the level a flight in the air clears as the page is hidden", () => {
+      const game = gameOf("cleared");
+      release(game);
+
+      game.lookAway("hidden");
+
+      expect({
+        outcome: game.outcome(),
+        cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
+        stars: TestBed.inject(StatsService).stats().levels[FIRST_ID]?.stars,
+      }).toEqual({ outcome: "cleared", cleared: true, stars: 3 });
+    });
+
+    it("keeps the level a flight paused in the air clears as the page is hidden after the focus left", () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.lookAway("focus");
+
+      game.lookAway("hidden");
+
+      expect({
+        outcome: game.outcome(),
+        flying: game.flying(),
+        cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
+      }).toEqual({ outcome: "cleared", flying: false, cleared: true });
+    });
+
+    it("keeps the run's end and its best as a flight paused in the air ends the run and the page is hidden", () => {
+      const game = gameOf("step", "lost");
+      playRoundOut(game);
+      release(game);
+      game.lookAway("focus");
+
+      game.lookAway("hidden");
+
+      expect({
+        outcome: game.outcome(),
+        best: TestBed.inject(StatsService).stats().best,
+        newBest: game.newBest(),
+      }).toEqual({ outcome: "over", best: SPEC_POINTS.step, newBest: true });
+    });
+
+    it("keeps a run paused as the page is hidden after the focus left, its flight landed", () => {
+      const game = gameOf("step");
+      release(game);
+      game.lookAway("focus");
+
+      game.lookAway("hidden");
+
+      expect([game.outcome(), game.flying()]).toEqual(["paused", false]);
+    });
+
+    it("keeps the level a flight skipped while paused cleared as the page is hidden, its card left for the page to be seen", () => {
+      const game = gameOf("cleared");
+      release(game);
+      game.pause();
+      game.skip();
+
+      game.lookAway("hidden");
+
+      expect({
+        outcome: game.outcome(),
+        cleared: TestBed.inject(ProgressService).cleared().has(FIRST_ID),
+        card: game.card(),
+      }).toEqual({ outcome: "cleared", cleared: true, card: null });
+    });
+
+    it("leaves the landed round's wall to come down once the run goes on, for a player who welcomes motion", () => {
+      installFakeViewport(1280);
+      const game = gameOf("step");
+      release(game);
+
+      game.lookAway("hidden");
+
+      expect([game.phase(), game.outcome()]).toEqual(["settling", "paused"]);
+    });
+
+    it("brings the landed round's wall down and aims the next as the run goes on, for a player who welcomes motion", () => {
+      installFakeViewport(1280);
+      const game = gameOf("step");
+      const { next } = released(game);
+      game.lookAway("hidden");
+      game.resume();
+
+      playOut(game);
+
+      expect([game.phase(), game.start()]).toEqual(["aiming", next]);
+    });
+
+    it("pauses a level with no flight in the air as the page is hidden, the round aimed left as it is", () => {
+      const game = gameOf("step");
+      playRoundOut(game);
+      const start = game.start();
+
+      game.lookAway("hidden");
+
+      expect([game.outcome(), game.phase(), game.start()]).toEqual([
+        "paused",
+        "aiming",
+        start,
+      ]);
+    });
+  });
+
   describe("a new game", () => {
     it("starts a new run at the level the last one started at, waiting for its first shot", async () => {
       const game = gameOf("step");
