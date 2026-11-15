@@ -1,0 +1,51 @@
+verify-changed-one-game, one game, against HEAD:
+    0.0 s   29.7 s  brick-fuzz-pop test
+    0.0 s   31.1 s  brick-fuzz-pop lint
+    0.0 s    6.8 s  brick-fuzz-pop build
+    0.0 s    6.4 s  brick-fuzz-pop typecheck
+    6.4 s    3.6 s  root lint:root
+    6.8 s   14.0 s  brick-fuzz-pop check:layout
+   10.0 s    2.1 s  root prettier:check
+   12.1 s    1.2 s  root typecheck:root
+   20.8 s    9.4 s  solitaire build
+   29.7 s    6.6 s  asteroid-breaker build
+   29.7 s    5.5 s  snake build
+   29.7 s    6.8 s  brick-breaker build
+   29.7 s    4.5 s  sudoku build
+   29.7 s    4.5 s  minesweeper build
+   36.5 s    4.1 s  site build
+
+verify-changed-t3, one game, against HEAD:
+    0.0 s   28.3 s  brick-fuzz-pop test
+    0.0 s   30.5 s  brick-fuzz-pop lint
+    0.0 s    7.5 s  brick-fuzz-pop build
+    0.0 s    6.5 s  brick-fuzz-pop typecheck
+    6.5 s    3.7 s  root lint:root
+    7.5 s   10.8 s  solitaire build
+   10.2 s    1.9 s  root prettier:check
+   12.1 s    1.0 s  root typecheck:root
+   18.3 s    7.8 s  asteroid-breaker build
+   26.1 s   11.5 s  brick-fuzz-pop check:layout
+   28.3 s    8.2 s  brick-breaker build
+   28.3 s    6.7 s  snake build
+   28.3 s    5.6 s  minesweeper build
+   28.3 s    5.5 s  sudoku build
+   36.5 s    4.2 s  site build
+
+verify-changed-t5, one game, against HEAD:
+    0.0 s   30.6 s  brick-fuzz-pop lint
+    0.0 s   28.6 s  brick-fuzz-pop test
+    0.0 s    6.7 s  brick-fuzz-pop build
+    0.0 s    8.3 s  solitaire build
+    6.7 s    8.5 s  brick-breaker build
+    8.3 s    9.0 s  asteroid-breaker build
+   15.3 s   13.0 s  brick-fuzz-pop check:layout
+   17.3 s    8.2 s  snake build
+   25.5 s    4.9 s  minesweeper build
+   28.3 s    4.5 s  sudoku build
+   28.6 s    6.8 s  brick-fuzz-pop typecheck
+   28.6 s    3.4 s  root lint:root
+   28.6 s    1.2 s  root prettier:check
+   28.6 s    0.8 s  root typecheck:root
+   32.8 s    4.3 s  site build
+

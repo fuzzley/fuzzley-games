@@ -1,6 +1,6 @@
 # Local pipeline audit: lint, typecheck, tests, build and layout check
 
-Measured on 2026-11-14 at e6740e04, on the 24-core devbox (23 GB, Node 26.13, Yarn 4.18.1), with warm caches, as a developer reruns `yarn verify` and `yarn check:layout`. The CI audit is in [`../ci-performance-audit/report-after.md`](../ci-performance-audit/report-after.md). Its findings are referred to here, not repeated. Every figure is from one run unless it says otherwise, so read it as ±10%.
+Measured on 2026-11-14 at e6740e04, on the 24-core devbox (23 GB, Node 26.13, Yarn 4.18.1), with warm caches, as a developer reruns `yarn verify` and `yarn check:layout`. The CI audit is in [`../ci-performance-audit/report-after.md`](../ci-performance-audit/report-after.md). Its findings are referred to here, not repeated. Every figure is from one run unless it says otherwise, so read it as ±10%. What was built from it, and what it measured after, is under [As built](#as-built).
 
 ## Summary
 
@@ -17,6 +17,81 @@ Measured on 2026-11-14 at e6740e04, on the 24-core devbox (23 GB, Node 26.13, Ya
   - Oxlint: it can't lint Angular templates.
   - Running `ngc` on TypeScript 7: not supported yet.
   - Analog's `fastCompile` in tests: broken with Vitest's module cache.
+
+## As built
+
+Built on `local-pipeline`, one reviewed commit a step, as [work-log.md](work-log.md) records: #1, #2, #3 with the budget of #4 for the runs it starts, #6's compile cache and its notes, and #7. #4 for the full run, #5 and #8 are left, for the reasons the work log's plan gives.
+
+Locally, warm, on the same devbox at 15c09afe, as `bench.sh` times the steps ([`data/steps-after.tsv`](data/steps-after.tsv)):
+
+| Step                                               | At e6740e04 | At 15c09afe |
+| -------------------------------------------------- | ----------: | ----------: |
+| skills, constraints, `dedupe --check`, root ESLint |       3.8 s |       2.7 s |
+| ESLint and Stylelint, every workspace (`foreach`)  |      31.1 s |      31.2 s |
+| Prettier, cached                                   |       1.1 s |       1.2 s |
+| `tsc` and `ngc`, every workspace and the root's    |      17.3 s |      11.4 s |
+| `yarn test`                                        |      68.9 s |      62.8 s |
+| builds: the games', then the site's                |      14.7 s |      13.8 s |
+| layout check                                       |      34.2 s |      23.4 s |
+| **total**                                          |   **171 s** | **146.5 s** |
+
+- **The total fell by 14%,** and its CPU from 1,818 to 1,676 s. A run at bf297ad9, with step 6's work in the tree, took the same 146.5 s ([`data/steps-after-step-5.tsv`](data/steps-after-step-5.tsv)).
+- **The typecheck took 11 s,** against the 8 s estimated.
+- **The layout check took 23 s,** against the 15–20 s estimated.
+- **`yarn test` took 63 s,** 6 s less, within a single run's ±10%. Step 5 timed whole runs with the compile cache off, empty and full, in 65.7–67.4 s, and couldn't tell them apart. At half a second a Vitest start, and three or four starts a lane, it would save about 2 s (est.).
+
+`yarn verify:changed`, on the same devbox ([`data/verify-changed.tsv`](data/verify-changed.tsv)):
+
+- **One of Brick Fuzz Pop's source files changed: 37.8–41.3 s, over three runs,** against 146.5 s for `yarn verify` and `yarn check:layout`. The game's lint alone takes about 31 s ([`data/verify-changed-one-game-times.txt`](data/verify-changed-one-game-times.txt)).
+  - The rest is the other games' builds and the site's. The site's build runs whenever a game is reached, and every game is built first, so it never takes a build another branch left in a `dist/`.
+  - They wait on the tests' memory. Twelve workers claimed 12 GB ([`data/verify-changed-one-game-dry-run.txt`](data/verify-changed-one-game-dry-run.txt)). The run prints no budget; when the first run's tasks started fits one of 16.5–17.0 GB, and a dry run after it found 17.3.
+  - In the first run, five other games' builds, then the site's, took the last 10 s. In the third, ordered by the times the first two kept, the builds ran beside the tests, and the game's typecheck waited for them instead, ending at 35 s.
+  - Yet Brick Fuzz Pop's tests took 4.1 GB on 8 workers ([`data/step-memory.tsv`](data/step-memory.tsv)), and 28.9 s alone on eight against 29.7 s in the first run on twelve. Claiming each suite's own memory per worker would let the builds run beside the tests.
+- **Every workspace, as the branch's change to `frontend/package.json` reaches: 111 s,** against 146.5 s.
+
+On CI, the Verify workflow ran fourteen times, all passing ([`data/ci-runs.tsv`](data/ci-runs.tsv), from `ci-steps.sh`):
+
+- **Seven at 15c09afe,** three dispatched one at a time, then four each dispatched with a run of main's code.
+- **Seven on main's code:** the CI audit's two runs at 4d37058f, the push of 9bba39fe, and the four paired runs at e6740e04. Those four ran from a branch of their own, `ci-control`, since a dispatch on `main` runs `promote`.
+- **The three commits run the same code:** 4d37058f, 9bba39fe and e6740e04 differ only in docs.
+
+Medians, with the range:
+
+| Job or step              |           main |         branch |
+| ------------------------ | -------------: | -------------: |
+| `typecheck`'s Type-check |    57 s, 45–67 |    32 s, 25–43 |
+| `typecheck`              |    79 s, 69–95 |    52 s, 43–63 |
+| `build`'s layout check   |   86 s, 66–106 |   80 s, 65–106 |
+| `build`                  | 136 s, 109–158 | 126 s, 109–168 |
+| `lint`                   |  111 s, 89–129 |  108 s, 81–136 |
+
+- **TypeScript 7 took 25 s off the Type-check step.** The two ranges don't overlap.
+- **The layout check's two pages show no change either way.** The four pairs' layout checks took 101, 65, 80 and 106 s on the branch, against 86, 66, 101 and 78 s on main's code.
+  - The check prints no page's time, so how close Brick Breaker's Cleared card, its slowest page, comes to its 60 s on a runner is estimated.
+  - Step 4 timed the card at 20.1 s as CI runs, on 4 of the devbox's cores in software WebGL, where the whole check took 55.8 s.
+  - CI's step took 65–106 s, 1.2–1.9 times that, which puts the card at about 23–38 s (est.).
+- **No test job ran slower for the branch's code, by what the pairs and the A/B can tell.** The test jobs ran in 92–152 s on most runners and in 180–191 s on the rest, whichever code they ran.
+  - The breakers' job runs code the branch leaves as it was. Only those games' `typecheck` scripts and Brick Breaker's `tools/check-layout.mjs` change, `yarn.lock` only adds TypeScript 7's packages, and `test:coverage` runs in the environment it ran in before. `runTestsScript()` was rewritten in step 6, but prints the same and runs the same commands.
+  - Main's code drew the slow runners in the first and third pairs, the branch in the second, third and fourth. On them, main's code took 94.6–94.8 s for Asteroid Breaker, 66.1–67.4 s for Brick Breaker and 90.0–92.2 s for Brick Fuzz Pop, as the branch's took 92–97 s, 65–67 s and 89–91 s ([`data/ci-workspace-tests.tsv`](data/ci-workspace-tests.tsv), from `ci-workspace-tests.sh`).
+  - Within a job, every workspace moved together, those the branch doesn't touch too.
+- **Run as CI runs them, on 4 local cores with `CI=true`, the two big-game jobs took the same on both** ([`data/ci-tests-ab.tsv`](data/ci-tests-ab.tsv), from `ci-tests-ab.sh`). Each ran twice, swapping the order each round:
+  - Asteroid Breaker and Brick Breaker took 116.9–119.1 s on the branch, against 116.9–118.7 s on main.
+  - Brick Fuzz Pop and the Solitaire Collection took 112.8–113.6 s, against 113.1–117.5 s.
+  - A first set, with the branch second in each round, came out the same ([`data/ci-tests-ab-first.tsv`](data/ci-tests-ab-first.tsv)).
+- **So the branch's runs ended 39 s later in median, most of it in test jobs on slow runners.** A run's last check ends at the largest `end_s` of its jobs but `promote`.
+  - The branch's seven ended at 169–205 s, a median of 197, against 150–205 s and 158 for main's code.
+  - The branch drew a slow runner for seven test jobs of 21, and main's code for four.
+  - With those jobs set aside, the branch's runs end at 139–181 s, a median of 164, against 150–170 s and 153: 11 s later, within the runs' spread.
+  - In the four pairs, the branch ended first twice: at 169 s against 205, and 198 against 203. Main's code ended first at 153 s against 195, and 158 against 197.
+  - Fourteen runs can't rule out a small effect.
+
+**Left:**
+
+- **In `yarn verify:changed`, claim each suite's own memory per worker,** so the builds run beside one game's tests.
+- **Print each layout page's time,** so its margin on a runner is measured rather than estimated.
+- **#4, one runner for `yarn verify` and `yarn verify:full`,** once `verify:changed` has been used for a while.
+- **#5, revisited:** a pass is keyed on its workspace's files, so an edit there reruns every one of its steps anyway. It would skip a rerun with nothing changed, or a branch switched back to, and `verify:changed` already takes one game's to about 40 s. Its risk of a false pass stays, so it stays left.
+- **#8, Analog's `fastCompile` for builds.**
 
 ## Where the time goes
 
@@ -158,7 +233,7 @@ That is 4.6 of the 14 workspaces per commit on average. But the most-touched wor
 
 ## Recommendations
 
-Ranked by what they save for the effort. The local figures are measured unless marked "est.", and none was measured on CI.
+Ranked by what they save for the effort. The local figures are measured unless marked "est.", and none was measured on CI until [As built](#as-built).
 
 | #   | Change                                                                                                                                                                                  | Saves                                                                                                                                                                                                                                            | Effort       | Risk                                                                                                                                                                                                                                                                                                          |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -248,10 +323,16 @@ So a runner of the repository's own fits better. Turborepo is the fallback if ke
   - `ts7-compare.sh`, `eslint-concurrency.sh`, `fast-compile.sh` and `layout-pages.sh` time what their names say.
   - `history.mjs [since] [until]` classes the commits, and `estimate.mjs` models them.
   - `test-startup.mjs` reads each suite's start-up from `bench.sh`'s test log.
+  - `step-memory.sh`, from step 6 of the work log, measures the memory each kind of step takes alone, for the claims `yarn verify:changed` makes.
+  - For As built:
+    - `verify-changed.sh <label> [branch | one-game]` times `yarn verify:changed` on the branch, or with a line added to one of Brick Fuzz Pop's files.
+    - `ci-steps.sh <run-id>...` reads the Verify workflow's jobs and steps: how long each took, and when each job started and ended from the run's start.
+    - `ci-workspace-tests.sh <run-id>...` reads each workspace's suite time from the test jobs' logs.
+    - `ci-tests-ab.sh <label> <checkout-a> <checkout-b> <rounds> <options...>` runs one of CI's test jobs on 4 cores with `CI=true` in two checkouts, in turn.
 - **By hand, not scripted:** the CPU profile of a Vitest start, `vitest doctor`, `--changed` and `--sinceLastRun`, Node's compile cache, Asteroid Breaker's per-file times, ESLint's rule timings, Stylelint's and ESLint's config's load, and TypeScript 7 catching seeded errors. Each was a one-off command, and the report says so where it cites one.
 - **Read off the raw logs:** the six of Sudoku's 607 specs that the compilation API failed, from `fast-compile.sh`'s log of that run, and Sudoku's Vitest `Duration` of 2.9 s, from its run without `fastCompile`.
 - **Not measured:**
   - Cold runs. The CI audit's are in its report.
-  - CI runs of any of the changes.
+  - CI runs of any of the changes, until As built.
   - `yarn verify:full`'s coverage runs.
   - The Docker image.
