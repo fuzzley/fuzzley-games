@@ -622,16 +622,16 @@ describe("stepField", () => {
       expect(dash?.wayY).toBeCloseTo(-1, 9);
     });
 
-    it("fires the weapon in hand while fire is held, logging the pull", () => {
+    it("fires the weapon in hand while fire is held, logging the pull with its weapon", () => {
       const field = fieldFrom([...KEEPER, "", "", "....^"]);
       field.weapon = "spread";
 
       stepBy(field, FIRE);
 
-      expect([shotsInFlight(field), kindsLoggedOn(field)]).toEqual([
-        3,
-        ["fired"],
-      ]);
+      expect([
+        shotsInFlight(field),
+        loggedOn(field).map(({ kind, weapon }) => [kind, weapon]),
+      ]).toEqual([3, [["fired", "spread"]]]);
     });
 
     it("fires by itself with no fire held, as the setting has it", () => {

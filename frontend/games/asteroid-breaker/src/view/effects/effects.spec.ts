@@ -27,6 +27,7 @@ function eventOf(
     rock,
     size,
     pickup: null,
+    weapon: null,
     pilot: null,
     inTow: 0,
     runOver: false,

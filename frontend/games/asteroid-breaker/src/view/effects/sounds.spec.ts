@@ -8,6 +8,7 @@ import {
   type RockSize,
   hasTrait,
 } from "../../rules/catalog/rocks";
+import { WEAPON_IDS, type WeaponId } from "../../rules/catalog/weapons";
 import { hitRock } from "../../rules/rocks/rocks";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
@@ -27,11 +28,13 @@ interface Made {
   readonly rock?: RockKindId | null;
   readonly chain?: number;
   readonly pickup?: PickupId | null;
+  readonly weapon?: WeaponId | null;
 }
 
 /**
  * Returns an event of a kind, of a rock of a kind and size, at a count in
- * its chain, or of a pickup, as given; a rock's size alone names a stone.
+ * its chain, of a pickup, or fired by a weapon, as given; a rock's size
+ * alone names a stone.
  */
 function eventOf(
   kind: FieldEventKind,
@@ -40,6 +43,7 @@ function eventOf(
     rock = size === null ? null : "stone",
     chain = 0,
     pickup = null,
+    weapon = null,
   }: Made = {},
 ): FieldEvent {
   return {
@@ -50,6 +54,7 @@ function eventOf(
     rock,
     size,
     pickup,
+    weapon,
     pilot: null,
     inTow: 0,
     runOver: false,
@@ -94,7 +99,6 @@ function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
 
 /** Every event that names nothing but its kind and place, with its sound. */
 const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
-  ["fired", "shot-gun"],
   ["dashed", "dash"],
   ["shielded", "shield-break"],
   ["nova", "blast-volatile"],
@@ -144,6 +148,14 @@ const HITS: readonly (readonly [RockKindId, SoundName | null])[] = [
   ["lodestone", "hit-stone"],
 ];
 
+/** Each weapon, with the sound its pull of fire plays. */
+const SHOTS: readonly (readonly [WeaponId, SoundName])[] = [
+  ["gun", "shot-gun"],
+  ["spread", "shot-spread"],
+  ["rapid", "shot-rapid"],
+  ["lance", "shot-lance"],
+];
+
 /** Each pickup, with the sound its catch plays, or null for one heard by what it starts. */
 const CATCHES: readonly (readonly [PickupId, SoundName | null])[] = [
   ["spread", "pickup-spread"],
@@ -162,6 +174,7 @@ const EVERY_EVENT: readonly FieldEvent[] = [
     sizesOf(rock).flatMap((size) => rockEventsOf(rock, size)),
   ),
   ...PICKUP_IDS.map((pickup) => eventOf("caught", { pickup })),
+  ...WEAPON_IDS.map((weapon) => eventOf("fired", { weapon })),
 ];
 
 /** The sounds of the sprite no event the field logs plays yet. */
@@ -188,9 +201,6 @@ const UNPLAYED: readonly SoundName[] = [
   "blast-volatile-small",
   "break-cluster",
   "shot-tail",
-  "shot-spread",
-  "shot-rapid",
-  "shot-lance",
   "thrust-start",
   "thrust-stop",
   "dash-ready",
@@ -308,6 +318,14 @@ describe("soundOf", () => {
     expect(soundOf(eventOf("caught", { pickup }))).toBe(sound);
   });
 
+  it.each(SHOTS)("plays a pull of the %s with %s", (weapon, sound) => {
+    expect(soundOf(eventOf("fired", { weapon }))).toBe(sound);
+  });
+
+  it("names a shot for every weapon", () => {
+    expect(SHOTS.map(([weapon]) => weapon)).toEqual(WEAPON_IDS);
+  });
+
   it("plays, of the sprite's sounds, none but those of events the field logs, the thrust's hum apart", () => {
     const played = new Set(EVERY_EVENT.map(soundOf));
 
@@ -342,6 +360,10 @@ describe("soundOf", () => {
 
   it("throws for a catch that names no pickup", () => {
     expect(() => soundOf(eventOf("caught"))).toThrow(RangeError);
+  });
+
+  it("throws for a pull of fire that names no weapon", () => {
+    expect(() => soundOf(eventOf("fired"))).toThrow(RangeError);
   });
 });
 

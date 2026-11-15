@@ -29,7 +29,8 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   `src/rules/field/spawn.ts`), a size's radius and speed
   (`src/rules/tuning.ts`), and the sounds of `src/view/effects/sounds.ts`:
   a kind's break at each size it comes in (`BREAK_SOUNDS`) and its held
-  hit (`HIT_SOUNDS`), and a pickup's catch (`CATCH_SOUNDS`).
+  hit (`HIT_SOUNDS`), a pickup's catch (`CATCH_SOUNDS`), and a weapon's
+  shot (`SHOT_SOUNDS`).
   The rest is made from the ids, a pickup's frame, an effect's record in
   play and a lasting effect's tag among them, so a new id that compiles has
   everything drawn and played.
@@ -43,7 +44,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 
   | Check               | Where                                                                | What it holds                                                                                                                                                          |
   | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                                                           | Every rock kind has its cut, ink and sounds, every trait its rule, every pickup its symbol and catch's sound, every effect its rule, every formation its layout        |
+  | The compiler        | everywhere                                                           | Every rock kind has its cut, ink and sounds, every pickup its symbol and sound, every weapon its sound, every trait and effect its rule, every formation its layout    |
   | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
   | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
   | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
@@ -168,4 +169,6 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle
   between them, the time between pulls, how many may be in flight and how
   many rocks a shot breaks; a `weapon` effect arms the ship with it for its
-  time.
+  time. Its shot's sound goes in `SHOT_SOUNDS`
+  (`src/view/effects/sounds.ts`), each pull of fire the field logs naming
+  its weapon.

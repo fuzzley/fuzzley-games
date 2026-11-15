@@ -65,6 +65,7 @@ function reaching(kind: FieldEventKind, reach: number): FieldEvent {
     rock: null,
     size: null,
     pickup: null,
+    weapon: null,
     pilot: null,
     inTow: 0,
     runOver: false,

@@ -18,11 +18,11 @@ import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
 import { TURN } from "../rules/angles";
 import type { EffectKind, PickupId } from "../rules/catalog/pickups";
-import type { Field } from "../rules/field/field";
+import { type Field, steerField } from "../rules/field/field";
 import { COMET_RECORDS } from "../rules/hazards/comets";
 import { hitRock, setOffBlasts } from "../rules/rocks/rocks";
 import { atControls } from "../rules/ship/pilots";
-import type { Ship } from "../rules/ship/ship";
+import { STILL, type Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import { across } from "../rules/torus";
 import {
@@ -50,6 +50,7 @@ import {
   shownAt,
   slotOf,
   startBoard,
+  stepping,
   stillness,
   withShip,
   zoomOf,
@@ -2412,6 +2413,18 @@ describe("the sounds", () => {
       "blast-volatile",
       "break-stone-small",
     ]);
+  });
+
+  it("play a pull of fire by the weapon that fired it", async () => {
+    const { shell, run } = await startBoard(withShip);
+    const played = soundsPlayed();
+    shell.field.weapon = "lance";
+    steerField(shell.field, { ...STILL, fire: true });
+
+    stepping(shell);
+    run.advance(16);
+
+    expect(played).toEqual([["shot-lance", 0]]);
   });
 
   it("hum while the ship thrusts", async () => {
