@@ -16,7 +16,7 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 | 1    | —   | The audit's report, scripts and data                                                                                                 | 05b6fd8b |
 | 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | edcd1961 |
 | 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | ed629c55 |
-| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               |          |
+| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               | 7ed7026a |
 | 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |          |
 | 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |          |
 | 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       |          |
@@ -121,7 +121,7 @@ The review, and the answers:
 ### 2026-11-14: the layout check's pages side by side (step 4)
 
 `perf(dev): open the layout check's pages a few at once, four locally and two where CI is true, each check opening no more once one fails`
-(step 4):
+(7ed7026a, step 4):
 
 - `@fz/dev/chrome`'s `DevToolsConnection` takes how many pages it opens at once (`pagesAtOnce`), one unless given, and `withPage()` waits its turn for one, the pages waiting in the order they asked. `withChrome()` hands its connection the `pagesAtOnce` its options say.
 - `withPage()` tells each page it has the focus (`Emulation.setFocusEmulationEnabled`). A new target takes the window's focus, so a page opened beside another would take it from that one, and the games pause when the focus leaves them.
@@ -155,3 +155,21 @@ These fixes reshaped the change, so it had a second review, which found nothing 
 3. **Brick Breaker's and Brick Fuzz Pop's scripts still said their second pass came "then".** Fixed: their docs and their `checkBoth()`'s say it runs beside the first.
 4. **The 20.1 s against 60 s was measured on the devbox's cores, which are faster than a runner's.** Agreed: step 7 dispatches Verify on the branch and compares the build job's layout check with main's, and nothing of this merges before it does.
 5. **The nits.** `DevToolsConnection.open()` checks the count before it opens a socket. `reservePage()` is the verb name. The queue stays in the connection rather than a class of its own: it is three fields and two methods, which only `withPage()` calls.
+
+### 2026-11-15: Node's compile cache for the tests' Vitest runs (step 5)
+
+`perf(dev): keep node's compile cache for each vitest run yarn test starts, off CI`
+(step 5):
+
+- `runTestsScript()`, which `yarn test` and `yarn test:coverage` run, hands each workspace's run of `test` an environment with `NODE_COMPILE_CACHE` set to the root's `node_modules/.cache/node-compile-cache/`. It leaves the environment as it is where `CI` is `true`, as a runner starts with no cache, where `NODE_COMPILE_CACHE` names one already, and for `test:coverage`, as Node says coverage can be less precise in code read from the cache. Vitest doesn't turn the cache on itself, where tsc, ESLint, Vite and Prettier do. `NODE_DISABLE_COMPILE_CACHE=1` turns it off.
+- `runCommand()` takes the environment to run in, the process's unless given, and `TestsScriptIo` takes the one the script runs in, for its specs.
+- Measured: `@fz/core`'s tests, started as the script starts them, took 1.45 s with the cache against 1.95 s without, four runs each, the half second the audit found. A whole `yarn test` took 67.2 s with the cache off, 65.9 s with it empty, and 67.4 s and 65.7 s with it full, the gain lost in the noise of a run 4 workspaces at a time. What it saves is the edit loop's: one workspace's tests, through `yarn test --only`. The cache came to 27 MB.
+- The docs: `frontend/AGENTS.md`'s Run Unit Tests, and `@fz/dev`'s `AGENTS.md`.
+- Checked: `@fz/dev`'s lint, typecheck and tests, 646; the root's lint; and `yarn test`, every workspace. With the environment taken out of `runCommand()`'s spawn, or the cache out of the script's environment, their specs fail.
+
+The review, and the answers:
+
+1. **`yarn test:coverage`, and so the merge gate's `yarn verify:full`, ran with the cache, which Node's docs advise against for coverage.** Vitest runs the covered code through a VM, which never reads the cache, so it made no difference today, but would for code run through Node's own `import`. Fixed: only `test` keeps the cache, and a spec holds `test:coverage` to the environment as it is.
+2. **The whole run was timed with the cache empty and full, but not off.** Fixed: 67.2 s off, beside the others above. `frontend/AGENTS.md` names `NODE_DISABLE_COMPILE_CACHE=1`, which turns it off.
+3. **Whether a run is on CI is read in three modules, and `Env` is spelt out in two.** Step 6 moves `Env` and a reader of `CI` into `@fz/dev/script`, as its runner needs both too.
+4. **Nits.** Fixed: `fakeCommands()`'s doc says it records the environment; the pass-through cases read "leaves the environment as it is on CI" and "where it names a cache already"; and `@fz/dev`'s `AGENTS.md` keeps the reason CI is left out apart from the tools that keep a cache.
