@@ -7,7 +7,8 @@
  * under all that glows, so none covers what it glows round; the tags of the
  * effects in play, under all that moves, so they hide nothing a player must
  * see; a broken rock's dust and shards, under the rocks, so none hides a
- * piece it leaves; the rocks; the pickups; the strays adrift and the pilots
+ * piece it leaves; the rocks; the pickups; the sparks broken rocks shed,
+ * over the pickups, so an orb hides none; the strays adrift and the pilots
  * bailing out; the comets and their warnings; the shots; the crew in tow
  * and those knocked loose, under the ship, so the line ties on under the
  * pod; the ship and its pilot; a held hit's flash; the flourishes, back to
@@ -24,6 +25,7 @@ export const LAYERS = [
   "breaks",
   "rocks",
   "pickups",
+  "sparks",
   "strays",
   "hazards",
   "shots",
@@ -60,6 +62,7 @@ export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   breaks: "field",
   rocks: "field",
   pickups: "field",
+  sparks: "field",
   strays: "field",
   hazards: "field",
   shots: "field",

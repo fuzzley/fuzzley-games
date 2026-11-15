@@ -13,7 +13,8 @@ import type { Crew } from "../../rules/ship/pilots";
 import type { Ship, Steer } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
 import type { TowLink } from "../../rules/ship/tow";
-import type { Charge } from "../../rules/sparks/charge";
+import type { Charge, Sparking } from "../../rules/sparks/charge";
+import type { Spark } from "../../rules/sparks/sparks";
 import {
   type Moving,
   type Place,
@@ -69,6 +70,14 @@ export interface FieldView {
   readonly cleared: boolean;
   /** Static as it stands, which the pilot's fur shows. */
   readonly charge: Readonly<Charge>;
+  /** A slot for each spark that can be out at once, out on the field while live. */
+  readonly sparks: readonly Readonly<Spark>[];
+  /** How sparks, static and the zap work: how far the ship draws sparks in from, among it. */
+  readonly sparking: Readonly<Sparking>;
+  /** How near the ship a pickup is drawn in from, from which a Magnet draws sparks too. */
+  readonly pullReach: number;
+  /** What the wave was set up with that the view reads: how far the ship draws sparks in, by the speed. */
+  readonly setup: { readonly sparkReach: number };
 }
 
 /** Describes the field between one step and the next. */

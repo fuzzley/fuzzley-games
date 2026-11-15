@@ -408,7 +408,8 @@ takes for the specs' helpers.
   wide it is drawn (`towLineWidth()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`), the crew in tow
-  under the ship, so the line ties on under the pod. `tags.ts` says where
+  under the ship, so the line ties on under the pod, and the sparks over
+  the pickups, so an orb hides none. `tags.ts` says where
   the tags of the effects in play lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning
   stands, on the field's edge where the comet will come in, along its way
@@ -652,6 +653,21 @@ takes for the specs' helpers.
   thrust (`flameShare()`), at the kit's opacity for it (`flameHalo()`,
   `FLAME_GLOW`), its full length held to the pod's flame's frame by its
   spec;
+  `sparks.ts` the sparks broken rocks shed, as the kit's motes
+  (`things.mjs`' `moteSvg()` and `moteDrawnSvg()`): each a four-point
+  spark (`breaks.ts`' `sparkPoints()`) in the accent's energy, its points
+  in its body and, where they reach 2 CSS pixels, its bright middle in its
+  hot tone, at one of two sizes (`SPARK_CUTS`, `SPARK_FRAMES`), every
+  third slot's the larger (`sparkSizeOf()`), each slot turned a little its
+  own way (`sparkTurnOf()`), with its halo in the accent as far past its
+  points as the kit's (`sparkHalo()`); whether one shows, but for the off
+  half of each blink in its last second (`isSparkShown()`); and whether the
+  ship draws one in (`isSparkDrawn()`, by the rules' `drawReach()`), which
+  streaks it toward the pod across the wrap, a tail behind it as long as
+  it is drawn in a tenth of a second and as wide as the spark
+  (`sparkTail()`, `SPARK_TAIL_FRAME`, `SPARK_TAIL_LENGTH`), in the
+  accent's body, fading behind it;
+  `sparkFrames()` draws their frames;
   `things.ts` what drifts on the field to be caught, as the art kit's
   `things.mjs` draws it: each pickup as a round glass orb (`ORB`), the
   field's color tinted with the accent (`orbColors()`), outlined in the
@@ -778,7 +794,12 @@ takes for the specs' helpers.
   a light at its rock's edge toward the ship that lights the faces struck,
   and another where that edge shows past the field's own,
   `PickupPainter` the pickups, each as its orb, as large and as opaque
-  as `pickupLook()` says, each slot a phase apart,
+  as `pickupLook()` says, each slot a phase apart, `SparkPainter` the
+  sparks broken rocks shed, over the pickups, each slot's in its size and
+  turn, its halo in the accent through the halo painter, which it reserves
+  one for each spark that can be out, and, while the ship draws it in, its
+  tail streaking behind it away from the pod, each hidden for the off half
+  of each blink in its last second, its halo with it,
   `StrayPainter` the stray adrift, pleading, and a lost pod's pilot
   bailing out, wide eyed, `HazardPainter` the comets, each its head lit
   as the rocks are, from the rocks' atlas, its edge over it and its tail
