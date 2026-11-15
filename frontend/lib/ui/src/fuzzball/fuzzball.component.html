@@ -1,3 +1,4 @@
+@let drawn = shown();
 <svg [attr.viewBox]="mark.viewBox" focusable="false">
   <circle
     class="body"
@@ -11,26 +12,107 @@
     fill="none"
     stroke="currentcolor"
     stroke-linecap="round"
-    [attr.d]="mark.fur.d"
-    [attr.stroke-width]="mark.fur.width"
+    [attr.d]="drawn.fur"
+    [attr.stroke-width]="drawn.furWidth"
   />
-  @for (eye of mark.eyes; track $index) {
-    <ellipse
-      [attr.cx]="eye.cx"
-      [attr.cy]="eye.cy"
-      [attr.rx]="eye.rx"
-      [attr.ry]="eye.ry"
-      [attr.fill]="mark.ink"
-      [style.fill]="eyes"
-    />
+  @for (eye of drawn.eyes; track $index) {
+    @let kind = eye.kind;
+    @switch (kind) {
+      @case ("circle") {
+        <circle
+          [class.glint]="eye.glint"
+          [attr.cx]="eye.cx"
+          [attr.cy]="eye.cy"
+          [attr.r]="eye.r"
+          [attr.fill]="eye.ink"
+          [style.fill]="eye.paint"
+        />
+      }
+      @case ("ellipse") {
+        <ellipse
+          [class.glint]="eye.glint"
+          [attr.cx]="eye.cx"
+          [attr.cy]="eye.cy"
+          [attr.rx]="eye.rx"
+          [attr.ry]="eye.ry"
+          [attr.fill]="eye.ink"
+          [style.fill]="eye.paint"
+        />
+      }
+      @case ("polygon") {
+        <polygon
+          [class.glint]="eye.glint"
+          [attr.points]="eye.points"
+          [attr.fill]="eye.ink"
+          [style.fill]="eye.paint"
+        />
+      }
+      @case ("polyline") {
+        <polyline
+          [class.glint]="eye.glint"
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          [attr.points]="eye.points"
+          [attr.stroke-width]="eye.width"
+          [attr.stroke]="eye.ink"
+          [style.stroke]="eye.paint"
+        />
+      }
+      @default never;
+    }
   }
-  @for (glint of mark.glints; track $index) {
-    <circle
-      class="glint"
-      [attr.cx]="glint.cx"
-      [attr.cy]="glint.cy"
-      [attr.r]="glint.r"
-      [attr.fill]="mark.glint"
-    />
+  @if (drawn.sparking) {
+    <g
+      class="halos"
+      fill="currentcolor"
+      stroke="currentcolor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      [attr.opacity]="sparkLook.haloAlpha"
+    >
+      @for (spark of drawn.sparks; track $index) {
+        @switch (spark.kind) {
+          @case ("tick") {
+            <polyline
+              fill="none"
+              [attr.points]="spark.points"
+              [attr.stroke-width]="sparkLook.tickHalo"
+            />
+          }
+          @case ("star") {
+            <polygon
+              [attr.points]="spark.points"
+              [attr.stroke-width]="sparkLook.starHalo"
+            />
+          }
+          @default never;
+        }
+      }
+    </g>
+    <g
+      class="cores"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      [style.fill]="sparkCore"
+      [style.stroke]="sparkCore"
+    >
+      @for (spark of drawn.sparks; track $index) {
+        @switch (spark.kind) {
+          @case ("tick") {
+            <polyline
+              fill="none"
+              vector-effect="non-scaling-stroke"
+              [attr.points]="spark.points"
+              [style.stroke-width]="tickCoreWidth"
+            />
+          }
+          @case ("star") {
+            <polygon stroke="none" [attr.points]="spark.points" />
+          }
+          @default never;
+        }
+      }
+    </g>
   }
 </svg>

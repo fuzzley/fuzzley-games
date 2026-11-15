@@ -80,7 +80,15 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
 - `src/fuzzball/`: `<fz-fuzzball>`, `@fz/style`'s fuzzball drawn inline,
   its body and fur in the text's color and its eyes dark, or in
   `--fz-fuzzball-eyes` where it is set, which the wordmark and a game's own
-  fuzzballs draw; 16 device pixels across or
+  fuzzballs draw. It takes a `face`, one of `@fz/style`'s nine, at rest
+  unless given another, as the art kit draws it (at `FUZZBALL_LOOK_FAR`,
+  so a plead looks up as far), and static's `lift`, from 0 to 3, its fur
+  standing on end and sparking from 2.5, as `fuzzballDrawing()` poses it:
+  the sparks' halos faint as one in its color, and their cores mixed
+  toward the text in a light palette and toward white in a dark one
+  (`light-dark()`), a tick's no narrower than `SPARK_LOOK.tickCoreLeast`
+  CSS pixels. Lifted fur and sparks reach past its box, which grows for
+  neither, so what holds it leaves them room. 16 device pixels across or
   less, as 16 px is at about a device pixel to a CSS pixel, it leaves out
   the glints, as `fuzzballSvg()` says to. It is hidden from assistive
   technology.

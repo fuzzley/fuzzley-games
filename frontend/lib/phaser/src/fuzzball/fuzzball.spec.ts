@@ -56,16 +56,9 @@ function onCanvas({ cx, cy }: { cx: number; cy: number }, by: number): Point {
   return { x: (cx - FUZZBALL.body.cx) * by, y: (cy - FUZZBALL.body.cy) * by };
 }
 
-describe("FUZZBALL_GRID", () => {
-  it("is as wide as the fuzzball's view box", () => {
-    expect(FUZZBALL.viewBox).toBe(
-      `0 0 ${String(FUZZBALL_GRID)} ${String(FUZZBALL_GRID)}`,
-    );
-  });
-});
-
 describe("what it hands on from @fz/style/fuzzball", () => {
   it.each([
+    ["FUZZBALL_GRID", FUZZBALL_GRID, style.FUZZBALL_GRID],
     ["aboutBody", aboutBody, style.aboutBody],
     ["strandsOf", strandsOf, style.strandsOf],
     ["FUZZBALL_STRANDS", FUZZBALL_STRANDS, style.FUZZBALL_STRANDS],
