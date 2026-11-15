@@ -500,10 +500,11 @@ too. Paths are relative to `frontend/lib/dev/`.
   offline at 44,100 samples a second (`SR`), every random draw from a seed
   (`seeded()`), so a run renders the same bytes again, for a game whose
   `tools/build-sounds.mjs` renders its takes with it and packs them with
-  `packSoundSprite()`. A `Signal` is a `Float64Array` of samples from -1 to
-  1, and a `Param` a number, a signal read a sample at a time or a function
-  of time (`read()`). Ported from the Asteroid Breaker uplift's sound kit,
-  it renders each of the kit's takes byte for byte. Its loops read samples at the indexes they bound
+  `packSoundSprite()`, as Asteroid Breaker's does. A `Signal` is a
+  `Float64Array` of samples from -1 to 1, and a `Param` a number, a signal
+  read a sample at a time or a function of time (`read()`). Ported from the
+  Asteroid Breaker uplift's sound kit, it renders each of the kit's takes
+  byte for byte. Its loops read samples at the indexes they bound
   themselves, and assert each is there (`x[i]!`), which its lint allows,
   rather than fall back to one, a branch no read takes; a read that may
   fall past a signal's end, such as into a tail, falls back to silence. It
@@ -511,8 +512,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   - `src/synth_signal.ts`: the signal: envelopes (`points()`, `perc()`,
     `adsr()`, `glide()`, `lfo()`), sources (`osc()`, its saw and pulse
     band-limited, `fm()`, `noise()`, white, pink or brown, `modes()`, the
-    partials of a struck thing, and `pluck()`), mixing
-    (`gain()`, `mix()`, `fit()`, `fade()`, `resample()`, `reversed()`),
+    partials of a struck thing, and `pluck()`), mixing (`gain()`, `mix()`,
+    `fit()`, `fade()`, `resample()`, `reversed()`),
     filters (`filter()`'s low-, high- and band-pass and notch, `shelf()`,
     `biquad()`, `resonate()`, `comb()`), shaping (`drive()`, `fold()`,
     `crush()`), rooms (`echo()`, `reverb()`, `reverbStereo()`), dynamics

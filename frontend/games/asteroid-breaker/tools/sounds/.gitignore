@@ -1,0 +1,3 @@
+# The takes and the sprite build-sounds.mjs renders, which it encodes into
+# src/scene/sounds/ where ffmpeg is on the path.
+wav/
