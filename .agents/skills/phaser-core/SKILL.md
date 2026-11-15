@@ -78,6 +78,8 @@ holds.
   field panned (`playAt()`), the voices of a sound, a family and all
   limited, the busy levels ducked under a huge sound, and a limiter after
   the game's master volume; `followMono()` sums the two ears into one.
+  `LayerPlayer` loops layers of sound while a scene holds them, such as a
+  bed and the layers over it, all on one bar line, each faded in and out.
   `@fz/dev/sounds` synthesizes the sprite.
 - **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
   sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an

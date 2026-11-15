@@ -1,3 +1,4 @@
+export { LayerPlayer, type SoundLayer } from "./layer_player";
 export {
   MOST_AT_ONCE,
   type SoundSprite,

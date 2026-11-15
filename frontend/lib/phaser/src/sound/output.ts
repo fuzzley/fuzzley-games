@@ -54,3 +54,17 @@ export function playMono(manager: Sound.BaseSoundManager, mono: boolean): void {
     ? 1
     : Math.min(2, destination.maxChannelCount);
 }
+
+/**
+ * Returns the time a game's sound keeps, in seconds: its audio context's,
+ * where it plays through Web Audio, by which a sound is scheduled, else
+ * the time handed in, in milliseconds, as a scene's clock keeps it.
+ */
+export function soundTime(
+  manager: Sound.BaseSoundManager,
+  elseMs: number,
+): number {
+  return manager instanceof Sound.WebAudioSoundManager
+    ? manager.context.currentTime
+    : elseMs / 1000;
+}

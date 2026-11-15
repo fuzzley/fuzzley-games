@@ -1,5 +1,5 @@
 import { Sound } from "phaser";
-import { LIMITER, limitSound, playMono } from "./output";
+import { LIMITER, limitSound, playMono, soundTime } from "./output";
 
 /** Stands in for an audio node, keeping what it is connected to. */
 class FakeNode {
@@ -53,6 +53,7 @@ function fakeWebAudio(channels = 2): FakeWebAudio {
   master.connect(destination);
   const compressors: FakeCompressor[] = [];
   const context = {
+    currentTime: 12.5,
     destination,
     createDynamicsCompressor: (): FakeCompressor => {
       const made = new FakeCompressor();
@@ -164,5 +165,17 @@ describe("playMono", () => {
     expect(() => {
       playMono(noAudio(), true);
     }).not.toThrow();
+  });
+});
+
+describe("soundTime", () => {
+  it("reads the audio context's clock, where the game plays through Web Audio", () => {
+    const { manager } = fakeWebAudio();
+
+    expect(soundTime(manager, 4000)).toBe(12.5);
+  });
+
+  it("reads the time handed in, in seconds, where it plays otherwise", () => {
+    expect(soundTime(noAudio(), 4000)).toBe(4);
   });
 });
