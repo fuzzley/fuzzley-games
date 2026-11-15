@@ -14,7 +14,7 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 | Step | #   | Change                                                                                                                               | Status   |
 | ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | 1    | —   | The audit's report, scripts and data                                                                                                 | 05b6fd8b |
-| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          |          |
+| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | edcd1961 |
 | 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    |          |
 | 4    | 1   | The layout check's pages side by side, a few at a time                                                                               |          |
 | 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |          |
@@ -86,7 +86,7 @@ The second review's fixes correct what it found rather than reshape the change, 
 ### 2026-11-14: TypeScript 7 for the plain passes (step 2)
 
 `build(dev): type-check every pass but ngc's on TypeScript 7, through a tsc7 binary of @fz/dev's, keeping no build info`
-(step 2):
+(edcd1961, step 2):
 
 - `@fz/dev` depends on TypeScript 7.0.2 under the alias `@typescript/native`, and declares a `tsc7` binary, `bin/tsc7.mjs` on `src/tsc7.ts`. Every workspace's `typecheck`, and the root's, runs it for each plain pass; `ngc` stays on TypeScript 6, as ESLint and Analog's plugin do. The alias lives in `@fz/dev` alone, the one workspace that declares it. In a scratch project, the alias beside `typescript` took `node_modules/.bin/tsc` while `yarn tsc` still ran 6. Here `frontend/node_modules/.bin/tsc` is TypeScript 6's, and `@fz/dev`'s own `.bin` holds only `tsc7`; no script runs a plain `tsc` any more either way.
 - No pass keeps build info. The `--incremental` flags go, and with them the step of CI's `typecheck` job that restored `tsconfig.*.tsbuildinfo`. `.gitignore` still ignores those files, for checkouts that hold some.
@@ -102,3 +102,18 @@ The review, and the answers:
 4. **This entry's line on the image was edited after staging.** Fixed: staged with this commit.
 5. **The audit's scripts still time TypeScript 6's passes with build info.** Left as they are, since they record how the audit measured at e6740e04. Step 7 times the pipeline with `bench.sh` and `one-game.sh` changed to run each workspace's own `typecheck` as it stands, or the "after" figures would time TypeScript 6.
 6. **Each pass starts Node twice,** once for the binary and once for TypeScript 7's launcher. Left: about 40 passes against `yarn typecheck`'s 12 s, and step 7's timings show whether it matters. Its point on why `yarn tsc` stays on 6 inside `@fz/dev` is answered in the first bullet above.
+
+### 2026-11-14: room for Brick Fuzz Pop's solver spec (step 3)
+
+`test(brick-fuzz-pop): give the solver's search of a level no shot takes a hit off as long as a search no batch can split`
+(step 3):
+
+- `src/testing/solver.spec.ts`'s "finds nothing for a level no shot takes a hit off" runs every search, down to every aim and a beam of 4, each failing: 517 ms alone. It timed out at Vitest's 5 s in the audit's first overlap run, every step started at once, and passed in the second.
+- It takes `SIM_TIMEOUT_MS`, 60 s, as the `THICK` case's `beforeAll` does, through the options object every other per-test timeout here uses. Under `yarn test` or `yarn test:coverage` alone it had never come near 5 s; what timed it out was lint, typecheck and the builds running beside the tests, which step 6 makes the usual run. So `src/testing/timing.ts`'s doc now names that too, and the workspace's `AGENTS.md` and its `brick-fuzz-pop-testing` skill name the case beside `THICK`.
+- Checked: Brick Fuzz Pop's lint, typecheck and tests, 147 files, and the root's lint.
+
+The review, and the answers:
+
+1. **Step 2's row in the plan had no status.** Fixed: `edcd1961`.
+2. **The entry gave `timing.ts`'s reason, but what timed the case out was every step run at once.** Fixed above: the entry says so, and `timing.ts`'s doc names the steps beside the tests.
+3. **The case set its timeout as a third argument, where every other per-test timeout here uses the options object, and its comment held a figure that will go stale.** Fixed: `{ timeout: SIM_TIMEOUT_MS }`, and the comment gives `THICK`'s reason, coverage and the specs beside it, without the figure.

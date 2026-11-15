@@ -72,9 +72,15 @@ describe("solveLevel", () => {
     });
   });
 
-  it("finds nothing for a level no shot takes a hit off", () => {
-    expect(solveLevel(ONE_BRICK, 11, NO_HITS)).toBeNull();
-  });
+  // Every search, down to every aim and a beam of 4, each failing: one search
+  // no batch can split, slowed by coverage and the specs beside it.
+  it(
+    "finds nothing for a level no shot takes a hit off",
+    { timeout: SIM_TIMEOUT_MS },
+    () => {
+      expect(solveLevel(ONE_BRICK, 11, NO_HITS)).toBeNull();
+    },
+  );
 
   describe("on a level greedy search at every fourth aim can't clear", () => {
     let thick: Solved;
