@@ -20,6 +20,9 @@ import { createSparks } from "../sparks/sparks";
 import { stepsIn } from "../stepper";
 import type { Place, Torus } from "../torus";
 import {
+  FAIR_COURSE_MS,
+  LAST_FEW_LEAN,
+  LAST_FEW_NEAR,
   PIECE_PUSH,
   PIECE_TURN,
   ROCK_RADIUS,
@@ -81,11 +84,14 @@ interface FieldOptions {
   readonly rockSpeed?: number;
   /** The pilot's static, none by default. */
   readonly level?: number;
+  /** How many whole rocks, or fewer, are its last few, its shape's by default. */
+  readonly lastFew?: number;
 }
 
 /**
  * Returns a field of free rock slots, no step taken, no chance of a pickup and,
- * unless given one, no ship.
+ * unless given one, no ship, its wave yet to hold more than its last few, so
+ * no rock on it leans toward the ship until it has.
  */
 function rockField({
   cap = 8,
@@ -95,13 +101,15 @@ function rockField({
   pool = [],
   rockSpeed = 1,
   level = 0,
+  lastFew = lastFewOn(FIELD),
 }: FieldOptions = {}): SpecField {
   return {
     setup: { drops: 0, pool, pickupsAtOnce: 2 },
     torus: FIELD,
     rocks: createRocks(cap),
     waveKind,
-    lastFew: lastFewOn(FIELD),
+    lastFew,
+    hadMore: false,
     ship,
     pace: 1,
     rockSpeed,
@@ -1193,6 +1201,181 @@ describe("a rock that is drawn", () => {
     stepFor(field, 120);
 
     expect([rock.vx, rock.vy]).toEqual([vx, vy]);
+  });
+});
+
+describe("a wave's last few rocks", () => {
+  /**
+   * Returns a field whose wave has held more rocks than its last few, and
+   * has flown its first rocks' fair courses, the next step past them.
+   */
+  function pastItsStart(options: FieldOptions = {}): SpecField {
+    const field = rockField({ ship: { x: 40, y: 20 }, ...options });
+    field.hadMore = true;
+    field.steps = stepsIn(FAIR_COURSE_MS);
+    return field;
+  }
+
+  /** The share of the gap to its course straight at the ship a leaning rock closes in a step. */
+  const CLOSES = LAST_FEW_LEAN * STEP_S;
+
+  it("lean toward the ship, each step closing a share of the gap to their size's most speed straight at it", () => {
+    const most = ROCK_SPEED.large.most;
+    const field = pastItsStart();
+    const rock = lay(field, "stone", "large", 20, 20, Math.PI / 2);
+    const { vy } = rock;
+
+    stepFor(field, 1);
+
+    expect([rock.vx, rock.vy]).toEqual([
+      expect.closeTo(most * CLOSES),
+      expect.closeTo(vy * (1 - CLOSES)),
+    ]);
+  });
+
+  it("lean toward the ship the shortest way, across the wrap", () => {
+    const most = ROCK_SPEED.large.most;
+    const field = pastItsStart({ ship: { x: 60, y: 20 } });
+    const rock = lay(field, "stone", "large", 2, 20, Math.PI / 2);
+
+    stepFor(field, 1);
+
+    expect(rock.vx).toBeCloseTo(-most * CLOSES);
+  });
+
+  it("come in at the ship, their drift across the way to it dying away", () => {
+    const field = pastItsStart();
+    const rock = lay(field, "stone", "large", 20, 20, Math.PI / 2);
+    const nearest: number[] = [];
+
+    for (let step = 0; step < stepsIn(8000); step++) {
+      stepFor(field, 1);
+      nearest.push(Math.hypot(rock.x - 40, rock.y - 20));
+    }
+
+    expect(Math.min(...nearest)).toBeLessThan(ROCK_RADIUS.large);
+  });
+
+  it("speed toward the ship up to their size's most speed, times their kind's and the field's rocks', and no faster", () => {
+    const most = ROCK_SPEED.small.most * ROCK_KINDS.ice.speed * 1.25;
+    const field = pastItsStart({ rockSpeed: 1.25 });
+    const rock = lay(field, "ice", "small", 0, 20, Math.PI / 2);
+    rock.vx = 0;
+    rock.vy = most / 2;
+    const speeds: number[] = [];
+
+    for (let step = 0; step < 600; step++) {
+      stepFor(field, 1);
+      speeds.push(speedOf(rock));
+    }
+
+    expect({
+      most: Math.max(...speeds) <= most,
+      near: Math.max(...speeds) > most * 0.9,
+    }).toEqual({ most: true, near: true });
+  });
+
+  it("lean by the field's pace, so a course is the same at any pace", () => {
+    const leanedAt = (pace: number): number[] => {
+      const field = pastItsStart();
+      const rock = lay(field, "stone", "large", 20, 20, 2);
+      stepFor(field, 120 / pace, pace);
+      return [rock.x, rock.y, rock.vx, rock.vy];
+    };
+
+    const [atFull, atHalf] = [leanedAt(1), leanedAt(0.5)];
+
+    expect(atHalf).toEqual(
+      atFull.map((value): unknown => expect.closeTo(value, 1)),
+    );
+  });
+
+  it("lean a drawn rock among them, which its own pull speeds too", () => {
+    const most = ROCK_SPEED.medium.most * ROCK_KINDS.lodestone.speed;
+    const field = pastItsStart();
+    const rock = lay(field, "lodestone", "medium", 20, 20, Math.PI);
+    const { vx } = rock;
+
+    stepFor(field, 1);
+
+    expect(rock.vx).toBeCloseTo(vx + (most - vx) * CLOSES + PULL * STEP_S);
+  });
+
+  it("fly as they start through the wave's first seconds, as its layout judged them", () => {
+    const field = pastItsStart();
+    field.steps = 0;
+    const rock = lay(field, "stone", "large", 20, 20, Math.PI / 2);
+    const { vx, vy } = rock;
+
+    stepFor(field, stepsIn(FAIR_COURSE_MS));
+
+    expect([rock.vx, rock.vy]).toEqual([vx, vy]);
+  });
+
+  it("don't lean while their wave has held no more than its last few", () => {
+    const field = pastItsStart();
+    field.hadMore = false;
+    const rock = lay(field, "stone", "large", 20, 20, Math.PI);
+    const { vx, vy } = rock;
+
+    stepFor(field, 120);
+
+    expect([rock.vx, rock.vy]).toEqual([vx, vy]);
+  });
+
+  it("lean once their wave has held more than its last few", () => {
+    const field = pastItsStart({ lastFew: 1 });
+    field.hadMore = false;
+    const [rock, other] = [
+      lay(field, "stone", "large", 20, 20, Math.PI / 2),
+      lay(field, "stone", "large", 60, 30, 1),
+    ];
+    stepFor(field, 1);
+    other.live = false;
+    const { vx } = rock;
+
+    stepFor(field, 1);
+
+    expect([field.hadMore, rock.vx]).toEqual([
+      true,
+      expect.closeTo(vx + (ROCK_SPEED.large.most - vx) * CLOSES),
+    ]);
+  });
+
+  it("don't lean while more than the last few are whole", () => {
+    const field = pastItsStart({ lastFew: 1 });
+    const rocks = [
+      lay(field, "stone", "large", 20, 20, Math.PI),
+      lay(field, "stone", "large", 60, 30, 1),
+    ];
+    const was = rocks.map((rock) => [rock.vx, rock.vy]);
+
+    stepFor(field, 120);
+
+    expect(rocks.map((rock) => [rock.vx, rock.vy])).toEqual(was);
+  });
+
+  it("keep their courses while there is no ship", () => {
+    const field = pastItsStart({ ship: null });
+    const rock = lay(field, "stone", "large", 20, 20, 1);
+    const { vx, vy } = rock;
+
+    stepFor(field, 120);
+
+    expect([rock.vx, rock.vy]).toEqual([vx, vy]);
+  });
+
+  it("fly on as they fly once they come near the ship, so the pilot can dodge them", () => {
+    const field = pastItsStart();
+    const rocks = [
+      lay(field, "stone", "large", 40 - LAST_FEW_NEAR, 20, 1),
+      lay(field, "stone", "large", 40, 20, 1),
+    ];
+    const was = rocks.map((rock) => [rock.vx, rock.vy]);
+
+    stepFor(field, 1);
+
+    expect(rocks.map((rock) => [rock.vx, rock.vy])).toEqual(was);
   });
 });
 

@@ -92,8 +92,10 @@ Then:
    last few rocks to its clearing, with its neighbours' on the same field,
    and the crew it knocks loose in the most costly of twelve seeds should
    keep to one at Relaxed and two at Normal or Fast, few of them floating
-   home. A wave whose hits end
-   the run on one seed in many is luck; on many, it is a wave to redraw.
+   home. The last few lean toward the ship, which keeps every tail short
+   (`LAST_FEW`, `LAST_FEW_LEAN` and `LAST_FEW_NEAR` in
+   `src/rules/tuning.ts`). A wave whose hits end the run on one seed in
+   many is luck; on many, it is a wave to redraw.
 
 ## A Sector
 

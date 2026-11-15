@@ -72,6 +72,7 @@ function sceneField(): Field {
   const field = createField({
     torus: TORUS,
     cap: 16,
+    lastFew: 0,
     seed: 1,
     pace: 1,
     waveKind: "stone",

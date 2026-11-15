@@ -3,6 +3,7 @@ import type { RockKindId, RockSize } from "../rules/catalog/rocks";
 import type { WeaponId } from "../rules/catalog/weapons";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
 import { type Field, createField, stepField } from "../rules/field/field";
+import { lastFewOn } from "../rules/field/fill";
 import type { Comet } from "../rules/hazards/comets";
 import type { Loose } from "../rules/hazards/loose";
 import type { Stray } from "../rules/hazards/strays";
@@ -116,6 +117,7 @@ export function fieldFrom(
   const field = createField({
     torus,
     cap: options.cap ?? ROCK_CAP,
+    lastFew: lastFewOn(torus),
     seed: options.seed ?? 1,
     pace: options.pace ?? 1,
     waveKind: options.waveKind ?? "stone",

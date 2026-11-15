@@ -166,10 +166,15 @@ takes for the specs' helpers.
   (`hasRoomInTow()`, `joinLine()`).
 - **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
   the rocks in slots made once, as many as the field's cap (`addRock()`),
-  flies them (`stepRocks()`), and hits them (`hitRock()`), each holding or
-  breaking into pieces of the size after its own; it holds `TRAIT_RULES`,
-  what each trait of `src/rules/catalog/rocks.ts` does, typed so that a
-  trait without its rule fails to compile, and sets off the blasts
+  flies them (`stepRocks()`) and hits them (`hitRock()`), each holding or
+  breaking into pieces of the size after its own. Once a wave has held
+  more than its last few (`hadMore`), each of its last few leans toward
+  the ship after the wave's first 3 seconds, its drift across the way
+  dying away until it comes in at its size's most speed (`LAST_FEW_LEAN`),
+  but for one within 12 units of the ship, which flies on as it flies
+  (`LAST_FEW_NEAR`). It holds `TRAIT_RULES`, what each trait of
+  `src/rules/catalog/rocks.ts` does, typed so that a trait without its
+  rule fails to compile, and sets off the blasts
   (`setOffBlasts()`, `hitWithin()`), and says whether the field's whole
   rocks are its wave's last few (`isLastFew()`). `drops.ts` lets a pickup
   go from a broken rock (`dropFrom()`), always from a crystal, after a
@@ -1288,8 +1293,9 @@ can't trust rather than failing:
   the strays brought home, for the result card, the pilot's static as its
   wave started, and whether it was flown on tuned numbers; and its field's
   size as laid out and as it is now, its rocks, whole or with a blast to go
-  off, the counts its draws, strays, comets and points run by, and the
-  pilot's static. A wave not yet moved is kept as not yet begun, a wave
+  off, the counts its draws, strays, comets and points run by, the
+  pilot's static, and whether its wave has held more rocks than its last
+  few. A wave not yet moved is kept as not yet begun, a wave
   just cleared as the next not yet begun, and a stray adrift, the comets,
   the pickups, the sparks, the shots and the effects in play go. It is
   written as a wave starts, as its crew changes, as it pauses or goes on,

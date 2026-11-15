@@ -1,3 +1,4 @@
+import { lastFewOn } from "../rules/field/fill";
 import { stepsIn } from "../rules/stepper";
 import { SHOT_LIFE_MS, SHOT_SPEED } from "../rules/tuning";
 import {
@@ -38,6 +39,10 @@ describe("fieldFrom", () => {
     ["a character it doesn't know", ["X"], 'No rock is drawn "X"'],
   ])("refuses a picture of %s", (_, rows, message) => {
     expect(() => fieldFrom(rows)).toThrow(message);
+  });
+
+  it("counts its last few by its shape", () => {
+    expect(fieldFrom(["L"]).lastFew).toBe(lastFewOn(PICTURE_TORUS));
   });
 
   it("refuses more rocks than its cap", () => {
