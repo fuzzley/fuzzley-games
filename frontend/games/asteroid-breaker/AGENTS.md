@@ -334,19 +334,24 @@ takes for the specs' helpers.
   the wave on, starting it at the player's first move, catches the run up
   with what its field came to, waits out the beat before a card, counts
   the Cleared card's sum up once it shows (`countMs`, the whole at once
-  where motion isn't welcome), and returns what the frame changed
-  (`FrameChange`) and how the phone buzzes for it, as the ship takes a hit,
-  or else as the wave is cleared, gathering what to say of it (`news()`), a
-  clearing with the wave it goes on to, a run's end last, with what the
-  shell's records say it set. `run_state.ts` holds what is a run's own,
-  which the shell keeps in one signal (`RunState`): as a run begins
-  (`newRunState()`), and with a frame's change taken in (`withFrame()`),
-  flown on tuned numbers from the first frame that moves its field on them,
-  the Cleared card's sum counted up while the card shows, to
-  `TALLY_COUNT_MS`. `tally.ts` holds what the Cleared card shows: how a
-  cleared wave's points add up a time after the card opens, each line
-  counting up in turn and their total (`tallyShownAt()`), and the wave to
-  come (`nextWaveWords()`); and `debug_tuning.ts` the numbers
+  where motion isn't welcome), notes what the pilot at the controls
+  answers, from the field's events, the rules' near misses among them, as
+  the pod's painter does (`src/view/art/faces.ts`' `hearFace()`), afresh
+  for each new field, and returns what the frame changed
+  (`FrameChange`), the pilot's face and its fur's lift among it
+  (`faceOf()`, `liftOf()`), and how the phone buzzes for it, as the ship
+  takes a hit, or else as the wave is cleared, gathering what to say of it
+  (`news()`), a clearing with the wave it goes on to, a run's end last,
+  with what the shell's records say it set. `run_state.ts` holds what is a
+  run's own, which the shell keeps in one signal (`RunState`): as a run
+  begins (`newRunState()`), and with a frame's change taken in
+  (`withFrame()`), the pilot at the controls at rest, its fur flat, until a
+  frame says otherwise, flown on tuned numbers from the first frame that
+  moves its field on them, the Cleared card's sum counted up while the card
+  shows, to `TALLY_COUNT_MS`. `tally.ts` holds what the Cleared card
+  shows: how a cleared wave's points add up a time after the card opens,
+  each line counting up in turn and their total (`tallyShownAt()`), and
+  the wave to come (`nextWaveWords()`); and `debug_tuning.ts` the numbers
   the debug menu tunes (`Feel`, `TUNING_SLIDERS`) and the lines of
   `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
@@ -724,7 +729,9 @@ takes for the specs' helpers.
   closes (`refocusWhenUncovered()`), and pauses the wave in play when
   `[fzPlayRoom]` says the player looked away.
   - `play/` — `GameService` holds the run and what is its own, its static's
-    multiplier and step, its cards and what it set, in one signal (the view's `RunState`), replaced
+    multiplier and step, the face and the lift of the pilot at the controls
+    (`face`, `lift`), its cards and what it set, in one signal (the view's
+    `RunState`), replaced
     whole as a run begins or is taken up, so nothing of one run reaches the
     next, and the wave in play outside one, as the view's `WavePlay`, since the
     field changes 120 times a second; it moves the field on through `tick()`,
@@ -824,11 +831,15 @@ takes for the specs' helpers.
   - `bar/` — `@fz/game-ui`'s game bar: the link home, the page's `<h1>`, the
     speed's badge, whose menu asks before it starts a run at another, the
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,
-    all but Pause and New game in the overflow menu on a compact screen.
-    Where it has room, the figures are the wave, the score, the ships as
-    their pilots, the one at the controls first, and static's multiplier
-    past ×1; else the score and the ships alone, the ships as a
-    number beside the pilot at the controls, as a score runs to six figures.
+    all but Pause in the overflow menu on a compact screen. The ships'
+    figure leads with the face cam, the pilot at the controls, and
+    static's says how many times what is scored scores, as "×2" and four
+    pips, one lit for each time, which only the "×2" says to a screen
+    reader. Where it has room, the figures are the wave, the score, the
+    ships, the line in tow beside the face cam, and static, each a card;
+    else the score, the ships and static, the ships a number on the face
+    cam, in one card across the bar, the face cam beside the score over
+    static, as a score runs to six figures, or stacked on a rail.
     Pause and Sound are `@fz/game-ui`'s (`fzBarPause`, `fzBarSound`), which
     keep the focus on the board when pressed with a mouse or a finger. It
     hands the board back the focus as Resume goes on, and asks the app for
@@ -872,8 +883,20 @@ takes for the specs' helpers.
     it; nothing keeps them, and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
+    at rest unless given another face, its fur lifted by static's step,
     and `<app-pilot-row>`, pilots in a row, which the bar, the Paused and
     Cleared cards and the result draw.
+  - `face_cam/` — `<app-face-cam>`, the face cam, which the bar draws: the
+    pilot at the controls behind the canopy's glass, larger than the field
+    can draw it, with the face and the fur the field shows
+    (`GameService.face()` and `lift()`), the glass, its rim and the rim's
+    third toward the light in the pod's colors in the palette on the page
+    (the view's `podTones()`), and a glint, as the art kit's face cam draws
+    it, sized so the fur on end and
+    its sparks reach the rim; the glass empty once no one is at the
+    controls. Nothing in it moves of its own, so its face changes as the
+    field's does, a blink only where motion is welcome, and it is hidden
+    from assistive technology.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, and `ProgressService`, the
     sectors reached, at any speed, which a run may start at; each keeps its
@@ -1322,7 +1345,8 @@ of its own beside it:
   `FIELD_ROLES`, and the game's palettes as its stylesheet sets them
   (`PALETTES`, `stylesheetPalettes()`'s), which the contrast spec reads the
   field's roles from (`rolesIn()`); `pilots.ts`
-  reads the pilots an element draws (`pilotsIn()`).
+  reads the pilots an element draws (`pilotsIn()`), and the face and the
+  lift of the first (`poseIn()`), from its fuzzball's marks.
 - `play.ts` holds the small waves the shell's specs play, each set up to
   come to one thing soon (`SPEC_WAVES` and the others), handed to
   `GameService` through `GAME_WAVES` with a seed of its own through

@@ -274,8 +274,8 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   its card away; and, after those, since a rail is compact too,
   `bar-figures-stacked` stacks the figures on a rail. The
   mixins hide and show an `fz-icon` alone: a bar that puts something else
-  in a label's place, as Asteroid Breaker does its pilot, hides and shows
-  it with rules of its own.
+  in a label's place, as Asteroid Breaker does its face cam, shows it with
+  rules of its own.
   `src/bar.spec.ts` compiles the bars in `src/fixtures/`, which include
   them as a game's does, with `@fz/style/testing`'s `compileStylesheet()`.
 

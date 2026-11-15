@@ -1,0 +1,76 @@
+// The canopy as the art kit's face cam draws it, in the pod's colors, which
+// the component binds (`--glass`, `--rim`, `--rim-lit`, `--glint`): the
+// glass, so every pilot's ink reads on it, its rim, lit where it faces the
+// light, up and to the left, and the glint. Sizes are shares of the cam's
+// width, as the kit's are of its tile.
+:host {
+  --rim-width: max(1.5px, 6.5cqi);
+  --glint-width: max(1.2px, 4.2cqi);
+
+  position: relative;
+  display: block;
+  flex: none;
+  width: 2em;
+  height: 2em;
+  container-type: inline-size;
+
+  // The glint's dot, a little round from its line, toward the light.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 13.7%;
+    left: 42.9%;
+    width: max(1.4px, 4.8cqi);
+    height: max(1.4px, 4.8cqi);
+    border-radius: 50%;
+    background: var(--glint);
+    opacity: 0.9;
+    translate: -50% -50%;
+  }
+}
+
+.glass {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: var(--rim-width) solid var(--rim);
+  border-radius: 50%;
+  background: var(--glass);
+
+  // The rim's lit third, over the rim, about the way to the light.
+  &::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--rim-width));
+    border: var(--rim-width) solid transparent;
+    border-top-color: var(--rim-lit);
+    border-left-color: var(--rim-lit);
+    border-radius: 50%;
+    rotate: 5deg;
+    mask: conic-gradient(from -102.6deg, currentcolor 115.2deg, transparent 0);
+  }
+}
+
+// The pilot's body in the glass's middle, its fur on end and its sparks
+// reaching the rim.
+.pilot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% * var(--pilot-share));
+  height: calc(100% * var(--pilot-share));
+  translate: -50% calc(-50% - 100% * var(--pilot-drop));
+}
+
+// The glint, a short line round the glass a little in from its rim, toward
+// the light, over the pilot.
+.glint {
+  position: absolute;
+  inset: 13%;
+  border: var(--glint-width) solid transparent;
+  border-top-color: var(--glint);
+  border-radius: 50%;
+  opacity: 0.9;
+  rotate: -44deg;
+  mask: conic-gradient(from -15.5deg, currentcolor 31deg, transparent 0);
+}

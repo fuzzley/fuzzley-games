@@ -94,10 +94,12 @@ const FIRST_TORUS: Torus = {
  *
  * The run and what is its own are one signal, replaced whole as each run
  * begins, which changes only when the field comes to something the run
- * takes, points, a ship, a stray, a clearing, a card, and as the Cleared
- * card's sum counts up. The field changes 120 times a second, so no signal
- * holds it; the scene reads it through {@link frame}, and what the shell
- * shows of it is copied into the run's state only when it changes.
+ * takes, points, a ship, a stray, a clearing, a card, as the Cleared
+ * card's sum counts up, and as the face or the fur of the pilot at the
+ * controls changes, which in play may be several times a second. The field
+ * changes 120 times a second, so no signal holds it; the scene reads it
+ * through {@link frame}, and what the shell shows of it is copied into the
+ * run's state only when it changes.
  */
 @Injectable({ providedIn: "root" })
 export class GameService extends RunLifecycle {
@@ -170,6 +172,21 @@ export class GameService extends RunLifecycle {
 
   /** Static's step on the wave in play, from 0 at ×1 to full: 0 once the run is over. */
   readonly step = computed(() => this.runState().step);
+
+  /**
+   * The face the pilot at the controls shows, as the wave in play's field
+   * shows it, by the rule the pod's painter draws it by (the view's
+   * `faceOf()`): at rest with no one at the controls.
+   */
+  readonly face = computed(() => this.runState().face);
+
+  /**
+   * How far the pilot's fur is lifted, as the wave in play's field shows it,
+   * by the rule the pod's painter lifts it by (the view's `liftOf()`):
+   * static's multiplier less one, from 0 at ×1 to 3 at ×4, at full static
+   * too.
+   */
+  readonly lift = computed(() => this.runState().lift);
 
   /** The best score at the run's speed, as of the last run that ended. */
   readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);

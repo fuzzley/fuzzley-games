@@ -1,55 +1,170 @@
 @use "../styles" as *;
 
 :host {
+  --cam: 36px;
+
   display: block;
 }
 
 @include bar-title;
 
-// The wave, the score, the ships and the multiplier, each a card.
-@include bar-figures(72px, var(--fz-space-2));
+// The wave, the score, the ships and static's multiplier, each a card, a
+// little narrower than the games' own, so four leave the title room on a
+// laptop.
+@include bar-figures(56px, var(--fz-space-2));
 
-// The ships' icon is the pilot at the controls, hidden as the other figures'
-// icons are.
-.metric dt app-pilot {
-  display: none;
+.metric {
+  padding-inline: var(--fz-space-3);
 }
 
-// A fuzzball for each ship, in its pilot's ink.
+// The ships' card holds the face cam at its left, as tall as the card, beside
+// the label over the line in tow.
+.crew {
+  position: relative;
+  min-height: calc(var(--cam) + 2 * var(--fz-space-1));
+  padding-inline-start: calc(var(--cam) + 2 * var(--fz-space-2));
+}
+
+.cam {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: var(--fz-space-2);
+  width: var(--cam);
+  height: var(--cam);
+  translate: 0 -50%;
+}
+
+// A fuzzball for each in tow, in its pilot's ink.
 // On one line, as a figure is.
 .pilots {
   --pilot-row-wrap: nowrap;
 
+  min-height: 20px;
   padding-block: 2px;
 }
 
-// The multiplier in the accent, so static catches the eye.
+// The multiplier and its pips, a lit one for each time what is scored
+// scores.
 .multiplier .value {
-  color: var(--fz-accent);
+  gap: 6px;
+}
+
+.pips {
+  display: flex;
+  gap: 3px;
+}
+
+.pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fz-edge-3);
+
+  &[data-lit="true"] {
+    background: var(--fz-accent);
+  }
+}
+
+// The ships as a number on the face cam, where no line in tow shows.
+.count {
+  position: absolute;
+  bottom: -3px;
+  inset-inline-start: -4px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 1.6em;
+  height: 1.6em;
+  padding-inline: 0.3em;
+  border: 1.5px solid var(--fz-panel);
+  border-radius: var(--fz-radius-pill);
+  background: var(--fz-text);
+  color: var(--fz-panel);
+  font-size: var(--fz-font-2xs);
+  line-height: 1;
 }
 
 // The actions, Pause dimmed while there is no run to pause.
 @include bar-actions;
 
-// Where the bar has room for the score and the ships alone, each is an icon
-// beside its value, the ships' the pilot at the controls.
-:host(.score-and-ships) {
+// Where the bar has room for the score, the ships and static alone, each
+// value is set small, the score's icon beside it.
+:host(.three-figures) {
+  --cam: 30px;
+
   @include bar-figures-inline(4px);
 
-  .metric dt app-pilot {
-    display: block;
-    width: 15px;
-    height: 15px;
+  .crew {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .cam {
+    position: relative;
+    top: auto;
+    inset-inline-start: auto;
+    translate: none;
+  }
+
+  .multiplier .value {
+    gap: 4px;
+    font-size: var(--fz-font-xs);
+  }
+
+  .pip {
+    width: 5px;
+    height: 5px;
   }
 }
 
-// Across the bar, the score over the ships in one card, since a score runs to
-// six figures and the bar has no room for them side by side.
-:host(.score-and-ships:not(.rail)) {
+// Across the bar, in one card: the face cam with the ships on it, beside the
+// score over static, since a score runs to six figures and the bar has no
+// room for three cards, nor, at 360 px, for the score's icon.
+:host(.three-figures:not(.rail)) {
   @include bar-figures-paired;
+
+  .metrics {
+    display: grid;
+    grid-template:
+      "crew score" auto
+      "crew multiplier" auto
+      / auto auto;
+    align-items: center;
+    gap: 2px var(--fz-space-2);
+  }
+
+  .metric {
+    justify-content: flex-start;
+  }
+
+  .score {
+    grid-area: score;
+
+    dt fz-icon {
+      display: none;
+    }
+  }
+
+  .crew {
+    grid-area: crew;
+  }
+
+  .multiplier {
+    grid-area: multiplier;
+  }
 }
 
-// On a rail, the figures stacked.
+// On a rail, the figures stacked, the ships' number on the face cam in the
+// middle of its card.
 :host(.rail) {
   @include bar-figures-stacked;
+
+  .crew dt {
+    margin: 0;
+  }
+
+  .count {
+    bottom: 3px;
+    inset-inline-start: calc(50% - var(--cam) / 2 - 4px);
+  }
 }

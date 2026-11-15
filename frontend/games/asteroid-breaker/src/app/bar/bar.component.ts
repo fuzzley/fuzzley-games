@@ -14,30 +14,35 @@ import { BarSoundComponent, soundMenuAction } from "@fz/game-ui/bar_sound";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
-import { pilotsAboard } from "../../rules/ship/pilots";
 import type { Speed } from "../../rules/speed";
-import { PilotComponent } from "../pilot/pilot.component";
+import { STATIC_STEPS } from "../../rules/tuning";
+import { FaceCamComponent } from "../face_cam/face_cam.component";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 import { SPEED_CHOICES } from "../settings/choices";
 import { SettingsService } from "../settings/settings.service";
 
 /** Names an action the overflow menu offers. */
-type MenuAction = "sound" | "sectors" | "help" | "settings";
+type MenuAction = "sound" | "sectors" | "new-game" | "help" | "settings";
+
+/** Each of static's pips, one for each multiplier up to its last step's. */
+const PIPS = Array.from({ length: STATIC_STEPS[0].times }, (_, pip) => pip);
 
 /**
  * Shows the game bar: the link home, the game's name and speed, the
  * figures, and the actions.
  *
  * The speed shows at every size, as a menu of the speeds; the name only for
- * a screen reader on a compact screen. From the width the actions keep
- * their labels at, the figures are the wave, the score, the ships as their
- * pilots, the one at the controls first, and static's multiplier past ×1;
- * below it, the score and the ships alone, the ships as a
- * number beside the pilot at the controls, since a score runs to six
- * figures.
+ * a screen reader on a compact screen. The ships' figure leads with the
+ * face cam, the pilot at the controls with the face and the fur the field
+ * shows, and static's with how many times what is scored scores, as a
+ * number and four pips. From the width the actions keep their labels at,
+ * the figures are the wave, the score, the ships, the line in tow beside
+ * the face cam, and static, each a card; below it, the score, the ships and
+ * static in one card, or stacked on a rail, the ships a number on the face
+ * cam, since a score runs to six figures.
  *
- * On a compact screen, Pause and New game stay, and Sound, Sectors, How to
+ * On a compact screen, Pause stays, and Sound, Sectors, New game, How to
  * play and Settings move into the overflow menu, as on the narrowest the
  * link home does too.
  */
@@ -49,12 +54,12 @@ type MenuAction = "sound" | "sectors" | "help" | "settings";
     BarPauseComponent,
     BarSoundComponent,
     GameBarComponent,
+    FaceCamComponent,
     IconComponent,
-    PilotComponent,
     PilotRowComponent,
   ],
   host: {
-    "[class.score-and-ships]": "!fitsEveryFigure()",
+    "[class.three-figures]": "!fitsEveryFigure()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
   },
   templateUrl: "./bar.component.html",
@@ -79,16 +84,16 @@ export class BarComponent {
 
   protected readonly speeds = SPEED_CHOICES;
 
-  /** Whether the bar has room for the wave, the pilots and the multiplier. */
+  /** Whether the bar has room for the wave, and a card for each figure. */
   protected readonly fitsEveryFigure = computed(
     () => !this.viewport.isCompact() && this.viewport.fitsActionLabels(),
   );
 
-  /** The pilots aboard, the one at the controls first. */
-  protected readonly pilots = computed(() => pilotsAboard(this.game.crew()));
-
-  /** The pilot at the controls, beside the ships' number, or null once none is left. */
+  /** The pilot at the controls, in the face cam, or null once none is left. */
   protected readonly atControls = computed(() => this.game.crew().pilot);
+
+  /** The pilots in tow, beside the face cam, in the order they ride. */
+  protected readonly inTow = computed(() => this.game.crew().tow);
 
   /** The ships as words, since the pilots are pictures. */
   protected readonly shipsText = computed(() =>
@@ -98,10 +103,15 @@ export class BarComponent {
   /** The run's score, grouped in thousands. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
 
-  /** How many times what is scored scores, as "×2", while static makes it more than once; else null. */
-  protected readonly multiplier = computed(() => {
+  /** How many times what is scored scores, as "×2". */
+  protected readonly multiplier = computed(
+    () => `×${String(this.game.multiplier())}`,
+  );
+
+  /** Whether each pip is lit: as many as the times what is scored scores. */
+  protected readonly pips = computed(() => {
     const times = this.game.multiplier();
-    return times > 1 ? `×${String(times)}` : null;
+    return PIPS.map((pip) => pip < times);
   });
 
   /** Whether the player wants sound. */
@@ -114,6 +124,7 @@ export class BarComponent {
     const actions: readonly BarOverflowAction<MenuAction>[] = [
       soundMenuAction(this.sound()),
       { id: "sectors", label: "Sectors", icon: "grid" },
+      { id: "new-game", label: "New game", icon: "plus" },
       HELP_MENU_ACTION,
       SETTINGS_MENU_ACTION,
     ];
@@ -152,6 +163,9 @@ export class BarComponent {
         break;
       case "sectors":
         this.openSectors.emit();
+        break;
+      case "new-game":
+        this.newGame();
         break;
       case "help":
         this.openHelp.emit();

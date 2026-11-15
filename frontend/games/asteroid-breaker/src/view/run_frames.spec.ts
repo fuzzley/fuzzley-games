@@ -71,13 +71,15 @@ const FIRST_STEP = STATIC_STEPS[2].from;
 /** A turn of the keys, a first move that fires no shot. */
 const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 
-/** What a frame that changes nothing hands the shell, playing nothing. */
+/** What a frame that changes nothing hands the shell, playing nothing, its pilot at rest. */
 const NOTHING: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
   multiplier: null,
   step: null,
+  face: "rest",
+  lift: 0,
   tally: null,
   opens: null,
   countMs: 0,
@@ -207,7 +209,7 @@ describe("RunFrames", () => {
         steps: game.play.field.steps,
         said: game.said,
       }).toEqual({
-        change: { ...NOTHING, multiplier: 1, step: 0 },
+        change: { ...NOTHING, multiplier: 1, step: 0, face: "sleepy" },
         steps: 0,
         said: [],
       });
@@ -454,7 +456,7 @@ describe("RunFrames", () => {
       const change = tick(game, FIRE, { ms: 20, motion: true });
 
       expect({ change, steps: game.play.field.steps }).toEqual({
-        change: { ...NOTHING, countMs: 20 },
+        change: { ...NOTHING, countMs: 20, face: "happy" },
         steps,
       });
     });
@@ -624,6 +626,107 @@ describe("RunFrames", () => {
         outcome: "cleared",
         buzz: LOST_BUZZ,
       });
+    });
+  });
+
+  describe("the pilot at the controls", () => {
+    it("shows the face its field shows, set as the ship fires", () => {
+      const game = underWay(OPEN);
+
+      const { face } = tick(game, FIRE);
+
+      expect(face).toBe("set");
+    });
+
+    it("blinks now and then where motion is welcome", () => {
+      const game = underWay(OPEN);
+
+      const { face } = tick(game, STILL, { motion: true });
+
+      expect(face).toBe("blink");
+    });
+
+    it("never blinks where the player prefers less motion", () => {
+      const game = underWay(OPEN);
+
+      const { face } = tick(game, STILL, { motion: false });
+
+      expect(face).toBe("rest");
+    });
+
+    it("looks dizzy once a hit knocks one of the crew loose", () => {
+      const game = underWay(CRASH);
+
+      const { face } = playToLoss(game);
+
+      expect(face).toBe("dizzy");
+    });
+
+    it("notes what an event means for the face at the step its field stands at", () => {
+      const game = underWay(OPEN);
+      game.play.field.steps = 1000;
+      const ship = shipOf(game.play.field);
+      placeStray(game.play.field, ship.x, ship.y, Math.PI / 2, 5);
+
+      const { face } = tick(game);
+
+      expect(face).toBe("happy");
+    });
+
+    it("forgets the last wave's moments on the next wave's field", () => {
+      const game = underWay(CRASH);
+      playToLoss(game);
+      const next: Game = { ...game, play: new WavePlay(fieldFrom(OPEN), 7) };
+
+      const { face } = tick(next);
+
+      expect(face).toBe("rest");
+    });
+
+    it("looks happy over a cleared wave", () => {
+      const game = underWay(PEBBLE);
+
+      const { face } = playTo(game, "cleared", FIRE);
+
+      expect(face).toBe("happy");
+    });
+
+    it.each([
+      [0, 0],
+      [STATIC_STEPS[2].from, 1],
+      [STATIC_STEPS[1].from, 2],
+      [STATIC_STEPS[0].from, 3],
+    ])(
+      "lifts the fur a step for each of static's: at %d static, lift %i",
+      (level, lift) => {
+        const game = underWay(OPEN);
+        game.play.field.charge.level = level;
+
+        const change = tick(game);
+
+        expect(change.lift).toBe(lift);
+      },
+    );
+
+    it("lays the fur flat again as static drains below its first step", () => {
+      const game = underWay(OPEN);
+      game.play.field.charge.level = FIRST_STEP;
+      for (let frame = 0; frame < stepsIn(STATIC_HOLD_MS); frame++) tick(game);
+
+      const { lift } = tick(game);
+
+      expect(lift).toBe(0);
+    });
+
+    it("shows the pilot's face and fur while its wave is paused, as its field does", () => {
+      const game = underWay(OPEN);
+      game.play.field.charge.level = STATIC_STEPS[1].from;
+      tick(game, FIRE);
+      game.run = pause(game.run);
+
+      const { face, lift } = tick(game, STILL, { ms: 10 * STEP_MS });
+
+      expect({ face, lift }).toEqual({ face: "set", lift: 2 });
     });
   });
 
