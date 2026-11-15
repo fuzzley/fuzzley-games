@@ -5,16 +5,8 @@ import { onContextRestored, whenSceneEnds } from "./scene_lifetime";
 /** Draws a texture's picture, in its own pixels, from its top left corner. */
 export type DrawTexture = (graphics: GameObjects.Graphics) => void;
 
-/** A texture a scene draws at run time, and how. */
-interface Bake {
-  readonly key: string;
-  readonly width: number;
-  readonly height: number;
-  readonly draw: DrawTexture;
-}
-
-/** The textures each scene has baked, by key, to bake again after a lost context. */
-const bakes = new WeakMap<Scene, Map<string, Bake>>();
+/** How each scene draws each texture it drew at run time, by key, to draw it again after a lost context. */
+const drawings = new WeakMap<Scene, Map<string, () => void>>();
 
 /**
  * Draws a texture once, with a throwaway `Graphics`, into a canvas texture of
@@ -28,29 +20,36 @@ export function bakeTexture(
   height: number,
   draw: DrawTexture,
 ): void {
-  let baked = bakes.get(scene);
-  if (!baked) {
-    const known = new Map<string, Bake>();
-    bakes.set(scene, known);
-    onContextRestored(scene, () => {
-      for (const bake of known.values()) paint(scene, bake);
+  keepDrawn(scene, key, () => {
+    const graphics = scene.make.graphics({}, false);
+    draw(graphics);
+    drawCanvasTexture(scene, key, width, height, ({ canvas }) => {
+      graphics.generateTexture(canvas, width, height);
     });
-    whenSceneEnds(scene, () => {
-      bakes.delete(scene);
-    });
-    baked = known;
-  }
-  const bake = { key, width, height, draw };
-  baked.set(key, bake);
-  paint(scene, bake);
+    graphics.destroy();
+  });
 }
 
-/** Draws a texture with a throwaway `Graphics` into the canvas texture of its key. */
-function paint(scene: Scene, { key, width, height, draw }: Bake): void {
-  const graphics = scene.make.graphics({}, false);
-  draw(graphics);
-  drawCanvasTexture(scene, key, width, height, ({ canvas }) => {
-    graphics.generateTexture(canvas, width, height);
-  });
-  graphics.destroy();
+/**
+ * Draws the texture of a key now, and again whenever a lost WebGL context,
+ * which Phaser restores only for the textures it loaded, is restored, until
+ * the scene ends or another `bakeTexture()`, `bakeAtlas()` or
+ * `paintTexture()` draws the key: a key is drawn again the last way one of
+ * them drew it, and a drawing that throws is not kept.
+ */
+export function keepDrawn(scene: Scene, key: string, draw: () => void): void {
+  let kept = drawings.get(scene);
+  if (!kept) {
+    const known = new Map<string, () => void>();
+    drawings.set(scene, known);
+    onContextRestored(scene, () => {
+      for (const again of known.values()) again();
+    });
+    whenSceneEnds(scene, () => {
+      drawings.delete(scene);
+    });
+    kept = known;
+  }
+  draw();
+  kept.set(key, draw);
 }

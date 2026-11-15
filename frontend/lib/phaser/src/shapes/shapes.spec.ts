@@ -14,6 +14,7 @@ import {
   ring,
   roundRect,
   stroke,
+  wash,
   widthOf,
 } from "./shapes";
 
@@ -190,6 +191,48 @@ describe("stroke", () => {
   it("draws a single point as a dot", () => {
     expect(stroke([{ x: 1, y: 1 }], { color: 9, width: 2 })).toEqual([
       circle({ x: 1, y: 1 }, 1, { color: 9 }),
+    ]);
+  });
+});
+
+describe("wash", () => {
+  const ELLIPSE = { x: 4, y: 5, radiusX: 6, radiusY: 3, turn: 0.5 };
+
+  it("fills an ellipse with its style's stops, at its style's alpha", () => {
+    const stops = [
+      { at: 0, color: 0x112233, alpha: 1 },
+      { at: 1, color: 0x112233, alpha: 0 },
+    ];
+
+    expect(wash(ELLIPSE, { stops, alpha: 0.4 })).toEqual({
+      kind: "wash",
+      ...ELLIPSE,
+      stops,
+      alpha: 0.4,
+    });
+  });
+
+  it("leaves the alpha out where the style gives none, so it shows whole", () => {
+    expect("alpha" in wash(ELLIPSE, { stops: [] })).toBe(false);
+  });
+
+  it("clamps its radii to nothing", () => {
+    expect(
+      wash({ ...ELLIPSE, radiusX: -1, radiusY: -2 }, { stops: [] }),
+    ).toMatchObject({ radiusX: 0, radiusY: 0 });
+  });
+
+  it("holds its stops between its middle and its edge, in order outward", () => {
+    const stops = [
+      { at: 1.5, color: 3, alpha: 0 },
+      { at: 0.4, color: 2, alpha: 0.5 },
+      { at: -0.2, color: 1, alpha: 1 },
+    ];
+
+    expect(wash(ELLIPSE, { stops }).stops).toEqual([
+      { at: 0, color: 1, alpha: 1 },
+      { at: 0.4, color: 2, alpha: 0.5 },
+      { at: 1, color: 3, alpha: 0 },
     ]);
   });
 });

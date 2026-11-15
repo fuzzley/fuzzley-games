@@ -1,6 +1,7 @@
 // The vocabulary a game's art is drawn in: each shape of a frame as plain
 // data in device pixels, which the scene's `atlasFrameOf()` plays into a
-// `Graphics`, so the art itself knows no Phaser and its specs run without it.
+// `Graphics`, and a wash, which only `paintCommands()` paints on a canvas,
+// so the art itself knows no Phaser and its specs run without it.
 
 /** Says where a point of a drawing is, in device pixels. */
 export interface Point {
@@ -106,6 +107,46 @@ export type DrawCommand =
   | PolylineCommand
   | PolygonCommand;
 
+/** Says how much of a color a wash shows a share of the way out from its middle. */
+export interface WashStop {
+  /** How far out it lies, a share from 0, the wash's middle, to 1, its edge. */
+  readonly at: number;
+  readonly color: number;
+  /** How much of its color shows there, a share from 0, none, to 1, all. */
+  readonly alpha: number;
+}
+
+/**
+ * Says where an ellipse lies, in device pixels: its middle, its radius
+ * along its own width and its own height, and how far it is turned about
+ * its middle, in radians, clockwise on a screen, whose y runs down.
+ */
+export interface Ellipse {
+  readonly x: number;
+  readonly y: number;
+  readonly radiusX: number;
+  readonly radiusY: number;
+  readonly turn: number;
+}
+
+/**
+ * Describes an ellipse filled with a wash: its stops' colors fading from its
+ * middle out to its edge, as a radial gradient does, and nothing past it,
+ * the whole at its alpha.
+ *
+ * A `Graphics` draws no gradient, so a wash is no {@link DrawCommand}: only
+ * `svgOf()` and `@fz/phaser/scene`'s `paintCommands()`, which paints on a
+ * canvas, take it.
+ */
+export interface WashCommand extends Ellipse, Alpha {
+  readonly kind: "wash";
+  /** Its stops, from its middle outward. */
+  readonly stops: readonly WashStop[];
+}
+
+/** Describes one shape of a picture painted on a canvas: a shape of a frame's, or a wash. */
+export type PaintCommand = DrawCommand | WashCommand;
+
 /** Describes a frame of an atlas drawn in shapes: its name, its size in device pixels and its drawing. */
 export interface ArtFrame {
   readonly name: string;
@@ -143,6 +184,11 @@ export interface FillStyle extends Alpha {
 export interface LineStyle extends Alpha {
   readonly color: number;
   readonly width: number;
+}
+
+/** Says what a wash fades through, from its middle outward, and how much of it shows as a whole. */
+export interface WashStyle extends Alpha {
+  readonly stops: readonly WashStop[];
 }
 
 /** The point a drawing about its middle is drawn about. */
@@ -246,6 +292,26 @@ export function polygon(
   style: FillStyle,
 ): PolygonCommand {
   return { kind: "polygon", points, color: style.color, ...alphaOf(style) };
+}
+
+/**
+ * Returns an ellipse filled with a wash, its radii no smaller than nothing,
+ * and its stops in order from its middle outward, each held between its
+ * middle and its edge, as a canvas throws at a stop past either.
+ */
+export function wash(ellipse: Ellipse, style: WashStyle): WashCommand {
+  return {
+    kind: "wash",
+    x: ellipse.x,
+    y: ellipse.y,
+    radiusX: Math.max(0, ellipse.radiusX),
+    radiusY: Math.max(0, ellipse.radiusY),
+    turn: ellipse.turn,
+    stops: style.stops
+      .map((stop) => ({ ...stop, at: Math.min(1, Math.max(0, stop.at)) }))
+      .sort((one, other) => one.at - other.at),
+    ...alphaOf(style),
+  };
 }
 
 /**
