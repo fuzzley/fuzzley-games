@@ -1,8 +1,9 @@
 // Asteroid Breaker's sound lab, which its dev server alone serves, at
-// sound-lab/ (`@fz/dev/sound-lab`, in vite.config.ts): the sprite the scene
-// played before the uplift, the candidates designed with ZzFX to replace
-// its sounds, and scenes played as the game played them, at its gun's rate
-// and its chain's rise.
+// sound-lab/ (`@fz/dev/sound-lab`, in vite.config.ts): the uplift's sprite,
+// played by the game's mix or plainly, each sound with its takes, beside the
+// sprite the game played before; and scenes as the game plays them, each
+// moment's events heard by the view's own `FieldSounds`, beside the same
+// moments as the game played them before.
 
 import {
   type LabCue,
@@ -10,8 +11,23 @@ import {
   type LabSound,
   mountSoundLab,
 } from "@fz/dev/sound-lab-page";
-import type { ZzfxSound } from "@fz/dev/zzfx";
+import type { RockKindId, RockSize } from "../src/rules/catalog/rocks";
+import type { LoggedRock } from "../src/rules/field/events";
+import { type Field, createField, steerField } from "../src/rules/field/field";
+import { endEffect } from "../src/rules/rocks/pickups";
+import { createCrew } from "../src/rules/ship/pilots";
+import { STILL } from "../src/rules/ship/ship";
 import { SHOT_EVERY_MS } from "../src/rules/tuning";
+import spritemap from "../src/scene/sounds/sprite.json";
+import spriteM4a from "../src/scene/sounds/sprite.m4a?url";
+import spriteOgg from "../src/scene/sounds/sprite.ogg?url";
+import { FieldSounds } from "../src/view/effects/field_sounds";
+import {
+  SOUNDS,
+  SOUND_NAMES,
+  type SoundName,
+  THRUST,
+} from "../src/view/effects/sounds";
 import {
   BEFORE_PLAYS,
   BEFORE_SOUNDS,
@@ -19,87 +35,127 @@ import {
   type BeforeName,
   beforeChainDetune as chainDetune,
 } from "./sound-lab/before";
+import { PLAYS } from "./sound-lab/plays";
 
-/**
- * The candidates, designed to be heard against the sounds the game ships:
- * a shot with a saw's bite, breaks that crack and crunch rather than thud,
- * a blast with a crunching tail and an echo, and a thrust that buzzes.
- */
-const CANDIDATES: Readonly<Partial<Record<BeforeName, ZzfxSound>>> = {
-  fired: {
-    volume: 0.6,
-    frequency: 1250,
-    release: 0.07,
-    shape: 2,
-    slide: -24,
-    filter: -2600,
-  },
-  small: {
-    frequency: 900,
-    decay: 0.015,
-    release: 0.1,
-    shape: 4,
-    slide: -6,
-    noise: 0.6,
-    bitCrush: 0.1,
-    sustainVolume: 0.35,
-    filter: 350,
-  },
-  medium: {
-    frequency: 380,
-    decay: 0.03,
-    release: 0.2,
-    shape: 4,
-    slide: -3,
-    noise: 0.7,
-    bitCrush: 0.2,
-    sustainVolume: 0.5,
-    filter: 120,
-  },
-  large: {
-    frequency: 260,
-    attack: 0.002,
-    decay: 0.05,
-    release: 0.32,
-    shape: 4,
-    slide: -2,
-    noise: 0.8,
-    bitCrush: 0.4,
-    sustainVolume: 0.5,
-    filter: 60,
-  },
-  blast: {
-    frequency: 140,
-    attack: 0.004,
-    decay: 0.1,
-    sustain: 0.12,
-    release: 0.55,
-    shape: 4,
-    slide: -0.7,
-    noise: 1.5,
-    bitCrush: 0.3,
-    delay: 0.11,
-    sustainVolume: 0.5,
-    filter: 45,
-  },
-  // Held as long as the loop needs: the lab fades its end into its start.
-  thrust: {
-    volume: 0.6,
-    frequency: 110,
-    sustain: 1.2,
-    release: 0,
-    shape: 2,
-    noise: 0.4,
-    tremolo: 0.15,
-    repeatTime: 0.07,
-    filter: -1000,
-  },
-};
+/** The field the scenes play on, 72 units by 40, its ship in its middle. */
+const TORUS = { width: 72, height: 40 };
 
-/** The time between the gun's shots while fire is held, in seconds. */
+/** Where the ship lies, in units. */
+const SHIP = { x: TORUS.width / 2, y: TORUS.height / 2 };
+
+/** The pilot a scene's stray and crew are, by color. */
+const PILOT = 1;
+
+/** The time between the gun's pulls while fire is held, in seconds. */
 const SHOT_EVERY_S = SHOT_EVERY_MS / 1000;
 
-/** Returns the gun's shots while fire is held from one time to another, in seconds, at a place across the field. */
+/** How long a frame of a scene takes, in seconds, as the game's at 60 a second. */
+const FRAME_S = 1 / 60;
+
+/** A step of the field's clock far on, at which a scene's effect runs out. */
+const RUNS_OUT_AT = 1000;
+
+/** What a scene does to its field at a time: events logged, or the ship steered. */
+interface Moment {
+  /** When, in seconds from the scene's start. */
+  readonly at: number;
+  readonly act: (field: Field) => void;
+}
+
+/** Returns a field to play a scene on: empty but for its ship, waiting in its middle. */
+function sceneField(): Field {
+  return createField({
+    torus: TORUS,
+    cap: 16,
+    seed: 1,
+    pace: 1,
+    waveKind: "stone",
+    drops: 0,
+    pool: [],
+    pickupsAtOnce: 1,
+    strays: 0,
+    strayFirstMs: 0,
+    cometEvery: null,
+    crew: createCrew(),
+  });
+}
+
+/**
+ * Returns the sounds of a scene as the game plays them: each frame's
+ * moments acted on a field, then the field and its events heard by the
+ * view's `FieldSounds`, as the scene hears them, at the frame's time, and
+ * what it plays; with the hums held beside them.
+ */
+function heard(
+  moments: readonly Moment[],
+  hums: readonly LabCue<SoundName>[] = [],
+): LabCue<SoundName>[] {
+  const field = sceneField();
+  const sounds = new FieldSounds();
+  const cues = [...hums];
+  sounds.hearField(field, 0);
+  let since = field.events.latest;
+  const times = [...new Set(moments.map(({ at }) => at))].sort((a, b) => a - b);
+  for (const at of times) {
+    for (const moment of moments) if (moment.at === at) moment.act(field);
+    sounds.hearField(field, at * 1000);
+    field.events.forEachSince(since, (event) => {
+      sounds.hear(event, field.torus.width);
+    });
+    since = field.events.latest;
+    sounds.playEach((sound, detune, x, volume) => {
+      cues.push({ at, sound, detune, x, volume });
+    });
+  }
+  return cues;
+}
+
+/** Returns where across the field a place from -1 at its left edge to 1 at its right lies, in units. */
+function unitsAcross(x: number): number {
+  return ((x + 1) / 2) * TORUS.width;
+}
+
+/** Returns a rock of a kind and size at a place across the field, as its events log it. */
+function rock(kind: RockKindId, size: RockSize, x: number): LoggedRock {
+  return { x: unitsAcross(x), y: SHIP.y, kind, size, slot: 0 };
+}
+
+/** Returns the pulls of fire while it is held from one time to another, in seconds, every so often, then it let go a frame after the last. */
+function burst(from: number, to: number, every = SHOT_EVERY_S): Moment[] {
+  const count = Math.floor((to - from) / every) + 1;
+  const pulls = Array.from({ length: count }, (_, i): Moment => ({
+    at: from + i * every,
+    act: (field) => {
+      steerField(field, { ...STILL, fire: true });
+      field.events.addFired(SHIP.x, SHIP.y, field.weapon);
+    },
+  }));
+  const last = from + (count - 1) * every;
+  return [...pulls, { at: last + FRAME_S, act: letGo }];
+}
+
+/** Lets go of fire. */
+function letGo(field: Field): void {
+  steerField(field, STILL);
+}
+
+/** Returns a rock's break at a time, its count in its chain, 0 for one a comet smashed. */
+function broken(
+  at: number,
+  kind: RockKindId,
+  size: RockSize,
+  chain: number,
+  x: number,
+): Moment {
+  return {
+    at,
+    act: (field) => {
+      field.events.addBreak(rock(kind, size, x), chain, 0, 0);
+    },
+  };
+}
+
+/** Returns the gun's shots before the uplift while fire is held from one time to another, in seconds, at a place across the field. */
 function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
   const count = Math.floor((to - from) / SHOT_EVERY_S) + 1;
   return Array.from({ length: count }, (_, i) => ({
@@ -109,74 +165,278 @@ function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
   }));
 }
 
-const SCENES: readonly LabScene<BeforeName>[] = [
+/** The ten small rocks of a chain, each its time, its count in the chain and its place. */
+const CHAIN_OF_TEN = Array.from({ length: 10 }, (_, i) => ({
+  at: 0.1 + i * 0.12,
+  chain: i + 1,
+  x: -0.8 + i * 0.18,
+}));
+
+/** A large rock's pieces, each its size, its time, its count in the chain and its place. */
+const RUBBLE: readonly {
+  size: Exclude<RockSize, "boulder">;
+  at: number;
+  chain: number;
+  x: number;
+}[] = [
+  { size: "large", at: 0.3, chain: 1, x: -0.1 },
+  { size: "medium", at: 0.6, chain: 2, x: -0.4 },
+  { size: "medium", at: 0.74, chain: 3, x: 0.2 },
+  { size: "small", at: 0.98, chain: 4, x: -0.6 },
+  { size: "small", at: 1.1, chain: 5, x: -0.3 },
+  { size: "small", at: 1.24, chain: 6, x: 0.3 },
+  { size: "small", at: 1.36, chain: 7, x: 0.6 },
+];
+
+const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   {
     name: "Hold fire",
-    what: `The gun held for two seconds, a shot every ${String(SHOT_EVERY_MS)} ms: the sound the game plays most.`,
-    cues: shots(0, 2),
+    what: `The gun held for two seconds, a pull every ${String(SHOT_EVERY_MS)} ms, then let go: the sound the game plays most, and, after, the tail that ends a burst.`,
+    cues: heard(burst(0, 2)),
+    before: shots(0, 2),
   },
   {
     name: "A chain of breaks",
-    what: "Small rocks broken one after another under fire, each a semitone higher than the last, up to a fifth.",
-    cues: [
+    what: "Ten small rocks broken one after another under fire. Before, each rose a semitone on the last, up to a fifth; after, each breaks at its own pitch, a bell under it climbs the chain's ladder, and a chime rings as the chain reaches ×2 and ×3.",
+    cues: heard([
+      ...burst(0, 1.3),
+      ...CHAIN_OF_TEN.map(({ at, chain, x }) =>
+        broken(at, "stone", "small", chain, x),
+      ),
+    ]),
+    before: [
       ...shots(0, 1.3),
-      ...Array.from({ length: 10 }, (_, i) => ({
-        at: 0.1 + i * 0.12,
+      ...CHAIN_OF_TEN.map(({ at, chain, x }) => ({
+        at,
         sound: "small" as const,
-        detune: chainDetune(i + 1),
-        x: -0.8 + i * 0.18,
+        detune: chainDetune(chain),
+        x,
       })),
     ],
   },
   {
-    name: "A boulder to rubble",
-    what: "A large rock broken, its pieces broken in turn, down to the small ones, as one chain.",
-    cues: [
+    name: "A large rock to rubble",
+    what: "A large rock broken under fire, its pieces broken in turn, down to the small ones, as one chain.",
+    cues: heard([
+      ...burst(0, 1.4),
+      ...RUBBLE.map(({ size, at, chain, x }) =>
+        broken(at, "stone", size, chain, x),
+      ),
+    ]),
+    before: [
       ...shots(0, 1.4, -0.1),
-      { at: 0.3, sound: "large", detune: chainDetune(1), x: -0.1 },
-      { at: 0.6, sound: "medium", detune: chainDetune(2), x: -0.4 },
-      { at: 0.74, sound: "medium", detune: chainDetune(3), x: 0.2 },
-      { at: 0.98, sound: "small", detune: chainDetune(4), x: -0.6 },
-      { at: 1.1, sound: "small", detune: chainDetune(5), x: -0.3 },
-      { at: 1.24, sound: "small", detune: chainDetune(6), x: 0.3 },
-      { at: 1.36, sound: "small", detune: chainDetune(7), x: 0.6 },
+      ...RUBBLE.map(({ size, at, chain, x }) => ({
+        at,
+        sound: size,
+        detune: chainDetune(chain),
+        x,
+      })),
     ],
   },
   {
     name: "A blast in a crowd",
-    what: "A blast takes a crowd of rocks with it, each size heard once in its frame, then the pieces it threw are shot down: the mix at its busiest.",
-    cues: [
+    what: "A volatile rock goes off, taking four rocks with it in its frame, then the pieces it threw are shot down: the mix at its busiest. After, the blast ducks the busy sounds of its frame, and the four breaks play as the largest two and their patter.",
+    cues: heard([
+      ...burst(0, 0.3),
+      {
+        at: 0.4,
+        act: (field) => {
+          field.events.addRock("blast", rock("volatile", "large", 0), 6);
+        },
+      },
+      broken(0.4, "ice", "large", 1, -0.5),
+      broken(0.4, "iron", "medium", 2, 0.4),
+      broken(0.4, "stone", "small", 3, -0.2),
+      broken(0.4, "stone", "small", 4, 0.2),
+      ...burst(0.9, 1.6),
+      broken(1.05, "stone", "small", 5, 0.7),
+      broken(1.33, "iron", "small", 6, -0.6),
+      broken(1.6, "stone", "small", 7, 0.1),
+    ]),
+    before: [
       ...shots(0, 0.3),
       { at: 0.4, sound: "blast", x: 0 },
       { at: 0.4, sound: "large", detune: chainDetune(1), x: -0.5 },
       { at: 0.4, sound: "medium", detune: chainDetune(2), x: 0.4 },
-      { at: 0.4, sound: "small", detune: chainDetune(3), x: -0.2 },
+      { at: 0.4, sound: "small", detune: chainDetune(4), x: -0.2 },
       ...shots(0.9, 1.6, 0.2),
-      { at: 1.05, sound: "small", detune: chainDetune(4), x: 0.7 },
-      { at: 1.33, sound: "medium", detune: chainDetune(5), x: -0.6 },
-      { at: 1.6, sound: "small", detune: chainDetune(6), x: 0.1 },
+      { at: 1.05, sound: "small", detune: chainDetune(5), x: 0.7 },
+      { at: 1.33, sound: "small", detune: chainDetune(6), x: -0.6 },
+      { at: 1.6, sound: "small", detune: chainDetune(7), x: 0.1 },
     ],
   },
   {
     name: "Thrust and fire",
-    what: "The thrust held for two and a half seconds while the gun fires and a rock breaks: the loop under everything else.",
-    cues: [
+    what: "The thrust held for two and a half seconds while the gun fires and a rock breaks: the hum under everything else.",
+    cues: heard(
+      [...burst(0.3, 2.2), broken(1.2, "stone", "medium", 1, 0.5)],
+      [{ at: 0, sound: THRUST, holdFor: 2.5 }],
+    ),
+    before: [
       { at: 0, sound: "thrust", holdFor: 2.5 },
       ...shots(0.3, 2.2),
       { at: 1.2, sound: "medium", detune: chainDetune(1), x: 0.5 },
     ],
   },
+  {
+    name: "A pickup",
+    what: "A crystal broken lets a pickup go; the ship catches it, a Rapid, which fires twice as fast, 3 dB under the gun, until its time runs out. Before, every weapon fired the gun's shot.",
+    cues: heard([
+      broken(0, "crystal", "medium", 1, 0.3),
+      {
+        at: 0,
+        act: (field) => {
+          field.events.addPickup("dropped", unitsAcross(0.3), SHIP.y, "rapid");
+        },
+      },
+      {
+        at: 0.8,
+        act: (field) => {
+          field.events.addPickup("caught", SHIP.x, SHIP.y, "rapid");
+          field.weapon = "rapid";
+          field.effects.weapon.pickup = "rapid";
+          field.effects.weapon.endsAt = RUNS_OUT_AT;
+        },
+      },
+      ...burst(1.1, 2.1, SHOT_EVERY_S / 2),
+      {
+        at: 2.6,
+        act: (field) => {
+          field.steps = RUNS_OUT_AT;
+          endEffect(field, "weapon");
+        },
+      },
+    ]),
+    before: [
+      { at: 0, sound: "medium", detune: chainDetune(1), x: 0.3 },
+      { at: 0.8, sound: "caught" },
+      ...Array.from({ length: 15 }, (_, i) => ({
+        at: 1.1 + (i * SHOT_EVERY_S) / 2,
+        sound: "fired" as const,
+      })),
+    ],
+  },
+  {
+    name: "A stray and the crew in tow",
+    what: "A stray drifts in, and the ship catches it into the line in tow; a rock knocks it loose, and the ship catches it again. Before, a stray caught went home, and a hit cost a ship.",
+    cues: heard([
+      {
+        at: 0,
+        act: (field) => {
+          field.events.addPilot(
+            "strayed",
+            unitsAcross(-1),
+            SHIP.y,
+            PILOT,
+            field.crew,
+          );
+        },
+      },
+      {
+        at: 1.5,
+        act: (field) => {
+          field.events.addPilot("joined", SHIP.x, SHIP.y, PILOT, field.crew);
+        },
+      },
+      {
+        at: 3,
+        act: (field) => {
+          field.events.addKnocked(SHIP.x, SHIP.y, PILOT, field.crew, 1, 0);
+        },
+      },
+      {
+        at: 4.5,
+        act: (field) => {
+          field.events.addPilot(
+            "recaught",
+            unitsAcross(0.4),
+            SHIP.y,
+            PILOT,
+            field.crew,
+          );
+        },
+      },
+    ]),
+    before: [
+      { at: 1.5, sound: "home" },
+      { at: 3, sound: "lost" },
+    ],
+  },
+  {
+    name: "A comet",
+    what: "A comet's warning at the field's left edge, then the comet smashing a rock as it crosses.",
+    cues: heard([
+      {
+        at: 0,
+        act: (field) => {
+          field.events.add("warned", 0, SHIP.y);
+        },
+      },
+      broken(1.5, "stone", "medium", 0, -0.3),
+    ]),
+    before: [
+      { at: 0, sound: "warned", x: -1 },
+      { at: 1.5, sound: "medium", x: -0.3 },
+    ],
+  },
+  {
+    name: "A dash",
+    what: "A dash, then, after, the tick as it has charged again, two and a half seconds on.",
+    cues: heard([
+      {
+        at: 0,
+        act: (field) => {
+          field.events.addDash(SHIP.x, SHIP.y, 0);
+          if (field.ship) field.ship.rechargeSteps = 1;
+        },
+      },
+      {
+        at: 2.5,
+        act: (field) => {
+          if (field.ship) field.ship.rechargeSteps = 0;
+        },
+      },
+    ]),
+    before: [{ at: 0, sound: "dashed" }],
+  },
+  {
+    name: "A wave cleared, then the run's end",
+    what: "A wave cleared, then a hit with no one in tow, which ends the run. Before, the end was a ship lost.",
+    cues: heard([
+      {
+        at: 0,
+        act: (field) => {
+          field.events.add("cleared", SHIP.x, SHIP.y);
+        },
+      },
+      {
+        at: 2.5,
+        act: (field) => {
+          field.events.addPilot("lost", SHIP.x, SHIP.y, PILOT, field.crew);
+        },
+      },
+    ]),
+    before: [
+      { at: 0, sound: "cleared" },
+      { at: 2.5, sound: "lost" },
+    ],
+  },
 ];
 
-const sounds: readonly LabSound<BeforeName>[] = BEFORE_SOUNDS.map((name) => {
-  const candidate = CANDIDATES[name];
-  const plays = BEFORE_PLAYS[name];
-  return candidate === undefined ? { name, plays } : { name, plays, candidate };
-});
+const sounds: readonly LabSound<SoundName>[] = SOUND_NAMES.map((name) => ({
+  name,
+  plays: PLAYS[name],
+}));
 
-mountSoundLab({
+const beforeSounds: readonly LabSound<BeforeName>[] = BEFORE_SOUNDS.map(
+  (name) => ({ name, plays: BEFORE_PLAYS[name] }),
+);
+
+mountSoundLab<SoundName, BeforeName>({
   game: "Asteroid Breaker",
-  sprite: BEFORE_SPRITE,
+  sprite: { url: [spriteOgg, spriteM4a], spritemap },
   sounds,
   scenes: SCENES,
+  mix: SOUNDS,
+  before: { sprite: BEFORE_SPRITE, sounds: beforeSounds },
 });

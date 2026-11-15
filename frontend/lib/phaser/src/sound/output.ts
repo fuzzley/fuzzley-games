@@ -1,16 +1,5 @@
+import { LIMITER } from "@fz/core/sound_mix";
 import { Sound } from "phaser";
-
-/**
- * How the limiter after a game's master volume holds its peaks: hard and
- * fast, 3 dB under full scale, so thirty breaks under a blast never clip.
- */
-export const LIMITER = {
-  threshold: -3,
-  knee: 0,
-  ratio: 20,
-  attack: 0.003,
-  release: 0.1,
-} as const satisfies DynamicsCompressorOptions;
 
 /** The master volumes given a limiter, so each is given one, however many players ask. */
 const limited = new WeakSet<AudioNode>();

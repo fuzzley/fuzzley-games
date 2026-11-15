@@ -1,7 +1,6 @@
 import { keysOf } from "@fz/core/records";
 import {
-  DUCK,
-  type Duck,
+  DUCK_AT_START,
   NO_TAKE,
   ROOM,
   type SoundLevel,
@@ -90,13 +89,6 @@ const PLAIN_PLAY: PlayConfig = {
   delay: 0,
   pan: 0,
 };
-
-/**
- * How a play is ducked as it starts: as the mix ducks, but down from the
- * start, since a play's volume is set once as it starts and has no ramp
- * to smooth, so a busy play in a huge sound's own frame is ducked too.
- */
-const DUCK_AT_START: Duck = { ...DUCK, attack: 0 };
 
 /** Describes how a sound of the sprite plays, worked out once, and the take it played last. */
 interface Played {

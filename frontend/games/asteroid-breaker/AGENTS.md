@@ -802,15 +802,20 @@ takes for the specs' helpers.
   `tools/sounds/wav/`, which git ignores.
   `sound-lab.ts` is no script but the sound lab's page, which the dev
   server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
-  `vite.config.ts`): the sprite the game played before the uplift,
+  `vite.config.ts`), compiling the modules of `tools/sound-lab/` with it:
+  the uplift's sprite, played by the view's mix (`SOUNDS`) or plainly,
+  each sound with its takes and what plays it in its recipe's words
+  (`tools/sound-lab/plays.ts`, which `tools/build-sounds.spec.ts` holds to
+  the recipes); beside the sprite the game played before the uplift,
   `tools/sound-lab/sounds.wav` and its map, `sounds.json`, which no build
-  holds, with the names it plays them under (`tools/sound-lab/before.ts`),
-  beside a candidate designed with ZzFX for each of the shot, the three
-  breaks, the blast and the thrust, and scenes played as the game played
-  them, the gun at `SHOT_EVERY_MS` and a chain raised a semitone a break up
-  to a fifth, as the game raised it then (`beforeChainDetune()`).
-  The app's tsconfig leaves it out; `tsconfig.node.json` checks it, with
-  Vite's client types for the sprite's address.
+  holds, with the names it plays them under (`tools/sound-lab/before.ts`);
+  and scenes as the game plays them, each moment's events logged on a
+  field of the rules' and heard by the view's `FieldSounds`, as the scene
+  hears them, beside the same moments as the game played them before, the
+  gun at `SHOT_EVERY_MS` and a chain raised a semitone a break up to a
+  fifth (`beforeChainDetune()`). The app's tsconfig leaves it out;
+  `tsconfig.node.json` checks it, with Vite's client types for the
+  sprites' addresses.
 
 ## The Field
 
@@ -1075,17 +1080,19 @@ workspace's with the others'.
   take of every sound but the beds by name and in order, which loop, and
   where each lies as the packer lays out its recorded length, to the byte;
   the view's mix to the recipes, every sound but the beds by name, family,
-  level and takes; the view's ladder to the kit's `CHAIN_CENTS`; the beds
-  and the sprite to being encoded; five short takes, rendered, to
+  level and takes; the view's ladder to the kit's `CHAIN_CENTS`; the sound
+  lab's words for each sound to its recipe's; the beds and the sprite to
+  being encoded; five short takes, rendered, to
   the bytes of the kit's WAVs of them, their recorded lengths and their
   levels; and the build whole, on families and folders of its own, an encode
   that fails changing nothing.)
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9005/sound-lab/`, or
   `http://localhost:4200/play/asteroid-breaker/sound-lab/` under the root's
-  `yarn dev:all` (`tools/sound-lab.ts`: the sounds the game played before
-  the uplift beside the candidates, alone and in scenes, varied, panned and
-  limited or not, and the notes on better sounds; no build holds it).
+  `yarn dev:all` (`tools/sound-lab.ts`: the sounds the game plays, by its
+  mix or plainly, each with its takes, alone and in scenes as the game
+  plays them, beside those it played before the uplift, and the notes on
+  its sounds; no build holds it).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: it reads

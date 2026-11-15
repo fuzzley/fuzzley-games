@@ -27,6 +27,7 @@ import {
   run,
   warningsOf,
 } from "./build-sounds.mjs";
+import { PLAYS } from "./sound-lab/plays";
 
 /** Each take's length in the shipped sprite, in samples, by its name. */
 const LENGTHS: Readonly<Record<string, number>> = recorded.takes;
@@ -150,6 +151,16 @@ describe("the view's mix", () => {
 describe("the view's ladder", () => {
   it("is the kit's, which the chain's bell was tuned to", () => {
     expect(CHAIN_CENTS).toEqual(KIT_CHAIN_CENTS);
+  });
+});
+
+describe("the sound lab's words", () => {
+  it("say what plays each sound as its recipe does", () => {
+    expect(PLAYS).toEqual(
+      Object.fromEntries(
+        spriteRecipes().map(({ name, plays = [] }) => [name, plays.join("; ")]),
+      ),
+    );
   });
 });
 

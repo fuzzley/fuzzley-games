@@ -107,11 +107,25 @@ describe("pageModules", () => {
     expect(modules.test("/games/rocks/tools/lab.ts")).toBe(true);
   });
 
+  it("matches the modules of the folder named for the entry, beside it", () => {
+    const modules = pageModules("/games/rocks", "tools/lab.ts");
+
+    expect(modules.test("/games/rocks/tools/lab/before.ts")).toBe(true);
+  });
+
+  it("matches nothing in a folder within that one", () => {
+    const modules = pageModules("/games/rocks", "tools/lab.ts");
+
+    expect(modules.test("/games/rocks/tools/lab/old/before.ts")).toBe(false);
+  });
+
   it("matches the page's own modules", () => {
     const modules = pageModules("/games/rocks", "tools/lab.ts");
 
     expect(
-      modules.test(join(import.meta.dirname, "zzfx.ts").replaceAll("\\", "/")),
+      modules.test(
+        join(import.meta.dirname, "sound_lab_mix.ts").replaceAll("\\", "/"),
+      ),
     ).toBe(true);
   });
 

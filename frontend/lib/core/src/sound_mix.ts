@@ -295,6 +295,13 @@ export function duckedGain(since: number, duck: Duck = DUCK): number {
 }
 
 /**
+ * How a play is ducked as it starts: as the mix ducks, but down from the
+ * start, since a play's volume is set once as it starts and has no ramp to
+ * smooth, so a busy play in a huge sound's own frame is ducked too.
+ */
+export const DUCK_AT_START: Duck = { ...DUCK, attack: 0 };
+
+/**
  * Returns what a ducked sound's loudness is multiplied by under the latest
  * duck and the one before it, some seconds after each started: the lower of
  * their gains, so a huge sound inside another's duck holds the levels down
@@ -310,6 +317,37 @@ export function duckedGainUnder(
     duckedGain(sinceEarlier, duck),
   );
 }
+
+// --- Limiter ----------------------------------------------------------------
+
+/** Describes how a limiter holds a mix's peaks, as Web Audio's compressor takes it. */
+export interface Limiter {
+  /** Where it starts holding the mix down, in decibels under full scale. */
+  readonly threshold: number;
+  /** How softly it starts, in decibels. */
+  readonly knee: number;
+  /** How hard it holds: the decibels in for each one out. */
+  readonly ratio: number;
+  /** How fast it holds a peak down, in seconds. */
+  readonly attack: number;
+  /** How fast it lets the mix back up, in seconds. */
+  readonly release: number;
+}
+
+/**
+ * How the limiter after a game's master volume holds its peaks: hard and
+ * fast, from 3 dB under full scale, so thirty breaks under a blast never
+ * clip. Web Audio's compressor makes up the gain it takes, so a peak at full
+ * scale leaves it about 1 dB under, and a sound under the threshold about
+ * 1.7 dB louder.
+ */
+export const LIMITER: Limiter = {
+  threshold: -3,
+  knee: 0,
+  ratio: 20,
+  attack: 0.003,
+  release: 0.1,
+};
 
 // --- Layers -----------------------------------------------------------------
 

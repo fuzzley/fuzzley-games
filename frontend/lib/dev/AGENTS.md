@@ -569,30 +569,46 @@ too. Paths are relative to `frontend/lib/dev/`.
   `@fz/core/sound_mix`, which imports nothing, resolved by its real path
   rather than imported: a game whose app plays through `@fz/phaser/sound`
   holds it in its program, which Analog compiles, and the plugin compiles
-  it for one whose app doesn't. The page, `src/sound_lab_page.ts`,
-  `@fz/dev/sound-lab-page`, which only a browser runs, is mounted by the
-  game's module with `mountSoundLab()`, handed a `SoundLab`: the game's
-  name, its sprite's address and map, each sound
-  (`LabSound`) with what plays it and its candidate, a `ZzfxSound`, where
-  it has one, and its scenes (`LabScene`), each a moment of play as the
-  cues (`LabCue`) the game would play, raised as the game raises them and
-  at their place across the field. Through Web Audio it plays the sprite's
-  sounds or the candidates, a scene with either or both a breath apart,
-  each varied, panned and limited or not, the candidates as loud as the
-  sounds they would replace or not; edits a candidate as the designer
-  copies one, kept in the page's storage until reset, and copies it as
-  code; and shows `src/sound_lab_notes.ts`'s notes on why the synthesized
-  sounds fall short and the ways to better ones, in `@fz/style`'s tokens
-  and buttons (`src/sound_lab_page.scss`). What it works out of samples and
-  of each play is `src/sound_lab_mix.ts`: how loud a sound is
-  (`loudnessOf()`, the RMS of its loudest 50 ms), what makes one as loud as
-  another (`gainToMatch()`), a loop's seam faded away (`seamless()`), and a
-  play's variation (`variedPlay()`) and its pan (`panAt()`), by
-  `@fz/core/sound_mix`'s formulas (`variedDetune()`, `variedGain()` and
-  `panOf()`) at numbers of its own: 60 cents and 1.5 dB at most
-  (`VARY_CENTS`, `VARY_DECIBELS`), on every play, tuned or not, where the
-  games' mix varies only its noisy, busy sounds, by less, and 70% of the
-  way to a side (`PAN_WIDTH`).
+  it for one whose app doesn't. The game's entry and the modules of the
+  folder beside it named for it, such as `tools/sound-lab/` beside
+  `tools/sound-lab.ts`, are compiled with them. The page,
+  `src/sound_lab_page.ts`, `@fz/dev/sound-lab-page`, which only a browser
+  runs, is mounted by the game's module with `mountSoundLab()`, handed a
+  `SoundLab`: the game's name, its sprite (`LabSprite`: its address, or
+  its addresses in formats of which the page loads the first the browser
+  plays, and its map of takes), each sound (`LabSound`) with what plays it,
+  its scenes (`LabScene`), each a moment of play as the cues (`LabCue`)
+  the game would play, raised, placed across the field and as loud as the
+  game plays them, and, where the game has them, its mix, a
+  `@fz/core/sound_mix` `SoundMix`, and the sounds it played before, their
+  sprite and each sound (`LabSounds`), beside which each scene holds the
+  same moment as the game played it then. Through Web Audio it plays a
+  scene, now or before, or both a breath apart; each sound, and each of
+  its takes alone; by the game's mix or plainly, each sound's first take
+  as it was rendered, where the game has a mix, and the sounds before
+  always plainly, as the game played them; and, where the game has no mix,
+  each play varied, panned and limited or not, at the lab's own numbers.
+  It shows `src/sound_lab_notes.ts`'s notes on how the games' sounds are
+  made and played, giving the mix's numbers (`soundLabNotes()`), and the
+  ways to better ones, in `@fz/style`'s tokens and
+  buttons (`src/sound_lab_page.scss`). What it works out of each play is
+  `src/sound_lab_mix.ts`: with no game's mix, a play's variation
+  (`variedPlay()`) and its pan (`panAt()`), by `@fz/core/sound_mix`'s
+  formulas (`variedDetune()`, `variedGain()` and `panOf()`) at numbers of
+  its own: 60 cents and 1.5 dB at most (`VARY_CENTS`, `VARY_DECIBELS`), on
+  every play, tuned or not, and 70% of the way to a side (`PAN_WIDTH`);
+  with one, `GameMix`, which plans a scene's cues (`MixCue`) as
+  `@fz/phaser/sound`'s `SpritePlayer` plays them by the mix, at the
+  games' numbers: each sound's takes in turn, from one scene to the next,
+  the busy noisy ones varied, each placed, ducked as it starts under a
+  huge sound (`DUCK_AT_START`), and the voice that gives way to it stopped,
+  a voice sounding as long as its take plays at its rate (`soundingFor()`),
+  a looping one held plainly for as long as its cue says (`HOLD_S` unless
+  it says), each a `TakePlay` the page schedules, under the games'
+  `LIMITER` and then the page's volume, as a game limits its mix at full
+  volume; the sounds before, the game's with its mix off and a take played
+  alone pass no limiter, and with no game's mix the lab's own limiter,
+  where it is on, follows the volume.
 
 ## How a workspace uses it
 
@@ -725,12 +741,14 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   runs tasks on a fake clock under budgets, and the script over a fake shell;
   `src/tsc7.spec.ts` runs TypeScript 7 over projects it writes, holding
   `runTsc7()` to its exit code;
-  `src/sound_lab_mix.spec.ts` measures, matches and loops samples it makes
-  up, and varies and pans plays at the lab's numbers;
-  `src/sound_lab.spec.ts` serves a game it writes, with the lab under a
-  base, behind a plugin that turns Vite's compiler off as Analog's does,
-  the page's module of `@fz/core` compiled too, and builds it, finding
-  nothing of the page there;
+  `src/sound_lab_mix.spec.ts` varies and pans plays at the lab's numbers,
+  and plans scenes of cues it makes up by a game's mix;
+  `src/sound_lab_notes.spec.ts` gives the notes a mix's numbers;
+  `src/sound_lab.spec.ts` matches the modules the lab's page compiles,
+  serves a game it writes, with the lab under a base, behind a plugin that
+  turns Vite's compiler off as Analog's does, the page's module of
+  `@fz/core` compiled too, and builds it, finding nothing of the page
+  there;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
   the Chrome spec starts programs that can't be a Chrome (Node, a script
@@ -745,7 +763,7 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   too, beside the readers where it calls them, the three specs here that
   do. Coverage counts `src/testing/` too, as `frontend/AGENTS.md` asks of
   every library, and leaves out what only a browser runs:
-  `src/layout_page.ts`, and the sound lab's page and its notes. Starting a
+  `src/layout_page.ts`, and the sound lab's page. Starting a
   real Chrome is left to the screenshot scripts, so `src/chrome.ts` stays
   short of the rest; the floor in `vitest.config.ts`, which `test:coverage`
   holds it to, sits just under the figures, and rises as they rise.

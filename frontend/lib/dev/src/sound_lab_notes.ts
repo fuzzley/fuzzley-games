@@ -1,164 +1,127 @@
-// The sound lab's notes: why the games' synthesized sounds fall short, the
-// ways to better ones, and how the lab helps choose between them. Every
-// game's lab shows them, since every game's sounds come from
-// `@fz/dev/sounds`.
+// The sound lab's notes: how the games' sounds are made and played, what
+// still holds them back, and how the lab helps hear them. Every game's lab
+// shows them.
 
-/** The notes, as HTML the page shows as it is. */
-export const SOUND_LAB_NOTES = `
-<h3>Why the sounds fall short</h3>
+/** Describes the numbers a game's mix plays by, as the notes give them. */
+export interface MixNumbers {
+  /** How far a varied play is raised or lowered, in cents, and made louder or quieter, in decibels, at most. */
+  readonly variation: { readonly cents: number; readonly decibels: number };
+  /** How many voices sound at most: of a sound, of a family and in all. */
+  readonly voices: {
+    readonly sound: number;
+    readonly family: number;
+    readonly all: number;
+  };
+  /** How far a huge sound turns the busy ones down, in decibels, and how long, in seconds. */
+  readonly duck: { readonly decibels: number; readonly heldUntil: number };
+}
+
+/** Returns the notes, as HTML the page shows as it is, giving the numbers a game's mix plays by. */
+export function soundLabNotes({ variation, voices, duck }: MixNumbers): string {
+  return `
+<h3>How the sounds are made</h3>
 <p>
-  Every game's sounds are synthesized by <code>@fz/dev/sounds</code>, from a
-  game's <code>tools/build-sounds.mjs</code>, and the synth itself caps them:
+  Every game's sounds are synthesized from recipes in its
+  <code>tools/build-sounds.mjs</code>, the same bytes every run, so they are
+  free to share and need no licence to track. Two synths make them:
 </p>
 <ul>
   <li>
-    <strong>16,000 samples a second,</strong> so nothing above 8 kHz exists:
-    the crack of a break, the sizzle of a blast and the air in a whoosh all
-    live up there, and are muffled away.
+    <strong><code>@fz/dev/synth</code>,</strong> which Asteroid Breaker's are
+    made with: 44,100 samples a second, saws, pulses and FM, white, pink and
+    brown noise, the partials of struck things, filters that sweep and
+    resonate, drive, rooms and a limiter, and as many takes of a sound as its
+    recipe asks, each from a seed of its own.
   </li>
   <li>
-    <strong>Sines alone,</strong> with at most a share of the second harmonic,
-    so every tone sounds thin, like a test tone.
-  </li>
-  <li>
-    <strong>One noise, and a dull one:</strong> <code>thud()</code> smooths its
-    noise to about 700 Hz, so every break, blast and dash shares one rumble,
-    and nothing can crack or hiss. There is no filter to sweep or resonate.
-  </li>
-  <li>
-    <strong>No effects:</strong> no saturation, no echo, no compression; each
-    sound is dry and stops dead.
-  </li>
-  <li>
-    <strong>One take of each, played alike:</strong> a shot heard seven times a
-    second sounds the same each time, a machine gun of one sample. Only a
-    chain's breaks rise.
-  </li>
-  <li>
-    <strong>Tuned without an ear:</strong> the recipes are numbers in code,
-    with nothing to hear one in the game's context while it is changed. This
-    page is that ear.
+    <strong><code>@fz/dev/sounds</code>,</strong> which the other games' are
+    made with, and which caps them: 16,000 samples a second, so nothing above
+    8 kHz, sines with at most a share of the second harmonic, one dull noise,
+    no effects, and one take of each sound. Moving a game onto the first is
+    how its sounds get better.
   </li>
 </ul>
 <p>
-  Raising the rate alone changes little, since no recipe reaches above 8 kHz
-  as it is: the sounds need designing again.
+  Neither has an ear: a recipe is numbers in code, checked by measures
+  (loudness, brightness, what a phone's speaker keeps), not by listening.
+  This page is that ear.
 </p>
 
-<h3>Ways to better sounds</h3>
+<h3>How a game plays them</h3>
+<p>
+  A game that hands <code>@fz/phaser/sound</code>'s player its mix plays by
+  <code>@fz/core/sound_mix</code>'s rules, which this page plays by too:
+</p>
+<ul>
+  <li>Each sound's <strong>takes in turn,</strong> so none plays twice running.</li>
+  <li>
+    The noisy sounds heard many times a second <strong>varied,</strong> up to
+    ±${String(variation.cents)} cents and ±${String(variation.decibels)} dB;
+    a tuned one stays in key.
+  </li>
+  <li><strong>Placed</strong> where it happens across the field.</li>
+  <li>
+    <strong>Voices held</strong> to ${String(voices.sound)} of a sound,
+    ${String(voices.family)} of a family and ${String(voices.all)} in all, the
+    quietest and oldest giving way.
+  </li>
+  <li>
+    The busy levels <strong>ducked</strong> ${String(duck.decibels)} dB for
+    ${String(Math.round(duck.heldUntil * 1000))} ms under a huge sound, and a
+    <strong>limiter</strong> on the whole, so a crowd of breaks under a blast
+    never clips.
+  </li>
+</ul>
+<p>
+  A game with no mix plays each sound as it was recorded; its lab can still
+  try varying, panning and limiting, at numbers of the lab's own.
+</p>
+
+<h3>Ways to better sounds still</h3>
 <ol>
-  <li>
-    <strong>Design by ear in an arcade synth.</strong>
-    <a href="https://github.com/KilledByAPixel/ZzFX">ZzFX</a> (MIT) has a
-    <a href="https://killedbyapixel.github.io/ZzFX/">designer</a>, renders at
-    44.1 kHz, and covers saws, squares, noise, a filter, bitcrush, echo and
-    tremolo, each sound a list of twenty numbers.
-    <code>@fz/dev/zzfx</code> renders the same samples in Node or a page, with
-    nothing drawn at random, so a sound designed there can be built into the
-    sprite, the same bytes every run, with no licence to track. The
-    candidates here are ZzFX's.
-    <a href="https://github.com/ttencate/jfxr">jfxr</a> and
-    <a href="https://drpetter.se/project_sfxr.html">sfxr</a> are its kin. Its
-    ceiling is good retro, which suits an arcade game.
-  </li>
-  <li>
-    <strong>Grow the synth instead:</strong> 44.1 kHz, white and pink noise,
-    filters that sweep and resonate, saws, squares and FM, soft saturation, a
-    short reverb, and a few seeded takes of each sound. Rendering through
-    Web Audio offline, with
-    <a href="https://github.com/ircam-ismm/node-web-audio-api">node-web-audio-api</a>
-    in Node or an <code>OfflineAudioContext</code> in headless Chrome, brings
-    the filters, convolution, waveshaping and a compressor for free. More work
-    than ZzFX, and it still needs an ear.
-  </li>
   <li>
     <strong>Recorded sounds, free to share.</strong> Kenney's packs are CC0
     (the sci-fi, impact and digital-audio ones fit); Freesound and
     OpenGameArt, filtered to CC0. CC-BY works with a credits file; nothing
-    marked non-commercial. The repository is public and GPL, so a
-    royalty-free pack that forbids passing its sounds on alone, as the Sonniss
-    GDC bundles are said to, can't be committed. A recording would need the
-    sprite to take a file, beside a manifest of each file's source and
-    licence that a spec holds.
+    marked non-commercial. The repository is public and GPL, so a pack that
+    forbids passing its sounds on alone can't be committed. A recording would
+    need the sprite to take a file, beside a manifest of each file's source
+    and licence that a spec holds.
   </li>
   <li>
-    <strong>Generated sounds.</strong> Stable Audio Open runs locally on a
-    good GPU, its outputs usable commercially under its community licence
-    below $1M of revenue (check stability.ai/license); ElevenLabs' sound
-    effects are the hosted kind. Good at textures, crumbling rock, debris,
-    explosions; poor at short, tight, tonal blips; different at every run, so
-    each is kept as a recording is, with its prompt and seed. Where clean
-    provenance matters, synthesis and CC0 are safer.
+    <strong>Generated sounds.</strong> Good at textures, crumbling rock,
+    debris and explosions; poor at short, tight, tonal blips; different at
+    every run, so each is kept as a recording is, with its prompt and seed,
+    under a licence checked first.
   </li>
   <li>
-    <strong>A sound designer,</strong> for a pack of fifteen, under a licence
-    that lets the repository share them: CC0 or CC-BY.
+    <strong>A sound designer,</strong> for a pack, under a licence that lets
+    the repository share it: CC0 or CC-BY.
   </li>
 </ol>
 <p>
-  The kinds layer well: a synthesized body under a recorded or generated
-  crunch is what makes a break feel physical.
+  The kinds layer well: a synthesized body under a recorded crunch is what
+  makes a break feel physical.
 </p>
-
-<h3>How the sounds play</h3>
-<p>Whatever the sounds, how a game plays them matters as much. Try each here:</p>
-<ul>
-  <li>
-    <strong>Vary each play,</strong> up to ±60 cents and ±1.5 dB,
-    so a sound heard many times a second never repeats itself.
-  </li>
-  <li>
-    <strong>Pan by place:</strong> a rock that breaks at the left is heard at
-    the left.
-  </li>
-  <li>
-    <strong>A limiter on the mix,</strong> so a crowd of breaks under a blast
-    never clips.
-  </li>
-  <li>
-    Not tried here yet: a blast or a lost ship ducking the small sounds a
-    moment, and a quiet bed of hum under the field.
-  </li>
-</ul>
 
 <h3>Using the lab</h3>
 <ol>
   <li>
-    Play a scene with the sounds the game ships, then with the candidates:
-    <em>Current, then candidate</em> plays both, a breath apart.
-    <em>Match loudness</em> keeps the louder one from winning by being louder.
+    Play a scene as the game plays it now, or, where the game kept the
+    sounds it played before, as it played them then: <em>Before, then
+    after</em> plays both, a breath apart.
   </li>
   <li>
-    Change a candidate in its box, or design one in ZzFX's designer and paste
-    what it copies; the scenes play it at once, and the page keeps it as you
-    left it until <em>Reset</em>.
-  </li>
-  <li>
-    <em>Copy as code</em> copies a candidate as the game's
-    <code>tools/sound-lab.ts</code> writes one, to keep it there.
+    Turn the game's mix off to hear each sound's first take plainly, as it
+    was rendered, and on to hear what the mix adds; each sound's takes play
+    alone from its card. The mix's limiter makes up the gain it takes, so a
+    sound plays a dB or two louder by the mix than plainly or before, and
+    the louder of two tends to sound the better.
   </li>
   <li>
     Listen on a phone's speaker too, which drops everything below about
     200 Hz: run the dev server with <code>--host</code> to reach it.
   </li>
 </ol>
-
-<h3>What comes next</h3>
-<ul>
-  <li>
-    Build the chosen candidates into the sprite, rendered by
-    <code>@fz/dev/zzfx</code> at 44.1 kHz from a game's
-    <code>tools/build-sounds.mjs</code>.
-  </li>
-  <li>
-    Vary, pan and limit the plays in <code>@fz/phaser/sound</code>'s
-    <code>SpritePlayer</code>, which every game drawn with Phaser plays its
-    sounds through, if they win here.
-  </li>
-  <li>
-    At 44.1 kHz a sprite grows about threefold as WAV. Ogg, with an M4A for
-    Safari, shrinks it, but a lossy format pads its start: check the sprite's
-    times and the loops' seams again, and keep MP3 away from a loop.
-  </li>
-</ul>
 `;
+}

@@ -1,206 +1,265 @@
 /// <reference types="vite/client" />
 // The sound lab, the page `@fz/dev/sound-lab` has a game's dev server serve:
-// the sounds the game ships beside candidates designed with ZzFX, each alone
-// and in scenes played as the game plays them, varied, panned and limited or
-// not, and the notes on how to make better ones. A game's lab module hands
-// mountSoundLab() its sprite, its sounds and its scenes. Only a browser runs
-// it.
+// the sounds a game plays, each with its takes, alone and in scenes played
+// as the game plays them, by the game's mix or plainly, beside the sounds it
+// played before where it keeps them, and the notes on its sounds. A game's
+// lab module hands mountSoundLab() its sprite, its sounds and its scenes.
+// Only a browser runs it.
 
 import "./sound_lab_page.scss";
 import {
+  DUCK,
+  GameMix,
+  HOLD_S,
+  LIMITER,
+  type MixCue,
+  type SoundMix,
+  type TakePlay,
+  type TakeSprite,
   VARY_CENTS,
   VARY_DECIBELS,
-  decibelsOf,
-  gainToMatch,
-  loudnessOf,
+  VARIATION,
+  VOICES,
   panAt,
-  seamless,
+  soundingFor,
   variedPlay,
 } from "./sound_lab_mix.ts";
-import { SOUND_LAB_NOTES } from "./sound_lab_notes.ts";
+import { soundLabNotes } from "./sound_lab_notes.ts";
 import type { SpriteEntry } from "./sounds.ts";
-import {
-  ZZFX_SAMPLE_RATE,
-  type ZzfxSound,
-  formatZzfx,
-  parseZzfx,
-  zzfxCode,
-  zzfxSamples,
-} from "./zzfx.ts";
 
-/** Describes a sound of the game's sprite, as the lab shows it. */
+/** Describes a sound of a game's sprite, as the lab shows it. */
 export interface LabSound<Name extends string> {
   readonly name: Name;
   /** What plays it in the game, in a few words. */
   readonly plays: string;
-  /** The candidate designed to replace it, or none yet. */
-  readonly candidate?: ZzfxSound;
 }
 
-/** Describes a sound a scene plays, as the game would play it. */
-export interface LabCue<Name extends string> {
-  /** When it plays, in seconds from the scene's start. */
-  readonly at: number;
-  readonly sound: Name;
-  /** How far the game raises it, in cents. */
-  readonly detune?: number;
-  /** Where across the field it happens, from -1 at its left edge to 1 at its right, for the lab's panning. */
-  readonly x?: number;
-  /** How long a looping sound is held, in seconds. */
-  readonly holdFor?: number;
-}
+/**
+ * Describes a sound a scene plays, as the game would play it: when, which,
+ * raised how far, where across the field, how loud and, for a loop, held
+ * how long.
+ */
+export type LabCue<Name extends string> = MixCue<Name>;
 
 /** Describes a moment of play the lab plays, its sounds as the game would play them. */
-export interface LabScene<Name extends string> {
+export interface LabScene<Name extends string, Before extends string = never> {
   readonly name: string;
   /** What happens in it, in a sentence. */
   readonly what: string;
   readonly cues: readonly LabCue<Name>[];
+  /** The same moment as the game played it before, where the lab keeps the sounds it played then. */
+  readonly before?: readonly LabCue<Before>[];
+}
+
+/** Describes a sprite, as `@fz/dev/sounds` or a game's sound build writes one. */
+export interface LabSprite {
+  /** Its address, or its addresses in formats of which the lab loads the first the browser plays. */
+  readonly url: string | readonly string[];
+  /** Its map, each take by its name. */
+  readonly spritemap: {
+    readonly spritemap: Readonly<Record<string, SpriteEntry>>;
+  };
+}
+
+/** Describes a set of sounds the lab plays: their sprite, and each sound, in the order the lab shows them. */
+export interface LabSounds<Name extends string> {
+  readonly sprite: LabSprite;
+  readonly sounds: readonly LabSound<Name>[];
 }
 
 /** Describes a game's sound lab. */
-export interface SoundLab<Name extends string> {
+export interface SoundLab<
+  Name extends string,
+  Before extends string = never,
+> extends LabSounds<Name> {
   /** The game's name, which titles the page. */
   readonly game: string;
-  /** The sprite the game plays, its address and its map, as `@fz/dev/sounds` writes them. */
-  readonly sprite: {
-    readonly url: string;
-    readonly spritemap: {
-      readonly spritemap: Readonly<Record<Name, SpriteEntry>>;
-    };
-  };
-  /** Every sound of the sprite, in its order. */
-  readonly sounds: readonly LabSound<Name>[];
-  readonly scenes: readonly LabScene<Name>[];
+  readonly scenes: readonly LabScene<Name, Before>[];
+  /**
+   * How the game mixes its sounds, for one that plays them by a mix: each
+   * sound's family, level, takes and tuning, by which the lab plays them,
+   * or plainly, as the page's control says.
+   */
+  readonly mix?: SoundMix<Name>;
+  /** The sounds the game played before, which the lab plays as it played them, beside its own. */
+  readonly before?: LabSounds<Before>;
 }
 
-/** Which sounds a play takes: the sprite's, or the candidates, each sound without one taking the sprite's. */
-type Source = "current" | "candidate";
+/** Which of a lab's sets of sounds a play takes: the game's, or those it played before. */
+type Source = "after" | "before";
 
 /** Holds how the lab plays, as its controls set it. */
 interface Playing {
   source: Source;
+  /** Whether the game's sounds play by its mix, where it has one. */
+  mixed: boolean;
+  /** Whether a lab with no mix varies, pans and limits its plays, each at the lab's numbers. */
   vary: boolean;
   pan: boolean;
   limit: boolean;
-  match: boolean;
   volume: number;
 }
 
-/** Holds a candidate as rendered, with what brings it as loud as the sound it would replace. */
-interface Rendered {
-  readonly buffer: AudioBuffer;
-  readonly match: number;
-}
-
-/** How long a looping candidate's end fades into its start, in seconds. */
-const LOOP_FADE_S = 0.08;
-
-/** How long a looping sound is held where its cue doesn't say, in seconds. */
-const HOLD_S = 1;
+/**
+ * How the lab limits a mix of its own, where the game has none: softer than
+ * a game's limiter, as it was tried before the games had one.
+ */
+const LAB_LIMITER: DynamicsCompressorOptions = {
+  threshold: -9,
+  knee: 6,
+  ratio: 12,
+  attack: 0.002,
+  release: 0.12,
+};
 
 /** How far ahead a scene is scheduled, in seconds, so its first sound isn't late. */
 const START_AHEAD_S = 0.05;
 
-/** The breath between the sounds the game ships and the candidates, when a scene plays both, in seconds. */
+/** The breath between a scene before and after, when the lab plays both, in seconds. */
 const BETWEEN_S = 0.7;
 
-/** What starts the key the page keeps an edited candidate under, before the game's name and the sound's. */
-const STORAGE_PREFIX = "fz-sound-lab";
+/** The type a sprite's file is served as, by its extension, for asking the browser whether it plays it. */
+const AUDIO_TYPES: Readonly<Record<string, string>> = {
+  ogg: 'audio/ogg; codecs="vorbis"',
+  m4a: 'audio/mp4; codecs="mp4a.40.2"',
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+};
 
-/** Plays the sprite's sounds and the candidates, through the lab's mix. */
-class LabPlayer<Name extends string> {
+/** Returns the address of a sprite the browser plays: the first of its formats it can, else the first. */
+function playableUrl(url: LabSprite["url"]): string {
+  if (typeof url === "string") return url;
+  const probe = new Audio();
+  const playable = url.find((each) => {
+    const extension = each.split("?")[0]?.split(".").pop() ?? "";
+    const type = AUDIO_TYPES[extension];
+    return type !== undefined && probe.canPlayType(type) !== "";
+  });
+  return playable ?? url[0] ?? "";
+}
+
+/** Holds a sprite's takes, each cut out of it, by its name. */
+class Takes implements TakeSprite {
+  private readonly buffers = new Map<string, AudioBuffer>();
+  private readonly sprite: LabSprite;
+
+  constructor(sprite: LabSprite) {
+    this.sprite = sprite;
+  }
+
+  /** Loads the sprite and cuts it into its takes. */
+  async load(context: AudioContext): Promise<void> {
+    const response = await fetch(playableUrl(this.sprite.url));
+    const whole = await context.decodeAudioData(await response.arrayBuffer());
+    for (const [take, { start, end }] of Object.entries(
+      this.sprite.spritemap.spritemap,
+    )) {
+      const from = Math.round(start * whole.sampleRate);
+      const to = Math.round(end * whole.sampleRate);
+      const buffer = new AudioBuffer({
+        length: Math.max(to - from, 1),
+        numberOfChannels: whole.numberOfChannels,
+        sampleRate: whole.sampleRate,
+      });
+      for (let channel = 0; channel < whole.numberOfChannels; channel++) {
+        buffer.copyToChannel(
+          whole.getChannelData(channel).slice(from, to),
+          channel,
+        );
+      }
+      this.buffers.set(take, buffer);
+    }
+  }
+
+  /** Returns a take's samples, once loaded. */
+  bufferOf(take: string): AudioBuffer | undefined {
+    return this.buffers.get(take);
+  }
+
+  lengthOf(take: string): number {
+    const entry = this.sprite.spritemap.spritemap[take];
+    return entry === undefined ? 0 : entry.end - entry.start;
+  }
+
+  loops(take: string): boolean {
+    return this.sprite.spritemap.spritemap[take]?.loop ?? false;
+  }
+}
+
+/** Plays a game's sounds, and those it played before, through the lab's mix or the game's. */
+class LabPlayer<Name extends string, Before extends string> {
   readonly settings: Playing = {
-    source: "current",
+    source: "after",
+    mixed: true,
     vary: false,
     pan: false,
     limit: false,
-    match: true,
     volume: 0.8,
   };
 
   private readonly context = new AudioContext();
+  /** Where the plays the game's mix limits go, as the game limits them, ahead of the lab's volume. */
+  private readonly limited = new GainNode(this.context);
+  /** Where every other play goes. */
+  private readonly plain = new GainNode(this.context);
   private readonly volume = new GainNode(this.context);
-  private readonly limiter = new DynamicsCompressorNode(this.context, {
-    threshold: -9,
-    knee: 6,
-    ratio: 12,
-    attack: 0.002,
-    release: 0.12,
-  });
-  private readonly current = new Map<Name, AudioBuffer>();
-  private readonly candidates = new Map<Name, Rendered>();
+  private readonly limiter: DynamicsCompressorNode;
+  private readonly after: Takes;
+  private readonly before: Takes | undefined;
+  private readonly gameMix: GameMix<Name> | undefined;
   private readonly sounding = new Set<AudioBufferSourceNode>();
-  private readonly lab: SoundLab<Name>;
 
-  constructor(lab: SoundLab<Name>) {
-    this.lab = lab;
+  constructor(lab: SoundLab<Name, Before>) {
+    this.after = new Takes(lab.sprite);
+    this.before = lab.before && new Takes(lab.before.sprite);
+    this.gameMix = lab.mix && new GameMix(lab.mix, Math.random);
+    this.limiter = new DynamicsCompressorNode(
+      this.context,
+      lab.mix ? LIMITER : LAB_LIMITER,
+    );
+    this.plain.connect(this.volume);
+    if (lab.mix) {
+      this.limited.connect(this.limiter).connect(this.volume);
+      this.volume.connect(this.context.destination);
+    }
     this.mix();
   }
 
-  /** Loads the sprite and cuts it into its sounds. */
+  /** Whether the game plays its sounds by a mix. */
+  get hasMix(): boolean {
+    return this.gameMix !== undefined;
+  }
+
+  /** Loads the sprites and cuts each into its takes. */
   async load(): Promise<void> {
-    const response = await fetch(this.lab.sprite.url);
-    const sprite = await this.context.decodeAudioData(
-      await response.arrayBuffer(),
-    );
-    const samples = sprite.getChannelData(0);
-    for (const { name } of this.lab.sounds) {
-      const { start, end } = this.lab.sprite.spritemap.spritemap[name];
-      const from = Math.round(start * sprite.sampleRate);
-      const to = Math.round(end * sprite.sampleRate);
-      const buffer = new AudioBuffer({
-        length: to - from,
-        sampleRate: sprite.sampleRate,
-      });
-      buffer.copyToChannel(samples.slice(from, to), 0);
-      this.current.set(name, buffer);
-    }
+    await Promise.all([
+      this.after.load(this.context),
+      this.before?.load(this.context),
+    ]);
+  }
+
+  /** Returns a sound's takes, by their names in the sprite, in turn. */
+  takesOf(name: Name): readonly string[] {
+    return this.gameMix?.takesOf(name) ?? [name];
   }
 
   /** Returns whether the game loops a sound while something is held. */
   loops(name: Name): boolean {
-    return this.lab.sprite.spritemap.spritemap[name].loop;
+    return this.after.loops(this.firstTakeOf(name));
+  }
+
+  /** Returns whether the game looped a sound it played before while something was held. */
+  loopedBefore(name: Before): boolean {
+    return this.before?.loops(name) ?? false;
   }
 
   /**
-   * Renders a sound's candidate, or forgets it for none, and returns it, or
-   * throws for one that can't be played, as a loop too short to fade.
+   * Sets the lab's volume and, for a lab with no game's mix, puts its own
+   * limiter on after the volume or takes it off, as the settings say.
    */
-  setCandidate(name: Name, sound: ZzfxSound | null): Rendered | null {
-    this.candidates.delete(name);
-    if (sound === null) return null;
-    const made = zzfxSamples(sound);
-    const samples = this.loops(name)
-      ? seamless(made, ZZFX_SAMPLE_RATE, LOOP_FADE_S)
-      : made;
-    if (samples.length === 0) throw new RangeError("It lasts no time.");
-    const buffer = new AudioBuffer({
-      length: samples.length,
-      sampleRate: ZZFX_SAMPLE_RATE,
-    });
-    buffer.copyToChannel(samples, 0);
-    const current = this.current.get(name);
-    const match =
-      current === undefined
-        ? 1
-        : gainToMatch(
-            loudnessOf(samples, ZZFX_SAMPLE_RATE),
-            loudnessOf(current.getChannelData(0), current.sampleRate),
-          );
-    const rendered = { buffer, match };
-    this.candidates.set(name, rendered);
-    return rendered;
-  }
-
-  /** Returns whether a sound has a candidate. */
-  hasCandidate(name: Name): boolean {
-    return this.candidates.has(name);
-  }
-
-  /** Puts the limiter on the mix or takes it off, and sets its volume, as the settings say. */
   mix(): void {
     this.volume.gain.value = this.settings.volume;
+    if (this.hasMix) return;
     this.volume.disconnect();
     this.limiter.disconnect();
     if (this.settings.limit) {
@@ -210,20 +269,54 @@ class LabPlayer<Name extends string> {
     }
   }
 
-  /** Plays a scene from a source, after a wait in seconds, and returns how long it lasts. */
-  async playScene(
-    scene: LabScene<Name>,
-    source: Source,
+  /**
+   * Plays a scene's cues of the game's sounds, after a wait in seconds, by
+   * its mix where it has one and the settings keep it on, else plainly, and
+   * returns how long they last.
+   */
+  async playAfter(cues: readonly LabCue<Name>[], after = 0): Promise<number> {
+    const mixing = this.settings.mixed ? this.gameMix : undefined;
+    return mixing
+      ? this.playAll(
+          mixing.plan(cues, this.after),
+          this.after,
+          this.limited,
+          after,
+        )
+      : this.playAll(
+          this.plainPlays(cues, this.after, (name) => this.firstTakeOf(name)),
+          this.after,
+          this.plain,
+          after,
+        );
+  }
+
+  /**
+   * Plays a scene's cues of the sounds the game played before, plainly, as
+   * it played them, after a wait in seconds, and returns how long they last.
+   */
+  async playBefore(
+    cues: readonly LabCue<Before>[],
     after = 0,
   ): Promise<number> {
-    await this.context.resume();
-    const start = this.context.currentTime + START_AHEAD_S + after;
-    let length = 0;
-    for (const cue of scene.cues) {
-      const played = this.play(cue, start + cue.at, source);
-      length = Math.max(length, cue.at + played);
-    }
-    return length;
+    if (this.before === undefined) return 0;
+    return this.playAll(
+      this.plainPlays(cues, this.before, (name) => name),
+      this.before,
+      this.plain,
+      after,
+    );
+  }
+
+  /** Plays a take of the game's sounds alone, plainly, whether the mix is on or off. */
+  async playTake(take: string): Promise<void> {
+    const held = this.after.loops(take) ? HOLD_S : null;
+    await this.playAll(
+      [{ take, at: 0, detune: 0, gain: 1, pan: 0, stopsAt: held }],
+      this.after,
+      this.plain,
+      0,
+    );
   }
 
   /** Stops every sound playing or waiting to. */
@@ -232,34 +325,87 @@ class LabPlayer<Name extends string> {
     this.sounding.clear();
   }
 
-  /** Plays a cue at a time on the context's clock, and returns how long it lasts. */
-  private play(cue: LabCue<Name>, when: number, source: Source): number {
-    const candidate =
-      source === "candidate" ? this.candidates.get(cue.sound) : undefined;
-    const buffer = candidate?.buffer ?? this.current.get(cue.sound);
-    if (buffer === undefined) return 0;
-    const loop = this.loops(cue.sound);
-    const varied = this.settings.vary
-      ? variedPlay(Math.random)
-      : { detune: 0, gain: 1 };
+  /** Returns the first take of a sound of the game's. */
+  private firstTakeOf(name: Name): string {
+    return this.takesOf(name)[0] ?? name;
+  }
+
+  /**
+   * Plays some plays of a sprite's takes into a bus, after a wait in
+   * seconds, and returns how long they last.
+   */
+  private async playAll(
+    plays: readonly TakePlay[],
+    takes: Takes,
+    bus: AudioNode,
+    after: number,
+  ): Promise<number> {
+    await this.context.resume();
+    const start = this.context.currentTime + START_AHEAD_S + after;
+    let length = 0;
+    for (const play of plays) {
+      length = Math.max(length, this.schedule(play, takes, bus, start) - start);
+    }
+    return length;
+  }
+
+  /**
+   * Returns how cues play with no game's mix: each its sound's first take,
+   * raised and as loud as its cue says, and, for a lab with no mix of its
+   * own, varied and panned at the lab's numbers where the settings say.
+   */
+  private plainPlays<Sound extends string>(
+    cues: readonly LabCue<Sound>[],
+    takes: Takes,
+    firstTakeOf: (sound: Sound) => string,
+  ): TakePlay[] {
+    const ownMix = !this.hasMix;
+    return cues.map((cue) => {
+      const take = firstTakeOf(cue.sound);
+      const varied =
+        ownMix && this.settings.vary
+          ? variedPlay(Math.random)
+          : { detune: 0, gain: 1 };
+      return {
+        take,
+        at: cue.at,
+        detune: (cue.detune ?? 0) + varied.detune,
+        gain: (cue.volume ?? 1) * varied.gain,
+        pan: ownMix && this.settings.pan ? panAt(cue.x ?? 0) : 0,
+        stopsAt: takes.loops(take) ? cue.at + (cue.holdFor ?? HOLD_S) : null,
+      };
+    });
+  }
+
+  /**
+   * Schedules a play into a bus from a start on the context's clock, and
+   * returns when it ends there.
+   */
+  private schedule(
+    play: TakePlay,
+    takes: Takes,
+    bus: AudioNode,
+    start: number,
+  ): number {
+    const buffer = takes.bufferOf(play.take);
+    if (buffer === undefined) return start;
     const node = new AudioBufferSourceNode(this.context, {
       buffer,
-      loop,
-      detune: (cue.detune ?? 0) + varied.detune,
+      loop: takes.loops(play.take),
+      detune: play.detune,
     });
-    const matched = candidate && this.settings.match ? candidate.match : 1;
-    const gain = new GainNode(this.context, { gain: varied.gain * matched });
-    const pan = new StereoPannerNode(this.context, {
-      pan: this.settings.pan ? panAt(cue.x ?? 0) : 0,
-    });
-    node.connect(gain).connect(pan).connect(this.volume);
+    const gain = new GainNode(this.context, { gain: play.gain });
+    const pan = new StereoPannerNode(this.context, { pan: play.pan });
+    node.connect(gain).connect(pan).connect(bus);
     node.addEventListener("ended", () => this.sounding.delete(node));
     this.sounding.add(node);
+    const when = start + play.at;
     node.start(when);
-    if (!loop) return buffer.duration;
-    const held = cue.holdFor ?? HOLD_S;
-    node.stop(when + held);
-    return held;
+    if (play.stopsAt === null) {
+      return when + soundingFor(buffer.duration, play.detune);
+    }
+    node.stop(start + play.stopsAt);
+    return start + play.stopsAt;
   }
 }
 
@@ -324,40 +470,25 @@ function checkbox(
   return make("label", { className: "lab-choice" }, [input, text]);
 }
 
-/** Returns what a candidate's matching gain does to it, in words. */
-function matchedBy(gain: number): string {
-  const decibels = decibelsOf(gain);
-  const by = Math.abs(decibels).toFixed(1);
-  return decibels < 0
-    ? `Matching turns it down ${by} dB to the game's sound.`
-    : `Matching turns it up ${by} dB to the game's sound.`;
+/** Returns a source's name, as the lab says it. */
+function sourceWords(source: Source): string {
+  return source === "after" ? "after" : "before";
 }
 
-/** Returns what the page keeps, or null where it keeps nothing or can't be read. */
-function kept(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-
-/** Keeps a value under a key, or forgets the key for null, where the page can keep anything. */
-function keep(key: string, value: string | null): void {
-  try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
-  } catch {
-    // A page that can't keep anything keeps the candidate until it reloads.
-  }
+/** Returns what a sound of a game's mix is, in words: its family, its level, its takes and its tuning. */
+function mixedWords(sound: SoundMix<string>[string]): string {
+  const takes = sound.takes === 1 ? "1 take" : `${String(sound.takes)} takes`;
+  const tuned = sound.tuned ? ", in key" : "";
+  return `${sound.family}, ${sound.level}, ${takes}${tuned}`;
 }
 
 /** Mounts a game's sound lab into an element, the page's body unless given. */
-export function mountSoundLab<Name extends string>(
-  lab: SoundLab<Name>,
-  host: HTMLElement = document.body,
-): void {
+export function mountSoundLab<
+  Name extends string,
+  Before extends string = never,
+>(lab: SoundLab<Name, Before>, host: HTMLElement = document.body): void {
   const player = new LabPlayer(lab);
+  const { before } = lab;
   const status = make("p", {
     className: "lab-status",
     attrs: { role: "status" },
@@ -365,53 +496,64 @@ export function mountSoundLab<Name extends string>(
   const say = (text: string): void => {
     status.textContent = text;
   };
-  const sceneGaps: (() => void)[] = [];
-  const updateScenes = (): void => {
-    for (const update of sceneGaps) update();
-  };
+
+  const sources = make("fieldset", { className: "lab-group" }, [
+    make("legend", { text: "Play" }),
+    ...(
+      [
+        ["after", "After: the sounds the game plays"],
+        ["before", "Before: the sounds it played before"],
+      ] as const
+    ).map(([source, text]) => {
+      const input = make("input", {
+        attrs: { type: "radio", name: "lab-source", value: source },
+      });
+      input.checked = player.settings.source === source;
+      input.addEventListener("change", () => {
+        if (input.checked) player.settings.source = source;
+      });
+      return make("label", { className: "lab-choice" }, [input, text]);
+    }),
+  ]);
+
+  const mixing = player.hasMix
+    ? [
+        checkbox(
+          "The game's mix: takes in turn, the busy sounds varied, each placed, its voices held, ducked under a huge one, and a limiter",
+          player.settings.mixed,
+          (checked) => {
+            player.settings.mixed = checked;
+          },
+        ),
+        make("p", {
+          className: "lab-note",
+          text: before
+            ? "Off, each sound plays its first take plainly. The sounds before play as the game played them, plainly."
+            : "Off, each sound plays its first take plainly.",
+        }),
+      ]
+    : [
+        checkbox(
+          `Vary each play (±${String(VARY_CENTS)} cents, ±${String(VARY_DECIBELS)} dB)`,
+          player.settings.vary,
+          (checked) => {
+            player.settings.vary = checked;
+          },
+        ),
+        checkbox("Pan by place", player.settings.pan, (checked) => {
+          player.settings.pan = checked;
+        }),
+        checkbox("Limiter on the mix", player.settings.limit, (checked) => {
+          player.settings.limit = checked;
+          player.mix();
+        }),
+      ];
 
   const controls = make("div", { className: "lab-controls" }, [
-    make("fieldset", { className: "lab-group" }, [
-      make("legend", { text: "Play" }),
-      ...(
-        [
-          ["current", "The sounds the game ships"],
-          ["candidate", "The candidates"],
-        ] as const
-      ).map(([source, text]) => {
-        const input = make("input", {
-          attrs: { type: "radio", name: "lab-source", value: source },
-        });
-        input.checked = player.settings.source === source;
-        input.addEventListener("change", () => {
-          if (input.checked) player.settings.source = source;
-        });
-        return make("label", { className: "lab-choice" }, [input, text]);
-      }),
-    ]),
+    ...(before ? [sources] : []),
     make("fieldset", { className: "lab-group" }, [
       make("legend", { text: "Mix" }),
-      checkbox(
-        `Vary each play (±${String(VARY_CENTS)} cents, ±${String(VARY_DECIBELS)} dB)`,
-        player.settings.vary,
-        (checked) => {
-          player.settings.vary = checked;
-        },
-      ),
-      checkbox("Pan by place", player.settings.pan, (checked) => {
-        player.settings.pan = checked;
-      }),
-      checkbox("Limiter on the mix", player.settings.limit, (checked) => {
-        player.settings.limit = checked;
-        player.mix();
-      }),
-      checkbox(
-        "Match loudness (candidates to the sounds they replace)",
-        player.settings.match,
-        (checked) => {
-          player.settings.match = checked;
-        },
-      ),
+      ...mixing,
     ]),
     make("div", { className: "lab-group lab-volume" }, [
       make("label", { text: "Volume", attrs: { for: "lab-volume" } }),
@@ -440,166 +582,123 @@ export function mountSoundLab<Name extends string>(
   ]);
 
   const scenes = lab.scenes.map((scene) => {
-    const missing = make("p", { className: "lab-missing" });
-    sceneGaps.push(() => {
-      const without = [...new Set(scene.cues.map((cue) => cue.sound))].filter(
-        (name) => !player.hasCandidate(name),
-      );
-      missing.textContent =
-        without.length === 0
-          ? ""
-          : `No candidate for ${without.join(", ")}: the candidates play the game's.`;
-    });
+    const both = scene.before;
+    const play = (): void => {
+      const source = before ? player.settings.source : "after";
+      if (source === "before" && both === undefined) {
+        say(`${scene.name}: the game played nothing of it before.`);
+        return;
+      }
+      const playing =
+        source === "after" || both === undefined
+          ? player.playAfter(scene.cues)
+          : player.playBefore(both);
+      void playing.then(() => {
+        say(
+          before ? `${scene.name}: ${sourceWords(source)}.` : `${scene.name}.`,
+        );
+      });
+    };
     return make("article", { className: "lab-card" }, [
       make("h3", { text: scene.name }),
       make("p", { text: scene.what }),
-      missing,
+      ...(before && both === undefined
+        ? [
+            make("p", {
+              className: "lab-missing",
+              text: "No before: the game played nothing of it then.",
+            }),
+          ]
+        : []),
       make("div", { className: "lab-actions" }, [
-        button(
-          "Play",
-          () => {
-            const source = player.settings.source;
-            void player.playScene(scene, source).then(() => {
-              say(
-                `${scene.name}: ${source === "current" ? "the sounds the game ships" : "the candidates"}.`,
-              );
-            });
-          },
-          { tone: "main", label: `Play ${scene.name}` },
-        ),
-        button(
-          "Current, then candidate",
-          () => {
-            void (async () => {
-              const length = await player.playScene(scene, "current");
-              await player.playScene(scene, "candidate", length + BETWEEN_S);
-              say(
-                `${scene.name}: the sounds the game ships, then the candidates.`,
-              );
-            })();
-          },
-          { label: `${scene.name}: current, then candidate` },
-        ),
+        button("Play", play, { tone: "main", label: `Play ${scene.name}` }),
+        ...(before && both !== undefined
+          ? [
+              button(
+                "Before, then after",
+                () => {
+                  void (async () => {
+                    const length = await player.playBefore(both);
+                    await player.playAfter(scene.cues, length + BETWEEN_S);
+                    say(`${scene.name}: before, then after.`);
+                  })();
+                },
+                { label: `${scene.name}: before, then after` },
+              ),
+            ]
+          : []),
       ]),
     ]);
   });
 
   const sounds = lab.sounds.map((sound) => {
-    const key = `${STORAGE_PREFIX}:${lab.game}:${sound.name}`;
-    const designed =
-      sound.candidate === undefined ? "" : formatZzfx(sound.candidate);
-    const editor = make("textarea", {
-      className: "lab-editor",
-      attrs: {
-        id: `lab-${sound.name}`,
-        rows: "2",
-        spellcheck: "false",
-        placeholder: "Paste a list from ZzFX's designer",
-      },
-    });
-    editor.value = kept(key) ?? designed;
-    const note = make("p", { className: "lab-note" });
-    const playCandidate = button(
-      "Candidate",
-      () => {
-        void player.playScene(
-          { name: sound.name, what: "", cues: [{ at: 0, sound: sound.name }] },
-          "candidate",
-        );
-      },
-      { label: `${sound.name}: candidate` },
-    );
-    const copy = button(
-      "Copy as code",
-      () => {
-        const parsed = parseZzfx(editor.value);
-        if (parsed === null) return;
-        const code = zzfxCode(parsed);
-        navigator.clipboard.writeText(code).then(
-          () => {
-            say(`Copied ${sound.name}'s candidate.`);
-          },
-          () => {
-            say(`${sound.name}: ${code}`);
-          },
-        );
-      },
-      { label: `Copy ${sound.name}'s candidate as code` },
-    );
-    const render = (): void => {
-      const text = editor.value.trim();
-      keep(key, editor.value === designed ? null : editor.value);
-      const parsed = text === "" ? null : parseZzfx(text);
-      try {
-        const rendered = player.setCandidate(sound.name, parsed);
-        note.textContent =
-          text === ""
-            ? "No candidate yet."
-            : rendered === null
-              ? "Not a ZzFX parameter list: the game's sound plays instead."
-              : `${matchedBy(rendered.match)}${editor.value === designed ? "" : " Edited here."}`;
-      } catch (error) {
-        note.textContent = `Can't play it: ${error instanceof Error ? error.message : String(error)}`;
-      }
-      const has = player.hasCandidate(sound.name);
-      playCandidate.disabled = !has;
-      copy.disabled = !has;
-      updateScenes();
-    };
-    editor.addEventListener("input", render);
-    const reset = button(
-      "Reset",
-      () => {
-        editor.value = designed;
-        render();
-      },
-      { label: `Reset ${sound.name}'s candidate` },
-    );
-    return {
-      render,
-      card: make("article", { className: "lab-card lab-sound" }, [
-        make("h3", {}, [
-          make("code", { text: sound.name }),
-          player.loops(sound.name) ? " (loops)" : "",
-        ]),
-        make("p", { text: sound.plays }),
-        make("div", { className: "lab-actions" }, [
-          button(
-            "Current",
-            () => {
-              void player.playScene(
-                {
-                  name: sound.name,
-                  what: "",
-                  cues: [{ at: 0, sound: sound.name }],
-                },
-                "current",
-              );
-            },
-            { tone: "main", label: `${sound.name}: current` },
-          ),
-          playCandidate,
-        ]),
-        make(
-          "label",
-          { className: "lab-label", attrs: { for: `lab-${sound.name}` } },
-          [
-            "ZzFX parameters",
-            make("span", {
-              className: "fz-visually-hidden",
-              text: ` for ${sound.name}`,
-            }),
-          ],
-        ),
-        editor,
-        note,
-        make("div", { className: "lab-actions" }, [copy, reset]),
+    const mixed = lab.mix?.[sound.name];
+    const takes = player.takesOf(sound.name);
+    return make("article", { className: "lab-card lab-sound" }, [
+      make("h3", {}, [
+        make("code", { text: sound.name }),
+        player.loops(sound.name) ? " (loops)" : "",
       ]),
-    };
+      ...(mixed === undefined
+        ? []
+        : [make("p", { className: "lab-note", text: mixedWords(mixed) })]),
+      make("p", { text: sound.plays }),
+      make("div", { className: "lab-actions" }, [
+        button(
+          "Play",
+          () => {
+            void player.playAfter([{ at: 0, sound: sound.name }]);
+          },
+          { tone: "main", label: `Play ${sound.name}` },
+        ),
+        ...(takes.length > 1
+          ? takes.map((take, index) =>
+              button(
+                `Take ${String(index + 1)}`,
+                () => {
+                  void player.playTake(take);
+                },
+                { label: `${sound.name}: take ${String(index + 1)}` },
+              ),
+            )
+          : []),
+      ]),
+    ]);
   });
 
+  const beforeSounds = (before?.sounds ?? []).map((sound) =>
+    make("article", { className: "lab-card lab-sound" }, [
+      make("h3", {}, [
+        make("code", { text: sound.name }),
+        player.loopedBefore(sound.name) ? " (loops)" : "",
+      ]),
+      make("p", { text: sound.plays }),
+      make("div", { className: "lab-actions" }, [
+        button(
+          "Play",
+          () => {
+            void player.playBefore([{ at: 0, sound: sound.name }]);
+          },
+          { tone: "main", label: `Play ${sound.name} as before` },
+        ),
+      ]),
+    ]),
+  );
+
   const notes = make("div", { className: "lab-prose" });
-  notes.innerHTML = SOUND_LAB_NOTES;
+  notes.innerHTML = soundLabNotes({
+    variation: VARIATION,
+    voices: VOICES,
+    duck: DUCK,
+  });
+
+  const beforePart: [string, string][] = before ? [["before", "Before"]] : [];
+  const parts: [string, string][] = [
+    ["scenes", "Scenes"],
+    ["sounds", "Sounds"],
+    ...beforePart,
+    ["notes", "Notes"],
+  ];
 
   host.append(
     make("main", { className: "lab" }, [
@@ -611,16 +710,14 @@ export function mountSoundLab<Name extends string>(
         make("h1", { text: `Sound lab: ${lab.game}` }),
         make("p", {
           className: "lab-lede",
-          text: `The sounds ${lab.game} ships, beside candidates designed with ZzFX, alone and as the game plays them, and notes on better sounds for every game. The build leaves this page out.`,
+          text: `The sounds ${lab.game} plays, each alone and as the game plays them${before ? ", beside the sounds it played before" : ""}, and notes on its sounds. The build leaves this page out.`,
         }),
         make(
           "nav",
           { className: "lab-nav", attrs: { "aria-label": "Parts" } },
-          [
-            make("a", { text: "Scenes", attrs: { href: "#scenes" } }),
-            make("a", { text: "Sounds", attrs: { href: "#sounds" } }),
-            make("a", { text: "Notes", attrs: { href: "#notes" } }),
-          ],
+          parts.map(([id, text]) =>
+            make("a", { text, attrs: { href: `#${id}` } }),
+          ),
         ),
       ]),
       make("section", { className: "lab-panel", attrs: { id: "scenes" } }, [
@@ -633,14 +730,28 @@ export function mountSoundLab<Name extends string>(
         make("h2", { text: "Sounds" }),
         make("p", {
           className: "lab-intro",
-          text: "Each sound of the sprite, and its candidate as ZzFX's designer copies one. Edit a candidate, or paste one from the designer, and the scenes play it at once.",
+          text: player.hasMix
+            ? "Each sound the game plays, by its mix or plainly, as the control above says, and each of its takes alone."
+            : "Each sound of the sprite.",
         }),
-        make(
-          "div",
-          { className: "lab-grid" },
-          sounds.map(({ card }) => card),
-        ),
+        make("div", { className: "lab-grid" }, sounds),
       ]),
+      ...(before
+        ? [
+            make(
+              "section",
+              { className: "lab-panel", attrs: { id: "before" } },
+              [
+                make("h2", { text: "Before" }),
+                make("p", {
+                  className: "lab-intro",
+                  text: "Each sound the game played before, as it played them.",
+                }),
+                make("div", { className: "lab-grid" }, beforeSounds),
+              ],
+            ),
+          ]
+        : []),
       make("section", { className: "lab-panel", attrs: { id: "notes" } }, [
         make("h2", { text: "Notes" }),
         notes,
@@ -648,15 +759,14 @@ export function mountSoundLab<Name extends string>(
     ]),
   );
 
-  say("Loading the sprite…");
+  say("Loading the sounds…");
   player.load().then(
     () => {
-      for (const { render } of sounds) render();
       say("Ready. Pick a scene.");
     },
     (error: unknown) => {
       say(
-        `Couldn't load the sprite: ${error instanceof Error ? error.message : String(error)}`,
+        `Couldn't load the sounds: ${error instanceof Error ? error.message : String(error)}`,
       );
     },
   );

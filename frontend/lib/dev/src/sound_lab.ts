@@ -23,7 +23,6 @@ const PAGE_MODULES = [
   "sound_lab_page.ts",
   "sound_lab_mix.ts",
   "sound_lab_notes.ts",
-  "zzfx.ts",
 ];
 
 /**
@@ -81,10 +80,16 @@ function forwardSlashed(file: string): string {
   return file.replaceAll("\\", "/");
 }
 
+/** Returns a path written so a pattern matches it as it is. */
+function literal(file: string): string {
+  return forwardSlashed(file).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
- * Returns what matches the page's modules, a game's entry under its folder,
- * this library's own and those it imports from the others, by the paths
- * Vite names them by.
+ * Returns what matches the page's modules, by the paths Vite names them
+ * by: a game's entry under its folder and the modules of the folder beside
+ * it named for it (`tools/sound-lab/` beside `tools/sound-lab.ts`), this
+ * library's own, and those it imports from the others.
  */
 export function pageModules(root: string, entry: string): RegExp {
   const files = [
@@ -92,8 +97,9 @@ export function pageModules(root: string, entry: string): RegExp {
     ...PAGE_MODULES.map((name) => path.join(HERE, name)),
     // Resolved, not imported, since Node runs this plugin.
     ...PAGE_IMPORTS.map((name) => require.resolve(name)),
-  ].map((file) => forwardSlashed(file).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  return new RegExp(`^(?:${files.join("|")})$`);
+  ].map(literal);
+  const folder = literal(path.resolve(root, entry.replace(/\.ts$/, "")));
+  return new RegExp(`^(?:${[...files, `${folder}/[^/]+\\.ts`].join("|")})$`);
 }
 
 /**
