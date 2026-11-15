@@ -3,7 +3,8 @@
 // thing is drawn in; the soft halo in each glowing thing's own color under
 // it, under plain alpha, never an additive blend, as the kit's `glow()`
 // draws one, which the scene shows as an image of one soft disc, tinted,
-// turned, scaled and faded; each weapon's shot; and the muzzle's flash.
+// turned, scaled and faded; each weapon's shot; the muzzle's flash; and
+// the halo of the pod's flame.
 
 import { clamp } from "@fz/core/math";
 import { recordOf } from "@fz/core/records";
@@ -25,6 +26,7 @@ import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import { mixTone } from "../colors/tones";
+import { flameShare } from "./pod_art";
 import { rockShape, sizesOf } from "./rock_art";
 import type { RockGlow, RockShape } from "./rocks/rock_shape";
 import { MOST_LINE } from "./shapes";
@@ -395,6 +397,47 @@ export function muzzleHalo(beat: MuzzleBeat): Halo {
     turn: 0,
     strength: beat.glow,
   };
+}
+
+/**
+ * The halo of the pod's flame behind each engine, as the kit's pod draws
+ * it: the flame's length at full thrust, in field units, as `pod_art.ts`'
+ * flame frame draws it; how far behind its engine the halo's middle lies
+ * and how far it reaches past the engine's width, as shares of the flame's
+ * length; and how opaque it is in each mode, the kit's opacity for it,
+ * which the palette's halo strength doesn't weaken again, the disc fading
+ * as it does, as a rock's halo takes the kit's opacity alone.
+ */
+export const FLAME_GLOW = {
+  full: 1.15,
+  behind: 0.4,
+  reach: 0.8,
+  alpha: { light: 0.6, dark: 0.75 },
+} as const;
+
+/** Describes a halo written anew for each thing shown, so drawing makes nothing. */
+export type WrittenHalo = { -readonly [K in keyof Halo]: Halo[K] };
+
+/**
+ * Writes the halo of the pod's flame behind an engine, at a thrust, from 0
+ * to 1, into a record and returns it, about the pod's middle as it points:
+ * round, as long as the flame, its middle a little behind the engine.
+ */
+export function flameHalo(
+  engine: { readonly at: Point; readonly width: number },
+  thrust: number,
+  palette: Pick<BeltPalette, "mode" | "haloStrength">,
+  into: WrittenHalo,
+): Halo {
+  const { full, behind, reach, alpha } = FLAME_GLOW;
+  const flame = full * flameShare(thrust);
+  const x = engine.at.x - behind * flame;
+  into.along = reach * flame + engine.width;
+  into.across = into.along;
+  into.ahead = Math.hypot(x, engine.at.y);
+  into.turn = Math.atan2(engine.at.y, x);
+  into.strength = alpha[palette.mode] / palette.haloStrength;
+  return into;
 }
 
 /** Returns the muzzle's flash's frame, whole: its star in the accent's body tone, its middle in the field's text. */
