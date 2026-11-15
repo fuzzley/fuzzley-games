@@ -42,6 +42,8 @@ export interface WavePlayed {
   readonly knocked: number;
   /** The crew knocked loose that floated home, out of the run, while the run went on. */
   readonly floated: number;
+  /** The most static the pilot held at any step, rounded down to a whole number. */
+  readonly mostStatic: number;
   /** The strays the wave sent across the field. */
   readonly straysSent: number;
   /** The strays it brought home. */
