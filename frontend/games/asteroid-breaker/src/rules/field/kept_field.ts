@@ -21,7 +21,12 @@ import { nextStrayAfter } from "../hazards/strays";
 import { ROCK_OUTLINES, type Rock, isFree } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
 import type { Torus } from "../torus";
-import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE, STRAY_POINTS } from "../tuning";
+import {
+  FIELD_LONGEST_SIDE,
+  FIELD_SHORT_SIDE,
+  STRAY_HOME_POINTS,
+  STRAY_POINTS,
+} from "../tuning";
 import type { Wave } from "../waves/waves";
 import { type Field, type WaveSetup, bringShip, fieldFor } from "./field";
 import { fillFor, stretchField } from "./fill";
@@ -83,8 +88,9 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
  * at and its size now, its rocks, and the counts its draws, strays, comets
  * and points run by.
  *
- * A stray adrift, the comets on their way, the pickups, the shots, the
- * effects in play and the chain go.
+ * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
+ * the comets on their way, the pickups, the shots, the effects in play and
+ * the chain go.
  */
 export interface SavedField {
   /**
@@ -110,8 +116,10 @@ export interface SavedField {
   readonly chainPoints: number;
   /** The rocks' own points among the wave's, for its tally. */
   readonly rockPoints: number;
-  /** How many ships the wave has lost, which a clean wave has none of. */
-  readonly shipsLost: number;
+  /** The strays' own points among the wave's, for its tally. */
+  readonly strayPoints: number;
+  /** How many hits the ship has taken, which a clean wave has none of. */
+  readonly hits: number;
 }
 
 /** The counts a field storage keeps runs by. */
@@ -124,7 +132,8 @@ const KEPT_COUNTS = [
   "lastDropAt",
   "chainPoints",
   "rockPoints",
-  "shipsLost",
+  "strayPoints",
+  "hits",
 ] as const satisfies readonly (keyof SavedField)[];
 
 /** Names a count a field storage keeps runs by. */
@@ -143,7 +152,8 @@ export type SavableField = Pick<
   | "lastDropAt"
   | "chainPoints"
   | "rockPoints"
-  | "shipsLost"
+  | "strayPoints"
+  | "hits"
 >;
 
 /**
@@ -177,7 +187,8 @@ export function savedField(field: SavableField): SavedField {
     lastDropAt: field.lastDropAt,
     chainPoints: field.chainPoints,
     rockPoints: field.rockPoints,
-    shipsLost: field.shipsLost,
+    strayPoints: field.strayPoints,
+    hits: field.hits,
   };
 }
 
@@ -264,18 +275,39 @@ export function fitsItsWave(
 
 /**
  * Returns whether a field kept agrees with what its run has scored on its
- * wave: no more strays brought home than it has sent, and its points, the
- * rocks', the chain's and those strays', adding up to the wave's.
+ * wave: no more strays brought home than it has sent, the strays' own
+ * points what those strays score, each joining the line or going straight
+ * home, and its points, the rocks', the chain's and the strays', adding up
+ * to the wave's.
  */
 export function fitsItsRun(
-  field: Pick<SavedField, "straysSent" | "chainPoints" | "rockPoints">,
+  field: Pick<
+    SavedField,
+    "straysSent" | "chainPoints" | "rockPoints" | "strayPoints"
+  >,
   { points, straysHome }: WaveSoFar,
 ): boolean {
-  const { chainPoints, rockPoints } = field;
+  const { chainPoints, rockPoints, strayPoints } = field;
   return (
     straysHome <= field.straysSent &&
-    rockPoints + chainPoints + straysHome * STRAY_POINTS === points
+    isStrayPoints(strayPoints, straysHome) &&
+    rockPoints + chainPoints + strayPoints === points
   );
+}
+
+/**
+ * Returns whether a count of points is what some strays brought home score
+ * of their own, each {@link STRAY_POINTS} as it joins the line in tow or
+ * {@link STRAY_HOME_POINTS} as it goes straight home.
+ */
+export function isStrayPoints(points: number, strays: number): boolean {
+  for (let home = 0; home <= strays; home++) {
+    const joined = strays - home;
+    if (joined * STRAY_POINTS + home * STRAY_HOME_POINTS === points) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -322,7 +354,7 @@ export function isSoundRock(
  * was kept at: its rocks in its first slots, the rest free, the counts its
  * draws, strays, comets and points run by, its points and strays brought
  * home as its run has scored them on it, and its ship waiting where it is
- * safest, as the next in line would.
+ * safest, its line in tow behind it.
  */
 export function layOutKeptField(
   wave: Wave,
@@ -352,7 +384,8 @@ export function layOutKeptField(
   field.score = soFar.points;
   field.chainPoints = saved.chainPoints;
   field.rockPoints = saved.rockPoints;
-  field.shipsLost = saved.shipsLost;
+  field.strayPoints = saved.strayPoints;
+  field.hits = saved.hits;
   bringShip(field);
   return field;
 }

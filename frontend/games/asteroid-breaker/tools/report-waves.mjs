@@ -8,17 +8,17 @@
  * `playWave()`, as the specs in `src/rules/waves/every_wave/` do, so the
  * report and the specs play the same games: once with nothing able to take
  * the ship, for the game time the wave took to clear and the strays brought
- * home of those sent, and once as the specs play it, for the ships it cost.
+ * home of those sent, and once as the specs play it, for the hits it took.
  * It fails when a play doesn't clear its wave within the autopilot's limit
  * (`-`), as the specs do, but it counts the untouchable plays too, so it is
  * the stricter of the two. It loads what it plays, `REPORT_API` in
  * `src/testing/report_api.ts`, through Vite, as the game's build loads the
  * rules. The report is how the climb from wave to wave is tuned: a wave
- * that takes long, or costs ships at Relaxed, is one to look at again.
+ * that takes long, or takes hits at Relaxed, is one to look at again.
  *
  * With `--seeds`, it plays each wave that many times at each speed, from
- * seeds of its own, and prints the middle time, the longest, the most ships
- * lost and the strays brought home of all those sent, since the rocks and
+ * seeds of its own, and prints the middle time, the longest, the most hits
+ * taken and the strays brought home of all those sent, since the rocks and
  * pickups one seed lays out can make a wave look far easier or harder than
  * it is. It fails on any seed's play that doesn't clear its wave in time.
  *
@@ -30,7 +30,7 @@
  * rather than the sectors', each made from the seed it is played from, and
  * fails only on a play that doesn't clear its wave in time with nothing
  * able to take the ship: Endless is held to being fair, not to what it
- * costs, as it climbs until a run's ships run out.
+ * costs, as it climbs until a hit with no one in tow ends a run.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -124,14 +124,14 @@ ${Object.entries(FIELDS)
 function columnsOf(request, game) {
   if (request.seeds === undefined) {
     return {
-      headings: ["time", "lost", "home"],
+      headings: ["time", "hits", "home"],
       widths: [5, 5, 5],
       cellsOf: (plays) => {
         const [play] = plays;
         return play
           ? [
               timeOf(stepsOf(play.untouchable, game), game.stepSeconds),
-              lostOf(plays, game),
+              hitsOf(plays, game),
               homeOf(plays),
             ]
           : [];
@@ -139,7 +139,7 @@ function columnsOf(request, game) {
     };
   }
   return {
-    headings: ["middle", "most", "lost", "home"],
+    headings: ["middle", "most", "hits", "home"],
     widths: [6, 5, 5, 7],
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(
@@ -148,7 +148,7 @@ function columnsOf(request, game) {
       return [
         timeOf(middle, game.stepSeconds),
         timeOf(most, game.stepSeconds),
-        lostOf(plays, game),
+        hitsOf(plays, game),
         homeOf(plays),
       ];
     },
@@ -310,16 +310,16 @@ function stepsOf(play, game) {
 }
 
 /**
- * Returns the most ships the plays as the spec plays them cost, or `-` if
+ * Returns the most hits the plays as the spec plays them took, or `-` if
  * any of them didn't clear its wave in time.
  *
  * @param {ReadonlyArray<Play>} plays
  * @param {Game} game
  * @returns {string}
  */
-function lostOf(plays, game) {
+function hitsOf(plays, game) {
   if (plays.some((play) => !clearedInTime(play.played, game))) return "-";
-  return String(Math.max(...plays.map((play) => play.played.shipsLost)));
+  return String(Math.max(...plays.map((play) => play.played.hits)));
 }
 
 /**

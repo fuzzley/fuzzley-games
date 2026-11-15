@@ -89,11 +89,12 @@ export interface AutopilotOptions extends PlayOptions {
 
 /** Says how the autopilot's play of a wave went. */
 export interface AutopilotReport {
-  /** Whether it cleared the wave within its time, a ship left. */
+  /** Whether it cleared the wave within its time, its run not over. */
   readonly cleared: boolean;
-  /** The steps the wave ran, from the first move to its clearing, its last ship's loss, the limit or the step it was told to stop at. */
+  /** The steps the wave ran, from the first move to its clearing, the hit that ended its run, the limit or the step it was told to stop at. */
   readonly steps: number;
-  readonly shipsLost: number;
+  /** The hits its ship took, the Shield's but none, the last ending the run once no one was in tow. */
+  readonly hits: number;
   /** The strays the wave sent across the field. */
   readonly straysSent: number;
   /** The strays it brought home. */
@@ -168,7 +169,7 @@ export function autoplay(
 
 /**
  * Plays a field laid out as a fair player would, as {@link pilot} steers
- * it each frame, until its wave is cleared, its last ship is lost, or the
+ * it each frame, until its wave is cleared, a hit ends its run, or the
  * limit or the step it is told to stop at comes, and returns how it went.
  */
 export function playField(
@@ -201,12 +202,12 @@ export function playField(
       warned[slot] = isWarned(comet);
     }
   }
-  // A wave cleared as its last ship went is lost, as the run has it.
+  // A wave cleared as the hit that ended its run came is lost, as the run has it.
   const cleared = field.cleared && hasPilot(field);
   return {
     cleared,
     steps: field.steps,
-    shipsLost: field.shipsLost,
+    hits: field.hits,
     straysSent: field.strays.sent,
     straysHome: field.strays.broughtHome,
     caught,
@@ -241,7 +242,7 @@ export function playWave(
   return autoplay(waveToPlay(entry, seed), speed, seed, rest);
 }
 
-/** Returns whether the autopilot is done with a wave: cleared, or its last ship lost. */
+/** Returns whether the autopilot is done with a wave: cleared, or its run over. */
 function isDone(field: Field): boolean {
   return field.cleared || !hasPilot(field);
 }

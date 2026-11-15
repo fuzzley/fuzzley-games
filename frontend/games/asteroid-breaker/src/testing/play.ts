@@ -4,6 +4,7 @@ import { GAME_RANDOM } from "@fz/game-ui/random";
 import { browserKey } from "@fz/phaser/testing";
 import type { GameService } from "../app/play/game.service";
 import { GAME_WAVES } from "../app/tokens";
+import type { RockSize } from "../rules/catalog/rocks";
 import type { Rock } from "../rules/rocks/rocks";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";
@@ -22,12 +23,21 @@ export const ROOMY: BoardSetting = {
 /** Space as a browser sends it, with the key code Phaser's capture reads. */
 export const SPACE = browserKey("Space", " ");
 
-/** Returns a wave of one small stone, which a shot clears, and nothing else to come. */
-function pebbleOf(id: string, name: string): WaveData {
+/**
+ * Returns a wave of one stone, medium unless it says, which a few shots
+ * clear, and nothing else to come: enough rock that a run of a crew of three
+ * can end on it, as each hit that knocks one loose breaks a rock a size
+ * down.
+ */
+function pebbleOf(
+  id: string,
+  name: string,
+  size: RockSize = "medium",
+): WaveData {
   return {
     id,
     name,
-    rocks: [{ kind: "stone", size: "small", count: 1 }],
+    rocks: [{ kind: "stone", size, count: 1 }],
     drops: 0,
     strays: 0,
   };
@@ -41,12 +51,13 @@ export const SPEC_WAVES: readonly WaveEntry[] = wavesOf([
     drops: 0,
     waves: [
       pebbleOf("pebble", "Pebble"),
-      // A crystal, which lets a Shield go as it breaks into two stones.
+      // A crystal, which lets a Shield go as it breaks into two stones, and
+      // they let none go, so a run rammed into them can end.
       {
         id: "gift",
         name: "Gift",
-        rocks: [{ kind: "crystal", size: "medium", count: 1 }],
-        drops: 1,
+        rocks: [{ kind: "crystal", size: "large", count: 1 }],
+        drops: 0,
         pickups: ["shield"],
         strays: 0,
       },
@@ -56,29 +67,31 @@ export const SPEC_WAVES: readonly WaveEntry[] = wavesOf([
 ]);
 
 /**
- * A wave of one small stone and two strays, for a spec that brings them
+ * A wave of one large stone and two strays, for a spec that brings them
  * home: the stone stays, as nothing fires at it, so the wave stays in play
- * until the strays come.
+ * until the strays come, and holds enough rock that a run with a stray
+ * caught can end on it.
  */
 export const STRAY_WAVES: readonly WaveEntry[] = wavesOf([
   {
     id: "strays",
     name: "Strays",
     drops: 0,
-    waves: [{ ...pebbleOf("stray", "Stray"), strays: 2 }],
+    waves: [{ ...pebbleOf("stray", "Stray", "large"), strays: 2 }],
   },
 ]);
 
 /**
- * A wave of one small stone and one stray, for a spec that brings it home
- * and plays on with no other to come.
+ * A wave of one large stone and one stray, for a spec that brings it home
+ * and plays on with no other to come, enough rock that a run with it caught
+ * can end on it.
  */
 export const ONE_STRAY_WAVES: readonly WaveEntry[] = wavesOf([
   {
     id: "stray",
     name: "Stray",
     drops: 0,
-    waves: [{ ...pebbleOf("stray", "Stray"), strays: 1 }],
+    waves: [{ ...pebbleOf("stray", "Stray", "large"), strays: 1 }],
   },
 ]);
 
@@ -108,7 +121,7 @@ export const CHAIN_WAVES: readonly WaveEntry[] = wavesOf([
 ]);
 
 /**
- * Two sectors, of a wave and of two, a small stone apiece, for a spec of the
+ * Two sectors, of a wave and of two, a stone apiece, for a spec of the
  * sectors a run reaches and starts at.
  */
 export const SECTOR_WAVES: readonly WaveEntry[] = wavesOf([
@@ -200,13 +213,13 @@ function nearestRock(field: FieldView): Readonly<Rock> | null {
   return nearest;
 }
 
-/** Flies the ship in play, or the next once it comes, into a rock until it is lost. */
+/** Flies the ship into a rock until a hit costs it one of its crew, knocked loose. */
 export function loseShip(game: GameService): void {
   const ships = game.ships();
   playUntil(game, ram, () => game.ships() < ships);
 }
 
-/** Flies every ship the run has into a rock, until the run ends. */
+/** Flies the ship into rocks, a hit knocking each in tow loose and the last ending the run. */
 export function endRun(game: GameService): void {
   playUntil(game, ram, game.ended);
 }

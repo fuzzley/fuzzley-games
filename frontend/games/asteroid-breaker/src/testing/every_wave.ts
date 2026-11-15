@@ -61,7 +61,7 @@ export function holdEveryWave(specFile: string): void {
  * minutes of game time with nothing able to take the ship, meeting a comet
  * and a stray, its tally adding up to its score.
  *
- * Endless climbs until a run's ships run out, so its waves are held to
+ * Endless climbs until a hit with no one in tow ends a run, so its waves are held to
  * being fair rather than to what they cost; `yarn report:waves --endless`
  * shows the cost. Each speed's spec in `src/rules/waves/every_endless_wave/`
  * calls it with its own file, as {@link holdEveryWave}'s do.

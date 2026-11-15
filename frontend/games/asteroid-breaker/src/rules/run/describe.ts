@@ -1,7 +1,6 @@
 import { count, formatPoints } from "@fz/core/format";
 import { pickup } from "../catalog/pickups";
 import type { FieldEvent } from "../field/events";
-import { aboard } from "../ship/pilots";
 import type { Run } from "./run";
 import { type WaveEntry, isEndless, opensEndless } from "../waves/waves";
 
@@ -12,8 +11,11 @@ export function describeWave(entry: WaveEntry, rocks: number): string {
 
 /**
  * Returns what is said of an event of the field, as the event left the
- * crew: a stray drifting in or brought home, a ship lost while others are
- * left, and a pickup caught, by its name; or null for any other.
+ * crew: a stray drifting in, caught into the line in tow or brought
+ * straight home, one of the crew knocked loose, caught again or floating
+ * home, with how many ride in tow after a hit or a catch, and a pickup
+ * caught, by its name; or null for any other, the hit that ends the run and
+ * the crew floating home with it among them, as the run's end is said.
  *
  * A pilot's color is never said: it only tells pilots apart.
  */
@@ -21,10 +23,16 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
   switch (event.kind) {
     case "strayed":
       return "A stray fuzzball drifts in.";
+    case "joined":
+      return `Caught. ${inTowWords(event.inTow)}.`;
     case "home":
-      return `Brought home. ${shipsOf(event)}.`;
-    case "lost":
-      return event.ships > 0 ? `Ship lost. ${shipsOf(event)} left.` : null;
+      return "Brought straight home, with the line full.";
+    case "knocked":
+      return `Hit! One knocked loose. ${inTowWords(event.inTow)}.`;
+    case "recaught":
+      return `Caught again. ${inTowWords(event.inTow)}.`;
+    case "floated":
+      return event.runOver ? null : "A fuzzball floats home.";
     case "caught":
       return event.pickup === null ? null : `${pickup(event.pickup).name}.`;
     default:
@@ -32,9 +40,9 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
   }
 }
 
-/** Returns the ships an event counts, in words. */
-function shipsOf(event: Readonly<FieldEvent>): string {
-  return count(event.ships, "ship", "ships");
+/** Returns how many ride in tow, in words: "3 in tow", or "No one in tow". */
+function inTowWords(inTow: number): string {
+  return inTow === 0 ? "No one in tow" : `${String(inTow)} in tow`;
 }
 
 /** Says what an ended run set, which is said of it as it ends. */
@@ -73,10 +81,11 @@ export function describeResume(): string {
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: WaveEntry): string {
-  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(aboard(run.crew), "ship", "ships")}. Press Enter to go on.`;
+  const inTow = inTowWords(run.crew.tow.length).toLowerCase();
+  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${inTow}. Press Enter to go on.`;
 }
 
-/** Returns where a run was lost: the wave its last ship went down on, Endless's named so. */
+/** Returns where a run was lost: the wave its ship went down on, Endless's named so. */
 export function whereLost(entry: WaveEntry): string {
   return `Lost on ${waveIn(entry)}`;
 }

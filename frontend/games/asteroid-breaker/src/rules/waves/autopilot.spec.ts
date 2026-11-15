@@ -64,9 +64,9 @@ const SHIP_ALONE: readonly string[] = ["", "", "", "", "....^"];
 const ONE_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 0 };
 
 /**
- * Returns a field of one large rock and a crew of one ship, which a comet
- * crossing it takes at the first step, unless something guards it: the
- * ship can't dash yet, which would carry it clear.
+ * Returns a field of one large rock and a crew of a pilot with no one in
+ * tow, whose run a comet crossing it ends at the first step, unless
+ * something guards it: the ship can't dash yet, which would carry it clear.
  */
 function doomedField(): Field {
   const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)], { crew: ONE_SHIP });
@@ -91,10 +91,10 @@ function onlyRock(field: Field): Rock {
 }
 
 describe("the autopilot", () => {
-  it("clears a wave, losing no ship", () => {
+  it("clears a wave, taking no hit", () => {
     const report = autoplay(waveOf(), "normal", 1);
 
-    expect(report).toMatchObject({ cleared: true, shipsLost: 0 });
+    expect(report).toMatchObject({ cleared: true, hits: 0 });
   });
 
   it("stops at its limit on a wave it can't clear in time", () => {
@@ -148,20 +148,20 @@ describe("the autopilot", () => {
     expect(report).toMatchObject({ cleared: false, steps: 90 });
   });
 
-  it("stops once its last ship is lost, the wave uncleared", () => {
+  it("stops once a hit ends its run, the wave uncleared", () => {
     const field = doomedField();
 
     const report = playField(field);
 
-    expect(report).toMatchObject({ cleared: false, shipsLost: 1, steps: 1 });
+    expect(report).toMatchObject({ cleared: false, hits: 1, steps: 1 });
   });
 
-  it("loses no ship while nothing can take it", () => {
+  it("takes no hit while nothing can take its ship", () => {
     const field = doomedField();
 
     const report = playField(field, { limit: 120, invulnerable: true });
 
-    expect(report.shipsLost).toBe(0);
+    expect(report.hits).toBe(0);
   });
 
   it("ends a wave held still for a first move that never comes at its limit", () => {
@@ -173,7 +173,7 @@ describe("the autopilot", () => {
     expect(report).toMatchObject({ cleared: false, steps: 0 });
   });
 
-  it("counts a wave cleared as its last ship went as lost, as the run does", () => {
+  it("counts a wave cleared as the hit that ended its run came as lost, as the run does", () => {
     const field = fieldFrom([], {
       crew: { ...ONE_SHIP, pilot: null, tow: [] },
     });

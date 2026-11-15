@@ -107,8 +107,9 @@ function rockField({
     lastBreakAt: 0,
     chainPoints: 0,
     rockPoints: 0,
+    strayPoints: 0,
     crew: createCrew(),
-    shipsLost: 0,
+    hits: 0,
     events: new FieldEventLog(),
   };
 }

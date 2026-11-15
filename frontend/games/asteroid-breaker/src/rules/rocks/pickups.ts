@@ -73,7 +73,7 @@ interface EffectRule<E extends PickupEffect> {
   ) => void;
   /**
    * Undoes it, as its time runs out, the next pickup of its group is
-   * caught, a ship is lost or the wave is cleared. An effect without one is
+   * caught, the run ends or the wave is cleared. An effect without one is
    * over as it starts.
    */
   readonly end?: (field: PickupField) => void;
@@ -182,12 +182,12 @@ export function endEffect(field: PickupField, kind: EffectKind): void {
   EFFECT_RULES[kind].end?.(field);
 }
 
-/** Ends every effect, as a ship is lost or the wave is cleared. */
+/** Ends every effect, as the run ends or the wave is cleared. */
 export function endEffects(field: PickupField): void {
   for (const kind of EFFECT_KINDS) endEffect(field, kind);
 }
 
-/** Lets go of the floating pickups, as a ship is lost or the wave is cleared. */
+/** Lets go of the floating pickups, as the run ends or the wave is cleared. */
 export function clearPickups(field: Pick<PickupField, "pickups">): void {
   for (const floating of field.pickups) floating.live = false;
 }

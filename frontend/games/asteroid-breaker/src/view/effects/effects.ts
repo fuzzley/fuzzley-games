@@ -147,7 +147,12 @@ const EVENT_EFFECTS: Readonly<
   caught: moving("caught"),
   faded: QUIET,
   lost: moving("lost", ["burst", "ring", "shake", "bailout"]),
+  // The crew's own sounds and flourishes are a later package's to choose.
+  knocked: QUIET,
+  recaught: QUIET,
+  floated: QUIET,
   strayed: QUIET,
+  joined: QUIET,
   home: moving("home"),
   scored: { flourishes: ["points"], still: ["points"], sound: null },
 };

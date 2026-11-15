@@ -3,6 +3,7 @@ import { TURN } from "../../rules/angles";
 import type { WeaponId } from "../../rules/catalog/weapons";
 import type { FieldEvent } from "../../rules/field/events";
 import type { Comet } from "../../rules/hazards/comets";
+import type { Loose } from "../../rules/hazards/loose";
 import type { Stray } from "../../rules/hazards/strays";
 import type { Floating } from "../../rules/rocks/drops";
 import type { Effects } from "../../rules/rocks/pickups";
@@ -31,7 +32,7 @@ export interface FieldView {
   readonly torus: Torus;
   /** A slot for each rock it holds at most, whole or not. */
   readonly rocks: readonly Readonly<Rock>[];
-  /** The ship in play, waiting or flying, or null between one ship and the next. */
+  /** The ship in play, waiting or flying, or null once the run is over. */
   readonly ship: Readonly<Ship> | null;
   /**
    * A link for each of the most that ride in tow, the first nearest the
@@ -47,13 +48,15 @@ export interface FieldView {
   readonly pickups: readonly Readonly<Floating>[];
   /** The stray adrift, crossing the field or not. */
   readonly strays: { readonly adrift: Readonly<Stray> };
+  /** A slot for each of the crew that can be knocked loose at once, out on the field while live. */
+  readonly loose: readonly Readonly<Loose>[];
   /** A record for each comet that can be on its way at once, warned of, crossing or neither. */
   readonly comets: { readonly slots: readonly Readonly<Comet>[] };
   /** The effects in play, one of each group. */
   readonly effects: Effects;
   /** Whether a Shield guards the ship from the next rock to touch it. */
   readonly shielded: boolean;
-  /** Who is at the controls, in tow and at home. */
+  /** Who is at the controls, in tow and gone home. */
   readonly crew: Crew;
   /** How many steps the wave has taken, by which its timers run. */
   readonly steps: number;

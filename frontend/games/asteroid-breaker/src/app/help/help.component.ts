@@ -17,6 +17,7 @@ import {
   DASH_RECHARGE_MS,
   MOST_CREW,
   STRAYS_FROM,
+  STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art/art";
@@ -24,8 +25,8 @@ import type { Pictures } from "../../view/art/art";
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
   chain: `Breaks each within ${String(CHAIN_MS / 1000)} seconds of the last make a chain, which multiplies each break's points: ${tierWords(CHAIN, "breaks")}.`,
-  strays: `A stray brought home scores ${formatPoints(STRAY_POINTS)}, times the chain.`,
-  clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ship was lost on it.`,
+  strays: `A stray caught scores ${formatPoints(STRAY_POINTS)}, or ${formatPoints(STRAY_HOME_POINTS)} as it goes straight home, times the chain.`,
+  clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no hit was taken on it.`,
 };
 
 /** What How to play says of a dash, its recharge from the tuning. */
@@ -42,7 +43,7 @@ const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays d
 const ADRIFT = {
   stray: {
     name: "Stray fuzzball",
-    about: `Crosses the field once in its bubble, which shots pass through. Fly into it to bring it home, and it flies one more ship at once, up to ${String(MOST_CREW)}.`,
+    about: `Crosses the field once in its bubble, which shots pass through. Fly into it to catch it: it joins the line in tow, up to ${String(MOST_CREW - 1)}, or, with the line full, goes straight home.`,
   },
   comet: {
     name: "Comet",

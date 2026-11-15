@@ -98,9 +98,11 @@ takes for the specs' helpers.
   (`liesFairly()`). `steerField()` takes a frame's steering, `stepField()`
   moves it on a step, and `reshapeField()` stretches a paused field to a new
   shape, every place on it moving to the same share of the way across and
-  down (`stretchField()`). A wave holds still until the player's first move,
-  and a ship lost is followed a second later by the next in line, waiting
-  where it is safest (`safestPlace()`). The field counts its steps
+  down (`stretchField()`). A wave holds still until the player's first move.
+  A rock or a comet that hits the ship knocks the last in tow loose, breaks
+  a size down if it is a rock and keeps the ship untouchable a while
+  (`HIT_GUARD_MS`); one that hits it with no one in tow ends the run, its
+  pilot bailing out home. The field counts its steps
   (`Field.steps`), and a timer is the step its thing happens at. Each part
   of the rules takes only what of the field it acts on, a type declared
   beside it (`RockField`, `CometField`, `StrayField`, `PickupField`,
@@ -110,8 +112,9 @@ takes for the specs' helpers.
   touching the field.
   `scoring.ts` scores each break by its kind and size, times the chain's
   multiplier (`@fz/core/math`'s `multiplierAt()` over `CHAIN`), a stray
-  brought home and a wave's clearing, and says how a cleared wave's points
-  add up (`tallyOf()`), each part counted as it scores.
+  caught, more as it goes straight home, and a wave's clearing, more for one
+  cleared without a hit taken, and says how a cleared wave's points add up
+  (`tallyOf()`), each part counted as it scores.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read. `kept_field.ts` is
@@ -121,11 +124,12 @@ takes for the specs' helpers.
   `hasDroppedInTime()`), a rock, each of its keys by its own check
   (`isKeptRock()`, through `ROCK_CHECKS`), a rock's kind and state, and its
   fit to its wave and to what its run has scored on it (`fitsItsWave()`,
-  `fitsItsRun()`); and `layOutKeptField()` lays the wave out afresh at the
-  size it was laid out at and stretches it to the size it was kept at, its
-  rocks and counts as kept, its points and strays brought home as its run
-  has scored them, and its ship brought as the next in line is
-  (`field.ts`'s `bringShip()`).
+  `fitsItsRun()`, `isStrayPoints()`); and `layOutKeptField()` lays the wave
+  out afresh at the size it was laid out at and stretches it to the size it
+  was kept at, its rocks and counts as kept, its points and strays brought
+  home as its run has scored them, and its ship brought waiting where it is
+  safest, its line in tow behind it (`field.ts`'s `bringShip()`,
+  `spawn.ts`'s `safestPlace()`).
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
@@ -133,18 +137,22 @@ takes for the specs' helpers.
   fires the weapon in hand from the ship's nose and sweeps each shot as a
   segment against circles (`sweepShot()`), so however fast it flies it can't
   pass through a rock between two steps. `pilots.ts` keeps the `Crew`: the
-  pilot at the controls (`atControls()`), the line in tow behind, whose
-  first takes the controls as a ship is lost (`bailOut()`), a stray brought
-  home riding last in tow (`bringHome()`), or waiting at home with the most
-  aboard (`aboard()`, `pilotsAboard()`, `MOST_CREW`), and the color each new
-  pilot is given, the next in turn that no pilot wears (`nextPilot()`).
+  pilot at the controls (`atControls()`), the line in tow behind, which a
+  stray caught or one knocked loose caught again joins at its end
+  (`joinTow()`) and a hit knocks its last out of (`knockLoose()`), the
+  crew aboard (`aboard()`, `pilotsAboard()`), every fuzzball gone home
+  (`goHome()`), the pilot bailing out as the run ends (`bailOut()`), and
+  the color each new pilot is given, the next in turn that no pilot aboard
+  or on the field wears (`nextPilot()`).
   `tow.ts` keeps the line in tow behind the ship, a link made once for each
   of the most that ride (`createTow()`), laid straight out behind a ship as
   it comes (`layTow()`, `trailLink()` for one who joins its end) and pulled
   along a step at a time, each link to its length from the one ahead, the
   first from the hook at the ship's tail, the short way across the wrap
   (`stepTow()`), so it swings as the ship turns. Nothing hits a bubble in
-  tow.
+  tow. How many ride at most is the field's `Towing` (`TUNED_TOWING`, as
+  many as the line has links), past which a stray caught goes straight home
+  (`hasRoomInTow()`, `joinLine()`).
 - **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
   the rocks in slots made once, as many as the field's cap (`addRock()`),
   flies them (`stepRocks()`), and hits them (`hitRock()`), each holding or
@@ -160,10 +168,18 @@ takes for the specs' helpers.
   group in play at a time.
 - **`src/rules/hazards/`** — what crosses the field once, from an edge,
   without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
-  which the ship brings home by touching (`stepStrays()`), and `comets.ts`
-  the comets, warned of at their edge, which break the rocks they meet a
-  size down and take a ship (`stepComets()`, `touchesComet()`); each says
-  what a wave sends of it (`StraySetup`, `CometSetup`). `crossing.ts` holds
+  which the ship catches by touching (`stepStrays()`), into the line in tow
+  or, with it full, straight home, and `comets.ts` the comets, warned of at
+  their edge, which break the rocks they meet a size down and hit a ship
+  (`stepComets()`, `touchingComet()`); each says what a wave sends of it
+  (`StraySetup`, `CometSetup`). `loose.ts` holds the crew knocked loose, a
+  slot made once for each that can be (`createLoose()`): one a hit knocks
+  out of the line flies off away from the ship (`knockLastLoose()`),
+  slowing to a stray's drift and wrapping, drawn in by a Magnet, until the
+  ship catches it again once it has swelled or its time runs out and it
+  floats home (`stepLoose()`); the clearing takes them back
+  (`takeAllBack()`), the run's end floats them home (`floatAllHome()`), and
+  a run kept keeps them as gone home (`withLooseGoneHome()`). `crossing.ts` holds
   what the two share, a `Crossing`: coming in off an edge by a margin,
   heading across within a tilt (`comeIn()`), flying without wrapping
   (`fly()`), leaving (`hasLeft()`), and reaching what lies on the field only
@@ -174,7 +190,7 @@ takes for the specs' helpers.
   outcome. Every wave waits, `"ready"`, until the
   player's first move starts it (`startWave()`), and a wave cleared goes on
   to the next, waiting so (`nextWave()`). No run is won: Endless goes on
-  until the ships run out. `catchUp()` takes what the wave's field has come
+  until a hit with no one in tow ends it. `catchUp()` takes what the wave's field has come
   to since it last looked, its points, its crew and its strays, then its end
   or its clearing, banked once; `waveSeed()` gives each wave's field a seed
   of its own, in `@fz/core/random`'s `mixSeed()`'s `"field"` stream;
@@ -184,9 +200,11 @@ takes for the specs' helpers.
   move that doesn't fit where the run stands returns it as it is, and so does a
   field with nothing new, so the shell can tell a frame that changed the
   run. `describe.ts` puts what happened into the words the announcer says: a
-  wave's start and its rocks, a stray drifting in or brought home, a ship
-  lost, a pickup caught, a clearing, a pause, going on, a run taken
-  up and the end; and `whereLost()` says where an ended run was lost. The
+  wave's start and its rocks, a stray drifting in, caught or brought
+  straight home, one of the crew knocked loose, caught again or floating
+  home, with how many ride in tow, a pickup caught, a clearing, a pause,
+  going on, a run taken up and the end; and `whereLost()` says where an
+  ended run was lost. The
   announcer, the bar, the cards, the result, the sectors and How to play
   all write points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
@@ -265,8 +283,8 @@ takes for the specs' helpers.
   with what its field came to, waits out the beat before a card, counts
   the Cleared card's sum up once it shows (`countMs`, the whole at once
   where motion isn't welcome), and returns what the frame changed
-  (`FrameChange`) and how the phone buzzes for it, as a ship is lost, or
-  else as the wave is cleared, gathering what to say of it (`news()`), a
+  (`FrameChange`) and how the phone buzzes for it, as the ship takes a hit,
+  or else as the wave is cleared, gathering what to say of it (`news()`), a
   clearing with the wave it goes on to, a run's end last, with what the
   shell's records say it set. `run_state.ts` holds what is a run's own,
   which the shell keeps in one signal (`RunState`): as a run begins
@@ -318,7 +336,8 @@ takes for the specs' helpers.
   motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
-  buzzes as a ship is lost or a wave cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
+  buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,
+  `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys held to fly, by `event.code` (`heldKeyOf()`), and reads what the
   run's keys ask from `@fz/core/run`'s `RUN_KEYS` (`commandOfKey()`);
@@ -710,9 +729,9 @@ takes for the specs' helpers.
   aims the ship once it moves over the field, its main button fires and its
   second thrusts, so the board keeps the browser's menu shut.
 - **The wave waits for the player.** A wave holds still, its ship waiting
-  in its middle, until the player's first move; a ship lost is followed a
-  second later by the next in line, waiting where it is safest, untouchable
-  until it moves and for two seconds after. The wave pauses when the focus
+  in its middle, until the player's first move; a hit knocks the last in
+  tow loose, and the ship is untouchable a while after, and a hit with no
+  one in tow ends the run. The wave pauses when the focus
   leaves the room, the page is hidden, the screen turns or a dialog opens,
   and goes on only when the player says; one waiting for its first move has
   nothing to pause, and a run taken up after a reload starts paused. One
@@ -783,8 +802,9 @@ can't trust rather than failing:
   cleared the last written wave. Ids no sector has any more are dropped.
 - `asteroid-breaker-game`: the run under way, by `SavedGameService`: its
   wave, by number and id, the wave it started at, its speed and seed, its
-  points, its crew's colors, at the controls, in tow and at home, the strays
-  brought home, for the result card, and whether it was flown on tuned
+  points, its crew's colors, at the controls, in tow and gone home, the
+  crew knocked loose among those gone home, so a reload gives none back,
+  the strays brought home, for the result card, and whether it was flown on tuned
   numbers; and its field's size as laid out and as it is now, its rocks,
   whole or with a blast to go off, and the counts its draws, strays, comets
   and points run by. A wave not yet moved is kept as not yet begun, a wave
@@ -817,7 +837,8 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every run and sector opened, with what is new there, wave
-  begun, stray drifting in or brought home, ship lost, pickup caught,
+  begun, stray drifting in or caught, one of the crew knocked loose,
+  caught again or floating home, pickup caught,
   pause, going on, wave cleared, with the wave to come, and end is
   announced.
 
@@ -858,7 +879,7 @@ workspace's with the others'.
   the autopilot's spec does, through `playWave()`, which it loads with the
   rest of what it plays from `src/testing/report_api.ts` (`REPORT_API`).
   It prints the game time each took and the strays it brought home, flown
-  with nothing able to take the ship, and the ships each cost as the spec
+  with nothing able to take the ship, and the hits each took as the spec
   plays it, beside the waves' names, as wide as the longest, and fails if
   any play didn't clear its wave in time (`-`). It is how the climb
   from wave to wave is tuned; `--seeds <n>` plays each wave from that many

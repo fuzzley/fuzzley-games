@@ -8,9 +8,10 @@ import {
   readField,
   savedField,
 } from "../field/kept_field";
+import { withLooseGoneHome } from "../hazards/loose";
 import { PILOT_COLORS, type Pilot, atControls } from "../ship/pilots";
 import { type Speed, isSpeed } from "../speed";
-import { MOST_CREW } from "../tuning";
+import { FIRST_CREW, MOST_CREW } from "../tuning";
 import { waveToPlay } from "../waves/endless";
 import { type Wave, type WaveEntry, waveEntryOf } from "../waves/waves";
 import {
@@ -36,9 +37,9 @@ export interface SavedGame {
   readonly score: number;
   /** The pilot at the controls, whom a run under way always has. */
   readonly pilot: Pilot;
-  /** The pilots in tow, the next to take the controls first. */
+  /** The pilots in tow, in the order they ride. */
   readonly tow: readonly Pilot[];
-  /** The strays brought home with the most of the crew aboard, waiting at home. */
+  /** Every fuzzball gone home in the run, in the order they went, the crew knocked loose among them. */
   readonly home: readonly Pilot[];
   readonly lastGiven: Pilot;
   readonly straysBanked: number;
@@ -79,11 +80,13 @@ export interface RunKeeping {
  * A run whose wave was just cleared is kept at the start of the next, so
  * the page going away over the Cleared card loses nothing, and a later
  * wave not yet moved as one not yet begun, so it is laid out afresh on the
- * room it comes back to, as a wave waiting for its first move is.
+ * room it comes back to, as a wave waiting for its first move is. The crew
+ * knocked loose are kept as gone home, so the page going away gives none of
+ * them back.
  */
 export function saveGame(
   run: Run,
-  field: SavableField,
+  field: SavableField & Pick<Field, "loose">,
   waves: readonly WaveEntry[],
   keeping: RunKeeping,
 ): SavedGame | null {
@@ -91,8 +94,9 @@ export function saveGame(
   if (run.outcome === "cleared") {
     return savedRun(nextWave(run), null, waves, keeping);
   }
-  if (field.steps > 0) return savedRun(run, savedField(field), waves, keeping);
-  return hasClearedAWave(run) ? savedRun(run, null, waves, keeping) : null;
+  const kept = { ...run, crew: withLooseGoneHome(run.crew, field) };
+  if (field.steps > 0) return savedRun(kept, savedField(field), waves, keeping);
+  return hasClearedAWave(run) ? savedRun(kept, null, waves, keeping) : null;
 }
 
 /**
@@ -237,8 +241,8 @@ export function hasSoundStrays(
 /**
  * Returns whether a run kept holds a sound crew, given the strays it has
  * brought home: a pilot at the controls, no more in tow than the most of
- * the crew aboard leaves, no more at home than those strays, and a last
- * color given, each a pilot's.
+ * the crew aboard leaves, its first crew and those strays all aboard or at
+ * home, and a last color given, each a pilot's.
  */
 export function hasSoundCrew(
   value: Readonly<Record<string, unknown>>,
@@ -250,7 +254,7 @@ export function hasSoundCrew(
     isListOf(tow, isPilot) &&
     1 + tow.length <= MOST_CREW &&
     isListOf(home, isPilot) &&
-    home.length <= strays &&
+    1 + tow.length + home.length === FIRST_CREW + strays &&
     isPilot(lastGiven)
   );
 }

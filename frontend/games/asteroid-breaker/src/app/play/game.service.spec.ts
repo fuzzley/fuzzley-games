@@ -87,8 +87,8 @@ const FIRE: Readonly<Steer> = { ...STILL, fire: true };
 /** A turn of the keys, a first move that fires no shot. */
 const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 
-/** The points the specs' small stone scores. */
-const PEBBLE_POINTS = 40;
+/** The points the specs' medium stone and its two small pieces score. */
+const PEBBLE_POINTS = 100;
 
 /** What a run has of its own as it begins: no chain, no cards, nothing set. */
 const BEGUN_OWN = {
@@ -845,7 +845,7 @@ describe("GameService", () => {
   });
 
   describe("the end of a run", () => {
-    it("ends once the last ship is lost, and says so", async () => {
+    it("ends once a hit comes with no one in tow, and says so", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
 
       endRun(game);
@@ -857,7 +857,7 @@ describe("GameService", () => {
       }).toEqual({
         ended: true,
         ships: 0,
-        said: "Game over. Score 0, on wave 1.",
+        said: "Game over. Score 60, on wave 1. A new best!",
       });
     });
 

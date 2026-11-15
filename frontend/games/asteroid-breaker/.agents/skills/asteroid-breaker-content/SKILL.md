@@ -78,9 +78,9 @@ Then:
    number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
    `--field wide` and `--field tall`: its middle time should sit between
-   its neighbours', rising through its sector, and the ships it costs in
+   its neighbours', rising through its sector, and the hits it takes in
    the most costly of twelve seeds should keep to one at Relaxed and two at
-   Normal or Fast. A wave that costs every ship on one seed in many is
+   Normal or Fast. A wave whose hits end the run on one seed in many is
    luck; on many, it is a wave to redraw.
 
 ## A Sector

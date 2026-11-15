@@ -7,8 +7,8 @@ import {
   type LoggedRock,
 } from "./events";
 
-/** A crew of two ships and a stray waiting at home, which a pilot's event counts. */
-const CREW: Crew = { pilot: 0, tow: [1], home: [6], lastGiven: 6 };
+/** A crew of a pilot with two in tow and one gone home, whose line a pilot's event counts. */
+const CREW: Crew = { pilot: 0, tow: [1, 3], home: [6], lastGiven: 6 };
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
 function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
@@ -28,7 +28,8 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
-    ships: 0,
+    inTow: 0,
+    runOver: false,
     points: 0,
     times: 0,
     reach: 0,
@@ -134,14 +135,50 @@ describe("FieldEventLog", () => {
     ]);
   });
 
-  it("records a pilot's event with its pilot and the crew's ships", () => {
+  it("records a pilot's event as the run ends, no one at the controls", () => {
     const log = new FieldEventLog();
 
-    log.addPilot("lost", 1, 2, 4, CREW);
+    log.addPilot("lost", 1, 2, 0, { ...CREW, pilot: null, tow: [] });
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "lost", x: 1, y: 2, pilot: 4, ships: 2 }),
+      eventOf({ kind: "lost", x: 1, y: 2, pilot: 0, runOver: true }),
     ]);
+  });
+
+  it("records a pilot's event with its pilot and how many ride in tow", () => {
+    const log = new FieldEventLog();
+
+    log.addPilot("joined", 1, 2, 3, CREW);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "joined", x: 1, y: 2, pilot: 3, inTow: 2 }),
+    ]);
+  });
+
+  it("records one of the crew knocked loose with its pilot, how many ride in tow, and the way the blow came", () => {
+    const log = new FieldEventLog();
+
+    log.addKnocked(1, 2, 5, CREW, -3, 4);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "knocked",
+        x: 1,
+        y: 2,
+        pilot: 5,
+        inTow: 2,
+        wayX: -0.6,
+        wayY: 0.8,
+      }),
+    ]);
+  });
+
+  it("records one of the crew knocked loose by a blow that came no way with none", () => {
+    const log = new FieldEventLog();
+
+    log.addKnocked(1, 2, 5, CREW, 0, 0);
+
+    expect(eventsSince(log, 0)).toMatchObject([{ wayX: 0, wayY: 0 }]);
   });
 
   it("records points scored with the chain's multiplier they were scored at", () => {
@@ -197,8 +234,8 @@ describe("FieldEventLog", () => {
     const log = new FieldEventLog();
     log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
     log.addPickup("dropped", 3, 4, "spread");
-    log.addPilot("home", 3, 4, 7, {
-      pilot: 0,
+    log.addPilot("floated", 3, 4, 7, {
+      pilot: null,
       tow: [1, 2],
       home: [5, 6],
       lastGiven: 7,

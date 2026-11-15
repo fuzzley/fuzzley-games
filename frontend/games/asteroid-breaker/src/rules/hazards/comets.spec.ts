@@ -498,27 +498,41 @@ describe("a comet", () => {
   );
 
   it.each([
-    ["takes a ship just within", SLIVER, true],
-    ["leaves a ship just past", -SLIVER, false],
-  ])("%s its reach", (_, beyond, lost) => {
+    ["hits a ship just within", SLIVER, 1],
+    ["leaves a ship just past", -SLIVER, 0],
+  ])("%s its reach", (_, beyond, hits) => {
     const field = fieldFrom(PICTURE);
     const reach = COMET_RADIUS + SHIP_HIT_RADIUS;
     placeComet(field, SHIP_X - reach - COMET_STEP + beyond, SHIP_Y);
 
     stepField(field);
 
-    expect(field.ship === null).toBe(lost);
+    expect(field.hits).toBe(hits);
   });
 
-  it("takes a ship, its pilot bailing out, logging it", () => {
+  it("hits a ship, knocking the last in tow loose the way it flies, logging it", () => {
     const field = fieldFrom(PICTURE);
     placeComet(field, SHIP_X - 1, SHIP_Y);
 
     stepField(field);
 
-    expect([field.shipsLost, field.crew, loggedOn(field)]).toEqual([
+    expect([field.hits, field.crew, loggedOn(field)]).toEqual([
       1,
-      expect.objectContaining({ pilot: 1, tow: [2] }),
+      expect.objectContaining({ pilot: 0, tow: [1] }),
+      [expect.objectContaining({ kind: "knocked", pilot: 2, wayX: 1 })],
+    ]);
+  });
+
+  it("ends the run of a ship with no one in tow, its pilot bailing out, logging it", () => {
+    const field = fieldFrom(PICTURE, {
+      crew: { pilot: 0, tow: [], home: [], lastGiven: 2 },
+    });
+    placeComet(field, SHIP_X - 1, SHIP_Y);
+
+    stepField(field);
+
+    expect([field.ship, loggedOn(field)]).toEqual([
+      null,
       [expect.objectContaining({ kind: "lost", pilot: 0 })],
     ]);
   });
@@ -530,7 +544,7 @@ describe("a comet", () => {
 
     stepField(field);
 
-    expect(field.shipsLost).toBe(0);
+    expect(field.hits).toBe(0);
   });
 
   it("spends a shield, flying on", () => {
@@ -541,7 +555,7 @@ describe("a comet", () => {
     stepField(field);
 
     expect([
-      field.shipsLost,
+      field.hits,
       field.shielded,
       comet.live,
       loggedOn(field).at(-1),
@@ -556,6 +570,6 @@ describe("a comet", () => {
 
     stepField(field);
 
-    expect([largeAt(field, ROCK_X, 30), field.shipsLost]).toEqual([true, 0]);
+    expect([largeAt(field, ROCK_X, 30), field.hits]).toEqual([true, 0]);
   });
 });

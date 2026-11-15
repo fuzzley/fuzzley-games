@@ -263,7 +263,7 @@ describe("RunFrames", () => {
       });
     });
 
-    it("costs the run a ship lost, and says how many are left", () => {
+    it("costs the run one of its crew knocked loose by a hit, and says how many are left in tow", () => {
       const game = underWay(CRASH);
 
       playToLoss(game);
@@ -275,7 +275,7 @@ describe("RunFrames", () => {
       }).toEqual({
         outcome: "playing",
         ships: 2,
-        said: ["Ship lost. 2 ships left."],
+        said: ["Hit! One knocked loose. 1 in tow."],
       });
     });
 
@@ -303,7 +303,26 @@ describe("RunFrames", () => {
       }).toEqual({
         cameHome: [5],
         strays: 1,
-        said: ["Brought home. 4 ships."],
+        said: ["Caught. 3 in tow."],
+      });
+    });
+
+    it("hands on the pilot of a stray brought straight home with the line full, and says so", () => {
+      const full: Crew = {
+        pilot: 0,
+        tow: [1, 2, 3, 4, 6],
+        home: [],
+        lastGiven: 6,
+      };
+      const game = underWay(OPEN, { ...runAt(1), crew: full });
+      const ship = shipOf(game.play.field);
+      placeStray(game.play.field, ship.x, ship.y, Math.PI / 2, 5);
+
+      const { cameHome } = tick(game);
+
+      expect({ cameHome, said: game.said }).toEqual({
+        cameHome: [5],
+        said: ["Brought straight home, with the line full."],
       });
     });
 

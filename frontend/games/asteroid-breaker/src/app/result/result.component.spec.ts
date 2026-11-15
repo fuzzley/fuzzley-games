@@ -123,8 +123,8 @@ describe("ResultComponent", () => {
     await renderLost();
 
     expect(figures()).toEqual([
-      ["Score", "1,040"],
-      ["Best", "1,040"],
+      ["Score", "1,180"],
+      ["Best", "1,180"],
       ["Wave", "2"],
       ["Cleared", "1"],
     ]);

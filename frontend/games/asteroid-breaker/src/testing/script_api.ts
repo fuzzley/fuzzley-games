@@ -34,11 +34,12 @@ export interface ReportPlay {
 
 /** Says how the autopilot's play of a wave went, so far as the report reads it. */
 export interface WavePlayed {
-  /** Whether it cleared the wave within its time, a ship left. */
+  /** Whether it cleared the wave within its time, its run not over. */
   readonly cleared: boolean;
   /** The steps the wave ran. */
   readonly steps: number;
-  readonly shipsLost: number;
+  /** The hits its ship took, the last ending the run once no one was in tow. */
+  readonly hits: number;
   /** The strays the wave sent across the field. */
   readonly straysSent: number;
   /** The strays it brought home. */

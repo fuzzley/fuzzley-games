@@ -162,7 +162,7 @@ describe("BarComponent", () => {
       playToClear(game);
       detectChanges();
 
-      expect(figure("Score")).toBe("1,040");
+      expect(figure("Score")).toBe("1,100");
     });
 
     it("draws each ship as its pilot, the one at the controls first", async () => {
@@ -176,7 +176,7 @@ describe("BarComponent", () => {
       ]);
     });
 
-    it("shows a ship lost, its pilot gone from the line", async () => {
+    it("shows one knocked loose by a hit, the last in tow gone from the line", async () => {
       const { game, detectChanges } = await renderInPlay();
 
       loseShip(game);
@@ -187,7 +187,7 @@ describe("BarComponent", () => {
         pilots: pilotsIn(figureValue("Ships")),
       }).toEqual({
         ships: "2 ships",
-        pilots: [inkOf(1), inkOf(2)],
+        pilots: [inkOf(0), inkOf(1)],
       });
     });
 
@@ -374,7 +374,7 @@ describe("BarComponent", () => {
       expect({
         number: within(figureValue("Ships")).getByText("2").textContent,
         atControls: pilotsIn(figureTerm("Ships")),
-      }).toEqual({ number: "2", atControls: [inkOf(1)] });
+      }).toEqual({ number: "2", atControls: [inkOf(0)] });
     });
 
     it("leaves out the chain while one counts", async () => {

@@ -19,6 +19,8 @@ import {
   CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
+  MOST_CREW,
+  STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../tuning";
 import { type Field, stepField } from "./field";
@@ -27,6 +29,7 @@ import {
   chainMultiplier,
   clearingPoints,
   multiplier,
+  scoreStray,
   tallyOf,
 } from "./scoring";
 
@@ -42,7 +45,7 @@ const [, , SHORTEST] = CHAIN;
 /** A picture of a ship in the field's middle, the keeper beside it. */
 const SHIP_PICTURE = [...KEEPER, "", "", ".........^"];
 
-/** Returns a crew of a pilot at the controls or none, those in tow, and those at home, the last color given 2. */
+/** Returns a crew of a pilot at the controls or none, those in tow, and those gone home, the last color given 2. */
 function crewOf(
   pilot: Pilot | null,
   tow: readonly Pilot[] = [],
@@ -118,7 +121,7 @@ describe("chainMultiplier", () => {
 });
 
 describe("clearingPoints", () => {
-  it("adds more for a wave cleared without losing a ship", () => {
+  it("adds more for a wave cleared without a hit taken", () => {
     expect([clearingPoints(0), clearingPoints(1)]).toEqual([
       CLEAR_POINTS + CLEAN_POINTS,
       CLEAR_POINTS,
@@ -262,18 +265,18 @@ describe("the chain", () => {
     expect(field.chain).toBe(1);
   });
 
-  it("ends as the ship is lost", () => {
+  it("ends as the ship takes a hit", () => {
     const field = fieldFrom(["^B"]);
     field.chain = SHORTEST.from;
 
     stepField(field);
 
-    expect([field.shipsLost, field.chain]).toEqual([1, 0]);
+    expect([field.hits, field.chain]).toEqual([1, 0]);
   });
 });
 
-describe("a stray brought home", () => {
-  it("scores its points times the chain's multiplier, without counting on in it", () => {
+describe("a stray caught", () => {
+  it("scores its points times the chain's multiplier as it joins the line, without counting on in it, its own among the strays'", () => {
     const field = fieldFrom(SHIP_PICTURE);
     field.chain = SHORTEST.from;
     const ship = shipOf(field);
@@ -281,34 +284,54 @@ describe("a stray brought home", () => {
 
     stepField(field);
 
-    expect([field.strays.broughtHome, field.score, field.chain]).toEqual([
-      1,
-      STRAY_POINTS * SHORTEST.times,
-      SHORTEST.from,
+    expect({
+      home: field.strays.broughtHome,
+      score: field.score,
+      strays: field.strayPoints,
+      chain: field.chain,
+    }).toEqual({
+      home: 1,
+      score: STRAY_POINTS * SHORTEST.times,
+      strays: STRAY_POINTS,
+      chain: SHORTEST.from,
+    });
+  });
+
+  it("scores more as it goes straight home with the most in tow", () => {
+    const tow = Array.from({ length: MOST_CREW - 1 }, (_, at) => at + 1);
+    const field = fieldFrom(SHIP_PICTURE, { crew: crewOf(0, tow) });
+    const ship = shipOf(field);
+    placeStray(field, ship.x, ship.y);
+
+    stepField(field);
+
+    expect([field.score, field.strayPoints]).toEqual([
+      STRAY_HOME_POINTS,
+      STRAY_HOME_POINTS,
     ]);
   });
 });
 
 describe("a cleared wave", () => {
   it.each([
-    ["scores more cleared without losing a ship", 0],
-    ["scores less once it has lost one", 1],
-  ])("%s", (_, shipsLost) => {
+    ["scores more cleared without a hit taken", 0],
+    ["scores less once it has taken one", 1],
+  ])("%s", (_, hits) => {
     const field = fieldFrom(["S"]);
-    field.shipsLost = shipsLost;
+    field.hits = hits;
     hitRock(field, onlySmall(field), 0, 0);
 
     stepField(field);
 
     expect([field.cleared, field.score]).toEqual([
       true,
-      SMALL + clearingPoints(shipsLost),
+      SMALL + clearingPoints(hits),
     ]);
   });
 });
 
 describe("a run over", () => {
-  it("scores nothing for a break once the last ship is lost, so its score doesn't hang on how its last steps fall into frames", () => {
+  it("scores nothing for a break once a hit ends the run, so its score doesn't hang on how its last steps fall into frames", () => {
     const field = fieldFrom(["^B", "", "", "S"], { crew: crewOf(3) });
     stepField(field);
 
@@ -321,7 +344,19 @@ describe("a run over", () => {
     ]);
   });
 
-  it("scores nothing for a wave a blast clears once the last ship is lost, though a stray waits at home", () => {
+  it("scores nothing for a stray once a hit ends the run", () => {
+    const field = fieldFrom(["S"], { crew: crewOf(null, [], [5]) });
+
+    scoreStray(field, 1, 2, STRAY_POINTS);
+
+    expect([field.score, field.strayPoints, kindsLoggedOn(field)]).toEqual([
+      0,
+      0,
+      [],
+    ]);
+  });
+
+  it("scores nothing for a wave a blast clears once a hit ends the run, though a stray waits at home", () => {
     const field = fieldFrom(["S"], { crew: crewOf(null, [], [5]) });
     hitRock(field, onlySmall(field), 0, 0);
 
@@ -384,9 +419,9 @@ describe("tallyOf", () => {
     ]);
   });
 
-  it("counts no clean wave's points for one that lost a ship", () => {
+  it("counts no clean wave's points for one that took a hit", () => {
     const field = fieldFrom(["S"]);
-    field.shipsLost = 1;
+    field.hits = 1;
     hitRock(field, onlySmall(field), 0, 0);
 
     stepField(field);
