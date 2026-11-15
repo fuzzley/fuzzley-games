@@ -23,14 +23,14 @@ import { PICTURE_FRAMES, type Pictures } from "../view/art/art";
 import type { PointsFont } from "../view/art/points_art";
 import { commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
+import { effectsOf, flourishesOf } from "../view/effects/effects";
 import {
   type SoundName,
   THRUST,
   createFrameSounds,
   detuneOf,
-  effectsOf,
-  flourishesOf,
-} from "../view/effects/effects";
+  soundOf,
+} from "../view/effects/sounds";
 import {
   type BoardSetting,
   type FieldLayout,
@@ -395,9 +395,9 @@ export class BeltScene extends Scene {
    * plays its flourishes where motion is welcome, and its points either way.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
-    const effects = effectsOf(event);
-    if (effects.sound) this.frameSounds.hear(effects.sound, detuneOf(event));
-    const flourishes = flourishesOf(effects, this.context.motion);
+    const sound = soundOf(event);
+    if (sound) this.frameSounds.hear(sound, detuneOf(event));
+    const flourishes = flourishesOf(effectsOf(event), this.context.motion);
     for (const flourish of flourishes) {
       this.flourishPlayer.play(flourish, event, this.context);
     }

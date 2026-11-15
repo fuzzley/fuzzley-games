@@ -1,5 +1,6 @@
 import type { EventLogView } from "@fz/core/event_log";
 import { TURN } from "../../rules/angles";
+import type { RockKindId, RockSize } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
 import type { FieldEvent } from "../../rules/field/events";
 import type { Comet } from "../../rules/hazards/comets";
@@ -164,4 +165,28 @@ function betweenOnAxis(
   length: number,
 ): number {
   return wrap(last + across(last, next, length) * alpha, length);
+}
+
+/**
+ * Returns the kind of the rock an event happened to.
+ *
+ * @throws {RangeError} For an event that names no rock.
+ */
+export function rockKindOf(event: Readonly<FieldEvent>): RockKindId {
+  if (event.rock === null) {
+    throw new RangeError(`A "${event.kind}" event names no rock`);
+  }
+  return event.rock;
+}
+
+/**
+ * Returns the size of the rock an event happened to.
+ *
+ * @throws {RangeError} For an event that names no rock's size.
+ */
+export function rockSizeOf(event: Readonly<FieldEvent>): RockSize {
+  if (event.size === null) {
+    throw new RangeError(`A "${event.kind}" event names no rock's size`);
+  }
+  return event.size;
 }
