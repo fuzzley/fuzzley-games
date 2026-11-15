@@ -154,9 +154,9 @@ describe("SectorsComponent", () => {
       screen.getByRole("button", { name: "Endless From wave 4" }),
     );
 
-    expect({ wave: game.wave().number, ships: game.ships() }).toEqual({
+    expect({ wave: game.wave().number, aboard: game.aboard() }).toEqual({
       wave: 4,
-      ships: FIRST_CREW,
+      aboard: FIRST_CREW,
     });
   });
 

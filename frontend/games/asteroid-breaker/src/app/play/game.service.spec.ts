@@ -43,7 +43,7 @@ import {
   clearIn,
   clearToNext,
   endRun,
-  loseShip,
+  knockOneLoose,
   playToClear,
   pressOn,
   provideSpecWaves,
@@ -102,6 +102,7 @@ const BEGUN_OWN = {
   newBest: false,
   clearedAll: false,
   broughtHome: [],
+  loose: [],
   resultOpen: false,
   resultClosed: false,
 };
@@ -173,6 +174,7 @@ function ownOf(game: GameService): Record<string, unknown> {
     newBest: game.newBest(),
     clearedAll: game.clearedAll(),
     broughtHome: game.broughtHome(),
+    loose: game.loose(),
     resultOpen: game.resultOpen(),
     resultClosed: game.resultClosed(),
   };
@@ -203,20 +205,20 @@ describe("GameService", () => {
       expect(game.speed()).toBe("fast");
     });
 
-    it("waits at the first wave for its first move, with the first ships and no points", () => {
+    it("waits at the first wave for its first move, with the first crew aboard and no points", () => {
       const game = TestBed.inject(GameService);
 
       expect({
         outcome: game.outcome(),
         wave: game.wave().number,
         speed: game.speed(),
-        ships: game.ships(),
+        aboard: game.aboard(),
         score: game.score(),
       }).toEqual({
         outcome: "ready",
         wave: 1,
         speed: "normal",
-        ships: FIRST_CREW,
+        aboard: FIRST_CREW,
         score: 0,
       });
     });
@@ -261,7 +263,7 @@ describe("GameService", () => {
   });
 
   describe("the crew", () => {
-    it("flies a new run's ships with pilots in the first colors, and no one at home", () => {
+    it("flies a new run's crew in the first colors, and no one at home", () => {
       const game = TestBed.inject(GameService);
 
       expect(game.crew()).toMatchObject({ pilot: 0, tow: [1, 2], home: [] });
@@ -287,6 +289,18 @@ describe("GameService", () => {
       bringStraysHome(game, 2);
 
       expect(game.broughtHome()).toEqual([3, 4]);
+    });
+
+    it("holds one a hit knocks loose apart from those aboard", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+
+      knockOneLoose(game);
+
+      expect({
+        aboard: game.aboard(),
+        tow: game.crew().tow,
+        loose: game.loose(),
+      }).toEqual({ aboard: 2, tow: [1], loose: [2] });
     });
 
     it("starts a new run with no strays brought home", () => {
@@ -954,11 +968,11 @@ describe("GameService", () => {
 
       expect({
         ended: game.ended(),
-        ships: game.ships(),
+        aboard: game.aboard(),
         said: said(),
       }).toEqual({
         ended: true,
-        ships: 0,
+        aboard: 0,
         said: "Game over. Score 60, on wave 1. A new best!",
       });
     });
@@ -1024,7 +1038,7 @@ describe("GameService", () => {
       });
     });
 
-    it("tries again from the wave the run started at, with the first ships", async () => {
+    it("tries again from the wave the run started at, with the first crew", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
       clearToNext(game);
       endRun(game);
@@ -1034,11 +1048,11 @@ describe("GameService", () => {
       expect({
         outcome: game.outcome(),
         wave: game.wave().number,
-        ships: game.ships(),
+        aboard: game.aboard(),
       }).toEqual({
         outcome: "ready",
         wave: SPEC_WAVE.pebble,
-        ships: FIRST_CREW,
+        aboard: FIRST_CREW,
       });
     });
 
@@ -1596,10 +1610,10 @@ describe("GameService", () => {
       Reflect.deleteProperty(navigator, "vibrate");
     });
 
-    it("buzzes the phone once, firmly, as a ship is lost", async () => {
+    it("buzzes the phone once, firmly, as a hit knocks one of the crew loose", async () => {
       const game = await startedAt(SPEC_WAVE.pebble);
 
-      loseShip(game);
+      knockOneLoose(game);
 
       expect(vibrate.mock.calls).toEqual([[LOST_BUZZ]]);
     });
@@ -1616,9 +1630,9 @@ describe("GameService", () => {
       const game = await startedAt(SPEC_WAVE.pebble);
       Reflect.deleteProperty(navigator, "vibrate");
 
-      loseShip(game);
+      knockOneLoose(game);
 
-      expect(game.ships()).toBe(2);
+      expect(game.aboard()).toBe(2);
     });
   });
 

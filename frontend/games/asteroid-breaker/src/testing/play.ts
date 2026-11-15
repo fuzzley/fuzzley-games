@@ -148,16 +148,6 @@ export function ram(game: GameService): Readonly<Steer> {
 }
 
 /**
- * Returns the steering that flies the ship to the pickup floating, else
- * shoots at the nearest rock.
- */
-export function toPickup(game: GameService): Readonly<Steer> {
-  const floating = game.frame().field.pickups.find((each) => each.live);
-  if (!floating) return shoot(game);
-  return { ...STILL, aim: { x: floating.x, y: floating.y }, thrust: 1 };
-}
-
-/**
  * Returns the steering that flies the ship to the stray adrift, firing at
  * nothing; with none adrift yet, it turns the ship where it is, which starts
  * the wave.
@@ -189,10 +179,10 @@ function nearestRock(field: FieldView): Readonly<Rock> | null {
   return nearest;
 }
 
-/** Flies the ship into a rock until a hit costs it one of its crew, knocked loose. */
-export function loseShip(game: GameService): void {
-  const ships = game.ships();
-  playUntil(game, ram, () => game.ships() < ships);
+/** Flies the ship into a rock until a hit knocks the last in tow loose. */
+export function knockOneLoose(game: GameService): void {
+  const aboard = game.aboard();
+  playUntil(game, ram, () => game.aboard() < aboard);
 }
 
 /** Flies the ship into rocks, a hit knocking each in tow loose and the last ending the run. */

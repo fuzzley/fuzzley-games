@@ -43,6 +43,8 @@ export interface RunState {
   readonly clearedAll: boolean;
   /** The pilots of the strays it has brought home, in the order they came. */
   readonly broughtHome: readonly Pilot[];
+  /** The pilots of its crew knocked loose out on the wave in play's field, the last knocked first. */
+  readonly loose: readonly Pilot[];
   /** Whether the card over its end is showing. */
   readonly resultOpen: boolean;
   /** Whether the card over its end has been put away. */
@@ -69,6 +71,7 @@ export function newRunState(run: Run, level = run.charge): RunState {
     newBest: false,
     clearedAll: false,
     broughtHome: [],
+    loose: [],
     resultOpen: false,
     resultClosed: false,
   };
@@ -76,11 +79,11 @@ export function newRunState(run: Run, level = run.charge): RunState {
 
 /**
  * Returns a run's state with what a frame came to taken in: the run it
- * changed, whether it was flown on tuned numbers, the strays it brought
- * home, static's multiplier and step, the pilot's face and its fur, a
- * cleared wave's tally, the card it opens and how far the Cleared card's
- * sum counts up; or the same state for a frame that changed none of them,
- * so a frame of play makes nothing.
+ * changed, whether it was flown on tuned numbers, the strays it brought home,
+ * the crew knocked loose, static's multiplier and step, the pilot's face and
+ * its fur, a cleared wave's tally, the card it opens and how far the Cleared
+ * card's sum counts up; or the same state for a frame that changed none of
+ * them, so a frame of play makes nothing.
  *
  * A run is flown on tuned numbers from the first frame that moves its field
  * while they are `retuned`, off `tuning.ts`'s, and stays so, though they are
@@ -95,6 +98,7 @@ export function withFrame(
   const multiplier = change.multiplier ?? state.multiplier;
   const step = change.step ?? state.step;
   const { cameHome, face, lift, tally, opens } = change;
+  const loose = change.loose ?? state.loose;
   const clearedOpen = state.clearedOpen || opens === "cleared";
   const tallyMs = clearedOpen
     ? Math.min(TALLY_COUNT_MS, state.tallyMs + change.countMs)
@@ -107,6 +111,7 @@ export function withFrame(
     face === state.face &&
     lift === state.lift &&
     cameHome.length === 0 &&
+    loose === state.loose &&
     tally === null &&
     opens === null &&
     tallyMs === state.tallyMs
@@ -126,6 +131,7 @@ export function withFrame(
       cameHome.length > 0
         ? [...state.broughtHome, ...cameHome]
         : state.broughtHome,
+    loose,
     clearedOpen,
     tallyMs,
     resultOpen: state.resultOpen || opens === "result",

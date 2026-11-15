@@ -23,7 +23,7 @@ import {
   STRAY_WAVES,
   bringStraysHome,
   clearToNext,
-  loseShip,
+  knockOneLoose,
   playToClear,
   provideSpecWaves,
   shoot,
@@ -110,6 +110,14 @@ function figureTerm(term: string): HTMLElement {
   return name;
 }
 
+/** Returns each pilot an element draws, in order, as its color and its face. */
+function posesIn(element: Element): [string, string][] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>("app-pilot"),
+    (pilot) => [pilot.style.color, poseIn(pilot).face],
+  );
+}
+
 /** Returns the terms of the figures the bar shows, in order. */
 function terms(): string[] {
   return screen.getAllByRole("term").map((dt) => dt.textContent.trim());
@@ -173,13 +181,13 @@ describe("BarComponent", () => {
       });
     });
 
-    it("shows the wave, the score, the ships and static", async () => {
+    it("shows the wave, the score, the crew in tow and static", async () => {
       await renderInPlay();
 
       expect(figures()).toEqual([
         ["Wave", "2"],
         ["Score", "0"],
-        ["Ships", "3 ships"],
+        ["Crew", "2 in tow"],
         ["Static", "×1"],
       ]);
     });
@@ -194,35 +202,63 @@ describe("BarComponent", () => {
       expect(figure("Score")).toBe("1,100");
     });
 
-    it("draws each ship as its pilot, the one at the controls in the face cam, those in tow beside it", async () => {
+    it("draws the crew, the pilot at the controls in the face cam, those in tow beside it", async () => {
       await renderInPlay();
 
       // The pilots are pictures, hidden from a screen reader, so no role finds them.
       expect({
-        atControls: pilotsIn(figureTerm("Ships")),
-        inTow: pilotsIn(figureValue("Ships")),
+        atControls: pilotsIn(figureTerm("Crew")),
+        inTow: pilotsIn(figureValue("Crew")),
       }).toEqual({ atControls: [inkOf(0)], inTow: [inkOf(1), inkOf(2)] });
     });
 
-    it("shows one knocked loose by a hit, the last in tow gone from the line", async () => {
+    it("shows one knocked loose by a hit after the line in tow, wide eyed", async () => {
       const { game, detectChanges } = await renderInPlay();
 
-      loseShip(game);
+      knockOneLoose(game);
       detectChanges();
 
       expect({
-        ships: figure("Ships"),
-        inTow: pilotsIn(figureValue("Ships")),
-      }).toEqual({ ships: "2 ships", inTow: [inkOf(1)] });
+        crew: figure("Crew"),
+        drawn: posesIn(figureValue("Crew")),
+      }).toEqual({
+        crew: "1 in tow, 1 knocked loose",
+        drawn: [
+          [inkOf(1), "rest"],
+          [inkOf(2), "eep"],
+        ],
+      });
     });
 
-    it("draws a stray brought home in tow, as it flies one more ship at once", async () => {
+    it("draws a stray brought home in tow, as it rides behind the pod at once", async () => {
       const { game, detectChanges } = await renderBar(STRAY_WAVES);
 
       bringStraysHome(game, 1);
       detectChanges();
 
-      expect(pilotsIn(figureValue("Ships"))).toHaveLength(3);
+      expect({
+        crew: figure("Crew"),
+        drawn: pilotsIn(figureValue("Crew")),
+      }).toEqual({ crew: "3 in tow", drawn: [inkOf(1), inkOf(2), inkOf(3)] });
+    });
+
+    it("counts the crew in tow past three, beside the first", async () => {
+      const { game, detectChanges } = await renderBar(STRAY_WAVES);
+
+      bringStraysHome(game, 2);
+      detectChanges();
+
+      // The number is hidden from a screen reader, which hears it in words.
+      const value = within(figureValue("Crew"));
+      expect({
+        drawn: pilotsIn(figureValue("Crew")),
+        count: value.getByText("4").getAttribute("aria-hidden"),
+        said: value.getByText("4 in tow").className,
+      }).toEqual({
+        drawn: [inkOf(1)],
+        count: "true",
+        said: "fz-visually-hidden",
+      });
     });
 
     it("shows the pilot at the controls sleepy while the wave waits for its first move", async () => {
@@ -232,22 +268,22 @@ describe("BarComponent", () => {
       game.tick(FRAME_MS, STILL);
       detectChanges();
 
-      expect(poseIn(figureTerm("Ships")).face).toBe("sleepy");
+      expect(poseIn(figureTerm("Crew")).face).toBe("sleepy");
     });
 
     it("shows the pilot at the controls set as the ship fires", async () => {
       await renderInPlay();
 
-      expect(poseIn(figureTerm("Ships")).face).toBe("set");
+      expect(poseIn(figureTerm("Crew")).face).toBe("set");
     });
 
     it("shows the pilot at the controls dizzy as a hit knocks one loose", async () => {
       const { game, detectChanges } = await renderInPlay();
 
-      loseShip(game);
+      knockOneLoose(game);
       detectChanges();
 
-      expect(poseIn(figureTerm("Ships")).face).toBe("dizzy");
+      expect(poseIn(figureTerm("Crew")).face).toBe("dizzy");
     });
 
     it("shows the pilot at the controls happy over a cleared wave", async () => {
@@ -257,7 +293,7 @@ describe("BarComponent", () => {
       playToClear(game);
       detectChanges();
 
-      expect(poseIn(figureTerm("Ships")).face).toBe("happy");
+      expect(poseIn(figureTerm("Crew")).face).toBe("happy");
     });
 
     it.each([
@@ -273,7 +309,7 @@ describe("BarComponent", () => {
         expect({
           multiplier: figure("Static"),
           pips: pips(),
-          lift: poseIn(figureTerm("Ships")).lift,
+          lift: poseIn(figureTerm("Crew")).lift,
         }).toEqual({
           multiplier: `×${String(times)}`,
           pips: lit,
@@ -423,40 +459,45 @@ describe("BarComponent", () => {
       installFakeViewport(width, height);
     });
 
-    it("shows the score, the ships and static, without the wave", async () => {
+    it("shows the score, the crew and static, without the wave", async () => {
       await renderInPlay();
 
-      expect(terms()).toEqual(["Score", "Ships", "Static"]);
+      expect(terms()).toEqual(["Score", "Crew", "Static"]);
     });
 
-    it("shows a new run's ships as a number on the face cam, its first pilot at the controls", async () => {
+    it("shows a new run's crew aboard as a number on the face cam, its first pilot at the controls", async () => {
       await renderInPlay();
 
       expect({
-        number: within(figureValue("Ships")).getByText("3").textContent,
-        atControls: pilotsIn(figureTerm("Ships")),
-      }).toEqual({ number: "3", atControls: [inkOf(0)] });
+        number: within(figureValue("Crew")).getByText("3").textContent,
+        said: within(figureValue("Crew")).getByText("3 aboard").className,
+        atControls: pilotsIn(figureTerm("Crew")),
+      }).toEqual({
+        number: "3",
+        said: "fz-visually-hidden",
+        atControls: [inkOf(0)],
+      });
     });
 
     it("draws no one in tow beside the face cam", async () => {
       await renderInPlay();
 
-      expect(pilotsIn(figureValue("Ships"))).toEqual([]);
+      expect(pilotsIn(figureValue("Crew"))).toEqual([]);
     });
 
-    it("counts the ships down as a hit knocks one loose", async () => {
+    it("counts the crew aboard down as a hit knocks one loose", async () => {
       const { game, detectChanges } = await renderInPlay();
 
-      loseShip(game);
+      knockOneLoose(game);
       detectChanges();
 
-      expect(within(figureValue("Ships")).getByText("2")).toBeVisible();
+      expect(within(figureValue("Crew")).getByText("2")).toBeVisible();
     });
 
     it("shows the pilot at the controls with the face the field shows", async () => {
       await renderInPlay();
 
-      expect(poseIn(figureTerm("Ships")).face).toBe("set");
+      expect(poseIn(figureTerm("Crew")).face).toBe("set");
     });
 
     it("shows how many times what is scored scores, with as many pips lit, the pilot's fur lifted", async () => {
@@ -465,7 +506,7 @@ describe("BarComponent", () => {
       expect({
         multiplier: figure("Static"),
         pips: pips(),
-        lift: poseIn(figureTerm("Ships")).lift,
+        lift: poseIn(figureTerm("Crew")).lift,
       }).toEqual({
         multiplier: "×2",
         pips: [true, true, false, false],
