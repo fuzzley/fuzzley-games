@@ -555,8 +555,8 @@ takes for the specs' helpers.
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
-  from the field's events (`hearFace()`) and its near misses
-  (`watchFace()`), a stray adrift's (`adriftFaceOf()`), each blinking now
+  from the field's events, the rules' near misses (`grazed`) among them
+  (`hearFace()`), a stray adrift's (`adriftFaceOf()`), each blinking now
   and then by the field's steps (`isBlinking()`), where the pilot looks,
   at the nearest rock or comet or the way the pod points (`lookOf()`),
   how far its fur lifts with static, a step a multiplier (`liftOf()`), and the push it
