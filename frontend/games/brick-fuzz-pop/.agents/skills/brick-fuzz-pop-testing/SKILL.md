@@ -200,9 +200,9 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   the layout check hand a page to take up, loading it through
   `SCREENSHOT_API` and storing it with `tools/stored_run.mjs`.
   `tools/capture-screenshots.spec.ts` holds the screenshots' `RUN` to the
-  first two shots of its level's line on its depth, so a line certified
-  anew there fails it until `RUN` takes the new shots and the screenshots
-  are captured again.
+  first shot of its level's line on its depth, so a line certified anew
+  there with another first shot fails it until `RUN` takes that shot and
+  the screenshots are captured again.
 - In a development build, and at `?debug` in a production one, the debug
   menu's Play the certificate plays the level in play's line on the
   field's depth (`CertificatesService`), and the menu says when retuned
