@@ -2,10 +2,10 @@ import { Component, computed, inject, output } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
+import { END_TITLE } from "../../rules/run/describe";
 import { wavesCleared } from "../../rules/run/run";
-import { SPEED_INFO } from "../../rules/speed";
 import { bestTerm } from "../../view/bests";
-import { endWords } from "../../view/tally";
+import { endDescription, endSubtitle } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 
@@ -40,11 +40,21 @@ export class ResultComponent {
   /** Emitted when the player asks for the sectors, to start at one. */
   readonly chooseSector = output();
 
+  /** What the card is called, as the announcer and the card over an ended run call the run's end. */
+  protected readonly title = END_TITLE;
+
   /** Where the run ended, and at what speed. */
-  protected readonly subtitle = computed(() => {
-    const run = this.game.run();
-    return `${endWords(this.game.wave())}, at ${SPEED_INFO[run.speed].name} speed`;
-  });
+  protected readonly subtitle = computed(() =>
+    endSubtitle(this.game.wave(), this.game.run().speed),
+  );
+
+  /**
+   * What the card is described by as it opens: where the run ended and at
+   * what speed, its score, and what it set.
+   */
+  protected readonly description = computed(() =>
+    endDescription(this.game.run(), this.game.wave(), this.game.endMarks()),
+  );
 
   protected readonly figures = computed<readonly Figure[]>(() => {
     const run = this.game.run();

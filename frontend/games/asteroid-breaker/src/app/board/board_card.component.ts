@@ -9,6 +9,7 @@ import {
 import { count, formatPoints } from "@fz/core/format";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
+import { END_TITLE } from "../../rules/run/describe";
 import { pilotsAboard } from "../../rules/ship/pilots";
 import { cardCrewWords } from "../../view/crew_line";
 import type { BoardSetting } from "../../view/field/field_metrics";
@@ -150,6 +151,9 @@ export class BoardCardComponent {
   protected readonly nextWords = computed(() =>
     nextWaveWords(this.game.waveAfter()),
   );
+
+  /** What the card over an ended run is called, as the result card and the announcer call the run's end. */
+  protected readonly endTitle = END_TITLE;
 
   /** What the card over an ended run says of where it ended: the wave by its number and its name. */
   protected readonly endedWhere = computed(() => endWords(this.game.wave()));

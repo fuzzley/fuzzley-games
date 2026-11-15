@@ -266,7 +266,8 @@ takes for the specs' helpers.
   straight home, one of the crew knocked loose, caught again or floating
   home, with how many ride in tow, a pickup caught, static coming to full,
   a zap, a clearing, a pause, going on, a run taken up and the end, in the
-  result card's words (`END_TITLE`, "Everyone is home."). The announcer,
+  words the result card and the card over an ended run take up
+  (`END_TITLE`, "Everyone is home."). The announcer,
   the bar, the cards, the result, the sectors and How to play all write
   points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
@@ -371,14 +372,16 @@ takes for the specs' helpers.
   card shows: how a cleared wave's points add up a time after the card opens,
   each line counting up in turn and their total (`tallyShownAt()`), and the
   wave to come (`nextWaveWords()`), and what the cards over an ended run say
-  of the wave it ended on (`endWords()`); `bests.ts` whether a best was
-  made under earlier rules than these (`isEarlierBest()`, by the rules'
-  `RULES_VERSION`), which the next run to score beats and takes the place
-  of, what the result calls one ("Best, earlier rules", `bestTerm()`), and
-  what the Sectors dialog says under a sector's waves (`sectorStatus()`)
-  and whether it says its best was made under them (`saysEarlierRules()`);
-  `crew_line.ts` what the bar shows
-  of the crew beside the face cam, each in tow and each knocked loose, or,
+  of the wave it ended on (`endWords()`), the result card with its speed
+  (`endSubtitle()`), and what a screen reader hears of the result card as
+  it opens, its score and marks too (`endDescription()`); `bests.ts`
+  whether a best was made under earlier rules than these
+  (`isEarlierBest()`, by the rules' `RULES_VERSION`), which the next run
+  to score beats and takes the place of, what the result calls one
+  ("Best, earlier rules", `bestTerm()`), and what the Sectors dialog says
+  under a sector's waves (`sectorStatus()`) and whether it says its best
+  was made under them (`saysEarlierRules()`); `crew_line.ts` what the bar
+  shows of the crew beside the face cam, each in tow and each knocked loose, or,
   past three of them (`MOST_DRAWN`), the first and how many
   (`crewLineOf()`), and the words a screen reader hears for it
   (`crewWords()`), or for the crew a card draws (`cardCrewWords()`); and
@@ -1111,7 +1114,12 @@ takes for the specs' helpers.
     (`wavesCleared()`), and the fuzzballs who flew, every one gone home in
     the run, each in its color, with how many of them were strays brought
     home; Try again from the sector the run started in; Choose a sector,
-    which puts it away and asks the app for the sectors; and Close.
+    which puts it away and asks the app for the sectors; and Close. As it
+    opens, a screen reader hears where the run ended, its score and what
+    it set from the card's description (`tally.ts`'s `endDescription()`),
+    since the card hides the page's announcer a moment after the run's end
+    is said there, or on the next frame where motion isn't welcome, which
+    cuts the words short or loses them.
   - `help/` — How to play: the aim, the crew in tow as the ship's lives,
     a hit knocking one loose and how long it waits to be caught again, and
     the scoring, from `tuning.ts`'s numbers, static, the multiplier's

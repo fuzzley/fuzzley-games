@@ -1,6 +1,15 @@
 import type { WaveTally } from "../rules/field/scoring";
+import { describeEnd } from "../rules/run/describe";
+import { createRun } from "../rules/run/run";
 import { WAVES, waveEntryOf } from "../rules/waves/waves";
-import { TALLY_COUNT_MS, endWords, nextWaveWords, tallyShownAt } from "./tally";
+import {
+  TALLY_COUNT_MS,
+  endDescription,
+  endSubtitle,
+  endWords,
+  nextWaveWords,
+  tallyShownAt,
+} from "./tally";
 
 /** A cleared wave's points, a part on each line. */
 const TALLY: WaveTally = {
@@ -100,4 +109,42 @@ describe("endWords", () => {
       "The run ended on wave 37, Endless",
     );
   });
+});
+
+describe("endSubtitle", () => {
+  it("says where a run ended and at what speed", () => {
+    expect(endSubtitle(waveEntryOf(WAVES, 14), "fast")).toBe(
+      "The run ended on wave 14, Anvil, at Fast speed",
+    );
+  });
+});
+
+describe("endDescription", () => {
+  // The announcer's words for the run's end are held beside the card's, so
+  // a mark worded anew in one fails here until the other follows.
+  it.each([
+    ["nothing", false, false, ""],
+    ["a new best", true, false, " A new best!"],
+    ["all thirty cleared", false, true, " Cleared all thirty!"],
+    ["both", true, true, " A new best! Cleared all thirty!"],
+  ])(
+    "says where a run ended, at what speed and its score, and of what it set, %s, as the announcer says it",
+    (_set, newBest, clearedAll, marks) => {
+      const run = {
+        ...createRun({ id: 1, seed: 1, speed: "normal", wave: 14 }),
+        score: 4250,
+      };
+      const entry = waveEntryOf(WAVES, 14);
+
+      const said = {
+        card: endDescription(run, entry, { newBest, clearedAll }),
+        announcer: describeEnd(run, entry, { newBest, clearedAll }),
+      };
+
+      expect(said).toEqual({
+        card: `The run ended on wave 14, Anvil, at Normal speed. Score 4,250.${marks}`,
+        announcer: `Everyone is home. Score 4,250, on wave 14.${marks}`,
+      });
+    },
+  );
 });

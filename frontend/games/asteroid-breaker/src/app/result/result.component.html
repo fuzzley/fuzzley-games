@@ -1,8 +1,8 @@
 <fz-dialog
   [open]="game.resultOpen()"
   dialogRole="alertdialog"
-  label="Everyone is home."
-  describedBy="result-subtitle"
+  [label]="title"
+  describedBy="result-description"
   [closesOnBackdrop]="false"
   (closed)="game.closeResult()"
 >
@@ -17,9 +17,9 @@
       focus is not.
     -->
     <!-- eslint-disable-next-line @angular-eslint/template/no-autofocus -->
-    <h2 tabindex="-1" autofocus>Everyone is home.</h2>
+    <h2 tabindex="-1" autofocus>{{ title }}</h2>
     <p class="subtitle">
-      <span id="result-subtitle">{{ subtitle() }}</span>
+      <span>{{ subtitle() }}</span>
       @if (game.newBest()) {
         <span class="fz-badge fz-badge-accent">New best</span>
       }
@@ -27,6 +27,14 @@
         <span class="fz-badge fz-badge-accent">Cleared all thirty</span>
       }
     </p>
+    <!--
+      What a screen reader hears of the card as it opens, kept out of the
+      way of one reading the card through. The card hides the page's
+      announcer a moment after the run's end is said there, or on the next
+      frame where motion isn't welcome, cutting the words short or losing
+      them, so this says the score and what the run set again.
+    -->
+    <p id="result-description" hidden>{{ description() }}</p>
 
     <!--
       A description list, so each figure is announced with what it measures;

@@ -115,14 +115,36 @@ describe("ResultComponent", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
-  it("says everyone is home, the wave the run ended on and at what speed", async () => {
+  it("says everyone is home, the wave the run ended on and at what speed, the score and the best it set", async () => {
     await renderLost();
 
     expect(
       screen.getByRole("alertdialog", { name: "Everyone is home." }),
     ).toHaveAccessibleDescription(
-      "The run ended on wave 2, Gift, at Normal speed",
+      "The run ended on wave 2, Gift, at Normal speed. Score 1,180. A new best!",
     );
+  });
+
+  it("shows where the run ended and at what speed under its title", async () => {
+    await renderLost();
+
+    expect(
+      screen.getByText("The run ended on wave 2, Gift, at Normal speed"),
+    ).toBeVisible();
+  });
+
+  it("says the score alone of a run that fell short of the best", async () => {
+    await renderLost(90_000);
+
+    expect(screen.getByRole("alertdialog")).toHaveAccessibleDescription(
+      "The run ended on wave 2, Gift, at Normal speed. Score 1,180.",
+    );
+  });
+
+  it("keeps what it says as it opens out of the card read through", async () => {
+    await renderLost();
+
+    expect(screen.getByText(/Score 1,180/u)).not.toBeVisible();
   });
 
   it("says a run ended in Endless ended there", async () => {
@@ -133,7 +155,7 @@ describe("ResultComponent", () => {
     expect(
       screen.getByRole("alertdialog", { name: "Everyone is home." }),
     ).toHaveAccessibleDescription(
-      "The run ended on wave 4, Endless, at Normal speed",
+      /^The run ended on wave 4, Endless, at Normal speed\. /u,
     );
   });
 
@@ -146,6 +168,9 @@ describe("ResultComponent", () => {
     endAndOpen(rendered);
 
     expect(screen.getByText("Cleared all thirty")).toBeVisible();
+    expect(screen.getByRole("alertdialog")).toHaveAccessibleDescription(
+      / Cleared all thirty!$/u,
+    );
   });
 
   it("says nothing of clearing all thirty for a run from a later wave, however many it cleared", async () => {
