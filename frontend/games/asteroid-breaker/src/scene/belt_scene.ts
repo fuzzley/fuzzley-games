@@ -689,6 +689,7 @@ export class BeltScene extends Scene {
     this.shownField = field;
     this.played = 0;
     for (const painter of this.painters) painter.start?.(field);
+    this.flourishPlayer.start();
   }
 
   /**

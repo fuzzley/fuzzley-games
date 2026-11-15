@@ -1,8 +1,8 @@
 import {
-  CLEARED_MS,
-  SHAKE_DELAY_MS,
-  SHAKE_MS,
+  BOULDER_HOLD_MS,
   BURST_MS,
+  CLEARED_MS,
+  SHAKE_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -18,17 +18,21 @@ describe("clearedDelayMs", () => {
 });
 
 describe("resultDelayMs", () => {
-  it("waits for the later of the last ship's shards and its shake where motion is welcome", () => {
-    const delay = resultDelayMs(true);
-    const ends = [BURST_MS, SHAKE_DELAY_MS + SHAKE_MS];
-
-    expect({
-      both: ends.every((end) => delay >= end),
-      either: ends.includes(delay),
-    }).toEqual({ both: true, either: true });
+  it("waits for the last pod's burst where motion is welcome", () => {
+    expect(resultDelayMs(true)).toBe(BURST_MS);
   });
 
   it("waits for nothing where it isn't", () => {
     expect(resultDelayMs(false)).toBe(0);
+  });
+});
+
+describe("the budget", () => {
+  it("stills a shake within 0.3 s of its blow, as the plan's budget has it", () => {
+    expect(SHAKE_MS).toBeLessThanOrEqual(300);
+  });
+
+  it("holds the field still for a boulder for less than its shake, so it shakes after", () => {
+    expect(BOULDER_HOLD_MS).toBeLessThan(SHAKE_MS);
   });
 });

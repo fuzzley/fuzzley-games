@@ -11,7 +11,9 @@ import {
   type Flourish,
   effectsOf,
   flourishesOf,
+  holdMsOf,
 } from "./effects";
+import { BOULDER_HOLD_MS } from "./timing";
 
 /** Returns an event of a kind, of a rock of a kind and size or of none. */
 function eventOf(
@@ -60,7 +62,7 @@ const EVENTS: readonly (readonly [
   ["dropped", [], []],
   ["caught", [], []],
   ["faded", [], []],
-  ["lost", ["burst", "ring", "shake", "bailout"], []],
+  ["lost", ["burst", "ring", "bailout"], []],
   ["knocked", [], []],
   ["recaught", [], []],
   ["floated", [], []],
@@ -75,9 +77,12 @@ const EVENTS: readonly (readonly [
   ["arced", [], []],
 ];
 
-/** Each size of rock, with its break's flourishes, a large one's kicking the field. */
+/**
+ * Each size of rock, with its break's flourishes, a large one's kicking the
+ * field and a boulder's shaking it.
+ */
 const BREAKS: readonly (readonly [RockSize, readonly Flourish[]])[] = [
-  ["boulder", ["break", "kick"]],
+  ["boulder", ["break", "shake"]],
   ["large", ["break", "kick"]],
   ["medium", ["break"]],
   ["small", ["break"]],
@@ -145,6 +150,38 @@ describe("effectsOf", () => {
   it("throws for a hit that names no rock", () => {
     expect(() => effectsOf(eventOf("hit", "small", null))).toThrow(RangeError);
   });
+
+  it("shakes the field for a boulder's break alone, as the budget has it", () => {
+    const shaking = ALL_EFFECTS.filter(([, { flourishes }]) =>
+      flourishes.includes("shake"),
+    ).map(([name]) => name);
+
+    expect(shaking).toEqual(["broken boulder"]);
+  });
+});
+
+describe("holdMsOf", () => {
+  it("holds the field still for a boulder's break's first beat", () => {
+    expect(holdMsOf(eventOf("broken", "boulder"))).toBe(BOULDER_HOLD_MS);
+  });
+
+  it.each(["large", "medium", "small"] as const)(
+    "holds the field still for no %s rock's break",
+    (size) => {
+      expect(holdMsOf(eventOf("broken", size))).toBe(0);
+    },
+  );
+
+  it("holds the field still for no hit a boulder holds", () => {
+    expect(holdMsOf(eventOf("hit", "boulder"))).toBe(0);
+  });
+
+  it.each(EVENTS.map(([kind]) => kind))(
+    "holds the field still for no %s event",
+    (kind) => {
+      expect(holdMsOf(eventOf(kind))).toBe(0);
+    },
+  );
 });
 
 describe("flourishesOf", () => {

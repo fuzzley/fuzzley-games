@@ -25,7 +25,11 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import { CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
-import { clearedDelayMs, resultDelayMs } from "./effects/timing";
+import {
+  BOULDER_HOLD_MS,
+  clearedDelayMs,
+  resultDelayMs,
+} from "./effects/timing";
 import { type FrameChange, RunFrames } from "./run_frames";
 import { TALLY_COUNT_MS } from "./tally";
 import { WavePlay } from "./wave_play";
@@ -188,6 +192,13 @@ function playToKnock(game: Game): FrameChange {
   throw new Error("No hit ever knocked one of the crew loose.");
 }
 
+/** Logs a boulder broken far from a game's ship, which its next frame hears. */
+function breakBoulder(game: Game): void {
+  const boulder = placeRock(game.play.field, "boulder", 60, 10, "boulder");
+  boulder.live = false;
+  game.play.field.events.addBreak(boulder, 1, 1, 0);
+}
+
 /** Returns the run's first wave cleared, as the frame that cleared it left it. */
 function cleared(): Game {
   const game = underWay(PEBBLE);
@@ -265,6 +276,28 @@ describe("RunFrames", () => {
   });
 
   describe("a wave under way", () => {
+    it("holds the field still for a boulder's first beat where motion is welcome", () => {
+      const game = underWay(OPEN);
+      breakBoulder(game);
+      tick(game, STILL, { motion: true });
+      const { steps } = game.play.field;
+
+      tick(game, STILL, { ms: BOULDER_HOLD_MS, motion: true });
+
+      expect(game.play.field.steps).toBe(steps);
+    });
+
+    it("holds the field still for no boulder where the player prefers less motion", () => {
+      const game = underWay(OPEN);
+      breakBoulder(game);
+      tick(game);
+      const { steps } = game.play.field;
+
+      tick(game, STILL, { ms: 2.5 * STEP_MS });
+
+      expect(game.play.field.steps).toBe(steps + 2);
+    });
+
     it("changes nothing of the run at a frame that changes nothing of the field", () => {
       const game = underWay(OPEN);
       const { run } = game;

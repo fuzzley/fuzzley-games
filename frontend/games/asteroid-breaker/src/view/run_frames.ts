@@ -180,7 +180,7 @@ export class RunFrames {
     switch (run.outcome) {
       case "ready":
       case "playing":
-        this.playOn(play, run, deltaMs, steer);
+        this.playOn(play, run, deltaMs, steer, motion);
         break;
       case "cleared":
         change.countMs = motion ? deltaMs : TALLY_COUNT_MS;
@@ -221,8 +221,9 @@ export class RunFrames {
   }
 
   /**
-   * Steps the field by a frame's time, hears what happened, starts the wave
-   * at the first move, takes what its field came to into the run, and shows
+   * Steps the field by a frame's time, holding it still where motion is
+   * welcome as what it heard calls for, hears what happened, starts the
+   * wave at the first move, takes what its field came to into the run, and shows
    * static's step and multiplier on the wave in play.
    */
   private playOn(
@@ -230,10 +231,11 @@ export class RunFrames {
     run: Run,
     deltaMs: number,
     steer: Readonly<Steer>,
+    motion: boolean,
   ): void {
     const { field } = play;
     const { change } = this;
-    play.advance(deltaMs, steer, this.hear);
+    play.advance(deltaMs, steer, this.hear, motion);
     change.moved = field.steps > 0;
     let started = run;
     if (change.moved && run.outcome === "ready") {

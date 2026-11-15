@@ -15,7 +15,9 @@ import {
   LOST_RING_REACH,
   MOST_POINTS_CHARACTERS,
   SHIELD_RING_REACH,
+  type Jolt,
   type Jolts,
+  type Shake,
   TRAIL_MOST,
   bailOutShown,
   blinkShown,
@@ -30,7 +32,7 @@ import {
   riseOf,
   ringColorOf,
   ringReachOf,
-  shakeOf,
+  shakeShare,
   trailAlpha,
   trailLaidAfter,
   trailOutlinesLaid,
@@ -40,13 +42,13 @@ import {
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
+  BOULDER_HOLD_MS,
   DASH_TRAIL,
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
   POINTS_RISE,
   SHAKE_CSS_PX,
-  SHAKE_DELAY_MS,
   SHAKE_MS,
 } from "./timing";
 
@@ -266,32 +268,36 @@ describe("bailOutShown", () => {
   });
 });
 
-describe("shakeOf", () => {
+describe("shakeShare", () => {
   /**
-   * Returns the most the field is shaken along either axis over a stretch of a
-   * shake, from and to so many milliseconds after the ship was lost.
+   * Returns the most the field is shaken either way over a stretch of a
+   * shake, from and to so many milliseconds after its blow, held still for
+   * so long first.
    */
-  function mostShaken(from: number, to: number): number {
+  function mostShaken(from: number, to: number, holdMs = 0): number {
     return Math.max(
-      ...Array.from({ length: to - from }, (_, ms) => {
-        const { x, y } = shakeOf(from + ms + 0.5, { x: 0, y: 0 });
-        return Math.max(Math.abs(x), Math.abs(y));
-      }),
+      ...Array.from({ length: to - from }, (_, ms) =>
+        Math.abs(shakeShare(from + ms + 0.5, holdMs)),
+      ),
     );
   }
 
-  it("holds the field still for a moment as the ship is lost", () => {
-    expect(mostShaken(0, SHAKE_DELAY_MS)).toBe(0);
+  it("holds the field still for as long as it is told first", () => {
+    expect(mostShaken(0, BOULDER_HOLD_MS, BOULDER_HOLD_MS)).toBe(0);
   });
 
   it("shakes the field nearly all of its shake at first", () => {
-    expect(mostShaken(SHAKE_DELAY_MS, SHAKE_DELAY_MS + 20)).toBeGreaterThan(
-      0.9,
-    );
+    const from = BOULDER_HOLD_MS;
+
+    expect(mostShaken(from, from + 20, BOULDER_HOLD_MS)).toBeGreaterThan(0.9);
+  });
+
+  it("swings the field the way the blow came first", () => {
+    expect(shakeShare(10, 0)).toBeGreaterThan(0);
   });
 
   it("dies away as the shake goes on, to a quarter of it three quarters through", () => {
-    const late = SHAKE_DELAY_MS + 0.75 * SHAKE_MS;
+    const late = 0.75 * SHAKE_MS;
 
     const most = mostShaken(late, late + 20);
 
@@ -299,82 +305,82 @@ describe("shakeOf", () => {
     expect(most).toBeGreaterThan(0.15);
   });
 
-  it("rests a field no ship was lost on", () => {
-    expect(shakeOf(Infinity, { x: 1, y: 1 })).toEqual({ x: 0, y: 0 });
+  it("rests a field nothing has shaken", () => {
+    expect(shakeShare(Infinity, 0)).toBe(0);
   });
 
-  it("rests the field once the shake is over", () => {
-    const over = SHAKE_DELAY_MS + SHAKE_MS;
-
-    expect(mostShaken(over, over + 1000)).toBe(0);
+  it("rests the field once the shake is over, its hold among its time", () => {
+    expect(mostShaken(SHAKE_MS, SHAKE_MS + 1000, BOULDER_HOLD_MS)).toBe(0);
   });
 
-  it("shakes the field along each axis apart, never along a line", () => {
-    const ratios = new Set(
-      Array.from({ length: SHAKE_MS }, (_, ms) => {
-        const { x, y } = shakeOf(SHAKE_DELAY_MS + ms + 0.5, { x: 0, y: 0 });
-        return Math.round((y / x) * 10);
-      }),
-    );
+  it.each([SHAKE_MS, 2 * SHAKE_MS])(
+    "never shakes the field after a hold of %d ms, which leaves no time to",
+    (holdMs) => {
+      expect(mostShaken(0, 3 * SHAKE_MS, holdMs)).toBe(0);
+    },
+  );
 
-    expect(ratios.size).toBeGreaterThan(10);
-  });
-
-  it("swings the field well both ways at a screen's 60 frames a second, whenever its frames fall", () => {
+  it("swings the field well both ways at a screen's 60 frames a second, whenever its frames fall, after a boulder's hold", () => {
     const frameMs = 1000 / 60;
+    const shakingMs = SHAKE_MS - BOULDER_HOLD_MS;
     // The least, over each moment the frames may start at, of the most the
-    // shake's first half swings the field along each axis.
-    const least = { x: 1, y: 1 };
+    // shake's first half swings the field each way.
+    let least = 1;
     for (let start = 0; start < frameMs; start += 0.5) {
-      const most = { x: 0, y: 0 };
-      for (let ms = start; ms < SHAKE_MS / 2; ms += frameMs) {
-        const { x, y } = shakeOf(SHAKE_DELAY_MS + ms, { x: 0, y: 0 });
-        most.x = Math.max(most.x, Math.abs(x));
-        most.y = Math.max(most.y, Math.abs(y));
+      let most = { ahead: 0, back: 0 };
+      for (let ms = start; ms < shakingMs / 2; ms += frameMs) {
+        const share = shakeShare(BOULDER_HOLD_MS + ms, BOULDER_HOLD_MS);
+        most = {
+          ahead: Math.max(most.ahead, share),
+          back: Math.max(most.back, -share),
+        };
       }
-      least.x = Math.min(least.x, most.x);
-      least.y = Math.min(least.y, most.y);
+      least = Math.min(least, most.ahead, most.back);
     }
 
-    expect(Math.min(least.x, least.y)).toBeGreaterThan(0.6);
-  });
-
-  it("writes the shake into the record it is given", () => {
-    const into = { x: 0, y: 0 };
-
-    expect(shakeOf(SHAKE_DELAY_MS, into)).toBe(into);
+    expect(least).toBeGreaterThan(0.5);
   });
 });
 
 describe("cameraShift", () => {
   /** What jolted a field that nothing has jolted. */
-  const STILL: Jolts = {
-    kickedAt: -Infinity,
-    wayX: 0,
-    wayY: 0,
-    lostAt: -Infinity,
-  };
+  function still(): Jolts {
+    return {
+      kick: { at: -Infinity, wayX: 0, wayY: 0 },
+      shake: { at: -Infinity, wayX: 0, wayY: 0, holdMs: 0 },
+    };
+  }
 
-  /** A blow that came down and to the left, a share along each axis. */
-  const BLOW = { wayX: -0.6, wayY: 0.8 } as const;
+  /** A blow that came down and to the left at a time, a share along each axis. */
+  function blowAt(at: number): Jolt {
+    return { at, wayX: -0.6, wayY: 0.8 };
+  }
+
+  /** A shake from that blow at a time, the field held still first for so long. */
+  function shakeAt(at: number, holdMs = 0): Shake {
+    return { ...blowAt(at), holdMs };
+  }
 
   it("rests the camera on a field nothing has jolted", () => {
-    expect(cameraShift(STILL, 1000, 2, { x: 1, y: 1 })).toEqual({ x: 0, y: 0 });
+    expect(cameraShift(still(), 1000, 2, { x: 1, y: 1 })).toEqual({
+      x: 0,
+      y: 0,
+    });
   });
 
   it("scrolls the camera against a kick's blow, all its kick as it comes", () => {
-    const kicked = { ...STILL, ...BLOW, kickedAt: 1000 };
+    const kicked = { ...still(), kick: blowAt(1000) };
 
     const { x, y } = cameraShift(kicked, 1000, 2, { x: 0, y: 0 });
 
     expect([x, y]).toEqual([
-      expect.closeTo(-BLOW.wayX * KICK_CSS_PX * 2, 9),
-      expect.closeTo(-BLOW.wayY * KICK_CSS_PX * 2, 9),
+      expect.closeTo(0.6 * KICK_CSS_PX * 2, 9),
+      expect.closeTo(-0.8 * KICK_CSS_PX * 2, 9),
     ]);
   });
 
   it("settles the camera once the kick is over", () => {
-    const kicked = { ...STILL, ...BLOW, kickedAt: 1000 };
+    const kicked = { ...still(), kick: blowAt(1000) };
 
     expect(cameraShift(kicked, 1000 + KICK_MS, 2, { x: 0, y: 0 })).toEqual({
       x: 0,
@@ -382,25 +388,61 @@ describe("cameraShift", () => {
     });
   });
 
-  it("shakes the camera as the field is shaken since a ship was lost, at the pixel ratio", () => {
-    const since = SHAKE_DELAY_MS + 50;
-    const shaken = shakeOf(since, { x: 0, y: 0 });
+  it("shakes the camera against the shake's blow, as far as the field is shaken then, at the pixel ratio", () => {
+    const shaken = { ...still(), shake: shakeAt(1000, 90) };
+    const share = shakeShare(150, 90);
 
-    const { x, y } = cameraShift({ ...STILL, lostAt: 1000 }, 1000 + since, 2, {
+    const { x, y } = cameraShift(shaken, 1150, 2, { x: 0, y: 0 });
+
+    expect([x, y]).toEqual([
+      expect.closeTo(0.6 * share * SHAKE_CSS_PX * 2, 9),
+      expect.closeTo(-0.8 * share * SHAKE_CSS_PX * 2, 9),
+    ]);
+  });
+
+  it("shakes the camera along the blow alone, never across it", () => {
+    const shaken = { ...still(), shake: shakeAt(0) };
+
+    const across = Array.from({ length: SHAKE_MS }, (_, ms) => {
+      const { x, y } = cameraShift(shaken, ms + 0.5, 1, { x: 0, y: 0 });
+      return Math.abs(x * 0.8 + y * 0.6);
+    });
+
+    expect(Math.max(...across)).toBeCloseTo(0, 9);
+  });
+
+  it("rests the camera once a shake is over, within the budget's 0.3 s of its blow", () => {
+    const shaken = { ...still(), shake: shakeAt(1000, 90) };
+
+    expect(cameraShift(shaken, 1300, 2, { x: 1, y: 1 })).toEqual({
+      x: 0,
+      y: 0,
+    });
+  });
+
+  it("adds a kick and a shake together", () => {
+    const both = { ...still(), kick: blowAt(1000), shake: shakeAt(950) };
+    const kick = cameraShift({ ...still(), kick: blowAt(1000) }, 1040, 1, {
+      x: 0,
+      y: 0,
+    });
+    const shake = cameraShift({ ...still(), shake: shakeAt(950) }, 1040, 1, {
       x: 0,
       y: 0,
     });
 
+    const { x, y } = cameraShift(both, 1040, 1, { x: 0, y: 0 });
+
     expect([x, y]).toEqual([
-      expect.closeTo(shaken.x * SHAKE_CSS_PX * 2, 9),
-      expect.closeTo(shaken.y * SHAKE_CSS_PX * 2, 9),
+      expect.closeTo(kick.x + shake.x, 9),
+      expect.closeTo(kick.y + shake.y, 9),
     ]);
   });
 
   it("writes the shift into the record it is given", () => {
     const into = { x: 0, y: 0 };
 
-    expect(cameraShift(STILL, 0, 1, into)).toBe(into);
+    expect(cameraShift(still(), 0, 1, into)).toBe(into);
   });
 });
 
