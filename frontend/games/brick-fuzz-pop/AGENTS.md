@@ -140,8 +140,13 @@ helpers.
   flight reads. `flight.ts`'s `fly()` flies a round's fuzzballs from the
   floor along an aim on one clock, by the kinds and the trait rules it is
   handed (`FlightRules`), and returns the `Flight` with the wall it leaves
-  and the bricks the player's fuzzball punched through (`Flown`); given a
-  stop (`FlightStop`), it flies only so far past the player's first turn.
+  and the bricks the player's fuzzball punched through (`Flown`). Given a
+  stop (`FlightStop`) past the first turn (`FlightPastTurn`), it flies only
+  so far past the player's first turn; given a drop (`FlightDrop`), it flies
+  the whole flight to the drop's moment, then brings each fuzzball in the
+  air straight down from where it is, after every other event of that
+  moment, and calls off the launches still waiting, whose tracks it leaves
+  empty.
   `hooks.ts` says what a brick's trait rules may do to a flight (`Hooks`),
   and at which moments `fly()` runs them (`TraitRule`, `TraitRules`).
   `guide.ts`'s `guideOf()` is the guide (`Guide`): the player's fuzzball
@@ -342,8 +347,8 @@ helpers.
     the steer; lays the field out again as the canvas, the chrome or the
     shape changes, measuring the steering again, and bakes the atlas again
     at a new scale or palette; plays each event and beat of the view's two
-    logs once, taking a log up at its latest: each launch, turn and yawn
-    setting where its fuzzball looks, a friend's ink taken from `crew()` in
+    logs once, taking a log up at its latest: each launch, turn, yawn and
+    drop setting where its fuzzball looks, a friend's ink from `crew()` in
     the order they were freed, its sound with motion or without, and its
     flourishes (`flourishesOf()`) where the player welcomes motion, one on
     a brick placed where the brick still shows, on the wall drawn the frame

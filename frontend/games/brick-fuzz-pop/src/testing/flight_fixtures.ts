@@ -58,7 +58,8 @@ const BALL_ORDER = {
   portal: 4,
   split: 5,
   yawn: 6,
-  land: 7,
+  drop: 7,
+  land: 8,
 } as const;
 
 /** An event that breaks a brick or frees a friend, which follows what caused it. */
@@ -75,8 +76,11 @@ type Cause = Extract<FlightEvent, { readonly kind: "strike" | "zap" }>;
  * kinds' order, each strike followed by the brick it broke and the friend
  * that brick freed; then the zaps that land then, by cell, each followed by
  * the bricks it broke and the friends they freed, by cell, a cell's break
- * before its free. A fuzzball's events lie between its launch and its
- * landing, and every fuzzball launched lands.
+ * before its free; then the drops, by ball, each followed by its fuzzball's
+ * landing, if it lands then, the flight's drops all at one moment, after
+ * which no fuzzball does anything but land on its way home. A fuzzball's
+ * events lie between its launch and its landing, nothing but its landing
+ * after it yawns or drops, and every fuzzball launched lands.
  */
 export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
   const problems: string[] = [];
@@ -93,6 +97,12 @@ export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
   let cause: Cause | null = null;
   let lastCell = Number.NEGATIVE_INFINITY;
   let lastCausedRank = 0;
+  // The fuzzball of the last drop at the moment, -Infinity before one has
+  // dropped then; the flight's drops' moment, null before the first; and
+  // the fuzzballs dropping home, yawned or dropped.
+  let lastDrop = Number.NEGATIVE_INFINITY;
+  let dropAt: number | null = null;
+  const homing = new Set<number>();
   for (const [index, event] of events.entries()) {
     const named = `Event ${index}, a ${event.kind} at ${event.at},`;
     if (!(event.at >= moment)) {
@@ -102,6 +112,7 @@ export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
       moment = event.at;
       lastBall = Number.NEGATIVE_INFINITY;
       lastZap = Number.NEGATIVE_INFINITY;
+      lastDrop = Number.NEGATIVE_INFINITY;
       cause = null;
     }
     switch (event.kind) {
@@ -130,6 +141,9 @@ export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
         break;
       }
       case "zap": {
+        if (lastDrop > Number.NEGATIVE_INFINITY) {
+          problems.push(`${named} comes after a drop at its moment.`);
+        }
         if (event.cell <= lastZap) {
           problems.push(`${named} lands out of order by cell.`);
         }
@@ -144,11 +158,30 @@ export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
       default: {
         const rank = BALL_ORDER[event.kind];
         const { ball } = event;
-        if (lastZap > Number.NEGATIVE_INFINITY) {
-          problems.push(`${named} comes after a zap at its moment.`);
-        }
-        if (ball < lastBall || (ball === lastBall && rank < lastRank)) {
-          problems.push(`${named} is out of order by fuzzball and kind.`);
+        if (event.kind === "drop") {
+          if (dropAt !== null && event.at !== dropAt) {
+            problems.push(
+              `${named} isn't at the moment of the drops before it.`,
+            );
+          }
+          if (ball <= lastDrop) {
+            problems.push(
+              `${named} is out of order by fuzzball among the drops.`,
+            );
+          }
+          dropAt = event.at;
+          lastDrop = ball;
+        } else if (lastDrop > Number.NEGATIVE_INFINITY) {
+          if (event.kind !== "land" || ball !== lastDrop) {
+            problems.push(`${named} comes after a drop at its moment.`);
+          }
+        } else {
+          if (lastZap > Number.NEGATIVE_INFINITY) {
+            problems.push(`${named} comes after a zap at its moment.`);
+          }
+          if (ball < lastBall || (ball === lastBall && rank < lastRank)) {
+            problems.push(`${named} is out of order by fuzzball and kind.`);
+          }
         }
         if (event.kind === "launch") {
           if (launched.has(ball)) {
@@ -160,6 +193,23 @@ export function orderProblemsOf(events: readonly FlightEvent[]): string[] {
         }
         if (landed.has(ball)) {
           problems.push(`${named} is of fuzzball ${ball}, which has landed.`);
+        }
+        if (
+          dropAt !== null &&
+          event.at > dropAt &&
+          (event.kind !== "land" || !homing.has(ball))
+        ) {
+          problems.push(
+            `${named} comes after the drops, not as a landing on the way home.`,
+          );
+        }
+        if (homing.has(ball) && event.kind !== "land") {
+          problems.push(
+            `${named} is of fuzzball ${ball}, which is dropping home.`,
+          );
+        }
+        if (event.kind === "yawn" || event.kind === "drop") {
+          homing.add(ball);
         }
         if (event.kind === "land") {
           landed.add(ball);
@@ -214,26 +264,36 @@ const NEAR = 1e-9;
  * sentence for each: none for a flight whose fuzzballs fly as its events
  * say.
  *
- * Each fuzzball launched has a track, the tracks listed by ball; it leaves
- * from its launch's place, heading along its first leg, and lands where its
- * landing says, on the floor; its waypoints are joined at a unit a unit,
- * but at a portal, whose two places share a moment; each place between is a
- * turn's, heading along the next leg, a yawn's or a portal's; and the
+ * Each fuzzball launched has a track, the tracks listed by ball, and a mate
+ * or a friend a drop kept from leaving has one with no waypoints; it
+ * leaves from its launch's place, heading along its first leg, and lands
+ * where its landing says, on the floor; its waypoints are joined at a unit a unit, but at a
+ * portal, whose two places share a moment; each place between is a turn's,
+ * heading along the next leg, a yawn's, a drop's or a portal's; and the
  * flight is as long as its last event. A fuzzball that turns again where
  * it stands, at the same moment, as into a corner, turns at one waypoint,
- * and only its last turn there heads along the next leg.
+ * and only its last turn there heads along the next leg; one that yawns or
+ * drops as it launches or turns heads down the next leg instead.
  */
 export function trackProblemsOf(flight: Flight): string[] {
   const problems: string[] = [];
   const launches = flight.events.filter(({ kind }) => kind === "launch");
-  if (launches.length !== flight.tracks.length) {
+  const left = flight.tracks.filter(({ waypoints }) => waypoints.length > 0);
+  if (launches.length !== left.length) {
     problems.push(
-      `The flight tracks ${flight.tracks.length} fuzzballs and launches ${launches.length}.`,
+      `The flight tracks ${left.length} fuzzballs and launches ${launches.length}.`,
     );
   }
+  const dropped = flight.events.some(({ kind }) => kind === "drop");
   for (const [index, track] of flight.tracks.entries()) {
     if (track.ball !== index) {
       problems.push(`Track ${index} is fuzzball ${track.ball}'s.`);
+    }
+    const waiting = track.role === "mate" || track.role === "friend";
+    if (track.waypoints.length === 0 && !(dropped && waiting)) {
+      problems.push(
+        `Track ${index}, a ${track.role}'s, has no waypoints, though no drop kept it from leaving.`,
+      );
     }
     problems.push(...legProblems(track, flight.events));
   }
@@ -257,18 +317,21 @@ export function trackProblemsOf(flight: Flight): string[] {
         }
         problems.push(
           ...placeProblems(named, at, event),
-          ...headingProblems(named, track, at, event),
+          ...(headsOnAt(flight.events, index, event, HOMING)
+            ? []
+            : headingProblems(named, track, at, event)),
         );
         break;
       case "turn":
         problems.push(
           ...placeProblems(named, at, event),
-          ...(turnsAgain(flight.events, index, event)
+          ...(headsOnAt(flight.events, index, event, TURNING)
             ? []
             : headingProblems(named, track, at, event)),
         );
         break;
       case "yawn":
+      case "drop":
         problems.push(...placeProblems(named, at, event));
         break;
       case "land":
@@ -322,6 +385,7 @@ function legProblems(
       ({ kind }) =>
         kind === "turn" ||
         kind === "yawn" ||
+        kind === "drop" ||
         kind === "portal" ||
         kind === "land",
     );
@@ -357,15 +421,31 @@ function placeProblems(
     : [];
 }
 
-/** Returns whether a fuzzball turns again after its turn at an index of a flight's events, at the same moment. */
-function turnsAgain(
+/** The kinds of a fuzzball's event that head it down to the floor. */
+const HOMING: readonly FlightEvent["kind"][] = ["yawn", "drop"];
+
+/** The kinds of a fuzzball's event that head it on another way after a turn at their moment. */
+const TURNING: readonly FlightEvent["kind"][] = ["turn", ...HOMING];
+
+/**
+ * Returns whether a fuzzball has an event of one of some kinds after its
+ * event at an index of a flight's events, at the same moment, which heads it
+ * on another way than that event.
+ */
+function headsOnAt(
   events: readonly FlightEvent[],
   index: number,
   { at, ball }: { readonly at: number; readonly ball: number },
+  kinds: readonly FlightEvent["kind"][],
 ): boolean {
   for (let later = index + 1; events[later]?.at === at; later++) {
     const event = events[later];
-    if (event?.kind === "turn" && event.ball === ball) {
+    if (
+      event !== undefined &&
+      "ball" in event &&
+      event.ball === ball &&
+      kinds.includes(event.kind)
+    ) {
       return true;
     }
   }

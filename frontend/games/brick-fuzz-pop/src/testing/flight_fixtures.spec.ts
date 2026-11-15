@@ -1,6 +1,7 @@
 import { keysOf } from "@fz/core/records";
 import { brickKind } from "../rules/catalog/bricks";
 import type {
+  BallRole,
   BallTrack,
   BreakCause,
   Flight,
@@ -108,6 +109,14 @@ function free(at: number, cell: number): FlightEvent {
 
 function land(at: number, ball = 0): EventOf<"land"> {
   return { at, kind: "land", ball, x: 4.5 };
+}
+
+function yawn(at: number, ball = 0): EventOf<"yawn"> {
+  return { at, kind: "yawn", ball, x: 4.5, y: 4.75 };
+}
+
+function drop(at: number, ball = 0): EventOf<"drop"> {
+  return { at, kind: "drop", ball, x: 4.5, y: 4.75 };
 }
 
 /**
@@ -614,6 +623,96 @@ describe("orderProblemsOf()", () => {
       "Fuzzball 0 never lands.",
     ]);
   });
+
+  it("takes the drops after every other event of their moment, by fuzzball, each followed by its landing where it lands then", () => {
+    const events = [
+      launch(0),
+      turn(1),
+      launch(1, 1),
+      zap(1, 8, []),
+      drop(1),
+      drop(1, 1),
+      land(1, 1),
+      land(2),
+    ];
+
+    expect(orderProblemsOf(events)).toEqual([]);
+  });
+
+  it.each([
+    ["a fuzzball's event", [launch(0), launch(0.5, 1), drop(1), turn(1, 1)]],
+    ["a zap", [launch(0), launch(0.5, 1), drop(1), zap(1, 8, [])]],
+    [
+      "another fuzzball's landing",
+      [launch(0), launch(0.5, 1), drop(1), land(1, 1)],
+    ],
+  ])("finds %s after a drop at its moment", (_, events) => {
+    expect(orderProblemsOf([...events, land(2), land(2, 1)])).toContain(
+      `Event 3, a ${events[3]?.kind} at 1, comes after a drop at its moment.`,
+    );
+  });
+
+  it("finds drops at a moment out of order by fuzzball", () => {
+    const events = [
+      launch(0),
+      launch(0.5, 1),
+      drop(1, 1),
+      drop(1),
+      land(2),
+      land(2, 1),
+    ];
+
+    expect(orderProblemsOf(events)).toEqual([
+      "Event 3, a drop at 1, is out of order by fuzzball among the drops.",
+    ]);
+  });
+
+  it("finds drops at two moments", () => {
+    const events = [
+      launch(0),
+      launch(0.5, 1),
+      drop(1),
+      drop(2, 1),
+      land(3),
+      land(3, 1),
+    ];
+
+    expect(orderProblemsOf(events)).toEqual([
+      "Event 3, a drop at 2, isn't at the moment of the drops before it.",
+    ]);
+  });
+
+  it.each([
+    [
+      "a launch",
+      [launch(0), drop(1), launch(2, 1), land(3), land(3, 1)],
+      "Event 2, a launch at 2,",
+    ],
+    [
+      "a turn of a fuzzball that didn't drop",
+      [launch(0), launch(0.5, 1), drop(1), turn(2, 1), land(3), land(3, 1)],
+      "Event 3, a turn at 2,",
+    ],
+    [
+      "the landing of a fuzzball that didn't drop",
+      [launch(0), launch(0.5, 1), drop(1), land(2), land(3, 1)],
+      "Event 4, a land at 3,",
+    ],
+  ])("finds %s after the drops", (_, events, named) => {
+    expect(orderProblemsOf(events)).toContain(
+      `${named} comes after the drops, not as a landing on the way home.`,
+    );
+  });
+
+  it.each([
+    ["a turn after its drop", [launch(0), drop(1), turn(2), land(3)]],
+    ["a drop after its yawn", [launch(0), yawn(1), drop(2), land(3)]],
+    ["a yawn after its drop", [launch(0), drop(1), yawn(2), land(3)]],
+  ])("finds %s, as only its landing follows", (_, events) => {
+    expect(orderProblemsOf(events)).toContain(
+      `Event 2, a ${events[2]?.kind} at 2, is of fuzzball 0, which is dropping home.`,
+    );
+  });
 });
 
 /** Returns a waypoint. */
@@ -701,6 +800,34 @@ const PORTAL_WAYPOINTS: readonly Waypoint[] = [
   waypoint(8.5, 6.5, 10.75),
   waypoint(19, 6.5, 0.25),
 ];
+
+/**
+ * Returns the flight of a fuzzball straight up and down, dropped on its way
+ * down at 15, as it heads, and of one in a role a drop kept from leaving.
+ */
+function droppedOnItsWayDown(role: BallRole): Flight {
+  return flightOf({
+    events: [
+      launch(0),
+      OFF_THE_CEILING,
+      { at: 15, kind: "drop", ball: 0, x: 4.5, y: 6.25 },
+      land(21),
+    ],
+    tracks: [
+      {
+        ball: 0,
+        role: "player",
+        waypoints: [
+          waypoint(0, 4.5, 0.25),
+          waypoint(10.5, 4.5, 10.75),
+          waypoint(15, 4.5, 6.25),
+          waypoint(21, 4.5, 0.25),
+        ],
+      },
+      { ball: 1, role, waypoints: [] },
+    ],
+  });
+}
 
 describe("trackProblemsOf()", () => {
   it("finds nothing wrong with a fuzzball flown as its events say", () => {
@@ -985,6 +1112,95 @@ describe("trackProblemsOf()", () => {
 
     expect(trackProblemsOf(flight)).toEqual([
       `Event 1, a turn at 10.5, ${problem}`,
+    ]);
+  });
+
+  it("takes a fuzzball dropped where it is, straight down to the floor", () => {
+    const flight = flightOf({
+      events: [
+        launch(0),
+        { at: 5, kind: "drop", ball: 0, x: 4.5, y: 5.25 },
+        land(10),
+      ],
+      waypoints: [
+        waypoint(0, 4.5, 0.25),
+        waypoint(5, 4.5, 5.25),
+        waypoint(10, 4.5, 0.25),
+      ],
+      length: 10,
+    });
+
+    expect(trackProblemsOf(flight)).toEqual([]);
+  });
+
+  it.each<BallRole>(["mate", "friend"])(
+    "takes a track with no waypoints for a %s a drop kept from leaving",
+    (role) => {
+      const flight = droppedOnItsWayDown(role);
+
+      expect(trackProblemsOf(flight)).toEqual([]);
+    },
+  );
+
+  it.each<[string, Flight]>([
+    [
+      "a mate's in a flight with no drop",
+      flightOf({
+        tracks: [
+          { ball: 0, role: "player", waypoints: STRAIGHT_UP },
+          { ball: 1, role: "mate", waypoints: [] },
+        ],
+      }),
+    ],
+    ["a split's in a flight with a drop", droppedOnItsWayDown("split")],
+  ])("finds a track with no waypoints, %s", (_, flight) => {
+    expect(trackProblemsOf(flight)).toEqual([
+      `Track 1, a ${String(flight.tracks[1]?.role)}'s, has no waypoints, though no drop kept it from leaving.`,
+    ]);
+  });
+
+  it("finds an event of a fuzzball whose track has no waypoints", () => {
+    const flight = flightOf({
+      tracks: [{ ball: 0, role: "player", waypoints: [] }],
+      length: 21,
+    });
+
+    expect(trackProblemsOf(flight)).toEqual([
+      "The flight tracks 0 fuzzballs and launches 1.",
+      "Track 0, a player's, has no waypoints, though no drop kept it from leaving.",
+      "Event 0, a launch at 0, isn't where a player's track starts.",
+      "Event 0, a launch at 0, is at no waypoint of its fuzzball's.",
+      "Event 1, a turn at 10.5, is at no waypoint of its fuzzball's.",
+      "Event 2, a land at 21, isn't where its track ends.",
+      "Event 2, a land at 21, is at no waypoint of its fuzzball's.",
+    ]);
+  });
+
+  it.each([
+    ["turns", { ...OFF_THE_CEILING, dx: 0.6, dy: -0.8 }],
+    ["launches", { ...launch(10.5), y: 10.75 }],
+  ])(
+    "takes a fuzzball that %s and drops at once, heading down the next leg",
+    (_, event) => {
+      const flight = flightOf({
+        events: [
+          ...(event.kind === "launch" ? [] : [launch(0)]),
+          event,
+          { at: 10.5, kind: "drop", ball: 0, x: 4.5, y: 10.75 },
+          land(21),
+        ],
+        waypoints: event.kind === "launch" ? STRAIGHT_UP.slice(1) : STRAIGHT_UP,
+      });
+
+      expect(trackProblemsOf(flight)).toEqual([]);
+    },
+  );
+
+  it("finds a drop at no waypoint", () => {
+    const flight = flightOf({ events: [...UP_AND_DOWN, drop(5)] });
+
+    expect(trackProblemsOf(flight)).toEqual([
+      "Event 3, a drop at 5, is at no waypoint of its fuzzball's.",
     ]);
   });
 

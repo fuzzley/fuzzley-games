@@ -677,6 +677,9 @@ const TURN_LEFT: FlightEvent = {
 /** The player's fuzzball yawning, which drops it to the floor. */
 const YAWN: FlightEvent = { kind: "yawn", at: 2, ball: 0, x: 4, y: 4 };
 
+/** The player's fuzzball brought down by a drop. */
+const DROP: FlightEvent = { kind: "drop", at: 2, ball: 0, x: 4, y: 4 };
+
 /** The player's fuzzball striking the plain round's tough brick, at wall cell 8. */
 const STRIKE_8: FlightEvent = {
   kind: "strike",
@@ -2956,6 +2959,24 @@ describe("WallScene", () => {
       expect({ turned, yawned: { x: eyes?.x, y: eyes?.y } }).toEqual({
         turned: place.x - FUZZBALL_LOOK.across * GRID,
         yawned: { x: place.x, y: place.y + FUZZBALL_LOOK.down * GRID },
+      });
+    });
+
+    it("turn a fuzzball's eyes down as a drop brings it down", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.round = { ...each.round, balls: [ballAt(0, 4, 4)] };
+      });
+      const place = toCanvas(metricsAt(), 4, 4);
+      shell.reach([TURN_LEFT, []]);
+      run.advance(16);
+
+      shell.reach([DROP, []]);
+      run.advance(16);
+
+      const eyes = scene.balls.eyes[0];
+      expect({ x: eyes?.x, y: eyes?.y }).toEqual({
+        x: place.x,
+        y: place.y + FUZZBALL_LOOK.down * GRID,
       });
     });
 

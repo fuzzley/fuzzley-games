@@ -131,6 +131,13 @@ export type FlightEvent = At &
         readonly y: number;
       }
     | {
+        /** A fuzzball in the air as the round is dropped stops, its middle at a place, and drops to the floor. */
+        readonly kind: "drop";
+        readonly ball: number;
+        readonly x: number;
+        readonly y: number;
+      }
+    | {
         /** A fuzzball lands on the floor, where it waits if it is the player's. */
         readonly kind: "land";
         readonly ball: number;
@@ -148,7 +155,8 @@ export interface Waypoint {
 /**
  * Describes a fuzzball's path: where it left, each place it turned and where
  * it landed, in order of `at`, joined by straight lines flown at a unit a
- * unit of `at`. A portal's two places share a moment.
+ * unit of `at`. A portal's two places share a moment. A fuzzball a drop kept
+ * from leaving has none.
  */
 export interface BallTrack {
   readonly ball: number;
@@ -159,22 +167,25 @@ export interface BallTrack {
 /** Describes everything that happens in a round once its shot is released. */
 export interface Flight {
   /**
-   * In order of `at`. At one moment, events with a ball go by ball, then by
-   * the kinds' order above; a break, zap or free goes right after the
-   * strike or zap that caused it, those of one cause by cell.
+   * In order of `at`. At one moment, events with a ball go first, by ball,
+   * then by the kinds' order above, and the zaps after them, by cell; a
+   * break, zap or free goes right after the strike or zap that caused it,
+   * those of one cause by cell. The drops go last, after every other event
+   * of their moment, by ball, each followed by its fuzzball's landing where
+   * it is on the floor already, as one just launched is.
    */
   readonly events: readonly FlightEvent[];
   /** Each fuzzball's path, by ball. */
   readonly tracks: readonly BallTrack[];
   /** The last event's `at`: the last landing's, or a zap's that lands after it, so no event comes later. */
   readonly length: number;
-  /** How many fuzzballs the cap of `MOST_FLIGHT` or the still turns brought home, not boredom: 0 in play. */
+  /** How many fuzzballs the cap of `MOST_FLIGHT` or the still turns brought home, not boredom or a drop: 0 in play. */
   readonly capped: number;
 }
 
 /**
- * Returns where a fuzzball is at a moment, or null before it leaves or after
- * it lands.
+ * Returns where a fuzzball is at a moment, or null before it leaves, after
+ * it lands, or ever for one that never left.
  *
  * At a moment two of its waypoints share, as a portal's, it is at the
  * later, where it flies on from.

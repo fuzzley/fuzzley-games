@@ -380,7 +380,9 @@ export class WallScene extends Scene {
         this.balls.head(event.ball, event.dx, event.dy);
         break;
       case "yawn":
-        // A bored fuzzball drops to the floor from where it is.
+      case "drop":
+        // A bored fuzzball, or one a drop brings down, drops to the floor
+        // from where it is.
         this.balls.head(event.ball, 0, -1);
         break;
       default:

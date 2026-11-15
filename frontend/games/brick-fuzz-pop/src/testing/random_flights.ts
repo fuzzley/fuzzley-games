@@ -110,7 +110,8 @@ const NEAR = 1e-9;
  * It checks each leg of each track against the bricks in play the flight
  * left standing, which stood all through it: no nearer a box than a
  * fuzzball's radius, nor a disc's middle than its reach. It leaves out a
- * fuzzball's drop home, which passes through what lies under it.
+ * fuzzball's drop home, yawned or dropped, which passes through what lies
+ * under it.
  */
 export function clearanceProblemsOf(
   flight: Flight,
@@ -141,7 +142,8 @@ export function clearanceProblemsOf(
   const problems: string[] = [];
   for (const { ball, waypoints } of flight.tracks) {
     const yawned = flight.events.find(
-      (event) => event.kind === "yawn" && event.ball === ball,
+      (event) =>
+        (event.kind === "yawn" || event.kind === "drop") && event.ball === ball,
     )?.at;
     for (const [index, to] of waypoints.entries()) {
       const from = waypoints[index - 1];

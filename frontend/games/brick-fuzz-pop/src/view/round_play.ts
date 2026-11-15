@@ -482,6 +482,7 @@ export class RoundPlay {
       case "portal":
       case "split":
       case "yawn":
+      case "drop":
         return;
     }
   }

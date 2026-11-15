@@ -70,7 +70,7 @@ export class BallPainter implements Painter {
   readonly bodies: readonly GameObjects.Image[];
   /** Each body's eyes, over it. */
   readonly eyes: readonly GameObjects.Image[];
-  /** The way each fuzzball looks, by its number in the round, as its launch, its turns and a yawn set it. */
+  /** The way each fuzzball looks, by its number in the round, as its launch, its turns and a yawn or a drop set it. */
   private readonly looks: Look[] = [];
   /** The ink each friend flies in, by its number in the round. */
   private readonly inks: number[] = [];
