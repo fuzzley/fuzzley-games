@@ -265,8 +265,9 @@ A check in `pure` runs there too, two or three times slower under
 `yarn test:coverage`, so one that long is split into seeded batches, as the
 random walls of `src/rules/flight/flight.spec.ts` and
 `src/rules/flight/cast.spec.ts` are, each well inside Vitest's 5 s; only a
-search no batch can split, as `src/testing/solver.spec.ts`'s on `THICK`,
-hands its hook `SIM_TIMEOUT_MS`.
+search no batch can split, as `src/testing/solver.spec.ts`'s on `THICK`
+and on a level no shot takes a hit off, hands its hook or its test
+`SIM_TIMEOUT_MS`.
 
 ## The View
 

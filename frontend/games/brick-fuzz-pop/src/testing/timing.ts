@@ -1,7 +1,7 @@
 // What the slow specs share: how long a test may take, and how a list of
 // times reads.
 
-/** How long, in milliseconds, a `sim` test that can run past half a second alone, or a `pure` search no batch can split, may take: the root runs four workspaces' tests at once, where 2 s alone has passed Vitest's 5 s, and `yarn test:coverage` slows `pure` two or three times over. */
+/** How long, in milliseconds, a `sim` test that can run past half a second alone, or a `pure` search no batch can split, may take: the root runs four workspaces' tests at once, where 2 s alone has passed Vitest's 5 s, `yarn test:coverage` slows `pure` two or three times over, and lint, typecheck and the builds may run beside them. */
 export const SIM_TIMEOUT_MS = 60_000;
 
 /** Returns a share's value of numbers sorted from the least, as the nearest below. */
