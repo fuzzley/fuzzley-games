@@ -14,13 +14,12 @@ import { type Field, stepField } from "../field/field";
 import { guardShip } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
-  FIRST_SHIP_POINTS,
+  MAX_SHIPS,
   PICKUP_PULL_SPEED,
   STEP_S,
   STRAY_CATCH_REACH,
   STRAY_FIRST_MS,
   STRAY_NEXT_MS,
-  STRAY_POINTS,
   STRAY_RADIUS,
   STRAY_SPEED,
   STRAY_TILT,
@@ -382,9 +381,9 @@ describe("a stray adrift", () => {
     expect(stray.live).toBe(live);
   });
 
-  it("waits at home once brought home, behind those home before it, counted and logged", () => {
+  it("flies one more ship once brought home, counted and logged", () => {
     const field = fieldFrom(PICTURE, {
-      crew: { flying: [0, 1], home: [6], lastGiven: 6 },
+      crew: { flying: [0, 1], home: [], lastGiven: 6 },
     });
     placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
 
@@ -392,48 +391,36 @@ describe("a stray adrift", () => {
 
     const logged = loggedOn(field).find((each) => each.kind === "home");
     expect([
-      field.crew.home,
+      field.crew.flying,
       field.strays.broughtHome,
       field.strays.nextAt,
       logged?.kind,
       logged?.pilot,
       logged?.x,
       logged?.y,
-      logged?.waiting,
+      logged?.ships,
     ]).toEqual([
-      [6, 5],
+      [0, 1, 5],
       1,
       field.steps + stepsIn(STRAY_NEXT_MS),
       "home",
       5,
       expect.closeTo(SHIP_X),
       expect.closeTo(SHIP_Y + STRAY_STEP),
-      2,
+      3,
     ]);
   });
 
-  it("is logged waiting at home, though the ship its points bring takes it at once", () => {
+  it("waits at home once brought home with the most ships flying, behind those home before it, logged so", () => {
     const field = fieldFrom(PICTURE, {
-      crew: { flying: [0, 1], home: [], lastGiven: 6 },
-      banked: FIRST_SHIP_POINTS - STRAY_POINTS,
+      crew: { flying: [0, 1, 2, 3, 4, 6], home: [7], lastGiven: 7 },
     });
     placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
 
     stepField(field);
 
-    expect(
-      loggedOn(field)
-        .filter((each) => each.kind === "home" || each.kind === "gained")
-        .map(({ kind, waiting, ships, fromHome }) => ({
-          kind,
-          waiting,
-          ships,
-          fromHome,
-        })),
-    ).toEqual([
-      { kind: "home", waiting: 1, ships: 2, fromHome: false },
-      { kind: "gained", waiting: 0, ships: 3, fromHome: true },
-    ]);
+    const logged = loggedOn(field).find((each) => each.kind === "home");
+    expect([field.crew.home, logged?.ships]).toEqual([[7, 5], MAX_SHIPS]);
   });
 
   it("is brought home by a guarded ship", () => {

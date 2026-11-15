@@ -4,6 +4,7 @@ import { installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
+import { createRun } from "../../rules/run/run";
 import { STILL } from "../../rules/ship/ship";
 import { WAVES, type WaveEntry } from "../../rules/waves/waves";
 import {
@@ -11,8 +12,6 @@ import {
   SECTOR_WAVES,
   SPACE,
   SPEC_WAVE,
-  STRAY_WAVES,
-  bringStraysHome,
   clearIn,
   clearToNext,
   endIn,
@@ -184,10 +183,28 @@ describe("BoardCardComponent", () => {
   });
 
   it("draws the strays waiting at home on a paused wave, and says how many", async () => {
-    const { game, detectChanges } = await renderCard(ROOMY, STRAY_WAVES);
-    bringStraysHome(game, 2);
+    const { game, detectChanges } = await renderCard();
+    const run = createRun({
+      id: game.run().id + 1,
+      seed: 1,
+      speed: "normal",
+      wave: SPEC_WAVE.pebble,
+    });
+    const crew = { flying: [0, 1, 2, 3, 4, 5], home: [6, 7], lastGiven: 7 };
 
-    game.pause();
+    game.takeUp({
+      run: {
+        ...run,
+        wave: SPEC_WAVE.gift,
+        crew,
+        straysBanked: 5,
+        strays: 5,
+        outcome: "paused",
+      },
+      field: null,
+      broughtHome: [3, 4, 5, 6, 7],
+      tuned: false,
+    });
     detectChanges();
 
     const home = screen.getByText("2 fuzzballs waiting at home");

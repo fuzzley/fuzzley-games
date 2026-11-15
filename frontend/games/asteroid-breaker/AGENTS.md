@@ -110,9 +110,8 @@ takes for the specs' helpers.
   touching the field.
   `scoring.ts` scores each break by its kind and size, times the chain's
   multiplier (`@fz/core/math`'s `multiplierAt()` over `CHAIN`), a stray
-  brought home and a wave's clearing, gains the crew a ship as the points
-  pass each mark (`gainShipsByPoints()`), and says how a cleared wave's
-  points add up (`tallyOf()`), each part counted as it scores.
+  brought home and a wave's clearing, and says how a cleared wave's points
+  add up (`tallyOf()`), each part counted as it scores.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read. `kept_field.ts` is
@@ -125,9 +124,8 @@ takes for the specs' helpers.
   `fitsItsRun()`); and `layOutKeptField()` lays the wave out afresh at the
   size it was laid out at and stretches it to the size it was kept at, its
   rocks and counts as kept, its points and strays brought home as its run
-  has scored them, a field kept before the rocks' points were counted
-  having them worked out from the run's (`rockPointsKept()`), and its ship
-  brought as the next in line is (`field.ts`'s `bringShip()`).
+  has scored them, and its ship brought as the next in line is
+  (`field.ts`'s `bringShip()`).
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
@@ -135,8 +133,9 @@ takes for the specs' helpers.
   fires the weapon in hand from the ship's nose and sweeps each shot as a
   segment against circles (`sweepShot()`), so however fast it flies it
   can't pass through a rock between two steps. `pilots.ts` keeps the
-  `Crew`, who flies the run's ships, who waits at home to fly the next and
-  the color each new pilot is given, the next in turn that no pilot wears
+  `Crew`, who flies the run's ships, a stray brought home flying one more
+  at once (`bringHome()`), or waiting at home with the most flying, and the
+  color each new pilot is given, the next in turn that no pilot wears
   (`nextPilot()`).
 - **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
   the rocks in slots made once, as many as the field's cap (`addRock()`),
@@ -163,8 +162,8 @@ takes for the specs' helpers.
   with its middle on it (`reaches()`).
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, from the wave it started at to its end: the wave in play, the
-  points banked and the score, the crew, the next ship's mark, the strays
-  brought home and the outcome. Every wave waits, `"ready"`, until the
+  points banked and the score, the crew, the strays brought home and the
+  outcome. Every wave waits, `"ready"`, until the
   player's first move starts it (`startWave()`), and a wave cleared goes on
   to the next, waiting so (`nextWave()`). No run is won: Endless goes on
   until the ships run out. `catchUp()` takes what the wave's field has come
@@ -173,14 +172,12 @@ takes for the specs' helpers.
   of its own, in `@fz/core/random`'s `mixSeed()`'s `"field"` stream;
   `wavesCleared()` counts the waves a run has cleared,
   `hasClearedAWave()` says whether it has cleared any, and
-  `hasClearedAll()` whether it cleared every written one from the first;
-  and `nextShipAfter()` gives the mark the next ship comes at, its marks
-  through `@fz/core/math`'s `nextMarkAfter()`. A move
-  that doesn't fit where the run stands returns it as it is, and so does a
+  `hasClearedAll()` whether it cleared every written one from the first. A
+  move that doesn't fit where the run stands returns it as it is, and so does a
   field with nothing new, so the shell can tell a frame that changed the
   run. `describe.ts` puts what happened into the words the announcer says: a
   wave's start and its rocks, a stray drifting in or brought home, a ship
-  gained or lost, a pickup caught, a clearing, a pause, going on, a run taken
+  lost, a pickup caught, a clearing, a pause, going on, a run taken
   up and the end; and `whereLost()` says where an ended run was lost. The
   announcer, the bar, the cards, the result, the sectors and How to play
   all write points grouped in thousands, "4,250", with `@fz/core/format`'s
@@ -812,8 +809,8 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every run and sector opened, with what is new there, wave
-  begun, stray drifting in or brought home, ship gained or lost, pickup
-  caught, pause, going on, wave cleared, with the wave to come, and end is
+  begun, stray drifting in or brought home, ship lost, pickup caught,
+  pause, going on, wave cleared, with the wave to come, and end is
   announced.
 
 ## Development Commands

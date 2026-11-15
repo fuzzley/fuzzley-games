@@ -34,7 +34,6 @@ import {
 import { speedOf } from "../../testing/field_picture";
 import {
   CHAIN_WAVES,
-  GAINED_WAVES,
   SECTOR_WAVES,
   SPEC_RANDOM,
   SPEC_WAVE,
@@ -50,7 +49,6 @@ import {
   pressOn,
   provideSpecWaves,
   shoot,
-  toPickup,
 } from "../../testing/play";
 import type { Feel } from "../../view/debug_tuning";
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
@@ -263,27 +261,10 @@ describe("GameService", () => {
       expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [] });
     });
 
-    it("keeps a stray brought home at home, in the next color, waiting to fly", () => {
+    it("flies a stray brought home at once, in the next color, keeping it among those brought home", () => {
       const game = gameOver(STRAY_WAVES);
 
       bringStraysHome(game, 1);
-
-      expect(game.crew()).toMatchObject({ flying: [0, 1, 2], home: [3] });
-    });
-
-    it("keeps the pilots of the strays the run brings home, in the order they came", () => {
-      const game = gameOver(STRAY_WAVES);
-
-      bringStraysHome(game, 2);
-
-      expect(game.broughtHome()).toEqual([3, 4]);
-    });
-
-    it("keeps a stray among those brought home once it flies a ship gained", () => {
-      const game = gameOver(GAINED_WAVES);
-      bringStraysHome(game, 1);
-
-      playUntil(game, toPickup, () => game.crew().home.length === 0);
 
       expect({
         crew: game.crew(),
@@ -292,6 +273,14 @@ describe("GameService", () => {
         crew: { flying: [0, 1, 2, 3], home: [] },
         broughtHome: [3],
       });
+    });
+
+    it("keeps the pilots of the strays the run brings home, in the order they came", () => {
+      const game = gameOver(STRAY_WAVES);
+
+      bringStraysHome(game, 2);
+
+      expect(game.broughtHome()).toEqual([3, 4]);
     });
 
     it("starts a new run with no strays brought home", () => {

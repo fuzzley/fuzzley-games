@@ -33,7 +33,7 @@ import {
   stepPickups,
 } from "../rocks/pickups";
 import { type Crew, atControls, bailOut } from "../ship/pilots";
-import { endChain, gainShipsByPoints, scoreClearing } from "./scoring";
+import { endChain, scoreClearing } from "./scoring";
 import {
   type Rock,
   type RockField,
@@ -83,8 +83,7 @@ import type { Wave } from "../waves/waves";
 /**
  * Says how a wave is played: its field's size and cap, the seed its draws
  * come from, its pace, the kind of rock it names, the pickups it lets go,
- * what it sends across the field, and the crew, the points banked and the
- * next ship's mark it starts with.
+ * what it sends across the field, and the crew it starts with.
  */
 export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly torus: Torus;
@@ -97,17 +96,10 @@ export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly waveKind: RockKindId;
   /** The run's crew as the wave starts. */
   readonly crew: Crew;
-  /** The run's points as the wave starts, which the wave's add to. */
-  readonly banked: number;
-  /** The score the run's next ship comes at, as the wave starts. */
-  readonly nextShipAt: number;
 }
 
 /** Describes what the field of a run's wave takes from the run as it starts. */
-export type WaveStart = Pick<
-  FieldSetup,
-  "seed" | "crew" | "banked" | "nextShipAt"
->;
+export type WaveStart = Pick<FieldSetup, "seed" | "crew">;
 
 /**
  * Says how a wave's field is set up beyond what the wave says: what the
@@ -166,13 +158,11 @@ export interface Field extends RockField {
   pullReach: number;
   /**
    * Who flies the run's ships and who waits at home, which the wave changes
-   * as it loses and gains ships and brings strays home, for the run to take.
+   * as it loses ships and brings strays home, for the run to take.
    */
   crew: Crew;
   /** How many ships it has lost. */
   shipsLost: number;
-  /** The score the run's next ship comes at, which the wave's points move on. */
-  nextShipAt: number;
   readonly strays: Strays;
   readonly comets: Comets;
   /** Whether every rock it held is gone, after which everything stands still. */
@@ -189,7 +179,7 @@ export interface Field extends RockField {
  * and rocks' speed say, its rocks laid out fairly for theirs.
  */
 export function fieldFor(wave: Wave, setup: WaveSetup): Field {
-  const { torus, seed, crew, banked, nextShipAt } = setup;
+  const { torus, seed, crew } = setup;
   const fill = fillFor(wave, torus);
   const { motion, drops, cometRate } = SPEED_INFO[setup.speed];
   const every = fill.cometEvery;
@@ -198,8 +188,6 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       torus,
       seed,
       crew,
-      banked,
-      nextShipAt,
       cap: fill.cap,
       pace: wave.pace * motion,
       waveKind: wave.waveKind,
@@ -262,7 +250,6 @@ export function createField(
     lastBreakAt: 0,
     chainPoints: 0,
     rockPoints: 0,
-    nextShipAt: setup.nextShipAt,
     strays: createStrays(setup.strayFirstMs),
     comets: createComets(),
     cleared: false,
@@ -290,10 +277,8 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
  * second later by the next in line, waiting where it is safest.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
- * the shot's, for its points; the ships the step's points bring come
- * before the ship is tested, as well as after, so one they bring is the
- * run's before a rock can take the last; and the next ship comes as its
- * step starts, so a drawn rock is pulled toward it from that step.
+ * the shot's, for its points; and the next ship comes as its step starts,
+ * so a drawn rock is pulled toward it from that step.
  */
 export function stepField(field: Field): void {
   if (field.cleared || holdStill(field)) return;
@@ -318,12 +303,10 @@ export function stepField(field: Field): void {
     }
   }
   stepComets(field);
-  gainShipsByPoints(field);
   if (ship) meetDangers(field, ship);
   stepPickups(field);
   stepStrays(field);
   if (rocksLeft(field) === 0) clear(field);
-  gainShipsByPoints(field);
 }
 
 /**

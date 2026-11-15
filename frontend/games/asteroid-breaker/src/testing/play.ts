@@ -70,24 +70,15 @@ export const STRAY_WAVES: readonly WaveEntry[] = wavesOf([
 ]);
 
 /**
- * A wave of a crystal, which lets an Extra ship go as it breaks, and a
- * stray, for a spec of a stray brought home that flies the ship gained.
+ * A wave of one small stone and one stray, for a spec that brings it home
+ * and plays on with no other to come.
  */
-export const GAINED_WAVES: readonly WaveEntry[] = wavesOf([
+export const ONE_STRAY_WAVES: readonly WaveEntry[] = wavesOf([
   {
-    id: "gained",
-    name: "Gained",
-    drops: 1,
-    waves: [
-      {
-        id: "gained",
-        name: "Gained",
-        rocks: [{ kind: "crystal", size: "medium", count: 1 }],
-        drops: 1,
-        pickups: ["ship"],
-        strays: 1,
-      },
-    ],
+    id: "stray",
+    name: "Stray",
+    drops: 0,
+    waves: [{ ...pebbleOf("stray", "Stray"), strays: 1 }],
   },
 ]);
 
@@ -220,9 +211,9 @@ export function endRun(game: GameService): void {
   playUntil(game, ram, game.ended);
 }
 
-/** Flies the ship to the wave in play's strays until as many as asked wait at home. */
+/** Flies the ship to the wave in play's strays until it has brought as many home as asked. */
 export function bringStraysHome(game: GameService, count: number): void {
-  playUntil(game, toStray, () => game.crew().home.length >= count);
+  playUntil(game, toStray, () => game.run().strays >= count);
 }
 
 /** Shoots at the wave in play's rocks until a chain makes a break score more than once. */

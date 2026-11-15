@@ -235,7 +235,6 @@ function pickupArt(
     ...SYMBOLS[id](
       { x: -side / 2, y: -side / 2, width: side, height: side },
       { color: palette.onAccent, width: lineWidth(scale) },
-      palette.accent,
     ),
   ]);
 }
@@ -248,7 +247,6 @@ function tagArt(id: PickupId, palette: BeltPalette, scale: ArtScale): ArtFrame {
     SYMBOLS[id](
       { x: -side / 2, y: -side / 2, width: side, height: side },
       { color: palette.accent, width: lineWidth(scale) },
-      palette.field,
     ),
   );
 }

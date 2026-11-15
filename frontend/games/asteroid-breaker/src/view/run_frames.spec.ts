@@ -5,13 +5,7 @@ import { type Run, createRun, pause, startWave } from "../rules/run/run";
 import type { Crew } from "../rules/ship/pilots";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS, stepsIn } from "../rules/stepper";
-import {
-  CHAIN_MS,
-  CLEAN_POINTS,
-  CLEAR_POINTS,
-  FIRST_SHIP_POINTS,
-  SHIP_LENGTH,
-} from "../rules/tuning";
+import { CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../rules/tuning";
 import { type WaveData, wavesOf } from "../rules/waves/waves";
 import {
   KEEPER,
@@ -53,9 +47,6 @@ const OPEN: readonly string[] = [...KEEPER, "", "", "", "....^"];
 
 /** A ship beside a boulder, which takes it at once. */
 const CRASH: readonly string[] = ["^B"];
-
-/** A ship above a boulder, which takes it at once, its nose turned away from it. */
-const ABOVE_A_BOULDER: readonly string[] = ["", "", "^", "B"];
 
 /** A ship alone, its wave cleared once a rock laid on it goes. */
 const ALONE: readonly string[] = ["^"];
@@ -109,13 +100,9 @@ function runAt(wave: number): Run {
   return createRun({ id: 1, seed: 7, speed: "normal", wave });
 }
 
-/** Returns a run's wave in play over a pictured field, which takes the run's crew and points. */
+/** Returns a run's wave in play over a pictured field, which takes the run's crew. */
 function gameOf(run: Run, rows: readonly string[]): Game {
-  const field = fieldFrom(rows, {
-    crew: run.crew,
-    banked: run.banked,
-    nextShipAt: run.nextShipAt,
-  });
+  const field = fieldFrom(rows, { crew: run.crew });
   return {
     run,
     play: new WavePlay(field, run.seed),
@@ -183,23 +170,6 @@ function playToLoss(game: Game): FrameChange {
     if (game.run.crew.flying.length < ships) return change;
   }
   throw new Error("The run never lost a ship.");
-}
-
-/**
- * Lays a small stone at the nose of a game's ship, which a shot fired breaks
- * in the step it is fired, before a rock can take the ship.
- */
-function stoneOnTheNose(game: Game): void {
-  const ship = shipOf(game.play.field);
-  placeRock(game.play.field, "small", ship.x, ship.y - SHIP_LENGTH / 2);
-}
-
-/** Returns a run at its first wave whose points are a small stone short of the next ship. */
-function aStoneShort(): Run {
-  return {
-    ...runAt(1),
-    banked: FIRST_SHIP_POINTS - pointsFor("stone", "small"),
-  };
 }
 
 /** Returns the run's first wave cleared, as the frame that cleared it left it. */
@@ -333,7 +303,7 @@ describe("RunFrames", () => {
       }).toEqual({
         cameHome: [5],
         strays: 1,
-        said: ["Brought home: 1 waiting."],
+        said: ["Brought home. 4 ships."],
       });
     });
 
@@ -565,23 +535,12 @@ describe("RunFrames", () => {
       expect(buzz).toBe(LOST_BUZZ);
     });
 
-    it("buzzes for a ship lost in the step a shot gains the crew another", () => {
-      const game = underWay(ABOVE_A_BOULDER, startWave(aStoneShort()));
-      stoneOnTheNose(game);
+    it("buzzes nothing as a stray brought home flies one more ship", () => {
+      const game = underWay(OPEN);
+      const ship = shipOf(game.play.field);
+      placeStray(game.play.field, ship.x, ship.y, Math.PI / 2, 5);
 
-      const { buzz } = tick(game, FIRE);
-
-      expect({ ships: game.run.crew.flying.length, buzz }).toEqual({
-        ships: 3,
-        buzz: LOST_BUZZ,
-      });
-    });
-
-    it("buzzes nothing as a shot gains the crew a ship", () => {
-      const game = underWay(OPEN, startWave(aStoneShort()));
-      stoneOnTheNose(game);
-
-      const { buzz } = tick(game, FIRE);
+      const { buzz } = tick(game);
 
       expect({ ships: game.run.crew.flying.length, buzz }).toEqual({
         ships: 4,

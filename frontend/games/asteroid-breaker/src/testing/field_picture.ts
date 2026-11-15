@@ -11,7 +11,6 @@ import { STILL, type Ship, createShip } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
 import {
-  FIRST_SHIP_POINTS,
   PICKUPS_AT_ONCE,
   PICKUP_LIFE_MS,
   ROCK_CAP,
@@ -60,10 +59,6 @@ export interface PictureOptions {
   readonly cometEvery?: Span | null;
   /** The crew it starts with, a run's first by default. */
   readonly crew?: Crew;
-  /** The run's points as it starts, none by default. */
-  readonly banked?: number;
-  /** The score the run's next ship comes at, its first's by default. */
-  readonly nextShipAt?: number;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -117,8 +112,6 @@ export function fieldFrom(
     strayFirstMs: options.strayFirstMs ?? STRAY_FIRST_MS,
     cometEvery: options.cometEvery ?? null,
     crew: options.crew ?? createCrew(),
-    banked: options.banked ?? 0,
-    nextShipAt: options.nextShipAt ?? FIRST_SHIP_POINTS,
   });
   field.ship = null;
   rows.forEach((row, down) => {

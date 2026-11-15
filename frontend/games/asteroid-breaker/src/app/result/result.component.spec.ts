@@ -7,7 +7,7 @@ import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
-  GAINED_WAVES,
+  ONE_STRAY_WAVES,
   SECTOR_WAVES,
   SPEC_WAVE,
   STRAY_WAVES,
@@ -15,7 +15,6 @@ import {
   clearToNext,
   endRun,
   provideSpecWaves,
-  toPickup,
 } from "../../testing/play";
 import { runRecords } from "../../testing/records";
 import { GameService } from "../play/game.service";
@@ -149,13 +148,14 @@ describe("ResultComponent", () => {
     }).toEqual({ best: "90,000", newBest: null, trophy: null });
   });
 
+  // As many strays as it brings home, so ending the run catches no more.
   it.each([
-    [1, "1 fuzzball brought home", [3]],
-    [2, "2 fuzzballs brought home", [3, 4]],
+    [1, ONE_STRAY_WAVES, "1 fuzzball brought home", [3]],
+    [2, STRAY_WAVES, "2 fuzzballs brought home", [3, 4]],
   ])(
     "draws the %i fuzzballs the run brought home, each in its color, and says how many",
-    async (strays, words, colors) => {
-      const rendered = await renderAt(1, STRAY_WAVES);
+    async (strays, waves, words, colors) => {
+      const rendered = await renderAt(1, waves);
       bringStraysHome(rendered.game, strays);
 
       endAndOpen(rendered);
@@ -169,20 +169,6 @@ describe("ResultComponent", () => {
       }).toEqual({ words, pilots: colors.map(inkOf) });
     },
   );
-
-  it("draws a fuzzball brought home that went on to fly a ship gained", async () => {
-    const rendered = await renderAt(1, GAINED_WAVES);
-    bringStraysHome(rendered.game, 1);
-    playUntil(
-      rendered.game,
-      toPickup,
-      () => rendered.game.crew().home.length === 0,
-    );
-
-    endAndOpen(rendered);
-
-    expect(pilotsIn(screen.getByRole("alertdialog"))).toEqual([inkOf(3)]);
-  });
 
   it("stays open through a click on the board around it", async () => {
     const { user, game } = await renderLost();

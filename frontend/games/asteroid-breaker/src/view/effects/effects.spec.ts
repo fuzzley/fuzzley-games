@@ -36,9 +36,7 @@ function eventOf(
     size,
     pickup: null,
     pilot: null,
-    fromHome: false,
     ships: 0,
-    waiting: 0,
     points: 0,
     times: 0,
     reach: 0,
@@ -70,7 +68,6 @@ const EVENTS: readonly (readonly [
   ["lost", "lost", ["burst", "ring", "shake", "bailout"], []],
   ["strayed", null, [], []],
   ["home", "home", [], []],
-  ["gained", "gained", [], []],
   ["scored", null, ["points"], ["points"]],
 ];
 
@@ -245,9 +242,14 @@ describe("createFrameSounds", () => {
     expect(played).toEqual(SOUNDS);
   });
 
-  it("names the thrust's hum among the sprite's sounds, which no event plays", () => {
+  // A ship gained's stays in the sprite, which the sound's own build makes
+  // again, though no rule gains a ship.
+  it("names the thrust's hum and a ship gained's among the sprite's sounds, which no event plays", () => {
     const played = ALL_EFFECTS.map(([, effects]) => effects.sound);
 
-    expect(SOUNDS.filter((name) => !played.includes(name))).toEqual([THRUST]);
+    expect(SOUNDS.filter((name) => !played.includes(name))).toEqual([
+      "gained",
+      THRUST,
+    ]);
   });
 });

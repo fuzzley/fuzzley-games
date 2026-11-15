@@ -28,9 +28,7 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     size: null,
     pickup: null,
     pilot: null,
-    fromHome: false,
     ships: 0,
-    waiting: 0,
     points: 0,
     times: 0,
     reach: 0,
@@ -136,48 +134,13 @@ describe("FieldEventLog", () => {
     ]);
   });
 
-  it("records a pickup caught with its pickup and the crew's ships and those waiting", () => {
-    const log = new FieldEventLog();
-
-    log.addCaught(1, 2, "lance", CREW);
-
-    expect(eventsSince(log, 0)).toEqual([
-      eventOf({
-        kind: "caught",
-        x: 1,
-        y: 2,
-        pickup: "lance",
-        ships: 2,
-        waiting: 1,
-      }),
-    ]);
-  });
-
-  it("records a pilot's event with its pilot and the crew's ships and those waiting", () => {
+  it("records a pilot's event with its pilot and the crew's ships", () => {
     const log = new FieldEventLog();
 
     log.addPilot("lost", 1, 2, 4, CREW);
 
     expect(eventsSince(log, 0)).toEqual([
-      eventOf({ kind: "lost", x: 1, y: 2, pilot: 4, ships: 2, waiting: 1 }),
-    ]);
-  });
-
-  it("records a ship gained with its pilot, whether it was brought home, and the crew's counts", () => {
-    const log = new FieldEventLog();
-
-    log.addGained(1, 2, 5, true, CREW);
-
-    expect(eventsSince(log, 0)).toEqual([
-      eventOf({
-        kind: "gained",
-        x: 1,
-        y: 2,
-        pilot: 5,
-        fromHome: true,
-        ships: 2,
-        waiting: 1,
-      }),
+      eventOf({ kind: "lost", x: 1, y: 2, pilot: 4, ships: 2 }),
     ]);
   });
 
@@ -228,13 +191,13 @@ describe("FieldEventLog", () => {
 
   it("leaves nothing of an older event in a record the ring comes round to", () => {
     // The five records it comes round to held a blast, a pickup's event, a
-    // ship gained, points and a break, each with what it alone records; the
+    // pilot's, points and a break, each with what it alone records; the
     // blast's is taken by a pickup's event, which writes no reach, and the
     // rest by warnings, which write no pickup.
     const log = new FieldEventLog();
     log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
     log.addPickup("dropped", 3, 4, "spread");
-    log.addGained(3, 4, 7, true, {
+    log.addPilot("home", 3, 4, 7, {
       flying: [0, 1, 2],
       home: [5, 6],
       lastGiven: 7,

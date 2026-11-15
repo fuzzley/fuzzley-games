@@ -149,7 +149,6 @@ const EVENT_EFFECTS: Readonly<
   lost: moving("lost", ["burst", "ring", "shake", "bailout"]),
   strayed: QUIET,
   home: moving("home"),
-  gained: moving("gained"),
   scored: { flourishes: ["points"], still: ["points"], sound: null },
 };
 

@@ -10,7 +10,6 @@ import {
 } from "../catalog/pickups";
 import type { WeaponId } from "../catalog/weapons";
 import type { DropSetup, Floating } from "./drops";
-import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
 import { type RockField, hitWithin } from "./rocks";
 import { stepsIn } from "../stepper";
 import {
@@ -45,13 +44,12 @@ interface EffectSetup extends DropSetup {
 
 /**
  * Describes what the pickups and their effects act on: the rocks' field,
- * which the Nova hits, the crew, which a ship caught joins, the ship
- * catching them, the effects in play, and what each effect changes.
+ * which the Nova hits, the ship catching them, the effects in play, and
+ * what each effect changes.
  */
-export interface PickupField extends RockField, CrewField {
+export interface PickupField extends RockField {
   readonly setup: EffectSetup;
   readonly ship: Readonly<Place> | null;
-  crew: Crew;
   readonly effects: Effects;
   /** The weapon in hand. */
   weapon: WeaponId;
@@ -119,11 +117,6 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
     start: (field, { reach }, ship) => {
       field.events.add("nova", ship.x, ship.y, reach);
       hitWithin(field, ship.x, ship.y, reach);
-    },
-  },
-  ship: {
-    start: (field) => {
-      gainShipOn(field);
     },
   },
 };
@@ -210,7 +203,7 @@ function catchPickup(
 ): void {
   const { id } = floating;
   const { effect } = pickup(id);
-  field.events.addCaught(floating.x, floating.y, id, field.crew);
+  field.events.addPickup("caught", floating.x, floating.y, id);
   endEffect(field, effect.kind);
   startEffect(field, effect.kind, effect, ship);
   if (lasts(effect.kind)) {

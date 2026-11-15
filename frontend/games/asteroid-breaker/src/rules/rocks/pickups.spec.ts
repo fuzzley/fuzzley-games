@@ -6,7 +6,6 @@ import {
   loggedOn,
   placePickup,
   placeRock,
-  placeStray,
   shipOf,
   stepTimes,
 } from "../../testing/field_picture";
@@ -278,7 +277,7 @@ describe("an effect", () => {
     ]);
   });
 
-  it("lasts for each group but the Nova's and an Extra ship's, which are over as they start", () => {
+  it("lasts for each group but the Nova's, which is over as it starts", () => {
     expect(EFFECT_KINDS.filter(lasts)).toEqual([
       "weapon",
       "guard",
@@ -288,14 +287,7 @@ describe("an effect", () => {
   });
 
   it("names every group, in the order the field shows their tags", () => {
-    expect(EFFECT_KINDS).toEqual([
-      "weapon",
-      "guard",
-      "pull",
-      "pace",
-      "nova",
-      "ship",
-    ]);
+    expect(EFFECT_KINDS).toEqual(["weapon", "guard", "pull", "pace", "nova"]);
   });
 });
 
@@ -403,78 +395,5 @@ describe("each effect", () => {
       expect.objectContaining({ kind: "broken" }),
       expect.objectContaining({ kind: "scored" }),
     ]);
-  });
-
-  it("gives a ship, flown by a new pilot with no one at home, and nothing to end", () => {
-    const field = fieldOf({
-      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
-    });
-
-    catchOn(field, "ship");
-
-    expect([field.crew, field.effects.ship]).toEqual([
-      { flying: [0, 1, 2, 3], home: [], lastGiven: 3 },
-      { pickup: null, endsAt: 0 },
-    ]);
-  });
-
-  it("logs its catch with the ships the crew had, before the one it gives", () => {
-    const field = fieldOf({
-      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
-    });
-
-    catchOn(field, "ship");
-
-    expect(
-      loggedOn(field)
-        .filter((event) => event.kind === "caught" || event.kind === "gained")
-        .map(({ kind, ships }) => [kind, ships]),
-    ).toEqual([
-      ["caught", 3],
-      ["gained", 4],
-    ]);
-  });
-
-  it("logs the ship it gives and its pilot, at the ship", () => {
-    const field = fieldOf({
-      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
-    });
-    const { x, y } = shipOf(field);
-
-    catchOn(field, "ship");
-
-    expect(loggedOn(field).filter((event) => event.kind === "gained")).toEqual([
-      expect.objectContaining({ x, y, pilot: 3 }),
-    ]);
-  });
-
-  it("gives a ship flown by the first stray at home", () => {
-    const field = fieldOf({
-      crew: { flying: [0, 1], home: [5, 6], lastGiven: 6 },
-    });
-
-    catchOn(field, "ship");
-
-    expect(field.crew).toEqual({ flying: [0, 1, 5], home: [6], lastGiven: 6 });
-  });
-
-  it("gives a new pilot a color the stray adrift doesn't wear", () => {
-    const field = fieldOf({
-      crew: { flying: [0, 1, 2], home: [], lastGiven: 2 },
-    });
-    placeStray(field, 4, 30, 0, 3);
-
-    catchOn(field, "ship");
-
-    expect(field.crew.flying).toEqual([0, 1, 2, 4]);
-  });
-
-  it("gives no ship past the most", () => {
-    const crew = { flying: [0, 1, 2, 3, 4, 5], home: [6], lastGiven: 6 };
-    const field = fieldOf({ crew });
-
-    catchOn(field, "ship");
-
-    expect(field.crew).toBe(crew);
   });
 });

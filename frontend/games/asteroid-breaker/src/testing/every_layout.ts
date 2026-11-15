@@ -7,12 +7,7 @@ import { STILL } from "../rules/ship/ship";
 import { SPEEDS, type Speed } from "../rules/speed";
 import { stepsIn } from "../rules/stepper";
 import { type Torus, distance } from "../rules/torus";
-import {
-  FAIR_COURSE,
-  FAIR_COURSE_MS,
-  FAIR_DISTANCE,
-  FIRST_SHIP_POINTS,
-} from "../rules/tuning";
+import { FAIR_COURSE, FAIR_COURSE_MS, FAIR_DISTANCE } from "../rules/tuning";
 import { FORMATIONS, WAVES, parseWave } from "../rules/waves/waves";
 import { FIELDS } from "./autopilot";
 import { shipOf, wholeRocks } from "./field_picture";
@@ -33,8 +28,6 @@ export function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
     speed,
     seed,
     crew: createCrew(),
-    banked: 0,
-    nextShipAt: FIRST_SHIP_POINTS,
     held: STILL,
   };
 }

@@ -1,7 +1,6 @@
 import { count, formatPoints } from "@fz/core/format";
 import { pickup } from "../catalog/pickups";
 import type { FieldEvent } from "../field/events";
-import { MAX_SHIPS } from "../tuning";
 import type { Run } from "./run";
 import { type WaveEntry, isEndless, opensEndless } from "../waves/waves";
 
@@ -12,10 +11,8 @@ export function describeWave(entry: WaveEntry, rocks: number): string {
 
 /**
  * Returns what is said of an event of the field, as the event left the
- * crew: a stray drifting in or brought home, a ship gained, by points or an
- * Extra ship, and who flies it, a ship lost while others are left, and a
- * pickup caught, by its name, but an Extra ship the crew has room for,
- * which the ship it gains says; or null for any other.
+ * crew: a stray drifting in or brought home, a ship lost while others are
+ * left, and a pickup caught, by its name; or null for any other.
  *
  * A pilot's color is never said: it only tells pilots apart.
  */
@@ -24,20 +21,11 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
     case "strayed":
       return "A stray fuzzball drifts in.";
     case "home":
-      return `Brought home: ${String(event.waiting)} waiting.`;
-    case "gained": {
-      const flown = event.fromHome ? ", flown by a fuzzball brought home" : "";
-      return `Extra ship${flown}. ${shipsOf(event)}.`;
-    }
+      return `Brought home. ${shipsOf(event)}.`;
     case "lost":
       return event.ships > 0 ? `Ship lost. ${shipsOf(event)} left.` : null;
-    case "caught": {
-      const caught = event.pickup;
-      if (caught === null || (caught === "ship" && event.ships < MAX_SHIPS)) {
-        return null;
-      }
-      return `${pickup(caught).name}.`;
-    }
+    case "caught":
+      return event.pickup === null ? null : `${pickup(event.pickup).name}.`;
     default:
       return null;
   }

@@ -1,7 +1,6 @@
 import {
   type PictureOptions,
   KEEPER,
-  PICTURE_TORUS,
   kindsLoggedOn,
   fieldFrom,
   loggedOn,
@@ -20,9 +19,6 @@ import {
   CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
-  FIRST_SHIP_POINTS,
-  MAX_SHIPS,
-  SHIP_POINTS,
   STRAY_POINTS,
 } from "../tuning";
 import { type Field, stepField } from "./field";
@@ -85,16 +81,6 @@ function breakSmalls(field: Field, apart = 0): number[] {
     field.steps += apart;
     return field.score - before;
   });
-}
-
-/**
- * Returns a field whose small stone, broken, brought the run's points to the
- * next ship's mark, banked and crew as the options say.
- */
-function atMark(options: PictureOptions = {}): Field {
-  const field = stones(1, { banked: FIRST_SHIP_POINTS - SMALL, ...options });
-  breakSmalls(field);
-  return field;
 }
 
 describe("multiplier", () => {
@@ -408,110 +394,5 @@ describe("tallyOf", () => {
       cleared: CLEAR_POINTS,
       clean: 0,
     });
-  });
-});
-
-describe("the ships points bring", () => {
-  it("come as the run's points reach the next mark, flown by a new pilot, the mark moving on", () => {
-    const field = atMark({ crew: crewOf([0, 1]) });
-
-    stepField(field);
-
-    expect([field.crew, field.nextShipAt]).toEqual([
-      { flying: [0, 1, 3], home: [], lastGiven: 3 },
-      FIRST_SHIP_POINTS + SHIP_POINTS,
-    ]);
-  });
-
-  it("don't come before the run's points reach it", () => {
-    const field = atMark({ banked: FIRST_SHIP_POINTS - SMALL - 1 });
-
-    stepField(field);
-
-    expect(field.nextShipAt).toBe(FIRST_SHIP_POINTS);
-  });
-
-  it("log the ship and its pilot", () => {
-    const field = atMark({ crew: crewOf([0, 1]) });
-
-    stepField(field);
-
-    expect(loggedOn(field).filter((event) => event.kind === "gained")).toEqual([
-      expect.objectContaining({
-        x: PICTURE_TORUS.width / 2,
-        y: PICTURE_TORUS.height / 2,
-        pilot: 3,
-      }),
-    ]);
-  });
-
-  it("are flown by the first stray at home", () => {
-    const field = atMark({ crew: crewOf([0, 1], [5, 6]) });
-
-    stepField(field);
-
-    expect(field.crew).toEqual(crewOf([0, 1, 5], [6]));
-  });
-
-  // Three, as the field gains them twice a step.
-  it("come one for each mark passed at once", () => {
-    const field = atMark({
-      crew: crewOf([0]),
-      banked: FIRST_SHIP_POINTS + 2 * SHIP_POINTS - SMALL,
-    });
-
-    stepField(field);
-
-    expect([field.crew.flying.length, field.nextShipAt]).toEqual([
-      4,
-      FIRST_SHIP_POINTS + 3 * SHIP_POINTS,
-    ]);
-  });
-
-  it("spend a mark passed with the most ships flying", () => {
-    const crew = crewOf(Array.from({ length: MAX_SHIPS }, (_, color) => color));
-    const field = atMark({ crew });
-
-    stepField(field);
-
-    expect([field.crew, field.nextShipAt, kindsLoggedOn(field)]).toEqual([
-      crew,
-      FIRST_SHIP_POINTS + SHIP_POINTS,
-      ["broken", "scored"],
-    ]);
-  });
-
-  it("don't come once no one is flying, the run over", () => {
-    const field = stones(0, { crew: crewOf([]), banked: FIRST_SHIP_POINTS });
-
-    stepField(field);
-
-    expect([field.crew.flying, field.nextShipAt]).toEqual([
-      [],
-      FIRST_SHIP_POINTS,
-    ]);
-  });
-
-  it("come before the ship meets a rock, so the step's points save a run whose last ship it takes", () => {
-    const field = fieldFrom(["^B", "", "", "S"], {
-      crew: crewOf([3]),
-      banked: FIRST_SHIP_POINTS - SMALL,
-    });
-    breakSmalls(field);
-
-    stepField(field);
-
-    expect([field.shipsLost, field.crew.flying]).toEqual([1, [4]]);
-  });
-
-  it("come after the wave clears, for its clearing's points", () => {
-    const field = fieldFrom(["S"], {
-      banked: FIRST_SHIP_POINTS - SMALL - clearingPoints(0),
-    });
-    hitRock(field, onlySmall(field), 0, 0);
-
-    stepField(field);
-
-    expect(field.nextShipAt).toBe(FIRST_SHIP_POINTS + SHIP_POINTS);
   });
 });

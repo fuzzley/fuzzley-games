@@ -34,7 +34,6 @@ import { across } from "../torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
-  FIRST_SHIP_POINTS,
   NEW_SHIP_MS,
   PICKUP_PULL_REACH,
   ROCK_RADIUS,
@@ -78,8 +77,6 @@ const SETUP: FieldSetup = {
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
-  banked: 0,
-  nextShipAt: FIRST_SHIP_POINTS,
 };
 
 /** Steering that holds fire and nothing else. */
@@ -92,16 +89,14 @@ const THRUST: Readonly<Steer> = { ...STILL, thrust: 1 };
 const SECTOR: SectorData = { id: "spec", name: "Spec", drops: 0.05, waves: [] };
 
 /**
- * How the specs' waves start: on a desktop's field at Relaxed, a run's points
- * and crew handed on, nothing held.
+ * How the specs' waves start: on a desktop's field at Relaxed, a run's crew
+ * handed on, nothing held.
  */
 const START: WaveSetup = {
   torus: { width: 73, height: 40 },
   speed: "relaxed",
   seed: 5,
   crew: { flying: [3, 0], home: [6], lastGiven: 6 },
-  banked: 1200,
-  nextShipAt: 20_000,
   held: STILL,
 };
 
@@ -323,8 +318,6 @@ describe("fieldFor", () => {
       strayFirstMs: STRAY_FIRST_MS * share,
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
       crew: START.crew,
-      banked: 1200,
-      nextShipAt: 20_000,
     });
   });
 
@@ -746,7 +739,6 @@ describe("stepField", () => {
             kind: "lost",
             pilot: 4,
             ships: 2,
-            waiting: 1,
           }),
         ],
       ]);

@@ -58,10 +58,6 @@ const SCORE_SPOILS: readonly Spoil[] = [
   ["points banked below nothing", { banked: -1 }],
   ["a score that isn't a number", { score: "800" }],
   ["a score below the points banked", { score: 400 }],
-  ["a next ship's mark that isn't a count", { nextShipAt: "10000" }],
-  ["a next ship's mark that is none", { nextShipAt: 15_000 }],
-  ["a next ship's mark past the first above the score", { nextShipAt: 30_000 }],
-  ["a next ship's mark the score has passed", { score: 10_000 }],
 ];
 
 /** Strays a run kept may hold that don't add up, each failing `hasSoundStrays()`. */
@@ -176,7 +172,6 @@ describe("saveGame", () => {
       flying: [3, 0],
       home: [6],
       lastGiven: 6,
-      nextShipAt: 10_000,
       straysBanked: 2,
       strays: 2,
     });
@@ -265,12 +260,6 @@ describe("restoreGame", () => {
     expect(takenUp?.broughtHome).toEqual([5, 7, 1]);
   });
 
-  it("takes up a field kept before the rocks' points were counted", () => {
-    const value = tamperedField({ rockPoints: undefined });
-
-    expect(restoreGame(value, WAVES, 9)).not.toBeNull();
-  });
-
   it("draws no stray brought home where storage's count doesn't match the run's", () => {
     const saved = stored(runUnderWay(), { broughtHome: [5], tuned: false });
 
@@ -349,15 +338,6 @@ describe("takeUpField", () => {
     expect(field.setup).toEqual(before.setup);
   });
 
-  it("works out the rocks' points of a field kept before they were counted from the run's", () => {
-    const run = runUnderWay();
-    const { rockPoints, ...saved } = savedField(playedField(run));
-
-    const field = takeUpField(waveOf(run), SETUP, saved, run);
-
-    expect(field.rockPoints).toBe(run.score - run.banked);
-  });
-
   it("takes the wave's points and strays brought home from the run", () => {
     const run = runUnderWay({ score: 1300, strays: 3 });
     const saved = { ...savedField(playedField(run)), straysSent: 1 };
@@ -434,14 +414,8 @@ describe("hasSpeedAndSeed", () => {
 });
 
 describe("hasSoundScore", () => {
-  it("holds a run kept to its points and the next ship's mark", () => {
+  it("holds a run kept to its points", () => {
     expect(hasSoundScore(storedValues())).toBe(true);
-  });
-
-  it("holds a run whose score has passed the first mark to the next", () => {
-    expect(hasSoundScore(tampered({ score: 10_000, nextShipAt: 30_000 }))).toBe(
-      true,
-    );
   });
 
   it.each(SCORE_SPOILS)("fails a run of %s", (_, change) => {

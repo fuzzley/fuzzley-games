@@ -22,7 +22,6 @@ import {
   FAIR_DISTANCE,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
-  FIRST_SHIP_POINTS,
   FIRST_SHIPS,
   HEADING_EASE,
   HEADING_TURN_RATE,
@@ -41,7 +40,6 @@ import {
   ROCK_SPIN,
   SAFE_GRID,
   SHIP_HIT_RADIUS,
-  SHIP_POINTS,
   SHOT_LIFE_MS,
   SHOT_SPEED,
   STEP_S,
@@ -241,14 +239,6 @@ describe("the tuning", () => {
       stepsBetween(times).filter((step) => step >= 0),
       times.filter((n) => n <= 1),
     ]).toEqual([[], [], []]);
-  });
-
-  // A mark that didn't move on would gain a ship every step.
-  it.each([
-    ["the first ship", FIRST_SHIP_POINTS],
-    ["each after it", SHIP_POINTS],
-  ])("brings %s by points above 0", (_, points) => {
-    expect(points).toBeGreaterThan(0);
   });
 
   it("starts a wave's rocks farther off the ship than their courses may come", () => {

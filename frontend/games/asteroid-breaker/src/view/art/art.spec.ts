@@ -1,7 +1,6 @@
 import {
   type ArtFrame,
   type DrawCommand,
-  type Point,
   atlasSize,
   lineWidth,
 } from "@fz/phaser/shapes";
@@ -93,7 +92,6 @@ const FURRED: ReadonlySet<string> = new Set([
     Array.from({ length: PILOT_COLORS }, (_, pilot) => pilotFrame(pilot, seat)),
   ),
   FRAMES.strayPicture,
-  pickupFrame("ship"),
 ]);
 
 /**
@@ -318,12 +316,9 @@ describe("a tag's frame", () => {
     },
   );
 
-  it.each(["ship", "nova"] as const)(
-    "names no tag for %s, which is over as it starts",
-    (id) => {
-      expect(() => tagFrame(id)).toThrow(RangeError);
-    },
-  );
+  it("names no tag for the Nova, which is over as it starts", () => {
+    expect(() => tagFrame("nova")).toThrow(RangeError);
+  });
 });
 
 describe("the deck's frames", () => {
@@ -351,7 +346,7 @@ describe("the deck's frames", () => {
 });
 
 describe("a pickup's frame", () => {
-  it.each(PICKUP_IDS.filter((id) => id !== "ship"))(
+  it.each(PICKUP_IDS)(
     "outlines the %s pickup, fills it in the accent, and draws its symbol in the color on the accent",
     (id) => {
       const frame = frameNamed(ART_FRAMES, pickupFrame(id));
@@ -367,35 +362,6 @@ describe("a pickup's frame", () => {
       });
     },
   );
-
-  it("draws the Extra ship's symbol as a pilot in its window: the window in the color on the accent, the pilot in the accent", () => {
-    const frame = frameNamed(ART_FRAMES, pickupFrame("ship"));
-    const [window, ...pilot] = frame.commands.slice(2);
-
-    expect({
-      window: window?.color,
-      pilot: new Set(pilot.map((command) => command.color)),
-    }).toEqual({
-      window: ART_PALETTE.onAccent,
-      pilot: new Set([ART_PALETTE.accent]),
-    });
-  });
-
-  it("sets the Extra ship's pilot a little low in its window, as it sits in the ship", () => {
-    const [window, body] = frameNamed(
-      ART_FRAMES,
-      pickupFrame("ship"),
-    ).commands.slice(2);
-    const middleOf = (command: DrawCommand | undefined): Point =>
-      command?.kind === "circle"
-        ? { x: command.x, y: command.y }
-        : { x: NaN, y: NaN };
-
-    const drop = middleOf(body).y - middleOf(window).y;
-
-    expect(middleOf(body).x).toBeCloseTo(middleOf(window).x, 9);
-    expect(drop).toBeGreaterThan(0);
-  });
 });
 
 describe("a pickup's outline", () => {

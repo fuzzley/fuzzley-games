@@ -8,26 +8,17 @@ import {
   placed,
   polygon,
   rimIn,
-  shifted,
   stroke,
   symbolLineStyle,
 } from "@fz/phaser/shapes";
 import type { PickupId } from "../../rules/catalog/pickups";
 import type { DeckButton } from "../steering/deck";
-import { fuzzballCommands } from "./pilot_art";
 
-/**
- * Draws a symbol in a square, in a style, its lines its width or wider, on a
- * ground of another color, which a few of its parts take.
- */
+/** Draws a symbol in a square, in a style, its lines its width or wider. */
 export type DrawSymbol = (
   square: Area,
   style: LineStyle,
-  ground: number,
 ) => readonly DrawCommand[];
-
-/** How far the Extra ship's window reaches, how wide its pilot is and how far below the middle it sits, as shares of the square's side. */
-const WINDOW = { radius: 0.56, pilot: 1.3, drop: 0.03 } as const;
 
 /** Returns points given about a square's middle, in shares of its side, as device pixels. */
 function about(
@@ -130,16 +121,6 @@ export const SYMBOLS = {
   shield: (square, style) => [
     rimIn(square, 0.4, symbolLineStyle(square, style)),
     discIn(square, 0.14, style),
-  ],
-  // A pilot in its window, as the pickup gives one more ship to fly.
-  ship: (square, style, ground) => [
-    discIn(square, WINDOW.radius, style),
-    ...fuzzballCommands(WINDOW.pilot * square.width, ground).map((command) =>
-      shifted(command, {
-        x: square.x + square.width / 2,
-        y: square.y + square.height / 2 + WINDOW.drop * square.width,
-      }),
-    ),
   ],
   lance: (square, style) => {
     const pen = symbolLineStyle(square, style);

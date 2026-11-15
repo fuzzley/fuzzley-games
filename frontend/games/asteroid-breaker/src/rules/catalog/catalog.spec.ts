@@ -1,7 +1,7 @@
 import { stepsBetween } from "../../testing/numbers";
 import { EFFECT_KINDS } from "../rocks/pickups";
 import { stepsIn } from "../stepper";
-import { MAX_SHIPS, SHOT_LIFE_MS } from "../tuning";
+import { SHOT_LIFE_MS } from "../tuning";
 import { WAVES, parseWave } from "../waves/waves";
 import { PICKUPS, PICKUP_IDS, isPickupId, pickup } from "./pickups";
 import {
@@ -417,11 +417,6 @@ describe("PICKUPS", () => {
       "the Magnet's reach",
       PICKUPS.magnet.about,
       `from ${String(PICKUPS.magnet.effect.reach)} units`,
-    ],
-    [
-      "the Extra ship's most",
-      PICKUPS.ship.about,
-      `up to ${spelled(MAX_SHIPS)}`,
     ],
     [
       "the Nova's reach",

@@ -23,7 +23,6 @@ import {
   COMET_SPEED,
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
-  FIRST_SHIP_POINTS,
   HEADING_TURN_RATE,
   SHIP_HIT_RADIUS,
   SHOT_LIFE_MS,
@@ -162,8 +161,6 @@ export function autoplay(
     speed,
     seed,
     crew: createCrew(),
-    banked: 0,
-    nextShipAt: FIRST_SHIP_POINTS,
     held: STILL,
   });
   return playField(field, rest);

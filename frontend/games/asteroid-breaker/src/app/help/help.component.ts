@@ -15,9 +15,7 @@ import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
-  FIRST_SHIP_POINTS,
   MAX_SHIPS,
-  SHIP_POINTS,
   STRAYS_FROM,
   STRAY_POINTS,
 } from "../../rules/tuning";
@@ -28,7 +26,6 @@ const SCORING = {
   chain: `Breaks each within ${String(CHAIN_MS / 1000)} seconds of the last make a chain, which multiplies each break's points: ${tierWords(CHAIN, "breaks")}.`,
   strays: `A stray brought home scores ${formatPoints(STRAY_POINTS)}, times the chain.`,
   clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ship was lost on it.`,
-  ships: `A ship more comes at ${formatPoints(FIRST_SHIP_POINTS)} points and every ${formatPoints(SHIP_POINTS)} after, up to ${String(MAX_SHIPS)} ships.`,
 };
 
 /** What How to play says of a dash, its recharge from the tuning. */
@@ -45,8 +42,7 @@ const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays d
 const ADRIFT = {
   stray: {
     name: "Stray fuzzball",
-    about:
-      "Crosses the field once in its bubble, which shots pass through. Fly into it to bring it home, where it waits to fly the next ship the run gains.",
+    about: `Crosses the field once in its bubble, which shots pass through. Fly into it to bring it home, and it flies one more ship at once, up to ${String(MAX_SHIPS)}.`,
   },
   comet: {
     name: "Comet",

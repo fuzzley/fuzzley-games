@@ -306,7 +306,7 @@ game through `runScene()`:
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless
-  begins at wave 4; or `STRAY_WAVES`, `GAINED_WAVES`, `CHAIN_WAVES` and
+  begins at wave 4; or `STRAY_WAVES`, `ONE_STRAY_WAVES`, `CHAIN_WAVES` and
   `SECTOR_WAVES`, each set up for one thing. It runs on the time it is
   given: `game.tick(FRAME_MS, steer)`, steered `STILL`, by `shoot()`,
   `ram()`, `toPickup()` or `toStray()`; `playUntil()`, `playFor()`,
