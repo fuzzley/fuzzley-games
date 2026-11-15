@@ -68,6 +68,8 @@ class FakeGame implements KeptGame {
   readonly tuned = signal(false);
   readonly outcome = computed(() => this.run().outcome);
   readonly runs = signal(0);
+  /** The run as it stood once the level started, before the round in flight was taken in, which a drop takes it into again. */
+  private started = this.run();
 
   takeUp({ run, start, tuned }: TakenUp): void {
     this.run.set(run);
@@ -79,8 +81,22 @@ class FakeGame implements KeptGame {
   release(result: RoundResult = "on"): void {
     const run =
       this.run().outcome === "ready" ? startLevel(this.run()) : this.run();
+    this.started = run;
     this.nextStart.set(downARow(this.nextStart()));
     this.run.set(takeRound(run, { points: 0, jumped: false, result }));
+  }
+
+  /**
+   * Drops the round in flight, as the game does: takes it into the run as
+   * it stood before its release again, a round that leaves the level on,
+   * the run's rounds and stage as they were, its next start a round dropped
+   * leaves.
+   */
+  drop(): void {
+    this.nextStart.set(downARow(this.nextStart()));
+    this.run.set(
+      takeRound(this.started, { points: 0, jumped: false, result: "on" }),
+    );
   }
 }
 
@@ -154,11 +170,22 @@ describe("SavedGameService", () => {
     expect(stored()).toEqual(keptNow(game));
   });
 
-  it("keeps the run, not each change of where the next round starts", () => {
+  it("keeps the run again as a drop changes where the next round starts, though its rounds and stage stay as they were", () => {
+    const game = released();
+    game.release("cleared");
+    TestBed.tick();
+
+    game.drop();
+    TestBed.tick();
+
+    expect(stored()).toEqual(keptNow(game));
+  });
+
+  it("keeps the run at its moments, not as it goes off the record between them", () => {
     const game = released();
     const kept = stored();
 
-    game.nextStart.set(downARow(game.nextStart()));
+    game.tuned.set(true);
     TestBed.tick();
 
     expect(stored()).toEqual(kept);

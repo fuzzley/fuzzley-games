@@ -121,18 +121,36 @@ interface GuideCast {
   readonly guide: Guide;
 }
 
+/** Names who lets a shot fly: the player, or a certificate's line the debug menu plays. */
+type Shooter = "player" | "line";
+
+/**
+ * Describes the round in the air as a drop flies it again: the run as it
+ * stood once the round's level started, before the round was taken in, and
+ * what the rules played the round from, the rules among them, as the debug
+ * menu may retune them while it flies.
+ */
+interface DroppableRound {
+  readonly started: Run;
+  readonly start: RoundStart;
+  readonly shot: Shot;
+  readonly levelBoon: Boon;
+  readonly rules: RoundRules;
+}
+
 /** Describes how a frame plays the round, written again each frame. */
 type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
 
 /**
  * Plays the game: holds the run and where its round stands, plays each
  * round released through the rules and back through the view a frame at a
- * time, takes what it comes to into the run, pauses, goes on and starts
- * levels and runs as the player asks, lays the field out on the board's
- * room between rounds, says what happened, and keeps the records and the
- * levels cleared as each flight lands, a run's start as its first round is
- * released, but for a run the debug menu takes off the record. It plays on
- * the numbers the debug menu tunes, at the depth it sets.
+ * time, flies it again as it is dropped, takes what it comes to into the
+ * run, pauses, goes on and starts levels and runs as the player asks, lays
+ * the field out on the board's room between rounds, says what happened,
+ * and keeps the records and the levels cleared as each flight lands, a
+ * run's start as its first round is released, but for a run the debug menu
+ * takes off the record. It plays on the numbers the debug menu tunes, at
+ * the depth it sets.
  *
  * The run and what the shell shows beside the field are one signal,
  * replaced whole as each run begins, which changes only as the run or its
@@ -185,6 +203,12 @@ export class GameService extends RunLifecycle implements KeptGame {
   };
   /** Plays every round back, level after level and run after run. */
   private readonly play: RoundPlay;
+  /**
+   * The round in the air a drop would fly again, from its release until it
+   * lands, is dropped or its run is left; null for a certificate's line's,
+   * as a line's later shots assume the earlier ones flew whole.
+   */
+  private readonly droppableRound = signal<DroppableRound | null>(null);
   /** The run on the board and what is its own, replaced whole as each run begins. */
   private readonly runState: WritableSignal<RunState>;
 
@@ -206,7 +230,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   /**
    * Where the level's next round starts: the round in play's next while one
    * flies or settles, else the round aimed, so the saved game keeps a round
-   * as it is released.
+   * as it is released, and again as it is dropped.
    */
   readonly nextStart = computed(() => this.round()?.next ?? this.start());
 
@@ -296,6 +320,13 @@ export class GameService extends RunLifecycle implements KeptGame {
 
   /** Whether a flight is under way, paused or not. */
   readonly flying = computed(() => this.phase() === "flying");
+
+  /**
+   * Whether a drop would bring the flight in the air down, paused or not:
+   * from its release until it lands or is dropped, but for a certificate's
+   * line's.
+   */
+  readonly droppable = computed(() => this.droppableRound() !== null);
 
   /** Whether fast-forward is on, every flight played fast, as the settings keep it from flight to flight. */
   readonly fast = computed(() => this.settings().fastForward);
@@ -421,13 +452,13 @@ export class GameService extends RunLifecycle implements KeptGame {
     const shot = this.lineShot();
     if (shot === undefined) {
       if (steer.release) {
-        this.release(steer, rulesOf(this.debug.tuning.tuning()));
+        this.release(steer, rulesOf(this.debug.tuning.tuning()), "player");
       }
     } else if (
       // A line's shot is made only as a round waits for it, so a frame of
       // its flight makes none.
       this.runState().phase === "aiming" &&
-      this.release(shotOf(shot), RULES)
+      this.release(shotOf(shot), RULES, "line")
     ) {
       this.lineShots = this.lineShots.slice(1);
     }
@@ -573,6 +604,32 @@ export class GameService extends RunLifecycle implements KeptGame {
     if (this.phase() !== "flying") return;
     this.play.skip();
     if (this.outcome() === "paused") this.playFrame(0, false);
+  }
+
+  /**
+   * Drops the flight in the air, if {@link droppable}: every fuzzball in
+   * the air comes straight down where it is, and those not yet let fly never
+   * leave. The rules fly the round again from the same start, shot, level's
+   * boon and rules, dropped at the moment the playback has reached, the run
+   * takes what that comes to in place of the whole round, and the playback
+   * plays on with it; paused, its fuzzballs come down as the run goes on.
+   */
+  drop(): void {
+    const dropping = this.droppableRound();
+    if (dropping === null) return;
+    const { started, start, shot, levelBoon, rules } = dropping;
+    const round = this.playRound(start, shot, levelBoon, rules, {
+      stop: "drop",
+      at: this.play.moment,
+    });
+    const state = this.runState();
+    const taken = takeRound(started, round.outcome);
+    const run = state.run.outcome === "paused" ? pause(taken) : taken;
+    this.droppableRound.set(null);
+    this.play.dropTo(round);
+    // The run and the round in one value, as at the release, so the saved
+    // game writes the round dropped with the run that took it in.
+    this.runState.set({ ...state, run, round });
   }
 
   /** Switches fast-forward on or off, and keeps it in the settings. */
@@ -757,22 +814,30 @@ export class GameService extends RunLifecycle implements KeptGame {
    * Releases the round aimed at a shot, if the board is drawn and its level
    * waits for the first shot or is under way: the rules play it whole, on
    * the numbers handed, the run takes it in, counted in the records as it
-   * plays its first round, and the view starts playing its flight back.
-   * Returns whether the shot flew.
+   * plays its first round, and the view starts playing its flight back,
+   * which a drop may bring down but for a line's, as a line's later shots
+   * assume the earlier ones flew whole. Returns whether the shot flew.
    */
-  private release({ aim, charge }: Readonly<Shot>, rules: RoundRules): boolean {
+  private release(
+    { aim, charge }: Readonly<Shot>,
+    rules: RoundRules,
+    by: Shooter,
+  ): boolean {
     const state = this.runState();
     if (!this.drawn() || state.phase !== "aiming") return false;
     const started = startLevel(state.run);
     if (started.outcome !== "playing") return false;
-    const round = this.playRound(
-      state.start,
-      { aim, charge },
-      this.levelBoon(),
-      rules,
-    );
+    // A copy, as the steer handed is written again each frame.
+    const shot: Shot = { aim, charge };
+    const levelBoon = this.levelBoon();
+    const round = this.playRound(state.start, shot, levelBoon, rules);
     const run = takeRound(started, round.outcome);
     this.keepStart(state.run);
+    this.droppableRound.set(
+      by === "player"
+        ? { started, start: state.start, shot, levelBoon, rules }
+        : null,
+    );
     this.play.release(round);
     // The run and the round in one value, so the saved game, which keeps
     // the round's next start, never reads one without the other.
@@ -807,6 +872,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     land: (run: Run) => Run = landRound,
   ): void {
     const change = this.play.advance(deltaMs, this.frameOptions(paused));
+    if (this.play.phase !== "flying") this.droppableRound.set(null);
     const before = this.runState();
     const run =
       this.play.phase !== "flying" && before.run.ending !== null
@@ -975,6 +1041,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   ): void {
     const left = this.runState().run;
     if (left.ending !== null) this.keepRecords(afterLanding(left));
+    this.droppableRound.set(null);
     this.aim(start);
     this.lineShots = [];
     this.debug.startRun(

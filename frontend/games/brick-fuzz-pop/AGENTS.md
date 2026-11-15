@@ -580,7 +580,13 @@ helpers.
     as another run begins; and, as a run on the record is taken up, the
     levels it cleared before its own. It plays every flight fast while
     fast-forward is on, a setting the bar's Fast-forward (`fastForward()`)
-    and F (`fieldCommand()`) switch, F saying which. As the player looks away
+    and F (`fieldCommand()`) switch, F saying which. It drops the flight in
+    the air (`drop()`), once, but for a certificate's line's (`droppable`):
+    the rules fly its round again from the start, the shot, the level's boon
+    and the rules it was released with, kept till it lands, dropped at the
+    moment the playback has reached, and the run as it stood before the
+    release takes what that comes to in place of the whole round; paused,
+    its fuzzballs come down as the run goes on. As the player looks away
     (`lookAway()`), it pauses the level in play, a flight in the air
     where it is; but as the page is hidden, which may never be seen again,
     it first lands the round in the air at once, as it would have flown,
@@ -660,12 +666,13 @@ its reader drops what it can't trust rather than failing:
   fuzzball waits, the friends' inks and the boon, or nothing for a level
   with no round played, which is laid out afresh. It is written as a round
   is released, as the run will stand once the round lands, so a page
-  reloaded mid-flight comes back after it; as the run changes course or a
-  new one begins; and as the page is hidden, never at a frame. A flight in
-  the air as the page is hidden lands at once, so the records, kept as it
-  lands, are not left behind the run kept. A run on its first level with
-  no round played, or one ended, keeps nothing. A key added to it later is
-  read as optional.
+  reloaded mid-flight comes back after it; again as a drop flies the round
+  again, or the field takes another depth, as its next start follows; as
+  the run changes course or a new one begins; and as the page is hidden,
+  never frame by frame. A flight in the air as the page is hidden lands at
+  once, so the records, kept as it lands, are not left behind the run kept.
+  A run on its first level with no round played, or one ended, keeps
+  nothing. A key added to it later is read as optional.
 
 ## Development Commands
 
@@ -882,7 +889,8 @@ What the specs share is in `src/testing/`:
   `@fz/game-ui`'s Sass, the compact bar's through
   `src/testing/compact_bar.scss`), its insets the margin.
 - `play.ts` hands `GameService` the game's first three levels, a seeded
-  random and rounds played as a script says, each with a fixture's flight
+  random and rounds played as a script says, each with the flight the
+  rules fly a fixture's round in, dropped where a drop asks
   (`provideSpecPlay()`, `scriptedRounds()`), and plays them a frame at a
   time (`release()`, `playOut()`, `playRoundOut()`, `playUntilCard()`).
 - `certificates.ts` gives the debug menu a set's certificates file, holding

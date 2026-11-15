@@ -30,9 +30,12 @@ export interface KeptGame {
   /**
    * Where the level's next round starts: the round in flight's `next`
    * while one flies, so a round is kept as it is released, else the start
-   * waiting to be aimed from. Set it in the same turn as `run`, as the
-   * round is released, or the round is kept with the start before it,
-   * which storage can't trust, and the run is lost.
+   * waiting to be aimed from. The saved game is written again as it
+   * changes, as it does when a drop flies the round again, which leaves
+   * the run's rounds and stage as they were, or the field takes another
+   * depth. Set it in the same turn as
+   * `run`, as the round is released or dropped, or the round is kept with
+   * the start before it, which storage can't trust, and the run is lost.
    */
   readonly nextStart: Signal<RoundStart>;
   /** Whether the run was played off the record, as the debug menu says, so it keeps no records. */
@@ -53,11 +56,12 @@ export const KEPT_GAME = new InjectionToken<KeptGame>("KEPT_GAME");
  * loads, so a reload, even mid-flight, or a phone dropping the tab loses
  * little.
  *
- * It writes as a round is released, as the run changes course and as a new
- * one begins, and as the page is hidden or goes away, never at a frame; a
- * page reloaded mid-flight comes back after the round, as `saveGame()`
- * keeps the run as it stands once the round lands. Something must inject
- * it at startup for the run to be taken up.
+ * It writes as a round is released or dropped, as the field takes another
+ * depth, as the run changes course and as a new one begins, and as the page
+ * is hidden or goes away, never frame by frame; a page reloaded mid-flight
+ * comes back after the round, as `saveGame()` keeps the run as it stands
+ * once the round lands. Something must inject it at startup for the run to
+ * be taken up.
  */
 @Injectable({ providedIn: "root" })
 export class SavedGameService {
@@ -82,6 +86,7 @@ export class SavedGameService {
         this.rounds();
         this.game.outcome();
         this.game.runs();
+        this.game.nextStart();
       },
     });
   }
