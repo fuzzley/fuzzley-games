@@ -6,7 +6,7 @@ import type { RockKindId } from "../catalog/rocks";
 import type { WeaponId } from "../catalog/weapons";
 import { type DropSetup, createPickups } from "../rocks/drops";
 import { FieldEventLog } from "./events";
-import { fillFor, stretchField } from "./fill";
+import { fillFor, lastFewOn, stretchField } from "./fill";
 import {
   type CometSetup,
   type Comets,
@@ -292,6 +292,7 @@ export function createField(
     torus,
     rocks: createRocks(setup.cap),
     waveKind: setup.waveKind,
+    lastFew: lastFewOn(torus),
     ship: createShip(middle.x, middle.y, held),
     tow: createTow(),
     towing: TUNED_TOWING,

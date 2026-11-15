@@ -14,6 +14,7 @@ import { type TowLink, layTow } from "../ship/tow";
 import { type Torus, across } from "../torus";
 import {
   COMET_MARGIN,
+  LAST_FEW,
   PICKUPS_AT_ONCE,
   ROCK_CAP,
   STRAY_FIRST_MS,
@@ -22,7 +23,7 @@ import {
 } from "../tuning";
 import type { Wave } from "../waves/waves";
 import { type Field, steerField, stepField } from "./field";
-import { type Fill, areaShare, fillFor, stretchField } from "./fill";
+import { type Fill, areaShare, fillFor, lastFewOn, stretchField } from "./fill";
 
 /** A wave of three large stones and a medium ice, a stray and comets every 9 to 12 s, as written. */
 const WAVE: Wave = {
@@ -64,6 +65,19 @@ describe("areaShare", () => {
   ])("is how many times 40 by 40 a field of %s is", (_, torus, share) => {
     expect(areaShare(torus)).toBeCloseTo(share);
   });
+});
+
+describe("lastFewOn", () => {
+  it.each([
+    ["40 by 40", { width: 40, height: 40 }, LAST_FEW],
+    ["73 by 40", DESKTOP, 5],
+    ["40 by 88", WIDEST, 7],
+  ])(
+    "counts a field of %s's last few by its area, rounded",
+    (_, torus, few) => {
+      expect(lastFewOn(torus)).toBe(few);
+    },
+  );
 });
 
 describe("fillFor", () => {

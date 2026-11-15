@@ -7,10 +7,11 @@
  * For each wave and speed it plays the wave twice through the autopilot's
  * `playWave()`, as the specs in `src/rules/waves/every_wave/` do, so the
  * report and the specs play the same games: once with nothing able to take
- * the ship, for the game time the wave took to clear and the strays brought
- * home of those sent, and once as the specs play it, for the crew its hits
- * knocked loose, those of them that floated home and the most static the
- * pilot held. It fails when a play doesn't clear its wave within the
+ * the ship, for the game time the wave took to clear, its tail, the time
+ * from its last few rocks to its clearing, to a tenth of a second, and the
+ * strays brought home of those sent, and once as the specs play it, for
+ * the crew its hits knocked loose, those of them that floated home and the
+ * most static the pilot held. It fails when a play doesn't clear its wave within the
  * autopilot's limit (`-`), as the specs do, but it counts the untouchable
  * plays too, so it is the stricter of the two. It loads what it plays,
  * `REPORT_API` in `src/testing/report_api.ts`, through Vite, as the game's
@@ -19,10 +20,10 @@
  * look at again.
  *
  * With `--seeds`, it plays each wave that many times at each speed, from
- * seeds of its own, and prints the middle time, the longest, the most
- * knocked loose, the most floated home, the most static and the strays
- * brought home of all those sent, since the rocks and pickups one seed
- * lays out can make a wave look far easier or harder than it is. It fails
+ * seeds of its own, and prints the middle time, the longest, the middle
+ * tail, the most knocked loose, the most floated home, the most static and
+ * the strays brought home of all those sent, since the rocks and pickups
+ * one seed lays out can make a wave look far easier or harder than it is. It fails
  * on any seed's play that doesn't clear its wave in time.
  *
  * With `--field wide`, it plays every wave on the widest field on its side,
@@ -127,13 +128,14 @@ ${Object.entries(FIELDS)
 function columnsOf(request, game) {
   if (request.seeds === undefined) {
     return {
-      headings: ["time", "knocked", "floated", "static", "home"],
-      widths: [5, 8, 8, 7, 5],
+      headings: ["time", "tail", "knocked", "floated", "static", "home"],
+      widths: [5, 7, 8, 8, 7, 5],
       cellsOf: (plays) => {
         const [play] = plays;
         return play
           ? [
               timeOf(stepsOf(play.untouchable, game), game.stepSeconds),
+              tenthsOf(tailOf(play.untouchable, game), game.stepSeconds),
               mostOf(plays, game, (played) => played.knocked),
               mostOf(plays, game, (played) => played.floated),
               mostOf(plays, game, (played) => played.mostStatic),
@@ -144,15 +146,27 @@ function columnsOf(request, game) {
     };
   }
   return {
-    headings: ["middle", "most", "knocked", "floated", "static", "home"],
-    widths: [6, 5, 8, 8, 7, 7],
+    headings: [
+      "middle",
+      "most",
+      "tail",
+      "knocked",
+      "floated",
+      "static",
+      "home",
+    ],
+    widths: [6, 5, 7, 8, 8, 7, 7],
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(
         plays.map((play) => stepsOf(play.untouchable, game)),
       );
+      const [tail] = middleAndMost(
+        plays.map((play) => tailOf(play.untouchable, game)),
+      );
       return [
         timeOf(middle, game.stepSeconds),
         timeOf(most, game.stepSeconds),
+        tenthsOf(tail, game.stepSeconds),
         mostOf(plays, game, (played) => played.knocked),
         mostOf(plays, game, (played) => played.floated),
         mostOf(plays, game, (played) => played.mostStatic),
@@ -314,6 +328,34 @@ function clearedInTime(play, game) {
  */
 function stepsOf(play, game) {
   return clearedInTime(play, game) ? play.steps : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Returns the steps a play's tail ran, from its last few rocks to its
+ * clearing, or infinity if it didn't clear its wave in time.
+ *
+ * @param {WavePlayed} play
+ * @param {Game} game
+ * @returns {number}
+ */
+function tailOf(play, game) {
+  return clearedInTime(play, game) ? play.tailSteps : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Returns a count of steps as the game time it takes to a tenth of a
+ * second, as a tail's few seconds are shown, or `-` for none, or an
+ * endless count, as of a play that didn't clear its wave in time.
+ *
+ * @param {number | undefined} steps
+ * @param {number} stepSeconds The game time a step takes, in seconds.
+ * @returns {string}
+ */
+export function tenthsOf(steps, stepSeconds) {
+  if (steps === undefined || steps === Number.POSITIVE_INFINITY) return "-";
+  const tenths = Math.round(steps * stepSeconds * 10);
+  const seconds = Math.floor(tenths / 10);
+  return `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, "0")}.${String(tenths % 10)}`;
 }
 
 /**

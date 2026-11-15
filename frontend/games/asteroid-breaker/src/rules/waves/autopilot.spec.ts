@@ -23,7 +23,7 @@ import {
 } from "../../testing/field_picture";
 import type { Field } from "../field/field";
 import type { Crew } from "../ship/pilots";
-import type { Rock } from "../rocks/rocks";
+import { type Rock, isLastFew } from "../rocks/rocks";
 import { STILL, type Steer } from "../ship/ship";
 import { drawReach } from "../sparks/sparks";
 import { SPEEDS } from "../speed";
@@ -94,6 +94,14 @@ function doomedField(crew: Crew = ONE_SHIP): Field {
   ship.rechargeSteps = 120;
   placeComet(field, ship.x, ship.y);
   return field;
+}
+
+/**
+ * Returns a field of 72 by 40, whose last few are five, of six small stones,
+ * each of which breaks into nothing, and the ship.
+ */
+function sixSmall(): Field {
+  return fieldFrom(["SSSSSS", ...SHIP_ALONE.slice(1)]);
 }
 
 /** Returns the steering the autopilot gives a field's ship for a frame, after a frame's held as given. */
@@ -209,6 +217,47 @@ describe("the autopilot", () => {
     playField(field, { untilStep: 120 });
 
     expect([field.cleared, field.crew.tow]).toEqual([false, [1, 2, 6]]);
+  });
+
+  it("times a wave's tail from the last step it held more than its last few rocks to its clearing", () => {
+    const report = playField(sixSmall());
+    const twin = sixSmall();
+    const tailFrom = report.steps - report.tailSteps;
+
+    playField(twin, { untilStep: tailFrom });
+    const atTailFrom = isLastFew(twin);
+    playField(twin, { untilStep: tailFrom + 1 });
+
+    expect({
+      cleared: report.cleared,
+      atTailFrom,
+      after: isLastFew(twin),
+    }).toEqual({ cleared: true, atTailFrom: false, after: true });
+  });
+
+  it("times a wave's tail again once a rock broken leaves more than its last few", () => {
+    const field = fieldFrom(["MMMMM", ...SHIP_ALONE.slice(1)]);
+    const begunWithFew = isLastFew(field);
+
+    const report = playField(field);
+
+    expect({
+      begunWithFew,
+      cleared: report.cleared,
+      tailAfterStart: report.tailSteps < report.steps,
+    }).toEqual({ begunWithFew: true, cleared: true, tailAfterStart: true });
+  });
+
+  it("times the whole of a wave begun with no more than its last few rocks as its tail", () => {
+    const report = playField(fieldFrom(["L", ...SHIP_ALONE.slice(1)]));
+
+    expect([report.cleared, report.tailSteps]).toEqual([true, report.steps]);
+  });
+
+  it("times no tail for a wave it didn't clear", () => {
+    const report = playField(doomedField());
+
+    expect([report.cleared, report.tailSteps]).toEqual([false, 0]);
   });
 
   it("ends a wave held still for a first move that never comes at its limit", () => {

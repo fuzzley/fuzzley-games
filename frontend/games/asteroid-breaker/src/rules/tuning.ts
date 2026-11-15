@@ -145,6 +145,13 @@ export const PIECE_PUSH = 1.5;
 /** The most rocks a field of 40 by 40 holds at once, a wave's written among them; a larger field holds more, by its area. */
 export const ROCK_CAP = 48;
 
+/**
+ * How many whole rocks a field of 40 by 40 has left, or fewer, as a wave's
+ * last few, from which its tail is timed; a larger field's last few are
+ * more, by its area.
+ */
+export const LAST_FEW = 3;
+
 /** How near the ship, middle to middle across the wrap, no rock of a wave starts. */
 export const FAIR_DISTANCE = 12;
 

@@ -1,12 +1,14 @@
 // A wave's counts are written for a field of 40 by 40, and a field of
 // another shape holds more of everything by its area: its rocks, the cap
-// on them, the pickups floating at once and the strays, the first of which
-// comes later by it, as its wave lasts longer; comets come more often by
-// the square root of it, as each crosses a longer field.
+// on them, its last few rocks, the pickups floating at once and the
+// strays, the first of which comes later by it, as its wave lasts longer;
+// comets come more often by the square root of it, as each crosses a
+// longer field.
 
 import { type Torus, across, wrap } from "../torus";
 import {
   FIELD_SHORT_SIDE,
+  LAST_FEW,
   PICKUPS_AT_ONCE,
   ROCK_CAP,
   STRAY_FIRST_MS,
@@ -89,6 +91,15 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
       most: every.most / sooner,
     },
   };
+}
+
+/**
+ * Returns how many whole rocks a field of a shape has left, or fewer, as a
+ * wave's last few: {@link LAST_FEW} grown by its area, as a wave's counts
+ * are.
+ */
+export function lastFewOn(torus: Torus): number {
+  return grown(LAST_FEW, areaShare(torus));
 }
 
 /**
