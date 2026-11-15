@@ -289,9 +289,8 @@ export class FieldSounds {
     const { slots } = field.comets;
     for (let slot = 0; slot < slots.length; slot++) {
       const comet = slots[slot];
-      if (comet === undefined) continue;
       const warning = isWarning(comet);
-      if (this.warning[slot] === true && !warning && comet.live) {
+      if (this.warning[slot] === true && !warning && comet?.live === true) {
         this.note(COMET_IN, 0, acrossOf(comet.x, field.torus.width));
       }
       this.warning[slot] = warning;
