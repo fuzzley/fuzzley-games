@@ -522,6 +522,11 @@ const EVENT_SOUNDS: Readonly<
   grazed: "near-miss",
   zapped: "zap-dash",
   arced: "zap-arc",
+  // A burr comes in unheard, as it is seen coming in.
+  burred: null,
+  clung: "burr-cling",
+  popped: "burr-pop",
+  shaken: "burr-shed",
 };
 
 /**

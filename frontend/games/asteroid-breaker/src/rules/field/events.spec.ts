@@ -39,6 +39,7 @@ function eventOf(event: Partial<FieldEvent>): FieldEvent {
     slot: -1,
     wayX: 0,
     wayY: 0,
+    burrs: 0,
     ...event,
   };
 }
@@ -282,6 +283,44 @@ describe("FieldEventLog", () => {
     ]);
   });
 
+  it.each(["burred", "popped"] as const)(
+    "records a burr %s with only its place",
+    (kind) => {
+      const log = new FieldEventLog();
+
+      log.addBurr(kind, 1, 2);
+
+      expect(eventsSince(log, 0)).toEqual([eventOf({ kind, x: 1, y: 2 })]);
+    },
+  );
+
+  it("records a burr clinging at the ship, with how many cling", () => {
+    const log = new FieldEventLog();
+
+    log.addClung(1, 2, 3);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "clung", x: 1, y: 2, burrs: 3 }),
+    ]);
+  });
+
+  it("records burrs shaken off at the ship, with how many and the way it heads", () => {
+    const log = new FieldEventLog();
+
+    log.addShaken(1, 2, Math.PI, 2);
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({
+        kind: "shaken",
+        x: 1,
+        y: 2,
+        wayX: -1,
+        wayY: Math.sin(Math.PI),
+        burrs: 2,
+      }),
+    ]);
+  });
+
   it("keeps the latest events, as many as its size", () => {
     const log = new FieldEventLog();
 
@@ -332,6 +371,18 @@ describe("FieldEventLog", () => {
       ...[2, 3, 4, 5, 6, 7].map((n) =>
         eventOf({ serial: EVENT_LOG_SIZE + n, kind: "warned", x: 1, y: 2 }),
       ),
+    ]);
+  });
+
+  it("leaves no burrs of an older event in a record the ring comes round to", () => {
+    const log = new FieldEventLog();
+    log.addClung(3, 4, 2);
+    for (let i = 1; i < EVENT_LOG_SIZE; i++) log.add("warned", 0, 0);
+
+    log.add("warned", 1, 2);
+
+    expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
+      eventOf({ serial: EVENT_LOG_SIZE + 1, kind: "warned", x: 1, y: 2 }),
     ]);
   });
 });

@@ -106,7 +106,8 @@ takes for the specs' helpers.
   A rock or a comet that hits the ship knocks the last in tow loose, breaks
   a size down if it is a rock and keeps the ship untouchable a while
   (`HIT_GUARD_MS`); one that hits it with no one in tow ends the run, its
-  pilot bailing out home. The field counts its steps
+  pilot bailing out home. A burr never hits it: one that touches it
+  clings, as `src/rules/hazards/` says. The field counts its steps
   (`Field.steps`), and a timer is the step its thing happens at. Each part
   of the rules takes only what of the field it acts on, a type declared
   beside it (`RockField`, `CometField`, `StrayField`, `PickupField`,
@@ -114,12 +115,13 @@ takes for the specs' helpers.
   than that, and a trait's step rule sees only the course its rock flies by
   (`CourseField`), so the layout flies a copy of a rock ahead without
   touching the field.
-  `scoring.ts` scores each break by its kind and size, each spark
-  gathered and each stray caught, more as it goes straight home, times
-  static's multiplier (`src/rules/sparks/`), and a wave's clearing, more
-  for one cleared without a hit taken, and says how a cleared wave's points
-  add up (`tallyOf()`), each part counted as it scores, what static added
-  apart from the rocks', the sparks' and the strays' own.
+  `scoring.ts` scores each break by its kind and size, each burr popped
+  (`BURR_POINTS`, `scoreBurr()`), each spark gathered and each stray
+  caught, more as it goes straight home, times static's multiplier
+  (`src/rules/sparks/`), and a wave's clearing, more for one cleared
+  without a hit taken, and says how a cleared wave's points add up
+  (`tallyOf()`), each part counted as it scores, what static added apart
+  from the rocks', the burrs' among them, the sparks' and the strays' own.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read; a pull of fire
@@ -131,7 +133,9 @@ takes for the specs' helpers.
   static (`isStatic()`), a rock, each of its keys by its own check
   (`isKeptRock()`, through `ROCK_CHECKS`), a rock's kind and state, and its
   fit to its wave and to what its run has scored on it (`fitsItsWave()`,
-  `fitsItsRun()`, `isStrayPoints()`); and `layOutKeptField()` lays the wave
+  `fitsItsRun()`, `isStrayPoints()`), no more strays or burrs sent than
+  its wave sends; it keeps how many burrs the wave has sent and when the
+  next comes, and none adrift or clinging; and `layOutKeptField()` lays the wave
   out afresh at the size it was laid out at and stretches it to the size it
   was kept at, its rocks, counts and static as kept, its points and strays brought
   home as its run has scored them, and its ship brought waiting where it is
@@ -140,7 +144,9 @@ takes for the specs' helpers.
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
-  heading, coasts, keeps under its top speed, wraps, or dashes once its
+  heading, coasts, keeps under its top speed, each burr clinging to it
+  (`Ship.burrs`) taking the field's burring's `slow` of its thrust and top
+  speed but none of a dash's throw, wraps, or dashes once its
   dash is ready again (`isDashReady()`, which the pod's rim, the deck's
   dash button and `dash-ready` all read, so they agree to the step), the
   rim's gauge and the deck's ring filling as it recharges
@@ -192,7 +198,8 @@ takes for the specs' helpers.
   misses and the zap. `sparks.ts` sheds a broken rock's sparks into slots
   made once (`shedSparks()`, `MOST_SPARKS`, the oldest's taken past them),
   its size's in `SPARKS_SHED` and its kind's `sheds` trait's more, only
-  from one a shot or a blast broke; each flies out a little way and hangs
+  from one a shot or a blast broke, and one from a burr a shot popped
+  (`shedSparksFrom()`); each flies out a little way and hangs
   for its life, blinking through its last second (`sparkBlinks()`), unless
   the ship draws it in, from the field's sparking's reach, farther at
   Relaxed, or the Magnet's (`drawReach()`), and the pod or a bubble in tow
@@ -223,8 +230,9 @@ takes for the specs' helpers.
   its `zapReach`, logged as `zapped` at the pod and `arced` at each rock,
   which takes a hit, and then spends `ZAP_COST` of static; with no rock in
   reach the dash is no zap.
-- **`src/rules/hazards/`** — what crosses the field once, from an edge,
-  without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
+- **`src/rules/hazards/`** — what comes in across the field from an edge,
+  without wrapping, a burr wrapping once it is in, and the crew knocked
+  loose. `strays.ts` sends the stray fuzzballs, one at a time,
   which the ship catches by touching (`stepStrays()`), into the line in tow
   or, with it full, straight home: a wave's first 4 seconds into its play
   on any field (`STRAY_FIRST_MS`), and a lifeline to a pilot left with no
@@ -232,8 +240,29 @@ takes for the specs' helpers.
   once a wave (`lifelineSent`), which leaves the wave's first at its time.
   `comets.ts` sends the comets, warned of at their edge, which break the
   rocks they meet a size down and hit a ship (`stepComets()`,
-  `touchingComet()`); each says what a wave sends of it (`StraySetup`,
-  `CometSetup`). `loose.ts` holds the crew knocked loose, a
+  `touchingComet()`). `burrs.ts` sends the burrs, small prickly seeds, as
+  many as the wave says, the first `BURR_FIRST_MS` into it and each after
+  `BURR_NEXT_MS` past the last, into slots made once, as many as may be
+  adrift at once (`createBurrs()`, `BURRS_AT_ONCE` on a field of 40 by 40,
+  grown by its area), each waiting for a free one (`stepBurrs()`): a burr
+  comes in as a stray does and, once it lies wholly on the field
+  (`Burr.wraps`), wraps as a rock does, turning toward the ship within its
+  sight. Only a shot pops one (`burrMetBy()`, `popBurr()`), the first a
+  shot meets in a step, burr or rock, taking it, a burr popped counting
+  as a break toward the most a shot breaks, though it passes nothing laid
+  in that step (`NO_PASS`), as a burr leaves no pieces, scoring and
+  shedding a spark, logged `popped`; a blast, a vent, a zap and a comet pass it by. One that
+  touches the ship clings (`clingBurrs()`, logged `clung` with how many
+  cling), but not while it waits or dashes, untouchable or not, up to the
+  burring's `most`, past which it pops for nothing; a dash shakes them all
+  off as it starts (`shakeBurrs()`, logged `shaken` with how many and the
+  way it heads), and a cleared wave lets those adrift go and leaves those
+  clinging. How burrs fly and cling is `Burring`, a value record the field
+  holds, from `tuning.ts`'s `TUNED_BURRING`: their speed, their sight and
+  turn, the share each clinging takes and the most that cling, the debug
+  menu tuning their speed and the share. Each says
+  what a wave sends of it (`StraySetup`, `CometSetup`, `BurrSetup`).
+  `loose.ts` holds the crew knocked loose, a
   slot made once for each that can be (`createLoose()`): one a hit knocks
   out of the line flies off away from the ship (`knockLastLoose()`),
   slowing to a stray's drift and wrapping, drawn in by a Magnet, until the
@@ -241,10 +270,11 @@ takes for the specs' helpers.
   floats home (`stepLoose()`); the clearing takes them back
   (`takeAllBack()`), the run's end floats them home (`floatAllHome()`), and
   a run kept keeps them as gone home (`withLooseGoneHome()`). `crossing.ts` holds
-  what the two share, a `Crossing`: coming in off an edge by a margin,
-  heading across within a tilt (`comeIn()`), flying without wrapping
-  (`fly()`), leaving (`hasLeft()`), and reaching what lies on the field only
-  with its middle on it (`reaches()`).
+  what the stray, the comets and the burrs share, a `Crossing`: coming in
+  off an edge by a margin, heading across within a tilt (`comeIn()`),
+  flying without wrapping (`fly()`), leaving (`hasLeft()`), and reaching
+  what lies on the field only with its middle on it (`isOnField()`,
+  `reaches()`).
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, from the wave it started at to its end: the wave in play, the
   points banked and the score, the crew, the strays brought home, the
@@ -265,9 +295,9 @@ takes for the specs' helpers.
   wave's start and its rocks, a stray drifting in, caught or brought
   straight home, one of the crew knocked loose, caught again or floating
   home, with how many ride in tow, a pickup caught, static coming to full,
-  a zap, a clearing, a pause, going on, a run taken up and the end, in the
-  words the result card and the card over an ended run take up
-  (`END_TITLE`, "Everyone is home."). The announcer,
+  a zap, a burr clinging ("A burr clings."), a clearing, a pause, going
+  on, a run taken up and the end, in the words the result card and the
+  card over an ended run take up (`END_TITLE`, "Everyone is home."). The announcer,
   the bar, the cards, the result, the sectors and How to play all write
   points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
@@ -307,7 +337,7 @@ takes for the specs' helpers.
   its name, its chance of a pickup and its ten waves, each written for a
   field of 40 by 40: its id and name, its rocks by kind, size and count,
   and, where it says, its formation, its pace, the kind its boulders break
-  into, its chance of a pickup, its pickups, its strays and its comets:
+  into, its chance of a pickup, its pickups, its strays, its burrs and its comets:
   `inner-belt.json`, waves 1 to 10, `iron-reach.json`, 11 to 20, and
   `storm.json`, 21 to 30. `waves.ts` lists the sectors in order
   (`SECTORS`), numbers every wave from 1 (`WAVES`, through `wavesOf()`),
@@ -323,7 +353,8 @@ takes for the specs' helpers.
   stream, apart from its field's (`endlessWave()`), so a run kept
   makes its wave again from the two: a budget of rocks, a crystal among
   them, boulders every tenth wave and comets in every one, climbing until
-  wave 60 and holding there. `waveToPlay()` gives a sector's wave or
+  wave 60 and holding there, and no burrs, which only a sector's waves
+  send. `waveToPlay()` gives a sector's wave or
   Endless's ready to play. The specs in `every_wave/` and
   `every_endless_wave/` hold every wave to being cleared by the autopilot,
   as Tests below says.
@@ -496,7 +527,9 @@ takes for the specs' helpers.
   a pull of fire by its weapon, static rising to a step by the multiplier's
   chime it reaches or full's (`static-full`), and falling to one by its fall
   (`static-down`), a spark gathered `spark`, a near miss `near-miss`, a zap
-  `zap-dash` and each of its arcs `zap-arc`, and the one after it, where it
+  `zap-dash` and each of its arcs `zap-arc`, a burr clinging `burr-cling`,
+  popped `burr-pop` and shaken off `burr-shed`, a burr coming in nothing,
+  and the one after it, where it
   has one (`secondSoundOf()`: the line snapping as one is knocked loose, and
   springing, `tow-twang`, as one joins it), the ladder (`CHAIN_CENTS`, the
   kit's, copied, and `ladderCentsOf()`) and the note of it a break's bell rings
@@ -1211,8 +1244,8 @@ takes for the specs' helpers.
     and in a production one whose address has `?debug`, the drawer also
     offers that entry's debug menu, `<fz-debug-tuning>`, below the rest: a
     slider for each number of the ship's flight, its gunnery, the rocks'
-    speed, the spark's reach, static's drain and the zap's reach
-    (`TUNING_SLIDERS`), whether shots carry the ship's speed, which the
+    speed, the spark's reach, static's drain, the zap's reach, the burrs'
+    speed and how much each clinging slows the pod (`TUNING_SLIDERS`), whether shots carry the ship's speed, which the
     drawer projects into it, Reset the numbers, and Copy the numbers, the
     lines of `tuning.ts` they would replace. `TUNING`, which the drawer reads
     and writes, holds them, says whether they are off `tuning.ts`'s
@@ -1663,12 +1696,12 @@ of its own beside it:
 - `field_picture.ts` lays a field out from a picture of its rocks and its
   ship (`fieldFrom()`), each character a cell 4 units across (`CELL`), on a
   field of 72 by 40 unless it says another (`PICTURE_TORUS`), lays a rock, a
-  pickup, a spark, a stray, one of the crew knocked loose or a comet on it
-  where a spec says (`placeRock()`, `placePickup()`, `placeSpark()`,
-  `placeStray()`, `placeLoose()`, `placeComet()`), steps it and reads it
+  pickup, a spark, a stray, one of the crew knocked loose, a comet or a burr
+  on it where a spec says (`placeRock()`, `placePickup()`, `placeSpark()`,
+  `placeStray()`, `placeLoose()`, `placeComet()`, `placeBurr()`), steps it and reads it
   back, from its events to how fast a thing on it flies (`speedOf()`), so a
   spec of the field reads as the field it plays.
-- `crossings.ts` reads where a stray or a comet waits to come in
+- `crossings.ts` reads where a stray, a comet or a burr waits to come in
   (`entryOf()`), whether a run of them came in off every edge within their
   margin and tilt (`entriesOf()`), and where an event was logged against
   one (`edgePlaceOf()`), for the specs of the hazards.

@@ -45,8 +45,9 @@ export interface Shot {
   breaksLeft: number;
   /**
    * The field's steps it flew on through a rock it broke in, one for each
-   * it may, so it passes what was laid then, those rocks' pieces; −1 for
-   * each it hasn't.
+   * it may, so it passes what was laid then, those rocks' pieces;
+   * {@link NO_PASS} for each it hasn't, or for a burr it popped, which
+   * leaves none.
    */
   readonly passedAt: number[];
 }
@@ -100,6 +101,9 @@ export const TUNED_GUNNERY: Gunnery = {
   carryShip: SHOTS_CARRY_SHIP,
 };
 
+/** The step a shot passes nothing laid at: one no step of the field is. */
+export const NO_PASS = -1;
+
 /** How far ahead of the ship's middle its nose is, where its shots leave. */
 export const NOSE = SHIP_LENGTH / 2;
 
@@ -126,7 +130,7 @@ export function createShots(): Shots {
       lifeSteps: 0,
       weapon: "gun",
       breaksLeft: 0,
-      passedAt: Array.from({ length: MOST_PASSES }, () => -1),
+      passedAt: Array.from({ length: MOST_PASSES }, () => NO_PASS),
     })),
     reloadSteps: 0,
   };
@@ -169,9 +173,10 @@ export function stepShots(field: ShotField, fire: boolean): boolean {
 }
 
 /**
- * Spends a shot on a rock it has met in a step of the field, unless it
- * broke the rock and has breaks left, when it flies on through, keeping the
- * step to pass the rock's pieces.
+ * Spends a shot on what it has met in a step of the field, unless it broke
+ * it and has breaks left, when it flies on through, keeping the step to
+ * pass what was laid then, a rock's pieces, or {@link NO_PASS} for what
+ * leaves none.
  */
 export function landShot(shot: Shot, broke: boolean, step: number): void {
   if (broke && shot.breaksLeft > 1) {
@@ -240,7 +245,7 @@ function pull(field: ShotField, ship: Readonly<Ship>): void {
     shot.lifeSteps = stepsIn(SHOT_LIFE_MS);
     shot.weapon = weaponId;
     shot.breaksLeft = weapon.breaks;
-    shot.passedAt.fill(-1);
+    shot.passedAt.fill(NO_PASS);
     flyShot(shot, torus);
     fired += 1;
   }

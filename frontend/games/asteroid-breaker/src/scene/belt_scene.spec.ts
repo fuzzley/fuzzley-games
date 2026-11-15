@@ -2633,6 +2633,30 @@ const EVERY_EVENT: Readonly<
     },
     ["zap-arc"],
   ],
+  burred: [
+    (field) => {
+      field.events.addBurr("burred", 0, 20);
+    },
+    [],
+  ],
+  clung: [
+    (field) => {
+      field.events.addClung(30, 20, 1);
+    },
+    ["burr-cling"],
+  ],
+  popped: [
+    (field) => {
+      field.events.addBurr("popped", 30, 20);
+    },
+    ["burr-pop"],
+  ],
+  shaken: [
+    (field) => {
+      field.events.addShaken(30, 20, 0, 2);
+    },
+    ["burr-shed"],
+  ],
 };
 
 /** Returns a rock of a kind and size at the middle of the board's field, as its events record it. */

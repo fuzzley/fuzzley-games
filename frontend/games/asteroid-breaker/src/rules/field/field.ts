@@ -1,12 +1,25 @@
 // A wave in play: the ship, its line in tow, its shots, the rocks, the
-// pickups, the strays, the crew knocked loose and the comets, stepped in
-// place from records made once, as Brick Breaker's field is.
+// pickups, the strays, the crew knocked loose, the comets and the burrs,
+// stepped in place from records made once, as Brick Breaker's field is.
 
 import type { RockKindId } from "../catalog/rocks";
 import type { WeaponId } from "../catalog/weapons";
 import { type DropSetup, createPickups } from "../rocks/drops";
 import { FieldEventLog } from "./events";
 import { fillFor, stretchField } from "./fill";
+import {
+  type BurrSetup,
+  type Burring,
+  type Burrs,
+  TUNED_BURRING,
+  burrMetBy,
+  clearBurrs,
+  clingBurrs,
+  createBurrs,
+  popBurr,
+  shakeBurrs,
+  stepBurrs,
+} from "../hazards/burrs";
 import {
   type CometSetup,
   type Comets,
@@ -76,6 +89,7 @@ import {
 import {
   type Gunnery,
   MISSED,
+  NO_PASS,
   type Shot,
   type Shots,
   TUNED_GUNNERY,
@@ -120,7 +134,8 @@ import type { Wave } from "../waves/waves";
  * what it sends across the field, and the crew and the static it starts
  * with.
  */
-export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
+export interface FieldSetup
+  extends DropSetup, StraySetup, CometSetup, BurrSetup {
   readonly torus: Torus;
   /** The most rocks the field holds at once. */
   readonly cap: number;
@@ -161,6 +176,8 @@ export interface WaveSetup extends WaveStart {
   readonly gunnery?: Gunnery;
   /** How the crew ride in tow: `tuning.ts`'s unless given. */
   readonly towing?: Towing;
+  /** How burrs fly and cling: `tuning.ts`'s unless given. */
+  readonly burring?: Burring;
   /**
    * How sparks, static and the zap work: `tuning.ts`'s unless the debug
    * menu tunes it.
@@ -229,6 +246,10 @@ export interface Field extends RockField {
   /** A slot for each of the crew that can be knocked loose at once, out on the field or not. */
   readonly loose: readonly Loose[];
   readonly comets: Comets;
+  /** The burrs adrift, a slot for each that may be adrift at once. */
+  readonly burrs: Burrs;
+  /** How burrs fly and cling. */
+  burring: Burring;
   /** Whether every rock it held is gone, after which everything stands still. */
   cleared: boolean;
 }
@@ -240,8 +261,8 @@ export interface Field extends RockField {
  * Its counts and its cap grow with the field's area, as `fillFor()` says,
  * and the speed sets its rocks' pace, its chance of a pickup, at most 1,
  * and how often its comets come. It flies as the setup's flight, gunnery,
- * towing, sparking and rocks' speed say, its rocks laid out fairly for
- * theirs.
+ * towing, sparking, burring and rocks' speed say, its rocks laid out
+ * fairly for theirs.
  */
 export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   const { torus, seed, crew, charge } = setup;
@@ -264,6 +285,8 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       pickupsAtOnce: fill.pickupsAtOnce,
       strays: fill.strays,
       strayFirstMs: STRAY_FIRST_MS,
+      burrs: fill.burrs,
+      burrsAtOnce: fill.burrsAtOnce,
       cometEvery: every && {
         least: every.least / cometRate,
         most: every.most / cometRate,
@@ -275,6 +298,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   field.gunnery = setup.gunnery ?? TUNED_GUNNERY;
   field.towing = setup.towing ?? TUNED_TOWING;
   field.sparking = setup.sparking ?? TUNED_SPARKING;
+  field.burring = setup.burring ?? TUNED_BURRING;
   field.rockSpeed = setup.rockSpeed ?? 1;
   layOut(field, fill.rocks, wave.formation, middleOf(torus));
   return field;
@@ -329,6 +353,8 @@ export function createField(
     strays: createStrays(setup.strayFirstMs),
     loose: createLoose(),
     comets: createComets(),
+    burrs: createBurrs(setup.burrsAtOnce),
+    burring: TUNED_BURRING,
     cleared: false,
     events: new FieldEventLog(),
   };
@@ -344,17 +370,19 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 
 /**
  * Moves the field on by a step: blasts due go off, effects whose time is
- * up end and static drains, the ship flies by the frame's steering, a dash
- * begun at full static zapping, its line in tow following it, and fires,
- * its shots and the rocks fly, each shot meets the first rock in its way,
- * the comets fly, breaking what they meet, a rock or a comet hits a ship it
- * touches that isn't guarded, or spends its shield, one that passed near
- * untouched is a near miss, and the pickups, the sparks, the stray and the
- * crew knocked loose float on, the ship catching those it touches and
- * gathering the sparks it reaches. Once no rock is left, the wave is
- * cleared: its effects end, its pickups, sparks, stray and comets go, the
- * crew knocked loose come back, and everything else stands still where it
- * is. A wave holds still from its start until the player's first move.
+ * up end and static drains, the ship flies by the frame's steering, slowed
+ * by the burrs clinging to it, a dash shaking them off and, begun at full
+ * static, zapping, its line in tow following it, and fires, its shots, the
+ * rocks and the burrs fly, each shot meets the first rock or burr in its
+ * way, the comets fly, breaking what they meet, a rock or a comet hits a
+ * ship it touches that isn't guarded, or spends its shield, a burr that
+ * touches it clings, one that passed near untouched is a near miss, and the
+ * pickups, the sparks, the stray and the crew knocked loose float on, the
+ * ship catching those it touches and gathering the sparks it reaches. Once
+ * no rock is left, the wave is cleared: its effects end, its pickups,
+ * sparks, stray, comets and burrs adrift go, the crew knocked loose come
+ * back, and everything else stands still where it is. A wave holds still
+ * from its start until the player's first move.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
  * the shot's, for its points.
@@ -366,23 +394,23 @@ export function stepField(field: Field): void {
   stepEffects(field);
   drainStatic(field);
   const { ship, steer, torus } = field;
-  if (ship && flyShip(ship, steer, torus, field.flight)) {
+  const slow = field.burring.slow;
+  if (ship && flyShip(ship, steer, torus, field.flight, slow)) {
     field.events.addDash(ship.x, ship.y, ship.angle);
+    shakeBurrs(field, ship);
     zap(field, ship, ship.angle);
   }
   stepTow(field);
   const fired = stepShots(field, steer.fire || steer.autoFire);
   if (ship && fired) field.events.addFired(ship.x, ship.y, field.weapon);
   stepRocks(field);
+  stepBurrs(field);
   for (const shot of field.shots.slots) {
-    if (shot.lifeSteps === 0) continue;
-    const rock = firstMet(field, shot);
-    if (rock) {
-      landShot(shot, hitRock(field, rock, shot.vx, shot.vy), field.steps);
-    }
+    if (shot.lifeSteps > 0) landOnFirstMet(field, shot);
   }
   stepComets(field);
   if (ship) meetDangers(field, ship);
+  clingBurrs(field);
   countGrazes(field);
   stepPickups(field);
   stepSparks(field);
@@ -424,6 +452,26 @@ export function bringShip(field: Field): void {
   const { x, y } = safestPlace(field);
   field.ship = createShip(x, y, field.steer);
   layTow(field);
+}
+
+/**
+ * Lands a shot on what it met first in its last step, if anything: a burr,
+ * which pops, or a whole rock, which takes a hit; a burr popped counts as
+ * a rock broken toward the most a shot breaks.
+ */
+function landOnFirstMet(field: Field, shot: Shot): void {
+  const rock = firstMet(field, shot);
+  const rockMetAt =
+    rock === null
+      ? MISSED
+      : sweepShot(shot, rock.x, rock.y, rockHitRadius(rock.size), field.torus);
+  const burr = burrMetBy(field, shot, rockMetAt);
+  if (burr) {
+    popBurr(field, burr);
+    landShot(shot, true, NO_PASS);
+  } else if (rock) {
+    landShot(shot, hitRock(field, rock, shot.vx, shot.vy), field.steps);
+  }
 }
 
 /**
@@ -545,9 +593,9 @@ function endRun(field: Field, ship: Readonly<Ship>): void {
 
 /**
  * Clears the wave, for its clearing's points, ending its effects, letting
- * its pickups, its sparks, its stray and its comets go, taking the crew
- * knocked loose back, and sets where everything else moving was a step ago
- * to where it is, so a cleared field is drawn standing still.
+ * its pickups, its sparks, its stray, its comets and its burrs adrift go,
+ * taking the crew knocked loose back, and sets where everything else moving
+ * was a step ago to where it is, so a cleared field is drawn standing still.
  */
 function clear(field: Field): void {
   field.cleared = true;
@@ -557,6 +605,7 @@ function clear(field: Field): void {
   clearSparks(field);
   clearStrays(field);
   clearComets(field);
+  clearBurrs(field);
   takeAllBack(field);
   const { ship } = field;
   const middle = middleOf(field.torus);

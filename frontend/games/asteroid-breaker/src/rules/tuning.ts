@@ -327,6 +327,39 @@ export const COMET_MARGIN = 3;
 export const COMET_TILT = 30;
 
 /**
+ * How far a burr reaches from its middle, to its spines' ends, which it
+ * meets a shot and the ship by, and comes in from that far off the field.
+ */
+export const BURR_RADIUS = 0.6;
+
+/** How fast a burr flies. */
+export const BURR_SPEED = 2.5;
+
+/** How near the ship a burr turns toward it from, the shortest way across the wrap. */
+export const BURR_SIGHT = 12;
+
+/** How fast a burr in sight of the ship turns toward it, in degrees a second. */
+export const BURR_TURN = 30;
+
+/** How much of the ship's thrust and top speed each burr clinging to it takes. */
+export const BURR_SLOW = 0.2;
+
+/** The most burrs that cling to the ship at once. */
+export const MOST_CLINGING = 3;
+
+/** How many burrs may be adrift at once on a field of 40 by 40, more by its area. */
+export const BURRS_AT_ONCE = 2;
+
+/** How far into a wave's play its first burr comes. */
+export const BURR_FIRST_MS = 6000;
+
+/** How long after one burr comes in the next may, while fewer than the most are adrift. */
+export const BURR_NEXT_MS = 6000;
+
+/** How far off straight across the field a burr comes in, in degrees, toward its edge's middle. */
+export const BURR_TILT = 20;
+
+/**
  * Where along an edge a stray or a comet comes in, as a share of it: away
  * from its corners, so neither clips one and is gone at once.
  */
@@ -415,6 +448,9 @@ export const STRAY_POINTS = 500;
 
 /** The points a stray caught with the most in tow scores as it goes straight home, before static's multiplier. */
 export const STRAY_HOME_POINTS = 1000;
+
+/** The points a burr a shot pops scores, before static's multiplier. */
+export const BURR_POINTS = 10;
 
 /** The points a cleared wave adds. */
 export const CLEAR_POINTS = 500;

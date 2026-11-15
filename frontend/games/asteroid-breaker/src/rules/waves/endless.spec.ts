@@ -228,6 +228,12 @@ describe("endlessWave", () => {
     });
   });
 
+  it("sends no burrs, which only a sector's waves send", () => {
+    expect(new Set(everyWave().map((wave) => wave.burrs))).toEqual(
+      new Set([0]),
+    );
+  });
+
   it("lays no more rocks than a field holds", () => {
     const counts = everyWave().map((wave) =>
       wave.rocks.reduce((sum, rocks) => sum + rocks.count, 0),

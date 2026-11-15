@@ -135,6 +135,8 @@ export interface Ship {
   guardSteps: number;
   /** Whether it waits for the player's first move, untouchable and still. */
   waiting: boolean;
+  /** How many burrs cling to it, each taking a share of its thrust and top speed. */
+  burrs: number;
   /**
    * What steered it the step before, so a held press dashes once, a turn
    * ramps in again as it starts or turns round, and only a fresh move ends
@@ -172,6 +174,7 @@ export function createShip(x: number, y: number, held: Readonly<Steer>): Ship {
     rechargeSteps: 0,
     guardSteps: 0,
     waiting: true,
+    burrs: 0,
     held: {
       turn: 0,
       heading: null,
@@ -238,7 +241,8 @@ export function guardShip(ship: Ship, ms: number): void {
 
 /**
  * Flies a ship one step by a frame's steering, on a field, and returns
- * whether a dash started in it.
+ * whether a dash started in it: each burr clinging to it takes a share of
+ * its thrust and top speed, `burrSlow`, but none of a dash's throw.
  *
  * Its timers count down as the step starts, so one set in a step counts it:
  * a dash of so many steps throws the ship for that many, the one it starts
@@ -250,6 +254,7 @@ export function flyShip(
   steer: Readonly<Steer>,
   torus: Torus,
   flight: Flight = TUNED_FLIGHT,
+  burrSlow = 0,
 ): boolean {
   ship.lastX = ship.x;
   ship.lastY = ship.y;
@@ -264,7 +269,14 @@ export function flyShip(
     turnShip(ship, steer, flight);
     dashed = steer.dash && !ship.held.dash && isDashReady(ship);
     if (dashed) startDash(ship);
-    if (ship.dashSteps === 0) pushShip(ship, steer.thrust, flight);
+    if (ship.dashSteps === 0) {
+      pushShip(
+        ship,
+        steer.thrust,
+        flight,
+        Math.max(0, 1 - ship.burrs * burrSlow),
+      );
+    }
     ship.x = wrap(ship.x + ship.vx * STEP_S, torus.width);
     ship.y = wrap(ship.y + ship.vy * STEP_S, torus.height);
   }
@@ -373,14 +385,20 @@ function turnToward(ship: Ship, heading: number, flight: Flight): void {
 
 /**
  * Pushes a ship a step along its heading, slows it as it coasts, and keeps it
- * under its top speed.
+ * under its top speed, each of the two by the share the burrs clinging to it
+ * leave it.
  */
-function pushShip(ship: Ship, thrust: number, flight: Flight): void {
-  const push = flight.thrust * thrust * STEP_S;
+function pushShip(
+  ship: Ship,
+  thrust: number,
+  flight: Flight,
+  left: number,
+): void {
+  const push = flight.thrust * left * thrust * STEP_S;
   const coast = 0.5 ** (STEP_MS / flight.coastHalfLifeMs);
   ship.vx = (ship.vx + Math.cos(ship.angle) * push) * coast;
   ship.vy = (ship.vy + Math.sin(ship.angle) * push) * coast;
-  keepUnder(ship, flight.topSpeed);
+  keepUnder(ship, flight.topSpeed * left);
 }
 
 /** Throws a ship along its heading, keeping what it flew at for when the dash ends. */

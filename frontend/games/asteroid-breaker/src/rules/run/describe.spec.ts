@@ -161,6 +161,14 @@ describe("describeEvent", () => {
     expect(describeEvent(zapped)).toBe("Zap!");
   });
 
+  it("says a burr clings", () => {
+    const clung = eventOf((log) => {
+      log.addClung(1, 2, 1);
+    });
+
+    expect(describeEvent(clung)).toBe("A burr clings.");
+  });
+
   it.each([
     [
       "a pickup let go",
@@ -208,6 +216,24 @@ describe("describeEvent", () => {
       "a zap's arc",
       (log: FieldEventLog) => {
         log.addArc({ x: 1, y: 2, kind: "stone", size: "small", slot: 0 }, 3, 4);
+      },
+    ],
+    [
+      "a burr coming in",
+      (log: FieldEventLog) => {
+        log.addBurr("burred", 1, 2);
+      },
+    ],
+    [
+      "a burr popped",
+      (log: FieldEventLog) => {
+        log.addBurr("popped", 1, 2);
+      },
+    ],
+    [
+      "burrs shaken off",
+      (log: FieldEventLog) => {
+        log.addShaken(1, 2, 0, 2);
       },
     ],
   ])("says nothing of %s", (_, add) => {

@@ -84,6 +84,8 @@ function sceneField(): Field {
     strays: 0,
     strayFirstMs: 0,
     cometEvery: null,
+    burrs: 0,
+    burrsAtOnce: 0,
     crew: createCrew(),
     charge: 0,
     sparkReach: 1,

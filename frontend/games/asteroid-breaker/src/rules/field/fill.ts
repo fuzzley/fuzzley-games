@@ -1,11 +1,12 @@
 // A wave's counts are written for a field of 40 by 40, and a field of
 // another shape holds more of everything by its area: its rocks, the cap
-// on them, its last few rocks, the pickups floating at once and the
-// strays; comets come more often by the square root of it, as each
-// crosses a longer field.
+// on them, its last few rocks, the pickups floating at once, the strays,
+// the burrs and how many are adrift at once; comets come more often by the
+// square root of it, as each crosses a longer field.
 
 import { type Torus, across, wrap } from "../torus";
 import {
+  BURRS_AT_ONCE,
   FIELD_SHORT_SIDE,
   LAST_FEW,
   PICKUPS_AT_ONCE,
@@ -25,6 +26,9 @@ export interface Fill {
   /** How many pickups may float before chance lets no more go. */
   readonly pickupsAtOnce: number;
   readonly strays: number;
+  readonly burrs: number;
+  /** How many burrs may be adrift at once. */
+  readonly burrsAtOnce: number;
   /** The time from one comet to the next, in milliseconds, or null for a wave without comets. */
   readonly cometEvery: Span | null;
 }
@@ -32,7 +36,8 @@ export interface Fill {
 /**
  * Describes what of the field a stretch moves: its size, and every place on
  * it, the ship's, the line in tow's, the shots', the rocks', the pickups',
- * the sparks', the stray's, the crew knocked loose's and the comets'.
+ * the sparks', the stray's, the crew knocked loose's, the comets' and the
+ * burrs'.
  */
 export interface StretchField {
   torus: Torus;
@@ -45,6 +50,7 @@ export interface StretchField {
   readonly strays: { readonly adrift: Stretched };
   readonly loose: readonly Stretched[];
   readonly comets: { readonly slots: readonly Stretched[] };
+  readonly burrs: { readonly slots: readonly StretchedBurr[] };
 }
 
 /** Describes a place on the field and where it was a step ago, which a stretch moves. */
@@ -53,6 +59,11 @@ interface Stretched {
   y: number;
   lastX: number;
   lastY: number;
+}
+
+/** Describes a burr's place, and whether it wraps or comes in still, which a stretch moves as either. */
+interface StretchedBurr extends Stretched {
+  readonly wraps: boolean;
 }
 
 /** The area a wave's counts are written for, a field of 40 by 40. */
@@ -84,6 +95,8 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
     lastFew: lastFewOn(torus),
     pickupsAtOnce: grown(PICKUPS_AT_ONCE, share),
     strays: grown(wave.strays, share),
+    burrs: grown(wave.burrs, share),
+    burrsAtOnce: grown(BURRS_AT_ONCE, share),
     cometEvery: every && {
       least: every.least / sooner,
       most: every.most / sooner,
@@ -103,9 +116,9 @@ export function lastFewOn(torus: Torus): number {
 /**
  * Stretches a field to a new shape, as a pause lets the room change: every
  * place on it moves to the same share of the way across and down, but the
- * line in tow, which moves with the ship and keeps its shape, a stray or a
- * comet off the field keeping as far off it, nothing is added or taken
- * away, and nothing's speed changes.
+ * line in tow, which moves with the ship and keeps its shape, a stray, a
+ * comet or a burr off the field keeping as far off it, nothing is added or
+ * taken away, and nothing's speed changes.
  *
  * The mouse's aim the ship holds is left as it is, as the view keeps the
  * place the mouse last pointed at through a stretch, so a still mouse
@@ -127,6 +140,7 @@ export function stretchField(field: StretchField, torus: Torus): void {
     ...field.pickups,
     ...field.sparks,
     ...field.loose,
+    ...field.burrs.slots.filter((burr) => burr.wraps),
   ];
   for (const place of wrapping) {
     stretch(place, from, torus);
@@ -138,10 +152,14 @@ export function stretchField(field: StretchField, torus: Torus): void {
   if (ship && was) {
     for (const link of field.tow) keepBehind(link, was, ship, from, torus);
   }
-  // A stray and a comet cross without wrapping, from off the field.
-  for (const place of [field.strays.adrift, ...field.comets.slots]) {
-    stretch(place, from, torus);
-  }
+  // A stray, a comet and a burr coming in cross without wrapping, from off
+  // the field.
+  const crossing = [
+    field.strays.adrift,
+    ...field.comets.slots,
+    ...field.burrs.slots.filter((burr) => !burr.wraps),
+  ];
+  for (const place of crossing) stretch(place, from, torus);
   field.torus = torus;
 }
 

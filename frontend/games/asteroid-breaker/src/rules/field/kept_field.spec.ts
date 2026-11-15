@@ -1,4 +1,9 @@
-import { placeSpark, shipOf, stepTimes } from "../../testing/field_picture";
+import {
+  placeBurr,
+  placeSpark,
+  shipOf,
+  stepTimes,
+} from "../../testing/field_picture";
 import {
   type Spoil,
   UNDER_WAY_TORUS as TORUS,
@@ -57,6 +62,9 @@ const SO_FAR: WaveSoFar = { points: 300, straysHome: 0 };
 /** The strays the specs' wave sends at the size its field is laid out at. */
 const WAVE_STRAYS = fillFor(waveOf(runUnderWay()), TORUS).strays;
 
+/** The burrs the specs' wave sends at the size its field is laid out at. */
+const WAVE_BURRS = fillFor(waveOf(runUnderWay()), TORUS).burrs;
+
 /**
  * The steps a volatile's blast waits after it breaks: the most a fuse kept
  * may have left.
@@ -101,6 +109,9 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["strays sent that aren't a count", { straysSent: 0.5 }],
   ["a next stray's step that isn't a count", { nextStrayAt: -1 }],
   ["a next comet's step that isn't a count", { nextCometAt: -1 }],
+  ["burrs sent that aren't a count", { burrsSent: 0.5 }],
+  ["no burrs sent", { burrsSent: undefined }],
+  ["a next burr's step that isn't a count", { nextBurrAt: -1 }],
   ["a pickup let go at a step that isn't a count", { lastDropAt: -1 }],
   ["static's points that aren't a count", { staticPoints: -1 }],
   ["rocks' points that aren't a count", { rockPoints: 0.5 }],
@@ -147,6 +158,7 @@ const SPARK_SPOILS: readonly Spoil<Partial<SavedField>>[] = [
 const WAVE_FIT_SPOILS: readonly Spoil<Partial<SavedField>>[] = [
   ["no rocks", { rocks: [] }],
   ["more strays sent than its wave sends", { straysSent: WAVE_STRAYS + 1 }],
+  ["more burrs sent than its wave sends", { burrsSent: WAVE_BURRS + 1 }],
   [
     "more rocks than its wave holds at the size it was laid out at",
     { rocks: [...fullRocks(), firstRock()] },
@@ -362,6 +374,8 @@ describe("savedField", () => {
       lifelineSent: field.strays.lifelineSent,
       nextStrayAt: field.strays.nextAt,
       nextCometAt: field.comets.nextAt,
+      burrsSent: field.burrs.sent,
+      nextBurrAt: field.burrs.nextAt,
       lastDropAt: field.lastDropAt,
       staticPoints: field.staticPoints,
       rockPoints: field.rockPoints,
@@ -581,6 +595,12 @@ describe("fitsItsWave", () => {
     expect(fitsItsWave(field, waveOf(runUnderWay()))).toBe(true);
   });
 
+  it("fits a field that has sent every burr its wave sends", () => {
+    const field = { ...kept(), burrsSent: WAVE_BURRS };
+
+    expect(fitsItsWave(field, waveOf(runUnderWay()))).toBe(true);
+  });
+
   it.each(WAVE_FIT_SPOILS)("fails a field of %s", (_, change) => {
     const field = { ...kept(), ...change };
 
@@ -716,6 +736,8 @@ describe("layOutKeptField", () => {
       lifelineSent: !kept().lifelineSent,
       nextStrayAt: 600,
       nextCometAt: 900,
+      burrsSent: 1,
+      nextBurrAt: 1200,
       lastDropAt: 60,
       staticPoints: 80,
       rockPoints: 100,
@@ -747,6 +769,21 @@ describe("layOutKeptField", () => {
       slots: before.rocks.length,
       torus: SQUARE,
     });
+  });
+
+  it("keeps no burr of the field kept, adrift or clinging, the burrs sent counted as sent", () => {
+    const before = playedField(runUnderWay());
+    before.burrs.sent = 1;
+    placeBurr(before, 10, 10);
+    shipOf(before).burrs = 2;
+
+    const field = layOut(keptOf(before));
+
+    expect([
+      field.burrs.slots.some((burr) => burr.live),
+      shipOf(field).burrs,
+      field.burrs.sent,
+    ]).toEqual([false, 0, 1]);
   });
 
   it("keeps no spark of the field kept, as a saved run keeps none", () => {

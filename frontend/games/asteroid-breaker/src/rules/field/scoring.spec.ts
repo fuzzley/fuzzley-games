@@ -12,6 +12,7 @@ import { pointsFor } from "../catalog/rocks";
 import { type Blow, type Rock, hitRock } from "../rocks/rocks";
 import type { Crew, Pilot } from "../ship/pilots";
 import {
+  BURR_POINTS,
   CLEAN_POINTS,
   CLEAR_POINTS,
   MOST_CREW,
@@ -21,7 +22,13 @@ import {
   STRAY_POINTS,
 } from "../tuning";
 import { type Field, stepField } from "./field";
-import { clearingPoints, scoreSpark, scoreStray, tallyOf } from "./scoring";
+import {
+  clearingPoints,
+  scoreBurr,
+  scoreSpark,
+  scoreStray,
+  tallyOf,
+} from "./scoring";
 
 /** A small stone's points. */
 const SMALL = pointsFor("stone", "small");
@@ -242,6 +249,42 @@ describe("a run over", () => {
     stepField(field);
 
     expect([field.cleared, field.score]).toEqual([true, 0]);
+  });
+});
+
+describe("scoreBurr", () => {
+  it("scores a burr popped its points times static's multiplier, its own among the rocks', logged at its place", () => {
+    const field = fieldFrom(SHIP_PICTURE, { charge: FIRST_STEP.from });
+
+    scoreBurr(field, 10, 12);
+
+    expect({
+      score: field.score,
+      rocks: field.rockPoints,
+      added: field.staticPoints,
+      logged: loggedOn(field),
+    }).toEqual({
+      score: BURR_POINTS * FIRST_STEP.times,
+      rocks: BURR_POINTS,
+      added: BURR_POINTS * (FIRST_STEP.times - 1),
+      logged: [
+        expect.objectContaining({
+          kind: "scored",
+          x: 10,
+          y: 12,
+          points: BURR_POINTS,
+          times: FIRST_STEP.times,
+        }),
+      ],
+    });
+  });
+
+  it("scores nothing once the run is over", () => {
+    const field = fieldFrom(SHIP_PICTURE, { crew: crewOf(null) });
+
+    scoreBurr(field, 10, 12);
+
+    expect([field.score, field.rockPoints]).toEqual([0, 0]);
   });
 });
 

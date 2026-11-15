@@ -1,9 +1,10 @@
 import type { PickupId } from "../rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../rules/catalog/rocks";
-import type { WeaponId } from "../rules/catalog/weapons";
+import { WEAPONS, type WeaponId } from "../rules/catalog/weapons";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
 import { type Field, createField, stepField } from "../rules/field/field";
 import { lastFewOn } from "../rules/field/fill";
+import type { Burr } from "../rules/hazards/burrs";
 import type { Comet } from "../rules/hazards/comets";
 import type { Loose } from "../rules/hazards/loose";
 import type { Stray } from "../rules/hazards/strays";
@@ -17,6 +18,7 @@ import { layTow } from "../rules/ship/tow";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
 import {
+  BURRS_AT_ONCE,
   LOOSE_SWELL_MS,
   PICKUPS_AT_ONCE,
   PICKUP_LIFE_MS,
@@ -64,6 +66,13 @@ export interface PictureOptions {
   readonly strayFirstMs?: number;
   /** The time between its comets, none by default. */
   readonly cometEvery?: Span | null;
+  /** How many burrs it sends, none by default. */
+  readonly burrs?: number;
+  /**
+   * How many burrs may be adrift at once, {@link BURRS_AT_ONCE} by default,
+   * as on a field of 40 by 40.
+   */
+  readonly burrsAtOnce?: number;
   /** The crew it starts with, a run's first by default. */
   readonly crew?: Crew;
   /** The pilot's static it starts with, none by default. */
@@ -124,6 +133,8 @@ export function fieldFrom(
     strays: options.strays ?? 0,
     strayFirstMs: options.strayFirstMs ?? STRAY_FIRST_MS,
     cometEvery: options.cometEvery ?? null,
+    burrs: options.burrs ?? 0,
+    burrsAtOnce: options.burrsAtOnce ?? BURRS_AT_ONCE,
     crew: options.crew ?? createCrew(),
     charge: options.charge ?? 0,
     sparkReach: options.sparkReach ?? 1,
@@ -171,7 +182,7 @@ export function placeRock(
 /**
  * Puts a shot of a weapon in flight on a field, in its first free slot, at
  * a place, heading a way, in radians, at a shot's speed, with a shot's life
- * ahead of it.
+ * ahead of it and as many rocks to break as its weapon's shots break.
  */
 export function placeShot(
   field: Field,
@@ -191,6 +202,7 @@ export function placeShot(
     vy: Math.sin(heading) * SHOT_SPEED,
     weapon,
     lifeSteps: stepsIn(SHOT_LIFE_MS),
+    breaksLeft: WEAPONS[weapon].breaks,
   });
   return shot;
 }
@@ -328,6 +340,30 @@ export function placeComet(
   comet.smashes = 0;
   comet.pass = "spent";
   return comet;
+}
+
+/**
+ * Puts a burr adrift on a field at a place, heading a way, wrapping as one
+ * wholly on the field does, unless told it is still coming in, and returns
+ * it, failing the spec if no slot is free.
+ */
+export function placeBurr(
+  field: Field,
+  x: number,
+  y: number,
+  heading = 0,
+  wraps = true,
+): Burr {
+  const burr = field.burrs.slots.find((each) => !each.live);
+  if (!burr) throw new Error("No slot was free for the burr.");
+  burr.live = true;
+  burr.x = x;
+  burr.y = y;
+  burr.heading = heading;
+  burr.lastX = x;
+  burr.lastY = y;
+  burr.wraps = wraps;
+  return burr;
 }
 
 /** Returns the field's floating pickups, in their records' order. */

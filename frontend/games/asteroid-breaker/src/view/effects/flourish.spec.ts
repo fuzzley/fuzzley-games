@@ -80,6 +80,7 @@ function reaching(kind: FieldEventKind, reach: number): FieldEvent {
     slot: -1,
     wayX: 0,
     wayY: 0,
+    burrs: 0,
   };
 }
 

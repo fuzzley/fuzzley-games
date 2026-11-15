@@ -60,6 +60,8 @@ export interface WaveData {
   readonly pickups?: readonly string[];
   /** How many strays cross it; one from wave 3 by default. */
   readonly strays?: number;
+  /** How many burrs it sends; none by default. */
+  readonly burrs?: number;
   /** How often comets come; none come by default. */
   readonly comets?: CometsData;
 }
@@ -103,6 +105,8 @@ export interface Wave {
   readonly pool: readonly PickupId[];
   /** How many strays cross it, for a field of 40 by 40. */
   readonly strays: number;
+  /** How many burrs it sends, for a field of 40 by 40. */
+  readonly burrs: number;
   /** The time from one comet to the next, in milliseconds, or null for a wave without comets. */
   readonly cometEvery: Span | null;
 }
@@ -174,6 +178,7 @@ const WAVE_KEYS: Readonly<Record<keyof WaveData, true>> = {
   drops: true,
   pickups: true,
   strays: true,
+  burrs: true,
   comets: true,
 };
 
@@ -220,6 +225,10 @@ export function parseWave({ number, sector, data }: WaveEntry): Wave {
   if (!isCount(strays)) {
     throw wrong(data, `it sends ${String(strays)} strays, which is no count`);
   }
+  const burrs = data.burrs ?? 0;
+  if (!isCount(burrs)) {
+    throw wrong(data, `it sends ${String(burrs)} burrs, which is no count`);
+  }
   return {
     rocks,
     formation: formationOf(data),
@@ -228,6 +237,7 @@ export function parseWave({ number, sector, data }: WaveEntry): Wave {
     drops,
     pool: poolOf(data, number),
     strays,
+    burrs,
     cometEvery: cometsOf(data),
   };
 }

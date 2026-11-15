@@ -93,6 +93,23 @@ export type ZapEventKind =
   /** A zap's arc leapt from the pod to a rock, which takes a hit. */
   | "arced";
 
+/** Names something that happened to a burr, which its event says. */
+export type BurrEventKind =
+  /** A burr came in at an edge. */
+  | "burred"
+  /** A burr touched the ship and clung to it, at the ship. */
+  | "clung"
+  /**
+   * A shot popped a burr, or one touched a ship that held the most already,
+   * where it was.
+   */
+  | "popped"
+  /**
+   * A dash shook off every burr clinging to the ship, each popping as it
+   * flew off, at the ship.
+   */
+  | "shaken";
+
 /** Describes a rock as its events record it, as the rocks' slots hold it. */
 export interface LoggedRock {
   readonly x: number;
@@ -112,7 +129,8 @@ export type FieldEventKind =
   | ScoreEventKind
   | SparkEventKind
   | StaticEventKind
-  | ZapEventKind;
+  | ZapEventKind
+  | BurrEventKind;
 
 /** Records something that happened on the field, and where. */
 export interface FieldEvent extends NumberedEvent {
@@ -158,6 +176,11 @@ export interface FieldEvent extends NumberedEvent {
   /** Whether static fell to its step rather than rising to it; false for any other event. */
   fell: boolean;
   /**
+   * How many burrs cling to the ship as one clings, or how many a dash
+   * shook off; 0 for any other event.
+   */
+  burrs: number;
+  /**
    * The slot of the rock it happened to, where a hit it holds flashes, or −1
    * for an event of no rock.
    */
@@ -165,9 +188,9 @@ export interface FieldEvent extends NumberedEvent {
   /**
    * The way it went, a share along each axis: the blow that broke a rock,
    * for the field's kick, the one that knocked one of the crew loose, the
-   * ship as it dashed or zapped, for its trail, the way to what passed near
-   * the pod, or an arc's from the pod; 0 along both for a blow that came no
-   * way, and for any other event.
+   * ship as it dashed or zapped, for its trail, or shook burrs off, the way
+   * to what passed near the pod, or an arc's from the pod; 0 along both for
+   * a blow that came no way, and for any other event.
    */
   wayX: number;
   wayY: number;
@@ -199,6 +222,7 @@ const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
   reach: 0,
   step: 0,
   fell: false,
+  burrs: 0,
   slot: -1,
   wayX: 0,
   wayY: 0,
@@ -368,6 +392,24 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     setWay(this.record("grazed", x, y), alongX, alongY);
   }
 
+  /** Records a burr coming in at an edge, or popped, at its place. */
+  addBurr(kind: "burred" | "popped", x: number, y: number): void {
+    this.record(kind, x, y);
+  }
+
+  /** Records a burr clinging to the ship, at the ship, and how many cling to it now. */
+  addClung(x: number, y: number, burrs: number): void {
+    this.record("clung", x, y).burrs = burrs;
+  }
+
+  /**
+   * Records a dash shaking off the burrs clinging to the ship, at the ship,
+   * how many, and the way it heads, in radians.
+   */
+  addShaken(x: number, y: number, heading: number, burrs: number): void {
+    this.recordHeading("shaken", x, y, heading).burrs = burrs;
+  }
+
   /**
    * Returns the next record for an event of a pilot, its kind, place and
    * pilot, how many ride in tow and whether the run is over filled in.
@@ -386,16 +428,20 @@ export class FieldEventLog extends EventLog<FieldEvent> {
     return event;
   }
 
-  /** Records an event at a place, the way it heads, in radians, as a share along each axis. */
+  /**
+   * Returns the next record for an event at a place, the way it heads, in
+   * radians, as a share along each axis, filled in.
+   */
   private recordHeading(
-    kind: "dashed" | "zapped",
+    kind: "dashed" | "zapped" | "shaken",
     x: number,
     y: number,
     heading: number,
-  ): void {
+  ): FieldEvent {
     const event = this.record(kind, x, y);
     event.wayX = Math.cos(heading);
     event.wayY = Math.sin(heading);
+    return event;
   }
 
   /**

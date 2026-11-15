@@ -1,7 +1,7 @@
-// The sparks a broken rock sheds, in slots made once: each flies a little
-// way out from the rock and hangs there a while, until it blinks out or the
-// ship draws it in and the pod, or a bubble in tow, gathers it, which scores
-// it and builds static.
+// The sparks a broken rock sheds, and a burr popped, in slots made once:
+// each flies a little way out from where it was shed and hangs there a
+// while, until it blinks out or the ship draws it in and the pod, or a
+// bubble in tow, gathers it, which scores it and builds static.
 
 import { TURN } from "../angles";
 import { rockKind } from "../catalog/rocks";
@@ -101,22 +101,34 @@ export function sparksShedBy(
 
 /**
  * Sheds a broken rock's sparks from its place, spread around it from the way
- * it faces, each to fly a way of its own out, from the least flight to the
- * most, into a free slot or else the oldest spark's.
+ * it faces, as {@link shedSparksFrom} sheds them.
  */
 export function shedSparks(field: ShedField, rock: Readonly<Rock>): void {
-  const count = sparksShedBy(rock);
+  shedSparksFrom(field, rock, rock.angle, sparksShedBy(rock));
+}
+
+/**
+ * Sheds sparks from a place, spread evenly around it from a way, each to
+ * fly a way of its own out, from the least flight to the most, into a free
+ * slot or else the oldest spark's.
+ */
+export function shedSparksFrom(
+  field: ShedField,
+  from: Readonly<Place>,
+  angle: number,
+  count: number,
+): void {
   const flightS = stepsIn(SPARK_FLIGHT_MS) * STEP_S;
   const { least, most } = SPARK_FLIGHT;
   for (let n = 0; n < count; n++) {
     const spark = slotFor(field.sparks);
-    const heading = rock.angle + (n * TURN) / count;
+    const heading = angle + (n * TURN) / count;
     const out = least + (most - least) * ((n * FLIGHT_SHARE_STEP) % 1);
     spark.live = true;
-    spark.x = rock.x;
-    spark.y = rock.y;
-    spark.lastX = rock.x;
-    spark.lastY = rock.y;
+    spark.x = from.x;
+    spark.y = from.y;
+    spark.lastX = from.x;
+    spark.lastY = from.y;
     spark.wayX = (Math.cos(heading) * out) / flightS;
     spark.wayY = (Math.sin(heading) * out) / flightS;
     spark.shedAt = field.steps;

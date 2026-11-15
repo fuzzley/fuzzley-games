@@ -1,6 +1,7 @@
 import {
   KEEPER,
   fieldFrom,
+  placeBurr,
   placeComet,
   placePickup,
   placeRock,
@@ -13,6 +14,7 @@ import { STILL, type Ship, type Steer, createShip } from "../ship/ship";
 import { type TowLink, layTow } from "../ship/tow";
 import { type Torus, across } from "../torus";
 import {
+  BURRS_AT_ONCE,
   COMET_MARGIN,
   LAST_FEW,
   PICKUPS_AT_ONCE,
@@ -24,7 +26,7 @@ import type { Wave } from "../waves/waves";
 import { type Field, steerField, stepField } from "./field";
 import { type Fill, areaShare, fillFor, lastFewOn, stretchField } from "./fill";
 
-/** A wave of three large stones and a medium ice, a stray and comets every 9 to 12 s, as written. */
+/** A wave of three large stones and a medium ice, a stray, a burr and comets every 9 to 12 s, as written. */
 const WAVE: Wave = {
   rocks: [
     { kind: "stone", size: "large", count: 3 },
@@ -37,6 +39,7 @@ const WAVE: Wave = {
   pool: [],
   strays: 1,
   cometEvery: { least: 9000, most: 12_000 },
+  burrs: 1,
 };
 
 /** A desktop's field, 73 by 40. */
@@ -88,6 +91,8 @@ describe("fillFor", () => {
       pickupsAtOnce: PICKUPS_AT_ONCE,
       strays: 1,
       cometEvery: WAVE.cometEvery,
+      burrs: 1,
+      burrsAtOnce: BURRS_AT_ONCE,
     });
   });
 
@@ -99,7 +104,9 @@ describe("fillFor", () => {
       fill.lastFew,
       fill.pickupsAtOnce,
       fill.strays,
-    ]).toEqual([[5, 2], 5, 4, 2]);
+      fill.burrs,
+      fill.burrsAtOnce,
+    ]).toEqual([[5, 2], 5, 4, 2, 2, 4]);
   });
 
   it("caps the widest field at 105 rocks", () => {
@@ -154,6 +161,7 @@ describe("stretchField", () => {
     placePickup(field, "spread", 18, 32);
     placeStray(field, 36, 4);
     placeComet(field, 6, 20);
+    placeBurr(field, 60, 12);
     const [shot] = field.shots.slots;
     if (shot) Object.assign(shot, { x: 9, y: 36, lastX: 8, lastY: 35 });
     return field;
@@ -167,6 +175,7 @@ describe("stretchField", () => {
     const [rock] = field.rocks;
     const [pickup] = field.pickups;
     const [comet] = field.comets.slots;
+    const [burr] = field.burrs.slots;
     const [shot] = field.shots.slots;
     expect([
       [field.ship?.x, field.ship?.y, field.ship?.lastX, field.ship?.lastY],
@@ -174,6 +183,7 @@ describe("stretchField", () => {
       [pickup?.x, pickup?.y],
       [field.strays.adrift.x, field.strays.adrift.y],
       [comet?.x, comet?.y],
+      [burr?.x, burr?.y],
       [shot?.x, shot?.y, shot?.lastX, shot?.lastY],
     ]).toEqual([
       [19, 20, 15, 16],
@@ -181,6 +191,7 @@ describe("stretchField", () => {
       [9, 64],
       [18, 8],
       [3, 40],
+      [30, 24],
       [4.5, 72, 4, 70],
     ]);
   });
@@ -235,20 +246,23 @@ describe("stretchField", () => {
     ]);
   });
 
-  it("keeps a stray or a comet off the field as far off it, beyond either edge", () => {
+  it("keeps a stray, a comet or a burr coming in off the field as far off it, beyond either edge", () => {
     const field = fieldFrom([], { torus: { width: 40, height: 40 } });
     const stray = placeStray(field, -1, 10);
     Object.assign(stray, { lastX: -1.5, lastY: 10 });
     const comet = placeComet(field, 43, 50);
+    const burr = placeBurr(field, 40.5, 20, TURN / 2, false);
 
     stretchField(field, { width: 54, height: 60 });
 
     expect([
       [stray.x, stray.y, stray.lastX, stray.lastY],
       [comet.x, comet.y],
+      [burr.x, burr.y],
     ]).toEqual([
       [-1, 15, -1.5, 15],
       [57, 70],
+      [54.5, 30],
     ]);
   });
 

@@ -104,6 +104,10 @@ describe("parseWave", () => {
     ]).toEqual([3, 0]);
   });
 
+  it("sends no burrs, or as many as it says", () => {
+    expect([parsed().burrs, parsed({ burrs: 3 }).burrs]).toEqual([0, 3]);
+  });
+
   it("sends no comets, or one every time it says, in milliseconds", () => {
     expect([
       parsed().cometEvery,
@@ -192,6 +196,12 @@ describe("parseWave", () => {
       { strays: -1 },
       "it sends -1 strays, which is no count",
     ],
+    [
+      "burrs that aren't whole",
+      { burrs: 1.5 },
+      "it sends 1.5 burrs, which is no count",
+    ],
+    ["burrs below none", { burrs: -1 }, "it sends -1 burrs, which is no count"],
     [
       "comets' time that runs backward",
       { comets: { every: [12, 9] } },

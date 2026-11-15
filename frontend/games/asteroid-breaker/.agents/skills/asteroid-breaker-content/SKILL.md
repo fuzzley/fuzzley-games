@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-content
-description: What adding to Asteroid Breaker takes — a wave, a sector, a formation, a rock kind or trait, a pickup or its effect, a weapon, or a change to Endless — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: asteroid breaker wave, new wave, wave design, sector, Endless, endlessWave, formation, ring, wall, cluster, scatter, rock kind, rock trait, pickup, power-up, effect, weapon, ROCK_KINDS, PICKUPS, WEAPONS, TRAIT_RULES, EFFECT_RULES, FORMATIONS, LAYOUTS, pace, drops, strays, comets, report:waves, frontend/games/asteroid-breaker waves.
+description: What adding to Asteroid Breaker takes — a wave, a sector, a formation, a rock kind or trait, a pickup or its effect, a weapon, or a change to Endless — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: asteroid breaker wave, new wave, wave design, sector, Endless, endlessWave, formation, ring, wall, cluster, scatter, rock kind, rock trait, pickup, power-up, effect, weapon, ROCK_KINDS, PICKUPS, WEAPONS, TRAIT_RULES, EFFECT_RULES, FORMATIONS, LAYOUTS, pace, drops, strays, comets, burrs, report:waves, frontend/games/asteroid-breaker waves.
 ---
 
 # Adding to Asteroid Breaker
@@ -74,8 +74,10 @@ Its block in a sector's file, its keys those of `WaveData`
   if not one from wave 3, the first 4 seconds into its play on any field
   (a pilot left with no one in tow, and none knocked loose to catch again,
   is thrown one more at once, once a wave, whatever the wave says); `comets`, `{ "every": [least, most] }` in
-  seconds, for a wave that has them; `waveKind`, the rock its boulders
-  break into, if not stone.
+  seconds, for a wave that has them; `burrs`, how many burrs it sends, for
+  a wave that has them, none by default, grown with the field's area as
+  its rocks are (`src/rules/hazards/burrs.ts`); `waveKind`, the rock its
+  boulders break into, if not stone.
 
 A sector holds ten waves, its last its set piece alone, one boulder of a
 kind its own or two (`crumbling`, `ironclad`, `stormheart`), so a new wave
@@ -129,7 +131,7 @@ sectors:
 `src/rules/waves/endless.ts` makes each wave from the run's seed and its number,
 so a saved game makes its wave again from the two. Its climbs, its comets,
 its boulders, its strays and its buys are numbers at its top, each with
-what it does. A change there is checked by `endless.spec.ts`, then
+what it does; it sends no burrs. A change there is checked by `endless.spec.ts`, then
 `yarn report:waves --endless` on each field, which fails only on a play
 that didn't clear in time with nothing able to take the ship: Endless is
 held to being fair, not to what it costs.
