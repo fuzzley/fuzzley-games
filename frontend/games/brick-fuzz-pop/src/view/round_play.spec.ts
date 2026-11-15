@@ -7,9 +7,20 @@ import {
   type Waypoint,
   positionAt,
 } from "../rules/flight/events";
-import { fly } from "../rules/flight/flight";
-import { RULES, flightRulesOf, flightStartOf } from "../rules/round/round";
-import { JUMP_POINTS, RADIUS } from "../rules/tuning";
+import {
+  RULES,
+  type Round,
+  type RoundStart,
+  playRound,
+} from "../rules/round/round";
+import type { Shot } from "../rules/shot";
+import {
+  AIMS_PER_DEGREE,
+  FIRST_AIM_DEGREES,
+  JUMP_POINTS,
+  LAUNCH_GAP,
+  RADIUS,
+} from "../rules/tuning";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
@@ -843,15 +854,135 @@ describe("RoundPlay's flight", () => {
   });
 });
 
-/** Returns a fixture whose round is flown again by the rules, dropped at a moment. */
-function droppedAt(fixture: FlightFixture, at: number): FlightFixture {
-  const { flight } = fly(
-    flightStartOf(fixture.start, fixture.shot),
-    flightRulesOf(RULES),
-    { stop: "drop", at },
-  );
-  return { ...fixture, round: { ...fixture.round, flight } };
+/** Returns a fixture of the round the rules play from a start at a shot, the level's boon a hot shot. */
+function ruled(start: RoundStart, shot: Shot): FlightFixture {
+  return {
+    start,
+    shot,
+    levelBoon: "hot",
+    round: playRound(start, shot, "hot"),
+  };
 }
+
+/** Returns a fixture whose round the rules play again from its start at its shot, dropped at a moment. */
+function droppedAt(fixture: FlightFixture, at: number): FlightFixture {
+  const { start, shot, levelBoon } = fixture;
+  const round = playRound(start, shot, levelBoon, RULES, { stop: "drop", at });
+  return { ...fixture, round };
+}
+
+/** Hands a level's play its round dropped at the moment it has reached, the fixture's played again, and returns it. */
+function dropNow(play: RoundPlay, fixture: FlightFixture): FlightFixture {
+  const dropped = droppedAt(fixture, play.moment);
+  play.dropTo(dropped.round);
+  return dropped;
+}
+
+/** Returns the moment of a flight's first event of a kind. */
+function firstAt(fixture: FlightFixture, kind: FlightEvent["kind"]): number {
+  const event = fixture.round.flight.events.find((each) => each.kind === kind);
+  if (event === undefined) throw new Error(`No ${kind} in the flight.`);
+  return event.at;
+}
+
+/**
+ * A frame that plays a flight a unit a millisecond, long flights not sped
+ * up, so a frame from a flight's start plays it to as many units as it
+ * lasts milliseconds, exactly.
+ */
+const UNIT_A_MS: PlayOptions = options({
+  pace: { ...FLIGHT_PACE, unitsPerSecond: { normal: 1000, fast: 1000 } },
+  speedUp: false,
+});
+
+/** Returns a level's play with a fixture's round released and played in one frame to a moment, exactly. */
+function playingTo(fixture: FlightFixture, at: number): RoundPlay {
+  const play = playing(fixture);
+  play.advance(at, UNIT_A_MS);
+  return play;
+}
+
+/** Plays frames until the round's wall comes to rest, and returns the round the frame says came to rest. */
+function playUntilRest(play: RoundPlay): Round {
+  for (let played = FRAME_MS; played < 600_000; played += FRAME_MS) {
+    const { settled } = play.advance(FRAME_MS, NORMAL);
+    if (settled !== null) return settled;
+  }
+  throw new Error("The wall never came to rest.");
+}
+
+/**
+ * Where a round of five fuzzballs starts: a triple shot with friends in the
+ * third and sixth inks behind it, under a wall with a row zapper in its
+ * fifth row and a column zapper in its lowest.
+ */
+const FIVE_START: RoundStart = {
+  wall: wallFrom(
+    [
+      "ooooooooo",
+      "o-ooooo2o",
+      "2o2o2o2o2",
+      ".........",
+      ".......2.",
+      "o..|....o",
+    ],
+    { lowestRow: 5 },
+  ),
+  depth: 11,
+  x: 4.5,
+  crew: { friends: [2, 5] },
+  boon: "triple",
+};
+
+/**
+ * The rules' round of five fuzzballs at 100°: the player's breaks the
+ * column zapper at about 4.57, whose zap lands half a unit later, and all
+ * five are in the air from 2.8 until a mate lands at about 20. Dropped at
+ * 4.8, the zap lands among the five coming down, and the round steps.
+ */
+const ZAPPED: FlightFixture = ruled(FIVE_START, {
+  aim: (100 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE,
+  charge: 2,
+});
+
+/**
+ * The rules' round of five fuzzballs at 45°, which jumps: the player's
+ * lands at about 15.6, the others in the air until about 33.2. Dropped at
+ * 16.8, the round steps.
+ */
+const JUMPING: FlightFixture = ruled(FIVE_START, {
+  aim: (45 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE,
+  charge: 2,
+});
+
+/**
+ * The rules' round of five fuzzballs at 36.5° under a wall whose fifth row
+ * is tough bricks of 4 hits between two row zappers: the player's wears
+ * the brick in cell 38 to 3 hits at about 14.3, and a mate breaks the
+ * zapper beside it at about 15, whose zap lands half a unit later. Dropped
+ * at 15.2, that zap wears the brick to 1 and breaks the other zapper, whose
+ * zap breaks the brick half a unit later still.
+ */
+const WORN: FlightFixture = ruled(
+  {
+    ...FIVE_START,
+    wall: wallFrom(
+      [
+        "ooooooooo",
+        "4-44444-4",
+        "2o2o2o2o2",
+        ".........",
+        ".......2.",
+        "o..|....o",
+      ],
+      { lowestRow: 5 },
+    ),
+  },
+  { aim: (36.5 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE, charge: 2 },
+);
+
+/** The rules' round of the bored fixture, some 182 units long: 13 seconds at Normal. */
+const BORED: FlightFixture = ruled(bored.start, bored.shot);
 
 describe("RoundPlay, a round dropped", () => {
   // The triple shot dropped at 1, the player's fuzzball and the first mate
@@ -891,6 +1022,399 @@ describe("RoundPlay, a round dropped", () => {
       "land",
       "land",
     ]);
+  });
+});
+
+describe("RoundPlay's moment", () => {
+  it("is the moment its flight has played to", () => {
+    const play = playingTo(plain, 6);
+
+    expect(play.moment).toBe(6);
+  });
+
+  it("is its flight's length once it has landed", () => {
+    const play = playing(plain);
+
+    playUntilLanded(play);
+
+    expect(play.moment).toBe(plain.round.flight.length);
+  });
+
+  it("is 0 once the next round is aimed", () => {
+    const play = playing(plain);
+    playUntilSettled(play);
+
+    play.aim(plain.round.next);
+
+    expect(play.moment).toBe(0);
+  });
+});
+
+describe("RoundPlay's droppable", () => {
+  it.each<[boolean, string, () => RoundPlay]>([
+    [false, "while a round is aimed", () => new RoundPlay(ZAPPED.start)],
+    [true, "while its flight plays", () => playingTo(ZAPPED, 4.8)],
+    [
+      false,
+      "once its flight is dropped",
+      () => {
+        const play = playingTo(ZAPPED, 4.8);
+        dropNow(play, ZAPPED);
+        return play;
+      },
+    ],
+    [
+      false,
+      "once its flight has landed",
+      () => {
+        const play = playing(ZAPPED);
+        playUntilLanded(play);
+        return play;
+      },
+    ],
+    [
+      true,
+      "while the next round's flight plays, after a round dropped",
+      () => {
+        const play = playingTo(ZAPPED, 4.8);
+        dropNow(play, ZAPPED);
+        playUntilSettled(play);
+        play.aim(plain.start);
+        play.release(plain.round);
+        return play;
+      },
+    ],
+  ])("is %s %s", (droppable, _name, played) => {
+    const play = played();
+
+    expect(play.droppable).toBe(droppable);
+  });
+});
+
+describe("RoundPlay's drop", () => {
+  it("plays on with the events it played logged once, then the dropped flight's", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+
+    playUntilSettled(play);
+
+    expect(loggedEvents(play)).toEqual(dropped.round.flight.events);
+  });
+
+  it("brings each fuzzball in the air down after the events it played, and lands a zap set off before", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const reached = play.view.events.latest;
+    dropNow(play, ZAPPED);
+
+    playUntilSettled(play);
+
+    expect(
+      loggedEvents(play)
+        .slice(reached)
+        .map(({ kind }) => kind),
+    ).toEqual([
+      ...Array.from({ length: 5 }, () => "drop"),
+      "zap",
+      "break",
+      "break",
+      "break",
+      ...Array.from({ length: 5 }, () => "land"),
+    ]);
+  });
+
+  it("plays each event of the drop's moment once, for a drop at an event's", () => {
+    const play = playingTo(ZAPPED, firstAt(ZAPPED, "break"));
+    const dropped = dropNow(play, ZAPPED);
+
+    playUntilSettled(play);
+
+    expect(loggedEvents(play)).toEqual(dropped.round.flight.events);
+  });
+
+  it("places each fuzzball where it was as the drop comes", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    dropNow(play, ZAPPED);
+
+    play.advance(0, NORMAL);
+
+    expect(offTracks(play, ZAPPED, play.moment)).toBeLessThan(HAIR);
+  });
+
+  it("places each fuzzball along its dropped track as it comes down", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+
+    playOnBy(play, 1);
+
+    expect({
+      balls: play.view.balls.map(({ ball }) => ball),
+      onTrack: offTracks(play, dropped, play.moment) < HAIR,
+    }).toEqual({ balls: [0, 1, 2, 3, 4], onTrack: true });
+  });
+
+  it("drops a fuzzball launched at the drop's moment where it leaves, never placing it in the air again", () => {
+    const play = playingTo(ZAPPED, LAUNCH_GAP);
+    dropNow(play, ZAPPED);
+
+    play.advance(FRAME_MS, NORMAL);
+
+    expect(play.view.balls.map(({ ball }) => ball)).toEqual([0]);
+  });
+
+  it("lands the player's fuzzball where it waits, for a drop before the first frame", () => {
+    const play = playing(ZAPPED);
+    dropNow(play, ZAPPED);
+
+    play.advance(FRAME_MS, NORMAL);
+
+    expect({
+      events: loggedEvents(play).map(({ kind }) => kind),
+      phase: play.phase,
+      waitingX: play.waitingX,
+    }).toEqual({
+      events: ["launch", "drop", "land"],
+      phase: "settling",
+      waitingX: ZAPPED.start.x,
+    });
+  });
+
+  it("hands on the dropped round as the round in play", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+
+    const dropped = dropNow(play, ZAPPED);
+
+    expect(play.round).toBe(dropped.round);
+  });
+
+  it("keeps the points it scored before the drop, and counts the dropped flight's after", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const before = play.scored;
+    const dropped = dropNow(play, ZAPPED);
+
+    playUntilLanded(play);
+
+    expect({ scoredBefore: before > 0, scored: play.scored }).toEqual({
+      scoredBefore: true,
+      scored: dropped.round.outcome.points,
+    });
+  });
+
+  it("hands over the same wall for a frame after the drop that changes no brick", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const shown = play.view.wall;
+    dropNow(play, ZAPPED);
+
+    play.advance(0, NORMAL);
+
+    expect(play.view.wall).toBe(shown);
+  });
+
+  it("takes a zap's hits off a brick struck before the drop from the hits the strike left it", () => {
+    const play = playing(WORN);
+    playOnBy(play, 15.2);
+    dropNow(play, WORN);
+
+    playOnBy(play, 0.5);
+
+    expect(play.view.wall.bricks[38]?.hits).toBe(1);
+  });
+
+  it("leaves the wall as the dropped round does as its flight ends", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+
+    playOnBy(play, dropped.round.flight.length - play.moment - HAIR);
+
+    expect(play.view.wall.bricks).toEqual(dropped.round.next.wall.bricks);
+  });
+
+  it("settles the wall the dropped round leaves", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+
+    const settled = playUntilRest(play);
+
+    expect(settled).toBe(dropped.round);
+    expect(play.view.wall).toBe(dropped.round.next.wall);
+  });
+
+  it("steps the wall a dropped round leaves where the whole round would have jumped", () => {
+    const play = playing(JUMPING);
+    playOnBy(play, 16.8);
+    dropNow(play, JUMPING);
+
+    playUntilSettled(play);
+
+    expect([JUMPING.round.outcome.jumped, loggedBeats(play)]).toEqual([
+      true,
+      ["step"],
+    ]);
+  });
+
+  it("has the player's fuzzball wait where it lands from the drop", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+
+    playUntilLanded(play);
+
+    expect(play.waitingX).toBe(dropped.round.next.x);
+  });
+
+  it("keeps the player's fuzzball waiting where it landed before the drop", () => {
+    const play = playing(JUMPING);
+    playOnBy(play, 16.8);
+
+    dropNow(play, JUMPING);
+
+    expect(play.waitingX).toBe(JUMPING.round.next.x);
+  });
+
+  it("lands a round dropped as its flight's last events come in the frame that reaches them", () => {
+    const play = playing(JUMPING);
+    playOnBy(play, JUMPING.round.flight.length - 0.2);
+    const dropped = dropNow(play, JUMPING);
+
+    play.advance(FRAME_MS, NORMAL);
+
+    expect({ phase: play.phase, events: loggedEvents(play) }).toEqual({
+      phase: "settling",
+      events: dropped.round.flight.events,
+    });
+  });
+
+  it("goes on speeding a long flight up as it was", () => {
+    const play = playing(BORED);
+    playMs(play, 9000);
+    const at = play.moment;
+    dropNow(play, BORED);
+
+    playMs(play, 100);
+
+    expect(play.moment - at).toBeCloseTo(2.8, 9);
+  });
+
+  it("lands a dropped flight at a skip, sounding its last landing alone", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const reached = play.view.events.latest;
+    const dropped = dropNow(play, ZAPPED);
+
+    play.skip();
+    play.advance(FRAME_MS, NORMAL);
+
+    expect({ phase: play.phase, sounds: loggedSounds(play, reached) }).toEqual({
+      phase: "settling",
+      sounds: [
+        ...Array.from(
+          { length: dropped.round.flight.events.length - reached - 1 },
+          () => null,
+        ),
+        "land",
+      ],
+    });
+  });
+
+  it("plays nothing of a round dropped while the run is paused", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const latest = play.view.events.latest;
+    dropNow(play, ZAPPED);
+
+    playMs(play, 1000, options({ paused: true }));
+
+    expect({
+      latest: play.view.events.latest,
+      inPlace: offTracks(play, ZAPPED, play.moment) < HAIR,
+    }).toEqual({ latest, inPlace: true });
+  });
+
+  it("brings a round dropped while the run is paused down as it goes on", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    playMs(play, 500, options({ paused: true }));
+    const dropped = dropNow(play, ZAPPED);
+    playMs(play, 500, options({ paused: true }));
+
+    playUntilSettled(play);
+
+    expect(loggedEvents(play)).toEqual(dropped.round.flight.events);
+  });
+
+  it("plays on a round dropped later than the moment it has reached", () => {
+    const play = playing(WORN);
+    playOnBy(play, 15.4);
+    const dropped = droppedAt(WORN, 15.6);
+    play.dropTo(dropped.round);
+
+    playUntilSettled(play);
+
+    expect(loggedEvents(play)).toEqual(dropped.round.flight.events);
+  });
+
+  it("wears a brick by a zap that lands between the moment it has reached and a later drop", () => {
+    const play = playing(WORN);
+    playOnBy(play, 15.4);
+    play.dropTo(droppedAt(WORN, 15.6).round);
+
+    playOnBy(play, 0.3);
+
+    expect(play.view.wall.bricks[38]?.hits).toBe(1);
+  });
+
+  it("plays a round dropped past its flight's end as the whole round", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    play.dropTo(droppedAt(ZAPPED, ZAPPED.round.flight.length + 1).round);
+
+    playUntilSettled(play);
+
+    expect({
+      events: loggedEvents(play),
+      wall: play.view.wall.bricks,
+    }).toEqual({
+      events: ZAPPED.round.flight.events,
+      wall: ZAPPED.round.next.wall.bricks,
+    });
+  });
+
+  it("does nothing for a second drop", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+    const dropped = dropNow(play, ZAPPED);
+    playOnBy(play, 0.7);
+
+    play.dropTo(droppedAt(ZAPPED, play.moment).round);
+    playUntilSettled(play);
+
+    expect(play.round).toBe(dropped.round);
+    expect(loggedEvents(play)).toEqual(dropped.round.flight.events);
+  });
+
+  it("does nothing once the flight has landed", () => {
+    const play = playing(ZAPPED);
+    playUntilLanded(play);
+
+    play.dropTo(droppedAt(ZAPPED, 4.8).round);
+
+    expect(play.round).toBe(ZAPPED.round);
+  });
+
+  it("does nothing while a round is aimed", () => {
+    const play = new RoundPlay(ZAPPED.start);
+
+    play.dropTo(droppedAt(ZAPPED, 4.8).round);
+
+    expect(play.round).toBeNull();
   });
 });
 
@@ -1145,6 +1669,19 @@ describe("RoundPlay's skip", () => {
     play.advance(FRAME_MS, NORMAL);
 
     expect(play.view.wall.bricks).toEqual(zap.round.next.wall.bricks);
+  });
+
+  it("lands a round the rules played whole", () => {
+    const play = playing(ZAPPED);
+    playOnBy(play, 4.8);
+
+    play.skip();
+    play.advance(FRAME_MS, NORMAL);
+
+    expect({ events: loggedEvents(play), wall: play.view.wall }).toEqual({
+      events: ZAPPED.round.flight.events,
+      wall: ZAPPED.round.next.wall,
+    });
   });
 
   it("waits out a pause", () => {
