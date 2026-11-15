@@ -12,9 +12,11 @@ import { RADIANS_PER_DEGREE } from "../angles";
 import { PICKUPS } from "../catalog/pickups";
 import { type Field, stepField } from "../field/field";
 import { knockLastLoose } from "./loose";
+import type { Crew } from "../ship/pilots";
 import { guardShip } from "../ship/ship";
 import { stepsIn } from "../stepper";
 import {
+  LOOSE_LIFE_MS,
   MOST_CREW,
   PICKUP_PULL_SPEED,
   STEP_S,
@@ -261,6 +263,174 @@ describe("a wave's strays", () => {
   });
 });
 
+describe("a lone pilot's lifeline", () => {
+  /** A crew with a pilot at the controls and no one in tow. */
+  const ALONE: Crew = { pilot: 3, tow: [], home: [0, 1], lastGiven: 1 };
+
+  it("comes at once to a pilot with no one in tow, beyond the wave's strays, logged", () => {
+    const field = fieldFrom(PICTURE, { strays: 1, crew: ALONE });
+
+    stepField(field);
+
+    const { adrift, sent, lifelineSent } = field.strays;
+    expect([
+      adrift.live,
+      adrift.pilot,
+      sent,
+      lifelineSent,
+      loggedOn(field).at(-1),
+    ]).toEqual([
+      true,
+      2,
+      0,
+      true,
+      expect.objectContaining({ kind: "strayed", pilot: 2 }),
+    ]);
+  });
+
+  it("comes in a wave that sends no strays", () => {
+    const field = fieldFrom(PICTURE, { strays: 0, crew: ALONE });
+
+    stepField(field);
+
+    expect(field.strays.adrift.live).toBe(true);
+  });
+
+  it("waits while one knocked loose can still be caught again", () => {
+    const field = fieldFrom(PICTURE, {
+      strays: 0,
+      crew: { ...ALONE, tow: [4] },
+    });
+    knockLastLoose(field, shipOf(field));
+
+    stepField(field);
+
+    expect(field.strays.lifelineSent).toBe(false);
+  });
+
+  it("comes once the last knocked loose has floated home", () => {
+    const field = fieldFrom(PICTURE, {
+      strays: 0,
+      crew: { ...ALONE, tow: [4] },
+    });
+    knockLastLoose(field, shipOf(field));
+
+    stepTimes(field, stepsIn(LOOSE_LIFE_MS + 1000));
+
+    expect([
+      field.loose.some((loose) => loose.live),
+      field.strays.lifelineSent,
+    ]).toEqual([false, true]);
+  });
+
+  it("comes before the wave's first stray when both are due", () => {
+    const field = fieldFrom(PICTURE, {
+      strays: 1,
+      strayFirstMs: 0,
+      crew: ALONE,
+    });
+
+    stepField(field);
+
+    expect([field.strays.sent, field.strays.lifelineSent]).toEqual([0, true]);
+  });
+
+  it("comes only once a wave", () => {
+    const field = fieldFrom(PICTURE, { strays: 0, crew: ALONE });
+    field.strays.lifelineSent = true;
+
+    stepField(field);
+
+    expect(field.strays.adrift.live).toBe(false);
+  });
+
+  it("waits while a stray is adrift, which the pilot can catch", () => {
+    const field = fieldFrom(PICTURE, { strays: 0, crew: ALONE });
+    placeStray(field, 10, 30);
+
+    stepField(field);
+
+    expect(field.strays.lifelineSent).toBe(false);
+  });
+
+  it.each([
+    [1, false],
+    [2, true],
+  ])(
+    "comes the step after a stray adrift has left, by step %d coming %s",
+    (steps, sent) => {
+      const field = fieldFrom(PICTURE, { strays: 0, crew: ALONE });
+      placeStray(field, WIDTH + STRAY_RADIUS, 30);
+
+      stepTimes(field, steps);
+
+      expect(field.strays.lifelineSent).toBe(sent);
+    },
+  );
+
+  it("comes to no pilot with someone in tow", () => {
+    const field = fieldFrom(PICTURE, { strays: 0 });
+
+    stepField(field);
+
+    expect(field.strays.adrift.live).toBe(false);
+  });
+
+  it("comes to no ship, the run over", () => {
+    const field = fieldFrom(PICTURE, { strays: 0, crew: ALONE });
+    field.ship = null;
+
+    stepField(field);
+
+    expect(field.strays.adrift.live).toBe(false);
+  });
+
+  it.each([
+    ["none a step before", -1, [false, 0]],
+    ["the wave's first once", 0, [true, 1]],
+  ])(
+    "leaves the wave's first stray at its time once it has gone, sending %s it is due",
+    (_, beyond, [live, sent]) => {
+      const field = fieldFrom(PICTURE, { strays: 1, crew: ALONE });
+      stepField(field);
+      placeStray(field, WIDTH + STRAY_RADIUS, 30);
+      stepField(field);
+
+      stepTimes(field, stepsIn(STRAY_FIRST_MS) - 2 + beyond);
+
+      expect([field.strays.adrift.live, field.strays.sent]).toEqual([
+        live,
+        sent,
+      ]);
+    },
+  );
+
+  it("sends the wave's first the step after it has gone, once the first is past due", () => {
+    const field = fieldFrom(PICTURE, { strays: 1, crew: ALONE });
+    stepField(field);
+    placeStray(field, 10, 2, Math.PI / 2);
+    stepTimes(field, stepsIn(STRAY_FIRST_MS));
+    placeStray(field, WIDTH + STRAY_RADIUS, 30);
+    stepField(field);
+
+    stepField(field);
+
+    expect([field.strays.adrift.live, field.strays.sent]).toEqual([true, 1]);
+  });
+
+  it("puts the wave's next stray off once it has gone, as any stray gone does, once the wave has sent its first", () => {
+    const field = fieldFrom(PICTURE, { strays: 2, crew: ALONE });
+    field.strays.sent = 1;
+    stepField(field);
+    placeStray(field, WIDTH + STRAY_RADIUS, 30);
+    stepField(field);
+
+    stepTimes(field, stepsIn(STRAY_NEXT_MS) - 1);
+
+    expect([field.strays.adrift.live, field.strays.sent]).toEqual([false, 1]);
+  });
+});
+
 describe("a stray adrift", () => {
   it("crosses at its speed along its heading", () => {
     const field = fieldFrom(PICTURE);
@@ -398,6 +568,7 @@ describe("a stray adrift", () => {
     const field = fieldFrom(PICTURE, {
       crew: { pilot: 0, tow: [1], home: [], lastGiven: 6 },
     });
+    field.strays.sent = 1;
     placeStray(field, SHIP_X, SHIP_Y, Math.PI / 2, 5);
 
     stepField(field);
@@ -572,6 +743,10 @@ describe("a stray adrift", () => {
 
 describe("nextStrayAfter", () => {
   it("puts the next stray eight seconds' steps, 960, after the step one goes at", () => {
-    expect(nextStrayAfter(600)).toBe(1560);
+    expect(nextStrayAfter({ sent: 1, nextAt: 0 }, 600)).toBe(1560);
+  });
+
+  it("leaves the wave's first at its time while the wave has sent none, a lifeline gone before it", () => {
+    expect(nextStrayAfter({ sent: 0, nextAt: 480 }, 600)).toBe(480);
   });
 });

@@ -46,9 +46,9 @@ export interface WavePlayed {
   readonly floated: number;
   /** The most static the pilot held at any step, rounded down to a whole number. */
   readonly mostStatic: number;
-  /** The strays the wave sent across the field. */
+  /** The strays the wave sent across the field, a lone pilot's lifeline not among them. */
   readonly straysSent: number;
-  /** The strays it brought home. */
+  /** The strays it brought home, a lifeline among them. */
   readonly straysHome: number;
 }
 

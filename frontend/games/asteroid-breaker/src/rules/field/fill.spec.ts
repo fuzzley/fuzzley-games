@@ -17,7 +17,6 @@ import {
   LAST_FEW,
   PICKUPS_AT_ONCE,
   ROCK_CAP,
-  STRAY_FIRST_MS,
   TOW_HOOK,
   TOW_LINK,
 } from "../tuning";
@@ -88,20 +87,9 @@ describe("fillFor", () => {
       lastFew: LAST_FEW,
       pickupsAtOnce: PICKUPS_AT_ONCE,
       strays: 1,
-      strayFirstMs: STRAY_FIRST_MS,
       cometEvery: WAVE.cometEvery,
     });
   });
-
-  it.each([
-    ["on its side", WIDEST],
-    ["upright", { width: 40, height: 88 }],
-  ])(
-    "brings the first stray later on the widest field %s, by its area",
-    (_, torus) => {
-      expect(filled(torus).strayFirstMs).toBeCloseTo(STRAY_FIRST_MS * 2.2);
-    },
-  );
 
   it("grows each count by the field's area, to the nearest: 3 large stone is 5 on a desktop's 73 by 40", () => {
     const fill = filled(DESKTOP);

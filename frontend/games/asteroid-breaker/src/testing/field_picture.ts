@@ -60,10 +60,7 @@ export interface PictureOptions {
   readonly pickupsAtOnce?: number;
   /** How many strays it sends, none by default. */
   readonly strays?: number;
-  /**
-   * How far into the wave its first stray comes, {@link STRAY_FIRST_MS} by
-   * default, as on a field of 40 by 40.
-   */
+  /** How far into the wave its first stray comes, {@link STRAY_FIRST_MS} by default. */
   readonly strayFirstMs?: number;
   /** The time between its comets, none by default. */
   readonly cometEvery?: Span | null;

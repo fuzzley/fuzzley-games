@@ -173,19 +173,20 @@ describe("ResultComponent", () => {
   });
 
   // As many strays as it brings home, so ending the run catches no more; the
-  // strays, 3 and 4, ride last in tow, so a hit knocks them loose first.
+  // strays, 3 and 4, ride last in tow, so a hit knocks them loose first, and
+  // those still floating loose as the run ends go home after its pilot.
   it.each([
     [
       1,
       ONE_STRAY_WAVES,
       "4 fuzzballs, 1 of them a stray brought home",
-      [3, 2, 0, 1],
+      [0, 3, 2, 1],
     ],
     [
       2,
       STRAY_WAVES,
       "5 fuzzballs, 2 of them strays brought home",
-      [4, 3, 2, 1, 0],
+      [4, 3, 2, 0, 1],
     ],
   ])(
     "draws the %i strays the run brought home among those who flew, and counts them",
