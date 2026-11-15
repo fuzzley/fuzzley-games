@@ -163,10 +163,11 @@ export function landRound(run: Run): Run {
  * wins the run on the last level; or lost, which ends it. A run with no
  * ending held is returned as it is.
  *
- * The saved game keeps a run so as its round is released, so keep the
- * records from it then too, or a reload mid-flight loses them: a level
- * cleared (`levelResultOf()`) and the run ended (`isNewBest()`, then
- * `withRunEnded()`).
+ * Keep the records from the run it returns as the flight lands, once
+ * nothing can change how the round ends: a level cleared
+ * (`levelResultOf()`) and the run ended (`isNewBest()`, then
+ * `withRunEnded()`). The saved game keeps a run so as its round is
+ * released, ahead of the records until the flight lands.
  */
 export function afterLanding(run: Run): Run {
   switch (run.ending) {

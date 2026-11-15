@@ -540,9 +540,11 @@ helpers.
     round released through the rules and back through one `RoundPlay`,
     lays the field out on the board's room between rounds, gives the scene
     its options and the guide (`guide()`), says what happens and keeps the
-    records. It plays every flight fast while fast-forward is on, a setting
-    the bar's Fast-forward (`fastForward()`) and F (`fieldCommand()`)
-    switch, F saying which.
+    records: a run's start as its first round is released, and the rest as
+    each flight lands, or as it would have landed for one still in the air
+    as another run begins. It plays every flight fast while fast-forward
+    is on, a setting the bar's Fast-forward (`fastForward()`) and F
+    (`fieldCommand()`) switch, F saying which.
     The bar's rounds and score follow the playback, though the
     run takes a round in as it is released: a round counts as its flight
     lands, each break's points as the flight plays it back, and a jump's
@@ -598,9 +600,14 @@ its reader drops what it can't trust rather than failing:
 - `brick-fuzz-pop-stats` (version 1): the runs, the best run's score and
   the furthest level reached; and for each level's id, its best points,
   its stars' among them, its fewest rounds and its most stars. Ids no
-  level has any more are dropped.
+  level has any more are dropped. A run counts as its first round is
+  released; a level's records and a run's end are kept as the flight that
+  clears the level or ends the run lands, or as another run begins while
+  it is in the air.
 - `brick-fuzz-pop-progress` (version 1): the ids of the levels cleared,
-  which open the levels after them. Ids no level has any more are dropped.
+  which open the levels after them, each kept as the flight that clears it
+  lands, or as another run begins while it is in the air. Ids no level has
+  any more are dropped.
 - `brick-fuzz-pop-game` (version 1, `SAVED_GAME_VERSION`): the run under
   way, by `SavedGameService`: its level by number and id, the level it
   started at, the depth the level began on, its rounds and jumps, the
