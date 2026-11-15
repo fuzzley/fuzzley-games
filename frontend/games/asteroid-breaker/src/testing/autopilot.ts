@@ -15,7 +15,7 @@ import type { Comet } from "../rules/hazards/comets";
 import { type Loose, stepsLeftOf } from "../rules/hazards/loose";
 import { createCrew } from "../rules/ship/pilots";
 import { hasRoomInTow } from "../rules/ship/tow";
-import { rockHitRadius } from "../rules/rocks/rocks";
+import { isLastFew, rockHitRadius } from "../rules/rocks/rocks";
 import {
   STILL,
   type Ship,
@@ -103,6 +103,11 @@ export interface AutopilotReport {
   readonly cleared: boolean;
   /** The steps the wave ran, from the first move to its clearing, the hit that ended its run, the limit or the step it was told to stop at. */
   readonly steps: number;
+  /**
+   * The steps its tail ran, from the last step it held more than its last
+   * few rocks (`isLastFew()`) to its clearing; 0 for a wave it didn't clear.
+   */
+  readonly tailSteps: number;
   /** The hits its ship took, the Shield's but none, the last ending the run once no one was in tow. */
   readonly hits: number;
   /** The crew its hits knocked loose. */
@@ -206,6 +211,7 @@ export function playField(
   let floated = 0;
   let cometsCrossed = 0;
   let mostStatic = field.charge.level;
+  let tailFrom = field.steps;
   const warned = field.comets.slots.map(isWarned);
   let seen = field.events.latest;
   // Frames bound it, not steps, so a wave held still for a first move that
@@ -226,6 +232,7 @@ export function playField(
     });
     seen = field.events.latest;
     mostStatic = Math.max(mostStatic, field.charge.level);
+    if (!isLastFew(field)) tailFrom = field.steps;
     for (const [slot, comet] of field.comets.slots.entries()) {
       if (warned[slot] && comet.live && comet.warnSteps === 0) cometsCrossed++;
       warned[slot] = isWarned(comet);
@@ -236,6 +243,7 @@ export function playField(
   return {
     cleared,
     steps: field.steps,
+    tailSteps: cleared ? field.steps - tailFrom : 0,
     hits: field.hits,
     knocked,
     floated,

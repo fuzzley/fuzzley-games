@@ -90,6 +90,12 @@ export interface RockField extends DropField, ScoreField, ShedField {
   readonly rocks: readonly Rock[];
   /** The kind of rock its wave names, which a boulder breaks into. */
   readonly waveKind: RockKindId;
+  /**
+   * How many whole rocks, or fewer, are its wave's last few, grown by the
+   * area of the shape it was laid out at, as its counts are
+   * (`lastFewOn()`), which a pause's stretch leaves as it is.
+   */
+  readonly lastFew: number;
   /** Where the ship is, which drawn rocks drift toward, or null while there is none. */
   readonly ship: Place | null;
   /**
@@ -347,6 +353,19 @@ export function rocksLeft(field: Readonly<RockField>): number {
   let left = 0;
   for (const rock of field.rocks) if (!isFree(rock)) left += 1;
   return left;
+}
+
+/**
+ * Returns whether a field's whole rocks are its wave's last few, as many as
+ * its {@link RockField.lastFew} or fewer, no broken rock waiting to go off
+ * among them.
+ */
+export function isLastFew(
+  field: Readonly<Pick<RockField, "rocks" | "lastFew">>,
+): boolean {
+  let whole = 0;
+  for (const rock of field.rocks) if (rock.live) whole += 1;
+  return whole <= field.lastFew;
 }
 
 /** Returns whether a slot holds neither a whole rock nor a broken one waiting to go off. */

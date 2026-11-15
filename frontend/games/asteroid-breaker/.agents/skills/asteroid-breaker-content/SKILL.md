@@ -88,9 +88,11 @@ Then:
    number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
    `--field wide` and `--field tall`: its middle time should sit between
-   its neighbours', rising through its sector, and the crew it knocks loose
-   in the most costly of twelve seeds should keep to one at Relaxed and two
-   at Normal or Fast, few of them floating home. A wave whose hits end
+   its neighbours', rising through its sector, its tail, the time from its
+   last few rocks to its clearing, with its neighbours' on the same field,
+   and the crew it knocks loose in the most costly of twelve seeds should
+   keep to one at Relaxed and two at Normal or Fast, few of them floating
+   home. A wave whose hits end
    the run on one seed in many is luck; on many, it is a wave to redraw.
 
 ## A Sector

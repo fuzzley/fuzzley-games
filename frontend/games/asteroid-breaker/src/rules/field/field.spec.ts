@@ -449,6 +449,7 @@ describe("createField", () => {
       ship: field.ship,
       weapon: field.weapon,
       pace: field.pace,
+      lastFew: field.lastFew,
       cleared: field.cleared,
     }).toMatchObject({
       slots: 30,
@@ -456,6 +457,7 @@ describe("createField", () => {
       ship: { x: 36, y: 20, waiting: true },
       weapon: "gun",
       pace: 1.1,
+      lastFew: 5,
       cleared: false,
     });
   });
@@ -1333,6 +1335,14 @@ describe("reshapeField", () => {
       { width: 72, height: 80 },
       [[2, 4]],
     ]);
+  });
+
+  it("keeps the last few rocks of the shape it was laid out at, as it keeps its rocks", () => {
+    const field = flying();
+
+    reshapeField(field, { width: 88, height: 40 });
+
+    expect(field.lastFew).toBe(5);
   });
 
   it.each([

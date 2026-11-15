@@ -95,10 +95,11 @@ takes for the specs' helpers.
   which each step changes in place, from records made once. `fieldFor()`
   lays a wave out whole on a field of a shape at a speed, its counts grown
   by the field's area (`fill.ts`'s `fillFor()`, from counts written for 40
-  by 40), and its rocks laid fairly in its formation (`spawn.ts`'s
-  `layOut()`): 12 units off the waiting ship at least, across the wrap, on
-  courses that keep 5 units clear of it for their first 3 seconds
-  (`liesFairly()`). `steerField()` takes a frame's steering, `stepField()`
+  by 40, as its last few rocks are, `lastFewOn()`, which the field keeps
+  through a stretch as `Field.lastFew`), and its rocks laid fairly in its
+  formation (`spawn.ts`'s `layOut()`): 12 units off the waiting ship at
+  least, across the wrap, on courses that keep 5 units clear of it for
+  their first 3 seconds (`liesFairly()`). `steerField()` takes a frame's steering, `stepField()`
   moves it on a step, and `reshapeField()` stretches a paused field to a new
   shape, every place on it moving to the same share of the way across and
   down (`stretchField()`). A wave holds still until the player's first move.
@@ -169,9 +170,11 @@ takes for the specs' helpers.
   breaking into pieces of the size after its own; it holds `TRAIT_RULES`,
   what each trait of `src/rules/catalog/rocks.ts` does, typed so that a
   trait without its rule fails to compile, and sets off the blasts
-  (`setOffBlasts()`, `hitWithin()`). `drops.ts` lets a pickup go from a
-  broken rock (`dropFrom()`), always from a crystal, after a drought and
-  otherwise by the wave's chance, drawn by weight from the wave's pool;
+  (`setOffBlasts()`, `hitWithin()`), and says whether the field's whole
+  rocks are its wave's last few (`isLastFew()`). `drops.ts` lets a pickup
+  go from a broken rock (`dropFrom()`), always from a crystal, after a
+  drought and otherwise by the wave's chance, drawn by weight from the
+  wave's pool;
   `pickups.ts` floats the pickups, draws them in to the ship and has it
   catch them, and holds `EFFECT_RULES`, what each effect of
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
@@ -1356,14 +1359,16 @@ workspace's with the others'.
   side or `--field tall` upright, from the wave's number as the seed, as
   the autopilot's spec does, through `playWave()`, which it loads with the
   rest of what it plays from `src/testing/report_api.ts` (`REPORT_API`).
-  It prints the game time each took and the strays it brought home, flown
-  with nothing able to take the ship, and the crew each knocked loose,
-  those of them that floated home and the most static it held as the spec
-  plays it, beside the waves' names, as wide as the longest, and fails if
-  any play didn't clear its wave in time (`-`). It is how the climb from
-  wave to wave is tuned; `--seeds <n>` plays each wave from that many
-  seeds of its own, since one seed's rocks and pickups can make a wave
-  look far easier or harder than it is. `--endless` plays Endless's waves
+  It prints the game time each took, its tail, the time from its last few
+  rocks to its clearing (`isLastFew()`), to a tenth of a second, and the
+  strays it brought home, flown with nothing able to take the ship, and the
+  crew each knocked loose, those of them that floated home and the most
+  static it held as the spec plays it, beside the waves' names, as wide as
+  the longest, and fails if any play didn't clear its wave in time (`-`).
+  It is how the climb from wave to wave is tuned; `--seeds <n>` plays each
+  wave from that many seeds of its own, the middle tail among them, since
+  one seed's rocks and pickups can make a wave look far easier or harder
+  than it is. `--endless` plays Endless's waves
   31 to 60 instead, each made from the seed it is played from, and fails
   only on a play that didn't clear its wave in time with nothing able to
   take the ship, as Endless is held to being fair, not to what it costs.

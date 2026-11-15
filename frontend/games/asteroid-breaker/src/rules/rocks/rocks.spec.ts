@@ -13,6 +13,7 @@ import {
   type RockSize,
 } from "../catalog/rocks";
 import { FieldEventLog } from "../field/events";
+import { lastFewOn } from "../field/fill";
 import { createCrew } from "../ship/pilots";
 import { createCharge } from "../sparks/charge";
 import { createSparks } from "../sparks/sparks";
@@ -36,6 +37,7 @@ import {
   addRock,
   createRocks,
   hitRock,
+  isLastFew,
   rockHitRadius,
   rocksLeft,
   setOffBlasts,
@@ -99,6 +101,7 @@ function rockField({
     torus: FIELD,
     rocks: createRocks(cap),
     waveKind,
+    lastFew: lastFewOn(FIELD),
     ship,
     pace: 1,
     rockSpeed,
@@ -300,6 +303,39 @@ describe("rocksLeft", () => {
     const left = rocksLeft(field);
 
     expect(left).toBe(0);
+  });
+});
+
+describe("isLastFew", () => {
+  /** Returns a field of so many whole stones, each in a slot of its own. */
+  function stonesField(count: number): SpecField {
+    const field = rockField({ cap: 12 });
+    for (let i = 0; i < count; i++) lay(field, "stone", "large", i * 5);
+    return field;
+  }
+
+  it("holds a field's whole rocks to be its last few while they are as many as its shape's, or fewer", () => {
+    const few = lastFewOn(FIELD);
+
+    expect(
+      [few, few - 1, 0].map((count) => isLastFew(stonesField(count))),
+    ).toEqual([true, true, true]);
+  });
+
+  it("holds one more than its shape's last few to be more than its last few", () => {
+    const field = stonesField(lastFewOn(FIELD) + 1);
+
+    expect(isLastFew(field)).toBe(false);
+  });
+
+  it("counts no rock broken and waiting to go off among them", () => {
+    const field = stonesField(lastFewOn(FIELD));
+    hitRock(field, lay(field, "volatile", "large", 60, 30), 1, 0);
+
+    expect([rocksLeft(field), isLastFew(field)]).toEqual([
+      lastFewOn(FIELD) + 1,
+      true,
+    ]);
   });
 });
 
