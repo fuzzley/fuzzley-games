@@ -99,6 +99,17 @@ export interface Steer {
    * Escape calling a charge off among them, which the announcer says.
    */
   keyed: boolean;
+  /**
+   * Whether a finger aims the shot, where its hand may cover the meter:
+   * one that points from its press, or that pulls back once past its dead
+   * zone, until it lets go or the shot is called off. The mouse and the keys
+   * never do.
+   */
+  touch: boolean;
+  /** Where the finger that aims is across the canvas, in device pixels, read only while {@link touch} says one does. */
+  touchX: number;
+  /** Where the finger that aims is down the canvas, in device pixels, read only while {@link touch} says one does. */
+  touchY: number;
 }
 
 /**
@@ -146,7 +157,9 @@ function chargeOf(notches: number): Charge {
  * Pulled back, a press anywhere on the canvas aims opposite the drag,
  * charging a notch each {@link PULL_NOTCH} past the {@link DEAD_ZONE}.
  * Either flies as it is let go, wherever that is, at the aim and the charge
- * its last move and the last frame showed. Only the mouse's main button
+ * its last move and the last frame showed. Each frame says where a finger
+ * that aims is, from its press or once past the dead zone till it lets go,
+ * so the charge can show clear of the hand. Only the mouse's main button
  * presses, and its right button calls a charge off; a second press while
  * one is held, a touch the browser takes away, or a pointer lost
  * ({@link callOff}) calls the shot off, and never lets it fly.
@@ -181,6 +194,11 @@ export class Steering {
   private lastFrameAt: number | null = null;
   /** Whether the keys changed the aim or the charge since the last frame. */
   private keyed = false;
+  /** Whether the pointer pressed is a finger that aims, pointed or pulled past its dead zone, which the frame says. */
+  private touching = false;
+  /** Where the finger pressed was at its press or its last move, in device pixels. */
+  private touchX = 0;
+  private touchY = 0;
   /** Whether a shot was let fly since the last frame, and at what. */
   private released = false;
   private releasedAim: Aim = STRAIGHT_UP;
@@ -193,6 +211,9 @@ export class Steering {
     charge: 0,
     release: false,
     keyed: false,
+    touch: false,
+    touchX: 0,
+    touchY: 0,
   };
 
   /** Starts with the aim straight up and no charge, on a field laid out on a canvas. */
@@ -240,8 +261,9 @@ export class Steering {
   /**
    * Takes a pointer pressed: the mouse's main button or a finger, away from
    * the canvas's sides, starts a shot, and the mouse's right button or a
-   * second press calls one off. A finger that points aims at once; a mouse
-   * that points has aimed as it moved, and keeps a nudge since.
+   * second press calls one off. A finger that points aims at once, and the
+   * frame says where it is; a mouse that points has aimed as it moved, and
+   * keeps a nudge since.
    */
   pointerDown(pointer: PointerView): void {
     if (!pointer.wasTouch && pointer.button !== MAIN_BUTTON) {
@@ -258,12 +280,15 @@ export class Steering {
     this.pressX = pointer.x;
     this.pressY = pointer.y;
     this.charge = 0;
-    if (this.way === "pointAndHold" && pointer.wasTouch) this.pointAt(pointer);
+    if (!pointer.wasTouch) return;
+    if (this.way === "pointAndHold") this.pointAt(pointer);
+    this.touchAt(pointer);
   }
 
   /**
-   * Takes a pointer moved: the one pressed aims its way, and a mouse that
-   * points aims unpressed too.
+   * Takes a pointer moved: the one pressed aims its way, a finger the frame
+   * saying where it is once it aims, and a mouse that points aims unpressed
+   * too.
    */
   pointerMove(pointer: PointerView): void {
     if (this.pressed === null) {
@@ -275,6 +300,7 @@ export class Steering {
     if (pointer.id !== this.pressed) return;
     if (this.way === "pointAndHold") this.pointAt(pointer);
     else this.pullTo(pointer);
+    if (pointer.wasTouch) this.touchAt(pointer);
   }
 
   /**
@@ -315,6 +341,7 @@ export class Steering {
   callOff(): void {
     this.pressed = null;
     this.armed = false;
+    this.touching = false;
     this.heldMs = 0;
     this.charge = 0;
   }
@@ -345,6 +372,9 @@ export class Steering {
     steer.aim = this.released ? this.releasedAim : this.aim;
     steer.charge = this.released ? this.releasedCharge : this.charge;
     steer.keyed = this.keyed;
+    steer.touch = this.touching;
+    steer.touchX = this.touchX;
+    steer.touchY = this.touchY;
     this.released = false;
     this.keyed = false;
     return steer;
@@ -402,6 +432,17 @@ export class Steering {
     const up = this.place.y - RADIUS;
     if (Math.hypot(across, up) < RADIUS) return;
     this.aim = aimToward(across, up);
+  }
+
+  /**
+   * Keeps where the finger pressed is, which aims once it points, or once it
+   * pulls back past its dead zone, and goes on aiming though the drag comes
+   * back within it, till it lets go or the shot is called off.
+   */
+  private touchAt(pointer: PointerView): void {
+    this.touchX = pointer.x;
+    this.touchY = pointer.y;
+    if (this.way === "pointAndHold" || this.armed) this.touching = true;
   }
 
   /** Aims and charges a pull back from where it was pressed to a pointer, opposite the drag. */

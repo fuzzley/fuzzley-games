@@ -89,6 +89,9 @@ export const STILL: Readonly<Steer> = {
   charge: 0,
   release: false,
   keyed: false,
+  touch: false,
+  touchX: 0,
+  touchY: 0,
 };
 
 /** Lets a shot fly straight up, uncharged. */

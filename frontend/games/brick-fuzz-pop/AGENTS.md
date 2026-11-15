@@ -258,16 +258,19 @@ helpers.
   keys by `event.code`; `steering.ts`'s `Steering` turns the keys, the
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
   charge, a shot let fly and whether the keys moved it, aiming a pointer
-  from where the fuzzball waits, the mouse and fingers
-  alike, the way the settings choose: pointed and held, a finger aiming at
-  once and charging held still or dragging, the hold counted by the frames'
-  clock, at most `LONGEST_FRAME_MS` a frame, or pulled back past a dead
-  zone, a notch at a time. Escape calls off a charge building, which the
-  frame says as a key's change is, and otherwise passes on to pause, as
-  only the steering knows a charge builds. `aiming.ts` holds the ways a
-  pointer aims (`PointerAiming`) and the aim straight up the steering starts
-  at (`STRAIGHT_UP`), which the steering, the scene and the shell take from
-  it, so the shell's chunk carries no `Steering`.
+  from where the fuzzball waits, the mouse and fingers alike, the way the
+  settings choose: pointed and held, a finger aiming at once and charging
+  held still or dragging, the hold counted by the frames' clock, at most
+  `LONGEST_FRAME_MS` a frame, or pulled back past a dead zone, a notch at a
+  time. Each `Steer` also says where a finger that aims is, in the canvas's
+  device pixels (`touch`, `touchX`, `touchY`): a pointed one from its press,
+  a pulled one once past its dead zone, till it lets go or the shot is
+  called off. Escape calls off a charge building, which the frame says as a
+  key's change is, and otherwise passes on to pause, as only the steering
+  knows a charge builds. `aiming.ts` holds the ways a pointer aims
+  (`PointerAiming`) and the aim straight up the steering starts at
+  (`STRAIGHT_UP`), which the steering, the scene and the shell take from it,
+  so the shell's chunk carries no `Steering`.
 - **`src/view/colors/`** — the field's colors: the page's roles it is drawn
   in (`FIELD_ROLES`), the tiles' eight inks by name (`TINT`), and
   `wallPalette()`, which gives a palette's colors from those roles and its

@@ -163,6 +163,9 @@ describe("Steering's keys", () => {
       charge: 0,
       release: false,
       keyed: false,
+      touch: false,
+      touchX: 0,
+      touchY: 0,
     });
   });
 
@@ -1069,6 +1072,215 @@ describe("Steering's pointer, pulling back", () => {
     steering.pointerMove(finger(4.5, 8.6, {}, metrics));
 
     expect(frame(steering).charge).toBe(1);
+  });
+});
+
+describe("Steering's touch", () => {
+  it("says where a finger that points is from its press, in the canvas's device pixels", () => {
+    const steering = steeringOf();
+    const at = finger(6, 6);
+
+    steering.pointerDown(at);
+
+    expect(frame(steering)).toMatchObject({
+      touch: true,
+      touchX: at.x,
+      touchY: at.y,
+    });
+  });
+
+  it("follows a finger that points as it drags", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(6, 6));
+    const to = finger(3, 9);
+
+    steering.pointerMove(to);
+
+    expect(frame(steering)).toMatchObject({
+      touch: true,
+      touchX: to.x,
+      touchY: to.y,
+    });
+  });
+
+  it("keeps saying where a finger held still is as it charges", () => {
+    const steering = steeringOf();
+    const at = finger(6, 6);
+    steering.pointerDown(at);
+
+    readFor(steering, 750);
+
+    expect(frame(steering)).toMatchObject({
+      charge: 3,
+      touch: true,
+      touchX: at.x,
+      touchY: at.y,
+    });
+  });
+
+  it("says no finger aims once it lets go and the shot flies", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(6, 6));
+    readFor(steering, 500);
+
+    steering.pointerUp(finger(6, 6));
+
+    expect(frame(steering)).toMatchObject({ release: true, touch: false });
+  });
+
+  it.each<[string, (steering: Steering) => void]>([
+    [
+      "a second finger",
+      (steering) => {
+        steering.pointerDown(finger(6, 6, { id: 2 }));
+      },
+    ],
+    [
+      "the browser taking the touch away",
+      (steering) => {
+        steering.pointerUp(finger(4.5, 5, { wasCanceled: true }));
+      },
+    ],
+    [
+      "Escape",
+      (steering) => {
+        steering.keyDown(key("Escape"));
+      },
+    ],
+    [
+      "the player looking away",
+      (steering) => {
+        steering.callOff();
+      },
+    ],
+  ])("says no finger aims once %s calls the shot off", (_name, callOff) => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(4.5, 5));
+    readFor(steering, 500);
+
+    callOff(steering);
+
+    expect(frame(steering)).toMatchObject({ release: false, touch: false });
+  });
+
+  it("says no finger aims for a mouse, pressed, moved and held", () => {
+    const steering = steeringOf();
+    steering.pointerDown(mouse(6, 6));
+
+    steering.pointerMove(mouse(3, 9));
+    readFor(steering, 750);
+
+    expect(frame(steering)).toMatchObject({ charge: 3, touch: false });
+  });
+
+  it("says no finger aims for the keys, turning the aim and charging", () => {
+    const steering = steeringOf();
+
+    steering.keyDown(key("ArrowLeft"));
+    steering.keyDown(key("ArrowUp"));
+
+    expect(frame(steering)).toMatchObject({ charge: 1, touch: false });
+  });
+
+  it("says no finger aims for one pressed within a side's 16 CSS px, which the browser keeps", () => {
+    const steering = steeringOf();
+    steering.pointerDown({ ...finger(4.5, 5), x: 15 });
+
+    steering.pointerMove(finger(3, 9));
+
+    expect(frame(steering).touch).toBe(false);
+  });
+
+  it("says no finger aims while a pull back is within its dead zone", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+
+    steering.pointerMove(finger(4.5, 7.6));
+
+    expect(frame(steering).touch).toBe(false);
+  });
+
+  it("says where a pulling finger is once it passes its dead zone, not where it pressed", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    const to = finger(2.5, 6);
+
+    steering.pointerMove(to);
+
+    expect(frame(steering)).toMatchObject({
+      charge: 2,
+      touch: true,
+      touchX: to.x,
+      touchY: to.y,
+    });
+  });
+
+  it("keeps saying where a pulling finger is as it comes back within its dead zone, till it lets go", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    steering.pointerMove(finger(2.5, 6));
+    const back = finger(4.4, 8);
+
+    steering.pointerMove(back);
+
+    expect(frame(steering)).toMatchObject({
+      charge: 0,
+      touch: true,
+      touchX: back.x,
+      touchY: back.y,
+    });
+  });
+
+  it("says no finger aims within a pull back's dead zone though the settings have fingers point during it", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    steering.aimWith("pointAndHold");
+
+    steering.pointerMove(finger(4.5, 7.6));
+
+    expect(frame(steering).touch).toBe(false);
+  });
+
+  it("says no finger aims once a pull back is let go", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    steering.pointerMove(finger(2.5, 6));
+
+    steering.pointerUp(finger(2.5, 6));
+
+    expect(frame(steering)).toMatchObject({ release: true, touch: false });
+  });
+
+  it("starts the next pull back's touch unshown, till it passes its dead zone", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    steering.pointerMove(finger(2.5, 6));
+    steering.pointerUp(finger(2.5, 6));
+    frame(steering);
+
+    steering.pointerDown(finger(4.5, 8));
+
+    expect(frame(steering).touch).toBe(false);
+  });
+
+  it("says no finger aims for a mouse that pulls back past its dead zone", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(mouse(4.5, 8));
+
+    steering.pointerMove(mouse(2.5, 6));
+
+    expect(frame(steering)).toMatchObject({ charge: 2, touch: false });
+  });
+
+  it("follows only the finger pressed", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(4.5, 8));
+    const to = finger(2.5, 6);
+    steering.pointerMove(to);
+
+    steering.pointerMove(finger(4.5, 4, { id: 2 }));
+
+    expect(frame(steering)).toMatchObject({ touchX: to.x, touchY: to.y });
   });
 });
 
