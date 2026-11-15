@@ -1,9 +1,11 @@
+import { cssHex } from "@fz/phaser/color";
 import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
   type Point,
   atlasSize,
+  svgOf,
 } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import {
@@ -22,20 +24,23 @@ import {
   reachOf,
   within,
 } from "../../testing/art_frames";
+import { inLight } from "../colors/rock_light";
 import {
   type LitFrame,
   ROCK_REACH,
+  dashesAlong,
   isFine,
   largestOf,
   rockColor,
   rockFrame,
   rockFrames,
+  rockPictures,
   rockShape,
   sizesOf,
 } from "./rock_art";
 import { cracksOf } from "./rocks/cracks";
 import { FLAT } from "./rocks/cut";
-import { normalColor } from "./rocks/light";
+import { litBy, normalColor } from "./rocks/light";
 import { MOST_BAKED_UNIT, bakedScale } from "./shapes";
 
 /** How far a size may stray from what it should be and still pass, for a rounding. */
@@ -546,6 +551,60 @@ describe("a rock's fine marks", () => {
   );
 });
 
+describe("rockPictures", () => {
+  const pictures = rockPictures(ART_PALETTE, ART_SCALE, true);
+
+  /** Returns the SVG a picture's `data:` URL holds, or throws for any other URL. */
+  function svgIn(picture: string): string {
+    const prefix = "data:image/svg+xml,";
+    if (!picture.startsWith(prefix)) throw new Error(`not an SVG: ${picture}`);
+    return decodeURIComponent(picture.slice(prefix.length));
+  }
+
+  /** Returns an SVG without its fills' colors, so two drawings of the same shapes in other colors read alike. */
+  function unfilled(svg: string): string {
+    return svg.replace(/ fill="#[0-9a-f]{6}"/g, "");
+  }
+
+  /** Returns the colors an SVG fills its shapes in. */
+  function fillsIn(svg: string): ReadonlySet<string> {
+    return new Set(
+      [...svg.matchAll(/fill="(#[0-9a-f]{6})"/g)].flatMap(([, fill]) =>
+        fill === undefined ? [] : [fill],
+      ),
+    );
+  }
+
+  it.each(ROCK_KIND_IDS)(
+    "pictures a %s rock as its frame draws it whole, at its largest size, in its first outline, each shape at its own alpha",
+    (kind) => {
+      const frame = inkOf({ kind, size: largestOf(kind), outline: 0 });
+
+      expect(unfilled(svgIn(pictures[kind]))).toBe(unfilled(svgOf(frame)));
+    },
+  );
+
+  it("lights each facet of a rock unturned, its ink times the light on the way it faces, and keeps its outline's ink", () => {
+    const rock = { kind: "stone", size: "large", outline: 0 } as const;
+    const lit = rockShape(rock).facets.map(({ facing }) =>
+      cssHex(
+        inLight(
+          ART_PALETTE.rockTones.stone.ink,
+          litBy(facing, 0, ART_PALETTE.rockLight),
+        ),
+      ),
+    );
+
+    const fills = fillsIn(svgIn(pictures.stone));
+
+    expect({
+      facets: lit.every((color) => fills.has(color)),
+      shaded: new Set(lit).size > 1,
+      outline: fills.has(cssHex(ART_PALETTE.outline)),
+    }).toEqual({ facets: true, shaded: true, outline: true });
+  });
+});
+
 describe("rockFrame", () => {
   it("names every rock a frame is drawn for apart", () => {
     const names = DRAWN.map((rock) => rockFrame(rock));
@@ -590,6 +649,49 @@ describe("rockColor", () => {
       rockColor("crystal", ART_PALETTE),
       rockColor("iron", ART_PALETTE),
     ]).toEqual([ART_PALETTE.rocks.stone, ART_PALETTE.rocks.iron]);
+  });
+});
+
+describe("dashesAlong", () => {
+  it("cuts a line into dashes from its start, the last cut short where the line ends", () => {
+    const line = [
+      { x: 0, y: 0 },
+      { x: 12, y: 0 },
+    ];
+
+    expect(dashesAlong(line, 3, 2)).toEqual([
+      [
+        { x: 0, y: 0 },
+        { x: 3, y: 0 },
+      ],
+      [
+        { x: 5, y: 0 },
+        { x: 8, y: 0 },
+      ],
+      [
+        { x: 10, y: 0 },
+        { x: 12, y: 0 },
+      ],
+    ]);
+  });
+
+  it("leaves out a dash that would start where the line ends", () => {
+    const line = [
+      { x: 0, y: 0 },
+      { x: 0, y: 4 },
+      { x: 0, y: 10 },
+    ];
+
+    expect(dashesAlong(line, 3, 2)).toEqual([
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: 3 },
+      ],
+      [
+        { x: 0, y: 5 },
+        { x: 0, y: 8 },
+      ],
+    ]);
   });
 });
 

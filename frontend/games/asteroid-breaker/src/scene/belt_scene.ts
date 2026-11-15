@@ -49,7 +49,7 @@ import {
 import { LAYERS, type Layer, drawnBy } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
 import { farLight } from "../view/colors/rock_light";
-import { isFine } from "../view/art/rock_art";
+import { isFine, rockPictures } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
 import {
@@ -108,9 +108,10 @@ export interface BeltSceneOptions {
   readonly command: (command: RunCommand) => void;
   /**
    * Takes, each time the field's atlas is baked, what returns a picture of
-   * every rock kind, pickup, a stray and the comet as drawn in it, for How to
-   * play; it encodes them only as it is first called after the bake, so call
-   * it only as How to play shows them.
+   * every rock kind, pickup, a stray and the comet, for How to play: the
+   * rocks' drawn lit, the rest encoded as the atlas holds them, only as it
+   * is first called after the bake, so call it only as How to play shows
+   * them.
    */
   readonly onPictures: (pictures: () => Pictures) => void;
   /**
@@ -485,24 +486,30 @@ export class BeltScene extends Scene {
   }
 
   /**
-   * Bakes the field's atlas at its scale, in the palette, and the deck's on a
-   * new pixel ratio, and hands the shell what pictures the field's for How
-   * to play.
+   * Bakes the field's atlas and the rocks' at its scale, in the palette, and
+   * the deck's on a new pixel ratio, and hands the shell what returns How to
+   * play's pictures, the field's encoded from its atlas and the rocks' drawn
+   * lit, on the first ask.
    */
   private bake(): void {
-    this.baked = bakedScale(this.metrics);
-    this.bakedFine = isFine(this.metrics);
-    bakeBeltAtlas(this, this.painted, this.baked, this.bakedFine);
+    const scale = bakedScale(this.metrics);
+    const fine = isFine(this.metrics);
+    const palette = this.painted;
+    this.baked = scale;
+    this.bakedFine = fine;
+    bakeBeltAtlas(this, palette, scale, fine);
     if (this.deckBaked !== this.metrics.pixelRatio) {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    const { rocks, ...field } = PICTURE_FRAMES;
-    const fieldPictures = picturesWhenAsked(this, ATLAS, field);
-    const rockPictures = picturesWhenAsked(this, ROCK_ATLAS, rocks);
+    const fieldPictures = picturesWhenAsked(this, ATLAS, PICTURE_FRAMES);
     let pictures: Pictures | null = null;
     this.options.onPictures(
-      () => (pictures ??= { ...fieldPictures(), rocks: rockPictures() }),
+      () =>
+        (pictures ??= {
+          ...fieldPictures(),
+          rocks: rockPictures(palette, scale, fine),
+        }),
     );
   }
 

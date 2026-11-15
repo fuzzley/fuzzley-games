@@ -17,6 +17,7 @@ import {
   polygon,
   rect,
   stroke,
+  svgOf,
 } from "@fz/phaser/shapes";
 import {
   ROCK_KIND_IDS,
@@ -28,10 +29,11 @@ import {
 import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
+import { inLight } from "../colors/rock_light";
 import type { Tones } from "../colors/tones";
 import { cracksOf } from "./rocks/cracks";
 import { FLAT } from "./rocks/cut";
-import { normalColor } from "./rocks/light";
+import { litBy, normalColor } from "./rocks/light";
 import { type RockLine, type RockShape, makeRock } from "./rocks/rock_shape";
 import type { Facing } from "./rocks/space";
 import { MOST_LINE, MOST_MITER, outlineWidth, outward } from "./shapes";
@@ -247,8 +249,11 @@ function extend(run: Point[], point: Point): void {
   if (last?.x !== point.x || last.y !== point.y) run.push(point);
 }
 
-/** Returns the dashes along a line through points, each a dash long and a gap apart, from its start. */
-function dashesAlong(
+/**
+ * Returns the dashes along a line through points, each a dash long and a gap
+ * apart, from its start, the last cut short where the line ends.
+ */
+export function dashesAlong(
   points: readonly Point[],
   dash: number,
   gap: number,
@@ -530,4 +535,32 @@ export function rockFrames(
       ),
     ),
   );
+}
+
+/**
+ * Returns How to play's picture of each kind of rock, whole, at its largest
+ * size, in its first outline and unturned, as an SVG `data:` URL, each
+ * shape's ink times the palette's light on the way it faces.
+ *
+ * It draws at the scale the atlas is baked at, with the fine marks as the
+ * field keeps them. The opaque shapes are lit as the field lights them; a
+ * faint mark over a facet keeps its own ink, where the field lights it
+ * blended with the facet beneath.
+ */
+export function rockPictures(
+  palette: BeltPalette,
+  scale: ArtScale,
+  fine: boolean,
+): Readonly<Record<RockKindId, string>> {
+  return recordOf(ROCK_KIND_IDS, (kind) => {
+    const rock = { kind, size: largestOf(kind), outline: 0 } as const;
+    const lit = rockPainting(rockShape(rock), 0, palette, scale, fine).map(
+      ({ command, facing }) => ({
+        ...command,
+        color: inLight(command.color, litBy(facing, 0, palette.rockLight)),
+      }),
+    );
+    const svg = svgOf(centered(rockFrame(rock), lit));
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  });
 }

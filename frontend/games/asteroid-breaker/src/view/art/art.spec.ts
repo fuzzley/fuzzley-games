@@ -6,7 +6,6 @@ import {
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
-import { ROCK_KIND_IDS } from "../../rules/catalog/rocks";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
@@ -33,7 +32,7 @@ import {
   tagFrame,
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
-import { rockFrame, rockFrames } from "./rock_art";
+import { rockFrames } from "./rock_art";
 import { outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
 
@@ -507,27 +506,5 @@ describe("PICTURE_FRAMES", () => {
       count: PICKUP_IDS.length + 2,
       missing: [],
     });
-  });
-
-  it("pictures every rock kind from frames the rocks' atlas holds", () => {
-    const rocks = new Set(
-      rockFrames(ART_PALETTE, ART_SCALE, true).map(({ ink }) => ink.name),
-    );
-    const pictured = Object.values(PICTURE_FRAMES.rocks);
-
-    expect({
-      count: pictured.length,
-      missing: pictured.filter((name) => !rocks.has(name)),
-    }).toEqual({ count: ROCK_KIND_IDS.length, missing: [] });
-  });
-
-  it("pictures each rock whole, at its largest size", () => {
-    expect([
-      PICTURE_FRAMES.rocks.boulder,
-      PICTURE_FRAMES.rocks.volatile,
-    ]).toEqual([
-      rockFrame({ kind: "boulder", size: "boulder", outline: 0 }),
-      rockFrame({ kind: "volatile", size: "large", outline: 0 }),
-    ]);
   });
 });

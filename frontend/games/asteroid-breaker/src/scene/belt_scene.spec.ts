@@ -76,7 +76,12 @@ import {
   PILOT_SIZES,
   pilotFrame,
 } from "../view/art/pilot_art";
-import { isFine, rockFrame, rockFrames } from "../view/art/rock_art";
+import {
+  isFine,
+  rockFrame,
+  rockFrames,
+  rockPictures,
+} from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
 import { SOUNDS } from "../view/effects/effects";
@@ -1594,10 +1599,11 @@ describe("baking", () => {
     expect(encode).not.toHaveBeenCalled();
   });
 
-  it("encodes How to play's pictures of the atlas as the shell asks for them", async () => {
+  it("encodes How to play's pictures of the atlas, and draws the rocks' lit, as the shell asks for them", async () => {
     const { shell, scene } = await startBoard();
-    const baked = (frame: string, atlas = ATLAS): string =>
-      scene.textures.getBase64(atlas, frame);
+    const baked = (frame: string): string =>
+      scene.textures.getBase64(ATLAS, frame);
+    const metrics = metricsOf(shell);
 
     const pictures = shell.askPictures();
 
@@ -1607,7 +1613,7 @@ describe("baking", () => {
       pictures.stray,
       pictures.comet,
     ]).toEqual([
-      baked(PICTURE_FRAMES.rocks.iron, ROCK_ATLAS),
+      rockPictures(ART_PALETTE, bakedScale(metrics), isFine(metrics)).iron,
       baked(PICTURE_FRAMES.pickups.shield),
       baked(PICTURE_FRAMES.stray),
       baked(PICTURE_FRAMES.comet),
@@ -1633,6 +1639,19 @@ describe("baking", () => {
     const again = shell.askPictures();
 
     expect(again).not.toEqual(asked);
+  });
+
+  it("draws How to play's rock pictures anew in a new palette", async () => {
+    const { shell, run } = await startBoard();
+    shell.colors = DARK;
+    run.advance(16);
+    const metrics = metricsOf(shell);
+
+    const pictures = shell.askPictures();
+
+    expect(pictures.rocks.iron).toBe(
+      rockPictures(DARK, bakedScale(metrics), isFine(metrics)).iron,
+    );
   });
 
   it("bakes the atlas again in a new palette, and fills the field with it", async () => {
