@@ -575,14 +575,14 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Does what a key on the board asks: skips the flight, switches
+   * Does what a key on the board asks: drops the flight, switches
    * fast-forward on or off and says which, reads the wall's lowest rows, or
    * pauses, goes on or starts a run as the keys every run shares ask.
    */
   fieldCommand(command: FieldCommand): void {
     switch (command) {
-      case "skip":
-        this.skip();
+      case "drop":
+        this.drop();
         return;
       case "fast":
         this.fastForward();
@@ -594,16 +594,6 @@ export class GameService extends RunLifecycle implements KeptGame {
       default:
         this.command(command);
     }
-  }
-
-  /**
-   * Lands the flight in the air at once: at the next frame, or, with the
-   * run paused, now, its wall left to settle as the run goes on.
-   */
-  skip(): void {
-    if (this.phase() !== "flying") return;
-    this.play.skip();
-    if (this.outcome() === "paused") this.playFrame(0, false);
   }
 
   /**
@@ -847,16 +837,14 @@ export class GameService extends RunLifecycle implements KeptGame {
 
   /**
    * Lands the round in the air at once, whatever the run's stage: its
-   * flight at a frame of no time, as a skip does, and the run, with the
+   * flight skipped to its end at a frame of no time, and the run, with the
    * records, as {@link afterLanding} lands it, a paused run left paused
    * but where its level ends.
    */
   private landAtOnce(): void {
-    const flying = this.flying();
-    if (flying) this.play.skip();
-    // A paused frame plays the view on not at all, so a flight it has
-    // landed already, skipped while paused, lands in the run alone.
-    this.playFrame(0, !flying, afterLanding);
+    if (!this.flying()) return;
+    this.play.skip();
+    this.playFrame(0, false, afterLanding);
   }
 
   /**

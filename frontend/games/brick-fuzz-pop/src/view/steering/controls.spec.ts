@@ -6,7 +6,7 @@ describe("commandOfKey", () => {
     ["KeyP", "toggle"],
     ["Enter", "go"],
     ["NumpadEnter", "go"],
-    ["KeyX", "skip"],
+    ["KeyX", "drop"],
     ["KeyF", "fast"],
     ["KeyR", "read"],
   ])("reads %s as %s", (code, command) => {

@@ -2360,7 +2360,7 @@ describe("WallScene", () => {
 
     it.each<[string, string, FieldCommand]>([
       ["KeyP", "p", "toggle"],
-      ["KeyX", "x", "skip"],
+      ["KeyX", "x", "drop"],
       ["KeyF", "f", "fast"],
       ["KeyR", "r", "read"],
       ["NumpadEnter", "Enter", "go"],

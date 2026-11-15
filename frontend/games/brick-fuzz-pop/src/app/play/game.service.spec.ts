@@ -175,6 +175,25 @@ function askingGameOf(...script: readonly SpecRound[]): AskingGame {
   return { game, asked };
 }
 
+/** Plays the flight in the air on until it lands. */
+function playUntilLanded(game: GameService): void {
+  playUntil(
+    game,
+    () => STILL,
+    () => !game.flying(),
+  );
+}
+
+/** Plays the flight in the air on past its first break, which the bar's score counts as it plays back. */
+function playPastABreak(game: GameService): void {
+  const score = game.score();
+  playUntil(
+    game,
+    () => STILL,
+    () => game.score() > score,
+  );
+}
+
 /** Releases the round aimed, plays a frame of its flight, and drops it, returning the round dropped. */
 function droppedAfterAFrame(game: GameService): Round {
   release(game);
@@ -691,9 +710,9 @@ describe("GameService", () => {
       installFakeViewport(1280).setReducedMotion(true);
       const game = gameOf("step");
       release(game);
-      game.skip();
+      playUntilLanded(game);
 
-      playFor(game, 2 * FRAME_MS, STILL);
+      game.tick(FRAME_MS, STILL);
 
       expect(game.phase()).toBe("aiming");
     });
@@ -702,9 +721,9 @@ describe("GameService", () => {
       installFakeViewport(1280);
       const game = gameOf("step");
       release(game);
-      game.skip();
+      playUntilLanded(game);
 
-      playFor(game, 2 * FRAME_MS, STILL);
+      game.tick(FRAME_MS, STILL);
 
       expect(game.phase()).toBe("settling");
     });
@@ -751,63 +770,9 @@ describe("GameService", () => {
       const game = gameOf("cleared");
       release(game);
 
-      game.fieldCommand("skip");
-      game.tick(FRAME_MS, STILL);
+      playUntilLanded(game);
 
       expect(game.outcome()).toBe("cleared");
-    });
-  });
-
-  describe("skipping a flight", () => {
-    it("lands the flight at the next frame", () => {
-      const game = gameOf("step");
-      release(game);
-
-      game.skip();
-      game.tick(FRAME_MS, STILL);
-
-      expect(game.flying()).toBe(false);
-    });
-
-    it("leaves the landing to the frame, after which the scene reads the view", () => {
-      const game = gameOf("step");
-      release(game);
-
-      game.skip();
-
-      expect(game.flying()).toBe(true);
-    });
-
-    it("lands a paused flight at once, the level's end held while it is paused", () => {
-      const game = gameOf("cleared");
-      release(game);
-      game.pause();
-
-      game.skip();
-
-      expect([game.flying(), game.outcome()]).toEqual([false, "paused"]);
-    });
-
-    it("ends the level the paused flight ended once the level goes on", () => {
-      const game = gameOf("cleared");
-      release(game);
-      game.pause();
-      game.skip();
-      game.resume();
-
-      game.tick(FRAME_MS, STILL);
-
-      expect(game.outcome()).toBe("cleared");
-    });
-
-    it("does nothing with no flight in the air", () => {
-      const game = gameOf("step");
-      const view = { ...game.view() };
-
-      game.skip();
-      game.tick(FRAME_MS, STILL);
-
-      expect(game.view()).toEqual(view);
     });
   });
 
@@ -887,11 +852,7 @@ describe("GameService", () => {
     it("keeps the clear of a level the round dropped after its last break still clears, as it lands", () => {
       const game = gameOf("cleared");
       release(game);
-      playUntil(
-        game,
-        () => STILL,
-        () => game.score() > 0,
-      );
+      playPastABreak(game);
       game.drop();
 
       playOut(game);
@@ -905,11 +866,7 @@ describe("GameService", () => {
     it("leaves the bar's score as the flight played it back", () => {
       const game = gameOf("cleared");
       release(game);
-      playUntil(
-        game,
-        () => STILL,
-        () => game.score() > 0,
-      );
+      playPastABreak(game);
       const score = game.score();
 
       game.drop();
@@ -997,11 +954,7 @@ describe("GameService", () => {
       const game = gameOf("step");
       release(game);
 
-      playUntil(
-        game,
-        () => STILL,
-        () => !game.flying(),
-      );
+      playUntilLanded(game);
 
       expect([game.droppable(), game.phase()]).toEqual([false, "settling"]);
     });
@@ -1061,8 +1014,7 @@ describe("GameService", () => {
     it("waits for the Cleared card before going on", () => {
       const game = gameOf("cleared");
       release(game);
-      game.skip();
-      game.tick(FRAME_MS, STILL);
+      playUntilLanded(game);
 
       game.nextLevel();
 
@@ -1082,8 +1034,7 @@ describe("GameService", () => {
       const game = gameOf("lost");
       release(game);
 
-      game.skip();
-      game.tick(FRAME_MS, STILL);
+      playUntilLanded(game);
 
       expect([game.outcome(), game.ended()]).toEqual(["over", true]);
     });
@@ -1309,24 +1260,30 @@ describe("GameService", () => {
       expect(said()).toBe(describeEnd(game.run(), true));
     });
 
-    it("keeps nothing of a flight skipped while paused, its level's end held", () => {
+    it("keeps nothing of a flight dropped while paused, its level's end held", () => {
       const game = gameOf("cleared");
       release(game);
+      playPastABreak(game);
       game.pause();
 
-      game.skip();
+      game.drop();
 
-      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
+      expect({
+        cleared: TestBed.inject(ProgressService).cleared().size,
+        ending: game.run().ending,
+        outcome: game.outcome(),
+      }).toEqual({ cleared: 0, ending: "cleared", outcome: "paused" });
     });
 
-    it("keeps the level a flight skipped while paused cleared once the level goes on", () => {
+    it("keeps the level a flight dropped while paused clears once the level goes on", () => {
       const game = gameOf("cleared");
       release(game);
+      playPastABreak(game);
       game.pause();
-      game.skip();
+      game.drop();
       game.resume();
 
-      game.tick(FRAME_MS, STILL);
+      playUntilLanded(game);
 
       expect(TestBed.inject(ProgressService).cleared().has(FIRST_ID)).toBe(
         true,
@@ -1535,11 +1492,12 @@ describe("GameService", () => {
       expect([game.outcome(), game.flying()]).toEqual(["paused", false]);
     });
 
-    it("keeps the level a flight skipped while paused cleared as the page is hidden, its card left for the page to be seen", () => {
+    it("keeps the level a flight dropped while paused clears as the page is hidden, its card left for the page to be seen", () => {
       const game = gameOf("cleared");
       release(game);
+      playPastABreak(game);
       game.pause();
-      game.skip();
+      game.drop();
 
       game.lookAway("hidden");
 
@@ -1836,11 +1794,7 @@ describe("GameService", () => {
       const game = gameOf("step");
       release(game);
 
-      playUntil(
-        game,
-        () => STILL,
-        () => !game.flying(),
-      );
+      playUntilLanded(game);
 
       expect(game.rounds()).toBe(1);
     });
@@ -1989,9 +1943,9 @@ describe("GameService", () => {
       installFakeViewport(1280);
       const game = gameOf("jump");
       release(game);
-      game.skip();
+      playUntilLanded(game);
 
-      playFor(game, 2 * FRAME_MS, STILL);
+      game.tick(FRAME_MS, STILL);
 
       expect({ phase: game.phase(), boon: game.boon() }).toEqual({
         phase: "settling",
@@ -2148,14 +2102,16 @@ describe("GameService", () => {
       },
     );
 
-    it("skips the flight at its key", () => {
+    it("drops the flight at its key", () => {
       const game = gameOf("step");
       release(game);
-
-      game.fieldCommand("skip");
       game.tick(FRAME_MS, STILL);
 
-      expect(game.flying()).toBe(false);
+      game.fieldCommand("drop");
+
+      expect(
+        game.round()?.flight.events.some(({ kind }) => kind === "drop"),
+      ).toBe(true);
     });
 
     it("pauses at the keys every run shares", () => {

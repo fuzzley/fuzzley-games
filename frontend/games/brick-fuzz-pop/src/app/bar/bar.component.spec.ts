@@ -21,7 +21,7 @@ interface BarInputs {
   readonly score: number;
   readonly friends: readonly number[];
   readonly outcome: RunStage;
-  readonly flying: boolean;
+  readonly droppable: boolean;
   readonly fast: boolean;
   readonly soundOn: boolean;
   readonly helpLoading: boolean;
@@ -36,7 +36,7 @@ const MID_FLIGHT: BarInputs = {
   score: 128450,
   friends: [GREEN, BLUE],
   outcome: "playing",
-  flying: true,
+  droppable: true,
   fast: false,
   soundOn: true,
   helpLoading: false,
@@ -47,7 +47,7 @@ type Output =
   | "pauseRun"
   | "resumeRun"
   | "fastForward"
-  | "skipFlight"
+  | "dropFlight"
   | "toggleSound"
   | "openLevels"
   | "newGame"
@@ -69,7 +69,7 @@ async function renderBar(
     pauseRun: vi.fn(),
     resumeRun: vi.fn(),
     fastForward: vi.fn(),
-    skipFlight: vi.fn(),
+    dropFlight: vi.fn(),
     toggleSound: vi.fn(),
     openLevels: vi.fn(),
     newGame: vi.fn(),
@@ -110,7 +110,7 @@ function barButtonsNamed(names: readonly string[]): HTMLElement[] {
 const ROOMY_ACTIONS = [
   "Pause",
   "Fast-forward",
-  "Skip",
+  "Drop",
   "Sound",
   "Levels",
   "New game",
@@ -195,7 +195,7 @@ describe("BarComponent", () => {
       expect(fuzzballsOf("Crew")).toHaveLength(3);
     });
 
-    it("offers Pause, Fast-forward and Skip, then the rest, each round", async () => {
+    it("offers Pause, Fast-forward and Drop, then the rest, each round", async () => {
       await renderBar();
 
       expect(barButtons()).toEqual(barButtonsNamed(ROOMY_ACTIONS));
@@ -281,7 +281,7 @@ describe("BarComponent", () => {
     });
 
     it("dims Pause while no level is in play", async () => {
-      await renderBar({ outcome: "ready", flying: false });
+      await renderBar({ outcome: "ready", droppable: false });
 
       expect(screen.getByRole("button", { name: "Pause" })).toHaveAttribute(
         "aria-disabled",
@@ -290,10 +290,10 @@ describe("BarComponent", () => {
     });
 
     it.each([
-      ["with a flight in the air", true],
-      ["while aiming", false],
-    ])("asks to switch fast-forward %s", async (_, flying) => {
-      const { user, heard } = await renderBar({ flying });
+      ["while Drop is live", true],
+      ["while Drop is dimmed", false],
+    ])("asks to switch fast-forward %s", async (_, droppable) => {
+      const { user, heard } = await renderBar({ droppable });
 
       await user.click(screen.getByRole("button", { name: "Fast-forward" }));
 
@@ -308,33 +308,33 @@ describe("BarComponent", () => {
       ).toHaveAttribute("aria-pressed", "true");
     });
 
-    it("skips the flight", async () => {
+    it("drops the flight", async () => {
       const { user, heard } = await renderBar();
 
-      await user.click(screen.getByRole("button", { name: "Skip" }));
+      await user.click(screen.getByRole("button", { name: "Drop" }));
 
-      expect(heard.skipFlight).toHaveBeenCalledOnce();
+      expect(heard.dropFlight).toHaveBeenCalledOnce();
     });
 
-    it("skips a flight paused as the player tabbed to Skip", async () => {
+    it("drops a flight paused as the player tabbed to Drop", async () => {
       const { user, heard } = await renderBar({ outcome: "paused" });
 
-      await user.click(screen.getByRole("button", { name: "Skip" }));
+      await user.click(screen.getByRole("button", { name: "Drop" }));
 
-      expect(heard.skipFlight).toHaveBeenCalledOnce();
+      expect(heard.dropFlight).toHaveBeenCalledOnce();
     });
 
-    it("dims Skip while there is no flight", async () => {
-      await renderBar({ flying: false });
+    it("dims Drop while a drop would do nothing", async () => {
+      await renderBar({ droppable: false });
 
-      expect(screen.getByRole("button", { name: "Skip" })).toHaveAttribute(
+      expect(screen.getByRole("button", { name: "Drop" })).toHaveAttribute(
         "aria-disabled",
         "true",
       );
     });
 
-    it("leaves Fast-forward live while there is no flight", async () => {
-      await renderBar({ flying: false });
+    it("leaves Fast-forward live while Drop is dimmed", async () => {
+      await renderBar({ droppable: false });
 
       expect(
         screen.getByRole("button", { name: "Fast-forward" }),
@@ -401,11 +401,11 @@ describe("BarComponent", () => {
       installFakeViewport(390, 844);
     });
 
-    it("keeps Pause, Fast-forward and Skip in the bar, beside the menu", async () => {
+    it("keeps Pause, Fast-forward and Drop in the bar, beside the menu", async () => {
       await renderBar();
 
       expect(barButtons()).toEqual(
-        barButtonsNamed(["Pause", "Fast-forward", "Skip", "More actions"]),
+        barButtonsNamed(["Pause", "Fast-forward", "Drop", "More actions"]),
       );
     });
 

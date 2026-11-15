@@ -35,7 +35,7 @@
   padding-block: 4px;
 }
 
-// The actions, Pause and Skip dimmed while they can't be used.
+// The actions, Pause and Drop dimmed while they can't be used.
 @include bar-actions;
 
 // Pause round at every size, as the rest are, its label heard but not seen
