@@ -321,21 +321,35 @@ export function ladderCentsOf(note: number): number {
   return CHAIN_CENTS[step] ?? 0;
 }
 
+/** Names one of static's multipliers past ×1, a step's. */
+type StepTimes = (typeof STATIC_STEPS)[number]["times"];
+
+/** Names one of static's multipliers: ×1, or one of its steps'. */
+type StaticTimes = 1 | StepTimes;
+
 /**
  * The ladder's note, counted from 1, the bell under a break rings at for
  * each of static's multipliers it scored at: the C the kit's ladder lands
  * on at ×1, ×2 and ×3, and the fifth above it rings at ×4.
  */
-const BELL_NOTES: readonly number[] = [1, 5, 10, 20];
+const BELL_NOTES: Readonly<Record<StaticTimes, number>> = {
+  1: 1,
+  2: 5,
+  3: 10,
+  4: 20,
+};
 
 /**
  * Returns how far the bell under a break scored at one of static's
- * multipliers rises, in cents: the ladder's note for it, the last for one
- * past ×4.
+ * multipliers rises, in cents: the ladder's note for the highest of them
+ * no higher than it, ×1's for one below it.
  */
 export function bellCentsOf(times: number): number {
-  const at = Math.min(Math.max(times, 1), BELL_NOTES.length) - 1;
-  return ladderCentsOf(BELL_NOTES[at] ?? 1);
+  let tier: StaticTimes = 1;
+  for (const step of STATIC_STEPS) {
+    if (step.times <= times && step.times > tier) tier = step.times;
+  }
+  return ladderCentsOf(BELL_NOTES[tier]);
 }
 
 /**
@@ -458,9 +472,7 @@ const SHOT_SOUNDS: Readonly<Record<WeaponId, SoundName>> = {
 };
 
 /** The chime static plays as it rises to each multiplier's step. */
-const MULTIPLIER_SOUNDS: Readonly<
-  Record<(typeof STATIC_STEPS)[number]["times"], SoundName>
-> = {
+const MULTIPLIER_SOUNDS: Readonly<Record<StepTimes, SoundName>> = {
   2: "chain-x2",
   3: "chain-x3",
   4: "chain-x4",

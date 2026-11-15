@@ -478,6 +478,16 @@ describe("bellCentsOf", () => {
       expect(bellCentsOf(times)).toBe(cents);
     },
   );
+
+  it.each([
+    [0, 0],
+    [2.5, 1200],
+  ])(
+    "rings the bell for ×%s at the highest multiplier no higher, ×1's below it, %i cents up",
+    (times, cents) => {
+      expect(bellCentsOf(times)).toBe(cents);
+    },
+  );
 });
 
 describe("endSoundOf", () => {
