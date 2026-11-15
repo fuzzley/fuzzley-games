@@ -69,6 +69,9 @@ export type PilotEventKind =
 /** Names points scored at a place, a break's or a stray's, which its event says. */
 export type ScoreEventKind = "scored";
 
+/** Names a spark gathered, at its place, by the pod or a bubble in tow, which its event says. */
+export type SparkEventKind = "sparked";
+
 /** Names something that happened to the pilot's static, at the ship, which its event says. */
 export type StaticEventKind =
   /** Static came to another step, up or down: the multiplier's, or full. */
@@ -91,6 +94,7 @@ export type FieldEventKind =
   | PickupEventKind
   | PilotEventKind
   | ScoreEventKind
+  | SparkEventKind
   | StaticEventKind;
 
 /** Records something that happened on the field, and where. */
@@ -109,7 +113,7 @@ export interface FieldEvent extends NumberedEvent {
   pickup: PickupId | null;
   /** The weapon that fired, for its shot's sound, or null for an event of none. */
   weapon: WeaponId | null;
-  /** The pilot it happened to, or null for an event of none. */
+  /** The pilot it happened to, or who gathered a spark, or null for an event of none. */
   pilot: Pilot | null;
   /** How many ride in tow as an event of a pilot leaves the crew, 0 for any other event. */
   inTow: number;
@@ -291,6 +295,24 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   /** Records points scored at a place, before static's multiplier, and the multiplier. */
   addScore(x: number, y: number, points: number, times: number): void {
     const event = this.record("scored", x, y);
+    event.points = points;
+    event.times = times;
+  }
+
+  /**
+   * Records a spark gathered, at its place, with the pilot who gathered it,
+   * at the controls or in tow, its points before static's multiplier, and
+   * the multiplier.
+   */
+  addSpark(
+    x: number,
+    y: number,
+    pilot: Pilot,
+    points: number,
+    times: number,
+  ): void {
+    const event = this.record("sparked", x, y);
+    event.pilot = pilot;
     event.points = points;
     event.times = times;
   }

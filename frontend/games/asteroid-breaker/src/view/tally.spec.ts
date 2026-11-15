@@ -5,6 +5,7 @@ import { TALLY_COUNT_MS, nextWaveWords, tallyShownAt } from "./tally";
 /** A cleared wave's points, a part on each line. */
 const TALLY: WaveTally = {
   rocks: 1240,
+  sparks: 85,
   static: 380,
   strays: 600,
   cleared: 500,
@@ -12,7 +13,7 @@ const TALLY: WaveTally = {
 };
 
 /** How long each line takes to count up: an equal share of the whole count. */
-const LINE_MS = TALLY_COUNT_MS / 5;
+const LINE_MS = TALLY_COUNT_MS / 6;
 
 describe("tallyShownAt", () => {
   it("writes each part of a cleared wave's points on a line of its own, in the card's order, and their total, once counted up", () => {
@@ -21,12 +22,13 @@ describe("tallyShownAt", () => {
     expect(shown).toEqual({
       lines: [
         { label: "Rocks", points: "1,240" },
+        { label: "Sparks", points: "85" },
         { label: "Static", points: "380" },
         { label: "Strays brought home", points: "600" },
         { label: "Wave cleared", points: "500" },
         { label: "No hit taken", points: "0" },
       ],
-      total: "2,720",
+      total: "2,805",
     });
   });
 
@@ -36,7 +38,7 @@ describe("tallyShownAt", () => {
     expect({
       points: shown.lines.map((line) => line.points),
       total: shown.total,
-    }).toEqual({ points: ["0", "0", "0", "0", "0"], total: "0" });
+    }).toEqual({ points: ["0", "0", "0", "0", "0", "0"], total: "0" });
   });
 
   it("counts the lines up in turn, each whole before the next starts", () => {
@@ -45,7 +47,10 @@ describe("tallyShownAt", () => {
     expect({
       points: shown.lines.map((line) => line.points),
       total: shown.total,
-    }).toEqual({ points: ["1,240", "0", "0", "0", "0"], total: "1,240" });
+    }).toEqual({
+      points: ["1,240", "0", "0", "0", "0", "0"],
+      total: "1,240",
+    });
   });
 
   it("counts a line up fast, then slowing, as it eases out", () => {
@@ -58,8 +63,8 @@ describe("tallyShownAt", () => {
   it("adds up what the lines show so far as the total", () => {
     const shown = tallyShownAt(TALLY, LINE_MS * 1.5);
 
-    // The rocks' whole, and seven eighths of static's.
-    expect(shown.total).toBe("1,573");
+    // The rocks' whole, and seven eighths of the sparks'.
+    expect(shown.total).toBe("1,314");
   });
 
   it("keeps the sum whole past its count", () => {

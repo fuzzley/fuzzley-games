@@ -174,6 +174,12 @@ describe("describeEvent", () => {
       },
     ],
     [
+      "a spark gathered",
+      (log: FieldEventLog) => {
+        log.addSpark(1, 2, 0, 5, 1);
+      },
+    ],
+    [
       "static rising a step short of full",
       (log: FieldEventLog) => {
         log.addStep(1, 2, FULL_STEP - 1, false);

@@ -85,6 +85,7 @@ const SETUP: FieldSetup = {
   cometEvery: null,
   crew: createCrew(),
   charge: 0,
+  sparkReach: 1,
 };
 
 /** Steering that holds fire and nothing else. */
@@ -337,6 +338,7 @@ describe("fieldFor", () => {
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
       crew: START.crew,
       charge: 12,
+      sparkReach: 1.6,
     });
   });
 

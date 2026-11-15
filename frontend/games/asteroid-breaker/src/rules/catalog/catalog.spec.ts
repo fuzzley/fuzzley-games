@@ -24,6 +24,9 @@ const ROCK_ENTRIES = ROCK_KIND_IDS.map((id) => [id, rockKind(id)] as const);
 
 const WEAPON_ENTRIES = Object.entries(WEAPONS);
 
+/** The sparks a crystal sheds beyond its size's. */
+const CRYSTAL_SPARKS = ROCK_KINDS.crystal.traits[1].sparks;
+
 /** Every pickup, with its id. */
 const PICKUP_ENTRIES = PICKUP_IDS.map((id) => [id, pickup(id)] as const);
 
@@ -60,6 +63,8 @@ function settingsOf(trait: RockTrait): number[] {
       return [...valuesOf(trait.reach), trait.delayMs];
     case "drawn":
       return [trait.pull];
+    case "sheds":
+      return [trait.sparks];
     case "gives":
     case "rings":
       return [];
@@ -143,6 +148,11 @@ describe("ROCK_KINDS", () => {
       "crystal's pieces",
       ROCK_KINDS.crystal.about,
       `into ${spelled(ROCK_KINDS.crystal.splits.count)}`,
+    ],
+    [
+      "crystal's sparks",
+      ROCK_KINDS.crystal.about,
+      `sheds ${spelled(CRYSTAL_SPARKS)} more sparks`,
     ],
   ])("spells out %s as they are", (_, about, counted) => {
     expect(about).toContain(counted);

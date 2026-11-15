@@ -1,4 +1,5 @@
 import { SPEEDS, SPEED_INFO, isSpeed } from "./speed";
+import { SPARK_DRAW_REACH } from "./tuning";
 
 describe("SPEEDS", () => {
   it("lists the three speeds, slowest first", () => {
@@ -10,7 +11,12 @@ describe("SPEED_INFO", () => {
   it("has Normal set every factor at 1", () => {
     const { name, says, ...factors } = SPEED_INFO.normal;
 
-    expect(factors).toEqual({ motion: 1, cometRate: 1, drops: 1 });
+    expect(factors).toEqual({
+      motion: 1,
+      cometRate: 1,
+      drops: 1,
+      sparkReach: 1,
+    });
   });
 
   it.each([
@@ -30,6 +36,14 @@ describe("SPEED_INFO", () => {
     const { cometRate, drops } = SPEED_INFO.fast;
 
     expect({ cometRate, drops }).toEqual({ cometRate: 1, drops: 1 });
+  });
+
+  it.each([
+    ["relaxed", 8],
+    ["normal", 5],
+    ["fast", 5],
+  ] as const)("has %s draw sparks in from %i units", (speed, units) => {
+    expect(SPARK_DRAW_REACH * SPEED_INFO[speed].sparkReach).toBeCloseTo(units);
   });
 });
 

@@ -12,7 +12,7 @@ export type PickupEffect =
   | { readonly kind: "weapon"; readonly weapon: WeaponId; readonly ms: number }
   /** The next rock or comet to touch the ship breaks a size down instead, and the shield goes. */
   | { readonly kind: "guard" }
-  /** Pickups and strays are drawn in to the ship from farther, for a time. */
+  /** Pickups, sparks, strays and the crew knocked loose are drawn in to the ship from farther, for a time. */
   | { readonly kind: "pull"; readonly reach: number; readonly ms: number }
   /** The rocks and comets go at a share of their speed, for a time. */
   | { readonly kind: "pace"; readonly scale: number; readonly ms: number };
@@ -68,7 +68,7 @@ export const PICKUPS = {
   },
   magnet: {
     name: "Magnet",
-    about: "Draws pickups and strays in from 14 units, for 15 seconds.",
+    about: "Draws pickups, sparks and strays in from 14 units, for 15 seconds.",
     weight: 5,
     from: 6,
     effect: { kind: "pull", reach: 14, ms: 15_000 },

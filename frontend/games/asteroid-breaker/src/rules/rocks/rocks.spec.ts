@@ -15,6 +15,7 @@ import {
 import { FieldEventLog } from "../field/events";
 import { createCrew } from "../ship/pilots";
 import { createCharge } from "../sparks/charge";
+import { createSparks } from "../sparks/sparks";
 import { stepsIn } from "../stepper";
 import type { Place, Torus } from "../torus";
 import {
@@ -107,8 +108,10 @@ function rockField({
     pickups: createPickups(),
     lastDropAt: 0,
     score: 0,
+    sparks: createSparks(),
     staticPoints: 0,
     rockPoints: 0,
+    sparkPoints: 0,
     strayPoints: 0,
     crew: createCrew(),
     hits: 0,

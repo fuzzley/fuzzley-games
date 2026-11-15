@@ -9,6 +9,7 @@ import type { Floating } from "../rules/rocks/drops";
 import { type Rock, addRock } from "../rules/rocks/rocks";
 import { type Crew, type Pilot, createCrew } from "../rules/ship/pilots";
 import { STILL, type Ship, createShip } from "../rules/ship/ship";
+import type { Spark } from "../rules/sparks/sparks";
 import { layTow } from "../rules/ship/tow";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
@@ -65,6 +66,8 @@ export interface PictureOptions {
   readonly crew?: Crew;
   /** The pilot's static it starts with, none by default. */
   readonly charge?: number;
+  /** How far the ship draws sparks in from, against the field's sparking: as at Normal by default. */
+  readonly sparkReach?: number;
 }
 
 /** The sizes a picture's letters stand for. */
@@ -120,6 +123,7 @@ export function fieldFrom(
     cometEvery: options.cometEvery ?? null,
     crew: options.crew ?? createCrew(),
     charge: options.charge ?? 0,
+    sparkReach: options.sparkReach ?? 1,
   });
   field.ship = null;
   rows.forEach((row, down) => {
@@ -194,6 +198,21 @@ export function placePickup(
   floating.lastY = y;
   floating.lifeSteps = stepsIn(PICKUP_LIFE_MS);
   return floating;
+}
+
+/** Puts a spark out on a field at a place, hanging there, shed at the field's step, and returns it. */
+export function placeSpark(field: Field, x: number, y: number): Spark {
+  const spark = field.sparks.find((each) => !each.live);
+  if (!spark) throw new Error("No slot was free for the spark.");
+  spark.live = true;
+  spark.x = x;
+  spark.y = y;
+  spark.lastX = x;
+  spark.lastY = y;
+  spark.wayX = 0;
+  spark.wayY = 0;
+  spark.shedAt = field.steps;
+  return spark;
 }
 
 /** Has a field's ship catch a pickup: it is floated onto the ship, and the field stepped. */

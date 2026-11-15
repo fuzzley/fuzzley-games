@@ -66,6 +66,7 @@ const EVENTS: readonly (readonly [
   ["joined", [], []],
   ["home", [], []],
   ["scored", ["points"], ["points"]],
+  ["sparked", [], []],
   ["stepped", [], []],
 ];
 

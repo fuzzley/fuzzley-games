@@ -21,6 +21,11 @@ export interface SpeedInfo {
   readonly cometRate: number;
   /** The chance that a broken rock lets a pickup go, against Normal's. */
   readonly drops: number;
+  /**
+   * How far the ship draws sparks in from, against the field's sparking:
+   * from 8 units at Relaxed, for 5.
+   */
+  readonly sparkReach: number;
   /** What the speed is like, for the settings. */
   readonly says: string;
 }
@@ -32,13 +37,15 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     motion: 0.8,
     cometRate: 0.5,
     drops: 1.25,
-    says: "Slower rocks, fewer and slower comets, and more pickups.",
+    sparkReach: 1.6,
+    says: "Slower rocks, fewer and slower comets, more pickups, and sparks drawn in from farther.",
   },
   normal: {
     name: "Normal",
     motion: 1,
     cometRate: 1,
     drops: 1,
+    sparkReach: 1,
     says: "The classic pace.",
   },
   fast: {
@@ -46,6 +53,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     motion: 1.2,
     cometRate: 1,
     drops: 1,
+    sparkReach: 1,
     says: "Quicker rocks and comets.",
   },
 };

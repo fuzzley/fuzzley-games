@@ -128,6 +128,7 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["joined", "stray-catch"],
   ["home", "stray-catch"],
   ["scored", null],
+  ["sparked", null],
   ["stepped", null],
 ];
 

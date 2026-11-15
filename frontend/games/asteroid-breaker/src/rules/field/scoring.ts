@@ -1,14 +1,15 @@
-// The points a wave scores: each rock broken by its kind and size, times
-// static's multiplier, a stray caught, and the wave's clearing.
+// The points a wave scores: each rock broken by its kind and size, each
+// spark gathered and each stray caught, times static's multiplier, and the
+// wave's clearing.
 // Once no one is at the controls the run is over, and nothing scores, so
 // its score doesn't hang on how its last steps fall into frames.
 
 import { pointsFor } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
-import type { Crew } from "../ship/pilots";
+import type { Crew, Pilot } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { type Charge, multiplierOf } from "../sparks/charge";
-import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
+import { CLEAN_POINTS, CLEAR_POINTS, SPARK_POINTS } from "../tuning";
 
 /**
  * Describes what of the field its points change, which the rocks' rules hand on
@@ -21,6 +22,8 @@ export interface ScoreField {
   staticPoints: number;
   /** The rocks' own points among the wave's, before static's multiplier. */
   rockPoints: number;
+  /** The sparks' own points among the wave's, before static's multiplier. */
+  sparkPoints: number;
   /** The strays' own points among the wave's, before static's multiplier. */
   strayPoints: number;
   /** The pilot's static, whose step multiplies what is scored. */
@@ -39,14 +42,16 @@ export interface ScoreField {
 /** Describes what of a cleared wave's field says how its points add up. */
 export type TallyField = Pick<
   ScoreField,
-  "rockPoints" | "staticPoints" | "strayPoints" | "hits"
+  "rockPoints" | "sparkPoints" | "staticPoints" | "strayPoints" | "hits"
 >;
 
 /** Describes how a cleared wave's points add up, for its card. */
 export interface WaveTally {
   /** The rocks' own points. */
   readonly rocks: number;
-  /** What static's multiplier added beyond the rocks' and the strays' own. */
+  /** The sparks' own points. */
+  readonly sparks: number;
+  /** What static's multiplier added beyond the rocks', the sparks' and the strays' own. */
   readonly static: number;
   /** The strays' own points. */
   readonly strays: number;
@@ -64,6 +69,25 @@ export interface WaveTally {
 export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
   const points = pointsFor(rock.kind, rock.size);
   if (score(field, points, rock.x, rock.y)) field.rockPoints += points;
+}
+
+/**
+ * Scores a spark gathered at a place its points, times static's
+ * multiplier, logged with the pilot who gathered it, unless the run is
+ * over, and returns whether it did; its own points count among the
+ * sparks', for the tally.
+ */
+export function scoreSpark(
+  field: ScoreField,
+  x: number,
+  y: number,
+  by: Pilot,
+): boolean {
+  if (isOver(field)) return false;
+  const times = multiply(field, SPARK_POINTS);
+  field.sparkPoints += SPARK_POINTS;
+  field.events.addSpark(x, y, by, SPARK_POINTS, times);
+  return true;
 }
 
 /**
@@ -96,6 +120,7 @@ export function scoreClearing(field: ScoreField): void {
 export function tallyOf(field: Readonly<TallyField>): WaveTally {
   return {
     rocks: field.rockPoints,
+    sparks: field.sparkPoints,
     static: field.staticPoints,
     strays: field.strayPoints,
     cleared: CLEAR_POINTS,
@@ -114,11 +139,20 @@ function score(
   y: number,
 ): boolean {
   if (isOver(field)) return false;
+  const times = multiply(field, points);
+  field.events.addScore(x, y, points, times);
+  return true;
+}
+
+/**
+ * Adds points to the wave's, times static's multiplier, what it added
+ * apart, and returns the multiplier.
+ */
+function multiply(field: ScoreField, points: number): number {
   const times = multiplierOf(field.charge.level);
   field.score += points * times;
   field.staticPoints += points * (times - 1);
-  field.events.addScore(x, y, points, times);
-  return true;
+  return times;
 }
 
 /** Returns whether the run is over, no one left at the controls. */

@@ -7,6 +7,7 @@ import type { FieldEventLog } from "../field/events";
 import { stepsIn } from "../stepper";
 import type { Place } from "../torus";
 import {
+  SPARK_DRAW_REACH,
   STATIC_DRAIN,
   STATIC_HOLD_MS,
   STATIC_MOST,
@@ -33,18 +34,22 @@ export interface Charge {
 }
 
 /**
- * Says how static works, a value the field holds, as it holds its flight,
- * so it can change in play: how much it holds and how fast it drains.
+ * Says how sparks and static work, a value the field holds, as it holds its
+ * flight, so it can change in play: how far the ship draws sparks in from,
+ * how much static holds and how fast it drains.
  */
 export interface Sparking {
+  /** How near the ship it draws a spark in from, before the speed's and a Magnet's reach. */
+  readonly reach: number;
   /** The most static holds: full, at or past the multiplier's last step. */
   readonly most: number;
   /** How fast static drains once it no longer holds, in a second. */
   readonly drain: number;
 }
 
-/** How static works, as `tuning.ts` has it. */
+/** How sparks and static work, as `tuning.ts` has it. */
 export const TUNED_SPARKING: Readonly<Sparking> = {
+  reach: SPARK_DRAW_REACH,
   most: STATIC_MOST,
   drain: STATIC_DRAIN,
 };
@@ -82,6 +87,15 @@ export function stepOf(level: number, sparking: Readonly<Sparking>): number {
 /** Returns how many times its points what is scored scores, by static's step at a level. */
 export function multiplierOf(level: number): number {
   return multiplierAt(level, STATIC_STEPS);
+}
+
+/**
+ * Raises static by an amount, up to its most, as a spark is gathered, and
+ * holds it from this step before it drains.
+ */
+export function raiseStatic(field: ChargeField, amount: number): void {
+  field.charge.lastSparkAt = field.steps;
+  setLevel(field, field.charge.level + amount);
 }
 
 /**

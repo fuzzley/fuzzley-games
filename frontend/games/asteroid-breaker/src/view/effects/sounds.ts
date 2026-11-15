@@ -390,7 +390,8 @@ const EVENT_SOUNDS: Readonly<
   joined: "stray-catch",
   home: "stray-catch",
   scored: null,
-  // Static's steps play no sound yet.
+  // A spark gathered and static's steps play no sound yet.
+  sparked: null,
   stepped: null,
 };
 
