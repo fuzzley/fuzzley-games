@@ -38,6 +38,7 @@ describe("IconComponent", () => {
   });
 
   it.each([
+    "drop",
     "fast-forward",
     "flag",
     "heart",

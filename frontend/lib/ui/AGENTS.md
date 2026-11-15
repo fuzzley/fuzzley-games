@@ -85,8 +85,8 @@ what it exports; an app imports it as `@fz/ui/<folder>`.
   the glints, as `fuzzballSvg()` says to. It is hidden from assistive
   technology.
 - `src/icon/`: `<fz-icon name="…">`, the icons, drawn as outlines but for
-  a few filled ones, such as play, fast-forward, skip and the star, whose
-  outline, as large, is `star-outline`, for a star not yet won;
+  a few filled ones, such as play, fast-forward, skip, drop and the star,
+  whose outline, as large, is `star-outline`, for a star not yet won;
   `ICON_NAMES` lists them. A new icon is a name there and a case in the
   template, which its spec holds to a drawing unlike any other. An icon
   takes the text's color. Its size comes from `width` and `height`, or from
