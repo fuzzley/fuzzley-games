@@ -926,10 +926,12 @@ what each package touches. On top of them:
 - the root's `yarn lint`, under a lock every package shares
   (`flock /tmp/abu-root-checks.lock yarn lint`), so no two run together;
 - where the commit changes a library, the root's `yarn typecheck`, and the
-  tests of every workspace that uses the changed entry
-  (`yarn test --only <names> --jobs 2 -- --maxWorkers=4`), under the same
-  lock, since other games use it; never the whole `yarn test`, which runs
-  four workspaces on a quarter of the machine each, on top of the others;
+  tests of every workspace that uses the changed entry, each by
+  `yarn workspace <name> test --maxWorkers=4`, two at a time, under the
+  same lock, since other games use it; never the whole `yarn test`, which
+  runs four workspaces on a quarter of the machine each, on top of the
+  others, nor `yarn test --only`, which sets its own `--maxWorkers` and
+  so rejects another;
 - at a package's last commit that touches the rules or the view, the game's
   `yarn test:coverage`, held to its floors.
 
