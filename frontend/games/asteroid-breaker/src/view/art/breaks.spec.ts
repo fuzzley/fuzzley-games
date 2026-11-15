@@ -11,12 +11,11 @@ import { ROLES } from "../../testing/roles";
 import { beltPalette } from "../colors/palette";
 import { inLight } from "../colors/rock_light";
 import { mixTone } from "../colors/tones";
+import { BREAK_MS, HELD_MS } from "../effects/timing";
 import {
-  BREAK_MS,
   type Break,
   type Broken,
   GLINT_POINTS,
-  HELD_MS,
   HELD_REACH,
   IMPACT_POINTS,
   type Placed,

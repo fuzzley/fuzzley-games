@@ -404,7 +404,7 @@ describe("the other frames", () => {
     );
   });
 
-  it.each([FRAMES.shard, FRAMES.spark, FRAMES.puff])(
+  it.each([FRAMES.shard, FRAMES.puff])(
     "draws the %s white, for the scene to tint",
     (name) => {
       expect(

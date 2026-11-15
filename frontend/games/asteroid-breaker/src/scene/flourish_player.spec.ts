@@ -112,7 +112,7 @@ describe("FlourishPlayer", () => {
       log.addBreak(rock, 1, 0, -1);
     });
 
-    player.play("shards", event, contextAt(shell, NOW));
+    player.play("break", event, contextAt(shell, NOW));
 
     const play = scene.kit.debris.breaks.all.find(({ at }) => at === NOW);
     expect(
@@ -143,20 +143,6 @@ describe("FlourishPlayer", () => {
       tints: times(BURST_SHARDS, ART_PALETTE.accent),
       scales: times(BURST_SHARDS, 2),
     });
-  });
-
-  it("starts nothing more for a broken rock's dust, which its break draws", async () => {
-    const { shell, scene, player } = await startPlayer();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, "ice");
-    const event = eventOf((log) => {
-      log.addBreak(rock, 1, 0, -1);
-    });
-
-    player.play("dust", event, contextAt(shell, NOW));
-
-    expect(scene.kit.debris.breaks.all.some(({ at }) => at === NOW)).toBe(
-      false,
-    );
   });
 
   it("throws a held hit's spark from its rock's rim toward the field's light while no ship flies, its sparks the shape its serial picks", async () => {

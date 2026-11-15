@@ -1,20 +1,14 @@
-/**
- * How long a broken rock's shards fly before they fade, and a lost ship's
- * burst, in milliseconds.
- */
-export const SHARDS_MS = 500;
+/** How long a rock's break lasts, from its flash to the last of its pieces gone, in milliseconds. */
+export const BREAK_MS = 450;
 
-/** The fewest shards a broken rock scatters. */
-export const LEAST_SHARDS = 4;
+/** How long a held hit's spark lasts, in milliseconds. */
+export const HELD_MS = 200;
 
-/** The most shards a broken rock scatters. */
-export const MOST_SHARDS = 7;
+/** How long a lost pod's burst of shards flies before it fades, in milliseconds. */
+export const BURST_MS = 500;
 
-/** How many shards a lost ship bursts into. */
+/** How many shards a lost pod bursts into. */
 export const BURST_SHARDS = 12;
-
-/** How long a broken rock's puff of dust spreads and fades. */
-export const DUST_MS = 400;
 
 /** How long a rock that holds a hit flashes light. */
 export const FLASH_MS = 60;
@@ -25,9 +19,6 @@ export const FLASH_MS = 60;
  * the hits come; a hit held sooner sparks alone.
  */
 export const FLASH_GAP_MS = 340;
-
-/** How long the spark off a rock that holds a hit flies and fades. */
-export const SPARK_MS = 200;
 
 /**
  * How long a blast's, a spent Shield's or a lost ship's ring takes to sweep
@@ -91,5 +82,5 @@ export function clearedDelayMs(motion: boolean): number {
  * unwelcome, where neither happens.
  */
 export function resultDelayMs(motion: boolean): number {
-  return motion ? Math.max(SHARDS_MS, SHAKE_DELAY_MS + SHAKE_MS) : 0;
+  return motion ? Math.max(BURST_MS, SHAKE_DELAY_MS + SHAKE_MS) : 0;
 }

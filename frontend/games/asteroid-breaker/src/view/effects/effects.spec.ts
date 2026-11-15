@@ -77,10 +77,10 @@ const EVENTS: readonly (readonly [
 
 /** Each size of rock, with its break's flourishes, a large one's kicking the field. */
 const BREAKS: readonly (readonly [RockSize, readonly Flourish[]])[] = [
-  ["boulder", ["shards", "dust", "kick"]],
-  ["large", ["shards", "dust", "kick"]],
-  ["medium", ["shards", "dust"]],
-  ["small", ["shards", "dust"]],
+  ["boulder", ["break", "kick"]],
+  ["large", ["break", "kick"]],
+  ["medium", ["break"]],
+  ["small", ["break"]],
 ];
 
 /** Every event, a stone's of each size among them, with what it calls for. */
