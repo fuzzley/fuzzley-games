@@ -16,7 +16,7 @@ import {
   viewportOf,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
-import { SpritePlayer } from "@fz/phaser/sound";
+import { type SoundSprite, SpritePlayer } from "@fz/phaser/sound";
 import { type Cameras, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { PICTURE_FRAMES, type Pictures } from "../view/art/art";
@@ -25,7 +25,9 @@ import { commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import { effectsOf, flourishesOf } from "../view/effects/effects";
 import {
+  SOUNDS,
   type SoundName,
+  type SoundTake,
   THRUST,
   createFrameSounds,
   detuneOf,
@@ -77,11 +79,23 @@ import { ShotPainter } from "./painters/shot_painter";
 import { StrayPainter } from "./painters/stray_painter";
 import { TagPainter } from "./painters/tag_painter";
 import { TrailPainter } from "./painters/trail_painter";
-import spritemap from "./sounds/sounds.json";
-import spriteUrl from "./sounds/sounds.wav?url";
+import spritemap from "./sounds/sprite.json";
+import spriteM4a from "./sounds/sprite.m4a?url";
+import spriteOgg from "./sounds/sprite.ogg?url";
 
 /** Names the sounds' sprite in Phaser's caches. */
 export const SOUNDS_KEY = "belt-sounds";
+
+/**
+ * The sounds' sprite, as Ogg Vorbis and, for Safari, as M4A, of which the
+ * browser loads the first it plays; its map is typed by the view's takes,
+ * so a take of a sound in its `SOUNDS` that the map lacks fails to compile.
+ */
+const SOUND_SPRITE: SoundSprite<SoundTake> = {
+  key: SOUNDS_KEY,
+  spritemap,
+  url: [spriteOgg, spriteM4a],
+};
 
 /** What the scene asks of the shell, and tells it. */
 export interface BeltSceneOptions {
@@ -161,7 +175,7 @@ export interface BeltKit {
   readonly fieldCamera: FieldCamera;
   /** Draws the frame and the deck, over the whole canvas. */
   readonly deckCamera: Cameras.Scene2D.Camera;
-  /** Plays the sounds. */
+  /** Plays the sounds, by the view's mix. */
   readonly sounds: SpritePlayer<SoundName>;
 }
 
@@ -344,11 +358,7 @@ export class BeltScene extends Scene {
       // Over the whole canvas, which Phaser keeps it to as the canvas changes
       // size.
       deckCamera: this.cameras.add(),
-      sounds: new SpritePlayer(this, {
-        key: SOUNDS_KEY,
-        spritemap,
-        url: spriteUrl,
-      }),
+      sounds: new SpritePlayer(this, SOUND_SPRITE, { mix: SOUNDS }),
     };
   }
 

@@ -180,7 +180,8 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   hold the layout and the readers every report shares.
   `tools/build-sounds.spec.ts` holds the sprite in `src/scene/sounds/` to
   the recipes, by name, loop and place, from the lengths recorded beside
-  its map, without rendering every take; renders five short takes to the
+  its map, without rendering every take, and the view's mix (`SOUNDS`) to
+  them, by name, family, level and takes; renders five short takes to the
   bytes of the uplift's kit's WAVs of them; and runs the build whole
   (`run()`) on families of its own, into temporary folders, with a fake
   encoder or none.

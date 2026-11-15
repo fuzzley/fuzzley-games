@@ -369,12 +369,17 @@ takes for the specs' helpers.
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says which flourishes each event calls for, with motion and
-  without (`effectsOf()`); `sounds.ts` which sound each event plays
-  (`soundOf()`), how far a broken rock's sound rises along a chain
+  without (`effectsOf()`); `sounds.ts` every sound of the sprite, the
+  plan's but the beds, by name, each with its family, level, takes and
+  whether it is tuned, its family's (`SOUNDS`, the mix the scene hands its
+  player, and `SoundTake`, a take's name in the sprite), which sound each
+  event plays (`soundOf()`), a rock's break by its kind and size, a catch by
+  its pickup, how far a broken rock's sound rises along a chain
   (`detuneOf()`), and `createFrameSounds()`, `@fz/core/frame_sounds`'s
-  `FrameSounds` of its `SOUNDS`, which plays each sound once a frame at
-  most, at the highest it was heard; the thrust's hum (`THRUST`) is one of
-  them, which no event plays. `flourish.ts` says how each flourish moves
+  `FrameSounds` of them, which plays each sound once a frame at most, at the
+  highest it was heard; the thrust's hum (`THRUST`) is one of them, which no
+  event plays, and so is each sound no event plays yet.
+  `flourish.ts` says how each flourish moves
   over its time, beside `@fz/core/math`'s `shareDone()` and its curves
   (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
   shake scroll the field's camera (`cameraShift()`) and when a dash lays
@@ -563,13 +568,17 @@ takes for the specs' helpers.
   `@fz/phaser/scene`'s `drawCanvasTexture()`, which uploads the atlas once,
   written.
   `@fz/phaser/sound`'s `SpritePlayer` plays each event's sound from the
-  sprite in `sounds/`, `sounds.wav` and its map, `sounds.json`, which
-  nothing builds any more, as the recipes that made it are gone, a broken
-  rock's risen along its chain, holds the thrust's hum while the ship
-  thrusts, and mutes the game while the settings want none. Beside it lie
-  the uplift's sounds, which `yarn build:sounds` encodes and nothing loads:
-  the sprite, `sprite.ogg` and `sprite.m4a`, its map, `sprite.json`, each
-  take's length (`sprite_lengths.json`), and the beds, in `sounds/beds/`.
+  uplift's sprite in `sounds/`, as Ogg Vorbis, `sprite.ogg`, or, where the
+  browser plays no Ogg, as Safari doesn't, M4A, `sprite.m4a`, the first the
+  browser plays loaded, by its map, `sprite.json`, which the scene types by
+  the view's takes (`SoundTake`), so a take the map lacks fails to compile;
+  it plays by the view's mix (`SOUNDS`), each sound's takes in turn, a busy
+  noisy one varied, the voices held to the mix's limits and the busy levels
+  ducked under a huge one, through a limiter; a broken rock's risen along
+  its chain; holds the thrust's hum while the ship thrusts; and mutes the
+  game while the settings want none. Beside the sprite lie each take's
+  length (`sprite_lengths.json`), which `yarn build:sounds` writes with it,
+  and the beds, in `sounds/beds/`, which nothing loads yet.
   The keys go back through `command()`, heard through `@fz/phaser/scene`'s
   `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
   every key and finger held is let go as the player looks away
@@ -778,14 +787,15 @@ takes for the specs' helpers.
   `tools/sounds/wav/`, which git ignores.
   `sound-lab.ts` is no script but the sound lab's page, which the dev
   server alone serves (`@fz/dev/sound-lab`'s `soundLab()`, in
-  `vite.config.ts`): the sprite the game plays,
-  `src/scene/sounds/sounds.wav`, beside a candidate designed with ZzFX for
-  each of the shot, the three breaks, the blast and the thrust, and scenes
-  played as the game plays them, the gun at `SHOT_EVERY_MS` and a chain
-  raised by the view's `CHAIN_STEP_CENTS` up to `CHAIN_MOST_CENTS`, as
-  `detuneOf()` raises it. The app's tsconfig leaves it out;
-  `tsconfig.node.json` checks it, with Vite's client types for the sprite's
-  address.
+  `vite.config.ts`): the sprite the game played before the uplift,
+  `tools/sound-lab/sounds.wav` and its map, `sounds.json`, which no build
+  holds, with the names it plays them under (`tools/sound-lab/before.ts`),
+  beside a candidate designed with ZzFX for each of the shot, the three
+  breaks, the blast and the thrust, and scenes played as the game played
+  them, the gun at `SHOT_EVERY_MS` and a chain raised by the view's
+  `CHAIN_STEP_CENTS` up to `CHAIN_MOST_CENTS`, as `detuneOf()` raises it.
+  The app's tsconfig leaves it out; `tsconfig.node.json` checks it, with
+  Vite's client types for the sprite's address.
 
 ## The Field
 
@@ -1049,16 +1059,17 @@ workspace's with the others'.
   `tools/build-sounds.spec.ts` holds the shipped map to the recipes, every
   take of every sound but the beds by name and in order, which loop, and
   where each lies as the packer lays out its recorded length, to the byte;
-  the beds and the sprite to being encoded; five short takes, rendered, to
+  the view's mix to the recipes, every sound but the beds by name, family,
+  level and takes; the beds and the sprite to being encoded; five short takes, rendered, to
   the bytes of the kit's WAVs of them, their recorded lengths and their
   levels; and the build whole, on families and folders of its own, an encode
   that fails changing nothing.)
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9005/sound-lab/`, or
   `http://localhost:4200/play/asteroid-breaker/sound-lab/` under the root's
-  `yarn dev:all` (`tools/sound-lab.ts`: the sounds the game ships beside
-  the candidates, alone and in scenes, varied, panned and limited or not,
-  and the notes on better sounds; no build holds it).
+  `yarn dev:all` (`tools/sound-lab.ts`: the sounds the game played before
+  the uplift beside the candidates, alone and in scenes, varied, panned and
+  limited or not, and the notes on better sounds; no build holds it).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: it reads

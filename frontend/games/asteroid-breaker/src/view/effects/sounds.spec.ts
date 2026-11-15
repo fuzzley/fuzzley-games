@@ -1,13 +1,19 @@
+import { SOUND_LEVELS, type SoundLevel } from "@fz/core/sound_mix";
+import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
 import {
+  ROCK_KINDS,
+  ROCK_KIND_IDS,
   ROCK_SIZES,
   type RockKindId,
   type RockSize,
+  hasTrait,
 } from "../../rules/catalog/rocks";
 import { hitRock } from "../../rules/rocks/rocks";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   SOUNDS,
+  SOUND_NAMES,
   type SoundName,
   THRUST,
   createFrameSounds,
@@ -15,12 +21,26 @@ import {
   soundOf,
 } from "./sounds";
 
-/** Returns an event of a kind, of a rock of a kind and size or of none, at a count in its chain. */
+/** Describes what an event of the spec's names beside its kind. */
+interface Made {
+  readonly size?: RockSize | null;
+  readonly rock?: RockKindId | null;
+  readonly chain?: number;
+  readonly pickup?: PickupId | null;
+}
+
+/**
+ * Returns an event of a kind, of a rock of a kind and size, at a count in
+ * its chain, or of a pickup, as given; a rock's size alone names a stone.
+ */
 function eventOf(
   kind: FieldEventKind,
-  size: RockSize | null = null,
-  rock: RockKindId | null = size === null ? null : "stone",
-  chain = 0,
+  {
+    size = null,
+    rock = size === null ? null : "stone",
+    chain = 0,
+    pickup = null,
+  }: Made = {},
 ): FieldEvent {
   return {
     serial: 1,
@@ -29,7 +49,7 @@ function eventOf(
     y: 0,
     rock,
     size,
-    pickup: null,
+    pickup,
     pilot: null,
     inTow: 0,
     runOver: false,
@@ -43,52 +63,224 @@ function eventOf(
   };
 }
 
-/** Every event but a rock's break and a hit it holds, with its sound. */
+/** Returns the hits that break a kind of rock at each size it comes in. */
+function hitsOf(kind: RockKindId): Readonly<Partial<Record<RockSize, number>>> {
+  return ROCK_KINDS[kind].hits;
+}
+
+/** Returns every size a kind of rock comes in, largest first. */
+function sizesOf(kind: RockKindId): RockSize[] {
+  return ROCK_SIZES.filter((size) => hitsOf(kind)[size] !== undefined);
+}
+
+/**
+ * Returns an event for each of a rock's that the field logs of a kind at a
+ * size: its break, counted in a chain and smashed, a hit it holds where it
+ * takes more than one, its ring where it rings, and its blast where it
+ * blasts.
+ */
+function rockEventsOf(rock: RockKindId, size: RockSize): FieldEvent[] {
+  const holds = (hitsOf(rock)[size] ?? 0) > 1;
+  return [
+    eventOf("broken", { rock, size, chain: 1 }),
+    eventOf("broken", { rock, size, chain: 0 }),
+    ...(holds ? [eventOf("hit", { rock, size })] : []),
+    ...(holds && hasTrait(rock, "rings")
+      ? [eventOf("rung", { rock, size })]
+      : []),
+    ...(hasTrait(rock, "blasts") ? [eventOf("blast", { rock, size })] : []),
+  ];
+}
+
+/** Every event that names nothing but its kind and place, with its sound. */
 const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
-  ["fired", "fired"],
-  ["dashed", "dashed"],
-  ["shielded", "rung"],
-  ["nova", "blast"],
-  ["warned", "warned"],
-  ["cleared", "cleared"],
-  ["rung", "rung"],
-  ["blast", "blast"],
+  ["fired", "shot-gun"],
+  ["dashed", "dash"],
+  ["shielded", "shield-break"],
+  ["nova", "blast-volatile"],
+  ["warned", "comet-warning"],
+  ["cleared", "wave-clear"],
   ["dropped", null],
-  ["caught", "caught"],
   ["faded", null],
-  ["lost", "lost"],
-  ["knocked", null],
-  ["recaught", null],
-  ["floated", null],
+  ["lost", "pod-lost"],
+  ["knocked", "pod-hit"],
+  ["recaught", "crew-caught"],
+  ["floated", "crew-home"],
   ["strayed", null],
-  ["joined", null],
-  ["home", "home"],
+  ["joined", "stray-catch"],
+  ["home", "stray-catch"],
   ["scored", null],
 ];
 
-/** Each size of rock, with the sound it breaks with. */
-const BREAKS: readonly (readonly [RockSize, SoundName])[] = [
-  ["boulder", "large"],
-  ["large", "large"],
-  ["medium", "medium"],
-  ["small", "small"],
+/** Each kind of rock at each size it comes in, with the sound it breaks with. */
+const BREAKS: readonly (readonly [RockKindId, RockSize, SoundName])[] = [
+  ["stone", "large", "break-stone-large"],
+  ["stone", "medium", "break-stone-medium"],
+  ["stone", "small", "break-stone-small"],
+  ["crystal", "large", "break-crystal-large"],
+  ["crystal", "medium", "break-crystal-medium"],
+  ["ice", "large", "break-ice-large"],
+  ["ice", "medium", "break-ice-medium"],
+  ["ice", "small", "break-ice-small"],
+  ["boulder", "boulder", "break-boulder"],
+  ["iron", "large", "break-iron-large"],
+  ["iron", "medium", "break-iron-medium"],
+  ["iron", "small", "break-iron-small"],
+  ["volatile", "large", "fuse-volatile"],
+  ["volatile", "medium", "fuse-volatile"],
+  ["lodestone", "large", "break-lodestone-large"],
+  ["lodestone", "medium", "break-lodestone-medium"],
+  ["lodestone", "small", "break-lodestone-small"],
 ];
+
+/** Each kind of rock, with the sound a hit it holds plays, or null for one heard by its ring. */
+const HITS: readonly (readonly [RockKindId, SoundName | null])[] = [
+  ["stone", "hit-stone"],
+  ["crystal", "hit-stone"],
+  ["ice", "hit-stone"],
+  ["boulder", "hit-boulder"],
+  ["iron", null],
+  ["volatile", "hit-stone"],
+  ["lodestone", "hit-stone"],
+];
+
+/** Each pickup, with the sound its catch plays, or null for one heard by what it starts. */
+const CATCHES: readonly (readonly [PickupId, SoundName | null])[] = [
+  ["spread", "pickup-spread"],
+  ["rapid", "pickup-rapid"],
+  ["shield", "pickup-shield"],
+  ["lance", "pickup-lance"],
+  ["magnet", "pickup-magnet"],
+  ["slow", "pickup-slow"],
+  ["nova", null],
+];
+
+/** An event of every kind the field logs, in every case its sound turns on. */
+const EVERY_EVENT: readonly FieldEvent[] = [
+  ...EVENTS.map(([kind]) => eventOf(kind)),
+  ...ROCK_KIND_IDS.flatMap((rock) =>
+    sizesOf(rock).flatMap((size) => rockEventsOf(rock, size)),
+  ),
+  ...PICKUP_IDS.map((pickup) => eventOf("caught", { pickup })),
+];
+
+/** The sounds of the sprite no event the field logs plays yet. */
+const UNPLAYED: readonly SoundName[] = [
+  "chain-ping",
+  "chain-x2",
+  "chain-x3",
+  "chain-x4",
+  "comet-pass",
+  "burr-cling",
+  "burr-shed",
+  "burr-pop",
+  "lodestone-hum",
+  "near-miss",
+  "pickup-drop",
+  "pickup-fade",
+  "effect-end",
+  "slow-on",
+  "slow-off",
+  "spark",
+  "stray-appear",
+  "crew-loose",
+  "tow-twang",
+  "blast-volatile-small",
+  "break-cluster",
+  "shot-tail",
+  "shot-spread",
+  "shot-rapid",
+  "shot-lance",
+  "thrust-start",
+  "thrust-stop",
+  "dash-ready",
+  "static-full",
+  "static-down",
+  "zap-dash",
+  "zap-arc",
+  "shield-up",
+  "guard-end",
+  "run-start",
+  "wave-start",
+  "sector-clear",
+  "run-end",
+  "new-best",
+  "level-up",
+  "tally-tick",
+  "ui-move",
+  "ui-select",
+  "ui-back",
+  "pause",
+  "resume",
+  "voice-whee",
+  "voice-eep",
+  "voice-ouch",
+  "voice-yay",
+  "voice-ooh",
+  "voice-aww",
+  "voice-cheer",
+  "voice-hum",
+];
+
+describe("SOUNDS", () => {
+  it("names the sounds of the plan but the beds, ninety-two of them", () => {
+    expect(SOUND_NAMES).toHaveLength(92);
+  });
+
+  it.each([
+    ["chain", true],
+    ["hazards", false],
+    ["pickups", true],
+    ["rescue", true],
+    ["rocks", false],
+    ["ship", false],
+    ["stingers", true],
+    ["voice", true],
+  ])("tunes every sound of the %s family: %s", (family, tuned) => {
+    const tunings = SOUND_NAMES.filter(
+      (name) => SOUNDS[name].family === family,
+    ).map((name) => SOUNDS[name].tuned);
+
+    expect(new Set(tunings)).toEqual(new Set([tuned]));
+  });
+});
 
 describe("soundOf", () => {
   it.each(EVENTS)("plays, for %s, the %s sound", (kind, sound) => {
     expect(soundOf(eventOf(kind))).toBe(sound);
   });
 
-  it.each(BREAKS)("breaks a %s rock with the %s sound", (size, sound) => {
-    expect(soundOf(eventOf("broken", size))).toBe(sound);
-  });
-
   it.each(BREAKS)(
-    "plays a %s rock's hit that holds with its break's %s sound",
-    (size, sound) => {
-      expect(soundOf(eventOf("hit", size))).toBe(sound);
+    "breaks a %s rock that is %s with the %s sound",
+    (rock, size, sound) => {
+      expect(soundOf(eventOf("broken", { rock, size, chain: 1 }))).toBe(sound);
     },
   );
+
+  it("names a break for every kind of rock at every size it comes in", () => {
+    expect(BREAKS.map(([rock, size]) => [rock, size])).toEqual(
+      ROCK_KIND_IDS.flatMap((rock) =>
+        sizesOf(rock).map((size) => [rock, size]),
+      ),
+    );
+  });
+
+  it.each(ROCK_KIND_IDS)(
+    "plays a comet's smash for a %s rock smashed, which counts in no chain",
+    (rock) => {
+      const [size = "large"] = sizesOf(rock);
+
+      expect(soundOf(eventOf("broken", { rock, size, chain: 0 }))).toBe(
+        "comet-smash",
+      );
+    },
+  );
+
+  it.each(HITS)("plays a hit a %s rock holds with %s", (rock, sound) => {
+    const [size = "large"] = sizesOf(rock);
+
+    expect(soundOf(eventOf("hit", { rock, size }))).toBe(sound);
+  });
 
   it("plays an iron rock's held hit once, by its ring", () => {
     const field = fieldFrom(KEEPER);
@@ -101,18 +293,55 @@ describe("soundOf", () => {
       sounds.push(soundOf(event));
     });
 
-    expect(sounds.filter((sound) => sound !== null)).toEqual(["rung"]);
+    expect(sounds.filter((sound) => sound !== null)).toEqual(["hit-iron"]);
   });
 
-  it.each(["broken", "hit"] as const)(
+  it.each([
+    ["large", "blast-volatile"],
+    ["medium", "blast-volatile"],
+    ["small", "blast-volatile-small"],
+  ] as const)("plays a %s blast with %s", (size, sound) => {
+    expect(soundOf(eventOf("blast", { rock: "volatile", size }))).toBe(sound);
+  });
+
+  it.each(CATCHES)("plays the catch of a %s with %s", (pickup, sound) => {
+    expect(soundOf(eventOf("caught", { pickup }))).toBe(sound);
+  });
+
+  it("plays, of the sprite's sounds, none but those of events the field logs, the thrust's hum apart", () => {
+    const played = new Set(EVERY_EVENT.map(soundOf));
+
+    expect(
+      SOUND_NAMES.filter((name) => name !== THRUST && !played.has(name)),
+    ).toEqual(UNPLAYED);
+  });
+
+  it.each(["broken", "blast"] as const)(
     "throws for a rock's %s event that names no size",
     (kind) => {
-      expect(() => soundOf(eventOf(kind, null, "stone"))).toThrow(RangeError);
+      expect(() =>
+        soundOf(eventOf(kind, { rock: "stone", size: null, chain: 1 })),
+      ).toThrow(RangeError);
     },
   );
 
-  it("throws for a hit that names no rock", () => {
-    expect(() => soundOf(eventOf("hit", "small", null))).toThrow(RangeError);
+  it.each(["broken", "hit"] as const)(
+    "throws for a rock's %s event that names no rock",
+    (kind) => {
+      expect(() =>
+        soundOf(eventOf(kind, { rock: null, size: "small", chain: 1 })),
+      ).toThrow(RangeError);
+    },
+  );
+
+  it("throws for a break of a rock at a size its kind doesn't come in", () => {
+    expect(() =>
+      soundOf(eventOf("broken", { rock: "crystal", size: "small", chain: 1 })),
+    ).toThrow(RangeError);
+  });
+
+  it("throws for a catch that names no pickup", () => {
+    expect(() => soundOf(eventOf("caught"))).toThrow(RangeError);
   });
 });
 
@@ -124,11 +353,11 @@ describe("detuneOf", () => {
     [8, 700],
     [30, 700],
   ])("raises a break %i into its chain by %i cents", (chain, cents) => {
-    expect(detuneOf(eventOf("broken", "small", "stone", chain))).toBe(cents);
+    expect(detuneOf(eventOf("broken", { size: "small", chain }))).toBe(cents);
   });
 
   it("raises a smashed rock's break not at all, as it counts in no chain", () => {
-    expect(detuneOf(eventOf("broken", "small", "stone", 0))).toBe(0);
+    expect(detuneOf(eventOf("broken", { size: "small", chain: 0 }))).toBe(0);
   });
 
   it("raises each of a field's breaks by its own count, smashed or not", () => {
@@ -152,37 +381,43 @@ describe("detuneOf", () => {
   it.each(["hit", "blast", "scored"] as const)(
     "raises no %s event's sound",
     (kind) => {
-      expect(detuneOf(eventOf(kind, "small"))).toBe(0);
+      expect(detuneOf(eventOf(kind, { size: "small" }))).toBe(0);
     },
   );
 });
 
 describe("createFrameSounds", () => {
-  it("plays each of the sprite's sounds heard, in the sprite's order", () => {
+  it("plays each of the sprite's sounds heard, the loudest level first", () => {
     const sounds = createFrameSounds();
-    for (const name of [...SOUNDS].reverse()) sounds.hear(name, 0);
+    for (const name of SOUND_NAMES) sounds.hear(name, 0);
+
+    const levels: SoundLevel[] = [];
+    sounds.playEach((name) => levels.push(SOUNDS[name].level));
+
+    expect(levels).toEqual(
+      [...SOUND_LEVELS]
+        .reverse()
+        .flatMap((level) =>
+          SOUND_NAMES.filter((name) => SOUNDS[name].level === level).map(
+            () => level,
+          ),
+        ),
+    );
+  });
+
+  it("plays a frame's blast before the small breaks round it, which it ducks", () => {
+    const sounds = createFrameSounds();
+    sounds.hear("break-stone-small", 0);
+    sounds.hear("hit-stone", 0);
+    sounds.hear("blast-volatile", 0);
 
     const played: SoundName[] = [];
     sounds.playEach((name) => played.push(name));
 
-    expect(played).toEqual(SOUNDS);
-  });
-
-  // A ship gained's stays in the sprite, which the sound's own build makes
-  // again, though no rule gains a ship.
-  it("names the thrust's hum and a ship gained's among the sprite's sounds, which no event plays", () => {
-    const played = [
-      ...EVENTS.map(([kind]) => soundOf(eventOf(kind))),
-      ...ROCK_SIZES.flatMap((size) =>
-        (["broken", "hit"] as const).map((kind) =>
-          soundOf(eventOf(kind, size)),
-        ),
-      ),
-    ];
-
-    expect(SOUNDS.filter((name) => !played.includes(name))).toEqual([
-      "gained",
-      THRUST,
+    expect(played).toEqual([
+      "blast-volatile",
+      "break-stone-small",
+      "hit-stone",
     ]);
   });
 });

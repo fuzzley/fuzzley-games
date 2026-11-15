@@ -1,7 +1,8 @@
 // Asteroid Breaker's sound lab, which its dev server alone serves, at
 // sound-lab/ (`@fz/dev/sound-lab`, in vite.config.ts): the sprite the scene
-// plays, the candidates designed with ZzFX to replace its sounds, and scenes
-// played as the game plays them, at its gun's rate and its chain's rise.
+// played before the uplift, the candidates designed with ZzFX to replace
+// its sounds, and scenes played as the game played them, at its gun's rate
+// and its chain's rise.
 
 import {
   type LabCue,
@@ -11,39 +12,20 @@ import {
 } from "@fz/dev/sound-lab-page";
 import type { ZzfxSound } from "@fz/dev/zzfx";
 import { SHOT_EVERY_MS } from "../src/rules/tuning";
-import spritemap from "../src/scene/sounds/sounds.json";
-import spriteUrl from "../src/scene/sounds/sounds.wav?url";
+import { CHAIN_MOST_CENTS, CHAIN_STEP_CENTS } from "../src/view/effects/sounds";
 import {
-  CHAIN_MOST_CENTS,
-  CHAIN_STEP_CENTS,
-  SOUNDS,
-  type SoundName,
-} from "../src/view/effects/sounds";
-
-/** What plays each sound in the game, as `tools/build-sounds.mjs` describes its recipe. */
-const PLAYS: Readonly<Record<SoundName, string>> = {
-  fired: "A shot, heard many times a second while fire is held.",
-  small: "A small rock broken, raised along a chain.",
-  medium: "A medium rock broken.",
-  large: "A large rock or a boulder broken.",
-  rung: "Iron hit that holds.",
-  blast: "A blast, or the Nova.",
-  caught: "A pickup caught.",
-  dashed: "A dash.",
-  warned: "A comet's warning.",
-  lost: "A ship lost.",
-  cleared: "A wave cleared.",
-  gained: "A ship gained.",
-  home: "A stray brought home.",
-  thrust: "The thrust's hum, looped while the thrust is held.",
-};
+  BEFORE_PLAYS,
+  BEFORE_SOUNDS,
+  BEFORE_SPRITE,
+  type BeforeName,
+} from "./sound-lab/before";
 
 /**
  * The candidates, designed to be heard against the sounds the game ships:
  * a shot with a saw's bite, breaks that crack and crunch rather than thud,
  * a blast with a crunching tail and an echo, and a thrust that buzzes.
  */
-const CANDIDATES: Readonly<Partial<Record<SoundName, ZzfxSound>>> = {
+const CANDIDATES: Readonly<Partial<Record<BeforeName, ZzfxSound>>> = {
   fired: {
     volume: 0.6,
     frequency: 1250,
@@ -123,7 +105,7 @@ function chainDetune(count: number): number {
 }
 
 /** Returns the gun's shots while fire is held from one time to another, in seconds, at a place across the field. */
-function shots(from: number, to: number, x = 0): LabCue<SoundName>[] {
+function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
   const count = Math.floor((to - from) / SHOT_EVERY_S) + 1;
   return Array.from({ length: count }, (_, i) => ({
     at: from + i * SHOT_EVERY_S,
@@ -132,7 +114,7 @@ function shots(from: number, to: number, x = 0): LabCue<SoundName>[] {
   }));
 }
 
-const SCENES: readonly LabScene<SoundName>[] = [
+const SCENES: readonly LabScene<BeforeName>[] = [
   {
     name: "Hold fire",
     what: `The gun held for two seconds, a shot every ${String(SHOT_EVERY_MS)} ms: the sound the game plays most.`,
@@ -191,15 +173,15 @@ const SCENES: readonly LabScene<SoundName>[] = [
   },
 ];
 
-const sounds: readonly LabSound<SoundName>[] = SOUNDS.map((name) => {
+const sounds: readonly LabSound<BeforeName>[] = BEFORE_SOUNDS.map((name) => {
   const candidate = CANDIDATES[name];
-  const plays = PLAYS[name];
+  const plays = BEFORE_PLAYS[name];
   return candidate === undefined ? { name, plays } : { name, plays, candidate };
 });
 
 mountSoundLab({
   game: "Asteroid Breaker",
-  sprite: { url: spriteUrl, spritemap },
+  sprite: BEFORE_SPRITE,
   sounds,
   scenes: SCENES,
 });
