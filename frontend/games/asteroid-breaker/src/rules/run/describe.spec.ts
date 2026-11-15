@@ -11,7 +11,6 @@ import {
   describeResume,
   describeTakenUp,
   describeWave,
-  whereLost,
 } from "./describe";
 import { FULL_STEP } from "../sparks/charge";
 import { type Run, createRun } from "./run";
@@ -280,25 +279,16 @@ describe("describeTakenUp", () => {
   });
 });
 
-describe("whereLost", () => {
-  it.each([
-    ["a sector's wave", entryOf(4, "Thaw"), "Lost on wave 4"],
-    ["an Endless wave", endlessAt(37), "Lost on wave 37, Endless"],
-  ])("says %s a run was lost on", (_, entry, said) => {
-    expect(whereLost(entry)).toBe(said);
-  });
-});
-
 describe("describeEnd", () => {
-  it("says the game is over, the score and the wave it was lost on", () => {
+  it("says everyone is home, as the result card does, the score and the wave it ended on", () => {
     expect(describeEnd(runAt(4, 9_020), entryOf(4, "Thaw"), UNMARKED)).toBe(
-      "Game over. Score 9,020, on wave 4.",
+      "Everyone is home. Score 9,020, on wave 4.",
     );
   });
 
   it("says a wave of Endless's by its number, and Endless", () => {
     expect(describeEnd(runAt(37, 9_020), endlessAt(37), UNMARKED)).toBe(
-      "Game over. Score 9,020, on wave 37, Endless.",
+      "Everyone is home. Score 9,020, on wave 37, Endless.",
     );
   });
 
@@ -308,7 +298,7 @@ describe("describeEnd", () => {
       newBest: true,
     });
 
-    expect(said).toBe("Game over. Score 9,020, on wave 4. A new best!");
+    expect(said).toBe("Everyone is home. Score 9,020, on wave 4. A new best!");
   });
 
   it("says a run cleared all thirty, after a new best", () => {
@@ -320,7 +310,7 @@ describe("describeEnd", () => {
     });
 
     expect(said).toBe(
-      "Game over. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
+      "Everyone is home. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
     );
   });
 });

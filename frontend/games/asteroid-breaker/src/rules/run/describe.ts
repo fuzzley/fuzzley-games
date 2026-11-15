@@ -91,12 +91,16 @@ export function describeTakenUp(run: Run, entry: WaveEntry): string {
   return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${inTow}. Press Enter to go on.`;
 }
 
-/** Returns where a run was lost: the wave its ship went down on, Endless's named so. */
-export function whereLost(entry: WaveEntry): string {
-  return `Lost on ${waveIn(entry)}`;
-}
+/**
+ * What the run's end is called, as the announcer says it and the result
+ * card shows it: the crew, all of them, gone home.
+ */
+export const END_TITLE = "Everyone is home.";
 
-/** Returns what is said as a run ends: the score, the wave it was lost on, and what it set. */
+/**
+ * Returns what is said as a run ends: its title ({@link END_TITLE}), the
+ * score, the wave it ended on, and what it set.
+ */
 export function describeEnd(
   run: Run,
   entry: WaveEntry,
@@ -104,7 +108,7 @@ export function describeEnd(
 ): string {
   const best = newBest ? " A new best!" : "";
   const all = clearedAll ? " Cleared all thirty!" : "";
-  return `Game over. Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${best}${all}`;
+  return `${END_TITLE} Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${best}${all}`;
 }
 
 /** Returns a wave by its number, in words: "wave 4", or "wave 37, Endless". */

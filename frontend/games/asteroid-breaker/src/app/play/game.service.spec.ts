@@ -973,7 +973,7 @@ describe("GameService", () => {
       }).toEqual({
         ended: true,
         aboard: 0,
-        said: "Game over. Score 60, on wave 1. A new best!",
+        said: "Everyone is home. Score 60, on wave 1. A new best!",
       });
     });
 
@@ -1363,7 +1363,7 @@ describe("GameService", () => {
         },
         best: game.score(),
         newBest: true,
-        said: `Game over. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
+        said: `Everyone is home. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
       });
     });
 
