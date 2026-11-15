@@ -945,4 +945,56 @@ describe("runVerifyChanged", () => {
       /^Found no commit HEAD shares with nowhere[^]*Usage: yarn verify:changed/,
     );
   });
+
+  it("prints its usage for --help, reading and running nothing", async () => {
+    const printer = recordingPrinter();
+    const shell = fakeShell();
+
+    const code = await runVerifyChanged(["--help"], ROOT, {
+      ...printer,
+      run: shell.run,
+    });
+
+    expect({ code, ran: shell.ran.length, err: printer.err }).toEqual({
+      code: 0,
+      ran: 0,
+      err: [],
+    });
+    expect(printer.out.join("\n")).toMatch(/^Usage: yarn verify:changed/);
+  });
+
+  it("refuses an option it doesn't know, with its usage, reading and running nothing", async () => {
+    const printer = recordingPrinter();
+    const shell = fakeShell();
+
+    const code = await runVerifyChanged(["--bogus"], ROOT, {
+      ...printer,
+      run: shell.run,
+    });
+
+    expect({ code, ran: shell.ran.length }).toEqual({ code: 2, ran: 0 });
+    expect(printer.err.join("\n")).toMatch(
+      /^Unknown option '--bogus'[^]*Usage: yarn verify:changed/,
+    );
+  });
+
+  it("compares with origin/main unless given a base", async () => {
+    const { top, root } = await frontendRepository();
+    // The branch's own commit, which origin/main holds and main doesn't, so
+    // a comparison with main would reach the site too.
+    await writeFiles(top, { "frontend/site/src/app.ts": "" });
+    commitAll(top, "The site");
+    git(top, "update-ref", "refs/remotes/origin/main", "HEAD");
+    await writeFiles(top, { "frontend/games/snake/src/board.ts": "changed" });
+    const printer = recordingPrinter();
+
+    await runVerifyChanged(["--dry-run"], root, {
+      ...printer,
+      run: fakeShell().run,
+    });
+
+    expect(printer.out[0]).toBe(
+      "What changed since origin/main reaches snake.",
+    );
+  });
 });

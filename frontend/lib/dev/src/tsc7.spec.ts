@@ -59,6 +59,12 @@ describe("runTsc7", () => {
       runTsc7(["-p", "tsconfig.json"], { cwd: folder, stdio: "ignore" }),
     ).toBe(1);
   });
+
+  it("throws where it can't start, as from a folder that isn't there", () => {
+    expect(() =>
+      runTsc7(["--version"], { cwd: join(folder, "nowhere"), stdio: "ignore" }),
+    ).toThrow(/ENOENT/);
+  });
 });
 
 describe("the tsc7 binary", () => {
