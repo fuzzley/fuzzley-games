@@ -2,7 +2,7 @@
 /**
  * Draws the tune-up's mocks over the game's own screenshots.
  *
- *   node docs/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs
+ *   node docs/archive/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs
  *
  * It reads `shots/` and `shots.json`, which `capture.mjs` wrote, and writes
  * beside itself: `charge-*.png`, a thumb over the field as the game is and
@@ -49,7 +49,7 @@ import { fileURLToPath } from "node:url";
  */
 
 const MOCKS = dirname(fileURLToPath(import.meta.url));
-const FRONTEND = resolve(MOCKS, "../../../frontend");
+const FRONTEND = resolve(MOCKS, "../../../../frontend");
 const sharp = createRequire(join(FRONTEND, "package.json"))("sharp");
 
 /** How many device pixels the screenshots have to a CSS pixel. */

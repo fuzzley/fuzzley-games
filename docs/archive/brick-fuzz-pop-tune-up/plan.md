@@ -664,9 +664,9 @@ the gauge's reach, how a drop feels, and whether 180 is right at each speed.
 From the repository's root, with the frontend installed:
 
 ```sh
-node docs/brick-fuzz-pop-tune-up/sim/run.mjs          # every level, every variant: about 4 minutes on 24 cores
-node docs/brick-fuzz-pop-tune-up/sim/summarize.mjs    # writes sim/results/results.md and summary.json
-node docs/brick-fuzz-pop-tune-up/sim/certify.mjs --specs   # certifies under the recommended rules, writes sim/results/par.md
+node docs/archive/brick-fuzz-pop-tune-up/sim/run.mjs          # every level, every variant: about 4 minutes on 24 cores
+node docs/archive/brick-fuzz-pop-tune-up/sim/summarize.mjs    # writes sim/results/results.md and summary.json
+node docs/archive/brick-fuzz-pop-tune-up/sim/certify.mjs --specs   # certifies under the recommended rules, writes sim/results/par.md
 ```
 
 `run.mjs` makes the scratch copy under the system's temporary folder
@@ -674,14 +674,15 @@ node docs/brick-fuzz-pop-tune-up/sim/certify.mjs --specs   # certifies under the
 which is why only the summaries are kept here. The mocks:
 
 ```sh
-yarn workspace brick-fuzz-pop dev                        # from frontend/, for capture.mjs alone
-node docs/brick-fuzz-pop-tune-up/mocks/capture.mjs       # the screenshots, in a headless Chrome
-node docs/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs    # the mocks, drawn over them
+yarn workspace brick-fuzz-pop dev                                # from frontend/, for capture.mjs alone
+node docs/archive/brick-fuzz-pop-tune-up/mocks/capture.mjs       # the screenshots, in a headless Chrome
+node docs/archive/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs    # the mocks, drawn over them
 ```
 
 Where the files can't be opened, as in a session followed from a phone,
-`node docs/brick-fuzz-pop-tune-up/preview.mjs` serves this plan as a page on
-port 9106, its mocks in it, with every mock at full width at `/gallery`.
+`node docs/archive/brick-fuzz-pop-tune-up/preview.mjs` serves this plan as
+a page on port 9106, its mocks in it, with every mock at full width at
+`/gallery`.
 
 | File                | Holds                                                                                           |
 | ------------------- | ----------------------------------------------------------------------------------------------- |

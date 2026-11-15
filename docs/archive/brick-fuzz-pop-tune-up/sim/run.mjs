@@ -3,7 +3,7 @@
  * Plays every level under every variant of the rules `tune_up.ts` lists,
  * and writes what each came to.
  *
- *   node docs/brick-fuzz-pop-tune-up/sim/run.mjs [--seeds <n>] [--level <n>]…
+ *   node docs/archive/brick-fuzz-pop-tune-up/sim/run.mjs [--seeds <n>] [--level <n>]…
  *
  * It makes the scratch mirror (`mirror.mjs`), then plays each level in a
  * process of its own, as many at once as the machine has cores but two,

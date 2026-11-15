@@ -4,7 +4,7 @@
  * dev server.
  *
  *   yarn workspace brick-fuzz-pop dev
- *   node docs/brick-fuzz-pop-tune-up/mocks/capture.mjs [--url <address>]
+ *   node docs/archive/brick-fuzz-pop-tune-up/mocks/capture.mjs [--url <address>]
  *
  * It opens the game in a headless Chrome at each of `SHOTS`' windows, takes
  * up a run kept by the rules (Wool socks, a round in), goes on with it, aims
@@ -25,14 +25,17 @@ import {
   SAVED_GAME_KEY,
   loadScreenshotApi,
   storedRun,
-} from "../../../frontend/games/brick-fuzz-pop/tools/stored_run.mjs";
-import { withChrome, withPage } from "../../../frontend/lib/dev/src/chrome.ts";
+} from "../../../../frontend/games/brick-fuzz-pop/tools/stored_run.mjs";
+import {
+  withChrome,
+  withPage,
+} from "../../../../frontend/lib/dev/src/chrome.ts";
 import {
   setUpPage,
   takenUpBoard,
-} from "../../../frontend/lib/dev/src/screenshots.ts";
+} from "../../../../frontend/lib/dev/src/screenshots.ts";
 
-/** @import { Page } from "../../../frontend/lib/dev/src/chrome.ts" */
+/** @import { Page } from "../../../../frontend/lib/dev/src/chrome.ts" */
 
 const MOCKS = dirname(fileURLToPath(import.meta.url));
 const SHOTS_FOLDER = join(MOCKS, "shots");
@@ -308,7 +311,7 @@ await writeFile(
 );
 // Formatted as the repository checks every file under docs/.
 execFileSync(
-  resolve(MOCKS, "../../../frontend/node_modules/.bin/prettier"),
+  resolve(MOCKS, "../../../../frontend/node_modules/.bin/prettier"),
   ["--write", join(MOCKS, "shots.json")],
   { stdio: "ignore" },
 );

@@ -1,5 +1,6 @@
 // The tune-up's prototype: the variants of the flight's rules the sim under
-// docs/brick-fuzz-pop-tune-up/sim/ compares, set before a flight is flown.
+// docs/archive/brick-fuzz-pop-tune-up/sim/ compares, set before a flight is
+// flown.
 // The game's own change writes the chosen one into the rules, with no switch.
 
 /** Names what brings a fuzzball's boredom back to none: only a hit taken off a brick, as the game has it; a touch on any brick that can break, hit or not; or a touch on any brick but steel. */

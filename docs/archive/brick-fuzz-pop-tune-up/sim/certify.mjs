@@ -3,7 +3,7 @@
  * Certifies every level again under the rules the plan recommends, in a
  * scratch mirror, and writes how par moved.
  *
- *   node docs/brick-fuzz-pop-tune-up/sim/certify.mjs [--specs]
+ *   node docs/archive/brick-fuzz-pop-tune-up/sim/certify.mjs [--specs]
  *
  * It makes a mirror of its own (`<tmp>/bfp-tune-up/final`), sets
  * `RECOMMENDED` in its `variant.ts` and its boredom and its cap in
@@ -24,9 +24,12 @@ import { parseArgs } from "node:util";
 import { MIRROR_FOLDER, makeMirror } from "./mirror.mjs";
 
 const SIM = dirname(fileURLToPath(import.meta.url));
-const WORKSPACE = resolve(SIM, "../../../frontend/games/brick-fuzz-pop");
+const WORKSPACE = resolve(SIM, "../../../../frontend/games/brick-fuzz-pop");
 const PAR = "src/rules/levels/par.json";
-const PRETTIER = resolve(SIM, "../../../frontend/node_modules/.bin/prettier");
+const PRETTIER = resolve(
+  SIM,
+  "../../../../frontend/node_modules/.bin/prettier",
+);
 
 /** How far a fuzzball flies bored under the recommended rules, in place of the game's 60. */
 const BORED = 180;

@@ -23,6 +23,11 @@ card, each wired to the game, so a run can be played in the page, through the
 thirty-six levels of Warm-up, Sparks, Tricks and Thick walls. The site lists it
 with the other games, its screenshots taken on level 18, the last of Sparks.
 
+The decisions behind the tune-up that followed, the longer air time, the gauge
+over an aiming finger, wool's charge, the Fast-forward switch and Drop, are in
+`docs/archive/brick-fuzz-pop-tune-up/plan.md` and
+`docs/archive/brick-fuzz-pop-tune-up/implementation-plan.md`.
+
 ## Technology Stack
 
 - **Field:** [Phaser 4](https://phaser.io/), through `@fz/phaser`'s scene
