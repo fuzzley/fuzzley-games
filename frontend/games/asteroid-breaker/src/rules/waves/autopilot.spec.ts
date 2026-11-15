@@ -25,7 +25,7 @@ import type { Field } from "../field/field";
 import type { Crew } from "../ship/pilots";
 import { type Rock, isLastFew } from "../rocks/rocks";
 import { STILL, type Steer } from "../ship/ship";
-import { drawReach } from "../sparks/sparks";
+import { type Spark, drawReach } from "../sparks/sparks";
 import { SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
 import {
@@ -102,6 +102,33 @@ function doomedField(crew: Crew = ONE_SHIP): Field {
  */
 function sixSmall(): Field {
   return fieldFrom(["SSSSSS", ...SHIP_ALONE.slice(1)]);
+}
+
+/**
+ * How far beyond the ship's draw a spec lays a spark the autopilot goes
+ * for: within its detour of 2 units.
+ */
+const WITHIN_DETOUR = 1.5;
+
+/** How far beyond the ship's draw a spec lays a spark the autopilot lets be: past its detour. */
+const PAST_DETOUR = 2.5;
+
+/**
+ * Lays a spark on a field so far beyond its ship's draw, the way from the
+ * ship a heading points, ahead of its nose unless given, and returns it.
+ */
+function placeSparkBeyond(
+  field: Field,
+  beyond: number,
+  heading = -TURN / 4,
+): Spark {
+  const ship = shipOf(field);
+  const far = drawReach(field) + beyond;
+  return placeSpark(
+    field,
+    ship.x + Math.cos(heading) * far,
+    ship.y + Math.sin(heading) * far,
+  );
 }
 
 /** Returns the steering the autopilot gives a field's ship for a frame, after a frame's held as given. */
@@ -312,8 +339,7 @@ describe("the autopilot", () => {
 
   it("gathers a spark it goes out of its way for", () => {
     const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)]);
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+    placeSparkBeyond(field, WITHIN_DETOUR);
 
     const report = playField(field, { untilStep: stepsIn(1000) });
 
@@ -674,8 +700,7 @@ describe("a frame of the autopilot's", () => {
 
   it("heads for a spark a little way beyond its draw", () => {
     const field = fieldFrom(SHIP_ALONE);
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+    placeSparkBeyond(field, WITHIN_DETOUR);
 
     const steer = steerOf(field);
 
@@ -687,8 +712,7 @@ describe("a frame of the autopilot's", () => {
 
   it("heads for a spark a little way beyond its draw where its draw is farther, as at Relaxed", () => {
     const field = fieldFrom(SHIP_ALONE, { sparkReach: 1.6 });
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+    placeSparkBeyond(field, WITHIN_DETOUR);
 
     const steer = steerOf(field);
 
@@ -697,9 +721,10 @@ describe("a frame of the autopilot's", () => {
 
   it("heads for the spark it can draw in soonest", () => {
     const field = fieldFrom(SHIP_ALONE);
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 1);
-    placeSpark(field, ship.x + drawReach(field) + 3, ship.y);
+    // The nearest neither first nor last, so the first or the last found won't pass.
+    placeSparkBeyond(field, WITHIN_DETOUR, 0);
+    placeSparkBeyond(field, 0.5);
+    placeSparkBeyond(field, WITHIN_DETOUR, TURN / 2);
 
     const steer = steerOf(field);
 
@@ -708,11 +733,10 @@ describe("a frame of the autopilot's", () => {
 
   it.each([
     ["within its draw, which brings it in", -1],
-    ["farther beyond its draw than it goes for", 6],
+    ["farther beyond its draw than it goes for", PAST_DETOUR],
   ])("lets a spark be %s", (_, beyond) => {
     const field = fieldFrom(SHIP_ALONE);
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - beyond);
+    placeSparkBeyond(field, beyond);
 
     const steer = steerOf(field);
 
@@ -721,8 +745,7 @@ describe("a frame of the autopilot's", () => {
 
   it("lets a spark go that would go before it got there", () => {
     const field = fieldFrom(SHIP_ALONE);
-    const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 2).shedAt =
+    placeSparkBeyond(field, WITHIN_DETOUR).shedAt =
       field.steps + 1 - stepsIn(SPARK_LIFE_MS);
 
     const steer = steerOf(field);
@@ -733,7 +756,7 @@ describe("a frame of the autopilot's", () => {
   it("heads for a pickup before a spark", () => {
     const field = fieldFrom(SHIP_ALONE);
     const ship = shipOf(field);
-    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+    placeSparkBeyond(field, WITHIN_DETOUR);
     placePickup(field, "shield", ship.x + 12, ship.y);
 
     const steer = steerOf(field);

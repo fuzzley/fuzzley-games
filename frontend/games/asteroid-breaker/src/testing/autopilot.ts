@@ -171,7 +171,7 @@ const TURN_RATE = HEADING_TURN_RATE * RADIANS_PER_DEGREE;
  * How far beyond the ship's draw a spark may lie for the autopilot to go
  * for it, as a player gathers what lies on the way.
  */
-const SPARK_DETOUR = 4;
+const SPARK_DETOUR = 2;
 
 /**
  * Plays a wave as a fair player would, from a seed, and returns how it
