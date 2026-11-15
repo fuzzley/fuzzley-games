@@ -19,6 +19,9 @@ Everything made for the plan is in this folder,
 
 - **`plan.md`,** this file, and **`worklog.md`,** what was done in what
   order, to pick the work up from.
+- **[`implementation-plan.md`](implementation-plan.md),** how the uplift is
+  built: its packages, the points this file leaves open settled, and how
+  agents build it side by side, with their logs in `worklog/`.
 - **[`research/`](research/),** four notes.
   [`the-game-today.md`](research/the-game-today.md) is an inventory of the
   game as built, read from its own code, with its autopilot's figures for
