@@ -53,11 +53,9 @@ import {
 export const FRAMES = {
   /** A stray's bubble, its pilot drawn in it. */
   bubble: "bubble",
-  /** A broken rock's shard, white, so the scene tints it as the rock was. */
+  /** A shard of a lost pod's burst, white, so the scene tints it in the accent. */
   shard: "shard",
-  /** The spark off a rock that holds, white. */
-  spark: "spark",
-  /** A puff, white, which a break's dust and the pod's exhaust are drawn in. */
+  /** A puff, white, which the pod's exhaust is drawn in. */
   puff: "puff",
   /**
    * How to play's picture of a stray, a fuzzball in the accent in its bubble,
@@ -100,10 +98,9 @@ const GLINT = { reach: 0.78, from: -2.5, to: -1.75 } as const;
 /** How far below its bubble's middle a stray's pilot sits, as a share of its radius. */
 export const STRAY_DROP = 0.05;
 
-/** How big each flourish's frame is drawn, in field units: a shard across and down, a spark from its middle to each tip, and a puff's radius. */
+/** How big each flourish's frame is drawn, in field units: a shard across and down, and a puff's radius. */
 export const FLOURISH = {
   shard: 0.5,
-  spark: 0.3,
   puff: 0.4,
 } as const;
 
@@ -166,7 +163,6 @@ function bubbleCommands(
  */
 function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
   const shard = FLOURISH.shard * scale.unit;
-  const spark = FLOURISH.spark * scale.unit;
   const adrift = PILOT_SIZES.adrift * scale.unit;
   const drop = STRAY_DROP * STRAY_RADIUS * scale.unit;
   return [
@@ -180,24 +176,6 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
             { x: -0.15, y: -0.5 },
           ],
           shard,
-        ),
-        WHITE,
-      ),
-    ]),
-    centered(FRAMES.spark, [
-      polygon(
-        placed(
-          [
-            { x: 0, y: -1 },
-            { x: 0.25, y: -0.25 },
-            { x: 1, y: 0 },
-            { x: 0.25, y: 0.25 },
-            { x: 0, y: 1 },
-            { x: -0.25, y: 0.25 },
-            { x: -1, y: 0 },
-            { x: -0.25, y: -0.25 },
-          ],
-          spark,
         ),
         WHITE,
       ),

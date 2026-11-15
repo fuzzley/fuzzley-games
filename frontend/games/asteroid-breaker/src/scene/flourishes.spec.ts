@@ -45,10 +45,8 @@ import {
 } from "../testing/field_picture";
 import { FLOURISH } from "../view/art/art";
 import {
-  BREAK_MS,
   type Broken,
   GLINT_POINTS,
-  HELD_MS,
   HELD_REACH,
   type Placed,
   type Round,
@@ -99,9 +97,11 @@ import {
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
+  BREAK_MS,
   BURST_SHARDS,
   EXHAUST_MS,
   FLASH_MS,
+  HELD_MS,
   KICK_MS,
   POINTS_MS,
   RING_MS,

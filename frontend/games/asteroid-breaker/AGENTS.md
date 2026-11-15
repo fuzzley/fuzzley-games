@@ -538,7 +538,9 @@ takes for the specs' helpers.
   (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome; `timing.ts` how long each flourish
-  lasts and how long the cards wait (`clearedDelayMs()`, `resultDelayMs()`);
+  lasts, a rock's break (`BREAK_MS`) and a held hit's spark (`HELD_MS`)
+  among them, and how long the cards wait (`clearedDelayMs()`,
+  `resultDelayMs()`);
   and `haptics.ts` how the phone buzzes as the ship takes a hit or a wave is
   cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the

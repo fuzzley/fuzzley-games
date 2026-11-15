@@ -7,11 +7,9 @@ import { type Moving, type Torus, copyOffsets, wrap } from "../../rules/torus";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/art";
 import {
-  BREAK_MS,
   type Break,
   type Broken,
   GLINT_POINTS,
-  HELD_MS,
   HELD_REACH,
   IMPACT_POINTS,
   type Placed,
@@ -36,7 +34,7 @@ import {
 } from "../../view/art/breaks";
 import { type Energy, energyOf } from "../../view/art/energy";
 import type { BeltPalette } from "../../view/colors/palette";
-import { SHARDS_MS } from "../../view/effects/timing";
+import { BREAK_MS, HELD_MS, BURST_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import {
   type FieldEvent,
@@ -191,7 +189,7 @@ export class DebrisPainter implements Painter {
       frame: FRAMES.shard,
       emitting: false,
       maxAliveParticles: MOST_SHARDS_FLYING,
-      lifespan: SHARDS_MS,
+      lifespan: BURST_MS,
       alpha: { start: 1, end: 0 },
       rotate: { min: 0, max: 360 },
       speed: () =>

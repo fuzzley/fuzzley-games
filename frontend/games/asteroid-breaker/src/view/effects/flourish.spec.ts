@@ -31,7 +31,6 @@ import {
   ringColorOf,
   ringReachOf,
   shakeOf,
-  shardCount,
   trailAlpha,
   trailLaidAfter,
   trailOutlinesLaid,
@@ -45,8 +44,6 @@ import {
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
-  LEAST_SHARDS,
-  MOST_SHARDS,
   POINTS_RISE,
   SHAKE_CSS_PX,
   SHAKE_DELAY_MS,
@@ -404,21 +401,6 @@ describe("cameraShift", () => {
     const into = { x: 0, y: 0 };
 
     expect(cameraShift(STILL, 0, 1, into)).toBe(into);
-  });
-});
-
-describe("shardCount", () => {
-  it("scatters every count from the fewest shards to the most, by the event's serial", () => {
-    const counts = new Set(
-      Array.from({ length: 20 }, (_, serial) => shardCount(serial)),
-    );
-
-    expect([...counts].sort()).toEqual(
-      Array.from(
-        { length: MOST_SHARDS - LEAST_SHARDS + 1 },
-        (_, i) => LEAST_SHARDS + i,
-      ),
-    );
   });
 });
 

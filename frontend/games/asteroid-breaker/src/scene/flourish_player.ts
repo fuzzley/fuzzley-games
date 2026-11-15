@@ -49,11 +49,8 @@ export class FlourishPlayer {
       this.painters;
     const { x, y } = event;
     switch (flourish) {
-      case "shards":
+      case "break":
         debris.breakRock(event, field, now);
-        return;
-      case "dust":
-        // A break draws its dust with its shards.
         return;
       case "kick":
         camera.kick(event.wayX, event.wayY, now);

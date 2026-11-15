@@ -26,8 +26,6 @@ import {
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
-  LEAST_SHARDS,
-  MOST_SHARDS,
   POINTS_RISE,
   SHAKE_CSS_PX,
   SHAKE_DELAY_MS,
@@ -51,9 +49,6 @@ export const SHIELD_RING_REACH = 3;
 
 /** How far a lost ship's ring sweeps out from where it was lost, in field units. */
 export const LOST_RING_REACH = 5;
-
-/** How far a held hit's spark flies before it is gone, in field units. */
-export const SPARK_REACH = 1.2;
 
 /** How fast a pilot bailing out floats off, in field units a second. */
 export const BAIL_OUT_SPEED = 2.2;
@@ -273,14 +268,6 @@ export function cameraShift(
   into.x = into.x * shake - jolts.wayX * kick;
   into.y = into.y * shake - jolts.wayY * kick;
   return into;
-}
-
-/**
- * Returns how many shards a broken rock scatters, from the fewest to the most,
- * as its event's serial says.
- */
-export function shardCount(serial: number): number {
-  return LEAST_SHARDS + (serial % (MOST_SHARDS - LEAST_SHARDS + 1));
 }
 
 /**

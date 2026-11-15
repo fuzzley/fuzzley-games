@@ -2,7 +2,7 @@ import {
   CLEARED_MS,
   SHAKE_DELAY_MS,
   SHAKE_MS,
-  SHARDS_MS,
+  BURST_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -20,7 +20,7 @@ describe("clearedDelayMs", () => {
 describe("resultDelayMs", () => {
   it("waits for the later of the last ship's shards and its shake where motion is welcome", () => {
     const delay = resultDelayMs(true);
-    const ends = [SHARDS_MS, SHAKE_DELAY_MS + SHAKE_MS];
+    const ends = [BURST_MS, SHAKE_DELAY_MS + SHAKE_MS];
 
     expect({
       both: ends.every((end) => delay >= end),

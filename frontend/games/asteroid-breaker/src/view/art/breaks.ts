@@ -20,6 +20,7 @@ import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import { inLight } from "../colors/rock_light";
 import { mixTone } from "../colors/tones";
+import { BREAK_MS, HELD_MS } from "../effects/timing";
 import {
   type BySize,
   FIRST_SEED,
@@ -40,12 +41,6 @@ import {
   reachAt,
   unitFacing,
 } from "./rocks/space";
-
-/** How long a rock's break lasts, from its flash to the last of its pieces gone, in milliseconds. */
-export const BREAK_MS = 450;
-
-/** How long a held hit's spark lasts, in milliseconds. */
-export const HELD_MS = 200;
 
 /** How long a broken rock shows whole, flashing, before it comes apart, in milliseconds. */
 const WHOLE_MS = 30;

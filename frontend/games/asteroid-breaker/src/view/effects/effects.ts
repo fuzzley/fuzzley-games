@@ -8,16 +8,15 @@ import {
 } from "../field/frame";
 
 /**
- * Names a flourish the scene plays: a broken rock's shards and dust, the
- * field's kick at a large break, a held hit's flash and spark, a blast's,
- * a vent's, a spent Shield's or a lost ship's ring, the points scored, a
- * dash's trail, a lost ship's burst, its pilot bailing out, and the
- * field's shake. Each but the points moves, so plays only where motion is
- * welcome; the points show either way, rising only where it is.
+ * Names a flourish the scene plays: a broken rock's break (its shards, dust
+ * and sparks), the field's kick at a large break, a held hit's flash and
+ * spark, a blast's, a vent's, a spent Shield's or a lost pod's ring, the
+ * points scored, a dash's trail, a lost pod's burst, its pilot bailing out, and
+ * the field's shake. Each but the points moves, so plays only where motion
+ * is welcome; the points show either way, rising only where it is.
  */
 export type Flourish =
-  | "shards"
-  | "dust"
+  | "break"
   | "kick"
   | "flash"
   | "spark"
@@ -50,14 +49,12 @@ function moving(flourishes: readonly Flourish[] = NONE): EventEffects {
 /** What an event calls for that the scene plays no flourish of. */
 const QUIET = moving();
 
-/** What a rock of each size calls for as it breaks: its shards and dust, and a large one's kick. */
+/** What a rock of each size calls for as it breaks: its break, and a large one's kick. */
 const BROKEN: Readonly<Record<RockSize, EventEffects>> = recordOf(
   ROCK_SIZES,
   (size) =>
     moving(
-      size === "boulder" || size === "large"
-        ? ["shards", "dust", "kick"]
-        : ["shards", "dust"],
+      size === "boulder" || size === "large" ? ["break", "kick"] : ["break"],
     ),
 );
 
