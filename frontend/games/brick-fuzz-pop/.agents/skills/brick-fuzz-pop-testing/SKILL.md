@@ -84,12 +84,12 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   so one that answered wrongly can't let a spec pass that tests nothing:
   `wall_picture.ts`, `flight_fixtures.ts`, `random_flights.ts`,
   `solver.ts`, `casual.ts`, `wall_score.ts`, `every_level.ts`,
-  `kept_run.ts`, `screenshot_api.ts`, `art_frames.ts` and `canvases.ts`
-  have one. `cast_reference.ts`'s `castByScan()`, `flights.ts`'s `near()`,
-  `timing.ts`'s `quantile()`, `stand_ins.ts`'s kinds and `play.ts`'s
-  scripted rounds have none yet, though `cast()`, the flight's specs, the
-  guide's bound, the traits' specs and the shell's trust them; a change to
-  one wants its spec first.
+  `kept_run.ts`, `screenshot_api.ts`, `art_frames.ts`, `canvases.ts` and
+  `loads.ts` have one. `cast_reference.ts`'s `castByScan()`,
+  `flights.ts`'s `near()`, `timing.ts`'s `quantile()`, `stand_ins.ts`'s
+  kinds and `play.ts`'s scripted rounds have none yet, though `cast()`, the
+  flight's specs, the guide's bound, the traits' specs and the shell's
+  trust them; a change to one wants its spec first.
 
 ## The Rules
 

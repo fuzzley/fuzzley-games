@@ -30,10 +30,11 @@ export interface KeptGame {
   /**
    * Where the level's next round starts: the round in flight's `next`
    * while one flies, so a round is kept as it is released, else the start
-   * waiting to be aimed from. The saved game is written again as it
-   * changes, as it does when a drop flies the round again, which leaves
-   * the run's rounds and stage as they were, or the field takes another
-   * depth. Set it in the same turn as
+   * waiting to be aimed from.
+   *
+   * The saved game is written again as it changes, as it does when a drop
+   * flies the round again, which leaves the run's rounds and stage as they
+   * were, or the field takes another depth. Set it in the same turn as
    * `run`, as the round is released or dropped, or the round is kept with
    * the start before it, which storage can't trust, and the run is lost.
    */

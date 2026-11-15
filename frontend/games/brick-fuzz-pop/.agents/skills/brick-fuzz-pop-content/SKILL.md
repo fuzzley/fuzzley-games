@@ -246,8 +246,13 @@ stand-in going once no spec uses it.
 - A new kind of event it adds to `FlightEvent`
   (`src/rules/flight/events.ts`, in the order its doc gives) needs its
   sound and flourishes in `src/view/effects/effects.ts`, whose
-  `effectsOf()` the compiler holds to every kind of event, and its drawing
-  in the scene's painters.
+  `effectsOf()` the compiler holds to every kind of event, its case in
+  `RoundPlay`'s `takeIn()` (`src/view/round_play.ts`), which lint holds to
+  every kind, its place among a moment's events where `fly()` orders them
+  and where `orderProblemsOf()` (`src/testing/flight_fixtures.ts`) checks
+  them, a fuzzball's event a rank in each's table, `BALL_RANK` and
+  `BALL_ORDER`, which the compiler asks for, and its drawing in the scene's
+  painters.
 - Each level's certificate replays the flight: a trait that changes how a
   cataloged kind's shot plays fails the replays, and is certified again
   as the testing skill says.

@@ -79,9 +79,9 @@ const FLIGHT_SPEED_CHOICES: readonly ChoiceOption<FlightSpeed>[] =
  * drawer is open, and the drawer tries again as it next opens.
  *
  * None of the settings costs the run anything, since the rules decide a
- * round as it is released whatever the flight looks like, so each applies
- * at once. The debug menu's numbers and open levels can cost it its
- * records, as the menu says.
+ * round as it is released, or again as it is dropped, whatever the flight
+ * looks like, so each applies at once. The debug menu's numbers and open
+ * levels can cost it its records, as the menu says.
  */
 @Component({
   selector: "app-settings",
