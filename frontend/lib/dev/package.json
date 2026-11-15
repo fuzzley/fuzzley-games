@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "@analogjs/vite-plugin-angular": "^2.9.7",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
@@ -64,7 +64,7 @@
     "@analogjs/vite-plugin-angular": "^2.9.7",
     "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "^5.1.0",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "jsdom": "^31.0.1",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
