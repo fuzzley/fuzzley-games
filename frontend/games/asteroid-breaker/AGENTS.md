@@ -480,8 +480,9 @@ takes for the specs' helpers.
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says which flourishes each event calls for, with motion and
-  without (`effectsOf()`), the field's shake a boulder's alone and its kick
-  a large rock's, and how long an event holds the field still
+  without (`effectsOf()`), the field's shake and the beats a boulder's
+  alone and its kick a large rock's, the slow and the wave's ring as a
+  wave is cleared, and how long an event holds the field still
   (`holdMsOf()`), a boulder's break's first beat (`BOULDER_HOLD_MS`);
   `sounds.ts` every sound of the sprite, the plan's
   but the beds, by name, each with its family, level, takes and whether it
@@ -545,11 +546,27 @@ takes for the specs' helpers.
   (`shakeShare()`), and when a dash lays each of its outlines
   (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
-  motion is welcome; `timing.ts` how long each flourish
-  lasts, a rock's break (`BREAK_MS`) and a held hit's spark (`HELD_MS`)
-  among them, as long as `plan.md`'s table has a held hit, the muzzle's
-  flash (`MUZZLE_MS`) and a blast (`BLAST_MS`), and how long the cards
-  wait (`clearedDelayMs()`, `resultDelayMs()`); `blast.ts` how a volatile
+  motion is welcome, and the way a lost pod's pilot's bubble rises
+  (`bailOutWayOf()`); `timing.ts` how long each flourish lasts, as
+  `plan.md`'s table has it, a rock's break (`BREAK_MS`) and a held hit's
+  spark (`HELD_MS`) among them, the muzzle's flash (`MUZZLE_MS`), a blast
+  (`BLAST_MS`), a boulder's beats (`BOULDER_HOLD_MS`,
+  `BOULDER_THROW_MS`), the slow as a wave's last rock goes (`SLOW_MS`,
+  `SLOW_PACE`, `SLOWED_MS`) and the wave's ring after it (`WAVE_RING_MS`), and how long
+  the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
+  bubble to rise and go); `boulder.ts` how a boulder's break looks over its
+  beats, as the kit's `boulderFx()` draws it: its colors (`boulderInks()`),
+  its three cracks in the shape its serial picks (`cracksOf()`) running
+  from its middle toward its rim, as far as every boulder's outline
+  holds them (`CRACK_REACH`), while the field holds still and fading once
+  it moves on (`crackFlare()`, `crackFade()`), the lines they are drawn in
+  (`CRACK_LINES`, `crackLineAlpha()`), its glow (`boulderGlowAt()`) and
+  the ring it throws (`thrownShare()`, `thrownReach()`, `THROWN_RING`);
+  `flourish_clock.ts` the flourishes' own clock, which the scene draws
+  by, the page's time but slowed for a moment as a wave's last rock goes
+  (`FlourishClock`); `cleared.ts` the wave's ring after it, crossing the
+  field from where the last rock went to its farthest corner (`farthestCorner()`,
+  `waveRingAt()`, `WAVE_RING`); `blast.ts` how a volatile
   rock's blast looks over its time, as the kit's `blastFx()` draws it: its
   colors in a palette (`blastInks()`), its ring sweeping out to its reach
   (`blastRingAt()`), its band thinning (`blastBand()`), the lines it is
@@ -896,14 +913,19 @@ takes for the specs' helpers.
   ground its ring has swept, the ring's two soft bands, its middle in the
   rock's ink and its hot inner edge, its flash's disc, and its embers, its
   discs filled as polygons and its rings as bands of triangles, as the
-  dust's are, through `painters/rounds.ts`, so none overlaps itself at
-  part alpha, its flash's glow through the halo painter, one at a time, as
+  dust's are, through `painters/rounds.ts`, which gives a ring as large
+  as the wave's finer polygons still, so none overlaps itself at part
+  alpha, its flash's glow through the halo painter, one at a time, as
   the field flashes, and the newest blast's light, one of the scene's
   lights, which lights the rocks near it through their normal maps, and
   another past the edge it lies nearest, should its light reach across
   it, the flash and the lights only where the flourish player let it
   flash; one still ring at its reach where motion isn't
-  welcome; `RingPainter` a spent Shield's and a lost pod's rings,
+  welcome; `BoulderPainter` a boulder's break in its beats, over the
+  break every rock has: its cracks running out while the field holds
+  still, its glow through the halo painter and the ring it throws;
+  `RingPainter` a spent Shield's and a lost pod's rings, and the wave's
+  ring, once, for the field's camera to cut off,
   `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
   stroked again each frame: each of the zap's that it hears of
   (`hear()`), as it struck (`strikeOf()`), from where the pod is drawn,
@@ -936,9 +958,11 @@ takes for the specs' helpers.
   and the flourishes an event calls for where motion is welcome, and where
   it isn't only what of them stays still, a blast's ring at its reach, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
-  painter that draws it, or on `FieldCamera`, from the context the scene
-  wrote for the frame, and lets the field flash once each `FLASH_GAP_MS`
-  at most, whatever flashes (`flashDue()`), afresh on each new field;
+  painter that draws it, on `FieldCamera` or on the flourishes' clock it
+  keeps, whose time the scene draws by (`PaintContext`'s `now`), from the
+  context the scene wrote for the frame, and lets the field flash once
+  each `FLASH_GAP_MS` at most, whatever flashes (`flashDue()`), afresh on
+  each new field;
   `flourish_player.spec.ts` holds what each flourish
   plays, and `flourishes.spec.ts` what the scene draws for each event.
   `atlas.ts` bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and

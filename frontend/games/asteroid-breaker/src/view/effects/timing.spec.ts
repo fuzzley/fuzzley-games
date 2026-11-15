@@ -3,6 +3,7 @@ import {
   BLAST_MS,
   BLAST_RING_MS,
   BOULDER_HOLD_MS,
+  BOULDER_THROW_MS,
   BURST_MS,
   CLEARED_MS,
   FLASH_GAP_MS,
@@ -10,6 +11,8 @@ import {
   HELD_MS,
   MUZZLE_MS,
   SHAKE_MS,
+  SLOW_MS,
+  SLOW_PACE,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -25,8 +28,12 @@ describe("clearedDelayMs", () => {
 });
 
 describe("resultDelayMs", () => {
-  it("waits for the last pod's burst where motion is welcome", () => {
-    expect(resultDelayMs(true)).toBe(BURST_MS);
+  it("waits for the last pod's pilot's bubble to rise and go where motion is welcome, 1.4 s", () => {
+    expect(resultDelayMs(true)).toBe(1400);
+  });
+
+  it("waits past the last pod's burst", () => {
+    expect(resultDelayMs(true)).toBeGreaterThanOrEqual(BURST_MS);
   });
 
   it("waits for nothing where it isn't", () => {
@@ -53,6 +60,14 @@ describe("the table's rows", () => {
 
   it("sweeps a blast's ring out within its time", () => {
     expect(BLAST_RING_MS).toBeLessThan(BLAST_MS);
+  });
+
+  it("plays a boulder's break for 90 ms held still, then 700 ms", () => {
+    expect([BOULDER_HOLD_MS, BOULDER_THROW_MS]).toEqual([90, 700]);
+  });
+
+  it("slows the flourishes to a third for 250 ms as the last rock goes", () => {
+    expect([SLOW_MS, SLOW_PACE]).toEqual([250, 1 / 3]);
   });
 
   it("plays a held hit's spark for 150 ms", () => {

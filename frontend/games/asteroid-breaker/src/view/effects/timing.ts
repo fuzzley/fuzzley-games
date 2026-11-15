@@ -67,6 +67,13 @@ export const SHAKE_MS = 300;
  */
 export const BOULDER_HOLD_MS = 90;
 
+/**
+ * How long a boulder's break plays once the field moves on, in
+ * milliseconds: its split and its throw, after its first beat, its crack,
+ * which the field holds still for.
+ */
+export const BOULDER_THROW_MS = 700;
+
 /** How long a lost ship's pilot floats off in its bubble before it is gone. */
 export const BAIL_OUT_MS = 1400;
 
@@ -84,9 +91,24 @@ export const EXHAUST_MS = 400;
 
 /**
  * How long the Cleared card waits after the last rock goes, so its shards are
- * seen before the card covers them.
+ * seen before the card covers them, and the wave's ring after them.
  */
 export const CLEARED_MS = 800;
+
+/** How long the flourishes play slowed as the last rock goes, in milliseconds of the page's time. */
+export const SLOW_MS = 250;
+
+/** How fast the flourishes play while slowed, a share of their pace. */
+export const SLOW_PACE = 1 / 3;
+
+/** How long the slow lasts in the flourishes' own time, so what follows it waits as long. */
+export const SLOWED_MS = SLOW_MS * SLOW_PACE;
+
+/**
+ * How long the wave's ring takes to cross the field once the slow is over,
+ * so it is gone as the Cleared card opens.
+ */
+export const WAVE_RING_MS = CLEARED_MS - SLOW_MS;
 
 /**
  * Returns how long the Cleared card waits after a wave is cleared, for its
@@ -98,8 +120,9 @@ export function clearedDelayMs(motion: boolean): number {
 
 /**
  * Returns how long the result card waits after a run ends, for the last
- * pod's burst to fly: none where motion is unwelcome, where it doesn't.
+ * pod's burst to fly and its pilot's bubble to rise and go: none where
+ * motion is unwelcome, where neither does.
  */
 export function resultDelayMs(motion: boolean): number {
-  return motion ? BURST_MS : 0;
+  return motion ? BAIL_OUT_MS : 0;
 }

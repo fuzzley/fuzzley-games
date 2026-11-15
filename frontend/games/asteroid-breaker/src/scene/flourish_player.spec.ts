@@ -26,6 +26,7 @@ import {
   FLASH_GAP_MS,
   RING_MS,
   SHAKE_MS,
+  SLOWED_MS,
 } from "../view/effects/timing";
 import { type FieldEvent, shipAt } from "../view/field/frame";
 import { Steering } from "../view/steering/steering";
@@ -56,6 +57,7 @@ async function startPlayer(): Promise<
   const { scene } = board;
   const player = new FlourishPlayer({
     debris: scene.kit.debris,
+    boulders: scene.kit.boulders,
     blasts: scene.kit.blasts,
     rings: scene.kit.rings,
     trail: scene.kit.trail,
@@ -127,6 +129,33 @@ function blastFrom(shell: FakeShell): FieldEvent {
   return eventOf((log) => {
     log.addRock("blast", rock, 4);
   });
+}
+
+/** Returns the wave's clearing, logged at a place away from the middle. */
+function clearedOn(): FieldEvent {
+  return eventOf((log) => {
+    log.add("cleared", 10, 30);
+  });
+}
+
+/** Returns whether the ring painter fills its rings about a place on the field. */
+function ringsAbout(
+  scene: BeltScene,
+  shell: FakeShell,
+  x: number,
+  y: number,
+): boolean {
+  const points = commandsOf(scene.kit.rings.graphics).flatMap((command) =>
+    command.kind === "fillTriangle" ? [command.points] : [],
+  );
+  const xs = points.flatMap((each) => each.filter((_, i) => i % 2 === 0));
+  const ys = points.flatMap((each) => each.filter((_, i) => i % 2 === 1));
+  const at = onCanvas(metricsOf(shell), x, y);
+  return (
+    xs.length > 0 &&
+    Math.abs((Math.min(...xs) + Math.max(...xs)) / 2 - at.x) < 1e-6 &&
+    Math.abs((Math.min(...ys) + Math.max(...ys)) / 2 - at.y) < 1e-6
+  );
 }
 
 /** Returns the hit a medium rock placed on a shell's field held, at a place. */
@@ -333,6 +362,73 @@ describe("FlourishPlayer", () => {
     scene.kit.rocks.draw(later);
 
     expect(scene.kit.rocks.flashes[0].visible).toBe(true);
+  });
+
+  it("breaks a boulder in its beats where it broke", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+
+    player.play("boulder", boulderBrokenFrom(shell, 0, 1), context);
+    scene.kit.boulders.draw(contextAt(shell, NOW + 30));
+
+    const at = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y);
+    const radius = ROCK_RADIUS.boulder * context.metrics.unit;
+    const starts = commandsOf(scene.kit.boulders.graphics).flatMap((command) =>
+      command.kind === "moveTo" ? [command] : [],
+    );
+    expect({
+      cracks: starts.length > 0,
+      fromMiddle: starts.every(
+        ({ x, y }) => Math.hypot(x - at.x, y - at.y) < 0.15 * radius,
+      ),
+    }).toEqual({ cracks: true, fromMiddle: true });
+  });
+
+  it("slows its clock to a third", async () => {
+    const { shell, player } = await startPlayer();
+    player.clock.at(NOW);
+
+    player.play("slow", clearedOn(), contextAt(shell, NOW));
+
+    expect(player.clock.at(NOW + 30)).toBeCloseTo(NOW + 10, 9);
+  });
+
+  it("ends a slow as a new field starts", async () => {
+    const { shell, player } = await startPlayer();
+    player.clock.at(NOW);
+    player.play("slow", clearedOn(), contextAt(shell, NOW));
+
+    player.start();
+
+    expect(player.clock.at(NOW + 30)).toBe(NOW + 30);
+  });
+
+  it("crosses the field with the wave's ring from where the last rock broke, once the slow is over", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+    player.play("break", boulderBrokenFrom(shell, 0, 1), context);
+
+    player.play("wave", clearedOn(), context);
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS - 1));
+    const waiting = commandsOf(scene.kit.rings.graphics).length;
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS + 50));
+
+    expect([waiting, ringsAbout(scene, shell, MIDDLE.x, MIDDLE.y)]).toEqual([
+      0,
+      true,
+    ]);
+  });
+
+  it("forgets the last break as a new field starts, crossing the field from where the clearing is logged", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+    player.play("break", hitAt(shell, 20, 12), context);
+    player.start();
+
+    player.play("wave", clearedOn(), context);
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS + 50));
+
+    expect(ringsAbout(scene, shell, 10, 30)).toBe(true);
   });
 
   it("flashes a rock as a new field starts, however lately the last flashed", async () => {

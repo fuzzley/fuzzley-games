@@ -44,6 +44,7 @@ import {
   pickupLook,
   restingLook,
 } from "../../view/art/things";
+import { MOST_BOULDERS } from "./boulder_painter";
 import type { Copies } from "./copies";
 import { HALO_DISC } from "./halo_painter";
 
@@ -213,9 +214,10 @@ describe("the halos", () => {
         2 * comets.slots.length +
         ENGINES.length +
         MOST_SPARKS +
-        // The muzzle's flash's, and a blast's flash's: the field flashes
-        // one at a time.
+        // The muzzle's flash's, the boulders' glows, and a blast's
+        // flash's: the field flashes one at a time.
         1 +
+        MOST_BOULDERS +
         1,
     );
   });
@@ -497,8 +499,10 @@ describe("a halo another painter shows", () => {
         2 * board.shell.field.comets.slots.length +
         ENGINES.length +
         MOST_SPARKS +
-        // The muzzle's flash's, a blast's flash's, then this one's.
+        // The muzzle's flash's, the boulders' glows, a blast's flash's,
+        // then this one's.
         1 +
+        MOST_BOULDERS +
         1 +
         1,
     );

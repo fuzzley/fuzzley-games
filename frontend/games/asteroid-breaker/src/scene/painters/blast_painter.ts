@@ -34,6 +34,7 @@ import {
   rockSizeOf,
 } from "../../view/field/frame";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
+import { COPY_SHARES } from "./copy_shares";
 import type { HaloPainter } from "./halo_painter";
 import type { PaintContext, Painter } from "./painter";
 import { fillRound, strokeRound } from "./rounds";
@@ -50,14 +51,6 @@ export const MOST_BLASTS = 12;
  * outside, at its widest as it starts, and its farthest embers.
  */
 const OUTSIDE = 2;
-
-/** Each copy of a blast, as shares of the way across and down to the copies past the edges it reaches across. */
-const COPIES = [
-  [0, 0],
-  [1, 0],
-  [0, 1],
-  [1, 1],
-] as const;
 
 /** Describes a blast showing: where it went off, its rock's radius, its reach, its embers, and whether it flashed. */
 interface Blast extends Playing {
@@ -213,7 +206,7 @@ export class BlastPainter implements Painter {
       field.torus,
       this.offsets,
     );
-    for (const [acrossShare, downShare] of COPIES) {
+    for (const [acrossShare, downShare] of COPY_SHARES) {
       if (acrossShare === 1 && across === 0) continue;
       if (downShare === 1 && down === 0) continue;
       toCanvas(
