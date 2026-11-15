@@ -75,29 +75,34 @@
       "end": 5.21,
       "loop": false
     },
-    "step": {
+    "drop": {
       "start": 5.31,
-      "end": 5.53,
+      "end": 5.59,
+      "loop": false
+    },
+    "step": {
+      "start": 5.69,
+      "end": 5.91,
       "loop": false
     },
     "jump": {
-      "start": 5.63,
-      "end": 6.23,
+      "start": 6.01,
+      "end": 6.61,
       "loop": false
     },
     "danger": {
-      "start": 6.33,
-      "end": 6.75,
+      "start": 6.71,
+      "end": 7.13,
       "loop": false
     },
     "chime": {
-      "start": 6.85,
-      "end": 7.63,
+      "start": 7.23,
+      "end": 8.01,
       "loop": false
     },
     "lost": {
-      "start": 7.73,
-      "end": 8.35,
+      "start": 8.11,
+      "end": 8.73,
       "loop": false
     }
   }

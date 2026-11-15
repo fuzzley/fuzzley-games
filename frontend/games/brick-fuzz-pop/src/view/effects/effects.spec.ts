@@ -142,8 +142,8 @@ const BEATS = [
 ] as const satisfies readonly (readonly [Beat, SoundName, readonly string[]])[];
 
 describe("SOUNDS", () => {
-  it("names the game's twenty sounds", () => {
-    expect(SOUNDS).toHaveLength(20);
+  it("names the game's twenty-one sounds", () => {
+    expect(SOUNDS).toHaveLength(21);
   });
 
   it("names each sound once", () => {

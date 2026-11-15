@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Writes Brick Fuzz Pop's sounds: twenty short effects synthesized with
+ * Writes Brick Fuzz Pop's sounds: twenty-one short effects synthesized with
  * `@fz/dev/sounds`, the same bytes every run, into one WAV sprite and the
  * spritemap Phaser plays it by, both in `src/scene/sounds/`.
  *
@@ -102,7 +102,7 @@ export const RECIPES = [
     sample: note(0, glide(392, 587, 0.04, 0.1), envelope(0.004, 0.045)),
   },
   // A punch, a charged fuzzball flying on through a brick it broke: a crunch
-  // of noise over a low drop, under the break's own note.
+  // of noise over a low fall, under the break's own note.
   {
     name: "punch",
     seconds: 0.16,
@@ -196,6 +196,16 @@ export const RECIPES = [
     peak: 0.35,
     sample: note(0, glide(520, 260, 0.5, 0.15), envelope(0.15, 0.2)),
   },
+  // A drop, every fuzzball in the air brought straight down at once: a
+  // quick whistle falling two octaves, struck at once where the yawn swells,
+  // still heard as it reaches the bottom, and played once however many come
+  // down.
+  {
+    name: "drop",
+    seconds: 0.28,
+    peak: 0.4,
+    sample: note(0, glide(880, 220, 0.22, 0.15), envelope(0.003, 0.18)),
+  },
   // The wall's step down a row: a heavy, low thunk, heard every round.
   {
     name: "step",
@@ -208,7 +218,7 @@ export const RECIPES = [
       1.2,
     ),
   },
-  // The wall's jump of a third of the field: a long drop under a rumble.
+  // The wall's jump of a third of the field: a long fall under a rumble.
   {
     name: "jump",
     seconds: 0.6,
