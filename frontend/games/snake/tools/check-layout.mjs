@@ -23,6 +23,7 @@ import {
   PHASER_CHECKED_AT,
   checkPhaserLayout,
   runLayoutScript,
+  whenAllSettle,
 } from "@fz/dev/layout";
 
 /** @import { BoardBox, PhaserBoard } from "@fz/dev/layout" */
@@ -113,8 +114,10 @@ process.exitCode = await runLayoutScript({
       inspect: inspectSquaresAndArrows,
     };
     const arrowed = { ...bare, before: wantArrows };
-    const withoutArrows = await checkPhaserLayout(devtools, bare);
-    const withArrows = await checkPhaserLayout(devtools, arrowed);
+    const [withoutArrows, withArrows] = await whenAllSettle([
+      checkPhaserLayout(devtools, bare),
+      checkPhaserLayout(devtools, arrowed),
+    ]);
     return [
       ...withoutArrows,
       ...withArrows.map((found) => ({

@@ -25,9 +25,9 @@
  * CSS px across and down, each holding the parts it shows, the level's
  * stars among them, whole, as a panel clips what runs past its foot.
  *
- * Then it opens the game at each shape again, at twice the pixels, over a
- * run kept on Fuse with its fuse lit, which each page takes up and goes on
- * with, so the fuse burns and clears the level: the Cleared card, at its
+ * Beside those pages, it opens the game at each shape again, at twice the
+ * pixels, over a run kept on Fuse with its fuse lit, which each page takes
+ * up and goes on with, so the fuse burns and clears the level: the Cleared card, at its
  * tallest, its three stars just won and a line for double pay, must lie on
  * the field, and the rest hold as above.
  * It prints what is wrong and fails, or says the layout holds.
@@ -42,6 +42,7 @@ import {
   checkPhaserLayout,
   runLayoutScript,
   shapesAt,
+  whenAllSettle,
 } from "@fz/dev/layout";
 import {
   CLEARING_RUN,
@@ -164,7 +165,7 @@ const CLEARED_CARD = "app-board .card.cleared";
  * as a 60th of a second at most, and any frame slower than a fifth of a
  * second as the last it counted, and Chrome drawing WebGL in software, as
  * CI's does, draws the roomy window at twice the pixels a few frames a
- * second.
+ * second, fewer with other pages drawing beside it.
  */
 const CLEARED_TIMEOUT_MS = 60_000;
 
@@ -217,8 +218,8 @@ function clearing(api) {
 
 /**
  * Checks the layout at each shape and turn as the ball waits to be served,
- * then at each shape over a level cleared, and returns what is wrong, the
- * second pass's shapes named for the Cleared card. It keeps the run first,
+ * and beside them at each shape over a level cleared, and returns what is
+ * wrong, the second pass's shapes named for the Cleared card. It keeps the run first,
  * so a run that can't be kept fails the check before Chrome opens a page.
  *
  * @param {DevToolsConnection} devtools
@@ -234,17 +235,19 @@ async function checkBoth(devtools, url) {
     board: FIELD,
     inspect: inspectField,
   };
-  const waiting = await checkPhaserLayout(devtools, check);
-  const cleared = await checkLayout(
-    devtools,
-    {
-      ...check,
-      ready: CLEARED_CARD,
-      readyTimeoutMs: CLEARED_TIMEOUT_MS,
-      before,
-    },
-    CLEARED_AT,
-  );
+  const [waiting, cleared] = await whenAllSettle([
+    checkPhaserLayout(devtools, check),
+    checkLayout(
+      devtools,
+      {
+        ...check,
+        ready: CLEARED_CARD,
+        readyTimeoutMs: CLEARED_TIMEOUT_MS,
+        before,
+      },
+      CLEARED_AT,
+    ),
+  ]);
   return [
     ...waiting,
     ...cleared.map(({ shape, problem }) => ({

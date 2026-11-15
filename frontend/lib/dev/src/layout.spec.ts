@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
+import { setTimeout } from "node:timers/promises";
 import {
   type ChromeOptions,
   DevToolsConnection,
@@ -21,6 +22,7 @@ import {
   checkTurns,
   runLayoutScript,
   shapesAt,
+  whenAllSettle,
 } from "./layout.ts";
 import {
   type BoardInspection,
@@ -95,7 +97,8 @@ function browserFinding(
  * Returns a fake browser whose pages find what the game's inspection, the
  * check of its bar and the inspections of its board and its deck each find,
  * and nothing else wrong, once they have drawn, as they do unless `drawn`
- * says otherwise.
+ * says otherwise, and which refuses to lay a page out at `refusedWidth`,
+ * and lays one out late at `slowWidth`, where they name one.
  */
 function browserFindingIn(
   found: {
@@ -104,12 +107,24 @@ function browserFindingIn(
     readonly board?: BoardInspection;
     readonly deck?: readonly string[];
     readonly drawn?: boolean;
+    readonly refusedWidth?: number;
+    readonly slowWidth?: number;
   },
   ...events: readonly object[]
 ): FakeBrowser {
   const browser: FakeBrowser = new FakeBrowser({
-    "Page.navigate": () => {
-      for (const event of events) browser.emit({ sessionId: "page", ...event });
+    "Emulation.setDeviceMetricsOverride": (command: Command) => {
+      const width = command.params["width"];
+      if (width === found.refusedWidth) return { error: "No such width." };
+      if (width === found.slowWidth) {
+        return setTimeout(5).then(() => ({ result: {} }));
+      }
+      return { result: {} };
+    },
+    "Page.navigate": (command: Command) => {
+      for (const event of events) {
+        browser.emit({ sessionId: command.sessionId, ...event });
+      }
       return { result: {} };
     },
     "Runtime.evaluate": (command: Command) => {
@@ -294,6 +309,66 @@ describe("checkLayout", () => {
     const devtools = new DevToolsConnection(browserFinding([]));
 
     expect(await checkLayout(devtools, CHECK)).toEqual([]);
+  });
+
+  it("opens as many shapes at once as its connection opens pages", async () => {
+    const browser = browserFinding([]);
+
+    await checkLayout(new DevToolsConnection(browser, 3), CHECK);
+
+    expect(browser.mostContextsOpen()).toBe(3);
+  });
+
+  it("throws what failed where a page fails", async () => {
+    const browser = browserFindingIn({
+      refusedWidth: SHAPES[0]!.viewport.width,
+    });
+
+    const checked = checkLayout(new DevToolsConnection(browser, 3), CHECK);
+
+    await expect(checked).rejects.toThrow("No such width.");
+  });
+
+  it("throws for a page that fails only once every page has closed", async () => {
+    const browser = browserFindingIn({
+      refusedWidth: SHAPES[0]!.viewport.width,
+    });
+    const devtools = new DevToolsConnection(browser, SHAPES.length);
+
+    const openAsItThrew = await checkLayout(devtools, CHECK).then(
+      () => "nothing failed",
+      () => browser.contextsOpen(),
+    );
+
+    expect(openAsItThrew).toBe(0);
+  });
+
+  it("opens no more pages once one fails", async () => {
+    const browser = browserFindingIn({
+      refusedWidth: SHAPES[0]!.viewport.width,
+    });
+
+    await checkLayout(new DevToolsConnection(browser), CHECK).catch(
+      () => undefined,
+    );
+
+    expect(
+      browser.methods().filter((m) => m === "Target.createBrowserContext"),
+    ).toHaveLength(1);
+  });
+
+  it("reports what is wrong in the shapes' order, though the first shape's page finishes last", async () => {
+    const browser = browserFindingIn({
+      own: ["Askew."],
+      slowWidth: SHAPES[0]!.viewport.width,
+    });
+    const devtools = new DevToolsConnection(browser, 3);
+
+    const problems = await checkLayout(devtools, CHECK);
+
+    expect(problems.map((found) => found.shape)).toEqual(
+      SHAPES.map((shape) => shape.name),
+    );
   });
 
   it("reports what the game's inspection finds, by shape", async () => {
@@ -542,6 +617,14 @@ describe("checkTurns", () => {
     expect(await checkTurns(devtools, CHECK)).toEqual([]);
   });
 
+  it("turns as many windows at once as its connection opens pages", async () => {
+    const browser = browserFinding([]);
+
+    await checkTurns(new DevToolsConnection(browser, 2), CHECK);
+
+    expect(browser.mostContextsOpen()).toBe(2);
+  });
+
   it("reports what is wrong after the turn, by the turn", async () => {
     const devtools = new DevToolsConnection(
       browserFinding(["The board is drawn small."]),
@@ -587,6 +670,69 @@ describe("checkPhaserLayout", () => {
     expect(problems.map((found) => found.shape).join(", ")).toBe(
       PHASER_CHECKED_AT,
     );
+  });
+
+  it("checks its shapes and its turns side by side, every page at once where its connection opens that many", async () => {
+    const browser = browserFinding([]);
+    const pages = SHAPES.length + 1 + TURNS.length;
+
+    await checkPhaserLayout(new DevToolsConnection(browser, pages), CHECK);
+
+    expect(browser.mostContextsOpen()).toBe(pages);
+  });
+
+  it("opens no more pages at once than its connection opens", async () => {
+    const browser = browserFinding([]);
+
+    await checkPhaserLayout(new DevToolsConnection(browser, 4), CHECK);
+
+    expect(browser.mostContextsOpen()).toBe(4);
+  });
+
+  it("reports the shapes before the turns, by the names it says it checks at, though the shapes finish last", async () => {
+    const browser = browserFindingIn({
+      own: ["The board is drawn small."],
+      slowWidth: SHAPES[0]!.viewport.width,
+    });
+    const devtools = new DevToolsConnection(browser, 4);
+
+    const problems = await checkPhaserLayout(devtools, CHECK);
+
+    expect(problems.map((found) => found.shape).join(", ")).toBe(
+      PHASER_CHECKED_AT,
+    );
+  });
+});
+
+describe("whenAllSettle", () => {
+  it("returns what each check found, in their order", async () => {
+    const slow = setTimeout(5, "slow");
+
+    expect(await whenAllSettle([slow, Promise.resolve(2)])).toEqual([
+      "slow",
+      2,
+    ]);
+  });
+
+  it("throws the first to fail in their order, not the first to fail", async () => {
+    const late = setTimeout(5).then(() => {
+      throw new Error("The first failed.");
+    });
+    const early = Promise.reject(new Error("The second failed."));
+
+    await expect(whenAllSettle([late, early])).rejects.toThrow(
+      "The first failed.",
+    );
+  });
+
+  it("throws only once every check has settled", async () => {
+    const settled: string[] = [];
+    const failing = Promise.reject(new Error("Failed."));
+    const slow = setTimeout(5).then(() => settled.push("the slow check"));
+
+    await whenAllSettle([failing, slow]).catch(() => settled.push("thrown"));
+
+    expect(settled).toEqual(["the slow check", "thrown"]);
   });
 });
 
@@ -636,7 +782,9 @@ describe("runLayoutScript", () => {
   function fakeChrome(started: ChromeOptions[] = []): typeof withChrome {
     return async (options, use) => {
       started.push(options);
-      return use(new DevToolsConnection(new FakeBrowser({})));
+      return use(
+        new DevToolsConnection(new FakeBrowser({}), options.pagesAtOnce),
+      );
     };
   }
 
@@ -734,17 +882,53 @@ describe("runLayoutScript", () => {
     });
   });
 
-  it("starts the Chrome the command line names, its profile named for the game's folder", async () => {
+  it("starts the Chrome the command line names, its profile named for the game's folder, four pages open at once", async () => {
     await build("The game");
     const started: ChromeOptions[] = [];
 
     await runLayoutScript(script(), {
       args: ["--chrome", "/opt/chrome"],
+      env: {},
       ...printer,
       runChrome: fakeChrome(started),
     });
 
-    expect(started).toEqual([{ chrome: "/opt/chrome", name: basename(root) }]);
+    expect(started).toEqual([
+      { chrome: "/opt/chrome", name: basename(root), pagesAtOnce: 4 },
+    ]);
+  });
+
+  it.each<[string, Record<string, string>, readonly string[], number]>([
+    ["two on CI", { CI: "true" }, [], 2],
+    ["four where CI isn't true", { CI: "false" }, [], 4],
+    ["as many as --pages says", { CI: "true" }, ["--pages", "3"], 3],
+  ])("opens %s at once", async (_, env, args, pages) => {
+    await build("The game");
+    const started: ChromeOptions[] = [];
+
+    await runLayoutScript(script(), {
+      args,
+      env,
+      ...printer,
+      runChrome: fakeChrome(started),
+    });
+
+    expect(started.map((options) => options.pagesAtOnce)).toEqual([pages]);
+  });
+
+  it("refuses --pages that isn't a whole number from 1, with its usage, checking nothing", async () => {
+    const started: ChromeOptions[] = [];
+
+    const code = await runLayoutScript(script(), {
+      args: ["--pages", "0"],
+      ...printer,
+      runChrome: fakeChrome(started),
+    });
+
+    expect({ code, started }).toEqual({ code: 2, started: [] });
+    expect(printer.err.join("\n")).toMatch(
+      /^--pages takes a whole number from 1, not "0"[^]*Usage: yarn check:layout/,
+    );
   });
 
   it("prints its usage for --help, naming the game, and checks nothing", async () => {
@@ -758,7 +942,7 @@ describe("runLayoutScript", () => {
 
     expect({ code, started }).toEqual({ code: 0, started: [] });
     expect(printer.out.join("\n")).toMatch(
-      /^Usage: yarn check:layout.*\n\nChecks Game's layout[^]*--chrome <path>/,
+      /^Usage: yarn check:layout.*\n\nChecks Game's layout[^]*--chrome <path>[^]*--pages <n>/,
     );
   });
 

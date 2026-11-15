@@ -26,8 +26,8 @@
  * after a turn of the window too, as the rules begin a level with no round
  * played again on a depth the field takes.
  *
- * Then it does it all again over a run kept as the game keeps one, a round
- * played, which each page takes up paused: the wall must stand as many
+ * Beside those pages, it does it all again over a run kept as the game
+ * keeps one, a round played, which each page takes up paused: the wall must stand as many
  * rows from the floor as the run kept it at every shape, and through each
  * turn, the field's depth whatever it is.
  * It prints what is wrong and fails, or says the layout holds.
@@ -39,6 +39,7 @@ import {
   checkPhaserLayout,
   readRect,
   runLayoutScript,
+  whenAllSettle,
 } from "@fz/dev/layout";
 import {
   LAYOUT_RUN,
@@ -293,8 +294,8 @@ function keepingRun(api) {
 
 /**
  * Checks the layout at each shape and turn as a level waits for its first
- * shot, then again over a run kept, taken up paused, and returns what is
- * wrong, the second pass's shapes named for it. It keeps the run first, so
+ * shot, and beside them again over a run kept, taken up paused, and returns
+ * what is wrong, the second pass's shapes named for it. It keeps the run first, so
  * a run that can't be kept fails the check before Chrome opens a page.
  *
  * @param {DevToolsConnection} devtools
@@ -310,14 +311,10 @@ async function checkBoth(devtools, url) {
     board: FIELD,
     inspect: inspectField,
   };
-  const waiting = await checkPhaserLayout(devtools, {
-    ...check,
-    before: keepingNone,
-  });
-  const takenUp = await checkPhaserLayout(devtools, {
-    ...check,
-    before: keeping,
-  });
+  const [waiting, takenUp] = await whenAllSettle([
+    checkPhaserLayout(devtools, { ...check, before: keepingNone }),
+    checkPhaserLayout(devtools, { ...check, before: keeping }),
+  ]);
   return [
     ...waiting,
     ...takenUp.map(({ shape, problem }) => ({

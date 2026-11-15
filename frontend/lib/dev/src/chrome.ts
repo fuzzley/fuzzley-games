@@ -62,6 +62,19 @@ export interface DevToolsSocket {
 }
 
 /**
+ * Returns how many pages a connection opens at once, throwing a RangeError
+ * unless it is a whole number from 1.
+ */
+function checkedPagesAtOnce(pagesAtOnce: number): number {
+  if (!Number.isInteger(pagesAtOnce) || pagesAtOnce < 1) {
+    throw new RangeError(
+      `A connection opens a whole number of pages at once, from 1, not ${pagesAtOnce}.`,
+    );
+  }
+  return pagesAtOnce;
+}
+
+/**
  * A connection to Chrome's DevTools protocol, which sends commands to the
  * browser or, given a session, to one page.
  */
@@ -82,22 +95,83 @@ export class DevToolsConnection {
     sessionId: string;
     listener: (params: unknown) => void;
   }[] = [];
+  /** How many pages {@link withPage} may have open on it at once. */
+  private readonly pagesAtOnce: number;
+  /** How many of them are open. */
+  private openPages = 0;
+  /** The pages waiting to open, in the order they asked. */
+  private readonly waitingPages: {
+    readonly open: () => void;
+    readonly refuse: (reason: unknown) => void;
+  }[] = [];
+  /** Why it opens no more pages, once told to stop. */
+  private stopped: { readonly reason: unknown } | undefined;
 
-  constructor(socket: DevToolsSocket) {
+  /**
+   * Starts listening to a socket, on which {@link withPage} opens at most
+   * `pagesAtOnce` pages at once, one unless given.
+   */
+  constructor(socket: DevToolsSocket, pagesAtOnce = 1) {
+    this.pagesAtOnce = checkedPagesAtOnce(pagesAtOnce);
     this.socket = socket;
     socket.addEventListener("message", (event) => {
       this.receive(JSON.parse(String(event.data)) as Message);
     });
   }
 
-  /** Opens a connection to the browser at a DevTools WebSocket URL. */
-  static async open(url: string): Promise<DevToolsConnection> {
+  /**
+   * Opens a connection to the browser at a DevTools WebSocket URL, on which
+   * {@link withPage} opens at most `pagesAtOnce` pages at once, one unless
+   * given.
+   */
+  static async open(url: string, pagesAtOnce = 1): Promise<DevToolsConnection> {
+    checkedPagesAtOnce(pagesAtOnce);
     const socket = new WebSocket(url);
     await new Promise((resolve, reject) => {
       socket.addEventListener("open", resolve, { once: true });
       socket.addEventListener("error", reject, { once: true });
     });
-    return new DevToolsConnection(socket);
+    return new DevToolsConnection(socket, pagesAtOnce);
+  }
+
+  /**
+   * Waits till a page may open, fewer being open than the connection allows,
+   * in the order the pages asked, and returns the function that says it has
+   * closed, which hands its place to the page that has waited longest. It
+   * throws once the connection opens no more ({@link stopOpeningPages}).
+   */
+  async reservePage(): Promise<() => void> {
+    if (this.stopped !== undefined) throw this.stopped.reason;
+    if (this.openPages < this.pagesAtOnce) {
+      this.openPages += 1;
+    } else {
+      await new Promise<void>((open, refuse) =>
+        this.waitingPages.push({ open, refuse }),
+      );
+    }
+    let closed = false;
+    return () => {
+      if (closed) return;
+      closed = true;
+      const next = this.waitingPages.shift();
+      if (next === undefined) {
+        this.openPages -= 1;
+      } else {
+        next.open();
+      }
+    };
+  }
+
+  /**
+   * Opens no more pages: every page waiting its turn, and every one asked
+   * for later, is refused with the reason it was first given. The pages open
+   * stay open till they close.
+   */
+  stopOpeningPages(reason: unknown): void {
+    this.stopped ??= { reason };
+    for (const waiting of this.waitingPages.splice(0)) {
+      waiting.refuse(this.stopped.reason);
+    }
   }
 
   /**
@@ -308,36 +382,74 @@ function call(
   return `${made}(...${JSON.stringify(args)})`;
 }
 
+/** Says how {@link withPage} treats the pages beside the one it opens. */
+export interface PageOptions {
+  /**
+   * Whether a page that fails, in its setup or its use, has its connection
+   * open no more pages ({@link DevToolsConnection.stopOpeningPages}) before
+   * it hands its place on, as where the failure ends the run, the pages
+   * waiting their turn would only wait out their own timeouts. Not unless
+   * given.
+   */
+  readonly stopsOthersOnFailure?: boolean;
+}
+
 /**
- * Opens a page at a viewport, in a browser context of its own, hands it to
- * `use`, and closes the context once `use` settles.
+ * Opens a page at a viewport, in a browser context of its own, once the
+ * connection lets another page open, hands it to `use`, and closes the
+ * context once `use` settles.
+ *
+ * Each page is told it has the focus, as the page a player looks at does,
+ * so a page opened beside it takes nothing from it. A `use` that opens
+ * another page on its connection, which opens one at a time unless told
+ * more, waits for itself to close, and so forever.
  */
 export async function withPage<T>(
   devtools: DevToolsConnection,
   viewport: Viewport,
   use: (page: Page) => Promise<T>,
+  { stopsOthersOnFailure = false }: PageOptions = {},
 ): Promise<T> {
-  const { browserContextId } = await devtools.send(
-    "Target.createBrowserContext",
-  );
+  const closed = await devtools.reservePage();
+  // Called before the context is disposed too, as another page may close
+  // meanwhile and hand its place to one waiting.
+  const stopOthers = (error: unknown): void => {
+    if (stopsOthersOnFailure) devtools.stopOpeningPages(error);
+  };
   try {
-    const { targetId } = await devtools.send("Target.createTarget", {
-      url: "about:blank",
-      browserContextId,
-    });
-    const { sessionId } = await devtools.send("Target.attachToTarget", {
-      targetId,
-      flatten: true,
-    });
-    const page = new Page(devtools, sessionId);
-    await page.send("Emulation.setDeviceMetricsOverride", {
-      ...viewport,
-      mobile: false,
-    });
-    await page.send("Page.enable");
-    return await use(page);
+    const { browserContextId } = await devtools.send(
+      "Target.createBrowserContext",
+    );
+    try {
+      const { targetId } = await devtools.send("Target.createTarget", {
+        url: "about:blank",
+        browserContextId,
+      });
+      const { sessionId } = await devtools.send("Target.attachToTarget", {
+        targetId,
+        flatten: true,
+      });
+      const page = new Page(devtools, sessionId);
+      await page.send("Emulation.setDeviceMetricsOverride", {
+        ...viewport,
+        mobile: false,
+      });
+      await page.send("Emulation.setFocusEmulationEnabled", { enabled: true });
+      await page.send("Page.enable");
+      return await use(page);
+    } catch (error) {
+      stopOthers(error);
+      throw error;
+    } finally {
+      await devtools.send("Target.disposeBrowserContext", {
+        browserContextId,
+      });
+    }
+  } catch (error) {
+    stopOthers(error);
+    throw error;
   } finally {
-    await devtools.send("Target.disposeBrowserContext", { browserContextId });
+    closed();
   }
 }
 
@@ -441,12 +553,17 @@ async function launchChrome(
   throw new Error(`Chrome did not start within ${LAUNCH_TIMEOUT_MS} ms.`);
 }
 
-/** Says which Chrome {@link withChrome} runs, and what its profile is called. */
+/**
+ * Says which Chrome {@link withChrome} runs, what its profile is called and
+ * how many pages it may have open at once.
+ */
 export interface ChromeOptions {
   /** The Chrome to run, as the command line names it, if it does. */
   readonly chrome?: string | undefined;
   /** What the throwaway profile's folder starts with, such as the script's game. */
   readonly name: string;
+  /** How many pages {@link withPage} may have open in it at once, one unless given. */
+  readonly pagesAtOnce?: number;
 }
 
 /**
@@ -463,7 +580,10 @@ export async function withChrome<T>(
     const { chrome, endpoint } = await launchChrome(chromePath, profile);
     const exited = once(chrome, "exit");
     try {
-      const devtools = await DevToolsConnection.open(endpoint);
+      const devtools = await DevToolsConnection.open(
+        endpoint,
+        options.pagesAtOnce,
+      );
       try {
         return await use(devtools);
       } finally {

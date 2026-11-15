@@ -14,6 +14,7 @@ import {
   type DevToolsConnection,
   type Page,
   type PageFunction,
+  type PageOptions,
   type Viewport,
   withChrome,
   withPage,
@@ -24,7 +25,14 @@ import {
   settle,
   settleTurn,
 } from "./layout_page.ts";
-import { CONSOLE, type Printer, isStop, readArgs, stopWith } from "./script.ts";
+import {
+  CONSOLE,
+  type Printer,
+  isStop,
+  readArgs,
+  readCount,
+  stopWith,
+} from "./script.ts";
 
 export type {
   BoardBox,
@@ -210,68 +218,114 @@ const READY_TIMEOUT_MS = 10_000;
 const TURN_SETTLE_MS = 500;
 
 /**
- * Opens a game at every shape, each in a page of its own, and returns what
- * is wrong: an error the page reported, a page that scrolls, a control of
+ * How a check opens its pages: a page that fails ends the run, so it has
+ * the connection open no more.
+ */
+const CHECK_PAGE: PageOptions = { stopsOthersOnFailure: true };
+
+/**
+ * Opens a game at every shape, each in a page of its own, as many at once as
+ * the connection lets open, and returns what is wrong, in the shapes'
+ * order: an error the page reported, a page that scrolls, a control of
  * the game bar outside the window, what is wrong with a board drawn with
  * Phaser, where the check has one, and what the game's own inspection finds.
+ *
+ * Where a page fails, the connection opens no more pages, for this check
+ * or any other, and the check throws once the pages open have closed.
  */
 export async function checkLayout<A extends unknown[] = []>(
   devtools: DevToolsConnection,
   check: LayoutCheck<A>,
   shapes: readonly Shape[] = SHAPES,
 ): Promise<LayoutProblem[]> {
-  const problems: LayoutProblem[] = [];
-  for (const shape of shapes) {
-    const found = await withPage(devtools, shape.viewport, async (page) => {
-      const errors = await load(page, check);
-      const wrong = await inspect(page, check);
-      return [...errors, ...wrong];
-    });
-    problems.push(...found.map((problem) => ({ shape: shape.name, problem })));
-  }
-  return problems;
+  const found = await whenAllSettle(
+    shapes.map((shape) =>
+      withPage(
+        devtools,
+        shape.viewport,
+        async (page) => {
+          const errors = await load(page, check);
+          const wrong = await inspect(page, check);
+          return [...errors, ...wrong].map((problem) => ({
+            shape: shape.name,
+            problem,
+          }));
+        },
+        CHECK_PAGE,
+      ),
+    ),
+  );
+  return found.flat();
 }
 
 /**
  * Opens a game at the shape each turn starts from, turns the window to the
  * one it ends at, as a phone turns, and returns what is wrong once the game
- * has laid itself out again, as {@link checkLayout} does at a shape.
+ * has laid itself out again, in the turns' order, as {@link checkLayout}
+ * does at a shape, as many at once, opening no more once a page fails.
  */
 export async function checkTurns<A extends unknown[] = []>(
   devtools: DevToolsConnection,
   check: LayoutCheck<A>,
   turns: readonly Turn[] = TURNS,
 ): Promise<LayoutProblem[]> {
-  const problems: LayoutProblem[] = [];
-  for (const turn of turns) {
-    const found = await withPage(devtools, turn.from, async (page) => {
-      const errors = await load(page, check);
-      await page.send("Emulation.setDeviceMetricsOverride", {
-        ...turn.to,
-        mobile: false,
-      });
-      await page.evaluate(settleTurn, TURN_SETTLE_MS);
-      const wrong = await inspect(page, check);
-      return [...errors, ...wrong];
-    });
-    problems.push(...found.map((problem) => ({ shape: turn.name, problem })));
-  }
-  return problems;
+  const found = await whenAllSettle(
+    turns.map((turn) =>
+      withPage(
+        devtools,
+        turn.from,
+        async (page) => {
+          const errors = await load(page, check);
+          await page.send("Emulation.setDeviceMetricsOverride", {
+            ...turn.to,
+            mobile: false,
+          });
+          await page.evaluate(settleTurn, TURN_SETTLE_MS);
+          const wrong = await inspect(page, check);
+          return [...errors, ...wrong].map((problem) => ({
+            shape: turn.name,
+            problem,
+          }));
+        },
+        CHECK_PAGE,
+      ),
+    ),
+  );
+  return found.flat();
 }
 
 /**
  * Checks a game drawn with Phaser as {@link checkLayout} does, at every
- * shape and the smallest phone, then as {@link checkTurns} does, through
+ * shape and the smallest phone, and as {@link checkTurns} does, through
  * every turn, all at twice the pixels, so the canvas's backing size is
- * tested, and returns what is wrong.
+ * tested, and returns what is wrong, the shapes' before the turns'.
  */
 export async function checkPhaserLayout<A extends unknown[] = []>(
   devtools: DevToolsConnection,
   check: LayoutCheck<A>,
 ): Promise<LayoutProblem[]> {
-  const shaped = await checkLayout(devtools, check, PHASER_SHAPES);
-  const turned = await checkTurns(devtools, check, PHASER_TURNS);
+  const [shaped, turned] = await whenAllSettle([
+    checkLayout(devtools, check, PHASER_SHAPES),
+    checkTurns(devtools, check, PHASER_TURNS),
+  ]);
   return [...shaped, ...turned];
+}
+
+/**
+ * Waits for every check run side by side, each a promise, and returns what
+ * each found, in their order, or throws the first to fail in that order.
+ *
+ * It throws only once every check has settled, unlike `Promise.all()`, so
+ * no page is left running as the script closes Chrome, and a run that fails
+ * twice says the same each time.
+ */
+export async function whenAllSettle<T extends readonly unknown[] | []>(
+  checks: T,
+): Promise<{ -readonly [K in keyof T]: Awaited<T[K]> }> {
+  for (const settled of await Promise.allSettled(checks)) {
+    if (settled.status === "rejected") throw settled.reason;
+  }
+  return Promise.all(checks);
 }
 
 /** Says what a game's `tools/check-layout.mjs` checks its build with. */
@@ -300,8 +354,22 @@ export interface LayoutScript {
 export interface LayoutScriptOptions extends Partial<Printer> {
   /** The command line's arguments, the process's by default. */
   readonly args?: readonly string[];
+  /** The environment, which says whether it runs on CI, the process's by default. */
+  readonly env?: Readonly<Record<string, string | undefined>>;
   /** Starts the headless Chrome, `withChrome()` by default. */
   readonly runChrome?: typeof withChrome;
+}
+
+/**
+ * Returns how many pages a layout check opens at once unless its command
+ * line says: four, or two where `CI` is `true`, as a runner's four cores
+ * draw WebGL in software, each page's frames the slower the more draw at
+ * once, and a check waits on the game's frames.
+ */
+function defaultPagesAtOnce(
+  env: Readonly<Record<string, string | undefined>>,
+): number {
+  return env["CI"] === "true" ? 2 : 4;
 }
 
 /**
@@ -318,17 +386,23 @@ export async function runLayoutScript(
   script: LayoutScript,
   {
     args = process.argv.slice(2),
+    env = process.env,
     runChrome = withChrome,
     print = CONSOLE.print,
     printError = CONSOLE.printError,
   }: LayoutScriptOptions = {},
 ): Promise<number> {
+  const printer = { print, printError };
+  const help = usage(script.game);
   const read = readArgs(args, {
-    options: { chrome: { type: "string" } },
-    usage: usage(script.game),
+    options: { chrome: { type: "string" }, pages: { type: "string" } },
+    usage: help,
   });
-  if (isStop(read)) return stopWith(read, { print, printError });
+  if (isStop(read)) return stopWith(read, printer);
   const options = read.values;
+  const pagesAtOnce =
+    readCount("pages", options.pages, help) ?? defaultPagesAtOnce(env);
+  if (isStop(pagesAtOnce)) return stopWith(pagesAtOnce, printer);
   await access(join(script.root, "dist/index.html")).catch(() => {
     throw new Error("Found no build to check; run yarn build first.");
   });
@@ -345,7 +419,7 @@ export async function runLayoutScript(
     const url = server.resolvedUrls?.local[0];
     if (!url) throw new Error("The preview server gave no address.");
     const problems = await runChrome(
-      { chrome: options.chrome, name: basename(script.root) },
+      { chrome: options.chrome, name: basename(script.root), pagesAtOnce },
       (devtools) => script.check(devtools, url),
     );
     for (const { shape, problem } of problems) {
@@ -367,6 +441,8 @@ Checks ${game}'s layout in headless Chrome, on the build yarn build made.
 
   --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
                    install location)
+  --pages <n>      How many pages are open at once (default: 4, or 2 where
+                   CI is true)
   -h, --help       Show this message`;
 }
 

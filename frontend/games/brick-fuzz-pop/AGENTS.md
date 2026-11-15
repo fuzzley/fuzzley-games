@@ -628,10 +628,10 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   width where it is deeper than 11 rows and its height where it is 11;
   and the wall on the row a level opens on at the field's depth
   (`data-wall`), a turn of the window included, as a level with no round
-  played begins again on a depth the field takes; then all of it again over
-  a run kept by the rules, a round played on Hello, wall, which each page
-  takes up paused, its wall on the row the run kept it on at every shape
-  and through each turn, whatever the field's depth).
+  played begins again on a depth the field takes; and, beside it, all of it
+  again over a run kept by the rules, a round played on Hello, wall, which
+  each page takes up paused, its wall on the row the run kept it on at
+  every shape and through each turn, whatever the field's depth).
 - **Capture Screenshots:** `yarn capture:screenshots` (runs
   `tools/capture-screenshots.mjs` against the running dev server in headless
   Chrome, through `@fz/dev/screenshots`' `runScreenshotScript()`: a run kept

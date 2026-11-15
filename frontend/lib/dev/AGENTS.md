@@ -196,29 +196,37 @@ too. Paths are relative to `frontend/lib/dev/`.
   aliases; `isGameManifest()` is the guard the site reads it with, and
   `GameManifest` its type.
 - `src/chrome.ts`, `@fz/dev/chrome`: what a script that drives a headless
-  Chrome needs. `withChrome()` starts Chrome on a throwaway profile, giving
-  it a minute, as the first Chromes on a fresh CI runner can take more than
-  15 s, and throwing as soon as it exits or can't be run at all, and hands
-  over a `DevToolsConnection`; `withPage()` opens a `Page` in a
-  browser context of its own at a viewport, which navigates, reloads, runs
-  a function in the page, sent as its source, before the page loads
-  (`beforeLoad()`) or after (`evaluate()`), and after it with helpers the
-  function calls by their names sent beside it (`evaluateWith()`), which
-  throws for a helper with no name it can be called by, as an anonymous or
-  a bound function has none, or for a name two helpers share; listens to
-  its events (`on()`); and takes a screenshot.
-  `findChrome()` picks the Chrome to run: the one asked for, `CHROME_PATH`,
-  or the first installed in a usual place. The games' screenshot scripts
-  are built on it, and so is the layout check.
+  Chrome needs. `withChrome()` starts Chrome on a throwaway profile, giving it
+  a minute, as the first Chromes on a fresh CI runner can take more than 15 s,
+  and throwing as soon as it exits or can't be run at all, and hands over a
+  `DevToolsConnection`, on which `withPage()` opens as many pages at once as
+  its `pagesAtOnce` says, one unless given, the rest waiting their turn in the
+  order they asked, until it is told to open no more (`stopOpeningPages()`),
+  as `withPage()` tells it where a page that fails ends the run
+  (`stopsOthersOnFailure`), before the page hands its place on, so those
+  waiting are refused at once rather than each waiting out its own timeout;
+  `withPage()` opens a `Page` in a browser context of its own at a viewport,
+  which navigates, reloads, runs a function in the page, sent as its source,
+  before the page loads (`beforeLoad()`) or after (`evaluate()`), and after it
+  with helpers the function calls by their names sent beside it
+  (`evaluateWith()`), which throws for a helper with no name it can be called
+  by, as an anonymous or a bound function has none, or for a name two helpers
+  share; listens to its events (`on()`); and takes a screenshot. Each page is
+  told it has the focus, so a page opened beside it takes nothing from it, as
+  the games pause when the focus leaves them. `findChrome()` picks the Chrome
+  to run: the one asked for, `CHROME_PATH`, or the first installed in a usual
+  place. The games' screenshot scripts are built on it, and so is the layout
+  check.
 - `src/layout.ts`, `@fz/dev/layout`: a game's layout checked in a real
   browser. `checkLayout()` opens a game's page at each of `SHAPES` (a roomy
-  window, and a large and a small phone, upright and on its side), waits for a
+  window, and a large and a small phone, upright and on its side), as many
+  at once as the connection opens, and none more once one fails, waits for a
   selector (for a board drawn with Phaser, `PHASER_CANVAS_READY`, which its
   canvas matches once the scene has drawn), 10 s at most unless the check
   gives the page longer (`readyTimeoutMs`), as one that plays some way before
   it matches may need where Chrome draws WebGL in software, then for the
-  fonts, and returns what is wrong at each: an error the page
-  reports (an exception, `console.error`, or the browser's own, such as a
+  fonts, and returns what is wrong at each, in the shapes' order: an error
+  the page reports (an exception, `console.error`, or the browser's own, such as a
   refused resource), a page that scrolls, a control of the game bar out of the
   window, what is wrong with the check's `board`, where it has one, and what
   the game's own `inspect()`, run in the page, finds. `checkTurns()` does the
@@ -230,8 +238,9 @@ too. Paths are relative to `frontend/lib/dev/`.
   nothing, or a `BeforeLoad`, a function and what it is handed
   (`{ run, args }`), such as a run the game keeps. `checkPhaserLayout()`
   checks a game drawn with Phaser as `checkLayout()` and `checkTurns()` do, at
-  every shape and `SMALLEST`, a 320 × 480 phone held upright, then through
-  every turn, all at twice the pixels, so the canvas's backing size is tested,
+  every shape and `SMALLEST`, a 320 × 480 phone held upright, and, beside
+  them, through every turn, all at twice the pixels, so the canvas's backing
+  size is tested,
   as Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop check theirs, and
   `PHASER_CHECKED_AT` names those shapes and turns, for the script to say where
   the layout holds. `shapesAt()` copies shapes at a pixel ratio, for a
@@ -286,9 +295,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   page is sent, and which names nothing there. So such a function of this
   library's is kept in `src/board_page.ts`, as the screenshots'
   `describePhaserPage()` is. A game's
-  `tools/check-layout.mjs` holds its inspection and which checks it runs, and
+  `tools/check-layout.mjs` holds its inspection and which checks it runs,
+  side by side through `whenAllSettle()` where it runs several, which, unlike
+  `Promise.all()`, throws only once every check has settled, the first to
+  fail in their order, so no page is left running as Chrome closes, and
   hands them to `runLayoutScript()`, which reads the command line (`--chrome`,
-  `--help`) with `@fz/dev/script`'s `readArgs()`, serves the build as
+  `--pages`, how many pages are open at once, four unless given, or two where
+  `CI` is `true`, as a runner's four cores draw WebGL in software and a
+  check waits on the game's frames, and `--help`) with `@fz/dev/script`'s
+  `readArgs()`, serves the build as
   `yarn preview` does, at 127.0.0.1 rather than `localhost`, which can name
   ::1 to the server and 127.0.0.1 to a client dialing it, and opening no
   browser of the desktop's, whatever the game's config asks, runs the checks

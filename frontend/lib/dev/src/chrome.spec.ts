@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { setTimeout } from "node:timers/promises";
 import { runInNewContext } from "node:vm";
 import {
   type ChromeSearch,
@@ -18,6 +19,25 @@ async function onPage<T>(
   use: (page: Page) => Promise<T>,
 ): Promise<T> {
   return withPage(new DevToolsConnection(browser), VIEWPORT, use);
+}
+
+/** Returns the contexts a fake browser was told to dispose of, in order. */
+function disposed(browser: FakeBrowser): unknown[] {
+  return browser.sent
+    .filter(({ method }) => method === "Target.disposeBrowserContext")
+    .map(({ params }) => params["browserContextId"]);
+}
+
+/** Opens some pages on a connection at once, each used for nothing. */
+async function openAtOnce(
+  devtools: DevToolsConnection,
+  count: number,
+): Promise<void> {
+  await Promise.all(
+    Array.from({ length: count }, () =>
+      withPage(devtools, VIEWPORT, () => Promise.resolve()),
+    ),
+  );
 }
 
 /** Returns twice a number: a helper a function run in a page calls. */
@@ -99,6 +119,15 @@ describe("DevToolsConnection", () => {
     expect(heard).toEqual([1, 3]);
   });
 
+  it.each([0, 1.5])(
+    "throws a RangeError for %s pages open at once",
+    (pages) => {
+      expect(() => new DevToolsConnection(new FakeBrowser(), pages)).toThrow(
+        RangeError,
+      );
+    },
+  );
+
   it("closes its socket", () => {
     const browser = new FakeBrowser();
     const devtools = new DevToolsConnection(browser);
@@ -117,7 +146,7 @@ describe("withPage", () => {
 
     expect(browser.last("Target.createTarget")?.params).toEqual({
       url: "about:blank",
-      browserContextId: "ctx",
+      browserContextId: "ctx-1",
     });
     expect(browser.last("Emulation.setDeviceMetricsOverride")?.params).toEqual({
       ...VIEWPORT,
@@ -141,8 +170,163 @@ describe("withPage", () => {
     );
 
     expect(browser.last("Target.disposeBrowserContext")?.params).toEqual({
-      browserContextId: "ctx",
+      browserContextId: "ctx-1",
     });
+  });
+
+  it("tells the page it has the focus, so a page opened beside it takes nothing from it", async () => {
+    const browser = new FakeBrowser();
+
+    await onPage(browser, () => Promise.resolve());
+
+    expect(browser.last("Emulation.setFocusEmulationEnabled")).toMatchObject({
+      sessionId: "page-1",
+      params: { enabled: true },
+    });
+  });
+
+  it("closes the context each page opened, whichever closes first", async () => {
+    const browser = new FakeBrowser();
+    const devtools = new DevToolsConnection(browser, 2);
+
+    await Promise.all([
+      withPage(devtools, VIEWPORT, () => setTimeout(5)),
+      withPage(devtools, VIEWPORT, () => Promise.resolve()),
+    ]);
+
+    expect(disposed(browser)).toEqual(["ctx-2", "ctx-1"]);
+  });
+
+  it("opens one page at a time on a connection that says no more", async () => {
+    const browser = new FakeBrowser();
+
+    await openAtOnce(new DevToolsConnection(browser), 3);
+
+    expect(browser.mostContextsOpen()).toBe(1);
+  });
+
+  it("opens as many pages at once as its connection allows, and no more", async () => {
+    const browser = new FakeBrowser();
+
+    await openAtOnce(new DevToolsConnection(browser, 2), 5);
+
+    expect(browser.mostContextsOpen()).toBe(2);
+  });
+
+  it("opens the pages that wait in the order they asked", async () => {
+    const devtools = new DevToolsConnection(new FakeBrowser());
+    const opened: number[] = [];
+
+    await Promise.all(
+      [0, 1, 2, 3].map((n) =>
+        withPage(devtools, VIEWPORT, () => {
+          opened.push(n);
+          return Promise.resolve();
+        }),
+      ),
+    );
+
+    expect(opened).toEqual([0, 1, 2, 3]);
+  });
+
+  it("opens the next page once one's use fails", async () => {
+    const devtools = new DevToolsConnection(new FakeBrowser());
+
+    const [, next] = await Promise.allSettled([
+      withPage(devtools, VIEWPORT, () => Promise.reject(new Error("broken"))),
+      withPage(devtools, VIEWPORT, () => Promise.resolve("done")),
+    ]);
+
+    expect(next).toEqual({ status: "fulfilled", value: "done" });
+  });
+
+  it("has its connection open no more pages once it fails, where asked, before it hands its place on", async () => {
+    const browser = new FakeBrowser();
+    const devtools = new DevToolsConnection(browser);
+
+    const [, next] = await Promise.allSettled([
+      withPage(devtools, VIEWPORT, () => Promise.reject(new Error("broken")), {
+        stopsOthersOnFailure: true,
+      }),
+      withPage(devtools, VIEWPORT, () => Promise.resolve("done")),
+    ]);
+
+    expect(next).toEqual({ status: "rejected", reason: new Error("broken") });
+    expect(disposed(browser)).toEqual(["ctx-1"]);
+  });
+
+  it("has its connection open no more pages before it disposes of its context, as another may close meanwhile", async () => {
+    const browser = new FakeBrowser({
+      "Target.disposeBrowserContext": (command) =>
+        command.params["browserContextId"] === "ctx-1"
+          ? setTimeout(5).then(() => ({ result: {} }))
+          : { result: {} },
+    });
+    const devtools = new DevToolsConnection(browser, 2);
+    const stopping = { stopsOthersOnFailure: true };
+
+    await Promise.allSettled([
+      withPage(
+        devtools,
+        VIEWPORT,
+        () => Promise.reject(new Error("broken")),
+        stopping,
+      ),
+      withPage(devtools, VIEWPORT, () => Promise.resolve(), stopping),
+      withPage(devtools, VIEWPORT, () => Promise.resolve(), stopping),
+    ]);
+
+    expect(disposed(browser)).toEqual(["ctx-1", "ctx-2"]);
+  });
+
+  it("holds its place till its context is disposed of", async () => {
+    const browser = new FakeBrowser({
+      "Target.disposeBrowserContext": () =>
+        setTimeout(5).then(() => ({ result: {} })),
+    });
+
+    await openAtOnce(new DevToolsConnection(browser), 2);
+
+    expect(browser.mostContextsOpen()).toBe(1);
+  });
+
+  it("refuses the pages waiting their turn once its connection opens no more, the page open going on", async () => {
+    const devtools = new DevToolsConnection(new FakeBrowser());
+    const open = withPage(devtools, VIEWPORT, () => setTimeout(5, "done"));
+    const waiting = withPage(devtools, VIEWPORT, () => Promise.resolve());
+
+    devtools.stopOpeningPages(new Error("A page failed."));
+
+    await expect(waiting).rejects.toThrow("A page failed.");
+    expect(await open).toBe("done");
+  });
+
+  it("refuses a page asked for after its connection opens no more, for the first reason it was given", async () => {
+    const browser = new FakeBrowser();
+    const devtools = new DevToolsConnection(browser);
+    devtools.stopOpeningPages(new Error("The first failed."));
+    devtools.stopOpeningPages(new Error("The second failed."));
+
+    const opening = withPage(devtools, VIEWPORT, () => Promise.resolve());
+
+    await expect(opening).rejects.toThrow("The first failed.");
+    expect(browser.methods()).toEqual([]);
+  });
+});
+
+describe("DevToolsConnection.reservePage", () => {
+  it("hands a page's place on once, however often it says it has closed", async () => {
+    const devtools = new DevToolsConnection(new FakeBrowser());
+    const closed = await devtools.reservePage();
+    const opened: string[] = [];
+    void devtools.reservePage().then(() => opened.push("second"));
+    void devtools.reservePage().then(() => opened.push("third"));
+
+    closed();
+    closed();
+    await setTimeout(0);
+
+    expect(opened).toEqual(["second"]);
   });
 });
 
@@ -152,7 +336,7 @@ describe("Page", () => {
 
     await onPage(browser, (page) => page.send("Page.bringToFront"));
 
-    expect(browser.last("Page.bringToFront")?.sessionId).toBe("page");
+    expect(browser.last("Page.bringToFront")?.sessionId).toBe("page-1");
   });
 
   it("navigates and waits for the page to load", async () => {
@@ -279,7 +463,7 @@ describe("Page", () => {
       });
       browser.emit({
         method: "Runtime.exceptionThrown",
-        sessionId: "page",
+        sessionId: "page-1",
         params: { exceptionDetails: { text: "Uncaught" } },
       });
       return Promise.resolve();
