@@ -525,6 +525,11 @@ export const SPARKS_FROM = 2.5;
 /** How wide a strand of the small form's fur is, on the grid: a quarter wider than the mark's, to hold a pixel. */
 export const SMALL_FUR_WIDTH = FUZZBALL.fur.width * 1.25;
 
+/** Returns how wide a strand of fur is drawn, on the grid: the mark's, or the small form's. */
+function furWidthOf(small: boolean): number {
+  return small ? SMALL_FUR_WIDTH : FUZZBALL.fur.width;
+}
+
 /**
  * How static's sparks are drawn, as the art kit draws them: each mark a
  * faint halo in the fuzzball's ink beneath a bright core.
@@ -661,7 +666,8 @@ export function combFur({
   const longer = ramp(LIFT.longer, lift);
   const uneven = ramp(LIFT.uneven, lift);
   const sweep = sweepOf(lean);
-  const most = within - FUZZBALL.fur.width / 2;
+  // A strand's round end reaches half its width past its tip.
+  const most = within - furWidthOf(small) / 2;
   // The small form keeps every other strand, so its fringe still shows as bumps.
   const kept = small
     ? FUZZBALL_STRANDS.filter((_, i) => i % 2 === 0)
@@ -888,7 +894,7 @@ const SMALLEST_BY = 4;
  */
 export function fuzzballShape(pose: FuzzballPose = {}): FuzzballShape {
   const fur = combFur(pose);
-  const furWidth = pose.small ? SMALL_FUR_WIDTH : FUZZBALL.fur.width;
+  const furWidth = furWidthOf(pose.small ?? false);
   return {
     fur,
     furWidth,

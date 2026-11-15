@@ -16,7 +16,7 @@ import {
   startBoard,
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
-import { pilotFrame } from "../view/art/pilot_art";
+import { ADRIFT_FRAMES } from "../view/art/pilot_art";
 import { ringReachOf, shardCount, wayOf } from "../view/effects/flourish";
 import {
   BURST_SHARDS,
@@ -309,7 +309,7 @@ describe("FlourishPlayer", () => {
     ]);
   });
 
-  it("bails a lost ship's pilot out where it was lost, in its ink", async () => {
+  it("bails a lost pod's pilot out where it was lost, in its ink", async () => {
     const { shell, scene, player } = await startPlayer();
     const context = contextAt(shell, NOW);
     const event = eventOf((log) => {
@@ -320,13 +320,14 @@ describe("FlourishPlayer", () => {
     scene.kit.strays.draw(context);
 
     const { bubble, pilot } = scene.kit.strays.bailing;
-    expect([shownAt(bubble), pilot.frame.name]).toEqual([
+    expect([shownAt(bubble), pilot.frame.name, pilot.tintTopLeft]).toEqual([
       onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
-      pilotFrame(2, "adrift"),
+      ADRIFT_FRAMES.puffed,
+      context.palette.pilots[2],
     ]);
   });
 
-  it("bails no pilot out of a ship lost with none at its controls", async () => {
+  it("bails no pilot out of a pod lost with none at its controls", async () => {
     const { shell, scene, player } = await startPlayer();
     const context = contextAt(shell, NOW);
     const lost = eventOf((log) => {

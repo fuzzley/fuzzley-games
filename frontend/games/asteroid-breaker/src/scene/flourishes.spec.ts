@@ -28,6 +28,7 @@ import {
   stepping,
   stillness,
   withShip,
+  zoomOf,
 } from "../testing/belt_board";
 import {
   KEEPER,
@@ -47,10 +48,16 @@ import {
   packPoints,
   pointsLayout,
 } from "../view/art/points_art";
-import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
+import { ADRIFT_FRAMES, eyesFrame, eyesShift } from "../view/art/pilot_art";
+import {
+  ENGINES,
+  PUFF,
+  puffAlpha,
+  puffColors,
+  puffRadius,
+} from "../view/art/pod_art";
 import { bakedScale } from "../view/art/shapes";
 import { STRUCK_LIGHT } from "../view/colors/rock_light";
-import { flameTip } from "../view/art/ship_art";
 import {
   BAIL_OUT_SPEED,
   FLASH_MOST,
@@ -83,6 +90,7 @@ import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
 import { POINTS_SHEET, type Scored } from "./painters/points_painter";
 import { RING_WIDTH } from "./painters/ring_painter";
+import { BAIL_OUT_SCALE } from "./painters/stray_painter";
 import { POINTS_ATLAS } from "./points_atlas";
 
 /** Returns the rock in a field's first slot, the keeper's large stone. */
@@ -155,7 +163,7 @@ function shardSpeeds(scene: BeltScene): readonly number[] {
   return speeds;
 }
 
-/** Returns where each exhaust speck alive is, and how fast it streams across. */
+/** Returns where each puff of exhaust alive is, and how fast it streams across. */
 function exhaustOf(scene: BeltScene): readonly {
   readonly x: number;
   readonly y: number;
@@ -1372,22 +1380,34 @@ describe("the exhaust", () => {
     };
   }
 
-  it("streams specks from the flame's tip, back the way the ship heads, as it thrusts", async () => {
+  it("streams puffs from behind each engine in turn, back the way the pod heads, as it thrusts", async () => {
     const { shell, run, scene } = await startBoard(thrusting(1));
 
     run.advance(200);
 
     const ship = shipOf(shell.field);
-    const tip = onCanvas(metricsOf(shell), ship.lastX - flameTip(1), 0).x;
+    const [engine] = ENGINES;
+    const metrics = metricsOf(shell);
+    const behind = onCanvas(
+      metrics,
+      ship.lastX + (engine?.at.x ?? 0) - PUFF.behind,
+      ship.lastY,
+    );
     const specks = exhaustOf(scene);
     expect({
       some: specks.length > 0,
-      fromTip: specks.every(({ x }) => x <= tip + 1e-6),
+      behind: specks.every(({ x }) => x <= behind.x + 1e-6),
       back: specks.every(({ across }) => across < 0),
-    }).toEqual({ some: true, fromTip: true, back: true });
+      sides: new Set(specks.map(({ y }) => Math.sign(y - behind.y))),
+    }).toEqual({
+      some: true,
+      behind: true,
+      back: true,
+      sides: new Set([-1, 1]),
+    });
   });
 
-  it("streams them from the far side as the flame's tip lies past an edge", async () => {
+  it("streams them from the far side as the engines lie past an edge", async () => {
     const { shell, run, scene } = await startBoard((board) => {
       thrusting(1)(board);
       const ship = shipOf(board.field);
@@ -1405,6 +1425,87 @@ describe("the exhaust", () => {
         ({ x }) => x >= metrics.x && x <= metrics.x + metrics.width,
       ),
     }).toEqual({ some: true, within: true });
+  });
+
+  /** Describes a puff alive: how far through its life it is, and its tint, alpha and scale. */
+  interface Puff {
+    readonly life: number;
+    readonly tint: number;
+    readonly alpha: number;
+    readonly scale: number;
+  }
+
+  /** Returns each puff alive. */
+  function puffsAlive(scene: BeltScene): readonly Puff[] {
+    const puffs: Puff[] = [];
+    scene.kit.exhaust.specks.forEachAlive((puff) => {
+      puffs.push({
+        life: puff.lifeT,
+        tint: puff.tint,
+        alpha: puff.alpha,
+        scale: puff.scaleX,
+      });
+    }, null);
+    return puffs;
+  }
+
+  /** Returns whether each channel of a color lies between the same channels of two others, give or take one for a rounding. */
+  function isBetween(color: number, one: number, other: number): boolean {
+    return [16, 8, 0].every((shift) => {
+      const [c = 0, a = 0, b = 0] = [color, one, other].map(
+        (each) => (each >> shift) & 0xff,
+      );
+      return c >= Math.min(a, b) - 1 && c <= Math.max(a, b) + 1;
+    });
+  }
+
+  /** Returns a number rounded to six places, so two worked out alike compare equal. */
+  function nearly(value: number): number {
+    return Number(value.toFixed(6));
+  }
+
+  it("swells and fades each puff over its life", async () => {
+    const { shell, run, scene } = await startBoard(thrusting(1));
+
+    run.advance(200);
+
+    const puffs = puffsAlive(scene);
+    const zoom = zoomOf(shell);
+    expect(
+      puffs.map(({ alpha, scale }) => [nearly(alpha), nearly(scale)]),
+    ).toEqual(
+      puffs.map(({ life }) => [
+        nearly(puffAlpha(life)),
+        nearly((zoom * puffRadius(life)) / FLOURISH.puff),
+      ]),
+    );
+  });
+
+  it("starts each puff in the flame's hot middle, in the palette in play", async () => {
+    const { shell, run, scene } = await startBoard(thrusting(1));
+    run.advance(200);
+    shell.colors = DARK;
+
+    run.advance(32);
+
+    const born = puffsAlive(scene).filter(({ life }) => life === 0);
+    expect({
+      some: born.length > 0,
+      tints: new Set(born.map(({ tint }) => tint)),
+    }).toEqual({ some: true, tints: new Set([puffColors(DARK)[0]]) });
+  });
+
+  it("fades each puff from the flame's body toward the field's muted text past its first fifth", async () => {
+    const { run, scene } = await startBoard(thrusting(1));
+
+    run.advance(200);
+
+    const body = puffColors(ART_PALETTE)[1] ?? 0;
+    const old = puffsAlive(scene).filter(({ life }) => life > 0.2);
+    expect({
+      some: old.length > 0,
+      off: old.filter(({ tint }) => !isBetween(tint, body, ART_PALETTE.muted)),
+    }).toEqual({ some: true, off: [] });
   });
 
   it("streams more the harder the ship thrusts", async () => {
@@ -1510,10 +1611,19 @@ describe("a lost ship", () => {
 
     run.advance(16);
 
-    const { bubble, pilot } = scene.kit.strays.bailing;
-    expect([shownAt(bubble), pilot.frame.name]).toEqual([
+    const { bubble, pilot, eyes } = scene.kit.strays.bailing;
+    expect([
+      shownAt(bubble),
+      pilot.frame.name,
+      pilot.tintTopLeft,
+      eyes.frame.name,
+      bubble.scale,
+    ]).toEqual([
       onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
-      pilotFrame(2, "adrift"),
+      ADRIFT_FRAMES.puffed,
+      ART_PALETTE.pilots[2],
+      eyesFrame("adrift", "eep"),
+      zoomOf(shell) * BAIL_OUT_SCALE,
     ]);
   });
 
@@ -1536,18 +1646,23 @@ describe("a lost ship", () => {
     ]);
   });
 
-  it("turns the pilot's eyes the way it floats off", async () => {
+  it("turns the pilot's eyes back at where its pod was lost as it floats off", async () => {
     const { shell, run, scene } = await startBoard();
     logShipLost(shell);
 
     run.advance(16);
 
     const { pilot, eyes } = scene.kit.strays.bailing;
-    const way = wayOf(lastSerial(shell));
+    const back = wayOf(lastSerial(shell)) + Math.PI;
+    const shift = eyesShift(
+      { x: Math.cos(back), y: Math.sin(back) },
+      "adrift",
+      { x: 0, y: 0 },
+    );
     const { unit } = metricsOf(shell);
     expect([(eyes.x - pilot.x) / unit, (eyes.y - pilot.y) / unit]).toEqual([
-      expect.closeTo(Math.cos(way) * LOOK.across * PILOT_SIZES.adrift, 9),
-      expect.closeTo(Math.sin(way) * LOOK.down * PILOT_SIZES.adrift, 9),
+      expect.closeTo(shift.x * BAIL_OUT_SCALE, 9),
+      expect.closeTo(shift.y * BAIL_OUT_SCALE, 9),
     ]);
   });
 
@@ -1587,50 +1702,47 @@ describe("a lost ship", () => {
 });
 
 describe("the pilots' eyes", () => {
-  /**
-   * Returns how far open a pilot's eyes are drawn over a few seconds' frames,
-   * as a share of their size.
-   */
-  function openings(
+  /** Returns the frames a pilot's eyes are drawn in over a few seconds' frames of a field that steps. */
+  function facesOver(
     run: SceneRun<BeltScene>,
     eyes: GameObjects.Image | undefined,
-  ): ReadonlySet<number> {
-    return new Set(
-      overTime(run, 4200, 20, () =>
-        Number(((eyes?.scaleY ?? 0) / (eyes?.scaleX ?? 1)).toFixed(2)),
-      ),
-    );
+  ): ReadonlySet<string | undefined> {
+    return new Set(overTime(run, 4200, 20, () => eyes?.frame.name));
   }
 
   it("blink every few seconds at the controls where motion is welcome", async () => {
-    const { run, scene } = await startBoard(withShip);
-
-    const seen = openings(run, scene.kit.ship.eyes.images[0]);
-
-    expect({ open: seen.has(1), shut: Math.min(...seen) < 0.5 }).toEqual({
-      open: true,
-      shut: true,
+    const { run, scene } = await startBoard((board) => {
+      withShip(board);
+      stepping(board);
     });
+
+    const seen = facesOver(run, scene.kit.ship.eyes.images[0]);
+
+    expect(seen).toEqual(
+      new Set([eyesFrame("pod", "rest"), eyesFrame("pod", "blink")]),
+    );
   });
 
   it("blink adrift too", async () => {
-    const { shell, run, scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(stepping);
     placeStray(shell.field, MIDDLE.x, MIDDLE.y);
 
-    const seen = openings(run, scene.kit.strays.adrift.eyes);
+    const seen = facesOver(run, scene.kit.strays.adrift.eyes);
 
-    expect({ open: seen.has(1), shut: Math.min(...seen) < 0.5 }).toEqual({
-      open: true,
-      shut: true,
-    });
+    expect(seen).toEqual(
+      new Set([eyesFrame("adrift", "plead"), eyesFrame("adrift", "blink")]),
+    );
   });
 
   it("stay open where motion isn't welcome", async () => {
     const { run, scene } = await startBoard((board) => {
       withShip(board);
+      stepping(board);
       stillness(board);
     });
 
-    expect(openings(run, scene.kit.ship.eyes.images[0])).toEqual(new Set([1]));
+    expect(facesOver(run, scene.kit.ship.eyes.images[0])).toEqual(
+      new Set([eyesFrame("pod", "rest")]),
+    );
   });
 });

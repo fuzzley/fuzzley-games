@@ -397,9 +397,8 @@ takes for the specs' helpers.
   `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), among them
   how far the kick and the shake scroll the field's camera (`cameraShift()`)
   and when a dash lays each of its outlines (`trailOutlinesLaid()`), and how
-  the pickups breathe, a stray bobs, a comet's warning pulses, the flame
-  flickers, its exhaust streams (`exhaustDue()`) and the pilots blink, each
-  only where motion is welcome;
+  the pickups breathe, a stray bobs, a comet's warning pulses and the pod's
+  exhaust streams (`exhaustDue()`), each only where motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,
@@ -433,17 +432,20 @@ takes for the specs' helpers.
   as WebGL lights from a point (`farLight()`); and the light of a held
   hit's flash (`STRUCK_LIGHT`). `contrast.spec.ts` holds each kind of
   rock's ink, and its darkest and brightest faces under the palette's
-  light, the ship, the pickups, the comet, the shots, the flame and a
-  stray's bubble's rim to 3:1 against the field in every palette, the
-  outline against everything it outlines, the marks against every rock
-  and every face, a pickup's symbol against the pickup, each pilot against
-  the field, a stray's bubble and the bar, the eyes against each pilot,
-  and the deck's knob and its buttons' symbols against the deck.
+  light, the pod, its hull's and its trim's darkest and brightest faces,
+  the pickups, the comet, the shots, the flame and a stray's bubble's rim
+  to 3:1 against the field in every palette, the outline against
+  everything it outlines, the marks against every rock and every face, a
+  pickup's symbol against the pickup, each pilot against the field, the
+  pod's glass and its shade, a stray's bubble and the bar, the eyes
+  against each pilot, and the deck's knob and its buttons' symbols
+  against the deck.
 - **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
   the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
   its unit rounded down to whole device pixels, 32 at most (`bakedScale()`),
-  the deck's frames apart (`deckFrames()`), and names the frames How to
-  play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
+  the deck's frames apart (`deckFrames()`), gathers the rocks' atlas's,
+  the rocks' and then the pod's hull (`litFrames()`), and names the frames
+  How to play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
   `rock_art.ts` draws the rocks' own atlas: each kind
   in each size it comes in and six outlines (`ROCK_OUTLINES`), cut in
   facets as `rocks/` cuts it (`rockShape()`), whole and with the cracks of
@@ -455,8 +457,25 @@ takes for the specs' helpers.
   (`rockFrames()`, a `LitFrame`), and How to play's picture of each kind,
   its largest whole, each facet in its ink as the palette's light falls on
   it, in SVG (`rockPictures()`);
-  `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
-  pilots, each `@fz/phaser/fuzzball`'s fuzzball in its ink, in the ship's window or adrift;
+  `pod_art.ts` the pod, as the art kit's `ship.mjs` draws it: its hull,
+  cut in facets as a rock is and baked into the rocks' atlas, lit, with
+  its normal map (`podHullFrame()`), and its other frames in the field's
+  (`podFrames()`): the canopy's glass, sized to hold its pilot
+  (`PILOT_SIZE`), the rim, its gauge filling as the dash recharges
+  (`gaugeFrame()`) and its flash as it comes charged (`rimFlashAlpha()`,
+  `rimFlashScale()`), the glint, the Shield's wash and shell, the guard's
+  dashed ring, a dash's streaks and ghosts, and the flame behind each
+  engine, flickering through its frames by the field's steps
+  (`flameFrame()`, `flameFlickerAt()`), its fine marks only where the
+  field's unit makes them show (`isFine()`), and the exhaust's puffs, their
+  colors, how they swell and fade (`puffColors()`, `puffRadius()`,
+  `puffAlpha()`); `pilot_art.ts` the pilots, each `@fz/phaser/fuzzball`'s
+  fuzzball, in white for the scene to tint in its ink, upright in the
+  pod's canopy or adrift: the pod's pilot's fur at each lift of static
+  and each push it leans from (`furFrame()`), static's sparks on end
+  (`sparksFrames()`), a pilot adrift's fur and its fright
+  (`ADRIFT_FRAMES`), and each seat's eyes at each face (`eyesFrame()`),
+  moved the way it looks (`eyesShift()`);
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -472,10 +491,10 @@ takes for the specs' helpers.
   helpers over them: the scale the atlas is baked at, the outline's width,
   the dashed rings and the outlines grown outward (`outward()`). Each piece
   that wraps says how far its frame reaches from its middle (`SHOT_REACH`,
-  `PICKUP_REACH`, `ROCK_REACH`, `SHIP_REACH`), its own
+  `PICKUP_REACH`, `ROCK_REACH`, `POD_REACH`), its own
   extent and its outline at the widest a line gets (`MOST_LINE`), a rock's
-  and the ship's mitred out at a sharp corner as far as an outline may
-  reach (`MOST_MITER`), and the ship's covering its rings too, which the
+  and the pod's mitred out at a sharp corner as far as an outline may
+  reach (`MOST_MITER`), and the pod's covering its rings too, which the
   scene draws its copies past the edges by, and its spec holds what it
   draws within it. `points_art.ts` letters the points scored instead, in the
   page's font, from what a canvas measures of it (`letterPoints()`), at the
@@ -527,10 +546,12 @@ takes for the specs' helpers.
   a light at its rock's edge toward the ship that lights the faces struck,
   and another where that edge shows past the field's own,
   `PickupPainter` the pickups,
-  `StrayPainter` the stray adrift and a lost ship's pilot bailing out,
-  `HazardPainter` the comets and their warnings, `ShotPainter` the shots,
-  `ShipPainter` the ship, its flame, its pilot and its rings,
-  `TrailPainter` a dash's trail, `ExhaustPainter` the exhaust,
+  `StrayPainter` the stray adrift, pleading, and a lost pod's pilot
+  bailing out, wide eyed, `HazardPainter` the comets and their warnings,
+  `ShotPainter` the shots, `PodPainter` the pod, its flame, its pilot, its
+  face as the field shows it, which it hears the field's events for
+  (`hear()`), and its rings, `TrailPainter` a dash's trail of the pod's
+  ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
   `DebrisPainter` the shards, the dust and the sparks, `RingPainter` the
   rings, `PointsPainter` the points scored, each label stamped once on a
   room of a sheet (a `DynamicTexture`), every outline and then every fill,
@@ -563,8 +584,9 @@ takes for the specs' helpers.
   a new palette, a new pixel ratio, as the field's unit passes a whole
   device pixel, which the scene zooms the rest of the way, so a window
   dragged to another size bakes it once a device pixel rather than once a
-  frame, or as it passes 10 CSS pixels, where the rocks' fine marks come
-  or go (`isFine()`, of the field's unit, not the atlas's), and the deck's,
+  frame, or as it passes 10 CSS pixels, where the rocks' and the pod's
+  fine marks come or go (`isFine()`, of the field's unit, not the
+  atlas's), the rocks' with the pod's hull among them, and the deck's,
   white for the scene to tint, again on a new pixel ratio. The rocks'
   normal map is baked beside theirs, packed alike (`ROCK_NORMALS`), and
   the rocks' atlas (`ROCK_ATLAS`) reads it as its normal map
@@ -573,8 +595,8 @@ takes for the specs' helpers.
   scene lights the rocks with Phaser's lights, which it turns on as it is
   created: the palette's light as a point far off its way
   (`farLight()`), over its ambient, set again at each layout and bake,
-  and a held hit's flash; each rock's image is drawn with
-  `setLighting(true)`. Phaser lights an image by the ten lights nearest the
+  and a held hit's flash; each rock's image, and the pod's hull's, is
+  drawn with `setLighting(true)`. Phaser lights an image by the ten lights nearest the
   camera's middle at most (`maxLights`), so a light far off is dropped
   first once eleven are lit. At each bake the
   scene hands the shell (`onPictures()`) what returns How to play's
@@ -913,8 +935,9 @@ takes for the specs' helpers.
   `allowsMotion`): without it every flourish but the points is left out,
   the points showing where they were scored without rising; the pickups'
   breath, a stray's bob, a warning's pulse, the flame's flicker and the
-  pilots' blinks hold still; and the cards open without waiting, the
-  Cleared card's sum whole at once.
+  pilots' blinks hold still, the rim's flash fades without growing, and
+  the pilot's fur leans at once rather than easing; and the cards open
+  without waiting, the Cleared card's sum whole at once.
 
 ## Styling
 

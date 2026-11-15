@@ -1,9 +1,10 @@
 // How each flourish moves over its time, and how what idles on the field
 // moves while motion is welcome: a pickup's breath, a stray's bob, a
-// pilot's eyes, a comet's warning's pulse, the flame's flicker and the
-// exhaust it streams. Where motion isn't welcome each holds still at its
-// look at rest. A sign that blinks, a pickup about to fade or a guarded
-// ship, is no motion, so it blinks either way.
+// comet's warning's pulse and the exhaust the flame streams. Where motion
+// isn't welcome each holds still at its look at rest. A sign that blinks,
+// a pickup about to fade or the ring of a pod nothing can touch, is no
+// motion, so it blinks either way. The pilots' blinks and the flame's
+// flicker go by the field's steps, in `src/view/art/`.
 
 import { formatPoints } from "@fz/core/format";
 import { shareDone } from "@fz/core/math";
@@ -43,9 +44,6 @@ export const BOB = 0.12;
 /** How faint a comet's warning gets between pulses. */
 export const PULSE_LEAST = 0.6;
 
-/** How far the flame's length flickers below its full, as a share. */
-export const FLICKER = 0.15;
-
 /** How opaque a held hit's flash starts: a light wash of the rock's own frame, over it. */
 export const FLASH_MOST = 0.7;
 
@@ -70,20 +68,11 @@ export const BAIL_OUT_SPEED = 2.2;
 /** How many specks of exhaust the flame streams a second at full thrust. */
 export const EXHAUST_RATE = 40;
 
-/** How shut a pilot's eyes get as it blinks, a share of their height. */
-export const EYES_SHUT = 0.1;
-
 /**
  * How far apart two events' flourishes fly, and two pickups' breaths turn,
  * in radians: a golden angle, so no two keep step.
  */
 export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-
-/**
- * How often a pilot blinks, and how long a blink takes, in seconds, and how far
- * each pilot's blink comes after the one before's.
- */
-const EYE_BLINK = { every: 4, takes: 0.16, lag: 0.7 } as const;
 
 /**
  * How fast the field shakes along each axis, in turns a second, apart, so
@@ -92,8 +81,8 @@ const EYE_BLINK = { every: 4, takes: 0.16, lag: 0.7 } as const;
  */
 const SHAKE_RATES = { x: 13, y: 17 } as const;
 
-/** How fast each idle motion turns, in turns a second: a breath, a bob, a pulse and a flicker. */
-const RATES = { breath: 0.64, bob: 0.35, pulse: 0.8, flicker: 7.5 } as const;
+/** How fast each idle motion turns, in turns a second: a breath, a bob and a pulse. */
+const RATES = { breath: 0.64, bob: 0.35, pulse: 0.8 } as const;
 
 /**
  * How many times a second a blinking thing blinks, under the three flashes a
@@ -352,15 +341,6 @@ export function pulseAlpha(seconds: number, motion: boolean): number {
 }
 
 /**
- * Returns how much of its length the flame is drawn at as it flickers: all of
- * it where motion isn't welcome.
- */
-export function flickerShare(seconds: number, motion: boolean): number {
-  if (!motion) return 1;
-  return 1 - FLICKER * swing(RATES.flicker, seconds);
-}
-
-/**
  * Returns how many specks of exhaust are due, whole and in part, once the
  * field has taken so many steps at a thrust, the part of one carried from
  * before among them, for the whole ones to stream and the part to carry
@@ -378,24 +358,9 @@ export function exhaustDue(
 }
 
 /**
- * Returns how open a pilot's eyes are at a time, in seconds, a share of
- * their height: open but for a quick blink every few seconds, each pilot's
- * a little after the one before's; open where motion isn't welcome.
- */
-export function eyesOpen(
-  seconds: number,
-  pilot: number,
-  motion: boolean,
-): number {
-  if (!motion) return 1;
-  const into = (seconds + pilot * EYE_BLINK.lag) % EYE_BLINK.every;
-  if (into >= EYE_BLINK.takes) return 1;
-  return 1 - (1 - EYES_SHUT) * Math.sin((Math.PI * into) / EYE_BLINK.takes);
-}
-
-/**
- * Returns whether a blinking thing, a pickup about to fade or a guarded ship,
- * is shown at a time, in seconds: for the first half of each blink.
+ * Returns whether a blinking thing, a pickup about to fade or the ring of a
+ * pod nothing can touch, is shown at a time, in seconds: for the first half
+ * of each blink.
  */
 export function blinkShown(seconds: number): boolean {
   return (seconds * BLINK_RATE) % 1 < 0.5;

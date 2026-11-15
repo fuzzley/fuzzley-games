@@ -219,17 +219,18 @@ export function isFine(scale: ArtScale): boolean {
 }
 
 /**
- * Describes a shape of a rock's drawing, and the way it faces, which the
- * rock's normal map holds, and whether its normal map alone draws it.
+ * Describes a shape of a lit drawing, a rock's or the pod's hull's, and
+ * the way it faces, which its normal map holds, and whether its normal map
+ * alone draws it.
  */
-interface Painted {
+export interface Painted {
   readonly command: DrawCommand;
   readonly facing: Facing;
   readonly inkless?: true;
 }
 
-/** Returns shapes that lie flat on a rock, as its outline, its marks and its cracks do. */
-function flat(commands: readonly DrawCommand[]): readonly Painted[] {
+/** Returns shapes that lie flat on a rock, as its outline, its marks and its cracks do, or on the pod's hull, as its outline does. */
+export function flat(commands: readonly DrawCommand[]): readonly Painted[] {
   return commands.map((command) => ({ command, facing: FLAT }));
 }
 
@@ -471,19 +472,19 @@ function rockPainting(
   ];
 }
 
-/** Describes a rock's frame in its inks and as its normal map, of one name, size and place in its atlas. */
+/** Describes a lit frame, a rock's or the pod's hull's, in its inks and as its normal map, of one name, size and place in its atlas. */
 export interface LitFrame {
   readonly ink: ArtFrame;
   readonly normal: ArtFrame;
 }
 
 /**
- * Returns a rock's frame in its inks and as its normal map, of one size and
- * place: the normal map draws every shape, each facet and each of a crack's
- * lips in the color of the way it faces and all else flat, over a flat
- * frame; the inks every shape but the lips.
+ * Returns a lit frame, a rock's or the pod's hull's, in its inks and as its
+ * normal map, of one size and place: the normal map draws every shape,
+ * each facet and each of a crack's lips in the color of the way it faces
+ * and all else flat, over a flat frame; the inks every shape but the lips.
  */
-function litFrame(name: string, painting: readonly Painted[]): LitFrame {
+export function litFrame(name: string, painting: readonly Painted[]): LitFrame {
   const frame = centered(
     name,
     painting.map(({ command }) => command),

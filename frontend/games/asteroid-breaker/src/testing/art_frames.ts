@@ -1,5 +1,6 @@
 import type { ArtFrame, ArtScale, DrawCommand, Point } from "@fz/phaser/shapes";
 import { atlasFrames } from "../view/art/art";
+import { isFine } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { type PaletteRoles, beltPalette } from "../view/colors/palette";
 
@@ -44,12 +45,14 @@ export const ART_SCALES: readonly ArtScale[] = [
 ];
 
 /**
- * The atlas's frames in the specs' palette, at their scale, among which a
- * spec finds one by its name with `@fz/phaser/testing/pure`'s `frameNamed()`.
+ * The atlas's frames in the specs' palette, at their scale, with the fine
+ * marks a field at that scale keeps, among which a spec finds one by its
+ * name with `@fz/phaser/testing/pure`'s `frameNamed()`.
  */
 export const ART_FRAMES: readonly ArtFrame[] = atlasFrames(
   ART_PALETTE,
   ART_SCALE,
+  isFine(ART_SCALE),
 );
 
 /**

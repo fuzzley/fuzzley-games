@@ -40,11 +40,12 @@ import {
   fuzzballCommands,
   pilotFrames,
 } from "./pilot_art";
+import { podFrames, podHullFrame } from "./pod_art";
+import { type LitFrame, rockFrames } from "./rock_art";
 import { MOST_LINE, dashedRing, outlineWidth } from "./shapes";
-import { shipFrames } from "./ship_art";
 import { SYMBOLS } from "./symbols";
 
-/** The names of the frames that aren't a rock's, a pilot's, the ship's or a pickup's. */
+/** The names of the frames that aren't a rock's, a pilot's, the pod's or a pickup's. */
 export const FRAMES = {
   shot: "shot",
   /** A stray's bubble, its pilot drawn in it. */
@@ -57,7 +58,7 @@ export const FRAMES = {
   shard: "shard",
   /** The spark off a rock that holds, white. */
   spark: "spark",
-  /** A puff, white, which a break's dust and the ship's exhaust are drawn in. */
+  /** A puff, white, which a break's dust and the pod's exhaust are drawn in. */
   puff: "puff",
   /**
    * How to play's picture of a stray, a fuzzball in the accent in its bubble,
@@ -308,7 +309,7 @@ function warningCommands(
 }
 
 /**
- * Returns the frames of what isn't a rock, a pilot, the ship or a pickup: the
+ * Returns the frames of what isn't a rock, a pilot, the pod or a pickup: the
  * shot, a stray's bubble, the comet and its warning, the flourishes, and the
  * stray's and the comet's pictures.
  */
@@ -385,25 +386,40 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
 
 /**
  * Returns every frame the field's atlas holds, drawn in a palette at a
- * scale: each rock in each kind, size, outline and hits taken, the ship and what
- * it carries, the pilots and their eyes, the pickups and their tags, the
- * shot, a stray's bubble, the comet and its warning, the flourishes and
- * the stray's picture.
+ * scale, the fine marks only where the field keeps them: the pod's but its
+ * hull, which the rocks' atlas lights, the pilots and their eyes, the
+ * pickups and their tags, the shot, a stray's bubble, the comet and its
+ * warning, the flourishes and the stray's picture.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
- * would make it too large for some devices.
+ * would make it too large for some devices, with the fine marks as
+ * `isFine()` of the field's own scale says.
  */
 export function atlasFrames(
   palette: BeltPalette,
   scale: ArtScale,
+  fine: boolean,
 ): readonly ArtFrame[] {
   return [
-    ...shipFrames(palette, scale),
-    ...pilotFrames(palette, scale),
+    ...podFrames(palette, scale, fine),
+    ...pilotFrames(palette, scale, fine),
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
     ...[...TAG_FRAMES.keys()].map((id) => tagArt(id, palette, scale)),
     ...otherArt(palette, scale),
   ];
+}
+
+/**
+ * Returns every frame of the rocks' atlas and its normal map, each in its
+ * inks and as its normal map: the rocks' (`rockFrames()`), then the pod's
+ * hull, which the scene lights as it lights them.
+ */
+export function litFrames(
+  palette: BeltPalette,
+  scale: ArtScale,
+  fine: boolean,
+): readonly LitFrame[] {
+  return [...rockFrames(palette, scale, fine), podHullFrame(palette, scale)];
 }
 
 /** Returns a button's frames: its disc, its ring and its symbol, white. */
