@@ -39,8 +39,8 @@ const DASH_CALL: Call = "voice-whee";
 /**
  * The call each event the fuzzball speaks at calls for: a wave cleared
  * cheered, a fuzzball knocked loose an ouch, one caught a yay, whether a
- * stray or one knocked loose, a stray's arrival an ooh, and one floating
- * home, as the run's end sends everyone, an aww.
+ * stray or one knocked loose, a stray's arrival an ooh, a near miss an
+ * eep, and one floating home, as the run's end sends everyone, an aww.
  */
 const CALLS: Readonly<Partial<Record<FieldEventKind, Call>>> = {
   dashed: DASH_CALL,
@@ -50,6 +50,7 @@ const CALLS: Readonly<Partial<Record<FieldEventKind, Call>>> = {
   joined: "voice-yay",
   home: "voice-yay",
   strayed: "voice-ooh",
+  grazed: "voice-eep",
   floated: "voice-aww",
   lost: "voice-aww",
 };

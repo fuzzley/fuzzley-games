@@ -541,6 +541,30 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
     before: [{ at: 0, sound: "dashed" }],
   },
   {
+    name: "A near miss, then a zap",
+    what: "A rock passes close to the ship: the near miss, and the fuzzball's eep. Then, its patience run, a dash at full static: the zap in place of the dash, its arcs to three small rocks heard as one, each rock breaking at ×4 with the bell at ×4's note, static falling to its second step, and the whee, the scene's first dash. Before, neither was in the game.",
+    cues: heard([
+      {
+        at: 0,
+        act: (field) => {
+          field.events.addGraze(SHIP.x, SHIP.y, 1, 0);
+        },
+      },
+      {
+        at: 4.5,
+        act: (field) => {
+          field.events.addDash(SHIP.x, SHIP.y, 0);
+          field.events.addZap(SHIP.x, SHIP.y, 0);
+          for (const x of [-0.5, 0.2, 0.6]) {
+            field.events.addArc(rock("stone", "small", x), 3, 4);
+            field.events.addBreak(rock("stone", "small", x), 4, 0, 0);
+          }
+          field.events.addStep(SHIP.x, SHIP.y, 2, true);
+        },
+      },
+    ]),
+  },
+  {
     name: "A wave cleared, then the run's end",
     what: "A wave cleared, the fuzzball cheering, then a hit with no one in tow, which ends the run, and its aww. Before, the end was a ship lost.",
     cues: heard([

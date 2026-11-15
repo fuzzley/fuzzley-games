@@ -223,8 +223,7 @@ const EVERY_EVENT: readonly FieldEvent[] = [
  * field logs, and no change of its state, calls for them. The burrs wait
  * on their rules, the line's twang on its turn; no rock that blasts comes
  * small; the stingers but a wave's start and its clearing are the shell's
- * moments; the fuzzball's eep has no call yet at the near miss, and it
- * hums at no moment the plan gives it.
+ * moments; and the fuzzball hums at no moment the plan gives it.
  */
 const UNPLAYED: readonly SoundName[] = [
   "burr-cling",
@@ -243,7 +242,6 @@ const UNPLAYED: readonly SoundName[] = [
   "ui-back",
   "pause",
   "resume",
-  "voice-eep",
   "voice-hum",
 ];
 

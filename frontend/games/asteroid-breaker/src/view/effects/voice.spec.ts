@@ -112,6 +112,13 @@ const CALLS: readonly (readonly [string, Logger, SoundName])[] = [
   ],
   ["strayed", stray(50), "voice-ooh"],
   [
+    "grazed",
+    (field) => {
+      field.events.addGraze(50, 20, 1, 0);
+    },
+    "voice-eep",
+  ],
+  [
     "floated",
     (field) => {
       field.events.addPilot("floated", 50, 20, 1, field.crew);
@@ -128,16 +135,17 @@ const CALLS: readonly (readonly [string, Logger, SoundName])[] = [
 ];
 
 /**
- * Each call a spec can log an event for and the next commoner one, as the
- * plan ranks them: a wave cleared, the run's end and those floating home,
- * a knock, a rescue, a stray's arrival and a dash.
+ * Each call and the next commoner one, as the plan ranks them: a wave
+ * cleared, the run's end and those floating home, a knock, a rescue, a
+ * stray's arrival, a near miss and a dash.
  */
 const RANKED_PAIRS: readonly (readonly [SoundName, SoundName])[] = [
   ["voice-cheer", "voice-aww"],
   ["voice-aww", "voice-ouch"],
   ["voice-ouch", "voice-yay"],
   ["voice-yay", "voice-ooh"],
-  ["voice-ooh", "voice-whee"],
+  ["voice-ooh", "voice-eep"],
+  ["voice-eep", "voice-whee"],
 ];
 
 /** Returns how to log an event the fuzzball makes a call at. */
@@ -168,6 +176,14 @@ describe("Voice", () => {
         field.events.addFired(50, 20, "gun");
         field.events.add("warned", 0, 20);
         field.events.addPickup("caught", 50, 20, "spread");
+        field.events.addSpark(50, 20, 0, 10, 1);
+        field.events.addStep(50, 20, 1, false);
+        field.events.addZap(50, 20, 0);
+        field.events.addArc(
+          { x: 60, y: 20, kind: "stone", size: "small", slot: 0 },
+          10,
+          0,
+        );
       });
 
       expect(called).toEqual([]);

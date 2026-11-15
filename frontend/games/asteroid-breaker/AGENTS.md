@@ -464,13 +464,13 @@ takes for the specs' helpers.
   the field, which its hum is held for. `voice.ts`' `Voice` is the
   fuzzball's voice: the call each event calls for (`callOf()`: a dash a
   whee, a wave cleared a cheer, one knocked loose an ouch, one caught a yay,
-  a stray's arrival an ooh, and one floating home or the run's end an aww),
-  at one dash in three (`DASHES_A_CALL`), the rarest of a frame's
-  (`CALLS_RAREST_FIRST`), where its event happened, and at most once in four
-  seconds of the field's steps (`PATIENCE_MS`), a call due before then
-  dropped, its patience afresh on each new field. `beds.ts` names the beds
-  and the layers over them, by their files' names (`BED_NAMES`), the bed
-  each place plays (`bedOf()`), which play under a place at a multiplier
+  a stray's arrival an ooh, a near miss an eep, and one floating home or the
+  run's end an aww), at one dash in three (`DASHES_A_CALL`), the rarest of a
+  frame's (`CALLS_RAREST_FIRST`), where its event happened, and at most once
+  in four seconds of the field's steps (`PATIENCE_MS`), a call due before
+  then dropped, its patience afresh on each new field. `beds.ts` names the
+  beds and the layers over them, by their files' names (`BED_NAMES`), the
+  bed each place plays (`bedOf()`), which play under a place at a multiplier
   (`bedPlays()`): the place's bed always, the pulse from ×3 and the shimmer
   over it from ×4, and which are fetched ahead of a place's waves
   (`bedsAhead()`): its bed and both layers. `flourish.ts` says how each

@@ -2827,7 +2827,7 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addGraze(30, 20, 1, 0);
     },
-    ["near-miss"],
+    ["voice-eep", "near-miss"],
   ],
   zapped: [
     (field) => {
@@ -3068,7 +3068,7 @@ describe("the sounds", () => {
     ]);
   });
 
-  it("play a near miss on the frame the pilot eeps at it", async () => {
+  it("play a near miss and the fuzzball's eep on the frame the pilot eeps at it", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     const ship = shipOf(shell.field);
     const played = soundsPlayed();
@@ -3079,7 +3079,7 @@ describe("the sounds", () => {
     expect([
       played.map(([name]) => name),
       scene.kit.ship.eyes.images[0]?.frame.name,
-    ]).toEqual([["near-miss"], eyesFrame("pod", "eep")]);
+    ]).toEqual([["voice-eep", "near-miss"], eyesFrame("pod", "eep")]);
   });
 
   it("tick as the thrust is pressed, and again as it is let go", async () => {
