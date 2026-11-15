@@ -1,4 +1,5 @@
 export { cacheSounds } from "./cached_sounds";
+export { canvasTexture } from "./canvas_textures";
 export { collectErrors } from "./collect_errors";
 export {
   type FakeCanvasOptions,

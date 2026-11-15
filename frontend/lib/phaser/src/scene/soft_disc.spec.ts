@@ -1,5 +1,4 @@
-import { type Scene, Textures } from "phaser";
-import { runBareScene } from "../testing";
+import { canvasTexture, runBareScene } from "../testing";
 import { softDisc } from "./soft_disc";
 
 /** A call a context was given, by its method's name. */
@@ -7,15 +6,6 @@ type Call = readonly [string, ...unknown[]];
 
 /** The methods {@link recordPainting} records, which it sets on a context. */
 const RECORDED = ["translate", "scale", "createRadialGradient", "fill"];
-
-/** Returns the canvas texture under a key, failing if there is none. */
-function canvasTexture(scene: Scene, key: string): Textures.CanvasTexture {
-  const texture = scene.textures.get(key);
-  if (!(texture instanceof Textures.CanvasTexture)) {
-    throw new Error(`No canvas texture "${key}"`);
-  }
-  return texture;
-}
 
 /**
  * Has a texture's context record what a soft disc is painted with from now

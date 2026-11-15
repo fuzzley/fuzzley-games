@@ -2,6 +2,7 @@ import { easeOutCubic } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
 import {
   type SceneRun,
+  canvasTexture,
   commandsOf,
   objectsIn,
   strokesOf,
@@ -1234,21 +1235,12 @@ describe("the points", () => {
     readonly y: number;
   }
 
-  /** Returns the points' atlas, failing where it has no canvas. */
-  function atlasOf(scene: BeltScene): Textures.CanvasTexture {
-    const atlas = scene.textures.get(POINTS_ATLAS);
-    if (!(atlas instanceof Textures.CanvasTexture)) {
-      throw new Error("No canvas for the points' atlas.");
-    }
-    return atlas;
-  }
-
   /**
    * Records each character the points' atlas writes as it is lettered, and
    * how, until the test finishes.
    */
   function recordWrites(scene: BeltScene): readonly Written[] {
-    const context = atlasOf(scene).getContext();
+    const context = canvasTexture(scene, POINTS_ATLAS).getContext();
     const written: Written[] = [];
     const style = (): Omit<Written, "text" | "how" | "x" | "y"> => ({
       font: context.font,
@@ -1550,7 +1542,7 @@ describe("the points", () => {
 
   it("uploads the atlas once, every character written, as it letters them anew at a new size", async () => {
     const { run, scene } = await startBoard();
-    const atlas = atlasOf(scene);
+    const atlas = canvasTexture(scene, POINTS_ATLAS);
     const before = { width: atlas.width, height: atlas.height };
     const written = recordWrites(scene);
     const uploads: number[] = [];

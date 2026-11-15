@@ -9,6 +9,7 @@ import { LayerPlayer, SpritePlayer } from "@fz/phaser/sound";
 import {
   type SceneRun,
   cacheSounds,
+  canvasTexture,
   imagesIn,
   objectsIn,
   strokesOf,
@@ -1926,11 +1927,7 @@ describe("the place", () => {
       keys: readonly string[],
     ): readonly Painted[] {
       return keys.map((key) => {
-        const texture = scene.textures.get(key);
-        if (!(texture instanceof Textures.CanvasTexture)) {
-          throw new Error(`No canvas for "${key}".`);
-        }
-        const context = texture.getContext();
+        const context = canvasTexture(scene, key).getContext();
         const painted: Painted = { washes: [], strokes: 0, fills: 0 };
         context.translate = (x, y) => {
           painted.washes.push([x, y]);

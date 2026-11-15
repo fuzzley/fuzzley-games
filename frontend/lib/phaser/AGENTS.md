@@ -410,7 +410,9 @@ take the pure ones.
   counts a scene's game objects and `imagesIn()` finds its images, each
   looking into its layers, however deep; `watchUploads()` hands a spec each
   canvas the game uploads to the GPU, as it uploads it, until the test
-  finishes. `provideFakePhaserCanvas()` gives an app's shell specs a canvas
+  finishes; and `canvasTexture()` returns the canvas texture under a key,
+  throwing for a key that names none, for a spec to read what was drawn on
+  it. `provideFakePhaserCanvas()` gives an app's shell specs a canvas
   that loads no Phaser, whose hosts `FakePhaserCanvas` keeps, to settle
   each scene they were shown; `collectErrors()` gives them an
   `ErrorHandler` that keeps what it is handed rather than printing it, for
@@ -449,7 +451,9 @@ take the pure ones.
 - **`src/testing/` imports Phaser by type alone,** and the host, the
   scene helpers and the sound player, which load it, as ESLint checks,
   loading Phaser with `import()` where it needs a class, and tells a game
-  object by its `type`, never by `instanceof`, since a test setup imports
+  object by its `type`, and a texture by what it has, as
+  `canvasTexture()` tells a canvas's by its `getContext()`, never by
+  `instanceof`, since a test setup imports
   it before `installHeadlessPhaser()` has given Phaser the page it needs
   to load.
 - **The host, the scene helpers and the sound player know no framework,**
