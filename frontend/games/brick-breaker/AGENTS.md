@@ -1106,9 +1106,9 @@ workspace's with the others'.
   middle, clear of the ball; and the panels, a deck shown both or neither (`data-panels`), show both wherever
   the room (`data-room`) spares 186 CSS px each side of the field's cells,
   the gap and the narrowest panel past the wall, and nowhere else, each
-  holding the parts it shows, the level's stars among them, whole; then,
-  at each shape again, over a run kept on Fuse, level 13, its tough row
-  broken at double pay and its fuse lit (`CLEARING_RUN`, in
+  holding the parts it shows, the level's stars among them, whole; and,
+  beside them, at each shape again, over a run kept on Fuse, level 13, its
+  tough row broken at double pay and its fuse lit (`CLEARING_RUN`, in
   `tools/stored_run.mjs`, kept by `keptRun()` and gone on with by its
   Paused card's Resume), which the fuse
   clears with no ball launched, the Cleared card at its tallest, every star

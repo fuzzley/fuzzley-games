@@ -11,25 +11,39 @@ export interface Command {
 /** What a {@link FakeBrowser} answers a command with. */
 export type Answer = { readonly result: unknown } | { readonly error: string };
 
-/** Answers a command, or works out the answer from it. */
-export type Reply = Answer | ((command: Command) => Answer);
+/**
+ * Answers a command, or works out the answer from it, at once or, as a
+ * promise, once it settles.
+ */
+export type Reply = Answer | ((command: Command) => Answer | Promise<Answer>);
 
 /**
  * Stands in for Chrome's end of a DevTools socket: it answers each command
  * from a table, by its method, and fires a page's load event after a
- * navigation or a reload. Another event is sent with {@link emit}.
+ * navigation or a reload. Another event is sent with {@link emit}. Unless
+ * told otherwise, it numbers the contexts, targets and sessions it makes, in
+ * the order it makes them: `ctx-1`, `target-1` and `page-1` first.
  */
 export class FakeBrowser implements DevToolsSocket {
   readonly sent: Command[] = [];
   closed = false;
   private readonly answers: Readonly<Record<string, Reply>>;
+  /**
+   * Each context opened, as 1, and closed, as -1, in turn: open from the
+   * command that creates it till the answer to the one that disposes of it.
+   */
+  private readonly contextChanges: number[] = [];
   private listener: ((event: { readonly data: unknown }) => void) | undefined;
 
   constructor(answers: Readonly<Record<string, Reply>> = {}) {
+    const numbered = (prefix: string, key: string): Reply => {
+      let made = 0;
+      return () => ({ result: { [key]: `${prefix}-${String((made += 1))}` } });
+    };
     this.answers = {
-      "Target.createBrowserContext": { result: { browserContextId: "ctx" } },
-      "Target.createTarget": { result: { targetId: "target" } },
-      "Target.attachToTarget": { result: { sessionId: "page" } },
+      "Target.createBrowserContext": numbered("ctx", "browserContextId"),
+      "Target.createTarget": numbered("target", "targetId"),
+      "Target.attachToTarget": numbered("page", "sessionId"),
       "Runtime.evaluate": { result: { result: {} } },
       ...answers,
     };
@@ -45,20 +59,37 @@ export class FakeBrowser implements DevToolsSocket {
   send(data: string): void {
     const command = JSON.parse(data) as Command;
     this.sent.push(command);
+    if (command.method === "Target.createBrowserContext") {
+      this.contextChanges.push(1);
+    }
     queueMicrotask(() => {
       const reply = this.answers[command.method] ?? { result: {} };
       const answer = typeof reply === "function" ? reply(command) : reply;
-      this.emit({ id: command.id, ...asMessage(answer) });
-      if (
-        command.method === "Page.navigate" ||
-        command.method === "Page.reload"
-      ) {
-        this.emit({
-          method: "Page.loadEventFired",
-          sessionId: command.sessionId,
+      if (answer instanceof Promise) {
+        void answer.then((settled) => {
+          this.answer(command, settled);
         });
+      } else {
+        this.answer(command, answer);
       }
     });
+  }
+
+  /** Sends a command's answer, and the load event a navigation fires. */
+  private answer(command: Command, answer: Answer): void {
+    if (command.method === "Target.disposeBrowserContext") {
+      this.contextChanges.push(-1);
+    }
+    this.emit({ id: command.id, ...asMessage(answer) });
+    if (
+      command.method === "Page.navigate" ||
+      command.method === "Page.reload"
+    ) {
+      this.emit({
+        method: "Page.loadEventFired",
+        sessionId: command.sessionId,
+      });
+    }
   }
 
   close(): void {
@@ -73,6 +104,28 @@ export class FakeBrowser implements DevToolsSocket {
   /** Returns the methods sent, in order. */
   methods(): string[] {
     return this.sent.map((command) => command.method);
+  }
+
+  /**
+   * Returns how many browser contexts are open, each from the command that
+   * creates it till it answers the one that disposes of it.
+   */
+  contextsOpen(): number {
+    return this.contextsOpenAfterEach().at(-1) ?? 0;
+  }
+
+  /**
+   * Returns the most browser contexts that were open at once, each from the
+   * command that creates it till it answers the one that disposes of it.
+   */
+  mostContextsOpen(): number {
+    return Math.max(0, ...this.contextsOpenAfterEach());
+  }
+
+  /** Returns how many browser contexts were open after each change. */
+  private contextsOpenAfterEach(): number[] {
+    let open = 0;
+    return this.contextChanges.map((change) => (open += change));
   }
 
   /** Returns the last command of a method. */

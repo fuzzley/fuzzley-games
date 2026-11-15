@@ -15,7 +15,7 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 | ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
 | 1    | —   | The audit's report, scripts and data                                                                                                 | 05b6fd8b |
 | 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | edcd1961 |
-| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    |          |
+| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | ed629c55 |
 | 4    | 1   | The layout check's pages side by side, a few at a time                                                                               |          |
 | 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 |          |
 | 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |          |
@@ -106,7 +106,7 @@ The review, and the answers:
 ### 2026-11-14: room for Brick Fuzz Pop's solver spec (step 3)
 
 `test(brick-fuzz-pop): give the solver's search of a level no shot takes a hit off as long as a search no batch can split`
-(step 3):
+(ed629c55, step 3):
 
 - `src/testing/solver.spec.ts`'s "finds nothing for a level no shot takes a hit off" runs every search, down to every aim and a beam of 4, each failing: 517 ms alone. It timed out at Vitest's 5 s in the audit's first overlap run, every step started at once, and passed in the second.
 - It takes `SIM_TIMEOUT_MS`, 60 s, as the `THICK` case's `beforeAll` does, through the options object every other per-test timeout here uses. Under `yarn test` or `yarn test:coverage` alone it had never come near 5 s; what timed it out was lint, typecheck and the builds running beside the tests, which step 6 makes the usual run. So `src/testing/timing.ts`'s doc now names that too, and the workspace's `AGENTS.md` and its `brick-fuzz-pop-testing` skill name the case beside `THICK`.
@@ -117,3 +117,41 @@ The review, and the answers:
 1. **Step 2's row in the plan had no status.** Fixed: `edcd1961`.
 2. **The entry gave `timing.ts`'s reason, but what timed the case out was every step run at once.** Fixed above: the entry says so, and `timing.ts`'s doc names the steps beside the tests.
 3. **The case set its timeout as a third argument, where every other per-test timeout here uses the options object, and its comment held a figure that will go stale.** Fixed: `{ timeout: SIM_TIMEOUT_MS }`, and the comment gives `THICK`'s reason, coverage and the specs beside it, without the figure.
+
+### 2026-11-14: the layout check's pages side by side (step 4)
+
+`perf(dev): open the layout check's pages a few at once, four locally and two where CI is true, each check opening no more once one fails`
+(step 4):
+
+- `@fz/dev/chrome`'s `DevToolsConnection` takes how many pages it opens at once (`pagesAtOnce`), one unless given, and `withPage()` waits its turn for one, the pages waiting in the order they asked. `withChrome()` hands its connection the `pagesAtOnce` its options say.
+- `withPage()` tells each page it has the focus (`Emulation.setFocusEmulationEnabled`). A new target takes the window's focus, so a page opened beside another would take it from that one, and the games pause when the focus leaves them.
+- `checkLayout()` and `checkTurns()` open their pages side by side, and `checkPhaserLayout()` runs the two side by side, each returning what it found in the shapes' order. Brick Breaker's, Brick Fuzz Pop's and Snake's scripts run their two checks side by side too.
+- A page of a check that fails, in its setup or its use, has the connection open no more pages (`withPage()`'s `stopsOthersOnFailure`, through `stopOpeningPages()`), before it disposes of its context and hands its place on. A check that throws ends the run, so the pages still waiting are refused at once rather than each waiting out its own timeout. One page at a time, a check stopped at its first failure, and still does.
+- They wait through `whenAllSettle()`, which throws only once every check has settled, the first to fail in their order. With `Promise.all()`, a page that failed would close Chrome under the pages still running, and which failure was reported would depend on timing.
+- `runLayoutScript()` takes `--pages`, four unless given, or two where `CI` is `true`. CI's runners have four cores and draw WebGL in software, and a check waits on the game's frames, so it opens fewer there.
+- Measured locally: `yarn check:layout` took 23.8 s, against the audit's 34.2 s.
+- Measured as CI runs it: the root's `foreach`, two games at once, with `CI=true`, on 4 cores (`taskset`), Chrome drawing WebGL in software. One page at a time per game, the check took 63.6 s; with the default of two, 55.8 s. The slowest page was Brick Breaker's Cleared card at the roomy shape, at 20.1 s against its 60 s; no page of the others' took more than 2.7 s against 10 s. Step 7 times it on CI itself.
+- The docs: `frontend/AGENTS.md`'s Check the Layout, `@fz/dev`'s `AGENTS.md`, Brick Breaker's and Brick Fuzz Pop's `AGENTS.md`, and the reason for Brick Breaker's Cleared timeout.
+- Checked: `@fz/dev`'s lint, typecheck and tests, 641; the three games' scripts linted and type-checked; the root's lint; and `yarn check:layout`, every game's layout holding. Each of these broken fails its specs: the stop taken out of `withPage()`, or out of its use's `catch` alone; a page's place freed before its context's disposal is answered; the guard against a page closing twice taken out; or `whenAllSettle()` returning what finished in the order it finished.
+
+The review, and the answers:
+
+1. **After a page failed, every page left in the queue still opened and waited out its timeout.** On CI, a Brick Breaker build that never drew would take about 220 s, where one page at a time stopped at the first, after 10 s. Fixed as above: the check's pages stop the connection opening more, inside `withPage()`, before the failed page's place is handed on. In a first try, the stop sat in `layout.ts` around `withPage()`; it ran after the place had passed to the next page, which then opened. The queue keeps the order the checks asked, so the pages refused all come after every page that opened, and the error thrown is always a page's own. With one page at a time, a check whose first shape fails opens one page; the spec holds it to that.
+2. **The default of two on CI was measured one game at a time, but `yarn check:layout` runs two games at once on a runner's four cores.** Measured as CI runs it, above: 63.6 s → 55.8 s, the slowest page at a third of its timeout, so two stays. Brick Breaker's Cleared timeout's comment now says other pages draw beside it. Step 7 dispatches Verify on the branch and compares the build job's layout check with main's.
+3. **Two specs of the order would pass with the order broken, since the fake browser answered every page in turn; it also gave every page one context and one session.** Fixed: the fake numbers its contexts, targets and sessions (`ctx-1`, `target-1`, `page-1`), and a reply may be a promise, so the layout spec lays the roomy shape out late. The shapes' order is now held with the roomy page finishing last, and the shapes before the turns with the shapes finishing last. A spec holds each page to disposing of the context it opened, the later one first. `fakeChrome()` opens as many pages at once as its options say. That `withChrome()` hands `pagesAtOnce` to `DevToolsConnection.open()` is left to the layout check itself, as starting a real Chrome is left to the scripts.
+4. **Pages opened beside one another took the window's focus from each other, and the games pause when the focus leaves them.** Fixed: each page is told it has the focus.
+5. **The smaller points.**
+   - `contextsOpen()` is now the fake browser's, beside `mostContextsOpen()`, the two counting alike.
+   - `pagesAtOnce()`'s unused default went; it is `defaultPagesAtOnce(env)`.
+   - The count is named `pagesAtOnce`, in the connection and in `ChromeOptions`, rather than `pages`. `--pages` stays, as `--jobs` names its count.
+   - The guard that frees a page's place once has a spec of its own. The method that waits for a place is named for what it does, `reservePage()`.
+   - `withPage()`'s doc says a page opened from another's `use` on a connection of one page waits forever.
+   - `runLayoutScript()` builds its usage once.
+
+These fixes reshaped the change, so it had a second review, which found nothing blocking. Its answers:
+
+1. **A page's use that failed stopped the others only once its context was disposed of, a round trip in which another page could close and hand its place to one waiting.** Fixed: `withPage()` stops them in its use's `catch` too, before the dispose; the outer `catch` stays for a context that can't be created or disposed of. A spec delays the failed page's disposal, and holds a third page to never opening.
+2. **The fake counted a context closed when its disposal was sent, though a page holds its place till it is answered, and the focus spec didn't check the command went to the page's session.** Fixed: the fake counts a context open from the command that creates it till its disposal is answered, and a spec with a late disposal holds the next page back till then. The focus spec checks the session too.
+3. **Brick Breaker's and Brick Fuzz Pop's scripts still said their second pass came "then".** Fixed: their docs and their `checkBoth()`'s say it runs beside the first.
+4. **The 20.1 s against 60 s was measured on the devbox's cores, which are faster than a runner's.** Agreed: step 7 dispatches Verify on the branch and compares the build job's layout check with main's, and nothing of this merges before it does.
+5. **The nits.** `DevToolsConnection.open()` checks the count before it opens a socket. `reservePage()` is the verb name. The queue stays in the connection rather than a class of its own: it is three fields and two methods, which only `withPage()` calls.
