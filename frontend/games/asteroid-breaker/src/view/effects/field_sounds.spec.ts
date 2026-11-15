@@ -164,7 +164,7 @@ describe("FieldSounds", () => {
 
       field.events.addKnocked(0, 5, 1, field.crew, 1, 0);
 
-      expect(namesOf(frame())).toEqual(["pod-hit", "crew-loose"]);
+      expect(namesOf(frame())).toEqual(["pod-hit", "crew-loose", "voice-ouch"]);
     });
 
     it("plays a frame's sounds the loudest first, so a blast ducks the breaks round it", () => {
@@ -400,13 +400,13 @@ describe("FieldSounds", () => {
   });
 
   describe("a zap", () => {
-    it("plays in place of the dash that set it off", () => {
+    it("plays in place of the dash that set it off, the fuzzball's whee at the dash kept", () => {
       const { field, frame } = shipField();
 
       field.events.addDash(0, 5, 0);
       field.events.addZap(0, 5, 0);
 
-      expect(namesOf(frame())).toEqual(["zap-dash"]);
+      expect(namesOf(frame())).toEqual(["zap-dash", "voice-whee"]);
     });
 
     it("leaves the next frame's dash its own", () => {

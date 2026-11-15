@@ -250,9 +250,20 @@ const DECIBELS: Readonly<Partial<Record<SoundName, number>>> = {
   "shot-rapid": -3,
 };
 
+/**
+ * How far each family's sounds play from their levels, in decibels, where
+ * they aren't there: the fuzzball's calls 3 dB down, as a voice held in the
+ * ear's keenest band is louder than a struck sound at its level.
+ */
+const FAMILY_DECIBELS: Readonly<Partial<Record<SoundFamily, number>>> = {
+  voice: -3,
+};
+
 /** Returns the volume a sound plays at, 1 at its level. */
 export function volumeOf(name: SoundName): number {
-  return gainOf(DECIBELS[name] ?? 0);
+  return gainOf(
+    (DECIBELS[name] ?? 0) + (FAMILY_DECIBELS[SOUNDS[name].family] ?? 0),
+  );
 }
 
 /**

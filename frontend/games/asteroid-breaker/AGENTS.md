@@ -440,31 +440,39 @@ takes for the specs' helpers.
   at (`bellCentsOf()`), what an effect plays as a pickup caught starts it
   (`startSoundOf()`: the Shield raised, the field slowing) and as its time
   runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
-  Rapid's shot 3 dB under the gun's), and the order a frame plays them in,
-  the loudest level first (`PLAY_ORDER`); the thrust's hum (`THRUST`) is one
-  of them, which no event plays, and so is each sound nothing calls for yet.
-  `field_sounds.ts`' `FieldSounds` gathers a frame's: each event's sounds,
-  where it happened across the field (`@fz/core/sound_mix`'s `acrossOf()`),
-  a bell at the highest of static's multipliers the frame's breaks scored
-  at, more than three breaks a frame as the largest two and `break-cluster`,
-  each spark gathered the next note of the ladder, an octave under the
-  bell's, in a run of sparks each within static's hold of the last, in the
-  field's steps (`SPARK_RUN_STEPS`), which a fall of static or a new field
-  ends, a zap in place of the dash that set it off, and what the field's
-  state says by how it changed since the frame before (fire let go just
-  after a burst, `shot-tail`; and at the ship the thrust pressed and let go,
-  `thrust-start` and `thrust-stop`, the player's first move, `wave-start`,
-  the dash ready again, `dash-ready`, by `isDashReady()`, a guard longer
-  than a dash's over, `guard-end` (`DASH_GUARD_STEPS`), and an effect
-  started or run out; and a comet come in, its warning over, `comet-pass`,
-  where it comes in); then plays each once, at the most it rose, the loudest
-  first, making nothing. `flourish.ts` says how each flourish moves over its
-  time, beside `@fz/core/math`'s `shareDone()` and its curves
-  (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
-  shake scroll the field's camera (`cameraShift()`) and when a dash lays
-  each of its outlines (`trailOutlinesLaid()`), and how the pickups breathe,
-  a stray bobs, a comet's warning pulses and the pod's exhaust streams
-  (`exhaustDue()`), each only where motion is welcome;
+  Rapid's shot 3 dB under the gun's, and the fuzzball's calls 3 dB down),
+  and the order a frame plays them in, the loudest level first
+  (`PLAY_ORDER`); the thrust's hum (`THRUST`) is one of them, which no event
+  plays, and so is each sound nothing calls for yet. `field_sounds.ts`'
+  `FieldSounds` gathers a frame's: each event's sounds, where it happened
+  across the field (`@fz/core/sound_mix`'s `acrossOf()`), a bell at the
+  highest of static's multipliers the frame's breaks scored at, more than
+  three breaks a frame as the largest two and `break-cluster`, each spark
+  gathered the next note of the ladder, an octave under the bell's, in a run
+  of sparks each within static's hold of the last, in the field's steps
+  (`SPARK_RUN_STEPS`), which a fall of static or a new field ends, a zap in
+  place of the dash that set it off, and what the field's state says by how
+  it changed since the frame before (fire let go just after a burst,
+  `shot-tail`; and at the ship the thrust pressed and let go, `thrust-start`
+  and `thrust-stop`, the player's first move, `wave-start`, the dash ready
+  again, `dash-ready`, by `isDashReady()`, a guard longer than a dash's
+  over, `guard-end` (`DASH_GUARD_STEPS`), and an effect started or run out;
+  and a comet come in, its warning over, `comet-pass`, where it comes in),
+  and the fuzzball's call; then plays each once, at the most it rose, the
+  loudest first, making nothing. `voice.ts`' `Voice` is the fuzzball's
+  voice: the call each event calls for (`callOf()`: a dash a whee, a wave
+  cleared a cheer, one knocked loose an ouch, one caught a yay, a stray's
+  arrival an ooh, and one floating home or the run's end an aww), at one
+  dash in three (`DASHES_A_CALL`), the rarest of a frame's
+  (`CALLS_RAREST_FIRST`), where its event happened, and at most once in four
+  seconds of the field's steps (`PATIENCE_MS`), a call due before then
+  dropped, its patience afresh on each new field. `flourish.ts` says how
+  each flourish moves over its time, beside `@fz/core/math`'s `shareDone()`
+  and its curves (`easeOutCubic()`, `fadeAlpha()`), among them how far the
+  kick and the shake scroll the field's camera (`cameraShift()`) and when a
+  dash lays each of its outlines (`trailOutlinesLaid()`), and how the
+  pickups breathe, a stray bobs, a comet's warning pulses and the pod's
+  exhaust streams (`exhaustDue()`), each only where motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,

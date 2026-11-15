@@ -108,6 +108,7 @@ import {
 } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
+import { PATIENCE_MS } from "../view/effects/voice";
 import {
   BREATH,
   GOLDEN_ANGLE,
@@ -2697,7 +2698,7 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addDash(30, 20, 0);
     },
-    ["dash"],
+    ["dash", "voice-whee"],
   ],
   shielded: [
     (field) => {
@@ -2715,7 +2716,7 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.add("cleared", 30, 20);
     },
-    ["wave-clear"],
+    ["wave-clear", "voice-cheer"],
   ],
   hit: [
     (field) => {
@@ -2763,43 +2764,43 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addPilot("lost", 30, 20, 0, field.crew);
     },
-    ["pod-lost"],
+    ["pod-lost", "voice-aww"],
   ],
   knocked: [
     (field) => {
       field.events.addKnocked(30, 20, 1, field.crew, 1, 0);
     },
-    ["pod-hit", "crew-loose"],
+    ["pod-hit", "crew-loose", "voice-ouch"],
   ],
   recaught: [
     (field) => {
       field.events.addPilot("recaught", 30, 20, 1, field.crew);
     },
-    ["crew-caught"],
+    ["crew-caught", "voice-yay"],
   ],
   floated: [
     (field) => {
       field.events.addPilot("floated", 30, 20, 1, field.crew);
     },
-    ["crew-home"],
+    ["crew-home", "voice-aww"],
   ],
   strayed: [
     (field) => {
       field.events.addPilot("strayed", 0, 20, 4, field.crew);
     },
-    ["stray-appear"],
+    ["stray-appear", "voice-ooh"],
   ],
   joined: [
     (field) => {
       field.events.addPilot("joined", 30, 20, 4, field.crew);
     },
-    ["stray-catch"],
+    ["stray-catch", "voice-yay"],
   ],
   home: [
     (field) => {
       field.events.addPilot("home", 30, 20, 4, field.crew);
     },
-    ["stray-catch"],
+    ["stray-catch", "voice-yay"],
   ],
   // Points scored are seen, never heard: the break or the stray that
   // scored them is.
@@ -3119,6 +3120,31 @@ describe("the sounds", () => {
     run.advance(100);
 
     expect(played).toEqual([["comet-pass", 0]]);
+  });
+
+  it("have the fuzzball call once in four seconds at most, by the field's steps", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    run.advance(16);
+    const played = soundsPlayed();
+    const strayIn = (): void => {
+      shell.field.events.addPilot("strayed", 0, 20, 4, shell.field.crew);
+    };
+
+    strayIn();
+    run.advance(16);
+    strayIn();
+    run.advance(PATIENCE_MS - 100);
+    strayIn();
+    run.advance(100);
+    strayIn();
+    run.advance(16);
+
+    expect(
+      played
+        .filter(([name]) => name.startsWith("voice-"))
+        .map(([name]) => name),
+    ).toEqual(["voice-ooh", "voice-ooh"]);
   });
 
   it("play an effect's end as its time runs out", async () => {
