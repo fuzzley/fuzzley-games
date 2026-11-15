@@ -4,7 +4,7 @@
  * prototype of the rules in it, so the sim plays variants of the rules
  * without touching the game's files.
  *
- *   node docs/brick-fuzz-pop-tune-up/sim/mirror.mjs [folder]
+ *   node docs/archive/brick-fuzz-pop-tune-up/sim/mirror.mjs [folder]
  *
  * The mirror is `<folder>/fz/frontend/games/brick-fuzz-pop`, its `src`,
  * `tools` and configs copied from the workspace, and `node_modules` and
@@ -22,7 +22,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SIM = dirname(fileURLToPath(import.meta.url));
-const FRONTEND = resolve(SIM, "../../../frontend");
+const FRONTEND = resolve(SIM, "../../../../frontend");
 const WORKSPACE = join(FRONTEND, "games/brick-fuzz-pop");
 
 /** What the mirror copies of the workspace. */

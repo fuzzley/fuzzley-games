@@ -190,7 +190,7 @@ turn and the five pips' places, in device pixels, into a record made once
 (`GaugePlace`), from the touch, the field's frame and ceiling and the
 pixel ratio. `GAUGE_REACH_CSS_PX = 74` and `GAUGE_PIP_CSS_PX = 13` are its
 measures in CSS pixels; the turn is
-`docs/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs`'s `gaugeTurn()`:
+`docs/archive/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs`'s `gaugeTurn()`:
 none where every pip lies inside the field and under the ceiling with room
 to spare, otherwise the least whole degree toward the field's middle that
 fits.
@@ -313,8 +313,8 @@ Two commits, each whole and green:
 - **Done when** the game's lint, typecheck and every project's specs pass,
   `sim` among them, the report marks no level under its floor, and the
   report's figures and par's sum are in the commit's body beside
-  `plan.md`'s (`docs/brick-fuzz-pop-tune-up/sim/results/par.md`: 4,239 to
-  about 4,123).
+  `plan.md`'s (`docs/archive/brick-fuzz-pop-tune-up/sim/results/par.md`:
+  4,239 to about 4,123).
 - If the air time alone puts a floor under the careless player, R1 folds
   wool into the first commit and says so.
 
@@ -405,7 +405,7 @@ rules fly the round again":
 - **Done when** the checks pass, and a headless Chrome emulating a phone,
   a finger pressed and held at the middle, by a side and under the
   ceiling, shows the gauge where
-  `docs/brick-fuzz-pop-tune-up/mocks/charge-2-gauge.png` and
+  `docs/archive/brick-fuzz-pop-tune-up/mocks/charge-2-gauge.png` and
   `charge-4-gauge-ceiling.png` beside it draw it, lit as the meter is.
 
 ### D: the drop in the view and the shell
@@ -581,9 +581,9 @@ A package that serves the game does so from its worktree on a port of its
 own, `yarn workspace brick-fuzz-pop dev --port <port> --strictPort`: F1
 9611, G2 9612, D4 9613 and Z 9614, and looks at it through
 `frontend/lib/dev/src/chrome.ts`'s headless Chrome from a script in the
-scratchpad, as `docs/brick-fuzz-pop-tune-up/mocks/capture.mjs` does, never
-the chrome-devtools MCP another session may be driving. It stops its server
-and its Chrome when it is done.
+scratchpad, as `docs/archive/brick-fuzz-pop-tune-up/mocks/capture.mjs`
+does, never the chrome-devtools MCP another session may be driving. It
+stops its server and its Chrome when it is done.
 
 ### 5.5 How the work comes together
 
@@ -679,6 +679,133 @@ game's other plans were.
 
 ---
 
-## 9. As built
+## 9. As built (2026-11-15)
 
-Written by the integrator at the end of the build.
+Built on 2026-11-15, on the branch `brick-fuzz-pop-tune-up`, cut from `main` at
+`7fbd968a`, in a day: the nine packages and the finish, three agents at a time
+beside the Asteroid Breaker build, each in a worktree of its own; every commit
+reviewed by a fresh agent before it was made, its answers in the commit's body;
+and each package rebased onto the tip and checked there before the branch
+fast-forwarded to it. Every rebase went through without a conflict. The sections
+above are the plan as it was written; this one holds where the build left it,
+what the packages decided that a later change could trip on, the numbers, and
+what was left for the user. The user asked for the merge the same day.
+
+### Where the build left the packages
+
+- **R2 stops the flight's loop at the drop, against §4's limit on `home` in
+  `plan()`,** keeping what S7 says a drop does. That limit was inexact in
+  floating point: the sum of a moment and a length, less the moment, fell short
+  of the length 36.8% of the time, and over 2,000 seeded flights dropped at a
+  moment drawn three ways (anywhere, at an event, at the flight's length) the
+  limit broke 26, 633 and 792 of them. Instead `fly()`'s main loop stops at the
+  drop's moment, as the guide's stop does, `dropAll()` brings every fuzzball in
+  the air home, and the loop flies on; it broke none. The drops are their own
+  section of a moment (`DROPS = 2`, after the zaps'), a fuzzball launched at the
+  drop's moment drops and lands at once, one still waiting never leaves and
+  keeps an empty track, for which `positionAt()` returns null, and `fly()`
+  throws a `RangeError` for a drop before 0 or not a number.
+- **`RoundPlay.droppable` is new,** beyond S10: true while the playback flies
+  and until it is dropped. A second drop, flown again from the round's start at
+  a later moment, would play some events twice and skip others, so `dropTo()`
+  does nothing for it, and the bar dims as it does.
+- **The shell keeps its own `droppableRound` signal** (D4), not
+  `RoundPlay.droppable`, which can't tell the player's flight from one the debug
+  menu plays from a certificate's line (S11). The saved game is also written
+  again when the field takes another depth, as `nextStart()` changes then.
+- **A run left mid-flight keeps its records** (D3): `begin()`, for a new game,
+  the levels or a certificate, keeps what the flight in the air would have kept
+  had it landed, which the first cut lost and its review found. A page hidden
+  mid-flight goes through `GameService.lookAway()`, which takes the away's
+  reason, and the app's own `pauseRun()` is gone. S15 lives in `takeUp()`.
+- **`gaugeOf()` takes the field, not the pixel ratio beside it** (G1):
+  `gaugeOf(field, x, y, into)`, where `GaugeField` is the four sides and the
+  pixel ratio of `FieldMetrics`. Its turn is the mock's rule, the least whole
+  degree that fits; where none does, it takes the least that brings the worst
+  pip nearest its room rather than snapping. Within 16 CSS px of the field's
+  middle a finger keeps the last turn's side, so the gauge doesn't flip as it
+  crosses; under the ceiling, in the lintel's band, it turns as far as ±180°.
+- **`GaugePainter` works out the gauge's place itself** (G2), from the steer and
+  the field's metrics, so `PaintContext` gains nothing, against S22's "the scene
+  writes it into the paint context". A pull back keeps its touch once past the
+  dead zone, even if the finger comes back inside it, so the gauge doesn't
+  flicker; a fresh press starts at no turn.
+- **F1's words live in `game.service.ts`** (`fastForwardWords()`), not in
+  `describe.ts`, as the rules know no playback. `Steer` is now
+  `{ aim, charge, release, keyed }` plus the touch, and the steering's `letGo()`
+  went with the held keys.
+- **R1 renamed `idleFrom` to `touchedFrom`,** as its review asked, since a touch
+  moves it, not a hit. The bored fixture's steel now runs to row 14, and the
+  solver's `THICK` test wall was drawn again, both for the longer air time.
+- **The sound lab's bored scene** (`c39be23c`, the integrator's) says the
+  fuzzball touches only the walls and steel for `BORED` units, its knocks every
+  9 units until the yawn, from the constant.
+- **The site's screenshots are a round into Powder keg, not two** (`98d4ba5a`):
+  after the first two shots of its certificate on 11 deep, the wall was nearly
+  gone, so `RUN` takes the first alone, the next shot aimed by the keys at 110°
+  and a charge of 3, its guide through three bricks; `og:image:alt` says so.
+- **The docs were read through against the code** (Z1, `9ccea8de`): the game's
+  `AGENTS.md` now says how a fuzzball comes home (boredom, the idle limit and
+  the caps), names `afterLanding()` and `RoundPlay.skip()` where the shell now
+  calls them, and lists How to play's new paragraphs; the content skill says a
+  new kind of flight event needs its case in `RoundPlay`'s `takeIn()` and, for a
+  fuzzball's, its rank in `BALL_RANK` and `BALL_ORDER`, as the drop's did; and
+  the drawer's Sound line says the notch's tick rises with the charge, which G2
+  had left it not saying. Nothing it read showed code in the wrong.
+- **This folder moved to `docs/archive/` with this section,** before the merge
+  rather than after it went live as §8 says, as the Brick Breaker uplift's did;
+  its scripts' paths point here, and the game's `AGENTS.md` names the two plans.
+
+### The numbers
+
+- **Par:** of the 432 pars, 80 came down, 337 stayed and 15 went up, their sum
+  from 4,239 to 4,123, `plan.md`'s figure and the sim's `par.after.json` byte
+  for byte. Every level found a line at the first search, and `report:levels`'
+  careless games that don't clear went from 152 of 4,320 to 143.
+- **One level a game under its floor:** `report:levels` has Switchboard (17) on
+  11 deep clear 33 of its 40 careless games, against a floor of 34 (it cleared
+  34 before the change). Over 200 games it clears 88%, 86% before, and its floor
+  spec passes, so the build took it as the margin's noise and redrew nothing.
+- **The specs** went from 6,489 in 147 files to 7,168 in 148 files. The `sim`
+  project alone, its 555 specs, took 16 s in `verify:full`'s run and 22.6 s on
+  three workers at a load of 13, against 17 s at the start, inside its 25 s
+  budget.
+- **R2 moved `fly()`'s median** in the benchmark from 56.47 µs on R1's tip
+  (`b3ae2e81`) to 60.36 µs, and with the crew from 281.89 µs to 292.21 µs,
+  within the noise of a machine the other build loaded (single runs spread from
+  56 to 69 µs). R1's longer flights changed what the benchmark flies, so the
+  start's figure doesn't compare with either.
+- **The atlas,** at 128 device px a unit, went from 1,214 × 1,528 to
+  1,192 × 1,548 at 1×, and is at most 1,260 × 1,577, at 3×, inside 2,048. The
+  gauge's lit pips stand 4.41–6.18:1 against its plate, its unlit rings
+  4.07–4.53:1, so S21 needed no new role.
+- **Mutation passes** over each package's changes: R1 15 mutants, R2 85, F1 34,
+  D3 39, G1 66, G2 57, D2 28, D4 29; D1, an icon and a sound, had none. Each
+  survivor was a change no behaviour shows or was caught by a spec added then
+  (R1's, R2's, G2's, D2's, D3's and D4's), but one of G1's, the plate's reach
+  unscaled by the pixel ratio, which the 1× specs couldn't see: a 2× spec now
+  holds it.
+- **The full checks** passed on the tip: `yarn verify:full` in 181 s and
+  `yarn check:layout` in 29 s, under the lock the Asteroid Breaker build shares.
+  No line or branch the build added goes unrun by a spec; the branches left
+  uncovered in its files were so before it.
+- **A look in a headless Chrome** at the finish, at 390 × 844 with touch and at
+  1280 × 720, in a dark palette and a light one, a round into Powder keg: the
+  gauge over a held finger, Fast-forward kept on, Drop dimmed while aiming, live
+  in flight and dimmed again once dropped, and no Skip left anywhere. The
+  packages that changed what shows each looked at their change the same way: F1
+  and D4 at both shapes, G2 at the phone's, and D3 with a page hidden
+  mid-flight, alone and after a blur.
+
+### Left for the user
+
+- **What only a phone in hand can judge:** whether the gauge's 74 CSS px reach
+  clears a thumb, how a drop feels and sounds, and whether 180 units of patience
+  suits each speed.
+- **A page killed with no hide event mid-flight** can still lose that flight's
+  records, a level's best or a run's end, as `plan.md` says under "Considered
+  and left out", with what would close it.
+- **`docs/archive/brick-fuzz-pop-tune-up/mocks/make-mocks.mjs` keeps its own
+  Skip icon,** as `@fz/ui`'s is gone; the mocks are the design's, as they were.
+- **A reading of `fly()`'s benchmark on a quiet machine,** against R1's tip,
+  which the loaded one couldn't give.

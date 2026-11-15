@@ -3,7 +3,7 @@
  * Serves the plan as a page, its mocks in it, for reading where the files
  * themselves can't be opened, such as a session followed from a phone.
  *
- *   node docs/brick-fuzz-pop-tune-up/preview.mjs [--port <n>]
+ *   node docs/archive/brick-fuzz-pop-tune-up/preview.mjs [--port <n>]
  *
  * `/` is `plan.md`, `/gallery` every mock at the page's full width, one
  * under another, and any other Markdown file of this folder a page at its

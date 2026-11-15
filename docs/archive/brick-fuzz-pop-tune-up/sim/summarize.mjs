@@ -3,7 +3,7 @@
  * Reads what `run.mjs` counted of every level and writes the tables the
  * plan quotes.
  *
- *   node docs/brick-fuzz-pop-tune-up/sim/summarize.mjs
+ *   node docs/archive/brick-fuzz-pop-tune-up/sim/summarize.mjs
  *
  * It reads each level's counts from the scratch folder `run.mjs` writes
  * them to, and writes `results/summary.json`, every number by variant, and
@@ -21,7 +21,10 @@ import { MIRROR_FOLDER } from "./mirror.mjs";
 const SIM = dirname(fileURLToPath(import.meta.url));
 const COUNTS = join(MIRROR_FOLDER, "results/levels");
 const RESULTS = join(SIM, "results");
-const PRETTIER = resolve(SIM, "../../../frontend/node_modules/.bin/prettier");
+const PRETTIER = resolve(
+  SIM,
+  "../../../../frontend/node_modules/.bin/prettier",
+);
 
 /** How far a flight plays back in a second at Normal. */
 const UNITS_PER_SECOND = 14;
