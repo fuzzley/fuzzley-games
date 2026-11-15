@@ -28,16 +28,21 @@ export {
   type ArtScale,
   type CircleCommand,
   type DrawCommand,
+  type Ellipse,
   type FillStyle,
   type LineCommand,
   type LineStyle,
   ORIGIN,
+  type PaintCommand,
   type Point,
   type PolygonCommand,
   type PolylineCommand,
   type RectCommand,
   type RingCommand,
   type RoundRectCommand,
+  type WashCommand,
+  type WashStop,
+  type WashStyle,
   circle,
   extentOf,
   line,
@@ -48,9 +53,10 @@ export {
   ring,
   roundRect,
   stroke,
+  wash,
   widthOf,
 } from "./shapes";
-export { type Drawing, svgOf } from "./svg";
+export { type Drawing, type Painting, svgOf } from "./svg";
 export { discIn, dotIn, rimIn, symbolLineStyle } from "./symbols";
 export {
   bounded,

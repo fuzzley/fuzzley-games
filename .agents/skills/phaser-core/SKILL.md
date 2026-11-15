@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture.
 ---
 
 # Phaser games here
@@ -133,7 +133,13 @@ holds.
   symbol's dots and rims in a square (`dotIn()`, `discIn()`, `rimIn()`)
   are there too, so a game draws with them rather than its own copies.
   `svgOf()` writes a drawing's commands as an SVG document, so a page shows
-  the drawing a scene bakes, as an image or a CSS mask, from one list.
+  the drawing a scene bakes, as an image or a CSS mask, from one list. A
+  wash (`wash()`, a `WashCommand`), an ellipse filled with a radial
+  gradient of color stops, is a `PaintCommand` and no `DrawCommand`, since a
+  `Graphics` draws no gradient: `svgOf()` writes it, and `scene`'s
+  `paintCommands()` paints it on a canvas, with every other shape as
+  `atlasFrameOf()` has a `Graphics` draw it, and `paintTexture()` paints such
+  a picture into a canvas texture, again after a lost context.
 - **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
   commands, and imports nothing else, so a game's view takes it as it takes
   the pure entries: `fuzzballCommands()`, its body and fur, `by` device
@@ -354,8 +360,11 @@ scene without shutting it down first, so the end is whichever comes first.
   `@fz/phaser/canvas`'s `settledPictures()`, which hands on the first bake
   at once and a later one only once a resize stops, where its panels show the
   pictures, as Brick Breaker's and Brick Fuzz Pop's do, so nothing is encoded
-  until How to play or a panel shows it. Anything else drawn at run
-  time redraws itself through `onContextRestored()`.
+  until How to play or a panel shows it. `paintTexture()` paints a picture
+  from paint commands, washes among them, into a canvas texture, and paints
+  it again after a lost context too: a key is drawn again the last way
+  either drew it. Anything else drawn at run time redraws itself through
+  `onContextRestored()`.
 - `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
   device pixels. `viewportOf(scene, insets)` is the `Viewport` a scene lays
   itself out on, its canvas as it now is under the chrome given, and

@@ -133,11 +133,20 @@ take the pure ones.
   atlas of a set of frames is, packed as `bakeAtlas()` packs them, in rows,
   tallest first, frames of one height in the order given
   (`src/shapes/packing.ts`), so a game's spec can hold it to a size without
-  Phaser. `svgOf()` writes a `Drawing`, a size and its commands, as an SVG
+  Phaser. A `WashCommand` is an ellipse (an `Ellipse`: its middle, its two
+  radii and its turn) filled with a radial gradient of `WashStop`s, each a
+  color at an alpha a share of the way out, the whole at its own alpha,
+  made by `wash()`, which sorts its stops and holds each between the middle
+  and the edge; a `Graphics` draws no gradient, so a wash is no
+  `DrawCommand` but a `PaintCommand`, the two together, which only `svgOf()`
+  and the scene's `paintCommands()` take, and no atlas can be handed one.
+  `svgOf()` writes a `Painting`, a size and its paint commands, such as a
+  `Drawing`, whose commands are a frame's shapes alone, as an SVG
   document (`src/shapes/svg.ts`), each shape as a canvas draws it, its
   colors with `cssHex()` and its alpha as its fill's or its stroke's
-  opacity, so a page shows the drawing a scene bakes, as an image or a CSS
-  mask. It imports nothing but `color`.
+  opacity, and each wash as an ellipse filled with a `<radialGradient>` of
+  its own in the document's `<defs>`, so a page shows the drawing a scene
+  bakes, as an image or a CSS mask. It imports nothing but `color`.
 - `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
   every game draws the one fuzzball, its faces, looks and fur posed by
   `@fz/style/fuzzball`'s geometry (`eyesOf()`, `combFur()`,
@@ -245,10 +254,18 @@ take the pure ones.
   that, as it is first called, makes a `data:` URL of each frame that
   records and lists of names give, in records and lists of the same shape,
   for How to play, and returns the same pictures after, so a scene hands its
-  shell a new one at each bake and encodes nothing a page doesn't show; and
+  shell a new one at each bake and encodes nothing a page doesn't show;
   `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one, its shapes
   played into the `Graphics` in turn, each in a fill or line style at its
-  alpha. It imports Phaser, never Angular.
+  alpha; and, in `src/scene/paint_canvas.ts`, `paintCommands()`, which
+  paints `PaintCommand`s on a canvas's 2D context, each shape call for call
+  as Phaser's canvas renderer plays what `atlasFrameOf()` gives a
+  `Graphics`, which its spec holds it to, and each wash with the context's
+  own radial gradient, each at its alpha under the context's, and
+  `paintTexture()`, which paints them into the canvas texture of a key
+  through `drawCanvasTexture()` and paints it again after a lost context,
+  as `bakeTexture()` does, for a picture with washes, such as a backdrop. It
+  imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL, or its URLs in several formats, of which
   Phaser's loader loads the first the browser plays), made in `create()` so
@@ -436,13 +453,15 @@ take the pure ones.
   runs in outlives it: through `src/scene/`'s helpers, or
   `whenSceneEnds()` for anything else.
 - **A texture drawn at run time with a `Graphics` goes through
-  `bakeTexture()` or `bakeAtlas()`,** so it is drawn again after a lost
-  context; one drawn otherwise, such as a filtered `DynamicTexture`,
-  redraws itself through `onContextRestored()`. A canvas texture drawn by
-  hand again under its own key goes through `drawCanvasTexture()` each
-  time, so each drawing uploads once, drawn; a canvas drawn once, then
-  added under a fresh key, as the Solitaire Collection's deck is
-  (`DrawnDeckPainter`), uploads once already and needs none of it.
+  `bakeTexture()` or `bakeAtlas()`,** and one painted from paint commands
+  through `paintTexture()`, so it is drawn again after a lost context, the
+  last way its key was drawn; one drawn otherwise, such as a filtered
+  `DynamicTexture`, redraws itself through `onContextRestored()`. A canvas
+  texture drawn by hand again under its own key goes through
+  `drawCanvasTexture()` each time, so each drawing uploads once, drawn; a
+  canvas drawn once, then added under a fresh key, as the Solitaire
+  Collection's deck is (`DrawnDeckPainter`), uploads once already and needs
+  none of it.
 - **No code bends to its specs.** The harness runs the renderer a browser
   does, so the library's code has no branch for a game with none.
 - **The canvas's stylesheet is unencapsulated,** to reach what an app

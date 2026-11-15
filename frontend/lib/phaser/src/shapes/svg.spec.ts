@@ -7,11 +7,12 @@ import {
   rect,
   ring,
   roundRect,
+  wash,
 } from "./shapes";
-import { type Drawing, svgOf } from "./svg";
+import { type Drawing, type Painting, svgOf } from "./svg";
 
 /** Returns a drawing written as SVG, read back by the browser's parser. */
-function parsed(drawing: Drawing): SVGSVGElement {
+function parsed(drawing: Painting): SVGSVGElement {
   const xml = new DOMParser().parseFromString(svgOf(drawing), "image/svg+xml");
   const root = xml.documentElement;
   if (!(root instanceof SVGSVGElement)) {
@@ -314,5 +315,100 @@ describe("svgOf", () => {
       r: "2.001",
       fill: "#000000",
     });
+  });
+});
+
+describe("svgOf's washes", () => {
+  /** A wash of two stops about a middle, unturned unless told. */
+  const WASH = wash(
+    { x: 20, y: 10, radiusX: 16, radiusY: 8, turn: 0 },
+    {
+      stops: [
+        { at: 0, color: 0x336699, alpha: 0.75 },
+        { at: 1, color: 0x336699, alpha: 0 },
+      ],
+    },
+  );
+
+  /** Returns the ellipses a drawing is written with, by their attributes. */
+  function ellipsesOf(drawing: Painting): Record<string, string>[] {
+    return Array.from(
+      parsed(drawing).querySelectorAll("ellipse"),
+      attributesOf,
+    );
+  }
+
+  /** Returns the radial gradients a drawing's defs hold, each its id and its stops' attributes. */
+  function gradientsOf(
+    drawing: Painting,
+  ): { readonly id: string; readonly stops: Record<string, string>[] }[] {
+    return Array.from(
+      parsed(drawing).querySelectorAll("defs > radialGradient"),
+      (gradient) => ({
+        id: gradient.id,
+        stops: Array.from(gradient.querySelectorAll("stop"), attributesOf),
+      }),
+    );
+  }
+
+  it("writes a wash as an ellipse filled with a radial gradient of its stops", () => {
+    const drawing = { width: 40, height: 20, commands: [WASH] };
+
+    expect({
+      ellipses: ellipsesOf(drawing),
+      gradients: gradientsOf(drawing),
+    }).toEqual({
+      ellipses: [
+        { cx: "20", cy: "10", rx: "16", ry: "8", fill: "url(#wash-0)" },
+      ],
+      gradients: [
+        {
+          id: "wash-0",
+          stops: [
+            { offset: "0", "stop-color": "#336699", "stop-opacity": "0.75" },
+            { offset: "1", "stop-color": "#336699", "stop-opacity": "0" },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("writes a wash at its alpha as its fill's opacity, and turned, in degrees, about its middle", () => {
+    const turned = { ...WASH, turn: Math.PI / 6, alpha: 1 / 3 };
+
+    const [ellipse] = ellipsesOf({ width: 40, height: 20, commands: [turned] });
+
+    expect(ellipse).toMatchObject({
+      "fill-opacity": "0.333",
+      transform: "rotate(30 20 10)",
+    });
+  });
+
+  it("gives each wash a gradient of its own, in the order they lie", () => {
+    const drawing = {
+      width: 40,
+      height: 20,
+      commands: [
+        WASH,
+        rect({ x: 0, y: 0, width: 4, height: 4 }, { color: 1 }),
+        WASH,
+      ],
+    };
+
+    expect({
+      fills: ellipsesOf(drawing).map((ellipse) => ellipse["fill"]),
+      ids: gradientsOf(drawing).map(({ id }) => id),
+      shapes: Array.from(parsed(drawing).children, (child) => child.localName),
+    }).toEqual({
+      fills: ["url(#wash-0)", "url(#wash-1)"],
+      ids: ["wash-0", "wash-1"],
+      shapes: ["defs", "ellipse", "rect", "ellipse"],
+    });
+  });
+
+  it("writes a drawing with no wash with no defs", () => {
+    const svg = svgOf(drawingOf(circle({ x: 2, y: 2 }, 1, { color: 0 })));
+
+    expect(svg).not.toContain("<defs>");
   });
 });
