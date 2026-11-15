@@ -279,16 +279,17 @@ take the pure ones.
   risen by some cents, through `play()`, made once for `@fz/core`'s
   `FrameSounds.playEach()` to take each frame; `hold()` loops a sound while
   a scene says it is held, as a key held down hums, and stops it once it is
-  let go, sound is turned off or the scene ends. Handed a `SpriteMixing`, a
-  `@fz/core/sound_mix` `SoundMix` and the source a play's variation is
-  drawn from (`Math.random` unless given), it plays by the mix: each sound
-  by the name the mix gives it, its takes in turn, named as `takeMarkers()`
-  names them, which it checks the sprite holds as it is made; a noisy
-  sound at a busy level varied; a play given a place across the field
-  (`play()`'s `across`, or `playAt()`, made once as `playRisen()` is,
-  which takes a volume too) panned; the voices of a sound, of its family
-  and in all held to `VOICES`, one of another sound that gives way
-  stopped; a `tick` or `small` sound played under a `huge` one ducked, the
+  let go, sound is turned off or the scene ends, and `holds()` says whether
+  it loops, as a headless game's specs, which hear nothing, ask. Handed a
+  `SpriteMixing`, a `@fz/core/sound_mix` `SoundMix` and the source a
+  play's variation is drawn from (`Math.random` unless given), it plays by
+  the mix: each sound by the name the mix gives it, its takes in turn,
+  named as `takeMarkers()` names them, which it checks the sprite holds as
+  it is made; a noisy sound at a busy level varied; a play given a place
+  across the field (`play()`'s `across`, or `playAt()`, made once as
+  `playRisen()` is, which takes a volume too) panned; the voices of a
+  sound, of its family and in all held to `VOICES`, one of another sound
+  that gives way stopped; a `tick` or `small` sound played under a `huge` one ducked, the
   take, the variation and the duck each play's `mixedPlay()` step; and a
   held sound by its first take, neither varied nor ducked. A mixed play
   starts from its marker's own config, every key of it reset, whatever the

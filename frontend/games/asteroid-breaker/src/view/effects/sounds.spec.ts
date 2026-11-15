@@ -21,7 +21,10 @@ import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   CHAIN_CENTS,
   CHARGED,
+  COMET_IN,
   CROWD,
+  FIRST_MOVE,
+  GUARD_END,
   LADDER,
   PLAY_ORDER,
   SOUNDS,
@@ -29,11 +32,14 @@ import {
   type SoundName,
   TAIL,
   THRUST,
+  THRUST_START,
+  THRUST_STOP,
   bellCentsOf,
   endSoundOf,
   ladderCentsOf,
   secondSoundOf,
   soundOf,
+  startSoundOf,
   volumeOf,
 } from "./sounds";
 
@@ -212,23 +218,20 @@ const EVERY_EVENT: readonly FieldEvent[] = [
 
 /**
  * The sounds of the sprite the view plays for nothing yet: no event the
- * field logs, and no change of its state, calls for them.
+ * field logs, and no change of its state, calls for them. The burrs wait
+ * on their rules, the line's twang on its turn; the lodestone's hum, a loop held as the thrust's is,
+ * has nothing to hold it yet; no rock that blasts comes small; and the
+ * stingers but a wave's start and its clearing, and the calls, are the
+ * shell's and the voice's to play.
  */
 const UNPLAYED: readonly SoundName[] = [
-  "comet-pass",
   "burr-cling",
   "burr-shed",
   "burr-pop",
   "lodestone-hum",
-  "slow-on",
   "tow-twang",
   "blast-volatile-small",
-  "thrust-start",
-  "thrust-stop",
-  "shield-up",
-  "guard-end",
   "run-start",
-  "wave-start",
   "sector-clear",
   "run-end",
   "new-best",
@@ -358,10 +361,16 @@ describe("soundOf", () => {
     const played = new Set([
       ...EVERY_EVENT.flatMap((event) => [soundOf(event), secondSoundOf(event)]),
       ...EFFECT_KINDS.map(endSoundOf),
+      ...EFFECT_KINDS.map(startSoundOf),
       LADDER,
       CROWD,
       TAIL,
       CHARGED,
+      THRUST_START,
+      THRUST_STOP,
+      FIRST_MOVE,
+      GUARD_END,
+      COMET_IN,
     ]);
 
     expect(
@@ -463,6 +472,17 @@ describe("endSoundOf", () => {
     ["guard", null],
   ] as const)("ends a %s effect's time with %s", (kind: EffectKind, sound) => {
     expect(endSoundOf(kind)).toBe(sound);
+  });
+});
+
+describe("startSoundOf", () => {
+  it.each([
+    ["guard", "shield-up"],
+    ["pace", "slow-on"],
+    ["weapon", null],
+    ["pull", null],
+  ] as const)("starts a %s effect with %s", (kind: EffectKind, sound) => {
+    expect(startSoundOf(kind)).toBe(sound);
   });
 });
 

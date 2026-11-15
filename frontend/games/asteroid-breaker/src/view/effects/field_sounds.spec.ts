@@ -4,9 +4,17 @@ import type { LoggedRock } from "../../rules/field/events";
 import { type Field, steerField } from "../../rules/field/field";
 import { endEffects } from "../../rules/rocks/pickups";
 import { STILL } from "../../rules/ship/ship";
-import { KEEPER, fieldFrom } from "../../testing/field_picture";
+import {
+  KEEPER,
+  catchOn,
+  fieldFrom,
+  placeComet,
+  shipOf,
+  stepTimes,
+} from "../../testing/field_picture";
 import {
   BURST_PULLS,
+  DASH_GUARD_STEPS,
   FieldSounds,
   MOST_BREAKS_HEARD,
   SPARK_RUN_STEPS,
@@ -528,7 +536,268 @@ describe("FieldSounds", () => {
     });
   });
 
+  describe("a new field", () => {
+    it("says nothing of how its state stands as it comes, then or after", () => {
+      let shown = fieldFrom(SHIP_PICTURE);
+      const frame = listenTo(() => shown);
+      frame();
+      const next = fieldFrom(SHIP_PICTURE);
+      shipOf(next).held.thrust = 1;
+      next.effects.guard.pickup = "shield";
+      shown = next;
+      frame();
+
+      const after = frame();
+
+      expect(after).toEqual([]);
+    });
+
+    it("hears how its state changes from the frame it came", () => {
+      let shown = fieldFrom(SHIP_PICTURE);
+      const frame = listenTo(() => shown);
+      frame();
+      const next = fieldFrom(SHIP_PICTURE);
+      shipOf(next).guardSteps = 100;
+      const comet = placeComet(next, 0, 5);
+      comet.warnSteps = 10;
+      shown = next;
+      frame();
+
+      shipOf(next).guardSteps = 0;
+      comet.warnSteps = 0;
+
+      expect(namesOf(frame())).toEqual(["comet-pass", "guard-end"]);
+    });
+
+    it("hears nothing of the last field's ship once one comes with none", () => {
+      let shown = fieldFrom(SHIP_PICTURE);
+      const frame = listenTo(() => shown);
+      shipOf(shown).held.thrust = 1;
+      shipOf(shown).guardSteps = 100;
+      frame();
+      shown = fieldFrom(KEEPER);
+      frame();
+
+      const after = frame();
+
+      expect(after).toEqual([]);
+    });
+  });
+
+  describe("the thrust", () => {
+    it("ticks as it is pressed, at the ship", () => {
+      const { field, frame } = shipField();
+
+      shipOf(field).held.thrust = 1;
+
+      expect(frame()).toEqual([
+        {
+          name: "thrust-start",
+          detune: 0,
+          across: shipAcross(field),
+          volume: 1,
+        },
+      ]);
+    });
+
+    it("ticks as it is let go, at the ship", () => {
+      const { field, frame } = shipField();
+      shipOf(field).held.thrust = 1;
+      frame();
+
+      shipOf(field).held.thrust = 0;
+
+      expect(frame()).toEqual([
+        {
+          name: "thrust-stop",
+          detune: 0,
+          across: shipAcross(field),
+          volume: 1,
+        },
+      ]);
+    });
+
+    it("ticks not at all while it is held, though a dash throws the ship", () => {
+      const { field, frame } = shipField();
+      shipOf(field).held.thrust = 1;
+      frame();
+
+      shipOf(field).dashSteps = 5;
+
+      expect(frame()).toEqual([]);
+    });
+
+    it("ticks not at all as the run ends while it is held", () => {
+      const { field, frame } = shipField();
+      shipOf(field).held.thrust = 1;
+      frame();
+
+      field.ship = null;
+
+      expect(frame()).toEqual([]);
+    });
+  });
+
+  describe("the first move", () => {
+    it("lifts the wave as the waiting ship first moves, at the ship", () => {
+      const { field, frame } = shipField();
+      shipOf(field).waiting = true;
+      frame();
+
+      shipOf(field).waiting = false;
+
+      expect(frame()).toEqual([
+        { name: "wave-start", detune: 0, across: shipAcross(field), volume: 1 },
+      ]);
+    });
+
+    it("lifts nothing as a ship brought to a run taken up, mid-wave, first moves", () => {
+      const { field, frame } = shipField();
+      field.steps = 100;
+      shipOf(field).waiting = true;
+      frame();
+
+      shipOf(field).waiting = false;
+
+      expect(frame()).toEqual([]);
+    });
+
+    it("lifts nothing while the ship waits", () => {
+      const { field, frame } = shipField();
+      shipOf(field).waiting = true;
+      frame();
+
+      expect(frame()).toEqual([]);
+    });
+  });
+
+  describe("the ship's guard", () => {
+    it("ticks as a guard longer than a dash's runs out, at the ship", () => {
+      const { field, frame } = shipField();
+      shipOf(field).guardSteps = DASH_GUARD_STEPS + 1;
+      frame();
+
+      shipOf(field).guardSteps = 0;
+
+      expect(frame()).toEqual([
+        { name: "guard-end", detune: 0, across: shipAcross(field), volume: 1 },
+      ]);
+    });
+
+    it("ticks not at all as a dash's runs out", () => {
+      const { field, frame } = shipField();
+      shipOf(field).guardSteps = DASH_GUARD_STEPS;
+      frame();
+
+      shipOf(field).guardSteps = 0;
+
+      expect(frame()).toEqual([]);
+    });
+
+    it("ticks not at all while it runs", () => {
+      const { field, frame } = shipField();
+      shipOf(field).guardSteps = 100;
+      frame();
+
+      shipOf(field).guardSteps = 50;
+
+      expect(frame()).toEqual([]);
+    });
+
+    it("ticks once, after it runs out, though a dash's starts inside it", () => {
+      const { field, frame } = shipField();
+      shipOf(field).guardSteps = 100;
+      frame();
+      shipOf(field).guardSteps = DASH_GUARD_STEPS;
+      frame();
+
+      shipOf(field).guardSteps = 0;
+
+      expect(namesOf(frame())).toEqual(["guard-end"]);
+    });
+
+    it("ticks not at all as the run ends under it", () => {
+      const { field, frame } = shipField();
+      shipOf(field).guardSteps = 100;
+      frame();
+
+      field.ship = null;
+
+      expect(frame()).toEqual([]);
+    });
+  });
+
+  describe("a comet", () => {
+    it("rushes in as its warning is over, where it comes in", () => {
+      const { field, frame } = shipField();
+      placeComet(field, 0, 5).warnSteps = 2;
+      frame();
+
+      stepTimes(field, 2);
+
+      expect(frame()).toEqual([
+        { name: "comet-pass", detune: 0, across: -1, volume: 1 },
+      ]);
+    });
+
+    it("rushes not at all while it is warned of", () => {
+      const { field, frame } = shipField();
+      placeComet(field, 0, 5).warnSteps = 10;
+      frame();
+
+      stepTimes(field, 2);
+
+      expect(frame()).toEqual([]);
+    });
+
+    it("rushes not at all as the wave is cleared before it comes in", () => {
+      const { field, frame } = shipField();
+      const comet = placeComet(field, 0, 5);
+      comet.warnSteps = 10;
+      frame();
+
+      comet.live = false;
+
+      expect(frame()).toEqual([]);
+    });
+  });
+
   describe("an effect", () => {
+    it.each([
+      ["shield", "pickup-shield", "shield-up"],
+      ["slow", "pickup-slow", "slow-on"],
+    ] as const)(
+      "plays, as a %s caught starts it, its catch and its start: %s and %s",
+      (pickup, caught, started) => {
+        const { field, frame } = shipField();
+
+        catchOn(field, pickup);
+
+        expect(namesOf(frame())).toEqual([caught, started]);
+      },
+    );
+
+    it.each(["spread", "magnet"] as const)(
+      "plays, as a %s caught starts it, its catch alone",
+      (pickup) => {
+        const { field, frame } = shipField();
+
+        catchOn(field, pickup);
+
+        expect(namesOf(frame())).toEqual([`pickup-${pickup}`]);
+      },
+    );
+
+    it("plays no start as one of its group caught starts its time over", () => {
+      const { field, frame } = shipField();
+      catchOn(field, "slow");
+      frame();
+
+      catchOn(field, "slow");
+
+      expect(namesOf(frame())).toEqual(["pickup-slow"]);
+    });
+
     it.each([
       ["weapon", "spread", "effect-end"],
       ["pull", "magnet", "effect-end"],

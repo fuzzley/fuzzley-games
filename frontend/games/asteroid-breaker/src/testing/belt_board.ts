@@ -9,9 +9,8 @@ import type { Steer } from "../rules/ship/ship";
 import { createFieldClock } from "../rules/stepper";
 import type { Place } from "../rules/torus";
 import {
-  type BeltScene,
+  BeltScene,
   type BeltSceneOptions,
-  SOUNDS_KEY,
   makeBeltScene,
 } from "../scene/belt_scene";
 import type { Copies } from "../scene/painters/copies";
@@ -19,6 +18,7 @@ import type { Pictures } from "../view/art/art";
 import { type PointsFont, letteringUnit } from "../view/art/points_art";
 import { bakedScale } from "../view/art/shapes";
 import { type BeltPalette, beltPalette } from "../view/colors/palette";
+import { SOUND_NAMES } from "../view/effects/sounds";
 import {
   type BoardSetting,
   type FieldLayout,
@@ -415,8 +415,14 @@ export function layersOf(
   return new Map(layers.map((layer, i) => [LAYERS[i] ?? "", layer]));
 }
 
-/** Returns how many of the scene's sounds it holds, looping, not yet let go: its hums. */
+/**
+ * Returns how many of the belt scene's sounds it holds, looping, not yet
+ * let go: its hums, apart from the sounds made for its plays.
+ *
+ * @throws {Error} For a scene that isn't the belt.
+ */
 export function humsIn(scene: Scene): number {
-  return scene.sound.getAll(SOUNDS_KEY).filter((sound) => !sound.pendingRemove)
-    .length;
+  if (!(scene instanceof BeltScene)) throw new Error("Not the belt.");
+  const { sounds } = scene.kit;
+  return SOUND_NAMES.filter((name) => sounds.holds(name)).length;
 }

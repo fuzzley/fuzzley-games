@@ -227,6 +227,21 @@ export const TAIL: SoundName = "shot-tail";
 /** The tick the dash makes as it has charged again. */
 export const CHARGED: SoundName = "dash-ready";
 
+/** The tick the thrust makes as it is pressed. */
+export const THRUST_START: SoundName = "thrust-start";
+
+/** The tick the thrust makes as it is let go. */
+export const THRUST_STOP: SoundName = "thrust-stop";
+
+/** The lift a wave starts with, at the player's first move. */
+export const FIRST_MOVE: SoundName = "wave-start";
+
+/** The tick the ship's untouchable time ends with. */
+export const GUARD_END: SoundName = "guard-end";
+
+/** The rush a comet comes in with, its warning over. */
+export const COMET_IN: SoundName = "comet-pass";
+
 /**
  * How far each sound plays from its level, in decibels, where it isn't
  * there: the Rapid's shot 3 dB under the gun's, as twice as many are heard.
@@ -293,6 +308,23 @@ const END_SOUNDS: Readonly<Record<EffectKind, SoundName | null>> = {
 /** Returns the sound an effect of a group plays as its time runs out, or null for none. */
 export function endSoundOf(kind: EffectKind): SoundName | null {
   return END_SOUNDS[kind];
+}
+
+/**
+ * The sound each lasting effect plays as a pickup caught starts it, beside
+ * the catch's own, or null for none: the Shield raised, and the field
+ * slowing; a weapon and the Magnet are heard by their catch alone.
+ */
+const START_SOUNDS: Readonly<Record<EffectKind, SoundName | null>> = {
+  weapon: null,
+  guard: "shield-up",
+  pull: null,
+  pace: "slow-on",
+};
+
+/** Returns the sound an effect of a group plays as a pickup caught starts it, or null for none. */
+export function startSoundOf(kind: EffectKind): SoundName | null {
+  return START_SOUNDS[kind];
 }
 
 /** Gives a sound for each size a kind of rock comes in. */

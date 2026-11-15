@@ -425,42 +425,46 @@ takes for the specs' helpers.
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says which flourishes each event calls for, with motion and
-  without (`effectsOf()`); `sounds.ts` every sound of the sprite, the
-  plan's but the beds, by name, each with its family, level, takes and
-  whether it is tuned, its family's (`SOUNDS`, the mix the scene hands its
-  player, and `SoundTake`, a take's name in the sprite), which sound each
-  event plays (`soundOf()`), a rock's break by its kind and size, a catch by
-  its pickup, a pull of fire by its weapon, static rising to a step by the
-  multiplier's chime it reaches or full's (`static-full`), and falling to
-  one by its fall (`static-down`), a spark gathered `spark`, a near miss
-  `near-miss`, a zap `zap-dash` and each of its arcs `zap-arc`, and the one
-  after it, where it has one (`secondSoundOf()`: the line snapping as one
-  is knocked loose), the ladder (`CHAIN_CENTS`, the kit's, copied, and
-  `ladderCentsOf()`) and the note of it a break's bell rings at for
-  static's multiplier it scored at (`bellCentsOf()`), what an effect plays
-  as its time runs out (`endSoundOf()`), the volume each plays at
-  (`volumeOf()`: the Rapid's shot 3 dB under the gun's), and the order a
-  frame plays them in, the loudest level first (`PLAY_ORDER`); the
-  thrust's hum (`THRUST`) is one of them, which no event plays, and so is
-  each sound nothing calls for yet. `field_sounds.ts`' `FieldSounds`
-  gathers a frame's: each event's sounds, where it happened across the
-  field (`@fz/core/sound_mix`'s `acrossOf()`), a bell at the highest of
-  static's multipliers the frame's breaks scored at, more than three
-  breaks a frame as the largest two and `break-cluster`, each spark
-  gathered the next note of the ladder, an octave under the bell's, in a
-  run of sparks each within static's hold of the last, in the field's
-  steps (`SPARK_RUN_STEPS`), which a fall of static or a new field ends, a
-  zap in place of the dash that set it off, and what the field's state
-  says by how it changed since the frame before (fire let go just after a
-  burst, `shot-tail`; the dash ready again, `dash-ready`, by
-  `isDashReady()`; an effect run out); then plays each once, at
-  the most it rose, the loudest first, making nothing. `flourish.ts` says
-  how each flourish moves over its time, beside `@fz/core/math`'s
-  `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), among them
-  how far the kick and the shake scroll the field's camera (`cameraShift()`)
-  and when a dash lays each of its outlines (`trailOutlinesLaid()`), and how
-  the pickups breathe, a stray bobs, a comet's warning pulses and the pod's
-  exhaust streams (`exhaustDue()`), each only where motion is welcome;
+  without (`effectsOf()`); `sounds.ts` every sound of the sprite, the plan's
+  but the beds, by name, each with its family, level, takes and whether it
+  is tuned, its family's (`SOUNDS`, the mix the scene hands its player, and
+  `SoundTake`, a take's name in the sprite), which sound each event plays
+  (`soundOf()`), a rock's break by its kind and size, a catch by its pickup,
+  a pull of fire by its weapon, static rising to a step by the multiplier's
+  chime it reaches or full's (`static-full`), and falling to one by its fall
+  (`static-down`), a spark gathered `spark`, a near miss `near-miss`, a zap
+  `zap-dash` and each of its arcs `zap-arc`, and the one after it, where it
+  has one (`secondSoundOf()`: the line snapping as one is knocked loose),
+  the ladder (`CHAIN_CENTS`, the kit's, copied, and `ladderCentsOf()`) and
+  the note of it a break's bell rings at for static's multiplier it scored
+  at (`bellCentsOf()`), what an effect plays as a pickup caught starts it
+  (`startSoundOf()`: the Shield raised, the field slowing) and as its time
+  runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
+  Rapid's shot 3 dB under the gun's), and the order a frame plays them in,
+  the loudest level first (`PLAY_ORDER`); the thrust's hum (`THRUST`) is one
+  of them, which no event plays, and so is each sound nothing calls for yet.
+  `field_sounds.ts`' `FieldSounds` gathers a frame's: each event's sounds,
+  where it happened across the field (`@fz/core/sound_mix`'s `acrossOf()`),
+  a bell at the highest of static's multipliers the frame's breaks scored
+  at, more than three breaks a frame as the largest two and `break-cluster`,
+  each spark gathered the next note of the ladder, an octave under the
+  bell's, in a run of sparks each within static's hold of the last, in the
+  field's steps (`SPARK_RUN_STEPS`), which a fall of static or a new field
+  ends, a zap in place of the dash that set it off, and what the field's
+  state says by how it changed since the frame before (fire let go just
+  after a burst, `shot-tail`; and at the ship the thrust pressed and let go,
+  `thrust-start` and `thrust-stop`, the player's first move, `wave-start`,
+  the dash ready again, `dash-ready`, by `isDashReady()`, a guard longer
+  than a dash's over, `guard-end` (`DASH_GUARD_STEPS`), and an effect
+  started or run out; and a comet come in, its warning over, `comet-pass`,
+  where it comes in); then plays each once, at the most it rose, the loudest
+  first, making nothing. `flourish.ts` says how each flourish moves over its
+  time, beside `@fz/core/math`'s `shareDone()` and its curves
+  (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
+  shake scroll the field's camera (`cameraShift()`) and when a dash lays
+  each of its outlines (`trailOutlinesLaid()`), and how the pickups breathe,
+  a stray bobs, a comet's warning pulses and the pod's exhaust streams
+  (`exhaustDue()`), each only where motion is welcome;
   `timing.ts` how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,
