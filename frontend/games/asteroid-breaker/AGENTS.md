@@ -501,8 +501,13 @@ takes for the specs' helpers.
   game's own for each kind of rock, in light palettes and in dark, and the
   eight pilots' from `@fz/phaser/color`'s `FUZZBALL_INKS`, and gives a
   pilot's ink to the shell too, in CSS hex (`pilotInk()`), with each kind
-  of rock's tones (`rockTones`) and the light of the palette's mode
-  (`rockLight`). `tones.ts`
+  of rock's tones (`rockTones`), the light of the palette's mode
+  (`rockLight`), how strongly a halo shows in it, whole in a dark
+  palette and as a tint, 0.62, on a light one's white field
+  (`haloStrength`, by `HALO_STRENGTH`), and the color of each light a rock
+  gives off, a crystal's gems' in its ink and a volatile rock's core's in
+  its pale gold, sunk toward the rock's ink in a light palette
+  (`rockGlows`). `tones.ts`
   mixes the four tones of an ink a rock's marks are drawn in, lit, its
   own, shaded and deep, with white and the palette's field or its text
   (`tonesOf()`), each channel rounded as the art kit rounds it
@@ -578,6 +583,12 @@ takes for the specs' helpers.
   (`sparksFrames()`), a pilot adrift's fur and its fright
   (`ADRIFT_FRAMES`), and each seat's eyes at each face (`eyesFrame()`),
   moved the way it looks (`eyesShift()`);
+  `energy.ts` the halos of what gives off light, each a soft ellipse about
+  its thing as it points, ahead of it and turned from it as far as it says
+  (`Halo`, `roundHalo()`), shown as strongly as a palette lets it
+  (`haloAlpha()`): a crystal's gems' and a volatile rock's core's, each
+  rock's from its shape's glows, turning with it (`rockHalos()`), as many
+  at most as `MOST_ROCK_HALOS`;
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -643,6 +654,15 @@ takes for the specs' helpers.
   bleed, each flash shown as strongly as its flicker is at the field's
   step, under what stands before it, and nothing moving where motion isn't
   welcome, `FieldPainter` the frame,
+  `HaloPainter` the halos of what gives off light, each an image of one
+  soft disc painted once (`HALO_DISC`, through `@fz/phaser/scene`'s
+  `softDisc()`), tinted, turned, scaled and faded under plain alpha, never
+  an additive blend, on the `halos` layer, over the place and the field and
+  under the tags and the rocks, so none covers what it glows round,
+  made as many as all a field's rocks could give off at once, and as many
+  more as another painter reserves (`reserve()`) to show its own after it
+  draws, through `glow()`, or `glowOnce()` for a thing that crosses rather
+  than wraps, shown once where it lies, as `Copies`' `showOnce()` shows it,
   `TagPainter` the tags of the effects in play, `RockPainter` the rocks,
   lit, each in the frame of the hits it has taken, and a held hit's flash,
   a light at its rock's edge toward the ship that lights the faces struck,

@@ -10,9 +10,10 @@ import { recordOf } from "@fz/core/records";
 import { ROCK_KIND_IDS, type RockKindId } from "../../rules/catalog/rocks";
 import type { Pilot } from "../../rules/ship/pilots";
 import type { RockLight } from "../art/rocks/light";
+import type { RockGlow } from "../art/rocks/rock_shape";
 import { DARK_ROCK_INKS, LIGHT_ROCK_INKS } from "./inks";
 import { ROCK_LIGHTS } from "./rock_light";
-import { type Tones, tonesOf } from "./tones";
+import { type Tones, mixTone, tonesOf } from "./tones";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -91,6 +92,19 @@ export interface BeltPalette {
   readonly pilots: readonly number[];
   /** A pilot's eyes, as the fuzzball has them. */
   readonly eyes: number;
+  /**
+   * How strongly every halo shows, over its own strength: whole on a dark
+   * field, and less on a white one, where a halo is a tint
+   * ({@link HALO_STRENGTH}).
+   */
+  readonly haloStrength: number;
+  /**
+   * The color of each light a rock gives off, which its halo is tinted in:
+   * a crystal's gems' in its ink, and a volatile rock's core's in its pale
+   * gold, sunk toward the rock's own ink in a light palette
+   * ({@link LIGHT_CORE_GLOW}).
+   */
+  readonly rockGlows: Readonly<Record<RockGlow["tone"], number>>;
 }
 
 /** How much of the field's text a stray's bubble takes over the field. */
@@ -104,6 +118,23 @@ export const BUBBLE_RIM = 0.5;
 
 /** How much of the field's text the stick's base and the buttons at rest take over the field. */
 export const DECK_WASH = 0.05;
+
+/**
+ * How strongly a halo shows in each mode, as the art kit has it: whole in a
+ * dark palette, where it brightens what it lies on, and less in a light one,
+ * whose white field it tints, as light added to white would show nothing.
+ */
+export const HALO_STRENGTH: Readonly<Record<ColorMode, number>> = {
+  light: 0.62,
+  dark: 1,
+};
+
+/**
+ * How far a volatile rock's core's glow is mixed toward the rock's ink in a
+ * light palette, as the kit mixes it, since a gold so pale would tint the
+ * white field nothing.
+ */
+export const LIGHT_CORE_GLOW = 0.35;
 
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
 export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
@@ -137,6 +168,14 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
     rockLight: ROCK_LIGHTS[mode],
     pilots: FUZZBALL_INKS[mode],
     eyes: colorNumber(FUZZBALL.ink),
+    haloStrength: HALO_STRENGTH[mode],
+    rockGlows: {
+      gem: rocks.kinds.crystal,
+      core:
+        mode === "light"
+          ? mixTone(rocks.core, rocks.kinds.volatile, LIGHT_CORE_GLOW)
+          : rocks.core,
+    },
   };
 }
 

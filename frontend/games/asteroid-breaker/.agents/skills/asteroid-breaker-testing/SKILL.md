@@ -264,9 +264,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 ## The Scene
 
-`src/scene/belt_scene.spec.ts`, `src/scene/flourishes.spec.ts` and
-`src/scene/flourish_player.spec.ts` run the real scene in a headless Phaser
-game through `runScene()`:
+`src/scene/belt_scene.spec.ts`, `src/scene/flourishes.spec.ts`,
+`src/scene/flourish_player.spec.ts` and a painter's own beside it, such as
+`src/scene/painters/halo_painter.spec.ts`, run the real scene in a headless
+Phaser game through `runScene()`:
 
 - `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,

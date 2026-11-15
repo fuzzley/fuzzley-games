@@ -1,10 +1,11 @@
 import { LAYERS, drawnBy } from "./layers";
 
 describe("LAYERS", () => {
-  it("lists the layers back to front: the place, the field, the tags, a broken rock's dust and shards, the rocks, all that flies among them, the ship, a held hit's flash, the flourishes, the points, then the frame and the deck", () => {
+  it("lists the layers back to front: the place, the field, the halos, the tags, a broken rock's dust and shards, the rocks, all that flies among them, the ship, a held hit's flash, the flourishes, the points, then the frame and the deck", () => {
     expect(LAYERS).toEqual([
       "place",
       "field",
+      "halos",
       "tags",
       "breaks",
       "rocks",
@@ -31,6 +32,7 @@ describe("drawnBy", () => {
     expect(drawnBy("field")).toEqual([
       "place",
       "field",
+      "halos",
       "tags",
       "breaks",
       "rocks",
