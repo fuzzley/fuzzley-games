@@ -5,8 +5,10 @@ import { IconComponent } from "@fz/ui/icon";
  * Makes a button among the bar's actions its Skip, which lands the flight at
  * once: round, and dimmed while there is no flight.
  *
- * It dims and keeps the focus where it was as {@link FastForwardComponent}
- * does.
+ * Dimmed is `aria-disabled` rather than disabled, as `@fz/game-ui`'s Pause
+ * is, so the focus never falls off it, and a press on it then does nothing.
+ * A press with a mouse or a finger leaves the focus where it was, on the
+ * board, so the keys go on steering.
  */
 @Component({
   selector: "button[appSkip]",
@@ -23,7 +25,8 @@ import { IconComponent } from "@fz/ui/icon";
 export class SkipComponent {
   /**
    * Whether a flight is under way, paused or not: only then does a press do
-   * anything, as {@link FastForwardComponent}'s `flying` says.
+   * anything. Paused counts, since a player who tabs here from the board
+   * leaves the play room, which pauses the run.
    */
   readonly flying = input.required<boolean>();
 

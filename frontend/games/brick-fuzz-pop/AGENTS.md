@@ -412,8 +412,9 @@ helpers.
     `figures.ts`'s `showsEveryFigure()` says, which the board reads too, the
     lintel's count hidden where the bar counts the rows. Every action is
     round; Pause, Fast-forward (`button[appFastForward]`) and Skip
-    (`button[appSkip]`) stay at every size, the two dimmed while there is no
-    flight, and on a compact screen Sound, Levels, New game, How to play and
+    (`button[appSkip]`) stay at every size, Skip dimmed while there is no
+    flight and Fast-forward a switch, live at any time and pressed while it
+    is on, and on a compact screen Sound, Levels, New game, How to play and
     Settings move into the overflow menu. Every round action but Pause, which
     its words name, is named by its tooltip alone, with no `aria-label` to
     say it again, so a screen reader says its name once. How to play shows
@@ -482,9 +483,11 @@ helpers.
     "by the pointer" kept from before, which had a finger pull back, is read
     as pointing and holding), the flight's speed, long flights sped up, the
     aim guide, sound and the palette, each applied at once; `SettingsService`
-    keeps them. Where `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a
-    development build and in a production one at `?debug`, the debug menu
-    follows them, loaded only there, so a page that doesn't offer it never
+    keeps them, and whether fast-forward is on, which has no control in the
+    drawer, the bar's Fast-forward being its control. Where
+    `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
+    and in a production one at `?debug`, the debug menu follows them, loaded
+    only there, so a page that doesn't offer it never
     loads it, the drawer saying it is loading till it comes, and a load that
     fails said through the announcer, in the drawer's own live region, while
     the drawer is open, and tried again as it opens; the drawer hands on the
@@ -537,7 +540,9 @@ helpers.
     round released through the rules and back through one `RoundPlay`,
     lays the field out on the board's room between rounds, gives the scene
     its options and the guide (`guide()`), says what happens and keeps the
-    records. The bar's rounds and score follow the playback, though the
+    records. It plays every flight fast while fast-forward is on, a setting
+    the bar's Fast-forward switches (`fastForward()`), and a flight while F
+    is held. The bar's rounds and score follow the playback, though the
     run takes a round in as it is released: a round counts as its flight
     lands, each break's points as the flight plays it back, and a jump's
     and the stars' as it lands. It hands the board the card to show
@@ -586,7 +591,9 @@ Each entry is in `localStorage`, versioned, through `@fz/ui/storage`, and
 its reader drops what it can't trust rather than failing:
 
 - `brick-fuzz-pop-settings` (version 1): how a pointer aims, the flight's
-  speed, whether long flights speed up, the aim guide and sound.
+  speed, whether long flights speed up, the aim guide, sound, and whether
+  fast-forward is on, read as off where an entry kept before it was offered
+  lacks it.
 - `brick-fuzz-pop-stats` (version 1): the runs, the best run's score and
   the furthest level reached; and for each level's id, its best points,
   its stars' among them, its fewest rounds and its most stars. Ids no

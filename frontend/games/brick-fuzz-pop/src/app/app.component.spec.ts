@@ -285,20 +285,18 @@ describe("AppComponent", () => {
       expect(game.outcome()).toBe("playing");
     });
 
-    it("plays the flight in the air fast", async () => {
-      const { game, user, settle } = await renderApp("step");
-      release(game);
-      await settle();
+    it("switches fast-forward on while aiming", async () => {
+      const { game, user } = await renderApp("step");
 
       await user.click(barButton("Fast-forward"));
 
       expect(game.fast()).toBe(true);
     });
 
-    it("stops playing the flight in the air fast", async () => {
+    it("switches fast-forward off with a flight in the air", async () => {
       const { game, user, settle } = await renderApp("step");
+      game.fastForward();
       release(game);
-      game.fastForward(true);
       await settle();
 
       await user.click(barButton("Fast-forward"));
@@ -306,11 +304,10 @@ describe("AppComponent", () => {
       expect(game.fast()).toBe(false);
     });
 
-    it("shows a flight in the air playing fast", async () => {
+    it("shows fast-forward on, pressed", async () => {
       const { game, settle } = await renderApp("step");
-      release(game);
-      game.fastForward(true);
 
+      game.fastForward();
       await settle();
 
       expect(barButton("Fast-forward")).toHaveAttribute("aria-pressed", "true");

@@ -18,7 +18,7 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player pointing and holding at Normal, long flights sped up, with the guide and sound", () => {
+  it("starts a new player pointing and holding at Normal, long flights sped up, with the guide and sound, and fast-forward off", () => {
     const settings = TestBed.inject(SettingsService);
 
     expect(settings.settings()).toEqual({
@@ -27,6 +27,7 @@ describe("SettingsService", () => {
       speedUpLongFlights: true,
       guide: true,
       sound: true,
+      fastForward: false,
     });
   });
 
@@ -50,6 +51,7 @@ describe("SettingsService", () => {
       speedUpLongFlights: false,
       guide: false,
       sound: false,
+      fastForward: true,
     } as const;
     TestBed.inject(SettingsService).update(kept);
 
@@ -69,6 +71,7 @@ describe("SettingsService", () => {
       speedUpLongFlights: "no",
       guide: false,
       sound: 0,
+      fastForward: "on",
     });
 
     const settings = TestBed.inject(SettingsService);
@@ -77,6 +80,17 @@ describe("SettingsService", () => {
       ...DEFAULT_SETTINGS,
       flightSpeed: "fast",
       guide: false,
+    });
+  });
+
+  it("takes fast-forward kept on", () => {
+    store({ version: 1, fastForward: true });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({
+      ...DEFAULT_SETTINGS,
+      fastForward: true,
     });
   });
 
@@ -109,6 +123,21 @@ describe("SettingsService", () => {
     });
   });
 
+  it("reads fast-forward as off in settings kept before it was offered", () => {
+    const before = {
+      aiming: "pullBack",
+      flightSpeed: "fast",
+      speedUpLongFlights: false,
+      guide: false,
+      sound: false,
+    } as const;
+    store({ version: 1, ...before });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({ ...before, fastForward: false });
+  });
+
   it("points and holds where the player kept aiming by the pointer, no longer offered", () => {
     store({ version: 1, aiming: "byPointer", guide: false });
 
@@ -129,6 +158,7 @@ describe("SettingsService", () => {
       speedUpLongFlights: false,
       guide: false,
       sound: false,
+      fastForward: true,
     });
 
     const settings = TestBed.inject(SettingsService);
