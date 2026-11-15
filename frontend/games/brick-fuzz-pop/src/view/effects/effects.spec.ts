@@ -18,6 +18,7 @@ import {
   createFrameSounds,
   detuneOf,
   flourishesOf,
+  notchDetuneOf,
 } from "./effects";
 
 /** When the events made here happen, but where a spec says. */
@@ -349,6 +350,22 @@ describe("detuneOf", () => {
 
   it("raises no other event's sound", () => {
     expect(detuneOf(strike([1, 2]))).toBe(0);
+  });
+});
+
+describe("notchDetuneOf", () => {
+  it.each([
+    [1, 0],
+    [2, 100],
+    [3, 200],
+    [4, 300],
+    [5, 400],
+  ] as const)("raises the notch of charge %i by %i cents", (charge, cents) => {
+    expect(notchDetuneOf(charge)).toBe(cents);
+  });
+
+  it("raises a charge of none, which ticks no notch, no lower than the first", () => {
+    expect(notchDetuneOf(0)).toBe(0);
   });
 });
 

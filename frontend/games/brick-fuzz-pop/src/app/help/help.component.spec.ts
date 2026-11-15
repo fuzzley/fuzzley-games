@@ -181,6 +181,14 @@ describe("HelpComponent", () => {
     );
   });
 
+  it("says the charge shows over a finger on a touch screen too, and rises in pitch", async () => {
+    await renderHelp();
+
+    expect(paragraph("Charge.")).toHaveTextContent(
+      "As you charge, the pips under the waiting fuzzball light up, and on a touch screen over your finger too; each notch ticks a step higher as the charge climbs, and lower as it falls.",
+    );
+  });
+
   it("charges a held button up to the most a fuzzball holds", async () => {
     await renderHelp();
 

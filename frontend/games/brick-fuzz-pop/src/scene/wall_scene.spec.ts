@@ -4577,26 +4577,26 @@ describe("WallScene", () => {
       );
     });
 
-    it("tick a notch as the charge rises and falls, but not to none, while the fuzzball waits", async () => {
+    it("tick a notch as the charge rises and falls, a semitone higher for each notch over the first, but not to none, while the fuzzball waits", async () => {
       const { run, scene } = await startBoard((shell) => {
         shell.waiting = 3;
       });
       const played = vi.spyOn(scene.sounds, "playRisen");
 
-      run.key("keydown", "ArrowUp", "ArrowUp");
-      run.advance(16);
-      run.key("keydown", "ArrowUp", "ArrowUp");
-      run.advance(16);
-      run.key("keydown", "ArrowDown", "ArrowDown");
-      run.advance(16);
-      run.key("keydown", "ArrowDown", "ArrowDown");
-      run.advance(16);
+      for (const key of [
+        ...Array.from({ length: MOST_CHARGE }, () => "ArrowUp"),
+        ...Array.from({ length: MOST_CHARGE }, () => "ArrowDown"),
+      ]) {
+        run.key("keydown", key, key);
+        run.advance(16);
+      }
 
-      expect(played.mock.calls).toEqual([
-        ["notch", 0],
-        ["notch", 0],
-        ["notch", 0],
-      ]);
+      expect(played.mock.calls).toEqual(
+        [0, 100, 200, 300, 400, 300, 200, 100, 0].map((cents) => [
+          "notch",
+          cents,
+        ]),
+      );
     });
 
     it.each<[string, (shell: FakeShell) => void]>([

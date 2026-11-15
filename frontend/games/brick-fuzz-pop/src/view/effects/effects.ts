@@ -1,6 +1,6 @@
 import { FrameSounds } from "@fz/core/frame_sounds";
 import type { FlightEvent, TurnOff } from "../../rules/flight/events";
-import type { Boon } from "../../rules/shot";
+import type { Boon, Charge } from "../../rules/shot";
 import { AT_ONCE } from "../../rules/tuning";
 
 /** The game's twenty-one sounds, in the order the sprite holds them. */
@@ -36,6 +36,9 @@ export const BREAK_STEP_CENTS = 100;
 
 /** The most a round raises a broken brick's sound, in cents: an octave. */
 export const BREAK_MOST_CENTS = 1200;
+
+/** How far the notch rises for each notch of charge over the first, in cents: a semitone, as a break's for each brick. */
+const NOTCH_STEP_CENTS = 100;
 
 /**
  * Names a flourish the scene plays: a struck brick's swell, a broken one's
@@ -234,6 +237,15 @@ export function detuneOf(event: Readonly<FlightEvent>): number {
 /** Returns how far the round's `streak`th broken brick's sound is raised, in cents. */
 export function breakDetune(streak: number): number {
   return Math.min((streak - 1) * BREAK_STEP_CENTS, BREAK_MOST_CENTS);
+}
+
+/**
+ * Returns how far the notch a charge comes to is raised, in cents: a
+ * semitone for each notch over the first, so the charge is heard climbing
+ * and falling; none at a charge of none, which ticks no notch.
+ */
+export function notchDetuneOf(charge: Charge): number {
+  return Math.max(charge - 1, 0) * NOTCH_STEP_CENTS;
 }
 
 /** Returns what gathers a frame's sounds, so each of {@link SOUNDS} plays once a frame at most, at the most it rose. */
