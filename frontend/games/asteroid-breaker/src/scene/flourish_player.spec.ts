@@ -204,10 +204,20 @@ describe("FlourishPlayer", () => {
     player.play("flash", event, context);
     scene.kit.rocks.draw(context);
 
-    const [flash] = scene.kit.rocks.flash.images;
-    expect(flash && shownAt(flash)).toEqual(
-      onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
+    // The keeper's field has no ship, so the flash stands toward the field's light.
+    const { way } = context.palette.rockLight;
+    const reach = ROCK_RADIUS.medium / Math.hypot(way.x, way.y);
+    const edge = onCanvas(
+      context.metrics,
+      MIDDLE.x + way.x * reach,
+      MIDDLE.y + way.y * reach,
     );
+    const [flash] = scene.kit.rocks.flashes;
+    expect([flash.visible, flash.x, flash.y]).toEqual([
+      true,
+      expect.closeTo(edge.x, 9),
+      expect.closeTo(edge.y, 9),
+    ]);
   });
 
   it("kicks the field's camera the way the blow came", async () => {

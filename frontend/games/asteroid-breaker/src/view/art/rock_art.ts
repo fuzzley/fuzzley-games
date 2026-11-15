@@ -1,23 +1,21 @@
-// The rocks: each kind in each size it comes in, in each of its outlines,
-// with its kind's marks, and over it, once it has taken hits and held, a
-// frame for how many, which every outline of its kind and size shares.
+// The rocks: each kind in each size it comes in, in each of its outlines, cut
+// in facets (`rocks/`), whole and with each count of hits it can take and
+// hold shown as cracks; each frame drawn twice, in its inks and as its
+// normal map, which the scene bakes into an atlas of their own and lights
+// with the palette's light.
 
-import { createRandom } from "@fz/core/random";
 import { recordOf } from "@fz/core/records";
 import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
-  type FillStyle,
-  ORIGIN,
   type Point,
+  bandAlong,
   centered,
   circle,
-  lineWidth,
   placed,
   polygon,
-  quadraticPoints,
-  scaledBy,
+  rect,
   stroke,
 } from "@fz/phaser/shapes";
 import {
@@ -30,88 +28,29 @@ import {
 import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
+import type { Tones } from "../colors/tones";
+import { cracksOf } from "./rocks/cracks";
+import { FLAT } from "./rocks/cut";
+import { normalColor } from "./rocks/light";
+import { type RockLine, type RockShape, makeRock } from "./rocks/rock_shape";
+import type { Facing } from "./rocks/space";
 import { MOST_LINE, MOST_MITER, outlineWidth, outward } from "./shapes";
 
-/** Says how a kind of rock's outlines are drawn from their seeds. */
-interface OutlineStyle {
-  /** The fewest points an outline has. */
-  readonly fewest: number;
-  /** The most points an outline has. */
-  readonly most: number;
-  /** The least share of the radius a point lies at; each lies from there to the whole radius. */
-  readonly inner: number;
-  /** Whether its corners are sharp, rather than rounded through its sides' middles. */
-  readonly sharp: boolean;
-}
+/** The seed a kind and size's first outline is cut from, the art kit's sheet's; each next outline takes the next. */
+const FIRST_SEED = 3;
+
+/** The fewest CSS pixels a field unit is drawn at for a rock to keep its fine marks. */
+export const FINE_UNIT_CSS_PX = 10;
 
 /**
- * Describes one of a rock's outlines, in shares of its radius about its middle,
- * and its frame's name.
+ * How far past its radius a rock's frame reaches, in shares of its radius,
+ * at the most any kind's reaches: a lodestone's field's lines, past its
+ * outline, and half their width.
  */
-interface Outline {
-  readonly name: string;
-  readonly body: readonly Point[];
-  /** Where its points were drawn, before any rounding, which an ice rock's facets run toward. */
-  readonly corners: readonly Point[];
-  /**
-   * The seed its kind's marks are placed by, drawn from afresh at each bake, so
-   * each bake places them alike.
-   */
-  readonly marks: number;
-}
+const MOST_REACH = 1.2;
 
 /**
- * Describes a kind and size of rock as the atlas draws it: its outlines, and
- * the names of its frames with hits taken, from one.
- */
-interface RockSet {
-  readonly kind: RockKindId;
-  readonly size: RockSize;
-  readonly outlines: readonly Outline[];
-  readonly taken: readonly string[];
-}
-
-/**
- * Says how a crack or a dent runs: each point's distance from a rock's middle,
- * in shares of its radius, and its turn off the mark's angle, in radians.
- */
-type Steps = readonly (readonly [number, number])[];
-
-/**
- * Draws a kind of rock's marks on an outline, placed by numbers from 0 up
- * to 1 drawn from its marks' seed, in shares of its radius about its
- * middle, its lines a width in the same.
- */
-type DrawMarks = (
-  outline: Outline,
-  random: () => number,
-  palette: BeltPalette,
-  line: number,
-) => readonly DrawCommand[];
-
-/**
- * Describes how a kind of rock is drawn: its outlines, its marks, and how it
- * shows the hits it has taken.
- */
-interface RockArt {
-  readonly style: OutlineStyle;
-  readonly marks: DrawMarks;
-  /**
-   * How each hit it has taken and held shows, a crack or a dent, within
-   * {@link MARK_REACH}, so every outline of its kind and size holds it; a
-   * kind that takes one hit at every size never shows one.
-   */
-  readonly hit: Steps;
-}
-
-/**
- * How far from a rock's middle its marks reach, as a share of its radius,
- * so they lie on its body in every outline, whose sides come in no nearer.
- */
-export const MARK_REACH = 0.6;
-
-/**
- * How far past its radius a rock's frame reaches, in field units: its
+ * How far past its outline a rock's frame reaches, in field units: its
  * outline at its widest, mitred out at a sharp corner as far as an outline
  * may reach.
  */
@@ -119,174 +58,52 @@ const RIM = MOST_MITER * MOST_LINE;
 
 /**
  * How far a rock's frame reaches from its middle at each size, its outline
- * included, in field units.
+ * and its field's lines included, in field units.
  */
 export const ROCK_REACH: Readonly<Record<RockSize, number>> = recordOf(
   ROCK_SIZES,
-  (size) => ROCK_RADIUS[size] + RIM,
+  (size) => ROCK_RADIUS[size] * MOST_REACH + RIM,
 );
 
-/** How far a point's angle may stray from its even place, as a share of the angle between two. */
-const ANGLE_STRAY = 0.55;
+/** How far each facet is grown past its edges, in device pixels, so no seam shows between two. */
+const SEAM_PX = 0.5;
+
+/** How strongly the faint marks show: a glint, a sheen, a glowing seam's halo and a lodestone's field. */
+const FAINT = {
+  glint: 0.7,
+  sheen: 0.4,
+  core: 0.28,
+  field: 0.45,
+} as const;
+
+/** How long a lodestone's field's dashes are, and the gaps between, in shares of its radius. */
+const FIELD_DASH = { dash: 0.1, gap: 0.12 } as const;
 
 /**
- * How far each crack or dent a rock shows turns from the last, in radians, near
- * the golden angle, so none lies on another.
+ * How wide the lines of a crack are, and each of its two lips, in field
+ * units, and the fewest CSS pixels each is.
  */
-const HIT_TURN = 2.4;
+const CRACK = {
+  width: 0.085,
+  least: 1.1,
+  lip: 0.06,
+  leastLip: 0.8,
+} as const;
 
-/**
- * How far a lodestone's bands lie above and below its middle, how wide each
- * is, and how far in from its sides each ends, in shares of its radius, so
- * its ink closes each band's ends and the field's color of the band never
- * meets its outline's.
- */
-const BANDS = { apart: 0.28, width: 0.14, inset: 0.1 } as const;
+/** How steeply each of a crack's lips slopes down into it, in radians from flat. */
+const LIP_SLOPE = 0.6;
 
-/** An iron rock's rivets' radius, in shares of its radius. */
-const RIVET = 0.085;
+/** How much wider a glowing seam's halo is than the seam. */
+const CORE_HALO = 2.6;
 
-/** How far a volatile rock's core reaches, in shares of its radius. */
-const CORE = 0.38;
+/** The fewest CSS pixels a glowing seam's halo is wide. */
+const LEAST_CORE_HALO = 1.2;
 
-/** A rounded, uneven outline, the most rocks'. */
-const ROUNDED: OutlineStyle = {
-  fewest: 9,
-  most: 12,
-  inner: 0.78,
-  sharp: false,
-};
+/** The fewest CSS pixels a dot's radius is. */
+const LEAST_DOT = 0.8;
 
-/** A smoother, rounder outline, an iron or volatile rock's. */
-const SMOOTH: OutlineStyle = { fewest: 9, most: 12, inner: 0.9, sharp: false };
-
-/** An angular outline of fewer points, sharp-cornered, ice's. */
-const ANGULAR: OutlineStyle = { fewest: 7, most: 9, inner: 0.74, sharp: true };
-
-/** Where an ice rock's facets meet, a little off its middle, in shares of its radius. */
-const ICE_HEART: Point = { x: -0.08, y: -0.12 };
-
-/** A crystal's gem, set in its stone body, in shares of its radius. */
-const GEM: readonly Point[] = [
-  { x: 0.05, y: -0.5 },
-  { x: 0.42, y: -0.02 },
-  { x: 0.05, y: 0.46 },
-  { x: -0.32, y: -0.02 },
-];
-
-/** A crack's steps out from a rock's middle. */
-const CRACK: Steps = [
-  [0.1, 0],
-  [0.32, 0.22],
-  [0.47, -0.04],
-  [MARK_REACH, 0.14],
-];
-
-/** A dent's steps in from a rock's side, as a hammer leaves one. */
-const DENT: Steps = [
-  [MARK_REACH, 0],
-  [0.44, 0.2],
-  [0.3, 0.5],
-];
-
-/** A volatile rock's crack's steps, out from its core. */
-const CORE_CRACK: Steps = [
-  [CORE + 0.08, 0],
-  [0.5, 0.25],
-  [MARK_REACH, 0.1],
-];
-
-/** How each kind of rock is drawn: its outlines' style, its marks, and the hits it shows taken. */
-const ROCK_ART = {
-  stone: {
-    style: ROUNDED,
-    // Two or three craters, as its first draw says.
-    marks: (_, random, palette, line) =>
-      craters(random, random() < 0.5 ? 2 : 3, line, { color: palette.mark }),
-    hit: CRACK,
-  },
-  crystal: {
-    style: ROUNDED,
-    marks: (_, __, palette, line) => [
-      polygon(outward(GEM, line), { color: palette.mark }),
-      polygon(GEM, { color: palette.rocks.crystal }),
-    ],
-    hit: CRACK,
-  },
-  ice: {
-    style: ANGULAR,
-    // Facets from near its middle toward every other corner.
-    marks: ({ corners }, _, palette, line) =>
-      corners
-        .filter((__, i) => i % 2 === 0)
-        .map((corner) => {
-          const out = MARK_REACH / Math.hypot(corner.x, corner.y);
-          return stroke([ICE_HEART, { x: corner.x * out, y: corner.y * out }], {
-            color: palette.mark,
-            width: line,
-          });
-        })
-        .flat(),
-    hit: CRACK,
-  },
-  boulder: {
-    style: ROUNDED,
-    marks: (_, random, palette, line) =>
-      craters(random, 5, line, { color: palette.mark }),
-    hit: CRACK,
-  },
-  iron: {
-    style: SMOOTH,
-    // Four rivets, turned as its first draw says, their edges at the marks' reach.
-    marks: (_, random, palette, line) => {
-      const turn = random();
-      const radius = Math.max(line, RIVET);
-      return Array.from({ length: 4 }, (__, i) => {
-        const angle = (turn + i / 4) * 2 * Math.PI;
-        return circle(
-          {
-            x: Math.cos(angle) * (MARK_REACH - radius),
-            y: Math.sin(angle) * (MARK_REACH - radius),
-          },
-          radius,
-          { color: palette.mark },
-        );
-      });
-    },
-    hit: DENT,
-  },
-  volatile: {
-    style: SMOOTH,
-    // A glowing core, and three cracks out from it on its body, each in its own third of a turn.
-    marks: (_, random, palette, line) => [
-      circle(ORIGIN, CORE, { color: palette.core }),
-      ...[0, 1, 2].flatMap((third) =>
-        stroke(zigzag((random() + third) * ((2 * Math.PI) / 3), CORE_CRACK), {
-          color: palette.mark,
-          width: line,
-        }),
-      ),
-    ],
-    hit: CRACK,
-  },
-  lodestone: {
-    style: ROUNDED,
-    // Two bands across it, ending short of its sides.
-    marks: ({ body }, _, palette, line) =>
-      [-BANDS.apart, BANDS.apart].map((middle) =>
-        polygon(
-          band(
-            body,
-            middle - BANDS.width / 2,
-            middle + BANDS.width / 2,
-            Math.max(line, BANDS.inset),
-          ),
-          { color: palette.mark },
-        ),
-      ),
-    hit: CRACK,
-  },
-} as const satisfies Readonly<Record<RockKindId, RockArt>>;
+/** What a normal map holds where something lies flat on a rock: its outline, its marks and its cracks. */
+const FLAT_NORMAL = normalColor(FLAT);
 
 /** Holds a value for each kind of rock in each size it comes in. */
 type BySize<T> = Readonly<
@@ -299,26 +116,6 @@ function bySize<T>(make: (kind: RockKindId, size: RockSize) => T): BySize<T> {
     recordOf(sizesOf(kind), (size) => make(kind, size)),
   );
 }
-
-// Made once, so finding a frame's name makes nothing.
-const ROCK_FRAMES = bySize(outlineNames);
-/**
- * The names of the frames over each kind and size of rock, by the hits it has
- * taken and held, from one.
- */
-const TAKEN_FRAMES = bySize(takenNames);
-
-/** Every kind and size of rock, its outlines drawn once from their seeds. */
-const ROCK_SETS: readonly RockSet[] = ROCK_KIND_IDS.flatMap((kind) =>
-  sizesOf(kind).map((size) => ({
-    kind,
-    size,
-    outlines: outlineNames(kind, size).map((name, outline) =>
-      outlineOf(name, ROCK_ART[kind].style, seedOf(kind, size, outline)),
-    ),
-    taken: takenNames(kind, size),
-  })),
-);
 
 /** Returns the sizes a kind of rock comes in, largest first. */
 export function sizesOf(kind: RockKindId): readonly RockSize[] {
@@ -341,51 +138,62 @@ function hitsOf(kind: RockKindId, size: RockSize): number {
   return rockKind(kind).hits[size] ?? 0;
 }
 
-/** Returns the names of a kind and size of rock's frames, one for each outline. */
-function outlineNames(kind: RockKindId, size: RockSize): readonly string[] {
-  return Array.from(
-    { length: ROCK_OUTLINES },
-    (_, outline) => `rock-${kind}-${size}-${String(outline)}`,
-  );
-}
+/** Every kind and size of rock's outlines, each cut once from its seed. */
+const ROCK_SHAPES: BySize<readonly RockShape[]> = bySize((kind, size) =>
+  Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+    makeRock(kind, size, FIRST_SEED + outline),
+  ),
+);
 
-/**
- * Returns the names of the frames over a kind and size of rock, one for each
- * count of hits it can take and hold, from one.
- */
-function takenNames(kind: RockKindId, size: RockSize): readonly string[] {
-  return Array.from(
-    { length: hitsOf(kind, size) - 1 },
-    (_, i) => `rock-${kind}-${size}-taken-${String(i + 1)}`,
-  );
-}
-
-/** Returns the name of the frame a rock is drawn in, by its kind, size and outline. */
-export function rockFrame(
+/** Returns how one of a kind and size of rock's outlines is cut. */
+export function rockShape(
   rock: Pick<Rock, "kind" | "size" | "outline">,
-): string {
-  const name = ROCK_FRAMES[rock.kind][rock.size]?.[rock.outline];
-  if (name === undefined) {
+): RockShape {
+  const shape = ROCK_SHAPES[rock.kind][rock.size]?.[rock.outline];
+  if (shape === undefined) {
     throw new RangeError(
       `No ${rock.size} ${rock.kind} rock has outline ${String(rock.outline)}.`,
     );
   }
-  return name;
+  return shape;
 }
 
+/** Returns the name of a kind and size of rock's frame in an outline, with a count of hits taken. */
+function frameName(
+  kind: RockKindId,
+  size: RockSize,
+  outline: number,
+  taken: number,
+): string {
+  const whole = `rock-${kind}-${size}-${String(outline)}`;
+  return taken === 0 ? whole : `${whole}-taken-${String(taken)}`;
+}
+
+// Made once, so finding a frame's name makes nothing: for each kind and size,
+// each outline's names, by the hits taken, from none.
+const ROCK_FRAMES: BySize<readonly (readonly string[])[]> = bySize(
+  (kind, size) =>
+    Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+      Array.from({ length: hitsOf(kind, size) }, (__, taken) =>
+        frameName(kind, size, outline, taken),
+      ),
+    ),
+);
+
 /**
- * Returns the name of the frame over a rock that shows the hits it has taken,
- * or null for one that has taken none.
+ * Returns the name of the frame a rock is drawn in, by its kind, size and
+ * outline, and the hits it has taken and held, whole where it has none
+ * left to count.
  */
-export function takenFrame(
-  rock: Pick<Rock, "kind" | "size" | "hits">,
-): string | null {
-  const taken = hitsOf(rock.kind, rock.size) - rock.hits;
-  if (taken === 0) return null;
-  const name = TAKEN_FRAMES[rock.kind][rock.size]?.[taken - 1];
+export function rockFrame(
+  rock: Pick<Rock, "kind" | "size" | "outline"> & Partial<Pick<Rock, "hits">>,
+): string {
+  const whole = hitsOf(rock.kind, rock.size);
+  const taken = whole - (rock.hits ?? whole);
+  const name = ROCK_FRAMES[rock.kind][rock.size]?.[rock.outline]?.[taken];
   if (name === undefined) {
     throw new RangeError(
-      `A ${rock.size} ${rock.kind} rock can't have ${String(rock.hits)} hits left.`,
+      `No ${rock.size} ${rock.kind} rock has outline ${String(rock.outline)} with ${String(rock.hits)} hits left.`,
     );
   }
   return name;
@@ -400,176 +208,326 @@ export function rockColor(kind: RockKindId, palette: BeltPalette): number {
 }
 
 /**
- * Returns every rock's frames: each kind in each size and outline, and the hits
- * each shows taken.
+ * Returns whether a rock keeps its fine marks on a field drawn at a scale:
+ * its glints, sheens, dots, thin lines and field. The scale is the field's
+ * own, as laid out, not the atlas's, which is capped (`bakedScale()`).
+ */
+export function isFine(scale: ArtScale): boolean {
+  return scale.unit / scale.pixelRatio >= FINE_UNIT_CSS_PX;
+}
+
+/**
+ * Describes a shape of a rock's drawing, and the way it faces, which the
+ * rock's normal map holds, and whether its normal map alone draws it.
+ */
+interface Painted {
+  readonly command: DrawCommand;
+  readonly facing: Facing;
+  readonly inkless?: true;
+}
+
+/** Returns shapes that lie flat on a rock, as its outline, its marks and its cracks do. */
+function flat(commands: readonly DrawCommand[]): readonly Painted[] {
+  return commands.map((command) => ({ command, facing: FLAT }));
+}
+
+/** Returns a line through points, a width wide, drawn faint, as one band, so nothing of it overlaps. */
+function faintLine(
+  points: readonly Point[],
+  width: number,
+  color: number,
+  alpha: number,
+): DrawCommand {
+  return polygon(bandAlong(points, width), { color, alpha });
+}
+
+/** Adds a point to a dash, unless the dash ends there already, as a band's points may not repeat. */
+function extend(run: Point[], point: Point): void {
+  const last = run.at(-1);
+  if (last?.x !== point.x || last.y !== point.y) run.push(point);
+}
+
+/** Returns the dashes along a line through points, each a dash long and a gap apart, from its start. */
+function dashesAlong(
+  points: readonly Point[],
+  dash: number,
+  gap: number,
+): readonly (readonly Point[])[] {
+  const runs: Point[][] = [];
+  // The dash under way, if one is.
+  let run: Point[] | null = null;
+  // How far along the line the next dash starts or ends.
+  let next = 0;
+  let along = 0;
+  for (const [i, to] of points.entries()) {
+    const from = points[i - 1];
+    if (from === undefined) continue;
+    const length = Math.hypot(to.x - from.x, to.y - from.y);
+    const at = (distance: number): Point => ({
+      x: from.x + ((to.x - from.x) * (distance - along)) / length,
+      y: from.y + ((to.y - from.y) * (distance - along)) / length,
+    });
+    while (next <= along + length) {
+      if (run === null) {
+        run = [at(next)];
+        next += dash;
+      } else {
+        extend(run, at(next));
+        runs.push(run);
+        run = null;
+        next += gap;
+      }
+    }
+    if (run !== null) extend(run, to);
+    along += length;
+  }
+  // The dash the line ends in, unless it ends where that dash starts.
+  if (run !== null && run.length > 1) runs.push(run);
+  return runs;
+}
+
+/**
+ * Returns a crack's two lips, a band along each side of each of its lines,
+ * from its edge out, sloping down into it, which only the normal map
+ * draws, so the light lights the side turned to it and leaves the other in
+ * shade, however the rock turns.
+ */
+function lipsOf(
+  line: readonly Point[],
+  edge: number,
+  width: number,
+): readonly Painted[] {
+  return line.flatMap((from, i) => {
+    const to = line[i + 1];
+    if (to === undefined) return [];
+    const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+    const across = {
+      x: -(to.y - from.y) / length,
+      y: (to.x - from.x) / length,
+    };
+    return [1, -1].map((side) => {
+      const off = (point: Point, far: number): Point => ({
+        x: point.x + across.x * side * far,
+        y: point.y + across.y * side * far,
+      });
+      const inward = -side * Math.sin(LIP_SLOPE);
+      return {
+        command: polygon(
+          [
+            off(from, edge),
+            off(to, edge),
+            off(to, edge + width),
+            off(from, edge + width),
+          ],
+          { color: FLAT_NORMAL },
+        ),
+        facing: {
+          x: across.x * inward,
+          y: across.y * inward,
+          z: Math.cos(LIP_SLOPE),
+        },
+        inkless: true,
+      };
+    });
+  });
+}
+
+/** Describes the tones a rock's body and a crystal's gems are drawn in, in a palette. */
+interface RockTones {
+  readonly body: Tones;
+  readonly gem: Tones;
+}
+
+/** Returns the tones a kind of rock is drawn in, in a palette: a crystal's body a stone's. */
+function tonesFor(kind: RockKindId, palette: BeltPalette): RockTones {
+  return {
+    body: palette.rockTones[kind === "crystal" ? "stone" : kind],
+    gem: palette.rockTones.crystal,
+  };
+}
+
+/** Returns the color a mark of a tone is drawn in. */
+function markColor(
+  tone: RockLine["tone"],
+  tones: Tones,
+  palette: BeltPalette,
+): number {
+  switch (tone) {
+    case "deep":
+      return tones.deep;
+    case "lit":
+    case "sheen":
+      return tones.lit;
+    case "core":
+      return palette.core;
+    case "glint":
+      return palette.glint;
+  }
+}
+
+/**
+ * Returns what a rock's frame draws, back to front, each shape with the way
+ * it faces: a lodestone's field, the outline, the facets, the cracks for the
+ * hits it has taken, and its marks, the fine ones only at a size that shows
+ * them.
+ */
+function rockPainting(
+  shape: RockShape,
+  taken: number,
+  palette: BeltPalette,
+  scale: ArtScale,
+  fine: boolean,
+): readonly Painted[] {
+  const radius = ROCK_RADIUS[shape.size] * scale.unit;
+  const at = (points: readonly Point[]): readonly Point[] =>
+    placed(points, radius);
+  const css = scale.pixelRatio;
+  const tones = tonesFor(shape.kind, palette);
+  const widthOf = (line: RockLine, least = 1): number =>
+    Math.max(least * css, line.width * radius);
+
+  const field = fine
+    ? shape.aura.flatMap((line) =>
+        dashesAlong(
+          at(line.points),
+          FIELD_DASH.dash * radius,
+          FIELD_DASH.gap * radius,
+        ).map((dash) =>
+          faintLine(dash, widthOf(line), tones.body.ink, FAINT.field),
+        ),
+      )
+    : [];
+  const gems = shape.facets.filter(({ part }) => part === "gem");
+  const outline = [shape.rim, ...gems.map(({ points }) => points)].map(
+    (points) =>
+      polygon(outward(at(points), outlineWidth(scale)), {
+        color: palette.outline,
+      }),
+  );
+  const facets = shape.facets.map(({ points, facing, part }) => ({
+    command: polygon(outward(at(points), SEAM_PX), { color: tones[part].ink }),
+    facing,
+  }));
+  const crackWidth = Math.max(CRACK.least * css, CRACK.width * scale.unit);
+  const lipWidth = Math.max(CRACK.leastLip * css, CRACK.lip * scale.unit);
+  const cracked = cracksOf(shape, taken).map(at);
+  const lips = cracked.flatMap((line) =>
+    lipsOf(line, crackWidth / 2, lipWidth),
+  );
+  const cracks = cracked.flatMap((line) =>
+    stroke(line, { color: palette.mark, width: crackWidth }),
+  );
+  const lines = shape.lines
+    .filter(
+      ({ tone, width }) =>
+        fine ||
+        tone === "core" ||
+        (tone !== "glint" && tone !== "sheen" && width >= 0.06),
+    )
+    .flatMap((line) => {
+      const points = at(line.points);
+      const color = markColor(line.tone, tones.body, palette);
+      switch (line.tone) {
+        case "core":
+          return [
+            faintLine(
+              points,
+              widthOf(line, LEAST_CORE_HALO) * CORE_HALO,
+              color,
+              FAINT.core,
+            ),
+            ...stroke(points, { color, width: widthOf(line) }),
+          ];
+        case "glint":
+        case "sheen":
+          return [faintLine(points, widthOf(line), color, FAINT[line.tone])];
+        case "deep":
+        case "lit":
+          return stroke(points, { color, width: widthOf(line) });
+      }
+    });
+  const dots = fine
+    ? shape.dots.map((dot) =>
+        circle(
+          { x: dot.at.x * radius, y: dot.at.y * radius },
+          Math.max(LEAST_DOT * css, dot.r * radius),
+          { color: markColor(dot.tone, tones.body, palette) },
+        ),
+      )
+    : [];
+  return [
+    ...flat(field),
+    ...flat(outline),
+    ...facets,
+    ...lips,
+    ...flat(cracks),
+    ...flat(lines),
+    ...flat(dots),
+  ];
+}
+
+/** Describes a rock's frame in its inks and as its normal map, of one name, size and place in its atlas. */
+export interface LitFrame {
+  readonly ink: ArtFrame;
+  readonly normal: ArtFrame;
+}
+
+/**
+ * Returns a rock's frame in its inks and as its normal map, of one size and
+ * place: the normal map draws every shape, each facet and each of a crack's
+ * lips in the color of the way it faces and all else flat, over a flat
+ * frame; the inks every shape but the lips.
+ */
+function litFrame(name: string, painting: readonly Painted[]): LitFrame {
+  const frame = centered(
+    name,
+    painting.map(({ command }) => command),
+  );
+  return {
+    ink: {
+      ...frame,
+      commands: frame.commands.filter(
+        (_, i) => painting[i]?.inkless === undefined,
+      ),
+    },
+    normal: {
+      ...frame,
+      commands: [
+        rect(
+          { x: 0, y: 0, width: frame.width, height: frame.height },
+          { color: FLAT_NORMAL },
+        ),
+        ...frame.commands.map((command, i) => ({
+          ...command,
+          color: normalColor(painting[i]?.facing ?? FLAT),
+        })),
+      ],
+    },
+  };
+}
+
+/**
+ * Returns every rock's frames, each in its inks and as its normal map: each
+ * kind in each size and outline, whole and with each count of hits it can
+ * take and hold, with their fine marks or without, as the field they are
+ * drawn for keeps them: `isFine()` of the field's own scale, not the
+ * atlas's, which is capped.
  */
 export function rockFrames(
   palette: BeltPalette,
   scale: ArtScale,
-): readonly ArtFrame[] {
-  return ROCK_SETS.flatMap((set) => [
-    ...set.outlines.map((outline) => bodyArt(set, outline, palette, scale)),
-    ...takenArt(set, palette, scale),
-  ]);
-}
-
-/** Returns the seed one of a kind and size of rock's outlines is drawn from. */
-function seedOf(kind: RockKindId, size: RockSize, outline: number): number {
-  const at =
-    (ROCK_KIND_IDS.indexOf(kind) * ROCK_SIZES.length +
-      ROCK_SIZES.indexOf(size)) *
-      ROCK_OUTLINES +
-    outline;
-  return 0x5eed + at * 977;
-}
-
-/** Returns an outline drawn from a seed in a style, its farthest point at the whole radius. */
-function outlineOf(name: string, style: OutlineStyle, seed: number): Outline {
-  const random = createRandom(seed);
-  const count =
-    style.fewest + Math.floor(random() * (style.most - style.fewest + 1));
-  const corners = Array.from({ length: count }, (_, i) => {
-    const angle = ((i + (random() - 0.5) * ANGLE_STRAY) / count) * 2 * Math.PI;
-    const out = style.inner + (1 - style.inner) * random();
-    return { x: Math.cos(angle) * out, y: Math.sin(angle) * out };
-  });
-  const body = style.sharp ? corners : rounded(corners);
-  const farthest = Math.max(
-    ...body.map((point) => Math.hypot(point.x, point.y)),
-  );
-  return {
-    name,
-    body: placed(body, 1 / farthest),
-    corners: placed(corners, 1 / farthest),
-    marks: Math.floor(random() * 2 ** 32),
-  };
-}
-
-/** Returns a closed outline rounded through its sides' middles, each corner a curve toward it. */
-function rounded(corners: readonly Point[]): readonly Point[] {
-  const middles = corners.map((corner, i) => {
-    const next = corners[(i + 1) % corners.length] ?? corner;
-    return { x: (corner.x + next.x) / 2, y: (corner.y + next.y) / 2 };
-  });
-  return corners.flatMap((corner, i) =>
-    quadraticPoints(middles.at(i - 1) ?? corner, corner, middles[i] ?? corner),
-  );
-}
-
-/**
- * Returns a rock's craters: dots of a size, at a distance and an angle, each as
- * it draws them, within {@link MARK_REACH}, none smaller than a line's width.
- */
-function craters(
-  random: () => number,
-  count: number,
-  line: number,
-  style: FillStyle,
-): readonly DrawCommand[] {
-  return Array.from({ length: count }, () => {
-    const radius = Math.max(line, 0.1 + 0.08 * random());
-    const reach = 0.15 + random() * (MARK_REACH - 0.15 - radius);
-    const turn = random() * 2 * Math.PI;
-    return circle(
-      { x: Math.cos(turn) * reach, y: Math.sin(turn) * reach },
-      radius,
-      style,
-    );
-  });
-}
-
-/** Returns a zigzag from a rock's middle at an angle, through its steps. */
-function zigzag(angle: number, steps: Steps): readonly Point[] {
-  return steps.map(([out, turn]) => ({
-    x: Math.cos(angle + turn) * out,
-    y: Math.sin(angle + turn) * out,
-  }));
-}
-
-/**
- * Returns where a level line through a rock's body leaves it, left and right of
- * its middle, nearest it.
- */
-function chord(body: readonly Point[], y: number): readonly [number, number] {
-  let left = -Infinity;
-  let right = Infinity;
-  body.forEach((point, i) => {
-    const next = body[(i + 1) % body.length] ?? point;
-    if ((point.y - y) * (next.y - y) > 0 || point.y === next.y) return;
-    const x =
-      point.x + ((y - point.y) * (next.x - point.x)) / (next.y - point.y);
-    if (x < 0) left = Math.max(left, x);
-    else right = Math.min(right, x);
-  });
-  return [left, right];
-}
-
-/**
- * Returns a band across a rock's body, between two level lines, ending an inset
- * short of its sides.
- */
-function band(
-  body: readonly Point[],
-  top: number,
-  bottom: number,
-  inset: number,
-): readonly Point[] {
-  const [topLeft, topRight] = chord(body, top);
-  const [bottomLeft, bottomRight] = chord(body, bottom);
-  return [
-    { x: topLeft + inset, y: top },
-    { x: topRight - inset, y: top },
-    { x: bottomRight - inset, y: bottom },
-    { x: bottomLeft + inset, y: bottom },
-  ];
-}
-
-/**
- * Returns a rock's frame in one outline: outlined in the palette's outline, in
- * its ink, with its kind's marks.
- */
-function bodyArt(
-  { kind, size }: RockSet,
-  outline: Outline,
-  palette: BeltPalette,
-  scale: ArtScale,
-): ArtFrame {
-  const radius = ROCK_RADIUS[size] * scale.unit;
-  const body = placed(outline.body, radius);
-  return centered(outline.name, [
-    polygon(outward(body, outlineWidth(scale)), { color: palette.outline }),
-    polygon(body, { color: rockColor(kind, palette) }),
-    ...ROCK_ART[kind]
-      .marks(
-        outline,
-        createRandom(outline.marks),
-        palette,
-        lineWidth(scale) / radius,
-      )
-      .map((mark) => scaledBy(mark, radius)),
-  ]);
-}
-
-/**
- * Returns the frames over a kind and size of rock for each count of hits it can
- * take and still hold, a crack or dent for each.
- */
-function takenArt(
-  { kind, size, taken }: RockSet,
-  palette: BeltPalette,
-  scale: ArtScale,
-): readonly ArtFrame[] {
-  const radius = ROCK_RADIUS[size] * scale.unit;
-  const style = { color: palette.mark, width: lineWidth(scale) };
-  return taken.map((name, i) =>
-    centered(
-      name,
-      Array.from({ length: i + 1 }, (_, hit) =>
-        stroke(
-          placed(zigzag(hit * HIT_TURN, ROCK_ART[kind].hit), radius),
-          style,
+  fine: boolean,
+): readonly LitFrame[] {
+  return ROCK_KIND_IDS.flatMap((kind) =>
+    sizesOf(kind).flatMap((size) =>
+      (ROCK_SHAPES[kind][size] ?? []).flatMap((shape, outline) =>
+        Array.from({ length: hitsOf(kind, size) }, (_, taken) =>
+          litFrame(
+            frameName(kind, size, outline, taken),
+            rockPainting(shape, taken, palette, scale, fine),
+          ),
         ),
-      ).flat(),
+      ),
     ),
   );
 }

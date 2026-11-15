@@ -3,43 +3,51 @@ import {
   type ArtScale,
   type DrawCommand,
   type Point,
-  lineWidth,
-  placed,
+  atlasSize,
 } from "@fz/phaser/shapes";
-import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
+import { frameNamed } from "@fz/phaser/testing/pure";
 import {
   ROCK_KIND_IDS,
   type RockKindId,
   type RockSize,
   rockKind,
 } from "../../rules/catalog/rocks";
-import { ROCK_OUTLINES } from "../../rules/rocks/rocks";
-import { ROCK_RADIUS } from "../../rules/tuning";
+import { ROCK_OUTLINES, type Rock } from "../../rules/rocks/rocks";
 import {
-  ART_FRAMES,
   ART_PALETTE,
   ART_SCALE,
   ART_SCALES,
-  distanceToEdge,
+  PIXEL_RATIOS,
   edgeOf,
   reachOf,
   within,
 } from "../../testing/art_frames";
-import { atlasFrames } from "./art";
 import {
-  MARK_REACH,
+  type LitFrame,
   ROCK_REACH,
+  isFine,
   largestOf,
   rockColor,
   rockFrame,
   rockFrames,
+  rockShape,
   sizesOf,
-  takenFrame,
 } from "./rock_art";
-import { outlineWidth } from "./shapes";
+import { cracksOf } from "./rocks/cracks";
+import { FLAT } from "./rocks/cut";
+import { normalColor } from "./rocks/light";
+import { MOST_BAKED_UNIT, bakedScale } from "./shapes";
 
 /** How far a size may stray from what it should be and still pass, for a rounding. */
 const SLACK = 1e-9;
+
+/** The largest atlas a side the rocks' may take before it is baked in pages (§4's lift 5). */
+const ATLAS_SIDE = 4096;
+
+/** A rock a frame is drawn for, with the hits it has taken. */
+type DrawnRock = Pick<Rock, "kind" | "size" | "outline" | "hits"> & {
+  readonly taken: number;
+};
 
 /** Every kind of rock in every size it comes in. */
 const KINDS_AND_SIZES: readonly (readonly [RockKindId, RockSize])[] =
@@ -47,456 +55,532 @@ const KINDS_AND_SIZES: readonly (readonly [RockKindId, RockSize])[] =
     sizesOf(kind).map((size) => [kind, size] as const),
   );
 
-/**
- * Every kind and size of rock that can take a hit and hold, with each count of
- * hits it can have left, and the hits it has taken.
- */
-const TAKEN: readonly (readonly [RockKindId, RockSize, number, number])[] =
-  KINDS_AND_SIZES.flatMap(([kind, size]) => {
-    const whole = rockKind(kind).hits[size] ?? 0;
-    return Array.from(
-      { length: whole - 1 },
-      (_, i) => [kind, size, whole - 1 - i, i + 1] as const,
-    );
-  });
+/** Every rock a frame is drawn for: each kind, size and outline, whole and with each count of hits it can take and hold. */
+const DRAWN: readonly DrawnRock[] = KINDS_AND_SIZES.flatMap(([kind, size]) => {
+  const whole = rockKind(kind).hits[size] ?? 0;
+  return Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+    Array.from({ length: whole }, (__, taken) => ({
+      kind,
+      size,
+      outline,
+      hits: whole - taken,
+      taken,
+    })),
+  ).flat();
+});
 
-/**
- * The size of rock each rock's frame draws, by its name: each outline's, and
- * each count of hits taken's.
- */
-const SIZES_DRAWN: ReadonlyMap<string, RockSize> = new Map([
-  ...KINDS_AND_SIZES.flatMap(([kind, size]) =>
-    Array.from(
-      { length: ROCK_OUTLINES },
-      (_, outline) => [rockFrame({ kind, size, outline }), size] as const,
-    ),
-  ),
-  ...TAKEN.map(
-    ([kind, size, hits]) => [takenName(kind, size, hits), size] as const,
-  ),
-]);
+/** Every rock that has taken a hit and held. */
+const TAKEN: readonly DrawnRock[] = DRAWN.filter(({ taken }) => taken > 0);
 
-/**
- * The scales the marks are held at: the smallest unit the layout allows, a
- * phone's, and the largest baked.
- */
-const SCALES: readonly ArtScale[] = [
-  { unit: 6, pixelRatio: 1 },
-  { unit: 27, pixelRatio: 3 },
-  { unit: 32, pixelRatio: 2 },
+/** The size of rock each frame draws, by its name. */
+const SIZES_DRAWN: ReadonlyMap<string, RockSize> = new Map(
+  DRAWN.map((rock) => [rockFrame(rock), rock.size]),
+);
+
+/** The rocks' frames in the specs' palette, at their scale. */
+const FRAMES: readonly LitFrame[] = rockFrames(ART_PALETTE, ART_SCALE, true);
+
+/** The rocks' frames in the specs' palette and scale, without their fine marks. */
+const COARSE_FRAMES: readonly LitFrame[] = rockFrames(
+  ART_PALETTE,
+  ART_SCALE,
+  false,
+);
+
+/** The scales the cracks are held within their rims at: the least unit, the specs' and the most baked. */
+const CRACK_SCALES: readonly ArtScale[] = [
+  bakedScale({ unit: 6, pixelRatio: 1 }),
+  ART_SCALE,
+  bakedScale({ unit: MOST_BAKED_UNIT, pixelRatio: 3 }),
 ];
 
-/**
- * Returns the size of rock a rock's frame draws, by its name: one of its
- * outlines, or the hits it has taken.
- *
- * @throws {RangeError} For a name no rock's frame has.
- */
-function sizeDrawnBy(name: string): RockSize {
-  const size = SIZES_DRAWN.get(name);
-  if (size === undefined) throw new RangeError(`No rock's frame is "${name}"`);
-  return size;
+/** Returns the frames at a scale a field is drawn at, as baked, with their fine marks if it keeps them. */
+function framesAt(scale: ArtScale): readonly LitFrame[] {
+  return rockFrames(ART_PALETTE, scale, isFine(scale));
 }
 
-/**
- * Returns the frames of each outline of a kind and size of rock, in the specs'
- * palette at a scale.
- */
-function outlinesOf(
-  kind: RockKindId,
-  size: RockSize,
-  scale: ArtScale = ART_SCALE,
-): readonly ArtFrame[] {
-  const names = new Set(
-    Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
-      rockFrame({ kind, size, outline }),
-    ),
-  );
-  return rockFrames(ART_PALETTE, scale).filter((frame) =>
-    names.has(frame.name),
+/** Returns the inks of the frames at a scale. */
+function inksAt(scale: ArtScale): readonly ArtFrame[] {
+  return framesAt(scale).map(({ ink }) => ink);
+}
+
+/** Returns a rock's frame in its inks, among some frames. */
+function inkOf(
+  rock: Pick<Rock, "kind" | "size" | "outline"> & Partial<Pick<Rock, "hits">>,
+  frames: readonly LitFrame[] = FRAMES,
+): ArtFrame {
+  return frameNamed(
+    frames.map(({ ink }) => ink),
+    rockFrame(rock),
   );
 }
 
-/** Returns a rock frame's body, about the frame's middle. */
-function bodyOf(frame: ArtFrame): readonly Point[] {
-  const body = frame.commands[1];
-  if (body?.kind !== "polygon") throw new Error(`${frame.name} has no body`);
-  return placed(body.points, 1, { x: -frame.width / 2, y: -frame.height / 2 });
-}
-
-/**
- * Returns the points round the edges of what some of a frame's commands draw,
- * about the frame's middle.
- */
-function aboutMiddle(
-  frame: ArtFrame,
-  commands: readonly DrawCommand[],
-): readonly Point[] {
-  return commands
-    .flatMap(edgeOf)
-    .map(({ x, y }) => ({ x: x - frame.width / 2, y: y - frame.height / 2 }));
-}
-
-/**
- * Returns the points round the edges of a rock frame's marks, about the frame's
- * middle: all it draws over its body.
- */
-function marksOf(frame: ArtFrame): readonly Point[] {
-  return aboutMiddle(frame, frame.commands.slice(2));
-}
-
-/** Returns the name of the frame over a rock with hits left, which has taken some. */
-function takenName(kind: RockKindId, size: RockSize, hits: number): string {
-  const name = takenFrame({ kind, size, hits });
-  if (name === null)
-    throw new Error(
-      `A ${size} ${kind} rock with ${String(hits)} hits left has taken none.`,
-    );
-  return name;
-}
-
-/** Returns the marks' commands of a rock's frame: all it draws over its body. */
-function markKinds(kind: RockKindId, outline = 0): readonly string[] {
-  const size = largestOf(kind);
-  return frameNamed(ART_FRAMES, rockFrame({ kind, size, outline }))
-    .commands.slice(2)
-    .map((command) => command.kind);
-}
-
-describe("a rock's frame", () => {
-  it.each(KINDS_AND_SIZES)(
-    "outlines a %s %s rock in the outline's color, then fills it in its body's",
-    (kind, size) => {
-      const [first] = outlinesOf(kind, size);
-
-      expect(first?.commands.slice(0, 2)).toMatchObject([
-        { kind: "polygon", color: ART_PALETTE.outline },
-        { kind: "polygon", color: rockColor(kind, ART_PALETTE) },
-      ]);
-    },
+/** Returns a rock's frame as its normal map, among the specs' frames. */
+function normalOf(
+  rock: Pick<Rock, "kind" | "size" | "outline"> & Partial<Pick<Rock, "hits">>,
+): ArtFrame {
+  return frameNamed(
+    FRAMES.map(({ normal }) => normal),
+    rockFrame(rock),
   );
+}
 
-  it.each(KINDS_AND_SIZES)(
-    "draws a %s %s rock in six outlines, each its own",
-    (kind, size) => {
-      const bodies = outlinesOf(kind, size).map((frame) =>
-        JSON.stringify(bodyOf(frame)),
+/** Returns the frames' names that break a rule. */
+function breaking(
+  frames: readonly ArtFrame[],
+  rule: (frame: ArtFrame) => boolean,
+): readonly string[] {
+  return frames.filter((frame) => !rule(frame)).map((frame) => frame.name);
+}
+
+/** Returns what a command draws, but its color, which an ink and a normal map's shapes differ by, as text. */
+function shapeOf(command: DrawCommand): string {
+  const { color: _color, ...shape } = command;
+  return JSON.stringify(shape);
+}
+
+/**
+ * Returns the commands of a frame's normal map that its inks don't draw,
+ * each of the inks' shapes found in turn, in order, among the normal map's,
+ * past its backdrop; or null where one of the inks' isn't there.
+ */
+function normalOnly(frame: LitFrame): readonly DrawCommand[] | null {
+  const inks = frame.ink.commands.map(shapeOf);
+  const only: DrawCommand[] = [];
+  let next = 0;
+  for (const command of frame.normal.commands.slice(1)) {
+    if (shapeOf(command) === inks[next]) next += 1;
+    else only.push(command);
+  }
+  return next === inks.length ? only : null;
+}
+
+/** Returns how many lines a rock's cracks are drawn in, for the hits it has taken. */
+function crackSegments(rock: DrawnRock): number {
+  return cracksOf(rockShape(rock), rock.taken).reduce(
+    (count, crack) => count + crack.length - 1,
+    0,
+  );
+}
+
+/** Returns a color's red, green and blue channels. */
+function channelsOf(color: number): readonly number[] {
+  return [(color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff];
+}
+
+/**
+ * Returns where a frame of a kind of rock draws its facets, by their index
+ * among its commands: its polygons in its tones' inks at full strength,
+ * which nothing else is drawn in.
+ */
+function facetIndices(frame: ArtFrame, kind: RockKindId): readonly number[] {
+  const inks = new Set([
+    ART_PALETTE.rockTones[kind === "crystal" ? "stone" : kind].ink,
+    ART_PALETTE.rockTones.crystal.ink,
+  ]);
+  return frame.commands.flatMap((command, index) =>
+    command.kind === "polygon" &&
+    command.alpha === undefined &&
+    inks.has(command.color)
+      ? [index]
+      : [],
+  );
+}
+
+/** Returns the polygons a frame draws in the outline's color: round the rock's rim first, then round each gem. */
+function outlinesIn(frame: ArtFrame): readonly (readonly Point[])[] {
+  return frame.commands.flatMap((command) =>
+    command.kind === "polygon" && command.color === ART_PALETTE.outline
+      ? [command.points]
+      : [],
+  );
+}
+
+/** Returns a frame's lines in the marks' color: its cracks'. */
+function crackLines(frame: ArtFrame): readonly DrawCommand[] {
+  return frame.commands.filter(
+    (command) => command.kind === "line" && command.color === ART_PALETTE.mark,
+  );
+}
+
+describe("rockFrames", () => {
+  it("draws a frame for every kind, size and outline of rock, whole and with each count of hits it can take and hold, each named once", () => {
+    const names = FRAMES.map(({ ink }) => ink.name);
+
+    expect({ count: names.length, names: new Set(names) }).toEqual({
+      count: DRAWN.length,
+      names: new Set(DRAWN.map((rock) => rockFrame(rock))),
+    });
+  });
+
+  it("draws each rock's normal map under its inks' name, at their size, over a flat backdrop, the inks' shapes and its cracks' lips", () => {
+    const unlike = DRAWN.filter((rock) => {
+      const frame = FRAMES.find(({ ink }) => ink.name === rockFrame(rock));
+      if (frame === undefined) return true;
+      const { ink, normal } = frame;
+      return (
+        normal.name !== ink.name ||
+        normal.width !== ink.width ||
+        normal.height !== ink.height ||
+        JSON.stringify(normal.commands[0]) !==
+          JSON.stringify({
+            kind: "rect",
+            x: 0,
+            y: 0,
+            width: ink.width,
+            height: ink.height,
+            color: normalColor(FLAT),
+          }) ||
+        normalOnly(frame)?.length !== 2 * crackSegments(rock)
       );
+    }).map((rock) => rockFrame(rock));
 
-      expect(new Set(bodies).size).toBe(ROCK_OUTLINES);
-    },
-  );
+    expect(unlike).toEqual([]);
+  });
 
-  it.each(KINDS_AND_SIZES)(
-    "outlines a %s %s rock an outline's width out from its body, twice that at most at a corner",
-    (kind, size) => {
-      const [frame] = outlinesOf(kind, size);
-      const reach = (command: DrawCommand | undefined): number =>
-        Math.max(
-          ...(command?.kind === "polygon" ? command.points : []).map(
-            ({ x, y }) =>
-              Math.hypot(
-                x - (frame?.width ?? 0) / 2,
-                y - (frame?.height ?? 0) / 2,
-              ),
-          ),
-        );
+  it("draws the same frames each time", () => {
+    expect(rockFrames(ART_PALETTE, ART_SCALE, true)).toEqual(FRAMES);
+  });
 
-      const beyond = reach(frame?.commands[0]) - reach(frame?.commands[1]);
-
-      expect(beyond).toBeGreaterThanOrEqual(outlineWidth(ART_SCALE) - SLACK);
-      expect(beyond).toBeLessThanOrEqual(2 * outlineWidth(ART_SCALE) + SLACK);
-    },
-  );
-
-  it.each(KINDS_AND_SIZES)(
-    "reaches a %s %s rock's radius at its farthest",
-    (kind, size) => {
-      const farthest = outlinesOf(kind, size).map((frame) =>
-        Math.max(...bodyOf(frame).map(({ x, y }) => Math.hypot(x, y))),
-      );
-
+  it.each(ART_SCALES)(
+    "draws every frame within its size, in whole pixels, at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
       expect(
-        farthest.map(
-          (reach) =>
-            Math.round((reach / (ROCK_RADIUS[size] * ART_SCALE.unit)) * 1e6) /
-            1e6,
-        ),
-      ).toEqual(Array.from({ length: ROCK_OUTLINES }, () => 1));
-    },
-  );
-
-  it("draws the same outlines each time", () => {
-    expect(rockFrames(ART_PALETTE, ART_SCALE)).toEqual(
-      rockFrames(ART_PALETTE, ART_SCALE),
-    );
-  });
-
-  it.each(SCALES)(
-    "lays every mark on its rock's body at a unit of $unit, $pixelRatio to a CSS pixel",
-    (scale) => {
-      const off = KINDS_AND_SIZES.flatMap(([kind, size]) =>
-        outlinesOf(kind, size, scale)
-          .filter((frame) => {
-            const body = bodyOf(frame);
-            return !marksOf(frame).every((point) => within(point, body));
-          })
-          .map((frame) => frame.name),
-      );
-
-      expect(off).toEqual([]);
-    },
-  );
-});
-
-describe("each kind's marks", () => {
-  it("draws two or three craters on a stone, as its outline's draws say", () => {
-    const counts = Array.from(
-      { length: ROCK_OUTLINES },
-      (_, outline) => markKinds("stone", outline).length,
-    );
-
-    expect(new Set(counts)).toEqual(new Set([2, 3]));
-  });
-
-  it("draws five craters on a boulder", () => {
-    expect(markKinds("boulder")).toEqual(Array(5).fill("circle"));
-  });
-
-  it("sets a crystal's gem in its stone body, outlined in the marks' color", () => {
-    const frame = frameNamed(
-      ART_FRAMES,
-      rockFrame({ kind: "crystal", size: "large", outline: 0 }),
-    );
-
-    expect(frame.commands.slice(1).map((command) => command.color)).toEqual([
-      ART_PALETTE.rocks.stone,
-      ART_PALETTE.mark,
-      ART_PALETTE.rocks.crystal,
-    ]);
-  });
-
-  it.each(Array.from({ length: ROCK_OUTLINES }, (_, outline) => outline))(
-    "draws ice outline %i sharp-cornered, seven to nine corners, a facet in the marks' color toward every other one",
-    (outline) => {
-      const frame = frameNamed(
-        ART_FRAMES,
-        rockFrame({ kind: "ice", size: "large", outline }),
-      );
-      const corners = bodyOf(frame).length;
-
-      expect(corners).toBeGreaterThanOrEqual(7);
-      expect(corners).toBeLessThanOrEqual(9);
-      expect(drawnIn(frame, "line", ART_PALETTE.mark)).toHaveLength(
-        Math.ceil(corners / 2),
-      );
-    },
-  );
-
-  it.each(ROCK_KIND_IDS.filter((kind) => kind !== "ice"))(
-    "rounds a %s rock's outline through its sides' middles, a curve for each corner",
-    (kind) => {
-      const frame = frameNamed(
-        ART_FRAMES,
-        rockFrame({ kind, size: largestOf(kind), outline: 0 }),
-      );
-
-      expect(bodyOf(frame).length).toBeGreaterThanOrEqual(9 * 8);
-    },
-  );
-
-  it("draws four rivets on an iron rock", () => {
-    expect(markKinds("iron")).toEqual(Array(4).fill("circle"));
-  });
-
-  it("sets an iron rock's rivets with their edges at the marks' reach", () => {
-    const frame = frameNamed(
-      ART_FRAMES,
-      rockFrame({ kind: "iron", size: "large", outline: 0 }),
-    );
-
-    const reaches = frame.commands
-      .slice(2)
-      .map((command) =>
-        command.kind === "circle"
-          ? Math.round(
-              ((Math.hypot(
-                command.x - frame.width / 2,
-                command.y - frame.height / 2,
-              ) +
-                command.radius) /
-                (ROCK_RADIUS.large * ART_SCALE.unit)) *
-                1e6,
-            ) / 1e6
-          : null,
-      );
-
-    expect(reaches).toEqual(Array.from({ length: 4 }, () => MARK_REACH));
-  });
-
-  it("draws a volatile rock's core in its glow and three cracks out from it in the marks' color", () => {
-    const frame = frameNamed(
-      ART_FRAMES,
-      rockFrame({ kind: "volatile", size: "large", outline: 0 }),
-    );
-
-    // Each crack is two lines, round at its three points.
-    const crack = [
-      ...Array.from({ length: 2 }, () => ["line", ART_PALETTE.mark]),
-      ...Array.from({ length: 3 }, () => ["circle", ART_PALETTE.mark]),
-    ];
-
-    expect(
-      frame.commands.slice(2).map((command) => [command.kind, command.color]),
-    ).toEqual([["circle", ART_PALETTE.core], ...crack, ...crack, ...crack]);
-  });
-
-  it("lays a volatile rock's cracks outside its core", () => {
-    const frame = frameNamed(
-      ART_FRAMES,
-      rockFrame({ kind: "volatile", size: "large", outline: 0 }),
-    );
-    const [core, ...cracks] = frame.commands.slice(2);
-
-    const nearest = Math.min(
-      ...aboutMiddle(frame, cracks).map(({ x, y }) => Math.hypot(x, y)),
-    );
-
-    expect(nearest).toBeGreaterThan(
-      core?.kind === "circle" ? core.radius : Infinity,
-    );
-  });
-
-  it("crosses a lodestone with two bands in the marks' color", () => {
-    expect(markKinds("lodestone")).toEqual(["polygon", "polygon"]);
-  });
-
-  it.each(SCALES)(
-    "ends a lodestone's bands half a CSS pixel or more short of its sides, so its ink closes them, at a unit of $unit",
-    (scale) => {
-      const nearest = sizesOf("lodestone").flatMap((size) =>
-        outlinesOf("lodestone", size, scale).map((frame) =>
-          Math.min(
-            ...aboutMiddle(frame, frame.commands.slice(2)).map((corner) =>
-              distanceToEdge(corner, bodyOf(frame)),
+        breaking(
+          inksAt(scale),
+          (frame) =>
+            Number.isInteger(frame.width) &&
+            Number.isInteger(frame.height) &&
+            frame.width >= 1 &&
+            frame.height >= 1 &&
+            frame.commands.every((command) =>
+              edgeOf(command).every(
+                ({ x, y }) =>
+                  x >= -SLACK &&
+                  y >= -SLACK &&
+                  x <= frame.width + SLACK &&
+                  y <= frame.height + SLACK,
+              ),
             ),
-          ),
         ),
-      );
-
-      expect(Math.min(...nearest)).toBeGreaterThanOrEqual(scale.pixelRatio / 2);
-    },
-  );
-});
-
-describe("the hits a rock shows taken", () => {
-  it("shows none on a whole rock", () => {
-    expect(takenFrame({ kind: "iron", size: "large", hits: 3 })).toBeNull();
-  });
-
-  it.each(TAKEN)(
-    "shows a %s %s rock with %i hits left a crack or dent for each of its %i taken, in the marks' color",
-    (kind, size, hits, taken) => {
-      const linesOf = (name: string): readonly DrawCommand[] =>
-        drawnIn(frameNamed(ART_FRAMES, name), "line", ART_PALETTE.mark);
-      const one = linesOf(
-        takenName(kind, size, (rockKind(kind).hits[size] ?? 0) - 1),
-      );
-
-      const lines = linesOf(takenName(kind, size, hits));
-
-      expect({
-        count: lines.length,
-        widths: new Set(
-          lines.map((command) => command.kind === "line" && command.width),
-        ),
-        colors: new Set(
-          frameNamed(ART_FRAMES, takenName(kind, size, hits)).commands.map(
-            (command) => command.color,
-          ),
-        ),
-      }).toEqual({
-        count: taken * one.length,
-        widths: new Set([lineWidth(ART_SCALE)]),
-        colors: new Set([ART_PALETTE.mark]),
-      });
+      ).toEqual([]);
     },
   );
 
-  it.each(SCALES)(
-    "lays every crack and dent within every outline of its kind and size at a unit of $unit",
+  it.each(ART_SCALES)(
+    "draws every line a CSS pixel wide or more at a unit of $unit, $pixelRatio to a CSS pixel",
     (scale) => {
-      const frames = new Map(
-        atlasFrames(ART_PALETTE, scale).map((frame) => [frame.name, frame]),
-      );
-
-      const off = TAKEN.filter(([kind, size, hits]) => {
-        const frame = frames.get(takenName(kind, size, hits));
-        const points = frame ? aboutMiddle(frame, frame.commands) : [];
-        return !outlinesOf(kind, size, scale)
-          .map(bodyOf)
-          .every((body) => points.every((point) => within(point, body)));
-      });
-
-      expect(off).toEqual([]);
+      expect(
+        breaking(inksAt(scale), (frame) =>
+          frame.commands.every(
+            (command) =>
+              command.kind !== "line" ||
+              command.width >= scale.pixelRatio - SLACK,
+          ),
+        ),
+      ).toEqual([]);
     },
   );
 
-  it("starts an iron rock's dent at the marks' reach, in from its side", () => {
-    const frame = frameNamed(ART_FRAMES, takenName("iron", "large", 2));
-
-    const reaches = frame.commands
-      .flatMap((command) => (command.kind === "line" ? [command.from] : []))
-      .map(
-        ({ x, y }) =>
-          Math.hypot(x - frame.width / 2, y - frame.height / 2) /
-          (ROCK_RADIUS.large * ART_SCALE.unit),
+  it.each(PIXEL_RATIOS)(
+    "draws nothing at a size below nothing at the least units, %f to a CSS pixel",
+    (pixelRatio) => {
+      const negative = [1, 2, 4].flatMap((unit) =>
+        breaking(inksAt({ unit, pixelRatio }), (frame) =>
+          frame.commands.every(
+            (command) =>
+              (!("width" in command) || command.width >= 0) &&
+              (!("radius" in command) || command.radius >= 0),
+          ),
+        ),
       );
 
-    expect(reaches[0]).toBeCloseTo(MARK_REACH);
-  });
+      expect(negative).toEqual([]);
+    },
+  );
 
-  it.each([
-    [{ kind: "iron", size: "large", hits: -1 }],
-    [{ kind: "crystal", size: "small", hits: 1 }],
-  ] as const)("refuses a rock that can't be: %o", (rock) => {
-    expect(() => takenFrame(rock)).toThrow(RangeError);
-  });
+  it.each([1, 3])(
+    `fits the rocks' atlas in ${String(ATLAS_SIDE)} a side at the largest unit baked, %i to a CSS pixel`,
+    (pixelRatio) => {
+      const { width, height } = atlasSize(
+        inksAt(bakedScale({ unit: MOST_BAKED_UNIT * 4, pixelRatio })),
+      );
+
+      expect(Math.max(width, height)).toBeLessThanOrEqual(ATLAS_SIDE);
+    },
+  );
 });
 
 describe("ROCK_REACH", () => {
   it.each(ART_SCALES)(
-    "holds every rock and the hits it shows taken, at a unit of $unit, $pixelRatio to a CSS pixel",
+    "holds every rock, its cracks and a lodestone's field, at a unit of $unit, $pixelRatio to a CSS pixel",
     (scale) => {
-      const beyond = rockFrames(ART_PALETTE, scale)
-        .filter(
-          (frame) =>
-            reachOf(frame) >
-            ROCK_REACH[sizeDrawnBy(frame.name)] * scale.unit + SLACK,
-        )
-        .map((frame) => frame.name);
+      const beyond = breaking(
+        inksAt(scale),
+        (frame) =>
+          reachOf(frame) <=
+          ROCK_REACH[SIZES_DRAWN.get(frame.name) ?? "small"] * scale.unit +
+            SLACK,
+      );
 
       expect(beyond).toEqual([]);
     },
   );
 });
 
-describe("a rock's frame's name", () => {
-  it("names each kind, size and outline apart", () => {
-    const names = KINDS_AND_SIZES.flatMap(([kind, size]) =>
-      Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
-        rockFrame({ kind, size, outline }),
+describe("a rock's frame", () => {
+  it.each(KINDS_AND_SIZES)(
+    "draws a %s %s rock's facets in its tones' inks, a facet of its cut each",
+    (kind, size) => {
+      const frame = inkOf({ kind, size, outline: 0 });
+
+      expect(facetIndices(frame, kind)).toHaveLength(
+        rockShape({ kind, size, outline: 0 }).facets.length,
+      );
+    },
+  );
+
+  it("draws a crystal's gems in the crystal's ink, set in a stone's body", () => {
+    const frame = inkOf({ kind: "crystal", size: "large", outline: 0 });
+
+    const inks = new Set(
+      facetIndices(frame, "crystal").map(
+        (index) => frame.commands[index]?.color,
       ),
     );
 
-    expect(new Set(names).size).toBe(KINDS_AND_SIZES.length * ROCK_OUTLINES);
+    expect(inks).toEqual(
+      new Set([
+        ART_PALETTE.rockTones.stone.ink,
+        ART_PALETTE.rockTones.crystal.ink,
+      ]),
+    );
+  });
+
+  it.each(ROCK_KIND_IDS)(
+    "draws each facet of a %s rock's normal map in the color of the way it faces, and all else flat",
+    (kind) => {
+      const rock = { kind, size: largestOf(kind), outline: 0 } as const;
+      const facets = new Set(facetIndices(inkOf(rock), kind));
+      // The normal map's backdrop comes first, so each of its shapes is one on.
+      const colors = normalOf(rock)
+        .commands.slice(1)
+        .map((command) => command.color);
+
+      expect({
+        facets: colors.filter((_, index) => facets.has(index)),
+        rest: new Set(colors.filter((_, index) => !facets.has(index))),
+      }).toEqual({
+        facets: rockShape(rock).facets.map(({ facing }) => normalColor(facing)),
+        rest: new Set([normalColor(FLAT)]),
+      });
+    },
+  );
+
+  it.each(KINDS_AND_SIZES)(
+    "lays every facet of a %s %s rock within its outline",
+    (kind, size) => {
+      const off = Array.from({ length: ROCK_OUTLINES }, (_, outline) => {
+        const frame = inkOf({ kind, size, outline });
+        const outlines = outlinesIn(frame);
+        return facetIndices(frame, kind).filter((index) => {
+          const facet = frame.commands[index];
+          return !(facet?.kind === "polygon" ? facet.points : []).every(
+            (point) => outlines.some((around) => within(point, around)),
+          );
+        });
+      }).flat();
+
+      expect(off).toEqual([]);
+    },
+  );
+
+  it.each(KINDS_AND_SIZES)(
+    "draws a %s %s rock in six outlines, each its own",
+    (kind, size) => {
+      const outlines = Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
+        JSON.stringify(outlinesIn(inkOf({ kind, size, outline }))[0]),
+      );
+
+      expect(new Set(outlines).size).toBe(ROCK_OUTLINES);
+    },
+  );
+});
+
+describe("the hits a rock shows taken", () => {
+  it("draws no crack on a whole rock", () => {
+    const cracked = FRAMES.filter(
+      ({ ink }) =>
+        DRAWN.some(
+          (rock) => rock.taken === 0 && rockFrame(rock) === ink.name,
+        ) && crackLines(ink).length > 0,
+    ).map(({ ink }) => ink.name);
+
+    expect(cracked).toEqual([]);
+  });
+
+  it.each(TAKEN.filter(({ outline }) => outline === 0))(
+    "slopes each line of a $kind $size rock's cracks for $taken hits into it from both sides, in its normal map alone",
+    (rock) => {
+      const frame = FRAMES.find(({ ink }) => ink.name === rockFrame(rock));
+      const lips = (frame && normalOnly(frame)) ?? [];
+      // Each lip is a band from the crack's edge out: its first two corners
+      // along the crack, its last two out from it. It slopes into the crack
+      // if the way it faces leans from the outer two toward the first two.
+      const sloped = lips.map((lip) => {
+        const [a, b, c, d] = lip.kind === "polygon" ? lip.points : [];
+        const inward = {
+          x: (a?.x ?? 0) + (b?.x ?? 0) - (c?.x ?? 0) - (d?.x ?? 0),
+          y: (a?.y ?? 0) + (b?.y ?? 0) - (c?.y ?? 0) - (d?.y ?? 0),
+        };
+        const [red = 0, green = 0, blue = 0] = channelsOf(lip.color);
+        // A normal map's red is right, and its green up, the field's y down.
+        const way = { x: (red / 255) * 2 - 1, y: 1 - (green / 255) * 2 };
+        return {
+          into: way.x * inward.x + way.y * inward.y > 0,
+          tilted: blue < 255,
+        };
+      });
+
+      expect(sloped).toEqual(
+        Array.from({ length: 2 * crackSegments(rock) }, () => ({
+          into: true,
+          tilted: true,
+        })),
+      );
+    },
+  );
+
+  it.each(TAKEN.filter(({ outline }) => outline === 0))(
+    "cracks a $kind $size rock for the $taken hits it has taken, in the marks' color",
+    (rock) => {
+      const lines = cracksOf(rockShape(rock), rock.taken).reduce(
+        (count, crack) => count + crack.length - 1,
+        0,
+      );
+
+      expect(crackLines(inkOf(rock))).toHaveLength(lines);
+    },
+  );
+
+  it.each(CRACK_SCALES)(
+    "lays every crack within its rock's rim's outline at a unit of $unit, $pixelRatio to a CSS pixel",
+    (scale) => {
+      const frames = framesAt(scale);
+
+      const off = TAKEN.filter((rock) => {
+        const frame = inkOf(rock, frames);
+        const [rim = []] = outlinesIn(frame);
+        return !frame.commands
+          .filter((command) => command.color === ART_PALETTE.mark)
+          .flatMap(edgeOf)
+          .every((point) => within(point, rim));
+      }).map((rock) => rockFrame(rock));
+
+      expect(off).toEqual([]);
+    },
+  );
+});
+
+describe("a rock's fine marks", () => {
+  it.each([
+    [{ unit: 20, pixelRatio: 2 }, true],
+    [{ unit: 19, pixelRatio: 2 }, false],
+    [{ unit: 10, pixelRatio: 1 }, true],
+    [{ unit: 9, pixelRatio: 1 }, false],
+  ] as const)("shows at %o: %s", (scale, fine) => {
+    expect(isFine(scale)).toBe(fine);
+  });
+
+  it.each(
+    ROCK_KIND_IDS.map(
+      (kind) => [kind, kind !== "stone" && kind !== "volatile"] as const,
+    ),
+  )(
+    "leaves out only a %s rock's fine marks for a field that keeps none, if it has any: %s",
+    (kind, hasFine) => {
+      const rock = { kind, size: largestOf(kind), outline: 0 } as const;
+      // A lodestone's frame is smaller without its field, so its shapes move.
+      const kinds = (frame: ArtFrame): readonly string[] =>
+        frame.commands.map(
+          (command) =>
+            `${command.kind} ${String(command.color)} ${String(command.alpha)}`,
+        );
+      const fine = kinds(inkOf(rock));
+      const coarse = kinds(inkOf(rock, COARSE_FRAMES));
+
+      // What the coarse frame draws, in order, each in the fine one after the last.
+      let at = 0;
+      const kept = coarse.every((drawn) => {
+        at = fine.indexOf(drawn, at) + 1;
+        return at > 0;
+      });
+
+      expect({ kept, fewer: coarse.length < fine.length }).toEqual({
+        kept: true,
+        fewer: hasFine,
+      });
+    },
+  );
+
+  it.each(ROCK_KIND_IDS)(
+    "keeps a %s rock's seams and bands a 0.06 of its radius wide or more, and a volatile rock's glowing seams, for a field that keeps no fine marks",
+    (kind) => {
+      const rock = { kind, size: largestOf(kind), outline: 0 } as const;
+      const body = ART_PALETTE.rockTones[kind === "crystal" ? "stone" : kind];
+      const marks = new Set([body.deep, body.lit, ART_PALETTE.core]);
+      const kept = rockShape(rock)
+        .lines.filter(
+          ({ tone, width }) =>
+            tone === "core" ||
+            ((tone === "deep" || tone === "lit") && width >= 0.06),
+        )
+        .reduce((count, { points }) => count + points.length - 1, 0);
+
+      const lines = inkOf(rock, COARSE_FRAMES).commands.filter(
+        (command) => command.kind === "line" && marks.has(command.color),
+      );
+
+      expect(lines).toHaveLength(kept);
+    },
+  );
+});
+
+describe("rockFrame", () => {
+  it("names every rock a frame is drawn for apart", () => {
+    const names = DRAWN.map((rock) => rockFrame(rock));
+
+    expect(new Set(names).size).toBe(DRAWN.length);
+  });
+
+  it("names a rock with every hit left its whole frame", () => {
+    expect(
+      rockFrame({ kind: "iron", size: "large", outline: 2, hits: 3 }),
+    ).toBe(rockFrame({ kind: "iron", size: "large", outline: 2 }));
   });
 
   it.each([
     [{ kind: "crystal", size: "small", outline: 0 }],
     [{ kind: "stone", size: "large", outline: ROCK_OUTLINES }],
+    [{ kind: "iron", size: "large", outline: 0, hits: 4 }],
+    [{ kind: "iron", size: "large", outline: 0, hits: 0 }],
   ] as const)("refuses a rock that can't be: %o", (rock) => {
     expect(() => rockFrame(rock)).toThrow(RangeError);
+  });
+});
+
+describe("rockShape", () => {
+  it("cuts each outline once, the same each time it is asked", () => {
+    const rock = { kind: "ice", size: "medium", outline: 3 } as const;
+
+    expect(rockShape(rock)).toBe(rockShape(rock));
+  });
+
+  it.each([
+    [{ kind: "crystal", size: "small", outline: 0 }],
+    [{ kind: "stone", size: "large", outline: -1 }],
+  ] as const)("refuses a rock that can't be: %o", (rock) => {
+    expect(() => rockShape(rock)).toThrow(RangeError);
   });
 });
 

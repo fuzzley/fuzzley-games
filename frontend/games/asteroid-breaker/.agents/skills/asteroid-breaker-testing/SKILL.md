@@ -230,8 +230,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   tuned numbers and how far the Cleared card's sum counts up;
   `src/view/tally.spec.ts` holds the sum as it shows at a time, line by
   line.
-- `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
-  at one scale (`ART_SCALE`), as `ART_FRAMES`, so the art's specs check the
+- `src/testing/art_frames.ts` draws the field's atlas in one palette
+  (`ART_PALETTE`) at one scale (`ART_SCALE`), as `ART_FRAMES`, and
+  `src/view/art/rock_art.spec.ts` the rocks' in the same, each in its inks
+  and as its normal map (`rockFrames()`), so the art's specs check the
   commands a frame is drawn with, finding the frame by its name and its
   commands by their kind and color with `@fz/phaser/testing/pure`'s
   `frameNamed()` and `drawnIn()`; at every scale a field is drawn at
@@ -242,9 +244,11 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   the names the board reads them by (`PALETTES.rolesIn()`, from
   `src/testing/roles.ts`), builds the field's palette from them, and holds
   every rock, the ship, the shots, the pickups, the comet, the strays and
-  the pilots to 3:1 against what they are drawn on, the marks and outlines
-  against what they cross, and the deck's symbols at rest against its
-  buttons and its knob against the stick's base.
+  the pilots to 3:1 against what they are drawn on, each rock at its
+  darkest and brightest faces too, under the palette's light
+  (`faceExtremes()`), the marks and outlines against what they cross, and
+  the deck's symbols at rest against its buttons and its knob against the
+  stick's base.
 
 ## The Scene
 
@@ -270,7 +274,8 @@ game through `runScene()`:
   the shell's frame as the rules would; assert on the game objects
   (`@fz/phaser/testing`'s `imagesIn()` and `strokesOf()`, and
   `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the field
-  camera's `scrolledBy()`), the sounds (`humsIn()` after
+  camera's `scrolledBy()`), the lights the rocks are lit by (the scene's
+  `lights`, a held hit's flash among them), the sounds (`humsIn()` after
   `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`)
   or on what the shell kept. A
   headless game draws no pixels and plays no sound.

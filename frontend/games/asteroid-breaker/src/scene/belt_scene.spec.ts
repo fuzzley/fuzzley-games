@@ -7,6 +7,7 @@ import {
   imagesIn,
   objectsIn,
   strokesOf,
+  watchUploads,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
@@ -75,7 +76,7 @@ import {
   PILOT_SIZES,
   pilotFrame,
 } from "../view/art/pilot_art";
-import { rockFrame, takenFrame } from "../view/art/rock_art";
+import { isFine, rockFrame, rockFrames } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
 import { SOUNDS } from "../view/effects/effects";
@@ -85,9 +86,12 @@ import {
   PULSE_LEAST,
   breathScale,
 } from "../view/effects/flourish";
+import type { BeltPalette } from "../view/colors/palette";
+import { farLight } from "../view/colors/rock_light";
 import {
   type BoardSetting,
   type DeckLayout,
+  type FieldMetrics,
   deckLayout,
 } from "../view/field/field_metrics";
 import { LAYERS, LAYER_CAMERAS } from "../view/field/layers";
@@ -100,7 +104,7 @@ import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
 import { WARNING_INSET } from "../view/field/warning";
 import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
 import { MOST_FINGERS } from "../view/steering/steering";
-import { ATLAS, DECK_ATLAS } from "./atlas";
+import { ATLAS, DECK_ATLAS, ROCK_ATLAS, ROCK_NORMALS } from "./atlas";
 import { type BeltScene, SOUNDS_KEY, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
@@ -116,6 +120,51 @@ function breathingOut(now: number, slot: number): number {
     at += 16;
   }
   return at;
+}
+
+/** Describes how the scene lights the rocks: its ambient, and where its field's light stands and how strong it is. */
+interface Lighting {
+  readonly on: boolean;
+  readonly ambient: readonly number[];
+  readonly light: {
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
+    readonly radius: number;
+    readonly intensity: number;
+  } | null;
+}
+
+/** Returns how a scene lights the rocks: by every light it has but a held hit's flash. */
+function lightingOf(scene: BeltScene): Lighting {
+  const { ambientColor, active, lights } = scene.lights;
+  const [sun, ...others] = lights.filter(
+    (light) => !scene.kit.rocks.flashes.includes(light),
+  );
+  return {
+    on: active,
+    ambient: [ambientColor.r, ambientColor.g, ambientColor.b],
+    light:
+      sun && others.length === 0
+        ? {
+            x: sun.x,
+            y: sun.y,
+            z: sun.z,
+            radius: sun.radius,
+            intensity: sun.intensity,
+          }
+        : null,
+  };
+}
+
+/** Returns how a palette's light lights the rocks of a field laid out in its metrics. */
+function lightingWanted(palette: BeltPalette, metrics: FieldMetrics): Lighting {
+  const { ambient, intensity } = palette.rockLight;
+  return {
+    on: true,
+    ambient: [ambient, ambient, ambient],
+    light: { ...farLight(metrics, palette.rockLight), intensity },
+  };
 }
 
 describe("the cameras", () => {
@@ -302,35 +351,18 @@ describe("the rocks", () => {
     ]);
   });
 
-  it("show the hits a rock has taken over it", async () => {
+  it("draw a rock that has taken hits and held in its cracked frame", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "large", 30, 20, "iron");
     rock.hits -= 1;
 
     run.advance(16);
 
-    const taken = scene.kit.rocks.taken[slotOf(shell.field, rock)];
-    expect([shown(taken)[0], taken?.images[0]?.frame.name]).toEqual([
-      onCanvas(metricsOf(shell), 30, 20),
-      takenFrame(rock),
-    ]);
+    const body = scene.kit.rocks.bodies[slotOf(shell.field, rock)];
+    expect(body?.images[0]?.frame.name).toBe(rockFrame(rock));
   });
 
-  it("show no hits over a rock that has taken none", async () => {
-    const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "large", 30, 20, "iron");
-
-    run.advance(16);
-
-    expect(shown(scene.kit.rocks.taken[slotOf(shell.field, rock)])).toEqual([
-      null,
-      null,
-      null,
-      null,
-    ]);
-  });
-
-  it("show no hits over a piece that takes the slot of the rock it broke from", async () => {
+  it("draw a piece that takes the slot of the rock it broke from whole", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "large", 30, 20, "iron");
     const slot = slotOf(shell.field, rock);
@@ -340,10 +372,49 @@ describe("the rocks", () => {
 
     run.advance(16);
 
-    expect([
-      scene.kit.rocks.bodies[slot]?.images[0]?.visible,
-      shown(scene.kit.rocks.taken[slot]),
-    ]).toEqual([true, [null, null, null, null]]);
+    const piece = shell.field.rocks[slot];
+    expect(scene.kit.rocks.bodies[slot]?.images[0]?.frame.name).toBe(
+      piece && rockFrame(piece),
+    );
+  });
+
+  it("draw every rock from the rocks' atlas, lit through its normal map", async () => {
+    const { scene } = await startBoard();
+
+    const images = scene.kit.rocks.bodies.flatMap(({ images }) => images);
+
+    expect({
+      textures: new Set(images.map((image) => image.texture.key)),
+      lit: images.every((image) => image.lighting),
+    }).toEqual({ textures: new Set([ROCK_ATLAS]), lit: true });
+  });
+
+  it("light the rocks with the palette's light, far off along its way, over its ambient", async () => {
+    const { shell, scene } = await startBoard();
+
+    expect(lightingOf(scene)).toEqual(
+      lightingWanted(ART_PALETTE, metricsOf(shell)),
+    );
+  });
+
+  it("light the rocks anew in a new palette", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.colors = DARK;
+
+    run.advance(16);
+
+    expect(lightingOf(scene)).toEqual(lightingWanted(DARK, metricsOf(shell)));
+  });
+
+  it("move the field's light with the field on a canvas of a new size", async () => {
+    const { shell, run, scene } = await startBoard();
+
+    run.game.scale.resize(WIDER.width, WIDER.height);
+    run.advance(16);
+
+    expect(lightingOf(scene)).toEqual(
+      lightingWanted(ART_PALETTE, metricsOf(shell, WIDER)),
+    );
   });
 
   it("draw the field's art at its unit, scaled up from the atlas baked at most at its largest", async () => {
@@ -1420,6 +1491,25 @@ describe("baking", () => {
    */
   const NUDGED = { width: 805, height: CANVAS.height } as const;
 
+  /** A lodestone's frame, wider with its fine marks, as its field reaches past it. */
+  const LODESTONE = rockFrame({ kind: "lodestone", size: "large", outline: 0 });
+
+  /** Returns how wide a lodestone's frame is baked at 32 device pixels a unit, four to a CSS pixel, with its fine marks or without. */
+  function lodestoneWidth(fine: boolean): number {
+    const frame = rockFrames(
+      ART_PALETTE,
+      { unit: MOST_BAKED_UNIT, pixelRatio: 4 },
+      fine,
+    ).find(({ ink }) => ink.name === LODESTONE);
+    return frame?.ink.width ?? 0;
+  }
+
+  /** A canvas four times the spec's each way. */
+  const FOURFOLD = {
+    width: CANVAS.width * 4,
+    height: CANVAS.height * 4,
+  } as const;
+
   /**
    * The widths of a window dragged wider, a frame each, its field's unit
    * passing 11 device pixels only at the last.
@@ -1506,8 +1596,8 @@ describe("baking", () => {
 
   it("encodes How to play's pictures of the atlas as the shell asks for them", async () => {
     const { shell, scene } = await startBoard();
-    const baked = (frame: string): string =>
-      scene.textures.getBase64(ATLAS, frame);
+    const baked = (frame: string, atlas = ATLAS): string =>
+      scene.textures.getBase64(atlas, frame);
 
     const pictures = shell.askPictures();
 
@@ -1517,7 +1607,7 @@ describe("baking", () => {
       pictures.stray,
       pictures.comet,
     ]).toEqual([
-      baked(PICTURE_FRAMES.rocks.iron),
+      baked(PICTURE_FRAMES.rocks.iron, ROCK_ATLAS),
       baked(PICTURE_FRAMES.pickups.shield),
       baked(PICTURE_FRAMES.stray),
       baked(PICTURE_FRAMES.comet),
@@ -1568,6 +1658,85 @@ describe("baking", () => {
       bakedScale(metricsOf(shell, WIDER)),
     ).find((frame) => frame.name === FRAMES.comet);
     expect(scene.textures.getFrame(ATLAS, FRAMES.comet).width).toBe(art?.width);
+  });
+
+  it.each([
+    ["as it is created", CANVAS],
+    ["again at a new unit", WIDER],
+  ] as const)(
+    "bakes the rocks' normal map %s, its frames where the rocks' atlas has them, and has the atlas read it",
+    async (_, canvas) => {
+      const { shell, run, scene } = await startBoard();
+      run.game.scale.resize(canvas.width, canvas.height);
+      run.advance(16);
+      const name = rockFrame({ kind: "iron", size: "large", outline: 2 });
+      const placeOf = (key: string): readonly number[] => {
+        const { cutX, cutY, cutWidth, cutHeight } = scene.textures.getFrame(
+          key,
+          name,
+        );
+        return [cutX, cutY, cutWidth, cutHeight];
+      };
+
+      const metrics = metricsOf(shell, canvas);
+      const ink = rockFrames(
+        ART_PALETTE,
+        bakedScale(metrics),
+        isFine(metrics),
+      ).find((frame) => frame.ink.name === name)?.ink;
+
+      expect({
+        read: scene.textures.get(ROCK_ATLAS).getDataSourceImage(),
+        place: placeOf(ROCK_NORMALS),
+        width: placeOf(ROCK_ATLAS)[2],
+      }).toEqual({
+        read: scene.textures.get(ROCK_NORMALS).getSourceImage(),
+        place: placeOf(ROCK_ATLAS),
+        width: ink?.width,
+      });
+    },
+  );
+
+  it("uploads the rocks' normal map twice as it bakes it again at a new unit: its own, and as the rocks' atlas's", async () => {
+    const { run, scene } = await startBoard();
+    const normals = scene.textures.get(ROCK_NORMALS).getSourceImage();
+    let uploads = 0;
+    watchUploads(scene, (canvas) => {
+      if (canvas === normals) uploads += 1;
+    });
+
+    run.game.scale.resize(WIDER.width, WIDER.height);
+    run.advance(16);
+
+    expect(uploads).toBe(2);
+  });
+
+  it("bakes a rock's fine marks by the field's own unit, past the most its atlas is baked at", async () => {
+    // Four times the spec's canvas at four device pixels to a CSS pixel: a
+    // unit of 10 CSS pixels and more, baked at 32 device pixels, 8 of them.
+    const { run, scene } = await startBoard(undefined, FOURFOLD);
+    run.game.scale.setZoom(1 / 4);
+    run.advance(16);
+
+    expect({
+      baked: scene.textures.getFrame(ROCK_ATLAS, LODESTONE).cutWidth,
+      widerFine: lodestoneWidth(true) > lodestoneWidth(false),
+    }).toEqual({ baked: lodestoneWidth(true), widerFine: true });
+  });
+
+  it("bakes the rocks again without their fine marks as the field's unit falls under 10 CSS pixels, its atlas's unit the same", async () => {
+    const { shell, run, scene } = await startBoard(undefined, FOURFOLD);
+    run.game.scale.setZoom(1 / 4);
+    run.advance(16);
+    const bakes = shell.bakes.length;
+
+    run.game.scale.resize(FOURFOLD.width * 0.9, FOURFOLD.height * 0.9);
+    run.advance(16);
+
+    expect({
+      bakes: shell.bakes.length,
+      baked: scene.textures.getFrame(ROCK_ATLAS, LODESTONE).cutWidth,
+    }).toEqual({ bakes: bakes + 1, baked: lodestoneWidth(false) });
   });
 
   it("has every image take up its frame anew at a new unit", async () => {

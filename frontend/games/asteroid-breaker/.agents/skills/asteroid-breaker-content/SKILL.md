@@ -20,8 +20,9 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   every rock kind and pickup, its name, its sentence and its picture, with
   no change of its own.
 - **Records keyed by those ids** make the compiler ask for what a new entry
-  needs: a rock's art (`ROCK_ART`, `src/view/art/rock_art.ts`) and its ink in
-  each set of inks (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
+  needs: how a rock is cut and marked (`KIND_CUTS`,
+  `src/view/art/rocks/rock_shape.ts`) and its ink in each set of inks
+  (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
   `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
   `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
@@ -40,13 +41,13 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 
   | Check               | Where                                                                | What it holds                                                                                                                                                          |
   | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                                                           | Every rock kind has its art and ink, every trait its rule, every pickup its symbol, every effect its rule, every formation its layout                                  |
+  | The compiler        | everywhere                                                           | Every rock kind has its cut and ink, every trait its rule, every pickup its symbol, every effect its rule, every formation its layout                                  |
   | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before |
   | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                 |
   | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                  |
   | The Endless spec    | `src/rules/waves/endless.spec.ts`                                    | Endless's waves keep to their budget, their share of iron, their crystal and the cap, climb as written, and are the same for the same seed                             |
   | The autopilot specs | `src/rules/waves/every_wave/`, `src/rules/waves/every_endless_wave/` | Every wave at every speed, on the narrowest and widest fields, cleared within four minutes; Endless's 31 to 60 too, with nothing able to take the ship                 |
-  | The contrast spec   | `src/view/colors/contrast.spec.ts`                                   | Every rock's ink, every pickup and the pilots against the field, in every palette                                                                                      |
+  | The contrast spec   | `src/view/colors/contrast.spec.ts`                                   | Every rock's ink, at its darkest and brightest face under the palette's light, every pickup and the pilots against the field, in every palette                         |
 
 ## A Wave
 
@@ -130,9 +131,11 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 
 - **A kind:** an entry in `ROCK_KINDS`: its name and sentence, its hits and
   points at each size it comes in, what it breaks into (`splits`), its speed and
-  its traits. Then its art in `ROCK_ART` and its ink in both sets of inks,
-  checked at 3:1 against the field by the contrast spec; and a wave that lays
-  it, which the catalog spec asks for.
+  its traits. Then how it is cut and marked at each size in `KIND_CUTS`,
+  which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), and its
+  ink in both sets of inks, checked at 3:1 against the field, at its
+  darkest and brightest faces too, by the contrast spec; and a wave that
+  lays it, which the catalog spec asks for.
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,

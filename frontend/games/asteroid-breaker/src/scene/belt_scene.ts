@@ -48,9 +48,17 @@ import {
 } from "../view/field/frame";
 import { LAYERS, type Layer, drawnBy } from "../view/field/layers";
 import type { BeltPalette } from "../view/colors/palette";
+import { farLight } from "../view/colors/rock_light";
+import { isFine } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { MOST_FINGERS, Steering } from "../view/steering/steering";
-import { ATLAS, DECK_ATLAS, bakeBeltAtlas, bakeDeckAtlas } from "./atlas";
+import {
+  ATLAS,
+  DECK_ATLAS,
+  ROCK_ATLAS,
+  bakeBeltAtlas,
+  bakeDeckAtlas,
+} from "./atlas";
 import { FieldCamera } from "./field_camera";
 import { FlourishPlayer } from "./flourish_player";
 import { DebrisPainter } from "./painters/debris_painter";
@@ -197,6 +205,8 @@ export class BeltScene extends Scene {
   private deckParts: Deck | null = null;
   /** The scale the field's atlas was last baked at. */
   private baked: ArtScale | null = null;
+  /** Whether the rocks were last baked with their fine marks, as the field's unit keeps them. */
+  private bakedFine = false;
   /** The pixel ratio the deck's atlas was last baked at. */
   private deckBaked = 0;
   /** The palette the atlas was last baked in. */
@@ -209,6 +219,8 @@ export class BeltScene extends Scene {
   private readonly frameSounds = createFrameSounds();
   /** Where the ship is drawn and how far it is turned, written each frame. */
   private readonly drawnShip: Drawn = { x: 0, y: 0, angle: 0 };
+  /** The field's light, far off, which lights the rocks, made as the scene is created. */
+  private sun!: GameObjects.Light;
 
   constructor(
     private readonly options: BeltSceneOptions,
@@ -290,6 +302,8 @@ export class BeltScene extends Scene {
     this.input.addPointer(
       Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
     );
+    this.lights.enable();
+    this.sun = this.lights.addLight(0, 0, 1, 0xffffff, 1);
     this.layOut();
     this.listen();
     onFirstFrame(this, () => {
@@ -307,7 +321,7 @@ export class BeltScene extends Scene {
     return {
       field: new FieldPainter(this, layers),
       tags: new TagPainter(this, layers.tags),
-      rocks: new RockPainter(this, layers.rocks, layers.flash),
+      rocks: new RockPainter(this, layers.rocks),
       pickups: new PickupPainter(this, layers.pickups),
       strays: new StrayPainter(this, layers.strays),
       hazards: new HazardPainter(this, layers.hazards),
@@ -447,13 +461,15 @@ export class BeltScene extends Scene {
 
   /**
    * Returns whether the field's atlas was baked at the scale the field is laid
-   * out at: the same whole device pixels to a unit, at the same pixel ratio.
+   * out at: the same whole device pixels to a unit, at the same pixel ratio,
+   * and the rocks with their fine marks only where the field keeps them.
    */
   private isBakedForLayout(): boolean {
     const scale = bakedScale(this.metrics);
     return (
       scale.unit === this.baked?.unit &&
-      scale.pixelRatio === this.baked.pixelRatio
+      scale.pixelRatio === this.baked.pixelRatio &&
+      isFine(this.metrics) === this.bakedFine
     );
   }
 
@@ -463,6 +479,7 @@ export class BeltScene extends Scene {
    */
   private layOut(): void {
     this.kit.fieldCamera.fit(this.metrics);
+    this.lightRocks();
     this.steering.measure(this.metrics, this.deckParts, this.board);
     this.options.onLayout(this.layout);
   }
@@ -474,19 +491,40 @@ export class BeltScene extends Scene {
    */
   private bake(): void {
     this.baked = bakedScale(this.metrics);
-    bakeBeltAtlas(this, this.painted, this.baked);
+    this.bakedFine = isFine(this.metrics);
+    bakeBeltAtlas(this, this.painted, this.baked, this.bakedFine);
     if (this.deckBaked !== this.metrics.pixelRatio) {
       this.deckBaked = this.metrics.pixelRatio;
       bakeDeckAtlas(this, this.deckBaked);
     }
-    this.options.onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES));
+    const { rocks, ...field } = PICTURE_FRAMES;
+    const fieldPictures = picturesWhenAsked(this, ATLAS, field);
+    const rockPictures = picturesWhenAsked(this, ROCK_ATLAS, rocks);
+    let pictures: Pictures | null = null;
+    this.options.onPictures(
+      () => (pictures ??= { ...fieldPictures(), rocks: rockPictures() }),
+    );
+  }
+
+  /** Lights the rocks with the palette's light, far off over the field. */
+  private lightRocks(): void {
+    const light = this.painted.rockLight;
+    const { x, y, z, radius } = farLight(this.metrics, light);
+    this.lights.ambientColor.set(light.ambient, light.ambient, light.ambient);
+    this.sun.x = x;
+    this.sun.y = y;
+    this.sun.z = z;
+    this.sun.radius = radius;
+    this.sun.intensity = light.intensity;
   }
 
   /** Bakes the atlases again, and has every image take up its frame anew. */
   private rebake(): void {
     this.bake();
+    this.lightRocks();
     retakeFrames(this, ATLAS);
     retakeFrames(this, DECK_ATLAS);
+    retakeFrames(this, ROCK_ATLAS);
   }
 
   /**
