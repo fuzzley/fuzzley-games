@@ -2,20 +2,21 @@
  * The layers the field is drawn in, back to front, in one list, each drawn
  * over those before it, as the scene adds them in this order: the place
  * behind the play, its wash, stars and landmark; the field, which holds
- * nothing of its own; the halos of what gives off light, under all that
- * glows, so none covers what it glows round; the tags of the effects in
- * play, under all that
- * moves, so they hide nothing a player must see; a broken rock's dust and
- * shards, under the rocks, so none hides a piece it leaves; the rocks; the
- * pickups; the strays adrift and the pilots bailing out; the comets and
- * their warnings; the shots; the ship and its pilot; a held hit's flash;
- * the flourishes, back to front a dash's trail, the exhaust, a lost ship's
- * shards, the sparks and glints of breaks and held hits, and the rings;
- * the points rising; and the frame and the deck.
+ * nothing of its own; a comet's lane across the field as it is warned of,
+ * under all that lies on the field; the halos of what gives off light,
+ * under all that glows, so none covers what it glows round; the tags of the
+ * effects in play, under all that moves, so they hide nothing a player must
+ * see; a broken rock's dust and shards, under the rocks, so none hides a
+ * piece it leaves; the rocks; the pickups; the strays adrift and the pilots
+ * bailing out; the comets and their warnings; the shots; the ship and its
+ * pilot; a held hit's flash; the flourishes, back to front a dash's trail,
+ * the exhaust, a lost ship's shards, the sparks and glints of breaks and
+ * held hits, and the rings; the points rising; and the frame and the deck.
  */
 export const LAYERS = [
   "place",
   "field",
+  "lanes",
   "halos",
   "tags",
   "breaks",
@@ -50,6 +51,7 @@ export type LayerCamera = "field" | "deck";
 export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   place: "field",
   field: "field",
+  lanes: "field",
   halos: "field",
   tags: "field",
   breaks: "field",

@@ -1,6 +1,6 @@
 import type { Rock } from "../../rules/rocks/rocks";
 import { stepsIn } from "../../rules/stepper";
-import { PICKUP_BLINK_MS, ROCK_RADIUS } from "../../rules/tuning";
+import { COMET_MARGIN, PICKUP_BLINK_MS, ROCK_RADIUS } from "../../rules/tuning";
 import {
   type Board,
   DARK,
@@ -15,6 +15,7 @@ import {
 import {
   KEEPER,
   fieldFrom,
+  placeComet,
   placePickup,
   placeRock,
   placeShot,
@@ -27,7 +28,12 @@ import {
   rockHalos,
   roundHalo,
 } from "../../view/art/energy";
-import { pickupLook, restingLook } from "../../view/art/things";
+import {
+  CHEVRON_HALOS,
+  COMET_HALOS,
+  pickupLook,
+  restingLook,
+} from "../../view/art/things";
 import type { Copies } from "./copies";
 import { HALO_DISC } from "./halo_painter";
 
@@ -183,15 +189,18 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
-  it("make room for all a field's rocks, shots and pickups could give off, as the field starts", async () => {
+  it("make room for all a field's rocks, shots, pickups and comets could give off, as the field starts", async () => {
     const board = await startBoard();
     board.shell.field = fieldFrom(KEEPER, { cap: 60 });
 
     board.run.advance(16);
 
-    const { shots, pickups } = board.shell.field;
+    const { shots, pickups, comets } = board.shell.field;
     expect(board.scene.kit.halos.halos).toHaveLength(
-      60 * MOST_ROCK_HALOS + shots.slots.length + pickups.length,
+      60 * MOST_ROCK_HALOS +
+        shots.slots.length +
+        pickups.length +
+        2 * comets.slots.length,
     );
   });
 
@@ -283,6 +292,64 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
+  it("draw a comet's head's halo ahead of its middle and its tail's long behind it, along its way, in the danger color", async () => {
+    const board = await startBoard();
+    placeComet(board.shell.field, 30, 20, Math.PI / 2);
+    const metrics = metricsOf(board.shell);
+    const { head, tail } = COMET_HALOS;
+
+    board.run.advance(16);
+
+    expect({
+      shown: shownHalos(board),
+      tints: board.scene.kit.halos.halos
+        .slice(0, 2)
+        .map((copies) => copies.images[0]?.tintTopLeft),
+    }).toEqual({
+      shown: [
+        [onCanvas(metrics, 30, 20 + head.ahead), null, null, null],
+        [onCanvas(metrics, 30, 20 + tail.ahead), null, null, null],
+      ],
+      tints: [board.shell.colors.comet, board.shell.colors.comet],
+    });
+  });
+
+  it("draw a comet's tail's halo as strongly as its tail shows, off the field", async () => {
+    const board = await startBoard();
+    placeComet(board.shell.field, -COMET_MARGIN / 2, 20);
+    const palette = board.shell.colors;
+
+    board.run.advance(16);
+
+    const [, tail] = board.scene.kit.halos.halos;
+    expect(tail?.images[0]?.alpha).toBeCloseTo(
+      haloAlpha(COMET_HALOS.tail.strength / 2, palette),
+      9,
+    );
+  });
+
+  it("draw a warning's lit chevron's halo where the chevron lies, and none while its chevrons are held still", async () => {
+    const lit = await startBoard();
+    placeComet(lit.shell.field, -COMET_MARGIN, 20).warnSteps = 100;
+    const still = await startBoard(stillness);
+    placeComet(still.shell.field, -COMET_MARGIN, 20).warnSteps = 100;
+
+    lit.run.advance(16);
+    still.run.advance(16);
+
+    expect([shownHalos(lit), shownHalos(still)]).toEqual([
+      [
+        [
+          onCanvas(metricsOf(lit.shell), CHEVRON_HALOS[0].ahead, 20),
+          null,
+          null,
+          null,
+        ],
+      ],
+      [],
+    ]);
+  });
+
   it("draw a rock's halos where the rock is drawn between its last place and its next", async () => {
     const board = await startBoard((each) => {
       each.alpha = 0.5;
@@ -344,6 +411,7 @@ describe("a halo another painter shows", () => {
       board.shell.field.rocks.length * MOST_ROCK_HALOS +
         board.shell.field.shots.slots.length +
         board.shell.field.pickups.length +
+        2 * board.shell.field.comets.slots.length +
         1,
     );
   });

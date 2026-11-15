@@ -1,3 +1,4 @@
+import { lerp } from "@fz/core/math";
 import { softDisc } from "@fz/phaser/scene";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, wrap } from "../../rules/torus";
@@ -8,12 +9,18 @@ import {
   haloAlpha,
   rockHalos,
 } from "../../view/art/energy";
-import { pickupLook, restingLook } from "../../view/art/things";
+import {
+  CHEVRON_HALOS,
+  COMET_HALOS,
+  pickupLook,
+  restingLook,
+} from "../../view/art/things";
 import {
   type Drawn,
   type FieldView,
   wrappedBetween,
 } from "../../view/field/frame";
+import { chevronLit, tailShare, warningAt } from "../../view/field/warning";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
@@ -33,7 +40,8 @@ const WHOLE = "__BASE";
  * once, each turned, scaled and faded as the view's halo says, on both sides
  * of an edge it reaches across: a crystal's gems' and a volatile rock's
  * core's, turning with their rock, each shot's, in the accent, along
- * its travel, and each pickup's, breathing with its orb.
+ * its travel, and each pickup's, breathing with its orb; and once, for the
+ * field's camera to cut off, each comet's and its warning's lit chevron's.
  *
  * Another painter shows a halo of its own through {@link glow}, or
  * {@link glowOnce} for a thing that crosses rather than wraps, each frame
@@ -59,6 +67,8 @@ export class HaloPainter implements Painter {
     turn: 0,
     strength: 0,
   };
+  /** The halo of the comet's tail being shown, as strong as its tail shows, written for each. */
+  private readonly tailHalo = { ...COMET_HALOS.tail };
   /** Where the middle of the halo being shown lies on the field, written for each. */
   private readonly middle: Moving = { x: 0, y: 0 };
 
@@ -85,14 +95,15 @@ export class HaloPainter implements Painter {
 
   /**
    * Makes the images a new field's halos need, those it lacks, as many as
-   * all its rocks and shots could give off at once and those reserved, so
-   * none is made in a frame of play.
+   * all its rocks, shots, pickups and comets could give off at once and
+   * those reserved, so none is made in a frame of play.
    */
   start(field: FieldView): void {
     const wanted =
       field.rocks.length * MOST_ROCK_HALOS +
       field.shots.slots.length +
       field.pickups.length +
+      2 * field.comets.slots.length +
       this.reserved;
     while (this.halosMade.length < wanted) {
       this.halosMade.push(
@@ -128,6 +139,7 @@ export class HaloPainter implements Painter {
       this.glow(SHOTS[shot.weapon].halo, palette.accent, this.drawn, context);
     }
     this.drawPickups(context);
+    this.drawComets(context);
     for (let i = this.shown; i < before; i++) this.halosMade[i]?.hide();
   }
 
@@ -150,6 +162,35 @@ export class HaloPainter implements Painter {
       wrappedBetween(floating, alpha, field.torus, this.drawn);
       this.drawn.angle = 0;
       this.glow(this.orbHalo, palette.accent, this.drawn, context);
+    }
+  }
+
+  /**
+   * Draws the halos of each comet, in the danger color, once each, for the
+   * field's camera to cut off, as a comet crosses rather than wraps: its
+   * head's and its tail's as it flies, its tail's as strongly as its tail
+   * shows; and while it is warned of, its warning's lit chevron's, none
+   * where its chevrons are held still.
+   */
+  private drawComets(context: Readonly<PaintContext>): void {
+    const { field, alpha, motion, palette } = context;
+    for (const comet of field.comets.slots) {
+      if (!comet.live) continue;
+      this.drawn.angle = comet.heading;
+      if (comet.warnSteps > 0) {
+        const lit = chevronLit(comet, motion);
+        if (lit === null) continue;
+        warningAt(comet, field.torus, this.drawn);
+        this.glowOnce(CHEVRON_HALOS[lit], palette.comet, this.drawn, context);
+        continue;
+      }
+      this.drawn.x = lerp(comet.lastX, comet.x, alpha);
+      this.drawn.y = lerp(comet.lastY, comet.y, alpha);
+      this.glowOnce(COMET_HALOS.head, palette.comet, this.drawn, context);
+      const share = tailShare(this.drawn, field.torus);
+      if (share === 0) continue;
+      this.tailHalo.strength = COMET_HALOS.tail.strength * share;
+      this.glowOnce(this.tailHalo, palette.comet, this.drawn, context);
     }
   }
 

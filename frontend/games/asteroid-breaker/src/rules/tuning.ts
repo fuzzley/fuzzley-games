@@ -289,7 +289,7 @@ export const COMET_RADIUS = 1;
 
 /**
  * How far off the field a comet's middle comes in from and leaves past, so
- * its head and its short tail slide in and out of sight.
+ * its head slides in and out of sight, and its tail fades with it.
  */
 export const COMET_MARGIN = 3;
 

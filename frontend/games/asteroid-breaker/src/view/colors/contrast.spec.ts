@@ -46,11 +46,13 @@ describe("the field's contrast", () => {
       ] as const;
     });
     // The pod's hull is lit as a rock is, its facets in the accent and its
-    // trim in the muted text.
+    // trim in the muted text, and so is the comet's head, in the danger
+    // color.
     const hull = (
       [
         ["pod's hull", palette.accent],
         ["pod's trim", palette.muted],
+        ["comet's head", palette.comet],
       ] as const
     ).flatMap(([part, ink]) => {
       const { darkest, brightest } = faceExtremes(ink, palette.rockLight);
