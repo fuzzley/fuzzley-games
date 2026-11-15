@@ -1,0 +1,257 @@
+F1's fourth frame sitting (2026-11-15): how it was made, then each script's output as it printed it.
+
+== How it was made
+Each build was checked out (detached, in a worktree of its own) and built with source maps into a folder of its own,
+named <name>-dist: smbase = da697c6e9, the build's start; smp4 = c8bd5e91, the integration under F1 (the same game as
+086b363c); tip3 = 278cdaeb, F1's last (the same game as c54f9ef0). In the checkout's frontend/games/asteroid-breaker:
+  yarn vite build --sourcemap --outDir <folder>/<name>-dist --emptyOutDir
+Each build's own code wrote its runs, into its folder, from the same checkout:
+  node kept-run.mjs <name>-dist/budget-init.js <checkout>/frontend/games/asteroid-breaker/tools
+  node wave-run.mjs <name>-dist/budget-tempest.js casino 29 <checkout>/frontend/games/asteroid-breaker/tools
+Then, in <folder>, with YARN set to run Yarn (serve.sh, which rounds.sh calls, serves each build in turn on 9141):
+  rounds.sh 14 p4w9 go.js 0 budget-init.js smbase smp4 tip3
+  rounds.sh 11 p4tempest go-tempest.js 1500 budget-tempest.js smp4 tip3
+  PROFILE=1 TRACE_MS=5000 rounds.sh 3 p4prof go.js 0 budget-init.js smbase smp4 tip3
+  PROFILE=1 TRACE_MS=5000 rounds.sh 3 p4proftempest go-tempest.js 1500 budget-tempest.js smp4 tip3
+  node split.mjs p4w9-<name>-<round>.json...   (each build's rounds, smbase's without 1 and 6)
+  node parts.mjs parts-<name>.json <name>-dist p4prof-<name>-*.json
+  UNDER=layer DEPTH=1 node nodes.mjs nodesL1-<name>.json <name>-dist p4prof-<name>-*.json   (and DEPTH=2, nodesL2)
+  node compare.mjs <kind> <top N> base=parts-smbase.json p4=parts-smp4.json tip=parts-tip3.json
+  node parts.mjs partsT-<name>.json <name>-dist p4proftempest-<name>-*.json
+  node count.mjs count-w9-<name>.json <name>-dist/budget-init.js go.js 500
+  node count.mjs count-tempest-<name>.json <name>-dist/budget-tempest.js go-tempest.js 1500
+The page: 2,100 x 1,000 at 1x, the CPU slowed four times, Casino night; four seconds traced (five with the sampler).
+Columns of a round's line: build, round, the machine's load as it began, frames.mjs' medians (ms), and from wave 9's
+round 8 and Tempest's round 6 the bar's figures at the trace's end (rounds.sh printed the earlier rounds before trace.mjs
+kept them).
+
+== Wave 9, fourteen rounds
+Rounds 1-7 kept no bar's figures; their screenshots' score boxes match the later rounds' (each build's alike, pixel
+for pixel) but for smbase 1 and 6, whose pod was lost by the trace's end: a score of 5,560 and two ships, against 5,400
+and three. Those two are left out of the start's median.
+smbase 1 load=4.73 {"frames":239,"scriptingAndRendering":"3.30","scripting":"2.99","rendering":"0.06","painting":"0.10","frameGap":"16.67","threadTime":"3.28"}
+smp4 1 load=3.66 {"frames":239,"scriptingAndRendering":"4.89","scripting":"4.63","rendering":"0.06","painting":"0.12","frameGap":"16.61","threadTime":"4.89"}
+tip3 1 load=3.64 {"frames":239,"scriptingAndRendering":"4.86","scripting":"4.64","rendering":"0.06","painting":"0.13","frameGap":"16.67","threadTime":"4.86"}
+smbase 2 load=3.34 {"frames":239,"scriptingAndRendering":"3.74","scripting":"3.52","rendering":"0.06","painting":"0.29","frameGap":"16.66","threadTime":"3.73"}
+smp4 2 load=3.29 {"frames":239,"scriptingAndRendering":"4.96","scripting":"4.64","rendering":"0.06","painting":"0.13","frameGap":"16.72","threadTime":"4.96"}
+tip3 2 load=3.32 {"frames":239,"scriptingAndRendering":"5.34","scripting":"4.97","rendering":"0.07","painting":"0.14","frameGap":"16.69","threadTime":"5.35"}
+smbase 3 load=3.90 {"frames":239,"scriptingAndRendering":"3.63","scripting":"3.33","rendering":"0.06","painting":"0.14","frameGap":"16.68","threadTime":"3.63"}
+smp4 3 load=4.61 {"frames":239,"scriptingAndRendering":"4.90","scripting":"4.60","rendering":"0.06","painting":"0.13","frameGap":"16.65","threadTime":"4.89"}
+tip3 3 load=4.62 {"frames":239,"scriptingAndRendering":"4.60","scripting":"4.36","rendering":"0.06","painting":"0.13","frameGap":"16.69","threadTime":"4.59"}
+smbase 4 load=4.90 {"frames":240,"scriptingAndRendering":"3.35","scripting":"3.15","rendering":"0.05","painting":"0.12","frameGap":"16.64","threadTime":"3.34"}
+smp4 4 load=5.10 {"frames":239,"scriptingAndRendering":"4.70","scripting":"4.44","rendering":"0.06","painting":"0.11","frameGap":"16.64","threadTime":"4.72"}
+tip3 4 load=5.02 {"frames":240,"scriptingAndRendering":"6.12","scripting":"5.78","rendering":"0.08","painting":"0.42","frameGap":"16.68","threadTime":"6.11"}
+smbase 5 load=8.26 {"frames":239,"scriptingAndRendering":"3.47","scripting":"3.11","rendering":"0.07","painting":"0.13","frameGap":"16.65","threadTime":"3.47"}
+smp4 5 load=7.98 {"frames":239,"scriptingAndRendering":"4.67","scripting":"4.46","rendering":"0.06","painting":"0.12","frameGap":"16.66","threadTime":"4.67"}
+tip3 5 load=6.95 {"frames":239,"scriptingAndRendering":"4.61","scripting":"4.37","rendering":"0.05","painting":"0.11","frameGap":"16.61","threadTime":"4.59"}
+smbase 6 load=6.25 {"frames":239,"scriptingAndRendering":"3.29","scripting":"3.09","rendering":"0.05","painting":"0.12","frameGap":"16.66","threadTime":"3.28"}
+smp4 6 load=5.03 {"frames":239,"scriptingAndRendering":"4.26","scripting":"4.08","rendering":"0.05","painting":"0.10","frameGap":"16.67","threadTime":"4.25"}
+tip3 6 load=4.56 {"frames":239,"scriptingAndRendering":"4.38","scripting":"4.11","rendering":"0.05","painting":"0.10","frameGap":"16.66","threadTime":"4.37"}
+smbase 7 load=3.99 {"frames":240,"scriptingAndRendering":"3.30","scripting":"3.02","rendering":"0.05","painting":"0.10","frameGap":"16.64","threadTime":"3.30"}
+smp4 7 load=3.93 {"frames":239,"scriptingAndRendering":"4.14","scripting":"3.86","rendering":"0.05","painting":"0.11","frameGap":"16.65","threadTime":"4.13"}
+tip3 7 load=3.43 {"frames":239,"scriptingAndRendering":"4.37","scripting":"4.15","rendering":"0.05","painting":"0.11","frameGap":"16.67","threadTime":"4.36"}
+smbase 8 load=2.00 {"frames":240,"scriptingAndRendering":"3.76","scripting":"3.46","rendering":"0.06","painting":"0.13","frameGap":"16.66","threadTime":"3.75"} bar: Wave9Score5,400Ships3 ships
+smp4 8 load=3.01 {"frames":239,"scriptingAndRendering":"5.01","scripting":"4.70","rendering":"0.07","painting":"0.13","frameGap":"16.72","threadTime":"5.01"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 8 load=4.46 {"frames":239,"scriptingAndRendering":"4.90","scripting":"4.63","rendering":"0.06","painting":"0.12","frameGap":"16.68","threadTime":"4.90"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 9 load=4.66 {"frames":239,"scriptingAndRendering":"3.34","scripting":"3.08","rendering":"0.06","painting":"0.24","frameGap":"16.70","threadTime":"3.34"} bar: Wave9Score5,400Ships3 ships
+smp4 9 load=5.24 {"frames":239,"scriptingAndRendering":"4.61","scripting":"4.34","rendering":"0.06","painting":"0.12","frameGap":"16.66","threadTime":"4.60"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 9 load=5.23 {"frames":239,"scriptingAndRendering":"4.30","scripting":"4.16","rendering":"0.05","painting":"0.11","frameGap":"16.65","threadTime":"4.29"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 10 load=4.96 {"frames":240,"scriptingAndRendering":"3.27","scripting":"3.02","rendering":"0.05","painting":"0.10","frameGap":"16.67","threadTime":"3.26"} bar: Wave9Score5,400Ships3 ships
+smp4 10 load=4.28 {"frames":239,"scriptingAndRendering":"4.26","scripting":"4.09","rendering":"0.05","painting":"0.11","frameGap":"16.66","threadTime":"4.29"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 10 load=4.08 {"frames":239,"scriptingAndRendering":"4.26","scripting":"4.02","rendering":"0.05","painting":"0.10","frameGap":"16.68","threadTime":"4.27"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 11 load=4.13 {"frames":239,"scriptingAndRendering":"3.32","scripting":"3.13","rendering":"0.05","painting":"0.27","frameGap":"16.68","threadTime":"3.32"} bar: Wave9Score5,400Ships3 ships
+smp4 11 load=3.42 {"frames":239,"scriptingAndRendering":"4.37","scripting":"4.16","rendering":"0.05","painting":"0.11","frameGap":"16.66","threadTime":"4.37"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 11 load=3.43 {"frames":239,"scriptingAndRendering":"4.31","scripting":"4.04","rendering":"0.06","painting":"0.10","frameGap":"16.68","threadTime":"4.33"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 12 load=2.89 {"frames":239,"scriptingAndRendering":"3.29","scripting":"2.99","rendering":"0.05","painting":"0.11","frameGap":"16.67","threadTime":"3.28"} bar: Wave9Score5,400Ships3 ships
+smp4 12 load=2.67 {"frames":239,"scriptingAndRendering":"5.22","scripting":"4.96","rendering":"0.08","painting":"0.19","frameGap":"16.64","threadTime":"5.19"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 12 load=6.70 {"frames":239,"scriptingAndRendering":"5.63","scripting":"5.21","rendering":"0.08","painting":"0.15","frameGap":"16.70","threadTime":"5.61"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 13 load=8.98 {"frames":239,"scriptingAndRendering":"3.55","scripting":"3.20","rendering":"0.07","painting":"0.13","frameGap":"16.66","threadTime":"3.55"} bar: Wave9Score5,400Ships3 ships
+smp4 13 load=8.13 {"frames":239,"scriptingAndRendering":"4.72","scripting":"4.38","rendering":"0.06","painting":"0.13","frameGap":"16.66","threadTime":"4.71"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 13 load=9.25 {"frames":239,"scriptingAndRendering":"4.52","scripting":"4.30","rendering":"0.05","painting":"0.14","frameGap":"16.69","threadTime":"4.51"} bar: Wave9Score320Crew2 in towStatic ×1
+smbase 14 load=8.22 {"frames":239,"scriptingAndRendering":"3.24","scripting":"2.94","rendering":"0.06","painting":"0.26","frameGap":"16.63","threadTime":"3.23"} bar: Wave9Score5,400Ships3 ships
+smp4 14 load=7.33 {"frames":239,"scriptingAndRendering":"4.38","scripting":"4.25","rendering":"0.05","painting":"0.12","frameGap":"16.62","threadTime":"4.38"} bar: Wave9Score320Crew2 in towStatic ×1
+tip3 14 load=6.21 {"frames":239,"scriptingAndRendering":"4.31","scripting":"4.11","rendering":"0.05","painting":"0.11","frameGap":"16.65","threadTime":"4.30"} bar: Wave9Score320Crew2 in towStatic ×1
+
+== split.mjs over the same traces (smbase without rounds 1 and 6), median ms a frame
+smbase {"animationFrame":"3.15","layoutAndPaint":"0.68","gpuMain":"10.97","gpuTasks":"4.29"}
+smp4 {"animationFrame":"4.37","layoutAndPaint":"0.68","gpuMain":"11.83","gpuTasks":"4.81"}
+tip3 {"animationFrame":"4.42","layoutAndPaint":"0.68","gpuMain":"11.80","gpuTasks":"4.76"}
+
+== Tempest (wave 29), thrusting round in a circle
+Round 9 was cut short by the container's restart; rounds 10 and 11 ran after it, from fresh previews. Rounds 1-5
+kept no bar's figures; smp4 round 3's screenshot shows a score of 1,345 and no one in tow.
+smp4 1 load=1.99 {"frames":238,"scriptingAndRendering":"6.99","scripting":"6.46","rendering":"0.08","painting":"0.12","frameGap":"16.65","threadTime":"7.00"}
+tip3 1 load=2.00 {"frames":237,"scriptingAndRendering":"7.21","scripting":"6.79","rendering":"0.06","painting":"0.33","frameGap":"16.65","threadTime":"7.20"}
+smp4 2 load=2.08 {"frames":239,"scriptingAndRendering":"6.63","scripting":"6.21","rendering":"0.06","painting":"0.14","frameGap":"16.66","threadTime":"6.63"}
+tip3 2 load=2.70 {"frames":238,"scriptingAndRendering":"6.34","scripting":"6.00","rendering":"0.06","painting":"0.32","frameGap":"16.64","threadTime":"6.34"}
+smp4 3 load=2.79 {"frames":239,"scriptingAndRendering":"6.47","scripting":"6.17","rendering":"0.06","painting":"0.39","frameGap":"16.69","threadTime":"6.46"}
+tip3 3 load=3.72 {"frames":239,"scriptingAndRendering":"6.39","scripting":"6.04","rendering":"0.06","painting":"0.30","frameGap":"16.66","threadTime":"6.38"}
+smp4 4 load=5.03 {"frames":238,"scriptingAndRendering":"6.62","scripting":"6.29","rendering":"0.06","painting":"0.20","frameGap":"16.64","threadTime":"6.62"}
+tip3 4 load=5.28 {"frames":238,"scriptingAndRendering":"7.01","scripting":"6.62","rendering":"0.06","painting":"0.21","frameGap":"16.68","threadTime":"7.00"}
+smp4 5 load=5.10 {"frames":238,"scriptingAndRendering":"6.78","scripting":"6.45","rendering":"0.06","painting":"0.22","frameGap":"16.68","threadTime":"6.78"}
+tip3 5 load=4.57 {"frames":238,"scriptingAndRendering":"7.15","scripting":"6.77","rendering":"0.06","painting":"0.11","frameGap":"16.65","threadTime":"7.14"}
+smp4 6 load=5.12 {"frames":239,"scriptingAndRendering":"6.27","scripting":"6.03","rendering":"0.06","painting":"0.11","frameGap":"16.66","threadTime":"6.27"} bar: Wave29Score1,505CrewNo one in towStatic ×1
+tip3 6 load=4.05 {"frames":239,"scriptingAndRendering":"6.28","scripting":"5.89","rendering":"0.06","painting":"0.19","frameGap":"16.65","threadTime":"6.27"} bar: Wave29Score1,505CrewNo one in towStatic ×1
+smp4 7 load=3.43 {"frames":237,"scriptingAndRendering":"6.65","scripting":"6.40","rendering":"0.06","painting":"0.23","frameGap":"16.66","threadTime":"6.64"} bar: Wave29Score3,955Crew1 in tow, 1 knocked looseStatic ×4
+tip3 7 load=2.95 {"frames":239,"scriptingAndRendering":"6.30","scripting":"5.91","rendering":"0.06","painting":"0.29","frameGap":"16.62","threadTime":"6.29"} bar: Wave29Score1,345CrewNo one in towStatic ×1
+smp4 8 load=2.65 {"frames":238,"scriptingAndRendering":"6.34","scripting":"5.99","rendering":"0.05","painting":"0.11","frameGap":"16.66","threadTime":"6.34"} bar: Wave29Score1,920Crew1 in tow, 1 knocked looseStatic ×1
+tip3 8 load=2.52 {"frames":239,"scriptingAndRendering":"6.24","scripting":"5.91","rendering":"0.06","painting":"0.27","frameGap":"16.66","threadTime":"6.22"} bar: Wave29Score1,345CrewNo one in towStatic ×1
+smp4 10 load=1.02 {"frames":239,"scriptingAndRendering":"6.72","scripting":"6.25","rendering":"0.05","painting":"0.15","frameGap":"16.66","threadTime":"6.71"} bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip3 10 load=1.00 {"frames":239,"scriptingAndRendering":"7.30","scripting":"6.83","rendering":"0.06","painting":"0.26","frameGap":"16.65","threadTime":"7.30"} bar: Wave29Score2,845CrewNo one in tow, 2 knocked looseStatic ×2
+smp4 11 load=1.42 {"frames":239,"scriptingAndRendering":"6.58","scripting":"6.23","rendering":"0.06","painting":"0.17","frameGap":"16.63","threadTime":"6.58"} bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip3 11 load=1.71 {"frames":239,"scriptingAndRendering":"7.31","scripting":"6.95","rendering":"0.06","painting":"0.24","frameGap":"16.66","threadTime":"7.30"} bar: Wave29Score2,845CrewNo one in tow, 2 knocked looseStatic ×2
+
+== Wave 9 with the stack sampler (the start's three ended with its pod flying and three ships, one at 5,420, a rock
+   more than 5,400 in its fifth second)
+smbase 1 load=2.90 {"frames":254,"scriptingAndRendering":"3.54","scripting":"3.30","rendering":"0.06","painting":"0.11","frameGap":"16.67","threadTime":"3.56"}
+smp4 1 load=3.32 {"frames":247,"scriptingAndRendering":"4.81","scripting":"4.57","rendering":"0.06","painting":"0.13","frameGap":"16.66","threadTime":"4.82"}
+tip3 1 load=3.78 {"frames":245,"scriptingAndRendering":"4.91","scripting":"4.63","rendering":"0.06","painting":"0.15","frameGap":"16.66","threadTime":"4.92"}
+smbase 2 load=3.84 {"frames":255,"scriptingAndRendering":"3.61","scripting":"3.37","rendering":"0.06","painting":"0.26","frameGap":"16.65","threadTime":"3.64"}
+smp4 2 load=3.58 {"frames":247,"scriptingAndRendering":"4.61","scripting":"4.45","rendering":"0.06","painting":"0.12","frameGap":"16.68","threadTime":"4.69"}
+tip3 2 load=3.13 {"frames":245,"scriptingAndRendering":"4.58","scripting":"4.31","rendering":"0.05","painting":"0.13","frameGap":"16.67","threadTime":"4.57"}
+smbase 3 load=3.03 {"frames":255,"scriptingAndRendering":"3.44","scripting":"3.18","rendering":"0.05","painting":"0.14","frameGap":"16.70","threadTime":"3.43"}
+smp4 3 load=2.92 {"frames":246,"scriptingAndRendering":"4.90","scripting":"4.73","rendering":"0.06","painting":"0.12","frameGap":"16.65","threadTime":"4.87"}
+tip3 3 load=2.41 {"frames":245,"scriptingAndRendering":"4.85","scripting":"4.63","rendering":"0.06","painting":"0.12","frameGap":"16.68","threadTime":"4.83"}
+
+== compare.mjs part 32 (ms a frame sampled)
+   base      p4     tip   gain  part
+  4.992   6.485   6.331   1.493  (all sampled)
+  1.733   2.290   2.222   0.557  (outside the game's code: phaser and the browser)
+  0.000   0.242   0.219   0.242  src/scene/painters/tow_painter.ts draw
+  0.000   0.172   0.159   0.172  src/scene/painters/pod_painter.ts draw
+  0.402   0.240   0.227  -0.163  src/scene/painters/rock_painter.ts draw
+  0.000   0.143   0.145   0.143  src/scene/painters/halo_painter.ts draw
+  0.208   0.077   0.082  -0.131  src/scene/belt_scene.ts update
+  1.553   1.678   1.627   0.125  (outside the game's code: (program))
+  0.290   0.412   0.388   0.122  src/app/board/board.component.ts tick
+  0.000   0.120   0.141   0.120  src/scene/belt_scene.ts playSwitched
+  0.000   0.119   0.092   0.119  src/scene/painters/spark_painter.ts draw
+  0.048   0.000   0.000  -0.048  src/scene/painters/ship_painter.ts draw
+  0.066   0.100   0.132   0.033  (outside the game's code: (bufferSubData))
+  0.013   0.043   0.031   0.029  (outside the game's code: (drawElements))
+  0.028   0.000   0.000  -0.028  src/util/callback_scheduler.ts 
+  0.039   0.013   0.013  -0.027  src/scene/painters/debris_painter.ts draw
+  0.011   0.038   0.035   0.026  (outside the game's code: (bindVertexArrayOES))
+  0.000   0.026   0.024   0.026  src/view/effects/field_sounds.ts hearField
+  0.000   0.024   0.027   0.024  src/scene/painters/arc_painter.ts draw
+  0.044   0.065   0.061   0.021  src/scene/painters/stray_painter.ts draw
+  0.000   0.016   0.012   0.016  src/scene/belt_scene.ts holdBeds
+  0.000   0.016   0.020   0.016  src/scene/painters/place_painter.ts draw
+  0.008   0.024   0.023   0.016  (outside the game's code: (useProgram))
+  0.000   0.016   0.022   0.016  (outside the game's code: (bindTexture))
+  0.000   0.014   0.024   0.014  (outside the game's code: (uniform3f))
+  0.000   0.013   0.007   0.013  (outside the game's code: (activeTexture))
+  0.008   0.020   0.015   0.012  (outside the game's code: (bindBuffer))
+  0.035   0.046   0.045   0.011  (outside the game's code: (garbage collector))
+  0.010   0.000   0.000  -0.010  src/scene/flourish_player.ts play
+  0.020   0.011   0.010  -0.009  src/scene/painters/points_painter.ts draw
+  0.011   0.002   0.005  -0.009  src/app/board/board.component.ts board
+  0.014   0.005   0.005  -0.008  src/scene/painters/trail_painter.ts draw
+  0.159   0.167   0.156   0.007  (outside the game's code: (requestAnimationFrame))
+
+== compare.mjs rules 12
+   base      p4     tip   gain  rules
+  4.992   6.485   6.331   1.493  (all sampled)
+  0.000   0.033   0.029   0.033  src/rules/sparks/grazes.ts countGrazes
+  0.050   0.063   0.057   0.013  src/rules/field/field.ts stepField
+  0.016   0.028   0.029   0.012  src/rules/rocks/rocks.ts stepRocks
+  0.042   0.052   0.049   0.010  src/rules/field/field.ts firstMet
+  0.000   0.010   0.002   0.010  src/rules/rocks/rocks.ts rockHitRadius
+  0.023   0.031   0.031   0.008  src/rules/ship/ship.ts flyShip
+  0.000   0.008   0.004   0.008  src/rules/ship/tow.ts stepTow
+  0.008   0.000   0.000  -0.008  src/rules/field/events.ts add
+  0.000   0.008   0.007   0.008  src/rules/sparks/sparks.ts stepSparks
+  0.007   0.000   0.000  -0.007  src/rules/torus.ts copyOffsets
+  0.008   0.003   0.006  -0.005  src/rules/hazards/comets.ts stepComets
+  0.006   0.011   0.007   0.005  src/rules/rocks/rocks.ts rocksLeft
+
+== compare.mjs outside 8 (Phaser's own, by its outer functions)
+   base      p4     tip   gain  outside
+  4.992   6.485   6.331   1.493  (all sampled)
+  1.473   2.175   2.114   0.702  render > render > render
+  1.553   1.678   1.627   0.125  (program)
+  0.050   0.068   0.048   0.019  step > step > step
+  0.006   0.022   0.014   0.016  preRender
+  0.277   0.263   0.253  -0.014  step
+  0.035   0.046   0.045   0.011  (garbage collector)
+  0.024   0.015   0.025  -0.009  update
+  0.022   0.029   0.046   0.007  update > step
+
+== compare.mjs outside 14 over nodesL1-*.json (Phaser's render, by the class under the layers)
+   base      p4     tip   gain  outside
+  4.992   6.485   6.331   1.493  (all sampled)
+  0.603   1.158   1.099   0.556  Image
+  0.219   0.092   0.087  -0.127  RenderNodeManager
+  0.024   0.138   0.166   0.114  Graphics
+  0.329   0.418   0.376   0.089  (the render itself)
+  0.139   0.195   0.217   0.056  ListCompositor
+  0.031   0.050   0.050   0.019  DrawingContext
+  0.016   0.005   0.004  -0.011  ParticleEmitter
+  0.014   0.023   0.015   0.010  WebGLRenderer
+  0.003   0.012   0.006   0.009  TransformMatrix
+  0.026   0.017   0.014  -0.009  FillCamera
+  0.041   0.049   0.049   0.008  CaptureFrame
+  0.007   0.004   0.006  -0.003  BaseCamera
+  0.008   0.006   0.014  -0.002  CameraManager
+  0.002   0.000   0.000  -0.002  Vector2
+
+== compare.mjs outside 14 over nodesL2-*.json
+   base      p4     tip   gain  outside
+  4.992   6.485   6.331   1.493  (all sampled)
+  0.527   1.115   1.058   0.588  Image > SubmitterQuad
+  0.155   0.037   0.042  -0.118  RenderNodeManager > BatchHandlerQuad
+  0.329   0.418   0.376   0.089  (the render itself)
+  0.000   0.081   0.107   0.081  Graphics > StrokePath
+  0.136   0.190   0.210   0.054  ListCompositor
+  0.006   0.037   0.035   0.031  Graphics
+  0.068   0.040   0.038  -0.028  Image
+  0.031   0.049   0.044   0.018  DrawingContext
+  0.033   0.044   0.040   0.012  CaptureFrame
+  0.002   0.012   0.011   0.011  Graphics > GameObjectFactory
+  0.015   0.006   0.011  -0.010  Graphics > FillRect
+  0.010   0.019   0.012   0.010  WebGLRenderer
+  0.025   0.015   0.012  -0.010  FillCamera > FillRect
+  0.003   0.012   0.006   0.009  TransformMatrix
+
+== Tempest with the stack sampler
+smp4 1 load=3.90 {"frames":245,"scriptingAndRendering":"7.62","scripting":"7.26","rendering":"0.06","painting":"0.25","frameGap":"16.66","threadTime":"7.63"}
+tip3 1 load=3.68 {"frames":242,"scriptingAndRendering":"7.16","scripting":"6.98","rendering":"0.06","painting":"0.38","frameGap":"16.68","threadTime":"7.16"}
+smp4 2 load=3.61 {"frames":242,"scriptingAndRendering":"6.87","scripting":"6.49","rendering":"0.06","painting":"0.25","frameGap":"16.65","threadTime":"6.88"}
+tip3 2 load=3.61 {"frames":241,"scriptingAndRendering":"6.74","scripting":"6.43","rendering":"0.06","painting":"0.25","frameGap":"16.65","threadTime":"6.74"}
+smp4 3 load=3.70 {"frames":245,"scriptingAndRendering":"7.48","scripting":"7.01","rendering":"0.07","painting":"0.17","frameGap":"16.64","threadTime":"7.50"}
+tip3 3 load=3.38 {"frames":246,"scriptingAndRendering":"6.92","scripting":"6.52","rendering":"0.06","painting":"0.25","frameGap":"16.68","threadTime":"6.91"}
+     p4     tip   gain  part
+  9.734   9.415  -0.318  (all sampled)
+  3.372   3.110  -0.262  (outside the game's code: phaser and the browser)
+  2.002   2.070   0.068  (outside the game's code: (program))
+  0.121   0.071  -0.050  src/view/effects/field_sounds.ts playEach
+  0.318   0.275  -0.044  src/scene/painters/halo_painter.ts draw
+  0.276   0.317   0.041  src/scene/painters/spark_painter.ts draw
+  0.092   0.068  -0.024  (outside the game's code: (clear))
+  0.026   0.050   0.024  src/scene/painters/pickup_painter.ts draw
+  0.114   0.136   0.022  src/scene/belt_scene.ts update
+  0.600   0.579  -0.021  src/app/board/board.component.ts tick
+  0.248   0.228  -0.020  src/util/callback_scheduler.ts 
+  0.000   0.018   0.018  src/scene/painters/blast_painter.ts draw
+  0.087   0.070  -0.017  src/scene/painters/shot_painter.ts draw
+  0.092   0.077  -0.016  src/scene/painters/points_painter.ts draw
+  0.168   0.153  -0.015  (outside the game's code: (bufferSubData))
+  0.050   0.036  -0.014  src/scene/painters/hazard_painter.ts draw
+  0.012   0.025   0.013  (outside the game's code: (uniform3f))
+  0.340   0.352   0.012  src/scene/painters/rock_painter.ts draw
+  0.000   0.012   0.012  src/scene/painters/muzzle_painter.ts draw
+  0.001   0.012   0.012  src/change_detection/scheduling/zoneless_scheduling_impl.ts 
+  0.046   0.035  -0.012  (outside the game's code: (drawElements))
+  0.150   0.139  -0.011  (outside the game's code: (requestAnimationFrame))
+  0.040   0.030  -0.010  (outside the game's code: (bindBuffer))
+
+== count.mjs, WebGL calls a frame (quads: the frame's drawn indices over six, Graphics' triangles among them)
+count-w9-smbase {"frames":120,"perFrame":{"quads":123.3,"bufferSubData":5,"drawElements":3,"scissor":2,"useProgram":2,"clear":1,"uniformMatrix4fv":0}}
+count-w9-smp4 {"frames":121,"perFrame":{"quads":75.3,"bufferSubData":12,"drawElements":9,"useProgram":8,"bindTexture":7,"uniform3f":4,"scissor":2,"clear":1}}
+count-w9-tip3 {"frames":120,"perFrame":{"quads":75.6,"bufferSubData":12,"drawElements":9,"useProgram":8,"bindTexture":7,"uniform3f":4,"scissor":2,"clear":1}}
+count-tempest-smp4 {"frames":120,"perFrame":{"quads":288.1,"bufferSubData":15.5,"drawElements":11.1,"useProgram":10.2,"bindTexture":8.1,"uniform3f":5.8,"scissor":2.3,"clear":1.1,"bindFramebuffer":0.2,"uniformMatrix4fv":0.2,"uniform1f":0.1,"uniform1i":0,"uniform2f":0}}
+count-tempest-tip3 {"frames":121,"perFrame":{"quads":314.3,"bufferSubData":15.5,"drawElements":11.1,"useProgram":10.2,"uniform3f":8.2,"bindTexture":8.1,"scissor":2.2,"clear":1.1,"bindFramebuffer":0.2,"uniformMatrix4fv":0.2,"uniform1f":0.1,"uniform1i":0}}
+
+== Which package added each part (git log --diff-filter=A on its file, and the package log that followed)
+tow_painter.ts P3; pod_painter.ts L6 (from ship_painter.ts); halo_painter.ts L4; spark_painter.ts and arc_painter.ts P4;
+place_painter.ts L3; field_sounds.ts S3; belt_scene's playSwitched and holdBeds S4; rules/sparks/grazes.ts R2
