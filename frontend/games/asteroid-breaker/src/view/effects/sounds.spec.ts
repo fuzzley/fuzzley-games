@@ -1,5 +1,9 @@
-import { SOUND_LEVELS, type SoundLevel } from "@fz/core/sound_mix";
-import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
+import { SOUND_LEVELS, gainOf } from "@fz/core/sound_mix";
+import {
+  type EffectKind,
+  PICKUP_IDS,
+  type PickupId,
+} from "../../rules/catalog/pickups";
 import {
   ROCK_KINDS,
   ROCK_KIND_IDS,
@@ -10,16 +14,26 @@ import {
 } from "../../rules/catalog/rocks";
 import { WEAPON_IDS, type WeaponId } from "../../rules/catalog/weapons";
 import { hitRock } from "../../rules/rocks/rocks";
+import { EFFECT_KINDS } from "../../rules/rocks/pickups";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
+  CHAIN_CENTS,
+  CHARGED,
+  CROWD,
+  LADDER,
+  PLAY_ORDER,
   SOUNDS,
   SOUND_NAMES,
   type SoundName,
+  TAIL,
   THRUST,
-  createFrameSounds,
-  detuneOf,
+  endSoundOf,
+  ladderCentsOf,
+  multiplierSoundOf,
+  secondSoundOf,
   soundOf,
+  volumeOf,
 } from "./sounds";
 
 /** Describes what an event of the spec's names beside its kind. */
@@ -104,13 +118,13 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["nova", "blast-volatile"],
   ["warned", "comet-warning"],
   ["cleared", "wave-clear"],
-  ["dropped", null],
-  ["faded", null],
+  ["dropped", "pickup-drop"],
+  ["faded", "pickup-fade"],
   ["lost", "pod-lost"],
   ["knocked", "pod-hit"],
   ["recaught", "crew-caught"],
   ["floated", "crew-home"],
-  ["strayed", null],
+  ["strayed", "stray-appear"],
   ["joined", "stray-catch"],
   ["home", "stray-catch"],
   ["scored", null],
@@ -177,33 +191,23 @@ const EVERY_EVENT: readonly FieldEvent[] = [
   ...WEAPON_IDS.map((weapon) => eventOf("fired", { weapon })),
 ];
 
-/** The sounds of the sprite no event the field logs plays yet. */
+/**
+ * The sounds of the sprite the view plays for nothing yet: no event the
+ * field logs, and no change of its state, calls for them.
+ */
 const UNPLAYED: readonly SoundName[] = [
-  "chain-ping",
-  "chain-x2",
-  "chain-x3",
-  "chain-x4",
   "comet-pass",
   "burr-cling",
   "burr-shed",
   "burr-pop",
   "lodestone-hum",
   "near-miss",
-  "pickup-drop",
-  "pickup-fade",
-  "effect-end",
   "slow-on",
-  "slow-off",
   "spark",
-  "stray-appear",
-  "crew-loose",
   "tow-twang",
   "blast-volatile-small",
-  "break-cluster",
-  "shot-tail",
   "thrust-start",
   "thrust-stop",
-  "dash-ready",
   "static-full",
   "static-down",
   "zap-dash",
@@ -326,8 +330,16 @@ describe("soundOf", () => {
     expect(SHOTS.map(([weapon]) => weapon)).toEqual(WEAPON_IDS);
   });
 
-  it("plays, of the sprite's sounds, none but those of events the field logs, the thrust's hum apart", () => {
-    const played = new Set(EVERY_EVENT.map(soundOf));
+  it("plays, of the sprite's sounds, none but those of events the field logs and of its state, the thrust's hum apart", () => {
+    const played = new Set([
+      ...EVERY_EVENT.flatMap((event) => [soundOf(event), secondSoundOf(event)]),
+      ...Array.from({ length: 30 }, (_, i) => multiplierSoundOf(i + 1)),
+      ...EFFECT_KINDS.map(endSoundOf),
+      LADDER,
+      CROWD,
+      TAIL,
+      CHARGED,
+    ]);
 
     expect(
       SOUND_NAMES.filter((name) => name !== THRUST && !played.has(name)),
@@ -367,56 +379,98 @@ describe("soundOf", () => {
   });
 });
 
-describe("detuneOf", () => {
-  it.each([
-    [1, 0],
-    [2, 100],
-    [5, 400],
-    [8, 700],
-    [30, 700],
-  ])("raises a break %i into its chain by %i cents", (chain, cents) => {
-    expect(detuneOf(eventOf("broken", { size: "small", chain }))).toBe(cents);
+describe("secondSoundOf", () => {
+  it("plays the line snapping after the pod's hit as one is knocked loose", () => {
+    expect([
+      soundOf(eventOf("knocked")),
+      secondSoundOf(eventOf("knocked")),
+    ]).toEqual(["pod-hit", "crew-loose"]);
   });
 
-  it("raises a smashed rock's break not at all, as it counts in no chain", () => {
-    expect(detuneOf(eventOf("broken", { size: "small", chain: 0 }))).toBe(0);
-  });
-
-  it("raises each of a field's breaks by its own count, smashed or not", () => {
-    const field = fieldFrom(KEEPER);
-    const rocks = [10, 20, 30].map((x) => placeRock(field, "small", x, 20));
-    const [first, second, third] = rocks;
-    if (!first || !second || !third) throw new Error("Three rocks were laid.");
-    const from = field.events.latest;
-    hitRock(field, first, 0, 0);
-    hitRock(field, second, 0, 0);
-    hitRock(field, third, 0, 0, "smashes");
-
-    const cents: number[] = [];
-    field.events.forEachSince(from, (event) => {
-      if (event.kind === "broken") cents.push(detuneOf(event));
-    });
-
-    expect(cents).toEqual([0, 100, 0]);
-  });
-
-  it.each(["hit", "blast", "scored"] as const)(
-    "raises no %s event's sound",
+  it.each(EVENTS.filter(([kind]) => kind !== "knocked"))(
+    "plays nothing after the first sound of %s",
     (kind) => {
-      expect(detuneOf(eventOf(kind, { size: "small" }))).toBe(0);
+      expect(secondSoundOf(eventOf(kind))).toBeNull();
     },
   );
 });
 
-describe("createFrameSounds", () => {
-  it("plays each of the sprite's sounds heard, the loudest level first", () => {
-    const sounds = createFrameSounds();
-    for (const name of SOUND_NAMES) sounds.hear(name, 0);
+describe("ladderCentsOf", () => {
+  it.each([
+    [1, 0],
+    [2, 200],
+    [4, 700],
+    [5, 1200],
+    [10, 2400],
+    [20, 3100],
+    [40, 3100],
+  ])(
+    "rings the bell under a break %i into its chain %i cents up",
+    (chain, cents) => {
+      expect(ladderCentsOf(chain)).toBe(cents);
+    },
+  );
 
-    const levels: SoundLevel[] = [];
-    sounds.playEach((name) => levels.push(SOUNDS[name].level));
+  it("climbs a step of the ladder for each break of a chain, from the first", () => {
+    expect(
+      Array.from({ length: CHAIN_CENTS.length }, (_, i) =>
+        ladderCentsOf(i + 1),
+      ),
+    ).toEqual(CHAIN_CENTS);
+  });
+});
 
-    expect(levels).toEqual(
+describe("multiplierSoundOf", () => {
+  it.each([
+    [5, "chain-x2"],
+    [10, "chain-x3"],
+    [20, "chain-x4"],
+  ])(
+    "chimes as the %ith break of a chain reaches a multiplier: %s",
+    (chain, sound) => {
+      expect(multiplierSoundOf(chain)).toBe(sound);
+    },
+  );
+
+  it.each([1, 4, 6, 9, 11, 21])(
+    "chimes at no other break, the %ith among them",
+    (chain) => {
+      expect(multiplierSoundOf(chain)).toBeNull();
+    },
+  );
+});
+
+describe("endSoundOf", () => {
+  it.each([
+    ["weapon", "effect-end"],
+    ["pull", "effect-end"],
+    ["pace", "slow-off"],
+    ["guard", null],
+    ["nova", null],
+  ] as const)("ends a %s effect's time with %s", (kind: EffectKind, sound) => {
+    expect(endSoundOf(kind)).toBe(sound);
+  });
+});
+
+describe("volumeOf", () => {
+  it("plays the Rapid's shot 3 dB under the gun's, as twice as many are heard", () => {
+    expect(volumeOf("shot-rapid") / volumeOf("shot-gun")).toBeCloseTo(
+      gainOf(-3),
+      9,
+    );
+  });
+
+  it.each(SOUND_NAMES.filter((name) => name !== "shot-rapid"))(
+    "plays %s at its level",
+    (name) => {
+      expect(volumeOf(name)).toBe(1);
+    },
+  );
+});
+
+describe("PLAY_ORDER", () => {
+  it("plays every sound of the sprite, the loudest level first", () => {
+    expect(PLAY_ORDER.map((name) => SOUNDS[name].level)).toEqual(
       [...SOUND_LEVELS]
         .reverse()
         .flatMap((level) =>
@@ -427,19 +481,11 @@ describe("createFrameSounds", () => {
     );
   });
 
-  it("plays a frame's blast before the small breaks round it, which it ducks", () => {
-    const sounds = createFrameSounds();
-    sounds.hear("break-stone-small", 0);
-    sounds.hear("hit-stone", 0);
-    sounds.hear("blast-volatile", 0);
-
-    const played: SoundName[] = [];
-    sounds.playEach((name) => played.push(name));
-
-    expect(played).toEqual([
-      "blast-volatile",
-      "break-stone-small",
-      "hit-stone",
-    ]);
+  it("plays a blast before the small breaks round it, which it ducks", () => {
+    expect(
+      PLAY_ORDER.filter((name) =>
+        ["break-stone-small", "hit-stone", "blast-volatile"].includes(name),
+      ),
+    ).toEqual(["blast-volatile", "break-stone-small", "hit-stone"]);
   });
 });

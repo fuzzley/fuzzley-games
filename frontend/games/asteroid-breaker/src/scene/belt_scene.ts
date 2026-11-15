@@ -29,10 +29,8 @@ import {
   type SoundName,
   type SoundTake,
   THRUST,
-  createFrameSounds,
-  detuneOf,
-  soundOf,
 } from "../view/effects/sounds";
+import { FieldSounds } from "../view/effects/field_sounds";
 import {
   type BoardSetting,
   type FieldLayout,
@@ -233,8 +231,8 @@ export class BeltScene extends Scene {
   private shownField!: FieldView;
   /** The serial of the last event of the field the scene played. */
   private played = 0;
-  /** The sounds this frame's events call for, played once each after them. */
-  private readonly frameSounds = createFrameSounds();
+  /** The sounds this frame calls for, by its events and its field, played once each after them. */
+  private readonly fieldSounds = new FieldSounds();
   /** Where the ship is drawn and how far it is turned, written each frame. */
   private readonly drawnShip: Drawn = { x: 0, y: 0, angle: 0 };
   /** The field's light, far off, which lights the rocks, made as the scene is created. */
@@ -364,8 +362,9 @@ export class BeltScene extends Scene {
 
   /**
    * Hands the shell the time the frame took and the steering, then plays
-   * what happened on the field since the last frame, once each, hums while
-   * the ship thrusts, and draws the field as it now stands.
+   * what happened on the field since the last frame and what its field's
+   * change says, by the view's rules, hums while the ship thrusts, and
+   * draws the field as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette, a
    * new font or a new wave; Phaser makes a buffer source for each sound it
@@ -392,9 +391,10 @@ export class BeltScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     this.stage(frame);
     this.context.place = frame.place;
+    this.fieldSounds.hearField(frame.field, time);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
-    this.frameSounds.playEach(this.kit.sounds.playRisen);
+    this.fieldSounds.playEach(this.kit.sounds.playAt);
     this.kit.sounds.hold(THRUST, this.options.thrusting());
     for (const painter of this.painters) painter.draw(this.context);
   }
@@ -405,8 +405,7 @@ export class BeltScene extends Scene {
    * plays its flourishes where motion is welcome, and its points either way.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
-    const sound = soundOf(event);
-    if (sound) this.frameSounds.hear(sound, detuneOf(event));
+    this.fieldSounds.hear(event, this.shownField.torus.width);
     const flourishes = flourishesOf(effectsOf(event), this.context.motion);
     for (const flourish of flourishes) {
       this.flourishPlayer.play(flourish, event, this.context);

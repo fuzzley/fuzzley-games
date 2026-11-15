@@ -45,5 +45,16 @@ export const BEFORE_PLAYS: Readonly<Record<BeforeName, string>> = {
   thrust: "The thrust's hum, looped while the thrust is held.",
 };
 
+/** How far a break's sound rose before the uplift for each break of its chain before it, in cents: a semitone. */
+const CHAIN_STEP_CENTS = 100;
+
+/** The most a chain raised a break's sound before the uplift, in cents: a fifth. */
+const CHAIN_MOST_CENTS = 700;
+
+/** Returns how far the game raised the break that is `count` in its chain before the uplift, in cents. */
+export function beforeChainDetune(count: number): number {
+  return Math.min(Math.max(count - 1, 0) * CHAIN_STEP_CENTS, CHAIN_MOST_CENTS);
+}
+
 /** The sprite before the uplift: its address, as the bundler gives it, and its map. */
 export const BEFORE_SPRITE = { url: spriteUrl, spritemap };

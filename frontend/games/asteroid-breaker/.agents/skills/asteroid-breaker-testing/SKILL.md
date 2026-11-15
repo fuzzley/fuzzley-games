@@ -180,8 +180,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   hold the layout and the readers every report shares.
   `tools/build-sounds.spec.ts` holds the sprite in `src/scene/sounds/` to
   the recipes, by name, loop and place, from the lengths recorded beside
-  its map, without rendering every take, and the view's mix (`SOUNDS`) to
-  them, by name, family, level and takes; renders five short takes to the
+  its map, without rendering every take, the view's mix (`SOUNDS`) to
+  them, by name, family, level and takes, and the view's ladder to the
+  kit's `CHAIN_CENTS`; renders five short takes to the
   bytes of the uplift's kit's WAVs of them; and runs the build whole
   (`run()`) on families of its own, into temporary folders, with a fake
   encoder or none.
@@ -284,8 +285,11 @@ game through `runScene()`:
   `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the field
   camera's `scrolledBy()`), the lights the rocks are lit by (the scene's
   `lights`, a held hit's flash among them), the sounds (`humsIn()` after
-  `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`)
-  or on what the shell kept. A
+  `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`,
+  or a spy on `SpritePlayer`'s `play()`, which the sprite, not loaded
+  headless, leaves the only witness of what plays; the scene's spec logs
+  every kind of event, a record over `FieldEventKind` the compiler holds
+  whole, and holds the sounds each plays) or on what the shell kept. A
   headless game draws no pixels and plays no sound.
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
