@@ -2,6 +2,7 @@ import { easeOutCubic } from "@fz/core/math";
 import { cssHex } from "@fz/phaser/color";
 import {
   type SceneRun,
+  commandsOf,
   objectsIn,
   strokesOf,
   watchUploads,
@@ -9,6 +10,7 @@ import {
 import { GameObjects, Textures } from "phaser";
 import type { Field } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
+import { wrap } from "../rules/torus";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
@@ -18,6 +20,7 @@ import {
   WIDER,
   type FakeShell,
   layersOf,
+  linesOf,
   metricsOf,
   onCanvas,
   pointsZoomOf,
@@ -27,6 +30,7 @@ import {
   startBoard,
   stepping,
   stillness,
+  trianglesOf,
   withShip,
   zoomOf,
 } from "../testing/belt_board";
@@ -39,6 +43,29 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import { FLOURISH } from "../view/art/art";
+import {
+  BREAK_MS,
+  type Broken,
+  GLINT_POINTS,
+  HELD_MS,
+  HELD_REACH,
+  type Placed,
+  type Round,
+  type Streak,
+  breakOf,
+  dustAt,
+  energyOf,
+  glintAt,
+  impactOf,
+  impactTickAt,
+  puffAt,
+  shardPushOf,
+  rimToward,
+  shardAt,
+  sparkAt,
+  towardShip,
+  wholeAt,
+} from "../view/art/breaks";
 import {
   PEN_STEPS,
   POINTS_TEXT,
@@ -63,8 +90,6 @@ import {
   FLASH_MOST,
   LOST_RING_REACH,
   MOST_POINTS_CHARACTERS,
-  SPARK_REACH,
-  shardCount,
   trailAlpha,
   trailLaidAfter,
   trailReach,
@@ -74,7 +99,6 @@ import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
   BURST_SHARDS,
-  DUST_MS,
   EXHAUST_MS,
   FLASH_MS,
   KICK_MS,
@@ -82,7 +106,6 @@ import {
   RING_MS,
   SHAKE_DELAY_MS,
   SHAKE_MS,
-  SPARK_MS,
   TRAIL_MS,
 } from "../view/effects/timing";
 import type { BeltScene } from "./belt_scene";
@@ -133,17 +156,100 @@ function shownCount(images: readonly GameObjects.Components.Visible[]): number {
   return images.filter((image) => image.visible).length;
 }
 
-/** Returns each puff of dust's image where it is, its copy past no edge. */
-function puffsOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.kit.debris.puffs.all.flatMap(({ copies }) =>
-    copies.images.slice(0, 1),
+/** Returns a rock's break as the scene plays it: from the outline it is drawn in, turned as it lies, pushed by a blow along a way. */
+function brokenOf(rock: Rock, wayX = 0, wayY = 0): Broken {
+  return {
+    made: breakOf(rock),
+    turn: rock.angle,
+    push: shardPushOf(wayX, wayY, rock.angle, { x: 0, y: 0 }),
+  };
+}
+
+/** Returns a record a polygon of a break is written into. */
+function placedRecord(): Placed {
+  return { x: 0, y: 0, turn: 0, scale: 0, color: 0, alpha: 0 };
+}
+
+/** Returns a record a break's dust is written into. */
+function roundRecord(): Round {
+  return { x: 0, y: 0, radius: 0, width: 0, color: 0, alpha: 0 };
+}
+
+/** Returns a record a spark's line is written into. */
+function streakRecord(): Streak {
+  return { fromX: 0, fromY: 0, toX: 0, toY: 0, width: 0, color: 0, alpha: 0 };
+}
+
+/** Returns a line of a spark written about a middle on the canvas, as the scene strokes it. */
+function streakAbout(
+  { fromX, fromY, toX, toY, width, color, alpha }: Readonly<Streak>,
+  middle: { readonly x: number; readonly y: number },
+): Readonly<Record<string, number>> {
+  return {
+    fromX: middle.x + fromX,
+    fromY: middle.y + fromY,
+    toX: middle.x + toX,
+    toY: middle.y + toY,
+    width,
+    color,
+    alpha,
+  };
+}
+
+/**
+ * Returns the corners of the outline a broken rock is drawn whole in, the
+ * frame it breaks, on a shell's canvas, as text: its kind and size's
+ * outline of a number, turned by an angle.
+ */
+function outlineCorners(
+  shell: FakeShell,
+  rock: Pick<Rock, "kind" | "size" | "x" | "y">,
+  outline: number,
+  angle: number,
+): ReadonlySet<string> {
+  const metrics = metricsOf(shell);
+  const middle = onCanvas(metrics, rock.x, rock.y);
+  const pixels = ROCK_RADIUS[rock.size] * metrics.unit;
+  const corners = breakOf({ ...rock, outline }).shape.outline.map(
+    ({ x, y }) => ({
+      points: [
+        middle.x + (x * Math.cos(angle) - y * Math.sin(angle)) * pixels,
+        middle.y + (x * Math.sin(angle) + y * Math.cos(angle)) * pixels,
+      ],
+    }),
+  );
+  return cornersOf(corners, 0);
+}
+
+/** Returns how far each corner of some triangles lies from a middle on the canvas, as text, rounded to a millionth of a pixel. */
+function reachesOf(
+  triangles: readonly { readonly points: readonly number[] }[],
+  middle: { readonly x: number; readonly y: number },
+): ReadonlySet<string> {
+  return new Set(
+    triangles.flatMap(({ points }) =>
+      [0, 2, 4].map((corner) =>
+        Math.hypot(
+          (points[corner] ?? Number.NaN) - middle.x,
+          (points[corner + 1] ?? Number.NaN) - middle.y,
+        ).toFixed(6),
+      ),
+    ),
   );
 }
 
-/** Returns each spark's image where it is, its copy past no edge. */
-function sparksOf(scene: BeltScene): readonly GameObjects.Image[] {
-  return scene.kit.debris.sparks.all.flatMap(({ copies }) =>
-    copies.images.slice(0, 1),
+/** Returns the corner each of some triangles is fanned from, as text, rounded to a millionth of a pixel. */
+function cornersOf(
+  triangles: readonly { readonly points: readonly number[] }[],
+  corner: number,
+): ReadonlySet<string> {
+  return new Set(
+    triangles.map(({ points }) =>
+      points
+        .slice(corner * 2, corner * 2 + 2)
+        .map((value) => value.toFixed(6))
+        .join(),
+    ),
   );
 }
 
@@ -152,15 +258,6 @@ function pointsShown(scene: BeltScene): readonly string[] {
   return scene.kit.points.scored.all
     .filter(({ image }) => image.visible)
     .map(({ label }) => label);
-}
-
-/** Returns how fast each shard alive flies. */
-function shardSpeeds(scene: BeltScene): readonly number[] {
-  const speeds: number[] = [];
-  scene.kit.debris.shards.forEachAlive((shard) => {
-    speeds.push(Math.hypot(shard.velocityX, shard.velocityY));
-  }, null);
-  return speeds;
 }
 
 /** Returns where each puff of exhaust alive is, and how fast it streams across. */
@@ -199,6 +296,20 @@ function normalized(angle: number): number {
   return Math.atan2(Math.sin(angle), Math.cos(angle));
 }
 
+/**
+ * Breaks a rock on a shell's field as the rules do, taking it off the field
+ * before its break is logged, the blow from a way.
+ */
+function logBreak(
+  shell: FakeShell,
+  rock: Rock,
+  wayX: number,
+  wayY: number,
+): void {
+  rock.live = false;
+  shell.field.events.addBreak(rock, 1, wayX, wayY);
+}
+
 /** Logs a ship lost in the middle of a shell's field, its pilot the third color. */
 function logShipLost(shell: FakeShell): void {
   shell.field.events.addPilot("lost", MIDDLE.x, MIDDLE.y, 2, shell.field.crew);
@@ -207,7 +318,7 @@ function logShipLost(shell: FakeShell): void {
 /** Describes what the flourishes that move show at a moment. */
 interface Shown {
   readonly shards: number;
-  readonly puffs: number;
+  readonly breaks: number;
   readonly sparks: number;
   readonly flash: number;
   readonly rings: number;
@@ -219,7 +330,7 @@ interface Shown {
 /** What the flourishes that move show while none plays. */
 const NOTHING_PLAYING: Shown = {
   shards: 0,
-  puffs: 0,
+  breaks: 0,
   sparks: 0,
   flash: 0,
   rings: 0,
@@ -232,8 +343,10 @@ const NOTHING_PLAYING: Shown = {
 function playingIn(scene: BeltScene, shell: FakeShell): Shown {
   return {
     shards: scene.kit.debris.shards.getAliveParticleCount(),
-    puffs: shownCount(puffsOf(scene)),
-    sparks: shownCount(sparksOf(scene)),
+    breaks:
+      commandsOf(scene.kit.debris.dustGraphics).length +
+      commandsOf(scene.kit.debris.breakGraphics).length,
+    sparks: commandsOf(scene.kit.debris.sparkGraphics).length,
     flash: shownCount(scene.kit.rocks.flashes),
     rings: strokesOf(scene.kit.rings.graphics).length,
     trail: scene.kit.trail.outlines
@@ -332,130 +445,322 @@ describe("the events", () => {
 });
 
 describe("a broken rock", () => {
-  it.each([
-    ["an ice rock's in ice's ink", "ice", "ice"],
-    ["a crystal's in a stone's, not its gem's", "crystal", "stone"],
-  ] as const)(
-    "throws its shards in its body's color: %s",
-    async (_, kind, body) => {
-      const { shell, run, scene } = await startBoard();
-      const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, kind);
-      shell.field.events.addBreak(rock, 1, 0, -1);
-
-      run.advance(16);
-
-      expect(shardTints(scene)).toEqual(
-        Array.from(
-          { length: shardCount(lastSerial(shell)) },
-          () => ART_PALETTE.rocks[body],
-        ),
-      );
-    },
-  );
-
-  it("throws its shards in the palette the frame it breaks on changed to", async () => {
+  it("draws the rock whole, flashing, about where it broke, the frame it breaks", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.colors = DARK;
-    shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    logBreak(shell, rock, 0, -1);
 
     run.advance(16);
 
-    expect(shardTints(scene)).toEqual(
-      Array.from(
-        { length: shardCount(lastSerial(shell)) },
-        () => DARK.rocks.stone,
-      ),
+    const whole = placedRecord();
+    wholeAt(brokenOf(rock, 0, -1), 0, ART_PALETTE, metricsOf(shell), whole);
+    const triangles = trianglesOf(scene.kit.debris.breakGraphics);
+    const middle = onCanvas(metricsOf(shell), rock.x, rock.y);
+    expect({
+      triangles: triangles.length,
+      colors: new Set(triangles.map(({ color }) => color)),
+      from: cornersOf(triangles, 0),
+    }).toEqual({
+      triangles: breakOf(rock).shape.outline.length,
+      colors: new Set([whole.color]),
+      from: cornersOf([{ points: [middle.x, middle.y] }], 0),
+    });
+  });
+
+  it("draws it whole in the palette the frame it breaks on changed to", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.colors = DARK;
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    logBreak(shell, rock, 0, -1);
+
+    run.advance(16);
+
+    const whole = placedRecord();
+    wholeAt(brokenOf(rock, 0, -1), 0, DARK, metricsOf(shell), whole);
+    const triangles = trianglesOf(scene.kit.debris.breakGraphics);
+    expect(new Set(triangles.map(({ color }) => color))).toEqual(
+      new Set([whole.color]),
     );
   });
 
-  it("throws them flying from the first frame, before the field is first drawn", async () => {
+  it("draws a break logged before the field is first drawn", async () => {
     const { scene } = await startBoard((shell) => {
       shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
     });
 
-    const speeds = shardSpeeds(scene);
-    expect({
-      some: speeds.length > 0,
-      flying: speeds.every((speed) => speed > 0),
-    }).toEqual({ some: true, flying: true });
-  });
-
-  it("puffs dust at its middle", async () => {
-    const { shell, run, scene } = await startBoard();
-    const rock = keeperOf(shell.field);
-    shell.field.events.addBreak(rock, 1, 0, -1);
-
-    run.advance(16);
-
-    const [puff] = puffsOf(scene);
-    expect(puff && shownAt(puff)).toEqual(
-      onCanvas(metricsOf(shell), rock.x, rock.y),
+    expect(trianglesOf(scene.kit.debris.breakGraphics).length).toBeGreaterThan(
+      0,
     );
   });
 
+  it("throws the rock's own facets once it comes apart, each lit and flashing as the view colors it", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    logBreak(shell, rock, 0, -1);
+
+    run.advance(48, 16);
+
+    const broken = brokenOf(rock, 0, -1);
+    const shard = placedRecord();
+    const colors = broken.made.shards.flatMap((each) =>
+      shardAt(each, broken, 32, ART_PALETTE, metricsOf(shell), shard)
+        ? Array.from(
+            { length: each.points.length === 3 ? 1 : each.points.length },
+            () => shard.color,
+          )
+        : [],
+    );
+    expect(
+      trianglesOf(scene.kit.debris.breakGraphics).map(({ color }) => color),
+    ).toEqual(colors);
+  });
+
   it.each([
-    ["an ice rock's in ice's ink", "ice", "ice"],
-    ["a crystal's in a stone's, not its gem's", "crystal", "stone"],
+    ["an ice rock's in ice's ink", "ice"],
+    ["a crystal's in a stone's, not its gem's", "crystal"],
   ] as const)(
-    "puffs its dust in its body's color: %s",
-    async (_, kind, body) => {
+    "spreads its dust in a ring about its middle, a band as wide as its line, in its kind's dust: %s",
+    async (_, kind) => {
       const { shell, run, scene } = await startBoard();
       const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, kind);
-      shell.field.events.addBreak(rock, 1, 0, -1);
+      logBreak(shell, rock, 0, -1);
 
-      run.advance(16);
+      run.advance(48, 16);
 
-      const [puff] = puffsOf(scene);
-      expect(puff?.tintTopLeft).toBe(ART_PALETTE.rocks[body]);
+      const ring = roundRecord();
+      dustAt(brokenOf(rock), 32, ART_PALETTE, metricsOf(shell), ring);
+      const middle = onCanvas(metricsOf(shell), rock.x, rock.y);
+      const triangles = trianglesOf(scene.kit.debris.dustGraphics);
+      expect({
+        colors: new Set(triangles.map(({ color }) => color)),
+        reaches: reachesOf(
+          triangles.filter(({ alpha }) => alpha === ring.alpha),
+          middle,
+        ),
+      }).toEqual({
+        colors: new Set([ring.color]),
+        reaches: new Set([
+          (ring.radius - ring.width / 2).toFixed(6),
+          (ring.radius + ring.width / 2).toFixed(6),
+        ]),
+      });
     },
   );
 
-  it("spreads the dust out to the rock's radius as it fades", async () => {
+  it("puffs its dust on the ring as it spreads, each a round about its own middle, fanned from its corner on the right", async () => {
     const { shell, run, scene } = await startBoard();
-    shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
-    run.advance(16);
-    const [puff] = puffsOf(scene);
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    logBreak(shell, rock, 0, -1);
 
-    const { unit } = metricsOf(shell);
-    // The puff's frame is a circle of its radius at the baked unit.
-    const baked = FLOURISH.puff * bakedScale(metricsOf(shell)).unit;
+    run.advance(48, 16);
 
-    const looks = overTime(run, DUST_MS - 100, 50, () => ({
-      radius: (puff?.scaleX ?? 0) * baked,
-      alpha: puff?.alpha ?? 0,
-    }));
-
-    const last = looks.at(-1)?.radius ?? 0;
+    const broken = brokenOf(rock, 0, -1);
+    const middle = onCanvas(metricsOf(shell), rock.x, rock.y);
+    const ring = roundRecord();
+    dustAt(broken, 32, ART_PALETTE, metricsOf(shell), ring);
+    const puff = roundRecord();
+    const puffs = broken.made.puffs.flatMap((each) =>
+      puffAt(each, broken, 32, ART_PALETTE, metricsOf(shell), puff)
+        ? [
+            {
+              points: [middle.x + puff.x + puff.radius, middle.y + puff.y],
+              alpha: puff.alpha,
+            },
+          ]
+        : [],
+    );
+    const fans = trianglesOf(scene.kit.debris.dustGraphics).filter(
+      ({ alpha }) => alpha !== ring.alpha,
+    );
     expect({
-      spreads: rising(looks.map(({ radius }) => radius)),
-      within: last < ROCK_RADIUS.large * unit,
-      near: last > 0.9 * ROCK_RADIUS.large * unit,
-      fades: falling(looks.map(({ alpha }) => alpha)),
-    }).toEqual({ spreads: true, within: true, near: true, fades: true });
+      some: puffs.length > 0,
+      alphas: new Set(fans.map(({ alpha }) => alpha)),
+      rights: cornersOf(fans, 0),
+    }).toEqual({
+      some: true,
+      alphas: new Set(puffs.map(({ alpha }) => alpha)),
+      rights: cornersOf(puffs, 0),
+    });
   });
 
-  it("puffs dust on both sides of an edge it reaches across", async () => {
+  it("throws its sparks from near its middle, in the flame's tones", async () => {
     const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", 1, MIDDLE.y);
-    shell.field.events.addBreak(rock, 1, 0, -1);
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y, "iron");
+    logBreak(shell, rock, 0, -1);
 
-    run.advance(100, 25);
+    run.advance(176, 16);
 
-    const [puff] = scene.kit.debris.puffs.all;
-    const metrics = metricsOf(shell);
-    expect(puff?.copies.images.slice(0, 2).map(shownAt)).toEqual([
-      onCanvas(metrics, 1, MIDDLE.y),
-      onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y),
-    ]);
+    const broken = brokenOf(rock, 0, -1);
+    const energy = energyOf(ART_PALETTE.flame, ART_PALETTE);
+    const middle = onCanvas(metricsOf(shell), rock.x, rock.y);
+    const body = streakRecord();
+    const hot = streakRecord();
+    const lines = broken.made.sparks.flatMap((tick) =>
+      sparkAt(tick, broken, 160, energy, metricsOf(shell), body, hot)
+        ? [streakAbout(body, middle), streakAbout(hot, middle)]
+        : [],
+    );
+    expect({
+      some: lines.length > 0,
+      lines: linesOf(scene.kit.debris.sparkGraphics),
+    }).toEqual({ some: true, lines });
   });
 
-  it("puts the dust away once it has faded", async () => {
+  it("throws an ice rock's glints about it, each a star fanned from its own middle", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y, "ice");
+    logBreak(shell, rock, 0, -1);
+
+    run.advance(176, 16);
+
+    const broken = brokenOf(rock, 0, -1);
+    const middle = onCanvas(metricsOf(shell), rock.x, rock.y);
+    const glint = placedRecord();
+    const stars = broken.made.glints.flatMap((each) =>
+      glintAt(each, broken, 160, ART_PALETTE, metricsOf(shell), glint)
+        ? GLINT_POINTS.map(() => ({
+            color: glint.color,
+            from: `${(middle.x + glint.x).toFixed(6)},${(middle.y + glint.y).toFixed(6)}`,
+          }))
+        : [],
+    );
+    expect({
+      some: stars.length > 0,
+      stars: trianglesOf(scene.kit.debris.sparkGraphics).map(
+        ({ color, points }) => ({
+          color,
+          from: points
+            .slice(0, 2)
+            .map((value) => value.toFixed(6))
+            .join(),
+        }),
+      ),
+    }).toEqual({ some: true, stars });
+  });
+
+  it("draws its dust and shards under the rocks, and its sparks over them", async () => {
+    const { scene } = await startBoard();
+
+    const layers = layersOf(scene);
+    const { dustGraphics, breakGraphics, sparkGraphics } = scene.kit.debris;
+    expect({
+      breaks: layers.get("breaks")?.getChildren(),
+      effects: layers.get("effects")?.getChildren().includes(sparkGraphics),
+    }).toEqual({ breaks: [dustGraphics, breakGraphics], effects: true });
+  });
+
+  it("draws a break on both sides of an edge it reaches across, as far as it reaches past its rock", async () => {
+    const { shell, run, scene } = await startBoard();
+    const x = ROCK_RADIUS.medium + 0.5;
+    const rock = placeRock(shell.field, "medium", x, MIDDLE.y);
+    logBreak(shell, rock, 0, -1);
+
+    run.advance(160, 16);
+
+    const metrics = metricsOf(shell);
+    const ring = roundRecord();
+    dustAt(brokenOf(rock), 144, ART_PALETTE, metrics, ring);
+    const triangles = trianglesOf(scene.kit.debris.dustGraphics).filter(
+      ({ alpha }) => alpha === ring.alpha,
+    );
+    const half = triangles.length / 2;
+    const band = new Set([
+      (ring.radius - ring.width / 2).toFixed(6),
+      (ring.radius + ring.width / 2).toFixed(6),
+    ]);
+    expect([
+      reachesOf(triangles.slice(0, half), onCanvas(metrics, x, MIDDLE.y)),
+      reachesOf(
+        triangles.slice(half),
+        onCanvas(metrics, x + PICTURE_TORUS.width, MIDDLE.y),
+      ),
+    ]).toEqual([band, band]);
+  });
+
+  it("draws a break on all four sides of a corner it reaches across", async () => {
+    const { shell, run, scene } = await startBoard();
+    const at = ROCK_RADIUS.medium + 0.5;
+    const rock = placeRock(shell.field, "medium", at, at);
+    logBreak(shell, rock, 0, -1);
+
+    run.advance(160, 16);
+
+    const metrics = metricsOf(shell);
+    const ring = roundRecord();
+    dustAt(brokenOf(rock), 144, ART_PALETTE, metrics, ring);
+    const triangles = trianglesOf(scene.kit.debris.dustGraphics).filter(
+      ({ alpha }) => alpha === ring.alpha,
+    );
+    const quarter = triangles.length / 4;
+    const { width, height } = PICTURE_TORUS;
+    const band = new Set([
+      (ring.radius - ring.width / 2).toFixed(6),
+      (ring.radius + ring.width / 2).toFixed(6),
+    ]);
+    expect(
+      [
+        onCanvas(metrics, at, at),
+        onCanvas(metrics, at + width, at),
+        onCanvas(metrics, at, at + height),
+        onCanvas(metrics, at + width, at + height),
+      ].map((middle, copy) =>
+        reachesOf(
+          triangles.slice(copy * quarter, (copy + 1) * quarter),
+          middle,
+        ),
+      ),
+    ).toEqual([band, band, band, band]);
+  });
+
+  it.each([
+    ["of another size", "medium"],
+    ["of its own kind and size", "large"],
+  ] as const)(
+    "breaks a rock in the outline and the turn it was drawn in, once a piece %s has taken its slot",
+    async (_, size) => {
+      const { shell, run, scene } = await startBoard();
+      const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+      Object.assign(rock, { outline: 3, angle: 1.2 });
+      run.advance(16);
+      const logged = { ...rock };
+      Object.assign(rock, { size, outline: 0, angle: 0 });
+      shell.field.events.addBreak(logged, 1, 0, 0);
+
+      run.advance(16);
+
+      expect(cornersOf(trianglesOf(scene.kit.debris.breakGraphics), 2)).toEqual(
+        outlineCorners(shell, logged, 3, 1.2),
+      );
+    },
+  );
+
+  it("breaks a rock never drawn, whose slot another has taken, in its first outline, unturned", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    Object.assign(rock, { outline: 3, angle: 1.2 });
+    run.advance(16);
+    const logged = { ...rock, size: "small" } as const;
+    shell.field.events.addBreak(logged, 1, 0, 0);
+
+    run.advance(16);
+
+    expect(cornersOf(trianglesOf(scene.kit.debris.breakGraphics), 2)).toEqual(
+      outlineCorners(shell, logged, 0, 0),
+    );
+  });
+
+  it("puts the break away once it is over", async () => {
     const { shell, run, scene } = await startBoard();
     shell.field.events.addBreak(keeperOf(shell.field), 1, 0, -1);
 
-    run.advance(DUST_MS + 32);
+    run.advance(BREAK_MS + 32, 16);
 
-    expect(shownCount(puffsOf(scene))).toBe(0);
+    const { dustGraphics, breakGraphics, sparkGraphics } = scene.kit.debris;
+    expect(
+      [dustGraphics, breakGraphics, sparkGraphics].map((graphics) =>
+        commandsOf(graphics),
+      ),
+    ).toEqual([[], [], []]);
   });
 
   it("kicks the field the way the blow came as a large rock breaks", async () => {
@@ -481,7 +786,7 @@ describe("a broken rock", () => {
   it("kicks nothing as a small rock breaks", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "small", MIDDLE.x, MIDDLE.y);
-    shell.field.events.addBreak(rock, 1, 1, 0);
+    logBreak(shell, rock, 1, 0);
 
     run.advance(16);
 
@@ -631,7 +936,8 @@ describe("a held hit", () => {
 
     expect({
       flash: shownCount(scene.kit.rocks.flashes),
-      sparks: shownCount(sparksOf(scene)),
+      sparks: scene.kit.debris.heldHits.all.filter(({ at }) => at > -Infinity)
+        .length,
     }).toEqual({ flash: 0, sparks: 2 });
   });
 
@@ -647,67 +953,114 @@ describe("a held hit", () => {
     expect(scene.kit.rocks.flashes[0].visible).toBe(true);
   });
 
-  it("flies a spark off its edge the way the event's serial says, in the warning color", async () => {
-    const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
+  it.each([
+    ["toward the ship", withShip],
+    ["toward the field's light while no ship flies", () => undefined],
+  ] as const)(
+    "throws a held hit's spark from its rock's rim %s",
+    async (_, setUp) => {
+      const { shell, run, scene } = await startBoard(setUp);
+      const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
+      shell.field.events.addRock("hit", rock);
+
+      run.advance(16);
+
+      const toward = towardShip(shell.field, rock.x, rock.y, ART_PALETTE);
+      const rim = rimToward(rock, toward);
+      const at = onCanvas(
+        metricsOf(shell),
+        rock.x + Math.cos(toward) * rim,
+        rock.y + Math.sin(toward) * rim,
+      );
+      expect(cornersOf(trianglesOf(scene.kit.debris.sparkGraphics), 0)).toEqual(
+        cornersOf([{ points: [at.x, at.y] }], 0),
+      );
+    },
+  );
+
+  it.each([
+    ["a lodestone's hit", "lodestone", "hit"],
+    ["iron's ring, more of them", "iron", "rung"],
+  ] as const)(
+    "throws a held hit's sparks in the flame's tones: %s",
+    async (_, kind, rung) => {
+      const { shell, run, scene } = await startBoard();
+      const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y, kind);
+      shell.field.events.addRock(rung, rock);
+
+      run.advance(32, 16);
+
+      const energy = energyOf(ART_PALETTE.flame, ART_PALETTE);
+      const lines = linesOf(scene.kit.debris.sparkGraphics);
+      expect({
+        lines: lines.length,
+        colors: new Set(lines.map(({ color }) => color)),
+      }).toEqual({
+        lines: impactOf(kind, lastSerial(shell)).length * 2,
+        colors: new Set([energy.body, energy.hot]),
+      });
+    },
+  );
+
+  it("fans a held hit's sparks back the way the shot came, from where it struck", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
     shell.field.events.addRock("hit", rock);
 
-    run.advance(16);
+    run.advance(32, 16);
 
-    const [spark] = sparksOf(scene);
-    const { distance, way } = fromPlace(
-      shell,
-      spark ? shownAt(spark) : null,
-      rock.x,
-      rock.y,
-    );
-    expect([
-      distance >= ROCK_RADIUS.medium * metricsOf(shell).unit - 1e-9,
-      way,
-      spark?.tintTopLeft,
-    ]).toEqual([
-      true,
-      expect.closeTo(normalized(wayOf(lastSerial(shell))), 6),
-      ART_PALETTE.flame,
-    ]);
-  });
-
-  it("brings a spark flown off an edge in at the far side", async () => {
-    const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "small", 0.5, MIDDLE.y);
-    // A spark whose event's serial sends it off the left edge.
-    while (Math.cos(wayOf(lastSerial(shell) + 1)) > -0.7) {
-      shell.field.events.addFired(0, 0, "gun");
-    }
-    shell.field.events.addRock("hit", rock);
-
-    run.advance(16);
-
-    const [spark] = sparksOf(scene);
     const metrics = metricsOf(shell);
-    expect((spark?.x ?? 0) > metrics.x + metrics.width / 2).toBe(true);
+    const toward = towardShip(shell.field, rock.x, rock.y, ART_PALETTE);
+    const rim = rimToward(rock, toward);
+    const struck = onCanvas(
+      metrics,
+      rock.x + Math.cos(toward) * rim,
+      rock.y + Math.sin(toward) * rim,
+    );
+    const energy = energyOf(ART_PALETTE.flame, ART_PALETTE);
+    const body = streakRecord();
+    const hot = streakRecord();
+    const lines = impactOf("stone", lastSerial(shell)).flatMap((tick) =>
+      impactTickAt(tick, toward, 16, energy, metrics, body, hot)
+        ? [streakAbout(body, struck), streakAbout(hot, struck)]
+        : [],
+    );
+    expect({
+      some: lines.length > 0,
+      lines: linesOf(scene.kit.debris.sparkGraphics),
+    }).toEqual({ some: true, lines });
   });
 
-  it("flies the spark out as it fades, within its reach", async () => {
+  it("throws a held hit's spark struck near an edge in at the far side too, as far as it reaches", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
+    const toward = towardShip(shell.field, rock.x, rock.y, ART_PALETTE);
+    const rim = rimToward(rock, toward);
+    const struck = {
+      x: HELD_REACH - 0.1,
+      y: rock.y + Math.sin(toward) * rim,
+    };
+    rock.x = wrap(struck.x - Math.cos(toward) * rim, PICTURE_TORUS.width);
+    shell.field.events.addRock("hit", rock);
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const near = onCanvas(metrics, struck.x, struck.y);
+    const far = onCanvas(metrics, struck.x + PICTURE_TORUS.width, struck.y);
+    expect(cornersOf(trianglesOf(scene.kit.debris.sparkGraphics), 0)).toEqual(
+      cornersOf([{ points: [near.x, near.y] }, { points: [far.x, far.y] }], 0),
+    );
+  });
+
+  it("puts a held hit's spark away once it is over", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
     shell.field.events.addRock("hit", rock);
-    run.advance(16);
-    const [spark] = sparksOf(scene);
 
-    const looks = overTime(run, SPARK_MS - 50, 25, () => ({
-      out: fromPlace(shell, spark ? shownAt(spark) : null, rock.x, rock.y)
-        .distance,
-      alpha: spark?.alpha ?? 0,
-    }));
+    run.advance(HELD_MS + 32, 16);
 
-    expect({
-      out: rising(looks.map(({ out }) => out)),
-      within:
-        (looks.at(-1)?.out ?? Infinity) <
-        (ROCK_RADIUS.medium + SPARK_REACH) * metricsOf(shell).unit,
-      fades: falling(looks.map(({ alpha }) => alpha)),
-    }).toEqual({ out: true, within: true, fades: true });
+    expect(commandsOf(scene.kit.debris.sparkGraphics)).toEqual([]);
   });
 });
 

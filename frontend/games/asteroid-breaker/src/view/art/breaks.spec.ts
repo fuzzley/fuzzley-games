@@ -17,10 +17,12 @@ import {
   type Broken,
   GLINT_POINTS,
   HELD_MS,
+  HELD_REACH,
   IMPACT_POINTS,
   type Placed,
   type Round,
   type Streak,
+  type Tick,
   breakOf,
   dustAt,
   energyOf,
@@ -33,6 +35,7 @@ import {
   puffAt,
   shardPushOf,
   rimToward,
+  roundOf,
   shardAt,
   sparkAt,
   sparkPoints,
@@ -366,6 +369,80 @@ function showsAt(made: Break, since: number, scale: ArtScale): boolean {
   ].some(Boolean);
 }
 
+/** A scale of a device pixel to a field unit and none to a CSS pixel, which pads nothing. */
+const UNPADDED: ArtScale = { unit: 1, pixelRatio: 0 };
+
+/** Returns how far from a break's middle anything of it is drawn a time after it broke, in field units, turned and pushed. */
+function drawnReachAt(made: Break, since: number): number {
+  const broken = brokenAt(made, 0.7, { x: 0.6, y: -0.8 });
+  const energy = energyOf(DARK.flame, DARK);
+  const reachOfPoints = (points: readonly { x: number; y: number }[]) =>
+    Math.max(...points.map(({ x, y }) => Math.hypot(x, y)));
+  const reaches: number[] = [];
+  const shape = placed();
+  if (wholeAt(broken, since, DARK, UNPADDED, shape)) {
+    reaches.push(shape.scale * reachOfPoints(made.shape.outline));
+  }
+  for (const shard of made.shards) {
+    if (shardAt(shard, broken, since, DARK, UNPADDED, shape)) {
+      reaches.push(
+        Math.hypot(shape.x, shape.y) +
+          shape.scale * reachOfPoints(shard.points),
+      );
+    }
+  }
+  const disc = round();
+  if (dustAt(broken, since, DARK, UNPADDED, disc)) {
+    reaches.push(disc.radius + disc.width / 2);
+  }
+  for (const puff of made.puffs) {
+    if (puffAt(puff, broken, since, DARK, UNPADDED, disc)) {
+      reaches.push(Math.hypot(disc.x, disc.y) + disc.radius);
+    }
+  }
+  const body = streak();
+  for (const tick of made.sparks) {
+    if (sparkAt(tick, broken, since, energy, UNPADDED, body, streak())) {
+      reaches.push(Math.hypot(body.toX, body.toY) + body.width / 2);
+    }
+  }
+  for (const glint of made.glints) {
+    if (glintAt(glint, broken, since, DARK, UNPADDED, shape)) {
+      reaches.push(Math.hypot(shape.x, shape.y) + shape.scale);
+    }
+  }
+  return Math.max(0, ...reaches);
+}
+
+/** Returns how far from where it struck anything of a held hit's spark is drawn at any time, in field units, a few milliseconds apart. */
+function farthestHeld(ticks: readonly Tick[]): number {
+  const energy = energyOf(DARK.flame, DARK);
+  const body = streak();
+  const flash = placed();
+  return Math.max(
+    ...Array.from({ length: HELD_MS / 2 }, (_, i) =>
+      Math.max(
+        0,
+        ...ticks.map((tick) =>
+          impactTickAt(tick, 0.7, i * 2, energy, UNPADDED, body, streak())
+            ? Math.hypot(body.toX, body.toY) + body.width / 2
+            : 0,
+        ),
+        impactFlashAt(0.7, i * 2, energy, UNPADDED, flash) ? flash.scale : 0,
+      ),
+    ),
+  );
+}
+
+/** Returns how far from a break's middle anything of it is drawn at any time, in field units, a few milliseconds apart. */
+function farthestDrawn(made: Break): number {
+  return Math.max(
+    ...Array.from({ length: BREAK_MS / 2 }, (_, i) =>
+      drawnReachAt(made, i * 2),
+    ),
+  );
+}
+
 describe("makeBreak()", () => {
   it.each(KIT_BREAKS)(
     "breaks a $size $kind as the kit does, from its seed",
@@ -539,6 +616,20 @@ describe("a break's time", () => {
         last: true,
         shown: breaks.map(() => false),
       });
+    },
+  );
+
+  it.each(KINDS_AND_SIZES)(
+    "draws a %s rock %s's break no farther from its middle than its reach, and most of the way there",
+    (kind, size) => {
+      const made = breakOf({ kind, size, outline: 0 });
+
+      const farthest = farthestDrawn(made);
+
+      expect({
+        within: farthest <= made.reach + 1e-9,
+        most: farthest > made.reach * 0.8,
+      }).toEqual({ within: true, most: true });
     },
   );
 
@@ -1059,6 +1150,21 @@ describe("a held hit's spark", () => {
     ).toEqual([1, 0.3, 1, 0.3, 1, 0.3, 1, 0.3]);
   });
 
+  it("draws it no farther from where it struck than its reach, off iron or any other kind, and most of the way there", () => {
+    const farthest = Math.max(
+      ...(["stone", "iron"] as const).flatMap((kind) =>
+        Array.from({ length: 8 }, (_, serial) =>
+          farthestHeld(impactOf(kind, serial)),
+        ),
+      ),
+    );
+
+    expect({
+      within: farthest <= HELD_REACH + 1e-9,
+      most: farthest > HELD_REACH * 0.8,
+    }).toEqual({ within: true, most: true });
+  });
+
   it("leaves nothing of it by its time", () => {
     const shown = [5, 7].flatMap((count) =>
       Array.from({ length: 8 }, (_, seed) => makeImpact(count, seed + 1))
@@ -1110,5 +1216,49 @@ describe("a held hit's spark", () => {
       2,
       expect.closeTo(1, 12),
     ]);
+  });
+});
+
+describe("roundOf()", () => {
+  it("draws a round in the fewest corners whose sides fall no further inside its circle than it may, or the finest there is", () => {
+    const radii = [2, 5, 10, 20, 40, 80, 150];
+
+    const corners = radii.map((radius) => roundOf(radius, 0.5, 1).sides.length);
+
+    expect(corners).toEqual([6, 8, 12, 16, 24, 32, 48]);
+  });
+
+  it("draws a round of a size in CSS pixels in as many corners at any pixel ratio", () => {
+    const corners = [1, 2, 3].map(
+      (pixelRatio) => roundOf(20 * pixelRatio, 0.5, pixelRatio).sides.length,
+    );
+
+    expect(corners).toEqual([16, 16, 16]);
+  });
+
+  it("closes a round's sides on its circle, each meeting the next, and fans its inside from its first corner", () => {
+    const { sides, fan } = roundOf(10, 0.5, 1);
+    const text = ({ x, y }: { x: number; y: number }): string =>
+      `${fourPlaces(x)},${fourPlaces(y)}`;
+
+    const ends = sides.map(([, to]) => text(to));
+
+    expect({
+      ends,
+      radii: new Set(
+        sides.flat().map(({ x, y }) => fourPlaces(Math.hypot(x, y))),
+      ),
+      fan: fan.map((corners) => corners.map(text)),
+    }).toEqual({
+      ends: [...sides.slice(1), ...sides.slice(0, 1)].map(([from]) =>
+        text(from),
+      ),
+      radii: new Set([1]),
+      fan: Array.from({ length: sides.length - 2 }, (_, triangle) =>
+        [0, triangle + 1, triangle + 2].map((corner) =>
+          text(sides[corner]?.[0] ?? { x: Number.NaN, y: Number.NaN }),
+        ),
+      ),
+    });
   });
 });

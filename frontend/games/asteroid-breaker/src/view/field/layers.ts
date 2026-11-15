@@ -3,17 +3,19 @@
  * over those before it, as the scene adds them in this order: the place
  * behind the play, its wash, stars and landmark; the field, which holds
  * nothing of its own; the tags of the effects in play, under all that
- * moves, so they
- * hide nothing a player must see; the rocks; the pickups; the strays adrift
- * and the pilots bailing out; the comets and their warnings; the shots; the
- * ship and its pilot; a held hit's flash; the flourishes, back to front a
- * dash's trail, the exhaust, the shards, the dust, the sparks and the rings;
+ * moves, so they hide nothing a player must see; a broken rock's dust and
+ * shards, under the rocks, so none hides a piece it leaves; the rocks; the
+ * pickups; the strays adrift and the pilots bailing out; the comets and
+ * their warnings; the shots; the ship and its pilot; a held hit's flash;
+ * the flourishes, back to front a dash's trail, the exhaust, a lost ship's
+ * shards, the sparks and glints of breaks and held hits, and the rings;
  * the points rising; and the frame and the deck.
  */
 export const LAYERS = [
   "place",
   "field",
   "tags",
+  "breaks",
   "rocks",
   "pickups",
   "strays",
@@ -46,6 +48,7 @@ export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   place: "field",
   field: "field",
   tags: "field",
+  breaks: "field",
   rocks: "field",
   pickups: "field",
   strays: "field",

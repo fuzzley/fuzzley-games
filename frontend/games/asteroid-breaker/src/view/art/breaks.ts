@@ -65,6 +65,16 @@ const IMPACT_MS = 160;
 const GLINT_MS = 150;
 
 /**
+ * Where a break's dust's ring starts and how far it spreads, and how wide
+ * it is as it starts, each in shares of the rock's radius, its width as
+ * thick as the dust.
+ */
+const DUST_RING = { from: 0.7, spread: 1.05, width: 0.16 } as const;
+
+/** How large a puff of dust is as it starts, and how much it grows, in shares of its own radius. */
+const PUFF_GROWS = { from: 0.7, by: 0.9 } as const;
+
+/**
  * How many shapes of a held hit's spark there are, each from a seed of its
  * own, one picked for each hit, so hits in a row throw their ticks apart.
  */
@@ -269,6 +279,12 @@ export interface Break {
   readonly glints: readonly Glint[];
   /** How thick its dust is, 0 for none. */
   readonly dust: number;
+  /**
+   * How far from its middle any of it is drawn, at most, in field units,
+   * short of the pixel or so its finest lines and glints are drawn at
+   * least: where it is drawn again past an edge it reaches across.
+   */
+  readonly reach: number;
 }
 
 /** Returns the middle of a polygon's corners. */
@@ -505,7 +521,7 @@ export function makeBreak(shape: RockShape, seed: number): Break {
       };
     },
   );
-  return {
+  const made = {
     shape,
     shards,
     sparks,
@@ -514,6 +530,38 @@ export function makeBreak(shape: RockShape, seed: number): Break {
     glints,
     dust: style.dust,
   };
+  return { ...made, reach: reachOf(made) };
+}
+
+/** Returns the farthest of some points from the origin. */
+function farthestOf(points: readonly Point[]): number {
+  return Math.max(0, ...points.map(({ x, y }) => Math.hypot(x, y)));
+}
+
+/**
+ * Returns how far from a break's middle any of it is drawn, at most, in
+ * field units: the rock whole, its shards at their reach, its dust's ring
+ * and puffs spread out, its glints at their fullest, and its sparks' heads.
+ */
+function reachOf(made: Omit<Break, "reach">): number {
+  const { shape, shards, sparks, sparkStart, puffs, glints, dust } = made;
+  const spread = DUST_RING.from + DUST_RING.spread;
+  const radii = [
+    farthestOf(shape.outline),
+    ...shards.map(
+      ({ points, at, reach }) =>
+        Math.hypot(at.x, at.y) + reach + farthestOf(points),
+    ),
+    ...(dust > 0 ? [spread + (DUST_RING.width * dust) / 2] : []),
+    ...puffs.map(
+      ({ at, r }) => spread * at + r * (PUFF_GROWS.from + PUFF_GROWS.by),
+    ),
+    ...glints.map(({ at, r }) => Math.hypot(at.x, at.y) + r),
+  ];
+  const thrown = sparks.map(
+    ({ reach }) => sparkStart.from + reach + sparkStart.width / 2,
+  );
+  return Math.max(ROCK_RADIUS[shape.size] * Math.max(...radii), ...thrown);
 }
 
 /** Every kind and size of rock's outlines' breaks, each made once from the seed its outline is cut from. */
@@ -604,6 +652,71 @@ export interface Round {
   width: number;
   color: number;
   alpha: number;
+}
+
+/** Describes a polygon a round of a unit's radius is drawn as. */
+export interface RoundShape {
+  /** Its sides, each from a corner to the next, the last back to the first. */
+  readonly sides: readonly (readonly [Point, Point])[];
+  /** Its inside, as triangles fanned from its first corner. */
+  readonly fan: readonly (readonly [Point, Point, Point])[];
+  /** How far inside its circle each side falls, in shares of its radius. */
+  readonly sag: number;
+}
+
+/** Returns a corner of a polygon of so many corners and a unit's radius, its first at the right. */
+function cornerOf(corner: number, count: number): Point {
+  return polar((corner / count) * TURN, 1);
+}
+
+/** Returns the polygon of so many corners a round of a unit's radius is drawn as. */
+function roundShape(count: number): RoundShape {
+  return {
+    sides: Array.from({ length: count }, (_, side) => [
+      cornerOf(side, count),
+      cornerOf(side + 1, count),
+    ]),
+    fan: Array.from({ length: count - 2 }, (_, triangle) => [
+      cornerOf(0, count),
+      cornerOf(triangle + 1, count),
+      cornerOf(triangle + 2, count),
+    ]),
+    sag: 1 - Math.cos(Math.PI / count),
+  };
+}
+
+/**
+ * The polygons a round is drawn as, fewest corners first, the finest apart.
+ *
+ * A break's dust is drawn in the fewest its size spares: `Graphics`' own
+ * circles take a hundred corners, made anew each frame, and its fills
+ * triangulate them, which a crowd of breaks can't spare.
+ */
+const ROUNDS: readonly RoundShape[] = [6, 8, 12, 16, 24, 32].map(roundShape);
+const FINEST_ROUND = roundShape(48);
+
+/**
+ * How far inside its circle a round's sides may fall, in CSS pixels: a
+ * puff of dust, small, soft and fading, further than the ring it spreads
+ * on, whose edge is long.
+ */
+export const ROUND_SAG = { ring: 0.5, puff: 0.75 } as const;
+
+/**
+ * Returns the polygon of fewest corners a round of a radius, in device
+ * pixels, is drawn as, its sides falling no further inside its circle than
+ * so many CSS pixels at a pixel ratio, or the finest there is.
+ */
+export function roundOf(
+  radius: number,
+  sag: number,
+  pixelRatio: number,
+): RoundShape {
+  const most = sag * pixelRatio;
+  for (const round of ROUNDS) {
+    if (radius * round.sag <= most) return round;
+  }
+  return FINEST_ROUND;
 }
 
 /** Describes the tones something that gives off light is drawn in: its bright middle and its body. */
@@ -758,10 +871,11 @@ export function dustAt(
   const radius = radiusOf(made, scale);
   into.x = 0;
   into.y = 0;
-  into.radius = radius * (0.7 + 1.05 * easeOutCubic(done));
+  into.radius =
+    radius * (DUST_RING.from + DUST_RING.spread * easeOutCubic(done));
   into.width = Math.max(
     LEAST_CSS_PX.line * scale.pixelRatio,
-    radius * 0.16 * (1 - done) * made.dust,
+    radius * DUST_RING.width * (1 - done) * made.dust,
   );
   into.color = dustTone(made.shape.kind, palette);
   into.alpha = 0.55 * (1 - done);
@@ -787,7 +901,10 @@ export function puffAt(
   const far = into.radius * puff.at;
   into.x = Math.cos(angle) * far;
   into.y = Math.sin(angle) * far;
-  into.radius = radiusOf(broken.made, scale) * puff.r * (0.7 + 0.9 * done);
+  into.radius =
+    radiusOf(broken.made, scale) *
+    puff.r *
+    (PUFF_GROWS.from + PUFF_GROWS.by * done);
   into.width = 0;
   into.alpha = 0.42 * (1 - done) * Math.min(1, broken.made.dust);
   return true;
@@ -1012,6 +1129,21 @@ export function impactFlashAt(
   into.alpha = 1 - done;
   return true;
 }
+
+/**
+ * How far from where it struck any of a held hit's spark is drawn, at most,
+ * in field units, short of the pixel or so its finest lines are drawn at
+ * least: its four-point spark, and the heads of the longest-reaching
+ * sparks of any of its shapes, off iron or any other kind.
+ */
+export const HELD_REACH = Math.max(
+  IMPACT_FLASH,
+  ...[...IMPACTS.iron, ...IMPACTS.other].flatMap((ticks) =>
+    ticks.map(
+      ({ reach }) => IMPACT_START.from + reach + IMPACT_START.width / 2,
+    ),
+  ),
+);
 
 /**
  * Returns how far a rock's rim lies from its middle toward a way, in field

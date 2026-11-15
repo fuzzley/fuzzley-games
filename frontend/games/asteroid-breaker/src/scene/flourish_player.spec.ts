@@ -1,6 +1,5 @@
 import { easeOutCubic } from "@fz/core/math";
 import { strokesOf } from "@fz/phaser/testing";
-import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
@@ -17,7 +16,8 @@ import {
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { ADRIFT_FRAMES } from "../view/art/pilot_art";
-import { ringReachOf, shardCount, wayOf } from "../view/effects/flourish";
+import { breakOf, impactOf, shardPushOf, rimToward } from "../view/art/breaks";
+import { ringReachOf } from "../view/effects/flourish";
 import {
   BURST_SHARDS,
   RING_MS,
@@ -103,28 +103,31 @@ function times<T>(count: number, value: T): readonly T[] {
   return Array.from({ length: count }, () => value);
 }
 
-/**
- * Returns the tint of the image of a thing's copies where it is, its copy
- * past no edge.
- */
-function tintOf(images: readonly GameObjects.Image[]): number | undefined {
-  return images[0]?.tintTopLeft;
-}
-
 describe("FlourishPlayer", () => {
-  it("throws a broken rock's shards, as many as its serial says, in its body's color, at the field's zoom", async () => {
+  it("breaks a rock where it broke, from the outline it is drawn in, turned as it lies, pushed the way the blow came", async () => {
     const { shell, scene, player } = await startPlayer();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, "ice");
+    Object.assign(rock, { outline: 2, angle: 0.8, live: false });
     const event = eventOf((log) => {
       log.addBreak(rock, 1, 0, -1);
     });
 
-    player.play("shards", event, { ...contextAt(shell, NOW), zoom: 2 });
+    player.play("shards", event, contextAt(shell, NOW));
 
-    const count = shardCount(event.serial);
-    expect(shardsOf(scene)).toEqual({
-      tints: times(count, ART_PALETTE.rocks.ice),
-      scales: times(count, 2),
+    const play = scene.kit.debris.breaks.all.find(({ at }) => at === NOW);
+    expect(
+      play && {
+        x: play.x,
+        y: play.y,
+        made: play.made,
+        turn: play.turn,
+        push: play.push,
+      },
+    ).toEqual({
+      ...MIDDLE,
+      made: breakOf(rock),
+      turn: 0.8,
+      push: shardPushOf(0, -1, 0.8, { x: 0, y: 0 }),
     });
   });
 
@@ -142,7 +145,7 @@ describe("FlourishPlayer", () => {
     });
   });
 
-  it("puffs a broken rock's dust from its middle, out to its radius, in its body's color", async () => {
+  it("starts nothing more for a broken rock's dust, which its break draws", async () => {
     const { shell, scene, player } = await startPlayer();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, "ice");
     const event = eventOf((log) => {
@@ -151,46 +154,37 @@ describe("FlourishPlayer", () => {
 
     player.play("dust", event, contextAt(shell, NOW));
 
-    const puff = scene.kit.debris.puffs.all.find(({ at }) => at === NOW);
-    expect(
-      puff && {
-        x: puff.x,
-        y: puff.y,
-        radius: puff.radius,
-        tint: tintOf(puff.copies.images),
-      },
-    ).toEqual({
-      ...MIDDLE,
-      radius: ROCK_RADIUS.medium,
-      tint: ART_PALETTE.rocks.ice,
-    });
+    expect(scene.kit.debris.breaks.all.some(({ at }) => at === NOW)).toBe(
+      false,
+    );
   });
 
-  it("flies a held hit's spark off its rock's edge, the way its serial says, in the flame's color", async () => {
+  it("throws a held hit's spark from its rock's rim toward the field's light while no ship flies, its sparks the shape its serial picks", async () => {
     const { shell, scene, player } = await startPlayer();
     const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y);
+    const context = contextAt(shell, NOW);
     const event = eventOf((log) => {
       log.addRock("hit", rock);
     });
 
-    player.play("spark", event, contextAt(shell, NOW));
+    player.play("spark", event, context);
 
-    const spark = scene.kit.debris.sparks.all.find(({ at }) => at === NOW);
+    const play = scene.kit.debris.heldHits.all.find(({ at }) => at === NOW);
+    const { way } = context.palette.rockLight;
+    const toward = Math.atan2(way.y, way.x);
+    const rim = rimToward(rock, toward);
     expect(
-      spark && {
-        x: spark.x,
-        y: spark.y,
-        radius: spark.radius,
-        wayX: spark.wayX,
-        wayY: spark.wayY,
-        tint: tintOf(spark.copies.images),
+      play && {
+        x: play.x.toFixed(9),
+        y: play.y.toFixed(9),
+        toward: play.toward,
+        ticks: play.ticks,
       },
     ).toEqual({
-      ...MIDDLE,
-      radius: ROCK_RADIUS.large,
-      wayX: Math.cos(wayOf(event.serial)),
-      wayY: Math.sin(wayOf(event.serial)),
-      tint: ART_PALETTE.flame,
+      x: (MIDDLE.x + Math.cos(toward) * rim).toFixed(9),
+      y: (MIDDLE.y + Math.sin(toward) * rim).toFixed(9),
+      toward,
+      ticks: impactOf("stone", event.serial),
     });
   });
 
