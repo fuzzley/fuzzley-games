@@ -1,11 +1,15 @@
 import { EventLog, type NumberedEvent } from "@fz/core/event_log";
 import type { PickupId } from "../catalog/pickups";
 import type { RockKindId, RockSize } from "../catalog/rocks";
+import type { WeaponId } from "../catalog/weapons";
 import type { Crew, Pilot } from "../ship/pilots";
 
-/** Names something that happened at a place on the field, which its event names nothing else of. */
+/**
+ * Names something that happened at a place on the field, its event naming
+ * little else: the Nova's reach, a dash's way, a pull's weapon.
+ */
 export type PlaceEventKind =
-  /** The ship fired a pull of its weapon. */
+  /** The ship fired a pull of its weapon, which its event names. */
   | "fired"
   /** The ship started a dash. */
   | "dashed"
@@ -99,6 +103,8 @@ export interface FieldEvent extends NumberedEvent {
   size: RockSize | null;
   /** The pickup it happened to, or null for an event of none. */
   pickup: PickupId | null;
+  /** The weapon that fired, for its shot's sound, or null for an event of none. */
+  weapon: WeaponId | null;
   /** The pilot it happened to, or null for an event of none. */
   pilot: Pilot | null;
   /** How many ride in tow as an event of a pilot leaves the crew, 0 for any other event. */
@@ -152,6 +158,7 @@ const BLANK_EVENT: Readonly<Omit<FieldEvent, "serial">> = Object.freeze({
   rock: null,
   size: null,
   pickup: null,
+  weapon: null,
   pilot: null,
   inTow: 0,
   runOver: false,
@@ -187,12 +194,17 @@ export class FieldEventLog extends EventLog<FieldEvent> {
   add(kind: "nova", x: number, y: number, reach: number): void;
   /** Records an event of nothing but its place. */
   add(
-    kind: Exclude<PlaceEventKind, "nova" | "dashed">,
+    kind: Exclude<PlaceEventKind, "nova" | "dashed" | "fired">,
     x: number,
     y: number,
   ): void;
   add(kind: PlaceEventKind, x: number, y: number, reach = 0): void {
     this.record(kind, x, y).reach = reach;
+  }
+
+  /** Records a pull of fire, at the ship's place, with the weapon that fired it. */
+  addFired(x: number, y: number, weapon: WeaponId): void {
+    this.record("fired", x, y).weapon = weapon;
   }
 
   /** Records the ship starting a dash, at its place, and the way it heads, in radians. */

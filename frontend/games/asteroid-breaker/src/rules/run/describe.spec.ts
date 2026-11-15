@@ -155,7 +155,7 @@ describe("describeEvent", () => {
     [
       "a shot",
       (log: FieldEventLog) => {
-        log.add("fired", 1, 2);
+        log.addFired(1, 2, "gun");
       },
     ],
     [

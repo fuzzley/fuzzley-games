@@ -12,11 +12,13 @@ import {
   type RockSize,
   hasTrait,
 } from "../../rules/catalog/rocks";
+import type { WeaponId } from "../../rules/catalog/weapons";
 import {
   type FieldEvent,
   type FieldEventKind,
   rockKindOf,
   rockSizeOf,
+  weaponOf,
 } from "../field/frame";
 
 /**
@@ -282,16 +284,27 @@ const CATCH_SOUNDS: Readonly<Record<PickupId, SoundName | null>> = {
 };
 
 /**
+ * The sound each weapon's pull of fire plays: the gun's soft pew, the
+ * Spread's three at once, the Rapid's lighter, higher one, and the Lance's
+ * ringing needle.
+ */
+const SHOT_SOUNDS: Readonly<Record<WeaponId, SoundName>> = {
+  gun: "shot-gun",
+  spread: "shot-spread",
+  rapid: "shot-rapid",
+  lance: "shot-lance",
+};
+
+/**
  * The sound each event plays, or null for one that plays none, but those
- * a rock's kind and size or a pickup decide.
+ * a rock's kind and size, a pickup or a weapon decide.
  */
 const EVENT_SOUNDS: Readonly<
   Record<
-    Exclude<FieldEventKind, "broken" | "hit" | "blast" | "caught">,
+    Exclude<FieldEventKind, "broken" | "hit" | "blast" | "caught" | "fired">,
     SoundName | null
   >
 > = {
-  fired: "shot-gun",
   dashed: "dash",
   shielded: "shield-break",
   // The plan names no sound for it, and the Nova goes with sparks and
@@ -318,12 +331,12 @@ const EVENT_SOUNDS: Readonly<
  * A rock's break plays its kind's at its size, but one a comet smashed,
  * which counts in no chain, plays the comet's smash; a hit it holds plays
  * its kind's knock, but a rock that rings logs its ring too, which is heard
- * for both.
+ * for both. A pull of fire plays its weapon's shot.
  *
  * @throws {RangeError} For a break that names no rock, or one of a size
  *   its kind doesn't come in, a held hit that names no rock, a blast that
- *   names no size, or a catch that names no pickup, which the field's log
- *   never records.
+ *   names no size, a catch that names no pickup, or a pull of fire that
+ *   names no weapon, which the field's log never records.
  */
 export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
   switch (event.kind) {
@@ -337,6 +350,8 @@ export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
       return BLAST_SOUNDS[rockSizeOf(event)];
     case "caught":
       return CATCH_SOUNDS[pickupOf(event)];
+    case "fired":
+      return SHOT_SOUNDS[weaponOf(event)];
     default:
       return EVENT_SOUNDS[event.kind];
   }

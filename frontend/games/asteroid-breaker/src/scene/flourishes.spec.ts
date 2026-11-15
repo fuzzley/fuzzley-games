@@ -669,7 +669,7 @@ describe("a held hit", () => {
     const rock = placeRock(shell.field, "small", 0.5, MIDDLE.y);
     // A spark whose event's serial sends it off the left edge.
     while (Math.cos(wayOf(lastSerial(shell) + 1)) > -0.7) {
-      shell.field.events.add("fired", 0, 0);
+      shell.field.events.addFired(0, 0, "gun");
     }
     shell.field.events.addRock("hit", rock);
 

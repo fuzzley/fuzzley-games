@@ -10,6 +10,7 @@ import {
   rockKindOf,
   rockSizeOf,
   shipAt,
+  weaponOf,
   wrappedBetween,
 } from "./frame";
 
@@ -130,17 +131,17 @@ describe("shipAt", () => {
   });
 });
 
-describe("the rock an event names", () => {
-  /** Returns the latest event of a log. */
-  function latestOf(log: FieldEventLog): FieldEvent {
-    let latest: FieldEvent | undefined;
-    log.forEachSince(log.latest - 1, (event) => {
-      latest = event;
-    });
-    if (latest === undefined) throw new Error("The log has an event.");
-    return latest;
-  }
+/** Returns the latest event of a log. */
+function latestOf(log: FieldEventLog): FieldEvent {
+  let latest: FieldEvent | undefined;
+  log.forEachSince(log.latest - 1, (event) => {
+    latest = event;
+  });
+  if (latest === undefined) throw new Error("The log has an event.");
+  return latest;
+}
 
+describe("the rock an event names", () => {
   it("reads the kind and size of the rock an event happened to", () => {
     const log = new FieldEventLog();
     log.addBreak({ x: 1, y: 2, kind: "ice", size: "medium", slot: 0 }, 1, 0, 0);
@@ -152,15 +153,31 @@ describe("the rock an event names", () => {
 
   it("throws for an event that names no rock", () => {
     const log = new FieldEventLog();
-    log.add("fired", 0, 0);
+    log.addFired(0, 0, "gun");
 
     expect(() => rockKindOf(latestOf(log))).toThrow(RangeError);
   });
 
   it("throws for an event that names no rock's size", () => {
     const log = new FieldEventLog();
-    log.add("fired", 0, 0);
+    log.addFired(0, 0, "gun");
 
     expect(() => rockSizeOf(latestOf(log))).toThrow(RangeError);
+  });
+});
+
+describe("the weapon an event names", () => {
+  it("reads the weapon that fired a pull", () => {
+    const log = new FieldEventLog();
+    log.addFired(0, 0, "lance");
+
+    expect(weaponOf(latestOf(log))).toBe("lance");
+  });
+
+  it("throws for an event that names no weapon", () => {
+    const log = new FieldEventLog();
+    log.add("warned", 0, 0);
+
+    expect(() => weaponOf(latestOf(log))).toThrow(RangeError);
   });
 });

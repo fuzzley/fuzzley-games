@@ -328,7 +328,7 @@ export function stepField(field: Field): void {
   }
   stepTow(field);
   const fired = stepShots(field, steer.fire || steer.autoFire);
-  if (ship && fired) field.events.add("fired", ship.x, ship.y);
+  if (ship && fired) field.events.addFired(ship.x, ship.y, field.weapon);
   stepRocks(field);
   for (const shot of field.shots.slots) {
     if (shot.lifeSteps === 0) continue;

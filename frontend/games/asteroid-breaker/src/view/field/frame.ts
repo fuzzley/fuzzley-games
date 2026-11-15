@@ -190,3 +190,15 @@ export function rockSizeOf(event: Readonly<FieldEvent>): RockSize {
   }
   return event.size;
 }
+
+/**
+ * Returns the weapon that fired a pull an event records.
+ *
+ * @throws {RangeError} For an event that names no weapon.
+ */
+export function weaponOf(event: Readonly<FieldEvent>): WeaponId {
+  if (event.weapon === null) {
+    throw new RangeError(`A "${event.kind}" event names no weapon`);
+  }
+  return event.weapon;
+}

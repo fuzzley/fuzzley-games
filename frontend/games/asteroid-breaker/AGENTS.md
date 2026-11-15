@@ -118,11 +118,12 @@ takes for the specs' helpers.
   (`tallyOf()`), each part counted as it scores.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
-  and the shell hears, each from the last one it read. `kept_field.ts` is
-  the field as storage keeps it: `savedField()` writes it; `readField()`
-  reads it back, dropping what fails one of its checks, each named and
-  exported: its counts, its sizes, its steps (`hasMoved()`,
-  `hasDroppedInTime()`), a rock, each of its keys by its own check
+  and the shell hears, each from the last one it read; a pull of fire
+  names the weapon that fired it (`addFired()`), as each shot does, for its
+  sound. `kept_field.ts` is the field as storage keeps it: `savedField()`
+  writes it; `readField()` reads it back, dropping what fails one of its
+  checks, each named and exported: its counts, its sizes, its steps
+  (`hasMoved()`, `hasDroppedInTime()`), a rock, each of its keys by its own check
   (`isKeptRock()`, through `ROCK_CHECKS`), a rock's kind and state, and its
   fit to its wave and to what its run has scored on it (`fitsItsWave()`,
   `fitsItsRun()`, `isStrayPoints()`); and `layOutKeptField()` lays the wave
@@ -315,8 +316,9 @@ takes for the specs' helpers.
   wraps is drawn between its last place and its next, the shortest way across
   the wrap (`wrappedBetween()`; one that crosses, as a comet or a stray, is
   drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`),
-  where the ship is drawn and turned (`shipAt()`), and the kind and size of
-  the rock an event names (`rockKindOf()`, `rockSizeOf()`). `layers.ts` is the order
+  where the ship is drawn and turned (`shipAt()`), the kind and size of
+  the rock an event names (`rockKindOf()`, `rockSizeOf()`), and the weapon
+  a pull of fire names (`weaponOf()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
   the tags of the lasting effects lie, at the field's bottom left, and how
@@ -374,12 +376,12 @@ takes for the specs' helpers.
   whether it is tuned, its family's (`SOUNDS`, the mix the scene hands its
   player, and `SoundTake`, a take's name in the sprite), which sound each
   event plays (`soundOf()`), a rock's break by its kind and size, a catch by
-  its pickup, how far a broken rock's sound rises along a chain
-  (`detuneOf()`), and `createFrameSounds()`, `@fz/core/frame_sounds`'s
-  `FrameSounds` of them, which plays each sound once a frame at most, at the
-  highest it was heard; the thrust's hum (`THRUST`) is one of them, which no
-  event plays, and so is each sound no event plays yet.
-  `flourish.ts` says how each flourish moves
+  its pickup, a pull of fire by its weapon, how far a broken rock's sound
+  rises along a chain (`detuneOf()`), and `createFrameSounds()`,
+  `@fz/core/frame_sounds`'s `FrameSounds` of them, which plays each sound
+  once a frame at most, at the highest it was heard; the thrust's hum
+  (`THRUST`) is one of them, which no event plays, and so is each sound no
+  event plays yet. `flourish.ts` says how each flourish moves
   over its time, beside `@fz/core/math`'s `shareDone()` and its curves
   (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick and the
   shake scroll the field's camera (`cameraShift()`) and when a dash lays

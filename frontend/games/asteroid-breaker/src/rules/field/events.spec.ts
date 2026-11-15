@@ -21,12 +21,13 @@ function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
 function eventOf(event: Partial<FieldEvent>): FieldEvent {
   return {
     serial: 1,
-    kind: "fired",
+    kind: "warned",
     x: 0,
     y: 0,
     rock: null,
     size: null,
     pickup: null,
+    weapon: null,
     pilot: null,
     inTow: 0,
     runOver: false,
@@ -107,6 +108,16 @@ describe("FieldEventLog", () => {
     log.addBreak(rockAt(1, 2, "ice", "medium", 5), 4, 0, 0);
 
     expect(eventsSince(log, 0)).toMatchObject([{ wayX: 0, wayY: 0 }]);
+  });
+
+  it("records a pull of fire with its place and the weapon that fired it", () => {
+    const log = new FieldEventLog();
+
+    log.addFired(1, 2, "lance");
+
+    expect(eventsSince(log, 0)).toEqual([
+      eventOf({ kind: "fired", x: 1, y: 2, weapon: "lance" }),
+    ]);
   });
 
   it("records the ship's dash with its place and the way it heads", () => {
@@ -227,10 +238,10 @@ describe("FieldEventLog", () => {
   });
 
   it("leaves nothing of an older event in a record the ring comes round to", () => {
-    // The five records it comes round to held a blast, a pickup's event, a
-    // pilot's, points and a break, each with what it alone records; the
-    // blast's is taken by a pickup's event, which writes no reach, and the
-    // rest by warnings, which write no pickup.
+    // The six records it comes round to held a blast, a pickup's event, a
+    // pilot's, points, a break and a pull of fire, each with what it alone
+    // records; the blast's is taken by a pickup's event, which writes no
+    // reach, and the rest by warnings, which write no pickup or weapon.
     const log = new FieldEventLog();
     log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
     log.addPickup("dropped", 3, 4, "spread");
@@ -242,10 +253,11 @@ describe("FieldEventLog", () => {
     });
     log.addScore(3, 4, 90, 4);
     log.addBreak(rockAt(3, 4, "stone", "large", 9), 5, 1, 1);
-    for (let i = 5; i < EVENT_LOG_SIZE; i++) log.add("fired", 0, 0);
+    log.addFired(3, 4, "spread");
+    for (let i = 6; i < EVENT_LOG_SIZE; i++) log.add("warned", 0, 0);
 
     log.addPickup("faded", 1, 2, "nova");
-    for (let i = 0; i < 4; i++) log.add("warned", 1, 2);
+    for (let i = 0; i < 5; i++) log.add("warned", 1, 2);
 
     expect(eventsSince(log, EVENT_LOG_SIZE)).toEqual([
       eventOf({
@@ -255,7 +267,7 @@ describe("FieldEventLog", () => {
         y: 2,
         pickup: "nova",
       }),
-      ...[2, 3, 4, 5].map((n) =>
+      ...[2, 3, 4, 5, 6].map((n) =>
         eventOf({ serial: EVENT_LOG_SIZE + n, kind: "warned", x: 1, y: 2 }),
       ),
     ]);
