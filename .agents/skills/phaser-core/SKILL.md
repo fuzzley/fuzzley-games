@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, Graphics, pathDetailThreshold.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold.
 ---
 
 # Phaser games here
@@ -150,6 +150,13 @@ holds.
   `fuzzballWearing()` outlines a fuzzball as one with what it wears (a
   `Worn`), such as the sparks (`wornSparks()`) or Brick Fuzz Pop's
   flames, so no outline covers any of it.
+  `eyesCommands()` takes an `EyesPose` too, for any of `@fz/style`'s nine
+  faces, a look and the small form, and `staticSparkCommands()` draws
+  static's sparks as `@fz/style/fuzzball`'s `fuzzballShape()` poses them,
+  so a fuzzball that acts with its face and fur is the one fuzzball too.
+  Its halos come back opaque, for a frame of their own that a game fades
+  to `SPARK_LOOK.haloAlpha` with `setAlpha()`: in one frame with the
+  cores, they would show as solid ink.
 - **`@fz/phaser/bricks`** is what a brick game draws a brick with, in
   `shapes`'s commands, a pure entry a game's view takes too, importing
   only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles and Brick

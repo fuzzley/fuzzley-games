@@ -1,4 +1,11 @@
-export { combedStrands, sparkCommands, wornSparks } from "./combing";
+export {
+  type SparkStyle,
+  type StaticSparks,
+  combedStrands,
+  sparkCommands,
+  staticSparkCommands,
+  wornSparks,
+} from "./combing";
 export {
   type EyesStyle,
   FUZZBALL_GRID,
