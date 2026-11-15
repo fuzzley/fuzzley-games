@@ -4,6 +4,7 @@ import { type Run, createRun, nextWave, startWave } from "./run";
 import {
   type EndedRun,
   NO_STATS,
+  RULES_VERSION,
   type Stats,
   isNewBest,
   readStats,
@@ -44,6 +45,36 @@ function ended(score: number, wave: number): EndedRun {
 /** Returns records with one run ended at Normal kept. */
 function after(run: EndedRun): Stats {
   return withRunEnded(withRunStarted(NO_STATS, run.speed), run);
+}
+
+/**
+ * Returns records whose best at Normal, and the inner belt's, a run made
+ * under the first rules, as a best kept before the rules were numbered
+ * reads.
+ */
+function underFirstRules(best: number): Stats {
+  return readStats(
+    {
+      speeds: { normal: { runs: 1, best, furthest: 3, strays: 0 } },
+      sectors: { "inner-belt": { normal: best } },
+    },
+    ["inner-belt"],
+  );
+}
+
+/** Returns records whose best at Normal, and the inner belt's, a run made under the rules after these, as a later build keeps it. */
+function underLaterRules(best: number): Stats {
+  const rules = RULES_VERSION + 1;
+  return readStats(
+    {
+      speeds: {
+        normal: { runs: 1, best, bestRules: rules, furthest: 3, strays: 0 },
+      },
+      sectors: { "inner-belt": { normal: best } },
+      sectorRules: { "inner-belt": { normal: rules } },
+    },
+    ["inner-belt"],
+  );
 }
 
 describe("readStats", () => {
@@ -112,7 +143,7 @@ describe("readStats", () => {
     ).toEqual({});
   });
 
-  it("reads a speed's records kept before a run could clear all thirty as none having", () => {
+  it("reads a speed's records kept before a run could clear all thirty as none having, and before the rules were numbered as made under the first", () => {
     const read = readStats(
       { speeds: { normal: { runs: 2, best: 900, furthest: 4, strays: 1 } } },
       ["inner-belt"],
@@ -121,9 +152,32 @@ describe("readStats", () => {
     expect(read.speeds.normal).toEqual({
       runs: 2,
       best: 900,
+      bestRules: 1,
       furthest: 4,
       strays: 1,
       clearedAll: false,
+    });
+  });
+
+  it("reads a speed's best of nothing kept before the rules were numbered as under these, as a speed no run has scored at is kept", () => {
+    const read = readStats(
+      { speeds: { fast: { runs: 0, best: 0, furthest: 0, strays: 0 } } },
+      ["inner-belt"],
+    );
+
+    expect(read.speeds.fast.bestRules).toBe(RULES_VERSION);
+  });
+
+  it("reads the rules each sector's best was made under, as it reads the bests", () => {
+    const stored = {
+      sectorRules: {
+        "inner-belt": { normal: 2, fast: -1 },
+        gone: { normal: 2 },
+      },
+    };
+
+    expect(readStats(stored, ["inner-belt"]).sectorRules).toEqual({
+      "inner-belt": { normal: 2 },
     });
   });
 });
@@ -245,12 +299,14 @@ describe("withRecords", () => {
         normal: {
           runs: 1,
           best: 900,
+          bestRules: RULES_VERSION,
           furthest: 3,
           strays: 2,
           clearedAll: true,
         },
       },
       sectors: { "inner-belt": { normal: 900 } },
+      sectorRules: { "inner-belt": { normal: RULES_VERSION } },
     });
   });
 
@@ -271,18 +327,70 @@ describe("withRunStarted", () => {
 });
 
 describe("withRunEnded", () => {
-  it("keeps a first run's score and wave as the best and the furthest, and its sector's best", () => {
+  it("keeps a first run's score and wave as the best and the furthest, and its sector's best, each under the rules", () => {
     const stats = after(ended(4200, 3));
 
-    expect({ normal: stats.speeds.normal, sectors: stats.sectors }).toEqual({
+    expect({
+      normal: stats.speeds.normal,
+      sectors: stats.sectors,
+      sectorRules: stats.sectorRules,
+    }).toEqual({
       normal: {
         runs: 1,
         best: 4200,
+        bestRules: RULES_VERSION,
         furthest: 3,
         strays: 0,
         clearedAll: false,
       },
       sectors: { "inner-belt": { normal: 4200 } },
+      sectorRules: { "inner-belt": { normal: RULES_VERSION } },
+    });
+  });
+
+  it("puts a run's score in place of a best made under earlier rules, however much lower, as the first under the rules", () => {
+    const stats = withRunEnded(underFirstRules(9000), ended(40, 1));
+
+    expect({
+      best: stats.speeds.normal.best,
+      bestRules: stats.speeds.normal.bestRules,
+      sector: stats.sectors["inner-belt"],
+      sectorRules: stats.sectorRules["inner-belt"],
+    }).toEqual({
+      best: 40,
+      bestRules: RULES_VERSION,
+      sector: { normal: 40 },
+      sectorRules: { normal: RULES_VERSION },
+    });
+  });
+
+  it("keeps a best made under earlier rules, its speed's and its sector's, against a run that scores nothing", () => {
+    const stats = withRunEnded(underFirstRules(9000), ended(0, 1));
+
+    expect({
+      best: stats.speeds.normal.best,
+      bestRules: stats.speeds.normal.bestRules,
+      sector: stats.sectors["inner-belt"],
+      sectorRules: stats.sectorRules["inner-belt"],
+    }).toEqual({
+      best: 9000,
+      bestRules: 1,
+      sector: { normal: 9000 },
+      sectorRules: undefined,
+    });
+  });
+
+  it("keeps a best made under later rules, a later build's, its speed's and its sector's, whatever a run scores", () => {
+    const stats = withRunEnded(underLaterRules(100), ended(9000, 1));
+
+    expect({
+      best: stats.speeds.normal.best,
+      bestRules: stats.speeds.normal.bestRules,
+      sector: stats.sectors["inner-belt"],
+    }).toEqual({
+      best: 100,
+      bestRules: RULES_VERSION + 1,
+      sector: { normal: 100 },
     });
   });
 
@@ -389,5 +497,17 @@ describe("isNewBest", () => {
 
   it("calls a first run's points a new best", () => {
     expect(isNewBest(NO_STATS, ended(40, 1))).toBe(true);
+  });
+
+  it("calls a run's points a new best against a best made under earlier rules, however much lower", () => {
+    expect(isNewBest(underFirstRules(9000), ended(40, 1))).toBe(true);
+  });
+
+  it("calls a run that scores nothing no new best against a best made under earlier rules", () => {
+    expect(isNewBest(underFirstRules(9000), ended(0, 1))).toBe(false);
+  });
+
+  it("calls no run a new best against a best made under later rules", () => {
+    expect(isNewBest(underLaterRules(100), ended(9000, 1))).toBe(false);
   });
 });

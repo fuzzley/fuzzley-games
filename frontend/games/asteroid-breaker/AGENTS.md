@@ -255,16 +255,21 @@ takes for the specs' helpers.
   sector's first and last waves, and `readReached()` reads the ids stored,
   keeping those the game still has. `stats.ts` holds the records, each
   speed's runs, best score, furthest wave, strays brought home and whether a
-  run has cleared all thirty, and each sector's best at each speed:
+  run has cleared all thirty, and each sector's best at each speed, each
+  best with the rules' number it was made under (`RULES_VERSION`, 2 since
+  static and the sparks; one kept without it was made under the first, but
+  a speed's best of nothing):
   `readStats()` reads them as stored, keeping what makes sense and the bests
   of a sector the game still has, `recordsOf()` says what a change in a run
   brings to them and to the sectors reached (`RunRecords`), from the run
   before it to the run after: a run started, the strays brought home, its
   wave's sector, Endless and every written wave cleared, and its end;
   `withRecords()` moves them on by it, through `withRunStarted()`,
-  `withRunEnded()` (a sector's best through `@fz/core/json`'s
-  `withHigherCount()`), `withStraysHome()` and `withClearedAll()`, and
-  `isNewBest()` says whether a run's score beats the best. `saved_game.ts`
+  `withRunEnded()`, `withStraysHome()` and `withClearedAll()`, and
+  `isNewBest()` says whether a run's score beats the best under its rules,
+  as a best made under earlier rules is no longer beaten: the next run to
+  score takes its place; one made under later rules, a later build's, is
+  kept. `saved_game.ts`
   turns a run under way and its field into what storage keeps
   (`saveGame()`), which the shell keeps under `SAVED_GAME_VERSION`, a run
   whose wave was just cleared as the next wave not yet begun, and back
@@ -1046,8 +1051,10 @@ can't trust rather than failing:
 - `asteroid-breaker-stats`: for each speed, the runs, the best run's score,
   the furthest wave reached, whether a run has cleared all thirty, from the
   first, and the strays brought home; and for each sector's id, Endless's
-  among them, the score of the best run started there at each speed. Ids
-  no sector has any more are dropped.
+  among them, the score of the best run started there at each speed; each
+  best with the rules' number it was made under (`bestRules`,
+  `sectorRules`), read as 1 where it lacks one. Ids no sector has any more
+  are dropped.
 - `asteroid-breaker-progress`: the ids of the sectors reached, at any
   speed, which a run may start at, Endless's among them once a run has
   cleared the last written wave. Ids no sector has any more are dropped.
