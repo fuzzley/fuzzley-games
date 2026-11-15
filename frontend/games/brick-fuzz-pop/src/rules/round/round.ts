@@ -2,7 +2,12 @@ import { clamp } from "@fz/core/math";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
 import type { Flight } from "../flight/events";
-import { type FlightRules, type FlightStart, fly } from "../flight/flight";
+import {
+  type FlightDrop,
+  type FlightRules,
+  type FlightStart,
+  fly,
+} from "../flight/flight";
 import type { Boon, Shot } from "../shot";
 import {
   BORED,
@@ -77,22 +82,27 @@ export const RULES: RoundRules = { bored: BORED };
  * decided as it is released, what it came to, and the next round's start.
  * `levelBoon` is the boon a jump earns the next shot.
  *
+ * Given a drop, its flight is dropped as `fly()` drops one, and the round
+ * comes to what it had done by then; a drop past the flight's last event
+ * changes nothing.
+ *
  * It changes nothing it is handed. It throws a `RangeError` for an aim that
- * isn't one of the 657.
+ * isn't one of the 657, or a drop before 0 or not a number.
  */
 export function playRound(
   start: RoundStart,
   shot: Shot,
   levelBoon: Boon,
   rules: RoundRules = RULES,
+  drop?: FlightDrop,
 ): Round {
-  return playRoundBy(start, shot, levelBoon, flightRulesOf(rules));
+  return playRoundBy(start, shot, levelBoon, flightRulesOf(rules), drop);
 }
 
 /**
- * Returns the round a shot plays, flown by the kinds of brick and the trait
- * rules given, where `playRound()` flies by the catalog's and the bricks'
- * own, so a spec can hand it stand-ins.
+ * Returns the round a shot plays, dropped if given a drop, flown by the
+ * kinds of brick and the trait rules given, where `playRound()` flies by
+ * the catalog's and the bricks' own, so a spec can hand it stand-ins.
  *
  * The wall comes down, and is found cleared or not, by the catalog's kinds
  * whatever the flight was flown by, so a stand-in is needed as the kind it
@@ -103,8 +113,9 @@ export function playRoundBy(
   shot: Shot,
   levelBoon: Boon,
   rules: FlightRules,
+  drop?: FlightDrop,
 ): Round {
-  const { flight, wall } = fly(flightStartOf(start, shot), rules);
+  const { flight, wall } = fly(flightStartOf(start, shot), rules, drop);
   const lowered = lowerWall(wall, start.depth);
   let points = lowered.jumped ? JUMP_POINTS : 0;
   let broken = 0;

@@ -192,10 +192,12 @@ helpers.
   for a jump, brings the wall down with `lowerWall()`, and says where the
   next round starts: from the player's fuzzball's landing, held
   `SIDE_MARGIN` off a side wall, the friends it freed added to the crew, and
-  the level's boon after a jump. It changes nothing it is handed.
-  `playRoundBy()` flies by the kinds and the rules it is handed, for a
-  spec's stand-ins; `flightRulesOf()` says what a round's flight is played
-  by, and `flightStartOf()` how its fuzzballs leave, which the guide shares.
+  the level's boon after a jump; handed a drop (`FlightDrop`), it flies the
+  round to it, and the round comes to what it had done by then. It changes
+  nothing it is handed. `playRoundBy()` flies by the kinds and the rules it
+  is handed, and a drop, for a spec's stand-ins; `flightRulesOf()` says
+  what a round's flight is played by, and `flightStartOf()` how its
+  fuzzballs leave, which the guide shares.
 - **`src/rules/run/`** — the run, after Brick Breaker's, with Asteroid
   Breaker's saved game. `run.ts`: `Run`, a value each move replaces, from
   the level it started at to its end. `createRun()`, `startLevel()`,
