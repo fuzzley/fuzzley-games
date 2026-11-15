@@ -107,10 +107,50 @@ relative to `frontend/lib/style/`.
   under, which the site and every game share, being served from one
   origin. An app imports it as `@fz/style/themes`.
 - `src/fuzzball.ts`: the fuzzball, the mark the site and the games share with
-  fuzzley.info, whose geometry it copies: its shapes (`FUZZBALL`), for an
-  inline `<svg>` that colors the body and fur itself, and `fuzzballSvg()`,
-  which writes it as an SVG file in one color, or one for each system color
-  scheme. An app imports it as `@fz/style/fuzzball`.
+  fuzzley.info, and the actor the Asteroid Breaker uplift's art kit made of
+  it, as plain geometry on the mark's 32-unit grid about its body's middle
+  (a `GridPoint`, `aboutBody()`), which a canvas and a page each draw. An
+  app imports it as `@fz/style/fuzzball`. It holds:
+  - the mark, whose geometry it copies from fuzzley.info: its shapes
+    (`FUZZBALL`), for an inline `<svg>` that colors the body and fur
+    itself;
+  - its nine faces (`FuzzballFace`, `FUZZBALL_FACES`), told by its eyes
+    alone, whose marks `eyesOf()` gives (`EyeMark`: ellipses, polygons and
+    round-ended strokes, in the eyes' ink or the glints' white), at a look
+    that shifts both eyes as far as a `FuzzballLook` says: `FUZZBALL_LOOK`,
+    the slight one the brick games move their fuzzballs' eyes by, unless a
+    caller asks for the kit's further one, which takes them about the
+    body's middle, `FUZZBALL_LOOK_FAR`; `lookOffset()`, how far a look
+    shifts them, for a scene that moves the eyes as a frame of their own;
+    and `restingLook()`, where a face looks unless told, up for a stray's
+    plead;
+  - its strands of fur (`Strand`, read by `strandsOf()` into
+    `FUZZBALL_STRANDS`), which `combFur()` combs for a `FurPose`: lifted by
+    static's step (`lift`, from 0, flat, to `MOST_LIFT`, on end, every
+    other strand taller), swept away from a push (`lean`), puffed in a
+    fright, held inside glass (`within`), and in the small form, every
+    other strand; `sweptFur()`, any fur swept by a push alone; and static's
+    sparks at its last step, three ticks between the tallest strands' tips,
+    each with a star (`sparksOf()`, laid out once from the kit's seed),
+    drawn as `SPARK_LOOK` says, their widths and their colors' mixes;
+  - a `FuzzballPose`, a face, a look and fur together, posed by
+    `fuzzballShape()` into its fur, its fur's width, its eyes, its sparks,
+    from `SPARKS_FROM` on, and how far it reaches; and `fuzzballForm()`,
+    the form a size takes: the small form at `SMALL_UNDER` CSS pixels
+    across the grid and under, its fur wider (`SMALL_FUR_WIDTH`), its eyes
+    larger and further apart, and no glints or sparks;
+  - and SVG: `fuzzballDrawing()`, a pose as the parts a page's own `<svg>`
+    binds on the mark's view box, its fur's path, its eyes' marks and its
+    sparks', the mark number for number with no pose, and how far past the
+    view box lifted fur and sparks reach, the body never growing; and
+    `fuzzballSvg()`,
+    which writes the fuzzball as an SVG file, at rest or another face, in
+    one color, or one for each system color scheme.
+
+  It is one file, with no relative import, since an app compiles it with
+  no `.ts` allowed in an import, and Node loads it for the Vite plugin's
+  icons, stripping its types alone, which needs one.
+
 - `src/build/vite.ts`: `fuzzleyStyle()`, the Vite plugins an app adds to
   its config.
   It writes `theme.js` into the build, at the top of the app's own base, and
