@@ -88,7 +88,7 @@ describe("FaceCamComponent", () => {
   });
 
   it.each([0, 1, 2, 3])(
-    "lifts the pilot's fur to static's step %i",
+    "lifts the pilot's fur %i of the three steps to on end",
     async (lift) => {
       const cam = await renderFaceCam({ pilot: GREEN, lift });
 

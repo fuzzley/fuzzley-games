@@ -2,6 +2,7 @@ import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
+import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { FIRST_CREW } from "../../rules/tuning";
@@ -16,7 +17,7 @@ import {
 import { runRecords } from "../../testing/records";
 import { GameService } from "../play/game.service";
 import { ProgressService } from "../stats/progress.service";
-import { StatsService } from "../stats/stats.service";
+import { STATS_KEY, StatsService } from "../stats/stats.service";
 import { SectorsComponent } from "./sectors.component";
 
 /** What a spec gets back from rendering the dialog. */
@@ -121,6 +122,31 @@ describe("SectorsComponent", () => {
       "Far Waves 2 to 3 Best 3,000",
       "Endless From wave 4 Locked",
     ]);
+  });
+
+  it("says a sector's best was made under earlier rules, and what that means", async () => {
+    const storage = new MemoryStorage();
+    storage.setItem(
+      STATS_KEY,
+      JSON.stringify({ version: 1, sectors: { near: { normal: 4100 } } }),
+    );
+    TestBed.configureTestingModule({
+      providers: [provideMemoryStorage(storage)],
+    });
+
+    await renderSectors();
+
+    expect({
+      tile: sectorNames()[0],
+      said:
+        screen.queryByText(/^A best made under earlier rules says so/) !== null,
+    }).toEqual({ tile: "Near Wave 1 Best 4,100, earlier rules", said: true });
+  });
+
+  it("says nothing of earlier rules where no sector's best was made under them", async () => {
+    await renderSectors();
+
+    expect(screen.queryByText(/earlier rules/)).not.toBeInTheDocument();
   });
 
   it("marks the sector of the wave on the board", async () => {

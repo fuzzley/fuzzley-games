@@ -56,11 +56,19 @@ describe("HelpComponent", () => {
     );
   });
 
-  it("says how sparks, static, a stray and a clearing add up, from the tuning", async () => {
+  it("says how sparks, a stray and a clearing add up, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "Each rock a shot or a blast breaks sheds sparks, which the ship draws in from 5 units, 8 at Relaxed, and the ship and those in tow gather: each scores 5 and adds 1 static, up to 40. Static multiplies what is scored: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. It drains after 2 seconds with no spark, and a hit knocks it down a step. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
+      "Each rock a shot or a blast breaks sheds sparks, which the ship draws in from 5 units, 8 at Relaxed, and the ship and those in tow gather: each scores 5 and adds 1 static, up to 40. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
+    );
+  });
+
+  it("says what static multiplies, what else raises it, how the pilot shows it and how it falls, from the tuning", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText(/^Static\./).parentElement).toHaveTextContent(
+      "Static multiplies what rocks, sparks and strays score: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. A rock or a comet that passes close by the ship without touching it adds 2. The pilot's fur lifts with each step, on end from ×4, and at full static, 40, arcs crawl over the ship. Static drains after 2 seconds with no spark or near miss, and a hit knocks it down a step.",
     );
   });
 
@@ -96,11 +104,11 @@ describe("HelpComponent", () => {
     ).toBeVisible();
   });
 
-  it("says how long a dash takes to charge again, from the tuning", async () => {
+  it("says how long a dash takes to charge again, and how it zaps at full static, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Dashing\./).parentElement).toHaveTextContent(
-      "A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes 2.5 seconds to charge again.",
+      "A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes 2.5 seconds to charge again. At full static, a dash zaps: arcs leap from the ship to up to 6 rocks within 6 units of the way it dashes, the nearest first, each taking a hit, and static falls by 20; with none in reach, it is only a dash.",
     );
   });
 

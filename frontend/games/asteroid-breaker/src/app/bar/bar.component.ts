@@ -26,8 +26,11 @@ import { SettingsService } from "../settings/settings.service";
 /** Names an action the overflow menu offers. */
 type MenuAction = "sound" | "sectors" | "new-game" | "help" | "settings";
 
-/** Each of static's pips, one for each multiplier up to its last step's. */
-const PIPS = Array.from({ length: STATIC_STEPS[0].times }, (_, pip) => pip);
+/** Each of static's pips, one for each multiplier up to the most its steps reach. */
+const PIPS = Array.from(
+  { length: Math.max(...STATIC_STEPS.map(({ times }) => times)) },
+  (_, pip) => pip,
+);
 
 /**
  * Shows the game bar: the link home, the game's name and speed, the

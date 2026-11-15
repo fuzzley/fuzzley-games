@@ -160,6 +160,22 @@ export function toStray(game: GameService): Readonly<Steer> {
 }
 
 /**
+ * Returns the steering that flies the ship to the first spark out on the
+ * wave in play, firing at nothing, or none with none out.
+ */
+export function toSpark(game: GameService): Readonly<Steer> {
+  const spark = game.frame().field.sparks.find(({ live }) => live);
+  return spark
+    ? { ...STILL, aim: { x: spark.x, y: spark.y }, thrust: 1 }
+    : STILL;
+}
+
+/** Returns whether a spark is out on the wave in play. */
+function hasSparks(game: GameService): boolean {
+  return game.frame().field.sparks.some(({ live }) => live);
+}
+
+/**
  * Returns the whole rock nearest the ship, across the field's edges, or
  * null with no ship or no rock.
  */
@@ -177,6 +193,15 @@ function nearestRock(field: FieldView): Readonly<Rock> | null {
     }
   }
   return nearest;
+}
+
+/**
+ * Shoots at the wave in play's rocks until a break sheds sparks, then flies
+ * the ship to them until none are out, each gathered or gone.
+ */
+export function gatherSparks(game: GameService): void {
+  playUntil(game, shoot, () => hasSparks(game));
+  playUntil(game, toSpark, () => !hasSparks(game));
 }
 
 /** Flies the ship into a rock until a hit knocks the last in tow loose. */

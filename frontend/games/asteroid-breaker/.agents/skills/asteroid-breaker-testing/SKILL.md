@@ -358,8 +358,10 @@ Phaser game through `runScene()`:
   begins at wave 4; or `STRAY_WAVES`, `ONE_STRAY_WAVES` and
   `SECTOR_WAVES`, each set up for one thing. It runs on the time it is
   given: `game.tick(FRAME_MS, steer)`, steered `STILL`, by `shoot()`,
-  `ram()` or `toStray()`; `playUntil()`, `playFor()`,
-  `knockOneLoose()`, `endRun()`, `bringStraysHome()`, `playToClear()` and
+  `ram()`, `toStray()` or `toSpark()`; `playUntil()`, `playFor()`,
+  `knockOneLoose()`, `endRun()`, `bringStraysHome()`, `gatherSparks()`
+  (a break's sparks gathered, for a tally that counts them),
+  `playToClear()` and
   `clearToNext()` play on to a point, `takeUpCharged()` takes the run in
   play up again with the pilot's static at a level, as a run kept with it
   comes back, and `pauseIn()`,
@@ -387,7 +389,7 @@ Phaser game through `runScene()`:
   (`pilotsIn()`, against `inkOf()`) and the face and the lift of the first
   (`poseIn()`), matching its fuzzball's marks against what
   `@fz/style/fuzzball`'s `fuzzballDrawing()` draws for each face and each
-  of static's steps; it also reads each one's color and face
+  lift of its fur, 0 to `MOST_LIFT`; it also reads each one's color and face
   (`posesIn()`), and which is ringed as the pilot at the controls, by its
   `data-at-controls` (`ringedIn()`). The bar's spec finds
   the face cam in the Crew figure's term (the `dt`), reads static's pips by

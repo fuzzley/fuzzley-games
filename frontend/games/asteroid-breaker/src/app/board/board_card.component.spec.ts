@@ -6,6 +6,7 @@ import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
 import { createRun } from "../../rules/run/run";
 import { STILL } from "../../rules/ship/ship";
+import { STATIC_STEPS } from "../../rules/tuning";
 import { WAVES, type WaveEntry } from "../../rules/waves/waves";
 import { inkOf, posesIn, ringedIn } from "../../testing/pilots";
 import {
@@ -17,11 +18,13 @@ import {
   clearToNext,
   endIn,
   endRun,
+  gatherSparks,
   knockOneLoose,
   pauseIn,
   playToClear,
   provideSpecWaves,
   shoot,
+  takeUpCharged,
 } from "../../testing/play";
 import { CLEARED_MS } from "../../view/effects/timing";
 import { TALLY_COUNT_MS } from "../../view/tally";
@@ -79,6 +82,17 @@ async function startedAt(wave: number): Promise<RenderedCard> {
   rendered.game.tick(FRAME_MS, shoot(rendered.game));
   rendered.detectChanges();
   return rendered;
+}
+
+/**
+ * Takes the run in play up with static at ×3, goes on, gathers the sparks
+ * its wave's first break sheds and clears it, until its card shows.
+ */
+function clearCharged(game: GameService): void {
+  takeUpCharged(game, STATIC_STEPS[1].from);
+  game.resume();
+  gatherSparks(game);
+  clearIn(game);
 }
 
 describe("BoardCardComponent", () => {
@@ -275,6 +289,23 @@ describe("BoardCardComponent", () => {
     ]);
   });
 
+  it("adds up the sparks gathered and what static added, whole at once where the player prefers less motion", async () => {
+    const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
+
+    clearCharged(game);
+    detectChanges();
+
+    expect(figures()).toEqual([
+      ["Rocks", "100"],
+      ["Sparks", "15"],
+      ["Static", "75"],
+      ["Strays brought home", "0"],
+      ["Wave cleared", "500"],
+      ["No hit taken", "500"],
+      ["Total", "1,190"],
+    ]);
+  });
+
   it("draws the crew cheering, the pilot at the controls ringed, and says how many", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
@@ -388,6 +419,25 @@ describe("BoardCardComponent", () => {
         ["Wave cleared", "0"],
         ["No hit taken", "0"],
         ["Total", "23"],
+      ]);
+    });
+
+    it("counts the sparks gathered up, then what static added, each in its turn", async () => {
+      const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
+      clearCharged(game);
+
+      // Two lines and a half of the six: the sparks whole, static's on its way.
+      playFor(game, (TALLY_COUNT_MS * 2.5) / 6, STILL);
+      detectChanges();
+
+      expect(figures()).toEqual([
+        ["Rocks", "100"],
+        ["Sparks", "15"],
+        ["Static", "70"],
+        ["Strays brought home", "0"],
+        ["Wave cleared", "0"],
+        ["No hit taken", "0"],
+        ["Total", "185"],
       ]);
     });
 

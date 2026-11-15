@@ -9,6 +9,13 @@
   .figures {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  // Each value at the top of its figure, its term under it, so a term on
+  // two lines, as "Best, earlier rules" takes on a phone, leaves the values
+  // beside it level.
+  .figure {
+    justify-content: flex-end;
+  }
 }
 
 .card-icon {

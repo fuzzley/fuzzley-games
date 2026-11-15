@@ -371,7 +371,13 @@ takes for the specs' helpers.
   card shows: how a cleared wave's points add up a time after the card opens,
   each line counting up in turn and their total (`tallyShownAt()`), and the
   wave to come (`nextWaveWords()`), and what the cards over an ended run say
-  of the wave it ended on (`endWords()`); `crew_line.ts` what the bar shows
+  of the wave it ended on (`endWords()`); `bests.ts` whether a best was
+  made under earlier rules than these (`isEarlierBest()`, by the rules'
+  `RULES_VERSION`), which the next run to score beats and takes the place
+  of, what the result calls one ("Best, earlier rules", `bestTerm()`), and
+  what the Sectors dialog says under a sector's waves (`sectorStatus()`)
+  and whether it says its best was made under them (`saysEarlierRules()`);
+  `crew_line.ts` what the bar shows
   of the crew beside the face cam, each in tow and each knocked loose, or,
   past three of them (`MOST_DRAWN`), the first and how many
   (`crewLineOf()`), and the words a screen reader hears for it
@@ -1090,14 +1096,17 @@ takes for the specs' helpers.
     the sectors, How to play and the settings.
   - `sectors/` — the Sectors dialog: each sector as a button, with its name,
     its waves ("Waves 1 to 10", or "From wave 31" for Endless) and its best
-    at the speed in play, or "Locked", and the run's own marked
+    at the speed in play, with "earlier rules" after one made under them,
+    which a sentence under its opening explains while one says so, or
+    "Locked", and the run's own marked
     `aria-current`. A sector not yet reached is `aria-disabled`, and can't
     be chosen. Choosing an open one starts a run at its first wave, asking
     first if one is under way, and closes once it has.
   - `result/` — the card over an ended run, once the pod's burst has faded
     and its pilot floated off home: "Everyone is home.", the wave it ended
-    on and at what speed, the score and the best at its speed, with "New
-    best" and the trophy when it set one and "Cleared all thirty" when it
+    on and at what speed, the score and the best at its speed, "Best,
+    earlier rules" where it was made under them, with "New best" and the
+    trophy when it set one and "Cleared all thirty" when it
     cleared every written wave, the wave reached and the waves cleared
     (`wavesCleared()`), and the fuzzballs who flew, every one gone home in
     the run, each in its color, with how many of them were strays brought
@@ -1105,8 +1114,10 @@ takes for the specs' helpers.
     which puts it away and asks the app for the sectors; and Close.
   - `help/` — How to play: the aim, the crew in tow as the ship's lives,
     a hit knocking one loose and how long it waits to be caught again, and
-    the scoring, from `tuning.ts`'s numbers, the multiplier's ladder worded
-    by `@fz/core/format`'s `tierWords()`, dashing, pausing, the controls by
+    the scoring, from `tuning.ts`'s numbers, static, the multiplier's
+    ladder worded by `@fz/core/format`'s `tierWords()`, the near misses that
+    raise it and the fur and the arcs that show it, dashing and the zap at
+    full static, pausing, the controls by
     mouse, touch and keyboard, and every kind of rock and pickup from the
     catalogs, a stray and the comet, each with its name, its sentence and,
     once the scene has drawn, its picture, which the app asks the board for
@@ -1131,7 +1142,8 @@ takes for the specs' helpers.
     it; nothing keeps them, and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
-    at rest unless given another face, its fur lifted by static's step,
+    at rest unless given another face, its fur lifted as far as it is
+    given, 0 flat to 3 (`MOST_LIFT`) on end, static's multiplier less one,
     and `<app-pilot-row>`, pilots in a row, the first ringed in the accent,
     as the canopy's lit rim rings it, where it is the pilot at the controls
     (`piloting`), and any of the crew knocked loose after them, faded in a
@@ -1634,8 +1646,9 @@ of its own beside it:
   `GameService` through `GAME_WAVES` with a seed of its own through
   `GAME_RANDOM` (`provideSpecWaves()`), and plays them through `tick()`,
   with `@fz/core/testing`'s `playUntil()`, steering the ship from the frame
-  it reads (`shoot()`, `ram()`, `toStray()`, `knockOneLoose()`,
-  `endRun()`, `playToClear()`, `clearToNext()`), up to a card if a spec
+  it reads (`shoot()`, `ram()`, `toStray()`, `toSpark()`,
+  `knockOneLoose()`, `endRun()`, `gatherSparks()`, `playToClear()`,
+  `clearToNext()`), up to a card if a spec
   wants one (`pauseIn()`, `clearIn()`, `endIn()`), and on from the Cleared
   card by a press, as a flight key goes on and starts the next wave
   (`pressOn()`); with how the board lays the field out on a roomy screen
