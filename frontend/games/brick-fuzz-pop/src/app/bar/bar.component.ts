@@ -16,9 +16,9 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { CrewComponent } from "./crew.component";
+import { DropComponent } from "./drop.component";
 import { FastForwardComponent } from "./fast_forward.component";
 import { showsEveryFigure } from "./figures";
-import { SkipComponent } from "./skip.component";
 
 /** Names an action the overflow menu offers. */
 type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
@@ -35,11 +35,11 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
  *
  * Every action is round at every size, its name heard and shown under the
  * pointer, which is what leaves room for the five figures. Pause,
- * Fast-forward and Skip stay at every size, Skip dimmed while there is no
- * flight, so nothing moves as one starts, and Fast-forward a switch, live at
- * any time. On a compact screen Sound, Levels, New game, How to play and
- * Settings move into the overflow menu, as on the narrowest the link home
- * does too.
+ * Fast-forward and Drop stay at every size, Drop dimmed while a press would
+ * do nothing, so nothing moves as a flight starts, and Fast-forward a
+ * switch, live at any time. On a compact screen Sound, Levels, New game,
+ * How to play and Settings move into the overflow menu, as on the narrowest
+ * the link home does too.
  */
 @Component({
   selector: "app-bar",
@@ -48,11 +48,11 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
     BarPauseComponent,
     BarSoundComponent,
     CrewComponent,
+    DropComponent,
     FastForwardComponent,
     FuzzballComponent,
     GameBarComponent,
     IconComponent,
-    SkipComponent,
   ],
   host: {
     "[class.rounds-and-score]": "!fitsEveryFigure()",
@@ -86,11 +86,11 @@ export class BarComponent {
   readonly outcome = input.required<RunStage>();
 
   /**
-   * Whether a flight is under way, paused or not, which Skip needs: a
-   * player who tabs to it from the board leaves the play room, which pauses
-   * the run, and can still press it.
+   * Whether a drop would bring the flight in the air down, paused or not,
+   * which Drop needs: a player who tabs to it from the board leaves the
+   * play room, which pauses the run, and can still press it.
    */
-  readonly flying = input.required<boolean>();
+  readonly droppable = input.required<boolean>();
 
   /** Whether fast-forward is on, which shows Fast-forward pressed. */
   readonly fast = input.required<boolean>();
@@ -116,8 +116,8 @@ export class BarComponent {
   /** Emitted as the player presses Fast-forward, to switch it on or off. */
   readonly fastForward = output();
 
-  /** Emitted as the player skips the flight, to land it at once. */
-  readonly skipFlight = output();
+  /** Emitted as the player drops the flight, to bring its fuzzballs down. */
+  readonly dropFlight = output();
 
   /** Emitted as the player turns the sound on or off. */
   readonly toggleSound = output();

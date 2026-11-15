@@ -446,13 +446,15 @@ helpers.
     score and the crew; otherwise the rounds and the score alone, as
     `figures.ts`'s `showsEveryFigure()` says, which the board reads too, the
     lintel's count hidden where the bar counts the rows. Every action is
-    round; Pause, Fast-forward (`button[appFastForward]`) and Skip
-    (`button[appSkip]`) stay at every size, Skip dimmed while there is no
-    flight and Fast-forward a switch, live at any time and pressed while it
-    is on, and on a compact screen Sound, Levels, New game, How to play and
-    Settings move into the overflow menu. Every round action but Pause, which
-    its words name, is named by its tooltip alone, with no `aria-label` to
-    say it again, so a screen reader says its name once. How to play shows
+    round; Pause, Fast-forward (`button[appFastForward]`) and Drop
+    (`button[appDrop]`) stay at every size, Drop dimmed while a press would
+    do nothing, with no flight in the air, once it is dropped or while a
+    certificate's line plays, and Fast-forward a switch, live at any time
+    and pressed while it is on, and on a compact screen Sound, Levels, New
+    game, How to play and Settings move into the overflow menu. Every round
+    action but Pause, which its words name, is named by its tooltip alone,
+    with no `aria-label` to say it again, so a screen reader says its name
+    once. How to play shows
     busy while it loads (`helpLoading`): `aria-busy`, which `@fz/game-ui`'s
     global stylesheet rings, on the overflow menu's button on a compact
     screen. `<app-crew>` draws a crew in a row, the player's fuzzball in the
@@ -581,14 +583,15 @@ helpers.
     levels it cleared before its own. It plays every flight fast while
     fast-forward is on, a setting the bar's Fast-forward (`fastForward()`)
     and F (`fieldCommand()`) switch, F saying which. It drops the flight in
-    the air (`drop()`), once, but for a certificate's line's (`droppable`):
-    the rules fly its round again from the start, the shot, the level's boon
-    and the rules it was released with, kept till it lands, dropped at the
-    moment the playback has reached, and the run as it stood before the
-    release takes what that comes to in place of the whole round; paused,
-    its fuzzballs come down as the run goes on. As the player looks away
-    (`lookAway()`), it pauses the level in play, a flight in the air
-    where it is; but as the page is hidden, which may never be seen again,
+    the air as the bar's Drop (`drop()`) and X ask, once, but for a
+    certificate's line's (`droppable`): the rules fly its round again from
+    the start, the shot, the level's boon and the rules it was released
+    with, kept till it lands, dropped at the moment the playback has
+    reached, and the run as it stood before the release takes what that
+    comes to in place of the whole round; paused, its fuzzballs come down
+    as the run goes on. As the player looks away (`lookAway()`), it pauses
+    the level in play, a flight in the air where it is; but as the page is
+    hidden, which may never be seen again,
     it first lands the round in the air at once, as it would have flown,
     whatever the run's stage, so the records keep up with the saved game.
     The bar's rounds and score follow the playback, though the

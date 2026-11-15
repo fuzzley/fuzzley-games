@@ -321,28 +321,51 @@ describe("AppComponent", () => {
       expect(barButton("Fast-forward")).toHaveAttribute("aria-pressed", "true");
     });
 
-    it("offers Fast-forward and Skip while a flight is in the air", async () => {
+    it("offers Fast-forward and Drop while a flight is in the air", async () => {
       const { game, settle } = await renderApp("step");
       release(game);
 
       await settle();
 
       expect(
-        [barButton("Fast-forward"), barButton("Skip")].map((button) =>
+        [barButton("Fast-forward"), barButton("Drop")].map((button) =>
           button.getAttribute("aria-disabled"),
         ),
       ).toEqual([null, null]);
     });
 
-    it("skips the flight in the air", async () => {
+    it("dims Drop while a round is aimed", async () => {
+      await renderApp("step");
+
+      expect(barButton("Drop")).toHaveAttribute("aria-disabled", "true");
+    });
+
+    it("drops the flight in the air", async () => {
       const { game, user, settle } = await renderApp("step");
       release(game);
+      game.tick(FRAME_MS, STILL);
       await settle();
 
-      await user.click(barButton("Skip"));
-      game.tick(FRAME_MS, STILL);
+      await user.click(barButton("Drop"));
 
-      expect(game.flying()).toBe(false);
+      expect(
+        game.round()?.flight.events.some(({ kind }) => kind === "drop"),
+      ).toBe(true);
+    });
+
+    it("dims Drop once the flight is dropped, though it still flies", async () => {
+      const { game, user, settle } = await renderApp("step");
+      release(game);
+      game.tick(FRAME_MS, STILL);
+      await settle();
+
+      await user.click(barButton("Drop"));
+      await settle();
+
+      expect([
+        barButton("Drop").getAttribute("aria-disabled"),
+        game.flying(),
+      ]).toEqual(["true", true]);
     });
 
     it("turns the sound off", async () => {

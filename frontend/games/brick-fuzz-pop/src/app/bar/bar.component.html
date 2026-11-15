@@ -80,11 +80,11 @@
 
   <button
     fzBarActions
-    appSkip
+    appDrop
     type="button"
     class="action"
-    [flying]="flying()"
-    (skipFlight)="skipFlight.emit()"
+    [droppable]="droppable()"
+    (dropFlight)="dropFlight.emit()"
   ></button>
 
   <!--

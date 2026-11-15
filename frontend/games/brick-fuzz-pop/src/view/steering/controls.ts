@@ -1,11 +1,11 @@
 import { RUN_KEYS, type RunCommand } from "@fz/core/run";
 
 /**
- * Names what a key asks of the game: to skip a flight, to switch
- * fast-forward on or off, to read the wall's lowest rows aloud, or what the
- * keys every game shares ask of its run.
+ * Names what a key asks of the game: to drop the fuzzballs in the air, to
+ * switch fast-forward on or off, to read the wall's lowest rows aloud, or
+ * what the keys every game shares ask of its run.
  */
-export type FieldCommand = "skip" | "fast" | "read" | RunCommand;
+export type FieldCommand = "drop" | "fast" | "read" | RunCommand;
 
 /**
  * Names what a key does to the shot being aimed: turns the aim left or
@@ -20,7 +20,7 @@ export type SteerKey = "left" | "right" | "up" | "down" | "release";
  */
 const COMMAND_KEYS: Readonly<Record<string, FieldCommand>> = {
   ...RUN_KEYS,
-  KeyX: "skip",
+  KeyX: "drop",
   KeyF: "fast",
   KeyR: "read",
 };

@@ -46,7 +46,6 @@ describe("IconComponent", () => {
     "more",
     "pause",
     "play",
-    "skip",
     "star",
   ] as const)("fills %s, a solid icon", async (name) => {
     const icon = await renderIcon(name);
