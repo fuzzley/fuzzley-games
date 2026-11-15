@@ -68,6 +68,7 @@ import { FieldPainter } from "./painters/field_painter";
 import { HazardPainter } from "./painters/hazard_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PickupPainter } from "./painters/pickup_painter";
+import { PlacePainter } from "./painters/place_painter";
 import { PointsPainter } from "./painters/points_painter";
 import { RingPainter } from "./painters/ring_painter";
 import { RockPainter } from "./painters/rock_painter";
@@ -126,7 +127,9 @@ const CAPTURED_KEYS = "LEFT,RIGHT,UP,DOWN,SPACE";
 
 /** Holds what the scene draws and sounds with, each made once, as it is created. */
 export interface BeltKit {
-  /** Draws the specks and the frame. */
+  /** Paints the place behind the field. */
+  readonly place: PlacePainter;
+  /** Draws the frame round the field. */
   readonly field: FieldPainter;
   /** Draws the tags of the effects in play. */
   readonly tags: TagPainter;
@@ -257,6 +260,7 @@ export class BeltScene extends Scene {
     this.cameras.main.ignore(drawnBy("deck").map((layer) => layers[layer]));
     kit.deckCamera.ignore(drawnBy("field").map((layer) => layers[layer]));
     this.painters = [
+      kit.place,
       kit.field,
       kit.tags,
       kit.rocks,
@@ -290,6 +294,7 @@ export class BeltScene extends Scene {
       shipDrawn: shipAt(frame.field, frame.alpha, this.drawnShip),
       seed: frame.seed,
       constellation: frame.constellation,
+      place: frame.place,
       deck: this.deckParts,
       steering: this.steering,
       metrics: this.metrics,
@@ -320,6 +325,7 @@ export class BeltScene extends Scene {
    */
   private makeKit(layers: Readonly<Record<Layer, GameObjects.Layer>>): BeltKit {
     return {
+      place: new PlacePainter(this, layers.place),
       field: new FieldPainter(this, layers),
       tags: new TagPainter(this, layers.tags),
       rocks: new RockPainter(this, layers.rocks),
@@ -375,6 +381,7 @@ export class BeltScene extends Scene {
     }
     if (frame.field !== this.shownField) this.startField(frame.field);
     this.stage(frame);
+    this.context.place = frame.place;
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
     this.frameSounds.playEach(this.kit.sounds.playRisen);

@@ -10,6 +10,7 @@ import {
   rect,
   wash,
 } from "@fz/phaser/shapes";
+import { KICK_CSS_PX, SHAKE_CSS_PX } from "../effects/timing";
 import type { FieldMetrics } from "../field/field_metrics";
 import { type Depth, type Star, starCount } from "../field/specks";
 import {
@@ -31,8 +32,9 @@ import { FLICKER_LIFT } from "./motion";
 import type { Backdrop } from "./places";
 
 // A place painted for a palette at a scale, as paint commands in device
-// pixels from the field's top left corner, which `PlacePainter` paints on a
-// canvas, where a wash is a radial gradient.
+// pixels from each picture's top left corner, the field's or its bleed's,
+// which `PlacePainter` paints on a canvas, where a wash is a radial
+// gradient.
 
 /** Says what a place is painted at: a field unit and a CSS pixel, and the field's size, in device pixels. */
 export type PlaceFrame = Pick<
@@ -58,37 +60,62 @@ export interface PlaceLayers {
 
 /**
  * Describes what a flicker adds to a place at its height: its marks, as much
- * stronger again as they then show, and the solid marks that stand before
- * them, as they are, so the painter shows it over the place as strongly as
- * the flicker is and a billow before a fork hides its light as it hides the
- * fork.
+ * stronger again as they then show, which the painter shows between the
+ * front and what stands before the flickers, as strongly as the flicker is,
+ * so a billow before a fork hides its light as it hides the fork.
  */
 export interface Flash {
   readonly flicker: Flicker;
   /** Where it lies on the field, in whole device pixels. */
   readonly area: Area;
-  /** Its marks, then those before them, from the area's top left corner. */
+  /** Its marks, lifted, from the area's top left corner. */
   readonly commands: readonly PaintCommand[];
 }
 
 /**
- * Describes a place painted in three pictures the field's size, and its
- * flashes: what stays, under all; the nearer stars, which slide; and what
- * stands before them.
+ * Describes a place painted in three pictures, or four where it flickers,
+ * and its flashes: what stays, under all; the nearer stars, which slide;
+ * what stands before them; and, apart, what stands before the flashes.
+ *
+ * Every picture but the nearer stars reaches a bleed past each edge of the
+ * field, painted from that far up and left of its top left corner, so a
+ * field's camera kicked or shaken never shows past them.
  */
 export interface PlaceArt {
-  /** The field's color, the far wash and the far stars, opaque. */
+  /** How far past each edge of the field `back`, `front` and `over` reach, in whole device pixels. */
+  readonly bleed: number;
+  /** The field's color, the far wash and the far stars, opaque, over the field and its bleed. */
   readonly back: readonly PaintCommand[];
-  /** The nearer stars, a tile as wide and tall as the field. */
+  /** The nearer stars, a tile as wide and tall as the field, from its top left corner. */
   readonly near: readonly PaintCommand[];
-  /** The landmark, the air and the vignette. */
+  /**
+   * The landmark, the air and the vignette, over the field and its bleed;
+   * where the place flashes, only the landmark behind what stands before
+   * its flickers.
+   */
   readonly front: readonly PaintCommand[];
+  /**
+   * Where the place flashes, what stands before its flickers, over the
+   * field and its bleed: the landmark's billows and faces from the first
+   * after its first flicker on, the air and the vignette; else nothing.
+   */
+  readonly over: readonly PaintCommand[];
   /** What each flicker of the landmark adds at its height, one for each. */
   readonly flashes: readonly Flash[];
 }
 
 /** The fewest CSS pixels a field unit takes for a landmark's fine marks to be painted. */
 export const FINE_FROM = 9;
+
+/** The most flashes any place's art has, on any field: the Storm's, one for each fork. */
+export const MOST_FLASHES = 2;
+
+/**
+ * How far past each edge of the field a place's pictures but the nearer
+ * stars are painted, in CSS pixels: as far as a kick and a shake together
+ * scroll the field's camera.
+ */
+export const BLEED_CSS_PX = KICK_CSS_PX + SHAKE_CSS_PX;
 
 /** A stop of a gradient: how far out, and how much of its color shows there. */
 type Fade = readonly [number, number];
@@ -361,9 +388,12 @@ function shineOf(depth: Depth, shine: number): number {
   return shine < 1 / 3 ? SHINES.faint : SHINES.middle;
 }
 
-/** Returns a star's place on the field, in device pixels. */
-function starAt(star: Star, frame: PlaceFrame): Point {
-  return { x: star.x * frame.width, y: star.y * frame.height };
+/** Returns a star's place on a picture whose top left corner lies at an origin on the field, in device pixels. */
+function starAt(star: Star, frame: PlaceFrame, origin: Point): Point {
+  return {
+    x: star.x * frame.width - origin.x,
+    y: star.y * frame.height - origin.y,
+  };
 }
 
 /**
@@ -387,7 +417,7 @@ function starCommands(
   const glow = tintOf(colors.mode === "dark" ? "text" : "muted", colors);
   const shown = backdrop.stars[depth].slice(0, starCount(depth, backdrop));
   return shown.flatMap((star) => {
-    const at = starAt(star, frame);
+    const at = starAt(star, frame, brush.origin);
     const r = Math.max((near ? LEAST.near : LEAST.far) * css, star.r * unit);
     const bright = depth === "bright";
     const halo = Math.max(
@@ -486,6 +516,18 @@ function brushOf(
   };
 }
 
+/** Returns the nearer stars painted, the mid then the bright, each again past each edge it crosses. */
+function nearCommands(
+  backdrop: Backdrop,
+  brush: Brush,
+  frame: PlaceFrame,
+): PaintCommand[] {
+  return [
+    ...starCommands(backdrop, "mid", brush, frame),
+    ...starCommands(backdrop, "bright", brush, frame),
+  ];
+}
+
 /**
  * Returns each layer of a place painted in a palette at a frame, at rest,
  * from the field's top left corner, in device pixels. Its marks reach past
@@ -500,10 +542,7 @@ export function placeLayers(
   return {
     wash: marksCommands(backdrop.wash, "wash", brush),
     far: starCommands(backdrop, "far", brush, frame),
-    near: [
-      ...starCommands(backdrop, "mid", brush, frame),
-      ...starCommands(backdrop, "bright", brush, frame),
-    ],
+    near: nearCommands(backdrop, brush, frame),
     landmark: marksCommands(backdrop.landmark, "landmark", brush),
     air: marksCommands(backdrop.air, "landmark", brush),
     vignette: vignetteCommands(backdrop, brush, frame),
@@ -534,12 +573,14 @@ function flickerCorners(mark: Soft | Line): Point[] {
 
 /**
  * Returns the area a flicker's marks reach over, in whole device pixels on
- * the field, or null where none of them shows on it.
+ * the field, no further than a bleed past its edges, or null where none of
+ * them shows there.
  */
 function flashArea(
   backdrop: Backdrop,
   flicker: Flicker,
   frame: PlaceFrame,
+  bleed: number,
 ): Area | null {
   const corners = backdrop.landmark
     .filter(
@@ -549,14 +590,14 @@ function flashArea(
     .flatMap(flickerCorners);
   const xs = corners.map(({ x }) => x * frame.unit);
   const ys = corners.map(({ y }) => y * frame.unit);
-  const left = Math.max(0, Math.floor(Math.min(...xs)) - FLASH_MARGIN);
-  const top = Math.max(0, Math.floor(Math.min(...ys)) - FLASH_MARGIN);
+  const left = Math.max(-bleed, Math.floor(Math.min(...xs)) - FLASH_MARGIN);
+  const top = Math.max(-bleed, Math.floor(Math.min(...ys)) - FLASH_MARGIN);
   const right = Math.min(
-    frame.width,
+    frame.width + bleed,
     Math.ceil(Math.max(...xs)) + FLASH_MARGIN,
   );
   const bottom = Math.min(
-    frame.height,
+    frame.height + bleed,
     Math.ceil(Math.max(...ys)) + FLASH_MARGIN,
   );
   if (right <= left || bottom <= top) return null;
@@ -574,29 +615,33 @@ function flickersOf(backdrop: Backdrop): Flicker[] {
   return flickers;
 }
 
-/**
- * Returns what a flicker adds to a place's landmark at its height: its
- * marks, lifted, then the billows and faces that stand before them.
- */
+/** Returns what a flicker adds to a place's landmark at its height: its marks, lifted. */
 function flashCommands(
   backdrop: Backdrop,
   flicker: Flicker,
   brush: Brush,
 ): PaintCommand[] {
-  const { landmark } = backdrop;
-  const flickering = (mark: Mark): boolean =>
-    "flicker" in mark && mark.flicker === flicker;
-  const first = landmark.findIndex(flickering);
-  const before = landmark
-    .slice(first)
-    .filter((mark) => mark.kind === "bank" || mark.kind === "flat");
-  return [
-    ...marksCommands(landmark.filter(flickering), "landmark", {
-      ...brush,
-      lift: FLICKER_LIFT,
-    }),
-    ...marksCommands(before, "landmark", brush),
-  ];
+  const flickering = backdrop.landmark.filter(
+    (mark) => "flicker" in mark && mark.flicker === flicker,
+  );
+  return marksCommands(flickering, "landmark", {
+    ...brush,
+    lift: FLICKER_LIFT,
+  });
+}
+
+/**
+ * Returns where what stands before a landmark's flickers starts: its first
+ * billow or face after its first mark that flickers, or its end where none
+ * follows one, or none flickers.
+ */
+function beforeFlickers(landmark: readonly Mark[]): number {
+  const first = landmark.findIndex((mark) => "flicker" in mark);
+  const solid = landmark.findIndex(
+    (mark, i) =>
+      first >= 0 && i > first && (mark.kind === "bank" || mark.kind === "flat"),
+  );
+  return solid < 0 ? landmark.length : solid;
 }
 
 /**
@@ -609,10 +654,11 @@ export function placeArt(
   colors: PlaceColors,
   frame: PlaceFrame,
 ): PlaceArt {
-  const layers = placeLayers(backdrop, colors, frame);
   const brush = brushOf(backdrop, colors, frame);
+  const bleed = Math.ceil(BLEED_CSS_PX * frame.pixelRatio);
+  const bled = { ...brush, origin: { x: -bleed, y: -bleed } };
   const flashes = flickersOf(backdrop).flatMap((flicker): Flash[] => {
-    const area = flashArea(backdrop, flicker, frame);
+    const area = flashArea(backdrop, flicker, frame, bleed);
     if (!area) return [];
     const origin = { x: area.x, y: area.y };
     return [
@@ -623,17 +669,38 @@ export function placeArt(
       },
     ];
   });
+  const split = beforeFlickers(backdrop.landmark);
+  const front = marksCommands(
+    backdrop.landmark.slice(0, split),
+    "landmark",
+    bled,
+  );
+  const over = [
+    ...marksCommands(backdrop.landmark.slice(split), "landmark", bled),
+    ...marksCommands(backdrop.air, "landmark", bled),
+    ...vignetteCommands(backdrop, bled, frame),
+  ];
+  const flashing = flashes.length > 0;
   return {
+    bleed,
     back: [
       rect(
-        { x: 0, y: 0, width: frame.width, height: frame.height },
+        {
+          x: 0,
+          y: 0,
+          width: frame.width + 2 * bleed,
+          height: frame.height + 2 * bleed,
+        },
         { color: colors.field },
       ),
-      ...layers.wash,
-      ...layers.far,
+      ...marksCommands(backdrop.wash, "wash", bled),
+      ...starCommands(backdrop, "far", bled, frame),
     ],
-    near: layers.near,
-    front: [...layers.landmark, ...layers.air, ...layers.vignette],
+    near: nearCommands(backdrop, brush, frame),
+    // A place with no flash needs no picture apart for what stands before
+    // one, so its front holds it.
+    front: flashing ? front : [...front, ...over],
+    over: flashing ? over : [],
     flashes,
   };
 }

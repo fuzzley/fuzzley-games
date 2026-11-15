@@ -19,6 +19,7 @@ import {
   across,
   wrap,
 } from "../../rules/torus";
+import type { PlaceId } from "../places/places";
 
 export type { FieldEvent, FieldEventKind } from "../../rules/field/events";
 export type { Steer } from "../../rules/ship/ship";
@@ -75,7 +76,7 @@ export interface FieldFrame {
    * once; a new log comes with a new field, and stops what the last set off.
    */
   readonly events: EventLogView<FieldEvent>;
-  /** The run's seed, which the field's specks are strewn from, so they stay through its waves. */
+  /** The run's seed, which the place's stars are strewn from, so they stay through its waves. */
   readonly seed: number;
   /**
    * Where the constellation lies in an Endless wave, its middle as shares
@@ -83,6 +84,8 @@ export interface FieldFrame {
    * none.
    */
   readonly constellation: Readonly<Place> | null;
+  /** The place the wave is played in, its sector's, behind the field. */
+  readonly place: PlaceId;
 }
 
 /**

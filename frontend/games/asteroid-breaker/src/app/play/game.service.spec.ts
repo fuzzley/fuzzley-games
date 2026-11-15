@@ -481,6 +481,33 @@ describe("GameService", () => {
       expect(game.frame().constellation).toBeNull();
     });
 
+    it("plays a sector's wave in the place its sector names", async () => {
+      const [entry] = SPEC_WAVES;
+      if (!entry) throw new Error("No waves");
+      TestBed.configureTestingModule({
+        providers: provideSpecWaves(
+          wavesOf([{ ...entry.sector, id: "storm" }]),
+        ),
+      });
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      expect(game.frame().place).toBe("storm");
+    });
+
+    it("plays a spec's sector's wave, which has no place of its own, in the first sector's", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      expect(game.frame().place).toBe("inner-belt");
+    });
+
+    it("plays an Endless wave in Endless's place", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      clearToNext(game);
+
+      expect(game.frame().place).toBe("endless");
+    });
+
     it("keeps a wave's entry past the last as the run changes", async () => {
       const game = await gameAt(SPEC_WAVE.last);
       clearToNext(game);

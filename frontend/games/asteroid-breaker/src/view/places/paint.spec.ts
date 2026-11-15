@@ -1,13 +1,21 @@
-import type { PaintCommand, WashCommand } from "@fz/phaser/shapes";
+import type { PaintCommand, Point, WashCommand } from "@fz/phaser/shapes";
 import { FIELD_ROLES } from "../../app/board/field_roles";
+import { NARROWEST, TALLEST, WIDEST } from "../../testing/autopilot";
 import { PALETTES } from "../../testing/roles";
 import { CONSTELLATION } from "../art/pilot_art";
 import { beltPalette } from "../colors/palette";
 import { starCount } from "../field/specks";
 import { type PlaceColors, hardOther, placeColors, starColor } from "./colors";
 import type { Mark } from "./marks";
-import { FINE_FROM, type PlaceFrame, placeArt, placeLayers } from "./paint";
-import { type Backdrop, backdropOf } from "./places";
+import {
+  BLEED_CSS_PX,
+  FINE_FROM,
+  MOST_FLASHES,
+  type PlaceFrame,
+  placeArt,
+  placeLayers,
+} from "./paint";
+import { type Backdrop, PLACE_IDS, backdropOf } from "./places";
 
 /** What a dark palette's places are mixed from: Casino night's. */
 const DARK = placeColors(
@@ -77,24 +85,138 @@ function ofKind<Kind extends PaintCommand["kind"]>(
 const FLICKER = { every: 11, after: 4 };
 
 describe("placeArt", () => {
-  it("paints the back opaque: the field's color under all, then the wash and the far stars", () => {
+  /** Returns commands moved right and down by a distance, as painted from a corner that far up and left. */
+  function movedBy(
+    commands: readonly PaintCommand[],
+    by: number,
+  ): PaintCommand[] {
+    const move = ({ x, y }: Point): Point => ({ x: x + by, y: y + by });
+    return commands.map((command) => {
+      switch (command.kind) {
+        case "line":
+          return { ...command, from: move(command.from), to: move(command.to) };
+        case "polyline":
+        case "polygon":
+          return { ...command, points: command.points.map(move) };
+        default:
+          return { ...command, ...move(command) };
+      }
+    });
+  }
+
+  it("reaches as far past each edge of the field as a kick and a shake scroll its camera, in whole device pixels", () => {
+    const art = placeArt(laid("inner-belt"), DARK, {
+      ...FRAME,
+      pixelRatio: 1.5,
+    });
+
+    expect(art.bleed).toBe(Math.ceil(BLEED_CSS_PX * 1.5));
+  });
+
+  it("paints the back opaque, over the field and its bleed: the field's color under all, then the wash and the far stars", () => {
     const art = placeArt(laid("inner-belt"), DARK, FRAME);
     const layers = placeLayers(laid("inner-belt"), DARK, FRAME);
+    const { bleed } = art;
 
     expect(art.back).toEqual([
-      { kind: "rect", x: 0, y: 0, width: 720, height: 400, color: DARK.field },
-      ...layers.wash,
-      ...layers.far,
+      {
+        kind: "rect",
+        x: 0,
+        y: 0,
+        width: 720 + 2 * bleed,
+        height: 400 + 2 * bleed,
+        color: DARK.field,
+      },
+      ...movedBy([...layers.wash, ...layers.far], bleed),
     ]);
   });
 
-  it("paints the nearer stars on a picture of their own, and the landmark, the air and the vignette before them", () => {
+  it("paints the nearer stars on a picture of their own, from the field's corner, and the landmark, the air and the vignette before them, over the field and its bleed, with nothing apart", () => {
     const art = placeArt(laid("iron-reach"), DARK, FRAME);
     const layers = placeLayers(laid("iron-reach"), DARK, FRAME);
 
-    expect([art.near, art.front]).toEqual([
+    expect([art.near, art.front, art.over]).toEqual([
       layers.near,
-      [...layers.landmark, ...layers.air, ...layers.vignette],
+      movedBy(
+        [...layers.landmark, ...layers.air, ...layers.vignette],
+        art.bleed,
+      ),
+      [],
+    ]);
+  });
+
+  it("paints the Storm's tower and forks in front, and the bank at their foot, the air and the vignette apart, over the field and its bleed", () => {
+    const backdrop = laid("storm");
+    const foot = backdrop.landmark.slice(-1);
+    const layers = placeLayers(backdrop, DARK, FRAME);
+    const footLayers = placeLayers(
+      { ...backdrop, landmark: foot },
+      DARK,
+      FRAME,
+    );
+    const behind = layers.landmark.length - footLayers.landmark.length;
+
+    const art = placeArt(backdrop, DARK, FRAME);
+
+    expect([foot[0]?.kind, art.front, art.over]).toEqual([
+      "bank",
+      movedBy(layers.landmark.slice(0, behind), art.bleed),
+      movedBy(
+        [...footLayers.landmark, ...layers.air, ...layers.vignette],
+        art.bleed,
+      ),
+    ]);
+  });
+
+  it.each(PLACE_IDS)(
+    "lays no billow or face of %s's between its first mark that flickers and its last, so every flash lies behind what stands before the flickers",
+    (place) => {
+      const { landmark } = laid(place);
+      const flickering = landmark.flatMap((mark, i) =>
+        "flicker" in mark ? [i] : [],
+      );
+
+      const between = landmark.slice(
+        flickering[0] ?? 0,
+        (flickering.at(-1) ?? -1) + 1,
+      );
+
+      expect(
+        between.filter(({ kind }) => kind === "bank" || kind === "flat"),
+      ).toEqual([]);
+    },
+  );
+
+  it("paints nothing apart for a place whose flickers flash nothing on the field", () => {
+    const fork: Mark = {
+      kind: "line",
+      points: [
+        { x: -20, y: 10 },
+        { x: -10, y: 20 },
+      ],
+      width: 0.1,
+      tint: "spark",
+      strength: 0.5,
+      flicker: FLICKER,
+    };
+    const face: Mark = {
+      kind: "flat",
+      points: [
+        { x: 18, y: 18 },
+        { x: 22, y: 18 },
+        { x: 20, y: 22 },
+      ],
+      light: 0.8,
+      tint: "stone",
+    };
+    const backdrop = bare([fork, face]);
+    const layers = placeLayers(backdrop, DARK, FRAME);
+
+    const art = placeArt(backdrop, DARK, FRAME);
+
+    expect([art.front, art.over]).toEqual([
+      movedBy([...layers.landmark, ...layers.vignette], art.bleed),
+      [],
     ]);
   });
 
@@ -146,7 +268,7 @@ describe("placeArt", () => {
     };
     const PLACE = bare([FACE, GLOW, FORK, OTHER_FORK, BANK, FACE]);
 
-    it("paints a flicker's marks as much stronger again as at its height, then the billows and faces before them, as they are", () => {
+    it("paints a flicker's marks alone, as much stronger again as at its height", () => {
       const { flashes } = placeArt(PLACE, DARK, FRAME);
 
       const [flash] = flashes;
@@ -155,10 +277,36 @@ describe("placeArt", () => {
       ).toEqual([
         ["wash", 0.25 * 0.1 * 1.2],
         ["polyline", 0.55 * 0.16 * 1.2],
-        ["wash", undefined],
-        ["wash", undefined],
-        ["polygon", undefined],
-        ["polyline", undefined],
+      ]);
+    });
+
+    it("paints what lies behind the first billow or face after the first flicker in front, and that billow or face on, then the vignette, apart", () => {
+      const layers = placeLayers(PLACE, DARK, FRAME);
+      const [face, glow, fork, otherFork] = [FACE, GLOW, FORK, OTHER_FORK].map(
+        (mark) => placeLayers(bare([mark]), DARK, FRAME).landmark.length,
+      );
+      const behind = (face ?? 0) + (glow ?? 0) + (fork ?? 0) + (otherFork ?? 0);
+
+      const art = placeArt(PLACE, DARK, FRAME);
+
+      expect([art.front, art.over]).toEqual([
+        movedBy(layers.landmark.slice(0, behind), art.bleed),
+        movedBy(
+          [...layers.landmark.slice(behind), ...layers.vignette],
+          art.bleed,
+        ),
+      ]);
+    });
+
+    it("paints only the vignette apart where no billow or face stands before the flickers", () => {
+      const backdrop = bare([FACE, GLOW, FORK]);
+      const layers = placeLayers(backdrop, DARK, FRAME);
+
+      const art = placeArt(backdrop, DARK, FRAME);
+
+      expect([art.front, art.over]).toEqual([
+        movedBy(layers.landmark, art.bleed),
+        movedBy(layers.vignette, art.bleed),
       ]);
     });
 
@@ -179,15 +327,15 @@ describe("placeArt", () => {
       ]);
     });
 
-    it("flashes each of the Storm's forks over the area it reaches, on the field", () => {
-      const { flashes } = placeArt(laid("storm"), DARK, FRAME);
+    it("flashes each of the Storm's forks over the area it reaches, on the field and its bleed", () => {
+      const { flashes, bleed } = placeArt(laid("storm"), DARK, FRAME);
 
       const outside = flashes.filter(
         ({ area }) =>
-          area.x < 0 ||
-          area.y < 0 ||
-          area.x + area.width > FRAME.width ||
-          area.y + area.height > FRAME.height,
+          area.x < -bleed ||
+          area.y < -bleed ||
+          area.x + area.width > FRAME.width + bleed ||
+          area.y + area.height > FRAME.height + bleed,
       );
 
       expect({
@@ -196,6 +344,31 @@ describe("placeArt", () => {
       }).toEqual({ flickers: [11, 17], outside: [] });
     });
   });
+
+  it.each([
+    ["the widest", WIDEST],
+    ["the tallest", TALLEST],
+    ["the narrowest", NARROWEST],
+  ])(
+    "paints no more flashes than the most, the Storm's, on %s field",
+    (_shape, torus) => {
+      const counts = PLACE_IDS.map(
+        (place) =>
+          placeArt(
+            backdropOf({ place, torus, seed: 7, constellation: null }),
+            DARK,
+            {
+              unit: 10,
+              pixelRatio: 1,
+              width: torus.width * 10,
+              height: torus.height * 10,
+            },
+          ).flashes.length,
+      );
+
+      expect(Math.max(...counts)).toBe(MOST_FLASHES);
+    },
+  );
 
   it("flashes nothing of a flicker whose marks lie off the field", () => {
     const fork: Mark = {
@@ -211,6 +384,23 @@ describe("placeArt", () => {
     };
 
     expect(placeArt(bare([fork]), DARK, FRAME).flashes).toEqual([]);
+  });
+
+  it("flashes a glow at the field's edge no further past it than the bleed", () => {
+    const glow: Mark = {
+      kind: "soft",
+      at: { x: 0, y: 20 },
+      rx: 4,
+      ry: 2,
+      turn: 0,
+      tint: "spark",
+      strength: 0.25,
+      flicker: FLICKER,
+    };
+
+    const { flashes, bleed } = placeArt(bare([glow]), DARK, FRAME);
+
+    expect(flashes[0]?.area.x).toBe(-bleed);
   });
 
   it("flashes a soft glow over the area its turned bounds reach", () => {

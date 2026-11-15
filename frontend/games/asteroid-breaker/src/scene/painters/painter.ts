@@ -3,6 +3,7 @@ import type { PointsFont } from "../../view/art/points_art";
 import type { BeltPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import type { Drawn, FieldView } from "../../view/field/frame";
+import type { PlaceId } from "../../view/places/places";
 import type { Deck } from "../../view/steering/deck";
 import type { SteeringView } from "../../view/steering/steering";
 
@@ -22,13 +23,15 @@ export interface PaintContext {
    * last place and turn and its next, or null between one ship and the next.
    */
   shipDrawn: Readonly<Drawn> | null;
-  /** The run's seed, which the field's specks are strewn from. */
+  /** The run's seed, which the place's stars are strewn from. */
   seed: number;
   /**
    * Where an Endless wave's constellation lies, its middle as shares of the
    * field's width and height, or null for none.
    */
   constellation: Readonly<Place> | null;
+  /** The place the wave is played in, behind the field. */
+  place: PlaceId;
   /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
   deck: Deck | null;
   /**

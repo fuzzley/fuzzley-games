@@ -60,6 +60,7 @@ import {
 import { fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
+import { placeOfSector } from "../../view/places/places";
 import type { FieldFrame } from "../../view/field/frame";
 import { RunFrames } from "../../view/run_frames";
 import { type RunState, newRunState, withFrame } from "../../view/run_state";
@@ -577,15 +578,21 @@ export class GameService extends RunLifecycle {
   }
 
   /**
-   * Returns the play of a run's wave in play, on its field as laid out, its
-   * specks strewn from the run's seed and, in Endless, its constellation
-   * laid among them.
+   * Returns the play of a run's wave in play, on its field as laid out, in
+   * its sector's place, its stars strewn from the run's seed and, in
+   * Endless, its constellation laid among them.
    */
   private playOf(run: Run, field: Field = this.fieldOf(run)): WavePlay {
-    const constellation = isEndless(this.waveEntry(run.wave))
+    const entry = this.waveEntry(run.wave);
+    const constellation = isEndless(entry)
       ? constellationAt(run.seed, run.wave)
       : null;
-    return new WavePlay(field, run.seed, constellation);
+    return new WavePlay(
+      field,
+      run.seed,
+      constellation,
+      placeOfSector(entry.sector.id),
+    );
   }
 
   /**
