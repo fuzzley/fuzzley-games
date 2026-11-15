@@ -34,6 +34,7 @@ import {
   createFrameSounds,
   detuneOf,
   flourishesOf,
+  notchDetuneOf,
 } from "../view/effects/effects";
 import {
   type FieldMetrics,
@@ -360,13 +361,17 @@ export class WallScene extends Scene {
     }
   }
 
-  /** Hears the notch of each charge the steering rises or falls to, but none, while a fuzzball waits to be let fly at it. */
+  /**
+   * Hears the notch of each charge the steering rises or falls to, but none,
+   * raised by {@link notchDetuneOf}, while a fuzzball waits to be let fly at
+   * it.
+   */
   private hearNotch({ charge }: Readonly<Steer>): void {
     if (charge === this.charged) return;
     this.charged = charge;
     const { waitingX, boon } = this.context;
     if (charge > 0 && waitingX !== null && boon !== "hot") {
-      this.hear(beatEffectsOf("notch"), 0);
+      this.hear(beatEffectsOf("notch"), notchDetuneOf(charge));
     }
   }
 

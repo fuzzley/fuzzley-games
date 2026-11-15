@@ -318,11 +318,12 @@ helpers.
   strike's moment; `beatEffectsOf()` does so for the moments past a
   flight's events, a notch, the wall's step or jump, the danger line, a
   level cleared or lost; `detuneOf()` raises a break 100 cents a brick of
-  the round, to an octave; and `createFrameSounds()` plays each sound once
-  a frame. `flourish.ts` is how each flourish moves, from the swell to a
-  lost level's shake (`shakeOf()`, in device pixels), and `timing.ts` how
-  long each lasts, the wall's step and jump (`STEP_MS`, `JUMP_MS`) and how
-  long the cards wait.
+  the round, to an octave, and `notchDetuneOf()` the notch 100 cents a
+  notch of charge over the first; and `createFrameSounds()` plays each
+  sound once a frame. `flourish.ts` is how each flourish moves, from the
+  swell to a lost level's shake (`shakeOf()`, in device pixels), and
+  `timing.ts` how long each lasts, the wall's step and jump (`STEP_MS`,
+  `JUMP_MS`) and how long the cards wait.
 - **`src/view/debug/`** — `debug_tuning.ts`: the numbers the debug menu
   tunes in play (`TunedNumbers`), starting from the game's own
   (`TUNED_NUMBERS`): the flight's speeds at Normal and Fast, how much
@@ -360,11 +361,11 @@ helpers.
     before, as the frame that reaches a flight's last events hands over the
     wall that comes down; and has its painters draw, each in its layers of
     `LAYERS`. Its `SpritePlayer` plays each frame's sounds once, gathered
-    by `createFrameSounds()`, a break's risen by `detuneOf()`, and the notch
-    as the charge rises or falls, but to none, while a fuzzball waits, but
-    a hot shot, whose charge is always full; and mutes the game as
-    `sound()` says, its sprite in `sounds/`, which `yarn build:sounds`
-    writes.
+    by `createFrameSounds()`, a break's risen by `detuneOf()`, and the notch,
+    risen by `notchDetuneOf()`, as the charge rises or falls, but to none,
+    while a fuzzball waits, but a hot shot, whose charge is always full;
+    and mutes the game as `sound()` says, its sprite in `sounds/`, which
+    `yarn build:sounds` writes.
   - `field_camera.ts` — `FieldCamera` frames the scene's camera on the
     field, its viewport the frame's outer edge (`frameBounds()`, in
     `src/scene/painters/field_painter.ts`, which the frame is drawn by), so
@@ -720,7 +721,8 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9006/sound-lab/` (`tools/sound-lab.ts`: each sound in
   the sprite, and nine scenes of a round played as the game would play
-  them, its breaks raised by the view's `breakDetune()`; no build holds it).
+  them, its breaks raised by the view's `breakDetune()` and its notches by
+  `notchDetuneOf()`; no build holds it).
 - **Certify the Levels:** `yarn certify:levels` (runs
   `tools/certify-levels.mjs`, which finds a line that clears each level on
   each depth with the solver, `src/testing/solver.ts`, on a pool of worker

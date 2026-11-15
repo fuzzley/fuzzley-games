@@ -22,11 +22,14 @@ import {
   SOUNDS,
   type SoundName,
   breakDetune,
+  notchDetuneOf,
 } from "../src/view/effects/effects";
+import { HOLD_NOTCH_MS, chargeAfter } from "../src/view/steering/steering";
 
 /** What plays each sound in the game, as `tools/build-sounds.mjs` describes its recipe. */
 const PLAYS: Readonly<Record<SoundName, string>> = {
-  notch: "Each notch the charge climbs or falls while it builds.",
+  notch:
+    "Each notch the charge climbs or falls to while it builds, but none, a semitone higher for each over the first.",
   release: "A shot released.",
   boon: "A hot shot or a triple shot released.",
   knock: "A fuzzball turning off a side or the ceiling.",
@@ -54,8 +57,8 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
 /** How long a unit of flight takes at Normal, in seconds: 14 units a second. */
 const UNIT_S = 1 / 14;
 
-/** How long point and hold takes over a notch, in seconds: a quarter second. */
-const NOTCH_S = 0.25;
+/** How long point and hold takes over a notch, in seconds, as the steering holds it. */
+const NOTCH_S = HOLD_NOTCH_MS / 1000;
 
 /** How long after the press a charge held to the most is let go, in seconds. */
 const CHARGED_S = (MOST_CHARGE + 1) * NOTCH_S;
@@ -114,20 +117,32 @@ interface Breaks {
   readonly punched?: boolean;
 }
 
-/** Returns a notch each quarter second, from a time, as point and hold charges. */
+/**
+ * Returns the notches of a press held some quarter seconds from a time, as
+ * point and hold charges, each risen by the charge it comes to, as the game
+ * raises it, and none as it falls to none.
+ */
 function notches(at: number, count: number): LabCue<SoundName>[] {
-  return Array.from({ length: count }, (_, i) => ({
-    at: at + (i + 1) * NOTCH_S,
-    sound: "notch" as const,
-  }));
+  return Array.from({ length: count }, (_, i) => {
+    const charge = chargeAfter((i + 1) * HOLD_NOTCH_MS);
+    return charge === 0
+      ? []
+      : [
+          {
+            at: at + (i + 1) * NOTCH_S,
+            sound: "notch" as const,
+            detune: notchDetuneOf(charge),
+          },
+        ];
+  }).flat();
 }
 
 /** Returns the notches of a charge held to the most, from a time, then its release. */
-function chargeAndRelease(
-  at: number,
-  sound: "release" | "boon",
-): LabCue<SoundName>[] {
-  return [...notches(at, MOST_CHARGE), { at: at + CHARGED_S, sound }];
+function chargeAndRelease(at: number): LabCue<SoundName>[] {
+  return [
+    ...notches(at, MOST_CHARGE),
+    { at: at + CHARGED_S, sound: "release" },
+  ];
 }
 
 const SCENES: readonly LabScene<SoundName>[] = [
@@ -146,7 +161,7 @@ const SCENES: readonly LabScene<SoundName>[] = [
   },
   {
     name: "Point and hold",
-    what: "Held past five: the charge climbs a notch each quarter second to five, falls back to none and climbs again to two, and is let go there.",
+    what: "Held past five: the charge climbs a notch each quarter second to five, each a semitone higher, falls back to none and climbs again to two, and is let go there.",
     cues: [
       ...notches(0, 2 * MOST_CHARGE + 2),
       { at: (2 * MOST_CHARGE + 3) * NOTCH_S, sound: "release" },
@@ -156,7 +171,7 @@ const SCENES: readonly LabScene<SoundName>[] = [
     name: "A punch through the wall",
     what: "Charged to five and let go: it punches through five bricks, then rattles between the wall and the ceiling, each brick a semitone higher than the last, up to an octave.",
     cues: [
-      ...chargeAndRelease(0, "release"),
+      ...chargeAndRelease(0),
       ...breaks(CHARGED_S + 5 * UNIT_S, UNIT_S, {
         first: 1,
         count: MOST_CHARGE,
@@ -209,7 +224,8 @@ const SCENES: readonly LabScene<SoundName>[] = [
       broken(0, 3, 0.3),
       { at: 8 * UNIT_S, sound: "land", x: 0.1 },
       { at: 8 * UNIT_S + 0.3, sound: "jump" },
-      ...chargeAndRelease(8 * UNIT_S + 1.2, "boon"),
+      // A hot shot's charge is always full, so no notch ticks before it.
+      { at: 8 * UNIT_S + 1.2 + CHARGED_S, sound: "boon" },
       ...breaks(8 * UNIT_S + 1.2 + CHARGED_S + 5 * UNIT_S, UNIT_S, {
         first: 1,
         count: 7,
