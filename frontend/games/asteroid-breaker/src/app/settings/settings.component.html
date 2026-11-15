@@ -78,8 +78,8 @@
     </div>
   </div>
 
-  <div class="setting">
-    <span class="setting-label" aria-hidden="true">Sound</span>
+  <div class="setting" role="group" aria-labelledby="sound-label">
+    <span class="setting-label" id="sound-label">Sound</span>
     <div class="setting-check">
       <input
         #sound
@@ -87,12 +87,69 @@
         type="checkbox"
         aria-describedby="sound-desc"
         [checked]="settings().sound"
-        (change)="setSound(sound.checked)"
+        (change)="setSound('sound', sound.checked)"
       />
       <label for="sound">Play sounds</label>
       <p class="setting-desc" id="sound-desc">
+        Off, it mutes the effects, the voice and the bed, as the bar's Sound
+        button does.
+      </p>
+    </div>
+    <div class="setting-check">
+      <input
+        #effects
+        id="effects"
+        type="checkbox"
+        aria-describedby="effects-desc"
+        [checked]="settings().effects"
+        (change)="setSound('effects', effects.checked)"
+      />
+      <label for="effects">Play the effects</label>
+      <p class="setting-desc" id="effects-desc">
         Each rock breaking, rising with static, the thrust's hum, and a chime
         for a wave cleared.
+      </p>
+    </div>
+    <div class="setting-check">
+      <input
+        #voice
+        id="voice"
+        type="checkbox"
+        aria-describedby="voice-desc"
+        [checked]="settings().voice"
+        (change)="setSound('voice', voice.checked)"
+      />
+      <label for="voice">Play the fuzzball's voice</label>
+      <p class="setting-desc" id="voice-desc">
+        A whee, an eep or a cheer, now and then.
+      </p>
+    </div>
+    <div class="setting-check">
+      <input
+        #bed
+        id="bed"
+        type="checkbox"
+        aria-describedby="bed-desc"
+        [checked]="settings().bed"
+        (change)="setSound('bed', bed.checked)"
+      />
+      <label for="bed">Play a bed under each sector</label>
+      <p class="setting-desc" id="bed-desc">
+        A slow drone, a pulse and bells joining it as static climbs.
+      </p>
+    </div>
+    <div class="setting-check">
+      <input
+        #mono
+        id="mono"
+        type="checkbox"
+        aria-describedby="mono-desc"
+        [checked]="settings().mono"
+        (change)="setSound('mono', mono.checked)"
+      />
+      <label for="mono">One speaker</label>
+      <p class="setting-desc" id="mono-desc">
+        Every sound in both ears, for one earbud or a phone's one speaker.
       </p>
     </div>
   </div>

@@ -39,10 +39,12 @@ import {
   LODESTONE_HUM,
   SOUNDS,
   type SoundName,
+  type SoundSwitches,
   type SoundTake,
   THRUST,
+  isSwitchedOn,
 } from "../view/effects/sounds";
-import { FieldSounds } from "../view/effects/field_sounds";
+import { FieldSounds, type PlaySound } from "../view/effects/field_sounds";
 import type { PlaceId } from "../view/places/places";
 import {
   type BoardSetting,
@@ -150,8 +152,8 @@ export interface BeltSceneOptions {
   readonly palette: () => BeltPalette;
   /** Returns whether the player welcomes motion. */
   readonly motion: () => boolean;
-  /** Returns whether the player wants sound. */
-  readonly sound: () => boolean;
+  /** Returns what of the sound the player wants, as the settings switch it. */
+  readonly sound: () => SoundSwitches;
   /** Returns whether the ship thrusts while its wave plays on, which the thrust's hum follows. */
   readonly thrusting: () => boolean;
   /** Returns whether a lodestone is on the field while its wave plays on, which the lodestone's hum follows. */
@@ -288,6 +290,8 @@ export class BeltScene extends Scene {
   private readonly fieldSounds = new FieldSounds();
   /** Where the ship is drawn and how far it is turned, written each frame. */
   private readonly drawnShip: Drawn = { x: 0, y: 0, angle: 0 };
+  /** What of the sound the player wants as of this frame, which its sounds play by. */
+  private switches!: SoundSwitches;
   /** Whether the scene has drawn its first frame, before which it holds no bed, so none is fetched. */
   private firstFrameDrawn = false;
   /** The field's light, far off, which lights the rocks, made as the scene is created. */
@@ -421,8 +425,8 @@ export class BeltScene extends Scene {
    * Hands the shell the time the frame took and the steering, then plays
    * what happened on the field since the last frame and what its field's
    * change says, by the view's rules, hums while the ship thrusts and
-   * while a lodestone is on the field, holds the beds, and draws the field
-   * as it now stands.
+   * while a lodestone is on the field, holds the beds, each as the
+   * player's switches say, and draws the field as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette, a
    * new font or a new wave; Phaser makes a buffer source for each sound it
@@ -433,7 +437,9 @@ export class BeltScene extends Scene {
     this.context.now = time;
     let moved = this.fit();
     this.options.tick(delta, this.steering.read());
-    this.kit.sounds.follow(this.options.sound());
+    this.switches = this.options.sound();
+    this.kit.sounds.follow(this.switches.sound);
+    this.kit.sounds.followMono(this.switches.mono);
     const frame = this.options.frame();
     const palette = this.options.palette();
     this.context.motion = this.options.motion();
@@ -452,9 +458,16 @@ export class BeltScene extends Scene {
     this.fieldSounds.hearField(frame.field, time);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;
-    this.fieldSounds.playEach(this.kit.sounds.playAt);
-    this.kit.sounds.hold(THRUST, this.options.thrusting());
-    this.kit.sounds.hold(LODESTONE_HUM, this.options.lodestoneHums());
+    this.fieldSounds.playEach(this.playSwitched);
+    this.kit.sounds.hold(
+      THRUST,
+      isSwitchedOn(THRUST, this.switches) && this.options.thrusting(),
+    );
+    this.kit.sounds.hold(
+      LODESTONE_HUM,
+      isSwitchedOn(LODESTONE_HUM, this.switches) &&
+        this.options.lodestoneHums(),
+    );
     this.holdBeds(frame.place);
     for (const painter of this.painters) painter.draw(this.context);
   }
@@ -466,11 +479,14 @@ export class BeltScene extends Scene {
    * joins as soon as it is wanted; none of them before the scene has drawn
    * its first frame and the sounds' sprite has loaded, so the beds' files
    * never hold up the first wave's picture or its sounds, nor while the
-   * player wants no sound.
+   * player's switches want no sound or no bed.
    */
   private holdBeds(place: PlaceId): void {
     const wanted =
-      this.firstFrameDrawn && this.kit.sounds.loaded && this.options.sound();
+      this.firstFrameDrawn &&
+      this.kit.sounds.loaded &&
+      this.switches.sound &&
+      this.switches.bed;
     const multiplier = this.options.multiplier();
     for (const name of BED_NAMES) {
       this.kit.beds.hold(name, wanted && bedPlays(name, place, multiplier));
@@ -480,6 +496,12 @@ export class BeltScene extends Scene {
       this.kit.beds.fetch(name);
     }
   }
+
+  /** Plays a sound of the frame's where the player's switches want it, for `playEach()`. */
+  private readonly playSwitched: PlaySound = (name, detune, across, volume) => {
+    if (!isSwitchedOn(name, this.switches)) return;
+    this.kit.sounds.playAt(name, detune, across, volume);
+  };
 
   /**
    * Plays what an event calls for, once, for `forEachSince()`, which takes

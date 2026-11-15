@@ -298,7 +298,9 @@ take the pure ones.
   (`src/sound/output.ts`'s `limitSound()`, set as `@fz/core/sound_mix`'s
   `LIMITER` says), once for the game, and `followMono()` sums the two ears
   into one, or lets them be two (`playMono()`, the speakers taking one
-  channel), each only where the game plays through Web Audio, which the
+  channel, and setting nothing where they already take what is asked or
+  say they take none), as the player's choice changes, so a scene asks
+  each frame, each only where the game plays through Web Audio, which the
   headless game doesn't. Beside it,
   `LayerPlayer` plays looped layers of sound, such as a sector's bed and
   the layers that join it, each a `SoundLayer` (a key, a URL or several,

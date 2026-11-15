@@ -69,6 +69,22 @@ describe("SpritePlayer", () => {
     expect(playMono).toHaveBeenCalledExactlyOnceWith(scene.sound, true);
   });
 
+  it("changes the output only as the player's choice of one ear or two changes", async () => {
+    const scene = await startScene();
+    const player = new SpritePlayer(scene, SPRITE);
+    vi.mocked(playMono).mockClear();
+
+    player.followMono(true);
+    player.followMono(true);
+    player.followMono(false);
+    player.followMono(false);
+
+    expect(vi.mocked(playMono).mock.calls).toEqual([
+      [scene.sound, true],
+      [scene.sound, false],
+    ]);
+  });
+
   it("puts no limiter on the game's sound without a mix", async () => {
     const scene = await startScene();
     vi.mocked(limitSound).mockClear();

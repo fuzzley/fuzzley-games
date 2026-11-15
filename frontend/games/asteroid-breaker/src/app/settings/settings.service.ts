@@ -3,6 +3,7 @@ import { booleanOr } from "@fz/core/json";
 import { isOneOf } from "@fz/core/records";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import { type Speed, isSpeed } from "../../rules/speed";
+import type { SoundSwitches } from "../../view/effects/sounds";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 const SETTINGS_KEY = "asteroid-breaker-settings";
@@ -16,8 +17,8 @@ export const DECK_SHOWINGS = ["auto", "always", "never"] as const;
 /** Names when the deck shows: on a touch screen, always or never. */
 export type DeckShowing = (typeof DECK_SHOWINGS)[number];
 
-/** Says how the player plays. */
-export interface Settings {
+/** Says how the player plays, and what of the sound the player wants. */
+export interface Settings extends SoundSwitches {
   /** The speed of the last run started, at which a visit's first run is played. */
   readonly speed: Speed;
   /** When the deck shows beside the field. */
@@ -28,8 +29,6 @@ export interface Settings {
   readonly fireByItself: boolean;
   /** Whether the phone buzzes as a ship is lost and as a wave is cleared. */
   readonly haptics: boolean;
-  /** Whether the field plays its sounds. */
-  readonly sound: boolean;
 }
 
 /** The settings a player starts with. */
@@ -40,6 +39,10 @@ export const DEFAULT_SETTINGS: Settings = {
   fireByItself: false,
   haptics: true,
   sound: true,
+  effects: true,
+  voice: true,
+  bed: true,
+  mono: false,
 };
 
 /** Holds and keeps the player's settings. */
@@ -60,10 +63,14 @@ export class SettingsService {
   }
 }
 
-/** Returns the settings stored, each one that makes sense, else the default. */
+/**
+ * Returns the settings stored, each one that makes sense, else the default,
+ * as for one kept before it was offered.
+ */
 function settingsFrom(saved: StoredFields | null): Settings {
   if (!saved) return DEFAULT_SETTINGS;
   const { speed, deck, stickOnRight, fireByItself, haptics, sound } = saved;
+  const { effects, voice, bed, mono } = saved;
   return {
     speed: isSpeed(speed) ? speed : DEFAULT_SETTINGS.speed,
     deck: isOneOf(deck, DECK_SHOWINGS) ? deck : DEFAULT_SETTINGS.deck,
@@ -71,5 +78,9 @@ function settingsFrom(saved: StoredFields | null): Settings {
     fireByItself: booleanOr(fireByItself, DEFAULT_SETTINGS.fireByItself),
     haptics: booleanOr(haptics, DEFAULT_SETTINGS.haptics),
     sound: booleanOr(sound, DEFAULT_SETTINGS.sound),
+    effects: booleanOr(effects, DEFAULT_SETTINGS.effects),
+    voice: booleanOr(voice, DEFAULT_SETTINGS.voice),
+    bed: booleanOr(bed, DEFAULT_SETTINGS.bed),
+    mono: booleanOr(mono, DEFAULT_SETTINGS.mono),
   };
 }

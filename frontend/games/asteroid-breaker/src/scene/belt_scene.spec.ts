@@ -2917,11 +2917,43 @@ describe("the sounds", () => {
   it("are muted while the player wants none", async () => {
     const { shell, run, scene } = await startBoard();
 
-    shell.wantsSound = false;
+    shell.switches = { ...shell.switches, sound: false };
     run.advance(16);
 
     expect(scene.sound.mute).toBe(true);
   });
+
+  it.each([
+    ["effects", ["voice-ooh"]],
+    ["voice", ["stray-appear"]],
+  ] as const)(
+    "play none of the sounds the %s switch holds while it is off",
+    async (part, sounds) => {
+      const { shell, run } = await startBoard(withShip);
+      const played = soundsPlayed();
+      shell.switches = { ...shell.switches, [part]: false };
+
+      shell.field.events.addPilot("strayed", 0, 20, 4, shell.field.crew);
+      run.advance(16);
+
+      expect(played.map(([name]) => name)).toEqual(sounds);
+    },
+  );
+
+  it.each([true, false])(
+    "sum the two ears into one or not as the player asks, mono %s",
+    async (mono) => {
+      const { shell, run } = await startBoard((fake) => {
+        fake.switches = { ...fake.switches, mono: !mono };
+      });
+      const followMono = vi.spyOn(SpritePlayer.prototype, "followMono");
+
+      shell.switches = { ...shell.switches, mono };
+      run.advance(16);
+
+      expect(followMono).toHaveBeenLastCalledWith(mono);
+    },
+  );
 
   it.each(Object.entries(EVERY_EVENT))(
     "play, for each %s the field logs, its sounds",
@@ -3224,6 +3256,19 @@ describe("the sounds", () => {
     expect(scene.kit.sounds.holds("lodestone-hum")).toBe(true);
   });
 
+  it("stop the thrust's and a lodestone's hums as the effects are turned off", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene, SOUNDS_KEY);
+    shell.thrusts = true;
+    shell.lodestoneOn = true;
+    run.advance(16);
+
+    shell.switches = { ...shell.switches, effects: false };
+    run.advance(16);
+
+    expect(humsIn(scene)).toBe(0);
+  });
+
   it("leave the field playing where they can't be loaded", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "small", 30, 20);
@@ -3326,16 +3371,19 @@ describe("the beds", () => {
     ]);
   });
 
-  it("fetch no bed while the player wants no sound", async () => {
-    const { shell, run, scene } = await startBoard();
-    cacheSounds(scene, SOUNDS_KEY);
-    const wanted = bedsWanted(() => shell);
+  it.each(["sound", "bed"] as const)(
+    "fetch no bed while the %s switch is off",
+    async (part) => {
+      const { shell, run, scene } = await startBoard();
+      cacheSounds(scene, SOUNDS_KEY);
+      const wanted = bedsWanted(() => shell);
 
-    shell.wantsSound = false;
-    run.advance(16);
+      shell.switches = { ...shell.switches, [part]: false };
+      run.advance(16);
 
-    expect(wanted).toEqual([]);
-  });
+      expect(wanted).toEqual([]);
+    },
+  );
 
   it("play the bed of the place the wave is played in", async () => {
     const { shell, run, scene } = await startBoard();
@@ -3385,14 +3433,17 @@ describe("the beds", () => {
     expect(bedsPlayingIn(scene)).toEqual(["bed-endless"]);
   });
 
-  it("play no bed while the player wants no sound", async () => {
-    const { shell, run, scene } = await startBoard();
-    cacheBeds(scene);
-    run.advance(16);
+  it.each(["sound", "bed"] as const)(
+    "play no bed while the %s switch is off",
+    async (part) => {
+      const { shell, run, scene } = await startBoard();
+      cacheBeds(scene);
+      run.advance(16);
 
-    shell.wantsSound = false;
-    run.advance(2500);
+      shell.switches = { ...shell.switches, [part]: false };
+      run.advance(2500);
 
-    expect(bedsPlayingIn(scene)).toEqual([]);
-  });
+      expect(bedsPlayingIn(scene)).toEqual([]);
+    },
+  );
 });

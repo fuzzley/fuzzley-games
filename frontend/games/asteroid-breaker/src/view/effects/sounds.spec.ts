@@ -31,12 +31,14 @@ import {
   SOUNDS,
   SOUND_NAMES,
   type SoundName,
+  type SoundSwitches,
   TAIL,
   THRUST,
   THRUST_START,
   THRUST_STOP,
   bellCentsOf,
   endSoundOf,
+  isSwitchedOn,
   ladderCentsOf,
   secondSoundOf,
   soundOf,
@@ -507,6 +509,41 @@ describe("volumeOf", () => {
     ),
   )("plays %s at its level", (name) => {
     expect(volumeOf(name)).toBe(1);
+  });
+});
+
+describe("isSwitchedOn", () => {
+  /** Every part of the sound switched on. */
+  const ALL_ON: SoundSwitches = {
+    sound: true,
+    effects: true,
+    voice: true,
+    bed: true,
+    mono: false,
+  };
+
+  it.each(SOUND_NAMES.filter((name) => SOUNDS[name].family === "voice"))(
+    "plays the call %s by the voice's switch alone",
+    (name) => {
+      expect([
+        isSwitchedOn(name, { ...ALL_ON, voice: false }),
+        isSwitchedOn(name, { ...ALL_ON, effects: false }),
+      ]).toEqual([false, true]);
+    },
+  );
+
+  it.each(SOUND_NAMES.filter((name) => SOUNDS[name].family !== "voice"))(
+    "plays %s by the effects' switch alone",
+    (name) => {
+      expect([
+        isSwitchedOn(name, { ...ALL_ON, effects: false }),
+        isSwitchedOn(name, { ...ALL_ON, voice: false }),
+      ]).toEqual([false, true]);
+    },
+  );
+
+  it.each(SOUND_NAMES)("plays %s not at all without the sound", (name) => {
+    expect(isSwitchedOn(name, { ...ALL_ON, sound: false })).toBe(false);
   });
 });
 

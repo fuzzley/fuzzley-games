@@ -248,7 +248,7 @@ export class BoardComponent {
     frame: () => this.game.frame(),
     palette: () => this.palette(),
     motion: () => this.viewport.allowsMotion(),
-    sound: () => this.settings().sound,
+    sound: () => this.settings(),
     thrusting: () => this.game.thrusting(),
     lodestoneHums: () => this.game.lodestoneHums(),
     multiplier: () => this.game.multiplier(),

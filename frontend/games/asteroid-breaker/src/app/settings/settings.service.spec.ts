@@ -18,7 +18,7 @@ function store(value: unknown): void {
 }
 
 describe("SettingsService", () => {
-  it("starts a new player at Normal, the deck on a touch screen, with haptics and sound", () => {
+  it("starts a new player at Normal, the deck on a touch screen, with haptics and every sound, in two ears", () => {
     const settings = TestBed.inject(SettingsService);
 
     expect(settings.settings()).toEqual({
@@ -28,6 +28,10 @@ describe("SettingsService", () => {
       fireByItself: false,
       haptics: true,
       sound: true,
+      effects: true,
+      voice: true,
+      bed: true,
+      mono: false,
     });
   });
 
@@ -52,6 +56,10 @@ describe("SettingsService", () => {
       fireByItself: true,
       haptics: false,
       sound: false,
+      effects: false,
+      voice: false,
+      bed: false,
+      mono: true,
     } as const;
     TestBed.inject(SettingsService).update(kept);
 
@@ -72,6 +80,10 @@ describe("SettingsService", () => {
       fireByItself: true,
       haptics: 0,
       sound: false,
+      effects: "off",
+      voice: false,
+      bed: null,
+      mono: 1,
     });
 
     const settings = TestBed.inject(SettingsService);
@@ -80,6 +92,34 @@ describe("SettingsService", () => {
       ...DEFAULT_SETTINGS,
       fireByItself: true,
       sound: false,
+      voice: false,
+    });
+  });
+
+  it("keeps each setting stored before the sound's parts were offered, and plays each part, in two ears", () => {
+    store({
+      version: 1,
+      speed: "fast",
+      deck: "always",
+      stickOnRight: true,
+      fireByItself: true,
+      haptics: false,
+      sound: false,
+    });
+
+    const settings = TestBed.inject(SettingsService);
+
+    expect(settings.settings()).toEqual({
+      speed: "fast",
+      deck: "always",
+      stickOnRight: true,
+      fireByItself: true,
+      haptics: false,
+      sound: false,
+      effects: true,
+      voice: true,
+      bed: true,
+      mono: false,
     });
   });
 
