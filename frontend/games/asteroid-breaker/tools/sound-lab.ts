@@ -25,6 +25,8 @@ import {
   NEW_SHIP_GUARD_MS,
   SHIELD_GUARD_MS,
   SHOT_EVERY_MS,
+  SPARK_POINTS,
+  STATIC_HOLD_MS,
 } from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sprite.json";
 import spriteM4a from "../src/scene/sounds/sprite.m4a?url";
@@ -212,6 +214,39 @@ function stepped(at: number, step: number): Moment {
     },
   };
 }
+
+/** Returns a spark the pilot gathered at a time, at ×1, as the game logs it: its points before static's multiplier. */
+function gathered(at: number): Moment {
+  return {
+    at,
+    act: (field) => {
+      field.events.addSpark(SHIP.x, SHIP.y, PILOT, SPARK_POINTS, 1);
+    },
+  };
+}
+
+/** Returns static's fall to a step at a time, logged at the ship. */
+function fell(at: number, step: number): Moment {
+  return {
+    at,
+    act: (field) => {
+      field.events.addStep(SHIP.x, SHIP.y, step, true);
+    },
+  };
+}
+
+/**
+ * When each of ten sparks is gathered, one after another, in seconds: a
+ * boulder's eight and a medium rock's two, each scored at ×1, the tenth
+ * bringing static to ×2.
+ */
+const TEN_SPARKS = Array.from({ length: 10 }, (_, i) => 0.8 + i * 0.1);
+
+/** When the last of the ten sparks is gathered, in seconds. */
+const LAST_SPARK = TEN_SPARKS.at(-1) ?? 0;
+
+/** When static falls after the ten sparks, its hold run out with no other, in seconds. */
+const SPARKS_FALL = LAST_SPARK + STATIC_HOLD_MS / 1000;
 
 /** Returns the gun's shots before the uplift while fire is held from one time to another, in seconds, at a place across the field. */
 function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
@@ -540,6 +575,34 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
       },
     ]),
     before: [{ at: 0, sound: "dashed" }],
+  },
+  {
+    name: "Sparks gathered",
+    what: "A boulder and a medium rock broken under fire, then the ten sparks they shed gathered one after another, each a note up the ladder, an octave under the bell's, the tenth bringing static to ×2, its chime with it; then static's hold run out with no spark, its fall, and another medium rock broken, its two sparks gathered from the ladder's foot again. Before, there were no sparks: the shots and the breaks alone.",
+    cues: heard([
+      ...burst(0, 0.45),
+      broken(0.2, "stone", "boulder", 1, 0.3),
+      broken(0.45, "stone", "medium", 1, -0.2),
+      ...TEN_SPARKS.map(gathered),
+      stepped(LAST_SPARK, 1),
+      fell(SPARKS_FALL, 0),
+      ...burst(SPARKS_FALL + 0.2, SPARKS_FALL + 0.4),
+      broken(SPARKS_FALL + 0.4, "stone", "medium", 1, 0.4),
+      gathered(SPARKS_FALL + 0.7),
+      gathered(SPARKS_FALL + 0.8),
+    ]),
+    before: [
+      ...shots(0, 0.45),
+      { at: 0.2, sound: "large", detune: chainDetune(1), x: 0.3 },
+      { at: 0.45, sound: "medium", detune: chainDetune(2), x: -0.2 },
+      ...shots(SPARKS_FALL + 0.2, SPARKS_FALL + 0.4),
+      {
+        at: SPARKS_FALL + 0.4,
+        sound: "medium",
+        detune: chainDetune(1),
+        x: 0.4,
+      },
+    ],
   },
   {
     name: "A near miss, then a zap",

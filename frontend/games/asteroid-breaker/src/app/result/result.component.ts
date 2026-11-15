@@ -4,6 +4,7 @@ import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { wavesCleared } from "../../rules/run/run";
 import { SPEED_INFO } from "../../rules/speed";
+import { bestTerm } from "../../view/bests";
 import { endWords } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
@@ -16,8 +17,9 @@ interface Figure {
 
 /**
  * Shows an ended run's result over the board: that everyone is home, the
- * wave it ended on and at what speed, the score and the best, with "New
- * best" when it set one and "Cleared all thirty" when it cleared every
+ * wave it ended on and at what speed, the score and the best, said to be
+ * under earlier rules where it was made under them, with "New best" when
+ * it set one and "Cleared all thirty" when it cleared every
  * written wave, the wave reached and the waves cleared, and every
  * fuzzball who flew in it, each in its color.
  *
@@ -46,9 +48,13 @@ export class ResultComponent {
 
   protected readonly figures = computed<readonly Figure[]>(() => {
     const run = this.game.run();
+    const best = this.game.best();
     return [
       { term: "Score", value: formatPoints(run.score) },
-      { term: "Best", value: formatPoints(this.game.best()) },
+      {
+        term: bestTerm(best, this.game.bestRules()),
+        value: formatPoints(best),
+      },
       { term: "Wave", value: String(run.wave) },
       { term: "Cleared", value: String(wavesCleared(run)) },
     ];

@@ -1,8 +1,8 @@
 import { Component, computed, inject, input, output } from "@angular/core";
-import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { sectorSpans } from "../../rules/run/progress";
+import { saysEarlierRules, sectorStatus } from "../../view/bests";
 import { GameService } from "../play/game.service";
 import { wavesInWords } from "../play/sector_card";
 import { ProgressService } from "../stats/progress.service";
@@ -20,13 +20,16 @@ interface SectorChoice {
   readonly current: boolean;
   /** Whether a run may start there. */
   readonly open: boolean;
-  /** What its tile says under its waves: "Locked", its best at the speed in play, or nothing. */
+  /** What its tile says under its waves: "Locked", its best at the speed in play, said to be under earlier rules where it was made under them, or nothing. */
   readonly status: string | null;
+  /** Whether its tile says its best was made under earlier rules. */
+  readonly earlier: boolean;
 }
 
 /**
  * Shows the Sectors dialog: each sector as a button, with its name, its
- * waves and its best at the speed in play, and the run's own marked.
+ * waves and its best at the speed in play, said to be under earlier rules
+ * where it was made under them, and the run's own marked.
  *
  * Choosing an open one starts a run at its first wave, asking first if one
  * is under way, and closes the dialog once it has; backing out leaves it
@@ -53,10 +56,13 @@ export class SectorsComponent {
   protected readonly sectors = computed<readonly SectorChoice[]>(() => {
     const current = this.game.wave().sector.id;
     const speed = this.game.speed();
-    const bests = this.stats.stats().sectors;
+    const { sectors: bests, sectorRules } = this.stats.stats();
     return this.spans.map(({ id, name, firstWave, lastWave }) => {
       const open = this.progress.isOpen(id);
-      const best = bests[id]?.[speed];
+      const sectorBest = {
+        best: bests[id]?.[speed],
+        rules: sectorRules[id]?.[speed],
+      };
       return {
         id,
         name,
@@ -64,20 +70,20 @@ export class SectorsComponent {
         waves: wavesInWords(firstWave, lastWave),
         current: id === current,
         open,
-        status: statusOf(open, best),
+        status: sectorStatus(open, sectorBest),
+        earlier: saysEarlierRules(open, sectorBest),
       };
     });
   });
+
+  /** Whether any sector's tile says its best was made under earlier rules, which the dialog then explains. */
+  protected readonly saysEarlier = computed(() =>
+    this.sectors().some(({ earlier }) => earlier),
+  );
 
   /** Starts a run at an open sector, asking first if one is under way, and closes once it has. */
   protected async choose(sector: SectorChoice): Promise<void> {
     if (!sector.open) return;
     if (await this.game.startAt(sector.firstWave)) this.closed.emit();
   }
-}
-
-/** Returns what a sector's tile says under its waves, or null for nothing. */
-function statusOf(open: boolean, best: number | undefined): string | null {
-  if (!open) return "Locked";
-  return best === undefined ? null : `Best ${formatPoints(best)}`;
 }

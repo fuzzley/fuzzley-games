@@ -34,7 +34,7 @@ export class PilotComponent {
   /** Its face, at rest unless another is given. */
   readonly face = input<FuzzballFace>("rest");
 
-  /** Static's step, from 0, its fur flat, to 3, on end and sparking. */
+  /** How far its fur is lifted, from 0, flat, to 3 (`MOST_LIFT`), on end and sparking: static's multiplier less one. */
   readonly lift = input(0);
 
   /** The pilot's ink in the palette's mode, which colors its body and fur. */

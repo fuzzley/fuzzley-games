@@ -198,6 +198,11 @@ export class GameService extends RunLifecycle {
   /** The best score at the run's speed, as of the last run that ended. */
   readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);
 
+  /** The rules' number the best at the run's speed was made under, as of the last run that ended. */
+  readonly bestRules = computed(
+    () => this.stats.stats().speeds[this.speed()].bestRules,
+  );
+
   /** Whether the run just ended set a new best score at its speed. */
   readonly newBest = computed(() => this.runState().newBest);
 

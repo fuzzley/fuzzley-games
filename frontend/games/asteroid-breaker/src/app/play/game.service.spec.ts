@@ -5,6 +5,7 @@ import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
+import { MOST_LIFT } from "@fz/style/fuzzball";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fillFor } from "../../rules/field/fill";
@@ -16,6 +17,7 @@ import {
 } from "../../rules/run/saved_game";
 import { RULES_VERSION, type SpeedStats } from "../../rules/run/stats";
 import { STILL, type Steer } from "../../rules/ship/ship";
+import { FULL_STEP } from "../../rules/sparks/charge";
 import { STEP_MS } from "../../rules/stepper";
 import {
   CLEAN_POINTS,
@@ -23,6 +25,7 @@ import {
   FIELD_SHORT_SIDE,
   FIRST_CREW,
   STATIC_HOLD_MS,
+  STATIC_MOST,
   STATIC_STEPS,
 } from "../../rules/tuning";
 import { endlessWave } from "../../rules/waves/endless";
@@ -397,6 +400,18 @@ describe("GameService", () => {
       game.tick(FRAME_MS, STILL);
 
       expect(game.lift()).toBe(2);
+    });
+
+    it("lifts its fur on end at full static, no further than at ×4, on static's full step", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      takeUpCharged(game, STATIC_MOST);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect({ lift: game.lift(), step: game.step() }).toEqual({
+        lift: MOST_LIFT,
+        step: FULL_STEP,
+      });
     });
 
     it("looks happy over a cleared wave", async () => {

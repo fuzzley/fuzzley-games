@@ -2,7 +2,12 @@ import { TestBed } from "@angular/core/testing";
 import { playUntil } from "@fz/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { figure, figures } from "@fz/ui/testing";
+import {
+  MemoryStorage,
+  figure,
+  figures,
+  provideMemoryStorage,
+} from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
@@ -18,7 +23,8 @@ import {
 } from "../../testing/play";
 import { runRecords } from "../../testing/records";
 import { GameService } from "../play/game.service";
-import { StatsService } from "../stats/stats.service";
+import { STATS_KEY, StatsService } from "../stats/stats.service";
+import { TUNING } from "../tokens";
 import { ResultComponent } from "./result.component";
 
 /** What a spec gets back from rendering the card. */
@@ -81,6 +87,25 @@ async function renderLost(bestBefore = 0): Promise<RenderedResult> {
   clearToNext(rendered.game);
   endAndOpen(rendered);
   return rendered;
+}
+
+/**
+ * Keeps a best at Normal speed in the player's browser, as a build before
+ * the rules were numbered kept it, so made under earlier rules, for the
+ * card to take up.
+ */
+function keepEarlierBest(best: number): void {
+  const storage = new MemoryStorage();
+  storage.setItem(
+    STATS_KEY,
+    JSON.stringify({
+      version: 1,
+      speeds: { normal: { runs: 1, best, furthest: 2, strays: 0 } },
+    }),
+  );
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(storage)],
+  });
 }
 
 describe("ResultComponent", () => {
@@ -161,6 +186,31 @@ describe("ResultComponent", () => {
       newBest: screen.queryByText("New best"),
       trophy: document.querySelector('fz-icon[name="trophy"]'),
     }).toEqual({ best: "90,000", newBest: null, trophy: null });
+  });
+
+  it("says a best was made under earlier rules, where a run that keeps no records leaves it standing", async () => {
+    keepEarlierBest(90_000);
+    const rendered = await renderAt(SPEC_WAVE.pebble);
+    // A run flown on numbers the debug menu tuned keeps no records.
+    TestBed.inject(TUNING).tune("rockSpeed", 1.5);
+
+    endAndOpen(rendered);
+
+    expect({
+      best: figure("Best, earlier rules"),
+      newBest: screen.queryByText("New best"),
+    }).toEqual({ best: "90,000", newBest: null });
+  });
+
+  it("calls any score a new best over a best made under earlier rules", async () => {
+    keepEarlierBest(90_000);
+
+    await renderLost();
+
+    expect({
+      best: figure("Best"),
+      newBest: screen.queryByText("New best") !== null,
+    }).toEqual({ best: "1,180", newBest: true });
   });
 
   it("draws every fuzzball who flew, each in its color, in the order they went home, and says how many", async () => {

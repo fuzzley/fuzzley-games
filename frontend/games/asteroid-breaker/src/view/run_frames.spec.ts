@@ -11,6 +11,7 @@ import {
   LOOSE_LIFE_MS,
   LOOSE_SWELL_MS,
   STATIC_HOLD_MS,
+  STATIC_MOST,
   STATIC_STEPS,
 } from "../rules/tuning";
 import { type WaveData, wavesOf } from "../rules/waves/waves";
@@ -703,8 +704,9 @@ describe("RunFrames", () => {
       [STATIC_STEPS[2].from, 1],
       [STATIC_STEPS[1].from, 2],
       [STATIC_STEPS[0].from, 3],
+      [STATIC_MOST, 3],
     ])(
-      "lifts the fur a step for each of static's: at %d static, lift %i",
+      "lifts the fur a step for each of static's multipliers, and no further at full static: at %d static, lift %i",
       (level, lift) => {
         const game = underWay(OPEN);
         game.play.field.charge.level = level;

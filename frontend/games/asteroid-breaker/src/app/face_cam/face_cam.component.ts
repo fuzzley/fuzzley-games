@@ -72,7 +72,7 @@ export class FaceCamComponent {
   /** Its face, as the field shows it. */
   readonly face = input<FuzzballFace>("rest");
 
-  /** Static's step, as the field lifts its fur: from 0, flat, to 3, on end and sparking. */
+  /** How far the pilot's fur is lifted, as the field lifts it: from 0, flat, to 3 (`MOST_LIFT`), on end and sparking, static's multiplier less one. */
   readonly lift = input(0);
 
   /** How wide the pilot's grid is drawn, as a share of the glass across. */
