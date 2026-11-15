@@ -213,12 +213,15 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 - `src/view/run_frames.spec.ts` plays a run's frames as the shell does,
   over fields drawn with `fieldFrom()` and waves of its own, and asserts on
-  what each frame changed, its buzz among it, and what it said. It takes
+  what each frame changed, its buzz and the time it counts toward the
+  Cleared card's sum among it, and what it said. It takes
   nothing from `src/testing/play.ts`, which imports the shell's tokens, so
   it runs without Angular, as every spec of the view does.
   `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
   what is a run's own (`withFrame()`), and holds which frames fly a run on
-  tuned numbers.
+  tuned numbers and how far the Cleared card's sum counts up;
+  `src/view/tally.spec.ts` holds the sum as it shows at a time, line by
+  line.
 - `src/testing/art_frames.ts` draws the atlas in one palette (`ART_PALETTE`)
   at one scale (`ART_SCALE`), as `ART_FRAMES`, so the art's specs check the
   commands a frame is drawn with, finding the frame by its name and its
@@ -278,18 +281,22 @@ game through `runScene()`:
   the board's spec holds only that it tells it so, that it gives way to the
   canvas's own, which the board hands it (`@fz/phaser/canvas`'s
   `<fz-canvas-cards>`, whose words, region and Reload the library's spec
-  holds), and that the board takes back the focus as the player goes on from a
-  card. A spec that fails the scene on purpose has the app's `ErrorHandler`
-  collect what the canvas hands it, as the board's does
-  (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the run
-  prints no error it expects.
+  holds), that the board takes back the focus as the player goes on from a
+  card, and, with the real scene, that one key goes on from the Cleared card
+  and starts the next wave. A spec that fails the scene on purpose has the
+  app's `ErrorHandler` collect what the canvas hands it, as the board's does
+  (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the
+  run prints no error it expects.
 - What a frame of play comes to is `RunFrames`'s, and how it folds into
   what is a run's own `withFrame()`'s, which the view's specs hold; the
   shell's spec holds `GameService` to taking it into its signals, the
-  records, the live region and the phone's buzz, and to beginning each run
-  with none of the last one's (`ownOf()`); `HapticsService`'s holds the
-  buzz to where the settings say to. Both stand a buzzer in for
-  `navigator.vibrate()`, which jsdom lacks.
+  records, the live region and the phone's buzz, to the flow between waves
+  (one press going on, the sector's card until the first move, the sum
+  counting up), and to beginning each run with none of the last one's
+  (`ownOf()`, which a field added to `RunState` joins, as it joins
+  `BEGUN_OWN`); `HapticsService`'s holds the buzz to where the settings
+  say to. Both stand a buzzer in for `navigator.vibrate()`, which jsdom
+  lacks.
 - `GameService` plays the small waves of `src/testing/play.ts`, handed to
   it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
   numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless
@@ -299,7 +306,19 @@ game through `runScene()`:
   `ram()`, `toPickup()` or `toStray()`; `playUntil()`, `playFor()`,
   `loseShip()`, `endRun()`, `bringStraysHome()`, `chainUp()`,
   `playToClear()` and `clearToNext()` play on to a point, and `pauseIn()`,
-  `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows.
+  `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows;
+  `pressOn()` goes on from the Cleared card as a flight key does,
+  `command("go")` and then a frame holding it, which starts the next wave,
+  or, into a sector's first, leaves it waiting under the sector's card.
+  `clearToNext()` goes on by Next wave, `nextWave()`, which holds no press,
+  as a run begun by `newGame()` holds none; one a key starts, by
+  `command("go")` once an ended run's result is put away and a flush,
+  waits under its card until a fresh move.
+  jsdom welcomes no motion, so the Cleared card's sum shows whole at once
+  (`tallyMs()` is `TALLY_COUNT_MS`); a spec of it counting up installs the
+  fake viewport. `SECTOR_WAVES` has a run go on into a sector, its card
+  over the wave; the specs' sectors have no words of what is new there, so
+  a spec of them hands the card the game's own `WAVES`.
   `FRAME_MS`, `playUntil()` and `playFor()` are `@fz/core/testing`'s.
   `ROOMY` is how the board lays the field out on a roomy screen with no
   touch, and `SPACE` the key as a browser sends it, made by

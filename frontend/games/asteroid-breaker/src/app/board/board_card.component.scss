@@ -1,24 +1,82 @@
 @use "../styles" as *;
 
 // Over the field, where the board lays the layer, a card in its middle, but
-// for the Ready card. A card keeps the margin the board keeps around the
-// field (`--margin`), the canvas's own too (`--fz-canvas-card-room`), and
-// sizes itself by the board, the size container around it.
+// for a sector's. A card keeps the margin the board keeps around the field
+// (`--margin`), the canvas's own too (`--fz-canvas-card-room`); the
+// canvas's sizes itself by the board, the size container around it, and the
+// layer's own by the field.
 :host {
   @include board-card-layer;
 
   --fz-canvas-card-room: var(--margin);
 }
 
-.card {
-  @include board-card(var(--margin));
+// The room the layer's own cards take, the field's, a size container of its
+// own, so they set themselves by the field's height, which the deck takes a
+// share of the board's from on a phone upright.
+.room {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  container: room / size;
 }
 
-// At the foot of the field, clear of the middle, where a wave's first ship
-// waits for the first move.
-.ready {
-  align-self: end;
-  margin-bottom: var(--margin);
+// At most a room in from each side of the field: the toolkit's card is two
+// in from the board's, which its `cq` units would take from the field here.
+.card {
+  @include board-card(var(--margin));
+
+  max-width: min(320px, 100cqi - 2 * var(--margin));
+}
+
+// At the top of the field, clear of its middle, where the wave's ship
+// waits for the first move: what it opens over the sector's name, large,
+// and its waves, a short rule in the accent under them.
+.sector {
+  align-self: start;
+  margin-top: var(--margin);
+
+  .card-title {
+    font-size: var(--fz-font-2xl);
+    line-height: 1.2;
+  }
+}
+
+.kicker {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-2xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.waves {
+  color: var(--fz-muted);
+
+  &::after {
+    content: "";
+    display: block;
+    width: 2.5em;
+    height: 2px;
+    margin: var(--fz-space-2) auto 0;
+    border-radius: 1px;
+    background: var(--fz-accent);
+  }
+}
+
+// What is new in the sector, and how to fly at the run's start, a line
+// each, held together.
+.news {
+  display: grid;
+  gap: var(--fz-space-1);
+}
+
+// What a card says aside, under the rest: when the wave starts, or that
+// flying goes on too.
+.aside {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
 }
 
 // The trophy over the last sector's Cleared card.
@@ -28,20 +86,8 @@
   color: var(--fz-warning);
 }
 
-// On a small board, as on the smallest phones, every card in the layer sets
-// smaller, the canvas's own too.
-@container (width < 280px) or (height < 360px) {
-  :host {
-    @include board-card-small;
-  }
-
-  .card-icon {
-    --fz-icon-size: 28px;
-  }
-}
-
 // Each part of a cleared wave's points on a line, its name and its points at
-// either end.
+// either end, and their total under a rule.
 .tally {
   display: grid;
   gap: var(--fz-space-1);
@@ -57,5 +103,76 @@
   dd {
     margin: 0;
     font-variant-numeric: tabular-nums;
+  }
+
+  .total {
+    margin-top: var(--fz-space-1);
+    padding-top: var(--fz-space-2);
+    border-top: 1px solid var(--fz-edge-3);
+    font-weight: 700;
+  }
+}
+
+// The crew, under the sum.
+.crew {
+  margin-top: var(--fz-space-1);
+}
+
+// On a small board, as on the smallest phones, every card in the layer sets
+// smaller, the canvas's own too.
+@container (width < 280px) or (height < 360px) {
+  :host {
+    @include board-card-small;
+  }
+}
+
+// On a field short of the room a card takes at its full size, as on a phone
+// upright over its deck or one on its side, the layer's own cards set
+// smaller, and the Cleared card's sum closer; last, so it overrides what is
+// set above.
+@container room (width < 280px) or (height < 420px) {
+  .card {
+    @include board-card-small;
+  }
+
+  .card-icon {
+    --fz-icon-size: 28px;
+  }
+
+  .sector .card-title {
+    font-size: var(--fz-font-xl);
+  }
+
+  .aside {
+    font-size: var(--fz-font-xs);
+  }
+
+  .tally {
+    gap: 0;
+    line-height: 1.25;
+
+    .total {
+      margin-top: 0;
+      padding-top: var(--fz-space-1);
+    }
+  }
+
+  .crew {
+    margin-top: 0;
+  }
+}
+
+// On a field shorter still, as on the smallest phone upright or a small one
+// on its side, the Cleared card's sum shows its total alone.
+@container room (height < 300px) {
+  .tally {
+    > div:not(.total) {
+      display: none;
+    }
+
+    .total {
+      padding-top: 0;
+      border-top: 0;
+    }
   }
 }

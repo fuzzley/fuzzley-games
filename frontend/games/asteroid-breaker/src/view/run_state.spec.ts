@@ -2,6 +2,7 @@ import type { WaveTally } from "../rules/field/scoring";
 import { type Run, createRun, startWave } from "../rules/run/run";
 import type { FrameChange } from "./run_frames";
 import { type RunState, newRunState, withFrame } from "./run_state";
+import { TALLY_COUNT_MS } from "./tally";
 
 /** A run waiting at its first wave for its first move. */
 const RUN: Run = createRun({ id: 1, seed: 7, speed: "normal", wave: 1 });
@@ -20,11 +21,15 @@ const QUIET: FrameChange = {
   chain: null,
   tally: null,
   opens: null,
+  countMs: 0,
   buzz: null,
 };
 
 /** What a frame of a wave under way hands the shell that changed nothing of it. */
 const PLAYED: FrameChange = { ...QUIET, moved: true, chain: 1 };
+
+/** What a frame of a cleared wave hands the shell, where motion is welcome. */
+const CLEARED_FRAME: FrameChange = { ...QUIET, countMs: 16 };
 
 /** How a cleared wave's points added up. */
 const TALLY: WaveTally = {
@@ -48,6 +53,7 @@ describe("newRunState", () => {
       chain: 1,
       tally: null,
       clearedOpen: false,
+      tallyMs: 0,
       newBest: false,
       clearedAll: false,
       broughtHome: [],
@@ -209,6 +215,46 @@ describe("withFrame", () => {
       );
 
       expect(after).toMatchObject({ clearedOpen: true, resultOpen: true });
+    });
+  });
+
+  describe("the Cleared card's sum", () => {
+    it("counts nothing up before the card opens", () => {
+      const state = stateOf();
+
+      expect(withFrame(state, CLEARED_FRAME, AS_WRITTEN)).toBe(state);
+    });
+
+    it("counts the frame that opens the card", () => {
+      const after = withFrame(
+        stateOf(),
+        { ...CLEARED_FRAME, opens: "cleared" },
+        AS_WRITTEN,
+      );
+
+      expect(after.tallyMs).toBe(16);
+    });
+
+    it("counts up by each frame's time while the card shows", () => {
+      const state = stateOf({ clearedOpen: true, tallyMs: 100 });
+
+      const after = withFrame(state, CLEARED_FRAME, AS_WRITTEN);
+
+      expect(after.tallyMs).toBe(116);
+    });
+
+    it("counts up no further than the whole count", () => {
+      const state = stateOf({ clearedOpen: true, tallyMs: TALLY_COUNT_MS - 1 });
+
+      const after = withFrame(state, CLEARED_FRAME, AS_WRITTEN);
+
+      expect(after.tallyMs).toBe(TALLY_COUNT_MS);
+    });
+
+    it("returns the same state once the sum is whole", () => {
+      const state = stateOf({ clearedOpen: true, tallyMs: TALLY_COUNT_MS });
+
+      expect(withFrame(state, CLEARED_FRAME, AS_WRITTEN)).toBe(state);
     });
   });
 

@@ -1,13 +1,14 @@
 import { TestBed } from "@angular/core/testing";
-import { FRAME_MS } from "@fz/core/testing";
+import { FRAME_MS, playFor } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { figures } from "@fz/ui/testing";
+import { figure, figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
-import type { WaveEntry } from "../../rules/waves/waves";
+import { WAVES, type WaveEntry } from "../../rules/waves/waves";
 import {
   ROOMY,
+  SECTOR_WAVES,
   SPACE,
   SPEC_WAVE,
   STRAY_WAVES,
@@ -22,6 +23,7 @@ import {
   shoot,
 } from "../../testing/play";
 import { CLEARED_MS } from "../../view/effects/timing";
+import { TALLY_COUNT_MS } from "../../view/tally";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
@@ -79,10 +81,30 @@ async function startedAt(wave: number): Promise<RenderedCard> {
 }
 
 describe("BoardCardComponent", () => {
-  it("names the wave, and says how to fly by the keys, while it waits", async () => {
+  it("opens a new run with its sector, its waves and its wave, which starts as the ship flies", async () => {
     await renderCard();
 
-    expect(screen.getByText("Wave 1: Pebble")).toBeInTheDocument();
+    expect(screen.getByText("A new run")).toBeInTheDocument();
+    expect(screen.getByText("Specs")).toBeInTheDocument();
+    expect(screen.getByText("Waves 1 to 3")).toBeInTheDocument();
+    expect(
+      screen.getByText("Wave 1, Pebble · starts when you fly"),
+    ).toBeInTheDocument();
+  });
+
+  it("says what is new in the sector", async () => {
+    await renderCard(ROOMY, WAVES);
+
+    expect(screen.getByText("Inner belt")).toBeInTheDocument();
+    expect(
+      screen.getByText("Break every rock to clear a wave."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Crystals let pickups go.")).toBeInTheDocument();
+  });
+
+  it("says how to fly by the keys over a new run's first wave", async () => {
+    await renderCard();
+
     expect(
       screen.getByText("Arrows or W A D to fly, Space to fire."),
     ).toBeInTheDocument();
@@ -123,9 +145,32 @@ describe("BoardCardComponent", () => {
   );
 
   it("shows nothing over a ship in flight", async () => {
-    await startedAt(SPEC_WAVE.gift);
+    const { layer } = await startedAt(SPEC_WAVE.gift);
 
+    expect(layer.querySelector(".card")).toBeNull();
+  });
+
+  it("opens a sector the run goes on to, saying nothing of how to fly", async () => {
+    const { game, detectChanges } = await renderCard(ROOMY, SECTOR_WAVES);
+
+    clearToNext(game);
+    detectChanges();
+
+    expect(screen.getByText("A new sector")).toBeInTheDocument();
+    expect(screen.getByText("Waves 2 to 3")).toBeInTheDocument();
+    expect(
+      screen.getByText("Wave 2, Far · starts when you fly"),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/to fly/)).not.toBeInTheDocument();
+  });
+
+  it("lays no card over a wave gone on to within a sector", async () => {
+    const { game, layer, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+
+    clearToNext(game);
+    detectChanges();
+
+    expect(layer.querySelector(".card")).toBeNull();
   });
 
   it("says the wave is paused, with the score", async () => {
@@ -173,7 +218,7 @@ describe("BoardCardComponent", () => {
     }).toEqual({ outcome: "playing", handedBack: 1 });
   });
 
-  it("adds up a cleared wave's points", async () => {
+  it("adds up a cleared wave's points, whole at once where the player prefers less motion", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
     clearIn(game);
@@ -185,7 +230,20 @@ describe("BoardCardComponent", () => {
       ["Strays brought home", "0"],
       ["Wave cleared", "500"],
       ["No ship lost", "500"],
+      ["Total", "1,040"],
     ]);
+  });
+
+  it("draws the crew, and says how many", async () => {
+    const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+
+    clearIn(game);
+    detectChanges();
+
+    const crew = screen.getByText("3 fuzzballs in the crew");
+    expect(
+      crew.closest("app-pilot-row")?.querySelectorAll("app-pilot"),
+    ).toHaveLength(3);
   });
 
   it("says the last sector is cleared and Endless begins, with the trophy", async () => {
@@ -208,13 +266,14 @@ describe("BoardCardComponent", () => {
     expect(document.querySelector('fz-icon[name="trophy"]')).toBeNull();
   });
 
-  it("says a move or a shot goes on to the next wave", async () => {
+  it("names the next wave, and says flying goes on too", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
     clearIn(game);
     detectChanges();
 
-    expect(screen.getByText("Move or fire for wave 2.")).toBeInTheDocument();
+    expect(screen.getByText("Next: wave 2, Gift")).toBeInTheDocument();
+    expect(screen.getByText("or just start flying")).toBeInTheDocument();
   });
 
   it("goes on to the next wave at the Cleared card's button, and hands the board back the focus", async () => {
@@ -230,15 +289,6 @@ describe("BoardCardComponent", () => {
       wave: game.wave().number,
       handedBack: handBack.mock.calls.length,
     }).toEqual({ wave: SPEC_WAVE.gift, handedBack: 1 });
-  });
-
-  it("names the next wave while it waits for its first move", async () => {
-    const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
-
-    clearToNext(game);
-    detectChanges();
-
-    expect(screen.getByText("Wave 2: Gift")).toBeInTheDocument();
   });
 
   it.each([
@@ -273,6 +323,32 @@ describe("BoardCardComponent", () => {
       detectChanges();
 
       expect(screen.queryByText("Wave 1 cleared")).not.toBeInTheDocument();
+    });
+
+    it("counts a cleared wave's points up, line by line, as its card opens", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+
+      clearIn(game);
+      detectChanges();
+
+      expect(figures()).toEqual([
+        ["Rocks", "8"],
+        ["Chains", "0"],
+        ["Strays brought home", "0"],
+        ["Wave cleared", "0"],
+        ["No ship lost", "0"],
+        ["Total", "8"],
+      ]);
+    });
+
+    it("shows a cleared wave's points whole once they have counted up", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+      clearIn(game);
+
+      playFor(game, TALLY_COUNT_MS, STILL);
+      detectChanges();
+
+      expect(figure("Total")).toBe("1,040");
     });
   });
 

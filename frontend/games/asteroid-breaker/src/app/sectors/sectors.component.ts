@@ -4,6 +4,7 @@ import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
 import { sectorSpans } from "../../rules/run/progress";
 import { GameService } from "../play/game.service";
+import { wavesInWords } from "../play/sector_card";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES } from "../tokens";
@@ -79,12 +80,4 @@ export class SectorsComponent {
 function statusOf(open: boolean, best: number | undefined): string | null {
   if (!open) return "Locked";
   return best === undefined ? null : `Best ${formatPoints(best)}`;
-}
-
-/** Returns the waves a sector holds, in words: "Waves 1 to 5", "Wave 6" for one, or "From wave 31" for Endless. */
-function wavesInWords(first: number, last: number | null): string {
-  if (last === null) return `From wave ${String(first)}`;
-  return first === last
-    ? `Wave ${String(first)}`
-    : `Waves ${String(first)} to ${String(last)}`;
 }

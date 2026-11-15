@@ -27,6 +27,7 @@ import {
   reshapeField,
 } from "../../rules/field/field";
 import { rocksLeft } from "../../rules/rocks/rocks";
+import { sectorSpans } from "../../rules/run/progress";
 import {
   type Run,
   createRun,
@@ -67,6 +68,7 @@ import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES, TUNING } from "../tokens";
 import { HapticsService } from "./haptics.service";
+import { describeSector, sectorCardOf } from "./sector_card";
 
 /** The field's shape before the board says what room it has: a square of the short side. */
 const FIRST_TORUS: Torus = {
@@ -83,12 +85,17 @@ const FIRST_TORUS: Torus = {
  * wave cleared, and keeps the records and the sectors reached, but for a
  * run flown on numbers the debug menu tuned.
  *
+ * One card lies between waves, the Cleared card, and one press goes on from
+ * it: a flight key or a press on the field lays the next wave out and is its
+ * first move. A wave at the start of the run or of a sector waits under the
+ * sector's card instead, until a fresh move.
+ *
  * The run and what is its own are one signal, replaced whole as each run
  * begins, which changes only when the field comes to something the run
- * takes: points, a ship, a stray, a clearing, a card. The field changes
- * 120 times a second, so no signal holds it; the scene reads it through
- * {@link frame}, and what the shell shows of it is copied into the run's
- * state only when it changes.
+ * takes, points, a ship, a stray, a clearing, a card, and as the Cleared
+ * card's sum counts up. The field changes 120 times a second, so no signal
+ * holds it; the scene reads it through {@link frame}, and what the shell
+ * shows of it is copied into the run's state only when it changes.
  */
 @Injectable({ providedIn: "root" })
 export class GameService extends RunLifecycle {
@@ -114,6 +121,20 @@ export class GameService extends RunLifecycle {
   private wavePlay: WavePlay;
   /** What each frame of the wave in play comes to in the run, and what to say of it. */
   private readonly runFrames = new RunFrames(this.waves);
+  /** The waves each sector spans, Endless last, which the sector's card names. */
+  private readonly spans = sectorSpans(this.waves);
+  /**
+   * Whether a key or a press on the board asked to go on since the last
+   * frame, which a run it starts, or a sector's first wave it goes on to,
+   * holds as no move.
+   */
+  private pressedGo = false;
+  /**
+   * Whether the next frame lays the wave in play out again, with what it
+   * holds, as a key or a press laid it out under a sector's card: still
+   * held then, it is no move there, so the card shows until a fresh one.
+   */
+  private holdThePress = false;
 
   /** The run on the board. */
   readonly run = computed(() => this.runState().run);
@@ -157,10 +178,11 @@ export class GameService extends RunLifecycle {
    */
   readonly broughtHome = computed(() => this.runState().broughtHome);
 
-  /** The wave after the one in play, or the last one cleared, which the run goes on to. */
-  private readonly waveAfter = computed(() =>
-    this.waveEntry(this.waveNumber() + 1),
-  );
+  /**
+   * The wave after the one in play, or the last one cleared, which the run
+   * goes on to, as the Cleared card names it.
+   */
+  readonly waveAfter = computed(() => this.waveEntry(this.waveNumber() + 1));
 
   /**
    * Whether the wave in play, or the last one cleared, is the last
@@ -214,6 +236,30 @@ export class GameService extends RunLifecycle {
   readonly tally = computed(() => this.runState().tally);
 
   /**
+   * How far the Cleared card's sum has counted up since the card opened, in
+   * milliseconds: whole at once where motion is unwelcome.
+   */
+  readonly tallyMs = computed(() => this.runState().tallyMs);
+
+  /** The wave the run started at, which a new run's card opens. */
+  private readonly firstWave = computed(() => this.run().firstWave);
+
+  /**
+   * The card over the wave in play while it waits for its first move at the
+   * start of the run or of a sector, or null for none, as over a wave gone
+   * on to within a sector.
+   */
+  readonly sectorCard = computed(() =>
+    this.outcome() === "ready"
+      ? sectorCardOf(
+          this.spans,
+          this.wave(),
+          this.waveNumber() === this.firstWave(),
+        )
+      : null,
+  );
+
+  /**
    * Whether the card over an ended run is showing, which opens once the
    * last ship's burst has faded.
    */
@@ -232,6 +278,7 @@ export class GameService extends RunLifecycle {
     const run = this.create(this.settings.settings().speed, 1);
     this.wavePlay = this.playOf(run);
     this.runState = signal(newRunState(run));
+    this.sayCard();
     inject(DestroyRef).onDestroy(
       this.tuner.onTune(() => {
         this.retune();
@@ -248,6 +295,11 @@ export class GameService extends RunLifecycle {
    */
   tick(deltaMs: number, steer: Readonly<Steer>): void {
     Object.assign(this.held, steer);
+    this.pressedGo = false;
+    if (this.holdThePress) {
+      this.holdThePress = false;
+      this.wavePlay = this.playOf(this.run());
+    }
     const before = this.runState();
     const change = this.runFrames.advance(
       this.wavePlay,
@@ -297,7 +349,8 @@ export class GameService extends RunLifecycle {
 
   /**
    * Goes on with a paused wave, once the board is drawn, and says so: one
-   * taken up before its first move waits for it again.
+   * taken up before its first move waits for it again, under the sector's
+   * card, said too, where the run or a sector starts.
    */
   resume(): void {
     if (!this.drawn()) return;
@@ -305,7 +358,23 @@ export class GameService extends RunLifecycle {
     const after = resume(before, this.wavePlay.field);
     if (after === before) return;
     this.setRun(after);
-    this.announcer.say(describeResume());
+    this.holdAPress();
+    const resumed = describeResume();
+    this.announcer.say(
+      this.sectorCard() ? `${resumed} ${this.waitingWords()}` : resumed,
+    );
+  }
+
+  /**
+   * Goes on as a key or a press on the board asks, and minds that it did
+   * until the next frame: the key or the press is the first move of the
+   * wave it goes on to, but of one it lays out under the sector's card, as
+   * it starts a run or goes on to a sector, whose card shows until a fresh
+   * move.
+   */
+  protected override go(): void {
+    this.pressedGo = true;
+    super.go();
   }
 
   /**
@@ -319,7 +388,8 @@ export class GameService extends RunLifecycle {
   /**
    * Goes on to the wave after the one just cleared, once its card is
    * showing and the board is drawn, laid out on the board's room to wait
-   * for the first move, and says which it is.
+   * for the first move, and says which it is, and the sector it opens, if
+   * it opens one.
    */
   nextWave(): void {
     const state = this.runState();
@@ -334,10 +404,11 @@ export class GameService extends RunLifecycle {
       run: after,
       chain: 1,
       clearedOpen: false,
+      tallyMs: 0,
     };
     this.runState.set(this.keep(before, next));
-    const rocks = rocksLeft(this.wavePlay.field);
-    this.announcer.say(describeWave(this.wave(), rocks));
+    this.holdAPress();
+    this.announcer.say(this.waitingWords());
   }
 
   /**
@@ -478,6 +549,21 @@ export class GameService extends RunLifecycle {
     this.runState.update((state) => ({ ...state, run }));
   }
 
+  /** Says the card over the wave in play as it waits at the start of the run or of a sector, if one shows. */
+  private sayCard(): void {
+    if (this.sectorCard()) this.announcer.say(this.waitingWords());
+  }
+
+  /**
+   * Returns what is said of the wave in play as it waits for its first
+   * move: which it is, with the sector's card over it, if one shows.
+   */
+  private waitingWords(): string {
+    const card = this.sectorCard();
+    const wave = describeWave(this.wave(), rocksLeft(this.wavePlay.field));
+    return card ? describeSector(card, wave) : wave;
+  }
+
   /** Says what the frame gathered, all at once, a run's end with what it set. */
   private sayNews(): void {
     const news = this.runFrames.news(this.endMarks());
@@ -539,12 +625,22 @@ export class GameService extends RunLifecycle {
   /**
    * Puts a new run on the board, its state replaced whole, so nothing of the
    * last run's reaches it, at its wave laid out, or on a field kept for it,
-   * before the run is.
+   * before the run is, and says the card over its wave, if one shows.
    */
   private begin(state: RunState, field: Field = this.fieldOf(state.run)): void {
     this.wavePlay = this.playOf(state.run, field);
     this.runState.set(state);
+    this.holdAPress();
     this.began();
+    this.sayCard();
+  }
+
+  /**
+   * Holds the key or the press that laid the wave in play out as no move
+   * there, if one did and the wave waits under the sector's card.
+   */
+  private holdAPress(): void {
+    this.holdThePress = this.pressedGo && this.sectorCard() !== null;
   }
 
   /**

@@ -42,10 +42,12 @@ import {
   STRAY_WAVES,
   bringStraysHome,
   chainUp,
+  clearIn,
   clearToNext,
   endRun,
   loseShip,
   playToClear,
+  pressOn,
   provideSpecWaves,
   shoot,
   toPickup,
@@ -55,6 +57,7 @@ import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
 import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
+import { TALLY_COUNT_MS } from "../../view/tally";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -94,6 +97,7 @@ const BEGUN_OWN = {
   chain: 1,
   tally: null,
   clearedOpen: false,
+  tallyMs: 0,
   newBest: false,
   clearedAll: false,
   broughtHome: [],
@@ -161,6 +165,7 @@ function ownOf(game: GameService): Record<string, unknown> {
     chain: game.chain(),
     tally: game.tally(),
     clearedOpen: game.clearedOpen(),
+    tallyMs: game.tallyMs(),
     newBest: game.newBest(),
     clearedAll: game.clearedAll(),
     broughtHome: game.broughtHome(),
@@ -439,7 +444,9 @@ describe("GameService", () => {
       expect({
         number: game.wave().number,
         endless: isEndless(game.wave()),
-        said: /^Wave 4, Endless\. \d+ rocks\.$/.test(said()),
+        said: /^A new sector: Endless\. From wave 4\. .+ Wave 4, Endless\. \d+ rocks\. It starts when you fly\.$/.test(
+          said(),
+        ),
       }).toEqual({ number: SPEC_WAVE.last + 1, endless: true, said: true });
     });
 
@@ -495,6 +502,225 @@ describe("GameService", () => {
       expect({ outcome: game.outcome(), wave: game.wave() }).toEqual({
         outcome: "playing",
         wave,
+      });
+    });
+  });
+
+  describe("the Cleared card", () => {
+    it("names the wave the run goes on to", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+
+      expect(game.waveAfter().number).toBe(SPEC_WAVE.gift);
+    });
+
+    it("shows its sum whole at once where the player prefers less motion", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      clearIn(game);
+
+      expect(game.tallyMs()).toBe(TALLY_COUNT_MS);
+    });
+
+    describe("where motion is welcome", () => {
+      beforeEach(() => {
+        installFakeViewport(1024, 768);
+      });
+
+      it("counts its sum up by the frames' time once it shows", async () => {
+        const game = await gameAt(SPEC_WAVE.pebble);
+        clearIn(game);
+        const opened = game.tallyMs();
+
+        game.tick(100, STILL);
+
+        expect(game.tallyMs()).toBe(opened + 100);
+      });
+
+      it("counts its sum up no further than whole", async () => {
+        const game = await gameAt(SPEC_WAVE.pebble);
+        clearIn(game);
+
+        playFor(game, TALLY_COUNT_MS + 100, STILL);
+
+        expect(game.tallyMs()).toBe(TALLY_COUNT_MS);
+      });
+
+      it("counts the next wave's sum up from nothing", async () => {
+        const game = await gameAt(SPEC_WAVE.pebble);
+        clearIn(game);
+        playFor(game, TALLY_COUNT_MS, STILL);
+        game.nextWave();
+
+        clearIn(game);
+
+        expect(game.tallyMs()).toBe(FRAME_MS);
+      });
+    });
+  });
+
+  describe("one press going on", () => {
+    it("goes on to the next wave at a flight key or a press on the field, which starts it", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+      game.tick(FRAME_MS, STILL);
+
+      pressOn(game);
+
+      expect({
+        wave: game.wave().number,
+        outcome: game.outcome(),
+        card: game.sectorCard(),
+      }).toEqual({ wave: SPEC_WAVE.gift, outcome: "playing", card: null });
+    });
+
+    it("lays no card over a wave gone on to within a sector", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      clearToNext(game);
+
+      expect({ outcome: game.outcome(), card: game.sectorCard() }).toEqual({
+        outcome: "ready",
+        card: null,
+      });
+    });
+  });
+
+  describe("the sector's card", () => {
+    it("opens a new run's first wave, waiting for its first move, and says so", () => {
+      const game = TestBed.inject(GameService);
+
+      expect({ card: game.sectorCard(), said: said() }).toEqual({
+        card: {
+          opensRun: true,
+          kicker: "A new run",
+          name: "Specs",
+          waves: "Waves 1 to 3",
+          news: [],
+          wave: "Wave 1, Pebble",
+        },
+        said: "A new run: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
+      });
+    });
+
+    it("opens every run begun, and says so", async () => {
+      const game = await gameAt(SPEC_WAVE.gift);
+
+      expect({ card: game.sectorCard()?.wave, said: said() }).toEqual({
+        card: "Wave 2, Gift",
+        said: "A new run: Specs. Waves 1 to 3. Wave 2, Gift. 1 rock. It starts when you fly.",
+      });
+    });
+
+    it("goes as the first move starts the wave", () => {
+      const game = TestBed.inject(GameService);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(game.sectorCard()).toBeNull();
+    });
+
+    it("opens a sector the run goes on to, and says so with the wave", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      clearToNext(game);
+
+      expect({ card: game.sectorCard(), said: said() }).toEqual({
+        card: {
+          opensRun: false,
+          kicker: "A new sector",
+          name: "Far",
+          waves: "Waves 2 to 3",
+          news: [],
+          wave: "Wave 2, Far",
+        },
+        said: "A new sector: Far. Waves 2 to 3. Wave 2, Far. 1 rock. It starts when you fly.",
+      });
+    });
+
+    it("stays over a sector's first wave through the frame after the press that went on to it, held", () => {
+      const game = gameOver(SECTOR_WAVES);
+      clearIn(game);
+
+      pressOn(game);
+
+      expect({
+        wave: game.wave().number,
+        outcome: game.outcome(),
+        card: game.sectorCard()?.name,
+      }).toEqual({ wave: 2, outcome: "ready", card: "Far" });
+    });
+
+    it("goes at a fresh move after the press that went on", () => {
+      const game = gameOver(SECTOR_WAVES);
+      clearIn(game);
+      pressOn(game);
+      game.tick(FRAME_MS, STILL);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect({ outcome: game.outcome(), card: game.sectorCard() }).toEqual({
+        outcome: "playing",
+        card: null,
+      });
+    });
+
+    it("stays over a run a key or a press starts, held until a fresh move", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      game.closeResult();
+      game.command("go");
+      await flush();
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect({
+        outcome: game.outcome(),
+        card: game.sectorCard()?.kicker,
+        said: said(),
+      }).toEqual({
+        outcome: "ready",
+        card: "A new run",
+        said: "A new run: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
+      });
+    });
+
+    it("goes at a fresh move after the key or the press that started the run", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      game.closeResult();
+      game.command("go");
+      await flush();
+      game.tick(FRAME_MS, shoot(game));
+      game.tick(FRAME_MS, STILL);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("holds no move over a run begun but by a key or a press", async () => {
+      const game = await endedAt(SPEC_WAVE.pebble);
+      game.closeResult();
+      await game.newGame();
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("stays over a sector's first wave taken up, as a key or a press goes on with it, and says it", () => {
+      const game = gameOver(SECTOR_WAVES);
+      clearIn(game);
+      game.takeUp(takenUp(game, game.saved(), SECTOR_WAVES));
+      game.command("go");
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect({
+        outcome: game.outcome(),
+        card: game.sectorCard()?.name,
+        said: said(),
+      }).toEqual({
+        outcome: "ready",
+        card: "Far",
+        said: "Going on. A new sector: Far. Waves 2 to 3. Wave 2, Far. 1 rock. It starts when you fly.",
       });
     });
   });

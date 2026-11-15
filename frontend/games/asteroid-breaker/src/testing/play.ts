@@ -253,6 +253,16 @@ export function clearToNext(game: GameService): void {
   game.nextWave();
 }
 
+/**
+ * Goes on from the Cleared card by a press, as a flight key or a press on
+ * the field does, then plays a frame of the next wave with it held, firing
+ * at its nearest rock.
+ */
+export function pressOn(game: GameService): void {
+  game.command("go");
+  game.tick(FRAME_MS, shoot(game));
+}
+
 /** Ends the run, and puts its result away, for the Ended card. */
 export function endIn(game: GameService): void {
   endRun(game);
