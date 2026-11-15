@@ -1,3 +1,4 @@
+import type { Field } from "../../rules/field/field";
 import type { Rock } from "../../rules/rocks/rocks";
 import { stepsIn } from "../../rules/stepper";
 import { COMET_MARGIN, PICKUP_BLINK_MS, ROCK_RADIUS } from "../../rules/tuning";
@@ -11,6 +12,7 @@ import {
   shown,
   startBoard,
   stillness,
+  withShip,
 } from "../../testing/belt_board";
 import {
   KEEPER,
@@ -19,15 +21,18 @@ import {
   placePickup,
   placeRock,
   placeShot,
+  shipOf,
 } from "../../testing/field_picture";
 import {
   type Halo,
   MOST_ROCK_HALOS,
   SHOTS,
+  flameHalo,
   haloAlpha,
   rockHalos,
   roundHalo,
 } from "../../view/art/energy";
+import { ENGINES } from "../../view/art/pod_art";
 import {
   CHEVRON_HALOS,
   COMET_HALOS,
@@ -189,7 +194,7 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
-  it("make room for all a field's rocks, shots, pickups and comets could give off, as the field starts", async () => {
+  it("make room for all a field's rocks, shots, pickups and comets and the pod's flame could give off, as the field starts", async () => {
     const board = await startBoard();
     board.shell.field = fieldFrom(KEEPER, { cap: 60 });
 
@@ -200,7 +205,8 @@ describe("the halos", () => {
       60 * MOST_ROCK_HALOS +
         shots.slots.length +
         pickups.length +
-        2 * comets.slots.length,
+        2 * comets.slots.length +
+        ENGINES.length,
     );
   });
 
@@ -350,6 +356,73 @@ describe("the halos", () => {
     ]);
   });
 
+  it("draw the pod's flame's halo behind each engine, in the flame's color, as long as the thrust makes the flame", async () => {
+    const board = await startBoard((each) => {
+      withShip(each);
+      stillness(each);
+    });
+    const ship = shipOf(board.shell.field);
+    ship.held.thrust = 0.5;
+    const metrics = metricsOf(board.shell);
+    const palette = board.shell.colors;
+    const halos = ENGINES.map((engine) =>
+      flameHalo(engine, 0.5, palette, {
+        along: 0,
+        across: 0,
+        ahead: 0,
+        turn: 0,
+        strength: 0,
+      }),
+    );
+
+    board.run.advance(16);
+
+    expect({
+      shown: shownHalos(board).map((copies) => copies[0]),
+      tints: board.scene.kit.halos.halos
+        .slice(0, ENGINES.length)
+        .map((copies) => copies.images[0]?.tintTopLeft),
+    }).toEqual({
+      shown: halos.map((halo) =>
+        onCanvas(
+          metrics,
+          ship.x + Math.cos(ship.angle + halo.turn) * halo.ahead,
+          ship.y + Math.sin(ship.angle + halo.turn) * halo.ahead,
+        ),
+      ),
+      tints: ENGINES.map(() => palette.flame),
+    });
+  });
+
+  it.each([
+    [
+      "with no thrust",
+      (field: Field): void => {
+        shipOf(field).held.thrust = 0;
+      },
+    ],
+    [
+      "once the wave is cleared",
+      (field: Field): void => {
+        field.cleared = true;
+      },
+    ],
+    [
+      "with no pilot at the controls",
+      (field: Field): void => {
+        field.crew = { ...field.crew, pilot: null };
+      },
+    ],
+  ])("draw no flame's halo %s", async (_, arrange) => {
+    const board = await startBoard(withShip);
+    shipOf(board.shell.field).held.thrust = 1;
+    arrange(board.shell.field);
+
+    board.run.advance(16);
+
+    expect(shownHalos(board)).toEqual([]);
+  });
+
   it("draw a rock's halos where the rock is drawn between its last place and its next", async () => {
     const board = await startBoard((each) => {
       each.alpha = 0.5;
@@ -412,6 +485,7 @@ describe("a halo another painter shows", () => {
         board.shell.field.shots.slots.length +
         board.shell.field.pickups.length +
         2 * board.shell.field.comets.slots.length +
+        ENGINES.length +
         1,
     );
   });

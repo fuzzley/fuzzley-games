@@ -2,13 +2,17 @@ import { lerp } from "@fz/core/math";
 import { softDisc } from "@fz/phaser/scene";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, wrap } from "../../rules/torus";
+import { thrustOf } from "../../rules/ship/ship";
 import {
   type Halo,
   MOST_ROCK_HALOS,
   SHOTS,
+  type WrittenHalo,
+  flameHalo,
   haloAlpha,
   rockHalos,
 } from "../../view/art/energy";
+import { ENGINES } from "../../view/art/pod_art";
 import {
   CHEVRON_HALOS,
   COMET_HALOS,
@@ -39,9 +43,10 @@ const WHOLE = "__BASE";
  * its own color, under plain alpha, from images of one soft disc made
  * once, each turned, scaled and faded as the view's halo says, on both sides
  * of an edge it reaches across: a crystal's gems' and a volatile rock's
- * core's, turning with their rock, each shot's, in the accent, along
- * its travel, and each pickup's, breathing with its orb; and once, for the
- * field's camera to cut off, each comet's and its warning's lit chevron's.
+ * core's, turning with their rock, each shot's, in the accent, along its
+ * travel, each pickup's, breathing with its orb, and the pod's flame's, as
+ * long as its thrust; and once, for the field's camera to cut off, each
+ * comet's and its warning's lit chevron's.
  *
  * Another painter shows a halo of its own through {@link glow}, or
  * {@link glowOnce} for a thing that crosses rather than wraps, each frame
@@ -61,6 +66,14 @@ export class HaloPainter implements Painter {
   private readonly look = restingLook();
   /** The halo of the pickup being shown, written for each. */
   private readonly orbHalo = {
+    along: 0,
+    across: 0,
+    ahead: 0,
+    turn: 0,
+    strength: 0,
+  };
+  /** The halo of the pod's flame behind the engine being shown, written for each. */
+  private readonly engineHalo: WrittenHalo = {
     along: 0,
     across: 0,
     ahead: 0,
@@ -95,8 +108,8 @@ export class HaloPainter implements Painter {
 
   /**
    * Makes the images a new field's halos need, those it lacks, as many as
-   * all its rocks, shots, pickups and comets could give off at once and
-   * those reserved, so none is made in a frame of play.
+   * all its rocks, shots, pickups, comets and the pod's flame could give
+   * off at once and those reserved, so none is made in a frame of play.
    */
   start(field: FieldView): void {
     const wanted =
@@ -104,6 +117,7 @@ export class HaloPainter implements Painter {
       field.shots.slots.length +
       field.pickups.length +
       2 * field.comets.slots.length +
+      ENGINES.length +
       this.reserved;
     while (this.halosMade.length < wanted) {
       this.halosMade.push(
@@ -140,6 +154,7 @@ export class HaloPainter implements Painter {
     }
     this.drawPickups(context);
     this.drawComets(context);
+    this.drawFlame(context);
     for (let i = this.shown; i < before; i++) this.halosMade[i]?.hide();
   }
 
@@ -162,6 +177,26 @@ export class HaloPainter implements Painter {
       wrappedBetween(floating, alpha, field.torus, this.drawn);
       this.drawn.angle = 0;
       this.glow(this.orbHalo, palette.accent, this.drawn, context);
+    }
+  }
+
+  /**
+   * Draws the halo of the pod's flame behind each engine, in the flame's
+   * color, as long as the thrust makes the flame, while the pod's painter
+   * draws it: none with no thrust, no ship or no pilot at its controls, or
+   * once the wave is cleared.
+   */
+  private drawFlame(context: Readonly<PaintContext>): void {
+    const { field, shipDrawn, palette } = context;
+    const { ship } = field;
+    if (!ship || !shipDrawn || field.crew.pilot === null || field.cleared) {
+      return;
+    }
+    const thrust = thrustOf(ship);
+    if (thrust <= 0) return;
+    for (const engine of ENGINES) {
+      flameHalo(engine, thrust, palette, this.engineHalo);
+      this.glow(this.engineHalo, palette.flame, shipDrawn, context);
     }
   }
 

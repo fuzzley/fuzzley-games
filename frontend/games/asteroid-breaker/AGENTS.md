@@ -609,7 +609,11 @@ takes for the specs' helpers.
   its spec; and the muzzle's flash, a star in the accent with its middle,
   whole in its frame (`MUZZLE_FRAME`) and smaller and fainter in its
   second beat (`MUZZLE_BEATS`), with its halo ahead of the muzzle
-  (`muzzleHalo()`); `energyFrames()` draws their frames;
+  (`muzzleHalo()`); `energyFrames()` draws their frames; and the halo of
+  the pod's flame behind each engine, round, as long as the flame at its
+  thrust (`flameShare()`), at the kit's opacity for it (`flameHalo()`,
+  `FLAME_GLOW`), its full length held to the pod's flame's frame by its
+  spec;
   `things.ts` what drifts on the field to be caught, as the art kit's
   `things.mjs` draws it: each pickup as a round glass orb (`ORB`), the
   field's color tinted with the accent (`orbColors()`), outlined in the
@@ -714,8 +718,10 @@ takes for the specs' helpers.
   and as strong as its orb breathes, none while it blinks dim, by the
   same `pickupLook()`, and each comet's, once, for the field's camera to
   cut off, its head's and its tail's, as strongly as its tail shows, and
-  its warning's lit chevron's; made as many as all a field's rocks, shots,
-  pickups and comets could give off at once, and as many more as another painter
+  its warning's lit chevron's, and the pod's flame's behind each engine,
+  in the flame's color, while the pod's painter draws its flame; made as
+  many as all a field's rocks, shots, pickups and comets and the pod's
+  flame could give off at once, and as many more as another painter
   reserves (`reserve()`) to show its own after it
   draws, through `glow()`, or `glowOnce()` for a thing that crosses rather
   than wraps, shown once where it lies, as `Copies`' `showOnce()` shows it,

@@ -18,12 +18,14 @@ import {
   ART_PALETTE,
   ART_SCALE,
   ART_SCALES,
+  edgeOf,
   reachOf,
 } from "../../testing/art_frames";
 import { PALETTES, ROLES } from "../../testing/roles";
 import { beltPalette } from "../colors/palette";
 import { atlasFrames } from "./art";
 import {
+  FLAME_GLOW,
   MOST_ROCK_HALOS,
   MUZZLE_BEATS,
   MUZZLE_FRAME,
@@ -32,13 +34,16 @@ import {
   SHOT_FRAMES,
   SHOT_OUTLINE,
   SHOT_REACH,
+  type WrittenHalo,
   energyFrames,
   energyOf,
+  flameHalo,
   haloAlpha,
   muzzleHalo,
   rockHalos,
   roundHalo,
 } from "./energy";
+import { ENGINES, flameFrame, flameShare, podFrames } from "./pod_art";
 import { isFine, rockShape, sizesOf } from "./rock_art";
 
 /** A dark palette, the specs' roles in its mode. */
@@ -433,4 +438,65 @@ describe("the muzzle's flash", () => {
       strength: 0.5,
     });
   });
+});
+
+describe("flameHalo", () => {
+  /** Returns a record for {@link flameHalo} to write. */
+  function written(): WrittenHalo {
+    return { along: 0, across: 0, ahead: 0, turn: 0, strength: 0 };
+  }
+
+  /** Returns the pod's first engine, failing if it has none. */
+  function firstEngine(): (typeof ENGINES)[number] {
+    const [engine] = ENGINES;
+    if (!engine) throw new Error("The pod has no engines.");
+    return engine;
+  }
+
+  it("takes the flame's full length from the pod's flame as its frame draws it", () => {
+    const flame = frameNamed(
+      podFrames(ART_PALETTE, ART_SCALE, true),
+      flameFrame(0),
+    );
+    const back = Math.min(...flame.commands.flatMap(edgeOf).map(({ x }) => x));
+
+    expect((flame.width / 2 - back) / ART_SCALE.unit).toBeCloseTo(
+      FLAME_GLOW.full,
+      9,
+    );
+  });
+
+  it.each([0, 0.5, 1])(
+    "glows round behind an engine, as long as the flame at a thrust of %f, as far past the engine's width as the kit's flame's halo",
+    (thrust) => {
+      const engine = firstEngine();
+      const flame = FLAME_GLOW.full * flameShare(thrust);
+      const x = engine.at.x - 0.4 * flame;
+
+      const halo = flameHalo(engine, thrust, ART_PALETTE, written());
+
+      expect(
+        [halo.along, halo.across, halo.ahead, halo.turn].map(rounded),
+      ).toEqual(
+        [
+          0.8 * flame + engine.width,
+          0.8 * flame + engine.width,
+          Math.hypot(x, engine.at.y),
+          Math.atan2(engine.at.y, x),
+        ].map(rounded),
+      );
+    },
+  );
+
+  it.each([
+    ["light", ART_PALETTE, 0.6],
+    ["dark", DARK, 0.75],
+  ] as const)(
+    "shows at the kit's opacity for the flame's halo on a %s field: %f",
+    (_, palette, alpha) => {
+      const halo = flameHalo(firstEngine(), 1, palette, written());
+
+      expect(haloAlpha(halo.strength, palette)).toBeCloseTo(alpha, 9);
+    },
+  );
 });
