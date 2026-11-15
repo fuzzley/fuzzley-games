@@ -48,7 +48,7 @@ Since the merge:
 
 - **The push to `main`,** 9bba39fe, run [43657595375](https://github.com/fuzzley/fuzzley-games/actions/runs/43657595375), checked everything with `main`'s caches empty, as caches saved on a branch don't reach `main`. Its checks ended at 150 s, and `promote` moved `live` at 161 s.
 - **Dependabot's first pull requests since,** [#29](https://github.com/fuzzley/fuzzley-games/pull/29) (ESLint, in `lint-and-test`) and [#30](https://github.com/fuzzley/fuzzley-games/pull/30) (PostCSS, in the new `everything-else`), each needed its lockfile deduped. Both passed every check, each but `docker` on the lockfile deduped, ending at 216 s and 201 s, and `lint` warned on each that it lands by hand.
-- **A push of docs alone,** not measured yet: the commit that adds this list changes only `docs/`, so its run should check lint alone and move `live` on it.
+- **A push of docs alone,** 5d42b0f6, which added this list, run [43658412043](https://github.com/fuzzley/fuzzley-games/actions/runs/43658412043): `changes` found only Markdown and `docs/`, `lint` ran alone, its checks ending at 84 s, with `typecheck`, `test`, `build` and `docker` skipped, and `promote` moved `live` at 94 s.
 
 ## Pipeline map
 
@@ -184,14 +184,14 @@ With #2, #3 and #4 together, the longest jobs would be the tests and the layout 
 
 Everything behind the figures is on the devbox in `/home/dev/Projects/personal/ci-audit-2026-11-14/`, outside the repository, beside the audit's own data.
 
-- `data/after/`: each run and its jobs with their steps, from the Actions API, for runs 43654599384, 43655116933, 43655417436 and 43655725239 on the branch, 43657595375 on `main`, and Dependabot's 43657771606 and 43657815452.
+- `data/after/`: each run and its jobs with their steps, from the Actions API, for runs 43654599384, 43655116933, 43655417436 and 43655725239 on the branch, 43657595375 on `main`, Dependabot's 43657771606 and 43657815452, and the docs-only push's 43658412043.
 - `logs/after/`: each job's log; `logs/after-clean/` the test jobs' with the colour codes taken out, for `scripts/slow-tests.mjs`.
 - `logs/local/after-native-24/`, `logs/local/after-ci-4core/`: the local runs with the caches emptied, each phase's output. `logs/local/after-native-24-warm/`: Prettier, `yarn typecheck`, `yarn verify:full` and `yarn check:layout` run again with the caches. `logs/local/jobs-4core/`, `jobs-4core-tests/` and `jobs-4core-pairs/`: each CI job's command on 4 cores, and the pairs tried. `logs/local/lint-jobs-4core/`: the lint `foreach` two and four at a time.
 - `scripts/fetch-after.sh` and `scripts/summarize-after.mjs` fetch and summarize a run; `scripts/check-runs.cjs` runs `bash -n` over every `run:` block.
 
 ```bash
-scripts/fetch-after.sh 43655116933 43655417436 43655725239 43657595375 43657771606 43657815452
-node scripts/summarize-after.mjs 43655116933 43655417436 43655725239 43657595375 43657771606 43657815452
+scripts/fetch-after.sh 43655116933 43655417436 43655725239 43657595375 43657771606 43657815452 43658412043
+node scripts/summarize-after.mjs 43655116933 43655417436 43655725239 43657595375 43657771606 43657815452 43658412043
 scripts/local-bench-after.sh after-native-24
 CI=true CHROME_PATH=$PWD/scripts/chrome-swiftshader.sh taskset -c 0-3 scripts/local-bench-after.sh after-ci-4core
 CI=true taskset -c 0-3 scripts/local-bench-jobs.sh jobs-4core

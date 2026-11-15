@@ -577,8 +577,13 @@ The second review, of the answers, and its answers:
   on the lockfile deduped (43657771606, 216 s; 43657815452, 201 s), and
   `lint` warned on each to land it by hand. They are left open, to land by
   hand as the `github-actions-ci-cd` skill says.
-- This entry's commit changes only `docs/`, so its push should be the first
-  run to check lint alone, and to move `live` on lint alone.
+- This entry's commit, 5d42b0f6, changes only `docs/`, and its push,
+  run 43658412043, was the first to check lint alone: `changes` found only
+  Markdown and `docs/`, `lint` passed, ending at 84 s, with the four other
+  checks skipped, and `promote` moved `live` to it at 94 s. A skipped matrix
+  job shows as `test (${{ matrix.part }})`, as GitHub names it before it
+  expands the matrix. This bullet and the report's are rewritten in a commit
+  of their own, which changes only `docs/` too.
 
 The review, and the answers: the docs-only run was written up before it
 ran, and is now what it should do; "every check on it deduped" was again
