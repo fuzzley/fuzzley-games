@@ -36,7 +36,8 @@
       "rocks": [
         { "kind": "iron", "size": "large", "count": 7 },
         { "kind": "crystal", "size": "large", "count": 1 }
-      ]
+      ],
+      "burrs": 2
     },
     {
       "id": "fuse",
@@ -63,7 +64,8 @@
       "rocks": [
         { "kind": "volatile", "size": "medium", "count": 4 },
         { "kind": "iron", "size": "large", "count": 8 }
-      ]
+      ],
+      "burrs": 2
     },
     {
       "id": "rush",
@@ -85,7 +87,8 @@
         { "kind": "iron", "size": "large", "count": 2 },
         { "kind": "ice", "size": "large", "count": 2 }
       ],
-      "comets": { "every": [12, 15] }
+      "comets": { "every": [12, 15] },
+      "burrs": 3
     },
     {
       "id": "iron-heart",

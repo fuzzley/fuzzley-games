@@ -12,6 +12,7 @@ import {
 } from "../rules/field/field";
 import { tallyOf } from "../rules/field/scoring";
 import type { Comet } from "../rules/hazards/comets";
+import { isOnField } from "../rules/hazards/crossing";
 import { type Loose, stepsLeftOf } from "../rules/hazards/loose";
 import { createCrew } from "../rules/ship/pilots";
 import { hasRoomInTow } from "../rules/ship/tow";
@@ -28,6 +29,7 @@ import type { Speed } from "../rules/speed";
 import { STEP_MS, stepsIn } from "../rules/stepper";
 import { type Place, type Torus, across } from "../rules/torus";
 import {
+  BURR_RADIUS,
   COMET_RADIUS,
   COMET_SPEED,
   FIELD_LONGEST_SIDE,
@@ -122,6 +124,10 @@ export interface AutopilotReport {
   readonly caught: number;
   /** The comets that crossed the field once their warning was up. */
   readonly cometsCrossed: number;
+  /** The burrs the wave sent across the field. */
+  readonly burrsSent: number;
+  /** The burrs that clung to its ship. */
+  readonly burrsClung: number;
   /** The most static the pilot held at any step, rounded down to a whole number. */
   readonly mostStatic: number;
   /**
@@ -210,6 +216,7 @@ export function playField(
   let knocked = 0;
   let floated = 0;
   let cometsCrossed = 0;
+  let burrsClung = 0;
   let mostStatic = field.charge.level;
   let tailFrom = field.steps;
   const warned = field.comets.slots.map(isWarned);
@@ -229,6 +236,7 @@ export function playField(
       if (event.kind === "caught") caught++;
       if (event.kind === "knocked") knocked++;
       if (event.kind === "floated" && !event.runOver) floated++;
+      if (event.kind === "clung") burrsClung++;
     });
     seen = field.events.latest;
     mostStatic = Math.max(mostStatic, field.charge.level);
@@ -251,6 +259,8 @@ export function playField(
     straysHome: field.strays.broughtHome,
     caught,
     cometsCrossed,
+    burrsSent: field.burrs.sent,
+    burrsClung,
     mostStatic: Math.floor(mostStatic),
     tallyAddsUp: !cleared || addsUp(field),
   };
@@ -295,15 +305,16 @@ function hasPilot(field: Field): boolean {
 
 /**
  * Steers a field's ship for a frame, writing the steering into the record
- * the frame before wrote: it flees a rock or a comet whose course comes
+ * the frame before wrote: it dashes the burrs clinging to it off as soon as
+ * its dash is ready; it flees a rock or a comet whose course comes
  * near the ship, dashing when one is about to meet it; else catches the
  * one of the crew knocked loose it has time and room in tow for, the stray
  * adrift, or the pickup it has time for, or draws in a spark a little way
- * off before it goes; else turns toward the rock it can hit soonest,
- * leading it, and closes on it beyond its shots' reach, but waits for one
- * nearly as fast as the ship to come round the field, by the row or the
- * column it runs along if it runs along one. Whichever it does, it fires
- * once lined up with that rock.
+ * off before it goes; else turns toward the rock or the burr it can hit
+ * soonest, leading it, and closes on it beyond its shots' reach, but waits
+ * for a rock nearly as fast as the ship to come round the field, by the
+ * row or the column it runs along if it runs along one. Whichever it does,
+ * it fires once lined up with that rock or burr.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;
@@ -318,14 +329,18 @@ export function pilot(field: Field, steer: Steer): void {
     target.inReach &&
     turnTo(ship.angle, target.heading) < target.slack;
   const threat = nearestThreat(field, ship);
+  const shake = ship.burrs > 0;
   if (threat) {
     steer.heading = Math.atan2(threat.awayY, threat.awayX);
     steer.thrust = 1;
     // A dash keeps the ship untouchable for its guard, whichever way it goes.
     steer.dash =
-      !dash && threat.touches && threat.at < DASH_WITHIN_S && isDashReady(ship);
+      !dash &&
+      (shake || (threat.touches && threat.at < DASH_WITHIN_S)) &&
+      isDashReady(ship);
     return;
   }
+  steer.dash = !dash && shake && isDashReady(ship);
   const goal = goalOf(field, ship);
   if (goal) {
     steer.heading = seek(field.torus, ship, goal);
@@ -434,7 +449,7 @@ function approachOf(
   return { awayX: -nearX / near, awayY: -nearY / near, at, touches };
 }
 
-/** Says where the autopilot aims to hit a rock, and whether a shot there reaches it. */
+/** Says where the autopilot aims to hit a rock or a burr, and whether a shot there reaches it. */
 interface Target {
   /** The heading a shot flies at to meet it. */
   readonly heading: number;
@@ -451,39 +466,85 @@ interface Target {
   readonly toPath: { readonly heading: number; readonly far: number } | null;
 }
 
+/** Describes something the autopilot may shoot: where it is, its velocity in units a second and its radius. */
+interface Mark extends Goal {
+  readonly radius: number;
+}
+
+/** Describes where to aim to hit a mark, and how soon a shot fired there would. */
+interface Aim {
+  readonly target: Target;
+  /** The turn to the heading and the shot's flight, in seconds. */
+  readonly time: number;
+}
+
 /**
- * Returns where to aim to hit the rock the ship can hit soonest, its turn
- * to the heading counted with the shot's flight, leading the rock as it
- * flies, or null with no rock whole.
+ * Returns where to aim to hit the rock or the burr the ship can hit
+ * soonest, its turn to the heading counted with the shot's flight, leading
+ * it as it flies, or null with neither on the field; a burr coming in
+ * counts once a shot can pop it, its middle on the field.
  */
 function targetOf(field: Field, ship: Readonly<Ship>): Target | null {
-  let best: Target | null = null;
-  let soonest = Infinity;
+  let best: Aim | null = null;
   for (const rock of field.rocks) {
     if (!rock.live) continue;
-    const px = across(ship.x, rock.x, field.torus.width);
-    const py = across(ship.y, rock.y, field.torus.height);
-    // A shot takes the ship's velocity, so beside the ship it flies at its own speed.
-    const rx = rock.vx * field.pace - ship.vx;
-    const ry = rock.vy * field.pace - ship.vy;
-    const flight = interceptTime(px, py, rx, ry, SHOT_SPEED);
-    const at = flight ?? Math.hypot(px, py) / SHOT_SPEED;
-    const heading = Math.atan2(
-      py + ry * (flight ?? 0),
-      px + rx * (flight ?? 0),
+    best = soonerAim(
+      best,
+      aimAt(field.torus, ship, {
+        x: rock.x,
+        y: rock.y,
+        vx: rock.vx * field.pace,
+        vy: rock.vy * field.pace,
+        radius: rockHitRadius(rock.size),
+      }),
     );
-    const time = turnTo(ship.angle, heading) / TURN_RATE + at;
-    if (time >= soonest) continue;
-    soonest = time;
-    const along = SHOT_SPEED * at;
-    best = {
+  }
+  const speed = field.burring.speed;
+  for (const burr of field.burrs.slots) {
+    if (!burr.live || !isOnField(burr, field.torus)) continue;
+    best = soonerAim(
+      best,
+      aimAt(field.torus, ship, {
+        x: burr.x,
+        y: burr.y,
+        vx: Math.cos(burr.heading) * speed,
+        vy: Math.sin(burr.heading) * speed,
+        radius: BURR_RADIUS,
+      }),
+    );
+  }
+  return best?.target ?? null;
+}
+
+/** Returns the sooner of two aims, the first where they tie, which may be none. */
+function soonerAim(one: Aim | null, other: Aim): Aim {
+  return one !== null && one.time <= other.time ? one : other;
+}
+
+/**
+ * Returns where to aim to hit a mark, leading it as it flies, and how
+ * soon the ship would, its turn to the heading counted with the shot's
+ * flight.
+ */
+function aimAt(torus: Torus, ship: Readonly<Ship>, mark: Mark): Aim {
+  const px = across(ship.x, mark.x, torus.width);
+  const py = across(ship.y, mark.y, torus.height);
+  // A shot takes the ship's velocity, so beside the ship it flies at its own speed.
+  const rx = mark.vx - ship.vx;
+  const ry = mark.vy - ship.vy;
+  const flight = interceptTime(px, py, rx, ry, SHOT_SPEED);
+  const at = flight ?? Math.hypot(px, py) / SHOT_SPEED;
+  const heading = Math.atan2(py + ry * (flight ?? 0), px + rx * (flight ?? 0));
+  const along = SHOT_SPEED * at;
+  return {
+    target: {
       heading,
       inReach: flight !== null && along <= SHOT_RANGE,
-      slack: Math.atan2(rockHitRadius(rock.size), along),
-      toPath: pathOf(px, py, rock.vx * field.pace, rock.vy * field.pace),
-    };
-  }
-  return best;
+      slack: Math.atan2(mark.radius, along),
+      toPath: pathOf(px, py, mark.vx, mark.vy),
+    },
+    time: turnTo(ship.angle, heading) / TURN_RATE + at,
+  };
 }
 
 /**

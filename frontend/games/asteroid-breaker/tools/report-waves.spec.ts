@@ -28,7 +28,8 @@ const EVERY_WAVE: Request = {
 /**
  * Returns a play that cleared its wave in the steps given, its tail a
  * fifth of them, two of the crew knocked loose and one of them floating
- * home, static coming to 24 at most, bringing home one stray of two.
+ * home, static coming to 24 at most, bringing home one stray of two, and
+ * two of three burrs clinging.
  */
 function cleared(steps: number): WavePlayed {
   return {
@@ -40,6 +41,8 @@ function cleared(steps: number): WavePlayed {
     mostStatic: 24,
     straysSent: 2,
     straysHome: 1,
+    burrsSent: 3,
+    burrsClung: 2,
   };
 }
 
@@ -151,20 +154,20 @@ describe("readCommandLine", () => {
 });
 
 describe("report", () => {
-  it("lays the names out as wide as the longest, each speed's time, its tail, the crew knocked loose and floated home, the most static and the strays home beside them", () => {
+  it("lays the names out as wide as the longest, each speed's time, its tail, the crew knocked loose and floated home, the most static, the strays home and the burrs that clung beside them", () => {
     expect(reported(apiOf(), EVERY_WAVE).lines).toEqual([
-      "                      relaxed                                         fast",
-      "                       time    tail  knocked  floated  static  home    time    tail  knocked  floated  static  home",
-      " 1 Drift               1:15  0:15.0        2        1      24   1/2    1:15  0:15.0        2        1      24   1/2",
-      "30 Eye of the storm    1:15  0:15.0        2        1      24   1/2    1:15  0:15.0        2        1      24   1/2",
+      "                      relaxed                                                fast",
+      "                       time    tail  knocked  floated  static  home  clung    time    tail  knocked  floated  static  home  clung",
+      " 1 Drift               1:15  0:15.0        2        1      24   1/2    2/3    1:15  0:15.0        2        1      24   1/2    2/3",
+      "30 Eye of the storm    1:15  0:15.0        2        1      24   1/2    2/3    1:15  0:15.0        2        1      24   1/2    2/3",
     ]);
   });
 
   it("plays Endless's waves, laid out as wide as their own names, with --endless", () => {
     expect(reported(apiOf(), { ...EVERY_WAVE, endless: true }).lines).toEqual([
-      "             relaxed                                         fast",
-      "              time    tail  knocked  floated  static  home    time    tail  knocked  floated  static  home",
-      "31 Endless    1:15  0:15.0        2        1      24   1/2    1:15  0:15.0        2        1      24   1/2",
+      "             relaxed                                                fast",
+      "              time    tail  knocked  floated  static  home  clung    time    tail  knocked  floated  static  home  clung",
+      "31 Endless    1:15  0:15.0        2        1      24   1/2    2/3    1:15  0:15.0        2        1      24   1/2    2/3",
     ]);
   });
 
@@ -192,10 +195,10 @@ describe("report", () => {
     });
 
     expect(reported(api, { ...EVERY_WAVE, seeds: 3 }).lines).toEqual([
-      "                      relaxed                                                  fast",
-      "                      middle  most    tail  knocked  floated  static    home   middle  most    tail  knocked  floated  static    home",
-      " 1 Drift                2:00  3:00  0:12.0        2        1      24     3/6     2:00  3:00  0:12.0        2        1      24     3/6",
-      "30 Eye of the storm     2:00  3:00  0:12.0        2        1      24     3/6     2:00  3:00  0:12.0        2        1      24     3/6",
+      "                      relaxed                                                          fast",
+      "                      middle  most    tail  knocked  floated  static    home   clung   middle  most    tail  knocked  floated  static    home   clung",
+      " 1 Drift                2:00  3:00  0:12.0        2        1      24     3/6     6/9     2:00  3:00  0:12.0        2        1      24     3/6     6/9",
+      "30 Eye of the storm     2:00  3:00  0:12.0        2        1      24     3/6     6/9     2:00  3:00  0:12.0        2        1      24     3/6     6/9",
     ]);
   });
 
@@ -215,8 +218,20 @@ describe("report", () => {
     const { lines } = reported(api, { ...EVERY_WAVE, seeds: 3 });
 
     expect(lines[2]).toBe(
-      " 1 Drift                1:00  1:00  0:12.0        2        3      20     3/6     1:00  1:00  0:12.0        2        3      20     3/6",
+      " 1 Drift                1:00  1:00  0:12.0        2        3      20     3/6     6/9     1:00  1:00  0:12.0        2        3      20     3/6     6/9",
     );
+  });
+
+  it("counts the burrs that clung of those sent in the plays as the spec plays them, over every seed with --seeds", () => {
+    const api = apiOf((_wave, _speed, how) =>
+      how.invulnerable
+        ? { ...cleared(60), burrsSent: 9, burrsClung: 9 }
+        : { ...cleared(60), burrsSent: 2, burrsClung: how.seed % 1000 },
+    );
+
+    const { lines } = reported(api, { ...EVERY_WAVE, seeds: 3 });
+
+    expect(lines[2]?.slice(-8)).toBe("     3/6");
   });
 
   it("marks a play that didn't clear its wave, or not before the limit, says how many, and fails", () => {
@@ -228,10 +243,10 @@ describe("report", () => {
 
     expect(reported(api, EVERY_WAVE)).toEqual({
       lines: [
-        "                      relaxed                                         fast",
-        "                       time    tail  knocked  floated  static  home    time    tail  knocked  floated  static  home",
-        " 1 Drift               1:15  0:15.0        2        1      24   1/2       -       -        -        -       -   1/2",
-        "30 Eye of the storm    1:15  0:15.0        2        1      24   1/2    1:15  0:15.0        -        -       -   1/2",
+        "                      relaxed                                                fast",
+        "                       time    tail  knocked  floated  static  home  clung    time    tail  knocked  floated  static  home  clung",
+        " 1 Drift               1:15  0:15.0        2        1      24   1/2    2/3       -       -        -        -       -   1/2    2/3",
+        "30 Eye of the storm    1:15  0:15.0        2        1      24   1/2    2/3    1:15  0:15.0        -        -       -   1/2    2/3",
         "",
         "3 plays didn't clear their wave in time (-).",
       ],
@@ -246,9 +261,9 @@ describe("report", () => {
 
     expect(reported(api, { ...EVERY_WAVE, endless: true })).toEqual({
       lines: [
-        "             relaxed                                         fast",
-        "              time    tail  knocked  floated  static  home    time    tail  knocked  floated  static  home",
-        "31 Endless    1:15  0:15.0        -        -       -   1/2    1:15  0:15.0        -        -       -   1/2",
+        "             relaxed                                                fast",
+        "              time    tail  knocked  floated  static  home  clung    time    tail  knocked  floated  static  home  clung",
+        "31 Endless    1:15  0:15.0        -        -       -   1/2    2/3    1:15  0:15.0        -        -       -   1/2    2/3",
       ],
       code: 0,
     });
