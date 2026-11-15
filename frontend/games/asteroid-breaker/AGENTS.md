@@ -1137,18 +1137,18 @@ workspace's with the others'.
   the autopilot's spec does, through `playWave()`, which it loads with the
   rest of what it plays from `src/testing/report_api.ts` (`REPORT_API`).
   It prints the game time each took and the strays it brought home, flown
-  with nothing able to take the ship, and the crew each knocked loose and
-  those of them that floated home as the spec plays it, beside the waves'
-  names, as wide as the longest, and fails if any play didn't clear its
-  wave in time (`-`). It is how the climb from wave to wave is tuned;
-  `--seeds <n>` plays each wave from that many seeds of its own, since one
-  seed's rocks and pickups can make a wave look far easier or harder than
-  it is. `--endless` plays Endless's waves 31 to 60 instead, each made
-  from the seed it is played from, and fails only on a play that didn't
-  clear its wave in time with nothing able to take the ship, as Endless is
-  held to being fair, not to what it costs. `--help` prints its options,
-  and an option it can't read exits with 2, saying why, before anything is
-  played).
+  with nothing able to take the ship, and the crew each knocked loose,
+  those of them that floated home and the most static it held as the spec
+  plays it, beside the waves' names, as wide as the longest, and fails if
+  any play didn't clear its wave in time (`-`). It is how the climb from
+  wave to wave is tuned; `--seeds <n>` plays each wave from that many
+  seeds of its own, since one seed's rocks and pickups can make a wave
+  look far easier or harder than it is. `--endless` plays Endless's waves
+  31 to 60 instead, each made from the seed it is played from, and fails
+  only on a play that didn't clear its wave in time with nothing able to
+  take the ship, as Endless is held to being fair, not to what it costs.
+  `--help` prints its options, and an option it can't read exits with 2,
+  saying why, before anything is played).
 - **Check the Layout:** `yarn check:layout` (runs
   `tools/check-layout.mjs` on the build `yarn build` made: in headless
   Chrome, at `@fz/dev/layout`'s shapes (a roomy window, and a large and a
@@ -1275,8 +1275,9 @@ of its own beside it:
   `playWave()`), steering each frame by `pilot()`: it flees a rock or a
   comet whose course comes near the ship, dashing when one is about to meet
   it; else catches the one of the crew knocked loose it has time and room
-  in tow for, the stray adrift or the pickup it has time for; else turns
-  toward the rock it can hit soonest, leading it.
+  in tow for, the stray adrift or the pickup it has time for, or draws in
+  a spark lying a little beyond its draw before it goes; else turns toward
+  the rock it can hit soonest, leading it.
   `src/rules/waves/autopilot.spec.ts` holds the autopilot itself.
 - `every_wave.ts` holds every wave, at a speed, on the narrowest field and
   the widest either way up (`FIELDS`: `NARROWEST`, `WIDEST`, `TALLEST`), to

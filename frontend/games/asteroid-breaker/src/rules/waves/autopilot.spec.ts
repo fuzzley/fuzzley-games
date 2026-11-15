@@ -16,6 +16,7 @@ import {
   placeLoose,
   placePickup,
   placeRock,
+  placeSpark,
   placeStray,
   shipOf,
   wholeRocks,
@@ -24,9 +25,18 @@ import type { Field } from "../field/field";
 import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { STILL, type Steer } from "../ship/ship";
+import { drawReach } from "../sparks/sparks";
 import { SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
-import { LOOSE_LIFE_MS, SHOT_SPEED, STRAY_SPEED, TOP_SPEED } from "../tuning";
+import {
+  LOOSE_LIFE_MS,
+  SHOT_SPEED,
+  SPARK_LIFE_MS,
+  SPARK_STATIC,
+  STATIC_HOLD_MS,
+  STRAY_SPEED,
+  TOP_SPEED,
+} from "../tuning";
 import {
   type SectorData,
   type Wave,
@@ -238,6 +248,27 @@ describe("the autopilot", () => {
     const home = plays.reduce((sum, play) => sum + play.straysHome, 0);
     expect(sent).toBeGreaterThan(SEEDS.length);
     expect(home).toBeGreaterThan(sent / 2);
+  });
+
+  it("reports the most static its pilot held, rounded down, not the last", () => {
+    const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)], { charge: 12.7 });
+    field.charge.lastSparkAt = -stepsIn(STATIC_HOLD_MS);
+
+    const report = playField(field, { untilStep: stepsIn(500) });
+
+    expect([report.mostStatic, Math.floor(field.charge.level)]).toEqual([
+      12, 11,
+    ]);
+  });
+
+  it("gathers a spark it goes out of its way for", () => {
+    const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)]);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+
+    const report = playField(field, { untilStep: stepsIn(1000) });
+
+    expect(report.mostStatic).toBe(SPARK_STATIC);
   });
 
   it("catches pickups it has time for", () => {
@@ -590,6 +621,75 @@ describe("a frame of the autopilot's", () => {
     const steer = steerOf(field);
 
     expect(steer).toEqual(STILL);
+  });
+
+  it("heads for a spark a little way beyond its draw", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.thrust]).toEqual([
+      expect.closeTo(-TURN / 4),
+      1,
+    ]);
+  });
+
+  it("heads for a spark a little way beyond its draw where its draw is farther, as at Relaxed", () => {
+    const field = fieldFrom(SHIP_ALONE, { sparkReach: 1.6 });
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+
+    const steer = steerOf(field);
+
+    expect(steer.heading).toBeCloseTo(-TURN / 4);
+  });
+
+  it("heads for the spark it can draw in soonest", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 1);
+    placeSpark(field, ship.x + drawReach(field) + 3, ship.y);
+
+    const steer = steerOf(field);
+
+    expect(steer.heading).toBeCloseTo(-TURN / 4);
+  });
+
+  it.each([
+    ["within its draw, which brings it in", -1],
+    ["farther beyond its draw than it goes for", 6],
+  ])("lets a spark be %s", (_, beyond) => {
+    const field = fieldFrom(SHIP_ALONE);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - beyond);
+
+    const steer = steerOf(field);
+
+    expect(steer).toEqual(STILL);
+  });
+
+  it("lets a spark go that would go before it got there", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 2).shedAt =
+      field.steps + 1 - stepsIn(SPARK_LIFE_MS);
+
+    const steer = steerOf(field);
+
+    expect(steer).toEqual(STILL);
+  });
+
+  it("heads for a pickup before a spark", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    const ship = shipOf(field);
+    placeSpark(field, ship.x, ship.y - drawReach(field) - 2);
+    placePickup(field, "shield", ship.x + 12, ship.y);
+
+    const steer = steerOf(field);
+
+    expect(steer.heading).toBeCloseTo(0);
   });
 
   it("lets go of everything while it has no ship", () => {

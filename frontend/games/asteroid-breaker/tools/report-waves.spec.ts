@@ -26,8 +26,8 @@ const EVERY_WAVE: Request = {
 
 /**
  * Returns a play that cleared its wave in the steps given, two of the crew
- * knocked loose and one of them floating home, bringing home one stray of
- * two.
+ * knocked loose and one of them floating home, static coming to 24 at
+ * most, bringing home one stray of two.
  */
 function cleared(steps: number): WavePlayed {
   return {
@@ -35,6 +35,7 @@ function cleared(steps: number): WavePlayed {
     steps,
     knocked: 2,
     floated: 1,
+    mostStatic: 24,
     straysSent: 2,
     straysHome: 1,
   };
@@ -148,20 +149,20 @@ describe("readCommandLine", () => {
 });
 
 describe("report", () => {
-  it("lays the names out as wide as the longest, each speed's time, the crew knocked loose and floated home, and the strays home beside them", () => {
+  it("lays the names out as wide as the longest, each speed's time, the crew knocked loose and floated home, the most static and the strays home beside them", () => {
     expect(reported(apiOf(), EVERY_WAVE).lines).toEqual([
-      "                      relaxed                         fast",
-      "                       time  knocked  floated  home    time  knocked  floated  home",
-      " 1 Drift               1:15        2        1   1/2    1:15        2        1   1/2",
-      "30 Eye of the storm    1:15        2        1   1/2    1:15        2        1   1/2",
+      "                      relaxed                                 fast",
+      "                       time  knocked  floated  static  home    time  knocked  floated  static  home",
+      " 1 Drift               1:15        2        1      24   1/2    1:15        2        1      24   1/2",
+      "30 Eye of the storm    1:15        2        1      24   1/2    1:15        2        1      24   1/2",
     ]);
   });
 
   it("plays Endless's waves, laid out as wide as their own names, with --endless", () => {
     expect(reported(apiOf(), { ...EVERY_WAVE, endless: true }).lines).toEqual([
-      "             relaxed                         fast",
-      "              time  knocked  floated  home    time  knocked  floated  home",
-      "31 Endless    1:15        2        1   1/2    1:15        2        1   1/2",
+      "             relaxed                                 fast",
+      "              time  knocked  floated  static  home    time  knocked  floated  static  home",
+      "31 Endless    1:15        2        1      24   1/2    1:15        2        1      24   1/2",
     ]);
   });
 
@@ -186,25 +187,30 @@ describe("report", () => {
     );
 
     expect(reported(api, { ...EVERY_WAVE, seeds: 3 }).lines).toEqual([
-      "                      relaxed                                  fast",
-      "                      middle  most  knocked  floated    home   middle  most  knocked  floated    home",
-      " 1 Drift                2:00  3:00        2        1     3/6     2:00  3:00        2        1     3/6",
-      "30 Eye of the storm     2:00  3:00        2        1     3/6     2:00  3:00        2        1     3/6",
+      "                      relaxed                                          fast",
+      "                      middle  most  knocked  floated  static    home   middle  most  knocked  floated  static    home",
+      " 1 Drift                2:00  3:00        2        1      24     3/6     2:00  3:00        2        1      24     3/6",
+      "30 Eye of the storm     2:00  3:00        2        1      24     3/6     2:00  3:00        2        1      24     3/6",
     ]);
   });
 
-  it("shows the most of the crew any seed's play as the spec plays it knocked loose and floated home, with --seeds", () => {
+  it("shows the most of the crew any seed's play as the spec plays it knocked loose and floated home, and the most static, with --seeds", () => {
     const api = apiOf((_wave, _speed, how) => {
       const seed = how.seed % 1000;
       return how.invulnerable
-        ? { ...cleared(60), knocked: 9, floated: 9 }
-        : { ...cleared(60), knocked: seed, floated: 3 - seed };
+        ? { ...cleared(60), knocked: 9, floated: 9, mostStatic: 40 }
+        : {
+            ...cleared(60),
+            knocked: seed,
+            floated: 3 - seed,
+            mostStatic: seed * 10,
+          };
     });
 
     const { lines } = reported(api, { ...EVERY_WAVE, seeds: 3 });
 
     expect(lines[2]).toBe(
-      " 1 Drift                1:00  1:00        2        3     3/6     1:00  1:00        2        3     3/6",
+      " 1 Drift                1:00  1:00        2        3      20     3/6     1:00  1:00        2        3      20     3/6",
     );
   });
 
@@ -217,10 +223,10 @@ describe("report", () => {
 
     expect(reported(api, EVERY_WAVE)).toEqual({
       lines: [
-        "                      relaxed                         fast",
-        "                       time  knocked  floated  home    time  knocked  floated  home",
-        " 1 Drift               1:15        2        1   1/2       -        -        -   1/2",
-        "30 Eye of the storm    1:15        2        1   1/2    1:15        -        -   1/2",
+        "                      relaxed                                 fast",
+        "                       time  knocked  floated  static  home    time  knocked  floated  static  home",
+        " 1 Drift               1:15        2        1      24   1/2       -        -        -       -   1/2",
+        "30 Eye of the storm    1:15        2        1      24   1/2    1:15        -        -       -   1/2",
         "",
         "3 plays didn't clear their wave in time (-).",
       ],
@@ -235,9 +241,9 @@ describe("report", () => {
 
     expect(reported(api, { ...EVERY_WAVE, endless: true })).toEqual({
       lines: [
-        "             relaxed                         fast",
-        "              time  knocked  floated  home    time  knocked  floated  home",
-        "31 Endless    1:15        -        -   1/2    1:15        -        -   1/2",
+        "             relaxed                                 fast",
+        "              time  knocked  floated  static  home    time  knocked  floated  static  home",
+        "31 Endless    1:15        -        -       -   1/2    1:15        -        -       -   1/2",
       ],
       code: 0,
     });

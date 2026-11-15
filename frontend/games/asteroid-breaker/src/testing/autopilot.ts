@@ -17,6 +17,7 @@ import { createCrew } from "../rules/ship/pilots";
 import { hasRoomInTow } from "../rules/ship/tow";
 import { rockHitRadius } from "../rules/rocks/rocks";
 import { STILL, type Ship, type Steer, guardShip } from "../rules/ship/ship";
+import { drawReach } from "../rules/sparks/sparks";
 import type { Speed } from "../rules/speed";
 import { STEP_MS, stepsIn } from "../rules/stepper";
 import { type Place, type Torus, across } from "../rules/torus";
@@ -29,6 +30,7 @@ import {
   SHIP_HIT_RADIUS,
   SHOT_LIFE_MS,
   SHOT_SPEED,
+  SPARK_LIFE_MS,
   STEP_S,
   STRAY_SPEED,
   TOP_SPEED,
@@ -109,6 +111,8 @@ export interface AutopilotReport {
   readonly caught: number;
   /** The comets that crossed the field once their warning was up. */
   readonly cometsCrossed: number;
+  /** The most static the pilot held at any step, rounded down to a whole number. */
+  readonly mostStatic: number;
   /**
    * Whether the Cleared card's tally of a wave it cleared adds up to the
    * wave's score, every point counted in one line; true for one it didn't.
@@ -153,6 +157,12 @@ const ALONG_SIDE = Math.tan(15 * RADIANS_PER_DEGREE);
 const TURN_RATE = HEADING_TURN_RATE * RADIANS_PER_DEGREE;
 
 /**
+ * How far beyond the ship's draw a spark may lie for the autopilot to go
+ * for it, as a player gathers what lies on the way.
+ */
+const SPARK_DETOUR = 4;
+
+/**
  * Plays a wave as a fair player would, from a seed, and returns how it
  * went, the wave laid out by `fieldFor()` as the game lays it out.
  */
@@ -189,6 +199,7 @@ export function playField(
   let knocked = 0;
   let floated = 0;
   let cometsCrossed = 0;
+  let mostStatic = field.charge.level;
   const warned = field.comets.slots.map(isWarned);
   let seen = field.events.latest;
   // Frames bound it, not steps, so a wave held still for a first move that
@@ -208,6 +219,7 @@ export function playField(
       if (event.kind === "floated" && !event.runOver) floated++;
     });
     seen = field.events.latest;
+    mostStatic = Math.max(mostStatic, field.charge.level);
     for (const [slot, comet] of field.comets.slots.entries()) {
       if (warned[slot] && comet.live && comet.warnSteps === 0) cometsCrossed++;
       warned[slot] = isWarned(comet);
@@ -225,6 +237,7 @@ export function playField(
     straysHome: field.strays.broughtHome,
     caught,
     cometsCrossed,
+    mostStatic: Math.floor(mostStatic),
     tallyAddsUp: !cleared || addsUp(field),
   };
 }
@@ -271,11 +284,12 @@ function hasPilot(field: Field): boolean {
  * the frame before wrote: it flees a rock or a comet whose course comes
  * near the ship, dashing when one is about to meet it; else catches the
  * one of the crew knocked loose it has time and room in tow for, the stray
- * adrift, or the pickup it has time for; else turns toward the rock it can
- * hit soonest, leading it, and closes on it beyond its shots' reach, but
- * waits for one nearly as fast as the ship to come round the field, by the
- * row or the column it runs along if it runs along one. Whichever it does,
- * it fires once lined up with that rock.
+ * adrift, or the pickup it has time for, or draws in a spark a little way
+ * off before it goes; else turns toward the rock it can hit soonest,
+ * leading it, and closes on it beyond its shots' reach, but waits for one
+ * nearly as fast as the ship to come round the field, by the row or the
+ * column it runs along if it runs along one. Whichever it does, it fires
+ * once lined up with that rock.
  */
 export function pilot(field: Field, steer: Steer): void {
   const { ship } = field;
@@ -519,7 +533,8 @@ interface Goal extends Place {
  * Returns what the ship catches: the one of the crew knocked loose it can
  * reach soonest before it floats home, with room in tow for it, else the
  * stray adrift, else the pickup floating it can reach soonest before it
- * fades, or null for none.
+ * fades, else the spark it can draw in soonest, a little way beyond its
+ * draw, before it goes, or null for none.
  */
 function goalOf(field: Field, ship: Readonly<Ship>): Goal | null {
   const loose = looseToCatch(field, ship);
@@ -540,6 +555,30 @@ function goalOf(field: Field, ship: Readonly<Ship>): Goal | null {
     const reach = distanceTo(field.torus, ship, floating) / TOP_SPEED;
     if (reach < floating.lifeSteps * STEP_S && reach < soonest) {
       best = floating;
+      soonest = reach;
+    }
+  }
+  return best ?? sparkToDraw(field, ship);
+}
+
+/**
+ * Returns the spark the ship can bring within its draw soonest, at its top
+ * speed, before it goes, of those beyond its draw by no more than the
+ * autopilot goes out of its way for, or null for none.
+ */
+function sparkToDraw(field: Field, ship: Readonly<Ship>): Goal | null {
+  const draw = drawReach(field);
+  const life = stepsIn(SPARK_LIFE_MS);
+  let best: Goal | null = null;
+  let soonest = Infinity;
+  for (const spark of field.sparks) {
+    if (!spark.live) continue;
+    const beyond = distanceTo(field.torus, ship, spark) - draw;
+    if (beyond <= 0 || beyond > SPARK_DETOUR) continue;
+    const reach = beyond / TOP_SPEED;
+    const left = (life - (field.steps - spark.shedAt)) * STEP_S;
+    if (reach < left && reach < soonest) {
+      best = { x: spark.x, y: spark.y, vx: 0, vy: 0 };
       soonest = reach;
     }
   }

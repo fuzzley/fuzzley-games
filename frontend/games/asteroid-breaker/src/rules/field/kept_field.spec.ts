@@ -1,4 +1,4 @@
-import { shipOf, stepTimes } from "../../testing/field_picture";
+import { placeSpark, shipOf, stepTimes } from "../../testing/field_picture";
 import {
   type Spoil,
   UNDER_WAY_TORUS as TORUS,
@@ -698,6 +698,15 @@ describe("layOutKeptField", () => {
       slots: before.rocks.length,
       torus: SQUARE,
     });
+  });
+
+  it("keeps no spark of the field kept, as a saved run keeps none", () => {
+    const before = playedField(runUnderWay());
+    placeSpark(before, 10, 10);
+
+    const field = layOut(keptOf(before));
+
+    expect(field.sparks.some((spark) => spark.live)).toBe(false);
   });
 
   it("frees every slot but the rocks kept", () => {
