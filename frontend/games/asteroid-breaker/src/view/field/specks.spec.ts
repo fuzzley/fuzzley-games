@@ -1,12 +1,18 @@
 import { FIELD_LONGEST_SIDE, FIELD_SHORT_SIDE } from "../../rules/tuning";
 import {
   CONSTELLATION_SIZE,
+  DEPTHS,
   MOST_SPECKS,
+  MOST_STARS,
   SPECKS_PER_AREA,
   SPECK_AREA,
+  STARS_PER_AREA,
+  STAR_SIZES,
   constellationAt,
   speckCount,
   speckShares,
+  starCount,
+  starsOf,
 } from "./specks";
 
 /** The seeds a spec lays constellations from. */
@@ -49,6 +55,78 @@ describe("speckShares", () => {
 
   it("strews other specks from another seed, as the next run's", () => {
     expect(speckShares(8)).not.toEqual(speckShares(7));
+  });
+});
+
+describe("starCount", () => {
+  it.each(DEPTHS)(
+    "strews the %s stars over the field by its area, rounded",
+    (depth) => {
+      expect(starCount(depth, { width: 80, height: 40 })).toBe(
+        Math.round(STARS_PER_AREA[depth] * 2),
+      );
+    },
+  );
+
+  it("strews the far stars thickest and the bright ones thinnest", () => {
+    const field = { width: 72, height: 40 };
+
+    const counts = DEPTHS.map((depth) => starCount(depth, field));
+
+    expect(counts).toEqual([173, 61, 6]);
+  });
+
+  it.each(DEPTHS)(
+    "strews the most %s stars over the largest field",
+    (depth) => {
+      expect(
+        starCount(depth, {
+          width: FIELD_LONGEST_SIDE,
+          height: FIELD_SHORT_SIDE,
+        }),
+      ).toBe(MOST_STARS[depth]);
+    },
+  );
+});
+
+describe("starsOf", () => {
+  it("strews as many of each depth as the largest field holds", () => {
+    const stars = starsOf(7);
+
+    expect(DEPTHS.map((depth) => stars[depth].length)).toEqual(
+      DEPTHS.map((depth) => MOST_STARS[depth]),
+    );
+  });
+
+  it.each(DEPTHS)(
+    "strews each %s star within the field, at its depth's size and a shine from 0 to 1",
+    (depth) => {
+      const [least, most] = STAR_SIZES[depth];
+
+      const out = starsOf(7)[depth].filter(
+        ({ x, y, r, shine }) =>
+          Math.min(x, y, shine) < 0 ||
+          Math.max(x, y, shine) >= 1 ||
+          r < least ||
+          r > most,
+      );
+
+      expect(out).toEqual([]);
+    },
+  );
+
+  it("strews each depth's stars from a stream of its own", () => {
+    const { far, mid } = starsOf(7);
+
+    expect(mid[0]).not.toEqual(far[0]);
+  });
+
+  it("strews the same stars from the same seed, as a run's stay through its waves", () => {
+    expect(starsOf(7)).toEqual(starsOf(7));
+  });
+
+  it("strews other stars from another seed, as the next run's", () => {
+    expect(starsOf(8).far[0]).not.toEqual(starsOf(7).far[0]);
   });
 });
 

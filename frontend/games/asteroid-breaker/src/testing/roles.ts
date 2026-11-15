@@ -4,6 +4,7 @@ import type { PaletteRoles } from "../view/colors/palette";
 
 /** The colors the page gives the field, as a palette's stylesheet would. */
 export const ROLES = {
+  page: "#0b0f15",
   field: "#11161f",
   fieldLine: "#3a4250",
   fieldText: "#e8ecf2",
