@@ -139,29 +139,41 @@ take the pure ones.
   opacity, so a page shows the drawing a scene bakes, as an image or a CSS
   mask. It imports nothing but `color`.
 - `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
-  every game draws the one fuzzball: its strands of fur, read from its path
+  every game draws the one fuzzball, its faces, looks and fur posed by
+  `@fz/style/fuzzball`'s geometry (`eyesOf()`, `combFur()`,
+  `fuzzballShape()`), which it hands on in part: the strands of its fur
   (`strandsOf()`, `FUZZBALL_STRANDS`), each a `Strand` about its body's
-  middle on its grid (`FUZZBALL_GRID`, `aboutBody()`), and how far a fur
-  reaches (`furReach()`); `fuzzballCommands()`, its body and fur, `by`
+  middle on its grid (`FUZZBALL_GRID`, `aboutBody()`), and `FUZZBALL_LOOK`,
+  the look the brick games move their eyes by; how far a fur reaches
+  (`furReach()`, at the mark's strands' width or another);
+  `fuzzballCommands()`, its body and fur, `by`
   device pixels to a unit of the grid, in a `FuzzballStyle`: a color, an
-  outline beneath where a game wants one, and fur combed by
-  `combedStrands()` or a game's own way; `fuzzballWearing()`, the same
+  outline beneath where a game wants one, fur combed by `combedStrands()`,
+  `combFur()` or a game's own way, and its strands' width (`furWidth`,
+  `SMALL_FUR_WIDTH` for the small form); `fuzzballWearing()`, the same
   outlined as one with what it wears, such as sparks or flames, so no
   outline covers any of it: a `Worn`, the outlines of its parts, drawn
   over the fuzzball's own, the parts beneath its body and fur, and those
   over them;
-  `eyesCommands()`, its eyes, with their glints where an `EyesStyle` gives
-  them a color and each is half a device pixel or more, which a game bakes
-  in a frame of their own; and `FUZZBALL_LOOK`, how far its scene moves
-  that frame toward what the fuzzball looks at. `src/fuzzball/combing.ts`
+  `eyesCommands()`, its eyes at any of the nine faces, a look and the
+  small form (an `EyesPose`), the mark's own at rest, with their glints
+  where an `EyesStyle` gives them a color and each is a device pixel or
+  more across at its narrowest, which a game bakes in a frame of their own
+  with no look, moving that frame by `lookOffset()`.
+  `src/fuzzball/combing.ts`
   combs its fur toward standing on end, as a charge or a streak lifts it
   (`combedStrands()`, a share of the way from 0, as it grew, through 0.5,
-  straight and leaning half way out, to 1, on end), and draws the sparks
-  about fur on end (`sparkCommands()`), and those sparks as a fuzzball
+  straight and leaning half way out, to 1, on end, swept by a lean where
+  it is given one, as `sweptFur()` sweeps it), and draws the brick games'
+  sparks about fur on end (`sparkCommands()`), and those sparks as a fuzzball
   wears them (`wornSparks()`), again beneath its body in an outline's
   color and its width wider either side, so `fuzzballWearing()` outlines
-  them as one with it. It imports
-  nothing but `shapes` and `@fz/style/fuzzball`.
+  them as one with it; and draws static's sparks (`sparksOf()`) as the art
+  kit does, in a `SparkStyle`, its colors and the pixel ratio
+  (`staticSparkCommands()`), as `StaticSparks`:
+  their halos, opaque, which a game bakes in a frame of their own and
+  fades to `SPARK_LOOK.haloAlpha` as one, and their cores over them. It
+  imports nothing but `shapes` and `@fz/style/fuzzball`.
 - `src/bricks/`: what a brick game draws a brick with, in the shapes'
   commands, which Brick Fuzz Pop's tiles and Brick Breaker's bricks are
   drawn through. `slabCommands()` draws the slab a brick stands on, a body

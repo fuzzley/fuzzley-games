@@ -529,9 +529,9 @@ export const SMALL_FUR_WIDTH = FUZZBALL.fur.width * 1.25;
  * The halo is drawn at `haloAlpha`: a tick's a line `tickHalo` units of the
  * grid wide, and a star's the star with a line `starHalo` wide round it,
  * round at its corners. A tick's core is a line `tickCore` wide, or
- * `tickCoreLeast` pixels where that is wider, so it still shows small, and
- * each line is round at its ends and its corners. The core's color is the
- * ink mixed toward the text by `coreMix.light` in a light palette, and
+ * `tickCoreLeast` CSS pixels where that is wider, so it still shows small,
+ * and each line is round at its ends and its corners. The core's color is
+ * the ink mixed toward the text by `coreMix.light` in a light palette, and
  * toward white by `coreMix.dark` in a dark one.
  */
 export const SPARK_LOOK = {

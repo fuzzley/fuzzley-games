@@ -1,10 +1,19 @@
+import { SPARK_LOOK, combFur, sparksOf, sweptFur } from "@fz/style/fuzzball";
 import {
   type DrawCommand,
   type LineCommand,
   type Point,
+  placed,
+  polygon,
+  stroke,
   turned,
 } from "../shapes";
-import { combedStrands, sparkCommands, wornSparks } from "./combing";
+import {
+  combedStrands,
+  sparkCommands,
+  staticSparkCommands,
+  wornSparks,
+} from "./combing";
 import { FUZZBALL_STRANDS, type Strand } from "./fuzzball";
 
 /** Returns a number to a billionth, so two worked out alike but for a rounding are equal. */
@@ -171,6 +180,28 @@ describe("combedStrands", () => {
     ).toEqual(STRANDS.map(({ out }) => inBillionths(out)));
   });
 
+  it("sweeps the combed fur the other way from a lean, as `sweptFur()` does", () => {
+    const lean = { x: 1, y: -0.5 };
+
+    expect(combedStrands(0.5, lean)).toEqual(
+      sweptFur(combedStrands(0.5), lean),
+    );
+  });
+
+  it("carries the fur's tips away from a lean, its roots where they grew", () => {
+    const tipsAcross = (fur: readonly Strand[]): number =>
+      fur.reduce((sum, { to }) => sum + to.x, 0);
+    const swept = combedStrands(1, { x: 1, y: 0 });
+
+    expect({
+      roots: swept.map(({ from }) => from),
+      further: tipsAcross(swept) < tipsAcross(combedStrands(1)),
+    }).toEqual({
+      roots: FUZZBALL_STRANDS.map(({ from }) => from),
+      further: true,
+    });
+  });
+
   it.each([-0.01, 1.01, Number.NaN])(
     "refuses a share of %f, outside 0 to 1",
     (share) => {
@@ -240,5 +271,79 @@ describe("wornSparks", () => {
       outlines: sparkCommands(2, { color: 9, width: 5 }),
       over: sparkCommands(2, style),
     });
+  });
+});
+
+describe("staticSparkCommands", () => {
+  const sparks = sparksOf(combFur({ lift: 3 }));
+  const style = { core: 5, halo: 6, pixelRatio: 1 };
+
+  it("draws each tick's halo as a line round at its ends and corners, and its core as a narrower one over it", () => {
+    const [tick] = sparks;
+    const points = placed(tick?.points ?? [], 2);
+
+    const { halos, cores } = staticSparkCommands(2, sparks.slice(0, 1), style);
+
+    expect({ halos, cores }).toEqual({
+      halos: stroke(points, { color: 6, width: SPARK_LOOK.tickHalo * 2 }),
+      cores: stroke(points, { color: 5, width: SPARK_LOOK.tickCore * 2 }),
+    });
+  });
+
+  it.each([1, 2])(
+    "draws a tick's core no narrower than its least, in CSS pixels, at %f device pixels to one",
+    (pixelRatio) => {
+      const { cores } = staticSparkCommands(1, sparks.slice(0, 1), {
+        ...style,
+        pixelRatio,
+      });
+
+      expect(new Set(linesOf(cores).map(({ width }) => width))).toEqual(
+        new Set([SPARK_LOOK.tickCoreLeast * pixelRatio]),
+      );
+    },
+  );
+
+  it("draws each star's halo as the star and a line round its edge, round at its corners, and its core as the star", () => {
+    const [, star] = sparks;
+    const points = placed(star?.points ?? [], 2);
+    const [first = { x: NaN, y: NaN }] = points;
+
+    const { halos, cores } = staticSparkCommands(2, sparks.slice(1, 2), style);
+
+    expect({ halos, cores }).toEqual({
+      halos: [
+        polygon(points, { color: 6 }),
+        ...stroke([...points, first], {
+          color: 6,
+          width: SPARK_LOOK.starHalo * 2,
+        }),
+      ],
+      cores: [polygon(points, { color: 5 })],
+    });
+  });
+
+  it("gives no halo or core an alpha of its own, the halos for a frame faded as one", () => {
+    const { halos, cores } = staticSparkCommands(2, sparks, style);
+
+    expect(
+      [...halos, ...cores].filter(({ alpha }) => alpha !== undefined),
+    ).toEqual([]);
+  });
+
+  it("keeps the sparks' halos and cores in the sparks' order", () => {
+    const one = (i: number): ReturnType<typeof staticSparkCommands> =>
+      staticSparkCommands(2, sparks.slice(i, i + 1), style);
+
+    const { halos, cores } = staticSparkCommands(2, sparks, style);
+
+    expect({ halos, cores }).toEqual({
+      halos: sparks.flatMap((_, i) => one(i).halos),
+      cores: sparks.flatMap((_, i) => one(i).cores),
+    });
+  });
+
+  it("draws nothing for no sparks", () => {
+    expect(staticSparkCommands(2, [], style)).toEqual({ halos: [], cores: [] });
   });
 });
