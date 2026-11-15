@@ -15,6 +15,7 @@ import {
 import { WEAPON_IDS, type WeaponId } from "../../rules/catalog/weapons";
 import { hitRock } from "../../rules/rocks/rocks";
 import { EFFECT_KINDS } from "../../rules/rocks/pickups";
+import { FULL_STEP } from "../../rules/sparks/charge";
 import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
@@ -41,14 +42,16 @@ interface Made {
   readonly size?: RockSize | null;
   readonly rock?: RockKindId | null;
   readonly times?: number;
+  readonly step?: number;
+  readonly fell?: boolean;
   readonly pickup?: PickupId | null;
   readonly weapon?: WeaponId | null;
 }
 
 /**
  * Returns an event of a kind, of a rock of a kind and size, scored at one
- * of static's multipliers, of a pickup, or fired by a weapon, as given; a
- * rock's size alone names a stone.
+ * of static's multipliers, of static stepping, of a pickup, or fired by a
+ * weapon, as given; a rock's size alone names a stone.
  */
 function eventOf(
   kind: FieldEventKind,
@@ -56,6 +59,8 @@ function eventOf(
     size = null,
     rock = size === null ? null : "stone",
     times = 0,
+    step = 0,
+    fell = false,
     pickup = null,
     weapon = null,
   }: Made = {},
@@ -75,8 +80,8 @@ function eventOf(
     points: 0,
     times,
     reach: 0,
-    step: 0,
-    fell: false,
+    step,
+    fell,
     slot: -1,
     wayX: 0,
     wayY: 0,
@@ -128,11 +133,20 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["joined", "stray-catch"],
   ["home", "stray-catch"],
   ["scored", null],
-  ["sparked", null],
-  ["stepped", null],
-  ["grazed", null],
-  ["zapped", null],
-  ["arced", null],
+  ["sparked", "spark"],
+  ["grazed", "near-miss"],
+  ["zapped", "zap-dash"],
+  ["arced", "zap-arc"],
+];
+
+/** Static stepping to each step, rising or falling, with its sound. */
+const STEPS: readonly (readonly [number, boolean, SoundName])[] = [
+  [1, false, "chain-x2"],
+  [2, false, "chain-x3"],
+  [3, false, "chain-x4"],
+  [FULL_STEP, false, "static-full"],
+  [3, true, "static-down"],
+  [0, true, "static-down"],
 ];
 
 /** Each kind of rock at each size it comes in, with the sound it breaks with. */
@@ -193,6 +207,7 @@ const EVERY_EVENT: readonly FieldEvent[] = [
   ),
   ...PICKUP_IDS.map((pickup) => eventOf("caught", { pickup })),
   ...WEAPON_IDS.map((weapon) => eventOf("fired", { weapon })),
+  ...STEPS.map(([step, fell]) => eventOf("stepped", { step, fell })),
 ];
 
 /**
@@ -200,25 +215,16 @@ const EVERY_EVENT: readonly FieldEvent[] = [
  * field logs, and no change of its state, calls for them.
  */
 const UNPLAYED: readonly SoundName[] = [
-  "chain-x2",
-  "chain-x3",
-  "chain-x4",
   "comet-pass",
   "burr-cling",
   "burr-shed",
   "burr-pop",
   "lodestone-hum",
-  "near-miss",
   "slow-on",
-  "spark",
   "tow-twang",
   "blast-volatile-small",
   "thrust-start",
   "thrust-stop",
-  "static-full",
-  "static-down",
-  "zap-dash",
-  "zap-arc",
   "shield-up",
   "guard-end",
   "run-start",
@@ -269,6 +275,17 @@ describe("SOUNDS", () => {
 describe("soundOf", () => {
   it.each(EVENTS)("plays, for %s, the %s sound", (kind, sound) => {
     expect(soundOf(eventOf(kind))).toBe(sound);
+  });
+
+  it.each(STEPS)(
+    "plays static stepping to its step %i, falling: %s, with %s",
+    (step, fell, sound) => {
+      expect(soundOf(eventOf("stepped", { step, fell }))).toBe(sound);
+    },
+  );
+
+  it("throws for static rising to its first step, which it only falls to", () => {
+    expect(() => soundOf(eventOf("stepped", { step: 0 }))).toThrow(RangeError);
   });
 
   it.each(BREAKS)(

@@ -66,6 +66,7 @@ import {
   placeComet,
   placePickup,
   placeRock,
+  placeSpark,
   placeStray,
   shipOf,
 } from "../testing/field_picture";
@@ -2812,31 +2813,31 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addSpark(30, 20, 0, 10, 1);
     },
-    [],
+    ["spark"],
   ],
   stepped: [
     (field) => {
       field.events.addStep(30, 20, 1, false);
     },
-    [],
+    ["chain-x2"],
   ],
   grazed: [
     (field) => {
       field.events.addGraze(30, 20, 1, 0);
     },
-    [],
+    ["near-miss"],
   ],
   zapped: [
     (field) => {
       field.events.addZap(30, 20, 0);
     },
-    [],
+    ["zap-dash"],
   ],
   arced: [
     (field) => {
       field.events.addArc(loggedRock("stone", "small"), 3, 4);
     },
-    [],
+    ["zap-arc"],
   ],
 };
 
@@ -2938,7 +2939,7 @@ describe("the sounds", () => {
     const rock = placeRock(shell.field, "small", 30, 20);
     run.advance(16);
     const played = soundsPlayed();
-    // Static's third step, ×4, a semitone a step.
+    // Static's third step, ×4, whose bell rings the ladder's fifth above C7.
     shell.field.charge.level = 30;
     shell.field.charge.lastSparkAt = shell.field.steps;
 
@@ -2948,6 +2949,24 @@ describe("the sounds", () => {
     expect(played).toEqual([
       ["chain-ping", 3100],
       ["break-stone-small", 0],
+    ]);
+  });
+
+  it("play each spark the pod gathers a note up the ladder from the last", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    const ship = shipOf(shell.field);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    placeSpark(shell.field, ship.x, ship.y);
+    run.advance(16);
+    placeSpark(shell.field, ship.x, ship.y);
+    run.advance(16);
+
+    expect(played.filter(([name]) => name === "spark")).toEqual([
+      ["spark", -1200],
+      ["spark", -1000],
     ]);
   });
 

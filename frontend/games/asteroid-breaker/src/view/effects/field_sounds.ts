@@ -1,25 +1,32 @@
 // How the game plays the sounds a frame calls for, by the plan's table: each
 // once at the most it rose, placed across the field, at its volume, the
 // loudest first; a crowd of breaks as its largest and a patter; one bell a
-// frame at the highest of static's multipliers its breaks scored at; and
-// what the field's state says without an event: a burst of fire let go,
-// the dash charged, an effect run out.
+// frame at the highest of static's multipliers its breaks scored at; each
+// spark gathered up the ladder; a zap in place of its dash; and what the
+// field's state says without an event: a burst of fire let go, the dash
+// charged, an effect run out.
 
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
 import type { EffectKind } from "../../rules/catalog/pickups";
 import { ROCK_SIZES } from "../../rules/catalog/rocks";
 import { EFFECT_KINDS } from "../../rules/rocks/pickups";
+import { stepsIn } from "../../rules/stepper";
+import { STATIC_HOLD_MS } from "../../rules/tuning";
 import { type FieldEvent, type FieldView, rockSizeOf } from "../field/frame";
 import {
   CHARGED,
   CROWD,
+  DASH,
   LADDER,
   PLAY_ORDER,
+  SPARK,
+  SPARK_ABOVE_BELL_CENTS,
   type SoundName,
   TAIL,
   bellCentsOf,
   endSoundOf,
+  ladderCentsOf,
   secondSoundOf,
   soundOf,
   volumeOf,
@@ -45,6 +52,13 @@ export const BURST_PULLS = 2;
  * unheard.
  */
 export const TAIL_WITHIN_MS = 300;
+
+/**
+ * The most steps of the field after a spark gathered that the next climbs
+ * the ladder from it: static's hold, after which static drains; later, the
+ * next starts the climb again.
+ */
+export const SPARK_RUN_STEPS = stepsIn(STATIC_HOLD_MS);
 
 /** A rank below every rock's size, which the largest break of a frame starts from. */
 const NO_RANK: number = ROCK_SIZES.length;
@@ -74,8 +88,12 @@ interface Heard {
  * note for the highest of static's multipliers they scored at, where the
  * first to score at it broke; more than
  * {@link MOST_BREAKS_HEARD} breaks in a frame play as the largest two
- * sounds and `break-cluster`, at the middle of where they broke. It makes
- * nothing as it hears or plays.
+ * sounds and `break-cluster`, at the middle of where they broke. Each spark
+ * gathered plays the next note of the ladder, from its first, an octave
+ * under the bell's, in a run of sparks each gathered within
+ * {@link SPARK_RUN_STEPS} of the field's steps of the last, which static's
+ * fall to a lower step or a new field ends. A zap plays in place of the
+ * dash that set it off. It makes nothing as it hears or plays.
  */
 export class FieldSounds {
   /** A record for each of the sprite's sounds, made once, by name. */
@@ -108,6 +126,11 @@ export class FieldSounds {
   /** Where the last pull was fired, across the field, and the time of its frame. */
   private pullAcross = 0;
   private pullAt = 0;
+  /** How many sparks the run gathered so far, and the field's step its last was gathered at. */
+  private sparks = 0;
+  private sparkAt = 0;
+  /** Whether the frame heard a zap, which plays in place of its dash. */
+  private zapped = false;
   /** Whether the ship's dash was charging as of the last frame. */
   private charging = false;
   /** The step each group's effect ended at as of the last frame, 0 for one that has no time. */
@@ -140,6 +163,7 @@ export class FieldSounds {
     if (field !== this.field) {
       this.field = field;
       this.pulls = 0;
+      this.sparks = 0;
       this.charging = isCharging(field);
       for (const kind of EFFECT_KINDS) {
         this.endsAt[kind] = field.effects[kind].endsAt;
@@ -174,10 +198,11 @@ export class FieldSounds {
 
   /**
    * Hears what an event of the field calls for, where it happened on a field
-   * so wide: its sound and the one after it, and for a break that scored
-   * its multiplier for the frame's bell, its own sound kept for the
-   * frame's crowd. A pull of fire is timed by the frame
-   * `hearField()` last heard, so the frame's field is heard first.
+   * so wide: its sound and the one after it, for a break that scored its
+   * multiplier for the frame's bell, its own sound kept for the frame's
+   * crowd, and for a spark gathered its note of the ladder. A spark and a
+   * pull of fire are timed by the frame `hearField()` last heard, so the
+   * frame's field is heard first.
    *
    * @throws {RangeError} For an event its sound can't be told for, as
    *   `soundOf()` does.
@@ -193,6 +218,12 @@ export class FieldSounds {
       }
       return;
     }
+    if (event.kind === "sparked") {
+      this.hearSpark(across);
+      return;
+    }
+    if (event.kind === "stepped" && event.fell) this.sparks = 0;
+    if (event.kind === "zapped") this.zapped = true;
     if (sound !== null) this.note(sound, 0, across);
     const second = secondSoundOf(event);
     if (second !== null) this.note(second, 0, across);
@@ -207,10 +238,11 @@ export class FieldSounds {
    * Plays each sound heard since the last time, once, the loudest level
    * first, the bell at the highest of static's multipliers the frame's
    * breaks scored at, a crowd of breaks as its largest two and its patter,
-   * and forgets them.
+   * a zap without its dash, and forgets them.
    */
   playEach(play: PlaySound): void {
     if (!this.heardAny) return;
+    if (this.zapped) this.byName[DASH].heard = false;
     if (this.topTimes > 0) {
       this.note(LADDER, bellCentsOf(this.topTimes), this.topAcross);
     }
@@ -235,6 +267,17 @@ export class FieldSounds {
     this.nextLargest = null;
     this.nextRank = NO_RANK;
     this.topTimes = 0;
+    this.zapped = false;
+  }
+
+  /** Notes a spark gathered at a place, at the next note of its run's climb, or the first of a new run. */
+  private hearSpark(across: number): void {
+    const steps = this.field?.steps ?? 0;
+    if (steps - this.sparkAt > SPARK_RUN_STEPS) this.sparks = 0;
+    this.sparks += 1;
+    this.sparkAt = steps;
+    const cents = ladderCentsOf(this.sparks) - SPARK_ABOVE_BELL_CENTS;
+    this.note(SPARK, cents, across);
   }
 
   /** Notes a sound heard, risen by some cents at a place, where it rose the most. */
