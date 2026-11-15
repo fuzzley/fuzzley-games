@@ -78,6 +78,7 @@ import { FieldCamera } from "./field_camera";
 import { FlourishPlayer } from "./flourish_player";
 import { ArcPainter } from "./painters/arc_painter";
 import { DebrisPainter } from "./painters/debris_painter";
+import { BlastPainter } from "./painters/blast_painter";
 import { DeckPainter } from "./painters/deck_painter";
 import { ExhaustPainter } from "./painters/exhaust_painter";
 import { FieldPainter } from "./painters/field_painter";
@@ -231,6 +232,8 @@ export interface BeltKit {
   readonly exhaust: ExhaustPainter;
   /** Draws what flies off a rock or a ship as it is hit: shards, dust and sparks. */
   readonly debris: DebrisPainter;
+  /** Draws the volatile rocks' blasts, and lights the rocks near them. */
+  readonly blasts: BlastPainter;
   /** Draws the rings that sweep out. */
   readonly rings: RingPainter;
   /** Draws the points scored. */
@@ -362,6 +365,7 @@ export class BeltScene extends Scene {
       kit.trail,
       kit.exhaust,
       kit.debris,
+      kit.blasts,
       kit.rings,
       kit.arcs,
       kit.points,
@@ -370,6 +374,7 @@ export class BeltScene extends Scene {
     ];
     this.flourishPlayer = new FlourishPlayer({
       debris: kit.debris,
+      blasts: kit.blasts,
       rings: kit.rings,
       trail: kit.trail,
       rocks: kit.rocks,
@@ -436,6 +441,7 @@ export class BeltScene extends Scene {
       trail: new TrailPainter(this, layers.effects),
       exhaust: new ExhaustPainter(this, layers.effects),
       debris: new DebrisPainter(this, layers.breaks, layers.effects),
+      blasts: new BlastPainter(this, layers.effects, halos),
       rings: new RingPainter(this, layers.effects),
       arcs: new ArcPainter(this, layers.arcs, halos),
       points: new PointsPainter(this, layers.points),
@@ -536,7 +542,8 @@ export class BeltScene extends Scene {
    * it each frame: tells the pod's pilot's face of it, and the faces of
    * those in tow, and the arcs a zap's arc to a rock, keeps its sound to
    * play with the frame's others, and plays its flourishes where motion is
-   * welcome, and its points either way.
+   * welcome, and where it isn't what of them stays still: its points, and a
+   * blast's ring at its reach.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     this.kit.ship.hear(event, this.shownField.steps);

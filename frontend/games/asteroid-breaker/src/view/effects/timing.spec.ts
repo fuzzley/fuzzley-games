@@ -1,7 +1,11 @@
 import {
+  BLAST_FLASH_MS,
+  BLAST_MS,
+  BLAST_RING_MS,
   BOULDER_HOLD_MS,
   BURST_MS,
   CLEARED_MS,
+  FLASH_GAP_MS,
   FLASH_MS,
   HELD_MS,
   MUZZLE_MS,
@@ -33,6 +37,22 @@ describe("resultDelayMs", () => {
 describe("the table's rows", () => {
   it("shows a shot's flash for two frames at 60 frames a second, 33 ms", () => {
     expect(MUZZLE_MS).toBe(Math.floor(2000 / 60));
+  });
+
+  it("plays a blast for 600 ms", () => {
+    expect(BLAST_MS).toBe(600);
+  });
+
+  it("fades a blast's flash before its ring has swept out", () => {
+    expect(BLAST_FLASH_MS).toBeLessThan(BLAST_RING_MS);
+  });
+
+  it("fades a blast's flash, and its glow, before the field may flash again, so one glows at a time", () => {
+    expect(BLAST_FLASH_MS).toBeLessThan(FLASH_GAP_MS);
+  });
+
+  it("sweeps a blast's ring out within its time", () => {
+    expect(BLAST_RING_MS).toBeLessThan(BLAST_MS);
   });
 
   it("plays a held hit's spark for 150 ms", () => {

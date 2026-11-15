@@ -18,8 +18,8 @@ import {
   STEP_S,
   STRAY_POINTS,
 } from "../../rules/tuning";
-import type { Drawn, FieldEvent } from "../field/frame";
 import type { BeltPalette } from "../colors/palette";
+import type { Drawn, FieldEvent } from "../field/frame";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
@@ -117,9 +117,9 @@ export function kickShare(done: number): number {
 }
 
 /**
- * Returns whether a held hit may flash at a time, in milliseconds, after the
- * field's last flash, or −Infinity before its first: once that last is
- * {@link FLASH_GAP_MS} past.
+ * Returns whether the field may flash at a time, in milliseconds, whatever
+ * flashes, a held hit or a blast, given its last flash's, or −Infinity
+ * before its first: once that last is {@link FLASH_GAP_MS} past.
  */
 export function flashDue(lastFlashAt: number, now: number): boolean {
   return now - lastFlashAt >= FLASH_GAP_MS;
@@ -203,10 +203,12 @@ export function riseOf(done: number, motion: boolean): number {
 }
 
 /**
- * Returns how far an event's ring sweeps out, in field units: a blast's to
- * its reach, a spent Shield's and a lost ship's to their own.
+ * Returns how far an event's ring sweeps out, in field units: a spent
+ * Shield's and a lost pod's to their own, and a vent's to its reach.
  */
-export function ringReachOf(event: Readonly<FieldEvent>): number {
+export function ringReachOf(
+  event: Readonly<Pick<FieldEvent, "kind" | "reach">>,
+): number {
   switch (event.kind) {
     case "shielded":
       return SHIELD_RING_REACH;
@@ -218,17 +220,14 @@ export function ringReachOf(event: Readonly<FieldEvent>): number {
 }
 
 /**
- * Returns the color an event's ring sweeps out in: a blast's and a vent's
- * in the warning color, and a spent Shield's and a lost ship's in the
- * accent.
+ * Returns the color an event's ring sweeps out in: a vent's in the warning
+ * color, and a spent Shield's and a lost pod's in the accent.
  */
 export function ringColorOf(
-  event: Readonly<FieldEvent>,
+  { kind }: Readonly<Pick<FieldEvent, "kind">>,
   palette: Pick<BeltPalette, "flame" | "accent">,
 ): number {
-  return event.kind === "blast" || event.kind === "vented"
-    ? palette.flame
-    : palette.accent;
+  return kind === "vented" ? palette.flame : palette.accent;
 }
 
 /**

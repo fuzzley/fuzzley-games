@@ -145,7 +145,10 @@ interface Lighting {
 function lightingOf(scene: BeltScene): Lighting {
   const { ambientColor, active, lights } = scene.lights;
   const [sun, ...others] = lights.filter(
-    (light) => !scene.kit.rocks.flashes.includes(light),
+    (light) =>
+      !scene.kit.rocks.flashes.includes(light) &&
+      light !== scene.kit.blasts.light &&
+      light !== scene.kit.blasts.beyond,
   );
   return {
     on: active,

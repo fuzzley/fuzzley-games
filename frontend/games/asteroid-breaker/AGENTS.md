@@ -547,10 +547,17 @@ takes for the specs' helpers.
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome; `timing.ts` how long each flourish
   lasts, a rock's break (`BREAK_MS`) and a held hit's spark (`HELD_MS`)
-  among them, as long as `plan.md`'s table has a held hit, and the
-  muzzle's flash (`MUZZLE_MS`), and how long the cards wait
-  (`clearedDelayMs()`,
-  `resultDelayMs()`);
+  among them, as long as `plan.md`'s table has a held hit, the muzzle's
+  flash (`MUZZLE_MS`) and a blast (`BLAST_MS`), and how long the cards
+  wait (`clearedDelayMs()`, `resultDelayMs()`); `blast.ts` how a volatile
+  rock's blast looks over its time, as the kit's `blastFx()` draws it: its
+  colors in a palette (`blastInks()`), its ring sweeping out to its reach
+  (`blastRingAt()`), its band thinning (`blastBand()`), the lines it is
+  drawn in and how each fades (`BLAST_LINES`, `blastLineAlpha()`), its
+  flash fading (`blastFlashed()`) and its disc (`blastDiscAt()`), its
+  embers, a dozen in the shape its serial picks (`embersOf()`,
+  `emberAt()`), its light on the rocks near it (`BLAST_LIGHT`,
+  `blastLightShare()`), and its still ring (`STILL_RING`);
   and `haptics.ts` how the phone buzzes as the ship takes a hit or a wave is
   cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
@@ -884,8 +891,20 @@ takes for the specs' helpers.
   the break and each copy of it past an edge it reaches across; it finds
   the outline and the turn a broken rock was drawn in from its slot, or,
   once a piece has taken that, from what it last drew there; it throws a
-  lost pod's burst of shards too, as particles; `RingPainter` the
-  rings, `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
+  lost pod's burst of shards too, as particles; `BlastPainter` each
+  volatile rock's blast, on one `Graphics` drawn again each frame, the
+  ground its ring has swept, the ring's two soft bands, its middle in the
+  rock's ink and its hot inner edge, its flash's disc, and its embers, its
+  discs filled as polygons and its rings as bands of triangles, as the
+  dust's are, through `painters/rounds.ts`, so none overlaps itself at
+  part alpha, its flash's glow through the halo painter, one at a time, as
+  the field flashes, and the newest blast's light, one of the scene's
+  lights, which lights the rocks near it through their normal maps, and
+  another past the edge it lies nearest, should its light reach across
+  it, the flash and the lights only where the flourish player let it
+  flash; one still ring at its reach where motion isn't
+  welcome; `RingPainter` a spent Shield's and a lost pod's rings,
+  `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
   stroked again each frame: each of the zap's that it hears of
   (`hear()`), as it struck (`strikeOf()`), from where the pod is drawn,
   or where it zapped from with none drawn, to the rock it struck, in a
@@ -914,7 +933,8 @@ takes for the specs' helpers.
   created, or as a field of more slots starts, so a frame of play makes
   none, and a new field stops what the last one set off.
   The scene plays each of the field's events once, from the last it played,
-  and the flourishes an event calls for only where motion is welcome, each
+  and the flourishes an event calls for where motion is welcome, and where
+  it isn't only what of them stays still, a blast's ring at its reach, each
   through `FlourishPlayer` (`flourish_player.ts`), which plays it on the
   painter that draws it, or on `FieldCamera`, from the context the scene
   wrote for the frame, and lets the field flash once each `FLASH_GAP_MS`
@@ -936,11 +956,11 @@ takes for the specs' helpers.
   normal map with it, so the two keys go together or not at all. The
   scene lights the rocks with Phaser's lights, which it turns on as it is
   created: the palette's light as a point far off its way
-  (`farLight()`), over its ambient, set again at each layout and bake,
-  and a held hit's flash; each rock's image, and the pod's hull's, is
-  drawn with `setLighting(true)`. Phaser lights an image by the ten lights nearest the
-  camera's middle at most (`maxLights`), so a light far off is dropped
-  first once eleven are lit. At each bake the
+  (`farLight()`), over its ambient, set again at each layout and bake, a
+  held hit's flash and the newest blast's two; each rock's image, and the
+  pod's hull's, is drawn with `setLighting(true)`. Phaser lights an image
+  by the ten lights nearest the camera's middle at most (`maxLights`), so
+  a light far off is dropped first once eleven are lit. At each bake the
   scene hands the shell (`onPictures()`) what returns How to play's
   pictures only as the board first asks for them, as How to play opens,
   and keeps them until the next bake: the field's encoded from its atlas

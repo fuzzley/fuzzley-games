@@ -67,6 +67,7 @@ import {
   wholeAt,
 } from "../view/art/breaks";
 import { MUZZLE_BEATS, energyOf, muzzleHalo } from "../view/art/energy";
+import { BLAST_EMBERS, blastInks } from "../view/effects/blast";
 import {
   PEN_STEPS,
   POINTS_TEXT,
@@ -91,6 +92,7 @@ import {
   BAIL_OUT_SPEED,
   FLASH_MOST,
   LOST_RING_REACH,
+  SHIELD_RING_REACH,
   MOST_POINTS_CHARACTERS,
   trailAlpha,
   trailLaidAfter,
@@ -100,6 +102,9 @@ import {
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
+  BLAST_FLASH_MS,
+  BLAST_MS,
+  BLAST_RING_MS,
   BOULDER_HOLD_MS,
   BREAK_MS,
   BURST_SHARDS,
@@ -115,6 +120,7 @@ import {
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
 import { MOST_EXHAUST } from "./painters/exhaust_painter";
+import { MOST_BLASTS } from "./painters/blast_painter";
 import { POINTS_SHEET, type Scored } from "./painters/points_painter";
 import { RING_WIDTH } from "./painters/ring_painter";
 import { BAIL_OUT_SCALE } from "./painters/stray_painter";
@@ -338,6 +344,8 @@ interface Shown {
   readonly sparks: number;
   readonly flash: number;
   readonly rings: number;
+  readonly blasts: number;
+  readonly blastLit: boolean;
   readonly trail: boolean;
   readonly bailing: boolean;
   readonly scrolled: { readonly x: number; readonly y: number };
@@ -350,6 +358,8 @@ const NOTHING_PLAYING: Shown = {
   sparks: 0,
   flash: 0,
   rings: 0,
+  blasts: 0,
+  blastLit: false,
   trail: false,
   bailing: false,
   scrolled: { x: 0, y: 0 },
@@ -365,6 +375,8 @@ function playingIn(scene: BeltScene, shell: FakeShell): Shown {
     sparks: commandsOf(scene.kit.debris.sparkGraphics).length,
     flash: shownCount(scene.kit.rocks.flashes),
     rings: strokesOf(scene.kit.rings.graphics).length,
+    blasts: roundsOf(scene.kit.blasts.graphics).length,
+    blastLit: scene.kit.blasts.light.visible,
     trail: scene.kit.trail.outlines
       .flatMap(({ images }) => images)
       .some((image) => image.visible),
@@ -412,7 +424,7 @@ describe("the events", () => {
     }).toEqual({ ...NOTHING_PLAYING, points: ["+80"] });
   });
 
-  it("plays nothing that moves where motion isn't welcome, but shows the points", async () => {
+  it("plays nothing that moves where motion isn't welcome, but shows the points and a blast's still ring", async () => {
     const { shell, run, scene } = await startBoard((board) => {
       withShip(board);
       stillness(board);
@@ -421,10 +433,12 @@ describe("the events", () => {
 
     run.advance(48);
 
+    // The blast's still ring, about the keeper in the field's corner, is
+    // drawn on each side of both edges.
     expect({
       ...playingIn(scene, shell),
       points: pointsShown(scene).length,
-    }).toEqual({ ...NOTHING_PLAYING, points: 1 });
+    }).toEqual({ ...NOTHING_PLAYING, blasts: 4, points: 1 });
   });
 
   it("makes every particle as the scene starts, and none as they play", async () => {
@@ -1251,25 +1265,417 @@ describe("a held hit", () => {
   });
 });
 
-describe("the rings", () => {
-  it("sweeps a blast's ring out from where it went off, in the warning color", async () => {
+/** Logs the blast of a medium volatile rock on a shell's field, reaching 4, and returns the rock. */
+function logBlast(
+  shell: FakeShell,
+  x: number = MIDDLE.x,
+  y: number = MIDDLE.y,
+): Rock {
+  const rock = placeRock(shell.field, "medium", x, y, "volatile");
+  shell.field.events.addRock("blast", rock, 4);
+  return rock;
+}
+
+/**
+ * Describes a round a `Graphics` fills, a disc or a band: where its middle
+ * lies on the canvas, how far its nearest and farthest corners lie from it,
+ * and its color.
+ */
+interface FilledRound {
+  readonly x: number;
+  readonly y: number;
+  readonly inner: number;
+  readonly outer: number;
+  readonly color: number;
+}
+
+/**
+ * Returns each round a `Graphics` fills, in order, as the triangles it fills
+ * after each fill style it sets, its middle the middle of their box, as a
+ * polygon of an even count of corners has it.
+ */
+function roundsOf(graphics: GameObjects.Graphics): readonly FilledRound[] {
+  const rounds: FilledRound[] = [];
+  let color = 0;
+  let points: number[] = [];
+  const close = (): void => {
+    if (points.length === 0) return;
+    const xs = points.filter((_, i) => i % 2 === 0);
+    const ys = points.filter((_, i) => i % 2 === 1);
+    const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const far = xs.map((each, i) => Math.hypot(each - x, (ys[i] ?? y) - y));
+    rounds.push({
+      x,
+      y,
+      inner: Math.min(...far),
+      outer: Math.max(...far),
+      color,
+    });
+    points = [];
+  };
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "fillStyle") {
+      close();
+      color = command.color;
+    }
+    if (command.kind === "fillTriangle") points.push(...command.points);
+  }
+  close();
+  return rounds;
+}
+
+/** Returns whether a round is a disc, its corners all as far from its middle. */
+function isDisc({ inner, outer }: FilledRound): boolean {
+  return outer - inner < 1e-6;
+}
+
+/** Returns each band a blast fills, its ring's lines or its still ring, as where its middle is on the canvas, how far out it runs, and its color. */
+function blastRings(
+  scene: BeltScene,
+): readonly { x: number; y: number; radius: number; color: number }[] {
+  return roundsOf(scene.kit.blasts.graphics)
+    .filter((round) => !isDisc(round))
+    .map(({ x, y, inner, outer, color }) => ({
+      x,
+      y,
+      radius: (inner + outer) / 2,
+      color,
+    }));
+}
+
+/** Returns whether a blast fills a disc in a color. */
+function discIn(scene: BeltScene, color: number): boolean {
+  return roundsOf(scene.kit.blasts.graphics).some(
+    (round) => isDisc(round) && round.color === color,
+  );
+}
+
+/** Returns whether two places on the canvas are the same, but for rounding. */
+function isAt(
+  { x, y }: { readonly x: number; readonly y: number },
+  at: { readonly x: number; readonly y: number },
+): boolean {
+  return Math.abs(x - at.x) < 1e-6 && Math.abs(y - at.y) < 1e-6;
+}
+
+/** Sets a shell up to color its field in a dark palette. */
+function darkly(shell: FakeShell): void {
+  shell.colors = DARK;
+}
+
+/** Each palette's mode a blast's specs color the field in, and how a shell is set up for it. */
+const MODES = [
+  ["light", (): void => undefined],
+  ["dark", darkly],
+] as const;
+
+describe("a blast", () => {
+  it.each(MODES)(
+    "sweeps its ring out from where it went off in a %s palette: two soft bands outside it, its middle in the rock's ink, and a hot inner edge",
+    async (_, setUp) => {
+      const { shell, run, scene } = await startBoard(setUp);
+      logBlast(shell);
+
+      run.advance(16);
+
+      const { ink, soft, hot } = blastInks(shell.colors);
+      const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+      const rings = blastRings(scene);
+      expect({
+        at: rings.every((ring) => isAt(ring, at)),
+        colors: rings.map(({ color }) => color),
+        outsideIn: falling(rings.map(({ radius }) => radius)),
+      }).toEqual({ at: true, colors: [soft, soft, ink, hot], outsideIn: true });
+    },
+  );
+
+  it("spreads its ring toward its reach as it goes, never past it", async () => {
     const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
-    shell.field.events.addRock("blast", rock, 6);
+    logBlast(shell);
+    run.advance(16);
+
+    const radii = overTime(
+      run,
+      BLAST_RING_MS - 50,
+      25,
+      () => blastRings(scene)[2]?.radius ?? 0,
+    );
+
+    expect({
+      spreads: rising(radii),
+      within: (radii.at(-1) ?? Infinity) < 4 * metricsOf(shell).unit,
+    }).toEqual({ spreads: true, within: true });
+  });
+
+  it.each(MODES)(
+    "flashes a disc and glows in its soft light as it goes off in a %s palette, both gone once its flash has faded",
+    async (_, setUp) => {
+      const { shell, run, scene } = await startBoard(setUp);
+      logBlast(shell);
+      const { hot, soft } = blastInks(shell.colors);
+      const flash = (): readonly [boolean, number] => [
+        discIn(scene, hot),
+        halosIn(scene, soft).length,
+      ];
+      run.advance(16);
+      const flashing = flash();
+
+      run.advance(BLAST_FLASH_MS, 16);
+
+      expect([flashing, flash()]).toEqual([
+        [true, 1],
+        [false, 0],
+      ]);
+    },
+  );
+
+  it("throws embers that fly out and are gone within its time", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell);
+    run.advance(100, 25);
+    const streaks = (): number =>
+      commandsOf(scene.kit.blasts.graphics).filter(
+        ({ kind }) => kind === "lineTo",
+      ).length;
+    const flying = streaks();
+
+    run.advance(BLAST_MS, 25);
+
+    expect([flying, streaks()]).toEqual([BLAST_EMBERS, 0]);
+  });
+
+  it("throws each ember outward from where it went off, its streak trailing its head, in the ember's color", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell);
+
+    run.advance(100, 25);
+
+    const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+    const streaks = linesOf(scene.kit.blasts.graphics);
+    expect({
+      outward: streaks.every(
+        ({ fromX, fromY, toX, toY }) =>
+          Math.hypot(toX - at.x, toY - at.y) >
+          Math.hypot(fromX - at.x, fromY - at.y),
+      ),
+      colors: new Set(streaks.map(({ color }) => color)),
+    }).toEqual({
+      outward: true,
+      colors: new Set([blastInks(shell.colors).ember]),
+    });
+  });
+
+  it.each(MODES)(
+    "lights the rocks near it in its soft light in a %s palette, where it went off, fading as its ring sweeps out",
+    async (_, setUp) => {
+      const { shell, run, scene } = await startBoard(setUp);
+      logBlast(shell);
+      const { light } = scene.kit.blasts;
+      const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
+      run.advance(16);
+      const first = { x: light.x, y: light.y, intensity: light.intensity };
+
+      const later = overTime(
+        run,
+        BLAST_RING_MS - 50,
+        25,
+        () => light.intensity,
+      );
+      run.advance(100, 25);
+
+      expect({
+        at: [first.x, first.y],
+        color: [light.color.r, light.color.g, light.color.b].map((c) =>
+          Math.round(c * 255),
+        ),
+        fading: falling([first.intensity, ...later]),
+        out: light.visible,
+      }).toEqual({
+        at: [at.x, at.y],
+        color: [
+          (blastInks(shell.colors).soft >> 16) & 0xff,
+          (blastInks(shell.colors).soft >> 8) & 0xff,
+          blastInks(shell.colors).soft & 0xff,
+        ],
+        fading: true,
+        out: false,
+      });
+    },
+  );
+
+  it("is among the lights the rocks are lit by, with its light past an edge", async () => {
+    const { scene } = await startBoard();
+
+    expect(scene.lights.lights).toEqual(
+      expect.arrayContaining([scene.kit.blasts.light, scene.kit.blasts.beyond]),
+    );
+  });
+
+  it("lights the rocks past an edge its light reaches across, where its copy there went off", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell, 1, MIDDLE.y);
+
+    run.advance(16);
+
+    const { light, beyond } = scene.kit.blasts;
+    const metrics = metricsOf(shell);
+    expect({
+      light: [light.visible, light.x],
+      beyond: [beyond.visible, beyond.x, beyond.y, beyond.intensity],
+    }).toEqual({
+      light: [true, onCanvas(metrics, 1, MIDDLE.y).x],
+      beyond: [
+        true,
+        onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y).x,
+        onCanvas(metrics, 1, MIDDLE.y).y,
+        light.intensity,
+      ],
+    });
+  });
+
+  it.each([
+    [1, 3, 1 + PICTURE_TORUS.width, 3],
+    [3, 1, 3, 1 + PICTURE_TORUS.height],
+  ])(
+    "lights the rocks past the nearer edge only of a blast in a corner, at (%d, %d)",
+    async (x, y, beyondX, beyondY) => {
+      const { shell, run, scene } = await startBoard();
+      logBlast(shell, x, y);
+
+      run.advance(16);
+
+      const { beyond } = scene.kit.blasts;
+      const at = onCanvas(metricsOf(shell), beyondX, beyondY);
+      expect([beyond.x, beyond.y]).toEqual([at.x, at.y]);
+    },
+  );
+
+  it("lights nothing past an edge its light doesn't reach", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell);
+
+    run.advance(16);
+
+    expect(scene.kit.blasts.beyond.visible).toBe(false);
+  });
+
+  it("shows as many blasts at once as a chain of volatile rocks sets off", async () => {
+    const { shell, run, scene } = await startBoard();
+    for (let i = 0; i < MOST_BLASTS; i++) {
+      logBlast(shell, 8 + 4 * i, MIDDLE.y);
+    }
+
+    run.advance(16);
+
+    const middles = new Set(blastRings(scene).map(({ x }) => Math.round(x)));
+    expect(middles.size).toBe(MOST_BLASTS);
+  });
+
+  it("neither flashes nor lights the rocks within the gap after a held hit's flash, but sweeps its ring", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addRock("hit", keeperOf(shell.field));
+    run.advance(FLASH_MS + 32);
+    logBlast(shell);
+
+    run.advance(16);
+
+    const { soft } = blastInks(shell.colors);
+    expect({
+      lit: scene.kit.blasts.light.visible,
+      glow: halosIn(scene, soft).length,
+      ring: blastRings(scene).length > 0,
+    }).toEqual({ lit: false, glow: 0, ring: true });
+  });
+
+  it("shows one still ring at its reach in the rock's ink where motion isn't welcome, lighting nothing", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    logBlast(shell);
+
+    run.advance(100, 25);
+
+    const metrics = metricsOf(shell);
+    const at = onCanvas(metrics, MIDDLE.x, MIDDLE.y);
+    expect({
+      rings: blastRings(scene).map(({ x, y, radius, color }) => [
+        x,
+        y,
+        radius,
+        color,
+      ]),
+      rounds: roundsOf(scene.kit.blasts.graphics).length,
+      lit: scene.kit.blasts.light.visible,
+    }).toEqual({
+      rings: [
+        [
+          expect.closeTo(at.x, 6),
+          expect.closeTo(at.y, 6),
+          expect.closeTo(4 * metrics.unit, 6),
+          blastInks(shell.colors).ink,
+        ],
+      ],
+      rounds: 1,
+      lit: false,
+    });
+  });
+
+  it("puts its still ring away once it is over", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    logBlast(shell);
+
+    run.advance(BLAST_MS + 32, 16);
+
+    expect(commandsOf(scene.kit.blasts.graphics)).toEqual([]);
+  });
+
+  it("draws its ring on both sides of an edge it reaches across", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell, 1, MIDDLE.y);
+
+    run.advance(16);
+
+    const metrics = metricsOf(shell);
+    const middles = new Set(
+      blastRings(scene).map(({ x }) => Math.round(x * 1000) / 1000),
+    );
+    expect([...middles]).toEqual(
+      [
+        onCanvas(metrics, 1, MIDDLE.y).x,
+        onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y).x,
+      ].map((x) => Math.round(x * 1000) / 1000),
+    );
+  });
+
+  it("puts everything away once it is over", async () => {
+    const { shell, run, scene } = await startBoard();
+    logBlast(shell);
+
+    run.advance(BLAST_MS + 32, 16);
+
+    expect({
+      drawn: commandsOf(scene.kit.blasts.graphics),
+      lit: [scene.kit.blasts.light.visible, scene.kit.blasts.beyond.visible],
+    }).toEqual({ drawn: [], lit: [false, false] });
+  });
+});
+
+describe("the rings", () => {
+  it("sweeps a spent Shield's ring out from where it was spent, in the accent", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
 
     run.advance(16);
 
     const [ring] = strokesOf(scene.kit.rings.graphics);
     expect(ring && { x: ring.x, y: ring.y, color: ring.color }).toEqual({
       ...onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
-      color: ART_PALETTE.flame,
+      color: ART_PALETTE.accent,
     });
   });
 
   it("spreads a ring toward its reach as it goes", async () => {
     const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
-    shell.field.events.addRock("blast", rock, 6);
+    shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
     run.advance(16);
 
     const radii = overTime(
@@ -1281,14 +1687,14 @@ describe("the rings", () => {
 
     expect({
       spreads: rising(radii),
-      within: (radii.at(-1) ?? Infinity) < 6 * metricsOf(shell).unit,
+      within:
+        (radii.at(-1) ?? Infinity) < SHIELD_RING_REACH * metricsOf(shell).unit,
     }).toEqual({ spreads: true, within: true });
   });
 
   it("puts a ring away once it is over", async () => {
     const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
-    shell.field.events.addRock("blast", rock, 6);
+    shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
 
     run.advance(RING_MS + 32);
 
@@ -1317,8 +1723,7 @@ describe("the rings", () => {
 
   it("sweeps a ring across an edge on both sides", async () => {
     const { shell, run, scene } = await startBoard();
-    const rock = placeRock(shell.field, "medium", 1, MIDDLE.y);
-    shell.field.events.addRock("blast", rock, 6);
+    shell.field.events.add("shielded", 1, MIDDLE.y);
 
     run.advance(100, 25);
 
@@ -1333,11 +1738,10 @@ describe("the rings", () => {
 
   it("sweeps a ring across an edge once its stroke reaches across it, before its middle line does", async () => {
     const { shell, run, scene } = await startBoard();
-    // Two frames after the blast, the ring's middle line stops a quarter of
+    // Two frames after the Shield is spent, the ring's middle line stops a quarter of
     // its stroke's width short of the edge.
-    const x = 6 * easeOutCubic(32 / RING_MS) + RING_WIDTH / 4;
-    const rock = placeRock(shell.field, "medium", x, MIDDLE.y);
-    shell.field.events.addRock("blast", rock, 6);
+    const x = SHIELD_RING_REACH * easeOutCubic(32 / RING_MS) + RING_WIDTH / 4;
+    shell.field.events.add("shielded", x, MIDDLE.y);
 
     run.advance(48);
 

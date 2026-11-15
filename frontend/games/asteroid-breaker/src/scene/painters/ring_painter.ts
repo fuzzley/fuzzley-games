@@ -6,7 +6,7 @@ import { RING_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import type { PaintContext, Painter } from "./painter";
 
-/** How many rings may sweep out at once: a blast may set off a crowd of others. */
+/** How many rings may sweep out at once. */
 const POOL = 12;
 
 /** How opaque a ring is as it starts. */
@@ -22,8 +22,8 @@ interface Ring extends Playing {
 }
 
 /**
- * Draws the rings that sweep out from a blast, a spent Shield and a lost
- * ship, fading as they go, on both sides of an edge they reach across. The
+ * Draws the rings that sweep out from a spent Shield and a lost pod,
+ * fading as they go, on both sides of an edge they reach across. The
  * scene plays them only where motion is welcome.
  */
 export class RingPainter implements Painter {
