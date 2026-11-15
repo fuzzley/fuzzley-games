@@ -32,6 +32,9 @@ import {
 /** The share of its speed past a stray's drift one knocked loose keeps each step. */
 const SLOWING_STEP = 0.5 ** (STEP_MS / LOOSE_SLOWING_MS);
 
+/** How many steps one knocked loose is out before it floats home. */
+const LIFE_STEPS = stepsIn(LOOSE_LIFE_MS);
+
 /** Describes one of the crew knocked loose, in a slot of its own, stepped in place. */
 export interface Loose extends Moving {
   /** Whether it is out on the field, rather than a free slot. */
@@ -128,20 +131,24 @@ export function stepLoose(field: LooseField): void {
     if (!loose.live) continue;
     loose.lastX = loose.x;
     loose.lastY = loose.y;
-    const age = field.steps - loose.knockedAt;
-    if (age >= stepsIn(LOOSE_LIFE_MS)) {
+    if (stepsLeftOf(loose, field.steps) <= 0) {
       floatHome(field, loose);
       continue;
     }
     if (ship === null || !pullIn(field, loose, ship)) fly(loose, torus);
     if (
       ship !== null &&
-      age >= stepsIn(LOOSE_SWELL_MS) &&
+      field.steps - loose.knockedAt >= stepsIn(LOOSE_SWELL_MS) &&
       reaches(loose, ship, torus)
     ) {
       catchAgain(field, loose);
     }
   }
+}
+
+/** Returns how many steps one knocked loose has left at a step before it floats home, 0 or less once it is due to. */
+export function stepsLeftOf(loose: Readonly<Loose>, steps: number): number {
+  return LIFE_STEPS - (steps - loose.knockedAt);
 }
 
 /** Floats every one of the crew knocked loose home, as the run ends. */

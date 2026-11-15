@@ -24,14 +24,25 @@ const EVERY_WAVE: Request = {
   endless: false,
 };
 
-/** Returns a play that cleared its wave in the steps given, bringing home one stray of two. */
+/**
+ * Returns a play that cleared its wave in the steps given, two of the crew
+ * knocked loose and one of them floating home, bringing home one stray of
+ * two.
+ */
 function cleared(steps: number): WavePlayed {
-  return { cleared: true, steps, hits: 0, straysSent: 2, straysHome: 1 };
+  return {
+    cleared: true,
+    steps,
+    knocked: 2,
+    floated: 1,
+    straysSent: 2,
+    straysHome: 1,
+  };
 }
 
 /** Returns a play that didn't clear its wave. */
 function lost(): WavePlayed {
-  return { ...cleared(300), cleared: false, hits: 3 };
+  return { ...cleared(300), cleared: false };
 }
 
 /**
@@ -137,20 +148,20 @@ describe("readCommandLine", () => {
 });
 
 describe("report", () => {
-  it("lays the names out as wide as the longest, each speed's time, hits taken and strays home beside them", () => {
+  it("lays the names out as wide as the longest, each speed's time, the crew knocked loose and floated home, and the strays home beside them", () => {
     expect(reported(apiOf(), EVERY_WAVE).lines).toEqual([
-      "                      relaxed             fast",
-      "                       time  hits  home    time  hits  home",
-      " 1 Drift               1:15     0   1/2    1:15     0   1/2",
-      "30 Eye of the storm    1:15     0   1/2    1:15     0   1/2",
+      "                      relaxed                         fast",
+      "                       time  knocked  floated  home    time  knocked  floated  home",
+      " 1 Drift               1:15        2        1   1/2    1:15        2        1   1/2",
+      "30 Eye of the storm    1:15        2        1   1/2    1:15        2        1   1/2",
     ]);
   });
 
   it("plays Endless's waves, laid out as wide as their own names, with --endless", () => {
     expect(reported(apiOf(), { ...EVERY_WAVE, endless: true }).lines).toEqual([
-      "             relaxed             fast",
-      "              time  hits  home    time  hits  home",
-      "31 Endless    1:15     0   1/2    1:15     0   1/2",
+      "             relaxed                         fast",
+      "              time  knocked  floated  home    time  knocked  floated  home",
+      "31 Endless    1:15        2        1   1/2    1:15        2        1   1/2",
     ]);
   });
 
@@ -175,11 +186,26 @@ describe("report", () => {
     );
 
     expect(reported(api, { ...EVERY_WAVE, seeds: 3 }).lines).toEqual([
-      "                      relaxed                      fast",
-      "                      middle  most  hits    home   middle  most  hits    home",
-      " 1 Drift                2:00  3:00     0     3/6     2:00  3:00     0     3/6",
-      "30 Eye of the storm     2:00  3:00     0     3/6     2:00  3:00     0     3/6",
+      "                      relaxed                                  fast",
+      "                      middle  most  knocked  floated    home   middle  most  knocked  floated    home",
+      " 1 Drift                2:00  3:00        2        1     3/6     2:00  3:00        2        1     3/6",
+      "30 Eye of the storm     2:00  3:00        2        1     3/6     2:00  3:00        2        1     3/6",
     ]);
+  });
+
+  it("shows the most of the crew any seed's play as the spec plays it knocked loose and floated home, with --seeds", () => {
+    const api = apiOf((_wave, _speed, how) => {
+      const seed = how.seed % 1000;
+      return how.invulnerable
+        ? { ...cleared(60), knocked: 9, floated: 9 }
+        : { ...cleared(60), knocked: seed, floated: 3 - seed };
+    });
+
+    const { lines } = reported(api, { ...EVERY_WAVE, seeds: 3 });
+
+    expect(lines[2]).toBe(
+      " 1 Drift                1:00  1:00        2        3     3/6     1:00  1:00        2        3     3/6",
+    );
   });
 
   it("marks a play that didn't clear its wave, or not before the limit, says how many, and fails", () => {
@@ -191,10 +217,10 @@ describe("report", () => {
 
     expect(reported(api, EVERY_WAVE)).toEqual({
       lines: [
-        "                      relaxed             fast",
-        "                       time  hits  home    time  hits  home",
-        " 1 Drift               1:15     0   1/2       -     -   1/2",
-        "30 Eye of the storm    1:15     0   1/2    1:15     -   1/2",
+        "                      relaxed                         fast",
+        "                       time  knocked  floated  home    time  knocked  floated  home",
+        " 1 Drift               1:15        2        1   1/2       -        -        -   1/2",
+        "30 Eye of the storm    1:15        2        1   1/2    1:15        -        -   1/2",
         "",
         "3 plays didn't clear their wave in time (-).",
       ],
@@ -209,9 +235,9 @@ describe("report", () => {
 
     expect(reported(api, { ...EVERY_WAVE, endless: true })).toEqual({
       lines: [
-        "             relaxed             fast",
-        "              time  hits  home    time  hits  home",
-        "31 Endless    1:15     -   1/2    1:15     -   1/2",
+        "             relaxed                         fast",
+        "              time  knocked  floated  home    time  knocked  floated  home",
+        "31 Endless    1:15        -        -   1/2    1:15        -        -   1/2",
       ],
       code: 0,
     });

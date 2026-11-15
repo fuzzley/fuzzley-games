@@ -3,6 +3,7 @@ import type { RockKindId, RockSize } from "../rules/catalog/rocks";
 import type { FieldEvent, FieldEventKind } from "../rules/field/events";
 import { type Field, createField, stepField } from "../rules/field/field";
 import type { Comet } from "../rules/hazards/comets";
+import type { Loose } from "../rules/hazards/loose";
 import type { Stray } from "../rules/hazards/strays";
 import type { Floating } from "../rules/rocks/drops";
 import { type Rock, addRock } from "../rules/rocks/rocks";
@@ -12,10 +13,12 @@ import { layTow } from "../rules/ship/tow";
 import { stepsIn } from "../rules/stepper";
 import type { Torus } from "../rules/torus";
 import {
+  LOOSE_SWELL_MS,
   PICKUPS_AT_ONCE,
   PICKUP_LIFE_MS,
   ROCK_CAP,
   STRAY_FIRST_MS,
+  STRAY_SPEED,
   type Span,
 } from "../rules/tuning";
 
@@ -218,6 +221,35 @@ export function placeStray(
   stray.lastX = x;
   stray.lastY = y;
   return stray;
+}
+
+/**
+ * Puts one of the crew knocked loose out on a field at a place, a pilot in
+ * a color, drifting to the right at a stray's speed, as one that has
+ * slowed does, and swelled, as if knocked loose a swell's time before the
+ * step under way, and returns it for a spec to set its way, its speed or
+ * its age; it fails the spec if no slot is free. The crew is left as it
+ * is, so the pilot is in it twice or not at all.
+ */
+export function placeLoose(
+  field: Field,
+  x: number,
+  y: number,
+  pilot: Pilot = 6,
+): Loose {
+  const loose = field.loose.find((each) => !each.live);
+  if (!loose) throw new Error("No slot was free for the one knocked loose.");
+  loose.live = true;
+  loose.pilot = pilot;
+  loose.x = x;
+  loose.y = y;
+  loose.lastX = x;
+  loose.lastY = y;
+  loose.wayX = 1;
+  loose.wayY = 0;
+  loose.speed = STRAY_SPEED;
+  loose.knockedAt = field.steps - stepsIn(LOOSE_SWELL_MS);
+  return loose;
 }
 
 /**
