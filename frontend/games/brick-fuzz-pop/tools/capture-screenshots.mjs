@@ -9,10 +9,10 @@
  * Writes `preview.webp`, the whole page, and `thumb.webp`, the field, to
  * `public/docs/screenshots/brick-fuzz-pop/`. Both show the same run, kept as
  * the game keeps one, taken up paused on load and gone on with: on level
- * 18, Powder keg, the last of Sparks, two rounds in on a field 11 deep, the
- * next shot aimed by the keys up through a gap, its guide punching through
- * a bomb. The palette is Midnight blue, dark as the other arcade games' are
- * in the catalog.
+ * 18, Powder keg, the last of Sparks, a round in on a field 11 deep, the
+ * next shot aimed by the keys up into the wall, its guide punching through
+ * three bricks. The palette is Midnight blue, dark as the other arcade
+ * games' are in the catalog.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,18 +48,16 @@ const FIELD = { name: "field", element: "app-board", drawnAt: "data-field" };
 
 /**
  * The run shown, as `keptRun()` keeps it: begun on Powder keg, on a field
- * 11 deep, as the page's board lays it out, and played two rounds into it
- * by the first two shots of its certificate there.
+ * 11 deep, as the page's board lays it out, and played a round into it by
+ * the first shot of its certificate there, which leaves the wall full
+ * enough to show every kind the level holds.
  *
  * @type {ScriptRun}
  */
 export const RUN = {
   level: 18,
   depth: 11,
-  shots: [
-    [248, 4],
-    [160, 3],
-  ],
+  shots: [[248, 4]],
 };
 
 /**

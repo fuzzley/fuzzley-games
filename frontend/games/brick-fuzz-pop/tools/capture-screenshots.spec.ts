@@ -74,7 +74,7 @@ describe("run", () => {
 });
 
 describe("shownRun", () => {
-  it("stamps the run kept with the version the shell takes it up under, paused two rounds into its level", async () => {
+  it("stamps the run kept with the version the shell takes it up under, paused a round into its level", async () => {
     const shown = shownRun(await loadScreenshotApi());
 
     const stored = JSON.parse(shown.stored) as Record<string, unknown>;
@@ -87,7 +87,7 @@ describe("shownRun", () => {
     }).toEqual({
       version: SAVED_GAME_VERSION,
       level: RUN.level,
-      rounds: 2,
+      rounds: 1,
       outcome: "paused",
     });
   });
@@ -127,9 +127,9 @@ describe("aimingKeys", () => {
 });
 
 describe("RUN", () => {
-  it("plays the first two shots of its level's certificate on its depth", () => {
+  it("plays the first shot of its level's certificate on its depth", () => {
     const line = certificateOf(levelEntryOf(LEVELS, RUN.level), RUN.depth);
 
-    expect(RUN.shots).toEqual(line?.slice(0, 2));
+    expect(RUN.shots).toEqual(line?.slice(0, 1));
   });
 });

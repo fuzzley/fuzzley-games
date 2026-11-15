@@ -709,14 +709,14 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   by the rules (`keptRun()`, in `src/testing/kept_run.ts`, which it loads
   through `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the
   version the shell keeps it under), begun on level 18, Powder keg, on a
-  field 11 deep and played two rounds in by the first two shots of its
-  certificate there, taken up and gone on with, the next shot aimed by the
-  arrow keys up through a bomb, at 110 degrees and a charge of 3, which it
-  waits to hear the game say, at 1280 × 720 and 2× on Midnight blue, written
-  to `public/docs/screenshots/brick-fuzz-pop/` as the site's `preview.webp`
-  (2560 × 1440), which `index.html` names as the link preview, and
-  `thumb.webp` (576 × 324), cropped around the field; `--url` points it at
-  another server than `http://localhost:9006/`).
+  field 11 deep and played a round in by the first shot of its certificate
+  there, taken up and gone on with, the next shot aimed by the arrow keys
+  up into the wall, through three bricks, at 110 degrees and a charge of 3,
+  which it waits to hear the game say, at 1280 × 720 and 2× on Midnight
+  blue, written to `public/docs/screenshots/brick-fuzz-pop/` as the site's
+  `preview.webp` (2560 × 1440), which `index.html` names as the link
+  preview, and `thumb.webp` (576 × 324), cropped around the field; `--url`
+  points it at another server than `http://localhost:9006/`).
 - **Write the Aims:** `yarn build:aims` (writes `src/rules/aims.ts`, each
   aim's heading as two numbers, from `tools/build-aims.mjs`;
   `src/rules/aims.spec.ts` fails while the file isn't what the script
