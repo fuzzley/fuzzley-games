@@ -162,7 +162,6 @@ describe("Steering's keys", () => {
       aim: STRAIGHT_UP,
       charge: 0,
       release: false,
-      fast: false,
       keyed: false,
     });
   });
@@ -311,37 +310,11 @@ describe("Steering's keys", () => {
     expect(frame(steering).keyed).toBe(false);
   });
 
-  it("hold fast-forward while F is held", () => {
-    const steering = steeringOf();
-
-    steering.keyDown(key("KeyF"));
-
-    expect(frame(steering).fast).toBe(true);
-  });
-
-  it("hold fast-forward through F's repeats", () => {
-    const steering = steeringOf();
-    steering.keyDown(key("KeyF"));
-
-    steering.keyDown(key("KeyF", { repeat: true }));
-
-    expect(frame(steering).fast).toBe(true);
-  });
-
-  it("let go of fast-forward as F is let go", () => {
-    const steering = steeringOf();
-    steering.keyDown(key("KeyF"));
-
-    steering.keyUp("KeyF");
-
-    expect(frame(steering).fast).toBe(false);
-  });
-
   it.each([
     ["ArrowLeft", true],
     ["KeyS", true],
     ["Space", true],
-    ["KeyF", true],
+    ["KeyF", false],
     ["KeyX", false],
     ["KeyR", false],
     ["KeyP", false],
@@ -404,17 +377,6 @@ describe("Steering's keys", () => {
     steering.pointerUp(mouse(4.5, 5));
 
     expect([taken, frame(steering).release]).toEqual([true, false]);
-  });
-
-  it("forget F and a press as the player looks away", () => {
-    const steering = steeringOf();
-    steering.keyDown(key("KeyF"));
-    steering.pointerDown(mouse(4.5, 5));
-
-    steering.letGo();
-    steering.pointerUp(mouse(4.5, 5));
-
-    expect(frame(steering)).toMatchObject({ fast: false, release: false });
   });
 });
 

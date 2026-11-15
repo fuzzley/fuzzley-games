@@ -1,4 +1,4 @@
-import { commandOfKey, heldKeyOf, steerKeyOf } from "./controls";
+import { commandOfKey, steerKeyOf } from "./controls";
 
 describe("commandOfKey", () => {
   it.each([
@@ -7,12 +7,13 @@ describe("commandOfKey", () => {
     ["Enter", "go"],
     ["NumpadEnter", "go"],
     ["KeyX", "skip"],
+    ["KeyF", "fast"],
     ["KeyR", "read"],
   ])("reads %s as %s", (code, command) => {
     expect(commandOfKey(code)).toBe(command);
   });
 
-  it.each(["ArrowLeft", "Space", "KeyF", "KeyQ", "Tab"])(
+  it.each(["ArrowLeft", "Space", "KeyQ", "Tab"])(
     "reads %s as no command",
     (code) => {
       expect(commandOfKey(code)).toBeNull();
@@ -39,19 +40,6 @@ describe("steerKeyOf", () => {
     "reads %s as doing nothing to the shot",
     (code) => {
       expect(steerKeyOf(code)).toBeNull();
-    },
-  );
-});
-
-describe("heldKeyOf", () => {
-  it("reads F held as fast-forward", () => {
-    expect(heldKeyOf("KeyF")).toBe("fast");
-  });
-
-  it.each(["Space", "KeyX", "ArrowUp"])(
-    "reads %s as holding nothing",
-    (code) => {
-      expect(heldKeyOf(code)).toBeNull();
     },
   );
 });

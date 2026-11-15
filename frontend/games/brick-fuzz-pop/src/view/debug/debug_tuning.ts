@@ -15,7 +15,7 @@ export interface TunedNumbers {
   readonly normalPace: number;
   /** How far a flight plays back in a second at Fast, in field units. */
   readonly fastPace: number;
-  /** How many times faster a flight plays back while fast-forward is held. */
+  /** How many times faster a flight plays back while fast-forward is on. */
   readonly fastForward: number;
   /** How long a flight plays before it speeds up by itself, where the settings let it. */
   readonly longFlightMs: number;

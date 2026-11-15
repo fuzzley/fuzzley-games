@@ -238,8 +238,8 @@ helpers.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`; `steering.ts`'s `Steering` turns the keys, the
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
-  charge, a shot let fly, fast-forward held and whether the keys moved it,
-  aiming a pointer from where the fuzzball waits, the mouse and fingers
+  charge, a shot let fly and whether the keys moved it, aiming a pointer
+  from where the fuzzball waits, the mouse and fingers
   alike, the way the settings choose: pointed and held, a finger aiming at
   once and charging held still or dragging, the hold counted by the frames'
   clock, at most `LONGEST_FRAME_MS` a frame, or pulled back past a dead
@@ -319,7 +319,7 @@ helpers.
     every key but the browser's shortcuts, the arrows and Space captured
     from the page; the mouse and its wheel; fingers, adding pointers up to
     `MOST_FINGERS`; and a pointer let go past the canvas, so a mouse let go
-    there still lets the shot fly; and calls its `letGo()` as the player
+    there still lets the shot fly; and calls its `callOff()` as the player
     looks away (`onPlayerAway()`). A key the steering doesn't take becomes
     the view's command through `commandOfKey()`, once a press. Each frame
     it reads the steering from where the fuzzball waits (`waitingX()`), or
@@ -484,7 +484,7 @@ helpers.
     as pointing and holding), the flight's speed, long flights sped up, the
     aim guide, sound and the palette, each applied at once; `SettingsService`
     keeps them, and whether fast-forward is on, which has no control in the
-    drawer, the bar's Fast-forward being its control. Where
+    drawer, the bar's Fast-forward and F being its controls. Where
     `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
     and in a production one at `?debug`, the debug menu follows them, loaded
     only there, so a page that doesn't offer it never
@@ -541,8 +541,9 @@ helpers.
     lays the field out on the board's room between rounds, gives the scene
     its options and the guide (`guide()`), says what happens and keeps the
     records. It plays every flight fast while fast-forward is on, a setting
-    the bar's Fast-forward switches (`fastForward()`), and a flight while F
-    is held. The bar's rounds and score follow the playback, though the
+    the bar's Fast-forward (`fastForward()`) and F (`fieldCommand()`)
+    switch, F saying which.
+    The bar's rounds and score follow the playback, though the
     run takes a round in as it is released: a round counts as its flight
     lands, each break's points as the flight plays it back, and a jump's
     and the stars' as it lands. It hands the board the card to show

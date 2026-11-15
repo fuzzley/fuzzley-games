@@ -26,7 +26,7 @@ export type FlightSpeed = "normal" | "fast";
 export interface FlightPace {
   /** How far a flight plays back in a second, in field units, at each speed. */
   readonly unitsPerSecond: Readonly<Record<FlightSpeed, number>>;
-  /** How many times faster a flight plays back while fast-forward is held. */
+  /** How many times faster a flight plays back while fast-forward is on. */
   readonly fastForward: number;
   /** How long a flight plays before it speeds up by itself, where the settings let long flights speed up. */
   readonly longFlightMs: number;
@@ -121,7 +121,7 @@ export interface PlayOptions {
   readonly pace: FlightPace;
   /** The speed the settings set. */
   readonly speed: FlightSpeed;
-  /** Whether fast-forward is held. */
+  /** Whether fast-forward is on. */
   readonly fast: boolean;
   /** Whether a long flight speeds up by itself, as the settings say. */
   readonly speedUp: boolean;
@@ -400,7 +400,7 @@ export class RoundPlay {
 
   /**
    * Returns how far a frame's time plays the flight, in field units: at the
-   * speed set, times fast-forward's while it is held, and times the pace's
+   * speed set, times fast-forward's while it is on, and times the pace's
    * speed-up for the part of the frame past its long flight where long
    * flights speed up, so the moment the flight speeds up is the same at any
    * rate of frames.

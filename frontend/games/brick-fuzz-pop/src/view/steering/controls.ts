@@ -1,10 +1,11 @@
 import { RUN_KEYS, type RunCommand } from "@fz/core/run";
 
 /**
- * Names what a key asks of the game: to skip a flight, to read the wall's
- * lowest rows aloud, or what the keys every game shares ask of its run.
+ * Names what a key asks of the game: to skip a flight, to switch
+ * fast-forward on or off, to read the wall's lowest rows aloud, or what the
+ * keys every game shares ask of its run.
  */
-export type FieldCommand = "skip" | "read" | RunCommand;
+export type FieldCommand = "skip" | "fast" | "read" | RunCommand;
 
 /**
  * Names what a key does to the shot being aimed: turns the aim left or
@@ -12,17 +13,15 @@ export type FieldCommand = "skip" | "read" | RunCommand;
  */
 export type SteerKey = "left" | "right" | "up" | "down" | "release";
 
-/** Names a key held: fast-forward, while a flight is in the air. */
-export type HeldKey = "fast";
-
 /**
  * What each key asks of the game, by `event.code`, the key's place on the
- * keyboard rather than its letter, so the same fingers find X and R on any
- * keyboard: Escape, P and Enter as every game's run has them.
+ * keyboard rather than its letter, so the same fingers find X, F and R on
+ * any keyboard: Escape, P and Enter as every game's run has them.
  */
 const COMMAND_KEYS: Readonly<Record<string, FieldCommand>> = {
   ...RUN_KEYS,
   KeyX: "skip",
+  KeyF: "fast",
   KeyR: "read",
 };
 
@@ -42,11 +41,6 @@ const STEER_KEYS: Readonly<Record<string, SteerKey>> = {
   Space: "release",
 };
 
-/** What each key holds while it is held, by `event.code`. */
-const HELD_KEYS: Readonly<Record<string, HeldKey>> = {
-  KeyF: "fast",
-};
-
 /** Returns what a key asks of the game, or null for a key that asks nothing of it. */
 export function commandOfKey(code: string): FieldCommand | null {
   return COMMAND_KEYS[code] ?? null;
@@ -55,9 +49,4 @@ export function commandOfKey(code: string): FieldCommand | null {
 /** Returns what a key does to the shot being aimed, or null for one that does nothing to it. */
 export function steerKeyOf(code: string): SteerKey | null {
   return STEER_KEYS[code] ?? null;
-}
-
-/** Returns what a key holds while it is held, or null for one that holds nothing. */
-export function heldKeyOf(code: string): HeldKey | null {
-  return HELD_KEYS[code] ?? null;
 }
