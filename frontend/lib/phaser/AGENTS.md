@@ -288,10 +288,11 @@ take the pure ones.
   (`play()`'s `across`, or `playAt()`, made once as `playRisen()` is,
   which takes a volume too) panned; the voices of a sound, of its family
   and in all held to `VOICES`, one of another sound that gives way
-  stopped; a `tick` or `small` sound played under a `huge` one ducked, by
-  the lower of the last two ducks' gains; and a held sound by its first
-  take, neither varied nor ducked. A mixed play starts from its marker's own
-  config, every key of it reset, whatever the last play's was. With a mix it
+  stopped; a `tick` or `small` sound played under a `huge` one ducked, the
+  take, the variation and the duck each play's `mixedPlay()` step; and a
+  held sound by its first take, neither varied nor ducked. A mixed play
+  starts from its marker's own config, every key of it reset, whatever the
+  last play's was. With a mix it
   puts a limiter between the game's master volume and its speakers
   (`src/sound/output.ts`'s `limitSound()`, set as `@fz/core/sound_mix`'s
   `LIMITER` says), once for the game, and `followMono()` sums the two ears

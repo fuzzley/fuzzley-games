@@ -1,6 +1,7 @@
 import { keysOf } from "@fz/core/records";
 import {
-  DUCK_AT_START,
+  type MixedPlay,
+  type MixedSound,
   NO_TAKE,
   ROOM,
   type SoundLevel,
@@ -8,15 +9,10 @@ import {
   VOICES,
   type Voice,
   type VoiceLimits,
-  duckedGainUnder,
   ducksOthers,
-  isDucked,
-  isVaried,
-  nextTake,
+  mixedPlay,
   panOf,
   takeMarkers,
-  variedDetune,
-  variedGain,
   voiceGivingWay,
 } from "@fz/core/sound_mix";
 import { type Scene, Sound, type Types } from "phaser";
@@ -96,13 +92,9 @@ interface Played {
   readonly markers: readonly string[];
   readonly family: string;
   readonly level: SoundLevel;
-  /** Whether a play of it is varied. */
-  readonly varied: boolean;
-  /** Whether a play of it is ducked under one that ducks others. */
-  readonly ducked: boolean;
-  /** Whether a play of it ducks others. */
-  readonly ducks: boolean;
-  /** The take it played last, or `NO_TAKE`. */
+  /** How the mix mixes it, or null for a player with no mix. */
+  readonly mixedSound: MixedSound | null;
+  /** The take it played last, or `NO_TAKE`, as a sound with no mix stays, playing its one take. */
   take: number;
 }
 
@@ -174,6 +166,9 @@ export class SpritePlayer<Name extends string> {
     ...PLAIN_PLAY,
   };
 
+  /** How the mix plays each sound, beyond what its play asks, made once and written for each. */
+  private readonly step: MixedPlay = { take: 0, detune: 0, gain: 1 };
+
   /** The sounds made to play each sound of the sprite on, by name. */
   private readonly pools = new Map<Name, Pooled[]>();
 
@@ -188,9 +183,6 @@ export class SpritePlayer<Name extends string> {
 
   /** When the latest sound that ducks others started, on the scene's clock, in milliseconds. */
   private latestDuck = Number.NEGATIVE_INFINITY;
-
-  /** When the one before it started, as `latestDuck`, so two ducks that overlap hold the levels down. */
-  private earlierDuck = Number.NEGATIVE_INFINITY;
 
   /** The most voices that sound at once, of a sound, of a family and in all. */
   private readonly limits: VoiceLimits;
@@ -215,7 +207,7 @@ export class SpritePlayer<Name extends string> {
   constructor(
     private readonly scene: Scene,
     private readonly sprite: SoundSprite<string>,
-    private readonly mixing?: SpriteMixing<Name>,
+    mixing?: SpriteMixing<Name>,
   ) {
     this.limits = mixing === undefined ? UNMIXED_VOICES : VOICES;
     this.random = mixing?.random ?? Math.random;
@@ -278,8 +270,8 @@ export class SpritePlayer<Name extends string> {
   play(name: Name, config?: Types.Sound.SoundConfig, across?: number): void {
     if (!this.wanted || !this.loaded) return;
     const played = this.playedOf(name);
-    const take = nextTake(played.take, played.markers.length);
-    played.take = take;
+    const step = this.mixedStep(played);
+    const take = step?.take ?? 0;
     const marker = played.markers[take] ?? name;
     const pooled = this.voiceFor(name, played);
     pooled.started = ++this.plays;
@@ -288,9 +280,9 @@ export class SpritePlayer<Name extends string> {
     if (own?.config) Object.assign(own.config, marked[take]);
     sound.play(
       marker,
-      this.mixing === undefined
+      step === null
         ? config
-        : this.mixedPlay(played, marked[take], config, across),
+        : this.mixedConfig(step, marked[take], config, across),
     );
   }
 
@@ -350,7 +342,8 @@ export class SpritePlayer<Name extends string> {
   private mixAll(mix: SoundMix<Name>): void {
     const { spritemap } = this.sprite.spritemap;
     for (const name of keysOf(mix)) {
-      const { family, level, takes, tuned } = mix[name];
+      const mixedSound = mix[name];
+      const { family, level, takes } = mixedSound;
       const markers = takeMarkers(name, takes);
       if (markers.length === 0) {
         throw new RangeError(`The mix's ${name} has no takes.`);
@@ -367,9 +360,7 @@ export class SpritePlayer<Name extends string> {
         markers,
         family,
         level,
-        varied: isVaried({ level, tuned }),
-        ducked: isDucked(level),
-        ducks: ducksOthers(level),
+        mixedSound,
         take: NO_TAKE,
       });
     }
@@ -383,9 +374,7 @@ export class SpritePlayer<Name extends string> {
         markers: [name],
         family: name,
         level: UNMIXED_LEVEL,
-        varied: false,
-        ducked: false,
-        ducks: false,
+        mixedSound: null,
         take: NO_TAKE,
       };
       this.playing.set(name, played);
@@ -394,14 +383,35 @@ export class SpritePlayer<Name extends string> {
   }
 
   /**
-   * Returns the config a mixed play starts with, in the config made once
-   * for each: its marker's own, then the play's, its detune and volume
-   * varied where the mix varies it, its volume ducked where a sound that
-   * ducks others started a moment ago, and its pan by its place, where it
-   * has one; a play that ducks others marks when it did.
+   * Returns how the mix plays a sound, by `@fz/core/sound_mix`'s
+   * `mixedPlay()`, in the record made once for each, noting its take and,
+   * for one that ducks others, when it did; or null for a player with no
+   * mix, which plays a sound's one take as it is.
    */
-  private mixedPlay(
-    played: Played,
+  private mixedStep(played: Played): MixedPlay | null {
+    const { mixedSound } = played;
+    if (mixedSound === null) return null;
+    const now = this.scene.time.now;
+    const step = mixedPlay(
+      mixedSound,
+      played.take,
+      (now - this.latestDuck) / 1000,
+      this.random,
+      this.step,
+    );
+    played.take = step.take;
+    if (ducksOthers(mixedSound.level)) this.latestDuck = now;
+    return step;
+  }
+
+  /**
+   * Returns the config a mixed play starts with, in the config made once
+   * for each: its marker's own, then the play's, raised and made louder or
+   * quieter as the mix's step says, and its pan by its place, where it has
+   * one.
+   */
+  private mixedConfig(
+    step: Readonly<MixedPlay>,
     marked: Types.Sound.SoundConfig | undefined,
     config: Types.Sound.SoundConfig | undefined,
     across: number | undefined,
@@ -410,23 +420,9 @@ export class SpritePlayer<Name extends string> {
     // A mix places a play by its pan, never at a spatial source, which
     // would stay for the plays after it.
     delete mixed.source;
-    const now = this.scene.time.now;
-    if (played.varied) {
-      mixed.detune += variedDetune(this.random);
-      mixed.volume *= variedGain(this.random);
-    }
-    if (played.ducked) {
-      mixed.volume *= duckedGainUnder(
-        (now - this.latestDuck) / 1000,
-        (now - this.earlierDuck) / 1000,
-        DUCK_AT_START,
-      );
-    }
+    mixed.detune += step.detune;
+    mixed.volume *= step.gain;
     if (across !== undefined) mixed.pan = panOf(across);
-    if (played.ducks) {
-      this.earlierDuck = this.latestDuck;
-      this.latestDuck = now;
-    }
     return mixed;
   }
 

@@ -4,6 +4,8 @@ import {
   type Duck,
   FADE_SECONDS,
   LIMITER,
+  type MixedPlay,
+  type MixedSound,
   NO_TAKE,
   PAN_WIDTH,
   ROOM,
@@ -11,10 +13,10 @@ import {
   type SoundLevel,
   VARIATION,
   VOICES,
+  type VariationLimits,
   type Voice,
   acrossOf,
   duckedGain,
-  duckedGainUnder,
   ducksOthers,
   fadeGain,
   fadedShare,
@@ -22,6 +24,7 @@ import {
   isDucked,
   isVaried,
   loopPhase,
+  mixedPlay,
   nextTake,
   panOf,
   takeMarkers,
@@ -433,26 +436,6 @@ describe("duckedGain", () => {
   });
 });
 
-describe("duckedGainUnder", () => {
-  it("holds a sound down through a second duck's attack, as the first holds it", () => {
-    expect(duckedGainUnder(0, 0.2)).toBe(gainOf(-6));
-  });
-
-  it("holds it down until the second duck lets it up", () => {
-    expect(duckedGainUnder(0.3, 0.5)).toBe(gainOf(-6));
-  });
-
-  it("leaves it be once neither ducks it", () => {
-    expect(duckedGainUnder(1, 1.2)).toBe(1);
-  });
-
-  it("ducks as the duck it is given says", () => {
-    expect(
-      duckedGainUnder(0.5, 0.7, { ...DUCK, decibels: 12, heldUntil: 1 }),
-    ).toBe(gainOf(-12));
-  });
-});
-
 describe("DUCK_AT_START", () => {
   it("ducks a play as the mix does, down from its start", () => {
     expect(duckedGain(0, DUCK_AT_START)).toBe(gainOf(-6));
@@ -462,6 +445,116 @@ describe("DUCK_AT_START", () => {
     expect(duckedGain(1 / 3 + 0.05, DUCK_AT_START)).toBe(
       duckedGain(1 / 3 + 0.05),
     );
+  });
+
+  it("never turns a play down further as time passes, so the latest of two ducks is the deeper", () => {
+    const gains = Array.from({ length: 50 }, (_, i) =>
+      duckedGain(i / 100, DUCK_AT_START),
+    );
+
+    expect(gains).toEqual(gains.toSorted((one, other) => one - other));
+  });
+});
+
+describe("mixedPlay", () => {
+  /** A noisy sound of three takes at a busy level, which the mix varies and ducks. */
+  const BUSY: MixedSound = {
+    family: "rocks",
+    level: "small",
+    takes: 3,
+    tuned: false,
+  };
+
+  /** Returns a play's record to write into, with nothing of a play in it. */
+  function blank(): MixedPlay {
+    return { take: 99, detune: 99, gain: 99 };
+  }
+
+  /** Returns how a sound plays first, long after any duck, drawing the numbers given. */
+  function played(sound: MixedSound, ...draws: number[]): Readonly<MixedPlay> {
+    return mixedPlay(sound, NO_TAKE, Infinity, drawing(...draws), blank());
+  }
+
+  it("plays a sound's first take first", () => {
+    expect(played(BUSY, 0.5, 0.5).take).toBe(0);
+  });
+
+  it("plays the take after the last, in turn", () => {
+    const takes = [NO_TAKE, 0, 1, 2].map(
+      (last) => mixedPlay(BUSY, last, Infinity, drawing(), blank()).take,
+    );
+
+    expect(takes).toEqual([0, 1, 2, 0]);
+  });
+
+  it("varies a busy noisy sound, its raise drawn before its loudness", () => {
+    expect(played(BUSY, 1, 0)).toEqual({
+      take: 0,
+      detune: 40,
+      gain: gainOf(-1.5),
+    });
+  });
+
+  it("leaves a tuned sound as the play asks", () => {
+    expect(played({ ...BUSY, tuned: true }, 1, 1)).toEqual({
+      take: 0,
+      detune: 0,
+      gain: 1,
+    });
+  });
+
+  it("leaves a sound at a level the variation doesn't name as the play asks", () => {
+    expect(played({ ...BUSY, level: "medium" }, 1, 1)).toEqual({
+      take: 0,
+      detune: 0,
+      gain: 1,
+    });
+  });
+
+  it("ducks a busy sound 6 dB from the start of a sound that ducks others", () => {
+    const play = mixedPlay(BUSY, NO_TAKE, 0, drawing(0.5, 0.5), blank());
+
+    expect(play.gain).toBe(gainOf(-6));
+  });
+
+  it("lets a busy sound be once the duck is done", () => {
+    const play = mixedPlay(BUSY, NO_TAKE, 0.5, drawing(0.5, 0.5), blank());
+
+    expect(play.gain).toBe(1);
+  });
+
+  it("ducks no sound at a level the duck doesn't name", () => {
+    const loud = { ...BUSY, level: "huge" } as const;
+
+    expect(mixedPlay(loud, NO_TAKE, 0, drawing(), blank()).gain).toBe(1);
+  });
+
+  it("varies and ducks by the limits it is given", () => {
+    const variation: VariationLimits = {
+      cents: 10,
+      decibels: 3,
+      levels: ["medium"],
+    };
+    const duck: Duck = { ...DUCK_AT_START, levels: ["medium"], decibels: 12 };
+    const medium = { ...BUSY, level: "medium" } as const;
+
+    const play = mixedPlay(
+      medium,
+      NO_TAKE,
+      0,
+      drawing(1, 1),
+      blank(),
+      variation,
+      duck,
+    );
+
+    expect(play).toEqual({ take: 0, detune: 10, gain: gainOf(3 - 12) });
+  });
+
+  it("writes the play into the record it is given", () => {
+    const into = blank();
+
+    expect(mixedPlay(BUSY, NO_TAKE, Infinity, drawing(), into)).toBe(into);
   });
 });
 

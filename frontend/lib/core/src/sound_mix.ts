@@ -1,7 +1,8 @@
 // How a game's sounds are mixed as they play, decided apart from whatever
 // plays them: which take plays next, how a play is varied and where it is
 // panned, which voice gives way to another, how far a huge sound ducks the
-// busy ones, and how a bed's looped layers keep in step and fade. Each
+// busy ones, all of a play's but its voice and its pan worked out in one
+// step, and how a bed's looped layers keep in step and fade. Each
 // number is a parameter, the mix's own its default, and what is drawn at
 // random is drawn by the source a caller hands in. It imports nothing, so a
 // page that plays by it compiles it alone.
@@ -283,8 +284,7 @@ export function isDucked(level: SoundLevel, duck: Duck = DUCK): boolean {
  * Returns what a ducked sound's loudness is multiplied by, some seconds
  * after a sound that ducks it started: down by the duck's decibels over its
  * attack, held there until its `heldUntil`, and back up over its release;
- * 1 before it and after. Where two ducks overlap, a sound takes the lower
- * of their gains, as {@link duckedGainUnder} gives it.
+ * 1 before it and after.
  */
 export function duckedGain(since: number, duck: Duck = DUCK): number {
   const down = gainOf(-duck.decibels);
@@ -297,25 +297,59 @@ export function duckedGain(since: number, duck: Duck = DUCK): number {
 /**
  * How a play is ducked as it starts: as the mix ducks, but down from the
  * start, since a play's volume is set once as it starts and has no ramp to
- * smooth, so a busy play in a huge sound's own frame is ducked too.
+ * smooth, so a busy play in a huge sound's own frame is ducked too. Down
+ * from its start, a duck only ever comes back up, so the latest of two
+ * that overlap is the deeper.
  */
 export const DUCK_AT_START: Duck = { ...DUCK, attack: 0 };
 
+// --- A play -----------------------------------------------------------------
+
 /**
- * Returns what a ducked sound's loudness is multiplied by under the latest
- * duck and the one before it, some seconds after each started: the lower of
- * their gains, so a huge sound inside another's duck holds the levels down
- * through its own attack rather than letting them up.
+ * Describes how the mix plays a sound, beyond what the play asks: its take,
+ * how far it raises it and what it multiplies its loudness by.
  */
-export function duckedGainUnder(
-  sinceLatest: number,
-  sinceEarlier: number,
-  duck: Duck = DUCK,
-): number {
-  return Math.min(
-    duckedGain(sinceLatest, duck),
-    duckedGain(sinceEarlier, duck),
-  );
+export interface MixedPlay {
+  /** Its take, from 0. */
+  take: number;
+  /** In cents, below 0 for lowered. */
+  detune: number;
+  gain: number;
+}
+
+/**
+ * Returns how the mix plays a sound, written into a record the caller
+ * keeps: the take after the one it played last, in turn; raised and made
+ * louder or quieter by up to the variation's limits, where it varies the
+ * sound, the raise drawn first; and ducked as it starts, under the latest
+ * sound that ducks others, which started `sinceDuck` seconds before. The
+ * variation and the duck are the mix's (`VARIATION` and `DUCK_AT_START`)
+ * unless others are given; the duck goes down from its start, as
+ * `DUCK_AT_START` does, so the latest is the deepest.
+ *
+ * A player keeps, beside it, the take each sound played last and when the
+ * latest sound that ducks others started ({@link ducksOthers}), and chooses
+ * the voice that gives way ({@link voiceGivingWay}) and the pan
+ * ({@link panOf}) itself.
+ */
+export function mixedPlay(
+  sound: MixedSound,
+  lastTake: number,
+  sinceDuck: number,
+  random: () => number,
+  into: MixedPlay,
+  variation: VariationLimits = VARIATION,
+  duck: Duck = DUCK_AT_START,
+): MixedPlay {
+  into.take = nextTake(lastTake, sound.takes);
+  into.detune = 0;
+  into.gain = 1;
+  if (isVaried(sound, variation)) {
+    into.detune = variedDetune(random, variation.cents);
+    into.gain = variedGain(random, variation.decibels);
+  }
+  if (isDucked(sound.level, duck)) into.gain *= duckedGain(sinceDuck, duck);
+  return into;
 }
 
 // --- Limiter ----------------------------------------------------------------

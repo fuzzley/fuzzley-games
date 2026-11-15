@@ -131,11 +131,16 @@ Each file is an entry point of its own, imported by name, such as
   `ROOM`, as `VOICES` limits them, four of a sound, eight of a family and
   twenty-four in all, the quietest by its level and then the oldest first;
   `ducksOthers()`, `isDucked()` and `duckedGain()` are `DUCK`'s, a `huge`
-  sound turning `tick` and `small` down 6 dB for a third of a second,
-  `duckedGainUnder()` the lower gain of two ducks that overlap, and
+  sound turning `tick` and `small` down 6 dB for a third of a second, and
   `DUCK_AT_START` the duck as a play set once as it starts takes it, down
-  from its start; `LIMITER` holds a game's peaks from 3 dB under full
-  scale, hard and fast, after its master volume (a `Limiter`), Web Audio's
+  from its start, so the latest of two that overlap is the deeper;
+  `mixedPlay()` is a play's step, which a player takes for each play
+  (a `MixedPlay`): the sound's next take, its variation and its duck under
+  the latest sound that ducks others, the player keeping, beside it, each
+  sound's last take, when the latest duck started, its voices and its
+  pan, as `@fz/phaser/sound`'s `SpritePlayer` and `@fz/dev`'s sound lab
+  both do; `LIMITER` holds a game's peaks from 3 dB under full scale,
+  hard and fast, after its master volume (a `Limiter`), Web Audio's
   makeup gain leaving a peak about 1 dB under it and raising what is under
   the threshold about 1.7 dB; and a bed's
   layers keep to one bar line by `loopPhase()`, where in its loop a

@@ -588,8 +588,10 @@ too. Paths are relative to `frontend/lib/dev/`.
   with one, `GameMix`, which plans a scene's cues (`MixCue`) as
   `@fz/phaser/sound`'s `SpritePlayer` plays them by the mix, at the
   games' numbers: each sound's takes in turn, from one scene to the next,
-  the busy noisy ones varied, each placed, ducked as it starts under a
-  huge sound (`DUCK_AT_START`), and the voice that gives way to it stopped,
+  the busy noisy ones varied, and every busy one ducked as it starts under
+  a huge sound, by the step `SpritePlayer` takes too (`mixedPlay()`), each
+  placed, and
+  the voice that gives way to it stopped,
   a voice sounding as long as its take plays at its rate (`soundingFor()`),
   a looping one held plainly for as long as its cue says (`HOLD_S` unless
   it says), each a `TakePlay` the page schedules, under the games'
