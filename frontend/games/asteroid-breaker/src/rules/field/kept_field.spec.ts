@@ -30,7 +30,6 @@ import {
   layOutKeptField,
   readField,
   readTorus,
-  rockPointsKept,
   savedField,
 } from "./kept_field";
 import { safestPlace } from "./spawn";
@@ -94,6 +93,7 @@ const COUNT_SPOILS: readonly Spoil[] = [
   ["a pickup let go at a step that isn't a count", { lastDropAt: -1 }],
   ["chain points that aren't a count", { chainPoints: -1 }],
   ["rocks' points that aren't a count", { rockPoints: 0.5 }],
+  ["no rocks' points", { rockPoints: undefined }],
   ["ships lost that aren't a count", { shipsLost: -1 }],
 ];
 
@@ -224,12 +224,6 @@ function kept(): SavedField {
   return keptOf(playedField(runUnderWay()));
 }
 
-/** Returns the specs' field as kept before the rocks' points were counted. */
-function keptUncounted(): SavedField {
-  const { rockPoints, ...uncounted } = kept();
-  return uncounted;
-}
-
 /** Lights the fuse of a field's first rock, as though it were a volatile broken a step before. */
 function lightFuse(field: Field): void {
   const [rock] = field.rocks;
@@ -355,12 +349,6 @@ describe("readField", () => {
     expect(read(saved)).toEqual(saved);
   });
 
-  it("reads a field kept before the rocks' points were counted", () => {
-    const value = keptWith({ rockPoints: undefined });
-
-    expect(read(value)).toEqual(value);
-  });
-
   it("reads a field stretched since it was laid out, though it holds more rocks than one laid out at its size", () => {
     const value = keptWith({ torus: SQUARE, rocks: fullRocks() });
 
@@ -406,12 +394,6 @@ describe("readField", () => {
     expect(read(keptWith(change), soFar)).toBeNull();
   });
 
-  it("drops a field of more points from the chain than its wave has, kept before the rocks' were counted", () => {
-    const value = { ...keptUncounted(), chainPoints: 301 };
-
-    expect(read(value)).toBeNull();
-  });
-
   it.each([...VALUE_SPOILS, ...KIND_SPOILS, ...STATE_SPOILS])(
     "drops a field with %s",
     (_, change) => {
@@ -438,10 +420,6 @@ describe("readTorus", () => {
 describe("hasKeptCounts", () => {
   it("holds a field kept to its counts", () => {
     expect(hasKeptCounts(keptWith({}))).toBe(true);
-  });
-
-  it("holds a field kept before the rocks' points were counted to the rest", () => {
-    expect(hasKeptCounts(keptWith({ rockPoints: undefined }))).toBe(true);
   });
 
   it.each(COUNT_SPOILS)("fails a field of %s", (_, change) => {
@@ -511,35 +489,8 @@ describe("fitsItsRun", () => {
     expect(fitsItsRun({ ...kept(), ...change }, SO_FAR)).toBe(true);
   });
 
-  it("fits a field whose chain, kept before the rocks' were counted, scored every point on its wave", () => {
-    const field = { ...keptUncounted(), chainPoints: 300 };
-
-    expect(fitsItsRun(field, SO_FAR)).toBe(true);
-  });
-
   it.each(RUN_FIT_SPOILS)("fails a field of %s", (_, change, soFar) => {
     expect(fitsItsRun({ ...kept(), ...change }, soFar)).toBe(false);
-  });
-
-  it("fails a field of more points from the chain than its wave has, kept before the rocks' were counted", () => {
-    const field = { ...keptUncounted(), chainPoints: 301 };
-
-    expect(fitsItsRun(field, SO_FAR)).toBe(false);
-  });
-});
-
-describe("rockPointsKept", () => {
-  it("takes the rocks' points a field kept", () => {
-    const field = { ...kept(), rockPoints: 40 };
-
-    expect(rockPointsKept(field, SO_FAR)).toBe(40);
-  });
-
-  it("works out the rocks' points of a field kept before they were counted from what its run scored beside the chain and the strays", () => {
-    const field = { ...keptUncounted(), chainPoints: 80 };
-    const soFar = { points: 800, straysHome: 1 };
-
-    expect(rockPointsKept(field, soFar)).toBe(800 - 80 - STRAY_POINTS);
   });
 });
 
@@ -658,14 +609,6 @@ describe("layOutKeptField", () => {
       score: 800,
       home: 1,
     });
-  });
-
-  it("works out the rocks' points of a field kept before they were counted", () => {
-    const saved = { ...keptUncounted(), chainPoints: 80 };
-
-    const field = layOut(saved);
-
-    expect(field.rockPoints).toBe(SO_FAR.points - 80);
   });
 
   it("sets off a blast whose fuse was lit before the page went away, clearing a wave that waited only on it", () => {

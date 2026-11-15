@@ -17,9 +17,7 @@ export type PickupEffect =
   /** The rocks and comets go at a share of their speed, for a time. */
   | { readonly kind: "pace"; readonly scale: number; readonly ms: number }
   /** Every rock within a reach of the ship takes a hit, at once. */
-  | { readonly kind: "nova"; readonly reach: number }
-  /** One more ship, at once. */
-  | { readonly kind: "ship" };
+  | { readonly kind: "nova"; readonly reach: number };
 
 /** An effect's kind, which is its group. */
 export type EffectKind = PickupEffect["kind"];
@@ -61,13 +59,6 @@ export const PICKUPS = {
     weight: 7,
     from: 2,
     effect: { kind: "guard" },
-  },
-  ship: {
-    name: "Extra ship",
-    about: "One more ship, up to six.",
-    weight: 1,
-    from: 5,
-    effect: { kind: "ship" },
   },
   lance: {
     name: "Lance",

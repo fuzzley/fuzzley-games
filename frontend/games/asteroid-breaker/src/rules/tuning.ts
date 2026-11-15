@@ -199,7 +199,7 @@ export const STRETCH_GUARD_MS = 1000;
 /** How many ships a run starts with, each with its pilot. */
 export const FIRST_SHIPS = 3;
 
-/** The most ships a run has at once; one gained past it is not. */
+/** The most ships a run has at once; a stray brought home past it waits at home. */
 export const MAX_SHIPS = 6;
 
 /** The first wave a stray crosses, in a wave that doesn't say how many. */
@@ -286,9 +286,3 @@ export const CLEAR_POINTS = 500;
 
 /** The points a wave cleared without losing a ship adds besides. */
 export const CLEAN_POINTS = 500;
-
-/** The score that brings a run's first ship more. */
-export const FIRST_SHIP_POINTS = 10_000;
-
-/** The points between each ship more after the first. */
-export const SHIP_POINTS = 20_000;

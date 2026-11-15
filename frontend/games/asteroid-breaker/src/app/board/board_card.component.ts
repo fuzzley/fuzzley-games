@@ -106,7 +106,7 @@ export class BoardCardComponent {
   /** The run's score, as the cards write it. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
 
-  /** The strays brought home, waiting to fly the next ships, as the Paused card draws them. */
+  /** The strays brought home with the most ships flying, as the Paused card draws them. */
   protected readonly home = computed(() => this.game.crew().home);
 
   /** Whether any stray waits at home, for the Paused card to draw. */

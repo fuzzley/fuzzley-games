@@ -56,8 +56,8 @@ export interface FrameChange {
    */
   readonly countMs: number;
   /**
-   * How the phone buzzes for the frame: as it loses a ship, whatever it
-   * gained in it, or else as it clears the wave; or null for neither.
+   * How the phone buzzes for the frame: as it loses a ship, or else as it
+   * clears the wave; or null for neither.
    *
    * A loss outranks a clearing in the same frame, which buzzes for the loss
    * alone, as a second buzz would cut the first short and the Cleared card

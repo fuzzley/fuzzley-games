@@ -191,13 +191,13 @@ describe("BarComponent", () => {
       });
     });
 
-    it("draws no pilot for a stray waiting at home, which flies no ship yet", async () => {
+    it("draws a stray brought home among the pilots, as it flies one more ship at once", async () => {
       const { game, detectChanges } = await renderBar(STRAY_WAVES);
 
       bringStraysHome(game, 1);
       detectChanges();
 
-      expect(pilotsIn(figureValue("Ships"))).toHaveLength(3);
+      expect(pilotsIn(figureValue("Ships"))).toHaveLength(4);
     });
 
     it("shows no chain while a break scores once", async () => {

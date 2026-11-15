@@ -1,4 +1,3 @@
-import { nextMarkAfter } from "@fz/core/math";
 import { mixSeed } from "@fz/core/random";
 import { type RunStage, isUnderWay } from "@fz/core/run";
 import type { RunNumber } from "@fz/core/run_numbers";
@@ -6,7 +5,6 @@ import type { Field, WaveStart } from "../field/field";
 import type { Strays } from "../hazards/strays";
 import { type Crew, createCrew } from "../ship/pilots";
 import type { Speed } from "../speed";
-import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
 
 /**
  * Says where a run stands: a wave waiting for the player's first move, under
@@ -38,8 +36,6 @@ export interface Run {
   readonly score: number;
   /** Who flies the run's ships and who waits at home, as the field last left them. */
   readonly crew: Crew;
-  /** The score the next ship comes at. */
-  readonly nextShipAt: number;
   /** The strays brought home in the waves cleared. */
   readonly straysBanked: number;
   /** The strays brought home so far, the wave in play's included. */
@@ -50,7 +46,7 @@ export interface Run {
 /** Describes what a run takes from the field of the wave under way. */
 export interface WaveProgress extends Pick<
   Field,
-  "cleared" | "score" | "crew" | "nextShipAt"
+  "cleared" | "score" | "crew"
 > {
   readonly strays: Pick<Strays, "broughtHome">;
 }
@@ -73,7 +69,6 @@ export function createRun({ id, seed, speed, wave }: RunStart): Run {
     banked: 0,
     score: 0,
     crew: createCrew(),
-    nextShipAt: FIRST_SHIP_POINTS,
     straysBanked: 0,
     strays: 0,
     outcome: "ready",
@@ -139,9 +134,8 @@ export function resume(run: Run, field: Pick<Field, "steps">): Run {
 
 /**
  * Returns the run caught up with the wave under way, as its field now
- * stands: its points, its crew, the next ship's mark and the strays it
- * brought home, then its end, with no one left flying, or its clearing,
- * banked once.
+ * stands: its points, its crew and the strays it brought home, then its
+ * end, with no one left flying, or its clearing, banked once.
  *
  * So a run over stays over though a blast clears its wave after the last
  * ship is lost. A run whose field has nothing new is returned as it is, so
@@ -153,7 +147,6 @@ export function catchUp(run: Run, field: WaveProgress): Run {
     ...run,
     score: run.banked + field.score,
     crew: field.crew,
-    nextShipAt: field.nextShipAt,
     strays: run.straysBanked + field.strays.broughtHome,
   };
   if (field.crew.flying.length === 0) return { ...caughtUp, outcome: "over" };
@@ -179,18 +172,7 @@ export function waveStart(run: Run): WaveStart {
   return {
     seed: waveSeed(run),
     crew: run.crew,
-    banked: run.banked,
-    nextShipAt: run.nextShipAt,
   };
-}
-
-/**
- * Returns the score the next ship comes at past a score: the first mark,
- * or the next of those every {@link SHIP_POINTS} after it, as the field
- * moves the mark on, at a full crew too.
- */
-export function nextShipAfter(score: number): number {
-  return nextMarkAfter(score, FIRST_SHIP_POINTS, SHIP_POINTS);
 }
 
 /** Returns whether a wave's field has come to anything the run hasn't taken yet. */
@@ -198,7 +180,6 @@ function hasNews(run: Run, field: WaveProgress): boolean {
   return (
     run.banked + field.score !== run.score ||
     field.crew !== run.crew ||
-    field.nextShipAt !== run.nextShipAt ||
     run.straysBanked + field.strays.broughtHome !== run.strays ||
     field.cleared
   );

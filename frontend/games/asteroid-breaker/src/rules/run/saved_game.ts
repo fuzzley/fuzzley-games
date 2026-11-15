@@ -17,13 +17,12 @@ import {
   type Run,
   hasClearedAWave,
   isInProgress,
-  nextShipAfter,
   nextWave,
   waveStart,
 } from "./run";
 
 /** The version of `SavedGame`, which the shell keeps a run under; the shell's reader drops any other. */
-export const SAVED_GAME_VERSION = 1;
+export const SAVED_GAME_VERSION = 2;
 
 /** A run under way as storage keeps it. */
 export interface SavedGame {
@@ -37,10 +36,9 @@ export interface SavedGame {
   readonly score: number;
   /** The pilots of the run's ships, the one at the controls first. */
   readonly flying: readonly Pilot[];
-  /** The strays brought home, waiting to fly the next ships gained. */
+  /** The strays brought home with the most ships flying, waiting at home. */
   readonly home: readonly Pilot[];
   readonly lastGiven: Pilot;
-  readonly nextShipAt: number;
   readonly straysBanked: number;
   readonly strays: number;
   /** Each stray the run brought home, in the order they came, for the result card. */
@@ -172,7 +170,7 @@ export function readRun(
   ) {
     return null;
   }
-  const { seed, speed, firstWave, wave, banked, score, nextShipAt } = value;
+  const { seed, speed, firstWave, wave, banked, score } = value;
   const { flying, home, lastGiven, straysBanked, strays } = value;
   return {
     id,
@@ -183,7 +181,6 @@ export function readRun(
     banked,
     score,
     crew: { flying, home, lastGiven },
-    nextShipAt,
     straysBanked,
     strays,
     outcome: "paused",
@@ -216,20 +213,12 @@ export function hasSpeedAndSeed(
   return isSpeed(speed) && isWhole(seed);
 }
 
-/**
- * Returns whether a run kept holds its points banked and a score of no
- * fewer, with the next ship's mark past that score.
- */
+/** Returns whether a run kept holds its points banked and a score of no fewer. */
 export function hasSoundScore(
   value: Readonly<Record<string, unknown>>,
-): value is Pick<SavedGame, "banked" | "score" | "nextShipAt"> {
-  const { banked, score, nextShipAt } = value;
-  return (
-    isCount(banked) &&
-    isCount(score) &&
-    score >= banked &&
-    nextShipAt === nextShipAfter(score)
-  );
+): value is Pick<SavedGame, "banked" | "score"> {
+  const { banked, score } = value;
+  return isCount(banked) && isCount(score) && score >= banked;
 }
 
 /**
@@ -289,7 +278,6 @@ function savedRun(
     flying: run.crew.flying,
     home: run.crew.home,
     lastGiven: run.crew.lastGiven,
-    nextShipAt: run.nextShipAt,
     straysBanked: run.straysBanked,
     strays: run.strays,
     broughtHome,

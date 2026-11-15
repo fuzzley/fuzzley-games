@@ -108,12 +108,8 @@ export interface SavedField {
   readonly lastDropAt: number;
   /** What the chain's multiplier has added to the wave's points, for its tally. */
   readonly chainPoints: number;
-  /**
-   * The rocks' own points among the wave's, for its tally; a field kept
-   * before they were counted lacks them, and has them worked out from what
-   * its run has scored on it (`rockPointsKept()`).
-   */
-  readonly rockPoints?: number;
+  /** The rocks' own points among the wave's, for its tally. */
+  readonly rockPoints: number;
   /** How many ships the wave has lost, which a clean wave has none of. */
   readonly shipsLost: number;
 }
@@ -127,6 +123,7 @@ const KEPT_COUNTS = [
   "nextCometAt",
   "lastDropAt",
   "chainPoints",
+  "rockPoints",
   "shipsLost",
 ] as const satisfies readonly (keyof SavedField)[];
 
@@ -204,13 +201,11 @@ export function readField(
   const { steps } = value;
   const rocks = listOf(kept, (rock) => readRock(rock, torus, steps));
   if (!rocks) return null;
-  const { rockPoints } = value;
   const field: SavedField = {
     laidOut,
     torus,
     rocks,
     ...pick(value, KEPT_COUNTS),
-    ...(rockPoints === undefined ? {} : { rockPoints }),
   };
   const sound =
     hasMoved(field) &&
@@ -234,18 +229,11 @@ export function readTorus(value: unknown): Torus | null {
   return { width, height };
 }
 
-/**
- * Returns whether each count a field kept runs by is one, the rocks' points
- * among them where it keeps them.
- */
+/** Returns whether each count a field kept runs by is one. */
 export function hasKeptCounts(
   value: Readonly<Record<string, unknown>>,
-): value is Pick<SavedField, KeptCount | "rockPoints"> {
-  const { rockPoints } = value;
-  return (
-    KEPT_COUNTS.every((key) => isCount(value[key])) &&
-    (rockPoints === undefined || isCount(rockPoints))
-  );
+): value is Pick<SavedField, KeptCount> {
+  return KEPT_COUNTS.every((key) => isCount(value[key]));
 }
 
 /** Returns whether a field kept has moved, as one not yet moved is kept as none. */
@@ -277,34 +265,16 @@ export function fitsItsWave(
 /**
  * Returns whether a field kept agrees with what its run has scored on its
  * wave: no more strays brought home than it has sent, and its points, the
- * rocks', the chain's and those strays', adding up to the wave's, or, for a
- * field kept before the rocks' were counted, the chain's and the strays'
- * no more than the wave's.
+ * rocks', the chain's and those strays', adding up to the wave's.
  */
 export function fitsItsRun(
   field: Pick<SavedField, "straysSent" | "chainPoints" | "rockPoints">,
   { points, straysHome }: WaveSoFar,
 ): boolean {
   const { chainPoints, rockPoints } = field;
-  const scored = chainPoints + straysHome * STRAY_POINTS;
-  const adds =
-    rockPoints === undefined
-      ? scored <= points
-      : rockPoints + scored === points;
-  return straysHome <= field.straysSent && adds;
-}
-
-/**
- * Returns the rocks' own points a field kept has scored on its wave: as
- * kept, or, for one kept before they were counted, what its run has scored
- * on it leaves beside the chain's and the strays'.
- */
-export function rockPointsKept(
-  field: Pick<SavedField, "chainPoints" | "rockPoints">,
-  { points, straysHome }: WaveSoFar,
-): number {
   return (
-    field.rockPoints ?? points - field.chainPoints - straysHome * STRAY_POINTS
+    straysHome <= field.straysSent &&
+    rockPoints + chainPoints + straysHome * STRAY_POINTS === points
   );
 }
 
@@ -381,7 +351,7 @@ export function layOutKeptField(
   field.lastDropAt = saved.lastDropAt;
   field.score = soFar.points;
   field.chainPoints = saved.chainPoints;
-  field.rockPoints = rockPointsKept(saved, soFar);
+  field.rockPoints = saved.rockPoints;
   field.shipsLost = saved.shipsLost;
   bringShip(field);
   return field;

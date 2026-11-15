@@ -1,13 +1,12 @@
 // The points a wave scores: each rock broken by its kind and size, times
-// the chain's multiplier, a stray brought home, and the wave's clearing;
-// and the ships the run's points bring as they pass each mark. Once no one
-// is flying the run is over, and nothing scores, so its score doesn't hang
-// on how its last steps fall into frames.
+// the chain's multiplier, a stray brought home, and the wave's clearing.
+// Once no one is flying the run is over, and nothing scores, so its score
+// doesn't hang on how its last steps fall into frames.
 
 import { multiplierAt } from "@fz/core/math";
 import { pointsFor } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
-import { type Crew, type CrewField, gainShipOn } from "../ship/pilots";
+import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { stepsIn } from "../stepper";
 import {
@@ -15,7 +14,6 @@ import {
   CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
-  SHIP_POINTS,
   STRAY_POINTS,
 } from "../tuning";
 
@@ -42,17 +40,6 @@ export interface ScoreField {
   readonly shipsLost: number;
   /** What happened, for the scene to play. */
   readonly events: FieldEventLog;
-}
-
-/**
- * Describes what of the field the ships its points bring act on: the crew
- * they join, the run's points banked as the wave started and the wave's
- * own, and the next ship's mark, which each moves on.
- */
-export interface MarkField extends CrewField {
-  readonly setup: { readonly banked: number };
-  readonly score: number;
-  nextShipAt: number;
 }
 
 /** Describes what of a cleared wave's field says how its points add up. */
@@ -132,21 +119,6 @@ export function clearingPoints(shipsLost: number): number {
 /** Scores a cleared wave what its clearing adds. */
 export function scoreClearing(field: ScoreField): void {
   if (!isOver(field)) field.score += clearingPoints(field.shipsLost);
-}
-
-/**
- * Gains the crew a ship for each mark the run's points have passed, each
- * flown by the first stray at home if one waits, the next mark coming the
- * points between ships after. A run over gains none.
- */
-export function gainShipsByPoints(field: MarkField): void {
-  while (
-    !isOver(field) &&
-    field.setup.banked + field.score >= field.nextShipAt
-  ) {
-    gainShipOn(field);
-    field.nextShipAt += SHIP_POINTS;
-  }
 }
 
 /**

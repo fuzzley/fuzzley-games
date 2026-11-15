@@ -1,5 +1,4 @@
 import { type Crew, createCrew } from "../ship/pilots";
-import { FIRST_SHIP_POINTS, SHIP_POINTS } from "../tuning";
 import {
   type Outcome,
   type Run,
@@ -9,7 +8,6 @@ import {
   hasClearedAWave,
   hasClearedAll,
   isInProgress,
-  nextShipAfter,
   nextWave,
   pause,
   resume,
@@ -32,7 +30,7 @@ function playing(changes: Partial<Run> = {}): Run {
 
 /**
  * Returns what a wave's field in play hands the run: no points, the run's crew
- * and mark, and no stray home, changed as given.
+ * and no stray home, changed as given.
  */
 function progressOf(
   run: Run,
@@ -45,14 +43,13 @@ function progressOf(
     cleared: false,
     score: 0,
     crew: run.crew,
-    nextShipAt: run.nextShipAt,
     strays: { broughtHome },
     ...rest,
   };
 }
 
-/** A crew with one ship gained, flown by a new pilot. */
-const GAINED: Crew = { flying: [0, 1, 2, 3], home: [], lastGiven: 3 };
+/** A crew with one ship more, flown by a stray brought home. */
+const WITH_A_STRAY: Crew = { flying: [0, 1, 2, 3], home: [], lastGiven: 3 };
 
 /** A crew with no one flying, its last ship lost. */
 const NONE_FLYING: Crew = { flying: [], home: [4], lastGiven: 4 };
@@ -73,7 +70,6 @@ describe("createRun", () => {
       banked: 0,
       score: 0,
       crew: createCrew(),
-      nextShipAt: FIRST_SHIP_POINTS,
       straysBanked: 0,
       strays: 0,
       outcome: "ready",
@@ -260,31 +256,20 @@ describe("catchUp", () => {
     expect([run.score, run.outcome]).toEqual([450, "paused"]);
   });
 
-  it("takes the crew and the next ship's mark the field moved on", () => {
+  it("takes the crew the field changed", () => {
     const before = playing();
 
-    const run = catchUp(
-      before,
-      progressOf(before, {
-        crew: GAINED,
-        nextShipAt: FIRST_SHIP_POINTS + SHIP_POINTS,
-      }),
-    );
+    const run = catchUp(before, progressOf(before, { crew: WITH_A_STRAY }));
 
-    expect([run.crew, run.nextShipAt, run.outcome]).toEqual([
-      GAINED,
-      FIRST_SHIP_POINTS + SHIP_POINTS,
-      "playing",
-    ]);
+    expect([run.crew, run.outcome]).toEqual([WITH_A_STRAY, "playing"]);
   });
 
-  it.each([
-    ["the crew", { crew: GAINED }],
-    ["the next ship's mark", { nextShipAt: FIRST_SHIP_POINTS + SHIP_POINTS }],
-  ])("counts %s alone as news", (_, changes) => {
+  it("counts the crew alone as news", () => {
     const before = playing();
 
-    expect(catchUp(before, progressOf(before, changes))).not.toBe(before);
+    expect(
+      catchUp(before, progressOf(before, { crew: WITH_A_STRAY })),
+    ).not.toBe(before);
   });
 
   it("counts the strays brought home in the wave under way on from those banked", () => {
@@ -354,19 +339,6 @@ describe("catchUp", () => {
   });
 });
 
-describe("nextShipAfter", () => {
-  it.each([
-    [0, FIRST_SHIP_POINTS],
-    [FIRST_SHIP_POINTS - 1, FIRST_SHIP_POINTS],
-    [FIRST_SHIP_POINTS, FIRST_SHIP_POINTS + SHIP_POINTS],
-    [FIRST_SHIP_POINTS + SHIP_POINTS / 2, FIRST_SHIP_POINTS + SHIP_POINTS],
-    [FIRST_SHIP_POINTS + SHIP_POINTS - 1, FIRST_SHIP_POINTS + SHIP_POINTS],
-    [FIRST_SHIP_POINTS + SHIP_POINTS + 1, FIRST_SHIP_POINTS + 2 * SHIP_POINTS],
-  ])("puts the next ship past a score of %i at %i", (score, mark) => {
-    expect(nextShipAfter(score)).toBe(mark);
-  });
-});
-
 describe("waveSeed", () => {
   it("keeps the seed each wave's field draws from, which a saved game relies on", () => {
     const seeds = [1, 2, 3].map((wave) => waveSeed(runWith({ seed: 1, wave })));
@@ -403,19 +375,12 @@ describe("waveSeed", () => {
 });
 
 describe("waveStart", () => {
-  it("hands the wave's field its seed, the run's crew, its banked points and the next ship's mark", () => {
-    const run = playing({
-      wave: 6,
-      crew: GAINED,
-      banked: 12_000,
-      nextShipAt: FIRST_SHIP_POINTS + SHIP_POINTS,
-    });
+  it("hands the wave's field its seed and the run's crew", () => {
+    const run = playing({ wave: 6, crew: WITH_A_STRAY });
 
     expect(waveStart(run)).toEqual({
       seed: waveSeed(run),
-      crew: GAINED,
-      banked: 12_000,
-      nextShipAt: FIRST_SHIP_POINTS + SHIP_POINTS,
+      crew: WITH_A_STRAY,
     });
   });
 });

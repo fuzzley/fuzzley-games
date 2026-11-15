@@ -20,7 +20,7 @@ import {
 import { Textures } from "phaser";
 import { fieldFor, steerField } from "../rules/field/field";
 import { createRun, startWave, waveStart } from "../rules/run/run";
-import { saveGame } from "../rules/run/saved_game";
+import { SAVED_GAME_VERSION, saveGame } from "../rules/run/saved_game";
 import { STILL } from "../rules/ship/ship";
 import { FIELD_SHORT_SIDE } from "../rules/tuning";
 import { parseWave, waveEntryOf } from "../rules/waves/waves";
@@ -96,7 +96,10 @@ function storeRun(): void {
     broughtHome: [],
     tuned: false,
   });
-  storage.setItem(SAVED_GAME_KEY, JSON.stringify({ version: 1, ...saved }));
+  storage.setItem(
+    SAVED_GAME_KEY,
+    JSON.stringify({ version: SAVED_GAME_VERSION, ...saved }),
+  );
 }
 
 /**

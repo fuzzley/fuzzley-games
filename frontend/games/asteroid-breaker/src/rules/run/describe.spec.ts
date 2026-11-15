@@ -72,30 +72,12 @@ describe("describeEvent", () => {
     expect(describeEvent(strayed)).toBe("A stray fuzzball drifts in.");
   });
 
-  it("says how many waited at home as a stray was brought home", () => {
+  it("says a stray brought home, and the ships the crew had then", () => {
     const home = eventOf((log) => {
-      log.addPilot("home", 1, 2, 5, crewOf([0], [4, 5]));
+      log.addPilot("home", 1, 2, 5, crewOf([0, 5]));
     });
 
-    expect(describeEvent(home)).toBe("Brought home: 2 waiting.");
-  });
-
-  it("says a ship gained with a new pilot, and the ships the crew had then", () => {
-    const gained = eventOf((log) => {
-      log.addGained(1, 2, 3, false, crewOf([0, 1, 2, 3]));
-    });
-
-    expect(describeEvent(gained)).toBe("Extra ship. 4 ships.");
-  });
-
-  it("says a ship gained flown by a fuzzball brought home", () => {
-    const gained = eventOf((log) => {
-      log.addGained(1, 2, 5, true, crewOf([0, 5]));
-    });
-
-    expect(describeEvent(gained)).toBe(
-      "Extra ship, flown by a fuzzball brought home. 2 ships.",
-    );
+    expect(describeEvent(home)).toBe("Brought home. 2 ships.");
   });
 
   it("says a ship lost, and the ships left then", () => {
@@ -116,27 +98,13 @@ describe("describeEvent", () => {
 
   it("says a pickup caught by its name", () => {
     const caught = eventOf((log) => {
-      log.addCaught(1, 2, "nova", crewOf([0]));
+      log.addPickup("caught", 1, 2, "nova");
     });
 
     expect(describeEvent(caught)).toBe("Nova.");
   });
 
-  it("says an Extra ship caught by its name where the crew has the most ships, so it gains none", () => {
-    const caught = eventOf((log) => {
-      log.addCaught(1, 2, "ship", crewOf([0, 1, 2, 3, 4, 5]));
-    });
-
-    expect(describeEvent(caught)).toBe("Extra ship.");
-  });
-
   it.each([
-    [
-      "an Extra ship caught with room for it, which the ship it gains says",
-      (log: FieldEventLog) => {
-        log.addCaught(1, 2, "ship", crewOf([0, 1, 2, 3, 4]));
-      },
-    ],
     [
       "a pickup let go",
       (log: FieldEventLog) => {

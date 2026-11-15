@@ -11,6 +11,7 @@ import {
   setPageVisibility,
 } from "@fz/ui/testing";
 import type { Rock } from "../../rules/rocks/rocks";
+import { SAVED_GAME_VERSION } from "../../rules/run/saved_game";
 import { STILL } from "../../rules/ship/ship";
 import { FIELD_SHORT_SIDE, FIRST_SHIPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
@@ -76,10 +77,8 @@ function stored(): Record<string, unknown> | null {
 
 /** Returns the game as it would be stored now, read back from JSON. */
 function current(game: GameService): Record<string, unknown> {
-  return JSON.parse(JSON.stringify({ version: 1, ...game.saved() })) as Record<
-    string,
-    unknown
-  >;
+  const saved = { version: SAVED_GAME_VERSION, ...game.saved() };
+  return JSON.parse(JSON.stringify(saved)) as Record<string, unknown>;
 }
 
 /** Starts the service, as the app does on load, and returns the game. */
@@ -221,7 +220,7 @@ describe("SavedGameService", () => {
       bringStraysHome(game, 1);
       TestBed.tick();
 
-      expect(stored()).toMatchObject({ strays: 1, home: game.crew().home });
+      expect(stored()).toMatchObject({ strays: 1, flying: game.crew().flying });
     });
 
     it("keeps the run where it stands as the page is hidden", async () => {
@@ -540,7 +539,7 @@ describe("SavedGameService", () => {
 
     it("leaves out a run kept in another shape", async () => {
       await brokeSome();
-      store({ ...stored(), version: 2 });
+      store({ ...stored(), version: SAVED_GAME_VERSION - 1 });
 
       const game = reload();
 

@@ -17,7 +17,6 @@ import {
   FAIR_COURSE,
   FAIR_COURSE_MS,
   FAIR_DISTANCE,
-  FIRST_SHIP_POINTS,
   ROCK_CAP,
   ROCK_RADIUS,
   ROCK_SPEED,
@@ -67,8 +66,6 @@ const SETUP: FieldSetup = {
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
   crew: createCrew(),
-  banked: 0,
-  nextShipAt: FIRST_SHIP_POINTS,
 };
 
 /**

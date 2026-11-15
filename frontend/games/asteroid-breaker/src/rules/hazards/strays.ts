@@ -169,7 +169,10 @@ function pullIn(
   return true;
 }
 
-/** Brings the stray adrift home, where it waits behind those home before it, for its points. */
+/**
+ * Brings the stray adrift home, for its points: it flies one more ship at
+ * once, or waits at home with the most ships flying.
+ */
 function bringStrayHome(field: StrayField): void {
   const { strays } = field;
   const stray = strays.adrift;
