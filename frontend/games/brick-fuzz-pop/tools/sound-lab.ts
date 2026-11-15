@@ -254,14 +254,17 @@ const SCENES: readonly LabScene<SoundName>[] = [
   },
   {
     name: "A bored fuzzball",
-    what: `A fuzzball that strikes nothing it can hurt for ${String(BORED)} units: it knocks about, yawns and drops to the floor.`,
+    what: `A fuzzball that touches only the walls and steel, no brick that can break, for ${String(BORED)} units: it knocks about, yawns and drops to the floor.`,
     cues: [
       { at: 0, sound: "release" },
-      ...[0, 1, 2, 3, 4].map((i): LabCue<SoundName> => ({
-        at: (6 + 9 * i) * UNIT_S,
-        sound: i % 2 === 0 ? "knock" : "clank",
-        x: i % 2 === 0 ? -1 : 1,
-      })),
+      ...Array.from(
+        { length: Math.floor(BORED / 9) },
+        (_, i): LabCue<SoundName> => ({
+          at: (6 + 9 * i) * UNIT_S,
+          sound: i % 2 === 0 ? "knock" : "clank",
+          x: i % 2 === 0 ? -1 : 1,
+        }),
+      ),
       { at: BORED * UNIT_S, sound: "yawn", x: 0.2 },
       { at: BORED * UNIT_S + 0.8, sound: "land", x: 0.2 },
     ],
