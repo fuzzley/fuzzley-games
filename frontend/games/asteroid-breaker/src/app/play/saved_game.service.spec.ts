@@ -23,7 +23,7 @@ import {
   bringStraysHome,
   clearToNext,
   endRun,
-  loseShip,
+  knockOneLoose,
   playToClear,
   provideSpecWaves,
   shoot,
@@ -202,10 +202,10 @@ describe("SavedGameService", () => {
       expect(stored()).toEqual(current(game));
     });
 
-    it("keeps the run as a ship is lost", async () => {
+    it("keeps the run as a hit knocks one of the crew loose", async () => {
       const game = await startedAt(SPEC_WAVE.gift);
 
-      loseShip(game);
+      knockOneLoose(game);
       TestBed.tick();
 
       expect(stored()?.["tow"]).toHaveLength(FIRST_CREW - 2);
@@ -317,7 +317,7 @@ describe("SavedGameService", () => {
       const kept = {
         wave: SPEC_WAVE.gift,
         score: before.score(),
-        ships: before.ships(),
+        aboard: before.aboard(),
         rocks: rocksOf(before),
       };
 
@@ -327,7 +327,7 @@ describe("SavedGameService", () => {
         outcome: game.outcome(),
         wave: game.wave().number,
         score: game.score(),
-        ships: game.ships(),
+        aboard: game.aboard(),
         rocks: rocksOf(game),
       }).toEqual({ ...kept, outcome: "paused" });
     });
@@ -426,15 +426,15 @@ describe("SavedGameService", () => {
       );
     });
 
-    it("doesn't give back a ship lost before the page went away", async () => {
+    it("doesn't give back one of the crew knocked loose before the page went away", async () => {
       const before = await startedAt(SPEC_WAVE.gift);
-      loseShip(before);
+      knockOneLoose(before);
       before.pause();
       TestBed.tick();
 
       const game = reload();
 
-      expect(game.ships()).toBe(FIRST_CREW - 1);
+      expect(game.aboard()).toBe(FIRST_CREW - 1);
     });
 
     it("takes up the strays brought home, for the result card", () => {

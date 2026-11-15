@@ -8,7 +8,7 @@
 
 @include bar-title;
 
-// The wave, the score, the ships and static's multiplier, each a card, a
+// The wave, the score, the crew and static's multiplier, each a card, a
 // little narrower than the games' own, so four leave the title room on a
 // laptop.
 @include bar-figures(56px, var(--fz-space-2));
@@ -17,7 +17,7 @@
   padding-inline: var(--fz-space-3);
 }
 
-// The ships' card holds the face cam at its left, as tall as the card, beside
+// The crew's card holds the face cam at its left, as tall as the card, beside
 // the label over the line in tow.
 .crew {
   position: relative;
@@ -34,11 +34,12 @@
   translate: 0 -50%;
 }
 
-// A fuzzball for each in tow, in its pilot's ink.
-// On one line, as a figure is.
+// A fuzzball for each in tow, in its pilot's ink, and each knocked loose,
+// or, past three, the first and how many ride, on one line, as a figure is.
 .pilots {
   --pilot-row-wrap: nowrap;
 
+  gap: 4px;
   min-height: 20px;
   padding-block: 2px;
 }
@@ -65,7 +66,7 @@
   }
 }
 
-// The ships as a number on the face cam, where no line in tow shows.
+// The crew aboard as a number on the face cam, where no line in tow shows.
 .count {
   position: absolute;
   bottom: -3px;
@@ -87,7 +88,7 @@
 // The actions, Pause dimmed while there is no run to pause.
 @include bar-actions;
 
-// Where the bar has room for the score, the ships and static alone, each
+// Where the bar has room for the score, the crew and static alone, each
 // value is set small, the score's icon beside it.
 :host(.three-figures) {
   --cam: 30px;
@@ -117,9 +118,9 @@
   }
 }
 
-// Across the bar, in one card: the face cam with the ships on it, beside the
-// score over static, since a score runs to six figures and the bar has no
-// room for three cards, nor, at 360 px, for the score's icon.
+// Across the bar, in one card: the face cam with the crew aboard on it,
+// beside the score over static, since a score runs to six figures and the
+// bar has no room for three cards, nor, at 360 px, for the score's icon.
 :host(.three-figures:not(.rail)) {
   @include bar-figures-paired;
 
@@ -154,7 +155,7 @@
   }
 }
 
-// On a rail, the figures stacked, the ships' number on the face cam in the
+// On a rail, the figures stacked, the crew's number on the face cam in the
 // middle of its card.
 :host(.rail) {
   @include bar-figures-stacked;

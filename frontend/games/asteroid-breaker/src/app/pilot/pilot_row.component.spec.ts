@@ -1,5 +1,13 @@
 import { render, screen } from "@testing-library/angular";
-import { inkOf, pilotsIn } from "../../testing/pilots";
+import { inkOf, pilotsIn, poseIn } from "../../testing/pilots";
+
+/** Returns each pilot an element draws, in order, as its color and its face. */
+function posesIn(element: Element): [string, string][] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>("app-pilot"),
+    (pilot) => [pilot.style.color, poseIn(pilot).face],
+  );
+}
 import { PilotRowComponent } from "./pilot_row.component";
 
 describe("PilotRowComponent", () => {
@@ -18,5 +26,17 @@ describe("PilotRowComponent", () => {
     );
 
     expect(screen.getByText("1 fuzzball waiting")).toBeVisible();
+  });
+
+  it("draws the crew knocked loose after the pilots, wide eyed", async () => {
+    const { container } = await render(PilotRowComponent, {
+      inputs: { pilots: [1], loose: [4, 2] },
+    });
+
+    expect(posesIn(container)).toEqual([
+      [inkOf(1), "rest"],
+      [inkOf(4), "eep"],
+      [inkOf(2), "eep"],
+    ]);
   });
 });

@@ -80,13 +80,13 @@ const FIRST_TORUS: Torus = {
 };
 
 /**
- * Plays the game: holds the run and the wave in play's field, moves the
- * field on by the time the board's frames take, steered as the player
- * steers, and takes what each frame came to into the run, pauses, goes on
- * and starts waves and runs as the player asks, shapes each field to the
- * board's room, says what happened, buzzes the phone as a ship is lost or a
- * wave cleared, and keeps the records and the sectors reached, but for a
- * run flown on numbers the debug menu tuned.
+ * Plays the game: holds the run and the wave in play's field, moves the field
+ * on by the time the board's frames take, steered as the player steers, and
+ * takes what each frame came to into the run, pauses, goes on and starts
+ * waves and runs as the player asks, shapes each field to the board's room,
+ * says what happened, buzzes the phone as a hit knocks one of the crew loose
+ * or ends the run, or a wave is cleared, and keeps the records and the
+ * sectors reached, but for a run flown on numbers the debug menu tuned.
  *
  * One card lies between waves, the Cleared card, and one press goes on from
  * it: a flight key or a press on the field lays the next wave out and is its
@@ -95,7 +95,7 @@ const FIRST_TORUS: Torus = {
  *
  * The run and what is its own are one signal, replaced whole as each run
  * begins, which changes only when the field comes to something the run
- * takes, points, a ship, a stray, a clearing, a card, as the Cleared
+ * takes, points, one of the crew, a stray, a clearing, a card, as the Cleared
  * card's sum counts up, and as the face or the fur of the pilot at the
  * controls changes, which in play may be several times a second. The field
  * changes 120 times a second, so no signal holds it; the scene reads it
@@ -163,7 +163,13 @@ export class GameService extends RunLifecycle {
   readonly crew = computed(() => this.run().crew);
 
   /** How many of the crew are aboard, the one at the controls among them, as the field last left them. */
-  readonly ships = computed(() => aboard(this.crew()));
+  readonly aboard = computed(() => aboard(this.crew()));
+
+  /**
+   * The pilots of the crew knocked loose out on the wave in play's field,
+   * not yet caught again or gone home, the last knocked first.
+   */
+  readonly loose = computed(() => this.runState().loose);
 
   /**
    * How many times what is scored scores, by static's step on the wave in
@@ -241,7 +247,10 @@ export class GameService extends RunLifecycle {
   /** Where the run stands. */
   readonly outcome = computed(() => this.run().outcome);
 
-  /** Whether the run has ended, its ships run out. */
+  /**
+   * Whether the run has ended, the pod hit with no one in tow, its pilot
+   * bailing out home.
+   */
   readonly ended = computed(() => hasEnded(this.run().outcome));
 
   /**
@@ -289,7 +298,7 @@ export class GameService extends RunLifecycle {
 
   /**
    * Whether the card over an ended run is showing, which opens once the
-   * last ship's burst has faded.
+   * pod's burst has faded and its pilot has floated off.
    */
   readonly resultOpen = computed(() => this.runState().resultOpen);
 

@@ -20,6 +20,7 @@ const QUIET: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
+  loose: null,
   multiplier: null,
   step: null,
   face: "rest",
@@ -69,6 +70,7 @@ describe("newRunState", () => {
       newBest: false,
       clearedAll: false,
       broughtHome: [],
+      loose: [],
       resultOpen: false,
       resultClosed: false,
     });
@@ -225,6 +227,41 @@ describe("withFrame", () => {
       );
 
       expect(after.broughtHome).toBe(broughtHome);
+    });
+  });
+
+  describe("the crew knocked loose", () => {
+    it("takes those out on the field as a frame says them", () => {
+      const after = withFrame(
+        stateOf(),
+        { ...PLAYED, loose: [4, 2] },
+        AS_WRITTEN,
+      );
+
+      expect(after.loose).toEqual([4, 2]);
+    });
+
+    it("takes none out as a frame says so", () => {
+      const after = withFrame(
+        stateOf({ loose: [4] }),
+        { ...PLAYED, loose: [] },
+        AS_WRITTEN,
+      );
+
+      expect(after.loose).toEqual([]);
+    });
+
+    it("keeps those out through a frame that doesn't say them", () => {
+      const loose = [4];
+      const state = stateOf({ loose });
+
+      const after = withFrame(
+        state,
+        { ...PLAYED, run: startWave(RUN) },
+        AS_WRITTEN,
+      );
+
+      expect(after.loose).toBe(loose);
     });
   });
 

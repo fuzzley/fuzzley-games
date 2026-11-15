@@ -8,6 +8,8 @@ import { STEP_MS, stepsIn } from "../rules/stepper";
 import {
   CLEAN_POINTS,
   CLEAR_POINTS,
+  LOOSE_LIFE_MS,
+  LOOSE_SWELL_MS,
   STATIC_HOLD_MS,
   STATIC_STEPS,
 } from "../rules/tuning";
@@ -15,6 +17,7 @@ import { type WaveData, wavesOf } from "../rules/waves/waves";
 import {
   KEEPER,
   fieldFrom,
+  placeLoose,
   placePickup,
   placeRock,
   placeStray,
@@ -59,8 +62,8 @@ const ALONE: readonly string[] = ["^"];
 /** The time a volatile rock takes to go off once broken, which a frame of twelve steps holds. */
 const BLAST_MS = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs) * STEP_MS;
 
-/** A crew down to its last ship. */
-const LAST_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 2 };
+/** A crew with no one in tow, its pilot at the controls alone. */
+const NO_ONE_IN_TOW: Crew = { pilot: 0, tow: [], home: [], lastGiven: 2 };
 
 /** Fire held, a first move and a shot. */
 const FIRE: Readonly<Steer> = { ...STILL, fire: true };
@@ -76,6 +79,7 @@ const NOTHING: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
+  loose: null,
   multiplier: null,
   step: null,
   face: "rest",
@@ -171,16 +175,16 @@ function playTo(
 }
 
 /**
- * Plays frames until the run loses a ship, failing the spec if it never
- * does, and returns the last frame's change.
+ * Plays frames until a hit knocks one of the run's crew loose, failing the
+ * spec if none ever does, and returns the last frame's change.
  */
-function playToLoss(game: Game): FrameChange {
-  const ships = aboard(game.run.crew);
+function playToKnock(game: Game): FrameChange {
+  const before = aboard(game.run.crew);
   for (let frame = 0; frame < PLAY_LIMIT_FRAMES; frame++) {
     const change = tick(game);
-    if (aboard(game.run.crew) < ships) return change;
+    if (aboard(game.run.crew) < before) return change;
   }
-  throw new Error("The run never lost a ship.");
+  throw new Error("No hit ever knocked one of the crew loose.");
 }
 
 /** Returns the run's first wave cleared, as the frame that cleared it left it. */
@@ -190,9 +194,9 @@ function cleared(): Game {
   return game;
 }
 
-/** Returns a run ended, its last ship lost, as the frame that ended it left it. */
+/** Returns a run ended, its pod hit with no one in tow, as the frame that ended it left it. */
 function ended(): Game {
-  const game = underWay(CRASH, { ...runAt(1), crew: LAST_SHIP });
+  const game = underWay(CRASH, { ...runAt(1), crew: NO_ONE_IN_TOW });
   playTo(game, "over");
   return game;
 }
@@ -278,15 +282,15 @@ describe("RunFrames", () => {
     it("costs the run one of its crew knocked loose by a hit, and says how many are left in tow", () => {
       const game = underWay(CRASH);
 
-      playToLoss(game);
+      playToKnock(game);
 
       expect({
         outcome: game.run.outcome,
-        ships: aboard(game.run.crew),
+        aboard: aboard(game.run.crew),
         said: game.said,
       }).toEqual({
         outcome: "playing",
-        ships: 2,
+        aboard: 2,
         said: ["Hit! One knocked loose. 1 in tow."],
       });
     });
@@ -487,19 +491,19 @@ describe("RunFrames", () => {
   });
 
   describe("the end of a run", () => {
-    it("ends once the last ship is lost, and says so", () => {
-      const game = underWay(CRASH, { ...runAt(1), crew: LAST_SHIP });
+    it("ends as a hit takes the pod with no one in tow, and says so", () => {
+      const game = underWay(CRASH, { ...runAt(1), crew: NO_ONE_IN_TOW });
 
       playTo(game, "over");
 
       expect({
-        ships: aboard(game.run.crew),
+        aboard: aboard(game.run.crew),
         said: game.said,
-      }).toEqual({ ships: 0, said: ["Game over. Score 0, on wave 1."] });
+      }).toEqual({ aboard: 0, said: ["Game over. Score 0, on wave 1."] });
     });
 
     it("says the run's end last of all a frame says", () => {
-      const game = gameOf({ ...runAt(1), crew: LAST_SHIP }, CRASH);
+      const game = gameOf({ ...runAt(1), crew: NO_ONE_IN_TOW }, CRASH);
 
       tick(game);
 
@@ -509,7 +513,7 @@ describe("RunFrames", () => {
     });
 
     it("says what the run set as it ends, as the shell's records say", () => {
-      const game = underWay(CRASH, { ...runAt(1), crew: LAST_SHIP });
+      const game = underWay(CRASH, { ...runAt(1), crew: NO_ONE_IN_TOW });
       game.marks = { newBest: true, clearedAll: true };
 
       playTo(game, "over");
@@ -527,7 +531,7 @@ describe("RunFrames", () => {
       expect(opens).toBe("result");
     });
 
-    it("waits for the last ship's burst before the result card where motion is welcome", () => {
+    it("waits for the pod's burst before the result card where motion is welcome", () => {
       const game = ended();
 
       const { opens } = tick(game, STILL, {
@@ -538,7 +542,7 @@ describe("RunFrames", () => {
       expect(opens).toBeNull();
     });
 
-    it("opens the result card once the last ship's burst has flown", () => {
+    it("opens the result card once the pod's burst has flown", () => {
       const game = ended();
 
       const { opens } = tick(game, STILL, {
@@ -551,16 +555,16 @@ describe("RunFrames", () => {
   });
 
   describe("buzzing the phone", () => {
-    it("buzzes once, firmly, as the run loses a ship", () => {
+    it("buzzes once, firmly, as a hit knocks one of the crew loose", () => {
       const game = underWay(CRASH);
 
-      const { buzz } = playToLoss(game);
+      const { buzz } = playToKnock(game);
 
       expect(buzz).toBe(LOST_BUZZ);
     });
 
-    it("buzzes once, firmly, as the run loses its last ship", () => {
-      const game = underWay(CRASH, { ...runAt(1), crew: LAST_SHIP });
+    it("buzzes once, firmly, as a hit ends the run", () => {
+      const game = underWay(CRASH, { ...runAt(1), crew: NO_ONE_IN_TOW });
 
       const { buzz } = playTo(game, "over");
 
@@ -574,15 +578,15 @@ describe("RunFrames", () => {
 
       const { buzz } = tick(game);
 
-      expect({ ships: aboard(game.run.crew), buzz }).toEqual({
-        ships: 4,
+      expect({ aboard: aboard(game.run.crew), buzz }).toEqual({
+        aboard: 4,
         buzz: null,
       });
     });
 
-    it("buzzes nothing at the frame after a ship is lost", () => {
+    it("buzzes nothing at the frame after one is knocked loose", () => {
       const game = underWay(CRASH);
-      playToLoss(game);
+      playToKnock(game);
 
       const { buzz } = tick(game);
 
@@ -607,7 +611,7 @@ describe("RunFrames", () => {
 
     // The stone on the ship takes it at the frame's first step, and the blast
     // breaks the stone at its last.
-    it("buzzes for a ship lost rather than the wave a blast then clears in the frame", () => {
+    it("buzzes for a hit rather than the wave a blast then clears in the frame", () => {
       const game = underWay(ALONE);
       const ship = shipOf(game.play.field);
       placeRock(game.play.field, "small", ship.x, ship.y);
@@ -657,7 +661,7 @@ describe("RunFrames", () => {
     it("looks dizzy once a hit knocks one of the crew loose", () => {
       const game = underWay(CRASH);
 
-      const { face } = playToLoss(game);
+      const { face } = playToKnock(game);
 
       expect(face).toBe("dizzy");
     });
@@ -675,7 +679,7 @@ describe("RunFrames", () => {
 
     it("forgets the last wave's moments on the next wave's field", () => {
       const game = underWay(CRASH);
-      playToLoss(game);
+      playToKnock(game);
       const next: Game = { ...game, play: new WavePlay(fieldFrom(OPEN), 7) };
 
       const { face } = tick(next);
@@ -727,6 +731,105 @@ describe("RunFrames", () => {
       const { face, lift } = tick(game, STILL, { ms: 10 * STEP_MS });
 
       expect({ face, lift }).toEqual({ face: "set", lift: 2 });
+    });
+  });
+
+  describe("the crew knocked loose", () => {
+    it("says who a hit knocks loose", () => {
+      const game = underWay(CRASH);
+
+      const change = playToKnock(game);
+
+      expect(change.loose).toEqual([2]);
+    });
+
+    it("says nothing of them at a frame that changes none of them", () => {
+      const game = underWay(CRASH);
+      playToKnock(game);
+
+      expect(tick(game).loose).toBeNull();
+    });
+
+    it("says those out the last knocked first, as the line ran before the hits", () => {
+      const game = underWay(OPEN);
+      const { field } = game.play;
+      placeLoose(field, 10, 10, 5).knockedAt = field.steps - 1;
+      placeLoose(field, 30, 10, 4).knockedAt = field.steps;
+
+      expect(tick(game).loose).toEqual([4, 5]);
+    });
+
+    it("says none out as the pod catches one again", () => {
+      const game = underWay(CRASH);
+      playToKnock(game);
+      const { field } = game.play;
+      const ship = shipOf(field);
+      const loose = field.loose.find((each) => each.live);
+      if (!loose) throw new Error("No one was knocked loose.");
+      Object.assign(loose, {
+        x: ship.x,
+        y: ship.y,
+        lastX: ship.x,
+        lastY: ship.y,
+        knockedAt: field.steps - stepsIn(LOOSE_SWELL_MS),
+      });
+
+      expect(tick(game).loose).toEqual([]);
+    });
+
+    it("says those out anew as the same pilots change places, one caught and knocked loose again", () => {
+      const game = underWay(OPEN);
+      const { field } = game.play;
+      const first = placeLoose(field, 10, 10, 5);
+      first.knockedAt = field.steps - 2;
+      placeLoose(field, 30, 10, 4).knockedAt = field.steps - 1;
+      tick(game);
+
+      first.knockedAt = field.steps;
+
+      expect(tick(game).loose).toEqual([5, 4]);
+    });
+
+    it("says nothing of them on the next wave's field, with none out, though some were on the last", () => {
+      const game = underWay(CRASH);
+      playToKnock(game);
+      const next: Game = { ...game, play: new WavePlay(fieldFrom(OPEN), 7) };
+
+      expect(tick(next).loose).toBeNull();
+    });
+
+    it("says none out as one floats home", () => {
+      const game = underWay(OPEN);
+      const { field } = game.play;
+      const loose = placeLoose(field, 10, 10, 5);
+      tick(game);
+
+      loose.knockedAt = field.steps - stepsIn(LOOSE_LIFE_MS) + 1;
+
+      expect(tick(game).loose).toEqual([]);
+    });
+
+    it("says none out as the wave is cleared, taking them back", () => {
+      const game = underWay(PEBBLE);
+      placeLoose(game.play.field, 40, 30, 5);
+      tick(game);
+
+      const { loose } = playTo(game, "cleared", FIRE);
+
+      expect(loose).toEqual([]);
+    });
+
+    it("says none out as the run ends, floating them home", () => {
+      const game = underWay(OPEN, { ...runAt(1), crew: NO_ONE_IN_TOW });
+      const { field } = game.play;
+      placeLoose(field, 40, 30, 5);
+      tick(game);
+      const ship = shipOf(field);
+      placeRock(field, "small", ship.x, ship.y);
+
+      const { loose } = playTo(game, "over");
+
+      expect(loose).toEqual([]);
     });
   });
 

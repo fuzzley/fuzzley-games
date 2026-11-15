@@ -40,15 +40,24 @@
           [face]="game.face()"
           [lift]="game.lift()"
         />
-        <span class="label">Ships</span>
+        <span class="label">Crew</span>
       </dt>
       <dd class="value">
         @if (fitsEveryFigure()) {
-          <app-pilot-row class="pilots" [pilots]="inTow()" />
+          @let shownLine = line();
+          <app-pilot-row
+            class="pilots"
+            [pilots]="shownLine.drawn"
+            [loose]="shownLine.loose"
+          >
+            @if (shownLine.count !== null) {
+              <span aria-hidden="true">{{ shownLine.count }}</span>
+            }
+          </app-pilot-row>
         } @else {
-          <span class="count" aria-hidden="true">{{ game.ships() }}</span>
+          <span class="count" aria-hidden="true">{{ game.aboard() }}</span>
         }
-        <span class="fz-visually-hidden">{{ shipsText() }}</span>
+        <span class="fz-visually-hidden">{{ crewText() }}</span>
       </dd>
     </div>
     <div class="metric multiplier">

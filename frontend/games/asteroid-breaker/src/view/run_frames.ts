@@ -1,6 +1,7 @@
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { FieldEvent } from "../rules/field/events";
 import type { Field } from "../rules/field/field";
+import type { Loose } from "../rules/hazards/loose";
 import { type WaveTally, tallyOf } from "../rules/field/scoring";
 import { rocksLeft } from "../rules/rocks/rocks";
 import {
@@ -35,6 +36,13 @@ export interface FrameChange {
   readonly moved: boolean;
   /** The pilots of the strays the frame brought home, in the order they came. */
   readonly cameHome: readonly Pilot[];
+  /**
+   * The pilots knocked loose out on the wave in play's field, the last
+   * knocked first, so the line in tow and they read as the line before the
+   * hits, as of a frame that changed who they are; else null. A new field
+   * starts with none out.
+   */
+  readonly loose: readonly Pilot[] | null;
   /**
    * How many times what is scored scores, by static's step on the wave in
    * play: 1 once the run is over. Null for a frame of a wave cleared, ended
@@ -85,6 +93,9 @@ export interface FrameChange {
   readonly buzz: Buzz | null;
 }
 
+/** No one knocked loose. */
+const NO_ONE: readonly Pilot[] = [];
+
 /** Describes the record each frame's change is written to: a writable {@link FrameChange}. */
 type Change = { -readonly [Key in keyof FrameChange]: FrameChange[Key] };
 
@@ -104,6 +115,8 @@ export class RunFrames {
   private readonly cameHome: Pilot[] = [];
   /** When what the pilot's face answers last happened, on the field below. */
   private readonly moments = createFaceMoments();
+  /** The pilots knocked loose as the last change said them, none on a new field. */
+  private looseSaid: readonly Pilot[] = NO_ONE;
   /**
    * The field the moments are of, the wave in play's from its first frame,
    * at whose step each event heard is noted.
@@ -114,6 +127,7 @@ export class RunFrames {
     run: null,
     moved: false,
     cameHome: this.cameHome,
+    loose: null,
     multiplier: null,
     step: null,
     face: "rest",
@@ -138,7 +152,8 @@ export class RunFrames {
    * the card over it, none where motion is unwelcome, and with the wave
    * cleared toward its card's sum counting up; a paused wave stays as it
    * is. Whatever the run's outcome, it reads the pilot's face as the field
-   * stands, blinking only where motion is welcome, and its fur's lift.
+   * stands, blinking only where motion is welcome, its fur's lift, and who
+   * is knocked loose.
    */
   advance(
     play: WavePlay,
@@ -151,6 +166,7 @@ export class RunFrames {
     if (play.field !== this.faced) {
       this.faced = play.field;
       Object.assign(this.moments, createFaceMoments());
+      this.looseSaid = NO_ONE;
     }
     change.run = null;
     change.moved = false;
@@ -182,6 +198,7 @@ export class RunFrames {
     }
     change.face = faceOf(play.field, this.moments, motion);
     change.lift = liftOf(play.field);
+    change.loose = this.looseChange(play.field.loose);
     return change;
   }
 
@@ -288,10 +305,55 @@ export class RunFrames {
   }
 
   /**
+   * Returns the pilots knocked loose out on the field, the last knocked
+   * first, those knocked at one step in their slots' order, if they aren't
+   * those last said in that order, else null; it makes nothing for the same
+   * pilots in the same order.
+   */
+  private looseChange(
+    slots: readonly Readonly<Loose>[],
+  ): readonly Pilot[] | null {
+    if (isSaid(slots, this.looseSaid)) return null;
+    const loose = slots
+      .filter((slot) => slot.live)
+      .sort((a, b) => b.knockedAt - a.knockedAt)
+      .map((slot) => slot.pilot);
+    this.looseSaid = loose;
+    return loose;
+  }
+
+  /**
    * Returns a wave of the game by its number, from 1; past the last, one of
    * Endless's.
    */
   private entryOf(wave: number): WaveEntry {
     return waveEntryOf(this.waves, wave);
   }
+}
+
+/**
+ * Returns whether the pilots out in a field's slots for the crew knocked
+ * loose are those said, in the order said: each at the place the number
+ * out before it, knocked later or at its step from an earlier slot, gives
+ * it.
+ */
+function isSaid(
+  slots: readonly Readonly<Loose>[],
+  said: readonly Pilot[],
+): boolean {
+  let out = 0;
+  for (let i = 0; i < slots.length; i++) {
+    const slot = slots[i];
+    if (!slot?.live) continue;
+    out++;
+    let before = 0;
+    for (let j = 0; j < slots.length; j++) {
+      const other = slots[j];
+      if (!other?.live) continue;
+      const later = other.knockedAt > slot.knockedAt;
+      if (later || (other.knockedAt === slot.knockedAt && j < i)) before++;
+    }
+    if (said[before] !== slot.pilot) return false;
+  }
+  return out === said.length;
 }

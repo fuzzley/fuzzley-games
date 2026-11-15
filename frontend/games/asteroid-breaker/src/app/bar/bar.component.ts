@@ -1,5 +1,5 @@
 import { Component, computed, inject, output } from "@angular/core";
-import { count, formatPoints } from "@fz/core/format";
+import { formatPoints } from "@fz/core/format";
 import { BarChoiceComponent } from "@fz/game-ui/bar_choice";
 import {
   type BarOverflowAction,
@@ -16,6 +16,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { IconComponent } from "@fz/ui/icon";
 import type { Speed } from "../../rules/speed";
 import { STATIC_STEPS } from "../../rules/tuning";
+import { crewLineOf, crewWords } from "../../view/crew_line";
 import { FaceCamComponent } from "../face_cam/face_cam.component";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
@@ -33,14 +34,15 @@ const PIPS = Array.from({ length: STATIC_STEPS[0].times }, (_, pip) => pip);
  * figures, and the actions.
  *
  * The speed shows at every size, as a menu of the speeds; the name only for
- * a screen reader on a compact screen. The ships' figure leads with the
+ * a screen reader on a compact screen. The crew's figure leads with the
  * face cam, the pilot at the controls with the face and the fur the field
  * shows, and static's with how many times what is scored scores, as a
  * number and four pips. From the width the actions keep their labels at,
- * the figures are the wave, the score, the ships, the line in tow beside
- * the face cam, and static, each a card; below it, the score, the ships and
- * static in one card, or stacked on a rail, the ships a number on the face
- * cam, since a score runs to six figures.
+ * the figures are the wave, the score, the crew, each in tow and each
+ * knocked loose beside the face cam, or, past three, a count of them
+ * (`crewLineOf()`), and static, each a card; below it, the score, the crew
+ * and static in one card, or stacked on a rail, the crew aboard a number
+ * on the face cam, since a score runs to six figures.
  *
  * On a compact screen, Pause stays, and Sound, Sectors, New game, How to
  * play and Settings move into the overflow menu, as on the narrowest the
@@ -92,12 +94,22 @@ export class BarComponent {
   /** The pilot at the controls, in the face cam, or null once none is left. */
   protected readonly atControls = computed(() => this.game.crew().pilot);
 
-  /** The pilots in tow, beside the face cam, in the order they ride. */
-  protected readonly inTow = computed(() => this.game.crew().tow);
+  /** The crew beside the face cam, drawn or counted, where the bar has room for them. */
+  protected readonly line = computed(() =>
+    crewLineOf(this.game.crew().tow, this.game.loose()),
+  );
 
-  /** The ships as words, since the pilots are pictures. */
-  protected readonly shipsText = computed(() =>
-    count(this.game.ships(), "ship", "ships"),
+  /**
+   * The crew as words, since the pilots are pictures: how many ride in tow
+   * where the bar draws them, or how many are aboard where it gives that
+   * number on the face cam, and how many are knocked loose.
+   */
+  protected readonly crewText = computed(() =>
+    crewWords(
+      this.game.crew(),
+      this.game.loose(),
+      this.fitsEveryFigure() ? "line" : "aboard",
+    ),
   );
 
   /** The run's score, grouped in thousands. */

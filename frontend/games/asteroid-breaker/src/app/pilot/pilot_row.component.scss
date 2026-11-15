@@ -18,3 +18,12 @@
     height: 20px;
   }
 }
+
+// One knocked loose, faded in a dashed ring, as the line in tow has lost
+// it until it is caught again.
+.loose {
+  border-radius: 50%;
+  outline: 1px dashed var(--fz-muted);
+  outline-offset: 1px;
+  opacity: 0.45;
+}
