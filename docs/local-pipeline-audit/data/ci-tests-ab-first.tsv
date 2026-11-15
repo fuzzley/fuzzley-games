@@ -1,0 +1,9 @@
+job	checkout	round	wall_s	exit
+asteroid-breaker,brick-breaker	main e6740e04	1	120.8	0
+asteroid-breaker,brick-breaker	local-pipeline 15c09afe	1	116.5	0
+asteroid-breaker,brick-breaker	main e6740e04	2	119.3	0
+asteroid-breaker,brick-breaker	local-pipeline 15c09afe	2	117.6	0
+brick-fuzz-pop,solitaire	main e6740e04	1	118.2	0
+brick-fuzz-pop,solitaire	local-pipeline 15c09afe	1	113.1	0
+brick-fuzz-pop,solitaire	main e6740e04	2	112.8	0
+brick-fuzz-pop,solitaire	local-pipeline 15c09afe	2	113.3	0

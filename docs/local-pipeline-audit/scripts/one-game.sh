@@ -9,8 +9,10 @@
 #
 #   one-game.sh <game> [eslint_concurrency]
 #
-# The typecheck's passes are e6740e04's, on TypeScript 6 with their build
-# info.
+# The typecheck's passes are the workspace's own, `ngc` on TypeScript 6 and
+# the rest on TypeScript 7 through `tsc7`, keeping no build info, as step 2 of
+# the work log made them; at e6740e04 they were all TypeScript 6's, with
+# their build info.
 set -uo pipefail
 game=$1
 conc=${2:-off}
@@ -31,9 +33,9 @@ lint() {
 typecheck() {
   local codes=0
   $B/ngc -p tsconfig.app.json --noEmit &
-  $B/tsc -p tsconfig.spec.json --noEmit --incremental --tsBuildInfoFile tsconfig.spec.tsbuildinfo &
-  $B/tsc -p tsconfig.node.json --incremental --tsBuildInfoFile tsconfig.node.tsbuildinfo &
-  $B/tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo &
+  $B/tsc7 -p tsconfig.spec.json --noEmit &
+  $B/tsc7 -p tsconfig.node.json &
+  $B/tsc7 -p tsconfig.scripts.json &
   for _ in 1 2 3 4; do wait -n || codes=1; done
   return $codes
 }

@@ -18,8 +18,8 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 | 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | ed629c55 |
 | 4    | 1   | The layout check's pages side by side, a few at a time                                                                               | 7ed7026a |
 | 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 | bf297ad9 |
-| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory |          |
-| 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       |          |
+| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory | 15c09afe |
+| 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       | done     |
 
 What the plan leaves out, and why:
 
@@ -177,7 +177,7 @@ The review, and the answers:
 ### 2026-11-15: `yarn verify:changed` (step 6)
 
 `feat(dev): verify only the workspaces a branch's changes reach, each step side by side under a budget of cores and memory, through yarn verify:changed`
-(step 6):
+(15c09afe, step 6):
 
 - `@fz/dev/verify` is the runner, and the root's `tools/verify-changed.mjs` runs it as `yarn verify:changed`.
   - It finds the files the branch changed since it left `--base` (`origin/main`), in its commits, staged, unstaged or untracked.
@@ -241,3 +241,73 @@ The first review's fixes reshaped the reach and the runner, so the change had a 
 7. **Nits.** Fixed: each doc comment's first paragraph is one sentence; `@fz/dev`'s `AGENTS.md` lists `LICENSE` and `.gitignore`; the extension is `MARKDOWN`; the loop is a `do … while`.
 
 The second review's fixes correct what it found rather than reshape the change, so the commit went in on them.
+
+### 2026-11-15: the pipeline timed again (step 7)
+
+`docs(local-pipeline-audit): time the pipeline again locally and on CI after steps 2–6, with the scripts that time verify:changed and CI's jobs`
+(step 7). The figures are in the report's As built; this entry says how they were taken.
+
+- **Locally,** at 15c09afe, warm, one at a time:
+  - `bench.sh after-2` took 146.5 s, against the audit's 171.1 s, the same as a run after step 5 (`data/steps-after-step-5.tsv`). Its root `tsc` is now `yarn typecheck:root`, and `one-game.sh`'s typecheck runs `tsc7`, as each workspace's does.
+  - `verify-changed.sh`, new, timed `yarn verify:changed`: 41.2 s with one of Brick Fuzz Pop's files touched, against `HEAD`, and 111.2 s for the branch, which reaches every workspace. The script as fixed after the reviews ran the one-game case twice more, in 41.3 and 37.8 s.
+- **The first one-game run took 10 s more than the game's own steps,** for five other games' builds and the site's, which the second review of step 6 made every site build wait on. They queued behind the tests' claim of 12 GB for 12 workers. Left as a follow-up: claim each suite's own memory per worker, as `step-memory.tsv` shows Brick Fuzz Pop's take half a GB each and the Solitaire Collection's about one. That reshapes the scheduler, so it is a change of its own, with its own review.
+- **On CI,** before any of step 7's files, the CI audit's `check-runs.cjs`, kept with its raw logs outside the repository, passed every `run:` block. Then `local-pipeline` was pushed and the Verify workflow dispatched on it three times, one at a time: 43683774993, 43684067907 and 43684377782, all passing.
+  - The Type-check step took 34, 43 and 29 s, against main's 59, 49 and 64, and the layout check 74, 74 and 82 s, against 87, 79 and 106.
+  - But a big-game test job took 184 or 185 s in each run, against main's 119–139 s.
+- **Telling the branch's code from the runners:**
+  - `ci-steps.sh`, new, reads each run's jobs and steps, and `ci-workspace-tests.sh`, new, each workspace's suite from the test jobs' logs.
+  - In the slow runs of the breakers' job, Asteroid Breaker and Brick Breaker both took 52–62% longer than main's medians, though the branch leaves their code as it was. In run 2, the branch ran that job as fast as main's code.
+  - `ci-tests-ab.sh`, new, ran the two big-game jobs as CI does, on 4 cores with `CI=true`, in a worktree of `main` and on the branch in turn.
+  - Then four pairs of runs, each dispatched at once from the branch and from `ci-control`, a branch pushed at e6740e04 for them, since a dispatch on `main` runs `promote`, all passing: 43686044385 and 43686045855, 43686323679 and 43686325350, then, after the second review, 43689636808 and 43689638860, and 43689899782 and 43689901720. Main's code drew the slow runners in the first and third pairs, the branch in the second, third and fourth. `ci-control` was deleted after each two.
+- **No job ran slower for the branch's code, by what the pairs and the A/B can tell,** so the CI default of two layout pages stays. Its runs ended 39 s later in median, most of it in test jobs on slow runners. With those set aside, 11 s later, within the runs' spread, and fourteen runs can't rule out a small effect.
+- **The data, and where each came from:**
+  - `data/steps-after.tsv`, with its `steps-after-meta.txt`, is `bench.sh after-2`'s. `steps-after-step-5.tsv`, with its own, is from `bench.sh` as it is, at bf297ad9 with step 6's work in the tree, uncommitted.
+  - `verify-changed.tsv` joins the `times.tsv` of four runs, under a column naming each: `one-game` and `branch`, with the script before the reviews' fixes, which changed none of its timing, and `t3` and `t5`, with the script as each review left it. `verify-changed-one-game-times.txt` is the three one-game runs' tables, each under a line naming it. `verify-changed-one-game-dry-run.txt` is a dry run's output, after the first.
+  - `ci-runs.tsv` and `ci-workspace-tests.tsv` are what `ci-steps.sh` and `ci-workspace-tests.sh` print for the fourteen runs.
+  - `ci-tests-ab.tsv` joins the two jobs' tables from `ci-tests-ab.sh`, under one header. `ci-tests-ab-first.tsv` is the first set, put together by hand from the script before the review.
+- **Checked:** `yarn lint`, which checks this folder's formatting; every relative link in the report and this log; and `bash -n` over the scripts.
+
+The review, and the answers:
+
+1. **The report said the branch was merged before it was.** Fixed: it says what was built; the merge is the `merge-to-main` skill's, after this commit.
+2. **The CI verdict was firmer than the data, and rested on the weaker evidence.** Fixed:
+   - The report argues from the diff first: the breakers' job runs code the branch leaves as it was, and `test:coverage` runs in the environment it did.
+   - Then from the first pair, where main's code took 94.6, 66.1 and 90.0 s on slow runners, as the branch's took on its own. `ci-workspace-tests.tsv` now holds every run, the pairs' main runs among them.
+   - It said the branch's runs ended 44 s later in median, all of it in test jobs on slow runners, and that ten runs can't rule out a small effect. The second review found that too firm, below.
+3. **The layout check's figures cited only the pair that favoured the branch.** Fixed: both pairs, and the runs show no change either way. Step 4's question, how close Brick Breaker's Cleared card comes to its 60 s on a runner, stays open: the check prints no page's time. The report estimates it at 23–36 s, scaling step 4's 20.1 s by how much longer CI's step took than the CI-like run it came from. Printing each page's time is a follow-up.
+4. **`verify-changed.sh` could revert a developer's edits to `grid.ts`.** Fixed: it refuses a file with changes of its own, keeps a copy and puts it back, and refuses a mode it doesn't know. Each of the three was tried: a misspelt mode and a `grid.ts` with a line of its own were refused, leaving the file as it was, and a one-game run took 41.3 s, putting the file back.
+5. **`ci-tests-ab.sh` overwrote its own output, and always ran the branch second.** Fixed:
+   - It takes a label for its folder, and writes the options and each checkout's commit into each row.
+   - It swaps the order each round.
+   - The first runs, branch second each round, were put together by hand. They were run again with the script as it is, two rounds a job: the breakers' job took 116.9–119.1 s on the branch, against 116.9–118.7 s on main, and the other 112.8–113.6 s, against 113.1–117.5 s. The first set is `data/ci-tests-ab-first.tsv`.
+6. **Two data files had no script behind them.** Fixed:
+   - `ci-steps.sh` now writes when each job started and ended from the run's start. The last check is the largest `end_s` of a run's jobs but `promote`, so `ci-last-check.tsv` is gone, and with it a run nothing used.
+   - `ci-workspace-tests.sh` reads the suites' times.
+   - `ci-steps.sh` takes the run's id from `databaseId`, sources `env.sh` and runs `gh` from the repository.
+   - The report's Method lists the four new scripts, and step 6's `step-memory.sh`.
+7. **The 17.3 GB budget wasn't in `data/`, and the run's start times don't fit it.** Fixed: the dry run's output is `verify-changed-one-game-dry-run.txt`, taken after the run. The run prints no budget, and its tasks' starts fit 16.5–17.0 GB, which the report now says.
+8. **Smaller points.** Fixed:
+   - The run after step 5 is `data/steps-after-step-5.tsv`.
+   - The report says step 5 couldn't see the compile cache in a whole run.
+   - The CI runs are a list, and say why the paired main runs came from `ci-control`.
+   - Five other games' builds, as the Solitaire Collection's ended before the game's own steps.
+   - 52–62%, against main's medians.
+   - The recommendations' "none was measured on CI" now says until As built.
+   - The step 6 entry names 15c09afe.
+   - `check-runs.cjs` is named as the CI audit's, kept outside the repository.
+   - `bench.sh`'s header says `typecheck:root` exists from 15c09afe, and that `steps-warm.tsv` came from the script at 05b6fd8b.
+
+The first review's fixes rewrote the CI verdict and four scripts, so the change had a second review. It recomputed every figure from the data and found them right, and nothing blocking. Its answers:
+
+1. **The push's wait was still put more firmly than the data allows:** with the slow test jobs set aside, the branch's runs still ended 11 s later. Fixed:
+   - Two more pairs ran, for seven runs a side.
+   - The report says the branch's runs ended 39 s later in median, most of it in test jobs on slow runners, and 11 s later without them, within the runs' spread, with each side first in two of the four pairs.
+   - It says no test job ran slower by what the pairs and the A/B can tell, and that fourteen runs can't rule out a small effect.
+2. **Some data files weren't what the staged scripts write.** Fixed: the step 7 entry's data list says where each came from. `verify-changed.tsv` names each run, and the report gives the three one-game runs' range, and how their schedules differed, rather than the first run's alone.
+3. **`verify-changed.sh`'s one-game run counted every other change in the tree.** Fixed: it refuses a `frontend/` with changes, fails where the run's first line names more than the game, and removes its copy of `grid.ts` once it has put it back. A stray file under `frontend/` was refused, and a one-game run passed both checks, in 37.8 s.
+4. **`ci-workspace-tests.sh` could keep a log cut short.** Fixed: it writes the log beside its name, and moves it there once `gh` has written it whole.
+5. **`bench.sh`'s `cold` left Node's compile cache.** Fixed: it empties it too, and the header says so.
+6. **Two answers didn't fully hold.** Fixed:
+   - `step-memory.sh` is step 6's, and Method says so.
+   - As built ends with what is left: the suites' memory, the layout pages' times, #4, #5 revisited, and #8.
+7. **Wording.** Fixed: "run the same code", "the test jobs ran", "swapping the order each round", and the A/B's and the end times' figures as lists.

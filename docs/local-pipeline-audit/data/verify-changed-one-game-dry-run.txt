@@ -1,0 +1,17 @@
+What changed since HEAD reaches brick-fuzz-pop.
+The budget: 24 cores and 17.3 GB.
+brick-fuzz-pop test: yarn run test --maxWorkers=12, on 12 cores and 12 GB
+brick-fuzz-pop lint: yarn run lint, on 1 core and 2 GB
+brick-fuzz-pop build: yarn run build, on 2 cores and 1.5 GB
+solitaire build: yarn run build, on 2 cores and 1.5 GB
+asteroid-breaker build: yarn run build, on 2 cores and 1.5 GB
+brick-fuzz-pop check:layout: yarn run check:layout, on 2 cores and 1.5 GB, after brick-fuzz-pop build
+brick-breaker build: yarn run build, on 2 cores and 1.5 GB
+snake build: yarn run build, on 2 cores and 1.5 GB
+minesweeper build: yarn run build, on 2 cores and 1.5 GB
+sudoku build: yarn run build, on 2 cores and 1.5 GB
+brick-fuzz-pop typecheck: yarn run typecheck, on 2 cores and 1 GB
+site build: yarn run build, on 2 cores and 1.5 GB, after asteroid-breaker build, brick-breaker build, brick-fuzz-pop build, minesweeper build, snake build, solitaire build, sudoku build
+root lint:root: yarn run lint:root, on 1 core and 1 GB
+root prettier:check: yarn run prettier:check, on 1 core and 1 GB
+root typecheck:root: yarn run typecheck:root, on 1 core and 1 GB

@@ -1,0 +1,5 @@
+label	run	wall_s	exit
+one-game	one game, against HEAD	41.2	0
+branch	the branch, against origin/main	111.2	0
+t3	one game, against HEAD	41.3	0
+t5	one game, against HEAD	37.8	0

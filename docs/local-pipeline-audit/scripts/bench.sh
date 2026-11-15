@@ -6,8 +6,16 @@
 #
 #   bench.sh <label> [cold]
 #
-# `cold` empties Prettier's, tsc's and Vitest's caches first. The output of
-# each step, and `steps.tsv`, go to $LOGS/<label>/.
+# `cold` empties Prettier's and Vitest's caches, Node's compile cache and
+# any tsc build info first. The output of each step, and `steps.tsv`, go to
+# $LOGS/<label>/.
+#
+# The root's tsc is its `typecheck:root`, which exists from step 6 of the
+# work log (15c09afe), on TypeScript 7 since step 2, keeping no build info.
+# `data/steps-warm.tsv` came from this script as it was at 05b6fd8b, which
+# ran TypeScript 6 with its build info, as e6740e04 does;
+# `data/steps-after-step-5.tsv` from it as it is, at bf297ad9 with step 6's
+# work in the tree, uncommitted.
 set -uo pipefail
 label=$1
 mode=${2:-warm}
@@ -30,7 +38,8 @@ step() {
     tee -a "$logs/steps.tsv"
 }
 if [ "$mode" = cold ]; then
-  rm -rf node_modules/.cache/prettier node_modules/.vitest-cache
+  rm -rf node_modules/.cache/prettier node_modules/.vitest-cache \
+    node_modules/.cache/node-compile-cache
   find . -name 'tsconfig.*.tsbuildinfo' -not -path '*/node_modules/*' -delete
 fi
 printf 'step\twall_s\tcpu_s\tcores\texit\n' > "$logs/steps.tsv"
@@ -41,7 +50,7 @@ step dedupe-check y dedupe --check
 step root-eslint bash -c 'cd .. && frontend/node_modules/.bin/eslint -c frontend/eslint.config.js .agents frontend/tools frontend/yarn.config.cjs frontend/eslint.config.js'
 step lint-foreach fe "${ws[@]}" run lint
 step prettier-check y prettier:check
-step root-tsc node_modules/.bin/tsc -p tsconfig.scripts.json --incremental --tsBuildInfoFile tsconfig.scripts.tsbuildinfo
+step root-tsc y typecheck:root
 step typecheck-foreach fe "${ws[@]}" run typecheck
 step test y test
 step build-games fe --include "games/*" run build
