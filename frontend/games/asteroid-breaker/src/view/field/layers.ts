@@ -2,7 +2,9 @@
  * The layers the field is drawn in, back to front, in one list, each drawn
  * over those before it, as the scene adds them in this order: the place
  * behind the play, its wash, stars and landmark; the field, which holds
- * nothing of its own; the tags of the effects in play, under all that
+ * nothing of its own; the halos of what gives off light, under all that
+ * glows, so none covers what it glows round; the tags of the effects in
+ * play, under all that
  * moves, so they hide nothing a player must see; a broken rock's dust and
  * shards, under the rocks, so none hides a piece it leaves; the rocks; the
  * pickups; the strays adrift and the pilots bailing out; the comets and
@@ -14,6 +16,7 @@
 export const LAYERS = [
   "place",
   "field",
+  "halos",
   "tags",
   "breaks",
   "rocks",
@@ -47,6 +50,7 @@ export type LayerCamera = "field" | "deck";
 export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   place: "field",
   field: "field",
+  halos: "field",
   tags: "field",
   breaks: "field",
   rocks: "field",

@@ -65,6 +65,15 @@ export class Copies {
   }
 
   /**
+   * Shows it once at a place on the field, or off it, in field units, and
+   * none of its copies, as a thing that crosses rather than wraps is shown.
+   */
+  showOnce(x: number, y: number, metrics: FieldMetrics): void {
+    this.showCopy(0, x, y, metrics, true);
+    for (let i = 1; i < MOST_COPIES; i++) this.images[i]?.setVisible(false);
+  }
+
+  /**
    * Shows a thing that wraps `alpha` of the way from its last place to its
    * next, the shortest way across the wrap, as {@link show} shows it at a
    * place.

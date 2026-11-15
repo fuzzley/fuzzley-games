@@ -110,6 +110,34 @@ describe("beltPalette", () => {
   it("draws a pilot's eyes as the fuzzball has them", () => {
     expect(beltPalette(ROLES, "light").eyes).toBe(0x14171b);
   });
+
+  it.each([
+    ["light", 0.62],
+    ["dark", 1],
+  ] as const)(
+    "shows a halo in a %s palette at %f of its own strength",
+    (mode, strength) => {
+      expect(beltPalette(ROLES, mode).haloStrength).toBe(strength);
+    },
+  );
+
+  it.each([
+    ["light", LIGHT_ROCK_INKS.kinds.crystal],
+    ["dark", DARK_ROCK_INKS.kinds.crystal],
+  ] as const)(
+    "glows a crystal's gems in its ink in a %s palette",
+    (mode, ink) => {
+      expect(beltPalette(ROLES, mode).rockGlows.gem).toBe(ink);
+    },
+  );
+
+  it("glows a volatile rock's core in its own pale gold in a dark palette", () => {
+    expect(beltPalette(ROLES, "dark").rockGlows.core).toBe(DARK_ROCK_INKS.core);
+  });
+
+  it("sinks a volatile rock's core's glow toward its ink in a light palette, as the art kit does", () => {
+    expect(beltPalette(ROLES, "light").rockGlows.core).toBe(0xeaa15f);
+  });
 });
 
 describe("pilotInk", () => {

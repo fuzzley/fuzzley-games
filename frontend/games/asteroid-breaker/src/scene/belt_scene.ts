@@ -80,6 +80,7 @@ import { DebrisPainter } from "./painters/debris_painter";
 import { DeckPainter } from "./painters/deck_painter";
 import { ExhaustPainter } from "./painters/exhaust_painter";
 import { FieldPainter } from "./painters/field_painter";
+import { HaloPainter } from "./painters/halo_painter";
 import { HazardPainter } from "./painters/hazard_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PickupPainter } from "./painters/pickup_painter";
@@ -196,6 +197,8 @@ export interface BeltKit {
   readonly place: PlacePainter;
   /** Draws the frame round the field. */
   readonly field: FieldPainter;
+  /** Draws the halos of what gives off light, under all that glows. */
+  readonly halos: HaloPainter;
   /** Draws the tags of the effects in play. */
   readonly tags: TagPainter;
   /** Draws the rocks. */
@@ -333,6 +336,7 @@ export class BeltScene extends Scene {
     this.painters = [
       kit.place,
       kit.field,
+      kit.halos,
       kit.tags,
       kit.rocks,
       kit.pickups,
@@ -399,6 +403,7 @@ export class BeltScene extends Scene {
     return {
       place: new PlacePainter(this, layers.place),
       field: new FieldPainter(this, layers),
+      halos: new HaloPainter(this, layers.halos),
       tags: new TagPainter(this, layers.tags),
       rocks: new RockPainter(this, layers.rocks),
       pickups: new PickupPainter(this, layers.pickups),

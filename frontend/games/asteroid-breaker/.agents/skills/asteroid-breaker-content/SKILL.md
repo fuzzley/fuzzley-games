@@ -22,7 +22,9 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 - **Records keyed by those ids** make the compiler ask for what a new entry
   needs: how a rock is cut and marked (`KIND_CUTS`,
   `src/view/art/rocks/rock_shape.ts`) and comes apart (`BREAK_STYLES`,
-  `src/view/art/breaks.ts`), its ink in each set of inks
+  `src/view/art/breaks.ts`), its glows among its marks, which the scene
+  shows as halos under it (`rockHalos()`), each tone of glow in its color
+  (`rockGlows`, `src/view/colors/palette.ts`), its ink in each set of inks
   (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
   `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
