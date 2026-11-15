@@ -9,7 +9,10 @@ import {
   glide,
   looped,
   note,
+  packSoundSprite,
   renderSoundSprite,
+  spritemapOf,
+  takeNames,
   thud,
   withBurst,
   writeSoundSprite,
@@ -326,6 +329,129 @@ describe("renderSoundSprite", () => {
     expect(() =>
       renderSoundSprite([{ ...BEEP, name: "hush", sample }]),
     ).toThrow('The sound "hush" is silent or not a number.');
+  });
+});
+
+describe("takeNames", () => {
+  it("names one take as its sound, and each of more by its number from 1", () => {
+    expect([takeNames("ping", 1), takeNames("shot", 3)]).toEqual([
+      ["ping"],
+      ["shot-1", "shot-2", "shot-3"],
+    ]);
+  });
+});
+
+describe("packSoundSprite", () => {
+  /** Returns a take of a steady level, as many samples long as given. */
+  function take(length: number, level = 0.5): Float64Array {
+    return new Float64Array(length).fill(level);
+  }
+
+  /** Packs at a sample a millisecond, a gap of 2 and no fade, to a millisecond. */
+  const MILLIS = { sampleRate: 1000, gap: 0.002, fade: 0, places: 3 };
+
+  it("lays each take a gap after the one before, named by its number", () => {
+    const sprite = packSoundSprite(
+      [
+        { name: "shot", takes: [take(3), take(4)] },
+        { name: "hum", takes: [take(2)], loop: true },
+      ],
+      MILLIS,
+    );
+
+    expect({ map: sprite.spritemap, seconds: sprite.seconds }).toEqual({
+      map: {
+        "shot-1": { start: 0, end: 0.003, loop: false },
+        "shot-2": { start: 0.005, end: 0.009, loop: false },
+        hum: { start: 0.011, end: 0.013, loop: true },
+      },
+      seconds: 0.013,
+    });
+  });
+
+  it("writes each take's samples where its map lays it, the gaps silent", () => {
+    const sprite = packSoundSprite(
+      [{ name: "shot", takes: [take(2, 0.25), take(1, -0.5)] }],
+      MILLIS,
+    );
+
+    expect([...sprite.samples]).toEqual([0.25, 0.25, 0, 0, -0.5]);
+  });
+
+  it("keeps the map's times to as many places as told", () => {
+    const sprite = packSoundSprite([{ name: "a", takes: [take(1250)] }], {
+      ...MILLIS,
+      sampleRate: 44100,
+      places: 4,
+    });
+
+    expect(sprite.spritemap["a"]?.end).toBe(0.0283);
+  });
+
+  it("fades each take out over its fade but a looping one's", () => {
+    const sprite = packSoundSprite(
+      [
+        { name: "once", takes: [take(4, 1)] },
+        { name: "hum", takes: [take(4, 1)], loop: true },
+      ],
+      { ...MILLIS, gap: 0, fade: 0.002 },
+    );
+
+    expect([...sprite.samples]).toEqual([1, 1, 0.5, 0, 1, 1, 1, 1]);
+  });
+
+  it("writes the map's JSON as Phaser takes it", () => {
+    const sprite = packSoundSprite([{ name: "a", takes: [take(2)] }], MILLIS);
+
+    expect(JSON.parse(sprite.json)).toEqual({ spritemap: sprite.spritemap });
+  });
+
+  it("leaves the takes it is handed as they were", () => {
+    const given = take(4, 1);
+
+    packSoundSprite([{ name: "a", takes: [given] }], {
+      fade: 0.002,
+      sampleRate: 1000,
+    });
+
+    expect([...given]).toEqual([1, 1, 1, 1]);
+  });
+
+  it("refuses a sound with no take", () => {
+    expect(() => packSoundSprite([{ name: "hush", takes: [] }])).toThrow(
+      'The sound "hush" has no take.',
+    );
+  });
+
+  it("refuses two takes of one name", () => {
+    expect(() =>
+      packSoundSprite([
+        { name: "shot", takes: [take(1), take(1)] },
+        { name: "shot-2", takes: [take(1)] },
+      ]),
+    ).toThrow('Two sounds are named "shot-2".');
+  });
+});
+
+describe("spritemapOf", () => {
+  it("lays the takes out from their lengths alone, as the sprite packs them", () => {
+    const takes = [new Float64Array(30), new Float64Array(41)];
+
+    const map = spritemapOf([
+      { name: "shot", lengths: takes.map(({ length }) => length) },
+      { name: "hum", lengths: [7], loop: true },
+    ]);
+
+    expect(map).toEqual(
+      packSoundSprite([
+        { name: "shot", takes },
+        { name: "hum", takes: [new Float64Array(7)], loop: true },
+      ]).spritemap,
+    );
+  });
+
+  it("refuses no sounds", () => {
+    expect(() => spritemapOf([])).toThrow("A sprite needs a sound.");
   });
 });
 

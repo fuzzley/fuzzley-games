@@ -17,6 +17,7 @@
     "./screenshots": "./src/screenshots.ts",
     "./script": "./src/script.ts",
     "./sounds": "./src/sounds.ts",
+    "./synth": "./src/synth.ts",
     "./sound-lab": "./src/sound_lab.ts",
     "./sound-lab-page": "./src/sound_lab_page.ts",
     "./zzfx": "./src/zzfx.ts",
