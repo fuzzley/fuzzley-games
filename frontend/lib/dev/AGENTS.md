@@ -564,10 +564,15 @@ too. Paths are relative to `frontend/lib/dev/`.
   plugin turns Vite's own compiler off unless the config sets it, and
   compiles only the app's program, which the lab's modules are not part
   of, so the plugin has Vite's compiler take them alone (`pageModules()`),
-  as `angularTests()` has it take the code of its pure folders. The page,
-  `src/sound_lab_page.ts`, `@fz/dev/sound-lab-page`, which only a browser
-  runs, is mounted by the game's module with `mountSoundLab()`, handed a
-  `SoundLab`: the game's name, its sprite's address and map, each sound
+  as `angularTests()` has it take the code of its pure folders. With them
+  it names the one module of another library the page imports,
+  `@fz/core/sound_mix`, which imports nothing, resolved by its real path
+  rather than imported: a game whose app plays through `@fz/phaser/sound`
+  holds it in its program, which Analog compiles, and the plugin compiles
+  it for one whose app doesn't. The page, `src/sound_lab_page.ts`,
+  `@fz/dev/sound-lab-page`, which only a browser runs, is mounted by the
+  game's module with `mountSoundLab()`, handed a `SoundLab`: the game's
+  name, its sprite's address and map, each sound
   (`LabSound`) with what plays it and its candidate, a `ZzfxSound`, where
   it has one, and its scenes (`LabScene`), each a moment of play as the
   cues (`LabCue`) the game would play, raised as the game raises them and
@@ -581,8 +586,13 @@ too. Paths are relative to `frontend/lib/dev/`.
   and buttons (`src/sound_lab_page.scss`). What it works out of samples and
   of each play is `src/sound_lab_mix.ts`: how loud a sound is
   (`loudnessOf()`, the RMS of its loudest 50 ms), what makes one as loud as
-  another (`gainToMatch()`), a loop's seam faded away (`seamless()`), a
-  play's variation (`variedPlay()`) and its pan (`panOf()`).
+  another (`gainToMatch()`), a loop's seam faded away (`seamless()`), and a
+  play's variation (`variedPlay()`) and its pan (`panAt()`), by
+  `@fz/core/sound_mix`'s formulas (`variedDetune()`, `variedGain()` and
+  `panOf()`) at numbers of its own: 60 cents and 1.5 dB at most
+  (`VARY_CENTS`, `VARY_DECIBELS`), on every play, tuned or not, where the
+  games' mix varies only its noisy, busy sounds, by less, and 70% of the
+  way to a side (`PAN_WIDTH`).
 
 ## How a workspace uses it
 
@@ -649,8 +659,11 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **It runs in Node as it is.** An app's ESLint config and scripts import
   these files, so relative imports name the file (`./eslint.ts`) and the
   TypeScript is only the kind Node can strip (`erasableSyntaxOnly`), as in
-  `@fz/style`. The sound lab's page is the one module Node never loads,
-  since it imports its stylesheet, which only a game's dev server compiles.
+  `@fz/style`. The sound lab's page and its mix, `src/sound_lab_mix.ts`,
+  are the modules Node never loads: the page imports its stylesheet, which
+  only a game's dev server compiles, and the mix `@fz/core`, whose modules
+  import one another without their extensions; ESLint keeps every other
+  module but the specs from importing either, or `@fz/core`.
 - **The scripts' helpers load Vite only when asked.** What `@fz/dev/script`,
   `/report`, `/screenshots`, `/workspaces` and `/verify` load imports Vite,
   and the modules here that import it, by type alone, so a script that loads
@@ -662,7 +675,11 @@ too. Paths are relative to `frontend/lib/dev/`.
 - **It depends on `@fz/style`**, for the plugin `gameConfig()` adds, while
   `@fz/style` is checked with this library's presets. Yarn links the two
   either way round, and nothing in `lib/` is built, so neither has to come
-  first.
+  first. It depends on `@fz/core` too, which is checked with them as well,
+  for the sound lab's mix, and imports it from `src/sound_lab_mix.ts` alone,
+  which only the lab's page and its specs load, so no module Node runs
+  imports it, as ESLint checks. A change to `@fz/core` so reaches this
+  library's checks in `yarn verify:changed`, and `@fz/style`'s through it.
 
 ## Checks
 
@@ -708,10 +725,12 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   runs tasks on a fake clock under budgets, and the script over a fake shell;
   `src/tsc7.spec.ts` runs TypeScript 7 over projects it writes, holding
   `runTsc7()` to its exit code;
-  `src/sound_lab_mix.spec.ts` measures, matches, loops, varies and pans
-  samples it makes up; `src/sound_lab.spec.ts` serves a game it writes,
-  with the lab under a base, behind a plugin that turns Vite's compiler off
-  as Analog's does, and builds it, finding nothing of the page there;
+  `src/sound_lab_mix.spec.ts` measures, matches and loops samples it makes
+  up, and varies and pans plays at the lab's numbers;
+  `src/sound_lab.spec.ts` serves a game it writes, with the lab under a
+  base, behind a plugin that turns Vite's compiler off as Analog's does,
+  the page's module of `@fz/core` compiled too, and builds it, finding
+  nothing of the page there;
   `src/chrome.spec.ts` and `src/layout.spec.ts` drive the DevTools helpers
   and the layout check against a fake browser, `src/testing/fake_browser.ts`,
   the Chrome spec starts programs that can't be a Chrome (Node, a script

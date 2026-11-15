@@ -1,6 +1,9 @@
 // What the sound lab works out of samples and of each play: how loud a
 // sound is, so a candidate is heard as loud as the sound it would replace, a
-// loop's seam, and how a play is varied and placed across the field.
+// loop's seam, and how a play is varied and placed across the field, by
+// `@fz/core/sound_mix`'s rules at the lab's own numbers.
+
+import { panOf, variedDetune, variedGain } from "@fz/core/sound_mix";
 
 /** The stretch a sound's loudness is measured over, in seconds: about as long as the ear sums a short sound over. */
 const LOUDNESS_WINDOW_S = 0.05;
@@ -15,7 +18,7 @@ export const VARY_CENTS = 60;
 export const VARY_DECIBELS = 1.5;
 
 /** How far to one side a sound at the field's edge is panned, from 0 to 1. */
-export const PAN_WIDTH = 0.7;
+const PAN_WIDTH = 0.7;
 
 /** Describes how a play is varied. */
 export interface Variation {
@@ -82,18 +85,26 @@ export function seamless(
 }
 
 /**
- * Returns how a play is varied, from two numbers from 0 up to 1 that
- * `random` draws: raised or lowered by up to {@link VARY_CENTS}, and up to
- * {@link VARY_DECIBELS} louder or quieter, so a sound heard many times a
- * second never repeats itself exactly.
+ * Returns how a play is varied, by the mix's rules at the lab's numbers,
+ * from two numbers from 0 up to 1 that `random` draws: raised or lowered by
+ * up to {@link VARY_CENTS}, then up to {@link VARY_DECIBELS} louder or
+ * quieter, so a sound heard many times a second never repeats itself
+ * exactly.
+ *
+ * Unlike a game's mix, it varies every sound, tuned or not, by more.
  */
 export function variedPlay(random: () => number): Variation {
-  const detune = (random() * 2 - 1) * VARY_CENTS;
-  const decibels = (random() * 2 - 1) * VARY_DECIBELS;
-  return { detune, gain: 10 ** (decibels / 20) };
+  return {
+    detune: variedDetune(random, VARY_CENTS),
+    gain: variedGain(random, VARY_DECIBELS),
+  };
 }
 
-/** Returns the pan of a sound played at a place across the field, from -1 at its left edge to 1 at its right. */
-export function panOf(x: number): number {
-  return Math.min(Math.max(x, -1), 1) * PAN_WIDTH;
+/**
+ * Returns the pan of a sound played at a place across the field, from -1
+ * at its left edge to 1 at its right, by the mix's rule at the lab's
+ * {@link PAN_WIDTH}.
+ */
+export function panAt(x: number): number {
+  return panOf(x, PAN_WIDTH);
 }

@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@eslint/js": "^10.0.1",
+    "@fz/core": "workspace:*",
     "@fz/style": "workspace:*",
     "@typescript/native": "npm:typescript@^7.0.2",
     "angular-eslint": "^22.6.0",

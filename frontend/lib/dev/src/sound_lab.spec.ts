@@ -21,6 +21,14 @@ const COMPILER_OFF: Plugin = {
   config: () => ({ oxc: false }),
 };
 
+/** The libraries' folder, which the specs' server may serve from as a game's serves the lab's modules. */
+const LIBRARIES = join(import.meta.dirname, "..", "..");
+
+/** Returns a path as the dev server names a file outside its root, under `/@fs`. */
+function servedPath(file: string): string {
+  return `/@fs/${file.replaceAll("\\", "/").replace(/^\//, "")}`;
+}
+
 /** The lab as the specs' game describes it. */
 const PAGE = { entry: "tools/lab.ts", title: "Sound lab: <Game>" };
 
@@ -63,7 +71,11 @@ async function serve(
     base,
     configFile: false,
     logLevel: "silent",
-    server: { middlewareMode: true, ws: false },
+    server: {
+      middlewareMode: true,
+      ws: false,
+      fs: { allow: [root, LIBRARIES] },
+    },
     plugins: [COMPILER_OFF, ...plugins, soundLab({ ...PAGE, entry: "lab.ts" })],
   });
   const server = createHttpServer(vite.middlewares);
@@ -151,6 +163,28 @@ describe("soundLab", () => {
     const code = await (await fetch(`${at}/lab.ts`)).text();
 
     expect(code).toContain("const loud = 1");
+  });
+
+  it("compiles the module of another library the page imports, alone, where the compiler was turned off", async () => {
+    const at = await serve("/");
+    const mix = await (
+      await fetch(
+        at + servedPath(join(import.meta.dirname, "sound_lab_mix.ts")),
+      )
+    ).text();
+    const imported = /from "([^"]*\/sound_mix\.ts)"/.exec(mix)?.[1];
+    if (imported === undefined) {
+      throw new Error("The lab's mix imports no sound_mix.ts.");
+    }
+
+    const code = await (await fetch(at + imported)).text();
+
+    expect({
+      compiled: code.includes(
+        "export function panOf(across, width = PAN_WIDTH)",
+      ),
+      imports: code.match(/\bfrom\s*["']/g) ?? [],
+    }).toEqual({ compiled: true, imports: [] });
   });
 
   it("leaves every other address to the server", async () => {

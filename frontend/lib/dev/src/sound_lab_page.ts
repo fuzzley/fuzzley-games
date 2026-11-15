@@ -13,7 +13,7 @@ import {
   decibelsOf,
   gainToMatch,
   loudnessOf,
-  panOf,
+  panAt,
   seamless,
   variedPlay,
 } from "./sound_lab_mix.ts";
@@ -250,7 +250,7 @@ class LabPlayer<Name extends string> {
     const matched = candidate && this.settings.match ? candidate.match : 1;
     const gain = new GainNode(this.context, { gain: varied.gain * matched });
     const pan = new StereoPannerNode(this.context, {
-      pan: this.settings.pan ? panOf(cue.x ?? 0) : 0,
+      pan: this.settings.pan ? panAt(cue.x ?? 0) : 0,
     });
     node.connect(gain).connect(pan).connect(this.volume);
     node.addEventListener("ended", () => this.sounding.delete(node));

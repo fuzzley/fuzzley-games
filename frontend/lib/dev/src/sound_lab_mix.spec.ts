@@ -1,11 +1,8 @@
 import {
-  PAN_WIDTH,
-  VARY_CENTS,
-  VARY_DECIBELS,
   decibelsOf,
   gainToMatch,
   loudnessOf,
-  panOf,
+  panAt,
   seamless,
   variedPlay,
 } from "./sound_lab_mix.ts";
@@ -94,12 +91,26 @@ describe("seamless", () => {
   });
 });
 
+// The lab plays by the mix's formulas at numbers of its own.
 describe("variedPlay", () => {
-  it("lowers and quiets a play the most for the least numbers drawn", () => {
+  it("lowers a play by 60 cents and quiets it by 1.5 dB at most, for the least numbers drawn", () => {
     const variation = variedPlay(drawing(0, 0));
 
-    expect(variation.detune).toBe(-VARY_CENTS);
-    expect(variation.gain).toBeCloseTo(10 ** (-VARY_DECIBELS / 20));
+    expect(variation.detune).toBe(-60);
+    expect(decibelsOf(variation.gain)).toBeCloseTo(-1.5, 9);
+  });
+
+  it("raises a play by 60 cents and makes it 1.5 dB louder at most, for the greatest numbers", () => {
+    const variation = variedPlay(drawing(1, 1));
+
+    expect(variation.detune).toBe(60);
+    expect(decibelsOf(variation.gain)).toBeCloseTo(1.5, 9);
+  });
+
+  it("draws the detune first, then the gain", () => {
+    const variation = variedPlay(drawing(1, 0.5));
+
+    expect(variation).toEqual({ detune: 60, gain: 1 });
   });
 
   it("leaves a play as it is for the middle numbers", () => {
@@ -109,16 +120,16 @@ describe("variedPlay", () => {
   });
 });
 
-describe("panOf", () => {
-  it("pans a sound at the field's right edge as far right as the lab pans", () => {
-    expect(panOf(1)).toBe(PAN_WIDTH);
+describe("panAt", () => {
+  it("pans a sound at the field's right edge 70% of the way right", () => {
+    expect(panAt(1)).toBe(0.7);
   });
 
-  it("pans a sound past the edge no further", () => {
-    expect(panOf(-3)).toBe(-PAN_WIDTH);
+  it("pans a sound past the left edge no further", () => {
+    expect(panAt(-3)).toBe(-0.7);
   });
 
   it("leaves a sound in the middle in the middle", () => {
-    expect(panOf(0)).toBe(0);
+    expect(panAt(0)).toBe(0);
   });
 });
