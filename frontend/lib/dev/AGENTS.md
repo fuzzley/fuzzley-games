@@ -487,6 +487,59 @@ too. Paths are relative to `frontend/lib/dev/`.
   tenth of a second apart, into `sounds.wav` and the spritemap Phaser
   plays it by, `sounds.json`, the same bytes every run. A game's
   `tools/build-sounds.mjs` holds its recipes and calls it.
+  `packSoundSprite()` packs takes rendered elsewhere, such as with
+  `@fz/dev/synth`, into one sprite's samples and spritemap, as
+  `writeSoundSprite()` packs its own, unless a `SpriteLayout` gives another
+  sample rate, gap, fade at each take's end or number of decimal places for
+  the map's times; a sound of several takes names each `<name>-<n>`, from 1
+  (`takeNames()`), and it throws for no sounds, a sound with no take or two
+  takes of one name. `spritemapOf()` lays the map out from the takes'
+  lengths alone, so a spec holds a sprite's map to its takes without
+  rendering them.
+- `src/synth.ts`, `@fz/dev/synth`: a synth for a game's sounds, rendered
+  offline at 44,100 samples a second (`SR`), every random draw from a seed
+  (`seeded()`), so a run renders the same bytes again, for a game whose
+  `tools/build-sounds.mjs` renders its takes with it and packs them with
+  `packSoundSprite()`. A `Signal` is a `Float64Array` of samples from -1 to
+  1, and a `Param` a number, a signal read a sample at a time or a function
+  of time (`read()`). Ported from the Asteroid Breaker uplift's sound kit,
+  it renders each of the kit's takes byte for byte. Its loops read samples at the indexes they bound
+  themselves, and assert each is there (`x[i]!`), which its lint allows,
+  rather than fall back to one, a branch no read takes; a read that may
+  fall past a signal's end, such as into a tail, falls back to silence. It
+  is the entry of five modules:
+  - `src/synth_signal.ts`: the signal: envelopes (`points()`, `perc()`,
+    `adsr()`, `glide()`, `lfo()`), sources (`osc()`, its saw and pulse
+    band-limited, `fm()`, `noise()`, white, pink or brown, `modes()`, the
+    partials of a struck thing, and `pluck()`), mixing
+    (`gain()`, `mix()`, `fit()`, `fade()`, `resample()`, `reversed()`),
+    filters (`filter()`'s low-, high- and band-pass and notch, `shelf()`,
+    `biquad()`, `resonate()`, `comb()`), shaping (`drive()`, `fold()`,
+    `crush()`), rooms (`echo()`, `reverb()`, `reverbStereo()`), dynamics
+    (`compress()`, `limit()`, `normalize()`, `unit()`, `centered()`),
+    texture (`scatter()`, and `looped()`, a loop that runs on unbroken), and
+    files: `wav()`, a 16-bit PCM WAV of one channel or two, dithered from a
+    seed, and `wavSamples()`, which reads one back.
+  - `src/synth_music.ts`: the game's key, the pentatonic scale's steps
+    (`degree()`), a note's MIDI number and pitch by its name (`note()`,
+    `pitch()`), and the chain's ladder of steps in cents (`CHAIN_STEPS`,
+    `centsOf()`, `CHAIN_CENTS`).
+  - `src/synth_measure.ts`: the instruments that stand in for an ear, as no
+    one building a sound here can listen to it: `measure()` reads a sound's
+    length, peak, loudest 50 ms, loudness as an ear weighs it, crest,
+    centroid, its energy in each of `BANDS`, the share a phone's speaker
+    keeps, its offset and its ends; `loudness()` its peak and loudest 50 ms
+    alone, far faster; `seam()` how a loop's end meets its start;
+    `amplitudeAt()` the amplitude at a pitch; and `spectrum()` and
+    `frames()` what they read. The kit's spectrogram, which needs sharp, is
+    not ported.
+  - `src/synth_impacts.ts`: struck materials, each a layer with one job:
+    `crack()`, `knock()`, `thump()`, `grit()`, `rubble()`, `slivers()`,
+    `crackle()` and `clank()`, with `near()` and `between()` to vary what a
+    seed draws.
+  - `src/synth_voice.ts`: the fuzzball's voice: `sing()` sings a `Call`, a
+    reed at a pitch that glides, through three resonances that move as a
+    mouth does (`MOUTHS`), along paths `along()` draws smoothly.
 - `src/zzfx.ts`, `@fz/dev/zzfx`: ZzFX's synthesis
   (https://github.com/KilledByAPixel/ZzFX, v1.4.0, MIT, its notice kept at
   the top), ported to render the same samples from the same parameters, in
@@ -616,8 +669,8 @@ The root's `yarn lint`, `yarn typecheck` and `yarn test` run the library's
 own, which `yarn workspace @fz/dev <script>` runs alone.
 
 - **`lint`** runs ESLint with its own blocks (`eslint.config.js`), over
-  that config too, and holds the modules the scripts load to Vite's types
-  alone.
+  that config too, holds the modules the scripts load to Vite's types
+  alone, and lets the synth's modules assert a sample is there.
 - **`typecheck`** runs `tsc7` over the sources, the specs and the Vitest
   config (`tsconfig.lib.json`), then over the ESLint config and the
   binaries from their JSDoc, with what they import
@@ -635,7 +688,16 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   and runs a screenshot script against a server it starts and a fake
   browser; `src/script.spec.ts` reads command lines and loads TypeScript it
   writes through Vite; `src/report.spec.ts` prints reports of plays it
-  makes up; `src/sounds.spec.ts` renders sprites and reads them back;
+  makes up; `src/sounds.spec.ts` renders sprites and reads them back, and
+  packs and lays out takes at other layouts; the synth's specs hold what the
+  kit's self-test held, a saw's aliases far under its harmonics
+  (`src/synth_signal.spec.ts`), pink noise at about 3 dB an octave and the
+  filters' 12 dB an octave, with each instrument's basics, and
+  `src/synth.spec.ts` holds each instrument to digests of what the kit's
+  own JavaScript rendered for the same calls; the measures
+  read on tones they make (`src/synth_measure.spec.ts`), the key
+  (`src/synth_music.spec.ts`), the impacts (`src/synth_impacts.spec.ts`)
+  and the voice (`src/synth_voice.spec.ts`);
   `src/zzfx.spec.ts` holds the port to the samples ZzFX v1.4.0 renders
   itself, and reads and writes the designer's lists;
   `src/workspaces.spec.ts` reads workspaces it writes, runs fake runs in
