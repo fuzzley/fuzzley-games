@@ -10,8 +10,9 @@ import {
 } from "@fz/phaser/testing";
 import { GameObjects, Textures } from "phaser";
 import type { Field } from "../rules/field/field";
-import type { Rock } from "../rules/rocks/rocks";
+import { type Rock, hitRock } from "../rules/rocks/rocks";
 import { wrap } from "../rules/torus";
+import { NOSE } from "../rules/ship/shots";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
@@ -28,6 +29,7 @@ import {
   scrolledBy,
   shardTints,
   shownAt,
+  slotOf,
   startBoard,
   stepping,
   stillness,
@@ -64,7 +66,7 @@ import {
   towardShip,
   wholeAt,
 } from "../view/art/breaks";
-import { energyOf } from "../view/art/energy";
+import { MUZZLE_BEATS, energyOf, muzzleHalo } from "../view/art/energy";
 import {
   PEN_STEPS,
   POINTS_TEXT,
@@ -82,6 +84,7 @@ import {
   puffColors,
   puffRadius,
 } from "../view/art/pod_art";
+import { rockFrame } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
 import { STRUCK_LIGHT } from "../view/colors/rock_light";
 import {
@@ -456,6 +459,123 @@ describe("the events", () => {
     }
 
     expect(objectsIn(scene)).toBe(before);
+  });
+});
+
+/** Logs a shot fired by a shell's ship, from its middle, as the field logs one. */
+function logFired(shell: FakeShell): void {
+  const ship = shipOf(shell.field);
+  shell.field.events.addFired(ship.x, ship.y, "gun");
+}
+
+/** Describes the muzzle's flash as it shows: where on the canvas and the way it points, rounded, how opaque and how large. */
+interface MuzzleShown {
+  readonly at: { readonly x: number; readonly y: number };
+  readonly way: { readonly x: number; readonly y: number };
+  readonly alpha: number;
+  readonly scale: number;
+}
+
+/** Returns the muzzle's flash as it shows, or null while it is out. */
+function muzzleOf(scene: BeltScene): MuzzleShown | null {
+  const [star] = scene.kit.muzzle.star.images;
+  return star?.visible
+    ? {
+        at: rounded(star),
+        way: wayAlong(star.rotation),
+        alpha: star.alpha,
+        scale: star.scaleX,
+      }
+    : null;
+}
+
+/** Returns the way an angle points, rounded, a −0 as 0, whichever turn of it Phaser keeps. */
+function wayAlong(angle: number): { readonly x: number; readonly y: number } {
+  const { x, y } = rounded({ x: Math.cos(angle), y: Math.sin(angle) });
+  return { x: x + 0, y: y + 0 };
+}
+
+/** Returns where the muzzle's flash of a shell's ship shows on the canvas, rounded: at its nose. */
+function noseOf(shell: FakeShell): { readonly x: number; readonly y: number } {
+  const ship = shipOf(shell.field);
+  return rounded(
+    onCanvas(
+      metricsOf(shell),
+      ship.x + Math.cos(ship.angle) * NOSE,
+      ship.y + Math.sin(ship.angle) * NOSE,
+    ),
+  );
+}
+
+/** Returns where each halo shows in a color, those that do, as its x and y on the canvas. */
+function halosIn(scene: BeltScene, color: number): readonly number[][] {
+  return scene.kit.halos.halos.flatMap(({ images: [image] }) =>
+    image?.visible && image.tintTopLeft === color ? [[image.x, image.y]] : [],
+  );
+}
+
+describe("a shot leaving", () => {
+  it.each([
+    ["whole, the frame the shot leaves", 1, 0],
+    ["smaller and fainter the next", 2, 1],
+  ] as const)(
+    "flashes at the pod's nose, turned as it points, %s",
+    async (_, frames, beat) => {
+      const { shell, run, scene } = await startBoard(withShip);
+      logFired(shell);
+
+      run.advance(16 * frames, 16);
+
+      const { size, alpha } = MUZZLE_BEATS[beat];
+      expect(muzzleOf(scene)).toEqual({
+        at: noseOf(shell),
+        way: wayAlong(shipOf(shell.field).angle),
+        alpha,
+        scale: zoomOf(shell) * size,
+      });
+    },
+  );
+
+  it("is out by the frame after its two beats", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logFired(shell);
+
+    run.advance(48, 16);
+
+    expect(muzzleOf(scene)).toBeNull();
+  });
+
+  it("glows in the accent ahead of the pod's nose as it flashes", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logFired(shell);
+    const ship = shipOf(shell.field);
+    const ahead = NOSE + muzzleHalo(MUZZLE_BEATS[0]).ahead;
+
+    run.advance(16);
+
+    const middle = onCanvas(
+      metricsOf(shell),
+      ship.x + Math.cos(ship.angle) * ahead,
+      ship.y + Math.sin(ship.angle) * ahead,
+    );
+    expect(halosIn(scene, shell.colors.accent)).toEqual([
+      [expect.closeTo(middle.x, 9), expect.closeTo(middle.y, 9)],
+    ]);
+  });
+
+  it("shows nothing where motion isn't welcome, as it only dresses the shot", async () => {
+    const { shell, run, scene } = await startBoard((board) => {
+      withShip(board);
+      stillness(board);
+    });
+    logFired(shell);
+
+    run.advance(16);
+
+    expect({
+      muzzle: muzzleOf(scene),
+      halos: halosIn(scene, shell.colors.accent),
+    }).toEqual({ muzzle: null, halos: [] });
   });
 });
 
@@ -902,6 +1022,20 @@ function edgeToward(
 }
 
 describe("a held hit", () => {
+  it("keeps its rock's crack where motion isn't welcome, flashing and sparking nothing", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    const rock = placeRock(shell.field, "large", MIDDLE.x, MIDDLE.y, "iron");
+    hitRock(shell.field, rock, 0, 0);
+
+    run.advance(16);
+
+    const body = scene.kit.rocks.bodies[slotOf(shell.field, rock)];
+    expect({
+      crack: body?.images[0]?.frame.name,
+      ...playingIn(scene, shell),
+    }).toEqual({ crack: rockFrame(rock), ...NOTHING_PLAYING });
+  });
+
   it("lights its flash among the lights the rocks are lit by", async () => {
     const { scene } = await startBoard();
     const { lights } = scene.lights;

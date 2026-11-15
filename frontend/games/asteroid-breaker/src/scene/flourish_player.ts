@@ -9,6 +9,7 @@ import { BURST_SHARDS } from "../view/effects/timing";
 import type { FieldEvent } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
 import type { DebrisPainter } from "./painters/debris_painter";
+import type { MuzzlePainter } from "./painters/muzzle_painter";
 import type { PaintContext } from "./painters/painter";
 import type { PointsPainter } from "./painters/points_painter";
 import type { RingPainter } from "./painters/ring_painter";
@@ -24,6 +25,7 @@ export interface FlourishPainters {
   readonly rocks: RockPainter;
   readonly points: PointsPainter;
   readonly strays: StrayPainter;
+  readonly muzzle: MuzzlePainter;
   readonly camera: FieldCamera;
 }
 
@@ -59,10 +61,13 @@ export class FlourishPlayer {
     event: Readonly<FieldEvent>,
     { field, metrics, palette, zoom, now }: Readonly<FlourishStage>,
   ): void {
-    const { debris, rings, trail, rocks, points, strays, camera } =
+    const { debris, rings, trail, rocks, points, strays, muzzle, camera } =
       this.painters;
     const { x, y } = event;
     switch (flourish) {
+      case "muzzle":
+        muzzle.fire(now);
+        return;
       case "break":
         debris.breakRock(event, field, now);
         return;

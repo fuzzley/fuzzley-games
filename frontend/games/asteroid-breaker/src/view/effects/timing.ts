@@ -1,8 +1,14 @@
 /** How long a rock's break lasts, from its flash to the last of its pieces gone, in milliseconds. */
 export const BREAK_MS = 450;
 
-/** How long a held hit's spark lasts, in milliseconds. */
-export const HELD_MS = 200;
+/** How long a held hit's spark lasts, in milliseconds, as long as the hit's row in `plan.md`'s table. */
+export const HELD_MS = 150;
+
+/**
+ * How long the muzzle's flash shows as a shot leaves, in milliseconds: its
+ * two beats, a frame each at 60 frames a second.
+ */
+export const MUZZLE_MS = 33;
 
 /** How long a lost pod's burst of shards flies before it fades, in milliseconds. */
 export const BURST_MS = 500;

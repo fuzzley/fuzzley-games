@@ -199,7 +199,7 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
-  it("make room for all a field's rocks, shots, pickups and comets and the pod's flame could give off, and its sparks, as the field starts", async () => {
+  it("make room for all a field's rocks, shots, pickups and comets and the pod's flame could give off, its sparks and the muzzle's flash, as the field starts", async () => {
     const board = await startBoard();
     board.shell.field = fieldFrom(KEEPER, { cap: 60 });
 
@@ -212,7 +212,8 @@ describe("the halos", () => {
         pickups.length +
         2 * comets.slots.length +
         ENGINES.length +
-        MOST_SPARKS,
+        MOST_SPARKS +
+        1,
     );
   });
 
@@ -493,7 +494,8 @@ describe("a halo another painter shows", () => {
         2 * board.shell.field.comets.slots.length +
         ENGINES.length +
         MOST_SPARKS +
-        1,
+        // The muzzle's flash's, then this one's.
+        2,
     );
   });
 

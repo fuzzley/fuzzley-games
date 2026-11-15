@@ -547,7 +547,9 @@ takes for the specs' helpers.
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome; `timing.ts` how long each flourish
   lasts, a rock's break (`BREAK_MS`) and a held hit's spark (`HELD_MS`)
-  among them, and how long the cards wait (`clearedDelayMs()`,
+  among them, as long as `plan.md`'s table has a held hit, and the
+  muzzle's flash (`MUZZLE_MS`), and how long the cards wait
+  (`clearedDelayMs()`,
   `resultDelayMs()`);
   and `haptics.ts` how the phone buzzes as the ship takes a hit or a wave is
   cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
@@ -865,8 +867,12 @@ takes for the specs' helpers.
   wide eyed and then pleading, blinking through its last seconds,
   `PodPainter` the pod, its flame, its pilot, its face as the field shows
   it, which it hears the field's events for (`hear()`), and its rings,
-  `TrailPainter` a dash's trail of the pod's ghosts, `ExhaustPainter` the
-  exhaust, a puff from each engine in turn,
+  `MuzzlePainter` the muzzle's flash as a shot leaves, on the `flash` layer
+  under the pod, at its nose as it is drawn (`muzzleAt()`), in each beat
+  for a frame at 60 frames a second (`muzzleBeatOf()`, `MUZZLE_MS`), its
+  halo through the halo painter's `glow()`, `TrailPainter` a dash's trail
+  of the pod's ghosts, `ExhaustPainter` the exhaust, a puff from each
+  engine in turn,
   `DebrisPainter` each rock's break, from the view's `breaks.ts`: its
   dust, the rock whole and flashing and its own facets as shards, in its
   layer under the rocks (`breaks`), so none hides a piece it leaves, filled

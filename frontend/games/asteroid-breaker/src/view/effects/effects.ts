@@ -9,15 +9,16 @@ import {
 import { BOULDER_HOLD_MS } from "./timing";
 
 /**
- * Names a flourish the scene plays: a broken rock's break (its shards, dust
- * and sparks), the field's kick at a large rock's break, a held hit's flash
- * and spark, a blast's, a vent's, a spent Shield's or a lost pod's ring,
- * the points scored, a dash's trail, a lost pod's burst, its pilot bailing out, and
- * the field's shake at a boulder's break. Each but the points moves, so
- * plays only where motion is welcome; the points show either way, rising
- * only where it is.
+ * Names a flourish the scene plays: the muzzle's flash as a shot leaves, a
+ * broken rock's break (its shards, dust and sparks), the field's kick at a
+ * large rock's break, a held hit's flash and spark, a blast's, a vent's, a
+ * spent Shield's or a lost pod's ring, the points scored, a dash's trail, a lost
+ * pod's burst, its pilot bailing out, and the field's shake at a boulder's
+ * break. Each but the points moves, so plays only where motion is welcome;
+ * the points show either way, rising only where it is.
  */
 export type Flourish =
+  | "muzzle"
   | "break"
   | "kick"
   | "flash"
@@ -81,7 +82,7 @@ const HELD: Readonly<Record<RockSize, EventEffects>> = recordOf(
 const EVENT_EFFECTS: Readonly<
   Record<Exclude<FieldEventKind, "broken" | "hit">, EventEffects>
 > = {
-  fired: QUIET,
+  fired: moving(["muzzle"]),
   dashed: moving(["trail"]),
   shielded: moving(["ring"]),
   warned: QUIET,

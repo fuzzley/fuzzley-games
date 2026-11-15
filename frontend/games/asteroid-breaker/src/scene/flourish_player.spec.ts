@@ -1,6 +1,8 @@
 import { easeOutCubic } from "@fz/core/math";
 import { strokesOf } from "@fz/phaser/testing";
+import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
+import { NOSE } from "../rules/ship/shots";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
@@ -59,6 +61,7 @@ async function startPlayer(): Promise<
     rocks: scene.kit.rocks,
     points: scene.kit.points,
     strays: scene.kit.strays,
+    muzzle: scene.kit.muzzle,
     camera: scene.kit.fieldCamera,
   });
   return { ...board, player };
@@ -125,12 +128,44 @@ function hitAt(shell: FakeShell, x: number, y: number): FieldEvent {
   });
 }
 
+/** Returns the image of the muzzle's flash's star where it is, failing if it has none. */
+function starOf(scene: BeltScene): GameObjects.Image {
+  const [star] = scene.kit.muzzle.star.images;
+  if (!star) throw new Error("The muzzle's painter made no star.");
+  return star;
+}
+
 /** Returns so many of a value. */
 function times<T>(count: number, value: T): readonly T[] {
   return Array.from({ length: count }, () => value);
 }
 
 describe("FlourishPlayer", () => {
+  it("flashes the muzzle at the nose of the pod as it is drawn, turned as it points, whole at first", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = {
+      ...contextAt(shell, NOW),
+      shipDrawn: { x: MIDDLE.x, y: MIDDLE.y, angle: -Math.PI / 2 },
+    };
+    const event = eventOf((log) => {
+      log.addFired(MIDDLE.x, MIDDLE.y, "gun");
+    });
+
+    player.play("muzzle", event, context);
+    scene.kit.muzzle.draw(context);
+
+    const { visible, x, y, rotation, scaleX, alpha } = starOf(scene);
+    const nose = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y - NOSE);
+    expect([visible, x, y, rotation, scaleX, alpha]).toEqual([
+      true,
+      expect.closeTo(nose.x, 9),
+      expect.closeTo(nose.y, 9),
+      expect.closeTo(-Math.PI / 2, 9),
+      1,
+      1,
+    ]);
+  });
+
   it("breaks a rock where it broke, from the outline it is drawn in, turned as it lies, pushed the way the blow came", async () => {
     const { shell, scene, player } = await startPlayer();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y, "ice");
