@@ -40,7 +40,7 @@ import {
   fuzzballCommands,
   pilotFrames,
 } from "./pilot_art";
-import { largestOf, rockFrame, rockFrames } from "./rock_art";
+import { largestOf, rockFrame } from "./rock_art";
 import { MOST_LINE, dashedRing, outlineWidth } from "./shapes";
 import { shipFrames } from "./ship_art";
 import { SYMBOLS } from "./symbols";
@@ -405,7 +405,6 @@ export function atlasFrames(
   scale: ArtScale,
 ): readonly ArtFrame[] {
   return [
-    ...rockFrames(palette, scale),
     ...shipFrames(palette, scale),
     ...pilotFrames(palette, scale),
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),

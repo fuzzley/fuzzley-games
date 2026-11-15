@@ -6,9 +6,13 @@ import {
 } from "@fz/phaser/color";
 import { FUZZBALL } from "@fz/style/fuzzball";
 import type { ColorMode } from "@fz/style/themes";
-import type { RockKindId } from "../../rules/catalog/rocks";
+import { recordOf } from "@fz/core/records";
+import { ROCK_KIND_IDS, type RockKindId } from "../../rules/catalog/rocks";
 import type { Pilot } from "../../rules/ship/pilots";
+import type { RockLight } from "../art/rocks/light";
 import { DARK_ROCK_INKS, LIGHT_ROCK_INKS } from "./inks";
+import { ROCK_LIGHTS } from "./rock_light";
+import { type Tones, tonesOf } from "./tones";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
@@ -24,6 +28,8 @@ export interface PaletteRoles {
 
 /** The field's colors, as the numbers Phaser takes. */
 export interface BeltPalette {
+  /** Whether the palette is light, its field white, or dark. */
+  readonly mode: ColorMode;
   /** The field under everything: the palette's field. */
   readonly field: number;
   /** The frame around the field, the tags' rings, and the deck's buttons' rings at rest and its stick's edge: the field's line. */
@@ -39,10 +45,11 @@ export interface BeltPalette {
    */
   readonly outline: number;
   /**
-   * The marks a rock's kind and state are told apart by: the field's color,
-   * which every rock's body keeps 3:1 from. A volatile rock's glowing core
-   * is no mark, only its look, and its cracks stay on its body, as the core
-   * of a light palette is too light for them.
+   * The marks a rock's state is told by, the cracks of the hits it holds:
+   * the field's color, which every face of every rock keeps 3:1 from,
+   * however the light falls on it. A kind is told by its outline and its
+   * ink; its own marks, a stone's dents, a volatile rock's glowing seams
+   * and the rest, are drawn in its {@link rockTones}, and are its look.
    */
   readonly mark: number;
   /** The ship, a pickup, the stick's knob, a button pressed, a lost ship's burst, and the rings of the Nova, a spent Shield and a lost ship: the accent. */
@@ -61,12 +68,24 @@ export interface BeltPalette {
   readonly rim: number;
   /** The stick's base and the buttons at rest, a little apart from the field: the field's text at {@link DECK_WASH}. */
   readonly deck: number;
-  /** The glint on a stray's bubble and in a pilot's eyes, and a held hit's flash: white. */
+  /** The glint on a stray's bubble, in a pilot's eyes and on a rock, and the light of a held hit's flash: white. */
   readonly glint: number;
   /** Each kind of rock's ink, its body's but a crystal's, which is its gem's, set in a stone's body: the inks of the palette's mode. */
   readonly rocks: Readonly<Record<RockKindId, number>>;
   /** The glow at a volatile rock's middle. */
   readonly core: number;
+  /**
+   * Each kind of rock's four tones, mixed from its ink with white and the
+   * field or its text (`tonesOf()`), which its marks are drawn in: a
+   * crystal's are its gem's.
+   */
+  readonly rockTones: Readonly<Record<RockKindId, Tones>>;
+  /**
+   * The light far off to the upper left the rocks are lit by, through their
+   * normal maps: high in a light palette and low in a dark one
+   * (`ROCK_LIGHTS`).
+   */
+  readonly rockLight: RockLight;
   /** Each pilot's ink, by its color: the {@link FUZZBALL_INKS} of the palette's mode. */
   readonly pilots: readonly number[];
   /** A pilot's eyes, as the fuzzball has them. */
@@ -94,7 +113,9 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
   const fieldText = colorNumber(roles.fieldText);
   const fieldMuted = colorNumber(roles.fieldMuted);
   const rocks = mode === "light" ? LIGHT_ROCK_INKS : DARK_ROCK_INKS;
+  const ground = { mode, field, text: fieldText };
   return {
+    mode,
     field,
     line: colorNumber(roles.fieldLine),
     speck: mixColors(fieldMuted, field, SPECK_STRENGTH),
@@ -112,6 +133,10 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
     glint: 0xffffff,
     rocks: rocks.kinds,
     core: rocks.core,
+    rockTones: recordOf(ROCK_KIND_IDS, (kind) =>
+      tonesOf(rocks.kinds[kind], ground),
+    ),
+    rockLight: ROCK_LIGHTS[mode],
     pilots: FUZZBALL_INKS[mode],
     eyes: colorNumber(FUZZBALL.ink),
   };

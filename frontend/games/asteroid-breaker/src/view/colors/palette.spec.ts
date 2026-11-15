@@ -1,7 +1,11 @@
+import { recordOf } from "@fz/core/records";
 import { FUZZBALL_INKS } from "@fz/phaser/color";
+import { ROCK_KIND_IDS } from "../../rules/catalog/rocks";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { DARK_ROCK_INKS, LIGHT_ROCK_INKS } from "./inks";
 import { type PaletteRoles, beltPalette, pilotInk } from "./palette";
+import { ROCK_LIGHTS } from "./rock_light";
+import { tonesOf } from "./tones";
 
 const ROLES: PaletteRoles = {
   field: "#fafafa",
@@ -64,6 +68,20 @@ describe("beltPalette", () => {
         rocks.kinds,
         rocks.core,
         FUZZBALL_INKS[mode],
+      ]);
+    },
+  );
+
+  it.each(["light", "dark"] as const)(
+    "lights the rocks of a %s palette in its mode's light, and gives each kind its ink's tones on its field",
+    (mode) => {
+      const palette = beltPalette(ROLES, mode);
+      const ground = { mode, field: palette.field, text: palette.shot };
+
+      expect([palette.mode, palette.rockLight, palette.rockTones]).toEqual([
+        mode,
+        ROCK_LIGHTS[mode],
+        recordOf(ROCK_KIND_IDS, (kind) => tonesOf(palette.rocks[kind], ground)),
       ]);
     },
   );

@@ -27,9 +27,15 @@ export class Copies {
   /** Where each copy is on the canvas, written each frame. */
   private readonly at: Moving = { x: 0, y: 0 };
 
-  constructor(scene: Scene, layer: GameObjects.Layer, frame: string) {
+  /** Makes its images in a layer, each showing a frame of an atlas, the field's unless it says another. */
+  constructor(
+    scene: Scene,
+    layer: GameObjects.Layer,
+    frame: string,
+    texture = ATLAS,
+  ) {
     this.images = Array.from({ length: MOST_COPIES }, () =>
-      scene.add.image(0, 0, ATLAS, frame).setVisible(false),
+      scene.add.image(0, 0, texture, frame).setVisible(false),
     );
     layer.add([...this.images]);
   }

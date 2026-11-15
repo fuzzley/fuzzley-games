@@ -6,8 +6,7 @@ import {
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
-import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
-import { ROCK_OUTLINES } from "../../rules/rocks/rocks";
+import { ROCK_KIND_IDS } from "../../rules/catalog/rocks";
 import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
@@ -34,7 +33,7 @@ import {
   tagFrame,
 } from "./art";
 import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
-import { rockFrame, sizesOf, takenFrame } from "./rock_art";
+import { rockFrame, rockFrames } from "./rock_art";
 import { outlineWidth } from "./shapes";
 import { SHIP_FRAMES } from "./ship_art";
 
@@ -136,8 +135,7 @@ function holdsFrames(
         (frame) =>
           frame.commands.every((command) => {
             const width = widthOf(command);
-            // A rock's marks are drawn in shares of its radius, so a width
-            // comes back a rounding off.
+            // A width drawn in shares of a size comes back a rounding off.
             return width === null || width >= pixelRatio - SLACK;
           }),
       ),
@@ -238,31 +236,12 @@ describe("the atlas", () => {
     atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
   );
 
-  it("holds a frame for every rock in every kind, size and outline", () => {
-    const wanted = ROCK_KIND_IDS.flatMap((kind) =>
-      sizesOf(kind).flatMap((size) =>
-        Array.from({ length: ROCK_OUTLINES }, (_, outline) =>
-          rockFrame({ kind, size, outline }),
-        ),
-      ),
+  it("holds no rock, which the rocks' own atlas holds", () => {
+    const rocks = rockFrames(ART_PALETTE, ART_SCALE, true).map(
+      ({ ink }) => ink.name,
     );
 
-    expect(wanted.filter((name) => !names.has(name))).toEqual([]);
-  });
-
-  it("holds a frame for every rock that has taken a hit and held", () => {
-    const wanted = ROCK_KIND_IDS.flatMap((kind) =>
-      sizesOf(kind).flatMap((size) => {
-        const whole = rockKind(kind).hits[size] ?? 0;
-        return Array.from({ length: whole - 1 }, (_, hits) =>
-          takenFrame({ kind, size, hits: hits + 1 }),
-        );
-      }),
-    );
-
-    expect(wanted.filter((name) => name === null || !names.has(name))).toEqual(
-      [],
-    );
+    expect(rocks.filter((name) => names.has(name))).toEqual([]);
   });
 
   it("holds a frame for every pilot in each seat, and its eyes", () => {
@@ -514,9 +493,8 @@ describe("PICTURE_FRAMES", () => {
     atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
   );
 
-  it("pictures every rock kind and pickup, a stray and the comet, from frames the atlas holds", () => {
+  it("pictures every pickup, a stray and the comet from frames the atlas holds", () => {
     const pictured = [
-      ...Object.values(PICTURE_FRAMES.rocks),
       ...Object.values(PICTURE_FRAMES.pickups),
       PICTURE_FRAMES.stray,
       PICTURE_FRAMES.comet,
@@ -526,9 +504,21 @@ describe("PICTURE_FRAMES", () => {
       count: pictured.length,
       missing: pictured.filter((name) => !names.has(name)),
     }).toEqual({
-      count: ROCK_KIND_IDS.length + PICKUP_IDS.length + 2,
+      count: PICKUP_IDS.length + 2,
       missing: [],
     });
+  });
+
+  it("pictures every rock kind from frames the rocks' atlas holds", () => {
+    const rocks = new Set(
+      rockFrames(ART_PALETTE, ART_SCALE, true).map(({ ink }) => ink.name),
+    );
+    const pictured = Object.values(PICTURE_FRAMES.rocks);
+
+    expect({
+      count: pictured.length,
+      missing: pictured.filter((name) => !rocks.has(name)),
+    }).toEqual({ count: ROCK_KIND_IDS.length, missing: [] });
   });
 
   it("pictures each rock whole, at its largest size", () => {

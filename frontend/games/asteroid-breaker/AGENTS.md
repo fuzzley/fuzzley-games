@@ -352,24 +352,39 @@ takes for the specs' helpers.
   the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
   game's own for each kind of rock, in light palettes and in dark, and the
   eight pilots' from `@fz/phaser/color`'s `FUZZBALL_INKS`, and gives a
-  pilot's ink to the shell too, in CSS hex (`pilotInk()`). `tones.ts`
+  pilot's ink to the shell too, in CSS hex (`pilotInk()`), with each kind
+  of rock's tones (`rockTones`) and the light of the palette's mode
+  (`rockLight`). `tones.ts`
   mixes the four tones of an ink a rock's marks are drawn in, lit, its
   own, shaded and deep, with white and the palette's field or its text
   (`tonesOf()`), each channel rounded as the art kit rounds it
-  (`mixTone()`). `contrast.spec.ts` holds each kind of rock's ink, the
-  ship, the pickups, the comet, the shots, the flame and a stray's
-  bubble's rim to 3:1 against
-  the field in every palette, the outline against everything it outlines,
-  the marks against every rock, a pickup's symbol against the pickup, each
-  pilot against the field, a stray's bubble and the bar, the eyes against
-  each pilot, and the deck's knob and its buttons' symbols against the
-  deck.
+  (`mixTone()`). `rock_light.ts` holds the light the rocks are lit by, far
+  off to the upper left, high in a light palette and low in a dark one,
+  each leaving a face toward the viewer in its own ink (`ROCK_LIGHTS`,
+  `lightAt()`); what it makes of an ink, at a rock's darkest face and its
+  brightest (`inLight()`, `faceExtremes()`); where the scene stands it,
+  as WebGL lights from a point (`farLight()`); and the light of a held
+  hit's flash (`STRUCK_LIGHT`). `contrast.spec.ts` holds each kind of
+  rock's ink, and its darkest and brightest faces under the palette's
+  light, the ship, the pickups, the comet, the shots, the flame and a
+  stray's bubble's rim to 3:1 against the field in every palette, the
+  outline against everything it outlines, the marks against every rock
+  and every face, a pickup's symbol against the pickup, each pilot against
+  the field, a stray's bubble and the bar, the eyes against each pilot,
+  and the deck's knob and its buttons' symbols against the deck.
 - **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
   the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
   its unit rounded down to whole device pixels, 32 at most (`bakedScale()`),
   the deck's frames apart (`deckFrames()`), and names How to play's pictures
-  (`PICTURE_FRAMES`); `rock_art.ts` draws each kind of rock in each size it
-  comes in and six outlines (`ROCK_OUTLINES`), and the hits it has taken;
+  (`PICTURE_FRAMES`); `rock_art.ts` draws the rocks' own atlas: each kind
+  in each size it comes in and six outlines (`ROCK_OUTLINES`), cut in
+  facets as `rocks/` cuts it (`rockShape()`), whole and with the cracks of
+  each count of hits it can take and hold, in the palette's marks, its
+  fine marks only where the field, as laid out, has 10 CSS pixels a unit
+  or more (`isFine()`), each frame twice, in its tones' inks and as its
+  normal map, each facet in the color of the way it faces, and each
+  crack's two lips, which only the normal map draws, sloping into it
+  (`rockFrames()`, a `LitFrame`);
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
   pilots, each `@fz/phaser/fuzzball`'s fuzzball in its ink, in the ship's window or adrift;
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
@@ -419,8 +434,11 @@ takes for the specs' helpers.
   mouse and the fingers, reads the frame and the palette, and has its
   painters, in `src/scene/painters/`, draw, each in its layer of `LAYERS`:
   `FieldPainter` the specks, an Endless wave's constellation and the frame,
-  `TagPainter` the tags of the effects in play, `RockPainter` the rocks, the
-  hits they have taken and a held hit's flash, `PickupPainter` the pickups,
+  `TagPainter` the tags of the effects in play, `RockPainter` the rocks,
+  lit, each in the frame of the hits it has taken, and a held hit's flash,
+  a light at its rock's edge toward the ship that lights the faces struck,
+  and another where that edge shows past the field's own,
+  `PickupPainter` the pickups,
   `StrayPainter` the stray adrift and a lost ship's pilot bailing out,
   `HazardPainter` the comets and their warnings, `ShotPainter` the shots,
   `ShipPainter` the ship, its flame, its pilot and its rings,
@@ -453,16 +471,29 @@ takes for the specs' helpers.
   wrote for the frame; `flourish_player.spec.ts` holds what each flourish
   plays, and `flourishes.spec.ts` what the scene draws for each event.
   `atlas.ts` bakes the view's art with `@fz/phaser/scene`'s `bakeAtlas()` and
-  `atlasFrameOf()` into two atlases: the field's, again on a new palette, a
-  new pixel ratio, or as the field's unit passes a whole device pixel, which
-  the scene zooms the rest of the way, so a window dragged to another size
-  bakes it once a device pixel rather than once a frame, and the deck's,
-  white for the scene to tint, again on a new pixel ratio. At each bake the
+  `atlasFrameOf()` into three atlases: the field's and the rocks', again on
+  a new palette, a new pixel ratio, as the field's unit passes a whole
+  device pixel, which the scene zooms the rest of the way, so a window
+  dragged to another size bakes it once a device pixel rather than once a
+  frame, or as it passes 10 CSS pixels, where the rocks' fine marks come
+  or go (`isFine()`, of the field's unit, not the atlas's), and the deck's,
+  white for the scene to tint, again on a new pixel ratio. The rocks'
+  normal map is baked beside theirs, packed alike (`ROCK_NORMALS`), and
+  the rocks' atlas (`ROCK_ATLAS`) reads it as its normal map
+  (`setDataSource()`), set again at each bake; Phaser destroys a texture's
+  normal map with it, so the two keys go together or not at all. The
+  scene lights the rocks with Phaser's lights, which it turns on as it is
+  created: the palette's light as a point far off its way
+  (`farLight()`), over its ambient, set again at each layout and bake,
+  and a held hit's flash; each rock's image is drawn with
+  `setLighting(true)`. Phaser lights an image by the ten lights nearest the
+  camera's middle at most (`maxLights`), so a light far off is dropped
+  first once eleven are lit. At each bake the
   scene hands the shell (`onPictures()`) what `@fz/phaser/scene`'s
   `picturesWhenAsked()` returns, which encodes How to play's pictures from
-  the field's only as the board first asks for them, as How to play opens,
-  and keeps them until the next bake. `PointsAtlas` (`points_atlas.ts`)
-  letters the points into an atlas of their own,
+  the field's atlas and the rocks' only as the board first asks for them,
+  as How to play opens, and keeps them until the next bake. `PointsAtlas`
+  (`points_atlas.ts`) letters the points into an atlas of their own,
   written with a canvas's own `fillText()` and `strokeText()`, at the
   field's whole unit past the field's cap, so they stay sharp on a large
   field, again on a new palette, a new font, or as the field's unit passes
@@ -767,7 +798,9 @@ takes for the specs' helpers.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes
   the field, its line, the specks, the ship, the pickups, the shots, the
   flame and the comets from the page's roles, which `ThemeService` reads,
-  the rocks' inks from `src/view/colors/inks.ts` and the pilots' from
+  the rocks' inks from `src/view/colors/inks.ts`, their tones and the
+  light they are lit by from `tones.ts` and `rock_light.ts` beside it, and
+  the pilots' from
   `@fz/phaser/color`'s `FUZZBALL_INKS`, for light palettes and for dark;
   `src/view/colors/contrast.spec.ts` holds them apart in every palette.
 - **The placeholder, the ring and the cards work out the field in CSS,** as
@@ -1025,9 +1058,10 @@ of its own beside it:
   (`entryOf()`), whether a run of them came in off every edge within their
   margin and tilt (`entriesOf()`), and where an event was logged against
   one (`edgePlaceOf()`), for the specs of the hazards.
-- `art_frames.ts` draws the atlas in one palette at one scale for the art's
-  specs (`ART_FRAMES`), among which `@fz/phaser/testing/pure`'s
-  `frameNamed()` finds a frame by its name; it lists the pixel ratios the
+- `art_frames.ts` draws the field's atlas in one palette at one scale for
+  the art's specs (`ART_FRAMES`), among which `@fz/phaser/testing/pure`'s
+  `frameNamed()` finds a frame by its name, and `rock_art.spec.ts` the
+  rocks' in the same (`ART_PALETTE`, `ART_SCALE`); it lists the pixel ratios the
   specs check the art at (`PIXEL_RATIOS`) and the scales a field is drawn
   at, as baked, the smallest unit the layout check holds a field to at each
   among them (`ART_SCALES`), and says how far a frame's drawing reaches from

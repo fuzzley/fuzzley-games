@@ -6,7 +6,7 @@ import {
   strokesOf,
   watchUploads,
 } from "@fz/phaser/testing";
-import { GameObjects, Textures, TintModes } from "phaser";
+import { GameObjects, Textures } from "phaser";
 import type { Field } from "../rules/field/field";
 import type { Rock } from "../rules/rocks/rocks";
 import { ROCK_RADIUS } from "../rules/tuning";
@@ -48,8 +48,8 @@ import {
   pointsLayout,
 } from "../view/art/points_art";
 import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
-import { rockFrame } from "../view/art/rock_art";
 import { bakedScale } from "../view/art/shapes";
+import { STRUCK_LIGHT } from "../view/colors/rock_light";
 import { flameTip } from "../view/art/ship_art";
 import {
   BAIL_OUT_SPEED,
@@ -226,7 +226,7 @@ function playingIn(scene: BeltScene, shell: FakeShell): Shown {
     shards: scene.kit.debris.shards.getAliveParticleCount(),
     puffs: shownCount(puffsOf(scene)),
     sparks: shownCount(sparksOf(scene)),
-    flash: shownCount(scene.kit.rocks.flash.images),
+    flash: shownCount(scene.kit.rocks.flashes),
     rings: strokesOf(scene.kit.rings.graphics).length,
     trail: scene.kit.trail.outlines
       .flatMap(({ images }) => images)
@@ -481,16 +481,71 @@ describe("a broken rock", () => {
   });
 });
 
+/** Describes a held hit's flash as it shows: where it stands on the canvas, how high and far it reaches, how strong it is and its color. */
+interface FlashShown {
+  readonly at: { readonly x: number; readonly y: number };
+  readonly z: number;
+  readonly radius: number;
+  readonly intensity: number;
+  readonly color: readonly number[];
+}
+
+/** Returns a scene's held hit's flash at its rock's edge as it shows, its place rounded, or null while it is out. */
+function flashOf(scene: BeltScene): FlashShown | null {
+  const [flash] = scene.kit.rocks.flashes;
+  if (!flash.visible) return null;
+  return {
+    at: rounded(flash),
+    z: flash.z,
+    radius: flash.radius,
+    intensity: flash.intensity,
+    color: [flash.color.r, flash.color.g, flash.color.b],
+  };
+}
+
+/** Returns a place on the canvas rounded to a millionth of a pixel, so one worked out two ways reads the same. */
+function rounded({ x, y }: { readonly x: number; readonly y: number }): {
+  readonly x: number;
+  readonly y: number;
+} {
+  return { x: Math.round(x * 1e6) / 1e6, y: Math.round(y * 1e6) / 1e6 };
+}
+
+/** Returns where each of a scene's held hit's flashes shows, rounded, those that do. */
+function flashesShown(
+  scene: BeltScene,
+): readonly { readonly x: number; readonly y: number }[] {
+  return scene.kit.rocks.flashes
+    .filter((flash) => flash.visible)
+    .map((flash) => rounded(flash));
+}
+
+/**
+ * Returns where on the canvas a rock's edge is toward a way, its radius from
+ * its middle, rounded.
+ */
+function edgeToward(
+  shell: FakeShell,
+  rock: Rock,
+  way: { readonly x: number; readonly y: number },
+): { readonly x: number; readonly y: number } {
+  const reach = ROCK_RADIUS[rock.size] / Math.hypot(way.x, way.y);
+  return rounded(
+    onCanvas(metricsOf(shell), rock.x + way.x * reach, rock.y + way.y * reach),
+  );
+}
+
 describe("a held hit", () => {
-  it("draws its flash in a layer of its own", async () => {
+  it("lights its flash among the lights the rocks are lit by", async () => {
     const { scene } = await startBoard();
+    const { lights } = scene.lights;
 
-    const drawn = layersOf(scene).get("flash")?.getChildren();
-
-    expect(drawn).toEqual(scene.kit.rocks.flash.images);
+    expect(
+      scene.kit.rocks.flashes.every((flash) => lights.includes(flash)),
+    ).toBe(true);
   });
 
-  it("flashes its rock over it, its frame filled light", async () => {
+  it("lights its rock's struck faces from its edge toward the field's light while no ship flies, in the glint, at the flash's height", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
     placeRock(shell.field, "small", 50, 30);
@@ -498,21 +553,55 @@ describe("a held hit", () => {
 
     run.advance(16);
 
-    const [flash] = scene.kit.rocks.flash.images;
-    expect({
-      at: flash && shownAt(flash),
-      frame: flash?.frame.name,
-      mode: flash?.tintMode,
-      tint: flash?.tintTopLeft,
-      alpha: flash?.alpha,
-    }).toEqual({
-      at: onCanvas(metricsOf(shell), rock.x, rock.y),
-      frame: rockFrame(rock),
-      mode: TintModes.FILL,
-      tint: ART_PALETTE.glint,
-      alpha: FLASH_MOST,
+    const pixels = ROCK_RADIUS.medium * metricsOf(shell).unit;
+    expect(flashOf(scene)).toEqual({
+      at: edgeToward(shell, rock, ART_PALETTE.rockLight.way),
+      z: STRUCK_LIGHT.height * pixels,
+      radius: STRUCK_LIGHT.reach * pixels,
+      intensity: STRUCK_LIGHT.strength * FLASH_MOST,
+      color: [1, 1, 1],
     });
   });
+
+  it("lights its rock's struck faces from its edge toward the ship", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const rock = placeRock(shell.field, "medium", MIDDLE.x, MIDDLE.y);
+    const ship = shipOf(shell.field);
+    shell.field.events.addRock("hit", rock);
+
+    run.advance(16);
+
+    expect(flashOf(scene)?.at).toEqual(
+      edgeToward(shell, rock, { x: ship.x - rock.x, y: ship.y - rock.y }),
+    );
+  });
+
+  it.each([
+    ["past the field's edge, on both copies of the rock", 0.5, [true, true]],
+    ["on the field, with one light", ROCK_RADIUS.medium + 0.5, [true, false]],
+  ] as const)(
+    "lights the struck faces of a rock whose edge toward the ship lies %s",
+    async (_, inFromEdge, lit) => {
+      const { shell, run, scene } = await startBoard(withShip);
+      const ship = shipOf(shell.field);
+      const { width } = shell.field.torus;
+      const rock = placeRock(shell.field, "medium", width - inFromEdge, ship.y);
+      // The ship lies across the field's right edge from the rock.
+      Object.assign(ship, { x: 1.5, lastX: 1.5 });
+      shell.field.events.addRock("hit", rock);
+
+      run.advance(16);
+
+      const edge = width - inFromEdge + ROCK_RADIUS.medium;
+      const metrics = metricsOf(shell);
+      expect(flashesShown(scene)).toEqual(
+        [
+          rounded(onCanvas(metrics, edge, ship.y)),
+          rounded(onCanvas(metrics, edge - width, ship.y)),
+        ].filter((_place, i) => lit[i]),
+      );
+    },
+  );
 
   it("puts the flash away once it is over", async () => {
     const { shell, run, scene } = await startBoard();
@@ -520,7 +609,7 @@ describe("a held hit", () => {
 
     run.advance(FLASH_MS + 32);
 
-    expect(shownCount(scene.kit.rocks.flash.images)).toBe(0);
+    expect(shownCount(scene.kit.rocks.flashes)).toBe(0);
   });
 
   it("flashes no sooner after the last flash than is safe, but sparks each time", async () => {
@@ -533,7 +622,7 @@ describe("a held hit", () => {
     run.advance(16);
 
     expect({
-      flash: shownCount(scene.kit.rocks.flash.images),
+      flash: shownCount(scene.kit.rocks.flashes),
       sparks: shownCount(sparksOf(scene)),
     }).toEqual({ flash: 0, sparks: 2 });
   });
@@ -547,7 +636,7 @@ describe("a held hit", () => {
 
     run.advance(16);
 
-    expect(scene.kit.rocks.flash.images[0]?.visible).toBe(true);
+    expect(scene.kit.rocks.flashes[0].visible).toBe(true);
   });
 
   it("flies a spark off its edge the way the event's serial says, in the warning color", async () => {
