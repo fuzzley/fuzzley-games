@@ -30,6 +30,21 @@ export function pilotsIn(element: Element): string[] {
   );
 }
 
+/** Returns each pilot drawn in an element, in order, as its color, as the page writes it, and its face. */
+export function posesIn(element: Element): [string, FuzzballFace][] {
+  return Array.from(
+    element.querySelectorAll<HTMLElement>("app-pilot"),
+    (pilot) => [pilot.style.color, poseIn(pilot).face],
+  );
+}
+
+/** Returns whether each pilot drawn in an element is ringed as the pilot at the controls, in order. */
+export function ringedIn(element: Element): boolean[] {
+  return Array.from(element.querySelectorAll("app-pilot"), (pilot) =>
+    pilot.hasAttribute("data-at-controls"),
+  );
+}
+
 /** Returns a pilot's color in a light palette, the specs' page's, as the page writes it. */
 export function inkOf(pilot: number): string {
   const probe = document.createElement("span");

@@ -48,6 +48,14 @@ describe("HelpComponent", () => {
     ]);
   });
 
+  it("says the crew in tow are the ship's lives, how a hit knocks one loose and how long it waits to be caught, from the tuning", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText(/^The crew\./).parentElement).toHaveTextContent(
+      "The pilot flies the ship with 2 of the crew in tow, who are its lives, and a stray caught joins them, up to 5. A rock or a comet that touches the ship, unless it is dashing or shielded, knocks the last in tow loose, and nothing can touch it again for 1.5 seconds; fly into one knocked loose within 6 seconds to catch it again, or it floats home, and clearing the wave catches every one still loose. A hit with no one in tow sends the pilot home, and the run ends.",
+    );
+  });
+
   it("says how sparks, static, a stray and a clearing add up, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
@@ -92,7 +100,7 @@ describe("HelpComponent", () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Dashing\./).parentElement).toHaveTextContent(
-      "A dash throws the ship ahead, and no rock or comet can take it while it lasts; it takes 2.5 seconds to charge again.",
+      "A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes 2.5 seconds to charge again.",
     );
   });
 
@@ -111,6 +119,14 @@ describe("HelpComponent", () => {
 
     expect(screen.getByText("Iron.").parentElement).toHaveTextContent(
       "Iron. Takes several hits",
+    );
+  });
+
+  it("says a comet hits the ship as a rock does", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText("Comet.").parentElement).toHaveTextContent(
+      "hits the ship as a rock does unless the ship is dashing or shielded.",
     );
   });
 

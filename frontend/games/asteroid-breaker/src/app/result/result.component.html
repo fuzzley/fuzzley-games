@@ -1,7 +1,7 @@
 <fz-dialog
   [open]="game.resultOpen()"
   dialogRole="alertdialog"
-  label="Game over"
+  label="Everyone is home."
   describedBy="result-subtitle"
   [closesOnBackdrop]="false"
   (closed)="game.closeResult()"
@@ -17,7 +17,7 @@
       focus is not.
     -->
     <!-- eslint-disable-next-line @angular-eslint/template/no-autofocus -->
-    <h2 tabindex="-1" autofocus>Game over</h2>
+    <h2 tabindex="-1" autofocus>Everyone is home.</h2>
     <p class="subtitle">
       <span id="result-subtitle">{{ subtitle() }}</span>
       @if (game.newBest()) {
@@ -41,11 +41,12 @@
       }
     </dl>
 
-    @if (broughtAny()) {
-      <app-pilot-row class="home" [pilots]="game.broughtHome()">
-        {{ homeWords() }}
+    <div class="flew">
+      <p class="label">The fuzzballs who flew</p>
+      <app-pilot-row [pilots]="flew()">
+        <span class="fz-visually-hidden">{{ flewWords() }}</span>
       </app-pilot-row>
-    }
+    </div>
 
     <div class="actions">
       <button

@@ -351,12 +351,15 @@ takes for the specs' helpers.
   while the card shows, to `TALLY_COUNT_MS`. `tally.ts` holds what the Cleared
   card shows: how a cleared wave's points add up a time after the card opens,
   each line counting up in turn and their total (`tallyShownAt()`), and the
-  wave to come (`nextWaveWords()`); `crew_line.ts` what the bar shows of the
-  crew beside the face cam, each in tow and each knocked loose, or, past three
-  of them (`MOST_DRAWN`), the first and how many (`crewLineOf()`), and the
-  words a screen reader hears for it (`crewWords()`); and `debug_tuning.ts`
-  the numbers the debug menu tunes (`Feel`, `TUNING_SLIDERS`) and the lines of
-  `src/rules/tuning.ts` they would replace (`tuningLines()`).
+  wave to come (`nextWaveWords()`), and what the cards over an ended run say
+  of the wave it ended on (`endWords()`); `crew_line.ts` what the bar shows
+  of the crew beside the face cam, each in tow and each knocked loose, or,
+  past three of them (`MOST_DRAWN`), the first and how many
+  (`crewLineOf()`), and the words a screen reader hears for it
+  (`crewWords()`), or for the crew a card draws (`cardCrewWords()`); and
+  `debug_tuning.ts` the numbers the debug menu tunes (`Feel`,
+  `TUNING_SLIDERS`) and the lines of `src/rules/tuning.ts` they would
+  replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
@@ -948,12 +951,14 @@ takes for the specs' helpers.
     the ship waiting in its middle, while a wave waits for its first move at
     the start of the run or of a sector, with what it opens, the sector's
     name and waves, what is new there and the wave, "starts when you fly",
-    and how to fly at the run's start; Paused, with the score and the strays
-    waiting at home; Cleared, with how the wave's points added up, counting
-    up line by line where motion is welcome and whole at once where it
-    isn't, their total, the crew, the next wave by its number and name,
-    Next wave and "or just start flying", and a trophy over the last
-    sector's last; Ended, once an ended run's result is put away; and none
+    and how to fly at the run's start; Paused, with the score, the crew
+    aboard, the pilot at the controls ringed, and those knocked loose, and
+    the fuzzballs gone home; Cleared, with how the wave's points added up,
+    counting up line by line where motion is welcome and whole at once
+    where it isn't, their total, the crew cheering, the next wave by its
+    number and name, Next wave and "or just start flying", and a trophy
+    over the last sector's last; Ended, "Everyone is home." and the wave
+    the run ended on, once its result is put away; and none
     over a wave gone on to within a sector, waiting for its first move; and,
     in their place, the canvas's own, which the board hands it
     (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
@@ -1005,20 +1010,23 @@ takes for the specs' helpers.
     `aria-current`. A sector not yet reached is `aria-disabled`, and can't
     be chosen. Choosing an open one starts a run at its first wave, asking
     first if one is under way, and closes once it has.
-  - `result/` — the card over an ended run, once the last ship's burst has
-    faded: the wave it was lost on and at what speed, the score and the best
-    at its speed, with "New best" and the trophy when it set one and
-    "Cleared all thirty" when it cleared every written wave, the wave
-    reached and the waves cleared (`wavesCleared()`), and the fuzzballs it
-    brought home, each in its color; Try again from the sector the run
-    started in; Choose a sector, which puts it away and asks the app for the
-    sectors; and Close.
-  - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
-    the multiplier's ladder worded by `@fz/core/format`'s `tierWords()`,
-    dashing, pausing, the controls by mouse, touch and keyboard, and every
-    kind of rock and pickup from the catalogs, a stray and the comet, each
-    with its name, its sentence and, once the scene has drawn, its picture,
-    which the app asks the board for only while How to play is open.
+  - `result/` — the card over an ended run, once the pod's burst has faded
+    and its pilot floated off home: "Everyone is home.", the wave it ended
+    on and at what speed, the score and the best at its speed, with "New
+    best" and the trophy when it set one and "Cleared all thirty" when it
+    cleared every written wave, the wave reached and the waves cleared
+    (`wavesCleared()`), and the fuzzballs who flew, every one gone home in
+    the run, each in its color, with how many of them were strays brought
+    home; Try again from the sector the run started in; Choose a sector,
+    which puts it away and asks the app for the sectors; and Close.
+  - `help/` — How to play: the aim, the crew in tow as the ship's lives,
+    a hit knocking one loose and how long it waits to be caught again, and
+    the scoring, from `tuning.ts`'s numbers, the multiplier's ladder worded
+    by `@fz/core/format`'s `tierWords()`, dashing, pausing, the controls by
+    mouse, touch and keyboard, and every kind of rock and pickup from the
+    catalogs, a stray and the comet, each with its name, its sentence and,
+    once the scene has drawn, its picture, which the app asks the board for
+    only while How to play is open.
   - `settings/` — the settings drawer (the speed, when the deck shows, which
     side holds its stick, whether the ship fires by itself, haptics, the sound
     and each part of it, the effects, the voice and the bed, mono and the
@@ -1040,9 +1048,12 @@ takes for the specs' helpers.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
     at rest unless given another face, its fur lifted by static's step,
-    and `<app-pilot-row>`, pilots in a row, and any of the crew knocked
-    loose after them, faded in a dashed ring, wide eyed, which the bar, the
-    Paused and Cleared cards and the result draw.
+    and `<app-pilot-row>`, pilots in a row, the first ringed in the accent,
+    as the canopy's lit rim rings it, where it is the pilot at the controls
+    (`piloting`), and any of the crew knocked loose after them, faded in a
+    dashed ring, wide eyed, which the bar, the Paused and Cleared cards and
+    the result draw; cheering (`cheering`), as on the Cleared card, the
+    pilots smile and hop in turn, three times, where motion is welcome.
   - `face_cam/` — `<app-face-cam>`, the face cam, which the bar draws: the
     pilot at the controls behind the canopy's glass, larger than the field
     can draw it, with the face and the fur the field shows
@@ -1507,8 +1518,10 @@ of its own beside it:
   `FIELD_ROLES`, and the game's palettes as its stylesheet sets them
   (`PALETTES`, `stylesheetPalettes()`'s), which the contrast spec reads the
   field's roles from (`rolesIn()`); `pilots.ts`
-  reads the pilots an element draws (`pilotsIn()`), and the face and the
-  lift of the first (`poseIn()`), from its fuzzball's marks.
+  reads the pilots an element draws (`pilotsIn()`), the face and the lift
+  of the first (`poseIn()`), from its fuzzball's marks, each one's color
+  and face (`posesIn()`), and which is ringed as the pilot at the controls
+  (`ringedIn()`, by its `data-at-controls`).
 - `play.ts` holds the small waves the shell's specs play, each set up to
   come to one thing soon (`SPEC_WAVES` and the others), handed to
   `GameService` through `GAME_WAVES` with a seed of its own through

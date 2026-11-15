@@ -1,5 +1,5 @@
 import type { Crew } from "../rules/ship/pilots";
-import { crewLineOf, crewWords } from "./crew_line";
+import { cardCrewWords, crewLineOf, crewWords } from "./crew_line";
 
 /** Returns a crew with its first pilot at the controls and those given in tow. */
 function crewOf(tow: readonly number[]): Crew {
@@ -62,5 +62,17 @@ describe("crewWords", () => {
       crewWords(crewOf([1]), [2, 3], "line"),
       crewWords(crewOf([1]), [2], "aboard"),
     ]).toEqual(["1 in tow, 2 knocked loose", "2 aboard, 1 knocked loose"]);
+  });
+});
+
+describe("cardCrewWords", () => {
+  it("says how many of the crew are aboard, the pilot among them", () => {
+    expect(cardCrewWords(crewOf([1, 2]), [])).toBe("3 of the crew aboard");
+  });
+
+  it("says how many are knocked loose after them", () => {
+    expect(cardCrewWords(crewOf([1]), [3, 2])).toBe(
+      "2 of the crew aboard, 2 knocked loose",
+    );
   });
 });

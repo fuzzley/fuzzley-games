@@ -1,13 +1,5 @@
 import { render, screen } from "@testing-library/angular";
-import { inkOf, pilotsIn, poseIn } from "../../testing/pilots";
-
-/** Returns each pilot an element draws, in order, as its color and its face. */
-function posesIn(element: Element): [string, string][] {
-  return Array.from(
-    element.querySelectorAll<HTMLElement>("app-pilot"),
-    (pilot) => [pilot.style.color, poseIn(pilot).face],
-  );
-}
+import { inkOf, pilotsIn, posesIn, ringedIn } from "../../testing/pilots";
 import { PilotRowComponent } from "./pilot_row.component";
 
 describe("PilotRowComponent", () => {
@@ -38,5 +30,33 @@ describe("PilotRowComponent", () => {
       [inkOf(4), "eep"],
       [inkOf(2), "eep"],
     ]);
+  });
+
+  it("cheers, each pilot happy, and those knocked loose wide eyed still", async () => {
+    const { container } = await render(PilotRowComponent, {
+      inputs: { pilots: [0, 1], loose: [2], cheering: true },
+    });
+
+    expect(posesIn(container)).toEqual([
+      [inkOf(0), "happy"],
+      [inkOf(1), "happy"],
+      [inkOf(2), "eep"],
+    ]);
+  });
+
+  it("rings the first pilot alone where it is the one at the controls", async () => {
+    const { container } = await render(PilotRowComponent, {
+      inputs: { pilots: [0, 1, 2], loose: [3], piloting: true },
+    });
+
+    expect(ringedIn(container)).toEqual([true, false, false, false]);
+  });
+
+  it("rings no pilot unless the first is at the controls", async () => {
+    const { container } = await render(PilotRowComponent, {
+      inputs: { pilots: [0, 1] },
+    });
+
+    expect(ringedIn(container)).toEqual([false, false]);
   });
 });

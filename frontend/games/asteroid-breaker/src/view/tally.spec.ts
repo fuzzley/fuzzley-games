@@ -1,6 +1,6 @@
 import type { WaveTally } from "../rules/field/scoring";
 import { WAVES, waveEntryOf } from "../rules/waves/waves";
-import { TALLY_COUNT_MS, nextWaveWords, tallyShownAt } from "./tally";
+import { TALLY_COUNT_MS, endWords, nextWaveWords, tallyShownAt } from "./tally";
 
 /** A cleared wave's points, a part on each line. */
 const TALLY: WaveTally = {
@@ -84,6 +84,20 @@ describe("nextWaveWords", () => {
   it("names a wave of Endless's so", () => {
     expect(nextWaveWords(waveEntryOf(WAVES, WAVES.length + 1))).toBe(
       "Next: wave 31, Endless",
+    );
+  });
+});
+
+describe("endWords", () => {
+  it("names the wave a run ended on by its number and its name", () => {
+    expect(endWords(waveEntryOf(WAVES, 14))).toBe(
+      "The run ended on wave 14, Anvil",
+    );
+  });
+
+  it("names a wave of Endless's so", () => {
+    expect(endWords(waveEntryOf(WAVES, WAVES.length + 7))).toBe(
+      "The run ended on wave 37, Endless",
     );
   });
 });

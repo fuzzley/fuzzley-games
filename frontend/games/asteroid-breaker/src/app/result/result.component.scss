@@ -21,8 +21,17 @@ h2:focus {
   outline: none;
 }
 
-// The fuzzballs brought home, above the buttons.
-.home {
+// The fuzzballs who flew, under their label, above the buttons.
+.flew {
   margin: 0 0 var(--fz-space-6);
+}
+
+// Small capitals in the muted ink, as a figure's term is.
+.label {
+  margin: 0 0 var(--fz-space-2);
   color: var(--fz-muted);
+  font-size: var(--fz-font-2xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }

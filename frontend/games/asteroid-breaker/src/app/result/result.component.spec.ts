@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { playUntil } from "@fz/core/testing";
-import { render, screen, within } from "@testing-library/angular";
+import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
@@ -51,6 +51,17 @@ async function renderAt(
   };
 }
 
+/**
+ * Returns what the card shows of the fuzzballs who flew: the words a screen
+ * reader hears for them, and their colors, in order.
+ */
+function flewIn(): { words: string; pilots: string[] } {
+  const label = screen.getByText("The fuzzballs who flew");
+  const row = label.parentElement?.querySelector("app-pilot-row");
+  if (!row) throw new Error("No fuzzballs who flew drawn.");
+  return { words: row.textContent.trim(), pilots: pilotsIn(row) };
+}
+
 /** Ends the run in play, and plays until its card opens. */
 function endAndOpen({ game, detectChanges }: RenderedResult): void {
   endRun(game);
@@ -79,22 +90,26 @@ describe("ResultComponent", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
-  it("says the run is over, where it was lost and at what speed", async () => {
+  it("says everyone is home, the wave the run ended on and at what speed", async () => {
     await renderLost();
 
     expect(
-      screen.getByRole("alertdialog", { name: "Game over" }),
-    ).toHaveAccessibleDescription("Lost on wave 2, at Normal speed");
+      screen.getByRole("alertdialog", { name: "Everyone is home." }),
+    ).toHaveAccessibleDescription(
+      "The run ended on wave 2, Gift, at Normal speed",
+    );
   });
 
-  it("says a run lost in Endless was lost there", async () => {
+  it("says a run ended in Endless ended there", async () => {
     const rendered = await renderAt(SPEC_WAVE.last + 1);
 
     endAndOpen(rendered);
 
     expect(
-      screen.getByRole("alertdialog", { name: "Game over" }),
-    ).toHaveAccessibleDescription("Lost on wave 4, Endless, at Normal speed");
+      screen.getByRole("alertdialog", { name: "Everyone is home." }),
+    ).toHaveAccessibleDescription(
+      "The run ended on wave 4, Endless, at Normal speed",
+    );
   });
 
   it("says a run from the first wave that went on into Endless cleared all thirty", async () => {
@@ -148,25 +163,39 @@ describe("ResultComponent", () => {
     }).toEqual({ best: "90,000", newBest: null, trophy: null });
   });
 
-  // As many strays as it brings home, so ending the run catches no more.
+  it("draws every fuzzball who flew, each in its color, in the order they went home, and says how many", async () => {
+    await renderLost();
+
+    expect(flewIn()).toEqual({
+      words: "3 fuzzballs",
+      pilots: [0, 2, 1].map(inkOf),
+    });
+  });
+
+  // As many strays as it brings home, so ending the run catches no more; the
+  // strays, 3 and 4, ride last in tow, so a hit knocks them loose first.
   it.each([
-    [1, ONE_STRAY_WAVES, "1 fuzzball brought home", [3]],
-    [2, STRAY_WAVES, "2 fuzzballs brought home", [3, 4]],
+    [
+      1,
+      ONE_STRAY_WAVES,
+      "4 fuzzballs, 1 of them a stray brought home",
+      [3, 2, 0, 1],
+    ],
+    [
+      2,
+      STRAY_WAVES,
+      "5 fuzzballs, 2 of them strays brought home",
+      [4, 3, 2, 1, 0],
+    ],
   ])(
-    "draws the %i fuzzballs the run brought home, each in its color, and says how many",
+    "draws the %i strays the run brought home among those who flew, and counts them",
     async (strays, waves, words, colors) => {
       const rendered = await renderAt(1, waves);
       bringStraysHome(rendered.game, strays);
 
       endAndOpen(rendered);
 
-      const dialog = screen.getByRole("alertdialog");
-      expect({
-        words: within(dialog)
-          .getByText(/brought home/)
-          .textContent.trim(),
-        pilots: pilotsIn(dialog),
-      }).toEqual({ words, pilots: colors.map(inkOf) });
+      expect(flewIn()).toEqual({ words, pilots: colors.map(inkOf) });
     },
   );
 
@@ -177,12 +206,6 @@ describe("ResultComponent", () => {
     await user.click(screen.getByRole("alertdialog"));
 
     expect(game.resultOpen()).toBe(true);
-  });
-
-  it("says nothing of fuzzballs where none came home", async () => {
-    await renderLost();
-
-    expect(screen.queryByText(/brought home/)).not.toBeInTheDocument();
   });
 
   it("tries again from the sector the run started in, not the one it was lost in", async () => {
@@ -204,7 +227,9 @@ describe("ResultComponent", () => {
   it("opens on its title, so a key still held from play presses nothing", async () => {
     await renderLost();
 
-    expect(screen.getByRole("heading", { name: "Game over" })).toHaveFocus();
+    expect(
+      screen.getByRole("heading", { name: "Everyone is home." }),
+    ).toHaveFocus();
   });
 
   it("puts the card away, and asks for the sectors", async () => {

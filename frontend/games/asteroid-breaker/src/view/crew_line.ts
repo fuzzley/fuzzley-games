@@ -1,7 +1,7 @@
 // The crew as the bar shows them beside the face cam of the pilot at the
 // controls: each in tow and each knocked loose while the bar has room for
 // them, else a count, and the words a screen reader hears for what it
-// shows.
+// shows, and for the crew a card draws.
 
 import { type Crew, type Pilot, aboard } from "../rules/ship/pilots";
 
@@ -51,6 +51,23 @@ export function crewWords(
 ): string {
   const words =
     shows === "aboard" ? `${String(aboard(crew))} aboard` : inTowWords(crew);
+  return withLooseWords(words, loose);
+}
+
+/**
+ * Returns the words a screen reader hears for the crew a card draws, which
+ * no figure's term names: how many of the crew are aboard, the pilot among
+ * them, and how many are knocked loose.
+ */
+export function cardCrewWords(
+  crew: Readonly<Crew>,
+  loose: readonly Pilot[],
+): string {
+  return withLooseWords(`${String(aboard(crew))} of the crew aboard`, loose);
+}
+
+/** Returns words with how many of the crew are knocked loose after them, where any are. */
+function withLooseWords(words: string, loose: readonly Pilot[]): string {
   return loose.length === 0
     ? words
     : `${words}, ${String(loose.length)} knocked loose`;
