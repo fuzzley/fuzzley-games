@@ -14,7 +14,7 @@ import {
   type TakenUp,
   restoreGame,
 } from "../../rules/run/saved_game";
-import type { SpeedStats } from "../../rules/run/stats";
+import { RULES_VERSION, type SpeedStats } from "../../rules/run/stats";
 import { STILL, type Steer } from "../../rules/ship/ship";
 import { STEP_MS } from "../../rules/stepper";
 import {
@@ -1283,6 +1283,7 @@ describe("GameService", () => {
         normal: {
           runs: 1,
           best: game.score(),
+          bestRules: RULES_VERSION,
           furthest: 2,
           strays: 0,
           clearedAll: false,
@@ -1366,7 +1367,14 @@ describe("GameService", () => {
         newBest: game.newBest(),
         clearedAll: game.clearedAll(),
       }).toEqual({
-        normal: { runs: 0, best: 0, furthest: 0, strays: 0, clearedAll: false },
+        normal: {
+          runs: 0,
+          best: 0,
+          bestRules: RULES_VERSION,
+          furthest: 0,
+          strays: 0,
+          clearedAll: false,
+        },
         reached: new Set(),
         newBest: false,
         clearedAll: false,

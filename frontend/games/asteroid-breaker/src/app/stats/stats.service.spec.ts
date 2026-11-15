@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
-import type { RunRecords } from "../../rules/run/stats";
+import { RULES_VERSION, type RunRecords } from "../../rules/run/stats";
 import { provideSpecWaves } from "../../testing/play";
 import { runRecords } from "../../testing/records";
 import { STATS_KEY, StatsService } from "./stats.service";
@@ -40,6 +40,7 @@ describe("StatsService", () => {
     expect(stats.stats().speeds.normal).toEqual({
       runs: 0,
       best: 0,
+      bestRules: RULES_VERSION,
       furthest: 0,
       strays: 0,
       clearedAll: false,
@@ -54,8 +55,26 @@ describe("StatsService", () => {
 
     expect({ newBest, normal: stats.stats().speeds.normal }).toEqual({
       newBest: true,
-      normal: { runs: 1, best: 900, furthest: 2, strays: 0, clearedAll: false },
+      normal: {
+        runs: 1,
+        best: 900,
+        bestRules: RULES_VERSION,
+        furthest: 2,
+        strays: 0,
+        clearedAll: false,
+      },
     });
+  });
+
+  it("calls a score a new best against a best stored before the rules were numbered, however much lower", () => {
+    store({
+      speeds: { normal: { runs: 1, best: 9000, furthest: 3, strays: 0 } },
+    });
+    const stats = TestBed.inject(StatsService);
+
+    const newBest = stats.record(runRecords({ ended: ended(40, 1) }));
+
+    expect([newBest, stats.stats().speeds.normal.best]).toEqual([true, 40]);
   });
 
   it("calls a score no more than the best no new best", () => {
@@ -119,7 +138,14 @@ describe("StatsService", () => {
       normal: stats.stats().speeds.normal,
       sectors: stats.stats().sectors,
     }).toEqual({
-      normal: { runs: 2, best: 900, furthest: 3, strays: 1, clearedAll: false },
+      normal: {
+        runs: 2,
+        best: 900,
+        bestRules: 1,
+        furthest: 3,
+        strays: 1,
+        clearedAll: false,
+      },
       sectors: { specs: { normal: 900 } },
     });
   });

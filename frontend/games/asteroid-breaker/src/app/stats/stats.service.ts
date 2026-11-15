@@ -12,13 +12,19 @@ import { GAME_WAVES } from "../tokens";
 /** Where the records are kept. Renaming it loses every player's. */
 export const STATS_KEY = "asteroid-breaker-stats";
 
-/** The shape the records are kept in; a reader drops any other. */
+/**
+ * The shape the records are kept in; a reader drops any other.
+ *
+ * A best kept without its rules' number reads as made under the first, so
+ * the number stays.
+ */
 const STATS_VERSION = 1;
 
 /**
  * Keeps the player's records at each speed: the runs, the best score, the
  * furthest wave, whether a run has cleared all thirty and the strays
- * brought home, and each sector's best run.
+ * brought home, and each sector's best run, each best with the rules'
+ * number it was made under.
  */
 @Injectable({ providedIn: "root" })
 export class StatsService {
@@ -37,7 +43,7 @@ export class StatsService {
   /**
    * Keeps what a change in a run brings to the records, and returns whether
    * the run it ends set a new best: more points than any run before at its
-   * speed.
+   * speed under its rules.
    */
   record(records: RunRecords): boolean {
     const { speed, ended } = records;
