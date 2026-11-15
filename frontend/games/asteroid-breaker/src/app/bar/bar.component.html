@@ -20,11 +20,7 @@
     (choose)="changeSpeed($event)"
   />
 
-  <!--
-    Not a live region: the announcer says each turning point. Where the bar
-    has room only for the score and the ships, the Ready card and the
-    board's name give the wave.
-  -->
+  <!-- Not a live region: the announcer says each turning point. -->
   <dl fzBarStatus class="metrics">
     @if (fitsEveryFigure()) {
       <div class="metric">
@@ -32,36 +28,40 @@
         <dd class="value">{{ game.wave().number }}</dd>
       </div>
     }
-    <div class="metric">
+    <div class="metric score">
       <dt><fz-icon name="asteroid" /><span class="label">Score</span></dt>
       <dd class="value">{{ score() }}</dd>
     </div>
-    <div class="metric">
+    <div class="metric crew">
       <dt>
-        <!-- Not `as`: the first pilot's color is 0, which an @if takes for none. -->
-        @let first = atControls();
-        @if (first !== null) {
-          <app-pilot [pilot]="first" />
-        }
+        <app-face-cam
+          class="cam"
+          [pilot]="atControls()"
+          [face]="game.face()"
+          [lift]="game.lift()"
+        />
         <span class="label">Ships</span>
       </dt>
       <dd class="value">
         @if (fitsEveryFigure()) {
-          <app-pilot-row class="pilots" [pilots]="pilots()" />
+          <app-pilot-row class="pilots" [pilots]="inTow()" />
         } @else {
-          <span aria-hidden="true">{{ game.ships() }}</span>
+          <span class="count" aria-hidden="true">{{ game.ships() }}</span>
         }
         <span class="fz-visually-hidden">{{ shipsText() }}</span>
       </dd>
     </div>
-    @if (fitsEveryFigure()) {
-      @if (multiplier(); as times) {
-        <div class="metric multiplier">
-          <dt><span class="label">Static</span></dt>
-          <dd class="value">{{ times }}</dd>
-        </div>
-      }
-    }
+    <div class="metric multiplier">
+      <dt><span class="label">Static</span></dt>
+      <dd class="value">
+        {{ multiplier() }}
+        <span class="pips" aria-hidden="true">
+          @for (lit of pips(); track $index) {
+            <span class="pip" [attr.data-lit]="lit"></span>
+          }
+        </span>
+      </dd>
+    </div>
   </dl>
 
   <button
@@ -103,16 +103,17 @@
     </button>
   }
 
-  <button
-    fzBarActions
-    type="button"
-    class="fz-button action"
-    [class.fz-button-circle]="viewport.isCompact()"
-    (click)="newGame()"
-  >
-    <fz-icon name="plus" />
-    <span class="btn-text">New game</span>
-  </button>
+  @if (!viewport.isCompact()) {
+    <button
+      fzBarActions
+      type="button"
+      class="fz-button action"
+      (click)="newGame()"
+    >
+      <fz-icon name="plus" />
+      <span class="btn-text">New game</span>
+    </button>
+  }
 
   @if (!viewport.isCompact()) {
     <button

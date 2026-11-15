@@ -1,4 +1,6 @@
+import type { FuzzballFace } from "@fz/style/fuzzball";
 import type { FieldEvent } from "../rules/field/events";
+import type { Field } from "../rules/field/field";
 import { type WaveTally, tallyOf } from "../rules/field/scoring";
 import { rocksLeft } from "../rules/rocks/rocks";
 import {
@@ -13,6 +15,7 @@ import type { Pilot } from "../rules/ship/pilots";
 import type { Steer } from "../rules/ship/ship";
 import { multiplierOf, stepOf } from "../rules/sparks/charge";
 import { type WaveEntry, waveEntryOf } from "../rules/waves/waves";
+import { createFaceMoments, faceOf, hearFace, liftOf } from "./art/faces";
 import { type Buzz, CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
 import { TALLY_COUNT_MS, nextWaveWords } from "./tally";
@@ -43,6 +46,18 @@ export interface FrameChange {
    * is over. Null for a frame that leaves it as it was, as the multiplier.
    */
   readonly step: number | null;
+  /**
+   * The face the pilot at the controls shows as the field now stands, as
+   * the pod's painter draws it (`faceOf()`), from what the field showed it
+   * since its wave was laid out: at rest with no one at the controls.
+   */
+  readonly face: FuzzballFace;
+  /**
+   * How far the pilot's fur is lifted as the field now stands, as the pod's
+   * painter lifts it (`liftOf()`): static's multiplier less one, from 0 at
+   * ×1 to 3, on end and sparking.
+   */
+  readonly lift: number;
   /** How the wave's points added up, for its card, if the frame cleared it; else null. */
   readonly tally: WaveTally | null;
   /**
@@ -76,8 +91,9 @@ type Change = { -readonly [Key in keyof FrameChange]: FrameChange[Key] };
 /**
  * Takes each frame of a wave's play into its run: plays the wave on,
  * starting it at the player's first move, catches the run up with what its
- * field came to, waits out the beat before a card opens, and gathers what
- * to say of it and how the phone buzzes for it.
+ * field came to, waits out the beat before a card opens, gathers what to
+ * say of it and how the phone buzzes for it, and reads the face and the
+ * fur the pilot at the controls shows.
  */
 export class RunFrames {
   /** What the frames call to be said, gathered as each is worked out, and said at its end. */
@@ -86,6 +102,13 @@ export class RunFrames {
   private ended: Run | null = null;
   /** The pilots of the strays the frame brought home, gathered as it is heard. */
   private readonly cameHome: Pilot[] = [];
+  /** When what the pilot's face answers last happened, on the field below. */
+  private readonly moments = createFaceMoments();
+  /**
+   * The field the moments are of, the wave in play's from its first frame,
+   * at whose step each event heard is noted.
+   */
+  private faced: Readonly<Pick<Field, "steps">> = { steps: 0 };
   /** What the last frame changed: one record, written again each frame. */
   private readonly change: Change = {
     run: null,
@@ -93,6 +116,8 @@ export class RunFrames {
     cameHome: this.cameHome,
     multiplier: null,
     step: null,
+    face: "rest",
+    lift: 0,
     tally: null,
     opens: null,
     countMs: 0,
@@ -112,7 +137,8 @@ export class RunFrames {
    * wave cleared or the run ended, the frame counts toward the wait before
    * the card over it, none where motion is unwelcome, and with the wave
    * cleared toward its card's sum counting up; a paused wave stays as it
-   * is.
+   * is. Whatever the run's outcome, it reads the pilot's face as the field
+   * stands, blinking only where motion is welcome, and its fur's lift.
    */
   advance(
     play: WavePlay,
@@ -122,6 +148,10 @@ export class RunFrames {
     motion: boolean,
   ): FrameChange {
     const { change } = this;
+    if (play.field !== this.faced) {
+      this.faced = play.field;
+      Object.assign(this.moments, createFaceMoments());
+    }
     change.run = null;
     change.moved = false;
     this.cameHome.length = 0;
@@ -150,6 +180,8 @@ export class RunFrames {
       case "paused":
         break;
     }
+    change.face = faceOf(play.field, this.moments, motion);
+    change.lift = liftOf(play.field);
     return change;
   }
 
@@ -212,11 +244,13 @@ export class RunFrames {
   }
 
   /**
-   * Hears an event of the field, and gathers what to say of it, the strays
-   * brought home, into the line or straight home, and the buzz of a hit.
-   * Made once, so hearing makes nothing.
+   * Hears an event of the field, notes what it means for the pilot's face,
+   * and gathers what to say of it, the strays brought home, into the line
+   * or straight home, and the buzz of a hit. Made once, so hearing makes
+   * nothing.
    */
   private readonly hear = (event: Readonly<FieldEvent>): void => {
+    hearFace(this.moments, event, this.faced.steps);
     const caught = event.kind === "joined" || event.kind === "home";
     if (caught && event.pilot !== null) this.cameHome.push(event.pilot);
     if (event.kind === "lost" || event.kind === "knocked") {

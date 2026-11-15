@@ -15,13 +15,15 @@ const RETUNED = true;
 /** The numbers in use as `tuning.ts` writes them. */
 const AS_WRITTEN = false;
 
-/** What a frame that changed nothing hands the shell: its field yet to move. */
+/** What a frame that changed nothing hands the shell: its field yet to move, its pilot at rest. */
 const QUIET: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
   multiplier: null,
   step: null,
+  face: "rest",
+  lift: 0,
   tally: null,
   opens: null,
   countMs: 0,
@@ -53,12 +55,14 @@ function stateOf(own: Partial<RunState> = {}): RunState {
 }
 
 describe("newRunState", () => {
-  it("begins a run with none of its static, its cards or its marks, flown on no tuned numbers", () => {
+  it("begins a run with none of its static, its cards or its marks, flown on no tuned numbers, its pilot at rest", () => {
     expect(newRunState(RUN)).toEqual({
       run: RUN,
       tuned: false,
       multiplier: 1,
       step: 0,
+      face: "rest",
+      lift: 0,
       tally: null,
       clearedOpen: false,
       tallyMs: 0,
@@ -155,6 +159,36 @@ describe("withFrame", () => {
       const state = stateOf({ multiplier: 2, step: 1 });
 
       expect(withFrame(state, QUIET, AS_WRITTEN)).toBe(state);
+    });
+  });
+
+  describe("the pilot at the controls", () => {
+    it("takes the face the frame shows", () => {
+      const after = withFrame(
+        stateOf(),
+        { ...PLAYED, face: "set" },
+        AS_WRITTEN,
+      );
+
+      expect(after.face).toBe("set");
+    });
+
+    it("takes the lift the frame shows the fur at", () => {
+      const after = withFrame(stateOf(), { ...PLAYED, lift: 2 }, AS_WRITTEN);
+
+      expect(after.lift).toBe(2);
+    });
+
+    it("returns the same state through a frame that shows the same face and lift", () => {
+      const state = stateOf({ face: "sleepy", lift: 1 });
+
+      const after = withFrame(
+        state,
+        { ...QUIET, face: "sleepy", lift: 1 },
+        AS_WRITTEN,
+      );
+
+      expect(after).toBe(state);
     });
   });
 

@@ -224,8 +224,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 
 - `src/view/run_frames.spec.ts` plays a run's frames as the shell does,
   over fields drawn with `fieldFrom()` and waves of its own, and asserts on
-  what each frame changed, its buzz and the time it counts toward the
-  Cleared card's sum among it, and what it said. It takes
+  what each frame changed, its buzz, the time it counts toward the
+  Cleared card's sum and the face and the lift of the pilot at the
+  controls among it, and what it said. It takes
   nothing from `src/testing/play.ts`, which imports the shell's tokens, so
   it runs without Angular, as every spec of the view does.
   `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
@@ -356,6 +357,15 @@ game through `runScene()`:
   `@fz/phaser/testing`'s `browserKey()`. A run under way
   asks before it is thrown away, which a spec answers through
   `ConfirmService`'s `accept()` or `cancel()`.
+- The pilots are pictures, hidden from a screen reader, so no role finds
+  them: `src/testing/pilots.ts` reads the colors of those an element draws
+  (`pilotsIn()`, against `inkOf()`) and the face and the lift of the first
+  (`poseIn()`), matching its fuzzball's marks against what
+  `@fz/style/fuzzball`'s `fuzzballDrawing()` draws for each face and each
+  of static's steps. The bar's spec finds the face cam in the Ships
+  figure's term (the `dt`), reads static's pips by their `data-lit`, and
+  brings static to each multiplier, ×4 among them, by `takeUpCharged()`
+  and a frame of the run it takes up, which shows the pilot's fur.
 - jsdom has no `matchMedia`, so motion isn't welcome and the board is no
   touch screen. A spec of the waits, or of a finger, installs
   `@fz/game-ui/testing`'s fake viewport, which takes itself off after.

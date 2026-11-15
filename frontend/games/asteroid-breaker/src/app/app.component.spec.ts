@@ -48,6 +48,8 @@ beforeEach(() => {
   TestBed.configureTestingModule({
     providers: [provideMemoryStorage(storage)],
   });
+  // The field's colors, as a stylesheet would give the page, which the bar's face cam draws in.
+  paintRoles(FIELD_ROLES, ROLES);
 });
 
 /** Renders the game on a fake canvas, and waits for its scene to be drawn. */

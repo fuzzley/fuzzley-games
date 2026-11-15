@@ -8,13 +8,16 @@ import {
   installFakeViewport,
   openBarMenu,
 } from "@fz/game-ui/testing";
+import { paintRoles } from "@fz/style/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { figure, figureValue } from "@fz/ui/testing";
+import { figure, figureValue, figures } from "@fz/ui/testing";
+import { STILL } from "../../rules/ship/ship";
 import { STATIC_STEPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
-import { inkOf, pilotsIn } from "../../testing/pilots";
+import { inkOf, pilotsIn, poseIn } from "../../testing/pilots";
+import { ROLES } from "../../testing/roles";
 import {
   SPEC_WAVE,
   STRAY_WAVES,
@@ -26,6 +29,7 @@ import {
   shoot,
   takeUpCharged,
 } from "../../testing/play";
+import { FIELD_ROLES } from "../board/field_roles";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { BarComponent } from "./bar.component";
@@ -41,8 +45,13 @@ interface RenderedBar {
   readonly detectChanges: () => void;
 }
 
-/** Renders the bar over the specs' waves, or those given, and listens to what it asks for. */
+/**
+ * Renders the bar over the specs' waves, or those given, in the field's
+ * colors a stylesheet would give the page, which the face cam draws in, and
+ * listens to what it asks for.
+ */
 async function renderBar(waves?: readonly WaveEntry[]): Promise<RenderedBar> {
+  paintRoles(FIELD_ROLES, ROLES);
   const openSectors = vi.fn();
   const openHelp = vi.fn();
   const openSettings = vi.fn();
@@ -73,14 +82,23 @@ async function renderInPlay(): Promise<RenderedBar> {
   return rendered;
 }
 
-/** Renders the bar with a run taken up at static's first step, what is scored scoring twice. */
-async function renderCharged(): Promise<RenderedBar> {
+/**
+ * Renders the bar with a run taken up with static at a level, paused, and
+ * a frame of it, which shows the pilot's face and fur.
+ */
+async function renderChargedTo(level: number): Promise<RenderedBar> {
   const rendered = await renderBar();
   await rendered.game.startAt(SPEC_WAVE.pebble);
   rendered.game.tick(FRAME_MS, shoot(rendered.game));
-  takeUpCharged(rendered.game, STATIC_STEPS[2].from);
+  takeUpCharged(rendered.game, level);
+  rendered.game.tick(FRAME_MS, STILL);
   rendered.detectChanges();
   return rendered;
+}
+
+/** Renders the bar with a run taken up at static's first step, what is scored scoring twice. */
+async function renderCharged(): Promise<RenderedBar> {
+  return renderChargedTo(STATIC_STEPS[2].from);
 }
 
 /** Returns a figure's term in the bar, by its words, as an element. */
@@ -95,6 +113,14 @@ function figureTerm(term: string): HTMLElement {
 /** Returns the terms of the figures the bar shows, in order. */
 function terms(): string[] {
   return screen.getAllByRole("term").map((dt) => dt.textContent.trim());
+}
+
+/** Returns whether each of static's pips is lit, in order. */
+function pips(): boolean[] {
+  return Array.from(
+    figureValue("Static").querySelectorAll("[data-lit]"),
+    (pip) => pip.getAttribute("data-lit") === "true",
+  );
 }
 
 describe("BarComponent", () => {
@@ -147,13 +173,14 @@ describe("BarComponent", () => {
       });
     });
 
-    it("shows the wave, the score and the ships", async () => {
+    it("shows the wave, the score, the ships and static", async () => {
       await renderInPlay();
 
-      expect([figure("Wave"), figure("Score"), figure("Ships")]).toEqual([
-        "2",
-        "0",
-        "3 ships",
+      expect(figures()).toEqual([
+        ["Wave", "2"],
+        ["Score", "0"],
+        ["Ships", "3 ships"],
+        ["Static", "×1"],
       ]);
     });
 
@@ -167,15 +194,14 @@ describe("BarComponent", () => {
       expect(figure("Score")).toBe("1,100");
     });
 
-    it("draws each ship as its pilot, the one at the controls first", async () => {
+    it("draws each ship as its pilot, the one at the controls in the face cam, those in tow beside it", async () => {
       await renderInPlay();
 
       // The pilots are pictures, hidden from a screen reader, so no role finds them.
-      expect(pilotsIn(figureValue("Ships"))).toEqual([
-        inkOf(0),
-        inkOf(1),
-        inkOf(2),
-      ]);
+      expect({
+        atControls: pilotsIn(figureTerm("Ships")),
+        inTow: pilotsIn(figureValue("Ships")),
+      }).toEqual({ atControls: [inkOf(0)], inTow: [inkOf(1), inkOf(2)] });
     });
 
     it("shows one knocked loose by a hit, the last in tow gone from the line", async () => {
@@ -186,33 +212,75 @@ describe("BarComponent", () => {
 
       expect({
         ships: figure("Ships"),
-        pilots: pilotsIn(figureValue("Ships")),
-      }).toEqual({
-        ships: "2 ships",
-        pilots: [inkOf(0), inkOf(1)],
-      });
+        inTow: pilotsIn(figureValue("Ships")),
+      }).toEqual({ ships: "2 ships", inTow: [inkOf(1)] });
     });
 
-    it("draws a stray brought home among the pilots, as it flies one more ship at once", async () => {
+    it("draws a stray brought home in tow, as it flies one more ship at once", async () => {
       const { game, detectChanges } = await renderBar(STRAY_WAVES);
 
       bringStraysHome(game, 1);
       detectChanges();
 
-      expect(pilotsIn(figureValue("Ships"))).toHaveLength(4);
+      expect(pilotsIn(figureValue("Ships"))).toHaveLength(3);
     });
 
-    it("shows no multiplier while what is scored scores once", async () => {
+    it("shows the pilot at the controls sleepy while the wave waits for its first move", async () => {
+      const { game, detectChanges } = await renderBar();
+      await game.startAt(SPEC_WAVE.gift);
+
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+
+      expect(poseIn(figureTerm("Ships")).face).toBe("sleepy");
+    });
+
+    it("shows the pilot at the controls set as the ship fires", async () => {
       await renderInPlay();
 
-      expect(terms()).not.toContain("Static");
+      expect(poseIn(figureTerm("Ships")).face).toBe("set");
     });
 
-    it("shows how many times what is scored scores while static multiplies it", async () => {
-      await renderCharged();
+    it("shows the pilot at the controls dizzy as a hit knocks one loose", async () => {
+      const { game, detectChanges } = await renderInPlay();
 
-      expect(figure("Static")).toBe("×2");
+      loseShip(game);
+      detectChanges();
+
+      expect(poseIn(figureTerm("Ships")).face).toBe("dizzy");
     });
+
+    it("shows the pilot at the controls happy over a cleared wave", async () => {
+      const { game, detectChanges } = await renderBar();
+      await game.startAt(SPEC_WAVE.pebble);
+
+      playToClear(game);
+      detectChanges();
+
+      expect(poseIn(figureTerm("Ships")).face).toBe("happy");
+    });
+
+    it.each([
+      [0, 1, [true, false, false, false]],
+      [STATIC_STEPS[2].from, 2, [true, true, false, false]],
+      [STATIC_STEPS[1].from, 3, [true, true, true, false]],
+      [STATIC_STEPS[0].from, 4, [true, true, true, true]],
+    ])(
+      "shows static at %d scoring ×%i with as many pips lit, the pilot's fur lifted a step for each past the first",
+      async (level, times, lit) => {
+        await renderChargedTo(level);
+
+        expect({
+          multiplier: figure("Static"),
+          pips: pips(),
+          lift: poseIn(figureTerm("Ships")).lift,
+        }).toEqual({
+          multiplier: `×${String(times)}`,
+          pips: lit,
+          lift: times - 1,
+        });
+      },
+    );
 
     it("pauses a wave in play", async () => {
       const { user, game } = await renderInPlay();
@@ -312,7 +380,7 @@ describe("BarComponent", () => {
       expect(kept).toBe(true);
     });
 
-    it("starts a new game", async () => {
+    it("starts a new game from the bar", async () => {
       const { user, game } = await renderBar();
 
       await user.click(screen.getByRole("button", { name: "New game" }));
@@ -355,34 +423,54 @@ describe("BarComponent", () => {
       installFakeViewport(width, height);
     });
 
-    it("shows the score and the ships alone", async () => {
+    it("shows the score, the ships and static, without the wave", async () => {
       await renderInPlay();
 
-      expect(terms()).toEqual(["Score", "Ships"]);
+      expect(terms()).toEqual(["Score", "Ships", "Static"]);
     });
 
-    it("shows a new run's ships beside its first pilot, at the controls", async () => {
+    it("shows a new run's ships as a number on the face cam, its first pilot at the controls", async () => {
       await renderInPlay();
 
-      expect(pilotsIn(figureTerm("Ships"))).toEqual([inkOf(0)]);
+      expect({
+        number: within(figureValue("Ships")).getByText("3").textContent,
+        atControls: pilotsIn(figureTerm("Ships")),
+      }).toEqual({ number: "3", atControls: [inkOf(0)] });
     });
 
-    it("shows the ships as a number beside the pilot at the controls", async () => {
+    it("draws no one in tow beside the face cam", async () => {
+      await renderInPlay();
+
+      expect(pilotsIn(figureValue("Ships"))).toEqual([]);
+    });
+
+    it("counts the ships down as a hit knocks one loose", async () => {
       const { game, detectChanges } = await renderInPlay();
 
       loseShip(game);
       detectChanges();
 
-      expect({
-        number: within(figureValue("Ships")).getByText("2").textContent,
-        atControls: pilotsIn(figureTerm("Ships")),
-      }).toEqual({ number: "2", atControls: [inkOf(0)] });
+      expect(within(figureValue("Ships")).getByText("2")).toBeVisible();
     });
 
-    it("leaves out static's multiplier while it multiplies", async () => {
+    it("shows the pilot at the controls with the face the field shows", async () => {
+      await renderInPlay();
+
+      expect(poseIn(figureTerm("Ships")).face).toBe("set");
+    });
+
+    it("shows how many times what is scored scores, with as many pips lit, the pilot's fur lifted", async () => {
       await renderCharged();
 
-      expect(terms()).not.toContain("Static");
+      expect({
+        multiplier: figure("Static"),
+        pips: pips(),
+        lift: poseIn(figureTerm("Ships")).lift,
+      }).toEqual({
+        multiplier: "×2",
+        pips: [true, true, false, false],
+        lift: 1,
+      });
     });
   });
 
@@ -399,24 +487,39 @@ describe("BarComponent", () => {
       expect(barChoice("Speed")).toBeVisible();
     });
 
-    it("keeps Pause and New game in the bar", async () => {
+    it("keeps Pause in the bar", async () => {
       await renderBar();
 
       expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
-      expect(screen.getByRole("button", { name: "New game" })).toBeVisible();
     });
 
-    it("moves the sound, the sectors, How to play and the settings into the menu", async () => {
+    it("moves the sound, the sectors, New game, How to play and the settings into the menu", async () => {
       const { user } = await renderBar();
 
       const items = await openBarMenu(user);
 
-      expect(items).toEqual([
-        "Turn sound off",
-        "Sectors",
-        "How to play",
-        "Settings",
-      ]);
+      expect({
+        items,
+        newGameInBar: screen.queryByRole("button", { name: "New game" }),
+      }).toEqual({
+        items: [
+          "Turn sound off",
+          "Sectors",
+          "New game",
+          "How to play",
+          "Settings",
+        ],
+        newGameInBar: null,
+      });
+    });
+
+    it("starts a new game from the menu", async () => {
+      const { user, game } = await renderBar();
+      await openBarMenu(user);
+
+      await user.click(screen.getByRole("menuitem", { name: "New game" }));
+
+      expect(game.runs()).toBe(1);
     });
 
     it("turns the sound off from the menu", async () => {

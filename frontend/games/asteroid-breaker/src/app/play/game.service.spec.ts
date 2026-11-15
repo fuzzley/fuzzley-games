@@ -90,10 +90,12 @@ const TURN: Readonly<Steer> = { ...STILL, turn: 1 };
 /** The points the specs' medium stone and its two small pieces score. */
 const PEBBLE_POINTS = 100;
 
-/** What a run has of its own as it begins: no static, no cards, nothing set. */
+/** What a run has of its own as it begins: no static, its pilot at rest, no cards, nothing set. */
 const BEGUN_OWN = {
   multiplier: 1,
   step: 0,
+  face: "rest",
+  lift: 0,
   tally: null,
   clearedOpen: false,
   tallyMs: 0,
@@ -158,11 +160,13 @@ async function endedAt(wave: number): Promise<GameService> {
   return game;
 }
 
-/** Returns what the run on the board has of its own: its static, its cards and what it set. */
+/** Returns what the run on the board has of its own: its static, its pilot's face and fur, its cards and what it set. */
 function ownOf(game: GameService): Record<string, unknown> {
   return {
     multiplier: game.multiplier(),
     step: game.step(),
+    face: game.face(),
+    lift: game.lift(),
     tally: game.tally(),
     clearedOpen: game.clearedOpen(),
     tallyMs: game.tallyMs(),
@@ -343,6 +347,48 @@ describe("GameService", () => {
       await starting;
 
       expect(game.multiplier()).toBe(1);
+    });
+  });
+
+  describe("the pilot at the controls", () => {
+    it("rests until its wave's field is first drawn", () => {
+      const game = TestBed.inject(GameService);
+
+      expect({ face: game.face(), lift: game.lift() }).toEqual({
+        face: "rest",
+        lift: 0,
+      });
+    });
+
+    it("sleeps while its wave waits for the first move", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.face()).toBe("sleepy");
+    });
+
+    it("shows the face its field shows, set as the ship fires", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      game.tick(FRAME_MS, FIRE);
+
+      expect(game.face()).toBe("set");
+    });
+
+    it("lifts its fur a step for each of static's past ×1, once a frame shows it", async () => {
+      const game = await startedAt(SPEC_WAVE.pebble);
+      takeUpCharged(game, STATIC_STEPS[1].from);
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.lift()).toBe(2);
+    });
+
+    it("looks happy over a cleared wave", async () => {
+      const game = await clearedAt(SPEC_WAVE.pebble);
+
+      expect(game.face()).toBe("happy");
     });
   });
 
