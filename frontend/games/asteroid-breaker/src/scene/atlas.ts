@@ -1,8 +1,7 @@
 import { atlasFrameOf, bakeAtlas } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { Scene } from "phaser";
-import { atlasFrames, deckFrames } from "../view/art/art";
-import { rockFrames } from "../view/art/rock_art";
+import { atlasFrames, deckFrames, litFrames } from "../view/art/art";
 import type { BeltPalette } from "../view/colors/palette";
 
 /** The field's atlas's texture key, which every image on the field shows a frame of. */
@@ -11,7 +10,7 @@ export const ATLAS = "belt-atlas";
 /** The deck's atlas's texture key, its parts white for the scene to tint. */
 export const DECK_ATLAS = "belt-deck-atlas";
 
-/** The rocks' atlas's texture key, in their inks, lit through its normal map. */
+/** The rocks' atlas's texture key, in their inks, lit through its normal map, the pod's hull among them. */
 export const ROCK_ATLAS = "belt-rock-atlas";
 
 /**
@@ -23,8 +22,8 @@ export const ROCK_NORMALS = "belt-rock-normals";
 
 /**
  * Bakes every frame the field shows into the field's atlas and the rocks'
- * into theirs, with their normal map, at a scale and in a palette, the
- * rocks with their fine marks or without, as the field keeps them.
+ * into theirs, with the pod's hull and their normal map, at a scale and in
+ * a palette, with their fine marks or without, as the field keeps them.
  *
  * The rocks' atlas reads its normal map from the normal map's canvas, set
  * again at each bake, so a bake at a new size keeps the two in step. Phaser
@@ -37,8 +36,8 @@ export function bakeBeltAtlas(
   scale: ArtScale,
   fine: boolean,
 ): void {
-  bakeAtlas(scene, ATLAS, atlasFrames(palette, scale).map(atlasFrameOf));
-  const rocks = rockFrames(palette, scale, fine);
+  bakeAtlas(scene, ATLAS, atlasFrames(palette, scale, fine).map(atlasFrameOf));
+  const rocks = litFrames(palette, scale, fine);
   bakeAtlas(
     scene,
     ROCK_ATLAS,

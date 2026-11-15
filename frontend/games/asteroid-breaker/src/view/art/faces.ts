@@ -10,7 +10,7 @@ import { rockHitRadius } from "../../rules/rocks/rocks";
 import { multiplier } from "../../rules/field/scoring";
 import type { Pilot } from "../../rules/ship/pilots";
 import { type Ship, thrustOf } from "../../rules/ship/ship";
-import { STEP_MS, stepsIn } from "../../rules/stepper";
+import { stepsIn } from "../../rules/stepper";
 import { type Moving, type Torus, across } from "../../rules/torus";
 import {
   CHAIN_MS,
@@ -215,15 +215,18 @@ export function pushOf(field: FieldView, angle: number, into: Moving): Moving {
 }
 
 /**
- * Moves the fur's lean toward a push over a number of steps and returns it,
- * fast as the push grows and slowly as it lets up, so the fur lags a
- * thrust and settles after it; all the way at once where motion isn't
- * welcome.
+ * Moves the fur's lean toward a push over a time, in milliseconds, and
+ * returns it, fast as the push grows and slowly as it lets up, so the fur
+ * lags a thrust and settles after it; all the way at once where motion
+ * isn't welcome.
+ *
+ * The scene eases it by its frames' time rather than the field's steps, so
+ * the fur settles over a cleared wave, which stands still.
  */
 export function easeLean(
   lean: Moving,
   push: Readonly<Moving>,
-  steps: number,
+  ms: number,
   motion: boolean,
 ): Moving {
   const leaning =
@@ -231,7 +234,7 @@ export function easeLean(
       ? "into"
       : "settle";
   // Most of the way, all but e⁻³ of it, in the time it takes.
-  const kept = motion ? Math.exp((-3 * steps * STEP_MS) / LEAN_MS[leaning]) : 0;
+  const kept = motion ? Math.exp((-3 * ms) / LEAN_MS[leaning]) : 0;
   lean.x = push.x + (lean.x - push.x) * kept;
   lean.y = push.y + (lean.y - push.y) * kept;
   return lean;

@@ -1,7 +1,7 @@
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import type { GameObjects, Scene } from "phaser";
 import { wrap } from "../../rules/torus";
-import { SHIP_FRAMES, SHIP_REACH } from "../../view/art/ship_art";
+import { POD_FRAMES, POD_REACH, ghostScale } from "../../view/art/pod_art";
 import {
   trailAlpha,
   trailOutlinesLaid,
@@ -33,10 +33,11 @@ interface Trail {
 }
 
 /**
- * Draws a dash's trail: fading outlines of the ship along its path, each
- * laid as the field steps the ship past where it lies, so a field that
- * stops lays none ahead of its ship. Each is made once, and the scene lays
- * them only where motion is welcome.
+ * Draws a dash's trail: fading outlines of the pod along its path, its
+ * shape in the hull's ink, each smaller the further back it lies, laid as
+ * the field steps the pod past where it lies, so a field that stops lays
+ * none ahead of its pod. Each is made once, and the scene lays them only
+ * where motion is welcome.
  */
 export class TrailPainter implements Painter {
   /** A dash's outlines, counting from where it started. */
@@ -54,7 +55,7 @@ export class TrailPainter implements Painter {
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.outlines = Array.from(
       { length: DASH_TRAIL },
-      () => new Copies(scene, layer, SHIP_FRAMES.ship),
+      () => new Copies(scene, layer, POD_FRAMES.ghost),
     );
   }
 
@@ -79,7 +80,7 @@ export class TrailPainter implements Painter {
     dash.laidAt.fill(-Infinity);
   }
 
-  /** Lays each outline the field has stepped the ship past, and fades it from then, or hides it. */
+  /** Lays each outline the field has stepped the pod past, and fades it from then, or hides it. */
   draw({ field, metrics, zoom, now }: Readonly<PaintContext>): void {
     const { dash } = this;
     const { torus } = field;
@@ -96,12 +97,12 @@ export class TrailPainter implements Painter {
       }
       const reach = trailReach(i);
       outline.setRotation(heading);
-      outline.setScale(zoom);
+      outline.setScale(zoom * ghostScale(i));
       outline.setAlpha(trailAlpha(i) * fadeAlpha(done));
       outline.show(
         wrap(dash.x + dash.wayX * reach, torus.width),
         wrap(dash.y + dash.wayY * reach, torus.height),
-        SHIP_REACH,
+        POD_REACH,
         metrics,
         torus,
       );

@@ -6,9 +6,7 @@ import {
   BOB,
   BREATH,
   EXHAUST_RATE,
-  EYES_SHUT,
   FLASH_MOST,
-  FLICKER,
   GOLDEN_ANGLE,
   LOST_RING_REACH,
   MOST_POINTS_CHARACTERS,
@@ -22,10 +20,8 @@ import {
   breathScale,
   cameraShift,
   exhaustDue,
-  eyesOpen,
   flashAlpha,
   flashDue,
-  flickerShare,
   kickShare,
   pointsLabel,
   pulseAlpha,
@@ -476,21 +472,6 @@ describe("pulseAlpha", () => {
   });
 });
 
-describe("flickerShare", () => {
-  it("flickers the flame below its full length by its flicker, and never past it", () => {
-    const shares = overTime((seconds) => flickerShare(seconds, true));
-
-    expect(Math.max(...shares)).toBeCloseTo(1, 2);
-    expect(Math.min(...shares)).toBeCloseTo(1 - FLICKER, 2);
-  });
-
-  it("holds the flame at its full length where motion isn't welcome", () => {
-    expect(
-      new Set(overTime((seconds) => flickerShare(seconds, false))),
-    ).toEqual(new Set([1]));
-  });
-});
-
 describe("exhaustDue", () => {
   /** How many of the field's steps a second takes. */
   const SECOND = stepsIn(1000);
@@ -516,33 +497,6 @@ describe("exhaustDue", () => {
 
   it("is due none where motion isn't welcome, carrying nothing on", () => {
     expect(exhaustDue(0.5, 1, SECOND, false)).toBe(0);
-  });
-});
-
-describe("eyesOpen", () => {
-  it("keeps a pilot's eyes open most of the time", () => {
-    const open = overTime((seconds) => eyesOpen(seconds, 0, true));
-
-    expect(open.filter((share) => share === 1).length).toBeGreaterThan(900);
-  });
-
-  it("blinks a pilot's eyes shut to their least, and open again", () => {
-    const open = overTime((seconds) => eyesOpen(seconds, 0, true));
-
-    expect(Math.min(...open)).toBeCloseTo(EYES_SHUT, 1);
-  });
-
-  it("blinks two pilots apart", () => {
-    const first = overTime((seconds) => eyesOpen(seconds, 0, true));
-    const second = overTime((seconds) => eyesOpen(seconds, 1, true));
-
-    expect(second).not.toEqual(first);
-  });
-
-  it("keeps a pilot's eyes open where motion isn't welcome", () => {
-    expect(new Set(overTime((seconds) => eyesOpen(seconds, 0, false)))).toEqual(
-      new Set([1]),
-    );
   });
 });
 

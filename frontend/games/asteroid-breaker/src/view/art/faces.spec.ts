@@ -493,22 +493,20 @@ describe("pushOf", () => {
 
 describe("easeLean", () => {
   it("leans into a push faster than it settles from one", () => {
-    const into = easeLean(blank(), { x: 1, y: 0 }, 1, true);
-    const settled = easeLean({ x: 1, y: 0 }, blank(), 1, true);
+    const into = easeLean(blank(), { x: 1, y: 0 }, 16, true);
+    const settled = easeLean({ x: 1, y: 0 }, blank(), 16, true);
 
     expect(into.x).toBeGreaterThan(1 - settled.x);
   });
 
   it("settles most of the way in the time it takes", () => {
-    const steps = stepsIn(LEAN_MS.settle);
-
-    const lean = easeLean({ x: 1, y: 0 }, blank(), steps, true);
+    const lean = easeLean({ x: 1, y: 0 }, blank(), LEAN_MS.settle, true);
 
     expect(lean.x).toBeCloseTo(Math.exp(-3), 2);
   });
 
   it("follows the push at once where motion isn't welcome", () => {
-    const lean = easeLean({ x: 1, y: 0 }, { x: 0, y: 2 }, 1, false);
+    const lean = easeLean({ x: 1, y: 0 }, { x: 0, y: 2 }, 16, false);
 
     expect(lean).toEqual({ x: 0, y: 2 });
   });
@@ -516,6 +514,6 @@ describe("easeLean", () => {
   it("writes into the lean it is handed", () => {
     const lean = blank();
 
-    expect(easeLean(lean, { x: 1, y: 0 }, 1, true)).toBe(lean);
+    expect(easeLean(lean, { x: 1, y: 0 }, 16, true)).toBe(lean);
   });
 });

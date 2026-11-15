@@ -3,6 +3,7 @@ import { contrast, rgbOf } from "@fz/style/testing";
 import { colorNumber } from "@fz/phaser/color";
 import { FIELD_ROLES } from "../../app/board/field_roles";
 import { PALETTES } from "../../testing/roles";
+import { podTones } from "../art/pod_art";
 import { beltPalette } from "./palette";
 import { faceExtremes } from "./rock_light";
 
@@ -19,13 +20,14 @@ function between(one: number, other: number): number {
 // which shows the thrust, and a stray's bubble's rim, which tells it from a
 // rock. A rock is lit, so each kind keeps 3:1 at its darkest face, turned
 // from the palette's light, and at its brightest, turned to it, a crystal's
-// stone body too. Each thing is outlined in the field's color, so it reads
-// apart from a rock it crosses, and a rock's cracks are drawn in the same,
-// so each keeps 3:1 against those too, and against every face of a rock.
-// Each pilot keeps 3:1 against what it is drawn on: the field, in the
-// ship's window; a stray's bubble; and the bar, where the crew waits; and
-// its eyes keep 3:1 against it. The deck's symbols at rest keep 3:1
-// against its buttons, and the knob against the stick's base.
+// stone body too, and so does the pod's hull, lit as a rock is, its trim
+// too. Each thing is outlined in the field's color, so it reads apart from
+// a rock it crosses, and a rock's cracks are drawn in the same, so each
+// keeps 3:1 against those too, and against every face of a rock. Each
+// pilot keeps 3:1 against what it is drawn on: the field; the pod's glass
+// and its shade, in its canopy; a stray's bubble; and the bar, where the
+// crew waits; and its eyes keep 3:1 against it. The deck's symbols at rest
+// keep 3:1 against its buttons, and the knob against the stick's base.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = beltPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -42,9 +44,24 @@ describe("the field's contrast", () => {
         [`${kind} rock's brightest face`, brightest],
       ] as const;
     });
+    // The pod's hull is lit as a rock is, its facets in the accent and its
+    // trim in the muted text.
+    const hull = (
+      [
+        ["pod's hull", palette.accent],
+        ["pod's trim", palette.muted],
+      ] as const
+    ).flatMap(([part, ink]) => {
+      const { darkest, brightest } = faceExtremes(ink, palette.rockLight);
+      return [
+        [`${part}'s darkest face`, darkest],
+        [`${part}'s brightest face`, brightest],
+      ] as const;
+    });
+    const { glass, glassShade } = podTones(palette);
     const outlined = [
       ...rocks,
-      ["ship", palette.accent],
+      ["pod", palette.accent],
       ["pickup", palette.accent],
       ["comet", palette.comet],
     ] as const;
@@ -88,6 +105,18 @@ describe("the field's contrast", () => {
       },
     );
 
+    it.each(hull)(
+      "keeps the %s at 3:1 or more against the field, and the outline against it",
+      (_, color) => {
+        expect(
+          Math.min(
+            between(color, palette.field),
+            between(palette.outline, color),
+          ),
+        ).toBeGreaterThanOrEqual(GRAPHIC);
+      },
+    );
+
     it("keeps a pickup's symbol at 3:1 or more against the pickup", () => {
       expect(between(palette.onAccent, palette.accent)).toBeGreaterThanOrEqual(
         GRAPHIC,
@@ -99,6 +128,8 @@ describe("the field's contrast", () => {
         (
           [
             ["field", palette.field],
+            ["pod's glass", glass],
+            ["pod's glass's shade", glassShade],
             ["stray's bubble", palette.bubble],
             ["bar", bar],
           ] as const

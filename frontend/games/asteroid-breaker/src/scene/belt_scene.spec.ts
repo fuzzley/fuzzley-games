@@ -79,7 +79,25 @@ import {
   pickupFrame,
   tagFrame,
 } from "../view/art/art";
-import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
+import { BLINK_MS, DASH_LEAN } from "../view/art/faces";
+import {
+  ADRIFT_FRAMES,
+  eyesFrame,
+  eyesShift,
+  furFrame,
+  sparkCore,
+} from "../view/art/pilot_art";
+import {
+  ENGINES_BEHIND,
+  FLICKER_FRAMES,
+  POD_ALPHAS,
+  POD_FRAMES,
+  RIM_FLASH,
+  flameFrame,
+  flameShare,
+  gaugeFrame,
+  rimFlashAlpha,
+} from "../view/art/pod_art";
 import {
   isFine,
   rockFrame,
@@ -87,7 +105,6 @@ import {
   rockPictures,
 } from "../view/art/rock_art";
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
-import { FLAME_BEHIND, WINDOW, flameShare } from "../view/art/ship_art";
 import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
 import {
   BREATH,
@@ -116,8 +133,8 @@ import { MOST_FINGERS } from "../view/steering/steering";
 import { ATLAS, DECK_ATLAS, ROCK_ATLAS, ROCK_NORMALS } from "./atlas";
 import { type BeltScene, SOUNDS_KEY, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
+import type { Copies } from "./painters/copies";
 import { PLACE_TEXTURES, flashTexture } from "./painters/place_painter";
-import { GUARD_ALPHA } from "./painters/ship_painter";
 import spritemap from "./sounds/sprite.json";
 
 /**
@@ -478,34 +495,36 @@ describe("the shots", () => {
   });
 });
 
-describe("the ship", () => {
+describe("the pod", () => {
   /**
-   * Returns whether the hull, the guard's ring and the flame showed over a
-   * second, each as the set of what it was, the ship's blinks among them.
+   * Returns what the hull, the guard's ring and the flame showed over a
+   * second, each as the set of what it was, the ring's alpha among them.
    */
-  function blinkingOf(
+  function guardingOf(
     run: SceneRun<BeltScene>,
     scene: BeltScene,
   ): {
     readonly hull: ReadonlySet<boolean>;
-    readonly ring: ReadonlySet<boolean>;
+    readonly ring: ReadonlySet<number | null>;
     readonly flame: ReadonlySet<boolean>;
   } {
     const { hull, guard, flame } = scene.kit.ship;
     return {
       hull: overASecond(run, () => isShown(hull)),
-      ring: overASecond(run, () => isShown(guard)),
+      ring: overASecond(run, () =>
+        isShown(guard) ? (guard.images[0]?.alpha ?? null) : null,
+      ),
       flame: overASecond(run, () => isShown(flame)),
     };
   }
 
   /**
-   * What a ship nothing can touch shows over a second, with no thrust pushing
-   * it: its hull blinking within its ring, and no flame.
+   * What a pod nothing can touch shows over a second, with no thrust pushing
+   * it: its hull steadily, within its ring blinking, and no flame.
    */
   const UNTOUCHABLE = {
-    hull: new Set([true, false]),
-    ring: new Set([true]),
+    hull: new Set([true]),
+    ring: new Set([1, POD_ALPHAS.guardBetween]),
     flame: new Set([false]),
   };
 
@@ -515,24 +534,41 @@ describe("the ship", () => {
     ship.lastAngle = angle;
   }
 
-  it("draws the ship where it is, turned as it heads", async () => {
+  /** Returns how far a part is drawn from another, in field units, its first copies'. */
+  function offsetOf(
+    shell: FakeShell,
+    part: Copies,
+    from: Copies,
+  ): { readonly x: number; readonly y: number } {
+    const { unit } = metricsOf(shell);
+    const [at, middle] = [part, from].map((copies) => shown(copies)[0]);
+    return {
+      x: ((at?.x ?? Number.NaN) - (middle?.x ?? Number.NaN)) / unit,
+      y: ((at?.y ?? Number.NaN) - (middle?.y ?? Number.NaN)) / unit,
+    };
+  }
+
+  it("draws the hull where the pod is, lit and turned as it heads", async () => {
     const { shell, scene } = await startBoard(withShip);
     const ship = shipOf(shell.field);
+    const image = scene.kit.ship.hull.images[0];
 
     // Phaser keeps a rotation within half a turn either way of none.
-    const turnedOff = across(
-      scene.kit.ship.hull.images[0]?.rotation ?? Number.NaN,
-      ship.angle,
-      TURN,
-    );
+    const turnedOff = across(image?.rotation ?? Number.NaN, ship.angle, TURN);
 
-    expect(shown(scene.kit.ship.hull)[0]).toEqual(
+    expect([
+      shown(scene.kit.ship.hull)[0],
+      image?.texture.key,
+      image?.frame.name,
+    ]).toEqual([
       onCanvas(metricsOf(shell), ship.x, ship.y),
-    );
+      ROCK_ATLAS,
+      POD_FRAMES.hull,
+    ]);
     expect(turnedOff).toBeCloseTo(0, 9);
   });
 
-  it("seats the pilot at the controls in its window, upright", async () => {
+  it("seats the pilot at the controls upright in the canopy, in its ink, its fur flat", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     const ship = shipOf(shell.field);
     turn(ship, 0.5);
@@ -540,43 +576,303 @@ describe("the ship", () => {
 
     run.advance(16);
 
-    const image = scene.kit.ship.pilot.images[0];
+    const image = scene.kit.ship.fur.images[0];
     expect([
-      shown(scene.kit.ship.pilot)[0],
+      shown(scene.kit.ship.fur)[0],
       image?.frame.name,
+      image?.tintTopLeft,
       image?.rotation,
     ]).toEqual([
-      onCanvas(
-        metricsOf(shell),
-        ship.x + Math.cos(0.5) * WINDOW.x,
-        ship.y + Math.sin(0.5) * WINDOW.x,
-      ),
-      pilotFrame(pilot, "seated"),
+      onCanvas(metricsOf(shell), ship.x, ship.y),
+      furFrame(0, 0),
+      ART_PALETTE.pilots[pilot ?? 0],
       0,
     ]);
   });
 
-  it("turns the pilot's eyes the way the ship heads", async () => {
+  it("turns the pilot's eyes the way the pod heads, with nothing near", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     turn(shipOf(shell.field), 0.5);
 
     run.advance(16);
 
-    const [pilot, eyes] = [scene.kit.ship.pilot, scene.kit.ship.eyes].map(
-      (part) => shown(part)[0],
-    );
-    const { unit } = metricsOf(shell);
-    expect(((eyes?.x ?? 0) - (pilot?.x ?? 0)) / unit).toBeCloseTo(
-      Math.cos(0.5) * LOOK.across * PILOT_SIZES.seated,
-      9,
-    );
-    expect(((eyes?.y ?? 0) - (pilot?.y ?? 0)) / unit).toBeCloseTo(
-      Math.sin(0.5) * LOOK.down * PILOT_SIZES.seated,
-      9,
+    const shift = eyesShift({ x: Math.cos(0.5), y: Math.sin(0.5) }, "pod", {
+      x: 0,
+      y: 0,
+    });
+    const { x, y } = offsetOf(shell, scene.kit.ship.eyes, scene.kit.ship.fur);
+    expect(x).toBeCloseTo(shift.x, 9);
+    expect(y).toBeCloseTo(shift.y, 9);
+  });
+
+  it("turns the pilot's eyes on a rock near the pod", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    turn(ship, 0.5);
+    // Straight below the pod, so it looks straight down.
+    placeRock(shell.field, "small", ship.x, ship.y + 3);
+
+    run.advance(16);
+
+    const shift = eyesShift({ x: 0, y: 1 }, "pod", { x: 0, y: 0 });
+    const { x, y } = offsetOf(shell, scene.kit.ship.eyes, scene.kit.ship.fur);
+    expect(x).toBeCloseTo(shift.x, 9);
+    expect(y).toBeCloseTo(shift.y, 9);
+  });
+
+  it("shows the pilot's face as the field shows it, dizzy after a knock", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    shell.field.events.addKnocked(ship.x, ship.y, 1, shell.field.crew, 1, 0);
+
+    run.advance(16);
+
+    expect(scene.kit.ship.eyes.images[0]?.frame.name).toBe(
+      eyesFrame("pod", "dizzy"),
     );
   });
 
-  it("draws the flame behind the ship as long as its thrust", async () => {
+  it("forgets the last field's knock as a new field starts", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      stillness(each);
+    });
+    const ship = shipOf(shell.field);
+    shell.field.events.addKnocked(ship.x, ship.y, 1, shell.field.crew, 1, 0);
+    run.advance(16);
+
+    withShip(shell);
+    run.advance(16);
+
+    expect(scene.kit.ship.eyes.images[0]?.frame.name).toBe(
+      eyesFrame("pod", "rest"),
+    );
+  });
+
+  it("squeezes the pilot's eyes shut and leans its fur back in a dash, the streaks behind", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      stillness(each);
+    });
+    const ship = shipOf(shell.field);
+    turn(ship, 0.5);
+    ship.dashSteps = 10;
+
+    run.advance(16);
+
+    const { eyes, fur, streaks } = scene.kit.ship;
+    expect([
+      eyes.images[0]?.frame.name,
+      fur.images[0]?.frame.name,
+      fur.images[0]?.rotation,
+      shown(streaks)[0],
+      streaks.images[0]?.rotation,
+    ]).toEqual([
+      eyesFrame("pod", "squeeze"),
+      furFrame(0, DASH_LEAN),
+      0.5,
+      onCanvas(metricsOf(shell), ship.x, ship.y),
+      0.5,
+    ]);
+  });
+
+  it("eases the pilot's fur into a thrust where motion is welcome", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      stepping(each);
+    });
+    shell.field.steer.thrust = 1;
+    const { fur } = scene.kit.ship;
+
+    run.advance(16);
+    const easing = fur.images[0]?.frame.name;
+    run.advance(200);
+
+    expect([easing, fur.images[0]?.frame.name]).toEqual([
+      furFrame(0, 0.5),
+      furFrame(0, 1),
+    ]);
+  });
+
+  it("settles the pilot's fur and puts the flame out once the wave is cleared, though its field stands still", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const { fur, flame } = scene.kit.ship;
+    shipOf(shell.field).held.thrust = 1;
+    run.advance(200);
+    const leaning = fur.images[0]?.frame.name;
+    shell.field.cleared = true;
+
+    run.advance(1000);
+
+    expect([leaning, fur.images[0]?.frame.name, isShown(flame)]).toEqual([
+      furFrame(0, 1),
+      furFrame(0, 0),
+      false,
+    ]);
+  });
+
+  it("fades the rim's flash under way as the wave is cleared, though its field stands still", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    const { flash } = scene.kit.ship;
+    ship.rechargeSteps = 1;
+    run.advance(16);
+    ship.rechargeSteps = 0;
+    run.advance(16);
+    const chargedAt = scene.time.now;
+    const flashing = isShown(flash);
+    shell.field.cleared = true;
+
+    run.advance(RIM_FLASH.ms / 2);
+
+    expect([
+      flashing,
+      Number((flash.images[0]?.alpha ?? 0).toFixed(6)),
+    ]).toEqual([
+      true,
+      Number(rimFlashAlpha(scene.time.now - chargedAt).toFixed(6)),
+    ]);
+  });
+
+  it("ends the dash's streaks once the wave is cleared", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shipOf(shell.field).dashSteps = 10;
+    run.advance(16);
+    const dashing = isShown(scene.kit.ship.streaks);
+    shell.field.cleared = true;
+
+    run.advance(16);
+
+    expect([dashing, isShown(scene.kit.ship.streaks)]).toEqual([true, false]);
+  });
+
+  it("brings the next pod in charged, though the last was lost recharging", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shipOf(shell.field).rechargeSteps = 1;
+    run.advance(16);
+    const next = shipOf(shell.field);
+    shell.field.ship = null;
+    run.advance(16);
+    shell.field.ship = next;
+    next.rechargeSteps = 0;
+
+    run.advance(16);
+
+    expect(isShown(scene.kit.ship.flash)).toBe(false);
+  });
+
+  it("brings the next pod in with its pilot's fur at rest, though the last was lost thrusting", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const next = shipOf(shell.field);
+    next.held.thrust = 1;
+    run.advance(200);
+    const leaning = scene.kit.ship.fur.images[0]?.frame.name;
+    shell.field.ship = null;
+    run.advance(16);
+    shell.field.ship = next;
+    next.held.thrust = 0;
+
+    run.advance(16);
+
+    expect([leaning, scene.kit.ship.fur.images[0]?.frame.name]).toEqual([
+      furFrame(0, 1),
+      furFrame(0, 0),
+    ]);
+  });
+
+  it("lifts the pilot's fur with the chain, sparking on end in the pilot's ink", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shell.field.chain = 20;
+    shell.field.lastBreakAt = shell.field.steps;
+    const pilot = atControls(shell.field.crew) ?? 0;
+
+    run.advance(16);
+
+    const { fur, sparkHalos, sparkCores } = scene.kit.ship;
+    expect([
+      fur.images[0]?.frame.name,
+      isShown(sparkHalos),
+      sparkHalos.images[0]?.tintTopLeft,
+      isShown(sparkCores),
+      sparkCores.images[0]?.tintTopLeft,
+    ]).toEqual([
+      furFrame(3, 0),
+      true,
+      ART_PALETTE.pilots[pilot],
+      true,
+      sparkCore(ART_PALETTE.pilots[pilot] ?? 0, ART_PALETTE),
+    ]);
+  });
+
+  it("shows no sparks below static's second lift", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shell.field.chain = 5;
+    shell.field.lastBreakAt = shell.field.steps;
+
+    run.advance(16);
+
+    const { fur, sparkHalos, sparkCores } = scene.kit.ship;
+    expect([
+      fur.images[0]?.frame.name,
+      isShown(sparkHalos),
+      isShown(sparkCores),
+    ]).toEqual([furFrame(1, 0), false, false]);
+  });
+
+  it("draws the glass and the glint over the pilot in every pod", async () => {
+    const { shell, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+
+    const { glass, glint } = scene.kit.ship;
+
+    expect([shown(glass)[0], shown(glint)[0], glint.images[0]?.alpha]).toEqual([
+      onCanvas(metricsOf(shell), ship.x, ship.y),
+      onCanvas(metricsOf(shell), ship.x, ship.y),
+      POD_ALPHAS.glint[ART_PALETTE.mode],
+    ]);
+  });
+
+  it("fills the rim's gauge as the dash recharges", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shipOf(shell.field).rechargeSteps = stepsIn(DASH_RECHARGE_MS) / 4;
+
+    run.advance(16);
+
+    const { rim, flash } = scene.kit.ship;
+    expect([rim.images[0]?.frame.name, isShown(flash)]).toEqual([
+      gaugeFrame(0.75),
+      false,
+    ]);
+  });
+
+  it("flashes the rim once as the dash comes charged", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    ship.rechargeSteps = 1;
+    run.advance(16);
+    ship.rechargeSteps = 0;
+
+    run.advance(16);
+
+    const { rim, flash } = scene.kit.ship;
+    expect([
+      rim.images[0]?.frame.name,
+      shown(flash)[0],
+      flash.images[0]?.alpha,
+    ]).toEqual([
+      POD_FRAMES.rim,
+      onCanvas(metricsOf(shell), ship.x, ship.y),
+      rimFlashAlpha(0),
+    ]);
+  });
+
+  it("shows no flash on a pod that was charged all along", async () => {
+    const { scene } = await startBoard(withShip);
+
+    expect(isShown(scene.kit.ship.flash)).toBe(false);
+  });
+
+  it("draws the flame behind the engines as long as the thrust", async () => {
     const { shell, run, scene } = await startBoard((each) => {
       withShip(each);
       stillness(each);
@@ -588,74 +884,120 @@ describe("the ship", () => {
     run.advance(16);
 
     const { flame } = scene.kit.ship;
-    expect([shown(flame)[0], flame.images[0]?.scaleX]).toEqual([
+    expect([
+      shown(flame)[0],
+      flame.images[0]?.frame.name,
+      flame.images[0]?.scaleX,
+      flame.images[0]?.scaleY,
+    ]).toEqual([
       onCanvas(
         metricsOf(shell),
-        ship.x - Math.cos(0.5) * FLAME_BEHIND,
-        ship.y - Math.sin(0.5) * FLAME_BEHIND,
+        ship.x - Math.cos(0.5) * ENGINES_BEHIND,
+        ship.y - Math.sin(0.5) * ENGINES_BEHIND,
       ),
+      flameFrame(0),
       flameShare(0.5) * zoomOf(shell),
+      zoomOf(shell),
     ]);
   });
 
-  it("draws no flame while the ship doesn't thrust", async () => {
+  it("flickers the flame where motion is welcome", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      stepping(each);
+    });
+    shell.field.steer.thrust = 1;
+
+    const frames = overASecond(
+      run,
+      () => scene.kit.ship.flame.images[0]?.frame.name,
+    );
+
+    expect(frames.size).toBe(FLICKER_FRAMES);
+  });
+
+  it("draws no flame while the pod doesn't thrust", async () => {
     const { scene } = await startBoard(withShip);
 
     expect(shown(scene.kit.ship.flame)).toEqual([null, null, null, null]);
   });
 
-  it("draws no flame for a waiting ship, however hard the thrust held as it came", async () => {
+  it("draws no flame for a waiting pod, however hard the thrust held as it came", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     const ship = shipOf(shell.field);
     ship.waiting = true;
     ship.held.thrust = 1;
 
-    const seen = blinkingOf(run, scene);
+    const seen = guardingOf(run, scene);
 
     expect(seen).toEqual(UNTOUCHABLE);
   });
 
-  it("blinks a guarded ship within its faint ring", async () => {
+  it("blinks the guard's ring about a guarded pod", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).guardSteps = 1000;
 
-    const seen = blinkingOf(run, scene);
+    const seen = guardingOf(run, scene);
 
     expect(seen).toEqual(UNTOUCHABLE);
-    expect(scene.kit.ship.guard.images[0]?.alpha).toBe(GUARD_ALPHA);
   });
 
-  it("blinks a waiting ship within the same ring, as nothing can touch it either", async () => {
+  it("rings a waiting pod the same, as nothing can touch it either", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).waiting = true;
 
-    const seen = blinkingOf(run, scene);
+    const seen = guardingOf(run, scene);
 
     expect(seen).toEqual(UNTOUCHABLE);
   });
 
-  it("rings a ship the Shield guards", async () => {
+  it("shells and washes a pod the Shield guards", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shell.field.shielded = true;
 
     run.advance(16);
 
-    expect(shown(scene.kit.ship.shield)[0]).toEqual(
-      onCanvas(metricsOf(shell), shipOf(shell.field).x, shipOf(shell.field).y),
+    const { shield, wash } = scene.kit.ship;
+    const middle = onCanvas(
+      metricsOf(shell),
+      shipOf(shell.field).x,
+      shipOf(shell.field).y,
     );
+    expect([shown(shield)[0], shown(wash)[0], wash.images[0]?.alpha]).toEqual([
+      middle,
+      middle,
+      POD_ALPHAS.wash[ART_PALETTE.mode],
+    ]);
   });
 
-  it("draws nothing of a ship between one and the next", async () => {
-    const { shell, run, scene } = await startBoard(withShip);
+  it("draws nothing of a pod between one and the next", async () => {
+    const { shell, run, scene } = await startBoard((each) => {
+      withShip(each);
+      each.field.shielded = true;
+    });
     shell.field.ship = null;
 
     run.advance(16);
 
+    const { ship } = scene.kit;
     expect(
-      [scene.kit.ship.hull, scene.kit.ship.pilot, scene.kit.ship.eyes].flatMap(
-        shown,
-      ),
-    ).toEqual(Array(12).fill(null));
+      [
+        ship.streaks,
+        ship.flame,
+        ship.wash,
+        ship.hull,
+        ship.glass,
+        ship.fur,
+        ship.sparkHalos,
+        ship.sparkCores,
+        ship.eyes,
+        ship.rim,
+        ship.flash,
+        ship.glint,
+        ship.shield,
+        ship.guard,
+      ].filter(isShown),
+    ).toEqual([]);
   });
 });
 
@@ -774,7 +1116,7 @@ describe("the pickups", () => {
 });
 
 describe("the stray", () => {
-  it("draws the stray adrift in its bubble, its pilot low in it in its ink, looking the way it drifts between ships", async () => {
+  it("draws the stray adrift in its bubble, its pilot low in it in its ink, pleading, looking the way it drifts between pods", async () => {
     const { shell, run, scene } = await startBoard(stillness);
     placeStray(shell.field, 30, 20, 0.5, 3);
 
@@ -782,26 +1124,29 @@ describe("the stray", () => {
 
     const metrics = metricsOf(shell);
     const sits = 20 + STRAY_DROP * STRAY_RADIUS;
-    const size = PILOT_SIZES.adrift;
+    const shift = eyesShift({ x: Math.cos(0.5), y: Math.sin(0.5) }, "adrift", {
+      x: 0,
+      y: 0,
+    });
     const { bubble, pilot, eyes } = scene.kit.strays.adrift;
     expect({
       bubble: shownAt(bubble),
       pilot: shownAt(pilot),
-      ink: pilot.frame.name,
+      fur: pilot.frame.name,
+      ink: pilot.tintTopLeft,
       eyes: shownAt(eyes),
+      face: eyes.frame.name,
     }).toEqual({
       bubble: onCanvas(metrics, 30, 20),
       pilot: onCanvas(metrics, 30, sits),
-      ink: pilotFrame(3, "adrift"),
-      eyes: onCanvas(
-        metrics,
-        30 + Math.cos(0.5) * LOOK.across * size,
-        sits + Math.sin(0.5) * LOOK.down * size,
-      ),
+      fur: ADRIFT_FRAMES.fur,
+      ink: ART_PALETTE.pilots[3],
+      eyes: onCanvas(metrics, 30 + shift.x, sits + shift.y),
+      face: eyesFrame("adrift", "plead"),
     });
   });
 
-  it("turns the stray's eyes on the ship, where it is drawn between its last place and its next", async () => {
+  it("turns the stray's eyes on the pod, where it is drawn between its last place and its next", async () => {
     const { shell, run, scene } = await startBoard((each) => {
       stillness(each);
       withShip(each);
@@ -809,19 +1154,27 @@ describe("the stray", () => {
     });
     const ship = shipOf(shell.field);
     ship.lastX = ship.x - 2;
-    // Straight below where the ship is drawn, so it looks straight up.
+    // Straight below where the pod is drawn, so it looks straight up.
     placeStray(shell.field, ship.x - 1, ship.y + 10, 0.5);
 
     run.advance(16);
 
     const sits = ship.y + 10 + STRAY_DROP * STRAY_RADIUS;
+    const shift = eyesShift({ x: 0, y: -1 }, "adrift", { x: 0, y: 0 });
     expect(shownAt(scene.kit.strays.adrift.eyes)).toEqual(
-      onCanvas(
-        metricsOf(shell),
-        ship.x - 1,
-        sits - LOOK.down * PILOT_SIZES.adrift,
-      ),
+      onCanvas(metricsOf(shell), ship.x - 1 + shift.x, sits + shift.y),
     );
+  });
+
+  it("blinks the stray's eyes now and then where motion is welcome", async () => {
+    const { shell, run, scene } = await startBoard();
+    placeStray(shell.field, 30, 20, 0.5, 0);
+    shell.field.steps = stepsIn(BLINK_MS.every);
+    const { eyes } = scene.kit.strays.adrift;
+
+    run.advance(16);
+
+    expect(eyes.frame.name).toBe(eyesFrame("adrift", "blink"));
   });
 
   it("draws the stray between its last place and its next, off the field as it comes in", async () => {
@@ -2118,9 +2471,11 @@ describe("baking", () => {
     run.game.scale.resize(WIDER.width, WIDER.height);
     run.advance(16);
 
+    const metrics = metricsOf(shell, WIDER);
     const art = atlasFrames(
       ART_PALETTE,
-      bakedScale(metricsOf(shell, WIDER)),
+      bakedScale(metrics),
+      isFine(metrics),
     ).find((frame) => frame.name === FRAMES.comet);
     expect(scene.textures.getFrame(ATLAS, FRAMES.comet).width).toBe(art?.width);
   });
@@ -2646,6 +3001,24 @@ describe("the sounds", () => {
     run.advance(DASH_RECHARGE_MS);
 
     expect(played).toEqual([["dash-ready", 0]]);
+  });
+
+  it("tick on the frame the pod's rim flashes as the dash comes charged", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    ship.rechargeSteps = 1;
+    run.advance(16);
+    const played = soundsPlayed();
+    ship.rechargeSteps = 0;
+
+    run.advance(16);
+
+    const { flash } = scene.kit.ship;
+    expect([played, isShown(flash), flash.images[0]?.alpha]).toEqual([
+      [["dash-ready", 0]],
+      true,
+      rimFlashAlpha(0),
+    ]);
   });
 
   it("play an effect's end as its time runs out", async () => {

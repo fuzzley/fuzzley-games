@@ -62,14 +62,14 @@ export const BAIL_OUT_MS = 1400;
 /** How long into its bail-out a pilot starts to blink, as it goes. */
 export const BAIL_OUT_BLINK_MS = 700;
 
-/** How many fading outlines of the ship a dash leaves along its path. */
+/** How many fading outlines of the pod a dash leaves along its path. */
 export const DASH_TRAIL = 3;
 
 /** How long each of a dash's outlines takes to fade. */
 export const TRAIL_MS = 250;
 
-/** How long a speck of the exhaust streams back from the flame as it fades. */
-export const EXHAUST_MS = 300;
+/** How long a puff of the exhaust drifts back from the engines as it fades, as the art kit's `FX_MS.exhaust`. */
+export const EXHAUST_MS = 400;
 
 /**
  * How long the Cleared card waits after the last rock goes, so its shards are

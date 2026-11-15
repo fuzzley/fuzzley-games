@@ -533,6 +533,19 @@ describe("combFur", () => {
 
     expect(Math.max(...tips)).toBeCloseTo(within);
   });
+
+  it("holds every tip inside the glass in its small form, its wider round end and all", () => {
+    const within = 13;
+
+    const tips = combFur({
+      lift: MOST_LIFT,
+      lean: { x: 2, y: 0 },
+      small: true,
+      within,
+    }).map(({ to }) => farOf(to) + SMALL_FUR_WIDTH / 2);
+
+    expect(Math.max(...tips)).toBeCloseTo(within);
+  });
 });
 
 describe("sweptFur", () => {

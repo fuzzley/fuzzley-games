@@ -5,8 +5,8 @@ import {
   lineWidth,
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
+import { FUZZBALL_FACES, MOST_LIFT } from "@fz/style/fuzzball";
 import { PICKUP_IDS } from "../../rules/catalog/pickups";
-import { PILOT_COLORS } from "../../rules/ship/pilots";
 import { COMET_MARGIN, STRAY_RADIUS } from "../../rules/tuning";
 import {
   ART_FRAMES,
@@ -28,13 +28,27 @@ import {
   STRAY_DROP,
   atlasFrames,
   deckFrames,
+  litFrames,
   pickupFrame,
   tagFrame,
 } from "./art";
-import { SEATS, eyesFrame, pilotFrame } from "./pilot_art";
-import { rockFrames } from "./rock_art";
-import { outlineWidth } from "./shapes";
-import { SHIP_FRAMES } from "./ship_art";
+import {
+  ADRIFT_FRAMES,
+  LEANS,
+  SEATS,
+  eyesFrame,
+  furFrame,
+  sparksFrames,
+} from "./pilot_art";
+import {
+  FLICKER_FRAMES,
+  GAUGE_STEPS,
+  POD_FRAMES,
+  flameFrame,
+  gaugeFrame,
+} from "./pod_art";
+import { isFine, rockFrames } from "./rock_art";
+import { MOST_BAKED_UNIT, bakedScale, outlineWidth } from "./shapes";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -80,17 +94,40 @@ function breaking(
   return frames.filter((frame) => !rule(frame)).map((frame) => frame.name);
 }
 
+/** Every lift the pod's pilot's fur is baked at. */
+const LIFTS = Array.from({ length: MOST_LIFT + 1 }, (_, lift) => lift);
+
+/** The names of the pilots' frames: the pod's pilot's fur at each lift and push, static's sparks, a pilot adrift's fur, and each seat's eyes at each face. */
+const PILOT_FRAMES: readonly string[] = [
+  ...LIFTS.flatMap((lift) => LEANS.map((lean) => furFrame(lift, lean))),
+  ...LEANS.flatMap((lean) => Object.values(sparksFrames(lean))),
+  ...Object.values(ADRIFT_FRAMES),
+  ...SEATS.flatMap((seat) =>
+    FUZZBALL_FACES.map((face) => eyesFrame(seat, face)),
+  ),
+];
+
 /**
- * The frames drawn with the fuzzball's fur, whose strands keep the mark's
- * own proportions at any size, as the shell's fuzzball does, so they are
- * under a CSS pixel wide on a small pilot.
+ * The frames drawn with the fuzzball, its fur, its faces and static's
+ * sparks, whose lines keep the mark's own proportions at any size, as the
+ * shell's fuzzball does, so they are under a CSS pixel wide on a small
+ * pilot.
  */
 const FURRED: ReadonlySet<string> = new Set([
-  ...SEATS.flatMap((seat) =>
-    Array.from({ length: PILOT_COLORS }, (_, pilot) => pilotFrame(pilot, seat)),
-  ),
+  ...PILOT_FRAMES,
   FRAMES.strayPicture,
 ]);
+
+/** The pod's frames the field's atlas holds: all but its hull, which the rocks' atlas lights. */
+const POD_ATLAS_FRAMES: readonly string[] = [
+  ...Object.values(POD_FRAMES).filter((name) => name !== POD_FRAMES.hull),
+  ...Array.from({ length: GAUGE_STEPS + 1 }, (_, step) =>
+    gaugeFrame(step / GAUGE_STEPS),
+  ),
+  ...Array.from({ length: FLICKER_FRAMES }, (_, flicker) =>
+    flameFrame(flicker),
+  ),
+];
 
 /**
  * Holds a set of frames to what every frame keeps: within its size, in whole
@@ -149,10 +186,16 @@ describe("atlasFrames at every unit down to a device pixel", () => {
       const units = Array.from({ length: 16 }, (_, i) => i + 1);
 
       const negative = units.flatMap((unit) =>
-        breaking(atlasFrames(ART_PALETTE, { unit, pixelRatio }), (frame) =>
-          frame.commands.every((command) =>
-            sizesIn(command).every((size) => size >= 0),
+        breaking(
+          atlasFrames(
+            ART_PALETTE,
+            { unit, pixelRatio },
+            isFine({ unit, pixelRatio }),
           ),
+          (frame) =>
+            frame.commands.every((command) =>
+              sizesIn(command).every((size) => size >= 0),
+            ),
         ).map((name) => `${name} at ${String(unit)}`),
       );
 
@@ -164,10 +207,15 @@ describe("atlasFrames at every unit down to a device pixel", () => {
 describe.each(ART_SCALES)(
   "atlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
   (scale) => {
-    holdsFrames(() => atlasFrames(ART_PALETTE, scale), scale.pixelRatio);
+    holdsFrames(
+      () => atlasFrames(ART_PALETTE, scale, isFine(scale)),
+      scale.pixelRatio,
+    );
 
     it("fits the atlas in 2048 × 2048", () => {
-      const { width, height } = atlasSize(atlasFrames(ART_PALETTE, scale));
+      const { width, height } = atlasSize(
+        atlasFrames(ART_PALETTE, scale, isFine(scale)),
+      );
 
       expect(Math.max(width, height)).toBeLessThanOrEqual(ATLAS_SIDE);
     });
@@ -178,7 +226,7 @@ describe("SHOT_REACH", () => {
   it.each(ART_SCALES)(
     "holds a shot, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
     (scale) => {
-      const beyond = atlasFrames(ART_PALETTE, scale)
+      const beyond = atlasFrames(ART_PALETTE, scale, isFine(scale))
         .filter(
           (frame) =>
             frame.name === FRAMES.shot &&
@@ -197,7 +245,7 @@ describe("PICKUP_REACH", () => {
     (scale) => {
       const pickups: readonly string[] = PICKUP_IDS.map(pickupFrame);
 
-      const beyond = atlasFrames(ART_PALETTE, scale)
+      const beyond = atlasFrames(ART_PALETTE, scale, isFine(scale))
         .filter(
           (frame) =>
             pickups.includes(frame.name) &&
@@ -230,9 +278,42 @@ describe.each(PIXEL_RATIOS)("deckFrames at %f to a CSS pixel", (pixelRatio) => {
   });
 });
 
+/** The longest side the rocks' atlas may take, which every device the game is played on holds. */
+const LIT_ATLAS_SIDE = 4096;
+
+describe("litFrames", () => {
+  it("holds every rock's frame, then the pod's hull", () => {
+    const fine = isFine(ART_SCALE);
+
+    const names = litFrames(ART_PALETTE, ART_SCALE, fine).map(
+      ({ ink }) => ink.name,
+    );
+
+    expect(names).toEqual([
+      ...rockFrames(ART_PALETTE, ART_SCALE, fine).map(({ ink }) => ink.name),
+      POD_FRAMES.hull,
+    ]);
+  });
+
+  it.each([1, 3])(
+    `fits the rocks' atlas, the pod's hull among it, in ${String(LIT_ATLAS_SIDE)} a side at the largest unit baked, %i to a CSS pixel`,
+    (pixelRatio) => {
+      const scale = bakedScale({ unit: MOST_BAKED_UNIT * 4, pixelRatio });
+
+      const { width, height } = atlasSize(
+        litFrames(ART_PALETTE, scale, true).map(({ ink }) => ink),
+      );
+
+      expect(Math.max(width, height)).toBeLessThanOrEqual(LIT_ATLAS_SIDE);
+    },
+  );
+});
+
 describe("the atlas", () => {
   const names = new Set(
-    atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
+    atlasFrames(ART_PALETTE, ART_SCALE, isFine(ART_SCALE)).map(
+      (frame) => frame.name,
+    ),
   );
 
   it("holds no rock, which the rocks' own atlas holds", () => {
@@ -243,20 +324,17 @@ describe("the atlas", () => {
     expect(rocks.filter((name) => names.has(name))).toEqual([]);
   });
 
-  it("holds a frame for every pilot in each seat, and its eyes", () => {
-    const wanted = SEATS.flatMap((seat) => [
-      ...Array.from({ length: PILOT_COLORS }, (_, pilot) =>
-        pilotFrame(pilot, seat),
-      ),
-      eyesFrame(seat),
-    ]);
+  it("holds not the pod's hull, which the rocks' atlas lights", () => {
+    expect(names.has(POD_FRAMES.hull)).toBe(false);
+  });
 
-    expect(wanted.filter((name) => !names.has(name))).toEqual([]);
+  it("holds a frame for each of the pilots' furs, sparks and faces", () => {
+    expect(PILOT_FRAMES.filter((name) => !names.has(name))).toEqual([]);
   });
 
   it.each([
     ...Object.values(FRAMES),
-    ...Object.values(SHIP_FRAMES),
+    ...POD_ATLAS_FRAMES,
     ...PICKUP_IDS.map(pickupFrame),
     ...PICKUP_IDS.filter(isTagged).map(tagFrame),
   ])("holds the %s frame", (name) => {
@@ -489,7 +567,9 @@ describe("the other frames", () => {
 
 describe("PICTURE_FRAMES", () => {
   const names = new Set(
-    atlasFrames(ART_PALETTE, ART_SCALE).map((frame) => frame.name),
+    atlasFrames(ART_PALETTE, ART_SCALE, isFine(ART_SCALE)).map(
+      (frame) => frame.name,
+    ),
   );
 
   it("pictures every pickup, a stray and the comet from frames the atlas holds", () => {
