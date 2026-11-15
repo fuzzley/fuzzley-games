@@ -54,7 +54,8 @@ as `phaserGameLayers()` holds them: no clock or timer (`Date.now()`,
 `new Date()`, `performance`, `setTimeout()`), no number drawn from no seed
 (`Math.random()`, `crypto`, `@fz/core/random`'s `randomSeed()`), no seed
 mixed by hand (`Math.imul()`, where `@fz/core/random`'s `mixSeed()` mixes
-one), nothing of the page (`window`, `document`, `navigator`,
+one, but for a rock's cut and its cracks, which mix theirs as the art kit
+does, so each rock is the one the kit drew), nothing of the page (`window`, `document`, `navigator`,
 `matchMedia()`) and nothing stored or fetched (`localStorage`, `fetch()`).
 The scene hands them the frames' time and the room, the shell what is kept,
 and their numbers are drawn from a seed, so a run plays the same again from
@@ -351,9 +352,13 @@ takes for the specs' helpers.
   the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
   game's own for each kind of rock, in light palettes and in dark, and the
   eight pilots' from `@fz/phaser/color`'s `FUZZBALL_INKS`, and gives a
-  pilot's ink to the shell too, in CSS hex (`pilotInk()`).
-  `contrast.spec.ts` holds each kind of rock's ink, the ship, the pickups,
-  the comet, the shots, the flame and a stray's bubble's rim to 3:1 against
+  pilot's ink to the shell too, in CSS hex (`pilotInk()`). `tones.ts`
+  mixes the four tones of an ink a rock's marks are drawn in, lit, its
+  own, shaded and deep, with white and the palette's field or its text
+  (`tonesOf()`), each channel rounded as the art kit rounds it
+  (`mixTone()`). `contrast.spec.ts` holds each kind of rock's ink, the
+  ship, the pickups, the comet, the shots, the flame and a stray's
+  bubble's rim to 3:1 against
   the field in every palette, the outline against everything it outlines,
   the marks against every rock, a pickup's symbol against the pickup, each
   pilot against the field, a stray's bubble and the bar, the eyes against
@@ -387,6 +392,25 @@ takes for the specs' helpers.
   where a label's characters are stamped from them, as a `Text` sets a line
   (`layOutPoints()`); and the sheet the labels are stamped on, a room each
   (`pointsSheet()`).
+- **`src/view/art/rocks/`** — the rocks' geometry, cut from a seed, ported
+  from the art kit's `docs/asteroid-breaker-uplift/art/lib/rocks.mjs` on
+  `@fz/core/random`'s `createRandom()`, which draws as the kit's
+  `seeded()`, so a rock is the kit's, in shares of its
+  radius about its middle. `rock_shape.ts` cuts a rock of a kind and size
+  from a seed (`makeRock()`, a `RockShape`): its outline, its rim, its
+  facets back to front, each facing a way (`Facet`), and its marks, the
+  lines, dots, glows and aura each kind adds, from how each kind is cut
+  at each size it comes in (`cutOf()`); `cut.ts` the dome every kind is
+  cut as, rings of corners rising to a peak or a flat top, joined in
+  triangles (`dome()`, `strip()`), a stone's dents (`dent()`) and a
+  crystal's gems (`prism()`); `cracks.ts` the cracks a rock shows for the
+  hits it has held, one and a branch a hit, the same every time
+  (`cracksOf()`); `light.ts` how brightly a light far off falls on a
+  facet, as WebGL's lighting lights it (`litBy()`, `RockLight`), and the
+  color a normal map holds for the way a facet faces (`normalColor()`);
+  and `space.ts` the arithmetic they share. Each spec holds its part to
+  the kit's numbers, copied into it to four places: one rock of each
+  kind whole, and every other size in brief.
 - **`src/scene/`** — the Phaser scene. `BeltScene` (`belt_scene.ts`, made
   by `makeBeltScene()`) is handed plain functions over the game
   (`BeltSceneOptions`), the font the points are written in among them, a
