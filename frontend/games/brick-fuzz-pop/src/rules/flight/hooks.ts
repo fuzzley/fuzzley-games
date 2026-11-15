@@ -8,7 +8,7 @@
 import type { BrickTrait, TraitKind, TraitOf } from "../catalog/bricks";
 import type { BreakCause, ZapPattern } from "./events";
 
-/** Describes a strike on a brick before its hits are taken, which the brick's rules may shield it from or earth. */
+/** Describes a strike on a brick before its hits are taken, which the brick's rules may shield it from, earth or charge. */
 export interface Struck {
   /** What strikes it: a fuzzball, a zap or a blast. */
   readonly by: BreakCause;
@@ -16,8 +16,11 @@ export interface Struck {
   readonly side: number;
   /** The faces the brick is plated on, as `SIDE`'s bits. */
   readonly plates: number;
-  /** The charge it is struck with: 0 for a plain fuzzball, a zap or a blast. */
-  readonly charge: number;
+  /**
+   * The charge it is struck with: 0 for a plain fuzzball, a zap or a blast,
+   * unless a rule raises it, as wool's does for a fuzzball.
+   */
+  charge: number;
   /** Whether a hot shot strikes it, whose charge nothing takes. */
   readonly hot: boolean;
   /** Whether it takes hits: true unless a rule shields it. */

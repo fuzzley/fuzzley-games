@@ -49,7 +49,7 @@ export const SPARKS_KINDS = {
   wool: {
     name: "Wool brick",
     about:
-      "Breaks at a hit, and charges the fuzzball that breaks it to full; a zap or a blast only breaks it.",
+      "Charges the fuzzball that strikes it to full, so even a plain one breaks through and flies on charged; a zap or a blast only breaks it.",
     hits: 1,
     mostHits: 1,
     needed: true,

@@ -151,19 +151,20 @@ helpers.
   bricks it would punch through on the way. `src/rules/flight/benchmarks/`
   times `cast()`, `fly()`, `guideOf()` and `playRound()`, and plays ten
   thousand random shots along `playRound()`'s own path.
-- **`src/rules/bricks/`** — what a brick does. `bricks.ts`'s `strike()`
-  works out what a fuzzball's strike does to a brick and to the fuzzball, as
+- **`src/rules/bricks/`** — what a brick does. `bricks.ts`'s `strike()` works
+  out what a fuzzball's strike does to a brick and to the fuzzball, as
   `plan.md`'s "Charge" says, once the brick's rules have said whether it
-  hurts and whether it earths the charge. `trait_rules.ts`'s `TRAIT_RULES`
-  holds each trait's rule, typed so a trait without one fails to compile,
-  each in a file of its own under `traits/`: steel's `never` and `earths`,
-  the zappers' and the bomb's `zaps`, in a row, a column, both, the
-  diagonals or a blast, wool's `recharges`, the cage's `frees`, freeing its
-  friend in its tint, the bumper's `kicks`, the prism's `splits`, the
-  portal's `teleports` and the plated brick's `plated`, a corner plated
-  only where both its faces are, the shell's `shelled`, which only charge,
-  a zap or a blast hurts, and moss's `regrows`, which does nothing in a
-  flight.
+  hurts, whether it earths the charge and the charge it is struck with.
+  `trait_rules.ts`'s `TRAIT_RULES` holds each trait's rule, typed so a trait
+  without one fails to compile, each in a file of its own under `traits/`:
+  steel's `never` and `earths`, the zappers' and the bomb's `zaps`, in a row,
+  a column, both, the diagonals or a blast, wool's `recharges`, charging a
+  fuzzball to the most as it strikes and again as it breaks, the cage's
+  `frees`, freeing its friend in its tint, the bumper's `kicks`, the prism's
+  `splits`, the portal's `teleports` and the plated brick's `plated`, a corner
+  plated only where both its faces are, the shell's `shelled`, which only
+  charge, a zap or a blast hurts, and moss's `regrows`, which does nothing in
+  a flight.
 - **`src/rules/wall/`** — the wall. `wall.ts` holds `Brick`, `Wall` and a
   field's thirds (`thirdsOf()`: the jump, the jump line and the row a level
   opens on), with every depth a field has (`DEPTHS`) and whether a value is
@@ -641,7 +642,7 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
   version the shell keeps it under), begun on level 18, Powder keg, on a
   field 11 deep and played two rounds in by the first two shots of its
   certificate there, taken up and gone on with, the next shot aimed by the
-  arrow keys up through a bomb, at 100 degrees and a charge of 3, which it
+  arrow keys up through a bomb, at 110 degrees and a charge of 3, which it
   waits to hear the game say, at 1280 × 720 and 2× on Midnight blue, written
   to `public/docs/screenshots/brick-fuzz-pop/` as the site's `preview.webp`
   (2560 × 1440), which `index.html` names as the link preview, and

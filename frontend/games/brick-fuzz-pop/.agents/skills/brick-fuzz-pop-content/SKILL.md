@@ -234,11 +234,11 @@ stand-in going once no spec uses it.
 - Its rule in a file of its own in `src/rules/bricks/traits/`, a
   `TraitRule` (`src/rules/flight/hooks.ts`) at the moments it acts in a
   flight: `struck` before a strike's hits are taken, setting whether it
-  hurts and earths on the `Struck` it is handed; and `broken` as the brick
-  breaks, `met` as a fuzzball meets its disc and `entered` as a fuzzball's
-  middle crosses into its cell, each acting through `Hooks`. Its place in
-  `TRAIT_RULES`, and in the stand-ins' `STAND_IN_RULES`; the compiler asks
-  for both.
+  hurts and earths, and raising its charge, on the `Struck` it is handed;
+  and `broken` as the brick breaks, `met` as a fuzzball meets its disc and
+  `entered` as a fuzzball's middle crosses into its cell, each acting
+  through `Hooks`. Its place in `TRAIT_RULES`, and in the stand-ins'
+  `STAND_IN_RULES`; the compiler asks for both.
 - What no hook does yet is a new member of `Hooks`, which the flight's
   `Flying` (`src/rules/flight/flight.ts`) implements.
 - A trait that acts between rounds rather than in a flight does so where

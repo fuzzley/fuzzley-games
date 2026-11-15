@@ -1,9 +1,35 @@
 import { eventsOf, flyPicture } from "../../../testing/flights";
+import { struckOf } from "../../../testing/stand_ins";
 import { MOST_CHARGE } from "../../tuning";
+import { RECHARGES_RULE } from "./recharges";
+
+describe("RECHARGES_RULE", () => {
+  it.each([
+    ["a plain fuzzball", {}],
+    ["a charged fuzzball", { charge: 2 }],
+  ] as const)("charges %s striking it to the most", (_, given) => {
+    const struck = struckOf(given);
+
+    RECHARGES_RULE.struck?.(struck, { kind: "recharges" });
+
+    expect(struck.charge).toBe(MOST_CHARGE);
+  });
+
+  it.each([
+    ["a zap", { by: "zap", side: 0 }],
+    ["a blast", { by: "blast", side: 0 }],
+  ] as const)("charges nothing for %s", (_, given) => {
+    const struck = struckOf(given);
+
+    RECHARGES_RULE.struck?.(struck, { kind: "recharges" });
+
+    expect(struck.charge).toBe(0);
+  });
+});
 
 // A fuzzball straight up from the floor meets a brick in field row 3 at 2.5.
-describe("RECHARGES_RULE", () => {
-  it("charges the fuzzball that punches through wool to the most, which it punches on with", () => {
+describe("RECHARGES_RULE, flown", () => {
+  it("charges the fuzzball that strikes wool to the most, and again as it breaks it, which it punches on with", () => {
     const flown = flyPicture({
       picture: ["....o....", "....o....", "....W...."],
       charge: 1,
@@ -19,10 +45,30 @@ describe("RECHARGES_RULE", () => {
     ]).toEqual([
       [{ at: 2.5, kind: "recharge", ball: 0, cell: 4 }],
       [
-        [4, 1, 0],
+        [4, 1, MOST_CHARGE - 1],
         [13, 1, MOST_CHARGE - 1],
         [22, 1, MOST_CHARGE - 2],
       ],
+    ]);
+  });
+
+  it("punches a plain fuzzball through wool, which flies on through the bricks behind it charged", () => {
+    const flown = flyPicture({
+      picture: ["....o....", "....o....", "....W...."],
+    });
+
+    expect([
+      eventsOf(flown, "turn").map(({ off }) => off),
+      eventsOf(flown, "strike").map(({ cell, charge }) => [cell, charge]),
+      flown.punched,
+    ]).toEqual([
+      ["ceiling"],
+      [
+        [4, MOST_CHARGE - 1],
+        [13, MOST_CHARGE - 1],
+        [22, MOST_CHARGE - 2],
+      ],
+      [4, 13, 22],
     ]);
   });
 
