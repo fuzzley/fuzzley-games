@@ -27,6 +27,9 @@ import {
   wrap,
 } from "../torus";
 import {
+  FAIR_COURSE_MS,
+  LAST_FEW_LEAN,
+  LAST_FEW_NEAR,
   PIECE_PUSH,
   PIECE_TURN,
   ROCK_HIT_SHARE,
@@ -96,6 +99,13 @@ export interface RockField extends DropField, ScoreField, ShedField {
    * (`lastFewOn()`), which a pause's stretch leaves as it is.
    */
   readonly lastFew: number;
+  /**
+   * Whether its wave has held more whole rocks than its last few, so that,
+   * once no more are whole, they are the last of many and lean toward the
+   * ship; a wave laid as no more than its last few doesn't lean until it
+   * has held more.
+   */
+  hadMore: boolean;
   /** Where the ship is, which drawn rocks drift toward, or null while there is none. */
   readonly ship: Place | null;
   /**
@@ -289,10 +299,23 @@ export function hitRock(
   return true;
 }
 
-/** Flies each whole rock a step on, as {@link flyRock} does. */
+/**
+ * Flies each whole rock a step on, as {@link flyRock} does, each of a
+ * wave's last few, once it has held more ({@link RockField.hadMore}), first
+ * leaning toward the ship, a drawn rock's own pull on top.
+ *
+ * None leans until the wave's first {@link FAIR_COURSE_MS} are flown,
+ * through which its rocks fly as they were laid, as its layout judged
+ * their courses fair.
+ */
 export function stepRocks(field: RockField): void {
+  const few = isLastFew(field);
+  if (!few) field.hadMore = true;
+  const leaning = few && field.hadMore && field.steps > stepsIn(FAIR_COURSE_MS);
   for (const rock of field.rocks) {
-    if (rock.live) flyRock(field, rock);
+    if (!rock.live) continue;
+    if (leaning) leanTowardShip(field, rock);
+    flyRock(field, rock);
   }
 }
 
@@ -465,24 +488,52 @@ function goOff(field: RockField, rock: Readonly<Rock>, reach: number): void {
  * past that, as a pushed piece may be.
  */
 function pullTowardShip(field: CourseField, rock: Rock, pull: number): void {
-  const { ship, torus } = field;
-  if (ship === null) return;
-  const toX = across(rock.x, ship.x, torus.width);
-  const toY = across(rock.y, ship.y, torus.height);
-  const way = Math.hypot(toX, toY);
-  if (way === 0) return;
-  const most = Math.max(
-    ROCK_SPEED[rock.size].most * rockKind(rock.kind).speed * field.rockSpeed,
-    Math.hypot(rock.vx, rock.vy),
-  );
+  const way = wayToShip(field, rock);
+  if (way === null || way.length === 0) return;
+  const most = Math.max(mostSpeedOf(field, rock), Math.hypot(rock.vx, rock.vy));
   const gain = pull * field.pace * STEP_S;
-  rock.vx += (toX / way) * gain;
-  rock.vy += (toY / way) * gain;
+  rock.vx += (way.x / way.length) * gain;
+  rock.vy += (way.y / way.length) * gain;
   const speed = Math.hypot(rock.vx, rock.vy);
   if (speed > most) {
     rock.vx *= most / speed;
     rock.vy *= most / speed;
   }
+}
+
+/**
+ * Leans one of a wave's last few rocks toward the ship the shortest way,
+ * from beyond {@link LAST_FEW_NEAR}: its velocity closes
+ * {@link LAST_FEW_LEAN}'s share of the gap to its most speed straight at
+ * the ship each second, at the field's pace, so its drift across the way
+ * dies away and it comes in, never faster than its size flies.
+ */
+function leanTowardShip(field: CourseField, rock: Rock): void {
+  const way = wayToShip(field, rock);
+  if (way === null || way.length <= LAST_FEW_NEAR) return;
+  const most = mostSpeedOf(field, rock);
+  const closes = Math.min(1, LAST_FEW_LEAN * field.pace * STEP_S);
+  rock.vx += ((way.x / way.length) * most - rock.vx) * closes;
+  rock.vy += ((way.y / way.length) * most - rock.vy) * closes;
+}
+
+/** Returns the shortest way from a rock to the ship, across the wrap, or null with no ship on the field. */
+function wayToShip(
+  field: CourseField,
+  rock: Readonly<Rock>,
+): { readonly x: number; readonly y: number; readonly length: number } | null {
+  const { ship, torus } = field;
+  if (ship === null) return null;
+  const x = across(rock.x, ship.x, torus.width);
+  const y = across(rock.y, ship.y, torus.height);
+  return { x, y, length: Math.hypot(x, y) };
+}
+
+/** Returns the most speed a rock flies at: its size's, times its kind's and the field's rocks' speed. */
+function mostSpeedOf(field: CourseField, rock: Readonly<Rock>): number {
+  return (
+    ROCK_SPEED[rock.size].most * rockKind(rock.kind).speed * field.rockSpeed
+  );
 }
 
 /** Runs the rules of a rock's traits for a moment in play. */

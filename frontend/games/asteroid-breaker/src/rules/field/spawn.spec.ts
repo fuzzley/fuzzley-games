@@ -17,6 +17,7 @@ import {
   FAIR_COURSE,
   FAIR_COURSE_MS,
   FAIR_DISTANCE,
+  LAST_FEW,
   ROCK_CAP,
   ROCK_RADIUS,
   ROCK_SPEED,
@@ -56,6 +57,7 @@ const ROCKS = [
 const SETUP: FieldSetup = {
   torus: NARROWEST,
   cap: ROCK_CAP,
+  lastFew: LAST_FEW,
   seed: 1,
   pace: 1,
   waveKind: "stone",

@@ -88,7 +88,8 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
 /**
  * The wave in play's field as storage keeps it: the size it was laid out
  * at and its size now, its rocks, the counts its draws, strays, comets and
- * points run by, and the pilot's static.
+ * points run by, the pilot's static, and whether its wave has held more
+ * rocks than its last few.
  *
  * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
  * the comets on their way, the pickups, the sparks, the shots and the
@@ -128,6 +129,11 @@ export interface SavedField {
   readonly lastSparkAt: number;
   /** The pilot's static. */
   readonly charge: number;
+  /**
+   * Whether its wave has held more whole rocks than its last few, which
+   * lean toward the ship once no more are whole.
+   */
+  readonly hadMore: boolean;
 }
 
 /** The counts a field storage keeps runs by. */
@@ -166,6 +172,7 @@ export type SavableField = Pick<
   | "strayPoints"
   | "hits"
   | "charge"
+  | "hadMore"
 >;
 
 /**
@@ -204,6 +211,7 @@ export function savedField(field: SavableField): SavedField {
     hits: field.hits,
     lastSparkAt: field.charge.lastSparkAt,
     charge: field.charge.level,
+    hadMore: field.hadMore,
   };
 }
 
@@ -211,8 +219,9 @@ export function savedField(field: SavableField): SavedField {
  * Returns a wave's field as storage kept it, or null if it can't be
  * trusted: a count that isn't one, a size no board lays a field out at, a
  * rock that can't be trusted, a pickup let go or a spark gathered after its
- * last step, static past its most, or a field that hasn't moved, doesn't
- * fit its wave or doesn't agree with what its run has scored on it.
+ * last step, static past its most, a `hadMore` that isn't true or false,
+ * or a field that hasn't moved, doesn't fit its wave or doesn't agree with
+ * what its run has scored on it.
  */
 export function readField(
   value: unknown,
@@ -223,8 +232,14 @@ export function readField(
   const laidOut = readTorus(value["laidOut"]);
   const torus = readTorus(value["torus"]);
   const kept = value["rocks"];
-  const { charge } = value;
-  if (!laidOut || !torus || !hasKeptCounts(value) || !isStatic(charge)) {
+  const { charge, hadMore } = value;
+  if (
+    !laidOut ||
+    !torus ||
+    !hasKeptCounts(value) ||
+    !isStatic(charge) ||
+    typeof hadMore !== "boolean"
+  ) {
     return null;
   }
   const { steps } = value;
@@ -236,6 +251,7 @@ export function readField(
     rocks,
     ...pick(value, KEPT_COUNTS),
     charge,
+    hadMore,
   };
   const sound =
     hasMoved(field) &&
@@ -421,6 +437,7 @@ export function layOutKeptField(
   field.hits = saved.hits;
   field.charge.level = saved.charge;
   field.charge.lastSparkAt = saved.lastSparkAt;
+  field.hadMore = saved.hadMore;
   bringShip(field);
   return field;
 }

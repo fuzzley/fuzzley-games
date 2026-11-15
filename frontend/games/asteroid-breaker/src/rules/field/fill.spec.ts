@@ -85,6 +85,7 @@ describe("fillFor", () => {
     expect(filled({ width: 40, height: 40 })).toEqual({
       rocks: WAVE.rocks,
       cap: ROCK_CAP,
+      lastFew: LAST_FEW,
       pickupsAtOnce: PICKUPS_AT_ONCE,
       strays: 1,
       strayFirstMs: STRAY_FIRST_MS,
@@ -107,9 +108,10 @@ describe("fillFor", () => {
 
     expect([
       fill.rocks.map((each) => each.count),
+      fill.lastFew,
       fill.pickupsAtOnce,
       fill.strays,
-    ]).toEqual([[5, 2], 4, 2]);
+    ]).toEqual([[5, 2], 5, 4, 2]);
   });
 
   it("caps the widest field at 105 rocks", () => {

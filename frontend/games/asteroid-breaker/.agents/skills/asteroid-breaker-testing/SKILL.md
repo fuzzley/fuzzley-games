@@ -108,7 +108,10 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `torus`; they set what a picture can't show: the seed, the pace, the
   kind, the chance of a pickup and the pool, the strays and the comets, and
   the crew, a run's first unless given. `KEEPER` is a picture of one large
-  rock, so a wave doesn't clear while a spec plays on.
+  rock, so a wave doesn't clear while a spec plays on. A picture's rocks
+  are its wave's last few once no more than its shape's are whole, and lean
+  toward the ship only once its wave has held more (`hadMore`), so a
+  picture of a few rocks flies them as laid however long a spec plays.
 - `placeRock()`, `placePickup()`, `catchOn()`, `placeSpark()`,
   `placeStray()`, `placeLoose()` and `placeComet()` put more on a field,
   `placeLoose()` leaving the crew as it is; `stepTimes(field, n)` steps it;

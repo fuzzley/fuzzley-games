@@ -74,6 +74,7 @@ import { liesFairly } from "./spawn";
 const SETUP: FieldSetup = {
   torus: PICTURE_TORUS,
   cap: 30,
+  lastFew: 5,
   seed: 1,
   pace: 1.1,
   waveKind: "ice",
@@ -327,6 +328,7 @@ describe("fieldFor", () => {
     expect(field.setup).toEqual({
       torus: START.torus,
       cap: 87,
+      lastFew: 5,
       seed: 5,
       pace: 0.8,
       waveKind: "stone",
@@ -460,6 +462,12 @@ describe("createField", () => {
       lastFew: 5,
       cleared: false,
     });
+  });
+
+  it("counts its wave's last few as its setup does, its wave yet to hold more", () => {
+    const field = createField({ ...SETUP, lastFew: 2 });
+
+    expect([field.lastFew, field.hadMore]).toEqual([2, false]);
   });
 
   it("lays the crew's line in tow out straight behind its ship", () => {

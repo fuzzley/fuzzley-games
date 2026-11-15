@@ -147,10 +147,26 @@ export const ROCK_CAP = 48;
 
 /**
  * How many whole rocks a field of 40 by 40 has left, or fewer, as a wave's
- * last few, from which its tail is timed; a larger field's last few are
- * more, by its area.
+ * last few, which lean toward the ship, and from which its tail is timed;
+ * a larger field's last few are more, by its area.
  */
 export const LAST_FEW = 3;
+
+/**
+ * How much of the gap between its velocity and its size's most speed
+ * straight at the ship each of a wave's last few closes each second, as it
+ * leans toward the ship from beyond {@link LAST_FEW_NEAR}: its drift across
+ * the way to the ship dies away and it comes in, never faster than its size
+ * flies.
+ */
+export const LAST_FEW_LEAN = 2;
+
+/**
+ * How near the ship, middle to middle across the wrap, each of a wave's
+ * last few leans toward it from: nearer, it flies on as it flies, so the
+ * pilot can dodge it, and it never dogs the ship.
+ */
+export const LAST_FEW_NEAR = 12;
 
 /** How near the ship, middle to middle across the wrap, no rock of a wave starts. */
 export const FAIR_DISTANCE = 12;

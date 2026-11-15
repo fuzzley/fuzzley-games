@@ -22,6 +22,8 @@ export interface Fill {
   readonly rocks: readonly WaveRocks[];
   /** The most rocks the field holds at once. */
   readonly cap: number;
+  /** How many whole rocks, or fewer, are its wave's last few (`lastFewOn()`). */
+  readonly lastFew: number;
   /** How many pickups may float before chance lets no more go. */
   readonly pickupsAtOnce: number;
   readonly strays: number;
@@ -83,6 +85,7 @@ export function fillFor(wave: Wave, torus: Torus): Fill {
   return {
     rocks,
     cap: Math.max(laid, Math.floor(ROCK_CAP * share)),
+    lastFew: lastFewOn(torus),
     pickupsAtOnce: grown(PICKUPS_AT_ONCE, share),
     strays: grown(wave.strays, share),
     strayFirstMs: STRAY_FIRST_MS * share,

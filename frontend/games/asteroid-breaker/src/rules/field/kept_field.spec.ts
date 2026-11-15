@@ -364,6 +364,7 @@ describe("savedField", () => {
       hits: field.hits,
       lastSparkAt: field.charge.lastSparkAt,
       charge: field.charge.level,
+      hadMore: field.hadMore,
     });
   });
 
@@ -436,6 +437,13 @@ describe("readField", () => {
 
   it.each(STATIC_SPOILS)("drops a field of %s", (_, charge) => {
     expect(read(keptWith({ charge }))).toBeNull();
+  });
+
+  it.each([
+    ["no word of whether its wave has held more than its last few", undefined],
+    ["a word of it that isn't yes or no", "yes"],
+  ])("drops a field with %s", (_, hadMore) => {
+    expect(read(keptWith({ hadMore }))).toBeNull();
   });
 
   it.each([
@@ -676,6 +684,7 @@ describe("layOutKeptField", () => {
       hits: 1,
       lastSparkAt: 100,
       charge: 23.5,
+      hadMore: !kept().hadMore,
     };
 
     const field = layOut(saved);

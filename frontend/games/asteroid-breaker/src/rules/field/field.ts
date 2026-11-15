@@ -6,7 +6,7 @@ import type { RockKindId } from "../catalog/rocks";
 import type { WeaponId } from "../catalog/weapons";
 import { type DropSetup, createPickups } from "../rocks/drops";
 import { FieldEventLog } from "./events";
-import { fillFor, lastFewOn, stretchField } from "./fill";
+import { fillFor, stretchField } from "./fill";
 import {
   type CometSetup,
   type Comets,
@@ -123,6 +123,8 @@ export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly torus: Torus;
   /** The most rocks the field holds at once. */
   readonly cap: number;
+  /** How many whole rocks, or fewer, are its wave's last few. */
+  readonly lastFew: number;
   readonly seed: number;
   /** How fast its rocks go against their own speed: the wave's pace and the speed's together. */
   readonly pace: number;
@@ -252,6 +254,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       crew,
       charge,
       cap: fill.cap,
+      lastFew: fill.lastFew,
       pace: wave.pace * motion,
       sparkReach,
       waveKind: wave.waveKind,
@@ -292,7 +295,8 @@ export function createField(
     torus,
     rocks: createRocks(setup.cap),
     waveKind: setup.waveKind,
-    lastFew: lastFewOn(torus),
+    lastFew: setup.lastFew,
+    hadMore: false,
     ship: createShip(middle.x, middle.y, held),
     tow: createTow(),
     towing: TUNED_TOWING,
