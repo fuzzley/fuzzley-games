@@ -121,7 +121,8 @@ export function waveToPlay(entry: WaveEntry, seed: number): Wave {
  * budget of rocks, one crystal among them and, every tenth wave, boulders;
  * a formation drawn from the four, but a scatter or a wall for boulders or
  * for more rocks than {@link GATHERED_MOST}; comets in every wave; and its pace, comets
- * and strays by how far into Endless it is.
+ * and strays by how far into Endless it is. It sends no burrs, which only
+ * the sectors' waves that say so send.
  *
  * A number before Endless's first makes its first.
  */
@@ -148,6 +149,7 @@ export function endlessWave(seed: number, number: number): Wave {
     drops: ENDLESS.drops,
     pool: PICKUP_IDS,
     strays: number >= TWO_STRAYS_FROM ? 2 : 1,
+    burrs: 0,
     cometEvery: {
       least: 1000 * lerp(FIRST_COMETS.least, CLOSED_COMETS.least, closed),
       most: 1000 * lerp(FIRST_COMETS.most, CLOSED_COMETS.most, closed),

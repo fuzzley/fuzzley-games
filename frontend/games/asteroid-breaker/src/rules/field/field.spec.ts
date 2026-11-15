@@ -17,6 +17,7 @@ import {
 } from "../../testing/field_picture";
 import { PICKUPS } from "../catalog/pickups";
 import { ROCK_KINDS, type RockSize } from "../catalog/rocks";
+import { TUNED_BURRING } from "../hazards/burrs";
 import { knockLastLoose } from "../hazards/loose";
 import { type Rock, hitRock, rockHitRadius, rocksLeft } from "../rocks/rocks";
 import { type Crew, createCrew } from "../ship/pilots";
@@ -86,6 +87,8 @@ const SETUP: FieldSetup = {
   strays: 1,
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
+  burrs: 0,
+  burrsAtOnce: 0,
   crew: createCrew(),
   charge: 0,
   sparkReach: 1,
@@ -340,10 +343,28 @@ describe("fieldFor", () => {
       strays: 2,
       strayFirstMs: STRAY_FIRST_MS,
       cometEvery: { least: 10_000 / sooner / 0.5, most: 20_000 / sooner / 0.5 },
+      burrs: 0,
+      burrsAtOnce: 4,
       crew: START.crew,
       charge: 12,
       sparkReach: 1.6,
     });
+  });
+
+  it("sends a wave's burrs, grown by the field's area, as many at once as the area grows", () => {
+    const field = fieldFor(waveOf({ burrs: 3 }), START);
+
+    expect([field.setup.burrs, field.setup.burrsAtOnce]).toEqual([5, 4]);
+  });
+
+  it("flies and clings burrs as tuning.ts says unless its setup gives another", () => {
+    const burring = { ...TUNED_BURRING, slow: 0.5 };
+
+    const [tuned, given] = [START, { ...START, burring }].map(
+      (setup) => fieldFor(waveOf(), setup).burring,
+    );
+
+    expect([tuned, given]).toEqual([TUNED_BURRING, burring]);
   });
 
   it("starts with the static its run hands it, no spark gathered yet", () => {

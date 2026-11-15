@@ -67,6 +67,8 @@ const SETUP: FieldSetup = {
   strays: 0,
   strayFirstMs: STRAY_FIRST_MS,
   cometEvery: null,
+  burrs: 0,
+  burrsAtOnce: 0,
   crew: createCrew(),
   charge: 0,
   sparkReach: 1,

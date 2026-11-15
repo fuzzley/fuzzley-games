@@ -1,12 +1,13 @@
 // The numbers the debug menu tunes in play, which a development build
 // offers, and a production one at `?debug`: the ship's flight, its
-// gunnery, the rocks' speed, and how far sparks are drawn in, how fast
-// static drains and how far a zap reaches, each starting at `tuning.ts`'s
-// and written back as its lines, so a feel found by playing is pasted
-// straight in.
+// gunnery, the rocks' speed, how far sparks are drawn in, how fast static
+// drains and how far a zap reaches, and how fast a burr flies and how much
+// one clinging slows the ship, each starting at `tuning.ts`'s and written
+// back as its lines, so a feel found by playing is pasted straight in.
 
 import { ROCK_SIZES } from "../rules/catalog/rocks";
 import type { Field } from "../rules/field/field";
+import { TUNED_BURRING } from "../rules/hazards/burrs";
 import { tuneRockSpeed } from "../rules/rocks/rocks";
 import { type Flight, TUNED_FLIGHT } from "../rules/ship/ship";
 import { type Gunnery, TUNED_GUNNERY } from "../rules/ship/shots";
@@ -15,8 +16,8 @@ import { ROCK_SPEED } from "../rules/tuning";
 
 /**
  * Describes the numbers the debug menu tunes: how the ship flies, how its
- * shots fly and fire, how fast the rocks fly, and three of how sparks,
- * static and the zap work.
+ * shots fly and fire, how fast the rocks fly, three of how sparks, static
+ * and the zap work, and two of how burrs fly and cling.
  */
 export interface Feel extends Flight, Gunnery {
   /** How fast the rocks fly against their size's speed in `tuning.ts`. */
@@ -30,6 +31,10 @@ export interface Feel extends Flight, Gunnery {
   readonly staticDrain: number;
   /** How near a dash's path a rock lies for a zap to arc to it: the sparking's `zapReach`. */
   readonly zapReach: number;
+  /** How fast a burr flies, in units a second: the burring's `speed`. */
+  readonly burrSpeed: number;
+  /** How much of the ship's thrust and top speed each burr clinging takes: the burring's `slow`. */
+  readonly burrSlow: number;
 }
 
 /** The numbers `tuning.ts` gives, which the debug menu starts from and goes back to. */
@@ -40,6 +45,8 @@ export const TUNED: Feel = {
   sparkDrawReach: TUNED_SPARKING.reach,
   staticDrain: TUNED_SPARKING.drain,
   zapReach: TUNED_SPARKING.zapReach,
+  burrSpeed: TUNED_BURRING.speed,
+  burrSlow: TUNED_BURRING.slow,
 };
 
 /** Names a number the debug menu tunes by a slider: all but whether shots carry the ship's speed. */
@@ -97,15 +104,24 @@ export const TUNING_SLIDERS: readonly TuningSlider[] = [
   },
   { id: "staticDrain", name: "Static drains", least: 0, most: 10, step: 0.5 },
   { id: "zapReach", name: "Zap's reach", least: 1, most: 15, step: 0.5 },
+  { id: "burrSpeed", name: "Burrs' speed", least: 1, most: 8, step: 0.25 },
+  {
+    id: "burrSlow",
+    name: "Each burr clinging slows the pod by",
+    least: 0,
+    most: 0.3,
+    step: 0.05,
+  },
 ];
 
-/** Returns a tuned number in its unit, as the debug menu writes it: "24 u/s²", "1.5 s", "×1.25", "5 u". */
+/** Returns a tuned number in its unit, as the debug menu writes it: "24 u/s²", "1.5 s", "×1.25", "5 u", "20%". */
 export function formatTuning(id: TuningNumber, value: number): string {
   switch (id) {
     case "thrust":
       return `${numberOf(value)} u/s²`;
     case "topSpeed":
     case "shotSpeed":
+    case "burrSpeed":
       return `${numberOf(value)} u/s`;
     case "coastHalfLifeMs":
       return `${numberOf(value / 1000)} s`;
@@ -121,6 +137,8 @@ export function formatTuning(id: TuningNumber, value: number): string {
       return `${numberOf(value)} u`;
     case "staticDrain":
       return `${numberOf(value)}/s`;
+    case "burrSlow":
+      return `${numberOf(value * 100)}%`;
   }
 }
 
@@ -150,16 +168,19 @@ export function tuningLines(tuning: Feel): string {
     `export const STATIC_DRAIN = ${numberOf(tuning.staticDrain)};`,
     `export const SPARK_DRAW_REACH = ${numberOf(tuning.sparkDrawReach)};`,
     `export const ZAP_REACH = ${numberOf(tuning.zapReach)};`,
+    `export const BURR_SPEED = ${numberOf(tuning.burrSpeed)};`,
+    `export const BURR_SLOW = ${numberOf(tuning.burrSlow)};`,
   ].join("\n");
 }
 
 /**
  * Returns the debug menu's numbers as a field holds them, which a new
- * wave's setup hands it, the sparking's other numbers `tuning.ts`'s.
+ * wave's setup hands it, the sparking's and the burring's other numbers
+ * `tuning.ts`'s.
  */
 export function fieldTuning(
   tuning: Feel,
-): Pick<Field, "flight" | "gunnery" | "sparking" | "rockSpeed"> {
+): Pick<Field, "flight" | "gunnery" | "sparking" | "burring" | "rockSpeed"> {
   const {
     thrust,
     topSpeed,
@@ -173,6 +194,8 @@ export function fieldTuning(
     sparkDrawReach,
     staticDrain,
     zapReach,
+    burrSpeed,
+    burrSlow,
   } = tuning;
   return {
     flight: { thrust, topSpeed, coastHalfLifeMs, keyTurnRate, headingTurnRate },
@@ -183,16 +206,18 @@ export function fieldTuning(
       drain: staticDrain,
       zapReach,
     },
+    burring: { ...TUNED_BURRING, speed: burrSpeed, slow: burrSlow },
     rockSpeed,
   };
 }
 
 /** Tunes the field in play as the debug menu says, its rocks in flight and its ship among it, at once. */
 export function tuneField(field: Field, tuning: Feel): void {
-  const { flight, gunnery, sparking, rockSpeed } = fieldTuning(tuning);
+  const { flight, gunnery, sparking, burring, rockSpeed } = fieldTuning(tuning);
   field.flight = flight;
   field.gunnery = gunnery;
   field.sparking = sparking;
+  field.burring = burring;
   tuneRockSpeed(field, rockSpeed);
 }
 

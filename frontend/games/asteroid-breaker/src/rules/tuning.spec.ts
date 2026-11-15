@@ -5,6 +5,10 @@ import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
 import { PILOT_COLORS } from "./ship/pilots";
 import { stepsIn } from "./stepper";
 import {
+  BURRS_AT_ONCE,
+  BURR_SLOW,
+  BURR_SPEED,
+  BURR_TILT,
   COAST_HALF_LIFE_MS,
   COMET_MARGIN,
   COMET_RADIUS,
@@ -24,6 +28,7 @@ import {
   HEADING_EASE,
   HEADING_TURN_RATE,
   KEY_TURN_RAMP_MS,
+  MOST_CLINGING,
   MOST_CREW,
   PICKUP_BLINK_MS,
   PICKUP_CATCH_REACH,
@@ -216,12 +221,23 @@ describe("the tuning", () => {
   it.each([
     ["a stray", STRAY_TILT],
     ["a comet", COMET_TILT],
+    ["a burr", BURR_TILT],
   ])(
     "heads %s into the field, less than a quarter turn off straight across",
     (_, tilt) => {
       expect(tilt).toBeLessThan(90);
     },
   );
+
+  it("lets a ship with the most burrs clinging still outfly a burr", () => {
+    expect(TOP_SPEED * (1 - MOST_CLINGING * BURR_SLOW)).toBeGreaterThan(
+      BURR_SPEED,
+    );
+  });
+
+  it("lets at least one burr adrift at once", () => {
+    expect(BURRS_AT_ONCE).toBeGreaterThan(0);
+  });
 
   it("starts a comet with its head out of sight", () => {
     expect(COMET_MARGIN).toBeGreaterThanOrEqual(COMET_RADIUS);

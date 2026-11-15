@@ -1,6 +1,7 @@
 // What a wave sends across the field, each once, from an edge, without
-// wrapping, which the strays and the comets share: coming in, flying across
-// and reaching what lies on the field.
+// wrapping, which the strays, the comets and the burrs share: coming in,
+// flying across and reaching what lies on the field. A burr wraps once it
+// has come in.
 
 import { clamp } from "@fz/core/math";
 import { RADIANS_PER_DEGREE, TURN } from "../angles";
@@ -8,7 +9,10 @@ import { type Draws, drawIn, nextDraw } from "../draws";
 import { type Place, type Torus, distanceSquared } from "../torus";
 import { ENTRY_ALONG, STEP_S } from "../tuning";
 
-/** Describes something that crosses the field once, from an edge, without wrapping. */
+/**
+ * Describes something that crosses the field once, from an edge, without
+ * wrapping; a burr wraps once it has come in.
+ */
 export interface Crossing {
   /** Whether it is on its way; a record that isn't waits for the next. */
   live: boolean;
@@ -138,7 +142,7 @@ function place(
 }
 
 /** Returns whether a crossing's middle is on the field, between its edges. */
-function isOnField(crossing: Readonly<Crossing>, torus: Torus): boolean {
+export function isOnField(crossing: Readonly<Crossing>, torus: Torus): boolean {
   return (
     crossing.x >= 0 &&
     crossing.x < torus.width &&

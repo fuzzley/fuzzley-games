@@ -1,6 +1,6 @@
 // The points a wave scores: each rock broken by its kind and size, each
-// spark gathered and each stray caught, times static's multiplier, and the
-// wave's clearing.
+// burr popped, each spark gathered and each stray caught, times static's
+// multiplier, and the wave's clearing.
 // Once no one is at the controls the run is over, and nothing scores, so
 // its score doesn't hang on how its last steps fall into frames.
 
@@ -9,7 +9,12 @@ import type { FieldEventLog } from "./events";
 import type { Crew, Pilot } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
 import { type Charge, multiplierOf } from "../sparks/charge";
-import { CLEAN_POINTS, CLEAR_POINTS, SPARK_POINTS } from "../tuning";
+import {
+  BURR_POINTS,
+  CLEAN_POINTS,
+  CLEAR_POINTS,
+  SPARK_POINTS,
+} from "../tuning";
 
 /**
  * Describes what of the field its points change, which the rocks' rules hand on
@@ -20,7 +25,10 @@ export interface ScoreField {
   score: number;
   /** What static's multiplier added to the wave's points, beyond their own. */
   staticPoints: number;
-  /** The rocks' own points among the wave's, before static's multiplier. */
+  /**
+   * The rocks' own points among the wave's, before static's multiplier, the
+   * burrs popped among them, as the tally has no line of its own for them.
+   */
   rockPoints: number;
   /** The sparks' own points among the wave's, before static's multiplier. */
   sparkPoints: number;
@@ -47,7 +55,7 @@ export type TallyField = Pick<
 
 /** Describes how a cleared wave's points add up, for its card. */
 export interface WaveTally {
-  /** The rocks' own points. */
+  /** The rocks' own points, the burrs popped among them. */
   readonly rocks: number;
   /** The sparks' own points. */
   readonly sparks: number;
@@ -69,6 +77,15 @@ export interface WaveTally {
 export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
   const points = pointsFor(rock.kind, rock.size);
   if (score(field, points, rock.x, rock.y)) field.rockPoints += points;
+}
+
+/**
+ * Scores a burr a shot popped at a place its points, times static's
+ * multiplier; its own points count among the rocks', as it was shot down
+ * as they are.
+ */
+export function scoreBurr(field: ScoreField, x: number, y: number): void {
+  if (score(field, BURR_POINTS, x, y)) field.rockPoints += BURR_POINTS;
 }
 
 /**

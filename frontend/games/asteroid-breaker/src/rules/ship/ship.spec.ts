@@ -2,6 +2,7 @@ import { speedOf } from "../../testing/field_picture";
 import { STEP_MS, stepsIn } from "../stepper";
 import { type Torus, across } from "../torus";
 import {
+  BURR_SLOW,
   COAST_HALF_LIFE_MS,
   DASH_CARRY,
   DASH_GUARD_MS,
@@ -535,6 +536,58 @@ describe("flyShip", () => {
       });
 
       expect(turnedFrom(0, ship)).toBeCloseTo(HEADING_STEP_TURN / 2);
+    });
+  });
+
+  describe("with burrs clinging", () => {
+    /** Returns a ship flying at an angle with burrs clinging to it. */
+    function burred(angle: number, burrs: number): Ship {
+      return { ...flying(angle), burrs };
+    }
+
+    /** Flies a ship for a time by one steering, each burr clinging taking the tuned share. */
+    function flyBurred(ship: Ship, by: Readonly<Steer>, ms: number): void {
+      for (let step = 0; step < stepsIn(ms); step++) {
+        flyShip(ship, by, FIELD, TUNED_FLIGHT, BURR_SLOW);
+      }
+    }
+
+    it.each([1, 2, 3])(
+      "holds a ship with %d clinging under a share less of its top speed for each",
+      (burrs) => {
+        const ship = burred(0, burrs);
+
+        flyBurred(ship, steer({ thrust: 1 }), 10_000);
+
+        expect(speedOf(ship)).toBeCloseTo(TOP_SPEED * (1 - burrs * BURR_SLOW));
+      },
+    );
+
+    it("pushes a ship with one clinging by a share less of its thrust", () => {
+      const clean = flying(0);
+      const ship = burred(0, 1);
+      const ms = (1000 * TOP_SPEED) / (8 * THRUST);
+
+      fly(clean, steer({ thrust: 1 }), ms);
+      flyBurred(ship, steer({ thrust: 1 }), ms);
+
+      expect(speedOf(ship) / speedOf(clean)).toBeCloseTo(1 - BURR_SLOW);
+    });
+
+    it("flies a ship with burrs clinging as one without when they take no share", () => {
+      const ship = burred(0, 3);
+
+      fly(ship, steer({ thrust: 1 }), 10_000);
+
+      expect(speedOf(ship)).toBeCloseTo(TOP_SPEED);
+    });
+
+    it("leaves a dash's throw whole", () => {
+      const ship = burred(270, 3);
+
+      flyBurred(ship, steer({ dash: true }), 100);
+
+      expect(speedOf(ship)).toBeCloseTo(DASH_SPEED);
     });
   });
 

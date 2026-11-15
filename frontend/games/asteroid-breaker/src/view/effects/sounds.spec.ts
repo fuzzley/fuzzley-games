@@ -96,6 +96,7 @@ function eventOf(
     slot: -1,
     wayX: 0,
     wayY: 0,
+    burrs: 0,
   };
 }
 
@@ -161,6 +162,10 @@ const EVENTS: readonly (readonly [FieldEventKind, SoundName | null])[] = [
   ["zapped", "zap-dash"],
   ["arced", "zap-arc"],
   ["vented", "blast-volatile-small"],
+  ["burred", null],
+  ["clung", "burr-cling"],
+  ["popped", "burr-pop"],
+  ["shaken", "burr-shed"],
 ];
 
 /** Static stepping to each step, rising or falling, with its sound. */
@@ -242,14 +247,11 @@ const EVERY_EVENT: readonly FieldEvent[] = [
 
 /**
  * The sounds of the sprite the view plays for nothing yet: no event the
- * field logs, and no change of its state, calls for them. The burrs wait
- * on their rules; the stingers but a wave's start and its clearing are the
- * shell's moments; and the fuzzball hums at no moment the plan gives it.
+ * field logs, and no change of its state, calls for them. The stingers
+ * but a wave's start and its clearing are the shell's moments; and the
+ * fuzzball hums at no moment the plan gives it.
  */
 const UNPLAYED: readonly SoundName[] = [
-  "burr-cling",
-  "burr-shed",
-  "burr-pop",
   "run-start",
   "sector-clear",
   "run-end",

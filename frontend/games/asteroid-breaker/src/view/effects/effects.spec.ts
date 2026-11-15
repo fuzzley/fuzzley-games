@@ -43,6 +43,7 @@ function eventOf(
     slot: -1,
     wayX: 0,
     wayY: 0,
+    burrs: 0,
   };
 }
 
@@ -77,6 +78,10 @@ const EVENTS: readonly (readonly [
   ["grazed", [], []],
   ["zapped", [], []],
   ["arced", [], []],
+  ["burred", [], []],
+  ["clung", [], []],
+  ["popped", [], []],
+  ["shaken", [], []],
 ];
 
 /**

@@ -87,18 +87,19 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
 
 /**
  * The wave in play's field as storage keeps it: the size it was laid out
- * at and its size now, its rocks, the counts its draws, strays, comets and
- * points run by, the pilot's static, whether its wave has thrown its pilot
- * a lifeline and whether it has held more rocks than its last few.
+ * at and its size now, its rocks, the counts its draws, strays, comets,
+ * burrs and points run by, the pilot's static, whether its wave has thrown
+ * its pilot a lifeline and whether it has held more rocks than its last
+ * few.
  *
  * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
- * the comets on their way, the pickups, the sparks, the shots and the
- * effects in play go.
+ * the comets on their way, the burrs adrift and clinging, the pickups, the
+ * sparks, the shots and the effects in play go.
  */
 export interface SavedField {
   /**
-   * The size it was laid out at, which set its slots, its strays, the
-   * pickups it floats at once and its comets' times.
+   * The size it was laid out at, which set its slots, its strays, its
+   * burrs, the pickups it floats at once and its comets' times.
    */
   readonly laidOut: Torus;
   /** Its size now, which a pause may have stretched it to since. */
@@ -115,11 +116,15 @@ export interface SavedField {
   readonly nextStrayAt: number;
   /** The step the next comet's warning starts at. */
   readonly nextCometAt: number;
+  /** How many burrs the wave has sent, as its setup says. */
+  readonly burrsSent: number;
+  /** The step the next burr may come at. */
+  readonly nextBurrAt: number;
   /** The step a pickup was last let go at, from which a drought is counted. */
   readonly lastDropAt: number;
   /** What static's multiplier has added to the wave's points, for its tally. */
   readonly staticPoints: number;
-  /** The rocks' own points among the wave's, for its tally. */
+  /** The rocks' own points among the wave's, the burrs popped among them, for its tally. */
   readonly rockPoints: number;
   /** The sparks' own points among the wave's, for its tally. */
   readonly sparkPoints: number;
@@ -145,6 +150,8 @@ const KEPT_COUNTS = [
   "straysSent",
   "nextStrayAt",
   "nextCometAt",
+  "burrsSent",
+  "nextBurrAt",
   "lastDropAt",
   "staticPoints",
   "rockPoints",
@@ -167,6 +174,7 @@ export type SavableField = Pick<
   | "draws"
   | "strays"
   | "comets"
+  | "burrs"
   | "lastDropAt"
   | "staticPoints"
   | "rockPoints"
@@ -206,6 +214,8 @@ export function savedField(field: SavableField): SavedField {
       ? nextStrayAfter(strays, field.steps)
       : strays.nextAt,
     nextCometAt: field.comets.nextAt,
+    burrsSent: field.burrs.sent,
+    nextBurrAt: field.burrs.nextAt,
     lastDropAt: field.lastDropAt,
     staticPoints: field.staticPoints,
     rockPoints: field.rockPoints,
@@ -314,16 +324,21 @@ export function isStatic(value: unknown): value is number {
 
 /**
  * Returns whether a field kept fits its wave, laid out at the size it was:
- * a rock left, and no more than the wave holds, and no more strays sent
- * than it sends.
+ * a rock left, and no more than the wave holds, and no more strays or
+ * burrs sent than it sends.
  */
 export function fitsItsWave(
-  field: Pick<SavedField, "laidOut" | "rocks" | "straysSent">,
+  field: Pick<SavedField, "laidOut" | "rocks" | "straysSent" | "burrsSent">,
   wave: Wave,
 ): boolean {
   const fill = fillFor(wave, field.laidOut);
   const { length } = field.rocks;
-  return length > 0 && length <= fill.cap && field.straysSent <= fill.strays;
+  return (
+    length > 0 &&
+    length <= fill.cap &&
+    field.straysSent <= fill.strays &&
+    field.burrsSent <= fill.burrs
+  );
 }
 
 /**
@@ -411,7 +426,7 @@ export function isSoundRock(
  * `fieldFor()` lays it out but at the size it was laid out at, so its
  * slots, strays and comets are as they were, and stretched to the size it
  * was kept at: its rocks in its first slots, the rest free, the counts its
- * draws, strays, comets and points run by, the pilot's static, its points
+ * draws, strays, comets, burrs and points run by, the pilot's static, its points
  * and strays brought home as its run has scored them on it, and its ship
  * waiting where it is safest, its line in tow behind it.
  */
@@ -440,6 +455,8 @@ export function layOutKeptField(
   field.strays.nextAt = saved.nextStrayAt;
   field.strays.broughtHome = soFar.straysHome;
   field.comets.nextAt = saved.nextCometAt;
+  field.burrs.sent = saved.burrsSent;
+  field.burrs.nextAt = saved.nextBurrAt;
   field.lastDropAt = saved.lastDropAt;
   field.score = soFar.points;
   field.staticPoints = saved.staticPoints;

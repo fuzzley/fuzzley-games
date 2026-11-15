@@ -1,3 +1,4 @@
+import { WEAPONS } from "../rules/catalog/weapons";
 import { lastFewOn } from "../rules/field/fill";
 import { stepsIn } from "../rules/stepper";
 import { SHOT_LIFE_MS, SHOT_SPEED } from "../rules/tuning";
@@ -55,7 +56,7 @@ describe("fieldFrom", () => {
 });
 
 describe("placeShot", () => {
-  it("puts a shot of a weapon in flight in the first free slot, where it says, heading its way at a shot's speed", () => {
+  it("puts a shot of a weapon in flight in the first free slot, where it says, heading its way at a shot's speed, breaking as many as its weapon's", () => {
     const field = fieldFrom(KEEPER);
 
     const shot = placeShot(field, "lance", 30, 20, Math.PI / 2);
@@ -66,12 +67,14 @@ describe("placeShot", () => {
       [shot.x, shot.y, shot.lastX, shot.lastY],
       [shot.vx, shot.vy].map((speed) => Math.round(speed * 1e9) / 1e9 + 0),
       shot.lifeSteps,
+      shot.breaksLeft,
     ]).toEqual([
       0,
       "lance",
       [30, 20, 30, 20],
       [0, SHOT_SPEED],
       stepsIn(SHOT_LIFE_MS),
+      WEAPONS.lance.breaks,
     ]);
   });
 

@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, clearingRun, CLEARING_RUN, storedRun, stored_run, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, placeBurr, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, clearingRun, CLEARING_RUN, storedRun, stored_run, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -106,21 +106,23 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   its nose up, its crew's line in tow laid straight out behind it, and `.`
   or a space nothing. The field is 72 by 40 unless the options give its
   `torus`; they set what a picture can't show: the seed, the pace, the
-  kind, the chance of a pickup and the pool, the strays and the comets, and
-  the crew, a run's first unless given. `KEEPER` is a picture of one large
+  kind, the chance of a pickup and the pool, the strays, the comets and the
+  burrs, and the crew, a run's first unless given. `KEEPER` is a picture of one large
   rock, so a wave doesn't clear while a spec plays on. A picture's rocks
   are its wave's last few once no more than its shape's are whole, and lean
   toward the ship only once its wave has held more (`hadMore`), so a
   picture of a few rocks flies them as laid however long a spec plays.
 - `placeRock()`, `placePickup()`, `catchOn()`, `placeSpark()`,
-  `placeStray()`, `placeLoose()` and `placeComet()` put more on a field,
-  `placeLoose()` leaving the crew as it is; `stepTimes(field, n)` steps it;
+  `placeStray()`, `placeLoose()`, `placeComet()` and `placeBurr()` put more
+  on a field, `placeLoose()` leaving the crew as it is, `placeBurr()` a burr
+  that wraps unless told it is still coming in, and `placeShot()` a shot
+  that breaks as many as its weapon's; `stepTimes(field, n)` steps it;
   `shipOf()`, `wholeRocks()`, `floatingPickups()`, `loggedOn()` and
   `kindsLoggedOn()` read it back, and `speedOf()` how fast a rock, the
   ship, a shot or a pickup on it flies. A blast, or a set piece's vent,
   passes by a rock laid on the step it goes off (`hitWithin()`), so a spec
   that places a rock for one to hit steps the field once first.
-- A stray or a comet comes in off an edge as `comeIn()`
+- A stray, a comet or a burr comes in off an edge as `comeIn()`
   (`src/rules/hazards/crossing.ts`) puts it, and
   `src/testing/crossings.ts` reads where it waits (`entryOf()`) and holds a
   run of them, over many seeds, to every edge, their margin and their tilt

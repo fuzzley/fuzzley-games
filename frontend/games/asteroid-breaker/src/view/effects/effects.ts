@@ -132,6 +132,12 @@ const EVENT_EFFECTS: Readonly<
   grazed: QUIET,
   zapped: QUIET,
   arced: QUIET,
+  // A burr shows coming in, clinging to the pod and gone as it pops or is
+  // shaken off; its own flourishes are a later package's to choose.
+  burred: QUIET,
+  clung: QUIET,
+  popped: QUIET,
+  shaken: QUIET,
 };
 
 /**
