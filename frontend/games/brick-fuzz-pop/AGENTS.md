@@ -222,7 +222,7 @@ helpers.
   `RunState`, the run on the board and where its round stands, which
   `GameService` replaces whole, and `RoundPhase`; and `items.ts` finds the
   item at a place in a list made once (`itemAt()`), refusing a place the
-  list hasn't, for the art and the colors.
+  list hasn't, for the art, the colors and the gauge.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
   or the depth the debug menu sets, the floor's band, the lintel and
@@ -235,6 +235,18 @@ helpers.
   between field units and device pixels, which write into a place handed
   to them. The margin is the canvas's insets (`MARGIN_CSS_PX`), and the
   field's frame lies in it.
+- **`src/view/gauge/`** — `gauge.ts`: where the gauge over an aiming
+  finger lies, the charge's five pips again on a plate in an arc
+  `GAUGE_REACH_CSS_PX` over the touch, measured in CSS pixels, so it is the
+  finger's size on every field. `gaugeOf()` writes the plate's middle, its
+  turn in whole degrees and each pip's place, in device pixels, into a
+  `GaugePlace` made once (`createGaugePlace()`): straight over the touch
+  where every pip lies `GAUGE_ROOM_CSS_PX` clear of the field's sides, its
+  ceiling and its floor, or else turned toward the field's middle the least
+  that fits, near the middle (`GAUGE_LEAN_CSS_PX`) the way the record last
+  turned; and where no turn fits, in a corner or off the field, the least
+  that leaves the pip furthest from its room the nearest to it, which meets
+  that rule where a turn first fits, so it doesn't jump there.
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
   keys by `event.code`; `steering.ts`'s `Steering` turns the keys, the
   mouse, the wheel and fingers into each frame's `Steer`, the aim, the
