@@ -3,16 +3,13 @@
 // and how a scene's sounds play by a game's own mix, at the game's numbers.
 
 import {
-  DUCK_AT_START,
+  type MixedPlay,
   NO_TAKE,
   ROOM,
   type SoundMix,
   type Voice,
-  duckedGainUnder,
   ducksOthers,
-  isDucked,
-  isVaried,
-  nextTake,
+  mixedPlay,
   panOf,
   takeMarkers,
   variedDetune,
@@ -152,23 +149,25 @@ export class GameMix<Name extends string> {
   /**
    * Returns how a scene's cues play by the mix, in the order of their
    * times, those at one time in the order given, as a frame plays its
-   * sounds, the loudest first: each its sound's next take; varied where the
-   * mix varies it; panned by its place, where it has one; ducked as it
-   * starts under a huge sound started a moment before, or with it; and the
-   * voice that gives way to it, where as many sound as the mix lets, stopped
-   * as it starts, each sounding as long as its take at the rate it is
-   * raised to. A looping sound plays its first take plainly, for as long as
-   * it is held, and among no voices, as a game holds its hum.
+   * sounds, the loudest first: each as `@fz/core/sound_mix`'s `mixedPlay()`
+   * says, its sound's next take, varied where the mix varies it and ducked
+   * as it starts under a huge sound started a moment before, or with it;
+   * panned by its place, where it has one; and the voice that gives way to
+   * it, where as many sound as the mix lets, stopped as it starts, each
+   * sounding as long as its take at the rate it is raised to. A looping
+   * sound plays its first take plainly, for as long as it is held, and
+   * among no voices, as a game holds its hum.
    */
   plan(cues: readonly MixCue<Name>[], sprite: TakeSprite): TakePlay[] {
     const plays: Planned[] = [];
     // The plays that sound as a voice, with the voice each sounds as.
     const voiced: { play: Planned; voice: Voice; endsAt: number }[] = [];
+    const step: MixedPlay = { take: 0, detune: 0, gain: 1 };
     let latestDuck = Number.NEGATIVE_INFINITY;
-    let earlierDuck = Number.NEGATIVE_INFINITY;
     const ordered = [...cues].sort((one, other) => one.at - other.at);
     for (const cue of ordered) {
-      const { family, level, tuned } = this.mix[cue.sound];
+      const mixed = this.mix[cue.sound];
+      const { family, level } = mixed;
       const takes = this.takesOf(cue.sound);
       const first = takes[0] ?? cue.sound;
       if (sprite.loops(first)) {
@@ -183,29 +182,18 @@ export class GameMix<Name extends string> {
         });
         continue;
       }
-      const turn = nextTake(
+      mixedPlay(
+        mixed,
         this.lastTakes.get(cue.sound) ?? NO_TAKE,
-        takes.length,
+        cue.at - latestDuck,
+        this.random,
+        step,
       );
-      this.lastTakes.set(cue.sound, turn);
-      const take = takes[turn] ?? first;
-      let detune = cue.detune ?? 0;
-      let gain = cue.volume ?? 1;
-      if (isVaried({ level, tuned })) {
-        detune += variedDetune(this.random);
-        gain *= variedGain(this.random);
-      }
-      if (isDucked(level)) {
-        gain *= duckedGainUnder(
-          cue.at - latestDuck,
-          cue.at - earlierDuck,
-          DUCK_AT_START,
-        );
-      }
-      if (ducksOthers(level)) {
-        earlierDuck = latestDuck;
-        latestDuck = cue.at;
-      }
+      this.lastTakes.set(cue.sound, step.take);
+      if (ducksOthers(level)) latestDuck = cue.at;
+      const take = takes[step.take] ?? first;
+      const detune = (cue.detune ?? 0) + step.detune;
+      const gain = (cue.volume ?? 1) * step.gain;
       const sounding = voiced.filter(({ endsAt }) => endsAt > cue.at);
       const giving = voiceGivingWay(
         sounding.map(({ voice }) => voice),
