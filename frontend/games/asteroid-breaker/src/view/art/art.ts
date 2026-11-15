@@ -39,6 +39,7 @@ import {
 import { podFrames, podHullFrame } from "./pod_art";
 import { type LitFrame, rockFrames } from "./rock_art";
 import { dashedRing } from "./shapes";
+import { sparkFrames } from "./sparks";
 import { SYMBOLS } from "./symbols";
 import {
   COMET_FRAMES,
@@ -216,7 +217,8 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
  * scale, the fine marks only where the field keeps them: the pod's but its
  * hull, and the comet's but its head, which the rocks' atlas lights, the
  * pilots and their eyes, the pickups and their tags, the comet's warning
- * and lane, each weapon's shot and the muzzle's flash, a stray's bubble,
+ * and lane, each weapon's shot and the muzzle's flash, the sparks broken
+ * rocks shed and their tail, a stray's bubble,
  * the flourishes, and the stray's and the comet's pictures.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
@@ -234,6 +236,7 @@ export function atlasFrames(
     ...thingsFrames(palette, scale, fine),
     ...PICKUP_IDS.map((id) => tagArt(id, palette, scale)),
     ...energyFrames(palette, scale, fine),
+    ...sparkFrames(palette, scale),
     ...otherArt(palette, scale),
   ];
 }

@@ -1,7 +1,12 @@
 import type { Field } from "../../rules/field/field";
 import type { Rock } from "../../rules/rocks/rocks";
 import { stepsIn } from "../../rules/stepper";
-import { COMET_MARGIN, PICKUP_BLINK_MS, ROCK_RADIUS } from "../../rules/tuning";
+import {
+  COMET_MARGIN,
+  MOST_SPARKS,
+  PICKUP_BLINK_MS,
+  ROCK_RADIUS,
+} from "../../rules/tuning";
 import {
   type Board,
   DARK,
@@ -194,7 +199,7 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
-  it("make room for all a field's rocks, shots, pickups and comets and the pod's flame could give off, as the field starts", async () => {
+  it("make room for all a field's rocks, shots, pickups and comets and the pod's flame could give off, and its sparks, as the field starts", async () => {
     const board = await startBoard();
     board.shell.field = fieldFrom(KEEPER, { cap: 60 });
 
@@ -206,7 +211,8 @@ describe("the halos", () => {
         shots.slots.length +
         pickups.length +
         2 * comets.slots.length +
-        ENGINES.length,
+        ENGINES.length +
+        MOST_SPARKS,
     );
   });
 
@@ -486,6 +492,7 @@ describe("a halo another painter shows", () => {
         board.shell.field.pickups.length +
         2 * board.shell.field.comets.slots.length +
         ENGINES.length +
+        MOST_SPARKS +
         1,
     );
   });

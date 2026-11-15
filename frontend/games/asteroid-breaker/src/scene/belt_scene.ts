@@ -90,6 +90,7 @@ import { PointsPainter } from "./painters/points_painter";
 import { RingPainter } from "./painters/ring_painter";
 import { RockPainter } from "./painters/rock_painter";
 import { ShotPainter } from "./painters/shot_painter";
+import { SparkPainter } from "./painters/spark_painter";
 import { StrayPainter } from "./painters/stray_painter";
 import { TagPainter } from "./painters/tag_painter";
 import { TowPainter } from "./painters/tow_painter";
@@ -206,6 +207,8 @@ export interface BeltKit {
   readonly rocks: RockPainter;
   /** Draws the pickups. */
   readonly pickups: PickupPainter;
+  /** Draws the sparks broken rocks shed, and their halos. */
+  readonly sparks: SparkPainter;
   /** Draws the stray adrift and a lost ship's pilot bailing out. */
   readonly strays: StrayPainter;
   /** Draws the comets and their warnings. */
@@ -343,6 +346,7 @@ export class BeltScene extends Scene {
       kit.tags,
       kit.rocks,
       kit.pickups,
+      kit.sparks,
       kit.strays,
       kit.hazards,
       kit.shots,
@@ -404,13 +408,16 @@ export class BeltScene extends Scene {
    * `layers.ts` lists them.
    */
   private makeKit(layers: Readonly<Record<Layer, GameObjects.Layer>>): BeltKit {
+    // Made first, so each painter that shows halos of its own is handed it.
+    const halos = new HaloPainter(this, layers.halos);
     return {
       place: new PlacePainter(this, layers.place),
       field: new FieldPainter(this, layers),
-      halos: new HaloPainter(this, layers.halos),
+      halos,
       tags: new TagPainter(this, layers.tags),
       rocks: new RockPainter(this, layers.rocks),
       pickups: new PickupPainter(this, layers.pickups),
+      sparks: new SparkPainter(this, layers.sparks, halos),
       strays: new StrayPainter(this, layers.strays),
       hazards: new HazardPainter(this, layers.hazards, layers.lanes),
       shots: new ShotPainter(this, layers.shots),
