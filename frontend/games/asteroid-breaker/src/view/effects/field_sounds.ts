@@ -103,9 +103,9 @@ interface Heard {
  * Each sound plays once a frame at most, at its volume, the loudest level
  * first, so a huge one ducks the busy ones of its own frame; each but the
  * bell at the most it rose and where it rose most, the first where it rose
- * as much. A frame whose breaks scored rings one bell, at the ladder's
- * note for the highest of static's multipliers they scored at, where the
- * first to score at it broke; more than
+ * as much. A frame with a break but a comet's smash rings one bell, at
+ * the ladder's note for the highest of static's multipliers they broke
+ * at, where the first to break at it broke; more than
  * {@link MOST_BREAKS_HEARD} breaks in a frame play as the largest two
  * sounds and `break-cluster`, at the middle of where they broke. Each spark
  * gathered plays the next note of the ladder, from its first, an octave
@@ -126,7 +126,7 @@ export class FieldSounds {
   /** The fuzzball's voice, which calls at some of the events heard. */
   private readonly voice = new Voice();
 
-  /** How many rocks broke in the frame and scored. */
+  /** How many rocks broke in the frame, but for those a comet smashed. */
   private breaks = 0;
   /** The sum of where they broke, for the middle of a crowd. */
   private breaksAcross = 0;
@@ -318,8 +318,8 @@ export class FieldSounds {
   /**
    * Hears what an event of the field calls for, where it happened on a field
    * so wide: its sound and the one after it, the fuzzball's call where it
-   * calls at it, for a break that scored its multiplier for the frame's
-   * bell, its own sound kept for the frame's crowd, and for a spark
+   * calls at it, for a break but a comet's smash its multiplier for the
+   * frame's bell and its own sound for the frame's crowd, and for a spark
    * gathered its note of the ladder. A spark and a pull of fire are timed
    * by the frame `hearField()` last heard, so the frame's field is heard
    * first.
