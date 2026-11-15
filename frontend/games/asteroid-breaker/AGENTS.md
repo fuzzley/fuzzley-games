@@ -318,9 +318,47 @@ takes for the specs' helpers.
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
   the tags of the lasting effects lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning is
-  drawn; and `specks.ts` where the specks lie, from the run's seed, and where
-  an Endless wave's constellation lies, from the run's seed mixed with the
-  wave's number in `mixSeed()`'s `"scenery"` stream (`constellationAt()`).
+  drawn; and `specks.ts` where the specks lie, from the run's seed, where
+  the places' stars lie, in three depths, far, mid and bright, as many of
+  each as the largest field holds, each depth from a stream of its own of
+  the seed (`starsOf()`), and how many a field shows by its area
+  (`starCount()`), and where an Endless wave's constellation lies, from the
+  run's seed mixed with the wave's number in `mixSeed()`'s `"scenery"`
+  stream (`constellationAt()`).
+- **`src/view/places/`** — the place behind the play in each sector, ported
+  from the uplift's kit (`docs/asteroid-breaker-uplift/art/lib/backdrop.mjs`),
+  its landmark cut from the same draws, so it is the kit's to the facet.
+  `places.ts` names the four (`PLACE_IDS`), shows a sector in its own, or a
+  sector the game doesn't write of in the first (`placeOfSector()`), and
+  lays one out on a field's size (`backdropOf()`): its far wash, its one
+  landmark cut off by the field's edge, its air, its vignette and the tint
+  its stars take, drawn from the place alone, so its landmark is the same
+  every run, and its stars and its air from the run's seed. Each place is a
+  file of its own, as plain marks in field units (`marks.ts`): the Inner
+  belt's ringed planet low in the right corner (`inner_belt.ts`), the Iron
+  reach's cratered moon in a broken ring of girders, with filings strewn
+  along its field (`iron_reach.ts`), the Storm's thunderhead up the left
+  side, with two forks of lightning inside it that flicker, and streaks of
+  wind (`storm.ts`), and Endless's galaxy's band from corner to corner,
+  under the wave's constellation (`endless.ts`); `globes.ts` cuts their
+  globes, craters, rings and forks, lit from the field's upper left as the
+  rocks are. `colors.ts` mixes every mark from the palette's own colors and
+  the game's inks, a little of one into the field, held to a limit for each
+  kind of mark and the palette's mode (`LIMITS`), never a color of its own
+  (`placeColors()`, `tintOf()`): in a dark palette a deep wash and pale
+  specks, in a light one a pale wash and dark specks on white. `paint.ts`
+  paints a place for a palette at the field's scale as `@fz/phaser/shapes`'
+  paint commands in device pixels (`placeArt()`): what stays, opaque, the
+  field's color, the wash and the far stars (`back`); the nearer stars,
+  painted again past each edge they cross so they tile as the field wraps
+  (`near`); the landmark, the air and the vignette (`front`); and, for each
+  flicker, the front over the area its marks reach, lit (`flashes`);
+  `placeLayers()` gives each layer apart. `motion.ts` says what of it moves,
+  from what the field hands it, never a clock: how far into a flicker a
+  mark is by the field's steps (`flickerAt()`), how far the pod has flown,
+  unwrapped (`Travel`), and how far the nearer stars slide against it, 3% of
+  it (`nearSlide()`, `NEAR_SLIDE`). `quiet.spec.ts` holds each place's
+  largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says what each event calls for, its sound and its flourishes
   (`effectsOf()`), how far a broken rock's sound rises along a chain
@@ -349,7 +387,8 @@ takes for the specs' helpers.
   deck's zones (`deckOf()`) and which button a finger presses
   (`buttonAt()`).
 - **`src/view/colors/`** — the field's colors. `palette.ts` takes them from
-  the palette's roles (`beltPalette()`), with the inks of `inks.ts`, the
+  the palette's roles (`beltPalette()`), the page's among them and the
+  palette's mode, which the places are mixed by, with the inks of `inks.ts`, the
   game's own for each kind of rock, in light palettes and in dark, and the
   eight pilots' from `@fz/phaser/color`'s `FUZZBALL_INKS`, and gives a
   pilot's ink to the shell too, in CSS hex (`pilotInk()`), with each kind

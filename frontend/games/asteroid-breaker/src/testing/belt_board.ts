@@ -35,6 +35,7 @@ import { KEEPER, fieldFrom } from "./field_picture";
 /** A dark palette, for a scene to change to. */
 export const DARK = beltPalette(
   {
+    page: "#0e1114",
     field: "#14181c",
     fieldLine: "#3a434c",
     fieldText: "#eceff1",

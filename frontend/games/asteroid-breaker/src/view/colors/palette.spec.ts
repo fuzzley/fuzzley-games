@@ -8,6 +8,7 @@ import { ROCK_LIGHTS } from "./rock_light";
 import { tonesOf } from "./tones";
 
 const ROLES: PaletteRoles = {
+  page: "#ffffff",
   field: "#fafafa",
   fieldLine: "#dddddd",
   fieldText: "#000000",
@@ -29,6 +30,15 @@ describe("beltPalette", () => {
       palette.mark,
     ]).toEqual([0xfafafa, 0xdddddd, 0xfafafa, 0xfafafa]);
   });
+
+  it.each(["light", "dark"] as const)(
+    "keeps a %s palette's mode, and the page around the field, which the places are mixed by",
+    (mode) => {
+      const palette = beltPalette({ ...ROLES, page: "#123456" }, mode);
+
+      expect([palette.mode, palette.page]).toEqual([mode, 0x123456]);
+    },
+  );
 
   it("draws the ship and a pickup in the accent, its symbol in the accent's own text, and the flame in the warning color", () => {
     const palette = beltPalette(ROLES, "light");

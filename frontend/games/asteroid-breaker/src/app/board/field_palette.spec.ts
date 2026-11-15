@@ -69,6 +69,7 @@ describe("fieldPalette", () => {
     expect(palette()).toEqual(
       beltPalette(
         {
+          page: PALETTES.role(id, "page"),
           field: PALETTES.role(id, "field"),
           fieldLine: PALETTES.role(id, "field-line"),
           fieldText: PALETTES.role(id, "field-text"),

@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -249,6 +249,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   (`faceExtremes()`), the marks and outlines against what they cross, and
   the deck's symbols at rest against its buttons and its knob against the
   stick's base.
+- `src/view/places/quiet.spec.ts` holds each place quiet by the plan's
+  measure, in every palette of `THEMES`, on a wide field and a tall one: it
+  paints the place's wash, its landmark at rest and its vignette, without
+  its stars and hair lines, a pixel at a time over the field, at 4 device
+  pixels a unit, as the kit's sheet measures it, and holds the most any
+  pixel stands out from the field above 1.1 to 1, so a place that painted
+  nothing fails, and to 1.3 at most; its own specs hold the painting first.
 
 ## The Scene
 

@@ -16,6 +16,7 @@ import { type Tones, tonesOf } from "./tones";
 
 /** The palette roles the field is drawn in, as the page sets them, in hex. */
 export interface PaletteRoles {
+  readonly page: string;
   readonly field: string;
   readonly fieldLine: string;
   readonly fieldText: string;
@@ -28,8 +29,10 @@ export interface PaletteRoles {
 
 /** The field's colors, as the numbers Phaser takes. */
 export interface BeltPalette {
-  /** Whether the palette is light, its field white, or dark. */
+  /** Whether the palette is light, its field white, or dark, which the places are mixed by. */
   readonly mode: ColorMode;
+  /** The page around the field, which a dark palette's places sink the field toward: the palette's page. */
+  readonly page: number;
   /** The field under everything: the palette's field. */
   readonly field: number;
   /** The frame around the field, the tags' rings, and the deck's buttons' rings at rest and its stick's edge: the field's line. */
@@ -116,6 +119,7 @@ export function beltPalette(roles: PaletteRoles, mode: ColorMode): BeltPalette {
   const ground = { mode, field, text: fieldText };
   return {
     mode,
+    page: colorNumber(roles.page),
     field,
     line: colorNumber(roles.fieldLine),
     speck: mixColors(fieldMuted, field, SPECK_STRENGTH),

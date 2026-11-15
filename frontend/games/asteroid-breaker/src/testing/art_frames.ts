@@ -5,6 +5,7 @@ import { type PaletteRoles, beltPalette } from "../view/colors/palette";
 
 /** The roles the art's specs draw in, each a color no other role takes, and none white. */
 const ROLES: PaletteRoles = {
+  page: "#eef0f3",
   field: "#fafafa",
   fieldLine: "#c9ced4",
   fieldText: "#1b1f24",
