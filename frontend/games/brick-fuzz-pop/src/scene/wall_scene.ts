@@ -51,6 +51,7 @@ import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
 import { FieldPainter } from "./painters/field_painter";
+import { GaugePainter } from "./painters/gauge_painter";
 import { GuidePainter } from "./painters/guide_painter";
 import { MeterPainter } from "./painters/meter_painter";
 import type { PaintContext, Painter } from "./painters/painter";
@@ -130,8 +131,9 @@ export interface WallSceneOptions {
  * fingers through its `Steering`, hands the shell each frame's time and
  * steering, then pulls the round to draw, plays the sounds and flourishes
  * of each event and beat it reached since the last frame, once each, and
- * draws the field, the wall, the guide, the fuzzballs and the meter as
- * they stand; a key the steering doesn't take becomes a command.
+ * draws the field, the wall, the guide, the fuzzballs, the meter and the
+ * gauge over an aiming finger as they stand; a key the steering doesn't
+ * take becomes a command.
  */
 export class WallScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -149,6 +151,8 @@ export class WallScene extends Scene {
   meter!: MeterPainter;
   /** Draws the fuzzballs. */
   balls!: BallPainter;
+  /** Draws the gauge over an aiming finger. */
+  gauge!: GaugePainter;
   /** Plays the sounds. */
   sounds!: SpritePlayer<SoundName>;
   /** Turns the player's keys, mouse and fingers into the shot being aimed. */
@@ -218,6 +222,7 @@ export class WallScene extends Scene {
     this.effects = new EffectsPainter(this, layers);
     this.meter = new MeterPainter(this, layers.balls);
     this.balls = new BallPainter(this, layers.balls);
+    this.gauge = new GaugePainter(this, layers.gauge);
     this.fieldCamera = new FieldCamera(this.cameras.main);
     this.painters = [
       this.field,
@@ -226,6 +231,7 @@ export class WallScene extends Scene {
       this.effects,
       this.meter,
       this.balls,
+      this.gauge,
       this.fieldCamera,
     ];
     this.effects.layout(this.metrics);

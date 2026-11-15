@@ -17,7 +17,7 @@ import type { Steer } from "../../view/steering/steering";
 export interface PaintContext {
   /** The round in play as the view draws it at this moment. */
   view: RoundView;
-  /** The shot being aimed: the aim the waiting fuzzball looks along, and the charge the meter shows. */
+  /** The shot being aimed: the aim the waiting fuzzball looks along, the charge the meter shows, and the finger that aims, which the gauge shows it over. */
   steer: Readonly<Steer>;
   /** Where the player's fuzzball waits on the floor, across the field, or null while it is in the air. */
   waitingX: number | null;

@@ -5,8 +5,10 @@
  * art draws them; the guide; the jump line's count, over the guide, so an
  * outline under it leaves its dots whole; what bursts from the wall as
  * things happen on it; the fuzzballs, the meter's pips under the one that
- * waits; and the field's rim, its lintel, its ceiling and its frame, over
- * everything, so nothing that bursts from the wall or flies covers them.
+ * waits; the gauge over an aiming finger, over the fuzzballs, so none
+ * flying covers the charge it shows; and the field's rim, its lintel, its
+ * ceiling and its frame, over everything, so nothing that bursts from the
+ * wall or flies covers them.
  */
 export const LAYERS = [
   "field",
@@ -16,6 +18,7 @@ export const LAYERS = [
   "count",
   "bursts",
   "balls",
+  "gauge",
   "rim",
 ] as const;
 

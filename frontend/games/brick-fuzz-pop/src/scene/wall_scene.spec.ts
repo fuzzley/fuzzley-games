@@ -78,6 +78,7 @@ import {
 } from "../view/effects/effects";
 import {
   GAUGE_PLATE_MIDDLE,
+  type GaugePlace,
   createGaugePlace,
   gaugeOf,
 } from "../view/gauge/gauge";
@@ -840,6 +841,69 @@ function frameUntil(board: Board, reached: (play: RoundPlay) => boolean): void {
 /** Returns where on the canvas a field row's foot runs, in the layout given. */
 function rowFoot(metrics: FieldMetrics, row: number): number {
   return toCanvas(metrics, 0, row).y;
+}
+
+/** An upright phone's canvas, in CSS pixels, where a finger aims and the gauge shows over it. */
+const PHONE = { width: 390, height: 844 } as const;
+
+/** Returns where the field lies on {@link PHONE}, in the shape the shell works out for it. */
+function phoneMetrics(): FieldMetrics {
+  return metricsAt(PHONE.width, PHONE.height);
+}
+
+/** Returns a place on {@link PHONE}'s field, in whole device pixels, some shares of its width across and some pixels under its ceiling. */
+function onPhone(across: number, underCeiling: number): Place {
+  const { x, y, width } = phoneMetrics();
+  return { x: Math.round(x + across * width), y: Math.round(y + underCeiling) };
+}
+
+/**
+ * Returns how the gauge is drawn: its plate's place, its turn in
+ * billionths, whether each part shows, each pip's frame and whether it
+ * stands within half a pixel of a place, as a pip on whole pixels does.
+ */
+function gaugeDrawn(scene: WallScene, place: GaugePlace) {
+  const { plate, pips } = scene.gauge;
+  return {
+    plate: {
+      x: plate.x,
+      y: plate.y,
+      turn: billionths(plate.angle),
+      shown: plate.visible,
+    },
+    pips: pips.map((pip, at) => ({
+      frame: pip.frame.name,
+      placed:
+        Math.abs(pip.x - (place.pips[at]?.x ?? Infinity)) <= 0.5 &&
+        Math.abs(pip.y - (place.pips[at]?.y ?? Infinity)) <= 0.5,
+      shown: pip.visible,
+    })),
+  };
+}
+
+/** Returns how the gauge is drawn where a place says, its plate on whole pixels, as many pips lit as given. */
+function gaugeAt(
+  place: GaugePlace,
+  lit: number,
+): ReturnType<typeof gaugeDrawn> {
+  return {
+    plate: {
+      x: Math.round(place.plate.x),
+      y: Math.round(place.plate.y),
+      turn: billionths(place.turn),
+      shown: true,
+    },
+    pips: place.pips.map((_, at) => ({
+      frame: at < lit ? FRAMES.gaugeOn : FRAMES.gaugeOff,
+      placed: true,
+      shown: true,
+    })),
+  };
+}
+
+/** Returns how many of the gauge's plate and pips show. */
+function gaugeShowing(scene: WallScene): number {
+  return showing([scene.gauge.plate, ...scene.gauge.pips]);
 }
 
 describe("WallScene", () => {
@@ -3194,6 +3258,373 @@ describe("WallScene", () => {
       expect(scene.meter.pips.map((pip) => pip.frame.name)).toEqual(
         Array.from({ length: MOST_CHARGE }, () => FRAMES.meterOff),
       );
+    });
+  });
+
+  describe("the gauge", () => {
+    it.each([
+      ["over the field's middle", 0.5, 300, 0],
+      ["by the left wall, turned toward the middle", 0.03, 300, 1],
+      ["by the right wall, turned toward the middle", 0.97, 300, -1],
+      ["under the ceiling, turned toward the middle", 0.75, 20, -1],
+    ])(
+      "shows a plate and five pips over a pointing finger %s, where gaugeOf() places them, lit from the left as far as the charge",
+      async (_, across, underCeiling, turning) => {
+        const { run, scene } = await startBoard((shell) => {
+          shell.waiting = 2;
+        }, PHONE);
+        const at = onPhone(across, underCeiling);
+        const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+
+        run.touch("start", at.x, at.y);
+        run.advance(600);
+
+        expect({
+          drawn: gaugeDrawn(scene, place),
+          turning: Math.sign(place.turn),
+        }).toEqual({ drawn: gaugeAt(place, 2), turning });
+      },
+    );
+
+    it("shows every pip unlit at no charge", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 0));
+    });
+
+    it("lights every pip for a hot shot, whose charge is full", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+        shell.carried = "hot";
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, MOST_CHARGE));
+    });
+
+    it.each([
+      ["across", 0.2, 300],
+      ["down", 0.5, 400],
+    ])(
+      "follows a pointing finger as it drags %s",
+      async (_, across, underCeiling) => {
+        const { run, scene } = await startBoard((shell) => {
+          shell.waiting = 2;
+        }, PHONE);
+        const from = onPhone(0.5, 300);
+        const to = onPhone(across, underCeiling);
+        const place = gaugeOf(phoneMetrics(), to.x, to.y, createGaugePlace());
+        run.touch("start", from.x, from.y);
+        run.advance(16);
+
+        run.touch("move", to.x, to.y);
+        run.advance(16);
+
+        expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 0));
+      },
+    );
+
+    it("stands its pips on whole pixels", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.03, 300);
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(
+        scene.gauge.pips.every(
+          (pip) =>
+            Number.isInteger(pip.x - pip.displayWidth / 2) &&
+            Number.isInteger(pip.y - pip.displayHeight / 2),
+        ),
+      ).toBe(true);
+    });
+
+    it("hides while a pull back is within its dead zone", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+        shell.aimingSet = "pullBack";
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(gaugeShowing(scene)).toBe(0);
+    });
+
+    it("shows over a pulling finger once past its dead zone, not where it pressed", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+        shell.aimingSet = "pullBack";
+      }, PHONE);
+      const from = onPhone(0.5, 300);
+      // Pulled back 300 device px, past what charges to the most.
+      const to = onPhone(0.5, 600);
+      const place = gaugeOf(phoneMetrics(), to.x, to.y, createGaugePlace());
+      run.touch("start", from.x, from.y);
+
+      run.touch("move", to.x, to.y);
+      run.advance(16);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, MOST_CHARGE));
+    });
+
+    it("hides for a mouse, pressed and held as it charges", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+
+      run.pointer("down", at.x, at.y);
+      run.advance(600);
+
+      expect({
+        charge: shell.steers.at(-1)?.charge,
+        showing: gaugeShowing(scene),
+      }).toEqual({ charge: 2, showing: 0 });
+    });
+
+    it("hides while no fuzzball waits to be let fly", async () => {
+      const { shell, run, scene } = await startBoard(undefined, PHONE);
+      const at = onPhone(0.5, 300);
+
+      run.touch("start", at.x, at.y);
+      run.advance(600);
+
+      expect({
+        touch: shell.steers.at(-1)?.touch,
+        showing: gaugeShowing(scene),
+      }).toEqual({ touch: true, showing: 0 });
+    });
+
+    it("hides as the finger lets go and the shot flies", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      run.touch("start", at.x, at.y);
+      run.advance(300);
+
+      run.touch("end", at.x, at.y);
+      run.advance(16);
+
+      expect({
+        flown: shell.steers.some((steer) => steer.release),
+        showing: gaugeShowing(scene),
+      }).toEqual({ flown: true, showing: 0 });
+    });
+
+    it("hides as the fuzzball flies off, though the finger stays", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      shell.waiting = null;
+      run.advance(16);
+
+      expect({
+        touch: shell.steers.at(-1)?.touch,
+        showing: gaugeShowing(scene),
+      }).toEqual({ touch: true, showing: 0 });
+    });
+
+    it("shows again as a fuzzball waits again, the finger still held where it was", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+      shell.waiting = null;
+      run.advance(16);
+
+      shell.waiting = 2;
+      run.advance(16);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 0));
+    });
+
+    it("moves with the field as the chrome over it changes", async () => {
+      const { shell, run, scene } = await startBoard((each) => {
+        each.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.03, 300);
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+      const lopsided = { ...INSETS, left: 30 };
+
+      shell.chrome = lopsided;
+      run.advance(16);
+
+      const metrics = fieldMetrics(
+        viewport(PHONE.width, PHONE.height, 1, lopsided),
+        shell.fieldShape,
+      );
+      const place = gaugeOf(metrics, at.x, at.y, createGaugePlace());
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 0));
+    });
+
+    it("keeps turning the way it last turned as a finger under the ceiling wavers across the field's middle", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const left = onPhone(0.5, 20);
+      left.x -= 10;
+      const right = { x: left.x + 20, y: left.y };
+      const place = createGaugePlace();
+      gaugeOf(phoneMetrics(), left.x, left.y, place);
+      gaugeOf(phoneMetrics(), right.x, right.y, place);
+      run.touch("start", left.x, left.y);
+      run.advance(16);
+
+      run.touch("move", right.x, right.y);
+      run.advance(16);
+
+      expect({
+        drawn: gaugeDrawn(scene, place),
+        turning: Math.sign(place.turn),
+      }).toEqual({ drawn: gaugeAt(place, 0), turning: 1 });
+    });
+
+    it("turns a gauge shown anew by where its finger is, not the way the last one leaned", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const left = onPhone(0.5, 20);
+      left.x -= 10;
+      const right = { x: left.x + 20, y: left.y };
+      run.touch("start", left.x, left.y);
+      run.advance(16);
+      run.touch("move", right.x, right.y);
+      run.advance(16);
+      run.touch("end", right.x, right.y);
+      run.advance(16);
+      const place = gaugeOf(
+        phoneMetrics(),
+        right.x,
+        right.y,
+        createGaugePlace(),
+      );
+
+      run.touch("start", right.x, right.y);
+      run.advance(16);
+
+      expect({
+        drawn: gaugeDrawn(scene, place),
+        turning: Math.sign(place.turn),
+      }).toEqual({ drawn: gaugeAt(place, 0), turning: -1 });
+    });
+
+    it.each<[string, Boon | null]>([
+      ["at no charge", null],
+      ["for a hot shot, every pip lit", "hot"],
+    ])(
+      "sets nothing on a frame where the touch, the charge and the layout are as they were, %s",
+      async (_, carried) => {
+        const { run, scene } = await startBoard((shell) => {
+          shell.waiting = 2;
+          shell.carried = carried;
+        }, PHONE);
+        const at = onPhone(0.5, 300);
+        run.touch("start", at.x, at.y);
+        run.advance(16);
+        // Moved by hand, so a frame that set its place would put it back.
+        scene.gauge.plate.setPosition(-1, -1);
+
+        run.advance(16);
+
+        expect([scene.gauge.plate.x, scene.gauge.plate.y]).toEqual([-1, -1]);
+      },
+    );
+
+    it("sets nothing on a frame where it stays hidden", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+      run.touch("end", at.x, at.y);
+      run.advance(16);
+      // Shown by hand, so a frame that hid it again would hide it.
+      scene.gauge.plate.setVisible(true);
+
+      run.advance(16);
+
+      expect(scene.gauge.plate.visible).toBe(true);
+    });
+
+    it("shows a new finger's gauge unlit, though the last let go lit", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+      run.touch("start", at.x, at.y);
+      run.advance(600);
+      run.touch("end", at.x, at.y);
+      run.advance(16);
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 0));
+    });
+
+    it("draws again as the charge rises", async () => {
+      const { run, scene } = await startBoard((shell) => {
+        shell.waiting = 2;
+      }, PHONE);
+      const at = onPhone(0.5, 300);
+      const place = gaugeOf(phoneMetrics(), at.x, at.y, createGaugePlace());
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+      scene.gauge.plate.setPosition(-1, -1);
+
+      run.advance(300);
+
+      expect(gaugeDrawn(scene, place)).toEqual(gaugeAt(place, 1));
+    });
+
+    it("draws over the fuzzballs and under the rim, its pips over its plate", async () => {
+      const { scene } = await startBoard();
+      const [ball] = scene.balls.bodies;
+
+      const gauge = layerPlaceOf(scene, scene.gauge.plate);
+
+      expect({
+        overBalls: gauge > layerPlaceOf(scene, ball),
+        underRim: gauge < layerPlaceOf(scene, scene.field.rim),
+        pipsInIt: scene.gauge.pips.every(
+          (pip) => layerPlaceOf(scene, pip) === gauge,
+        ),
+        pipsOverPlate:
+          Math.min(...placesInLayer(scene.gauge.pips)) >
+          (placesInLayer([scene.gauge.plate])[0] ?? Infinity),
+      }).toEqual({
+        overBalls: true,
+        underRim: true,
+        pipsInIt: true,
+        pipsOverPlate: true,
+      });
     });
   });
 
