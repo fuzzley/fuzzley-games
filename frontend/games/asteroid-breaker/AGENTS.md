@@ -54,8 +54,9 @@ as `phaserGameLayers()` holds them: no clock or timer (`Date.now()`,
 `new Date()`, `performance`, `setTimeout()`), no number drawn from no seed
 (`Math.random()`, `crypto`, `@fz/core/random`'s `randomSeed()`), no seed
 mixed by hand (`Math.imul()`, where `@fz/core/random`'s `mixSeed()` mixes
-one, but for a rock's cut and its cracks, which mix theirs as the art kit
-does, so each rock is the one the kit drew), nothing of the page (`window`, `document`, `navigator`,
+one, but for a rock's cut, its cracks, its break and a held hit's spark,
+which mix theirs as the art kit does, so each rock is the one the kit
+drew), nothing of the page (`window`, `document`, `navigator`,
 `matchMedia()`) and nothing stored or fetched (`localStorage`, `fetch()`).
 The scene hands them the frames' time and the room, the shell what is kept,
 and their numbers are drawn from a seed, so a run plays the same again from
@@ -456,7 +457,24 @@ takes for the specs' helpers.
   crack's two lips, which only the normal map draws, sloping into it
   (`rockFrames()`, a `LitFrame`), and How to play's picture of each kind,
   its largest whole, each facet in its ink as the palette's light falls on
-  it, in SVG (`rockPictures()`);
+  it, in SVG (`rockPictures()`); `breaks.ts` how a rock breaks and a held
+  hit sparks, ported from the art kit's `makeBreak()`, `breakFx()` and
+  `heldHitFx()`: each outline's break made once from its seed, the one its
+  outline is cut from (`breakOf()`, a `Break`), its own facets as the
+  shards that fly, as they are, as ice's slivers or as iron's plates, a
+  few spread round it flying the whole time and the rest gone in a few
+  frames, its sparks, its dust's puffs and an ice or crystal's glints; and
+  where each piece is drawn a time after the break, in device pixels from
+  its middle, written into a record the scene keeps: the rock whole and
+  flashing for its first 30 ms (`wholeAt()`), each shard flying out along
+  its way and the blow's (`shardPushOf()`), tumbling, shrinking, lit as the
+  shader would light its facet and fading into the field's color
+  (`shardAt()`), the dust's ring and puffs (`dustAt()`, `puffAt()`), the
+  sparks (`sparkAt()`, in `energyOf()`'s tones) and the glints
+  (`glintAt()`), all of it gone by `BREAK_MS`, 450 ms; and a held hit's
+  sparks thrown back about the way the shot came from its rock's rim
+  (`impactOf()`, `impactTickAt()`, `impactFlashAt()`, `rimToward()`,
+  `towardShip()`), gone by `HELD_MS`;
   `pod_art.ts` the pod, as the art kit's `ship.mjs` draws it: its hull,
   cut in facets as a rock is and baked into the rocks' atlas, lit, with
   its normal map (`podHullFrame()`), and its other frames in the field's

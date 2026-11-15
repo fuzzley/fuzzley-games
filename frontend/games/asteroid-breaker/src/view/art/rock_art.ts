@@ -38,8 +38,12 @@ import { type RockLine, type RockShape, makeRock } from "./rocks/rock_shape";
 import type { Facing } from "./rocks/space";
 import { MOST_LINE, MOST_MITER, outlineWidth, outward } from "./shapes";
 
-/** The seed a kind and size's first outline is cut from, the art kit's sheet's; each next outline takes the next. */
-const FIRST_SEED = 3;
+/**
+ * The seed a kind and size's first outline is cut from, the art kit's
+ * sheet's; each next outline takes the next, and each outline's break is
+ * drawn from its seed too, as the sheet draws it.
+ */
+export const FIRST_SEED = 3;
 
 /** The fewest CSS pixels a field unit is drawn at for a rock to keep its fine marks. */
 export const FINE_UNIT_CSS_PX = 10;
@@ -108,12 +112,14 @@ const LEAST_DOT = 0.8;
 const FLAT_NORMAL = normalColor(FLAT);
 
 /** Holds a value for each kind of rock in each size it comes in. */
-type BySize<T> = Readonly<
+export type BySize<T> = Readonly<
   Record<RockKindId, Readonly<Partial<Record<RockSize, T>>>>
 >;
 
 /** Returns a value for each kind of rock in each size it comes in. */
-function bySize<T>(make: (kind: RockKindId, size: RockSize) => T): BySize<T> {
+export function bySize<T>(
+  make: (kind: RockKindId, size: RockSize) => T,
+): BySize<T> {
   return recordOf(ROCK_KIND_IDS, (kind) =>
     recordOf(sizesOf(kind), (size) => make(kind, size)),
   );

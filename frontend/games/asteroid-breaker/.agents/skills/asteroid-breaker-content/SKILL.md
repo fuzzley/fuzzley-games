@@ -21,7 +21,8 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   no change of its own.
 - **Records keyed by those ids** make the compiler ask for what a new entry
   needs: how a rock is cut and marked (`KIND_CUTS`,
-  `src/view/art/rocks/rock_shape.ts`) and its ink in each set of inks
+  `src/view/art/rocks/rock_shape.ts`) and comes apart (`BREAK_STYLES`,
+  `src/view/art/breaks.ts`), its ink in each set of inks
   (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
   `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
   `src/view/art/symbols.ts`), an effect's rule (`EFFECT_RULES`,
@@ -136,12 +137,16 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 - **A kind:** an entry in `ROCK_KINDS`: its name and sentence, its hits and
   points at each size it comes in, what it breaks into (`splits`), its speed and
   its traits. Then how it is cut and marked at each size in `KIND_CUTS`,
-  which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), and its
-  ink in both sets of inks, checked at 3:1 against the field, at its
-  darkest and brightest faces too, by the contrast spec; its sounds, its
-  break at each size it comes in in `BREAK_SOUNDS` and its held hit in
-  `HIT_SOUNDS` (`src/view/effects/sounds.ts`), by the plan's names in
-  `SOUNDS`; and a wave that lays it, which the catalog spec asks for.
+  which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), how it
+  comes apart in `BREAK_STYLES` (`src/view/art/breaks.ts`): its shards that
+  fly the whole time, how far and how fast they turn, its sparks, glints
+  and dust, and whether its facets fly as they are, as slivers or as
+  plates; and its ink in both sets of inks, checked at 3:1 against the
+  field, at its darkest and brightest faces too, by the contrast spec; its
+  sounds, its break at each size it comes in in `BREAK_SOUNDS` and its
+  held hit in `HIT_SOUNDS` (`src/view/effects/sounds.ts`), by the plan's
+  names in `SOUNDS`; and a wave that lays it, which the catalog spec asks
+  for.
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
