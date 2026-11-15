@@ -864,6 +864,9 @@ describe("WallScene", () => {
         charge: 0,
         release: false,
         keyed: false,
+        touch: false,
+        touchX: 0,
+        touchY: 0,
       });
     });
 
@@ -2663,6 +2666,34 @@ describe("WallScene", () => {
         aim: aimToward(4, 6 - RADIUS),
         charge: 2,
       });
+    });
+
+    it("hands the shell where a finger aims on the canvas", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      const at = toCanvas(metricsAt(), 6, 6);
+
+      run.touch("start", at.x, at.y);
+      run.advance(16);
+
+      expect(shell.steers.at(-1)).toMatchObject({
+        touch: true,
+        touchX: at.x,
+        touchY: at.y,
+      });
+    });
+
+    it("hands the shell no finger aiming for a mouse's press, held as it charges", async () => {
+      const { shell, run } = await startBoard((each) => {
+        each.waiting = 2;
+      });
+      const at = toCanvas(metricsAt(), 6, 6);
+
+      run.pointer("down", at.x, at.y);
+      run.advance(600);
+
+      expect(shell.steers.at(-1)).toMatchObject({ charge: 2, touch: false });
     });
 
     it("calls a pulled shot off as the browser takes its touch away", async () => {

@@ -68,6 +68,9 @@ const UNSTEERED: Readonly<Steer> = {
   charge: 0,
   release: false,
   keyed: false,
+  touch: false,
+  touchX: 0,
+  touchY: 0,
 };
 
 /** What the scene asks of the shell, and tells it. */
