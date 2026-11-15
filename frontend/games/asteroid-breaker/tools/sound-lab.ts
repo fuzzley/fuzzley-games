@@ -157,6 +157,16 @@ function broken(
   };
 }
 
+/** Returns static's rise to a step at a time, logged at the ship. */
+function stepped(at: number, step: number): Moment {
+  return {
+    at,
+    act: (field) => {
+      field.events.addStep(SHIP.x, SHIP.y, step, false);
+    },
+  };
+}
+
 /** Returns the gun's shots before the uplift while fire is held from one time to another, in seconds, at a place across the field. */
 function shots(from: number, to: number, x = 0): LabCue<BeforeName>[] {
   const count = Math.floor((to - from) / SHOT_EVERY_S) + 1;
@@ -178,6 +188,15 @@ const TEN_BREAKS = Array.from({ length: 10 }, (_, i) => ({
   times: Math.min(1 + Math.floor(i / 3), 4),
   x: -0.8 + i * 0.18,
 }));
+
+/**
+ * Static's rises among the ten breaks, each its time, a little before the
+ * first break scored at a multiplier above the last, and the step it rose
+ * to, ×2's first.
+ */
+const TEN_RISES = TEN_BREAKS.filter(
+  ({ times }, i) => times > (TEN_BREAKS[i - 1]?.times ?? times),
+).map(({ at, times }) => ({ at: at - 0.06, step: times - 1 }));
 
 /** A large rock's pieces, each its size, its time, its count in the chain the game counted before the uplift and its place. */
 const RUBBLE: readonly {
@@ -204,12 +223,13 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "Breaks as static climbs",
-    what: "Ten small rocks broken one after another under fire. Before, each rose a semitone on the last in a chain, up to a fifth; after, each breaks at its own pitch, and a bell under it rings the ladder's note for static's multiplier as static climbs from ×1 to ×4.",
+    what: "Ten small rocks broken one after another under fire. Before, each rose a semitone on the last in a chain, up to a fifth; after, each breaks at its own pitch, and a bell under it rings the ladder's note for static's multiplier as static climbs from ×1 to ×4, its chime for each step it rises ringing a little before the first break scored there.",
     cues: heard([
       ...burst(0, 1.3),
       ...TEN_BREAKS.map(({ at, times, x }) =>
         broken(at, "stone", "small", times, x),
       ),
+      ...TEN_RISES.map(({ at, step }) => stepped(at, step)),
     ]),
     before: [
       ...shots(0, 1.3),

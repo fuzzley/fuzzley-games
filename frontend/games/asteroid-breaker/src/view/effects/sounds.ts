@@ -13,6 +13,8 @@ import {
   hasTrait,
 } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
+import { FULL_STEP } from "../../rules/sparks/charge";
+import { STATIC_STEPS } from "../../rules/tuning";
 import {
   type FieldEvent,
   type FieldEventKind,
@@ -203,6 +205,19 @@ export const THRUST: SoundName = "thrust";
 /** The bell under each break, at the ladder's note for static's multiplier it scored at. */
 export const LADDER: SoundName = "chain-ping";
 
+/** The spark each spark gathered plays, at the next note of the ladder. */
+export const SPARK: SoundName = "spark";
+
+/**
+ * How far the spark is recorded above the bell, in cents: an octave, on C6,
+ * so it climbs the ladder an octave under the bell's notes, as the sound
+ * kit's audition plays it.
+ */
+export const SPARK_ABOVE_BELL_CENTS = 1200;
+
+/** The dash's whoosh, which a zap's own plays in place of. */
+export const DASH: SoundName = "dash";
+
 /** The patter a crowd of breaks in one frame plays as, beside its largest two. */
 export const CROWD: SoundName = "break-cluster";
 
@@ -365,17 +380,32 @@ const SHOT_SOUNDS: Readonly<Record<WeaponId, SoundName>> = {
   lance: "shot-lance",
 };
 
+/** The chime static plays as it rises to each multiplier's step. */
+const MULTIPLIER_SOUNDS: Readonly<
+  Record<(typeof STATIC_STEPS)[number]["times"], SoundName>
+> = {
+  2: "chain-x2",
+  3: "chain-x3",
+  4: "chain-x4",
+};
+
+/** Static's steps above ×1, the lowest first, as `stepped` counts them from 1. */
+const STEPS_UP = [...STATIC_STEPS].sort((one, other) => one.from - other.from);
+
 /**
  * The sound each event plays, or null for one that plays none, but those
- * a rock's kind and size, a pickup or a weapon decide.
+ * a rock's kind and size, a pickup, a weapon or static's step decide.
  */
 const EVENT_SOUNDS: Readonly<
   Record<
-    Exclude<FieldEventKind, "broken" | "hit" | "blast" | "caught" | "fired">,
+    Exclude<
+      FieldEventKind,
+      "broken" | "hit" | "blast" | "caught" | "fired" | "stepped"
+    >,
     SoundName | null
   >
 > = {
-  dashed: "dash",
+  dashed: DASH,
   shielded: "shield-break",
   warned: "comet-warning",
   cleared: "wave-clear",
@@ -390,12 +420,10 @@ const EVENT_SOUNDS: Readonly<
   joined: "stray-catch",
   home: "stray-catch",
   scored: null,
-  // Sparks, static, near misses and the zap play no sound yet.
-  sparked: null,
-  stepped: null,
-  grazed: null,
-  zapped: null,
-  arced: null,
+  sparked: SPARK,
+  grazed: "near-miss",
+  zapped: "zap-dash",
+  arced: "zap-arc",
 };
 
 /**
@@ -417,12 +445,15 @@ export function secondSoundOf(event: Readonly<FieldEvent>): SoundName | null {
  * A rock's break plays its kind's at its size, but one a comet smashed,
  * which scored nothing, plays the comet's smash; a hit it holds plays
  * its kind's knock, but a rock that rings logs its ring too, which is heard
- * for both. A pull of fire plays its weapon's shot.
+ * for both. A pull of fire plays its weapon's shot. Static rising to a step
+ * plays the chime of the multiplier it reaches, or full's, and falling to
+ * one plays its fall.
  *
  * @throws {RangeError} For a break that names no rock, or one of a size
  *   its kind doesn't come in, a held hit that names no rock, a blast that
- *   names no size, a catch that names no pickup, or a pull of fire that
- *   names no weapon, which the field's log never records.
+ *   names no size, a catch that names no pickup, a pull of fire that names
+ *   no weapon, or static rising to its first step, which the field's log
+ *   never records.
  */
 export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
   switch (event.kind) {
@@ -438,9 +469,25 @@ export function soundOf(event: Readonly<FieldEvent>): SoundName | null {
       return CATCH_SOUNDS[pickupOf(event)];
     case "fired":
       return SHOT_SOUNDS[weaponOf(event)];
+    case "stepped":
+      return event.fell ? "static-down" : riseSoundOf(event.step);
     default:
       return EVENT_SOUNDS[event.kind];
   }
+}
+
+/**
+ * Returns the sound static plays as it rises to a step.
+ *
+ * @throws {RangeError} For its first step, ×1, which it only falls to.
+ */
+function riseSoundOf(step: number): SoundName {
+  if (step === FULL_STEP) return "static-full";
+  const tier = STEPS_UP[step - 1];
+  if (tier === undefined) {
+    throw new RangeError(`Static rises to no step ${String(step)}.`);
+  }
+  return MULTIPLIER_SOUNDS[tier.times];
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   BURST_PULLS,
   FieldSounds,
   MOST_BREAKS_HEARD,
+  SPARK_RUN_STEPS,
   TAIL_WITHIN_MS,
 } from "./field_sounds";
 import type { SoundName } from "./sounds";
@@ -84,6 +85,18 @@ function pull(field: Field, count: number, x = 0): void {
   for (let pulled = 0; pulled < count; pulled++) {
     field.events.addFired(x, 5, "gun");
   }
+}
+
+/** Logs a spark gathered by the pilot at a place across a field, a share of its width. */
+function gather(field: Field, share = 0.5): void {
+  field.events.addSpark(field.torus.width * share, 5, 0, 10, 1);
+}
+
+/** Returns the notes, in cents, the sparks of what played rose to. */
+function sparkNotesOf(played: readonly Played[]): number[] {
+  return played
+    .filter(({ name }) => name === "spark")
+    .map(({ detune }) => detune);
 }
 
 /** Returns where the ship is across its field, from -1 to 1. */
@@ -274,6 +287,129 @@ describe("FieldSounds", () => {
       field.events.addBreak(rockAt(field, 0.5, "medium"), 1, 0, 0);
 
       expect(namesOf(frame())).toEqual(["break-stone-medium", "chain-ping"]);
+    });
+  });
+
+  describe("sparks gathered", () => {
+    it("climb the ladder a note a spark, an octave under the bell's, each where it was gathered", () => {
+      const { field, frame } = shipField();
+      const played: Played[] = [];
+
+      for (const share of [0.25, 0.5, 0.75]) {
+        gather(field, share);
+        played.push(...frame());
+      }
+
+      expect(played).toEqual([
+        { name: "spark", detune: -1200, across: -0.5, volume: 1 },
+        { name: "spark", detune: -1000, across: 0, volume: 1 },
+        { name: "spark", detune: -800, across: 0.5, volume: 1 },
+      ]);
+    });
+
+    it("play once a frame, at the highest note its sparks reached, where it was gathered", () => {
+      const { field, frame } = shipField();
+
+      gather(field, 0.25);
+      gather(field, 0.5);
+      gather(field, 0.75);
+
+      expect(frame()).toEqual([
+        { name: "spark", detune: -800, across: 0.5, volume: 1 },
+      ]);
+    });
+
+    it(`climb on from a spark gathered ${String(SPARK_RUN_STEPS)} of the field's steps before`, () => {
+      const { field, frame } = shipField();
+      gather(field);
+      frame();
+      field.steps += SPARK_RUN_STEPS;
+
+      gather(field);
+
+      expect(sparkNotesOf(frame())).toEqual([-1000]);
+    });
+
+    it("climb again from the first note after a spark gathered longer before", () => {
+      const { field, frame } = shipField();
+      gather(field);
+      frame();
+      field.steps += SPARK_RUN_STEPS + 1;
+
+      gather(field);
+
+      expect(sparkNotesOf(frame())).toEqual([-1200]);
+    });
+
+    it("climb on however long the frames take while the field stands still, as in a pause", () => {
+      const { field, frame } = shipField();
+      gather(field);
+      frame();
+
+      gather(field);
+
+      expect(sparkNotesOf(frame(60_000))).toEqual([-1000]);
+    });
+
+    it("climb again from the first note once static falls a step", () => {
+      const { field, frame } = shipField();
+      gather(field);
+      gather(field);
+      frame();
+      field.events.addStep(0, 5, 1, true);
+      frame();
+
+      gather(field);
+
+      expect(sparkNotesOf(frame())).toEqual([-1200]);
+    });
+
+    it("climb on as static rises a step", () => {
+      const { field, frame } = shipField();
+      gather(field);
+      frame();
+      field.events.addStep(0, 5, 1, false);
+      frame();
+
+      gather(field);
+
+      expect(sparkNotesOf(frame())).toEqual([-1000]);
+    });
+
+    it("climb again from the first note on a new field", () => {
+      let field = fieldFrom(SHIP_PICTURE);
+      const frame = listenTo(() => field);
+      frame();
+      gather(field);
+      frame();
+      field = fieldFrom(SHIP_PICTURE);
+      frame();
+
+      gather(field);
+
+      expect(sparkNotesOf(frame())).toEqual([-1200]);
+    });
+  });
+
+  describe("a zap", () => {
+    it("plays in place of the dash that set it off", () => {
+      const { field, frame } = shipField();
+
+      field.events.addDash(0, 5, 0);
+      field.events.addZap(0, 5, 0);
+
+      expect(namesOf(frame())).toEqual(["zap-dash"]);
+    });
+
+    it("leaves the next frame's dash its own", () => {
+      const { field, frame } = shipField();
+      field.events.addDash(0, 5, 0);
+      field.events.addZap(0, 5, 0);
+      frame();
+
+      field.events.addDash(0, 5, 0);
+
+      expect(namesOf(frame())).toEqual(["dash"]);
     });
   });
 
