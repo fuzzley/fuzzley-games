@@ -60,6 +60,9 @@ export interface GridPoint {
   readonly y: number;
 }
 
+/** How many units of the fuzzball's grid its view box is across, its body and fur placed on it. */
+export const FUZZBALL_GRID = 32;
+
 /** Returns a point on the mark's view box as it lies from the body's middle. */
 export function aboutBody(point: GridPoint): GridPoint {
   return { x: point.x - FUZZBALL.body.cx, y: point.y - FUZZBALL.body.cy };

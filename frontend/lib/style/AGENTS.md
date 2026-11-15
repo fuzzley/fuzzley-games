@@ -108,8 +108,9 @@ relative to `frontend/lib/style/`.
   origin. An app imports it as `@fz/style/themes`.
 - `src/fuzzball.ts`: the fuzzball, the mark the site and the games share with
   fuzzley.info, and the actor the Asteroid Breaker uplift's art kit made of
-  it, as plain geometry on the mark's 32-unit grid about its body's middle
-  (a `GridPoint`, `aboutBody()`), which a canvas and a page each draw. An
+  it, as plain geometry on the mark's 32-unit grid (`FUZZBALL_GRID`) about
+  its body's middle (a `GridPoint`, `aboutBody()`), which a canvas and a
+  page each draw. An
   app imports it as `@fz/style/fuzzball`. It holds:
   - the mark, whose geometry it copies from fuzzley.info: its shapes
     (`FUZZBALL`), for an inline `<svg>` that colors the body and fur

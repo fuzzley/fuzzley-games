@@ -28,6 +28,7 @@ import {
 } from "../shapes";
 
 export {
+  FUZZBALL_GRID,
   FUZZBALL_LOOK,
   FUZZBALL_STRANDS,
   type Strand,
@@ -66,9 +67,6 @@ export interface EyesStyle {
   /** The glints' color; without it, the eyes have none. */
   readonly glint?: number;
 }
-
-/** How wide the fuzzball's grid is, its body and fur placed on it. */
-export const FUZZBALL_GRID = 32;
 
 /** How many device pixels across a glint is drawn at the least, at its narrowest, below which it would only turn an eye grey. */
 const LEAST_GLINT = 1;

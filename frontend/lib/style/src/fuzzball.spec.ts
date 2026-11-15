@@ -2,6 +2,7 @@ import {
   type EyeMark,
   FUZZBALL,
   FUZZBALL_FACES,
+  FUZZBALL_GRID,
   FUZZBALL_LOOK,
   FUZZBALL_LOOK_FAR,
   FUZZBALL_STRANDS,
@@ -243,6 +244,14 @@ describe("fuzzballDrawing", () => {
       kinds: ["tick", "star", "tick", "star", "tick", "star"],
       points: [4, 8, 4, 8, 4, 8],
     });
+  });
+});
+
+describe("FUZZBALL_GRID", () => {
+  it("is as wide as the mark's view box", () => {
+    expect(FUZZBALL.viewBox).toBe(
+      `0 0 ${String(FUZZBALL_GRID)} ${String(FUZZBALL_GRID)}`,
+    );
   });
 });
 
