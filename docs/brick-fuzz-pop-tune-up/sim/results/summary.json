@@ -1,0 +1,3712 @@
+{
+  "seeds": 12,
+  "levels": 36,
+  "variants": {
+    "base": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38333,
+        "airYawns": 3181,
+        "neverYawns": 2620,
+        "breakableYawns": 954,
+        "roundsWithYawn": 3947,
+        "playerYawned": 2747,
+        "capped": 9,
+        "broken": 283586,
+        "plainWool": 1483,
+        "pocketYawns": 1288,
+        "lengthMedian": 76.9,
+        "lengthP90": 176.9,
+        "lengthP99": 332.3,
+        "lengthMost": 617.6,
+        "secondsMean": 6,
+        "secondsMedian": 5.5,
+        "secondsP90": 10.3,
+        "secondsP99": 15.9,
+        "secondsMost": 26.1,
+        "over20s": 54
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33407,
+        "airYawns": 1397,
+        "neverYawns": 650,
+        "breakableYawns": 517,
+        "roundsWithYawn": 1541,
+        "playerYawned": 1178,
+        "capped": 1,
+        "broken": 100199,
+        "plainWool": 438,
+        "pocketYawns": 314,
+        "lengthMedian": 30.7,
+        "lengthP90": 85.2,
+        "lengthP99": 186,
+        "lengthMost": 608.5,
+        "secondsMean": 2.9,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.1,
+        "secondsP99": 10.6,
+        "secondsMost": 25.7,
+        "over20s": 4
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2101,
+        "clearedPercent": 97.3,
+        "rounds": 10.8
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 534,
+          "clearedPercent": 98.9,
+          "rounds": 10.5
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10.5
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 14.5
+        }
+      },
+      "gameRounds": {
+        "rounds": 23269,
+        "balls": 38333,
+        "airYawns": 3181,
+        "neverYawns": 2620,
+        "breakableYawns": 954,
+        "roundsWithYawn": 3947,
+        "playerYawned": 2747,
+        "capped": 9,
+        "broken": 283586,
+        "plainWool": 1483,
+        "pocketYawns": 1288,
+        "lengthMedian": 76.9,
+        "lengthP90": 176.9,
+        "lengthP99": 332.3,
+        "lengthMost": 617.6,
+        "secondsMean": 6,
+        "secondsMedian": 5.5,
+        "secondsP90": 10.3,
+        "secondsP99": 15.9,
+        "secondsMost": 26.1,
+        "over20s": 54
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 432,
+        "clears": 432,
+        "of": 432
+      }
+    },
+    "bored-90": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38341,
+        "airYawns": 1847,
+        "neverYawns": 1730,
+        "breakableYawns": 591,
+        "roundsWithYawn": 2410,
+        "playerYawned": 1479,
+        "capped": 16,
+        "broken": 284721,
+        "plainWool": 1487,
+        "pocketYawns": 1202,
+        "lengthMedian": 77.7,
+        "lengthP90": 191.1,
+        "lengthP99": 358.8,
+        "lengthMost": 618,
+        "secondsMean": 6.1,
+        "secondsMedian": 5.6,
+        "secondsP90": 10.8,
+        "secondsP99": 16.8,
+        "secondsMost": 26.1,
+        "over20s": 86
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33425,
+        "airYawns": 580,
+        "neverYawns": 379,
+        "breakableYawns": 254,
+        "roundsWithYawn": 720,
+        "playerYawned": 506,
+        "capped": 3,
+        "broken": 101709,
+        "plainWool": 447,
+        "pocketYawns": 249,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 212.8,
+        "lengthMost": 609.1,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 11.6,
+        "secondsMost": 25.8,
+        "over20s": 10
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.5
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 534,
+          "clearedPercent": 98.9,
+          "rounds": 10.2
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 10
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 497,
+          "clearedPercent": 92,
+          "rounds": 14.2
+        }
+      },
+      "gameRounds": {
+        "rounds": 22605,
+        "balls": 37683,
+        "airYawns": 1883,
+        "neverYawns": 1755,
+        "breakableYawns": 696,
+        "roundsWithYawn": 2459,
+        "playerYawned": 1508,
+        "capped": 22,
+        "broken": 283667,
+        "plainWool": 1472,
+        "pocketYawns": 1287,
+        "lengthMedian": 80.8,
+        "lengthP90": 202.8,
+        "lengthP99": 375.8,
+        "lengthMost": 619.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.2,
+        "secondsP99": 17.4,
+        "secondsMost": 26.1,
+        "over20s": 99
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 203,
+        "clears": 206,
+        "of": 432
+      }
+    },
+    "bored-120": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1084,
+        "neverYawns": 1234,
+        "breakableYawns": 378,
+        "roundsWithYawn": 1635,
+        "playerYawned": 978,
+        "capped": 29,
+        "broken": 285308,
+        "plainWool": 1489,
+        "pocketYawns": 989,
+        "lengthMedian": 77.7,
+        "lengthP90": 200,
+        "lengthP99": 387.8,
+        "lengthMost": 618,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.1,
+        "secondsP99": 17.9,
+        "secondsMost": 26.1,
+        "over20s": 134
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 267,
+        "neverYawns": 280,
+        "breakableYawns": 145,
+        "roundsWithYawn": 431,
+        "playerYawned": 287,
+        "capped": 5,
+        "broken": 102091,
+        "plainWool": 447,
+        "pocketYawns": 212,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 230.6,
+        "lengthMost": 609.3,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.2,
+        "secondsMost": 25.8,
+        "over20s": 19
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2108,
+        "clearedPercent": 97.6,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 498,
+          "clearedPercent": 92.2,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22381,
+        "balls": 37420,
+        "airYawns": 1081,
+        "neverYawns": 1210,
+        "breakableYawns": 427,
+        "roundsWithYawn": 1630,
+        "playerYawned": 930,
+        "capped": 36,
+        "broken": 283790,
+        "plainWool": 1473,
+        "pocketYawns": 947,
+        "lengthMedian": 80.9,
+        "lengthP90": 216.1,
+        "lengthP99": 410.8,
+        "lengthMost": 619.7,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.7,
+        "secondsP99": 18.7,
+        "secondsMost": 26.1,
+        "over20s": 160
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 203,
+        "clears": 206,
+        "of": 432
+      }
+    },
+    "bored-150": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 672,
+        "neverYawns": 908,
+        "breakableYawns": 295,
+        "roundsWithYawn": 1195,
+        "playerYawned": 692,
+        "capped": 41,
+        "broken": 285658,
+        "plainWool": 1489,
+        "pocketYawns": 767,
+        "lengthMedian": 77.7,
+        "lengthP90": 209.5,
+        "lengthP99": 412.5,
+        "lengthMost": 781.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.5,
+        "secondsP99": 18.7,
+        "secondsMost": 31.9,
+        "over20s": 174
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33453,
+        "airYawns": 155,
+        "neverYawns": 201,
+        "breakableYawns": 101,
+        "roundsWithYawn": 285,
+        "playerYawned": 180,
+        "capped": 6,
+        "broken": 102190,
+        "plainWool": 447,
+        "pocketYawns": 162,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 249,
+        "lengthMost": 617.4,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.9,
+        "secondsMost": 26,
+        "over20s": 20
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2104,
+        "clearedPercent": 97.4,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22277,
+        "balls": 37141,
+        "airYawns": 746,
+        "neverYawns": 887,
+        "breakableYawns": 340,
+        "roundsWithYawn": 1211,
+        "playerYawned": 683,
+        "capped": 42,
+        "broken": 283721,
+        "plainWool": 1460,
+        "pocketYawns": 729,
+        "lengthMedian": 80.9,
+        "lengthP90": 226,
+        "lengthP99": 448.2,
+        "lengthMost": 781.7,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.1,
+        "secondsP99": 20,
+        "secondsMost": 31.9,
+        "over20s": 223
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 202,
+        "clears": 205,
+        "of": 432
+      }
+    },
+    "bored-180": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 368,
+        "neverYawns": 674,
+        "breakableYawns": 216,
+        "roundsWithYawn": 878,
+        "playerYawned": 504,
+        "capped": 61,
+        "broken": 285882,
+        "plainWool": 1489,
+        "pocketYawns": 577,
+        "lengthMedian": 77.7,
+        "lengthP90": 216.9,
+        "lengthP99": 437.8,
+        "lengthMost": 810.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.7,
+        "secondsP99": 19.6,
+        "secondsMost": 32.9,
+        "over20s": 209
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 88,
+        "neverYawns": 144,
+        "breakableYawns": 85,
+        "roundsWithYawn": 207,
+        "playerYawned": 124,
+        "capped": 7,
+        "broken": 102234,
+        "plainWool": 447,
+        "pocketYawns": 116,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 262.6,
+        "lengthMost": 612.3,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.4,
+        "secondsMost": 25.9,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2109,
+        "clearedPercent": 97.6,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 499,
+          "clearedPercent": 92.4,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22269,
+        "balls": 37236,
+        "airYawns": 477,
+        "neverYawns": 626,
+        "breakableYawns": 293,
+        "roundsWithYawn": 882,
+        "playerYawned": 503,
+        "capped": 61,
+        "broken": 283821,
+        "plainWool": 1463,
+        "pocketYawns": 530,
+        "lengthMedian": 81,
+        "lengthP90": 232.9,
+        "lengthP99": 463.9,
+        "lengthMost": 810.6,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.3,
+        "secondsP99": 20.6,
+        "secondsMost": 32.9,
+        "over20s": 255
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 207,
+        "clears": 210,
+        "of": 432
+      }
+    },
+    "bored-240": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38385,
+        "airYawns": 188,
+        "neverYawns": 430,
+        "breakableYawns": 161,
+        "roundsWithYawn": 592,
+        "playerYawned": 327,
+        "capped": 89,
+        "broken": 286001,
+        "plainWool": 1489,
+        "pocketYawns": 367,
+        "lengthMedian": 77.7,
+        "lengthP90": 220.6,
+        "lengthP99": 475.2,
+        "lengthMost": 868.4,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.9,
+        "secondsP99": 21,
+        "secondsMost": 35,
+        "over20s": 289
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33457,
+        "airYawns": 39,
+        "neverYawns": 86,
+        "breakableYawns": 61,
+        "roundsWithYawn": 127,
+        "playerYawned": 75,
+        "capped": 14,
+        "broken": 102288,
+        "plainWool": 448,
+        "pocketYawns": 76,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 281.7,
+        "lengthMost": 621.3,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 14.1,
+        "secondsMost": 26.2,
+        "over20s": 45
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 532,
+          "clearedPercent": 98.5,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 497,
+          "clearedPercent": 92,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22162,
+        "balls": 37097,
+        "airYawns": 232,
+        "neverYawns": 427,
+        "breakableYawns": 215,
+        "roundsWithYawn": 591,
+        "playerYawned": 328,
+        "capped": 93,
+        "broken": 283687,
+        "plainWool": 1466,
+        "pocketYawns": 365,
+        "lengthMedian": 81.1,
+        "lengthP90": 243.4,
+        "lengthP99": 509,
+        "lengthMost": 868.4,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.7,
+        "secondsP99": 22.2,
+        "secondsMost": 35,
+        "over20s": 366
+      },
+      "underFloor": ["17@16", "18@11", "18@13"],
+      "certificates": {
+        "holds": 203,
+        "clears": 206,
+        "of": 432
+      }
+    },
+    "touch-120": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1094,
+        "neverYawns": 1283,
+        "breakableYawns": 28,
+        "roundsWithYawn": 1452,
+        "playerYawned": 854,
+        "capped": 85,
+        "broken": 285454,
+        "plainWool": 1489,
+        "pocketYawns": 1036,
+        "lengthMedian": 77.7,
+        "lengthP90": 202,
+        "lengthP99": 428.4,
+        "lengthMost": 622.5,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.2,
+        "secondsP99": 19.3,
+        "secondsMost": 26.2,
+        "over20s": 196
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 274,
+        "neverYawns": 293,
+        "breakableYawns": 14,
+        "roundsWithYawn": 363,
+        "playerYawned": 239,
+        "capped": 21,
+        "broken": 102122,
+        "plainWool": 447,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 243.2,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 36
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22343,
+        "balls": 37282,
+        "airYawns": 1092,
+        "neverYawns": 1258,
+        "breakableYawns": 32,
+        "roundsWithYawn": 1441,
+        "playerYawned": 789,
+        "capped": 97,
+        "broken": 283730,
+        "plainWool": 1471,
+        "pocketYawns": 993,
+        "lengthMedian": 80.9,
+        "lengthP90": 218.5,
+        "lengthP99": 447.6,
+        "lengthMost": 620.5,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.8,
+        "secondsP99": 20,
+        "secondsMost": 26.2,
+        "over20s": 223
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 205,
+        "clears": 208,
+        "of": 432
+      }
+    },
+    "touch-150": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 681,
+        "neverYawns": 943,
+        "breakableYawns": 24,
+        "roundsWithYawn": 1052,
+        "playerYawned": 608,
+        "capped": 105,
+        "broken": 285750,
+        "plainWool": 1489,
+        "pocketYawns": 801,
+        "lengthMedian": 77.7,
+        "lengthP90": 210.5,
+        "lengthP99": 449,
+        "lengthMost": 781.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.5,
+        "secondsP99": 20,
+        "secondsMost": 31.9,
+        "over20s": 235
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33453,
+        "airYawns": 158,
+        "neverYawns": 210,
+        "breakableYawns": 10,
+        "roundsWithYawn": 237,
+        "playerYawned": 147,
+        "capped": 24,
+        "broken": 102214,
+        "plainWool": 447,
+        "pocketYawns": 167,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 257.3,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.2,
+        "secondsMost": 26.2,
+        "over20s": 40
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2104,
+        "clearedPercent": 97.4,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22276,
+        "balls": 37232,
+        "airYawns": 744,
+        "neverYawns": 924,
+        "breakableYawns": 25,
+        "roundsWithYawn": 1060,
+        "playerYawned": 576,
+        "capped": 127,
+        "broken": 283762,
+        "plainWool": 1463,
+        "pocketYawns": 772,
+        "lengthMedian": 81,
+        "lengthP90": 227.4,
+        "lengthP99": 481.8,
+        "lengthMost": 781.7,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.1,
+        "secondsP99": 21.2,
+        "secondsMost": 31.9,
+        "over20s": 292
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 202,
+        "clears": 205,
+        "of": 432
+      }
+    },
+    "touch-180": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 377,
+        "neverYawns": 703,
+        "breakableYawns": 19,
+        "roundsWithYawn": 777,
+        "playerYawned": 450,
+        "capped": 119,
+        "broken": 285919,
+        "plainWool": 1489,
+        "pocketYawns": 605,
+        "lengthMedian": 77.7,
+        "lengthP90": 217.4,
+        "lengthP99": 468.1,
+        "lengthMost": 810.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.8,
+        "secondsP99": 20.7,
+        "secondsMost": 32.9,
+        "over20s": 264
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 90,
+        "neverYawns": 155,
+        "breakableYawns": 9,
+        "roundsWithYawn": 165,
+        "playerYawned": 96,
+        "capped": 25,
+        "broken": 102252,
+        "plainWool": 447,
+        "pocketYawns": 122,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 268.7,
+        "lengthMost": 619.8,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 26.1,
+        "over20s": 48
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22246,
+        "balls": 37158,
+        "airYawns": 484,
+        "neverYawns": 649,
+        "breakableYawns": 24,
+        "roundsWithYawn": 767,
+        "playerYawned": 418,
+        "capped": 140,
+        "broken": 283681,
+        "plainWool": 1462,
+        "pocketYawns": 559,
+        "lengthMedian": 81,
+        "lengthP90": 234.4,
+        "lengthP99": 499.5,
+        "lengthMost": 810.6,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.4,
+        "secondsP99": 21.8,
+        "secondsMost": 32.9,
+        "over20s": 317
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 207,
+        "clears": 210,
+        "of": 432
+      }
+    },
+    "touch-120-held-360": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1094,
+        "neverYawns": 1281,
+        "breakableYawns": 74,
+        "roundsWithYawn": 1488,
+        "playerYawned": 873,
+        "capped": 49,
+        "broken": 285453,
+        "plainWool": 1489,
+        "pocketYawns": 1034,
+        "lengthMedian": 77.7,
+        "lengthP90": 202,
+        "lengthP99": 423.6,
+        "lengthMost": 622.5,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.2,
+        "secondsP99": 19.1,
+        "secondsMost": 26.2,
+        "over20s": 183
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 274,
+        "neverYawns": 293,
+        "breakableYawns": 29,
+        "roundsWithYawn": 377,
+        "playerYawned": 248,
+        "capped": 8,
+        "broken": 102122,
+        "plainWool": 447,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 243.2,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22346,
+        "balls": 37302,
+        "airYawns": 1093,
+        "neverYawns": 1244,
+        "breakableYawns": 108,
+        "roundsWithYawn": 1479,
+        "playerYawned": 813,
+        "capped": 52,
+        "broken": 283730,
+        "plainWool": 1471,
+        "pocketYawns": 975,
+        "lengthMedian": 80.9,
+        "lengthP90": 218.7,
+        "lengthP99": 440.7,
+        "lengthMost": 620.5,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.8,
+        "secondsP99": 19.7,
+        "secondsMost": 26.2,
+        "over20s": 208
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 205,
+        "clears": 208,
+        "of": 432
+      }
+    },
+    "touch-150-held-450": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 681,
+        "neverYawns": 943,
+        "breakableYawns": 65,
+        "roundsWithYawn": 1080,
+        "playerYawned": 623,
+        "capped": 66,
+        "broken": 285749,
+        "plainWool": 1489,
+        "pocketYawns": 801,
+        "lengthMedian": 77.7,
+        "lengthP90": 210.5,
+        "lengthP99": 449,
+        "lengthMost": 781.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.5,
+        "secondsP99": 20,
+        "secondsMost": 31.9,
+        "over20s": 235
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33453,
+        "airYawns": 158,
+        "neverYawns": 210,
+        "breakableYawns": 22,
+        "roundsWithYawn": 248,
+        "playerYawned": 155,
+        "capped": 12,
+        "broken": 102214,
+        "plainWool": 447,
+        "pocketYawns": 167,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 257.3,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.2,
+        "secondsMost": 26.2,
+        "over20s": 40
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2104,
+        "clearedPercent": 97.4,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22284,
+        "balls": 37278,
+        "airYawns": 747,
+        "neverYawns": 929,
+        "breakableYawns": 105,
+        "roundsWithYawn": 1099,
+        "playerYawned": 610,
+        "capped": 69,
+        "broken": 283762,
+        "plainWool": 1463,
+        "pocketYawns": 778,
+        "lengthMedian": 81,
+        "lengthP90": 227.4,
+        "lengthP99": 478.3,
+        "lengthMost": 781.7,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.1,
+        "secondsP99": 21.1,
+        "secondsMost": 31.9,
+        "over20s": 290
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 202,
+        "clears": 205,
+        "of": 432
+      }
+    },
+    "not-steel-120": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1094,
+        "neverYawns": 882,
+        "breakableYawns": 28,
+        "roundsWithYawn": 1153,
+        "playerYawned": 680,
+        "capped": 117,
+        "broken": 285568,
+        "plainWool": 1489,
+        "pocketYawns": 717,
+        "lengthMedian": 77.7,
+        "lengthP90": 204.6,
+        "lengthP99": 467.3,
+        "lengthMost": 663,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.3,
+        "secondsP99": 20.7,
+        "secondsMost": 27.7,
+        "over20s": 261
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33443,
+        "airYawns": 274,
+        "neverYawns": 207,
+        "breakableYawns": 14,
+        "roundsWithYawn": 296,
+        "playerYawned": 196,
+        "capped": 24,
+        "broken": 102156,
+        "plainWool": 447,
+        "pocketYawns": 154,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 251.4,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13,
+        "secondsMost": 26.2,
+        "over20s": 45
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22317,
+        "balls": 37258,
+        "airYawns": 1090,
+        "neverYawns": 873,
+        "breakableYawns": 32,
+        "roundsWithYawn": 1151,
+        "playerYawned": 635,
+        "capped": 134,
+        "broken": 283730,
+        "plainWool": 1471,
+        "pocketYawns": 676,
+        "lengthMedian": 80.9,
+        "lengthP90": 221.3,
+        "lengthP99": 488.5,
+        "lengthMost": 642.3,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.9,
+        "secondsP99": 21.4,
+        "secondsMost": 26.9,
+        "over20s": 293
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 206,
+        "clears": 209,
+        "of": 432
+      }
+    },
+    "not-steel-150": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 681,
+        "neverYawns": 667,
+        "breakableYawns": 24,
+        "roundsWithYawn": 842,
+        "playerYawned": 493,
+        "capped": 136,
+        "broken": 285797,
+        "plainWool": 1489,
+        "pocketYawns": 561,
+        "lengthMedian": 77.7,
+        "lengthP90": 211.6,
+        "lengthP99": 483,
+        "lengthMost": 781.7,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.6,
+        "secondsP99": 21.3,
+        "secondsMost": 31.9,
+        "over20s": 294
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 158,
+        "neverYawns": 160,
+        "breakableYawns": 10,
+        "roundsWithYawn": 198,
+        "playerYawned": 123,
+        "capped": 27,
+        "broken": 102236,
+        "plainWool": 447,
+        "pocketYawns": 125,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 260.8,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.3,
+        "secondsMost": 26.2,
+        "over20s": 49
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2104,
+        "clearedPercent": 97.4,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22264,
+        "balls": 37218,
+        "airYawns": 743,
+        "neverYawns": 670,
+        "breakableYawns": 25,
+        "roundsWithYawn": 863,
+        "playerYawned": 471,
+        "capped": 162,
+        "broken": 283762,
+        "plainWool": 1463,
+        "pocketYawns": 550,
+        "lengthMedian": 81,
+        "lengthP90": 228.8,
+        "lengthP99": 505.7,
+        "lengthMost": 781.7,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.2,
+        "secondsP99": 22.1,
+        "secondsMost": 31.9,
+        "over20s": 346
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 202,
+        "clears": 205,
+        "of": 432
+      }
+    },
+    "wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38333,
+        "airYawns": 3193,
+        "neverYawns": 2620,
+        "breakableYawns": 962,
+        "roundsWithYawn": 3963,
+        "playerYawned": 2759,
+        "capped": 7,
+        "broken": 281715,
+        "plainWool": 1369,
+        "pocketYawns": 1288,
+        "lengthMedian": 76.3,
+        "lengthP90": 175.5,
+        "lengthP99": 329.4,
+        "lengthMost": 613.8,
+        "secondsMean": 5.9,
+        "secondsMedian": 5.5,
+        "secondsP90": 10.3,
+        "secondsP99": 15.8,
+        "secondsMost": 25.9,
+        "over20s": 51
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33407,
+        "airYawns": 1409,
+        "neverYawns": 650,
+        "breakableYawns": 517,
+        "roundsWithYawn": 1549,
+        "playerYawned": 1184,
+        "capped": 1,
+        "broken": 101152,
+        "plainWool": 495,
+        "pocketYawns": 314,
+        "lengthMedian": 30.7,
+        "lengthP90": 85.5,
+        "lengthP99": 186.3,
+        "lengthMost": 608.5,
+        "secondsMean": 2.9,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.1,
+        "secondsP99": 10.7,
+        "secondsMost": 25.7,
+        "over20s": 4
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2101,
+        "clearedPercent": 97.3,
+        "rounds": 10.7
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10.2
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10.5
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 492,
+          "clearedPercent": 91.1,
+          "rounds": 14.4
+        }
+      },
+      "gameRounds": {
+        "rounds": 23142,
+        "balls": 38209,
+        "airYawns": 3312,
+        "neverYawns": 2620,
+        "breakableYawns": 956,
+        "roundsWithYawn": 4009,
+        "playerYawned": 2782,
+        "capped": 7,
+        "broken": 283779,
+        "plainWool": 1608,
+        "pocketYawns": 1288,
+        "lengthMedian": 77.7,
+        "lengthP90": 176.8,
+        "lengthP99": 330.4,
+        "lengthMost": 613.8,
+        "secondsMean": 6,
+        "secondsMedian": 5.6,
+        "secondsP90": 10.3,
+        "secondsP99": 15.8,
+        "secondsMost": 25.9,
+        "over20s": 52
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 375,
+        "clears": 375,
+        "of": 432
+      }
+    },
+    "touch-120-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1102,
+        "neverYawns": 1283,
+        "breakableYawns": 30,
+        "roundsWithYawn": 1460,
+        "playerYawned": 859,
+        "capped": 85,
+        "broken": 283580,
+        "plainWool": 1373,
+        "pocketYawns": 1036,
+        "lengthMedian": 77,
+        "lengthP90": 200.1,
+        "lengthP99": 427.2,
+        "lengthMost": 622.5,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.1,
+        "secondsP99": 19.3,
+        "secondsMost": 26.2,
+        "over20s": 193
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 278,
+        "neverYawns": 293,
+        "breakableYawns": 14,
+        "roundsWithYawn": 366,
+        "playerYawned": 242,
+        "capped": 21,
+        "broken": 103101,
+        "plainWool": 505,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 244,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 36
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 493,
+          "clearedPercent": 91.3,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22144,
+        "balls": 37082,
+        "airYawns": 1186,
+        "neverYawns": 1258,
+        "breakableYawns": 28,
+        "roundsWithYawn": 1474,
+        "playerYawned": 815,
+        "capped": 101,
+        "broken": 283711,
+        "plainWool": 1587,
+        "pocketYawns": 993,
+        "lengthMedian": 81.6,
+        "lengthP90": 220.4,
+        "lengthP99": 452,
+        "lengthMost": 620.5,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.9,
+        "secondsP99": 20.1,
+        "secondsMost": 26.2,
+        "over20s": 225
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 173,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-150-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 684,
+        "neverYawns": 943,
+        "breakableYawns": 25,
+        "roundsWithYawn": 1056,
+        "playerYawned": 612,
+        "capped": 105,
+        "broken": 283876,
+        "plainWool": 1373,
+        "pocketYawns": 801,
+        "lengthMedian": 77,
+        "lengthP90": 209,
+        "lengthP99": 448.3,
+        "lengthMost": 781.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.5,
+        "secondsP99": 20,
+        "secondsMost": 31.9,
+        "over20s": 233
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33453,
+        "airYawns": 157,
+        "neverYawns": 210,
+        "breakableYawns": 10,
+        "roundsWithYawn": 236,
+        "playerYawned": 147,
+        "capped": 24,
+        "broken": 103201,
+        "plainWool": 505,
+        "pocketYawns": 167,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 257.6,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.2,
+        "secondsMost": 26.2,
+        "over20s": 40
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.7
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22083,
+        "balls": 37032,
+        "airYawns": 791,
+        "neverYawns": 924,
+        "breakableYawns": 22,
+        "roundsWithYawn": 1082,
+        "playerYawned": 597,
+        "capped": 130,
+        "broken": 283800,
+        "plainWool": 1596,
+        "pocketYawns": 772,
+        "lengthMedian": 81.7,
+        "lengthP90": 229.2,
+        "lengthP99": 483.2,
+        "lengthMost": 781.7,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.2,
+        "secondsP99": 21.3,
+        "secondsMost": 31.9,
+        "over20s": 291
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 173,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-120-held-360-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1102,
+        "neverYawns": 1281,
+        "breakableYawns": 77,
+        "roundsWithYawn": 1497,
+        "playerYawned": 879,
+        "capped": 48,
+        "broken": 283579,
+        "plainWool": 1373,
+        "pocketYawns": 1034,
+        "lengthMedian": 77,
+        "lengthP90": 200.1,
+        "lengthP99": 422.8,
+        "lengthMost": 622.5,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.1,
+        "secondsP99": 19.1,
+        "secondsMost": 26.2,
+        "over20s": 180
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 278,
+        "neverYawns": 293,
+        "breakableYawns": 29,
+        "roundsWithYawn": 380,
+        "playerYawned": 251,
+        "capped": 8,
+        "broken": 103101,
+        "plainWool": 505,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 244,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 493,
+          "clearedPercent": 91.3,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22149,
+        "balls": 37106,
+        "airYawns": 1187,
+        "neverYawns": 1244,
+        "breakableYawns": 105,
+        "roundsWithYawn": 1513,
+        "playerYawned": 840,
+        "capped": 55,
+        "broken": 283711,
+        "plainWool": 1589,
+        "pocketYawns": 975,
+        "lengthMedian": 81.6,
+        "lengthP90": 220.6,
+        "lengthP99": 441.9,
+        "lengthMost": 620.5,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.9,
+        "secondsP99": 19.8,
+        "secondsMost": 26.2,
+        "over20s": 210
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 173,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-150-held-450-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38379,
+        "airYawns": 684,
+        "neverYawns": 943,
+        "breakableYawns": 67,
+        "roundsWithYawn": 1085,
+        "playerYawned": 628,
+        "capped": 65,
+        "broken": 283875,
+        "plainWool": 1373,
+        "pocketYawns": 801,
+        "lengthMedian": 77,
+        "lengthP90": 209,
+        "lengthP99": 448.3,
+        "lengthMost": 781.7,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.5,
+        "secondsP99": 20,
+        "secondsMost": 31.9,
+        "over20s": 233
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33453,
+        "airYawns": 157,
+        "neverYawns": 210,
+        "breakableYawns": 22,
+        "roundsWithYawn": 247,
+        "playerYawned": 155,
+        "capped": 12,
+        "broken": 103201,
+        "plainWool": 505,
+        "pocketYawns": 167,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 257.6,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.2,
+        "secondsMost": 26.2,
+        "over20s": 40
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.7
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22093,
+        "balls": 37080,
+        "airYawns": 794,
+        "neverYawns": 929,
+        "breakableYawns": 103,
+        "roundsWithYawn": 1122,
+        "playerYawned": 632,
+        "capped": 71,
+        "broken": 283800,
+        "plainWool": 1598,
+        "pocketYawns": 778,
+        "lengthMedian": 81.7,
+        "lengthP90": 229.2,
+        "lengthP99": 479.7,
+        "lengthMost": 781.7,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.2,
+        "secondsP99": 21.1,
+        "secondsMost": 31.9,
+        "over20s": 289
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 173,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-180-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 381,
+        "neverYawns": 703,
+        "breakableYawns": 19,
+        "roundsWithYawn": 781,
+        "playerYawned": 453,
+        "capped": 119,
+        "broken": 284045,
+        "plainWool": 1373,
+        "pocketYawns": 605,
+        "lengthMedian": 77,
+        "lengthP90": 215.8,
+        "lengthP99": 467.1,
+        "lengthMost": 810.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.7,
+        "secondsP99": 20.7,
+        "secondsMost": 32.9,
+        "over20s": 262
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 88,
+        "neverYawns": 155,
+        "breakableYawns": 9,
+        "roundsWithYawn": 163,
+        "playerYawned": 96,
+        "capped": 25,
+        "broken": 103239,
+        "plainWool": 505,
+        "pocketYawns": 122,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 268.9,
+        "lengthMost": 619.8,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 26.1,
+        "over20s": 48
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 13.9
+        }
+      },
+      "gameRounds": {
+        "rounds": 22015,
+        "balls": 36933,
+        "airYawns": 505,
+        "neverYawns": 649,
+        "breakableYawns": 22,
+        "roundsWithYawn": 786,
+        "playerYawned": 440,
+        "capped": 143,
+        "broken": 283669,
+        "plainWool": 1596,
+        "pocketYawns": 559,
+        "lengthMedian": 82,
+        "lengthP90": 236.5,
+        "lengthP99": 501.3,
+        "lengthMost": 810.6,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.9,
+        "secondsP90": 12.4,
+        "secondsP99": 21.9,
+        "secondsMost": 32.9,
+        "over20s": 320
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 177,
+        "clears": 179,
+        "of": 432
+      }
+    },
+    "touch-rows-8": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38381,
+        "airYawns": 1172,
+        "neverYawns": 1127,
+        "breakableYawns": 21,
+        "roundsWithYawn": 1379,
+        "playerYawned": 724,
+        "capped": 112,
+        "broken": 285666,
+        "plainWool": 1489,
+        "pocketYawns": 920,
+        "lengthMedian": 77.7,
+        "lengthP90": 205.3,
+        "lengthP99": 451.4,
+        "lengthMost": 807.6,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.3,
+        "secondsP99": 20.1,
+        "secondsMost": 32.8,
+        "over20s": 239
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 231,
+        "neverYawns": 251,
+        "breakableYawns": 10,
+        "roundsWithYawn": 305,
+        "playerYawned": 180,
+        "capped": 23,
+        "broken": 102198,
+        "plainWool": 447,
+        "pocketYawns": 189,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 256.9,
+        "lengthMost": 619.8,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.2,
+        "secondsMost": 26.1,
+        "over20s": 43
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 540,
+          "clearedPercent": 100,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 532,
+          "clearedPercent": 98.5,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22313,
+        "balls": 37211,
+        "airYawns": 1247,
+        "neverYawns": 1087,
+        "breakableYawns": 27,
+        "roundsWithYawn": 1401,
+        "playerYawned": 700,
+        "capped": 123,
+        "broken": 283674,
+        "plainWool": 1462,
+        "pocketYawns": 869,
+        "lengthMedian": 80.9,
+        "lengthP90": 222.6,
+        "lengthP99": 479.9,
+        "lengthMost": 807.6,
+        "secondsMean": 6.6,
+        "secondsMedian": 5.8,
+        "secondsP90": 12,
+        "secondsP99": 21.1,
+        "secondsMost": 32.8,
+        "over20s": 274
+      },
+      "underFloor": ["17@19", "18@11", "18@13"],
+      "certificates": {
+        "holds": 206,
+        "clears": 209,
+        "of": 432
+      }
+    },
+    "touch-rows-10": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 604,
+        "neverYawns": 828,
+        "breakableYawns": 21,
+        "roundsWithYawn": 974,
+        "playerYawned": 525,
+        "capped": 125,
+        "broken": 285884,
+        "plainWool": 1489,
+        "pocketYawns": 700,
+        "lengthMedian": 77.7,
+        "lengthP90": 211.1,
+        "lengthP99": 471.9,
+        "lengthMost": 852.2,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.5,
+        "secondsP99": 20.9,
+        "secondsMost": 34.4,
+        "over20s": 273
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 120,
+        "neverYawns": 175,
+        "breakableYawns": 8,
+        "roundsWithYawn": 208,
+        "playerYawned": 118,
+        "capped": 27,
+        "broken": 102250,
+        "plainWool": 447,
+        "pocketYawns": 147,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 268.7,
+        "lengthMost": 620.5,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 26.2,
+        "over20s": 52
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2107,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 540,
+          "clearedPercent": 100,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22198,
+        "balls": 37155,
+        "airYawns": 715,
+        "neverYawns": 817,
+        "breakableYawns": 27,
+        "roundsWithYawn": 1011,
+        "playerYawned": 503,
+        "capped": 150,
+        "broken": 283751,
+        "plainWool": 1466,
+        "pocketYawns": 668,
+        "lengthMedian": 81.1,
+        "lengthP90": 229.6,
+        "lengthP99": 507.9,
+        "lengthMost": 852.2,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.2,
+        "secondsP99": 22.1,
+        "secondsMost": 34.4,
+        "over20s": 329
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 207,
+        "clears": 210,
+        "of": 432
+      }
+    },
+    "touch-150-steel-5": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38325,
+        "airYawns": 678,
+        "neverYawns": 1644,
+        "breakableYawns": 127,
+        "roundsWithYawn": 1519,
+        "playerYawned": 991,
+        "capped": 78,
+        "broken": 284947,
+        "plainWool": 1489,
+        "pocketYawns": 1471,
+        "lengthMedian": 77.5,
+        "lengthP90": 201.5,
+        "lengthP99": 413.4,
+        "lengthMost": 622.5,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.2,
+        "secondsP99": 18.8,
+        "secondsMost": 26.2,
+        "over20s": 180
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33439,
+        "airYawns": 158,
+        "neverYawns": 366,
+        "breakableYawns": 43,
+        "roundsWithYawn": 344,
+        "playerYawned": 241,
+        "capped": 19,
+        "broken": 101968,
+        "plainWool": 447,
+        "pocketYawns": 317,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.2,
+        "lengthP99": 241.1,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.6,
+        "secondsMost": 26.1,
+        "over20s": 33
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2102,
+        "clearedPercent": 97.3,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 534,
+          "clearedPercent": 98.9,
+          "rounds": 10.2
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 493,
+          "clearedPercent": 91.3,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22405,
+        "balls": 37270,
+        "airYawns": 742,
+        "neverYawns": 1587,
+        "breakableYawns": 150,
+        "roundsWithYawn": 1506,
+        "playerYawned": 944,
+        "capped": 82,
+        "broken": 283563,
+        "plainWool": 1463,
+        "pocketYawns": 1415,
+        "lengthMedian": 80.9,
+        "lengthP90": 218.5,
+        "lengthP99": 441.6,
+        "lengthMost": 620.5,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.8,
+        "secondsP99": 19.8,
+        "secondsMost": 26.2,
+        "over20s": 215
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 200,
+        "clears": 203,
+        "of": 432
+      }
+    },
+    "touch-150-steel-10": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38261,
+        "airYawns": 670,
+        "neverYawns": 2391,
+        "breakableYawns": 215,
+        "roundsWithYawn": 2004,
+        "playerYawned": 1413,
+        "capped": 64,
+        "broken": 282694,
+        "plainWool": 1489,
+        "pocketYawns": 2167,
+        "lengthMedian": 76.5,
+        "lengthP90": 194.6,
+        "lengthP99": 386.7,
+        "lengthMost": 620.9,
+        "secondsMean": 6.1,
+        "secondsMedian": 5.5,
+        "secondsP90": 11,
+        "secondsP99": 17.8,
+        "secondsMost": 26.2,
+        "over20s": 149
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33393,
+        "airYawns": 158,
+        "neverYawns": 547,
+        "breakableYawns": 74,
+        "roundsWithYawn": 482,
+        "playerYawned": 366,
+        "capped": 16,
+        "broken": 101514,
+        "plainWool": 447,
+        "pocketYawns": 482,
+        "lengthMedian": 30.7,
+        "lengthP90": 91.9,
+        "lengthP99": 229.2,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.6,
+        "secondsP99": 12.2,
+        "secondsMost": 26.1,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.6
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.9
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 10.4
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 10.2
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22795,
+        "balls": 37752,
+        "airYawns": 746,
+        "neverYawns": 2220,
+        "breakableYawns": 202,
+        "roundsWithYawn": 1896,
+        "playerYawned": 1265,
+        "capped": 74,
+        "broken": 283719,
+        "plainWool": 1463,
+        "pocketYawns": 1978,
+        "lengthMedian": 79.8,
+        "lengthP90": 210,
+        "lengthP99": 427.2,
+        "lengthMost": 621.9,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.7,
+        "secondsP90": 11.5,
+        "secondsP99": 19.3,
+        "secondsMost": 26.2,
+        "over20s": 194
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 198,
+        "clears": 200,
+        "of": 432
+      }
+    },
+    "touch-180-steel-10": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38327,
+        "airYawns": 373,
+        "neverYawns": 1960,
+        "breakableYawns": 180,
+        "roundsWithYawn": 1615,
+        "playerYawned": 1132,
+        "capped": 76,
+        "broken": 283930,
+        "plainWool": 1489,
+        "pocketYawns": 1833,
+        "lengthMedian": 77,
+        "lengthP90": 201.5,
+        "lengthP99": 411.6,
+        "lengthMost": 622.5,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.2,
+        "secondsP99": 18.7,
+        "secondsMost": 26.2,
+        "over20s": 173
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33439,
+        "airYawns": 90,
+        "neverYawns": 447,
+        "breakableYawns": 53,
+        "roundsWithYawn": 359,
+        "playerYawned": 261,
+        "capped": 19,
+        "broken": 101857,
+        "plainWool": 447,
+        "pocketYawns": 413,
+        "lengthMedian": 30.7,
+        "lengthP90": 92.7,
+        "lengthP99": 245.4,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.6,
+        "secondsP99": 12.8,
+        "secondsMost": 26.1,
+        "over20s": 33
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2100,
+        "clearedPercent": 97.2,
+        "rounds": 10.5
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 7.8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 530,
+          "clearedPercent": 98.1,
+          "rounds": 10.2
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 497,
+          "clearedPercent": 92,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22581,
+        "balls": 37572,
+        "airYawns": 480,
+        "neverYawns": 1836,
+        "breakableYawns": 172,
+        "roundsWithYawn": 1536,
+        "playerYawned": 1024,
+        "capped": 103,
+        "broken": 283300,
+        "plainWool": 1462,
+        "pocketYawns": 1713,
+        "lengthMedian": 80.4,
+        "lengthP90": 218.7,
+        "lengthP99": 455.1,
+        "lengthMost": 683.6,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.7,
+        "secondsP90": 11.8,
+        "secondsP99": 20.3,
+        "secondsMost": 28.4,
+        "over20s": 233
+      },
+      "underFloor": ["17@11", "17@16", "18@11", "18@13"],
+      "certificates": {
+        "holds": 204,
+        "clears": 206,
+        "of": 432
+      }
+    },
+    "touch-180-steel-15": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38223,
+        "airYawns": 366,
+        "neverYawns": 2588,
+        "breakableYawns": 261,
+        "roundsWithYawn": 2024,
+        "playerYawned": 1495,
+        "capped": 64,
+        "broken": 281706,
+        "plainWool": 1489,
+        "pocketYawns": 2409,
+        "lengthMedian": 76,
+        "lengthP90": 194.6,
+        "lengthP99": 388.5,
+        "lengthMost": 622.5,
+        "secondsMean": 6.1,
+        "secondsMedian": 5.4,
+        "secondsP90": 10.9,
+        "secondsP99": 17.9,
+        "secondsMost": 26.2,
+        "over20s": 148
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33393,
+        "airYawns": 90,
+        "neverYawns": 611,
+        "breakableYawns": 92,
+        "roundsWithYawn": 488,
+        "playerYawned": 379,
+        "capped": 17,
+        "broken": 101439,
+        "plainWool": 447,
+        "pocketYawns": 557,
+        "lengthMedian": 30.6,
+        "lengthP90": 91.7,
+        "lengthP99": 236.5,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.6,
+        "secondsP99": 12.4,
+        "secondsMost": 26.1,
+        "over20s": 28
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.6
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.9
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 534,
+          "clearedPercent": 98.9,
+          "rounds": 10.5
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 10.3
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14.1
+        }
+      },
+      "gameRounds": {
+        "rounds": 22867,
+        "balls": 37730,
+        "airYawns": 480,
+        "neverYawns": 2353,
+        "breakableYawns": 248,
+        "roundsWithYawn": 1888,
+        "playerYawned": 1324,
+        "capped": 87,
+        "broken": 283581,
+        "plainWool": 1462,
+        "pocketYawns": 2144,
+        "lengthMedian": 79.2,
+        "lengthP90": 213.9,
+        "lengthP99": 437.8,
+        "lengthMost": 622.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.7,
+        "secondsP90": 11.6,
+        "secondsP99": 19.6,
+        "secondsMost": 26.2,
+        "over20s": 209
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 199,
+        "clears": 202,
+        "of": 432
+      }
+    },
+    "touch-150-steel-10-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38261,
+        "airYawns": 673,
+        "neverYawns": 2391,
+        "breakableYawns": 216,
+        "roundsWithYawn": 2008,
+        "playerYawned": 1417,
+        "capped": 64,
+        "broken": 280820,
+        "plainWool": 1373,
+        "pocketYawns": 2167,
+        "lengthMedian": 75.9,
+        "lengthP90": 193.5,
+        "lengthP99": 385.6,
+        "lengthMost": 620.9,
+        "secondsMean": 6.1,
+        "secondsMedian": 5.4,
+        "secondsP90": 10.9,
+        "secondsP99": 17.8,
+        "secondsMost": 26.2,
+        "over20s": 147
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33393,
+        "airYawns": 157,
+        "neverYawns": 547,
+        "breakableYawns": 74,
+        "roundsWithYawn": 481,
+        "playerYawned": 366,
+        "capped": 16,
+        "broken": 102501,
+        "plainWool": 505,
+        "pocketYawns": 482,
+        "lengthMedian": 30.7,
+        "lengthP90": 92.1,
+        "lengthP99": 230.4,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.6,
+        "secondsP99": 12.2,
+        "secondsMost": 26.1,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2107,
+        "clearedPercent": 97.5,
+        "rounds": 10.5
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.9
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 10.2
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22602,
+        "balls": 37552,
+        "airYawns": 793,
+        "neverYawns": 2220,
+        "breakableYawns": 199,
+        "roundsWithYawn": 1918,
+        "playerYawned": 1286,
+        "capped": 77,
+        "broken": 283757,
+        "plainWool": 1596,
+        "pocketYawns": 1978,
+        "lengthMedian": 80.4,
+        "lengthP90": 212.7,
+        "lengthP99": 429.5,
+        "lengthMost": 621.9,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.7,
+        "secondsP90": 11.6,
+        "secondsP99": 19.3,
+        "secondsMost": 26.2,
+        "over20s": 193
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 169,
+        "clears": 170,
+        "of": 432
+      }
+    },
+    "touch-180-steel-10-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38327,
+        "airYawns": 377,
+        "neverYawns": 1960,
+        "breakableYawns": 180,
+        "roundsWithYawn": 1619,
+        "playerYawned": 1135,
+        "capped": 76,
+        "broken": 282056,
+        "plainWool": 1373,
+        "pocketYawns": 1833,
+        "lengthMedian": 76.4,
+        "lengthP90": 199.6,
+        "lengthP99": 410.7,
+        "lengthMost": 622.5,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.1,
+        "secondsP99": 18.7,
+        "secondsMost": 26.2,
+        "over20s": 171
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33439,
+        "airYawns": 88,
+        "neverYawns": 447,
+        "breakableYawns": 53,
+        "roundsWithYawn": 357,
+        "playerYawned": 261,
+        "capped": 19,
+        "broken": 102844,
+        "plainWool": 505,
+        "pocketYawns": 413,
+        "lengthMedian": 30.7,
+        "lengthP90": 93,
+        "lengthP99": 245.6,
+        "lengthMost": 619.8,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.6,
+        "secondsP99": 12.8,
+        "secondsMost": 26.1,
+        "over20s": 33
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2100,
+        "clearedPercent": 97.2,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 537,
+          "clearedPercent": 99.4,
+          "rounds": 7.8
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 532,
+          "clearedPercent": 98.5,
+          "rounds": 9.9
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 10
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 495,
+          "clearedPercent": 91.7,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22350,
+        "balls": 37347,
+        "airYawns": 501,
+        "neverYawns": 1836,
+        "breakableYawns": 170,
+        "roundsWithYawn": 1555,
+        "playerYawned": 1046,
+        "capped": 106,
+        "broken": 283288,
+        "plainWool": 1596,
+        "pocketYawns": 1713,
+        "lengthMedian": 81,
+        "lengthP90": 220.6,
+        "lengthP99": 457.6,
+        "lengthMost": 683.6,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.9,
+        "secondsP99": 20.3,
+        "secondsMost": 28.4,
+        "over20s": 236
+      },
+      "underFloor": ["17@11", "17@16"],
+      "certificates": {
+        "holds": 174,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-120-held-240": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1093,
+        "neverYawns": 1275,
+        "breakableYawns": 117,
+        "roundsWithYawn": 1510,
+        "playerYawned": 884,
+        "capped": 43,
+        "broken": 285443,
+        "plainWool": 1489,
+        "pocketYawns": 1028,
+        "lengthMedian": 77.7,
+        "lengthP90": 202,
+        "lengthP99": 410.7,
+        "lengthMost": 622.5,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.2,
+        "secondsP99": 18.7,
+        "secondsMost": 26.2,
+        "over20s": 158
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 274,
+        "neverYawns": 293,
+        "breakableYawns": 47,
+        "roundsWithYawn": 387,
+        "playerYawned": 253,
+        "capped": 7,
+        "broken": 102116,
+        "plainWool": 447,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 243.2,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 22
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.4
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22348,
+        "balls": 37323,
+        "airYawns": 1092,
+        "neverYawns": 1239,
+        "breakableYawns": 174,
+        "roundsWithYawn": 1502,
+        "playerYawned": 830,
+        "capped": 44,
+        "broken": 283728,
+        "plainWool": 1470,
+        "pocketYawns": 973,
+        "lengthMedian": 80.9,
+        "lengthP90": 218.5,
+        "lengthP99": 425.4,
+        "lengthMost": 620.5,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.8,
+        "secondsP99": 19.2,
+        "secondsMost": 26.2,
+        "over20s": 182
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 205,
+        "clears": 208,
+        "of": 432
+      }
+    },
+    "touch-180-held-360": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 376,
+        "neverYawns": 700,
+        "breakableYawns": 84,
+        "roundsWithYawn": 819,
+        "playerYawned": 473,
+        "capped": 73,
+        "broken": 285917,
+        "plainWool": 1489,
+        "pocketYawns": 602,
+        "lengthMedian": 77.7,
+        "lengthP90": 217.4,
+        "lengthP99": 455.1,
+        "lengthMost": 810.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.6,
+        "secondsP90": 11.8,
+        "secondsP99": 20.3,
+        "secondsMost": 32.9,
+        "over20s": 247
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 90,
+        "neverYawns": 155,
+        "breakableYawns": 30,
+        "roundsWithYawn": 182,
+        "playerYawned": 108,
+        "capped": 9,
+        "broken": 102252,
+        "plainWool": 447,
+        "pocketYawns": 122,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.4,
+        "lengthP99": 268.7,
+        "lengthMost": 619.3,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 26.1,
+        "over20s": 39
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 533,
+          "clearedPercent": 98.7,
+          "rounds": 10.1
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 496,
+          "clearedPercent": 91.9,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22249,
+        "balls": 37178,
+        "airYawns": 483,
+        "neverYawns": 662,
+        "breakableYawns": 120,
+        "roundsWithYawn": 818,
+        "playerYawned": 450,
+        "capped": 77,
+        "broken": 283681,
+        "plainWool": 1462,
+        "pocketYawns": 568,
+        "lengthMedian": 81.1,
+        "lengthP90": 234.7,
+        "lengthP99": 483.2,
+        "lengthMost": 810.6,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.4,
+        "secondsP99": 21.3,
+        "secondsMost": 32.9,
+        "over20s": 300
+      },
+      "underFloor": ["18@11", "18@13"],
+      "certificates": {
+        "holds": 207,
+        "clears": 210,
+        "of": 432
+      }
+    },
+    "bored-180-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 372,
+        "neverYawns": 674,
+        "breakableYawns": 215,
+        "roundsWithYawn": 881,
+        "playerYawned": 507,
+        "capped": 60,
+        "broken": 284009,
+        "plainWool": 1373,
+        "pocketYawns": 577,
+        "lengthMedian": 77,
+        "lengthP90": 215,
+        "lengthP99": 437,
+        "lengthMost": 810.6,
+        "secondsMean": 6.3,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.7,
+        "secondsP99": 19.6,
+        "secondsMost": 32.9,
+        "over20s": 207
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 86,
+        "neverYawns": 144,
+        "breakableYawns": 85,
+        "roundsWithYawn": 205,
+        "playerYawned": 124,
+        "capped": 7,
+        "broken": 103221,
+        "plainWool": 505,
+        "pocketYawns": 116,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 262.6,
+        "lengthMost": 612.3,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.4,
+        "secondsMost": 25.9,
+        "over20s": 27
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2109,
+        "clearedPercent": 97.6,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 497,
+          "clearedPercent": 92,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22052,
+        "balls": 37023,
+        "airYawns": 494,
+        "neverYawns": 626,
+        "breakableYawns": 295,
+        "roundsWithYawn": 901,
+        "playerYawned": 524,
+        "capped": 63,
+        "broken": 283809,
+        "plainWool": 1599,
+        "pocketYawns": 530,
+        "lengthMedian": 81.9,
+        "lengthP90": 235,
+        "lengthP99": 468.1,
+        "lengthMost": 810.6,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.4,
+        "secondsP99": 20.7,
+        "secondsMost": 32.9,
+        "over20s": 257
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 177,
+        "clears": 179,
+        "of": 432
+      }
+    },
+    "touch-120-held-240-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38349,
+        "airYawns": 1101,
+        "neverYawns": 1275,
+        "breakableYawns": 119,
+        "roundsWithYawn": 1518,
+        "playerYawned": 889,
+        "capped": 42,
+        "broken": 283570,
+        "plainWool": 1373,
+        "pocketYawns": 1028,
+        "lengthMedian": 77,
+        "lengthP90": 200.1,
+        "lengthP99": 409.8,
+        "lengthMost": 622.5,
+        "secondsMean": 6.2,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.1,
+        "secondsP99": 18.6,
+        "secondsMost": 26.2,
+        "over20s": 155
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33441,
+        "airYawns": 278,
+        "neverYawns": 293,
+        "breakableYawns": 47,
+        "roundsWithYawn": 390,
+        "playerYawned": 256,
+        "capped": 7,
+        "broken": 103095,
+        "plainWool": 505,
+        "pocketYawns": 220,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 244,
+        "lengthMost": 620.5,
+        "secondsMean": 3,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 12.7,
+        "secondsMost": 26.2,
+        "over20s": 22
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2105,
+        "clearedPercent": 97.5,
+        "rounds": 10.3
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.9
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 493,
+          "clearedPercent": 91.3,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22151,
+        "balls": 37127,
+        "airYawns": 1186,
+        "neverYawns": 1239,
+        "breakableYawns": 171,
+        "roundsWithYawn": 1536,
+        "playerYawned": 855,
+        "capped": 47,
+        "broken": 283709,
+        "plainWool": 1586,
+        "pocketYawns": 973,
+        "lengthMedian": 81.5,
+        "lengthP90": 220.4,
+        "lengthP99": 430.5,
+        "lengthMost": 620.5,
+        "secondsMean": 6.5,
+        "secondsMedian": 5.8,
+        "secondsP90": 11.9,
+        "secondsP99": 19.4,
+        "secondsMost": 26.2,
+        "over20s": 184
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 173,
+        "clears": 175,
+        "of": 432
+      }
+    },
+    "touch-180-held-360-wool": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 380,
+        "neverYawns": 700,
+        "breakableYawns": 85,
+        "roundsWithYawn": 824,
+        "playerYawned": 477,
+        "capped": 72,
+        "broken": 284043,
+        "plainWool": 1373,
+        "pocketYawns": 602,
+        "lengthMedian": 77,
+        "lengthP90": 215.8,
+        "lengthP99": 453.6,
+        "lengthMost": 810.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.7,
+        "secondsP99": 20.2,
+        "secondsMost": 32.9,
+        "over20s": 245
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 88,
+        "neverYawns": 155,
+        "breakableYawns": 30,
+        "roundsWithYawn": 180,
+        "playerYawned": 108,
+        "capped": 9,
+        "broken": 103239,
+        "plainWool": 505,
+        "pocketYawns": 122,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 268.9,
+        "lengthMost": 619.3,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 26.1,
+        "over20s": 39
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2106,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 535,
+          "clearedPercent": 99.1,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 14
+        }
+      },
+      "gameRounds": {
+        "rounds": 22020,
+        "balls": 36957,
+        "airYawns": 504,
+        "neverYawns": 662,
+        "breakableYawns": 119,
+        "roundsWithYawn": 838,
+        "playerYawned": 473,
+        "capped": 79,
+        "broken": 283669,
+        "plainWool": 1598,
+        "pocketYawns": 568,
+        "lengthMedian": 82,
+        "lengthP90": 236.6,
+        "lengthP99": 484.9,
+        "lengthMost": 810.6,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.9,
+        "secondsP90": 12.5,
+        "secondsP99": 21.3,
+        "secondsMost": 32.9,
+        "over20s": 303
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 177,
+        "clears": 179,
+        "of": 432
+      }
+    },
+    "touch-180-held-360-wool-cap-900": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 380,
+        "neverYawns": 716,
+        "breakableYawns": 89,
+        "roundsWithYawn": 843,
+        "playerYawned": 492,
+        "capped": 5,
+        "broken": 284110,
+        "plainWool": 1373,
+        "pocketYawns": 614,
+        "lengthMedian": 77,
+        "lengthP90": 215.8,
+        "lengthP99": 453.6,
+        "lengthMost": 920.6,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.7,
+        "secondsP99": 20.2,
+        "secondsMost": 36.9,
+        "over20s": 245
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 88,
+        "neverYawns": 156,
+        "breakableYawns": 31,
+        "roundsWithYawn": 182,
+        "playerYawned": 109,
+        "capped": 1,
+        "broken": 103248,
+        "plainWool": 505,
+        "pocketYawns": 123,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 268.9,
+        "lengthMost": 907.2,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 36.4,
+        "over20s": 39
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2107,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.6
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 13.9
+        }
+      },
+      "gameRounds": {
+        "rounds": 22021,
+        "balls": 36972,
+        "airYawns": 507,
+        "neverYawns": 668,
+        "breakableYawns": 98,
+        "roundsWithYawn": 845,
+        "playerYawned": 482,
+        "capped": 5,
+        "broken": 283710,
+        "plainWool": 1602,
+        "pocketYawns": 578,
+        "lengthMedian": 81.9,
+        "lengthP90": 236.5,
+        "lengthP99": 486.6,
+        "lengthMost": 914.2,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.8,
+        "secondsP90": 12.4,
+        "secondsP99": 21.4,
+        "secondsMost": 36.6,
+        "over20s": 309
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 177,
+        "clears": 179,
+        "of": 432
+      }
+    },
+    "touch-180-held-360-wool-cap-1200": {
+      "pairedBest": {
+        "rounds": 23269,
+        "balls": 38383,
+        "airYawns": 380,
+        "neverYawns": 720,
+        "breakableYawns": 89,
+        "roundsWithYawn": 847,
+        "playerYawned": 495,
+        "capped": 0,
+        "broken": 284110,
+        "plainWool": 1373,
+        "pocketYawns": 617,
+        "lengthMedian": 77,
+        "lengthP90": 215.8,
+        "lengthP99": 453.6,
+        "lengthMost": 1047.4,
+        "secondsMean": 6.4,
+        "secondsMedian": 5.5,
+        "secondsP90": 11.7,
+        "secondsP99": 20.2,
+        "secondsMost": 41.4,
+        "over20s": 245
+      },
+      "pairedRandom": {
+        "rounds": 23269,
+        "balls": 33455,
+        "airYawns": 88,
+        "neverYawns": 157,
+        "breakableYawns": 31,
+        "roundsWithYawn": 183,
+        "playerYawned": 110,
+        "capped": 0,
+        "broken": 103248,
+        "plainWool": 505,
+        "pocketYawns": 124,
+        "lengthMedian": 30.7,
+        "lengthP90": 93.6,
+        "lengthP99": 268.9,
+        "lengthMost": 960.6,
+        "secondsMean": 3.1,
+        "secondsMedian": 2.2,
+        "secondsP90": 6.7,
+        "secondsP99": 13.6,
+        "secondsMost": 38.3,
+        "over20s": 39
+      },
+      "games": {
+        "games": 2160,
+        "cleared": 2107,
+        "clearedPercent": 97.5,
+        "rounds": 10.2
+      },
+      "gamesBySet": {
+        "warm-up": {
+          "games": 540,
+          "cleared": 539,
+          "clearedPercent": 99.8,
+          "rounds": 7.7
+        },
+        "sparks": {
+          "games": 540,
+          "cleared": 536,
+          "clearedPercent": 99.3,
+          "rounds": 9.8
+        },
+        "tricks": {
+          "games": 540,
+          "cleared": 538,
+          "clearedPercent": 99.6,
+          "rounds": 9.8
+        },
+        "thick-walls": {
+          "games": 540,
+          "cleared": 494,
+          "clearedPercent": 91.5,
+          "rounds": 13.9
+        }
+      },
+      "gameRounds": {
+        "rounds": 22024,
+        "balls": 36975,
+        "airYawns": 507,
+        "neverYawns": 670,
+        "breakableYawns": 98,
+        "roundsWithYawn": 847,
+        "playerYawned": 484,
+        "capped": 1,
+        "broken": 283710,
+        "plainWool": 1602,
+        "pocketYawns": 580,
+        "lengthMedian": 81.9,
+        "lengthP90": 236.5,
+        "lengthP99": 486.6,
+        "lengthMost": 1208.1,
+        "secondsMean": 6.7,
+        "secondsMedian": 5.9,
+        "secondsP90": 12.4,
+        "secondsP99": 21.4,
+        "secondsMost": 47.1,
+        "over20s": 309
+      },
+      "underFloor": [],
+      "certificates": {
+        "holds": 177,
+        "clears": 179,
+        "of": 432
+      }
+    }
+  }
+}
