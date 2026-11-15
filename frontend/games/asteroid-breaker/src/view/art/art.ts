@@ -29,6 +29,7 @@ import {
   STICK_RADIUS_CSS_PX,
   THRUST_RING,
 } from "../steering/stick";
+import { arcFrames } from "./arcs";
 import { energyFrames } from "./energy";
 import {
   PILOT_SIZES,
@@ -218,7 +219,8 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
  * hull, and the comet's but its head, which the rocks' atlas lights, the
  * pilots and their eyes, the pickups and their tags, the comet's warning
  * and lane, each weapon's shot and the muzzle's flash, the sparks broken
- * rocks shed and their tail, a stray's bubble,
+ * rocks shed and their tail, the spark where a zap's arc lands, a stray's
+ * bubble,
  * the flourishes, and the stray's and the comet's pictures.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
@@ -237,6 +239,7 @@ export function atlasFrames(
     ...PICKUP_IDS.map((id) => tagArt(id, palette, scale)),
     ...energyFrames(palette, scale, fine),
     ...sparkFrames(palette, scale),
+    ...arcFrames(palette, scale),
     ...otherArt(palette, scale),
   ];
 }

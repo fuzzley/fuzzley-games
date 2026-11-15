@@ -39,6 +39,25 @@ export const HALO_DISC = { key: "belt-halo", size: 128 } as const;
 const WHOLE = "__BASE";
 
 /**
+ * Tints, turns, scales and fades images of the soft disc as a halo shows,
+ * in a color, pointing a way, in radians, at the field's scale and as
+ * strongly as the palette lets it.
+ */
+export function dressHalo(
+  copies: Copies,
+  halo: Readonly<Halo>,
+  color: number,
+  way: number,
+  context: Readonly<Pick<PaintContext, "metrics" | "palette">>,
+): void {
+  const scale = (2 * context.metrics.unit) / HALO_DISC.size;
+  copies.setTint(color);
+  copies.setRotation(way);
+  copies.setScale(halo.along * scale, halo.across * scale);
+  copies.setAlpha(haloAlpha(halo.strength, context.palette));
+}
+
+/**
  * Draws a soft halo under each thing on the field that gives off light, in
  * its own color, under plain alpha, from images of one soft disc made
  * once, each turned, scaled and faded as the view's halo says, on both sides
@@ -91,6 +110,15 @@ export class HaloPainter implements Painter {
     private readonly layer: GameObjects.Layer,
   ) {
     softDisc(scene, HALO_DISC.key, HALO_DISC.size);
+  }
+
+  /**
+   * Makes images of the soft disc in another layer, for a painter that
+   * shows a glow there rather than under what it lights, dressed as a halo
+   * by {@link dressHalo}.
+   */
+  discIn(layer: GameObjects.Layer): Copies {
+    return new Copies(this.scene, layer, WHOLE, HALO_DISC.key);
   }
 
   /** Each halo's images, in the order they are shown each frame. */
@@ -287,11 +315,7 @@ export class HaloPainter implements Painter {
     const way = at.angle + halo.turn;
     this.middle.x = at.x + Math.cos(way) * halo.ahead;
     this.middle.y = at.y + Math.sin(way) * halo.ahead;
-    const scale = (2 * context.metrics.unit) / HALO_DISC.size;
-    copies.setTint(color);
-    copies.setRotation(way);
-    copies.setScale(halo.along * scale, halo.across * scale);
-    copies.setAlpha(haloAlpha(halo.strength, context.palette));
+    dressHalo(copies, halo, color, way, context);
     return copies;
   }
 }

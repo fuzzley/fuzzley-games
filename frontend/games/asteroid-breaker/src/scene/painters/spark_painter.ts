@@ -32,6 +32,12 @@ export class SparkPainter implements Painter {
   /** Each slot's spark's tail, under the sparks, shown while the ship draws it in. */
   readonly tails: readonly Copies[];
 
+  /** Each slot's spark and its tail, in the field's slots' order. */
+  private readonly slots: readonly {
+    readonly images: Copies;
+    readonly tail: Copies;
+  }[];
+
   /** Where the spark being drawn lies on the field, between two steps, written for each. */
   private readonly drawn: Drawn = { x: 0, y: 0, angle: 0 };
   /** The halo of the spark being drawn, written for each. */
@@ -59,11 +65,12 @@ export class SparkPainter implements Painter {
       { length: MOST_SPARKS },
       () => new Copies(scene, layer, SPARK_TAIL_FRAME),
     );
-    this.sparks = Array.from({ length: MOST_SPARKS }, (_, slot) => {
-      const spark = new Copies(scene, layer, SPARK_FRAMES[sparkSizeOf(slot)]);
-      spark.setRotation(sparkTurnOf(slot));
-      return spark;
+    this.slots = this.tails.map((tail, slot) => {
+      const images = new Copies(scene, layer, SPARK_FRAMES[sparkSizeOf(slot)]);
+      images.setRotation(sparkTurnOf(slot));
+      return { images, tail };
     });
+    this.sparks = this.slots.map(({ images }) => images);
     halos.reserve(MOST_SPARKS);
   }
 
@@ -71,11 +78,10 @@ export class SparkPainter implements Painter {
   draw(context: Readonly<PaintContext>): void {
     const { field, alpha, metrics, palette, zoom, now, shipDrawn } = context;
     const { torus } = field;
-    for (let slot = 0; slot < this.sparks.length; slot++) {
-      const images = this.sparks[slot];
-      const tail = this.tails[slot];
+    let slot = -1;
+    for (const { images, tail } of this.slots) {
+      slot += 1;
       const spark = field.sparks[slot];
-      if (!images || !tail) continue;
       if (!spark?.live || !isSparkShown(spark, field.steps, now / 1000)) {
         images.hide();
         tail.hide();

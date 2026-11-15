@@ -13,8 +13,9 @@
  * and those knocked loose, under the ship, so the line ties on under the
  * pod; the ship and its pilot; a held hit's flash; the flourishes, back to
  * front a dash's trail, the exhaust, a lost ship's shards, the sparks and
- * glints of breaks and held hits, and the rings; the points rising; and the
- * frame and the deck.
+ * glints of breaks and held hits, and the rings; static's arcs, the zap's
+ * and those crawling over the pod's hull at full static, over the
+ * flourishes; the points rising; and the frame and the deck.
  */
 export const LAYERS = [
   "place",
@@ -33,6 +34,7 @@ export const LAYERS = [
   "ship",
   "flash",
   "effects",
+  "arcs",
   "points",
   "frame",
   "deck",
@@ -70,6 +72,7 @@ export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   ship: "field",
   flash: "field",
   effects: "field",
+  arcs: "field",
   points: "field",
   frame: "deck",
   deck: "deck",
