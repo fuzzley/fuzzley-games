@@ -527,6 +527,158 @@ describe("fly, with a stop", () => {
   });
 });
 
+describe("fly, dropped", () => {
+  // Straight up, the player's fuzzball turns off the steel at 2.5 and
+  // lands at 5, its mates 0.7 and 1.4 behind it; the friends leave at 2.1,
+  // 2.8, 3.5 and 4.2, and the last lands at 9.2.
+  const steel = wallOf(3, ["....#...."]);
+
+  /** Returns the steel's flight with mates and friends, dropped at a moment. */
+  function droppedAt(at: number): Flown {
+    return flyShot({
+      wall: steel,
+      aim: UP,
+      mates: 2,
+      friends: 4,
+      stop: { stop: "drop", at },
+    });
+  }
+
+  it("brings each fuzzball in the air straight down from where it is, and none still waiting leaves", () => {
+    const flown = droppedAt(3);
+
+    expect({
+      drops: eventsOf(flown, "drop").map(({ at, ball, y }) => [at, ball, y]),
+      lands: eventsOf(flown, "land").map(({ at, ball }) => [at, ball]),
+      waiting: flown.flight.tracks
+        .filter(({ waypoints }) => waypoints.length === 0)
+        .map(({ ball }) => ball),
+      capped: flown.flight.capped,
+    }).toEqual(
+      near({
+        drops: [
+          [3, 0, 2.25],
+          [3, 1, 2.55],
+          [3, 2, 1.85],
+          [3, 3, 1.15],
+          [3, 4, 0.45],
+        ],
+        lands: [
+          [3.2, 4],
+          [3.9, 3],
+          [4.6, 2],
+          [5, 0],
+          [5.3, 1],
+        ],
+        waiting: [5, 6],
+        capped: 0,
+      }),
+    );
+  });
+
+  // Dropped as the first mate turns off the steel.
+  it("flies the whole flight to the drop's moment, every event then among it, before the drops", () => {
+    const whole = flyShot({ wall: steel, aim: UP, mates: 2, friends: 4 });
+    const at = eventsOf(whole, "turn")[1]?.at ?? Number.NaN;
+    const kept = whole.flight.events.filter((event) => event.at <= at);
+
+    const flown = droppedAt(at);
+
+    expect(flown.flight.events.slice(0, kept.length + 1)).toEqual([
+      ...kept,
+      expect.objectContaining({ kind: "drop", at }),
+    ]);
+  });
+
+  // The second mate leaves at the drop's moment, on the floor.
+  it("launches a fuzzball at the drop's moment, then drops and lands it at once, after the other drops", () => {
+    const flown = droppedAt(1.4);
+
+    expect(
+      flown.flight.events.map((event) => [
+        event.at,
+        event.kind,
+        "ball" in event ? event.ball : null,
+      ]),
+    ).toEqual(
+      near([
+        [0, "launch", 0],
+        [0.7, "launch", 1],
+        [1.4, "launch", 2],
+        [1.4, "drop", 0],
+        [1.4, "drop", 1],
+        [1.4, "drop", 2],
+        [1.4, "land", 2],
+        [2.1, "land", 1],
+        [2.8, "land", 0],
+      ]),
+    );
+  });
+
+  // The player's fuzzball breaks the row zapper at 2.5, whose zap lands at
+  // 3; its mate, 0.7 behind, flies on up through where the zapper was.
+  it.each([
+    [
+      "after the strike and break at its moment, the zap set off then landing after it",
+      2.5,
+      ["turn", "strike", "break", "drop", "drop", "zap"],
+    ],
+    [
+      "after a zap that lands at its moment",
+      3,
+      ["turn", "strike", "break", "zap", "drop", "drop"],
+    ],
+  ])("drops %s", (_, at, kinds) => {
+    const wall = wallOf(3, ["....-...."]);
+
+    const flown = flyShot({
+      wall,
+      aim: UP,
+      mates: 1,
+      kinds: BRICK_KINDS,
+      stop: { stop: "drop", at },
+    });
+
+    expect(
+      flown.flight.events
+        .filter(({ kind }) => kind !== "launch" && kind !== "land")
+        .map(({ kind }) => kind),
+    ).toEqual(kinds);
+  });
+
+  // Bored at 1, the player's fuzzball yawns and drops from 1.25 to land at
+  // 2; its mate, which left at 0.7, is still flying up at 1.5.
+  it("lets a fuzzball already dropping home go on, and drops the others", () => {
+    const flown = flyShot({
+      wall: steel,
+      aim: UP,
+      mates: 1,
+      bored: 1,
+      stop: { stop: "drop", at: 1.5 },
+    });
+
+    expect({
+      yawns: eventsOf(flown, "yawn").map(({ at, ball }) => [at, ball]),
+      drops: eventsOf(flown, "drop").map(({ at, ball }) => [at, ball]),
+    }).toEqual({ yawns: [[1, 0]], drops: [[1.5, 1]] });
+  });
+
+  it.each([-1, Number.NaN])("throws for a drop at %f", (at) => {
+    expect(() => droppedAt(at)).toThrow(RangeError);
+  });
+
+  it.each([0, 10])(
+    "changes nothing dropped %f units past its last event",
+    (past) => {
+      const whole = flyShot({ wall: steel, aim: UP, mates: 2, friends: 4 });
+
+      const flown = droppedAt(whole.flight.length + past);
+
+      expect(flown).toEqual(whole);
+    },
+  );
+});
+
 describe("fly's punches", () => {
   // The player's fuzzball punches through the lowest brick and turns off the
   // next; its mate, charged as it is, punches through the third.

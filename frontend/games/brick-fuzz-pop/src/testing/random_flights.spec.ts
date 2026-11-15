@@ -62,17 +62,20 @@ describe("clearanceProblemsOf", () => {
     expect(problemsPast(["....-...."], flight)).toHaveLength(1);
   });
 
-  it("leaves out a fuzzball's drop home, and a jump through a portal", () => {
-    const flight = flightAlong(
-      [
-        { at: 0, x: 4.5, y: 2 },
-        { at: 0, x: 4.5, y: 9 },
-        { at: 1, x: 4.5, y: 8 },
-        { at: 8.75, x: 4.5, y: RADIUS },
-      ],
-      [{ at: 1, kind: "yawn", ball: 0, x: 4.5, y: 8 }],
-    );
+  it.each(["yawn", "drop"] as const)(
+    "leaves out a fuzzball's way home after a %s, and a jump through a portal",
+    (kind) => {
+      const flight = flightAlong(
+        [
+          { at: 0, x: 4.5, y: 2 },
+          { at: 0, x: 4.5, y: 9 },
+          { at: 1, x: 4.5, y: 8 },
+          { at: 8.75, x: 4.5, y: RADIUS },
+        ],
+        [{ at: 1, kind, ball: 0, x: 4.5, y: 8 }],
+      );
 
-    expect(problemsPast(["....o...."], flight)).toEqual([]);
-  });
+      expect(problemsPast(["....o...."], flight)).toEqual([]);
+    },
+  );
 });

@@ -6,9 +6,11 @@
 // thing it meets to the next, cast() finding what and when: the one whose next
 // moment comes first goes next, a tie to the lower numbered, in the
 // implementation plan's order of fuzzballs (§5.6), and a zap lands after every
-// fuzzball at its moment. A fuzzball strikes the bricks it meets as
-// src/rules/bricks/bricks.ts' strike() says, their trait rules running at each
-// moment and changing the flight through the hooks of
+// fuzzball at its moment. A drop flies the whole flight to its moment, then
+// brings every fuzzball in the air down, after everything else of that
+// moment, and calls off the launches still waiting. A fuzzball strikes the
+// bricks it meets as src/rules/bricks/bricks.ts' strike() says, their trait
+// rules running at each moment and changing the flight through the hooks of
 // src/rules/flight/hooks.ts. A flight's state is made once as it starts, and
 // what a fuzzball meets is cast into records the module keeps and reuses, so a
 // cast makes nothing; records are made only as events are.
@@ -85,12 +87,22 @@ export interface FlightRules {
   readonly traits: TraitRules;
 }
 
-/** Describes where a flight stops short, as the guide's does: a distance past the player's fuzzball's first turn. */
-export interface FlightStop {
+/** Describes where the guide's flight stops short: a distance past the player's fuzzball's first turn. */
+export interface FlightPastTurn {
   readonly stop: "first-turn";
   /** How far past the first turn it flies on. */
   readonly extra: number;
 }
+
+/** Describes a drop: the moment every fuzzball in the air comes straight down home, and those still waiting never leave. */
+export interface FlightDrop {
+  readonly stop: "drop";
+  /** The moment, on the round's one clock. */
+  readonly at: number;
+}
+
+/** Describes where a flight stops short of its end: past the player's fuzzball's first turn, or at a drop. */
+export type FlightStop = FlightPastTurn | FlightDrop;
 
 /** Describes a flight flown, and the wall it leaves. */
 export interface Flown {
@@ -106,20 +118,35 @@ export interface Flown {
  * aim until the last lands and the zaps they set off have landed, and the
  * wall it leaves.
  *
- * Given a stop, it flies only so far, and nothing past it happens: its
- * fuzzballs' tracks end where they are then, in the air.
+ * Given a stop past the first turn, it flies only so far, and nothing past
+ * it happens: its fuzzballs' tracks end where they are then, in the air.
+ * Given a drop, it is the whole flight up to the drop's moment, every event
+ * then among it; then each fuzzball in the air drops straight down home from
+ * where it is, after every other event of that moment, one already dropping
+ * home going on; each still waiting never leaves, its track empty; and the
+ * zaps set off by then land as they would. A drop past the flight's last
+ * event changes nothing.
  *
- * It throws a `RangeError` for an aim that isn't one of the 657.
+ * It throws a `RangeError` for an aim that isn't one of the 657, or a drop
+ * at no moment of the flight, before 0 or not a number.
  */
 export function fly(
   start: FlightStart,
   rules: FlightRules,
   stop?: FlightStop,
 ): Flown {
-  return new Flying(start, rules, stop?.extra ?? Infinity).fly();
+  if (stop?.stop === "drop" && !(stop.at >= 0)) {
+    throw new RangeError(`No flight drops at ${String(stop.at)}.`);
+  }
+  return new Flying(
+    start,
+    rules,
+    stop?.stop === "first-turn" ? stop.extra : Infinity,
+    stop?.stop === "drop" ? stop.at : Infinity,
+  ).fly();
 }
 
-/** Names what a fuzzball does next: leaves, meets something, crosses into a cell, comes home, or lands from its drop. */
+/** Names what a fuzzball does next: leaves, meets something, crosses into a cell, comes home, or lands on its way home. */
 type Next = "launch" | "contact" | "entry" | "home" | "land";
 
 /** Describes a fuzzball in flight, or waiting to leave. */
@@ -152,8 +179,8 @@ interface Ball {
   passing: number;
   /** Whether it has left. */
   launched: boolean;
-  /** Whether it is dropping to the floor, home. */
-  dropping: boolean;
+  /** Whether it is on its way home, dropping to the floor after a yawn or a drop. */
+  homing: boolean;
   /** Whether its next moment is planned, which a change to the wall undoes. */
   planned: boolean;
   next: Next;
@@ -179,7 +206,7 @@ interface Split {
 /** Describes an event, with where it goes among those of its moment. */
 interface Keyed {
   readonly event: FlightEvent;
-  /** 0 for a fuzzball's events, which go first, 1 for a zap's. */
+  /** 0 for a fuzzball's events, which go first, 1 for a zap's, {@link DROPS} for a drop's, which go last. */
   readonly section: number;
   /** The fuzzball's number, or the zap's cell. */
   readonly who: number;
@@ -198,8 +225,12 @@ const BALL_RANK = {
   portal: 4,
   split: 5,
   yawn: 6,
-  land: 7,
+  drop: 7,
+  land: 8,
 } as const;
+
+/** The section of its moment's events a drop goes in, with the landing of a fuzzball it brings down onto the floor at once: after the zaps'. */
+const DROPS = 2;
 
 /** A fuzzball's event. */
 type BallEvent = Extract<FlightEvent, { readonly ball: number }>;
@@ -237,8 +268,8 @@ class Flying implements Hooks {
   private seq = 0;
   /** How many fuzzballs the caps brought home. */
   private capped = 0;
-  /** The moment the flight stops: a stop's distance past the player's fuzzball's first turn, once it turns. */
-  private endAt = Infinity;
+  /** The moment the flight stops, or a drop interrupts it: the drop's, or a stop's distance past the player's fuzzball's first turn, once it turns. */
+  private endAt: number;
   private readonly punched: number[] = [];
   // What a fuzzball meeting things gathers at its moment: the sums of the
   // normals of the faces, corners and kicks that turn it, with what it
@@ -278,7 +309,10 @@ class Flying implements Hooks {
     private readonly rules: FlightRules,
     /** How far past the player's fuzzball's first turn the flight stops: Infinity for none. */
     private readonly pastTurn: number,
+    /** The moment of the flight's drop: Infinity for none. */
+    private readonly dropAt: number,
   ) {
+    this.endAt = dropAt;
     this.bricks = [...start.wall.bricks];
     this.wall = { ...start.wall, bricks: this.bricks };
     this.field = castField(this.wall, start.depth, rules.kinds);
@@ -298,6 +332,32 @@ class Flying implements Hooks {
 
   /** Flies the flight through, or to its stop, and returns it with the wall it leaves. */
   fly(): Flown {
+    this.flyOn();
+    if (this.dropAt < Infinity) {
+      this.dropAll();
+      this.endAt = Infinity;
+      this.flyOn();
+    }
+    this.halt();
+    const events = this.events.sort(byMoment).map(({ event }) => event);
+    const flight: Flight = {
+      events,
+      tracks: this.balls.map(({ ball, role, waypoints }) => ({
+        ball,
+        role,
+        waypoints,
+      })),
+      length: events.reduce((last, { at }) => Math.max(last, at), 0),
+      capped: this.capped,
+    };
+    return { flight, wall: this.wall, punched: this.punched };
+  }
+
+  /**
+   * Plays the flight's moments in order, until the last event or until
+   * `endAt`, every event of that moment among them, a zap's too.
+   */
+  private flyOn(): void {
     for (;;) {
       const ball = this.soonest();
       const zap = this.zaps[0];
@@ -316,19 +376,27 @@ class Flying implements Hooks {
       this.entering = null;
       this.zapping = false;
     }
-    this.halt();
-    const events = this.events.sort(byMoment).map(({ event }) => event);
-    const flight: Flight = {
-      events,
-      tracks: this.balls.map(({ ball, role, waypoints }) => ({
-        ball,
-        role,
-        waypoints,
-      })),
-      length: events.reduce((last, { at }) => Math.max(last, at), 0),
-      capped: this.capped,
-    };
-    return { flight, wall: this.wall, punched: this.punched };
+  }
+
+  /**
+   * Brings every fuzzball in the air down at the drop's moment, once every
+   * other event of that moment has happened: each drops straight down home
+   * from where it is, landing at once if it is on the floor already, as one
+   * just launched is; one already dropping home goes on; and each still
+   * waiting to leave never does.
+   */
+  private dropAll(): void {
+    this.now = this.dropAt;
+    for (const ball of [...this.flying]) {
+      if (!ball.launched) {
+        this.retire(ball);
+      } else if (!ball.homing) {
+        this.sendHome(ball, "drop");
+        if (ball.nextAt === this.now) {
+          this.landOn(ball, DROPS);
+        }
+      }
+    }
   }
 
   /** Ends the track of each fuzzball still out as the flight stops where it is then, and hands back its record. */
@@ -451,7 +519,7 @@ class Flying implements Hooks {
       crosses: true,
       passing: -1,
       launched: false,
-      dropping: false,
+      homing: false,
       planned: true,
       next: "launch",
       nextAt: at,
@@ -607,7 +675,7 @@ class Flying implements Hooks {
       ball.passing = -1;
       ball.still = ball.at === ball.turnedAt ? ball.still + 1 : 0;
       if (ball.ball === 0 && ball.turnedAt < 0) {
-        this.endAt = this.now + this.pastTurn;
+        this.endAt = Math.min(this.endAt, this.now + this.pastTurn);
       }
       ball.turnedAt = ball.at;
       this.emitBall({
@@ -811,7 +879,7 @@ class Flying implements Hooks {
     });
     // A brick gone changes what the fuzzballs in flight meet next.
     for (const flier of this.flying) {
-      if (flier.launched && !flier.dropping) {
+      if (flier.launched && !flier.homing) {
         flier.planned = false;
       }
     }
@@ -880,26 +948,31 @@ class Flying implements Hooks {
 
   /**
    * Brings a fuzzball home from where it is at the moment: it yawns, and
-   * drops straight down to the floor through whatever lies between, counted
-   * if a cap brought it, `MOST_FLIGHT` or the still turns, and not if
-   * boredom or the most it flies without a hit did.
+   * drops straight down to the floor, counted if a cap brought it,
+   * `MOST_FLIGHT` or the still turns, and not if boredom or the most it
+   * flies without a hit did.
    */
   private comeHome(ball: Ball, capped: boolean): void {
-    this.travel(ball, this.now - ball.at);
     if (capped) {
       this.capped++;
     }
-    this.emitBall({
-      at: this.now,
-      kind: "yawn",
-      ball: ball.ball,
-      x: ball.x,
-      y: ball.y,
-    });
+    this.sendHome(ball, "yawn");
+  }
+
+  /**
+   * Sends a fuzzball home from where it is at the moment, yawning or dropped:
+   * it drops straight down to the floor through whatever lies between.
+   */
+  private sendHome(ball: Ball, kind: "yawn" | "drop"): void {
+    this.travel(ball, this.now - ball.at);
+    this.emitBall(
+      { at: this.now, kind, ball: ball.ball, x: ball.x, y: ball.y },
+      kind === "drop" ? DROPS : 0,
+    );
     this.waypoint(ball);
     ball.dx = 0;
     ball.dy = -1;
-    ball.dropping = true;
+    ball.homing = true;
     ball.planned = true;
     ball.next = "land";
     ball.nextAt = this.now + (ball.y - RADIUS);
@@ -912,10 +985,18 @@ class Flying implements Hooks {
     this.landOn(ball);
   }
 
-  /** Lands a fuzzball where it touches the floor, and hands back its record. */
-  private landOn(ball: Ball): void {
-    this.emitBall({ at: this.now, kind: "land", ball: ball.ball, x: ball.x });
+  /** Lands a fuzzball where it touches the floor, its landing in a section of its moment's events, and hands back its record. */
+  private landOn(ball: Ball, section = 0): void {
+    this.emitBall(
+      { at: this.now, kind: "land", ball: ball.ball, x: ball.x },
+      section,
+    );
     this.waypoint(ball);
+    this.retire(ball);
+  }
+
+  /** Takes a fuzzball out of the flight, landed or never to leave, and hands back its record. */
+  private retire(ball: Ball): void {
     this.flying.splice(this.flying.indexOf(ball), 1);
     spareContacts.push(ball.contacts);
   }
@@ -988,11 +1069,11 @@ class Flying implements Hooks {
     }
   }
 
-  /** Adds a fuzzball's event, which goes among its moment's by fuzzball, then by kind. */
-  private emitBall(event: BallEvent): void {
+  /** Adds a fuzzball's event, which goes among its moment's in its section, the fuzzballs' unless given, by fuzzball, then by kind. */
+  private emitBall(event: BallEvent, section = 0): void {
     this.events.push({
       event,
-      section: 0,
+      section,
       who: event.ball,
       rank: BALL_RANK[event.kind],
       seq: this.seq++,
@@ -1072,9 +1153,9 @@ const RAYS: Readonly<
 
 /**
  * Returns where an event goes in a flight: by moment, the fuzzballs' before
- * the zaps', then by fuzzball or zap, by kind, and by when it happened, so
- * what a strike or a zap caused stays right after it; a total order, as
- * the implementation plan's §5.6 asks.
+ * the zaps' and the drops last, then by fuzzball or zap, by kind, and by
+ * when it happened, so what a strike or a zap caused stays right after it;
+ * a total order, as the implementation plan's §5.6 asks.
  */
 function byMoment(a: Keyed, b: Keyed): number {
   return (

@@ -7,6 +7,8 @@ import {
   type Waypoint,
   positionAt,
 } from "../rules/flight/events";
+import { fly } from "../rules/flight/flight";
+import { RULES, flightRulesOf, flightStartOf } from "../rules/round/round";
 import { JUMP_POINTS, RADIUS } from "../rules/tuning";
 import {
   FLIGHT_FIXTURES,
@@ -838,6 +840,57 @@ describe("RoundPlay's flight", () => {
     const next = play.advance(FRAME_MS, NORMAL);
 
     expect(next).toBe(change);
+  });
+});
+
+/** Returns a fixture whose round is flown again by the rules, dropped at a moment. */
+function droppedAt(fixture: FlightFixture, at: number): FlightFixture {
+  const { flight } = fly(
+    flightStartOf(fixture.start, fixture.shot),
+    flightRulesOf(RULES),
+    { stop: "drop", at },
+  );
+  return { ...fixture, round: { ...fixture.round, flight } };
+}
+
+describe("RoundPlay, a round dropped", () => {
+  // The triple shot dropped at 1, the player's fuzzball and the first mate
+  // in the air, the mate landing at about 1.2 and the player at about 1.7,
+  // and the second mate, due to leave at 1.4, never leaving.
+  const dropped = droppedAt(triple, 1);
+
+  it("places the fuzzballs a drop brings down along their tracks", () => {
+    const play = playing(dropped);
+
+    playOnBy(play, 1.1);
+
+    expect({
+      balls: play.view.balls.map(({ ball }) => ball),
+      onTrack: offTracks(play, dropped, 1.1) < HAIR,
+    }).toEqual({ balls: [0, 1], onTrack: true });
+  });
+
+  it("places none a drop kept from leaving", () => {
+    const play = playing(dropped);
+
+    playOnBy(play, 1.5);
+
+    expect(play.view.balls.map(({ ball }) => ball)).toEqual([0]);
+  });
+
+  it("sounds each drop as it reaches it", () => {
+    const play = playing(dropped);
+
+    playUntilSettled(play);
+
+    expect(loggedSounds(play)).toEqual([
+      "boon",
+      null,
+      "drop",
+      "drop",
+      "land",
+      "land",
+    ]);
   });
 });
 

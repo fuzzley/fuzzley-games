@@ -137,6 +137,9 @@ const FREE = calling("cage", ["hop"]);
 /** What a bored fuzzball's yawn calls for. */
 const YAWN = calling("yawn");
 
+/** What a fuzzball brought down by a drop calls for. */
+const DROP = calling("drop");
+
 /** What a fuzzball's landing calls for. */
 const LAND = calling("land");
 
@@ -189,6 +192,8 @@ export class FlightEffects {
         return FREE;
       case "yawn":
         return YAWN;
+      case "drop":
+        return DROP;
       case "land":
         return LAND;
       case "recharge":

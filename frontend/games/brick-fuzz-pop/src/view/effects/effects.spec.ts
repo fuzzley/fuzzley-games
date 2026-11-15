@@ -124,6 +124,7 @@ const PLAIN_EVENTS = [
   [{ at: AT, kind: "split", ball: 0, cell: 8, into: [1, 2] }, null, []],
   [{ at: AT, kind: "free", cell: 8, ink: 2 }, "cage", ["hop"]],
   [{ at: AT, kind: "yawn", ball: 0, x: 1, y: 1 }, "yawn", []],
+  [{ at: AT, kind: "drop", ball: 0, x: 1, y: 1 }, "drop", []],
   [{ at: AT, kind: "land", ball: 0, x: 1 }, "land", []],
 ] as const satisfies readonly (readonly [
   FlightEvent,
