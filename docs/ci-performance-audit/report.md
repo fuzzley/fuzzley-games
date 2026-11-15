@@ -2,6 +2,8 @@
 
 Nov 14, 2026 · `main` at 3af8a55f
 
+The recommendations were built and timed again the same day: [report-after.md](report-after.md).
+
 ## Executive summary
 
 Every push to `main` now waits 13 minutes for CI, up from 6 on Oct 27. In the week to Nov 14, 7 of 27 pushes went red at least once before going live, and none of them for a bug in a game. The wait comes from one job that runs every step in sequence on a 4-vCPU runner. Splitting it into parallel jobs should bring the wait to about 3 minutes. That figure is estimated from local runs, not measured on GitHub.
@@ -146,7 +148,7 @@ A red run skips `promote`, so each one held the push back from going live.
   - `@fz/dev` `eslint.spec` "keeps a library's testing helpers out of what isn't a test" reached 4,729 ms. It was still at 4,639 ms on Nov 14, after its fix.
   - Sudoku `bank.spec` reached 4,624 ms.
   - Brick Breaker's "aims only at a brick it can see" reached 3,579 ms.
-  - Only Brick Fuzz Pop's simulations set a longer timeout (`SIM_TIMEOUT_MS`, 60 s).
+  - Brick Fuzz Pop's simulations set a longer timeout (`SIM_TIMEOUT_MS`, 60 s). So did Asteroid Breaker's strays test, 20 s since Nov 3, which this audit first missed.
 - **Late signal:** a test timeout only shows about 11 minutes into the job. Lint and typecheck run first, and the test step waits for every workspace to finish.
 - **Dependabot:** all 13 failed Dependabot PR runs stopped at `yarn dedupe --check`, about 30 s in. Nine others passed in 578 to 896 s, but their updates were then applied by hand anyway. That is about 106 runner-minutes spent on PRs that are never merged.
 - **Runner time lost:** 85 min in failed jobs, 24 min in the `docker` jobs beside them, and 14 min in 3 runs cancelled by a newer push. Minutes are free for a public repository, so the real cost is the delay to live and the manual re-runs.

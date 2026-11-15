@@ -35,7 +35,7 @@ built:
 | 8    | 1   | `verify` split into parallel jobs, the layout check after the build | done    |
 | 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`        | done    |
 | 10   | 10  | Dependabot's pull requests deduped and grouped                      | done    |
-| 11   | —   | The audit run again, and its report                                 | pending |
+| 11   | —   | The audit run again, and its report                                 | done    |
 | 12   | —   | Merged into `main` and pushed                                       | pending |
 
 ## Log
@@ -445,3 +445,111 @@ The review, and the answers:
    checking first would take an install that links, so the skill names the
    exception in principle 1 and in what `setup-frontend` does; the commit
    that lands the update is checked with `--immutable` on `main`.
+
+### 2026-11-14: The audit run again (step 11)
+
+`docs(ci-performance-audit): time the split Verify workflow and the local pipeline again, with the next recommendations`
+
+- `ci-speedup` was pushed to `origin`, and the Verify workflow dispatched
+  on it one run at a time, which `promote` passes over. The first,
+  43654599384 at 83b23e28, failed in six jobs' "Set up the frontend", with
+  `changes` and `docker` passing: the Corepack guard's message,
+  `${COREPACK_VERSION:?…Dockerfile's…}`, opened a quote in bash. Its review
+  fix hadn't been run. Fixed by amending that commit, now a02e63af, and the
+  branch pushed again with a lease. The audit's `scripts/check-runs.cjs`
+  then ran `bash -n` once over every `run:` block of the workflow and the
+  action, and found nothing else; nothing runs it on each change yet, which
+  the report recommends.
+- Runs 43655116933 (a02e63af, every cache empty), 43655417436 and
+  43655725239 (4d37058f, caches restored): the checks ended at 199 s,
+  170 s and 153 s, against 784 s. Their jobs, steps and logs are in the
+  audit's `data/after/` and `logs/after/`.
+- The test pairs weren't changed again: Asteroid Breaker's suite took 95,
+  61 and 70 s in the three runs, so no pairing is better than the noise.
+- Locally, with the caches emptied, `verify:full` and `check:layout` took
+  203 s natively (232 s before) and 577 s on 4 cores with `CI=true` (686 s).
+- [report-after.md](report-after.md) is the new report, with the next five
+  recommendations; [report.md](report.md) links to it, and now says
+  Asteroid Breaker's strays test had a timeout of its own too.
+- Not yet measured: a push to `main` and its `promote`, and a push of docs
+  alone, which follow the merge (step 12).
+
+The review, and the answers:
+
+1. The report said actionlint would have caught the bug, untried, and the
+   bug was in a composite action, which actionlint doesn't lint; it said
+   the first run failed in every job, where `changes` and `docker` passed;
+   and "every `run:` block is now checked" read as a check on each change.
+   Fixed: the first recommendation is `bash -n` over every `run:` block in
+   `yarn lint`, as the audit's script did once, and the report and this
+   entry say six jobs failed, and that the check ran once.
+2. "Pass only because of their own timeouts" was false of the two
+   autopilot tests, at 4,733 and 4,775 ms, under 5,000. Fixed: they came
+   within 0.3 s of it, and their 20 s timeouts are their margin.
+3. `@fz/phaser` and Sudoku didn't set the length of the other ten's job,
+   which Minesweeper ends, from 343 to 425 s of suites over four lanes; and
+   "seven test jobs" didn't match one per heavy suite and the rest. Fixed:
+   the job is described from its table, and #2 gives the heavy suites a job
+   each and the other ten two, six jobs, estimated from those sums.
+4. The layout recommendation's "about 90 s" left out that jobs downloading
+   one build wait for `build`, and used the devbox's 54 s for CI. Fixed:
+   each layout job builds its own game, the estimate takes CI's runners to
+   be from a quarter faster to two-thirds slower than the devbox, and the
+   download design is named and why it doesn't pay.
+5. The noise claims didn't hold: run 2 was faster in three jobs, the
+   spread was larger than "15 to 25%", and the CI-against-devbox range was
+   a quarter faster to two-thirds slower. Fixed, and `typecheck`'s
+   cache now says it made no difference on CI beyond the noise.
+6. "Each suite runs with four workers" was false of `eslint.spec`,
+   `bank.spec` and Snake's spec, which run among the other ten. Fixed:
+   what changed for each is named.
+7. The layout check didn't gain a runner free of tests, and still starts two
+   Chromes side by side. Fixed: only the 60 s and failing at once are
+   credited.
+8. The set-up figures compared the whole of before's with only the
+   action's after, and the install ranges were off. Fixed: each job's
+   set-up up to its first check, 20 to 24 s, then 16 to 22 s, and the
+   install 7.5 to 11 s without Yarn's cache and 3.7 to 6 s with it, read
+   from the steps' own durations.
+9. "The next within 20 s" failed in run 1, and the longest test job's range
+   began at the shortest. Fixed: 0 to 40 s, and 138 to 187 s.
+10. Figures with nothing behind them: the warm native Prettier and
+    `typecheck` and the lint `foreach` four at a time were measured, but
+    their logs were in `/tmp`. Fixed: copied into the audit's
+    `logs/local/after-native-24-warm/`, with the `yarn verify:full` and
+    `yarn check:layout` run for the merge, and `logs/local/lint-jobs-4core/`,
+    each with a `meta.txt` saying how it was measured, and the appendix names
+    them; the lint script gets Yarn's default of half the cores, which the
+    recommendation now says.
+11. Clarity: the jobs table's caption, the suites' abbreviations, the 2,514
+    files against 2,179, 780 against 784, which `guide.spec`, that `lint`
+    becomes the longest job after #2 and #3, and what the local table's
+    lint row holds. Fixed, each.
+
+The second review, of the answers, and its answers:
+
+1. The Prettier count didn't add up, and 2,179, the files that change at a
+   print width of 20 (the entry for steps 5 and 6), is a lower bound, not
+   what Prettier checks. Fixed: Prettier's own `getFileInfo()` over every
+   tracked file, with the root's `.gitignore` and `.prettierignore`, counts
+   2,432 checked, which the report gives, and why it differs from 2,514 and
+   2,179. The steps 5 and 6 entry's "check the same 2,179 files" stands as
+   a comparison of those lists, not a count of what each CI checks.
+2. "`--jobs` can't follow an environment variable" was false: Yarn's shell
+   expands `${LINT_JOBS:+--jobs $LINT_JOBS}`, tried with `yarn exec`, to
+   nothing unset and to `--jobs 4` set. Fixed: #4 recommends it.
+3. `lint` would be among the longest jobs after #2 and #3, not the longest,
+   as the layout and test jobs also wait 12 to 15 s for `changes`. Fixed,
+   and the estimate is 1.7 to 2.3 minutes.
+4. "Made cheaper" contradicted the step 1 entry: their cost is spread, not
+   cut. Fixed: no one test carries it; and `viewport_scaler.spec`, which
+   72ecbcf4 fixed too, is named beside Snake's.
+5. The estimates said they scale by one CI range, while #3 used the layout
+   check's own. Fixed: each scales by its phase's own range; and the next
+   job ended 10 to 36 s after the longest, not 0 to 40.
+6. Minor, each fixed: `@fz/phaser`'s 75 to 91 s is the floor of a job of
+   the other ten; `build` still builds every game; Brick Breaker's build
+   took 7.0 s on 4 cores; #1 catches a `run:` block bash can't parse; the
+   cause given for `typecheck`'s CI times was untested, and is gone; the
+   two hand-written `phases.tsv` have a `meta.txt` each; and the unclear
+   sentence above is rewritten.
