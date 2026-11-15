@@ -128,6 +128,17 @@ describe("DevToolsConnection", () => {
     },
   );
 
+  it.each([0, 1.5])(
+    "refuses %s pages open at once before it opens a socket",
+    async (pages) => {
+      // Nothing listens at port 9, so a socket opened first would fail
+      // otherwise than with a RangeError.
+      await expect(
+        DevToolsConnection.open("ws://127.0.0.1:9", pages),
+      ).rejects.toThrow(RangeError);
+    },
+  );
+
   it("closes its socket", () => {
     const browser = new FakeBrowser();
     const devtools = new DevToolsConnection(browser);

@@ -111,7 +111,7 @@ export class FakeBrowser implements DevToolsSocket {
    * creates it till it answers the one that disposes of it.
    */
   contextsOpen(): number {
-    return this.contextsOpenAfterEach().at(-1) ?? 0;
+    return this.contextChanges.reduce((open, change) => open + change, 0);
   }
 
   /**

@@ -152,6 +152,20 @@ describe("declaredWorkspaces", () => {
       { name: "c", scripts: [], dependsOn: [] },
     ]);
   });
+
+  it("passes over a folder whose package.json names no workspace", async () => {
+    const root = await folderOf({
+      "package.json": JSON.stringify({ workspaces: ["lib/*"] }),
+      "lib/a/package.json": JSON.stringify({ name: "a" }),
+      "lib/b/package.json": JSON.stringify({ private: true }),
+      "lib/c/package.json": JSON.stringify({ name: "c" }),
+    });
+
+    expect(declaredWorkspaces(root).map(({ name }) => name)).toEqual([
+      "a",
+      "c",
+    ]);
+  });
 });
 
 describe("workspacesWithScript", () => {
