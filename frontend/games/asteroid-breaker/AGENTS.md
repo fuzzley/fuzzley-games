@@ -408,8 +408,9 @@ takes for the specs' helpers.
   wide it is drawn (`towLineWidth()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`), the crew in tow
-  under the ship, so the line ties on under the pod, and the sparks over
-  the pickups, so an orb hides none. `tags.ts` says where
+  under the ship, so the line ties on under the pod, the sparks over
+  the pickups, so an orb hides none, and static's arcs over the
+  flourishes. `tags.ts` says where
   the tags of the effects in play lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning
   stands, on the field's edge where the comet will come in, along its way
@@ -623,9 +624,40 @@ takes for the specs' helpers.
   dashed ring, a dash's streaks and ghosts, and the flame behind each
   engine, flickering through its frames by the field's steps
   (`flameFrame()`, `flameFlickerAt()`), its fine marks only where the
-  field's unit makes them show (`isFine()`), and the exhaust's puffs, their
+  field's unit makes them show (`isFine()`), the exhaust's puffs, their
   colors, how they swell and fade (`puffColors()`, `puffRadius()`,
-  `puffAlpha()`); `pilot_art.ts` the pilots, each `@fz/phaser/fuzzball`'s
+  `puffAlpha()`), and the runs the arcs crawling over the hull at full
+  static take, between two of its facets clear of the canopy, as the kit's
+  `podSvg()` finds them (`HULL_RUNS`);
+  `arcs.ts` static's arcs, as the kit's `fx.mjs` and `ship.mjs` draw them,
+  each a jagged line cut from a seed in its own frame, in shares of its
+  length, in as many steps as its length takes (`arcSteps()`), into
+  records made once (`cutArc()`, an `Arc` of `ArcLine`s, the kit's arc
+  from the kit's seed, its branches and its sway, `ARC_CUT`), laid each
+  frame between where it runs (`placeArc()`) and copied past the edges it
+  or its strokes reach across (`arcShift()`, `ARC_OVERHANG`): the zap's,
+  cut once from each of `ZAP_ARC_SEEDS` seeds for each count of steps, as
+  a held hit's sparks are, each leap's the one the kit's seed for it
+  picks (`zapArc()`), its steps counted as it strikes, from where the pod
+  zapped, the rock and the rim of its outline toward the pod
+  (`strikeOf()`, a `ZapStrike`, `breaks.ts`' `rimToward()`), from 1.2
+  units past the pod's middle to
+  just inside that rim, the short way across the wrap, none to a rock over
+  the hull (`zapEnds()`), leaping anew every 45 ms where motion is welcome
+  and holding its first where it isn't (`zapLeap()`, `zapSeed()`,
+  `zapBranches()`), whole for 90 ms and gone by 180 (`zapStrength()`,
+  `ZAP_ARC`), stroked in the accent's energy, its halo, body and hot
+  middle, a branch narrower (`ZAP_STROKES`, `arcWidth()`, `zapAlpha()`),
+  with a spark where it lands, shrinking and turning with each leap, and
+  its glow (`ARC_SPARK_FRAME`, `arcSparkScale()`, `arcSparkTurn()`,
+  `arcSparkHalo()`); and, at full static with a pilot at the controls, in
+  the pilot's ink under a white core (`hullArcInk()`, `HULL_STROKES`),
+  the arcs crawling over the hull, three, or two where its fine marks
+  don't show, cut once from each of `HULL_ARC_SEEDS` seeds, spread round
+  its runs, turned and placed where the pod is drawn (`hullArcs()`),
+  crawling through their seeds every 100 ms where motion is welcome and
+  holding one where it isn't (`hullArcSeed()`); `arcFrames()` draws the
+  spark's frame; `pilot_art.ts` the pilots, each `@fz/phaser/fuzzball`'s
   fuzzball, in white for the scene to tint in its ink, upright in the
   pod's canopy or adrift: the pod's pilot's fur at each lift of static
   and each push it leans from (`furFrame()`), static's sparks on end
@@ -828,8 +860,16 @@ takes for the specs' helpers.
   the outline and the turn a broken rock was drawn in from its slot, or,
   once a piece has taken that, from what it last drew there; it throws a
   lost pod's burst of shards too, as particles; `RingPainter` the
-  rings, `PointsPainter` the points scored, each label stamped once on a
-  room of a sheet (a `DynamicTexture`), every outline and then every fill,
+  rings, `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
+  stroked again each frame: each of the zap's that it hears of
+  (`hear()`), as it struck (`strikeOf()`), from where the pod is drawn,
+  or where it zapped from with none drawn, to the rock it struck, in a
+  slot of its own, the oldest's taken by the next, its spark over a glow,
+  an image of the halo painter's soft disc (`discIn()`) shown as a halo
+  is (`dressHalo()`), on its own layer, so the glow lights the rock it
+  lands on, each from images made once; and the
+  arcs crawling over the hull at full static, `PointsPainter` the points
+  scored, each label stamped once on a room of a sheet (a `DynamicTexture`), every outline and then every fill,
   as a canvas writes a line, and shown and faded as one image, and
   `DeckPainter` the deck.
   `FieldCamera` (`field_camera.ts`) points the field's camera at the field,

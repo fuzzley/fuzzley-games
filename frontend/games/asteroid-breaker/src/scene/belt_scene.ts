@@ -76,6 +76,7 @@ import {
 } from "./atlas";
 import { FieldCamera } from "./field_camera";
 import { FlourishPlayer } from "./flourish_player";
+import { ArcPainter } from "./painters/arc_painter";
 import { DebrisPainter } from "./painters/debris_painter";
 import { DeckPainter } from "./painters/deck_painter";
 import { ExhaustPainter } from "./painters/exhaust_painter";
@@ -209,6 +210,8 @@ export interface BeltKit {
   readonly pickups: PickupPainter;
   /** Draws the sparks broken rocks shed, and their halos. */
   readonly sparks: SparkPainter;
+  /** Draws static's arcs: the zap's, with the sparks where they land, and those crawling over the hull at full static. */
+  readonly arcs: ArcPainter;
   /** Draws the stray adrift and a lost ship's pilot bailing out. */
   readonly strays: StrayPainter;
   /** Draws the comets and their warnings. */
@@ -356,6 +359,7 @@ export class BeltScene extends Scene {
       kit.exhaust,
       kit.debris,
       kit.rings,
+      kit.arcs,
       kit.points,
       kit.deck,
       kit.fieldCamera,
@@ -427,6 +431,7 @@ export class BeltScene extends Scene {
       exhaust: new ExhaustPainter(this, layers.effects),
       debris: new DebrisPainter(this, layers.breaks, layers.effects),
       rings: new RingPainter(this, layers.effects),
+      arcs: new ArcPainter(this, layers.arcs, halos),
       points: new PointsPainter(this, layers.points),
       deck: new DeckPainter(this, layers.deck),
       fieldCamera: new FieldCamera(this.cameras.main),
@@ -523,12 +528,14 @@ export class BeltScene extends Scene {
   /**
    * Plays what an event calls for, once, for `forEachSince()`, which takes
    * it each frame: tells the pod's pilot's face of it, and the faces of
-   * those in tow, keeps its sound to play with the frame's others, and
-   * plays its flourishes where motion is welcome, and its points either way.
+   * those in tow, and the arcs a zap's arc to a rock, keeps its sound to
+   * play with the frame's others, and plays its flourishes where motion is
+   * welcome, and its points either way.
    */
   private readonly play = (event: Readonly<FieldEvent>): void => {
     this.kit.ship.hear(event, this.shownField.steps);
     this.kit.tow.hear(event, this.shownField.steps);
+    this.kit.arcs.hear(event, this.context.now, this.shownField);
     this.fieldSounds.hear(event, this.shownField.torus.width);
     const flourishes = flourishesOf(effectsOf(event), this.context.motion);
     for (const flourish of flourishes) {

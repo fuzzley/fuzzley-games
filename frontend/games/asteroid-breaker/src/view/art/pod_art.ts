@@ -252,6 +252,66 @@ const HULL_REACH = Math.max(
   ...FACETS.flatMap(({ points }) => points.map(({ x, y }) => Math.hypot(x, y))),
 );
 
+/** Describes a run an arc crawling over the hull takes: between the middles of two of its facets, in field units about the pod's middle, its nose along x. */
+export interface HullRun {
+  readonly from: Point;
+  readonly to: Point;
+}
+
+/**
+ * Which two of the hull's facets an arc crawling over it runs between, as
+ * the kit's `podSvg()` finds them: their middles further apart than the
+ * least and nearer than the most, in field units, the middle between them
+ * clear of the canopy by a margin.
+ */
+const HULL_RUN = { least: 0.3, most: 0.85, clear: 0.12 } as const;
+
+/** Returns the middle of a facet's corners. */
+function middleOf(points: readonly Point[]): Point {
+  let x = 0;
+  let y = 0;
+  for (const point of points) {
+    x += point.x;
+    y += point.y;
+  }
+  return { x: x / points.length, y: y / points.length };
+}
+
+/** Returns the runs the arcs crawling over the hull take, as {@link HULL_RUNS} says. */
+function hullRuns(): readonly HullRun[] {
+  const middles = FACETS.filter(({ part }) => part === "hull").map(
+    ({ points }) => middleOf(points),
+  );
+  const runs: HullRun[] = [];
+  middles.forEach((from, i) => {
+    for (const to of middles.slice(i + 1)) {
+      const far = Math.hypot(to.x - from.x, to.y - from.y);
+      const clear = Math.hypot((from.x + to.x) / 2, (from.y + to.y) / 2);
+      if (
+        far > HULL_RUN.least &&
+        far < HULL_RUN.most &&
+        clear > CANOPY + HULL_RUN.clear
+      ) {
+        runs.push({ from, to });
+      }
+    }
+  });
+  return runs.sort(
+    (one, other) =>
+      Math.atan2(one.from.y, one.from.x) -
+      Math.atan2(other.from.y, other.from.x),
+  );
+}
+
+/**
+ * The runs the arcs crawling over the hull at full static take, made once,
+ * as the kit's `podSvg()` finds them: between the middles of two of the
+ * hull's facets, not its trim's, near each other and clear of the canopy,
+ * in order of the way the first lies from the pod's middle, so runs taken
+ * a share of the list apart lie round the hull.
+ */
+export const HULL_RUNS: readonly HullRun[] = hullRuns();
+
 /**
  * How far the pod's frames drawn about its middle reach from it, in field
  * units: its hull's prow, its outline at its widest mitred out as far as an
