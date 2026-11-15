@@ -73,7 +73,14 @@ export function middleSquare(area: Area, side: number): Area {
   };
 }
 
-/** Returns the four bars of a frame around the inside of an area, its style's width thick. */
+/**
+ * Returns the four bars of a frame around the inside of an area, its
+ * style's width thick.
+ *
+ * Its bars overlap at the corners, so a frame at part alpha is drawn as one
+ * band instead: {@link outlineRoundRect} of the area inset by half the
+ * width, with no radius.
+ */
 export function frameAround(
   area: Area,
   style: LineStyle,

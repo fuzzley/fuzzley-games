@@ -110,10 +110,14 @@ holds.
   Its builders take the geometry first, an `Area`, a `Point` and a radius,
   or a list of `Point`s, and the style last, `{ color }` to fill and
   `{ color, width }` to stroke (`ring(ORIGIN, radius, { color, width })`),
-  and `extentOf()` gives back an `Area`. The art's line (`lineWidth()`),
-  round-ended lines (`stroke()`), the points of curves (`arcPoints()` and
-  the rest), what moves, scales and frames a drawing (`shifted()`,
-  `scaledBy()`, `centered()`, `bounded()`, and `turned()` for a point),
+  with an `alpha` from 0 to 1 for a shape at part strength in its frame
+  (`{ color, alpha: 0.4 }`), opaque where left out (a drawing at part
+  strength as a whole is baked at full strength and its image shown with
+  `setAlpha()`), and `extentOf()` gives back an `Area`. The art's line
+  (`lineWidth()`), round-ended lines (`stroke()`), the points of curves
+  (`arcPoints()` and the rest), what moves, scales and frames a drawing
+  (`shifted()`, `scaledBy()`, `centered()`, `bounded()`, and `turned()` for
+  a point),
   what lays a frame out in an area and draws in it (`within()`,
   `pointAt()`, `share()`, `inset()`, `middleSquare()`, `frameAround()`,
   `outlineRoundRect()`, `crispOutline()` on whole pixels, `star()`,

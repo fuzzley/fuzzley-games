@@ -16,6 +16,12 @@ describe("symbolLineStyle", () => {
       expect([style.color, style.width]).toEqual([7, expect.closeTo(wide)]);
     },
   );
+
+  it("keeps the style's alpha", () => {
+    expect(
+      symbolLineStyle(SQUARE, { color: 7, width: 1, alpha: 0.4 }).alpha,
+    ).toBe(0.4);
+  });
 });
 
 describe("the symbols' shapes", () => {

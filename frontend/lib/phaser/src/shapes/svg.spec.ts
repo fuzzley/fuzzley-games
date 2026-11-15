@@ -40,6 +40,14 @@ function shapeOf(drawing: Drawing): {
   return { name: shape.localName, attributes: attributesOf(shape) };
 }
 
+/** Returns the opacities a command is written with, each its name and its value. */
+function opacitiesOf(command: DrawCommand): [string, string][] {
+  const { attributes } = shapeOf(drawingOf(command));
+  return Object.entries(attributes).filter(([name]) =>
+    name.endsWith("opacity"),
+  );
+}
+
 /** Returns a square drawing of one command. */
 function drawingOf(command: DrawCommand): Drawing {
   return { width: 40, height: 40, commands: [command] };
@@ -213,6 +221,87 @@ describe("svgOf", () => {
       attributes: { points: "20,2 38,38 2,38", fill: "#00ff00" },
     });
   });
+
+  it.each<[string, string, DrawCommand]>([
+    [
+      "a rectangle",
+      "fill-opacity",
+      rect({ x: 2, y: 3, width: 30, height: 10 }, { color: 1, alpha: 1 / 3 }),
+    ],
+    [
+      "a rounded rectangle",
+      "fill-opacity",
+      roundRect({ x: 2, y: 3, width: 30, height: 10 }, 4, {
+        color: 1,
+        alpha: 1 / 3,
+      }),
+    ],
+    [
+      "a circle",
+      "fill-opacity",
+      circle({ x: 12, y: 30 }, 5, { color: 1, alpha: 1 / 3 }),
+    ],
+    [
+      "a ring",
+      "stroke-opacity",
+      ring({ x: 12, y: 30 }, 5, { color: 1, width: 3, alpha: 1 / 3 }),
+    ],
+    [
+      "a line",
+      "stroke-opacity",
+      line(
+        { x: 1, y: 30 },
+        { x: 35, y: 4 },
+        { color: 1, width: 2, alpha: 1 / 3 },
+      ),
+    ],
+    [
+      "a polyline",
+      "stroke-opacity",
+      polyline(
+        [
+          { x: 1, y: 2 },
+          { x: 20, y: 30 },
+        ],
+        { color: 1, width: 4, alpha: 1 / 3 },
+      ),
+    ],
+    [
+      "a polygon",
+      "fill-opacity",
+      polygon(
+        [
+          { x: 20, y: 2 },
+          { x: 38, y: 38 },
+          { x: 2, y: 38 },
+        ],
+        { color: 1, alpha: 1 / 3 },
+      ),
+    ],
+  ])(
+    "writes %s at its alpha as its %s alone, to a thousandth",
+    (_name, opacity, command) => {
+      expect(opacitiesOf(command)).toEqual([[opacity, "0.333"]]);
+    },
+  );
+
+  it.each<[string, string, DrawCommand]>([
+    [
+      "a rectangle",
+      "fill-opacity",
+      rect({ x: 2, y: 3, width: 30, height: 10 }, { color: 1, alpha: 0 }),
+    ],
+    [
+      "a line",
+      "stroke-opacity",
+      line({ x: 1, y: 30 }, { x: 35, y: 4 }, { color: 1, width: 2, alpha: 0 }),
+    ],
+  ])(
+    "writes %s at an alpha of 0 as its %s of 0, unseen",
+    (_name, opacity, command) => {
+      expect(opacitiesOf(command)).toEqual([[opacity, "0"]]);
+    },
+  );
 
   it("writes each number to a thousandth of a pixel, and never as -0", () => {
     const shape = shapeOf(

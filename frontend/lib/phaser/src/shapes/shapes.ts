@@ -16,8 +16,14 @@ export interface Area {
   readonly height: number;
 }
 
+/** Says how much of a shape shows, or of what a style draws. */
+interface Alpha {
+  /** Its alpha, a share from 0, unseen, to 1, opaque, as it is where it gives none. */
+  readonly alpha?: number;
+}
+
 /** Describes a rectangle filled in a color. */
-export interface RectCommand {
+export interface RectCommand extends Alpha {
   readonly kind: "rect";
   readonly x: number;
   readonly y: number;
@@ -27,7 +33,7 @@ export interface RectCommand {
 }
 
 /** Describes a rectangle with rounded corners filled in a color. */
-export interface RoundRectCommand {
+export interface RoundRectCommand extends Alpha {
   readonly kind: "roundRect";
   readonly x: number;
   readonly y: number;
@@ -38,7 +44,7 @@ export interface RoundRectCommand {
 }
 
 /** Describes a circle filled in a color. */
-export interface CircleCommand {
+export interface CircleCommand extends Alpha {
   readonly kind: "circle";
   readonly x: number;
   readonly y: number;
@@ -47,7 +53,7 @@ export interface CircleCommand {
 }
 
 /** Describes a circle's outline in a color, its line's middle at the radius. */
-export interface RingCommand {
+export interface RingCommand extends Alpha {
   readonly kind: "ring";
   readonly x: number;
   readonly y: number;
@@ -57,7 +63,7 @@ export interface RingCommand {
 }
 
 /** Describes a straight line from a point to another in a color, its ends cut straight across. */
-export interface LineCommand {
+export interface LineCommand extends Alpha {
   readonly kind: "line";
   readonly from: Point;
   readonly to: Point;
@@ -70,7 +76,7 @@ export interface LineCommand {
  * its corners join; a canvas joins them in points, which may reach past
  * half its width.
  */
-export interface PolylineCommand {
+export interface PolylineCommand extends Alpha {
   readonly kind: "polyline";
   readonly points: readonly Point[];
   readonly width: number;
@@ -78,13 +84,19 @@ export interface PolylineCommand {
 }
 
 /** Describes a polygon filled in a color. */
-export interface PolygonCommand {
+export interface PolygonCommand extends Alpha {
   readonly kind: "polygon";
   readonly points: readonly Point[];
   readonly color: number;
 }
 
-/** Describes one shape of a frame's drawing, in device pixels from the frame's top left corner. */
+/**
+ * Describes one shape of a frame's drawing, in device pixels from the frame's
+ * top left corner.
+ *
+ * Each is drawn at its alpha alone, over those before it, so where two
+ * shapes at part alpha overlap, the overlap shows stronger than either.
+ */
 export type DrawCommand =
   | RectCommand
   | RoundRectCommand
@@ -123,12 +135,12 @@ export function lineWidth(scale: ArtScale): number {
 }
 
 /** Says what a filled shape is filled in. */
-export interface FillStyle {
+export interface FillStyle extends Alpha {
   readonly color: number;
 }
 
 /** Says what a line is drawn in, and how wide it is. */
-export interface LineStyle {
+export interface LineStyle extends Alpha {
   readonly color: number;
   readonly width: number;
 }
@@ -137,14 +149,19 @@ export interface LineStyle {
 export const ORIGIN: Point = { x: 0, y: 0 };
 
 // Every builder takes its place as a named shape, an area, a point and a
-// radius or a list of points, then its style. The shapes with a size take
-// none below nothing, and their radii clamp: a unit too small for an inset,
-// as a canvas has before it is laid out, would give them one, and a canvas
-// throws at a negative radius.
+// radius or a list of points, then its style, whose alpha the shape keeps.
+// The shapes with a size take none below nothing, and their radii clamp: a
+// unit too small for an inset, as a canvas has before it is laid out, would
+// give them one, and a canvas throws at a negative radius.
 
 /** Returns a rectangle filled over an area, no smaller than nothing. */
 export function rect(area: Area, style: FillStyle): RectCommand {
-  return { kind: "rect", ...sized(area), color: style.color };
+  return {
+    kind: "rect",
+    ...sized(area),
+    color: style.color,
+    ...alphaOf(style),
+  };
 }
 
 /** Returns a rectangle with rounded corners filled over an area, no smaller than nothing, its corners' radius at most half its shorter side. */
@@ -160,6 +177,7 @@ export function roundRect(
     ...box,
     radius: Math.min(Math.max(radius, 0), most),
     color: style.color,
+    ...alphaOf(style),
   };
 }
 
@@ -175,6 +193,7 @@ export function circle(
     y: middle.y,
     radius: Math.max(0, radius),
     color: style.color,
+    ...alphaOf(style),
   };
 }
 
@@ -191,12 +210,20 @@ export function ring(
     radius: Math.max(0, radius),
     width: style.width,
     color: style.color,
+    ...alphaOf(style),
   };
 }
 
 /** Returns a straight line from a point to another. */
 export function line(from: Point, to: Point, style: LineStyle): LineCommand {
-  return { kind: "line", from, to, width: style.width, color: style.color };
+  return {
+    kind: "line",
+    from,
+    to,
+    width: style.width,
+    color: style.color,
+    ...alphaOf(style),
+  };
 }
 
 /** Returns a line through points in turn, drawn as one path. */
@@ -209,6 +236,7 @@ export function polyline(
     points,
     width: style.width,
     color: style.color,
+    ...alphaOf(style),
   };
 }
 
@@ -217,7 +245,7 @@ export function polygon(
   points: readonly Point[],
   style: FillStyle,
 ): PolygonCommand {
-  return { kind: "polygon", points, color: style.color };
+  return { kind: "polygon", points, color: style.color, ...alphaOf(style) };
 }
 
 /**
@@ -226,7 +254,9 @@ export function polygon(
  *
  * It is drawn so rather than as a {@link polyline}, as a canvas joins a
  * path's corners in points that reach past its width, so what it draws,
- * and so its frame's size, would hang on the renderer.
+ * and so its frame's size, would hang on the renderer. Its lines and dots
+ * overlap, so at part alpha it shows stronger at each point: a line drawn
+ * at part alpha is one shape, a polyline or a band.
  */
 export function stroke(
   points: readonly Point[],
@@ -238,6 +268,11 @@ export function stroke(
     ),
     ...points.map((point) => circle(point, style.width / 2, style)),
   ];
+}
+
+/** Returns a style's alpha as a shape keeps it: left out where the style gives none. */
+function alphaOf({ alpha }: Alpha): Alpha {
+  return alpha === undefined ? {} : { alpha };
 }
 
 /** Returns an area no narrower and no shorter than nothing. */

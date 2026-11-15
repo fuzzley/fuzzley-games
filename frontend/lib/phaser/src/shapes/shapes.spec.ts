@@ -1,6 +1,8 @@
 import {
   type Area,
   type DrawCommand,
+  type FillStyle,
+  type LineStyle,
   ORIGIN,
   circle,
   extentOf,
@@ -14,6 +16,20 @@ import {
   stroke,
   widthOf,
 } from "./shapes";
+
+/** Returns one shape of each kind, those that fill in a style and those that stroke in a line's. */
+function everyKind(fill: FillStyle, pen: LineStyle): readonly DrawCommand[] {
+  const area: Area = { x: 1, y: 2, width: 3, height: 4 };
+  return [
+    rect(area, fill),
+    roundRect(area, 1, fill),
+    circle(ORIGIN, 2, fill),
+    ring(ORIGIN, 2, pen),
+    line(ORIGIN, { x: 3, y: 4 }, pen),
+    polyline([ORIGIN, { x: 3, y: 4 }], pen),
+    polygon([ORIGIN, { x: 3, y: 4 }], fill),
+  ];
+}
 
 describe("widthOf", () => {
   it.each([
@@ -86,6 +102,21 @@ describe("the shapes", () => {
     ]);
   });
 
+  it.each([0.4, 0])("draw each at its style's alpha, %f", (alpha) => {
+    const shapes = everyKind(
+      { color: 7, alpha },
+      { color: 7, width: 1, alpha },
+    );
+
+    expect(shapes.map((shape) => shape.alpha)).toEqual(shapes.map(() => alpha));
+  });
+
+  it("leave the alpha out where the style gives none, so each is opaque", () => {
+    const shapes = everyKind({ color: 7 }, { color: 7, width: 1 });
+
+    expect(shapes.filter((shape) => "alpha" in shape)).toEqual([]);
+  });
+
   it("fill in a line's color alone, given its style", () => {
     const style = { color: 7, width: 3 };
 
@@ -142,6 +173,18 @@ describe("stroke", () => {
       circle({ x: 4, y: 0 }, 1, style),
       circle({ x: 4, y: 3 }, 1, style),
     ]);
+  });
+
+  it("draws each line and dot at its style's alpha", () => {
+    const shapes = stroke(
+      [
+        { x: 0, y: 0 },
+        { x: 4, y: 0 },
+      ],
+      { color: 9, width: 2, alpha: 0.4 },
+    );
+
+    expect(shapes.map(({ alpha }) => alpha)).toEqual([0.4, 0.4, 0.4]);
   });
 
   it("draws a single point as a dot", () => {

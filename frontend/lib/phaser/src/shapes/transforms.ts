@@ -2,7 +2,7 @@
 // `scaledBy()` are each a `switch` over every kind of `DrawCommand`, and
 // `centered()` and `bounded()` lean on the one in `edgesOf()`, in
 // `shapes.ts`, so a new kind fails in the library's build rather than in a
-// game's.
+// game's. Each keeps a command's alpha.
 
 import {
   type ArtFrame,

@@ -24,7 +24,7 @@ const MIDDLE: Point = { x: 0.5, y: 0.5 };
  */
 export function symbolLineStyle(square: Area, style: LineStyle): LineStyle {
   return {
-    color: style.color,
+    ...style,
     width: Math.max(style.width, square.width * SYMBOL_LINE),
   };
 }
