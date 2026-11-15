@@ -524,8 +524,9 @@ takes for the specs' helpers.
   the pickups, the comet, the shots, the flame and a stray's bubble's rim
   to 3:1 against the field in every palette, the outline against
   everything it outlines, the marks against every rock and every face, a
-  pickup's symbol against the pickup, each pilot against the field, the
-  pod's glass and its shade, a stray's bubble and the bar, the eyes
+  pickup's symbol against its orb's glass and the glass deeper in it
+  (`orbColors()`), each pilot against the field, the pod's glass and its
+  shade, a stray's bubble and the bar, the eyes
   against each pilot, and the deck's knob and its buttons' symbols
   against the deck.
 - **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
@@ -600,6 +601,20 @@ takes for the specs' helpers.
   whole in its frame (`MUZZLE_FRAME`) and smaller and fainter in its
   second beat (`MUZZLE_BEATS`), with its halo ahead of the muzzle
   (`muzzleHalo()`); `energyFrames()` draws their frames;
+  `things.ts` what drifts on the field to be caught, as the art kit's
+  `things.mjs` draws it: each pickup as a round glass orb (`ORB`), the
+  field's color tinted with the accent (`orbColors()`), outlined in the
+  field's color, its rim in the accent by its effect's group, one ring for
+  a weapon, doubled for a guard and four arcs for what changes the field
+  (`ORB_RIMS`), its symbol bold in its middle in its ink, the accent sunk
+  toward the field's text on a light field and lifted toward white on a
+  dark one, and the glint on its rim, the glass deeper within it and a
+  dot of the glint as fine marks, in its frame (`pickupFrame()`);
+  `thingsFrames()` draws their frames; and how an orb shows at a moment
+  (`orbLook()`): swelling as it breathes, its halo wider and stronger
+  with it, and dim with no halo for the off half of each blink in its
+  last seconds (`ORB_DIM`), rather than gone, from rest
+  (`restingLook()`), and a pickup's by its slot (`pickupLook()`);
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -609,7 +624,10 @@ takes for the specs' helpers.
   at the nearest rock or comet or the way the pod points (`lookOf()`),
   how far its fur lifts with static, a step a multiplier (`liftOf()`), and the push it
   leans from, eased so it lags a thrust (`pushOf()`, `easeLean()`);
-  `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
+  `symbols.ts` each pickup's symbol, as the kit cuts it, its lines, its
+  fills grown a little past their edges, and its cuts in the color of what
+  it lies on, where it is given one (`SymbolStyle`), and each button's
+  (`SYMBOLS`); they are
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), with its
   builders, curves and transforms, and `shapes.ts` holds the game's own
   helpers over them: the scale the atlas is baked at, the outline's width,
@@ -670,9 +688,11 @@ takes for the specs' helpers.
   `softDisc()`), tinted, turned, scaled and faded under plain alpha, never
   an additive blend, on the `halos` layer, over the place and the field and
   under the tags and the rocks, so none covers what it glows round: each
-  rock's, turning with it, and each shot's, along its travel, in the
-  accent, as its weapon's says; made as many as all a field's rocks and
-  shots could give off at once, and as many more as another painter
+  rock's, turning with it, each shot's, along its travel, in the accent,
+  as its weapon's says, and each pickup's, round, in the accent, as wide
+  and as strong as its orb breathes, none while it blinks dim, by the
+  same `pickupLook()`; made as many as all a field's rocks, shots and pickups
+  could give off at once, and as many more as another painter
   reserves (`reserve()`) to show its own after it
   draws, through `glow()`, or `glowOnce()` for a thing that crosses rather
   than wraps, shown once where it lies, as `Copies`' `showOnce()` shows it,
@@ -680,11 +700,12 @@ takes for the specs' helpers.
   lit, each in the frame of the hits it has taken, and a held hit's flash,
   a light at its rock's edge toward the ship that lights the faces struck,
   and another where that edge shows past the field's own,
-  `PickupPainter` the pickups,
+  `PickupPainter` the pickups, each as its orb, as large and as opaque
+  as `pickupLook()` says, each slot a phase apart,
   `StrayPainter` the stray adrift, pleading, and a lost pod's pilot
   bailing out, wide eyed, `HazardPainter` the comets and their warnings,
-  `ShotPainter` the shots, each in its weapon's frame, `PodPainter` the pod, its flame, its pilot, its
-  face as the field shows it, which it hears the field's events for
+  `ShotPainter` the shots, each in its weapon's frame, `PodPainter` the
+  pod, its flame, its pilot, its face as the field shows it, which it hears the field's events for
   (`hear()`), and its rings, `TrailPainter` a dash's trail of the pod's
   ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,
   `DebrisPainter` each rock's break, from the view's `breaks.ts`: its

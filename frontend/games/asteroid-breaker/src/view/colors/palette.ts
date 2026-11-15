@@ -56,7 +56,7 @@ export interface BeltPalette {
   readonly mark: number;
   /** The ship, a pickup, the stick's knob, a button pressed, a lost ship's burst, and the rings of a spent Shield and a lost ship: the accent. */
   readonly accent: number;
-  /** A pickup's symbol and a pressed button's: the color the palette sets on its accent. */
+  /** A pressed button's symbol: the color the palette sets on its accent. */
   readonly onAccent: number;
   /** The ship's flame, its exhaust, a held hit's spark and a blast's ring: the warning color. */
   readonly flame: number;

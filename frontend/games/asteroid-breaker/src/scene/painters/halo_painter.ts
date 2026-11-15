@@ -8,6 +8,7 @@ import {
   haloAlpha,
   rockHalos,
 } from "../../view/art/energy";
+import { pickupLook, restingLook } from "../../view/art/things";
 import {
   type Drawn,
   type FieldView,
@@ -31,8 +32,8 @@ const WHOLE = "__BASE";
  * its own color, under plain alpha, from images of one soft disc made
  * once, each turned, scaled and faded as the view's halo says, on both sides
  * of an edge it reaches across: a crystal's gems' and a volatile rock's
- * core's, turning with their rock, and each shot's, in the accent, along
- * its travel.
+ * core's, turning with their rock, each shot's, in the accent, along
+ * its travel, and each pickup's, breathing with its orb.
  *
  * Another painter shows a halo of its own through {@link glow}, or
  * {@link glowOnce} for a thing that crosses rather than wraps, each frame
@@ -48,6 +49,16 @@ export class HaloPainter implements Painter {
   private shown = 0;
   /** Where a thing is drawn on the field, between two steps, and how far it is turned, written each frame. */
   private readonly drawn: Drawn = { x: 0, y: 0, angle: 0 };
+  /** How the pickup whose halo is shown shows, written for each. */
+  private readonly look = restingLook();
+  /** The halo of the pickup being shown, written for each. */
+  private readonly orbHalo = {
+    along: 0,
+    across: 0,
+    ahead: 0,
+    turn: 0,
+    strength: 0,
+  };
   /** Where the middle of the halo being shown lies on the field, written for each. */
   private readonly middle: Moving = { x: 0, y: 0 };
 
@@ -81,6 +92,7 @@ export class HaloPainter implements Painter {
     const wanted =
       field.rocks.length * MOST_ROCK_HALOS +
       field.shots.slots.length +
+      field.pickups.length +
       this.reserved;
     while (this.halosMade.length < wanted) {
       this.halosMade.push(
@@ -115,7 +127,30 @@ export class HaloPainter implements Painter {
       // A shot's energy's halo is its own color, the accent.
       this.glow(SHOTS[shot.weapon].halo, palette.accent, this.drawn, context);
     }
+    this.drawPickups(context);
     for (let i = this.shown; i < before; i++) this.halosMade[i]?.hide();
+  }
+
+  /**
+   * Draws the halo of each pickup floating on the field, in the accent, as
+   * wide and as strong as it breathes, as its painter draws its orb, and
+   * none for one blinking dim.
+   */
+  private drawPickups(context: Readonly<PaintContext>): void {
+    const { field, alpha, now, motion, palette } = context;
+    const seconds = now / 1000;
+    for (let slot = 0; slot < field.pickups.length; slot++) {
+      const floating = field.pickups[slot];
+      if (!floating?.live) continue;
+      const look = pickupLook(floating, slot, seconds, motion, this.look);
+      if (look.haloStrength === 0) continue;
+      this.orbHalo.along = look.haloReach;
+      this.orbHalo.across = look.haloReach;
+      this.orbHalo.strength = look.haloStrength;
+      wrappedBetween(floating, alpha, field.torus, this.drawn);
+      this.drawn.angle = 0;
+      this.glow(this.orbHalo, palette.accent, this.drawn, context);
+    }
   }
 
   /**

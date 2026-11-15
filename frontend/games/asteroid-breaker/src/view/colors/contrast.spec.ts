@@ -4,6 +4,7 @@ import { colorNumber } from "@fz/phaser/color";
 import { FIELD_ROLES } from "../../app/board/field_roles";
 import { PALETTES } from "../../testing/roles";
 import { podTones } from "../art/pod_art";
+import { orbColors } from "../art/things";
 import { beltPalette } from "./palette";
 import { faceExtremes } from "./rock_light";
 
@@ -117,10 +118,12 @@ describe("the field's contrast", () => {
       },
     );
 
-    it("keeps a pickup's symbol at 3:1 or more against the pickup", () => {
-      expect(between(palette.onAccent, palette.accent)).toBeGreaterThanOrEqual(
-        GRAPHIC,
-      );
+    it("keeps a pickup's symbol at 3:1 or more against its orb's glass, and the glass deeper in it", () => {
+      const { ink, glass, deep } = orbColors(palette);
+
+      expect(
+        Math.min(between(ink, glass), between(ink, deep)),
+      ).toBeGreaterThanOrEqual(GRAPHIC);
     });
 
     it.each(

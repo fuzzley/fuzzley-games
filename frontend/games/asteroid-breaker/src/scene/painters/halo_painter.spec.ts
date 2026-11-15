@@ -1,17 +1,21 @@
 import type { Rock } from "../../rules/rocks/rocks";
-import { ROCK_RADIUS } from "../../rules/tuning";
+import { stepsIn } from "../../rules/stepper";
+import { PICKUP_BLINK_MS, ROCK_RADIUS } from "../../rules/tuning";
 import {
   type Board,
   DARK,
   layersOf,
   metricsOf,
   onCanvas,
+  overASecond,
   shown,
   startBoard,
+  stillness,
 } from "../../testing/belt_board";
 import {
   KEEPER,
   fieldFrom,
+  placePickup,
   placeRock,
   placeShot,
 } from "../../testing/field_picture";
@@ -23,6 +27,7 @@ import {
   rockHalos,
   roundHalo,
 } from "../../view/art/energy";
+import { pickupLook, restingLook } from "../../view/art/things";
 import type { Copies } from "./copies";
 import { HALO_DISC } from "./halo_painter";
 
@@ -178,14 +183,15 @@ describe("the halos", () => {
     expect(shownHalos(board)).toEqual([]);
   });
 
-  it("make room for all a field's rocks could give off, as the field starts", async () => {
+  it("make room for all a field's rocks, shots and pickups could give off, as the field starts", async () => {
     const board = await startBoard();
     board.shell.field = fieldFrom(KEEPER, { cap: 60 });
 
     board.run.advance(16);
 
+    const { shots, pickups } = board.shell.field;
     expect(board.scene.kit.halos.halos).toHaveLength(
-      60 * MOST_ROCK_HALOS + board.shell.field.shots.slots.length,
+      60 * MOST_ROCK_HALOS + shots.slots.length + pickups.length,
     );
   });
 
@@ -216,6 +222,61 @@ describe("the halos", () => {
     const shot = placeShot(board.shell.field, "gun", 30, 20);
     board.run.advance(16);
     shot.lifeSteps = 0;
+
+    board.run.advance(16);
+
+    expect(shownHalos(board)).toEqual([]);
+  });
+
+  it("draw a pickup's halo about it, round, in the accent, as wide and as strong as its orb's look, still where motion isn't welcome", async () => {
+    const board = await startBoard(stillness);
+    placePickup(board.shell.field, "magnet", 30, 20);
+    const metrics = metricsOf(board.shell);
+    const look = restingLook();
+    const scale = (2 * look.haloReach * metrics.unit) / HALO_DISC.size;
+
+    board.run.advance(16);
+
+    const palette = board.shell.colors;
+    expect([shownHalos(board), looksOf(firstHalo(board))]).toEqual([
+      [[onCanvas(metrics, 30, 20), null, null, null]],
+      [palette.accent, 0, scale, scale, haloAlpha(look.haloStrength, palette)],
+    ]);
+  });
+
+  it("draw a pickup's halo breathing with its orb where motion is welcome, at its own slot's phase", async () => {
+    const board = await startBoard();
+    placePickup(board.shell.field, "spread", 20, 20);
+    const floating = placePickup(board.shell.field, "magnet", 40, 20);
+    const slot = board.shell.field.pickups.indexOf(floating);
+    const at = board.scene.time.now + 16;
+    const look = pickupLook(floating, slot, at / 1000, true, restingLook());
+    const metrics = metricsOf(board.shell);
+
+    board.run.advance(16);
+
+    const [image] = board.scene.kit.halos.halos[1]?.images ?? [];
+    expect([image?.scaleX, image?.alpha]).toEqual([
+      expect.closeTo((2 * look.haloReach * metrics.unit) / HALO_DISC.size, 9),
+      expect.closeTo(haloAlpha(look.haloStrength, board.shell.colors), 9),
+    ]);
+  });
+
+  it("draw a pickup's halo only while its orb shows bright, through its last seconds' blinks", async () => {
+    const board = await startBoard();
+    const floating = placePickup(board.shell.field, "spread", 30, 20);
+    floating.lifeSteps = stepsIn(PICKUP_BLINK_MS);
+
+    const seen = overASecond(board.run, () => shownHalos(board).length);
+
+    expect(seen).toEqual(new Set([0, 1]));
+  });
+
+  it("hide a pickup's halo once it is caught or fades", async () => {
+    const board = await startBoard();
+    const floating = placePickup(board.shell.field, "spread", 30, 20);
+    board.run.advance(16);
+    floating.live = false;
 
     board.run.advance(16);
 
@@ -282,6 +343,7 @@ describe("a halo another painter shows", () => {
     expect(board.scene.kit.halos.halos).toHaveLength(
       board.shell.field.rocks.length * MOST_ROCK_HALOS +
         board.shell.field.shots.slots.length +
+        board.shell.field.pickups.length +
         1,
     );
   });

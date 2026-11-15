@@ -1,22 +1,25 @@
 import type { GameObjects, Scene } from "phaser";
-import { PICKUP_RECORDS, blinks } from "../../rules/rocks/drops";
-import { PICKUP_REACH, pickupFrame } from "../../view/art/art";
+import { PICKUP_RECORDS } from "../../rules/rocks/drops";
 import {
-  GOLDEN_ANGLE,
-  blinkShown,
-  breathScale,
-} from "../../view/effects/flourish";
+  PICKUP_REACH,
+  pickupFrame,
+  pickupLook,
+  restingLook,
+} from "../../view/art/things";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
 /**
- * Draws the pickups floating on the field: each in its frame, breathing
- * where motion is welcome, each slot a phase apart, and blinking through
- * its last seconds, on both sides of an edge it reaches across.
+ * Draws the pickups floating on the field: each as its orb, breathing where
+ * motion is welcome, each slot a phase apart, and blinking dim through its
+ * last seconds, on both sides of an edge it reaches across. Its halo is the
+ * halo painter's.
  */
 export class PickupPainter implements Painter {
   /** Each record's pickup. */
   readonly pickups: readonly Copies[];
+  /** How the pickup being drawn shows, written for each. */
+  private readonly look = restingLook();
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.pickups = Array.from(
@@ -43,17 +46,18 @@ export class PickupPainter implements Painter {
       const copies = this.pickups[i];
       const floating = field.pickups[i];
       if (!copies) continue;
-      if (!floating?.live || (blinks(floating) && !blinkShown(seconds))) {
+      if (!floating?.live) {
         copies.hide();
         continue;
       }
-      const breath = breathScale(seconds, i * GOLDEN_ANGLE, motion);
+      const look = pickupLook(floating, i, seconds, motion, this.look);
       copies.setFrame(pickupFrame(floating.id));
-      copies.setScale(zoom * breath);
+      copies.setScale(zoom * look.scale);
+      copies.setAlpha(look.alpha);
       copies.showBetween(
         floating,
         alpha,
-        PICKUP_REACH * breath,
+        PICKUP_REACH * look.scale,
         metrics,
         torus,
       );
