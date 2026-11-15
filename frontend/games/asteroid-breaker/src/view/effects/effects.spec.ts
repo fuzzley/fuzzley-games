@@ -50,7 +50,7 @@ const EVENTS: readonly (readonly [
   readonly Flourish[],
   readonly Flourish[],
 ])[] = [
-  ["fired", [], []],
+  ["fired", ["muzzle"], []],
   ["dashed", ["trail"], []],
   ["shielded", ["ring"], []],
   ["warned", [], []],

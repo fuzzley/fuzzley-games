@@ -8,8 +8,9 @@
 import { formatPoints } from "@fz/core/format";
 import { shareDone } from "@fz/core/math";
 import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
+import { NOSE } from "../../rules/ship/shots";
 import { stepsIn } from "../../rules/stepper";
-import type { Moving } from "../../rules/torus";
+import { type Moving, type Torus, wrap } from "../../rules/torus";
 import {
   DASH_MS,
   DASH_SPEED,
@@ -17,7 +18,7 @@ import {
   STEP_S,
   STRAY_POINTS,
 } from "../../rules/tuning";
-import type { FieldEvent } from "../field/frame";
+import type { Drawn, FieldEvent } from "../field/frame";
 import type { BeltPalette } from "../colors/palette";
 import {
   BAIL_OUT_BLINK_MS,
@@ -26,6 +27,7 @@ import {
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
+  MUZZLE_MS,
   POINTS_RISE,
   SHAKE_CSS_PX,
   SHAKE_MS,
@@ -76,6 +78,35 @@ const RATES = { breath: 0.64, bob: 0.35 } as const;
  * second that are safe.
  */
 const BLINK_RATE = 2.5;
+
+/**
+ * Returns which beat of the muzzle's flash shows a time after a shot left,
+ * in milliseconds, or null before or after: each beat half `MUZZLE_MS`,
+ * the second starting, and the flash going out, a quarter of a beat early,
+ * so at 60 frames a second, whatever millisecond a frame falls on, the
+ * first frame shows the first beat and the next the second.
+ */
+export function muzzleBeatOf(sinceMs: number): 0 | 1 | null {
+  if (!(sinceMs >= 0)) return null;
+  const beat = Math.floor(sinceMs / (MUZZLE_MS / 2) + 1 / 4);
+  return beat === 0 || beat === 1 ? beat : null;
+}
+
+/**
+ * Writes where the muzzle's flash shows into a record and returns it: at
+ * the nose of the pod as it is drawn, where its shots leave, on the field,
+ * turned as the pod points.
+ */
+export function muzzleAt(
+  ship: Readonly<Drawn>,
+  torus: Readonly<Torus>,
+  into: Drawn,
+): Drawn {
+  into.x = wrap(ship.x + Math.cos(ship.angle) * NOSE, torus.width);
+  into.y = wrap(ship.y + Math.sin(ship.angle) * NOSE, torus.height);
+  into.angle = ship.angle;
+  return into;
+}
 
 /**
  * Returns how far the field is from where it rests, a share through a kick: all

@@ -1104,7 +1104,15 @@ describe("a held hit's spark", () => {
 
     const ways = impactOf("stone", 3).map((tick) => {
       const body = streak();
-      impactTickAt(tick, toward, 120, energy, ART_SCALE, body, streak());
+      impactTickAt(
+        tick,
+        toward,
+        0.6 * HELD_MS,
+        energy,
+        ART_SCALE,
+        body,
+        streak(),
+      );
       return Math.atan2(body.toY, body.toX) - toward;
     });
 
@@ -1116,7 +1124,8 @@ describe("a held hit's spark", () => {
 
     impactFlashAt(1.5, 50, energy, ART_SCALE, into);
 
-    const done = (50 * 0.8) / 80;
+    // The kit's impact's 160 ms stretched over the held hit's time.
+    const done = (50 * (160 / HELD_MS)) / 80;
     expect(into).toEqual({
       x: 0,
       y: 0,

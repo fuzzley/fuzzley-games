@@ -1,4 +1,5 @@
 import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
+import { NOSE } from "../../rules/ship/shots";
 import { stepsIn } from "../../rules/stepper";
 import {
   DASH_MS,
@@ -28,6 +29,8 @@ import {
   flashAlpha,
   flashDue,
   kickShare,
+  muzzleAt,
+  muzzleBeatOf,
   pointsLabel,
   riseOf,
   ringColorOf,
@@ -47,6 +50,7 @@ import {
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
+  MUZZLE_MS,
   POINTS_RISE,
   SHAKE_CSS_PX,
   SHAKE_MS,
@@ -265,6 +269,80 @@ describe("bailOutShown", () => {
     const shown = overTime((seconds) => bailOutShown(BLINKING, seconds));
 
     expect(shown).toEqual(overTime(blinkShown));
+  });
+});
+
+describe("muzzleBeatOf", () => {
+  it.each([
+    [0, 0],
+    [(3 / 8) * MUZZLE_MS - 0.1, 0],
+    [(3 / 8) * MUZZLE_MS, 1],
+    [(7 / 8) * MUZZLE_MS - 0.1, 1],
+  ])("shows, %d ms after a shot left, the beat %d", (sinceMs, beat) => {
+    expect(muzzleBeatOf(sinceMs)).toBe(beat);
+  });
+
+  it.each([-1, (7 / 8) * MUZZLE_MS, Infinity, Number.NaN])(
+    "shows no beat %d ms after a shot left",
+    (sinceMs) => {
+      expect(muzzleBeatOf(sinceMs)).toBeNull();
+    },
+  );
+
+  it.each([
+    ["exactly", 1000 / 60],
+    ["a whole millisecond early", 16],
+    ["a whole millisecond late", 17],
+  ])(
+    "shows each beat for a frame at 60 frames a second, its frames falling %s",
+    (_, frameMs) => {
+      const beats = [0, 1, 2].map((frame) => muzzleBeatOf(frame * frameMs));
+
+      expect(beats).toEqual([0, 1, null]);
+    },
+  );
+
+  it("shows each beat for two frames at 120 frames a second", () => {
+    const frameMs = 1000 / 120;
+
+    const beats = [0, 1, 2, 3, 4].map((frame) => muzzleBeatOf(frame * frameMs));
+
+    expect(beats).toEqual([0, 0, 1, 1, null]);
+  });
+});
+
+describe("muzzleAt", () => {
+  /** The field the specs' pods fly on. */
+  const TORUS = { width: 72, height: 40 } as const;
+
+  it("shows at the nose of the pod as it is drawn, turned as it points", () => {
+    const at = muzzleAt({ x: 30, y: 20, angle: -Math.PI / 2 }, TORUS, {
+      x: 0,
+      y: 0,
+      angle: 0,
+    });
+
+    expect([at.x, at.y, at.angle]).toEqual([
+      expect.closeTo(30, 9),
+      expect.closeTo(20 - NOSE, 9),
+      -Math.PI / 2,
+    ]);
+  });
+
+  it("wraps onto the field past an edge", () => {
+    const at = muzzleAt({ x: 71.5, y: 20, angle: 0 }, TORUS, {
+      x: 0,
+      y: 0,
+      angle: 0,
+    });
+
+    expect(at.x).toBeCloseTo(71.5 + NOSE - 72, 9);
+  });
+
+  it("writes the place into the record it is given", () => {
+    const into = { x: 0, y: 0, angle: 0 };
+
+    expect(muzzleAt({ x: 1, y: 1, angle: 0 }, TORUS, into)).toBe(into);
   });
 });
 

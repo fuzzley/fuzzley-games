@@ -101,7 +101,7 @@ export const TUNED_GUNNERY: Gunnery = {
 };
 
 /** How far ahead of the ship's middle its nose is, where its shots leave. */
-const NOSE = SHIP_LENGTH / 2;
+export const NOSE = SHIP_LENGTH / 2;
 
 /** The most rocks a shot flies on through, one fewer than the most a weapon breaks. */
 const MOST_PASSES =
