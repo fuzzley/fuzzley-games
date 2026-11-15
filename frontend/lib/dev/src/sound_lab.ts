@@ -4,12 +4,19 @@
 // sound-lab/ under its base with a page that loads it. The plugin applies
 // only to the dev server, so no build holds the page.
 
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 
 /** The folder of this library's modules, the page's among them. */
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Resolves a module as Node does from here, to its real path, by which
+ * Vite names a workspace's module too.
+ */
+const require = createRequire(import.meta.url);
 
 /** The page's own modules here, by their names. */
 const PAGE_MODULES = [
@@ -18,6 +25,13 @@ const PAGE_MODULES = [
   "sound_lab_notes.ts",
   "zzfx.ts",
 ];
+
+/**
+ * The other libraries' modules the page imports, by the names it imports
+ * them by: each imports nothing, so it is compiled alone, as the page's own
+ * are.
+ */
+const PAGE_IMPORTS = ["@fz/core/sound_mix"];
 
 /** The page's path under the dev server's base. */
 export const SOUND_LAB_PATH = "sound-lab/";
@@ -68,13 +82,16 @@ function forwardSlashed(file: string): string {
 }
 
 /**
- * Returns what matches the page's modules, a game's entry under its folder
- * and this library's own, by the paths Vite names them by.
+ * Returns what matches the page's modules, a game's entry under its folder,
+ * this library's own and those it imports from the others, by the paths
+ * Vite names them by.
  */
 export function pageModules(root: string, entry: string): RegExp {
   const files = [
     path.resolve(root, entry),
     ...PAGE_MODULES.map((name) => path.join(HERE, name)),
+    // Resolved, not imported, since Node runs this plugin.
+    ...PAGE_IMPORTS.map((name) => require.resolve(name)),
   ].map((file) => forwardSlashed(file).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
   return new RegExp(`^(?:${files.join("|")})$`);
 }
@@ -86,8 +103,9 @@ export function pageModules(root: string, entry: string): RegExp {
  * alone.
  *
  * Analog's plugin turns Vite's own TypeScript compiler off unless the config
- * sets it, and compiles only what the app's program holds, which the page's
- * modules are not, so this has Vite's compile them, and nothing else.
+ * sets it, and compiles only what the app's program holds: never the page's
+ * own modules, and another library's that the page imports only where the
+ * app imports it too, so this has Vite's compile them, and nothing else.
  */
 export function soundLab(page: SoundLabPage): Plugin {
   return {

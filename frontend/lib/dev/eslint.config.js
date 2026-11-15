@@ -1,6 +1,28 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import { scripts, tests, typescript } from "./src/eslint.ts";
 
+/**
+ * The import of `@fz/core` the library's modules may not make: the sound
+ * lab's page alone plays by the mix's formulas, through
+ * `src/sound_lab_mix.ts`, which only the page and its specs load.
+ */
+const CORE_OUTSIDE_THE_LAB = {
+  regex: "^@fz/core(?:/|$)",
+  message:
+    "Only src/sound_lab_mix.ts and the specs import @fz/core, so no module Node runs, such as the presets or the lab's Vite plugin, loads a library's code, whose modules import one another without their extensions.",
+};
+
+/**
+ * The import of the sound lab's page or mix that the library's other
+ * modules may not make: the page loads its stylesheet, and the mix
+ * `@fz/core`, neither of which Node can load.
+ */
+const LAB_OUTSIDE_THE_PAGE = {
+  regex: "^\\./sound_lab_(?:mix|page)\\.ts$",
+  message:
+    "Only the sound lab's page and the specs import its mix or the page, since the page loads its stylesheet and the mix @fz/core, which no module Node runs may load.",
+};
+
 export default defineConfig(
   // The report `yarn test` writes.
   globalIgnores(["coverage/"]),
@@ -17,6 +39,29 @@ export default defineConfig(
   {
     files: ["src/synth_*.ts"],
     rules: { "@typescript-eslint/no-non-null-assertion": "off" },
+  },
+  {
+    files: ["src/**/*.ts"],
+    ignores: [
+      "src/sound_lab_mix.ts",
+      "src/sound_lab_page.ts",
+      "src/**/*.spec.ts",
+    ],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        { patterns: [CORE_OUTSIDE_THE_LAB, LAB_OUTSIDE_THE_PAGE] },
+      ],
+    },
+  },
+  {
+    files: ["src/sound_lab_page.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        { patterns: [CORE_OUTSIDE_THE_LAB] },
+      ],
+    },
   },
   // What the scripts load of this library, from @fz/dev/script, /report,
   // /screenshots, /workspaces and /verify, and what the tsc7 binary loads,
@@ -47,6 +92,9 @@ export default defineConfig(
             },
           ],
           patterns: [
+            // This block's rule replaces the one above for these files.
+            CORE_OUTSIDE_THE_LAB,
+            LAB_OUTSIDE_THE_PAGE,
             {
               regex: "^\\./(?:layout|vite|vitest|game_manifest)\\.ts$",
               allowTypeImports: true,

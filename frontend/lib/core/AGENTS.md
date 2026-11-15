@@ -190,10 +190,11 @@ Each file is an entry point of its own, imported by name, such as
 
 Every game takes some of them, `@fz/ui`'s storage takes `isRecord()`,
 `@fz/game-ui`'s run lifecycle the run's stages and commands, and
-`@fz/phaser`'s sound player the mix. The Solitaire
-Collection keeps two of its own in its engine: a JSON reader, whose errors
-name the path a bug report relies on, and `shuffle()`, whose order differs
-from `shuffled()`'s and Montana's kept gaps depend on.
+`@fz/phaser`'s sound player the mix, whose formulas `@fz/dev`'s sound lab
+plays by too. The Solitaire Collection keeps two of its own in its engine:
+a JSON reader, whose errors name the path a bug report relies on, and
+`shuffle()`, whose order differs from `shuffled()`'s and Montana's kept
+gaps depend on.
 
 ## Rules
 
