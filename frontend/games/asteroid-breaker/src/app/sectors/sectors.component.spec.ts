@@ -4,7 +4,7 @@ import { FRAME_MS } from "@fz/core/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { FIRST_SHIPS } from "../../rules/tuning";
+import { FIRST_CREW } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
   SECTOR_WAVES,
@@ -156,7 +156,7 @@ describe("SectorsComponent", () => {
 
     expect({ wave: game.wave().number, ships: game.ships() }).toEqual({
       wave: 4,
-      ships: FIRST_SHIPS,
+      ships: FIRST_CREW,
     });
   });
 

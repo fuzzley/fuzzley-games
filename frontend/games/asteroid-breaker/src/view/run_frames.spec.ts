@@ -2,7 +2,7 @@ import { ROCK_KINDS, pointsFor } from "../rules/catalog/rocks";
 import { hitRock } from "../rules/rocks/rocks";
 import type { EndMarks } from "../rules/run/describe";
 import { type Run, createRun, pause, startWave } from "../rules/run/run";
-import type { Crew } from "../rules/ship/pilots";
+import { type Crew, aboard } from "../rules/ship/pilots";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { STEP_MS, stepsIn } from "../rules/stepper";
 import { CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../rules/tuning";
@@ -55,7 +55,7 @@ const ALONE: readonly string[] = ["^"];
 const BLAST_MS = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs) * STEP_MS;
 
 /** A crew down to its last ship. */
-const LAST_SHIP: Crew = { flying: [0], home: [], lastGiven: 2 };
+const LAST_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 2 };
 
 /** Fire held, a first move and a shot. */
 const FIRE: Readonly<Steer> = { ...STILL, fire: true };
@@ -164,10 +164,10 @@ function playTo(
  * does, and returns the last frame's change.
  */
 function playToLoss(game: Game): FrameChange {
-  const ships = game.run.crew.flying.length;
+  const ships = aboard(game.run.crew);
   for (let frame = 0; frame < PLAY_LIMIT_FRAMES; frame++) {
     const change = tick(game);
-    if (game.run.crew.flying.length < ships) return change;
+    if (aboard(game.run.crew) < ships) return change;
   }
   throw new Error("The run never lost a ship.");
 }
@@ -270,7 +270,7 @@ describe("RunFrames", () => {
 
       expect({
         outcome: game.run.outcome,
-        ships: game.run.crew.flying.length,
+        ships: aboard(game.run.crew),
         said: game.said,
       }).toEqual({
         outcome: "playing",
@@ -461,7 +461,7 @@ describe("RunFrames", () => {
       playTo(game, "over");
 
       expect({
-        ships: game.run.crew.flying.length,
+        ships: aboard(game.run.crew),
         said: game.said,
       }).toEqual({ ships: 0, said: ["Game over. Score 0, on wave 1."] });
     });
@@ -535,14 +535,14 @@ describe("RunFrames", () => {
       expect(buzz).toBe(LOST_BUZZ);
     });
 
-    it("buzzes nothing as a stray brought home flies one more ship", () => {
+    it("buzzes nothing as a stray brought home rides in tow", () => {
       const game = underWay(OPEN);
       const ship = shipOf(game.play.field);
       placeStray(game.play.field, ship.x, ship.y, Math.PI / 2, 5);
 
       const { buzz } = tick(game);
 
-      expect({ ships: game.run.crew.flying.length, buzz }).toEqual({
+      expect({ ships: aboard(game.run.crew), buzz }).toEqual({
         ships: 4,
         buzz: null,
       });

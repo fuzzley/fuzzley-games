@@ -15,6 +15,7 @@ import type { EffectKind, PickupId } from "../rules/catalog/pickups";
 import type { Field } from "../rules/field/field";
 import { COMET_RECORDS } from "../rules/hazards/comets";
 import { hitRock } from "../rules/rocks/rocks";
+import { atControls } from "../rules/ship/pilots";
 import type { Ship } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
 import { across } from "../rules/torus";
@@ -454,7 +455,7 @@ describe("the ship", () => {
     const { shell, run, scene } = await startBoard(withShip);
     const ship = shipOf(shell.field);
     turn(ship, 0.5);
-    const [pilot] = shell.field.crew.flying;
+    const pilot = atControls(shell.field.crew);
 
     run.advance(16);
 
@@ -469,7 +470,7 @@ describe("the ship", () => {
         ship.x + Math.cos(0.5) * WINDOW.x,
         ship.y + Math.sin(0.5) * WINDOW.x,
       ),
-      pilotFrame(pilot ?? 0, "seated"),
+      pilotFrame(pilot, "seated"),
       0,
     ]);
   });

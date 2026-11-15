@@ -71,8 +71,8 @@ export class ShipPainter implements Painter {
     motion,
   }: Readonly<PaintContext>): void {
     const { ship, torus } = field;
-    const pilot = field.crew.flying[0];
-    if (!ship || !shipDrawn || pilot === undefined) {
+    const { pilot } = field.crew;
+    if (!ship || !shipDrawn || pilot === null) {
       for (const part of this.parts) part.hide();
       return;
     }

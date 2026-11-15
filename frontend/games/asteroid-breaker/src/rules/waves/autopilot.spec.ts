@@ -61,7 +61,7 @@ function waveOf(changes: Partial<WaveData> = {}): Wave {
 const SHIP_ALONE: readonly string[] = ["", "", "", "", "....^"];
 
 /** A crew of the one ship in play. */
-const ONE_SHIP: Crew = { flying: [0], home: [], lastGiven: 0 };
+const ONE_SHIP: Crew = { pilot: 0, tow: [], home: [], lastGiven: 0 };
 
 /**
  * Returns a field of one large rock and a crew of one ship, which a comet
@@ -174,7 +174,9 @@ describe("the autopilot", () => {
   });
 
   it("counts a wave cleared as its last ship went as lost, as the run does", () => {
-    const field = fieldFrom([], { crew: { ...ONE_SHIP, flying: [] } });
+    const field = fieldFrom([], {
+      crew: { ...ONE_SHIP, pilot: null, tow: [] },
+    });
     field.cleared = true;
 
     const report = playField(field);

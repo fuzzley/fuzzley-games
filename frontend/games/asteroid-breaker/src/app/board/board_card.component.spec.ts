@@ -190,7 +190,7 @@ describe("BoardCardComponent", () => {
       speed: "normal",
       wave: SPEC_WAVE.pebble,
     });
-    const crew = { flying: [0, 1, 2, 3, 4, 5], home: [6, 7], lastGiven: 7 };
+    const crew = { pilot: 0, tow: [1, 2, 3, 4, 5], home: [6, 7], lastGiven: 7 };
 
     game.takeUp({
       run: {

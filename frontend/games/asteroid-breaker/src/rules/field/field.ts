@@ -157,8 +157,8 @@ export interface Field extends RockField {
   /** How near the ship a pickup is drawn in to it from. */
   pullReach: number;
   /**
-   * Who flies the run's ships and who waits at home, which the wave changes
-   * as it loses ships and brings strays home, for the run to take.
+   * Who is at the controls, in tow and at home, which the wave changes as it
+   * loses ships and brings strays home, for the run to take.
    */
   crew: Crew;
   /** How many ships it has lost. */
@@ -419,7 +419,7 @@ function loseShip(field: Field, ship: Readonly<Ship>): void {
   field.events.addPilot("lost", ship.x, ship.y, pilot, field.crew);
   field.ship = null;
   field.shipDueAt =
-    field.crew.flying.length > 0 ? field.steps + stepsIn(NEW_SHIP_MS) : null;
+    field.crew.pilot === null ? null : field.steps + stepsIn(NEW_SHIP_MS);
   field.shipsLost += 1;
   endChain(field);
   endEffects(field);

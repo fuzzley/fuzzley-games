@@ -133,9 +133,11 @@ takes for the specs' helpers.
   fires the weapon in hand from the ship's nose and sweeps each shot as a
   segment against circles (`sweepShot()`), so however fast it flies it
   can't pass through a rock between two steps. `pilots.ts` keeps the
-  `Crew`, who flies the run's ships, a stray brought home flying one more
-  at once (`bringHome()`), or waiting at home with the most flying, and the
-  color each new pilot is given, the next in turn that no pilot wears
+  `Crew`: the pilot at the controls (`atControls()`), the line in tow
+  behind, whose first takes the controls as a ship is lost (`bailOut()`),
+  a stray brought home riding last in tow (`bringHome()`), or waiting at
+  home with the most aboard (`aboard()`, `MOST_CREW`), and the color each
+  new pilot is given, the next in turn that no pilot wears
   (`nextPilot()`).
 - **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
   the rocks in slots made once, as many as the field's cap (`addRock()`),
@@ -775,17 +777,17 @@ can't trust rather than failing:
   cleared the last written wave. Ids no sector has any more are dropped.
 - `asteroid-breaker-game`: the run under way, by `SavedGameService`: its
   wave, by number and id, the wave it started at, its speed and seed, its
-  points, its crew's colors and those at home, the strays brought home, for
-  the result card, and whether it was flown on tuned numbers; and its
-  field's size as laid out and as it is now, its rocks, whole or with a
-  blast to go off, and the counts its draws, strays, comets and points run
-  by. A wave not yet moved is kept as not yet begun, a wave just cleared as
-  the next not yet begun, and a stray adrift, the comets, the pickups, the
-  shots, the effects in play and the chain go. It is written as a wave
-  starts, as its crew changes, as it pauses or goes on, and as the page is
-  hidden or goes away, never at a step, forgotten once the run ends or
-  another begins, and taken up paused at startup, fitted to the board's
-  room as a pause is.
+  points, its crew's colors, at the controls, in tow and at home, the strays
+  brought home, for the result card, and whether it was flown on tuned
+  numbers; and its field's size as laid out and as it is now, its rocks,
+  whole or with a blast to go off, and the counts its draws, strays, comets
+  and points run by. A wave not yet moved is kept as not yet begun, a wave
+  just cleared as the next not yet begun, and a stray adrift, the comets,
+  the pickups, the shots, the effects in play and the chain go. It is
+  written as a wave starts, as its crew changes, as it pauses or goes on,
+  and as the page is hidden or goes away, never at a step, forgotten once
+  the run ends or another begins, and taken up paused at startup, fitted to
+  the board's room as a pause is.
 
 A run flown on numbers the debug menu tuned, its field stepped with them,
 keeps neither the records nor the sectors it reaches. A field added to an

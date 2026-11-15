@@ -13,7 +13,7 @@ import {
 import type { Rock } from "../../rules/rocks/rocks";
 import { SAVED_GAME_VERSION } from "../../rules/run/saved_game";
 import { STILL } from "../../rules/ship/ship";
-import { FIELD_SHORT_SIDE, FIRST_SHIPS } from "../../rules/tuning";
+import { FIELD_SHORT_SIDE, FIRST_CREW } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import {
   SECTOR_WAVES,
@@ -208,7 +208,7 @@ describe("SavedGameService", () => {
       loseShip(game);
       TestBed.tick();
 
-      expect(stored()?.["flying"]).toHaveLength(FIRST_SHIPS - 1);
+      expect(stored()?.["tow"]).toHaveLength(FIRST_CREW - 2);
     });
 
     it("keeps the run as a stray is brought home", () => {
@@ -220,7 +220,11 @@ describe("SavedGameService", () => {
       bringStraysHome(game, 1);
       TestBed.tick();
 
-      expect(stored()).toMatchObject({ strays: 1, flying: game.crew().flying });
+      expect(stored()).toMatchObject({
+        strays: 1,
+        pilot: game.crew().pilot,
+        tow: game.crew().tow,
+      });
     });
 
     it("keeps the run where it stands as the page is hidden", async () => {
@@ -430,7 +434,7 @@ describe("SavedGameService", () => {
 
       const game = reload();
 
-      expect(game.ships()).toBe(FIRST_SHIPS - 1);
+      expect(game.ships()).toBe(FIRST_CREW - 1);
     });
 
     it("takes up the strays brought home, for the result card", () => {
@@ -530,7 +534,7 @@ describe("SavedGameService", () => {
 
     it("leaves out a run it can't trust", async () => {
       await brokeSome();
-      store({ ...stored(), flying: [] });
+      store({ ...stored(), pilot: null, tow: [] });
 
       const game = reload();
 

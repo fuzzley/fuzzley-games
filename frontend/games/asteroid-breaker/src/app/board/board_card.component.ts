@@ -10,6 +10,7 @@ import { count, formatPoints } from "@fz/core/format";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { whereLost } from "../../rules/run/describe";
+import { pilotsAboard } from "../../rules/ship/pilots";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { type TallyShown, nextWaveWords, tallyShownAt } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
@@ -106,7 +107,7 @@ export class BoardCardComponent {
   /** The run's score, as the cards write it. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
 
-  /** The strays brought home with the most ships flying, as the Paused card draws them. */
+  /** The strays brought home with the most of the crew aboard, as the Paused card draws them. */
   protected readonly home = computed(() => this.game.crew().home);
 
   /** Whether any stray waits at home, for the Paused card to draw. */
@@ -127,7 +128,7 @@ export class BoardCardComponent {
   });
 
   /** The crew as the run holds it, the one at the controls first, as the Cleared card draws them. */
-  protected readonly crew = computed(() => this.game.crew().flying);
+  protected readonly crew = computed(() => pilotsAboard(this.game.crew()));
 
   /** What the Cleared card says of the crew, since their pictures say nothing. */
   protected readonly crewWords = computed(

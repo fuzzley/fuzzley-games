@@ -34,7 +34,7 @@ export interface Run {
   readonly banked: number;
   /** The points of the run so far, the wave in play's included. */
   readonly score: number;
-  /** Who flies the run's ships and who waits at home, as the field last left them. */
+  /** Who is at the controls, in tow and at home, as the field last left them. */
   readonly crew: Crew;
   /** The strays brought home in the waves cleared. */
   readonly straysBanked: number;
@@ -135,7 +135,7 @@ export function resume(run: Run, field: Pick<Field, "steps">): Run {
 /**
  * Returns the run caught up with the wave under way, as its field now
  * stands: its points, its crew and the strays it brought home, then its
- * end, with no one left flying, or its clearing, banked once.
+ * end, with no one left at the controls, or its clearing, banked once.
  *
  * So a run over stays over though a blast clears its wave after the last
  * ship is lost. A run whose field has nothing new is returned as it is, so
@@ -149,7 +149,7 @@ export function catchUp(run: Run, field: WaveProgress): Run {
     crew: field.crew,
     strays: run.straysBanked + field.strays.broughtHome,
   };
-  if (field.crew.flying.length === 0) return { ...caughtUp, outcome: "over" };
+  if (field.crew.pilot === null) return { ...caughtUp, outcome: "over" };
   if (!field.cleared) return caughtUp;
   return {
     ...caughtUp,

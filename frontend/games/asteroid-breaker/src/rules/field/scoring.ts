@@ -1,7 +1,7 @@
 // The points a wave scores: each rock broken by its kind and size, times
 // the chain's multiplier, a stray brought home, and the wave's clearing.
-// Once no one is flying the run is over, and nothing scores, so its score
-// doesn't hang on how its last steps fall into frames.
+// Once no one is at the controls the run is over, and nothing scores, so
+// its score doesn't hang on how its last steps fall into frames.
 
 import { multiplierAt } from "@fz/core/math";
 import { pointsFor } from "../catalog/rocks";
@@ -34,7 +34,7 @@ export interface ScoreField {
   rockPoints: number;
   /** How many steps the field has taken, by which the chain's time runs. */
   readonly steps: number;
-  /** Who flies the run's ships: with no one flying, the run is over. */
+  /** Who is aboard: with no one at the controls, the run is over. */
   readonly crew: Crew;
   /** How many ships it has lost, which a clean wave has none of. */
   readonly shipsLost: number;
@@ -159,7 +159,7 @@ function score(
   return true;
 }
 
-/** Returns whether the run is over, no one left flying. */
+/** Returns whether the run is over, no one left at the controls. */
 function isOver(field: Pick<ScoreField, "crew">): boolean {
-  return field.crew.flying.length === 0;
+  return field.crew.pilot === null;
 }

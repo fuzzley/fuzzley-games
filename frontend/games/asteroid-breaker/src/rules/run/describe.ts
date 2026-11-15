@@ -1,6 +1,7 @@
 import { count, formatPoints } from "@fz/core/format";
 import { pickup } from "../catalog/pickups";
 import type { FieldEvent } from "../field/events";
+import { aboard } from "../ship/pilots";
 import type { Run } from "./run";
 import { type WaveEntry, isEndless, opensEndless } from "../waves/waves";
 
@@ -72,7 +73,7 @@ export function describeResume(): string {
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: WaveEntry): string {
-  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(run.crew.flying.length, "ship", "ships")}. Press Enter to go on.`;
+  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(aboard(run.crew), "ship", "ships")}. Press Enter to go on.`;
 }
 
 /** Returns where a run was lost: the wave its last ship went down on, Endless's named so. */

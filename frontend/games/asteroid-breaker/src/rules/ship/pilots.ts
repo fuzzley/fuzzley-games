@@ -1,9 +1,10 @@
-// The pilots: the crew flying the run's ships, the strays brought home past
-// the most, and the color each new pilot is given. The rules know a
-// pilot only as its color's number, as Brick Breaker's levels know a
-// brick's tint, and the view gives the number its ink.
+// The pilots: the crew aboard, the one at the controls and the line in tow
+// behind, the strays brought home past the most, and the color each new
+// pilot is given. The rules know a pilot only as its color's number, as
+// Brick Breaker's levels know a brick's tint, and the view gives the number
+// its ink.
 
-import { FIRST_SHIPS, MAX_SHIPS } from "../tuning";
+import { FIRST_CREW, MOST_CREW } from "../tuning";
 
 /** A pilot, by its color's number, from 0 to under {@link PILOT_COLORS}. */
 export type Pilot = number;
@@ -12,44 +13,56 @@ export type Pilot = number;
 export const PILOT_COLORS = 8;
 
 /**
- * Describes who flies the run's ships, who waits at home, and the color
- * last given, a value each change replaces.
+ * Describes who is at the controls, who rides in tow, who waits at home,
+ * and the color last given, a value each change replaces.
  */
 export interface Crew {
-  /** The pilots of the run's ships, in the order they fly, the one at the controls first. */
-  readonly flying: readonly Pilot[];
-  /** The strays brought home with the most ships flying, in the order they came. */
+  /** The pilot at the controls, or null once the run is over, when no one is in tow either. */
+  readonly pilot: Pilot | null;
+  /** The pilots in tow behind, in the order they ride, the next to take the controls first. */
+  readonly tow: readonly Pilot[];
+  /** The strays brought home with the most of the crew aboard, in the order they came. */
   readonly home: readonly Pilot[];
   /** The color last given to a new pilot or a stray, from which the next is counted. */
   readonly lastGiven: Pilot;
 }
 
 /**
- * Returns a run's first crew: a pilot for each of its first ships, in the first
- * colors, and no one at home.
+ * Returns a run's first crew: a pilot at the controls and the rest of its
+ * first crew in tow, in the first colors, and no one at home.
  */
 export function createCrew(): Crew {
   return {
-    flying: Array.from({ length: FIRST_SHIPS }, (_, color) => color),
+    pilot: 0,
+    tow: Array.from({ length: FIRST_CREW - 1 }, (_, place) => place + 1),
     home: [],
-    lastGiven: FIRST_SHIPS - 1,
+    lastGiven: FIRST_CREW - 1,
   };
 }
 
 /**
- * Returns the pilot at the controls of the ship in play, the first flying.
+ * Returns the pilot at the controls.
  *
- * @throws {RangeError} For a crew with no one flying, whose run is over.
+ * @throws {RangeError} For a crew with no one at the controls, whose run is over.
  */
 export function atControls(crew: Crew): Pilot {
-  const [pilot] = crew.flying;
-  if (pilot === undefined) throw new RangeError("No pilot is flying.");
-  return pilot;
+  if (crew.pilot === null) throw new RangeError("No pilot is at the controls.");
+  return crew.pilot;
+}
+
+/** Returns how many of the crew are aboard: the pilot at the controls and those in tow. */
+export function aboard(crew: Crew): number {
+  return crew.pilot === null ? 0 : 1 + crew.tow.length;
+}
+
+/** Returns the pilots aboard, the one at the controls first, then those in tow in order. */
+export function pilotsAboard(crew: Crew): readonly Pilot[] {
+  return crew.pilot === null ? [] : [crew.pilot, ...crew.tow];
 }
 
 /**
  * Returns the color a new pilot or a stray is given: the next in turn after
- * the last given that no pilot wears, flying, at home or adrift, or, once
+ * the last given that no pilot wears, aboard, at home or adrift, or, once
  * every color is worn, the next in turn.
  */
 export function nextPilot(crew: Crew, adrift: Pilot | null): Pilot {
@@ -68,27 +81,31 @@ export function given(crew: Crew, color: Pilot): Crew {
 
 /**
  * Returns the crew with the pilot at the controls bailed out of its lost ship,
- * the next in line taking them.
+ * the first in tow taking the controls, or no one with none in tow.
  */
 export function bailOut(crew: Crew): Crew {
-  return { ...crew, flying: crew.flying.slice(1) };
+  const [next = null, ...rest] = crew.tow;
+  return { ...crew, pilot: next, tow: rest };
 }
 
 /**
- * Returns the crew with a stray brought home, flying one more ship at once,
- * or, with the most ships flying, waiting at home behind those home before
- * it.
+ * Returns the crew with a stray brought home, last in tow, or, with the
+ * most of the crew aboard, waiting at home behind those home before it.
+ *
+ * @throws {RangeError} For a crew with no one at the controls, whose run is over.
  */
 export function bringHome(crew: Crew, stray: Pilot): Crew {
-  if (crew.flying.length < MAX_SHIPS) {
-    return { ...crew, flying: [...crew.flying, stray] };
-  }
+  if (crew.pilot === null) throw new RangeError("No pilot is at the controls.");
+  if (aboard(crew) < MOST_CREW) return { ...crew, tow: [...crew.tow, stray] };
   return { ...crew, home: [...crew.home, stray] };
 }
 
-/** Returns whether a pilot flying, at home or adrift wears a color. */
+/** Returns whether a pilot aboard, at home or adrift wears a color. */
 function isWorn(crew: Crew, adrift: Pilot | null, color: Pilot): boolean {
   return (
-    color === adrift || crew.flying.includes(color) || crew.home.includes(color)
+    color === adrift ||
+    color === crew.pilot ||
+    crew.tow.includes(color) ||
+    crew.home.includes(color)
   );
 }

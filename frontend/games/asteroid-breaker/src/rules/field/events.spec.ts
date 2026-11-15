@@ -8,7 +8,7 @@ import {
 } from "./events";
 
 /** A crew of two ships and a stray waiting at home, which a pilot's event counts. */
-const CREW: Crew = { flying: [0, 1], home: [6], lastGiven: 6 };
+const CREW: Crew = { pilot: 0, tow: [1], home: [6], lastGiven: 6 };
 
 /** Returns copies of the events a log holds past a serial, oldest first. */
 function eventsSince(log: FieldEventLog, serial: number): FieldEvent[] {
@@ -198,7 +198,8 @@ describe("FieldEventLog", () => {
     log.addRock("blast", rockAt(3, 4, "volatile", "large", 8), 6);
     log.addPickup("dropped", 3, 4, "spread");
     log.addPilot("home", 3, 4, 7, {
-      flying: [0, 1, 2],
+      pilot: 0,
+      tow: [1, 2],
       home: [5, 6],
       lastGiven: 7,
     });

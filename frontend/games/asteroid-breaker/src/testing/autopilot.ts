@@ -202,7 +202,7 @@ export function playField(
     }
   }
   // A wave cleared as its last ship went is lost, as the run has it.
-  const cleared = field.cleared && hasShips(field);
+  const cleared = field.cleared && hasPilot(field);
   return {
     cleared,
     steps: field.steps,
@@ -243,12 +243,12 @@ export function playWave(
 
 /** Returns whether the autopilot is done with a wave: cleared, or its last ship lost. */
 function isDone(field: Field): boolean {
-  return field.cleared || !hasShips(field);
+  return field.cleared || !hasPilot(field);
 }
 
-/** Returns whether a wave's crew has a ship left to fly. */
-function hasShips(field: Field): boolean {
-  return field.crew.flying.length > 0;
+/** Returns whether a wave's crew has someone at the controls. */
+function hasPilot(field: Field): boolean {
+  return field.crew.pilot !== null;
 }
 
 /**

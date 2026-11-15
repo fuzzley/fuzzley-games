@@ -12,7 +12,7 @@ import {
 } from "../../testing/field_picture";
 import { ROCK_KINDS, pointsFor } from "../catalog/rocks";
 import { type Blow, type Rock, hitRock } from "../rocks/rocks";
-import type { Crew } from "../ship/pilots";
+import type { Crew, Pilot } from "../ship/pilots";
 import { stepsIn } from "../stepper";
 import {
   CHAIN,
@@ -42,9 +42,13 @@ const [, , SHORTEST] = CHAIN;
 /** A picture of a ship in the field's middle, the keeper beside it. */
 const SHIP_PICTURE = [...KEEPER, "", "", ".........^"];
 
-/** Returns a crew of pilots flying and at home, the last color given 2. */
-function crewOf(flying: readonly number[], home: readonly number[] = []): Crew {
-  return { flying, home, lastGiven: 2 };
+/** Returns a crew of a pilot at the controls or none, those in tow, and those at home, the last color given 2. */
+function crewOf(
+  pilot: Pilot | null,
+  tow: readonly Pilot[] = [],
+  home: readonly Pilot[] = [],
+): Crew {
+  return { pilot, tow, home, lastGiven: 2 };
 }
 
 /**
@@ -305,7 +309,7 @@ describe("a cleared wave", () => {
 
 describe("a run over", () => {
   it("scores nothing for a break once the last ship is lost, so its score doesn't hang on how its last steps fall into frames", () => {
-    const field = fieldFrom(["^B", "", "", "S"], { crew: crewOf([3]) });
+    const field = fieldFrom(["^B", "", "", "S"], { crew: crewOf(3) });
     stepField(field);
 
     hitRock(field, onlySmall(field), 0, 0);
@@ -318,7 +322,7 @@ describe("a run over", () => {
   });
 
   it("scores nothing for a wave a blast clears once the last ship is lost, though a stray waits at home", () => {
-    const field = fieldFrom(["S"], { crew: crewOf([], [5]) });
+    const field = fieldFrom(["S"], { crew: crewOf(null, [], [5]) });
     hitRock(field, onlySmall(field), 0, 0);
 
     stepField(field);

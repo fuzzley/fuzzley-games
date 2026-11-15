@@ -8,9 +8,9 @@ import {
   readField,
   savedField,
 } from "../field/kept_field";
-import { PILOT_COLORS, type Pilot } from "../ship/pilots";
+import { PILOT_COLORS, type Pilot, atControls } from "../ship/pilots";
 import { type Speed, isSpeed } from "../speed";
-import { MAX_SHIPS } from "../tuning";
+import { MOST_CREW } from "../tuning";
 import { waveToPlay } from "../waves/endless";
 import { type Wave, type WaveEntry, waveEntryOf } from "../waves/waves";
 import {
@@ -34,9 +34,11 @@ export interface SavedGame {
   readonly seed: number;
   readonly banked: number;
   readonly score: number;
-  /** The pilots of the run's ships, the one at the controls first. */
-  readonly flying: readonly Pilot[];
-  /** The strays brought home with the most ships flying, waiting at home. */
+  /** The pilot at the controls, whom a run under way always has. */
+  readonly pilot: Pilot;
+  /** The pilots in tow, the next to take the controls first. */
+  readonly tow: readonly Pilot[];
+  /** The strays brought home with the most of the crew aboard, waiting at home. */
   readonly home: readonly Pilot[];
   readonly lastGiven: Pilot;
   readonly straysBanked: number;
@@ -171,7 +173,7 @@ export function readRun(
     return null;
   }
   const { seed, speed, firstWave, wave, banked, score } = value;
-  const { flying, home, lastGiven, straysBanked, strays } = value;
+  const { pilot, tow, home, lastGiven, straysBanked, strays } = value;
   return {
     id,
     seed,
@@ -180,7 +182,7 @@ export function readRun(
     wave,
     banked,
     score,
-    crew: { flying, home, lastGiven },
+    crew: { pilot, tow, home, lastGiven },
     straysBanked,
     strays,
     outcome: "paused",
@@ -234,18 +236,19 @@ export function hasSoundStrays(
 
 /**
  * Returns whether a run kept holds a sound crew, given the strays it has
- * brought home: from one pilot flying to as many as a run has ships, no
- * more at home than those strays, and a last color given, each a pilot's.
+ * brought home: a pilot at the controls, no more in tow than the most of
+ * the crew aboard leaves, no more at home than those strays, and a last
+ * color given, each a pilot's.
  */
 export function hasSoundCrew(
   value: Readonly<Record<string, unknown>>,
   strays: number,
-): value is Pick<SavedGame, "flying" | "home" | "lastGiven"> {
-  const { flying, home, lastGiven } = value;
+): value is Pick<SavedGame, "pilot" | "tow" | "home" | "lastGiven"> {
+  const { pilot, tow, home, lastGiven } = value;
   return (
-    isListOf(flying, isPilot) &&
-    flying.length > 0 &&
-    flying.length <= MAX_SHIPS &&
+    isPilot(pilot) &&
+    isListOf(tow, isPilot) &&
+    1 + tow.length <= MOST_CREW &&
     isListOf(home, isPilot) &&
     home.length <= strays &&
     isPilot(lastGiven)
@@ -275,7 +278,8 @@ function savedRun(
     seed: run.seed,
     banked: run.banked,
     score: run.score,
-    flying: run.crew.flying,
+    pilot: atControls(run.crew),
+    tow: run.crew.tow,
     home: run.crew.home,
     lastGiven: run.crew.lastGiven,
     straysBanked: run.straysBanked,
