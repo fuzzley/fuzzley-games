@@ -12,6 +12,7 @@ import {
 } from "../../testing/autopilot";
 import {
   fieldFrom,
+  placeBurr,
   placeComet,
   placeLoose,
   placePickup,
@@ -29,6 +30,7 @@ import { type Spark, drawReach } from "../sparks/sparks";
 import { SPEEDS } from "../speed";
 import { stepsIn } from "../stepper";
 import {
+  BURR_SPEED,
   LOOSE_LIFE_MS,
   SHOT_SPEED,
   SPARK_LIFE_MS,
@@ -326,6 +328,27 @@ describe("the autopilot", () => {
     expect(home).toBeGreaterThan(sent / 2);
   });
 
+  it("counts the burrs a wave sends", () => {
+    const wave = waveOf({
+      rocks: [{ kind: "iron", size: "large", count: 6 }],
+      burrs: 2,
+    });
+
+    const report = autoplay(wave, "normal", 1, { invulnerable: true });
+
+    expect(report.burrsSent).toBe(2);
+  });
+
+  it("counts a burr that clings to its ship, and dashes it off", () => {
+    const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)]);
+    const ship = shipOf(field);
+    placeBurr(field, ship.x, ship.y);
+
+    const report = playField(field, { untilStep: 3 });
+
+    expect([report.burrsClung, ship.burrs]).toEqual([1, 0]);
+  });
+
   it("reports the most static its pilot held, rounded down, not the last", () => {
     const field = fieldFrom(["L", ...SHIP_ALONE.slice(1)], { charge: 12.7 });
     field.charge.lastSparkAt = -stepsIn(STATIC_HOLD_MS);
@@ -531,6 +554,76 @@ describe("a frame of the autopilot's", () => {
     expect([steer.heading, steer.thrust, steer.dash]).toEqual([
       expect.closeTo(Math.PI),
       1,
+      true,
+    ]);
+  });
+
+  it("dashes the burrs clinging to it off once its dash is ready", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    shipOf(field).burrs = 1;
+
+    const steer = steerOf(field);
+
+    expect(steer.dash).toBe(true);
+  });
+
+  it("holds its dash with burrs clinging while its last recharges", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    Object.assign(shipOf(field), { burrs: 1, rechargeSteps: 60 });
+
+    const steer = steerOf(field);
+
+    expect(steer.dash).toBe(false);
+  });
+
+  it("dashes the burrs clinging to it off as it flees a course that only passes near it", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    shipOf(field).burrs = 1;
+    placeRock(field, "medium", 15.2, 15).vy = 20;
+
+    const steer = steerOf(field);
+
+    expect([steer.thrust, steer.dash]).toEqual([1, true]);
+  });
+
+  it("turns toward a burr it can hit sooner than a rock farther off", () => {
+    const field = fieldFrom(["....L", "", "", "", "....^"]);
+    placeBurr(field, 26, 18, 0);
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.fire]).toEqual([expect.closeTo(0), false]);
+  });
+
+  it("aims ahead of a crossing burr at its own speed, whatever the field's pace", () => {
+    const field = fieldFrom(["", "", "", "^"], { pace: 2 });
+    placeBurr(field, 2, 2, 0);
+
+    const { heading } = steerOf(field);
+
+    expect(Math.cos(heading ?? 0) * SHOT_SPEED).toBeCloseTo(BURR_SPEED);
+  });
+
+  it("fires at a burr dead ahead within its shots' reach", () => {
+    const field = fieldFrom(SHIP_ALONE);
+    placeBurr(field, 18, 10, -TURN / 4);
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.fire]).toEqual([
+      expect.closeTo(-TURN / 4),
+      true,
+    ]);
+  });
+
+  it("leaves a burr coming in be until a shot can pop it, its middle on the field", () => {
+    const field = fieldFrom(["L", "", "^"]);
+    placeBurr(field, -0.3, 10, 0, false);
+
+    const steer = steerOf(field);
+
+    expect([steer.heading, steer.fire]).toEqual([
+      expect.closeTo(-TURN / 4),
       true,
     ]);
   });

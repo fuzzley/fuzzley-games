@@ -50,6 +50,10 @@ export interface WavePlayed {
   readonly straysSent: number;
   /** The strays it brought home, a lifeline among them. */
   readonly straysHome: number;
+  /** The burrs the wave sent across the field. */
+  readonly burrsSent: number;
+  /** The burrs that clung to its ship. */
+  readonly burrsClung: number;
 }
 
 /** Holds what `tools/report-waves.mjs` plays: the waves, the speeds, the fields and the autopilot. */

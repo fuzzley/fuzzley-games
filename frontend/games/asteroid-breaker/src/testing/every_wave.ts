@@ -21,8 +21,8 @@ function playsOf(waves: readonly WaveEntry[]) {
 /**
  * Holds every wave, played on every field at the speed its spec file is
  * named for, to being cleared by the autopilot within four minutes of game
- * time, meeting a comet and a stray if it sends them, its tally adding up
- * to its score.
+ * time, meeting a comet, a stray and a burr if it sends them, its tally
+ * adding up to its score.
  *
  * Each speed's spec in `src/rules/waves/every_wave/` calls it with its own
  * file (`import.meta.filename`), so Vitest plays the speeds side by side and
@@ -32,7 +32,7 @@ export function holdEveryWave(specFile: string): void {
   const speed = variantOfSpec(specFile, SPEEDS, "every_wave");
   describe("every wave", () => {
     it.each(playsOf(WAVES))(
-      `is cleared, %s at ${speed} on a field %s, within four minutes of game time, meeting a comet and a stray if it sends them, its tally adding up`,
+      `is cleared, %s at ${speed} on a field %s, within four minutes of game time, meeting a comet, a stray and a burr if it sends them, its tally adding up`,
       (_, __, entry, torus) => {
         const report = playWave(entry, speed, { torus });
         const wave = parseWave(entry);
@@ -42,12 +42,14 @@ export function holdEveryWave(specFile: string): void {
           inTime: report.steps < AUTOPILOT_LIMIT,
           metComet: report.cometsCrossed > 0,
           metStray: report.straysSent > 0,
+          metBurr: report.burrsSent > 0,
           tallyAddsUp: report.tallyAddsUp,
         }).toEqual({
           cleared: true,
           inTime: true,
           metComet: wave.cometEvery !== null,
           metStray: wave.strays > 0,
+          metBurr: wave.burrs > 0,
           tallyAddsUp: true,
         });
       },

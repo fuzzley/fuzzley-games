@@ -10,8 +10,9 @@
  * the ship, for the game time the wave took to clear, its tail, the time
  * from its last few rocks to its clearing, to a tenth of a second, and the
  * strays brought home of those sent, and once as the specs play it, for
- * the crew its hits knocked loose, those of them that floated home and the
- * most static the pilot held. It fails when a play doesn't clear its wave within the
+ * the crew its hits knocked loose, those of them that floated home, the
+ * most static the pilot held and the burrs that clung to the pod of those
+ * sent. It fails when a play doesn't clear its wave within the
  * autopilot's limit (`-`), as the specs do, but it counts the untouchable
  * plays too, so it is the stricter of the two. It loads what it plays,
  * `REPORT_API` in `src/testing/report_api.ts`, through Vite, as the game's
@@ -21,10 +22,11 @@
  *
  * With `--seeds`, it plays each wave that many times at each speed, from
  * seeds of its own, and prints the middle time, the longest, the middle
- * tail, the most knocked loose, the most floated home, the most static and
- * the strays brought home of all those sent, since the rocks and pickups
- * one seed lays out can make a wave look far easier or harder than it is. It fails
- * on any seed's play that doesn't clear its wave in time.
+ * tail, the most knocked loose, the most floated home, the most static,
+ * the strays brought home of all those sent and the burrs that clung of
+ * all those sent, since the rocks and pickups one seed lays out can make
+ * a wave look far easier or harder than it is. It fails on any seed's play
+ * that doesn't clear its wave in time.
  *
  * With `--field wide`, it plays every wave on the widest field on its side,
  * and with `--field tall` upright, rather than on the narrowest, the three
@@ -128,8 +130,16 @@ ${Object.entries(FIELDS)
 function columnsOf(request, game) {
   if (request.seeds === undefined) {
     return {
-      headings: ["time", "tail", "knocked", "floated", "static", "home"],
-      widths: [5, 7, 8, 8, 7, 5],
+      headings: [
+        "time",
+        "tail",
+        "knocked",
+        "floated",
+        "static",
+        "home",
+        "clung",
+      ],
+      widths: [5, 7, 8, 8, 7, 5, 6],
       cellsOf: (plays) => {
         const [play] = plays;
         return play
@@ -140,6 +150,7 @@ function columnsOf(request, game) {
               mostOf(plays, game, (played) => played.floated),
               mostOf(plays, game, (played) => played.mostStatic),
               homeOf(plays),
+              clungOf(plays),
             ]
           : [];
       },
@@ -154,8 +165,9 @@ function columnsOf(request, game) {
       "floated",
       "static",
       "home",
+      "clung",
     ],
-    widths: [6, 5, 7, 8, 8, 7, 7],
+    widths: [6, 5, 7, 8, 8, 7, 7, 7],
     cellsOf: (plays) => {
       const [middle, most] = middleAndMost(
         plays.map((play) => stepsOf(play.untouchable, game)),
@@ -171,6 +183,7 @@ function columnsOf(request, game) {
         mostOf(plays, game, (played) => played.floated),
         mostOf(plays, game, (played) => played.mostStatic),
         homeOf(plays),
+        clungOf(plays),
       ];
     },
   };
@@ -389,6 +402,19 @@ function homeOf(plays) {
     0,
   );
   return `${String(home)}/${String(sent)}`;
+}
+
+/**
+ * Returns the burrs that clung to the pod in the plays as the spec plays
+ * them, of those their waves sent.
+ *
+ * @param {ReadonlyArray<Play>} plays
+ * @returns {string}
+ */
+function clungOf(plays) {
+  const clung = plays.reduce((sum, play) => sum + play.played.burrsClung, 0);
+  const sent = plays.reduce((sum, play) => sum + play.played.burrsSent, 0);
+  return `${String(clung)}/${String(sent)}`;
 }
 
 /**

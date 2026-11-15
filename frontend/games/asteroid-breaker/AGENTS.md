@@ -1573,8 +1573,9 @@ workspace's with the others'.
   It prints the game time each took, its tail, the time from its last few
   rocks to its clearing (`isLastFew()`), to a tenth of a second, and the
   strays it brought home, flown with nothing able to take the ship, and the
-  crew each knocked loose, those of them that floated home and the most
-  static it held as the spec plays it, beside the waves' names, as wide as
+  crew each knocked loose, those of them that floated home, the most
+  static it held and the burrs that clung to the pod of those sent
+  (`clung`) as the spec plays it, beside the waves' names, as wide as
   the longest, and fails if any play didn't clear its wave in time (`-`).
   It is how the climb from wave to wave is tuned; `--seeds <n>` plays each
   wave from that many seeds of its own, the middle tail among them, since
@@ -1717,20 +1718,24 @@ of its own beside it:
   among them (`ART_SCALES`), and says how far a frame's drawing reaches from
   its middle (`reachOf()`).
 - `autopilot.ts` plays a wave as a fair player would (`autoplay()`,
-  `playWave()`), steering each frame by `pilot()`: it flees a rock or a
-  comet whose course comes near the ship, dashing when one is about to meet
-  it; else catches the one of the crew knocked loose it has time and room
-  in tow for, the stray adrift or the pickup it has time for, or draws in
-  a spark lying a little beyond its draw before it goes; else turns toward
-  the rock it can hit soonest, leading it.
+  `playWave()`), steering each frame by `pilot()`: it dashes the burrs
+  clinging to the pod off as soon as its dash is ready; it flees a rock or
+  a comet whose course comes near the ship, dashing when one is about to
+  meet it; else catches the one of the crew knocked loose it has time and
+  room in tow for, the stray adrift or the pickup it has time for, or draws
+  in a spark lying a little beyond its draw before it goes; else turns
+  toward the rock or the burr it can hit soonest, leading it, a burr once
+  its middle is on the field. Its report counts the burrs a wave sent and
+  those that clung (`burrsSent`, `burrsClung`).
   `src/rules/waves/autopilot.spec.ts` holds the autopilot itself.
 - `every_wave.ts` holds every wave, at a speed, on the narrowest field and
   the widest either way up (`FIELDS`: `NARROWEST`, `WIDEST`, `TALLEST`), to
   being cleared by the autopilot within four minutes of game time
-  (`AUTOPILOT_LIMIT`), meeting a comet and a stray if it sends them, its
-  tally adding up to its score (`holdEveryWave()`), and Endless's waves 31
-  to 60 (`ENDLESS_PLAYED`) to being cleared so with nothing able to take
-  the ship (`holdEveryEndlessWave()`); each speed's spec in
+  (`AUTOPILOT_LIMIT`), meeting a comet, a stray and a burr if it sends
+  them, its tally adding up to its score (`holdEveryWave()`), and
+  Endless's waves 31 to 60 (`ENDLESS_PLAYED`) to being cleared so with
+  nothing able to take the ship (`holdEveryEndlessWave()`); each speed's
+  spec in
   `src/rules/waves/every_wave/` and `src/rules/waves/every_endless_wave/`
   calls them with its own file, whose name is the speed it plays
   (`@fz/core/testing`'s `variantOfSpec()`, which throws for a file named for
