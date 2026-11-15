@@ -1,55 +1,89 @@
 <!-- The canvas's own cards, which the board hands it. -->
 <ng-content />
-@let shownCard = card();
-@switch (shownCard) {
-  @case ("ready") {
-    <div class="card ready">
-      <p class="card-title">{{ waveTitle() }}</p>
-      <p>{{ flyWords() }}</p>
-    </div>
-  }
-  @case ("paused") {
-    <div class="card">
-      <p class="card-title">Paused</p>
-      <p>Score {{ score() }}</p>
-      @if (hasHome()) {
-        <app-pilot-row [pilots]="home()">{{ homeWords() }}</app-pilot-row>
-      }
-      <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
-        Resume
-      </button>
-    </div>
-  }
-  @case ("cleared") {
-    <div class="card">
-      @if (game.beforeEndless()) {
-        <fz-icon class="card-icon" name="trophy" />
-      }
-      <p class="card-title">{{ clearedTitle() }}</p>
-      <dl class="tally">
-        @for (line of tallyLines(); track line.label) {
-          <div>
-            <dt>{{ line.label }}</dt>
-            <dd>{{ line.points }}</dd>
+<!-- Its own, in the field's room. -->
+<div class="room">
+  @let shownCard = card();
+  @if (shownCard) {
+    <!-- By its kind, which narrows the card in each case, as `shownCard.kind` can't. -->
+    @let kind = shownCard.kind;
+    @switch (kind) {
+      @case ("sector") {
+        @let sector = shownCard.sector;
+        <div class="card sector">
+          <p class="kicker">{{ sector.kicker }}</p>
+          <p class="card-title">{{ sector.name }}</p>
+          <p class="waves">{{ sector.waves }}</p>
+          <div class="news">
+            @for (line of sector.news; track line) {
+              <p>{{ line }}</p>
+            }
+            @if (sector.opensRun) {
+              <p>{{ flyWords() }}</p>
+            }
           </div>
-        }
-      </dl>
-      <p>Score {{ score() }}</p>
-      <p>{{ nextWords() }}</p>
-      <button type="button" class="fz-button" fzKeepKeys (click)="nextWave()">
-        Next wave
-      </button>
-    </div>
+          <p class="aside">{{ sector.wave }} · starts when you fly</p>
+        </div>
+      }
+      @case ("paused") {
+        <div class="card">
+          <p class="card-title">Paused</p>
+          <p>Score {{ score() }}</p>
+          @if (hasHome()) {
+            <app-pilot-row [pilots]="home()">{{ homeWords() }}</app-pilot-row>
+          }
+          <button type="button" class="fz-button" fzKeepKeys (click)="resume()">
+            Resume
+          </button>
+        </div>
+      }
+      @case ("cleared") {
+        <div class="card">
+          @if (game.beforeEndless()) {
+            <fz-icon class="card-icon" name="trophy" />
+          }
+          <p class="card-title">{{ clearedTitle() }}</p>
+          <dl class="tally">
+            @for (line of shownCard.sum.lines; track line.label) {
+              <div>
+                <dt>{{ line.label }}</dt>
+                <dd>{{ line.points }}</dd>
+              </div>
+            }
+            <div class="total">
+              <dt>Total</dt>
+              <dd>{{ shownCard.sum.total }}</dd>
+            </div>
+          </dl>
+          <app-pilot-row class="crew" [pilots]="crew()">
+            <span class="fz-visually-hidden">{{ crewWords() }}</span>
+          </app-pilot-row>
+          <p>{{ nextWords() }}</p>
+          <button
+            type="button"
+            class="fz-button"
+            fzKeepKeys
+            (click)="nextWave()"
+          >
+            Next wave
+          </button>
+          <p class="aside">or just start flying</p>
+        </div>
+      }
+      @case ("ended") {
+        <div class="card">
+          <p class="card-title">{{ endTitle() }}</p>
+          <p>Score {{ score() }}</p>
+          <button
+            type="button"
+            class="fz-button"
+            fzKeepKeys
+            (click)="newGame()"
+          >
+            New game
+          </button>
+        </div>
+      }
+      @default never;
+    }
   }
-  @case ("ended") {
-    <div class="card">
-      <p class="card-title">{{ endTitle() }}</p>
-      <p>Score {{ score() }}</p>
-      <button type="button" class="fz-button" fzKeepKeys (click)="newGame()">
-        New game
-      </button>
-    </div>
-  }
-  @case (null) {}
-  @default never;
-}
+</div>

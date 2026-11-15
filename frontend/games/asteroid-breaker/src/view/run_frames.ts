@@ -18,6 +18,7 @@ import type { Steer } from "../rules/ship/ship";
 import { type WaveEntry, waveEntryOf } from "../rules/waves/waves";
 import { type Buzz, CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
+import { TALLY_COUNT_MS, nextWaveWords } from "./tally";
 import type { WavePlay } from "./wave_play";
 
 /**
@@ -47,6 +48,13 @@ export interface FrameChange {
    * run ended: the Cleared card or the result; else null.
    */
   readonly opens: "cleared" | "result" | null;
+  /**
+   * The time the frame counts toward the Cleared card's sum, which counts up
+   * once the card shows: the frame's own while its wave stands cleared, or
+   * the whole count where motion is unwelcome, so the card shows its sum
+   * whole; else 0.
+   */
+  readonly countMs: number;
   /**
    * How the phone buzzes for the frame: as it loses a ship, whatever it
    * gained in it, or else as it clears the wave; or null for neither.
@@ -83,6 +91,7 @@ export class RunFrames {
     chain: null,
     tally: null,
     opens: null,
+    countMs: 0,
     buzz: null,
   };
 
@@ -97,8 +106,9 @@ export class RunFrames {
    * player steers it, starting it at the player's first move, and returns
    * what the frame changed: one record, written again each frame. With the
    * wave cleared or the run ended, the frame counts toward the wait before
-   * the card over it, none where motion is unwelcome; a paused wave stays
-   * as it is.
+   * the card over it, none where motion is unwelcome, and with the wave
+   * cleared toward its card's sum counting up; a paused wave stays as it
+   * is.
    */
   advance(
     play: WavePlay,
@@ -114,6 +124,7 @@ export class RunFrames {
     change.chain = null;
     change.tally = null;
     change.opens = null;
+    change.countMs = 0;
     change.buzz = null;
     switch (run.outcome) {
       case "ready":
@@ -121,6 +132,7 @@ export class RunFrames {
         this.playOn(play, run, deltaMs, steer);
         break;
       case "cleared":
+        change.countMs = motion ? deltaMs : TALLY_COUNT_MS;
         if (play.countCardWait(deltaMs, clearedDelayMs(motion))) {
           change.opens = "cleared";
         }
@@ -210,9 +222,10 @@ export class RunFrames {
   /**
    * Takes the run the field brought it to and, as the run ends or the wave
    * is cleared, starts the wait before the card over it: a clearing is said
-   * at once, with its tally, and buzzes unless a ship was lost in the frame,
-   * and an end is said once the shell's records say what it set. Each comes
-   * once, as no frame plays a field past them.
+   * at once, with the wave it goes on to, its tally taken, and buzzes unless
+   * a ship was lost in the frame, and an end is said once the shell's
+   * records say what it set. Each comes once, as no frame plays a field past
+   * them.
    */
   private takeIn(play: WavePlay, before: Run, after: Run): void {
     if (after === before) return;
@@ -226,7 +239,10 @@ export class RunFrames {
       this.change.buzz ??= CLEARED_BUZZ;
       const cleared = this.entryOf(after.wave);
       const next = this.entryOf(after.wave + 1);
-      this.said.push(describeCleared(after, cleared, next));
+      this.said.push(
+        describeCleared(after, cleared, next),
+        `${nextWaveWords(next)}.`,
+      );
     }
   }
 

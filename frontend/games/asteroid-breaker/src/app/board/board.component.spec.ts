@@ -551,10 +551,10 @@ describe("BoardComponent", () => {
       expect(board).toHaveFocus();
     });
 
-    it("names the wave while the scene still loads, before it is slow", async () => {
+    it("opens the run while the scene still loads, before it is slow", async () => {
       await renderBoard({ readyAtOnce: false });
 
-      expect(screen.getByText("Wave 1: Pebble")).toBeInTheDocument();
+      expect(screen.getByText("A new run")).toBeInTheDocument();
     });
 
     it("gives way to the canvas's, which says the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
@@ -569,7 +569,7 @@ describe("BoardComponent", () => {
         "The board couldn't be drawn",
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-      expect(screen.queryByText("Wave 1: Pebble")).not.toBeInTheDocument();
+      expect(screen.queryByText("A new run")).not.toBeInTheDocument();
       expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
@@ -591,7 +591,7 @@ describe("BoardComponent", () => {
         expect(screen.getByRole("status")).toHaveTextContent(
           "Still loading the board",
         );
-        expect(screen.queryByText("Wave 1: Pebble")).not.toBeInTheDocument();
+        expect(screen.queryByText("A new run")).not.toBeInTheDocument();
       });
     });
   });
@@ -988,6 +988,30 @@ describe("BoardComponent", () => {
       run.advance(FRAME_MS);
 
       expect(game.outcome()).toBe("playing");
+    });
+
+    it("goes on from the Cleared card at one key, which starts the next wave", async () => {
+      const { game, run } = await runBoardScene();
+      run.key("keydown", "ArrowLeft", "ArrowLeft");
+      run.key("keydown", "Space", " ");
+      for (
+        let ms = 0;
+        ms < WAVE_LIMIT_MS && !game.clearedOpen();
+        ms += FRAME_MS
+      ) {
+        run.advance(FRAME_MS);
+      }
+      run.key("keyup", "ArrowLeft", "ArrowLeft");
+      run.key("keyup", "Space", " ");
+      run.advance(FRAME_MS);
+
+      run.key("keydown", "Space", " ");
+      run.advance(FRAME_MS);
+
+      expect({ wave: game.wave().number, outcome: game.outcome() }).toEqual({
+        wave: SPEC_WAVE.gift,
+        outcome: "playing",
+      });
     });
 
     it("leaves Space on Resume to the button, down and up", async () => {

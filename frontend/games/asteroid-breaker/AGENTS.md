@@ -257,15 +257,21 @@ takes for the specs' helpers.
   scene the run's seed and, in Endless, the constellation. `run_frames.ts`
   holds `RunFrames`, which `GameService` hands each frame of it: it plays
   the wave on, starting it at the player's first move, catches the run up
-  with what its field came to, waits out the beat before a card, and
-  returns what the frame changed (`FrameChange`) and how the phone buzzes
-  for it, as a ship is lost, or else as the wave is cleared, gathering what
-  to say of it (`news()`), a run's end last, with what the shell's records
-  say it set. `run_state.ts` holds what is a run's own, which the shell
-  keeps in one signal (`RunState`): as a run begins (`newRunState()`), and
-  with a frame's change taken in (`withFrame()`), flown on tuned numbers
-  from the first frame that moves its field on them. `tally.ts` holds the
-  Cleared card's lines (`tallyLines()`), and `debug_tuning.ts` the numbers
+  with what its field came to, waits out the beat before a card, counts
+  the Cleared card's sum up once it shows (`countMs`, the whole at once
+  where motion isn't welcome), and returns what the frame changed
+  (`FrameChange`) and how the phone buzzes for it, as a ship is lost, or
+  else as the wave is cleared, gathering what to say of it (`news()`), a
+  clearing with the wave it goes on to, a run's end last, with what the
+  shell's records say it set. `run_state.ts` holds what is a run's own,
+  which the shell keeps in one signal (`RunState`): as a run begins
+  (`newRunState()`), and with a frame's change taken in (`withFrame()`),
+  flown on tuned numbers from the first frame that moves its field on them,
+  the Cleared card's sum counted up while the card shows, to
+  `TALLY_COUNT_MS`. `tally.ts` holds what the Cleared card shows: how a
+  cleared wave's points add up a time after the card opens, each line
+  counting up in turn and their total (`tallyShownAt()`), and the wave to
+  come (`nextWaveWords()`); and `debug_tuning.ts` the numbers
   the debug menu tunes (`Feel`, `TUNING_SLIDERS`) and the lines of
   `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
@@ -440,16 +446,37 @@ takes for the specs' helpers.
     runs, shapes each field to the board's room (`setRoom()`), says what
     happened through `@fz/ui/announcer`, buzzes the phone as each frame
     calls for through `HapticsService`, beside it, where the browser can and
-    the settings say to, shows a cleared wave's points
-    (`tally`), keeps what each change in the run brings to the records and the
-    sectors reached (`recordsOf()`) through `stats/`, in one place that keeps
-    none of a run flown on tuned numbers, and has the wave in play take the
-    numbers the debug menu tunes as `TUNING` tells it of them. It
-    extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which holds what
-    every game's run does around its play: the keys' `command()`, going on to
-    the next wave as `go` asks (its `nextStage()`), the drawn gate
+    the settings say to, shows a cleared wave's points (`tally`, counted up
+    as `tallyMs` says) and the wave after it (`waveAfter`), and the card
+    over a wave waiting at the start of the run or of a sector
+    (`sectorCard`), keeps what each change in the run brings to the records
+    and the sectors reached (`recordsOf()`) through `stats/`, in one place
+    that keeps none of a run flown on tuned numbers, and has the wave in
+    play take the numbers the debug menu tunes as `TUNING` tells it of
+    them. It extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which
+    holds what every game's run does around its play: the keys' `command()`,
+    going on to the next wave as `go` asks (its `nextStage()`), the drawn gate
     (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
     the question, through `@fz/ui/confirm`, before a run is lost.
+    One card lies between waves, the Cleared card, and one press goes on
+    from it: Next wave or Enter lays the next wave out waiting for its first
+    move with no card over it, and a flight key or a press on the field does
+    the same and is that first move, as the wave takes what was held as the
+    last frame was handed over as held. A wave at the start of the run, or
+    of a sector the run goes on to, waits under the sector's card until the
+    first move, and a key or a press that laid it out, starting the run,
+    going on to the sector or going on with a run taken up there, is no
+    move there: the service minds a key or a press (its `go()`) until the
+    next frame, which lays such a wave out again with what it holds, so the
+    card shows until a fresh one. `sector_card.ts` holds the card's words
+    (`sectorCardOf()`): what it opens, "A new run" or "A new sector", the
+    sector's name, its waves (`wavesInWords()`, which the Sectors dialog
+    says them in too), what is new there, a sentence or two for each of the
+    game's sectors by its id (`SECTOR_NEWS`), and the wave; and what the
+    announcer says of it (`describeSector()`), with the wave and that it
+    starts when the player flies, as each run begins, at the page's first
+    too, as the run goes on into a sector, and as a run taken up there goes
+    on.
     `src/app/tokens.ts` holds the waves (`GAME_WAVES`), which a spec hands
     it instead of the game's own, as it does the seeds through
     `@fz/game-ui/random`'s `GAME_RANDOM`, and `TUNING`, the numbers the debug
@@ -470,12 +497,20 @@ takes for the specs' helpers.
     the empty field drawn in CSS until the scene has drawn, clear of the
     deck's room; the focus ring; a crosshair for the pointer while a ship
     flies, as the mouse aims it; and the cards, `<app-board-card>`, which
-    the board tells how the ship flies: Ready, with the wave and how to fly,
-    while a wave waits for its first move; Paused, with the score and the
-    strays waiting at home; Cleared, with how the wave's points added up and
-    Next wave, and a trophy over the last sector's last; Ended, once an
-    ended run's result is put away; and, in their place, the canvas's own,
-    which the board hands it (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
+    the board tells how the ship flies, each bound to a view model the card
+    computes, by its kind: the sector's, at the top of the field, clear of
+    the ship waiting in its middle, while a wave waits for its first move at
+    the start of the run or of a sector, with what it opens, the sector's
+    name and waves, what is new there and the wave, "starts when you fly",
+    and how to fly at the run's start; Paused, with the score and the strays
+    waiting at home; Cleared, with how the wave's points added up, counting
+    up line by line where motion is welcome and whole at once where it
+    isn't, their total, the crew, the next wave by its number and name,
+    Next wave and "or just start flying", and a trophy over the last
+    sector's last; Ended, once an ended run's result is put away; and none
+    over a wave gone on to within a sector, waiting for its first move; and,
+    in their place, the canvas's own, which the board hands it
+    (`@fz/phaser/canvas`'s `<fz-canvas-cards>`):
     still loading, which a status region in the page from the start says to
     a screen reader, and couldn't be drawn. The board is Phaser's keyboard
     target, so the cards' buttons keep their keys from it
@@ -548,8 +583,8 @@ takes for the specs' helpers.
     it; nothing keeps them, and a run flown on them keeps no records.
   - `pilot/` — `<app-pilot>`, a pilot drawn as the fuzzball it is, from
     `@fz/ui/fuzzball`, in its ink in the palette on the page (`pilotInk()`),
-    and `<app-pilot-row>`, pilots in a row, which the bar, the Paused card
-    and the result draw.
+    and `<app-pilot-row>`, pilots in a row, which the bar, the Paused and
+    Cleared cards and the result draw.
   - `stats/` — the records: `StatsService`, which holds and stores what
     `src/rules/run/stats.ts` reads and moves on, and `ProgressService`, the
     sectors reached, at any speed, which a run may start at; each keeps its
@@ -658,8 +693,10 @@ takes for the specs' helpers.
   until it moves and for two seconds after. The wave pauses when the focus
   leaves the room, the page is hidden, the screen turns or a dialog opens,
   and goes on only when the player says; one waiting for its first move has
-  nothing to pause, and a run taken up after a reload starts paused.
-  Nothing goes on until the field is drawn
+  nothing to pause, and a run taken up after a reload starts paused. One
+  card lies between waves, and one press goes on from it to the next wave
+  and starts it, but at the start of a sector, whose card waits for a
+  fresh move. Nothing goes on until the field is drawn
   (`GameService.setDrawn()`, which the board calls from its canvas), since a
   wave nobody can see would be lost.
 - **Its colors are the palette's and its own inks'.** `beltPalette()` takes
@@ -677,7 +714,8 @@ takes for the specs' helpers.
   `allowsMotion`): without it every flourish but the points is left out,
   the points showing where they were scored without rising; the pickups'
   breath, a stray's bob, a warning's pulse, the flame's flicker and the
-  pilots' blinks hold still; and the cards open without waiting.
+  pilots' blinks hold still; and the cards open without waiting, the
+  Cleared card's sum whole at once.
 
 ## Styling
 
@@ -698,7 +736,11 @@ frontend's Angular and Sass rules apply; on top of them:
   size container too, and its cards set smaller on a small board, the
   canvas's too, all from the layer they show in (`board-card-small` on
   `<app-board-card>`), which gives the canvas's the margin around the field
-  the others keep (`--fz-canvas-card-room`).
+  the others keep (`--fz-canvas-card-room`). The layer's own cards lie in
+  the field's room (`.room`), a size container of its own, since the deck
+  takes a share of the board's height on a phone upright: they set smaller
+  on a field short of their full height, and on a field shorter still the
+  Cleared card's sum shows its total alone.
 
 ## What It Keeps
 
@@ -752,8 +794,9 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   only, and keeps nothing.
 - **Accessibility.** The rules are the repository's `web-game-accessibility`
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
-  above, and every wave begun, stray drifting in or brought home, ship
-  gained or lost, pickup caught, pause, going on, wave cleared and end is
+  above, and every run and sector opened, with what is new there, wave
+  begun, stray drifting in or brought home, ship gained or lost, pickup
+  caught, pause, going on, wave cleared, with the wave to come, and end is
   announced.
 
 ## Development Commands
@@ -944,9 +987,11 @@ of its own beside it:
   with `@fz/core/testing`'s `playUntil()`, steering the ship from the frame
   it reads (`shoot()`, `ram()`, `toPickup()`, `toStray()`, `loseShip()`,
   `endRun()`, `playToClear()`, `clearToNext()`), up to a card if a spec
-  wants one (`pauseIn()`, `clearIn()`, `endIn()`); with how the board lays
-  the field out on a roomy screen with no touch (`ROOMY`), and Space as a
-  browser sends it (`SPACE`), from `@fz/phaser/testing`'s `browserKey()`.
+  wants one (`pauseIn()`, `clearIn()`, `endIn()`), and on from the Cleared
+  card by a press, as a flight key goes on and starts the next wave
+  (`pressOn()`); with how the board lays the field out on a roomy screen
+  with no touch (`ROOMY`), and Space as a browser sends it (`SPACE`), from
+  `@fz/phaser/testing`'s `browserKey()`.
 - `run_under_way.ts` holds a run under way on its third wave, with points,
   strays and a crew (`runUnderWay()`), how it starts its wave
   (`waveSetupOf()`), and its field laid out and played a second

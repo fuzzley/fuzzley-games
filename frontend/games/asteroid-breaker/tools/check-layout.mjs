@@ -34,8 +34,8 @@ import {
 
 /**
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser, its
- * shape as the board says it laid it out, and its card Ready's, as a wave
- * waits for its first move; and the deck beside it.
+ * shape as the board says it laid it out, and its card the one over a new
+ * run's first wave, as it waits for its first move; and the deck beside it.
  *
  * @type {PhaserBoard}
  */

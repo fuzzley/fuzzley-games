@@ -88,8 +88,12 @@ Then:
 A file in `src/rules/waves/`, `{ id, name, drops, waves }`, its ten waves
 ending with a boulder, added to `SECTORS` in its place. Its id is kept for
 good in the records' bests and the sectors reached, and the Sectors dialog
-lists it with no change of its own. But a sector more takes more than
-that, as these places hold the game to thirty waves in three sectors:
+lists it with no change of its own. The card over its first wave says what
+is new there, a sentence or two under its id in `SECTOR_NEWS`
+(`src/app/play/sector_card.ts`), whose spec holds every sector of the
+game's, Endless's among them, to having its words. But a sector more takes
+more than that, as these places hold the game to thirty waves in three
+sectors:
 
 - `src/rules/waves/waves.spec.ts` holds the game to thirty waves and three
   sectors.

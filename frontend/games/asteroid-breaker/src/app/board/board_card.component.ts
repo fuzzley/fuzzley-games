@@ -11,18 +11,26 @@ import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { whereLost } from "../../rules/run/describe";
 import type { BoardSetting } from "../../view/field/field_metrics";
-import { tallyLines } from "../../view/tally";
+import { type TallyShown, nextWaveWords, tallyShownAt } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
+import type { SectorCard } from "../play/sector_card";
 
-/** Names a card laid over the field, or none. */
-type Card = "ready" | "paused" | "cleared" | "ended" | null;
+/** Describes a card laid over the field, by its kind, with what the sector's and the Cleared card show; or none. */
+type Card =
+  | { readonly kind: "sector"; readonly sector: SectorCard }
+  | { readonly kind: "cleared"; readonly sum: TallyShown }
+  | { readonly kind: "paused" | "ended" }
+  | null;
 
 /**
- * Shows the card over the field, if any: how to fly, while a wave waits for
- * its first move; that the wave is paused, and who waits at home; how a wave
- * cleared added up; or how to start again, once an ended run's result is put
- * away.
+ * Shows the card over the field, if any: the sector, what is new there and
+ * the wave, while a wave waits for its first move at the start of the run
+ * or of a sector, with how to fly at the run's; that the wave is paused,
+ * and who waits at home; how a wave cleared added up, counting up, the
+ * crew and the wave to come; or how to start again, once an ended run's
+ * result is put away. A wave gone on to within a sector waits with no card
+ * over it.
  *
  * Its element is the layer the cards show in, which the board lays over the
  * field. It shows what the board hands it first, the canvas's own cards
@@ -54,28 +62,31 @@ export class BoardCardComponent {
   protected readonly card = computed<Card>(() => {
     if (this.canvasCards()?.card()) return null;
     switch (this.game.outcome()) {
-      case "ready":
-        return "ready";
+      case "ready": {
+        const sector = this.game.sectorCard();
+        return sector && { kind: "sector", sector };
+      }
       case "playing":
         return null;
       case "paused":
-        return "paused";
-      case "cleared":
-        return this.game.clearedOpen() ? "cleared" : null;
+        return { kind: "paused" };
+      case "cleared": {
+        const tally = this.game.tally();
+        if (!this.game.clearedOpen() || !tally) return null;
+        return {
+          kind: "cleared",
+          sum: tallyShownAt(tally, this.game.tallyMs()),
+        };
+      }
       case "over":
-        return this.game.resultClosed() ? "ended" : null;
+        return this.game.resultClosed() ? { kind: "ended" } : null;
     }
   });
 
-  /** What the Ready card calls the wave: its number and its name. */
-  protected readonly waveTitle = computed(() => {
-    const { number, data } = this.game.wave();
-    return `Wave ${String(number)}: ${data.name}`;
-  });
-
   /**
-   * What the Ready card says flies the ship: the deck where it shows, its
-   * stick on the side the settings say, else the keys; and how it fires.
+   * What the card over the run's first wave says flies the ship: the deck
+   * where it shows, its stick on the side the settings say, else the keys;
+   * and how it fires.
    */
   protected readonly flyWords = computed(() => {
     const { deck, stickOnRight, fireByItself } = this.board();
@@ -115,16 +126,18 @@ export class BoardCardComponent {
       : `Wave ${String(number)} cleared`;
   });
 
-  /** What the Cleared card says goes on to the next wave, besides its button. */
-  protected readonly nextWords = computed(
-    () => `Move or fire for wave ${String(this.game.wave().number + 1)}.`,
+  /** The crew as the run holds it, the one at the controls first, as the Cleared card draws them. */
+  protected readonly crew = computed(() => this.game.crew().flying);
+
+  /** What the Cleared card says of the crew, since their pictures say nothing. */
+  protected readonly crewWords = computed(
+    () => `${count(this.crew().length, "fuzzball", "fuzzballs")} in the crew`,
   );
 
-  /** How the wave just cleared added up, a line for each part, for its card. */
-  protected readonly tallyLines = computed(() => {
-    const tally = this.game.tally();
-    return tally ? tallyLines(tally) : [];
-  });
+  /** What the Cleared card says comes next: the wave by its number and its name. */
+  protected readonly nextWords = computed(() =>
+    nextWaveWords(this.game.waveAfter()),
+  );
 
   /** What the card over an ended run calls it: the wave it was lost on. */
   protected readonly endTitle = computed(() => whereLost(this.game.wave()));

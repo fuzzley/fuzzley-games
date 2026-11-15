@@ -24,6 +24,7 @@ import {
 import { CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
 import { type FrameChange, RunFrames } from "./run_frames";
+import { TALLY_COUNT_MS } from "./tally";
 import { WavePlay } from "./wave_play";
 
 /** Returns a wave of the specs', by its name: what its field holds is the spec's picture's. */
@@ -79,6 +80,7 @@ const NOTHING: FrameChange = {
   chain: null,
   tally: null,
   opens: null,
+  countMs: 0,
   buzz: null,
 };
 
@@ -367,14 +369,14 @@ describe("RunFrames", () => {
   });
 
   describe("clearing a wave", () => {
-    it("banks the wave's points, and says so", () => {
+    it("banks the wave's points, and says so, and which wave comes next", () => {
       const game = underWay(PEBBLE);
 
       playTo(game, "cleared", FIRE);
 
       expect({ score: game.run.score, said: game.said }).toEqual({
         score: pointsFor("stone", "small") + CLEAR_POINTS + CLEAN_POINTS,
-        said: ["Wave 1 cleared! Score 1,040."],
+        said: ["Wave 1 cleared! Score 1,040. Next: wave 2, Last."],
       });
     });
 
@@ -409,7 +411,9 @@ describe("RunFrames", () => {
 
       playTo(game, "cleared", FIRE);
 
-      expect(game.said).toEqual(["Near cleared! Endless begins. Score 1,040."]);
+      expect(game.said).toEqual([
+        "Near cleared! Endless begins. Score 1,040. Next: wave 3, Endless.",
+      ]);
     });
 
     it("opens the card at the next frame where the player prefers less motion", () => {
@@ -445,14 +449,38 @@ describe("RunFrames", () => {
     it("opens the card once, and plays the wave no more", () => {
       const game = cleared();
       const steps = game.play.field.steps;
-      tick(game);
+      tick(game, STILL, { motion: true });
 
-      const change = tick(game, FIRE);
+      const change = tick(game, FIRE, { ms: 20, motion: true });
 
       expect({ change, steps: game.play.field.steps }).toEqual({
-        change: NOTHING,
+        change: { ...NOTHING, countMs: 20 },
         steps,
       });
+    });
+
+    it("counts each frame's time toward the card's sum counting up where motion is welcome", () => {
+      const game = cleared();
+
+      const { countMs } = tick(game, STILL, { ms: 20, motion: true });
+
+      expect(countMs).toBe(20);
+    });
+
+    it("counts the card's sum whole at once where the player prefers less motion", () => {
+      const game = cleared();
+
+      const { countMs } = tick(game, STILL, { ms: 20 });
+
+      expect(countMs).toBe(TALLY_COUNT_MS);
+    });
+
+    it("counts nothing toward a sum at the frame that clears the wave", () => {
+      const game = underWay(PEBBLE);
+
+      const { countMs } = playTo(game, "cleared", FIRE);
+
+      expect(countMs).toBe(0);
     });
   });
 

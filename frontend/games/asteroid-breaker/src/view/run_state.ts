@@ -2,6 +2,7 @@ import type { WaveTally } from "../rules/field/scoring";
 import type { Run } from "../rules/run/run";
 import type { Pilot } from "../rules/ship/pilots";
 import type { FrameChange } from "./run_frames";
+import { TALLY_COUNT_MS } from "./tally";
 
 /**
  * Holds what is a run's own, which each run begins afresh, so nothing of
@@ -22,6 +23,11 @@ export interface RunState {
   readonly tally: WaveTally | null;
   /** Whether the card over a cleared wave is showing. */
   readonly clearedOpen: boolean;
+  /**
+   * How far that card's sum has counted up since it opened, in
+   * milliseconds, to `TALLY_COUNT_MS`.
+   */
+  readonly tallyMs: number;
   /** Whether its end set a new best score at its speed. */
   readonly newBest: boolean;
   /** Whether it has cleared every written wave, from the first, as the records keep it. */
@@ -42,6 +48,7 @@ export function newRunState(run: Run): RunState {
     chain: 1,
     tally: null,
     clearedOpen: false,
+    tallyMs: 0,
     newBest: false,
     clearedAll: false,
     broughtHome: [],
@@ -53,9 +60,9 @@ export function newRunState(run: Run): RunState {
 /**
  * Returns a run's state with what a frame came to taken in: the run it
  * changed, whether it was flown on tuned numbers, the strays it brought
- * home, the chain, a cleared wave's tally and the card it opens; or the
- * same state for a frame that changed none of them, so a frame of play
- * makes nothing.
+ * home, the chain, a cleared wave's tally, the card it opens and how far
+ * the Cleared card's sum counts up; or the same state for a frame that
+ * changed none of them, so a frame of play makes nothing.
  *
  * A run is flown on tuned numbers from the first frame that moves its field
  * while they are `retuned`, off `tuning.ts`'s, and stays so, though they are
@@ -69,13 +76,18 @@ export function withFrame(
   const tuned = state.tuned || (change.moved && retuned);
   const chain = change.chain ?? state.chain;
   const { cameHome, tally, opens } = change;
+  const clearedOpen = state.clearedOpen || opens === "cleared";
+  const tallyMs = clearedOpen
+    ? Math.min(TALLY_COUNT_MS, state.tallyMs + change.countMs)
+    : state.tallyMs;
   if (
     change.run === null &&
     tuned === state.tuned &&
     chain === state.chain &&
     cameHome.length === 0 &&
     tally === null &&
-    opens === null
+    opens === null &&
+    tallyMs === state.tallyMs
   ) {
     return state;
   }
@@ -89,7 +101,8 @@ export function withFrame(
       cameHome.length > 0
         ? [...state.broughtHome, ...cameHome]
         : state.broughtHome,
-    clearedOpen: state.clearedOpen || opens === "cleared",
+    clearedOpen,
+    tallyMs,
     resultOpen: state.resultOpen || opens === "result",
   };
 }
