@@ -1,0 +1,85 @@
+--- a/src/rules/flight/flight.ts
++++ b/src/rules/flight/flight.ts
+@@ -29,7 +29,6 @@
+   AT_ONCE,
+   LAUNCH_GAP,
+   MOST_CHARGE,
+-  MOST_FLIGHT,
+   MOST_FUZZBALLS,
+   RADIUS,
+   STILL_TURNS,
+@@ -55,6 +54,7 @@
+   ZapPattern,
+ } from "./events";
+ import type { Hooks, Struck, TraitRules } from "./hooks";
++import { VARIANT } from "./variant";
+ 
+ /** Describes how a round's fuzzballs leave, and the field they fly in. */
+ export interface FlightStart {
+@@ -136,8 +136,10 @@
+   /** The moment it is at its place. */
+   at: number;
+   charge: number;
+-  /** From when it has flown without taking a hit off a brick. */
++  /** From when it has flown without taking a hit off a brick, or touching one that counts. */
+   idleFrom: number;
++  /** From when it has flown without taking a hit off a brick. */
++  hitFrom: number;
+   /** How many times running it has turned again where it turned, at the same moment. */
+   still: number;
+   /** When it last turned, or -1. */
+@@ -442,6 +444,7 @@
+       at,
+       charge,
+       idleFrom: at,
++      hitFrom: at,
+       still: 0,
+       turnedAt: -1,
+       crosses: true,
+@@ -484,7 +487,8 @@
+     ball.planned = true;
+     const home = Math.min(
+       ball.idleFrom + this.rules.bored,
+-      ball.launchAt + MOST_FLIGHT,
++      ball.hitFrom + VARIANT.mostIdle,
++      ball.launchAt + VARIANT.mostFlight,
+     );
+     const limit = Math.max(0, home - ball.at);
+     const contacts = cast(
+@@ -527,7 +531,7 @@
+         this.enter(ball);
+         break;
+       case "home":
+-        this.comeHome(ball, ball.nextAt >= ball.launchAt + MOST_FLIGHT);
++        this.comeHome(ball, ball.nextAt >= ball.launchAt + VARIANT.mostFlight);
+         break;
+       case "land":
+         this.landHome(ball);
+@@ -714,6 +718,12 @@
+       return this.passedCells[earlier] === true;
+     }
+     const kind = this.rules.kinds[brick.kind];
++    if (
++      VARIANT.woolFirst &&
++      kind.traits.some((trait) => trait.kind === "recharges")
++    ) {
++      ball.charge = MOST_CHARGE;
++    }
+     this.struckBy("fuzzball", side, brick, kind, ball.charge, ball.hot);
+     const { took, left, charge, earthed, passes } = strike(
+       brick.hits,
+@@ -722,6 +732,14 @@
+     ball.charge = charge;
+     if (took > 0) {
+       ball.idleFrom = ball.at;
++      ball.hitFrom = ball.at;
++    } else if (
++      (VARIANT.resets === "breakable" && kind.hits !== "never") ||
++      (VARIANT.resets === "notSteel" && brick.kind !== "steel")
++    ) {
++      ball.idleFrom = ball.at;
++    } else if (kind.hits === "never") {
++      ball.idleFrom -= VARIANT.steelCosts;
+     }
+     this.struckCells.push(cell);
+     this.passedCells.push(passes);
