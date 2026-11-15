@@ -20,7 +20,7 @@ import {
   widthOf,
 } from "@fz/phaser/shapes";
 import { PICKUP_IDS, type PickupId } from "../../rules/catalog/pickups";
-import { ROCK_KIND_IDS, type RockKindId } from "../../rules/catalog/rocks";
+import type { RockKindId } from "../../rules/catalog/rocks";
 import { STRAY_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import { isTagged } from "../field/tags";
@@ -40,7 +40,6 @@ import {
   fuzzballCommands,
   pilotFrames,
 } from "./pilot_art";
-import { largestOf, rockFrame } from "./rock_art";
 import { MOST_LINE, dashedRing, outlineWidth } from "./shapes";
 import { shipFrames } from "./ship_art";
 import { SYMBOLS } from "./symbols";
@@ -481,11 +480,12 @@ export interface Pictures {
   readonly comet: string;
 }
 
-/** The frames How to play's pictures are taken from, each rock whole, at its largest size. */
-export const PICTURE_FRAMES: Pictures = {
-  rocks: recordOf(ROCK_KIND_IDS, (kind) =>
-    rockFrame({ kind, size: largestOf(kind), outline: 0 }),
-  ),
+/**
+ * The frames of the field's atlas How to play's pictures are taken from;
+ * the rocks' are drawn lit by the view (`rockPictures()`), as their atlas
+ * holds them unlit.
+ */
+export const PICTURE_FRAMES: Omit<Pictures, "rocks"> = {
   pickups: PICKUP_FRAMES,
   stray: FRAMES.strayPicture,
   comet: FRAMES.cometPicture,

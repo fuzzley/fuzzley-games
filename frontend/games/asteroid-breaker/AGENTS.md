@@ -375,8 +375,9 @@ takes for the specs' helpers.
 - **`src/view/art/`** — the atlases' frames. `art.ts` draws every frame of
   the field's atlas (`atlasFrames()`) as plain commands in device pixels, at
   its unit rounded down to whole device pixels, 32 at most (`bakedScale()`),
-  the deck's frames apart (`deckFrames()`), and names How to play's pictures
-  (`PICTURE_FRAMES`); `rock_art.ts` draws the rocks' own atlas: each kind
+  the deck's frames apart (`deckFrames()`), and names the frames How to
+  play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
+  `rock_art.ts` draws the rocks' own atlas: each kind
   in each size it comes in and six outlines (`ROCK_OUTLINES`), cut in
   facets as `rocks/` cuts it (`rockShape()`), whole and with the cracks of
   each count of hits it can take and hold, in the palette's marks, its
@@ -384,7 +385,9 @@ takes for the specs' helpers.
   or more (`isFine()`), each frame twice, in its tones' inks and as its
   normal map, each facet in the color of the way it faces, and each
   crack's two lips, which only the normal map draws, sloping into it
-  (`rockFrames()`, a `LitFrame`);
+  (`rockFrames()`, a `LitFrame`), and How to play's picture of each kind,
+  its largest whole, each facet in its ink as the palette's light falls on
+  it, in SVG (`rockPictures()`);
   `ship_art.ts` the ship, its flame and its rings; `pilot_art.ts` the
   pilots, each `@fz/phaser/fuzzball`'s fuzzball in its ink, in the ship's window or adrift;
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
@@ -489,10 +492,11 @@ takes for the specs' helpers.
   `setLighting(true)`. Phaser lights an image by the ten lights nearest the
   camera's middle at most (`maxLights`), so a light far off is dropped
   first once eleven are lit. At each bake the
-  scene hands the shell (`onPictures()`) what `@fz/phaser/scene`'s
-  `picturesWhenAsked()` returns, which encodes How to play's pictures from
-  the field's atlas and the rocks' only as the board first asks for them,
-  as How to play opens, and keeps them until the next bake. `PointsAtlas`
+  scene hands the shell (`onPictures()`) what returns How to play's
+  pictures only as the board first asks for them, as How to play opens,
+  and keeps them until the next bake: the field's encoded from its atlas
+  by `@fz/phaser/scene`'s `picturesWhenAsked()`, and the rocks' drawn lit
+  by the view's `rockPictures()`. `PointsAtlas`
   (`points_atlas.ts`) letters the points into an atlas of their own,
   written with a canvas's own `fillText()` and `strokeText()`, at the
   field's whole unit past the field's cap, so they stay sharp on a large

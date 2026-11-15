@@ -1,3 +1,4 @@
+import { recordOf } from "@fz/core/records";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
@@ -11,12 +12,13 @@ function pictureOf(name: string): string {
 }
 
 /**
- * Pictures as the scene hands them over: the frames' names, but a picture of
- * its own for each the specs look for, so one shown is the one handed over.
+ * Pictures as the scene hands them over: the frames' names, or each rock's
+ * kind, but a picture of its own for each the specs look for, so one shown
+ * is the one handed over.
  */
 const PICTURES: Pictures = {
   ...PICTURE_FRAMES,
-  rocks: { ...PICTURE_FRAMES.rocks, iron: pictureOf("iron") },
+  rocks: { ...recordOf(ROCK_KIND_IDS, String), iron: pictureOf("iron") },
   pickups: { ...PICTURE_FRAMES.pickups, shield: pictureOf("shield") },
   stray: pictureOf("stray"),
   comet: pictureOf("comet"),
