@@ -1,6 +1,7 @@
 // The wave in play's field as storage keeps it: the size it was laid out
-// at and its size now, its rocks, and the counts it runs by, read back only
-// where each check of it holds, and laid out afresh as it was.
+// at and its size now, its rocks, the counts it runs by and the pilot's
+// static, read back only where each check of it holds, and laid out afresh
+// as it was.
 
 import {
   isCount,
@@ -24,6 +25,7 @@ import type { Torus } from "../torus";
 import {
   FIELD_LONGEST_SIDE,
   FIELD_SHORT_SIDE,
+  STATIC_MOST,
   STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../tuning";
@@ -85,12 +87,12 @@ const ROCK_CHECKS: { readonly [K in KeptRockKey]: Check<SavedRock[K]> } = {
 
 /**
  * The wave in play's field as storage keeps it: the size it was laid out
- * at and its size now, its rocks, and the counts its draws, strays, comets
- * and points run by.
+ * at and its size now, its rocks, the counts its draws, strays, comets and
+ * points run by, and the pilot's static.
  *
  * A stray adrift, the crew knocked loose, whom the run keeps as gone home,
- * the comets on their way, the pickups, the shots, the effects in play and
- * the chain go.
+ * the comets on their way, the pickups, the shots and the effects in play
+ * go.
  */
 export interface SavedField {
   /**
@@ -112,14 +114,18 @@ export interface SavedField {
   readonly nextCometAt: number;
   /** The step a pickup was last let go at, from which a drought is counted. */
   readonly lastDropAt: number;
-  /** What the chain's multiplier has added to the wave's points, for its tally. */
-  readonly chainPoints: number;
+  /** What static's multiplier has added to the wave's points, for its tally. */
+  readonly staticPoints: number;
   /** The rocks' own points among the wave's, for its tally. */
   readonly rockPoints: number;
   /** The strays' own points among the wave's, for its tally. */
   readonly strayPoints: number;
   /** How many hits the ship has taken, which a clean wave has none of. */
   readonly hits: number;
+  /** The step static holds from before it drains: the last spark's, or a hit's that knocked it down. */
+  readonly lastSparkAt: number;
+  /** The pilot's static. */
+  readonly charge: number;
 }
 
 /** The counts a field storage keeps runs by. */
@@ -130,10 +136,11 @@ const KEPT_COUNTS = [
   "nextStrayAt",
   "nextCometAt",
   "lastDropAt",
-  "chainPoints",
+  "staticPoints",
   "rockPoints",
   "strayPoints",
   "hits",
+  "lastSparkAt",
 ] as const satisfies readonly (keyof SavedField)[];
 
 /** Names a count a field storage keeps runs by. */
@@ -150,10 +157,11 @@ export type SavableField = Pick<
   | "strays"
   | "comets"
   | "lastDropAt"
-  | "chainPoints"
+  | "staticPoints"
   | "rockPoints"
   | "strayPoints"
   | "hits"
+  | "charge"
 >;
 
 /**
@@ -185,19 +193,21 @@ export function savedField(field: SavableField): SavedField {
       : strays.nextAt,
     nextCometAt: field.comets.nextAt,
     lastDropAt: field.lastDropAt,
-    chainPoints: field.chainPoints,
+    staticPoints: field.staticPoints,
     rockPoints: field.rockPoints,
     strayPoints: field.strayPoints,
     hits: field.hits,
+    lastSparkAt: field.charge.lastSparkAt,
+    charge: field.charge.level,
   };
 }
 
 /**
  * Returns a wave's field as storage kept it, or null if it can't be
  * trusted: a count that isn't one, a size no board lays a field out at, a
- * rock that can't be trusted, a pickup let go after its last step, or a
- * field that hasn't moved, doesn't fit its wave or doesn't agree with what
- * its run has scored on it.
+ * rock that can't be trusted, a pickup let go or a spark gathered after its
+ * last step, static past its most, or a field that hasn't moved, doesn't
+ * fit its wave or doesn't agree with what its run has scored on it.
  */
 export function readField(
   value: unknown,
@@ -208,7 +218,10 @@ export function readField(
   const laidOut = readTorus(value["laidOut"]);
   const torus = readTorus(value["torus"]);
   const kept = value["rocks"];
-  if (!laidOut || !torus || !hasKeptCounts(value)) return null;
+  const { charge } = value;
+  if (!laidOut || !torus || !hasKeptCounts(value) || !isStatic(charge)) {
+    return null;
+  }
   const { steps } = value;
   const rocks = listOf(kept, (rock) => readRock(rock, torus, steps));
   if (!rocks) return null;
@@ -217,10 +230,12 @@ export function readField(
     torus,
     rocks,
     ...pick(value, KEPT_COUNTS),
+    charge,
   };
   const sound =
     hasMoved(field) &&
     hasDroppedInTime(field) &&
+    hasSparkedInTime(field) &&
     fitsItsWave(field, wave) &&
     fitsItsRun(field, soFar);
   return sound ? field : null;
@@ -259,6 +274,18 @@ export function hasDroppedInTime(
   return field.lastDropAt <= field.steps;
 }
 
+/** Returns whether a field kept had its last spark gathered no later than its last step. */
+export function hasSparkedInTime(
+  field: Pick<SavedField, "steps" | "lastSparkAt">,
+): boolean {
+  return field.lastSparkAt <= field.steps;
+}
+
+/** Returns whether a value is the pilot's static as storage keeps it: from nothing to its most. */
+export function isStatic(value: unknown): value is number {
+  return isFiniteNumber(value) && value >= 0 && value <= STATIC_MOST;
+}
+
 /**
  * Returns whether a field kept fits its wave, laid out at the size it was:
  * a rock left, and no more than the wave holds, and no more strays sent
@@ -277,21 +304,21 @@ export function fitsItsWave(
  * Returns whether a field kept agrees with what its run has scored on its
  * wave: no more strays brought home than it has sent, the strays' own
  * points what those strays score, each joining the line or going straight
- * home, and its points, the rocks', the chain's and the strays', adding up
- * to the wave's.
+ * home, and its points, the rocks', static's and the strays', adding up to
+ * the wave's.
  */
 export function fitsItsRun(
   field: Pick<
     SavedField,
-    "straysSent" | "chainPoints" | "rockPoints" | "strayPoints"
+    "straysSent" | "staticPoints" | "rockPoints" | "strayPoints"
   >,
   { points, straysHome }: WaveSoFar,
 ): boolean {
-  const { chainPoints, rockPoints, strayPoints } = field;
+  const { staticPoints, rockPoints, strayPoints } = field;
   return (
     straysHome <= field.straysSent &&
     isStrayPoints(strayPoints, straysHome) &&
-    rockPoints + chainPoints + strayPoints === points
+    rockPoints + staticPoints + strayPoints === points
   );
 }
 
@@ -352,9 +379,9 @@ export function isSoundRock(
  * `fieldFor()` lays it out but at the size it was laid out at, so its
  * slots, strays and comets are as they were, and stretched to the size it
  * was kept at: its rocks in its first slots, the rest free, the counts its
- * draws, strays, comets and points run by, its points and strays brought
- * home as its run has scored them on it, and its ship waiting where it is
- * safest, its line in tow behind it.
+ * draws, strays, comets and points run by, the pilot's static, its points
+ * and strays brought home as its run has scored them on it, and its ship
+ * waiting where it is safest, its line in tow behind it.
  */
 export function layOutKeptField(
   wave: Wave,
@@ -382,10 +409,12 @@ export function layOutKeptField(
   field.comets.nextAt = saved.nextCometAt;
   field.lastDropAt = saved.lastDropAt;
   field.score = soFar.points;
-  field.chainPoints = saved.chainPoints;
+  field.staticPoints = saved.staticPoints;
   field.rockPoints = saved.rockPoints;
   field.strayPoints = saved.strayPoints;
   field.hits = saved.hits;
+  field.charge.level = saved.charge;
+  field.charge.lastSparkAt = saved.lastSparkAt;
   bringShip(field);
   return field;
 }

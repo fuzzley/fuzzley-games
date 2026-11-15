@@ -1,6 +1,11 @@
 import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { stepsIn } from "../../rules/stepper";
-import { CHAIN, DASH_MS, DASH_SPEED, STRAY_POINTS } from "../../rules/tuning";
+import {
+  DASH_MS,
+  DASH_SPEED,
+  STATIC_STEPS,
+  STRAY_POINTS,
+} from "../../rules/tuning";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
 import {
   BOB,
@@ -68,7 +73,8 @@ function reaching(kind: FieldEventKind, reach: number): FieldEvent {
     points: 0,
     times: 0,
     reach,
-    chain: 0,
+    step: 0,
+    fell: false,
     slot: -1,
     wayX: 0,
     wayY: 0,
@@ -183,7 +189,7 @@ describe("MOST_POINTS_CHARACTERS", () => {
       ROCK_SIZES.flatMap((size) => rockKind(id).points[size] ?? []),
     ),
   ].flatMap((points) =>
-    [1, ...CHAIN.map(({ times }) => times)].map((times) =>
+    [1, ...STATIC_STEPS.map(({ times }) => times)].map((times) =>
       pointsLabel({ points, times }),
     ),
   );
@@ -210,12 +216,9 @@ describe("riseOf", () => {
 });
 
 describe("ringReachOf", () => {
-  it.each(["blast", "nova"] as const)(
-    "sweeps a %s's ring out to its reach",
-    (kind) => {
-      expect(ringReachOf(reaching(kind, 7))).toBe(7);
-    },
-  );
+  it("sweeps a blast's ring out to its reach", () => {
+    expect(ringReachOf(reaching("blast", 7))).toBe(7);
+  });
 
   it.each([
     ["shielded", SHIELD_RING_REACH],
@@ -232,7 +235,7 @@ describe("ringColorOf", () => {
     expect(ringColorOf(reaching("blast", 7), PALETTE)).toBe(PALETTE.flame);
   });
 
-  it.each(["nova", "shielded", "lost"] as const)(
+  it.each(["shielded", "lost"] as const)(
     "sweeps a %s ring out in the accent",
     (kind) => {
       expect(ringColorOf(reaching(kind, 0), PALETTE)).toBe(PALETTE.accent);

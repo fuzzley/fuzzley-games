@@ -33,9 +33,9 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   hit (`HIT_SOUNDS`), a pickup's catch (`CATCH_SOUNDS`), a weapon's shot
   (`SHOT_SOUNDS`), and an effect's end as its time runs out
   (`END_SOUNDS`).
-  The rest is made from the ids, a pickup's frame, an effect's record in
-  play and a lasting effect's tag among them, so a new id that compiles has
-  everything drawn and played.
+  The rest is made from the ids, a pickup's frame and tag and an effect's
+  record in play among them, so a new id that compiles has everything
+  drawn and played.
 - **The waves** are JSON, a file for each sector in `src/rules/waves/`,
   listed in order in `src/rules/waves/waves.ts` (`SECTORS`) and numbered
   from 1 across the sectors (`WAVES`), ten to a sector, each sector ending
@@ -164,13 +164,13 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   the pool, the wave it joins from, and its effect. Then its symbol in
   `SYMBOLS` (`src/view/art/symbols.ts`) and its catch's sound in
   `CATCH_SOUNDS` (`src/view/effects/sounds.ts`); its frame, and its tag in
-  the row at the field's bottom left where its effect lasts, are made from
+  the row at the field's bottom left while its effect lasts, are made from
   it. The catalog spec holds every pickup to coming first at its `from`.
 - **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`)
   and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
-  does as it starts and, where it lasts, as it ends, reaching only what of
-  the field the pickups act on (`PickupField`); its record in play is made
-  from its kind, and its sound as its time runs out, or none, in
+  does as it starts and as it ends, reaching only what of the field the
+  pickups act on (`PickupField`); its record in play is made from its
+  kind, and its sound as its time runs out, or none, in
   `END_SOUNDS` (`src/view/effects/sounds.ts`). The saved game keeps no
   effect in play, as it keeps no pickup or shot.
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle

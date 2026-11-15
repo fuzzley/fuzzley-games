@@ -33,6 +33,7 @@ import {
   DASH_RECHARGE_MS,
   PICKUP_BLINK_MS,
   SHOT_EVERY_MS,
+  STATIC_MOST,
   STRAY_RADIUS,
 } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
@@ -780,10 +781,9 @@ describe("the pod", () => {
     ]);
   });
 
-  it("lifts the pilot's fur with the chain, sparking on end in the pilot's ink", async () => {
+  it("lifts the pilot's fur with static, sparking on end in the pilot's ink", async () => {
     const { shell, run, scene } = await startBoard(withShip);
-    shell.field.chain = 20;
-    shell.field.lastBreakAt = shell.field.steps;
+    shell.field.charge.level = STATIC_MOST;
     const pilot = atControls(shell.field.crew) ?? 0;
 
     run.advance(16);
@@ -804,10 +804,10 @@ describe("the pod", () => {
     ]);
   });
 
-  it("shows no sparks below static's second lift", async () => {
+  it("shows no sparks below the fur on end", async () => {
     const { shell, run, scene } = await startBoard(withShip);
-    shell.field.chain = 5;
-    shell.field.lastBreakAt = shell.field.steps;
+    // Static's second step, ×3, the fur standing.
+    shell.field.charge.level = 20;
 
     run.advance(16);
 
@@ -816,7 +816,7 @@ describe("the pod", () => {
       fur.images[0]?.frame.name,
       isShown(sparkHalos),
       isShown(sparkCores),
-    ]).toEqual([furFrame(1, 0), false, false]);
+    ]).toEqual([furFrame(2, 0), false, false]);
   });
 
   it("draws the glass and the glint over the pilot in every pod", async () => {
@@ -2704,12 +2704,6 @@ const EVERY_EVENT: Readonly<
     },
     ["shield-break"],
   ],
-  nova: [
-    (field) => {
-      field.events.add("nova", 30, 20, 12);
-    },
-    ["blast-volatile"],
-  ],
   warned: [
     (field) => {
       field.events.add("warned", 0, 20);
@@ -2814,6 +2808,12 @@ const EVERY_EVENT: Readonly<
     },
     [],
   ],
+  stepped: [
+    (field) => {
+      field.events.addStep(30, 20, 1, false);
+    },
+    [],
+  ],
 };
 
 /** Returns a rock of a kind and size at the middle of the board's field, as its events record it. */
@@ -2909,25 +2909,25 @@ describe("the sounds", () => {
     },
   );
 
-  it("play a broken rock's by its kind and size, with a bell at its step of the chain's ladder and a chime as it reaches a multiplier", async () => {
+  it("play a broken rock's by its kind and size, with a bell at the ladder's note for static's multiplier it scored at", async () => {
     const { shell, run } = await startBoard();
     const rock = placeRock(shell.field, "small", 30, 20);
     run.advance(16);
     const played = soundsPlayed();
-    shell.field.chain = 4;
-    shell.field.lastBreakAt = shell.field.steps;
+    // Static's third step, ×4, a semitone a step.
+    shell.field.charge.level = 30;
+    shell.field.charge.lastSparkAt = shell.field.steps;
 
     hitRock(shell.field, rock, 0, 0);
     run.advance(16);
 
     expect(played).toEqual([
-      ["chain-x2", 0],
-      ["chain-ping", 1200],
+      ["chain-ping", 3100],
       ["break-stone-small", 0],
     ]);
   });
 
-  it("play two breaks of a frame as one, the bell at the higher step", async () => {
+  it("play two breaks of a frame as one, the bell at the higher multiplier", async () => {
     const { shell, run } = await startBoard();
     const first = placeRock(shell.field, "small", 30, 20);
     const second = placeRock(shell.field, "small", 10, 20);
@@ -2935,11 +2935,13 @@ describe("the sounds", () => {
     const played = soundsPlayed();
 
     hitRock(shell.field, first, 0, 0);
+    // Static's first step, ×2, risen to between the two.
+    shell.field.charge.level = 10;
     hitRock(shell.field, second, 0, 0);
     run.advance(16);
 
     expect(played).toEqual([
-      ["chain-ping", 200],
+      ["chain-ping", 1200],
       ["break-stone-small", 0],
     ]);
   });

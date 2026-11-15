@@ -32,8 +32,8 @@ type MenuAction = "sound" | "sectors" | "help" | "settings";
  * The speed shows at every size, as a menu of the speeds; the name only for
  * a screen reader on a compact screen. From the width the actions keep
  * their labels at, the figures are the wave, the score, the ships as their
- * pilots, the one at the controls first, and the chain's multiplier while
- * it counts; below it, the score and the ships alone, the ships as a
+ * pilots, the one at the controls first, and static's multiplier past ×1;
+ * below it, the score and the ships alone, the ships as a
  * number beside the pilot at the controls, since a score runs to six
  * figures.
  *
@@ -79,7 +79,7 @@ export class BarComponent {
 
   protected readonly speeds = SPEED_CHOICES;
 
-  /** Whether the bar has room for the wave, the pilots and the chain. */
+  /** Whether the bar has room for the wave, the pilots and the multiplier. */
   protected readonly fitsEveryFigure = computed(
     () => !this.viewport.isCompact() && this.viewport.fitsActionLabels(),
   );
@@ -98,9 +98,9 @@ export class BarComponent {
   /** The run's score, grouped in thousands. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
 
-  /** How many times a break scores, as "×2", while a chain makes it more than once; else null. */
-  protected readonly chain = computed(() => {
-    const times = this.game.chain();
+  /** How many times what is scored scores, as "×2", while static makes it more than once; else null. */
+  protected readonly multiplier = computed(() => {
+    const times = this.game.multiplier();
     return times > 1 ? `×${String(times)}` : null;
   });
 

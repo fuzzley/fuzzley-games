@@ -6,6 +6,7 @@ import type { GameService } from "../app/play/game.service";
 import { GAME_WAVES } from "../app/tokens";
 import type { RockSize } from "../rules/catalog/rocks";
 import type { Rock } from "../rules/rocks/rocks";
+import { restoreGame } from "../rules/run/saved_game";
 import { STILL, type Steer } from "../rules/ship/ship";
 import { distanceSquared } from "../rules/torus";
 import { type WaveData, type WaveEntry, wavesOf } from "../rules/waves/waves";
@@ -92,31 +93,6 @@ export const ONE_STRAY_WAVES: readonly WaveEntry[] = wavesOf([
     name: "Stray",
     drops: 0,
     waves: [{ ...pebbleOf("stray", "Stray", "large"), strays: 1 }],
-  },
-]);
-
-/**
- * Returns a wave of small stones in a cluster, near enough to each other
- * that the ship breaks them in a chain.
- */
-function clusterOf(id: string, name: string, count: number): WaveData {
-  return {
-    id,
-    name,
-    rocks: [{ kind: "stone", size: "small", count }],
-    formation: "cluster",
-    drops: 0,
-    strays: 0,
-  };
-}
-
-/** A wave of a dozen small stones in a cluster, for the specs of the chain's multiplier. */
-export const CHAIN_WAVES: readonly WaveEntry[] = wavesOf([
-  {
-    id: "chains",
-    name: "Chains",
-    drops: 0,
-    waves: [clusterOf("long", "Long", 12)],
   },
 ]);
 
@@ -229,9 +205,23 @@ export function bringStraysHome(game: GameService, count: number): void {
   playUntil(game, toStray, () => game.run().strays >= count);
 }
 
-/** Shoots at the wave in play's rocks until a chain makes a break score more than once. */
-export function chainUp(game: GameService): void {
-  playUntil(game, shoot, () => game.chain() > 1);
+/**
+ * Takes the run in play over the specs' waves, or those given, up again as
+ * storage would keep it with the pilot's static on its field at a level,
+ * the run's as its wave started left as it was: paused, under the id its
+ * next run takes.
+ */
+export function takeUpCharged(
+  game: GameService,
+  level: number,
+  waves: readonly WaveEntry[] = SPEC_WAVES,
+): void {
+  const saved = game.saved();
+  if (!saved?.field) throw new Error("The run keeps no wave in play.");
+  const charged = { ...saved, field: { ...saved.field, charge: level } };
+  const taken = restoreGame(charged, waves, game.run().id + 1);
+  if (!taken) throw new Error("The run kept with static can't be taken up.");
+  game.takeUp(taken);
 }
 
 /** Shoots at the wave in play's rocks until it is cleared. */

@@ -12,19 +12,19 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figureValue } from "@fz/ui/testing";
+import { STATIC_STEPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
 import { inkOf, pilotsIn } from "../../testing/pilots";
 import {
-  CHAIN_WAVES,
   SPEC_WAVE,
   STRAY_WAVES,
   bringStraysHome,
-  chainUp,
   clearToNext,
   loseShip,
   playToClear,
   provideSpecWaves,
   shoot,
+  takeUpCharged,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
@@ -73,10 +73,12 @@ async function renderInPlay(): Promise<RenderedBar> {
   return rendered;
 }
 
-/** Renders the bar with a chain counting, a break scoring twice. */
-async function renderChaining(): Promise<RenderedBar> {
-  const rendered = await renderBar(CHAIN_WAVES);
-  chainUp(rendered.game);
+/** Renders the bar with a run taken up at static's first step, what is scored scoring twice. */
+async function renderCharged(): Promise<RenderedBar> {
+  const rendered = await renderBar();
+  await rendered.game.startAt(SPEC_WAVE.pebble);
+  rendered.game.tick(FRAME_MS, shoot(rendered.game));
+  takeUpCharged(rendered.game, STATIC_STEPS[2].from);
   rendered.detectChanges();
   return rendered;
 }
@@ -200,16 +202,16 @@ describe("BarComponent", () => {
       expect(pilotsIn(figureValue("Ships"))).toHaveLength(4);
     });
 
-    it("shows no chain while a break scores once", async () => {
+    it("shows no multiplier while what is scored scores once", async () => {
       await renderInPlay();
 
-      expect(terms()).not.toContain("Chain");
+      expect(terms()).not.toContain("Static");
     });
 
-    it("shows how many times a break scores while a chain counts", async () => {
-      await renderChaining();
+    it("shows how many times what is scored scores while static multiplies it", async () => {
+      await renderCharged();
 
-      expect(figure("Chain")).toBe("×2");
+      expect(figure("Static")).toBe("×2");
     });
 
     it("pauses a wave in play", async () => {
@@ -377,10 +379,10 @@ describe("BarComponent", () => {
       }).toEqual({ number: "2", atControls: [inkOf(0)] });
     });
 
-    it("leaves out the chain while one counts", async () => {
-      await renderChaining();
+    it("leaves out static's multiplier while it multiplies", async () => {
+      await renderCharged();
 
-      expect(terms()).not.toContain("Chain");
+      expect(terms()).not.toContain("Static");
     });
   });
 

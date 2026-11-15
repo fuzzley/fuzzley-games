@@ -13,6 +13,7 @@ import {
   describeWave,
   whereLost,
 } from "./describe";
+import { FULL_STEP } from "../sparks/charge";
 import { type Run, createRun } from "./run";
 
 /** Returns a crew of a pilot at the controls or none, and those in tow. */
@@ -139,17 +140,25 @@ describe("describeEvent", () => {
 
   it("says a pickup caught by its name", () => {
     const caught = eventOf((log) => {
-      log.addPickup("caught", 1, 2, "nova");
+      log.addPickup("caught", 1, 2, "magnet");
     });
 
-    expect(describeEvent(caught)).toBe("Nova.");
+    expect(describeEvent(caught)).toBe("Magnet.");
+  });
+
+  it("says static has come to full", () => {
+    const full = eventOf((log) => {
+      log.addStep(1, 2, FULL_STEP, false);
+    });
+
+    expect(describeEvent(full)).toBe("Static full.");
   });
 
   it.each([
     [
       "a pickup let go",
       (log: FieldEventLog) => {
-        log.addPickup("dropped", 1, 2, "nova");
+        log.addPickup("dropped", 1, 2, "magnet");
       },
     ],
     [
@@ -162,6 +171,18 @@ describe("describeEvent", () => {
       "points",
       (log: FieldEventLog) => {
         log.addScore(1, 2, 40, 1);
+      },
+    ],
+    [
+      "static rising a step short of full",
+      (log: FieldEventLog) => {
+        log.addStep(1, 2, FULL_STEP - 1, false);
+      },
+    ],
+    [
+      "static falling a step",
+      (log: FieldEventLog) => {
+        log.addStep(1, 2, FULL_STEP - 1, true);
       },
     ],
   ])("says nothing of %s", (_, add) => {

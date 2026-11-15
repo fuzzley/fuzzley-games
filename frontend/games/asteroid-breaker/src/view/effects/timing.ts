@@ -30,8 +30,8 @@ export const FLASH_GAP_MS = 340;
 export const SPARK_MS = 200;
 
 /**
- * How long a blast's, the Nova's, a spent Shield's or a lost ship's ring takes
- * to sweep out to its reach and fade.
+ * How long a blast's, a spent Shield's or a lost ship's ring takes to sweep
+ * out to its reach and fade.
  */
 export const RING_MS = 300;
 

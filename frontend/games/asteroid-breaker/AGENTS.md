@@ -112,11 +112,12 @@ takes for the specs' helpers.
   than that, and a trait's step rule sees only the course its rock flies by
   (`CourseField`), so the layout flies a copy of a rock ahead without
   touching the field.
-  `scoring.ts` scores each break by its kind and size, times the chain's
-  multiplier (`@fz/core/math`'s `multiplierAt()` over `CHAIN`), a stray
-  caught, more as it goes straight home, and a wave's clearing, more for one
-  cleared without a hit taken, and says how a cleared wave's points add up
-  (`tallyOf()`), each part counted as it scores.
+  `scoring.ts` scores each break by its kind and size, times static's
+  multiplier (`src/rules/sparks/`), a stray caught, more as it goes
+  straight home, and a wave's clearing, more for one cleared without a hit
+  taken, and says how a cleared wave's points add up (`tallyOf()`), each
+  part counted as it scores, what static added apart from the rocks' and
+  the strays' own.
   `events.ts`'s `FieldEventLog` is `@fz/core/event_log`'s
   `EventLog` of 512 numbered records, which the field fills, the scene plays
   and the shell hears, each from the last one it read; a pull of fire
@@ -124,12 +125,13 @@ takes for the specs' helpers.
   sound. `kept_field.ts` is the field as storage keeps it: `savedField()`
   writes it; `readField()` reads it back, dropping what fails one of its
   checks, each named and exported: its counts, its sizes, its steps
-  (`hasMoved()`, `hasDroppedInTime()`), a rock, each of its keys by its own check
+  (`hasMoved()`, `hasDroppedInTime()`, `hasSparkedInTime()`), the pilot's
+  static (`isStatic()`), a rock, each of its keys by its own check
   (`isKeptRock()`, through `ROCK_CHECKS`), a rock's kind and state, and its
   fit to its wave and to what its run has scored on it (`fitsItsWave()`,
   `fitsItsRun()`, `isStrayPoints()`); and `layOutKeptField()` lays the wave
   out afresh at the size it was laid out at and stretches it to the size it
-  was kept at, its rocks and counts as kept, its points and strays brought
+  was kept at, its rocks, counts and static as kept, its points and strays brought
   home as its run has scored them, and its ship brought waiting where it is
   safest, its line in tow behind it (`field.ts`'s `bringShip()`,
   `spawn.ts`'s `safestPlace()`).
@@ -169,6 +171,16 @@ takes for the specs' helpers.
   catch them, and holds `EFFECT_RULES`, what each effect of
   `src/rules/catalog/pickups.ts` does as it starts and ends, one of each
   group in play at a time.
+- **`src/rules/sparks/`** — the pilot's static. `charge.ts` holds it on the
+  field (`Field.charge`, its level and the step the last spark was gathered
+  at), how it works (`Sparking`, a value record the field holds, from
+  `tuning.ts`'s `TUNED_SPARKING`: its most and its drain), its step
+  (`stepOf()`, from 0 at ×1 to `FULL_STEP` once full) and its multiplier
+  (`multiplierOf()`, `@fz/core/math`'s `multiplierAt()` over
+  `STATIC_STEPS`); it drains after `STATIC_HOLD_MS` with no spark
+  (`drainStatic()`), a hit knocks it to the foot of the step below
+  (`knockStaticDown()`), and each step it comes to, rising or falling, is
+  logged at the ship (`stepped`).
 - **`src/rules/hazards/`** — what crosses the field once, from an edge,
   without wrapping. `strays.ts` sends the stray fuzzballs, one at a time,
   which the ship catches by touching (`stepStrays()`), into the line in tow
@@ -189,8 +201,9 @@ takes for the specs' helpers.
   with its middle on it (`reaches()`).
 - **`src/rules/run/`** — the run. `run.ts`: `Run`, a value each change
   replaces, from the wave it started at to its end: the wave in play, the
-  points banked and the score, the crew, the strays brought home and the
-  outcome. Every wave waits, `"ready"`, until the
+  points banked and the score, the crew, the strays brought home, the
+  pilot's static as the wave in play started, which a cleared wave hands
+  the next, and the outcome. Every wave waits, `"ready"`, until the
   player's first move starts it (`startWave()`), and a wave cleared goes on
   to the next, waiting so (`nextWave()`). No run is won: Endless goes on
   until a hit with no one in tow ends it. `catchUp()` takes what the wave's field has come
@@ -205,8 +218,8 @@ takes for the specs' helpers.
   run. `describe.ts` puts what happened into the words the announcer says: a
   wave's start and its rocks, a stray drifting in, caught or brought
   straight home, one of the crew knocked loose, caught again or floating
-  home, with how many ride in tow, a pickup caught, a clearing, a pause,
-  going on, a run taken up and the end; and `whereLost()` says where an
+  home, with how many ride in tow, a pickup caught, static coming to full,
+  a clearing, a pause, going on, a run taken up and the end; and `whereLost()` says where an
   ended run was lost. The
   announcer, the bar, the cards, the result, the sectors and How to play
   all write points grouped in thousands, "4,250", with `@fz/core/format`'s
@@ -322,7 +335,7 @@ takes for the specs' helpers.
   a pull of fire names (`weaponOf()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
-  the tags of the lasting effects lie, at the field's bottom left, and how
+  the tags of the effects in play lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning is
   drawn; and `specks.ts` where the places' stars lie, in three depths, far,
   mid and bright, as many of each as the largest field holds, each depth
@@ -379,21 +392,22 @@ takes for the specs' helpers.
   event plays (`soundOf()`), a rock's break by its kind and size, a catch by
   its pickup, a pull of fire by its weapon, and the one after it, where it
   has one (`secondSoundOf()`: the line snapping as one is knocked loose),
-  the chain's ladder (`CHAIN_CENTS`, the kit's, copied) and the step of it
-  a break's bell rings at (`ladderCentsOf()`), the chime as a chain reaches
-  a multiplier (`multiplierSoundOf()`), what an effect plays as its time
-  runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
+  the ladder (`CHAIN_CENTS`, the kit's, copied, and `ladderCentsOf()`) and
+  the note of it a break's bell rings at for static's multiplier it scored
+  at (`bellCentsOf()`), what an effect plays as its time runs out
+  (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
   Rapid's shot 3 dB under the gun's), and the order a frame plays them in,
   the loudest level first (`PLAY_ORDER`); the thrust's hum (`THRUST`) is
   one of them, which no event plays, and so is each sound nothing calls for
   yet. `field_sounds.ts`' `FieldSounds` gathers a frame's: each event's
   sounds, where it happened across the field (`@fz/core/sound_mix`'s
-  `acrossOf()`), a bell at the highest step of the chain the frame's
-  breaks reached, more than three breaks a frame as the largest two and
-  `break-cluster`, and what the field's state says by how it changed since
-  the frame before (fire let go just after a burst, `shot-tail`; the dash
-  charged again, `dash-ready`; an effect run out); then plays each once,
-  at the most it rose, the loudest first, making nothing. `flourish.ts` says
+  `acrossOf()`), a bell at the highest of static's multipliers the
+  frame's breaks scored at, more than three breaks a frame as the largest
+  two and `break-cluster`, and what the field's state says by how it
+  changed since the frame before (fire let go just after a burst,
+  `shot-tail`; the dash charged again, `dash-ready`; an effect run out);
+  then plays each once, at the most it rose, the loudest first, making
+  nothing. `flourish.ts` says
   how each flourish moves over its time, beside `@fz/core/math`'s
   `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), among them
   how far the kick and the shake scroll the field's camera (`cameraShift()`)
@@ -503,7 +517,7 @@ takes for the specs' helpers.
   (`watchFace()`), a stray adrift's (`adriftFaceOf()`), each blinking now
   and then by the field's steps (`isBlinking()`), where the pilot looks,
   at the nearest rock or comet or the way the pod points (`lookOf()`),
-  how far its fur lifts with the chain (`liftOf()`), and the push it
+  how far its fur lifts with static, a step a multiplier (`liftOf()`), and the push it
   leans from, eased so it lags a thrust (`pushOf()`, `easeLean()`);
   `symbols.ts` each pickup's symbol and each button's (`SYMBOLS`); they are
   drawn in `@fz/phaser/shapes`'s commands (`DrawCommand`), with its
@@ -667,8 +681,8 @@ takes for the specs' helpers.
   hands the board the focus as each run begins and whenever the last dialog
   closes (`refocusWhenUncovered()`), and pauses the wave in play when
   `[fzPlayRoom]` says the player looked away.
-  - `play/` — `GameService` holds the run and what is its own, its chain, its
-    cards and what it set, in one signal (the view's `RunState`), replaced
+  - `play/` — `GameService` holds the run and what is its own, its static's
+    multiplier and step, its cards and what it set, in one signal (the view's `RunState`), replaced
     whole as a run begins or is taken up, so nothing of one run reaches the
     next, and the wave in play outside one, as the view's `WavePlay`, since the
     field changes 120 times a second; it moves the field on through `tick()`,
@@ -770,8 +784,8 @@ takes for the specs' helpers.
     figures, and Pause, Sound, Sectors, New game, How to play and Settings,
     all but Pause and New game in the overflow menu on a compact screen.
     Where it has room, the figures are the wave, the score, the ships as
-    their pilots, the one at the controls first, and the chain's multiplier
-    while it counts; else the score and the ships alone, the ships as a
+    their pilots, the one at the controls first, and static's multiplier
+    past ×1; else the score and the ships alone, the ships as a
     number beside the pilot at the controls, as a score runs to six figures.
     Pause and Sound are `@fz/game-ui`'s (`fzBarPause`, `fzBarSound`), which
     keep the focus on the board when pressed with a mouse or a finger. It
@@ -1016,12 +1030,13 @@ can't trust rather than failing:
   wave, by number and id, the wave it started at, its speed and seed, its
   points, its crew's colors, at the controls, in tow and gone home, the
   crew knocked loose among those gone home, so a reload gives none back,
-  the strays brought home, for the result card, and whether it was flown on tuned
-  numbers; and its field's size as laid out and as it is now, its rocks,
-  whole or with a blast to go off, and the counts its draws, strays, comets
-  and points run by. A wave not yet moved is kept as not yet begun, a wave
+  the strays brought home, for the result card, the pilot's static as its
+  wave started, and whether it was flown on tuned numbers; and its field's
+  size as laid out and as it is now, its rocks, whole or with a blast to go
+  off, the counts its draws, strays, comets and points run by, and the
+  pilot's static. A wave not yet moved is kept as not yet begun, a wave
   just cleared as the next not yet begun, and a stray adrift, the comets,
-  the pickups, the shots, the effects in play and the chain go. It is
+  the pickups, the shots and the effects in play go. It is
   written as a wave starts, as its crew changes, as it pauses or goes on,
   and as the page is hidden or goes away, never at a step, forgotten once
   the run ends or another begins, and taken up paused at startup, fitted to
@@ -1050,8 +1065,8 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every run and sector opened, with what is new there, wave
   begun, stray drifting in or caught, one of the crew knocked loose,
-  caught again or floating home, pickup caught,
-  pause, going on, wave cleared, with the wave to come, and end is
+  caught again or floating home, pickup caught, static
+  full, pause, going on, wave cleared, with the wave to come, and end is
   announced.
 
 ## Development Commands
@@ -1276,7 +1291,7 @@ of its own beside it:
   with no touch (`ROOMY`), and Space as a browser sends it (`SPACE`), from
   `@fz/phaser/testing`'s `browserKey()`.
 - `run_under_way.ts` holds a run under way on its third wave, with points,
-  strays and a crew (`runUnderWay()`), how it starts its wave
+  strays, a crew and static (`runUnderWay()`), how it starts its wave
   (`waveSetupOf()`), and its field laid out and played a second
   (`laidOutField()`, `playedField()`), which the saved game's specs keep and
   read back, with the shape of their spoiled entries (`Spoil`).
@@ -1284,7 +1299,7 @@ of its own beside it:
   but what a spec gives (`runRecords()`), for the specs of the records.
 - `numbers.ts` says how much each of a list's numbers differs from the one
   before (`stepsBetween()`), for the specs that hold a table of the rules
-  to rising or falling, the rocks' sizes and speeds, the chain's rows and
+  to rising or falling, the rocks' sizes and speeds, static's steps and
   each kind's points.
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
   until its first stray is near (`keptRun()`), for the screenshots' script.

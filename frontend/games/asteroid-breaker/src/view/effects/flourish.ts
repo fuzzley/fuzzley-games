@@ -12,9 +12,9 @@ import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { stepsIn } from "../../rules/stepper";
 import type { Moving } from "../../rules/torus";
 import {
-  CHAIN,
   DASH_MS,
   DASH_SPEED,
+  STATIC_STEPS,
   STEP_S,
   STRAY_POINTS,
 } from "../../rules/tuning";
@@ -152,7 +152,7 @@ export function trailOutlinesLaid(stepsSince: number): number {
 }
 
 /**
- * Returns the label points scored show, as "+40", or "+40 ×2" where the chain's
+ * Returns the label points scored show, as "+40", or "+40 ×2" where static's
  * multiplier scored them more.
  */
 export function pointsLabel(
@@ -164,7 +164,7 @@ export function pointsLabel(
 
 /**
  * The most characters a label of points runs to: the most a rock or a stray
- * scores, at the chain's highest multiplier.
+ * scores, at static's highest multiplier.
  */
 export const MOST_POINTS_CHARACTERS = pointsLabel({
   points: Math.max(
@@ -173,7 +173,7 @@ export const MOST_POINTS_CHARACTERS = pointsLabel({
       ROCK_SIZES.map((size) => rockKind(id).points[size] ?? 0),
     ),
   ),
-  times: Math.max(...CHAIN.map(({ times }) => times)),
+  times: Math.max(...STATIC_STEPS.map(({ times }) => times)),
 }).length;
 
 /**
@@ -185,8 +185,8 @@ export function riseOf(done: number, motion: boolean): number {
 }
 
 /**
- * Returns how far an event's ring sweeps out, in field units: a blast's or the
- * Nova's to its reach, a spent Shield's and a lost ship's to their own.
+ * Returns how far an event's ring sweeps out, in field units: a blast's to
+ * its reach, a spent Shield's and a lost ship's to their own.
  */
 export function ringReachOf(event: Readonly<FieldEvent>): number {
   switch (event.kind) {
@@ -201,7 +201,7 @@ export function ringReachOf(event: Readonly<FieldEvent>): number {
 
 /**
  * Returns the color an event's ring sweeps out in: a blast's in the warning
- * color, and the Nova's, a spent Shield's and a lost ship's in the accent.
+ * color, and a spent Shield's and a lost ship's in the accent.
  */
 export function ringColorOf(
   event: Readonly<FieldEvent>,

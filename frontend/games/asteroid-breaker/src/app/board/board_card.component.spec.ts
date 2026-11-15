@@ -243,10 +243,10 @@ describe("BoardCardComponent", () => {
 
     expect(figures()).toEqual([
       ["Rocks", "100"],
-      ["Chains", "0"],
+      ["Static", "0"],
       ["Strays brought home", "0"],
       ["Wave cleared", "500"],
-      ["No ship lost", "500"],
+      ["No hit taken", "500"],
       ["Total", "1,100"],
     ]);
   });
@@ -350,10 +350,10 @@ describe("BoardCardComponent", () => {
 
       expect(figures()).toEqual([
         ["Rocks", "19"],
-        ["Chains", "0"],
+        ["Static", "0"],
         ["Strays brought home", "0"],
         ["Wave cleared", "0"],
-        ["No ship lost", "0"],
+        ["No hit taken", "0"],
         ["Total", "19"],
       ]);
     });

@@ -7,13 +7,12 @@
 import type { FuzzballFace } from "@fz/style/fuzzball";
 import { reaches } from "../../rules/hazards/crossing";
 import { rockHitRadius } from "../../rules/rocks/rocks";
-import { multiplier } from "../../rules/field/scoring";
 import type { Pilot } from "../../rules/ship/pilots";
 import { type Ship, thrustOf } from "../../rules/ship/ship";
+import { multiplierOf } from "../../rules/sparks/charge";
 import { stepsIn } from "../../rules/stepper";
 import { type Moving, type Torus, across } from "../../rules/torus";
 import {
-  CHAIN_MS,
   COMET_RADIUS,
   HIT_GUARD_MS,
   SHIP_HIT_RADIUS,
@@ -73,7 +72,6 @@ const IN_STEPS = {
   every: stepsIn(BLINK_MS.every),
   takes: stepsIn(BLINK_MS.takes),
   lag: stepsIn(BLINK_MS.lag),
-  chain: stepsIn(CHAIN_MS),
 } as const;
 
 /** Returns the moments of a field that has yet to show the pilot any. */
@@ -181,18 +179,13 @@ export function lookOf(field: FieldView, angle: number, into: Moving): Moving {
 
 /**
  * Returns how far the pilot's fur is lifted, from 0, flat, to 3, on end:
- * the chain's multiplier as the field stands, less one, so it lifts at each
- * of the chain's tiers and falls as the chain's time runs out, or as the
- * wave is cleared, where the bar's multiplier falls too.
+ * static's multiplier as the field stands, less one, so it lifts at each
+ * of static's steps, on end and sparking from ×4, full static among them,
+ * and falls as static drains or a hit knocks it down; over a cleared wave
+ * it stays, as static is carried to the next.
  */
-export function liftOf({
-  chain,
-  lastBreakAt,
-  steps,
-  cleared,
-}: FieldView): number {
-  const counting = !cleared && steps - lastBreakAt <= IN_STEPS.chain;
-  return multiplier(counting ? chain : 0) - 1;
+export function liftOf({ charge }: FieldView): number {
+  return multiplierOf(charge.level) - 1;
 }
 
 /**

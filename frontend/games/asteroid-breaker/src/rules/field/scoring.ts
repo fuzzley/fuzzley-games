@@ -1,15 +1,14 @@
 // The points a wave scores: each rock broken by its kind and size, times
-// the chain's multiplier, a stray caught, and the wave's clearing.
+// static's multiplier, a stray caught, and the wave's clearing.
 // Once no one is at the controls the run is over, and nothing scores, so
 // its score doesn't hang on how its last steps fall into frames.
 
-import { multiplierAt } from "@fz/core/math";
 import { pointsFor } from "../catalog/rocks";
 import type { FieldEventLog } from "./events";
 import type { Crew } from "../ship/pilots";
 import type { Rock } from "../rocks/rocks";
-import { stepsIn } from "../stepper";
-import { CHAIN, CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
+import { type Charge, multiplierOf } from "../sparks/charge";
+import { CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 
 /**
  * Describes what of the field its points change, which the rocks' rules hand on
@@ -18,18 +17,14 @@ import { CHAIN, CHAIN_MS, CLEAN_POINTS, CLEAR_POINTS } from "../tuning";
 export interface ScoreField {
   /** The wave's points, its clearing's among them once it is cleared. */
   score: number;
-  /** How many breaks the chain had counted as of the last, 0 once a hit ends it. */
-  chain: number;
-  /** The step the last break counted in the chain came at. */
-  lastBreakAt: number;
-  /** What the chain's multiplier added to the wave's points, beyond their own. */
-  chainPoints: number;
-  /** The rocks' own points among the wave's, before the chain's multiplier. */
+  /** What static's multiplier added to the wave's points, beyond their own. */
+  staticPoints: number;
+  /** The rocks' own points among the wave's, before static's multiplier. */
   rockPoints: number;
-  /** The strays' own points among the wave's, before the chain's multiplier. */
+  /** The strays' own points among the wave's, before static's multiplier. */
   strayPoints: number;
-  /** How many steps the field has taken, by which the chain's time runs. */
-  readonly steps: number;
+  /** The pilot's static, whose step multiplies what is scored. */
+  readonly charge: Readonly<Charge>;
   /** Who is aboard: with no one at the controls, the run is over. */
   readonly crew: Crew;
   /**
@@ -44,15 +39,15 @@ export interface ScoreField {
 /** Describes what of a cleared wave's field says how its points add up. */
 export type TallyField = Pick<
   ScoreField,
-  "rockPoints" | "chainPoints" | "strayPoints" | "hits"
+  "rockPoints" | "staticPoints" | "strayPoints" | "hits"
 >;
 
 /** Describes how a cleared wave's points add up, for its card. */
 export interface WaveTally {
   /** The rocks' own points. */
   readonly rocks: number;
-  /** What the chains added beyond the rocks' and the strays' own. */
-  readonly chains: number;
+  /** What static's multiplier added beyond the rocks' and the strays' own. */
+  readonly static: number;
   /** The strays' own points. */
   readonly strays: number;
   /** What clearing the wave added. */
@@ -61,44 +56,19 @@ export interface WaveTally {
   readonly clean: number;
 }
 
-/** Returns how many times a break scores its points, by the count it is in its chain. */
-export function multiplier(count: number): number {
-  return multiplierAt(count, CHAIN);
-}
-
 /**
- * Returns the multiplier the field's chain stands at, its last break's, which a
- * stray brought home scores at, or 1 once its time is up.
- */
-export function chainMultiplier(field: Readonly<ScoreField>): number {
-  return multiplier(chainNow(field));
-}
-
-/**
- * Scores a broken rock its kind's points for its size, times the chain's
- * multiplier, counting it on in the chain, or starting the chain again if
- * the last break was too long ago, and logs them at the rock's place; its
- * own points count among the rocks', for the tally.
+ * Scores a broken rock its kind's points for its size, times static's
+ * multiplier, and logs them at the rock's place; its own points count
+ * among the rocks', for the tally.
  */
 export function scoreBreak(field: ScoreField, rock: Readonly<Rock>): void {
-  field.chain = chainCountOf(field);
-  field.lastBreakAt = field.steps;
   const points = pointsFor(rock.kind, rock.size);
   if (score(field, points, rock.x, rock.y)) field.rockPoints += points;
 }
 
 /**
- * Returns the count in its chain a break now would be: the next of the chain's,
- * or the first of a new one once its time is up.
- */
-export function chainCountOf(field: Readonly<ScoreField>): number {
-  return chainNow(field) + 1;
-}
-
-/**
- * Scores a stray caught at a place its points, times the chain's
- * multiplier, without counting it on in the chain; its own points count
- * among the strays', for the tally.
+ * Scores a stray caught at a place its points, times static's multiplier;
+ * its own points count among the strays', for the tally.
  */
 export function scoreStray(
   field: ScoreField,
@@ -107,11 +77,6 @@ export function scoreStray(
   points: number,
 ): void {
   if (score(field, points, x, y)) field.strayPoints += points;
-}
-
-/** Ends the chain, as a hit is taken. */
-export function endChain(field: ScoreField): void {
-  field.chain = 0;
 }
 
 /** Returns what clearing a wave adds, more for one cleared without a hit taken. */
@@ -131,21 +96,15 @@ export function scoreClearing(field: ScoreField): void {
 export function tallyOf(field: Readonly<TallyField>): WaveTally {
   return {
     rocks: field.rockPoints,
-    chains: field.chainPoints,
+    static: field.staticPoints,
     strays: field.strayPoints,
     cleared: CLEAR_POINTS,
     clean: field.hits === 0 ? CLEAN_POINTS : 0,
   };
 }
 
-/** Returns how many breaks the chain counts, or 0 once its time is up. */
-function chainNow(field: Readonly<ScoreField>): number {
-  const within = field.steps - field.lastBreakAt <= stepsIn(CHAIN_MS);
-  return within ? field.chain : 0;
-}
-
 /**
- * Adds points to the wave's, times the chain's multiplier, and logs them at a
+ * Adds points to the wave's, times static's multiplier, and logs them at a
  * place, unless the run is over, and returns whether it did.
  */
 function score(
@@ -155,9 +114,9 @@ function score(
   y: number,
 ): boolean {
   if (isOver(field)) return false;
-  const times = chainMultiplier(field);
+  const times = multiplierOf(field.charge.level);
   field.score += points * times;
-  field.chainPoints += points * (times - 1);
+  field.staticPoints += points * (times - 1);
   field.events.addScore(x, y, points, times);
   return true;
 }

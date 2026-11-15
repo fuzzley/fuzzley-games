@@ -10,12 +10,12 @@ import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
 import {
-  CHAIN,
-  CHAIN_MS,
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
   MOST_CREW,
+  STATIC_HOLD_MS,
+  STATIC_STEPS,
   STRAYS_FROM,
   STRAY_HOME_POINTS,
   STRAY_POINTS,
@@ -24,8 +24,8 @@ import type { Pictures } from "../../view/art/art";
 
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
-  chain: `Breaks each within ${String(CHAIN_MS / 1000)} seconds of the last make a chain, which multiplies each break's points: ${tierWords(CHAIN, "breaks")}.`,
-  strays: `A stray caught scores ${formatPoints(STRAY_POINTS)}, or ${formatPoints(STRAY_HOME_POINTS)} as it goes straight home, times the chain.`,
+  multiplier: `Static multiplies what is scored: ${tierWords(STATIC_STEPS, "static")}. It drains after ${String(STATIC_HOLD_MS / 1000)} seconds, and a hit knocks it down a step.`,
+  strays: `A stray caught scores ${formatPoints(STRAY_POINTS)}, or ${formatPoints(STRAY_HOME_POINTS)} as it goes straight home, times static's multiplier.`,
   clearing: `A wave cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no hit was taken on it.`,
 };
 

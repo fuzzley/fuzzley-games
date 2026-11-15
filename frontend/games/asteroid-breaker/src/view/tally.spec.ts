@@ -5,7 +5,7 @@ import { TALLY_COUNT_MS, nextWaveWords, tallyShownAt } from "./tally";
 /** A cleared wave's points, a part on each line. */
 const TALLY: WaveTally = {
   rocks: 1240,
-  chains: 380,
+  static: 380,
   strays: 600,
   cleared: 500,
   clean: 0,
@@ -21,10 +21,10 @@ describe("tallyShownAt", () => {
     expect(shown).toEqual({
       lines: [
         { label: "Rocks", points: "1,240" },
-        { label: "Chains", points: "380" },
+        { label: "Static", points: "380" },
         { label: "Strays brought home", points: "600" },
         { label: "Wave cleared", points: "500" },
-        { label: "No ship lost", points: "0" },
+        { label: "No hit taken", points: "0" },
       ],
       total: "2,720",
     });
@@ -58,7 +58,7 @@ describe("tallyShownAt", () => {
   it("adds up what the lines show so far as the total", () => {
     const shown = tallyShownAt(TALLY, LINE_MS * 1.5);
 
-    // The rocks' whole, and seven eighths of the chains'.
+    // The rocks' whole, and seven eighths of static's.
     expect(shown.total).toBe("1,573");
   });
 

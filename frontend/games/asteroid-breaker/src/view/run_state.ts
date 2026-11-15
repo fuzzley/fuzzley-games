@@ -1,12 +1,13 @@
 import type { WaveTally } from "../rules/field/scoring";
 import type { Run } from "../rules/run/run";
 import type { Pilot } from "../rules/ship/pilots";
+import { TUNED_SPARKING, multiplierOf, stepOf } from "../rules/sparks/charge";
 import type { FrameChange } from "./run_frames";
 import { TALLY_COUNT_MS } from "./tally";
 
 /**
  * Holds what is a run's own, which each run begins afresh, so nothing of
- * one reaches the next: the run, how it was flown, the chain and the cards
+ * one reaches the next: the run, how it was flown, static and the cards
  * over its wave in play, and what it set.
  */
 export interface RunState {
@@ -17,8 +18,10 @@ export interface RunState {
    * feel of their own.
    */
   readonly tuned: boolean;
-  /** How many times a break scores, by the chain the wave in play counts. */
-  readonly chain: number;
+  /** How many times what is scored scores, by static's step on the wave in play. */
+  readonly multiplier: number;
+  /** Static's step on the wave in play, from 0 at ×1 to full. */
+  readonly step: number;
   /** How the last wave cleared added up, for its card, or null until one is. */
   readonly tally: WaveTally | null;
   /** Whether the card over a cleared wave is showing. */
@@ -40,12 +43,17 @@ export interface RunState {
   readonly resultClosed: boolean;
 }
 
-/** Returns what is a run's own as it begins: none of its chain, its cards or its marks yet. */
-export function newRunState(run: Run): RunState {
+/**
+ * Returns what is a run's own as it begins: its static, as the run carries
+ * it or at a level its field is taken up with, and none of its cards or
+ * its marks yet.
+ */
+export function newRunState(run: Run, level = run.charge): RunState {
   return {
     run,
     tuned: false,
-    chain: 1,
+    multiplier: multiplierOf(level),
+    step: stepOf(level, TUNED_SPARKING),
     tally: null,
     clearedOpen: false,
     tallyMs: 0,
@@ -60,9 +68,9 @@ export function newRunState(run: Run): RunState {
 /**
  * Returns a run's state with what a frame came to taken in: the run it
  * changed, whether it was flown on tuned numbers, the strays it brought
- * home, the chain, a cleared wave's tally, the card it opens and how far
- * the Cleared card's sum counts up; or the same state for a frame that
- * changed none of them, so a frame of play makes nothing.
+ * home, static's multiplier and step, a cleared wave's tally, the card it
+ * opens and how far the Cleared card's sum counts up; or the same state
+ * for a frame that changed none of them, so a frame of play makes nothing.
  *
  * A run is flown on tuned numbers from the first frame that moves its field
  * while they are `retuned`, off `tuning.ts`'s, and stays so, though they are
@@ -74,7 +82,8 @@ export function withFrame(
   retuned: boolean,
 ): RunState {
   const tuned = state.tuned || (change.moved && retuned);
-  const chain = change.chain ?? state.chain;
+  const multiplier = change.multiplier ?? state.multiplier;
+  const step = change.step ?? state.step;
   const { cameHome, tally, opens } = change;
   const clearedOpen = state.clearedOpen || opens === "cleared";
   const tallyMs = clearedOpen
@@ -83,7 +92,8 @@ export function withFrame(
   if (
     change.run === null &&
     tuned === state.tuned &&
-    chain === state.chain &&
+    multiplier === state.multiplier &&
+    step === state.step &&
     cameHome.length === 0 &&
     tally === null &&
     opens === null &&
@@ -95,7 +105,8 @@ export function withFrame(
     ...state,
     run: change.run ?? state.run,
     tuned,
-    chain,
+    multiplier,
+    step,
     tally: tally ?? state.tally,
     broughtHome:
       cameHome.length > 0

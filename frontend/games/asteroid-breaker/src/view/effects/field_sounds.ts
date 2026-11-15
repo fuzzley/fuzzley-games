@@ -1,9 +1,9 @@
 // How the game plays the sounds a frame calls for, by the plan's table: each
 // once at the most it rose, placed across the field, at its volume, the
 // loudest first; a crowd of breaks as its largest and a patter; one bell a
-// frame at the highest step of the chain its breaks reached; and what the
-// field's state says without an event: a burst of fire let go, the dash
-// charged, an effect run out.
+// frame at the highest of static's multipliers its breaks scored at; and
+// what the field's state says without an event: a burst of fire let go,
+// the dash charged, an effect run out.
 
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
@@ -18,9 +18,8 @@ import {
   PLAY_ORDER,
   type SoundName,
   TAIL,
+  bellCentsOf,
   endSoundOf,
-  ladderCentsOf,
-  multiplierSoundOf,
   secondSoundOf,
   soundOf,
   volumeOf,
@@ -71,9 +70,9 @@ interface Heard {
  * Each sound plays once a frame at most, at its volume, the loudest level
  * first, so a huge one ducks the busy ones of its own frame; each but the
  * bell at the most it rose and where it rose most, the first where it rose
- * as much. A frame whose breaks count in a chain rings one bell, at the
- * highest step of the ladder they reached, where the first to reach it
- * broke, and a chime as the chain reaches a multiplier; more than
+ * as much. A frame whose breaks scored rings one bell, at the ladder's
+ * note for the highest of static's multipliers they scored at, where the
+ * first to score at it broke; more than
  * {@link MOST_BREAKS_HEARD} breaks in a frame play as the largest two
  * sounds and `break-cluster`, at the middle of where they broke. It makes
  * nothing as it hears or plays.
@@ -86,7 +85,7 @@ export class FieldSounds {
   /** Whether a sound was heard since the sounds last played. */
   private heardAny = false;
 
-  /** How many rocks broke in the frame, counted in a chain. */
+  /** How many rocks broke in the frame and scored. */
   private breaks = 0;
   /** The sum of where they broke, for the middle of a crowd. */
   private breaksAcross = 0;
@@ -96,8 +95,8 @@ export class FieldSounds {
   /** The sound of the frame's next largest break, and its size's rank. */
   private nextLargest: SoundName | null = null;
   private nextRank: number = NO_RANK;
-  /** The highest count in its chain a break of the frame reached, 0 for none, and where the first to reach it broke. */
-  private topChain = 0;
+  /** The highest of static's multipliers a break of the frame scored at, 0 for none, and where the first to score at it broke. */
+  private topTimes = 0;
   private topAcross = 0;
 
   /** The field the last frame showed, whose state the next is held to. */
@@ -175,9 +174,9 @@ export class FieldSounds {
 
   /**
    * Hears what an event of the field calls for, where it happened on a field
-   * so wide: its sound and the one after it, and for a break counted in a
-   * chain its step for the frame's bell and its chime, its own sound kept
-   * for the frame's crowd. A pull of fire is timed by the frame
+   * so wide: its sound and the one after it, and for a break that scored
+   * its multiplier for the frame's bell, its own sound kept for the
+   * frame's crowd. A pull of fire is timed by the frame
    * `hearField()` last heard, so the frame's field is heard first.
    *
    * @throws {RangeError} For an event its sound can't be told for, as
@@ -186,14 +185,12 @@ export class FieldSounds {
   hear(event: Readonly<FieldEvent>, width: number): void {
     const across = acrossOf(event.x, width);
     const sound = soundOf(event);
-    if (event.kind === "broken" && event.chain > 0 && sound !== null) {
+    if (event.kind === "broken" && event.times > 0 && sound !== null) {
       this.keepBreak(sound, ROCK_SIZES.indexOf(rockSizeOf(event)), across);
-      if (event.chain > this.topChain) {
-        this.topChain = event.chain;
+      if (event.times > this.topTimes) {
+        this.topTimes = event.times;
         this.topAcross = across;
       }
-      const chime = multiplierSoundOf(event.chain);
-      if (chime !== null) this.note(chime, 0, across);
       return;
     }
     if (sound !== null) this.note(sound, 0, across);
@@ -208,14 +205,14 @@ export class FieldSounds {
 
   /**
    * Plays each sound heard since the last time, once, the loudest level
-   * first, the bell at the highest step of the chain the frame's breaks
-   * reached, a crowd of breaks as its largest two and its patter, and
-   * forgets them.
+   * first, the bell at the highest of static's multipliers the frame's
+   * breaks scored at, a crowd of breaks as its largest two and its patter,
+   * and forgets them.
    */
   playEach(play: PlaySound): void {
     if (!this.heardAny) return;
-    if (this.topChain > 0) {
-      this.note(LADDER, ladderCentsOf(this.topChain), this.topAcross);
+    if (this.topTimes > 0) {
+      this.note(LADDER, bellCentsOf(this.topTimes), this.topAcross);
     }
     const crowd = this.breaks > MOST_BREAKS_HEARD;
     if (crowd) this.note(CROWD, 0, this.breaksAcross / this.breaks);
@@ -237,7 +234,7 @@ export class FieldSounds {
     this.largestRank = NO_RANK;
     this.nextLargest = null;
     this.nextRank = NO_RANK;
-    this.topChain = 0;
+    this.topTimes = 0;
   }
 
   /** Notes a sound heard, risen by some cents at a place, where it rose the most. */

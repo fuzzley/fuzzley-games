@@ -163,10 +163,13 @@ export class GameService extends RunLifecycle {
   readonly ships = computed(() => aboard(this.crew()));
 
   /**
-   * How many times a break scores, by the chain the wave in play counts: 1
-   * once the chain's time is up, and whenever no wave is in play.
+   * How many times what is scored scores, by static's step on the wave in
+   * play: 1 once the run is over.
    */
-  readonly chain = computed(() => this.runState().chain);
+  readonly multiplier = computed(() => this.runState().multiplier);
+
+  /** Static's step on the wave in play, from 0 at ×1 to full: 0 once the run is over. */
+  readonly step = computed(() => this.runState().step);
 
   /** The best score at the run's speed, as of the last run that ended. */
   readonly best = computed(() => this.stats.stats().speeds[this.speed()].best);
@@ -404,7 +407,6 @@ export class GameService extends RunLifecycle {
     const next: RunState = {
       ...state,
       run: after,
-      chain: 1,
       clearedOpen: false,
       tallyMs: 0,
     };
@@ -472,15 +474,15 @@ export class GameService extends RunLifecycle {
   takeUp({ run, field, broughtHome, tuned }: TakenUp): void {
     this.numbers.takeUp(run.id);
     const clearedAll = !tuned && hasClearedAll(run, this.waves.length);
+    const taken = field
+      ? takeUpField(this.waveOf(run), this.playerSetup(), field, run)
+      : undefined;
     const state: RunState = {
-      ...newRunState(run),
+      ...newRunState(run, taken?.charge.level),
       tuned,
       broughtHome,
       clearedAll,
     };
-    const taken = field
-      ? takeUpField(this.waveOf(run), this.playerSetup(), field, run)
-      : undefined;
     this.begin(this.keep(null, state), taken);
     if (taken) reshapeField(taken, this.torus);
     this.announcer.say(describeTakenUp(run, this.wave()));

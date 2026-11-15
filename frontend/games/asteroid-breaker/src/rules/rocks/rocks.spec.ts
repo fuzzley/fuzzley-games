@@ -14,15 +14,16 @@ import {
 } from "../catalog/rocks";
 import { FieldEventLog } from "../field/events";
 import { createCrew } from "../ship/pilots";
+import { createCharge } from "../sparks/charge";
 import { stepsIn } from "../stepper";
 import type { Place, Torus } from "../torus";
 import {
-  CHAIN_MS,
   PIECE_PUSH,
   PIECE_TURN,
   ROCK_RADIUS,
   ROCK_SPEED,
   ROCK_SPIN,
+  STATIC_MOST,
   STEP_S,
   type Span,
 } from "../tuning";
@@ -75,6 +76,8 @@ interface FieldOptions {
   /** The pickups its rocks may let go, none by default. */
   readonly pool?: readonly PickupId[];
   readonly rockSpeed?: number;
+  /** The pilot's static, none by default. */
+  readonly level?: number;
 }
 
 /**
@@ -88,6 +91,7 @@ function rockField({
   ship = null,
   pool = [],
   rockSpeed = 1,
+  level = 0,
 }: FieldOptions = {}): SpecField {
   return {
     setup: { drops: 0, pool, pickupsAtOnce: 2 },
@@ -103,13 +107,12 @@ function rockField({
     pickups: createPickups(),
     lastDropAt: 0,
     score: 0,
-    chain: 0,
-    lastBreakAt: 0,
-    chainPoints: 0,
+    staticPoints: 0,
     rockPoints: 0,
     strayPoints: 0,
     crew: createCrew(),
     hits: 0,
+    charge: createCharge(level),
     events: new FieldEventLog(),
   };
 }
@@ -543,40 +546,27 @@ describe("hitRock", () => {
     });
   });
 
-  it("logs each break with the count it is in its chain", () => {
-    const field = rockField();
+  it.each([
+    ["×1", 0, 1],
+    ["×3", 25, 3],
+    ["full", STATIC_MOST, 4],
+  ])(
+    "logs a break with static's multiplier it scored at, at %s",
+    (_, level, times) => {
+      const field = rockField({ level });
 
-    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
-    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
+      hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
 
-    expect(
-      loggedOn(field)
-        .filter((event) => event.kind === "broken")
-        .map((event) => event.chain),
-    ).toEqual([1, 2]);
-  });
+      expect(loggedOn(field)[0]).toMatchObject({ kind: "broken", times });
+    },
+  );
 
-  it("logs a break past the chain's time as the first of a new one", () => {
-    const field = rockField();
-    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
-    field.steps += stepsIn(CHAIN_MS) + 1;
+  it("logs a smashed rock's break, which scores nothing, at no multiplier", () => {
+    const field = rockField({ level: 25 });
 
-    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0);
+    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0, "smashes");
 
-    expect(
-      loggedOn(field)
-        .filter((event) => event.kind === "broken")
-        .at(-1),
-    ).toMatchObject({ chain: 1 });
-  });
-
-  it("logs a smashed rock's break as counting in no chain", () => {
-    const field = rockField();
-    hitRock(field, lay(field, "stone", "small", 10, 30), 1, 0);
-
-    hitRock(field, lay(field, "stone", "small", 20, 30), 1, 0, "smashes");
-
-    expect(loggedOn(field).at(-1)).toMatchObject({ kind: "broken", chain: 0 });
+    expect(loggedOn(field).at(-1)).toMatchObject({ kind: "broken", times: 0 });
   });
 
   it("logs a break at the rock's place, with its kind and size", () => {

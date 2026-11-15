@@ -85,9 +85,9 @@ describe("parseWave", () => {
 
   it("lets the pickups it names come instead, or none", () => {
     expect([
-      parsed({ pickups: ["nova", "slow"] }).pool,
+      parsed({ pickups: ["magnet", "slow"] }).pool,
       parsed({ pickups: [] }).pool,
-    ]).toEqual([["nova", "slow"], []]);
+    ]).toEqual([["magnet", "slow"], []]);
   });
 
   it.each([

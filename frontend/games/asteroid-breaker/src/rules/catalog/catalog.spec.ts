@@ -418,11 +418,6 @@ describe("PICKUPS", () => {
       PICKUPS.magnet.about,
       `from ${String(PICKUPS.magnet.effect.reach)} units`,
     ],
-    [
-      "the Nova's reach",
-      PICKUPS.nova.about,
-      `${String(PICKUPS.nova.effect.reach)} units out`,
-    ],
   ])("spells out %s as it is", (_, about, words) => {
     expect(about).toContain(words);
   });

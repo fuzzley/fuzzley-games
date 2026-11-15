@@ -4,6 +4,7 @@ import {
   type SavableField,
   type SavedField,
   type WaveSoFar,
+  isStatic,
   layOutKeptField,
   readField,
   savedField,
@@ -44,6 +45,8 @@ export interface SavedGame {
   readonly lastGiven: Pilot;
   readonly straysBanked: number;
   readonly strays: number;
+  /** The pilot's static as the wave in play started, which a wave laid out afresh starts with. */
+  readonly charge: number;
   /** Each stray the run brought home, in the order they came, for the result card. */
   readonly broughtHome: readonly Pilot[];
   /** Whether the run was flown on numbers the debug menu tuned, so it keeps no records. */
@@ -159,8 +162,8 @@ export function waveSoFar(run: Run): WaveSoFar {
 
 /**
  * Returns the run storage kept, paused, under a new id, or null if it
- * fails a check: its wave, its speed and seed, its points, its strays or
- * its crew.
+ * fails a check: its wave, its speed and seed, its points, its strays, its
+ * crew or its static.
  */
 export function readRun(
   value: Readonly<Record<string, unknown>>,
@@ -172,11 +175,12 @@ export function readRun(
     !hasSpeedAndSeed(value) ||
     !hasSoundScore(value) ||
     !hasSoundStrays(value) ||
-    !hasSoundCrew(value, value.strays)
+    !hasSoundCrew(value, value.strays) ||
+    !hasSoundStatic(value)
   ) {
     return null;
   }
-  const { seed, speed, firstWave, wave, banked, score } = value;
+  const { seed, speed, firstWave, wave, banked, score, charge } = value;
   const { pilot, tow, home, lastGiven, straysBanked, strays } = value;
   return {
     id,
@@ -189,6 +193,7 @@ export function readRun(
     crew: { pilot, tow, home, lastGiven },
     straysBanked,
     strays,
+    charge,
     outcome: "paused",
   };
 }
@@ -259,6 +264,13 @@ export function hasSoundCrew(
   );
 }
 
+/** Returns whether a run kept holds the pilot's static, from nothing to its most. */
+export function hasSoundStatic(
+  value: Readonly<Record<string, unknown>>,
+): value is Pick<SavedGame, "charge"> {
+  return isStatic(value["charge"]);
+}
+
 /**
  * Returns whether a run has scored on its wave in play, points or a stray
  * brought home, which a wave kept as not yet begun can't have.
@@ -288,6 +300,7 @@ function savedRun(
     lastGiven: run.crew.lastGiven,
     straysBanked: run.straysBanked,
     strays: run.strays,
+    charge: run.charge,
     broughtHome,
     tuned,
     field,

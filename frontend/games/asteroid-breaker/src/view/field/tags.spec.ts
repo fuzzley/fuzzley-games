@@ -1,12 +1,10 @@
-import { PICKUP_IDS } from "../../rules/catalog/pickups";
-import { EFFECT_KINDS, type InEffect, lasts } from "../../rules/rocks/pickups";
+import { EFFECT_KINDS, type InEffect } from "../../rules/rocks/pickups";
 import { stepsIn } from "../../rules/stepper";
 import { FIELD_SHORT_SIDE } from "../../rules/tuning";
 import {
   TAG_INSET,
   TAG_RADIUS,
   TAG_SPACING,
-  isTagged,
   tagX,
   tagY,
   timeLeft,
@@ -39,22 +37,9 @@ describe("timeLeft", () => {
   });
 });
 
-describe("isTagged", () => {
-  it("tags each pickup whose effect lasts, and none that is over as it starts", () => {
-    expect(PICKUP_IDS.filter(isTagged)).toEqual([
-      "spread",
-      "rapid",
-      "shield",
-      "lance",
-      "magnet",
-      "slow",
-    ]);
-  });
-});
-
 describe("a row of tags", () => {
-  // As many tags as there are groups whose effects last can show at once.
-  const MOST_TAGS = EFFECT_KINDS.filter(lasts).length;
+  // As many tags as there are groups of effects can show at once.
+  const MOST_TAGS = EFFECT_KINDS.length;
 
   it("keeps the first tag's ring clear of the field's left and bottom edges", () => {
     expect(tagX(0) - TAG_RADIUS).toBeGreaterThan(0);

@@ -15,9 +15,7 @@ export type PickupEffect =
   /** Pickups and strays are drawn in to the ship from farther, for a time. */
   | { readonly kind: "pull"; readonly reach: number; readonly ms: number }
   /** The rocks and comets go at a share of their speed, for a time. */
-  | { readonly kind: "pace"; readonly scale: number; readonly ms: number }
-  /** Every rock within a reach of the ship takes a hit, at once. */
-  | { readonly kind: "nova"; readonly reach: number };
+  | { readonly kind: "pace"; readonly scale: number; readonly ms: number };
 
 /** An effect's kind, which is its group. */
 export type EffectKind = PickupEffect["kind"];
@@ -81,14 +79,6 @@ export const PICKUPS = {
     weight: 5,
     from: 8,
     effect: { kind: "pace", scale: 0.5, ms: 8000 },
-  },
-  nova: {
-    name: "Nova",
-    about:
-      "A ring sweeps 12 units out from the ship; each rock it reaches takes a hit.",
-    weight: 4,
-    from: 9,
-    effect: { kind: "nova", reach: 12 },
   },
 } as const satisfies Readonly<Record<string, Pickup>>;
 

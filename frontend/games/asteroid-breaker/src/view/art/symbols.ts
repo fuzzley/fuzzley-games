@@ -177,8 +177,6 @@ export const SYMBOLS = {
       style,
     ),
   ],
-  nova: (square, style) =>
-    rays(square, 8, 0.16, 0.46, symbolLineStyle(square, style)),
   fire: (square, style) => {
     const pen = symbolLineStyle(square, style);
     return [rimIn(square, 0.3, pen), ...rays(square, 4, 0.18, 0.5, pen)];

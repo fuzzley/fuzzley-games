@@ -1,9 +1,5 @@
 import type { FieldEvent } from "../rules/field/events";
-import {
-  type WaveTally,
-  chainMultiplier,
-  tallyOf,
-} from "../rules/field/scoring";
+import { type WaveTally, tallyOf } from "../rules/field/scoring";
 import { rocksLeft } from "../rules/rocks/rocks";
 import {
   type EndMarks,
@@ -15,6 +11,7 @@ import {
 import { type Run, catchUp, startWave } from "../rules/run/run";
 import type { Pilot } from "../rules/ship/pilots";
 import type { Steer } from "../rules/ship/ship";
+import { multiplierOf, stepOf } from "../rules/sparks/charge";
 import { type WaveEntry, waveEntryOf } from "../rules/waves/waves";
 import { type Buzz, CLEARED_BUZZ, LOST_BUZZ } from "./effects/haptics";
 import { clearedDelayMs, resultDelayMs } from "./effects/timing";
@@ -36,11 +33,16 @@ export interface FrameChange {
   /** The pilots of the strays the frame brought home, in the order they came. */
   readonly cameHome: readonly Pilot[];
   /**
-   * How many times a break scores, by the chain the wave in play counts: 1
-   * once the wave isn't under way. Null for a frame of a wave cleared,
-   * ended or paused, which leaves the chain as it was.
+   * How many times what is scored scores, by static's step on the wave in
+   * play: 1 once the run is over. Null for a frame of a wave cleared, ended
+   * or paused, which leaves it as it was.
    */
-  readonly chain: number | null;
+  readonly multiplier: number | null;
+  /**
+   * Static's step on the wave in play, from 0 at ×1 to full: 0 once the run
+   * is over. Null for a frame that leaves it as it was, as the multiplier.
+   */
+  readonly step: number | null;
   /** How the wave's points added up, for its card, if the frame cleared it; else null. */
   readonly tally: WaveTally | null;
   /**
@@ -89,7 +91,8 @@ export class RunFrames {
     run: null,
     moved: false,
     cameHome: this.cameHome,
-    chain: null,
+    multiplier: null,
+    step: null,
     tally: null,
     opens: null,
     countMs: 0,
@@ -122,7 +125,8 @@ export class RunFrames {
     change.run = null;
     change.moved = false;
     this.cameHome.length = 0;
-    change.chain = null;
+    change.multiplier = null;
+    change.step = null;
     change.tally = null;
     change.opens = null;
     change.countMs = 0;
@@ -170,7 +174,7 @@ export class RunFrames {
   /**
    * Steps the field by a frame's time, hears what happened, starts the wave
    * at the first move, takes what its field came to into the run, and shows
-   * the chain the wave in play counts.
+   * static's step and multiplier on the wave in play.
    */
   private playOn(
     play: WavePlay,
@@ -187,8 +191,9 @@ export class RunFrames {
       started = this.start(play, run);
     }
     this.takeIn(play, started, catchUp(started, field));
-    const after = change.run ?? run;
-    change.chain = after.outcome === "playing" ? chainMultiplier(field) : 1;
+    const over = (change.run ?? run).outcome === "over";
+    change.multiplier = over ? 1 : multiplierOf(field.charge.level);
+    change.step = over ? 0 : stepOf(field.charge.level, field.sparking);
   }
 
   /**

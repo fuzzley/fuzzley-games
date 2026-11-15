@@ -53,7 +53,7 @@ export interface BeltPalette {
    * and the rest, are drawn in its {@link rockTones}, and are its look.
    */
   readonly mark: number;
-  /** The ship, a pickup, the stick's knob, a button pressed, a lost ship's burst, and the rings of the Nova, a spent Shield and a lost ship: the accent. */
+  /** The ship, a pickup, the stick's knob, a button pressed, a lost ship's burst, and the rings of a spent Shield and a lost ship: the accent. */
   readonly accent: number;
   /** A pickup's symbol and a pressed button's: the color the palette sets on its accent. */
   readonly onAccent: number;

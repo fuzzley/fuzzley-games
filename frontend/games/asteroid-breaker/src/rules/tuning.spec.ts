@@ -5,8 +5,6 @@ import { ROCK_KINDS, ROCK_SIZES } from "./catalog/rocks";
 import { PILOT_COLORS } from "./ship/pilots";
 import { stepsIn } from "./stepper";
 import {
-  CHAIN,
-  CHAIN_MS,
   COAST_HALF_LIFE_MS,
   COMET_MARGIN,
   COMET_RADIUS,
@@ -42,6 +40,9 @@ import {
   SHIP_HIT_RADIUS,
   SHOT_LIFE_MS,
   SHOT_SPEED,
+  STATIC_HOLD_MS,
+  STATIC_MOST,
+  STATIC_STEPS,
   STEP_S,
   STRAY_CATCH_REACH,
   STRAY_RADIUS,
@@ -226,13 +227,17 @@ describe("the tuning", () => {
     expect(COMET_MARGIN).toBeGreaterThanOrEqual(COMET_RADIUS);
   });
 
-  it("gives a chain's breaks more than a step to follow each other", () => {
-    expect(stepsIn(CHAIN_MS)).toBeGreaterThan(1);
+  it("holds static more than a step after a spark", () => {
+    expect(stepsIn(STATIC_HOLD_MS)).toBeGreaterThan(1);
   });
 
-  it("scores a longer chain more times, and each of its rows more than once", () => {
-    const froms = CHAIN.map((row) => row.from);
-    const times = CHAIN.map((row) => row.times);
+  it("fills static past the multiplier's last step", () => {
+    expect(STATIC_MOST).toBeGreaterThan(STATIC_STEPS[0].from);
+  });
+
+  it("scores a higher step of static more times, and each step more than once", () => {
+    const froms = STATIC_STEPS.map((row) => row.from);
+    const times = STATIC_STEPS.map((row) => row.times);
 
     expect([
       stepsBetween(froms).filter((step) => step >= 0),

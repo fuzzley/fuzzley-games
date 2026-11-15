@@ -9,9 +9,9 @@ through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with
 [Vitest](https://vitest.dev/), the scene against real Phaser run headless.
 It holds thirty waves in three sectors, then Endless, whose waves are made
 as they are played, with stone, crystal, ice, iron, volatile and lodestone
-rocks and a boulder to end each sector; eight pickups, Spread, Rapid and
+rocks and a boulder to end each sector; six pickups, Spread, Rapid and
 Lance, which give the ship another weapon than its gun for a while, and
-Shield, Magnet, Slow, Nova and Extra ship; and stray fuzzballs to bring home
+Shield, Magnet and Slow; and stray fuzzballs to bring home
 and comets to dodge, all played by rules that run without a framework,
 physics included, on a field that wraps at every edge. It plays at three
 speeds, by keyboard, mouse or touch, with a stick, Fire and Dash on a touch

@@ -1,5 +1,7 @@
 import type { WaveTally } from "../rules/field/scoring";
 import { type Run, createRun, startWave } from "../rules/run/run";
+import { FULL_STEP } from "../rules/sparks/charge";
+import { STATIC_MOST } from "../rules/tuning";
 import type { FrameChange } from "./run_frames";
 import { type RunState, newRunState, withFrame } from "./run_state";
 import { TALLY_COUNT_MS } from "./tally";
@@ -18,7 +20,8 @@ const QUIET: FrameChange = {
   run: null,
   moved: false,
   cameHome: [],
-  chain: null,
+  multiplier: null,
+  step: null,
   tally: null,
   opens: null,
   countMs: 0,
@@ -26,7 +29,10 @@ const QUIET: FrameChange = {
 };
 
 /** What a frame of a wave under way hands the shell that changed nothing of it. */
-const PLAYED: FrameChange = { ...QUIET, moved: true, chain: 1 };
+const PLAYED: FrameChange = { ...QUIET, moved: true, multiplier: 1, step: 0 };
+
+/** What a frame of a wave under way hands the shell as static rises to its first step. */
+const RISEN: FrameChange = { ...PLAYED, multiplier: 2, step: 1 };
 
 /** What a frame of a cleared wave hands the shell, where motion is welcome. */
 const CLEARED_FRAME: FrameChange = { ...QUIET, countMs: 16 };
@@ -34,7 +40,7 @@ const CLEARED_FRAME: FrameChange = { ...QUIET, countMs: 16 };
 /** How a cleared wave's points added up. */
 const TALLY: WaveTally = {
   rocks: 400,
-  chains: 80,
+  static: 80,
   strays: 0,
   cleared: 500,
   clean: 250,
@@ -46,11 +52,12 @@ function stateOf(own: Partial<RunState> = {}): RunState {
 }
 
 describe("newRunState", () => {
-  it("begins a run with none of its chain, its cards or its marks, flown on no tuned numbers", () => {
+  it("begins a run with none of its static, its cards or its marks, flown on no tuned numbers", () => {
     expect(newRunState(RUN)).toEqual({
       run: RUN,
       tuned: false,
-      chain: 1,
+      multiplier: 1,
+      step: 0,
       tally: null,
       clearedOpen: false,
       tallyMs: 0,
@@ -60,6 +67,18 @@ describe("newRunState", () => {
       resultOpen: false,
       resultClosed: false,
     });
+  });
+
+  it("begins a run with the static it carries", () => {
+    const state = newRunState({ ...RUN, charge: 25 });
+
+    expect([state.multiplier, state.step]).toEqual([3, 2]);
+  });
+
+  it("begins a run taken up with the static its field holds, rather than the run's", () => {
+    const state = newRunState({ ...RUN, charge: 25 }, STATIC_MOST);
+
+    expect([state.multiplier, state.step]).toEqual([4, FULL_STEP]);
   });
 });
 
@@ -71,7 +90,7 @@ describe("withFrame", () => {
       expect(withFrame(state, QUIET, AS_WRITTEN)).toBe(state);
     });
 
-    it("returns the same state while the wave plays on, its chain as it was", () => {
+    it("returns the same state while the wave plays on, its static as it was", () => {
       const state = stateOf();
 
       expect(withFrame(state, PLAYED, AS_WRITTEN)).toBe(state);
@@ -112,15 +131,27 @@ describe("withFrame", () => {
     });
   });
 
-  describe("the chain", () => {
-    it("takes the chain the frame counts", () => {
-      const after = withFrame(stateOf(), { ...PLAYED, chain: 2 }, AS_WRITTEN);
+  describe("static", () => {
+    it("takes the multiplier and the step the frame shows", () => {
+      const after = withFrame(stateOf(), RISEN, AS_WRITTEN);
 
-      expect(after.chain).toBe(2);
+      expect([after.multiplier, after.step]).toEqual([2, 1]);
     });
 
-    it("keeps the chain through a frame that leaves it, as a paused one does", () => {
-      const state = stateOf({ chain: 2 });
+    it("takes a step alone that leaves the multiplier as it was, as full does", () => {
+      const state = stateOf({ multiplier: 4, step: 3 });
+
+      const after = withFrame(
+        state,
+        { ...PLAYED, multiplier: 4, step: 4 },
+        AS_WRITTEN,
+      );
+
+      expect(after.step).toBe(4);
+    });
+
+    it("keeps static through a frame that leaves it, as a paused one does", () => {
+      const state = stateOf({ multiplier: 2, step: 1 });
 
       expect(withFrame(state, QUIET, AS_WRITTEN)).toBe(state);
     });
@@ -180,7 +211,7 @@ describe("withFrame", () => {
     it("keeps the last wave's tally through a frame that clears none", () => {
       const state = stateOf({ tally: TALLY });
 
-      const after = withFrame(state, { ...PLAYED, chain: 2 }, AS_WRITTEN);
+      const after = withFrame(state, RISEN, AS_WRITTEN);
 
       expect(after.tally).toBe(TALLY);
     });
@@ -265,7 +296,7 @@ describe("withFrame", () => {
       resultClosed: true,
     });
 
-    const after = withFrame(state, { ...PLAYED, chain: 2 }, AS_WRITTEN);
+    const after = withFrame(state, RISEN, AS_WRITTEN);
 
     expect(after).toMatchObject({
       newBest: true,

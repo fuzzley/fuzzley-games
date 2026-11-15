@@ -20,7 +20,7 @@ export const LAYOUT_SEEDS: readonly number[] = Array.from(
 
 /**
  * Returns how the spawn's specs start a wave on a field of a shape at a
- * speed, from a seed, with a run's first crew.
+ * speed, from a seed, with a run's first crew and no static.
  */
 export function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
   return {
@@ -28,6 +28,7 @@ export function startOn(torus: Torus, speed: Speed, seed: number): WaveSetup {
     speed,
     seed,
     crew: createCrew(),
+    charge: 0,
     held: STILL,
   };
 }

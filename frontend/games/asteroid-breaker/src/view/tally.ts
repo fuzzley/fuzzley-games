@@ -13,10 +13,10 @@ export const TALLY_COUNT_MS = 1200;
 /** What the Cleared card calls each part of a cleared wave's points, in its order. */
 const TALLY_LABELS: Readonly<Record<keyof WaveTally, string>> = {
   rocks: "Rocks",
-  chains: "Chains",
+  static: "Static",
   strays: "Strays brought home",
   cleared: "Wave cleared",
-  clean: "No ship lost",
+  clean: "No hit taken",
 };
 
 /** Every part of a cleared wave's points, in the Cleared card's order. */

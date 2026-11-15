@@ -73,7 +73,6 @@
       "id": "crowd",
       "name": "Crowd",
       "pace": 1.07,
-      "pickups": ["nova"],
       "rocks": [{ "kind": "stone", "size": "large", "count": 9 }]
     },
     {

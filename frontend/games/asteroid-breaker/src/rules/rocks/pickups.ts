@@ -10,7 +10,7 @@ import {
 } from "../catalog/pickups";
 import type { WeaponId } from "../catalog/weapons";
 import type { DropSetup, Floating } from "./drops";
-import { type RockField, hitWithin } from "./rocks";
+import type { RockField } from "./rocks";
 import { stepsIn } from "../stepper";
 import {
   type Place,
@@ -44,8 +44,8 @@ interface EffectSetup extends DropSetup {
 
 /**
  * Describes what the pickups and their effects act on: the rocks' field,
- * which the Nova hits, the ship catching them, the effects in play, and
- * what each effect changes.
+ * whose pace Slow changes, the ship catching them, the effects in play,
+ * and what each effect changes.
  */
 export interface PickupField extends RockField {
   readonly setup: EffectSetup;
@@ -66,17 +66,12 @@ type EffectOf = { readonly [E in PickupEffect as E["kind"]]: E };
 /** Says what the field does for one kind of effect, as it starts and as it ends. */
 interface EffectRule<E extends PickupEffect> {
   /** Runs as the ship catches a pickup with it. */
-  readonly start: (
-    field: PickupField,
-    effect: E,
-    ship: Readonly<Place>,
-  ) => void;
+  readonly start: (field: PickupField, effect: E) => void;
   /**
    * Undoes it, as its time runs out, the next pickup of its group is
-   * caught, the run ends or the wave is cleared. An effect without one is
-   * over as it starts.
+   * caught, the run ends or the wave is cleared.
    */
-  readonly end?: (field: PickupField) => void;
+  readonly end: (field: PickupField) => void;
 }
 
 /** What each effect does, so an effect without its rule fails to compile. */
@@ -113,24 +108,10 @@ const EFFECT_RULES: { readonly [K in EffectKind]: EffectRule<EffectOf[K]> } = {
       field.pace = field.setup.pace;
     },
   },
-  nova: {
-    start: (field, { reach }, ship) => {
-      field.events.add("nova", ship.x, ship.y, reach);
-      hitWithin(field, ship.x, ship.y, reach);
-    },
-  },
 };
 
 /** Every kind of effect, in the order the field shows their tags. */
 export const EFFECT_KINDS = keysOf(EFFECT_RULES);
-
-/**
- * Returns whether an effect of a kind lasts, until its time runs out or it is
- * used, rather than being over as it starts.
- */
-export function lasts(kind: EffectKind): boolean {
-  return EFFECT_RULES[kind].end !== undefined;
-}
 
 /** Returns the records of the effects in play, none yet. */
 export function createEffects(): Effects {
@@ -159,7 +140,7 @@ export function stepPickups(field: PickupField): void {
     }
     if (ship !== null && touches(floating, ship, torus)) {
       floating.live = false;
-      catchPickup(field, floating, ship);
+      catchPickup(field, floating);
     }
   }
 }
@@ -179,7 +160,7 @@ export function endEffect(field: PickupField, kind: EffectKind): void {
   if (inEffect.pickup === null) return;
   inEffect.pickup = null;
   inEffect.endsAt = 0;
-  EFFECT_RULES[kind].end?.(field);
+  EFFECT_RULES[kind].end(field);
 }
 
 /** Ends every effect, as the run ends or the wave is cleared. */
@@ -196,21 +177,15 @@ export function clearPickups(field: Pick<PickupField, "pickups">): void {
  * Starts a caught pickup's effect, ending the one of its group in play, if
  * any, so the same pickup again starts its time over.
  */
-function catchPickup(
-  field: PickupField,
-  floating: Readonly<Floating>,
-  ship: Readonly<Place>,
-): void {
+function catchPickup(field: PickupField, floating: Readonly<Floating>): void {
   const { id } = floating;
   const { effect } = pickup(id);
   field.events.addPickup("caught", floating.x, floating.y, id);
   endEffect(field, effect.kind);
-  startEffect(field, effect.kind, effect, ship);
-  if (lasts(effect.kind)) {
-    const inEffect = field.effects[effect.kind];
-    inEffect.pickup = id;
-    inEffect.endsAt = "ms" in effect ? field.steps + stepsIn(effect.ms) : 0;
-  }
+  startEffect(field, effect.kind, effect);
+  const inEffect = field.effects[effect.kind];
+  inEffect.pickup = id;
+  inEffect.endsAt = "ms" in effect ? field.steps + stepsIn(effect.ms) : 0;
 }
 
 /** Runs an effect's start rule. */
@@ -218,9 +193,8 @@ function startEffect<K extends EffectKind>(
   field: PickupField,
   kind: K,
   effect: EffectOf[K],
-  ship: Readonly<Place>,
 ): void {
-  EFFECT_RULES[kind].start(field, effect, ship);
+  EFFECT_RULES[kind].start(field, effect);
 }
 
 /**

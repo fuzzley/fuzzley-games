@@ -80,6 +80,8 @@ export interface StrayField extends ScoreField, CrossingField, LineField {
   readonly strays: Strays;
   crew: Crew;
   readonly loose: readonly Readonly<Loose>[];
+  /** How many steps the field has taken, by which the next stray comes. */
+  readonly steps: number;
   /** The effects in play, of which a Magnet draws a stray in. */
   readonly effects: { readonly pull: { readonly pickup: PickupId | null } };
   /** How near the ship a stray is drawn in to it from. */

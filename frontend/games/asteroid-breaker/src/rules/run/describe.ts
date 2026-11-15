@@ -1,6 +1,7 @@
 import { count, formatPoints } from "@fz/core/format";
 import { pickup } from "../catalog/pickups";
 import type { FieldEvent } from "../field/events";
+import { FULL_STEP } from "../sparks/charge";
 import type { Run } from "./run";
 import { type WaveEntry, isEndless, opensEndless } from "../waves/waves";
 
@@ -13,9 +14,10 @@ export function describeWave(entry: WaveEntry, rocks: number): string {
  * Returns what is said of an event of the field, as the event left the
  * crew: a stray drifting in, caught into the line in tow or brought
  * straight home, one of the crew knocked loose, caught again or floating
- * home, with how many ride in tow after a hit or a catch, and a pickup
- * caught, by its name; or null for any other, the hit that ends the run and
- * the crew floating home with it among them, as the run's end is said.
+ * home, with how many ride in tow after a hit or a catch, a pickup caught,
+ * by its name, and static coming to full; or null for any other, the hit
+ * that ends the run and the crew floating home with it among them, as the
+ * run's end is said.
  *
  * A pilot's color is never said: it only tells pilots apart.
  */
@@ -35,6 +37,8 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
       return event.runOver ? null : "A fuzzball floats home.";
     case "caught":
       return event.pickup === null ? null : `${pickup(event.pickup).name}.`;
+    case "stepped":
+      return event.step === FULL_STEP && !event.fell ? "Static full." : null;
     default:
       return null;
   }

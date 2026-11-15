@@ -5,12 +5,10 @@ import {
   floatingPickups,
   loggedOn,
   placePickup,
-  placeRock,
   shipOf,
   stepTimes,
 } from "../../testing/field_picture";
 import { PICKUPS } from "../catalog/pickups";
-import { ROCK_KINDS } from "../catalog/rocks";
 import { type Field, steerField, stepField } from "../field/field";
 import { STILL } from "../ship/ship";
 import { stepsIn } from "../stepper";
@@ -22,8 +20,7 @@ import {
   STEP_S,
 } from "../tuning";
 import type { Floating } from "./drops";
-import { EFFECT_KINDS, lasts } from "./pickups";
-import { rockHitRadius } from "./rocks";
+import { EFFECT_KINDS } from "./pickups";
 
 /** A rock in the field's corner, which keeps the wave from clearing, and the ship, far off it. */
 const PICTURE = ["L", "", "", "", ".........^"];
@@ -55,7 +52,7 @@ function stepsOf(id: "spread" | "magnet" | "slow"): number {
 function droppedByShot(): { field: Field; floating: Floating } {
   const field = fieldFrom(["S", "", "^", "", "", "", "........L"], {
     drops: 1,
-    pool: ["nova"],
+    pool: ["magnet"],
   });
   steerField(field, { ...STILL, fire: true });
   for (let step = 0; step < 120; step++) {
@@ -123,7 +120,7 @@ describe("a floating pickup", () => {
         kind: "faded",
         x: floating.x,
         y: floating.y,
-        pickup: "nova",
+        pickup: "magnet",
       }),
     ]);
   });
@@ -277,17 +274,8 @@ describe("an effect", () => {
     ]);
   });
 
-  it("lasts for each group but the Nova's, which is over as it starts", () => {
-    expect(EFFECT_KINDS.filter(lasts)).toEqual([
-      "weapon",
-      "guard",
-      "pull",
-      "pace",
-    ]);
-  });
-
   it("names every group, in the order the field shows their tags", () => {
-    expect(EFFECT_KINDS).toEqual(["weapon", "guard", "pull", "pace", "nova"]);
+    expect(EFFECT_KINDS).toEqual(["weapon", "guard", "pull", "pace"]);
   });
 });
 
@@ -350,50 +338,5 @@ describe("each effect", () => {
     stepTimes(field, stepsOf("slow"));
 
     expect(field.pace).toBe(1.2);
-  });
-
-  it("hits each whole rock the Nova's reach from the ship touches, and no other", () => {
-    const field = fieldOf();
-    const touch = PICKUPS.nova.effect.reach + rockHitRadius("large");
-    const near = placeRock(
-      field,
-      "large",
-      SHIP_X + touch - SLIVER,
-      SHIP_Y,
-      "iron",
-    );
-    const far = placeRock(
-      field,
-      "large",
-      SHIP_X,
-      SHIP_Y + touch + SLIVER,
-      "iron",
-    );
-
-    catchOn(field, "nova");
-
-    expect([near.hits, far.hits]).toEqual([
-      ROCK_KINDS.iron.hits.large - 1,
-      ROCK_KINDS.iron.hits.large,
-    ]);
-  });
-
-  it("logs the Nova's ring at the ship, with its reach, after the catch and before what it hits", () => {
-    const field = fieldOf();
-    placeRock(field, "small", SHIP_X + 5, SHIP_Y);
-
-    catchOn(field, "nova");
-
-    expect(loggedOn(field)).toEqual([
-      expect.objectContaining({ kind: "caught" }),
-      expect.objectContaining({
-        kind: "nova",
-        x: SHIP_X,
-        y: SHIP_Y,
-        reach: PICKUPS.nova.effect.reach,
-      }),
-      expect.objectContaining({ kind: "broken" }),
-      expect.objectContaining({ kind: "scored" }),
-    ]);
   });
 });

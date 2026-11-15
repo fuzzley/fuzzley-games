@@ -160,31 +160,32 @@ describe("FieldSounds", () => {
     });
   });
 
-  describe("a chain's breaks", () => {
-    it("ring one bell a frame, at the highest step of the ladder its breaks reached, where it was reached", () => {
+  describe("breaks that scored", () => {
+    it("ring one bell a frame, at the ladder's note for the highest of static's multipliers they scored at, where it was scored", () => {
       const { field, frame } = shipField();
 
-      field.events.addBreak(rockAt(field, 0.5, "small"), 4, 0, 0);
-      field.events.addBreak(rockAt(field, 0.75, "small"), 3, 0, 0);
+      field.events.addBreak(rockAt(field, 0.25, "small"), 2, 0, 0);
+      field.events.addBreak(rockAt(field, 0.5, "small"), 3, 0, 0);
+      field.events.addBreak(rockAt(field, 0.75, "small"), 1, 0, 0);
 
       expect(frame()).toContainEqual({
         name: "chain-ping",
-        detune: 700,
+        detune: 2400,
         across: 0,
         volume: 1,
       });
     });
 
-    it("ring the bell at the highest step the chain reached, where it reached it, though a lower step rings higher", () => {
+    it("ring the bell where the first to score at the highest multiplier broke", () => {
       const { field, frame } = shipField();
 
-      field.events.addBreak(rockAt(field, 0.5, "small"), 13, 0, 0);
-      field.events.addBreak(rockAt(field, 0.75, "small"), 14, 0, 0);
+      field.events.addBreak(rockAt(field, 0.25, "small"), 2, 0, 0);
+      field.events.addBreak(rockAt(field, 0.75, "small"), 2, 0, 0);
 
       expect(frame()).toContainEqual({
         name: "chain-ping",
-        detune: 2800,
-        across: 0.5,
+        detune: 1200,
+        across: -0.5,
         volume: 1,
       });
     });
@@ -192,7 +193,7 @@ describe("FieldSounds", () => {
     it("break at their own pitch, the ladder in the bell alone", () => {
       const { field, frame } = shipField();
 
-      field.events.addBreak(rockAt(field, 0.5, "small"), 8, 0, 0);
+      field.events.addBreak(rockAt(field, 0.5, "small"), 4, 0, 0);
 
       expect(frame()).toContainEqual({
         name: "break-stone-small",
@@ -202,22 +203,7 @@ describe("FieldSounds", () => {
       });
     });
 
-    it.each([
-      [5, "chain-x2"],
-      [10, "chain-x3"],
-      [20, "chain-x4"],
-    ] as const)(
-      "chime as the %ith break reaches a multiplier: %s",
-      (chain, chime) => {
-        const { field, frame } = shipField();
-
-        field.events.addBreak(rockAt(field, 0.5, "small"), chain, 0, 0);
-
-        expect(namesOf(frame())).toContain(chime);
-      },
-    );
-
-    it("ring no bell for a rock a comet smashed, which counts in no chain", () => {
+    it("ring no bell for a rock a comet smashed, which scored nothing", () => {
       const { field, frame } = shipField();
 
       field.events.addBreak(rockAt(field, 0.5, "small"), 0, 0, 0);

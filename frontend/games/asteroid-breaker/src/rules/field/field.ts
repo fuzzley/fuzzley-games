@@ -50,7 +50,7 @@ import {
   settleTow,
   stepTow,
 } from "../ship/tow";
-import { endChain, scoreClearing } from "./scoring";
+import { scoreClearing } from "./scoring";
 import {
   type Rock,
   type RockField,
@@ -84,6 +84,14 @@ import {
   stepShots,
   sweepShot,
 } from "../ship/shots";
+import {
+  type Charge,
+  type Sparking,
+  TUNED_SPARKING,
+  createCharge,
+  drainStatic,
+  knockStaticDown,
+} from "../sparks/charge";
 import { layOut, safestPlace } from "./spawn";
 import { SPEED_INFO, type Speed } from "../speed";
 import {
@@ -105,7 +113,8 @@ import type { Wave } from "../waves/waves";
 /**
  * Says how a wave is played: its field's size and cap, the seed its draws
  * come from, its pace, the kind of rock it names, the pickups it lets go,
- * what it sends across the field, and the crew it starts with.
+ * what it sends across the field, and the crew and the static it starts
+ * with.
  */
 export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly torus: Torus;
@@ -118,10 +127,12 @@ export interface FieldSetup extends DropSetup, StraySetup, CometSetup {
   readonly waveKind: RockKindId;
   /** The run's crew as the wave starts. */
   readonly crew: Crew;
+  /** The pilot's static as the wave starts, which the run carries from wave to wave. */
+  readonly charge: number;
 }
 
 /** Describes what the field of a run's wave takes from the run as it starts. */
-export type WaveStart = Pick<FieldSetup, "seed" | "crew">;
+export type WaveStart = Pick<FieldSetup, "seed" | "crew" | "charge">;
 
 /**
  * Says how a wave's field is set up beyond what the wave says: what the
@@ -139,6 +150,8 @@ export interface WaveSetup extends WaveStart {
   readonly gunnery?: Gunnery;
   /** How the crew ride in tow: `tuning.ts`'s unless given. */
   readonly towing?: Towing;
+  /** How static works: `tuning.ts`'s unless the debug menu tunes it. */
+  readonly sparking?: Sparking;
   /**
    * How fast its rocks fly against their size's speed, which its layout
    * keeps clear of the ship at: 1 unless the debug menu tunes it.
@@ -194,6 +207,10 @@ export interface Field extends RockField {
   crew: Crew;
   /** How many hits the ship has taken, but those the Shield took. */
   hits: number;
+  /** The pilot's static, which multiplies what is scored and goes on to the next wave. */
+  readonly charge: Charge;
+  /** How static works, which the debug menu tunes in play. */
+  sparking: Sparking;
   readonly strays: Strays;
   /** A slot for each of the crew that can be knocked loose at once, out on the field or not. */
   readonly loose: readonly Loose[];
@@ -209,10 +226,11 @@ export interface Field extends RockField {
  * Its counts and its cap grow with the field's area, as `fillFor()` says,
  * and the speed sets its rocks' pace, its chance of a pickup, at most 1,
  * and how often its comets come. It flies as the setup's flight, gunnery,
- * towing and rocks' speed say, its rocks laid out fairly for theirs.
+ * towing, sparking and rocks' speed say, its rocks laid out fairly for
+ * theirs.
  */
 export function fieldFor(wave: Wave, setup: WaveSetup): Field {
-  const { torus, seed, crew } = setup;
+  const { torus, seed, crew, charge } = setup;
   const fill = fillFor(wave, torus);
   const { motion, drops, cometRate } = SPEED_INFO[setup.speed];
   const every = fill.cometEvery;
@@ -221,6 +239,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
       torus,
       seed,
       crew,
+      charge,
       cap: fill.cap,
       pace: wave.pace * motion,
       waveKind: wave.waveKind,
@@ -239,6 +258,7 @@ export function fieldFor(wave: Wave, setup: WaveSetup): Field {
   field.flight = setup.flight ?? TUNED_FLIGHT;
   field.gunnery = setup.gunnery ?? TUNED_GUNNERY;
   field.towing = setup.towing ?? TUNED_TOWING;
+  field.sparking = setup.sparking ?? TUNED_SPARKING;
   field.rockSpeed = setup.rockSpeed ?? 1;
   layOut(field, fill.rocks, wave.formation, middleOf(torus));
   return field;
@@ -280,10 +300,10 @@ export function createField(
     pullReach: PICKUP_PULL_REACH,
     crew: setup.crew,
     hits: 0,
+    charge: createCharge(setup.charge),
+    sparking: TUNED_SPARKING,
     score: 0,
-    chain: 0,
-    lastBreakAt: 0,
-    chainPoints: 0,
+    staticPoints: 0,
     rockPoints: 0,
     strayPoints: 0,
     strays: createStrays(setup.strayFirstMs),
@@ -303,16 +323,16 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 }
 
 /**
- * Moves the field on by a step: blasts due go off and effects whose time is
- * up end, the ship flies by the frame's steering, its line in tow following
- * it, and fires, its shots and the rocks fly, each shot meets the first
- * rock in its way, the comets fly, breaking what they meet, a rock or a
- * comet hits a ship it touches that isn't guarded, or spends its shield,
- * and the pickups, the stray and the crew knocked loose float on, the ship
- * catching those it touches. Once no rock is left, the wave is cleared:
- * its effects end, its pickups, stray and comets go, the crew knocked loose
- * come back, and everything else stands still where it is. A wave holds
- * still from its start until the player's first move.
+ * Moves the field on by a step: blasts due go off, effects whose time is
+ * up end and static drains, the ship flies by the frame's steering, its
+ * line in tow following it, and fires, its shots and the rocks fly, each
+ * shot meets the first rock in its way, the comets fly, breaking what they
+ * meet, a rock or a comet hits a ship it touches that isn't guarded, or
+ * spends its shield, and the pickups, the stray and the crew knocked loose
+ * float on, the ship catching those it touches. Once no rock is left, the
+ * wave is cleared: its effects end, its pickups, stray and comets go, the
+ * crew knocked loose come back, and everything else stands still where it
+ * is. A wave holds still from its start until the player's first move.
  *
  * The shots land before the comets fly, so a rock both meet in a step is
  * the shot's, for its points.
@@ -322,6 +342,7 @@ export function stepField(field: Field): void {
   field.steps += 1;
   setOffBlasts(field);
   stepEffects(field);
+  drainStatic(field);
   const { ship, steer, torus } = field;
   if (ship && flyShip(ship, steer, torus, field.flight)) {
     field.events.addDash(ship.x, ship.y, ship.angle);
@@ -409,8 +430,8 @@ function firstMet(field: Field, shot: Readonly<Shot>): Rock | null {
  * guarded hit it, or, while it is shielded, spend the shield on it, before
  * anyone in tow: a rock breaks a size down, and a comet, which can't be
  * broken, flies on. The ship is kept untouchable a while after, so a rock's
- * pieces can fly clear, and a hit ends the chain, the rock it breaks
- * counted in it first.
+ * pieces can fly clear, and a hit knocks static down a step, the rock it
+ * breaks scored first.
  */
 function meetDangers(field: Field, ship: Ship): void {
   if (isGuarded(ship)) return;
@@ -429,7 +450,7 @@ function meetDangers(field: Field, ship: Ship): void {
     return;
   }
   if (rock) breakOnShip(field, ship, rock);
-  if (!shielded) endChain(field);
+  if (!shielded) knockStaticDown(field);
 }
 
 /** Returns the first whole rock that touches a ship, or null for none. */
@@ -482,8 +503,8 @@ function breakOnShip(field: Field, ship: Readonly<Ship>, rock: Rock): void {
 /**
  * Ends the run with a hit with no one in tow: the ship bursts, which its
  * shots in flight outlive, its pilot bailing out home, logged, the crew
- * knocked loose floating home, and with it the chain, every effect and the
- * pickups floating.
+ * knocked loose floating home, and with it every effect and the pickups
+ * floating.
  */
 function endRun(field: Field, ship: Readonly<Ship>): void {
   const pilot = atControls(field.crew);
@@ -492,7 +513,6 @@ function endRun(field: Field, ship: Readonly<Ship>): void {
   field.events.addPilot("lost", ship.x, ship.y, pilot, field.crew);
   field.ship = null;
   floatAllHome(field);
-  endChain(field);
   endEffects(field);
   clearPickups(field);
 }
