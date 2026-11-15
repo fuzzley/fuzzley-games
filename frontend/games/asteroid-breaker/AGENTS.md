@@ -139,7 +139,11 @@ takes for the specs' helpers.
 - **`src/rules/ship/`** — the ship, its weapon and its crew. `ship.ts` flies
   the ship by a frame's `Steer`, the keys' turn, a stick's heading or the
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
-  heading, coasts, keeps under its top speed, wraps, or dashes. `shots.ts`
+  heading, coasts, keeps under its top speed, wraps, or dashes once its
+  dash is ready again (`isDashReady()`, which the pod's rim, the deck's
+  dash button and `dash-ready` all read, so they agree to the step), the
+  rim's gauge and the deck's ring filling as it recharges
+  (`rechargeShare()`). `shots.ts`
   fires the weapon in hand from the ship's nose and sweeps each shot as a
   segment against circles (`sweepShot()`), so however fast it flies it can't
   pass through a rock between two steps. `pilots.ts` keeps the `Crew`: the
@@ -441,9 +445,10 @@ takes for the specs' helpers.
   gathered the next note of the ladder, an octave under the bell's, in a
   run of sparks each within static's hold of the last, in the field's
   steps (`SPARK_RUN_STEPS`), which a fall of static or a new field ends, a
-  zap in place of the dash that set it off, and what the field's state says by how it changed since
-  the frame before (fire let go just after a burst, `shot-tail`; the dash
-  charged again, `dash-ready`; an effect run out); then plays each once, at
+  zap in place of the dash that set it off, and what the field's state
+  says by how it changed since the frame before (fire let go just after a
+  burst, `shot-tail`; the dash ready again, `dash-ready`, by
+  `isDashReady()`; an effect run out); then plays each once, at
   the most it rose, the loudest first, making nothing. `flourish.ts` says
   how each flourish moves over its time, beside `@fz/core/math`'s
   `shareDone()` and its curves (`easeOutCubic()`, `fadeAlpha()`), among them

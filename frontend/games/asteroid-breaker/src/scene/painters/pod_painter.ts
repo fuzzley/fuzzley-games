@@ -1,5 +1,11 @@
 import type { GameObjects, Scene } from "phaser";
-import { isGuarded, rechargeShare, thrustOf } from "../../rules/ship/ship";
+import {
+  type Ship,
+  isDashReady,
+  isGuarded,
+  rechargeShare,
+  thrustOf,
+} from "../../rules/ship/ship";
 import type { Pilot } from "../../rules/ship/pilots";
 import type { Moving } from "../../rules/torus";
 import {
@@ -82,10 +88,10 @@ export class PodPainter implements Painter {
   private readonly shift: Moving = { x: 0, y: 0 };
   /** The scene's time as the pod was last drawn, or null before it first is. */
   private drawnAt: number | null = null;
-  /** Whether the dash was charged as the pod was last drawn. */
-  private charged = true;
-  /** The scene's time the dash last came charged at, which the rim flashes from. */
-  private chargedAt = -Infinity;
+  /** Whether the dash was ready as the pod was last drawn. */
+  private dashReady = true;
+  /** The scene's time the dash last came ready at, which the rim flashes from. */
+  private readyAt = -Infinity;
 
   constructor(scene: Scene, layer: GameObjects.Layer) {
     this.streaks = new Copies(scene, layer, POD_FRAMES.streaks);
@@ -132,13 +138,13 @@ export class PodPainter implements Painter {
     hearFace(this.moments, event, steps);
   }
 
-  /** Forgets the last field's moments, lean and charge, as a new field starts. */
+  /** Forgets the last field's moments, lean and dash, as a new field starts. */
   start(): void {
     Object.assign(this.moments, createFaceMoments());
     this.lean.x = 0;
     this.lean.y = 0;
-    this.charged = true;
-    this.chargedAt = -Infinity;
+    this.dashReady = true;
+    this.readyAt = -Infinity;
   }
 
   /**
@@ -153,8 +159,8 @@ export class PodPainter implements Painter {
     this.drawnAt = now;
     if (!ship || !shipDrawn || pilot === null) {
       for (const part of this.parts) part.hide();
-      // The next pod comes charged, its pilot's fur at rest.
-      this.charged = true;
+      // The next pod comes with its dash ready, its pilot's fur at rest.
+      this.dashReady = true;
       this.lean.x = 0;
       this.lean.y = 0;
       return;
@@ -178,7 +184,7 @@ export class PodPainter implements Painter {
     this.showIf(this.hull, true, context);
     this.showIf(this.glass, true, context);
     this.drawPilot(context, pilot, elapsed);
-    this.drawRim(context, rechargeShare(ship));
+    this.drawRim(context, ship);
     this.glint.setAlpha(POD_ALPHAS.glint[palette.mode]);
     this.showIf(this.glint, true, context);
     this.showIf(this.shield, field.shielded, context);
@@ -268,23 +274,24 @@ export class PodPainter implements Painter {
   }
 
   /**
-   * Draws the rim: its gauge while the dash recharges, filling clockwise
-   * from the top, then the rim charged, flashing once as it comes charged,
-   * the flash fading in the scene's time, as a flourish does, so one under
-   * way as the wave is cleared still fades.
+   * Draws a ship's rim: its gauge while the dash recharges, filling
+   * clockwise from the top, then the rim charged, flashing once as it comes
+   * charged (`isDashReady()`, by which `dash-ready` plays too), the flash
+   * fading in the scene's time, as a flourish does, so one under way as the
+   * wave is cleared still fades.
    */
   private drawRim(
     { field, shipDrawn, metrics, zoom, now, motion }: Readonly<PaintContext>,
-    share: number,
+    ship: Readonly<Ship>,
   ): void {
     if (!shipDrawn) return;
-    const charged = share >= 1;
-    if (charged && !this.charged) this.chargedAt = now;
-    this.charged = charged;
+    const ready = isDashReady(ship);
+    if (ready && !this.dashReady) this.readyAt = now;
+    this.dashReady = ready;
     const { x, y } = shipDrawn;
-    this.rim.setFrame(charged ? POD_FRAMES.rim : gaugeFrame(share));
+    this.rim.setFrame(ready ? POD_FRAMES.rim : gaugeFrame(rechargeShare(ship)));
     this.rim.show(x, y, POD_REACH, metrics, field.torus);
-    const since = now - this.chargedAt;
+    const since = now - this.readyAt;
     const alpha = rimFlashAlpha(since);
     if (alpha <= 0) {
       this.flash.hide();

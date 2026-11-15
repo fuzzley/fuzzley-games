@@ -16,7 +16,13 @@ import { type Loose, stepsLeftOf } from "../rules/hazards/loose";
 import { createCrew } from "../rules/ship/pilots";
 import { hasRoomInTow } from "../rules/ship/tow";
 import { rockHitRadius } from "../rules/rocks/rocks";
-import { STILL, type Ship, type Steer, guardShip } from "../rules/ship/ship";
+import {
+  STILL,
+  type Ship,
+  type Steer,
+  guardShip,
+  isDashReady,
+} from "../rules/ship/ship";
 import { drawReach } from "../rules/sparks/sparks";
 import type { Speed } from "../rules/speed";
 import { STEP_MS, stepsIn } from "../rules/stepper";
@@ -309,10 +315,7 @@ export function pilot(field: Field, steer: Steer): void {
     steer.thrust = 1;
     // A dash keeps the ship untouchable for its guard, whichever way it goes.
     steer.dash =
-      !dash &&
-      threat.touches &&
-      threat.at < DASH_WITHIN_S &&
-      ship.rechargeSteps === 0;
+      !dash && threat.touches && threat.at < DASH_WITHIN_S && isDashReady(ship);
     return;
   }
   const goal = goalOf(field, ship);
