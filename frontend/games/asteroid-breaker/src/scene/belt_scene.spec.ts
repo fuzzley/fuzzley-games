@@ -5,7 +5,7 @@ import {
   type WashCommand,
   lineWidth,
 } from "@fz/phaser/shapes";
-import { SpritePlayer } from "@fz/phaser/sound";
+import { LayerPlayer, SpritePlayer } from "@fz/phaser/sound";
 import {
   type SceneRun,
   cacheSounds,
@@ -109,6 +109,7 @@ import {
 import { MOST_BAKED_UNIT, bakedScale } from "../view/art/shapes";
 import { SOUNDS, SOUND_NAMES, type SoundName } from "../view/effects/sounds";
 import { PATIENCE_MS } from "../view/effects/voice";
+import { BED_NAMES, type BedName } from "../view/effects/beds";
 import {
   BREATH,
   GOLDEN_ANGLE,
@@ -3213,6 +3214,16 @@ describe("the sounds", () => {
     expect(humsIn(scene)).toBe(0);
   });
 
+  it("hum while a lodestone is on the field", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene, SOUNDS_KEY);
+
+    shell.lodestoneOn = true;
+    run.advance(16);
+
+    expect(scene.kit.sounds.holds("lodestone-hum")).toBe(true);
+  });
+
   it("leave the field playing where they can't be loaded", async () => {
     const { shell, run, scene } = await startBoard();
     const rock = placeRock(shell.field, "small", 30, 20);
@@ -3228,5 +3239,160 @@ describe("the sounds", () => {
       null,
       null,
     ]);
+  });
+});
+
+describe("the beds", () => {
+  /** Has the sounds' sprite and the beds' files in the scene's cache, as if they had loaded. */
+  function cacheBeds(scene: BeltScene): void {
+    cacheSounds(scene, SOUNDS_KEY);
+    for (const name of BED_NAMES) cacheSounds(scene, name);
+  }
+
+  /** Returns the beds and layers the scene plays, not yet faded out. */
+  function bedsPlayingIn(scene: BeltScene): BedName[] {
+    return BED_NAMES.filter((name) =>
+      scene.sound.getAll(name).some((sound) => !sound.pendingRemove),
+    );
+  }
+
+  /**
+   * Returns each bed the scene holds or fetches ahead from now on, with the
+   * frames the shell had been handed by then, and has the beds play
+   * nothing. The headless game loads no audio, so the calls are what there
+   * is to watch.
+   */
+  function bedsWanted(
+    shell: () => FakeShell | undefined,
+  ): ["held" | "fetched", BedName, number][] {
+    const wanted: ["held" | "fetched", BedName, number][] = [];
+    vi.spyOn(LayerPlayer.prototype, "hold").mockImplementation(
+      (name: BedName, held: boolean) => {
+        if (held) wanted.push(["held", name, shell()?.ticks.length ?? 0]);
+      },
+    );
+    vi.spyOn(LayerPlayer.prototype, "fetch").mockImplementation(
+      (name: BedName) => {
+        wanted.push(["fetched", name, shell()?.ticks.length ?? 0]);
+      },
+    );
+    return wanted;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("want no bed before the first frame is drawn, and the place's from the frame after", async () => {
+    vi.spyOn(SpritePlayer.prototype, "loaded", "get").mockReturnValue(true);
+    let fake: FakeShell | undefined;
+    const wanted = bedsWanted(() => fake);
+    const { run } = await startBoard((shell) => {
+      fake = shell;
+    });
+
+    run.advance(16);
+
+    expect(wanted.filter(([how]) => how === "held")).toEqual([
+      ["held", "bed-inner-belt", 2],
+    ]);
+  });
+
+  it("want no bed until the sounds' sprite has loaded", async () => {
+    const { shell, run, scene } = await startBoard();
+    const wanted = bedsWanted(() => shell);
+    run.advance(16);
+
+    cacheSounds(scene, SOUNDS_KEY);
+    run.advance(16);
+
+    expect(wanted.filter(([how]) => how === "held")).toEqual([
+      ["held", "bed-inner-belt", 3],
+    ]);
+  });
+
+  it("fetch ahead the bed of the next wave's place and the layers over it", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene, SOUNDS_KEY);
+    const wanted = bedsWanted(() => shell);
+
+    shell.nextPlace = "storm";
+    run.advance(16);
+
+    expect(wanted.filter(([how]) => how === "fetched")).toEqual([
+      ["fetched", "bed-storm", 2],
+      ["fetched", "bed-pulse", 2],
+      ["fetched", "bed-shimmer", 2],
+    ]);
+  });
+
+  it("fetch no bed while the player wants no sound", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheSounds(scene, SOUNDS_KEY);
+    const wanted = bedsWanted(() => shell);
+
+    shell.wantsSound = false;
+    run.advance(16);
+
+    expect(wanted).toEqual([]);
+  });
+
+  it("play the bed of the place the wave is played in", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheBeds(scene);
+
+    shell.place = "storm";
+    run.advance(16);
+
+    expect(bedsPlayingIn(scene)).toEqual(["bed-storm"]);
+  });
+
+  it.each([
+    [2, ["bed-iron-reach"]],
+    [3, ["bed-iron-reach", "bed-pulse"]],
+    [4, ["bed-iron-reach", "bed-pulse", "bed-shimmer"]],
+  ] as const)("play at ×%i %j", async (times, beds) => {
+    const { shell, run, scene } = await startBoard();
+    cacheBeds(scene);
+    shell.place = "iron-reach";
+
+    shell.times = times;
+    run.advance(16);
+
+    expect(bedsPlayingIn(scene)).toEqual(beds);
+  });
+
+  it("let the layers go, faded out, as the multiplier falls back", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheBeds(scene);
+    shell.times = 4;
+    run.advance(16);
+
+    shell.times = 1;
+    run.advance(2500);
+
+    expect(bedsPlayingIn(scene)).toEqual(["bed-inner-belt"]);
+  });
+
+  it("cross into the next place's bed as a wave is played there", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheBeds(scene);
+    run.advance(16);
+
+    shell.place = "endless";
+    run.advance(2500);
+
+    expect(bedsPlayingIn(scene)).toEqual(["bed-endless"]);
+  });
+
+  it("play no bed while the player wants no sound", async () => {
+    const { shell, run, scene } = await startBoard();
+    cacheBeds(scene);
+    run.advance(16);
+
+    shell.wantsSound = false;
+    run.advance(2500);
+
+    expect(bedsPlayingIn(scene)).toEqual([]);
   });
 });

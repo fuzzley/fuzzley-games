@@ -60,6 +60,7 @@ import {
 import { fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
+import { hasLodestone } from "../../view/effects/field_sounds";
 import { placeOfSector } from "../../view/places/places";
 import type { FieldFrame } from "../../view/field/frame";
 import { RunFrames } from "../../view/run_frames";
@@ -205,6 +206,11 @@ export class GameService extends RunLifecycle {
    * goes on to, as the Cleared card names it.
    */
   readonly waveAfter = computed(() => this.waveEntry(this.waveNumber() + 1));
+
+  /** The place the wave after this one is played in, whose bed the scene fetches ahead. */
+  readonly placeAfter = computed(() =>
+    placeOfSector(this.waveAfter().sector.id),
+  );
 
   /**
    * Whether the wave in play, or the last one cleared, is the last
@@ -354,6 +360,15 @@ export class GameService extends RunLifecycle {
   thrusting(): boolean {
     const { ship } = this.wavePlay.field;
     return this.outcome() === "playing" && ship !== null && thrustOf(ship) > 0;
+  }
+
+  /**
+   * Returns whether a lodestone is on the field while its wave plays on,
+   * as the field last stepped, which the lodestone's hum follows: not while
+   * the wave waits, is paused or is over.
+   */
+  lodestoneHums(): boolean {
+    return this.outcome() === "playing" && hasLodestone(this.wavePlay.field);
   }
 
   /**

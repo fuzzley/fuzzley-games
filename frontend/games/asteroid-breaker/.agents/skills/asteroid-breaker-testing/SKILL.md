@@ -270,12 +270,14 @@ game through `runScene()`:
 
 - `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
-  sound and board settings and the points' font (`typeface`, in
-  `SHELL_FONT`, which a spec replaces as the page would on loading a face
-  late), and keeps the frames' times and steering, the layouts the scene
-  hands it (`FieldLayout`), the commands and what the scene hands back at
-  each bake to picture How to play's art with (`bakes`), which
-  `askPictures()` asks as the board does; `withShip`, `stillness`,
+  sound and board settings, whether the ship thrusts and a lodestone is on
+  the field (`thrusts`, `lodestoneOn`), the multiplier (`times`), the place
+  the wave after is played in (`placeAfter`) and the points' font
+  (`typeface`, in `SHELL_FONT`, which a spec replaces as the page would on
+  loading a face late), and keeps the frames' times and steering, the
+  layouts the scene hands it (`FieldLayout`), the commands and what the
+  scene hands back at each bake to picture How to play's art with (`bakes`),
+  which `askPictures()` asks as the board does; `withShip`, `stillness`,
   `stepping` and `reshaping`, which shapes the field to each room the scene
   lays it out in, as the game does a paused one, set it up.
 - `startBoard()` runs the scene for a fake shell through
@@ -288,14 +290,15 @@ game through `runScene()`:
   and `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the
   triangles and the lines a `Graphics` draws, `trianglesOf()` and
   `linesOf()`, as a break's are, the field camera's `scrolledBy()`), the
-  lights the rocks are lit by (the scene's
-  `lights`, a held hit's flash among them), the sounds (`humsIn()` after
-  `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`,
-  or a spy on `SpritePlayer`'s `play()`, which the sprite, not loaded
-  headless, leaves the only witness of what plays; the scene's spec logs
-  every kind of event, a record over `FieldEventKind` the compiler holds
-  whole, and holds the sounds each plays) or on what the shell kept. A
-  headless game draws no pixels and plays no sound.
+  lights the rocks are lit by (the scene's `lights`, a held hit's flash
+  among them), the sounds (`humsIn()` after `@fz/phaser/testing`'s
+  `cacheSounds()`, given the scene's `SOUNDS_KEY`, or a spy on
+  `SpritePlayer`'s `play()`, which the sprite, not loaded headless, leaves
+  the only witness of what plays, as a spy on `LayerPlayer`'s `hold()` and
+  `fetch()` is of the beds; the scene's spec logs every kind of event, a
+  record over `FieldEventKind` the compiler holds whole, and holds the
+  sounds each plays) or on what the shell kept. A headless game draws no
+  pixels and plays no sound.
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
   the painter draw from a `PaintContext` it writes, at a time of its own.

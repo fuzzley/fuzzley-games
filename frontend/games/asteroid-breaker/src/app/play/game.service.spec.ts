@@ -556,6 +556,19 @@ describe("GameService", () => {
       expect(game.frame().place).toBe("storm");
     });
 
+    it("names the place the wave after is played in, its sector's", () => {
+      const [near, far] = SECTOR_WAVES;
+      if (!near || !far) throw new Error("No waves");
+      const game = gameOver(
+        wavesOf([
+          { ...near.sector, id: "inner-belt" },
+          { ...far.sector, id: "iron-reach" },
+        ]),
+      );
+
+      expect(game.placeAfter()).toBe("iron-reach");
+    });
+
     it("plays a spec's sector's wave, which has no place of its own, in the first sector's", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
 
@@ -1511,6 +1524,60 @@ describe("GameService", () => {
       const game = await gameAt(SPEC_WAVE.gift);
 
       expect(game.thrusting()).toBe(false);
+    });
+  });
+
+  describe("the lodestone's hum", () => {
+    /** Returns the game over a wave of one lodestone, its run waiting for its first move. */
+    function lodestoneGame(): GameService {
+      const [entry] = SPEC_WAVES;
+      if (!entry) throw new Error("No waves");
+      return gameOver(
+        wavesOf([
+          {
+            ...entry.sector,
+            waves: [
+              {
+                ...entry.data,
+                rocks: [{ kind: "lodestone", size: "large", count: 1 }],
+              },
+            ],
+          },
+        ]),
+      );
+    }
+
+    it("is held while a lodestone is on the field and its wave plays on", async () => {
+      const game = lodestoneGame();
+      await game.startAt(1);
+
+      game.tick(FRAME_MS, shoot(game));
+
+      expect(game.lodestoneHums()).toBe(true);
+    });
+
+    it("is not held before the first move", async () => {
+      const game = lodestoneGame();
+
+      await game.startAt(1);
+
+      expect(game.lodestoneHums()).toBe(false);
+    });
+
+    it("is let go as the wave pauses", async () => {
+      const game = lodestoneGame();
+      await game.startAt(1);
+      game.tick(FRAME_MS, shoot(game));
+
+      game.pause();
+
+      expect(game.lodestoneHums()).toBe(false);
+    });
+
+    it("is not held over a wave with no lodestone", async () => {
+      const game = await startedAt(SPEC_WAVE.gift);
+
+      expect(game.lodestoneHums()).toBe(false);
     });
   });
 

@@ -16,7 +16,12 @@ import {
   viewportOf,
 } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
-import { type SoundSprite, SpritePlayer } from "@fz/phaser/sound";
+import {
+  LayerPlayer,
+  type SoundLayer,
+  type SoundSprite,
+  SpritePlayer,
+} from "@fz/phaser/sound";
 import { type Cameras, type GameObjects, Input, Scene } from "phaser";
 import type { Torus } from "../rules/torus";
 import { PICTURE_FRAMES, type Pictures } from "../view/art/art";
@@ -25,12 +30,20 @@ import { commandOfKey } from "../view/steering/controls";
 import { type Deck, deckOf } from "../view/steering/deck";
 import { effectsOf, flourishesOf } from "../view/effects/effects";
 import {
+  BED_NAMES,
+  type BedName,
+  bedPlays,
+  bedsAhead,
+} from "../view/effects/beds";
+import {
+  LODESTONE_HUM,
   SOUNDS,
   type SoundName,
   type SoundTake,
   THRUST,
 } from "../view/effects/sounds";
 import { FieldSounds } from "../view/effects/field_sounds";
+import type { PlaceId } from "../view/places/places";
 import {
   type BoardSetting,
   type FieldLayout,
@@ -77,6 +90,18 @@ import { ShotPainter } from "./painters/shot_painter";
 import { StrayPainter } from "./painters/stray_painter";
 import { TagPainter } from "./painters/tag_painter";
 import { TrailPainter } from "./painters/trail_painter";
+import bedEndlessM4a from "./sounds/beds/bed-endless.m4a?url";
+import bedEndlessOgg from "./sounds/beds/bed-endless.ogg?url";
+import bedInnerBeltM4a from "./sounds/beds/bed-inner-belt.m4a?url";
+import bedInnerBeltOgg from "./sounds/beds/bed-inner-belt.ogg?url";
+import bedIronReachM4a from "./sounds/beds/bed-iron-reach.m4a?url";
+import bedIronReachOgg from "./sounds/beds/bed-iron-reach.ogg?url";
+import bedPulseM4a from "./sounds/beds/bed-pulse.m4a?url";
+import bedPulseOgg from "./sounds/beds/bed-pulse.ogg?url";
+import bedShimmerM4a from "./sounds/beds/bed-shimmer.m4a?url";
+import bedShimmerOgg from "./sounds/beds/bed-shimmer.ogg?url";
+import bedStormM4a from "./sounds/beds/bed-storm.m4a?url";
+import bedStormOgg from "./sounds/beds/bed-storm.ogg?url";
 import spritemap from "./sounds/sprite.json";
 import spriteM4a from "./sounds/sprite.m4a?url";
 import spriteOgg from "./sounds/sprite.ogg?url";
@@ -95,6 +120,26 @@ const SOUND_SPRITE: SoundSprite<SoundTake> = {
   url: [spriteOgg, spriteM4a],
 };
 
+/**
+ * The beds and the layers over them, each as Ogg Vorbis and, for Safari,
+ * as M4A, of which the browser loads the first it plays, by the name the
+ * kit gives its file, which is its key; at the kit's level, played whole.
+ */
+const BEDS: Readonly<Record<BedName, SoundLayer>> = {
+  "bed-inner-belt": {
+    key: "bed-inner-belt",
+    url: [bedInnerBeltOgg, bedInnerBeltM4a],
+  },
+  "bed-iron-reach": {
+    key: "bed-iron-reach",
+    url: [bedIronReachOgg, bedIronReachM4a],
+  },
+  "bed-storm": { key: "bed-storm", url: [bedStormOgg, bedStormM4a] },
+  "bed-endless": { key: "bed-endless", url: [bedEndlessOgg, bedEndlessM4a] },
+  "bed-pulse": { key: "bed-pulse", url: [bedPulseOgg, bedPulseM4a] },
+  "bed-shimmer": { key: "bed-shimmer", url: [bedShimmerOgg, bedShimmerM4a] },
+};
+
 /** What the scene asks of the shell, and tells it. */
 export interface BeltSceneOptions {
   /** Moves the game on by the time a frame took, the ship steered as the player steers it. */
@@ -109,6 +154,12 @@ export interface BeltSceneOptions {
   readonly sound: () => boolean;
   /** Returns whether the ship thrusts while its wave plays on, which the thrust's hum follows. */
   readonly thrusting: () => boolean;
+  /** Returns whether a lodestone is on the field while its wave plays on, which the lodestone's hum follows. */
+  readonly lodestoneHums: () => boolean;
+  /** Returns how many times a break scores, which the layers over the bed join by. */
+  readonly multiplier: () => number;
+  /** Returns the place the wave after this one is played in, whose bed is fetched ahead. */
+  readonly placeAfter: () => PlaceId;
   /** Returns how the board lays the field and the deck out; a new value lays them out again. */
   readonly board: () => BoardSetting;
   /**
@@ -175,6 +226,8 @@ export interface BeltKit {
   readonly deckCamera: Cameras.Scene2D.Camera;
   /** Plays the sounds, by the view's mix. */
   readonly sounds: SpritePlayer<SoundName>;
+  /** Plays the beds and the layers over them, each while the scene holds it. */
+  readonly beds: LayerPlayer<BedName>;
 }
 
 /**
@@ -235,6 +288,8 @@ export class BeltScene extends Scene {
   private readonly fieldSounds = new FieldSounds();
   /** Where the ship is drawn and how far it is turned, written each frame. */
   private readonly drawnShip: Drawn = { x: 0, y: 0, angle: 0 };
+  /** Whether the scene has drawn its first frame, before which it holds no bed, so none is fetched. */
+  private firstFrameDrawn = false;
   /** The field's light, far off, which lights the rocks, made as the scene is created. */
   private sun!: GameObjects.Light;
 
@@ -325,6 +380,7 @@ export class BeltScene extends Scene {
     this.layOut();
     this.listen();
     onFirstFrame(this, () => {
+      this.firstFrameDrawn = true;
       this.surroundings.ready();
     });
   }
@@ -357,14 +413,16 @@ export class BeltScene extends Scene {
       // size.
       deckCamera: this.cameras.add(),
       sounds: new SpritePlayer(this, SOUND_SPRITE, { mix: SOUNDS }),
+      beds: new LayerPlayer(this, BEDS),
     };
   }
 
   /**
    * Hands the shell the time the frame took and the steering, then plays
    * what happened on the field since the last frame and what its field's
-   * change says, by the view's rules, hums while the ship thrusts, and
-   * draws the field as it now stands.
+   * change says, by the view's rules, hums while the ship thrusts and
+   * while a lodestone is on the field, holds the beds, and draws the field
+   * as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette, a
    * new font or a new wave; Phaser makes a buffer source for each sound it
@@ -396,7 +454,31 @@ export class BeltScene extends Scene {
     this.played = frame.events.latest;
     this.fieldSounds.playEach(this.kit.sounds.playAt);
     this.kit.sounds.hold(THRUST, this.options.thrusting());
+    this.kit.sounds.hold(LODESTONE_HUM, this.options.lodestoneHums());
+    this.holdBeds(frame.place);
     for (const painter of this.painters) painter.draw(this.context);
+  }
+
+  /**
+   * Holds the bed of the place a wave is played in, and each layer over it
+   * the multiplier has reached, by the view's rules, and fetches ahead the
+   * bed of the place the next wave is played in and the layers, so each
+   * joins as soon as it is wanted; none of them before the scene has drawn
+   * its first frame and the sounds' sprite has loaded, so the beds' files
+   * never hold up the first wave's picture or its sounds, nor while the
+   * player wants no sound.
+   */
+  private holdBeds(place: PlaceId): void {
+    const wanted =
+      this.firstFrameDrawn && this.kit.sounds.loaded && this.options.sound();
+    const multiplier = this.options.multiplier();
+    for (const name of BED_NAMES) {
+      this.kit.beds.hold(name, wanted && bedPlays(name, place, multiplier));
+    }
+    if (!wanted) return;
+    for (const name of bedsAhead(this.options.placeAfter())) {
+      this.kit.beds.fetch(name);
+    }
   }
 
   /**

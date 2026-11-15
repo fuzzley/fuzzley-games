@@ -442,38 +442,45 @@ takes for the specs' helpers.
   runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
   Rapid's shot 3 dB under the gun's, and the fuzzball's calls 3 dB down),
   and the order a frame plays them in, the loudest level first
-  (`PLAY_ORDER`); the thrust's hum (`THRUST`) is one of them, which no event
-  plays, and so is each sound nothing calls for yet. `field_sounds.ts`'
-  `FieldSounds` gathers a frame's: each event's sounds, where it happened
-  across the field (`@fz/core/sound_mix`'s `acrossOf()`), a bell at the
-  highest of static's multipliers the frame's breaks scored at, more than
-  three breaks a frame as the largest two and `break-cluster`, each spark
-  gathered the next note of the ladder, an octave under the bell's, in a run
-  of sparks each within static's hold of the last, in the field's steps
-  (`SPARK_RUN_STEPS`), which a fall of static or a new field ends, a zap in
-  place of the dash that set it off, and what the field's state says by how
-  it changed since the frame before (fire let go just after a burst,
-  `shot-tail`; and at the ship the thrust pressed and let go, `thrust-start`
-  and `thrust-stop`, the player's first move, `wave-start`, the dash ready
-  again, `dash-ready`, by `isDashReady()`, a guard longer than a dash's
-  over, `guard-end` (`DASH_GUARD_STEPS`), and an effect started or run out;
-  and a comet come in, its warning over, `comet-pass`, where it comes in),
-  and the fuzzball's call; then plays each once, at the most it rose, the
-  loudest first, making nothing. `voice.ts`' `Voice` is the fuzzball's
-  voice: the call each event calls for (`callOf()`: a dash a whee, a wave
-  cleared a cheer, one knocked loose an ouch, one caught a yay, a stray's
-  arrival an ooh, and one floating home or the run's end an aww), at one
-  dash in three (`DASHES_A_CALL`), the rarest of a frame's
+  (`PLAY_ORDER`); the thrust's hum (`THRUST`) and the lodestone's
+  (`LODESTONE_HUM`) are among them, held rather than played, and so is each
+  sound nothing calls for yet. `field_sounds.ts`' `FieldSounds` gathers a
+  frame's: each event's sounds, where it happened across the field
+  (`@fz/core/sound_mix`'s `acrossOf()`), a bell at the highest of static's
+  multipliers the frame's breaks scored at, more than three breaks a frame
+  as the largest two and `break-cluster`, each spark gathered the next note
+  of the ladder, an octave under the bell's, in a run of sparks each within
+  static's hold of the last, in the field's steps (`SPARK_RUN_STEPS`), which
+  a fall of static or a new field ends, a zap in place of the dash that set
+  it off, and what the field's state says by how it changed since the frame
+  before (fire let go just after a burst, `shot-tail`; and at the ship the
+  thrust pressed and let go, `thrust-start` and `thrust-stop`, the player's
+  first move, `wave-start`, the dash ready again, `dash-ready`, by
+  `isDashReady()`, a guard longer than a dash's over, `guard-end`
+  (`DASH_GUARD_STEPS`), and an effect started or run out; and a comet come
+  in, its warning over, `comet-pass`, where it comes in), and the fuzzball's
+  call; then plays each once, at the most it rose, the loudest first, making
+  nothing; and `hasLodestone()`, beside it, says whether a lodestone is on
+  the field, which its hum is held for. `voice.ts`' `Voice` is the
+  fuzzball's voice: the call each event calls for (`callOf()`: a dash a
+  whee, a wave cleared a cheer, one knocked loose an ouch, one caught a yay,
+  a stray's arrival an ooh, and one floating home or the run's end an aww),
+  at one dash in three (`DASHES_A_CALL`), the rarest of a frame's
   (`CALLS_RAREST_FIRST`), where its event happened, and at most once in four
   seconds of the field's steps (`PATIENCE_MS`), a call due before then
-  dropped, its patience afresh on each new field. `flourish.ts` says how
-  each flourish moves over its time, beside `@fz/core/math`'s `shareDone()`
-  and its curves (`easeOutCubic()`, `fadeAlpha()`), among them how far the
-  kick and the shake scroll the field's camera (`cameraShift()`) and when a
-  dash lays each of its outlines (`trailOutlinesLaid()`), and how the
-  pickups breathe, a stray bobs, a comet's warning pulses and the pod's
-  exhaust streams (`exhaustDue()`), each only where motion is welcome;
-  `timing.ts` how long each flourish lasts and how long the cards wait
+  dropped, its patience afresh on each new field. `beds.ts` names the beds
+  and the layers over them, by their files' names (`BED_NAMES`), the bed
+  each place plays (`bedOf()`), which play under a place at a multiplier
+  (`bedPlays()`): the place's bed always, the pulse from ×3 and the shimmer
+  over it from ×4, and which are fetched ahead of a place's waves
+  (`bedsAhead()`): its bed and both layers. `flourish.ts` says how each
+  flourish moves over its time, beside `@fz/core/math`'s `shareDone()` and
+  its curves (`easeOutCubic()`, `fadeAlpha()`), among them how far the kick
+  and the shake scroll the field's camera (`cameraShift()`) and when a dash
+  lays each of its outlines (`trailOutlinesLaid()`), and how the pickups
+  breathe, a stray bobs, a comet's warning pulses and the pod's exhaust
+  streams (`exhaustDue()`), each only where motion is welcome; `timing.ts`
+  how long each flourish lasts and how long the cards wait
   (`clearedDelayMs()`, `resultDelayMs()`); and `haptics.ts` how the phone
   buzzes as the ship takes a hit or a wave is cleared (`LOST_BUZZ`,
   `CLEARED_BUZZ`).
@@ -725,10 +732,21 @@ takes for the specs' helpers.
   ducked under a huge one, through a limiter; each frame's sounds as the
   view's `FieldSounds` gathers them, each risen, placed across the field
   and at its volume as the view says, through the player's `playAt()`; holds
-  the thrust's hum while the ship thrusts; and mutes the game while the
-  settings want none. Beside the sprite lie each take's
-  length (`sprite_lengths.json`), which `yarn build:sounds` writes with it,
-  and the beds, in `sounds/beds/`, which nothing loads yet.
+  the thrust's hum while the ship thrusts and the lodestone's while a
+  lodestone is on the field, as the game says (`thrusting()`,
+  `lodestoneHums()`); and mutes the game while the settings want none. Beside
+  the sprite lie each take's length (`sprite_lengths.json`), which
+  `yarn build:sounds` writes with it, and the beds, in `sounds/beds/`, each
+  as Ogg and M4A, which `@fz/phaser/sound`'s `LayerPlayer` plays (the kit's
+  `beds`): once the scene's first frame is drawn and the sprite has
+  loaded, never before, so their files hold up neither the first wave's
+  picture nor its sounds, and while the player wants sound, the bed of the
+  place the wave is played in, and the layers over it the multiplier has
+  reached (`multiplier()`), held each frame, by the view's `bedPlays()`, on
+  one bar line, each fading in and out over two seconds, so a new sector's
+  crosses into the last one's; and it fetches ahead the bed of the place
+  the wave after is played in (`placeAfter()`) and both layers, so neither
+  the crossing nor a layer waits for a download.
   The keys go back through `command()`, heard through `@fz/phaser/scene`'s
   `onKeyDown()` and `onKeyUp()`, which hand over each key event once, and
   every key and finger held is let go as the player looks away
@@ -754,13 +772,13 @@ takes for the specs' helpers.
     happened through `@fz/ui/announcer`, buzzes the phone as each frame
     calls for through `HapticsService`, beside it, where the browser can and
     the settings say to, shows a cleared wave's points (`tally`, counted up
-    as `tallyMs` says) and the wave after it (`waveAfter`), and the card
-    over a wave waiting at the start of the run or of a sector
-    (`sectorCard`), keeps what each change in the run brings to the records
-    and the sectors reached (`recordsOf()`) through `stats/`, in one place
-    that keeps none of a run flown on tuned numbers, and has the wave in
-    play take the numbers the debug menu tunes as `TUNING` tells it of
-    them. It extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which
+    as `tallyMs` says) and the wave after it (`waveAfter`, played in
+    `placeAfter`), and the card over a wave waiting at the start of the run
+    or of a sector (`sectorCard`), keeps what each change in the run brings
+    to the records and the sectors reached (`recordsOf()`) through `stats/`,
+    in one place that keeps none of a run flown on tuned numbers, and has
+    the wave in play take the numbers the debug menu tunes as `TUNING` tells
+    it of them. It extends `@fz/game-ui/run_lifecycle`'s `RunLifecycle`, which
     holds what every game's run does around its play: the keys' `command()`,
     going on to the next wave as `go` asks (its `nextStage()`), the drawn gate
     (`setDrawn()`), the runs begun (`runs`, raised as each run begins) and
