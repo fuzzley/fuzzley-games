@@ -28,6 +28,14 @@
         <div class="card">
           <p class="card-title">Paused</p>
           <p>Score {{ score() }}</p>
+          <app-pilot-row
+            class="crew"
+            piloting
+            [pilots]="crew()"
+            [loose]="game.loose()"
+          >
+            <span class="fz-visually-hidden">{{ pausedCrewWords() }}</span>
+          </app-pilot-row>
           @if (hasHome()) {
             <app-pilot-row [pilots]="home()">{{ homeWords() }}</app-pilot-row>
           }
@@ -54,8 +62,8 @@
               <dd>{{ shownCard.sum.total }}</dd>
             </div>
           </dl>
-          <app-pilot-row class="crew" [pilots]="crew()">
-            <span class="fz-visually-hidden">{{ crewWords() }}</span>
+          <app-pilot-row class="crew" piloting cheering [pilots]="crew()">
+            <span class="fz-visually-hidden">{{ clearedCrewWords() }}</span>
           </app-pilot-row>
           <p>{{ nextWords() }}</p>
           <button
@@ -71,7 +79,8 @@
       }
       @case ("ended") {
         <div class="card">
-          <p class="card-title">{{ endTitle() }}</p>
+          <p class="card-title">Everyone is home.</p>
+          <p class="aside">{{ endedWhere() }}</p>
           <p>Score {{ score() }}</p>
           <button
             type="button"

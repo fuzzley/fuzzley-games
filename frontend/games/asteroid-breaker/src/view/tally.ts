@@ -61,3 +61,11 @@ export function tallyShownAt(tally: WaveTally, ms: number): TallyShown {
 export function nextWaveWords(next: WaveEntry): string {
   return `Next: wave ${String(next.number)}, ${next.data.name}`;
 }
+
+/**
+ * Returns what the cards over an ended run say of where it ended: the wave
+ * by its number and its name, as "The run ended on wave 14, Anvil".
+ */
+export function endWords(entry: WaveEntry): string {
+  return `The run ended on wave ${String(entry.number)}, ${entry.data.name}`;
+}

@@ -16,7 +16,7 @@ import { figure, figureValue, figures } from "@fz/ui/testing";
 import { STILL } from "../../rules/ship/ship";
 import { STATIC_STEPS } from "../../rules/tuning";
 import type { WaveEntry } from "../../rules/waves/waves";
-import { inkOf, pilotsIn, poseIn } from "../../testing/pilots";
+import { inkOf, pilotsIn, poseIn, posesIn } from "../../testing/pilots";
 import { ROLES } from "../../testing/roles";
 import {
   SPEC_WAVE,
@@ -108,14 +108,6 @@ function figureTerm(term: string): HTMLElement {
     .find((dt) => dt.textContent.trim() === term);
   if (!name) throw new Error(`No ${term} shown.`);
   return name;
-}
-
-/** Returns each pilot an element draws, in order, as its color and its face. */
-function posesIn(element: Element): [string, string][] {
-  return Array.from(
-    element.querySelectorAll<HTMLElement>("app-pilot"),
-    (pilot) => [pilot.style.color, poseIn(pilot).face],
-  );
 }
 
 /** Returns the terms of the figures the bar shows, in order. */

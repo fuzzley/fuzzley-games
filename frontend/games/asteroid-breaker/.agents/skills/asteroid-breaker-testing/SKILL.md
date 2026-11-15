@@ -368,10 +368,13 @@ Phaser game through `runScene()`:
   (`pilotsIn()`, against `inkOf()`) and the face and the lift of the first
   (`poseIn()`), matching its fuzzball's marks against what
   `@fz/style/fuzzball`'s `fuzzballDrawing()` draws for each face and each
-  of static's steps. The bar's spec finds the face cam in the Crew
-  figure's term (the `dt`), reads static's pips by their `data-lit`, and
-  brings static to each multiplier, ×4 among them, by `takeUpCharged()`
-  and a frame of the run it takes up, which shows the pilot's fur.
+  of static's steps; it also reads each one's color and face
+  (`posesIn()`), and which is ringed as the pilot at the controls, by its
+  `data-at-controls` (`ringedIn()`). The bar's spec finds
+  the face cam in the Crew figure's term (the `dt`), reads static's pips by
+  their `data-lit`, and brings static to each multiplier, ×4 among them, by
+  `takeUpCharged()` and a frame of the run it takes up, which shows the
+  pilot's fur.
 - jsdom has no `matchMedia`, so motion isn't welcome and the board is no
   touch screen. A spec of the waits, or of a finger, installs
   `@fz/game-ui/testing`'s fake viewport, which takes itself off after.

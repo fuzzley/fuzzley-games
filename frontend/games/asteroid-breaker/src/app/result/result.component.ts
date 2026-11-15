@@ -2,9 +2,9 @@ import { Component, computed, inject, output } from "@angular/core";
 import { count, formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { whereLost } from "../../rules/run/describe";
 import { wavesCleared } from "../../rules/run/run";
 import { SPEED_INFO } from "../../rules/speed";
+import { endWords } from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 
@@ -15,15 +15,16 @@ interface Figure {
 }
 
 /**
- * Shows an ended run's result over the board: the wave it was lost on and
- * at what speed, the score and the best, with "New best" when it set one
- * and "Cleared all thirty" when it cleared every written wave, the wave
- * reached and the waves cleared, and the fuzzballs it brought home, each
- * in its color.
+ * Shows an ended run's result over the board: that everyone is home, the
+ * wave it ended on and at what speed, the score and the best, with "New
+ * best" when it set one and "Cleared all thirty" when it cleared every
+ * written wave, the wave reached and the waves cleared, and every
+ * fuzzball who flew in it, each in its color.
  *
- * The game opens it once the last ship's burst has faded. It offers to try
- * again from the sector the run started in, or to choose a sector instead,
- * or to close the card to look at the board.
+ * The game opens it once the pod's burst has faded and its pilot has
+ * floated off home. It offers to try again from the sector the run started
+ * in, or to choose a sector instead, or to close the card to look at the
+ * board.
  */
 @Component({
   selector: "app-result",
@@ -37,10 +38,10 @@ export class ResultComponent {
   /** Emitted when the player asks for the sectors, to start at one. */
   readonly chooseSector = output();
 
-  /** Where the run was lost, and at what speed. */
+  /** Where the run ended, and at what speed. */
   protected readonly subtitle = computed(() => {
     const run = this.game.run();
-    return `${whereLost(this.game.wave())}, at ${SPEED_INFO[run.speed].name} speed`;
+    return `${endWords(this.game.wave())}, at ${SPEED_INFO[run.speed].name} speed`;
   });
 
   protected readonly figures = computed<readonly Figure[]>(() => {
@@ -53,16 +54,20 @@ export class ResultComponent {
     ];
   });
 
-  /** Whether the run brought any fuzzball home, for the card to draw. */
-  protected readonly broughtAny = computed(
-    () => this.game.broughtHome().length > 0,
-  );
+  /** Every fuzzball who flew in the run, all home once it ends, in the order they went. */
+  protected readonly flew = computed(() => this.game.crew().home);
 
-  /** What the card says of the fuzzballs brought home, since their pictures say nothing. */
-  protected readonly homeWords = computed(
-    () =>
-      `${count(this.game.broughtHome().length, "fuzzball", "fuzzballs")} brought home`,
-  );
+  /**
+   * What the card says of the fuzzballs who flew, since their pictures say
+   * nothing: how many, and how many of them were strays brought home.
+   */
+  protected readonly flewWords = computed(() => {
+    const flew = count(this.flew().length, "fuzzball", "fuzzballs");
+    const strays = this.game.broughtHome().length;
+    if (strays === 0) return flew;
+    const caught = strays === 1 ? "a stray" : "strays";
+    return `${flew}, ${String(strays)} of them ${caught} brought home`;
+  });
 
   /** What the card's first button says: the sector the run started in, to try again from. */
   protected readonly againLabel = computed(

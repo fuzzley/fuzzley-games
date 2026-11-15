@@ -19,6 +19,14 @@
   }
 }
 
+// The pilot at the controls, ringed in the accent, which the canopy's rim
+// is lit in, as it sits in the canopy.
+[data-at-controls] {
+  border-radius: 50%;
+  outline: 2px solid var(--fz-accent);
+  outline-offset: 1px;
+}
+
 // One knocked loose, faded in a dashed ring, as the line in tow has lost
 // it until it is caught again.
 .loose {
@@ -26,4 +34,33 @@
   outline: 1px dashed var(--fz-muted);
   outline-offset: 1px;
   opacity: 0.45;
+}
+
+// The crew cheering, each hopping a beat after the one before, three
+// beats apart, three times, where motion is welcome; not those knocked
+// loose.
+@media (prefers-reduced-motion: no-preference) {
+  .cheering app-pilot:not(.loose) {
+    animation: hop 0.9s ease-in-out 3;
+
+    &:nth-child(3n + 2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3n) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+@keyframes hop {
+  0%,
+  50%,
+  100% {
+    translate: 0;
+  }
+
+  25% {
+    translate: 0 -5px;
+  }
 }

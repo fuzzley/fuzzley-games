@@ -14,6 +14,9 @@ import {
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
+  FIRST_CREW,
+  HIT_GUARD_MS,
+  LOOSE_LIFE_MS,
   MOST_CREW,
   SPARK_DRAW_REACH,
   SPARK_POINTS,
@@ -27,6 +30,9 @@ import {
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art/art";
 
+/** What How to play says of the crew, the ship's lives, from the tuning. */
+const CREW = `The pilot flies the ship with ${String(FIRST_CREW - 1)} of the crew in tow, who are its lives, and a stray caught joins them, up to ${String(MOST_CREW - 1)}. A rock or a comet that touches the ship, unless it is dashing or shielded, knocks the last in tow loose, and nothing can touch it again for ${String(HIT_GUARD_MS / 1000)} seconds; fly into one knocked loose within ${String(LOOSE_LIFE_MS / 1000)} seconds to catch it again, or it floats home, and clearing the wave catches every one still loose. A hit with no one in tow sends the pilot home, and the run ends.`;
+
 /** How the score adds up, from the tuning, as How to play says it. */
 const SCORING = {
   sparks: `Each rock a shot or a blast breaks sheds sparks, which the ship draws in from ${String(SPARK_DRAW_REACH)} units, ${String(Math.round(SPARK_DRAW_REACH * SPEED_INFO.relaxed.sparkReach))} at ${SPEED_INFO.relaxed.name}, and the ship and those in tow gather: each scores ${String(SPARK_POINTS)} and adds ${String(SPARK_STATIC)} static, up to ${String(STATIC_MOST)}.`,
@@ -36,7 +42,7 @@ const SCORING = {
 };
 
 /** What How to play says of a dash, its recharge from the tuning. */
-const DASHING = `A dash throws the ship ahead, and no rock or comet can take it while it lasts; it takes ${String(DASH_RECHARGE_MS / 1000)} seconds to charge again.`;
+const DASHING = `A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes ${String(DASH_RECHARGE_MS / 1000)} seconds to charge again.`;
 
 /** What How to play says of pickups before listing them. */
 const PICKUPS_INTRO =
@@ -54,7 +60,7 @@ const ADRIFT = {
   comet: {
     name: "Comet",
     about:
-      "Warned of by a chevron at the edge it comes in by, it crosses the field, breaking any rock it touches a size down, and takes the ship unless the ship is dashing or shielded.",
+      "Warned of by a chevron at the edge it comes in by, it crosses the field, breaking any rock it touches a size down, and hits the ship as a rock does unless the ship is dashing or shielded.",
   },
 } as const;
 
@@ -62,9 +68,10 @@ const ADRIFT = {
 const ADRIFT_IDS = keysOf(ADRIFT);
 
 /**
- * Shows How to play: the aim, scoring and pausing, the controls by mouse,
- * touch and keys, and every rock, pickup, a stray and the comet, each with
- * its name, what it does and its picture once the scene has drawn it.
+ * Shows How to play: the aim, the crew, scoring and pausing, the controls
+ * by mouse, touch and keys, and every rock, pickup, a stray and the comet,
+ * each with its name, what it does and its picture once the scene has
+ * drawn it.
  */
 @Component({
   selector: "app-help",
@@ -82,6 +89,7 @@ export class HelpComponent {
   /** Emitted when the dialog asks to close. */
   readonly closed = output();
 
+  protected readonly crew = CREW;
   protected readonly scoring = SCORING;
   protected readonly dashing = DASHING;
 

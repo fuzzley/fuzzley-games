@@ -9,10 +9,15 @@ import {
 import { count, formatPoints } from "@fz/core/format";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
-import { whereLost } from "../../rules/run/describe";
 import { pilotsAboard } from "../../rules/ship/pilots";
+import { cardCrewWords } from "../../view/crew_line";
 import type { BoardSetting } from "../../view/field/field_metrics";
-import { type TallyShown, nextWaveWords, tallyShownAt } from "../../view/tally";
+import {
+  type TallyShown,
+  endWords,
+  nextWaveWords,
+  tallyShownAt,
+} from "../../view/tally";
 import { PilotRowComponent } from "../pilot/pilot_row.component";
 import { GameService } from "../play/game.service";
 import type { SectorCard } from "../play/sector_card";
@@ -28,8 +33,9 @@ type Card =
  * Shows the card over the field, if any: the sector, what is new there and
  * the wave, while a wave waits for its first move at the start of the run
  * or of a sector, with how to fly at the run's; that the wave is paused,
- * and who waits at home; how a wave cleared added up, counting up, the
- * crew and the wave to come; or how to start again, once an ended run's
+ * the crew aboard and knocked loose, and who waits at home; how a wave
+ * cleared added up, counting up, the crew cheering and the wave to come;
+ * or that everyone is home and how to start again, once an ended run's
  * result is put away. A wave gone on to within a sector waits with no card
  * over it.
  *
@@ -107,13 +113,13 @@ export class BoardCardComponent {
   /** The run's score, as the cards write it. */
   protected readonly score = computed(() => formatPoints(this.game.score()));
 
-  /** The strays brought home with the most of the crew aboard, as the Paused card draws them. */
+  /** Every fuzzball gone home in the run, as the Paused card draws them. */
   protected readonly home = computed(() => this.game.crew().home);
 
-  /** Whether any stray waits at home, for the Paused card to draw. */
+  /** Whether any fuzzball waits at home, for the Paused card to draw. */
   protected readonly hasHome = computed(() => this.home().length > 0);
 
-  /** What the Paused card says of the strays at home, since their pictures say nothing. */
+  /** What the Paused card says of the fuzzballs at home, since their pictures say nothing. */
   protected readonly homeWords = computed(
     () =>
       `${count(this.home().length, "fuzzball", "fuzzballs")} waiting at home`,
@@ -127,11 +133,16 @@ export class BoardCardComponent {
       : `Wave ${String(number)} cleared`;
   });
 
-  /** The crew as the run holds it, the one at the controls first, as the Cleared card draws them. */
+  /** The crew aboard as the run holds it, the one at the controls first, as the Paused and the Cleared card draw them. */
   protected readonly crew = computed(() => pilotsAboard(this.game.crew()));
 
+  /** What the Paused card says of the crew aboard and knocked loose, since their pictures say nothing. */
+  protected readonly pausedCrewWords = computed(() =>
+    cardCrewWords(this.game.crew(), this.game.loose()),
+  );
+
   /** What the Cleared card says of the crew, since their pictures say nothing. */
-  protected readonly crewWords = computed(
+  protected readonly clearedCrewWords = computed(
     () => `${count(this.crew().length, "fuzzball", "fuzzballs")} in the crew`,
   );
 
@@ -140,8 +151,8 @@ export class BoardCardComponent {
     nextWaveWords(this.game.waveAfter()),
   );
 
-  /** What the card over an ended run calls it: the wave it was lost on. */
-  protected readonly endTitle = computed(() => whereLost(this.game.wave()));
+  /** What the card over an ended run says of where it ended: the wave by its number and its name. */
+  protected readonly endedWhere = computed(() => endWords(this.game.wave()));
 
   /** Goes on with the paused wave, and hands the board back the focus. */
   protected resume(): void {

@@ -72,8 +72,8 @@
   gap: var(--fz-space-1);
 }
 
-// What a card says aside, under the rest: when the wave starts, or that
-// flying goes on too.
+// What a card says aside, in small muted type: when the wave starts, that
+// flying goes on too, or where an ended run ended.
 .aside {
   color: var(--fz-muted);
   font-size: var(--fz-font-sm);
@@ -113,7 +113,7 @@
   }
 }
 
-// The crew, under the sum.
+// The crew, under the Cleared card's sum or the Paused card's score.
 .crew {
   margin-top: var(--fz-space-1);
 }

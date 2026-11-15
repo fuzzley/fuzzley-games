@@ -7,6 +7,7 @@ import { figure, figures } from "@fz/ui/testing";
 import { createRun } from "../../rules/run/run";
 import { STILL } from "../../rules/ship/ship";
 import { WAVES, type WaveEntry } from "../../rules/waves/waves";
+import { inkOf, posesIn, ringedIn } from "../../testing/pilots";
 import {
   ROOMY,
   SECTOR_WAVES,
@@ -16,6 +17,7 @@ import {
   clearToNext,
   endIn,
   endRun,
+  knockOneLoose,
   pauseIn,
   playToClear,
   provideSpecWaves,
@@ -182,7 +184,28 @@ describe("BoardCardComponent", () => {
     expect(screen.getByText("Score 0")).toBeInTheDocument();
   });
 
-  it("draws the strays waiting at home on a paused wave, and says how many", async () => {
+  it("draws the crew aboard on a paused wave, the pilot at the controls ringed, then those knocked loose, wide eyed, and says how many", async () => {
+    const { game, detectChanges } = await startedAt(SPEC_WAVE.pebble);
+    knockOneLoose(game);
+
+    game.pause();
+    detectChanges();
+
+    const crew = screen
+      .getByText("2 of the crew aboard, 1 knocked loose")
+      .closest("app-pilot-row");
+    if (!crew) throw new Error("No crew drawn.");
+    expect({ poses: posesIn(crew), ringed: ringedIn(crew) }).toEqual({
+      poses: [
+        [inkOf(0), "rest"],
+        [inkOf(1), "rest"],
+        [inkOf(2), "eep"],
+      ],
+      ringed: [true, false, false],
+    });
+  });
+
+  it("draws the fuzzballs gone home on a paused wave, and says how many", async () => {
     const { game, detectChanges } = await renderCard();
     const run = createRun({
       id: game.run().id + 1,
@@ -252,16 +275,24 @@ describe("BoardCardComponent", () => {
     ]);
   });
 
-  it("draws the crew, and says how many", async () => {
+  it("draws the crew cheering, the pilot at the controls ringed, and says how many", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
     clearIn(game);
     detectChanges();
 
-    const crew = screen.getByText("3 fuzzballs in the crew");
-    expect(
-      crew.closest("app-pilot-row")?.querySelectorAll("app-pilot"),
-    ).toHaveLength(3);
+    const crew = screen
+      .getByText("3 fuzzballs in the crew")
+      .closest("app-pilot-row");
+    if (!crew) throw new Error("No crew drawn.");
+    expect({ poses: posesIn(crew), ringed: ringedIn(crew) }).toEqual({
+      poses: [
+        [inkOf(0), "happy"],
+        [inkOf(1), "happy"],
+        [inkOf(2), "happy"],
+      ],
+      ringed: [true, false, false],
+    });
   });
 
   it("says the last sector is cleared and Endless begins, with the trophy", async () => {
@@ -377,25 +408,30 @@ describe("BoardCardComponent", () => {
     endRun(game);
     detectChanges();
 
-    expect(screen.queryByText("Lost on wave 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Everyone is home.")).not.toBeInTheDocument();
   });
 
-  it("says a run lost in Endless was lost there, once its result is put away", async () => {
+  it("says a run ended in Endless ended there, once its result is put away", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.last + 1);
 
     endIn(game);
     detectChanges();
 
-    expect(screen.getByText("Lost on wave 4, Endless")).toBeInTheDocument();
+    expect(
+      screen.getByText("The run ended on wave 4, Endless"),
+    ).toBeInTheDocument();
   });
 
-  it("offers a new game once an ended run's result is put away", async () => {
+  it("says everyone is home, where the run ended and its score, and offers a new game, once an ended run's result is put away", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
     endIn(game);
     detectChanges();
 
-    expect(screen.getByText("Lost on wave 1")).toBeInTheDocument();
+    expect(screen.getByText("Everyone is home.")).toBeInTheDocument();
+    expect(
+      screen.getByText("The run ended on wave 1, Pebble"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Score 60")).toBeInTheDocument();
   });
 

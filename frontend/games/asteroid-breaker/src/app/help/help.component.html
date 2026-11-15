@@ -1,10 +1,10 @@
 <fz-help-dialog [open]="open()" (closed)="closed.emit()">
   <p>
     Fly the ship and break every rock on the field to clear the wave. The field
-    wraps: what leaves by one edge comes back by the other. A rock that touches
-    the ship costs it; the run ends when the last ship is lost, and the waves go
-    on as long as it lasts.
+    wraps: what leaves by one edge comes back by the other. The waves go on as
+    long as the crew lasts.
   </p>
+  <p><strong>The crew.</strong> {{ crew }}</p>
   <p>
     <strong>Scoring.</strong> Each rock scores by its kind and its size, a
     smaller one more. {{ scoring.sparks }} {{ scoring.multiplier }}
