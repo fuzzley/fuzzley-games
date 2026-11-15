@@ -61,9 +61,10 @@ export type FlightEvent = At &
     | {
         /**
          * A fuzzball strikes a brick: `took` hits off it, which has `left`
-         * hits left, and flies on with `charge`; `earthed` says the brick
-         * took a charge it had, as steel, a plate or a bumper takes one that
-         * isn't a hot shot's.
+         * hits left, and flies on with `charge`, which wool leaves higher
+         * than a plain fuzzball struck with; `earthed` says the brick took a
+         * charge it had, as steel, a plate or a bumper takes one that isn't a
+         * hot shot's.
          */
         readonly kind: "strike";
         readonly ball: number;

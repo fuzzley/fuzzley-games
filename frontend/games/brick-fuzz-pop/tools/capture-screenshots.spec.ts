@@ -102,10 +102,10 @@ describe("shownRun", () => {
   it("says the aim the keys give the next shot as the game says it", async () => {
     const shown = shownRun(await loadScreenshotApi());
 
-    // 100 degrees is aim 368: 4 aims a degree, from 8 degrees.
+    // 110 degrees is aim 408: 4 aims a degree, from 8 degrees.
     expect([AIMING, shown.aimed]).toEqual([
-      { degrees: 100, charge: 3 },
-      describeShot({ aim: 368, charge: 3 }),
+      { degrees: 110, charge: 3 },
+      describeShot({ aim: 408, charge: 3 }),
     ]);
   });
 });

@@ -1117,7 +1117,10 @@ describe("fly's hooks", () => {
     ]);
   });
 
-  it("charges a recharged fuzzball to the most", () => {
+  // Charged to the most as it strikes the wool, it breaks it and flies on
+  // with 4, charged to the most again as it breaks, which the brick of
+  // three over it takes 3 of.
+  it("charges a fuzzball to the most as it strikes wool, and again as the wool breaks", () => {
     const wall = wallOf(6, ["....3....", "....W...."]);
 
     const flown = flyShot({ wall, aim: UP, charge: 1 });
@@ -1125,7 +1128,7 @@ describe("fly's hooks", () => {
     expect(
       eventsOf(flown, "strike").map(({ cell, charge }) => [cell, charge]),
     ).toEqual([
-      [4, 0],
+      [4, MOST_CHARGE - 1],
       [13, MOST_CHARGE - 3],
     ]);
   });

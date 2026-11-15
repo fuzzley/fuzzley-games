@@ -57,8 +57,8 @@ export const RUN = {
   level: 18,
   depth: 11,
   shots: [
-    [36, 5],
-    [272, 5],
+    [248, 4],
+    [160, 3],
   ],
 };
 
@@ -66,7 +66,7 @@ export const RUN = {
  * How the next shot is aimed once the run goes on, by the keys
  * `aimingKeys()` presses: the aim in degrees and the charge in notches.
  */
-export const AIMING = { degrees: 100, charge: 3 };
+export const AIMING = { degrees: 110, charge: 3 };
 
 /**
  * A key pressed on the board, by its `code` and the `keyCode` Phaser reads.

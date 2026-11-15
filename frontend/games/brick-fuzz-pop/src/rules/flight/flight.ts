@@ -209,7 +209,6 @@ interface StruckScratch extends Struck {
   by: BreakCause;
   side: number;
   plates: number;
-  charge: number;
   hot: boolean;
 }
 
@@ -757,8 +756,8 @@ class Flying implements Hooks {
 
   /**
    * Runs the rules a brick's kind has for a strike on it, and returns
-   * whether the strike hurts it; whether it earths the charge is left in
-   * {@link struck}.
+   * whether the strike hurts it; whether it earths the charge, and the
+   * charge a rule raised it to, are left in {@link struck}.
    */
   private struckBy(
     by: BreakCause,

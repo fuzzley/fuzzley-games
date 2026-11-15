@@ -22,8 +22,8 @@ export interface Strike {
 
 /**
  * Returns what a fuzzball's strike does to a brick with `hits` left, once the
- * brick's rules have said whether it hurts the brick and whether the brick
- * earths the charge.
+ * brick's rules have said whether it hurts the brick, whether the brick
+ * earths the charge, and the charge it is struck with.
  *
  * A hot shot keeps its charge whatever it strikes, so no rule that earths
  * need ask whether the fuzzball is one.

@@ -22,7 +22,7 @@ export type BrickTrait =
       readonly hits: number;
       readonly reach: number;
     }
-  /** Charges the fuzzball that breaks it to the most: wool. */
+  /** Charges the fuzzball that strikes it to the most, and again as it breaks: wool. */
   | { readonly kind: "recharges" }
   /** Frees a friend as it breaks: a cage. */
   | { readonly kind: "frees" }
