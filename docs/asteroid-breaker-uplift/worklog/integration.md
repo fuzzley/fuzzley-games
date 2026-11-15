@@ -922,3 +922,157 @@ imports it only from `sound_lab_mix.ts`, never from what Node runs.
   highest multiplier for `note()`'s keeping of the highest rise. The two
   agree only while the bell's notes rise with the multiplier; the
   tracking states the rule itself.
+
+### 2026-11-15, R3 landed, R4 started
+
+- **R3 landed** as `da648ff5` to `b2bdb71c`, six commits, fast-forward:
+  the report timing each wave's tail, from its last few rocks to its
+  clearing; a wave's last few rocks leaning toward the pod once it has
+  held more; a wave's first stray 4 s into its play on any field, and a
+  lifeline, once a wave, to a pilot with no one in tow; a set piece ending
+  each sector, the `crumbling`, `ironclad` and `stormheart` boulders, chipping
+  stones or iron plates off as they hold hits (`shed`) or venting a blast
+  from the heart (`vented`), each letting two pickups go; the autopilot's
+  detour for a spark 2 units beyond its draw, from 4; and `describeEnd()`
+  saying "Everyone is home." (`END_TITLE`), `whereLost()` gone.
+- **Settled on its own rebases:** onto `d2df10a8` (S4's), nothing; onto
+  `9054ad1a` (L4's), `field_picture.spec.ts`' imports, both kept; onto
+  `707d6fff`, `sounds.spec.ts`' `UNPLAYED`, which loses `tow-twang`
+  (P3's) and `blast-volatile-small` (now the vent's), and P3's result
+  spec of the strays among those who flew, whose two orders change as the
+  earlier first stray leaves the crew still loose at the run's end, going
+  home after the pilot, folded into the stray's commit so each commit
+  passes. The integrator read that settle's range-diff (`fdae9d86`
+  against `ae26dbe3`): the two orders, `UNPLAYED` and its doc, as R3's log
+  says, and nothing else changed. The report printed byte for byte what
+  it did before each rebase.
+- **Its checks on that tip:** the game's lint, typecheck and 7,699 specs in
+  136 files, the root's lint under the lock, the coverage at every floor,
+  `build` and `check:layout` at every shape and turn and the Cleared card at
+  each.
+- **Its figures,** over twelve seeds: the waves' tails, in all, 213 s to
+  168 s on the narrow field, 778 s to 493 s on the wide and 791 s to 487 s
+  on the tall, none longer beyond noise. The plan's early stray, at 4 s,
+  costs about a fifth more hits on the wide and tall fields (24 seeds of
+  its own). R2's longer plays: on the wide field, one seed, the longest is
+  1:09 (Iron heart at Fast), 1:19 at R3's start against R1's 1:03; over
+  twelve seeds, the detour at 2 rather than 4 takes it from 1:22 to 1:10;
+  Boulder at Relaxed on the narrow field, one seed, 0:24 at R3's start,
+  0:26 now. `report:waves --seeds 12` on the narrow field exits 1 on one
+  play, Eye of the storm at Fast from seed 30008, a storm boulder breaking
+  4.7 units from the pod with no vent in it; R3's trial of wave 30 from 48
+  seeds of its own, 144 plays a field, loses one play with storm boulders
+  on the narrow field and one on the tall, and one with plain boulders on
+  a single field. Every wave's own seed clears at every speed on both
+  fields, as the `sim` specs hold.
+- **Its choices:** chipped pieces fly within 120° of straight away from the
+  pod (`CHIP_SPREAD`), as thrown anywhere wave 10 took 20 hits where plain
+  boulders took 4 on the narrow field, 37 against 15 on the wide and 36
+  against 21 on the tall; the vent reaches 6 units from the boulder's middle,
+  1.4 past its rim, and spares every boulder; each set piece is drawn in two
+  outlines, as six overflowed the rocks' atlas; `RULES_VERSION` stays 2,
+  raised on this branch and not yet shipped.
+- **Outside its files:** entries in `inks.ts`, `sounds.ts`, `effects.ts`
+  and their specs, `belt_scene.spec.ts`' `EVERY_EVENT`, `flourish.ts`'
+  `ringColorOf()` (a vent's ring in the warning's color), How to play's
+  strays sentence, `tools/sound-lab.ts` and the announcer's words in
+  `game.service.spec.ts` and `run_frames.spec.ts`; moves keeping what
+  they draw in L1's `rock_shape.ts` (`BOULDER_CUT`, `seamAcross()`,
+  `glowingSeams()`) and `rock_art.ts` (its outlines' lookups) and L2's
+  `breaks.ts` (`BOULDER_BREAK`); a guard in R2's `zap.ts`, so a zap
+  arcs to no rock a vent has just broken (`laidAt`); the game's
+  `AGENTS.md` and the content and testing skills.
+- **Left, each with an owner:** the cards taking up `END_TITLE`, and the
+  result card's dialog, which makes the announcer inert as it opens and
+  may cut short the end's announcement with the score and the marks only
+  it says, P4's, told; the vent's and the shed's feel, F2's, in its brief;
+  the set pieces told to F1, as its boulder's beats meet them on waves 10,
+  20 and 30; the screenshots' run, which a second before its first stray
+  is now about 3 s into Crowd rather than 9.8 s, Z1's. For §12: the
+  multi-seed loss above, the early stray's cost in hits, and the last
+  rocks steered toward the pod rather than pulled as a lodestone pulls,
+  since a pull orbits, where the plan says "as a lodestone does". R3
+  changed no sector's words, so the sector card's steps stand, and no
+  wave, so `CLEARING_RUN` stands. `blast-volatile-small` is the vent's
+  sound now, and `describe.ts`' two leftovers from P3 are done.
+- **R4 started** from `b2bdb71c`, with R3's notes in its brief (a burr
+  comes in as a stray does; the new events' sounds, effects and rows;
+  `goalOf()`; `hitWithin()`'s sparing; the atlases' size; R3's figures to
+  log against), and P3's and R2's.
+- **Missed:** `origin/main` had moved at 16:42, before this landing, from
+  `7fbd968a` to `fd5c050f`, 28 commits bringing code (the Brick Fuzz Pop
+  tune-up, `@fz/ui`'s icons), which the third verify run's entry said
+  would bring the rebase onto `main`. It went unseen until the review of
+  this entry, so R4 started from the old tip; the rebase, and R4's and
+  F1's onto it with `--onto`, are below.
+
+### 2026-11-15, P4 landed
+
+- **P4 landed** as `ef37238a` to `c8bd5e91`, six commits, fast-forward:
+  the sparks broken rocks shed, with their halos and tails
+  (`SparkPainter`, on a `sparks` layer over the pickups, by the new
+  `src/view/art/sparks.ts`); static's arcs (`ArcPainter`, on an `arcs`
+  layer over the effects, by the new `src/view/art/arcs.ts`, which holds
+  `ZAP_ARC`), the zap's to each
+  rock it reaches, and those crawling over the hull at full static
+  (`pod_art.ts`' `HULL_RUNS`); static in the shell, the bests set under
+  earlier rules shown as such in the result and the sectors (the new
+  `src/view/bests.ts`), and a "Sparks gathered" scene in the sound lab;
+  both cards taking the run's end title from the rules (`END_TITLE`),
+  and the result card's dialog described by a hidden paragraph of where
+  the run ended, its score and its marks (`endSubtitle()`,
+  `endDescription()` in `tally.ts`), which the announcer, made inert as
+  the dialog opens, may not finish saying, R3's two leftovers. It took
+  the late review's three findings on P1's settle: a spec at full static,
+  where alone the fur's lift and static's step differ, the docs calling
+  the lift the step, and the pips counted from the tiers' most rather
+  than the table's first.
+- **Settled on its own rebase** onto `b2bdb71c` (R3's): nothing; R3's
+  edits to its files, How to play's strays sentence, the end's words in
+  two specs and the result spec's orders, merged without conflict, and
+  R3's zap logs no `arced` for a
+  rock a vent broke, which `ArcPainter`, drawing only what it hears,
+  needs nothing for.
+- **Its checks on that tip:** the game's lint, typecheck and 7,872 specs in
+  141 files, the root's lint under the lock, the coverage at every floor,
+  `build` and `check:layout` at every shape and turn and the Cleared card
+  at each; the root's lint and Prettier after its log's last commit.
+- **Its frame budget:** wave 9 on the widest field, a quarter of the CPU,
+  64 sparks kept live, pooled medians in one sitting: 5.52 ms at its start
+  (`c0a7732a`), 6.30 ms at the tip it rebased onto and 7.05 ms on its
+  branch, within the 7.36 ms a third over its start allows. Its own
+  drawing adds about 0.75 ms over the tip, 12%; most of the rise since its
+  start came with R3, whose rules no package measured, about 14%. F1
+  measures the tip against `da697c6e9`, the build's start, and was told
+  of these figures. A run kept by a build before R3 needs R3's two new
+  kept-field keys (`lifelineSent`, `hadMore`), or R3's reader drops it
+  and the trace measures another field: P4's log says how it stored
+  wave 9's run, for F1 and Z1.
+- **Its look:** all four palettes, at a roomy size and 360 × 640, motion
+  welcome and not, beside the kit's sheet; the arcs leave the hull's edge
+  with no glow where they start, and show for 180 ms as the kit has them,
+  where the plan says 350, F2's to weigh. The step's ring is F2's, not
+  yet landed, so it wasn't seen.
+- **Outside its files:** `frame.ts`, `layers.ts` and its spec, `art.ts`,
+  `belt_scene.ts`, `pod_art.ts`' `HULL_RUNS`, `halo_painter.ts`' `discIn()`
+  and an exported `dressHalo()` with its spec's count of sparks,
+  `tools/sound-lab.ts`' scene, the game's `AGENTS.md` and the testing
+  skill. Nothing in `src/rules/`.
+- **Left, each with an owner:** the end's marks, " A new best!" and
+  " Cleared all thirty!", written in both `describeEnd()` and
+  `endDescription()`, which `tally.spec.ts` holds together, R4's, as
+  `describe.ts` is R's, told. For F2, what it plays: `stepped`, the
+  step's ring; `zapped`, the field held still, each rock flashing as
+  `arced` reaches it, and the pod's glow; `ZAP_ARC`, 180 ms, which F2 may
+  stretch toward the plan's 350; the hull's arcs show at full static
+  while a pilot is aboard. For §12, the user's to choose: the bar's title
+  cut short at 1280 px with four cards from the first wave, which a
+  change to the bar's look would fix (P4's log, §3); and the other games'
+  result cards, Brick Breaker's, Brick Fuzz Pop's, Snake's,
+  Minesweeper's and Sudoku's, which likely lose their end's announcement
+  the same way, outside this build, with a sentence for the repository's
+  `web-game-accessibility` skill on a dialog opening just after the page
+  spoke. Also left, small: the earlier best's storage set up in the
+  result's and the Sectors' specs each, which a helper in
+  `src/testing/records.ts` (R's) could share.
+- **F2** waits on F1, still running.
