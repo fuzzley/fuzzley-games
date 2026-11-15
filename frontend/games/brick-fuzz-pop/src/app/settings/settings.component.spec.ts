@@ -288,11 +288,11 @@ describe("SettingsComponent", () => {
   });
 
   describe("the sound", () => {
-    it("says what the sounds are", async () => {
+    it("says what the sounds are, the notch's tick rising with the charge", async () => {
       await renderSettings();
 
       expect(checkbox("Play sounds")).toHaveAccessibleDescription(
-        /^A tick for each notch of charge/,
+        "A tick for each notch of charge, rising with the charge; each brick struck and broken, rising along a round; and a chime for a level cleared.",
       );
     });
 

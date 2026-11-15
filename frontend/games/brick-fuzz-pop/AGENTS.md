@@ -140,13 +140,19 @@ helpers.
   flight reads. `flight.ts`'s `fly()` flies a round's fuzzballs from the
   floor along an aim on one clock, by the kinds and the trait rules it is
   handed (`FlightRules`), and returns the `Flight` with the wall it leaves
-  and the bricks the player's fuzzball punched through (`Flown`). Given a
-  stop (`FlightStop`) past the first turn (`FlightPastTurn`), it flies only
-  so far past the player's first turn; given a drop (`FlightDrop`), it flies
-  the whole flight to the drop's moment, then brings each fuzzball in the
-  air straight down from where it is, after every other event of that
-  moment, and calls off the launches still waiting, whose tracks it leaves
-  empty.
+  and the bricks the player's fuzzball punched through (`Flown`). A
+  fuzzball comes home, yawning and dropping straight down, once it has
+  flown the rules' `bored` without touching a brick whose kind can break, a
+  strike a shell or a plate shields among the touches, or their `mostIdle`
+  without taking a hit, which a round's rules set at `IDLE_SHARE` times
+  `bored`; or at a cap, which the flight counts (`capped`): `MOST_FLIGHT`
+  from its launch, or `STILL_TURNS` turns running with no flight between.
+  Given a stop (`FlightStop`) past the first turn (`FlightPastTurn`), it
+  flies only so far past the player's first turn; given a drop
+  (`FlightDrop`), it flies the whole flight to the drop's moment, then
+  brings each fuzzball in the air straight down from where it is, after
+  every other event of that moment, and calls off the launches still
+  waiting, whose tracks it leaves empty.
   `hooks.ts` says what a brick's trait rules may do to a flight (`Hooks`),
   and at which moments `fly()` runs them (`TraitRule`, `TraitRules`).
   `guide.ts`'s `guideOf()` is the guide (`Guide`): the player's fuzzball
@@ -203,9 +209,10 @@ helpers.
   the level it started at to its end. `createRun()`, `startLevel()`,
   `takeRound()` as a round is released, `landRound()` as its flight lands,
   the level's end waiting in `ending` till then so the last flight can be
-  paused, `nextLevel()`, `takeDepth()` as the field takes a new depth,
-  `pause()` and `resume()`, a move that doesn't fit returning the run as
-  it is; it counts the stars its levels cleared earned (`stars`).
+  paused, `afterLanding()` the same landing at any stage, `nextLevel()`,
+  `takeDepth()` as the field takes a new depth, `pause()` and `resume()`, a
+  move that doesn't fit returning the run as it is; it counts the stars its
+  levels cleared earned (`stars`).
   `levelOf()` parses the level in play, and `openingOf()` lays it out on
   the depth it began on, which its par is set for.
   `scoring.ts` scores a break along the streak, the stars and how a cleared
@@ -225,13 +232,14 @@ helpers.
   frame at a time, counting its breaks' points as it reaches them
   (`scored`), takes the round flown again, dropped at the moment it has
   reached, once a flight, and plays on from there (`moment`, `droppable`,
-  `dropTo()`), and settles its wall, one for the whole game, and
-  `RoundView`, the round as the scene draws it at a moment, its events
-  numbered in `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds
-  `RunState`, the run on the board and where its round stands, which
-  `GameService` replaces whole, and `RoundPhase`; and `items.ts` finds the
-  item at a place in a list made once (`itemAt()`), refusing a place the
-  list hasn't, for the art, the colors and the gauge.
+  `dropTo()`), or lands it at once for a page hidden mid-flight (`skip()`),
+  and settles its wall, one for the whole game, and `RoundView`, the round
+  as the scene draws it at a moment, its events numbered in
+  `@fz/core/event_log`'s `EventLogView`; `run_state.ts` holds `RunState`,
+  the run on the board and where its round stands, which `GameService`
+  replaces whole, and `RoundPhase`; and `items.ts` finds the item at a
+  place in a list made once (`itemAt()`), refusing a place the list
+  hasn't, for the art, the colors and the gauge.
 - **`src/view/field/`** — `field_metrics.ts`: the field's shape a canvas's
   room holds (`fieldShape()`: a unit in whole device pixels, 11 to 22 rows,
   or the depth the debug menu sets, the floor's band, the lintel and
@@ -279,10 +287,9 @@ helpers.
   mode's tile and fuzzball inks: every color a rule of contrast covers,
   though not the shading the art mixes from them, and the gauge's plate,
   in the lintel's color, and the faint rim round it, which no rule covers.
-  `contrast.spec.ts` holds them to 3:1 in each of the game's four
-  palettes, the gauge's pips against its plate among them, and the field's
-  text to 4.5:1 against the lintel, where the board counts the rows
-  waiting.
+  `contrast.spec.ts` holds them to 3:1 in each of the game's four palettes,
+  the gauge's pips against its plate among them, and the field's text to
+  4.5:1 against the lintel, where the board counts the rows waiting.
   `brick_colors.ts` says the color each kind of brick is drawn in, which
   its shards take (`brickColor()`): its tint's ink, its pair's or its own,
   typed over the catalog's ids, so a kind without one fails to compile,
@@ -419,10 +426,10 @@ helpers.
     the steer says a finger aims and a fuzzball waits, a gauge shown anew
     turned by where its finger is, not the way the last one leaned.
     `GuidePainter` draws the guide `guide()` hands over, the rules' `Guide`
-    (`src/rules/flight/guide.ts`): up to 128 dots
-    (`MOST_GUIDE_DOTS`), one at each of its places but where it would crowd
-    the count's (`FieldPainter.crowdsCount()`), and 31 outlines
-    (`MOST_PUNCHED`), one round each brick the shot would punch through.
+    (`src/rules/flight/guide.ts`): up to 128 dots (`MOST_GUIDE_DOTS`), one
+    at each of its places but where it would crowd the count's
+    (`FieldPainter.crowdsCount()`), and 31 outlines (`MOST_PUNCHED`), one
+    round each brick the shot would punch through.
     `EffectsPainter` draws a broken brick's shards, 216 at most
     (`MOST_SHARDS_FLYING`), a punch's streak, a zap's bolt, a blast's ring
     and a freed friend's hop, each but the shards through `@fz/core/turns`,
@@ -454,11 +461,11 @@ helpers.
     game, How to play and Settings move into the overflow menu. Every round
     action but Pause, which its words name, is named by its tooltip alone,
     with no `aria-label` to say it again, so a screen reader says its name
-    once. How to play shows
-    busy while it loads (`helpLoading`): `aria-busy`, which `@fz/game-ui`'s
-    global stylesheet rings, on the overflow menu's button on a compact
-    screen. `<app-crew>` draws a crew in a row, the player's fuzzball in the
-    accent, then each friend in its ink, for the bar and the Cleared card.
+    once. How to play shows busy while it loads (`helpLoading`):
+    `aria-busy`, which `@fz/game-ui`'s global stylesheet rings, on the
+    overflow menu's button on a compact screen. `<app-crew>` draws a crew in
+    a row, the player's fuzzball in the accent, then each friend in its
+    ink, for the bar and the Cleared card.
   - `board/` — the board, `<app-board>`, and the cards over its field. The
     board holds `<fz-phaser-canvas>`, loading its scene only once the canvas
     asks, and, until the scene has drawn, a placeholder of the empty field
@@ -518,18 +525,18 @@ helpers.
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
     (pointing and holding, or pulling back, the mouse and fingers alike; a
     "by the pointer" kept from before, which had a finger pull back, is read
-    as pointing and holding), the flight's speed, long flights sped up, the
-    aim guide, sound and the palette, each applied at once; `SettingsService`
+    as pointing and holding), the flight's speed, under which a line says
+    what the bar's Fast-forward and Drop do, long flights sped up, the aim
+    guide, sound and the palette, each applied at once; `SettingsService`
     keeps them, and whether fast-forward is on, which has no control in the
     drawer, the bar's Fast-forward and F being its controls. Where
     `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
     and in a production one at `?debug`, the debug menu follows them, loaded
-    only there, so a page that doesn't offer it never
-    loads it, the drawer saying it is loading till it comes, and a load that
-    fails said through the announcer, in the drawer's own live region, while
-    the drawer is open, and tried again as it opens; the drawer hands on the
-    menu's Play the certificate (`playCertificate`), so the app can put it
-    away.
+    only there, so a page that doesn't offer it never loads it, the drawer
+    saying it is loading till it comes, and a load that fails said through
+    the announcer, in the drawer's own live region, while the drawer is
+    open, and tried again as it opens; the drawer hands on the menu's Play
+    the certificate (`playCertificate`), so the app can put it away.
   - `debug/` — the debug menu, `<app-debug-menu>`, `@fz/game-ui`'s
     `<fz-debug-tuning>` with a slider for each number
     `src/view/debug/debug_tuning.ts` tunes and the lines they would
@@ -550,12 +557,13 @@ helpers.
     files, each a chunk of its own, so a player's page fetches none; a set
     with no file has none. The menu provides it, so the two share a chunk
     a player's page never loads.
-  - `help/` — How to play, `<app-help>`: the aim, the charge, the wall's
-    step and jump, the boons, the scoring and the stars, their counts and
-    points from `tuning.ts`; the controls by mouse, touch and keyboard, a letter key
-    named by where it sits under the fingers, as the keys are read by
-    `event.code`; and every brick in the catalog, with its picture once the
-    scene hands them over (`HelpPictures`).
+  - `help/` — How to play, `<app-help>`: the aim, a fuzzball's boredom, the
+    charge, the wall's step and jump, the boons, the scoring and the stars,
+    their counts and points from `tuning.ts`; Fast-forward, Drop and the
+    pause; the controls by mouse, touch and keyboard, a letter key named by
+    where it sits under the fingers, as the keys are read by `event.code`;
+    and every brick in the catalog, with its picture once the scene hands
+    them over (`HelpPictures`).
   - `levels/` — the Levels dialog, `<app-levels>`: each set under its name,
     each level a button named by its number and name, with its stars and
     best once cleared, "Locked" and `aria-disabled` until it opens, the
@@ -591,22 +599,21 @@ helpers.
     comes to in place of the whole round; paused, its fuzzballs come down
     as the run goes on. As the player looks away (`lookAway()`), it pauses
     the level in play, a flight in the air where it is; but as the page is
-    hidden, which may never be seen again,
-    it first lands the round in the air at once, as it would have flown,
-    whatever the run's stage, so the records keep up with the saved game.
-    The bar's rounds and score follow the playback, though the
-    run takes a round in as it is released: a round counts as its flight
-    lands, each break's points as the flight plays it back, and a jump's
-    and the stars' as it lands. It hands the board the card to show
-    (`boardCard`) and the result card the run's end (`runEnd`), and takes
-    from `DebugService` the flight's pace and the rules' numbers, the
-    field's depth, which lays the field out again between rounds, and
-    whether a run keeps its records: none for one begun at a level not yet
-    open or on numbers retuned. It plays a certificate's line
-    (`playLine()`), off the record, a shot let fly as each round is aimed,
-    on the rules' own numbers. And `SavedGameService`, which keeps the run
-    under way through `@fz/ui/storage`'s `keepSaved()` and takes it up
-    again, paused, reading the game through `KeptGame`, which it injects
+    hidden, which may never be seen again, it first lands the round in the
+    air at once, as it would have flown, whatever the run's stage, so the
+    records keep up with the saved game. The bar's rounds and score follow
+    the playback, though the run takes a round in as it is released: a
+    round counts as its flight lands, each break's points as the flight
+    plays it back, and a jump's and the stars' as it lands. It hands the
+    board the card to show (`boardCard`) and the result card the run's end
+    (`runEnd`), and takes from `DebugService` the flight's pace and the
+    rules' numbers, the field's depth, which lays the field out again
+    between rounds, and whether a run keeps its records: none for one begun
+    at a level not yet open or on numbers retuned. It plays a certificate's
+    line (`playLine()`), off the record, a shot let fly as each round is
+    aimed, on the rules' own numbers. And `SavedGameService`, which keeps
+    the run under way through `@fz/ui/storage`'s `keepSaved()` and takes it
+    up again, paused, reading the game through `KeptGame`, which it injects
     as `KEPT_GAME`, and which `provideGame()` makes `GameService`;
     `main.ts` injects it at startup.
   - `tokens.ts` — `GAME_LEVELS`, the levels a run is played through,
@@ -844,9 +851,8 @@ What the specs share is in `src/testing/`:
   (`randomFlight()`), each flown by its kinds' rules, and finds where a
   flight's fuzzballs come nearer a brick than they may
   (`clearanceProblemsOf()`), and where a flight dropped at a moment strays
-  from the whole flight to it (`dropProblemsOf()`), on which
-  `flight.spec.ts` holds `fly()` to every flight's checks, whole and
-  dropped.
+  from the whole flight to it (`dropProblemsOf()`), on which `flight.spec.ts`
+  holds `fly()` to every flight's checks, whole and dropped.
 - `flights.ts` flies a shot at a wall drawn as a picture by the bricks' own
   rules (`flyPicture()`), picks a flight's events of a kind (`eventsOf()`),
   and matches a value as near as the flight's arithmetic finds it
