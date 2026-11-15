@@ -29,12 +29,12 @@ export interface FaceMoments {
   cheeredAt: number;
   /** A hit knocked one of the crew loose. */
   knockedAt: number;
-  /** A rock or a comet passed within `NEAR_MISS` of the pod, or a Shield took one for it. */
+  /**
+   * A rock or a comet passed near the pod untouched, as the rules count a
+   * near miss (`grazed`), or a Shield took one for it.
+   */
   startledAt: number;
 }
-
-/** How far beyond the pod's hit circle a rock or a comet passes for a near miss, in field units. */
-export const NEAR_MISS = 0.5;
 
 /** How far beyond the pod's hit circle the pilot keeps an eye on a rock or a comet, in field units. */
 export const WATCH_REACH = 6;
@@ -95,17 +95,13 @@ export function hearFace(
     case "knocked":
       moments.knockedAt = steps;
       return;
+    case "grazed":
     case "shielded":
       moments.startledAt = steps;
       return;
     default:
       return;
   }
-}
-
-/** Notes a near miss, a rock or a comet within `NEAR_MISS` of the pod's hit circle as the field stands. */
-export function watchFace(moments: FaceMoments, field: FieldView): void {
-  if (threatGap(field, null) <= NEAR_MISS) moments.startledAt = field.steps;
 }
 
 /**
@@ -167,10 +163,11 @@ export function isBlinking(
  * with no pod.
  */
 export function lookOf(field: FieldView, angle: number, into: Moving): Moving {
-  if (!field.ship) {
+  const { ship } = field;
+  if (!ship) {
     into.x = 0;
     into.y = 0;
-  } else if (threatGap(field, into) > WATCH_REACH) {
+  } else if (!watchThreat(field, ship, into)) {
     into.x = Math.cos(angle);
     into.y = Math.sin(angle);
   }
@@ -234,14 +231,16 @@ export function easeLean(
 }
 
 /**
- * Returns how far beyond the pod's hit circle the nearest live rock or
- * crossing comet lies, `Infinity` with none within `WATCH_REACH` of it or
- * no pod, and writes the way to it, a unit long, into a record where one
- * is given.
+ * Writes the way to the nearest live rock or crossing comet within
+ * `WATCH_REACH` of the pod's hit circle, a unit long, into a record, and
+ * returns whether there is one.
  */
-function threatGap(field: FieldView, way: Moving | null): number {
-  const { ship, torus } = field;
-  if (!ship) return Infinity;
+function watchThreat(
+  field: FieldView,
+  ship: Readonly<Ship>,
+  way: Moving,
+): boolean {
+  const { torus } = field;
   let gap = Infinity;
   let nearX = 0;
   let nearY = 0;
@@ -265,15 +264,13 @@ function threatGap(field: FieldView, way: Moving | null): number {
       nearY = comet.y;
     }
   }
-  if (gap > WATCH_REACH) return Infinity;
-  if (way) {
-    const dx = across(ship.x, nearX, torus.width);
-    const dy = across(ship.y, nearY, torus.height);
-    const far = Math.hypot(dx, dy);
-    way.x = far > 0 ? dx / far : 0;
-    way.y = far > 0 ? dy / far : 0;
-  }
-  return gap;
+  if (gap > WATCH_REACH) return false;
+  const dx = across(ship.x, nearX, torus.width);
+  const dy = across(ship.y, nearY, torus.height);
+  const far = Math.hypot(dx, dy);
+  way.x = far > 0 ? dx / far : 0;
+  way.y = far > 0 ? dy / far : 0;
+  return true;
 }
 
 /** Returns how far beyond the pod's hit circle a thing of a radius at a place lies, across the wrap. */

@@ -3066,6 +3066,20 @@ describe("the sounds", () => {
     ]);
   });
 
+  it("play a near miss on the frame the pilot eeps at it", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    const played = soundsPlayed();
+    shell.field.events.addGraze(ship.x, ship.y, 1, 0);
+
+    run.advance(16);
+
+    expect([
+      played.map(([name]) => name),
+      scene.kit.ship.eyes.images[0]?.frame.name,
+    ]).toEqual([["near-miss"], eyesFrame("pod", "eep")]);
+  });
+
   it("play an effect's end as its time runs out", async () => {
     const { shell, run } = await startBoard(withShip);
     stepping(shell);

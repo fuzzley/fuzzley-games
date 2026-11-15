@@ -16,7 +16,6 @@ import {
   liftOf,
   lookOf,
   pushOf,
-  watchFace,
 } from "../../view/art/faces";
 import {
   SPARK_HALO_ALPHA,
@@ -165,7 +164,6 @@ export class PodPainter implements Painter {
       this.lean.y = 0;
       return;
     }
-    watchFace(this.moments, field);
     const { angle } = shipDrawn;
     // A cleared wave stands still, its pod's flame out and its dash over.
     const { cleared } = field;

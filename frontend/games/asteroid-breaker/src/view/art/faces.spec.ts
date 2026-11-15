@@ -21,7 +21,6 @@ import {
   DASH_LEAN,
   FACE_MS,
   LEAN_MS,
-  NEAR_MISS,
   WATCH_REACH,
   adriftFaceOf,
   createFaceMoments,
@@ -32,7 +31,6 @@ import {
   liftOf,
   lookOf,
   pushOf,
-  watchFace,
 } from "./faces";
 
 /** The level static's first step starts from. */
@@ -133,13 +131,16 @@ describe("faceOf", () => {
     expect(faceOf(field, moments, true)).toBe("rest");
   });
 
-  it("eeps as a Shield takes a rock for the pod", () => {
-    const field = podField();
-    const moments = createFaceMoments();
-    hearFace(moments, { kind: "shielded" }, field.steps);
+  it.each<FieldEventKind>(["shielded", "grazed"])(
+    "eeps as a Shield takes a rock for the pod, or as one passes near it untouched, as the rules count a near miss, %s",
+    (kind) => {
+      const field = podField();
+      const moments = createFaceMoments();
+      hearFace(moments, { kind }, field.steps);
 
-    expect(faceOf(field, moments, true)).toBe("eep");
-  });
+      expect(faceOf(field, moments, true)).toBe("eep");
+    },
+  );
 
   it("is dizzy rather than eeping after a hit and a near miss", () => {
     const field = podField();
@@ -266,83 +267,6 @@ describe("adriftFaceOf", () => {
   });
 });
 
-describe("watchFace", () => {
-  it("eeps at a rock passing within a near miss of the pod", () => {
-    const field = podField();
-    const gap = rockHitRadius("small") + SHIP_HIT_RADIUS + NEAR_MISS / 2;
-    placeRock(field, "small", POD.x + gap, POD.y);
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(faceOf(field, moments, true)).toBe("eep");
-  });
-
-  it("takes a rock further off for no near miss", () => {
-    const field = podField();
-    const gap = rockHitRadius("small") + SHIP_HIT_RADIUS + NEAR_MISS + 0.1;
-    placeRock(field, "small", POD.x + gap, POD.y);
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(-Infinity);
-  });
-
-  it("takes a rock that broke for no near miss", () => {
-    const field = podField();
-    placeRock(field, "small", POD.x, POD.y).live = false;
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(-Infinity);
-  });
-
-  it("counts a near miss across the wrap", () => {
-    const field = podField();
-    const gap = rockHitRadius("small") + SHIP_HIT_RADIUS + NEAR_MISS / 2;
-    placeRock(field, "small", POD.x - gap + field.torus.width, POD.y);
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(field.steps);
-  });
-
-  it("eeps at a comet crossing within a near miss of the pod", () => {
-    const field = podField();
-    const gap = COMET_RADIUS + SHIP_HIT_RADIUS + NEAR_MISS / 2;
-    placeComet(field, POD.x, POD.y + gap);
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(field.steps);
-  });
-
-  it("pays no heed to a comet still being warned of", () => {
-    const field = podField();
-    placeComet(field, POD.x, POD.y + COMET_RADIUS).warnSteps = 10;
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(-Infinity);
-  });
-
-  it("notes nothing with no pod", () => {
-    const field = podField();
-    placeRock(field, "small", POD.x, POD.y);
-    field.ship = null;
-    const moments = createFaceMoments();
-
-    watchFace(moments, field);
-
-    expect(moments.startledAt).toBe(-Infinity);
-  });
-});
-
 describe("lookOf", () => {
   it("looks the way the pod points with nothing near", () => {
     const field = podField();
@@ -388,6 +312,43 @@ describe("lookOf", () => {
   it("pays no heed to a comet gone by", () => {
     const field = podField();
     placeComet(field, POD.x, POD.y + 2).live = false;
+
+    const look = lookOf(field, 0, blank());
+
+    expect(look).toEqual({ x: 1, y: 0 });
+  });
+
+  it("looks past a rock that broke", () => {
+    const field = podField();
+    placeRock(field, "small", POD.x, POD.y + 2).live = false;
+
+    const look = lookOf(field, 0, blank());
+
+    expect(look).toEqual({ x: 1, y: 0 });
+  });
+
+  it("looks at a rock within its watch across the field's edge", () => {
+    const field = podField();
+    const gap = rockHitRadius("small") + SHIP_HIT_RADIUS + WATCH_REACH - 1;
+    placeRock(field, "small", POD.x - gap + field.torus.width, POD.y);
+
+    const look = lookOf(field, Math.PI / 2, blank());
+
+    expect(look).toEqual({ x: -1, y: 0 });
+  });
+
+  it("looks at a comet crossing within its watch", () => {
+    const field = podField();
+    placeComet(field, POD.x, POD.y + COMET_RADIUS + SHIP_HIT_RADIUS + 1);
+
+    const look = lookOf(field, 0, blank());
+
+    expect(look).toEqual({ x: 0, y: 1 });
+  });
+
+  it("pays no heed to a comet still being warned of", () => {
+    const field = podField();
+    placeComet(field, POD.x, POD.y + COMET_RADIUS).warnSteps = 10;
 
     const look = lookOf(field, 0, blank());
 
