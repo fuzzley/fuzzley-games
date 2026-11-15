@@ -23,20 +23,20 @@ starts from the last entry.
 The recommendations, as the report numbers them, in the order they are
 built:
 
-| Step | #   | Change                                                              | Status  |
-| ---- | --- | ------------------------------------------------------------------- | ------- |
-| 1    | 3   | Margins for the specs nearest Vitest's 5 s                          | done    |
-| 2    | 4   | Chrome's launch limit raised                                        | done    |
-| 3    | 9   | No HTML coverage report on CI                                       | done    |
-| 4    | 2   | The test phase starts the slowest suites first                      | done    |
-| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes           | done    |
-| 6    | 5   | Prettier's experimental CLI with its cache                          | done    |
-| 7    | 6   | Yarn and its packages cached on CI                                  | done    |
-| 8    | 1   | `verify` split into parallel jobs, the layout check after the build | done    |
-| 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`        | done    |
-| 10   | 10  | Dependabot's pull requests deduped and grouped                      | done    |
-| 11   | —   | The audit run again, and its report                                 | done    |
-| 12   | —   | Merged into `main` and pushed                                       | pending |
+| Step | #   | Change                                                              | Status |
+| ---- | --- | ------------------------------------------------------------------- | ------ |
+| 1    | 3   | Margins for the specs nearest Vitest's 5 s                          | done   |
+| 2    | 4   | Chrome's launch limit raised                                        | done   |
+| 3    | 9   | No HTML coverage report on CI                                       | done   |
+| 4    | 2   | The test phase starts the slowest suites first                      | done   |
+| 5    | 8   | `tsc --incremental` for the spec, Node and scripts passes           | done   |
+| 6    | 5   | Prettier's experimental CLI with its cache                          | done   |
+| 7    | 6   | Yarn and its packages cached on CI                                  | done   |
+| 8    | 1   | `verify` split into parallel jobs, the layout check after the build | done   |
+| 9    | 7   | Lint alone for a push that changes only Markdown and `docs/`        | done   |
+| 10   | 10  | Dependabot's pull requests deduped and grouped                      | done   |
+| 11   | —   | The audit run again, and its report                                 | done   |
+| 12   | —   | Merged into `main` and pushed                                       | done   |
 
 ## Log
 
@@ -553,3 +553,36 @@ The second review, of the answers, and its answers:
    cause given for `typecheck`'s CI times was untested, and is gone; the
    two hand-written `phases.tsv` have a `meta.txt` each; and the unclear
    sentence above is rewritten.
+
+### 2026-11-14: Merged into `main` (step 12)
+
+`docs(ci-performance-audit): record the first runs on main and Dependabot's under the new workflow`
+
+- Before the merge, at 4d37058f with the report staged, `yarn verify:full`
+  passed in 159 s and `yarn check:layout` in 35 s. The change's own code is
+  covered: `workspaces.ts` and `script.ts` in full, and in `chrome.ts` every
+  line it added; the uncovered lines left in the files it touched, a real Chrome's
+  start and timeout in `chrome.ts`, line 295 of `vitest.ts` and a branch of
+  `report.ts`, are older than it.
+- The seven commits, 6b2808a0 to 9bba39fe, went to `main` as a
+  fast-forward from b870830e. `ci-speedup` was deleted here and on
+  `origin`.
+- `main`'s run, 43657595375, passed every job, its checks ending at 150 s
+  with `main`'s caches empty, and `promote` moved `live` to 9bba39fe at
+  161 s.
+- Dependabot, reading the new `everything-else` group, opened #29
+  (`lint-and-test`, ESLint 10.15.0) and #30 (`everything-else`, PostCSS
+  8.5.33), their runs starting about two minutes after the push. Each
+  lockfile needed deduping, each run passed every check, each but `docker`
+  on the lockfile deduped (43657771606, 216 s; 43657815452, 201 s), and
+  `lint` warned on each to land it by hand. They are left open, to land by
+  hand as the `github-actions-ci-cd` skill says.
+- This entry's commit changes only `docs/`, so its push should be the first
+  run to check lint alone, and to move `live` on lint alone.
+
+The review, and the answers: the docs-only run was written up before it
+ran, and is now what it should do; "every check on it deduped" was again
+untrue of `docker`; only `everything-else` is a new group; the heading's
+date was UTC's; the appendix didn't name the new runs; "the uncovered lines
+left in `@fz/dev`" meant those in the files the change touched; and "within
+a minute" was about two minutes. Fixed, each.
