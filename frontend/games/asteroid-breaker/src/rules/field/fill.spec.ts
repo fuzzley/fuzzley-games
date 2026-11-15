@@ -8,13 +8,16 @@ import {
   shipOf,
 } from "../../testing/field_picture";
 import { TURN } from "../angles";
-import { STILL, type Steer, createShip } from "../ship/ship";
-import type { Torus } from "../torus";
+import { STILL, type Ship, type Steer, createShip } from "../ship/ship";
+import { type TowLink, layTow } from "../ship/tow";
+import { type Torus, across } from "../torus";
 import {
   COMET_MARGIN,
   PICKUPS_AT_ONCE,
   ROCK_CAP,
   STRAY_FIRST_MS,
+  TOW_HOOK,
+  TOW_LINK,
 } from "../tuning";
 import type { Wave } from "../waves/waves";
 import { type Field, steerField, stepField } from "./field";
@@ -122,6 +125,19 @@ describe("fillFor", () => {
   });
 });
 
+/**
+ * Returns how far a link of the line in tow is from its ship the short way,
+ * now and a step ago, to a millionth, so a spec can compare them.
+ */
+function offsetsOf(link: TowLink, ship: Ship, torus: Torus): number[] {
+  return [
+    across(ship.x, link.x, torus.width),
+    across(ship.y, link.y, torus.height),
+    across(ship.lastX, link.lastX, torus.width),
+    across(ship.lastY, link.lastY, torus.height),
+  ].map((at) => Math.round(at * 1e6) / 1e6);
+}
+
 describe("stretchField", () => {
   /** Returns a field of 72 by 40 with something of every kind on it, moving and not where it was a step ago. */
   function fieldOfAll(): Field {
@@ -161,6 +177,32 @@ describe("stretchField", () => {
       [18, 8],
       [3, 40],
       [4.5, 72, 4, 70],
+    ]);
+  });
+
+  it("moves the line in tow with the ship, as far from it as it was, so its links keep their length", () => {
+    const field = fieldOfAll();
+    const ship = shipOf(field);
+    const riding = field.tow.slice(0, field.crew.tow.length);
+    const before = riding.map((link) => offsetsOf(link, ship, field.torus));
+    const torus = { width: 36, height: 80 };
+
+    stretchField(field, torus);
+
+    expect(riding.map((link) => offsetsOf(link, ship, torus))).toEqual(before);
+  });
+
+  it("keeps the line in tow behind a ship across the wrap as it was", () => {
+    const field = fieldFrom([], { torus: { width: 40, height: 40 } });
+    field.ship = { ...createShip(20, 39, STILL), waiting: false };
+    layTow(field);
+    const [first] = field.tow;
+
+    stretchField(field, { width: 80, height: 20 });
+
+    expect([first!.x, first!.y]).toEqual([
+      expect.closeTo(40),
+      expect.closeTo(19.5 + TOW_HOOK + TOW_LINK - 20),
     ]);
   });
 

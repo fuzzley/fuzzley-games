@@ -33,6 +33,13 @@ import {
   stepPickups,
 } from "../rocks/pickups";
 import { type Crew, atControls, bailOut } from "../ship/pilots";
+import {
+  type TowLink,
+  createTow,
+  layTow,
+  settleTow,
+  stepTow,
+} from "../ship/tow";
 import { endChain, scoreClearing } from "./scoring";
 import {
   type Rock,
@@ -135,6 +142,12 @@ export interface Field extends RockField {
   torus: Torus;
   /** The ship in play, or null once it is lost, until the next comes. */
   ship: Ship | null;
+  /**
+   * A link for each of the most that ride in tow, the first nearest the
+   * ship, of which the first as many as the crew has in tow ride, in its
+   * order.
+   */
+  readonly tow: readonly TowLink[];
   /** The step the next ship in line comes at, or null while none is coming. */
   shipDueAt: number | null;
   readonly shots: Shots;
@@ -227,6 +240,7 @@ export function createField(
     rocks: createRocks(setup.cap),
     waveKind: setup.waveKind,
     ship: createShip(middle.x, middle.y, held),
+    tow: createTow(),
     shipDueAt: null,
     shots: createShots(),
     weapon: "gun",
@@ -255,6 +269,7 @@ export function createField(
     cleared: false,
     events: new FieldEventLog(),
   };
+  layTow(field);
   scheduleFirstComet(field);
   return field;
 }
@@ -266,13 +281,14 @@ export function steerField(field: Field, steer: Readonly<Steer>): void {
 
 /**
  * Moves the field on by a step: blasts due go off and effects whose time is
- * up end, the ship flies by the frame's steering and fires, its shots and
- * the rocks fly, each shot meets the first rock in its way, the comets fly,
- * breaking what they meet, a rock or a comet takes a ship it touches that
- * isn't guarded, or spends its shield, and the pickups and the stray float
- * on, the ship catching those it touches. Once no rock is left, the wave is
- * cleared: its effects end, its pickups, stray and comets go, and
- * everything else stands still where it is. A wave holds still from its
+ * up end, the ship flies by the frame's steering, its line in tow following
+ * it, and fires, its shots and the rocks fly, each shot meets the first
+ * rock in its way, the comets fly, breaking what they meet, a rock or a
+ * comet takes a ship it touches that isn't guarded, or spends its shield,
+ * and the pickups and the stray float on, the ship catching those it
+ * touches. Once no rock is left, the wave is cleared: its effects end, its
+ * pickups, stray and comets go, and everything else stands still where it
+ * is. A wave holds still from its
  * start until the player's first move, and a ship lost is followed a
  * second later by the next in line, waiting where it is safest.
  *
@@ -292,6 +308,7 @@ export function stepField(field: Field): void {
   if (ship && flyShip(ship, steer, torus, field.flight)) {
     field.events.addDash(ship.x, ship.y, ship.angle);
   }
+  stepTow(field);
   const fired = stepShots(field, steer.fire || steer.autoFire);
   if (ship && fired) field.events.add("fired", ship.x, ship.y);
   stepRocks(field);
@@ -335,12 +352,13 @@ function holdStill(field: Field): boolean {
 /**
  * Brings the next ship in line to wait where it is safest, given what the
  * player holds as it comes, so a key held since the last was lost is no
- * move.
+ * move, with the line in tow straight out behind it.
  */
 export function bringShip(field: Field): void {
   const { x, y } = safestPlace(field);
   field.ship = createShip(x, y, field.steer);
   field.shipDueAt = null;
+  layTow(field);
 }
 
 /**
@@ -448,6 +466,7 @@ function clear(field: Field): void {
     ship.lastY = ship.y;
     ship.lastAngle = ship.angle;
   }
+  settleTow(field);
   for (const shot of field.shots.slots) {
     shot.lastX = shot.x;
     shot.lastY = shot.y;

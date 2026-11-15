@@ -202,6 +202,18 @@ export const FIRST_CREW = 3;
 /** The most of the crew aboard at once; a stray brought home past it waits at home. */
 export const MOST_CREW = 6;
 
+/**
+ * How far behind the ship's middle its line in tow is tied, at its tail, so
+ * the line swings as the ship turns.
+ */
+export const TOW_HOOK = 0.9;
+
+/**
+ * How far apart the middles of two bubbles in tow ride, and the first from
+ * the hook, which keeps it clear of the rings drawn round the ship.
+ */
+export const TOW_LINK = 1.6;
+
 /** The first wave a stray crosses, in a wave that doesn't say how many. */
 export const STRAYS_FROM = 3;
 

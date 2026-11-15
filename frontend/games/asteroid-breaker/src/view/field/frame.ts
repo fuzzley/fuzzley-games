@@ -10,6 +10,7 @@ import type { Rock } from "../../rules/rocks/rocks";
 import type { Crew } from "../../rules/ship/pilots";
 import type { Ship } from "../../rules/ship/ship";
 import type { Shot } from "../../rules/ship/shots";
+import type { TowLink } from "../../rules/ship/tow";
 import {
   type Moving,
   type Place,
@@ -32,6 +33,12 @@ export interface FieldView {
   readonly rocks: readonly Readonly<Rock>[];
   /** The ship in play, waiting or flying, or null between one ship and the next. */
   readonly ship: Readonly<Ship> | null;
+  /**
+   * A link for each of the most that ride in tow, the first nearest the
+   * ship, of which the first as many as `crew.tow` holds ride, its pilots in
+   * its order.
+   */
+  readonly tow: readonly Readonly<TowLink>[];
   /** A slot for each shot that can be in flight, flying while it has steps left. */
   readonly shots: { readonly slots: readonly Readonly<Shot>[] };
   /** The weapon in hand. */

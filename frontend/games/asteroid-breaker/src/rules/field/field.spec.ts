@@ -30,7 +30,7 @@ import {
 } from "../ship/ship";
 import { TUNED_GUNNERY } from "../ship/shots";
 import { STEP_MS, stepsIn } from "../stepper";
-import { across } from "../torus";
+import { across, distance } from "../torus";
 import {
   COMET_RADIUS,
   COMET_SPEED,
@@ -45,6 +45,8 @@ import {
   STEP_S,
   STRAY_FIRST_MS,
   STRETCH_GUARD_MS,
+  TOW_HOOK,
+  TOW_LINK,
 } from "../tuning";
 import {
   type SectorData,
@@ -413,6 +415,17 @@ describe("createField", () => {
     });
   });
 
+  it("lays the crew's line in tow out straight behind its ship", () => {
+    const field = createField(SETUP);
+
+    expect(
+      field.tow.slice(0, SETUP.crew.tow.length).map((link) => [link.x, link.y]),
+    ).toEqual([
+      [36, expect.closeTo(20 + TOW_HOOK + TOW_LINK)],
+      [36, expect.closeTo(20 + TOW_HOOK + 2 * TOW_LINK)],
+    ]);
+  });
+
   it("keeps its setup, with no pickup floating and none in effect", () => {
     const field = createField(SETUP);
 
@@ -540,6 +553,20 @@ describe("stepField", () => {
         expect.closeTo(alone.x),
         expect.closeTo(alone.y),
       ]);
+    });
+
+    it("follows the ship with its line in tow, the first link a link's length from the hook", () => {
+      const field = fieldFrom([...KEEPER, "", "", "....^"]);
+
+      stepBy(field, { ...STILL, thrust: 1, turn: 0.5 }, 30);
+
+      const ship = shipOf(field);
+      const hookX = ship.x - Math.cos(ship.angle) * TOW_HOOK;
+      const hookY = ship.y - Math.sin(ship.angle) * TOW_HOOK;
+      const [first] = field.tow;
+      expect(
+        distance(field.torus, hookX, hookY, first!.x, first!.y),
+      ).toBeCloseTo(TOW_LINK);
     });
 
     it("flies the ship by the field's flight", () => {
@@ -928,6 +955,19 @@ describe("stepField", () => {
       ]);
     });
 
+    it("holds its line in tow still once the wave is cleared", () => {
+      const field = fieldFrom(["S", "", "^"]);
+      stepBy(field, { ...STILL, turn: 0.4, thrust: 0.5 }, 30);
+      hitRock(field, onlyRock(field), 0, 0);
+
+      stepField(field);
+
+      const riding = field.tow.slice(0, field.crew.tow.length);
+      expect(riding.map((link) => [link.lastX, link.lastY])).toEqual(
+        riding.map((link) => [link.x, link.y]),
+      );
+    });
+
     it("holds its shots in flight still once the wave is cleared", () => {
       const field = fieldFrom(["S", "", "^"]);
       steerField(field, FIRE);
@@ -1106,6 +1146,19 @@ describe("stepField", () => {
         true,
       ]);
       expect([safest.x, safest.y]).not.toEqual([36, 20]);
+    });
+
+    it("lays the line in tow straight out behind the next ship", () => {
+      const field = fieldFrom(["^B", "", "", "", "", ".........L"]);
+
+      stepTimes(field, NEXT_SHIP_STEP);
+
+      const ship = shipOf(field);
+      const [first] = field.tow;
+      expect([first!.x, first!.y]).toEqual([
+        expect.closeTo(ship.x),
+        expect.closeTo(ship.y + TOW_HOOK + TOW_LINK),
+      ]);
     });
 
     it("flies the rocks on while the next ship waits", () => {

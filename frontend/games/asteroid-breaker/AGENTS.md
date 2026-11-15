@@ -131,14 +131,20 @@ takes for the specs' helpers.
   mouse's aim, and a push (`flyShip()`): it turns, thrusts along its
   heading, coasts, keeps under its top speed, wraps, or dashes. `shots.ts`
   fires the weapon in hand from the ship's nose and sweeps each shot as a
-  segment against circles (`sweepShot()`), so however fast it flies it
-  can't pass through a rock between two steps. `pilots.ts` keeps the
-  `Crew`: the pilot at the controls (`atControls()`), the line in tow
-  behind, whose first takes the controls as a ship is lost (`bailOut()`),
-  a stray brought home riding last in tow (`bringHome()`), or waiting at
-  home with the most aboard (`aboard()`, `MOST_CREW`), and the color each
-  new pilot is given, the next in turn that no pilot wears
-  (`nextPilot()`).
+  segment against circles (`sweepShot()`), so however fast it flies it can't
+  pass through a rock between two steps. `pilots.ts` keeps the `Crew`: the
+  pilot at the controls (`atControls()`), the line in tow behind, whose
+  first takes the controls as a ship is lost (`bailOut()`), a stray brought
+  home riding last in tow (`bringHome()`), or waiting at home with the most
+  aboard (`aboard()`, `pilotsAboard()`, `MOST_CREW`), and the color each new
+  pilot is given, the next in turn that no pilot wears (`nextPilot()`).
+  `tow.ts` keeps the line in tow behind the ship, a link made once for each
+  of the most that ride (`createTow()`), laid straight out behind a ship as
+  it comes (`layTow()`, `trailLink()` for one who joins its end) and pulled
+  along a step at a time, each link to its length from the one ahead, the
+  first from the hook at the ship's tail, the short way across the wrap
+  (`stepTow()`), so it swings as the ship turns. Nothing hits a bubble in
+  tow.
 - **`src/rules/rocks/`** — the rocks and what they let go. `rocks.ts` lays
   the rocks in slots made once, as many as the field's cap (`addRock()`),
   flies them (`stepRocks()`), and hits them (`hitRock()`), each holding or

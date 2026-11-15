@@ -98,10 +98,11 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   of characters for each 4 units down (`CELL`), each a cell that many units
   across: `B` a boulder, `L`, `M` and `S` a large, a medium and a small
   rock of the options' kind, each still in its cell's middle, `^` the ship,
-  its nose up, and `.` or a space nothing. The field is 72 by 40 unless the
-  options give its `torus`; they set what a picture can't show: the seed,
-  the pace, the kind, the chance of a pickup and the pool, the strays and
-  the comets, the crew and the points. `KEEPER` is a picture of one large
+  its nose up, its crew's line in tow laid straight out behind it, and `.`
+  or a space nothing. The field is 72 by 40 unless the options give its
+  `torus`; they set what a picture can't show: the seed, the pace, the
+  kind, the chance of a pickup and the pool, the strays and the comets, and
+  the crew, a run's first unless given. `KEEPER` is a picture of one large
   rock, so a wave doesn't clear while a spec plays on.
 - `placeRock()`, `placePickup()`, `catchOn()`, `placeStray()` and
   `placeComet()` put more on a field; `stepTimes(field, n)` steps it;
