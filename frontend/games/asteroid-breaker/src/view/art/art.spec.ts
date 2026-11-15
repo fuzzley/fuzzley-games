@@ -24,7 +24,6 @@ import {
   FRAMES,
   PICKUP_REACH,
   PICTURE_FRAMES,
-  SHOT_REACH,
   STRAY_DROP,
   atlasFrames,
   deckFrames,
@@ -222,23 +221,6 @@ describe.each(ART_SCALES)(
   },
 );
 
-describe("SHOT_REACH", () => {
-  it.each(ART_SCALES)(
-    "holds a shot, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
-    (scale) => {
-      const beyond = atlasFrames(ART_PALETTE, scale, isFine(scale))
-        .filter(
-          (frame) =>
-            frame.name === FRAMES.shot &&
-            reachOf(frame) > SHOT_REACH * scale.unit + SLACK,
-        )
-        .map((frame) => frame.name);
-
-      expect(beyond).toEqual([]);
-    },
-  );
-});
-
 describe("PICKUP_REACH", () => {
   it.each(ART_SCALES)(
     "holds every pickup, from its middle, at a unit of $unit, $pixelRatio to a CSS pixel",
@@ -432,22 +414,6 @@ describe("a pickup's outline", () => {
 });
 
 describe("the other frames", () => {
-  it("outlines a shot, a line wide, and fills it in the shots' color, along its travel", () => {
-    // At a unit of 24, a shot is 17.28 by 7.2 device pixels, its line 2.
-    const drawn = frameNamed(ART_FRAMES, FRAMES.shot).commands.map(
-      (command) => [
-        command.kind,
-        ...sizesIn(command).map((size) => Math.round(size * 100) / 100),
-        command.color,
-      ],
-    );
-
-    expect(drawn).toEqual([
-      ["roundRect", 21.28, 11.2, 5.6, ART_PALETTE.outline],
-      ["roundRect", 17.28, 7.2, 3.6, ART_PALETTE.shot],
-    ]);
-  });
-
   it("draws a stray's bubble in its wash, its rim and its glint", () => {
     const bubble = frameNamed(ART_FRAMES, FRAMES.bubble);
 

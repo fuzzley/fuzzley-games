@@ -4,6 +4,7 @@ import { type Moving, wrap } from "../../rules/torus";
 import {
   type Halo,
   MOST_ROCK_HALOS,
+  SHOTS,
   haloAlpha,
   rockHalos,
 } from "../../view/art/energy";
@@ -30,7 +31,8 @@ const WHOLE = "__BASE";
  * its own color, under plain alpha, from images of one soft disc made
  * once, each turned, scaled and faded as the view's halo says, on both sides
  * of an edge it reaches across: a crystal's gems' and a volatile rock's
- * core's, turning with their rock.
+ * core's, turning with their rock, and each shot's, in the accent, along
+ * its travel.
  *
  * Another painter shows a halo of its own through {@link glow}, or
  * {@link glowOnce} for a thing that crosses rather than wraps, each frame
@@ -72,11 +74,14 @@ export class HaloPainter implements Painter {
 
   /**
    * Makes the images a new field's halos need, those it lacks, as many as
-   * all its rocks could give off at once and those reserved, so none is made
-   * in a frame of play.
+   * all its rocks and shots could give off at once and those reserved, so
+   * none is made in a frame of play.
    */
   start(field: FieldView): void {
-    const wanted = field.rocks.length * MOST_ROCK_HALOS + this.reserved;
+    const wanted =
+      field.rocks.length * MOST_ROCK_HALOS +
+      field.shots.slots.length +
+      this.reserved;
     while (this.halosMade.length < wanted) {
       this.halosMade.push(
         new Copies(this.scene, this.layer, WHOLE, HALO_DISC.key),
@@ -102,6 +107,13 @@ export class HaloPainter implements Painter {
       for (const halo of halos) {
         this.glow(halo, palette.rockGlows[halo.tone], this.drawn, context);
       }
+    }
+    for (const shot of field.shots.slots) {
+      if (shot.lifeSteps === 0) continue;
+      wrappedBetween(shot, alpha, field.torus, this.drawn);
+      this.drawn.angle = Math.atan2(shot.vy, shot.vx);
+      // A shot's energy's halo is its own color, the accent.
+      this.glow(SHOTS[shot.weapon].halo, palette.accent, this.drawn, context);
     }
     for (let i = this.shown; i < before; i++) this.halosMade[i]?.hide();
   }

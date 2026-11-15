@@ -557,7 +557,7 @@ takes for the specs' helpers.
   its way and the blow's (`shardPushOf()`), tumbling, shrinking, lit as the
   shader would light its facet and fading into the field's color
   (`shardAt()`), the dust's ring and puffs (`dustAt()`, `puffAt()`), the
-  sparks (`sparkAt()`, in `energyOf()`'s tones) and the glints
+  sparks (`sparkAt()`, in `energy.ts`' `energyOf()` tones) and the glints
   (`glintAt()`), all of it gone by `BREAK_MS`, 450 ms, and never farther
   from its middle than its `reach`; a held hit's sparks thrown back about
   the way the shot came from its rock's rim (`impactOf()`,
@@ -583,12 +583,23 @@ takes for the specs' helpers.
   (`sparksFrames()`), a pilot adrift's fur and its fright
   (`ADRIFT_FRAMES`), and each seat's eyes at each face (`eyesFrame()`),
   moved the way it looks (`eyesShift()`);
-  `energy.ts` the halos of what gives off light, each a soft ellipse about
-  its thing as it points, ahead of it and turned from it as far as it says
-  (`Halo`, `roundHalo()`), shown as strongly as a palette lets it
-  (`haloAlpha()`): a crystal's gems' and a volatile rock's core's, each
-  rock's from its shape's glows, turning with it (`rockHalos()`), as many
-  at most as `MOST_ROCK_HALOS`;
+  `energy.ts` what gives off light, as the art kit's `fx.mjs` draws it: the
+  tones a glowing thing of a color is drawn in, its middle, its body and
+  its halo (`energyOf()`, a shot's, a break's sparks and a held hit's); the
+  halos, each a soft ellipse about its thing as it points, ahead of it and
+  turned from it as far as it says (`Halo`, `roundHalo()`), shown as
+  strongly as a palette lets it (`haloAlpha()`): a crystal's gems' and a
+  volatile rock's core's, each rock's from its shape's glows, turning with
+  it (`rockHalos()`), as many at most as `MOST_ROCK_HALOS`; each weapon's
+  shot as the kit cuts it (`SHOTS`), the gun's bolt, Spread's lighter
+  ones, Rapid's dart and Lance's needle, each with its halo, and its frame
+  (`SHOT_FRAMES`): its tail in three layers, its body outlined in the
+  field's color, its middle in the field's text and a lance's barbs as
+  fine marks, its body held to 3:1 against the field in every palette by
+  its spec; and the muzzle's flash, a star in the accent with its middle,
+  whole in its frame (`MUZZLE_FRAME`) and smaller and fainter in its
+  second beat (`MUZZLE_BEATS`), with its halo ahead of the muzzle
+  (`muzzleHalo()`); `energyFrames()` draws their frames;
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -604,7 +615,7 @@ takes for the specs' helpers.
   helpers over them: the scale the atlas is baked at, the outline's width,
   the dashed rings and the outlines grown outward (`outward()`). Each piece
   that wraps says how far its frame reaches from its middle (`SHOT_REACH`,
-  `PICKUP_REACH`, `ROCK_REACH`, `POD_REACH`), its own
+  by weapon, `MUZZLE_REACH`, `PICKUP_REACH`, `ROCK_REACH`, `POD_REACH`), its own
   extent and its outline at the widest a line gets (`MOST_LINE`), a rock's
   and the pod's mitred out at a sharp corner as far as an outline may
   reach (`MOST_MITER`), and the pod's covering its rings too, which the
@@ -658,9 +669,11 @@ takes for the specs' helpers.
   soft disc painted once (`HALO_DISC`, through `@fz/phaser/scene`'s
   `softDisc()`), tinted, turned, scaled and faded under plain alpha, never
   an additive blend, on the `halos` layer, over the place and the field and
-  under the tags and the rocks, so none covers what it glows round,
-  made as many as all a field's rocks could give off at once, and as many
-  more as another painter reserves (`reserve()`) to show its own after it
+  under the tags and the rocks, so none covers what it glows round: each
+  rock's, turning with it, and each shot's, along its travel, in the
+  accent, as its weapon's says; made as many as all a field's rocks and
+  shots could give off at once, and as many more as another painter
+  reserves (`reserve()`) to show its own after it
   draws, through `glow()`, or `glowOnce()` for a thing that crosses rather
   than wraps, shown once where it lies, as `Copies`' `showOnce()` shows it,
   `TagPainter` the tags of the effects in play, `RockPainter` the rocks,
@@ -670,7 +683,7 @@ takes for the specs' helpers.
   `PickupPainter` the pickups,
   `StrayPainter` the stray adrift, pleading, and a lost pod's pilot
   bailing out, wide eyed, `HazardPainter` the comets and their warnings,
-  `ShotPainter` the shots, `PodPainter` the pod, its flame, its pilot, its
+  `ShotPainter` the shots, each in its weapon's frame, `PodPainter` the pod, its flame, its pilot, its
   face as the field shows it, which it hears the field's events for
   (`hear()`), and its rings, `TrailPainter` a dash's trail of the pod's
   ghosts, `ExhaustPainter` the exhaust, a puff from each engine in turn,

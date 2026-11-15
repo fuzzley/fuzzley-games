@@ -14,7 +14,6 @@ import {
   polygon,
   quadraticPoints,
   ring,
-  roundRect,
   shifted,
   stroke,
   widthOf,
@@ -33,6 +32,7 @@ import {
   STICK_RADIUS_CSS_PX,
   THRUST_RING,
 } from "../steering/stick";
+import { energyFrames } from "./energy";
 import {
   PILOT_SIZES,
   eyesCommands,
@@ -46,7 +46,6 @@ import { SYMBOLS } from "./symbols";
 
 /** The names of the frames that aren't a rock's, a pilot's, the pod's or a pickup's. */
 export const FRAMES = {
-  shot: "shot",
   /** A stray's bubble, its pilot drawn in it. */
   bubble: "bubble",
   /** The comet's head and tail, the head's middle the frame's. */
@@ -89,15 +88,6 @@ export const DECK_FRAMES = {
   dashRing: "dash-ring",
   dashSymbol: "dash-symbol",
 } as const;
-
-/** How wide a shot is, along its travel and across it, in field units. */
-const SHOT = { length: 0.72, width: 0.3 } as const;
-
-/**
- * How far a shot's frame reaches from its middle, in field units: half its
- * length, and its outline at its widest.
- */
-export const SHOT_REACH = SHOT.length / 2 + MOST_LINE;
 
 /** How far a pickup's hexagon reaches to its corners, and how round they are, in field units. */
 const PICKUP = { reach: 0.95, corner: 0.27 } as const;
@@ -301,35 +291,16 @@ function warningCommands(
 }
 
 /**
- * Returns the frames of what isn't a rock, a pilot, the pod or a pickup: the
- * shot, a stray's bubble, the comet and its warning, the flourishes, and the
- * stray's and the comet's pictures.
+ * Returns the frames of what isn't a rock, a pilot, the pod, a pickup or
+ * the field's energy: a stray's bubble, the comet and its warning, the
+ * flourishes, and the stray's and the comet's pictures.
  */
 function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
-  const shot = {
-    width: SHOT.length * scale.unit,
-    height: SHOT.width * scale.unit,
-  };
-  const shotLine = lineWidth(scale);
-  const outlined = {
-    x: -shot.width / 2 - shotLine,
-    y: -shot.height / 2 - shotLine,
-    width: shot.width + 2 * shotLine,
-    height: shot.height + 2 * shotLine,
-  };
   const shard = FLOURISH.shard * scale.unit;
   const spark = FLOURISH.spark * scale.unit;
   const adrift = PILOT_SIZES.adrift * scale.unit;
   const drop = STRAY_DROP * STRAY_RADIUS * scale.unit;
   return [
-    centered(FRAMES.shot, [
-      roundRect(outlined, outlined.height / 2, { color: palette.outline }),
-      roundRect(
-        { x: -shot.width / 2, y: -shot.height / 2, ...shot },
-        shot.height / 2,
-        { color: palette.shot },
-      ),
-    ]),
     centered(FRAMES.bubble, bubbleCommands(palette, scale)),
     centered(FRAMES.comet, cometCommands(palette, scale)),
     centered(FRAMES.warning, warningCommands(palette, scale)),
@@ -380,7 +351,8 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, the fine marks only where the field keeps them: the pod's but its
  * hull, which the rocks' atlas lights, the pilots and their eyes, the
- * pickups and their tags, the shot, a stray's bubble, the comet and its
+ * pickups and their tags, each weapon's shot and the muzzle's flash, a
+ * stray's bubble, the comet and its
  * warning, the flourishes and the stray's picture.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
@@ -397,6 +369,7 @@ export function atlasFrames(
     ...pilotFrames(palette, scale, fine),
     ...PICKUP_IDS.map((id) => pickupArt(id, palette, scale)),
     ...PICKUP_IDS.map((id) => tagArt(id, palette, scale)),
+    ...energyFrames(palette, scale, fine),
     ...otherArt(palette, scale),
   ];
 }

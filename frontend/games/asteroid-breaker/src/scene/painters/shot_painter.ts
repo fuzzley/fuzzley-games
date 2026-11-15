@@ -1,15 +1,16 @@
 import type { GameObjects, Scene } from "phaser";
-import { FRAMES, SHOT_REACH } from "../../view/art/art";
+import { SHOT_FRAMES, SHOT_REACH } from "../../view/art/energy";
 import type { FieldView } from "../../view/field/frame";
 import { Copies } from "./copies";
 import type { PaintContext, Painter } from "./painter";
 
 /**
- * Draws the shots in flight: for each slot of the field's, a capsule along its
- * travel, on both sides of an edge it reaches across.
+ * Draws the shots in flight: for each slot of the field's, its weapon's
+ * shot along its travel, on both sides of an edge it reaches across. Its
+ * halo is the halo painter's.
  */
 export class ShotPainter implements Painter {
-  /** Each shot slot's capsule, made as a field of more slots starts. */
+  /** Each shot slot's shot, made as a field of more slots starts. */
   private readonly shotsMade: Copies[] = [];
 
   constructor(
@@ -17,7 +18,7 @@ export class ShotPainter implements Painter {
     private readonly layer: GameObjects.Layer,
   ) {}
 
-  /** Each shot slot's capsule. */
+  /** Each shot slot's shot. */
   get shots(): readonly Copies[] {
     return this.shotsMade;
   }
@@ -28,13 +29,13 @@ export class ShotPainter implements Painter {
    */
   start(field: FieldView): void {
     while (this.shotsMade.length < field.shots.slots.length) {
-      this.shotsMade.push(new Copies(this.scene, this.layer, FRAMES.shot));
+      this.shotsMade.push(new Copies(this.scene, this.layer, SHOT_FRAMES.gun));
     }
   }
 
   /**
    * Draws each shot in flight between its last place and its next, along its
-   * travel, and hides each slot that holds none.
+   * travel, in its weapon's frame, and hides each slot that holds none.
    */
   draw({ field, alpha, metrics, zoom }: Readonly<PaintContext>): void {
     const { torus } = field;
@@ -47,9 +48,10 @@ export class ShotPainter implements Painter {
         copies.hide();
         continue;
       }
+      copies.setFrame(SHOT_FRAMES[shot.weapon]);
       copies.setRotation(Math.atan2(shot.vy, shot.vx));
       copies.setScale(zoom);
-      copies.showBetween(shot, alpha, SHOT_REACH, metrics, torus);
+      copies.showBetween(shot, alpha, SHOT_REACH[shot.weapon], metrics, torus);
     }
   }
 }

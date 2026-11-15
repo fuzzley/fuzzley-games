@@ -9,10 +9,16 @@ import {
   shown,
   startBoard,
 } from "../../testing/belt_board";
-import { KEEPER, fieldFrom, placeRock } from "../../testing/field_picture";
+import {
+  KEEPER,
+  fieldFrom,
+  placeRock,
+  placeShot,
+} from "../../testing/field_picture";
 import {
   type Halo,
   MOST_ROCK_HALOS,
+  SHOTS,
   haloAlpha,
   rockHalos,
   roundHalo,
@@ -178,7 +184,42 @@ describe("the halos", () => {
 
     board.run.advance(16);
 
-    expect(board.scene.kit.halos.halos).toHaveLength(60 * MOST_ROCK_HALOS);
+    expect(board.scene.kit.halos.halos).toHaveLength(
+      60 * MOST_ROCK_HALOS + board.shell.field.shots.slots.length,
+    );
+  });
+
+  it("draw a shot's halo a little ahead of it along its travel, in the accent, as long, as wide and as strong as its weapon's", async () => {
+    const board = await startBoard();
+    placeShot(board.shell.field, "lance", 30, 20, -Math.PI / 2);
+    const { halo } = SHOTS.lance;
+    const metrics = metricsOf(board.shell);
+    const scale = (2 * metrics.unit) / HALO_DISC.size;
+
+    board.run.advance(16);
+
+    const palette = board.shell.colors;
+    expect([shownHalos(board), looksOf(firstHalo(board))]).toEqual([
+      [[onCanvas(metrics, 30, 20 - halo.ahead), null, null, null]],
+      [
+        palette.accent,
+        expect.closeTo(-Math.PI / 2, 9),
+        halo.along * scale,
+        halo.across * scale,
+        haloAlpha(halo.strength, palette),
+      ],
+    ]);
+  });
+
+  it("hide a shot's halo once it lands", async () => {
+    const board = await startBoard();
+    const shot = placeShot(board.shell.field, "gun", 30, 20);
+    board.run.advance(16);
+    shot.lifeSteps = 0;
+
+    board.run.advance(16);
+
+    expect(shownHalos(board)).toEqual([]);
   });
 
   it("draw a rock's halos where the rock is drawn between its last place and its next", async () => {
@@ -239,7 +280,9 @@ describe("a halo another painter shows", () => {
     const board = await startReserving();
 
     expect(board.scene.kit.halos.halos).toHaveLength(
-      board.shell.field.rocks.length * MOST_ROCK_HALOS + 1,
+      board.shell.field.rocks.length * MOST_ROCK_HALOS +
+        board.shell.field.shots.slots.length +
+        1,
     );
   });
 

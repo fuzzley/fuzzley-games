@@ -10,7 +10,6 @@ import {
   BREAK_MS,
   type Break,
   type Broken,
-  type Energy,
   GLINT_POINTS,
   HELD_MS,
   HELD_REACH,
@@ -22,7 +21,6 @@ import {
   type Tick,
   breakOf,
   dustAt,
-  energyOf,
   glintAt,
   impactFlashAt,
   impactOf,
@@ -36,6 +34,7 @@ import {
   towardShip,
   wholeAt,
 } from "../../view/art/breaks";
+import { type Energy, energyOf } from "../../view/art/energy";
 import type { BeltPalette } from "../../view/colors/palette";
 import { SHARDS_MS } from "../../view/effects/timing";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
