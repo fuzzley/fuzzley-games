@@ -52,7 +52,7 @@ describe("HelpComponent", () => {
       "Charge",
       "Let it fly",
       "Call a charge off",
-      "Fast-forward a flight",
+      "Switch fast-forward on or off",
       "Skip a flight",
       "Pause, or go on",
       "Next level",
@@ -78,7 +78,7 @@ describe("HelpComponent", () => {
       "↑ or ↓, a notch at a time",
       "Space",
       "Esc",
-      "Hold the left index finger's home key, the one with a bump",
+      "The left index finger's home key, the one with a bump",
       "The left ring finger's key on the bottom row",
       "The key above the right little finger's home key; Esc pauses while no charge builds, and Enter goes on",
       "Enter",
@@ -102,6 +102,22 @@ describe("HelpComponent", () => {
 
     expect(paragraph("Keys by place.")).toHaveTextContent(
       "The left hand's home keys under its little, ring and middle fingers do as ←, ↓ and → do, and the key above the ring finger's as ↑ does.",
+    );
+  });
+
+  it("says fast-forward stays on until it is turned off", async () => {
+    await renderHelp();
+
+    expect(paragraph("No hurry.")).toHaveTextContent(
+      "Fast-forward plays every flight faster; once on, it stays on until you turn it off, even on your next visit.",
+    );
+  });
+
+  it("says fast-forward is said as its key switches it", async () => {
+    await renderHelp();
+
+    expect(paragraph("By ear.")).toHaveTextContent(
+      "fast-forward as its key switches it",
     );
   });
 

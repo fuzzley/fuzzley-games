@@ -179,11 +179,11 @@ describe("SettingsComponent", () => {
       ]);
     });
 
-    it("says Fast-forward and Skip are there in every flight", async () => {
+    it("says Fast-forward stays on from flight to flight, and Skip is there in every flight", async () => {
       await renderSettings();
 
       expect(group("The flight's speed")).toHaveAccessibleDescription(
-        "Fast-forward and Skip are there from the start of every flight.",
+        "Fast-forward, in the bar, once switched on, stays on from flight to flight until you switch it off. Skip is there from the start of every flight.",
       );
     });
 
