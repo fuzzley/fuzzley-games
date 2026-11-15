@@ -1,0 +1,8 @@
+# overlap-3: LINT_JOBS=4 TC_JOBS=4, yarn test --jobs 3
+# the first run, before the review, by the first overlap.sh, which wrote no whole row; the test exit of 1 is the solver spec timing out
+part	wall_s	exit
+typecheck	73.9	0
+build-layout	103.7	0
+lint	115.9	0
+test	119.3	0
+least_free_mib	3063

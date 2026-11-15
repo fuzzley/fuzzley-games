@@ -1,0 +1,15 @@
+workspace	lint	typecheck	test	build	layout
+asteroid-breaker	18.7	9.0	28.9	6.7	9.5
+brick-breaker	17.6	9.2	28.7	6.3	30.2
+brick-fuzz-pop	23.0	9.5	29.2	6.5	18.8
+minesweeper	7.3	6.6	7.8	4.3	0
+snake	8.4	7.6	8.8	5.2	13.2
+solitaire	21.7	9.8	24.1	8.0	0
+sudoku	8.3	6.5	11.4	4.2	3.2
+@fz/core	4.0	2.3	1.8	0	0
+@fz/dev	6.7	2.6	7.0	0	0
+@fz/game-ui	7.4	6.0	7.8	0	0
+@fz/phaser	11.0	6.7	9.8	0	0
+@fz/style	5.3	2.4	3.1	0	0
+@fz/ui	6.8	5.6	6.9	0	0
+site	6.9	5.9	6.5	4.1	0

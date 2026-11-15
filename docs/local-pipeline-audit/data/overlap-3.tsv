@@ -1,0 +1,9 @@
+# overlap-3: LINT_JOBS=4 TC_JOBS=4, yarn test --jobs 3
+# lint exited 1 at Prettier's check alone, after every workspace's lint passed: it found report.md and work-log.md, edited during the run
+part	wall_s	exit
+typecheck	72.5	0
+build-layout	103.9	0
+lint	117.8	1
+test	119.6	0
+whole	119.6	
+least_free_mib	4239	

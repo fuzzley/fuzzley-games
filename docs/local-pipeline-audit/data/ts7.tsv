@@ -1,0 +1,5 @@
+run	projects	wall_s	failed
+TypeScript 6, one after another	43	84.2	0
+TypeScript 7, one after another	43	10.3	0
+ngc on 6 and the rest on 7, twelve at a time	51	8.5	0
+ngc alone, twelve at a time	11	6.3	0

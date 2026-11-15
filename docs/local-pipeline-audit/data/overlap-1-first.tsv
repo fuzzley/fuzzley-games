@@ -1,0 +1,8 @@
+# overlap-1: every step at once, Yarn defaults
+# the first run, before the review, by the first overlap.sh, which wrote no whole row; the test exit of 1 is the solver spec timing out
+part	wall_s	exit
+typecheck	48.5	0
+lint	101.6	0
+build-layout	122.0	0
+test	124.3	1
+least_free_mib	586

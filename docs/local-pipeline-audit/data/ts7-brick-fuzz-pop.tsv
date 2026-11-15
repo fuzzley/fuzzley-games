@@ -1,0 +1,5 @@
+config	ts6_warm_s	ts6_files	ts6_s	ts7_files	ts7_s
+tsconfig.app.json, ngc	4.3				
+tsconfig.spec.json	2.2	1119	5.9	1119	0.9
+tsconfig.node.json	1.4	605	2.6	605	0.3
+tsconfig.scripts.json	1.2	497	1.8	497	0.2
