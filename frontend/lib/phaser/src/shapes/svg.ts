@@ -2,7 +2,13 @@
 // bakes, as an image or a mask, from the one list of commands.
 
 import { cssHex } from "../color";
-import type { ArtFrame, DrawCommand, LineStyle, Point } from "./shapes";
+import type {
+  ArtFrame,
+  DrawCommand,
+  FillStyle,
+  LineStyle,
+  Point,
+} from "./shapes";
 
 /** Describes a drawing as `svgOf()` writes it: its size in the commands' own pixels, and its shapes. */
 export type Drawing = Pick<ArtFrame, "width" | "height" | "commands">;
@@ -11,7 +17,8 @@ export type Drawing = Pick<ArtFrame, "width" | "height" | "commands">;
  * Returns a drawing written as an SVG document, its size its own and each
  * shape over those before it, as `atlasFrameOf()` plays the commands into a
  * canvas: a line's ends cut straight across and a polyline's corners
- * mitred, as far as a canvas mitres them.
+ * mitred, as far as a canvas mitres them, and a shape at part alpha at its
+ * fill's or its stroke's opacity.
  *
  * Its size is in the commands' own pixels, which a page reads as CSS
  * pixels, so a drawing in device pixels is shown at its size over the pixel
@@ -41,7 +48,7 @@ function elementOf(command: DrawCommand): string {
         y: command.y,
         width: command.width,
         height: command.height,
-        fill: cssHex(command.color),
+        ...fillOf(command),
       });
     case "roundRect":
       return element("rect", {
@@ -50,14 +57,14 @@ function elementOf(command: DrawCommand): string {
         width: command.width,
         height: command.height,
         rx: command.radius,
-        fill: cssHex(command.color),
+        ...fillOf(command),
       });
     case "circle":
       return element("circle", {
         cx: command.x,
         cy: command.y,
         r: command.radius,
-        fill: cssHex(command.color),
+        ...fillOf(command),
       });
     case "ring":
       return element("circle", {
@@ -85,21 +92,33 @@ function elementOf(command: DrawCommand): string {
     case "polygon":
       return element("polygon", {
         points: pointsOf(command.points),
-        fill: cssHex(command.color),
+        ...fillOf(command),
       });
   }
 }
 
+/** Describes an element's attributes, by name. */
+type Attributes = Readonly<Record<string, string | number>>;
+
+/** Returns the attributes that fill a shape in a style. */
+function fillOf({ color, alpha }: FillStyle): Attributes {
+  return {
+    fill: cssHex(color),
+    ...(alpha === undefined ? {} : { "fill-opacity": alpha }),
+  };
+}
+
 /** Returns the attributes that stroke a line in a style. */
-function strokeOf(style: LineStyle): Readonly<Record<string, string | number>> {
-  return { stroke: cssHex(style.color), "stroke-width": style.width };
+function strokeOf({ color, width, alpha }: LineStyle): Attributes {
+  return {
+    stroke: cssHex(color),
+    "stroke-width": width,
+    ...(alpha === undefined ? {} : { "stroke-opacity": alpha }),
+  };
 }
 
 /** Returns an empty element of a name with its attributes, each number written as {@link num} writes it. */
-function element(
-  name: string,
-  attributes: Readonly<Record<string, string | number>>,
-): string {
+function element(name: string, attributes: Attributes): string {
   const written = Object.entries(attributes).map(
     ([key, value]) =>
       `${key}="${typeof value === "number" ? num(value) : value}"`,

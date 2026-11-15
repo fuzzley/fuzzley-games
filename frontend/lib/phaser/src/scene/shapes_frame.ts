@@ -2,7 +2,7 @@ import { type GameObjects, Math as PhaserMath } from "phaser";
 import type { ArtFrame, DrawCommand, Point } from "../shapes";
 import type { AtlasFrame } from "./bake_atlas";
 
-/** Returns a frame drawn in shapes as `bakeAtlas()` draws one: each shape in turn, over those before it. */
+/** Returns a frame drawn in shapes as `bakeAtlas()` draws one: each shape in turn, over those before it, at its alpha. */
 export function atlasFrameOf(frame: ArtFrame): AtlasFrame {
   return {
     name: frame.name,
@@ -14,15 +14,15 @@ export function atlasFrameOf(frame: ArtFrame): AtlasFrame {
   };
 }
 
-/** Draws a shape with a `Graphics`. */
+/** Draws a shape with a `Graphics`, at its alpha, or opaque where it has none. */
 function drawShape(graphics: GameObjects.Graphics, command: DrawCommand): void {
   switch (command.kind) {
     case "rect":
-      graphics.fillStyle(command.color);
+      graphics.fillStyle(command.color, command.alpha);
       graphics.fillRect(command.x, command.y, command.width, command.height);
       return;
     case "roundRect":
-      graphics.fillStyle(command.color);
+      graphics.fillStyle(command.color, command.alpha);
       graphics.fillRoundedRect(
         command.x,
         command.y,
@@ -32,15 +32,15 @@ function drawShape(graphics: GameObjects.Graphics, command: DrawCommand): void {
       );
       return;
     case "circle":
-      graphics.fillStyle(command.color);
+      graphics.fillStyle(command.color, command.alpha);
       graphics.fillCircle(command.x, command.y, command.radius);
       return;
     case "ring":
-      graphics.lineStyle(command.width, command.color);
+      graphics.lineStyle(command.width, command.color, command.alpha);
       graphics.strokeCircle(command.x, command.y, command.radius);
       return;
     case "line":
-      graphics.lineStyle(command.width, command.color);
+      graphics.lineStyle(command.width, command.color, command.alpha);
       graphics.lineBetween(
         command.from.x,
         command.from.y,
@@ -49,11 +49,11 @@ function drawShape(graphics: GameObjects.Graphics, command: DrawCommand): void {
       );
       return;
     case "polyline":
-      graphics.lineStyle(command.width, command.color);
+      graphics.lineStyle(command.width, command.color, command.alpha);
       graphics.strokePoints(vectorsOf(command.points));
       return;
     case "polygon":
-      graphics.fillStyle(command.color);
+      graphics.fillStyle(command.color, command.alpha);
       graphics.fillPoints(vectorsOf(command.points), true);
       return;
   }

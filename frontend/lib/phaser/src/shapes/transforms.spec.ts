@@ -22,6 +22,20 @@ import {
 /** The style the specs draw lines in. */
 const PEN = { color: 9, width: 2 };
 
+/** The style the specs draw lines in at part alpha. */
+const FAINT_PEN = { ...PEN, alpha: 0.4 };
+
+/** One command of each kind, at part alpha. */
+const FAINT: readonly DrawCommand[] = [
+  rect({ x: 1, y: 2, width: 3, height: 4 }, FAINT_PEN),
+  roundRect({ x: 1, y: 2, width: 3, height: 4 }, 1, FAINT_PEN),
+  circle({ x: 1, y: 2 }, 3, FAINT_PEN),
+  ring({ x: 1, y: 2 }, 3, FAINT_PEN),
+  line({ x: 1, y: 2 }, { x: 3, y: -1 }, FAINT_PEN),
+  polyline([{ x: 1, y: 2 }], FAINT_PEN),
+  polygon([{ x: 1, y: 2 }], FAINT_PEN),
+];
+
 describe("placed", () => {
   it("scales points about the origin, then moves them", () => {
     expect(placed([{ x: 1, y: -2 }], 3, { x: 10, y: 20 })).toEqual([
@@ -106,6 +120,19 @@ describe("shifted", () => {
     [polygon([{ x: 1, y: 2 }], PEN), polygon([{ x: 11, y: 22 }], PEN)],
   ])("moves a %o", (command, moved) => {
     expect(shifted(command, { x: 10, y: 20 })).toEqual(moved);
+  });
+});
+
+describe("the transforms", () => {
+  it.each<[string, (command: DrawCommand) => readonly DrawCommand[]]>([
+    ["shifted", (command) => [shifted(command, { x: 10, y: 20 })]],
+    ["scaledBy", (command) => [scaledBy(command, 2)]],
+    ["centered", (command) => centered("faint", [command]).commands],
+    ["bounded", (command) => bounded("faint", [command]).commands],
+  ])("keep every kind's alpha through %s", (_name, transform) => {
+    const drawn = FAINT.flatMap(transform);
+
+    expect(drawn.map(({ alpha }) => alpha)).toEqual(FAINT.map(() => 0.4));
   });
 });
 

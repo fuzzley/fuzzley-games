@@ -82,26 +82,38 @@ take the pure ones.
   last, a `FillStyle` (`{ color }`) for what it fills and a `LineStyle`
   (`{ color, width }`) for what it strokes, so a line's style fills a dot
   too: `circle(ORIGIN, radius, { color })`,
-  `ring(middle, radius, { color, width })`. `stroke()` draws a line through
-  points with round ends and corners; `ArtFrame` is a frame of an atlas
-  drawn in them; `extentOf()`, the `Area` a shape reaches over, short of a
-  polyline's mitred corners, which a spec holds a drawing inside its frame
-  by; `ArtScale` and `widthOf()`, a width in field units as whole device
-  pixels, and `lineWidth()`, the art's own line at a scale. Beside them,
+  `ring(middle, radius, { color, width })`. A command's `alpha`, a share
+  from 0, unseen, to 1, opaque, as one without it is, comes from its
+  style's (`{ color, alpha: 0.4 }`), for a shape at part strength in its
+  frame, such as a glint. Each shape blends on its own, so where two at
+  part alpha overlap the overlap shows stronger, and a drawing shown at
+  part strength as a whole, as SVG's `opacity` on a group shows one, is
+  baked at full strength and shown at the alpha of the image that shows it
+  (`setAlpha()`), which blends it once. `stroke()` draws a line through
+  points with round ends and corners, its lines and dots overlapping, so a
+  line at part alpha is drawn as one shape instead, a polyline or a band;
+  `ArtFrame` is a frame of an atlas drawn in them; `extentOf()`, the
+  `Area` a shape reaches over, short of a polyline's mitred corners, which
+  a spec holds a drawing inside its frame by; `ArtScale` and `widthOf()`,
+  a width in field units as whole device pixels, and `lineWidth()`, the
+  art's own line at a scale. Beside them,
   `src/shapes/curves.ts` gives the points of an arc, an ellipse and a
   quadratic or cubic curve, to draw as a polyline or a polygon;
   `src/shapes/transforms.ts` moves (`shifted()`) and scales (`scaledBy()`)
   a shape, turns a point about the origin (`turned()`), and places points
   (`placed()`), and frames a drawing about its
   origin (`centered()`) or about the middle of its own bounds
-  (`bounded()`), in whole pixels, which is how a game frames its drawings;
+  (`bounded()`), in whole pixels, which is how a game frames its drawings,
+  each keeping its shapes' alpha;
   `src/shapes/areas.ts` lays a frame out in an area: points at shares of it
   (`within()`, or `pointAt()` for one), a part of it (`share()`), the area
   inset by a width, or grown by a negative one (`inset()`), and a square in
   its middle (`middleSquare()`); it draws the four bars of a frame inside it
-  (`frameAround()`) and the outline of a rounded rectangle, its line's
-  middle along its edge (`outlineRoundRect()`), as a band filled in one
-  polygon, so what it covers is known exactly and no seam shows in an
+  (`frameAround()`), which overlap at its corners, so a frame at part alpha
+  is the band below, with no radius, instead, and the outline of a rounded
+  rectangle, its line's middle along its edge (`outlineRoundRect()`), as a
+  band filled in one polygon, so what it covers is known exactly and no
+  seam shows in an
   atlas, where it is meant to be drawn, since a WebGL `Graphics` thins a
   path's points (the `phaser-core` skill says how), or such an outline
   whose band's edges both lie on whole device pixels (`crispOutline()`,
@@ -123,8 +135,9 @@ take the pure ones.
   (`src/shapes/packing.ts`), so a game's spec can hold it to a size without
   Phaser. `svgOf()` writes a `Drawing`, a size and its commands, as an SVG
   document (`src/shapes/svg.ts`), each shape as a canvas draws it, its
-  colors with `cssHex()`, so a page shows the drawing a scene bakes, as an
-  image or a CSS mask. It imports nothing but `color`.
+  colors with `cssHex()` and its alpha as its fill's or its stroke's
+  opacity, so a page shows the drawing a scene bakes, as an image or a CSS
+  mask. It imports nothing but `color`.
 - `src/fuzzball/`: `@fz/style`'s fuzzball in the shapes' commands, so
   every game draws the one fuzzball: its strands of fur, read from its path
   (`strandsOf()`, `FUZZBALL_STRANDS`), each a `Strand` about its body's
@@ -222,7 +235,8 @@ take the pure ones.
   for How to play, and returns the same pictures after, so a scene hands its
   shell a new one at each bake and encodes nothing a page doesn't show; and
   `atlasFrameOf()`, an `ArtFrame` as `bakeAtlas()` draws one, its shapes
-  played into the `Graphics` in turn. It imports Phaser, never Angular.
+  played into the `Graphics` in turn, each in a fill or line style at its
+  alpha. It imports Phaser, never Angular.
 - `src/sound/`: `SpritePlayer`, which loads a sound sprite (its key, its
   spritemap and its file's URL), made in `create()` so the scene never waits
   for it, and plays its sounds, named by the spritemap, once it has loaded
