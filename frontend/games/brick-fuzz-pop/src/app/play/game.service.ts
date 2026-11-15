@@ -743,12 +743,13 @@ export class GameService extends RunLifecycle implements KeptGame {
   /**
    * Takes up a run storage kept, paused, its next round moved onto the
    * field's depth, or its level begun again on it if no round was played,
-   * and says so.
+   * marks the levels it cleared cleared, and says so.
    */
   takeUp({ run, start, tuned }: TakenUp): void {
     this.numbers.takeUp(run.id);
     const laid = this.laidOut(run);
     this.begin(laid, this.onDepth(start, laid), { kept: tuned });
+    this.keepClearedBefore(laid);
     this.announcer.say(describeTakenUp(laid, this.level()));
   }
 
@@ -884,6 +885,21 @@ export class GameService extends RunLifecycle implements KeptGame {
       this.progress.recordCleared(id);
     }
     return hasEnded(landed.outcome) && this.stats.recordEnd(landed);
+  }
+
+  /**
+   * Marks every level a run on the record cleared before its own as cleared
+   * in the progress.
+   *
+   * A page killed with a flight in the air keeps the run as it stands once
+   * the flight lands, but not the clear the landing would have kept. Call
+   * it after {@link begin}, which says whether the run is off the record.
+   */
+  private keepClearedBefore(run: Run): void {
+    if (this.debug.runOffRecord()) return;
+    for (let level = run.firstLevel; level < run.level; level++) {
+      this.progress.recordCleared(levelEntryOf(this.levels, level).data.id);
+    }
   }
 
   /**
