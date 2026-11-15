@@ -72,14 +72,18 @@ export interface ReportApi {
   ) => WavePlayed;
 }
 
-/** Describes the run the screenshots show: begun at a wave and played until its first stray is near. */
-export interface ScreenshotRun {
+/** Describes a run begun at a wave, on a field of a shape. */
+export interface RunBegun {
   /** The wave it began at, by its number. */
   readonly wave: number;
   readonly speed: ScriptSpeed;
   readonly seed: number;
-  /** The field's shape, as the page's board lays its fields out. */
+  /** The field's shape, as the page's board lays its fields out, or one the page fits to its own. */
   readonly torus: FieldShape;
+}
+
+/** Describes the run the screenshots show: begun at a wave and played until its first stray is near. */
+export interface ScreenshotRun extends RunBegun {
   /** How soon the wave's first stray drifts in, in milliseconds, the wave played until then. */
   readonly strayInMs: number;
 }
@@ -89,10 +93,12 @@ export interface KeptGame {
   readonly score: number;
 }
 
-/** Holds what `tools/capture-screenshots.mjs` takes from the game. */
+/** Holds what `tools/capture-screenshots.mjs` and `tools/check-layout.mjs` take from the game. */
 export interface ScreenshotApi {
   /** Returns the run as storage keeps it, for the page to take up. */
   readonly keptRun: (run: ScreenshotRun) => KeptGame;
+  /** Returns a run as storage keeps it that clears its wave as soon as the page goes on with it. */
+  readonly clearingRun: (run: RunBegun) => KeptGame;
   /** Returns points as the game writes them, grouped in thousands. */
   readonly formatPoints: (points: number) => string;
   /** How long a ship is guarded once it first moves, which blinks it, in milliseconds. */

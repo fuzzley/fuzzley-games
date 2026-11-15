@@ -150,6 +150,26 @@ describe("towLineAt", () => {
     expect(towLineAt(field, podOf(field), 1, createTowLine()).count).toBe(0);
   });
 
+  it("draws no more of the line than the record it is handed holds", () => {
+    const field = lineField(30, 20, UP);
+    const line: TowLine = {
+      count: 0,
+      at: [
+        { x: 0, y: 0 },
+        { x: 0, y: 0 },
+      ],
+      shift: { x: 0, y: 0 },
+    };
+
+    const drawn = towLineAt(field, podOf(field), 1, line);
+
+    expect(drawn.count).toBe(2);
+    expect(placesOf(drawn)).toEqual([
+      { x: 30, y: round(20 + TOW_HOOK) },
+      { x: 30, y: round(20 + TOW_HOOK + TOW_LINK) },
+    ]);
+  });
+
   it("writes into the record it is handed", () => {
     const field = lineField(30, 20, UP);
     const line = createTowLine();

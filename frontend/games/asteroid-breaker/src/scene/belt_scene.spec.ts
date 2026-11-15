@@ -2554,7 +2554,7 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addPilot("recaught", 30, 20, 1, field.crew);
     },
-    ["crew-caught", "voice-yay"],
+    ["crew-caught", "voice-yay", "tow-twang"],
   ],
   floated: [
     (field) => {
@@ -2572,7 +2572,7 @@ const EVERY_EVENT: Readonly<
     (field) => {
       field.events.addPilot("joined", 30, 20, 4, field.crew);
     },
-    ["stray-catch", "voice-yay"],
+    ["stray-catch", "voice-yay", "tow-twang"],
   ],
   home: [
     (field) => {

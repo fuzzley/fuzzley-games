@@ -1,6 +1,6 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, clearingRun, CLEARING_RUN, storedRun, stored_run, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
 ---
 
 # Testing Asteroid Breaker
@@ -46,7 +46,12 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
   field to its shape, its short side of 40 units and the room it fills
-  (`data-room`), and the deck's zones off it and the bar.
+  (`data-room`), the deck's zones off it and the bar, and the sector's
+  card off the ship waiting in the field's middle; then opens each shape
+  over a run kept to clear as soon as it goes on (`clearingRun()`, on
+  `CLEARING_RUN`, the last written wave, in `tools/stored_run.mjs`), which
+  each page goes on with by Resume, and holds the Cleared card, its trophy
+  over it, to the field.
 
 ## Setup
 
@@ -212,7 +217,16 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   screenshots take up (`tools/capture-screenshots.mjs`), loading it through
   `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the version the
   run is kept under (`SAVED_GAME_VERSION`), which
-  `src/testing/screenshot_api.spec.ts` holds to the rules'.
+  `src/testing/screenshot_api.spec.ts` holds to the rules'. Beside it,
+  `clearingRun()` keeps a run whose wave clears as soon as it goes on,
+  nothing steered: its rocks gone but a volatile one, broken, its fuse
+  lit; the layout check takes it up for the Cleared card, and its spec
+  steps the field it is taken up to through the fuse to the clearing.
+  Both scripts load the API, and store a run as the game stores one,
+  through `tools/stored_run.mjs` (`loadScreenshotApi()`, `storedRun()`),
+  whose spec loads the API through Vite and holds the layout check's run
+  (`CLEARING_RUN`) to the last written wave, taken up paused with its
+  field, and to clearing it as its fuse burns down.
   `tools/capture-screenshots.spec.ts` keeps the script's run (`RUN`) so,
   stamped with that version and taken up by the rules (`shownRun()`), and
   holds its command line, `--url` among it, and the code it exits with for

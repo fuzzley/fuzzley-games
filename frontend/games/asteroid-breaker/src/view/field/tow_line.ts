@@ -46,7 +46,7 @@ export function createTowLine(): TowLine {
  * the hook behind the pod, where the pod is drawn, through each who rides
  * in tow, `alpha` of the way from where it was a step ago to where it is,
  * across the wrap; and where its copies past the edges lie. It draws none
- * with no pod or no one in tow.
+ * with no pod or no one in tow, and no more than the record holds.
  */
 export function towLineAt(
   field: Pick<FieldView, "tow" | "crew" | "torus">,
@@ -68,9 +68,10 @@ export function towLineAt(
   let right = hook.x;
   let top = hook.y;
   let bottom = hook.y;
+  line.count = 1;
   for (let i = 0; i < riding; i++) {
     const link = field.tow[i];
-    const at = line.at[i + 1];
+    const at = line.at[line.count];
     if (!link || !at) break;
     const x = link.lastX + across(link.lastX, link.x, torus.width) * alpha;
     const y = link.lastY + across(link.lastY, link.y, torus.height) * alpha;
@@ -81,8 +82,8 @@ export function towLineAt(
     top = Math.min(top, at.y);
     bottom = Math.max(bottom, at.y);
     ahead = at;
+    line.count += 1;
   }
-  line.count = riding + 1;
   // The line is shorter than half the field's short side, so it reaches
   // past an edge of each axis at most.
   line.shift.x =

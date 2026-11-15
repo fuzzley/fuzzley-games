@@ -345,10 +345,13 @@ export const SOUNDS = [
   {
     name: "tow-twang",
     about:
-      "The tow line springs as the pod turns hard: one soft pluck of a rubber band on E4, G4 or D4, its pitch a little sharp at first as the pull lets go.",
+      "The tow line springs as one joins it: one soft pluck of a rubber band on E4, G4 or D4, its pitch a little sharp at first as the pull lets go.",
     takes: 3,
     level: "tick",
-    plays: ["the pod turns hard with fuzzballs in tow"],
+    plays: [
+      "a stray caught into the line, after its catch",
+      "one knocked loose caught again, after its catch",
+    ],
     make: (take, seed) => {
       const random = seeded(seed);
       const note =

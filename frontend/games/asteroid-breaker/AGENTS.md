@@ -456,19 +456,20 @@ takes for the specs' helpers.
   chime it reaches or full's (`static-full`), and falling to one by its fall
   (`static-down`), a spark gathered `spark`, a near miss `near-miss`, a zap
   `zap-dash` and each of its arcs `zap-arc`, and the one after it, where it
-  has one (`secondSoundOf()`: the line snapping as one is knocked loose),
-  the ladder (`CHAIN_CENTS`, the kit's, copied, and `ladderCentsOf()`) and
-  the note of it a break's bell rings at for static's multiplier it scored
-  at (`bellCentsOf()`), what an effect plays as a pickup caught starts it
-  (`startSoundOf()`: the Shield raised, the field slowing) and as its time
-  runs out (`endSoundOf()`), the volume each plays at (`volumeOf()`: the
-  Rapid's shot 3 dB under the gun's, and the fuzzball's calls 3 dB down),
-  which part of the sound each belongs to, as the player's switches
-  (`SoundSwitches`) say whether it plays (`isSwitchedOn()`: none without the
-  sound, then a call by the voice's and any other by the effects'), and the
-  order a frame plays them in, the loudest level first (`PLAY_ORDER`); the
-  thrust's hum (`THRUST`) and the lodestone's (`LODESTONE_HUM`) are among
-  them, held rather than played, and so is each sound nothing calls for yet.
+  has one (`secondSoundOf()`: the line snapping as one is knocked loose, and
+  springing, `tow-twang`, as one joins it), the ladder (`CHAIN_CENTS`, the
+  kit's, copied, and `ladderCentsOf()`) and the note of it a break's bell rings
+  at for static's multiplier it scored at (`bellCentsOf()`), what an effect
+  plays as a pickup caught starts it (`startSoundOf()`: the Shield raised, the
+  field slowing) and as its time runs out (`endSoundOf()`), the volume each
+  plays at (`volumeOf()`: the Rapid's shot 3 dB under the gun's, and the
+  fuzzball's calls 3 dB down), which part of the sound each belongs to, as the
+  player's switches (`SoundSwitches`) say whether it plays (`isSwitchedOn()`:
+  none without the sound, then a call by the voice's and any other by the
+  effects'), and the order a frame plays them in, the loudest level first
+  (`PLAY_ORDER`); the thrust's hum (`THRUST`) and the lodestone's
+  (`LODESTONE_HUM`) are among them, held rather than played, and so is each
+  sound nothing calls for yet.
   `field_sounds.ts`' `FieldSounds` gathers a frame's: each event's sounds,
   where it happened across the field (`@fz/core/sound_mix`'s `acrossOf()`),
   a bell at the highest of static's multipliers the frame's breaks scored
@@ -947,7 +948,7 @@ takes for the specs' helpers.
     deck's room; the focus ring; a crosshair for the pointer while a ship
     flies, as the mouse aims it; and the cards, `<app-board-card>`, which
     the board tells how the ship flies, each bound to a view model the card
-    computes, by its kind: the sector's, at the top of the field, clear of
+    computes, by its kind: the sector's, at the top of the field, above
     the ship waiting in its middle, while a wave waits for its first move at
     the start of the run or of a sector, with what it opens, the sector's
     name and waves, what is new there and the wave, "starts when you fly",
@@ -1093,7 +1094,11 @@ takes for the specs' helpers.
   `capture-screenshots.mjs` makes the screenshots the site shows.
   A script that takes from the game loads one entry in `src/testing/`
   through Vite (`@fz/dev/script`'s `importThroughVite()`), which exports
-  one object of a type in `src/testing/script_api.ts`. The report, the
+  one object of a type in `src/testing/script_api.ts`; the screenshots'
+  script and the layout check load theirs through `stored_run.mjs`
+  (`loadScreenshotApi()`), which stores the runs they hand a page as the
+  game stores one (`storedRun()`), under its key (`SAVED_GAME_KEY`), and
+  holds the run the layout check clears (`CLEARING_RUN`). The report, the
   screenshots' script and the sound build read their command lines with
   `@fz/dev/script`'s `readArgs()`, the report printing its table with
   `@fz/dev/report` and the screenshots run by `@fz/dev/screenshots`'
@@ -1242,8 +1247,14 @@ frontend's Angular and Sass rules apply; on top of them:
   the others keep (`--fz-canvas-card-room`). The layer's own cards lie in
   the field's room (`.room`), a size container of its own, since the deck
   takes a share of the board's height on a phone upright: they set smaller
-  on a field short of their full height, and on a field shorter still the
-  Cleared card's sum shows its total alone.
+  on a field short of their full height (under 530px, which the Cleared
+  card with its trophy takes, and a margin); the Cleared card's trophy goes
+  under 340px, and under 310px its sum shows its total alone. The sector's
+  card steps down by the field's height of its own, from its tallest,
+  over a run begun in Endless, so its foot stays above the ship waiting in
+  the field's middle: under 750px it leaves out its waves, under 660px it
+  sets smaller, under 545px it leaves out what is new there but how to
+  fly, and under 320px how to fly too.
 
 ## What It Keeps
 
@@ -1374,7 +1385,16 @@ workspace's with the others'.
   112 CSS px across and down at least (`data-deck`); and the field's short
   side is 40 units, each 6 CSS px or more, and it fills the room the deck
   and the margin leave it, inside its frame (`data-room`), both ways, or
-  one way where its long side is 88).
+  one way where its long side is 88; and the sector's card over a new
+  run's first wave leaves the ship waiting in the field's middle in sight,
+  a unit and a half round it, past its nose.
+  Beside those pages, it opens each shape again over a run kept on the
+  last written wave (`CLEARING_RUN`, in `tools/stored_run.mjs`), its last
+  rock a volatile one broken and about to go off (`SCREENSHOT_API`'s
+  `clearingRun()`), each page going on with it by its Paused card's
+  Resume, the haptics off, which Chrome blocks in a page no one has
+  tapped, so the wave clears and the Cleared card shows, its trophy over
+  it, on the field, the rest holding as above).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which renders every take of every recipe in `tools/sounds/`, each from a
   seed of its name and its number, the same bytes every run, centered and
@@ -1546,9 +1566,13 @@ of its own beside it:
   to rising or falling, the rocks' sizes and speeds, static's steps and
   each kind's points.
 - `kept_run.ts` keeps a run begun at a wave and played by the autopilot
-  until its first stray is near (`keptRun()`), for the screenshots' script.
+  until its first stray is near (`keptRun()`), for the screenshots' script,
+  and one whose wave clears as soon as it goes on, its last rock a volatile
+  one broken, its fuse lit (`clearingRun()`), for the layout check's
+  Cleared card.
 - `report_api.ts` and `screenshot_api.ts` hold what `tools/report-waves.mjs`
-  and `tools/capture-screenshots.mjs` take from the game, each in one object
+  and `tools/capture-screenshots.mjs`, and `tools/check-layout.mjs` too,
+  take from the game, each in one object
   (`REPORT_API`, `SCREENSHOT_API`) the script loads through Vite, of a type
   in `script_api.ts`, which imports nothing, so the scripts' JSDoc takes its
   types and a name changed in the rules or the autopilot fails to compile;

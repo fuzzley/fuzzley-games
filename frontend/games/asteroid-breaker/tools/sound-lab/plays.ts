@@ -83,7 +83,8 @@ export const PLAYS: Readonly<Record<SoundName, string>> = {
   thrust: "thrust held",
   "thrust-start": "thrust pressed",
   "thrust-stop": "thrust let go",
-  "tow-twang": "the pod turns hard with fuzzballs in tow",
+  "tow-twang":
+    "a stray caught into the line, after its catch; one knocked loose caught again, after its catch",
   "ui-back": "went back or closed",
   "ui-move": "focus moved between buttons",
   "ui-select": "button chosen",

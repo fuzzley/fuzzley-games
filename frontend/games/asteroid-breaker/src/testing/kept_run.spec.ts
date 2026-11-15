@@ -1,7 +1,11 @@
-import { restoreGame } from "../rules/run/saved_game";
+import { ROCK_KINDS } from "../rules/catalog/rocks";
+import { type Field, stepField } from "../rules/field/field";
+import { restoreGame, takeUpField } from "../rules/run/saved_game";
+import { STILL } from "../rules/ship/ship";
 import { stepsIn } from "../rules/stepper";
+import { waveToPlay } from "../rules/waves/endless";
 import { WAVES, type WaveEntry, waveEntryOf } from "../rules/waves/waves";
-import { type KeptRun, keptRun } from "./kept_run";
+import { type RunBegun, type KeptRun, clearingRun, keptRun } from "./kept_run";
 
 /** A run on Crowd, wave 9, a second before its first stray, on a field of 72 by 40. */
 const KEPT: KeptRun = {
@@ -82,6 +86,64 @@ describe("keptRun", () => {
   it("throws for a wave the autopilot clears before its first stray is as near as it names", () => {
     expect(() => keptRun(QUICK_WAVES, { ...KEPT, wave: 3 })).toThrow(
       "The autopilot stopped short of wave 3's first stray.",
+    );
+  });
+});
+
+/** A run on the last written wave, on a field of 72 by 40. */
+const CLEARING: RunBegun = {
+  wave: WAVES.length,
+  speed: "normal",
+  seed: 30,
+  torus: { width: 72, height: 40 },
+};
+
+/** How long a volatile rock's fuse burns, in steps, as its blast says. */
+const FUSE_STEPS = stepsIn(ROCK_KINDS.volatile.traits[0].delayMs);
+
+/** Returns the clearing run's field, taken up as a page takes it up, through storage's JSON. */
+function takenUp(): Field {
+  const stored: unknown = JSON.parse(
+    JSON.stringify(clearingRun(WAVES, CLEARING)),
+  );
+  const restored = restoreGame(stored, WAVES, 2);
+  if (!restored?.field) throw new Error("The run kept no field.");
+  const { run, field } = restored;
+  const wave = waveToPlay(waveEntryOf(WAVES, run.wave), run.seed);
+  return takeUpField(wave, { held: STILL }, field, run);
+}
+
+describe("clearingRun", () => {
+  it("keeps a run the game takes up, paused on its wave, with its field", () => {
+    const stored: unknown = JSON.parse(
+      JSON.stringify(clearingRun(WAVES, CLEARING)),
+    );
+
+    const restored = restoreGame(stored, WAVES, 2);
+
+    expect({
+      run: restored?.run,
+      field: restored?.field?.torus,
+    }).toMatchObject({
+      run: { wave: WAVES.length, speed: "normal", outcome: "paused" },
+      field: CLEARING.torus,
+    });
+  });
+
+  it("clears its wave once it goes on, with nothing steered, as its fuse burns down", () => {
+    const field = takenUp();
+
+    for (let step = 0; step < FUSE_STEPS; step++) stepField(field);
+
+    expect({ cleared: field.cleared, ship: field.ship !== null }).toEqual({
+      cleared: true,
+      ship: true,
+    });
+  });
+
+  it("throws for a wave before the first", () => {
+    expect(() => clearingRun(WAVES, { ...CLEARING, wave: 0 })).toThrow(
+      RangeError,
     );
   });
 });
