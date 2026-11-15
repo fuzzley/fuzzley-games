@@ -143,8 +143,9 @@ export interface FieldEvent extends NumberedEvent {
   /** The points it scored before static's multiplier, 0 for an event that scored none. */
   points: number;
   /**
-   * Static's multiplier it scored at, a rock's break's among them, 0 for an
-   * event that scored none, as a rock a comet smashed.
+   * Static's multiplier as it happened: what a score or a spark gathered
+   * scored at, and a break's, even one after the run ended, which scores
+   * nothing; 0 for a rock a comet smashed and for any other event.
    */
   times: number;
   /** How far a blast reaches, a vented one's too, or how far an arc leapt from the pod, 0 for any other event. */
@@ -274,9 +275,9 @@ export class FieldEventLog extends EventLog<FieldEvent> {
 
   /**
    * Records a rock broken, at its place, with its kind, size and slot,
-   * static's multiplier it scored at, 0 for one that scored nothing, and
-   * the way the blow came: `alongX` and `alongY`, of any length, or both 0
-   * for none.
+   * static's multiplier as it broke, which it scores at unless the run is
+   * over, 0 for one a comet smashed, which scores nothing, and the way the
+   * blow came: `alongX` and `alongY`, of any length, or both 0 for none.
    */
   addBreak(
     rock: LoggedRock,

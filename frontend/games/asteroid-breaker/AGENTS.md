@@ -265,10 +265,10 @@ takes for the specs' helpers.
   wave's start and its rocks, a stray drifting in, caught or brought
   straight home, one of the crew knocked loose, caught again or floating
   home, with how many ride in tow, a pickup caught, static coming to full,
-  a zap, a clearing, a pause, going on, a run taken up and the end; and
-  `whereLost()` says where an ended run was lost. The
-  announcer, the bar, the cards, the result, the sectors and How to play
-  all write points grouped in thousands, "4,250", with `@fz/core/format`'s
+  a zap, a clearing, a pause, going on, a run taken up and the end, in the
+  result card's words (`END_TITLE`, "Everyone is home."). The announcer,
+  the bar, the cards, the result, the sectors and How to play all write
+  points grouped in thousands, "4,250", with `@fz/core/format`'s
   `formatPoints()`.
   `progress.ts` says which sectors a run may start at (`isOpen()`): the
   first, and each a run has reached, at any speed, Endless among them once a
