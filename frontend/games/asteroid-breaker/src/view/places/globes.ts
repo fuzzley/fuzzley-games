@@ -1,6 +1,7 @@
 import { clamp, lerp } from "@fz/core/math";
 import type { Point } from "@fz/phaser/shapes";
 import { TURN } from "../../rules/angles";
+import { LIGHT_ACROSS } from "../colors/rock_light";
 
 // The geometry the landmarks are cut from, in the units each is handed: a
 // globe of flat faces, a crater on one, a tilted ring and a jagged line.
@@ -21,10 +22,17 @@ function unit([x, y, z]: Vec3): Vec3 {
 }
 
 /**
- * The way the field's light comes from: its upper left and the viewer's
- * side, as the rocks are lit.
+ * How far toward the viewer the landmarks' light lies, beside
+ * {@link LIGHT_ACROSS} as it is written, not brought to length one, as the
+ * kit's one light lies.
  */
-export const LIGHT: Vec3 = unit([-0.52, -0.62, 0.58]);
+const LIGHT_TOWARD = 0.58;
+
+/**
+ * The way the field's light comes from: its upper left, as the rocks are
+ * lit, and the viewer's side.
+ */
+export const LIGHT: Vec3 = unit([LIGHT_ACROSS.x, LIGHT_ACROSS.y, LIGHT_TOWARD]);
 
 /** Returns how brightly the field's light falls on a face that looks a way, from 0.3 to a little over 1. */
 export function lightOn(normal: Vec3): number {

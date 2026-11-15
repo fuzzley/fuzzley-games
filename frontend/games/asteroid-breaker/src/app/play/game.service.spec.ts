@@ -226,7 +226,7 @@ describe("GameService", () => {
       });
     });
 
-    it("takes its seed from the game's random, and strews its field's specks from it", () => {
+    it("takes its seed from the game's random, and strews its place's stars from it", () => {
       const game = TestBed.inject(GameService);
 
       expect([game.run().seed, game.frame().seed]).toEqual([
@@ -455,7 +455,7 @@ describe("GameService", () => {
       expect(game.beforeEndless()).toBe(false);
     });
 
-    it("lays an Endless wave made from the run's seed, its constellation among the specks", async () => {
+    it("lays an Endless wave made from the run's seed, its constellation among the stars", async () => {
       const game = await gameAt(SPEC_WAVE.last);
 
       clearToNext(game);
