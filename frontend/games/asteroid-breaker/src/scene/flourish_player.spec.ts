@@ -74,6 +74,7 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
     shipDrawn: shipAt(shell.field, 0, { x: 0, y: 0, angle: 0 }),
     seed: shell.seed,
     constellation: null,
+    place: shell.place,
     deck: null,
     steering: new Steering(metricsOf(shell), null, shell.setting),
     metrics: metricsOf(shell),

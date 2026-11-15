@@ -29,6 +29,7 @@ import {
 } from "../view/field/field_metrics";
 import type { FieldFrame } from "../view/field/frame";
 import { LAYERS } from "../view/field/layers";
+import { PLACE_IDS, type PlaceId } from "../view/places/places";
 import { ART_PALETTE } from "./art_frames";
 import { KEEPER, fieldFrom } from "./field_picture";
 
@@ -85,6 +86,8 @@ export class FakeShell implements BeltSceneOptions {
   seed = 7;
   /** Where the constellation lies, as an Endless wave would lay it, or null for none. */
   constellation: Place | null = null;
+  /** The place the wave is played in, as its sector names it. */
+  place: PlaceId = PLACE_IDS[0];
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
   wantsSound = true;
@@ -131,6 +134,7 @@ export class FakeShell implements BeltSceneOptions {
     events: this.field.events,
     seed: this.seed,
     constellation: this.constellation,
+    place: this.place,
   });
   readonly palette = (): BeltPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;

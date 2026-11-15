@@ -1,5 +1,9 @@
 import { NO_INSETS } from "@fz/phaser/insets";
-import { lineWidth } from "@fz/phaser/shapes";
+import {
+  type PaintCommand,
+  type WashCommand,
+  lineWidth,
+} from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import {
   type SceneRun,
@@ -70,12 +74,7 @@ import {
   pickupFrame,
   tagFrame,
 } from "../view/art/art";
-import {
-  CONSTELLATION,
-  LOOK,
-  PILOT_SIZES,
-  pilotFrame,
-} from "../view/art/pilot_art";
+import { LOOK, PILOT_SIZES, pilotFrame } from "../view/art/pilot_art";
 import {
   isFine,
   rockFrame,
@@ -100,18 +99,19 @@ import {
   deckLayout,
 } from "../view/field/field_metrics";
 import { LAYERS, LAYER_CAMERAS } from "../view/field/layers";
-import {
-  CONSTELLATION_SIZE,
-  speckCount,
-  speckShares,
-} from "../view/field/specks";
 import { TAG_RADIUS, tagX, tagY } from "../view/field/tags";
 import { WARNING_INSET } from "../view/field/warning";
+import { placeColors } from "../view/places/colors";
+import type { Flicker } from "../view/places/marks";
+import { NEAR_SLIDE, flickerAt } from "../view/places/motion";
+import { BLEED_CSS_PX, type PlaceArt, placeArt } from "../view/places/paint";
+import { backdropOf } from "../view/places/places";
 import { type Deck, deckOf, rechargeRing } from "../view/steering/deck";
 import { MOST_FINGERS } from "../view/steering/steering";
 import { ATLAS, DECK_ATLAS, ROCK_ATLAS, ROCK_NORMALS } from "./atlas";
 import { type BeltScene, SOUNDS_KEY, makeBeltScene } from "./belt_scene";
 import { REST_ALPHA, REST_KNOB_ALPHA } from "./painters/deck_painter";
+import { PLACE_TEXTURES, flashTexture } from "./painters/place_painter";
 import { GUARD_ALPHA } from "./painters/ship_painter";
 import spritemap from "./sounds/sounds.json";
 
@@ -1237,91 +1237,532 @@ describe("the deck", () => {
   });
 });
 
-describe("the specks", () => {
-  it("strew as many as the field holds, where the run's seed lays them", async () => {
+describe("the place", () => {
+  /** Returns the place's art as the scene should paint it for a shell's frame, on a canvas. */
+  function artFor(
+    shell: FakeShell,
+    canvas: { readonly width: number; readonly height: number } = CANVAS,
+  ): PlaceArt {
+    const { place, seed, constellation } = shell;
+    const backdrop = backdropOf({
+      place,
+      torus: shell.field.torus,
+      seed,
+      constellation,
+    });
+    return placeArt(
+      backdrop,
+      placeColors(shell.colors),
+      metricsOf(shell, canvas),
+    );
+  }
+
+  /** Returns the flicker of the first flash the scene painted. */
+  function firstFlicker(scene: BeltScene): Flicker {
+    const flicker = scene.kit.place.art?.flashes[0]?.flicker;
+    if (!flicker) throw new Error("The place has no flash.");
+    return flicker;
+  }
+
+  /** Returns the image a place's flash shows in, by its place among the art's flashes. */
+  function flashOf(
+    scene: BeltScene,
+    index: number,
+  ): GameObjects.Image | undefined {
+    return imagesIn(scene).find(
+      (image) => image.texture.key === flashTexture(index),
+    );
+  }
+
+  /** Returns the step of the field at which a flicker is a share of a second into its first. */
+  function stepInto(flicker: Flicker, seconds: number): number {
+    return stepsIn((flicker.after + seconds) * 1000);
+  }
+
+  /**
+   * Returns where the nearer stars' nine copies lie at rest, row by row:
+   * one on the field, and one a field's width or height or both from it
+   * each way.
+   */
+  function copiesAtRest({
+    x,
+    y,
+    width,
+    height,
+  }: FieldMetrics): readonly (readonly [number, number])[] {
+    return [-1, 0, 1].flatMap((row) =>
+      [-1, 0, 1].map(
+        (column) => [x + column * width, y + row * height] as const,
+      ),
+    );
+  }
+
+  /** Returns where the nearer stars' copies lie. */
+  function nearAt(scene: BeltScene): readonly (readonly [number, number])[] {
+    return scene.kit.place.near.map(({ x, y }) => [x, y]);
+  }
+
+  /** Returns how far the nearer stars' copies reach together, on the canvas. */
+  function nearReach(scene: BeltScene): {
+    readonly left: number;
+    readonly top: number;
+    readonly right: number;
+    readonly bottom: number;
+  } {
+    const { near } = scene.kit.place;
+    return {
+      left: Math.min(...near.map((copy) => copy.x)),
+      top: Math.min(...near.map((copy) => copy.y)),
+      right: Math.max(...near.map((copy) => copy.x + copy.frame.width)),
+      bottom: Math.max(...near.map((copy) => copy.y + copy.frame.height)),
+    };
+  }
+
+  /** Moves the ship on the field, drawn where it now is. */
+  function flyShip(shell: FakeShell, x: number, y: number): void {
+    const ship = shipOf(shell.field);
+    Object.assign(ship, { x, y, lastX: x, lastY: y });
+  }
+
+  it("paints the wave's place as its art has it, for the field, the palette and the run", async () => {
+    const { shell, scene } = await startBoard();
+
+    expect(scene.kit.place.art).toEqual(artFor(shell));
+  });
+
+  it("lays what stays and what stands before the stars over the field and as far past each edge as its camera kicks and shakes", async () => {
+    const { shell, scene } = await startBoard();
+    const { x, y, width, height, pixelRatio } = metricsOf(shell);
+    const bleed = Math.ceil(BLEED_CSS_PX * pixelRatio);
+
+    const { back, front } = scene.kit.place;
+
+    expect(
+      [back, front].map((picture) => ({
+        texture: picture.texture.key,
+        at: [picture.x, picture.y],
+        size: [picture.frame.width, picture.frame.height],
+      })),
+    ).toEqual(
+      [PLACE_TEXTURES.back, PLACE_TEXTURES.front].map((texture) => ({
+        texture,
+        at: [x - bleed, y - bleed],
+        size: [width + 2 * bleed, height + 2 * bleed],
+      })),
+    );
+  });
+
+  it("shows nothing apart before a place that doesn't flash", async () => {
+    const { scene } = await startBoard();
+
+    expect(scene.kit.place.over.visible).toBe(false);
+  });
+
+  it("lays nine copies of the nearer stars, each the field's size, three across and three down about the field, so they show whole as they slide", async () => {
     const { shell, scene } = await startBoard();
     const metrics = metricsOf(shell);
-    const [first] = speckShares(shell.seed);
 
-    const visible = scene.kit.field.specks.filter((speck) => speck.visible);
+    const { near } = scene.kit.place;
 
-    expect(visible).toHaveLength(speckCount(shell.field.torus));
-    expect([visible[0]?.x, visible[0]?.y]).toEqual([
-      metrics.x + (first?.x ?? 0) * metrics.width,
-      metrics.y + (first?.y ?? 0) * metrics.height,
+    expect({
+      at: nearAt(scene),
+      textures: new Set(near.map((copy) => copy.texture.key)),
+      sizes: new Set(near.map((copy) => copy.frame.width * copy.frame.height)),
+    }).toEqual({
+      at: copiesAtRest(metrics),
+      textures: new Set([PLACE_TEXTURES.near]),
+      sizes: new Set([metrics.width * metrics.height]),
+    });
+  });
+
+  it.each([-10, 10, 100])(
+    "covers the field and its bleed with the nearer stars, the pod flown %s units across and down",
+    async (flown) => {
+      const { shell, run, scene } = await startBoard(withShip);
+      const { x, y } = shipOf(shell.field);
+      flyShip(shell, x + flown, y + flown);
+
+      run.advance(16);
+
+      const metrics = metricsOf(shell);
+      const bleed = Math.ceil(BLEED_CSS_PX * metrics.pixelRatio);
+      const reach = nearReach(scene);
+      expect([
+        reach.left <= metrics.x - bleed,
+        reach.top <= metrics.y - bleed,
+        reach.right >= metrics.x + metrics.width + bleed,
+        reach.bottom >= metrics.y + metrics.height + bleed,
+      ]).toEqual([true, true, true, true]);
+    },
+  );
+
+  it.each([
+    [
+      "another place, as a new sector's wave is in",
+      (shell: FakeShell) => {
+        shell.place = "iron-reach";
+      },
+    ],
+    [
+      "another palette",
+      (shell: FakeShell) => {
+        shell.colors = DARK;
+      },
+    ],
+    [
+      "another run",
+      (shell: FakeShell) => {
+        shell.seed = 8;
+      },
+    ],
+    [
+      "an Endless wave's constellation",
+      (shell: FakeShell) => {
+        shell.place = "endless";
+        shell.constellation = { x: 0.4, y: 0.6 };
+      },
+    ],
+    [
+      "a field of another shape",
+      (shell: FakeShell) => {
+        shell.field = fieldFrom(KEEPER, { torus: { width: 60, height: 48 } });
+      },
+    ],
+  ])("paints it again for %s", async (_, change) => {
+    const { shell, run, scene } = await startBoard();
+    change(shell);
+
+    run.advance(16);
+
+    expect(scene.kit.place.art).toEqual(artFor(shell));
+  });
+
+  it("paints it again at a new unit, the field laid out on a larger canvas", async () => {
+    const { shell, run, scene } = await startBoard();
+
+    run.game.scale.resize(WIDER.width, WIDER.height);
+    run.advance(16);
+
+    const { width, pixelRatio } = metricsOf(shell, WIDER);
+    expect([scene.kit.place.art, scene.kit.place.back.frame.width]).toEqual([
+      artFor(shell, WIDER),
+      width + 2 * Math.ceil(BLEED_CSS_PX * pixelRatio),
     ]);
   });
 
-  it("strew them anew for another run", async () => {
-    const { shell, run, scene } = await startBoard();
-    const before = scene.kit.field.specks[0]?.x;
-    shell.seed = 8;
-
-    run.advance(16);
-
-    expect(scene.kit.field.specks[0]?.x).not.toBe(before);
-  });
-
-  it("tint each in the specks' color", async () => {
-    const { scene } = await startBoard();
-
-    expect(scene.kit.field.specks[0]?.tintTopLeft).toBe(ART_PALETTE.speck);
-  });
-});
-
-describe("the constellation", () => {
-  it("lies nowhere in a sector's wave", async () => {
-    const { scene } = await startBoard();
-
-    expect(scene.kit.field.stars.filter((star) => star.visible)).toEqual([]);
-  });
-
-  it("traces the fuzzball where an Endless wave lays it, at its size in field units", async () => {
-    const { shell, scene } = await startBoard((setUp) => {
+  it("paints it again for the next Endless wave's constellation", async () => {
+    const { shell, run, scene } = await startBoard((setUp) => {
+      setUp.place = "endless";
       setUp.constellation = { x: 0.4, y: 0.6 };
     });
-    const metrics = metricsOf(shell);
-    const across = CONSTELLATION_SIZE * metrics.unit;
-
-    const [star] = scene.kit.field.stars;
-    const [first] = CONSTELLATION.specks;
-
-    expect({
-      shown: scene.kit.field.stars.filter((each) => each.visible).length,
-      x: star?.x,
-      y: star?.y,
-    }).toEqual({
-      shown: CONSTELLATION.specks.length + CONSTELLATION.eyes.length,
-      x: metrics.x + 0.4 * metrics.width + (first?.x ?? 0) * across,
-      y: metrics.y + 0.6 * metrics.height + (first?.y ?? 0) * across,
-    });
-  });
-
-  it("tints its specks as the field's and its eyes brighter", async () => {
-    const { scene } = await startBoard((shell) => {
-      shell.constellation = { x: 0.5, y: 0.5 };
-    });
-
-    const tints = scene.kit.field.stars.map((star) => star.tintTopLeft);
-
-    expect({
-      specks: new Set(tints.slice(0, CONSTELLATION.specks.length)),
-      eyes: new Set(tints.slice(CONSTELLATION.specks.length)),
-    }).toEqual({
-      specks: new Set([ART_PALETTE.speck]),
-      eyes: new Set([ART_PALETTE.muted]),
-    });
-  });
-
-  it("goes as the next wave, a sector's, comes", async () => {
-    const { shell, run, scene } = await startBoard((setUp) => {
-      setUp.constellation = { x: 0.5, y: 0.5 };
-    });
-    shell.constellation = null;
+    shell.constellation = { x: 0.6, y: 0.3 };
 
     run.advance(16);
 
-    expect(scene.kit.field.stars.filter((star) => star.visible)).toEqual([]);
+    expect(scene.kit.place.art).toEqual(artFor(shell));
+  });
+
+  it("lays it out again, painting nothing anew, as the field moves on the canvas at the same size", async () => {
+    const { shell, run, scene } = await startBoard();
+    const painted = scene.kit.place.art;
+    const moved = { width: CANVAS.width, height: CANVAS.height + 40 };
+    run.game.scale.resize(moved.width, moved.height);
+
+    run.advance(16);
+
+    const { x, y, pixelRatio } = metricsOf(shell, moved);
+    const bleed = Math.ceil(BLEED_CSS_PX * pixelRatio);
+    expect({
+      same: scene.kit.place.art === painted,
+      at: [scene.kit.place.back.x, scene.kit.place.back.y],
+      moved: y !== metricsOf(shell).y,
+    }).toEqual({ same: true, at: [x - bleed, y - bleed], moved: true });
+  });
+
+  it("paints nothing anew for a new wave in the same place", async () => {
+    const { shell, run, scene } = await startBoard();
+    const painted = scene.kit.place.art;
+    shell.field = fieldFrom(KEEPER);
+
+    run.advance(16);
+
+    expect(scene.kit.place.art).toBe(painted);
+  });
+
+  it("slides the nearer stars against the pod's travel, by a small share of it", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const { x, y } = shipOf(shell.field);
+    const { unit } = metricsOf(shell);
+    flyShip(shell, x + 10, y);
+
+    run.advance(16);
+
+    // The middle copy, which the field shows most of.
+    expect(scene.kit.place.near[4]?.x).toBeCloseTo(
+      metricsOf(shell).x - 10 * NEAR_SLIDE * unit,
+    );
+  });
+
+  it("holds the stars where they lie where motion isn't welcome", async () => {
+    const { shell, run, scene } = await startBoard((setUp) => {
+      withShip(setUp);
+      stillness(setUp);
+    });
+    const { x, y } = shipOf(shell.field);
+    flyShip(shell, x + 10, y + 5);
+
+    run.advance(16);
+
+    expect(nearAt(scene)).toEqual(copiesAtRest(metricsOf(shell)));
+  });
+
+  it("starts a new field's stars where they lie", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const { x, y } = shipOf(shell.field);
+    flyShip(shell, x + 10, y + 5);
+    run.advance(16);
+
+    withShip(shell);
+    flyShip(shell, x + 3, y);
+    run.advance(16);
+
+    expect(nearAt(scene)).toEqual(copiesAtRest(metricsOf(shell)));
+  });
+
+  describe("in the Storm", () => {
+    /** Sets a shell up to play in the Storm. */
+    function inTheStorm(shell: FakeShell): void {
+      shell.place = "storm";
+    }
+
+    /** Describes what a picture is painted with: where each wash lies, and how many lines and filled shapes. */
+    interface Painted {
+      readonly washes: (readonly [number, number])[];
+      strokes: number;
+      fills: number;
+    }
+
+    /** Returns what a canvas paints for some commands: each wash it fills, and each line and shape. */
+    function paintedBy(commands: readonly PaintCommand[]): Painted {
+      const washes = commands.filter(
+        (command): command is WashCommand =>
+          command.kind === "wash" &&
+          command.radiusX !== 0 &&
+          command.radiusY !== 0,
+      );
+      const count = (...kinds: readonly PaintCommand["kind"][]): number =>
+        commands.filter(({ kind }) => kinds.includes(kind)).length;
+      return {
+        washes: washes.map(({ x, y }) => [x, y] as const),
+        strokes: count("line", "polyline", "ring"),
+        fills: washes.length + count("rect", "roundRect", "circle", "polygon"),
+      };
+    }
+
+    /** Records what each of some canvas textures is painted with from here on, until the test finishes. */
+    function recordPaints(
+      scene: BeltScene,
+      keys: readonly string[],
+    ): readonly Painted[] {
+      return keys.map((key) => {
+        const texture = scene.textures.get(key);
+        if (!(texture instanceof Textures.CanvasTexture)) {
+          throw new Error(`No canvas for "${key}".`);
+        }
+        const context = texture.getContext();
+        const painted: Painted = { washes: [], strokes: 0, fills: 0 };
+        context.translate = (x, y) => {
+          painted.washes.push([x, y]);
+        };
+        context.stroke = () => {
+          painted.strokes += 1;
+        };
+        context.fill = () => {
+          painted.fills += 1;
+        };
+        context.fillRect = () => {
+          painted.fills += 1;
+        };
+        // The canvas goes back to Phaser's pool, for the next texture made.
+        onTestFinished(() => {
+          for (const name of ["translate", "stroke", "fill", "fillRect"]) {
+            Reflect.deleteProperty(context, name);
+          }
+        });
+        return painted;
+      });
+    }
+
+    it("paints each of its pictures and flashes with its own commands", async () => {
+      const { shell, run, scene } = await startBoard(inTheStorm);
+      const painted = recordPaints(scene, [
+        PLACE_TEXTURES.back,
+        PLACE_TEXTURES.near,
+        PLACE_TEXTURES.front,
+        flashTexture(0),
+        flashTexture(1),
+        PLACE_TEXTURES.over,
+      ]);
+      shell.colors = DARK;
+
+      run.advance(16);
+
+      const art = scene.kit.place.art;
+      expect(painted).toEqual(
+        [
+          art?.back,
+          art?.near,
+          art?.front,
+          art?.flashes[0]?.commands,
+          art?.flashes[1]?.commands,
+          art?.over,
+        ].map((commands) => paintedBy(commands ?? [])),
+      );
+    });
+
+    it("paints each fork's flash over the place, where its area lies on the field", async () => {
+      const { shell, scene } = await startBoard(inTheStorm);
+      const { x, y } = metricsOf(shell);
+      const flashes = scene.kit.place.art?.flashes ?? [];
+
+      const images = flashes.map((_, i) => flashOf(scene, i));
+
+      expect(
+        images.map((image) => ({
+          at: [image?.x, image?.y],
+          size: [image?.frame.width, image?.frame.height],
+          layer: image?.displayList === layersOf(scene).get("place"),
+        })),
+      ).toEqual(
+        flashes.map(({ area }) => ({
+          at: [x + area.x, y + area.y],
+          size: [area.width, area.height],
+          layer: true,
+        })),
+      );
+    });
+
+    it("lies behind the field, its pictures back to front, its flashes over them and what stands before the flashes over those", async () => {
+      const { scene } = await startBoard(inTheStorm);
+
+      const { back, near, front, over } = scene.kit.place;
+
+      expect(layersOf(scene).get("place")?.getChildren()).toEqual([
+        back,
+        ...near,
+        front,
+        flashOf(scene, 0),
+        flashOf(scene, 1),
+        over,
+      ]);
+    });
+
+    it("shows what stands before its flashes over the field and as far past each edge as the back", async () => {
+      const { shell, scene } = await startBoard(inTheStorm);
+      const { x, y, width, height, pixelRatio } = metricsOf(shell);
+      const bleed = Math.ceil(BLEED_CSS_PX * pixelRatio);
+
+      const { over } = scene.kit.place;
+
+      expect({
+        visible: over.visible,
+        texture: over.texture.key,
+        at: [over.x, over.y],
+        size: [over.frame.width, over.frame.height],
+      }).toEqual({
+        visible: true,
+        texture: PLACE_TEXTURES.over,
+        at: [x - bleed, y - bleed],
+        size: [width + 2 * bleed, height + 2 * bleed],
+      });
+    });
+
+    it("lays its flashes and what stands before them out again as the field moves on the canvas", async () => {
+      const { shell, run, scene } = await startBoard(inTheStorm);
+      const moved = { width: CANVAS.width, height: CANVAS.height + 40 };
+      run.game.scale.resize(moved.width, moved.height);
+
+      run.advance(16);
+
+      const { x, y, pixelRatio } = metricsOf(shell, moved);
+      const bleed = Math.ceil(BLEED_CSS_PX * pixelRatio);
+      const area = scene.kit.place.art?.flashes[0]?.area;
+      const flash = flashOf(scene, 0);
+      const { over } = scene.kit.place;
+      expect({
+        flash: [flash?.x, flash?.y],
+        over: [over.x, over.y],
+        moved: y !== metricsOf(shell).y,
+      }).toEqual({
+        flash: [x + (area?.x ?? NaN), y + (area?.y ?? NaN)],
+        over: [x - bleed, y - bleed],
+        moved: true,
+      });
+    });
+
+    it("paints a flash for each of its two forks", async () => {
+      const { scene } = await startBoard(inTheStorm);
+
+      expect(scene.kit.place.art?.flashes).toHaveLength(2);
+    });
+
+    it("shows no flash between flickers", async () => {
+      const { scene } = await startBoard(inTheStorm);
+
+      expect([flashOf(scene, 0)?.visible, flashOf(scene, 1)?.visible]).toEqual([
+        false,
+        false,
+      ]);
+    });
+
+    it("shows a fork's flash as strongly as its flicker is at the field's step", async () => {
+      const { shell, run, scene } = await startBoard(inTheStorm);
+      const flicker = firstFlicker(scene);
+      const steps = stepInto(flicker, 0.05);
+      shell.field.steps = steps;
+
+      run.advance(16);
+
+      const flash = flashOf(scene, 0);
+      expect([flash?.visible, flash?.alpha]).toEqual([
+        true,
+        flickerAt(flicker, steps),
+      ]);
+    });
+
+    it("flickers nothing where motion isn't welcome", async () => {
+      const { shell, run, scene } = await startBoard((setUp) => {
+        inTheStorm(setUp);
+        stillness(setUp);
+      });
+      const flicker = firstFlicker(scene);
+      shell.field.steps = stepInto(flicker, 0.05);
+
+      run.advance(16);
+
+      expect(flashOf(scene, 0)?.visible).toBe(false);
+    });
+
+    it("hides its flashes as the next wave is in a place without them", async () => {
+      const { shell, run, scene } = await startBoard(inTheStorm);
+      shell.field.steps = stepInto(firstFlicker(scene), 0.05);
+      run.advance(16);
+      const shown = flashOf(scene, 0)?.visible;
+
+      shell.place = "inner-belt";
+      run.advance(16);
+
+      expect([shown, flashOf(scene, 0)?.visible]).toEqual([true, false]);
+    });
+
+    it("hides what stands before its flashes as the next wave is in a place without them", async () => {
+      const { shell, run, scene } = await startBoard(inTheStorm);
+
+      shell.place = "inner-belt";
+      run.advance(16);
+
+      expect(scene.kit.place.over.visible).toBe(false);
+    });
   });
 });
 

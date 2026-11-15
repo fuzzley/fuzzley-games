@@ -278,7 +278,8 @@ takes for the specs' helpers.
   makes for each wave and drives: `@fz/core/field_play`'s `FieldPlay` over
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and hands the
-  scene the run's seed and, in Endless, the constellation. `run_frames.ts`
+  scene the run's seed, the place its sector is shown in and, in Endless,
+  the constellation. `run_frames.ts`
   holds `RunFrames`, which `GameService` hands each frame of it: it plays
   the wave on, starting it at the player's first move, catches the run up
   with what its field came to, waits out the beat before a card, counts
@@ -309,7 +310,8 @@ takes for the specs' helpers.
   `toCanvas()` and `toField()` between the two; and how the scene laid them
   out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
   scene reads: `FieldView`, the field it can't change, `FieldFrame`, whose
-  events are `@fz/core/event_log`'s `EventLogView`, and where a thing that
+  events are `@fz/core/event_log`'s `EventLogView` and which names the
+  wave's place, and where a thing that
   wraps is drawn between its last place and its next, the shortest way across
   the wrap (`wrappedBetween()`; one that crosses, as a comet or a stray, is
   drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`), and
@@ -318,13 +320,12 @@ takes for the specs' helpers.
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`). `tags.ts` says where
   the tags of the lasting effects lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning is
-  drawn; and `specks.ts` where the specks lie, from the run's seed, where
-  the places' stars lie, in three depths, far, mid and bright, as many of
-  each as the largest field holds, each depth from a stream of its own of
-  the seed (`starsOf()`), and how many a field shows by its area
-  (`starCount()`), and where an Endless wave's constellation lies, from the
-  run's seed mixed with the wave's number in `mixSeed()`'s `"scenery"`
-  stream (`constellationAt()`).
+  drawn; and `specks.ts` where the places' stars lie, in three depths, far,
+  mid and bright, as many of each as the largest field holds, each depth
+  from a stream of its own of the seed (`starsOf()`), and how many a field
+  shows by its area (`starCount()`), and where an Endless wave's
+  constellation lies, from the run's seed mixed with the wave's number in
+  `mixSeed()`'s `"scenery"` stream (`constellationAt()`).
 - **`src/view/places/`** — the place behind the play in each sector, ported
   from the uplift's kit (`docs/asteroid-breaker-uplift/art/lib/backdrop.mjs`),
   its landmark cut from the same draws, so it is the kit's to the facet.
@@ -351,9 +352,15 @@ takes for the specs' helpers.
   paint commands in device pixels (`placeArt()`): what stays, opaque, the
   field's color, the wash and the far stars (`back`); the nearer stars,
   painted again past each edge they cross so they tile as the field wraps
-  (`near`); the landmark, the air and the vignette (`front`); and, for each
-  flicker, the front over the area its marks reach, lit (`flashes`);
-  `placeLayers()` gives each layer apart. `motion.ts` says what of it moves,
+  (`near`); the landmark, the air and the vignette (`front`), but, where
+  the place flashes, what stands before its flickers apart (`over`): the
+  landmark's billows and faces from the first after its first flicker on,
+  the air and the vignette; and, for each flicker, its marks lit, over the
+  area they reach (`flashes`, as many as `MOST_FLASHES` at most); every
+  picture but the nearer stars reaches past each edge of the field as far
+  as its camera kicks and shakes (`bleed`, `BLEED_CSS_PX`), so it never
+  shows past them. `placeLayers()` gives each
+  layer apart, from the field's corner. `motion.ts` says what of it moves,
   from what the field hands it, never a clock: how far into a flicker a
   mark is by the field's steps (`flickerAt()`), how far the pod has flown,
   unwrapped (`Travel`), and how far the nearer stars slide against it, 3% of
@@ -475,7 +482,16 @@ takes for the specs' helpers.
   the game the time and the steering its `Steering` read from the keys, the
   mouse and the fingers, reads the frame and the palette, and has its
   painters, in `src/scene/painters/`, draw, each in its layer of `LAYERS`:
-  `FieldPainter` the specks, an Endless wave's constellation and the frame,
+  `PlacePainter` the wave's place behind the field, its pictures painted
+  into canvas textures with `@fz/phaser/scene`'s `paintTexture()` only for
+  a new place, palette, field size, unit, pixel ratio, run or
+  constellation, the back, the front and what stands before the flashes
+  laid with their bleed past the field's edges, the nearer stars nine
+  copies of their picture, three across and three down, laid as far as
+  they slid against the pod's travel, so they cover the field and its
+  bleed, each flash shown as strongly as its flicker is at the field's
+  step, under what stands before it, and nothing moving where motion isn't
+  welcome, `FieldPainter` the frame,
   `TagPainter` the tags of the effects in play, `RockPainter` the rocks,
   lit, each in the frame of the hits it has taken, and a held hit's flash,
   a light at its rock's edge toward the ship that lights the faces struck,

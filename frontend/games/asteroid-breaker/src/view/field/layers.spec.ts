@@ -1,8 +1,9 @@
 import { LAYERS, drawnBy } from "./layers";
 
 describe("LAYERS", () => {
-  it("lists the layers back to front: the field, the tags, the rocks, all that flies among them, the ship, a held hit's flash, the flourishes, the points, then the frame and the deck", () => {
+  it("lists the layers back to front: the place, the field, the tags, the rocks, all that flies among them, the ship, a held hit's flash, the flourishes, the points, then the frame and the deck", () => {
     expect(LAYERS).toEqual([
+      "place",
       "field",
       "tags",
       "rocks",
@@ -27,6 +28,7 @@ describe("drawnBy", () => {
 
   it("gives the field's camera every other layer, back to front", () => {
     expect(drawnBy("field")).toEqual([
+      "place",
       "field",
       "tags",
       "rocks",
