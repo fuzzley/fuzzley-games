@@ -31,8 +31,8 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   (`src/rules/tuning.ts`), and the sounds of `src/view/effects/sounds.ts`:
   a kind's break at each size it comes in (`BREAK_SOUNDS`) and its held
   hit (`HIT_SOUNDS`), a pickup's catch (`CATCH_SOUNDS`), a weapon's shot
-  (`SHOT_SOUNDS`), and an effect's end as its time runs out
-  (`END_SOUNDS`).
+  (`SHOT_SOUNDS`), and an effect's start as a pickup caught starts it
+  (`START_SOUNDS`) and its end as its time runs out (`END_SOUNDS`).
   The rest is made from the ids, a pickup's frame and tag and an effect's
   record in play among them, so a new id that compiles has everything
   drawn and played.
@@ -171,8 +171,9 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
   does as it starts and as it ends, reaching only what of the field the
   pickups act on (`PickupField`); its record in play is made from its
-  kind, and its sound as its time runs out, or none, in
-  `END_SOUNDS` (`src/view/effects/sounds.ts`). The saved game keeps no
+  kind, and its sounds as a pickup caught starts it and as its time runs
+  out, or none, in `START_SOUNDS` and `END_SOUNDS`
+  (`src/view/effects/sounds.ts`). The saved game keeps no
   effect in play, as it keeps no pickup or shot.
 - **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle
   between them, the time between pulls, how many may be in flight and how

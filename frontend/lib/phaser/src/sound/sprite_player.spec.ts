@@ -512,6 +512,32 @@ describe("SpritePlayer's held sounds", () => {
     expect(heldIn(scene)).toBe(1);
   });
 
+  it("says it holds a sound held", async () => {
+    const { player } = await startPlayer();
+
+    player.hold("ping", true);
+
+    expect([player.holds("ping"), player.holds("pong")]).toEqual([true, false]);
+  });
+
+  it("says it holds a sound no more once it is let go", async () => {
+    const { player } = await startPlayer();
+    player.hold("ping", true);
+
+    player.hold("ping", false);
+
+    expect(player.holds("ping")).toBe(false);
+  });
+
+  it("says it holds nothing it couldn't start", async () => {
+    const { player } = await startPlayer();
+    player.follow(false);
+
+    player.hold("ping", true);
+
+    expect(player.holds("ping")).toBe(false);
+  });
+
   it("lets go of a sound not held without a fuss", async () => {
     const { scene, player } = await startPlayer();
 

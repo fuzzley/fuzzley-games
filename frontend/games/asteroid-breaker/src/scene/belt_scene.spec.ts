@@ -3080,6 +3080,47 @@ describe("the sounds", () => {
     ]).toEqual([["near-miss"], eyesFrame("pod", "eep")]);
   });
 
+  it("tick as the thrust is pressed, and again as it is let go", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    steerField(shell.field, { ...STILL, thrust: 1 });
+    run.advance(16);
+    steerField(shell.field, STILL);
+    run.advance(16);
+
+    expect(played).toEqual([
+      ["thrust-start", 0],
+      ["thrust-stop", 0],
+    ]);
+  });
+
+  it("tick as the ship's guard after a hit runs out", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    shipOf(shell.field).guardSteps = stepsIn(1000);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    run.advance(1000);
+
+    expect(played).toEqual([["guard-end", 0]]);
+  });
+
+  it("rush a comet in as its warning is over", async () => {
+    const { shell, run } = await startBoard(withShip);
+    stepping(shell);
+    placeComet(shell.field, 0, 10).warnSteps = stepsIn(100);
+    run.advance(16);
+    const played = soundsPlayed();
+
+    run.advance(100);
+
+    expect(played).toEqual([["comet-pass", 0]]);
+  });
+
   it("play an effect's end as its time runs out", async () => {
     const { shell, run } = await startBoard(withShip);
     stepping(shell);

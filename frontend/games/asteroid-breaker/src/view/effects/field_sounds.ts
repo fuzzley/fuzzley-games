@@ -3,33 +3,41 @@
 // loudest first; a crowd of breaks as its largest and a patter; one bell a
 // frame at the highest of static's multipliers its breaks scored at; each
 // spark gathered up the ladder; a zap in place of its dash; and what the
-// field's state says without an event: a burst of fire let go, the dash
-// charged, an effect run out.
+// field's state says without an event: a burst of fire let go, the thrust
+// pressed and let go, the first move, the dash charged, the ship's guard
+// over, a comet come in, and an effect started or run out.
 
 import { recordOf } from "@fz/core/records";
 import { acrossOf } from "@fz/core/sound_mix";
 import type { EffectKind } from "../../rules/catalog/pickups";
 import { ROCK_SIZES } from "../../rules/catalog/rocks";
+import { COMET_RECORDS, type Comet } from "../../rules/hazards/comets";
 import { EFFECT_KINDS } from "../../rules/rocks/pickups";
-import { isDashReady } from "../../rules/ship/ship";
+import { type Ship, isDashReady } from "../../rules/ship/ship";
 import { stepsIn } from "../../rules/stepper";
-import { STATIC_HOLD_MS } from "../../rules/tuning";
+import { DASH_GUARD_MS, STATIC_HOLD_MS } from "../../rules/tuning";
 import { type FieldEvent, type FieldView, rockSizeOf } from "../field/frame";
 import {
   CHARGED,
+  COMET_IN,
   CROWD,
   DASH,
+  FIRST_MOVE,
+  GUARD_END,
   LADDER,
   PLAY_ORDER,
   SPARK,
   SPARK_ABOVE_BELL_CENTS,
   type SoundName,
   TAIL,
+  THRUST_START,
+  THRUST_STOP,
   bellCentsOf,
   endSoundOf,
   ladderCentsOf,
   secondSoundOf,
   soundOf,
+  startSoundOf,
   volumeOf,
 } from "./sounds";
 
@@ -60,6 +68,13 @@ export const TAIL_WITHIN_MS = 300;
  * next starts the climb again.
  */
 export const SPARK_RUN_STEPS = stepsIn(STATIC_HOLD_MS);
+
+/**
+ * The most steps of guard a dash gives the ship, which ends unheard, as
+ * every dash's does; a longer one, after a hit, a spent Shield, the first
+ * move or a pause that stretched the field, ends with {@link GUARD_END}.
+ */
+export const DASH_GUARD_STEPS = stepsIn(DASH_GUARD_MS);
 
 /** A rank below every rock's size, which the largest break of a frame starts from. */
 const NO_RANK: number = ROCK_SIZES.length;
@@ -134,10 +149,30 @@ export class FieldSounds {
   private zapped = false;
   /** Whether the ship's dash was recharging as of the last frame. */
   private recharging = false;
+  /** Whether the ship's thrust was pressed as of the last frame. */
+  private pressed = false;
+  /**
+   * Whether the ship waited for the player's first move as of the last
+   * frame, at the wave's start; a ship brought to a run taken up waits
+   * later on, and moves on with no lift.
+   */
+  private waiting = false;
+  /** The most steps of guard the ship had left in a frame of the guard under way, 0 while it has none. */
+  private guardPeak = 0;
+  /** Whether each comet's record warned of a comet as of the last frame. */
+  private readonly warning: boolean[] = Array.from(
+    { length: COMET_RECORDS },
+    () => false,
+  );
   /** The step each group's effect ended at as of the last frame, 0 for one that has no time. */
   private readonly endsAt: Record<EffectKind, number> = recordOf(
     EFFECT_KINDS,
     () => 0,
+  );
+  /** Whether each group's effect was in play as of the last frame. */
+  private readonly inPlay: Record<EffectKind, boolean> = recordOf(
+    EFFECT_KINDS,
+    () => false,
   );
 
   constructor() {
@@ -155,20 +190,16 @@ export class FieldSounds {
   /**
    * Hears what a frame's field says, at a time in milliseconds, by how it
    * changed since the last frame: fire let go just after a burst, its tail
-   * at the last pull; the dash charged again, at the ship; and an effect
-   * whose time ran out, at the ship. A new field says nothing of the last
-   * one's. Call it before the frame's events.
+   * at the last pull; and, at the ship, the thrust pressed or let go, the
+   * player's first move, the dash charged again, a guard longer than a
+   * dash's over, and an effect started by a pickup caught or run out; and
+   * a comet come in, its warning over, where it comes in. A new field says
+   * nothing of the last one's. Call it before the frame's events.
    */
   hearField(field: FieldView, now: number): void {
     this.now = now;
     if (field !== this.field) {
-      this.field = field;
-      this.pulls = 0;
-      this.sparks = 0;
-      this.recharging = isRecharging(field);
-      for (const kind of EFFECT_KINDS) {
-        this.endsAt[kind] = field.effects[kind].endsAt;
-      }
+      this.startField(field);
       return;
     }
     const { steer, ship, torus } = field;
@@ -179,12 +210,92 @@ export class FieldSounds {
       this.pulls = 0;
     }
     const at = ship === null ? 0 : acrossOf(ship.x, torus.width);
-    const recharging = isRecharging(field);
-    if (this.recharging && !recharging && ship !== null) {
-      this.note(CHARGED, 0, at);
+    if (ship === null) this.forgetShip();
+    else this.hearShip(field, ship, at);
+    this.hearComets(field);
+    for (const kind of EFFECT_KINDS) {
+      this.hearEnding(field, kind, at);
+      this.hearStarting(field, kind, at);
     }
+  }
+
+  /** Takes a new field's state as it is, hearing nothing of it. */
+  private startField(field: FieldView): void {
+    this.field = field;
+    this.pulls = 0;
+    this.sparks = 0;
+    const { ship } = field;
+    if (ship === null) {
+      this.forgetShip();
+    } else {
+      this.recharging = isRecharging(ship);
+      this.pressed = isPressed(ship);
+      this.waiting = waitsToStart(field, ship);
+      this.guardPeak = ship.guardSteps;
+    }
+    const { slots } = field.comets;
+    for (let slot = 0; slot < slots.length; slot++) {
+      this.warning[slot] = isWarning(slots[slot]);
+    }
+    for (const kind of EFFECT_KINDS) {
+      const { pickup, endsAt } = field.effects[kind];
+      this.endsAt[kind] = endsAt;
+      this.inPlay[kind] = pickup !== null;
+    }
+  }
+
+  /** Forgets the ship's state, for a field with none, as one whose run has ended, hearing nothing. */
+  private forgetShip(): void {
+    this.recharging = false;
+    this.pressed = false;
+    this.waiting = false;
+    this.guardPeak = 0;
+  }
+
+  /**
+   * Hears how a field's ship changed since the last frame, noting at its
+   * place the player's first move of the wave, the thrust pressed or let
+   * go, the dash charged again and a guard longer than a dash's over.
+   */
+  private hearShip(field: FieldView, ship: Readonly<Ship>, at: number): void {
+    if (this.waiting && !ship.waiting) this.note(FIRST_MOVE, 0, at);
+    this.waiting = waitsToStart(field, ship);
+    const pressed = isPressed(ship);
+    if (pressed !== this.pressed) {
+      this.note(pressed ? THRUST_START : THRUST_STOP, 0, at);
+    }
+    this.pressed = pressed;
+    const recharging = isRecharging(ship);
+    if (this.recharging && !recharging) this.note(CHARGED, 0, at);
     this.recharging = recharging;
-    for (const kind of EFFECT_KINDS) this.hearEnding(field, kind, at);
+    if (ship.guardSteps > 0) {
+      this.guardPeak = Math.max(this.guardPeak, ship.guardSteps);
+      return;
+    }
+    if (this.guardPeak > DASH_GUARD_STEPS) this.note(GUARD_END, 0, at);
+    this.guardPeak = 0;
+  }
+
+  /** Hears each comet that came in since the last frame, its warning over, noting it where it comes in. */
+  private hearComets(field: FieldView): void {
+    const { slots } = field.comets;
+    for (let slot = 0; slot < slots.length; slot++) {
+      const comet = slots[slot];
+      if (comet === undefined) continue;
+      const warning = isWarning(comet);
+      if (this.warning[slot] === true && !warning && comet.live) {
+        this.note(COMET_IN, 0, acrossOf(comet.x, field.torus.width));
+      }
+      this.warning[slot] = warning;
+    }
+  }
+
+  /** Hears whether a pickup caught started an effect of a group since the last frame, noting its start at a place if so. */
+  private hearStarting(field: FieldView, kind: EffectKind, at: number): void {
+    const inPlay = field.effects[kind].pickup !== null;
+    const sound = inPlay && !this.inPlay[kind] ? startSoundOf(kind) : null;
+    if (sound !== null) this.note(sound, 0, at);
+    this.inPlay[kind] = inPlay;
   }
 
   /** Hears whether an effect's time ran out since the last frame, noting its end at a place if so. */
@@ -314,10 +425,31 @@ export class FieldSounds {
   }
 }
 
+/** Returns whether a comet's record warns of a comet, yet to come in. */
+function isWarning(comet: Readonly<Comet> | undefined): boolean {
+  return comet !== undefined && comet.live && comet.warnSteps > 0;
+}
+
 /**
- * Returns whether a field's ship is recharging its dash, not yet ready by
+ * Returns whether a field's ship waits for the player's first move at its
+ * wave's start, which holds the field at its first step until then.
+ */
+function waitsToStart(field: FieldView, ship: Readonly<Ship>): boolean {
+  return ship.waiting && field.steps === 0;
+}
+
+/**
+ * Returns whether a ship is recharging its dash, not yet ready by
  * `isDashReady()`, by which the pod's rim flashes too.
  */
-function isRecharging({ ship }: FieldView): boolean {
-  return ship !== null && !isDashReady(ship);
+function isRecharging(ship: Readonly<Ship>): boolean {
+  return !isDashReady(ship);
+}
+
+/**
+ * Returns whether the player presses a ship's thrust: held, once the ship
+ * flies, whether or not a dash throws it, so a dash is no let go.
+ */
+function isPressed(ship: Readonly<Ship>): boolean {
+  return !ship.waiting && ship.held.thrust > 0;
 }

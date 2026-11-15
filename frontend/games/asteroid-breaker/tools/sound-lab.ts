@@ -11,13 +11,21 @@ import {
   type LabSound,
   mountSoundLab,
 } from "@fz/dev/sound-lab-page";
+import { type PickupId, pickup } from "../src/rules/catalog/pickups";
 import type { RockKindId, RockSize } from "../src/rules/catalog/rocks";
 import type { LoggedRock } from "../src/rules/field/events";
 import { type Field, createField, steerField } from "../src/rules/field/field";
 import { endEffect } from "../src/rules/rocks/pickups";
 import { createCrew } from "../src/rules/ship/pilots";
-import { STILL } from "../src/rules/ship/ship";
-import { SHOT_EVERY_MS } from "../src/rules/tuning";
+import { STILL, type Ship } from "../src/rules/ship/ship";
+import { stepsIn } from "../src/rules/stepper";
+import {
+  COMET_WARNING_MS,
+  HIT_GUARD_MS,
+  NEW_SHIP_GUARD_MS,
+  SHIELD_GUARD_MS,
+  SHOT_EVERY_MS,
+} from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sprite.json";
 import spriteM4a from "../src/scene/sounds/sprite.m4a?url";
 import spriteOgg from "../src/scene/sounds/sprite.ogg?url";
@@ -62,9 +70,9 @@ interface Moment {
   readonly act: (field: Field) => void;
 }
 
-/** Returns a field to play a scene on: empty but for its ship, waiting in its middle. */
+/** Returns a field to play a scene on: empty but for its ship, flying in its middle. */
 function sceneField(): Field {
-  return createField({
+  const field = createField({
     torus: TORUS,
     cap: 16,
     seed: 1,
@@ -80,6 +88,41 @@ function sceneField(): Field {
     charge: 0,
     sparkReach: 1,
   });
+  shipOn(field).waiting = false;
+  return field;
+}
+
+/** Returns a scene field's ship, which it always has. */
+function shipOn(field: Field): Ship {
+  if (field.ship === null) throw new Error("A scene's field has a ship.");
+  return field.ship;
+}
+
+/** Returns a moment at a time that changes the ship of a scene's field. */
+function withShip(at: number, act: (ship: Ship) => void): Moment {
+  return {
+    at,
+    act: (field) => {
+      act(shipOn(field));
+    },
+  };
+}
+
+/**
+ * Returns a pickup caught at a time, its effect in play: one with a time
+ * until a scene says it runs out, and one without until it is spent.
+ */
+function caught(at: number, id: PickupId): Moment {
+  return {
+    at,
+    act: (field) => {
+      field.events.addPickup("caught", SHIP.x, SHIP.y, id);
+      const { effect } = pickup(id);
+      const inEffect = field.effects[effect.kind];
+      inEffect.pickup = id;
+      inEffect.endsAt = "ms" in effect ? RUNS_OUT_AT : 0;
+    },
+  };
 }
 
 /**
@@ -292,9 +335,18 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "Thrust and fire",
-    what: "The thrust held for two and a half seconds while the gun fires and a rock breaks: the hum under everything else.",
+    what: "The thrust held for two and a half seconds while the gun fires and a rock breaks: the hum under everything else, a tick as the thrust is pressed and another as it is let go.",
     cues: heard(
-      [...burst(0.3, 2.2), broken(1.2, "stone", "medium", 1, 0.5)],
+      [
+        withShip(0, (ship) => {
+          ship.held.thrust = 1;
+        }),
+        ...burst(0.3, 2.2),
+        broken(1.2, "stone", "medium", 1, 0.5),
+        withShip(2.5, (ship) => {
+          ship.held.thrust = 0;
+        }),
+      ],
       [{ at: 0, sound: THRUST, holdFor: 2.5 }],
     ),
     before: [
@@ -343,7 +395,7 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A stray and the crew in tow",
-    what: "A stray drifts in, and the ship catches it into the line in tow; a rock knocks it loose, and the ship catches it again. Before, a stray caught went home, and a hit cost a ship.",
+    what: "A stray drifts in, and the ship catches it into the line in tow; a rock knocks it loose, the ship untouchable for a moment after, a time that ends with a tick, and the ship catches it again. Before, a stray caught went home, and a hit cost a ship.",
     cues: heard([
       {
         at: 0,
@@ -367,10 +419,14 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
         at: 3,
         act: (field) => {
           field.events.addKnocked(SHIP.x, SHIP.y, PILOT, field.crew, 1, 0);
+          shipOn(field).guardSteps = stepsIn(HIT_GUARD_MS) + 1;
         },
       },
+      withShip(3 + HIT_GUARD_MS / 1000, (ship) => {
+        ship.guardSteps = 0;
+      }),
       {
-        at: 4.5,
+        at: 5,
         act: (field) => {
           field.events.addPilot(
             "recaught",
@@ -389,20 +445,80 @@ const SCENES: readonly LabScene<SoundName, BeforeName>[] = [
   },
   {
     name: "A comet",
-    what: "A comet's warning at the field's left edge, then the comet smashing a rock as it crosses.",
+    what: "A comet's warning at the field's left edge, the comet's rush as it comes in, its warning over, then the comet smashing a rock as it crosses.",
     cues: heard([
       {
         at: 0,
         act: (field) => {
           field.events.add("warned", 0, SHIP.y);
+          const comet = field.comets.slots[0];
+          if (comet === undefined) return;
+          comet.live = true;
+          comet.x = 0;
+          comet.y = SHIP.y;
+          comet.warnSteps = stepsIn(COMET_WARNING_MS);
         },
       },
-      broken(1.5, "stone", "medium", 0, -0.3),
+      {
+        at: COMET_WARNING_MS / 1000,
+        act: (field) => {
+          const comet = field.comets.slots[0];
+          if (comet !== undefined) comet.warnSteps = 0;
+        },
+      },
+      broken(2, "stone", "medium", 0, -0.3),
     ]),
     before: [
       { at: 0, sound: "warned", x: -1 },
-      { at: 1.5, sound: "medium", x: -0.3 },
+      { at: 2, sound: "medium", x: -0.3 },
     ],
+  },
+  {
+    name: "A Shield and Slow",
+    what: "A Shield caught, raised, then Slow caught, the field slowing; a rock spends the Shield, the ship untouchable for a second after, a time that ends with a tick; and Slow's time runs out, the field coming back. Before, each catch played one sound, and the Shield spent played iron's ring.",
+    cues: heard([
+      caught(0, "shield"),
+      caught(1.2, "slow"),
+      {
+        at: 2.5,
+        act: (field) => {
+          field.events.add("shielded", SHIP.x, SHIP.y);
+          endEffect(field, "guard");
+          shipOn(field).guardSteps = stepsIn(SHIELD_GUARD_MS) + 1;
+        },
+      },
+      withShip(2.5 + SHIELD_GUARD_MS / 1000, (ship) => {
+        ship.guardSteps = 0;
+      }),
+      {
+        at: 4.5,
+        act: (field) => {
+          field.steps = RUNS_OUT_AT;
+          endEffect(field, "pace");
+        },
+      },
+    ]),
+    before: [
+      { at: 0, sound: "caught" },
+      { at: 1.2, sound: "caught" },
+      { at: 2.5, sound: "rung" },
+    ],
+  },
+  {
+    name: "A wave's first move",
+    what: "The ship waits for the player's first move, which starts the wave with a lift; the ship is untouchable for two seconds after, a time that ends with a tick.",
+    cues: heard([
+      withShip(0, (ship) => {
+        ship.waiting = true;
+      }),
+      withShip(0.5, (ship) => {
+        ship.waiting = false;
+        ship.guardSteps = stepsIn(NEW_SHIP_GUARD_MS);
+      }),
+      withShip(0.5 + NEW_SHIP_GUARD_MS / 1000, (ship) => {
+        ship.guardSteps = 0;
+      }),
+    ]),
   },
   {
     name: "A dash",

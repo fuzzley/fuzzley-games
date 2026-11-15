@@ -338,6 +338,14 @@ export class SpritePlayer<Name extends string> {
     this.heldSounds.set(name, looping);
   }
 
+  /**
+   * Returns whether a sound loops, held: held once the sprite had loaded,
+   * while the player wanted sound, and not let go since.
+   */
+  holds(name: Name): boolean {
+    return this.heldSounds.has(name);
+  }
+
   /** Works out how each sound of a mix plays, and checks the sprite holds every take it names. */
   private mixAll(mix: SoundMix<Name>): void {
     const { spritemap } = this.sprite.spritemap;
