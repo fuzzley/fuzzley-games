@@ -93,7 +93,7 @@
       "name": "Eye of the storm",
       "pace": 1.25,
       "rocks": [
-        { "kind": "boulder", "size": "boulder", "count": 2 },
+        { "kind": "stormheart", "size": "boulder", "count": 2 },
         { "kind": "stone", "size": "large", "count": 2 },
         { "kind": "ice", "size": "large", "count": 2 },
         { "kind": "iron", "size": "large", "count": 2 },

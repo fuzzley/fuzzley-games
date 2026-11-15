@@ -18,8 +18,9 @@ import { createCrew } from "../ship/pilots";
 import { createCharge } from "../sparks/charge";
 import { createSparks } from "../sparks/sparks";
 import { stepsIn } from "../stepper";
-import type { Place, Torus } from "../torus";
+import { type Place, type Torus, across } from "../torus";
 import {
+  CHIP_SPREAD,
   FAIR_COURSE_MS,
   LAST_FEW_LEAN,
   LAST_FEW_NEAR,
@@ -64,6 +65,12 @@ const BLAST = ROCK_KINDS.volatile.traits[0];
 
 /** The lodestone's pull toward the ship. */
 const PULL = ROCK_KINDS.lodestone.traits[0].pull;
+
+/** The iron-rinded boulder's plates: how many of its first held hits knock one off. */
+const PLATES = ROCK_KINDS.ironclad.traits[0];
+
+/** The reach of the blast a storm boulder vents. */
+const VENT = ROCK_KINDS.stormheart.traits[0].reach;
 
 /** Describes a field of rocks that a spec steps and moves the ship on by hand. */
 interface SpecField extends RockField {
@@ -186,6 +193,25 @@ function outside(values: readonly number[], span: Span, times = 1): number[] {
 function coverOf(values: readonly number[], span: Span, times = 1): number {
   const covered = Math.max(...values) - Math.min(...values);
   return covered / ((span.most - span.least) * times);
+}
+
+/**
+ * Returns how far off straight away from the ship, in degrees, the stone a
+ * crumbling boulder knocks off flies, the boulder laid at a place across
+ * and hit on a field from a seed, away being the heading that points so.
+ */
+function chipOffAway(
+  seed: number,
+  ship: Place,
+  x: number,
+  away: number,
+): number {
+  const field = rockField({ seed, ship });
+  hitRock(field, lay(field, "crumbling", "boulder", x, 20), 1, 0);
+  const piece = wholeRocks(field).find(({ size }) => size === "medium");
+  if (piece === undefined) throw new Error("No piece came off.");
+  const heading = Math.atan2(piece.vy, piece.vx);
+  return across(away, heading, TURN) / RADIANS_PER_DEGREE;
 }
 
 /**
@@ -1435,5 +1461,219 @@ describe("a rock that gives", () => {
       ["broken"],
       ROCK_KINDS.crystal.splits.count,
     ]);
+  });
+
+  it.each(["crumbling", "ironclad", "stormheart"] as const)(
+    "lets as many go as it gives: two from a %s boulder",
+    (kind) => {
+      const field = rockField({ pool: ["spread"] });
+
+      hitRock(field, lay(field, kind, "boulder"), 1, 0, "breaks");
+
+      expect(
+        kindsLoggedOn(field).filter((logged) => logged === "dropped"),
+      ).toHaveLength(2);
+    },
+  );
+});
+
+describe("a boulder that chips", () => {
+  it("knocks a medium stone off with each hit it holds, logged as shed", () => {
+    const field = rockField();
+    const boulder = lay(field, "crumbling", "boulder");
+
+    hitRock(field, boulder, 1, 0);
+
+    expect([
+      kindsLoggedOn(field),
+      wholeRocks(field).map(({ kind, size }) => `${kind} ${size}`),
+    ]).toEqual([
+      ["hit", "shed"],
+      ["crumbling boulder", "stone medium"],
+    ]);
+  });
+
+  it("knocks one off with each of the hits it holds, every one a crumbling boulder holds", () => {
+    const field = rockField();
+    const boulder = lay(field, "crumbling", "boulder");
+
+    for (let hit = 1; hit < ROCK_KINDS.crumbling.hits.boulder; hit++) {
+      hitRock(field, boulder, 1, 0);
+    }
+
+    expect(
+      wholeRocks(field).filter(({ size }) => size === "medium"),
+    ).toHaveLength(ROCK_KINDS.crumbling.hits.boulder - 1);
+  });
+
+  it("knocks an iron plate off with each of its first hits only, ringing with each", () => {
+    const field = rockField();
+    const boulder = lay(field, "ironclad", "boulder");
+
+    for (let hit = 1; hit < ROCK_KINDS.ironclad.hits.boulder; hit++) {
+      hitRock(field, boulder, 1, 0);
+    }
+
+    const logged = kindsLoggedOn(field);
+    expect({
+      plates: wholeRocks(field).filter(({ kind }) => kind === "iron").length,
+      rung: logged.filter((kind) => kind === "rung").length,
+      held: logged.filter((kind) => kind === "hit").length,
+    }).toEqual({
+      plates: PLATES.upTo,
+      rung: PLATES.upTo,
+      held: ROCK_KINDS.ironclad.hits.boulder - 1,
+    });
+  });
+
+  it("rings before it knocks a plate off, as the plate comes away", () => {
+    const field = rockField();
+
+    hitRock(field, lay(field, "ironclad", "boulder"), 1, 0);
+
+    expect(kindsLoggedOn(field)).toEqual(["hit", "rung", "shed"]);
+  });
+
+  it.each(["crumbling", "ironclad"] as const)(
+    "knocks off pieces of its own whatever its wave names, a %s boulder",
+    (kind) => {
+      const field = rockField({ waveKind: "ice" });
+
+      hitRock(field, lay(field, kind, "boulder"), 1, 0);
+
+      expect(wholeRocks(field).map((rock) => rock.kind)).toEqual([
+        kind,
+        kind === "crumbling" ? "stone" : "iron",
+      ]);
+    },
+  );
+
+  it("lays its piece at its rim, flying straight out from its middle", () => {
+    const field = rockField();
+    const boulder = lay(field, "crumbling", "boulder", 30, 20);
+
+    hitRock(field, boulder, 1, 0);
+
+    const piece = wholeRocks(field).find(({ size }) => size === "medium");
+    const outX = (piece?.x ?? 0) - 30;
+    const outY = (piece?.y ?? 0) - 20;
+    const sideways = outX * (piece?.vy ?? 0) - outY * (piece?.vx ?? 0);
+    const along = outX * (piece?.vx ?? 0) + outY * (piece?.vy ?? 0);
+    expect([Math.hypot(outX, outY), sideways, along > 0]).toEqual([
+      expect.closeTo(ROCK_RADIUS.boulder),
+      expect.closeTo(0),
+      true,
+    ]);
+  });
+
+  it.each([
+    ["west", { x: 10, y: 20 }, 30, 0],
+    ["south", { x: 30, y: 36 }, 30, -TURN / 4],
+    ["east, across the wrap", { x: 2, y: 20 }, 60, TURN / 2],
+  ] as const)(
+    "knocks its piece off its far side from the ship, the ship to its %s",
+    (_, ship, x, away) => {
+      const offs = SEEDS.map((seed) => chipOffAway(seed, ship, x, away));
+
+      expect(Math.max(...offs.map(Math.abs))).toBeLessThanOrEqual(
+        CHIP_SPREAD / 2,
+      );
+    },
+  );
+
+  it("spreads its pieces across the whole of the spread", () => {
+    const offs = SEEDS.map((seed) =>
+      chipOffAway(seed, { x: 10, y: 20 }, 30, 0),
+    );
+
+    expect(
+      coverOf(offs, { least: -CHIP_SPREAD / 2, most: CHIP_SPREAD / 2 }),
+    ).toBeGreaterThan(0.9);
+  });
+
+  it("logs its piece shed at the piece's place, with its kind, size and slot", () => {
+    const field = rockField();
+
+    hitRock(field, lay(field, "ironclad", "boulder"), 1, 0);
+
+    const piece = wholeRocks(field).find(({ kind }) => kind === "iron");
+    expect(loggedOn(field).at(-1)).toMatchObject({
+      kind: "shed",
+      x: piece?.x,
+      y: piece?.y,
+      rock: "iron",
+      size: "medium",
+      slot: piece?.slot,
+    });
+  });
+
+  it("holds the hit and knocks nothing off with every slot taken", () => {
+    const field = rockField({ cap: 1 });
+    const boulder = lay(field, "crumbling", "boulder");
+
+    hitRock(field, boulder, 1, 0);
+
+    expect([kindsLoggedOn(field), boulder.hits]).toEqual([
+      ["hit"],
+      ROCK_KINDS.crumbling.hits.boulder - 1,
+    ]);
+  });
+});
+
+describe("a boulder that vents", () => {
+  it("vents a blast of its reach as it holds a hit, logged at its place", () => {
+    const field = rockField();
+
+    hitRock(field, lay(field, "stormheart", "boulder", 10, 30), 1, 0);
+
+    expect([kindsLoggedOn(field), loggedOn(field).at(-1)]).toEqual([
+      ["hit", "vented"],
+      expect.objectContaining({
+        kind: "vented",
+        x: 10,
+        y: 30,
+        rock: "stormheart",
+        size: "boulder",
+        reach: VENT,
+      }),
+    ]);
+  });
+
+  it("hits each whole rock its reach touches at once, and no other", () => {
+    const field = rockField();
+    const touch = VENT + rockHitRadius("large");
+    const boulder = lay(field, "stormheart", "boulder", 20, 20);
+    const near = lay(field, "lodestone", "large", 20 + touch - SLIVER, 20);
+    const far = lay(field, "lodestone", "large", 20, 20 + touch + SLIVER);
+    stepFor(field, 1, 0);
+
+    hitRock(field, boulder, 1, 0);
+
+    expect([near.hits, far.hits]).toEqual([
+      ROCK_KINDS.lodestone.hits.large - 1,
+      ROCK_KINDS.lodestone.hits.large,
+    ]);
+  });
+
+  it("spares every boulder, itself and another in its reach", () => {
+    const field = rockField();
+    const boulder = lay(field, "stormheart", "boulder", 20, 20);
+    const other = lay(field, "stormheart", "boulder", 24, 20);
+    stepFor(field, 1, 0);
+
+    hitRock(field, boulder, 1, 0);
+
+    expect([boulder.hits, other.hits]).toEqual([
+      ROCK_KINDS.stormheart.hits.boulder - 1,
+      ROCK_KINDS.stormheart.hits.boulder,
+    ]);
+  });
+
+  it("vents nothing as it breaks", () => {
+    const field = rockField();
+
+    hitRock(field, lay(field, "stormheart", "boulder"), 1, 0, "breaks");
+
+    expect(kindsLoggedOn(field)).not.toContain("vented");
   });
 });

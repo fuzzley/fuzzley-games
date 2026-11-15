@@ -7,7 +7,7 @@ import type { RockKindId } from "../../rules/catalog/rocks";
 export interface RockInks {
   /** Each kind's ink: its body's, but a crystal's, which is its gem's. */
   readonly kinds: Readonly<Record<RockKindId, number>>;
-  /** The glow at a volatile rock's middle. */
+  /** The glow at a volatile rock's middle, and along a storm boulder's seams. */
   readonly core: number;
 }
 
@@ -21,6 +21,9 @@ export const LIGHT_ROCK_INKS: RockInks = {
     volatile: 0xc4452c,
     lodestone: 0x9a3456,
     boulder: 0x6e6255,
+    crumbling: 0x7a6957,
+    ironclad: 0x46515f,
+    stormheart: 0x5e4a42,
   },
   core: 0xffd27a,
 };
@@ -35,6 +38,9 @@ export const DARK_ROCK_INKS: RockInks = {
     volatile: 0xf0886a,
     lodestone: 0xe57d9c,
     boulder: 0xc4b6a3,
+    crumbling: 0xbaa892,
+    ironclad: 0x93a3b4,
+    stormheart: 0xb59a8c,
   },
   core: 0xffe6a8,
 };

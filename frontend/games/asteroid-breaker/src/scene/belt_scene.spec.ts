@@ -2520,6 +2520,18 @@ const EVERY_EVENT: Readonly<
     },
     ["blast-volatile"],
   ],
+  shed: [
+    (field) => {
+      field.events.addRock("shed", loggedRock("iron", "medium"));
+    },
+    ["break-iron-medium"],
+  ],
+  vented: [
+    (field) => {
+      field.events.addRock("vented", loggedRock("stormheart", "boulder"), 6);
+    },
+    ["blast-volatile-small"],
+  ],
   dropped: [
     (field) => {
       field.events.addPickup("dropped", 30, 20, "spread");

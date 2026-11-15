@@ -168,6 +168,13 @@ export const LAST_FEW_LEAN = 2;
  */
 export const LAST_FEW_NEAR = 12;
 
+/**
+ * How wide a spread, in degrees, a piece a set piece chips off flies out
+ * in, about the way straight away from the ship, as a blow knocks it off
+ * the far side, so the shot that knocks it off doesn't send it at the pod.
+ */
+export const CHIP_SPREAD = 120;
+
 /** How near the ship, middle to middle across the wrap, no rock of a wave starts. */
 export const FAIR_DISTANCE = 12;
 

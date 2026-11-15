@@ -213,9 +213,12 @@ describe("riseOf", () => {
 });
 
 describe("ringReachOf", () => {
-  it("sweeps a blast's ring out to its reach", () => {
-    expect(ringReachOf(reaching("blast", 7))).toBe(7);
-  });
+  it.each(["blast", "vented"] as const)(
+    "sweeps a %s ring out to its reach",
+    (kind) => {
+      expect(ringReachOf(reaching(kind, 7))).toBe(7);
+    },
+  );
 
   it.each([
     ["shielded", SHIELD_RING_REACH],
@@ -228,9 +231,12 @@ describe("ringReachOf", () => {
 describe("ringColorOf", () => {
   const PALETTE = { flame: 0xf39a4b, accent: 0x4fbf7f };
 
-  it("sweeps a blast's ring out in the warning color", () => {
-    expect(ringColorOf(reaching("blast", 7), PALETTE)).toBe(PALETTE.flame);
-  });
+  it.each(["blast", "vented"] as const)(
+    "sweeps a %s ring out in the warning color",
+    (kind) => {
+      expect(ringColorOf(reaching(kind, 7), PALETTE)).toBe(PALETTE.flame);
+    },
+  );
 
   it.each(["shielded", "lost"] as const)(
     "sweeps a %s ring out in the accent",

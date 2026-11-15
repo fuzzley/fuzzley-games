@@ -27,6 +27,7 @@ import {
   wrap,
 } from "../torus";
 import {
+  CHIP_SPREAD,
   FAIR_COURSE_MS,
   LAST_FEW_LEAN,
   LAST_FEW_NEAR,
@@ -39,7 +40,10 @@ import {
   STEP_S,
 } from "../tuning";
 
-/** How many outlines each kind and size of rock is drawn in, a rock's being one of them. */
+/**
+ * How many outlines each kind and size of rock is drawn from, a rock's
+ * being one of them; the view draws a set piece in fewer, taken round them.
+ */
 export const ROCK_OUTLINES = 6;
 
 /** Describes a rock, laid in place in its slot. */
@@ -184,6 +188,17 @@ const TRAIT_RULES: {
   rings: {
     held: (field, rock) => {
       field.events.addRock("rung", rock);
+    },
+  },
+  chips: {
+    held: (field, rock, chips) => {
+      chipOff(field, rock, chips);
+    },
+  },
+  vents: {
+    held: (field, rock, { reach }) => {
+      field.events.addRock("vented", rock, reach);
+      hitWithin(field, rock.x, rock.y, reach, isBoulder);
     },
   },
 };
@@ -440,14 +455,56 @@ function kindOfPieces(
       return kind;
     case "stone":
       return "stone";
+    case "iron":
+      return "iron";
     case "wave":
       return field.waveKind;
   }
 }
 
 /**
+ * Knocks a piece off a rock that holds a hit, if the hit is among the
+ * first its trait says, ringing first where it rings: the piece is laid at
+ * the rock's rim, flying out from its middle a way drawn within
+ * {@link CHIP_SPREAD} of straight away from the ship, or any way with no
+ * ship, and logged, by its kind and size, as shed.
+ */
+function chipOff(
+  field: RockField,
+  rock: Readonly<Rock>,
+  { into, size, upTo, rings }: TraitOf["chips"],
+): void {
+  const taken = (rockKind(rock.kind).hits[rock.size] ?? 0) - rock.hits;
+  if (taken > upTo) return;
+  if (rings) field.events.addRock("rung", rock);
+  const draw = nextDraw(field);
+  const way = wayToShip(field, rock);
+  const heading =
+    way === null
+      ? draw * TURN
+      : Math.atan2(-way.y, -way.x) +
+        (draw - 0.5) * CHIP_SPREAD * RADIANS_PER_DEGREE;
+  const rim = ROCK_RADIUS[rock.size];
+  const piece = addRock(
+    field,
+    kindOfPieces(field, rock.kind, into),
+    size,
+    wrap(rock.x + Math.cos(heading) * rim, field.torus.width),
+    wrap(rock.y + Math.sin(heading) * rim, field.torus.height),
+    heading,
+  );
+  if (piece !== null) field.events.addRock("shed", piece);
+}
+
+/** Returns whether a rock is a boulder, which a vented blast spares. */
+function isBoulder(rock: Readonly<Rock>): boolean {
+  return rock.size === "boulder";
+}
+
+/**
  * Hits every whole rock within a reach of a place, the reach touching the
- * rock's own, each pushed away from the place, as a blast does.
+ * rock's own, each pushed away from the place, as a blast does, but those
+ * it spares.
  *
  * It reaches only rocks laid before the step under way, so it never hits
  * the pieces it breaks rocks into, and blasts going off in a step hit the
@@ -458,10 +515,11 @@ export function hitWithin(
   x: number,
   y: number,
   reach: number,
+  spares: (rock: Readonly<Rock>) => boolean = () => false,
 ): void {
   const { torus } = field;
   for (const other of field.rocks) {
-    if (!other.live || other.laidAt === field.steps) continue;
+    if (!other.live || other.laidAt === field.steps || spares(other)) continue;
     const within = reach + rockHitRadius(other.size);
     if (distanceSquared(torus, x, y, other.x, other.y) > within * within) {
       continue;

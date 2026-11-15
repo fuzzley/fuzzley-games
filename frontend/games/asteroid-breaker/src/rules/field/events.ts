@@ -29,7 +29,11 @@ export type RockEventKind =
   /** A rock broke. */
   | "broken"
   /** A broken rock that blasts went off. */
-  | "blast";
+  | "blast"
+  /** A piece a rock knocked off itself as it held a hit, the piece named. */
+  | "shed"
+  /** A rock with a volatile heart held a hit and vented a blast from it. */
+  | "vented";
 
 /** Names something that happened to a pickup, which its event names. */
 export type PickupEventKind =
@@ -143,7 +147,7 @@ export interface FieldEvent extends NumberedEvent {
    * event that scored none, as a rock a comet smashed.
    */
   times: number;
-  /** How far a blast reaches, or how far an arc leapt from the pod, 0 for any other event. */
+  /** How far a blast reaches, a vented one's too, or how far an arc leapt from the pod, 0 for any other event. */
   reach: number;
   /**
    * The step static came to as it stepped, 0 for any other event: the
@@ -258,7 +262,7 @@ export class FieldEventLog extends EventLog<FieldEvent> {
 
   /**
    * Records an event that happened to a rock but its break, at its place, with
-   * its kind, size and slot and, for a blast, its reach.
+   * its kind, size and slot and, for a blast or one vented, its reach.
    */
   addRock(
     kind: Exclude<RockEventKind, "broken">,

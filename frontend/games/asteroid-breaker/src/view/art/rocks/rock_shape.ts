@@ -122,6 +122,74 @@ const STONE_DENTS: Readonly<Partial<Record<RockSize, number>>> = {
 /** How many dents a boulder has, which are smaller than a stone's. */
 const BOULDER_DENTS = 5;
 
+/** How every boulder is cut, a set piece's as the plain one's. */
+const BOULDER_CUT: Cut = {
+  sides: 17,
+  jag: 0.14,
+  rings: [
+    { at: 0.78, z: 0.34, sides: 11 },
+    { at: 0.5, z: 0.6, sides: 7 },
+  ],
+  top: 0.78,
+};
+
+/** How many fissures a crumbling boulder shows round its rim, where its stones come away. */
+const FISSURES = 5;
+
+/** Returns a boulder's seam: a jagged line across it, from rim to rim, which its cracks follow. */
+function seamAcross(random: () => number): RockLine {
+  const a = between(random, 0, TURN);
+  const across = a + TURN / 2 + between(random, -0.5, 0.5);
+  return {
+    points: jagged(random, polar(a, 0.86), polar(across, 0.8), 7, 0.07),
+    tone: "deep",
+    width: 0.022,
+  };
+}
+
+/**
+ * Returns the seams that glow on a dome: the edges of its innermost ring,
+ * spokes out from its corners to the ring outside it, and on toward its
+ * rim, with the glow of its heart, a volatile rock's and a storm boulder's.
+ */
+function glowingSeams(
+  random: () => number,
+  dome: Dome,
+  heart: readonly RockGlow[],
+): Marks {
+  const core = innermost(dome);
+  const mid = around(dome.rings, -2);
+  const { outline } = dome;
+  const lines: RockLine[] = [
+    {
+      points: [...core.map(({ p }) => p), cornerAt(core, 0)],
+      tone: "core",
+      width: 0.05,
+    },
+  ];
+  core.forEach((corner, i) => {
+    const outer = cornerAt(
+      mid,
+      Math.floor((i * mid.length) / core.length) % mid.length,
+    );
+    lines.push({
+      points: jagged(random, corner.p, outer, 2, 0.1),
+      tone: "core",
+      width: 0.04,
+    });
+    const rim = around(
+      outline,
+      Math.floor(((i + 0.5) * outline.length) / core.length),
+    );
+    lines.push({
+      points: jagged(random, outer, pointBetween(outer, rim, 0.72), 2, 0.12),
+      tone: "core",
+      width: 0.028,
+    });
+  });
+  return { lines, glows: heart };
+}
+
 /** Returns the innermost ring of a dome's corners. */
 function innermost(dome: Dome): readonly Corner[] {
   return around(dome.rings, -1);
@@ -242,32 +310,11 @@ const KIND_CUTS = {
   },
   // The largest, pitted, with a seam across it that its cracks follow.
   boulder: {
-    sizes: {
-      boulder: {
-        sides: 17,
-        jag: 0.14,
-        rings: [
-          { at: 0.78, z: 0.34, sides: 11 },
-          { at: 0.5, z: 0.6, sides: 7 },
-        ],
-        top: 0.78,
-      },
-    },
-    marks: (random) => {
-      const facets = dents(random, BOULDER_DENTS, 0.07, 0.13);
-      const a = between(random, 0, TURN);
-      const across = a + TURN / 2 + between(random, -0.5, 0.5);
-      return {
-        facets,
-        lines: [
-          {
-            points: jagged(random, polar(a, 0.86), polar(across, 0.8), 7, 0.07),
-            tone: "deep",
-            width: 0.022,
-          },
-        ],
-      };
-    },
+    sizes: { boulder: BOULDER_CUT },
+    marks: (random) => ({
+      facets: dents(random, BOULDER_DENTS, 0.07, 0.13),
+      lines: [seamAcross(random)],
+    }),
   },
   // Blocky, flat-topped, with a seam across its plates, a sheen and a rivet in each corner.
   iron: {
@@ -359,51 +406,11 @@ const KIND_CUTS = {
         flatTop: true,
       },
     },
-    marks: (random, dome) => {
-      const core = innermost(dome);
-      const mid = around(dome.rings, -2);
-      const { outline } = dome;
-      const lines: RockLine[] = [
-        {
-          points: [...core.map(({ p }) => p), cornerAt(core, 0)],
-          tone: "core",
-          width: 0.05,
-        },
-      ];
-      core.forEach((corner, i) => {
-        const outer = cornerAt(
-          mid,
-          Math.floor((i * mid.length) / core.length) % mid.length,
-        );
-        lines.push({
-          points: jagged(random, corner.p, outer, 2, 0.1),
-          tone: "core",
-          width: 0.04,
-        });
-        const rim = around(
-          outline,
-          Math.floor(((i + 0.5) * outline.length) / core.length),
-        );
-        lines.push({
-          points: jagged(
-            random,
-            outer,
-            pointBetween(outer, rim, 0.72),
-            2,
-            0.12,
-          ),
-          tone: "core",
-          width: 0.028,
-        });
-      });
-      return {
-        lines,
-        glows: [
-          { at: { x: 0, y: 0 }, r: 1.25, tone: "core", strength: 0.55 },
-          { at: { x: 0, y: 0 }, r: 0.42, tone: "core", strength: 0.9 },
-        ],
-      };
-    },
+    marks: (random, dome) =>
+      glowingSeams(random, dome, [
+        { at: { x: 0, y: 0 }, r: 1.25, tone: "core", strength: 0.55 },
+        { at: { x: 0, y: 0 }, r: 0.42, tone: "core", strength: 0.9 },
+      ]),
   },
   // Long, a band at each pole, its field's lines around it.
   lodestone: {
@@ -435,6 +442,86 @@ const KIND_CUTS = {
         width: 0.03,
       })),
     }),
+  },
+  // A boulder pitted as the plain one is, fissured round its rim where
+  // its stones come away.
+  crumbling: {
+    sizes: { boulder: BOULDER_CUT },
+    marks: (random) => {
+      const first = between(random, 0, TURN);
+      const fissures = Array.from({ length: FISSURES }, (_, i) => {
+        const a = first + (i * TURN) / FISSURES + between(random, -0.3, 0.3);
+        const turn = between(random, -0.25, 0.25);
+        return {
+          points: jagged(random, polar(a, 0.9), polar(a + turn, 0.58), 3, 0.08),
+          tone: "deep" as const,
+          width: 0.03,
+        };
+      });
+      return {
+        facets: dents(random, BOULDER_DENTS + 2, 0.07, 0.13),
+        lines: [seamAcross(random), ...fissures],
+      };
+    },
+  },
+  // A boulder in iron's tones, its rind of plates seamed round its crown
+  // and out to its rim, a rivet at each plate's corner and a sheen.
+  ironclad: {
+    sizes: { boulder: BOULDER_CUT },
+    marks: (random, dome) => {
+      const crown = innermost(dome);
+      const rind = around(dome.rings, 1);
+      const plates = Array.from({ length: 4 }, (_, i) => {
+        const at = cornerAt(
+          crown,
+          Math.floor((i * crown.length) / 4 + between(random, 0, 1)),
+        );
+        const a = Math.atan2(at.y, at.x);
+        return {
+          points: [at, polar(a + between(random, -0.15, 0.15), 0.94)],
+          tone: "deep" as const,
+          width: 0.03,
+        };
+      });
+      return {
+        lines: [
+          {
+            points: [...crown.map(({ p }) => p), cornerAt(crown, 0)],
+            tone: "deep",
+            width: 0.03,
+          },
+          ...plates,
+          {
+            points: [
+              { x: -0.45, y: -0.35 },
+              { x: -0.05, y: 0.3 },
+            ],
+            tone: "sheen",
+            width: 0.18,
+          },
+        ],
+        dots: rind.map(({ p }) => ({
+          at: { x: p.x * 0.92, y: p.y * 0.92 },
+          r: 0.035,
+          tone: "deep" as const,
+        })),
+      };
+    },
+  },
+  // A boulder whose heart is a volatile rock's: seams that glow from its
+  // crown out toward its rim, over a few dents.
+  stormheart: {
+    sizes: { boulder: BOULDER_CUT },
+    marks: (random, dome) => {
+      const facets = dents(random, 3, 0.07, 0.11);
+      return {
+        facets,
+        ...glowingSeams(random, dome, [
+          { at: { x: 0, y: 0 }, r: 1.1, tone: "core", strength: 0.5 },
+          { at: { x: 0, y: 0 }, r: 0.36, tone: "core", strength: 0.85 },
+        ]),
+      };
+    },
   },
 } as const satisfies { readonly [K in RockKindId]: KindCut<SizeOf<K>> };
 

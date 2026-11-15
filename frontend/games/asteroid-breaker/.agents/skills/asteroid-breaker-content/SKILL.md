@@ -43,7 +43,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
 - **The waves** are JSON, a file for each sector in `src/rules/waves/`,
   listed in order in `src/rules/waves/waves.ts` (`SECTORS`) and numbered
   from 1 across the sectors (`WAVES`), ten to a sector, each sector ending
-  with a boulder. Past the last, `waveEntryOf()` gives Endless's waves,
+  with its set piece, a boulder of a kind its own. Past the last, `waveEntryOf()` gives Endless's waves,
   which `src/rules/waves/endless.ts` makes as they are played;
   `waveToPlay()` makes any wave ready to play.
 - **The checks** that hold it whole:
@@ -52,7 +52,7 @@ specs run in the `asteroid-breaker-testing` skill. Paths are relative to
   | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | The compiler        | everywhere                                                           | Every rock kind has its cut, ink and sounds, every pickup its symbol and sound, every weapon its shot's art and sound, every trait and effect its rule, every formation its layout |
   | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before             |
-  | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its boulder, every name from the file read                                                             |
+  | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its own set piece, every name from the file read                                                       |
   | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                              |
   | The Endless spec    | `src/rules/waves/endless.spec.ts`                                    | Endless's waves keep to their budget, their share of iron, their crystal and the cap, climb as written, and are the same for the same seed                                         |
   | The autopilot specs | `src/rules/waves/every_wave/`, `src/rules/waves/every_endless_wave/` | Every wave at every speed, on the narrowest and widest fields, cleared within four minutes; Endless's 31 to 60 too, with nothing able to take the ship                             |
@@ -77,8 +77,9 @@ Its block in a sector's file, its keys those of `WaveData`
   seconds, for a wave that has them; `waveKind`, the rock its boulders
   break into, if not stone.
 
-A sector holds ten waves, its last a boulder alone, so a new wave takes
-the place of one. Its number is its place across the sectors, and the
+A sector holds ten waves, its last its set piece alone, one boulder of a
+kind its own or two (`crumbling`, `ironclad`, `stormheart`), so a new wave
+takes the place of one. Its number is its place across the sectors, and the
 waves each pickup first comes in go by number. The screenshots keep a run
 on wave 9, Crowd (`tools/capture-screenshots.mjs`), which
 `tools/capture-screenshots.spec.ts` keeps too.
@@ -102,7 +103,8 @@ Then:
 ## A Sector
 
 A file in `src/rules/waves/`, `{ id, name, drops, waves }`, its ten waves
-ending with a boulder, added to `SECTORS` in its place. Its id is kept for
+ending with its set piece, a boulder kind of its own in `ROCK_KINDS`,
+which the waves spec names, added to `SECTORS` in its place. Its id is kept for
 good in the records' bests and the sectors reached, and the Sectors dialog
 lists it with no change of its own. The card over its first wave says what
 is new there, a sentence or two under its id in `SECTOR_NEWS`
@@ -156,12 +158,25 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
   sounds, its break at each size it comes in in `BREAK_SOUNDS` and its
   held hit in `HIT_SOUNDS` (`src/view/effects/sounds.ts`), by the plan's
   names in `SOUNDS`; and a wave that lays it, which the catalog spec asks
-  for.
+  for. Each kind is drawn in each of its outlines at each count of hits,
+  and a kind of boulder takes a sheet of the atlas's room, so a set piece
+  is drawn in two outlines (`SET_PIECE_OUTLINES`, `outlinesOf()` in
+  `src/view/art/rock_art.ts`), and a rock's outline is mapped onto them as
+  it is drawn; the atlas packs to 4096 pixels square, and the art spec
+  fails a kind that won't fit.
 - **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
   rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
   moment it cares for: as a hit holds the rock, as it breaks, at each step,
   or as its blast goes off; one another part reads, as the pickups read
-  `gives` and the sparks `sheds`, has an empty rule. A step rule acts on
+  `gives` and the sparks `sheds`, has an empty rule. A held rule may lay a
+  rock, as `chips` knocks a piece off its rim (`addRock()`), or hit the
+  rocks round it, as `vents` does, through `hitWithin()`, whose last
+  argument spares what it names, here the boulders. An event a trait logs
+  of its own is a case of `RockEventKind` (`src/rules/field/events.ts`),
+  whose sound (`EVENT_SOUNDS`, or a case of `soundOf()` for one heard as
+  another's, as `shed` is the piece's break) and effect (`EVENT_EFFECTS`,
+  `src/view/effects/effects.ts`) the compiler asks for, and which the
+  scene's spec (`EVERY_EVENT`) and the sounds' spec hear. A step rule acts on
   the rock alone, seeing only the course it flies by (`CourseField`), since
   the layout flies a copy of a rock ahead by it. What a trait leaves on a
   rock between steps, such as a blast's fuse, is kept by the saved game

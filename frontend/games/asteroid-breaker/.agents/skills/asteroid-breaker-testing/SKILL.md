@@ -117,7 +117,9 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `placeLoose()` leaving the crew as it is; `stepTimes(field, n)` steps it;
   `shipOf()`, `wholeRocks()`, `floatingPickups()`, `loggedOn()` and
   `kindsLoggedOn()` read it back, and `speedOf()` how fast a rock, the
-  ship, a shot or a pickup on it flies.
+  ship, a shot or a pickup on it flies. A blast, or a set piece's vent,
+  passes by a rock laid on the step it goes off (`hitWithin()`), so a spec
+  that places a rock for one to hit steps the field once first.
 - A stray or a comet comes in off an edge as `comeIn()`
   (`src/rules/hazards/crossing.ts`) puts it, and
   `src/testing/crossings.ts` reads where it waits (`entryOf()`) and holds a

@@ -1,9 +1,10 @@
-// The pickups broken rocks let go: by chance, from a crystal and after a
-// drought, drawn by weight from the wave's pool into records made once.
+// The pickups broken rocks let go: by chance, from a rock that gives them
+// and after a drought, drawn by weight from the wave's pool into records
+// made once.
 
 import { TURN } from "../angles";
 import { type PickupId, pickup } from "../catalog/pickups";
-import { hasTrait } from "../catalog/rocks";
+import { rockKind } from "../catalog/rocks";
 import { type Draws, nextDraw } from "../draws";
 import type { FieldEventLog } from "../field/events";
 import type { Rock } from "./rocks";
@@ -43,7 +44,7 @@ export interface DropSetup {
   readonly drops: number;
   /** The pickups that can come, drawn from by weight. */
   readonly pool: readonly PickupId[];
-  /** How many may float at once before chance lets no more go; a crystal and a drought let one go however many float. */
+  /** How many may float at once before chance lets no more go; a kind that gives, as a crystal does, and a drought let theirs go however many float. */
   readonly pickupsAtOnce: number;
 }
 
@@ -63,7 +64,7 @@ export interface DropField extends Draws {
 /** A wave's pool that holds a pickup at least, which one can be drawn from. */
 type FilledPool = readonly [PickupId, ...PickupId[]];
 
-/** How many pickups the field keeps records for, those a crystal lets go past the most at once too. */
+/** How many pickups the field keeps records for, those a kind that gives lets go past the most at once too. */
 export const PICKUP_RECORDS = 8;
 
 /** Returns the records of the pickups a field may float, none floating. */
@@ -88,14 +89,31 @@ export function blinks(floating: Readonly<Floating>): boolean {
 }
 
 /**
- * Lets a pickup drawn from the wave's pool go from a rock as it breaks, if
- * the pool holds any and a record is free: always from a crystal, and from
- * the first large rock broken once a drought has gone by, and otherwise by
- * the wave's chance, while fewer than its most at once float.
+ * Lets pickups drawn from the wave's pool go from a rock as it breaks, if
+ * the pool holds any, each while a record is free: always as many as a
+ * rock that gives them says, as a crystal and a set piece do, and else one
+ * from the first large rock broken once a drought has gone by, or by the
+ * wave's chance, while fewer than its most at once float.
  */
 export function dropFrom(field: DropField, rock: Readonly<Rock>): void {
   const { pool } = field.setup;
-  if (!holdsAny(pool) || !letsGo(field, rock)) return;
+  if (!holdsAny(pool)) return;
+  const given = givenBy(rock);
+  const count = given > 0 ? given : letsGo(field, rock) ? 1 : 0;
+  for (let each = 0; each < count; each++) letGo(field, rock, pool);
+}
+
+/** Returns how many pickups a rock always lets go as it breaks, 0 for one that gives none. */
+function givenBy(rock: Readonly<Rock>): number {
+  let count = 0;
+  for (const trait of rockKind(rock.kind).traits) {
+    if (trait.kind === "gives") count += trait.count;
+  }
+  return count;
+}
+
+/** Lets one pickup drawn from a pool go from a broken rock, if a record is free. */
+function letGo(field: DropField, rock: Readonly<Rock>, pool: FilledPool): void {
   const floating = field.pickups.find((each) => !each.live);
   if (floating === undefined) return;
   const id = drawPickup(field, pool);
@@ -113,9 +131,8 @@ export function dropFrom(field: DropField, rock: Readonly<Rock>): void {
   field.events.addPickup("dropped", rock.x, rock.y, id);
 }
 
-/** Returns whether a broken rock lets a pickup go, drawing the wave's chance only when nothing else decides it. */
+/** Returns whether a broken rock that gives none lets a pickup go, drawing the wave's chance only when nothing else decides it. */
 function letsGo(field: DropField, rock: Readonly<Rock>): boolean {
-  if (hasTrait(rock.kind, "gives")) return true;
   if (
     rock.size === "large" &&
     field.steps - field.lastDropAt >= stepsIn(DROUGHT_MS)
