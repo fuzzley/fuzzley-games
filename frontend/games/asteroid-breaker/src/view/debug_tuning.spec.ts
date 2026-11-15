@@ -1,3 +1,4 @@
+import { TUNED_SPARKING } from "../rules/sparks/charge";
 import TUNING_TS from "../rules/tuning.ts?raw";
 import { fieldFrom } from "../testing/field_picture";
 import {
@@ -22,6 +23,9 @@ const TRIED: Feel = {
   gunEveryMs: 95,
   carryShip: false,
   rockSpeed: 1.5,
+  sparkDrawReach: 7.5,
+  staticDrain: 3.5,
+  zapReach: 4,
 };
 
 describe("TUNING_SLIDERS", () => {
@@ -47,6 +51,9 @@ describe("formatTuning", () => {
     ["shotSpeed", 32, "32 u/s"],
     ["gunEveryMs", 140, "140 ms"],
     ["rockSpeed", 1.25, "×1.25"],
+    ["sparkDrawReach", 5, "5 u"],
+    ["staticDrain", 2.5, "2.5/s"],
+    ["zapReach", 6.5, "6.5 u"],
   ])("writes %s at %s as %s", (id, value, written) => {
     expect(formatTuning(id, value)).toBe(written);
   });
@@ -76,6 +83,9 @@ describe("tuningLines", () => {
         "  medium: { least: 6, most: 9 },",
         "  small: { least: 8.25, most: 12.75 },",
         "};",
+        "export const STATIC_DRAIN = 3.5;",
+        "export const SPARK_DRAW_REACH = 7.5;",
+        "export const ZAP_REACH = 4;",
       ].join("\n"),
     );
   });
@@ -94,7 +104,7 @@ describe("tuningLines", () => {
 });
 
 describe("fieldTuning", () => {
-  it("gives the numbers as a field holds them: its flight, its gunnery and its rocks' speed", () => {
+  it("gives the numbers as a field holds them: its flight, its gunnery, its sparking and its rocks' speed", () => {
     expect(fieldTuning(TRIED)).toEqual({
       flight: {
         thrust: 31,
@@ -104,22 +114,28 @@ describe("fieldTuning", () => {
         headingTurnRate: 900,
       },
       gunnery: { shotSpeed: 40, gunEveryMs: 95, carryShip: false },
+      sparking: { ...TUNED_SPARKING, reach: 7.5, drain: 3.5, zapReach: 4 },
       rockSpeed: 1.5,
     });
+  });
+
+  it("gives tuning.ts's sparking for its own numbers", () => {
+    expect(fieldTuning(TUNED).sparking).toEqual(TUNED_SPARKING);
   });
 });
 
 describe("tuneField", () => {
-  it("tunes the field's flight and gunnery", () => {
+  it("tunes the field's flight, gunnery and sparking", () => {
     const field = fieldFrom(["^"]);
-    const { flight, gunnery } = fieldTuning(TRIED);
+    const { flight, gunnery, sparking } = fieldTuning(TRIED);
 
     tuneField(field, TRIED);
 
-    expect({ flight: field.flight, gunnery: field.gunnery }).toEqual({
-      flight,
-      gunnery,
-    });
+    expect({
+      flight: field.flight,
+      gunnery: field.gunnery,
+      sparking: field.sparking,
+    }).toEqual({ flight, gunnery, sparking });
   });
 
   it("speeds the rocks in flight to the rocks' speed at once", () => {

@@ -187,7 +187,8 @@ takes for the specs' helpers.
   step it holds from, the last spark's or near miss's, or the last hit's
   or zap's), how sparks, static and the zap work (`Sparking`, a value
   record the field holds, from `tuning.ts`'s `TUNED_SPARKING`: the spark's
-  reach, static's most and its drain, and the zap's arcs and reach), its
+  reach, static's most and its drain, and the zap's arcs and reach, the
+  debug menu tuning the spark's reach, the drain and the zap's reach), its
   rise (`raiseStatic()`), its step (`stepOf()`, from 0 at ×1 to
   `FULL_STEP` once full, `isStaticFull()`) and its multiplier
   (`multiplierOf()`, `@fz/core/math`'s `multiplierAt()` over
@@ -849,8 +850,9 @@ takes for the specs' helpers.
     `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
     and in a production one whose address has `?debug`, the drawer also
     offers that entry's debug menu, `<fz-debug-tuning>`, below the rest: a
-    slider for each number of the ship's flight, its gunnery and the rocks'
-    speed (`TUNING_SLIDERS`), whether shots carry the ship's speed, which the
+    slider for each number of the ship's flight, its gunnery, the rocks'
+    speed, the spark's reach, static's drain and the zap's reach
+    (`TUNING_SLIDERS`), whether shots carry the ship's speed, which the
     drawer projects into it, Reset the numbers, and Copy the numbers, the
     lines of `tuning.ts` they would replace. `TUNING`, which the drawer reads
     and writes, holds them, says whether they are off `tuning.ts`'s
