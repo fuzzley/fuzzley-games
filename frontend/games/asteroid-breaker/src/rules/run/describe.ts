@@ -100,17 +100,26 @@ export function describeTakenUp(run: Run, entry: WaveEntry): string {
 export const END_TITLE = "Everyone is home.";
 
 /**
+ * Returns what is said of what an ended run set, each a sentence after a
+ * space, a new best first, or nothing for a run that set nothing: the
+ * announcer's words, and what a screen reader hears of the result card.
+ */
+export function marksWords({ newBest, clearedAll }: EndMarks): string {
+  const best = newBest ? " A new best!" : "";
+  const all = clearedAll ? " Cleared all thirty!" : "";
+  return `${best}${all}`;
+}
+
+/**
  * Returns what is said as a run ends: its title ({@link END_TITLE}), the
- * score, the wave it ended on, and what it set.
+ * score, the wave it ended on, and what it set ({@link marksWords}).
  */
 export function describeEnd(
   run: Run,
   entry: WaveEntry,
-  { newBest, clearedAll }: EndMarks,
+  marks: EndMarks,
 ): string {
-  const best = newBest ? " A new best!" : "";
-  const all = clearedAll ? " Cleared all thirty!" : "";
-  return `${END_TITLE} Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${best}${all}`;
+  return `${END_TITLE} Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${marksWords(marks)}`;
 }
 
 /** Returns a wave by its number, in words: "wave 4", or "wave 37, Endless". */

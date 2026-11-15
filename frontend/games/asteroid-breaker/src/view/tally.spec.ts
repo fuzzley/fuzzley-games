@@ -120,8 +120,9 @@ describe("endSubtitle", () => {
 });
 
 describe("endDescription", () => {
-  // The announcer's words for the run's end are held beside the card's, so
-  // a mark worded anew in one fails here until the other follows.
+  // A screen reader hears the card say again what the announcer said of
+  // the run's end, which the card may cut short as it hides the announcer,
+  // so the two are held here beside each other.
   it.each([
     ["nothing", false, false, ""],
     ["a new best", true, false, " A new best!"],
