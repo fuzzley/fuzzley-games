@@ -334,3 +334,254 @@ imports it only from `sound_lab_mix.ts`, never from what Node runs.
   card over a waiting wave and R1's crew in the bar among them.
 - **The next run** is due after three more landings, or sooner after one
   that changes a library many games use.
+
+### 2026-11-15, L1 landed, L2 and L6 started
+
+- **L1 landed** as `f8ec58e8` to `4e7c1bee`, four commits: the light's
+  spike, which chose a normal map; the kit's rocks ported; the seven kinds
+  cut and lit, with their cracks and the struck faces' flash; and How to
+  play's rock pictures lit by the field's light. Lift 5 wasn't needed: the
+  rocks' atlas is 2,322 × 2,600 at 32 px a unit.
+- **Settled by the integrator on the rebase from `7fdcc371`:** the testing
+  skill, where P2 had added the Cleared card's sum to `run_state.spec.ts`'
+  line and the tally's spec after it, and L1 the rocks' atlas and normal
+  map to `art_frames.ts`' line. Both kept, in that order, a paragraph's
+  merge; the rest merged by itself.
+- **Checks on the rebased tip:** an install, the root's lint under the
+  lock, the game's typecheck, and its coverage at every floor over its
+  5,565 specs (3,945 in the `pure` and `dom` projects, 1,620 in `sim`).
+- **Its frame budget:** wave 9 on the 88 × 40 field at a quarter of the
+  CPU, traced before, after, after, before in one sitting: 0.78 ms before
+  and 0.83 ms after, pooled medians of scripting and rendering, within the
+  1.04 ms a third more allows. These are about a fifth of what L1's spike
+  measured for the same build, as the GPU paced the frames differently
+  under the machine's load, so only the pair within one sitting counts,
+  here and in every package's figures below.
+- **For §12:** a light for each mode, high in a light palette and low in a
+  dark one, a departure from `plan.md`'s one light, since no one light both
+  shades a rock and passes the contrast in both; the spike's figures and
+  the choice; and the normal map's cost on the GPU, about 6 ms a frame
+  (+31%) in the spike, which the page's figures don't show and only a
+  phone will, for the user to feel.
+- **Left, each with an owner:** for L4, three of Phaser's ten lights are
+  taken (the far light and the flash's two), a far light is dropped first
+  past ten, and the light palettes' bound is passed while a blast lights a
+  face, which L4 says it allows or not; for L6, the rocks' atlas and its
+  normal map are baked and destroyed together; for F1, the empty `flash`
+  layer in `LAYERS`, used or removed; for §12, the normal map uploaded to
+  the GPU twice (about 24 MB more), a corner rock's fourth copy unlit by
+  the flash, the flash's cone declined, and the pictures' faint marks near
+  the shader's, within about 25 of 255.
+- **L2 and L6 started** from `4e7c1bee`, with L1's and L5's hand-ons in
+  their briefs. L3 and S3 were told to rebase onto it before they report,
+  since both meet L1 in `belt_scene.ts`.
+
+### 2026-11-15, L3 landed
+
+- **L3 landed** as `1d5823ca` to `e0d34473`, four commits, fast-forward:
+  `@fz/phaser`'s `WashCommand` and `PaintCommand` painted on a canvas into
+  a texture painted again after a lost context (`paint_canvas.ts`); the
+  four sectors' places ported from the kit, held quiet by measure; each
+  wave's place painted behind the field, its near stars sliding against
+  the pod's travel and the Storm's forks flickering by the field's steps,
+  both still where motion isn't welcome, in place of the specks; and,
+  asked for by the integrator before landing, a commit removing what the
+  specks left unused (`FRAMES.speck`, `BeltPalette.speck`,
+  `SPECK_STRENGTH`) and writing the light's way across the field once
+  (`LIGHT_ACROSS` in L1's `rock_light.ts`, which the landmarks take).
+- **Settled on its own rebase onto `4e7c1bee`,** at the integrator's word,
+  each read by L3's third review from the range-diff: the `phaser-core`
+  skill's triggers, `palette.ts`' `mode` (one kept, with both docs'
+  clauses), the testing skill and the game's `AGENTS.md`'s painters, each
+  keeping both sides, and `belt_scene.spec.ts`' imports, L1's taken and the
+  specks' and `CONSTELLATION`'s dropped with the specks.
+- **Its checks on the tip it landed on:** the game's lint, typecheck and
+  5,890 specs, the root's lint under the lock, and the coverage at every
+  floor; after the rebase also `@fz/phaser`'s lint, typecheck and 1,064
+  specs and the root's typecheck.
+- **Its frame budget:** median scripting and rendering on the widest field
+  at wave 9, a quarter of the CPU: 4.58 ms before and 4.14 ms after, the
+  rebased build against `4e7c1bee`, the tip it rebased onto; about a fifth
+  either way run to run, within the budget.
+- **Left, each with an owner:** the `field` layer is empty, kept as §5.2's
+  place for it, for L4, P3 or P4 to use, or Z1 to remove if none does;
+  `BLEED_CSS_PX` is the field's kick and shake, so whatever moves the
+  field's camera further raises it (F1); the `canvasTexture()` spec helper
+  repeated in `@fz/phaser`'s canvas specs, one helper in its testing entry,
+  L4's, which was told. For §12: the Storm takes four field-sized
+  textures, the others three; `context.place` could fold into `stage()`;
+  no flash was caught on screen at its peak, though the scene's specs hold
+  its layering.
+- **No package was ready** for the slot it freed: four ran, S3, R2, L2 and
+  L6.
+
+### 2026-11-15, S3 landed, L4 and S4 started
+
+- **S3 landed** as `2d28e899` to `7040517b`, five commits, fast-forward:
+  `EVENT_EFFECTS` split, each event's sound into `sounds.ts` and the
+  flourishes staying in `effects.ts`; the game on the uplift's sprite, Ogg
+  or M4A, by the view's mix of 92 sounds, the old sprite moved into
+  `tools/sound-lab/` as the lab's "before"; the weapon on each `fired`
+  (C14); every event played by the plan's table through `FieldSounds`, R1's
+  four among them; and the sound lab, every sound and its takes, the mix
+  on or off, before beside after, the ZzFX candidates gone.
+- **Settled on its own rebases:** onto R1's tip, wiring R1's four events,
+  its range-diff read by a review; onto L1's, three conflicts in the
+  skills, each keeping both sides; onto `e0d34473`, `belt_scene.ts`, where
+  L3's `context.place` and S3's `hearField()` both stay, in that order.
+- **Its checks on that tip:** the game's lint, typecheck and 6,156 specs
+  in 115 files, its coverage at every floor (`src/view/effects` at 100% of
+  statements), and under the lock the root's lint and typecheck and
+  `@fz/phaser`'s 1,064 specs; at its last commit before the rebase, every
+  workspace using `@fz/core`, `@fz/phaser` or `@fz/dev` under one hold of
+  the lock. In a browser it read the audio graph for takes in turn, the
+  variation and pan, the ladder, the multiplier's chimes, the shot's tail,
+  `dash-ready`, the knock's two sounds and the thrust's loop; in both
+  labs, each play's route through the limiter or past it.
+- **The download:** the sprite is 1.01 MB as Ogg and 1.31 MB as M4A in
+  the build, no WAV and nothing of the lab: about 0.8 MB more than the old
+  208 KB WAV in Chrome and Firefox, 1.1 MB more in Safari, within §9's
+  "about 1 MB".
+- **Left, each with an owner:** for S4, `@fz/dev/zzfx`, unused now; the
+  lab's `GameMix.plan()` repeating `SpritePlayer`'s per-play steps, made one
+  pure step in `@fz/core/sound_mix`, dropping `earlierDuck`, which does
+  nothing with `DUCK_AT_START`'s attack of 0; the sounds read from the
+  field's state (the thrust's start and stop, the guard's end, the comet's
+  pass, Slow's and the Shield's start, and the lodestone's hum); and
+  whether `crew-caught` beside `wave-clear`, as a wave's clearing takes
+  the loose back, and `crew-home` for a loose one caught with the line
+  full, are right as heard. For R2, `near-miss` on its `grazed`; for P3,
+  `tow-twang`; for R4, the burr's. For F1, a sight for `dropped`, `faded`
+  and `strayed`, which §6 asked of S3 beside their sounds and which are
+  still quiet in `effects.ts`: F owns the flourishes. For §12, the lab's
+  mixed "after" plays a dB or two louder than "before", by Web Audio's
+  makeup gain, as its notes say.
+- **R2 was told** it lands after the sound package, so it wires its own
+  events' sounds and moves the ladder from the chain to the sparks; R2, L2
+  and L6 were told to rebase onto `7040517b` before they report.
+- **L4 and S4 started** from `7040517b`, five running with R2, L2 and L6.
+  L4's brief carries L1's lights and halos (`rockShape().glows`, the
+  palette's mode for the halo's strength, the lights taken), L3's
+  `paintTexture()` and wash, and S3's `weaponOf()`; S4's carries S2's
+  `followMono()`, `LayerPlayer` and `fetch()` ahead of a change, S3's
+  leftovers above, and the warning that a full sound build now overwrites
+  the kit's encodes. Both were sent the leftovers named since.
+
+### 2026-11-15, L6 landed, P1 started
+
+- **L6 landed** as `a423098b` and `bcf01329`, fast-forward: the pilot's
+  face, look and lean chosen from the field (`faceOf()`, `lookOf()`,
+  `liftOf()` in `src/view/art/faces.ts`), and the pod, Bumble, lit by L1's
+  normal map, its pilot upright at the canopy, the rim filling with the
+  dash's charge, the Shield's shell, the guard's dashed ring, the twin
+  flames and the exhaust, and the strays in the same art; `ship_art.ts` is
+  gone, `PodPainter` in `ShipPainter`'s place.
+- **Settled on its own rebase onto `7040517b`:** `pilot_art.ts`' header
+  (L6's text with L3's "stars"), `belt_scene.ts` (both `PlacePainter` and
+  `PodPainter`; `play()` hands each event to the pod and to S3's
+  `FieldSounds`, then plays the flourishes), `belt_scene.spec.ts`' imports
+  (all three sides), the game's `AGENTS.md` (S3's sounds paragraph, its
+  flourish sentence reworded for the pod's exhaust) and the testing skill.
+  A third review read the rebase's range-diff; L6's `flickerAt()`, which
+  clashed with L3's, became `flameFlickerAt()`, and its `flashAlpha()` and
+  `flashScale()`, beside `flourish.ts`' own `flashAlpha()` for the held
+  hit, became `rimFlashAlpha()` and `rimFlashScale()`.
+- **Outside its files:** `flourish.ts` (F's) loses the old ship's flicker
+  and blink (`FLICKER`, `EYES_SHUT`, `EYE_BLINK`, `flickerShare()`,
+  `eyesOpen()`), removals of its own art's, and `timing.ts` (F's) gains
+  `EXHAUST_MS`, 400; `rock_art.ts`' exports, `art.ts`' and `atlas.ts`'
+  `litFrames()`, `frame.ts`' `chain` and `lastBreakAt`, `belt_scene.ts`,
+  the contrast spec's rows, `art_frames.ts`' `fine`, and
+  `@fz/style/fuzzball`'s `furWidthOf()`.
+- **Its checks on that tip:** the game's lint, typecheck and 6,435 specs,
+  `@fz/style`'s lint, typecheck and 403 specs, the root's lint under the
+  lock, and the coverage at every floor; the users of `@fz/style/fuzzball`
+  and the root's typecheck ran at the next verify run, below.
+- **Its frame budget:** wave 9 on the 88 × 40 field at a quarter of the
+  CPU, before, after, after, before: pooled 4.73 ms before and 4.41 ms
+  after, within the 6.31 ms a third more allows.
+- **For §12:** the canopy's glass mixes 0.22 of the accent, not the kit's
+  0.3, so the pilots keep their contrast in a light palette; on a phone the
+  pod is about 20 CSS px long, its dash's streaks faint, its fur's tips
+  merged and its glint tiny.
+- **Left, each with an owner:** the flame's and the puffs' glow, L4's; the
+  loose drawn, P3's; the hull's arcs at static's last step, P4's; the fur
+  lifted by static rather than the chain and one rule for "the dash is
+  charged again", which the rim's flash and S3's `dash-ready` each work
+  out, both R2's, which was told; the bail-out's burst and flung facets
+  and a flourish on the rim's flash, F1's; whether auto-fire shows the
+  "set" face, P1's to weigh.
+- **P1 started** from `bcf01329`, with L6's `faceOf()` and its moments in
+  its brief.
+
+### 2026-11-15, L2 landed
+
+- **L2 landed** as `bd448233` and `8944df8d`, fast-forward: the kit's
+  break and held hit ported into `src/view/art/breaks.ts`, a rock's own
+  facets thrown from its seed, tumbling and fading into the field's color
+  with a ring of dust, sparks and glints, all gone by 450 ms, and a held
+  hit's sparks at the rim; `DebrisPainter` draws them, each piece worked
+  out once and drawn at every wrap copy, on a new `breaks` layer between
+  the tags and the rocks.
+- **Settled on its rebases:** onto S3's tip, by L2, the content skill
+  (`BREAK_STYLES` beside S3's sounds), `layers.ts` (`place` first,
+  `breaks` between `tags` and `rocks`), and `rockKindOf`/`rockSizeOf` now
+  read from `frame.ts`, where S3's split put them; then onto L6's, by L2
+  at the integrator's word after the integrator's own try met three
+  conflicts and was aborted: the game's `AGENTS.md` (its `breaks.ts`
+  paragraph before L6's `pod_art.ts`, its `DebrisPainter` after L6's
+  painters), the two flourish specs (L6's bail-out kept beside L2's
+  breaks), and `copies.ts`' `setTint()`, which L2 had removed as unused and
+  L6's `PodPainter` now uses, so it stays. L2's `pushOf()` became
+  `shardPushOf()`, apart from L6's `pushOf()` in `faces.ts`. No reviewer
+  read the second delta, so the integrator read its range-diff: the
+  rename, mechanical in every use, the specs' imports, the removal of
+  `setTint()` dropped, and the hunks reordered round L6's, nothing else.
+  Sound.
+- **Outside its files:** `flourish_player.ts` (F's) and its spec, where
+  the "shards" flourish calls `breakRock()`, "spark" calls `holdHit()` and
+  "dust" plays nothing, 32 lines out; `rock_art.ts`' `FIRST_SEED`,
+  `bySize()` and `BySize`; `layers.ts`' `breaks`; `belt_scene.ts`; the
+  specs' `trianglesOf()` and `linesOf()`; the flourish specs.
+- **Its checks on L6's tip:** the game's lint, typecheck and 6,558 specs
+  in 117 files, the root's lint under the lock, and the coverage at every
+  floor (`breaks.ts` at 100% on all four measures).
+- **Its frame budget:** wave 9 at a quarter of the CPU with the gun held,
+  against `4e7c1bee`, before either rebase: 5.21 → 5.91 ms in one sitting
+  and 5.29 → 6.43 ms in another, within the budget each time. A first
+  draft drawing circles with `Graphics` was half again over, since Phaser
+  builds a hundred-cornered arc each frame; the dust is polygons of as few
+  corners as each size needs.
+- **Left, each with an owner:** F1 removes what breaks no longer use
+  (`shardCount`, `LEAST_SHARDS`, `MOST_SHARDS`, `DUST_MS`, `SPARK_MS`,
+  `SPARK_REACH`, the spark's frame and sizes; the puff stays for the
+  exhaust) and the "dust" flourish, which plays nothing now, and moves
+  `BREAK_MS` and `HELD_MS` to `timing.ts`, where `resultDelayMs()` still
+  reads `SHARDS_MS` and `DUST_MS`; L4 the gem shards' and the held hit's
+  halos, and `energyOf()`, which L4 was told may move to its `energy.ts`;
+  R3 a `BREAK_STYLES` entry for each new kind, which the compiler asks
+  for. For §12: the 90th percentile frame rose from 8.14 to 12.00 ms, and
+  the pieces show over the flash from the first frame, where the kit has
+  them at 45 ms.
+- **No package was ready** for the slot it freed: four run, R2, L4, S4 and
+  P1, and every package not begun waits on one of them.
+
+### 2026-11-15, a second verify run on the tip
+
+- **On `8944df8d`,** eleven packages landed, under the lock: every
+  workspace's tests, two at a time on four workers each, the build and
+  Asteroid Breaker's layout check in 3 min 13 s (09:59:49 to 10:03:02),
+  then the root's typecheck, all passing. Asteroid Breaker has 6,558 specs
+  now (5,219 at the start), `@fz/phaser` 1,064, `@fz/dev` 906, `@fz/core`
+  463 and `@fz/style` 403; the other workspaces' counts are as they were.
+- **Why after five landings, not three:** L3 and S3, which changed
+  libraries many games use, each tested every user of what it changed at
+  its landing, so the run waited for the next quiet slot. It covers the
+  users of `@fz/style/fuzzball`, which L6 changed, and the root's
+  typecheck, which L6's landing didn't run.
+- **The layout** holds at every shape and turn with the deck shown.
+- **`origin/main`** is still `6a5b58e6`, so nothing is to rebase.
+- **The next run** is due after three more landings. Z1 also measures the
+  tip's frame against `da697c6e9`, the build's start, which §9's budget
+  is set against, in one sitting, since each package measured against
+  the tip it started from.
