@@ -264,6 +264,14 @@ describe("BoardComponent", () => {
       );
     });
 
+    it("describes the key that drops the fuzzballs in the air", async () => {
+      await renderBoard();
+
+      expect(screen.getByRole("application")).toHaveAccessibleDescription(
+        /switches fast-forward on or off, and the left ring finger's key on the bottom row drops the fuzzballs in the air\./,
+      );
+    });
+
     it("is named for the level the run goes on to", async () => {
       const rendered = await renderBoard({ rounds: scriptedRounds("cleared") });
       playToCard(rendered);

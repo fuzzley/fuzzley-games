@@ -53,7 +53,7 @@ describe("HelpComponent", () => {
       "Let it fly",
       "Call a charge off",
       "Switch fast-forward on or off",
-      "Skip a flight",
+      "Drop the fuzzballs in the air",
       "Pause, or go on",
       "Next level",
       "Start again, once a run has ended",
@@ -113,11 +113,25 @@ describe("HelpComponent", () => {
     );
   });
 
+  it("says Drop brings the fuzzballs in the air down, the next shot starting where the player's lands", async () => {
+    await renderHelp();
+
+    expect(paragraph("No hurry.")).toHaveTextContent(
+      "even on your next visit. Drop brings every fuzzball in the air straight down where it is, ending the round with only what it had done by then, and your next shot starts where your fuzzball lands. The game",
+    );
+  });
+
+  it("names Skip nowhere, as the bar has none", async () => {
+    await renderHelp();
+
+    expect(screen.getByRole("dialog")).not.toHaveTextContent(/\bskip/i);
+  });
+
   it("says a flight in the air lands at once as the game goes out of sight", async () => {
     await renderHelp();
 
     expect(paragraph("No hurry.")).toHaveTextContent(
-      "the game pauses itself when you switch away, turn the screen or open a dialog; a flight still in the air as the game goes out of sight, as when you switch tabs, lands at once, as it would have flown.",
+      "The game pauses itself when you switch away, turn the screen or open a dialog; a flight still in the air as the game goes out of sight, as when you switch tabs, lands at once, as it would have flown.",
     );
   });
 
@@ -154,6 +168,12 @@ describe("HelpComponent", () => {
       "Let go; a tap flies plain",
       "Touch the field with a second finger",
     ]);
+  });
+
+  it("drops by the bar's Drop, by mouse and by touch", async () => {
+    await renderHelp();
+
+    expect([column(0)[5], column(1)[5]]).toEqual(["Drop", "Drop"]);
   });
 
   it("starts again by the result card's Try again or the bar's New game", async () => {
