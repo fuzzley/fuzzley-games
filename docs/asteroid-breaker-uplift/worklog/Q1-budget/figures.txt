@@ -1,0 +1,309 @@
+Q1's figures. Each line of a sitting: the build, the round, the machine's load as it began, and frames.mjs' figures of
+the trace (median ms a frame), with the bar's at its end. Builds: base = da697c6e9 (the build's start), start =
+ee77af2d (Q1's start), c1 = commit 1 before its review's fixes, q1r = commit 1 rebased onto 080ab590 (7ed625b1),
+tip = f3f06169 (the integration's tip with R4's burrs, without Q1), q1t = commit 1 rebased onto it (22716350); on
+5f6d44fe, tip = de1277e8 (with F2's flourishes, without Q1) and q1f = commit 1 on 5f6d44fe (2962af8d). A line
+in brackets marks where a part of a sitting began or the sitting ended, with the time and the machine's /proc/loadavg
+then. Every sitting served its builds on port 9151 (F1's serve.sh, PORT=9151), and frames.mjs, parts.mjs and nodes.mjs
+were run with PORT=9151 to find the page's scripts.
+
+== First sitting, wave 9 (rounds.sh 5 s1 go.js 0 budget-init.js base start c1), after commit 1; its traces kept no
+== bar's figures, and its files were lost with /tmp, so a round of base whose pod was lost can't be told
+base 1 load=10.21 scriptingAndRendering 3.64
+start 1 load=8.56 scriptingAndRendering 4.92
+c1 1 load=7.77 scriptingAndRendering 4.09
+base 2 load=6.34 scriptingAndRendering 3.81
+start 2 load=5.59 scriptingAndRendering 5.27
+c1 2 load=4.42 scriptingAndRendering 4.25
+base 3 load=3.88 scriptingAndRendering 3.97
+start 3 load=3.43 scriptingAndRendering 4.94
+c1 3 load=2.89 scriptingAndRendering 4.02
+base 4 load=2.83 scriptingAndRendering 3.56
+start 4 load=2.89 scriptingAndRendering 5.09
+c1 4 load=2.82 scriptingAndRendering 4.08
+base 5 load=2.55 scriptingAndRendering 3.87
+start 5 load=2.91 scriptingAndRendering 5.07
+c1 5 load=3.68 scriptingAndRendering 3.82
+medians: base 3.81, start 5.07, c1 4.08
+
+== First sitting, Tempest (rounds.sh 4 t1 go-tempest.js 1500 budget-tempest.js start c1)
+start 1 load=5.13 scriptingAndRendering 7.43 bar: Wave29 Score1,345 No one in tow, 2 knocked loose, Static x2
+c1 1 load=5.68 scriptingAndRendering 9.48 bar: Wave29 Score2,900 No one in tow, 2 knocked loose, Static x2
+start 2 load=6.90 scriptingAndRendering 11.05 bar: Wave29 Score1,670 No one in tow, Static x1
+c1 2 load=8.13 scriptingAndRendering 7.69 bar: Wave29 Score1,670 No one in tow, Static x1
+start 3 load=8.62 scriptingAndRendering 9.01 bar: Wave29 Score1,345 No one in tow, Static x1
+c1 3 load=8.87 scriptingAndRendering 6.17 bar: Wave29 Score1,505 No one in tow, Static x1
+start 4 load=8.66 scriptingAndRendering 13.02 (196 frames) bar: Wave29 Score4,445 1 in tow, 1 knocked loose, Static x4
+c1 4 load=12.92 scriptingAndRendering 8.49 bar: Wave29 Score1,670 No one in tow, Static x1
+medians: start 10.03, c1 8.09
+(the log uses this sitting's Tempest for nothing: the load ran from 5 to 13 and its runs end anywhere; the later
+sittings' Tempest stand for it)
+
+== The probe (probe-page.js, three rounds each, ms a frame): start -> c1
+step 4.92 -> 4.04; render 2.40 -> 2.08; update 2.12 -> 1.62
+paint:rocks 0.30 -> 0.08; paint:sparks 0.11 -> 0.01; layer:halos 0.22 -> 0.09; paint:ship 0.17 -> 0.10;
+paint:halos 0.17 -> 0.12; paint:tow 0.23 -> 0.17; paint:shots 0.08 -> 0.05
+objects the field's layers held / would render: start 2,822 / 81; c1 158 / 81
+the start's largest layers, held (would render): halos 1,348 (8), sparks 512 (0), rocks 420 (28), shots 168 (7), tow
+121 (7) (written down from the probe's first round before /tmp was wiped with its files, and found again below)
+The probe's first round of each (pr-start-1, pr-c1-1), its largest figures, ms a frame:
+start step 4.76 render 2.32 update 2.08 | layer:rocks 0.47 tick 0.33 paint:rocks 0.30 layer:ship 0.26 layer:place 0.25
+  layer:strays 0.25 layer:tow 0.23 paint:tow 0.23 paint:ship 0.18 layer:halos 0.17 paint:halos 0.15
+c1    step 4.02 render 2.03 update 1.63 | layer:rocks 0.42 tick 0.37 layer:place 0.30 layer:strays 0.25 layer:tow 0.23
+  paint:tow 0.20 layer:ship 0.19 paint:halos 0.13 paint:rocks 0.09 paint:strays 0.09 paint:ship 0.09
+
+== The probe on 2a749d4b's tree (PROBE=1 build.sh <folder> end; prounds.sh 1 '{}' end)
+end 1 step 3.933 render 2.016 update 1.596 tick 0.371 | layer:rocks=0.343 layer:place=0.319 layer:strays=0.280
+  layer:tow=0.253 layer:ship=0.212 paint:tow=0.187 paint:halos=0.123 paint:ship=0.082 paint:strays=0.076
+  paint:rocks=0.072 layer:shots=0.069 paint:hazards=0.052 layer:halos=0.050
+the field's 21 layers held 158 objects, among them place 14 (its images: 1 back, 9 near, 1 front), rocks 28, halos 8,
+shots 7, tow 7 (a Graphics and 6 images) and burrs 0
+
+== The probe on ee77af2d, Q1's start, built at that commit (PROBE=1 build.sh <folder> start ee77af2d; prounds.sh 1 '{}'
+== start), as the log was finished
+start 1 step 4.619 render 2.298 update 1.997 tick 0.291 | layer:rocks=0.397 paint:rocks=0.307 layer:strays=0.262
+  layer:place=0.248 layer:tow=0.246 paint:tow=0.227 layer:ship=0.217 layer:halos=0.196 paint:halos=0.162
+  paint:ship=0.150 paint:sparks=0.092 paint:shots=0.082 layer:shots=0.060 paint:strays=0.055 layer:effects=0.055
+  layer:sparks=0.051
+the field's 20 layers held 2,822 objects: halos 1,348, sparks 512, rocks 420, shots 168, tow 121, ship 56, arcs 49,
+pickups 32, lanes 30, effects 18, place 14, deck 12, hazards 12, points 12, strays 6, tags 5, flash 4, breaks 2,
+frame 1, field 0
+
+== Two captures of one build (start), pics.mjs alone, to see whether the clock holds the picture
+the kept run, Casino night, 1,280 x 720, with motion, frames 10, 40, 80: the same to the pixel, all three
+the clearing run there, frames 40, 50, 60, 70: 40 the same; 50, 60 and 70 differ by 354, 225 and 339 pixels, within
+604,394 to 670,423, the Cleared card's crew
+
+== The pictures (pics-all.sh pics kept,clearing start q1; compare-pics.mjs pics start q1), q1 = commit 1 before the
+== rebase
+96 pairs, 92 the same to the pixel; the four that differ:
+clearing-casino-phone-motion-60: 360x580, 467 differ, by 64 at most, within 144,360,187,386
+clearing-casino-roomy-motion-60: 1280x647, 467 differ, by 78 at most, within 604,393,647,419
+clearing-classic-phone-motion-60: 360x580, 485 differ, by 118 at most, within 144,360,187,386
+clearing-classic-roomy-motion-60: 1280x647, 478 differ, by 71 at most, within 604,393,647,419
+(the Cleared card's cheering crew, a CSS animation; two captures of start alone differ there at frames 50, 60, 70 by
+354, 225 and 339 pixels)
+
+== Sitting on 080ab590 (after the container's restart): wave 9 (rounds.sh 7 f9 go.js 0 budget-init.js base start q1r),
+== Tempest (rounds.sh 6 ft go-tempest.js 1500 budget-tempest.js start q1r), profiled, wave 9 alone
+== (PROFILE=1 rounds.sh 2 fp go.js 0 budget-init.js start q1r)
+(wave 9 began 22:09:07; loadavg 7.65 2.77 1.09 12/858 4767)
+base 1 load=7.84 frames 239 scriptingAndRendering 3.71 bar: Wave9Score5,400Ships3 ships
+start 1 load=8.32 frames 239 scriptingAndRendering 4.63 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 1 load=8.83 frames 239 scriptingAndRendering 4.23 bar: Wave9Score320Crew2 in towStatic ×1
+base 2 load=7.84 frames 239 scriptingAndRendering 3.54 bar: Wave9Score5,400Ships3 ships
+start 2 load=7.56 frames 239 scriptingAndRendering 5.11 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 2 load=8.46 frames 239 scriptingAndRendering 4.18 bar: Wave9Score320Crew2 in towStatic ×1
+base 3 load=8.29 frames 239 scriptingAndRendering 3.39 bar: Wave9Score5,400Ships3 ships
+start 3 load=8.02 frames 239 scriptingAndRendering 5.56 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 3 load=7.92 frames 239 scriptingAndRendering 4.14 bar: Wave9Score320Crew2 in towStatic ×1
+base 4 load=7.78 frames 239 scriptingAndRendering 3.49 bar: Wave9Score5,400Ships3 ships
+start 4 load=7.98 frames 239 scriptingAndRendering 5.13 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 4 load=7.75 frames 238 scriptingAndRendering 4.72 bar: Wave9Score320Crew2 in towStatic ×1
+base 5 load=10.61 frames 238 scriptingAndRendering 4.99 bar: Wave9Score5,400Ships3 ships
+start 5 load=16.57 frames 239 scriptingAndRendering 5.68 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 5 load=15.97 frames 222 scriptingAndRendering 4.83 bar: Wave9Score320Crew2 in towStatic ×1
+base 6 load=14.02 frames 239 scriptingAndRendering 3.46 bar: Wave9Score5,400Ships3 ships
+start 6 load=13.00 frames 239 scriptingAndRendering 4.65 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 6 load=10.90 frames 237 scriptingAndRendering 6.08 bar: Wave9Score320Crew2 in towStatic ×1
+base 7 load=13.65 frames 239 scriptingAndRendering 4.44 bar: Wave9Score5,400Ships3 ships
+start 7 load=13.61 frames 239 scriptingAndRendering 5.33 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 7 load=11.66 frames 239 scriptingAndRendering 3.78 bar: Wave9Score320Crew2 in towStatic ×1
+(Tempest began 22:13:48; loadavg 11.87 8.24 3.81 1/645 17606)
+start 1 load=11.00 frames 239 scriptingAndRendering 6.74 bar: Wave29Score1,505CrewNo one in towStatic ×1
+q1r 1 load=8.77 frames 238 scriptingAndRendering 6.36 bar: Wave29Score3,945Crew1 in tow, 1 knocked looseStatic ×4
+start 2 load=6.97 frames 240 scriptingAndRendering 6.70 bar: Wave29Score1,345CrewNo one in towStatic ×1
+q1r 2 load=5.64 frames 238 scriptingAndRendering 5.83 bar: Wave29Score4,245Crew1 in tow, 1 knocked looseStatic ×4
+start 3 load=4.60 frames 239 scriptingAndRendering 6.77 bar: Wave29Score1,505CrewNo one in towStatic ×1
+q1r 3 load=3.80 frames 239 scriptingAndRendering 5.25 bar: Wave29Score1,245CrewNo one in towStatic ×1
+start 4 load=3.18 frames 239 scriptingAndRendering 6.78 bar: Wave29Score1,345CrewNo one in towStatic ×1
+q1r 4 load=2.85 frames 239 scriptingAndRendering 5.24 bar: Wave29Score1,345CrewNo one in towStatic ×1
+start 5 load=2.66 frames 238 scriptingAndRendering 6.88 bar: Wave29Score3,955Crew1 in tow, 1 knocked looseStatic ×4
+q1r 5 load=2.67 frames 239 scriptingAndRendering 5.32 bar: Wave29Score1,245CrewNo one in towStatic ×1
+start 6 load=2.54 frames 238 scriptingAndRendering 6.46 bar: Wave29Score1,920Crew1 in tow, 1 knocked looseStatic ×1
+q1r 6 load=2.37 frames 238 scriptingAndRendering 5.68 bar: Wave29Score3,955Crew1 in tow, 1 knocked looseStatic ×4
+(the profiled rounds began 22:16:54; loadavg 2.39 5.17 3.40 1/639 23551)
+start 1 load=2.20 frames 184 scriptingAndRendering 4.93 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 1 load=2.18 frames 185 scriptingAndRendering 4.25 bar: Wave9Score320Crew2 in towStatic ×1
+start 2 load=2.56 frames 184 scriptingAndRendering 5.10 bar: Wave9Score320Crew2 in towStatic ×1
+q1r 2 load=2.21 frames 185 scriptingAndRendering 4.30 bar: Wave9Score320Crew2 in towStatic ×1
+(the sitting ended 22:17:48; loadavg 2.10 4.62 3.31 1/645 25401)
+medians: wave 9 base 3.54, start 5.13, q1r 4.23; Tempest start 6.76, q1r 5.50
+
+== Sitting on f3f06169 (R4's burrs; tip = f3f06169, q1t = 22716350): wave 9 (rounds.sh 7 t9 go.js 0 budget-init.js base start tip q1t),
+== Tempest (rounds.sh 5 tt go-tempest.js 1500 budget-tempest.js start tip q1t), Foundry (rounds.sh 4 tf go-tempest.js 3500 budget-foundry.js start tip q1t)
+(wave 9 began 22:42:57; loadavg 6.77 6.20 4.96 4/749 46602)
+base 1 load=6.77 frames 239 scriptingAndRendering 3.46 bar: Wave9Score5,400Ships3 ships
+start 1 load=6.11 frames 240 scriptingAndRendering 7.92 bar: Wave9Score320Crew2 in towStatic ×1
+tip 1 load=9.69 frames 239 scriptingAndRendering 5.46 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 1 load=10.09 frames 239 scriptingAndRendering 4.33 bar: Wave9Score320Crew2 in towStatic ×1
+base 2 load=8.62 frames 239 scriptingAndRendering 3.10 bar: Wave9Score5,400Ships3 ships
+start 2 load=7.69 frames 239 scriptingAndRendering 4.55 bar: Wave9Score320Crew2 in towStatic ×1
+tip 2 load=7.92 frames 239 scriptingAndRendering 4.55 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 2 load=6.53 frames 239 scriptingAndRendering 3.72 bar: Wave9Score320Crew2 in towStatic ×1
+base 3 load=5.91 frames 239 scriptingAndRendering 3.06 bar: Wave9Score5,400Ships3 ships
+start 3 load=5.70 frames 239 scriptingAndRendering 4.46 bar: Wave9Score320Crew2 in towStatic ×1
+tip 3 load=5.13 frames 239 scriptingAndRendering 4.62 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 3 load=4.69 frames 240 scriptingAndRendering 3.85 bar: Wave9Score320Crew2 in towStatic ×1
+base 4 load=4.09 frames 239 scriptingAndRendering 3.19 bar: Wave9Score5,560Ships2 ships
+start 4 load=3.63 frames 239 scriptingAndRendering 4.54 bar: Wave9Score320Crew2 in towStatic ×1
+tip 4 load=2.97 frames 239 scriptingAndRendering 4.63 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 4 load=2.59 frames 239 scriptingAndRendering 3.76 bar: Wave9Score320Crew2 in towStatic ×1
+base 5 load=2.39 frames 239 scriptingAndRendering 3.02 bar: Wave9Score5,400Ships3 ships
+start 5 load=2.25 frames 239 scriptingAndRendering 4.38 bar: Wave9Score320Crew2 in towStatic ×1
+tip 5 load=2.05 frames 239 scriptingAndRendering 4.60 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 5 load=2.11 frames 239 scriptingAndRendering 3.82 bar: Wave9Score320Crew2 in towStatic ×1
+base 6 load=1.93 frames 239 scriptingAndRendering 3.37 bar: Wave9Score5,400Ships3 ships
+start 6 load=2.09 frames 239 scriptingAndRendering 4.34 bar: Wave9Score320Crew2 in towStatic ×1
+tip 6 load=2.00 frames 239 scriptingAndRendering 4.56 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 6 load=1.91 frames 239 scriptingAndRendering 3.78 bar: Wave9Score320Crew2 in towStatic ×1
+base 7 load=1.79 frames 239 scriptingAndRendering 3.17 bar: Wave9Score5,400Ships3 ships
+start 7 load=1.74 frames 239 scriptingAndRendering 4.42 bar: Wave9Score320Crew2 in towStatic ×1
+tip 7 load=1.58 frames 239 scriptingAndRendering 4.60 bar: Wave9Score320Crew2 in towStatic ×1
+q1t 7 load=1.57 frames 239 scriptingAndRendering 3.72 bar: Wave9Score320Crew2 in towStatic ×1
+(Tempest began 22:49:12; loadavg 1.44 3.64 4.35 1/620 59471)
+start 1 load=1.44 frames 239 scriptingAndRendering 6.53 bar: Wave29Score1,245CrewNo one in towStatic ×1
+tip 1 load=1.79 frames 239 scriptingAndRendering 6.40 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+q1t 1 load=2.29 frames 239 scriptingAndRendering 5.65 bar: Wave29Score1,565Crew1 in tow, 1 knocked looseStatic ×3
+start 2 load=2.36 frames 237 scriptingAndRendering 6.79 bar: Wave29Score3,955Crew1 in tow, 1 knocked looseStatic ×4
+tip 2 load=2.28 frames 239 scriptingAndRendering 6.87 bar: Wave29Score1,625Crew1 in tow, 1 knocked looseStatic ×3
+q1t 2 load=2.68 frames 237 scriptingAndRendering 5.82 bar: Wave29Score4,325Crew1 in tow, 1 knocked looseStatic ×4
+start 3 load=2.70 frames 239 scriptingAndRendering 6.45 bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip 3 load=2.61 frames 239 scriptingAndRendering 7.34 bar: Wave29Score1,770CrewNo one in tow, 2 knocked looseStatic ×1
+q1t 3 load=3.37 frames 239 scriptingAndRendering 6.39 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+start 4 load=4.42 frames 239 scriptingAndRendering 8.34 bar: Wave29Score2,845CrewNo one in tow, 2 knocked looseStatic ×2
+tip 4 load=4.67 frames 239 scriptingAndRendering 6.58 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+q1t 4 load=4.14 frames 239 scriptingAndRendering 5.76 bar: Wave29Score1,730Crew1 in tow, 1 knocked looseStatic ×3
+start 5 load=3.60 frames 236 scriptingAndRendering 7.56 bar: Wave29Score4,045Crew1 in tow, 1 knocked looseStatic ×4
+tip 5 load=3.25 frames 237 scriptingAndRendering 7.63 bar: Wave29Score4,415CrewNo one in tow, 2 knocked looseStatic ×2
+q1t 5 load=3.21 frames 239 scriptingAndRendering 5.91 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+(Foundry began 22:53:01; loadavg 3.02 3.56 4.16 3/647 66133)
+start 1 load=2.94 frames 237 scriptingAndRendering 5.04 bar: Wave17Score390Crew2 in towStatic ×1
+tip 1 load=3.43 frames 238 scriptingAndRendering 5.18 bar: Wave17Score345Crew2 in towStatic ×1
+q1t 1 load=4.23 frames 237 scriptingAndRendering 4.18 bar: Wave17Score400Crew2 in towStatic ×1
+start 2 load=5.00 frames 237 scriptingAndRendering 4.71 bar: Wave17Score390Crew2 in towStatic ×1
+tip 2 load=5.30 frames 237 scriptingAndRendering 4.83 bar: Wave17Score400Crew2 in towStatic ×1
+q1t 2 load=5.43 frames 237 scriptingAndRendering 4.09 bar: Wave17Score400Crew2 in towStatic ×1
+start 3 load=6.90 frames 239 scriptingAndRendering 4.99 bar: Wave17Score330Crew2 in towStatic ×1
+tip 3 load=9.25 frames 237 scriptingAndRendering 5.10 bar: Wave17Score400Crew2 in towStatic ×1
+q1t 3 load=8.21 frames 238 scriptingAndRendering 3.81 bar: Wave17Score400Crew2 in towStatic ×1
+start 4 load=6.57 frames 237 scriptingAndRendering 5.09 bar: Wave17Score390Crew2 in towStatic ×1
+tip 4 load=5.80 frames 237 scriptingAndRendering 5.24 bar: Wave17Score400Crew2 in towStatic ×1
+q1t 4 load=6.43 frames 238 scriptingAndRendering 3.97 bar: Wave17Score345Crew2 in towStatic ×1
+(the sitting ended 22:56:31; loadavg 6.76 5.32 4.75 7/734 72975)
+base 4, whose pod was lost by the trace's end (a score of 5,560 and two ships, against 5,400 and three), is left out of
+base's median, as F1 left such rounds out (kept, base's median is 3.17)
+medians: wave 9 base 3.135, start 4.46, tip 4.60, q1t 3.78; Tempest start 6.79, tip 6.87, q1t 5.82; Foundry start 5.02, tip 5.14, q1t 4.03
+
+== Sitting on 5f6d44fe (F2's flourishes; tip = de1277e8, whose game is 5f6d44fe's, q1f = 2962af8d), under the lock for
+== the whole sitting (flock /tmp/abu-root-checks.lock sitting.sh), each build made by build.sh (base at da697c6e9,
+== start at ee77af2d, tip at de1277e8, q1f from the tree): wave 9 (rounds.sh 7 g9 go.js 0 budget-init.js base tip q1f),
+== Tempest (rounds.sh 5 gt go-tempest.js 1500 budget-tempest.js start tip q1f), Foundry (rounds.sh 4 gf go-tempest.js
+== 3500 budget-foundry.js start tip q1f)
+(wave 9 began 23:56:42; loadavg 4.12 4.25 3.70 5/636 150855)
+base 1 load=3.79 frames 239 scriptingAndRendering 3.37 bar: Wave9Score5,400Ships3 ships
+tip 1 load=3.35 frames 239 scriptingAndRendering 4.66 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 1 load=2.83 frames 240 scriptingAndRendering 3.72 bar: Wave9Score320Crew2 in towStatic ×1
+base 2 load=2.54 frames 240 scriptingAndRendering 3.29 bar: Wave9Score5,400Ships3 ships
+tip 2 load=2.05 frames 239 scriptingAndRendering 4.60 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 2 load=1.96 frames 239 scriptingAndRendering 3.64 bar: Wave9Score320Crew2 in towStatic ×1
+base 3 load=2.22 frames 239 scriptingAndRendering 2.99 bar: Wave9Score5,560Ships2 ships
+tip 3 load=1.87 frames 240 scriptingAndRendering 4.57 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 3 load=2.12 frames 239 scriptingAndRendering 3.83 bar: Wave9Score320Crew2 in towStatic ×1
+base 4 load=2.21 frames 239 scriptingAndRendering 3.32 bar: Wave9Score5,560Ships2 ships
+tip 4 load=2.25 frames 239 scriptingAndRendering 4.56 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 4 load=2.03 frames 239 scriptingAndRendering 3.80 bar: Wave9Score320Crew2 in towStatic ×1
+base 5 load=2.02 frames 239 scriptingAndRendering 3.26 bar: Wave9Score5,400Ships3 ships
+tip 5 load=1.93 frames 239 scriptingAndRendering 4.68 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 5 load=1.87 frames 239 scriptingAndRendering 3.81 bar: Wave9Score320Crew2 in towStatic ×1
+base 6 load=1.96 frames 239 scriptingAndRendering 3.29 bar: Wave9Score5,400Ships3 ships
+tip 6 load=2.03 frames 240 scriptingAndRendering 4.51 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 6 load=2.10 frames 239 scriptingAndRendering 3.82 bar: Wave9Score320Crew2 in towStatic ×1
+base 7 load=1.99 frames 239 scriptingAndRendering 3.25 bar: Wave9Score5,560Ships2 ships
+tip 7 load=2.23 frames 239 scriptingAndRendering 4.67 bar: Wave9Score320Crew2 in towStatic ×1
+q1f 7 load=2.11 frames 239 scriptingAndRendering 3.82 bar: Wave9Score320Crew2 in towStatic ×1
+(Tempest began 00:01:29; loadavg 1.94 2.78 3.19 1/634 160407)
+start 1 load=1.79 frames 239 scriptingAndRendering 6.37 bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip 1 load=1.83 frames 239 scriptingAndRendering 6.66 bar: Wave29Score1,770CrewNo one in tow, 2 knocked looseStatic ×1
+q1f 1 load=1.77 frames 239 scriptingAndRendering 5.39 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+start 2 load=1.67 frames 239 scriptingAndRendering 6.79 bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip 2 load=1.91 frames 238 scriptingAndRendering 6.97 bar: Wave29Score4,415CrewNo one in tow, 2 knocked looseStatic ×2
+q1f 2 load=2.01 frames 239 scriptingAndRendering 5.47 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+start 3 load=2.10 frames 239 scriptingAndRendering 6.50 bar: Wave29Score1,345CrewNo one in towStatic ×1
+tip 3 load=2.08 frames 239 scriptingAndRendering 7.01 bar: Wave29Score2,570Crew1 in tow, 1 knocked looseStatic ×3
+q1f 3 load=2.16 frames 239 scriptingAndRendering 5.36 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+start 4 load=2.44 frames 238 scriptingAndRendering 7.40 bar: Wave29Score3,955Crew1 in tow, 1 knocked looseStatic ×4
+tip 4 load=2.71 frames 239 scriptingAndRendering 6.60 bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+q1f 4 load=2.48 frames 237 scriptingAndRendering 5.86 bar: Wave29Score4,415CrewNo one in tow, 2 knocked looseStatic ×2
+start 5 load=2.83 frames 239 scriptingAndRendering 7.46 bar: Wave29Score2,845CrewNo one in tow, 2 knocked looseStatic ×2
+tip 5 load=2.64 frames 239 scriptingAndRendering 6.73 bar: Wave29Score1,730Crew1 in tow, 1 knocked looseStatic ×3
+q1f 5 load=3.53 frames 237 scriptingAndRendering 5.98 bar: Wave29Score4,325Crew1 in tow, 1 knocked looseStatic ×4
+(Foundry began 00:05:18; loadavg 3.47 2.85 3.10 1/632 166649)
+start 1 load=3.28 frames 238 scriptingAndRendering 4.46 bar: Wave17Score390Crew2 in towStatic ×1
+tip 1 load=2.92 frames 237 scriptingAndRendering 4.71 bar: Wave17Score400Crew2 in towStatic ×1
+q1f 1 load=2.88 frames 238 scriptingAndRendering 3.53 bar: Wave17Score345Crew2 in towStatic ×1
+start 2 load=3.19 frames 237 scriptingAndRendering 4.41 bar: Wave17Score390Crew2 in towStatic ×1
+tip 2 load=2.65 frames 238 scriptingAndRendering 4.55 bar: Wave17Score400Crew2 in towStatic ×1
+q1f 2 load=2.34 frames 237 scriptingAndRendering 3.79 bar: Wave17Score400Crew2 in towStatic ×1
+start 3 load=2.35 frames 237 scriptingAndRendering 4.44 bar: Wave17Score390Crew2 in towStatic ×1
+tip 3 load=2.54 frames 238 scriptingAndRendering 4.55 bar: Wave17Score345Crew2 in towStatic ×1
+q1f 3 load=2.51 frames 237 scriptingAndRendering 3.72 bar: Wave17Score400Crew2 in towStatic ×1
+start 4 load=2.49 frames 237 scriptingAndRendering 4.45 bar: Wave17Score390Crew2 in towStatic ×1
+tip 4 load=2.87 frames 237 scriptingAndRendering 4.61 bar: Wave17Score400Crew2 in towStatic ×1
+q1f 4 load=2.68 frames 237 scriptingAndRendering 3.61 bar: Wave17Score400Crew2 in towStatic ×1
+(the sitting ended 00:08:44; loadavg 2.45 2.65 2.97 1/634 171693)
+base 3, 4 and 7, whose pod was lost by the trace's end (a score of 5,560 and two ships), are left out of base's median
+(kept, base's median is 3.29 too)
+medians: wave 9 base 3.29, tip 4.60, q1f 3.81; Tempest start 6.79, tip 6.73, q1f 5.47; Foundry start 4.445, tip 4.58,
+q1f 3.665
+
+== split.mjs, wave 9 on f3f06169, rounds 2 to 7 (ms a frame)
+start {"animationFrame":"4.23","layoutAndPaint":"0.65","gpuMain":"10.61","gpuTasks":"3.98"}
+tip   {"animationFrame":"4.39","layoutAndPaint":"0.63","gpuMain":"10.76","gpuTasks":"3.93"}
+q1t   {"animationFrame":"3.56","layoutAndPaint":"0.63","gpuMain":"10.67","gpuTasks":"3.91"}
+
+== parts.mjs and compare.mjs, the profiled traces on 080ab590 (fp-start-1,2 against fp-q1r-1,2)
+  start     q1r   gain  part
+  6.620   5.918  -0.703  (all sampled)
+  2.423   2.106  -0.317  (outside the game's code: phaser and the browser)
+  0.266   0.115  -0.151  src/scene/painters/rock_painter.ts draw
+  0.108   0.007  -0.101  src/scene/painters/spark_painter.ts draw
+  1.633   1.705   0.073  (outside the game's code: (program))
+  0.156   0.086  -0.070  src/scene/painters/pod_painter.ts draw
+  0.099   0.033  -0.066  src/scene/painters/shot_painter.ts draw
+  0.243   0.187  -0.056  src/scene/painters/tow_painter.ts draw
+  0.068   0.014  -0.054  (outside the game's code: (useProgram))
+  0.137   0.099  -0.038  src/scene/painters/halo_painter.ts draw
+  0.073   0.100   0.027  src/scene/belt_scene.ts update
+  0.006   0.031   0.025  (outside the game's code: (bindBuffer))
+  0.370   0.395   0.024  src/app/board/board.component.ts tick
+  0.018   0.042   0.024  (outside the game's code: (bindVertexArrayOES))
+  0.126   0.103  -0.024  (outside the game's code: (bufferSubData))
+
+compare.mjs outside, the same traces' samples with none of the game's code on the stack, by Phaser's outer functions
+  start     q1r   gain  outside
+  6.620   5.918  -0.703  (all sampled)
+  2.276   1.939  -0.337  render > render > render
+  1.633   1.705   0.073  (program)
+  0.107   0.089  -0.018  preRender > use > clear
+  0.004   0.018   0.015  preRender > s.emit
+  0.291   0.299   0.008  step
+
+== nodes.mjs (UNDER=layer DEPTH=2) and compare.mjs, the same traces: the largest ten of the classes' rows, which all
+== together sum to the render's 2.276 and 1.939 above
+  start     q1r   gain  outside
+  6.620   5.918  -0.703  (all sampled)
+  0.461   0.186  -0.275  (the render itself)
+  0.000   0.153   0.153  FilterList > Image
+  0.192   0.077  -0.114  ListCompositor
+  1.109   1.026  -0.083  Image > SubmitterQuad
+  0.067   0.030  -0.037  Image
+  0.000   0.024   0.024  GameObject
+  0.101   0.079  -0.022  Graphics > StrokePath
+  0.060   0.044  -0.016  RenderNodeManager > BatchHandlerQuad
+  0.000   0.015   0.015  FilterList > Graphics
+  0.035   0.023  -0.012  Graphics
+
+== Foundry's pictures, tip against q1t (pics-all.sh picsf foundry tip q1t; compare-pics.mjs picsf tip q1t): 48 pairs, 46 the same to the pixel
+foundry-casino-phone-motion-330: 63 differ, by 33 at most; foundry-classic-phone-motion-330: 100 differ, by 30 at most
+(frame 330 captured three times on each build: every pair of the six differs, by 22 to 168 pixels)
