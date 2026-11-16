@@ -1,9 +1,11 @@
 import type { Moving } from "../rules/torus";
 import { farthestCorner } from "../view/effects/cleared";
 import { type Flourish, holdMsOf } from "../view/effects/effects";
+import { burrInk } from "../view/art/things";
 import {
   bailOutWayOf,
   flashDue,
+  popShardsOf,
   ringColorOf,
   ringOf,
 } from "../view/effects/flourish";
@@ -181,6 +183,16 @@ export class FlourishPlayer {
         return;
       case "burst":
         debris.shatter(x, y, palette.accent, BURST_SHARDS, metrics, zoom);
+        return;
+      case "pop":
+        debris.shatter(
+          x,
+          y,
+          burrInk(palette),
+          popShardsOf(event),
+          metrics,
+          zoom,
+        );
         return;
       case "bailout":
         if (event.pilot !== null) {

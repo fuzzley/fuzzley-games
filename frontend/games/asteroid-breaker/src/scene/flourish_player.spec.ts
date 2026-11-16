@@ -24,6 +24,7 @@ import {
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { energyOf } from "../view/art/energy";
+import { burrInk } from "../view/art/things";
 import { ADRIFT_FRAMES } from "../view/art/pilot_art";
 import { breakOf, impactOf, shardPushOf, rimToward } from "../view/art/breaks";
 import { RESCUE_RING, SPRING } from "../view/effects/rescue";
@@ -33,6 +34,7 @@ import {
   BURST_SHARDS,
   RESCUE_MS,
   FLASH_GAP_MS,
+  POP_SHARDS,
   RING_MS,
   SHAKE_MS,
   SLOWED_MS,
@@ -688,6 +690,28 @@ describe("FlourishPlayer", () => {
     scene.kit.podGlow.draw(context);
 
     expect(scene.kit.podGlow.light.visible).toBe(false);
+  });
+
+  it("pops a burr into shards in its ink", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const event = eventOf((log) => {
+      log.addBurr("popped", MIDDLE.x, MIDDLE.y);
+    });
+
+    player.play("pop", event, contextAt(shell, NOW));
+
+    expect(shardTints(scene)).toEqual(times(POP_SHARDS, burrInk(ART_PALETTE)));
+  });
+
+  it("pops each burr a dash shakes off into shards", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const event = eventOf((log) => {
+      log.addShaken(MIDDLE.x, MIDDLE.y, 0, 3);
+    });
+
+    player.play("pop", event, contextAt(shell, NOW));
+
+    expect(shardTints(scene)).toHaveLength(3 * POP_SHARDS);
   });
 
   it("sets a blast off where its rock went off, lighting the rocks near it", async () => {

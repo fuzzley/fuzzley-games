@@ -518,6 +518,8 @@ takes for the specs' helpers.
   without (`effectsOf()`), the field's shake a boulder's break's and a
   knock's alone, the beats a boulder's and its kick a large rock's, the
   pod's flash as one is knocked loose and its glow and light as it zaps,
+  a blast as a set piece vents, a ring thrown from a piece it knocks off,
+  a burr's shards as it pops or a dash shakes it off,
   the slow and the wave's ring as a wave is cleared, a ring seen as a
   pickup is let go or fades and as a stray drifts in, a ring from the pod
   as static steps up, a soft ring and the line springing as a fuzzball is
@@ -590,10 +592,9 @@ takes for the specs' helpers.
   (`trailOutlinesLaid()`), and how the pickups breathe (`breathShare()`), a
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome, and the way a lost pod's pilot's bubble rises
-  (`bailOutWayOf()`), and how far each event's ring reaches, a vent's as
-  far as its blast, static's step's from the pod, and whether it wraps
-  (`RINGS`, `ringOf()`), and its color, a vent's the warning's
-  (`ringColorOf()`); `timing.ts` how long each flourish lasts, as
+  (`bailOutWayOf()`), and how far each event's ring reaches, static's
+  step's from the pod and a piece knocked off's from it, and whether it
+  wraps (`RINGS`, `ringOf()`); `timing.ts` how long each flourish lasts, as
   `plan.md`'s table has it, a rock's break (`BREAK_MS`) and a held hit's
   spark (`HELD_MS`) among them, the muzzle's flash (`MUZZLE_MS`), a blast
   (`BLAST_MS`), a boulder's beats (`BOULDER_HOLD_MS`,
@@ -601,7 +602,8 @@ takes for the specs' helpers.
   `SLOW_PACE`, `SLOWED_MS`) and the wave's ring, as long after any wave's
   last rock as the slow lasts (`WAVE_RING_MS`), a fuzzball caught
   (`RESCUE_MS`), the pod's flash (`POD_FLASH_MS`), a zap's hold and its
-  light and glow (`ZAP_HOLD_MS`, `ZAP_MS`),
+  light and glow (`ZAP_HOLD_MS`, `ZAP_MS`), how many shards a burr pops
+  into (`POP_SHARDS`),
   how long a still mark stands (`STILL_MARK_MS`), and how long
   the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
   bubble to rise and go); `boulder.ts` how a boulder's break looks over its
@@ -639,7 +641,8 @@ takes for the specs' helpers.
   flash fading (`blastFlashed()`) and its disc (`blastDiscAt()`), its
   embers, a dozen in the shape its serial picks (`embersOf()`,
   `emberAt()`), its light on the rocks near it (`BLAST_LIGHT`,
-  `blastLightShare()`), and its still ring (`STILL_RING`);
+  `blastLightShare()`), its still ring (`STILL_RING`), and the heart it
+  goes off from, a vent's a small rock's (`blastRadiusOf()`);
   and `haptics.ts` how the phone buzzes as the ship takes a hit or a wave is
   cleared (`LOST_BUZZ`, `CLEARED_BUZZ`).
 - **`src/view/steering/`** — the player's hands. `controls.ts` holds the
@@ -997,11 +1000,12 @@ takes for the specs' helpers.
   the break and each copy of it past an edge it reaches across; it finds
   the outline and the turn a broken rock was drawn in from its slot, or,
   once a piece has taken that, from what it last drew there; it throws a
-  lost pod's burst of shards too, as particles; `BlastPainter` each
-  volatile rock's blast, on one `Graphics` drawn again each frame, the
-  ground its ring has swept, the ring's two soft bands, its middle in the
-  rock's ink and its hot inner edge, its flash's disc, and its embers, its
-  discs filled as polygons and its rings as bands of triangles, as the
+  lost pod's burst of shards too, as particles, and a burr's as it pops;
+  `BlastPainter` each volatile rock's blast, and each vent's, on one
+  `Graphics` drawn again each frame, the ground its ring has swept, the ring's
+  two soft bands, its middle in the rock's ink and its hot inner edge, its
+  flash's disc, and its embers, its discs filled as polygons and its rings as
+  bands of triangles, as the
   dust's are, through `painters/rounds.ts`, which gives a ring as large
   as the wave's finer polygons still, so none overlaps itself at part
   alpha, its flash's glow through the halo painter, one at a time, as
@@ -1013,11 +1017,11 @@ takes for the specs' helpers.
   welcome; `BoulderPainter` a boulder's break in its beats, over the
   break every rock has: its cracks running out while the field holds
   still, its glow through the halo painter and the ring it throws;
-  `RingPainter` the rings that sweep out from a spent Shield, a lost pod,
-  a vent, a pickup let go or fading, a stray drifting in and the pod as
-  static steps up, the still marks where motion isn't welcome, each a
-  band `RING_WIDTH` wide, a fuzzball caught's soft ring (`rescue()`), its
-  soft outside and its line each a band, and the
+  `RingPainter` the rings that sweep out from a spent Shield, a lost pod, a
+  piece knocked off, a pickup let go or fading, a stray drifting in and the
+  pod as static steps up, the still marks where motion isn't welcome, each a
+  band `RING_WIDTH` wide, a fuzzball caught's soft ring (`rescue()`), its soft
+  outside and its line each a band, and the
   wave's ring, once, for the field's camera to cut off, its soft outside
   and its line each a band, all through `rounds.ts`,
   `ArcPainter` static's arcs, over the flourishes, in one `Graphics`

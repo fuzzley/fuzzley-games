@@ -1,7 +1,6 @@
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { type Moving, type Torus, copyOffsets } from "../../rules/torus";
-import { ROCK_RADIUS } from "../../rules/tuning";
 import type { WrittenHalo } from "../../view/art/energy";
 import { around } from "../../view/art/rocks/space";
 import type { BeltPalette } from "../../view/colors/palette";
@@ -21,6 +20,7 @@ import {
   blastInks,
   blastLightShare,
   blastLineAlpha,
+  blastRadiusOf,
   blastRingAt,
   blastShows,
   blastSwept,
@@ -28,11 +28,7 @@ import {
   embersOf,
   sweptAlpha,
 } from "../../view/effects/blast";
-import {
-  type Drawn,
-  type FieldEvent,
-  rockSizeOf,
-} from "../../view/field/frame";
+import type { Drawn, FieldEvent } from "../../view/field/frame";
 import { type FieldMetrics, toCanvas } from "../../view/field/field_metrics";
 import { COPY_SHARES } from "./copy_shares";
 import type { HaloPainter } from "./halo_painter";
@@ -61,7 +57,8 @@ interface Blast extends Playing {
 }
 
 /**
- * Draws each volatile rock's blast as the view's `blast.ts` says, on both
+ * Draws each volatile rock's blast, and each set piece's vent, as the
+ * view's `blast.ts` says, on both
  * sides of an edge it reaches across: where motion is welcome, the ground
  * its ring has swept faintly lit, its ring's soft outside in two bands, its
  * middle in the rock's ink and its hot inner edge, its flash's disc and
@@ -138,12 +135,13 @@ export class BlastPainter implements Painter {
 
   /**
    * Sets a blast off where a volatile rock went off, out to its reach, its
-   * embers the shape its serial picks, with its flash and light or without.
+   * embers the shape its serial picks, with its flash and light or without,
+   * or where a set piece vented, from a small rock's heart.
    *
    * @throws {RangeError} For an event that names no rock's size.
    */
   blast(event: Readonly<FieldEvent>, flashed: boolean, now: number): void {
-    const radius = ROCK_RADIUS[rockSizeOf(event)];
+    const radius = blastRadiusOf(event);
     const blast = this.blasts.play(event.x, event.y, now);
     blast.radius = radius;
     blast.reach = event.reach;

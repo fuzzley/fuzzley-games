@@ -21,6 +21,7 @@ import {
 } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import type { Drawn, FieldEvent, FieldEventKind } from "../field/frame";
+import { boulderInks } from "./boulder";
 import {
   BAIL_OUT_BLINK_MS,
   BAIL_OUT_MS,
@@ -30,6 +31,7 @@ import {
   KICK_MS,
   MUZZLE_MS,
   POINTS_RISE,
+  POP_SHARDS,
   SHAKE_CSS_PX,
   SHAKE_MS,
 } from "./timing";
@@ -63,31 +65,23 @@ export interface Ring {
 }
 
 /**
- * Describes an event's ring as `RINGS` holds it: as {@link Ring} has it,
- * but for a reach of null, which leaves it to the event, as a vent's.
- */
-export interface RingLook {
-  readonly reach: number | null;
-  readonly wraps: boolean;
-}
-
-/**
- * Each event's ring: a spent Shield's and a lost pod's; a vent's, as far as
- * its blast reaches; a pickup let go from a rock, one fading out and a stray
- * drifting in, each seen as its sound plays, the stray's at the edge it
- * comes in by, which it doesn't wrap past; static stepping up's, from the
- * pod; and the still mark at a dash's start, where motion isn't welcome.
+ * Each event's ring: a spent Shield's and a lost pod's; a pickup let go
+ * from a rock, one fading out and a stray drifting in, each seen as its
+ * sound plays, the stray's at the edge it comes in by, which it doesn't
+ * wrap past; static stepping up's, from the pod; a piece a set piece
+ * knocks off, thrown from it as a boulder's break throws its ring; and the
+ * still mark at a dash's start, where motion isn't welcome.
  */
 export const RINGS = {
   shielded: { reach: SHIELD_RING_REACH, wraps: true },
   lost: { reach: LOST_RING_REACH, wraps: true },
-  vented: { reach: null, wraps: true },
   dropped: { reach: 2, wraps: true },
   faded: { reach: 1.5, wraps: true },
   strayed: { reach: 2.5, wraps: false },
   stepped: { reach: 2.5, wraps: true },
+  shed: { reach: 3, wraps: true },
   dashed: { reach: 2, wraps: true },
-} as const satisfies Readonly<Partial<Record<FieldEventKind, RingLook>>>;
+} as const satisfies Readonly<Partial<Record<FieldEventKind, Ring>>>;
 
 /** How fast a pilot bailing out floats off, in field units a second. */
 export const BAIL_OUT_SPEED = 2.2;
@@ -241,31 +235,38 @@ export function riseOf(done: number, motion: boolean): number {
 }
 
 /**
- * Returns an event's ring, as `RINGS` says, as far as the event itself
- * reaches where the table leaves it to the event, as a vent's.
+ * Returns an event's ring, as `RINGS` says.
  *
  * @throws {RangeError} For an event that plays no ring.
  */
-export function ringOf(
-  event: Readonly<Pick<FieldEvent, "kind" | "reach">>,
-): Ring {
-  const { kind } = event;
+export function ringOf({ kind }: Readonly<Pick<FieldEvent, "kind">>): Ring {
   if (!isKeyOf(kind, RINGS)) {
     throw new RangeError(`A "${kind}" event plays no ring`);
   }
-  const { reach, wraps }: RingLook = RINGS[kind];
-  return { reach: reach ?? event.reach, wraps };
+  return RINGS[kind];
 }
 
 /**
- * Returns the color an event's ring sweeps out in: a vent's in the warning
- * color, and every other in the accent.
+ * Returns the color an event's ring sweeps out in: a piece knocked off's in
+ * its boulder's core, as a boulder's break throws its ring, so it reads
+ * apart from a pickup let go's, and every other in the accent.
  */
 export function ringColorOf(
   { kind }: Readonly<Pick<FieldEvent, "kind">>,
-  palette: Pick<BeltPalette, "flame" | "accent">,
+  palette: Pick<BeltPalette, "mode" | "rocks" | "core" | "flame" | "accent">,
 ): number {
-  return kind === "vented" ? palette.flame : palette.accent;
+  return kind === "shed" ? boulderInks(palette).core : palette.accent;
+}
+
+/**
+ * Returns how many shards a burr's pop throws: one burr's for a shot's pop,
+ * and one burr's for each a dash shakes off, which the event counts, where
+ * a pop counts none.
+ */
+export function popShardsOf(
+  event: Readonly<Pick<FieldEvent, "kind" | "burrs">>,
+): number {
+  return event.kind === "shaken" ? POP_SHARDS * event.burrs : POP_SHARDS;
 }
 
 /**

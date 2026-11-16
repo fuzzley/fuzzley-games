@@ -51,6 +51,7 @@ import {
   shipOf,
 } from "../testing/field_picture";
 import { FLOURISH } from "../view/art/art";
+import { burrInk } from "../view/art/things";
 import {
   type Broken,
   GLINT_POINTS,
@@ -123,6 +124,7 @@ import {
   KICK_MS,
   POINTS_MS,
   POD_FLASH_MS,
+  POP_SHARDS,
   RING_MS,
   SHAKE_MS,
   SLOW_MS,
@@ -2559,6 +2561,129 @@ describe("a zap", () => {
       glows: halosIn(scene, ART_PALETTE.accent).length,
       lit: scene.kit.podGlow.light.visible,
     }).toEqual({ glows: 0, lit: false });
+  });
+});
+
+describe("a set piece's vent and the piece it sheds", () => {
+  it("vents a blast from its heart, sweeping no ring of its own", async () => {
+    const { shell, run, scene } = await startBoard();
+    const boulder = placeRock(shell.field, "boulder", 30, 20, "stormheart");
+    shell.field.events.addRock("vented", boulder, 6);
+
+    run.advance(48, 16);
+
+    expect({
+      blast: roundsOf(scene.kit.blasts.graphics).length > 0,
+      rings: bandsOf(scene.kit.rings.graphics).length,
+    }).toEqual({ blast: true, rings: 0 });
+  });
+
+  it("keeps a blast's still ring at the vent's reach where motion isn't welcome", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    const boulder = placeRock(shell.field, "boulder", 30, 20, "stormheart");
+    shell.field.events.addRock("vented", boulder, 6);
+
+    run.advance(48, 16);
+
+    const { unit } = metricsOf(shell);
+    expect(
+      roundsOf(scene.kit.blasts.graphics).map(({ inner, outer }) =>
+        toMillionths((inner + outer) / 2 / unit),
+      ),
+    ).toEqual([6]);
+  });
+
+  it("throws a ring from a piece knocked off, in its boulder's core", async () => {
+    const { shell, run, scene } = await startBoard();
+    const piece = placeRock(shell.field, "medium", 30, 20, "iron");
+    shell.field.events.addRock("shed", piece);
+
+    run.advance(48, 16);
+
+    const [ring] = bandsOf(scene.kit.rings.graphics);
+    expect(ring && { x: ring.x, y: ring.y, color: ring.color }).toEqual({
+      ...rounded(onCanvas(metricsOf(shell), 30, 20)),
+      color: boulderInks(ART_PALETTE).core,
+    });
+  });
+
+  it("vents its blast from a small rock's heart, its ring starting within a medium one", async () => {
+    const { shell, run, scene } = await startBoard();
+    const boulder = placeRock(shell.field, "boulder", 30, 20, "stormheart");
+    shell.field.events.addRock("vented", boulder, 6);
+
+    run.advance(16);
+
+    const { unit } = metricsOf(shell);
+    expect(
+      blastRings(scene).every(
+        ({ radius }) => radius < ROCK_RADIUS.medium * unit,
+      ),
+    ).toBe(true);
+  });
+
+  it("flashes the vent's blast, lighting the rocks near it, where its held hit flashes nothing", async () => {
+    const { shell, run, scene } = await startBoard();
+    const boulder = placeRock(shell.field, "boulder", 30, 20, "stormheart");
+    shell.field.events.addRock("hit", boulder);
+    shell.field.events.addRock("vented", boulder, 6);
+
+    run.advance(16);
+
+    expect({
+      lit: scene.kit.blasts.light.visible,
+      held: flashOf(scene),
+    }).toEqual({ lit: true, held: null });
+  });
+});
+
+describe("a burr", () => {
+  it("pops into shards in its ink as a shot pops it", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addBurr("popped", 30, 20);
+
+    run.advance(32, 16);
+
+    expect(shardTints(scene)).toEqual(
+      Array.from({ length: POP_SHARDS }, () => burrInk(ART_PALETTE)),
+    );
+  });
+
+  it("pops each burr a dash shakes off", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addShaken(30, 20, 0, 2);
+
+    run.advance(32, 16);
+
+    expect(shardTints(scene)).toHaveLength(2 * POP_SHARDS);
+  });
+
+  it("is simply gone where motion isn't welcome", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    shell.field.events.addBurr("popped", 30, 20);
+    shell.field.events.addShaken(30, 20, 0, 2);
+
+    run.advance(32, 16);
+
+    expect(shardTints(scene)).toEqual([]);
+  });
+
+  it("plays nothing as one comes in, which it shows", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addBurr("burred", 30, 20);
+
+    run.advance(32, 16);
+
+    expect(playingIn(scene, shell)).toEqual(NOTHING_PLAYING);
+  });
+
+  it("plays nothing as one clings, which it shows", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addClung(30, 20, 1);
+
+    run.advance(32, 16);
+
+    expect(playingIn(scene, shell)).toEqual(NOTHING_PLAYING);
   });
 });
 

@@ -5,10 +5,12 @@
 
 import { easeOutCubic, lerp, shareDone } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";
+import { ROCK_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import { mixTone } from "../colors/tones";
 import { energyOf } from "../art/energy";
 import { around } from "../art/rocks/space";
+import { type FieldEvent, rockSizeOf } from "../field/frame";
 import { BLAST_FLASH_MS, BLAST_MS, BLAST_RING_MS } from "./timing";
 
 /** White, which a dark palette's hot edge is mixed toward. */
@@ -274,4 +276,17 @@ export const BLAST_LIGHT = {
 /** Returns how strongly a blast's light shows, a share through its ring's sweep: all of it as it goes off, dying away. */
 export function blastLightShare(swept: number): number {
   return (1 - swept) ** 2;
+}
+
+/**
+ * Returns how large the heart a blast goes off from is, in field units: a
+ * volatile rock's own radius, and a vent's a small one's, as it vents from
+ * a set piece's heart rather than the whole rock going off.
+ *
+ * @throws {RangeError} For a blast that names no rock's size.
+ */
+export function blastRadiusOf(event: Readonly<FieldEvent>): number {
+  return event.kind === "vented"
+    ? ROCK_RADIUS.small
+    : ROCK_RADIUS[rockSizeOf(event)];
 }

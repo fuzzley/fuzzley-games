@@ -16,6 +16,9 @@ export const BURST_MS = 500;
 /** How many shards a lost pod bursts into. */
 export const BURST_SHARDS = 12;
 
+/** How many shards a burr pops into, as a shot pops it or a dash shakes it off. */
+export const POP_SHARDS = 5;
+
 /** How long a blast lasts, from its flash to its last ember gone, in milliseconds, as long as its row in `plan.md`'s table. */
 export const BLAST_MS = 600;
 
@@ -44,8 +47,8 @@ export const STILL_MARK_MS = 600;
 
 /**
  * How long a ring takes to sweep out to its reach and fade: a spent
- * Shield's, a lost ship's, a vent's, a pickup let go's or fading's, a
- * stray's, or static stepping up's.
+ * Shield's, a lost ship's, a piece knocked off's, a pickup let go's or
+ * fading's, a stray's, or static stepping up's.
  */
 export const RING_MS = 300;
 
