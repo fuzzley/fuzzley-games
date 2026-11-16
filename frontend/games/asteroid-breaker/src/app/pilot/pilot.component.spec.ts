@@ -1,5 +1,9 @@
 import { TestBed } from "@angular/core/testing";
-import type { FuzzballFace } from "@fz/style/fuzzball";
+import {
+  FUZZBALL_FACES,
+  type FuzzballFace,
+  MOST_LIFT,
+} from "@fz/style/fuzzball";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { render } from "@testing-library/angular";
@@ -9,6 +13,9 @@ import { PilotComponent } from "./pilot.component";
 
 /** The fourth pilot's color, green, whose ink differs between the modes. */
 const GREEN = 3;
+
+/** Each lift of static's a pilot's fur is drawn at, flat to on end. */
+const LIFTS = Array.from({ length: MOST_LIFT + 1 }, (_, lift) => lift);
 
 /** How a spec poses the pilot it renders. */
 interface Posed {
@@ -68,6 +75,24 @@ describe("PilotComponent", () => {
 
     expect(poseIn(pilot)).toEqual({ face: "happy", lift: 2 });
   });
+
+  it.each(FUZZBALL_FACES)(
+    "draws its %s face as no other face is drawn",
+    async (face) => {
+      const pilot = await renderPilot(GREEN, "classic", { face });
+
+      expect(poseIn(pilot)).toEqual({ face, lift: 0 });
+    },
+  );
+
+  it.each(LIFTS)(
+    "draws its fur at lift %i as at no other lift",
+    async (lift) => {
+      const pilot = await renderPilot(GREEN, "classic", { lift });
+
+      expect(poseIn(pilot)).toEqual({ face: "rest", lift });
+    },
+  );
 
   it("is hidden from assistive technology", async () => {
     const pilot = await renderPilot(GREEN, "classic");

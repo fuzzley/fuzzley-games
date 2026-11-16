@@ -11,8 +11,10 @@ It holds thirty waves in three sectors, then Endless, whose waves are made
 as they are played, with stone, crystal, ice, iron, volatile and lodestone
 rocks and a boulder to end each sector; six pickups, Spread, Rapid and
 Lance, which give the ship another weapon than its gun for a while, and
-Shield, Magnet and Slow; and stray fuzzballs to bring home
-and comets to dodge, all played by rules that run without a framework,
+Shield, Magnet and Slow; stray fuzzballs to bring home, comets to dodge
+and burrs that cling until a dash shakes them off; and sparks that raise
+the pilot's static, which multiplies the score and, full, lets a dash zap
+the rocks near it, all played by rules that run without a framework,
 physics included, on a field that wraps at every edge. It plays at three
 speeds, by keyboard, mouse or touch, with a stick, Fire and Dash on a touch
 screen, pauses whenever the field loses the player, wears whichever palette

@@ -1,6 +1,6 @@
 ---
 name: fuzzley-ui
-description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, announcer, theme menu and picker, icons, radio group, storage, the fuzzball, wordmark) and @fz/game-ui (the game bar, its overflow and choice menus and the overflow menu's shared items, its Pause and Sound, the games' viewport and breakpoints, their page frame and settings drawer, global stylesheet and Sass toolkit, How to play and its catalog lists, the stopwatch, the source a game's seeds are drawn from, the run's lifecycle a game's service extends, and the debug menu), with @fz/core beside them for a game's framework-free helpers, and @fz/phaser's shared inks, areas, bricks, side panels and drawings as SVG — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, @fz/core, fz-, fixed step, countdown, event log, FieldPlay, RunLifecycle, RunStage, RUN_KEYS, keysOf, isShortcut, withHigherCount, EventLogView, HeldKeys, Turns, unknownKey, listOf, isOneOf, isKeyOf, mixSeed, lerp, listed, multiplierAt, tierWords, sweep, sweepFace, sweepCorner, sweepPoint, exposureOf, variantOfSpec, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, board-panel, slabCommands, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, settings drawer, debug menu, DEBUG_MENU, DEV_BUILD, createTuning, fz-debug-tuning, ?debug, How to play, dialog, confirm, announcer, live region, stopwatch, timer, icon, fast-forward, drop, star, button, shared component, new game.
+description: The shared UI libraries under frontend/lib/ that the site and the games are built on — @fz/style (palettes, tokens, the surfaces over a game, fragments such as .fz-button, Sass mixins, theme.js, the fuzzball and the page's icons), @fz/ui (Angular dialog, confirmation, announcer, theme menu and picker, icons, radio group, storage, the fuzzball, wordmark) and @fz/game-ui (the game bar, its overflow and choice menus and the overflow menu's shared items, its Pause and Sound, the games' viewport and breakpoints, their page frame and settings drawer, global stylesheet and Sass toolkit, How to play and its catalog lists, the stopwatch, the source a game's seeds are drawn from, the run's lifecycle a game's service extends, and the debug menu), with @fz/core beside them for a game's framework-free helpers, and @fz/phaser's shared inks, areas, bricks, side panels and drawings as SVG — which piece to reach for, and how an app adopts them. Triggers on: @fz/style, @fz/ui, @fz/game-ui, @fz/core, fz-, fixed step, countdown, event log, FieldPlay, RunLifecycle, RunStage, RUN_KEYS, keysOf, isShortcut, withHigherCount, EventLogView, HeldKeys, Turns, unknownKey, listOf, isOneOf, isKeyOf, mixSeed, lerp, listed, multiplierAt, tierWords, SoundMix, sound mix, sweep, sweepFace, sweepCorner, sweepPoint, exposureOf, variantOfSpec, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, board-panel, slabCommands, design tokens, palette, theme, fuzzball, favicon, wordmark, light or dark mode, surface, glass, game bar, settings drawer, debug menu, DEBUG_MENU, DEV_BUILD, createTuning, fz-debug-tuning, ?debug, How to play, dialog, confirm, announcer, live region, stopwatch, timer, icon, fast-forward, drop, star, button, shared component, new game.
 ---
 
 # The shared UI libraries
@@ -27,9 +27,12 @@ flourish's records, each played in turn (`Turns` in `@fz/core/turns`), a
 ladder of multipliers and its words (`multiplierAt()` in `@fz/core/math`,
 `tierWords()` in `@fz/core/format`), words as a list, "a, b and c"
 (`listed()`, there too), a ball swept against a box or a point
-(`@fz/core/sweep`), and, for specs, a game played a frame at a time
-(`playUntil()` and `playFor()` in `@fz/core/testing`) and the variant a
-spec file is named for (`variantOfSpec()`, there too).
+(`@fz/core/sweep`), how a sprite's sounds play in the mix, a `SoundMix`
+of each sound's family, level and takes and whether it is in key, which
+`@fz/phaser/sound`'s `SpritePlayer` plays by (`@fz/core/sound_mix`), and,
+for specs, a game played a frame at a time (`playUntil()` and `playFor()`
+in `@fz/core/testing`) and the variant a spec file is named for
+(`variantOfSpec()`, there too).
 
 Imports go one way: an app may import a library, a library another library,
 and a library never an app. `yarn constraints` fails a library that depends

@@ -168,7 +168,9 @@ take the pure ones.
   small form (an `EyesPose`), the mark's own at rest, with their glints
   where an `EyesStyle` gives them a color and each is a device pixel or
   more across at its narrowest, which a game bakes in a frame of their own
-  with no look, moving that frame by `lookOffset()`.
+  with no look, moving that frame by `FUZZBALL_LOOK` along the way it
+  looks, as the brick games do, or by `@fz/style/fuzzball`'s
+  `lookOffset()` at `FUZZBALL_LOOK_FAR`, as Asteroid Breaker's pilots do.
   `src/fuzzball/combing.ts`
   combs its fur toward standing on end, as a charge or a streak lifts it
   (`combedStrands()`, a share of the way from 0, as it grew, through 0.5,

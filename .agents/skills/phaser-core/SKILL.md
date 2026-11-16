@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture, softDisc, halo.
+description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture, softDisc, halo, canvasTexture, SpritePlayer, LayerPlayer, SpriteMixing, SoundMix, playAt, followMono, limiter.
 ---
 
 # Phaser games here
@@ -80,7 +80,8 @@ holds.
   the game's master volume; `followMono()` sums the two ears into one.
   `LayerPlayer` loops layers of sound while a scene holds them, such as a
   bed and the layers over it, all on one bar line, each faded in and out.
-  `@fz/dev/sounds` synthesizes the sprite.
+  `@fz/dev/sounds` synthesizes a sprite, or packs takes that
+  `@fz/dev/synth` renders (`packSoundSprite()`), as Asteroid Breaker's are.
 - **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
   sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an
   element's device pixels, `watchDevicePixelRatio()` hears the display's
@@ -149,10 +150,13 @@ holds.
   `Strand` about the body's middle), `furReach()`, how far that fur
   reaches, and `eyesCommands()`, its eyes and their glints, which a game
   bakes as a frame of their own so its scene moves them toward what the
-  fuzzball looks at, by `FUZZBALL_LOOK`. `combedStrands()` combs the fur a
-  share of the way to standing on end, as Brick Fuzz Pop's charge lifts
-  it, and `sparkCommands()` draws the sparks about fur on end, so a game
-  that lifts its fur takes the one comb rather than its own.
+  fuzzball looks at, by `FUZZBALL_LOOK` along the way it looks, as the
+  brick games do, or by `@fz/style/fuzzball`'s `lookOffset()` at
+  `FUZZBALL_LOOK_FAR`, as Asteroid Breaker's pilots do. `combedStrands()`
+  combs the fur a share of the way to standing on end, as Brick Fuzz Pop's
+  charge lifts it, and `sparkCommands()` draws the sparks about fur on
+  end, so a game that lifts its fur takes the one comb rather than its
+  own.
   `fuzzballWearing()` outlines a fuzzball as one with what it wears (a
   `Worn`), such as the sparks (`wornSparks()`) or Brick Fuzz Pop's
   flames, so no outline covers any of it.

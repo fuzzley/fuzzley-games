@@ -198,9 +198,10 @@ takes for the specs' helpers.
   misses and the zap. `sparks.ts` sheds a broken rock's sparks into slots
   made once (`shedSparks()`, `MOST_SPARKS`, the oldest's taken past them),
   its size's in `SPARKS_SHED` and its kind's `sheds` trait's more, only
-  from one a shot or a blast broke, and one from a burr a shot popped
-  (`shedSparksFrom()`); each flies out a little way and hangs
-  for its life, blinking through its last second (`sparkBlinks()`), unless
+  from one a shot, a blast, a boulder's vent or a zap's arc broke, and one
+  from a burr a shot popped (`shedSparksFrom()`); each flies out a little
+  way and hangs for its life, blinking through its last second
+  (`sparkBlinks()`), unless
   the ship draws it in, from the field's sparking's reach, farther at
   Relaxed, or the Magnet's (`drawReach()`), and the pod or a bubble in tow
   gathers it (`stepSparks()`), which scores it, logged `sparked` with who
@@ -209,9 +210,10 @@ takes for the specs' helpers.
   `charge.ts` holds static on the field (`Field.charge`, its level and the
   step it holds from, the last spark's or near miss's, or the last hit's
   or zap's), how sparks, static and the zap work (`Sparking`, a value
-  record the field holds, from `tuning.ts`'s `TUNED_SPARKING`: the spark's
-  reach, static's most and its drain, and the zap's arcs and reach, the
-  debug menu tuning the spark's reach, the drain and the zap's reach), its
+  record the field holds, `TUNED_SPARKING` unless the debug menu tunes it,
+  made of `tuning.ts`'s numbers: the spark's reach, static's most and its
+  drain, and the zap's arcs and reach, the debug menu tuning the spark's
+  reach, the drain and the zap's reach), its
   rise (`raiseStatic()`), its step (`stepOf()`, from 0 at ×1 to
   `FULL_STEP` once full, `isStaticFull()`) and its multiplier
   (`multiplierOf()`, `@fz/core/math`'s `multiplierAt()` over
@@ -258,10 +260,11 @@ takes for the specs' helpers.
   off as it starts (`shakeBurrs()`, logged `shaken` with how many and the
   way it heads), and a cleared wave lets those adrift go and leaves those
   clinging. How burrs fly and cling is `Burring`, a value record the field
-  holds, from `tuning.ts`'s `TUNED_BURRING`: their speed, their sight and
-  turn, the share each clinging takes and the most that cling, the debug
-  menu tuning their speed and the share. Each says
-  what a wave sends of it (`StraySetup`, `CometSetup`, `BurrSetup`).
+  holds, `burrs.ts`' `TUNED_BURRING` unless the debug menu tunes it, made
+  of `tuning.ts`'s numbers: their speed, their sight and turn, the share
+  each clinging takes and the most that cling, the debug menu tuning their
+  speed and the share. Each says what a wave sends of it (`StraySetup`,
+  `CometSetup`, `BurrSetup`).
   `loose.ts` holds the crew knocked loose, a
   slot made once for each that can be (`createLoose()`): one a hit knocks
   out of the line flies off away from the ship (`knockLastLoose()`),
@@ -423,9 +426,9 @@ takes for the specs' helpers.
   past three of them (`MOST_DRAWN`), the first and how many
   (`crewLineOf()`), and the words a screen reader hears for it
   (`crewWords()`), or for the crew a card draws (`cardCrewWords()`); and
-  `debug_tuning.ts` the numbers the debug menu tunes (`Feel`,
-  `TUNING_SLIDERS`) and the lines of `src/rules/tuning.ts` they would
-  replace (`tuningLines()`).
+  `debug_tuning.ts` the numbers the debug menu tunes (`Feel`, as
+  `tuning.ts` sets them, `TUNED`, and their sliders, `TUNING_SLIDERS`) and
+  the lines of `src/rules/tuning.ts` they would replace (`tuningLines()`).
 - **`src/view/field/`** — where the field and what lies on it are drawn, and
   what of it the scene reads. `field_metrics.ts` lays the field and the deck
   on the canvas: the field's shape for its room (`fieldShape()`), the room
@@ -696,9 +699,9 @@ takes for the specs' helpers.
   the rocks', then the pod's hull and the comet's head (`litFrames()`),
   and names the frames
   How to play's pictures but the rocks' are taken from (`PICTURE_FRAMES`);
-  `rock_art.ts` draws the rocks' own atlas: each kind
-  in each size it comes in and six outlines (`ROCK_OUTLINES`), a set piece
-  in two, which a rock's outline is mapped onto (`outlinesOf()`), cut in
+  `rock_art.ts` draws the rocks' own atlas: each kind in each size it comes
+  in and six outlines (the rules' `ROCK_OUTLINES`), a set piece in two,
+  which a rock's outline is mapped onto (`outlinesOf()`), cut in
   facets as `rocks/` cuts it (`rockShape()`), whole and with the cracks of
   each count of hits it can take and hold, in the palette's marks, its
   fine marks only where the field, as laid out, has 10 CSS pixels a unit
@@ -795,9 +798,9 @@ takes for the specs' helpers.
   second beat (`MUZZLE_BEATS`), with its halo ahead of the muzzle
   (`muzzleHalo()`); `energyFrames()` draws their frames; and the halo of
   the pod's flame behind each engine, round, as long as the flame at its
-  thrust (`flameShare()`), at the kit's opacity for it (`flameHalo()`,
-  `FLAME_GLOW`), its full length held to the pod's flame's frame by its
-  spec;
+  thrust (`pod_art.ts`' `flameShare()`), at the kit's opacity for it
+  (`flameHalo()`, `FLAME_GLOW`), its full length held to the pod's flame's
+  frame by its spec;
   `sparks.ts` the sparks broken rocks shed, as the kit's motes
   (`things.mjs`' `moteSvg()` and `moteDrawnSvg()`): each a four-point
   spark (`breaks.ts`' `sparkPoints()`) in the accent's energy, its points
@@ -1083,8 +1086,9 @@ takes for the specs' helpers.
   dragged to another size bakes it once a device pixel rather than once a
   frame, or as it passes 10 CSS pixels, where the rocks' and the pod's
   fine marks come or go (`isFine()`, of the field's unit, not the
-  atlas's), the rocks' with the pod's hull among them, and the deck's,
-  white for the scene to tint, again on a new pixel ratio. The rocks'
+  atlas's), the rocks' with the pod's hull and the comet's head among
+  them, and the deck's, white for the scene to tint, again on a new pixel
+  ratio. The rocks'
   normal map is baked beside theirs, packed alike (`ROCK_NORMALS`), and
   the rocks' atlas (`ROCK_ATLAS`) reads it as its normal map
   (`setDataSource()`), set again at each bake; Phaser destroys a texture's
@@ -1092,10 +1096,11 @@ takes for the specs' helpers.
   scene lights the rocks with Phaser's lights, which it turns on as it is
   created: the palette's light as a point far off its way
   (`farLight()`), over its ambient, set again at each layout and bake, a
-  held hit's flash, the newest blast's two and a zap's two; each rock's
-  image, and the pod's hull's, is drawn with `setLighting(true)`. Phaser
-  lights an image by the ten lights nearest the camera's middle at most (`maxLights`), so
-  a light far off is dropped first once eleven are lit. At each bake the
+  held hit's two, the newest blast's two and a zap's two; each rock's
+  image, the pod's hull's and each comet's head's is drawn with
+  `setLighting(true)`. Phaser lights an image by the ten lights nearest the
+  camera's middle at most (`maxLights`), so a light far off is dropped
+  first once eleven are lit. At each bake the
   scene hands the shell (`onPictures()`) what returns How to play's
   pictures only as the board first asks for them, as How to play opens,
   and keeps them until the next bake: the field's encoded from its atlas
@@ -1195,8 +1200,8 @@ takes for the specs' helpers.
     `src/app/tokens.ts` holds the waves (`GAME_WAVES`), which a spec hands
     it instead of the game's own, as it does the seeds through
     `@fz/game-ui/random`'s `GAME_RANDOM`, and `TUNING`, the numbers the debug
-    menu tunes: one `createTuning()` of `TUNED` from
-    `@fz/game-ui/debug_menu`, made at the root, which the drawer and
+    menu tunes: one `@fz/game-ui/debug_menu` `createTuning()` of the view's
+    `TUNED` (`src/view/debug_tuning.ts`), made at the root, which the drawer and
     `GameService` share. `SavedGameService`
     keeps the run under way, through `GameService.saved()`, as its outcome or
     its crew changes and as the page is hidden or goes away, never at a step,
@@ -1563,12 +1568,12 @@ can't trust rather than failing:
   the strays brought home, for the result card, the pilot's static as its
   wave started, and whether it was flown on tuned numbers; and its field's
   size as laid out and as it is now, its rocks, whole or with a blast to go
-  off, the counts its draws, strays, comets and points run by, the
+  off, the counts its draws, strays, comets, burrs and points run by, the
   pilot's static, whether its wave has thrown its pilot a lifeline, and
   whether it has held more rocks than its last few. A wave not yet moved
   is kept as not yet begun, a wave just cleared as the next not yet
-  begun, and a stray adrift, the comets, the pickups, the sparks, the
-  shots and the effects in play go. It is
+  begun, and a stray adrift, the comets, the burrs adrift and clinging,
+  the pickups, the sparks, the shots and the effects in play go. It is
   written as a wave starts, as its crew changes, as it pauses or goes on,
   and as the page is hidden or goes away, never at a step, forgotten once
   the run ends or another begins, and taken up paused at startup, fitted to
@@ -1597,8 +1602,9 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   skill's. Every overlay is an `<fz-dialog>`, the board is the application
   above, and every run and sector opened, with what is new there, wave
   begun, stray drifting in or caught, one of the crew knocked loose,
-  caught again or floating home, pickup caught, static full, zap, pause,
-  going on, wave cleared, with the wave to come, and end is announced.
+  caught again or floating home, pickup caught, static full, zap, burr
+  clinging, pause, going on, run taken up, wave cleared, with the wave to
+  come, and end is announced.
 
 ## Development Commands
 
