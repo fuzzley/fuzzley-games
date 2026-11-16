@@ -521,10 +521,10 @@ too. Paths are relative to `frontend/lib/dev/`.
     texture (`scatter()`, and `looped()`, a loop that runs on unbroken), and
     files: `wav()`, a 16-bit PCM WAV of one channel or two, dithered from a
     seed, and `wavSamples()`, which reads one back.
-  - `src/synth_music.ts`: the game's key, the pentatonic scale's steps
-    (`degree()`), a note's MIDI number and pitch by its name (`note()`,
-    `pitch()`), and the chain's ladder of steps in cents (`CHAIN_STEPS`,
-    `centsOf()`, `CHAIN_CENTS`).
+  - `src/synth_music.ts`: Asteroid Breaker's key, the pentatonic scale's
+    steps (`degree()`), a note's MIDI number and pitch by its name
+    (`note()`, `pitch()`), and its chain's ladder of steps in cents
+    (`CHAIN_STEPS`, `centsOf()`, `CHAIN_CENTS`).
   - `src/synth_measure.ts`: the instruments that stand in for an ear, as no
     one building a sound here can listen to it: `measure()` reads a sound's
     length, peak, loudest 50 ms, loudness as an ear weighs it, crest,
@@ -584,7 +584,8 @@ too. Paths are relative to `frontend/lib/dev/`.
   (`variedPlay()`) and its pan (`panAt()`), by `@fz/core/sound_mix`'s
   formulas (`variedDetune()`, `variedGain()` and `panOf()`) at numbers of
   its own: 60 cents and 1.5 dB at most (`VARY_CENTS`, `VARY_DECIBELS`), on
-  every play, tuned or not, and 70% of the way to a side (`PAN_WIDTH`);
+  every play, tuned or not, and 70% of the way to a side, a width of its
+  own rather than `@fz/core/sound_mix`'s `PAN_WIDTH`;
   with one, `GameMix`, which plans a scene's cues (`MixCue`) as
   `@fz/phaser/sound`'s `SpritePlayer` plays them by the mix, at the
   games' numbers: each sound's takes in turn, from one scene to the next,

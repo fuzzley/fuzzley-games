@@ -40,7 +40,8 @@ export default defineConfig(
     projects: {
       root: import.meta.dirname,
       // The rules, the view, the specs' helpers and the scripts touch no
-      // page, but for the helper that runs the scene, which has no spec.
+      // page, but for the helpers that run the scene or read a page, which
+      // have no spec of their own.
       pure: ["src/rules", "src/view", "src/testing", "tools"],
       // The specs that play every wave or lay every wave out, without the
       // coverage that would triple their time: the other rules specs alone

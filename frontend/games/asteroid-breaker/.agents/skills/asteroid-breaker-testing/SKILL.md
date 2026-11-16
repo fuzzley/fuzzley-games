@@ -70,9 +70,11 @@ Run these from `frontend/games/asteroid-breaker/`, or as
 - A spec sits beside the file it tests, named after it, and its folder
   sets its project, so a spec of `src/testing/` runs in Node.
   `belt_board.ts`, the one helper there that runs the scene, has no spec:
-  what it reads a scene with is `@fz/phaser/testing`'s, specced there. One
-  of the rules, the view or `src/testing/` has no page, so what needs one is
-  the scene's or the shell's to test.
+  what it reads a scene with is `@fz/phaser/testing`'s, specced there; nor
+  does `pilots.ts`, which reads a page: the pilot's own spec, in `dom`,
+  holds `poseIn()` to reading back each face and each lift `<app-pilot>`
+  draws. One of the rules, the view or `src/testing/` has no page, so what
+  needs one is the scene's or the shell's to test.
 - `dom` leaves the code of `pure`'s folders to Vite's oxc rather than to
   Analog's plugin, as `frontend/lib/dev/AGENTS.md` says: coverage adds a
   file's two runs up only where both compiled it alike, and compiled two
@@ -87,7 +89,8 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   rail's sizes compiled from the app's stylesheets, `numbers.ts`'s
   `stepsBetween()` and `field_picture.ts`'s `fieldFrom()` and what it
   refuses. `@fz/phaser/testing`'s readers, `strokesOf()` among them, are
-  held by the library's specs, against what Phaser really drew.
+  held by the library's specs, against what Phaser really drew, and
+  `pilots.ts`' `poseIn()` by the pilot's, against what `<app-pilot>` drew.
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, gives the page
@@ -296,7 +299,7 @@ Phaser game through `runScene()`:
   `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
   sound and board settings, whether the ship thrusts and a lodestone is on
   the field (`thrusts`, `lodestoneOn`), the multiplier (`times`), the place
-  the wave after is played in (`placeAfter`) and the points' font
+  the wave after is played in (`nextPlace`) and the points' font
   (`typeface`, in `SHELL_FONT`, which a spec replaces as the page would on
   loading a face late), and keeps the frames' times and steering, the
   layouts the scene hands it (`FieldLayout`), the commands and what the
