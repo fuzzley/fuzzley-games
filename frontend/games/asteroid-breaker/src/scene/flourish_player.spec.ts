@@ -1,20 +1,23 @@
 import { easeOutCubic } from "@fz/core/math";
-import { commandsOf, strokesOf } from "@fz/phaser/testing";
+import { commandsOf } from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { NOSE } from "../rules/ship/shots";
 import { ROCK_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
+  type Band,
   type Board,
   type FakeShell,
   MIDDLE,
   metricsOf,
+  bandsOf,
   onCanvas,
   scrolledBy,
   shardTints,
   shownAt,
   startBoard,
+  toMillionths,
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
 import { ADRIFT_FRAMES } from "../view/art/pilot_art";
@@ -157,6 +160,16 @@ function ringsAbout(
     Math.abs((Math.min(...xs) + Math.max(...xs)) / 2 - at.x) < 1e-6 &&
     Math.abs((Math.min(...ys) + Math.max(...ys)) / 2 - at.y) < 1e-6
   );
+}
+
+/** Returns each ring the ring painter fills, as where its middle is, how far out it runs and its color. */
+function ringsOf(scene: BeltScene): readonly Omit<Band, "alpha">[] {
+  return bandsOf(scene.kit.rings.graphics).map(({ x, y, radius, color }) => ({
+    x,
+    y,
+    radius,
+    color,
+  }));
 }
 
 /** Returns the hit a medium rock placed on a shell's field held, at a place. */
@@ -454,14 +467,30 @@ describe("FlourishPlayer", () => {
     player.play("ring", event, contextAt(shell, NOW));
     scene.kit.rings.draw(context);
 
-    const [ring] = strokesOf(scene.kit.rings.graphics);
-    expect(
-      ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
-    ).toEqual({
-      ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
-      radius: ringOf(event).reach * easeOutCubic(1 / 2) * context.metrics.unit,
-      color: ART_PALETTE.accent,
+    const at = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y);
+    expect(ringsOf(scene)).toEqual([
+      {
+        x: toMillionths(at.x),
+        y: toMillionths(at.y),
+        radius: toMillionths(
+          ringOf(event).reach * easeOutCubic(1 / 2) * context.metrics.unit,
+        ),
+        color: ART_PALETTE.accent,
+      },
+    ]);
+  });
+
+  it("fills nothing for a ring the frame it is played, before it has swept out at all", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+    const event = eventOf((log) => {
+      log.add("shielded", MIDDLE.x, MIDDLE.y);
     });
+
+    player.play("ring", event, context);
+    scene.kit.rings.draw(context);
+
+    expect(ringsOf(scene)).toEqual([]);
   });
 
   it("marks where a dash started with a ring standing still at its reach", async () => {
@@ -474,14 +503,15 @@ describe("FlourishPlayer", () => {
     player.play("mark", event, contextAt(shell, NOW));
     scene.kit.rings.draw(context);
 
-    const [ring] = strokesOf(scene.kit.rings.graphics);
-    expect(
-      ring && { x: ring.x, y: ring.y, radius: ring.radius, color: ring.color },
-    ).toEqual({
-      ...onCanvas(context.metrics, MIDDLE.x, MIDDLE.y),
-      radius: RINGS.dashed.reach * context.metrics.unit,
-      color: ART_PALETTE.accent,
-    });
+    const at = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y);
+    expect(ringsOf(scene)).toEqual([
+      {
+        x: toMillionths(at.x),
+        y: toMillionths(at.y),
+        radius: toMillionths(RINGS.dashed.reach * context.metrics.unit),
+        color: ART_PALETTE.accent,
+      },
+    ]);
   });
 
   it("sets a blast off where its rock went off, lighting the rocks near it", async () => {

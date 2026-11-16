@@ -984,8 +984,9 @@ takes for the specs' helpers.
   still, its glow through the halo painter and the ring it throws;
   `RingPainter` the rings that sweep out from a spent Shield, a lost pod,
   a vent, a pickup let go or fading and a stray drifting in, the still marks
-  where motion isn't welcome, and the wave's ring, once, for the field's
-  camera to cut off,
+  where motion isn't welcome, each a band `RING_WIDTH` wide, and the
+  wave's ring, once, for the field's camera to cut off, its soft outside
+  and its line each a band, all through `rounds.ts`,
   `ArcPainter` static's arcs, over the flourishes, in one `Graphics`
   stroked again each frame: each of the zap's that it hears of
   (`hear()`), as it struck (`strikeOf()`), from where the pod is drawn,
@@ -1765,7 +1766,7 @@ of its own beside it:
 - `belt_board.ts` runs the scene for a spec (`startBoard()`, through
   `@fz/phaser/testing`'s `runKeyedScene()`) on a `FakeShell` that plays the
   shell's part, and reads what it draws (`shown()`, `layersOf()`,
-  `humsIn()`), beside what `@fz/phaser/testing` reads any scene with
+  `humsIn()`, `roundsOf()`, `bandsOf()`), beside what `@fz/phaser/testing` reads any scene with
   (`imagesIn()`, `strokesOf()`), whose specs are the library's;
   `canvases.ts` makes the canvas a board has in a window of a shape, less
   the bar and the rail at the sizes its spec compiles from the app's

@@ -332,6 +332,89 @@ export function trianglesOf(
   return triangles;
 }
 
+/**
+ * Describes a round a `Graphics` fills, a disc or a band: where its middle
+ * is on the canvas, how far its nearest and its farthest corners lie from
+ * it, and the fill style it was filled in.
+ */
+export interface FilledRound {
+  readonly x: number;
+  readonly y: number;
+  readonly inner: number;
+  readonly outer: number;
+  readonly color: number;
+  readonly alpha: number;
+}
+
+/**
+ * Returns each round a `Graphics` fills, in order, as the triangles it fills
+ * after each fill style it sets, its middle the middle of their box, as a
+ * polygon of an even count of corners has it.
+ */
+export function roundsOf(
+  graphics: GameObjects.Graphics,
+): readonly FilledRound[] {
+  const rounds: FilledRound[] = [];
+  let color = 0;
+  let alpha = 1;
+  let points: number[] = [];
+  const close = (): void => {
+    if (points.length === 0) return;
+    const xs = points.filter((_, i) => i % 2 === 0);
+    const ys = points.filter((_, i) => i % 2 === 1);
+    const x = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const y = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const far = xs.map((each, i) => Math.hypot(each - x, (ys[i] ?? y) - y));
+    rounds.push({
+      x,
+      y,
+      inner: Math.min(...far),
+      outer: Math.max(...far),
+      color,
+      alpha,
+    });
+    points = [];
+  };
+  for (const command of commandsOf(graphics)) {
+    if (command.kind === "fillStyle") {
+      close();
+      ({ color, alpha } = command);
+    }
+    if (command.kind === "fillTriangle") points.push(...command.points);
+  }
+  close();
+  return rounds;
+}
+
+/**
+ * Describes a ring a `Graphics` fills as a band: where its middle is on the
+ * canvas, how far out the circle down its middle runs, each rounded to a
+ * millionth of a pixel, and the fill style it was filled in.
+ */
+export interface Band {
+  readonly x: number;
+  readonly y: number;
+  readonly radius: number;
+  readonly color: number;
+  readonly alpha: number;
+}
+
+/** Returns each band a `Graphics` fills, in order, as {@link roundsOf} reads each round. */
+export function bandsOf(graphics: GameObjects.Graphics): readonly Band[] {
+  return roundsOf(graphics).map(({ x, y, inner, outer, color, alpha }) => ({
+    x: toMillionths(x),
+    y: toMillionths(y),
+    radius: toMillionths((inner + outer) / 2),
+    color,
+    alpha,
+  }));
+}
+
+/** Returns a number rounded to a millionth, as a spec compares places on the canvas. */
+export function toMillionths(value: number): number {
+  return Math.round(value * 1e6) / 1e6;
+}
+
 /** Describes a straight line a `Graphics` strokes, in the line style set before it. */
 export interface StrokedLine {
   readonly fromX: number;

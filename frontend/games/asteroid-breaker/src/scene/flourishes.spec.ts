@@ -5,7 +5,6 @@ import {
   canvasTexture,
   commandsOf,
   objectsIn,
-  strokesOf,
   watchUploads,
 } from "@fz/phaser/testing";
 import { GameObjects, Textures } from "phaser";
@@ -20,13 +19,17 @@ import {
   MIDDLE,
   SHELL_FONT,
   WIDER,
+  bandsOf,
+  type Band,
   type FakeShell,
+  type FilledRound,
   type StrokedLine,
   layersOf,
   linesOf,
   metricsOf,
   onCanvas,
   pointsZoomOf,
+  roundsOf,
   scrolledBy,
   shardTints,
   shownAt,
@@ -34,6 +37,7 @@ import {
   startBoard,
   stepping,
   stillness,
+  toMillionths,
   trianglesOf,
   withShip,
   zoomOf,
@@ -355,7 +359,6 @@ interface Shown {
   readonly blasts: number;
   readonly blastLit: boolean;
   readonly boulders: number;
-  readonly waves: number;
   readonly trail: boolean;
   readonly bailing: boolean;
   readonly scrolled: { readonly x: number; readonly y: number };
@@ -371,7 +374,6 @@ const NOTHING_PLAYING: Shown = {
   blasts: 0,
   blastLit: false,
   boulders: 0,
-  waves: 0,
   trail: false,
   bailing: false,
   scrolled: { x: 0, y: 0 },
@@ -386,11 +388,10 @@ function playingIn(scene: BeltScene, shell: FakeShell): Shown {
       commandsOf(scene.kit.debris.breakGraphics).length,
     sparks: commandsOf(scene.kit.debris.sparkGraphics).length,
     flash: shownCount(scene.kit.rocks.flashes),
-    rings: strokesOf(scene.kit.rings.graphics).length,
+    rings: bandsOf(scene.kit.rings.graphics).length,
     blasts: roundsOf(scene.kit.blasts.graphics).length,
     blastLit: scene.kit.blasts.light.visible,
     boulders: commandsOf(scene.kit.boulders.graphics).length,
-    waves: trianglesOf(scene.kit.rings.graphics).length,
     trail: scene.kit.trail.outlines
       .flatMap(({ images }) => images)
       .some((image) => image.visible),
@@ -1292,55 +1293,6 @@ function logBlast(
   return rock;
 }
 
-/**
- * Describes a round a `Graphics` fills, a disc or a band: where its middle
- * lies on the canvas, how far its nearest and farthest corners lie from it,
- * and its color.
- */
-interface FilledRound {
-  readonly x: number;
-  readonly y: number;
-  readonly inner: number;
-  readonly outer: number;
-  readonly color: number;
-}
-
-/**
- * Returns each round a `Graphics` fills, in order, as the triangles it fills
- * after each fill style it sets, its middle the middle of their box, as a
- * polygon of an even count of corners has it.
- */
-function roundsOf(graphics: GameObjects.Graphics): readonly FilledRound[] {
-  const rounds: FilledRound[] = [];
-  let color = 0;
-  let points: number[] = [];
-  const close = (): void => {
-    if (points.length === 0) return;
-    const xs = points.filter((_, i) => i % 2 === 0);
-    const ys = points.filter((_, i) => i % 2 === 1);
-    const x = (Math.min(...xs) + Math.max(...xs)) / 2;
-    const y = (Math.min(...ys) + Math.max(...ys)) / 2;
-    const far = xs.map((each, i) => Math.hypot(each - x, (ys[i] ?? y) - y));
-    rounds.push({
-      x,
-      y,
-      inner: Math.min(...far),
-      outer: Math.max(...far),
-      color,
-    });
-    points = [];
-  };
-  for (const command of commandsOf(graphics)) {
-    if (command.kind === "fillStyle") {
-      close();
-      color = command.color;
-    }
-    if (command.kind === "fillTriangle") points.push(...command.points);
-  }
-  close();
-  return rounds;
-}
-
 /** Returns whether a round is a disc, its corners all as far from its middle. */
 function isDisc({ inner, outer }: FilledRound): boolean {
   return outer - inner < 1e-6;
@@ -1911,36 +1863,24 @@ describe("the still marks", () => {
     async (_, log, reach) => {
       const { shell, run, scene } = await startBoard(stillness);
       log(shell);
-      const alphas = (): readonly number[] =>
-        commandsOf(scene.kit.rings.graphics).flatMap((command) =>
-          command.kind === "lineStyle" ? [command.alpha] : [],
-        );
-      const ringsNow = (): readonly (readonly number[])[] =>
-        strokesOf(scene.kit.rings.graphics).map(
-          ({ x, y, radius, color }, i) => [
-            x,
-            y,
-            radius,
-            color,
-            alphas()[i] ?? 0,
-          ],
-        );
       run.advance(48, 16);
-      const early = ringsNow();
+      const early = bandsOf(scene.kit.rings.graphics);
       run.advance(STILL_MARK_MS / 2, 16);
-      const later = ringsNow();
+      const later = bandsOf(scene.kit.rings.graphics);
 
       run.advance(STILL_MARK_MS, 16);
 
-      const at = onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y);
-      const ring = [
-        at.x,
-        at.y,
-        reach * metricsOf(shell).unit,
-        ART_PALETTE.accent,
-        0.9,
-      ];
-      expect([early, later, ringsNow()]).toEqual([[ring], [ring], []]);
+      const ring: Band = {
+        ...rounded(onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y)),
+        radius: toMillionths(reach * metricsOf(shell).unit),
+        color: ART_PALETTE.accent,
+        alpha: 0.9,
+      };
+      expect([early, later, bandsOf(scene.kit.rings.graphics)]).toEqual([
+        [ring],
+        [ring],
+        [],
+      ]);
     },
   );
 
@@ -1950,7 +1890,7 @@ describe("the still marks", () => {
 
     run.advance(48, 16);
 
-    expect(strokesOf(scene.kit.rings.graphics)).toEqual([]);
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
   });
 });
 
@@ -1980,20 +1920,19 @@ describe("the sights", () => {
       const { shell, run, scene } = await startBoard();
       log(shell);
       run.advance(48, 16);
-      const [first] = strokesOf(scene.kit.rings.graphics);
+      const [first] = bandsOf(scene.kit.rings.graphics);
 
       run.advance(100, 16);
 
-      const [ring] = strokesOf(scene.kit.rings.graphics);
+      const [ring] = bandsOf(scene.kit.rings.graphics);
       expect({
-        at: ring && [ring.x, ring.y, ring.color],
+        at: ring && { x: ring.x, y: ring.y, color: ring.color },
         spreads: (ring?.radius ?? 0) > (first?.radius ?? Infinity),
       }).toEqual({
-        at: [
-          onCanvas(metricsOf(shell), 30, 20).x,
-          onCanvas(metricsOf(shell), 30, 20).y,
-          ART_PALETTE.accent,
-        ],
+        at: {
+          ...rounded(onCanvas(metricsOf(shell), 30, 20)),
+          color: ART_PALETTE.accent,
+        },
         spreads: true,
       });
     },
@@ -2006,13 +1945,8 @@ describe("the sights", () => {
     run.advance(48, 16);
 
     expect(
-      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => [x, y]),
-    ).toEqual([
-      [
-        onCanvas(metricsOf(shell), 0, MIDDLE.y).x,
-        onCanvas(metricsOf(shell), 0, MIDDLE.y).y,
-      ],
-    ]);
+      bandsOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
+    ).toEqual([rounded(onCanvas(metricsOf(shell), 0, MIDDLE.y))]);
   });
 });
 
@@ -2021,11 +1955,11 @@ describe("the rings", () => {
     const { shell, run, scene } = await startBoard();
     shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
 
-    run.advance(16);
+    run.advance(48, 16);
 
-    const [ring] = strokesOf(scene.kit.rings.graphics);
+    const [ring] = bandsOf(scene.kit.rings.graphics);
     expect(ring && { x: ring.x, y: ring.y, color: ring.color }).toEqual({
-      ...onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
+      ...rounded(onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y)),
       color: ART_PALETTE.accent,
     });
   });
@@ -2039,7 +1973,7 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
+      () => bandsOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
@@ -2049,13 +1983,32 @@ describe("the rings", () => {
     }).toEqual({ spreads: true, within: true });
   });
 
+  it("fills a ring as a band of triangles as wide as a ring is, its sides within half a pixel of its circle, drawing no circle", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
+
+    run.advance(RING_MS - 50, 16);
+
+    const { unit, pixelRatio } = metricsOf(shell);
+    const commands = commandsOf(scene.kit.rings.graphics);
+    const sides =
+      commands.filter(({ kind }) => kind === "fillTriangle").length / 2;
+    const [ring] = roundsOf(scene.kit.rings.graphics);
+    const outer = ring?.outer ?? Infinity;
+    expect({
+      width: toMillionths((outer - (ring?.inner ?? 0)) / unit),
+      within: outer * (1 - Math.cos(Math.PI / sides)) <= 0.5 * pixelRatio,
+      circles: commands.filter(({ kind }) => kind === "arc").length,
+    }).toEqual({ width: RING_WIDTH, within: true, circles: 0 });
+  });
+
   it("puts a ring away once it is over", async () => {
     const { shell, run, scene } = await startBoard();
     shell.field.events.add("shielded", MIDDLE.x, MIDDLE.y);
 
     run.advance(RING_MS + 32);
 
-    expect(strokesOf(scene.kit.rings.graphics)).toEqual([]);
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
   });
 
   it("sweeps a lost ship's ring out in the accent, to a lost ship's reach", async () => {
@@ -2067,11 +2020,11 @@ describe("the rings", () => {
       run,
       RING_MS - 50,
       25,
-      () => strokesOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
+      () => bandsOf(scene.kit.rings.graphics)[0]?.radius ?? 0,
     );
 
     expect({
-      color: strokesOf(scene.kit.rings.graphics)[0]?.color,
+      color: bandsOf(scene.kit.rings.graphics)[0]?.color,
       within:
         (radii.at(-1) ?? Infinity) < LOST_RING_REACH * metricsOf(shell).unit,
       past: (radii.at(-1) ?? 0) > (LOST_RING_REACH / 2) * metricsOf(shell).unit,
@@ -2086,17 +2039,17 @@ describe("the rings", () => {
 
     const metrics = metricsOf(shell);
     expect(
-      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
+      bandsOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
     ).toEqual([
-      onCanvas(metrics, 1, MIDDLE.y),
-      onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y),
+      rounded(onCanvas(metrics, 1, MIDDLE.y)),
+      rounded(onCanvas(metrics, 1 + PICTURE_TORUS.width, MIDDLE.y)),
     ]);
   });
 
-  it("sweeps a ring across an edge once its stroke reaches across it, before its middle line does", async () => {
+  it("sweeps a ring across an edge once its band reaches across it, before its middle line does", async () => {
     const { shell, run, scene } = await startBoard();
     // Two frames after the Shield is spent, the ring's middle line stops a quarter of
-    // its stroke's width short of the edge.
+    // its band's width short of the edge.
     const x = SHIELD_RING_REACH * easeOutCubic(32 / RING_MS) + RING_WIDTH / 4;
     shell.field.events.add("shielded", x, MIDDLE.y);
 
@@ -2104,10 +2057,10 @@ describe("the rings", () => {
 
     const metrics = metricsOf(shell);
     expect(
-      strokesOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
+      bandsOf(scene.kit.rings.graphics).map(({ x, y }) => ({ x, y })),
     ).toEqual([
-      onCanvas(metrics, x, MIDDLE.y),
-      onCanvas(metrics, x + PICTURE_TORUS.width, MIDDLE.y),
+      rounded(onCanvas(metrics, x, MIDDLE.y)),
+      rounded(onCanvas(metrics, x + PICTURE_TORUS.width, MIDDLE.y)),
     ]);
   });
 });

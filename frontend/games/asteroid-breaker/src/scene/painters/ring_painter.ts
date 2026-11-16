@@ -46,7 +46,8 @@ interface Ring extends Playing {
  * and the wave's ring, which crosses the whole field from where its last
  * rock went as the view's `cleared.ts` says, once, for the field's camera
  * to cut off at its edges, its soft outside and its line each a band, in
- * the accent's energy. The scene plays all but the marks only where
+ * the accent's energy. Every ring is filled as bands of triangles,
+ * through `rounds.ts`. The scene plays all but the marks only where
  * motion is welcome.
  */
 export class RingPainter implements Painter {
@@ -127,14 +128,11 @@ export class RingPainter implements Painter {
         now,
         ring.still ? STILL_MARK_MS : RING_MS,
       );
-      if (done === 1) continue;
       const reach = ring.still ? ring.reach : ring.reach * easeOutCubic(done);
-      graphics.lineStyle(
-        RING_WIDTH * metrics.unit,
-        ring.color,
-        ring.still ? RING_ALPHA : RING_ALPHA * fadeAlpha(done),
-      );
-      // The stroke is centered on the circle, so half its width lies past it.
+      // A ring that has swept out nowhere yet is a circle of no size.
+      if (done === 1 || reach === 0) continue;
+      const alpha = ring.still ? RING_ALPHA : RING_ALPHA * fadeAlpha(done);
+      // The band is centered on the circle, so half its width lies past it.
       const { x: across, y: down } = ring.wraps
         ? copyOffsets(
             ring.x,
@@ -147,7 +145,9 @@ export class RingPainter implements Painter {
       for (const [acrossShare, downShare] of COPY_SHARES) {
         if (acrossShare === 1 && across === 0) continue;
         if (downShare === 1 && down === 0) continue;
-        this.stroke(
+        // Set again for each copy, so each is a band of its own.
+        graphics.fillStyle(ring.color, alpha);
+        this.band(
           ring.x + acrossShare * across,
           ring.y + downShare * down,
           reach,
@@ -223,14 +223,25 @@ export class RingPainter implements Painter {
     ring.wraps = wraps;
   }
 
-  /** Strokes one of a ring's copies about a place on the field, out to a reach, in field units. */
-  private stroke(
+  /**
+   * Fills one of a ring's copies about a place on the field, out to a reach,
+   * in field units, as a band {@link RING_WIDTH} wide, in the fill style set.
+   */
+  private band(
     x: number,
     y: number,
     reach: number,
     metrics: FieldMetrics,
   ): void {
-    toCanvas(metrics, x, y, this.at);
-    this.graphics.strokeCircle(this.at.x, this.at.y, reach * metrics.unit);
+    const { unit, pixelRatio } = metrics;
+    const at = toCanvas(metrics, x, y, this.at);
+    strokeRound(
+      this.graphics,
+      at.x,
+      at.y,
+      reach * unit,
+      RING_WIDTH * unit,
+      pixelRatio,
+    );
   }
 }
