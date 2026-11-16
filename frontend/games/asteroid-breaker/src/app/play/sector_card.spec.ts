@@ -11,7 +11,8 @@ import {
  * The longest line of what is new that the sector's card was measured with,
  * Endless's second, from which `board_card.component.scss` steps the card
  * down by the field's height, above the ship waiting in its middle; a longer
- * line could wrap once more and reach the ship.
+ * line could wrap once more and reach the ship. Iron reach's second line is
+ * as long, so neither grows without the card measured again.
  */
 const LONGEST_MEASURED =
   "Comets cross every one, and a boulder comes every tenth.";
@@ -34,7 +35,10 @@ describe("sectorCardOf", () => {
       kicker: "A new sector",
       name: "Iron reach",
       waves: "Waves 11 to 20",
-      news: ["Iron holds its hits.", "Volatile rocks blast, and comets cross."],
+      news: [
+        "Iron holds its hits, and volatile rocks blast.",
+        "Comets cross, and burrs cling, slowing you until a dash.",
+      ],
       wave: "Wave 11, Ore",
     });
   });
@@ -112,7 +116,7 @@ describe("describeSector", () => {
     if (!card) throw new Error("Wave 11 opens no sector.");
 
     expect(describeSector(card, "Wave 11, Ore. 9 rocks.")).toBe(
-      "A new sector: Iron reach. Waves 11 to 20. Iron holds its hits. Volatile rocks blast, and comets cross. Wave 11, Ore. 9 rocks. It starts when you fly.",
+      "A new sector: Iron reach. Waves 11 to 20. Iron holds its hits, and volatile rocks blast. Comets cross, and burrs cling, slowing you until a dash. Wave 11, Ore. 9 rocks. It starts when you fly.",
     );
   });
 });
