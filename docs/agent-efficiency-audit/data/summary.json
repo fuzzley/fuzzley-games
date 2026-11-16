@@ -1,0 +1,610 @@
+{
+  "efforts": [
+    {
+      "effort": "asteroid-breaker-follow-ups",
+      "start": "11-08 05:48",
+      "wall_h": 22.6,
+      "agents": 163,
+      "workers": 34,
+      "reviewers": 105,
+      "helpers": 23,
+      "requests": 9988,
+      "out_M": 8.5,
+      "read_M": 1649,
+      "write_M": 36.9,
+      "cost": 684
+    },
+    {
+      "effort": "shared-lib",
+      "start": "11-09 05:41",
+      "wall_h": 35.1,
+      "agents": 64,
+      "workers": 6,
+      "reviewers": 52,
+      "helpers": 5,
+      "requests": 5848,
+      "out_M": 4.1,
+      "read_M": 1070,
+      "write_M": 21.2,
+      "cost": 408
+    },
+    {
+      "effort": "brick-fuzz-pop",
+      "start": "11-10 17:49",
+      "wall_h": 28.6,
+      "agents": 168,
+      "workers": 14,
+      "reviewers": 150,
+      "helpers": 3,
+      "requests": 18652,
+      "out_M": 17.4,
+      "read_M": 4088,
+      "write_M": 91.6,
+      "cost": 1627
+    },
+    {
+      "effort": "brick-breaker-uplift",
+      "start": "11-14 07:10",
+      "wall_h": 12.0,
+      "agents": 118,
+      "workers": 23,
+      "reviewers": 92,
+      "helpers": 2,
+      "requests": 11070,
+      "out_M": 8.8,
+      "read_M": 2421,
+      "write_M": 40.4,
+      "cost": 868
+    },
+    {
+      "effort": "ci-and-pipeline-audit",
+      "start": "11-14 20:54",
+      "wall_h": 11.0,
+      "agents": 27,
+      "workers": 1,
+      "reviewers": 23,
+      "helpers": 2,
+      "requests": 1999,
+      "out_M": 2.3,
+      "read_M": 441,
+      "write_M": 7.2,
+      "cost": 178
+    },
+    {
+      "effort": "asteroid-breaker-uplift",
+      "start": "11-15 05:09",
+      "wall_h": 33.4,
+      "agents": 179,
+      "workers": 22,
+      "reviewers": 150,
+      "helpers": 6,
+      "requests": 11561,
+      "out_M": 9.6,
+      "read_M": 2193,
+      "write_M": 49.7,
+      "cost": 886
+    },
+    {
+      "effort": "bfp-tune-up",
+      "start": "11-15 15:29",
+      "wall_h": 6.3,
+      "agents": 43,
+      "workers": 9,
+      "reviewers": 32,
+      "helpers": 1,
+      "requests": 2118,
+      "out_M": 2.0,
+      "read_M": 408,
+      "write_M": 11.4,
+      "cost": 180
+    }
+  ],
+  "hours_total": {
+    "model": 140.6,
+    "other tools": 17.6,
+    "checks": 55.5,
+    "wait: reviewer": 30.0,
+    "idle: waiting for the orchestrator": 103.2,
+    "wait: background job": 13.5,
+    "idle: its own background task": 5.6,
+    "compact": 0.2,
+    "idle: other": 0.2,
+    "idle: agents": 32.1,
+    "idle: user": 31.6,
+    "idle: timer": 7.1,
+    "wait: CI": 0.8,
+    "outage": 36.3
+  },
+  "hours_by_role": {
+    "asteroid-breaker-follow-ups/main": {
+      "model": 0.1,
+      "wait: background job": 0.0,
+      "compact": 0.0,
+      "other tools": 0.0,
+      "checks": 0.1,
+      "wait: reviewer": 0.1,
+      "wait: CI": 0.0,
+      "idle: other": 0.0,
+      "idle: agents": 0.1
+    },
+    "asteroid-breaker-follow-ups/worker": {
+      "model": 7.6,
+      "other tools": 1.8,
+      "checks": 3.6,
+      "idle: waiting for the orchestrator": 29.1,
+      "wait: background job": 0.6,
+      "compact": 0.1,
+      "idle: its own background task": 0.2
+    },
+    "asteroid-breaker-follow-ups/reviewer": {
+      "model": 11.8,
+      "other tools": 1.1,
+      "checks": 1.9,
+      "wait: background job": 0.1,
+      "idle: its own background task": 0.6,
+      "idle: waiting for the orchestrator": 17.4,
+      "compact": 0.0,
+      "wait: CI": 0.0
+    },
+    "asteroid-breaker-follow-ups/helper": {
+      "other tools": 0.3,
+      "compact": 0.1,
+      "model": 2.1,
+      "checks": 1.4,
+      "idle: waiting for the orchestrator": 1.1,
+      "wait: background job": 0.1,
+      "idle: its own background task": 0.5
+    },
+    "shared-lib/main": {
+      "model": 1.3,
+      "other tools": 0.5,
+      "wait: reviewer": 0.0,
+      "idle: other": 0.1,
+      "idle: agents": 3.7,
+      "checks": 0.1,
+      "idle: user": 29.4,
+      "idle: timer": 0.0,
+      "compact": 0.0,
+      "wait: background job": 0.0,
+      "wait: CI": 0.0
+    },
+    "shared-lib/worker": {
+      "model": 4.3,
+      "other tools": 0.7,
+      "checks": 5.5,
+      "idle: waiting for the orchestrator": 4.6,
+      "compact": 0.1,
+      "wait: background job": 0.7,
+      "idle: its own background task": 0.3
+    },
+    "shared-lib/reviewer": {
+      "model": 4.5,
+      "other tools": 0.2
+    },
+    "shared-lib/helper": {
+      "model": 0.8,
+      "other tools": 0.0,
+      "checks": 0.0
+    },
+    "brick-fuzz-pop/main": {
+      "model": 2.0,
+      "other tools": 0.3,
+      "wait: reviewer": 0.0,
+      "idle: agents": 16.9,
+      "idle: other": 0.1,
+      "checks": 2.6,
+      "wait: background job": 0.0,
+      "compact": 0.0,
+      "idle: user": 0.6,
+      "outage": 6.1,
+      "wait: CI": 0.0
+    },
+    "brick-fuzz-pop/worker": {
+      "model": 28.3,
+      "other tools": 4.1,
+      "checks": 17.8,
+      "wait: reviewer": 15.9,
+      "wait: background job": 6.1,
+      "idle: waiting for the orchestrator": 50.3,
+      "compact": 0.0,
+      "idle: its own background task": 2.6,
+      "outage": 18.8
+    },
+    "brick-fuzz-pop/reviewer": {
+      "model": 15.9,
+      "other tools": 0.7,
+      "checks": 0.0,
+      "idle: waiting for the orchestrator": 0.3
+    },
+    "brick-fuzz-pop/helper": {
+      "model": 0.2,
+      "other tools": 0.0,
+      "checks": 0.1,
+      "wait: reviewer": 0.1,
+      "idle: waiting for the orchestrator": 0.0
+    },
+    "brick-breaker-uplift/main": {
+      "model": 1.7,
+      "other tools": 0.4,
+      "wait: reviewer": 0.1,
+      "checks": 1.1,
+      "wait: background job": 0.0,
+      "idle: other": 0.0,
+      "idle: agents": 8.3,
+      "idle: timer": 0.3,
+      "compact": 0.0,
+      "wait: CI": 0.2
+    },
+    "brick-breaker-uplift/worker": {
+      "model": 12.6,
+      "other tools": 1.4,
+      "checks": 9.7,
+      "wait: reviewer": 4.4,
+      "wait: background job": 2.1,
+      "compact": 0.0,
+      "idle: its own background task": 0.3,
+      "idle: waiting for the orchestrator": 0.0
+    },
+    "brick-breaker-uplift/reviewer": {
+      "model": 9.0,
+      "other tools": 0.4,
+      "idle: waiting for the orchestrator": 0.2,
+      "checks": 0.0,
+      "wait: reviewer": 0.1
+    },
+    "brick-breaker-uplift/helper": {
+      "model": 0.1,
+      "other tools": 0.0
+    },
+    "ci-and-pipeline-audit/main": {
+      "model": 3.5,
+      "other tools": 0.9,
+      "wait: CI": 0.5,
+      "wait: reviewer": 0.9,
+      "checks": 1.5,
+      "wait: background job": 1.3,
+      "idle: agents": 0.7,
+      "idle: other": 0.0,
+      "idle: user": 1.1,
+      "compact": 0.0,
+      "idle: timer": 0.7
+    },
+    "ci-and-pipeline-audit/worker": {
+      "model": 0.1,
+      "other tools": 0.2
+    },
+    "ci-and-pipeline-audit/reviewer": {
+      "model": 2.5,
+      "other tools": 0.1,
+      "checks": 0.0,
+      "idle: waiting for the orchestrator": 0.1
+    },
+    "ci-and-pipeline-audit/helper": {
+      "wait: reviewer": 0.0,
+      "model": 0.2,
+      "other tools": 0.0,
+      "wait: CI": 0.0,
+      "checks": 0.0
+    },
+    "asteroid-breaker-uplift/main": {
+      "model": 1.1,
+      "other tools": 0.4,
+      "compact": 0.0,
+      "wait: reviewer": 0.7,
+      "checks": 0.5,
+      "idle: other": 0.0,
+      "idle: agents": 2.2,
+      "idle: timer": 6.1,
+      "idle: user": 0.4,
+      "outage": 7.4,
+      "wait: background job": 0.0,
+      "wait: CI": 0.0
+    },
+    "asteroid-breaker-uplift/worker": {
+      "other tools": 2.9,
+      "model": 7.8,
+      "compact": 0.0,
+      "wait: background job": 2.6,
+      "wait: reviewer": 5.9,
+      "checks": 6.2,
+      "idle: its own background task": 0.7,
+      "outage": 4.0,
+      "idle: waiting for the orchestrator": 0.0
+    },
+    "asteroid-breaker-uplift/reviewer": {
+      "model": 17.0,
+      "other tools": 0.6,
+      "checks": 0.0
+    },
+    "asteroid-breaker-uplift/helper": {
+      "model": 0.7,
+      "other tools": 0.0,
+      "checks": 0.1,
+      "idle: waiting for the orchestrator": 0.0,
+      "compact": 0.0
+    },
+    "bfp-tune-up/main": {
+      "model": 0.2,
+      "other tools": 0.0,
+      "compact": 0.0,
+      "checks": 0.0,
+      "idle: other": 0.0,
+      "idle: user": 0.0,
+      "idle: agents": 0.3,
+      "wait: background job": 0.0,
+      "wait: reviewer": 0.0,
+      "wait: CI": 0.0
+    },
+    "bfp-tune-up/worker": {
+      "model": 2.1,
+      "other tools": 0.3,
+      "checks": 3.3,
+      "wait: reviewer": 1.9,
+      "idle: waiting for the orchestrator": 0.0,
+      "compact": 0.0,
+      "wait: background job": 0.0,
+      "idle: its own background task": 0.4
+    },
+    "bfp-tune-up/reviewer": {
+      "model": 3.1,
+      "other tools": 0.1
+    },
+    "bfp-tune-up/helper": {
+      "model": 0.0,
+      "other tools": 0.0,
+      "compact": 0.0,
+      "wait: background job": 0.0
+    }
+  },
+  "waits_meanwhile": {
+    "asteroid-breaker-follow-ups": {
+      "no log": 29.1
+    },
+    "brick-fuzz-pop": {
+      "idle: agents": 19.2,
+      "busy": 10.3,
+      "no log": 0.0,
+      "idle: other": 0.1,
+      "idle: user": 2.3,
+      "outage": 18.3
+    },
+    "shared-lib": {
+      "busy": 1.0,
+      "idle: other": 0.1,
+      "idle: agents": 3.4,
+      "no log": 0.0,
+      "idle: timer": 0.0
+    }
+  },
+  "spend": {
+    "main": {
+      "n": 4181,
+      "out": 66.6,
+      "think": 23.7,
+      "read": 225.5,
+      "write": 88.4,
+      "in": 0.0
+    },
+    "worker": {
+      "n": 29135,
+      "out": 483.4,
+      "think": 202.5,
+      "read": 1423.5,
+      "write": 712.5,
+      "in": 0.2
+    },
+    "reviewer": {
+      "n": 25735,
+      "out": 471.4,
+      "think": 335.9,
+      "read": 736.8,
+      "write": 480.5,
+      "in": 0.2
+    },
+    "helper": {
+      "n": 2133,
+      "out": 32.3,
+      "think": 15.2,
+      "read": 67.4,
+      "write": 42.2,
+      "in": 0.0
+    },
+    "all": {
+      "n": 61184,
+      "out": 1053.7,
+      "think": 577.3,
+      "read": 2453.3,
+      "write": 1323.7,
+      "in": 0.5
+    }
+  },
+  "rewrites": {
+    "worker": {
+      "a foreground reviewer": [194, 247],
+      "the orchestrator's next message": [87, 101],
+      "a background job": [16, 23],
+      "a check or script over 5 min": [18, 21],
+      "nothing (under 5 min; the prefix changed)": [43, 11],
+      "an outage": [5, 8],
+      "a background task or subagent": [5, 8]
+    },
+    "main": {
+      "the user": [3, 5],
+      "a background task or subagent": [3, 4],
+      "an outage": [2, 3],
+      "nothing (under 5 min; the prefix changed)": [2, 1]
+    },
+    "reviewer": {
+      "the orchestrator's next message": [6, 5],
+      "a background task or subagent": [3, 3],
+      "nothing (under 5 min; the prefix changed)": [6, 2],
+      "a check or script over 5 min": [1, 1]
+    }
+  },
+  "checks": {
+    "lint": {
+      "runs": 2011,
+      "hours": 17.0,
+      "failed": 214,
+      "failed_hours": 1.2
+    },
+    "test": {
+      "runs": 2855,
+      "hours": 13.3,
+      "failed": 578,
+      "failed_hours": 1.9
+    },
+    "typecheck": {
+      "runs": 1571,
+      "hours": 8.7,
+      "failed": 228,
+      "failed_hours": 0.9
+    },
+    "mutation": {
+      "runs": 509,
+      "hours": 6.6,
+      "failed": 68,
+      "failed_hours": 0.6
+    },
+    "coverage": {
+      "runs": 633,
+      "hours": 4.2,
+      "failed": 35,
+      "failed_hours": 0.3
+    },
+    "format": {
+      "runs": 2453,
+      "hours": 3.8,
+      "failed": 206,
+      "failed_hours": 0.4
+    },
+    "layout": {
+      "runs": 138,
+      "hours": 0.9,
+      "failed": 0,
+      "failed_hours": 0.0
+    },
+    "build": {
+      "runs": 183,
+      "hours": 0.8,
+      "failed": 3,
+      "failed_hours": 0.0
+    },
+    "verify": {
+      "runs": 35,
+      "hours": 0.2,
+      "failed": 0,
+      "failed_hours": 0.0
+    }
+  },
+  "commit_loop": {
+    "asteroid-breaker-follow-ups": {
+      "workers": 34,
+      "commits": 20,
+      "fixups": 0,
+      "reviews": 0,
+      "reviews_in_background": 0,
+      "root_lints": 41,
+      "check_runs": 503,
+      "model_min": 22.7,
+      "checks_min": 10.7,
+      "review_wait_min": 0.0,
+      "background_wait_min": 1.7,
+      "other_tools_min": 5.5,
+      "elapsed_min": 41.2,
+      "rewrites_per_commit": 1.85,
+      "worker_cost": 14.0,
+      "with_reviews_cost": 14.0
+    },
+    "shared-lib": {
+      "workers": 6,
+      "commits": 46,
+      "fixups": 0,
+      "reviews": 0,
+      "reviews_in_background": 0,
+      "root_lints": 73,
+      "check_runs": 315,
+      "model_min": 5.6,
+      "checks_min": 7.2,
+      "review_wait_min": 0.0,
+      "background_wait_min": 0.9,
+      "other_tools_min": 1.0,
+      "elapsed_min": 15.2,
+      "rewrites_per_commit": 0.59,
+      "worker_cost": 4.5,
+      "with_reviews_cost": 4.5
+    },
+    "brick-fuzz-pop": {
+      "workers": 14,
+      "commits": 113,
+      "fixups": 0,
+      "reviews": 139,
+      "reviews_in_background": 9,
+      "root_lints": 99,
+      "check_runs": 1874,
+      "model_min": 15.0,
+      "checks_min": 9.4,
+      "review_wait_min": 8.5,
+      "background_wait_min": 3.2,
+      "other_tools_min": 2.2,
+      "elapsed_min": 39.7,
+      "rewrites_per_commit": 1.56,
+      "worker_cost": 10.2,
+      "with_reviews_cost": 13.5
+    },
+    "brick-breaker-uplift": {
+      "workers": 23,
+      "commits": 69,
+      "fixups": 2,
+      "reviews": 73,
+      "reviews_in_background": 31,
+      "root_lints": 130,
+      "check_runs": 955,
+      "model_min": 10.9,
+      "checks_min": 8.4,
+      "review_wait_min": 3.8,
+      "background_wait_min": 1.8,
+      "other_tools_min": 1.2,
+      "elapsed_min": 26.5,
+      "rewrites_per_commit": 0.7,
+      "worker_cost": 7.9,
+      "with_reviews_cost": 10.6
+    },
+    "asteroid-breaker-uplift": {
+      "workers": 22,
+      "commits": 40,
+      "fixups": 1,
+      "reviews": 51,
+      "reviews_in_background": 1,
+      "root_lints": 57,
+      "check_runs": 444,
+      "model_min": 11.7,
+      "checks_min": 9.3,
+      "review_wait_min": 8.8,
+      "background_wait_min": 3.9,
+      "other_tools_min": 4.4,
+      "elapsed_min": 39.2,
+      "rewrites_per_commit": 1.62,
+      "worker_cost": 8.5,
+      "with_reviews_cost": 17.8
+    },
+    "bfp-tune-up": {
+      "workers": 9,
+      "commits": 17,
+      "fixups": 0,
+      "reviews": 20,
+      "reviews_in_background": 0,
+      "root_lints": 9,
+      "check_runs": 190,
+      "model_min": 7.5,
+      "checks_min": 11.6,
+      "review_wait_min": 6.6,
+      "background_wait_min": 0.0,
+      "other_tools_min": 1.0,
+      "elapsed_min": 28.3,
+      "rewrites_per_commit": 0.88,
+      "worker_cost": 5.5,
+      "with_reviews_cost": 9.0
+    }
+  }
+}

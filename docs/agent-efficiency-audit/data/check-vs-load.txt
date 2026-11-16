@@ -1,0 +1,77 @@
+
+ROOT:lint  (n=267)
+   other checks running   0: n= 107 median=  57.4s p90=  75.2s
+   other checks running  ~1: n= 108 median=  68.3s p90=  85.0s
+   other checks running  ~2: n=  41 median=  67.9s p90=  75.3s
+   other checks running  ~3: n=   9 median=  74.3s p90= 112.0s
+   agents active  1-2:        n=  62 median=  56.8s
+   agents active  3-4:        n=  80 median=  64.3s
+   agents active  5-6:        n= 100 median=  67.3s
+   agents active   7+:        n=  25 median=  68.5s
+
+brick-fuzz-pop:vitest  (n=661)
+   other checks running   0: n= 224 median=   8.9s p90=  20.1s
+   other checks running  ~1: n= 266 median=   7.3s p90=  19.8s
+   other checks running  ~2: n= 137 median=  10.1s p90=  18.8s
+   other checks running  ~3: n=  27 median=   7.8s p90=  14.5s
+   other checks running  4+: n=   7 median=   8.9s p90=  15.8s
+   agents active  1-2:        n=  46 median=  13.7s
+   agents active  3-4:        n= 131 median=  12.5s
+   agents active  5-6:        n= 310 median=   8.5s
+   agents active   7+:        n= 174 median=   3.9s
+
+brick-breaker:vitest  (n=440)
+   other checks running   0: n= 131 median=   8.9s p90=  26.9s
+   other checks running  ~1: n= 215 median=   8.6s p90=  24.9s
+   other checks running  ~2: n=  87 median=   6.3s p90=  18.1s
+   other checks running  ~3: n=   7 median=   7.4s p90=  12.9s
+   agents active  1-2:        n=  17 median=  24.0s
+   agents active  3-4:        n= 169 median=   8.4s
+   agents active  5-6:        n= 250 median=   8.5s
+   agents active   7+:        n=   4 median=   3.3s
+
+asteroid-breaker:vitest  (n=237)
+   other checks running   0: n= 128 median=  12.5s p90=  31.7s
+   other checks running  ~1: n=  94 median=  14.5s p90=  41.9s
+   other checks running  ~2: n=  12 median=  13.7s p90=  33.4s
+   agents active  1-2:        n=  83 median=  13.1s
+   agents active  3-4:        n= 121 median=  12.9s
+   agents active  5-6:        n=  33 median=  12.2s
+
+brick-fuzz-pop:lint && brick-fuzz-pop:typecheck  (n=104)
+   other checks running   0: n=  26 median=  35.8s p90=  43.8s
+   other checks running  ~1: n=  50 median=  32.8s p90=  44.9s
+   other checks running  ~2: n=  23 median=  36.0s p90=  46.9s
+   agents active  3-4:        n=  20 median=  39.2s
+   agents active  5-6:        n=  62 median=  34.6s
+   agents active   7+:        n=  21 median=  25.1s
+
+asteroid-breaker:test  (n=58)
+   other checks running   0: n=  30 median=  40.9s p90=  62.3s
+   other checks running  ~1: n=  23 median=  41.1s p90=  46.3s
+   other checks running  ~2: n=   5 median=  41.9s p90=  46.9s
+   agents active  1-2:        n=  23 median=  41.1s
+   agents active  3-4:        n=  24 median=  41.2s
+   agents active  5-6:        n=  11 median=  39.1s
+
+brick-breaker:lint && brick-breaker:typecheck && brick-breaker:test  (n=47)
+   other checks running   0: n=   9 median=  47.7s p90=  65.3s
+   other checks running  ~1: n=  31 median=  51.1s p90=  61.5s
+   other checks running  ~2: n=   7 median=  53.7s p90=  56.6s
+   agents active  3-4:        n=  16 median=  52.3s
+   agents active  5-6:        n=  30 median=  50.9s
+
+asteroid-breaker:lint && asteroid-breaker:typecheck  (n=48)
+   other checks running   0: n=  23 median=  34.1s p90=  38.8s
+   other checks running  ~1: n=  23 median=  34.9s p90=  38.4s
+   agents active  1-2:        n=  16 median=  34.6s
+   agents active  3-4:        n=  26 median=  35.1s
+   agents active  5-6:        n=   6 median=  35.3s
+
+brick-breaker:typecheck  (n=48)
+   other checks running   0: n=  24 median=  13.6s p90=  17.5s
+   other checks running  ~1: n=  18 median=  12.9s p90=  14.0s
+   other checks running  ~2: n=   6 median=  13.9s p90=  15.1s
+   agents active  1-2:        n=   6 median=  17.6s
+   agents active  3-4:        n=  19 median=  13.8s
+   agents active  5-6:        n=  21 median=  12.4s

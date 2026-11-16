@@ -1,0 +1,94 @@
+== Waits on the root checks' lock ==
+  /tmp/bbu-root-checks.lock: 191 runs, waited 1.26 h in all (p90 87 s, most 213 s), a run's median 69 s
+  /tmp/abu-root-checks.lock: 161 runs, waited 0.40 h in all (p90 35 s, most 142 s), a run's median 72 s
+
+== Characters to a token, in tool results of 20,000 characters or more ==
+  results=665 median=2.48 (a quarter under 2.26, a quarter over 2.57); lib.py uses 2.5
+
+== A worker's ramp-up: from its start to its first source edit (whole logs only) ==
+  asteroid-breaker-follow-ups  workers=18 minutes= 5.7 requests= 40 cost=$2.44 context at the first edit=180k
+      of that context, a worker's median: 51k at its first request, 90k of tool results, 0k of instruction files the harness loaded, 35k of its own output
+      the tool results: source files 51%, AGENTS.md files 30%, skills 6%, plans and design docs 6%, other 3%, work logs 3%
+  shared-lib                   workers= 6 minutes= 3.1 requests= 27 cost=$1.61 context at the first edit=159k
+      of that context, a worker's median: 63k at its first request, 67k of tool results, 6k of instruction files the harness loaded, 19k of its own output
+      the tool results: other 28%, source files 22%, AGENTS.md files 21%, plans and design docs 20%, skills 4%, git diff, show and log 4%
+  brick-fuzz-pop               workers=13 minutes= 6.7 requests= 54 cost=$3.57 context at the first edit=247k
+      of that context, a worker's median: 47k at its first request, 125k of tool results, 6k of instruction files the harness loaded, 39k of its own output
+      the tool results: plans and design docs 29%, source files 26%, AGENTS.md files 17%, work logs 13%, skills 8%, other 6%
+  brick-breaker-uplift         workers=23 minutes= 7.4 requests= 56 cost=$3.72 context at the first edit=265k
+      of that context, a worker's median: 52k at its first request, 146k of tool results, 6k of instruction files the harness loaded, 41k of its own output
+      the tool results: source files 44%, plans and design docs 19%, AGENTS.md files 11%, skills 8%, other 8%, work logs 7%
+  bfp-tune-up                  workers= 7 minutes= 5.3 requests= 42 cost=$3.28 context at the first edit=266k
+      of that context, a worker's median: 67k at its first request, 124k of tool results, 40k of instruction files the harness loaded, 32k of its own output
+      the tool results: source files 42%, plans and design docs 22%, AGENTS.md files 15%, skills 11%, other 8%, git diff, show and log 2%
+
+== Cost and time a commit, by how many commits the worker made ==
+  brick-breaker-uplift
+      1-2  commits: workers= 7 $ 14.2 a commit,  33.8 busy minutes a commit, 0.4 compactions a worker
+      3-4  commits: workers=13 $ 10.1 a commit,  25.7 busy minutes a commit, 0.8 compactions a worker
+      5-9  commits: workers= 3 $  9.8 a commit,  23.0 busy minutes a commit, 1.0 compactions a worker
+      workers that compacted at least once: 14 of 23
+  brick-fuzz-pop
+      1-2  commits: workers= 6 $ 11.5 a commit,  28.0 busy minutes a commit, 0.2 compactions a worker
+      3-4  commits: workers= 1 $ 13.7 a commit,  37.4 busy minutes a commit, 1.0 compactions a worker
+      10+  commits: workers= 6 $ 13.6 a commit,  39.2 busy minutes a commit, 7.5 compactions a worker
+      workers that compacted at least once: 8 of 14
+
+== The API's speed against the requests in flight (every session on the machine) ==
+  0  other requests:  13546 requests, 105.3 output tokens a second,  21% of the model's seconds
+  1  other requests:  18496 requests, 104.7 output tokens a second,  29% of the model's seconds
+  2  other requests:  16990 requests, 106.3 output tokens a second,  25% of the model's seconds
+  3  other requests:  10570 requests, 106.4 output tokens a second,  16% of the model's seconds
+  4  other requests:   4933 requests, 105.2 output tokens a second,   8% of the model's seconds
+  5+ other requests:   1499 requests, 105.3 output tokens a second,   2% of the model's seconds
+  a request's seconds, fitted over 66033 requests: 0.2 s, and its output at 109 tokens a second
+
+== Commits against busy workers, in half-hour windows ==
+  brick-fuzz-pop: 113 commits
+      1-2  busy:  8 windows,  1.5 commits an hour, 1.00 a busy worker-hour
+      2-3  busy: 10 windows,  3.6 commits an hour, 1.37 a busy worker-hour
+      3-4  busy:  9 windows,  6.0 commits an hour, 1.66 a busy worker-hour
+      4-5  busy:  9 windows,  7.8 commits an hour, 1.70 a busy worker-hour
+      5+   busy:  7 windows,  6.9 commits an hour, 1.29 a busy worker-hour
+  brick-breaker-uplift: 69 commits
+      1-2  busy:  2 windows,  3.0 commits an hour, 2.22 a busy worker-hour
+      2-3  busy:  2 windows,  5.0 commits an hour, 2.07 a busy worker-hour
+      3-4  busy: 13 windows,  8.5 commits an hour, 2.26 a busy worker-hour
+      4-5  busy:  1 windows, 10.0 commits an hour, 2.50 a busy worker-hour
+
+== What reviewers read, and what the harness loaded for them ==
+  reviews=604; a review's median: 43 tool calls, 78k tokens of results
+  the results by what was read: source files 35%, AGENTS.md files 22%, git diff, show and log 14%, plans and design docs 10%, other 9%, work logs 5%, skills 5%
+  a review's median context: 53k at its first request, 187k at its largest; its own output 38k; instruction files the harness loaded: mean 9k
+  read by a command or the Read tool: .agents/AGENTS.md by 87%, frontend/AGENTS.md by 80%, any AGENTS.md by 98%
+  the harness loaded an AGENTS.md for 299 of 604; 265 of those also read one of the same by command
+
+== What reviewers found ==
+  reports with a count of findings=595 (49 of them the shared library's, counted from its hand-back line): a review's median=5, none in 5; 3 more reports were not a list of findings
+      behaviour bug                     28% of findings; the first finding in  37% of reviews
+      docs, comments, logs              25% of findings; the first finding in  18% of reviews
+      spec gap or weak spec             23% of findings; the first finding in  20% of reviews
+      other                             19% of findings; the first finding in  21% of reviews
+      structure, naming, duplication     5% of findings; the first finding in   3% of reviews
+
+== What a worker changed between its review's report and its next commit ==
+  asteroid-breaker-uplift  reviews of code waited on         n= 42: source  76%, docs or logs only  21%, nothing   2%
+  bfp-tune-up              reviews of code waited on         n= 19: source  42%, docs or logs only  32%, nothing  26%
+  brick-breaker-uplift     reviews of code in the background n= 31: source  81%, docs or logs only  13%, nothing   6%
+  brick-breaker-uplift     reviews of code waited on         n= 40: source  68%, docs or logs only  30%, nothing   2%
+  brick-fuzz-pop           reviews of code waited on         n=115: source  72%, docs or logs only  22%, nothing   6%
+
+== Reviews by subject ==
+  code: 526 reviews, $1442, docs, plans, skills: 46 reviews, $167, a work log: 32 reviews, $81
+
+== A few counts the report quotes ==
+  worker: 48% of its 13497 reads and searches returned under 1,500 characters
+  reviewer: 37% of its 21706 reads and searches returned under 1,500 characters
+  worker: 2195 of its 32093 tool calls touched a work log (6.8%)
+  reviewer: 1540 of its 27882 tool calls touched a work log (5.5%)
+  main: 533 of its 4252 tool calls touched a work log (12.5%)
+  worker: instruction files the harness loaded, median 33k tokens, none for 6 of 109
+  reviewer: instruction files the harness loaded, median 0k tokens, none for 305 of 604
+  worker: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 27k tokens
+  reviewer: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 21k tokens
+  the skills listed in a subagent's first request: median 61 skills, 11.9k tokens
