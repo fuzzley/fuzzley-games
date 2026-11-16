@@ -13,16 +13,17 @@ import { BOULDER_HOLD_MS } from "./timing";
  * broken rock's break (its shards, dust and sparks), the field's kick at a
  * large rock's break, a held hit's flash and spark, a blast (its flash,
  * ring, embers and light), a ring sweeping out (a spent Shield's, a lost
- * pod's, a vent's, a pickup let go's or fading's, or a stray's drifting
- * in), the
- * points scored, a dash's trail, a lost pod's burst, its pilot bailing
- * out, the field's shake at a boulder's break and the boulder's beats, as
- * a wave's last rock goes the flourishes slowed, where it is a sector's
- * last, and the wave's ring, and a still ring marking where something
- * happened. Each but the points, a blast and a still mark moves, so plays
- * only where motion is welcome; the points show either way, rising only
- * where it is, a blast's ring stands still at its reach where it isn't,
- * and a still mark shows only there.
+ * pod's, a vent's, a pickup let go's or fading's, a stray's drifting in,
+ * or the pod's as static steps up), the points scored, a dash's trail, a
+ * lost pod's burst, its pilot bailing out, the field's shake at a
+ * boulder's break and the boulder's beats, as a wave's last rock goes the
+ * flourishes slowed, where it is a sector's last, and the wave's ring, a
+ * still ring marking where something happened, and as a fuzzball is
+ * caught its soft ring (`rescue`) and the line in tow springing
+ * (`spring`). Each but the points, a blast and a still mark moves, so
+ * plays only where motion is welcome; the points show either way, rising
+ * only where it is, a blast's ring stands still at its reach where it
+ * isn't, and a still mark shows only there.
  */
 export type Flourish =
   | "muzzle"
@@ -40,7 +41,9 @@ export type Flourish =
   | "boulder"
   | "slow"
   | "wave"
-  | "mark";
+  | "mark"
+  | "rescue"
+  | "spring";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without. */
 export interface EventEffects {
@@ -87,12 +90,15 @@ const HELD: Readonly<Record<RockSize, EventEffects>> = recordOf(
   () => moving(["flash", "spark"]),
 );
 
+/** What static stepping up calls for. */
+const STEPPED_UP = moving(["ring"]);
+
 /**
  * What each event calls for, but a rock's break and a hit it holds, which its
- * kind and size decide.
+ * kind and size decide, and static's step, which its way decides.
  */
 const EVENT_EFFECTS: Readonly<
-  Record<Exclude<FieldEventKind, "broken" | "hit">, EventEffects>
+  Record<Exclude<FieldEventKind, "broken" | "hit" | "stepped">, EventEffects>
 > = {
   fired: moving(["muzzle"]),
   // A dash's start and a spent Shield keep a still ring, which tells the
@@ -120,16 +126,19 @@ const EVENT_EFFECTS: Readonly<
   // The run's end holds the field still, unshaken: `plan.md`'s budget
   // shakes it for a hit and a boulder alone.
   lost: moving(["burst", "ring", "bailout"]),
-  // The crew's own flourishes are a later package's to choose.
   knocked: QUIET,
-  recaught: QUIET,
+  // One floating home, its time out, the run over or caught with the line
+  // full, which the event doesn't tell apart, plays nothing.
   floated: QUIET,
-  joined: QUIET,
-  home: QUIET,
+  // One caught opens a soft ring, and the line springs as one joins it;
+  // where motion isn't welcome, the line and the bar show it.
+  recaught: moving(["rescue", "spring"]),
+  joined: moving(["rescue", "spring"]),
+  home: moving(["rescue"]),
   scored: { flourishes: ["points"], still: ["points"] },
-  // Sparks', static's and the zap's own flourishes are a later package's to choose.
+  // A spark gathered, a near miss and the zap show in their own painters:
+  // the sparks', the pod's face and the arcs.
   sparked: QUIET,
-  stepped: QUIET,
   grazed: QUIET,
   zapped: QUIET,
   arced: QUIET,
@@ -156,6 +165,11 @@ export function effectsOf(event: Readonly<FieldEvent>): EventEffects {
       return hasTrait(rockKindOf(event), "rings")
         ? QUIET
         : HELD[rockSizeOf(event)];
+    case "stepped":
+      // Static stepping up sends a ring from the pod; the fur's lift, at
+      // once where motion isn't welcome, is its still form, and a fall
+      // shows only in the fur.
+      return event.fell ? QUIET : STEPPED_UP;
     default:
       return EVENT_EFFECTS[event.kind];
   }

@@ -1,9 +1,14 @@
 import { easeOutCubic, fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
-import { type Moving, copyOffsets } from "../../rules/torus";
+import { type Moving, type Torus, copyOffsets } from "../../rules/torus";
 import { type Energy, energyOf } from "../../view/art/energy";
 import type { BeltPalette } from "../../view/colors/palette";
+import {
+  RESCUE_RING,
+  type RescueRing,
+  rescueRingAt,
+} from "../../view/effects/rescue";
 import {
   WAVE_RING,
   type WaveRing,
@@ -27,7 +32,7 @@ export const RING_WIDTH = 0.25;
 /** No copies past the edges, for a ring that doesn't wrap. */
 const NO_COPIES: Readonly<Moving> = { x: 0, y: 0 };
 
-/** Describes a ring: where, how far it reaches, in its color, whether it stands still, and whether it wraps. */
+/** Describes a ring: where, how far it reaches, in its color, whether it stands still, whether it wraps, and whether it is a fuzzball caught's. */
 interface Ring extends Playing {
   reach: number;
   color: number;
@@ -35,20 +40,25 @@ interface Ring extends Playing {
   still: boolean;
   /** Whether it is drawn past each edge it reaches across, or once, for the field's camera to cut off. */
   wraps: boolean;
+  /** Whether it is a fuzzball caught's soft ring, opening as `rescue.ts` says, in the accent's energy, rather than its own reach and color. */
+  soft: boolean;
 }
 
 /**
  * Draws the rings that sweep out, fading as they go, from a spent Shield, a
- * lost pod, a vent, a pickup let go or fading and a stray drifting in, and
- * the still marks where motion isn't welcome, at a dash's start and round
- * a spent Shield, each on both sides of an edge it reaches across but a
- * stray's, which comes in at the edge and is drawn once, as the stray is;
- * and the wave's ring, which crosses the whole field from where its last
- * rock went as the view's `cleared.ts` says, once, for the field's camera
- * to cut off at its edges, its soft outside and its line each a band, in
- * the accent's energy. Every ring is filled as bands of triangles,
- * through `rounds.ts`. The scene plays all but the marks only where
- * motion is welcome.
+ * lost pod, a vent, a pickup let go or fading, a stray drifting in and the
+ * pod as static steps up, and the still marks where motion isn't welcome,
+ * at a dash's start and round a spent Shield, each on both sides of an
+ * edge it reaches across but a stray's, which comes in at the edge and is
+ * drawn once, as the stray is; a fuzzball caught's soft ring, opening from
+ * where its bubble was as the view's `rescue.ts` says, its soft outside
+ * and its line each a band, in the accent's energy, past each edge it
+ * reaches across; and the wave's ring, which crosses the whole field from
+ * where its last rock went as the view's `cleared.ts` says, once, for the
+ * field's camera to cut off at its edges, its soft outside and its line
+ * each a band, in the accent's energy. Every ring is filled as bands of
+ * triangles, through `rounds.ts`. The scene plays all but the marks only
+ * where motion is welcome.
  */
 export class RingPainter implements Painter {
   /** Every ring and mark showing, drawn again each frame. */
@@ -62,6 +72,7 @@ export class RingPainter implements Painter {
     color: 0,
     still: false,
     wraps: true,
+    soft: false,
   }));
   /** How far a ring's copies past the edges are from it on the field, written each frame. */
   private readonly offsets: Moving = { x: 0, y: 0 };
@@ -76,6 +87,12 @@ export class RingPainter implements Painter {
   };
   /** The wave's ring as it shows, written each frame. */
   private readonly waveShown: WaveRing = { radius: 0, shown: 0 };
+  /** A fuzzball caught's soft ring as it shows, written for each, each frame. */
+  private readonly rescueShown: RescueRing = {
+    radius: 0,
+    softWidth: 0,
+    shown: 0,
+  };
   /** The palette the wave's ring's tones were last taken for, or null before. */
   private toned: BeltPalette | null = null;
   /** The accent's energy, the wave's ring's tones, in that palette. */
@@ -101,6 +118,11 @@ export class RingPainter implements Painter {
     this.play(x, y, reach, color, false, wraps, now);
   }
 
+  /** Opens a fuzzball caught's soft ring about where its bubble was. */
+  rescue(x: number, y: number, now: number): void {
+    this.play(x, y, 0, 0, false, true, now).soft = true;
+  }
+
   /** Marks a place with a ring standing still at a reach, in field units, in a color, for `STILL_MARK_MS`. */
   mark(x: number, y: number, reach: number, color: number, now: number): void {
     this.play(x, y, reach, color, true, true, now);
@@ -116,13 +138,17 @@ export class RingPainter implements Painter {
   }
 
   /**
-   * Draws each ring sweeping out, a share through its time, and each mark
-   * standing still, on both sides of an edge it reaches across if it wraps,
-   * and the wave's ring.
+   * Draws each ring sweeping out, a share through its time, each mark
+   * standing still and each fuzzball caught's soft ring opening, on both
+   * sides of an edge it reaches across if it wraps, and the wave's ring.
    */
   draw({ field, metrics, now, palette }: Readonly<PaintContext>): void {
     const graphics = this.graphics.clear();
     for (const ring of this.rings.all) {
+      if (ring.soft) {
+        this.drawRescue(ring, now, field.torus, palette, metrics);
+        continue;
+      }
       const done = shareDone(
         ring.at,
         now,
@@ -162,6 +188,49 @@ export class RingPainter implements Painter {
   start(): void {
     for (const ring of this.rings.all) ring.at = -Infinity;
     this.waved.at = -Infinity;
+  }
+
+  /**
+   * Draws a fuzzball caught's soft ring as it opens at a time, its soft
+   * outside under its line, on both sides of an edge it reaches across.
+   */
+  private drawRescue(
+    ring: Readonly<Ring>,
+    now: number,
+    torus: Readonly<Torus>,
+    palette: BeltPalette,
+    metrics: FieldMetrics,
+  ): void {
+    const shown = rescueRingAt(now - ring.at, this.rescueShown);
+    if (shown === null) return;
+    const { graphics } = this;
+    const { halo, body } = this.tonesFor(palette);
+    const { unit, pixelRatio } = metrics;
+    const radius = shown.radius * unit;
+    const softWidth = Math.max(RESCUE_RING.softLeast, shown.softWidth * unit);
+    const width = Math.max(RESCUE_RING.least, RESCUE_RING.width * unit);
+    // Past its widest band by as far again, whatever its least pixels.
+    const { x: across, y: down } = copyOffsets(
+      ring.x,
+      ring.y,
+      shown.radius + shown.softWidth,
+      torus,
+      this.offsets,
+    );
+    for (const [acrossShare, downShare] of COPY_SHARES) {
+      if (acrossShare === 1 && across === 0) continue;
+      if (downShare === 1 && down === 0) continue;
+      const at = toCanvas(
+        metrics,
+        ring.x + acrossShare * across,
+        ring.y + downShare * down,
+        this.at,
+      );
+      graphics.fillStyle(halo, RESCUE_RING.softAlpha * shown.shown);
+      strokeRound(graphics, at.x, at.y, radius, softWidth, pixelRatio);
+      graphics.fillStyle(body, RESCUE_RING.alpha * shown.shown);
+      strokeRound(graphics, at.x, at.y, radius, width, pixelRatio);
+    }
   }
 
   /** Draws the wave's ring as it crosses the field at a time, once, its soft outside under its line. */
@@ -206,7 +275,7 @@ export class RingPainter implements Painter {
     return this.tones;
   }
 
-  /** Plays a ring, sweeping out or standing still, in the next record of the pool. */
+  /** Plays a ring, sweeping out or standing still, in the next record of the pool, and returns it. */
   private play(
     x: number,
     y: number,
@@ -215,12 +284,14 @@ export class RingPainter implements Painter {
     still: boolean,
     wraps: boolean,
     now: number,
-  ): void {
+  ): Ring {
     const ring = this.rings.play(x, y, now);
     ring.reach = reach;
     ring.color = color;
     ring.still = still;
     ring.wraps = wraps;
+    ring.soft = false;
+    return ring;
   }
 
   /**

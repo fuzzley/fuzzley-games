@@ -3,7 +3,7 @@ import { commandsOf } from "@fz/phaser/testing";
 import type { GameObjects } from "phaser";
 import { FieldEventLog } from "../rules/field/events";
 import { NOSE } from "../rules/ship/shots";
-import { ROCK_RADIUS } from "../rules/tuning";
+import { ROCK_RADIUS, STRAY_RADIUS } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
   type Band,
@@ -12,20 +12,26 @@ import {
   MIDDLE,
   metricsOf,
   bandsOf,
+  linesOf,
   onCanvas,
+  roundsOf,
   scrolledBy,
   shardTints,
   shownAt,
   startBoard,
   toMillionths,
+  withShip,
 } from "../testing/belt_board";
 import { loggedOn, placeRock } from "../testing/field_picture";
+import { energyOf } from "../view/art/energy";
 import { ADRIFT_FRAMES } from "../view/art/pilot_art";
 import { breakOf, impactOf, shardPushOf, rimToward } from "../view/art/breaks";
+import { RESCUE_RING, SPRING } from "../view/effects/rescue";
 import { RINGS, ringOf } from "../view/effects/flourish";
 import {
   BOULDER_HOLD_MS,
   BURST_SHARDS,
+  RESCUE_MS,
   FLASH_GAP_MS,
   RING_MS,
   SHAKE_MS,
@@ -52,13 +58,13 @@ function eventOf(add: (log: FieldEventLog) => void): FieldEvent {
 }
 
 /**
- * Starts a board, and a player of flourishes on its scene's painters and its
- * field's camera.
+ * Starts a board, set up as a spec says, and a player of flourishes on its
+ * scene's painters and its field's camera.
  */
-async function startPlayer(): Promise<
-  Board & { readonly player: FlourishPlayer }
-> {
-  const board = await startBoard();
+async function startPlayer(
+  setup?: (shell: FakeShell) => void,
+): Promise<Board & { readonly player: FlourishPlayer }> {
+  const board = await startBoard(setup);
   const { scene } = board;
   const player = new FlourishPlayer({
     debris: scene.kit.debris,
@@ -70,6 +76,7 @@ async function startPlayer(): Promise<
     points: scene.kit.points,
     strays: scene.kit.strays,
     muzzle: scene.kit.muzzle,
+    tow: scene.kit.tow,
     camera: scene.kit.fieldCamera,
   });
   return { ...board, player };
@@ -544,6 +551,88 @@ describe("FlourishPlayer", () => {
         color: ART_PALETTE.accent,
       },
     ]);
+  });
+
+  it("opens a fuzzball caught's soft ring about where it was caught, its soft outside under its line, in the accent's energy", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW + RESCUE_MS / 2);
+    const event = eventOf((log) => {
+      log.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
+    });
+
+    player.play("rescue", event, contextAt(shell, NOW));
+    scene.kit.rings.draw(context);
+
+    const at = onCanvas(context.metrics, MIDDLE.x, MIDDLE.y);
+    const ring = {
+      x: toMillionths(at.x),
+      y: toMillionths(at.y),
+      radius: toMillionths(
+        (STRAY_RADIUS + RESCUE_RING.opens * (7 / 8)) * context.metrics.unit,
+      ),
+    };
+    const { halo, body } = energyOf(ART_PALETTE.accent, ART_PALETTE);
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([
+      { ...ring, color: halo, alpha: RESCUE_RING.softAlpha / 2 },
+      { ...ring, color: body, alpha: RESCUE_RING.alpha / 2 },
+    ]);
+  });
+
+  it("fills a fuzzball caught's soft outside as wide as the kit's, narrowing as it opens, and its line as wide as the kit's", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW + RESCUE_MS / 2);
+    const event = eventOf((log) => {
+      log.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
+    });
+
+    player.play("rescue", event, contextAt(shell, NOW));
+    scene.kit.rings.draw(context);
+
+    const { unit } = context.metrics;
+    expect(
+      roundsOf(scene.kit.rings.graphics).map(({ inner, outer }) =>
+        toMillionths((outer - inner) / unit),
+      ),
+    ).toEqual([
+      toMillionths(RESCUE_RING.softWidth * (3 / 4)),
+      RESCUE_RING.width,
+    ]);
+  });
+
+  it("puts a fuzzball caught's soft ring away once its time is over", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const event = eventOf((log) => {
+      log.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
+    });
+
+    player.play("rescue", event, contextAt(shell, NOW));
+    scene.kit.rings.draw(contextAt(shell, NOW + RESCUE_MS));
+
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+
+  it("springs the line in tow as one joins it, each stretch drawn in steps as it bows", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const event = eventOf((log) => {
+      log.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
+    });
+
+    player.play("spring", event, contextAt(shell, NOW));
+    scene.kit.tow.draw(contextAt(shell, NOW + RESCUE_MS / 12));
+
+    expect(linesOf(scene.kit.tow.line)).toHaveLength(2 * SPRING.steps);
+  });
+
+  it("draws the line in tow straight once its spring is over", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const event = eventOf((log) => {
+      log.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
+    });
+
+    player.play("spring", event, contextAt(shell, NOW));
+    scene.kit.tow.draw(contextAt(shell, NOW + RESCUE_MS));
+
+    expect(linesOf(scene.kit.tow.line)).toHaveLength(2);
   });
 
   it("sets a blast off where its rock went off, lighting the rocks near it", async () => {

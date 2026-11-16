@@ -47,7 +47,10 @@ function eventOf(
   };
 }
 
-/** Every event but a rock's break and a hit it holds, with its flourishes with motion and without. */
+/**
+ * Every event but a rock's break and a hit it holds, with its flourishes
+ * with motion and without, static's step as it rises.
+ */
 const EVENTS: readonly (readonly [
   FieldEventKind,
   readonly Flourish[],
@@ -67,14 +70,14 @@ const EVENTS: readonly (readonly [
   ["faded", ["ring"], []],
   ["lost", ["burst", "ring", "bailout"], []],
   ["knocked", [], []],
-  ["recaught", [], []],
+  ["recaught", ["rescue", "spring"], []],
   ["floated", [], []],
   ["strayed", ["ring"], []],
-  ["joined", [], []],
-  ["home", [], []],
+  ["joined", ["rescue", "spring"], []],
+  ["home", ["rescue"], []],
   ["scored", ["points"], ["points"]],
   ["sparked", [], []],
-  ["stepped", [], []],
+  ["stepped", ["ring"], []],
   ["grazed", [], []],
   ["zapped", [], []],
   ["arced", [], []],
@@ -112,6 +115,12 @@ describe("effectsOf", () => {
       expect(effectsOf(eventOf(kind))).toEqual({ flourishes, still });
     },
   );
+
+  it("plays nothing as static falls to a step", () => {
+    const event = { ...eventOf("stepped"), fell: true };
+
+    expect(effectsOf(event)).toEqual({ flourishes: [], still: [] });
+  });
 
   it.each(BREAKS)(
     "breaks a %s rock with the flourishes %j, none without motion",

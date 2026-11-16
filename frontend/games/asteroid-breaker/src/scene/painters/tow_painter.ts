@@ -4,6 +4,11 @@ import type { Moving } from "../../rules/torus";
 import { MOST_CREW, STRAY_RADIUS } from "../../rules/tuning";
 import { FRAMES, STRAY_DROP } from "../../view/art/art";
 import {
+  createSprungLine,
+  springShare,
+  sprungLine,
+} from "../../view/effects/rescue";
+import {
   BUBBLE_REACH,
   TOW_RADIUS,
   isLooseFrightened,
@@ -70,7 +75,8 @@ interface Drawing {
  * as it flies off, wide eyed and puffed, then pleading, its eyes on the
  * pod, blinking through its last seconds. Each pilot bobs in its bubble
  * where motion is welcome, and each part is drawn again past an edge it
- * reaches across.
+ * reaches across. The line springs as one joins it (`spring()`), where
+ * motion is welcome.
  */
 export class TowPainter implements Painter {
   /** The line in tow, drawn again each frame. */
@@ -84,6 +90,10 @@ export class TowPainter implements Painter {
   private readonly moments = createFaceMoments();
   /** Where the line in tow is drawn, written each frame. */
   private readonly drawnLine: TowLine = createTowLine();
+  /** Where the line in tow is drawn while it springs, written each frame it does. */
+  private readonly sprung: TowLine = createSprungLine();
+  /** When one last joined the line, which springs from then, or −Infinity. */
+  private sprungAt = -Infinity;
   /** Where a stretch of the line starts and ends on the canvas, written each frame. */
   private readonly from: Moving = { x: 0, y: 0 };
   private readonly to: Moving = { x: 0, y: 0 };
@@ -118,9 +128,15 @@ export class TowPainter implements Painter {
     hearFace(this.moments, event, steps);
   }
 
-  /** Forgets the last field's moments, as a new field starts. */
+  /** Springs the line in tow, as one joins it, from a time on. */
+  spring(now: number): void {
+    this.sprungAt = now;
+  }
+
+  /** Forgets the last field's moments, and stops the line springing, as a new field starts. */
   start(): void {
     Object.assign(this.moments, createFaceMoments());
+    this.sprungAt = -Infinity;
   }
 
   /** Draws the line in tow, each who rides it, and each knocked loose, as the frame has them. */
@@ -133,7 +149,12 @@ export class TowPainter implements Painter {
   /** Draws the line in tow, and again past each edge it reaches across, or nothing with no one in tow. */
   private drawLine(context: Readonly<PaintContext>): void {
     const { field, shipDrawn, alpha, metrics, palette } = context;
-    const line = towLineAt(field, shipDrawn, alpha, this.drawnLine);
+    const line = sprungLine(
+      towLineAt(field, shipDrawn, alpha, this.drawnLine),
+      springShare(context.now - this.sprungAt),
+      field.torus,
+      this.sprung,
+    );
     const graphics = this.line.clear();
     if (line.count < 2) return;
     graphics.lineStyle(towLineWidth(metrics), palette.rim);
