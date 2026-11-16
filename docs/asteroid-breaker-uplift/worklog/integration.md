@@ -1000,7 +1000,7 @@ imports it only from `sound_lab_mix.ts`, never from what Node runs.
   `goalOf()`; `hitWithin()`'s sparing; the atlases' size; R3's figures to
   log against), and P3's and R2's.
 - **Missed:** `origin/main` had moved at 16:42, before this landing, from
-  `7fbd968a` to `fd5c050f`, 28 commits bringing code (the Brick Fuzz Pop
+  `7fbd968a` to `fd5c050f`, 27 commits bringing code (the Brick Fuzz Pop
   tune-up, `@fz/ui`'s icons), which the third verify run's entry said
   would bring the rebase onto `main`. It went unseen until the review of
   this entry, so R4 started from the old tip; the rebase, and R4's and
@@ -1076,3 +1076,120 @@ imports it only from `sound_lab_mix.ts`, never from what Node runs.
   result's and the Sectors' specs each, which a helper in
   `src/testing/records.ts` (R's) could share.
 - **F2** waits on F1, still running.
+
+### 2026-11-15, rebased onto main, and a fourth verify run
+
+- **`origin/main`** moved from `7fbd968a` to `fd5c050f`, 27 commits: the
+  Brick Fuzz Pop tune-up, built and merged by another session, and
+  `@fz/ui`'s `drop` icon in place of `skip`, which nothing of this game
+  draws. Of the files the branch changes, it touched two, `@fz/ui`'s
+  `AGENTS.md` and the `fuzzley-ui` skill, beside L5's lines on the
+  fuzzball.
+- **Rebased:** the tip before, `7743c2d7`, kept as `refs/abu/before-main-rebase`
+  beside `refs/abu/build-start` (`da697c6e9`, which §9's budget is set
+  against, so it stays reachable for the frame's traces); the 82 commits
+  onto `fd5c050f` without a conflict, git merging the two files, each
+  keeping both sides' lines, read in `git diff origin/main` after. The
+  new tip is `086b363c`. R4 and F1, under way from the old tip, were told
+  to land with `git rebase --onto asteroid-breaker-uplift $(git merge-base
+HEAD 7743c2d7)`, so only their own commits move.
+- **The fourth verify run, on `086b363c`,** under the lock: every
+  workspace's tests, two at a time on four workers each, the build and
+  Asteroid Breaker's layout check in 3 min 40 s (17:42:16 to 17:45:56),
+  then the root's typecheck and lint, all passing; and Brick Fuzz Pop's
+  layout check at every shape and turn, as its tune-up's new bar and
+  gauge meet this build's libraries. Brick Fuzz Pop has 7,168 specs now
+  (6,489 before the tune-up), Asteroid Breaker 7,872; the others' counts
+  are as at the third run.
+- **The next run** is due after three more landings, counted from here.
+
+### 2026-11-15, the container restarted
+
+- **At about 18:22,** the container restarted, stopping F1 and R4 mid-work
+  and every process with them: F1's traces for its frame sitting, and any
+  report run, server or review R4 had going. Their worktrees, their
+  commits and staged work, and the scratchpad with the briefs came through
+  unchanged. Both were resumed from their own transcripts, told what was
+  lost, to run again what was cut short.
+
+### 2026-11-15, F1 landed, F2 and Q1 started
+
+- **F1 landed** as `937e2f6e` to `ee77af2d`, seven commits, fast-forward:
+  every flourish timed in `timing.ts`, the break's and the held hit's
+  among them, and the dust flourish and the shards' counts, spark and
+  sizes no break uses gone; the field shaken along the blow for a boulder
+  alone, held still for its first beat, and one limiter for every flash;
+  the muzzle's two-beat flash under the pod's nose as a shot leaves, and
+  a held hit's spark at 150 ms; a volatile rock's blast as a flash, a
+  ring with a hot inner edge and embers, the rocks near it lit, and a
+  still ring at its reach; a boulder's beats, the flourishes slowed as a
+  wave's last rock goes and the wave's ring crossing the field, and the
+  last pilot's bubble raised before the result; still rings at a dash's
+  start and round a spent Shield where motion isn't welcome, and a ring
+  as a pickup is let go or fades and a stray drifts in.
+- **Settled on its own rebases:** onto R3's `b2bdb71c`, a vent's ring
+  meeting F1's one table of rings (`RINGS`, a ring's reach left to its
+  event where it is null, `RingLook`, and `ringOf()` resolving it, the
+  vent's to its blast's, `ringColorOf()` kept, the vent's in the warning's
+  color), the layers (P3's crew in tow and F1's muzzle flash both under
+  the ship, the tow first), `effects.ts` with R3's rows as R3 left them,
+  and the docs; onto P4's `c8bd5e91`, the layers (P4's sparks and arcs
+  beside the flash), `halo_painter.spec.ts`' counts with both sides'
+  reserved glows, the scene's doc and `AGENTS.md`; each keeping both
+  sides. F1's second log reviewer read the first settle's range-diff and
+  its third the second's, each finding the resolutions right. Then onto
+  `086b363c`, main's, with `--onto`, without a conflict, the game's tree
+  unchanged by it.
+- **Its checks on that tip:** the game's lint, typecheck and 8,085 specs,
+  the root's lint under the lock, the coverage at every floor (the scene
+  99.03% of statements, the view's effects 100% of statements and 99.26%
+  of branches); Prettier and the root's
+  lint after its log's last commit.
+- **Its frame,** its fourth sitting, finished after the restart, wave 9,
+  fourteen rounds interleaved: 3.345 ms at `da697c6e9`, the build's
+  start; 4.69 ms at `c8bd5e91`, the integration under F1; 4.56 ms on its
+  branch. F1 adds nothing measurable. By §9's medians, the reading every
+  earlier sitting used, the tip is past the third over the build's start,
+  36% against a limit of 4.46 ms, and the integration under it 40%; taking
+  each round's ratio first, they are just inside it, 31% and 34%. Where the time went, `da697c6e9` to `c8bd5e91`: Phaser's
+  render, half of it (the images drawn, `Graphics` paths, three times the
+  draws and four times the program switches, seven texture binds where
+  there were none); the painters' own script (P3's tow, L6's pod, L4's
+  halos, P4's sparks and arcs); the sounds; the shell's tick a little. Its
+  scripts and figures are in `worklog/F1-budget/`.
+- **Outside its files:** `belt_scene.ts` and its spec, `painter.ts`,
+  `layers.ts` and its spec and `palette.ts` (docs), `halo_painter.spec.ts`,
+  `rock_painter.ts`, `debris_painter.ts`, `copy_shares.ts`, `shots.ts`
+  (`NOSE` exported, R's), `art.ts`, `breaks.ts` and `run_frames.ts` with
+  their specs, and the game's `AGENTS.md`.
+- **Decided by the integrator:** F1 slows the flourishes at every wave's
+  last rock, as the scene can't tell a sector's last, and left the reading
+  for the user; the plan's row says a sector's last rock, then the wave's
+  ring, and the kit's ring is a wave's, so F2 keeps the slow to a sector's
+  last wave and the ring on every clearing.
+- **Decided by the integrator: a performance package, Q1,** before Z1, as
+  F1's figures put the tip past §9's third by its medians and F2 and R4
+  add to it. It owns the scene's draw path, how the painters draw and not
+  what, every picture compared before and after, and aims for a quarter
+  over the build's start or less, measured with F1's scripts, again on
+  the tip it rebases onto before it reports. It departs from §7.3, where
+  the painters, `belt_scene.ts` and `layers.ts` are add-only to every
+  package and no two restyle one file side by side: Q1 changes the
+  painters' insides while F2 and R4 add to them. Each keeps the other's
+  work: whoever lands second rebases onto the first and settles, and its
+  settled delta is read as §7.5 asks. For §12: Q1 isn't in the
+  implementation plan's §6.
+- **Left, each with an owner:** the pod's bail-out's flung facets, and
+  the boulder's beats overlapping its break rather than following it,
+  F2's, in its brief; `RingPainter`'s rings still drawn as `Graphics`
+  circles of a hundred corners each frame, which F2 owns and adds rings
+  to, F2's, told, moving its `stroke()` onto `rounds.ts`' `strokeRound()`;
+  `DebrisPainter`'s own round fills, beside `rounds.ts`' `fillRound()`,
+  and the frame's room, Q1's, told. F1's
+  look is seen in a browser but for the shake, the hold, the slow, a
+  vent's ring, the run's end with motion, the dash's and the Shield's
+  marks, the sights' rings and static's arcs, which rest on their specs;
+  Z1 looks at those with the rest.
+- **F2 started** from `ee77af2d`, with F1's, P4's and R3's notes in its
+  brief; **Q1 started** from `ee77af2d`, its brief new
+  (`brief-q1.md`). R4 was told of both.
