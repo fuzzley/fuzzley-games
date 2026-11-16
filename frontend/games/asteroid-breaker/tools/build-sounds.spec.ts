@@ -32,9 +32,112 @@ import { PLAYS } from "./sound-lab/plays";
 /** Each take's length in the shipped sprite, in samples, by its name. */
 const LENGTHS: Readonly<Record<string, number>> = recorded.takes;
 
-/** Returns the first 16 hex digits of the SHA-256 of a file's bytes. */
-function digestOf(file: Buffer): string {
-  return createHash("sha256").update(file).digest("hex").slice(0, 16);
+/**
+ * Each sound of the sprite and the first 16 hex digits of the SHA-256 of the
+ * kit's WAVs of its takes, one after another, which the user heard. The
+ * beds lie outside the sprite, and would take about 24 s more to render,
+ * so no spec renders them.
+ */
+const KIT_SOUNDS: Readonly<Record<string, string>> = {
+  "blast-volatile": "0159206eaff51bb4",
+  "blast-volatile-small": "b83e00901c001bde",
+  "break-boulder": "854633e34b882a63",
+  "break-cluster": "232d39eca051afa3",
+  "break-crystal-large": "ba4608797f848976",
+  "break-crystal-medium": "634b7a2df5c91dfd",
+  "break-ice-large": "9eb76531a6082d21",
+  "break-ice-medium": "880e312fe810d6c3",
+  "break-ice-small": "cb63f98dbb017ed1",
+  "break-iron-large": "bd6c5c65d23b8c0e",
+  "break-iron-medium": "e848f8c2a3597742",
+  "break-iron-small": "9bd62de1de9b3786",
+  "break-lodestone-large": "0b887bb1f803c228",
+  "break-lodestone-medium": "0dc54aaf8d3b0d31",
+  "break-lodestone-small": "9575fa031c1bc2ab",
+  "break-stone-large": "e73ae9633cdb6a7e",
+  "break-stone-medium": "66cc3ef959b09224",
+  "break-stone-small": "4250117b02f1abfc",
+  "burr-cling": "78c426f52deb4b20",
+  "burr-pop": "56b101d4c84ee5fc",
+  "burr-shed": "59eaf0a265ea2cae",
+  "chain-ping": "2f546ef8c4851785",
+  "chain-x2": "7ae96e878f4b7822",
+  "chain-x3": "294e3c3af658a087",
+  "chain-x4": "34314db7a05b1c3b",
+  "comet-pass": "9abd0996167e7298",
+  "comet-smash": "9d39f9ade38e03a1",
+  "comet-warning": "9131d7d8ac34eadb",
+  "crew-caught": "6ab5c8e71464c441",
+  "crew-home": "30c6007c56d2d7e6",
+  "crew-loose": "43b4d71493f381e1",
+  dash: "88a91d48ce7dbf13",
+  "dash-ready": "d4b564105c83b9cb",
+  "effect-end": "9d8cf176293c8ddd",
+  "fuse-volatile": "75d2c6d126be1a0f",
+  "guard-end": "a6cb3a8cbda2e84f",
+  "hit-boulder": "cd7afd4fbd2b3988",
+  "hit-iron": "c561aed81fcdb6d4",
+  "hit-stone": "fa3580b2835af55a",
+  "level-up": "286852422951deaf",
+  "lodestone-hum": "e7f67c925b5a6da2",
+  "near-miss": "32b4ea9c930e51e1",
+  "new-best": "9ccb4ee965ddf4f6",
+  pause: "0ac52e4edc5c21c7",
+  "pickup-drop": "8e89c7c09643929f",
+  "pickup-fade": "88732b4db5199d30",
+  "pickup-lance": "bfb56e6557b05f19",
+  "pickup-magnet": "d38fbe063edfe182",
+  "pickup-rapid": "3ba3ead16ae9a1a7",
+  "pickup-shield": "79acabe51ed28931",
+  "pickup-slow": "4697a8c70750b7ae",
+  "pickup-spread": "87d03861db3de048",
+  "pod-hit": "ca2c55dd9df9bde1",
+  "pod-lost": "20c6bb91ef331e60",
+  resume: "6afce8ec16b7ef35",
+  "run-end": "973c8ff45804c59c",
+  "run-start": "7ae6821b896706d9",
+  "sector-clear": "e7abdfaedafe7795",
+  "shield-break": "39d81ece955e2567",
+  "shield-up": "c65e2c03a4b772ea",
+  "shot-gun": "41101e83699bb3c1",
+  "shot-lance": "aa1e6547d923518a",
+  "shot-rapid": "1e5b696cb01e0396",
+  "shot-spread": "69d470fd9319424b",
+  "shot-tail": "7d1b2bd826982ffd",
+  "slow-off": "9f47ac153c41c9a4",
+  "slow-on": "e257618cc090532c",
+  spark: "19a1cd6ed327cfb4",
+  "static-down": "5ee1a702415927b8",
+  "static-full": "a980786509dbb75a",
+  "stray-appear": "d07badb7121b3d6a",
+  "stray-catch": "35cb5a8356c0b78c",
+  "tally-tick": "fcdb275527d4cd84",
+  thrust: "9510ea0130239d8a",
+  "thrust-start": "29dc7671331838bf",
+  "thrust-stop": "22c6843dba59a5c5",
+  "tow-twang": "166897240236762f",
+  "ui-back": "c3b90b79d3aa7beb",
+  "ui-move": "29050741adb669de",
+  "ui-select": "894cd412769e08cd",
+  "voice-aww": "e86e068ab5615068",
+  "voice-cheer": "27ad16600d3f7c1c",
+  "voice-eep": "c81878855eb54822",
+  "voice-hum": "fd09fbed7b96b829",
+  "voice-ooh": "abda9a0779bc3bf0",
+  "voice-ouch": "1b33c56ad143711d",
+  "voice-whee": "a0fcb9adaa83b02e",
+  "voice-yay": "a93508b29e35f055",
+  "wave-clear": "b8f77ec7f657823b",
+  "wave-start": "8880988a68d828c2",
+  "zap-arc": "63d59e398b79b35e",
+  "zap-dash": "8ef23b885d108fd5",
+};
+
+/** Returns the first 16 hex digits of the SHA-256 of files' bytes, one after another. */
+function digestOf(...files: readonly Buffer[]): string {
+  const digest = createHash("sha256");
+  for (const file of files) digest.update(file);
+  return digest.digest("hex").slice(0, 16);
 }
 
 /** Returns the recipes of the sprite's sounds, every family's but the beds', by name, as the sprite holds them. */
@@ -165,34 +268,54 @@ describe("the sound lab's words", () => {
 });
 
 describe("a take rendered", () => {
-  // Each take, its sound, its number from 0, and the first 16 hex digits of
-  // the SHA-256 of the WAV the uplift's kit wrote of it, which the user heard.
+  // Each take, its sound and its number from 0.
   it.each([
-    ["tally-tick", "tally-tick", 0, "fcdb275527d4cd84"],
-    ["shot-rapid-3", "shot-rapid", 2, "a11b30bac3cec652"],
-    ["spark-1", "spark", 0, "8a933c714e7cfbe2"],
-    ["ui-move", "ui-move", 0, "29050741adb669de"],
-    ["shot-gun-2", "shot-gun", 1, "1ecf7e14261f7bc7"],
+    ["tally-tick", "tally-tick", 0],
+    ["shot-rapid-3", "shot-rapid", 2],
+    ["spark-1", "spark", 0],
+    ["ui-move", "ui-move", 0],
+    ["shot-gun-2", "shot-gun", 1],
   ])(
-    "renders %s as the kit did, at its recorded length, at its level under the ceiling",
-    (takeName, name, take, kitDigest) => {
+    "renders %s at its level under the ceiling, with nothing to warn of",
+    (takeName, name, take) => {
       const recipe = recipeNamed(name);
 
       const [first] = renderTake(recipe, take);
 
       const x = first ?? new Float64Array();
       expect({
-        digest: digestOf(wav(x)),
-        length: x.length,
         level: loudness(x).rms50,
         underCeiling: loudness(x).peak <= -1 + 1e-9,
         warnings: warningsOf(takeName, recipe, x),
       }).toEqual({
-        digest: kitDigest,
-        length: LENGTHS[takeName],
         level: expect.closeTo(LEVELS[recipe.level], 0) as unknown,
         underCeiling: true,
         warnings: [],
+      });
+    },
+  );
+});
+
+describe("every sound of the sprite", () => {
+  it("is one the kit wrote, and the kit wrote no other", () => {
+    expect(spriteRecipes().map(({ name }) => name)).toEqual(
+      Object.keys(KIT_SOUNDS).sort(),
+    );
+  });
+
+  it.each(spriteRecipes().map((recipe) => [recipe.name, recipe] as const))(
+    "renders %s's takes as the kit did, each at its recorded length",
+    (name, recipe) => {
+      const takes = takesOf(recipe).map(
+        (_, take) => renderTake(recipe, take)[0] ?? new Float64Array(),
+      );
+
+      expect({
+        digest: digestOf(...takes.map((x) => wav(x))),
+        lengths: takes.map((x) => x.length),
+      }).toEqual({
+        digest: KIT_SOUNDS[name],
+        lengths: takesOf(recipe).map((take) => LENGTHS[take]),
       });
     },
   );

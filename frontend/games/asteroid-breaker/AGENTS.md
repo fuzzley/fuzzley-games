@@ -1711,10 +1711,11 @@ workspace's with the others'.
   the view's mix to the recipes, every sound but the beds by name, family,
   level and takes; the view's ladder to the kit's `CHAIN_CENTS`; the sound
   lab's words for each sound to its recipe's; the beds and the sprite to
-  being encoded; five short takes, rendered, to
-  the bytes of the kit's WAVs of them, their recorded lengths and their
-  levels; and the build whole, on families and folders of its own, an encode
-  that fails changing nothing.)
+  being encoded; every take of every sound but the beds, rendered, to the
+  bytes of the kit's WAVs of them and to its recorded length, the beds,
+  about 24 s to render, left out; five short takes to their levels under
+  the ceiling, with nothing to warn of; and the build whole, on families
+  and folders of its own, an encode that fails changing nothing.)
 - **Open the Sound Lab:** `yarn dev`, then
   `http://localhost:9005/sound-lab/`, or
   `http://localhost:4200/play/asteroid-breaker/sound-lab/` under the root's

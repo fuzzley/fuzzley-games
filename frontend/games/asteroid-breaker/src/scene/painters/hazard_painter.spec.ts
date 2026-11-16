@@ -340,6 +340,22 @@ describe("the burrs", () => {
     ]);
   });
 
+  it("draw a burr coming in with its glint once, off the field, on a field large enough for its glint", async () => {
+    const { shell, run, scene } = await startBoard(undefined, WIDER);
+    placeBurr(shell.field, -0.3, 20, 0, false);
+    const glint = burrGlintAt(shell.colors, 1, { x: 0, y: 0 });
+
+    run.advance(16);
+
+    const images = scene.kit.hazards.burrGlints[0]?.images ?? [];
+    expect(images.map((image) => roundedAt(image))).toEqual([
+      roundedOn(metricsOf(shell, WIDER), -0.3 + glint.x, 20 + glint.y),
+      null,
+      null,
+      null,
+    ]);
+  });
+
   it("draw a burr that wraps again past the edge it reaches across", async () => {
     const { shell, run, scene } = await startBoard();
     placeBurr(shell.field, 0.7, 20);
