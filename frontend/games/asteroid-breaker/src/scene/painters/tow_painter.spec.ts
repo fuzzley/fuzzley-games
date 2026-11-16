@@ -161,6 +161,36 @@ describe("the line in tow", () => {
     ]).toEqual([4, round(-40 * unit), round(-40 * unit)]);
   });
 
+  it("is strung again past both edges at a corner, and at the corner itself", async () => {
+    const { shell, run, scene } = await startBoard(towing);
+    const heading = -Math.PI / 4;
+    Object.assign(shipOf(shell.field), {
+      ...{ x: 1, lastX: 1, y: 38, lastY: 38 },
+      ...{ angle: heading, lastAngle: heading },
+    });
+    layTow(shell.field);
+
+    run.advance(16);
+
+    const { unit } = metricsOf(shell);
+    const lines = linesOf(scene.kit.tow.line);
+    const [first] = lines;
+    // Each copy strokes the line's two stretches, so each starts two lines on.
+    const copies = [0, 2, 4, 6].map((index) => ({
+      x: round((lines[index]?.fromX ?? 0) - (first?.fromX ?? 0)),
+      y: round((lines[index]?.fromY ?? 0) - (first?.fromY ?? 0)),
+    }));
+    expect({ count: lines.length, copies }).toEqual({
+      count: 8,
+      copies: [
+        { x: 0, y: 0 },
+        { x: round(72 * unit), y: 0 },
+        { x: 0, y: round(-40 * unit) },
+        { x: round(72 * unit), y: round(-40 * unit) },
+      ],
+    });
+  });
+
   it("is drawn nowhere with no pod", async () => {
     const { shell, run, scene } = await startBoard(towing);
     shell.field.ship = null;
