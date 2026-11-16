@@ -11,8 +11,8 @@ export const SECTOR_NEWS: Readonly<Record<string, readonly string[]>> = {
     "Crystals let pickups go.",
   ],
   "iron-reach": [
-    "Iron holds its hits.",
-    "Volatile rocks blast, and comets cross.",
+    "Iron holds its hits, and volatile rocks blast.",
+    "Comets cross, and burrs cling, slowing you until a dash.",
   ],
   storm: ["Lodestones drift toward the ship."],
   endless: [
