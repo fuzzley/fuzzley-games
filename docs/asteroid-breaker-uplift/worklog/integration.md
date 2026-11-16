@@ -1265,3 +1265,85 @@ HEAD 7743c2d7)`, so only their own commits move.
   burrs in a browser since the last changes, Z1's.
 - **Q1 and F2** were told of R4's layers and events; two landings since
   the fourth verify run, so the next is due after one more.
+
+### 2026-11-15, F2 landed
+
+- **F2 landed** as `bb2610c7` to `de1277e8`, six commits, fast-forward:
+  the sweeping rings and the still marks filled as bands of triangles
+  (`RingPainter` onto `strokeRound()`); the flourishes slowed only as a
+  sector's last rock goes, the wave's ring crossing the field at every
+  clearing, as decided; a ring from the pod as static steps up, and a soft
+  ring and the line in tow springing as a fuzzball is caught
+  (`rescue.ts`); the pod's flash and the field's shake along the blow as
+  one is knocked loose, and the zap holding the field, glowing at the pod
+  and lighting the rocks about it (`pod_glow.ts`, `PodGlowPainter`); a set
+  piece's vent blasting from a small heart, in place of the ring in the
+  warning's color F1 settled for it, with `RingLook` and a ring's reach
+  taken from its event gone, `ringColorOf()` now coloring a shed piece's
+  ring in the boulders' core; a burr popping into shards, shot or shaken
+  off; and its closing log, with its look's scripts and frame figures in
+  `worklog/F2-look/`.
+- **Settled on its own rebase:** onto `4b7b2b59`, past R4, before its
+  fifth commit, `layers.ts`' doc in its fourth: R4's burrs adrift under
+  the comets and clinging over the hull, and F2's pod flash and glow on
+  the muzzle's layer under the ship; read by the integrator, both kept.
+  The tip hadn't moved since, so no second rebase.
+- **Its checks on `e0623693`,** its last code: the game's lint, typecheck
+  and 8,376 specs in 148 files, the root's lint under the lock, again
+  after its log; the coverage at every floor (6,756 specs, then 1,620 in
+  `sim`), the view's effects at 100% of their statements, the scene at
+  99.07%, and F2's new files whole.
+- **Its frame,** two sittings on wave 9: F2 adds nothing measurable, 4.4%
+  under its base in one, 0.4% under by the medians and 1.7% over round by
+  round in the other, Tempest 1.4% over. The second traced the start too,
+  at 3.16 ms, so the limit stands at 4.21 ms that sitting: the base,
+  `4b7b2b59`, 4.58 ms, 45% over (49% round by round), F2's last 4.56 ms,
+  44% (52%). The base is about where F1 measured the integration, 4.69
+  ms; what moved is the start, 3.16 ms against F1's 3.345 ms, which takes
+  the limit from 4.46 ms to 4.21 ms, so F1's "just inside" by each round's
+  ratio no longer holds either way.
+- **In a browser,** Classic and Casino night at 1,600 × 900 and Soft
+  pastel and Midnight blue at 360 × 640, motion welcome and not, no
+  error: the zap played, the rest staged through the field's own logger,
+  each row as the table has it, and the zap's and the vent's still forms
+  (the arcs held, the still ring); the other still forms come from the
+  rules' state, which staging leaves alone, so none was seen. The burr's
+  shards read dim on Casino night and Midnight blue, as the burr's own ink
+  does there. Not seen: the shake and the hold, the slow as a sector's
+  last rock goes, `joined`'s and `home`'s rings, and the zap's light past
+  an edge.
+- **Its choices:** `ZAP_ARC` stays at 180 ms, as a longer arc's spark
+  shrinks past nothing by its eighth leap, which only P4's
+  `arcSparkScale()` could change, the row's 350 ms carried by the zap's
+  glow and light; the zap's light lights the rocks about the pod, for each
+  rock flashing as hit, and a blast a zap sets off doesn't flash; a vent's
+  hit plays its spark alone, so the vent's blast takes the flash its hit
+  held back; the boulder's beats don't overlap a vent or a shed; `burred`
+  and `clung` stay quiet.
+- **Outside its files:** `belt_board.ts` (`bandsOf()`, `endsSector`);
+  `frame.ts`, `painter.ts`, `belt_scene.ts`, and `game.service.ts` and its
+  spec, for the sector's-last flag, `belt_scene.ts` also taking
+  `PodGlowPainter` and handing the tow painter on; `belt_scene.spec.ts`,
+  the zap's lights left out of the far light's count;
+  `halo_painter.spec.ts`' glow counts, two reserved; `tow_painter.ts`, the
+  spring; `blast_painter.ts` (`isNearerSides` exported, the heart sized by
+  `blastRadiusOf()`); docs in `palette.ts`, `debris_painter.ts` and
+  `layers.ts`; the game's `AGENTS.md` and the testing skill.
+- **Left, each with an owner:** the frame past §9's third, Q1's, told
+  with these figures; what the browser didn't show, Z1's look;
+  `tow_painter.ts`' line 166, the line's copy past both edges at once,
+  P3's and uncovered, Z1's, a spec before the merge; for §12, the
+  bail-out's flung facets, which no package took, a loose one caught with
+  the line full, logged `floated` and shown no ring, a rules change, the
+  boulder's beats still overlapping its break rather than following it,
+  F1's leftover to F2, left as they were, and the burr's shards dim on
+  dark palettes.
+- **The fifth verify run, on `de1277e8`,** under the lock, three
+  landings past the fourth (F1, R4, F2): every workspace's tests, two at a
+  time on four workers each, the build and Asteroid Breaker's layout check
+  in 3 min 42 s (23:44:18 to 23:48:00), then the root's typecheck and
+  lint, all passing; the layout holds at every shape and turn with the
+  deck shown, and the Cleared card at each shape. Asteroid Breaker has
+  8,376 specs now (7,872 at the fourth run); the others' counts are as
+  then. Q1 was told to hold any frame sitting until it ended.
+- **The next run** is due after Q1 lands, as Z1's `yarn verify:full`.
