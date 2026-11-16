@@ -21,9 +21,9 @@
  * they are.
  *
  * The takes were first built by the uplift's kit, in
- * docs/asteroid-breaker-uplift/sound/, whose encode.mjs packed and encoded
- * them as this does, and whose encodes the game ships; this builds the same
- * takes, to the byte, and on a machine with ffmpeg, the same map.
+ * docs/archive/asteroid-breaker-uplift/sound/, whose encode.mjs packed and
+ * encoded them as this does, and whose encodes the game ships; this builds the
+ * same takes, to the byte, and on a machine with ffmpeg, the same map.
  *
  * With `--family` or `--only`, it renders those families or sounds alone
  * and packs nothing, as the sprite holds them all.

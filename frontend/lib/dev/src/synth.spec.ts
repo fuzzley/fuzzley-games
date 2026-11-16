@@ -47,10 +47,10 @@ import {
 } from "./synth.ts";
 
 /**
- * Each instrument called as a recipe might call it, and the first 16 hex
- * digits of the SHA-256 of what the kit's own JavaScript
- * (`docs/asteroid-breaker-uplift/sound/lib/`) rendered for the same call
- * when the synth was ported from it, which the port renders byte for byte.
+ * Each instrument called as a recipe might call it, and the first 16 hex digits
+ * of the SHA-256 of what the kit's own JavaScript
+ * (`docs/archive/asteroid-breaker-uplift/sound/lib/`) rendered for the same
+ * call when the synth was ported from it, which the port renders byte for byte.
  */
 const KIT: readonly (readonly [
   name: string,

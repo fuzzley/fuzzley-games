@@ -1,13 +1,12 @@
 // The arcs of static, as the art kit draws them: the zap's
-// (`docs/asteroid-breaker-uplift/art/lib/fx.mjs`' `makeArc()`, `arcSvg()`
-// and `zapFx()`, placed as its zap mock places them), leaping from the
-// pod's hull to the rim of each rock the zap strikes, anew every few frames
-// where motion is welcome, fading, a spark where each lands; and those
-// crawling over the hull at full static (`ship.mjs`' `podSvg()`), from
-// facet to facet. Each is a jagged line, cut from a seed in its own frame,
-// in shares of its length, as a zap strikes or once for the hull, and
-// placed each frame where it runs into records made once, so a frame of
-// play makes none.
+// (`docs/archive/asteroid-breaker-uplift/art/lib/fx.mjs`' `makeArc()`,
+// `arcSvg()` and `zapFx()`, placed as its zap mock places them), leaping from
+// the pod's hull to the rim of each rock the zap strikes, anew every few frames
+// where motion is welcome, fading, a spark where each lands; and those crawling
+// over the hull at full static (`ship.mjs`' `podSvg()`), from facet to facet.
+// Each is a jagged line, cut from a seed in its own frame, in shares of its
+// length, as a zap strikes or once for the hull, and placed each frame where it
+// runs into records made once, so a frame of play makes none.
 
 import { clamp, lerp, shareDone } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";

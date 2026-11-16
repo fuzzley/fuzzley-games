@@ -1,5 +1,5 @@
 // The field's energy, as the art kit's `fx.mjs` draws it
-// (`docs/asteroid-breaker-uplift/art/lib/fx.mjs`): the tones a glowing
+// (`docs/archive/asteroid-breaker-uplift/art/lib/fx.mjs`): the tones a glowing
 // thing is drawn in; the soft halo in each glowing thing's own color under
 // it, under plain alpha, never an additive blend, as the kit's `glow()`
 // draws one, which the scene shows as an image of one soft disc, tinted,

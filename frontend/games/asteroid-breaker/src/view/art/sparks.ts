@@ -1,5 +1,5 @@
 // The sparks a broken rock sheds, as the art kit draws its motes
-// (`docs/asteroid-breaker-uplift/art/lib/things.mjs`' `moteSvg()` and
+// (`docs/archive/asteroid-breaker-uplift/art/lib/things.mjs`' `moteSvg()` and
 // `moteDrawnSvg()`): each a four-point spark in the accent's energy, its
 // bright middle in its body, a soft halo of the accent about it, which the
 // scene shows; one the ship draws in streaks toward the pod, a tail behind

@@ -4,7 +4,7 @@
 // way, on end, and on end with sparks, and swept by a push on it; and
 // static's sparks, as `@fz/style/fuzzball` lays them about any fur and the
 // Asteroid Breaker uplift's art kit draws them, in
-// `docs/asteroid-breaker-uplift/art/lib/fuzzball.mjs`.
+// `docs/archive/asteroid-breaker-uplift/art/lib/fuzzball.mjs`.
 
 import {
   FUZZBALL_STRANDS,
