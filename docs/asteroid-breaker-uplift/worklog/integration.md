@@ -1146,17 +1146,17 @@ HEAD 7743c2d7)`, so only their own commits move.
   of branches); Prettier and the root's
   lint after its log's last commit.
 - **Its frame,** its fourth sitting, finished after the restart, wave 9,
-  fourteen rounds interleaved: 3.345 ms at `da697c6e9`, the build's
-  start; 4.69 ms at `c8bd5e91`, the integration under F1; 4.56 ms on its
-  branch. F1 adds nothing measurable. By §9's medians, the reading every
-  earlier sitting used, the tip is past the third over the build's start,
-  36% against a limit of 4.46 ms, and the integration under it 40%; taking
-  each round's ratio first, they are just inside it, 31% and 34%. Where the time went, `da697c6e9` to `c8bd5e91`: Phaser's
-  render, half of it (the images drawn, `Graphics` paths, three times the
-  draws and four times the program switches, seven texture binds where
-  there were none); the painters' own script (P3's tow, L6's pod, L4's
-  halos, P4's sparks and arcs); the sounds; the shell's tick a little. Its
-  scripts and figures are in `worklog/F1-budget/`.
+  fourteen rounds interleaved: 3.345 ms at `da697c6e9`, the build's start;
+  4.69 ms at `c8bd5e91`, the integration under F1; 4.56 ms on its branch. F1
+  adds nothing measurable. By §9's medians, the reading every earlier sitting
+  used, the tip is past the third over the build's start, 36% against a limit
+  of 4.46 ms, and the integration under it 40%; taking each round's ratio
+  first, they are just inside it, 31% and 34%. Where the time went,
+  `da697c6e9` to `c8bd5e91`: Phaser's render, half of it (the images drawn,
+  `Graphics` paths, three times the draws and four times the program switches,
+  seven texture binds where there were none); the painters' own script (P3's
+  tow, L6's pod, L4's halos, P4's sparks and arcs); the sounds; the shell's
+  tick a little. Its scripts and figures are in `worklog/F1-budget/`.
 - **Outside its files:** `belt_scene.ts` and its spec, `painter.ts`,
   `layers.ts` and its spec and `palette.ts` (docs), `halo_painter.spec.ts`,
   `rock_painter.ts`, `debris_painter.ts`, `copy_shares.ts`, `shots.ts`
@@ -1193,3 +1193,75 @@ HEAD 7743c2d7)`, so only their own commits move.
 - **F2 started** from `ee77af2d`, with F1's, P4's and R3's notes in its
   brief; **Q1 started** from `ee77af2d`, its brief new
   (`brief-q1.md`). R4 was told of both.
+
+### 2026-11-15, the container restarted again
+
+- **At about 21:40,** the container restarted a second time, stopping R4,
+  F2 and Q1 mid-work, Q1 in its frame sitting, and this time wiping
+  `/tmp`, with the scratchpad that held the briefs, the integrator's notes
+  and two scripts. The worktrees, every commit and the uncommitted work in
+  them came through. The three were resumed from their own transcripts,
+  which hold their briefs, told what was lost, and asked to keep what they
+  make from now on under `.claude/worktrees/abu-scratch/`, which git
+  ignores and a restart keeps; the integrator's scripts and notes were
+  made again there. R4's own log counts three restarts, one in its third
+  entry and two in its fourth, where this log saw two.
+
+### 2026-11-15, R4 landed
+
+- **R4 landed** as `50f996bd` to `f3f06169`, four commits, fast-forward:
+  burrs that come in off an edge, turn toward the pod within sight, cling
+  to it, each taking a fifth off its thrust and top speed, three at most,
+  until a dash shakes them off or a shot pops them (blasts and zaps pass
+  a burr by), with three sounds, clinging, popped and shaken off, and
+  "A burr clings." said; what an ended run set said in one place, which
+  the announcer and the result card's description share, P4's leftover;
+  the burrs sent in Iron reach's Anvil (14), Foundry (17) and Tinder (19)
+  and the Storm's from Gauntlet (23) on, the autopilot shooting them and
+  dashing them off and the report counting those that cling; and the burrs
+  drawn adrift and clinging to the pod, barbed and glinted where the
+  field's scale shows them, and listed in How to play under "Strays,
+  comets and burrs".
+- **Settled on its own rebases:** onto P4's `c8bd5e91`, `AGENTS.md`'s
+  sentence on `describe.ts`, P4's words on the end and R4's on a burr
+  clinging, both kept; onto `086b363c` with `--onto`, after the rebase onto
+  main, nothing; then onto `080ab590`, past F1, in its last commit,
+  `layers.ts` and its spec, F1's muzzle flash under the ship and R4's
+  `burrs` over it (`tow`, `flash`, `ship`, `burrs`, `effects`), the doc
+  F1's words with the burrs added; read by the integrator, a list and a
+  paragraph keeping both sides. In that last rebase, `AGENTS.md`,
+  `belt_scene.ts`, `art.ts`, `effects.ts` (the burr's four events `QUIET`
+  beside F1's rows) and `shots.ts` (F1's export of `NOSE` beside R4's
+  `NO_PASS`) merged cleanly.
+- **Its checks on that tip:** the game's lint, typecheck and 8,278 specs in
+  146 files, the root's lint under the lock, the coverage at every floor
+  (6,658 specs, then 1,620 in `sim`).
+- **Its figures:** the burr waves take between 1.5% less and 5% more time
+  than before, cost the same in crew knocked loose within the seeds'
+  spread, and every report exits 0 (`worklog/R4-figures/`); R3's lost play
+  on the narrow field, Eye of the storm at Fast from seed 30008, clears
+  only as the burrs change the draws after them, so R3's note for §12
+  stands. In a browser, burrs coming in and three clinging, a speed of 14
+  set on the pod falling to 5.75 a step later, under the top speed of 6
+  that three burrs leave of 15, and a dash shedding them; not seen since
+  the round casing, the barbed and bare frames and the rebase, which specs
+  and frame renders hold.
+- **Its choices:** `RULES_VERSION` stays 2; `hitWithin()` stays rocks
+  only; a Lance shot flies on through a burr it pops but keeps no pass for
+  it (`NO_PASS`), so it can't fly through rocks laid that step; each burr
+  frame baked twice, barbed and bare, the painter choosing by the field's
+  own scale (`isBarbed()`, `isGlinted()`), as, judged at the atlas's
+  capped scale, a 3× display never showed barbs.
+- **Outside its files:** adding to L4's `things.ts` and `hazard_painter.ts`
+  and their specs; the game's `AGENTS.md` and the content and testing
+  skills; `layers.ts` and its spec, `frame.ts` (`FieldView.burrs`),
+  `belt_scene.ts` and its spec's `EVERY_EVENT`; `art.ts` and its spec; How
+  to play and its spec; the board's doc; `contrast.spec.ts`; entries in
+  `sounds.ts`, `effects.ts` and their specs and `flourish.spec.ts`;
+  `tools/sound-lab.ts`; and `tally.ts` and its spec.
+- **Left, each with an owner:** the burr's flourishes (`popped`, `shaken`),
+  F2's, told; a sentence on burrs in the Iron reach's sector card, which
+  says what is new there, Z1's, measuring the card again; a look at the
+  burrs in a browser since the last changes, Z1's.
+- **Q1 and F2** were told of R4's layers and events; two landings since
+  the fourth verify run, so the next is due after one more.
