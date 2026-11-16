@@ -76,6 +76,7 @@ async function startPlayer(
     points: scene.kit.points,
     strays: scene.kit.strays,
     muzzle: scene.kit.muzzle,
+    podGlow: scene.kit.podGlow,
     tow: scene.kit.tow,
     camera: scene.kit.fieldCamera,
   });
@@ -633,6 +634,60 @@ describe("FlourishPlayer", () => {
     scene.kit.tow.draw(contextAt(shell, NOW + RESCUE_MS));
 
     expect(linesOf(scene.kit.tow.line)).toHaveLength(2);
+  });
+
+  it("flashes the pod as one is knocked loose, as the field may flash", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const context = contextAt(shell, NOW);
+    const event = eventOf((log) => {
+      log.addKnocked(MIDDLE.x, MIDDLE.y, 3, shell.field.crew, 0, 1);
+    });
+
+    player.play("podflash", event, context);
+    scene.kit.podGlow.draw(context);
+
+    expect(roundsOf(scene.kit.podGlow.graphics)).toHaveLength(1);
+  });
+
+  it("flashes the pod no sooner after the last flash than is safe", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const context = contextAt(shell, NOW + FLASH_GAP_MS / 2);
+    const event = eventOf((log) => {
+      log.addKnocked(MIDDLE.x, MIDDLE.y, 3, shell.field.crew, 0, 1);
+    });
+    player.play("flash", hitAt(shell, 30, 20), contextAt(shell, NOW));
+
+    player.play("podflash", event, context);
+    scene.kit.podGlow.draw(context);
+
+    expect(roundsOf(scene.kit.podGlow.graphics)).toEqual([]);
+  });
+
+  it("lights the rocks about the pod as it zaps with no flash before", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const context = contextAt(shell, NOW);
+    const event = eventOf((log) => {
+      log.addZap(MIDDLE.x, MIDDLE.y, 0);
+    });
+
+    player.play("zap", event, context);
+    scene.kit.podGlow.draw(context);
+
+    expect(scene.kit.podGlow.light.visible).toBe(true);
+  });
+
+  it("lights nothing as it zaps within the gap after a flash", async () => {
+    const { shell, scene, player } = await startPlayer(withShip);
+    const context = contextAt(shell, NOW + FLASH_GAP_MS / 2);
+    const event = eventOf((log) => {
+      log.addZap(MIDDLE.x, MIDDLE.y, 0);
+    });
+    player.play("flash", hitAt(shell, 30, 20), contextAt(shell, NOW));
+
+    player.play("zap", event, context);
+    scene.kit.podGlow.draw(context);
+
+    expect(scene.kit.podGlow.light.visible).toBe(false);
   });
 
   it("sets a blast off where its rock went off, lighting the rocks near it", async () => {

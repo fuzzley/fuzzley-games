@@ -218,7 +218,9 @@ describe("the halos", () => {
         // flash's: the field flashes one at a time.
         1 +
         MOST_BOULDERS +
-        1,
+        1 +
+        // The pod's flash's and its zap's glows.
+        2,
     );
   });
 
@@ -504,6 +506,8 @@ describe("a halo another painter shows", () => {
         1 +
         MOST_BOULDERS +
         1 +
+        // The pod's flash's and its zap's glows.
+        2 +
         1,
     );
   });

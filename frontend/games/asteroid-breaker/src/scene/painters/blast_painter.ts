@@ -393,7 +393,7 @@ export class BlastPainter implements Painter {
 }
 
 /** Returns whether a place on a field lies nearer its sides than its top and its bottom. */
-function isNearerSides(
+export function isNearerSides(
   { x, y }: Readonly<Moving>,
   { width, height }: Readonly<Torus>,
 ): boolean {

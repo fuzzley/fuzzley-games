@@ -122,14 +122,17 @@ import {
   HELD_MS,
   KICK_MS,
   POINTS_MS,
+  POD_FLASH_MS,
   RING_MS,
   SHAKE_MS,
   SLOW_MS,
   STILL_MARK_MS,
   TRAIL_MS,
+  ZAP_MS,
 } from "../view/effects/timing";
 import { CRACK_REACH, boulderInks } from "../view/effects/boulder";
 import { RESCUE_RING, SPRING } from "../view/effects/rescue";
+import { ZAP_LIGHT, podFlashTone } from "../view/effects/pod_glow";
 import { farthestCorner } from "../view/effects/cleared";
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
@@ -2292,6 +2295,270 @@ describe("a fuzzball caught", () => {
       rings: bandsOf(scene.kit.rings.graphics).length,
       lines: linesOf(scene.kit.tow.line).length,
     }).toEqual({ rings: 0, lines: 2 });
+  });
+});
+
+/** Logs one of the crew knocked loose at the pod on a shell's field, the blow coming straight down. */
+function logKnocked(shell: FakeShell): void {
+  const ship = shipOf(shell.field);
+  shell.field.events.addKnocked(ship.x, ship.y, 3, shell.field.crew, 0, 1);
+}
+
+/** Logs the pod zapping on a shell's field. */
+function logZap(shell: FakeShell): void {
+  const ship = shipOf(shell.field);
+  shell.field.events.addZap(ship.x, ship.y, ship.angle);
+}
+
+/** Returns where each halo shows in a color, those that do, rounded. */
+function glowsIn(
+  scene: BeltScene,
+  color: number,
+): readonly { readonly x: number; readonly y: number }[] {
+  return halosIn(scene, color).map(([x = NaN, y = NaN]) => rounded({ x, y }));
+}
+
+/** Returns where the pod is drawn on a shell's canvas, rounded. */
+function podOn(shell: FakeShell): { readonly x: number; readonly y: number } {
+  const ship = shipOf(shell.field);
+  return rounded(onCanvas(metricsOf(shell), ship.x, ship.y));
+}
+
+describe("a fuzzball knocked loose", () => {
+  it("flashes the pod, a disc under it in the accent lifted toward white, with its glow", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logKnocked(shell);
+
+    run.advance(32, 16);
+
+    const { halo } = energyOf(ART_PALETTE.accent, ART_PALETTE);
+    expect({
+      discs: roundsOf(scene.kit.podGlow.graphics).map((round) => ({
+        ...rounded(round),
+        disc: isDisc(round),
+        color: round.color,
+      })),
+      glows: glowsIn(scene, halo),
+    }).toEqual({
+      discs: [
+        { ...podOn(shell), disc: true, color: podFlashTone(ART_PALETTE) },
+      ],
+      glows: [podOn(shell)],
+    });
+  });
+
+  it("flashes the pod on both sides of an edge its disc reaches across", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    ship.x = 0.5;
+    ship.lastX = 0.5;
+    logKnocked(shell);
+
+    run.advance(32, 16);
+
+    const { unit } = metricsOf(shell);
+    const xs = roundsOf(scene.kit.podGlow.graphics).map(({ x }) => x);
+    expect(xs.map((x) => toMillionths(x - (xs[0] ?? 0)))).toEqual([
+      0,
+      toMillionths(PICTURE_TORUS.width * unit),
+    ]);
+  });
+
+  it("puts its flash and the zap's glow and light out as a new field starts", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logKnocked(shell);
+    logZap(shell);
+    run.advance(16);
+    withShip(shell);
+
+    run.advance(16);
+
+    expect({
+      discs: roundsOf(scene.kit.podGlow.graphics).length,
+      glows: halosIn(scene, ART_PALETTE.accent).length,
+      lit: scene.kit.podGlow.light.visible,
+    }).toEqual({ discs: 0, glows: 0, lit: false });
+  });
+
+  it("puts the flash out once it is over", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logKnocked(shell);
+
+    run.advance(POD_FLASH_MS + 32, 16);
+
+    const { halo } = energyOf(ART_PALETTE.accent, ART_PALETTE);
+    expect({
+      discs: roundsOf(scene.kit.podGlow.graphics).length,
+      glows: halosIn(scene, halo).length,
+    }).toEqual({ discs: 0, glows: 0 });
+  });
+
+  it("shakes the field along the blow, both ways", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logKnocked(shell);
+    run.advance(16);
+
+    const scrolls = overTime(run, SHAKE_MS, 16, () => scrolledBy(scene, shell));
+
+    // The blow came straight down, so the field shakes up and down alone.
+    expect({
+      across: scrolls.filter(({ x }) => x !== 0),
+      down: scrolls.some(({ y }) => y > 0),
+      up: scrolls.some(({ y }) => y < 0),
+    }).toEqual({ across: [], down: true, up: true });
+  });
+
+  it("rests the field within 0.3 s of the blow", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logKnocked(shell);
+    run.advance(16);
+
+    run.advance(SHAKE_MS, 16);
+
+    expect(scrolledBy(scene, shell)).toEqual({ x: 0, y: 0 });
+  });
+
+  it("flashes no sooner after the last flash than is safe, but shakes", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shell.field.events.addRock("hit", keeperOf(shell.field));
+    run.advance(FLASH_MS + 32);
+    logKnocked(shell);
+
+    const frames = overTime(run, SHAKE_MS, 16, () => ({
+      discs: roundsOf(scene.kit.podGlow.graphics).length,
+      scrolled: scrolledBy(scene, shell),
+    }));
+
+    expect({
+      flashes: frames.some(({ discs }) => discs > 0),
+      shakes: frames.some(({ scrolled }) => scrolled.y !== 0),
+    }).toEqual({ flashes: false, shakes: true });
+  });
+
+  it("neither flashes nor shakes where motion isn't welcome, where its bubble flying and the guard's ring tell it", async () => {
+    const { shell, run, scene } = await startBoard((board) => {
+      withShip(board);
+      stillness(board);
+    });
+    logKnocked(shell);
+
+    const frames = overTime(run, SHAKE_MS, 16, () => ({
+      discs: roundsOf(scene.kit.podGlow.graphics).length,
+      scrolled: scrolledBy(scene, shell),
+    }));
+
+    expect({
+      flashes: frames.some(({ discs }) => discs > 0),
+      shakes: frames.some(
+        ({ scrolled }) => scrolled.x !== 0 || scrolled.y !== 0,
+      ),
+    }).toEqual({ flashes: false, shakes: false });
+  });
+});
+
+describe("a zap", () => {
+  it("glows at the pod in the accent, and lights the rocks about it as strongly as it lights at first, while the field holds still", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logZap(shell);
+
+    run.advance(32, 16);
+
+    const { light } = scene.kit.podGlow;
+    const { unit } = metricsOf(shell);
+    expect({
+      glows: glowsIn(scene, ART_PALETTE.accent),
+      light: {
+        ...rounded(light),
+        visible: light.visible,
+        radius: light.radius,
+        intensity: light.intensity,
+      },
+    }).toEqual({
+      glows: [podOn(shell)],
+      light: {
+        ...podOn(shell),
+        visible: true,
+        radius: ZAP_LIGHT.reach * unit,
+        intensity: ZAP_LIGHT.strength,
+      },
+    });
+  });
+
+  it("lights the rocks past the edge the pod lies nearest, should its light reach across it", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    ship.x = 1;
+    ship.lastX = 1;
+    logZap(shell);
+
+    run.advance(32, 16);
+
+    const { light, beyond } = scene.kit.podGlow;
+    expect({
+      visible: beyond.visible,
+      apart: toMillionths(beyond.x - light.x),
+      level: beyond.y === light.y,
+    }).toEqual({
+      visible: true,
+      apart: toMillionths(PICTURE_TORUS.width * metricsOf(shell).unit),
+      level: true,
+    });
+  });
+
+  it("dies away once the field moves on", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logZap(shell);
+    run.advance(16);
+
+    const intensities = overTime(
+      run,
+      ZAP_MS - 64,
+      16,
+      () => scene.kit.podGlow.light.intensity,
+    );
+
+    expect(falling(intensities.slice(8))).toBe(true);
+  });
+
+  it("puts its glow and light out by its time", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    logZap(shell);
+
+    run.advance(ZAP_MS + 32, 16);
+
+    expect({
+      glows: halosIn(scene, ART_PALETTE.accent).length,
+      lit: scene.kit.podGlow.light.visible,
+    }).toEqual({ glows: 0, lit: false });
+  });
+
+  it("glows but lights nothing within the gap after a held hit's flash", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    shell.field.events.addRock("hit", keeperOf(shell.field));
+    run.advance(FLASH_MS + 32);
+    logZap(shell);
+
+    run.advance(16);
+
+    expect({
+      glows: halosIn(scene, ART_PALETTE.accent).length,
+      lit: scene.kit.podGlow.light.visible,
+    }).toEqual({ glows: 1, lit: false });
+  });
+
+  it("neither glows nor lights where motion isn't welcome, where its arcs, held, are its still form", async () => {
+    const { shell, run, scene } = await startBoard((board) => {
+      withShip(board);
+      stillness(board);
+    });
+    logZap(shell);
+
+    run.advance(32, 16);
+
+    expect({
+      glows: halosIn(scene, ART_PALETTE.accent).length,
+      lit: scene.kit.podGlow.light.visible,
+    }).toEqual({ glows: 0, lit: false });
   });
 });
 
