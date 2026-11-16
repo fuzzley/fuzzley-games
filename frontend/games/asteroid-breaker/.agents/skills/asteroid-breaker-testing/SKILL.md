@@ -196,13 +196,15 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   hold the layout and the readers every report shares.
   `tools/build-sounds.spec.ts` holds the sprite in `src/scene/sounds/` to
   the recipes, by name, loop and place, from the lengths recorded beside
-  its map, without rendering every take, the view's mix (`SOUNDS`) to
-  them, by name, family, level and takes, the view's ladder to the kit's
-  `CHAIN_CENTS`, and the sound lab's words (`tools/sound-lab/plays.ts`) to
-  the recipes' `plays`; renders five short takes to the
-  bytes of the uplift's kit's WAVs of them; and runs the build whole
-  (`run()`) on families of its own, into temporary folders, with a fake
-  encoder or none.
+  its map, the view's mix (`SOUNDS`) to them, by name, family, level and
+  takes, the view's ladder to the kit's `CHAIN_CENTS`, and the sound lab's
+  words (`tools/sound-lab/plays.ts`) to the recipes' `plays`; renders every
+  take of every sound but the beds to the bytes of the uplift's kit's WAVs
+  of them (`KIT_SOUNDS`) and to its recorded length, the beds, about 24 s
+  to render, left out, and five short takes to their levels under the
+  ceiling, with nothing to warn of; and runs the build whole (`run()`) on
+  families of its own, into temporary folders, with a fake encoder or
+  none.
 
 ## The Saved Game
 
