@@ -9,9 +9,10 @@ import {
 import { GameObjects, Textures } from "phaser";
 import type { Field } from "../rules/field/field";
 import { type Rock, hitRock } from "../rules/rocks/rocks";
+import { nextPilot } from "../rules/ship/pilots";
 import { wrap } from "../rules/torus";
 import { NOSE } from "../rules/ship/shots";
-import { ROCK_RADIUS } from "../rules/tuning";
+import { MOST_CREW, ROCK_RADIUS, STATIC_MOST } from "../rules/tuning";
 import { ART_PALETTE } from "../testing/art_frames";
 import {
   DARK,
@@ -2815,6 +2816,36 @@ describe("the points", () => {
     expect({ label: scored.label, middle: { ...scored.middle } }).toEqual({
       label: "+40 ×2",
       middle: onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y),
+    });
+  });
+
+  it("shows a stray caught with the line full at full static, the longest label, stamped whole", async () => {
+    const { shell, run, scene } = await startBoard((board) => {
+      board.field = fieldFrom([...KEEPER, "", "", "", ".........^"], {
+        crew: {
+          pilot: 0,
+          tow: Array.from({ length: MOST_CREW - 1 }, (_, place) => place + 1),
+          home: [],
+          lastGiven: MOST_CREW - 1,
+        },
+        charge: STATIC_MOST,
+      });
+      stepping(board);
+    });
+    const ship = shipOf(shell.field);
+    placeStray(shell.field, ship.x, ship.y, 0, nextPilot(shell.field.crew, []));
+
+    run.advance(48, 16);
+
+    const scored = firstScored(scene);
+    expect({
+      shown: pointsShown(scene),
+      stamped: scored.image.frame.name === scored.frame,
+      characters: scored.layout.length,
+    }).toEqual({
+      shown: ["+1,000 ×4"],
+      stamped: true,
+      characters: MOST_POINTS_CHARACTERS,
     });
   });
 
