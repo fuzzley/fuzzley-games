@@ -1347,3 +1347,83 @@ HEAD 7743c2d7)`, so only their own commits move.
   8,376 specs now (7,872 at the fourth run); the others' counts are as
   then. Q1 was told to hold any frame sitting until it ended.
 - **The next run** is due after Q1 lands, as Z1's `yarn verify:full`.
+
+### 2026-11-16, Q1 landed, the last package
+
+- **Q1 landed** as `2962af8d` and `07889c35`, two commits, fast-forward:
+  a hidden copy taken out of its layer until it shows, its state set as it
+  comes back, and each layer keeping its children in the order they first
+  joined it, every depth in the scene written in one place
+  (`layer_order.ts`: `keepJoinOrder()`, `sendToBack()`), with a lint rule
+  refusing a depth set or a child moved anywhere else in `src/scene/` but
+  its specs; and its log, with its scripts and figures in
+  `worklog/Q1-budget/`.
+- **Its rebases:** onto `080ab590`, clean. Onto `f3f06169`, past R4,
+  clean as text but not as drawing: R4 sent each burr's and glint's images
+  under the comets with the layer's own `sendToBack()`, which moves
+  nothing in a layer sorted by depth, so the burrs would have drawn over
+  the comets, and two of R4's 28 hazard specs failed. Settled keeping
+  R4's order: `layer_order.ts`' `sendToBack()`, which `Copies` calls,
+  gives them depths under all the layer has held, and R4's two specs now
+  read the burrs' layers and their order by depth; a fresh reviewer read
+  the settling, found R4's order kept, and asked for the lint rule. Onto
+  `4b7b2b59`, the log alone, clean. Onto `de1277e8`, past F2, two places
+  in text: the game's `AGENTS.md`, where `belt_board.ts`' readers are now
+  listed together (`roundsOf()`, `bandsOf()`, `objectsHeldBy()`), and
+  `flourishes.spec.ts`' imports, F2's `strokesOf()` and Q1's `objectsIn()`
+  both no longer used, so neither stays; nothing F2 adds sets a depth or
+  moves a child, as lint holds, and `PodGlowPainter`'s `Graphics` takes
+  the fifth place in the `flash` layer, after the muzzle's four images, as
+  F2's own order has it. Onto `5f6d44fe`, the log alone, clean, a fresh
+  reviewer reading both settlings and finding nothing that blocks. The
+  integrator read the settled deltas too, each keeping both sides.
+- **Its checks,** on the rebase onto `de1277e8`, whose game files are
+  those of `2962af8d`: the game's lint, typecheck and 8,384 specs in 150
+  files; the coverage at every floor (6,764 specs in 141 files),
+  `layer_order.ts` at 92.3% of its branches and `copies.ts` at 97.5%; the
+  build and the layout check at every shape and turn and the Cleared card;
+  the root's lint under the lock. Its lint rule is a `no-restricted-syntax`
+  of the game's own for `src/scene/`, which replaces no other there, as
+  `@fz/dev`'s `deterministic()` sets that rule only for the rules, the
+  view and the files held as rules, checked by the integrator in the
+  scene's resolved config.
+- **The frame, back inside §9:** its last sitting, on `5f6d44fe` under the
+  lock, interleaved, wave 9's median scripting and rendering: the start,
+  `da697c6e9`, 3.29 ms (its three rounds that lost their pod left out,
+  the median the same with them); the tip without Q1, `de1277e8`,
+  4.60 ms, 40% over; Q1's last 3.81 ms, 16% over, inside the third
+  (4.39 ms) by 0.58 ms and inside Q1's aim of a quarter (4.11 ms) by
+  0.30, cheaper than the tip in all seven rounds, by 0.79 ms (17%) at the
+  median. Tempest 6.73 ms to 5.47, Foundry 4.58 to 3.67. In its earlier
+  sittings it took 0.82 ms off the tip and 0.68 ms off its start on
+  `f3f06169`, 0.90 ms off its start on `080ab590`, and 0.99 ms in the
+  first; the start's own figure moves from sitting to sitting (3.135 to
+  3.81 ms), so each is read within itself. In the sitting on `f3f06169`,
+  R4's burrs, the tip against Q1's start, cost 0.14 ms on wave 9, which
+  sends none, 0.12 on Foundry and 0.08 on Tempest, within its spread, and
+  were left as R4 drew them.
+- **Its pictures:** commit 1 on Q1's start against the start, 96 pairs,
+  92 the same to the pixel, the other four the Cleared card's CSS
+  animation; Foundry on `f3f06169`, 46 of 48, its frame 330 differing
+  between two captures of one build too. None was taken after F2, so F2's
+  flash and glow in the order Q1 keeps rest on the code and its review,
+  and on Z1's look.
+- **Outside its files,** the scene's painters, `copies.ts` and
+  `layer_order.ts`: the game's `eslint.config.js`; `belt_board.ts`
+  (`objectsHeldBy()`); `belt_scene.ts`, which keeps each layer's join
+  order (`keepJoinOrder()`), and its spec; `flourishes.spec.ts`; the
+  game's `AGENTS.md`, its testing skill and the repository's
+  `phaser-canvas-performance` skill, which now says a large pool mostly
+  hidden is taken out of its layer, as `Copies` does. `hazard_painter.ts`,
+  L4's with R4's burrs, and the halo and spark painters' specs are the
+  painters'.
+- **Weighed and left, for §12:** `DebrisPainter`'s rounds, which would
+  save nothing and change the dust's ring; culling the place's nearer
+  stars, about 0.05 to 0.1 ms; the line in tow as images, which changes
+  its picture; batching the lit draws, which §5.2 bars; the shell's tick,
+  the rules'.
+- **Every package has landed.** No `abu/*` branch or worktree is left but
+  the integration's; `refs/abu/*` stay until Z1's cleanup. The integrator's
+  own fallback check on Q1, a reminder set to look in on it at 06:00, was
+  cancelled. Z1 begins on this tip, its frame standing on Q1's last
+  sitting, as Z1 changes nothing the scene draws.
