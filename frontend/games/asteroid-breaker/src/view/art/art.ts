@@ -43,6 +43,7 @@ import { dashedRing } from "./shapes";
 import { sparkFrames } from "./sparks";
 import { SYMBOLS } from "./symbols";
 import {
+  BURR_FRAMES,
   COMET_FRAMES,
   PICKUP_FRAMES,
   cometHeadFrame,
@@ -196,14 +197,15 @@ function otherArt(palette: BeltPalette, scale: ArtScale): readonly ArtFrame[] {
  * scale, the fine marks only where the field keeps them: the pod's but its
  * hull, and the comet's but its head, which the rocks' atlas lights, the
  * pilots and their eyes, the pickups and their tags, the comet's warning
- * and lane, each weapon's shot and the muzzle's flash, the sparks broken
- * rocks shed and their tail, the spark where a zap's arc lands, a stray's
- * bubble,
- * the flourishes, and the stray's and the comet's pictures.
+ * and lane, the burr adrift and clinging, barbed and bare, and its glints,
+ * each weapon's shot and the muzzle's flash, the sparks broken rocks shed
+ * and their tail, the spark where a zap's arc lands, a stray's bubble, the
+ * flourishes, and the stray's, the comet's and the burr's pictures.
  *
  * Draw it at {@link bakedScale}'s scale, as the largest window's unit
  * would make it too large for some devices, with the fine marks as
- * `isFine()` of the field's own scale says.
+ * `isFine()` of the field's own scale says; the scene chooses a burr's
+ * barbs and glint by the field's own scale as it draws.
  */
 export function atlasFrames(
   palette: BeltPalette,
@@ -299,12 +301,13 @@ export function deckFrames(pixelRatio: number): readonly ArtFrame[] {
   ];
 }
 
-/** Names a picture of each rock kind and pickup, a stray and the comet, for How to play. */
+/** Names a picture of each rock kind and pickup, a stray, the comet and a burr, for How to play. */
 export interface Pictures {
   readonly rocks: Readonly<Record<RockKindId, string>>;
   readonly pickups: Readonly<Record<PickupId, string>>;
   readonly stray: string;
   readonly comet: string;
+  readonly burr: string;
 }
 
 /**
@@ -316,4 +319,5 @@ export const PICTURE_FRAMES: Omit<Pictures, "rocks"> = {
   pickups: PICKUP_FRAMES,
   stray: FRAMES.strayPicture,
   comet: COMET_FRAMES.picture,
+  burr: BURR_FRAMES.picture,
 };

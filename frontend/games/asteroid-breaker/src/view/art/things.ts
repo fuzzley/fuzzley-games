@@ -2,8 +2,9 @@
 // kit's `things.mjs` draws them
 // (`docs/asteroid-breaker-uplift/art/lib/things.mjs`): each pickup as a
 // round glass orb, its rim saying its group and its symbol bold in its
-// middle, breathing and glowing while it floats; and the comet, a long cut
-// wedge with a glowing tail, and its warning at the edge it comes in by.
+// middle, breathing and glowing while it floats; the comet, a long cut
+// wedge with a glowing tail, and its warning at the edge it comes in by;
+// and the burr, a small seed with six barbed thorns, adrift and clinging.
 
 import { createRandom } from "@fz/core/random";
 import { recordOf } from "@fz/core/records";
@@ -11,6 +12,7 @@ import {
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
+  type LineStyle,
   ORIGIN,
   type Point,
   arcPoints,
@@ -34,6 +36,8 @@ import {
   pickup,
 } from "../../rules/catalog/pickups";
 import { type Floating, blinks } from "../../rules/rocks/drops";
+import type { Moving } from "../../rules/torus";
+import { BURR_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
 import { inLight } from "../colors/rock_light";
 import { mixTone } from "../colors/tones";
@@ -236,8 +240,9 @@ function orbArt(
 /**
  * Returns the frames of what drifts on the field to be caught and what
  * crosses it, in a palette at a scale, the fine marks only where the field
- * keeps them: each pickup's orb, and the comet's and its warning's, but its
- * head, which the rocks' atlas lights ({@link cometHeadFrame}).
+ * keeps them: each pickup's orb, the comet's and its warning's, but its
+ * head, which the rocks' atlas lights ({@link cometHeadFrame}), and the
+ * burr's, whose barbs and glint keep to the kit's own sizes.
  */
 export function thingsFrames(
   palette: BeltPalette,
@@ -247,6 +252,7 @@ export function thingsFrames(
   return [
     ...PICKUP_IDS.map((id) => orbArt(id, palette, scale, fine)),
     ...cometFrames(palette, scale, fine),
+    ...burrFrames(palette, scale),
   ];
 }
 
@@ -822,5 +828,333 @@ function cometFrames(
       centered(warningFrame(lit), warningCommands(lit, palette, scale)),
     ),
     cometPicture(palette, scale, fine),
+  ];
+}
+
+/** Describes a burr, in shares of how far it reaches, about its middle. */
+export interface BurrShape {
+  /** Its small round seed's outline. */
+  readonly core: readonly Point[];
+  /** Each of its thorns' outlines, out from the seed, its barb its fourth corner. */
+  readonly spines: readonly (readonly Point[])[];
+}
+
+/**
+ * A thorn's outline along its own length, as how far out each corner lies
+ * and how far to its side, in shares of the burr's reach, as the kit has
+ * it: a bold shaft that comes to a sharp end, with one barb swept back from
+ * that end, its fourth corner.
+ */
+const SPINE: readonly Point[] = [
+  { x: 0.2, y: -0.075 },
+  { x: 0.74, y: -0.075 },
+  { x: 1, y: 0 },
+  { x: 0.58, y: 0.34 },
+  { x: 0.76, y: 0.075 },
+  { x: 0.2, y: 0.075 },
+];
+
+/** Which of a thorn's corners is its barb, which a small burr goes without. */
+const BARB = 3;
+
+/** How many thorns a burr has: never four, whose barbs would make another sign. */
+const THORNS = 6;
+
+/** How many corners a burr's seed is cut in. */
+const SEED_CORNERS = 14;
+
+/**
+ * Returns a burr cut from a seed, as the kit's `makeBurr()` cuts it: a
+ * small round seed with six thorns, each longer than the seed is wide, set
+ * a little unevenly and reaching unevenly, the first all the way, each
+ * barbed at its end, all the same way round.
+ */
+export function makeBurr(seed: number): BurrShape {
+  const random = createRandom(seed * 269 + 37);
+  const core = Array.from({ length: SEED_CORNERS }, (_, i) =>
+    polar((i / SEED_CORNERS) * TURN, between(random, 0.29, 0.32)),
+  );
+  const first = between(random, 0, TURN);
+  const spines = Array.from({ length: THORNS }, (_, i) => {
+    const angle = first + ((i + between(random, -0.15, 0.15)) / THORNS) * TURN;
+    const reach = i === 0 ? 1 : between(random, 0.8, 1);
+    const side = polar(angle + TURN / 4, 1);
+    return SPINE.map(({ x: out, y: aside }) => {
+      const along = polar(angle, out <= 0.2 ? out : 0.2 + (out - 0.2) * reach);
+      return { x: along.x + side.x * aside, y: along.y + side.y * aside };
+    });
+  });
+  return { core, spines };
+}
+
+/** The burr adrift, cut from the kit's first seed. */
+const BURR = makeBurr(1);
+
+/** Describes where a burr clings to the pod, and its frames there. */
+export interface BurrHold {
+  /** Its middle, in field units from the pod's, the pod's nose along x. */
+  readonly at: Point;
+  /** How far it is turned on the pod, in radians. */
+  readonly turn: number;
+  /** Its frame, its thorns barbed. */
+  readonly frame: string;
+  /** Its frame without its barbs, for a field too small for them. */
+  readonly bareFrame: string;
+}
+
+/**
+ * Where burrs cling to the pod, the first to cling first, each cut from the
+ * kit's next seed: on the prow's flank and on each nacelle, clear of the
+ * canopy and the pilot in it.
+ */
+export const BURR_HOLDS: readonly BurrHold[] = [
+  {
+    at: { x: 1.12, y: -0.3 },
+    turn: 0.4,
+    frame: "burr-clinging-0",
+    bareFrame: "burr-clinging-bare-0",
+  },
+  {
+    at: { x: -0.9, y: 0.8 },
+    turn: 2.1,
+    frame: "burr-clinging-1",
+    bareFrame: "burr-clinging-bare-1",
+  },
+  {
+    at: { x: -0.62, y: -0.95 },
+    turn: 4.2,
+    frame: "burr-clinging-2",
+    bareFrame: "burr-clinging-bare-2",
+  },
+];
+
+/** Each hold, with the burr clinging there, cut from the kit's next seeds in turn. */
+const CLINGING_BURRS: readonly {
+  readonly hold: BurrHold;
+  readonly burr: BurrShape;
+}[] = BURR_HOLDS.map((hold, i) => ({ hold, burr: makeBurr(i + 2) }));
+
+/** How large a burr clinging is against one adrift. */
+export const CLINGING_SHARE = 0.82;
+
+/**
+ * How far a burr's frames reach from its middle, in field units, adrift or
+ * clinging: its thorns, and their casing, rounded, at its widest, on the
+ * smallest field; a burr clinging, a little smaller, reaches no further,
+ * its wider casing and all.
+ */
+export const BURR_REACH = BURR_RADIUS + MOST_LINE;
+
+/** The names of the burr's frames but each hold's own, which {@link BURR_HOLDS} names. */
+export const BURR_FRAMES = {
+  /** A burr adrift, its thorns barbed, its glint apart. */
+  adrift: "burr",
+  /** A burr adrift without its barbs, for a field too small for them. */
+  bare: "burr-bare",
+  /** The glint on a burr adrift, which keeps to the light however it turns. */
+  glint: "burr-glint",
+  /** The glint on a burr clinging. */
+  clingingGlint: "burr-clinging-glint",
+  /** How to play's picture of it, its glint and all. */
+  picture: "burr-picture",
+} as const;
+
+/**
+ * How many CSS pixels a burr must reach for its barbs to be drawn, under
+ * which they would only blunt its thorns, and for its glint to show, as the
+ * kit has them.
+ */
+const BURR_DETAIL = { barbs: 6.5, glint: 7 } as const;
+
+/** How far a burr's glint lies from its middle toward the light, as a share of how far it reaches. */
+const GLINT_OUT = Math.hypot(0.09, 0.1);
+
+/**
+ * Returns the ink a burr is drawn in, as the kit's `burrInk()` mixes it: a
+ * chestnut brown between the palette's warning and danger colors, dulled by
+ * the field's muted text and sunk toward the field's text on a light field
+ * or toward the field on a dark one, so it is duller and darker than any
+ * accent, the comet or an ember.
+ */
+export function burrInk(palette: BeltPalette): number {
+  const dull = mixTone(
+    mixTone(palette.flame, palette.comet, 0.4),
+    palette.muted,
+    0.35,
+  );
+  return palette.mode === "light"
+    ? mixTone(dull, palette.shot, 0.3)
+    : mixTone(dull, palette.field, 0.35);
+}
+
+/**
+ * Writes where a burr's glint lies from its middle, in field units, toward
+ * a palette's light across the field, for a burr a share as large as one
+ * adrift, and returns it.
+ */
+export function burrGlintAt(
+  palette: BeltPalette,
+  share: number,
+  into: Moving,
+): Moving {
+  const { way } = palette.rockLight;
+  const toward = Math.atan2(way.y, way.x);
+  const out = GLINT_OUT * BURR_RADIUS * share;
+  into.x = Math.cos(toward) * out;
+  into.y = Math.sin(toward) * out;
+  return into;
+}
+
+/** Returns how far a burr a share as large as one adrift reaches at a scale, in CSS pixels. */
+function burrCssReach(scale: ArtScale, share: number): number {
+  return (BURR_RADIUS * share * scale.unit) / scale.pixelRatio;
+}
+
+/**
+ * Returns whether a burr a share as large as one adrift is drawn with its
+ * barbs on a field laid out at a scale, as the kit draws them only where it
+ * reaches 6.5 CSS pixels; the field's own scale, not the atlas's, which a
+ * large field outgrows.
+ */
+export function isBarbed(scale: ArtScale, share: number): boolean {
+  return burrCssReach(scale, share) >= BURR_DETAIL.barbs;
+}
+
+/**
+ * Returns whether a burr a share as large as one adrift shows its glint on
+ * a field laid out at a scale, as the kit draws it only where it reaches 7
+ * CSS pixels; the field's own scale, not the atlas's.
+ */
+export function isGlinted(scale: ArtScale, share: number): boolean {
+  return burrCssReach(scale, share) >= BURR_DETAIL.glint;
+}
+
+/**
+ * Returns a burr about its middle, as the kit's `burrSvg()` draws it but its
+ * glint: each thorn and the seed cased in the field's color, the thorns in
+ * the burr's ink, and the seed darker; a burr clinging is a share as large,
+ * its casing half as wide again, so each thorn stands apart from the hull;
+ * its barbs drawn or left off, as told.
+ */
+function burrCommands(
+  burr: BurrShape,
+  palette: BeltPalette,
+  scale: ArtScale,
+  {
+    clinging,
+    barbed,
+  }: { readonly clinging: boolean; readonly barbed: boolean },
+): readonly DrawCommand[] {
+  const { unit, pixelRatio } = scale;
+  const share = clinging ? CLINGING_SHARE : 1;
+  const radius = BURR_RADIUS * share * unit;
+  const ink = burrInk(palette);
+  const seed = mixTone(
+    ink,
+    palette.mode === "light" ? palette.shot : palette.field,
+    0.6,
+  );
+  const thorns = burr.spines.map((spine) =>
+    placed(barbed ? spine : spine.filter((_, i) => i !== BARB), radius),
+  );
+  const core = placed(burr.core, radius);
+  // A thorn is never thinner than a CSS pixel and a little.
+  const fat = Math.max(0.8 * pixelRatio, 0.045 * radius);
+  const casing = clinging
+    ? Math.max(1.8 * pixelRatio, 0.17 * unit)
+    : Math.max(pixelRatio, 0.12 * unit);
+  const cased = { color: palette.outline, width: fat + 2 * casing };
+  return [
+    ...thorns.flatMap((thorn) => roundCased(thorn, cased)),
+    ...roundCased(core, { ...cased, width: 2 * casing }),
+    ...thorns.map((thorn) => polygon(outward(thorn, fat / 2), { color: ink })),
+    polygon(outward(core, Math.max(0.3 * pixelRatio, 0.025 * radius)), {
+      color: seed,
+    }),
+  ];
+}
+
+/**
+ * Returns a closed outline filled and stroked round in a style, as the kit
+ * cases a burr's thorns and seed, so its casing reaches as far past a sharp
+ * corner as past an edge.
+ */
+function roundCased(
+  points: readonly Point[],
+  style: LineStyle,
+): readonly DrawCommand[] {
+  return [
+    polygon(points, style),
+    ...stroke([...points, ...points.slice(0, 1)], style),
+  ];
+}
+
+/**
+ * Returns a burr's glint, about a point, for a burr a share as large as one
+ * adrift, as the kit draws it: white on a light field, and the burr's ink
+ * lifted toward white on a dark one.
+ */
+function glintCommands(
+  palette: BeltPalette,
+  scale: ArtScale,
+  share: number,
+  middle: Point = ORIGIN,
+): readonly DrawCommand[] {
+  const radius = BURR_RADIUS * share * scale.unit;
+  const color =
+    palette.mode === "light" ? WHITE : mixTone(burrInk(palette), WHITE, 0.6);
+  return [
+    circle(middle, Math.max(0.8 * scale.pixelRatio, 0.075 * radius), {
+      color,
+      alpha: 0.85,
+    }),
+  ];
+}
+
+/**
+ * Returns the burr's frames: one adrift and each hold's clinging, each
+ * barbed and bare, which the scene chooses between by the field's own
+ * scale; the glints, which it keeps toward the light as the burrs turn and
+ * shows only where the field is large enough; and How to play's picture
+ * of it, as large as the atlas draws it, its barbs and its glint toward the
+ * light where they show at that size, which How to play shows a device
+ * pixel to a CSS pixel.
+ */
+function burrFrames(
+  palette: BeltPalette,
+  scale: ArtScale,
+): readonly ArtFrame[] {
+  const glint = burrGlintAt(palette, 1, { x: 0, y: 0 });
+  const shown = { unit: scale.unit, pixelRatio: 1 };
+  const adrift = (barbed: boolean): readonly DrawCommand[] =>
+    burrCommands(BURR, palette, scale, { clinging: false, barbed });
+  return [
+    centered(BURR_FRAMES.adrift, adrift(true)),
+    centered(BURR_FRAMES.bare, adrift(false)),
+    ...CLINGING_BURRS.flatMap(({ hold, burr }) =>
+      [true, false].map((barbed) =>
+        centered(
+          barbed ? hold.frame : hold.bareFrame,
+          burrCommands(burr, palette, scale, {
+            clinging: true,
+            barbed,
+          }),
+        ),
+      ),
+    ),
+    centered(BURR_FRAMES.glint, glintCommands(palette, scale, 1)),
+    centered(
+      BURR_FRAMES.clingingGlint,
+      glintCommands(palette, scale, CLINGING_SHARE),
+    ),
+    bounded(BURR_FRAMES.picture, [
+      ...adrift(isBarbed(shown, 1)),
+      ...(isGlinted(shown, 1)
+        ? glintCommands(palette, scale, 1, {
+            x: glint.x * scale.unit,
+            y: glint.y * scale.unit,
+          })
+        : []),
+    ]),
   ];
 }

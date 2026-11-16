@@ -450,18 +450,19 @@ describe("PICTURE_FRAMES", () => {
     ),
   );
 
-  it("pictures every pickup, a stray and the comet from frames the atlas holds", () => {
+  it("pictures every pickup, a stray, the comet and a burr from frames the atlas holds", () => {
     const pictured = [
       ...Object.values(PICTURE_FRAMES.pickups),
       PICTURE_FRAMES.stray,
       PICTURE_FRAMES.comet,
+      PICTURE_FRAMES.burr,
     ];
 
     expect({
       count: pictured.length,
       missing: pictured.filter((name) => !names.has(name)),
     }).toEqual({
-      count: PICKUP_IDS.length + 2,
+      count: PICKUP_IDS.length + 3,
       missing: [],
     });
   });

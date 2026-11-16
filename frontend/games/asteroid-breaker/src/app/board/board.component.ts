@@ -226,8 +226,9 @@ export class BoardComponent {
   private readonly askPictures = signal<(() => Pictures) | null>(null);
 
   /**
-   * The pictures of every rock kind, pickup, a stray and the comet as the
-   * scene last drew them, for How to play, or null before it has drawn.
+   * The pictures of every rock kind, pickup, a stray, the comet and a burr
+   * as the scene last drew them, for How to play, or null before it has
+   * drawn.
    *
    * The scene encodes them as this is first read after each bake, so only
    * How to play reads it, as it opens.

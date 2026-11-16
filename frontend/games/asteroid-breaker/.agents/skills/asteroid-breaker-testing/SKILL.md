@@ -269,14 +269,13 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   `THEMES`: it reads each palette's roles from the global stylesheet, by
   the names the board reads them by (`PALETTES.rolesIn()`, from
   `src/testing/roles.ts`), builds the field's palette from them, and holds
-  every rock, the pod, the shots, the pickups, the comet, the strays and
-  the pilots to 3:1 against what they are drawn on, each rock, the pod's
-  hull and the comet's head at its darkest and brightest faces too, under
-  the palette's
-  light (`faceExtremes()`), each pilot against the pod's glass and its
-  shade too (`podTones()`), the marks and outlines against what they
-  cross, and the deck's symbols at rest against its buttons and its knob
-  against the stick's base.
+  every rock, the pod, the shots, the pickups, the comet, a burr's ink,
+  the strays and the pilots to 3:1 against what they are drawn on, each
+  rock, the pod's hull and the comet's head at its darkest and brightest
+  faces too, under the palette's light (`faceExtremes()`), each pilot
+  against the pod's glass and its shade too (`podTones()`), the marks and
+  outlines against what they cross, and the deck's symbols at rest
+  against its buttons and its knob against the stick's base.
 - `src/view/places/quiet.spec.ts` holds each place quiet by the plan's
   measure, in every palette of `THEMES`, on a wide field and a tall one: it
   paints the place's wash, its landmark at rest and its vignette, without

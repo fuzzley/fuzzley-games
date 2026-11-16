@@ -181,10 +181,10 @@ export interface BeltSceneOptions {
   readonly command: (command: RunCommand) => void;
   /**
    * Takes, each time the field's atlas is baked, what returns a picture of
-   * every rock kind, pickup, a stray and the comet, for How to play: the
-   * rocks' drawn lit, the rest encoded as the atlas holds them, only as it
-   * is first called after the bake, so call it only as How to play shows
-   * them.
+   * every rock kind, pickup, a stray, the comet and a burr, for How to
+   * play: the rocks' drawn lit, the rest encoded as the atlas holds them,
+   * only as it is first called after the bake, so call it only as How to
+   * play shows them.
    */
   readonly onPictures: (pictures: () => Pictures) => void;
   /**
@@ -217,7 +217,7 @@ export interface BeltKit {
   readonly arcs: ArcPainter;
   /** Draws the stray adrift and a lost ship's pilot bailing out. */
   readonly strays: StrayPainter;
-  /** Draws the comets and their warnings. */
+  /** Draws the comets and their warnings, and the burrs adrift and clinging to the pod. */
   readonly hazards: HazardPainter;
   /** Draws the shots. */
   readonly shots: ShotPainter;
@@ -438,7 +438,12 @@ export class BeltScene extends Scene {
       pickups: new PickupPainter(this, layers.pickups),
       sparks: new SparkPainter(this, layers.sparks, halos),
       strays: new StrayPainter(this, layers.strays),
-      hazards: new HazardPainter(this, layers.hazards, layers.lanes),
+      hazards: new HazardPainter(
+        this,
+        layers.hazards,
+        layers.lanes,
+        layers.burrs,
+      ),
       shots: new ShotPainter(this, layers.shots),
       tow: new TowPainter(this, layers.tow),
       ship: new PodPainter(this, layers.ship),

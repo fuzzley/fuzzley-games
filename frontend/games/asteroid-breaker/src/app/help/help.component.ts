@@ -12,6 +12,8 @@ import { PICKUP_IDS, pickup } from "../../rules/catalog/pickups";
 import { ROCK_KIND_IDS, rockKind } from "../../rules/catalog/rocks";
 import { SPEED_INFO } from "../../rules/speed";
 import {
+  BURR_POINTS,
+  BURR_SLOW,
   CLEAN_POINTS,
   CLEAR_POINTS,
   DASH_RECHARGE_MS,
@@ -19,6 +21,7 @@ import {
   GRAZE_STATIC,
   HIT_GUARD_MS,
   LOOSE_LIFE_MS,
+  MOST_CLINGING,
   MOST_CREW,
   SPARK_DRAW_REACH,
   SPARK_POINTS,
@@ -55,10 +58,10 @@ const DASHING = `A dash throws the ship ahead, and no rock or comet can hit it w
 const PICKUPS_INTRO =
   "A broken rock may let a pickup go. Fly into it to catch it before it fades; a crystal always lets one go.";
 
-/** What How to play says of strays and the comet before listing them. */
-const ADRIFT_INTRO = `Neither is a rock, and a wave never needs either. Strays drift in from wave ${String(STRAYS_FROM)}, and a pilot left with no one in tow, and no one to catch again, is sent one at once, once a wave; comets come in the later waves.`;
+/** What How to play says of strays, the comet and burrs before listing them. */
+const ADRIFT_INTRO = `None of them is a rock, and a wave never needs any. Strays drift in from wave ${String(STRAYS_FROM)}, and a pilot left with no one in tow, and no one to catch again, is sent one at once, once a wave; comets and burrs come in the later waves.`;
 
-/** What How to play says of a stray and the comet, with no catalog of their own. */
+/** What How to play says of a stray, the comet and a burr, with no catalog of their own. */
 const ADRIFT = {
   stray: {
     name: "Stray fuzzball",
@@ -69,16 +72,20 @@ const ADRIFT = {
     about:
       "Warned of by a chevron at the edge it comes in by, it crosses the field, breaking any rock it touches a size down, and hits the ship as a rock does unless the ship is dashing or shielded.",
   },
+  burr: {
+    name: "Burr",
+    about: `A seed of barbed thorns that drifts in at an edge and, once near the ship, turns toward it. Only a shot pops it, for ${formatPoints(BURR_POINTS)} points times static's multiplier. One that touches the ship clings, each taking ${String(Math.round(BURR_SLOW * 100))}% off its thrust and top speed, up to ${String(MOST_CLINGING)}, until a dash shakes them all off.`,
+  },
 } as const;
 
-/** The ids of a stray and the comet, in How to play's order. */
+/** The ids of a stray, the comet and a burr, in How to play's order. */
 const ADRIFT_IDS = keysOf(ADRIFT);
 
 /**
  * Shows How to play: the aim, the crew, scoring, static, dashing and the
  * zap, and pausing, the controls by mouse, touch and keys, and every rock,
- * pickup, a stray and the comet, each with its name, what it does and its
- * picture once the scene has drawn it.
+ * pickup, a stray, the comet and a burr, each with its name, what it does
+ * and its picture once the scene has drawn it.
  */
 @Component({
   selector: "app-help",
@@ -90,7 +97,7 @@ export class HelpComponent {
   /** Whether the dialog is showing. */
   readonly open = input.required<boolean>();
 
-  /** The pictures of every rock kind, pickup, a stray and the comet, or null before the scene has drawn. */
+  /** The pictures of every rock kind, pickup, a stray, the comet and a burr, or null before the scene has drawn. */
   readonly pictures = input<Pictures | null>(null);
 
   /** Emitted when the dialog asks to close. */
@@ -118,13 +125,17 @@ export class HelpComponent {
       },
       {
         id: "adrift",
-        heading: "Strays and comets",
+        heading: "Strays, comets and burrs",
         intro: ADRIFT_INTRO,
         entries: helpEntries(
           ADRIFT_IDS,
           (id) => ADRIFT[id],
           pictures
-            ? { stray: pictures.stray, comet: pictures.comet }
+            ? {
+                stray: pictures.stray,
+                comet: pictures.comet,
+                burr: pictures.burr,
+              }
             : undefined,
         ),
       },

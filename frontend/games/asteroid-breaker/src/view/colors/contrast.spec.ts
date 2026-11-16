@@ -4,7 +4,7 @@ import { colorNumber } from "@fz/phaser/color";
 import { FIELD_ROLES } from "../../app/board/field_roles";
 import { PALETTES } from "../../testing/roles";
 import { podTones } from "../art/pod_art";
-import { orbColors } from "../art/things";
+import { burrInk, orbColors } from "../art/things";
 import { beltPalette } from "./palette";
 import { faceExtremes } from "./rock_light";
 
@@ -22,13 +22,14 @@ function between(one: number, other: number): number {
 // rock. A rock is lit, so each kind keeps 3:1 at its darkest face, turned
 // from the palette's light, and at its brightest, turned to it, a crystal's
 // stone body too, and so does the pod's hull, lit as a rock is, its trim
-// too. Each thing is outlined in the field's color, so it reads apart from
-// a rock it crosses, and a rock's cracks are drawn in the same, so each
-// keeps 3:1 against those too, and against every face of a rock. Each
-// pilot keeps 3:1 against what it is drawn on: the field; the pod's glass
-// and its shade, in its canopy; a stray's bubble; and the bar, where the
-// crew waits; and its eyes keep 3:1 against it. The deck's symbols at rest
-// keep 3:1 against its buttons, and the knob against the stick's base.
+// too. Each thing is outlined in the field's color, a burr's thorns cased
+// in it, so it reads apart from a rock it crosses, and a rock's cracks are
+// drawn in the same, so each keeps 3:1 against those too, and against
+// every face of a rock. Each pilot keeps 3:1 against what it is drawn on:
+// the field; the pod's glass and its shade, in its canopy; a stray's
+// bubble; and the bar, where the crew waits; and its eyes keep 3:1 against
+// it. The deck's symbols at rest keep 3:1 against its buttons, and the knob
+// against the stick's base.
 describe("the field's contrast", () => {
   describe.each(THEMES)("in $name", ({ id, mode }) => {
     const palette = beltPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -67,6 +68,7 @@ describe("the field's contrast", () => {
       ["pod", palette.accent],
       ["pickup", palette.accent],
       ["comet", palette.comet],
+      ["burr", burrInk(palette)],
     ] as const;
     const pilots = palette.pilots.map(
       (color, i) => [`pilot ${String(i + 1)}`, color] as const,
