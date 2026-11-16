@@ -117,12 +117,17 @@ const CLEARED_AT = shapesAt(2, [...SHAPES, SMALLEST]);
 const CLEARED_CARD = "app-board .card.cleared";
 
 /**
- * How long a page has to show the Cleared card once it goes on with the
- * run: the fuse's beat and the shards' flight, as Chrome drawing WebGL in
- * software, as CI's does, draws the roomy window at twice the pixels a few
- * frames a second, fewer with other pages drawing beside it.
+ * How long a page has to show the Cleared card, from its load.
+ *
+ * Past its first draw, the fuse's beat and the card's wait are just under
+ * a second of the game's time, some 55 frames, as Phaser counts each of a
+ * game's first 120 frames as a 60th of a second at most, and any frame
+ * slower than a fifth of a second as one it counted before; and Chrome
+ * drawing WebGL in software, as CI's does, draws the roomy window at twice
+ * the pixels a few frames a second, fewer on a slow runner with other
+ * pages drawing beside it.
  */
-const CLEARED_TIMEOUT_MS = 60_000;
+const CLEARED_TIMEOUT_MS = 180_000;
 
 /**
  * Keeps a run where the game keeps one and the settings the check plays

@@ -1696,7 +1696,11 @@ workspace's with the others'.
   `clearingRun()`), each page going on with it by its Paused card's
   Resume, the haptics off, which Chrome blocks in a page no one has
   tapped, so the wave clears and the Cleared card shows, its trophy over
-  it, on the field, the rest holding as above).
+  it, on the field, the rest holding as above; it gives each page three
+  minutes from its load to show the card (`CLEARED_TIMEOUT_MS`), as
+  Phaser counts a frame as a 60th of a second at most as a game starts,
+  so the fuse and the card's wait take some 55 frames, which Chrome
+  drawing WebGL in software, as CI's does, draws a few a second at 2×).
 - **Make the Sounds:** `yarn build:sounds` (runs `tools/build-sounds.mjs`,
   which renders every take of every recipe in `tools/sounds/`, each from a
   seed of its name and its number, the same bytes every run, centered and
