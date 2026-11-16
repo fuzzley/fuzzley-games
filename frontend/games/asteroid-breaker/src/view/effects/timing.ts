@@ -105,7 +105,7 @@ export const EXHAUST_MS = 400;
  */
 export const CLEARED_MS = 800;
 
-/** How long the flourishes play slowed as the last rock goes, in milliseconds of the page's time. */
+/** How long the flourishes play slowed as a sector's last rock goes, in milliseconds of the page's time. */
 export const SLOW_MS = 250;
 
 /** How fast the flourishes play while slowed, a share of their pace. */
@@ -115,8 +115,9 @@ export const SLOW_PACE = 1 / 3;
 export const SLOWED_MS = SLOW_MS * SLOW_PACE;
 
 /**
- * How long the wave's ring takes to cross the field once the slow is over,
- * so it is gone as the Cleared card opens.
+ * How long the wave's ring takes to cross the field, from as long after the
+ * last rock goes as the slow lasts, slowed or not, so it is gone as the
+ * Cleared card opens.
  */
 export const WAVE_RING_MS = CLEARED_MS - SLOW_MS;
 

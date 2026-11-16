@@ -30,6 +30,7 @@ import {
   RING_MS,
   SHAKE_MS,
   SLOWED_MS,
+  SLOW_MS,
   STILL_MARK_MS,
 } from "../view/effects/timing";
 import { type FieldEvent, shipAt } from "../view/field/frame";
@@ -86,6 +87,7 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
     seed: shell.seed,
     constellation: null,
     place: shell.place,
+    endsSector: false,
     deck: null,
     steering: new Steering(metricsOf(shell), null, shell.setting),
     metrics: metricsOf(shell),
@@ -95,6 +97,11 @@ function contextAt(shell: FakeShell, now: number): PaintContext {
     now,
     motion: true,
   };
+}
+
+/** Returns what the painters draw from at a time, as {@link contextAt} does, on a sector's last wave. */
+function sectorEndAt(shell: FakeShell, now: number): PaintContext {
+  return { ...contextAt(shell, now), endsSector: true };
 }
 
 /** Returns the tint and the scale of each shard alive. */
@@ -398,34 +405,59 @@ describe("FlourishPlayer", () => {
     }).toEqual({ cracks: true, fromMiddle: true });
   });
 
-  it("slows its clock to a third", async () => {
+  it("slows its clock to a third as a sector's last wave is cleared", async () => {
+    const { shell, player } = await startPlayer();
+    player.clock.at(NOW);
+
+    player.play("slow", clearedOn(), sectorEndAt(shell, NOW));
+
+    expect(player.clock.at(NOW + 30)).toBeCloseTo(NOW + 10, 9);
+  });
+
+  it("keeps its clock's pace as any other wave is cleared", async () => {
     const { shell, player } = await startPlayer();
     player.clock.at(NOW);
 
     player.play("slow", clearedOn(), contextAt(shell, NOW));
 
-    expect(player.clock.at(NOW + 30)).toBeCloseTo(NOW + 10, 9);
+    expect(player.clock.at(NOW + 30)).toBe(NOW + 30);
   });
 
   it("ends a slow as a new field starts", async () => {
     const { shell, player } = await startPlayer();
     player.clock.at(NOW);
-    player.play("slow", clearedOn(), contextAt(shell, NOW));
+    player.play("slow", clearedOn(), sectorEndAt(shell, NOW));
 
     player.start();
 
     expect(player.clock.at(NOW + 30)).toBe(NOW + 30);
   });
 
-  it("crosses the field with the wave's ring from where the last rock broke, once the slow is over", async () => {
+  it("crosses the field with the wave's ring from where the last rock broke, once the slow is over at a sector's end", async () => {
     const { shell, scene, player } = await startPlayer();
-    const context = contextAt(shell, NOW);
+    const context = sectorEndAt(shell, NOW);
     player.play("break", boulderBrokenFrom(shell, 0, 1), context);
 
     player.play("wave", clearedOn(), context);
     scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS - 1));
     const waiting = commandsOf(scene.kit.rings.graphics).length;
     scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS + 50));
+
+    expect([waiting, ringsAbout(scene, shell, MIDDLE.x, MIDDLE.y)]).toEqual([
+      0,
+      true,
+    ]);
+  });
+
+  it("crosses the field with the wave's ring as long after the last rock as the slow would last, unslowed, as any other wave is cleared", async () => {
+    const { shell, scene, player } = await startPlayer();
+    const context = contextAt(shell, NOW);
+    player.play("break", boulderBrokenFrom(shell, 0, 1), context);
+
+    player.play("wave", clearedOn(), context);
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOW_MS - 1));
+    const waiting = commandsOf(scene.kit.rings.graphics).length;
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOW_MS + 50));
 
     expect([waiting, ringsAbout(scene, shell, MIDDLE.x, MIDDLE.y)]).toEqual([
       0,
@@ -440,7 +472,7 @@ describe("FlourishPlayer", () => {
     player.start();
 
     player.play("wave", clearedOn(), context);
-    scene.kit.rings.draw(contextAt(shell, NOW + SLOWED_MS + 50));
+    scene.kit.rings.draw(contextAt(shell, NOW + SLOW_MS + 50));
 
     expect(ringsAbout(scene, shell, 10, 30)).toBe(true);
   });

@@ -397,6 +397,7 @@ export class BeltScene extends Scene {
       seed: frame.seed,
       constellation: frame.constellation,
       place: frame.place,
+      endsSector: frame.endsSector,
       deck: this.deckParts,
       steering: this.steering,
       metrics: this.metrics,
@@ -480,7 +481,7 @@ export class BeltScene extends Scene {
    */
   override update(time: number, delta: number): void {
     // The flourishes' time, which runs with the page's but for a moment
-    // slowed, as a wave's last rock goes.
+    // slowed, as a sector's last rock goes.
     this.context.now = this.flourishPlayer.clock.at(time);
     let moved = this.fit();
     this.options.tick(delta, this.steering.read());
@@ -502,6 +503,7 @@ export class BeltScene extends Scene {
     if (frame.field !== this.shownField) this.startField(frame.field);
     this.stage(frame);
     this.context.place = frame.place;
+    this.context.endsSector = frame.endsSector;
     this.fieldSounds.hearField(frame.field, time);
     frame.events.forEachSince(this.played, this.play);
     this.played = frame.events.latest;

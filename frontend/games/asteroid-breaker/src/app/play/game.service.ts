@@ -628,7 +628,8 @@ export class GameService extends RunLifecycle {
   /**
    * Returns the play of a run's wave in play, on its field as laid out, in
    * its sector's place, its stars strewn from the run's seed and, in
-   * Endless, its constellation laid among them.
+   * Endless, its constellation laid among them. It says whether the wave
+   * is its sector's last, which no Endless wave is.
    */
   private playOf(run: Run, field: Field = this.fieldOf(run)): WavePlay {
     const entry = this.waveEntry(run.wave);
@@ -640,6 +641,7 @@ export class GameService extends RunLifecycle {
       run.seed,
       constellation,
       placeOfSector(entry.sector.id),
+      this.spans.some(({ lastWave }) => lastWave === run.wave),
     );
   }
 

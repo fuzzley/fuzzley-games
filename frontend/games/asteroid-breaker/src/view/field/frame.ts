@@ -104,6 +104,11 @@ export interface FieldFrame {
   readonly constellation: Readonly<Place> | null;
   /** The place the wave is played in, its sector's, behind the field. */
   readonly place: PlaceId;
+  /**
+   * Whether the wave is its sector's last, so its last rock is the
+   * sector's, which the flourishes slow for as it goes.
+   */
+  readonly endsSector: boolean;
 }
 
 /**

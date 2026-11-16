@@ -8,7 +8,7 @@ import {
   ringOf,
 } from "../view/effects/flourish";
 import { FlourishClock } from "../view/effects/flourish_clock";
-import { BURST_SHARDS, SLOWED_MS } from "../view/effects/timing";
+import { BURST_SHARDS, SLOWED_MS, SLOW_MS } from "../view/effects/timing";
 import type { FieldEvent } from "../view/field/frame";
 import type { FieldCamera } from "./field_camera";
 import type { BlastPainter } from "./painters/blast_painter";
@@ -38,12 +38,12 @@ export interface FlourishPainters {
 
 /**
  * Says what a flourish plays from: the field it happened on, how the field
- * is laid out and painted, and the scene's time, as the scene's
- * `PaintContext` has them.
+ * is laid out and painted, the scene's time, and whether the wave is its
+ * sector's last, as the scene's `PaintContext` has them.
  */
 export type FlourishStage = Pick<
   PaintContext,
-  "field" | "metrics" | "palette" | "zoom" | "now" | "motion"
+  "field" | "metrics" | "palette" | "zoom" | "now" | "motion" | "endsSector"
 >;
 
 /**
@@ -82,7 +82,15 @@ export class FlourishPlayer {
   play(
     flourish: Flourish,
     event: Readonly<FieldEvent>,
-    { field, metrics, palette, zoom, now, motion }: Readonly<FlourishStage>,
+    {
+      field,
+      metrics,
+      palette,
+      zoom,
+      now,
+      motion,
+      endsSector,
+    }: Readonly<FlourishStage>,
   ): void {
     const {
       debris,
@@ -111,15 +119,17 @@ export class FlourishPlayer {
         boulders.breakBoulder(event, now);
         return;
       case "slow":
-        this.clock.slow();
+        if (endsSector) this.clock.slow();
         return;
       case "wave": {
         const from = this.hasBroken ? this.broke : event;
+        // The ring starts as long after the last rock as the slow lasts,
+        // slowed or not, so it is gone as the Cleared card opens.
         rings.wave(
           from.x,
           from.y,
           farthestCorner(from.x, from.y, field.torus),
-          now + SLOWED_MS,
+          now + (endsSector ? SLOWED_MS : SLOW_MS),
         );
         return;
       }

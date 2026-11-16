@@ -59,18 +59,22 @@ function brokenUnderWay(): WavePlay {
 
 describe("WavePlay", () => {
   describe("frame", () => {
-    it("hands the scene the field, its events and the run's seed, no constellation and the first sector's place unless given others", () => {
+    it("hands the scene the field, its events and the run's seed, no constellation, the first sector's place and no sector's end unless given others", () => {
       const play = stillPlay();
 
-      const { field, events, seed, constellation, place } = play.frame();
+      const { field, events, seed, constellation, place, endsSector } =
+        play.frame();
 
-      expect({ field, events, seed, constellation, place }).toEqual({
-        field: play.field,
-        events: play.field.events,
-        seed: 7,
-        constellation: null,
-        place: PLACE_IDS[0],
-      });
+      expect({ field, events, seed, constellation, place, endsSector }).toEqual(
+        {
+          field: play.field,
+          events: play.field.events,
+          seed: 7,
+          constellation: null,
+          place: PLACE_IDS[0],
+          endsSector: false,
+        },
+      );
     });
 
     it("hands the scene where an Endless wave's constellation lies", () => {
@@ -83,6 +87,12 @@ describe("WavePlay", () => {
       const play = new WavePlay(fieldFrom(KEEPER), 7, null, "storm");
 
       expect(play.frame().place).toBe("storm");
+    });
+
+    it("hands the scene whether the wave is its sector's last", () => {
+      const play = new WavePlay(fieldFrom(KEEPER), 7, null, "storm", true);
+
+      expect(play.frame().endsSector).toBe(true);
     });
 
     it("hands the scene the same record each frame", () => {

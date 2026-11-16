@@ -17,11 +17,12 @@ import { BOULDER_HOLD_MS } from "./timing";
  * in), the
  * points scored, a dash's trail, a lost pod's burst, its pilot bailing
  * out, the field's shake at a boulder's break and the boulder's beats, as
- * a wave's last rock goes the flourishes slowed and the wave's ring, and a
- * still ring marking where something happened. Each but the points, a
- * blast and a still mark moves, so plays only where motion is welcome; the
- * points show either way, rising only where it is, a blast's ring stands
- * still at its reach where it isn't, and a still mark shows only there.
+ * a wave's last rock goes the flourishes slowed, where it is a sector's
+ * last, and the wave's ring, and a still ring marking where something
+ * happened. Each but the points, a blast and a still mark moves, so plays
+ * only where motion is welcome; the points show either way, rising only
+ * where it is, a blast's ring stands still at its reach where it isn't,
+ * and a still mark shows only there.
  */
 export type Flourish =
   | "muzzle"
