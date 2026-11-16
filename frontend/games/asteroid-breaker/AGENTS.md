@@ -381,9 +381,10 @@ takes for the specs' helpers.
   makes for each wave and drives: `@fz/core/field_play`'s `FieldPlay` over
   the rules' steps and clock, which keeps the frame the scene draws, the
   events it has handed on and the wait before a card opens, and hands the
-  scene the run's seed, the place its sector is shown in and, in Endless,
-  the constellation; where motion is welcome, it holds the field still,
-  its clock skipped, for as long as an event it heard calls for
+  scene the run's seed, the place its sector is shown in, in Endless the
+  constellation, and whether it is its sector's last wave (`endsSector`,
+  from the sectors' spans); where motion is welcome, it holds the field
+  still, its clock skipped, for as long as an event it heard calls for
   (`holdMsOf()`), keeping a fire or a dash pressed meanwhile for the
   field's next step. `run_frames.ts`
   holds `RunFrames`, which `GameService` hands each frame of it: it plays the
@@ -437,7 +438,7 @@ takes for the specs' helpers.
   out, which it hands the shell (`FieldLayout`). `frame.ts` is what the
   scene reads: `FieldView`, the field it can't change, `FieldFrame`, whose
   events are `@fz/core/event_log`'s `EventLogView` and which names the
-  wave's place, and where a thing that
+  wave's place and whether the wave ends its sector, and where a thing that
   wraps is drawn between its last place and its next, the shortest way across
   the wrap (`wrappedBetween()`; one that crosses, as a comet or a stray, is
   drawn with `@fz/core/math`'s `lerp()`), its turn (`angleBetween()`),
@@ -591,8 +592,9 @@ takes for the specs' helpers.
   `plan.md`'s table has it, a rock's break (`BREAK_MS`) and a held hit's
   spark (`HELD_MS`) among them, the muzzle's flash (`MUZZLE_MS`), a blast
   (`BLAST_MS`), a boulder's beats (`BOULDER_HOLD_MS`,
-  `BOULDER_THROW_MS`), the slow as a wave's last rock goes (`SLOW_MS`,
-  `SLOW_PACE`, `SLOWED_MS`) and the wave's ring after it (`WAVE_RING_MS`),
+  `BOULDER_THROW_MS`), the slow as a sector's last rock goes (`SLOW_MS`,
+  `SLOW_PACE`, `SLOWED_MS`) and the wave's ring, as long after any wave's
+  last rock as the slow lasts (`WAVE_RING_MS`),
   how long a still mark stands (`STILL_MARK_MS`), and how long
   the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
   bubble to rise and go); `boulder.ts` how a boulder's break looks over its
@@ -604,9 +606,10 @@ takes for the specs' helpers.
   (`CRACK_LINES`, `crackLineAlpha()`), its glow (`boulderGlowAt()`) and
   the ring it throws (`thrownShare()`, `thrownReach()`, `THROWN_RING`);
   `flourish_clock.ts` the flourishes' own clock, which the scene draws
-  by, the page's time but slowed for a moment as a wave's last rock goes
-  (`FlourishClock`); `cleared.ts` the wave's ring after it, crossing the
-  field from where the last rock went to its farthest corner (`farthestCorner()`,
+  by, the page's time but slowed for a moment as a sector's last rock
+  goes, which the frame's `endsSector` says (`FlourishClock`);
+  `cleared.ts` the wave's ring after it, crossing the field from where the
+  last rock went to its farthest corner (`farthestCorner()`,
   `waveRingAt()`, `WAVE_RING`); `blast.ts` how a volatile
   rock's blast looks over its time, as the kit's `blastFx()` draws it: its
   colors in a palette (`blastInks()`), its ring sweeping out to its reach

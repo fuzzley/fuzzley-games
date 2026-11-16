@@ -45,14 +45,16 @@ export class WavePlay extends FieldPlay<Field, Steer, FieldEvent, Frame> {
 
   /**
    * Plays a field in its sector's place, the first's unless told, its stars
-   * strewn from the run's seed, and its constellation where an Endless wave
-   * lays it.
+   * strewn from the run's seed, its constellation where an Endless wave
+   * lays it, and whether it is its sector's last wave, which it isn't
+   * unless told.
    */
   constructor(
     field: Field,
     seed: number,
     constellation: Readonly<Place> | null = null,
     place: PlaceId = PLACE_IDS[0],
+    endsSector = false,
   ) {
     super(field, WAVE_RULES, createFieldClock(), {
       field,
@@ -61,6 +63,7 @@ export class WavePlay extends FieldPlay<Field, Steer, FieldEvent, Frame> {
       seed,
       constellation,
       place,
+      endsSector,
     });
   }
 

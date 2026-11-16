@@ -88,6 +88,8 @@ export class FakeShell implements BeltSceneOptions {
   constellation: Place | null = null;
   /** The place the wave is played in, as its sector names it. */
   place: PlaceId = PLACE_IDS[0];
+  /** Whether the wave is its sector's last, as the game would say. */
+  endsSector = false;
   colors: BeltPalette = ART_PALETTE;
   welcomesMotion = true;
   /** What of the sound the player wants, as the settings would switch it: all of it but mono. */
@@ -148,6 +150,7 @@ export class FakeShell implements BeltSceneOptions {
     seed: this.seed,
     constellation: this.constellation,
     place: this.place,
+    endsSector: this.endsSector,
   });
   readonly palette = (): BeltPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;

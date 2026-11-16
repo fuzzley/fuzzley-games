@@ -598,6 +598,32 @@ describe("GameService", () => {
       expect(game.placeAfter()).toBe("iron-reach");
     });
 
+    it("says a sector's last wave ends its sector", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      expect(game.frame().endsSector).toBe(true);
+    });
+
+    it("says a sector's last wave ends it, though another sector follows", () => {
+      const game = gameOver(SECTOR_WAVES);
+
+      expect(game.frame().endsSector).toBe(true);
+    });
+
+    it("says no other wave of a sector ends it", async () => {
+      const game = await gameAt(SPEC_WAVE.pebble);
+
+      expect(game.frame().endsSector).toBe(false);
+    });
+
+    it("says no Endless wave ends a sector", async () => {
+      const game = await gameAt(SPEC_WAVE.last);
+
+      clearToNext(game);
+
+      expect(game.frame().endsSector).toBe(false);
+    });
+
     it("plays a spec's sector's wave, which has no place of its own, in the first sector's", async () => {
       const game = await gameAt(SPEC_WAVE.pebble);
 

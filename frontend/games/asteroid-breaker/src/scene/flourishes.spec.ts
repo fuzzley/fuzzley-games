@@ -1737,32 +1737,61 @@ describe("the wave's clearing", () => {
     shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
   }
 
+  /** Sets a shell up to play its sector's last wave. */
+  function endingSector(shell: FakeShell): void {
+    shell.endsSector = true;
+  }
+
   /** Returns the wave's ring's line, the last band the ring painter fills, or null with none. */
   function waveRing(scene: BeltScene): FilledRound | null {
     return roundsOf(scene.kit.rings.graphics).at(-1) ?? null;
   }
 
-  it("slows the flourishes to a third for a moment, its last points rising at a third of their pace", async () => {
-    /** Returns how far a wave's last points have risen a while after they are scored, the wave cleared or not. */
-    async function risen(cleared: boolean): Promise<number> {
-      const { shell, run, scene } = await startBoard();
-      shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
-      if (cleared) shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
-      run.advance(16);
-      const [points] = scene.kit.points.scored.all;
-      const scored = points?.image.y ?? 0;
-      run.advance(SLOW_MS - 50, 16);
-      return scored - (points?.image.y ?? 0);
-    }
+  /**
+   * Returns how far a wave's last points have risen a while after they are
+   * scored, the wave cleared or not, and its sector's last or not.
+   */
+  async function risen(cleared: boolean, endsSector: boolean): Promise<number> {
+    const { shell, run, scene } = await startBoard((board) => {
+      board.endsSector = endsSector;
+    });
+    shell.field.events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
+    if (cleared) shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
+    run.advance(16);
+    const [points] = scene.kit.points.scored.all;
+    const scored = points?.image.y ?? 0;
+    run.advance(SLOW_MS - 50, 16);
+    return scored - (points?.image.y ?? 0);
+  }
 
-    const slowed = await risen(true);
-    const paced = await risen(false);
+  it("slows the flourishes to a third for a moment at a sector's last rock, its last points rising at a third of their pace", async () => {
+    const slowed = await risen(true, true);
+    const paced = await risen(false, true);
 
     expect(slowed / paced).toBeCloseTo(1 / 3, 2);
   });
 
-  it("has the wave's ring wait out the slow", async () => {
+  it("keeps the flourishes' pace at any other wave's last rock, its last points rising at theirs", async () => {
+    const cleared = await risen(true, false);
+    const paced = await risen(false, false);
+
+    expect(cleared / paced).toBeCloseTo(1, 2);
+  });
+
+  it("has the wave's ring wait as long as the slow would last, unslowed, at any other wave's last rock", async () => {
     const { shell, run, scene } = await startBoard();
+    logClearing(shell, 20, 12);
+    run.advance(16);
+
+    run.advance(SLOW_MS - 50, 16);
+    const waiting = waveRing(scene);
+    run.advance(100, 16);
+
+    expect([waiting, waveRing(scene) === null]).toEqual([null, false]);
+  });
+
+  it("has the wave's ring wait out the slow", async () => {
+    const { shell, run, scene } = await startBoard(endingSector);
     logClearing(shell, 20, 12);
     run.advance(16);
 
@@ -1774,7 +1803,7 @@ describe("the wave's clearing", () => {
   });
 
   it("crosses the field with the wave's ring from where its last rock went, in the accent, toward the farthest corner", async () => {
-    const { shell, run, scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(endingSector);
     logClearing(shell, 20, 12);
     run.advance(SLOW_MS + 50, 16);
     const at = onCanvas(metricsOf(shell), 20, 12);
@@ -1803,7 +1832,7 @@ describe("the wave's clearing", () => {
   });
 
   it("crosses it from where the clearing is logged with no rock broken", async () => {
-    const { shell, run, scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(endingSector);
     shell.field.events.add("cleared", MIDDLE.x, MIDDLE.y);
 
     run.advance(SLOW_MS + 50, 16);
@@ -1816,7 +1845,7 @@ describe("the wave's clearing", () => {
   });
 
   it("draws the wave's ring with its sides within half a pixel of its circle, however far it has crossed", async () => {
-    const { shell, run, scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(endingSector);
     logClearing(shell, 1, 1);
 
     run.advance(CLEARED_MS - 60, 16);
@@ -1833,7 +1862,7 @@ describe("the wave's clearing", () => {
   });
 
   it("is gone as the Cleared card opens", async () => {
-    const { shell, run, scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(endingSector);
     logClearing(shell, 20, 12);
 
     run.advance(CLEARED_MS + 32, 16);

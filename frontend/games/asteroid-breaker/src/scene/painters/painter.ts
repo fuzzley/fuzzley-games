@@ -32,6 +32,8 @@ export interface PaintContext {
   constellation: Readonly<Place> | null;
   /** The place the wave is played in, behind the field. */
   place: PlaceId;
+  /** Whether the wave is its sector's last, whose last rock the flourishes slow for. */
+  endsSector: boolean;
   /** Where the deck's parts lie on the canvas, or null where it doesn't show. */
   deck: Deck | null;
   /**
@@ -54,8 +56,8 @@ export interface PaintContext {
   zoom: number;
   /**
    * The flourishes' time, in milliseconds, by which they and the idle
-   * motions run: the page's, but slowed for a moment as a wave's last rock
-   * goes and behind it after, as the flourish player's clock keeps it.
+   * motions run: the page's, but slowed for a moment as a sector's last
+   * rock goes and behind it after, as the flourish player's clock keeps it.
    */
   now: number;
   /** Whether the player welcomes motion. */

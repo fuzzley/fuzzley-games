@@ -1,7 +1,8 @@
 // How a wave's clearing looks as its last rock goes, as the kit's
-// `clearedFx()` draws it, in `art/lib/fx.mjs`: once the flourishes have
-// slowed for a moment, which `flourish_clock.ts` keeps, one calm ring
-// crosses the whole field from where the last rock went.
+// `clearedFx()` draws it, in `art/lib/fx.mjs`: after a moment, which the
+// flourishes are slowed for at a sector's last rock, as
+// `flourish_clock.ts` keeps them, one calm ring crosses the whole field
+// from where the last rock went.
 
 import { lerp, shareDone } from "@fz/core/math";
 import type { Torus } from "../../rules/torus";

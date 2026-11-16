@@ -2,7 +2,7 @@ import { SLOW_MS, SLOW_PACE } from "./timing";
 
 /**
  * Keeps the flourishes' time, which is the page's but for a moment slowed,
- * as a wave's last rock goes, after which it runs on behind it: each frame
+ * as a sector's last rock goes, after which it runs on behind it: each frame
  * it is handed the page's time and returns the flourishes', which never
  * runs back.
  */
