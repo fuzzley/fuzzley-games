@@ -148,7 +148,9 @@ function lightingOf(scene: BeltScene): Lighting {
     (light) =>
       !scene.kit.rocks.flashes.includes(light) &&
       light !== scene.kit.blasts.light &&
-      light !== scene.kit.blasts.beyond,
+      light !== scene.kit.blasts.beyond &&
+      light !== scene.kit.podGlow.light &&
+      light !== scene.kit.podGlow.beyond,
   );
   return {
     on: active,

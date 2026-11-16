@@ -55,6 +55,19 @@ export const RING_MS = 300;
  */
 export const RESCUE_MS = 300;
 
+/** How long the pod flashes as one of the crew is knocked loose, as long as the kit's flash of a ship lost. */
+export const POD_FLASH_MS = 110;
+
+/** How long the field holds still as the pod zaps, in milliseconds, before it moves on. */
+export const ZAP_HOLD_MS = 60;
+
+/**
+ * How long a zap's light and its glow at the pod last, in milliseconds:
+ * whole while the field holds still, then dying away over 350, as
+ * `plan.md`'s row has it.
+ */
+export const ZAP_MS = ZAP_HOLD_MS + 350;
+
 /** How far the field kicks away from the shot as a large rock breaks, in CSS pixels. */
 export const KICK_CSS_PX = 2;
 

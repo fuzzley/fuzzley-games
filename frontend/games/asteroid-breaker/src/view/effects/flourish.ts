@@ -327,7 +327,7 @@ export interface Shake extends Jolt {
   holdMs: number;
 }
 
-/** Says what last jolted the field: a kick, as a large rock broke, and a shake, as a boulder broke. */
+/** Says what last jolted the field: a kick, as a large rock broke, and a shake, as a boulder broke or one was knocked loose. */
 export interface Jolts {
   readonly kick: Jolt;
   readonly shake: Shake;

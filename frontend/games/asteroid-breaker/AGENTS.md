@@ -515,14 +515,16 @@ takes for the specs' helpers.
   largest shape within 1.3 to 1 of the field in every palette.
 - **`src/view/effects/`** — what each event calls for, and how it moves.
   `effects.ts` says which flourishes each event calls for, with motion and
-  without (`effectsOf()`), the field's shake and the beats a boulder's
-  alone and its kick a large rock's, the slow and the wave's ring as a
-  wave is cleared, a ring seen as a pickup is let go or fades and as a
-  stray drifts in, a ring from the pod as static steps up, a soft ring
-  and the line springing as a fuzzball is caught, and where motion isn't
+  without (`effectsOf()`), the field's shake a boulder's break's and a
+  knock's alone, the beats a boulder's and its kick a large rock's, the
+  pod's flash as one is knocked loose and its glow and light as it zaps,
+  the slow and the wave's ring as a wave is cleared, a ring seen as a
+  pickup is let go or fades and as a stray drifts in, a ring from the pod
+  as static steps up, a soft ring and the line springing as a fuzzball is
+  caught, and where motion isn't
   welcome a still mark at a dash's start and round a spent Shield, and
   how long an event holds the field still (`holdMsOf()`), a boulder's
-  break's first beat (`BOULDER_HOLD_MS`);
+  break's first beat (`BOULDER_HOLD_MS`) and a zap's (`ZAP_HOLD_MS`);
   `sounds.ts` every sound of the sprite, the plan's
   but the beds, by name, each with its family, level, takes and whether it
   is tuned, its family's (`SOUNDS`, the mix the scene hands its player, and
@@ -598,7 +600,8 @@ takes for the specs' helpers.
   `BOULDER_THROW_MS`), the slow as a sector's last rock goes (`SLOW_MS`,
   `SLOW_PACE`, `SLOWED_MS`) and the wave's ring, as long after any wave's
   last rock as the slow lasts (`WAVE_RING_MS`), a fuzzball caught
-  (`RESCUE_MS`),
+  (`RESCUE_MS`), the pod's flash (`POD_FLASH_MS`), a zap's hold and its
+  light and glow (`ZAP_HOLD_MS`, `ZAP_MS`),
   how long a still mark stands (`STILL_MARK_MS`), and how long
   the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
   bubble to rise and go); `boulder.ts` how a boulder's break looks over its
@@ -612,6 +615,13 @@ takes for the specs' helpers.
   `flourish_clock.ts` the flourishes' own clock, which the scene draws
   by, the page's time but slowed for a moment as a sector's last rock
   goes, which the frame's `endsSector` says (`FlourishClock`);
+  `pod_glow.ts` the pod lighting up: its flash as one is knocked loose, as
+  the kit's `shipLostFx()` flashes, a disc growing and fading fast in the
+  accent lifted toward white, with its glow (`podFlashAt()`,
+  `podFlashTone()`, `POD_FLASH`), and a zap's glow where its arcs leave
+  the hull, as the kit's `zapFx()` glows, and its light on the rocks
+  about it, whole while the field holds still, then dying away
+  (`zapShare()`, `ZAP_GLOW`, `ZAP_LIGHT`);
   `rescue.ts` a fuzzball caught, as the kit's `rescuedFx()` draws a stray
   rescued: its soft ring opening from a stray's bubble's rim and fading
   (`rescueRingAt()`, `RESCUE_RING`), and the line in tow springing as one
@@ -967,8 +977,14 @@ takes for the specs' helpers.
   `MuzzlePainter` the muzzle's flash as a shot leaves, on the `flash` layer
   under the pod, at its nose as it is drawn (`muzzleAt()`), in each beat
   for a frame at 60 frames a second (`muzzleBeatOf()`, `MUZZLE_MS`), its
-  halo through the halo painter's `glow()`, `TrailPainter` a dash's trail
-  of the pod's ghosts, `ExhaustPainter` the exhaust, a puff from each
+  halo through the halo painter's `glow()`, `PodGlowPainter` the pod
+  lighting up, under it on the `flash` layer: its flash as one is knocked
+  loose, a disc on both sides of an edge it reaches across, with its glow,
+  and its glow as it zaps, each through the halo painter, with the zap's
+  light, one of the scene's lights, which lights the rocks about the pod,
+  and another past the edge the pod lies nearest, should its light reach
+  across it, the flash and the lights only where the flourish player let
+  the field flash, `TrailPainter` a dash's trail of the pod's ghosts, `ExhaustPainter` the exhaust, a puff from each
   engine in turn,
   `DebrisPainter` each rock's break, from the view's `breaks.ts`: its
   dust, the rock whole and flashing and its own facets as shards, in its
@@ -1061,9 +1077,9 @@ takes for the specs' helpers.
   scene lights the rocks with Phaser's lights, which it turns on as it is
   created: the palette's light as a point far off its way
   (`farLight()`), over its ambient, set again at each layout and bake, a
-  held hit's flash and the newest blast's two; each rock's image, and the
-  pod's hull's, is drawn with `setLighting(true)`. Phaser lights an image
-  by the ten lights nearest the camera's middle at most (`maxLights`), so
+  held hit's flash, the newest blast's two and a zap's two; each rock's
+  image, and the pod's hull's, is drawn with `setLighting(true)`. Phaser
+  lights an image by the ten lights nearest the camera's middle at most (`maxLights`), so
   a light far off is dropped first once eleven are lit. At each bake the
   scene hands the shell (`onPictures()`) what returns How to play's
   pictures only as the board first asks for them, as How to play opens,

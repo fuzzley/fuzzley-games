@@ -10,10 +10,14 @@ import {
   FLASH_MS,
   HELD_MS,
   MUZZLE_MS,
+  POD_FLASH_MS,
+  RESCUE_MS,
   SHAKE_MS,
   SLOW_MS,
   SLOW_PACE,
   STILL_MARK_MS,
+  ZAP_HOLD_MS,
+  ZAP_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
@@ -43,6 +47,18 @@ describe("resultDelayMs", () => {
 });
 
 describe("the table's rows", () => {
+  it("holds the field still 60 ms for a zap, its light lasting 350 more", () => {
+    expect([ZAP_HOLD_MS, ZAP_MS - ZAP_HOLD_MS]).toEqual([60, 350]);
+  });
+
+  it("plays a fuzzball caught for 300 ms", () => {
+    expect(RESCUE_MS).toBe(300);
+  });
+
+  it("fades the pod's flash, and its glow, before the field may flash again, so one glows at a time", () => {
+    expect(POD_FLASH_MS).toBeLessThan(FLASH_GAP_MS);
+  });
+
   it("shows a shot's flash for two frames at 60 frames a second, 33 ms", () => {
     expect(MUZZLE_MS).toBe(Math.floor(2000 / 60));
   });

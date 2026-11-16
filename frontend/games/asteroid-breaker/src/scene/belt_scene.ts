@@ -89,6 +89,7 @@ import type { PaintContext, Painter } from "./painters/painter";
 import { PickupPainter } from "./painters/pickup_painter";
 import { PlacePainter } from "./painters/place_painter";
 import { MuzzlePainter } from "./painters/muzzle_painter";
+import { PodGlowPainter } from "./painters/pod_glow_painter";
 import { PodPainter } from "./painters/pod_painter";
 import { PointsPainter } from "./painters/points_painter";
 import { RingPainter } from "./painters/ring_painter";
@@ -227,6 +228,8 @@ export interface BeltKit {
   readonly ship: PodPainter;
   /** Draws the muzzle's flash as a shot leaves. */
   readonly muzzle: MuzzlePainter;
+  /** Draws the pod's flash as one is knocked loose, and its glow and light as it zaps. */
+  readonly podGlow: PodGlowPainter;
   /** Draws a dash's trail. */
   readonly trail: TrailPainter;
   /** Streams the exhaust off the flame. */
@@ -365,6 +368,7 @@ export class BeltScene extends Scene {
       kit.tow,
       kit.ship,
       kit.muzzle,
+      kit.podGlow,
       kit.trail,
       kit.exhaust,
       kit.debris,
@@ -386,6 +390,7 @@ export class BeltScene extends Scene {
       points: kit.points,
       strays: kit.strays,
       muzzle: kit.muzzle,
+      podGlow: kit.podGlow,
       tow: kit.tow,
       camera: kit.fieldCamera,
     });
@@ -450,6 +455,7 @@ export class BeltScene extends Scene {
       tow: new TowPainter(this, layers.tow),
       ship: new PodPainter(this, layers.ship),
       muzzle: new MuzzlePainter(this, layers.flash, halos),
+      podGlow: new PodGlowPainter(this, layers.flash, halos),
       trail: new TrailPainter(this, layers.effects),
       exhaust: new ExhaustPainter(this, layers.effects),
       debris: new DebrisPainter(this, layers.breaks, layers.effects),

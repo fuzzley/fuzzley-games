@@ -6,7 +6,7 @@ import {
   rockKindOf,
   rockSizeOf,
 } from "../field/frame";
-import { BOULDER_HOLD_MS } from "./timing";
+import { BOULDER_HOLD_MS, ZAP_HOLD_MS } from "./timing";
 
 /**
  * Names a flourish the scene plays: the muzzle's flash as a shot leaves, a
@@ -16,14 +16,16 @@ import { BOULDER_HOLD_MS } from "./timing";
  * pod's, a vent's, a pickup let go's or fading's, a stray's drifting in,
  * or the pod's as static steps up), the points scored, a dash's trail, a
  * lost pod's burst, its pilot bailing out, the field's shake at a
- * boulder's break and the boulder's beats, as a wave's last rock goes the
- * flourishes slowed, where it is a sector's last, and the wave's ring, a
- * still ring marking where something happened, and as a fuzzball is
- * caught its soft ring (`rescue`) and the line in tow springing
- * (`spring`). Each but the points, a blast and a still mark moves, so
- * plays only where motion is welcome; the points show either way, rising
- * only where it is, a blast's ring stands still at its reach where it
- * isn't, and a still mark shows only there.
+ * boulder's break or a knock and the boulder's beats, as a wave's last
+ * rock goes the flourishes slowed, where it is a sector's last, and the
+ * wave's ring, a still ring marking where something happened, as a
+ * fuzzball is caught its soft ring (`rescue`) and the line in tow
+ * springing (`spring`), the pod's flash as one is knocked loose
+ * (`podflash`), and its glow and light as it zaps (`zap`). Each but the
+ * points, a blast and a still mark moves, so plays only where motion is
+ * welcome; the points show either way, rising only where it is, a blast's
+ * ring stands still at its reach where it isn't, and a still mark shows
+ * only there.
  */
 export type Flourish =
   | "muzzle"
@@ -43,7 +45,9 @@ export type Flourish =
   | "wave"
   | "mark"
   | "rescue"
-  | "spring";
+  | "spring"
+  | "podflash"
+  | "zap";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without. */
 export interface EventEffects {
@@ -126,7 +130,9 @@ const EVENT_EFFECTS: Readonly<
   // The run's end holds the field still, unshaken: `plan.md`'s budget
   // shakes it for a hit and a boulder alone.
   lost: moving(["burst", "ring", "bailout"]),
-  knocked: QUIET,
+  // One knocked loose flashes the pod and shakes the field along the blow,
+  // as its bubble flies off, which is its still form with the guard's ring.
+  knocked: moving(["shake", "podflash"]),
   // One floating home, its time out, the run over or caught with the line
   // full, which the event doesn't tell apart, plays nothing.
   floated: QUIET,
@@ -136,11 +142,14 @@ const EVENT_EFFECTS: Readonly<
   joined: moving(["rescue", "spring"]),
   home: moving(["rescue"]),
   scored: { flourishes: ["points"], still: ["points"] },
-  // A spark gathered, a near miss and the zap show in their own painters:
-  // the sparks', the pod's face and the arcs.
+  // A spark gathered and a near miss show in their own painters, the
+  // sparks' and the pod's face.
   sparked: QUIET,
   grazed: QUIET,
-  zapped: QUIET,
+  // A zap holds the field still and lights the rocks about the pod as its
+  // arcs leap to each, which the arcs' painter draws, held still where
+  // motion isn't welcome: its still form.
+  zapped: moving(["zap"]),
   arced: QUIET,
   // A burr shows coming in, clinging to the pod and gone as it pops or is
   // shaken off; its own flourishes are a later package's to choose.
@@ -178,9 +187,10 @@ export function effectsOf(event: Readonly<FieldEvent>): EventEffects {
 /**
  * Returns how long the field holds still as an event happens, in
  * milliseconds, where motion is welcome: a boulder's break's first beat,
- * and nothing else's.
+ * a zap's, and nothing else's.
  */
 export function holdMsOf(event: Readonly<FieldEvent>): number {
+  if (event.kind === "zapped") return ZAP_HOLD_MS;
   return event.kind === "broken" && event.size === "boulder"
     ? BOULDER_HOLD_MS
     : 0;

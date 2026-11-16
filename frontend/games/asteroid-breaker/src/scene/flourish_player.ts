@@ -16,6 +16,7 @@ import type { BoulderPainter } from "./painters/boulder_painter";
 import type { DebrisPainter } from "./painters/debris_painter";
 import type { MuzzlePainter } from "./painters/muzzle_painter";
 import type { PaintContext } from "./painters/painter";
+import type { PodGlowPainter } from "./painters/pod_glow_painter";
 import type { PointsPainter } from "./painters/points_painter";
 import type { RingPainter } from "./painters/ring_painter";
 import type { RockPainter } from "./painters/rock_painter";
@@ -34,6 +35,7 @@ export interface FlourishPainters {
   readonly points: PointsPainter;
   readonly strays: StrayPainter;
   readonly muzzle: MuzzlePainter;
+  readonly podGlow: PodGlowPainter;
   readonly tow: TowPainter;
   readonly camera: FieldCamera;
 }
@@ -104,6 +106,7 @@ export class FlourishPlayer {
       points,
       strays,
       muzzle,
+      podGlow,
       tow,
       camera,
     } = this.painters;
@@ -161,6 +164,14 @@ export class FlourishPlayer {
         return;
       case "spring":
         tow.spring(now);
+        return;
+      case "podflash":
+        if (this.flashes(now)) podGlow.flash(now);
+        return;
+      case "zap":
+        // The zap's light takes the frame's flash, lighting each rock it
+        // arcs to, where their held hits' own flashes would come too soon.
+        podGlow.zap(this.flashes(now), now);
         return;
       case "points":
         points.show(event, now);
