@@ -518,9 +518,11 @@ takes for the specs' helpers.
   without (`effectsOf()`), the field's shake and the beats a boulder's
   alone and its kick a large rock's, the slow and the wave's ring as a
   wave is cleared, a ring seen as a pickup is let go or fades and as a
-  stray drifts in, and where motion isn't welcome a still mark at a
-  dash's start and round a spent Shield, and how long an event holds the field still
-  (`holdMsOf()`), a boulder's break's first beat (`BOULDER_HOLD_MS`);
+  stray drifts in, a ring from the pod as static steps up, a soft ring
+  and the line springing as a fuzzball is caught, and where motion isn't
+  welcome a still mark at a dash's start and round a spent Shield, and
+  how long an event holds the field still (`holdMsOf()`), a boulder's
+  break's first beat (`BOULDER_HOLD_MS`);
   `sounds.ts` every sound of the sprite, the plan's
   but the beds, by name, each with its family, level, takes and whether it
   is tuned, its family's (`SOUNDS`, the mix the scene hands its player, and
@@ -587,14 +589,16 @@ takes for the specs' helpers.
   stray bobs and the pod's exhaust streams (`exhaustDue()`), each only where
   motion is welcome, and the way a lost pod's pilot's bubble rises
   (`bailOutWayOf()`), and how far each event's ring reaches, a vent's as
-  far as its blast, and whether it wraps (`RINGS`, `ringOf()`), and its
-  color, a vent's the warning's (`ringColorOf()`); `timing.ts` how long each flourish lasts, as
+  far as its blast, static's step's from the pod, and whether it wraps
+  (`RINGS`, `ringOf()`), and its color, a vent's the warning's
+  (`ringColorOf()`); `timing.ts` how long each flourish lasts, as
   `plan.md`'s table has it, a rock's break (`BREAK_MS`) and a held hit's
   spark (`HELD_MS`) among them, the muzzle's flash (`MUZZLE_MS`), a blast
   (`BLAST_MS`), a boulder's beats (`BOULDER_HOLD_MS`,
   `BOULDER_THROW_MS`), the slow as a sector's last rock goes (`SLOW_MS`,
   `SLOW_PACE`, `SLOWED_MS`) and the wave's ring, as long after any wave's
-  last rock as the slow lasts (`WAVE_RING_MS`),
+  last rock as the slow lasts (`WAVE_RING_MS`), a fuzzball caught
+  (`RESCUE_MS`),
   how long a still mark stands (`STILL_MARK_MS`), and how long
   the cards wait (`clearedDelayMs()`, and `resultDelayMs()`, for the pilot's
   bubble to rise and go); `boulder.ts` how a boulder's break looks over its
@@ -608,6 +612,13 @@ takes for the specs' helpers.
   `flourish_clock.ts` the flourishes' own clock, which the scene draws
   by, the page's time but slowed for a moment as a sector's last rock
   goes, which the frame's `endsSector` says (`FlourishClock`);
+  `rescue.ts` a fuzzball caught, as the kit's `rescuedFx()` draws a stray
+  rescued: its soft ring opening from a stray's bubble's rim and fading
+  (`rescueRingAt()`, `RESCUE_RING`), and the line in tow springing as one
+  joins it, swinging aside and dying away (`springShare()`, `SPRING`),
+  each stretch drawn in steps along half a turn, each bowed the other way
+  from the one before, into a record made once (`createSprungLine()`,
+  `sprungLine()`);
   `cleared.ts` the wave's ring after it, crossing the field from where the
   last rock went to its farthest corner (`farthestCorner()`,
   `waveRingAt()`, `WAVE_RING`); `blast.ts` how a volatile
@@ -949,7 +960,8 @@ takes for the specs' helpers.
   and again past each edge it reaches across, each in tow in its bubble,
   in its ink, with the face and the look the view gives it, from the
   field's events it hears (`hear()`), and each knocked loose, swelling,
-  wide eyed and then pleading, blinking through its last seconds,
+  wide eyed and then pleading, blinking through its last seconds; the
+  line springs as one joins it (`spring()`),
   `PodPainter` the pod, its flame, its pilot, its face as the field shows
   it, which it hears the field's events for (`hear()`), and its rings,
   `MuzzlePainter` the muzzle's flash as a shot leaves, on the `flash` layer
@@ -986,8 +998,10 @@ takes for the specs' helpers.
   break every rock has: its cracks running out while the field holds
   still, its glow through the halo painter and the ring it throws;
   `RingPainter` the rings that sweep out from a spent Shield, a lost pod,
-  a vent, a pickup let go or fading and a stray drifting in, the still marks
-  where motion isn't welcome, each a band `RING_WIDTH` wide, and the
+  a vent, a pickup let go or fading, a stray drifting in and the pod as
+  static steps up, the still marks where motion isn't welcome, each a
+  band `RING_WIDTH` wide, a fuzzball caught's soft ring (`rescue()`), its
+  soft outside and its line each a band, and the
   wave's ring, once, for the field's camera to cut off, its soft outside
   and its line each a band, all through `rounds.ts`,
   `ArcPainter` static's arcs, over the flourishes, in one `Graphics`

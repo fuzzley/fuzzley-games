@@ -75,8 +75,8 @@ export interface RingLook {
  * Each event's ring: a spent Shield's and a lost pod's; a vent's, as far as
  * its blast reaches; a pickup let go from a rock, one fading out and a stray
  * drifting in, each seen as its sound plays, the stray's at the edge it
- * comes in by, which it doesn't wrap past; and the still mark at a dash's
- * start, where motion isn't welcome.
+ * comes in by, which it doesn't wrap past; static stepping up's, from the
+ * pod; and the still mark at a dash's start, where motion isn't welcome.
  */
 export const RINGS = {
   shielded: { reach: SHIELD_RING_REACH, wraps: true },
@@ -85,6 +85,7 @@ export const RINGS = {
   dropped: { reach: 2, wraps: true },
   faded: { reach: 1.5, wraps: true },
   strayed: { reach: 2.5, wraps: false },
+  stepped: { reach: 2.5, wraps: true },
   dashed: { reach: 2, wraps: true },
 } as const satisfies Readonly<Partial<Record<FieldEventKind, RingLook>>>;
 

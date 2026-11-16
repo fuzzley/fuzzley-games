@@ -44,10 +44,16 @@ export const STILL_MARK_MS = 600;
 
 /**
  * How long a ring takes to sweep out to its reach and fade: a spent
- * Shield's, a lost ship's, a vent's, a pickup let go's or fading's, or a
- * stray's.
+ * Shield's, a lost ship's, a vent's, a pickup let go's or fading's, a
+ * stray's, or static stepping up's.
  */
 export const RING_MS = 300;
+
+/**
+ * How long a fuzzball caught plays, in milliseconds: its soft ring opening
+ * and fading, and the line in tow springing as it joins it.
+ */
+export const RESCUE_MS = 300;
 
 /** How far the field kicks away from the shot as a large rock breaks, in CSS pixels. */
 export const KICK_CSS_PX = 2;

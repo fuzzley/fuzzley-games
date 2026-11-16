@@ -20,6 +20,7 @@ import type { PointsPainter } from "./painters/points_painter";
 import type { RingPainter } from "./painters/ring_painter";
 import type { RockPainter } from "./painters/rock_painter";
 import type { StrayPainter } from "./painters/stray_painter";
+import type { TowPainter } from "./painters/tow_painter";
 import type { TrailPainter } from "./painters/trail_painter";
 
 /** Holds what the flourishes play on: the painters that draw them, and the field's camera. */
@@ -33,6 +34,7 @@ export interface FlourishPainters {
   readonly points: PointsPainter;
   readonly strays: StrayPainter;
   readonly muzzle: MuzzlePainter;
+  readonly tow: TowPainter;
   readonly camera: FieldCamera;
 }
 
@@ -102,6 +104,7 @@ export class FlourishPlayer {
       points,
       strays,
       muzzle,
+      tow,
       camera,
     } = this.painters;
     const { x, y } = event;
@@ -152,6 +155,12 @@ export class FlourishPlayer {
       }
       case "mark":
         rings.mark(x, y, ringOf(event).reach, palette.accent, now);
+        return;
+      case "rescue":
+        rings.rescue(x, y, now);
+        return;
+      case "spring":
+        tow.spring(now);
         return;
       case "points":
         points.show(event, now);

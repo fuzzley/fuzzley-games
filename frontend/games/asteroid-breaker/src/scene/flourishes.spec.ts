@@ -116,6 +116,7 @@ import {
   BREAK_MS,
   CLEARED_MS,
   BURST_SHARDS,
+  RESCUE_MS,
   EXHAUST_MS,
   FLASH_MS,
   HELD_MS,
@@ -128,6 +129,7 @@ import {
   TRAIL_MS,
 } from "../view/effects/timing";
 import { CRACK_REACH, boulderInks } from "../view/effects/boulder";
+import { RESCUE_RING, SPRING } from "../view/effects/rescue";
 import { farthestCorner } from "../view/effects/cleared";
 import type { BeltScene } from "./belt_scene";
 import { MOST_SHARDS_FLYING } from "./painters/debris_painter";
@@ -410,6 +412,8 @@ function logEveryFlourish(shell: FakeShell): void {
   events.addRock("hit", rock);
   events.addRock("blast", rock, 6);
   events.addDash(MIDDLE.x, MIDDLE.y, 0);
+  events.addStep(MIDDLE.x, MIDDLE.y, 2, false);
+  events.addPilot("joined", MIDDLE.x, MIDDLE.y, 3, shell.field.crew);
   logShipLost(shell);
   events.addScore(MIDDLE.x, MIDDLE.y, 40, 1);
   events.add("cleared", MIDDLE.x, MIDDLE.y);
@@ -2091,6 +2095,203 @@ describe("the rings", () => {
       rounded(onCanvas(metrics, x, MIDDLE.y)),
       rounded(onCanvas(metrics, x + PICTURE_TORUS.width, MIDDLE.y)),
     ]);
+  });
+});
+
+describe("static stepping up", () => {
+  it("sweeps a ring out from the pod, in the accent, as static rises to a step", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addStep(MIDDLE.x, MIDDLE.y, 2, false);
+    run.advance(48, 16);
+    const [first] = bandsOf(scene.kit.rings.graphics);
+
+    run.advance(100, 16);
+
+    const [ring] = bandsOf(scene.kit.rings.graphics);
+    expect({
+      at: ring && { x: ring.x, y: ring.y, color: ring.color },
+      spreads: (ring?.radius ?? 0) > (first?.radius ?? Infinity),
+      within:
+        (ring?.radius ?? Infinity) <=
+        RINGS.stepped.reach * metricsOf(shell).unit,
+    }).toEqual({
+      at: {
+        ...rounded(onCanvas(metricsOf(shell), MIDDLE.x, MIDDLE.y)),
+        color: ART_PALETTE.accent,
+      },
+      spreads: true,
+      within: true,
+    });
+  });
+
+  it("sweeps no ring as static falls to a step, which the fur shows", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addStep(MIDDLE.x, MIDDLE.y, 1, true);
+
+    run.advance(48, 16);
+
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+
+  it("sweeps no ring where motion isn't welcome, where the fur's lift is its still form", async () => {
+    const { shell, run, scene } = await startBoard(stillness);
+    shell.field.events.addStep(MIDDLE.x, MIDDLE.y, 2, false);
+
+    run.advance(48, 16);
+
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+});
+
+describe("a fuzzball caught", () => {
+  /** Returns the soft ring's bands a scene fills, each where it lies and in its color. */
+  function softRingIn(
+    scene: BeltScene,
+  ): readonly Pick<Band, "x" | "y" | "color">[] {
+    return bandsOf(scene.kit.rings.graphics).map(({ x, y, color }) => ({
+      x,
+      y,
+      color,
+    }));
+  }
+
+  it.each([
+    ["joins the line", "joined"],
+    ["is caught again", "recaught"],
+    ["goes straight home", "home"],
+  ] as const)(
+    "opens a soft ring where one caught %s, its soft outside under its line, in the accent's energy",
+    async (_, kind) => {
+      const { shell, run, scene } = await startBoard();
+      shell.field.events.addPilot(kind, 30, 20, 3, shell.field.crew);
+
+      run.advance(48, 16);
+
+      const at = rounded(onCanvas(metricsOf(shell), 30, 20));
+      const { halo, body } = energyOf(ART_PALETTE.accent, ART_PALETTE);
+      expect(softRingIn(scene)).toEqual([
+        { ...at, color: halo },
+        { ...at, color: body },
+      ]);
+    },
+  );
+
+  it("opens it from a stray's bubble's rim, wider as it goes, fading", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addPilot("joined", 30, 20, 3, shell.field.crew);
+    run.advance(32, 16);
+    const [first] = bandsOf(scene.kit.rings.graphics);
+
+    run.advance(64, 16);
+
+    const [soft] = bandsOf(scene.kit.rings.graphics);
+    const { unit } = metricsOf(shell);
+    expect({
+      outside: (first?.radius ?? 0) > RESCUE_RING.from * unit,
+      spreads: (soft?.radius ?? 0) > (first?.radius ?? Infinity),
+      fades: (soft?.alpha ?? 1) < (first?.alpha ?? 0),
+      within:
+        (soft?.radius ?? Infinity) <
+        (RESCUE_RING.from + RESCUE_RING.opens) * unit,
+    }).toEqual({ outside: true, spreads: true, fades: true, within: true });
+  });
+
+  it("opens its ring on both sides of an edge it reaches across", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addPilot("joined", 1, MIDDLE.y, 3, shell.field.crew);
+
+    run.advance(48, 16);
+
+    const across = rounded(onCanvas(metricsOf(shell), 1, MIDDLE.y));
+    const past = rounded(
+      onCanvas(metricsOf(shell), 1 + PICTURE_TORUS.width, MIDDLE.y),
+    );
+    expect(softRingIn(scene).map(({ x, y }) => ({ x, y }))).toEqual([
+      across,
+      across,
+      past,
+      past,
+    ]);
+  });
+
+  it("puts its ring away once its time is over", async () => {
+    const { shell, run, scene } = await startBoard();
+    shell.field.events.addPilot("joined", 30, 20, 3, shell.field.crew);
+
+    run.advance(RESCUE_MS + 32, 16);
+
+    expect(bandsOf(scene.kit.rings.graphics)).toEqual([]);
+  });
+
+  it.each([
+    ["joins it", "joined"],
+    ["is caught again into it", "recaught"],
+  ] as const)(
+    "springs the line in tow as one %s, bowing it aside",
+    async (_, kind) => {
+      const { shell, run, scene } = await startBoard(withShip);
+      const ship = shipOf(shell.field);
+      shell.field.events.addPilot(kind, ship.x, ship.y, 3, shell.field.crew);
+
+      run.advance(48, 16);
+
+      const lines = linesOf(scene.kit.tow.line);
+      const atX = onCanvas(metricsOf(shell), ship.x, ship.y).x;
+      const aside = lines.map(({ toX }) => Math.abs(toX - atX));
+      expect({
+        steps: lines.length,
+        bows: Math.max(...aside) > 0.01,
+        within: Math.max(...aside) <= SPRING.reach * metricsOf(shell).unit,
+      }).toEqual({ steps: 2 * SPRING.steps, bows: true, within: true });
+    },
+  );
+
+  it("draws the line in tow straight again within its time", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    shell.field.events.addPilot("joined", ship.x, ship.y, 3, shell.field.crew);
+
+    run.advance(RESCUE_MS + 32, 16);
+
+    expect(linesOf(scene.kit.tow.line)).toHaveLength(2);
+  });
+
+  it("springs nothing as a stray caught goes straight home", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    shell.field.events.addPilot("home", ship.x, ship.y, 3, shell.field.crew);
+
+    run.advance(48, 16);
+
+    expect(linesOf(scene.kit.tow.line)).toHaveLength(2);
+  });
+
+  it("stops the line springing as a new field starts", async () => {
+    const { shell, run, scene } = await startBoard(withShip);
+    const ship = shipOf(shell.field);
+    shell.field.events.addPilot("joined", ship.x, ship.y, 3, shell.field.crew);
+    run.advance(16);
+    withShip(shell);
+
+    run.advance(32, 16);
+
+    expect(linesOf(scene.kit.tow.line)).toHaveLength(2);
+  });
+
+  it("opens no ring and springs nothing where motion isn't welcome, where the line and the bar tell it", async () => {
+    const { shell, run, scene } = await startBoard((board) => {
+      withShip(board);
+      stillness(board);
+    });
+    const ship = shipOf(shell.field);
+    shell.field.events.addPilot("joined", ship.x, ship.y, 3, shell.field.crew);
+
+    run.advance(48, 16);
+
+    expect({
+      rings: bandsOf(scene.kit.rings.graphics).length,
+      lines: linesOf(scene.kit.tow.line).length,
+    }).toEqual({ rings: 0, lines: 2 });
   });
 });
 

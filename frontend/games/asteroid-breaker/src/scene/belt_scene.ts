@@ -386,6 +386,7 @@ export class BeltScene extends Scene {
       points: kit.points,
       strays: kit.strays,
       muzzle: kit.muzzle,
+      tow: kit.tow,
       camera: kit.fieldCamera,
     });
     const frame = this.options.frame();
