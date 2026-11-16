@@ -145,7 +145,12 @@ passes on `main` moves it forward again.
   `yarn check:layout`, which needs Chrome: `CHROME_PATH`, or the usual
   install location), or all of them with `yarn verify:full` and
   `yarn check:layout`. CI's runner has four cores, so
-  `CI=true taskset -c 0-3 <command>` on Linux comes closest to it.
+  `CI=true taskset -c 0-3 <command>` on Linux comes closest to it. CI's
+  Chrome draws WebGL in software, so a layout check that fails there and
+  passes here wants a Chrome that does too: a script that runs it with
+  `--disable-gpu --use-angle=swiftshader --enable-unsafe-swiftshader`,
+  handed over as `CHROME_PATH`, and `taskset -c 0` standing in for a slow
+  runner.
   `yarn typecheck` runs `tsc7` over `frontend/tsconfig.scripts.json` (the
   `.agents` scripts), then each workspace's, such as the site's: `ngc`
   over `frontend/site/tsconfig.app.json`, then `tsc7` over
