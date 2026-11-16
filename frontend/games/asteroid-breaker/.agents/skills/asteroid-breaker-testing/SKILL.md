@@ -326,6 +326,16 @@ Phaser game through `runScene()`:
   record over `FieldEventKind` the compiler holds whole, and holds the
   sounds each plays) or on what the shell kept. A headless game draws no
   pixels and plays no sound.
+- A thing drawn through `Copies` lies in its layer only while it shows, so
+  `imagesIn()` and `layersOf()` find only the copies that show, and a
+  hidden copy keeps the frame, tint, turn, scale and opacity it last
+  showed with until it shows again. A layer draws its children by their
+  depths (`keepJoinOrder()`), so a spec holding things that hide to an
+  order reads their depths, as the burrs' under the comets does. A spec
+  that counts
+  every game object the scene holds, as those holding a frame of play to
+  making none do, counts with `objectsHeldBy()`, which adds those hidden
+  out of their layers (the scene's `layeredObjects`).
 - `flourish_player.spec.ts` steps no frame: it plays each flourish through
   a `FlourishPlayer` of its own, on the running scene's painters, then has
   the painter draw from a `PaintContext` it writes, at a time of its own.

@@ -142,8 +142,8 @@ export class HazardPainter implements Painter {
     while (this.burrsMade.length < field.burrs.slots.length) {
       const glint = new Copies(this.scene, this.layer, BURR_FRAMES.glint);
       const burr = new Copies(this.scene, this.layer, BURR_FRAMES.adrift);
-      for (const image of glint.images) this.layer.sendToBack(image);
-      for (const image of burr.images) this.layer.sendToBack(image);
+      glint.sendToBack();
+      burr.sendToBack();
       this.burrGlintsMade.push(glint);
       this.burrsMade.push(burr);
     }

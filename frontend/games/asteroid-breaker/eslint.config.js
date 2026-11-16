@@ -44,6 +44,27 @@ export default defineConfig(
     ],
   }),
   phaser({ files: ["src/scene/**/*.ts"] }),
+  // A layer of the field draws its children by the depths
+  // src/scene/layer_order.ts gives them, which a depth set or a child moved
+  // anywhere else would undo, or be undone by.
+  {
+    files: ["src/scene/**/*.ts"],
+    ignores: ["**/*.spec.ts", "src/scene/layer_order.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...[
+          "CallExpression[callee.property.name=/^(setDepth|bringToTop|moveUp|moveDown|moveAbove|moveBelow|addAt|swap|setToTop|setToBack|setAbove|setBelow)$/]",
+          "CallExpression[callee.property.name='sendToBack'][arguments.length>0]",
+          "AssignmentExpression[left.property.name='depth']",
+        ].map((selector) => ({
+          selector,
+          message:
+            "A layer of the field draws its children in the order src/scene/layer_order.ts keeps, by their depths, which this would undo or be undone by; send copies under the rest of their layer with Copies' sendToBack().",
+        })),
+      ],
+    },
+  },
   scripts({
     files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
   }),

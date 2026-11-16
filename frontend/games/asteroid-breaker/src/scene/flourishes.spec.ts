@@ -4,7 +4,6 @@ import {
   type SceneRun,
   canvasTexture,
   commandsOf,
-  objectsIn,
   watchUploads,
 } from "@fz/phaser/testing";
 import { GameObjects, Textures } from "phaser";
@@ -27,6 +26,7 @@ import {
   layersOf,
   linesOf,
   metricsOf,
+  objectsHeldBy,
   onCanvas,
   pointsZoomOf,
   roundsOf,
@@ -491,14 +491,14 @@ describe("the events", () => {
   it("makes no game object as they play", async () => {
     const { shell, run, scene } = await startBoard(withShip);
     shipOf(shell.field).held.thrust = 1;
-    const before = objectsIn(scene);
+    const before = objectsHeldBy(scene);
 
     for (let i = 0; i < 20; i++) {
       logEveryFlourish(shell);
       run.advance(16);
     }
 
-    expect(objectsIn(scene)).toBe(before);
+    expect(objectsHeldBy(scene)).toBe(before);
   });
 });
 

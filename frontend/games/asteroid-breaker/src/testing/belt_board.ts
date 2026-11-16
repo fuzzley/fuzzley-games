@@ -1,6 +1,11 @@
 import { advanceClock } from "@fz/core/clock";
 import type { RunCommand } from "@fz/core/run";
-import { type SceneRun, commandsOf, runKeyedScene } from "@fz/phaser/testing";
+import {
+  type SceneRun,
+  commandsOf,
+  objectsIn,
+  runKeyedScene,
+} from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { GameObjects, type Scene } from "phaser";
 import { type Field, reshapeField, stepField } from "../rules/field/field";
@@ -13,6 +18,7 @@ import {
   type BeltSceneOptions,
   makeBeltScene,
 } from "../scene/belt_scene";
+import { listOf } from "../scene/layer_order";
 import type { Copies } from "../scene/painters/copies";
 import type { Pictures } from "../view/art/art";
 import { type PointsFont, letteringUnit } from "../view/art/points_art";
@@ -480,6 +486,18 @@ export function shownAt(
   image: GameObjects.Image,
 ): { readonly x: number; readonly y: number } | null {
   return image.visible ? { x: image.x, y: image.y } : null;
+}
+
+/**
+ * Returns how many game objects a scene holds: those in its display list and
+ * its layers, and those its layers hold out of them while they hide.
+ */
+export function objectsHeldBy(scene: BeltScene): number {
+  let out = 0;
+  for (const object of scene.layeredObjects) {
+    if (!listOf(object)) out += 1;
+  }
+  return objectsIn(scene) + out;
 }
 
 /**

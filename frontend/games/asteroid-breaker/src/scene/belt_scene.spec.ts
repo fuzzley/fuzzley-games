@@ -11,7 +11,6 @@ import {
   cacheSounds,
   canvasTexture,
   imagesIn,
-  objectsIn,
   strokesOf,
   watchUploads,
 } from "@fz/phaser/testing";
@@ -44,6 +43,7 @@ import {
   isShown,
   layersOf,
   metricsOf,
+  objectsHeldBy,
   onCanvas,
   overASecond,
   reshaping,
@@ -166,6 +166,17 @@ function lightingOf(scene: BeltScene): Lighting {
           }
         : null,
   };
+}
+
+/** Returns the frames of the images in the scene's layers that keep a size or an origin their frame no longer has. */
+function staleFrames(scene: BeltScene): readonly string[] {
+  return imagesIn(scene)
+    .filter(
+      (image) =>
+        image.width !== image.frame.width ||
+        image.displayOriginX !== image.originX * image.frame.width,
+    )
+    .map((image) => image.frame.name);
 }
 
 /** Returns how a palette's light lights the rocks of a field laid out in its metrics. */
@@ -2352,14 +2363,22 @@ describe("baking", () => {
     run.game.scale.resize(WIDER.width, WIDER.height);
     run.advance(16);
 
-    const stale = imagesIn(scene)
-      .filter(
-        (image) =>
-          image.width !== image.frame.width ||
-          image.displayOriginX !== image.originX * image.frame.width,
-      )
-      .map((image) => image.frame.name);
-    expect(stale).toEqual([]);
+    expect(staleFrames(scene)).toEqual([]);
+  });
+
+  it("has a copy that hid as the field baked again take up its frame anew as it shows", async () => {
+    const { shell, run, scene } = await startBoard();
+    const rock = placeRock(shell.field, "large", 0, 20);
+    run.advance(16);
+    Object.assign(rock, { x: 30, lastX: 30 });
+    run.advance(16);
+    run.game.scale.resize(WIDER.width, WIDER.height);
+    run.advance(16);
+
+    Object.assign(rock, { x: 0, lastX: 0 });
+    run.advance(16);
+
+    expect(staleFrames(scene)).toEqual([]);
   });
 
   it("lays the field out again on a canvas of a new size, and tells the shell", async () => {
@@ -2405,11 +2424,11 @@ describe("baking", () => {
 describe("a new field", () => {
   it("makes no game object in a frame of play", async () => {
     const { run, scene } = await startBoard();
-    const before = objectsIn(scene);
+    const before = objectsHeldBy(scene);
 
     run.advance(500);
 
-    expect(objectsIn(scene)).toBe(before);
+    expect(objectsHeldBy(scene)).toBe(before);
   });
 
   it("makes the images a field of more rock slots needs as it is shown", async () => {

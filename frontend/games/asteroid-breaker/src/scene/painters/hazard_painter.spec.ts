@@ -490,36 +490,41 @@ describe("the burrs", () => {
   });
 
   it("draw the burrs adrift with the hazards, and those clinging over the pod", async () => {
-    const { scene } = await startBoard();
+    const { shell, run, scene } = await startBoard(withShip, ROOMIER);
     const layers = layersOf(scene);
-    const { burrs, burrGlints, clinging, clingingGlints } = scene.kit.hazards;
+    placeBurr(shell.field, 30, 20);
+    shipOf(shell.field).burrs = 2;
 
+    run.advance(16);
+
+    const { burrs, burrGlints, clinging, clingingGlints } = scene.kit.hazards;
+    const shownIn = (copies: readonly (Copies | undefined)[]): unknown[] =>
+      copies
+        .flatMap((each) => each?.images ?? [])
+        .filter((image) => image.visible)
+        .map((image) => image.displayList);
+    const hazards = layers.get("hazards");
+    const clingers = layers.get("burrs");
     expect({
-      adrift: [...burrs, ...burrGlints]
-        .flatMap(({ images }) => images)
-        .every((image) => layers.get("hazards")?.exists(image)),
-      clinging: [...clinging, ...clingingGlints]
-        .flatMap(({ images }) => images)
-        .every((image) => layers.get("burrs")?.exists(image)),
-    }).toEqual({ adrift: true, clinging: true });
+      adrift: shownIn([burrs[0], burrGlints[0]]),
+      clinging: shownIn([...clinging, ...clingingGlints]),
+    }).toEqual({
+      adrift: [hazards, hazards],
+      clinging: [clingers, clingers, clingers, clingers],
+    });
   });
 
   it("draw each burr adrift under its glint, and both under the comets and their warnings", async () => {
     const { scene } = await startBoard();
-    const hazards = layersOf(scene).get("hazards");
     const { burrs, burrGlints, tails, warnings } = scene.kit.hazards;
+    // A layer of the field draws its children by their depths
+    // (`keepJoinOrder()`), the burrs' sent to its back.
     const highest = (copies: readonly Copies[]): number =>
       Math.max(
-        ...copies.flatMap(({ images }) =>
-          images.map((image) => hazards?.getIndex(image) ?? -1),
-        ),
+        ...copies.flatMap(({ images }) => images.map((image) => image.depth)),
       );
     const lowest = (copies: Copies | undefined): number =>
-      Math.min(
-        ...(copies?.images ?? []).map(
-          (image) => hazards?.getIndex(image) ?? -1,
-        ),
-      );
+      Math.min(...(copies?.images ?? []).map((image) => image.depth));
 
     expect({
       underGlint: burrs.every(
@@ -527,11 +532,7 @@ describe("the burrs", () => {
       ),
       underComets:
         highest([...burrs, ...burrGlints]) <
-        Math.min(
-          ...[...tails, ...warnings].map(
-            (image) => hazards?.getIndex(image) ?? -1,
-          ),
-        ),
+        Math.min(...[...tails, ...warnings].map((image) => image.depth)),
     }).toEqual({ underGlint: true, underComets: true });
   });
 });

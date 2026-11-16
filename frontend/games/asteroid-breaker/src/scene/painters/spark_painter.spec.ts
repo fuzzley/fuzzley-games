@@ -92,39 +92,37 @@ describe("SparkPainter", () => {
     ]);
 
     const { sparks } = board.scene.kit.sparks;
-    expect(
-      sparks.slice(0, 4).map((spark) => ({
+    expect({
+      drawn: sparks.slice(0, 3).map((spark) => ({
         at: copiesOf(spark)[0],
         frame: spark.images[0]?.frame.name,
         turn: round(spark.images[0]?.rotation ?? 9),
         scale: spark.images[0]?.scaleX,
       })),
-    ).toEqual([
-      {
-        at: canvasAt(board, 10, 10),
-        frame: SPARK_FRAMES.medium,
-        turn: round(sparkTurnOf(0)),
-        scale: zoomOf(board.shell),
-      },
-      {
-        at: canvasAt(board, 20, 12),
-        frame: SPARK_FRAMES.medium,
-        turn: round(sparkTurnOf(1)),
-        scale: zoomOf(board.shell),
-      },
-      {
-        at: canvasAt(board, 30, 14),
-        frame: SPARK_FRAMES.large,
-        turn: round(sparkTurnOf(2)),
-        scale: zoomOf(board.shell),
-      },
-      {
-        at: null,
-        frame: SPARK_FRAMES.medium,
-        turn: round(sparkTurnOf(3)),
-        scale: 1,
-      },
-    ]);
+      next: copiesOf(sparks[3]),
+    }).toEqual({
+      drawn: [
+        {
+          at: canvasAt(board, 10, 10),
+          frame: SPARK_FRAMES.medium,
+          turn: round(sparkTurnOf(0)),
+          scale: zoomOf(board.shell),
+        },
+        {
+          at: canvasAt(board, 20, 12),
+          frame: SPARK_FRAMES.medium,
+          turn: round(sparkTurnOf(1)),
+          scale: zoomOf(board.shell),
+        },
+        {
+          at: canvasAt(board, 30, 14),
+          frame: SPARK_FRAMES.large,
+          turn: round(sparkTurnOf(2)),
+          scale: zoomOf(board.shell),
+        },
+      ],
+      next: [null, null, null, null],
+    });
   });
 
   it("draws a spark between its last place and its next", async () => {
