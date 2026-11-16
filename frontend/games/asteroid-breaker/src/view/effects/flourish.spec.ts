@@ -2,9 +2,11 @@ import { ROCK_KIND_IDS, ROCK_SIZES, rockKind } from "../../rules/catalog/rocks";
 import { NOSE } from "../../rules/ship/shots";
 import { stepsIn } from "../../rules/stepper";
 import {
+  BURR_POINTS,
   DASH_MS,
   DASH_SPEED,
   STATIC_STEPS,
+  STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
@@ -189,9 +191,14 @@ describe("pointsLabel", () => {
 });
 
 describe("MOST_POINTS_CHARACTERS", () => {
-  /** Every label a rock's break or a stray brought home shows, at every multiplier. */
+  /**
+   * Every label a rock's break, a burr popped or a stray brought home, into
+   * the line or straight home, shows, at every multiplier.
+   */
   const labels = [
+    BURR_POINTS,
     STRAY_POINTS,
+    STRAY_HOME_POINTS,
     ...ROCK_KIND_IDS.flatMap((id) =>
       ROCK_SIZES.flatMap((size) => rockKind(id).points[size] ?? []),
     ),

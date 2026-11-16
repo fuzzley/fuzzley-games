@@ -76,16 +76,17 @@ const LINE = { ascent: 0.9, descent: 0.25 } as const;
 
 /**
  * Labels the points show, the widest and the tallest among them, with
- * "+1,000" and "+88,888", of commas no score of a rock or a stray has yet,
- * the latter seven characters, as many as the longest label
- * (`MOST_POINTS_CHARACTERS`): the worst a room must hold.
+ * "+1,000 ×4", a stray caught with the line in tow full at static's highest
+ * multiplier, as long as the longest label (`MOST_POINTS_CHARACTERS`), and
+ * "+8,888 ×4", as long in the widest digits: the worst a room must hold.
  */
 const LABELS_SHOWN = [
   "+12",
   "+40 ×2",
   "+500 ×4",
   "+1,000",
-  "+88,888",
+  "+1,000 ×4",
+  "+8,888 ×4",
   "+00 ×4",
 ] as const;
 
@@ -489,6 +490,12 @@ describe("pointsSheet", () => {
         rooms.slice(i + 1).every((b) => apart(a, b)),
       ),
     }).toEqual({ rooms: LABELS, inside: true, apart: true });
+  });
+
+  it("is tried with a label as long as the longest the points show", () => {
+    expect(Math.max(...LABELS_SHOWN.map((label) => label.length))).toBe(
+      MOST_POINTS_CHARACTERS,
+    );
   });
 
   it.each(LABELS_SHOWN)(

@@ -13,10 +13,12 @@ import { NOSE } from "../../rules/ship/shots";
 import { stepsIn } from "../../rules/stepper";
 import { type Moving, type Torus, wrap } from "../../rules/torus";
 import {
+  BURR_POINTS,
   DASH_MS,
   DASH_SPEED,
   STATIC_STEPS,
   STEP_S,
+  STRAY_HOME_POINTS,
   STRAY_POINTS,
 } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
@@ -213,12 +215,15 @@ export function pointsLabel(
 }
 
 /**
- * The most characters a label of points runs to: the most a rock or a stray
- * scores, at static's highest multiplier.
+ * The most characters a label of points runs to: the most a rock, a burr or
+ * a stray scores, into the line or straight home, at static's highest
+ * multiplier.
  */
 export const MOST_POINTS_CHARACTERS = pointsLabel({
   points: Math.max(
+    BURR_POINTS,
     STRAY_POINTS,
+    STRAY_HOME_POINTS,
     ...ROCK_KIND_IDS.flatMap((id) =>
       ROCK_SIZES.map((size) => rockKind(id).points[size] ?? 0),
     ),
