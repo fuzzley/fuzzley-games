@@ -1044,11 +1044,22 @@ takes for the specs' helpers.
   the steering the deck shows, set once; and starts on each new field
   (`start()`), so the scene draws and starts them in a loop over its list
   of painters. After a bake, `@fz/phaser/scene`'s `retakeFrames()` has
-  every image on either atlas take up its frame anew. The scene's painters,
-  cameras and sounds are made once, as it is created, and read through its
-  `kit` (`BeltKit`). A thing that wraps is
+  every image on either atlas in the layers take up its frame anew, and a
+  copy out of its layer takes its frame up as it shows. The scene's
+  painters, cameras and sounds are made once, as it is created, and read
+  through its `kit` (`BeltKit`). A thing that wraps is
   drawn through `Copies` (`painters/copies.ts`), once, and again past each
-  edge it reaches across; a flourish's records are taken in turn
+  edge it reaches across, each copy in its layer only while it shows, so
+  Phaser's render, which asks every child of a layer whether it renders
+  each frame, passes over none hidden; the scene has each layer keep its
+  children in the order they first joined it, by their depth
+  (`layer_order.ts`' `keepJoinOrder()`), so a copy that shows again takes
+  its place, or under all its layer holds once sent to its back
+  (`Copies`' `sendToBack()`, as the burrs adrift are), and destroys those
+  out of their layer as it ends. Nothing else in the scene sets a depth
+  or moves an object within a layer, which the order would undo, as lint
+  holds it (`eslint.config.js`). A
+  flourish's records are taken in turn
   (`@fz/core/turns`'s `Turns`). Every game object is made as the scene is
   created, or as a field of more slots starts, so a frame of play makes
   none, and a new field stops what the last one set off.
@@ -1615,7 +1626,9 @@ workspace's with the others'.
   among them for `tools/`, `eslint.config.js` and `stylelint.config.js`,
   and `phaserGameLayers()` for the fences between the layers and what keeps
   the rules, the view and the helpers the scripts load off the clock,
-  `Math.random()` and the page, then stylelint with `@fz/style`'s preset).
+  `Math.random()` and the page, a rule of its own refusing the scene, but
+  `src/scene/layer_order.ts`, a depth set or a child moved within a layer,
+  then stylelint with `@fz/style`'s preset).
 - **Type Checking:** `yarn typecheck` (the app, the specs, the Vite
   config, and the scripts under `tools/` and the two lint configs from
   their JSDoc, each with `@fz/dev`'s options).
@@ -1803,7 +1816,9 @@ of its own beside it:
 - `belt_board.ts` runs the scene for a spec (`startBoard()`, through
   `@fz/phaser/testing`'s `runKeyedScene()`) on a `FakeShell` that plays the
   shell's part, and reads what it draws (`shown()`, `layersOf()`,
-  `humsIn()`, `roundsOf()`, `bandsOf()`), beside what `@fz/phaser/testing` reads any scene with
+  `humsIn()`, `roundsOf()`, `bandsOf()`) and how many game objects it
+  holds, in its layers or hidden out of them (`objectsHeldBy()`), beside
+  what `@fz/phaser/testing` reads any scene with
   (`imagesIn()`, `strokesOf()`), whose specs are the library's;
   `canvases.ts` makes the canvas a board has in a window of a shape, less
   the bar and the rail at the sizes its spec compiles from the app's

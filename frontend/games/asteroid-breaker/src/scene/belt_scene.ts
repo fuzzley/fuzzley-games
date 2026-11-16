@@ -75,6 +75,7 @@ import {
   bakeDeckAtlas,
 } from "./atlas";
 import { FieldCamera } from "./field_camera";
+import { keepJoinOrder } from "./layer_order";
 import { FlourishPlayer } from "./flourish_player";
 import { ArcPainter } from "./painters/arc_painter";
 import { DebrisPainter } from "./painters/debris_painter";
@@ -320,6 +321,11 @@ export class BeltScene extends Scene {
   private firstFrameDrawn = false;
   /** The field's light, far off, which lights the rocks, made as the scene is created. */
   private sun!: GameObjects.Light;
+  /**
+   * Every game object the field's layers have held, in them or, hidden,
+   * out of them, as each layer keeps them in the order they joined it.
+   */
+  private layered: ReadonlySet<GameObjects.GameObject> = new Set();
 
   constructor(
     private readonly options: BeltSceneOptions,
@@ -328,6 +334,14 @@ export class BeltScene extends Scene {
     const key = uniqueSceneKey("belt-scene");
     super(key);
     this.key = key;
+  }
+
+  /**
+   * Every game object the field's layers have held, in them or, hidden, out
+   * of them; none before the scene is created.
+   */
+  get layeredObjects(): ReadonlySet<GameObjects.GameObject> {
+    return this.layered;
   }
 
   /**
@@ -350,6 +364,7 @@ export class BeltScene extends Scene {
     this.bake();
     this.steering = new Steering(this.metrics, this.deckParts, this.board);
     const layers = recordOf(LAYERS, () => this.add.layer());
+    this.layered = keepJoinOrder(this, Object.values(layers));
     const kit = this.makeKit(layers);
     this.madeKit = kit;
     this.cameras.main.ignore(drawnBy("deck").map((layer) => layers[layer]));

@@ -73,6 +73,23 @@ For what comes and goes often, such as a burst of sprites, take them from a
 turn, as the breakers' and Brick Fuzz Pop's painters do. A tween or a timer that
 runs again and again is one object too, not a new one each time.
 
+A pooled object that hides still costs a frame while it lies in a `Layer`:
+the layer's render asks each of its children whether it renders, hidden or
+not, every frame, and a painter that sets each hidden one's frame, tint and
+place as the thing it would draw changes pays for that too. Where a pool is
+large and mostly hidden, take what hides out of its layer and put it back as
+it shows, setting its state then, its depth keeping its place among the
+rest. Asteroid Breaker's `Copies` does, every thing that wraps drawn through
+it, which took a fifth off its busiest frame. Its scene writes every depth
+in its layers in one place, as the next section asks, `layer_order.ts`:
+each object's place in the order it first joined its layer
+(`keepJoinOrder()`), or under all its layer holds (`sendToBack()`), its
+lint refusing a depth set or a child moved anywhere else in the scene
+(both in `frontend/games/asteroid-breaker/src/scene/`, the rule in its
+`eslint.config.js`). An object out of every list
+is the scene's to destroy as it ends, as Phaser destroys only what its lists
+hold.
+
 ## 5. Depth from one list
 
 Order objects by depth, never by removing and re-adding them to a

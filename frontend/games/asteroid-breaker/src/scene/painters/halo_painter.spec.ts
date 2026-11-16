@@ -107,14 +107,16 @@ const LONG_HALO: Halo = {
 };
 
 describe("the halos", () => {
-  it("lie in their own layer, over the place and the field, under the tags and the rocks", async () => {
+  it("lie in their own layer, over the place and the field, under the tags and the rocks, while they show", async () => {
     const board = await startBoard();
+    placeRock(board.shell.field, "large", 30, 20, "crystal");
+
+    board.run.advance(16);
 
     const layer = layersOf(board.scene).get("halos");
-
-    expect(firstHalo(board).images.every((image) => layer?.exists(image))).toBe(
-      true,
-    );
+    expect(
+      firstHalo(board).images.map((image) => image.displayList === layer),
+    ).toEqual([true, false, false, false]);
   });
 
   it("draw a crystal's halo where its gems glow, turned with it, as far as they glow, in its ink, as strongly as the palette lets them show", async () => {
