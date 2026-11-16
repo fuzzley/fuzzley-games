@@ -46,8 +46,36 @@ const THEME = "casino";
 /** What the announcer says as a stray comes in, which the screenshot waits for. */
 const STRAY_WORDS = "A stray fuzzball drifts in.";
 
-/** How long the stray takes to come in off the edge once it is said, in milliseconds. */
+/**
+ * How long the stray takes to come in off the edge once it is said, in
+ * milliseconds of the field's time.
+ */
 const STRAY_SETTLE_MS = 500;
+
+/**
+ * How long to wait for the stray once the run goes on, in milliseconds of
+ * the field's time: the second the run is kept before it
+ * (`RUN.strayInMs`), and three more.
+ */
+const STRAY_WAIT_MS = 4000;
+
+/**
+ * The least a frame of the page moves the field on, in milliseconds: its
+ * time on the clock, up to a sixtieth of a second. Phaser holds its first
+ * 120 frames to a sixtieth, and a frame longer than a fifth of a second to
+ * an earlier frame's time, so a page drawing in software, a few frames a
+ * second, moves the field on a few times slower than the clock; a page
+ * between moves it on by the clock, so a wait counted so may run long,
+ * never short.
+ */
+const MOST_FRAME_MS = 1000 / 60;
+
+/**
+ * How long each wait in the page may take at most, in milliseconds of the
+ * clock: a page drawing in software can take this long over the field's
+ * few seconds.
+ */
+const WAIT_CLOCK_MS = 60_000;
 
 /**
  * The field, by its name, its element, and its element's attribute that says
@@ -71,7 +99,8 @@ export const RUN = {
 
 /**
  * The run as storage keeps it, which the page is given, its score as the
- * game writes points, and how long to wait once its stray is said.
+ * game writes points, and how long to wait once its stray is said, in the
+ * field's time.
  *
  * @typedef {{stored: string, score: string, afterStrayMs: number}} ShownRun
  */
@@ -91,16 +120,43 @@ function readShape() {
 }
 
 /**
+ * How `goOn()` waits for the stray, its times in milliseconds.
+ *
+ * @typedef {object} StrayWait
+ * @property {string} strayWords What the announcer says as a stray comes
+ *   in.
+ * @property {number} waitMs How long to wait for it at most, in the
+ *   field's time.
+ * @property {number} afterMs How long to wait once it is said, in the
+ *   field's time.
+ * @property {number} mostFrameMs The most a frame of the page counts for.
+ * @property {number} clockMs How long each wait may take at most, by the
+ *   clock.
+ */
+
+/**
+ * What the board says once `goOn()` has waited: the run's outcome, whether
+ * the stray drifted in, and whether the page drew fast enough to wait as
+ * long as it was asked.
+ *
+ * @typedef {{outcome: string, strayed: boolean, waited: boolean}} GoneOn
+ */
+
+/**
  * Goes on with the run taken up, by the card's Resume, holds Space down on
  * the board, so the ship's first move ends its wait and it fires, waits for
  * the stray to drift in and a while more, and returns what the board says
  * then. It runs in the page, so it uses nothing from this module.
  *
- * @param {string} strayWords What the announcer says as a stray comes in.
- * @param {number} afterMs How long to wait once the stray is said.
- * @returns {Promise<{outcome: string, strayed: boolean}>}
+ * Its waits are counted in the field's time, each frame of the page as its
+ * time on the clock up to `mostFrameMs`, so a page drawing slowly, as one
+ * drawing in software does, waits at least as long in the game as a fast
+ * one.
+ *
+ * @param {StrayWait} wait
+ * @returns {Promise<GoneOn>}
  */
-async function goOn(strayWords, afterMs) {
+async function goOn({ strayWords, waitMs, afterMs, mostFrameMs, clockMs }) {
   const resume = [...document.querySelectorAll("app-board .card button")].find(
     (button) => button.textContent?.trim() === "Resume",
   );
@@ -113,19 +169,43 @@ async function goOn(strayWords, afterMs) {
   });
   Object.defineProperty(space, "keyCode", { get: () => 32 });
   document.querySelector("app-board")?.dispatchEvent(space);
+  let fieldMs = 0;
+  let counting = true;
+  let last = performance.now();
+  /** @param {number} now */
+  const count = (now) => {
+    fieldMs += Math.max(0, Math.min(now - last, mostFrameMs));
+    last = now;
+    if (counting) requestAnimationFrame(count);
+  };
+  requestAnimationFrame(count);
+  /**
+   * @param {() => boolean} done
+   * @returns {Promise<boolean>}
+   */
+  const until = async (done) => {
+    const started = performance.now();
+    while (!done() && performance.now() - started < clockMs) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return done();
+  };
   const said = () =>
     [...document.querySelectorAll("[aria-live]")].some((region) =>
       region.textContent?.includes(strayWords),
     );
-  for (let i = 0; i < 40 && !said(); i++) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
+  let waited = await until(() => said() || fieldMs >= waitMs);
   const strayed = said();
-  await new Promise((resolve) => setTimeout(resolve, afterMs));
+  if (strayed) {
+    const saidAt = fieldMs;
+    waited = await until(() => fieldMs >= saidAt + afterMs);
+  }
+  counting = false;
   return {
     outcome:
       document.querySelector("app-board")?.getAttribute("data-outcome") ?? "",
     strayed,
+    waited,
   };
 }
 
@@ -161,7 +241,16 @@ async function capture(page, url, run) {
   await page.navigate(url);
   const field = await takenUpBoard(page, FIELD, run.score);
   if ("problem" in field) return field;
-  const goneOn = await page.evaluate(goOn, STRAY_WORDS, run.afterStrayMs);
+  const goneOn = await page.evaluate(goOn, {
+    strayWords: STRAY_WORDS,
+    waitMs: STRAY_WAIT_MS,
+    afterMs: run.afterStrayMs,
+    mostFrameMs: MOST_FRAME_MS,
+    clockMs: WAIT_CLOCK_MS,
+  });
+  if (!goneOn.waited) {
+    return { problem: "the page drew too slowly to wait for the stray" };
+  }
   if (goneOn.outcome !== "playing") {
     return { problem: `the run didn't go on: ${goneOn.outcome}` };
   }
@@ -198,7 +287,8 @@ async function shapeAndCapture(devtools, url, load) {
 /**
  * Returns the run shown on a field of a shape: kept as the game keeps it,
  * stamped with the version the shell keeps it under, its score as the game
- * writes it, and how long to wait once its stray is said.
+ * writes it, and how long to wait once its stray is said, in the field's
+ * time.
  *
  * @param {ScreenshotApi} api
  * @param {FieldShape} torus

@@ -54,6 +54,8 @@ Everything made for the plan is in this folder,
   packed as a sprite with its map, and the beds; the art as geometry,
   atlases, sprites and the four places as pictures
   ([`assets/art/README.md`](assets/art/README.md)).
+- **[`before.webp`](before.webp),** the site's screenshot of the game as
+  the plan found it, which "The game today" shows.
 
 ## What was asked, and where it is answered
 
@@ -72,7 +74,7 @@ Everything made for the plan is in this folder,
 
 ## The game today
 
-![Asteroid Breaker as it is](../../frontend/games/asteroid-breaker/public/docs/screenshots/asteroid-breaker/preview.webp)
+![Asteroid Breaker as it is](before.webp)
 
 `research/the-game-today.md` has all of it. In brief:
 
