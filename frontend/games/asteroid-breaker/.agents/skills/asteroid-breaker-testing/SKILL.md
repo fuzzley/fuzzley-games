@@ -313,7 +313,10 @@ Phaser game through `runScene()`:
   (`@fz/phaser/testing`'s `imagesIn()`, `strokesOf()` and `commandsOf()`,
   and `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the
   triangles and the lines a `Graphics` draws, `trianglesOf()` and
-  `linesOf()`, as a break's are, the field camera's `scrolledBy()`), the
+  `linesOf()`, as a break's are, the rounds it fills, each the triangles
+  after a fill style of its own, `roundsOf()`, and the rings among them,
+  `bandsOf()`, as the ring painter's are, these two held through the
+  scene's specs, the field camera's `scrolledBy()`), the
   lights the rocks are lit by (the scene's `lights`, a held hit's flash
   among them), the sounds (`humsIn()` after `@fz/phaser/testing`'s
   `cacheSounds()`, given the scene's `SOUNDS_KEY`, or a spy on
