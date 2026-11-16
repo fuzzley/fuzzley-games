@@ -9,15 +9,16 @@
  * see; a broken rock's dust and shards, under the rocks, so none hides a
  * piece it leaves; the rocks; the pickups; the sparks broken rocks shed,
  * over the pickups, so an orb hides none; the strays adrift and the pilots
- * bailing out; the comets and their warnings; the shots; the crew in tow
- * and those knocked loose, under the ship, so the line ties on under the
- * pod; the muzzle's flash as a shot leaves, under the ship, which covers
- * its back, as the kit draws it; the ship and its pilot; the flourishes,
- * back to front a dash's trail, the exhaust, a lost ship's shards, the
- * sparks and glints of breaks and held hits, a boulder's break's beats,
- * the blasts, and the rings; static's arcs, the zap's and those crawling
- * over the pod's hull at full static, over the flourishes; the points
- * rising; and the frame and the deck.
+ * bailing out; the burrs adrift, under the comets and their warnings; the
+ * shots; the crew in tow and those knocked loose, under the ship, so the
+ * line ties on under the pod; the muzzle's flash as a shot leaves, under
+ * the ship, which covers its back, as the kit draws it; the ship and its
+ * pilot; the burrs clinging to it, over its hull; the flourishes, back to
+ * front a dash's trail, the exhaust, a lost ship's shards, the sparks and
+ * glints of breaks and held hits, a boulder's break's beats, the blasts,
+ * and the rings; static's arcs, the zap's and those crawling over the
+ * pod's hull at full static, over the flourishes; the points rising; and
+ * the frame and the deck.
  */
 export const LAYERS = [
   "place",
@@ -35,6 +36,7 @@ export const LAYERS = [
   "tow",
   "flash",
   "ship",
+  "burrs",
   "effects",
   "arcs",
   "points",
@@ -72,6 +74,7 @@ export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   shots: "field",
   tow: "field",
   ship: "field",
+  burrs: "field",
   flash: "field",
   effects: "field",
   arcs: "field",

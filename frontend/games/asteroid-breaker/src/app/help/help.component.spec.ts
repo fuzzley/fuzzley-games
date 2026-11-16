@@ -22,6 +22,7 @@ const PICTURES: Pictures = {
   pickups: { ...PICTURE_FRAMES.pickups, shield: pictureOf("shield") },
   stray: pictureOf("stray"),
   comet: pictureOf("comet"),
+  burr: pictureOf("burr"),
 };
 
 describe("HelpComponent", () => {
@@ -83,7 +84,7 @@ describe("HelpComponent", () => {
   it.each([
     ["Rocks", ROCK_KIND_IDS.length],
     ["Pickups", PICKUP_IDS.length],
-    ["Strays and comets", 2],
+    ["Strays, comets and burrs", 3],
   ])("names and says what each of the %s does", async (heading, count) => {
     await render(HelpComponent, { inputs: { open: true } });
 
@@ -117,7 +118,7 @@ describe("HelpComponent", () => {
 
     expect(
       within(
-        screen.getByRole("region", { name: "Strays and comets" }),
+        screen.getByRole("region", { name: "Strays, comets and burrs" }),
       ).getByText(/Strays drift in from wave 3/),
     ).toBeVisible();
   });
@@ -127,11 +128,19 @@ describe("HelpComponent", () => {
 
     expect(
       within(
-        screen.getByRole("region", { name: "Strays and comets" }),
+        screen.getByRole("region", { name: "Strays, comets and burrs" }),
       ).getByText(
         /a pilot left with no one in tow, and no one to catch again, is sent one at once/,
       ),
     ).toBeVisible();
+  });
+
+  it("says what a burr does, from the tuning", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText("Burr.").parentElement).toHaveTextContent(
+      "Burr. A seed of barbed thorns that drifts in at an edge and, once near the ship, turns toward it. Only a shot pops it, for 10 points times static's multiplier. One that touches the ship clings, each taking 20% off its thrust and top speed, up to 3, until a dash shakes them all off.",
+    );
   });
 
   it("says what an iron rock does", async () => {
@@ -161,6 +170,7 @@ describe("HelpComponent", () => {
     ["a pickup", pickup("shield").name, PICTURES.pickups.shield],
     ["a stray", "Stray fuzzball", PICTURES.stray],
     ["the comet", "Comet", PICTURES.comet],
+    ["a burr", "Burr", PICTURES.burr],
   ])("shows %s's picture beside its name", async (_, name, picture) => {
     await render(HelpComponent, {
       inputs: { open: true, pictures: PICTURES },

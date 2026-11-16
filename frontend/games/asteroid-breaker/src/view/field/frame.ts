@@ -3,6 +3,7 @@ import { TURN } from "../../rules/angles";
 import type { RockKindId, RockSize } from "../../rules/catalog/rocks";
 import type { WeaponId } from "../../rules/catalog/weapons";
 import type { FieldEvent } from "../../rules/field/events";
+import type { Burr } from "../../rules/hazards/burrs";
 import type { Comet } from "../../rules/hazards/comets";
 import type { Loose } from "../../rules/hazards/loose";
 import type { Stray } from "../../rules/hazards/strays";
@@ -56,6 +57,8 @@ export interface FieldView {
   readonly loose: readonly Readonly<Loose>[];
   /** A record for each comet that can be on its way at once, warned of, crossing or neither. */
   readonly comets: { readonly slots: readonly Readonly<Comet>[] };
+  /** A slot for each burr that can be adrift at once, adrift while live; those clinging are the ship's count. */
+  readonly burrs: { readonly slots: readonly Readonly<Burr>[] };
   /** The effects in play, one of each group. */
   readonly effects: Effects;
   /** Whether a Shield guards the ship from the next rock to touch it. */

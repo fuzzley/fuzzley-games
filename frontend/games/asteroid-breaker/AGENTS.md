@@ -454,9 +454,9 @@ takes for the specs' helpers.
   wide it is drawn (`towLineWidth()`). `layers.ts` is the order
   the field is drawn in, back to front, in one list (`LAYERS`), and the camera
   that draws each layer (`LAYER_CAMERAS`, `drawnBy()`), the crew in tow
-  under the ship, so the line ties on under the pod, the sparks over
-  the pickups, so an orb hides none, and static's arcs over the
-  flourishes. `tags.ts` says where
+  under the ship, so the line ties on under the pod, the burrs clinging
+  to it over it (`burrs`), the sparks over the pickups, so an orb hides
+  none, and static's arcs over the flourishes. `tags.ts` says where
   the tags of the effects in play lie, at the field's bottom left, and how
   much of each one's time is left; `warning.ts` where a comet's warning
   stands, on the field's edge where the comet will come in, along its way
@@ -653,10 +653,10 @@ takes for the specs' helpers.
   hit's flash (`STRUCK_LIGHT`). `contrast.spec.ts` holds each kind of
   rock's ink, and its darkest and brightest faces under the palette's
   light, the pod, its hull's and its trim's and the comet's head's darkest
-  and brightest faces,
-  the pickups, the comet, the shots, the flame and a stray's bubble's rim
-  to 3:1 against the field in every palette, the outline against
-  everything it outlines, the marks against every rock and every face, a
+  and brightest faces, the pickups, the comet, a burr's ink, the shots,
+  the flame and a stray's bubble's rim to 3:1 against the field in every
+  palette, the outline against everything it outlines, the marks against
+  every rock and every face, a
   pickup's symbol against its orb's glass and the glass deeper in it
   (`orbColors()`), each pilot against the field, the pod's glass and its
   shade, a stray's bubble and the bar, the eyes
@@ -810,6 +810,17 @@ takes for the specs' helpers.
   while it is lit (`CHEVRON_HALOS`), and its lane across the field, a wash
   the scene stretches and runs of dashes it lays end to end (`LANE`); and
   How to play's picture of the comet, its head lit as the field lights it;
+  and the burr as the kit's `makeBurr()` cuts it, a small seed with six
+  thorns, each thorn and the seed cased round in the field's color, the
+  thorns in a dull brown (`burrInk()`) and the seed darker, adrift
+  (`BURR_FRAMES`) and clinging to the pod a little smaller, its casing
+  wider, at each of its holds, on the prow's flank and each nacelle, clear
+  of the canopy (`BURR_HOLDS`, `CLINGING_SHARE`), within `BURR_REACH`,
+  each barbed and bare, the scene drawing its barbs only where the field's
+  own scale has it reach 6.5 CSS pixels or more (`isBarbed()`), its glint
+  a frame apart, kept toward the light (`burrGlintAt()`), shown only where
+  it reaches 7 (`isGlinted()`), and How to play's picture of it, judged
+  by the size it shows at there, a device pixel to a CSS pixel;
   `faces.ts` the face the pilot at the controls shows as the field stands,
   as the art kit's `FACE_USES` says (`faceOf()`), from the pod's state and
   the steps at which what it answers last happened (`FaceMoments`), noted
@@ -923,7 +934,13 @@ takes for the specs' helpers.
   as the rocks are, from the rocks' atlas, its edge over it and its tail
   behind it, fading as it lies off the field, and their warnings, their
   chevrons lit in turn, with their lanes across the field in a layer of
-  their own under all that lies on it (`lanes`),
+  their own under all that lies on it (`lanes`), and the burrs, each
+  adrift under the comets, turned the way it flies, drawn once while it
+  comes in and past each edge it reaches across once it wraps, made for
+  each slot a field has as it starts (`start()`), and one at each of the
+  pod's holds for each clinging to it, turning with it, in a layer over
+  the ship (`burrs`), each barbed and with its glint toward the light as
+  the field's own scale allows,
   `ShotPainter` the shots, each in its weapon's frame, `TowPainter` the
   crew under the pod: the line in tow, a `Graphics` drawn again each frame,
   and again past each edge it reaches across, each in tow in its bubble,
@@ -1234,9 +1251,9 @@ takes for the specs' helpers.
     raise it and the fur and the arcs that show it, dashing and the zap at
     full static, pausing, the controls by
     mouse, touch and keyboard, and every kind of rock and pickup from the
-    catalogs, a stray and the comet, each with its name, its sentence and,
-    once the scene has drawn, its picture, which the app asks the board for
-    only while How to play is open.
+    catalogs, a stray, the comet and a burr, each with its name, its
+    sentence and, once the scene has drawn, its picture, which the app asks
+    the board for only while How to play is open.
   - `settings/` — the settings drawer (the speed, when the deck shows, which
     side holds its stick, whether the ship fires by itself, haptics, the sound
     and each part of it, the effects, the voice and the bed, mono and the
