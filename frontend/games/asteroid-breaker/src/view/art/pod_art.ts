@@ -1,5 +1,5 @@
 // The pod, Bumble: the ship of the uplift, built around its pilot, ported
-// from the art kit's `docs/asteroid-breaker-uplift/art/lib/ship.mjs`. A
+// from the art kit's `docs/archive/asteroid-breaker-uplift/art/lib/ship.mjs`. A
 // round glass canopy sits at the middle the pod turns about, the pilot
 // upright in it; the hull about it is cut in flat facets in the accent's
 // ink, lit by the field's light as the rocks are, through a normal map; the

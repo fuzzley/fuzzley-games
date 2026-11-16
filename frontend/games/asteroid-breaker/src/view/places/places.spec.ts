@@ -114,9 +114,10 @@ function printOf(marks: readonly Mark[]): number {
 /**
  * How many marks each layer of each place holds on a wide field from seed 7,
  * and each layer's print, as the kit's `makeBackdrop()` lays them out
- * (`docs/asteroid-breaker-uplift/art/lib/backdrop.mjs`), Endless's landmark
- * without the constellation, which the kit lays itself; Endless's air, which
- * the kit strews after two draws for its constellation, is the port's own.
+ * (`docs/archive/asteroid-breaker-uplift/art/lib/backdrop.mjs`), Endless's
+ * landmark without the constellation, which the kit lays itself; Endless's air,
+ * which the kit strews after two draws for its constellation, is the port's
+ * own.
  */
 const KIT: Readonly<
   Record<

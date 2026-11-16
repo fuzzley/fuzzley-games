@@ -1,8 +1,8 @@
 import { mixTone, tonesOf } from "./tones";
 
-// The tones the art kit's `tonesOf()` (`docs/asteroid-breaker-uplift/art/
-// lib/palettes.mjs`) mixes for a stone's ink and a volatile rock's, in each
-// palette, copied from the kit.
+// The tones the art kit's `tonesOf()`
+// (`docs/archive/asteroid-breaker-uplift/art/lib/palettes.mjs`) mixes for a
+// stone's ink and a volatile rock's, in each palette, copied from the kit.
 const KIT_TONES = [
   {
     name: "a stone's ink in classic",

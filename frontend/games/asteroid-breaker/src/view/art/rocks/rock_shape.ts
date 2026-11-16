@@ -1,8 +1,8 @@
 // The rocks' shapes: each a low dome of flat facets, cut like a stone from a
 // seed, with the marks its kind is told by, as plain geometry in shares of its
 // radius. It is the art kit's `makeRock()`
-// (`docs/asteroid-breaker-uplift/art/lib/rocks.mjs`), cutting the same rock
-// from the same seed.
+// (`docs/archive/asteroid-breaker-uplift/art/lib/rocks.mjs`), cutting the same
+// rock from the same seed.
 
 import { createRandom } from "@fz/core/random";
 import type { Point } from "@fz/phaser/shapes";

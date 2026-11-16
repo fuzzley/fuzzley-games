@@ -14,9 +14,9 @@ import { cutOf, makeRock } from "./rock_shape";
 const SET_PIECES = ["crumbling", "ironclad", "stormheart"] as const;
 
 // One rock of each kind, cut from the seed 3, as the art kit's `makeRock()`
-// (`docs/asteroid-breaker-uplift/art/lib/rocks.mjs`) cuts it, its numbers
-// copied here to four places, so the port draws what the user saw on the
-// kit's sheet. A point list is flat, x then y; a facing is x, y and z.
+// (`docs/archive/asteroid-breaker-uplift/art/lib/rocks.mjs`) cuts it, its
+// numbers copied here to four places, so the port draws what the user saw on
+// the kit's sheet. A point list is flat, x then y; a facing is x, y and z.
 const KIT_ROCKS = {
   stone: {
     size: "medium",

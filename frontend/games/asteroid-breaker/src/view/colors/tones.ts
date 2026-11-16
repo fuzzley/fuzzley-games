@@ -1,7 +1,7 @@
 // The tones a rock's marks are drawn in, from its ink, as the art kit's
-// `tonesOf()` (`docs/asteroid-breaker-uplift/art/lib/palettes.mjs`) mixes
-// them: each a mix of the ink with white, or with the palette's field or its
-// text, so the marks add no color to a palette.
+// `tonesOf()` (`docs/archive/asteroid-breaker-uplift/art/lib/palettes.mjs`)
+// mixes them: each a mix of the ink with white, or with the palette's field or
+// its text, so the marks add no color to a palette.
 
 import { clamp, lerp } from "@fz/core/math";
 import type { ColorMode } from "@fz/style/themes";

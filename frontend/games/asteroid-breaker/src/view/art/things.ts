@@ -1,6 +1,6 @@
 // What drifts on the field to be caught, and what crosses it, as the art
 // kit's `things.mjs` draws them
-// (`docs/asteroid-breaker-uplift/art/lib/things.mjs`): each pickup as a
+// (`docs/archive/asteroid-breaker-uplift/art/lib/things.mjs`): each pickup as a
 // round glass orb, its rim saying its group and its symbol bold in its
 // middle, breathing and glowing while it floats; the comet, a long cut
 // wedge with a glowing tail, and its warning at the edge it comes in by;

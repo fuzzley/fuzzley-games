@@ -1,13 +1,13 @@
 // A rock's break and a held hit's spark, as the art kit's `makeBreak()`,
-// `breakFx()` and `heldHitFx()` (`docs/asteroid-breaker-uplift/art/lib/fx.mjs`)
-// draw them: the rock's own facets fly apart as shards, tumbling, shrinking
-// and fading into the field's color, so none is taken for a small rock, with
-// a ring of dust and a few sparks of light, all of it over in under half a
-// second; and a spark where a held hit struck, thrown back the way the shot
-// came. Each is plain data, made once from the rock's own seed, and where
-// each of its pieces is drawn a time after, in device pixels from its
-// middle, written into a record the scene keeps rather than a new one each
-// frame.
+// `breakFx()` and `heldHitFx()`
+// (`docs/archive/asteroid-breaker-uplift/art/lib/fx.mjs`) draw them: the rock's
+// own facets fly apart as shards, tumbling, shrinking and fading into the
+// field's color, so none is taken for a small rock, with a ring of dust and a
+// few sparks of light, all of it over in under half a second; and a spark where
+// a held hit struck, thrown back the way the shot came. Each is plain data,
+// made once from the rock's own seed, and where each of its pieces is drawn a
+// time after, in device pixels from its middle, written into a record the scene
+// keeps rather than a new one each frame.
 
 import { easeOutCubic, lerp, shareDone } from "@fz/core/math";
 import { createRandom } from "@fz/core/random";

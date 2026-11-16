@@ -15,6 +15,15 @@ share (`asteroid-breaker-testing`), and what it takes to add a wave, a
 sector, a formation, a kind of rock, a pickup or a weapon, or to change
 Endless (`asteroid-breaker-content`).
 
+The decisions behind the game's look, its places, rocks, pod and pilots,
+its sounds and beds, its flourishes, static, the sparks and the zap, the
+set pieces and the burrs are the uplift's, in
+`docs/archive/asteroid-breaker-uplift/plan.md` and
+`docs/archive/asteroid-breaker-uplift/implementation-plan.md`; the art kit
+and the sound kit the view's art and the sounds' recipes follow, below,
+are the uplift's too, in `docs/archive/asteroid-breaker-uplift/art/` and
+`docs/archive/asteroid-breaker-uplift/sound/`.
+
 ## Technology Stack
 
 - **Field:** [Phaser 4](https://phaser.io/), through `@fz/phaser`'s canvas,
@@ -477,8 +486,9 @@ takes for the specs' helpers.
   mixed with the wave's number in `mixSeed()`'s `"scenery"` stream
   (`constellationAt()`).
 - **`src/view/places/`** — the place behind the play in each sector, ported
-  from the uplift's kit (`docs/asteroid-breaker-uplift/art/lib/backdrop.mjs`),
-  its landmark cut from the same draws, so it is the kit's to the facet.
+  from the uplift's kit
+  (`docs/archive/asteroid-breaker-uplift/art/lib/backdrop.mjs`), its
+  landmark cut from the same draws, so it is the kit's to the facet.
   `places.ts` names the four (`PLACE_IDS`), shows a sector in its own, or a
   sector the game doesn't write of in the first (`placeOfSector()`), and
   lays one out on a field's size (`backdropOf()`): its far wash, its one
@@ -896,10 +906,11 @@ takes for the specs' helpers.
   (`layOutPoints()`); and the sheet the labels are stamped on, a room each
   (`pointsSheet()`).
 - **`src/view/art/rocks/`** — the rocks' geometry, cut from a seed, ported
-  from the art kit's `docs/asteroid-breaker-uplift/art/lib/rocks.mjs` on
+  from the art kit's
+  `docs/archive/asteroid-breaker-uplift/art/lib/rocks.mjs` on
   `@fz/core/random`'s `createRandom()`, which draws as the kit's
-  `seeded()`, so a rock is the kit's, in shares of its
-  radius about its middle. `rock_shape.ts` cuts a rock of a kind and size
+  `seeded()`, so a rock is the kit's, in shares of its radius about its
+  middle. `rock_shape.ts` cuts a rock of a kind and size
   from a seed (`makeRock()`, a `RockShape`): its outline, its rim, its
   facets back to front, each facing a way (`Facet`), and its marks, the
   lines, dots, glows and aura each kind adds, from how each kind is cut
