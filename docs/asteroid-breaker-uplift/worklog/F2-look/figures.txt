@@ -1,0 +1,88 @@
+F2's two frame sittings (2026-11-15) and its look: how each was made, then each round as rounds.sh printed it.
+
+== The frame: how it was made
+Three builds, each checked out (detached) in the abu-f2 worktree and built with `yarn workspace asteroid-breaker
+build`, its dist/ copied into a folder of its own, named <name>-dist: begin = da697c6e9, the uplift's start, which
+§9's third is measured from; start = 4b7b2b59, the integration tip F2 sits on (F2's own start, ee77af2d, sends no
+burrs, which Tempest's wave 29 has had since R4); last = e0623693, F2's last commit to the game. Each build's own
+checkout wrote its runs into its folder, with F1-budget's scripts (copied out for begin, which predates them, its
+checkout's tools folder given):
+  node kept-run.mjs <name>-dist/init9.js [<checkout>/frontend/games/asteroid-breaker/tools]
+  node wave-run.mjs <name>-dist/init29.js casino 29
+Then, in the folder holding the builds, with PORT=9142, TMPDIR in the scratch folder and YARN set to run Yarn:
+  rounds.sh 7 w9 go.js 0 init9.js start last                 (the first sitting)
+  rounds.sh 5 t29 go-tempest.js 1500 init29.js start last    (the first sitting)
+  rounds.sh 7 w9b go.js 0 init9.js begin start last          (the second sitting)
+The page: 2,100 x 1,000 at 1x, the CPU slowed four times, Casino night, four seconds traced, as F1's.
+Columns: build, round, the machine's load as it began, frames.mjs' medians (ms), the bar at the trace's end.
+
+== The first sitting: wave 9, seven rounds
+start 1 load=5.23 {"frames":239,"scriptingAndRendering":"5.03","scripting":"4.77","rendering":"0.06","painting":"0.12","frameGap":"16.66","threadTime":"5.02"} bar: Wave9Score320Crew2 in towStatic ×1
+last 1 load=4.74 {"frames":239,"scriptingAndRendering":"5.10","scripting":"4.79","rendering":"0.05","painting":"0.25","frameGap":"16.66","threadTime":"5.09"} bar: Wave9Score320Crew2 in towStatic ×1
+start 2 load=4.55 {"frames":239,"scriptingAndRendering":"4.72","scripting":"4.52","rendering":"0.05","painting":"0.13","frameGap":"16.64","threadTime":"4.71"} bar: Wave9Score320Crew2 in towStatic ×1
+last 2 load=4.58 {"frames":239,"scriptingAndRendering":"4.83","scripting":"4.59","rendering":"0.06","painting":"0.15","frameGap":"16.68","threadTime":"4.84"} bar: Wave9Score320Crew2 in towStatic ×1
+start 3 load=6.22 {"frames":239,"scriptingAndRendering":"5.00","scripting":"4.85","rendering":"0.05","painting":"0.14","frameGap":"16.69","threadTime":"5.00"} bar: Wave9Score320Crew2 in towStatic ×1
+last 3 load=5.81 {"frames":239,"scriptingAndRendering":"4.53","scripting":"4.33","rendering":"0.05","painting":"0.11","frameGap":"16.66","threadTime":"4.52"} bar: Wave9Score320Crew2 in towStatic ×1
+start 4 load=5.18 {"frames":239,"scriptingAndRendering":"5.00","scripting":"4.71","rendering":"0.06","painting":"0.31","frameGap":"16.71","threadTime":"4.99"} bar: Wave9Score320Crew2 in towStatic ×1
+last 4 load=4.77 {"frames":239,"scriptingAndRendering":"4.62","scripting":"4.42","rendering":"0.05","painting":"0.11","frameGap":"16.64","threadTime":"4.61"} bar: Wave9Score320Crew2 in towStatic ×1
+start 5 load=4.48 {"frames":239,"scriptingAndRendering":"5.15","scripting":"4.92","rendering":"0.06","painting":"0.15","frameGap":"16.64","threadTime":"5.14"} bar: Wave9Score320Crew2 in towStatic ×1
+last 5 load=5.33 {"frames":239,"scriptingAndRendering":"5.02","scripting":"4.82","rendering":"0.06","painting":"0.11","frameGap":"16.66","threadTime":"5.01"} bar: Wave9Score320Crew2 in towStatic ×1
+start 6 load=4.81 {"frames":239,"scriptingAndRendering":"5.12","scripting":"4.86","rendering":"0.06","painting":"0.12","frameGap":"16.68","threadTime":"5.11"} bar: Wave9Score320Crew2 in towStatic ×1
+last 6 load=5.02 {"frames":239,"scriptingAndRendering":"4.78","scripting":"4.57","rendering":"0.05","painting":"0.12","frameGap":"16.65","threadTime":"4.77"} bar: Wave9Score320Crew2 in towStatic ×1
+start 7 load=4.57 {"frames":239,"scriptingAndRendering":"4.68","scripting":"4.50","rendering":"0.05","painting":"0.11","frameGap":"16.66","threadTime":"4.67"} bar: Wave9Score320Crew2 in towStatic ×1
+last 7 load=4.00 {"frames":239,"scriptingAndRendering":"4.51","scripting":"4.32","rendering":"0.05","painting":"0.14","frameGap":"16.59","threadTime":"4.50"} bar: Wave9Score320Crew2 in towStatic ×1
+
+== The first sitting: Tempest (wave 29), five rounds
+start 1 load=3.13 {"frames":238,"scriptingAndRendering":"7.36","scripting":"7.02","rendering":"0.05","painting":"0.34","frameGap":"16.66","threadTime":"7.35"} bar: Wave29Score3,190Crew1 in tow, 1 knocked looseStatic ×2
+last 1 load=2.89 {"frames":239,"scriptingAndRendering":"7.01","scripting":"6.67","rendering":"0.06","painting":"0.24","frameGap":"16.67","threadTime":"7.01"} bar: Wave29Score1,770CrewNo one in tow, 2 knocked looseStatic ×1
+start 2 load=3.00 {"frames":239,"scriptingAndRendering":"6.55","scripting":"6.28","rendering":"0.05","painting":"0.13","frameGap":"16.69","threadTime":"6.55"} bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+last 2 load=3.31 {"frames":212,"scriptingAndRendering":"11.06","scripting":"10.75","rendering":"0.08","painting":"0.39","frameGap":"16.83","threadTime":"10.95"} bar: Wave29Score4,620CrewNo one in tow, 2 knocked looseStatic ×3
+start 3 load=6.42 {"frames":240,"scriptingAndRendering":"8.49","scripting":"7.91","rendering":"0.08","painting":"0.54","frameGap":"16.67","threadTime":"8.47"} bar: Wave29Score2,320Crew1 in tow, 1 knocked looseStatic ×2
+last 3 load=8.04 {"frames":240,"scriptingAndRendering":"7.22","scripting":"6.81","rendering":"0.07","painting":"0.13","frameGap":"16.68","threadTime":"7.25"} bar: Wave29Score1,770CrewNo one in tow, 2 knocked looseStatic ×1
+start 4 load=7.14 {"frames":239,"scriptingAndRendering":"7.03","scripting":"6.56","rendering":"0.06","painting":"0.30","frameGap":"16.65","threadTime":"7.05"} bar: Wave29Score1,410CrewNo one in tow, 2 knocked looseStatic ×1
+last 4 load=6.00 {"frames":238,"scriptingAndRendering":"7.42","scripting":"7.15","rendering":"0.06","painting":"0.36","frameGap":"16.69","threadTime":"7.47"} bar: Wave29Score4,415CrewNo one in tow, 2 knocked looseStatic ×2
+start 5 load=5.40 {"frames":239,"scriptingAndRendering":"7.12","scripting":"6.72","rendering":"0.06","painting":"0.13","frameGap":"16.66","threadTime":"7.11"} bar: Wave29Score1,650Crew1 in tow, 1 knocked looseStatic ×3
+last 5 load=5.02 {"frames":239,"scriptingAndRendering":"7.05","scripting":"6.70","rendering":"0.06","painting":"0.24","frameGap":"16.68","threadTime":"7.04"} bar: Wave29Score1,650Crew1 in tow, 1 knocked looseStatic ×3
+
+== The second sitting: wave 9, seven rounds
+begin's first two rounds lost the pod before the trace ended (5,560 points and two ships, against 5,400 and three in
+the rest), so its median leaves them out, as F1 left out two such.
+begin 1 load=0.76 {"frames":239,"scriptingAndRendering":"2.99","scripting":"2.72","rendering":"0.05","painting":"0.11","frameGap":"16.68","threadTime":"2.98"} bar: Wave9Score5,560Ships2 ships
+start 1 load=1.31 {"frames":240,"scriptingAndRendering":"4.32","scripting":"4.12","rendering":"0.05","painting":"0.11","frameGap":"16.70","threadTime":"4.31"} bar: Wave9Score320Crew2 in towStatic ×1
+last 1 load=1.16 {"frames":239,"scriptingAndRendering":"4.56","scripting":"4.28","rendering":"0.05","painting":"0.11","frameGap":"16.68","threadTime":"4.55"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 2 load=1.29 {"frames":239,"scriptingAndRendering":"2.89","scripting":"2.73","rendering":"0.05","painting":"0.29","frameGap":"16.67","threadTime":"2.89"} bar: Wave9Score5,560Ships2 ships
+start 2 load=2.26 {"frames":239,"scriptingAndRendering":"4.69","scripting":"4.49","rendering":"0.05","painting":"0.11","frameGap":"16.69","threadTime":"4.68"} bar: Wave9Score320Crew2 in towStatic ×1
+last 2 load=2.14 {"frames":239,"scriptingAndRendering":"4.49","scripting":"4.29","rendering":"0.05","painting":"0.10","frameGap":"16.71","threadTime":"4.49"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 3 load=2.52 {"frames":240,"scriptingAndRendering":"3.23","scripting":"3.01","rendering":"0.05","painting":"0.32","frameGap":"16.61","threadTime":"3.22"} bar: Wave9Score5,400Ships3 ships
+start 3 load=2.37 {"frames":240,"scriptingAndRendering":"4.48","scripting":"4.33","rendering":"0.05","painting":"0.14","frameGap":"16.67","threadTime":"4.53"} bar: Wave9Score320Crew2 in towStatic ×1
+last 3 load=2.22 {"frames":239,"scriptingAndRendering":"4.51","scripting":"4.38","rendering":"0.05","painting":"0.11","frameGap":"16.71","threadTime":"4.53"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 4 load=1.87 {"frames":239,"scriptingAndRendering":"3.02","scripting":"2.82","rendering":"0.05","painting":"0.11","frameGap":"16.68","threadTime":"3.04"} bar: Wave9Score5,400Ships3 ships
+start 4 load=1.98 {"frames":239,"scriptingAndRendering":"4.58","scripting":"4.45","rendering":"0.05","painting":"0.10","frameGap":"16.64","threadTime":"4.58"} bar: Wave9Score320Crew2 in towStatic ×1
+last 4 load=1.89 {"frames":239,"scriptingAndRendering":"4.67","scripting":"4.39","rendering":"0.05","painting":"0.11","frameGap":"16.64","threadTime":"4.66"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 5 load=1.75 {"frames":239,"scriptingAndRendering":"3.13","scripting":"2.95","rendering":"0.05","painting":"0.10","frameGap":"16.62","threadTime":"3.12"} bar: Wave9Score5,400Ships3 ships
+start 5 load=1.51 {"frames":239,"scriptingAndRendering":"4.55","scripting":"4.26","rendering":"0.05","painting":"0.11","frameGap":"16.69","threadTime":"4.54"} bar: Wave9Score320Crew2 in towStatic ×1
+last 5 load=1.54 {"frames":240,"scriptingAndRendering":"4.53","scripting":"4.39","rendering":"0.05","painting":"0.11","frameGap":"16.63","threadTime":"4.54"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 6 load=1.69 {"frames":239,"scriptingAndRendering":"3.25","scripting":"2.98","rendering":"0.05","painting":"0.11","frameGap":"16.64","threadTime":"3.23"} bar: Wave9Score5,400Ships3 ships
+start 6 load=1.61 {"frames":239,"scriptingAndRendering":"4.89","scripting":"4.61","rendering":"0.06","painting":"0.11","frameGap":"16.69","threadTime":"4.91"} bar: Wave9Score320Crew2 in towStatic ×1
+last 6 load=1.97 {"frames":239,"scriptingAndRendering":"5.20","scripting":"4.93","rendering":"0.06","painting":"0.12","frameGap":"16.68","threadTime":"5.19"} bar: Wave9Score320Crew2 in towStatic ×1
+begin 7 load=2.26 {"frames":239,"scriptingAndRendering":"3.16","scripting":"2.92","rendering":"0.05","painting":"0.11","frameGap":"16.68","threadTime":"3.14"} bar: Wave9Score5,400Ships3 ships
+start 7 load=2.30 {"frames":239,"scriptingAndRendering":"4.71","scripting":"4.48","rendering":"0.05","painting":"0.11","frameGap":"16.69","threadTime":"4.70"} bar: Wave9Score320Crew2 in towStatic ×1
+last 7 load=3.92 {"frames":239,"scriptingAndRendering":"4.79","scripting":"4.54","rendering":"0.05","painting":"0.12","frameGap":"16.71","threadTime":"4.80"} bar: Wave9Score320Crew2 in towStatic ×1
+
+== The look: how it was made
+F1-budget's look.mjs, a headless Chrome of its own per sitting, PORT=9142, run from a folder holding the go scripts
+and the init scripts (those were not kept), as `node <F1-budget>/look.mjs <prefix> <init> <go script> ...`. The first
+three sittings (zaps at 1,600 x 900: Classic felt with motion, Casino night with it and without) ran on last-dist
+served by serve.sh; the rest on the game's dev server (`yarn vite --port 9142 --strictPort --host 127.0.0.1` in
+frontend/games/asteroid-breaker, the worktree at e0623693), which the staged sittings need for Angular's `ng`.
+Each init script is last-dist/init29.js with "casino" replaced by the palette's id (classic, casino, pastel,
+midnight) and, for the zaps and the staged sittings, the stored game's field.charge set to 40, full; the knocks'
+kept it as stored (5). The staged sittings logged the vent's storm boulder as "large", where go-stage.js now logs
+"boulder", as the rules would: a vent's drawing doesn't read the size (blastRadiusOf() takes its heart as small).
+At 1,600 x 900, CLIP=550,280,500,420 (staged) or 550,100,500,500 (zap) took the pod's corner alone.
+  look.mjs <prefix> <init> go-stage.js 1600 900 <0|1> 40 0 0     (Classic felt, Casino night)
+  look.mjs <prefix> <init> go-stage.js 360 640 <0|1> 45 0 0      (Soft pastel, Midnight blue)
+  look.mjs <prefix> <init> go-zap.js 1600 900 <0|1> 4 0 0        (Classic felt, Casino night)
+  look.mjs <prefix> <init> go-zap.js 360 640 <0|1> 6 0 0         (Soft pastel, Midnight blue)
+  look.mjs <prefix> <init> go-knock.js 1600 900 0 30 0 0         (Casino night, CLIP=700,390,200,200)
+  look.mjs <prefix> <init> go-knock.js 360 640 0 30 0 0          (Midnight blue, CLIP=120,230,120,120)
