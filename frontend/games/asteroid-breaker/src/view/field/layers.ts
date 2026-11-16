@@ -1,28 +1,25 @@
 /**
- * The layers the field is drawn in, back to front, in one list, each drawn
- * over those before it, as the scene adds them in this order: the place
- * behind the play, its wash, stars and landmark; the field, which holds
- * nothing of its own; a comet's lane across the field as it is warned of,
- * under all that lies on the field; the halos of what gives off light,
- * under all that glows, so none covers what it glows round; the tags of the
- * effects in play, under all that moves, so they hide nothing a player must
- * see; a broken rock's dust and shards, under the rocks, so none hides a
- * piece it leaves; the rocks; the pickups; the sparks broken rocks shed,
- * over the pickups, so an orb hides none; the strays adrift and the pilots
- * bailing out; the burrs adrift, under the comets and their warnings; the
- * shots; the crew in tow and those knocked loose, under the ship, so the
- * line ties on under the pod; the muzzle's flash as a shot leaves, under
- * the ship, which covers its back, as the kit draws it, and the pod's
- * flash and glow; the ship and its pilot; the burrs clinging to it, over
- * its hull; the flourishes, back to front a dash's trail, the exhaust, a
- * lost ship's shards, the sparks and glints of breaks and held hits, a
- * boulder's break's beats, the blasts, and the rings; static's arcs, the
- * zap's and those crawling over the pod's hull at full static, over the
- * flourishes; the points rising; and the frame and the deck.
+ * The layers the field is drawn in, back to front, in one list, each drawn over
+ * those before it, as the scene adds them in this order: the place behind the
+ * play, its wash, stars and landmark; a comet's lane across the field as it is
+ * warned of, under all that lies on the field; the halos of what gives off
+ * light, under all that glows, so none covers what it glows round; the tags of
+ * the effects in play, under all that moves, so they hide nothing a player must
+ * see; a broken rock's dust and shards, under the rocks, so none hides a piece
+ * it leaves; the rocks; the pickups; the sparks broken rocks shed, over the
+ * pickups, so an orb hides none; the strays adrift and the pilots bailing out;
+ * the burrs adrift, under the comets and their warnings; the shots; the crew in
+ * tow and those knocked loose, under the ship, so the line ties on under the
+ * pod; the muzzle's flash as a shot leaves, under the ship, which covers its
+ * back, as the kit draws it, and the pod's flash and glow; the ship and its
+ * pilot; the burrs clinging to it, over its hull; the flourishes, back to front
+ * a dash's trail, the exhaust, a lost ship's shards, the sparks and glints of
+ * breaks and held hits, a boulder's break's beats, the blasts, and the rings;
+ * static's arcs, the zap's and those crawling over the pod's hull at full
+ * static, over the flourishes; the points rising; and the frame and the deck.
  */
 export const LAYERS = [
   "place",
-  "field",
   "lanes",
   "halos",
   "tags",
@@ -61,7 +58,6 @@ export type LayerCamera = "field" | "deck";
  */
 export const LAYER_CAMERAS: Readonly<Record<Layer, LayerCamera>> = {
   place: "field",
-  field: "field",
   lanes: "field",
   halos: "field",
   tags: "field",
