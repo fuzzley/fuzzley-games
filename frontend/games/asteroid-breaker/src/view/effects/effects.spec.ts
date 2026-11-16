@@ -63,8 +63,8 @@ const EVENTS: readonly (readonly [
   ["cleared", ["slow", "wave"], []],
   ["rung", ["flash", "spark"], []],
   ["blast", ["blast"], ["blast"]],
-  ["shed", [], []],
-  ["vented", ["ring"], []],
+  ["shed", ["ring"], []],
+  ["vented", ["blast"], ["blast"]],
   ["dropped", ["ring"], []],
   ["caught", [], []],
   ["faded", ["ring"], []],
@@ -83,8 +83,8 @@ const EVENTS: readonly (readonly [
   ["arced", [], []],
   ["burred", [], []],
   ["clung", [], []],
-  ["popped", [], []],
-  ["shaken", [], []],
+  ["popped", ["pop"], []],
+  ["shaken", ["pop"], []],
 ];
 
 /**
@@ -135,6 +135,13 @@ describe("effectsOf", () => {
   it.each(ROCK_SIZES)("flashes a %s rock that holds a hit", (size) => {
     expect(effectsOf(eventOf("hit", size))).toEqual({
       flourishes: ["flash", "spark"],
+      still: [],
+    });
+  });
+
+  it("plays only a spark for a held hit on a rock that vents, as its vent's blast flashes", () => {
+    expect(effectsOf(eventOf("hit", "boulder", "stormheart"))).toEqual({
+      flourishes: ["spark"],
       still: [],
     });
   });

@@ -46,11 +46,11 @@ interface Ring extends Playing {
 
 /**
  * Draws the rings that sweep out, fading as they go, from a spent Shield, a
- * lost pod, a vent, a pickup let go or fading, a stray drifting in and the
- * pod as static steps up, and the still marks where motion isn't welcome,
- * at a dash's start and round a spent Shield, each on both sides of an
- * edge it reaches across but a stray's, which comes in at the edge and is
- * drawn once, as the stray is; a fuzzball caught's soft ring, opening from
+ * lost pod, a piece knocked off, a pickup let go or fading, a stray
+ * drifting in and the pod as static steps up, and the still marks where
+ * motion isn't welcome, at a dash's start and round a spent Shield, each
+ * on both sides of an edge it reaches across but a stray's, which comes in
+ * at the edge and is drawn once, as the stray is; a fuzzball caught's soft ring, opening from
  * where its bubble was as the view's `rescue.ts` says, its soft outside
  * and its line each a band, in the accent's energy, past each edge it
  * reaches across; and the wave's ring, which crosses the whole field from

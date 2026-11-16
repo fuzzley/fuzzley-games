@@ -13,19 +13,19 @@ import { BOULDER_HOLD_MS, ZAP_HOLD_MS } from "./timing";
  * broken rock's break (its shards, dust and sparks), the field's kick at a
  * large rock's break, a held hit's flash and spark, a blast (its flash,
  * ring, embers and light), a ring sweeping out (a spent Shield's, a lost
- * pod's, a vent's, a pickup let go's or fading's, a stray's drifting in,
- * or the pod's as static steps up), the points scored, a dash's trail, a
- * lost pod's burst, its pilot bailing out, the field's shake at a
- * boulder's break or a knock and the boulder's beats, as a wave's last
- * rock goes the flourishes slowed, where it is a sector's last, and the
- * wave's ring, a still ring marking where something happened, as a
- * fuzzball is caught its soft ring (`rescue`) and the line in tow
- * springing (`spring`), the pod's flash as one is knocked loose
- * (`podflash`), and its glow and light as it zaps (`zap`). Each but the
+ * pod's, a piece knocked off's, a pickup let go's or fading's, a stray's
+ * drifting in, or the pod's as static steps up), the points scored, a dash's
+ * trail, a lost pod's burst, its pilot bailing out, the field's shake at a
+ * boulder's break or a knock and the boulder's beats, as a wave's last rock
+ * goes the flourishes slowed, where it is a sector's last, and the wave's
+ * ring, a still ring marking where something happened, as a fuzzball is
+ * caught its soft ring (`rescue`) and the line in tow springing (`spring`),
+ * the pod's flash as one is knocked loose (`podflash`), its glow and light
+ * as it zaps (`zap`), and a burr's shards as it pops (`pop`). Each but the
  * points, a blast and a still mark moves, so plays only where motion is
  * welcome; the points show either way, rising only where it is, a blast's
- * ring stands still at its reach where it isn't, and a still mark shows
- * only there.
+ * ring stands still at its reach where it isn't, and a still mark shows only
+ * there.
  */
 export type Flourish =
   | "muzzle"
@@ -47,7 +47,8 @@ export type Flourish =
   | "rescue"
   | "spring"
   | "podflash"
-  | "zap";
+  | "zap"
+  | "pop";
 
 /** Says what an event calls for: the flourishes it plays, with motion and without. */
 export interface EventEffects {
@@ -94,6 +95,9 @@ const HELD: Readonly<Record<RockSize, EventEffects>> = recordOf(
   () => moving(["flash", "spark"]),
 );
 
+/** What a held hit on a rock that vents calls for: its spark, as its vent's blast flashes. */
+const VENTING = moving(["spark"]);
+
 /** What static stepping up calls for. */
 const STEPPED_UP = moving(["ring"]);
 
@@ -118,9 +122,12 @@ const EVENT_EFFECTS: Readonly<
   // far it reached.
   blast: { flourishes: ["blast"], still: ["blast"] },
   // A piece knocked off comes away under the flash and spark of the hit
-  // its boulder holds, which the hit plays.
-  shed: QUIET,
-  vented: moving(["ring"]),
+  // its boulder holds, which the hit plays, and throws a ring, as a
+  // boulder's break throws one.
+  shed: moving(["ring"]),
+  // A vent is a blast from its set piece's heart, and keeps a blast's
+  // still ring at its reach.
+  vented: { flourishes: ["blast"], still: ["blast"] },
   // A pickup let go, one fading out and a stray drifting in each show a
   // ring as their sound plays, as nothing is told by sound alone.
   dropped: moving(["ring"]),
@@ -151,12 +158,13 @@ const EVENT_EFFECTS: Readonly<
   // motion isn't welcome: its still form.
   zapped: moving(["zap"]),
   arced: QUIET,
-  // A burr shows coming in, clinging to the pod and gone as it pops or is
-  // shaken off; its own flourishes are a later package's to choose.
+  // A burr shows coming in and clinging to the pod, which `plan.md`'s
+  // table gives no flourish; it pops into shards as a shot pops it or a
+  // dash shakes it off, and is simply gone where motion isn't welcome.
   burred: QUIET,
   clung: QUIET,
-  popped: QUIET,
-  shaken: QUIET,
+  popped: moving(["pop"]),
+  shaken: moving(["pop"]),
 };
 
 /**
@@ -169,11 +177,14 @@ export function effectsOf(event: Readonly<FieldEvent>): EventEffects {
   switch (event.kind) {
     case "broken":
       return BROKEN[rockSizeOf(event)];
-    case "hit":
+    case "hit": {
+      const kind = rockKindOf(event);
       // A rock that rings logs its ring too, which plays for both.
-      return hasTrait(rockKindOf(event), "rings")
-        ? QUIET
-        : HELD[rockSizeOf(event)];
+      if (hasTrait(kind, "rings")) return QUIET;
+      // One that vents logs its vent, whose blast takes the frame's flash.
+      if (hasTrait(kind, "vents")) return VENTING;
+      return HELD[rockSizeOf(event)];
+    }
     case "stepped":
       // Static stepping up sends a ring from the pod; the fur's lift, at
       // once where motion isn't welcome, is its still form, and a fall

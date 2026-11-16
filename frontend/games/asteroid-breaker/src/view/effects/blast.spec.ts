@@ -1,4 +1,11 @@
+import { ROCK_RADIUS } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
+import {
+  KEEPER,
+  fieldFrom,
+  loggedOn,
+  placeRock,
+} from "../../testing/field_picture";
 import { ROLES } from "../../testing/roles";
 import { energyOf } from "../art/energy";
 import { beltPalette } from "../colors/palette";
@@ -15,6 +22,7 @@ import {
   blastInks,
   blastLightShare,
   blastLineAlpha,
+  blastRadiusOf,
   blastRingAt,
   blastShows,
   blastSwept,
@@ -280,5 +288,25 @@ describe("emberAt", () => {
     const into = shown();
 
     expect(ember && emberAt(ember, ember.delayMs, 1, 4, into)).toBe(into);
+  });
+});
+
+describe("blastRadiusOf", () => {
+  it("goes off from a volatile rock's own radius", () => {
+    const field = fieldFrom(KEEPER);
+    const rock = placeRock(field, "medium", 30, 20, "volatile");
+    field.events.addRock("blast", rock, 4);
+    const event = loggedOn(field).find(({ kind }) => kind === "blast");
+
+    expect(event && blastRadiusOf(event)).toBe(ROCK_RADIUS.medium);
+  });
+
+  it("goes off from a small heart as a set piece vents, however large it is", () => {
+    const field = fieldFrom(KEEPER);
+    const rock = placeRock(field, "boulder", 30, 20, "stormheart");
+    field.events.addRock("vented", rock, 6);
+    const event = loggedOn(field).find(({ kind }) => kind === "vented");
+
+    expect(event && blastRadiusOf(event)).toBe(ROCK_RADIUS.small);
   });
 });

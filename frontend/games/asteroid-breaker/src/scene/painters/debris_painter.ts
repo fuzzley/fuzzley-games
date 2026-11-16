@@ -60,6 +60,8 @@ const SHARD_SPEED = { least: 5, most: 11 } as const;
 /**
  * How many of a lost ship's shards may fly at once. Each is made as the
  * scene starts, and one past them is left out rather than made in play.
+ * A burr's pop throws them too: a lost ship's burst, a dash shaking off
+ * three burrs and a shot popping one at once fill them.
  */
 export const MOST_SHARDS_FLYING = 32;
 

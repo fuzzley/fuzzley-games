@@ -7,7 +7,9 @@ import {
   STATIC_STEPS,
   STRAY_POINTS,
 } from "../../rules/tuning";
+import { ART_PALETTE } from "../../testing/art_frames";
 import type { FieldEvent, FieldEventKind } from "../field/frame";
+import { boulderInks } from "./boulder";
 import {
   BAIL_OUT_LEAN,
   BOB,
@@ -34,6 +36,7 @@ import {
   muzzleAt,
   muzzleBeatOf,
   pointsLabel,
+  popShardsOf,
   riseOf,
   ringColorOf,
   ringOf,
@@ -52,6 +55,7 @@ import {
   FLASH_GAP_MS,
   KICK_CSS_PX,
   KICK_MS,
+  POP_SHARDS,
   MUZZLE_MS,
   POINTS_RISE,
   SHAKE_CSS_PX,
@@ -226,6 +230,8 @@ describe("ringOf", () => {
     ["faded", 1.5, true],
     ["strayed", 2.5, false],
     ["dashed", 2, true],
+    ["stepped", 2.5, true],
+    ["shed", 3, true],
   ] as const)(
     "rings a %s event out to %d, wrapping: %s",
     (kind, reach, wraps) => {
@@ -233,28 +239,9 @@ describe("ringOf", () => {
     },
   );
 
-  it("rings a vent out as far as its blast reaches, wrapping", () => {
-    expect(ringOf(reaching("vented", 7))).toEqual({ reach: 7, wraps: true });
-  });
-
   it("throws for an event that plays no ring", () => {
     expect(() => ringOf(reaching("fired", 0))).toThrow(RangeError);
   });
-});
-
-describe("ringColorOf", () => {
-  const PALETTE = { flame: 0xf39a4b, accent: 0x4fbf7f };
-
-  it("sweeps a vent's ring out in the warning color", () => {
-    expect(ringColorOf(reaching("vented", 7), PALETTE)).toBe(PALETTE.flame);
-  });
-
-  it.each(["shielded", "lost"] as const)(
-    "sweeps a %s ring out in the accent",
-    (kind) => {
-      expect(ringColorOf(reaching(kind, 0), PALETTE)).toBe(PALETTE.accent);
-    },
-  );
 });
 
 describe("bailOutWayOf", () => {
@@ -627,5 +614,34 @@ describe("blinkShown", () => {
     ).filter(Boolean);
 
     expect(shown).toHaveLength(200);
+  });
+});
+
+describe("ringColorOf", () => {
+  it("throws a piece knocked off's ring in its boulder's core", () => {
+    expect(ringColorOf(reaching("shed", 0), ART_PALETTE)).toBe(
+      boulderInks(ART_PALETTE).core,
+    );
+  });
+
+  it.each(["shielded", "stepped", "dropped"] as const)(
+    "sweeps a %s ring out in the accent",
+    (kind) => {
+      expect(ringColorOf(reaching(kind, 0), ART_PALETTE)).toBe(
+        ART_PALETTE.accent,
+      );
+    },
+  );
+});
+
+describe("popShardsOf", () => {
+  it("pops a burr a shot pops into one burr's shards", () => {
+    expect(popShardsOf(reaching("popped", 0))).toBe(POP_SHARDS);
+  });
+
+  it("pops one burr's shards for each a dash shakes off", () => {
+    expect(popShardsOf({ ...reaching("shaken", 0), burrs: 3 })).toBe(
+      3 * POP_SHARDS,
+    );
   });
 });
