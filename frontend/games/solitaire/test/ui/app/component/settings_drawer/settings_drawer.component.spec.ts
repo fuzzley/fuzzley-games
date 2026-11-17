@@ -2,6 +2,7 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { BUILD_INFO } from "@fz/game-ui/build_info";
 import { ThemeService } from "@fz/ui/theme";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
@@ -26,6 +27,9 @@ describe("SettingsDrawerComponent", () => {
 
   beforeEach(async () => {
     harness = await configureUiTestBed(SettingsDrawerComponent);
+    TestBed.overrideProvider(BUILD_INFO, {
+      useValue: { commit: "549c93a", buildTime: "2031-06-15T09:30:00.000Z" },
+    });
 
     fixture = TestBed.createComponent(SettingsDrawerComponent);
     fixture.detectChanges();
@@ -628,6 +632,15 @@ describe("SettingsDrawerComponent", () => {
 
       expect(closed).toHaveBeenCalledOnce();
     });
+  });
+
+  it("ends with the version of the game that is running", () => {
+    openDrawer();
+    const content = queryRequired(fixture, ".drawer-content", HTMLElement);
+
+    expect(content.lastElementChild?.textContent.trim()).toMatch(
+      /^Version 549c93a, built June 15, 2031$/,
+    );
   });
 
   it("opens the rules and closes itself out of the way", () => {

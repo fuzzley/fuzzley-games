@@ -1,9 +1,9 @@
 // The site's own Vite plugins, which vite.config.ts lists.
 
-import { execSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
 import path from "node:path";
+import { buildStamp } from "@fz/dev/build-info";
 import {
   GAME_MANIFEST,
   type GameManifest,
@@ -24,28 +24,6 @@ export interface Catalog {
   readonly imagesOf: (game: GameModel.Game) => string[];
 }
 
-/**
- * Returns the short commit a build comes from.
- *
- * COMMIT_SHA comes first: the Docker build passes it in, and the image has no
- * .git to ask.
- */
-export function commitHash(
-  env: NodeJS.ProcessEnv = process.env,
-  askGit: () => string = () =>
-    execSync("git rev-parse --short HEAD", {
-      stdio: ["ignore", "pipe", "ignore"],
-    }).toString(),
-): string {
-  const fromEnv = env["COMMIT_SHA"];
-  if (fromEnv) return fromEnv.slice(0, 7);
-  try {
-    return askGit().trim();
-  } catch {
-    return "dev";
-  }
-}
-
 /** Returns the site's version, the commit it is built from, and the time. */
 export function readBuildInfo(
   env: NodeJS.ProcessEnv = process.env,
@@ -54,7 +32,7 @@ export function readBuildInfo(
   const { version } = JSON.parse(
     readFileSync(path.join(SITE_DIR, "package.json"), "utf8"),
   ) as { version: string };
-  return { version, commit: commitHash(env), buildTime: now.toISOString() };
+  return { version, ...buildStamp(env, now) };
 }
 
 /** Names the build of a game that version.json says the site serves. */

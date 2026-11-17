@@ -1,10 +1,12 @@
 import { Component, input, output } from "@angular/core";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
+import { BuildInfoComponent } from "../build_info";
 
 /**
  * Shows a game's settings in a drawer down the right of the window, a
- * dialog named Settings, under its heading and the button that closes it.
+ * dialog named Settings, under its heading and the button that closes it,
+ * with the version of the game that is running beneath them.
  *
  * It draws the frame and projects the settings, which the stylesheet of the
  * game's settings component styles with `@fz/style`'s `setting-fields`, as
@@ -14,7 +16,7 @@ import { IconComponent } from "@fz/ui/icon";
  */
 @Component({
   selector: "fz-settings-drawer",
-  imports: [DialogComponent, IconComponent],
+  imports: [BuildInfoComponent, DialogComponent, IconComponent],
   templateUrl: "./settings_drawer.component.html",
   styleUrl: "./settings_drawer.component.scss",
 })

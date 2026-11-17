@@ -1,6 +1,13 @@
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { BUILD_INFO, type BuildInfo } from "../build_info";
 import { SettingsDrawerComponent } from "./settings_drawer.component";
+
+/** A build stamped with its commit and the time it ran. */
+const BUILD: BuildInfo = {
+  commit: "549c93a",
+  buildTime: "2031-06-15T09:30:00.000Z",
+};
 
 /** What a spec gets back from rendering the drawer. */
 interface RenderedDrawer {
@@ -18,6 +25,7 @@ async function renderDrawer(open = true): Promise<RenderedDrawer> {
     {
       imports: [SettingsDrawerComponent],
       componentProperties: { open, closed },
+      providers: [{ provide: BUILD_INFO, useValue: BUILD }],
     },
   );
   return { user: userEvent.setup(), closed };
@@ -61,6 +69,19 @@ describe("SettingsDrawerComponent", () => {
 
     expect(screen.getByRole("dialog")).toContainElement(
       screen.getByRole("checkbox", { name: "Play sounds" }),
+    );
+  });
+
+  it("says which version of the game is running, beneath the settings", async () => {
+    await renderDrawer();
+
+    const settings = screen.getByRole("checkbox", { name: "Play sounds" });
+    const version = screen.getByRole("link", {
+      name: "549c93a (opens in a new tab)",
+    });
+
+    expect(settings.compareDocumentPosition(version)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
     );
   });
 

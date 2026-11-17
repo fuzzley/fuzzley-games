@@ -6,6 +6,7 @@ import {
   output,
   resource,
 } from "@angular/core";
+import { BuildInfoComponent } from "@fz/game-ui/build_info";
 import { THEMES } from "@fz/style/themes";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -204,11 +205,13 @@ interface FeltSwatch {
 
 /**
  * Offers the running game's rules, the card back, style and deck, the palette
- * and the felt, and links to the rules page and a bug report.
+ * and the felt, and links to the rules page and a bug report, over the
+ * version of the game that is running.
  */
 @Component({
   selector: "app-settings-drawer",
   imports: [
+    BuildInfoComponent,
     DebugPanelComponent,
     OptionGroupComponent,
     DialogComponent,

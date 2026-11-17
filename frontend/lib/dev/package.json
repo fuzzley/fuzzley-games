@@ -9,6 +9,7 @@
     "./eslint": "./src/eslint.ts",
     "./vitest": "./src/vitest.ts",
     "./vite": "./src/vite.ts",
+    "./build-info": "./src/build_info.ts",
     "./game-manifest": "./src/game_manifest.ts",
     "./chrome": "./src/chrome.ts",
     "./layout": "./src/layout.ts",

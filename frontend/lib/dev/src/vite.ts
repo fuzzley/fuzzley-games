@@ -13,6 +13,7 @@ import angular from "@analogjs/vite-plugin-angular";
 import { fuzzleyStyle } from "@fz/style/vite";
 import ts from "typescript";
 import type { HotPayload, Plugin, PluginOption, UserConfig } from "vite";
+import { buildStamp, stampPage } from "./build_info.ts";
 import { gameManifest, type ManifestSource } from "./game_manifest.ts";
 
 /** Says what sets one game's config apart from the others'. */
@@ -221,15 +222,21 @@ export const PHASER_CHUNK = {
 
 /**
  * Returns the config every game's build and dev server share: Angular, the
- * palettes and icons of `@fz/style`, and a build in `dist/` that the site can
- * serve from any folder, with the game.json that says what it holds.
+ * palettes and icons of `@fz/style`, the commit it is built from and when in
+ * its page, and a build in `dist/` that the site can serve from any folder,
+ * with the game.json that says what it holds.
  */
 export function gameConfig({ port, ...manifest }: Game): UserConfig {
   return {
     // The site serves a game's build from /play/<slug>/, so every address in
     // it is relative to its index.html.
     base: "./",
-    plugins: [angularPlugins(), fuzzleyStyle(), gameManifest(manifest)],
+    plugins: [
+      angularPlugins(),
+      fuzzleyStyle(),
+      gameManifest(manifest),
+      stampPage(buildStamp()),
+    ],
     server: { port },
     build: {
       outDir: "dist",

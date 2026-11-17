@@ -160,8 +160,11 @@ too. Paths are relative to `frontend/lib/dev/`.
 - `src/vite.ts`, `@fz/dev/vite`: `gameConfig({ port, name, catalog })`, the Vite
   config every game built here shares: the `./` base that lets the site serve a
   build from `/play/<slug>/`, the Angular plugins, `@fz/style`'s
-  `fuzzleyStyle()`, the game's manifest, a build in `dist/` with its files in
-  `assets/` and Phaser, where a game has it, in a chunk of its own
+  `fuzzleyStyle()`, the game's manifest, the commit the build comes from and
+  the time in meta tags in its page (`stampPage()`), which `@fz/game-ui`'s
+  `BUILD_INFO` reads for the version a game's settings show, a build in
+  `dist/` with its files in `assets/` and Phaser, where a game has it, in a
+  chunk of its own
   (`PHASER_CHUNK`), and a dev server on the game's own port, which its
   screenshot script defaults to: 9000 for the Solitaire Collection, 9001 for
   Minesweeper, 9002 for Sudoku, 9003 for Snake, 9004 for Brick Breaker, 9005
@@ -188,6 +191,19 @@ too. Paths are relative to `frontend/lib/dev/`.
   (a checkout, a stash, a branch switch), which a watched folder sees come back.
   A server logs a page reload for a library's template it never loaded, and
   sends one only for that template's own address, so no page reloads.
+- `src/build_info.ts`, `@fz/dev/build-info`: which commit a build comes
+  from, and when it ran. `commitHash()` gives the short commit: the one the
+  Docker build passes in `COMMIT_SHA`, as the image has no `.git` to ask,
+  else git's, else `dev`; `buildStamp()` gives it with the time, a
+  `BuildStamp`, which the site's `readBuildInfo()` takes for its footer and
+  `version.json`. `stampPage()`, which `gameConfig()` adds, writes a game's
+  into its page, as its build and its dev server serve it, in the
+  meta tags `STAMP_META` names (`stampTags()`), which `@fz/game-ui`'s
+  `BUILD_INFO` reads by the same names, as its spec holds it to. The page
+  carries it, which nginx serves uncached, rather than the scripts, which
+  it caches for a year: a stamp in a script would rename it with every
+  commit, so a returning player would download every game again after any
+  deploy.
 - `src/game_manifest.ts`, `@fz/dev/game-manifest`: what a game's build
   says it holds, in `game.json` at the top of its `dist/`: its name and,
   for a collection, the `id` and `name` of every game it opens.
@@ -707,6 +723,9 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   check the configs the presets return, and the first has Vitest itself
   place specs written into a folder of their own in a game's projects, and
   Vite resolve Phaser from a package written into one;
+  `src/build_info.spec.ts` reads the commit from the environment, from a
+  git it is handed and from none, and builds a page with Vite that it reads
+  the stamp's tags in;
   `src/game_manifest.spec.ts` builds games with Vite in a folder of their
   own and reads the manifests they write; `src/screenshots.spec.ts` writes
   the site's images from a capture it draws, works out thumbnails' regions,

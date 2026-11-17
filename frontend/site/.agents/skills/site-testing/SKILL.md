@@ -44,8 +44,8 @@ projects, built from `@fz/dev/vitest`'s pieces: `angularSpecs()` and
   scripts and Vite plugins. `yarn workspace site vitest run --project tools`
   runs only these. A plugin's logic is a function the spec calls, such as
   `manifestProblems()` beside `checkGameManifests()`, and a script's
-  dependencies, such as the git `commitHash()` asks, are parameters with
-  the real ones as defaults.
+  dependencies, such as the environment and the clock `readBuildInfo()`
+  reads, are parameters with the real ones as defaults.
 
 A spec sits beside the file it tests, named after it.
 

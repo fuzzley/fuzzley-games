@@ -1,0 +1,15 @@
+@if (shown; as shown) {
+  <p class="build">
+    @if (shown.commit; as commit) {
+      Version
+      <a
+        [href]="commit.href"
+        target="_blank"
+        rel="noopener"
+        [attr.aria-label]="commit.label"
+        >{{ commit.hash }}</a>, built {{ shown.builtOn }}
+    } @else {
+      Built on {{ shown.builtOn }}
+    }
+  </p>
+}
