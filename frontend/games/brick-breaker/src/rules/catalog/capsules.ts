@@ -86,7 +86,7 @@ export interface Capsule {
 export const CAPSULES = {
   wide: {
     name: "Wide paddle",
-    about: "The paddle grows half as wide again for 20 seconds.",
+    about: "Makes the paddle 50% wider for 20 seconds.",
     tone: "good",
     weight: 10,
     from: 2,
@@ -94,7 +94,7 @@ export const CAPSULES = {
   },
   multi: {
     name: "Multiball",
-    about: "Every ball in play splits into three.",
+    about: "Splits every ball in flight into 3.",
     tone: "good",
     weight: 8,
     from: 2,
@@ -103,7 +103,7 @@ export const CAPSULES = {
   slow: {
     name: "Slow ball",
     about:
-      "The balls drop to their first speed, and speed up half as fast, for 15 seconds.",
+      "Slows the balls back to their starting speed. For 15 seconds, they speed up half as fast.",
     tone: "good",
     weight: 8,
     from: 2,
@@ -111,7 +111,7 @@ export const CAPSULES = {
   },
   life: {
     name: "Extra life",
-    about: "One more life, up to six.",
+    about: "Gives you 1 more life, up to 6.",
     tone: "good",
     weight: 1,
     from: 5,
@@ -120,7 +120,7 @@ export const CAPSULES = {
   catch: {
     name: "Catch",
     about:
-      "For 20 seconds, a ball that lands on the paddle waits there, for 3 seconds at most, until launched.",
+      "Balls stick to the paddle for up to 3 seconds, or until you launch them. Lasts 20 seconds.",
     tone: "good",
     weight: 6,
     from: 6,
@@ -128,7 +128,8 @@ export const CAPSULES = {
   },
   net: {
     name: "Net",
-    about: "A line under the paddle turns back the next ball that falls.",
+    about:
+      "Stretches a net under the paddle that saves the next ball you miss.",
     tone: "good",
     weight: 4,
     from: 8,
@@ -137,7 +138,7 @@ export const CAPSULES = {
   laser: {
     name: "Laser",
     about:
-      "Launching fires a bolt from each end of the paddle, for 12 seconds.",
+      "Puts a laser on each end of the paddle for 12 seconds. Launch to fire.",
     tone: "good",
     weight: 5,
     from: 9,
@@ -146,7 +147,7 @@ export const CAPSULES = {
   seeker: {
     name: "Seeker",
     about:
-      "Each ball leans toward the nearest brick the level needs as it rises, for 12 seconds.",
+      "Curves rising balls toward the nearest brick you still need to break. Lasts 12 seconds.",
     tone: "good",
     weight: 4,
     from: 11,
@@ -155,7 +156,7 @@ export const CAPSULES = {
   narrow: {
     name: "Narrow paddle",
     about:
-      "The paddle shrinks to two thirds of its width for 15 seconds, and bricks pay double while it lasts.",
+      "Makes the paddle 35% narrower for 15 seconds. Bricks score double while it lasts.",
     tone: "bad",
     weight: 5,
     from: 11,
@@ -164,7 +165,7 @@ export const CAPSULES = {
   },
   fire: {
     name: "Fire ball",
-    about: "The balls burn through every brick that can break, for 10 seconds.",
+    about: "Turns every ball into a fire ball for 10 seconds.",
     tone: "good",
     weight: 4,
     from: 12,
@@ -173,7 +174,7 @@ export const CAPSULES = {
   fast: {
     name: "Fast ball",
     about:
-      "The balls go a quarter faster for 12 seconds, and bricks pay double while they do.",
+      "Makes the balls 25% faster for 12 seconds. Bricks score double while it lasts.",
     tone: "bad",
     weight: 4,
     from: 14,
@@ -188,7 +189,7 @@ export const CAPSULES = {
   },
   blast: {
     name: "Blast ball",
-    about: "Each brick the balls hit hits the eight around it, for 12 seconds.",
+    about: "Turns every ball into a blast ball for 12 seconds.",
     tone: "good",
     weight: 4,
     from: 15,

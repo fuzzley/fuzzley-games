@@ -1,26 +1,15 @@
 <fz-help-dialog [open]="open()" (closed)="closed.emit()">
   <p>
-    Keep the ball in play with the paddle, and break every brick a level needs
-    to clear it. A ball that falls past the paddle costs a life; the run ends
-    when the last is lost, or when the last level is cleared.
-  </p>
-  <p>
-    <strong>Scoring.</strong> Each brick scores its points for every hit it
-    takes. {{ scoring.streak }} {{ scoring.clearing }} {{ scoring.lives }}
-  </p>
-  <p>
-    <strong>Stars.</strong> Each level has three to win, at any speed: one for
-    clearing it, one for clearing it without losing a life, and one for reaching
-    its streak, the mark its Ready card names, in a play that clears it. A star
-    once won is yours for good. Stars open nothing; the Levels dialog counts
-    them.
-  </p>
-  <p>
-    <strong>Pausing.</strong> The game pauses itself when you switch away, turn
-    the screen or open a dialog, and goes on only when you say.
+    Bounce the ball off your paddle to break the bricks. Break every brick that
+    can be broken to clear the level. If the ball gets past your paddle, you
+    lose a life. The game ends when you run out of lives or clear all
+    {{ levelCount }} levels.
   </p>
 
   <table>
+    <caption class="fz-visually-hidden">
+      Controls
+    </caption>
     <thead>
       <tr>
         <td></td>
@@ -31,30 +20,30 @@
     </thead>
     <tbody>
       <tr>
-        <th scope="row">Steer</th>
-        <td>Move it; the paddle follows</td>
-        <td>
-          Drag anywhere on the field, or, in the settings, have the paddle
-          follow your finger
-        </td>
+        <th scope="row">Move</th>
+        <td>Move the mouse</td>
+        <td>Drag</td>
         <td>
           Hold <kbd>←</kbd> or <kbd>→</kbd>, or <kbd>A</kbd> or <kbd>D</kbd>
         </td>
       </tr>
       <tr>
-        <th scope="row">Launch, or fire</th>
+        <th scope="row">Launch or fire</th>
         <td>Click</td>
         <td>Tap</td>
         <td><kbd>Space</kbd>, <kbd>↑</kbd> or <kbd>W</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Pause, or go on</th>
-        <td>Pause, then Resume</td>
-        <td>Pause, then Resume</td>
-        <td>
-          <kbd>P</kbd>; <kbd>Esc</kbd> pauses, and <kbd>Enter</kbd> or
-          <kbd>Space</kbd> goes on
-        </td>
+        <th scope="row">Pause</th>
+        <td>Pause</td>
+        <td>Pause</td>
+        <td><kbd>P</kbd> or <kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Resume</th>
+        <td>Resume</td>
+        <td>Resume</td>
+        <td><kbd>P</kbd>, <kbd>Enter</kbd> or <kbd>Space</kbd></td>
       </tr>
       <tr>
         <th scope="row">Next level</th>
@@ -63,13 +52,42 @@
         <td><kbd>Enter</kbd> or <kbd>Space</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Start again, once a run has ended</th>
+        <th scope="row">New game, once the game is over</th>
         <td>New game</td>
         <td>New game</td>
         <td><kbd>Enter</kbd>, <kbd>Space</kbd> or <kbd>P</kbd></td>
       </tr>
     </tbody>
   </table>
+
+  <p>
+    <strong>Scoring.</strong> Each hit on a brick scores points. The bricks you
+    break before a ball comes back to your paddle make a streak, and a long
+    streak multiplies your points.
+  </p>
+  <table>
+    <caption class="fz-visually-hidden">
+      Scoring
+    </caption>
+    <tbody>
+      @for (line of scoring; track line.what) {
+        <tr>
+          <th scope="row">{{ line.what }}</th>
+          <td>{{ line.points }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p>
+    <strong>Stars.</strong> Each level has 3 stars: 1 for clearing it, 1 for not
+    losing a life, and 1 for reaching the streak shown before the level starts.
+    Stars don't unlock anything. You can win them at any speed.
+  </p>
+  <p>
+    <strong>Pausing.</strong> The game pauses when you switch tabs, turn your
+    phone or open a menu. If you leave the page, your game is saved, and you can
+    resume it when you come back.
+  </p>
 
   @for (catalog of catalogs(); track catalog.id) {
     <fz-help-catalog [catalog]="catalog" />

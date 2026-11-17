@@ -65,7 +65,7 @@ export interface BrickKind {
 export const BRICK_KINDS = {
   plain: {
     name: "Brick",
-    about: "Breaks at a hit.",
+    about: "Takes 1 hit.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -74,7 +74,7 @@ export const BRICK_KINDS = {
   },
   tough: {
     name: "Tough brick",
-    about: "Takes two to four hits, a pip for each one left.",
+    about: "Takes 2 to 4 hits. The pips show how many are left.",
     hits: 2,
     mostHits: 4,
     needed: true,
@@ -83,7 +83,7 @@ export const BRICK_KINDS = {
   },
   steel: {
     name: "Steel brick",
-    about: "Never breaks: it turns every ball and stops every bolt.",
+    about: "Can't be broken. Balls bounce off it, and it blocks laser bolts.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -92,7 +92,7 @@ export const BRICK_KINDS = {
   },
   blast: {
     name: "Blast brick",
-    about: "Breaks, and hits the eight bricks around it.",
+    about: "Takes 1 hit. When it breaks, it hits the 8 bricks around it.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -101,7 +101,7 @@ export const BRICK_KINDS = {
   },
   gift: {
     name: "Gift brick",
-    about: "Always lets a capsule fall.",
+    about: "Takes 1 hit, and always drops a capsule.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -110,8 +110,7 @@ export const BRICK_KINDS = {
   },
   ghost: {
     name: "Ghost brick",
-    about:
-      "Shows as a faint outline until it is first hit, then takes one more.",
+    about: "Takes 2 hits. You only see its outline until you hit it.",
     hits: 2,
     mostHits: 2,
     needed: true,
@@ -120,7 +119,7 @@ export const BRICK_KINDS = {
   },
   regrow: {
     name: "Regrowing brick",
-    about: "Grows back 10 seconds after it breaks; a level doesn't need it.",
+    about: "Grows back after 10 seconds. You don't need to clear it.",
     hits: 1,
     mostHits: 1,
     needed: false,
@@ -129,8 +128,7 @@ export const BRICK_KINDS = {
   },
   cage: {
     name: "Cage",
-    about:
-      "Takes two hits: the first bends a bar, the second frees a friend, a ball more.",
+    about: "Takes 2 hits. The friend inside joins you as an extra ball.",
     hits: 2,
     mostHits: 2,
     needed: true,
@@ -140,7 +138,7 @@ export const BRICK_KINDS = {
   plated: {
     name: "Plated brick",
     about:
-      "Takes one or two hits from above or a side; from below, its plate turns the ball back unhurt.",
+      "Takes 1 or 2 hits from above or the side. From below, balls bounce off its plate.",
     hits: 1,
     mostHits: 2,
     needed: true,
@@ -149,8 +147,7 @@ export const BRICK_KINDS = {
   },
   key: {
     name: "Key brick",
-    about:
-      "Breaks at a hit; the hit that breaks a level's last key opens every gate.",
+    about: "Takes 1 hit. Break every key to open the gates.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -159,8 +156,7 @@ export const BRICK_KINDS = {
   },
   gate: {
     name: "Gate",
-    about:
-      "Stands as steel while a key is left, and opens with every gate as the last one breaks; a level doesn't need it.",
+    about: "Can't be broken. Opens when you break every key.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -170,7 +166,7 @@ export const BRICK_KINDS = {
   bumper: {
     name: "Bumper",
     about:
-      "Never breaks: it is round, and a ball leaves it at the angle a circle gives.",
+      "Can't be broken. It's round, so a ball can bounce off it in any direction.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -180,7 +176,7 @@ export const BRICK_KINDS = {
   portal: {
     name: "Portal",
     about:
-      "Never breaks: a ball that touches it leaves its twin, going as it went.",
+      "Can't be broken. Sends the ball out of the matching portal, going the same way.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -190,7 +186,7 @@ export const BRICK_KINDS = {
   slider: {
     name: "Slider",
     about:
-      "Breaks at a hit. Sliders in a row step a cell together each beat, and turn at a wall or a brick.",
+      "Takes 1 hit. Moves along its row and turns around at a wall or a brick.",
     hits: 1,
     mostHits: 1,
     needed: true,

@@ -828,9 +828,10 @@ takes for the specs' helpers.
     levels cleared (`levelsCleared()`); Try again from the level a lost run
     ended on, or a new game after a win; Choose a level, which puts it away
     and asks the app for the levels; and Close.
-  - `help/` — How to play: the aim, the scoring from `tuning.ts`'s numbers,
-    the multiplier's ladder worded by `@fz/core/format`'s `tierWords()`,
-    the stars, pausing, the controls, and every brick, capsule and ball
+  - `help/` — How to play: the aim, with the number of levels from
+    `GAME_LEVELS`, the controls, the scoring as a table of `tuning.ts`'s
+    numbers, the multiplier's ladder among them, the stars, pausing, and
+    every brick, capsule and ball
     from the catalogs, each with its name, its sentence and, once the scene
     has drawn, its picture, which the app asks the board for only while How
     to play is open.

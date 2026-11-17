@@ -212,7 +212,7 @@ Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
   its `tone` (`bad` ones never fall at Relaxed), its `weight` against the
   others in a pool, the level it first falls `from`, and its `effect`. A bad
   one `pays` 2: bricks pay double while its effect is in play, after the
-  streak's multiplier, which its `about` says ("pay double"), and its effect
+  streak's multiplier, which its `about` says ("score double"), and its effect
   lasts a time, as the catalog spec holds; a good one leaves `pays` out.
 - Its symbol in `SYMBOLS` (`src/view/art/symbols.ts`), drawn in a square
   in shares of it, reaching no further than its edges, which the compiler

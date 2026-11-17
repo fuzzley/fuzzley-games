@@ -1,6 +1,6 @@
 import type { Level } from "../levels/level";
 import { LEVELS, parseLevel } from "../levels/levels";
-import { CATCH_HOLD_MS, MAX_LIVES } from "../tuning";
+import { CATCH_HOLD_MS, MAX_LIVES, PADDLE_WIDTH } from "../tuning";
 import { BALL_KIND_IDS, ballKind } from "./balls";
 import {
   BRICK_KINDS,
@@ -42,19 +42,9 @@ function seconds(ms: number): RegExp {
   return new RegExp(String.raw`\b${String(ms / 1000)} seconds\b`);
 }
 
-/** Spells a count from one to eight, as the catalogs' sentences do. */
-function spelled(n: number): string {
-  const words = [
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-  ];
-  return words[n - 1] ?? String(n);
+/** Returns how far a share is from a whole, in whole percent: 35 for 0.65. */
+function percentOff(share: number): number {
+  return Math.round(Math.abs(share - 1) * 100);
 }
 
 /** Every entry of the three catalogs, with its catalog's name. */
@@ -90,20 +80,35 @@ describe("the catalogs", () => {
     [
       "the tough brick's hits",
       BRICK_KINDS.tough.about,
-      `${spelled(BRICK_KINDS.tough.hits)} to ${spelled(BRICK_KINDS.tough.mostHits)} hits`,
+      `${String(BRICK_KINDS.tough.hits)} to ${String(BRICK_KINDS.tough.mostHits)} hits`,
     ],
-    ["the most lives", CAPSULES.life.about, `up to ${spelled(MAX_LIVES)}`],
+    ["the most lives", CAPSULES.life.about, `up to ${String(MAX_LIVES)}`],
     [
       "the longest a caught ball waits",
       CAPSULES.catch.about,
-      `${String(CATCH_HOLD_MS / 1000)} seconds at most`,
+      `up to ${String(CATCH_HOLD_MS / 1000)} seconds`,
+    ],
+    [
+      "how much wider the wide paddle is",
+      CAPSULES.wide.about,
+      `${String(percentOff(CAPSULES.wide.effect.width / PADDLE_WIDTH))}% wider`,
+    ],
+    [
+      "how much narrower the narrow paddle is",
+      CAPSULES.narrow.about,
+      `${String(percentOff(CAPSULES.narrow.effect.width / PADDLE_WIDTH))}% narrower`,
+    ],
+    [
+      "how much faster a fast ball goes",
+      CAPSULES.fast.about,
+      `${String(percentOff(CAPSULES.fast.effect.scale))}% faster`,
     ],
     [
       "the balls one splits into",
       CAPSULES.multi.about,
-      `into ${spelled(CAPSULES.multi.effect.into)}`,
+      `into ${String(CAPSULES.multi.effect.into)}`,
     ],
-  ])("spell out %s as they are", (_, about, words) => {
+  ])("give %s as they are", (_, about, words) => {
     expect(about).toContain(words);
   });
 });
@@ -196,14 +201,14 @@ describe("the capsules", () => {
     },
   );
 
-  // The card's line and the announcer call it double pay.
+  // The card's line calls it a double score.
   it.each(CAPSULE_IDS)(
     "let %s pay double only if it is bad, and say so",
     (id) => {
       const { tone, pays, about } = capsule(id);
       const bad = tone === "bad";
 
-      expect({ pays, says: about.includes("pay double") }).toEqual({
+      expect({ pays, says: about.includes("score double") }).toEqual({
         pays: bad ? 2 : undefined,
         says: bad,
       });
