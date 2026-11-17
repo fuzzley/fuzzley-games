@@ -119,7 +119,7 @@ describe("GamePageComponent", () => {
     );
     expect(
       screen.getByText(
-        "Minesweeper is still in development: it plays, but it may change as it’s finished.",
+        "Minesweeper is still being built. You can play it, but it may change.",
       ),
     ).toBeInTheDocument();
     expect(
@@ -133,7 +133,7 @@ describe("GamePageComponent", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       /^Baker’s Game$/,
     );
-    expect(screen.queryByText(/still in development/)).toBeNull();
+    expect(screen.queryByText(/still being built/)).toBeNull();
   });
 
   it("says when there's no game at the address", async () => {
