@@ -3,9 +3,6 @@ import { breakPoints } from "../../run/scoring";
 import { COLUMNS, MOST_DEPTH } from "../../tuning";
 import { SPARKS_KINDS } from "./sparks";
 
-/** Counts from none to six in words, as the catalog's sentences spell them. */
-const SPELLED = ["no", "one", "two", "three", "four", "five", "six"];
-
 describe("SPARKS_KINDS", () => {
   it("are the bomb, the cross and X zappers, wool and the cage, in How to play's order", () => {
     expect(keysOf(SPARKS_KINDS)).toEqual([
@@ -58,7 +55,7 @@ describe("SPARKS_KINDS", () => {
     expect([pattern, reach, SPARKS_KINDS.bomb.about]).toEqual([
       "blast",
       1,
-      expect.stringContaining("the eight bricks around it"),
+      expect.stringContaining("the 8 bricks around it"),
     ]);
   });
 
@@ -76,15 +73,13 @@ describe("SPARKS_KINDS", () => {
 
     expect([pattern, SPARKS_KINDS.xZapper.about]).toEqual([
       "x",
-      expect.stringContaining(
-        `${SPELLED[reach] ?? String(reach)} cells each way`,
-      ),
+      expect.stringContaining(`${String(reach)} spaces each way`),
     ]);
   });
 
   it("say the cage takes two hits", () => {
     const { hits, about } = SPARKS_KINDS.cage;
 
-    expect(about).toContain(`Takes ${SPELLED[hits] ?? String(hits)} hits`);
+    expect(about).toContain(`Takes ${String(hits)} hits`);
   });
 });

@@ -562,13 +562,14 @@ helpers.
     files, each a chunk of its own, so a player's page fetches none; a set
     with no file has none. The menu provides it, so the two share a chunk
     a player's page never loads.
-  - `help/` — How to play, `<app-help>`: the aim, a fuzzball's boredom, the
-    charge, the wall's step and jump, the boons, the scoring and the stars,
-    their counts and points from `tuning.ts`; Fast-forward, Drop and the
-    pause; the controls by mouse, touch and keyboard, a letter key named by
-    where it sits under the fingers, as the keys are read by `event.code`;
-    and every brick in the catalog, with its picture once the scene hands
-    them over (`HelpPictures`).
+  - `help/` — How to play, `<app-help>`: the goal and how the game ends;
+    the controls by mouse, touch and keyboard, a letter key named by its
+    QWERTY letter, though the keys are read by `event.code`; the charge, the
+    wall's jump, the boons, a table of the streak's, a jump's and a star's
+    points, and the stars, their counts and points from `tuning.ts`;
+    Fast-forward, Drop and a fuzzball's boredom; Pull back; what a screen
+    reader hears and R; and every brick in the catalog, with its picture
+    once the scene hands them over (`HelpPictures`).
   - `levels/` — the Levels dialog, `<app-levels>`: each set under its name,
     each level a button named by its number and name, with its stars and
     best once cleared, "Locked" and `aria-disabled` until it opens, the

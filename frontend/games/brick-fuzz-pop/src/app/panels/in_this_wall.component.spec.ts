@@ -82,9 +82,9 @@ describe("InThisWallComponent", () => {
         .getAllByRole("listitem")
         .map((item) => item.textContent.trim()),
     ).toEqual([
-      expect.stringMatching(/^Brick\s*Breaks at a hit\.$/),
+      expect.stringMatching(/^Brick\s*Takes 1 hit\.$/),
       expect.stringMatching(
-        /^Tough brick\s*Takes two to six hits, a pip for each one left\.$/,
+        /^Tough brick\s*Takes 2 to 6 hits\. The pips show how many are left\.$/,
       ),
       expect.stringMatching(/^Steel brick\s*\S/),
     ]);

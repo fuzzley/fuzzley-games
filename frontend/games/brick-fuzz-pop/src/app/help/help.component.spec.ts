@@ -21,7 +21,8 @@ async function renderHelp(pictures: HelpPictures | null = null): Promise<void> {
 
 /** Returns the text of each row's cell in a column of the controls' table, 0 for the mouse's. */
 function column(index: number): readonly string[] {
-  const [, ...rows] = screen.getAllByRole("row");
+  const table = screen.getByRole("table", { name: "Controls" });
+  const [, ...rows] = within(table).getAllByRole("row");
   return rows.map((row) =>
     (within(row).getAllByRole("cell")[index]?.textContent ?? "")
       .replace(/\s+/g, " ")
@@ -41,22 +42,39 @@ describe("HelpComponent", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("says the goal, what the wall does and how the game ends, before the controls", async () => {
+    await renderHelp();
+
+    const [top] = screen.getByRole("dialog").querySelectorAll("p");
+
+    expect(top?.nextElementSibling).toBe(
+      screen.getByRole("table", { name: "Controls" }),
+    );
+    expect(top).toHaveTextContent(
+      "Aim the fuzzball and charge it up. Let go to shoot. It bounces around breaking bricks until it lands on the floor. After each shot, the wall moves down 1 row. Break every brick that can be broken to clear the level. If one of them reaches the floor, you lose the level. The game ends when you lose a level or clear them all.",
+    );
+  });
+
   it("says how to play, and the controls", async () => {
     await renderHelp();
 
     expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
     expect(
-      screen.getAllByRole("rowheader").map((header) => header.textContent),
+      within(screen.getByRole("table", { name: "Controls" }))
+        .getAllByRole("rowheader")
+        .map((header) => header.textContent),
     ).toEqual([
       "Aim",
+      "Aim in small steps",
       "Charge",
-      "Let it fly",
-      "Call a charge off",
-      "Switch fast-forward on or off",
-      "Drop the fuzzballs in the air",
-      "Pause, or go on",
+      "Shoot",
+      "Cancel",
+      "Fast-forward",
+      "Drop",
+      "Pause",
+      "Resume",
       "Next level",
-      "Start again, once a run has ended",
+      "Try again",
     ]);
   });
 
@@ -68,56 +86,111 @@ describe("HelpComponent", () => {
     ).toEqual(["Mouse", "Touch", "Keyboard"]);
   });
 
-  // The keys are read by event.code, so a letter printed on one layout's
-  // key would name another key on the next.
-  it("names each key by what it prints on every layout, or by where it sits", async () => {
+  it("names each key by its QWERTY letter, or by what it prints", async () => {
     await renderHelp();
 
     expect(column(2)).toEqual([
-      "← or → turns it a degree, or a quarter of one with Shift held",
-      "↑ or ↓, a notch at a time",
+      "← → or A D",
+      "Shift with the aim keys",
+      "↑ ↓ or W S",
       "Space",
       "Esc",
-      "The left index finger's home key, the one with a bump",
-      "The left ring finger's key on the bottom row",
-      "The key above the right little finger's home key; Esc pauses while no charge builds, and Enter goes on",
+      "F",
+      "X",
+      "P or Esc",
+      "P or Enter",
       "Enter",
-      "Enter, or, once the result is put away, the key above the right little finger's home key",
+      "Enter",
     ]);
   });
 
-  it("caps no key but those that print the same on every layout", async () => {
+  // The game reads the keys by event.code, their place on the keyboard,
+  // which these are the QWERTY letters of.
+  it("caps each key the game reads, letters by their QWERTY names", async () => {
     await renderHelp();
 
     // A key cap is no role of its own, so the dialog's are found by their tag.
     const caps = screen.getByRole("dialog").querySelectorAll("kbd");
 
     expect(new Set([...caps].map((cap) => cap.textContent))).toEqual(
-      new Set(["←", "→", "↑", "↓", "Shift", "Space", "Esc", "Enter"]),
+      new Set([
+        "←",
+        "→",
+        "↑",
+        "↓",
+        "A",
+        "D",
+        "W",
+        "S",
+        "Shift",
+        "Space",
+        "Esc",
+        "F",
+        "X",
+        "P",
+        "Enter",
+        "R",
+      ]),
     );
   });
 
-  it("says where the letter keys that steer sit", async () => {
+  it("aims a mouse and a finger by pointing, and finely by the wheel", async () => {
     await renderHelp();
 
-    expect(paragraph("Keys by place.")).toHaveTextContent(
-      "The left hand's home keys under its little, ring and middle fingers do as ←, ↓ and → do, and the key above the ring finger's as ↑ does.",
-    );
+    expect([column(0)[0], column(1)[0], column(0)[1]]).toEqual([
+      "Point",
+      "Touch and drag",
+      "Turn the wheel",
+    ]);
   });
 
-  it("says fast-forward stays on until it is turned off", async () => {
+  it("charges a finger held down, and cancels at a second", async () => {
+    await renderHelp();
+
+    expect([column(1)[2], column(1)[3], column(1)[4]]).toEqual([
+      "Keep your finger down",
+      "Let go",
+      "Tap with a second finger",
+    ]);
+  });
+
+  it("charges a held button, and cancels at a right-click", async () => {
+    await renderHelp();
+
+    expect([column(0)[2], column(0)[4]]).toEqual([
+      "Hold the button",
+      "Right-click",
+    ]);
+  });
+
+  it("drops by the bar's Drop, by mouse and by touch", async () => {
+    await renderHelp();
+
+    expect([column(0)[6], column(1)[6]]).toEqual(["Drop", "Drop"]);
+  });
+
+  it("starts again by the result card's Try again, or New game after a win", async () => {
+    await renderHelp();
+
+    expect([column(0).at(-1), column(1).at(-1)]).toEqual([
+      "Try again or New game",
+      "Try again or New game",
+    ]);
+  });
+
+  it("says fast-forward stays on until it is turned off, and what Drop keeps", async () => {
     await renderHelp();
 
     expect(paragraph("No hurry.")).toHaveTextContent(
-      "Fast-forward plays every flight faster; once on, it stays on until you turn it off, even on your next visit.",
+      "Fast-forward speeds up shots and stays on until you turn it off. Drop ends a shot early and keeps what it has broken.",
     );
   });
 
-  it("says Drop brings the fuzzballs in the air down, the next shot starting where the player's lands", async () => {
+  it("says a fuzzball that hits no brick for long gets bored and drops", async () => {
     await renderHelp();
 
     expect(paragraph("No hurry.")).toHaveTextContent(
-      "even on your next visit. Drop brings every fuzzball in the air straight down where it is, ending the round with only what it had done by then, and your next shot starts where your fuzzball lands. The game",
+      "A fuzzball that goes too long without hitting a brick gets bored and drops.",
     );
   });
 
@@ -127,69 +200,19 @@ describe("HelpComponent", () => {
     expect(screen.getByRole("dialog")).not.toHaveTextContent(/\bskip/i);
   });
 
-  it("says a flight in the air lands at once as the game goes out of sight", async () => {
+  it("says R reads the lowest rows with bricks, as many as it reads", async () => {
     await renderHelp();
 
-    expect(paragraph("No hurry.")).toHaveTextContent(
-      "The game pauses itself when you switch away, turn the screen or open a dialog; a flight still in the air as the game goes out of sight, as when you switch tabs, lands at once, as it would have flown.",
+    expect(paragraph("Playing by ear.")).toHaveTextContent(
+      "Press R to hear the 3 lowest rows that have bricks in them.",
     );
   });
 
-  it("says fast-forward is said as its key switches it", async () => {
+  it("says Settings can have the mouse and fingers pull back instead", async () => {
     await renderHelp();
 
-    expect(paragraph("By ear.")).toHaveTextContent(
-      "fast-forward as its key switches it",
-    );
-  });
-
-  it("says where the key that reads the wall sits", async () => {
-    await renderHelp();
-
-    expect(paragraph("By ear.")).toHaveTextContent(
-      "the key above the left index finger's home key reads the wall's three lowest rows",
-    );
-  });
-
-  it("aims a mouse and a finger by pointing", async () => {
-    await renderHelp();
-
-    expect([column(0)[0], column(1)[0]]).toEqual([
-      expect.stringMatching(/^Point; the guide follows/),
-      "Press where to aim; the guide follows as you drag",
-    ]);
-  });
-
-  it("charges a finger held, still or dragging, and calls it off at a second", async () => {
-    await renderHelp();
-
-    expect([column(1)[1], column(1)[2], column(1)[3]]).toEqual([
-      "Keep pressing, still or dragging: the charge climbs a notch at a time to 5, then back down and round again",
-      "Let go; a tap flies plain",
-      "Touch the field with a second finger",
-    ]);
-  });
-
-  it("drops by the bar's Drop, by mouse and by touch", async () => {
-    await renderHelp();
-
-    expect([column(0)[5], column(1)[5]]).toEqual(["Drop", "Drop"]);
-  });
-
-  it("starts again by the result card's Try again or the bar's New game", async () => {
-    await renderHelp();
-
-    expect([column(0).at(-1), column(1).at(-1)]).toEqual([
-      "Try again, or New game",
-      "Try again, or New game",
-    ]);
-  });
-
-  it("says the settings can have the mouse and fingers pull back instead", async () => {
-    await renderHelp();
-
-    expect(paragraph("Ways of aiming.")).toHaveTextContent(
-      "Aiming can have the mouse and fingers pull back instead: press anywhere on the field and drag away from where to aim",
+    expect(paragraph("Pull back.")).toHaveTextContent(
+      "choose Pull back under Aiming in Settings",
     );
   });
 
@@ -197,31 +220,15 @@ describe("HelpComponent", () => {
     await renderHelp();
 
     expect(paragraph("Charge.")).toHaveTextContent(
-      "A fuzzball's charge, 0 to 5, is how many hits it punches through. It spends as much as a brick has hits left, or all it has",
+      "Each pip of charge takes 1 hit off a brick, and a fuzzball with no charge still takes 1. If the brick breaks, the fuzzball flies on with the charge it has left. If not, it bounces off with none. While you hold, the charge climbs to 5 and back down.",
     );
   });
 
-  it("says the charge shows over a finger on a touch screen too, and rises in pitch", async () => {
-    await renderHelp();
-
-    expect(paragraph("Charge.")).toHaveTextContent(
-      "As you charge, the pips under the waiting fuzzball light up, and on a touch screen over your finger too; each notch ticks a step higher as the charge climbs, and lower as it falls.",
-    );
-  });
-
-  it("charges a held button up to the most a fuzzball holds", async () => {
-    await renderHelp();
-
-    expect(column(0)[1]).toBe(
-      "Hold the button: the charge climbs a notch at a time to 5, then back down and round again",
-    );
-  });
-
-  it("says the wall jumps once nothing it needs is left below the line", async () => {
+  it("says the wall jumps once nothing is left to break below the line", async () => {
     await renderHelp();
 
     expect(paragraph("The jump.")).toHaveTextContent(
-      "Once no brick the level needs is left below the dashed line, the wall jumps a third of the field at once rather than a row, and your next shot carries the level's boon.",
+      "When there's nothing left to break below the dashed line, the wall jumps. It moves down a third of the screen instead of 1 row. A jump never loses a level, and it gives your next shot a boon.",
     );
   });
 
@@ -229,15 +236,36 @@ describe("HelpComponent", () => {
     await renderHelp();
 
     expect(paragraph("Boons.")).toHaveTextContent(
-      "The hot shot flies at full charge whatever you charged, and nothing takes its charge. The triple shot sends 2 more fuzzballs out behind yours, each with the charge you chose.",
+      "The hot shot flies at full charge, and nothing drains it. The triple shot sends 2 more fuzzballs out behind yours, with the same charge.",
     );
   });
 
-  it("says how the streak, a jump and the stars add up, from the tuning", async () => {
+  it("sets the streak, a jump and a star out in a table, from the tuning", async () => {
     await renderHelp();
 
-    expect(paragraph("Scoring.")).toHaveTextContent(
-      "The bricks a round breaks make a streak, which multiplies each one's points: ×2 from 5 bricks, ×3 from 10 bricks, ×4 from 20 bricks. A jump adds 100 points, and each star 200. A level cleared within its par of rounds earns three stars, two within 3 more rounds, and one otherwise.",
+    expect(
+      within(screen.getByRole("table", { name: "Scoring" }))
+        .getAllByRole("row")
+        .map((row) =>
+          [
+            within(row).getByRole("rowheader").textContent.trim(),
+            within(row).getByRole("cell").textContent.trim(),
+          ].join(" "),
+        ),
+    ).toEqual([
+      "5th to 9th brick ×2",
+      "10th to 19th brick ×3",
+      "20th brick on ×4",
+      "A jump +100",
+      "A star +200",
+    ]);
+  });
+
+  it("says how stars are earned against par, from the tuning", async () => {
+    await renderHelp();
+
+    expect(paragraph("Stars.")).toHaveTextContent(
+      "If you clear a level in par or fewer shots, you get 3 stars. Up to 3 over par, you get 2. Any more, you get 1.",
     );
   });
 
@@ -255,12 +283,12 @@ describe("HelpComponent", () => {
     );
   });
 
-  it("says how a kind and its hits are told before listing the bricks", async () => {
+  it("says what a zap or a blast takes off a brick before listing the bricks", async () => {
     await renderHelp();
 
     expect(
       within(screen.getByRole("region", { name: "Bricks" })).getByText(
-        /^A kind is told by its shape and its mark/,
+        "A zap or a blast takes 2 hits off each brick it reaches.",
       ),
     ).toBeVisible();
   });

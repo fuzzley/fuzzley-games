@@ -9,11 +9,6 @@ import {
   kindIntroducedAt,
 } from "./bricks";
 
-/** Spells a count from one to six, as the catalog's sentences do. */
-function spelled(n: number): string {
-  return ["one", "two", "three", "four", "five", "six"][n - 1] ?? String(n);
-}
-
 const BREAKING = BRICK_KIND_IDS.filter((id) => brickKind(id).hits !== "never");
 const LASTING = BRICK_KIND_IDS.filter((id) => brickKind(id).hits === "never");
 const ZAPPING = BRICK_KIND_IDS.filter((id) => hasTrait(id, "zaps"));
@@ -147,18 +142,22 @@ describe("the brick kinds", () => {
     expect(hasTrait("steel", "earths")).toBe(true);
   });
 
-  it("spell out the tough brick's hits as they are", () => {
+  it("give the tough brick's hits as they are", () => {
     const { hits, mostHits, about } = BRICK_KINDS.tough;
 
-    expect(about).toContain(`${spelled(hits)} to ${spelled(mostHits)} hits`);
+    expect(about).toContain(
+      `Takes ${String(hits)} to ${String(mostHits)} hits`,
+    );
   });
 
   it.each(["plated", "shell", "moss"] as const)(
-    "spell out the %s brick's hits as they are",
+    "give the %s brick's hits as they are",
     (id) => {
       const { hits, mostHits, about } = BRICK_KINDS[id];
 
-      expect(about).toContain(`${spelled(hits)} or ${spelled(mostHits)} hits`);
+      expect(about).toContain(
+        `Takes ${String(hits)} or ${String(mostHits)} hits`,
+      );
     },
   );
 
