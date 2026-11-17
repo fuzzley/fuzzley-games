@@ -39,7 +39,7 @@ describe("showing", () => {
 
 describe("describeSquare", () => {
   it.each([
-    [0, "Mine, stepped on"],
+    [0, "Mine, opened"],
     [2, "2"],
     [3, "Hidden"],
     [4, "Flagged"],
@@ -65,28 +65,28 @@ describe("describeMove", () => {
   });
 
   it("names the number a single square revealed", () => {
-    expect(describeMove(WALLED, reveal(WALLED, 1))).toBe("Revealed: 2.");
+    expect(describeMove(WALLED, reveal(WALLED, 1))).toBe("Opened: 2.");
   });
 
   it("counts the squares a flood revealed", () => {
-    expect(describeMove(WALLED, reveal(WALLED, 0))).toBe("Revealed 6 squares.");
+    expect(describeMove(WALLED, reveal(WALLED, 0))).toBe("Opened 6 squares.");
   });
 
   it("says a mine cost a life, and how many are left", () => {
-    expect(describeMove(WALLED, reveal(WALLED, 2))).toBe("Mine. 2 lives left.");
+    expect(describeMove(WALLED, reveal(WALLED, 2))).toBe("Boom. 2 lives left.");
   });
 
   it("says one life is left in the singular", () => {
     const field = fieldFrom(["..*..", "..*..", "..*.."], { livesLeft: 2 });
 
-    expect(describeMove(field, reveal(field, 2))).toBe("Mine. 1 life left.");
+    expect(describeMove(field, reveal(field, 2))).toBe("Boom. 1 life left.");
   });
 
   it("says a mine and what else opened when a number clears around it", () => {
     const field = fieldFrom(["*1.*.", "f1.*.", "...*."]);
 
     expect(describeMove(field, reveal(field, 6))).toBe(
-      "Mine. 2 lives left. Revealed 5 squares.",
+      "Boom. 2 lives left. Opened 5 squares.",
     );
   });
 
@@ -113,6 +113,6 @@ describe("describeMove", () => {
   it("says when the lives run out", () => {
     const field = fieldFrom(["..*..", "..*..", "..*.."], { livesLeft: 1 });
 
-    expect(describeMove(field, reveal(field, 2))).toBe("Mine. Out of lives.");
+    expect(describeMove(field, reveal(field, 2))).toBe("Boom. Out of lives.");
   });
 });

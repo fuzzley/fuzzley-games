@@ -178,8 +178,8 @@ export class SettingsComponent {
   /** What the custom inputs accept, for the hint under them. */
   protected readonly customHint = computed(() => {
     const sides = `Rows and columns from ${CUSTOM_SIDE.min} to ${CUSTOM_SIDE.max}`;
-    const most = this.draftMaxMines() ?? "all but nine squares";
-    return `${sides}; mines from 1 to ${most}.`;
+    const most = this.draftMaxMines() ?? "all but 9 squares";
+    return `${sides}. Mines from 1 to ${most}.`;
   });
 
   protected readonly lives = computed(() => {

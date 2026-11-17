@@ -56,9 +56,10 @@ describe("GameService", () => {
 
       void game.newGame();
 
-      expect(TestBed.inject(ConfirmService).prompt().title).toBe(
-        "Start a new game?",
-      );
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Start a new game?",
+        message: "You'll lose the game in progress.",
+      });
     });
 
     it("names the difficulty before a field of another loses the game under way", () => {
@@ -89,6 +90,8 @@ describe("GameService", () => {
 
       expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
         title: "Restart this field?",
+        message:
+          "The mines stay where they are. The clock and your lives reset.",
         confirmLabel: "Restart",
       });
     });
@@ -171,7 +174,7 @@ describe("GameService", () => {
       game.reveal(2);
 
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        "Revealed 4 squares.",
+        "Opened 4 squares.",
       );
     });
 
@@ -182,7 +185,7 @@ describe("GameService", () => {
       game.reveal(3);
 
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        "Revealed: 1.\u00a0",
+        "Opened: 1.\u00a0",
       );
     });
 
@@ -193,7 +196,7 @@ describe("GameService", () => {
 
       expect(game.field().livesLeft).toBe(2);
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        "Mine. 2 lives left.",
+        "Boom. 2 lives left.",
       );
     });
 

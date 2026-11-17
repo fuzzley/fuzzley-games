@@ -78,7 +78,7 @@ describe("BoardComponent", () => {
       "2",
       "3",
       "1",
-      "Mine, stepped on",
+      "Mine, opened",
       "Hidden",
       "Hidden",
     ]);
@@ -160,7 +160,7 @@ describe("BoardComponent", () => {
 
     await user.click(square(0));
 
-    expect(square(0)).toHaveAccessibleName("Mine, stepped on");
+    expect(square(0)).toHaveAccessibleName("Mine, opened");
   });
 
   it("shows every mine, and every wrong flag, once the game is lost", async () => {

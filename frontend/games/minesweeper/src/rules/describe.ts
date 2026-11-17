@@ -37,7 +37,7 @@ export function describeSquare(field: Field, index: number): string {
     case "number":
       return String(field.layout?.counts[index] ?? 0);
     case "tripped":
-      return "Mine, stepped on";
+      return "Mine, opened";
     case "mine":
       return "Mine";
     case "wrong-flag":
@@ -48,20 +48,20 @@ export function describeSquare(field: Field, index: number): string {
 /** Returns what a move did, for the screen reader to say; empty if nothing. */
 export function describeMove(before: Field, after: Field): string {
   if (before === after) return "";
-  if (after.outcome === "lost") return "Mine. Out of lives.";
+  if (after.outcome === "lost") return "Boom. Out of lives.";
   if (after.outcome === "won") return "Field cleared.";
   const parts: string[] = [];
   if (after.livesLeft < before.livesLeft) {
-    parts.push(`Mine. ${count(after.livesLeft, "life", "lives")} left.`);
+    parts.push(`Boom. ${count(after.livesLeft, "life", "lives")} left.`);
   }
   const revealed = revealedCount(after) - revealedCount(before);
   if (revealed === 1) {
     const index = after.squares.findIndex(
       (square, i) => square === "revealed" && before.squares[i] !== "revealed",
     );
-    parts.push(`Revealed: ${describeSquare(after, index).toLowerCase()}.`);
+    parts.push(`Opened: ${describeSquare(after, index).toLowerCase()}.`);
   } else if (revealed > 1) {
-    parts.push(`Revealed ${count(revealed, "square", "squares")}.`);
+    parts.push(`Opened ${count(revealed, "square", "squares")}.`);
   }
   const flagsBefore = before.squares.filter((s) => s === "flagged").length;
   const flagsAfter = after.squares.filter((s) => s === "flagged").length;

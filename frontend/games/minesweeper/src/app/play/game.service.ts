@@ -55,7 +55,7 @@ export interface Move {
 /** What a new deal asks before it throws away the game under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
   title: "Start a new game?",
-  message: "The game in progress will be lost.",
+  message: "You'll lose the game in progress.",
   confirmLabel: "New game",
   tone: "danger",
 };
@@ -71,8 +71,7 @@ function difficultyQuestion(difficulty: DifficultyId): ConfirmRequest {
 /** What Restart asks before it covers the field again. */
 const RESTART_QUESTION: ConfirmRequest = {
   title: "Restart this field?",
-  message:
-    "Every square is covered again, the mines where they were, and the clock and your lives start over.",
+  message: "The mines stay where they are. The clock and your lives reset.",
   confirmLabel: "Restart",
   tone: "danger",
 };

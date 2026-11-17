@@ -54,7 +54,7 @@ describe("AppComponent", () => {
 
     await user.click(square(0));
 
-    expect(announcer()).toHaveTextContent("Mine. 2 lives left.");
+    expect(announcer()).toHaveTextContent("Boom. 2 lives left.");
   });
 
   it("opens How to play from the bar, and goes back to the bar on closing", async () => {
