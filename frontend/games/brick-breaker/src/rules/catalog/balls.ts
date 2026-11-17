@@ -20,7 +20,7 @@ export interface BallKind {
 export const BALL_KINDS = {
   normal: {
     name: "Ball",
-    about: "Bounces off everything, and hits one brick at a time.",
+    about: "Bounces off every brick it hits.",
     damage: 1,
     passes: false,
     reaches: false,
@@ -29,7 +29,7 @@ export const BALL_KINDS = {
   fire: {
     name: "Fire ball",
     about:
-      "Breaks every brick it touches that can break, and passes through it.",
+      "Goes straight through any brick that can be broken, breaking it in 1 hit.",
     damage: "breaks",
     passes: true,
     reaches: false,
@@ -37,7 +37,7 @@ export const BALL_KINDS = {
   },
   blast: {
     name: "Blast ball",
-    about: "Hits the eight bricks around each brick it strikes.",
+    about: "Also hits the 8 bricks around any brick it strikes.",
     damage: 1,
     passes: false,
     reaches: true,

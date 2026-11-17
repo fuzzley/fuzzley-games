@@ -3,6 +3,7 @@ import { userEvent } from "@testing-library/user-event";
 import { BALL_KIND_IDS, ballKind } from "../../rules/catalog/balls";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { CAPSULE_IDS, capsule } from "../../rules/catalog/capsules";
+import { TWO_SETS, provideSpecLevels } from "../../testing/play";
 import { PICTURE_FRAMES, type Pictures } from "../../view/art/art";
 import { HelpComponent } from "./help.component";
 
@@ -29,34 +30,70 @@ describe("HelpComponent", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("says how to play, and the controls", async () => {
-    await render(HelpComponent, { inputs: { open: true } });
+  it("says how to play, and how a game ends after every level it has", async () => {
+    await render(HelpComponent, {
+      inputs: { open: true },
+      providers: provideSpecLevels(TWO_SETS),
+    });
 
     expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
-    expect(
-      screen.getAllByRole("rowheader").map((header) => header.textContent),
-    ).toEqual([
-      "Steer",
-      "Launch, or fire",
-      "Pause, or go on",
-      "Next level",
-      "Start again, once a run has ended",
-    ]);
-  });
-
-  it("says how a streak, a clearing and the lives add up, from the tuning", async () => {
-    await render(HelpComponent, { inputs: { open: true } });
-
-    expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "×2 from 5 bricks, ×3 from 10 bricks, ×4 from 20 bricks. A level cleared adds 1,000 points, and 500 more when no ball was lost on it. A life comes at 20,000 points and every 40,000 after, up to 6 lives.",
+    expect(screen.getByText(/^Bounce the ball/)).toHaveTextContent(
+      "Bounce the ball off your paddle to break the bricks. Break every brick that can be broken to clear the level. If the ball gets past your paddle, you lose a life. The game ends when you run out of lives or clear all 3 levels.",
     );
   });
 
-  it("says what a level's stars are won for, and that they open nothing", async () => {
+  it("lists the controls", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(
+      within(screen.getByRole("table", { name: "Controls" }))
+        .getAllByRole("rowheader")
+        .map((header) => header.textContent),
+    ).toEqual([
+      "Move",
+      "Launch or fire",
+      "Pause",
+      "Resume",
+      "Next level",
+      "New game, once the game is over",
+    ]);
+  });
+
+  it("sets out how a streak, a clearing and the lives add up, from the tuning", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    const scoring = screen.getByRole("table", { name: "Scoring" });
+
+    const textOf = (cell: HTMLElement): string | null => cell.textContent;
+
+    expect({
+      what: within(scoring).getAllByRole("rowheader").map(textOf),
+      points: within(scoring).getAllByRole("cell").map(textOf),
+    }).toEqual({
+      what: [
+        "Streak of 5 bricks",
+        "Streak of 10 bricks",
+        "Streak of 20 bricks",
+        "Level cleared",
+        "Level cleared without losing a life",
+        "Extra life, up to 6",
+      ],
+      points: [
+        "×2",
+        "×3",
+        "×4",
+        "1,000",
+        "500 more",
+        "At 20,000 points, then every 40,000",
+      ],
+    });
+  });
+
+  it("says what a level's stars are won for, and that they unlock nothing", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Stars\./).parentElement).toHaveTextContent(
-      "Stars. Each level has three to win, at any speed: one for clearing it, one for clearing it without losing a life, and one for reaching its streak, the mark its Ready card names, in a play that clears it. A star once won is yours for good. Stars open nothing; the Levels dialog counts them.",
+      "Stars. Each level has 3 stars: 1 for clearing it, 1 for not losing a life, and 1 for reaching the streak shown before the level starts. Stars don't unlock anything. You can win them at any speed.",
     );
   });
 
@@ -79,7 +116,7 @@ describe("HelpComponent", () => {
 
     expect(
       within(screen.getByRole("region", { name: "Capsules" })).getByText(
-        /^A broken brick may let a capsule fall/,
+        /^Capsules sometimes fall from broken bricks/,
       ),
     ).toBeVisible();
   });
@@ -88,7 +125,7 @@ describe("HelpComponent", () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Steel brick.").parentElement).toHaveTextContent(
-      "Steel brick. Never breaks",
+      "Steel brick. Can't be broken",
     );
   });
 

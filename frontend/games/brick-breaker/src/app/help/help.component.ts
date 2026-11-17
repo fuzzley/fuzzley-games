@@ -1,5 +1,5 @@
-import { Component, computed, input, output } from "@angular/core";
-import { formatPoints, tierWords } from "@fz/core/format";
+import { Component, computed, inject, input, output } from "@angular/core";
+import { formatPoints } from "@fz/core/format";
 import {
   type HelpCatalog,
   HelpCatalogComponent,
@@ -18,22 +18,39 @@ import {
   STREAK,
 } from "../../rules/tuning";
 import type { Pictures } from "../../view/art/art";
+import { GAME_LEVELS } from "../tokens";
 
-/** How the score adds up, from the tuning, as How to play says it. */
-const SCORING = {
-  streak: `A streak of bricks broken since the ball last touched the paddle multiplies each hit's points: ${tierWords(STREAK, "bricks")}.`,
-  clearing: `A level cleared adds ${formatPoints(CLEAR_POINTS)} points, and ${formatPoints(CLEAN_POINTS)} more when no ball was lost on it.`,
-  lives: `A life comes at ${formatPoints(FIRST_LIFE_POINTS)} points and every ${formatPoints(LIFE_POINTS)} after, up to ${String(MAX_LIVES)} lives.`,
-};
+/** A line of How to play's table of scoring: what scores, and what it adds. */
+interface ScoringLine {
+  readonly what: string;
+  readonly points: string;
+}
+
+/** How the score adds up, from the tuning, as How to play's table sets it out. */
+const SCORING: readonly ScoringLine[] = [
+  ...[...STREAK].reverse().map(({ from, times }) => ({
+    what: `Streak of ${String(from)} bricks`,
+    points: `×${String(times)}`,
+  })),
+  { what: "Level cleared", points: formatPoints(CLEAR_POINTS) },
+  {
+    what: "Level cleared without losing a life",
+    points: `${formatPoints(CLEAN_POINTS)} more`,
+  },
+  {
+    what: `Extra life, up to ${String(MAX_LIVES)}`,
+    points: `At ${formatPoints(FIRST_LIFE_POINTS)} points, then every ${formatPoints(LIFE_POINTS)}`,
+  },
+];
 
 /** What How to play says of capsules before listing them. */
 const CAPSULES_INTRO =
-  "A broken brick may let a capsule fall. Catch it with the paddle for what it does; Relaxed lets none fall that makes the game harder.";
+  "Capsules sometimes fall from broken bricks. Catch one with your paddle to use it. The pointed ones make the game harder, and don't fall at Relaxed speed. If you lose a life, every capsule wears off.";
 
 /**
- * Shows How to play: the aim, scoring and pausing, the controls, and every
- * brick, capsule and ball, each with its name, what it does and its picture
- * once the scene has drawn it.
+ * Shows How to play: the aim, the controls, scoring, stars and pausing, and
+ * every brick, capsule and ball, each with its name, what it does and its
+ * picture once the scene has drawn it.
  */
 @Component({
   selector: "app-help",
@@ -52,6 +69,9 @@ export class HelpComponent {
   readonly closed = output();
 
   protected readonly scoring = SCORING;
+
+  /** How many levels the game has. */
+  protected readonly levelCount = inject(GAME_LEVELS).length;
 
   protected readonly catalogs = computed<readonly HelpCatalog[]>(() => {
     const pictures = this.pictures();
