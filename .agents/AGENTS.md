@@ -230,6 +230,25 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 
 ---
 
+## Writing for Players
+
+These rules cover every word a player or visitor reads or hears: labels,
+help, messages, announcements, blurbs and page descriptions.
+
+- **Load the `player-text` skill first,** even for one label inside a larger
+  change. It has a shape, a word budget and examples for each kind of text.
+- **Talk to the player.** Write "If the ball gets past your paddle, you lose
+  a life", not "A ball that falls past the paddle costs a life".
+- **Use the word on the button, and the ordinary word.** Resume, Cancel,
+  Close, Settings. Name a key: P, Space, Esc.
+- **One idea in a sentence.** Digits for numbers. American spelling.
+  Sentence case for labels.
+- **Keep to the budget.** A button is 1 to 3 words. The line under a setting
+  is one or two short sentences. A catalog line is about 12 words, never over 20.
+- **Say less.** Leave out what the player will see for themselves.
+
+---
+
 ## Writing Unit Tests
 
 These rules hold for every workspace's specs. The `angular-testing` skill holds

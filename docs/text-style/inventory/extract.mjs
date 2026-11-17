@@ -7,7 +7,9 @@
 //
 // It writes strings.json (every entry) and counts.md beside itself, and one
 // Markdown listing per area in by-area/. Categories are a first sort by rule
-// (see categorize.mjs); the plan's counts come from them.
+// (see categorize.mjs); the plan's counts come from them. With --strings-only
+// it writes strings.json alone. FUZZLEY_REPO says where fuzzley is checked
+// out, when it is not beside this repository.
 
 import {
   existsSync,
@@ -28,7 +30,9 @@ import { categorize, CATEGORIES } from "./categorize.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const gamesRepo = resolve(here, "../../..");
-const siteRepo = resolve(gamesRepo, "../fuzzley");
+// In a worktree the sister repository is not next door, so FUZZLEY_REPO
+// can say where it is.
+const siteRepo = process.env.FUZZLEY_REPO ?? resolve(gamesRepo, "../fuzzley");
 const require = createRequire(join(gamesRepo, "frontend/package.json"));
 const ts = require("typescript");
 const prettier = require("prettier");
@@ -785,7 +789,7 @@ if (existsSync(siteRepo)) {
       }
     }
   }
-} else {
+} else if (!process.argv.includes("--strings-only")) {
   console.warn(
     `No checkout at ${siteRepo}: fuzzley.info's text is left out of the inventory.`,
   );
@@ -801,6 +805,10 @@ writeFileSync(
   join(here, "strings.json"),
   `${JSON.stringify(shown, null, 2)}\n`,
 );
+
+// report.mjs asks for the strings alone, so a working tree's listings stay
+// as they were committed.
+if (process.argv.includes("--strings-only")) process.exit(0);
 
 /**
  * Returns an area's file name among the listings.
