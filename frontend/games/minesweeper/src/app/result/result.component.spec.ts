@@ -173,7 +173,7 @@ describe("ResultComponent", () => {
       const user = await finish(NEARLY_WON, 6);
 
       await user.click(
-        screen.getByRole("button", { name: "Close and look at the board" }),
+        screen.getByRole("button", { name: "Close and look at the field" }),
       );
 
       expect(screen.queryByRole("alertdialog")).toBeNull();

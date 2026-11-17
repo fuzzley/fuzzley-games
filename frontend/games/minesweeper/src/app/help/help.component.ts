@@ -23,4 +23,9 @@ export class HelpComponent {
   protected readonly lives = computed(() =>
     count(this.game.field().lives, "life", "lives"),
   );
+
+  /** Whether the game on the board goes on after a mine, with lives to spare. */
+  protected readonly hasSpareLives = computed(
+    () => this.game.field().lives > 1,
+  );
 }

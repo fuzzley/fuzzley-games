@@ -125,9 +125,7 @@ describe("SettingsComponent", () => {
     await fill(user, "Columns", "12");
     await fill(user, "Mines", "20");
 
-    await user.click(
-      screen.getByRole("button", { name: "Start a custom game" }),
-    );
+    await user.click(screen.getByRole("button", { name: "New custom game" }));
 
     expect(settings()).toMatchObject({
       difficulty: "custom",
@@ -140,9 +138,7 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await fill(user, "Mines", "500");
 
-    await user.click(
-      screen.getByRole("button", { name: "Start a custom game" }),
-    );
+    await user.click(screen.getByRole("button", { name: "New custom game" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Mines must be a whole number from 1 to 391.",
@@ -155,9 +151,7 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await fill(user, "Columns", "40");
 
-    await user.click(
-      screen.getByRole("button", { name: "Start a custom game" }),
-    );
+    await user.click(screen.getByRole("button", { name: "New custom game" }));
 
     expect(screen.getByRole("spinbutton", { name: "Columns" })).toBeInvalid();
     expect(screen.getByRole("spinbutton", { name: "Rows" })).toBeValid();
@@ -189,9 +183,7 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("radio", { name: /^Custom/ }));
     await user.clear(screen.getByRole("spinbutton", { name: "Rows" }));
 
-    await user.click(
-      screen.getByRole("button", { name: "Start a custom game" }),
-    );
+    await user.click(screen.getByRole("button", { name: "New custom game" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Rows must be a whole number from 5 to 30.",
@@ -240,7 +232,9 @@ describe("SettingsComponent", () => {
 
     expect(
       screen.getByRole("spinbutton", { name: "Mines" }),
-    ).toHaveAccessibleDescription(/mines from 1 to 191\./);
+    ).toHaveAccessibleDescription(
+      /^Rows and columns from 5 to 30\. Mines from 1 to 191\./,
+    );
   });
 
   it("asks to close from its close button", async () => {
