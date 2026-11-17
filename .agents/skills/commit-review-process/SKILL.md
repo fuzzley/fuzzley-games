@@ -48,7 +48,11 @@ Review it for:
 - the language's style and idioms: Google's TypeScript style guide and the
   repository's rules for code, doc comments and specs;
 - the frameworks' and libraries' practices: <Angular, Phaser, Sass, Vitest,
-  as the change uses them>.
+  as the change uses them>;
+- the words a player reads, where the change adds or edits any: read each
+  new string against the `player-text` skill (its `SKILL.md`, the file
+  for that kind of text, and its read-back list), for its shape and budget,
+  the ordinary word, and whether it is true to the code.
 
 Review the code by reading it: the diff, the files around it and anything
 else in the repository. Don't run the checks, a build, the specs or a script
