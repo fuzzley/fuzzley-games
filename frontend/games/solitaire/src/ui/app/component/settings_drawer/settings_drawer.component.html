@@ -227,6 +227,9 @@
       @if (isDevMode) {
         <app-debug-panel (loaded)="closed.emit()" />
       }
+
+      <!-- The version of the game that is running -->
+      <fz-build-info />
     </div>
 
     <!-- "Done", not "Apply": every control here applies as it is touched. -->

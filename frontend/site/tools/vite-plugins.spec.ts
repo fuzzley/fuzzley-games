@@ -7,7 +7,6 @@ import type { GameManifest } from "@fz/dev/game-manifest";
 import { type Game, imagesOf } from "../src/app/model/game.ts";
 import {
   type Catalog,
-  commitHash,
   forward,
   gameServerTargets,
   loadCatalog,
@@ -18,26 +17,6 @@ import {
   readGameManifest,
   servedBuilds,
 } from "./vite-plugins.ts";
-
-describe("commitHash", () => {
-  it("takes the commit the Docker build passes in, shortened", () => {
-    const env = { COMMIT_SHA: "549c93afb5d1592257262ceb42ed2e91dcb165d6" };
-
-    expect(commitHash(env, () => "0000000")).toBe("549c93a");
-  });
-
-  it("asks git when no commit is passed in", () => {
-    expect(commitHash({}, () => "e76741b\n")).toBe("e76741b");
-  });
-
-  it("says dev when there is no git to ask", () => {
-    const noGit = (): string => {
-      throw new Error("not a git repository");
-    };
-
-    expect(commitHash({}, noGit)).toBe("dev");
-  });
-});
 
 describe("readBuildInfo", () => {
   it("names the commit and the time of the build", () => {

@@ -145,7 +145,7 @@ describe("gameConfig", () => {
     expect(config.server).toEqual({ port: 9001 });
   });
 
-  it("compiles Angular and writes @fz/style's palettes and icons and the game's manifest", () => {
+  it("compiles Angular and writes @fz/style's palettes and icons, the game's manifest and its stamp", () => {
     const config = gameConfig({ port: 9001, name: "Minesweeper" });
 
     expect(pluginNames(config.plugins)).toEqual(
@@ -156,6 +156,7 @@ describe("gameConfig", () => {
         "fz-watch-libraries",
         "fz-theme-bootstrap",
         "fz-game-manifest",
+        "fz-build-stamp",
       ]),
     );
   });

@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+// Muted, as a setting's description is, and set apart from the settings above
+// it. `--fz-muted` clears 4.5:1 on the drawer's surface.
+.build {
+  margin: 0;
+  padding-top: var(--fz-space-4);
+  border-top: 1px solid var(--fz-edge-2);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-xs);
+  line-height: var(--fz-leading-tight);
+
+  a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+
+    &:hover {
+      color: var(--fz-text);
+    }
+  }
+}

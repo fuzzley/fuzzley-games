@@ -88,8 +88,8 @@ Sass rules every app keeps among them. Paths are relative to
 - A script exports its logic as functions and runs only when it is the
   file Node was started with (`if (import.meta.main)`), so
   `tools/*.spec.ts` can import and test it. A dependency a test needs to
-  replace, such as the git `commitHash()` asks, is a parameter with the
-  real one as default.
+  replace, such as the environment and the clock `readBuildInfo()` reads,
+  is a parameter with the real one as default.
 - `dist/` is the build the image serves: the site, with the games under
   `play/`.
 

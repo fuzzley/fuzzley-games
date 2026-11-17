@@ -22,9 +22,11 @@ game keeps its own in its folder's `AGENTS.md`. Paths are relative to
   `assets/`, and `game.json`, which says what it holds: its name, and for a
   collection the `id` and `name` of every game it opens. The site's build
   fails when its catalog calls a game anything else, or links an id the
-  build doesn't open. Its dev server swaps an edited component's template
-  or styles into the running page, which needs the `rootDir` `@fz/dev`'s
-  tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
+  build doesn't open. It stamps the page with the commit the build comes
+  from and the time, which the bottom of the game's settings shows as its
+  version (`@fz/game-ui/build_info`). Its dev server swaps an edited component's
+  template or styles into the running page, which needs the `rootDir`
+  `@fz/dev`'s tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
 - **Its dev server has a port of its own,** which its screenshot script defaults
   to: 9000 is the Solitaire Collection's, 9001 Minesweeper's, 9002 Sudoku's,
   9003 Snake's, 9004 Brick Breaker's, 9005 Asteroid Breaker's and 9006 Brick

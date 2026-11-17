@@ -138,12 +138,25 @@ point. The Sass entry points, `@fz/game-ui`, `@fz/game-ui/toolkit` and
   dialog over it closes, from `@fz/ui/dialog`'s `DialogService`.
 - `src/settings_drawer/`: `<fz-settings-drawer>`, a game's settings
   drawer: a dialog named Settings down the right of the window, its heading
-  and the button that closes it over the settings the game projects. As
-  `<fz-dialog>`, it only asks to close, through `closed`, and the game
-  lowers `open`. It draws its frame with `@fz/style`'s
-  `settings-drawer-frame`, whose rules can't reach what it projects, so the
-  stylesheet of the game's settings component includes `setting-fields` at
-  its top level.
+  and the button that closes it over the settings the game projects, and
+  `<fz-build-info>` beneath them. As `<fz-dialog>`, it only asks to close,
+  through `closed`, and the game lowers `open`. It draws its frame with
+  `@fz/style`'s `settings-drawer-frame`, whose rules can't reach what it
+  projects, so the stylesheet of the game's settings component includes
+  `setting-fields` at its top level.
+- `src/build_info/`: `<fz-build-info>` (`BuildInfoComponent`), the line at
+  the bottom of a game's settings that says which version of it is running,
+  as the site's footer says of the site: "Version 549c93a, built June 15,
+  2031", the commit linked to its page on GitHub in a new tab, the day in
+  UTC, or "Built on June 15, 2031" where the build couldn't tell its
+  commit. The settings drawer shows it, and the Solitaire Collection's own
+  drawer does too. It reads `BUILD_INFO`, a `BuildInfo` (the short commit,
+  or `dev`, and the time of the build), from the meta tags `@fz/dev/vite`'s
+  `gameConfig()` writes into the game's page, a dev server's stamped at its
+  start; `build_info.spec.ts` reads the tags `@fz/dev/build-info` writes, so
+  the two libraries keep to one name for each. Where the page carries no
+  stamp, as in a spec, it is null and the line shows nothing, so a spec
+  that wants the line provides a build of its own.
 - `src/debug_menu/`: a game's debug menu, which its settings drawer offers in
   a development build and, in a production one, at `?debug`, so the feel can
   be tuned on the site itself. `DEV_BUILD` says whether the game is a
