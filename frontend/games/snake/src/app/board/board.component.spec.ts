@@ -73,7 +73,9 @@ describe("BoardComponent", () => {
       const board = screen.getByRole("application", {
         name: "Snake, 17 by 17",
       });
-      expect(board).toHaveAccessibleDescription(/^The arrow keys/);
+      expect(board).toHaveAccessibleDescription(
+        /^Arrow keys, or W, A, S and D: steer the snake\. Space or P: pause and resume\./,
+      );
     });
 
     it("hears the keys on its own element, through Phaser", async () => {
@@ -180,7 +182,7 @@ describe("BoardComponent", () => {
       await renderBoard();
 
       expect(
-        screen.getByText("Press an arrow key, or swipe, to start."),
+        screen.getByText("Press an arrow key to start."),
       ).toBeInTheDocument();
     });
 
@@ -188,7 +190,7 @@ describe("BoardComponent", () => {
       await renderBoard({ readyAtOnce: false });
 
       expect(
-        screen.getByText("Press an arrow key, or swipe, to start."),
+        screen.getByText("Press an arrow key to start."),
       ).toBeInTheDocument();
     });
 
@@ -197,11 +199,11 @@ describe("BoardComponent", () => {
         installFakeViewport(390, 844).setCoarsePointer(true);
       });
 
-      it("say to swipe or press an arrow, with the arrows beside the board", async () => {
+      it("say to swipe or tap an arrow, with the arrows beside the board", async () => {
         await renderBoard({}, true);
 
         expect(
-          screen.getByText("Swipe, or press an arrow, to start."),
+          screen.getByText("Swipe or tap an arrow to start."),
         ).toBeInTheDocument();
       });
 
@@ -291,7 +293,7 @@ describe("BoardComponent", () => {
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
       expect(
-        screen.queryByText("Press an arrow key, or swipe, to start."),
+        screen.queryByText("Press an arrow key to start."),
       ).not.toBeInTheDocument();
       expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
@@ -319,7 +321,7 @@ describe("BoardComponent", () => {
           screen.getAllByRole("button").map((button) => button.textContent),
         ).toEqual(["Elsewhere"]);
         expect(
-          screen.queryByText("Press an arrow key, or swipe, to start."),
+          screen.queryByText("Press an arrow key to start."),
         ).not.toBeInTheDocument();
       });
     });

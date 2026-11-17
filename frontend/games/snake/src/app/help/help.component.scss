@@ -6,3 +6,9 @@
 .keys {
   white-space: nowrap;
 }
+
+// Paragraphs follow the table too, so it keeps as far from them as from
+// those above it.
+table {
+  margin-bottom: var(--fz-space-4);
+}

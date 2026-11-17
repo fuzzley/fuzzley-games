@@ -51,7 +51,7 @@ describe("GameService", () => {
       game.turn("up");
 
       expect(game.outcome()).toBe("playing");
-      expect(said()).toBe("Started, at Normal speed.");
+      expect(said()).toBe("Started at Normal speed.");
     });
 
     it("counts a run started at its speed", () => {
@@ -133,9 +133,7 @@ describe("GameService", () => {
       game.pause();
 
       expect(game.outcome()).toBe("paused");
-      expect(said()).toBe(
-        "Paused, with a score of 0. Press a direction to go on.",
-      );
+      expect(said()).toBe("Paused. Score 0. Press Space to resume.");
     });
 
     it("keeps a paused run still", () => {
@@ -154,7 +152,7 @@ describe("GameService", () => {
       game.turn("up");
 
       expect(game.outcome()).toBe("playing");
-      expect(said()).toBe("Going on.");
+      expect(said()).toBe("Resumed.");
     });
 
     it("goes on at the direction back, and says so", () => {
@@ -164,7 +162,7 @@ describe("GameService", () => {
       game.turn("down");
 
       expect(game.outcome()).toBe("playing");
-      expect(said()).toBe("Going on.");
+      expect(said()).toBe("Resumed.");
     });
 
     it("goes on at Enter", () => {
@@ -304,14 +302,14 @@ describe("GameService", () => {
       playToTheEnd(game);
 
       expect(game.newBest()).toBe(true);
-      expect(said()).toMatch(/A new best!$/);
+      expect(said()).toMatch(/New best\.$/);
     });
 
     it("says a run that fills the board won it", () => {
       const game = wonGame();
 
       expect(game.outcome()).toBe("won");
-      expect(said()).toBe("You filled the board! Score 6. A new best!");
+      expect(said()).toBe("You filled the board. Score 6. New best.");
     });
 
     it("hands the scene whether the run set a new best", () => {
@@ -507,9 +505,7 @@ describe("GameService", () => {
       game.takeUp(SAVED);
 
       expect(game.outcome()).toBe("paused");
-      expect(said()).toBe(
-        "Your last run is paused, with a score of 2. Press a direction to go on.",
-      );
+      expect(said()).toBe("Paused. Score 2. Press Space to resume.");
     });
 
     it("comes before the next new run", async () => {
