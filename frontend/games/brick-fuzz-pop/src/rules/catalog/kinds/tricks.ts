@@ -4,8 +4,7 @@ import type { BrickKind } from "../bricks";
 export const TRICKS_KINDS = {
   bumper: {
     name: "Bumper",
-    about:
-      "Never breaks: round, it kicks every fuzzball straight away from its middle and earths its charge, lets zaps through, and sinks into the floor.",
+    about: "Can't be broken. Knocks the fuzzball away and drains its charge.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -20,8 +19,7 @@ export const TRICKS_KINDS = {
   },
   prism: {
     name: "Prism",
-    about:
-      "Breaks at a hit, and two more fuzzballs leave from it, 30° either side of the one that broke it; a zap or a blast only breaks it.",
+    about: "Splits the fuzzball into 3.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -34,7 +32,7 @@ export const TRICKS_KINDS = {
   portal: {
     name: "Portal",
     about:
-      "Never breaks, and stops nothing: a fuzzball whose middle flies into it comes out of its twin, flying the same way, while both stand in the field, and it sinks with its twin.",
+      "Can't be broken. Sends the fuzzball out of the other portal with the same mark.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -46,7 +44,7 @@ export const TRICKS_KINDS = {
   plated: {
     name: "Plated brick",
     about:
-      "Takes two or three hits, a pip for each one left, but none through its steel plates, which earth the charge; zaps and blasts still hurt it.",
+      "Takes 2 or 3 hits. Its steel plates take none and drain the charge.",
     hits: 2,
     mostHits: 3,
     needed: true,

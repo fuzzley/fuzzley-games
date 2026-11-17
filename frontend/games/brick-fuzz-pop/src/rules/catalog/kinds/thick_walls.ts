@@ -4,8 +4,7 @@ import type { BrickKind } from "../bricks";
 export const THICK_WALL_KINDS = {
   shell: {
     name: "Shell brick",
-    about:
-      "Takes two or three hits, from charge, a zap or a blast alone: a plain fuzzball turns off it.",
+    about: "Takes 2 or 3 hits. A fuzzball with no charge bounces off.",
     hits: 2,
     mostHits: 3,
     needed: true,
@@ -16,8 +15,7 @@ export const THICK_WALL_KINDS = {
   },
   moss: {
     name: "Moss brick",
-    about:
-      "Takes two or three hits, and grows one back after each round it survives, up to its full hits.",
+    about: "Takes 2 or 3 hits. Grows a hit back after each shot.",
     hits: 2,
     mostHits: 3,
     needed: true,

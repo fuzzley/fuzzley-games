@@ -8,7 +8,7 @@ import type { BrickKind } from "../bricks";
 export const SPARKS_KINDS = {
   bomb: {
     name: "Bomb",
-    about: "As it breaks, blasts the eight bricks around it.",
+    about: "Blasts the 8 bricks around it when it breaks.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -19,8 +19,7 @@ export const SPARKS_KINDS = {
   },
   crossZapper: {
     name: "Cross zapper",
-    about:
-      "As it breaks, zaps every brick in its row and in its column, as far as the ceiling.",
+    about: "Zaps every brick in its row and column when it breaks.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -35,8 +34,7 @@ export const SPARKS_KINDS = {
   },
   xZapper: {
     name: "X zapper",
-    about:
-      "As it breaks, zaps the bricks along both its diagonals, three cells each way.",
+    about: "Zaps 3 spaces each way along both diagonals when it breaks.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -48,8 +46,7 @@ export const SPARKS_KINDS = {
   },
   wool: {
     name: "Wool brick",
-    about:
-      "Charges the fuzzball that strikes it to full, so even a plain one breaks through and flies on charged; a zap or a blast only breaks it.",
+    about: "Charges any fuzzball that hits it to full.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -61,7 +58,7 @@ export const SPARKS_KINDS = {
   cage: {
     name: "Cage",
     about:
-      "Takes two hits, and as it breaks frees a friend, who flies behind the fuzzball every round left of the level.",
+      "Takes 2 hits. Frees a friend who follows your fuzzball for the rest of the level.",
     hits: 2,
     mostHits: 2,
     needed: true,

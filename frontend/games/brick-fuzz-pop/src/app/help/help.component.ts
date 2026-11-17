@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { count, formatPoints, tierWords } from "@fz/core/format";
+import { count, formatPoints } from "@fz/core/format";
 import {
   type HelpCatalog,
   HelpCatalogComponent,
@@ -11,6 +11,8 @@ import {
   type BrickKindId,
   brickKind,
 } from "../../rules/catalog/bricks";
+import { ROWS_READ } from "../../rules/run/describe";
+import { MOST_STARS } from "../../rules/run/stars";
 import {
   JUMP_POINTS,
   MOST_CHARGE,
@@ -18,6 +20,7 @@ import {
   STREAK,
   TRIPLE_MATES,
   TWO_STARS_PAST_PAR,
+  ZAP_HITS,
 } from "../../rules/tuning";
 
 /**
@@ -29,21 +32,55 @@ export interface HelpPictures {
 }
 
 /** What How to play says of charge, from the tuning. */
-const CHARGE = `A fuzzball's charge, 0 to ${String(MOST_CHARGE)}, is how many hits it punches through. It spends as much as a brick has hits left, or all it has, taking that many hits off it: through a brick it breaks it flies on with what is left, and off one it doesn't it turns. A plain one takes one hit and turns. Steel takes the charge.`;
+const CHARGE = `Each pip of charge takes 1 hit off a brick, and a fuzzball with no charge still takes 1. If the brick breaks, the fuzzball flies on with the charge it has left. If not, it bounces off with none. While you hold, the charge climbs to ${String(MOST_CHARGE)} and back down.`;
 
 /** What How to play says of the two boons, from the tuning. */
-const BOONS = `The hot shot flies at full charge whatever you charged, and nothing takes its charge. The triple shot sends ${count(TRIPLE_MATES, "more fuzzball", "more fuzzballs")} out behind yours, each with the charge you chose. A boon lasts one shot, and a boon shot that clears below the line again earns the next.`;
+const BOONS = `The hot shot flies at full charge, and nothing drains it. The triple shot sends ${count(TRIPLE_MATES, "more fuzzball", "more fuzzballs")} out behind yours, with the same charge. A boon lasts 1 shot. If that shot makes the wall jump again, you get the boon again.`;
 
-/** How the score adds up and stars are earned, from the tuning, as How to play says it. */
-const SCORING = {
-  streak: `The bricks a round breaks make a streak, which multiplies each one's points: ${tierWords(STREAK, "bricks")}.`,
-  bonuses: `A jump adds ${formatPoints(JUMP_POINTS)} points, and each star ${formatPoints(STAR_POINTS)}.`,
-  stars: `A level cleared within its par of rounds earns three stars, two within ${count(TWO_STARS_PAST_PAR, "more round", "more rounds")}, and one otherwise. Par is set for the depth the field had as the level began.`,
-};
+/** Returns a count as an ordinal: "1st", "5th", "22nd". */
+function ordinal(n: number): string {
+  const tens = n % 100;
+  const units = n % 10;
+  const suffix =
+    tens >= 11 && tens <= 13
+      ? "th"
+      : units === 1
+        ? "st"
+        : units === 2
+          ? "nd"
+          : units === 3
+            ? "rd"
+            : "th";
+  return `${String(n)}${suffix}`;
+}
+
+/** Describes a row of How to play's scoring table: what scores, and how much. */
+interface ScoringRow {
+  readonly what: string;
+  readonly points: string;
+}
+
+/** The scoring table, from the tuning: the streak's multipliers, then a jump's and a star's points. */
+const SCORING: readonly ScoringRow[] = [
+  ...[...STREAK].reverse().map(({ from, times }, index, tiers) => {
+    const next = tiers[index + 1];
+    return {
+      what:
+        next === undefined
+          ? `${ordinal(from)} brick on`
+          : `${ordinal(from)} to ${ordinal(next.from - 1)} brick`,
+      points: `×${String(times)}`,
+    };
+  }),
+  { what: "A jump", points: `+${formatPoints(JUMP_POINTS)}` },
+  { what: "A star", points: `+${formatPoints(STAR_POINTS)}` },
+];
+
+/** How stars are earned, from the tuning, as How to play says it. */
+const STARS = `If you clear a level in par or fewer shots, you get ${String(MOST_STARS)} stars. Up to ${String(TWO_STARS_PAST_PAR)} over par, you get 2. Any more, you get 1. Par depends on how many rows the screen shows when the level starts.`;
 
 /** What How to play says of the bricks before listing them. */
-const BRICKS_INTRO =
-  "A kind is told by its shape and its mark, and a tough brick's hits by its pips. A level needs every brick broken but those that never break.";
+const BRICKS_INTRO = `A zap or a blast takes ${String(ZAP_HITS)} hits off each brick it reaches.`;
 
 /**
  * Shows How to play: the aim, charge, the wall's step and its jump, the two
@@ -51,9 +88,8 @@ const BRICKS_INTRO =
  * kind of brick, each with its name, what it does and its picture once the
  * scene has drawn it.
  *
- * Its letter keys are named by where they sit, as the game reads them by
- * `event.code`, so a key named by a letter would be wrong on any other
- * layout than the one it was named on.
+ * Its letter keys are named by their QWERTY letters, though the game reads
+ * them by their place on the keyboard (`event.code`).
  */
 @Component({
   selector: "app-help",
@@ -73,12 +109,14 @@ export class HelpComponent {
 
   protected readonly charge = CHARGE;
 
-  /** The most charge a fuzzball holds, to which holding the button climbs. */
-  protected readonly mostCharge = MOST_CHARGE;
-
   protected readonly boons = BOONS;
 
   protected readonly scoring = SCORING;
+
+  protected readonly stars = STARS;
+
+  /** How many of the lowest rows with bricks R reads. */
+  protected readonly rowsRead = ROWS_READ;
 
   protected readonly catalogs = computed<readonly HelpCatalog[]>(() => [
     {

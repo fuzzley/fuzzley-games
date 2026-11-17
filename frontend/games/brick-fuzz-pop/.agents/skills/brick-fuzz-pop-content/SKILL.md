@@ -189,8 +189,8 @@ fails.
    every cataloged kind to one of the three. The entry, in its
    set's file of `src/rules/catalog/kinds/`, where its place is its place
    in How to play:
-   - `name`, a capital and lower-case words, and `about`, a sentence for
-     How to play;
+   - `name`, a capital and lower-case words, and `about`, its catalog line
+     for How to play, as the `player-text` skill's catalogs file has it;
    - `hits`, the fewest a legend gives it, and `mostHits`, the most, or
      `"never"` and 0 for one that never breaks, which takes the `never`
      trait too;

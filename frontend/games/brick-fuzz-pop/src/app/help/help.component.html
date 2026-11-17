@@ -1,42 +1,14 @@
 <fz-help-dialog [open]="open()" (closed)="closed.emit()">
   <p>
-    Aim the fuzzball, charge it and let it fly. It turns off the sides, the
-    ceiling and every brick it doesn't punch through, until it touches the
-    floor, where it waits for the next shot. One that flies a long while without
-    touching a brick it could break gets bored, yawns and drops to the floor.
-    Then the wall comes down a row. Break every brick a level needs to clear it,
-    those still waiting over the ceiling among them; the level is lost once one
-    it needs stands in the floor's row.
-  </p>
-  <p>
-    <strong>Charge.</strong> {{ charge }} As you charge, the pips under the
-    waiting fuzzball light up, and on a touch screen over your finger too; each
-    notch ticks a step higher as the charge climbs, and lower as it falls.
-  </p>
-  <p>
-    <strong>The jump.</strong> Once no brick the level needs is left below the
-    dashed line, the wall jumps a third of the field at once rather than a row,
-    and your next shot carries the level's boon. A jump never loses a level.
-  </p>
-  <p><strong>Boons.</strong> {{ boons }}</p>
-  <p>
-    <strong>Scoring.</strong> Each brick scores its points for every hit it had,
-    as it breaks. {{ scoring.streak }} {{ scoring.bonuses }}
-    {{ scoring.stars }}
-  </p>
-  <p>
-    <strong>No hurry.</strong> Nothing moves until you shoot. Fast-forward plays
-    every flight faster; once on, it stays on until you turn it off, even on
-    your next visit. Drop brings every fuzzball in the air straight down where
-    it is, ending the round with only what it had done by then, and your next
-    shot starts where your fuzzball lands. The game pauses itself when you
-    switch away, turn the screen or open a dialog; a flight still in the air as
-    the game goes out of sight, as when you switch tabs, lands at once, as it
-    would have flown. A run goes on from level to level until one is lost, and a
-    level can be tried again as often as you like.
+    Aim the fuzzball and charge it up. Let go to shoot. It bounces around
+    breaking bricks until it lands on the floor. After each shot, the wall moves
+    down 1 row. Break every brick that can be broken to clear the level. If one
+    of them reaches the floor, you lose the level. The game ends when you lose a
+    level or clear them all. You can try a lost level again as often as you
+    like.
   </p>
 
-  <table>
+  <table aria-label="Controls">
     <thead>
       <tr>
         <td></td>
@@ -48,60 +20,61 @@
     <tbody>
       <tr>
         <th scope="row">Aim</th>
+        <td>Point</td>
+        <td>Touch and drag</td>
         <td>
-          Point; the guide follows. The wheel turns it a quarter of a degree
+          <kbd>←</kbd>&ngsp;<kbd>→</kbd> or <kbd>A</kbd>&ngsp;<kbd>D</kbd>
         </td>
-        <td>Press where to aim; the guide follows as you drag</td>
-        <td>
-          <kbd>←</kbd> or <kbd>→</kbd> turns it a degree, or a quarter of one
-          with <kbd>Shift</kbd> held
-        </td>
+      </tr>
+      <tr>
+        <th scope="row">Aim in small steps</th>
+        <td>Turn the wheel</td>
+        <td></td>
+        <td><kbd>Shift</kbd> with the aim keys</td>
       </tr>
       <tr>
         <th scope="row">Charge</th>
+        <td>Hold the button</td>
+        <td>Keep your finger down</td>
         <td>
-          Hold the button: the charge climbs a notch at a time to
-          {{ mostCharge }}, then back down and round again
+          <kbd>↑</kbd>&ngsp;<kbd>↓</kbd> or <kbd>W</kbd>&ngsp;<kbd>S</kbd>
         </td>
-        <td>
-          Keep pressing, still or dragging: the charge climbs a notch at a time
-          to {{ mostCharge }}, then back down and round again
-        </td>
-        <td><kbd>↑</kbd> or <kbd>↓</kbd>, a notch at a time</td>
       </tr>
       <tr>
-        <th scope="row">Let it fly</th>
-        <td>Let go; a click flies plain</td>
-        <td>Let go; a tap flies plain</td>
+        <th scope="row">Shoot</th>
+        <td>Let go</td>
+        <td>Let go</td>
         <td><kbd>Space</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Call a charge off</th>
+        <th scope="row">Cancel</th>
         <td>Right-click</td>
-        <td>Touch the field with a second finger</td>
+        <td>Tap with a second finger</td>
         <td><kbd>Esc</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Switch fast-forward on or off</th>
+        <th scope="row">Fast-forward</th>
         <td>Fast-forward</td>
         <td>Fast-forward</td>
-        <td>The left index finger's home key, the one with a bump</td>
+        <td><kbd>F</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Drop the fuzzballs in the air</th>
+        <th scope="row">Drop</th>
         <td>Drop</td>
         <td>Drop</td>
-        <td>The left ring finger's key on the bottom row</td>
+        <td><kbd>X</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Pause, or go on</th>
-        <td>Pause, then Resume</td>
-        <td>Pause, then Resume</td>
-        <td>
-          The key above the right little finger's home key;
-          <kbd>Esc</kbd> pauses while no charge builds, and
-          <kbd>Enter</kbd> goes on
-        </td>
+        <th scope="row">Pause</th>
+        <td>Pause</td>
+        <td>Pause</td>
+        <td><kbd>P</kbd> or <kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Resume</th>
+        <td>Resume</td>
+        <td>Resume</td>
+        <td><kbd>P</kbd> or <kbd>Enter</kbd></td>
       </tr>
       <tr>
         <th scope="row">Next level</th>
@@ -110,34 +83,51 @@
         <td><kbd>Enter</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Start again, once a run has ended</th>
-        <td>Try again, or New game</td>
-        <td>Try again, or New game</td>
-        <td>
-          <kbd>Enter</kbd>, or, once the result is put away, the key above the
-          right little finger's home key
-        </td>
+        <th scope="row">Try again</th>
+        <td>Try again or New game</td>
+        <td>Try again or New game</td>
+        <td><kbd>Enter</kbd></td>
       </tr>
     </tbody>
   </table>
 
+  <p><strong>Charge.</strong> {{ charge }}</p>
   <p>
-    <strong>Keys by place.</strong> The letter keys are read by where they sit,
-    whatever they print, so they fall under the same fingers on every keyboard.
-    The left hand's home keys under its little, ring and middle fingers do as
-    <kbd>←</kbd>, <kbd>↓</kbd> and <kbd>→</kbd> do, and the key above the ring
-    finger's as <kbd>↑</kbd> does.
+    <strong>The jump.</strong> When there's nothing left to break below the
+    dashed line, the wall jumps. It moves down a third of the screen instead of
+    1 row. A jump never loses a level, and it gives your next shot a boon.
+  </p>
+  <p><strong>Boons.</strong> {{ boons }}</p>
+  <p>
+    <strong>Scoring.</strong> A brick scores when it breaks, and tougher bricks
+    score more. The more bricks one shot breaks, the more the later ones are
+    worth.
+  </p>
+  <table aria-label="Scoring">
+    <tbody>
+      @for (row of scoring; track row.what) {
+        <tr>
+          <th scope="row">{{ row.what }}</th>
+          <td>{{ row.points }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p><strong>Stars.</strong> {{ stars }}</p>
+  <p>
+    <strong>No hurry.</strong> Nothing moves until you shoot. Fast-forward
+    speeds up shots and stays on until you turn it off. Drop ends a shot early
+    and keeps what it has broken. A fuzzball that goes too long without hitting
+    a brick gets bored and drops.
   </p>
   <p>
-    <strong>Ways of aiming.</strong> In the settings, Aiming can have the mouse
-    and fingers pull back instead: press anywhere on the field and drag away
-    from where to aim, the longer the pull the more charge, and slide back to
-    where you pressed to call the shot off.
+    <strong>Pull back.</strong> If you'd rather aim like a slingshot, choose
+    Pull back under Aiming in Settings.
   </p>
   <p>
-    <strong>By ear.</strong> The aim and the charge are said as the keys change
-    them, fast-forward as its key switches it, and the key above the left index
-    finger's home key reads the wall's three lowest rows, from the floor up.
+    <strong>Playing by ear.</strong> With a screen reader, you hear the aim and
+    the charge when you change them with the keys. Press <kbd>R</kbd> to hear
+    the {{ rowsRead }} lowest rows that have bricks in them.
   </p>
 
   @for (catalog of catalogs(); track catalog.id) {

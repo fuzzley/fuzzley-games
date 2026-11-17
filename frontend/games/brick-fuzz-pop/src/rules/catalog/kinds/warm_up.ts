@@ -5,7 +5,7 @@ import type { BrickKind } from "../bricks";
 export const WARM_UP_KINDS = {
   brick: {
     name: "Brick",
-    about: "Breaks at a hit.",
+    about: "Takes 1 hit.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -16,7 +16,7 @@ export const WARM_UP_KINDS = {
   },
   tough: {
     name: "Tough brick",
-    about: "Takes two to six hits, a pip for each one left.",
+    about: "Takes 2 to 6 hits. The pips show how many are left.",
     hits: 2,
     mostHits: 6,
     needed: true,
@@ -27,8 +27,7 @@ export const WARM_UP_KINDS = {
   },
   steel: {
     name: "Steel brick",
-    about:
-      "Never breaks: it turns every fuzzball and earths its charge, lets zaps through, and sinks into the floor.",
+    about: "Can't be broken. Drains the charge of a fuzzball that hits it.",
     hits: "never",
     mostHits: 0,
     needed: false,
@@ -39,7 +38,7 @@ export const WARM_UP_KINDS = {
   },
   rowZapper: {
     name: "Row zapper",
-    about: "As it breaks, zaps every brick in its row.",
+    about: "Zaps every brick in its row when it breaks.",
     hits: 1,
     mostHits: 1,
     needed: true,
@@ -51,8 +50,7 @@ export const WARM_UP_KINDS = {
   },
   columnZapper: {
     name: "Column zapper",
-    about:
-      "As it breaks, zaps every brick in its column, as far as the ceiling.",
+    about: "Zaps every brick in its column when it breaks.",
     hits: 1,
     mostHits: 1,
     needed: true,

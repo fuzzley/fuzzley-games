@@ -1307,7 +1307,7 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("pauses the level at the key above the right little finger's home key", async () => {
+    it("pauses the level at P", async () => {
       const { game, run } = await runBoardScene();
       release(game);
 
@@ -1316,7 +1316,7 @@ describe("BoardComponent", () => {
       expect(game.outcome()).toBe("paused");
     });
 
-    it("switches fast-forward at the left index finger's home key, and says so", async () => {
+    it("switches fast-forward at F, and says so", async () => {
       const { game, run } = await runBoardScene();
 
       run.key("keydown", "KeyF", "f");
@@ -1327,7 +1327,7 @@ describe("BoardComponent", () => {
       }).toEqual({ fast: true, said: "Fast-forward on." });
     });
 
-    it("reads the wall's lowest rows at the key above the left index finger's home key", async () => {
+    it("reads the wall's lowest rows at R", async () => {
       const { game, run } = await runBoardScene();
 
       run.key("keydown", "KeyR", "r");
