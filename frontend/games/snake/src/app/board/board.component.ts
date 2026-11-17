@@ -120,15 +120,13 @@ export class BoardComponent {
   });
 
   /**
-   * What the card says starts a run: the swipe and the arrows, as there are
-   * on a touch screen, or the keys too.
+   * What the card says starts a run: the arrow keys, or on a touch screen
+   * a swipe, and the on-screen arrows where they show.
    */
   protected readonly startWords = computed(() => {
-    if (!this.viewport.isTouchScreen()) {
-      return "Press an arrow key, or swipe, to start.";
-    }
+    if (!this.viewport.isTouchScreen()) return "Press an arrow key to start.";
     return this.arrows()
-      ? "Swipe, or press an arrow, to start."
+      ? "Swipe or tap an arrow to start."
       : "Swipe to start.";
   });
 

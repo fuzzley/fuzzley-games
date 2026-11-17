@@ -160,7 +160,7 @@ describe("SavedGameService", () => {
         steps: 2,
       });
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        "Your last run is paused, with a score of 0. Press a direction to go on.",
+        "Paused. Score 0. Press Space to resume.",
       );
     });
 

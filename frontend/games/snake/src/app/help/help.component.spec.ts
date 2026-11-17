@@ -14,25 +14,23 @@ describe("HelpComponent", () => {
 
     expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
     expect(
-      screen.getByRole("rowheader", { name: "Start, or turn" }),
+      screen.getByRole("rowheader", { name: "Start or turn" }),
     ).toBeInTheDocument();
   });
 
-  it("says the run goes on at P too", async () => {
+  it("says the game resumes at P too", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/Pausing./).parentElement).toHaveTextContent(
-      "Space or P, or Resume",
+      "Press Space or P to resume.",
     );
   });
 
-  it("says how to start again once a run has ended", async () => {
+  it("says how to start a new game once one has ended", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(
-      screen.getByRole("rowheader", {
-        name: "Start again, once a run has ended",
-      }),
+      screen.getByRole("rowheader", { name: "New game" }),
     ).toBeInTheDocument();
   });
 

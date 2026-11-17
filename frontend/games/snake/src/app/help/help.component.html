@@ -1,23 +1,8 @@
 <fz-help-dialog [open]="open()" (closed)="closed.emit()">
   <p>
-    Steer the snake to the apple. Each apple it eats scores a point and makes it
-    a square longer and a little faster. The run ends when the snake runs into a
-    wall or into itself; fill the whole board and you win.
-  </p>
-  <p>
-    <strong>Starting.</strong> The snake waits for your first direction. You can
-    press two turns in quick succession, such as up and then left, and it takes
-    both, one square apart.
-  </p>
-  <p>
-    <strong>Speeds.</strong> Slow, Normal and Fast each keep their own best
-    score. Change the speed, and whether the snake glides or steps, in the
-    settings.
-  </p>
-  <p>
-    <strong>Pausing.</strong> The game pauses itself when you switch away, or
-    open a menu or a dialog, and goes on only when you say: with a direction,
-    Space or P, or Resume.
+    Eat apples to grow. Each apple is 1 point, and the snake gets a little
+    faster every time. If you hit a wall or your own tail, the game is over.
+    Fill the whole board to win.
   </p>
 
   <table>
@@ -30,17 +15,17 @@
     </thead>
     <tbody>
       <tr>
-        <th scope="row">Start, or turn</th>
-        <td>Swipe on the board, or the on-screen arrows</td>
+        <th scope="row">Start or turn</th>
+        <td>Swipe, or the on-screen arrows</td>
         <td>
-          Arrows, or
+          Arrow keys or
           <span class="keys">
             <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>
           </span>
         </td>
       </tr>
       <tr>
-        <th scope="row">Pause, or go on</th>
+        <th scope="row">Pause or resume</th>
         <td>Pause, then Resume</td>
         <td><kbd>Space</kbd> or <kbd>P</kbd></td>
       </tr>
@@ -50,10 +35,23 @@
         <td><kbd>Esc</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Start again, once a run has ended</th>
+        <th scope="row">New game</th>
         <td>New game</td>
         <td><kbd>Enter</kbd> or <kbd>Space</kbd></td>
       </tr>
     </tbody>
   </table>
+
+  <p>
+    <strong>Quick turns.</strong> If you turn twice quickly, such as up and then
+    left, the snake makes both turns, 1 square apart.
+  </p>
+  <p>
+    <strong>Speeds.</strong> Each speed has its own best score. If you change
+    the speed, a new game starts.
+  </p>
+  <p>
+    <strong>Pausing.</strong> The game pauses when you switch tabs or open a
+    menu. Press Space or P to resume.
+  </p>
 </fz-help-dialog>

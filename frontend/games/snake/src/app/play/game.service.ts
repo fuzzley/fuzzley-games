@@ -10,7 +10,6 @@ import {
   describePause,
   describeResume,
   describeStart,
-  describeTakenUp,
 } from "../../rules/describe";
 import type { Direction } from "../../rules/geometry";
 import { type Run, createRun, pause, resume, turn } from "../../rules/run";
@@ -203,7 +202,7 @@ export class GameService extends RunLifecycle {
   takeUp(run: Run): void {
     this.numbers.takeUp(run.id);
     this.begin(pause(run));
-    this.announcer.say(describeTakenUp(run));
+    this.announcer.say(describePause(run));
   }
 
   /** Puts away the card over an ended run, leaving the board to look at. */

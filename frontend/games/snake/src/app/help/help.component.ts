@@ -1,7 +1,7 @@
 import { Component, input, output } from "@angular/core";
 import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
 
-/** Shows the rules, the speeds and pausing, and the controls. */
+/** Shows the rules, the controls, then quick turns, the speeds and pausing. */
 @Component({
   selector: "app-help",
   imports: [HelpDialogComponent],

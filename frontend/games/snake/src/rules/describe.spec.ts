@@ -4,7 +4,6 @@ import {
   describePause,
   describeResume,
   describeStart,
-  describeTakenUp,
 } from "./describe";
 
 const run = runFrom(["@<<<<", ".....", ".....", ".....", "....*"], {
@@ -13,23 +12,15 @@ const run = runFrom(["@<<<<", ".....", ".....", ".....", "....*"], {
 
 describe("describe", () => {
   it("names the speed a run starts at", () => {
-    expect(describeStart(run)).toBe("Started, at Slow speed.");
+    expect(describeStart(run)).toBe("Started at Slow speed.");
   });
 
   it("gives the score as a run pauses", () => {
-    expect(describePause(run)).toBe(
-      "Paused, with a score of 2. Press a direction to go on.",
-    );
+    expect(describePause(run)).toBe("Paused. Score 2. Press Space to resume.");
   });
 
   it("says a run goes on", () => {
-    expect(describeResume()).toBe("Going on.");
-  });
-
-  it("says a run was taken up paused", () => {
-    expect(describeTakenUp(run)).toBe(
-      "Your last run is paused, with a score of 2. Press a direction to go on.",
-    );
+    expect(describeResume()).toBe("Resumed.");
   });
 
   it.each([
@@ -46,7 +37,7 @@ describe("describe", () => {
     [
       { outcome: "won", crash: null },
       true,
-      "You filled the board! Score 2. A new best!",
+      "You filled the board. Score 2. New best.",
     ],
   ] as const)("says why a run ended (%o)", (end, newBest, said) => {
     expect(describeEnd({ ...run, ...end }, newBest)).toBe(said);

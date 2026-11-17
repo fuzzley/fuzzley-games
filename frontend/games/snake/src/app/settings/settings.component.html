@@ -9,7 +9,7 @@
       (choose)="chooseSpeed($event)"
     />
     <p class="setting-desc" id="speed-desc">
-      Changing the speed starts a new run. Each apple makes the snake a little
+      Changing the speed starts a new game. Each apple makes the snake a little
       faster.
     </p>
   </div>
@@ -41,14 +41,10 @@
         #sound
         id="sound"
         type="checkbox"
-        aria-describedby="sound-desc"
         [checked]="settings().sound"
         (change)="setSound(sound.checked)"
       />
       <label for="sound">Play sounds</label>
-      <p class="setting-desc" id="sound-desc">
-        A bite for an apple, a bump for a crash, and a chime for a new best.
-      </p>
     </div>
   </div>
 

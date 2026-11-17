@@ -114,7 +114,7 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("paused");
       expect(document.querySelector("fz-announcer")).toHaveTextContent(
-        /^Paused, with a score of 0/,
+        /^Paused\. Score 0\./,
       );
     });
 
