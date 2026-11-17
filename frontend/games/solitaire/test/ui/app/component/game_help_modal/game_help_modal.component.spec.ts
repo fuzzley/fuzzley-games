@@ -9,7 +9,9 @@ import {
   queryText,
   clickElement,
   query,
+  rootElement,
 } from "@test/support/dom";
+import { within } from "@testing-library/dom";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
 
 describe("GameHelpModalComponent", () => {
@@ -36,6 +38,13 @@ describe("GameHelpModalComponent", () => {
     return queryRequired(fixture, `[data-tab="${name}"]`);
   }
 
+  /** Returns the headings of the rules tab's cards. */
+  function ruleHeadings(): string[] {
+    return within(within(rootElement(fixture)).getByRole("tabpanel"))
+      .getAllByRole("heading", { level: 3 })
+      .map((heading) => heading.textContent.trim());
+  }
+
   /** Returns which tab is selected. */
   function selectedTab(): string | null {
     return (
@@ -57,10 +66,20 @@ describe("GameHelpModalComponent", () => {
       expect(queryText(fixture, ".game-title")).toBe("Test Klondike");
     });
 
+    it("names the dialog for the game", () => {
+      openHelp();
+
+      expect(
+        within(rootElement(fixture)).getByRole("dialog", {
+          name: "How to play Test Klondike",
+        }),
+      ).toBeTruthy();
+    });
+
     it("closes when the close button is clicked", () => {
       openHelp();
 
-      clickElement(fixture, "button[aria-label='Close documentation']");
+      clickElement(fixture, "button[aria-label='Close How to play']");
       fixture.detectChanges();
 
       expect(docService.isOpen()).toBe(false);
@@ -105,9 +124,7 @@ describe("GameHelpModalComponent", () => {
       harness.catalog.catalog.select("scorpion");
       openHelp();
 
-      expect(queryText(fixture, ".callout-title")).toContain(
-        "Documentation Unavailable",
-      );
+      expect(queryText(fixture, ".callout-title")).toContain("No rules yet");
     });
   });
 
@@ -124,7 +141,7 @@ describe("GameHelpModalComponent", () => {
       openHelp();
 
       expect(document.activeElement).toBe(
-        queryRequired(fixture, "button[aria-label='Close documentation']"),
+        queryRequired(fixture, "button[aria-label='Close How to play']"),
       );
     });
 
@@ -143,13 +160,26 @@ describe("GameHelpModalComponent", () => {
   });
 
   describe("tabs", () => {
-    it("opens on the summary tab", () => {
+    it("opens on the overview tab, with the goal", () => {
       openHelp();
 
       expect(selectedTab()).toBe("overview");
-      expect(queryText(fixture, ".objective-text")).toContain(
+      expect(queryText(fixture, ".goal")).toBe(
         "Move every card to the foundations.",
       );
+    });
+
+    it("gives the fact line above the goal", () => {
+      openHelp();
+
+      expect(queryText(fixture, ".facts")).toBe("1 test deck.");
+    });
+
+    it("leaves out a fact line that isn't written yet", () => {
+      harness.catalog.catalog.select("freecell");
+      openHelp();
+
+      expect(query(fixture, ".facts")).toBeNull();
     });
 
     it("shows the detailed rules when the rules tab is clicked", () => {
@@ -162,6 +192,25 @@ describe("GameHelpModalComponent", () => {
       expect(queryText(fixture, ".rules-grid")).toContain(
         "Seven tableau columns.",
       );
+    });
+
+    it("gives what is good to know where the game has any", () => {
+      openHelp();
+
+      clickElement(fixture, '[data-tab="rules"]');
+      fixture.detectChanges();
+
+      expect(ruleHeadings()).toEqual(["Layout", "Moves", "Good to know"]);
+    });
+
+    it("leaves out what is good to know where the game has none", () => {
+      harness.catalog.catalog.select("freecell");
+      openHelp();
+
+      clickElement(fixture, '[data-tab="rules"]');
+      fixture.detectChanges();
+
+      expect(ruleHeadings()).toEqual(["Layout", "Moves"]);
     });
 
     it("explains each choice on the variants tab", () => {
@@ -248,7 +297,7 @@ describe("GameHelpModalComponent", () => {
       expect(tab("rules").getAttribute("tabindex")).toBe("0");
     });
 
-    it("returns to the summary tab when reopened", () => {
+    it("returns to the overview tab when reopened", () => {
       openHelp();
       clickElement(fixture, '[data-tab="rules"]');
       docService.closeHelp();
@@ -259,7 +308,7 @@ describe("GameHelpModalComponent", () => {
       expect(selectedTab()).toBe("overview");
     });
 
-    it("falls back to summary when the new game lacks the tab that was open", () => {
+    it("falls back to the overview when the new game lacks the tab that was open", () => {
       openHelp();
       clickElement(fixture, '[data-tab="variants"]');
       docService.closeHelp();
@@ -314,7 +363,7 @@ describe("GameHelpModalComponent", () => {
       resolveImage("error");
 
       expect(queryText(fixture, ".screenshot-failed-text")).toContain(
-        "Screenshot unavailable",
+        "Couldn't load the picture",
       );
     });
 

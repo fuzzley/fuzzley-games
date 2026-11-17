@@ -20,7 +20,7 @@ import { itemAt } from "@/engine/core/common/item_at";
 /** Names a tab of the documentation modal. */
 export type DocTab = "overview" | "rules" | "variants";
 
-/** Names how far the summary tab's screenshot has got. */
+/** Names how far the overview tab's screenshot has got. */
 type ImageStatus = "loading" | "loaded" | "failed";
 
 /** Describes a documented rule option, resolved against the catalog. */
@@ -63,6 +63,17 @@ export class GameHelpModalComponent {
   protected readonly modalTitle = computed(
     () => this.doc()?.title ?? this.shownEntry()?.name ?? "",
   );
+
+  /** The dialog's name, for a screen reader. */
+  protected readonly dialogLabel = computed(
+    () => `How to play ${this.modalTitle()}`,
+  );
+
+  /** What is good to know about the game, or undefined when there is nothing. */
+  protected readonly goodToKnow = computed(() => {
+    const notes = this.doc()?.detailedRules.goodToKnow;
+    return notes && notes.length > 0 ? notes : undefined;
+  });
 
   /** The tabs this game's documentation actually has content for. */
   protected readonly availableTabs = computed<readonly DocTab[]>(() => {
@@ -107,7 +118,7 @@ export class GameHelpModalComponent {
     });
   });
 
-  /** The address of the summary tab's screenshot, if the game has one. */
+  /** The address of the overview tab's screenshot, if the game has one. */
   private readonly screenshotUrl = computed(() => this.doc()?.screenshot?.url);
 
   /**
@@ -126,7 +137,7 @@ export class GameHelpModalComponent {
   });
 
   constructor() {
-    // Opening the modal shows the summary tab, and gives a screenshot that
+    // Opening the modal shows the overview tab, and gives a screenshot that
     // failed another try.
     effect(() => {
       if (this.docService.isOpen()) {
