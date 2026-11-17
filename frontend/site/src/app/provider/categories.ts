@@ -6,19 +6,19 @@ export const CATEGORIES = [
   {
     id: "solitaire",
     name: "Solitaire",
-    description: "Patience games for one player.",
+    description: "Card games for one player.",
     surface: "felt",
   },
   {
     id: "classics",
     name: "Classics",
-    description: "Puzzles and board games beyond cards.",
+    description: "Puzzles and board games.",
     surface: "plain",
   },
   {
     id: "arcade",
     name: "Arcade",
-    description: "Quick games against the clock, played on reflexes.",
+    description: "Action games you play in real time.",
     surface: "plain",
   },
 ] as const satisfies readonly {

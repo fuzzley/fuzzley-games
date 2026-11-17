@@ -17,9 +17,7 @@ describe("CategoryComponent", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Classics" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Puzzles and board games beyond cards."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Puzzles and board games.")).toBeInTheDocument();
   });
 
   it("lists every game in the category, in order", async () => {
