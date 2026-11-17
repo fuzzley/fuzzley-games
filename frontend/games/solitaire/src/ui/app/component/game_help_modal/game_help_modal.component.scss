@@ -147,29 +147,25 @@
   font-size: var(--fz-font-lg);
   font-weight: 700;
   margin: 0 0 var(--fz-space-3);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 // Prose keeps a readable measure, while the grid of rule cards below it keeps
 // the full width.
-.objective-text,
-.win-text {
+.facts {
+  color: var(--fz-text);
   font-size: var(--fz-font-md);
-  line-height: var(--fz-leading-normal);
-  margin: var(--fz-space-1) 0;
+  font-weight: 600;
+  margin: 0;
   max-width: var(--fz-measure-prose);
 }
 
-.overview-block h4 {
-  color: var(--fz-text);
-  font-size: var(--fz-font-lg);
-  font-weight: 600;
-  margin: 0 0 var(--fz-space-2);
-}
-
-.overview-p {
-  color: var(--fz-muted);
+.goal {
   font-size: var(--fz-font-md);
-  line-height: var(--fz-leading-relaxed);
+  line-height: var(--fz-leading-normal);
   margin: 0;
   max-width: var(--fz-measure-prose);
 }
@@ -248,7 +244,7 @@
 .rule-card {
   @include panel-card;
 
-  h4 {
+  h3 {
     color: var(--fz-accent);
     font-size: var(--fz-font-md);
     font-weight: 600;

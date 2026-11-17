@@ -1,6 +1,6 @@
 <fz-dialog
   [open]="docService.isOpen()"
-  [label]="`${modalTitle()} rules and documentation`"
+  [label]="dialogLabel()"
   (closed)="docService.closeHelp()"
 >
   <div class="modal-dialog">
@@ -34,7 +34,7 @@
         class="close"
         autofocus
         (click)="docService.closeHelp()"
-        aria-label="Close documentation"
+        aria-label="Close How to play"
       >
         <fz-icon name="close" />
       </button>
@@ -43,11 +43,7 @@
 
     @if (doc(); as activeDoc) {
       <!-- Navigation Tabs -->
-      <div
-        class="modal-tabs"
-        role="tablist"
-        aria-label="Documentation sections"
-      >
+      <div class="modal-tabs" role="tablist" aria-label="Sections">
         <button
           type="button"
           class="tab-btn"
@@ -61,7 +57,7 @@
           (click)="selectTab('overview')"
           (keydown)="onTabKeydown($event, 'overview')"
         >
-          Summary
+          Overview
         </button>
         <button
           type="button"
@@ -76,7 +72,7 @@
           (click)="selectTab('rules')"
           (keydown)="onTabKeydown($event, 'rules')"
         >
-          Detailed Rules
+          Rules
         </button>
         @if (activeDoc.settingsAndVariants.length > 0) {
           <button
@@ -92,7 +88,7 @@
             (click)="selectTab('variants')"
             (keydown)="onTabKeydown($event, 'variants')"
           >
-            Options & Variants
+            Options
           </button>
         }
       </div>
@@ -108,23 +104,13 @@
               aria-labelledby="tab-overview"
               class="doc-section animated-fade"
             >
-              <div class="callout-card primary-callout">
-                <h3 class="callout-title">Objective & Win Condition</h3>
-                <p class="objective-text">
-                  <strong>Objective:</strong>
-                  {{ activeDoc.summary.objective }}
-                </p>
-                <p class="win-text">
-                  <strong>Win Condition:</strong>
-                  {{ activeDoc.summary.winCondition }}
-                </p>
-              </div>
+              @if (activeDoc.summary.facts) {
+                <p class="facts">{{ activeDoc.summary.facts }}</p>
+              }
 
-              <div class="overview-block">
-                <h4>Game Overview</h4>
-                <p class="overview-p">
-                  {{ activeDoc.summary.quickOverview }}
-                </p>
+              <div class="callout-card">
+                <h3 class="callout-title">Goal</h3>
+                <p class="goal">{{ activeDoc.summary.goal }}</p>
               </div>
 
               @if (activeDoc.screenshot; as screenshot) {
@@ -149,7 +135,9 @@
                     }
                   </div>
                   @if (heroImageStatus() === "failed") {
-                    <p class="screenshot-failed-text">Screenshot unavailable</p>
+                    <p class="screenshot-failed-text">
+                      Couldn't load the picture
+                    </p>
                   } @else {
                     <p class="screenshot-caption">
                       {{ screenshot.caption }}
@@ -169,7 +157,7 @@
             >
               <div class="rules-grid">
                 <div class="rule-card">
-                  <h4>Board Layout</h4>
+                  <h3>Layout</h3>
                   <ul>
                     @for (
                       item of activeDoc.detailedRules.layout;
@@ -181,40 +169,23 @@
                 </div>
 
                 <div class="rule-card">
-                  <h4>Sequence Building Rules</h4>
+                  <h3>Moves</h3>
                   <ul>
-                    @for (
-                      item of activeDoc.detailedRules.sequenceBuilding;
-                      track $index
-                    ) {
+                    @for (item of activeDoc.detailedRules.moves; track $index) {
                       <li>{{ item }}</li>
                     }
                   </ul>
                 </div>
 
-                <div class="rule-card">
-                  <h4>Card Movement & Grabbing</h4>
-                  <ul>
-                    @for (
-                      item of activeDoc.detailedRules.cardMovement;
-                      track $index
-                    ) {
-                      <li>{{ item }}</li>
-                    }
-                  </ul>
-                </div>
-
-                @if (activeDoc.detailedRules.specialRules; as special) {
-                  @if (special.length > 0) {
-                    <div class="rule-card special-card">
-                      <h4>Special Game Mechanics</h4>
-                      <ul>
-                        @for (item of special; track $index) {
-                          <li>{{ item }}</li>
-                        }
-                      </ul>
-                    </div>
-                  }
+                @if (goodToKnow(); as notes) {
+                  <div class="rule-card">
+                    <h3>Good to know</h3>
+                    <ul>
+                      @for (item of notes; track $index) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                  </div>
                 }
               </div>
             </section>
@@ -253,8 +224,7 @@
       <div class="modal-body">
         <section class="doc-section animated-fade">
           <div class="callout-card">
-            <h3 class="callout-title">Documentation Unavailable</h3>
-            <p class="overview-p">Rules for this game aren't written yet.</p>
+            <h3 class="callout-title">No rules yet</h3>
           </div>
         </section>
       </div>

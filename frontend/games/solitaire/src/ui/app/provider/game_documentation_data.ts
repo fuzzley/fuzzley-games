@@ -39,37 +39,30 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/klondike/overview.webp",
       caption:
-        "Klondike initial deal showing seven tableau columns, stock, waste, and four foundation piles.",
-      altText: "Klondike solitaire board overview",
+        "A new deal, with the stock at the top left and 7 columns below.",
+      altText:
+        "A new game of Klondike, with 1 card face up on each of 7 columns.",
     },
     summary: {
-      objective:
-        "Build all 52 cards onto the four foundation piles by suit in ascending order from Ace to King.",
-      winCondition:
-        "All cards are transferred to the foundations (Ace through King for Hearts, Diamonds, Clubs, and Spades).",
-      quickOverview:
-        "Klondike is the classic solitaire game. Cards are dealt into 7 tableau columns with increasing hidden cards. Players draw cards from the stock to the waste pile and build tableau runs in descending rank with alternating colors.",
+      facts: "1 deck. Draw 1 or Draw 3.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 7 columns containing 1 to 7 cards respectively (top card face-up).",
-        "Foundations: 4 suit piles, initially empty.",
-        "Stock: Remaining cards face-down in top-left.",
-        "Waste: Face-up pile where drawn cards land.",
+        "Stock: the cards left over, face down at the top left.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 4 empty piles at the top right.",
+        "Tableau: 7 columns of 1 to 7 cards. Only the top card is face up.",
       ],
-      cardMovement: [
-        "Cards on the waste pile or tableau columns can be moved to foundations or other tableau columns.",
-        "Face-up sequences of cards in alternating colors can be moved together as a unit.",
-        "Only a King (or a stack headed by a King) can be placed into an empty tableau column.",
+      moves: [
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "Click the stock to turn over 1 card, or 3 in Draw 3.",
+        "You can move a face-up run as one.",
+        "Only a King can fill an empty column.",
+        "When the stock runs out, click it to turn the waste over and go through it again.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in the SAME SUIT from Ace (1) to King (13).",
-        "Tableau: Built DOWN in ALTERNATING COLORS (e.g., Red 9 on Black 10).",
-      ],
-      specialRules: [
-        "Draw Mode: Configurable between Draw 1 (draw one card at a time from stock) and Draw 3 (draw three cards at a time).",
-        "Stock Recycle: When the stock empties, clicking it recycles cards from the waste pile back into the stock — as often as you like under standard scoring, and a limited number of times under Vegas scoring.",
-      ],
+      goodToKnow: ["You can take a card back from a foundation."],
     },
     settingsAndVariants: [
       {
@@ -77,23 +70,22 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "The original: columns build down in alternating colours and only a King can fill an empty column.",
+            effect: "The usual game.",
           },
           {
             value: 1,
             effect:
-              "Whitehead: every card is dealt face-up, columns build down in the SAME COLOUR, any card can fill an empty column, and only proper runs can be lifted. Nothing is hidden, so the whole game is planning.",
+              "Every card in the columns is dealt face up. Columns build down in the same color. Any card can fill an empty column.",
           },
           {
             value: 2,
             effect:
-              "Thumb and Pouch: a card can land on any suit except its own, and any card can fill an empty column — a much looser build than the original, though the deal still hides most of the board.",
+              "A 9 of hearts goes on any 10 except the 10 of hearts. Any card can fill an empty column.",
           },
           {
             value: 3,
             effect:
-              "Saratoga: the original rules, but all 28 column cards are dealt face-up. Only proper alternating-colour runs can be lifted, and only a King can fill an empty column; the stock is the only thing left hidden.",
+              "Every card in the columns is dealt face up. The other rules are the same as Klondike.",
           },
         ],
       },
@@ -103,12 +95,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 1,
             effect:
-              "Easier mode. Flips 1 card at a time, making every stock card directly accessible.",
+              "You turn over 1 card at a time, so you can reach every card in the stock.",
           },
           {
             value: 3,
             effect:
-              "Standard challenge. Flips 3 cards at a time; only the top card of the 3 is immediately playable.",
+              "You turn over 3 cards at a time, and you can only play the top one.",
           },
         ],
       },
@@ -118,12 +110,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "Standard scoring: 10 points for each card to a foundation, 5 for a waste card onto a column and for each card turned over, minus 15 for taking a card back off a foundation, and a penalty for recycling the stock past the free passes. The score never drops below zero, and the stock can be recycled as often as you like.",
+              "You score 10 points for each card you put on a foundation. Going through the stock again can cost points.",
           },
           {
             value: 1,
             effect:
-              "Las Vegas scoring: you start $52 down, having bought the deck at a dollar a card, and win $5 back for every card you put on a foundation (taking one back costs $5). The score can stay negative. The stock can be gone through only once in Draw 1, or three times in Draw 3; pips on the empty stock count the recycles left, and once they are spent it becomes a plain outline.",
+              "You pay $52 for the deck and win $5 for each card on a foundation. 1 pass through the stock in Draw 1, 3 in Draw 3.",
           },
         ],
       },
@@ -135,35 +127,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/freecell/overview.webp",
       caption:
-        "FreeCell board with 4 free cells top-left, 4 foundations top-right, and 8 fully face-up tableau columns.",
-      altText: "FreeCell board overview",
+        "A new deal, with the free cells at the top left and 8 columns below.",
+      altText: "A new game of FreeCell, with every card face up in 8 columns.",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 52 cards are sorted into their respective suit foundations from Ace through King.",
-      quickOverview:
-        "FreeCell is a highly strategic solitaire game played with all cards dealt face-up into 8 columns. Four free cells act as temporary storage locations while you arrange columns in descending order with alternating colors.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Free Cells: 4 single-card holding cells at top-left.",
-        "Foundations: 4 suit piles at top-right, initially empty.",
-        "Tableau: 8 columns with all 52 cards dealt completely face-up.",
+        "Free cells: 4 spaces at the top left, for 1 card each.",
+        "Foundations: 4 empty piles at the top right.",
+        "Tableau: 8 columns of 6 or 7 cards.",
       ],
-      cardMovement: [
-        "Any single card can be placed into an empty Free Cell.",
-        "Any card can start an empty tableau column.",
-        "Multi-card moves (supermoves) simulate moving cards through open Free Cells and empty tableau columns.",
+      moves: [
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can move the top card of a column to an empty free cell.",
+        "Any card can fill an empty column.",
+        "You can move several cards at once if there are enough free cells and empty columns to move them one at a time. With 2 free cells and no empty column, that is 3 cards.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-      ],
-      specialRules: [
-        "Supermove Capacity Formula: Maximum cards moved at once is (Free Cells + 1) * 2^(Empty Tableaus).",
-        "No Stock: FreeCell has no stock or hidden cards; all cards are visible from the deal.",
+      goodToKnow: [
+        "When you move cards into an empty column, that column doesn't count toward how many you can move.",
       ],
     },
     settingsAndVariants: [],
@@ -174,36 +159,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/spider/overview.webp",
       caption:
-        "Spider board featuring 10 tableau columns and stock deals at bottom-left.",
-      altText: "Spider solitaire board overview",
+        "A new deal, with the stock at the top left and 8 foundations beside it.",
+      altText:
+        "A new game of Spider, with 10 columns and 1 card face up on each.",
     },
     summary: {
-      objective:
-        "Assemble 8 full same-suit sequences from King down to Ace on the tableau to clear them.",
-      winCondition:
-        "All 8 13-card sequences (King to Ace of same suit) are completed and removed from the board.",
-      quickOverview:
-        "Spider uses two 52-card decks (104 cards total). Players build descending sequences in 10 tableau columns. Completed King-to-Ace same-suit runs are automatically cleared to foundation slots.",
+      facts: "2 decks. 1, 2 or 4 suits. No redeal.",
+      goal: "Clear the table by building 8 runs, each from King down to Ace in a single suit.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 10 columns (first 4 columns have 6 cards, remaining 6 have 5 cards; top card face-up).",
-        "Stock: Holds remaining 50 cards (dealt 10 cards at a time, one to each column).",
-        "Foundations: Holds completed 13-card sequences.",
+        "Stock: the 50 cards left over, face down at the top left.",
+        "Foundations: 8 empty piles at the top right, where finished runs go.",
+        "Tableau: 10 columns of 5 or 6 cards. Only the top card is face up.",
       ],
-      cardMovement: [
-        "Cards can be placed on any tableau card of next higher rank, regardless of suit (e.g. 7 of Clubs on 8 of Hearts).",
-        "Only same-suit runs can be moved together as a stack.",
-        "Any card or valid same-suit run can fill an empty tableau column.",
+      moves: [
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can move several cards at once only if they run down in the same suit.",
+        "Any card or run can fill an empty column.",
+        "Click the stock to deal 1 card face up onto every column.",
+        "When you finish a run from King to Ace in a single suit, it moves to a foundation on its own.",
       ],
-      sequenceBuilding: [
-        "Tableau: Built DOWN by RANK (regardless of suit for single cards, same suit for multi-card moves).",
-        "Completion: Complete King-down-to-Ace sequence of the SAME suit automatically moves to foundations.",
-      ],
-      specialRules: [
-        "Stock Dealing: Dealing from stock places 1 face-up card on top of every tableau column.",
-        "Empty Column Requirement: All tableau columns must contain at least 1 card before dealing from the stock.",
-      ],
+      goodToKnow: ["You can't deal from the stock while a column is empty."],
     },
     settingsAndVariants: [
       {
@@ -212,17 +189,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 1,
             effect:
-              "Easiest mode (104 Spades). Every run is in suit, allowing easy multi-card moves and sequence builds.",
+              "All 104 cards are spades, so any run you build can be moved and finished.",
           },
           {
             value: 2,
-            effect:
-              "Medium mode (Spades & Hearts). Requires balancing mixed-suit building with same-suit runs.",
+            effect: "Half the cards are spades and half are hearts.",
           },
           {
             value: 4,
             effect:
-              "Classic hard challenge (Spades, Hearts, Diamonds, Clubs). Highly tactical and tight sequence control.",
+              "2 full decks in all 4 suits. This is the usual game, and the hardest.",
           },
         ],
       },
@@ -238,30 +214,25 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Yukon solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all 52 cards onto four foundations by suit from Ace to King.",
-      winCondition: "All cards are placed in order on the foundations.",
-      quickOverview:
-        "Yukon is a fast-paced game with no stock pile. All cards are dealt to the tableau at the start. The signature rule of Yukon is that ANY face-up card can be moved regardless of how many cards are sitting on top of it.",
+      facts: "",
+      goal: "Build all 52 cards onto four foundations by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
         "Tableau: 7 columns (column 1 has 1 face-up card; columns 2-7 have 1-6 face-down cards plus 5 face-up cards).",
         "Foundations: 4 suit piles at top-right, built Ace to King.",
       ],
-      cardMovement: [
-        "Any face-up card anywhere in a column can be grabbed and moved, taking all cards above it along for the ride.",
-        "The grabbed card must land on a valid receiving card according to the variant build rule.",
-        "Only Kings (and stacks led by a King) can fill empty tableau columns.",
-      ],
-      sequenceBuilding: [
+      moves: [
         "Foundations: Built UP in SAME SUIT from Ace to King.",
         "Tableau (Yukon): Built DOWN in ALTERNATING COLORS.",
         "Tableau (Alaska): Built UP or DOWN in SAME SUIT.",
         "Tableau (Russian): Built DOWN in SAME SUIT.",
         "Tableau (Moosehide): Built DOWN in ANY SUIT BUT THE CARD'S OWN.",
+        "Any face-up card anywhere in a column can be grabbed and moved, taking all cards above it along for the ride.",
+        "The grabbed card must land on a valid receiving card according to the variant build rule.",
+        "Only Kings (and stacks led by a King) can fill empty tableau columns.",
       ],
-      specialRules: [
+      goodToKnow: [
         "No Staging Penalty: Stacks being moved do not need to be in sequence; only the targeted card and destination card must match placement rules.",
       ],
     },
@@ -303,11 +274,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Baker's Game board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the foundations from Ace to King by suit.",
-      winCondition: "All four foundations completed from Ace through King.",
-      quickOverview:
-        "Baker's Game is the direct predecessor to FreeCell. It shares FreeCell's deal and 4 free cells, but requires tableau columns to be built strictly in the SAME SUIT rather than alternating colors.",
+      facts: "",
+      goal: "Move all 52 cards to the foundations from Ace to King by suit.",
     },
     detailedRules: {
       layout: [
@@ -315,16 +283,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles, Ace to King.",
         "Tableau: 8 columns, all 52 cards dealt face-up.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT (e.g. 9 of Spades on 10 of Spades).",
         "Single cards can move to any empty free cell.",
         "Supermove limits apply based on available free cells and empty columns.",
         "Cards on tableau columns must build DOWN in the SAME SUIT.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT (e.g. 9 of Spades on 10 of Spades).",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Empty Columns Rule: Configurable between Any Card or Kings Only.",
         "Kings Only Staging Limit: When empty columns accept Kings only, empty columns contribute zero staging capacity for supermoves, making multi-card moves strictly (Free Cells + 1).",
       ],
@@ -356,12 +322,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Challenge FreeCell board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 52 cards are sorted into their suit foundations from Ace through King.",
-      quickOverview:
-        "Challenge FreeCell is FreeCell with the deal rigged against you: the four Aces and four Twos are dealt first, one to the bottom of each column, so every foundation starts at the very bottom of the board. Super Challenge FreeCell also lets only Kings fill an empty column.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -369,16 +331,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles at top-right, initially empty.",
         "Tableau: 8 columns with all 52 cards dealt face-up, an Ace or a Two at the bottom of each.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
         "Any single card can be placed into an empty free cell.",
         "Any card can start an empty column, or only a King under Super Challenge.",
         "Multi-card moves (supermoves) simulate moving cards through open free cells and empty columns.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Buried Foundations: no foundation can be started until a whole column has been dismantled down to its Ace, so the opening is spent clearing columns rather than playing up.",
         "Supermove Capacity: (Free Cells + 1) * 2^(Empty Columns) with any card in a space; strictly (Free Cells + 1) when only Kings fill a space, because a moving run's only King is its bottom card.",
       ],
@@ -411,12 +371,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Eight Off board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four suit foundation piles, built Ace to King.",
-      winCondition:
-        "All cards transferred to suit foundations Ace through King.",
-      quickOverview:
-        "Eight Off is a cousin of FreeCell and Baker's Game featuring 8 free cells instead of 4. Four of the cells start occupied by cards during deal. Tableau columns build strictly down in the same suit, and empty columns accept Kings only.",
+      facts: "",
+      goal: "Move all 52 cards to the four suit foundation piles, built Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -424,16 +380,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles, initially empty.",
         "Tableau: 8 columns of 6 cards each, all dealt face-up.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
         "Single cards can move to any empty free cell.",
         "Tableau columns build strictly DOWN in the SAME SUIT.",
         "Only Kings can fill an empty tableau column.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Supermove Capacity: Because empty columns accept Kings only, multi-card supermoves are strictly capped at (Free Cells + 1).",
       ],
     },
@@ -449,12 +403,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Scorpion solitaire board overview",
     },
     summary: {
-      objective:
-        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
-      winCondition:
-        "All 4 suits assembled in complete King-to-Ace runs on the board.",
-      quickOverview:
-        "Scorpion combines the open-stack dragging mechanics of Yukon with the same-suit sequence completion goals of Spider. Players move any face-up card along with all cards on top of it to build same-suit descending runs.",
+      facts: "",
+      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
     },
     detailedRules: {
       layout: [
@@ -462,16 +412,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: 3 remaining cards dealt in a single press.",
         "Foundations: Automated slots for completed King-to-Ace same-suit runs.",
       ],
-      cardMovement: [
+      moves: [
+        "Tableau: Built DOWN in SAME SUIT.",
+        "Completion: Complete King-to-Ace same-suit runs automatically clear to foundation slots.",
         "Any face-up card in a column can be moved regardless of what is on top of it.",
         "The grabbed card must land on a card of the SAME SUIT and exactly 1 rank higher (e.g., 7 of Spades on 8 of Spades).",
         "Only Kings (or stacks led by a King) can fill empty tableau columns.",
       ],
-      sequenceBuilding: [
-        "Tableau: Built DOWN in SAME SUIT.",
-        "Completion: Complete King-to-Ace same-suit runs automatically clear to foundation slots.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Reserve Deal: Clicking the 3-card stock deals 1 card face-up onto each of the first 3 tableau columns.",
       ],
     },
@@ -508,12 +456,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Simple Simon solitaire board overview",
     },
     summary: {
-      objective:
-        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
-      winCondition:
-        "All 4 suits assembled in complete King-to-Ace runs and cleared to the foundations.",
-      quickOverview:
-        "Simple Simon plays by Spider's rules on an open board: one deck, ten columns, every card face-up, and no stock at all. Columns build down by rank in any suit, but only a same-suit run can be picked up, so the whole game is deciding which mixed piles you can afford to build.",
+      facts: "",
+      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
     },
     detailedRules: {
       layout: [
@@ -521,17 +465,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
         "No Stock: every one of the 52 cards is on the tableau from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
         "A card can be picked up only with an unbroken same-suit descending run resting on it.",
         "Any card, or any run, can be moved into an empty tableau column.",
         "There is no limit on how many cards move at once: a run travels in one piece rather than being staged through spare squares.",
       ],
-      sequenceBuilding: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "No Recovery: with no stock and no face-down cards, a position played into a corner cannot be rescued — every deal is winnable or not from the opening move.",
         "The Staircase: the short columns on the right are the cheapest to clear, and opening a column early is usually worth more than any single run.",
       ],
@@ -548,12 +490,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Mrs. Mop solitaire board overview",
     },
     summary: {
-      objective:
-        "Build eight 13-card same-suit sequences from King down to Ace on the tableau.",
-      winCondition:
-        "All 8 runs, two per suit, assembled from King to Ace and cleared to the foundations.",
-      quickOverview:
-        "Mrs. Mop is Spider with nothing hidden: both decks are dealt face-up into thirteen columns of eight, and there is no stock at all. Columns build down by rank in any suit, but only a same-suit run can be picked up. Charles Jewell invented it.",
+      facts: "",
+      goal: "Build eight 13-card same-suit sequences from King down to Ace on the tableau.",
     },
     detailedRules: {
       layout: [
@@ -561,17 +499,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 8 automated slots for completed King-to-Ace same-suit runs.",
         "No Stock: every card is on the tableau from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
         "A card can be picked up only with an unbroken same-suit descending run resting on it.",
         "Any card, or any run, can be moved into an empty column.",
         "There is no limit on how many cards move at once: a run travels in one piece.",
       ],
-      sequenceBuilding: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Open Information: with both decks visible and no stock, every deal can be planned from the first move, as in Simple Simon.",
         "Two of Everything: each card has a twin, so a run can often be finished from either of two places — and blocked in either of two.",
       ],
@@ -588,12 +524,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Baker's Dozen solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 52 cards are sorted into their suit foundations from Ace through King.",
-      quickOverview:
-        "Baker's Dozen deals thirteen columns of four cards face-up with the Kings sunk to the bottom of their columns. Cards move one at a time and build down by rank in any suit — but an emptied column can never be refilled, which inverts the instinct every other solitaire teaches.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -601,16 +533,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles at the right of the top row, initially empty.",
         "No Stock: all 52 cards are on the tableau from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
         "Only the top card of a column can be moved, one card at a time.",
         "A card can go onto any column whose top card is exactly 1 rank higher, of any suit.",
         "Empty columns cannot be filled by any card — once a column is cleared it stays empty for the rest of the game.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Kings Sink: after the deal, every King is moved to the bottom of its column. A King can never be moved, so one left on top would bury the cards beneath it for the whole game.",
         "Dead Columns: because empty columns cannot be refilled, clearing one is a loss of working space rather than a gain — the opposite of Klondike, FreeCell and Spider.",
         "No Staging: with no free cells and no usable empty columns, there is nowhere to park a card, so multi-card moves are impossible by construction.",
@@ -628,12 +558,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Seahaven Towers solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 52 cards are sorted into their suit foundations from Ace through King.",
-      quickOverview:
-        "Seahaven Towers deals ten columns of five face-up cards, with the two leftover cards already filling two of its four cells. Columns build down in a single suit and open only to a King, which makes it the tightest of the cell games.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -641,16 +567,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles at top-right, initially empty.",
         "Tableau: 10 columns of 5 cards, all face-up.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
         "Any single card can be placed into an empty cell.",
         "Only a King (or a run headed by a King) can start an empty column.",
         "Multi-card moves simulate moving cards one at a time through the open cells.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Supermove Capacity: strictly (Free Cells + 1), with no doubling for empty columns. Because an empty column accepts only a King and a moving run's only King is its bottom card, an empty column can never stage part of a run.",
         "Opening Squeeze: the deal spends two of the four cells, so the game begins with the least slack of any cell game here — freeing those two cells is usually the first task.",
       ],
@@ -667,12 +591,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Spiderette solitaire board overview",
     },
     summary: {
-      objective:
-        "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
-      winCondition:
-        "All 4 suits assembled in complete King-to-Ace runs and cleared to the foundations.",
-      quickOverview:
-        "Spiderette is Spider played with one deck on seven columns. Columns build down by rank in any suit but only same-suit runs can be lifted, and the stock deals a card onto every column at once rather than turning cards into a waste.",
+      facts: "",
+      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
     },
     detailedRules: {
       layout: [
@@ -680,17 +600,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: the remaining 24 cards, dealt a row at a time.",
         "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
       ],
-      cardMovement: [
+      moves: [
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
+        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
+        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
         "A card can be picked up only with an unbroken same-suit descending run resting on it.",
         "Any card, or any run, can be moved into an empty column.",
         "Turning over a column's newly exposed card happens automatically.",
       ],
-      sequenceBuilding: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Row Deal: pressing the stock deals one card face-up onto every column at once.",
         "Deals Onto Empty Columns: unlike Spider, the stock will deal even when a column is empty. Neither deal divides evenly by seven, so the final row is always short and refusing would strand it.",
       ],
@@ -723,12 +641,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Easthaven solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 52 cards are sorted into their suit foundations from Ace through King.",
-      quickOverview:
-        "Easthaven joins Spider's stock to Klondike's objective. Seven columns of three build down in alternating colours, but the stock deals a card onto every column at once — and it refuses to deal at all while any column stands empty.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -736,16 +650,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: the remaining 31 cards, dealt a row at a time.",
         "Foundations: 4 suit piles, filled by the player one card at a time.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
         "A card can be picked up only with an unbroken alternating-colour descending run resting on it — stricter than Klondike, which allows a broken pile to be dragged.",
         "Only a King (or a run headed by a King) can fill an empty column.",
         "Turning over a column's newly exposed card happens automatically.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Row Deal: pressing the stock deals one card face-up onto every column at once. The stock holds 31 against 7 columns, so the final row is a short one of three.",
         "No Deal Onto Empty Columns: the stock refuses while any column stands empty. Combined with Kings-only spaces, a player holding an empty column and no free King has neither a move that fills it nor a stock that will deal — which is how Easthaven is lost outright rather than merely stalled.",
       ],
@@ -762,12 +674,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Forty Thieves solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 104 cards are sorted onto the eight foundations, two per suit.",
-      quickOverview:
-        "Forty Thieves deals two decks into ten columns of four and turns the stock one card at a time onto a waste that is never recycled. Columns build down in a single suit and move one card at a time, which makes it one of the hardest classic patiences.",
+      facts: "",
+      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -776,16 +684,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: the remaining 64 cards, drawn one at a time.",
         "Waste: a single face-up card where the drawn card lands.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
         "The top card of any column, or the card on the waste, can be moved.",
         "Any card can start an empty column — the only real generosity in the game, since there are no free cells.",
         "The top card of a foundation can be taken back down onto a column.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "No Recycle: the stock is dealt through exactly once. When the 64 cards are gone they are gone, so every drawn card must be placed now or buried under the next.",
         "One Card At A Time: the standard game moves a single card per move, with no free cells and no staging, so a column is dismantled card by card or not at all.",
       ],
@@ -833,12 +739,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Maria solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 104 cards are sorted onto the eight foundations, two per suit.",
-      quickOverview:
-        "Maria is Forty Thieves on a narrower board: nine columns of four instead of ten, built down in alternating colours with runs moving as a unit. Fewer columns means a smaller tableau and a longer stock to work through.",
+      facts: "",
+      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -846,16 +748,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 8 suit piles, two per suit.",
         "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
         "A card can be picked up with an unbroken alternating-colour descending run resting on it.",
         "Any card can start an empty column.",
         "The top card of a foundation can be taken back down onto a column.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
         "Narrow Board: nine columns hold only 36 of the 104 cards, so more of the deck arrives through the stock than in Forty Thieves proper.",
       ],
@@ -872,12 +772,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Limited solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 104 cards are sorted onto the eight foundations, two per suit.",
-      quickOverview:
-        "Limited spreads Forty Thieves wider and shallower: twelve columns of three, built down in a single suit with runs moving as a unit. Every column is only two cards deep beneath its top, so far more of the tableau is immediately playable.",
+      facts: "",
+      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -885,16 +781,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 8 suit piles, two per suit.",
         "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
         "A card can be picked up with an unbroken same-suit descending run resting on it.",
         "Any card can start an empty column.",
         "The top card of a foundation can be taken back down onto a column.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
         "Shallow Columns: with only three cards per column, almost the whole tableau is reachable from the opening position.",
       ],
@@ -911,12 +805,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Lucas solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
-      winCondition:
-        "All 104 cards are sorted onto the eight foundations, two per suit.",
-      quickOverview:
-        "Lucas is Forty Thieves with a head start: the eight Aces begin on the foundations, and the rest is dealt into thirteen shallow columns of three. Columns build down in suit and a same-suit run moves as a unit, but the stock still goes through only once.",
+      facts: "",
+      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -924,16 +814,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Tableau: 13 columns of 3 cards, all face-up — the widest board in the family.",
         "Stock: the remaining 57 cards, drawn one at a time onto a waste.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from the Ace already there to King.",
+        "Tableau: Built DOWN in SAME SUIT.",
         "A card can be picked up with an unbroken same-suit descending run resting on it.",
         "Any card can start an empty column.",
         "The top card of a foundation can be taken back down onto a column.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from the Ace already there to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Aces Home: with every foundation already started, any Two that turns up can go straight home.",
         "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family. About one deal in three can be won.",
       ],
@@ -950,12 +838,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Double Klondike solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all 104 cards from two decks onto the eight foundation piles by suit, from Ace to King.",
-      winCondition:
-        "All 104 cards are transferred to the eight foundations, two per suit.",
-      quickOverview:
-        "Double Klondike is Klondike dealt from two decks: nine columns in the familiar staircase, eight foundations, and a stock of 59 drawn three at a time with unlimited recycles.",
+      facts: "",
+      goal: "Build all 104 cards from two decks onto the eight foundation piles by suit, from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -964,16 +848,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: the remaining 59 cards, face-down at top-left.",
         "Waste: face-up pile where drawn cards land, fanned three at a time.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Tableau: Built DOWN in ALTERNATING COLORS.",
         "Any face-up card can be moved along with everything stacked on it, ordered or not.",
         "Only a King (or a stack headed by a King) can be placed into an empty column — but with two decks there are eight Kings, so spaces are far easier to fill than in Klondike.",
         "Cards on the waste or the tableau can be moved to foundations or other columns.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Stock Recycle: when the stock empties, clicking it recycles the waste back into the stock, as often as you like.",
         "Congested Middle Game: eight foundations must be fed from a tableau only two columns wider than Klondike's, so twice the cards does not mean twice the room.",
         "Scoring: the same scoring as Klondike — 10 points to a foundation, 5 for a waste card onto a column, 5 for turning a card over, and a penalty for recycling past the free passes.",
@@ -991,12 +873,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Montana solitaire board overview",
     },
     summary: {
-      objective:
-        "Arrange each of the four rows into a single suit running from Two up to King.",
-      winCondition:
-        "Every row reads Two through King in one suit, with the gap parked at the end.",
-      quickOverview:
-        "Montana, also played as Gaps, deals 48 cards — a deck without its Aces — into a grid of four rows by thirteen, leaving four gaps. You move a card into a gap only if it continues the run to the gap's left, and you win by sorting all four rows.",
+      facts: "",
+      goal: "Arrange each of the four rows into a single suit running from Two up to King.",
     },
     detailedRules: {
       layout: [
@@ -1004,17 +882,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Gaps: 4 empty cells, where the Aces would have fallen.",
         "Redeal: a marker beside the grid, worth two uses per game, or three in Addiction. Its pips count them: filled for each redeal left, hollow for each one spent.",
       ],
-      cardMovement: [
+      moves: [
+        "Rows: Built UP in SAME SUIT from Two to King, left to right.",
+        "There are no foundations and no stacking — cards only ever move between cells.",
         "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
         "A gap in the leftmost column accepts any Two.",
         "A gap immediately to the right of a King accepts nothing — it is dead for the rest of the deal, and creating one is the mistake to avoid.",
         "Moving a card leaves a new gap behind it, so every move both opens and closes an opportunity.",
       ],
-      sequenceBuilding: [
-        "Rows: Built UP in SAME SUIT from Two to King, left to right.",
-        "There are no foundations and no stacking — cards only ever move between cells.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game, or three in Addiction; once they are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
         "No Aces: the Aces are not in play at all, which is what creates the four gaps.",
         "Won by Arrangement: unlike every other game here, nothing is gathered onto a pile — the cards end where they started, in cells, just in the right order.",
@@ -1047,12 +923,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Blue Moon solitaire board overview",
     },
     summary: {
-      objective:
-        "Arrange each of the four rows into a single suit running from its Ace up to King.",
-      winCondition:
-        "Every row reads Ace through King in one suit, with the gap parked at the end.",
-      quickOverview:
-        "Blue Moon is Montana played with the whole deck. The 52 cards are dealt in four rows, then each Ace is moved to the head of a row of its own, leaving a gap where it was. A gap takes the card that continues the run to its left, and each Ace decides which suit its row is built in.",
+      facts: "",
+      goal: "Arrange each of the four rows into a single suit running from its Ace up to King.",
     },
     detailedRules: {
       layout: [
@@ -1061,17 +933,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Gaps: 4 empty cells, where the Aces were dealt.",
         "Redeal: a marker beside the grid, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
       ],
-      cardMovement: [
+      moves: [
+        "Rows: Built UP in SAME SUIT from the Ace to King, left to right.",
+        "There are no foundations and no stacking — cards only ever move between cells.",
         "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
         "A gap beside an Ace accepts that Ace's Two.",
         "A gap immediately to the right of a King accepts nothing until the King moves on.",
         "The Aces never move, and nothing can be placed in front of them.",
       ],
-      sequenceBuilding: [
-        "Rows: Built UP in SAME SUIT from the Ace to King, left to right.",
-        "There are no foundations and no stacking — cards only ever move between cells.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the Ace, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once they are spent, or nothing is left to gather, the marker becomes a plain outline.",
         "Won by Arrangement: as in Montana, nothing is gathered onto a pile — the cards end in cells, just in the right order.",
       ],
@@ -1104,12 +974,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Bisley solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards onto the foundations, each suit climbing from its Ace and descending from its King until the two meet.",
-      winCondition:
-        "Every card is on a foundation, whichever of its suit's two piles it ended on.",
-      quickOverview:
-        "Bisley lays the four Aces out first and deals the rest face-up into thirteen columns. Each suit has two foundations: one building up from the Ace, and one building down from the King once a King is free. The columns build up or down in suit, one card at a time, and an emptied column stays empty.",
+      facts: "",
+      goal: "Move all 52 cards onto the foundations, each suit climbing from its Ace and descending from its King until the two meet.",
     },
     detailedRules: {
       layout: [
@@ -1118,18 +984,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Tableau: 13 face-up columns — 3 cards in each of the first four, 4 cards in each of the other nine.",
         "No Stock: all 52 cards are in view from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Ace Foundations: Built UP in SAME SUIT from the Ace.",
+        "King Foundations: Built DOWN in SAME SUIT from the King.",
+        "Tableau: Built UP or DOWN in SAME SUIT, and a column may change direction.",
         "Only the top card of a column can be moved, one card at a time.",
         "A card can go onto a column whose top card is the same suit and exactly 1 rank higher or lower.",
         "A free King can start the King foundation of its own suit.",
         "Empty columns cannot be filled — once a column is cleared it stays empty.",
       ],
-      sequenceBuilding: [
-        "Ace Foundations: Built UP in SAME SUIT from the Ace.",
-        "King Foundations: Built DOWN in SAME SUIT from the King.",
-        "Tableau: Built UP or DOWN in SAME SUIT, and a column may change direction.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Meeting Foundations: a suit's two foundations may meet at any rank. Once they hold all thirteen cards between them, that suit is done.",
         "Two-Way Building: a column can climb and then fall, so the same suit can be gathered around a card from either side.",
       ],
@@ -1146,12 +1010,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Aces Up solitaire board overview",
     },
     summary: {
-      objective:
-        "Discard all 48 cards that are not Aces, leaving only the four Aces on the table.",
-      winCondition:
-        "The stock is dealt out and nothing but Aces remains in the columns.",
-      quickOverview:
-        "Aces Up deals one card to each of four columns. Whenever two columns show cards of the same suit, the lower one can be discarded; Aces rank high, so they can never be. When nothing more can go, deal another card onto every column, and keep going until the stock runs out.",
+      facts: "",
+      goal: "Discard all 48 cards that are not Aces, leaving only the four Aces on the table.",
     },
     detailedRules: {
       layout: [
@@ -1159,17 +1019,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Tableau: 4 columns, each dealt one face-up card to start.",
         "Discard: a single pile at the right, initially empty.",
       ],
-      cardMovement: [
+      moves: [
+        "Nothing is built: cards are only ever discarded or moved into a space.",
+        "Aces rank above Kings, so an Ace can never be discarded.",
         "The top card of a column can be discarded while another column's top card is the same suit and higher.",
         "The top card of a column can be moved into an empty column.",
         "Pressing the stock deals one card face-up onto each column.",
         "Double-press a card to discard it, or to move it into a space when it cannot be discarded.",
       ],
-      sequenceBuilding: [
-        "Nothing is built: cards are only ever discarded or moved into a space.",
-        "Aces rank above Kings, so an Ace can never be discarded.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Buried Cards: a card dealt over another hides it until the top card is discarded or moved into a space — spaces are what dig a buried card out.",
         "The stock can be dealt at any time, but it is dealt only once.",
       ],
@@ -1202,12 +1060,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Golf solitaire board overview",
     },
     summary: {
-      objective:
-        "Clear all seven columns by playing their cards onto the foundation, one rank up or down at a time.",
-      winCondition:
-        "Every column is empty. Cards left in the stock do not matter.",
-      quickOverview:
-        "Golf deals seven columns of five cards face-up and starts the foundation with one more. Any column's top card can be played onto the foundation if it is one rank above or below the foundation's top card, in any suit. When nothing can be played, turn the next stock card onto the foundation and carry on — but the stock goes through only once.",
+      facts: "",
+      goal: "Clear all seven columns by playing their cards onto the foundation, one rank up or down at a time.",
     },
     detailedRules: {
       layout: [
@@ -1215,16 +1069,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundation: a single pile beside the stock, started with one card from the deal.",
         "Tableau: 7 columns of 5 cards, all face-up.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT — a run can go up and down as it likes.",
+        "Nothing may be played on a King, so a King ends the run until the stock is turned.",
         "Press a column's top card to play it onto the foundation, or drag it there.",
         "Press the stock to turn its top card onto the foundation, whatever its rank.",
         "Nothing is ever placed on a column: cards only leave them.",
       ],
-      sequenceBuilding: [
-        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT — a run can go up and down as it likes.",
-        "Nothing may be played on a King, so a King ends the run until the stock is turned.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "One Pass: the stock is never recycled; once it is gone, the game ends when nothing more can be played.",
         "Long Runs: the trick is to plan a chain up and down through several columns before turning the next stock card.",
       ],
@@ -1262,12 +1114,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Calculation solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all four foundations up to their King, each by its own interval, regardless of suit.",
-      winCondition:
-        "All 52 cards are on the foundations, each ending on a King.",
-      quickOverview:
-        "Calculation starts four foundations with an Ace, a Two, a Three and a Four. The first counts up in ones, the second in twos, the third in threes and the fourth in fours, counting on past the King from the Ace. Turn the stock one card at a time and put each card on a foundation or park it on one of four waste piles — where it waits, buried under whatever you park on it later.",
+      facts: "",
+      goal: "Build all four foundations up to their King, each by its own interval, regardless of suit.",
     },
     detailedRules: {
       layout: [
@@ -1276,20 +1124,18 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 piles started with an Ace, a Two, a Three and a Four, in any suits.",
         "Waste: 4 piles beneath the foundations, initially empty.",
       ],
-      cardMovement: [
-        "Press the stock to turn its top card into the hand. The next card can be turned only once the hand is empty.",
-        "The card in the hand must go to a foundation or onto any waste pile.",
-        "Only the top card of a waste pile can move, and only to a foundation.",
-        "Double-press a card in the hand or on a waste pile to send it to a foundation that takes it.",
-      ],
-      sequenceBuilding: [
+      moves: [
         "Foundation 1: A 2 3 4 5 6 7 8 9 10 J Q K — up in ones.",
         "Foundation 2: 2 4 6 8 10 Q A 3 5 7 9 J K — up in twos.",
         "Foundation 3: 3 6 9 Q 2 5 8 J A 4 7 10 K — up in threes.",
         "Foundation 4: 4 8 Q 3 7 J 2 6 10 A 5 9 K — up in fours.",
         "Suits never matter, and every foundation ends on its King.",
+        "Press the stock to turn its top card into the hand. The next card can be turned only once the hand is empty.",
+        "The card in the hand must go to a foundation or onto any waste pile.",
+        "Only the top card of a waste pile can move, and only to a foundation.",
+        "Double-press a card in the hand or on a waste pile to send it to a foundation that takes it.",
       ],
-      specialRules: [
+      goodToKnow: [
         "One Pass: the stock is never recycled.",
         "Waste Discipline: a waste pile is a stack, not a store — plan each one to come off in the order its foundation will want, high cards underneath. Kings are usually best kept to one pile, since every foundation ends on one.",
       ],
@@ -1322,11 +1168,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Flower Garden solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their suit foundations.",
-      quickOverview:
-        "Flower Garden deals thirty-six cards face-up into six beds of six, and fans the other sixteen out as the bouquet. Every card in the bouquet is free to play at any time — onto a foundation or onto a bed — while the beds build down regardless of suit, one card at a time.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -1334,17 +1177,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 suit piles at the top-right, initially empty.",
         "Beds: 6 columns of 6 face-up cards.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Beds: Built DOWN by RANK in ANY SUIT.",
         "Any bouquet card can be played onto a foundation or a bed, wherever it sits in the fan.",
         "Only the top card of a bed can be moved, one card at a time.",
         "An empty bed can be filled with any card, from the bouquet or another bed.",
         "Nothing is ever put back into the bouquet.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Beds: Built DOWN by RANK in ANY SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "The Bouquet as a Reserve: the bouquet is like sixteen free cells that start full — the art is spending its cards to dig out the low cards buried in the beds.",
         "No Stock: every card is in view from the first move.",
       ],
@@ -1361,11 +1202,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Bristol solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all 52 cards onto the four foundations, each from an Ace up to a King, regardless of suit.",
-      winCondition: "All 52 cards are on the foundations.",
-      quickOverview:
-        "Bristol deals eight fans of three cards face-up, with any King moved to the bottom of its fan, and three more cards to start three reserves. The stock deals three cards at a time, one onto each reserve, burying what was there. Fans build down regardless of suit and are never refilled once emptied.",
+      facts: "",
+      goal: "Build all 52 cards onto the four foundations, each from an Ace up to a King, regardless of suit.",
     },
     detailedRules: {
       layout: [
@@ -1374,18 +1212,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 piles at the top-right, initially empty.",
         "Tableau: 8 fans of 3 face-up cards, with Kings sunk to the bottom.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: any Ace starts one, then Built UP by RANK in ANY SUIT to the King.",
+        "Fans: Built DOWN by RANK in ANY SUIT.",
         "Only the top card of a fan or a reserve can be moved, one card at a time.",
         "A card can go onto a fan whose top card is exactly 1 rank higher, in any suit.",
         "Nothing can be placed on a reserve; only the stock adds to them.",
         "An empty fan can never be filled again.",
         "Pressing the stock deals one card face-up onto each reserve.",
       ],
-      sequenceBuilding: [
-        "Foundations: any Ace starts one, then Built UP by RANK in ANY SUIT to the King.",
-        "Fans: Built DOWN by RANK in ANY SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Kings Sink: a King cannot move onto a fan, so the deal puts each one at the bottom of its fan, where it buries nothing.",
         "One Pass: the stock is dealt only once, and each deal buries the reserve cards beneath it — play what you can before dealing.",
       ],
@@ -1417,10 +1253,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Nestor solitaire board overview",
     },
     summary: {
-      objective: "Discard the whole deck in pairs of the same rank.",
-      winCondition: "All 52 cards are on the discard.",
-      quickOverview:
-        "Nestor deals eight columns of six cards face-up, with no two cards of the same rank in any one column, and leaves the last four as a reserve. Pair the free cards — the top of each column and every reserve card — two of the same rank at a time, until the board is clear.",
+      facts: "",
+      goal: "Discard the whole deck in pairs of the same rank.",
     },
     detailedRules: {
       layout: [
@@ -1428,16 +1262,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Discard: a single pile at the top-right, initially empty.",
         "Tableau: 8 columns of 6 face-up cards, no column holding two cards of a rank.",
       ],
-      cardMovement: [
+      moves: [
+        "Nothing is built: cards only leave the board, two at a time.",
+        "A free card is the top card of a column, or any reserve card.",
         "Drag a free card onto another free card of the same rank, in any suit, and both go to the discard.",
         "Double-press a free card to pair it with the first free card of its rank.",
         "Cards are never moved anywhere but onto their partner.",
       ],
-      sequenceBuilding: [
-        "Nothing is built: cards only leave the board, two at a time.",
-        "A free card is the top card of a column, or any reserve card.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "The Deal: a card that would repeat a rank already in its column goes to the bottom of the deck and the next card is dealt instead, so no column starts with a pair in it. If every card left would repeat a rank, the rule gives way.",
         "Choosing Pairs: four cards of each rank make two pairs, and which two pair first can decide whether a column's buried cards ever come free.",
       ],
@@ -1454,10 +1286,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Monte Carlo solitaire board overview",
     },
     summary: {
-      objective: "Discard the whole deck in pairs of touching cards.",
-      winCondition: "All 52 cards are on the discard.",
-      quickOverview:
-        "Monte Carlo deals twenty-five cards face-up into a five-by-five grid. Remove pairs of the same rank that touch — side by side, one above the other, or corner to corner. Then consolidate: the remaining cards close up towards the top left, in reading order, and the stock fills the gaps left at the end.",
+      facts: "",
+      goal: "Discard the whole deck in pairs of touching cards.",
     },
     detailedRules: {
       layout: [
@@ -1465,17 +1295,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Grid: 5 rows of 5 face-up cards.",
         "Discard: a single pile at the right of the grid, initially empty.",
       ],
-      cardMovement: [
+      moves: [
+        "Nothing is built: cards only leave the grid, two at a time.",
+        "Cards keep their reading order when they slide, so a card's neighbours change with every consolidation.",
         "Drag a card onto a touching card of the same rank, in any suit, and both go to the discard. Diagonal neighbours count.",
         "Double-press a card to pair it with the first touching card of its rank.",
         "Press the stock to consolidate: every card left slides towards the top left in reading order, closing the gaps, and the stock deals into the cells left empty at the end.",
         "Once the stock is gone, its empty slot still consolidates the grid.",
       ],
-      sequenceBuilding: [
-        "Nothing is built: cards only leave the grid, two at a time.",
-        "Cards keep their reading order when they slide, so a card's neighbours change with every consolidation.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Lost Game: if no touching pair is left and consolidating changes nothing, the game is over.",
         "Choosing Pairs: which pairs you take decides how the grid closes up, and so which cards end up touching next.",
       ],
@@ -1507,11 +1335,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "La Belle Lucie solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their suit foundations.",
-      quickOverview:
-        "La Belle Lucie deals the whole deck face-up into seventeen fans of three cards and one of a single card. Only the top card of a fan can move, onto a foundation or onto the next higher card of its suit. An emptied fan stays empty — and when you are stuck, the fans can be gathered, shuffled and dealt again in threes, twice per game.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -1519,17 +1344,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
         "Tableau: 17 fans of 3 face-up cards and 1 fan of a single card, in two rows.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Fans: Built DOWN in SAME SUIT.",
         "Only the top card of a fan can be moved, one card at a time.",
         "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
         "An empty fan can never be filled again.",
         "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Fans: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Two Redeals: each redeal deals the cards in threes, so the fans grow fewer as the foundations fill. Once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
         "Buried Kings: a King can never move except to its foundation, so one dealt above lower cards of its suit blocks them until a redeal.",
       ],
@@ -1567,11 +1390,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Trefoil solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their suit foundations.",
-      quickOverview:
-        "Trefoil is La Belle Lucie with the four Aces already on the foundations. The other 48 cards are dealt face-up into sixteen fans of three. Only the top card of a fan moves, an emptied fan stays empty, and the fans can be gathered and dealt again twice.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -1579,17 +1399,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
         "Tableau: 16 fans of 3 face-up cards, in two rows of eight.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from the Ace to King.",
+        "Fans: Built DOWN in SAME SUIT.",
         "Only the top card of a fan can be moved, one card at a time.",
         "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
         "An empty fan can never be filled again.",
         "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from the Ace to King.",
-        "Fans: Built DOWN in SAME SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Two Redeals: once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
         "With the Aces out of the way from the start, every Two can go home as soon as it is free, which makes Trefoil easier than La Belle Lucie.",
       ],
@@ -1606,11 +1424,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Canfield solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all 52 cards onto the four foundations, each in suit from the rank the deal chose, round past the King to the Ace.",
-      winCondition: "All 52 cards are on the foundations.",
-      quickOverview:
-        "Canfield deals thirteen cards to a reserve, turns the next card onto a foundation — its rank is where every foundation starts — and one card to each of four columns. The columns build down in alternating colours, turning the corner from Ace to King, and a space is filled from the reserve at once. The stock is drawn three at a time, as often as you like.",
+      facts: "",
+      goal: "Build all 52 cards onto the four foundations, each in suit from the rank the deal chose, round past the King to the Ace.",
     },
     detailedRules: {
       layout: [
@@ -1619,17 +1434,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Reserve: 13 cards under the stock, face-down but for the top card.",
         "Tableau: 4 columns under the foundations, one face-up card each.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: start on the rank of the card the deal turned up, then Built UP in SAME SUIT, from King round to Ace.",
+        "Tableau: Built DOWN in ALTERNATING COLORS, from Ace round to King.",
         "The top card of the waste, the top card of the reserve and any properly built run in a column can be moved.",
         "When a column empties, the reserve's top card fills it at once. Once the reserve is gone, a space can be filled from the waste.",
         "Taking a card off the reserve turns up the one beneath it.",
         "Pressing the stock draws three cards onto the waste; pressing the empty stock turns the waste back over.",
       ],
-      sequenceBuilding: [
-        "Foundations: start on the rank of the card the deal turned up, then Built UP in SAME SUIT, from King round to Ace.",
-        "Tableau: Built DOWN in ALTERNATING COLORS, from Ace round to King.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Unlimited Redeals: the waste can be turned back over as often as you like.",
         "The Reserve Is the Game: getting through the reserve's thirteen cards is the usual path to a win, since the stock always comes round again.",
       ],
@@ -1672,11 +1485,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Penguin solitaire board overview",
     },
     summary: {
-      objective:
-        "Build all 52 cards onto the four foundations, in suit from the beak's rank, round past the King to the Ace.",
-      winCondition: "All 52 cards are on the foundations.",
-      quickOverview:
-        "Penguin deals the deck face-up into seven columns of seven. The first card dealt, at the top of the first column, is the beak: the other three cards of its rank go straight to the foundations, and every foundation builds up in suit from that rank. Columns build down in suit, turning the corner from Ace to King, and whole runs move at once. Seven cells — the flipper — hold a card each.",
+      facts: "",
+      goal: "Build all 52 cards onto the four foundations, in suit from the beak's rank, round past the King to the Ace.",
     },
     detailedRules: {
       layout: [
@@ -1684,16 +1494,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Foundations: 4 piles at the top-right, three of them started by the deal with the other cards of the beak's rank.",
         "Tableau: 7 columns of 7 face-up cards, the beak at the top of the first.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: start on the beak's rank, then Built UP in SAME SUIT, from King round to Ace.",
+        "Tableau: Built DOWN in SAME SUIT, from Ace round to King.",
         "Any single card can go into an empty cell.",
         "A same-suit run moves as a unit, however long it is and however many cells are free.",
         "An empty column takes only a card of the rank below the beak, or a run headed by one.",
       ],
-      sequenceBuilding: [
-        "Foundations: start on the beak's rank, then Built UP in SAME SUIT, from King round to Ace.",
-        "Tableau: Built DOWN in SAME SUIT, from Ace round to King.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "The Beak: the card at the top of the first column sets the rank every foundation starts on, and it is buried under six more — freeing it is often the first job.",
         "Nearly Always Winnable: David Parlett's game can be won from almost every deal with careful play.",
       ],
@@ -1710,25 +1518,20 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Black Hole solitaire board overview",
     },
     summary: {
-      objective:
-        "Play every card into the black hole, one rank up or down at a time.",
-      winCondition: "All 52 cards are in the hole.",
-      quickOverview:
-        "Black Hole starts the hole with the Ace of Spades and deals the other 51 cards face-up into seventeen fans of three. The top card of any fan can go into the hole if it is one rank above or below the hole's top card, in any suit — and Ace and King count as neighbours. There is no stock: every card is in view from the start.",
+      facts: "",
+      goal: "Play every card into the black hole, one rank up or down at a time.",
     },
     detailedRules: {
       layout: [
         "Hole: a single foundation in the middle of the top row, started with the Ace of Spades.",
         "Tableau: 17 fans of 3 face-up cards.",
       ],
-      cardMovement: [
+      moves: [
+        "Hole: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a run can climb, fall and turn the corner as it likes.",
         "Press a fan's top card to play it into the hole, or drag it there.",
         "Nothing is ever placed on a fan: cards only leave them.",
       ],
-      sequenceBuilding: [
-        "Hole: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a run can climb, fall and turn the corner as it likes.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Plan Ahead: with every card in view and no stock to fall back on, the whole game can be worked out before the first move. David Parlett, who invented it, made it a game of foresight rather than luck; most deals can be won.",
       ],
     },
@@ -1743,26 +1546,21 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "All in a Row solitaire board overview",
     },
     summary: {
-      objective:
-        "Play every card onto the single foundation, one rank up or down at a time.",
-      winCondition: "All 52 cards are on the foundation.",
-      quickOverview:
-        "All in a Row deals the whole deck face-up into thirteen columns of four. Any column's top card can start the foundation; after that, a top card can go onto it if it is one rank above or below the foundation's top card, in any suit, with Ace and King counting as neighbours.",
+      facts: "",
+      goal: "Play every card onto the single foundation, one rank up or down at a time.",
     },
     detailedRules: {
       layout: [
         "Foundation: a single pile in the middle of the top row, initially empty.",
         "Tableau: 13 columns of 4 face-up cards.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent.",
         "Press a column's top card to play it onto the foundation, or drag it there.",
         "Any top card can start the foundation.",
         "Nothing is ever placed on a column, and an emptied column stays empty.",
       ],
-      sequenceBuilding: [
-        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "The First Card: choosing which card starts the foundation is the most important decision of the game.",
       ],
     },
@@ -1777,29 +1575,23 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Grandfather's Clock solitaire board overview",
     },
     summary: {
-      objective:
-        "Build each of the twelve foundations round the dial up in suit until its top card shows the hour it stands at.",
-      winCondition:
-        "All 52 cards are on the dial, every foundation ending on its hour — Jack at eleven, Queen at twelve.",
-      quickOverview:
-        "Grandfather's Clock lays twelve cards round a dial, the Two of Spades at five o'clock and each hour clockwise one rank higher, to the King of Diamonds at four. Each builds up in suit, turning the corner from King to Ace, until it reaches its hour. The other forty cards are dealt face-up into eight columns of five, which build down regardless of suit.",
+      facts: "",
+      goal: "Build each of the twelve foundations round the dial up in suit until its top card shows the hour it stands at.",
     },
     detailedRules: {
       layout: [
         "Dial: 12 foundations in a circle at the left, started with the Two of Spades at five o'clock through to the King of Diamonds at four o'clock, the suits taken in turn: spades, hearts, clubs, diamonds.",
         "Tableau: 8 columns of 5 face-up cards beside the dial.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from their starting card, from King round to Ace, until the top card's rank is the hour — so those from five to twelve o'clock take three more cards, and those from one to four o'clock take four.",
+        "Tableau: Built DOWN by RANK in ANY SUIT.",
         "Only the top card of a column can be moved, one card at a time.",
         "A card can go onto a column whose top card is exactly 1 rank higher, in any suit.",
         "Any card can fill an empty column.",
         "Double-press a card to send it to the foundation that takes it; each card fits only one.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from their starting card, from King round to Ace, until the top card's rank is the hour — so those from five to twelve o'clock take three more cards, and those from one to four o'clock take four.",
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Telling the Time: Ace counts one, Jack eleven and Queen twelve; once a foundation shows its hour it is complete and takes nothing more.",
         "One of the more forgiving patiences: with spaces open to any card, most deals come out.",
       ],
@@ -1816,12 +1608,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Pyramid solitaire board overview",
     },
     summary: {
-      objective:
-        "Discard the whole deck in pairs that total thirteen, and Kings on their own.",
-      winCondition:
-        "Every card is on the discard — or, under the Pyramid Only goal, the pyramid is cleared.",
-      quickOverview:
-        "Pyramid deals twenty-eight cards face-up in a pyramid of seven rows, each row half covering the one above. A card is free once no card lies over it. Pair free cards that add up to thirteen — Ace and Queen, Two and Jack, and so on — and discard Kings on their own. The stock is turned one card at a time into the hand, where it can pair too.",
+      facts: "",
+      goal: "Discard the whole deck in pairs that total thirteen, and Kings on their own.",
     },
     detailedRules: {
       layout: [
@@ -1830,18 +1618,16 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Waste: the turned cards that found no pair, at the top-right; only its top card is free.",
         "Discard: a single pile at the top-right, initially empty.",
       ],
-      cardMovement: [
+      moves: [
+        "Nothing is built: cards only leave, two at a time or a King alone.",
+        "Values: Ace 1, Two to Ten as marked, Jack 11, Queen 12, King 13.",
+        "A free card is a pyramid card with nothing over it, the card in the hand, or the waste's top card.",
         "Drag a free card onto another free card that adds up to thirteen with it, and both go to the discard.",
         "Drag a King to the discard, or double-press it; it needs no partner.",
         "Double-press a free card to pair it with the first free partner.",
         "Press the stock to turn its top card into the hand; the card held there moves to the waste.",
       ],
-      sequenceBuilding: [
-        "Nothing is built: cards only leave, two at a time or a King alone.",
-        "Values: Ace 1, Two to Ten as marked, Jack 11, Queen 12, King 13.",
-        "A free card is a pyramid card with nothing over it, the card in the hand, or the waste's top card.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Covered Cards: each pyramid card is held by the two cards that overlap it from below; it frees once both are gone.",
         "Passes: the stock is gone through once, or three times with the 3 Passes option, counted in pips on the empty stock.",
       ],
@@ -1888,12 +1674,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "TriPeaks solitaire board overview",
     },
     summary: {
-      objective:
-        "Clear all three peaks by playing their cards onto the waste, one rank up or down at a time.",
-      winCondition:
-        "Every card in the peaks has been played. Cards left in the stock do not matter.",
-      quickOverview:
-        "TriPeaks deals twenty-eight cards as three overlapping peaks: rows of three, six and nine face-down cards over a base of ten face-up ones, with one more card starting the waste. Any uncovered card can be played onto the waste if it is one rank above or below the waste's top card, in any suit, with King and Ace adjacent — and a face-down card turns up as soon as nothing covers it.",
+      facts: "",
+      goal: "Clear all three peaks by playing their cards onto the waste, one rank up or down at a time.",
     },
     detailedRules: {
       layout: [
@@ -1901,15 +1683,13 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Stock: 23 face-down cards beneath the peaks, turned one at a time.",
         "Waste: a single pile beside the stock, started with one card from the deal.",
       ],
-      cardMovement: [
+      moves: [
+        "Waste: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a chain can climb, fall and turn the corner.",
         "Press an uncovered card to play it onto the waste, or drag it there.",
         "A card is uncovered once both cards overlapping it from below are gone, and turns face-up at that moment.",
         "Press the stock to turn its top card onto the waste, whatever its rank.",
       ],
-      sequenceBuilding: [
-        "Waste: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a chain can climb, fall and turn the corner.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "One Pass: the stock is never recycled.",
         "Long Chains: the art is to keep a chain going as long as you can before turning the next stock card, and to uncover the face-down cards of all three peaks evenly.",
       ],
@@ -1926,11 +1706,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Beleaguered Castle solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their suit foundations.",
-      quickOverview:
-        "Beleaguered Castle lays the four Aces out in a column and deals the other 48 cards face-up into eight rows of six, four on each side of the Aces. Only the card at the open end of a row can move, one at a time, onto a foundation or onto a card one rank higher in any suit — and an empty row takes any card.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -1938,16 +1715,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Rows: 8 rows of 6 face-up cards, fanned sideways, four on each side of the foundations.",
         "No Stock: every card is in view from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Rows: Built DOWN by RANK in ANY SUIT.",
         "Only the last card of a row — the one fully in view — can be moved, one card at a time.",
         "A card can go onto a row whose last card is exactly 1 rank higher, in any suit.",
         "Any card can fill an empty row.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Rows: Built DOWN by RANK in ANY SUIT.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Every row fans to the right, so the free card of a row in the left wing is the one nearest the foundations.",
         "Empty Rows: with no cells, an empty row is the only place to park a card — they are worth more than any single move.",
       ],
@@ -1984,11 +1759,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Fortress solitaire board overview",
     },
     summary: {
-      objective:
-        "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
-      winCondition: "All 52 cards are sorted into their suit foundations.",
-      quickOverview:
-        "Fortress deals the whole deck face-up into ten rows, five on each side of a column of empty foundations. Only the card at the open end of a row can move, one at a time, onto a foundation or onto a card of its own suit one rank higher or lower.",
+      facts: "",
+      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
     },
     detailedRules: {
       layout: [
@@ -1996,16 +1768,14 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Rows: 10 face-up rows fanned sideways, five on each side — the first two of six cards, the rest of five.",
         "No Stock: every card is in view from the first move.",
       ],
-      cardMovement: [
+      moves: [
+        "Foundations: Built UP in SAME SUIT from Ace to King.",
+        "Rows: Built UP or DOWN in SAME SUIT, and a row may change direction.",
         "Only the last card of a row can be moved, one card at a time.",
         "A card can go onto a row whose last card is the same suit and exactly 1 rank higher or lower.",
         "Any card can fill an empty row.",
       ],
-      sequenceBuilding: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Rows: Built UP or DOWN in SAME SUIT, and a row may change direction.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "A Very Hard Game: with the Aces buried and no cells, PySol calls it a very hard game; plan the order the suits come home in before the first move.",
       ],
     },
@@ -2021,12 +1791,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
       altText: "Poker Squares board overview",
     },
     summary: {
-      objective:
-        "Place twenty-five cards in a five-by-five grid so its five rows and five columns make the best poker hands you can.",
-      winCondition:
-        "The grid is full and scores at least 200 under American scoring, or 70 under English.",
-      quickOverview:
-        "Poker Squares turns up one card at a time. Drag each into any empty square of a five-by-five grid, where it stays for good. Every row and every column is scored as a poker hand, so each card counts twice — the score in the header keeps the running total as the lines fill.",
+      facts: "",
+      goal: "Place twenty-five cards in a five-by-five grid so its five rows and five columns make the best poker hands you can.",
     },
     detailedRules: {
       layout: [
@@ -2034,17 +1800,15 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         "Hand: the card to place next, beneath the stock.",
         "Grid: 25 empty squares in five rows of five.",
       ],
-      cardMovement: [
+      moves: [
+        "American scoring: royal flush 100, straight flush 75, four of a kind 50, full house 25, flush 20, straight 15, three of a kind 10, two pair 5, one pair 2.",
+        "English scoring: royal or straight flush 30, four of a kind 16, straight 12, full house 10, three of a kind 6, flush 5, two pair 3, one pair 1.",
+        "A straight can run from Ace to Five or from Ten to Ace, but not round the corner.",
         "Drag the card in the hand into any empty square; the next card turns up at once.",
         "A placed card never moves.",
         "Only 25 of the 52 cards are played: the game ends when the grid is full.",
       ],
-      sequenceBuilding: [
-        "American scoring: royal flush 100, straight flush 75, four of a kind 50, full house 25, flush 20, straight 15, three of a kind 10, two pair 5, one pair 2.",
-        "English scoring: royal or straight flush 30, four of a kind 16, straight 12, full house 10, three of a kind 6, flush 5, two pair 3, one pair 1.",
-        "A straight can run from Ace to Five or from Ten to Ace, but not round the corner.",
-      ],
-      specialRules: [
+      goodToKnow: [
         "Running Score: a line counts the pairs, threes and fours it already holds, so the score rises as you go; straights and flushes count once all five cards are in.",
         "Every Card Counts Twice: each square sits in one row and one column, so the art is to build flushes one way and pairs the other.",
       ],

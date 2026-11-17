@@ -533,7 +533,7 @@ export class GameBrowserComponent {
 
   /**
    * Returns how a game plays: a named variant's own explanation from its
-   * game's rules page, or else the page's overview.
+   * game's rules page, or else the page's goal.
    */
   private overviewOf(item: GameBrowserItem): string {
     const doc = this.docs.getDocumentation(item.gameId);
@@ -546,7 +546,7 @@ export class GameBrowserComponent {
         if (explanation) return explanation.effect;
       }
     }
-    return doc.summary.quickOverview;
+    return doc.summary.goal;
   }
 }
 

@@ -11,33 +11,32 @@ export interface DocScreenshot {
   readonly altText: string;
 }
 
-/** Summarises a game and says how it is won. */
+/** Sums up a game at the top of its rules page. */
 export interface GameSummaryDoc {
-  /** The primary objective of the game (e.g. move all cards to foundations). */
-  readonly objective: string;
-  /** Clear criteria for winning the game. */
-  readonly winCondition: string;
-  /** Brief 2-3 sentence overview introducing the game style and flow. */
-  readonly quickOverview: string;
+  /**
+   * The decks, the draw and the redeals, such as `1 deck. Draw 1 or Draw 3.`,
+   * or empty where the line isn't written yet, which hides it.
+   */
+  readonly facts: string;
+  /** How the game is won, in one sentence. */
+  readonly goal: string;
 }
 
-/** Explains a game's layout, how cards move, how they build, and any extras. */
+/** Explains a game's piles and its moves, and what is particular to it. */
 export interface DetailedRulesDoc {
-  /** The areas of the board, such as the tableau, foundations and stock. */
+  /** One line for each pile on the table, a label and what it is. */
   readonly layout: readonly string[];
-  /** Rules governing how cards and stacks are grabbed and moved. */
-  readonly cardMovement: readonly string[];
-  /** Rules for building sequences on tableau columns and foundations. */
-  readonly sequenceBuilding: readonly string[];
-  /** Rules particular to the game, such as recycle limits or supermove size. */
-  readonly specialRules?: readonly string[];
+  /** What a player can pick up, where it can go and how the piles build. */
+  readonly moves: readonly string[];
+  /** What is different in this game or trips players up, if anything. */
+  readonly goodToKnow?: readonly string[];
 }
 
 /** Explains one choice of a rule option. */
 export interface GameOptionDocChoice {
   /** The option value matching GameOptionChoice.value in the catalog. */
   readonly value: number;
-  /** Detailed explanation of how this choice affects gameplay and difficulty. */
+  /** What this choice changes, compared with the game the player knows. */
   readonly effect: string;
 }
 
@@ -62,9 +61,9 @@ export interface GameDocumentation {
   readonly wikipediaUrl?: string;
   /** Hero screenshot showcasing board layout. */
   readonly screenshot?: DocScreenshot;
-  /** Summary and win condition. */
+  /** The fact line and the goal. */
   readonly summary: GameSummaryDoc;
-  /** Full detailed rules. */
+  /** The layout, the moves and what is good to know. */
   readonly detailedRules: DetailedRulesDoc;
   /** Explanations for user-configurable settings and variants. */
   readonly settingsAndVariants: readonly GameOptionDoc[];

@@ -8,8 +8,9 @@ import type { GameDocumentationRegistry } from "@/ui/app/provider/game_documenta
  * Documentation for the two games the mock catalog offers, in place of the real
  * prose so no spec breaks when a rules page is reworded.
  *
- * Klondike documents an option so the variants tab has something to show;
- * FreeCell documents none, so the tab hides.
+ * Klondike documents an option so the variants tab has something to show,
+ * and has a fact line and notes good to know; FreeCell has none of them, so
+ * they hide.
  */
 const KLONDIKE_DRAW_COUNT_DOC: GameOptionDoc = {
   optionId: "drawCount",
@@ -28,15 +29,13 @@ const KLONDIKE_DOC: GameDocumentation = {
     altText: "A test board.",
   },
   summary: {
-    objective: "Move every card to the foundations.",
-    winCondition: "All four foundations are complete.",
-    quickOverview: "A test overview.",
+    facts: "1 test deck.",
+    goal: "Move every card to the foundations.",
   },
   detailedRules: {
     layout: ["Seven tableau columns."],
-    cardMovement: ["Drag a card to move it."],
-    sequenceBuilding: ["Build down in alternating colours."],
-    specialRules: ["The stock recycles."],
+    moves: ["Drag a card to move it."],
+    goodToKnow: ["The stock recycles."],
   },
   settingsAndVariants: [KLONDIKE_DRAW_COUNT_DOC],
 };
@@ -49,14 +48,12 @@ const FREECELL_DOC: GameDocumentation = {
     altText: "Another test board.",
   },
   summary: {
-    objective: "Move every card to the foundations.",
-    winCondition: "All four foundations are complete.",
-    quickOverview: "A test overview.",
+    facts: "",
+    goal: "Win the test game.",
   },
   detailedRules: {
     layout: ["Eight tableau columns."],
-    cardMovement: ["Drag a card to move it."],
-    sequenceBuilding: ["Build down in alternating colours."],
+    moves: ["Drag a card to move it."],
   },
   settingsAndVariants: [],
 };

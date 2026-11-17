@@ -556,8 +556,10 @@ describe("GameBrowserComponent", () => {
       open();
     });
 
-    it("says how the game plays, from its rules page", () => {
-      expect(queryText(fixture, ".overview")).toBe("A test overview.");
+    it("gives the goal from the game's rules page", () => {
+      expect(queryText(fixture, ".overview")).toBe(
+        "Move every card to the foundations.",
+      );
     });
 
     it("offers the rules a player picks, and not the development aids", () => {
