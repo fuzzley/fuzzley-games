@@ -1,13 +1,21 @@
 import { Injectable, inject } from "@angular/core";
-import { ConfirmService } from "@fz/ui/confirm";
+import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { decodePosition } from "../model/game_position";
 import type { GameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
 
+/** What every question but Restart's says is lost: the game under way. */
+const GAME_LOST = "You'll lose the game in progress.";
+
 /** What the player is asked before another game replaces one under way. */
-const SWITCH_GAME_MESSAGE =
-  "Are you sure you want to switch games? Your current progress will be lost.";
+function switchQuestion(name: string | undefined): ConfirmRequest {
+  return {
+    title: name === undefined ? "Switch games?" : `Switch to ${name}?`,
+    message: GAME_LOST,
+    confirmLabel: "Switch",
+  };
+}
 
 /**
  * Changes which game is on the table, or throws away the one that is, asking
@@ -43,10 +51,14 @@ export class GameLifecycleService {
     );
     if (!switching && sameRules) return true;
 
-    const message = switching
-      ? `Switch to ${name}? Your current progress will be lost.`
-      : `Deal a new game of ${name} by these rules? Your current progress will be lost.`;
-    if (!(await this.confirmIfInProgress(message))) return false;
+    const question: ConfirmRequest = switching
+      ? switchQuestion(name)
+      : {
+          title: `Start a new game of ${name}?`,
+          message: GAME_LOST,
+          confirmLabel: "New game",
+        };
+    if (!(await this.confirmIfInProgress(question))) return false;
 
     this.catalog.load(id, values);
     return true;
@@ -62,15 +74,21 @@ export class GameLifecycleService {
   confirmNavigation(gameId: string): Promise<boolean> {
     return gameId === this.catalog.selectedId()
       ? Promise.resolve(true)
-      : this.confirmIfInProgress(SWITCH_GAME_MESSAGE);
+      : this.confirmIfInProgress(
+          switchQuestion(
+            this.catalog.games.find((game) => game.id === gameId)?.name,
+          ),
+        );
   }
 
   /** Deals the same game again from the start. */
   async restartGame(): Promise<void> {
     if (
-      !(await this.confirmIfInProgress(
-        "Are you sure you want to restart this game? Your current progress will be lost.",
-      ))
+      !(await this.confirmIfInProgress({
+        title: "Restart this game?",
+        message: "You'll lose your progress.",
+        confirmLabel: "Restart",
+      }))
     ) {
       return;
     }
@@ -81,9 +99,11 @@ export class GameLifecycleService {
   /** Deals a new game of whatever is on the table. */
   async startNewGame(): Promise<void> {
     if (
-      !(await this.confirmIfInProgress(
-        "Are you sure you want to start a new game? Your current progress will be lost.",
-      ))
+      !(await this.confirmIfInProgress({
+        title: "Start a new game?",
+        message: GAME_LOST,
+        confirmLabel: "New game",
+      }))
     ) {
       return;
     }
@@ -95,9 +115,11 @@ export class GameLifecycleService {
   async setRuleOption(optionId: string, value: number): Promise<void> {
     if (this.catalog.valueOf(optionId) === value) return;
     if (
-      !(await this.confirmIfInProgress(
-        "Changing this will deal a new game. Are you sure you want to proceed?",
-      ))
+      !(await this.confirmIfInProgress({
+        title: "Change the rules?",
+        message: GAME_LOST,
+        confirmLabel: "New game",
+      }))
     ) {
       return;
     }
@@ -125,9 +147,11 @@ export class GameLifecycleService {
       }
     }
     if (
-      !(await this.confirmIfInProgress(
-        "Are you sure you want to load this game? Your current progress will be lost.",
-      ))
+      !(await this.confirmIfInProgress({
+        title: "Load this game?",
+        message: GAME_LOST,
+        confirmLabel: "Load",
+      }))
     ) {
       return false;
     }
@@ -144,12 +168,12 @@ export class GameLifecycleService {
   }
 
   /**
-   * Asks the player to confirm if there is a game in progress to lose,
+   * Asks the player a question if there is a game in progress to lose,
    * resolving to whether the caller should go ahead.
    */
-  private confirmIfInProgress(message: string): Promise<boolean> {
+  private confirmIfInProgress(question: ConfirmRequest): Promise<boolean> {
     return this.metrics.isInProgress()
-      ? this.confirm.ask({ title: "Confirm Action", message, tone: "danger" })
+      ? this.confirm.ask({ ...question, tone: "danger" })
       : Promise.resolve(true);
   }
 }

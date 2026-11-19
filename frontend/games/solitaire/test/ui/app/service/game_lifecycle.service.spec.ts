@@ -88,10 +88,25 @@ describe("GameLifecycleService", () => {
       void harness.lifecycle.restartGame();
 
       expect(harness.confirmation.isOpen()).toBe(true);
-      expect(harness.confirmation.prompt().message).toContain(
-        "restart this game",
-      );
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Restart this game?",
+        message: "You'll lose your progress.",
+        confirmLabel: "Restart",
+      });
       expect(harness.model.restartGame).not.toHaveBeenCalled();
+    });
+
+    it("asks before dealing a new game", () => {
+      const harness = buildLifecycle({ moves: 5 });
+
+      void harness.lifecycle.startNewGame();
+
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Start a new game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "New game",
+      });
+      expect(harness.model.startNewGame).not.toHaveBeenCalled();
     });
 
     it("asks as a danger, since the game under way would be lost", () => {
@@ -99,10 +114,7 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.restartGame();
 
-      expect(harness.confirmation.prompt()).toMatchObject({
-        title: "Confirm Action",
-        tone: "danger",
-      });
+      expect(harness.confirmation.prompt().tone).toBe("danger");
     });
 
     it("restarts once the prompt is accepted", async () => {
@@ -138,9 +150,11 @@ describe("GameLifecycleService", () => {
 
       const action = harness.lifecycle.setRuleOption("drawCount", 1);
 
-      expect(harness.confirmation.prompt().message).toContain(
-        "deal a new game",
-      );
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Change the rules?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "New game",
+      });
       await answer(harness, action, true);
       expect(harness.catalog.setOption).toHaveBeenCalledWith("drawCount", 1);
     });
@@ -208,9 +222,11 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.playGame("freecell", {}, "Baker's Game");
 
-      expect(harness.confirmation.prompt().message).toContain(
-        "Switch to Baker's Game?",
-      );
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Switch to Baker's Game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Switch",
+      });
     });
 
     it("says it deals afresh when only the rules change", () => {
@@ -218,9 +234,11 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.playGame("klondike", { drawCount: 1 }, "Klondike");
 
-      expect(harness.confirmation.prompt().message).toContain(
-        "Deal a new game of Klondike",
-      );
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Start a new game of Klondike?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "New game",
+      });
     });
 
     it("keeps the game under way when the prompt is declined", async () => {
@@ -257,7 +275,19 @@ describe("GameLifecycleService", () => {
 
       void harness.lifecycle.confirmNavigation("freecell");
 
-      expect(harness.confirmation.prompt().message).toContain("switch games");
+      expect(harness.confirmation.prompt()).toMatchObject({
+        title: "Switch to FreeCell?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Switch",
+      });
+    });
+
+    it("asks to switch games when the router names no game this build has", () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.confirmNavigation("poker");
+
+      expect(harness.confirmation.prompt().title).toBe("Switch games?");
     });
 
     it("resolves to the player's answer", async () => {
@@ -343,6 +373,20 @@ describe("GameLifecycleService", () => {
       );
 
       expect(harness.catalog.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("asks before loading over a game in progress", async () => {
+      const harness = buildLifecycle({ moves: 4 });
+
+      void harness.lifecycle.loadPosition(await reported(harness));
+
+      await vi.waitFor(() => {
+        expect(harness.confirmation.prompt()).toMatchObject({
+          title: "Load this game?",
+          message: "You'll lose the game in progress.",
+          confirmLabel: "Load",
+        });
+      });
     });
 
     it("does not load over a game in progress when the prompt is declined", async () => {

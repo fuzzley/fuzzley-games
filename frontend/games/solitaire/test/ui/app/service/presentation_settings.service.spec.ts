@@ -555,7 +555,7 @@ describe("PresentationSettingsService", () => {
 
     it("says which deck could not be fetched and what is on the table", () => {
       expect(afterClassicFailed().cardDeckProblem()).toBe(
-        "Couldn't load Classic — still using Corner Pips.",
+        "Couldn't load Classic. Still using Corner Pips.",
       );
     });
 
@@ -588,7 +588,7 @@ describe("PresentationSettingsService", () => {
 
       expect([settings.cardDeck(), settings.cardDeckProblem()]).toEqual([
         DEFAULT_DESKTOP_CARD_DECK,
-        "Couldn't load Mobile — still using Corner Pips.",
+        "Couldn't load Mobile. Still using Corner Pips.",
       ]);
     });
 

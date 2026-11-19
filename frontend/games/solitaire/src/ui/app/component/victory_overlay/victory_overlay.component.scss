@@ -22,7 +22,7 @@
     color: var(--fz-warning);
     font-size: var(--fz-font-4xl);
     font-weight: 800;
-    margin: 0 0 var(--fz-space-2);
+    margin: 0 0 var(--fz-space-8);
   }
 }
 
@@ -54,12 +54,6 @@
   height: 100px;
   background: radial-gradient(circle, var(--warning-glow) 0%, transparent 70%);
   z-index: 1;
-}
-
-.victory-subtitle {
-  color: var(--fz-muted);
-  font-size: var(--fz-font-md);
-  margin: 0 0 var(--fz-space-8);
 }
 
 .victory-stats {
@@ -111,11 +105,8 @@
 
     h2 {
       font-size: var(--fz-font-3xl);
+      margin-bottom: var(--fz-space-5);
     }
-  }
-
-  .victory-subtitle {
-    margin-bottom: var(--fz-space-5);
   }
 
   .victory-stats {

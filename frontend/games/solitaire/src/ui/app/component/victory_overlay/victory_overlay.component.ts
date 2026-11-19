@@ -6,7 +6,7 @@ import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
- * Shows the final score, time and moves once the board is cleared, with
+ * Shows the final score, time and moves once the game is won, with
  * buttons to deal a new game or to choose another game.
  *
  * Not dismissible, since a finished board has nothing to go back to.
