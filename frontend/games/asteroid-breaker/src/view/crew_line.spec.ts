@@ -46,11 +46,11 @@ describe("crewLineOf", () => {
 
 describe("crewWords", () => {
   it("says how many ride in tow where the bar draws them", () => {
-    expect(crewWords(crewOf([1, 2]), [], "line")).toBe("2 in tow");
+    expect(crewWords(crewOf([1, 2]), [], "line")).toBe("2 following");
   });
 
   it("says no one rides in tow", () => {
-    expect(crewWords(crewOf([]), [], "line")).toBe("No one in tow");
+    expect(crewWords(crewOf([]), [], "line")).toBe("No one following");
   });
 
   it("says how many are aboard where the bar gives that number", () => {
@@ -61,7 +61,7 @@ describe("crewWords", () => {
     expect([
       crewWords(crewOf([1]), [2, 3], "line"),
       crewWords(crewOf([1]), [2], "aboard"),
-    ]).toEqual(["1 in tow, 2 knocked loose", "2 aboard, 1 knocked loose"]);
+    ]).toEqual(["1 following, 2 knocked loose", "2 aboard, 1 knocked loose"]);
   });
 });
 

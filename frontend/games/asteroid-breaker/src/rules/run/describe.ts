@@ -28,9 +28,9 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
     case "joined":
       return `Caught. ${inTowWords(event.inTow)}.`;
     case "home":
-      return "Brought straight home, with the line full.";
+      return "Crew full. The stray goes straight home.";
     case "knocked":
-      return `Hit! One knocked loose. ${inTowWords(event.inTow)}.`;
+      return `Hit. One knocked loose. ${inTowWords(event.inTow)}.`;
     case "recaught":
       return `Caught again. ${inTowWords(event.inTow)}.`;
     case "floated":
@@ -40,17 +40,17 @@ export function describeEvent(event: Readonly<FieldEvent>): string | null {
     case "stepped":
       return event.step === FULL_STEP && !event.fell ? "Static full." : null;
     case "zapped":
-      return "Zap!";
+      return "Zap.";
     case "clung":
-      return "A burr clings.";
+      return "A burr sticks to you.";
     default:
       return null;
   }
 }
 
-/** Returns how many ride in tow, in words: "3 in tow", or "No one in tow". */
-function inTowWords(inTow: number): string {
-  return inTow === 0 ? "No one in tow" : `${String(inTow)} in tow`;
+/** Returns how many ride in tow, in words, as the announcer and the bar say it: "3 following", or "No one following". */
+export function inTowWords(inTow: number): string {
+  return inTow === 0 ? "No one following" : `${String(inTow)} following`;
 }
 
 /** Says what an ended run set, which is said of it as it ends. */
@@ -72,25 +72,24 @@ export function describeCleared(
   next: WaveEntry,
 ): string {
   const said = opensEndless(cleared, next)
-    ? `${cleared.sector.name} cleared! Endless begins.`
-    : `Wave ${String(cleared.number)} cleared!`;
+    ? `${cleared.sector.name} cleared. Endless begins.`
+    : `Wave ${String(cleared.number)} cleared.`;
   return `${said} Score ${formatPoints(run.score)}.`;
 }
 
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
-  return `Paused, with a score of ${formatPoints(run.score)}. Press Enter to go on.`;
+  return `Paused. Score ${formatPoints(run.score)}. Press Enter to resume.`;
 }
 
 /** Returns what is said as a paused run goes on. */
 export function describeResume(): string {
-  return "Going on.";
+  return "Resumed.";
 }
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: WaveEntry): string {
-  const inTow = inTowWords(run.crew.tow.length).toLowerCase();
-  return `Your last run is paused on wave ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${inTow}. Press Enter to go on.`;
+  return `Paused on wave ${String(entry.number)}, ${entry.data.name}. Score ${formatPoints(run.score)}. ${inTowWords(run.crew.tow.length)}. Press Enter to resume.`;
 }
 
 /**
@@ -105,8 +104,8 @@ export const END_TITLE = "Game over";
  * announcer's words, and what a screen reader hears of the result card.
  */
 export function marksWords({ newBest, clearedAll }: EndMarks): string {
-  const best = newBest ? " A new best!" : "";
-  const all = clearedAll ? " Cleared all thirty!" : "";
+  const best = newBest ? " New best." : "";
+  const all = clearedAll ? " All 30 waves cleared." : "";
   return `${best}${all}`;
 }
 

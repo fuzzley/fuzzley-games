@@ -325,7 +325,7 @@ describe("RunFrames", () => {
       }).toEqual({
         outcome: "playing",
         aboard: 2,
-        said: ["Hit! One knocked loose. 1 in tow."],
+        said: ["Hit. One knocked loose. 1 following."],
       });
     });
 
@@ -353,7 +353,7 @@ describe("RunFrames", () => {
       }).toEqual({
         cameHome: [5],
         strays: 1,
-        said: ["Caught. 3 in tow."],
+        said: ["Caught. 3 following."],
       });
     });
 
@@ -372,7 +372,7 @@ describe("RunFrames", () => {
 
       expect({ cameHome, said: game.said }).toEqual({
         cameHome: [5],
-        said: ["Brought straight home, with the line full."],
+        said: ["Crew full. The stray goes straight home."],
       });
     });
 
@@ -415,7 +415,7 @@ describe("RunFrames", () => {
 
       expect({ score: game.run.score, said: game.said }).toEqual({
         score: pointsFor("stone", "small") + CLEAR_POINTS + CLEAN_POINTS,
-        said: ["Wave 1 cleared! Score 1,040. Next: wave 2, Last."],
+        said: ["Wave 1 cleared. Score 1,040. Next: wave 2, Last."],
       });
     });
 
@@ -452,7 +452,7 @@ describe("RunFrames", () => {
       playTo(game, "cleared", FIRE);
 
       expect(game.said).toEqual([
-        "Near cleared! Endless begins. Score 1,040. Next: wave 3, Endless.",
+        "Near cleared. Endless begins. Score 1,040. Next: wave 3, Endless.",
       ]);
     });
 
@@ -556,7 +556,7 @@ describe("RunFrames", () => {
       playTo(game, "over");
 
       expect(game.said).toEqual([
-        "Game over. Score 0, on wave 1. A new best! Cleared all thirty!",
+        "Game over. Score 0, on wave 1. New best. All 30 waves cleared.",
       ]);
     });
 
