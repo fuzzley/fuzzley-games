@@ -966,30 +966,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/acesup/overview.webp",
       caption:
-        "Aces Up board showing the stock at the left, four columns of one card each, and the empty discard at the right.",
-      altText: "Aces Up solitaire board overview",
+        "A new deal, with the stock, 4 columns of 1 card and the empty discard.",
+      altText:
+        "A new game of Aces Up, with 1 face-up card on each of 4 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Discard all 48 cards that are not Aces, leaving only the four Aces on the table.",
+      facts: "1 deck. No redeal.",
+      goal: "Discard every card except the 4 Aces.",
     },
     detailedRules: {
       layout: [
-        "Stock: 48 face-down cards at the left, dealt four at a time.",
-        "Tableau: 4 columns, each dealt one face-up card to start.",
-        "Discard: a single pile at the right, initially empty.",
+        "Stock: the 48 cards left over, face down.",
+        "Tableau: 4 columns, each dealt 1 card to start.",
+        "Discard: where the cards you discard go.",
       ],
       moves: [
-        "Nothing is built: cards are only ever discarded or moved into a space.",
-        "Aces rank above Kings, so an Ace can never be discarded.",
-        "The top card of a column can be discarded while another column's top card is the same suit and higher.",
-        "The top card of a column can be moved into an empty column.",
-        "Pressing the stock deals one card face-up onto each column.",
-        "Double-press a card to discard it, or to move it into a space when it cannot be discarded.",
+        "You can discard the top card of a column if another column has a higher card of the same suit on top.",
+        "Aces are high, so you can never discard one.",
+        "You can move the top card of a column into an empty column.",
+        "Click the stock to deal 1 card onto each column.",
       ],
       goodToKnow: [
-        "Buried Cards: a card dealt over another hides it until the top card is discarded or moved into a space — spaces are what dig a buried card out.",
-        "The stock can be dealt at any time, but it is dealt only once.",
+        "You can deal whenever you like, even with moves left.",
+        "Each deal covers the cards below. To reach them, discard the top card or move it into an empty column.",
       ],
     },
     settingsAndVariants: [
@@ -998,13 +997,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "Any Card: the usual game — the top card of any other column can be moved into a space.",
+            effect: "The usual game. Any top card can fill an empty column.",
           },
           {
             value: 1,
             effect:
-              "Aces Only: a space can take only an Ace. An Ace dealt on top of a buried card can be lifted off, but no other card can, which makes the game much harder.",
+              "Only an Ace can fill an empty column, which makes the game much harder.",
           },
         ],
       },
@@ -1016,29 +1014,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/golf/overview.webp",
       caption:
-        "Golf board showing the stock and the foundation along the top, and seven face-up columns of five cards beneath.",
-      altText: "Golf solitaire board overview",
+        "A new deal, with the stock, 1 card on the foundation and 7 columns.",
+      altText: "A new game of Golf, with 5 face-up cards on each of 7 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Clear all seven columns by playing their cards onto the foundation, one rank up or down at a time.",
+      facts: "1 deck. No redeal.",
+      goal: "Clear all 7 columns by playing their cards onto the foundation.",
     },
     detailedRules: {
       layout: [
-        "Stock: 16 face-down cards at the top-left, turned one at a time.",
-        "Foundation: a single pile beside the stock, started with one card from the deal.",
-        "Tableau: 7 columns of 5 cards, all face-up.",
+        "Stock: the 16 cards left over, face down.",
+        "Foundation: 1 pile, started with a card from the deal.",
+        "Tableau: 7 columns of 5 cards, all face up.",
       ],
       moves: [
-        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT — a run can go up and down as it likes.",
-        "Nothing may be played on a King, so a King ends the run until the stock is turned.",
-        "Press a column's top card to play it onto the foundation, or drag it there.",
-        "Press the stock to turn its top card onto the foundation, whatever its rank.",
-        "Nothing is ever placed on a column: cards only leave them.",
+        "You can play the top card of a column on the foundation if it is 1 rank higher or lower, in any suit. A 9 or a Jack goes on a 10.",
+        "Click a card to play it, or drag it.",
+        "Nothing goes on a King, and only a 2 goes on an Ace.",
+        "Click the stock to turn its top card onto the foundation, whatever its rank.",
       ],
       goodToKnow: [
-        "One Pass: the stock is never recycled; once it is gone, the game ends when nothing more can be played.",
-        "Long Runs: the trick is to plan a chain up and down through several columns before turning the next stock card.",
+        "You win when the columns are empty, even with cards left in the stock.",
+        "You can't take a card back from the foundation.",
       ],
     },
     settingsAndVariants: [
@@ -1048,17 +1045,17 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "Golf: the original — a King on the foundation blocks it until the next stock card is turned, and an Ace can only take a Two.",
+              "The usual game. Nothing goes on a King, so a King blocks play until you turn the next card.",
           },
           {
             value: 1,
             effect:
-              "Queens on Kings: a common house rule — a Queen can be played on a King, so a King no longer blocks the foundation. Kings and Aces are still not adjacent.",
+              "Golf where a Queen can go on a King, so a King no longer blocks the foundation.",
           },
           {
             value: 2,
             effect:
-              "Putt Putt: the ranks turn the corner, so a King takes a Queen or an Ace, and an Ace takes a Two or a King. Nothing ever blocks the foundation, which makes it the easiest of the three.",
+              "Golf where Ace and King count as 1 rank apart, so no card blocks the foundation.",
           },
         ],
       },
@@ -1069,36 +1066,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Calculation_(card_game)",
     screenshot: {
       url: "./docs/screenshots/calculation/overview.webp",
-      caption:
-        "Calculation board showing the stock and the hand at the left, the four foundations started with an Ace, a Two, a Three and a Four, and four empty waste piles beneath them.",
-      altText: "Calculation solitaire board overview",
+      caption: "A new deal, with an Ace, 2, 3 and 4 starting the foundations.",
+      altText:
+        "A new game of Calculation, with 4 foundations started and 4 empty waste piles.",
     },
     summary: {
-      facts: "",
-      goal: "Build all four foundations up to their King, each by its own interval, regardless of suit.",
+      facts: "1 deck. No redeal.",
+      goal: "Build all 4 foundations up to King, each counting by its own step, in any suit.",
     },
     detailedRules: {
       layout: [
-        "Stock: the face-down cards at the top-left, turned one at a time.",
-        "Hand: the card just turned, beside the stock, waiting to be placed.",
-        "Foundations: 4 piles started with an Ace, a Two, a Three and a Four, in any suits.",
-        "Waste: 4 piles beneath the foundations, initially empty.",
+        "Stock: the cards left over, face down.",
+        "Hand: the card you just turned over.",
+        "Foundations: 4 piles, started with an Ace, 2, 3 and 4.",
+        "Waste: 4 empty piles, for cards you can't play yet.",
       ],
       moves: [
-        "Foundation 1: A 2 3 4 5 6 7 8 9 10 J Q K — up in ones.",
-        "Foundation 2: 2 4 6 8 10 Q A 3 5 7 9 J K — up in twos.",
-        "Foundation 3: 3 6 9 Q 2 5 8 J A 4 7 10 K — up in threes.",
-        "Foundation 4: 4 8 Q 3 7 J 2 6 10 A 5 9 K — up in fours.",
-        "Suits never matter, and every foundation ends on its King.",
-        "Press the stock to turn its top card into the hand. The next card can be turned only once the hand is empty.",
-        "The card in the hand must go to a foundation or onto any waste pile.",
-        "Only the top card of a waste pile can move, and only to a foundation.",
-        "Double-press a card in the hand or on a waste pile to send it to a foundation that takes it.",
+        "Foundations: build up in any suit, each by the rank it started on.",
+        "The foundation started on a 2 goes 2 4 6 8 10 Q A 3 5 7 9 J K.",
+        "Click the stock to turn a card into your hand. Place it before you turn the next.",
+        "You can put the card in your hand on a foundation or on any waste pile.",
+        "You can only move the top card of a waste pile, and only to a foundation.",
       ],
-      goodToKnow: [
-        "One Pass: the stock is never recycled.",
-        "Waste Discipline: a waste pile is a stack, not a store — plan each one to come off in the order its foundation will want, high cards underneath. Kings are usually best kept to one pile, since every foundation ends on one.",
-      ],
+      goodToKnow: ["You can't take a card back from a foundation."],
     },
     settingsAndVariants: [
       {
@@ -1106,13 +1096,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "Calculation: the foundations start on an Ace, a Two, a Three and a Four, and build by ones, twos, threes and fours.",
+            effect: "The usual game.",
           },
           {
             value: 1,
             effect:
-              "Sir Tommy, also called Old Patience: the foundations start empty, each begun by an Ace as one turns up and built up by one to the King, regardless of suit. The waste piles work just as in Calculation.",
+              "Calculation with empty foundations. Any Ace starts one, and each builds up by 1 in any suit.",
           },
         ],
       },
@@ -1123,32 +1112,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Flower_Garden_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/flowergarden/overview.webp",
-      caption:
-        "Flower Garden board showing the sixteen-card bouquet fanned across the top left, four empty foundations at the top right, and six face-up beds of six cards beneath.",
-      altText: "Flower Garden solitaire board overview",
+      caption: "A new deal, with the bouquet fanned out above 6 columns.",
+      altText:
+        "A new game of Flower Garden, with a 16-card bouquet and 6 columns of 6.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Bouquet: 16 face-up cards fanned across the top-left, every one of them available.",
-        "Foundations: 4 suit piles at the top-right, initially empty.",
-        "Beds: 6 columns of 6 face-up cards.",
+        "Bouquet: 16 cards. You can play any of them.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 6 columns of 6 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Beds: Built DOWN by RANK in ANY SUIT.",
-        "Any bouquet card can be played onto a foundation or a bed, wherever it sits in the fan.",
-        "Only the top card of a bed can be moved, one card at a time.",
-        "An empty bed can be filled with any card, from the bouquet or another bed.",
-        "Nothing is ever put back into the bouquet.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can play any card in the bouquet on a foundation or a column.",
+        "You can only move the top card of a column.",
+        "Any card can fill an empty column.",
+        "Nothing goes back into the bouquet.",
       ],
-      goodToKnow: [
-        "The Bouquet as a Reserve: the bouquet is like sixteen free cells that start full — the art is spending its cards to dig out the low cards buried in the beds.",
-        "No Stock: every card is in view from the first move.",
-      ],
+      goodToKnow: ["You can take a card back from a foundation."],
     },
     settingsAndVariants: [],
   },
@@ -1158,32 +1144,32 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/bristol/overview.webp",
       caption:
-        "Bristol board showing the stock and three reserves at the top left, four empty foundations at the top right, and eight fans of three cards beneath.",
-      altText: "Bristol solitaire board overview",
+        "A new deal, with the stock, 3 reserves, 4 foundations and 8 columns.",
+      altText:
+        "A new game of Bristol, with 3 face-up cards on each of 8 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Build all 52 cards onto the four foundations, each from an Ace up to a King, regardless of suit.",
+      facts: "1 deck. No redeal.",
+      goal: "Move all 52 cards to the 4 foundations, building each up from Ace to King in any suit.",
     },
     detailedRules: {
       layout: [
-        "Stock: 25 face-down cards at the top-left, dealt three at a time.",
-        "Reserves: 3 piles beside the stock, one card each to start; only the top card of each is free.",
-        "Foundations: 4 piles at the top-right, initially empty.",
-        "Tableau: 8 fans of 3 face-up cards, with Kings sunk to the bottom.",
+        "Stock: the 25 cards left over, face down.",
+        "Reserves: 3 piles the stock deals onto. You can play the top card of each.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 8 columns of 3 cards, all face up.",
       ],
       moves: [
-        "Foundations: any Ace starts one, then Built UP by RANK in ANY SUIT to the King.",
-        "Fans: Built DOWN by RANK in ANY SUIT.",
-        "Only the top card of a fan or a reserve can be moved, one card at a time.",
-        "A card can go onto a fan whose top card is exactly 1 rank higher, in any suit.",
-        "Nothing can be placed on a reserve; only the stock adds to them.",
-        "An empty fan can never be filled again.",
-        "Pressing the stock deals one card face-up onto each reserve.",
+        "Foundations: any Ace starts one. Then build up in any suit.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can only move the top card of a column or a reserve.",
+        "Click the stock to deal 1 card onto each reserve.",
       ],
       goodToKnow: [
-        "Kings Sink: a King cannot move onto a fan, so the deal puts each one at the bottom of its fan, where it buries nothing.",
-        "One Pass: the stock is dealt only once, and each deal buries the reserve cards beneath it — play what you can before dealing.",
+        "An empty column stays empty.",
+        "Kings are dealt to the bottom of their columns, since a King can only go to a foundation.",
+        "Dealing covers the reserve cards, so play what you can first.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [
@@ -1192,12 +1178,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect: "Bristol: every foundation waits for an Ace to turn up.",
+            effect: "The usual game. Every foundation starts empty.",
           },
           {
             value: 1,
             effect:
-              "Belvedere: the deal puts one Ace straight onto a foundation, leaving 24 cards in the stock.",
+              "Bristol with 1 Ace already on a foundation, and 24 cards in the stock.",
           },
         ],
       },
@@ -1209,29 +1195,27 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/nestor/overview.webp",
       caption:
-        "Nestor board showing the four reserve cards at the top left, the empty discard at the top right, and eight face-up columns of six cards beneath.",
-      altText: "Nestor solitaire board overview",
+        "A new deal, with 4 reserve cards above 8 columns and the empty discard.",
+      altText:
+        "A new game of Nestor, with 6 face-up cards on each of 8 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Discard the whole deck in pairs of the same rank.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Discard all 52 cards in pairs of the same rank.",
     },
     detailedRules: {
       layout: [
-        "Reserve: 4 face-up cards at the top-left, every one of them free.",
-        "Discard: a single pile at the top-right, initially empty.",
-        "Tableau: 8 columns of 6 face-up cards, no column holding two cards of a rank.",
+        "Reserve: 4 cards. You can play any of them.",
+        "Discard: where the pairs go.",
+        "Tableau: 8 columns of 6 cards.",
       ],
       moves: [
-        "Nothing is built: cards only leave the board, two at a time.",
-        "A free card is the top card of a column, or any reserve card.",
-        "Drag a free card onto another free card of the same rank, in any suit, and both go to the discard.",
-        "Double-press a free card to pair it with the first free card of its rank.",
-        "Cards are never moved anywhere but onto their partner.",
+        "You can pair 2 cards of the same rank, in any suit. A 7 pairs with any 7.",
+        "You can only use the top card of a column, or any reserve card.",
+        "Drag one card onto the other, and both go to the discard.",
       ],
       goodToKnow: [
-        "The Deal: a card that would repeat a rank already in its column goes to the bottom of the deck and the next card is dealt instead, so no column starts with a pair in it. If every card left would repeat a rank, the rule gives way.",
-        "Choosing Pairs: four cards of each rank make two pairs, and which two pair first can decide whether a column's buried cards ever come free.",
+        "No column is dealt 2 cards of the same rank, unless the deal can't avoid it.",
       ],
     },
     settingsAndVariants: [],
@@ -1241,31 +1225,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Monte_Carlo_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/montecarlo/overview.webp",
-      caption:
-        "Monte Carlo board showing the stock at the left, twenty-five face-up cards in a five-by-five grid, and the empty discard at the right.",
-      altText: "Monte Carlo solitaire board overview",
+      caption: "A new deal, with the stock beside 25 cards in a 5 by 5 grid.",
+      altText:
+        "A new game of Monte Carlo, with 25 face-up cards in 5 rows of 5.",
     },
     summary: {
-      facts: "",
-      goal: "Discard the whole deck in pairs of touching cards.",
+      facts: "1 deck. No redeal.",
+      goal: "Discard all 52 cards in pairs of the same rank that touch.",
     },
     detailedRules: {
       layout: [
-        "Stock: 27 face-down cards at the left of the grid.",
-        "Grid: 5 rows of 5 face-up cards.",
-        "Discard: a single pile at the right of the grid, initially empty.",
+        "Stock: the 27 cards left over, face down.",
+        "Grid: 5 rows of 5 cards, all face up.",
+        "Discard: where the pairs go.",
       ],
       moves: [
-        "Nothing is built: cards only leave the grid, two at a time.",
-        "Cards keep their reading order when they slide, so a card's neighbours change with every consolidation.",
-        "Drag a card onto a touching card of the same rank, in any suit, and both go to the discard. Diagonal neighbours count.",
-        "Double-press a card to pair it with the first touching card of its rank.",
-        "Press the stock to consolidate: every card left slides towards the top left in reading order, closing the gaps, and the stock deals into the cells left empty at the end.",
-        "Once the stock is gone, its empty slot still consolidates the grid.",
+        "You can pair 2 cards of the same rank if they touch, even at a corner.",
+        "Drag one card onto the other, and both go to the discard.",
+        "Click the stock to close the gaps. The cards left slide along in reading order to fill them. Then the stock fills the spaces at the end.",
       ],
       goodToKnow: [
-        "Lost Game: if no touching pair is left and consolidating changes nothing, the game is over.",
-        "Choosing Pairs: which pairs you take decides how the grid closes up, and so which cards end up touching next.",
+        "Closing the gaps changes which cards touch, so choose your pairs with that in mind.",
+        "When the stock is empty, click its place to close the gaps.",
       ],
     },
     settingsAndVariants: [
@@ -1274,12 +1255,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect: "Monte Carlo: touching pairs of the same rank.",
+            effect: "The usual game. Pair touching cards of the same rank.",
           },
           {
             value: 1,
             effect:
-              "Monte Carlo Thirteens: touching pairs that add up to thirteen — Ace and Queen, Two and Jack, Three and Ten, and so on, with the Ace counting one, the Jack eleven and the Queen twelve. A King adds up to thirteen by itself, so it goes to the discard alone: drag it there or double-press it.",
+              "Pair touching cards that add up to 13, with Jack 11 and Queen 12. Drag a King to the discard.",
           },
         ],
       },
