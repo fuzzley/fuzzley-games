@@ -1507,30 +1507,27 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/grandfathersclock/overview.webp",
       caption:
-        "Grandfather's Clock board showing twelve foundations laid round a dial at the left, from the Nine of Diamonds at twelve o'clock round to the Eight of Clubs at eleven, and eight face-up columns of five beside it.",
-      altText: "Grandfather's Clock solitaire board overview",
+        "A new deal, with 12 foundations in a circle and 8 columns of 5 cards.",
+      altText:
+        "A new game of Grandfather's Clock, with 12 cards laid out like a clock face.",
     },
     summary: {
-      facts: "",
-      goal: "Build each of the twelve foundations round the dial up in suit until its top card shows the hour it stands at.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Build each of the 12 foundations up by suit until its top card matches its hour on the clock.",
     },
     detailedRules: {
       layout: [
-        "Dial: 12 foundations in a circle at the left, started with the Two of Spades at five o'clock through to the King of Diamonds at four o'clock, the suits taken in turn: spades, hearts, clubs, diamonds.",
-        "Tableau: 8 columns of 5 face-up cards beside the dial.",
+        "Foundations: 12 piles laid out like a clock face. Each hour starts 1 rank higher, from the 2 of spades at 5 o'clock to the King of diamonds at 4.",
+        "Tableau: 8 columns of 5 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from their starting card, from King round to Ace, until the top card's rank is the hour — so those from five to twelve o'clock take three more cards, and those from one to four o'clock take four.",
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Only the top card of a column can be moved, one card at a time.",
-        "A card can go onto a column whose top card is exactly 1 rank higher, in any suit.",
+        "Foundations: build up by suit. After the King comes the Ace.",
+        "A Jack counts as 11, a Queen 12 and an Ace 1. The foundation at 3 o'clock goes from the Queen of clubs to the 3.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can only move the top card of a column.",
         "Any card can fill an empty column.",
-        "Double-press a card to send it to the foundation that takes it; each card fits only one.",
       ],
-      goodToKnow: [
-        "Telling the Time: Ace counts one, Jack eleven and Queen twelve; once a foundation shows its hour it is complete and takes nothing more.",
-        "One of the more forgiving patiences: with spaces open to any card, most deals come out.",
-      ],
+      goodToKnow: ["You can't take a card back off a foundation."],
     },
     settingsAndVariants: [],
   },
@@ -1540,32 +1537,27 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/pyramid/overview.webp",
       caption:
-        "Pyramid board showing twenty-eight face-up cards in a pyramid of seven rows, the stock and hand at the top-left and the waste and discard at the top-right.",
-      altText: "Pyramid solitaire board overview",
+        "A new deal, with the stock face down beside a pyramid of 7 rows.",
+      altText: "A new game of Pyramid, with 28 cards face up in 7 rows.",
     },
     summary: {
-      facts: "",
-      goal: "Discard the whole deck in pairs that total thirteen, and Kings on their own.",
+      facts: "1 deck. 1 or 3 passes.",
+      goal: "Discard all 52 cards, in pairs that add up to 13 and Kings on their own.",
     },
     detailedRules: {
       layout: [
-        "Pyramid: 28 face-up cards in 7 rows, each card half covered by the two below it.",
-        "Stock: the other 24 cards, face-down at the top-left, with the hand beside it.",
-        "Waste: the turned cards that found no pair, at the top-right; only its top card is free.",
-        "Discard: a single pile at the top-right, initially empty.",
+        "Pyramid: 28 cards in 7 rows, each row overlapping the one above.",
+        "Stock: the other 24 cards.",
+        "Hand: the card just turned over.",
+        "Waste: the cards you turned over before.",
+        "Discard: where pairs and Kings go.",
       ],
       moves: [
-        "Nothing is built: cards only leave, two at a time or a King alone.",
-        "Values: Ace 1, Two to Ten as marked, Jack 11, Queen 12, King 13.",
-        "A free card is a pyramid card with nothing over it, the card in the hand, or the waste's top card.",
-        "Drag a free card onto another free card that adds up to thirteen with it, and both go to the discard.",
-        "Drag a King to the discard, or double-press it; it needs no partner.",
-        "Double-press a free card to pair it with the first free partner.",
-        "Press the stock to turn its top card into the hand; the card held there moves to the waste.",
-      ],
-      goodToKnow: [
-        "Covered Cards: each pyramid card is held by the two cards that overlap it from below; it frees once both are gone.",
-        "Passes: the stock is gone through once, or three times with the 3 Passes option, counted in pips on the empty stock.",
+        "Aces count as 1, Jacks 11, Queens 12 and Kings 13.",
+        "You can only use free cards. They are the uncovered cards in the pyramid, the card in the hand and the top card of the waste.",
+        "To pair 2 free cards that add up to 13, drag one onto the other. A 6 pairs with a 7, and a Jack with a 2.",
+        "A King needs no pair. Drag it to the discard.",
+        "Click the stock to turn a card into the hand. The card already there goes to the waste.",
       ],
     },
     settingsAndVariants: [
@@ -1575,12 +1567,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "All Cards: the game is won only once every card, stock and waste included, is discarded.",
+              "You win only when every card is discarded, the stock and waste too.",
           },
           {
             value: 1,
             effect:
-              "Pyramid Only: Relaxed Pyramid — clearing the pyramid wins, whatever is left in the stock and waste.",
+              "Pyramid, but you win once the pyramid is clear, even with cards left in the stock and waste.",
           },
         ],
       },
@@ -1589,12 +1581,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 1,
-            effect: "1 Pass: the stock is gone through once.",
+            effect: "You go through the stock once.",
           },
           {
             value: 3,
             effect:
-              "3 Passes: once the stock is out, pressing its slot turns the waste back over, twice per game — Par Pyramid's allowance.",
+              "When the stock runs out, click it to turn the waste back over. You can do this twice.",
           },
         ],
       },
@@ -1605,29 +1597,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Tri_Peaks_(game)",
     screenshot: {
       url: "./docs/screenshots/tripeaks/overview.webp",
-      caption:
-        "TriPeaks board showing three overlapping peaks of face-down cards over a base of ten face-up cards, with the stock and the waste centred beneath.",
-      altText: "TriPeaks solitaire board overview",
+      caption: "A new deal, with 3 peaks of face-down cards over a row of 10.",
+      altText: "A new game of TriPeaks, with 10 cards face up under 3 peaks.",
     },
     summary: {
-      facts: "",
-      goal: "Clear all three peaks by playing their cards onto the waste, one rank up or down at a time.",
+      facts: "1 deck. Draw 1. No redeal.",
+      goal: "Clear all 3 peaks by playing their cards onto the waste.",
     },
     detailedRules: {
       layout: [
-        "Peaks: 28 cards — rows of 3, 6 and 9 face-down cards over a base of 10 face-up cards, each row half covering the one above.",
-        "Stock: 23 face-down cards beneath the peaks, turned one at a time.",
-        "Waste: a single pile beside the stock, started with one card from the deal.",
+        "Peaks: 28 cards in 4 rows. Only the bottom 10 are face up.",
+        "Stock: the cards left over.",
+        "Waste: the pile you play onto, started with 1 card.",
       ],
       moves: [
-        "Waste: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a chain can climb, fall and turn the corner.",
-        "Press an uncovered card to play it onto the waste, or drag it there.",
-        "A card is uncovered once both cards overlapping it from below are gone, and turns face-up at that moment.",
-        "Press the stock to turn its top card onto the waste, whatever its rank.",
+        "You can play a card from the peaks onto the waste if it is 1 rank above or below the top card there. Suits don't matter, so any 5 goes on any 4 or 6.",
+        "A King and an Ace count as 1 rank apart, so either can go on the other.",
+        "You can only play a card with nothing over it.",
+        "Click a card to play it, or drag it.",
+        "Click the stock to turn a card onto the waste.",
       ],
       goodToKnow: [
-        "One Pass: the stock is never recycled.",
-        "Long Chains: the art is to keep a chain going as long as you can before turning the next stock card, and to uncover the face-down cards of all three peaks evenly.",
+        "You win when the peaks are clear, even with cards left in the stock.",
       ],
     },
     settingsAndVariants: [],
@@ -1637,30 +1628,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Beleaguered_Castle",
     screenshot: {
       url: "./docs/screenshots/beleagueredcastle/overview.webp",
-      caption:
-        "Beleaguered Castle board showing the four Aces in a column down the middle, and eight rows of six cards fanned sideways, four on each side.",
-      altText: "Beleaguered Castle solitaire board overview",
+      caption: "A new deal, with the 4 Aces in a column between 8 rows.",
+      altText:
+        "A new game of Beleaguered Castle, with 48 cards face up in 8 rows.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Foundations: 4 piles in a column down the middle, each started with an Ace.",
-        "Rows: 8 rows of 6 face-up cards, fanned sideways, four on each side of the foundations.",
-        "No Stock: every card is in view from the first move.",
+        "Foundations: 4 piles, each started with an Ace.",
+        "Tableau: 8 rows of 6 cards, fanned sideways.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Rows: Built DOWN by RANK in ANY SUIT.",
-        "Only the last card of a row — the one fully in view — can be moved, one card at a time.",
-        "A card can go onto a row whose last card is exactly 1 rank higher, in any suit.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can only move the top card of a row, the one you can see whole.",
         "Any card can fill an empty row.",
       ],
       goodToKnow: [
-        "Every row fans to the right, so the free card of a row in the left wing is the one nearest the foundations.",
-        "Empty Rows: with no cells, an empty row is the only place to park a card — they are worth more than any single move.",
+        "There are no free cells, so an empty row is the only place to park a card.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [
@@ -1669,18 +1658,17 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "Beleaguered Castle: the Aces start on the foundations and the rows are dealt six each.",
+            effect: "The usual game.",
           },
           {
             value: 1,
             effect:
-              "Streets and Alleys: the Aces are shuffled in, so the left wing's rows are dealt seven cards and the right wing's six, and every foundation waits for its Ace to be dug out. Harder.",
+              "Beleaguered Castle with the Aces shuffled into the rows. 4 rows get 7 cards instead of 6.",
           },
           {
             value: 2,
             effect:
-              "Citadel: as Beleaguered Castle, but while the cards are dealt, any card that can go onto a foundation goes there at once, so the rows start shorter. Easier.",
+              "Beleaguered Castle, but any card that fits a foundation goes there while the cards are dealt.",
           },
         ],
       },
@@ -1690,29 +1678,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Fortress",
     screenshot: {
       url: "./docs/screenshots/fortress/overview.webp",
-      caption:
-        "Fortress board showing four empty foundations in a column down the middle and ten rows fanned sideways, five on each side.",
-      altText: "Fortress solitaire board overview",
+      caption: "A new deal, with 4 empty foundations and 5 rows on each side.",
+      altText: "A new game of Fortress, with every card face up in 10 rows.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Foundations: 4 empty piles in a column down the middle.",
-        "Rows: 10 face-up rows fanned sideways, five on each side — the first two of six cards, the rest of five.",
-        "No Stock: every card is in view from the first move.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 10 rows, fanned sideways. 2 have 6 cards and the rest have 5.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Rows: Built UP or DOWN in SAME SUIT, and a row may change direction.",
-        "Only the last card of a row can be moved, one card at a time.",
-        "A card can go onto a row whose last card is the same suit and exactly 1 rank higher or lower.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build up or down by suit. The 9 of hearts goes on the 8 or the 10 of hearts.",
+        "A row can change direction as often as you like.",
+        "You can only move the top card of a row, the one you can see whole.",
         "Any card can fill an empty row.",
       ],
       goodToKnow: [
-        "A Very Hard Game: with the Aces buried and no cells, PySol calls it a very hard game; plan the order the suits come home in before the first move.",
+        "There are no free cells, so an empty row is the only place to park a card.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -1722,31 +1709,35 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Poker_squares",
     screenshot: {
       url: "./docs/screenshots/pokersquares/overview.webp",
-      caption:
-        "Poker Squares board showing the stock and the card to place at the left, and the empty five-by-five grid beside them.",
-      altText: "Poker Squares board overview",
+      caption: "A new deal, with the first card face up beside an empty grid.",
+      altText: "A new game of Poker Squares, with an empty grid of 25 squares.",
     },
     summary: {
-      facts: "",
-      goal: "Place twenty-five cards in a five-by-five grid so its five rows and five columns make the best poker hands you can.",
+      facts: "1 deck. Only 25 cards are played.",
+      goal: "Fill the 5 by 5 grid so its rows and columns make poker hands worth 200 points or more, or 70 in English scoring.",
     },
     detailedRules: {
       layout: [
-        "Stock: the face-down cards at the top-left.",
-        "Hand: the card to place next, beneath the stock.",
-        "Grid: 25 empty squares in five rows of five.",
+        "Stock: the cards still to come, face down.",
+        "Next card: the card you place now.",
+        "Grid: 25 empty squares, in 5 rows of 5.",
       ],
       moves: [
-        "American scoring: royal flush 100, straight flush 75, four of a kind 50, full house 25, flush 20, straight 15, three of a kind 10, two pair 5, one pair 2.",
-        "English scoring: royal or straight flush 30, four of a kind 16, straight 12, full house 10, three of a kind 6, flush 5, two pair 3, one pair 1.",
-        "A straight can run from Ace to Five or from Ten to Ace, but not round the corner.",
-        "Drag the card in the hand into any empty square; the next card turns up at once.",
-        "A placed card never moves.",
-        "Only 25 of the 52 cards are played: the game ends when the grid is full.",
+        "Drag the next card into any empty square. Once a card is placed, it stays there.",
+        "Each row and column scores for the poker hand it makes. A straight can run from Ace to 5 or from 10 to Ace.",
+        "A pair, two pair, three of a kind or four of a kind scores as soon as it is in a line. Straights and flushes score when the line is full.",
+        "Royal flush: 100 American, 30 English.",
+        "Straight flush: 75 American, 30 English.",
+        "Four of a kind: 50 American, 16 English.",
+        "Full house: 25 American, 10 English.",
+        "Flush: 20 American, 5 English.",
+        "Straight: 15 American, 12 English.",
+        "Three of a kind: 10 American, 6 English.",
+        "Two pair: 5 American, 3 English.",
+        "One pair: 2 American, 1 English.",
       ],
       goodToKnow: [
-        "Running Score: a line counts the pairs, threes and fours it already holds, so the score rises as you go; straights and flushes count once all five cards are in.",
-        "Every Card Counts Twice: each square sits in one row and one column, so the art is to build flushes one way and pairs the other.",
+        "Each card counts in a row and in a column. Try to build flushes or straights one way and pairs the other.",
       ],
     },
     settingsAndVariants: [
@@ -1756,12 +1747,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "American: flushes outscore straights, and a score of 200 wins.",
+              "Flushes score more than straights. You need 200 points to win.",
           },
           {
             value: 1,
             effect:
-              "English: a straight is worth more than a flush or a full house, reflecting how hard straights are to build in the grid, and a score of 70 wins.",
+              "Straights score more than flushes and full houses. You need 70 points to win.",
           },
         ],
       },
