@@ -139,14 +139,16 @@ describe("SectorsComponent", () => {
     expect({
       tile: sectorNames()[0],
       said:
-        screen.queryByText(/^A best made under earlier rules says so/) !== null,
-    }).toEqual({ tile: "Near Wave 1 Best 4,100, earlier rules", said: true });
+        screen.queryByText(
+          /^A best marked \(old rules\) was set before the rules changed/,
+        ) !== null,
+    }).toEqual({ tile: "Near Wave 1 Best 4,100 (old rules)", said: true });
   });
 
   it("says nothing of earlier rules where no sector's best was made under them", async () => {
     await renderSectors();
 
-    expect(screen.queryByText(/earlier rules/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/old rules/)).not.toBeInTheDocument();
   });
 
   it("marks the sector of the wave on the board", async () => {

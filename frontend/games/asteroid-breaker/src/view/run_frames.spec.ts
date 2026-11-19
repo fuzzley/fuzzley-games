@@ -535,7 +535,7 @@ describe("RunFrames", () => {
         said: game.said,
       }).toEqual({
         aboard: 0,
-        said: ["Everyone is home. Score 0, on wave 1."],
+        said: ["Game over. Score 0, on wave 1."],
       });
     });
 
@@ -545,7 +545,7 @@ describe("RunFrames", () => {
       tick(game);
 
       expect(game.said).toEqual([
-        "Wave 1, First. 1 rock. Everyone is home. Score 0, on wave 1.",
+        "Wave 1, First. 1 rock. Game over. Score 0, on wave 1.",
       ]);
     });
 
@@ -556,7 +556,7 @@ describe("RunFrames", () => {
       playTo(game, "over");
 
       expect(game.said).toEqual([
-        "Everyone is home. Score 0, on wave 1. A new best! Cleared all thirty!",
+        "Game over. Score 0, on wave 1. A new best! Cleared all thirty!",
       ]);
     });
 

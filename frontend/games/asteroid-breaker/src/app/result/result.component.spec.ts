@@ -115,13 +115,13 @@ describe("ResultComponent", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
   });
 
-  it("says everyone is home, the wave the run ended on and at what speed, the score and the best it set", async () => {
+  it("says the game is over, the wave the run ended on and at what speed, the score and the best it set", async () => {
     await renderLost();
 
     expect(
-      screen.getByRole("alertdialog", { name: "Everyone is home." }),
+      screen.getByRole("alertdialog", { name: "Game over" }),
     ).toHaveAccessibleDescription(
-      "The run ended on wave 2, Gift, at Normal speed. Score 1,180. A new best!",
+      "Out of crew on wave 2, Gift, at Normal speed. Score 1,180. A new best!",
     );
   });
 
@@ -129,7 +129,7 @@ describe("ResultComponent", () => {
     await renderLost();
 
     expect(
-      screen.getByText("The run ended on wave 2, Gift, at Normal speed"),
+      screen.getByText("Out of crew on wave 2, Gift, at Normal speed"),
     ).toBeVisible();
   });
 
@@ -137,7 +137,7 @@ describe("ResultComponent", () => {
     await renderLost(90_000);
 
     expect(screen.getByRole("alertdialog")).toHaveAccessibleDescription(
-      "The run ended on wave 2, Gift, at Normal speed. Score 1,180.",
+      "Out of crew on wave 2, Gift, at Normal speed. Score 1,180.",
     );
   });
 
@@ -153,9 +153,9 @@ describe("ResultComponent", () => {
     endAndOpen(rendered);
 
     expect(
-      screen.getByRole("alertdialog", { name: "Everyone is home." }),
+      screen.getByRole("alertdialog", { name: "Game over" }),
     ).toHaveAccessibleDescription(
-      /^The run ended on wave 4, Endless, at Normal speed\. /u,
+      /^Out of crew on wave 4, Endless, at Normal speed\. /u,
     );
   });
 
@@ -167,7 +167,7 @@ describe("ResultComponent", () => {
 
     endAndOpen(rendered);
 
-    expect(screen.getByText("Cleared all thirty")).toBeVisible();
+    expect(screen.getByText("All 30 waves cleared!")).toBeVisible();
     expect(screen.getByRole("alertdialog")).toHaveAccessibleDescription(
       / Cleared all thirty!$/u,
     );
@@ -181,7 +181,7 @@ describe("ResultComponent", () => {
 
     endAndOpen(rendered);
 
-    expect(screen.queryByText("Cleared all thirty")).not.toBeInTheDocument();
+    expect(screen.queryByText("All 30 waves cleared!")).not.toBeInTheDocument();
   });
 
   it("shows the score, the best, the wave reached and the waves cleared", async () => {
@@ -222,7 +222,7 @@ describe("ResultComponent", () => {
     endAndOpen(rendered);
 
     expect({
-      best: figure("Best, earlier rules"),
+      best: figure("Best (old rules)"),
       newBest: screen.queryByText("New best"),
     }).toEqual({ best: "90,000", newBest: null });
   });
@@ -303,9 +303,7 @@ describe("ResultComponent", () => {
   it("opens on its title, so a key still held from play presses nothing", async () => {
     await renderLost();
 
-    expect(
-      screen.getByRole("heading", { name: "Everyone is home." }),
-    ).toHaveFocus();
+    expect(screen.getByRole("heading", { name: "Game over" })).toHaveFocus();
   });
 
   it("puts the card away, and asks for the sectors", async () => {

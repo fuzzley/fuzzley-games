@@ -100,13 +100,13 @@ describe("nextWaveWords", () => {
 describe("endWords", () => {
   it("names the wave a run ended on by its number and its name", () => {
     expect(endWords(waveEntryOf(WAVES, 14))).toBe(
-      "The run ended on wave 14, Anvil",
+      "Out of crew on wave 14, Anvil",
     );
   });
 
   it("names a wave of Endless's so", () => {
     expect(endWords(waveEntryOf(WAVES, WAVES.length + 7))).toBe(
-      "The run ended on wave 37, Endless",
+      "Out of crew on wave 37, Endless",
     );
   });
 });
@@ -114,7 +114,7 @@ describe("endWords", () => {
 describe("endSubtitle", () => {
   it("says where a run ended and at what speed", () => {
     expect(endSubtitle(waveEntryOf(WAVES, 14), "fast")).toBe(
-      "The run ended on wave 14, Anvil, at Fast speed",
+      "Out of crew on wave 14, Anvil, at Fast speed",
     );
   });
 });
@@ -143,8 +143,8 @@ describe("endDescription", () => {
       };
 
       expect(said).toEqual({
-        card: `The run ended on wave 14, Anvil, at Normal speed. Score 4,250.${marks}`,
-        announcer: `Everyone is home. Score 4,250, on wave 14.${marks}`,
+        card: `Out of crew on wave 14, Anvil, at Normal speed. Score 4,250.${marks}`,
+        announcer: `Game over. Score 4,250, on wave 14.${marks}`,
       });
     },
   );

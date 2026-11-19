@@ -95,9 +95,9 @@ export function describeTakenUp(run: Run, entry: WaveEntry): string {
 
 /**
  * What the run's end is called, as the announcer says it and the result
- * card shows it: the crew, all of them, gone home.
+ * card shows it.
  */
-export const END_TITLE = "Everyone is home.";
+export const END_TITLE = "Game over";
 
 /**
  * Returns what is said of what an ended run set, each a sentence after a
@@ -119,7 +119,7 @@ export function describeEnd(
   entry: WaveEntry,
   marks: EndMarks,
 ): string {
-  return `${END_TITLE} Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${marksWords(marks)}`;
+  return `${END_TITLE}. Score ${formatPoints(run.score)}, on ${waveIn(entry)}.${marksWords(marks)}`;
 }
 
 /** Returns a wave by its number, in words: "wave 4", or "wave 37, Endless". */

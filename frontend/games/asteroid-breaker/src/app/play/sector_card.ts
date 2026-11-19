@@ -8,16 +8,16 @@ import type { WaveEntry } from "../../rules/waves/waves";
 export const SECTOR_NEWS: Readonly<Record<string, readonly string[]>> = {
   "inner-belt": [
     "Break every rock to clear a wave.",
-    "Crystals let pickups go.",
+    "Crystals always drop a pickup.",
   ],
   "iron-reach": [
-    "Iron holds its hits, and volatile rocks blast.",
-    "Comets cross, and burrs cling, slowing you until a dash.",
+    "Iron takes extra hits. Volatile rocks blow up.",
+    "Comets fly across. Burrs slow you down until you dash.",
   ],
-  storm: ["Lodestones drift toward the ship."],
+  storm: ["Lodestones drift toward your ship."],
   endless: [
-    "Its waves are made anew each run, and never end.",
-    "Comets cross every one, and a boulder comes every tenth.",
+    "The waves are new every game, and they never end.",
+    "Every wave has comets, and every 10th has boulders.",
   ],
 };
 
@@ -29,7 +29,7 @@ export const SECTOR_NEWS: Readonly<Record<string, readonly string[]>> = {
 export interface SectorCard {
   /** Whether it opens the run, at its first wave, rather than a sector the run reached. */
   readonly opensRun: boolean;
-  /** What it opens, in words: "A new run", or "A new sector". */
+  /** What it opens, in words: "A new game", or "A new sector". */
   readonly kicker: string;
   /** The sector's name. */
   readonly name: string;
@@ -55,7 +55,7 @@ export function sectorCardOf(
   if (!span || (!opensRun && span.firstWave !== entry.number)) return null;
   return {
     opensRun,
-    kicker: opensRun ? "A new run" : "A new sector",
+    kicker: opensRun ? "A new game" : "A new sector",
     name: span.name,
     waves: wavesInWords(span.firstWave, span.lastWave),
     news: SECTOR_NEWS[span.id] ?? [],

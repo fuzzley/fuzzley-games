@@ -16,10 +16,10 @@ interface Figure {
 }
 
 /**
- * Shows an ended run's result over the board: that everyone is home, the
+ * Shows an ended run's result over the board: that the game is over, the
  * wave it ended on and at what speed, the score and the best, said to be
  * under earlier rules where it was made under them, with "New best" when
- * it set one and "Cleared all thirty" when it cleared every
+ * it set one and "All 30 waves cleared!" when it cleared every
  * written wave, the wave reached and the waves cleared, and every
  * fuzzball who flew in it, each in its color.
  *

@@ -99,7 +99,7 @@ describe("BoardCardComponent", () => {
   it("opens a new run with its sector, its waves and its wave, which starts as the ship flies", async () => {
     await renderCard();
 
-    expect(screen.getByText("A new run")).toBeInTheDocument();
+    expect(screen.getByText("A new game")).toBeInTheDocument();
     expect(screen.getByText("Specs")).toBeInTheDocument();
     expect(screen.getByText("Waves 1 to 3")).toBeInTheDocument();
     expect(
@@ -114,7 +114,9 @@ describe("BoardCardComponent", () => {
     expect(
       screen.getByText("Break every rock to clear a wave."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Crystals let pickups go.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Crystals always drop a pickup."),
+    ).toBeInTheDocument();
   });
 
   it("says how to fly by the keys over a new run's first wave", async () => {
@@ -125,30 +127,28 @@ describe("BoardCardComponent", () => {
     ).toBeInTheDocument();
   });
 
-  it("says the ship fires by itself, where the settings have it", async () => {
+  it("says only how to fly where the settings have the ship fire on its own", async () => {
     await renderCard({ ...ROOMY, fireByItself: true });
 
-    expect(
-      screen.getByText("Arrows or W A D to fly; the ship fires by itself."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Arrows or W A D to fly.")).toBeInTheDocument();
   });
 
   it.each<[string, Partial<BoardSetting>, string]>([
-    ["", {}, "Steer with the left pad, fire with the right."],
+    ["", {}, "Steer with the left stick, fire with the right."],
     [
       " with the stick on the right",
       { stickOnRight: true },
-      "Steer with the right pad, fire with the left.",
+      "Steer with the right stick, fire with the left.",
     ],
     [
-      " firing by itself",
+      " firing on its own",
       { fireByItself: true },
-      "Steer with the left pad; the ship fires by itself.",
+      "Steer with the left stick.",
     ],
     [
-      " with the stick on the right, firing by itself",
+      " with the stick on the right, firing on its own",
       { stickOnRight: true, fireByItself: true },
-      "Steer with the right pad; the ship fires by itself.",
+      "Steer with the right stick.",
     ],
   ])(
     "says how to fly by the deck%s, where it shows",
@@ -272,6 +272,15 @@ describe("BoardCardComponent", () => {
     }).toEqual({ outcome: "playing", handedBack: 1 });
   });
 
+  it("says which wave is cleared", async () => {
+    const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
+
+    clearIn(game);
+    detectChanges();
+
+    expect(screen.getByText("Wave 1 cleared!")).toBeVisible();
+  });
+
   it("adds up a cleared wave's points, whole at once where the player prefers less motion", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
@@ -332,7 +341,7 @@ describe("BoardCardComponent", () => {
     clearIn(game);
     detectChanges();
 
-    expect(screen.getByText("Specs cleared. Endless begins.")).toBeVisible();
+    expect(screen.getByText("Specs cleared! Endless begins.")).toBeVisible();
     // The trophy is hidden from assistive technology, which the title tells.
     expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
   });
@@ -402,7 +411,7 @@ describe("BoardCardComponent", () => {
       game.tick(CLEARED_MS / 2, STILL);
       detectChanges();
 
-      expect(screen.queryByText("Wave 1 cleared")).not.toBeInTheDocument();
+      expect(screen.queryByText("Wave 1 cleared!")).not.toBeInTheDocument();
     });
 
     it("counts a cleared wave's points up, line by line, as its card opens", async () => {
@@ -458,7 +467,7 @@ describe("BoardCardComponent", () => {
     endRun(game);
     detectChanges();
 
-    expect(screen.queryByText("Everyone is home.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Game over")).not.toBeInTheDocument();
   });
 
   it("says a run ended in Endless ended there, once its result is put away", async () => {
@@ -468,19 +477,19 @@ describe("BoardCardComponent", () => {
     detectChanges();
 
     expect(
-      screen.getByText("The run ended on wave 4, Endless"),
+      screen.getByText("Out of crew on wave 4, Endless"),
     ).toBeInTheDocument();
   });
 
-  it("says everyone is home, where the run ended and its score, and offers a new game, once an ended run's result is put away", async () => {
+  it("says the game is over, where the run ended and its score, and offers a new game, once an ended run's result is put away", async () => {
     const { game, detectChanges } = await renderAt(SPEC_WAVE.pebble);
 
     endIn(game);
     detectChanges();
 
-    expect(screen.getByText("Everyone is home.")).toBeInTheDocument();
+    expect(screen.getByText("Game over")).toBeInTheDocument();
     expect(
-      screen.getByText("The run ended on wave 1, Pebble"),
+      screen.getByText("Out of crew on wave 1, Pebble"),
     ).toBeInTheDocument();
     expect(screen.getByText("Score 60")).toBeInTheDocument();
   });

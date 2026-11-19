@@ -43,9 +43,9 @@ async function renderSettings({
 /** Each checkbox of the sound's switches, by its name, and the switch it turns. */
 const SOUND_BOXES = [
   ["Play sounds", "sound"],
-  ["Play the effects", "effects"],
-  ["Play the fuzzball's voice", "voice"],
-  ["Play a bed under each sector", "bed"],
+  ["Play sound effects", "effects"],
+  ["Play fuzzball voices", "voice"],
+  ["Play music", "bed"],
   ["One speaker", "mono"],
 ] as const;
 
@@ -140,7 +140,7 @@ describe("SettingsComponent", () => {
   it("has the ship fire by itself at its checkbox", async () => {
     const { user, store } = await renderSettings();
 
-    await user.click(screen.getByRole("checkbox", { name: "Fire by itself" }));
+    await user.click(screen.getByRole("checkbox", { name: "Auto-fire" }));
 
     expect(store.settings().fireByItself).toBe(true);
   });

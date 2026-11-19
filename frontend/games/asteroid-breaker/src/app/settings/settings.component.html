@@ -9,7 +9,7 @@
       (choose)="chooseSpeed($event)"
     />
     <p class="setting-desc" id="speed-desc">
-      Changing the speed starts a new run.
+      Changing the speed starts a new game.
     </p>
   </div>
 
@@ -35,9 +35,7 @@
         (change)="setStickOnRight(stick.checked)"
       />
       <label for="stick-on-right">Stick on the right</label>
-      <p class="setting-desc" id="stick-desc">
-        For a left thumb on Fire and Dash.
-      </p>
+      <p class="setting-desc" id="stick-desc">Moves the buttons to the left.</p>
     </div>
   </div>
 
@@ -52,9 +50,10 @@
         [checked]="settings().fireByItself"
         (change)="setFireByItself(fire.checked)"
       />
-      <label for="fire-by-itself">Fire by itself</label>
+      <label for="fire-by-itself">Auto-fire</label>
       <p class="setting-desc" id="fire-desc">
-        The ship fires all the time, and the deck has Dash alone.
+        The ship fires on its own. On a touch screen, only the Dash button
+        shows.
       </p>
     </div>
   </div>
@@ -72,8 +71,8 @@
       />
       <label for="haptics">Buzz the phone</label>
       <p class="setting-desc" id="haptics-desc">
-        Once as a ship is lost, and twice as a wave is cleared, on a phone that
-        can.
+        Buzzes once when you're hit and twice when you clear a wave. Only on
+        phones that can buzz.
       </p>
     </div>
   </div>
@@ -91,8 +90,7 @@
       />
       <label for="sound">Play sounds</label>
       <p class="setting-desc" id="sound-desc">
-        Off, it mutes the effects, the voice and the bed, as the bar's Sound
-        button does.
+        Turns all sound on or off. Same as the Sound button.
       </p>
     </div>
     <div class="setting-check">
@@ -100,15 +98,10 @@
         #effects
         id="effects"
         type="checkbox"
-        aria-describedby="effects-desc"
         [checked]="settings().effects"
         (change)="setSound('effects', effects.checked)"
       />
-      <label for="effects">Play the effects</label>
-      <p class="setting-desc" id="effects-desc">
-        Each rock breaking, rising with static, the thrust's hum, and a chime
-        for a wave cleared.
-      </p>
+      <label for="effects">Play sound effects</label>
     </div>
     <div class="setting-check">
       <input
@@ -119,9 +112,9 @@
         [checked]="settings().voice"
         (change)="setSound('voice', voice.checked)"
       />
-      <label for="voice">Play the fuzzball's voice</label>
+      <label for="voice">Play fuzzball voices</label>
       <p class="setting-desc" id="voice-desc">
-        A whee, an eep or a cheer, now and then.
+        The fuzzballs squeak and cheer now and then.
       </p>
     </div>
     <div class="setting-check">
@@ -133,9 +126,9 @@
         [checked]="settings().bed"
         (change)="setSound('bed', bed.checked)"
       />
-      <label for="bed">Play a bed under each sector</label>
+      <label for="bed">Play music</label>
       <p class="setting-desc" id="bed-desc">
-        A slow drone, a pulse and bells joining it as static climbs.
+        Each sector has its own music, and it builds as your static rises.
       </p>
     </div>
     <div class="setting-check">
@@ -149,7 +142,7 @@
       />
       <label for="mono">One speaker</label>
       <p class="setting-desc" id="mono-desc">
-        Every sound in both ears, for one earbud or a phone's one speaker.
+        Plays every sound in both ears, for one earbud or a phone speaker.
       </p>
     </div>
   </div>
