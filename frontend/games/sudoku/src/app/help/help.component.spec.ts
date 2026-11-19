@@ -20,7 +20,9 @@ describe("HelpComponent", () => {
   it("gives the rule", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
-    expect(screen.getByText(/the digits 1 to 9 once/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/each digit from 1 to 9 once\./),
+    ).toBeInTheDocument();
   });
 
   it("gives the keys for each control", async () => {

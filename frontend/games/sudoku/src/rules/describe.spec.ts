@@ -12,6 +12,7 @@ import {
 } from "./describe";
 import { type Grid, erase, place, toggleNote, undo } from "./grid";
 import {
+  type Chain,
   type Single,
   type Technique,
   nextPlacement,
@@ -239,11 +240,11 @@ describe("describeRefusal", () => {
     );
   });
 
-  it("says a square with a digit takes no notes", () => {
+  it("says a square with a digit has no room for notes", () => {
     const grid = gridFrom(EASY, { digits: RIGHT_6 });
 
     expect(describeRefusal(grid, R1C1)).toBe(
-      "Row 1, column 1 holds a 6, so it takes no notes.",
+      "Row 1, column 1 already has a digit. Erase it to add notes.",
     );
   });
 
@@ -272,7 +273,7 @@ describe("describeChain", () => {
         "14.......5....2.3...3.7...639..4.6..624.3.175..1.5..437...8.4...5.1....7.......61",
       ),
       "Pointing",
-      "In box 3, the 9 can only go in row 1, so it can't go anywhere else in row 1. That leaves 6 as the only digit for row 1, column 5.",
+      "In box 3, the 9 can only go in row 1, so it can't go anywhere else in row 1. Now only 6 can go in row 1, column 5.",
     ],
     [
       "claiming",
@@ -280,7 +281,7 @@ describe("describeChain", () => {
         "3..8...5.948.....6....46.8.4..6....8..54.23..6....5..4.3.21....2.....871.1...8..3",
       ),
       "Claiming",
-      "In column 9, the 2 can only go in box 3, so it can't go anywhere else in box 3. That leaves the 2 one place in row 2: row 2, column 5.",
+      "In column 9, the 2 can only go in box 3, so it can't go anywhere else in box 3. Now the only place for the 2 in row 2 is column 5.",
     ],
     [
       "a naked pair",
@@ -288,7 +289,7 @@ describe("describeChain", () => {
         ".....6.32135..2.9.......8.......41...4.2.9.7...15.......3.......9.7..24372.3.....",
       ),
       "Naked pair",
-      "In column 3, two squares can only hold 6 and 8, so no other square there can. That leaves 4 as the only digit for row 9, column 3.",
+      "Column 3 has 2 squares where only 6 and 8 can go. So 6 and 8 can't go anywhere else in column 3. Now only 4 can go in row 9, column 3.",
     ],
     [
       "a hidden triple",
@@ -296,7 +297,7 @@ describe("describeChain", () => {
         "....76.2.6....2.....93.1.46.6..35987.832.7654.756.8.1..1.8.4......7.9..5.9..63.7.",
       ) ?? [],
       "Hidden triple",
-      "In box 9, the 1, 4 and 8 can only go in the same three squares, so those squares can hold nothing else. In box 9, the 2 can only go in row 7, so it can't go anywhere else in row 7. That leaves the 2 one place in box 8: row 8, column 5.",
+      "In box 9, the 1, 4 and 8 can only go in the same 3 squares, so no other digit can go in those squares. In box 9, the 2 can only go in row 7, so it can't go anywhere else in row 7. Now the only place for the 2 in box 8 is row 8, column 5.",
     ],
     [
       "an X-Wing",
@@ -304,7 +305,7 @@ describe("describeChain", () => {
         "....7..2.6....2......3.1.4..6...598...32.76...756...1..1.8.4......7....5.9..6....",
       ),
       "X-Wing",
-      "In rows 5 and 6, the 9 can only go in columns 1 and 5, so it can't go anywhere else in those columns. That leaves the 9 one place in row 3: row 3, column 3.",
+      "In rows 5 and 6, the 9 can only go in columns 1 and 5, so it can't go anywhere else in those columns. Now the only place for the 9 in row 3 is column 3.",
     ],
     [
       "a Swordfish",
@@ -312,7 +313,7 @@ describe("describeChain", () => {
         "32.....17.8.7.54.2.....3.......4..29...8.7...45..9.......4.....5.12.9.8.29.....75",
       ),
       "Swordfish",
-      "In columns 3, 6 and 9, the 6 can only go in rows 3, 4 and 7, so it can't go anywhere else in those rows. That leaves the 6 one place in column 1: row 2, column 1.",
+      "In columns 3, 6 and 9, the 6 can only go in rows 3, 4 and 7, so it can't go anywhere else in those rows. Now the only place for the 6 in column 1 is row 2.",
     ],
     [
       "an XY-Wing",
@@ -320,12 +321,41 @@ describe("describeChain", () => {
         "..4.5..963...24.51..5...2..8.....5..65.....47..3.....9..7...4..42.51...313..7.6..",
       ),
       "XY-Wing",
-      "In box 5, the 8 can only go in column 5, so it can't go anywhere else in column 5. The square at row 3, column 5 holds 3 or 6. Either way, the square at row 3, column 8 or the one at row 6, column 5 holds 8, so no square that sees both can. That leaves the 8 one place in box 6: row 5, column 7.",
+      "In box 5, the 8 can only go in column 5, so it can't go anywhere else in column 5. The square at row 3, column 5 can only be 3 or 6. Either way, the square at row 3, column 8 or the one at row 6, column 5 must be 8. So 8 can't go in any square that shares a row, column or box with both of them. Now the only place for the 8 in box 6 is row 5, column 7.",
     ],
   ])("explains %s", (_, digits, title, text) => {
     const chain = nextPlacement(digits);
 
     expect(describeChain(chain!)).toMatchObject({ title, text });
+  });
+
+  it.each([
+    [
+      "a row by its column",
+      "row",
+      1,
+      "In row 2, the 4 can only go in column 5.",
+    ],
+    [
+      "a column by its row",
+      "column",
+      4,
+      "In column 5, the 4 can only go in row 2.",
+    ],
+  ])("places a hidden single in %s", (_, kind, n, text) => {
+    const unit = UNITS.find((each) => each.kind === kind && each.n === n);
+    const chain: Chain = {
+      eliminations: [],
+      placement: {
+        kind: "place",
+        technique: "hidden-single",
+        index: squareAt("r2c5"),
+        digit: 4,
+        unit: unit ?? null,
+      },
+    };
+
+    expect(describeChain(chain).text).toBe(text);
   });
 
   it("concludes in a sentence of its own, without the steps", () => {

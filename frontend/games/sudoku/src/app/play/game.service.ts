@@ -31,7 +31,7 @@ import { StatsService } from "../stats/stats.service";
 /** What a new deal asks before it throws away the game under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
   title: "Start a new game?",
-  message: "The game in progress will be lost.",
+  message: "You'll lose the game in progress.",
   confirmLabel: "New game",
   tone: "danger",
 };
@@ -47,7 +47,7 @@ function levelQuestion(level: Level): ConfirmRequest {
 /** What Restart asks before it clears the game under way. */
 const RESTART_QUESTION: ConfirmRequest = {
   title: "Restart this puzzle?",
-  message: "Your digits and notes will be cleared, and the clock starts again.",
+  message: "You'll lose your digits and notes. The clock resets.",
   confirmLabel: "Restart",
   tone: "danger",
 };
@@ -238,7 +238,7 @@ export class GameService {
     if (grid.outcome !== "playing") return;
     const hint = hintFor(grid);
     if (!hint) {
-      this.announcer.say("No hint: logic finds no next step here.");
+      this.announcer.say("No hint available.");
       return;
     }
     this.gridState.set(countHint(grid));

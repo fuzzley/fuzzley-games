@@ -444,7 +444,7 @@ describe("GameService", () => {
       game.useHint();
 
       expect(game.hint()).toBeNull();
-      expect(said()).toBe("No hint: logic finds no next step here.");
+      expect(said()).toBe("No hint available.");
     });
   });
 

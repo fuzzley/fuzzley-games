@@ -84,7 +84,7 @@ describe("SettingsComponent", () => {
       screen.getByRole("checkbox", { name: "Mark mistakes" }),
     ).not.toBeChecked();
     expect(
-      screen.getByRole("checkbox", { name: "Remove notes as digits go in" }),
+      screen.getByRole("checkbox", { name: "Auto-clear notes" }),
     ).toBeChecked();
   });
 
@@ -102,7 +102,7 @@ describe("SettingsComponent", () => {
     const { user } = await renderSettings();
 
     await user.click(
-      screen.getByRole("checkbox", { name: "Remove notes as digits go in" }),
+      screen.getByRole("checkbox", { name: "Auto-clear notes" }),
     );
 
     expect(settings().clearNotes).toBe(false);
@@ -114,7 +114,7 @@ describe("SettingsComponent", () => {
     expect(
       screen.getByRole("checkbox", { name: "Mark mistakes" }),
     ).toHaveAccessibleDescription(
-      "Marks a digit the solution doesn't hold, as a repeat is marked.",
+      "Marks any digit that doesn't match the solution, not only repeats.",
     );
   });
 
