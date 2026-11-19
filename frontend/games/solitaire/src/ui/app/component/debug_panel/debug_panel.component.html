@@ -1,5 +1,5 @@
 <div class="debug-panel" role="group" aria-labelledby="debug-panel-label">
-  <p class="debug-label" id="debug-panel-label">Debug Options</p>
+  <p class="debug-label" id="debug-panel-label">Debug options</p>
   @for (option of catalog.debugOptions(); track option.id) {
     <app-option-group
       [option]="option"
@@ -10,7 +10,7 @@
   }
 
   <div class="load-position">
-    <label class="load-label" for="load-position-text">Load Game State</label>
+    <label class="load-label" for="load-position-text">Load game state</label>
     <textarea
       #positionText
       id="load-position-text"

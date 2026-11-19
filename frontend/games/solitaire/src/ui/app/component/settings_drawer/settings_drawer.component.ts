@@ -99,8 +99,7 @@ const AUTO_CARD_STYLE: CardStyleChoice = {
   value: 0,
   rule: "auto",
   label: "Auto",
-  description:
-    "Mobile cards on a phone, upright or on its side; desktop cards on a larger screen.",
+  description: "Mobile cards on a phone and desktop cards on a larger screen.",
 };
 
 /**
@@ -113,14 +112,14 @@ const CARD_STYLE_CHOICES: readonly CardStyleChoice[] = [
     value: 1,
     rule: "mobile",
     label: "Mobile",
-    description: "A big rank and suit and no artwork, on every screen.",
+    description: "Plain cards with a big rank and suit, on every screen.",
   },
   {
     value: 2,
     rule: "desktop",
     label: "Desktop",
     description:
-      "The card artwork, with the pips chosen below, on every screen.",
+      "The full card artwork, on every screen. Choose the deck below.",
   },
 ];
 
@@ -147,8 +146,8 @@ const PILES_CHOICES: readonly GameOptionChoice<OrAuto<PilePosition>>[] = [
 /** Returns what putting a game's piles at the top or the bottom does. */
 function pilesDescription(position: PilePosition, pilesName: string): string {
   return position === "top"
-    ? `The ${pilesName} along the top, or at the top of a sideways phone's rails.`
-    : `The ${pilesName} along the bottom, under your thumb, or at the foot of a sideways phone's rails.`;
+    ? `Puts the ${pilesName} at the top.`
+    : `Puts the ${pilesName} at the bottom.`;
 }
 
 /**
@@ -171,9 +170,9 @@ const STOCK_SIDE_CHOICES: readonly GameOptionChoice<OrAuto<StockSide>>[] = [
   { value: 2, rule: "right", label: "Right" },
 ];
 
-/** Returns a name as a label, each word starting with a capital. */
-function titleCase(name: string): string {
-  return name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+/** Returns a name as the start of a label, its first letter a capital. */
+function capitalized(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 /**
@@ -190,8 +189,8 @@ function autoDescription<T>(
   const label = (rule: T) =>
     choices.find((choice) => choice.rule === rule)?.label ?? String(rule);
   return (
-    `${label(picks("phone-portrait"))} on a phone, upright or on its side, ` +
-    `and ${label(picks("roomy"))} on a larger screen: ${label(here)} here.`
+    `${label(picks("phone-portrait"))} on a phone and ` +
+    `${label(picks("roomy"))} on a larger screen, so ${label(here)} here.`
   );
 }
 
@@ -302,7 +301,7 @@ export class SettingsDrawerComponent {
     GameOptionSpec<OrAuto<StockSide>>
   >(() => ({
     id: "stockSide",
-    label: `${titleCase(this.sideName() ?? "stock")} Side`,
+    label: `${capitalized(this.sideName() ?? "stock")} side`,
     description: this.describeSide(this.stockSideChoice().rule),
     choices: STOCK_SIDE_CHOICES,
     defaultValue: AUTO_STOCK_SIDE.value,
@@ -320,7 +319,7 @@ export class SettingsDrawerComponent {
   protected readonly cardStyleOption = computed<GameOptionSpec<CardStyle>>(
     () => ({
       id: "cardStyle",
-      label: "Card Style",
+      label: "Card style",
       description: this.cardStyleChoice().description,
       choices: CARD_STYLE_CHOICES,
       defaultValue: AUTO_CARD_STYLE.value,
@@ -387,7 +386,7 @@ export class SettingsDrawerComponent {
     loader: ({ params }) => this.bugReport.issueUrl(params),
   });
 
-  /** Where "Report a Bug" leads, once the link is ready. */
+  /** Where "Report a bug" leads, once the link is ready. */
   protected readonly bugReportUrl = computed(() =>
     this.bugReportLink.hasValue() ? this.bugReportLink.value() : null,
   );
@@ -430,7 +429,7 @@ export class SettingsDrawerComponent {
           (formFactor) => AUTO_ARRANGEMENTS[formFactor].stockSide,
           this.presentation.resolvedArrangement().stockSide,
         )
-      : `The ${this.sideName() ?? "stock"} at the ${rule} of the table.`;
+      : `Puts the ${this.sideName() ?? "stock"} on the ${rule}. On a phone, the buttons go on the other side.`;
   }
 
   /** Puts the piles where the option group handed back. */

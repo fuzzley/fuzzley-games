@@ -191,7 +191,13 @@ describe("GameBrowserComponent", () => {
     it("starts on the game on the table", () => {
       open();
 
-      expect(active()).toBe("Klondike, Easy–Medium, playing now");
+      expect(active()).toBe("Klondike, Easy to Medium, playing now");
+    });
+
+    it("shows a range of difficulties with a dash", () => {
+      open();
+
+      expect(queryText(fixture, ".row .difficulty")).toBe("Easy–Medium");
     });
 
     it("shows the game on the table in the preview", () => {
@@ -256,7 +262,7 @@ describe("GameBrowserComponent", () => {
       type("");
       press("ArrowUp");
 
-      expect(active()).toBe("Klondike, Easy–Medium, playing now");
+      expect(active()).toBe("Klondike, Easy to Medium, playing now");
     });
 
     it("stops at the bottom of the list", () => {
@@ -452,6 +458,18 @@ describe("GameBrowserComponent", () => {
       open();
 
       expect(queryText(fixture, ".row-rules")).toBe("· Draw 3");
+    });
+
+    it("says the rules a recent game was played by in its name", async () => {
+      storage.setItem(
+        "fsolitaire-recent-games",
+        JSON.stringify([{ gameId: "freecell", values: {} }]),
+      );
+      await build();
+      TestBed.tick();
+      open();
+
+      expect(listed()[0]).toBe("Klondike, Draw 3, Medium, playing now");
     });
   });
 

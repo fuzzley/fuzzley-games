@@ -32,15 +32,15 @@
   -->
   <div fzBarStatus class="metrics">
     <div class="metric-card score-card" role="status" aria-atomic="true">
-      <span class="label">SCORE</span>
+      <span class="label">Score</span>
       <span class="value">{{ metrics.score() }}</span>
     </div>
     <div class="metric-card timer-card">
-      <span class="label">TIME</span>
+      <span class="label">Time</span>
       <span class="value">{{ metrics.timerText() }}</span>
     </div>
     <div class="metric-card moves-card" role="status" aria-atomic="true">
-      <span class="label">MOVES</span>
+      <span class="label">Moves</span>
       <span class="value">{{ metrics.moves() }}</span>
     </div>
   </div>
@@ -51,8 +51,8 @@
     class="fz-button fz-button-secondary action"
     (click)="lifecycle.undo()"
     [disabled]="!metrics.canUndo()"
-    title="Undo last move"
-    aria-label="Undo last move"
+    title="Undo the last move"
+    aria-label="Undo the last move"
   >
     <fz-icon name="undo" />
     <span class="btn-text">Undo</span>
@@ -69,8 +69,8 @@
       type="button"
       class="fz-button fz-button-secondary action"
       (click)="restart()"
-      title="Restart current game"
-      aria-label="Restart current game"
+      title="Restart this game"
+      aria-label="Restart this game"
     >
       <fz-icon name="restart" />
       <span class="btn-text">Restart</span>
@@ -82,7 +82,7 @@
     type="button"
     class="fz-button action"
     (click)="newGame()"
-    title="Start a brand new game"
+    title="Start a new game"
     aria-label="New game"
   >
     <fz-icon name="plus" />
@@ -95,8 +95,8 @@
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action btn-help"
       (click)="openHelp()"
-      title="How to Play / Game Rules"
-      aria-label="How to Play / Game Rules"
+      title="How to play"
+      aria-label="How to play"
     >
       <fz-icon name="help" />
     </button>
@@ -108,8 +108,8 @@
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action btn-bug-report"
       (click)="reportBug()"
-      title="Report a Bug"
-      aria-label="Report a Bug (opens GitHub in a new tab)"
+      title="Report a bug"
+      aria-label="Report a bug (opens GitHub in a new tab)"
     >
       <fz-icon name="bug" />
     </button>
@@ -129,8 +129,8 @@
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action settings"
       (click)="openSettings.emit()"
-      title="Game Settings"
-      aria-label="Game Settings"
+      title="Settings"
+      aria-label="Settings"
     >
       <fz-icon name="settings" />
     </button>

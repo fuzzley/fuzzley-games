@@ -478,11 +478,10 @@ export class GameBrowserComponent {
     const [easiest, hardest] = recent
       ? ([exact, exact] as const)
       : difficultyRange(item.difficulty);
-    const difficulty =
-      easiest === hardest
-        ? DIFFICULTY_LABELS[hardest]
-        : `${DIFFICULTY_LABELS[easiest]}–${DIFFICULTY_LABELS[hardest]}`;
-    const rules = recent ? this.rulesOf(item, values) : "";
+    const levels = (easiest === hardest ? [hardest] : [easiest, hardest]).map(
+      (level) => DIFFICULTY_LABELS[level],
+    );
+    const rules = recent ? this.rulesOf(item, values) : [];
     const elementId = `game-browser-${id}`;
     return {
       id: elementId,
@@ -493,16 +492,18 @@ export class GameBrowserComponent {
         nameSegments.length > 0
           ? nameSegments
           : [{ text: item.name, match: false }],
-      rules,
-      difficulty,
+      rules: rules.join(" · "),
+      difficulty: levels.join("–"),
       dots: Object.values(Difficulty).map((level) => level <= hardest),
       playing,
       taglineId: `${elementId}-tagline`,
       label: [
         item.name,
         item.parentName ? `variant of ${item.parentName}` : "",
-        rules,
-        difficulty,
+        // Commas and "to", which a screen reader pauses at and says, where
+        // the screen shows a dot and a dash, which it may skip.
+        ...rules,
+        levels.join(" to "),
         item.decks === 2 ? "2 decks" : "",
         playing ? "playing now" : "",
       ]
@@ -512,7 +513,10 @@ export class GameBrowserComponent {
   }
 
   /** Names the rules a row deals by that its game lets the player choose. */
-  private rulesOf(item: GameBrowserItem, values: GameOptionValues): string {
+  private rulesOf(
+    item: GameBrowserItem,
+    values: GameOptionValues,
+  ): readonly string[] {
     return this.optionsOf(item.gameId)
       .filter((option) => !option.debugOnly && !(option.id in item.pinned))
       .flatMap((option) => {
@@ -520,8 +524,7 @@ export class GameBrowserComponent {
           (c) => c.value === values[option.id],
         );
         return choice ? [choice.label] : [];
-      })
-      .join(" · ");
+      });
   }
 
   /** Returns the rules a game offers. */

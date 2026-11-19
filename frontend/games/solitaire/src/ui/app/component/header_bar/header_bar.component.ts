@@ -23,8 +23,8 @@ type MenuAction = "restart" | "rules" | "bug" | "settings";
 /** The overflow menu's actions, in order. */
 const OVERFLOW_ACTIONS: readonly BarOverflowAction<MenuAction>[] = [
   { id: "restart", label: "Restart", icon: "restart" },
-  { id: "rules", label: "How to Play", icon: "help" },
-  { id: "bug", label: "Report a Bug", icon: "bug" },
+  { id: "rules", label: "How to play", icon: "help" },
+  { id: "bug", label: "Report a bug", icon: "bug" },
   SETTINGS_MENU_ACTION,
 ];
 

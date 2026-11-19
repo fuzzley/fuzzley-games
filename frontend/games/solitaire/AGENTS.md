@@ -251,7 +251,7 @@ What every game keeps is in `frontend/games/AGENTS.md`. Here:
   presentation settings carry a version, each held in `@fz/ui/storage`'s
   `storedSignal()`, and still read the bare entries builds before versions
   stored, the presentation settings rewriting theirs in the new shape.
-- **Bug reports are filed here.** "Report a Bug" opens the repository's issue
+- **Bug reports are filed here.** "Report a bug" opens the repository's issue
   form, `.github/ISSUE_TEMPLATE/solitaire_bug_report.yml`, filled in, and
   names the commit the Docker build was made from, which `vite.config.ts`
   takes from `COMMIT_SHA`. `test/ui/app/service/bug_report.service.spec.ts`
