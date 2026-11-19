@@ -473,30 +473,23 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/mrsmop/overview.webp",
       caption:
-        "Mrs. Mop board showing thirteen face-up columns of eight cards and eight foundation slots.",
-      altText: "Mrs. Mop solitaire board overview",
+        "A new deal, with 8 foundations at the top and 13 columns below.",
+      altText: "A new game of Mrs. Mop, with 13 columns of 8 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Build eight 13-card same-suit sequences from King down to Ace on the tableau.",
+      facts: "Simple Simon with 2 decks, on 13 columns. No stock.",
+      goal: "Clear the table by building 8 runs, each from King down to Ace in a single suit.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 13 columns of 8 cards, all 104 cards face-up.",
-        "Foundations: 8 automated slots for completed King-to-Ace same-suit runs.",
-        "No Stock: every card is on the tableau from the first move.",
+        "Foundations: 8 empty piles, where finished runs go.",
+        "Tableau: 13 columns of 8 cards, all face up.",
       ],
       moves: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
-        "Any card, or any run, can be moved into an empty column.",
-        "There is no limit on how many cards move at once: a run travels in one piece.",
-      ],
-      goodToKnow: [
-        "Open Information: with both decks visible and no stock, every deal can be planned from the first move, as in Simple Simon.",
-        "Two of Everything: each card has a twin, so a run can often be finished from either of two places — and blocked in either of two.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can move several cards at once only if they run down in the same suit.",
+        "Any card or run can fill an empty column.",
+        "When you finish a run from King to Ace in a single suit, it moves to a foundation on its own.",
       ],
     },
     settingsAndVariants: [],
@@ -507,30 +500,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/bakersdozen/overview.webp",
       caption:
-        "Baker's Dozen board showing thirteen face-up columns of four cards and four foundation slots.",
-      altText: "Baker's Dozen solitaire board overview",
+        "A new deal, with the foundations at the top right and 13 columns below.",
+      altText:
+        "A new game of Baker's Dozen, with 13 columns of 4 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 13 columns of 4 cards each, all face-up.",
-        "Foundations: 4 suit piles at the right of the top row, initially empty.",
-        "No Stock: all 52 cards are on the tableau from the first move.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 13 columns of 4 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Only the top card of a column can be moved, one card at a time.",
-        "A card can go onto any column whose top card is exactly 1 rank higher, of any suit.",
-        "Empty columns cannot be filled by any card — once a column is cleared it stays empty for the rest of the game.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can only move the top card of a column, 1 card at a time.",
+        "Nothing can fill an empty column, so once a column is empty it stays empty.",
       ],
       goodToKnow: [
-        "Kings Sink: after the deal, every King is moved to the bottom of its column. A King can never be moved, so one left on top would bury the cards beneath it for the whole game.",
-        "Dead Columns: because empty columns cannot be refilled, clearing one is a loss of working space rather than a gain — the opposite of Klondike, FreeCell and Spider.",
-        "No Staging: with no free cells and no usable empty columns, there is nowhere to park a card, so multi-card moves are impossible by construction.",
+        "A King can never move to another column. So the deal puts every King under the other cards in its column.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -540,30 +531,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Seahaven_Towers",
     screenshot: {
       url: "./docs/screenshots/seahaven/overview.webp",
-      caption:
-        "Seahaven Towers board with 4 cells top-left, 4 foundations top-right, and 10 face-up columns of five.",
-      altText: "Seahaven Towers solitaire board overview",
+      caption: "A new deal, with 2 of the 4 free cells holding a card.",
+      altText:
+        "A new game of Seahaven Towers, with 10 columns of 5 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Cells: 4 single-card holding cells at top-left, two of them filled by the deal.",
-        "Foundations: 4 suit piles at top-right, initially empty.",
-        "Tableau: 10 columns of 5 cards, all face-up.",
+        "Free cells: 4 spaces, for 1 card each. 2 of them start with a card.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 10 columns of 5 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-        "Any single card can be placed into an empty cell.",
-        "Only a King (or a run headed by a King) can start an empty column.",
-        "Multi-card moves simulate moving cards one at a time through the open cells.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of spades goes on the 10 of spades.",
+        "You can move the top card of a column to an empty free cell.",
+        "Only a King can fill an empty column.",
+        "You can move several cards at once if there are enough empty free cells to move them one at a time. With 2 empty free cells, that is 3 cards.",
       ],
       goodToKnow: [
-        "Supermove Capacity: strictly (Free Cells + 1), with no doubling for empty columns. Because an empty column accepts only a King and a moving run's only King is its bottom card, an empty column can never stage part of a run.",
-        "Opening Squeeze: the deal spends two of the four cells, so the game begins with the least slack of any cell game here — freeing those two cells is usually the first task.",
+        "Unlike in FreeCell, you can't use an empty column to move more cards at once.",
       ],
     },
     settingsAndVariants: [],
@@ -574,30 +564,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/spiderette/overview.webp",
       caption:
-        "Spiderette board showing seven columns dealt in a staircase, the row-dealing stock, and four foundation slots.",
-      altText: "Spiderette solitaire board overview",
+        "A new deal, with the stock at the top left and 4 foundations beside it.",
+      altText:
+        "A new game of Spiderette, with 7 columns and 1 card face up on each.",
     },
     summary: {
-      facts: "",
-      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      facts: "Spider with 1 deck, on 7 columns. No redeal.",
+      goal: "Clear the table by building 4 runs, each from King down to Ace in a single suit.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 7 columns dealt 1 to 7 cards, only the top card of each face-up.",
-        "Stock: the remaining 24 cards, dealt a row at a time.",
-        "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
+        "Stock: the 24 cards left over, face down.",
+        "Foundations: 4 empty piles, where finished runs go.",
+        "Tableau: 7 columns of 1 to 7 cards. Only the top card is face up.",
       ],
       moves: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
-        "Any card, or any run, can be moved into an empty column.",
-        "Turning over a column's newly exposed card happens automatically.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can move several cards at once only if they run down in the same suit.",
+        "Any card or run can fill an empty column.",
+        "Click the stock to deal 1 card face up onto every column.",
+        "When you finish a run from King to Ace in a single suit, it moves to a foundation on its own.",
       ],
       goodToKnow: [
-        "Row Deal: pressing the stock deals one card face-up onto every column at once.",
-        "Deals Onto Empty Columns: unlike Spider, the stock will deal even when a column is empty. Neither deal divides evenly by seven, so the final row is always short and refusing would strand it.",
+        "Unlike in Spider, you can deal from the stock while a column is empty.",
       ],
     },
     settingsAndVariants: [
@@ -607,12 +596,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "The standard deal: Klondike's staircase of 1 to 7 cards, burying 21 cards and leaving 24 in the stock.",
+              "Columns of 1 to 7 cards, like Klondike, with 24 cards in the stock.",
           },
           {
             value: 1,
             effect:
-              "Will o' the Wisp: a flat 3 cards to every column, burying only 14 but leaving 31 in the stock — fewer hidden cards up front, more forced deals later.",
+              "Spiderette with 3 cards in every column, 1 face up. Fewer cards start hidden, and the stock has 31.",
           },
         ],
       },
@@ -624,29 +613,30 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/easthaven/overview.webp",
       caption:
-        "Easthaven board showing seven columns of three, the row-dealing stock, and four foundation piles.",
-      altText: "Easthaven solitaire board overview",
+        "A new deal, with the stock at the top left and 7 columns below.",
+      altText:
+        "A new game of Easthaven, with 1 card face up on each of 7 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck. The stock deals a row at a time. No redeal.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 7 columns of 3 cards, two face-down under one face-up.",
-        "Stock: the remaining 31 cards, dealt a row at a time.",
-        "Foundations: 4 suit piles, filled by the player one card at a time.",
+        "Stock: the 31 cards left over, face down.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 7 columns of 3 cards. Only the top card is face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-        "A card can be picked up only with an unbroken alternating-colour descending run resting on it — stricter than Klondike, which allows a broken pile to be dragged.",
-        "Only a King (or a run headed by a King) can fill an empty column.",
-        "Turning over a column's newly exposed card happens automatically.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can move several cards at once only if they run down in alternating colors.",
+        "Only a King can fill an empty column.",
+        "Click the stock to deal 1 card face up onto every column.",
       ],
       goodToKnow: [
-        "Row Deal: pressing the stock deals one card face-up onto every column at once. The stock holds 31 against 7 columns, so the final row is a short one of three.",
-        "No Deal Onto Empty Columns: the stock refuses while any column stands empty. Combined with Kings-only spaces, a player holding an empty column and no free King has neither a move that fills it nor a stock that will deal — which is how Easthaven is lost outright rather than merely stalled.",
+        "You can't deal from the stock while a column is empty.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -657,31 +647,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/fortythieves/overview.webp",
       caption:
-        "Forty Thieves board with stock and waste top-left, eight foundations across the top, and ten columns of four.",
-      altText: "Forty Thieves solitaire board overview",
+        "A new deal, with the stock at the top left and 8 foundations beside it.",
+      altText:
+        "A new game of Forty Thieves, with 10 columns of 4 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      facts: "2 decks. Draw 1. No redeal.",
+      goal: "Move all 104 cards to the 8 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 10 columns of 4 cards, all face-up in the standard game.",
-        "Foundations: 8 suit piles, two per suit for the two decks.",
-        "Stock: the remaining 64 cards, drawn one at a time.",
-        "Waste: a single face-up card where the drawn card lands.",
+        "Stock: the 64 cards left over, face down.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 8 empty piles.",
+        "Tableau: 10 columns of 4 cards, all face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-        "The top card of any column, or the card on the waste, can be moved.",
-        "Any card can start an empty column — the only real generosity in the game, since there are no free cells.",
-        "The top card of a foundation can be taken back down onto a column.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of spades goes on the 10 of spades.",
+        "You can only move 1 card at a time, from the top of a column or the waste.",
+        "Any card can fill an empty column.",
+        "Click the stock to turn over 1 card.",
       ],
-      goodToKnow: [
-        "No Recycle: the stock is dealt through exactly once. When the 64 cards are gone they are gone, so every drawn card must be placed now or buried under the next.",
-        "One Card At A Time: the standard game moves a single card per move, with no free cells and no staging, so a column is dismantled card by card or not at all.",
-      ],
+      goodToKnow: ["You can take a card back from a foundation."],
     },
     settingsAndVariants: [
       {
@@ -690,27 +678,27 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "The original and the hardest: build down in suit and move exactly one card at a time.",
+              "The usual game. Columns build down by suit, and you move 1 card at a time.",
           },
           {
             value: 1,
             effect:
-              "Josephine (also called Streets): the same same-suit build, but a complete same-suit run can be moved as a unit, which is a large easing.",
+              "Forty Thieves, but you can move a run of cards in the same suit as one.",
           },
           {
             value: 2,
             effect:
-              "Rank and File: columns build down in alternating colours and runs move as a unit, but three of every four dealt cards start face-down.",
+              "Build down in alternating colors and move runs as one. Each column has 3 face-down cards under 1 face-up card.",
           },
           {
             value: 5,
             effect:
-              "Indian: only three cards to a column, the bottom one face-down, leaving 74 in the stock. A card lands on any suit except its own, one card at a time.",
+              "Columns of 3 cards, 1 face down. Build down in any other suit, 1 card at a time.",
           },
           {
             value: 6,
             effect:
-              "Number Ten: four cards to a column with the bottom two face-down. Columns build down in alternating colours, and a run in sequence moves as a unit.",
+              "Build down in alternating colors and move runs as one. Each column has 2 face-down cards under 2 face-up ones.",
           },
         ],
       },
@@ -722,30 +710,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/maria/overview.webp",
       caption:
-        "Maria board showing nine face-up columns of four centred beneath the stock, waste and eight foundations.",
-      altText: "Maria solitaire board overview",
+        "A new deal, with the stock at the top left and 9 columns below.",
+      altText: "A new game of Maria, with 9 columns of 4 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      facts:
+        "Forty Thieves on 9 columns, in alternating colors. 2 decks. Draw 1. No redeal.",
+      goal: "Move all 104 cards to the 8 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 9 columns of 4 cards, all face-up.",
-        "Foundations: 8 suit piles, two per suit.",
-        "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
+        "Stock: the 68 cards left over, face down.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 8 empty piles.",
+        "Tableau: 9 columns of 4 cards, all face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-        "A card can be picked up with an unbroken alternating-colour descending run resting on it.",
-        "Any card can start an empty column.",
-        "The top card of a foundation can be taken back down onto a column.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can move several cards at once only if they run down in alternating colors.",
+        "Any card can fill an empty column.",
+        "Click the stock to turn over 1 card.",
       ],
-      goodToKnow: [
-        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
-        "Narrow Board: nine columns hold only 36 of the 104 cards, so more of the deck arrives through the stock than in Forty Thieves proper.",
-      ],
+      goodToKnow: ["You can take a card back from a foundation."],
     },
     settingsAndVariants: [],
   },
