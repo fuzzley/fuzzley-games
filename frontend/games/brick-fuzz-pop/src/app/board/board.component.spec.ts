@@ -600,13 +600,14 @@ describe("BoardComponent", () => {
         panels: screen.getAllByRole("region").length,
         inApplication: application.queryAllByRole("region").length,
         card: application.queryByText("Level 1: Hello, wall"),
-        lintels: screen.queryAllByText(/waiting$/).length,
+        lintels: screen.getAllByText(/waiting$/).length,
         lintel: application.queryByText(/waiting$/),
       }).toEqual({
         panels: 2,
         inApplication: 0,
         card: null,
-        lintels: 1,
+        // The lintel's count and Coming next's, both outside the application.
+        lintels: 2,
         lintel: null,
       });
     });
@@ -672,9 +673,22 @@ describe("BoardComponent", () => {
       return rendered;
     }
 
-    /** Returns the lintel's count of the rows waiting, hidden from assistive technology or not. */
+    /**
+     * Returns the lintel's count of the rows waiting, hidden from assistive
+     * technology or not: the count outside Coming next, which says it in
+     * the same words where it shows.
+     */
     function lintel(): HTMLElement {
-      return screen.getByText(/waiting$/);
+      const panel = screen.queryByRole("region", { name: "Coming next" });
+      const [count, ...more] = screen
+        .getAllByText(/waiting$/)
+        .filter((shown) => panel?.contains(shown) !== true);
+      if (count === undefined || more.length > 0) {
+        throw new Error(
+          "Expected the lintel's count alone outside Coming next.",
+        );
+      }
+      return count;
     }
 
     it("says how many rows wait over the ceiling", async () => {
@@ -870,8 +884,8 @@ describe("BoardComponent", () => {
 
       const run = rendered.game.run();
       const tally = Object.values(tallyOf(run)).map(formatPoints);
-      expect(screen.getByText("Level 1 cleared")).toBeVisible();
-      expect(screen.getByText(`1 round, par ${String(run.par)}`)).toBeVisible();
+      expect(screen.getByText("Level 1 cleared!")).toBeVisible();
+      expect(screen.getByText(`1 shot, par ${String(run.par)}`)).toBeVisible();
       expect(
         screen.getAllByRole("definition").map((points) => points.textContent),
       ).toEqual(tally);
@@ -896,7 +910,7 @@ describe("BoardComponent", () => {
 
       expect({
         waiting: game.card(),
-        shown: screen.queryByText("Level 1 cleared"),
+        shown: screen.queryByText("Level 1 cleared!"),
       }).toEqual({ waiting: null, shown: null });
     });
 
@@ -1016,12 +1030,12 @@ describe("BoardComponent", () => {
       return rendered;
     }
 
-    it("pauses the run, and says the board is being restored", async () => {
+    it("pauses the run, and says the graphics stopped", async () => {
       const { game } = await renderLost();
 
       expect({
         outcome: game.outcome(),
-        card: screen.getByRole("group", { name: "Restoring the board" }),
+        card: screen.getByRole("group", { name: "Graphics stopped" }),
         said: TestBed.inject(AnnouncerService).message(),
       }).toEqual({
         outcome: "paused",
@@ -1050,7 +1064,7 @@ describe("BoardComponent", () => {
         card: screen.getByRole("group"),
       }).toEqual({
         rounds: 0,
-        card: expect.toHaveAccessibleName("Restoring the board") as unknown,
+        card: expect.toHaveAccessibleName("Graphics stopped") as unknown,
       });
     });
 

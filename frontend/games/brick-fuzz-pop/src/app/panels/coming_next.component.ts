@@ -1,9 +1,8 @@
 import { Component, computed, input } from "@angular/core";
-import { count } from "@fz/core/format";
 import { cssHex } from "@fz/phaser/color";
 import type { LevelEntry } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
-import { describeBoon } from "../../rules/run/describe";
+import { describeBoon, rowsWaiting } from "../../rules/run/describe";
 import type { Boon } from "../../rules/shot";
 import { brickColor } from "../../view/colors/brick_colors";
 import type { WallPalette } from "../../view/colors/palette";
@@ -58,14 +57,9 @@ export class ComingNextComponent {
     );
   });
 
-  /** How many rows wait over the ceiling, in a sentence. */
-  protected readonly waiting = computed(() => {
-    const waiting = this.rows().length;
-    return waiting === 0
-      ? "No rows wait over the ceiling."
-      : `${count(waiting, "row waits", "rows wait")} over the ceiling.`;
-  });
+  /** How many rows wait over the ceiling, as the lintel says it. */
+  protected readonly waiting = computed(() => rowsWaiting(this.rows().length));
 
-  /** What the level's jumps earn, in a sentence. */
+  /** What the level's jumps earn, in two sentences. */
   protected readonly jump = computed(() => describeBoon(this.boon()));
 }

@@ -144,15 +144,14 @@ export class BarComponent {
     showsEveryFigure(this.viewport),
   );
 
-  /** The rounds against par, as "4/9". */
+  /** The shots against par, as "4/9". */
   protected readonly roundsShown = computed(
     () => `${String(this.rounds())}/${String(this.par())}`,
   );
 
-  /** The rounds against par in words, as "4 rounds, par 9", since "4/9" reads poorly. */
+  /** The shots against par in words, as "4 shots, par 9", since "4/9" reads poorly. */
   protected readonly roundsText = computed(
-    () =>
-      `${count(this.rounds(), "round", "rounds")}, par ${String(this.par())}`,
+    () => `${count(this.rounds(), "shot", "shots")}, par ${String(this.par())}`,
   );
 
   /** The run's score, grouped in thousands. */

@@ -68,7 +68,7 @@ describe("boonName", () => {
 describe("describeBoon", () => {
   it("says what a jump earns", () => {
     expect(describeBoon("triple")).toBe(
-      "Clear to the dashed line and the wall jumps: your next shot is a triple shot.",
+      "If you break everything you can below the dashed line, the wall jumps. Then your next shot is a triple shot.",
     );
   });
 });
@@ -76,7 +76,7 @@ describe("describeBoon", () => {
 describe("describeLevel", () => {
   it("says the level's number, its name and its boon", () => {
     expect(describeLevel(ZIP_LINE, "hot")).toBe(
-      "Level 6, Zip line. Clear to the dashed line and the wall jumps: your next shot is a hot shot.",
+      "Level 6, Zip line. If you break everything you can below the dashed line, the wall jumps. Then your next shot is a hot shot.",
     );
   });
 });

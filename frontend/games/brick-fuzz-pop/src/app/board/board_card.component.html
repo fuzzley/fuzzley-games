@@ -20,7 +20,7 @@
           </div>
         }
         @if (sideways()) {
-          <p class="upright">The game is larger upright.</p>
+          <p class="upright">Turn your phone upright for a bigger board.</p>
         }
       </div>
     }
@@ -95,8 +95,8 @@
     }
     @case ("restoring") {
       <div class="card" role="group" [attr.aria-labelledby]="titleId">
-        <h2 class="card-title" [id]="titleId">Restoring the board</h2>
-        <p>The game waits until it is back.</p>
+        <h2 class="card-title" [id]="titleId">Graphics stopped</h2>
+        <p>The game is paused until they come back.</p>
       </div>
     }
     @default never;

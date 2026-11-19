@@ -15,12 +15,13 @@
       (choose)="chooseAiming($event)"
     />
     <p class="setting-desc" id="aiming-desc">
-      The keys aim and charge whichever way is chosen.
+      Changes how you aim with a mouse or a finger. The keys work the same
+      either way.
     </p>
   </div>
 
   <div class="setting">
-    <span class="setting-label" id="speed-label">The flight's speed</span>
+    <span class="setting-label" id="speed-label">Shot speed</span>
     <fz-choice-list
       labelledBy="speed-label"
       describedBy="speed-desc"
@@ -29,14 +30,13 @@
       (choose)="chooseFlightSpeed($event)"
     />
     <p class="setting-desc" id="speed-desc">
-      Fast-forward, in the bar, once switched on, stays on from flight to flight
-      until you switch it off. Drop, there from the start of every flight,
-      brings it down where it is, keeping only what it had done by then.
+      Fast-forward stays on until you turn it off. Drop ends a shot early and
+      keeps what it has broken.
     </p>
   </div>
 
   <div class="setting">
-    <span class="setting-label" aria-hidden="true">Long flights</span>
+    <span class="setting-label" aria-hidden="true">Long shots</span>
     <div class="setting-check">
       <input
         #longFlights
@@ -46,9 +46,9 @@
         [checked]="settings().speedUpLongFlights"
         (change)="setSpeedUpLongFlights(longFlights.checked)"
       />
-      <label for="speed-up-long-flights">Speed up long flights</label>
+      <label for="speed-up-long-flights">Speed up long shots</label>
       <p class="setting-desc" id="long-flights-desc">
-        A flight that goes on and on doubles its speed by itself.
+        {{ longShots }}
       </p>
     </div>
   </div>
@@ -64,10 +64,10 @@
         [checked]="settings().guide"
         (change)="setGuide(guide.checked)"
       />
-      <label for="guide">Show the aim guide</label>
+      <label for="guide">Show aim guide</label>
       <p class="setting-desc" id="guide-desc">
-        Dots show the shot's flight to its first turn, and outline the bricks it
-        would punch through.
+        Shows where the shot will go, up to its first bounce. Outlines the
+        bricks it will break on the way.
       </p>
     </div>
   </div>
@@ -85,9 +85,7 @@
       />
       <label for="sound">Play sounds</label>
       <p class="setting-desc" id="sound-desc">
-        A tick for each notch of charge, rising with the charge; each brick
-        struck and broken, rising along a round; and a chime for a level
-        cleared.
+        Turns all sound on or off. Same as the Sound button.
       </p>
     </div>
   </div>

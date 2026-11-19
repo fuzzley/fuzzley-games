@@ -118,7 +118,7 @@ interface ShownCleared {
   readonly stars: readonly number[];
   /** The stars in words, since they are pictures: "2 of 3 stars". */
   readonly starsWords: string;
-  /** The rounds against par: "7 rounds, par 9". */
+  /** The shots against par: "7 shots, par 9". */
   readonly rounds: string;
   readonly tally: readonly TallyLine[];
   readonly score: string;
@@ -210,7 +210,7 @@ export class BoardCardComponent {
   /** Emitted as the player asks for a new game, after the last level is cleared. */
   readonly newGame = output();
 
-  /** Whether the Ready card says the game is larger upright: on a phone on its side. */
+  /** Whether the Ready card asks for the phone upright, for a bigger board: on a phone on its side. */
   protected readonly sideways = computed(
     () => this.viewport.formFactor() === "phone-landscape",
   );
@@ -266,10 +266,10 @@ function clearedOf(card: ClearedCard): ShownCleared {
   const stars = starsFor(card.rounds, card.par);
   return {
     kind: "cleared",
-    title: `Level ${String(card.level)} cleared`,
+    title: `Level ${String(card.level)} cleared!`,
     stars: Array.from({ length: stars }, (_, star) => star),
     starsWords: `${String(stars)} of ${count(MOST_STARS, "star", "stars")}`,
-    rounds: `${count(card.rounds, "round", "rounds")}, par ${String(card.par)}`,
+    rounds: `${count(card.rounds, "shot", "shots")}, par ${String(card.par)}`,
     tally: [
       { label: "Bricks", points: formatPoints(tally.bricks) },
       { label: "Jumps", points: formatPoints(tally.jumps) },

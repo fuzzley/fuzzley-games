@@ -12,7 +12,6 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
-import { count } from "@fz/core/format";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -31,6 +30,7 @@ import {
   rectAttribute,
   roomInside,
 } from "@fz/phaser/layout";
+import { rowsWaiting } from "../../rules/run/describe";
 import { COLUMNS } from "../../rules/tuning";
 import type { Pictures } from "../../scene/pictures";
 import type { WallSceneOptions } from "../../scene/wall_scene";
@@ -48,8 +48,8 @@ import { BoardCardComponent } from "./board_card.component";
 
 /** What the announcer says as the board's WebGL context is lost, and as it is back. */
 export const BOARD_CONTEXT_WORDS = {
-  lost: "The board stopped drawing and is being restored. The game waits until it is back.",
-  restored: "The board is back.",
+  lost: "The graphics stopped. The game is paused until they come back.",
+  restored: "The graphics are back.",
 } as const;
 
 /**
@@ -216,12 +216,9 @@ export class BoardComponent {
   });
 
   /** How many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
-  protected readonly rowsWaiting = computed(() => {
-    const rows = this.game.rowsLeft();
-    return rows === 0
-      ? "No rows waiting"
-      : `${count(rows, "row", "rows")} waiting`;
-  });
+  protected readonly rowsWaiting = computed(() =>
+    rowsWaiting(this.game.rowsLeft()),
+  );
 
   /**
    * Where the card lies over the field: the Ready card, held at its layer's

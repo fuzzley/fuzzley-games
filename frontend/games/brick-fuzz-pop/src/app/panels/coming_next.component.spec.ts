@@ -85,9 +85,9 @@ describe("ComingNextComponent", () => {
   });
 
   it.each([
-    [11, "2 rows wait over the ceiling."],
-    [12, "1 row waits over the ceiling."],
-    [13, "No rows wait over the ceiling."],
+    [11, "2 rows waiting"],
+    [12, "1 row waiting"],
+    [13, "No rows waiting"],
   ])("says how many rows wait over a field %i deep", async (depth, words) => {
     await renderPanel(depth);
 
