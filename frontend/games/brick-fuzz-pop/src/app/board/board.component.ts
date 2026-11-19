@@ -30,7 +30,7 @@ import {
   rectAttribute,
   roomInside,
 } from "@fz/phaser/layout";
-import { rowsWaiting } from "../../rules/run/describe";
+import { ROWS_READ, rowsWaiting } from "../../rules/run/describe";
 import { COLUMNS } from "../../rules/tuning";
 import type { Pictures } from "../../scene/pictures";
 import type { WallSceneOptions } from "../../scene/wall_scene";
@@ -141,6 +141,9 @@ export class BoardComponent {
    * the lintel's count.
    */
   protected readonly frameCss = FRAME_CSS_PX;
+
+  /** How many of the lowest rows with bricks R reads, as the keys' list says. */
+  protected readonly rowsRead = ROWS_READ;
 
   /** Names the board for the level on it, as "Brick Fuzz Pop, level 6: Zip line". */
   protected readonly label = computed(() => {

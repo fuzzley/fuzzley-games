@@ -28,20 +28,21 @@
   </p>
 }
 
-<p id="board-keys" class="fz-visually-hidden">
-  The left and right arrow keys turn the aim a degree, or a quarter of one with
-  Shift held, and the up and down arrow keys raise and lower the charge a notch;
-  the left hand's home keys under its little, ring and middle fingers, and the
-  key above the ring finger's, do the same. Space lets the shot fly. The left
-  index finger's home key switches fast-forward on or off, and the left ring
-  finger's key on the bottom row drops the fuzzballs in the air. The key above
-  the left index finger's home key reads the wall's three lowest rows. Escape
-  calls a charge off, or pauses; the key above the right little finger's home
-  key pauses and goes on, and Enter goes on, or to the next level. Once a run's
-  result is put away, Enter or the key above the right little finger's home key
-  tries the lost level again, or starts a new game after the last. On a card's
-  button, the keys are the button's: Space and Enter press it.
-</p>
+<!--
+  The keys needed to play, one at a time, which describe the application.
+  Fast-forward and Drop have their own buttons, and How to play lists F and X.
+  `role="list"`, as Safari's VoiceOver stops calling a list with no markers
+  one.
+-->
+<ul id="board-keys" class="fz-visually-hidden" role="list" aria-label="Keys">
+  <li>Left and Right, or A and D: aim. Hold Shift for smaller steps.</li>
+  <li>Up and Down, or W and S: raise and lower the charge.</li>
+  <li>Space: shoot.</li>
+  <li>Esc: cancel the charge, or pause.</li>
+  <li>P: pause and resume.</li>
+  <li>Enter: resume, go to the next level, or try again.</li>
+  <li>R: hear the {{ rowsRead }} lowest rows with bricks in them.</li>
+</ul>
 
 @if (panelStyles(); as panels) {
   <app-coming-next

@@ -1375,7 +1375,7 @@ describe("GameService", () => {
 
       game.resume();
 
-      expect([game.outcome(), said()]).toEqual(["playing", "Going on."]);
+      expect([game.outcome(), said()]).toEqual(["playing", "Resumed."]);
     });
 
     it("waits for the board to be drawn before going on", () => {

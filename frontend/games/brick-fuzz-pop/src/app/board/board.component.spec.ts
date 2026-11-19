@@ -252,23 +252,20 @@ describe("BoardComponent", () => {
         name: "Brick Fuzz Pop, level 1: Hello, wall",
       });
       expect(board).toHaveAccessibleDescription(
-        /^The left and right arrow keys turn the aim/,
+        /^Left and Right, or A and D: aim\./,
       );
     });
 
-    it("describes the key that switches fast-forward", async () => {
+    it("lists the keys needed to play, one at a time, R reading the lowest rows", async () => {
       await renderBoard();
 
+      expect(
+        within(screen.getByRole("list", { name: "Keys" })).getAllByRole(
+          "listitem",
+        ),
+      ).toHaveLength(7);
       expect(screen.getByRole("application")).toHaveAccessibleDescription(
-        /Space lets the shot fly\. The left index finger's home key switches fast-forward on or off,/,
-      );
-    });
-
-    it("describes the key that drops the fuzzballs in the air", async () => {
-      await renderBoard();
-
-      expect(screen.getByRole("application")).toHaveAccessibleDescription(
-        /switches fast-forward on or off, and the left ring finger's key on the bottom row drops the fuzzballs in the air\./,
+        "Left and Right, or A and D: aim. Hold Shift for smaller steps. Up and Down, or W and S: raise and lower the charge. Space: shoot. Esc: cancel the charge, or pause. P: pause and resume. Enter: resume, go to the next level, or try again. R: hear the 3 lowest rows with bricks in them.",
       );
     });
 
@@ -712,7 +709,7 @@ describe("BoardComponent", () => {
       playUntilRowsWait(rendered, 1);
 
       expect(TestBed.inject(AnnouncerService).message()).toContain(
-        ", 1 row waiting.",
+        ". 1 row waiting.",
       );
     });
 

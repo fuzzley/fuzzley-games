@@ -106,27 +106,27 @@ describe("describeShot", () => {
 });
 
 describe("describeRound", () => {
-  it("says what a round broke, the wall's step, how far it stands from the floor and how far from a jump", () => {
+  it("says what a round broke, how far the wall stands from the floor and how far from a jump", () => {
     expect(describeRound(punch.round.outcome, punch.round.next)).toBe(
-      "Broke 1. The wall came down 1 row: 5 rows from the floor, 10 bricks to a jump, no rows waiting.",
+      "Broke 1. 5 rows to the floor. 10 bricks to a jump. No rows waiting.",
     );
   });
 
   it("says a round that broke nothing broke none", () => {
     expect(describeRound(plain.round.outcome, plain.round.next)).toBe(
-      "Broke none. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump, 1 row waiting.",
+      "Broke none. 4 rows to the floor. 2 bricks to a jump. 1 row waiting.",
     );
   });
 
   it("says the wall's jump and the boon the next shot carries", () => {
     expect(describeRound(zap.round.outcome, zap.round.next)).toBe(
-      "Broke 4. The lower two-thirds are clear. The wall jumped 3 rows, with no rows waiting. Next shot: hot shot.",
+      "Broke 4. The wall jumped 3 rows. No rows waiting. Next shot: hot shot.",
     );
   });
 
   it.each([
-    [1, "Broke 1. Freed a friend. The wall came down"],
-    [2, "Broke 1. Freed 2 friends. The wall came down"],
+    [1, "Broke 1. Freed a friend. 5 rows to the floor."],
+    [2, "Broke 1. Freed 2 friends. 5 rows to the floor."],
   ])("says %i friends freed", (freed, words) => {
     const outcome = { ...punch.round.outcome, freed };
 
@@ -138,7 +138,7 @@ describe("describeRound", () => {
     const outcome: RoundOutcome = { ...punch.round.outcome, broken: 2 };
 
     expect(describeRound(outcome, next)).toBe(
-      "Broke 2. The wall came down 1 row: 1 row from the floor, 10 bricks to a jump, no rows waiting. Danger: the next step down loses the level.",
+      "Broke 2. 1 row to the floor. 10 bricks to a jump. No rows waiting. Danger. Break the bottom bricks this shot, or you lose the level.",
     );
   });
 
@@ -146,7 +146,7 @@ describe("describeRound", () => {
     const next = startOf(["ooooooooo"], 2);
 
     expect(describeRound(punch.round.outcome, next)).toBe(
-      "Broke 1. The wall came down 1 row: 2 rows from the floor, 9 bricks to a jump, no rows waiting.",
+      "Broke 1. 2 rows to the floor. 9 bricks to a jump. No rows waiting.",
     );
   });
 
@@ -154,7 +154,7 @@ describe("describeRound", () => {
     const next = startOf(["oo.......", ".........", "#########"], 2);
 
     expect(describeRound(punch.round.outcome, next)).toBe(
-      "Broke 1. The wall came down 1 row: 4 rows from the floor, 2 bricks to a jump, no rows waiting.",
+      "Broke 1. 4 rows to the floor. 2 bricks to a jump. No rows waiting.",
     );
   });
 
@@ -162,12 +162,12 @@ describe("describeRound", () => {
     [
       "the wall's step",
       punch.round.outcome,
-      "Broke 1. The wall came down 1 row: 2 rows from the floor, 54 bricks to a jump, 5 rows waiting.",
+      "Broke 1. 2 rows to the floor. 54 bricks to a jump. 5 rows waiting.",
     ],
     [
       "the wall's jump",
       zap.round.outcome,
-      "Broke 4. The lower two-thirds are clear. The wall jumped 3 rows, with 5 rows waiting.",
+      "Broke 4. The wall jumped 3 rows. 5 rows waiting.",
     ],
   ])(
     "ends %s with how many rows wait over the ceiling",
@@ -189,7 +189,7 @@ describe("describeRound", () => {
     const next = startOf(["ooooooooo", "ooooooooo"], 12);
 
     expect(describeRound(punch.round.outcome, next)).toMatch(
-      /, 2 rows waiting\.$/,
+      /\. 2 rows waiting\.$/,
     );
   });
 
@@ -311,15 +311,15 @@ describe("describeRows", () => {
 
   it("reads no row waiting over the ceiling", () => {
     expect(describeRows(startOf(["ooooooooo"], 11))).toBe(
-      "No bricks in the field.",
+      "No bricks on the screen.",
     );
   });
 });
 
 describe("describeCleared", () => {
-  it("says the level cleared, its rounds against par, its stars and the score", () => {
+  it("says the level cleared, its shots against par, its stars and the score", () => {
     expect(describeCleared(runOf({ outcome: "cleared" }))).toBe(
-      "Level 6 cleared in 7 rounds, par 9: 3 stars! Score 4,210.",
+      "Level 6 cleared in 7 shots, par 9. 3 stars. Score 4,210.",
     );
   });
 
@@ -327,43 +327,43 @@ describe("describeCleared", () => {
     const run = runOf({ level: 9, rounds: 1, par: 2, outcome: "won" });
 
     expect(describeCleared(run)).toBe(
-      "Level 9 cleared in 1 round, par 2: 3 stars! Score 4,210.",
+      "Level 9 cleared in 1 shot, par 2. 3 stars. Score 4,210.",
     );
   });
 
   it("says a single star", () => {
     expect(describeCleared(runOf({ rounds: 20, outcome: "cleared" }))).toBe(
-      "Level 6 cleared in 20 rounds, par 9: 1 star! Score 4,210.",
+      "Level 6 cleared in 20 shots, par 9. 1 star. Score 4,210.",
     );
   });
 });
 
 describe("describePause", () => {
-  it("says the score and how to go on", () => {
+  it("says the score and how to resume", () => {
     expect(describePause(runOf({ outcome: "paused" }))).toBe(
-      "Paused, with a score of 4,210. Press Enter to go on.",
+      "Paused. Score 4,210. Press Enter to resume.",
     );
   });
 });
 
 describe("describeResume", () => {
-  it("says the run goes on", () => {
-    expect(describeResume()).toBe("Going on.");
+  it("says the run resumed", () => {
+    expect(describeResume()).toBe("Resumed.");
   });
 });
 
 describe("describeTakenUp", () => {
   it("says where the run taken up stands", () => {
     expect(describeTakenUp(runOf({ outcome: "paused" }), ZIP_LINE)).toBe(
-      "Your last run is paused on level 6, Zip line, 7 rounds in, with a score of 4,210. Press Enter to go on.",
+      "Paused on level 6, Zip line. 7 shots taken. Score 4,210. Press Enter to resume.",
     );
   });
 
-  it("says nothing of rounds for a level with none played", () => {
+  it("says nothing of shots for a level with none taken", () => {
     const run = runOf({ rounds: 0, outcome: "paused" });
 
     expect(describeTakenUp(run, ZIP_LINE)).toBe(
-      "Your last run is paused on level 6, Zip line, with a score of 4,210. Press Enter to go on.",
+      "Paused on level 6, Zip line. Score 4,210. Press Enter to resume.",
     );
   });
 });
@@ -386,7 +386,7 @@ describe("describeEnd", () => {
 
   it("says a run won and a new best", () => {
     expect(describeEnd(runOf({ level: 9, outcome: "won" }), true)).toBe(
-      "Every level cleared! Score 4,210, at level 9. A new best!",
+      "Every level cleared. Score 4,210, at level 9. New best.",
     );
   });
 });
