@@ -49,9 +49,9 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     detailedRules: {
       layout: [
-        "Stock: the cards left over, face down at the top left.",
+        "Stock: the cards left over, face down.",
         "Waste: the cards you turn over. You can play the top one.",
-        "Foundations: 4 empty piles at the top right.",
+        "Foundations: 4 empty piles.",
         "Tableau: 7 columns of 1 to 7 cards. Only the top card is face up.",
       ],
       moves: [
@@ -136,8 +136,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     detailedRules: {
       layout: [
-        "Free cells: 4 spaces at the top left, for 1 card each.",
-        "Foundations: 4 empty piles at the top right.",
+        "Free cells: 4 spaces, for 1 card each.",
+        "Foundations: 4 empty piles.",
         "Tableau: 8 columns of 6 or 7 cards.",
       ],
       moves: [
@@ -169,8 +169,8 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     },
     detailedRules: {
       layout: [
-        "Stock: the 50 cards left over, face down at the top left.",
-        "Foundations: 8 empty piles at the top right, where finished runs go.",
+        "Stock: the 50 cards left over, face down.",
+        "Foundations: 8 empty piles, where finished runs go.",
         "Tableau: 10 columns of 5 or 6 cards. Only the top card is face up.",
       ],
       moves: [
@@ -209,31 +209,27 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Yukon_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/yukon/overview.webp",
-      caption:
-        "Yukon board featuring 7 tableau columns with face-down and face-up card groups, and 4 foundations.",
-      altText: "Yukon solitaire board overview",
+      caption: "A new deal, with 4 foundations at the top and 7 columns below.",
+      altText:
+        "A new game of Yukon, with most of the cards face up in 7 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Build all 52 cards onto four foundations by suit from Ace to King.",
+      facts: "1 deck, all dealt to the columns. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 7 columns (column 1 has 1 face-up card; columns 2-7 have 1-6 face-down cards plus 5 face-up cards).",
-        "Foundations: 4 suit piles at top-right, built Ace to King.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 7 columns. The first has 1 card. The others have 1 to 6 face-down cards under 5 face-up ones.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau (Yukon): Built DOWN in ALTERNATING COLORS.",
-        "Tableau (Alaska): Built UP or DOWN in SAME SUIT.",
-        "Tableau (Russian): Built DOWN in SAME SUIT.",
-        "Tableau (Moosehide): Built DOWN in ANY SUIT BUT THE CARD'S OWN.",
-        "Any face-up card anywhere in a column can be grabbed and moved, taking all cards above it along for the ride.",
-        "The grabbed card must land on a valid receiving card according to the variant build rule.",
-        "Only Kings (and stacks led by a King) can fill empty tableau columns.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can pick up any face-up card, with all the cards on top of it.",
+        "Only a King can fill an empty column.",
       ],
       goodToKnow: [
-        "No Staging Penalty: Stacks being moved do not need to be in sequence; only the targeted card and destination card must match placement rules.",
+        "The cards on top don't need to be in order. Only the card you pick up has to fit where it goes.",
       ],
     },
     settingsAndVariants: [
@@ -242,23 +238,22 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: storedValue("yukon", "variant", YukonVariant.YUKON),
-            effect:
-              "Standard game. Tableau columns build down in alternating colors.",
+            effect: "The usual game. Columns build down in alternating colors.",
           },
           {
             value: storedValue("yukon", "variant", YukonVariant.ALASKA),
             effect:
-              "Gentler suit variant. Tableau columns build either UP or DOWN in the SAME SUIT.",
+              "Columns build up or down by suit. A 9 of hearts goes on the 8 or the 10 of hearts.",
           },
           {
             value: storedValue("yukon", "variant", YukonVariant.RUSSIAN),
             effect:
-              "Hardest variant. Tableau columns build DOWN in the SAME SUIT.",
+              "Columns build down by suit instead of alternating colors. It is much harder than Yukon.",
           },
           {
             value: storedValue("yukon", "variant", YukonVariant.MOOSEHIDE),
             effect:
-              "Moosehide: tableau columns build DOWN in any suit except the card's own — Thumb and Pouch's rule on Yukon's deal, and looser than alternating colours.",
+              "Columns build down in another suit. A 9 of hearts goes on any 10 except the 10 of hearts.",
           },
         ],
       },
@@ -270,29 +265,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/bakers/overview.webp",
       caption:
-        "Baker's Game board with 4 free cells, 4 foundations, and 8 same-suit building tableau columns.",
-      altText: "Baker's Game board overview",
+        "A new deal, with the free cells at the top left and 8 columns below.",
+      altText:
+        "A new game of Baker's Game, with every card face up in 8 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the foundations from Ace to King by suit.",
+      facts: "FreeCell, building by suit. 1 deck, all dealt face up.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Free Cells: 4 single-card holding cells.",
-        "Foundations: 4 suit piles, Ace to King.",
-        "Tableau: 8 columns, all 52 cards dealt face-up.",
+        "Free cells: 4 spaces, for 1 card each.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 8 columns of 6 or 7 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT (e.g. 9 of Spades on 10 of Spades).",
-        "Single cards can move to any empty free cell.",
-        "Supermove limits apply based on available free cells and empty columns.",
-        "Cards on tableau columns must build DOWN in the SAME SUIT.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of spades goes on the 10 of spades.",
+        "You can move the top card of a column to an empty free cell.",
+        "Any card can fill an empty column, unless you choose Kings only.",
+        "You can move several cards at once if there are enough free cells and empty columns to move them one at a time.",
       ],
       goodToKnow: [
-        "Empty Columns Rule: Configurable between Any Card or Kings Only.",
-        "Kings Only Staging Limit: When empty columns accept Kings only, empty columns contribute zero staging capacity for supermoves, making multi-card moves strictly (Free Cells + 1).",
+        "When you move cards into an empty column, that column doesn't count toward how many you can move.",
       ],
     },
     settingsAndVariants: [
@@ -302,12 +297,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "Standard Baker's Game. Any card can enter an empty column, providing full supermove staging capacity.",
+              "Any card can fill an empty column. Each empty column doubles how many cards you can move at once.",
           },
           {
             value: 1,
             effect:
-              "Harder variant. Only Kings can enter empty columns, restricting supermoves to (Free Cells + 1).",
+              "Only a King can fill an empty column, and you can't use empty columns to move more cards at once.",
           },
         ],
       },
@@ -317,30 +312,31 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Challenge FreeCell",
     screenshot: {
       url: "./docs/screenshots/challengefreecell/overview.webp",
-      caption:
-        "Challenge FreeCell board with 4 free cells, 4 foundations, and 8 face-up columns, each with an Ace or a Two at the bottom.",
-      altText: "Challenge FreeCell board overview",
+      caption: "A new deal, where every column starts with an Ace or a 2.",
+      altText:
+        "A new game of Challenge FreeCell, with every card face up in 8 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts:
+        "FreeCell with every Ace and 2 dealt to the bottom. 1 deck, all face up.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Free Cells: 4 single-card holding cells at top-left.",
-        "Foundations: 4 suit piles at top-right, initially empty.",
-        "Tableau: 8 columns with all 52 cards dealt face-up, an Ace or a Two at the bottom of each.",
+        "Free cells: 4 spaces, for 1 card each.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 8 columns of 6 or 7 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-        "Any single card can be placed into an empty free cell.",
-        "Any card can start an empty column, or only a King under Super Challenge.",
-        "Multi-card moves (supermoves) simulate moving cards through open free cells and empty columns.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can move the top card of a column to an empty free cell.",
+        "Any card can fill an empty column, unless you choose Kings only.",
+        "You can move several cards at once if there are enough free cells and empty columns to move them one at a time.",
       ],
       goodToKnow: [
-        "Buried Foundations: no foundation can be started until a whole column has been dismantled down to its Ace, so the opening is spent clearing columns rather than playing up.",
-        "Supermove Capacity: (Free Cells + 1) * 2^(Empty Columns) with any card in a space; strictly (Free Cells + 1) when only Kings fill a space, because a moving run's only King is its bottom card.",
+        "You can't start a foundation until you clear all the cards off an Ace.",
+        "If you move cards into an empty column, that column doesn't count.",
       ],
     },
     settingsAndVariants: [
@@ -350,12 +346,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "Challenge FreeCell. Any card can enter an empty column, giving full supermove staging capacity.",
+              "Any card can fill an empty column. Each empty column doubles how many cards you can move at once.",
           },
           {
             value: 1,
             effect:
-              "Super Challenge FreeCell. Only Kings can enter an empty column, restricting supermoves to (Free Cells + 1).",
+              "Only a King can fill an empty column, and you can't use empty columns to move more cards at once.",
           },
         ],
       },
@@ -366,29 +362,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Eight_Off",
     screenshot: {
       url: "./docs/screenshots/eightoff/overview.webp",
-      caption:
-        "Eight Off board featuring 8 free cells, 4 foundations, and 8 tableau columns.",
-      altText: "Eight Off board overview",
+      caption: "A new deal, with 4 of the 8 free cells holding a card.",
+      altText: "A new game of Eight Off, with 8 columns of 6 cards face up.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four suit foundation piles, built Ace to King.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Free Cells: 8 single-card holding cells (4 dealt with cards at start, 4 empty).",
-        "Foundations: 4 suit piles, initially empty.",
-        "Tableau: 8 columns of 6 cards each, all dealt face-up.",
+        "Free cells: 8 spaces, for 1 card each. 4 of them start with a card.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 8 columns of 6 cards.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-        "Single cards can move to any empty free cell.",
-        "Tableau columns build strictly DOWN in the SAME SUIT.",
-        "Only Kings can fill an empty tableau column.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of spades goes on the 10 of spades.",
+        "You can move the top card of a column to an empty free cell.",
+        "Only a King can fill an empty column.",
+        "You can move several cards at once if there are enough empty free cells to move them one at a time. With 4 empty free cells, that is 5 cards.",
       ],
       goodToKnow: [
-        "Supermove Capacity: Because empty columns accept Kings only, multi-card supermoves are strictly capped at (Free Cells + 1).",
+        "Unlike in FreeCell, you can't use an empty column to move more cards at once.",
       ],
     },
     settingsAndVariants: [],
@@ -399,29 +394,28 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/scorpion/overview.webp",
       caption:
-        "Scorpion board featuring 7 tableau columns, stock reserve, and foundation area.",
-      altText: "Scorpion solitaire board overview",
+        "A new deal, with the stock at the top left and 7 columns below.",
+      altText:
+        "A new game of Scorpion, with face-down cards in the first 4 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      facts: "1 deck. A stock of 3 cards, dealt once.",
+      goal: "Clear the table by building 4 runs, each from King down to Ace in a single suit.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 7 columns of 7 cards each (columns 1-4 have 3 face-down cards and 4 face-up; columns 5-7 have 7 face-up cards).",
-        "Stock: 3 remaining cards dealt in a single press.",
-        "Foundations: Automated slots for completed King-to-Ace same-suit runs.",
+        "Stock: the 3 cards left over, face down.",
+        "Foundations: 4 empty piles, where finished runs go.",
+        "Tableau: 7 columns of 7 cards. The first 4 have 3 face-down cards under 4 face-up ones.",
       ],
       moves: [
-        "Tableau: Built DOWN in SAME SUIT.",
-        "Completion: Complete King-to-Ace same-suit runs automatically clear to foundation slots.",
-        "Any face-up card in a column can be moved regardless of what is on top of it.",
-        "The grabbed card must land on a card of the SAME SUIT and exactly 1 rank higher (e.g., 7 of Spades on 8 of Spades).",
-        "Only Kings (or stacks led by a King) can fill empty tableau columns.",
+        "Tableau: build down by suit. The 9 of spades goes on the 10 of spades.",
+        "You can pick up any face-up card, with all the cards on top of it.",
+        "Only a King can fill an empty column.",
+        "Click the stock to deal its 3 cards face up onto the first 3 columns.",
+        "When you finish a run from King to Ace in a single suit, it moves to a foundation on its own.",
       ],
-      goodToKnow: [
-        "Reserve Deal: Clicking the 3-card stock deals 1 card face-up onto each of the first 3 tableau columns.",
-      ],
+      goodToKnow: ["The cards on top don't need to be in order."],
     },
     settingsAndVariants: [
       {
@@ -430,17 +424,17 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 0,
             effect:
-              "The original: only a King, or a run headed by one, can fill an empty column, and the first four columns each hide three cards.",
+              "The usual game. Only a King can fill an empty column, and 4 columns start with 3 face-down cards.",
           },
           {
             value: 1,
             effect:
-              "Wasp: any card, with everything resting on it, can fill an empty column. Clearing a column becomes a real gain rather than a parking place for one King.",
+              "Scorpion, but any card can fill an empty column, with all the cards on top of it.",
           },
           {
             value: 2,
             effect:
-              "Scorpion II: only the first three columns hide cards, so 40 of the 49 dealt cards are visible from the start. Empty columns still take Kings only.",
+              "Only the first 3 columns have face-down cards, so 9 start hidden instead of 12.",
           },
         ],
       },
@@ -451,31 +445,24 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Simple_Simon_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/simplesimon/overview.webp",
-      caption:
-        "Simple Simon board showing ten fully face-up tableau columns and four foundation slots.",
-      altText: "Simple Simon solitaire board overview",
+      caption: "A new deal, with 10 columns stepping down from 8 cards to 1.",
+      altText:
+        "A new game of Simple Simon, with every card face up in 10 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Build four 13-card same-suit sequences from King down to Ace on the tableau.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Clear the table by building 4 runs, each from King down to Ace in a single suit.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 10 columns dealt 8, 8, 8, 7, 6, 5, 4, 3, 2, 1 cards, all face-up.",
-        "Foundations: 4 automated slots for completed King-to-Ace same-suit runs.",
-        "No Stock: every one of the 52 cards is on the tableau from the first move.",
+        "Foundations: 4 empty piles, where finished runs go.",
+        "Tableau: 10 columns. The first 3 have 8 cards, and the rest go down from 7 to 1.",
       ],
       moves: [
-        "Tableau: Built DOWN by RANK in ANY SUIT.",
-        "Lifting: Only unbroken SAME SUIT descending runs can be moved.",
-        "Completion: Complete King-to-Ace same-suit runs clear to the foundations automatically.",
-        "A card can be picked up only with an unbroken same-suit descending run resting on it.",
-        "Any card, or any run, can be moved into an empty tableau column.",
-        "There is no limit on how many cards move at once: a run travels in one piece rather than being staged through spare squares.",
-      ],
-      goodToKnow: [
-        "No Recovery: with no stock and no face-down cards, a position played into a corner cannot be rescued — every deal is winnable or not from the opening move.",
-        "The Staircase: the short columns on the right are the cheapest to clear, and opening a column early is usually worth more than any single run.",
+        "Tableau: build down in any suit. Any 9 goes on any 10.",
+        "You can move several cards at once only if they run down in the same suit.",
+        "Any card or run can fill an empty column.",
+        "When you finish a run from King to Ace in a single suit, it moves to a foundation on its own.",
       ],
     },
     settingsAndVariants: [],
