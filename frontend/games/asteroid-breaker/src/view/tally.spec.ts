@@ -125,9 +125,9 @@ describe("endDescription", () => {
   // so the two are held here beside each other.
   it.each([
     ["nothing", false, false, ""],
-    ["a new best", true, false, " A new best!"],
-    ["all thirty cleared", false, true, " Cleared all thirty!"],
-    ["both", true, true, " A new best! Cleared all thirty!"],
+    ["a new best", true, false, " New best."],
+    ["all thirty cleared", false, true, " All 30 waves cleared."],
+    ["both", true, true, " New best. All 30 waves cleared."],
   ])(
     "says where a run ended, at what speed and its score, and of what it set, %s, as the announcer says it",
     (_set, newBest, clearedAll, marks) => {

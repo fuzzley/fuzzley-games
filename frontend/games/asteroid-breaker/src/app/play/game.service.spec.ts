@@ -866,7 +866,7 @@ describe("GameService", () => {
       }).toEqual({
         outcome: "ready",
         card: "Far",
-        said: "Going on. A new sector: Far. Waves 2 to 3. Wave 2, Far. 1 rock. It starts when you fly.",
+        said: "Resumed. A new sector: Far. Waves 2 to 3. Wave 2, Far. 1 rock. It starts when you fly.",
       });
     });
   });
@@ -879,7 +879,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "paused",
-        said: "Paused, with a score of 0. Press Enter to go on.",
+        said: "Paused. Score 0. Press Enter to resume.",
       });
     });
 
@@ -891,7 +891,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "playing",
-        said: "Going on.",
+        said: "Resumed.",
       });
     });
 
@@ -1014,7 +1014,7 @@ describe("GameService", () => {
       }).toEqual({
         ended: true,
         aboard: 0,
-        said: "Game over. Score 60, on wave 1. A new best!",
+        said: "Game over. Score 60, on wave 1. New best.",
       });
     });
 
@@ -1026,7 +1026,7 @@ describe("GameService", () => {
 
       endRun(game);
 
-      expect(said()).toMatch(/Cleared all thirty!$/);
+      expect(said()).toMatch(/All 30 waves cleared\.$/);
     });
 
     it("opens the result card at the next frame where the player prefers less motion", async () => {
@@ -1404,7 +1404,7 @@ describe("GameService", () => {
         },
         best: game.score(),
         newBest: true,
-        said: `Game over. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
+        said: `Game over. Score ${formatPoints(game.score())}, on wave 2. New best.`,
       });
     });
 

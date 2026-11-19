@@ -509,7 +509,7 @@ describe("SavedGameService", () => {
       reload();
 
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        `Your last run is paused on wave 2, Gift, with a score of ${score} and 2 in tow. Press Enter to go on.`,
+        `Paused on wave 2, Gift. Score ${score}. 2 following. Press Enter to resume.`,
       );
     });
 

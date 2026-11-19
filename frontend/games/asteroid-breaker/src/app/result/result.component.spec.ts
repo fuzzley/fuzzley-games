@@ -121,7 +121,7 @@ describe("ResultComponent", () => {
     expect(
       screen.getByRole("alertdialog", { name: "Game over" }),
     ).toHaveAccessibleDescription(
-      "Out of crew on wave 2, Gift, at Normal speed. Score 1,180. A new best!",
+      "Out of crew on wave 2, Gift, at Normal speed. Score 1,180. New best.",
     );
   });
 
@@ -169,7 +169,7 @@ describe("ResultComponent", () => {
 
     expect(screen.getByText("All 30 waves cleared!")).toBeVisible();
     expect(screen.getByRole("alertdialog")).toHaveAccessibleDescription(
-      / Cleared all thirty!$/u,
+      / All 30 waves cleared\.$/u,
     );
   });
 

@@ -217,7 +217,7 @@ describe("AppComponent", () => {
       TestBed.tick();
 
       expect(document.querySelector("fz-announcer")).toHaveTextContent(
-        "Your last run is paused on wave 2, Gift, with a score of 0 and 2 in tow. Press Enter to go on.",
+        "Paused on wave 2, Gift. Score 0. 2 following. Press Enter to resume.",
       );
     });
   });
@@ -237,7 +237,7 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("paused");
       expect(document.querySelector("fz-announcer")).toHaveTextContent(
-        /^Paused, with a score of 0/,
+        /^Paused\. Score 0\./,
       );
     });
   });

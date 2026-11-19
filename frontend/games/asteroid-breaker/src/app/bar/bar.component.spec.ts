@@ -179,7 +179,7 @@ describe("BarComponent", () => {
       expect(figures()).toEqual([
         ["Wave", "2"],
         ["Score", "0"],
-        ["Crew", "2 in tow"],
+        ["Crew", "2 following"],
         ["Static", "×1"],
       ]);
     });
@@ -214,7 +214,7 @@ describe("BarComponent", () => {
         crew: figure("Crew"),
         drawn: posesIn(figureValue("Crew")),
       }).toEqual({
-        crew: "1 in tow, 1 knocked loose",
+        crew: "1 following, 1 knocked loose",
         drawn: [
           [inkOf(1), "rest"],
           [inkOf(2), "eep"],
@@ -231,7 +231,10 @@ describe("BarComponent", () => {
       expect({
         crew: figure("Crew"),
         drawn: pilotsIn(figureValue("Crew")),
-      }).toEqual({ crew: "3 in tow", drawn: [inkOf(1), inkOf(2), inkOf(3)] });
+      }).toEqual({
+        crew: "3 following",
+        drawn: [inkOf(1), inkOf(2), inkOf(3)],
+      });
     });
 
     it("counts the crew in tow past three, beside the first", async () => {
@@ -245,7 +248,7 @@ describe("BarComponent", () => {
       expect({
         drawn: pilotsIn(figureValue("Crew")),
         count: value.getByText("4").getAttribute("aria-hidden"),
-        said: value.getByText("4 in tow").className,
+        said: value.getByText("4 following").className,
       }).toEqual({
         drawn: [inkOf(1)],
         count: "true",

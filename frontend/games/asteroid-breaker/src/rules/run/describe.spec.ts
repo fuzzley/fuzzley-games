@@ -78,7 +78,7 @@ describe("describeEvent", () => {
       log.addPilot("joined", 1, 2, 5, crewOf(0, [1, 5]));
     });
 
-    expect(describeEvent(joined)).toBe("Caught. 2 in tow.");
+    expect(describeEvent(joined)).toBe("Caught. 2 following.");
   });
 
   it("says a stray brought straight home", () => {
@@ -87,16 +87,16 @@ describe("describeEvent", () => {
     });
 
     expect(describeEvent(home)).toBe(
-      "Brought straight home, with the line full.",
+      "Crew full. The stray goes straight home.",
     );
   });
 
   it.each([
-    ["how many ride in tow then", [1], "Hit! One knocked loose. 1 in tow."],
+    ["how many ride in tow then", [1], "Hit. One knocked loose. 1 following."],
     [
       "that no one rides in tow then",
       [],
-      "Hit! One knocked loose. No one in tow.",
+      "Hit. One knocked loose. No one following.",
     ],
   ])("says one knocked loose, and %s", (_, tow, said) => {
     const knocked = eventOf((log) => {
@@ -111,7 +111,7 @@ describe("describeEvent", () => {
       log.addPilot("recaught", 1, 2, 3, crewOf(0, [1, 3]));
     });
 
-    expect(describeEvent(recaught)).toBe("Caught again. 2 in tow.");
+    expect(describeEvent(recaught)).toBe("Caught again. 2 following.");
   });
 
   it("says one knocked loose floats home", () => {
@@ -159,7 +159,7 @@ describe("describeEvent", () => {
       log.addZap(1, 2, 0);
     });
 
-    expect(describeEvent(zapped)).toBe("Zap!");
+    expect(describeEvent(zapped)).toBe("Zap.");
   });
 
   it("says a burr clings", () => {
@@ -167,7 +167,7 @@ describe("describeEvent", () => {
       log.addClung(1, 2, 1);
     });
 
-    expect(describeEvent(clung)).toBe("A burr clings.");
+    expect(describeEvent(clung)).toBe("A burr sticks to you.");
   });
 
   it.each([
@@ -250,7 +250,7 @@ describe("describeCleared", () => {
       entryOf(4, "Drift"),
     );
 
-    expect(said).toBe("Wave 3 cleared! Score 12,500.");
+    expect(said).toBe("Wave 3 cleared. Score 12,500.");
   });
 
   it("says the last sector cleared, by its name, and Endless beginning", () => {
@@ -260,7 +260,7 @@ describe("describeCleared", () => {
       endlessAt(31),
     );
 
-    expect(said).toBe("Sector cleared! Endless begins. Score 12,500.");
+    expect(said).toBe("Sector cleared. Endless begins. Score 12,500.");
   });
 
   it("says an Endless wave cleared by its number", () => {
@@ -270,21 +270,21 @@ describe("describeCleared", () => {
       endlessAt(38),
     );
 
-    expect(said).toBe("Wave 37 cleared! Score 12,500.");
+    expect(said).toBe("Wave 37 cleared. Score 12,500.");
   });
 });
 
 describe("describePause", () => {
   it("says the run is paused, its score, and how to go on", () => {
     expect(describePause(runAt(2, 1_840))).toBe(
-      "Paused, with a score of 1,840. Press Enter to go on.",
+      "Paused. Score 1,840. Press Enter to resume.",
     );
   });
 });
 
 describe("describeResume", () => {
   it("says the run goes on", () => {
-    expect(describeResume()).toBe("Going on.");
+    expect(describeResume()).toBe("Resumed.");
   });
 });
 
@@ -293,7 +293,7 @@ describe("describeTakenUp", () => {
     const run = { ...runAt(4, 9_020), crew: crewOf(0, [3, 1]) };
 
     expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
-      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and 2 in tow. Press Enter to go on.",
+      "Paused on wave 4, Thaw. Score 9,020. 2 following. Press Enter to resume.",
     );
   });
 
@@ -301,7 +301,7 @@ describe("describeTakenUp", () => {
     const run = { ...runAt(4, 9_020), crew: crewOf(0) };
 
     expect(describeTakenUp(run, entryOf(4, "Thaw"))).toBe(
-      "Your last run is paused on wave 4, Thaw, with a score of 9,020 and no one in tow. Press Enter to go on.",
+      "Paused on wave 4, Thaw. Score 9,020. No one following. Press Enter to resume.",
     );
   });
 });
@@ -309,9 +309,9 @@ describe("describeTakenUp", () => {
 describe("marksWords", () => {
   it.each([
     ["nothing", false, false, ""],
-    ["a new best", true, false, " A new best!"],
-    ["all thirty cleared", false, true, " Cleared all thirty!"],
-    ["both, the best first", true, true, " A new best! Cleared all thirty!"],
+    ["a new best", true, false, " New best."],
+    ["all thirty cleared", false, true, " All 30 waves cleared."],
+    ["both, the best first", true, true, " New best. All 30 waves cleared."],
   ])("says of a run that set %s", (_, newBest, clearedAll, said) => {
     expect(marksWords({ newBest, clearedAll })).toBe(said);
   });
@@ -336,7 +336,7 @@ describe("describeEnd", () => {
       newBest: true,
     });
 
-    expect(said).toBe("Game over. Score 9,020, on wave 4. A new best!");
+    expect(said).toBe("Game over. Score 9,020, on wave 4. New best.");
   });
 
   it("says a run cleared all thirty, after a new best", () => {
@@ -348,7 +348,7 @@ describe("describeEnd", () => {
     });
 
     expect(said).toBe(
-      "Game over. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
+      "Game over. Score 9,020, on wave 37, Endless. New best. All 30 waves cleared.",
     );
   });
 });

@@ -178,7 +178,7 @@ describe("BoardComponent", () => {
         name: "Asteroid Breaker, wave 1: Pebble",
       });
       expect(board).toHaveAccessibleDescription(
-        /^The left and right arrow keys/,
+        "Left and Right, or A and D: turn the ship. Up or W: thrust. Space: fire. Shift, Down or S: dash. P: pause and resume. Esc: pause. Enter: resume, or go to the next wave. Any key you fly with also resumes, or goes to the next wave.",
       );
     });
 

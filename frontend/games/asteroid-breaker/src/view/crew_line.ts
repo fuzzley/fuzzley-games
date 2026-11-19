@@ -3,6 +3,7 @@
 // them, else a count, and the words a screen reader hears for what it
 // shows, and for the crew a card draws.
 
+import { inTowWords } from "../rules/run/describe";
 import { type Crew, type Pilot, aboard } from "../rules/ship/pilots";
 
 /** The most of the crew the bar draws beside the face cam before it counts them instead. */
@@ -50,7 +51,9 @@ export function crewWords(
   shows: "line" | "aboard",
 ): string {
   const words =
-    shows === "aboard" ? `${String(aboard(crew))} aboard` : inTowWords(crew);
+    shows === "aboard"
+      ? `${String(aboard(crew))} aboard`
+      : inTowWords(crew.tow.length);
   return withLooseWords(words, loose);
 }
 
@@ -71,9 +74,4 @@ function withLooseWords(words: string, loose: readonly Pilot[]): string {
   return loose.length === 0
     ? words
     : `${words}, ${String(loose.length)} knocked loose`;
-}
-
-/** Returns how many of a crew ride in tow, in words. */
-function inTowWords({ tow }: Readonly<Crew>): string {
-  return tow.length === 0 ? "No one in tow" : `${String(tow.length)} in tow`;
 }

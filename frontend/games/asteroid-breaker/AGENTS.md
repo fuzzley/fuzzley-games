@@ -307,8 +307,8 @@ takes for the specs' helpers.
   wave's start and its rocks, a stray drifting in, caught or brought
   straight home, one of the crew knocked loose, caught again or floating
   home, with how many ride in tow, a pickup caught, static coming to full,
-  a zap, a burr clinging ("A burr clings."), a clearing, a pause, going
-  on, a run taken up and the end, in the words the result card and the
+  a zap, a burr clinging ("A burr sticks to you."), a clearing, a pause,
+  going on, a run taken up and the end, in the words the result card and the
   card over an ended run take up (`END_TITLE`, "Game over"), and
   what it set, which a screen reader hears of the result card too
   (`marksWords()`). The announcer,
