@@ -150,7 +150,8 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 
 ## A Rock Kind or a Trait
 
-- **A kind:** an entry in `ROCK_KINDS`: its name and sentence, its hits and
+- **A kind:** an entry in `ROCK_KINDS`: its name and sentence, written as
+  the `player-text` skill's catalog lines are, its hits and
   points at each size it comes in, what it breaks into (`splits`), its speed and
   its traits. Then how it is cut and marked at each size in `KIND_CUTS`,
   which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), how it
@@ -190,7 +191,8 @@ of `GATHERED_MOST` rocks or fewer and no boulders, and only from
 
 ## A Pickup or an Effect
 
-- **A pickup:** an entry in `PICKUPS`: its name and sentence, its weight in
+- **A pickup:** an entry in `PICKUPS`: its name and sentence, written as
+  the `player-text` skill's catalog lines are, its weight in
   the pool, the wave it joins from, and its effect. Then its symbol in
   `SYMBOLS` (`src/view/art/symbols.ts`) and its catch's sound in
   `CATCH_SOUNDS` (`src/view/effects/sounds.ts`); its frame, and its tag in

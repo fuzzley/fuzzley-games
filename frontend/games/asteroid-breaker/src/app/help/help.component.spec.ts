@@ -37,47 +37,71 @@ describe("HelpComponent", () => {
 
     expect(screen.getByRole("dialog", { name: "How to play" })).toBeVisible();
     expect(
-      screen.getAllByRole("rowheader").map((header) => header.textContent),
+      within(screen.getByRole("table", { name: "Controls" }))
+        .getAllByRole("rowheader")
+        .map((header) => header.textContent),
     ).toEqual([
       "Turn",
       "Thrust",
       "Fire",
       "Dash",
-      "Pause, or go on",
+      "Pause",
+      "Resume",
       "Next wave",
-      "Start again, once a run has ended",
+      "New game, after a game ends",
     ]);
   });
 
-  it("says the crew in tow are the ship's lives, how a hit knocks one loose and how long it waits to be caught, from the tuning", async () => {
+  it("says the goal, that the crew are your lives and how the game ends, with the written waves' count", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
-    expect(screen.getByText(/^The crew\./).parentElement).toHaveTextContent(
-      "The pilot flies the ship with 2 of the crew in tow, who are its lives, and a stray caught joins them, up to 5. A rock or a comet that touches the ship, unless it is dashing or shielded, knocks the last in tow loose, and nothing can touch it again for 1.5 seconds; fly into one knocked loose within 6 seconds to catch it again, or it floats home, and clearing the wave catches every one still loose. A hit with no one in tow sends the pilot home, and the run ends.",
+    expect(screen.getByText(/^Fly your ship/)).toHaveTextContent(
+      "Fly your ship and shoot the rocks. Each one breaks into smaller pieces until it's gone. Clear every rock to finish the wave. If your ship or a rock goes off one edge of the screen, it comes back on the other side. The fuzzballs following your ship are your crew, and each one is a life. If a rock or a comet hits you, one of them is knocked loose. If you're hit with no one following, the game is over. After wave 30, Endless keeps the waves coming until you're out of crew.",
     );
   });
 
-  it("says how sparks, a stray and a clearing add up, from the tuning", async () => {
+  it("says how the crew start, how long one knocked loose waits to be caught, and that a clearing brings them back, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
-    expect(screen.getByText(/^Scoring\./).parentElement).toHaveTextContent(
-      "Each rock a shot or a blast breaks sheds sparks, which the ship draws in from 5 units, 8 at Relaxed, and the ship and those in tow gather: each scores 5 and adds 1 static, up to 40. A stray caught scores 500, or 1,000 as it goes straight home, times static's multiplier. A wave cleared adds 500 points, and 500 more when no hit was taken on it.",
+    expect(screen.getByText(/^Your crew\./).parentElement).toHaveTextContent(
+      "Your crew. You start with 2 following you, and each stray you catch joins them. If one is knocked loose, fly into it within 6 seconds to get it back, or it floats home. When you clear the wave, any that are still loose come back.",
     );
   });
 
-  it("says what static multiplies, what else raises it, how the pilot shows it and how it falls, from the tuning", async () => {
+  it("lists what each thing scores, from the catalog and the tuning", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(
+      within(screen.getByRole("table", { name: "Scoring" }))
+        .getAllByRole("row")
+        .map((row) => [
+          within(row).getByRole("rowheader").textContent,
+          within(row).getByRole("cell").textContent,
+        ]),
+    ).toEqual([
+      ["Breaking a rock", "10 to 90, more for smaller rocks"],
+      ["Breaking a boulder", "200"],
+      ["Collecting a spark", "5"],
+      ["Shooting a burr", "10"],
+      ["Catching a stray", "500, or 1,000 if your crew is full"],
+      ["Clearing a wave", "500"],
+      ["Clearing it without a hit", "500 more"],
+    ]);
+  });
+
+  it("says what static multiplies, what raises it and how it falls, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Static\./).parentElement).toHaveTextContent(
-      "Static multiplies what rocks, sparks and strays score: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static. A rock or a comet that passes close by the ship without touching it adds 2. The pilot's fur lifts with each step, on end from ×4, and at full static, 40, arcs crawl over the ship. Static drains after 2 seconds with no spark or near miss, and a hit knocks it down a step.",
+      "Static. Broken rocks give off sparks. Each one you collect adds 1 static, and each near miss adds 2. Static drains after 2 seconds without either, and a hit drops it a step. It multiplies your score: ×2 from 10 static, ×3 from 20 static, ×4 from 30 static.",
     );
   });
 
-  it("says a stray caught joins the line in tow, up to the most, or goes straight home, from the tuning", async () => {
+  it("says a stray caught joins the crew, or goes straight home with it full, from the tuning", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Stray fuzzball.").closest("li")).toHaveTextContent(
-      "Fly into it to catch it: it joins the line in tow, up to 5, or, with the line full, goes straight home.",
+      "Joins your crew when you fly into it. If you already have 5, it goes straight home instead.",
     );
   });
 
@@ -100,7 +124,7 @@ describe("HelpComponent", () => {
 
     expect(
       within(screen.getByRole("region", { name: "Pickups" })).getByText(
-        /^A broken rock may let a pickup go/,
+        /^A broken rock sometimes drops a pickup/,
       ),
     ).toBeVisible();
   });
@@ -109,7 +133,7 @@ describe("HelpComponent", () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText(/^Dashing\./).parentElement).toHaveTextContent(
-      "A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes 2.5 seconds to charge again. At full static, a dash zaps: arcs leap from the ship to up to 6 rocks within 6 units of the way it dashes, the nearest first, each taking a hit, and static falls by 20; with none in reach, it is only a dash.",
+      "Dashing. A dash throws your ship forward, and nothing can hit it while it dashes. It takes 2.5 seconds to charge again. When your static is full, at 40, your next dash also zaps up to 6 rocks near its path. A zap uses 20 static.",
     );
   });
 
@@ -119,27 +143,27 @@ describe("HelpComponent", () => {
     expect(
       within(
         screen.getByRole("region", { name: "Strays, comets and burrs" }),
-      ).getByText(/Strays drift in from wave 3/),
+      ).getByText(/Strays come from wave 3/),
     ).toBeVisible();
   });
 
-  it("says a pilot left with no one in tow is sent a stray", async () => {
+  it("says a pilot with no crew following or loose is sent a stray", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(
       within(
         screen.getByRole("region", { name: "Strays, comets and burrs" }),
       ).getByText(
-        /a pilot left with no one in tow, and no one to catch again, is sent one at once/,
+        /But if you have no crew following you or left to catch, a stray comes right away, once a wave/,
       ),
     ).toBeVisible();
   });
 
-  it("says what a burr does, from the tuning", async () => {
+  it("says what a burr does", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Burr.").parentElement).toHaveTextContent(
-      "Burr. A seed of barbed thorns that drifts in at an edge and, once near the ship, turns toward it. Only a shot pops it, for 10 points times static's multiplier. One that touches the ship clings, each taking 20% off its thrust and top speed, up to 3, until a dash shakes them all off.",
+      "Burr. Homes in on your ship and sticks to it, slowing you down. Shoot it first, or dash to shake it off.",
     );
   });
 
@@ -147,15 +171,15 @@ describe("HelpComponent", () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Iron.").parentElement).toHaveTextContent(
-      "Iron. Takes several hits",
+      "Iron. Takes 3 hits when large and 2 when medium.",
     );
   });
 
-  it("says a comet hits the ship as a rock does", async () => {
+  it("says a comet hits the ship like a rock", async () => {
     await render(HelpComponent, { inputs: { open: true } });
 
     expect(screen.getByText("Comet.").parentElement).toHaveTextContent(
-      "hits the ship as a rock does unless the ship is dashing or shielded.",
+      "Crosses the screen fast and hits your ship like a rock.",
     );
   });
 

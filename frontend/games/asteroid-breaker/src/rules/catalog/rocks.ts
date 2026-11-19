@@ -113,7 +113,7 @@ export interface RockKind {
 export const ROCK_KINDS = {
   stone: {
     name: "Stone",
-    about: "Breaks into two smaller rocks, and a small one into nothing.",
+    about: "Breaks into 2 smaller stones.",
     hits: { large: 1, medium: 1, small: 1 },
     splits: { into: "self", count: 2 },
     speed: 1,
@@ -122,8 +122,7 @@ export const ROCK_KINDS = {
   },
   crystal: {
     name: "Crystal",
-    about:
-      "Always lets a pickup go, sheds two more sparks, and breaks into two stones.",
+    about: "Always drops a pickup and 2 extra sparks. Breaks into 2 stones.",
     hits: { large: 1, medium: 1 },
     splits: { into: "stone", count: 2 },
     speed: 1,
@@ -135,7 +134,7 @@ export const ROCK_KINDS = {
   },
   ice: {
     name: "Ice",
-    about: "Shatters into three smaller, faster pieces.",
+    about: "Breaks into 3 smaller, faster pieces.",
     hits: { large: 1, medium: 1, small: 1 },
     splits: { into: "self", count: 3 },
     speed: 1.25,
@@ -145,7 +144,7 @@ export const ROCK_KINDS = {
   boulder: {
     name: "Boulder",
     about:
-      "Comes every tenth wave of Endless: six hits break it into three large rocks.",
+      "Takes 6 hits, then breaks into 3 large rocks. Comes every 10th wave of Endless.",
     hits: { boulder: 6 },
     splits: { into: "wave", count: 3 },
     speed: 1,
@@ -154,8 +153,7 @@ export const ROCK_KINDS = {
   },
   iron: {
     name: "Iron",
-    about:
-      "Takes several hits until it is small; a shot that doesn't break it rings off.",
+    about: "Takes 3 hits when large and 2 when medium.",
     hits: { large: 3, medium: 2, small: 1 },
     splits: { into: "self", count: 2 },
     speed: 0.75,
@@ -165,7 +163,7 @@ export const ROCK_KINDS = {
   volatile: {
     name: "Volatile",
     about:
-      "Blasts as it breaks: every rock near it takes a hit, which can set off another.",
+      "Blasts every rock nearby when it breaks. The blast can't hurt your ship.",
     hits: { large: 1, medium: 1 },
     splits: null,
     speed: 0.9,
@@ -174,7 +172,7 @@ export const ROCK_KINDS = {
   },
   lodestone: {
     name: "Lodestone",
-    about: "Drifts toward the ship, a little more each second.",
+    about: "Drifts toward your ship. Takes 2 hits when large.",
     hits: { large: 2, medium: 1, small: 1 },
     splits: { into: "self", count: 2 },
     speed: 1,
@@ -184,7 +182,7 @@ export const ROCK_KINDS = {
   crumbling: {
     name: "Crumbling boulder",
     about:
-      "Ends the first sector: each of the five hits it holds knocks a medium stone off it, and its sixth breaks it into three large rocks and lets two pickups go.",
+      "Takes 6 hits, then breaks into 3 large rocks. Its first 5 hits each knock off a medium stone.",
     hits: { boulder: 6 },
     splits: { into: "wave", count: 3 },
     speed: 1,
@@ -197,7 +195,7 @@ export const ROCK_KINDS = {
   ironclad: {
     name: "Ironclad boulder",
     about:
-      "Ends the second sector: its iron rind rings off the first three hits it holds, each knocking a plate off it as a medium iron rock, and its sixth hit breaks it into three large rocks and lets two pickups go.",
+      "Takes 6 hits, then breaks into 3 large rocks. Its first 3 hits each knock off a medium iron rock.",
     hits: { boulder: 6 },
     splits: { into: "wave", count: 3 },
     speed: 1,
@@ -210,7 +208,7 @@ export const ROCK_KINDS = {
   stormheart: {
     name: "Storm boulder",
     about:
-      "Ends the third sector: each hit it holds vents a blast from its volatile heart, which gives every rock within 6 units but a boulder a hit, and its sixth breaks it into three large rocks and lets two pickups go.",
+      "Takes 6 hits, then breaks into 3 large rocks. Its first 5 hits each blast the rocks within 6 units.",
     hits: { boulder: 6 },
     splits: { into: "wave", count: 3 },
     speed: 1,

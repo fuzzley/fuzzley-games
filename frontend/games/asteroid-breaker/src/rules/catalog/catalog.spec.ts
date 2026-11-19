@@ -42,7 +42,7 @@ function sizesOf(record: BySize): RockSize[] {
   return ROCK_SIZES.filter((size) => record[size] !== undefined);
 }
 
-/** Spells a share as the catalogs' sentences do, twice or half. */
+/** Words a share as the catalogs' sentences do, twice or half. */
 function share(n: number): string {
   const words: Readonly<Record<number, string>> = { 2: "twice", 0.5: "half" };
   return words[n] ?? String(n);
@@ -76,29 +76,6 @@ function settingsOf(trait: RockTrait): number[] {
     case "rings":
       return [];
   }
-}
-
-/** Returns how many pickups a kind of rock always lets go as it breaks. */
-function givesOf(id: RockKindId): number {
-  return rockKind(id).traits.reduce(
-    (sum, trait) => sum + (trait.kind === "gives" ? trait.count : 0),
-    0,
-  );
-}
-
-/** Spells a count from one to eight, as the catalogs' sentences do. */
-function spelled(n: number): string {
-  const words = [
-    "one",
-    "two",
-    "three",
-    "four",
-    "five",
-    "six",
-    "seven",
-    "eight",
-  ];
-  return words[n - 1] ?? String(n);
 }
 
 /** Every rock kind that breaks into pieces of its own kind or of stone, with its id. */
@@ -154,59 +131,69 @@ describe("ROCK_KINDS", () => {
     [
       "the boulder's hits",
       ROCK_KINDS.boulder.about,
-      `${spelled(ROCK_KINDS.boulder.hits.boulder)} hits`,
+      `Takes ${String(ROCK_KINDS.boulder.hits.boulder)} hits`,
     ],
     [
       "the boulder's pieces",
       ROCK_KINDS.boulder.about,
-      `into ${spelled(ROCK_KINDS.boulder.splits.count)} large`,
+      `into ${String(ROCK_KINDS.boulder.splits.count)} large`,
     ],
     [
       "ice's pieces",
       ROCK_KINDS.ice.about,
-      `into ${spelled(ROCK_KINDS.ice.splits.count)}`,
+      `into ${String(ROCK_KINDS.ice.splits.count)}`,
     ],
     [
       "stone's pieces",
       ROCK_KINDS.stone.about,
-      `into ${spelled(ROCK_KINDS.stone.splits.count)}`,
+      `into ${String(ROCK_KINDS.stone.splits.count)}`,
     ],
     [
       "crystal's pieces",
       ROCK_KINDS.crystal.about,
-      `into ${spelled(ROCK_KINDS.crystal.splits.count)}`,
+      `into ${String(ROCK_KINDS.crystal.splits.count)}`,
     ],
     [
       "crystal's sparks",
       ROCK_KINDS.crystal.about,
-      `sheds ${spelled(CRYSTAL_SPARKS)} more sparks`,
+      `and ${String(CRYSTAL_SPARKS)} extra sparks`,
+    ],
+    [
+      "iron's hits",
+      ROCK_KINDS.iron.about,
+      `Takes ${String(ROCK_KINDS.iron.hits.large)} hits when large and ${String(ROCK_KINDS.iron.hits.medium)} when medium`,
+    ],
+    [
+      "the lodestone's hits",
+      ROCK_KINDS.lodestone.about,
+      `Takes ${String(ROCK_KINDS.lodestone.hits.large)} hits when large`,
     ],
     [
       "the crumbling boulder's stones",
       ROCK_KINDS.crumbling.about,
-      `each of the ${spelled(ROCK_KINDS.crumbling.traits[0].upTo)} hits it holds knocks a ${ROCK_KINDS.crumbling.traits[0].size} stone off`,
+      `Its first ${String(ROCK_KINDS.crumbling.traits[0].upTo)} hits each knock off a ${ROCK_KINDS.crumbling.traits[0].size} stone`,
     ],
     [
       "the ironclad boulder's plates",
       ROCK_KINDS.ironclad.about,
-      `first ${spelled(ROCK_KINDS.ironclad.traits[0].upTo)} hits it holds, each knocking a plate off it as a ${ROCK_KINDS.ironclad.traits[0].size} iron rock`,
+      `Its first ${String(ROCK_KINDS.ironclad.traits[0].upTo)} hits each knock off a ${ROCK_KINDS.ironclad.traits[0].size} iron rock`,
     ],
     [
       "the storm boulder's vented blast",
       ROCK_KINDS.stormheart.about,
-      `within ${String(ROCK_KINDS.stormheart.traits[0].reach)} units`,
+      `Its first ${String(ROCK_KINDS.stormheart.hits.boulder - 1)} hits each blast the rocks within ${String(ROCK_KINDS.stormheart.traits[0].reach)} units`,
     ],
     ...BOULDERS.slice(1).flatMap(
       (id): (readonly [string, string, string])[] => [
         [
           `the ${id} boulder's pieces`,
           rockKind(id).about,
-          `into ${spelled(rockKind(id).splits?.count ?? 0)} large`,
+          `then breaks into ${String(rockKind(id).splits?.count ?? 0)} large`,
         ],
         [
-          `the ${id} boulder's pickups`,
+          `the ${id} boulder's hits`,
           rockKind(id).about,
-          `lets ${spelled(givesOf(id))} pickups go`,
+          `Takes ${String(rockKind(id).hits.boulder ?? 0)} hits`,
         ],
       ],
     ),
@@ -307,6 +294,13 @@ describe("pointsFor", () => {
 
   it("throws for a size its kind doesn't come in", () => {
     expect(() => pointsFor("volatile", "small")).toThrow(RangeError);
+  });
+
+  // How to play lists one boulder's points for them all.
+  it("scores every boulder the same", () => {
+    const points = BOULDERS.map((id) => pointsFor(id, "boulder"));
+
+    expect(new Set(points).size).toBe(1);
   });
 });
 
@@ -461,8 +455,8 @@ describe("PICKUPS", () => {
   it.each([
     [
       "Spread's fan",
-      PICKUPS.spread.about.toLowerCase(),
-      `${spelled(WEAPONS.spread.count)} shots at each pull, ${String(WEAPONS.spread.spreadDeg)}° apart`,
+      PICKUPS.spread.about,
+      `Fires ${String(WEAPONS.spread.count)} shots at once`,
     ],
     [
       "Rapid's rate",
@@ -472,12 +466,12 @@ describe("PICKUPS", () => {
     [
       "the Slow's share",
       PICKUPS.slow.about,
-      `at ${share(PICKUPS.slow.effect.scale)} their speed`,
+      `to ${share(PICKUPS.slow.effect.scale)} speed`,
     ],
     [
       "the Lance's breaks",
       PICKUPS.lance.about,
-      `up to ${spelled(WEAPONS.lance.breaks)} rocks`,
+      `up to ${String(WEAPONS.lance.breaks)} rocks`,
     ],
     [
       "the Magnet's reach",
