@@ -72,7 +72,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
       const closed = onClose();
 
-      clickElement(fixture, "button[aria-label='Close game options']");
+      clickElement(fixture, "button[aria-label='Close settings']");
 
       expect(closed).toHaveBeenCalledOnce();
     });
@@ -224,7 +224,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       expect(description("piles")).toBe(
-        "Bottom on a phone, upright or on its side, and Top on a larger screen: Top here.",
+        "Bottom on a phone and Top on a larger screen, so Top here.",
       );
     });
 
@@ -233,7 +233,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       expect(description("stock-side")).toBe(
-        "Right on a phone, upright or on its side, and Left on a larger screen: Right here.",
+        "Right on a phone and Left on a larger screen, so Right here.",
       );
     });
 
@@ -242,7 +242,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       expect(description("piles")).toBe(
-        "The stock and foundations along the top, or at the top of a sideways phone's rails.",
+        "Puts the stock and foundations at the top.",
       );
     });
 
@@ -251,7 +251,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       expect(description("stock-side")).toBe(
-        "The stock at the left of the table.",
+        "Puts the stock on the left. On a phone, the buttons go on the other side.",
       );
     });
 
@@ -260,7 +260,7 @@ describe("SettingsDrawerComponent", () => {
 
       expect(
         queryText(fixture, "app-option-group.stock-side .setting-label"),
-      ).toBe("Stock Side");
+      ).toBe("Stock side");
     });
 
     it("offers only the piles in a game without a side pile", () => {
@@ -279,7 +279,7 @@ describe("SettingsDrawerComponent", () => {
       harness.catalog.select("yukon");
       openDrawer();
 
-      expect(description("piles")).toMatch(/^The foundations along the bottom/);
+      expect(description("piles")).toBe("Puts the foundations at the bottom.");
     });
 
     it.each(["phone-portrait", "phone-landscape"] as const)(

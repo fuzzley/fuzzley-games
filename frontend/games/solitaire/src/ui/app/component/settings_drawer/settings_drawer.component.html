@@ -1,12 +1,12 @@
-<fz-dialog [open]="open()" label="Game options" (closed)="closed.emit()">
+<fz-dialog [open]="open()" label="Settings" (closed)="closed.emit()">
   <div class="drawer">
     <div class="drawer-header">
-      <h2>Game Options</h2>
+      <h2>Settings</h2>
       <button
         type="button"
         class="close"
         (click)="closed.emit()"
-        aria-label="Close game options"
+        aria-label="Close settings"
       >
         <fz-icon name="close" />
       </button>
@@ -41,9 +41,9 @@
         }
       }
 
-      <!-- Card Back Style -->
+      <!-- The card back -->
       <div class="setting">
-        <span class="setting-label" id="card-back-label">Card Back Design</span>
+        <span class="setting-label" id="card-back-label">Card back</span>
         <div
           class="card-back-selector"
           fzRadioGroup
@@ -68,7 +68,7 @@
         </div>
       </div>
 
-      <!-- Card Style: mobile or desktop cards, or whichever suits the screen -->
+      <!-- Card style: mobile or desktop cards, or whichever suits the screen -->
       <app-option-group
         class="card-style"
         [option]="cardStyleOption()"
@@ -87,7 +87,7 @@
       <!-- The desktop decks, offered only while desktop cards are drawn -->
       @if (presentation.drawsDesktopCards()) {
         <div class="setting">
-          <span class="setting-label" id="card-deck-label">Desktop Cards</span>
+          <span class="setting-label" id="card-deck-label">Desktop deck</span>
           <div
             class="card-deck-selector"
             fzRadioGroup
@@ -194,22 +194,21 @@
         <p class="setting-desc felt-caption">{{ feltCaption() }}</p>
       </div>
 
-      <!-- Game Rules & Documentation -->
+      <!-- How to play the game on the table, which the button names -->
       <div class="setting">
-        <span class="setting-label">Game Rules & Documentation</span>
         <button
           type="button"
           class="fz-button fz-button-secondary fz-button-block"
           (click)="openRules()"
         >
           <fz-icon name="help" />
-          How to Play {{ activeGameTitle() }}
+          How to play {{ activeGameTitle() }}
         </button>
       </div>
 
-      <!-- Report a Bug, in a new tab so the board being reported is kept -->
+      <!-- Report a bug, in a new tab so the board being reported is kept -->
       <div class="setting">
-        <span class="setting-label">Found a Problem?</span>
+        <span class="setting-label">Found a problem?</span>
         <a
           class="fz-button fz-button-secondary fz-button-block btn-report"
           [attr.href]="bugReportUrl()"
@@ -217,7 +216,7 @@
           rel="noopener noreferrer"
         >
           <fz-icon name="bug" />
-          Report a Bug
+          Report a bug
           <fz-icon name="external" />
           <span class="new-tab-hint">(opens GitHub in a new tab)</span>
         </a>
@@ -232,14 +231,14 @@
       <fz-build-info />
     </div>
 
-    <!-- "Done", not "Apply": every control here applies as it is touched. -->
+    <!-- "Close", not "Apply": every control here applies as it is touched. -->
     <div class="drawer-footer">
       <button
         type="button"
         class="fz-button fz-button-block"
         (click)="closed.emit()"
       >
-        Done
+        Close
       </button>
     </div>
   </div>

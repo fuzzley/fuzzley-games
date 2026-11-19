@@ -308,7 +308,7 @@ describe("HeaderBarComponent", () => {
     });
 
     it("opens the rules", () => {
-      clickElement(fixture, "button[title*='How to Play']");
+      clickElement(fixture, "button[title='How to play']");
 
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
@@ -324,14 +324,14 @@ describe("HeaderBarComponent", () => {
     it("names the icon-only bug report button for a screen reader", () => {
       expect(
         queryRequired(fixture, ".btn-bug-report").getAttribute("aria-label"),
-      ).toContain("Report a Bug");
+      ).toContain("Report a bug");
     });
 
     it("asks the shell to open settings", () => {
       const openSettings = vi.fn();
       fixture.componentInstance.openSettings.subscribe(openSettings);
 
-      clickElement(fixture, "button[aria-label='Game Settings']");
+      clickElement(fixture, "button[aria-label='Settings']");
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
@@ -376,7 +376,7 @@ describe("HeaderBarComponent", () => {
         query(fixture, "button[title*='Restart']"),
         query(fixture, ".btn-help"),
         query(fixture, ".btn-bug-report"),
-        query(fixture, "button[aria-label='Game Settings']"),
+        query(fixture, "button[aria-label='Settings']"),
       ]).toEqual([null, null, null, null]);
     });
 
@@ -385,8 +385,8 @@ describe("HeaderBarComponent", () => {
 
       expect(menuLabels()).toEqual([
         "Restart",
-        "How to Play",
-        "Report a Bug",
+        "How to play",
+        "Report a bug",
         "Settings",
       ]);
     });
@@ -414,7 +414,7 @@ describe("HeaderBarComponent", () => {
     it("opens the rules from the menu", () => {
       openMenu();
 
-      choose("How to Play");
+      choose("How to play");
 
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
@@ -423,7 +423,7 @@ describe("HeaderBarComponent", () => {
       const openReport = spyOnReports();
       openMenu();
 
-      choose("Report a Bug");
+      choose("Report a bug");
 
       expect(openReport).toHaveBeenCalledOnce();
     });
@@ -441,7 +441,7 @@ describe("HeaderBarComponent", () => {
     it("closes once an action has been taken", () => {
       openMenu();
 
-      choose("How to Play");
+      choose("How to play");
 
       expect(
         queryRequired(fixture, "button[title='More actions']").getAttribute(

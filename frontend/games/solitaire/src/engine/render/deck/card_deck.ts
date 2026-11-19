@@ -43,19 +43,19 @@ export const DESKTOP_CARD_DECKS: readonly DesktopCardDeckSpec[] = [
   {
     id: "classic",
     name: "Classic",
-    description: "Card artwork unchanged.",
+    description: "Shows the cards as drawn, with no corner pips.",
     pipCoverage: "none",
   },
   {
     id: "indexed",
     name: "Corner Pips",
-    description: "Marks every ace, king, queen, and jack with suit pips.",
+    description: "Adds a corner pip to every Ace, King, Queen and Jack.",
     pipCoverage: "courts",
   },
   {
     id: "all-corner-pips",
     name: "All Corner Pips",
-    description: "Marks every card with suit pips.",
+    description: "Adds a corner pip to every card.",
     pipCoverage: "all",
   },
 ];

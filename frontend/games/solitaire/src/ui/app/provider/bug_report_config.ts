@@ -15,7 +15,7 @@ export interface BugReportConfig {
   readonly maxUrlChars: number;
 }
 
-/** Where "Report a Bug" leads, and the build it reports. */
+/** Where "Report a bug" leads, and the build it reports. */
 export const BUG_REPORT_CONFIG = new InjectionToken<BugReportConfig>(
   "BUG_REPORT_CONFIG",
   {

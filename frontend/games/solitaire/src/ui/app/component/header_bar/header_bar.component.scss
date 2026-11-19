@@ -74,11 +74,14 @@
   border-radius: var(--fz-radius-md);
   padding: var(--fz-space-1) var(--fz-space-4);
 
+  // Written in sentence case and shown in capitals, so a screen reader reads
+  // the word rather than spelling it out.
   .label {
     font-size: var(--fz-font-2xs);
     font-weight: 700;
     color: var(--fz-muted);
     letter-spacing: 0.1em;
+    text-transform: uppercase;
     margin-bottom: 2px;
   }
 

@@ -37,7 +37,7 @@ describe("DebugPanelComponent", () => {
     const panel = query(fixture, ".debug-panel");
 
     expect(panel?.getAttribute("role")).toBe("group");
-    expect(queryText(fixture, ".debug-label")).toContain("Debug Options");
+    expect(queryText(fixture, ".debug-label")).toContain("Debug options");
   });
 
   it("shows only debug rules, not the ones a player picks", () => {
