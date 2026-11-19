@@ -372,8 +372,9 @@ function dealt<TGame extends PlayableGame>(game: TGame): CatalogSession<TGame> {
 
 const KLONDIKE_DRAW_COUNT = gameOption<DrawCount>({
   id: "drawCount",
-  label: "Draw Mode",
-  description: "Draw 1 is easier; Draw 3 is the standard Solitaire challenge.",
+  label: "Draw",
+  description:
+    "How many cards you turn over from the stock at a time. Draw 3 is harder.",
   choices: [
     { value: 1, rule: 1, label: "Draw 1" },
     { value: 3, rule: 3, label: "Draw 3" },
@@ -385,7 +386,7 @@ const KLONDIKE_SCORING = gameOption<KlondikeScoring>({
   id: "scoring",
   label: "Scoring",
   description:
-    "Vegas buys the deck for $52 and pays $5 for every card on a foundation, but allows only one pass through the stock in Draw 1 and three in Draw 3.",
+    "In Vegas, you pay $52 and win $5 for each card on a foundation. Vegas gives 1 pass through the stock in Draw 1, 3 in Draw 3.",
   choices: [
     { value: 0, rule: KlondikeScoring.STANDARD, label: "Standard" },
     { value: 1, rule: KlondikeScoring.VEGAS, label: "Vegas" },
@@ -408,24 +409,23 @@ const KLONDIKE_ALMOST_WIN = gameOption<number>({
 
 const BAKERS_EMPTY_COLUMNS = gameOption<number>({
   id: "emptyColumns",
-  label: "Empty Columns",
-  description:
-    "Kings Only is the harder variant: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
+  label: "Empty columns",
+  description: "Kings only also limits how many cards you can move at once.",
   choices: [
-    { value: 0, rule: 0, label: "Any Card" },
-    { value: 1, rule: 1, label: "Kings Only" },
+    { value: 0, rule: 0, label: "Any card" },
+    { value: 1, rule: 1, label: "Kings only" },
   ],
   defaultRule: 0,
 });
 
 const CHALLENGE_EMPTY_COLUMNS = gameOption<number>({
   id: "emptyColumns",
-  label: "Empty Columns",
+  label: "Empty columns",
   description:
-    "Kings Only is Super Challenge FreeCell: it also caps how many cards move at once, because a run can no longer be staged in an empty column.",
+    "Kings only is Super Challenge FreeCell. Kings only also limits how many cards you can move at once.",
   choices: [
-    { value: 0, rule: 0, label: "Any Card" },
-    { value: 1, rule: 1, label: "Kings Only" },
+    { value: 0, rule: 0, label: "Any card" },
+    { value: 1, rule: 1, label: "Kings only" },
   ],
   defaultRule: 0,
 });
@@ -434,11 +434,11 @@ const SPIDER_SUIT_COUNT = gameOption<SpiderSuitCount>({
   id: "suitCount",
   label: "Suits",
   description:
-    "Always 104 cards — fewer suits means more copies of each, and a far gentler game.",
+    "You always play with 104 cards. The fewer the suits, the easier the game.",
   choices: [
-    { value: 1, rule: 1, label: "1 Suit" },
-    { value: 2, rule: 2, label: "2 Suits" },
-    { value: 4, rule: 4, label: "4 Suits" },
+    { value: 1, rule: 1, label: "1 suit" },
+    { value: 2, rule: 2, label: "2 suits" },
+    { value: 4, rule: 4, label: "4 suits" },
   ],
   defaultRule: 4,
 });
@@ -448,31 +448,31 @@ const YUKON_VARIANT = gameOption<YukonVariant>({
   id: "variant",
   label: "Variant",
   description:
-    "Alaska and Russian Solitaire deal like Yukon but build the columns by suit rather than by alternating color; Moosehide lets a card land on any suit but its own.",
+    "All 4 deal like Yukon. They differ in how you build the columns.",
   choices: [
     {
       value: 0,
       rule: YukonVariant.YUKON,
       label: "Yukon",
-      description: "Build down in alternating colours.",
+      description: "Build down in alternating colors.",
     },
     {
       value: 1,
       rule: YukonVariant.ALASKA,
       label: "Alaska",
-      description: "Build up or down in suit.",
+      description: "Build up or down by suit.",
     },
     {
       value: 2,
       rule: YukonVariant.RUSSIAN,
       label: "Russian Solitaire",
-      description: "Build down in suit; the hardest of the four.",
+      description: "Build down by suit. Harder.",
     },
     {
       value: 3,
       rule: YukonVariant.MOOSEHIDE,
       label: "Moosehide",
-      description: "Build down on any suit but a card's own.",
+      description: "Build down on a different suit. Easier.",
     },
   ],
   control: "list",
@@ -483,35 +483,34 @@ const YUKON_VARIANT = gameOption<YukonVariant>({
 const KLONDIKE_VARIANT = gameOption<KlondikeVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Whitehead deals every card face-up and builds in one colour; Thumb and Pouch lets a card land on any suit but its own. Both let any card fill an empty column. Saratoga is Klondike with every column card dealt face-up.",
+  description: "The other 3 change how you build, or deal the columns face up.",
   choices: [
     {
       value: 0,
       rule: KlondikeVariant.KLONDIKE,
       label: "Klondike",
       description:
-        "Build down in alternating colours; only a King fills an empty column.",
+        "Build down in alternating colors. Only a King can fill an empty column.",
     },
     {
       value: 1,
       rule: KlondikeVariant.WHITEHEAD,
       label: "Whitehead",
       description:
-        "Every card face-up, building down in one colour; any card fills an empty column.",
+        "Build down in the same color on columns dealt face up. Any card can fill an empty column.",
     },
     {
       value: 2,
       rule: KlondikeVariant.THUMB_AND_POUCH,
       label: "Thumb and Pouch",
       description:
-        "Build on any suit but a card's own; any card fills an empty column.",
+        "Build down on a different suit. Any card can fill an empty column.",
     },
     {
       value: 3,
       rule: KlondikeVariant.SARATOGA,
       label: "Saratoga",
-      description: "Klondike with every column card dealt face-up.",
+      description: "The columns are dealt face up.",
     },
   ],
   control: "list",
@@ -523,40 +522,40 @@ const FORTY_THIEVES_VARIANT = gameOption<FortyThievesVariant>({
   id: "variant",
   label: "Variant",
   description:
-    "Josephine lets same-suit runs move as a unit; Rank and File builds in alternating colours but buries three of every four cards. Indian deals three to a column and builds on any other suit; Number Ten buries two of four and builds in alternating colours.",
+    "All 5 are played on 10 columns from 2 decks. The rules for the columns differ.",
   choices: [
     {
       value: 0,
       rule: FortyThievesVariant.FORTY_THIEVES,
       label: "Forty Thieves",
-      description: "Build down in suit, one card at a time.",
+      description: "Build down by suit. Move 1 card at a time.",
     },
     {
       value: 1,
       rule: FortyThievesVariant.JOSEPHINE,
       label: "Josephine",
-      description: "Build down in suit, and move a same-suit run as a unit.",
+      description: "Build down by suit, and you can move runs. Easier.",
     },
     {
       value: 2,
       rule: FortyThievesVariant.RANK_AND_FILE,
       label: "Rank and File",
       description:
-        "Alternating colours and runs, but three in four cards dealt face-down.",
+        "Build down in alternating colors, and you can move runs. 3 cards in each column start face down.",
     },
     {
       value: 5,
       rule: FortyThievesVariant.INDIAN,
       label: "Indian",
       description:
-        "Three cards to a column, building on any suit but a card's own.",
+        "Build down on a different suit. Each column has 3 cards, and 1 starts face down. Easier.",
     },
     {
       value: 6,
       rule: FortyThievesVariant.NUMBER_TEN,
       label: "Number Ten",
       description:
-        "Alternating colours and runs, with half the deal face-down.",
+        "Like Rank and File, but 2 cards in each column start face down. Easier.",
     },
   ],
   control: "list",
@@ -567,27 +566,27 @@ const FORTY_THIEVES_VARIANT = gameOption<FortyThievesVariant>({
 const SCORPION_VARIANT = gameOption<ScorpionVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Wasp lets any card or run fill an empty column; Scorpion II buries cards in only the first three columns.",
+  description: "All 3 deal 7 columns of 7 and a stock of 3.",
   choices: [
     {
       value: 0,
       rule: ScorpionVariant.SCORPION,
       label: "Scorpion",
       description:
-        "Only a King fills an empty column; four columns hide three cards.",
+        "Only a King can fill an empty column. 4 columns start with 3 cards face down.",
     },
     {
       value: 1,
       rule: ScorpionVariant.WASP,
       label: "Wasp",
-      description: "Any card, with all it carries, fills an empty column.",
+      description:
+        "Any card, with the cards on top of it, can fill an empty column. Easier.",
     },
     {
       value: 2,
       rule: ScorpionVariant.SCORPION_II,
       label: "Scorpion II",
-      description: "Only the first three columns hide cards.",
+      description: "Only the first 3 columns start with cards face down.",
     },
   ],
   control: "list",
@@ -598,11 +597,10 @@ const SCORPION_VARIANT = gameOption<ScorpionVariant>({
 const MONTANA_REDEALS = gameOption<MaxRedeals>({
   id: "redeals",
   label: "Redeals",
-  description:
-    "Three redeals is the game called Addiction: one more chance to shuffle the stuck cards back out.",
+  description: "3 redeals is the game called Addiction.",
   choices: [
-    { value: 2, rule: 2, label: "2 Redeals" },
-    { value: 3, rule: 3, label: "3 Redeals" },
+    { value: 2, rule: 2, label: "2 redeals" },
+    { value: 3, rule: 3, label: "3 redeals" },
   ],
   defaultRule: DEFAULT_MAX_REDEALS,
 });
@@ -611,21 +609,20 @@ const MONTANA_REDEALS = gameOption<MaxRedeals>({
 const MOON_DEAL = gameOption<MontanaVariant>({
   id: "variant",
   label: "Deal",
-  description:
-    "Red Moon deals the gaps right beside the Aces, so every row can start building at once; Blue Moon leaves them wherever the Aces fell.",
+  description: "Where the 4 gaps are when the game starts.",
   choices: [
     {
       value: 1,
       rule: MontanaVariant.BLUE_MOON,
       label: "Blue Moon",
-      description: "The gaps lie wherever the Aces were dealt.",
+      description: "Each gap is where an Ace was dealt.",
     },
     {
       value: 2,
       rule: MontanaVariant.RED_MOON,
       label: "Red Moon",
       description:
-        "The gaps are dealt beside the Aces, so every row starts at once.",
+        "Each gap is next to an Ace, so you can start building every row. Easier.",
     },
   ],
   control: "list",
@@ -636,22 +633,20 @@ const MOON_DEAL = gameOption<MontanaVariant>({
 const SPIDERETTE_VARIANT = gameOption<SpideretteVariant>({
   id: "variant",
   label: "Deal",
-  description:
-    "Will o' the Wisp deals a flat three cards to every column instead of Klondike's staircase, burying fewer cards but leaving more in the stock.",
+  description: "How the cards are dealt to the 7 columns.",
   choices: [
     {
       value: 0,
       rule: SpideretteVariant.SPIDERETTE,
       label: "Spiderette",
       description:
-        "Klondike's staircase of one to seven cards, with 24 in the stock.",
+        "Columns of 1 to 7 cards, like Klondike, with 24 in the stock.",
     },
     {
       value: 1,
       rule: SpideretteVariant.WILL_O_THE_WISP,
       label: "Will o' the Wisp",
-      description:
-        "Three cards to every column, burying fewer but leaving 31 in the stock.",
+      description: "3 cards in each column, with 31 in the stock. Easier.",
     },
   ],
   control: "list",
@@ -661,12 +656,12 @@ const SPIDERETTE_VARIANT = gameOption<SpideretteVariant>({
 /** What may fill an empty column in Aces Up. */
 const ACES_UP_SPACES = gameOption<AcesUpSpaces>({
   id: "emptyColumns",
-  label: "Empty Columns",
+  label: "Empty columns",
   description:
-    "Aces Only is the harder game: a space can only take an Ace, so every other card has to wait for the discard.",
+    "You can move a top card into an empty column. With Aces only, it must be an Ace.",
   choices: [
-    { value: 0, rule: AcesUpSpaces.ANY_CARD, label: "Any Card" },
-    { value: 1, rule: AcesUpSpaces.ACES_ONLY, label: "Aces Only" },
+    { value: 0, rule: AcesUpSpaces.ANY_CARD, label: "Any card" },
+    { value: 1, rule: AcesUpSpaces.ACES_ONLY, label: "Aces only" },
   ],
   defaultRule: DEFAULT_ACES_UP_SPACES,
 });
@@ -675,28 +670,26 @@ const ACES_UP_SPACES = gameOption<AcesUpSpaces>({
 const GOLF_VARIANT = gameOption<GolfVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Golf lets nothing onto a King; one house rule lets a Queen go there. Putt Putt turns the corner, so a King and an Ace are a rank apart both ways.",
+  description: "What you can play on a King.",
   choices: [
     {
       value: 0,
       rule: GolfVariant.GOLF,
       label: "Golf",
-      description:
-        "Nothing goes on a King, so a King blocks until the next stock card.",
+      description: "Nothing can go on a King, so you turn the next stock card.",
     },
     {
       value: 1,
       rule: GolfVariant.QUEENS_ON_KINGS,
       label: "Queens on Kings",
-      description: "A Queen can go on a King, so a King no longer blocks.",
+      description: "A Queen can go on a King.",
     },
     {
       value: 2,
       rule: GolfVariant.PUTT_PUTT,
       label: "Putt Putt",
       description:
-        "The ranks turn the corner: a King takes an Ace, and an Ace a King.",
+        "The ranks wrap around, so an Ace or a Queen can go on a King. Easier.",
     },
   ],
   control: "list",
@@ -707,21 +700,20 @@ const GOLF_VARIANT = gameOption<GolfVariant>({
 const CALCULATION_VARIANT = gameOption<CalculationVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Sir Tommy builds every foundation up by one from an Ace, which the player has to wait for, rather than by Calculation's four intervals.",
+  description: "How you build the 4 foundations.",
   choices: [
     {
       value: 0,
       rule: CalculationVariant.CALCULATION,
       label: "Calculation",
       description:
-        "Foundations start on A, 2, 3 and 4, and build by ones, twos, threes and fours.",
+        "The foundations start on Ace, 2, 3 and 4, and go up by 1s, 2s, 3s and 4s.",
     },
     {
       value: 1,
       rule: CalculationVariant.SIR_TOMMY,
       label: "Sir Tommy",
-      description: "Each foundation starts on an Ace and builds up by one.",
+      description: "Every foundation starts on an Ace and goes up by 1.",
     },
   ],
   control: "list",
@@ -732,21 +724,19 @@ const CALCULATION_VARIANT = gameOption<CalculationVariant>({
 const BRISTOL_VARIANT = gameOption<BristolVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Belvedere starts one foundation with an Ace, so there is somewhere to play from the first move.",
+  description: "Whether the deal starts 1 foundation for you.",
   choices: [
     {
       value: 0,
       rule: BristolVariant.BRISTOL,
       label: "Bristol",
-      description: "Every foundation waits for an Ace to turn up.",
+      description: "Start each foundation with an Ace when you find one.",
     },
     {
       value: 1,
       rule: BristolVariant.BELVEDERE,
       label: "Belvedere",
-      description:
-        "One Ace starts on a foundation, so there is a play from the first move.",
+      description: "The deal puts 1 Ace on a foundation for you.",
     },
   ],
   control: "list",
@@ -757,8 +747,7 @@ const BRISTOL_VARIANT = gameOption<BristolVariant>({
 const MONTE_CARLO_VARIANT = gameOption<MonteCarloVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Thirteens pairs touching cards that add up to thirteen, and lets a King go on its own.",
+  description: "Which cards make a pair.",
   choices: [
     {
       value: 0,
@@ -771,7 +760,7 @@ const MONTE_CARLO_VARIANT = gameOption<MonteCarloVariant>({
       rule: MonteCarloVariant.THIRTEENS,
       label: "Thirteens",
       description:
-        "Pair touching cards that add up to thirteen; a King goes alone.",
+        "Pair touching cards that add up to 13. You discard a King on its own.",
     },
   ],
   control: "list",
@@ -782,28 +771,26 @@ const MONTE_CARLO_VARIANT = gameOption<MonteCarloVariant>({
 const LA_BELLE_LUCIE_VARIANT = gameOption<LaBelleLucieVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "The Fan lets a King fill an empty fan but allows no redeal; Shamrocks builds up or down in any suit, but never past three cards to a fan.",
+  description: "All 3 are played on the same 18 fans.",
   choices: [
     {
       value: 0,
       rule: LaBelleLucieVariant.LA_BELLE_LUCIE,
       label: "La Belle Lucie",
-      description:
-        "Build down in suit, with two redeals; empty fans stay empty.",
+      description: "Build down by suit, with 2 redeals. Empty fans stay empty.",
     },
     {
       value: 1,
       rule: LaBelleLucieVariant.THE_FAN,
       label: "The Fan",
-      description: "Only a King fills an empty fan, and there is no redeal.",
+      description: "Only a King can fill an empty fan. No redeals.",
     },
     {
       value: 2,
       rule: LaBelleLucieVariant.SHAMROCKS,
       label: "Shamrocks",
       description:
-        "Build up or down in any suit, never past three cards; no redeal.",
+        "Build up or down in any suit, up to 3 cards a fan, with no redeals. Easier.",
     },
   ],
   control: "list",
@@ -814,36 +801,34 @@ const LA_BELLE_LUCIE_VARIANT = gameOption<LaBelleLucieVariant>({
 const CANFIELD_VARIANT = gameOption<CanfieldVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Storehouse starts the foundations with the Twos and builds in suit; Superior Canfield deals the reserve face-up and leaves spaces for you to fill; Rainbow builds regardless of colour from a one-pass stock.",
+  description: "All 4 have a reserve of 13 cards and 4 columns.",
   choices: [
     {
       value: 0,
       rule: CanfieldVariant.CANFIELD,
       label: "Canfield",
       description:
-        "Alternating colours, with the stock drawn in threes and redealt freely.",
+        "Build down in alternating colors. Draw 3, with no limit on redeals.",
     },
     {
       value: 1,
       rule: CanfieldVariant.STOREHOUSE,
       label: "Storehouse",
       description:
-        "The Twos start the foundations; build in suit, one card at a time.",
+        "The Twos start the foundations, and you build down by suit. Draw 1, with 2 redeals. Easier.",
     },
     {
       value: 2,
       rule: CanfieldVariant.SUPERIOR,
       label: "Superior Canfield",
       description:
-        "The reserve is dealt face-up, and you fill spaces yourself.",
+        "The reserve is face up, and any card can fill an empty column. Easier.",
     },
     {
       value: 3,
       rule: CanfieldVariant.RAINBOW,
       label: "Rainbow",
-      description:
-        "Build regardless of colour, one card at a time, with no redeal.",
+      description: "Build down in any suit. Draw 1, with no redeals.",
     },
   ],
   control: "list",
@@ -855,13 +840,13 @@ const PYRAMID_GOAL = gameOption<PyramidGoal>({
   id: "goal",
   label: "Goal",
   description:
-    "Pyramid Only is Relaxed Pyramid: clearing the pyramid wins, whatever is left in the stock and waste.",
+    "Pyramid only is Relaxed Pyramid. You win when the pyramid is clear, even with cards left over.",
   choices: [
-    { value: 0, rule: PyramidGoal.ALL_CARDS, label: "All Cards" },
+    { value: 0, rule: PyramidGoal.ALL_CARDS, label: "All cards" },
     {
       value: 1,
       rule: PyramidGoal.PYRAMID_ONLY,
-      label: "Pyramid Only",
+      label: "Pyramid only",
     },
   ],
   defaultRule: DEFAULT_PYRAMID_GOAL,
@@ -871,11 +856,10 @@ const PYRAMID_GOAL = gameOption<PyramidGoal>({
 const PYRAMID_PASSES = gameOption<PyramidPasses>({
   id: "passes",
   label: "Passes",
-  description:
-    "Three passes turns the waste back over twice, as Par Pyramid allows.",
+  description: "How many times you can go through the stock.",
   choices: [
-    { value: 1, rule: 1, label: "1 Pass" },
-    { value: 3, rule: 3, label: "3 Passes" },
+    { value: 1, rule: 1, label: "1 pass" },
+    { value: 3, rule: 3, label: "3 passes" },
   ],
   defaultRule: DEFAULT_PYRAMID_PASSES,
 });
@@ -884,27 +868,28 @@ const PYRAMID_PASSES = gameOption<PyramidPasses>({
 const CASTLE_VARIANT = gameOption<CastleVariant>({
   id: "variant",
   label: "Variant",
-  description:
-    "Streets and Alleys deals the Aces into the rows instead of the foundations; Citadel sends every card it can home while dealing.",
+  description: "All 3 are played on the same 8 rows.",
   choices: [
     {
       value: 0,
       rule: CastleVariant.BELEAGUERED_CASTLE,
       label: "Beleaguered Castle",
-      description: "The Aces start on the foundations; six cards to a row.",
+      description:
+        "The Aces start on the foundations, with 6 cards in each row.",
     },
     {
       value: 1,
       rule: CastleVariant.STREETS_AND_ALLEYS,
       label: "Streets and Alleys",
-      description: "The Aces are shuffled in, and have to be dug out.",
+      description:
+        "The Aces are shuffled in, so you have to dig them out. Harder.",
     },
     {
       value: 2,
       rule: CastleVariant.CITADEL,
       label: "Citadel",
       description:
-        "Cards go home as they are dealt, so the rows start shorter.",
+        "Cards that fit a foundation go there during the deal. Easier.",
     },
   ],
   control: "list",
@@ -916,7 +901,7 @@ const POKER_SQUARES_SCORING = gameOption<PokerSquaresScoring>({
   id: "scoring",
   label: "Scoring",
   description:
-    "American scoring pays most for flushes and wins at 200; English scoring pays more for a straight than a flush and wins at 70.",
+    "In American scoring, a flush beats a straight and you win at 200. In English scoring, a straight beats a flush and you win at 70.",
   choices: [
     {
       value: 0,
