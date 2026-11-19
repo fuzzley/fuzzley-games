@@ -1,7 +1,8 @@
 # Brick Breaker
 
-Brick Breaker: bounce the ball off your paddle, break every brick and keep
-the ball off the floor. Play it at https://fuzzley.games/play/brick-breaker/.
+Break every brick without letting the ball get past your paddle. There are
+50 levels, each with 3 stars to win. Play it at
+https://fuzzley.games/play/brick-breaker/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/)

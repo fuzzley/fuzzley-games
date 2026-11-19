@@ -1,6 +1,6 @@
 # Minesweeper
 
-Minesweeper with lives: stepping on a mine costs one instead of ending the
+Minesweeper with lives. Hitting a mine costs a life instead of ending the
 game. Play it at https://fuzzley.games/play/minesweeper/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries

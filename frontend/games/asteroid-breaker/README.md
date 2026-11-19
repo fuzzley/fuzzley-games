@@ -1,7 +1,7 @@
 # Asteroid Breaker
 
-Asteroid Breaker: fly, drift and blast every rock to rubble before one finds
-you. Play it at https://fuzzley.games/play/asteroid-breaker/.
+Shoot every rock before one hits your ship. There are 30 waves, then
+Endless. Play it at https://fuzzley.games/play/asteroid-breaker/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/)
