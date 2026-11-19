@@ -30,12 +30,11 @@ const TOUCH_INFO: Readonly<
 > = {
   drag: {
     name: "Drag",
-    detail:
-      "The paddle moves as far as your finger does, from anywhere on the field.",
+    detail: "Drag anywhere. The paddle moves as far as your finger does.",
   },
   follow: {
     name: "Follow the finger",
-    detail: "The paddle goes wherever your finger is.",
+    detail: "Touch where you want the paddle to go.",
   },
 };
 

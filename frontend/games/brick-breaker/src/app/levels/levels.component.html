@@ -10,14 +10,14 @@
     </button>
     <h2>Levels</h2>
     <p>
-      Choose a level to start a run there. Clearing one opens the next; each
-      shows its best at the speed in play.
+      Choose a level to start a new game there. Clearing a level unlocks the
+      next one. If you've cleared a level at this speed, it shows your best
+      score.
     </p>
     <p>
-      Each level has three stars to win, at any speed: for clearing it, for
-      clearing it without losing a life, and for reaching its streak, the mark
-      its Ready card names, in a play that clears it. Stars open nothing; they
-      are a record of how well you played. You hold {{ starsTotal() }} stars.
+      Each level has 3 stars: 1 for clearing it, 1 for not losing a life, and 1
+      for reaching the streak shown before the level starts. Stars don't unlock
+      anything. You have {{ starsHeld() }}.
     </p>
 
     @for (set of sets(); track set.id) {

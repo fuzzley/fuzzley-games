@@ -195,15 +195,23 @@ describe("LevelsComponent", () => {
     ]);
   });
 
-  it("says what stars are for, and how many every level holds of all there are", async () => {
+  it("says where choosing a level starts, and what clearing it unlocks", async () => {
+    await renderLevels();
+
+    expect(screen.getByText(/^Choose a level/)).toHaveTextContent(
+      "Choose a level to start a new game there. Clearing a level unlocks the next one. If you've cleared a level at this speed, it shows your best score.",
+    );
+  });
+
+  it("says what stars are for, and how many every level holds", async () => {
     const { detectChanges } = await renderLevels();
 
     clearLevel("blasts", STAR.clear | STAR.clean | STAR.streak);
     clearLevel("wide");
     detectChanges();
 
-    expect(screen.getByText(/^Each level has three stars/)).toHaveTextContent(
-      "Each level has three stars to win, at any speed: for clearing it, for clearing it without losing a life, and for reaching its streak, the mark its Ready card names, in a play that clears it. Stars open nothing; they are a record of how well you played. You hold 4 of 27 stars.",
+    expect(screen.getByText(/^Each level has 3 stars/)).toHaveTextContent(
+      "Each level has 3 stars: 1 for clearing it, 1 for not losing a life, and 1 for reaching the streak shown before the level starts. Stars don't unlock anything. You have 4.",
     );
   });
 

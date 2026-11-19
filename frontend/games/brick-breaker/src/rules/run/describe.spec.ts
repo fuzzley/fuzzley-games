@@ -130,7 +130,7 @@ describe("describe", () => {
 
   it.each([
     ["clear", "Clear the level"],
-    ["clean", "Lose no life"],
+    ["clean", "Don't lose a life"],
     ["streak", "Reach a streak of 15"],
   ] as const)("names what the %s star asks", (id, words) => {
     expect(starAsks(id, 15)).toBe(words);

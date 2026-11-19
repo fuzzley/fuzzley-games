@@ -52,7 +52,7 @@ describe("StarsComponent", () => {
 
     expect(stars.map(heardIn)).toEqual([
       "Clear the level, not won yet",
-      "Lose no life, not won yet",
+      "Don't lose a life, not won yet",
       "Reach a streak of 20, not won yet",
     ]);
   });
@@ -62,7 +62,7 @@ describe("StarsComponent", () => {
 
     expect(stars.map(heardIn)).toEqual([
       "Clear the level, won",
-      "Lose no life, not won yet",
+      "Don't lose a life, not won yet",
       "Reach a streak of 15, won",
     ]);
   });
@@ -93,7 +93,7 @@ describe("StarsComponent", () => {
     }).toEqual({
       heard: [
         "Clear the level, won",
-        "Lose no life, won just now",
+        "Don't lose a life, won just now",
         "Reach a streak of 15, not won yet",
       ],
       marked: [false, true, false],
@@ -133,7 +133,7 @@ describe("StarsComponent", () => {
       across: true,
       heard: [
         "Clear the level, won just now",
-        "Lose no life, not won yet",
+        "Don't lose a life, not won yet",
         "Reach a streak of 15, not won yet, best 11",
       ],
     });

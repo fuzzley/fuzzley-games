@@ -65,6 +65,28 @@ describe("SettingsComponent", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("says that changing the speed starts a new game", async () => {
+    await renderSettings();
+
+    expect(
+      screen.getByRole("radiogroup", { name: "Speed" }),
+    ).toHaveAccessibleDescription("Changing the speed starts a new game.");
+  });
+
+  it.each([
+    ["Relaxed", "A slower ball, and no capsules that make things harder."],
+    ["Normal", "The classic pace."],
+    ["Fast", "A faster ball from the start."],
+  ])("says what %s is like", async (_name, words) => {
+    await renderSettings();
+
+    expect(
+      within(screen.getByRole("radiogroup", { name: "Speed" })).getByText(
+        words,
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("shows the speed in use as chosen", async () => {
     await renderSettings();
 
@@ -173,14 +195,33 @@ describe("SettingsComponent", () => {
 
       expect(
         await screen.findByRole("slider", { name: "Custom ball speed" }),
-      ).toHaveAccessibleDescription("The ball in play takes it at once.");
+      ).toHaveAccessibleDescription(
+        "The ball in play changes speed right away.",
+      );
     });
   });
 
-  it("steers by dragging by default", async () => {
+  it.each([
+    ["Drag", "Drag anywhere. The paddle moves as far as your finger does."],
+    ["Follow the finger", "Touch where you want the paddle to go."],
+  ])("says what %s does", async (_name, words) => {
     await renderSettings();
 
-    expect(screen.getByRole("radio", { name: /^Drag/ })).toBeChecked();
+    expect(
+      within(
+        screen.getByRole("radiogroup", { name: "Touch controls" }),
+      ).getByText(words),
+    ).toBeInTheDocument();
+  });
+
+  it("steers by dragging by default, among the touch controls", async () => {
+    await renderSettings();
+
+    expect(
+      within(
+        screen.getByRole("radiogroup", { name: "Touch controls" }),
+      ).getByRole("radio", { name: /^Drag/ }),
+    ).toBeChecked();
   });
 
   it("has the paddle follow the finger, where the player asks", async () => {
@@ -192,6 +233,16 @@ describe("SettingsComponent", () => {
     expect(
       screen.getByRole("radio", { name: /^Follow the finger/ }),
     ).toBeChecked();
+  });
+
+  it("says the sound setting does what the Sound button does", async () => {
+    await renderSettings();
+
+    expect(
+      screen.getByRole("checkbox", { name: "Play sounds" }),
+    ).toHaveAccessibleDescription(
+      "Turns all sound on or off. Same as the Sound button.",
+    );
   });
 
   it("turns the sound off", async () => {

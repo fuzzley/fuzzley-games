@@ -458,7 +458,7 @@ describe("BoardComponent", () => {
 
       expect(starsHeard()).toEqual([
         "Clear the level, won",
-        "Lose no life, not won yet",
+        "Don't lose a life, not won yet",
         "Reach a streak of 10, not won yet",
       ]);
     });
@@ -547,7 +547,7 @@ describe("BoardComponent", () => {
       game.tick(FRAME_MS, STILL);
       detectChanges();
 
-      expect(screen.getByText("Level 1 cleared")).toBeInTheDocument();
+      expect(screen.getByText("Level 1 cleared!")).toBeInTheDocument();
       expect(figures()).toEqual([
         ["Bricks", "500"],
         ["Streaks", "100"],
@@ -566,7 +566,7 @@ describe("BoardComponent", () => {
 
       expect(starsHeard()).toEqual([
         "Clear the level, won",
-        "Lose no life, won just now",
+        "Don't lose a life, won just now",
         "Reach a streak of 5, won just now",
       ]);
     });
@@ -591,7 +591,7 @@ describe("BoardComponent", () => {
       expect(figures()).toEqual([
         ["Bricks", "600"],
         ["Streaks", "100"],
-        ["Double pay", "600"],
+        ["Double score", "600"],
         ["Bonus", "1,500"],
       ]);
     });
@@ -627,7 +627,7 @@ describe("BoardComponent", () => {
         game.tick(FRAME_MS, STILL);
         detectChanges();
 
-        const card = screen.getByText("Level 1 cleared").parentElement!;
+        const card = screen.getByText("Level 1 cleared!").parentElement!;
         const list = within(card).getByRole("list", { name: "Stars" });
         return { card, stars: list.parentElement! };
       }
@@ -645,7 +645,7 @@ describe("BoardComponent", () => {
           across: true,
           heard: [
             "Clear the level, won just now",
-            "Lose no life, won just now",
+            "Don't lose a life, won just now",
             "Reach a streak of 5, won just now",
           ],
         });
@@ -673,7 +673,7 @@ describe("BoardComponent", () => {
         game.tick(FRAME_MS, STILL);
         detectChanges();
 
-        expect(screen.queryByText("Level 1 cleared")).not.toBeInTheDocument();
+        expect(screen.queryByText("Level 1 cleared!")).not.toBeInTheDocument();
       });
     });
 
@@ -824,7 +824,7 @@ describe("BoardComponent", () => {
         starsHeard(screen.getByRole("region", { name: "The bench" })),
       ).toEqual([
         "Clear the level, won",
-        "Lose no life, not won yet",
+        "Don't lose a life, not won yet",
         "Reach a streak of 10, not won yet",
       ]);
     });

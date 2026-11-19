@@ -51,7 +51,7 @@ interface SetChoice {
  * of the stars its levels hold, its levels as buttons in a grid, each with
  * its number and name, its three stars, lit where held, a tick once cleared
  * with its best at the speed in play, and the run's own marked; and the
- * stars held of all there are.
+ * stars every level holds together.
  *
  * Choosing an open one starts a run there, asking first if one is under way,
  * and closes the dialog once it has; backing out leaves it open. A level
@@ -108,11 +108,10 @@ export class LevelsComponent {
     }));
   });
 
-  /** The stars every level holds, of all there are: "5 of 120". */
-  protected readonly starsTotal = computed(() => {
-    const levels = this.sets().flatMap((set) => set.levels);
-    return starsOf(heldIn(levels), levels.length);
-  });
+  /** How many stars every level holds together, as the dialog's count of them writes it: "5". */
+  protected readonly starsHeld = computed(() =>
+    String(heldIn(this.sets().flatMap((set) => set.levels))),
+  );
 
   /** Starts a run at an open level, asking first if one is under way, and closes once it has. */
   protected async choose(level: LevelChoice): Promise<void> {

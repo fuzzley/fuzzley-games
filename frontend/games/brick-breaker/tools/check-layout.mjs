@@ -137,8 +137,8 @@ function inspectField(field) {
   // Over the run kept for it, the Cleared card shows its tallest, with a
   // line for double pay, which the field must hold.
   const cleared = board.querySelector(".card.cleared");
-  if (cleared && !cleared.textContent?.includes("Double pay")) {
-    problems.push("The Cleared card shows no line for double pay.");
+  if (cleared && !cleared.textContent?.includes("Double score")) {
+    problems.push("The Cleared card shows no line for double score.");
   }
   // A panel clips what runs past its foot, so the parts it shows, a
   // compact one its first two, must fit it whole.

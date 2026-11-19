@@ -99,7 +99,7 @@ export class BenchComponent {
   /** How many lives wait, in words. */
   protected readonly waiting = computed(() => {
     const waiting = this.livesWaiting();
-    return waiting === 0 ? "None waiting" : `${String(waiting)} waiting`;
+    return waiting === 0 ? "None spare" : `${String(waiting)} spare`;
   });
 
   /** The score the next life comes at, in words, or that the run holds the most. */
@@ -107,7 +107,7 @@ export class BenchComponent {
     const at = this.nextLifeAt();
     return at === null
       ? `${String(MAX_LIVES)} lives at most`
-      : `A life at ${formatPoints(at)}`;
+      : `Next life at ${formatPoints(at)}`;
   });
 
   /**
