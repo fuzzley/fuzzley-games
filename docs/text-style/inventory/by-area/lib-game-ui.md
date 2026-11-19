@@ -40,6 +40,12 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 10 `label:` Turn sound off
 - 11 `label:` Turn sound on
 
+### src/build_info/build_info.component.html
+
+- 4 `(text)` Version
+- 10 `(text)` , built {{ shown.builtOn }}
+- 12 `(text)` Built on {{ shown.builtOn }}
+
 ### src/run_lifecycle/run_lifecycle.ts
 
 - 10 `confirmLabel:` New game
@@ -65,10 +71,14 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ## Messages: notices, confirmations, explanations and errors
 
+### src/build_info/build_info.component.ts
+
+- 33 `label:` {build.commit} (opens in a new tab)
+
 ### src/run_lifecycle/run_lifecycle.ts
 
 - 8 `title:` Start a new game?
-- 9 `message:` The run in progress will be lost.
+- 9 `message:` You'll lose the game in progress.
 - 16 `title:` Start a new {speedName} game?
 
 ## Spoken text: labels and announcements for screen readers
@@ -81,6 +91,10 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/bar_overflow/bar_overflow.component.html
 
 - 33 `<div [aria-label]>` {{ label() }}
+
+### src/build_info/build_info.component.html
+
+- 9 `<a [aria-label]>` {{ commit.label }}
 
 ### src/game_bar/game_bar.component.html
 

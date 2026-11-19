@@ -3,8 +3,8 @@
 This covers every piece of text a player or visitor reads on fuzzley.games, in
 its seven games, and on fuzzley.info. It lists that text, works out what makes
 it read as written by an agent, sets it beside how other games and game sites
-write, and proposes a skill and guidelines to fix it. Nothing in the games or
-sites has been changed.
+write, and proposes a skill and guidelines to fix it. It was written before
+anything was changed. Section 10 says what was built.
 
 ## In short
 
@@ -72,10 +72,11 @@ By place:
 | The repository's README |       3 |     46 | Its opening lines.                                         |
 
 The full listings are in `inventory/by-area/`, one file per place, sorted by
-category with file and line. `inventory/counts.md` has the full table. The
-categories are assigned by rule (file, attribute, property name), so a few
-strings sit in a neighbouring category. That is good enough for counting and for
-working through later.
+category with file and line. `inventory/counts-before.md` has the full table.
+The listings show the text as it is now, after the rewrite. The categories are
+assigned by rule (file, attribute, property name), so a few strings sit in a
+neighbouring category. That is good enough for counting and for working through
+later.
 
 Two facts from the inventory matter for any rewrite:
 
@@ -878,10 +879,85 @@ you ask.
   `node docs/text-style/inventory/extract.mjs`.
 - `inventory/by-area/`: the listings, one per game or site. The profile and work
   history on fuzzley.info are counted but not listed.
-- `inventory/counts.md`: strings and words by place and category.
+- `inventory/counts.md`: strings and words by place and category, as they are
+  now. `counts-before.md` is the same table from before the rewrite, which the
+  numbers in sections 1 and 2 come from.
 - `inventory/measure.mjs` and `measures.md`: sentence length, punctuation and
   the constructions in section 2, for our text and for nine manuals written by
   people. The manuals are fetched when it runs, each at a fixed commit, and only
-  their numbers are kept.
+  their numbers are kept. `measures-before.md` is from before the rewrite.
+- `inventory/report.mjs`: prints the lines of one workspace that are over budget
+  or trip a mark. The `player-text` skill says how to use it.
 - `research/`: notes on how other games and sites write each kind of text, with
   quotations and sources.
+
+## 10. As built
+
+The rewrite ran in November 2026, after the sample sheet in section 4.3 was
+approved as written.
+
+### What changed
+
+- **The skill** is `.agents/skills/player-text/`, with a short section in
+  `.agents/AGENTS.md` and a clause in the commit review. fuzzley.info has a
+  short one of its own, `visitor-text`, in that repository.
+- **Every game's How to play** now has a top paragraph, the controls table, and
+  short sections after it. Scoring is a small table where it has more than two
+  numbers.
+- **Every catalog line, setting, message, result and spoken line** in the seven
+  games was read against the skill and rewritten where it broke a rule.
+- **Solitaire's rules pages** have the new shape: a fact line, Goal, Layout,
+  Moves and Good to know. All 41 were rewritten and checked against the engine.
+  A spec fails if a game has no fact line or no goal.
+- **The site's card blurbs, each game's page description and each README
+  opening** were rewritten. Solitaire's README lists its games by the same line
+  the game browser shows.
+- **fuzzley.info's project pages** were rewritten in the first person. The
+  profile, the CV and the work history were left alone.
+
+### The numbers
+
+|                                 | Before |  After | Manuals |
+| ------------------------------- | -----: | -----: | ------: |
+| Words in all                    | 27,506 | 20,232 |         |
+| Words in Solitaire              | 16,611 | 10,953 |         |
+| Words in Brick Fuzz Pop         |  2,320 |  1,526 |         |
+| Words in Asteroid Breaker       |  2,174 |  1,701 |         |
+| "if", per 1,000 words of help   |      0 |    8.7 |     8.1 |
+| "when", per 1,000               |    3.3 |    8.7 |     3.4 |
+| "you, your", per 1,000          |   10.4 |   36.7 |    25.6 |
+| A count in words, per 1,000     |   11.1 |      0 |     6.8 |
+| Semicolons in Solitaire's rules |     51 |      0 |         |
+| Capitals for stress, same pages |    161 |      0 |         |
+| Em dashes, same pages           |     76 |      0 |         |
+
+The four rows per 1,000 words are for the help of the six games other than
+Solitaire. The figures are in `inventory/measures.md` and
+`inventory/measures-before.md`.
+
+### Where it differs from the plan
+
+- **A pile's place on the screen is left out.** The skill's first Layout example
+  said "face down at the top left". On a phone the piles are arranged
+  differently, so a rules page says what a pile is and not where it is.
+- **Brick Fuzz Pop names its keys by their QWERTY letters.** The game still
+  listens for the key in that place, so on another layout the letter printed on
+  it can differ. Reading the names from the player's own layout was not built.
+- **Rules the old text had wrong were corrected** as each line was checked
+  against the code. The commits name them. Among them: Baker's Dozen said a King
+  can never move, Montana said a gap after a King is dead for the rest of the
+  deal, and Brick Breaker's Narrow paddle gave the wrong width.
+
+### What was not built
+
+- **No fold in How to play** (section 5.8). The detail sections are always open,
+  below the table.
+- **No single source for a game's description** (section 5.8). The card blurb,
+  the page description and the README still hold a copy each. They now say the
+  same thing.
+- **No check in `yarn lint`** (section 5.5). `inventory/report.mjs` does the
+  measuring when asked.
+- **Screenshots were not retaken.** The words in them are few, but some show the
+  old labels.
+- **The developer notes in each game's README** below the opening are as they
+  were.

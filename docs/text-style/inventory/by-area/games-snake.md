@@ -8,46 +8,46 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/help/help.component.html
 
-- 2 `<p>` Steer the snake to the apple. Each apple it eats scores a point and makes it a square longer and a little faster. The run ends when the snake runs into a wall or into itself; fill the whole board and you win.
-- 7 `<p>` **Starting.** The snake waits for your first direction. You can press two turns in quick succession, such as up and then left, and it takes both, one square apart.
-- 12 `<p>` **Speeds.** Slow, Normal and Fast each keep their own best score. Change the speed, and whether the snake glides or steps, in the settings.
-- 17 `<p>` **Pausing.** The game pauses itself when you switch away, or open a menu or a dialog, and goes on only when you say: with a direction, Space or P, or Resume.
-- 27 `<th>` Touch or mouse
-- 28 `<th>` Keyboard
-- 33 `<th>` Start, or turn
-- 34 `<td>` Swipe on the board, or the on-screen arrows
-- 35 `<td>` Arrows, or [W] [A] [S] [D]
-- 43 `<th>` Pause, or go on
-- 44 `<td>` Pause, then Resume
-- 45 `<td>` [Space] or [P]
-- 48 `<th>` Pause
-- 49 `<td>` Pause
-- 50 `<kbd>` Esc
-- 53 `<th>` Start again, once a run has ended
-- 54 `<td>` New game
-- 55 `<td>` [Enter] or [Space]
+- 2 `<p>` Eat apples to grow. Each apple is 1 point, and the snake gets a little faster every time. If you hit a wall or your own tail, the game is over. Fill the whole board to win.
+- 12 `<th>` Touch or mouse
+- 13 `<th>` Keyboard
+- 18 `<th>` Start or turn
+- 19 `<td>` Swipe, or the on-screen arrows
+- 20 `<td>` Arrow keys or [W] [A] [S] [D]
+- 28 `<th>` Pause or resume
+- 29 `<td>` Pause, then Resume
+- 30 `<td>` [Space] or [P]
+- 33 `<th>` Pause
+- 34 `<td>` Pause
+- 35 `<kbd>` Esc
+- 38 `<th>` New game
+- 39 `<td>` New game
+- 40 `<td>` [Enter] or [Space]
+- 45 `<p>` **Quick turns.** If you turn twice quickly, such as up and then left, the snake makes both turns, 1 square apart.
+- 49 `<p>` **Speeds.** Each speed has its own best score. If you change the speed, a new game starts.
+- 53 `<p>` **Pausing.** The game pauses when you switch tabs or open a menu. Press Space or P to resume.
 
 ## Descriptions: blurbs, taglines, page metadata and write-ups
 
 ### README.md
 
 - 1 `heading` # Snake
-- 3 `paragraph` Snake: eat the apples, grow longer, and keep clear of the walls and your own tail. Play it at https://fuzzley.games/play/snake/.
+- 3 `paragraph` Eat the apples without hitting the walls or your own tail. If you fill the board, you win. Play it at https://fuzzley.games/play/snake/.
 - 6 `paragraph` An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries (`frontend/lib/`), with its board drawn by [Phaser](https://phaser.io/) through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with [Vitest](https://vitest.dev/), the scene against real Phaser run headless. It plays at three speeds, by keyboard, swipe or on-screen arrows, pauses whenever the board loses the focus, wears whichever palette the player chose on the site, and keeps a run under way across a reload, paused. Phaser loads after the page has painted, behind a drawing of the empty board.
 
 ### index.html
 
-- 14 `<meta description>` Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows.
-- 21 `<meta og:description>` Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows.
-- 38 `JSON-LD description` Play Snake free in your browser: eat the apples, grow longer and keep clear of the walls and your own tail. Three speeds, by keyboard, swipe or on-screen arrows.
+- 14 `<meta description>` Snake, free in your browser. Eat the apples, and don’t hit the walls or your own tail. The snake speeds up as it grows. Fill the board to win.
+- 21 `<meta og:description>` Snake, free in your browser. Eat the apples, and don’t hit the walls or your own tail. The snake speeds up as it grows. Fill the board to win.
+- 38 `JSON-LD description` Snake, free in your browser. Eat the apples, and don’t hit the walls or your own tail. The snake speeds up as it grows. Fill the board to win.
 - 38 `JSON-LD genre` Arcade, Action game
-- 58 `<noscript> <p>` Snake, free to play in your browser: eat, grow and keep clear of your own tail. Turn on JavaScript to play.
+- 58 `<noscript> <p>` Eat the apples. Don’t hit the walls or your own tail. Turn on JavaScript to play.
 
 ## Picture text: alt text and captions
 
 ### index.html
 
-- 33 `<meta og:image:alt>` A game of Snake paused, a long gold snake bending across a checkered board toward a red apple.
+- 33 `<meta og:image:alt>` A paused game of Snake, with a gold snake heading for a red apple.
 
 ## Names: games, modes, levels and things
 
@@ -100,7 +100,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board.component.ts
 
-- 137 `computed()` Game over
+- 135 `computed()` Game over
 
 ### src/app/settings/settings.component.html
 
@@ -108,8 +108,8 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 18 `<span>` Movement
 - 28 `<span>` On-screen arrows
 - 38 `<span>` Sound
-- 48 `<label>` Play sounds
-- 56 `<span>` Theme
+- 47 `<label>` Play sounds
+- 52 `<span>` Theme
 
 ## Hints: setting descriptions, tooltips and prompts
 
@@ -120,14 +120,13 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board.component.ts
 
-- 128 `computed()` Press an arrow key, or swipe, to start.
-- 131 `computed()` Swipe, or press an arrow, to start.
-- 132 `computed()` Swipe to start.
+- 127 `computed()` Press an arrow key to start.
+- 129 `computed()` Swipe or tap an arrow to start.
+- 130 `computed()` Swipe to start.
 
 ### src/app/settings/settings.component.html
 
-- 11 `<p>` Changing the speed starts a new run. Each apple makes the snake a little faster.
-- 49 `<p>` A bite for an apple, a bump for a crash, and a chime for a new best.
+- 11 `<p>` Changing the speed starts a new game. Each apple makes the snake a little faster.
 
 ### src/app/settings/settings.component.ts
 
@@ -147,7 +146,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board.component.ts
 
-- 137 `computed()` You filled the board!
+- 135 `computed()` You filled the board!
 
 ## Results: win, lose, clear and records
 
@@ -182,7 +181,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board.component.html
 
-- 9 `<p>` The arrow keys, or W, A, S and D, steer the snake. Space or P pauses and goes on, and Escape pauses. Once a run has ended, Enter or Space starts another. On a card's button, the keys are the button's: Space and Enter press it.
+- 9 `<p>` Arrow keys, or W, A, S and D: steer the snake. Space or P: pause and resume. Esc: pause. Enter: resume. After a game ends, Enter or Space: start a new game.
 
 ### src/app/board/board.component.ts
 
@@ -190,8 +189,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/rules/describe.ts
 
-- 6 `describeStart() returns` Started, at {SPEED\_INFO[run.speed].name} speed.
-- 11 `describePause() returns` Paused, with a score of {run.eaten}. Press a direction to go on.
-- 16 `describeResume() returns` Going on.
-- 21 `describeTakenUp() returns` Your last run is paused, with a score of {run.eaten}. Press a direction to go on.
-- 32 `best =` A new best!
+- 6 `describeStart() returns` Started at {SPEED\_INFO[run.speed].name} speed.
+- 11 `describePause() returns` Paused. Score {run.eaten}. Press Space to resume.
+- 16 `describeResume() returns` Resumed.
+- 27 `best =` New best.

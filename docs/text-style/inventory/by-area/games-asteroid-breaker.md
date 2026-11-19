@@ -8,111 +8,118 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/help/help.component.html
 
-- 2 `<p>` Fly the ship and break every rock on the field to clear the wave. The field wraps: what leaves by one edge comes back by the other. The waves go on as long as the crew lasts.
-- 7 `<p>` **The crew.** {{ crew }}
-- 8 `<p>` **Scoring.** Each rock scores by its kind and its size, a smaller one more. {{ scoring.sparks }} {{ scoring.strays }} {{ scoring.clearing }}
-- 13 `<p>` **Static.** {{ charge }}
-- 14 `<p>` **Dashing.** {{ dashing }}
-- 15 `<p>` **Pausing.** The game pauses itself when you switch away, turn the screen or open a dialog, and goes on only when you say.
-- 24 `<th>` Mouse
-- 25 `<th>` Touch
-- 26 `<th>` Keyboard
-- 31 `<th>` Turn
-- 32 `<td>` Point; the ship turns toward the pointer
-- 33 `<td>` Push the stick the way to face
-- 34 `<td>` Hold [←] or [→], or [A] or [D]
-- 39 `<th>` Thrust
-- 40 `<td>` Hold the right button
-- 41 `<td>` Push the stick further
-- 42 `<td>` Hold [↑] or [W]
-- 45 `<th>` Fire
-- 46 `<td>` Hold the left button
-- 47 `<td>` Hold Fire, or, in the settings, have the ship fire by itself
-- 48 `<td>` Hold [Space]
-- 51 `<th>` Dash
-- 52 `<kbd>` Shift
-- 53 `<td>` Dash
-- 54 `<td>` [Shift], [↓] or [S]
-- 57 `<th>` Pause, or go on
-- 58 `<td>` Pause, then Resume
-- 59 `<td>` Pause, then Resume, or move or fire
-- 60 `<td>` [P]; [Esc] pauses, and [Enter] or a flight key goes on
-- 66 `<th>` Next wave
-- 67 `<td>` Next wave
-- 68 `<td>` Move or fire
-- 69 `<td>` [Enter] or a flight key
-- 72 `<th>` Start again, once a run has ended
-- 73 `<td>` New game
-- 74 `<td>` New game, or move or fire
-- 75 `<td>` [Enter], [P] or a flight key
+- 8 `<th>` Mouse
+- 9 `<th>` Touch
+- 10 `<th>` Keyboard
+- 15 `<th>` Turn
+- 16 `<td>` Point
+- 17 `<td>` Stick
+- 18 `<td>` [←] [→] or [A] [D]
+- 21 `<th>` Thrust
+- 22 `<td>` Hold the right button
+- 23 `<td>` Push the stick further
+- 24 `<td>` [↑] or [W]
+- 27 `<th>` Fire
+- 28 `<td>` Hold the left button
+- 29 `<td>` Hold Fire
+- 30 `<kbd>` Space
+- 33 `<th>` Dash
+- 34 `<kbd>` Shift
+- 35 `<td>` Dash
+- 36 `<td>` [Shift], [↓] or [S]
+- 39 `<th>` Pause
+- 40 `<td>` Pause
+- 41 `<td>` Pause
+- 42 `<td>` [P] or [Esc]
+- 45 `<th>` Resume
+- 46 `<td>` Resume
+- 47 `<td>` Resume, the stick or a touch button
+- 48 `<td>` [P], [Enter] or any key you fly with
+- 51 `<th>` Next wave
+- 52 `<td>` Next wave
+- 53 `<td>` Next wave, the stick or a touch button
+- 54 `<td>` [Enter] or any key you fly with
+- 57 `<th>` New game, after a game ends
+- 58 `<td>` New game
+- 59 `<td>` New game, the stick or a touch button
+- 60 `<td>` [Enter], [P] or any key you fly with
+- 65 `<p>` **Your crew.** {{ crew }}
+- 66 `<p>` **Static.** {{ charge }}
+- 67 `<p>` **Dashing.** {{ dashing }}
+- 68 `<p>` **Scoring.** Static multiplies the points for rocks, sparks, burrs and strays.
 
 ### src/app/help/help.component.ts
 
-- 42 `CREW =` The pilot flies the ship with {String(FIRST\_CREW - 1)} of the crew in tow, who are its lives, and a stray caught joins them, up to {String(MOST\_CREW - 1)}. A rock or a comet that touches the ship, unless it is dashing or shielded, knocks the last in tow loose, and nothing can touch it again for {String(HIT\_GUARD\_MS / 1000)} seconds; fly into one knocked loose within {String(LOOSE\_LIFE\_MS / 1000)} seconds to catch it again, or it floats home, and clearing the wave catches every one still loose. A hit with no one in tow sends the pilot home, and the run ends.
-- 46 `sparks:` Each rock a shot or a blast breaks sheds sparks, which the ship draws in from {String(SPARK\_DRAW\_REACH)} units, {String(Math.round(SPARK\_DRAW\_REACH * SPEED\_INFO.relaxed.sparkReach))} at {SPEED\_INFO.relaxed.name}, and the ship and those in tow gather: each scores {String(SPARK\_POINTS)} and adds {String(SPARK\_STATIC)} static, up to {String(STATIC\_MOST)}.
-- 47 `strays:` A stray caught scores {formatPoints(STRAY\_POINTS)}, or {formatPoints(STRAY\_HOME\_POINTS)} as it goes straight home, times static's multiplier.
-- 48 `clearing:` A wave cleared adds {formatPoints(CLEAR\_POINTS)} points, and {formatPoints(CLEAN\_POINTS)} more when no hit was taken on it.
-- 52 `CHARGE =` Static multiplies what rocks, sparks and strays score: {tierWords(STATIC\_STEPS, "static")}. A rock or a comet that passes close by the ship without touching it adds {String(GRAZE\_STATIC)}. The pilot's fur lifts with each step, on end from ×{String(MOST\_LIFT + 1)}, and at full static, {String(STATIC\_MOST)}, arcs crawl over the ship. Static drains after {String(STATIC\_HOLD\_MS / 1000)} seconds with no spark or near miss, and a hit knocks it down a step.
-- 55 `DASHING =` A dash throws the ship ahead, and no rock or comet can hit it while it lasts; it takes {String(DASH\_RECHARGE\_MS / 1000)} seconds to charge again. At full static, a dash zaps: arcs leap from the ship to up to {String(ZAP\_ARCS)} rocks within {String(ZAP\_REACH)} units of the way it dashes, the nearest first, each taking a hit, and static falls by {String(ZAP\_COST)}; with none in reach, it is only a dash.
-- 59 `PICKUPS_INTRO =` A broken rock may let a pickup go. Fly into it to catch it before it fades; a crystal always lets one go.
-- 62 `ADRIFT_INTRO =` None of them is a rock, and a wave never needs any. Strays drift in from wave {String(STRAYS\_FROM)}, and a pilot left with no one in tow, and no one to catch again, is sent one at once, once a wave; comets and burrs come in the later waves.
-- 67 `name:` Stray fuzzball
-- 71 `name:` Comet
-- 76 `name:` Burr
-- 116 `heading:` Rocks
-- 122 `heading:` Pickups
-- 128 `heading:` Strays, comets and burrs
+- 41 `TOP =` Fly your ship and shoot the rocks. Each one breaks into smaller pieces until it's gone. Clear every rock to finish the wave. If your ship or a rock goes off one edge of the screen, it comes back on the other side. The fuzzballs following your ship are your crew, and each one is a life. If a rock or a comet hits you, one of them is knocked loose. If you're hit with no one following, the game is over. After wave {String(WAVES.length)}, Endless keeps the waves coming until you're out of crew.
+- 44 `CREW =` You start with {String(FIRST\_CREW - 1)} following you, and each stray you catch joins them. If one is knocked loose, fly into it within {String(LOOSE\_LIFE\_MS / 1000)} seconds to get it back, or it floats home. When you clear the wave, any that are still loose come back.
+- 47 `CHARGE =` Broken rocks give off sparks. Each one you collect adds {String(SPARK\_STATIC)} static, and each near miss adds {String(GRAZE\_STATIC)}. Static drains after {String(STATIC\_HOLD\_MS / 1000)} seconds without either, and a hit drops it a step. It multiplies your score: {tierWords(STATIC\_STEPS, "static")}.
+- 50 `DASHING =` A dash throws your ship forward, and nothing can hit it while it dashes. It takes {String(DASH\_RECHARGE\_MS / 1000)} seconds to charge again. When your static is full, at {String(STATIC\_MOST)}, your next dash also zaps up to {String(ZAP\_ARCS)} rocks near its path. A zap uses {String(ZAP\_COST)} static.
+- 65 `what:` Breaking a rock
+- 66 `points:` {formatPoints(Math.min(...ROCK\_POINTS))} to {formatPoints(Math.max(...ROCK\_POINTS))}, more for smaller rocks
+- 68 `what:` Breaking a boulder
+- 69 `what:` Collecting a spark
+- 70 `what:` Shooting a burr
+- 72 `what:` Catching a stray
+- 73 `points:` {formatPoints(STRAY\_POINTS)}, or {formatPoints(STRAY\_HOME\_POINTS)} if your crew is full
+- 75 `what:` Clearing a wave
+- 77 `what:` Clearing it without a hit
+- 84 `PICKUPS_INTRO =` A broken rock sometimes drops a pickup. Fly into it before it fades. Crystals always drop one.
+- 87 `ADRIFT_INTRO =` You don't need to clear these to finish a wave. Strays come from wave {String(STRAYS\_FROM)}, and comets and burrs in later waves. But if you have no crew following you or left to catch, a stray comes right away, once a wave.
+- 92 `name:` Stray fuzzball
+- 96 `name:` Comet
+- 101 `name:` Burr
+- 143 `heading:` Rocks
+- 149 `heading:` Pickups
+- 155 `heading:` Strays, comets and burrs
 
 ## Reference: what each thing, option and variant does
 
 ### src/app/help/help.component.ts
 
-- 68 `about:` Crosses the field once in its bubble, which shots pass through. Fly into it to catch it: it joins the line in tow, up to {String(MOST\_CREW - 1)}, or, with the line full, goes straight home.
-- 73 `about:` Warned of by a chevron at the edge it comes in by, it crosses the field, breaking any rock it touches a size down, and hits the ship as a rock does unless the ship is dashing or shielded.
-- 77 `about:` A seed of barbed thorns that drifts in at an edge and, once near the ship, turns toward it. Only a shot pops it, for {formatPoints(BURR\_POINTS)} points times static's multiplier. One that touches the ship clings, each taking {String(Math.round(BURR\_SLOW * 100))}% off its thrust and top speed, up to {String(MOST\_CLINGING)}, until a dash shakes them all off.
+- 93 `about:` Joins your crew when you fly into it. If you already have {String(MOST\_CREW - 1)}, it goes straight home instead.
+- 98 `about:` Crosses the screen fast and hits your ship like a rock. An arrow at the edge warns you first.
+- 103 `about:` Homes in on your ship and sticks to it, slowing you down. Shoot it first, or dash to shake it off.
 
 ### src/rules/catalog/pickups.ts
 
-- 41 `about:` Three shots at each pull, 12° apart, for 12 seconds.
-- 48 `about:` A shot twice as often, for 12 seconds.
-- 56 `about:` The next rock or comet to touch the ship breaks a size down instead, and the shield goes.
-- 64 `about:` A shot flies on through what it breaks, up to three rocks, for 10 seconds.
-- 71 `about:` Draws pickups, sparks and strays in from 14 units, for 15 seconds.
-- 78 `about:` Rocks and comets move at half their speed, for 8 seconds.
+- 41 `about:` Fires 3 shots at once for 12 seconds.
+- 48 `about:` Fires twice as often for 12 seconds.
+- 55 `about:` Blocks the next rock or comet that hits your ship.
+- 62 `about:` Fires shots that break up to 3 rocks each. Lasts 10 seconds.
+- 70 `about:` Pulls in pickups, sparks and fuzzballs from 14 units for 15 seconds.
+- 77 `about:` Slows rocks and comets to half speed for 8 seconds.
 
 ### src/rules/catalog/rocks.ts
 
-- 116 `about:` Breaks into two smaller rocks, and a small one into nothing.
-- 126 `about:` Always lets a pickup go, sheds two more sparks, and breaks into two stones.
-- 138 `about:` Shatters into three smaller, faster pieces.
-- 148 `about:` Comes every tenth wave of Endless: six hits break it into three large rocks.
-- 158 `about:` Takes several hits until it is small; a shot that doesn't break it rings off.
-- 168 `about:` Blasts as it breaks: every rock near it takes a hit, which can set off another.
-- 177 `about:` Drifts toward the ship, a little more each second.
-- 187 `about:` Ends the first sector: each of the five hits it holds knocks a medium stone off it, and its sixth breaks it into three large rocks and lets two pickups go.
-- 200 `about:` Ends the second sector: its iron rind rings off the first three hits it holds, each knocking a plate off it as a medium iron rock, and its sixth hit breaks it into three large rocks and lets two pickups go.
-- 213 `about:` Ends the third sector: each hit it holds vents a blast from its volatile heart, which gives every rock within 6 units but a boulder a hit, and its sixth breaks it into three large rocks and lets two pickups go.
+- 116 `about:` Breaks into 2 smaller stones.
+- 125 `about:` Always drops a pickup and 2 extra sparks. Breaks into 2 stones.
+- 137 `about:` Breaks into 3 smaller, faster pieces.
+- 147 `about:` Takes 6 hits, then breaks into 3 large rocks. Comes every 10th wave of Endless.
+- 156 `about:` Takes 3 hits when large and 2 when medium.
+- 166 `about:` Blasts every rock nearby when it breaks. The blast can't hurt your ship.
+- 175 `about:` Drifts toward your ship. Takes 2 hits when large.
+- 185 `about:` Takes 6 hits, then breaks into 3 large rocks. Its first 5 hits each knock off a medium stone.
+- 198 `about:` Takes 6 hits, then breaks into 3 large rocks. Its first 3 hits each knock off a medium iron rock.
+- 211 `about:` Takes 6 hits, then breaks into 3 large rocks. Its first 5 hits each blast the rocks within 6 units.
 
 ## Descriptions: blurbs, taglines, page metadata and write-ups
 
 ### README.md
 
 - 1 `heading` # Asteroid Breaker
-- 3 `paragraph` Asteroid Breaker: fly, drift and blast every rock to rubble before one finds you. Play it at https://fuzzley.games/play/asteroid-breaker/.
+- 3 `paragraph` Shoot every rock before one hits your ship. There are 30 waves, then Endless. Play it at https://fuzzley.games/play/asteroid-breaker/.
 - 6 `paragraph` An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries (`frontend/lib/`), with its field drawn by [Phaser](https://phaser.io/) through `@fz/phaser`, built with [Vite](https://vite.dev/) and tested with [Vitest](https://vitest.dev/), the scene against real Phaser run headless. It holds thirty waves in three sectors, then Endless, whose waves are made as they are played, with stone, crystal, ice, iron, volatile and lodestone rocks and a boulder to end each sector; six pickups, Spread, Rapid and Lance, which give the ship another weapon than its gun for a while, and Shield, Magnet and Slow; stray fuzzballs to bring home, comets to dodge and burrs that cling until a dash shakes them off; and sparks that raise the pilot's static, which multiplies the score and, full, lets a dash zap the rocks near it, all played by rules that run without a framework, physics included, on a field that wraps at every edge. It plays at three speeds, by keyboard, mouse or touch, with a stick, Fire and Dash on a touch screen, pauses whenever the field loses the player, wears whichever palette the player chose on the site, and keeps a run under way across a reload, paused. Phaser loads after the page has painted, behind a drawing of the empty field.
 
 ### index.html
 
-- 11 `<meta description>` Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch.
-- 18 `<meta og:description>` Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch.
-- 38 `JSON-LD description` Play Asteroid Breaker free in your browser: fly a small ship through a field that wraps at every edge, and blast every rock to rubble before one finds you. Thirty waves, then Endless, by keyboard, mouse or touch.
 - 38 `JSON-LD genre` Arcade, Action game
+- 58 `<noscript> <p>` Shoot every rock before one hits your ship. Turn on JavaScript to play.
 
 ## Picture text: alt text and captions
 
 ### index.html
 
-- 33 `<meta og:image:alt>` A game of Asteroid Breaker on wave 9, the ship firing up past the rocks as a stray fuzzball drifts in.
+- 33 `<meta og:image:alt>` Wave 9 of Asteroid Breaker, with the ship firing up between the rocks.
 
 ## Names: games, modes, levels and things
 
@@ -126,30 +133,30 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/app/settings/settings.component.ts
 
 - 32 `name:` On a touch screen
-- 37 `name:` Always
-- 41 `name:` Never
+- 36 `name:` Always
+- 40 `name:` Never
 
 ### src/rules/catalog/pickups.ts
 
 - 40 `name:` Spread
 - 47 `name:` Rapid
 - 54 `name:` Shield
-- 62 `name:` Lance
-- 70 `name:` Magnet
-- 77 `name:` Slow
+- 61 `name:` Lance
+- 68 `name:` Magnet
+- 76 `name:` Slow
 
 ### src/rules/catalog/rocks.ts
 
 - 115 `name:` Stone
 - 124 `name:` Crystal
-- 137 `name:` Ice
-- 146 `name:` Boulder
-- 156 `name:` Iron
-- 166 `name:` Volatile
-- 176 `name:` Lodestone
-- 185 `name:` Crumbling boulder
-- 198 `name:` Ironclad boulder
-- 211 `name:` Storm boulder
+- 136 `name:` Ice
+- 145 `name:` Boulder
+- 155 `name:` Iron
+- 164 `name:` Volatile
+- 174 `name:` Lodestone
+- 183 `name:` Crumbling boulder
+- 196 `name:` Ironclad boulder
+- 209 `name:` Storm boulder
 
 ### src/rules/speed.ts
 
@@ -254,17 +261,18 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 17 `<span>` Touch controls
 - 27 `<span>` Stick
 - 37 `<label>` Stick on the right
-- 45 `<span>` Fire
-- 55 `<label>` Fire by itself
-- 63 `<span>` Haptics
-- 73 `<label>` Buzz the phone
-- 82 `<span>` Sound
-- 92 `<label>` Play sounds
-- 107 `<label>` Play the effects
-- 122 `<label>` Play the fuzzball's voice
-- 150 `<label>` One speaker
-- 158 `<span>` Theme
-- 177 `<label>` Shots carry the ship's speed
+- 43 `<span>` Fire
+- 53 `<label>` Auto-fire
+- 62 `<span>` Haptics
+- 72 `<label>` Buzz the phone
+- 81 `<span>` Sound
+- 91 `<label>` Play sounds
+- 104 `<label>` Play sound effects
+- 115 `<label>` Play fuzzball voices
+- 129 `<label>` Play music
+- 143 `<label>` One speaker
+- 151 `<span>` Theme
+- 170 `<label>` Shots carry the ship's speed
 
 ## Hints: setting descriptions, tooltips and prompts
 
@@ -276,51 +284,49 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board_card.component.ts
 
-- 103 `computed()` Arrows or W A D to fly; the ship fires by itself.
+- 103 `computed()` Arrows or W A D to fly.
 - 104 `computed()` Arrows or W A D to fly, Space to fire.
-- 110 `computed()` Steer with the {stick} pad; the ship fires by itself.
-- 111 `computed()` Steer with the {stick} pad, fire with the {buttons}.
+- 110 `computed()` Steer with the {stick} stick.
+- 111 `computed()` Steer with the {stick} stick, fire with the {buttons}.
 
 ### src/app/play/sector_card.ts
 
 - 10 `"inner-belt"[]:` Break every rock to clear a wave.
-- 11 `"inner-belt"[]:` Crystals let pickups go.
-- 14 `"iron-reach"[]:` Iron holds its hits, and volatile rocks blast.
-- 15 `"iron-reach"[]:` Comets cross, and burrs cling, slowing you until a dash.
-- 17 `storm[]:` Lodestones drift toward the ship.
-- 19 `endless[]:` Its waves are made anew each run, and never end.
-- 20 `endless[]:` Comets cross every one, and a boulder comes every tenth.
-- 58 `kicker:` A new run
+- 11 `"inner-belt"[]:` Crystals always drop a pickup.
+- 14 `"iron-reach"[]:` Iron takes extra hits. Volatile rocks blow up.
+- 15 `"iron-reach"[]:` Comets fly across. Burrs slow you down until you dash.
+- 17 `storm[]:` Lodestones drift toward your ship.
+- 19 `endless[]:` The waves are new every game, and they never end.
+- 20 `endless[]:` Every wave has comets, and every 10th has boulders.
+- 58 `kicker:` A new game
 - 58 `kicker:` A new sector
 
 ### src/app/sectors/sectors.component.html
 
-- 12 `<p>` Choose a sector to start a run at its first wave. Reaching a sector opens it; each shows its best at the speed in play.
-- 17 `<p>` A best made under earlier rules says so, and the next run there to score beats it.
+- 12 `<p>` Choose a sector to start a new game at its first wave. You unlock a sector when you reach it. Each one shows your best at the current speed.
+- 17 `<p>` A best marked (old rules) was set before the rules changed. The next game you start there replaces it, even with a lower score.
 
 ### src/app/settings/settings.component.html
 
-- 11 `<p>` Changing the speed starts a new run.
-- 38 `<p>` For a left thumb on Fire and Dash.
-- 56 `<p>` The ship fires all the time, and the deck has Dash alone.
-- 74 `<p>` Once as a ship is lost, and twice as a wave is cleared, on a phone that can.
-- 93 `<p>` Off, it mutes the effects, the voice and the bed, as the bar's Sound button does.
-- 108 `<p>` Each rock breaking, rising with static, the thrust's hum, and a chime for a wave cleared.
-- 123 `<p>` A whee, an eep or a cheer, now and then.
-- 136 `<label>` Play a bed under each sector
-- 137 `<p>` A slow drone, a pulse and bells joining it as static climbs.
-- 151 `<p>` Every sound in both ears, for one earbud or a phone's one speaker.
+- 11 `<p>` Changing the speed starts a new game.
+- 38 `<p>` Moves the buttons to the left.
+- 54 `<p>` The ship fires on its own. On a touch screen, only the Dash button shows.
+- 73 `<p>` Buzzes once when you're hit and twice when you clear a wave. Only on phones that can buzz.
+- 92 `<p>` Turns all sound on or off. Same as the Sound button.
+- 116 `<p>` The fuzzballs squeak and cheer now and then.
+- 130 `<p>` Each sector has its own music, and it builds as your static rises.
+- 144 `<p>` Plays every sound in both ears, for one earbud or a phone speaker.
 
 ### src/app/settings/settings.component.ts
 
-- 34 `detail:` The stick, Fire and Dash show beside the field where the screen takes a finger.
-- 38 `detail:` They show on every screen, and a mouse can press them.
-- 42 `detail:` The keys and the mouse fly the ship.
+- 33 `detail:` Shown only when you play by touch.
+- 37 `detail:` Shown on every screen. You can click them with a mouse.
+- 41 `detail:` Fly with the keyboard and the mouse.
 
 ### src/rules/speed.ts
 
-- 41 `says:` Slower rocks, fewer and slower comets, more pickups, and sparks drawn in from farther.
-- 49 `says:` The classic pace.
+- 41 `says:` Slower rocks and comets, fewer comets, more pickups. You pull in sparks from farther away.
+- 49 `says:` The usual pace.
 - 57 `says:` Quicker rocks and comets.
 
 ## Messages: notices, confirmations, explanations and errors
@@ -335,19 +341,16 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board_card.component.ts
 
-- 133 `computed()` {sector.name} cleared. Endless begins.
+- 133 `computed()` {sector.name} cleared! Endless begins.
+- 134 `computed()` Wave {String(number)} cleared!
 
 ## Results: win, lose, clear and records
-
-### src/app/board/board_card.component.ts
-
-- 134 `computed()` Wave {String(number)} cleared
 
 ### src/app/result/result.component.html
 
 - 4 `<fz-dialog [label]>` {{ title }}
 - 24 `<span>` New best
-- 27 `<span>` Cleared all thirty
+- 27 `<span>` All 30 waves cleared!
 - 53 `<p>` The fuzzballs who flew
 - 67 `<button>` Choose a sector
 - 74 `<button>` Close
@@ -363,11 +366,11 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/view/bests.ts
 
-- 19 `bestTerm() returns` Best, earlier rules
+- 19 `bestTerm() returns` Best (old rules)
 - 19 `bestTerm() returns` Best
 - 45 `sectorStatus() returns` Locked
 - 47 `words =` Best {formatPoints(sectorBest.best)}
-- 48 `sectorStatus() returns` {words}, earlier rules
+- 48 `sectorStatus() returns` {words} (old rules)
 
 ### src/view/tally.ts
 
@@ -377,14 +380,16 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 21 `strays:` Strays brought home
 - 22 `cleared:` Wave cleared
 - 23 `clean:` No hit taken
-- 73 `endWords() returns` The run ended on wave {String(entry.number)}, {entry.data.name}
+- 73 `endWords() returns` Out of crew on wave {String(entry.number)}, {entry.data.name}
 - 81 `endSubtitle() returns` {endWords(entry)}, at {SPEED\_INFO[speed].name} speed
 
 ## Spoken text: labels and announcements for screen readers
 
 ### index.html
 
-- 58 `<noscript> <p>` Asteroid Breaker, free to play in your browser: fly, drift and blast every rock to rubble before one finds you. Turn on JavaScript to play.
+- 11 `<meta description>` Asteroid Breaker, free in your browser. Shoot every rock before one hits your ship. The screen wraps at every edge. 30 waves, then Endless.
+- 18 `<meta og:description>` Asteroid Breaker, free in your browser. Shoot every rock before one hits your ship. The screen wraps at every edge. 30 waves, then Endless.
+- 38 `JSON-LD description` Asteroid Breaker, free in your browser. Shoot every rock before one hits your ship. The screen wraps at every edge. 30 waves, then Endless.
 
 ### src/app/bar/bar.component.html
 
@@ -394,12 +399,17 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/board/board.component.html
 
-- 9 `<p>` The left and right arrow keys, or A and D, turn the ship, and the mouse turns it toward the pointer. The up arrow or W thrusts, and so does the right mouse button. Space or the left mouse button fires, and Shift, the down arrow or S dashes. Any of those keys starts a wave, goes on, and goes to the next wave. Escape pauses, P pauses and goes on, and Enter goes on, or to the next wave. Once an ended run's result is put away, any flight key, Enter or P starts another. On a card's button, the keys are the button's: Space and Enter press it.
+- 9 `<p>` Left and Right, or A and D: turn the ship. Up or W: thrust. Space: fire. Shift, Down or S: dash. P: pause and resume. Esc: pause. Enter: resume, or go to the next wave. Any key you fly with also resumes, or goes to the next wave.
 
 ### src/app/board/board.component.ts
 
 - 83 `"aria-roledescription":` game board
 - 166 `computed()` Asteroid Breaker, wave {String(number)}: {data.name}
+
+### src/app/help/help.component.html
+
+- 4 `<table aria-label>` Controls
+- 72 `<table aria-label>` Scoring
 
 ### src/app/play/sector_card.ts
 
@@ -412,27 +422,24 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/rules/run/describe.ts
 
 - 27 `describeEvent() returns` A stray fuzzball drifts in.
-- 31 `describeEvent() returns` Brought straight home, with the line full.
-- 33 `describeEvent() returns` Hit! One knocked loose. {inTowWords(event.inTow)}.
+- 31 `describeEvent() returns` Crew full. The stray goes straight home.
+- 33 `describeEvent() returns` Hit. One knocked loose. {inTowWords(event.inTow)}.
 - 35 `describeEvent() returns` Caught again. {inTowWords(event.inTow)}.
 - 37 `describeEvent() returns` A fuzzball floats home.
 - 41 `describeEvent() returns` Static full.
-- 43 `describeEvent() returns` Zap!
-- 45 `describeEvent() returns` A burr clings.
-- 53 `inTowWords() returns` No one in tow
-- 53 `inTowWords() returns` {String(inTow)} in tow
-- 75 `said =` {cleared.sector.name} cleared! Endless begins.
-- 76 `said =` Wave {String(cleared.number)} cleared!
-- 82 `describePause() returns` Paused, with a score of {formatPoints(run.score)}. Press Enter to go on.
-- 87 `describeResume() returns` Going on.
-- 93 `describeTakenUp() returns` Your last run is paused on wave {String(entry.number)}, {entry.data.name}, with a score of {formatPoints(run.score)} and {inTow}. Press Enter to go on.
-- 100 `END_TITLE =` Everyone is home.
-- 108 `best =` A new best!
-- 109 `all =` Cleared all thirty!
+- 43 `describeEvent() returns` Zap.
+- 45 `describeEvent() returns` A burr sticks to you.
+- 53 `inTowWords() returns` No one following
+- 75 `said =` {cleared.sector.name} cleared. Endless begins.
+- 76 `said =` Wave {String(cleared.number)} cleared.
+- 82 `describePause() returns` Paused. Score {formatPoints(run.score)}. Press Enter to resume.
+- 87 `describeResume() returns` Resumed.
+- 92 `describeTakenUp() returns` Paused on wave {String(entry.number)}, {entry.data.name}. Score {formatPoints(run.score)}. {inTowWords(run.crew.tow.length)}. Press Enter to resume.
+- 99 `END_TITLE =` Game over
+- 107 `best =` New best.
+- 108 `all =` All 30 waves cleared.
 
 ### src/view/crew_line.ts
 
-- 66 `withLooseWords()` {String(aboard(crew))} of the crew aboard
-- 73 `withLooseWords() returns` {words}, {String(loose.length)} knocked loose
-- 78 `inTowWords() returns` No one in tow
-- 78 `inTowWords() returns` {String(tow.length)} in tow
+- 69 `withLooseWords()` {String(aboard(crew))} of the crew aboard
+- 76 `withLooseWords() returns` {words}, {String(loose.length)} knocked loose

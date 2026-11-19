@@ -142,13 +142,14 @@ const MORE_MARKS = [
   {
     id: "title-case",
     name: "A Title Case label of two words or more",
-    pattern: /^(?:[A-Z][a-z’']+)(?: (?:[A-Z][a-z’']+|&|of|a|the|in|and|to))+$/g,
+    pattern:
+      /^[A-Z][a-z’']+(?: (?:&|of|a|the|in|and|to))* [A-Z][a-z’']+(?: (?:[A-Z][a-z’']+|&|of|a|the|in|and|to))*$/g,
   },
   {
     id: "house-word",
     name: "A house word the word list replaces",
     pattern:
-      /\b(?:in tow|puts? away|put away|calls? (?:a |the )?\w+ off|earths?\b|the bed\b|the deck\b|the bench\b|Ready card|turns? (?:off|back)\b(?! (?:the |all )?(?:sound|music))|pays? double)/gi,
+      /\b(?:in tow|puts? away|put away|calls? (?:a |the )?\w+ off|earths?\b|the bed\b|the deck\b|the bench\b|Ready card|(?:turns (?:off|back)|turn back)\b(?! (?:the |all )?(?:sound|music))|pays? double)/gi,
   },
 ];
 
@@ -202,6 +203,8 @@ for (const mark of MARKS) {
   for (const entry of chosen) {
     if (mark.id === "title-case" && TITLE_CASE_NAMES.has(entry.category ?? ""))
       continue;
+    // The keys read to a screen reader are a list of "Key: action." items.
+    if (mark.id === "colon" && entry.category === "spoken") continue;
     let found = plain(entry.text).match(mark.pattern);
     // A deck is a real thing in a card game, and so is a pile's label.
     if (found && mark.id === "house-word" && entry.area === "games/solitaire")

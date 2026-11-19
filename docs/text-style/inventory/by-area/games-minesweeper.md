@@ -8,47 +8,47 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/help/help.component.html
 
-- 2 `<p>` Open every square that hides no mine. A number says how many of the eight squares around it hide one; flag the squares you know are mines.
-- 6 `<p>` **Lives.** A mine you step on costs a life, not the game, and stays open. You start with {{ lives() }}, and the game ends when you lose the last.
-- 11 `<strong>` Your first square is never a mine.
-- 17 `<th>` Mouse
-- 18 `<th>` Touch
-- 19 `<th>` Keyboard
-- 24 `<th>` Open a square
-- 25 `<td>` Click
-- 26 `<td>` Tap
-- 27 `<td>` [Enter] or [Space]
-- 30 `<th>` Flag a square
-- 31 `<td>` Right-click
-- 32 `<td>` Long press, or Flag mode
-- 36 `<th>` Open around a number
-- 37 `<td>` Click it
-- 38 `<td>` Tap it
-- 39 `<td>` [Enter] on it
-- 42 `<th>` Move
-- 45 `<td>` Arrows, [Home], [End]
+- 2 `<p>` Open every square that isn't a mine. A number tells you how many mines are around it. If you're sure a square is a mine, flag it. Your first square is never a mine.
+- 12 `<th>` Mouse
+- 13 `<th>` Touch
+- 14 `<th>` Keyboard
+- 19 `<th>` Open a square
+- 20 `<td>` Click
+- 21 `<td>` Tap
+- 22 `<td>` [Enter] or [Space]
+- 25 `<th>` Flag a square
+- 26 `<td>` Right-click
+- 27 `<td>` Long press, or Flag mode
+- 31 `<th>` Open around a number
+- 32 `<td>` Click it
+- 33 `<td>` Tap it
+- 34 `<td>` [Enter] on it
+- 37 `<th>` Move
+- 40 `<td>` Arrow keys, [Home], [End]
+- 45 `<p>` **Lives.** You start with {{ lives() }}. @if (hasSpareLives()) { If you open a mine, you lose one and keep playing. When you have none left, the game is over. } @else { If you open a mine, the game is over. }
+- 54 `<p>` **Opening around a number.** If a number has as many flags around it as it shows, you can open the rest of the squares around it at once. Mines you already opened count as flags. If a flag is wrong, you open a mine.
 
 ## Descriptions: blurbs, taglines, page metadata and write-ups
 
 ### README.md
 
 - 1 `heading` # Minesweeper
-- 3 `paragraph` Minesweeper with lives: stepping on a mine costs one instead of ending the game. Play it at https://fuzzley.games/play/minesweeper/.
+- 3 `paragraph` Minesweeper with lives. Hitting a mine costs a life instead of ending the game. Play it at https://fuzzley.games/play/minesweeper/.
 - 6 `paragraph` An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries (`frontend/lib/`), built with [Vite](https://vite.dev/) and tested with [Vitest](https://vitest.dev/). It plays by mouse, touch or keyboard, wears whichever palette the player chose on the site, and keeps a game in progress across a reload.
 
 ### index.html
 
-- 14 `<meta description>` Play Minesweeper free in your browser, with lives: a mine costs one instead of the game. Easy, Medium, Hard or a field of your own, by mouse, touch or keyboard.
-- 21 `<meta og:description>` Play Minesweeper free in your browser, with lives: a mine costs one instead of the game. Easy, Medium, Hard or a field of your own, by mouse, touch or keyboard.
-- 38 `JSON-LD description` Play Minesweeper free in your browser, with lives: a mine costs one instead of the game. Easy, Medium, Hard or a field of your own, by mouse, touch or keyboard.
+- 14 `<meta description>` Minesweeper with lives, free in your browser. Hitting a mine costs a life instead of ending the game. Easy, Medium, Hard or a board of your own.
+- 21 `<meta og:description>` Minesweeper with lives, free in your browser. Hitting a mine costs a life instead of ending the game. Easy, Medium, Hard or a board of your own.
+- 38 `JSON-LD description` Minesweeper with lives, free in your browser. Hitting a mine costs a life instead of ending the game. Easy, Medium, Hard or a board of your own.
 - 38 `JSON-LD genre` Puzzle, Logic game
-- 58 `<noscript> <p>` Minesweeper with lives, free to play in your browser. Turn on JavaScript to play.
+- 58 `<noscript> <p>` Clear the field using the numbers. Don’t hit a mine. Turn on JavaScript to play.
 
 ## Picture text: alt text and captions
 
 ### index.html
 
-- 33 `<meta og:image:alt>` A game of Minesweeper in progress, numbers and flags across the field, below the mines left, lives and time.
+- 33 `<meta og:image:alt>` A Medium Minesweeper field, half cleared, with flags, 1 mine hit and 2 lives left.
 
 ## Names: games, modes, levels and things
 
@@ -84,7 +84,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/app/play/game.service.ts
 
 - 59 `confirmLabel:` New game
-- 76 `confirmLabel:` Restart
+- 75 `confirmLabel:` Restart
 
 ### src/app/settings/settings.component.html
 
@@ -92,13 +92,13 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 13 `<label>` Rows
 - 23 `<label>` Columns
 - 33 `<label>` Mines
-- 48 `<button>` Start a custom game
+- 48 `<button>` New custom game
 - 56 `<span>` Lives
 - 82 `<span>` Theme
 
 ### src/app/settings/settings.component.ts
 
-- 181 `most =` all but nine squares
+- 181 `most =` all but 9 squares
 
 ### src/rules/difficulty.ts
 
@@ -108,28 +108,28 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/bar/bar.component.html
 
-- 56 `<button title>` Flag mode: a tap or click flags a square
+- 56 `<button title>` Flag squares with a tap or click
 - 97 `<button title>` How to play
 - 118 `<button title>` Settings
 
 ### src/app/settings/settings.component.html
 
-- 75 `<p>` Each mine you step on costs one. Changing the difficulty or the lives starts a new game.
+- 75 `<p>` Each mine you open costs 1 life. Changing the difficulty or the lives starts a new game.
 
 ### src/app/settings/settings.component.ts
 
 - 180 `sides =` Rows and columns from {CUSTOM\_SIDE.min} to {CUSTOM\_SIDE.max}
-- 182 `computed()` {sides}; mines from 1 to {most}.
+- 182 `computed()` {sides}. Mines from 1 to {most}.
 
 ## Messages: notices, confirmations, explanations and errors
 
 ### src/app/play/game.service.ts
 
 - 57 `title:` Start a new game?
-- 58 `message:` The game in progress will be lost.
+- 58 `message:` You'll lose the game in progress.
 - 67 `title:` Start a new {difficultyName(difficulty)} game?
 - 73 `title:` Restart this field?
-- 75 `message:` Every square is covered again, the mines where they were, and the clock and your lives start over.
+- 74 `message:` The mines stay where they are. The clock and your lives reset.
 
 ### src/rules/difficulty.ts
 
@@ -177,7 +177,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### src/app/result/result.component.html
 
-- 60 `<button aria-label>` Close and look at the board
+- 60 `<button aria-label>` Close and look at the field
 
 ### src/app/settings/settings.component.ts
 
@@ -188,10 +188,9 @@ in, keys in square brackets and bold lead-ins in asterisks.
 - 32 `describeSquare() returns` Hidden
 - 34 `describeSquare() returns` Flagged
 - 36 `describeSquare() returns` Blank
-- 40 `describeSquare() returns` Mine, stepped on
 - 42 `describeSquare() returns` Mine
 - 44 `describeSquare() returns` Flagged, no mine
-- 51 `describeMove() returns` Mine. Out of lives.
+- 51 `describeMove() returns` Boom. Out of lives.
 - 52 `describeMove() returns` Field cleared.
 - 71 `push()` Flagged
 - 71 `push()` Unflagged

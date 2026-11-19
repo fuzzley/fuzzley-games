@@ -71,7 +71,9 @@ export const CONSTRUCTIONS = [
   {
     id: "go-on",
     name: "“go on” for resume or continue",
-    pattern: /\bgo(?:es|ing)? on\b(?! and on)/gi,
+    // "Goes on a black 10" and "can go on a King" are how a card is placed.
+    pattern:
+      /\bgo(?:es|ing)? on\b(?! and on)(?! (?:a|an|the|any|its|it|top)\b)/gi,
   },
   {
     id: "by-itself",
