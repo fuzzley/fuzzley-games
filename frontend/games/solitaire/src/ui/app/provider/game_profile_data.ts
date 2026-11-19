@@ -43,66 +43,65 @@ const FAMILIES: readonly GameFamilyProfile[] = [
     id: "klondike",
     name: "Klondike family",
     description:
-      "Turn cards from a stock and build down the columns, uncovering the cards dealt face-down.",
+      "Build down the columns to turn up the cards dealt face down, with more cards to come from the stock.",
   },
   {
     id: "freecell",
     name: "FreeCell family",
     description:
-      "Every card is dealt face-up, with free cells to park cards in while you sort the columns.",
+      "Every card is dealt face up, with free cells to park cards in while you sort the columns.",
   },
   {
     id: "spider",
     name: "Spider family",
     description:
-      "Build complete King-to-Ace runs in one suit, which then clear from the board.",
+      "Build King-to-Ace runs by suit, and each full run leaves the board.",
   },
   {
     id: "yukon",
     name: "Yukon family",
     description:
-      "No stock: move any face-up card, taking every card on top of it along.",
+      "You can move any face-up card with everything on top of it, and there is no stock.",
   },
   {
     id: "fortythieves",
     name: "Forty Thieves family",
     description:
-      "Two decks dealt into shallow columns, with a long stock to work through.",
+      "Build down on shallow columns from 2 decks, with a long stock to work through.",
   },
   {
     id: "golf",
     name: "Golf family",
     description:
-      "Play cards one rank up or down onto a single pile until the tableau is clear.",
+      "Play cards 1 rank up or down onto a single pile until the tableau is clear.",
   },
   {
     id: "fan",
     name: "Fan family",
     description:
-      "Short fans of cards played off one at a time, with no free cells to fall back on.",
+      "Move 1 card at a time between fans of 3, with no free cells to fall back on.",
   },
   {
     id: "pairing",
     name: "Pairing games",
-    description:
-      "Clear the board two cards at a time, pairing cards that match or add up.",
+    description: "Clear the board by pairing cards that match or add up to 13.",
   },
   {
     id: "canfield",
     name: "Canfield family",
     description:
-      "Feed four columns from a reserve, with foundations that start wherever the deal says.",
+      "Play off a 13-card reserve, with foundations that can start at any rank.",
   },
   {
     id: "castle",
     name: "Castle family",
     description:
-      "Rows fanned sideways either side of the foundations, every card in view and moved one at a time.",
+      "Move 1 card at a time between open rows on either side of the foundations.",
   },
   {
     id: "other",
     name: "More games",
-    description: "Games that follow a pattern of their own.",
+    description: "Games that don't fit a family.",
   },
 ];
 
@@ -113,7 +112,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     klondike: {
       family: "klondike",
       tagline:
-        "The classic: turn the stock, build down in alternating colours.",
+        "Build down in alternating colors. Draw 3, or Draw 1 for an easier game.",
       difficulty: {
         optionId: "drawCount",
         byChoice: { 1: Difficulty.EASY, 3: Difficulty.MEDIUM },
@@ -126,7 +125,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("klondike", {
             variant: KlondikeVariant.WHITEHEAD,
           }),
-          tagline: "Klondike dealt face-up, building down in one colour.",
+          tagline:
+            "Klondike, but dealt face up, and you build down in the same color.",
           difficulty: Difficulty.MEDIUM,
         },
         {
@@ -134,7 +134,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("klondike", {
             variant: KlondikeVariant.THUMB_AND_POUCH,
           }),
-          tagline: "Klondike where a card lands on any suit but its own.",
+          tagline: "Klondike, but you build down on a different suit.",
           difficulty: Difficulty.EASY,
         },
         {
@@ -142,21 +142,22 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("klondike", {
             variant: KlondikeVariant.SARATOGA,
           }),
-          tagline: "Klondike with every column card dealt face-up.",
+          tagline: "Klondike, but the columns are dealt face up.",
           difficulty: Difficulty.EASY,
         },
       ],
     },
     freecell: {
       family: "freecell",
-      tagline: "Every card face-up, with four cells to park cards in.",
+      tagline:
+        "Build down in alternating colors, with 4 free cells to park cards in.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     spider: {
       family: "spider",
-      tagline: "Build King-to-Ace runs by suit across ten columns.",
+      tagline: "Build King-to-Ace runs by suit across 10 columns.",
       difficulty: {
         optionId: "suitCount",
         byChoice: {
@@ -170,7 +171,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     yukon: {
       family: "yukon",
-      tagline: "No stock: move any face-up card with everything on it.",
+      tagline:
+        "No stock. Move any face-up card, along with everything on top of it.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -178,33 +180,33 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         {
           name: "Alaska",
           values: storedValues("yukon", { variant: YukonVariant.ALASKA }),
-          tagline: "Yukon building up or down in the same suit.",
+          tagline: "Yukon, but you build up or down by suit.",
           difficulty: Difficulty.MEDIUM,
         },
         {
           name: "Russian Solitaire",
           values: storedValues("yukon", { variant: YukonVariant.RUSSIAN }),
-          tagline: "Yukon building down in the same suit only.",
+          tagline: "Yukon, but you build down by suit.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Moosehide",
           values: storedValues("yukon", { variant: YukonVariant.MOOSEHIDE }),
-          tagline: "Yukon where a card lands on any suit but its own.",
+          tagline: "Yukon, but you build down on a different suit.",
           difficulty: Difficulty.EASY,
         },
       ],
     },
     bakers: {
       family: "freecell",
-      tagline: "FreeCell's ancestor: columns build in a single suit.",
+      tagline: "FreeCell's ancestor. Build the columns down by suit.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
     },
     challengefreecell: {
       family: "freecell",
-      tagline: "FreeCell with every Ace and Two dealt to the bottom.",
+      tagline: "FreeCell with every Ace and 2 dealt to the bottom.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
@@ -212,21 +214,24 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         {
           name: "Super Challenge FreeCell",
           values: { emptyColumns: 1 },
-          tagline: "Challenge FreeCell where only Kings fill a space.",
+          tagline:
+            "Challenge FreeCell, but only a King can fill an empty column.",
           difficulty: Difficulty.HARD,
         },
       ],
     },
     eightoff: {
       family: "freecell",
-      tagline: "Eight cells, half of them filled, and same-suit columns.",
+      tagline:
+        "8 cells, 4 of them filled, and columns that build down by suit.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     scorpion: {
       family: "spider",
-      tagline: "Drag any face-up card to build Spider's same-suit runs.",
+      tagline:
+        "Move any face-up card to build King-to-Ace runs by suit, like Spider.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -234,7 +239,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         {
           name: "Wasp",
           values: storedValues("scorpion", { variant: ScorpionVariant.WASP }),
-          tagline: "Scorpion where any card can fill an empty column.",
+          tagline: "Scorpion, but any card can fill an empty column.",
           difficulty: Difficulty.EASY,
         },
         {
@@ -242,42 +247,44 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("scorpion", {
             variant: ScorpionVariant.SCORPION_II,
           }),
-          tagline: "Scorpion with cards hidden in only three columns.",
+          tagline: "Scorpion, but only 3 columns start with cards face down.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     simplesimon: {
       family: "spider",
-      tagline: "Spider on an open board: every card face-up, no stock.",
+      tagline: "Spider with 1 deck, every card face-up and no stock.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     mrsmop: {
       family: "spider",
-      tagline: "Two decks dealt face-up across thirteen columns, no stock.",
+      tagline: "2 decks dealt face-up across 13 columns, with no stock.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: true,
     },
     bakersdozen: {
       family: "other",
-      tagline: "Thirteen open columns, Kings sunk, and spaces never refill.",
+      tagline:
+        "13 columns with the Kings at the bottom. Empty columns stay empty.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     seahaven: {
       family: "freecell",
-      tagline: "Ten columns and four cells, building in suit, Kings to spaces.",
+      tagline:
+        "10 columns and 4 cells. Build by suit. Only Kings go in empty columns.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
     },
     spiderette: {
       family: "spider",
-      tagline: "One-deck Spider on seven columns.",
+      tagline: "Spider with 1 deck, on 7 columns.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
@@ -287,21 +294,21 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("spiderette", {
             variant: SpideretteVariant.WILL_O_THE_WISP,
           }),
-          tagline: "Spiderette dealt three cards to every column.",
+          tagline: "Spiderette, but each column is dealt 3 cards.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     easthaven: {
       family: "klondike",
-      tagline: "Klondike's building with Spider's row-dealing stock.",
+      tagline: "Like Klondike, but the stock deals a card onto every column.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
     },
     fortythieves: {
       family: "fortythieves",
-      tagline: "One card at a time, from a waste that never recycles.",
+      tagline: "Build down by suit across 10 columns. Move 1 card at a time.",
       difficulty: Difficulty.HARD,
       decks: 2,
       allCardsVisible: false,
@@ -311,7 +318,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("fortythieves", {
             variant: FortyThievesVariant.JOSEPHINE,
           }),
-          tagline: "Forty Thieves where same-suit runs move as a unit.",
+          tagline: "Forty Thieves, but you can move runs of the same suit.",
           difficulty: Difficulty.MEDIUM,
           aliases: ["Streets"],
         },
@@ -320,7 +327,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("fortythieves", {
             variant: FortyThievesVariant.RANK_AND_FILE,
           }),
-          tagline: "Alternating colours, but most of the deal face-down.",
+          tagline:
+            "Forty Thieves, but you build in alternating colors and can move runs.",
           difficulty: Difficulty.HARD,
         },
         {
@@ -328,7 +336,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("fortythieves", {
             variant: FortyThievesVariant.INDIAN,
           }),
-          tagline: "Columns of three, building on any suit but a card's own.",
+          tagline:
+            "Forty Thieves on columns of 3, and you build down on a different suit.",
           difficulty: Difficulty.MEDIUM,
         },
         {
@@ -336,42 +345,43 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("fortythieves", {
             variant: FortyThievesVariant.NUMBER_TEN,
           }),
-          tagline: "Alternating colours with runs, half the deal face-down.",
+          tagline:
+            "Like Rank and File, but only 2 cards in each column start face down.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     maria: {
       family: "fortythieves",
-      tagline: "Forty Thieves on nine columns, in alternating colours.",
+      tagline: "Forty Thieves on 9 columns, in alternating colors.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: false,
     },
     limited: {
       family: "fortythieves",
-      tagline: "Forty Thieves spread over twelve shallow columns.",
+      tagline: "Forty Thieves spread over 12 shallow columns.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: false,
     },
     lucas: {
       family: "fortythieves",
-      tagline: "Thirteen columns of three, with the Aces already home.",
+      tagline: "13 columns of 3, with the Aces already on the foundations.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: false,
     },
     doubleklondike: {
       family: "klondike",
-      tagline: "Klondike from two decks, on nine columns.",
+      tagline: "Klondike from 2 decks, on 9 columns.",
       difficulty: Difficulty.EASY,
       decks: 2,
       allCardsVisible: false,
     },
     montana: {
       family: "other",
-      tagline: "Move cards into the gaps to sort four rows of thirteen.",
+      tagline: "Move cards into the gaps to sort 4 rows of 13.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
@@ -380,14 +390,14 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         {
           name: "Addiction",
           values: { redeals: 3 },
-          tagline: "Montana with a third redeal.",
+          tagline: "Montana, but you get 3 redeals.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     bluemoon: {
       family: "other",
-      tagline: "Montana with the Aces in play, fixed at the head of each row.",
+      tagline: "Montana with the Aces in play, at the start of each row.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
@@ -397,7 +407,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("bluemoon", {
             variant: MontanaVariant.RED_MOON,
           }),
-          tagline: "Blue Moon with every gap dealt beside its Ace.",
+          tagline: "Blue Moon, but each gap starts next to an Ace.",
           difficulty: Difficulty.EASY,
         },
       ],
@@ -411,7 +421,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     acesup: {
       family: "other",
-      tagline: "Discard every card a higher card of its suit outranks.",
+      tagline: "Discard any card that has a higher card of its suit showing.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
@@ -419,7 +429,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     golf: {
       family: "golf",
       tagline:
-        "Play cards a rank up or down onto one pile to clear seven columns.",
+        "Clear 7 columns by playing cards 1 rank up or down onto 1 pile.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
@@ -429,20 +439,20 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("golf", {
             variant: GolfVariant.QUEENS_ON_KINGS,
           }),
-          tagline: "Golf where a Queen can be played onto a King.",
+          tagline: "Golf, but you can play a Queen on a King.",
           difficulty: Difficulty.HARD,
         },
         {
           name: "Putt Putt",
           values: storedValues("golf", { variant: GolfVariant.PUTT_PUTT }),
-          tagline: "Golf where the ranks turn the corner from King to Ace.",
+          tagline: "Golf, but the ranks wrap around from King to Ace.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     calculation: {
       family: "other",
-      tagline: "Build four foundations by ones, twos, threes and fours.",
+      tagline: "Build 4 foundations, counting up by 1s, 2s, 3s and 4s.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -454,7 +464,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
             variant: CalculationVariant.SIR_TOMMY,
           }),
           tagline:
-            "Four foundations from Ace to King, any suit, four waste piles.",
+            "Calculation, but every foundation goes up by 1 from an Ace.",
           difficulty: Difficulty.MEDIUM,
           aliases: ["Old Patience"],
         },
@@ -462,8 +472,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     flowergarden: {
       family: "other",
-      tagline:
-        "Six beds and a sixteen-card bouquet, every bouquet card in play.",
+      tagline: "6 beds, and a bouquet of 16 cards you can play at any time.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
@@ -471,7 +480,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     bristol: {
       family: "fan",
-      tagline: "Eight fans and three reserves the stock deals onto.",
+      tagline: "8 fans, and 3 reserves that the stock deals onto.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -481,7 +490,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("bristol", {
             variant: BristolVariant.BELVEDERE,
           }),
-          tagline: "Bristol with one Ace already on a foundation.",
+          tagline: "Bristol, but 1 Ace starts on a foundation.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
@@ -495,7 +504,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     montecarlo: {
       family: "pairing",
-      tagline: "Pair touching cards in a five-by-five grid, then close it up.",
+      tagline: "Pair touching cards in a 5 by 5 grid, then close the gaps.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -506,14 +515,14 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("montecarlo", {
             variant: MonteCarloVariant.THIRTEENS,
           }),
-          tagline: "Monte Carlo pairing cards that add up to thirteen.",
+          tagline: "Monte Carlo, but the pairs add up to 13.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     labellelucie: {
       family: "fan",
-      tagline: "Eighteen fans built down in suit, with two redeals.",
+      tagline: "18 fans built down by suit, with 2 redeals.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
@@ -525,7 +534,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
             variant: LaBelleLucieVariant.THE_FAN,
           }),
           tagline:
-            "La Belle Lucie where Kings fill empty fans, with no redeal.",
+            "La Belle Lucie with no redeals, and Kings can fill empty fans.",
           difficulty: Difficulty.HARD,
         },
         {
@@ -533,7 +542,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("labellelucie", {
             variant: LaBelleLucieVariant.SHAMROCKS,
           }),
-          tagline: "Fans of at most three, built up or down in any suit.",
+          tagline:
+            "La Belle Lucie, but you build up or down in any suit, with no redeals.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
@@ -548,7 +558,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     canfield: {
       family: "canfield",
       tagline:
-        "Work through a thirteen-card reserve onto foundations of any rank.",
+        "Clear a 13-card reserve. Foundations start at the rank the deal turns up.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
@@ -559,7 +569,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("canfield", {
             variant: CanfieldVariant.STOREHOUSE,
           }),
-          tagline: "Canfield from the Twos, building in suit.",
+          tagline:
+            "Canfield, but the Twos start the foundations and you build by suit.",
           difficulty: Difficulty.MEDIUM,
           aliases: ["Thirteen Up", "Reserve"],
         },
@@ -568,7 +579,8 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("canfield", {
             variant: CanfieldVariant.SUPERIOR,
           }),
-          tagline: "Canfield with the reserve face-up and spaces left open.",
+          tagline:
+            "Canfield with the reserve face up, and any card can fill an empty column.",
           difficulty: Difficulty.MEDIUM,
         },
         {
@@ -576,36 +588,38 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("canfield", {
             variant: CanfieldVariant.RAINBOW,
           }),
-          tagline: "Canfield building regardless of colour, one pass.",
+          tagline:
+            "Canfield, but you build down in any suit. Draw 1, with no redeals.",
           difficulty: Difficulty.HARD,
         },
       ],
     },
     penguin: {
       family: "freecell",
-      tagline: "Seven columns in suit, a seven-cell flipper, and a dealt beak.",
+      tagline:
+        "7 columns, 7 cells. Foundations start at the rank of the first card dealt.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     blackhole: {
       family: "golf",
-      tagline:
-        "Play every card into the hole, a rank up or down round the corner.",
+      tagline: "Play every card into the hole, 1 rank up or down.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     allinarow: {
       family: "golf",
-      tagline: "Thirteen columns of four, played onto one pile from any start.",
+      tagline:
+        "13 columns of 4. Play every card onto 1 pile, starting with any card.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     grandfathersclock: {
       family: "other",
-      tagline: "Build twelve foundations round a dial, each to its hour.",
+      tagline: "Build 12 foundations around a clock face, each up to its hour.",
       difficulty: Difficulty.EASY,
       decks: 1,
       allCardsVisible: true,
@@ -613,7 +627,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     pyramid: {
       family: "pairing",
-      tagline: "Pair free cards totalling thirteen to take the pyramid apart.",
+      tagline: "Pair free cards that add up to 13 to take the pyramid apart.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: false,
@@ -621,14 +635,15 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
         {
           name: "Relaxed Pyramid",
           values: storedValues("pyramid", { goal: PyramidGoal.PYRAMID_ONLY }),
-          tagline: "Pyramid won once the pyramid itself is cleared.",
+          tagline: "Pyramid, but you win when the pyramid is clear.",
           difficulty: Difficulty.MEDIUM,
         },
       ],
     },
     tripeaks: {
       family: "golf",
-      tagline: "Clear three peaks onto the waste, a rank up or down at a time.",
+      tagline:
+        "Clear 3 peaks by playing cards 1 rank up or down onto the waste.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
@@ -636,7 +651,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     beleagueredcastle: {
       family: "castle",
-      tagline: "Eight open rows around the Aces, one card at a time.",
+      tagline: "8 open rows around the Aces. Move 1 card at a time.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
@@ -646,7 +661,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("beleagueredcastle", {
             variant: CastleVariant.STREETS_AND_ALLEYS,
           }),
-          tagline: "Beleaguered Castle with the Aces dealt into the rows.",
+          tagline: "Beleaguered Castle, but the Aces are dealt into the rows.",
           difficulty: Difficulty.HARD,
         },
         {
@@ -654,21 +669,22 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
           values: storedValues("beleagueredcastle", {
             variant: CastleVariant.CITADEL,
           }),
-          tagline: "Beleaguered Castle sending cards home as they are dealt.",
+          tagline:
+            "Beleaguered Castle, but cards go to the foundations during the deal.",
           difficulty: Difficulty.EASY,
         },
       ],
     },
     fortress: {
       family: "castle",
-      tagline: "Ten open rows built up or down in suit, Aces buried.",
+      tagline: "10 open rows built up or down by suit, with the Aces buried.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,
     },
     pokersquares: {
       family: "other",
-      tagline: "Place 25 cards in a grid to make ten poker hands.",
+      tagline: "Place 25 cards in a grid to make 10 poker hands.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: false,
