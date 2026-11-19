@@ -1272,30 +1272,30 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/labellelucie/overview.webp",
       caption:
-        "La Belle Lucie board showing the redeal marker and four empty foundations along the top, and eighteen face-up fans in two rows of nine.",
-      altText: "La Belle Lucie solitaire board overview",
+        "A new deal, with the redeal space at the top left and 18 fans below.",
+      altText:
+        "A new game of La Belle Lucie, with every card face up in 18 fans.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts: "1 deck, all dealt face up. No stock. 2 redeals.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Foundations: 4 suit piles at the top-right, initially empty.",
-        "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
-        "Tableau: 17 fans of 3 face-up cards and 1 fan of a single card, in two rows.",
+        "Foundations: 4 empty piles.",
+        "Tableau: 17 fans of 3 cards and 1 fan of 1 card.",
+        "Redeal: the space you click to redeal. Its dots show the redeals left.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Fans: Built DOWN in SAME SUIT.",
-        "Only the top card of a fan can be moved, one card at a time.",
-        "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
-        "An empty fan can never be filled again.",
-        "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of hearts goes on the 10 of hearts.",
+        "You can only move the top card of a fan.",
+        "An empty fan stays empty.",
+        "When you redeal, the cards left in the fans are shuffled and dealt out again in fans of 3.",
       ],
       goodToKnow: [
-        "Two Redeals: each redeal deals the cards in threes, so the fans grow fewer as the foundations fill. Once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
-        "Buried Kings: a King can never move except to its foundation, so one dealt above lower cards of its suit blocks them until a redeal.",
+        "A King can only go to a foundation. If it covers lower cards of the same suit, they are stuck until you redeal.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [
@@ -1304,18 +1304,17 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "La Belle Lucie: fans build down in suit, empty fans stay empty, and the fans can be redealt twice.",
+            effect: "The usual game.",
           },
           {
             value: 1,
             effect:
-              "The Fan: as La Belle Lucie, but a King — and only a King — can fill an empty fan, and there is no redeal. Each emptied fan becomes a place to free a buried King.",
+              "La Belle Lucie with no redeal, but a King can fill an empty fan.",
           },
           {
             value: 2,
             effect:
-              "Shamrocks: fans build up or down by rank in any suit, but no fan may ever hold more than three cards, and there is no redeal. Empty fans stay empty.",
+              "La Belle Lucie with no redeal. Fans build up or down in any suit, and hold 3 cards at most.",
           },
         ],
       },
@@ -1327,30 +1326,31 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/trefoil/overview.webp",
       caption:
-        "Trefoil board showing the redeal marker at the top-left, the four Aces on their foundations, and sixteen face-up fans of three in two rows of eight.",
-      altText: "Trefoil solitaire board overview",
+        "A new deal, with the 4 Aces on the foundations and 16 fans below.",
+      altText:
+        "A new game of Trefoil, with the 4 Aces on the foundations and 16 fans.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards to the four foundation piles, built up by suit from Ace to King.",
+      facts:
+        "La Belle Lucie with the Aces already on the foundations. 1 deck, all face up. 2 redeals.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Foundations: 4 suit piles at the top-right, each started with an Ace.",
-        "Redeal: a marker at the top-left, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
-        "Tableau: 16 fans of 3 face-up cards, in two rows of eight.",
+        "Foundations: 4 piles, each started with an Ace.",
+        "Tableau: 16 fans of 3 cards.",
+        "Redeal: the space you click to redeal. Its dots show the redeals left.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from the Ace to King.",
-        "Fans: Built DOWN in SAME SUIT.",
-        "Only the top card of a fan can be moved, one card at a time.",
-        "A card can go onto a fan whose top card is the same suit and exactly 1 rank higher.",
-        "An empty fan can never be filled again.",
-        "Press the redeal marker to gather every card left in the fans, shuffle them, and deal them out again in threes from the first fan.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. The 9 of hearts goes on the 10 of hearts.",
+        "You can only move the top card of a fan.",
+        "An empty fan stays empty.",
+        "When you redeal, the cards left in the fans are shuffled and dealt out again in fans of 3.",
       ],
       goodToKnow: [
-        "Two Redeals: once both are spent, or no card is left in the fans, the marker becomes a plain outline.",
-        "With the Aces out of the way from the start, every Two can go home as soon as it is free, which makes Trefoil easier than La Belle Lucie.",
+        "A King can only go to a foundation. If it covers lower cards of the same suit, they are stuck until you redeal.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -1361,31 +1361,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/canfield/overview.webp",
       caption:
-        "Canfield board showing the stock and waste at the top-left, the first foundation started by the deal, the thirteen-card reserve under the stock, and four columns of one card each.",
-      altText: "Canfield solitaire board overview",
+        "A new deal, with the reserve under the stock and 4 columns of 1 card.",
+      altText: "A new game of Canfield, with a King on the first foundation.",
     },
     summary: {
-      facts: "",
-      goal: "Build all 52 cards onto the four foundations, each in suit from the rank the deal chose, round past the King to the Ace.",
+      facts: "1 deck. Draw 3. Unlimited redeals.",
+      goal: "Move all 52 cards to the 4 foundations, building each suit up from the rank the deal turns over.",
     },
     detailedRules: {
       layout: [
-        "Stock: the face-down cards at the top-left, drawn three at a time onto the waste beside it.",
-        "Foundations: 4 piles at the top-right, the first started by the deal.",
-        "Reserve: 13 cards under the stock, face-down but for the top card.",
-        "Tableau: 4 columns under the foundations, one face-up card each.",
+        "Stock: the cards left over.",
+        "Waste: the cards you turn over.",
+        "Reserve: 13 cards. You can play the top one.",
+        "Foundations: 4 piles, 1 started by the deal.",
+        "Tableau: 4 columns of 1 card.",
       ],
       moves: [
-        "Foundations: start on the rank of the card the deal turned up, then Built UP in SAME SUIT, from King round to Ace.",
-        "Tableau: Built DOWN in ALTERNATING COLORS, from Ace round to King.",
-        "The top card of the waste, the top card of the reserve and any properly built run in a column can be moved.",
-        "When a column empties, the reserve's top card fills it at once. Once the reserve is gone, a space can be filled from the waste.",
-        "Taking a card off the reserve turns up the one beneath it.",
-        "Pressing the stock draws three cards onto the waste; pressing the empty stock turns the waste back over.",
+        "Foundations: build up by suit. If the first card is a 7, each suit goes 7 to King, then Ace to 6.",
+        "Tableau: build down in alternating colors, and a King can go on an Ace.",
+        "You can move a run as one.",
+        "Click the stock to turn over 3 cards, and the empty stock to turn the waste back over.",
       ],
       goodToKnow: [
-        "Unlimited Redeals: the waste can be turned back over as often as you like.",
-        "The Reserve Is the Game: getting through the reserve's thirteen cards is the usual path to a win, since the stock always comes round again.",
+        "The top card of the reserve fills an empty column at once. Once the reserve is gone, only the top card of the waste can fill it.",
       ],
     },
     settingsAndVariants: [
@@ -1394,23 +1392,22 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 0,
-            effect:
-              "Canfield: columns build down in alternating colours, the reserve fills spaces at once, and the stock is drawn in threes with unlimited redeals.",
+            effect: "The usual game.",
           },
           {
             value: 1,
             effect:
-              "Storehouse: the four Twos start the foundations, columns build down in suit, and the stock is drawn one card at a time with two redeals, counted in pips on the empty stock. Easier than Canfield.",
+              "Canfield with the 4 Twos dealt to the foundations. Columns build down by suit. Draw 1, with 2 redeals.",
           },
           {
             value: 2,
             effect:
-              "Superior Canfield: the reserve is dealt face-up and fanned so every card in it can be read, and spaces are not filled automatically — any card or run can fill one, whenever you choose.",
+              "Canfield with the reserve face up. You fill empty columns yourself, with any card or run.",
           },
           {
             value: 3,
             effect:
-              "Rainbow: columns build down regardless of colour, and the stock is drawn one card at a time with no redeal.",
+              "Canfield with columns that build down in any suit. Draw 1, and no redeal.",
           },
         ],
       },
@@ -1422,29 +1419,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/penguin/overview.webp",
       caption:
-        "Penguin board showing the seven cells of the flipper and four foundations along the top, three of them started with the beak's rank, and seven face-up columns of seven beneath.",
-      altText: "Penguin solitaire board overview",
+        "A new deal, with 3 foundations started and 7 columns of 7 cards.",
+      altText:
+        "A new game of Penguin, with 49 cards face up in 7 columns of 7.",
     },
     summary: {
-      facts: "",
-      goal: "Build all 52 cards onto the four foundations, in suit from the beak's rank, round past the King to the Ace.",
+      facts: "1 deck, all face up. No stock.",
+      goal: "Move all 52 cards to the 4 foundations, building up by suit from the rank of the first card dealt.",
     },
     detailedRules: {
       layout: [
-        "Flipper: 7 single-card cells at the top-left.",
-        "Foundations: 4 piles at the top-right, three of them started by the deal with the other cards of the beak's rank.",
-        "Tableau: 7 columns of 7 face-up cards, the beak at the top of the first.",
+        "Tableau: 7 columns of 7. The first card dealt is under 6 others in the first column.",
+        "Foundations: 4 piles, 3 started by the deal.",
+        "Free cells: 7 spaces, for 1 card each.",
       ],
       moves: [
-        "Foundations: start on the beak's rank, then Built UP in SAME SUIT, from King round to Ace.",
-        "Tableau: Built DOWN in SAME SUIT, from Ace round to King.",
-        "Any single card can go into an empty cell.",
-        "A same-suit run moves as a unit, however long it is and however many cells are free.",
-        "An empty column takes only a card of the rank below the beak, or a run headed by one.",
+        "Foundations: build up by suit. After the King comes the Ace.",
+        "Tableau: build down by suit. A King goes on an Ace.",
+        "You can move a run as one, however few free cells are empty.",
+        "You can move the top card of a column to an empty free cell.",
+        "Only a card 1 rank below the first card dealt, or a run starting with one, can fill an empty column. If it is a 5, that is a 4.",
       ],
       goodToKnow: [
-        "The Beak: the card at the top of the first column sets the rank every foundation starts on, and it is buried under six more — freeing it is often the first job.",
-        "Nearly Always Winnable: David Parlett's game can be won from almost every deal with careful play.",
+        "To start the fourth foundation, dig out the first card dealt.",
       ],
     },
     settingsAndVariants: [],
@@ -1454,27 +1451,25 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Black_Hole_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/blackhole/overview.webp",
-      caption:
-        "Black Hole board showing the Ace of Spades in the hole at the middle of the top row, and seventeen face-up fans of three around it.",
-      altText: "Black Hole solitaire board overview",
+      caption: "A new deal, with the Ace of spades in the hole and 17 fans.",
+      altText: "A new game of Black Hole, with the Ace of spades in the hole.",
     },
     summary: {
-      facts: "",
-      goal: "Play every card into the black hole, one rank up or down at a time.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Play every card into the hole.",
     },
     detailedRules: {
       layout: [
-        "Hole: a single foundation in the middle of the top row, started with the Ace of Spades.",
-        "Tableau: 17 fans of 3 face-up cards.",
+        "Hole: 1 pile, started with the Ace of spades.",
+        "Tableau: 17 fans of 3 cards.",
       ],
       moves: [
-        "Hole: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent — a run can climb, fall and turn the corner as it likes.",
-        "Press a fan's top card to play it into the hole, or drag it there.",
-        "Nothing is ever placed on a fan: cards only leave them.",
+        "You can play the top card of a fan into the hole if it is 1 rank above or below the top card there. Suits don't matter, so any 5 goes on any 4 or 6.",
+        "A King and an Ace count as 1 rank apart, so either can go on the other.",
+        "Click a top card to play it, or drag it.",
+        "Nothing goes on a fan. Cards only leave it.",
       ],
-      goodToKnow: [
-        "Plan Ahead: with every card in view and no stock to fall back on, the whole game can be worked out before the first move. David Parlett, who invented it, made it a game of foresight rather than luck; most deals can be won.",
-      ],
+      goodToKnow: ["You can't take a card back out of the hole."],
     },
     settingsAndVariants: [],
   },
@@ -1483,26 +1478,26 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/allinarow/overview.webp",
       caption:
-        "All in a Row board showing the empty foundation in the middle of the top row and thirteen face-up columns of four beneath.",
-      altText: "All in a Row solitaire board overview",
+        "A new deal, with the empty foundation above 13 columns of 4 cards.",
+      altText: "A new game of All in a Row, with 13 columns of face-up cards.",
     },
     summary: {
-      facts: "",
-      goal: "Play every card onto the single foundation, one rank up or down at a time.",
+      facts:
+        "Black Hole with 13 columns and nothing on the foundation. 1 deck, all dealt face up. No stock.",
+      goal: "Play every card onto the foundation.",
     },
     detailedRules: {
-      layout: [
-        "Foundation: a single pile in the middle of the top row, initially empty.",
-        "Tableau: 13 columns of 4 face-up cards.",
-      ],
+      layout: ["Foundation: 1 empty pile.", "Tableau: 13 columns of 4 cards."],
       moves: [
-        "Foundation: one rank HIGHER or LOWER than its top card, in ANY SUIT, with King and Ace adjacent.",
-        "Press a column's top card to play it onto the foundation, or drag it there.",
-        "Any top card can start the foundation.",
-        "Nothing is ever placed on a column, and an emptied column stays empty.",
+        "You can start the foundation with the top card of any column.",
+        "After that, you can play a top card onto the foundation if it is 1 rank above or below the top card there. Suits don't matter, so any 5 goes on any 4 or 6.",
+        "A King and an Ace count as 1 rank apart, so either can go on the other.",
+        "Click a top card to play it, or drag it.",
+        "Nothing goes on a column. Cards only leave it.",
       ],
       goodToKnow: [
-        "The First Card: choosing which card starts the foundation is the most important decision of the game.",
+        "The card you start with matters most. Look ahead before you play it.",
+        "You can't take a card back off the foundation.",
       ],
     },
     settingsAndVariants: [],
