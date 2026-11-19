@@ -97,13 +97,13 @@ export const GAMES: readonly Game[] = [
   solitaire("simplesimon", {
     slug: "simple-simon",
     name: "Simple Simon",
-    blurb: "Spider with 1 deck, every card face-up and no stock.",
+    blurb: "Spider with 1 deck, every card face up and no stock.",
     minutes: 10,
   }),
   solitaire("mrsmop", {
     slug: "mrs-mop",
     name: "Mrs. Mop",
-    blurb: "2 decks dealt face-up across 13 columns, with no stock.",
+    blurb: "2 decks dealt face up across 13 columns, with no stock.",
     minutes: 20,
   }),
   solitaire("bakersdozen", {
@@ -147,7 +147,7 @@ export const GAMES: readonly Game[] = [
   solitaire("montana", {
     slug: "montana",
     name: "Montana",
-    blurb: "Move cards into the gaps to sort 4 rows of 13.",
+    blurb: "Move cards into the gaps to sort each row by suit, 2 to King.",
     aliases: ["Gaps", "Addiction"],
     minutes: 10,
   }),
@@ -288,7 +288,7 @@ export const GAMES: readonly Game[] = [
   solitaire("fortress", {
     slug: "fortress",
     name: "Fortress",
-    blurb: "10 open rows built up or down by suit, with the Aces buried.",
+    blurb: "Free the Aces from 10 open rows, building up or down by suit.",
     minutes: 8,
   }),
   solitaire("pokersquares", {

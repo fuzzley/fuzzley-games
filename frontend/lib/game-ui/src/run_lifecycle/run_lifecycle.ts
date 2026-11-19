@@ -6,7 +6,7 @@ import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 /** What a new run asks before it throws away the one under way. */
 const NEW_GAME_QUESTION: ConfirmRequest = {
   title: "Start a new game?",
-  message: "The run in progress will be lost.",
+  message: "You'll lose the game in progress.",
   confirmLabel: "New game",
   tone: "danger",
 };

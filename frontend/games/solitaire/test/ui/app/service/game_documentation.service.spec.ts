@@ -89,12 +89,19 @@ describe("GameDocumentationService", () => {
     }
   });
 
-  // Not the fact line yet: most games' are still to be written.
   it("gives every game in GAME_CATALOG a goal", () => {
     for (const gameEntry of GAME_CATALOG) {
       const goal = service.getDocumentation(gameEntry.id)?.summary.goal;
 
       expect(goal?.trim(), `No goal for ${gameEntry.id}`).toBeTruthy();
+    }
+  });
+
+  it("gives every game in GAME_CATALOG a fact line", () => {
+    for (const gameEntry of GAME_CATALOG) {
+      const facts = service.getDocumentation(gameEntry.id)?.summary.facts;
+
+      expect(facts?.trim(), `No fact line for ${gameEntry.id}`).toBeTruthy();
     }
   });
 
