@@ -551,7 +551,7 @@ export class GameService extends RunLifecycle {
 
   /** Says the stars a level's clearing won that it didn't hold before, if any. */
   private sayStarsWon(): void {
-    const words = describeStarsWon(this.newStarsState(), this.mark());
+    const words = describeStarsWon(this.newStarsState());
     if (words !== null) this.news.push(words);
   }
 

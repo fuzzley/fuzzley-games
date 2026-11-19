@@ -220,7 +220,7 @@ Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
   shape, in `CAPSULE_ART` (`src/view/art/art.ts`), lays it across the
   capsule's face, and a bad one's gold lip says it pays double; the
   compiler asks for a new tone's.
-- The announcer says its name as it is caught, and "Double pay." for one
+- The announcer says its name as it is caught, and "Double score." for one
   that pays; How to play lists it.
 
 ## A New Kind of Effect

@@ -154,7 +154,7 @@ describe("AppComponent", () => {
     TestBed.tick();
 
     expect(document.querySelector("fz-announcer")).toHaveTextContent(
-      "Your last run is paused on level 3, Steel, with a score of 0 and 3 lives. Press Enter to go on.",
+      "Paused on level 3, Steel. Score 0. 3 lives. Press Enter to resume.",
     );
   });
 
@@ -189,7 +189,7 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("paused");
       expect(document.querySelector("fz-announcer")).toHaveTextContent(
-        /^Paused, with a score of 0/,
+        "Paused. Score 0. Press Enter to resume.",
       );
     });
   });

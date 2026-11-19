@@ -510,7 +510,7 @@ describe("GameService", () => {
       }).toEqual({
         outcome: "over",
         ended: true,
-        said: "Game over. Score 0, at level 3.",
+        said: "Game over. Out of lives on level 3. Score 0.",
       });
     });
 
@@ -593,7 +593,7 @@ describe("GameService", () => {
         () => game.frame().field.effects["paddle-size"].capsule === "narrow",
       );
 
-      expect(said()).toBe("Narrow paddle. Double pay.");
+      expect(said()).toBe("Narrow paddle. Double score.");
     });
 
     it("says an extra life once, with the lives there are", async () => {
@@ -619,7 +619,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "cleared",
-        said: "Level 1 cleared! Score 2,100. 3 new stars, for clearing the level, losing no life and reaching a streak of 5.",
+        said: "Level 1 cleared. Score 2,100. 3 new stars.",
       });
     });
 
@@ -628,9 +628,7 @@ describe("GameService", () => {
 
       await clearedAt(SPEC_LEVEL.blasts);
 
-      expect(said()).toBe(
-        "Level 1 cleared! Score 2,100. 1 new star, for reaching a streak of 5.",
-      );
+      expect(said()).toBe("Level 1 cleared. Score 2,100. 1 new star.");
     });
 
     it("says no star where the level held each already", async () => {
@@ -641,7 +639,7 @@ describe("GameService", () => {
 
       await clearedAt(SPEC_LEVEL.blasts);
 
-      expect(said()).toBe("Level 1 cleared! Score 2,100.");
+      expect(said()).toBe("Level 1 cleared. Score 2,100.");
     });
 
     it.each([SPEC_LEVEL.blasts, SPEC_LEVEL.dare])(
@@ -726,7 +724,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "won",
-        said: `Every level cleared! Score 2,100, at level ${String(SPEC_LEVEL.last)}. A new best! 3 new stars, for clearing the level, losing no life and reaching a streak of 5.`,
+        said: "Every level cleared. Score 2,100. New best. 3 new stars.",
       });
     });
 
@@ -787,7 +785,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "paused",
-        said: "Paused, with a score of 0. Press Enter to go on.",
+        said: "Paused. Score 0. Press Enter to resume.",
       });
     });
 
@@ -808,7 +806,7 @@ describe("GameService", () => {
 
       expect({ outcome: game.outcome(), said: said() }).toEqual({
         outcome: "playing",
-        said: "Going on.",
+        said: "Resumed.",
       });
     });
 
@@ -1251,7 +1249,7 @@ describe("GameService", () => {
       }).toEqual({
         newBest: true,
         best: 2400,
-        said: "Game over. Score 2,400, at level 2. A new best!",
+        said: "Game over. Out of lives on level 2. Score 2,400. New best.",
       });
     });
 

@@ -286,7 +286,7 @@ describe("SavedGameService", () => {
       reload();
 
       expect(TestBed.inject(AnnouncerService).message()).toBe(
-        "Your last run is paused on level 4, Few, with a score of 100 and 3 lives. Press Enter to go on.",
+        "Paused on level 4, Few. Score 100. 3 lives. Press Enter to resume.",
       );
     });
 
