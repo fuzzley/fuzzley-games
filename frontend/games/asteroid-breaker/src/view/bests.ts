@@ -14,9 +14,9 @@ export function isEarlierBest(
   return best > 0 && (rules === undefined || rules < RULES_VERSION);
 }
 
-/** Returns what the result calls the best at its run's speed: "Best", or "Best, earlier rules" for one made under them. */
+/** Returns what the result calls the best at its run's speed: "Best", or "Best (old rules)" for one made under them. */
 export function bestTerm(best: number, rules: number): string {
-  return isEarlierBest(best, rules) ? "Best, earlier rules" : "Best";
+  return isEarlierBest(best, rules) ? "Best (old rules)" : "Best";
 }
 
 /** Describes a sector's best at the speed in play, as the Sectors dialog has it: its points, if a run has ended there, and the rules' number it was made under, if kept. */
@@ -45,5 +45,5 @@ export function sectorStatus(
   if (!open) return "Locked";
   if (sectorBest.best === undefined) return null;
   const words = `Best ${formatPoints(sectorBest.best)}`;
-  return saysEarlierRules(open, sectorBest) ? `${words}, earlier rules` : words;
+  return saysEarlierRules(open, sectorBest) ? `${words} (old rules)` : words;
 }

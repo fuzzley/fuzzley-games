@@ -29,7 +29,7 @@ describe("bestTerm", () => {
   });
 
   it("says a best was made under earlier rules", () => {
-    expect(bestTerm(900, RULES_VERSION - 1)).toBe("Best, earlier rules");
+    expect(bestTerm(900, RULES_VERSION - 1)).toBe("Best (old rules)");
   });
 });
 
@@ -54,7 +54,7 @@ describe("sectorStatus", () => {
 
   it("says an open sector's best kept with no rules' number was made under earlier rules", () => {
     expect(sectorStatus(true, { best: 4100, rules: undefined })).toBe(
-      "Best 4,100, earlier rules",
+      "Best 4,100 (old rules)",
     );
   });
 });

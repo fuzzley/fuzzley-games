@@ -737,13 +737,13 @@ describe("GameService", () => {
       expect({ card: game.sectorCard(), said: said() }).toEqual({
         card: {
           opensRun: true,
-          kicker: "A new run",
+          kicker: "A new game",
           name: "Specs",
           waves: "Waves 1 to 3",
           news: [],
           wave: "Wave 1, Pebble",
         },
-        said: "A new run: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
+        said: "A new game: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
       });
     });
 
@@ -752,7 +752,7 @@ describe("GameService", () => {
 
       expect({ card: game.sectorCard()?.wave, said: said() }).toEqual({
         card: "Wave 2, Gift",
-        said: "A new run: Specs. Waves 1 to 3. Wave 2, Gift. 1 rock. It starts when you fly.",
+        said: "A new game: Specs. Waves 1 to 3. Wave 2, Gift. 1 rock. It starts when you fly.",
       });
     });
 
@@ -823,8 +823,8 @@ describe("GameService", () => {
         said: said(),
       }).toEqual({
         outcome: "ready",
-        card: "A new run",
-        said: "A new run: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
+        card: "A new game",
+        said: "A new game: Specs. Waves 1 to 3. Wave 1, Pebble. 1 rock. It starts when you fly.",
       });
     });
 
@@ -1014,7 +1014,7 @@ describe("GameService", () => {
       }).toEqual({
         ended: true,
         aboard: 0,
-        said: "Everyone is home. Score 60, on wave 1. A new best!",
+        said: "Game over. Score 60, on wave 1. A new best!",
       });
     });
 
@@ -1404,7 +1404,7 @@ describe("GameService", () => {
         },
         best: game.score(),
         newBest: true,
-        said: `Everyone is home. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
+        said: `Game over. Score ${formatPoints(game.score())}, on wave 2. A new best!`,
       });
     });
 

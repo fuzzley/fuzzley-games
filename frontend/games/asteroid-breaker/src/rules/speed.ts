@@ -38,7 +38,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     cometRate: 0.5,
     drops: 1.25,
     sparkReach: 1.6,
-    says: "Slower rocks, fewer and slower comets, more pickups, and sparks drawn in from farther.",
+    says: "Slower rocks and comets, fewer comets, more pickups. You pull in sparks from farther away.",
   },
   normal: {
     name: "Normal",
@@ -46,7 +46,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     cometRate: 1,
     drops: 1,
     sparkReach: 1,
-    says: "The classic pace.",
+    says: "The usual pace.",
   },
   fast: {
     name: "Fast",

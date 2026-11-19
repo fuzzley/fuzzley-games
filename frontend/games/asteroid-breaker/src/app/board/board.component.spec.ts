@@ -513,20 +513,18 @@ describe("BoardComponent", () => {
         await renderBoard();
 
         expect(
-          screen.getByText("Steer with the left pad, fire with the right."),
+          screen.getByText("Steer with the left stick, fire with the right."),
         ).toBeInTheDocument();
       });
 
-      it("is told which side the settings put the stick on, and that the ship fires by itself", async () => {
+      it("is told which side the settings put the stick on, and that the ship fires on its own", async () => {
         const { detectChanges } = await renderBoard();
 
         useSettings({ stickOnRight: true, fireByItself: true });
         detectChanges();
 
         expect(
-          screen.getByText(
-            "Steer with the right pad; the ship fires by itself.",
-          ),
+          screen.getByText("Steer with the right stick."),
         ).toBeInTheDocument();
       });
     });
@@ -554,7 +552,7 @@ describe("BoardComponent", () => {
     it("opens the run while the scene still loads, before it is slow", async () => {
       await renderBoard({ readyAtOnce: false });
 
-      expect(screen.getByText("A new run")).toBeInTheDocument();
+      expect(screen.getByText("A new game")).toBeInTheDocument();
     });
 
     it("gives way to the canvas's, which says the board couldn't be drawn, offering to reload, as the app's error handler is told why", async () => {
@@ -569,7 +567,7 @@ describe("BoardComponent", () => {
         "The board couldn't be drawn",
       );
       expect(screen.getByRole("button", { name: "Reload" })).toBeVisible();
-      expect(screen.queryByText("A new run")).not.toBeInTheDocument();
+      expect(screen.queryByText("A new game")).not.toBeInTheDocument();
       expect(errors).toEqual([new Error("The scene couldn't be loaded")]);
     });
 
@@ -591,7 +589,7 @@ describe("BoardComponent", () => {
         expect(screen.getByRole("status")).toHaveTextContent(
           "Still loading the board",
         );
-        expect(screen.queryByText("A new run")).not.toBeInTheDocument();
+        expect(screen.queryByText("A new game")).not.toBeInTheDocument();
       });
     });
   });

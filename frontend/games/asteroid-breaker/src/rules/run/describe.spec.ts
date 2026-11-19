@@ -318,15 +318,15 @@ describe("marksWords", () => {
 });
 
 describe("describeEnd", () => {
-  it("says everyone is home, as the result card does, the score and the wave it ended on", () => {
+  it("says the game is over, as the result card does, the score and the wave it ended on", () => {
     expect(describeEnd(runAt(4, 9_020), entryOf(4, "Thaw"), UNMARKED)).toBe(
-      "Everyone is home. Score 9,020, on wave 4.",
+      "Game over. Score 9,020, on wave 4.",
     );
   });
 
   it("says a wave of Endless's by its number, and Endless", () => {
     expect(describeEnd(runAt(37, 9_020), endlessAt(37), UNMARKED)).toBe(
-      "Everyone is home. Score 9,020, on wave 37, Endless.",
+      "Game over. Score 9,020, on wave 37, Endless.",
     );
   });
 
@@ -336,7 +336,7 @@ describe("describeEnd", () => {
       newBest: true,
     });
 
-    expect(said).toBe("Everyone is home. Score 9,020, on wave 4. A new best!");
+    expect(said).toBe("Game over. Score 9,020, on wave 4. A new best!");
   });
 
   it("says a run cleared all thirty, after a new best", () => {
@@ -348,7 +348,7 @@ describe("describeEnd", () => {
     });
 
     expect(said).toBe(
-      "Everyone is home. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
+      "Game over. Score 9,020, on wave 37, Endless. A new best! Cleared all thirty!",
     );
   });
 });

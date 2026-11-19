@@ -67,15 +67,15 @@ export function nextWaveWords(next: WaveEntry): string {
 
 /**
  * Returns what the cards over an ended run say of where it ended: the wave
- * by its number and its name, as "The run ended on wave 14, Anvil".
+ * by its number and its name, as "Out of crew on wave 14, Anvil".
  */
 export function endWords(entry: WaveEntry): string {
-  return `The run ended on wave ${String(entry.number)}, ${entry.data.name}`;
+  return `Out of crew on wave ${String(entry.number)}, ${entry.data.name}`;
 }
 
 /**
  * Returns what the result card says under its title: where the run ended
- * and at what speed, as "The run ended on wave 14, Anvil, at Normal speed".
+ * and at what speed, as "Out of crew on wave 14, Anvil, at Normal speed".
  */
 export function endSubtitle(entry: WaveEntry, speed: Speed): string {
   return `${endWords(entry)}, at ${SPEED_INFO[speed].name} speed`;

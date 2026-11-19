@@ -125,8 +125,9 @@ sectors:
   `src/rules/waves/endless.spec.ts` writes its waves by number, from 31.
 - Endless's chance of a pickup is Storm's (`ENDLESS` in
   `src/rules/waves/waves.ts`), not the last sector's.
-- "Cleared all thirty" is written in `src/rules/run/describe.ts` and the
-  result card (`src/app/result/`).
+- "All 30 waves cleared!" is written on the result card
+  (`src/app/result/`), and what the announcer says of it in
+  `src/rules/run/describe.ts`.
 
 ## Endless
 

@@ -309,7 +309,7 @@ takes for the specs' helpers.
   home, with how many ride in tow, a pickup caught, static coming to full,
   a zap, a burr clinging ("A burr clings."), a clearing, a pause, going
   on, a run taken up and the end, in the words the result card and the
-  card over an ended run take up (`END_TITLE`, "Everyone is home."), and
+  card over an ended run take up (`END_TITLE`, "Game over"), and
   what it set, which a screen reader hears of the result card too
   (`marksWords()`). The announcer,
   the bar, the cards, the result, the sectors and How to play all write
@@ -428,7 +428,7 @@ takes for the specs' helpers.
   whether a best was made under earlier rules than these
   (`isEarlierBest()`, by the rules' `RULES_VERSION`), which the next run
   to score beats and takes the place of, what the result calls one
-  ("Best, earlier rules", `bestTerm()`), and what the Sectors dialog says
+  ("Best (old rules)", `bestTerm()`), and what the Sectors dialog says
   under a sector's waves (`sectorStatus()`) and whether it says its best
   was made under them (`saysEarlierRules()`); `crew_line.ts` what the bar
   shows of the crew beside the face cam, each in tow and each knocked loose, or,
@@ -1200,7 +1200,7 @@ takes for the specs' helpers.
     move there: the service minds a key or a press (its `go()`) until the
     next frame, which lays such a wave out again with what it holds, so the
     card shows until a fresh one. `sector_card.ts` holds the card's words
-    (`sectorCardOf()`): what it opens, "A new run" or "A new sector", the
+    (`sectorCardOf()`): what it opens, "A new game" or "A new sector", the
     sector's name, its waves (`wavesInWords()`, which the Sectors dialog
     says them in too), what is new there, a sentence or two for each of the
     game's sectors by its id (`SECTOR_NEWS`), and the wave; and what the
@@ -1239,7 +1239,7 @@ takes for the specs' helpers.
     counting up line by line where motion is welcome and whole at once
     where it isn't, their total, the crew cheering, the next wave by its
     number and name, Next wave and "or just start flying", and a trophy
-    over the last sector's last; Ended, "Everyone is home." and the wave
+    over the last sector's last; Ended, "Game over" and the wave
     the run ended on, once its result is put away; and none
     over a wave gone on to within a sector, waiting for its first move; and,
     in their place, the canvas's own, which the board hands it
@@ -1288,17 +1288,17 @@ takes for the specs' helpers.
     the sectors, How to play and the settings.
   - `sectors/` — the Sectors dialog: each sector as a button, with its name,
     its waves ("Waves 1 to 10", or "From wave 31" for Endless) and its best
-    at the speed in play, with "earlier rules" after one made under them,
+    at the speed in play, with "(old rules)" after one made under them,
     which a sentence under its opening explains while one says so, or
     "Locked", and the run's own marked
     `aria-current`. A sector not yet reached is `aria-disabled`, and can't
     be chosen. Choosing an open one starts a run at its first wave, asking
     first if one is under way, and closes once it has.
   - `result/` — the card over an ended run, once the pod's burst has faded
-    and its pilot floated off home: "Everyone is home.", the wave it ended
-    on and at what speed, the score and the best at its speed, "Best,
-    earlier rules" where it was made under them, with "New best" and the
-    trophy when it set one and "Cleared all thirty" when it
+    and its pilot floated off home: "Game over", the wave it ended
+    on and at what speed, the score and the best at its speed, "Best (old
+    rules)" where it was made under them, with "New best" and the
+    trophy when it set one and "All 30 waves cleared!" when it
     cleared every written wave, the wave reached and the waves cleared
     (`wavesCleared()`), and the fuzzballs who flew, every one gone home in
     the run, each in its color, with how many of them were strays brought

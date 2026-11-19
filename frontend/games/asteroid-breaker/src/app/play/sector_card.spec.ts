@@ -9,10 +9,10 @@ import {
 
 /**
  * The longest line of what is new that the sector's card was measured with,
- * Endless's second, from which `board_card.component.scss` steps the card
- * down by the field's height, above the ship waiting in its middle; a longer
- * line could wrap once more and reach the ship. Iron reach's second line is
- * as long, so neither grows without the card measured again.
+ * Endless's second as it was then, from which `board_card.component.scss`
+ * steps the card down by the field's height, above the ship waiting in its
+ * middle; a longer line could wrap once more and reach the ship, so none
+ * grows past it without the card measured again.
  */
 const LONGEST_MEASURED =
   "Comets cross every one, and a boulder comes every tenth.";
@@ -36,8 +36,8 @@ describe("sectorCardOf", () => {
       name: "Iron reach",
       waves: "Waves 11 to 20",
       news: [
-        "Iron holds its hits, and volatile rocks blast.",
-        "Comets cross, and burrs cling, slowing you until a dash.",
+        "Iron takes extra hits. Volatile rocks blow up.",
+        "Comets fly across. Burrs slow you down until you dash.",
       ],
       wave: "Wave 11, Ore",
     });
@@ -53,7 +53,7 @@ describe("sectorCardOf", () => {
   it("opens the run at its first wave", () => {
     expect(cardAt(1, true)).toMatchObject({
       opensRun: true,
-      kicker: "A new run",
+      kicker: "A new game",
       name: "Inner belt",
       wave: "Wave 1, First light",
     });
@@ -61,7 +61,7 @@ describe("sectorCardOf", () => {
 
   it("opens the run where it starts, though that is no sector's first wave", () => {
     expect(cardAt(4, true)).toMatchObject({
-      kicker: "A new run",
+      kicker: "A new game",
       name: "Inner belt",
       wave: "Wave 4, Thaw",
     });
@@ -116,7 +116,7 @@ describe("describeSector", () => {
     if (!card) throw new Error("Wave 11 opens no sector.");
 
     expect(describeSector(card, "Wave 11, Ore. 9 rocks.")).toBe(
-      "A new sector: Iron reach. Waves 11 to 20. Iron holds its hits, and volatile rocks blast. Comets cross, and burrs cling, slowing you until a dash. Wave 11, Ore. 9 rocks. It starts when you fly.",
+      "A new sector: Iron reach. Waves 11 to 20. Iron takes extra hits. Volatile rocks blow up. Comets fly across. Burrs slow you down until you dash. Wave 11, Ore. 9 rocks. It starts when you fly.",
     );
   });
 });

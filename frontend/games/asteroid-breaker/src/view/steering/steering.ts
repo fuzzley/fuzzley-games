@@ -115,7 +115,7 @@ export class Steering {
 
   /**
    * Takes where the field and the deck now lie on the canvas, as the
-   * board's setting says, whose "Fire by itself" has the ship fire every
+   * board's setting says, whose "Auto-fire" has the ship fire every
    * frame.
    * Every finger goes on asking what it did until it moves, as where it lies
    * on the new canvas is unknown till then.

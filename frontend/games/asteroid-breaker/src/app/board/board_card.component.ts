@@ -100,15 +100,15 @@ export class BoardCardComponent {
     const { deck, stickOnRight, fireByItself } = this.board();
     if (!deck) {
       return fireByItself
-        ? "Arrows or W A D to fly; the ship fires by itself."
+        ? "Arrows or W A D to fly."
         : "Arrows or W A D to fly, Space to fire.";
     }
     const [stick, buttons] = stickOnRight
       ? ["right", "left"]
       : ["left", "right"];
     return fireByItself
-      ? `Steer with the ${stick} pad; the ship fires by itself.`
-      : `Steer with the ${stick} pad, fire with the ${buttons}.`;
+      ? `Steer with the ${stick} stick.`
+      : `Steer with the ${stick} stick, fire with the ${buttons}.`;
   });
 
   /** The run's score, as the cards write it. */
@@ -130,8 +130,8 @@ export class BoardCardComponent {
   protected readonly clearedTitle = computed(() => {
     const { number, sector } = this.game.wave();
     return this.game.beforeEndless()
-      ? `${sector.name} cleared. Endless begins.`
-      : `Wave ${String(number)} cleared`;
+      ? `${sector.name} cleared! Endless begins.`
+      : `Wave ${String(number)} cleared!`;
   });
 
   /** The crew aboard as the run holds it, the one at the controls first, as the Paused and the Cleared card draw them. */

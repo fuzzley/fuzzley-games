@@ -30,16 +30,15 @@ const DECK_INFO: Readonly<
 > = {
   auto: {
     name: "On a touch screen",
-    detail:
-      "The stick, Fire and Dash show beside the field where the screen takes a finger.",
+    detail: "Shown only when you play by touch.",
   },
   always: {
     name: "Always",
-    detail: "They show on every screen, and a mouse can press them.",
+    detail: "Shown on every screen. You can click them with a mouse.",
   },
   never: {
     name: "Never",
-    detail: "The keys and the mouse fly the ship.",
+    detail: "Fly with the keyboard and the mouse.",
   },
 };
 

@@ -247,7 +247,7 @@ describe("AppComponent", () => {
       await endedApp();
 
       expect(
-        screen.getByRole("alertdialog", { name: "Everyone is home." }),
+        screen.getByRole("alertdialog", { name: "Game over" }),
       ).toBeVisible();
     });
 
