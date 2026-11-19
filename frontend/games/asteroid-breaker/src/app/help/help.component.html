@@ -1,23 +1,7 @@
 <fz-help-dialog [open]="open()" (closed)="closed.emit()">
-  <p>
-    Fly the ship and break every rock on the field to clear the wave. The field
-    wraps: what leaves by one edge comes back by the other. The waves go on as
-    long as the crew lasts.
-  </p>
-  <p><strong>The crew.</strong> {{ crew }}</p>
-  <p>
-    <strong>Scoring.</strong> Each rock scores by its kind and its size, a
-    smaller one more. {{ scoring.sparks }} {{ scoring.strays }}
-    {{ scoring.clearing }}
-  </p>
-  <p><strong>Static.</strong> {{ charge }}</p>
-  <p><strong>Dashing.</strong> {{ dashing }}</p>
-  <p>
-    <strong>Pausing.</strong> The game pauses itself when you switch away, turn
-    the screen or open a dialog, and goes on only when you say.
-  </p>
+  <p>{{ top }}</p>
 
-  <table>
+  <table aria-label="Controls">
     <thead>
       <tr>
         <td></td>
@@ -29,23 +13,21 @@
     <tbody>
       <tr>
         <th scope="row">Turn</th>
-        <td>Point; the ship turns toward the pointer</td>
-        <td>Push the stick the way to face</td>
-        <td>
-          Hold <kbd>←</kbd> or <kbd>→</kbd>, or <kbd>A</kbd> or <kbd>D</kbd>
-        </td>
+        <td>Point</td>
+        <td>Stick</td>
+        <td><kbd>←</kbd> <kbd>→</kbd> or <kbd>A</kbd> <kbd>D</kbd></td>
       </tr>
       <tr>
         <th scope="row">Thrust</th>
         <td>Hold the right button</td>
         <td>Push the stick further</td>
-        <td>Hold <kbd>↑</kbd> or <kbd>W</kbd></td>
+        <td><kbd>↑</kbd> or <kbd>W</kbd></td>
       </tr>
       <tr>
         <th scope="row">Fire</th>
         <td>Hold the left button</td>
-        <td>Hold Fire, or, in the settings, have the ship fire by itself</td>
-        <td>Hold <kbd>Space</kbd></td>
+        <td>Hold Fire</td>
+        <td><kbd>Space</kbd></td>
       </tr>
       <tr>
         <th scope="row">Dash</th>
@@ -54,26 +36,47 @@
         <td><kbd>Shift</kbd>, <kbd>↓</kbd> or <kbd>S</kbd></td>
       </tr>
       <tr>
-        <th scope="row">Pause, or go on</th>
-        <td>Pause, then Resume</td>
-        <td>Pause, then Resume, or move or fire</td>
-        <td>
-          <kbd>P</kbd>; <kbd>Esc</kbd> pauses, and <kbd>Enter</kbd> or a flight
-          key goes on
-        </td>
+        <th scope="row">Pause</th>
+        <td>Pause</td>
+        <td>Pause</td>
+        <td><kbd>P</kbd> or <kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Resume</th>
+        <td>Resume</td>
+        <td>Resume, the stick or a touch button</td>
+        <td><kbd>P</kbd>, <kbd>Enter</kbd> or any key you fly with</td>
       </tr>
       <tr>
         <th scope="row">Next wave</th>
         <td>Next wave</td>
-        <td>Move or fire</td>
-        <td><kbd>Enter</kbd> or a flight key</td>
+        <td>Next wave, the stick or a touch button</td>
+        <td><kbd>Enter</kbd> or any key you fly with</td>
       </tr>
       <tr>
-        <th scope="row">Start again, once a run has ended</th>
+        <th scope="row">New game, after a game ends</th>
         <td>New game</td>
-        <td>New game, or move or fire</td>
-        <td><kbd>Enter</kbd>, <kbd>P</kbd> or a flight key</td>
+        <td>New game, the stick or a touch button</td>
+        <td><kbd>Enter</kbd>, <kbd>P</kbd> or any key you fly with</td>
       </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Your crew.</strong> {{ crew }}</p>
+  <p><strong>Static.</strong> {{ charge }}</p>
+  <p><strong>Dashing.</strong> {{ dashing }}</p>
+  <p>
+    <strong>Scoring.</strong> Static multiplies the points for rocks, sparks,
+    burrs and strays.
+  </p>
+  <table aria-label="Scoring">
+    <tbody>
+      @for (line of scoring; track line.what) {
+        <tr>
+          <th scope="row">{{ line.what }}</th>
+          <td>{{ line.points }}</td>
+        </tr>
+      }
     </tbody>
   </table>
 

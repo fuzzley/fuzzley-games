@@ -38,44 +38,43 @@ export interface Pickup {
 export const PICKUPS = {
   spread: {
     name: "Spread",
-    about: "Three shots at each pull, 12° apart, for 12 seconds.",
+    about: "Fires 3 shots at once for 12 seconds.",
     weight: 10,
     from: 2,
     effect: { kind: "weapon", weapon: "spread", ms: 12_000 },
   },
   rapid: {
     name: "Rapid",
-    about: "A shot twice as often, for 12 seconds.",
+    about: "Fires twice as often for 12 seconds.",
     weight: 9,
     from: 2,
     effect: { kind: "weapon", weapon: "rapid", ms: 12_000 },
   },
   shield: {
     name: "Shield",
-    about:
-      "The next rock or comet to touch the ship breaks a size down instead, and the shield goes.",
+    about: "Blocks the next rock or comet that hits your ship.",
     weight: 7,
     from: 2,
     effect: { kind: "guard" },
   },
   lance: {
     name: "Lance",
-    about:
-      "A shot flies on through what it breaks, up to three rocks, for 10 seconds.",
+    about: "Fires shots that break up to 3 rocks each. Lasts 10 seconds.",
     weight: 6,
     from: 6,
     effect: { kind: "weapon", weapon: "lance", ms: 10_000 },
   },
   magnet: {
     name: "Magnet",
-    about: "Draws pickups, sparks and strays in from 14 units, for 15 seconds.",
+    about:
+      "Pulls in pickups, sparks and fuzzballs from 14 units for 15 seconds.",
     weight: 5,
     from: 6,
     effect: { kind: "pull", reach: 14, ms: 15_000 },
   },
   slow: {
     name: "Slow",
-    about: "Rocks and comets move at half their speed, for 8 seconds.",
+    about: "Slows rocks and comets to half speed for 8 seconds.",
     weight: 5,
     from: 8,
     effect: { kind: "pace", scale: 0.5, ms: 8000 },

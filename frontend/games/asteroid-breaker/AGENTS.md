@@ -1309,16 +1309,17 @@ takes for the specs' helpers.
     since the card hides the page's announcer a moment after the run's end
     is said there, or on the next frame where motion isn't welcome, which
     cuts the words short or loses them.
-  - `help/` — How to play: the aim, the crew in tow as the ship's lives,
-    a hit knocking one loose and how long it waits to be caught again, and
-    the scoring, from `tuning.ts`'s numbers, static, the multiplier's
-    ladder worded by `@fz/core/format`'s `tierWords()`, the near misses that
-    raise it and the fur and the arcs that show it, dashing and the zap at
-    full static, pausing, the controls by
-    mouse, touch and keyboard, and every kind of rock and pickup from the
-    catalogs, a stray, the comet and a burr, each with its name, its
-    sentence and, once the scene has drawn, its picture, which the app asks
-    the board for only while How to play is open.
+  - `help/` — How to play, in the shape the `player-text` skill gives it:
+    the goal, the crew as the ship's lives and how the game ends, with the
+    written waves' count; the controls by mouse, touch and keyboard; then
+    the crew and how long one knocked loose waits to be caught again,
+    static, its multiplier's ladder worded by `@fz/core/format`'s
+    `tierWords()`, and dashing and the zap at full static, from
+    `tuning.ts`'s numbers; a table of what each thing scores, the rocks'
+    span and a boulder's from the catalog; and every kind of rock and
+    pickup from the catalogs, a stray, the comet and a burr, each with its
+    name, its sentence and, once the scene has drawn, its picture, which
+    the app asks the board for only while How to play is open.
   - `settings/` — the settings drawer (the speed, when the deck shows, which
     side holds its stick, whether the ship fires by itself, haptics, the sound
     and each part of it, the effects, the voice and the bed, mono and the
