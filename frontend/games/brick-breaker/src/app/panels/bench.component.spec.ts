@@ -54,7 +54,7 @@ async function renderBench({
       palette: ART_PALETTE,
     },
   });
-  return screen.getByRole("region", { name: "The bench" });
+  return screen.getByRole("region", { name: "Level and lives" });
 }
 
 /**
@@ -94,7 +94,7 @@ describe("BenchComponent", () => {
     const panel = await renderBench();
 
     expect(panel).toContainElement(
-      screen.getByRole("heading", { level: 2, name: "The bench" }),
+      screen.getByRole("heading", { level: 2, name: "Level and lives" }),
     );
   });
 

@@ -46,8 +46,8 @@ describe("describe", () => {
 
   it("says a capsule that pays pays double as it is caught", () => {
     expect([describeCaught("narrow"), describeCaught("fast")]).toEqual([
-      "Narrow paddle. Double pay.",
-      "Fast ball. Double pay.",
+      "Narrow paddle. Double score.",
+      "Fast ball. Double score.",
     ]);
   });
 
@@ -124,7 +124,7 @@ describe("describe", () => {
 
   it("says a level is cleared, with the score", () => {
     expect(describeCleared(runAt({ outcome: "cleared" }))).toBe(
-      "Level 3 cleared! Score 4,250.",
+      "Level 3 cleared. Score 4,250.",
     );
   });
 
@@ -137,31 +137,25 @@ describe("describe", () => {
   });
 
   it.each([
-    [["clean"], "1 new star, for losing no life."],
-    [
-      ["clear", "streak"],
-      "2 new stars, for clearing the level and reaching a streak of 15.",
-    ],
-    [
-      ["clear", "clean", "streak"],
-      "3 new stars, for clearing the level, losing no life and reaching a streak of 15.",
-    ],
-  ] as const)("says the stars %j won, and what for", (won, words) => {
-    expect(describeStarsWon(won, 15)).toBe(words);
+    [["clean"], "1 new star."],
+    [["clear", "streak"], "2 new stars."],
+    [["clear", "clean", "streak"], "3 new stars."],
+  ] as const)("says how many stars %j won", (won, words) => {
+    expect(describeStarsWon(won)).toBe(words);
   });
 
   it("says nothing of stars where a clearing won none", () => {
-    expect(describeStarsWon([], 15)).toBeNull();
+    expect(describeStarsWon([])).toBeNull();
   });
 
-  it("says a run is paused, with the score, and how to go on", () => {
+  it("says a run is paused, with the score, and how to resume", () => {
     expect(describePause(runAt({ outcome: "paused" }))).toBe(
-      "Paused, with a score of 4,250. Press Enter to go on.",
+      "Paused. Score 4,250. Press Enter to resume.",
     );
   });
 
-  it("says a paused run goes on", () => {
-    expect(describeResume()).toBe("Going on.");
+  it("says a paused run resumes", () => {
+    expect(describeResume()).toBe("Resumed.");
   });
 
   it("says where a run taken up after a reload stands, paused", () => {
@@ -169,14 +163,18 @@ describe("describe", () => {
     if (!pyramid) throw new Error("No third level.");
 
     expect(describeTakenUp(runAt({ lives: 1 }), pyramid)).toBe(
-      "Your last run is paused on level 3, Pyramid, with a score of 4,250 and 1 life. Press Enter to go on.",
+      "Paused on level 3, Pyramid. Score 4,250. 1 life. Press Enter to resume.",
     );
   });
 
   it.each([
-    ["over", false, "Game over. Score 4,250, at level 3."],
-    ["over", true, "Game over. Score 4,250, at level 3. A new best!"],
-    ["won", false, "Every level cleared! Score 4,250, at level 3."],
+    ["over", false, "Game over. Out of lives on level 3. Score 4,250."],
+    [
+      "over",
+      true,
+      "Game over. Out of lives on level 3. Score 4,250. New best.",
+    ],
+    ["won", false, "Every level cleared. Score 4,250."],
   ] as const)(
     "says a run %s ends (a new best: %s)",
     (outcome, newBest, words) => {

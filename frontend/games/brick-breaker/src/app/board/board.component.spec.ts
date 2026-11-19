@@ -166,7 +166,7 @@ describe("BoardComponent", () => {
         name: "Brick Breaker, level 1: Blasts",
       });
       expect(board).toHaveAccessibleDescription(
-        /^The left and right arrow keys/,
+        "Left and Right, or A and D: move the paddle. Space: launch the ball, or fire. P: pause and resume. Esc: pause. Enter: resume, or go to the next level.",
       );
     });
 
@@ -771,7 +771,7 @@ describe("BoardComponent", () => {
         FIELD_HEIGHT,
       );
       expect({
-        left: screen.getByRole("region", { name: "The bench" }),
+        left: screen.getByRole("region", { name: "Level and lives" }),
         right: screen.getByRole("region", { name: "In play" }),
       }).toEqual({
         left: expect.toHaveStyle(cssRectStyle(panels!.left)) as unknown,
@@ -806,7 +806,7 @@ describe("BoardComponent", () => {
       resize(board, WIDE.width, WIDE.height);
       detectChanges();
 
-      const bench = screen.getByRole("region", { name: "The bench" });
+      const bench = screen.getByRole("region", { name: "Level and lives" });
       const inPlay = screen.getByRole("region", { name: "In play" });
       expect(within(bench).getByText("Level 3 · Specs")).toBeInTheDocument();
       expect(within(bench).getByText("Few")).toBeInTheDocument();
@@ -821,7 +821,7 @@ describe("BoardComponent", () => {
       detectChanges();
 
       expect(
-        starsHeard(screen.getByRole("region", { name: "The bench" })),
+        starsHeard(screen.getByRole("region", { name: "Level and lives" })),
       ).toEqual([
         "Clear the level, won",
         "Don't lose a life, not won yet",

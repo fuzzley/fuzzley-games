@@ -1,4 +1,4 @@
-import { count, formatPoints, listed } from "@fz/core/format";
+import { count, formatPoints } from "@fz/core/format";
 import { type CapsuleId, capsule } from "../catalog/capsules";
 import type { LevelEntry } from "../levels/levels";
 import type { Run } from "./run";
@@ -17,10 +17,10 @@ export function describeLevel(entry: LevelEntry, needed: number): string {
   return `Level ${String(entry.number)}, ${entry.data.name}. ${count(needed, "brick", "bricks")}.`;
 }
 
-/** Returns what is said as a capsule is caught: its name, and that it pays double if it does. */
+/** Returns what is said as a capsule is caught: its name, and that bricks score double while it lasts, if they do. */
 export function describeCaught(id: CapsuleId): string {
   const { name, pays } = capsule(id);
-  return pays === undefined ? `${name}.` : `${name}. Double pay.`;
+  return pays === undefined ? `${name}.` : `${name}. Double score.`;
 }
 
 /**
@@ -63,7 +63,7 @@ export function describeOpened(): string {
 
 /** Returns what is said as a level is cleared, short of the last: the level and the score. */
 export function describeCleared(run: Run): string {
-  return `Level ${String(run.level)} cleared! Score ${formatPoints(run.score)}.`;
+  return `Level ${String(run.level)} cleared. Score ${formatPoints(run.score)}.`;
 }
 
 /**
@@ -84,43 +84,27 @@ export function starAsks(id: StarId, mark: number): string {
 
 /**
  * Returns what is said of the stars a level's clearing won that it didn't
- * hold before, and what each was won for, or null for none:
- * "2 new stars, for clearing the level and losing no life."
+ * hold before, "2 new stars.", or null for none. The Cleared card's list
+ * says which they are.
  */
-export function describeStarsWon(
-  won: readonly StarId[],
-  mark: number,
-): string | null {
+export function describeStarsWon(won: readonly StarId[]): string | null {
   if (won.length === 0) return null;
-  const reasons = won.map((id) => starWonFor(id, mark));
-  return `${count(won.length, "new star", "new stars")}, for ${listed(reasons)}.`;
-}
-
-/** Returns what a star is won for, as the announcer says it. */
-function starWonFor(id: StarId, mark: number): string {
-  switch (id) {
-    case "clear":
-      return "clearing the level";
-    case "clean":
-      return "losing no life";
-    case "streak":
-      return `reaching a streak of ${String(mark)}`;
-  }
+  return `${count(won.length, "new star", "new stars")}.`;
 }
 
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
-  return `Paused, with a score of ${formatPoints(run.score)}. Press Enter to go on.`;
+  return `Paused. Score ${formatPoints(run.score)}. Press Enter to resume.`;
 }
 
-/** Returns what is said as a paused run goes on. */
+/** Returns what is said as a paused run resumes. */
 export function describeResume(): string {
-  return "Going on.";
+  return "Resumed.";
 }
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: LevelEntry): string {
-  return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name}, with a score of ${formatPoints(run.score)} and ${count(run.lives, "life", "lives")}. Press Enter to go on.`;
+  return `Paused on level ${String(entry.number)}, ${entry.data.name}. Score ${formatPoints(run.score)}. ${count(run.lives, "life", "lives")}. Press Enter to resume.`;
 }
 
 /** Returns what an ended run is called, on its cards and as the announcer says it ends. */
@@ -128,13 +112,22 @@ export function endTitle(run: Pick<Run, "outcome">): string {
   return run.outcome === "won" ? "Every level cleared!" : "Game over";
 }
 
-/** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */
+/**
+ * Returns what is said as a run ends: how, the level a lost one ended on,
+ * the score, and whether it is a new best.
+ */
 export function describeEnd(run: Run, newBest: boolean): string {
-  const best = newBest ? " A new best!" : "";
-  return `${asSentence(endTitle(run))} Score ${formatPoints(run.score)}, at level ${String(run.level)}.${best}`;
+  const where =
+    run.outcome === "won" ? "" : ` Out of lives on level ${String(run.level)}.`;
+  const best = newBest ? " New best." : "";
+  return `${asSpoken(endTitle(run))}${where} Score ${formatPoints(run.score)}.${best}`;
 }
 
-/** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */
-function asSentence(words: string): string {
-  return /[.!?]$/.test(words) ? words : `${words}.`;
+/**
+ * Returns words as a sentence to be said: ending in a full stop, in place
+ * of the exclamation mark a card may show, which a screen reader doesn't
+ * read.
+ */
+function asSpoken(words: string): string {
+  return `${words.replace(/[.!]$/, "")}.`;
 }
