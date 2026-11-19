@@ -43,41 +43,47 @@ look here first. When you settle a new one, add it.
 
 ## Plain words for house words
 
-| Write                     | Not                             |
-| ------------------------- | ------------------------------- |
-| resume                    | go on                           |
-| cancel                    | call off                        |
-| close                     | put away                        |
-| automatically, on its own | by itself                       |
-| bounces off               | turns off, turns back           |
-| drains its charge         | earths its charge               |
-| scores double             | pays double                     |
-| unlocks                   | opens (for a level or a sector) |
-| following you             | in tow                          |
-| moves down 1 row          | comes down a row                |
-| only                      | alone (after a noun)            |
-| like                      | as … does                       |
-| when                      | as (for time)                   |
-| the bottom row            | the floor's row                 |
-| can't be broken           | never breaks                    |
-
-| P | the key above the right little finger's home key |
+| Write                     | Not                                              |
+| ------------------------- | ------------------------------------------------ |
+| resume                    | go on                                            |
+| cancel                    | call off                                         |
+| close                     | put away                                         |
+| automatically, on its own | by itself                                        |
+| bounces off               | turns off, turns back                            |
+| drains its charge         | earths its charge                                |
+| scores double             | pays double                                      |
+| unlocks                   | opens (for a level or a sector)                  |
+| following you             | in tow                                           |
+| moves down 1 row          | comes down a row                                 |
+| only                      | alone (after a noun)                             |
+| like                      | as … does                                        |
+| when                      | as (for time)                                    |
+| the bottom row            | the floor's row                                  |
+| can't be broken           | never breaks                                     |
+| open a square             | reveal, step on                                  |
+| can go in a square        | holds, takes                                     |
+| spare (lives, balls)      | waiting, in hand                                 |
+| Next life at 60,000       | A life at 60,000                                 |
+| P                         | the key above the right little finger's home key |
 
 ## Words each game keeps
 
 These are part of the games. The player sees them on the screen, so use them and
 spell them the same way every time.
 
-- **Brick Breaker:** paddle, ball, brick, capsule, laser, streak, star.
+- **Brick Breaker:** paddle, ball, brick, capsule, laser, streak, star, Double
+  score.
 - **Brick Fuzz Pop:** fuzzball, charge, static, zap, blast, boon, the wall, the
   dashed line, Fast-forward, Drop.
 - **Asteroid Breaker:** ship, rock, comet, dash, shield, spark, stray, crew,
   static, burr.
 - **Snake:** snake, apple.
 - **Minesweeper:** field, square, mine, flag, lives.
-- **Sudoku:** square, row, column, box, digit, notes, hint.
+- **Sudoku:** square, row, column, box, digit, given, notes, hint, Fill in
+  notes, Auto-clear notes, Mark mistakes.
 - **Solitaire:** foundation, tableau, column, stock, waste, free cell, reserve,
-  deal, redeal, suit, rank.
+  deal, redeal, suit, rank, run, Card back, Card style, Desktop deck. A rules
+  page does not say where a pile is on the screen.
 
 ## Spelling and form
 

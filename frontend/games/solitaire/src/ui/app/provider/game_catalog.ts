@@ -1392,8 +1392,8 @@ const PENGUIN = {
   layout: PENGUIN_LAYOUT,
   arrangement: {
     layouts: PENGUIN_ARRANGED_LAYOUTS,
-    pilesName: "flipper and foundations",
-    sideName: "flipper",
+    pilesName: "free cells and foundations",
+    sideName: "free cells",
   },
   create: () => dealt(new PenguinGame()),
 } satisfies CatalogEntry<PenguinGame>;

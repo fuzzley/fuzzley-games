@@ -96,7 +96,8 @@ start with the facts they came for.
    each suit up from Ace to King." There is no separate win condition. It would
    say the same thing.
 3. **Layout.** One line for each pile on the table, as a label and what it is:
-   "Stock: the cards left over, face down at the top left."
+   "Stock: the cards left over, face down." Do not say where a pile is on the
+   screen. The table is arranged differently on a phone.
 4. **Moves.** What you can pick up and where it can go. Use "you can" and
    "only". "You can move a face-up run as one. Only a King can fill an empty
    column."

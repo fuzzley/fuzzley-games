@@ -254,14 +254,14 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     simplesimon: {
       family: "spider",
-      tagline: "Spider with 1 deck, every card face-up and no stock.",
+      tagline: "Spider with 1 deck, every card face up and no stock.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
     },
     mrsmop: {
       family: "spider",
-      tagline: "2 decks dealt face-up across 13 columns, with no stock.",
+      tagline: "2 decks dealt face up across 13 columns, with no stock.",
       difficulty: Difficulty.MEDIUM,
       decks: 2,
       allCardsVisible: true,
@@ -381,7 +381,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     montana: {
       family: "other",
-      tagline: "Move cards into the gaps to sort 4 rows of 13.",
+      tagline: "Move cards into the gaps to sort each row by suit, 2 to King.",
       difficulty: Difficulty.MEDIUM,
       decks: 1,
       allCardsVisible: true,
@@ -677,7 +677,7 @@ export const GAME_PROFILE_REGISTRY: CompleteGameProfiles = {
     },
     fortress: {
       family: "castle",
-      tagline: "10 open rows built up or down by suit, with the Aces buried.",
+      tagline: "Free the Aces from 10 open rows, building up or down by suit.",
       difficulty: Difficulty.HARD,
       decks: 1,
       allCardsVisible: true,

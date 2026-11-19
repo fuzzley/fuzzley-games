@@ -76,7 +76,7 @@ class StagedRun extends SpecRun {
 /** New game's question, as the confirmation shows it. */
 const NEW_GAME_PROMPT = {
   title: "Start a new game?",
-  message: "The run in progress will be lost.",
+  message: "You'll lose the game in progress.",
   confirmLabel: "New game",
   cancelLabel: "Cancel",
   tone: "danger",
@@ -312,7 +312,7 @@ describe("RunLifecycle", () => {
     it("asks New game's question, naming the speed", () => {
       expect(speedQuestion("Fast")).toEqual({
         title: "Start a new Fast game?",
-        message: "The run in progress will be lost.",
+        message: "You'll lose the game in progress.",
         confirmLabel: "New game",
         tone: "danger",
       });

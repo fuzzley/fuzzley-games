@@ -4,49 +4,49 @@
 
 The table is drawn with [Phaser 4](https://phaser.io/), in an [Angular 22](https://angular.dev/) shell styled with [Sass](https://sass-lang.com/).
 
-## Included Solitaire Games
+## The games
 
-- **Klondike**: Classic solitaire supporting Draw 1 and Draw 3 modes and standard or Vegas scoring, with Whitehead, Thumb and Pouch, and Saratoga rule variants.
-- **FreeCell**: The classic open-information solitaire puzzle game with four reserve cells.
-- **Spider**: Multi-suit spider solitaire with options for 1-Suit (Easy), 2-Suit (Medium), and 4-Suit (Hard) games.
-- **Yukon**: Playable in standard Yukon, Alaska, Russian Solitaire, and Moosehide variants.
-- **Baker's Game**: Predecessor to FreeCell with same-suit column building, with choices for Any Card or Kings Only empty columns.
-- **Challenge FreeCell**: FreeCell with the Aces and Twos dealt to the bottom of the columns, with Super Challenge FreeCell's Kings-only empty columns as an option.
-- **Eight Off**: FreeCell cousin featuring eight reserve cells, same-suit column building, and Kings-only empty columns.
-- **Scorpion**: Yukon-style unconstrained card group moves to build same-suit descending runs, with a 3-card reserve stock; playable as Scorpion, Wasp, or Scorpion II.
-- **Simple Simon**: Spider-style building and completion on an open board of ten columns with all 52 cards dealt face-up and no stock.
-- **Mrs. Mop**: Simple Simon's rules with two decks dealt face-up across thirteen 8-card columns.
-- **Baker's Dozen**: Thirteen 4-card columns with Kings sunk to the bottom; columns build down by rank in any suit, and cleared columns cannot be refilled.
-- **Seahaven Towers**: Tight reserve-cell game with ten 5-card columns, four cells, same-suit building, and Kings-only empty columns.
-- **Spiderette**: Single-deck Spider on seven columns with row-dealing stock; playable in standard staircase deal or Will o' the Wisp (flat 3 cards per column).
-- **Easthaven**: Blends Klondike's alternating-colour building and foundations with Spider's row-dealing stock across seven columns.
-- **Forty Thieves**: Two-deck patience with 10 columns of 4 cards, eight foundations, single-card moves, and no stock recycling; supports standard Forty Thieves, Josephine, Rank and File, Indian, and Number Ten variants.
-- **Maria**: Forty Thieves variant on a 9-column grid, building down in alternating colours with multi-card run moves.
-- **Limited**: Forty Thieves variant on a wide 12-column grid of 3-card columns with same-suit building and multi-card run moves.
-- **Lucas**: Forty Thieves variant with the eight Aces dealt to the foundations and thirteen 3-card columns, building in suit with same-suit runs.
-- **Double Klondike**: Two-deck Klondike dealt across nine columns with eight foundations and unlimited stock recycles.
-- **Montana**: Gaps-style solitaire played on a 4×13 grid without Aces; sort rows from Two to King in suit into spaces left by moved cards, featuring two redeals, or three as Addiction.
-- **Blue Moon**: Montana with the Aces in play, fixed at the start of four 14-cell rows; Red Moon, which deals the gaps beside the Aces, is its deal option.
-- **Bisley**: Thirteen open columns building up or down in suit, played onto foundations that climb from each Ace and descend from each King.
-- **Aces Up**: Four columns dealt a card at a time, discarding every card a higher card of its suit outranks until only the Aces remain; spaces can take any card, or only Aces.
-- **Golf**: Seven open columns cleared onto a single foundation one rank up or down at a time, with a one-pass stock; Golf, Queens on Kings, and Putt Putt, which turns the corner from King to Ace.
-- **Calculation**: Four foundations built regardless of suit by ones, twos, threes and fours, from a stock turned a card at a time onto four waste piles; Sir Tommy, which builds every foundation up from an Ace, is its variant option.
-- **Flower Garden**: Six open beds built down regardless of suit, and a sixteen-card bouquet whose every card is free to play.
-- **Bristol**: Eight fans of three built down regardless of suit, three reserves the stock deals onto, and foundations built up regardless of suit; Belvedere, which starts with one Ace on a foundation, is its variant option.
-- **Nestor**: Eight open columns and a four-card reserve, cleared by pairing free cards of the same rank.
-- **Monte Carlo**: A five-by-five grid cleared by pairing touching cards of the same rank, then closed up and refilled from the stock; Monte Carlo Thirteens, which pairs cards adding up to thirteen, is its variant option.
-- **La Belle Lucie**: Seventeen fans of three and one single card, built down in suit, with two redeals; The Fan and Shamrocks are its variant options.
-- **Trefoil**: La Belle Lucie with the Aces dealt to the foundations and the rest in sixteen fans of three.
-- **Canfield**: Four columns fed from a thirteen-card reserve onto foundations that start on a rank the deal chooses and turn the corner from King to Ace; Storehouse, Superior Canfield and Rainbow are its variant options.
-- **Penguin**: Seven open columns built down in suit round the corner, a seven-cell flipper, and foundations that start on the rank of the first card dealt.
-- **Black Hole**: Seventeen open fans of three played into a single foundation started with the Ace of Spades, one rank up or down with King and Ace adjacent.
-- **All in a Row**: Black Hole's rules on thirteen columns of four, with the foundation started by any card.
-- **Grandfather's Clock**: Twelve foundations laid round a dial, each built up in suit round the corner to the hour it stands at, from eight open columns.
-- **Pyramid**: A pyramid of twenty-eight cards taken apart by pairing free cards that total thirteen, with Kings going alone and a stock turned one card at a time; the goal can be every card or the pyramid alone (Relaxed Pyramid), with one pass or three.
-- **TriPeaks**: Three overlapping peaks cleared onto a single waste one rank up or down with King and Ace adjacent, each face-down card turning up once nothing covers it.
-- **Beleaguered Castle**: Eight open rows fanned sideways around a column of Aces, built down regardless of suit one card at a time; Streets and Alleys and Citadel are its variant options.
-- **Fortress**: Ten open rows fanned sideways, built up or down in suit, with every Ace buried.
-- **Poker Squares**: Twenty-five cards placed one at a time in a five-by-five grid, every row and column scored as a poker hand, by American or English scoring.
+- **Klondike**: Build down in alternating colors. Draw 3, or Draw 1 for an easier game. Variants: Whitehead, Thumb and Pouch, Saratoga.
+- **FreeCell**: Build down in alternating colors, with 4 free cells to park cards in.
+- **Spider**: Build King-to-Ace runs by suit across 10 columns.
+- **Yukon**: No stock. Move any face-up card, along with everything on top of it. Variants: Alaska, Russian Solitaire, Moosehide.
+- **Baker's Game**: FreeCell's ancestor. Build the columns down by suit.
+- **Challenge FreeCell**: FreeCell with every Ace and 2 dealt to the bottom. Variant: Super Challenge FreeCell.
+- **Eight Off**: 8 cells, 4 of them filled, and columns that build down by suit.
+- **Scorpion**: Move any face-up card to build King-to-Ace runs by suit, like Spider. Variants: Wasp, Scorpion II.
+- **Simple Simon**: Spider with 1 deck, every card face up and no stock.
+- **Mrs. Mop**: 2 decks dealt face up across 13 columns, with no stock.
+- **Baker's Dozen**: 13 columns with the Kings at the bottom. Empty columns stay empty.
+- **Seahaven Towers**: 10 columns and 4 cells. Build by suit. Only Kings go in empty columns.
+- **Spiderette**: Spider with 1 deck, on 7 columns. Variant: Will o' the Wisp.
+- **Easthaven**: Like Klondike, but the stock deals a card onto every column.
+- **Forty Thieves**: Build down by suit across 10 columns. Move 1 card at a time. Variants: Josephine, Rank and File, Indian, Number Ten.
+- **Maria**: Forty Thieves on 9 columns, in alternating colors.
+- **Limited**: Forty Thieves spread over 12 shallow columns.
+- **Lucas**: 13 columns of 3, with the Aces already on the foundations.
+- **Double Klondike**: Klondike from 2 decks, on 9 columns.
+- **Montana**: Move cards into the gaps to sort each row by suit, 2 to King. Variant: Addiction.
+- **Blue Moon**: Montana with the Aces in play, at the start of each row. Variant: Red Moon.
+- **Bisley**: Build each suit up from its Ace and down from its King.
+- **Aces Up**: Discard any card that has a higher card of its suit showing.
+- **Golf**: Clear 7 columns by playing cards 1 rank up or down onto 1 pile. Variants: Queens on Kings, Putt Putt.
+- **Calculation**: Build 4 foundations, counting up by 1s, 2s, 3s and 4s. Variant: Sir Tommy.
+- **Flower Garden**: 6 beds, and a bouquet of 16 cards you can play at any time.
+- **Bristol**: 8 fans, and 3 reserves that the stock deals onto. Variant: Belvedere.
+- **Nestor**: Pair free cards of the same rank until the board is clear.
+- **Monte Carlo**: Pair touching cards in a 5 by 5 grid, then close the gaps. Variant: Monte Carlo Thirteens.
+- **La Belle Lucie**: 18 fans built down by suit, with 2 redeals. Variants: The Fan, Shamrocks.
+- **Trefoil**: La Belle Lucie with the Aces already on the foundations.
+- **Canfield**: Clear a 13-card reserve. Foundations start at the rank the deal turns up. Variants: Storehouse, Superior Canfield, Rainbow.
+- **Penguin**: 7 columns, 7 cells. Foundations start at the rank of the first card dealt.
+- **Black Hole**: Play every card into the hole, 1 rank up or down.
+- **All in a Row**: 13 columns of 4. Play every card onto 1 pile, starting with any card.
+- **Grandfather's Clock**: Build 12 foundations around a clock face, each up to its hour.
+- **Pyramid**: Pair free cards that add up to 13 to take the pyramid apart. Variant: Relaxed Pyramid.
+- **TriPeaks**: Clear 3 peaks by playing cards 1 rank up or down onto the waste.
+- **Beleaguered Castle**: 8 open rows around the Aces. Move 1 card at a time. Variants: Streets and Alleys, Citadel.
+- **Fortress**: Free the Aces from 10 open rows, building up or down by suit.
+- **Poker Squares**: Place 25 cards in a grid to make 10 poker hands.
 
 ## Development
 
