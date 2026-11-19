@@ -73,7 +73,9 @@ describe("ResultComponent", () => {
     game.enter(6);
 
     expect(
-      await screen.findByText("Solved before, so not counted again."),
+      await screen.findByText(
+        "You solved this one before, so it doesn't count again.",
+      ),
     ).toBeInTheDocument();
   });
 

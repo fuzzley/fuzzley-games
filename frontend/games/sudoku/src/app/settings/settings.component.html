@@ -26,7 +26,7 @@
       />
       <label for="mark-mistakes">Mark mistakes</label>
       <p class="setting-desc" id="mark-mistakes-desc">
-        Marks a digit the solution doesn't hold, as a repeat is marked.
+        Marks any digit that doesn't match the solution, not only repeats.
       </p>
     </div>
     <div class="setting-check">
@@ -38,9 +38,9 @@
         [checked]="settings().clearNotes"
         (change)="setAssist('clearNotes', clearNotes.checked)"
       />
-      <label for="clear-notes">Remove notes as digits go in</label>
+      <label for="clear-notes">Auto-clear notes</label>
       <p class="setting-desc" id="clear-notes-desc">
-        A digit you place comes out of the notes of the squares it sees.
+        Placing a digit removes it from the notes in its row, column and box.
       </p>
     </div>
   </div>

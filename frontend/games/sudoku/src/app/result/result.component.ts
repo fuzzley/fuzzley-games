@@ -71,7 +71,8 @@ export class ResultComponent {
    * hints.
    */
   protected readonly note = computed(() => {
-    if (this.game.replay()) return "Solved before, so not counted again.";
+    if (this.game.replay())
+      return "You solved this one before, so it doesn't count again.";
     const { hints } = this.game.grid();
     return hints > 0
       ? `Solved with ${count(hints, "hint", "hints")}, so no best time.`

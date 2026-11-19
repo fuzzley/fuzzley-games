@@ -96,8 +96,8 @@ describe("hintFor", () => {
       unit: [],
       title: "A missing note",
       conclusion:
-        "The notes at row 1, column 2 leave out the digit that belongs there.",
-      text: "The notes at row 1, column 2 leave out the digit that belongs there.",
+        "The notes at row 1, column 2 are missing the digit that goes there.",
+      text: "The notes at row 1, column 2 are missing the digit that goes there.",
     });
   });
 

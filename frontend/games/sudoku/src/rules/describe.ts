@@ -135,7 +135,9 @@ export function describeRefusal(grid: Grid, index: number): string {
   const square = capitalized(squareName(index));
   if (isGiven(grid, index)) return `${square} is given.`;
   const digit = at(grid.digits, index);
-  if (digit !== 0) return `${square} holds a ${digit}, so it takes no notes.`;
+  if (digit !== 0) {
+    return `${square} already has a digit. Erase it to add notes.`;
+  }
   return "Nothing to erase.";
 }
 
@@ -162,7 +164,7 @@ export function describeMistake(grid: Grid, index: number): HintWords {
 
 /** Returns the words of a hint that points out notes missing their digit. */
 export function describeMissingNote(index: number): HintWords {
-  const text = `The notes at ${squareName(index)} leave out the digit that belongs there.`;
+  const text = `The notes at ${squareName(index)} are missing the digit that goes there.`;
   return { title: "A missing note", conclusion: text, text };
 }
 
@@ -171,13 +173,29 @@ function placementWords(step: Placement, afterOthers: boolean): string {
   const { digit, index, unit } = step;
   const square = squareName(index);
   if (unit) {
+    const place = placeIn(unit, index);
     return afterOthers
-      ? `That leaves the ${digit} one place in ${unitName(unit)}: ${square}.`
-      : `In ${unitName(unit)}, the ${digit} can only go in ${square}.`;
+      ? `Now the only place for the ${digit} in ${unitName(unit)} is ${place}.`
+      : `In ${unitName(unit)}, the ${digit} can only go in ${place}.`;
   }
   return afterOthers
-    ? `That leaves ${digit} as the only digit for ${square}.`
+    ? `Now only ${digit} can go in ${square}.`
     : `Only ${digit} can go in ${square}.`;
+}
+
+/**
+ * Returns where a square is within a unit: its column in a row, its row in a
+ * column, and both in a box, such as "column 5" for row 2, column 5 in row 2.
+ */
+function placeIn(unit: Unit, index: number): string {
+  switch (unit.kind) {
+    case "row":
+      return `column ${colOf(index) + 1}`;
+    case "column":
+      return `row ${rowOf(index) + 1}`;
+    case "box":
+      return squareName(index);
+  }
 }
 
 /** Returns the sentence for a step that rules digits out. */
@@ -192,10 +210,10 @@ function eliminationWords(step: Elimination): string {
       return `In ${first}, the ${digitList} can only go in ${second}, so it can't go anywhere else in ${second}.`;
     case "naked-pair":
     case "naked-triple":
-      return `In ${first}, ${countWord(cells.length)} squares can only hold ${digitList}, so no other square there can.`;
+      return `${capitalized(first)} has ${cells.length} squares where only ${digitList} can go. So ${digitList} can't go anywhere else in ${first}.`;
     case "hidden-pair":
     case "hidden-triple":
-      return `In ${first}, the ${digitList} can only go in the same ${countWord(cells.length)} squares, so those squares can hold nothing else.`;
+      return `In ${first}, the ${digitList} can only go in the same ${cells.length} squares, so no other digit can go in those squares.`;
     case "x-wing":
     case "swordfish": {
       const half = units.length / 2;
@@ -205,7 +223,7 @@ function eliminationWords(step: Elimination): string {
     case "xy-wing": {
       const [x, y, z] = digits;
       const [pivot = 0, a = 0, b = 0] = cells;
-      return `The square at ${squareName(pivot)} holds ${x} or ${y}. Either way, the square at ${squareName(a)} or the one at ${squareName(b)} holds ${z}, so no square that sees both can.`;
+      return `The square at ${squareName(pivot)} can only be ${x} or ${y}. Either way, the square at ${squareName(a)} or the one at ${squareName(b)} must be ${z}. So ${z} can't go in any square that shares a row, column or box with both of them.`;
     }
   }
 }
@@ -220,10 +238,6 @@ function notesWords(notes: number): string {
 function linesName(lines: readonly Unit[]): string {
   const numbers = lines.map((line) => String(line.n + 1));
   return `${lines[0]?.kind ?? ""}s ${listed(numbers)}`;
-}
-
-function countWord(n: number): string {
-  return n === 2 ? "two" : "three";
 }
 
 function capitalized(text: string): string {
