@@ -8,64 +8,64 @@ in, keys in square brackets and bold lead-ins in asterisks.
 
 ### index.html
 
-- 6 `<meta description>` Solitaire games, from Klondike and Spider to Pyramid and TriPeaks, Minesweeper, Sudoku, Snake, Brick Breaker and Asteroid Breaker, free to play in your browser.
+- 6 `<meta description>` Solitaire, Minesweeper, Sudoku and arcade games, free in your browser. 41 solitaire games, including Klondike, Spider and FreeCell.
 
 ### src/app/provider/categories.ts
 
-- 9 `description:` Patience games for one player.
-- 15 `description:` Puzzles and board games beyond cards.
-- 21 `description:` Quick games against the clock, played on reflexes.
+- 9 `description:` Card games for one player.
+- 15 `description:` Puzzles and board games.
+- 21 `description:` Action games you play in real time.
 
 ### src/app/provider/games.ts
 
-- 23 `blurb:` The classic: turn the stock, build down in alternating colors.
-- 30 `blurb:` Build King-to-Ace runs by suit across ten columns.
-- 36 `blurb:` Every card face-up, with four cells to park cards in.
-- 42 `blurb:` Pair free cards totalling thirteen to take the pyramid apart.
-- 49 `blurb:` Clear three peaks onto the waste, a rank up or down at a time.
-- 56 `blurb:` Play cards a rank up or down onto one pile to clear seven columns.
-- 63 `blurb:` No stock: move any face-up card with everything on it.
-- 70 `blurb:` FreeCell’s ancestor: columns build in a single suit.
-- 76 `blurb:` FreeCell with every Ace and Two dealt to the bottom.
-- 83 `blurb:` Eight cells, half of them filled, and same-suit columns.
-- 89 `blurb:` Drag any face-up card to build Spider’s same-suit runs.
-- 96 `blurb:` Spider on an open board: every card face-up, no stock.
-- 102 `blurb:` Two decks dealt face-up across thirteen columns, no stock.
-- 108 `blurb:` Thirteen open columns, Kings sunk, and spaces never refill.
-- 114 `blurb:` Ten columns and four cells, building in suit, Kings to spaces.
-- 120 `blurb:` One card at a time, from a waste that never recycles.
-- 127 `blurb:` Forty Thieves on nine columns, in alternating colors.
-- 133 `blurb:` Forty Thieves spread over twelve shallow columns.
-- 139 `blurb:` Thirteen columns of three, with the Aces already home.
-- 145 `blurb:` Move cards into the gaps to sort four rows of thirteen.
-- 152 `blurb:` Montana with the Aces in play, fixed at the head of each row.
-- 159 `blurb:` Klondike from two decks, on nine columns.
-- 165 `blurb:` Klondike’s building with Spider’s row-dealing stock.
-- 171 `blurb:` One-deck Spider on seven columns.
-- 178 `blurb:` Build each suit up from its Ace and down from its King.
-- 184 `blurb:` Discard every card a higher card of its suit outranks.
-- 190 `blurb:` Build four foundations by ones, twos, threes and fours.
-- 197 `blurb:` Six beds and a sixteen-card bouquet, every bouquet card in play.
-- 204 `blurb:` Eight fans and three reserves the stock deals onto.
-- 211 `blurb:` Pair free cards of the same rank until the board is clear.
-- 217 `blurb:` Pair touching cards in a five-by-five grid, then close it up.
-- 224 `blurb:` Eighteen fans built down in suit, with two redeals.
-- 231 `blurb:` La Belle Lucie with the Aces already on the foundations.
-- 237 `blurb:` Work through a thirteen-card reserve onto foundations of any rank.
-- 251 `blurb:` Seven columns in suit, a seven-cell flipper, and a dealt beak.
-- 257 `blurb:` Play every card into the hole, a rank up or down round the corner.
-- 263 `blurb:` Thirteen columns of four, played onto one pile from any start.
-- 269 `blurb:` Build twelve foundations round a dial, each to its hour.
-- 276 `blurb:` Eight open rows around the Aces, one card at a time.
-- 283 `blurb:` Ten open rows built up or down in suit, Aces buried.
-- 289 `blurb:` Place 25 cards in a grid to make ten poker hands.
-- 297 `blurb:` Clear the field using the numbers. Don’t hit a mine.
-- 306 `blurb:` Fill the grid so every row, column and box has 1 to 9.
-- 315 `blurb:` Flank your opponent’s discs to flip them to your color.
-- 323 `blurb:` Fly, drift and blast every rock to rubble before one finds you.
-- 332 `blurb:` Bounce the ball, break every brick and keep it off the floor.
-- 341 `blurb:` Charge the fuzzball, let it fly and keep the bricks off the floor.
-- 350 `blurb:` Eat, grow and keep clear of your own tail.
+- 24 `blurb:` Build down in alternating colors. Draw 3, or Draw 1 for an easier game.
+- 31 `blurb:` Build King-to-Ace runs by suit across 10 columns.
+- 38 `blurb:` Build down in alternating colors, with 4 free cells to park cards in.
+- 44 `blurb:` Pair free cards that add up to 13 to take the pyramid apart.
+- 51 `blurb:` Clear 3 peaks by playing cards 1 rank up or down onto the waste.
+- 58 `blurb:` Clear 7 columns by playing cards 1 rank up or down onto 1 pile.
+- 66 `blurb:` No stock. Move any face-up card, along with everything on top of it.
+- 73 `blurb:` FreeCell’s ancestor. Build the columns down by suit.
+- 79 `blurb:` FreeCell with every Ace and 2 dealt to the bottom.
+- 86 `blurb:` 8 cells, 4 of them filled, and columns that build down by suit.
+- 93 `blurb:` Move any face-up card to build King-to-Ace runs by suit, like Spider.
+- 100 `blurb:` Spider with 1 deck, every card face up and no stock.
+- 106 `blurb:` 2 decks dealt face up across 13 columns, with no stock.
+- 112 `blurb:` 13 columns with the Kings at the bottom. Empty columns stay empty.
+- 119 `blurb:` 10 columns and 4 cells. Build by suit. Only Kings go in empty columns.
+- 125 `blurb:` Build down by suit across 10 columns. Move 1 card at a time.
+- 132 `blurb:` Forty Thieves on 9 columns, in alternating colors.
+- 138 `blurb:` Forty Thieves spread over 12 shallow columns.
+- 144 `blurb:` 13 columns of 3, with the Aces already on the foundations.
+- 150 `blurb:` Move cards into the gaps to sort each row by suit, 2 to King.
+- 157 `blurb:` Montana with the Aces in play, at the start of each row.
+- 164 `blurb:` Klondike from 2 decks, on 9 columns.
+- 170 `blurb:` Like Klondike, but the stock deals a card onto every column.
+- 176 `blurb:` Spider with 1 deck, on 7 columns.
+- 183 `blurb:` Build each suit up from its Ace and down from its King.
+- 189 `blurb:` Discard any card that has a higher card of its suit showing.
+- 195 `blurb:` Build 4 foundations, counting up by 1s, 2s, 3s and 4s.
+- 202 `blurb:` 6 beds, and a bouquet of 16 cards you can play at any time.
+- 209 `blurb:` 8 fans, and 3 reserves that the stock deals onto.
+- 216 `blurb:` Pair free cards of the same rank until the board is clear.
+- 222 `blurb:` Pair touching cards in a 5 by 5 grid, then close the gaps.
+- 229 `blurb:` 18 fans built down by suit, with 2 redeals.
+- 236 `blurb:` La Belle Lucie with the Aces already on the foundations.
+- 243 `blurb:` Clear a 13-card reserve. Foundations start at the rank the deal turns up.
+- 258 `blurb:` 7 columns, 7 cells. Foundations start at the rank of the first card dealt.
+- 264 `blurb:` Play every card into the hole, 1 rank up or down.
+- 271 `blurb:` 13 columns of 4. Play every card onto 1 pile, starting with any card.
+- 277 `blurb:` Build 12 foundations around a clock face, each up to its hour.
+- 284 `blurb:` 8 open rows around the Aces. Move 1 card at a time.
+- 291 `blurb:` Free the Aces from 10 open rows, building up or down by suit.
+- 297 `blurb:` Place 25 cards in a grid to make 10 poker hands.
+- 305 `blurb:` Clear the field using the numbers. Don’t hit a mine.
+- 314 `blurb:` Fill the grid so every row, column and box has 1 to 9.
+- 323 `blurb:` Flank your opponent’s discs to flip them to your color.
+- 331 `blurb:` Shoot every rock before one hits your ship.
+- 340 `blurb:` Break every brick. Don’t let the ball get past your paddle.
+- 349 `blurb:` Fire the fuzzball to break the bricks before they reach the floor.
+- 358 `blurb:` Eat the apples. Don’t hit the walls or your own tail.
 
 ## Names: games, modes, levels and things
 
@@ -82,97 +82,97 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/app/provider/games.ts
 
 - 22 `name:` Klondike
-- 24 `aliases[]:` Whitehead
-- 24 `aliases[]:` Thumb and Pouch
-- 24 `aliases[]:` Saratoga
-- 29 `name:` Spider
-- 35 `name:` FreeCell
-- 41 `name:` Pyramid
-- 43 `aliases[]:` Relaxed Pyramid
-- 48 `name:` TriPeaks
-- 50 `aliases[]:` Three Peaks
-- 50 `aliases[]:` Tri Towers
-- 55 `name:` Golf
-- 57 `aliases[]:` Queens on Kings
-- 57 `aliases[]:` Putt Putt
-- 62 `name:` Yukon
-- 64 `aliases[]:` Alaska
-- 64 `aliases[]:` Russian Solitaire
-- 64 `aliases[]:` Moosehide
-- 69 `name:` Baker’s Game
-- 75 `name:` Challenge FreeCell
-- 77 `aliases[]:` Super Challenge FreeCell
-- 82 `name:` Eight Off
-- 88 `name:` Scorpion
-- 90 `aliases[]:` Wasp
-- 90 `aliases[]:` Scorpion II
-- 95 `name:` Simple Simon
-- 107 `name:` Baker’s Dozen
-- 113 `name:` Seahaven Towers
-- 119 `name:` Forty Thieves
-- 121 `aliases[]:` Josephine
-- 121 `aliases[]:` Streets
-- 121 `aliases[]:` Rank and File
-- 121 `aliases[]:` Indian
-- 121 `aliases[]:` Number Ten
-- 126 `name:` Maria
-- 132 `name:` Limited
-- 138 `name:` Lucas
-- 144 `name:` Montana
-- 146 `aliases[]:` Gaps
-- 146 `aliases[]:` Addiction
-- 151 `name:` Blue Moon
-- 153 `aliases[]:` Red Moon
-- 158 `name:` Double Klondike
-- 164 `name:` Easthaven
-- 170 `name:` Spiderette
-- 172 `aliases[]:` Will o’ the Wisp
-- 177 `name:` Bisley
-- 183 `name:` Aces Up
-- 189 `name:` Calculation
-- 191 `aliases[]:` Broken Intervals
-- 191 `aliases[]:` Sir Tommy
-- 191 `aliases[]:` Old Patience
-- 196 `name:` Flower Garden
-- 198 `aliases[]:` The Garden
-- 198 `aliases[]:` Bouquet
-- 203 `name:` Bristol
-- 205 `aliases[]:` Belvedere
-- 210 `name:` Nestor
-- 216 `name:` Monte Carlo
-- 218 `aliases[]:` Weddings
-- 218 `aliases[]:` Monte Carlo Thirteens
-- 223 `name:` La Belle Lucie
-- 225 `aliases[]:` Fair Lucy
-- 225 `aliases[]:` Midnight Oil
-- 225 `aliases[]:` The Fan
-- 225 `aliases[]:` Shamrocks
-- 230 `name:` Trefoil
-- 236 `name:` Canfield
-- 239 `aliases[]:` Demon
-- 240 `aliases[]:` Fascination
-- 241 `aliases[]:` Storehouse
-- 242 `aliases[]:` Thirteen Up
-- 243 `aliases[]:` Superior Canfield
-- 244 `aliases[]:` Rainbow
-- 250 `name:` Penguin
-- 256 `name:` Black Hole
-- 262 `name:` All in a Row
-- 268 `name:` Grandfather’s Clock
-- 270 `aliases[]:` Clock
-- 275 `name:` Beleaguered Castle
-- 277 `aliases[]:` Streets and Alleys
-- 277 `aliases[]:` Citadel
-- 282 `name:` Fortress
-- 288 `name:` Poker Squares
-- 290 `aliases[]:` Poker Solitaire
-- 295 `name:` Minesweeper
-- 304 `name:` Sudoku
-- 313 `name:` Reversi
-- 321 `name:` Asteroid Breaker
-- 330 `name:` Brick Breaker
-- 339 `name:` Brick Fuzz Pop
-- 348 `name:` Snake
+- 25 `aliases[]:` Whitehead
+- 25 `aliases[]:` Thumb and Pouch
+- 25 `aliases[]:` Saratoga
+- 30 `name:` Spider
+- 36 `name:` FreeCell
+- 43 `name:` Pyramid
+- 45 `aliases[]:` Relaxed Pyramid
+- 50 `name:` TriPeaks
+- 52 `aliases[]:` Three Peaks
+- 52 `aliases[]:` Tri Towers
+- 57 `name:` Golf
+- 59 `aliases[]:` Queens on Kings
+- 59 `aliases[]:` Putt Putt
+- 64 `name:` Yukon
+- 67 `aliases[]:` Alaska
+- 67 `aliases[]:` Russian Solitaire
+- 67 `aliases[]:` Moosehide
+- 72 `name:` Baker’s Game
+- 78 `name:` Challenge FreeCell
+- 80 `aliases[]:` Super Challenge FreeCell
+- 85 `name:` Eight Off
+- 91 `name:` Scorpion
+- 94 `aliases[]:` Wasp
+- 94 `aliases[]:` Scorpion II
+- 99 `name:` Simple Simon
+- 111 `name:` Baker’s Dozen
+- 117 `name:` Seahaven Towers
+- 124 `name:` Forty Thieves
+- 126 `aliases[]:` Josephine
+- 126 `aliases[]:` Streets
+- 126 `aliases[]:` Rank and File
+- 126 `aliases[]:` Indian
+- 126 `aliases[]:` Number Ten
+- 131 `name:` Maria
+- 137 `name:` Limited
+- 143 `name:` Lucas
+- 149 `name:` Montana
+- 151 `aliases[]:` Gaps
+- 151 `aliases[]:` Addiction
+- 156 `name:` Blue Moon
+- 158 `aliases[]:` Red Moon
+- 163 `name:` Double Klondike
+- 169 `name:` Easthaven
+- 175 `name:` Spiderette
+- 177 `aliases[]:` Will o’ the Wisp
+- 182 `name:` Bisley
+- 188 `name:` Aces Up
+- 194 `name:` Calculation
+- 196 `aliases[]:` Broken Intervals
+- 196 `aliases[]:` Sir Tommy
+- 196 `aliases[]:` Old Patience
+- 201 `name:` Flower Garden
+- 203 `aliases[]:` The Garden
+- 203 `aliases[]:` Bouquet
+- 208 `name:` Bristol
+- 210 `aliases[]:` Belvedere
+- 215 `name:` Nestor
+- 221 `name:` Monte Carlo
+- 223 `aliases[]:` Weddings
+- 223 `aliases[]:` Monte Carlo Thirteens
+- 228 `name:` La Belle Lucie
+- 230 `aliases[]:` Fair Lucy
+- 230 `aliases[]:` Midnight Oil
+- 230 `aliases[]:` The Fan
+- 230 `aliases[]:` Shamrocks
+- 235 `name:` Trefoil
+- 241 `name:` Canfield
+- 245 `aliases[]:` Demon
+- 246 `aliases[]:` Fascination
+- 247 `aliases[]:` Storehouse
+- 248 `aliases[]:` Thirteen Up
+- 249 `aliases[]:` Superior Canfield
+- 250 `aliases[]:` Rainbow
+- 256 `name:` Penguin
+- 263 `name:` Black Hole
+- 269 `name:` All in a Row
+- 276 `name:` Grandfather’s Clock
+- 278 `aliases[]:` Clock
+- 283 `name:` Beleaguered Castle
+- 285 `aliases[]:` Streets and Alleys
+- 285 `aliases[]:` Citadel
+- 290 `name:` Fortress
+- 296 `name:` Poker Squares
+- 298 `aliases[]:` Poker Solitaire
+- 303 `name:` Minesweeper
+- 312 `name:` Sudoku
+- 321 `name:` Reversi
+- 329 `name:` Asteroid Breaker
+- 338 `name:` Brick Breaker
+- 347 `name:` Brick Fuzz Pop
+- 356 `name:` Snake
 
 ## Spoken text: labels and announcements for screen readers
 
@@ -207,7 +207,7 @@ in, keys in square brackets and bold lead-ins in asterisks.
 ### src/app/component/game_page/game_page.component.html
 
 - 8 `<h1>` {{ view.game.name }} @if (view.game.inDevelopment) { In development }
-- 17 `<p>` {{ view.game.name }} is still in development: it plays, but it may change as it’s finished.
+- 17 `<p>` {{ view.game.name }} is still being built. You can play it, but it may change.
 - 22 `<a>` Play {{ view.game.name }}
 - 50 `<span>` Play {{ view.game.name }}
 - 59 `<h1>` {{ view.game.name }} Coming soon
