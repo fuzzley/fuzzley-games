@@ -742,29 +742,31 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/limited/overview.webp",
       caption:
-        "Limited board showing twelve shallow face-up columns of three beneath the stock, waste and eight foundations.",
-      altText: "Limited solitaire board overview",
+        "A new deal, with the stock and 8 foundations above 12 short columns.",
+      altText:
+        "A new game of Limited, with 3 face-up cards on each of 12 columns.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      facts: "2 decks. Draw 1. No redeal.",
+      goal: "Move all 104 cards to the 8 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 12 columns of 3 cards, all face-up.",
-        "Foundations: 8 suit piles, two per suit.",
-        "Stock: the remaining 68 cards, drawn one at a time onto a waste.",
+        "Stock: the 68 cards left over, face down.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 8 empty piles.",
+        "Tableau: 12 columns of 3 cards, all face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-        "A card can be picked up with an unbroken same-suit descending run resting on it.",
-        "Any card can start an empty column.",
-        "The top card of a foundation can be taken back down onto a column.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. A 9 of spades goes on a 10 of spades.",
+        "You can move several cards at once if they run down in the same suit.",
+        "Any card can fill an empty column.",
+        "Click the stock to turn over 1 card.",
       ],
       goodToKnow: [
-        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family.",
-        "Shallow Columns: with only three cards per column, almost the whole tableau is reachable from the opening position.",
+        "It is Forty Thieves on 12 columns of 3, except that you can move runs.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -775,29 +777,30 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/lucas/overview.webp",
       caption:
-        "Lucas board showing the eight Aces on the foundations and thirteen face-up columns of three beneath them.",
-      altText: "Lucas solitaire board overview",
+        "A new deal, with all 8 Aces on the foundations and 13 short columns.",
+      altText: "A new game of Lucas, with 8 Aces above 13 columns of 3 cards.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 104 cards from two decks onto the eight foundation piles, built up by suit from Ace to King.",
+      facts: "2 decks. Draw 1. No redeal.",
+      goal: "Move all 104 cards to the 8 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Foundations: 8 suit piles, each dealt one of the eight Aces.",
-        "Tableau: 13 columns of 3 cards, all face-up — the widest board in the family.",
-        "Stock: the remaining 57 cards, drawn one at a time onto a waste.",
+        "Stock: the 57 cards left over, face down.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 8 piles, each started with an Ace.",
+        "Tableau: 13 columns of 3 cards, all face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from the Ace already there to King.",
-        "Tableau: Built DOWN in SAME SUIT.",
-        "A card can be picked up with an unbroken same-suit descending run resting on it.",
-        "Any card can start an empty column.",
-        "The top card of a foundation can be taken back down onto a column.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down by suit. A 9 of spades goes on a 10 of spades.",
+        "You can move several cards at once if they run down in the same suit.",
+        "Any card can fill an empty column.",
+        "Click the stock to turn over 1 card.",
       ],
       goodToKnow: [
-        "Aces Home: with every foundation already started, any Two that turns up can go straight home.",
-        "No Recycle: the stock is dealt through exactly once, as in the rest of the Forty Thieves family. About one deal in three can be won.",
+        "It is Forty Thieves on 13 columns of 3, with the Aces dealt first. Here you can move runs.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -807,32 +810,31 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
     screenshot: {
       url: "./docs/screenshots/doubleklondike/overview.webp",
-      caption:
-        "Double Klondike board showing nine tableau columns, stock and waste, and eight foundation piles.",
-      altText: "Double Klondike solitaire board overview",
+      caption: "A new deal, with the stock and 8 foundations above 9 columns.",
+      altText: "A new game of Double Klondike, with 9 columns of 1 to 9 cards.",
     },
     summary: {
-      facts: "",
-      goal: "Build all 104 cards from two decks onto the eight foundation piles by suit, from Ace to King.",
+      facts: "2 decks. Draw 3. No limit on redeals.",
+      goal: "Move all 104 cards to the 8 foundations, building each suit up from Ace to King.",
     },
     detailedRules: {
       layout: [
-        "Tableau: 9 columns containing 1 to 9 cards respectively, top card face-up.",
-        "Foundations: 8 suit piles, two per suit for the two decks.",
-        "Stock: the remaining 59 cards, face-down at top-left.",
-        "Waste: face-up pile where drawn cards land, fanned three at a time.",
+        "Stock: the cards left over, face down.",
+        "Waste: the cards you turn over. You can play the top one.",
+        "Foundations: 8 empty piles.",
+        "Tableau: 9 columns of 1 to 9 cards. Only the top card is face up.",
       ],
       moves: [
-        "Foundations: Built UP in SAME SUIT from Ace to King.",
-        "Tableau: Built DOWN in ALTERNATING COLORS.",
-        "Any face-up card can be moved along with everything stacked on it, ordered or not.",
-        "Only a King (or a stack headed by a King) can be placed into an empty column — but with two decks there are eight Kings, so spaces are far easier to fill than in Klondike.",
-        "Cards on the waste or the tableau can be moved to foundations or other columns.",
+        "Foundations: build up by suit, from Ace to King.",
+        "Tableau: build down in alternating colors. A red 9 goes on a black 10.",
+        "You can move a face-up run as one.",
+        "Only a King can fill an empty column.",
+        "Click the stock to turn over 3 cards.",
+        "When the stock runs out, click it to turn the waste over and go through it again.",
       ],
       goodToKnow: [
-        "Stock Recycle: when the stock empties, clicking it recycles the waste back into the stock, as often as you like.",
-        "Congested Middle Game: eight foundations must be fed from a tableau only two columns wider than Klondike's, so twice the cards does not mean twice the room.",
-        "Scoring: the same scoring as Klondike — 10 points to a foundation, 5 for a waste card onto a column, 5 for turning a card over, and a penalty for recycling past the free passes.",
+        "After the 3rd redeal, each one costs 20 points.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
@@ -843,31 +845,25 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/montana/overview.webp",
       caption:
-        "Montana board showing 48 cards laid in a grid of four rows by thirteen, with four gaps and the redeal marker beside it.",
-      altText: "Montana solitaire board overview",
+        "A new deal, with 4 rows of cards, 4 gaps and the redeal button.",
+      altText: "A new game of Montana, with 48 cards in 4 rows and 4 gaps.",
     },
     summary: {
-      facts: "",
-      goal: "Arrange each of the four rows into a single suit running from Two up to King.",
+      facts: "1 deck without the Aces, all dealt face up. 2 or 3 redeals.",
+      goal: "Put each row in order in one suit, from 2 at the left to King.",
     },
     detailedRules: {
       layout: [
-        "Grid: 4 rows of 13 cells, each holding at most one card.",
-        "Gaps: 4 empty cells, where the Aces would have fallen.",
-        "Redeal: a marker beside the grid, worth two uses per game, or three in Addiction. Its pips count them: filled for each redeal left, hollow for each one spent.",
+        "Grid: 4 rows of 13 spaces, with 48 cards and 4 gaps.",
+        "Redeal: a button that shuffles the cards out of place. Its dots show the redeals you have left.",
       ],
       moves: [
-        "Rows: Built UP in SAME SUIT from Two to King, left to right.",
-        "There are no foundations and no stacking — cards only ever move between cells.",
-        "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
-        "A gap in the leftmost column accepts any Two.",
-        "A gap immediately to the right of a King accepts nothing — it is dead for the rest of the deal, and creating one is the mistake to avoid.",
-        "Moving a card leaves a new gap behind it, so every move both opens and closes an opportunity.",
+        "You can fill a gap with the card 1 rank higher than the card left of the gap, in the same suit. The 7 of hearts goes after the 6 of hearts.",
+        "Any 2 can go in a gap at the left end of a row.",
+        "Nothing can go in a gap after a King.",
       ],
       goodToKnow: [
-        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the left, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game, or three in Addiction; once they are spent, or nothing is left to gather, the marker becomes a plain outline and pressing it does nothing.",
-        "No Aces: the Aces are not in play at all, which is what creates the four gaps.",
-        "Won by Arrangement: unlike every other game here, nothing is gathered onto a pile — the cards end where they started, in cells, just in the right order.",
+        "When you redeal, the cards already in order at the left of a row stay put. The rest are shuffled and dealt again. Each row gets 1 gap, just after the cards that stayed.",
       ],
     },
     settingsAndVariants: [
@@ -876,12 +872,11 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
         choicesExplanation: [
           {
             value: 2,
-            effect: "Montana as it is usually played: two redeals per game.",
+            effect: "The usual game.",
           },
           {
             value: 3,
-            effect:
-              "Addiction: three redeals per game. The marker shows three pips, and the extra shuffle rescues many games that two would leave stuck.",
+            effect: "Montana with 3 redeals instead of 2.",
           },
         ],
       },
@@ -892,32 +887,26 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     wikipediaUrl: "https://en.wikipedia.org/wiki/Gaps",
     screenshot: {
       url: "./docs/screenshots/bluemoon/overview.webp",
-      caption:
-        "Blue Moon board showing all 52 cards in four rows of fourteen, an Ace at the head of each row, four gaps, and the redeal marker beside the grid.",
-      altText: "Blue Moon solitaire board overview",
+      caption: "A new deal, with an Ace at the start of each row and 4 gaps.",
+      altText: "A new game of Blue Moon, with 52 cards in 4 rows and 4 gaps.",
     },
     summary: {
-      facts: "",
-      goal: "Arrange each of the four rows into a single suit running from its Ace up to King.",
+      facts: "1 deck, all dealt face up. 2 redeals.",
+      goal: "Put each row in order in one suit, from the Ace at the left to King.",
     },
     detailedRules: {
       layout: [
-        "Grid: 4 rows of 14 cells, each holding at most one card.",
-        "Aces: one at the start of every row, fixed there for the whole game.",
-        "Gaps: 4 empty cells, where the Aces were dealt.",
-        "Redeal: a marker beside the grid, worth two uses per game. Its pips count them: filled for each redeal left, hollow for each one spent.",
+        "Grid: 4 rows of 14 spaces. Each row starts with an Ace, and there are 4 gaps.",
+        "Redeal: a button that shuffles the cards out of place. Its dots show the redeals you have left.",
       ],
       moves: [
-        "Rows: Built UP in SAME SUIT from the Ace to King, left to right.",
-        "There are no foundations and no stacking — cards only ever move between cells.",
-        "A gap accepts the card one rank higher than the card immediately to its left, in the same suit.",
-        "A gap beside an Ace accepts that Ace's Two.",
-        "A gap immediately to the right of a King accepts nothing until the King moves on.",
-        "The Aces never move, and nothing can be placed in front of them.",
+        "You can fill a gap with the card 1 rank higher than the card left of the gap, in the same suit. The 7 of hearts goes after the 6 of hearts.",
+        "Nothing can go in a gap after a King.",
+        "The Aces never move.",
       ],
       goodToKnow: [
-        "Redeals: pressing the marker gathers every card that is not yet part of its row's run from the Ace, shuffles them, and lays them back out after each run — leaving one fresh gap per row. Two redeals per game; once they are spent, or nothing is left to gather, the marker becomes a plain outline.",
-        "Won by Arrangement: as in Montana, nothing is gathered onto a pile — the cards end in cells, just in the right order.",
+        "It is Montana with the Aces in play.",
+        "When you redeal, the cards already in order at the left of a row stay put. The rest are shuffled and dealt again. Each row gets 1 gap, just after the cards that stayed.",
       ],
     },
     settingsAndVariants: [
@@ -927,12 +916,12 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
           {
             value: 1,
             effect:
-              "Blue Moon: the gaps are wherever the Aces happened to be dealt, so a row may have to wait for its first gap to open.",
+              "The Aces move to the start of the rows, and the gaps are left where the Aces were dealt.",
           },
           {
             value: 2,
             effect:
-              "Red Moon: the Aces are dealt straight to the head of the rows and the gaps right beside them, so every row can start building with its Two from the first move. The easier of the two.",
+              "Each Ace starts a row with a gap right after it, so every row can take its 2 at once.",
           },
         ],
       },
@@ -944,32 +933,29 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     screenshot: {
       url: "./docs/screenshots/bisley/overview.webp",
       caption:
-        "Bisley board showing the four Aces at the left of the top row, four empty King foundations at its right, and thirteen face-up columns.",
-      altText: "Bisley solitaire board overview",
+        "A new deal, with the Aces and the empty King foundations above 13 columns.",
+      altText: "A new game of Bisley, with 4 Aces above 13 face-up columns.",
     },
     summary: {
-      facts: "",
-      goal: "Move all 52 cards onto the foundations, each suit climbing from its Ace and descending from its King until the two meet.",
+      facts: "1 deck, all dealt face up. No stock.",
+      goal: "Move all 52 cards to the foundations, building each suit up from its Ace and down from its King.",
     },
     detailedRules: {
       layout: [
-        "Ace Foundations: the four Aces, at the left of the top row, one per suit.",
-        "King Foundations: 4 empty slots at the right of the top row, in the same suit order as the Aces.",
-        "Tableau: 13 face-up columns — 3 cards in each of the first four, 4 cards in each of the other nine.",
-        "No Stock: all 52 cards are in view from the first move.",
+        "Ace foundations: 4 piles, each started with an Ace.",
+        "King foundations: 4 empty piles.",
+        "Tableau: 13 columns, 4 of them with 3 cards and 9 with 4.",
       ],
       moves: [
-        "Ace Foundations: Built UP in SAME SUIT from the Ace.",
-        "King Foundations: Built DOWN in SAME SUIT from the King.",
-        "Tableau: Built UP or DOWN in SAME SUIT, and a column may change direction.",
-        "Only the top card of a column can be moved, one card at a time.",
-        "A card can go onto a column whose top card is the same suit and exactly 1 rank higher or lower.",
-        "A free King can start the King foundation of its own suit.",
-        "Empty columns cannot be filled — once a column is cleared it stays empty.",
+        "Ace foundations: build up by suit.",
+        "King foundations: the Kings go in the same suit order as the Aces. Then build down by suit.",
+        "Tableau: build up or down by suit. The 7 of clubs goes on the 6 or the 8 of clubs.",
+        "You can only move the top card of a column.",
+        "An empty column stays empty.",
       ],
       goodToKnow: [
-        "Meeting Foundations: a suit's two foundations may meet at any rank. Once they hold all thirteen cards between them, that suit is done.",
-        "Two-Way Building: a column can climb and then fall, so the same suit can be gathered around a card from either side.",
+        "The 2 foundations of a suit can meet at any rank. When they hold all 13 cards, that suit is done.",
+        "You can take a card back from a foundation.",
       ],
     },
     settingsAndVariants: [],
