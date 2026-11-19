@@ -228,7 +228,7 @@ export class PresentationSettingsService implements TablePresentation {
     const failed = this.unavailableCardDeckSignal();
     // Auto may have moved on to a deck that loads.
     if (!failed || failed !== this.wantedCardDeck()) return null;
-    return `Couldn't load ${deckName(failed)} — still using ${deckName(
+    return `Couldn't load ${deckName(failed)}. Still using ${deckName(
       this.drawnCardDeckSignal(),
     )}.`;
   });

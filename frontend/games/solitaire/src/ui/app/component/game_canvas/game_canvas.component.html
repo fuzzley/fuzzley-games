@@ -34,7 +34,7 @@
       <!-- Always present, so the status is announced when it arrives. -->
       <p class="loading-text" role="status">
         @if (isInitializing()) {
-          Loading {{ gameName() }}...
+          Loading {{ gameName() }}…
         }
       </p>
     </div>
@@ -55,7 +55,7 @@
   <span class="deck-badge-spinner" aria-hidden="true"></span>
   <span role="status">
     @if (pendingDeckName(); as deckName) {
-      Loading {{ deckName }} cards...
+      Loading {{ deckName }} cards…
     }
   </span>
 </div>

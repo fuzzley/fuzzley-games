@@ -251,7 +251,7 @@ describe("SettingsDrawerComponent", () => {
       openDrawer();
 
       expect(description("stock-side")).toBe(
-        "Puts the stock on the left. On a phone, the buttons go on the other side.",
+        "Puts the stock on the left. On a phone, the buttons are on the other side.",
       );
     });
 

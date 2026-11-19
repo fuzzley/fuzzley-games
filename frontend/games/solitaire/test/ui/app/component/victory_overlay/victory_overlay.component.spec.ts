@@ -38,6 +38,12 @@ describe("VictoryOverlayComponent", () => {
     expect(isDialogOpen(fixture)).toBe(true);
   });
 
+  it("says the player won", () => {
+    win();
+
+    expect(queryText(fixture, "h2")).toBe("You won!");
+  });
+
   it("reports the final score, time and moves", () => {
     win();
 

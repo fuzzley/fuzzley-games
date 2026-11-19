@@ -429,7 +429,7 @@ export class SettingsDrawerComponent {
           (formFactor) => AUTO_ARRANGEMENTS[formFactor].stockSide,
           this.presentation.resolvedArrangement().stockSide,
         )
-      : `Puts the ${this.sideName() ?? "stock"} on the ${rule}. On a phone, the buttons go on the other side.`;
+      : `Puts the ${this.sideName() ?? "stock"} on the ${rule}. On a phone, the buttons are on the other side.`;
   }
 
   /** Puts the piles where the option group handed back. */
