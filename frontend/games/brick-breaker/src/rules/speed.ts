@@ -45,7 +45,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     base: 20,
     top: 30,
     badCapsules: false,
-    says: "A slower ball, and no capsule that makes it harder.",
+    says: "A slower ball, and no capsules that make things harder.",
   },
   normal: NORMAL,
   fast: {
@@ -53,7 +53,7 @@ export const SPEED_INFO: Readonly<Record<Speed, SpeedInfo>> = {
     base: 30,
     top: 45,
     badCapsules: true,
-    says: "Quick from the first serve.",
+    says: "A faster ball from the start.",
   },
   custom: {
     ...NORMAL,

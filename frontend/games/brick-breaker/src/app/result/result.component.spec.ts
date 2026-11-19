@@ -102,8 +102,8 @@ describe("ResultComponent", () => {
   it("calls a score above the best a new best, with the trophy", async () => {
     await renderLost();
 
-    expect(screen.getByText("New best")).toBeVisible();
-    // The trophy is hidden from assistive technology, which "New best" tells.
+    expect(screen.getByText("New best!")).toBeVisible();
+    // The trophy is hidden from assistive technology, which "New best!" tells.
     expect(document.querySelector('fz-icon[name="trophy"]')).not.toBeNull();
   });
 
@@ -112,7 +112,7 @@ describe("ResultComponent", () => {
 
     expect({
       best: figure("Best"),
-      newBest: screen.queryByText("New best"),
+      newBest: screen.queryByText("New best!"),
     }).toEqual({ best: "9,000", newBest: null });
   });
 
@@ -123,7 +123,7 @@ describe("ResultComponent", () => {
 
     rendered.detectChanges();
 
-    expect(screen.queryByText("New best")).not.toBeInTheDocument();
+    expect(screen.queryByText("New best!")).not.toBeInTheDocument();
   });
 
   it("tries the level a run was lost on again", async () => {
@@ -142,13 +142,21 @@ describe("ResultComponent", () => {
 
     expect(
       screen.getByRole("alertdialog", { name: "Every level cleared!" }),
-    ).toHaveAccessibleDescription("From level 2 to the last, at Normal speed");
+    ).toHaveAccessibleDescription(
+      "From level 2 to the last level, at Normal speed",
+    );
     expect(figures()).toEqual([
       ["Score", "4,200"],
       ["Best", "4,200"],
       ["Level", "3"],
       ["Cleared", "2"],
     ]);
+  });
+
+  it("calls a won run's new best one with no second exclamation mark", async () => {
+    await renderWon();
+
+    expect(screen.getByText("New best")).toBeVisible();
   });
 
   it("starts a new game after a won run, at the level it started at", async () => {

@@ -144,7 +144,7 @@ describe("BenchComponent", () => {
 
     expect(starsHeard(partHeaded(/^Level 3/, panel))).toEqual([
       "Clear the level, won",
-      "Lose no life, not won yet",
+      "Don't lose a life, not won yet",
       "Reach a streak of 15, won",
     ]);
   });
@@ -154,20 +154,20 @@ describe("BenchComponent", () => {
 
     expect({
       balls: panel.querySelectorAll("fz-fuzzball").length,
-      words: within(panel).queryByText("2 waiting"),
+      words: within(panel).queryByText("2 spare"),
     }).toEqual({ balls: 2, words: expect.anything() as unknown });
   });
 
   it("says none wait once the last life is in play", async () => {
     const panel = await renderBench({ livesWaiting: 0 });
 
-    expect(within(panel).getByText("None waiting")).toBeInTheDocument();
+    expect(within(panel).getByText("None spare")).toBeInTheDocument();
   });
 
   it("says the score the next life comes at", async () => {
     const panel = await renderBench({ nextLifeAt: 60_000 });
 
-    expect(within(panel).getByText("A life at 60,000")).toBeInTheDocument();
+    expect(within(panel).getByText("Next life at 60,000")).toBeInTheDocument();
   });
 
   it("says the run holds the most lives it may, where no score brings another", async () => {
@@ -225,6 +225,8 @@ describe("BenchComponent", () => {
   it("says the level is the last where none comes after it", async () => {
     const panel = await renderBench({ levelAfter: null });
 
-    expect(within(panel).getByText("The last level.")).toBeInTheDocument();
+    expect(
+      within(panel).getByText("This is the last level"),
+    ).toBeInTheDocument();
   });
 });

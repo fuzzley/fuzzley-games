@@ -372,7 +372,7 @@ export class BoardComponent {
 
   /** What the Cleared card calls the level. */
   protected readonly clearedTitle = computed(
-    () => `Level ${String(this.game.level().number)} cleared`,
+    () => `Level ${String(this.game.level().number)} cleared!`,
   );
 
   /**
@@ -395,7 +395,7 @@ export class BoardComponent {
       { label: "Bricks", points: formatPoints(tally.bricks) },
       { label: "Streaks", points: formatPoints(tally.streaks) },
       ...(tally.dares > 0
-        ? [{ label: "Double pay", points: formatPoints(tally.dares) }]
+        ? [{ label: "Double score", points: formatPoints(tally.dares) }]
         : []),
       { label: "Bonus", points: formatPoints(tally.bonus) },
     ];

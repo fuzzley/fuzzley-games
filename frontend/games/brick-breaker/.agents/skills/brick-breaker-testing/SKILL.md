@@ -264,7 +264,7 @@ game through `@fz/phaser/testing`'s `runKeyedScene()`:
   `playFor()` are `@fz/core/testing`'s.
 - The stars' specs (`src/app/stars/`, the bench's and the board's) find
   them as the list named "Stars" and read what a screen reader hears of
-  each, the star and its marks hidden, as "Lose no life, won just now"
+  each, the star and its marks hidden, as "Don't lose a life, won just now"
   (`starsHeard()`, `heardIn()`); a level's stars held before a play are
   kept through `StarsService.recordWon()`, and `StarsService`'s own spec
   stores the record, and the progress, before it starts.

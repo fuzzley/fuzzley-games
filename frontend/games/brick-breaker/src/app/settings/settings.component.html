@@ -9,8 +9,7 @@
       (choose)="chooseSpeed($event)"
     />
     <p class="setting-desc" id="speed-desc">
-      Changing the speed starts a new run. The ball speeds up as it hits the
-      bricks.
+      Changing the speed starts a new game.
     </p>
   </div>
 
@@ -35,13 +34,13 @@
       />
       <p class="setting-desc" id="custom-speed-desc">
         <span aria-hidden="true">{{ custom.valueText }}. </span>The ball in play
-        takes it at once.
+        changes speed right away.
       </p>
     </div>
   }
 
   <div class="setting">
-    <span class="setting-label" id="touch-label">On a touch screen</span>
+    <span class="setting-label" id="touch-label">Touch controls</span>
     <fz-choice-list
       labelledBy="touch-label"
       [options]="touchSteerings"
@@ -63,8 +62,7 @@
       />
       <label for="sound">Play sounds</label>
       <p class="setting-desc" id="sound-desc">
-        A bounce off the paddle, a break that rises along a streak, and a chime
-        for a level cleared.
+        Turns all sound on or off. Same as the Sound button.
       </p>
     </div>
   </div>

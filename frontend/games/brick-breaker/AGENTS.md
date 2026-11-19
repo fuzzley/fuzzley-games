@@ -811,9 +811,10 @@ takes for the specs' helpers.
     pressed with a mouse or a finger. It hands the board back the focus
     as Resume goes on, and asks the app for the levels, How to play and the
     settings.
-  - `levels/` — the Levels dialog: a line saying what the stars are won
-    for, that they open nothing, and how many every level
-    holds of all there are; each set under its name, with the count of its
+  - `levels/` — the Levels dialog: a line saying where choosing a level
+    starts and what clearing one unlocks, and one saying what the stars are
+    won for, that they unlock nothing, and how many every level holds
+    together; each set under its name, with the count of its
     levels' stars beside it, its levels as buttons in a grid, named by
     number and name ("3 Pyramid"), then a tick once cleared, its three
     small stars, filled where held and outlined where not, said as one,
@@ -824,7 +825,7 @@ takes for the specs' helpers.
     closes once it has.
   - `result/` — the card over an ended run, once the last ball has faded:
     lost or won, where and at what speed, the score and the best at its speed,
-    with "New best" and the trophy when it set one, the level reached and the
+    with "New best!" and the trophy when it set one, the level reached and the
     levels cleared (`levelsCleared()`); Try again from the level a lost run
     ended on, or a new game after a win; Choose a level, which puts it away
     and asks the app for the levels; and Close.

@@ -68,7 +68,7 @@ export function describeCleared(run: Run): string {
 
 /**
  * Returns what a level's star asks, as the bench and the cards name it:
- * "Clear the level", "Lose no life", or the streak the level's mark sets,
+ * "Clear the level", "Don't lose a life", or the streak the level's mark sets,
  * "Reach a streak of 15".
  */
 export function starAsks(id: StarId, mark: number): string {
@@ -76,7 +76,7 @@ export function starAsks(id: StarId, mark: number): string {
     case "clear":
       return "Clear the level";
     case "clean":
-      return "Lose no life";
+      return "Don't lose a life";
     case "streak":
       return `Reach a streak of ${String(mark)}`;
   }

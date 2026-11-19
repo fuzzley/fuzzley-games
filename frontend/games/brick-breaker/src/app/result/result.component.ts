@@ -15,7 +15,7 @@ interface Figure {
 
 /**
  * Shows an ended run's result over the board: whether it was lost or won,
- * where and at what speed, the score and the best, with "New best" when it
+ * where and at what speed, the score and the best, with "New best!" when it
  * set one, the level reached and the levels cleared.
  *
  * The game opens it once the last ball has faded. A lost run offers to try
@@ -38,11 +38,16 @@ export class ResultComponent {
 
   protected readonly title = computed(() => endTitle(this.game.run()));
 
+  /** What the badge for a new best says: no exclamation mark beside a win's, which has one. */
+  protected readonly newBestWords = computed(() =>
+    this.won() ? "New best" : "New best!",
+  );
+
   /** Where the run started or ended, and at what speed. */
   protected readonly subtitle = computed(() => {
     const run = this.game.run();
     const where = this.won()
-      ? `From level ${String(run.firstLevel)} to the last`
+      ? `From level ${String(run.firstLevel)} to the last level`
       : `Out of lives on level ${String(run.level)}`;
     return `${where}, at ${SPEED_INFO[run.speed].name} speed`;
   });
