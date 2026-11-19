@@ -21,7 +21,7 @@ export const GAMES: readonly Game[] = [
     slug: "klondike",
     name: "Klondike",
     blurb:
-      "Build down in alternating colors. Play Draw 1, or Draw 3 for a harder game.",
+      "Build down in alternating colors. Draw 3, or Draw 1 for an easier game.",
     aliases: ["Whitehead", "Thumb and Pouch", "Saratoga"],
     minutes: 5,
   }),
@@ -255,7 +255,7 @@ export const GAMES: readonly Game[] = [
     slug: "penguin",
     name: "Penguin",
     blurb:
-      "7 columns and 7 cells. Foundations start at the rank of the first card dealt.",
+      "7 columns, 7 cells. Foundations start at the rank of the first card dealt.",
     minutes: 8,
   }),
   solitaire("blackhole", {
