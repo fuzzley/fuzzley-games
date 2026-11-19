@@ -1,7 +1,7 @@
 # Brick Fuzz Pop
 
-Brick Fuzz Pop: aim the fuzzball, charge it with static and let it punch
-through the wall before the bricks reach the floor. Play it at
+Fire the fuzzball to break the bricks before they reach the floor. There are
+36 levels, and you can clear every one. Play it at
 https://fuzzley.games/play/brick-fuzz-pop/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries

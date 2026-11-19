@@ -1,7 +1,8 @@
 # Sudoku
 
-Sudoku, with hints that name the next step of logic. Play it at
-https://fuzzley.games/play/sudoku/.
+Sudoku from Easy to Expert, where you can solve every puzzle without
+guessing. If you get stuck, a hint shows the next square you can fill, and
+why. Play it at https://fuzzley.games/play/sudoku/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), built with [Vite](https://vite.dev/) and tested with

@@ -1,7 +1,7 @@
 # Snake
 
-Snake: eat the apples, grow longer, and keep clear of the walls and your own
-tail. Play it at https://fuzzley.games/play/snake/.
+Eat the apples without hitting the walls or your own tail. If you fill the
+board, you win. Play it at https://fuzzley.games/play/snake/.
 
 An [Angular](https://angular.dev/) app on the Fuzzley Games shared libraries
 (`frontend/lib/`), with its board drawn by [Phaser](https://phaser.io/)

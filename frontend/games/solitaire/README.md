@@ -1,8 +1,8 @@
 # Solitaire Collection
 
-A browser-based Solitaire game engine supporting multiple solitaire variants, built with [Phaser 4](https://phaser.io/) canvas rendering, an [Angular 22](https://angular.dev/) application shell, and [Sass](https://sass-lang.com/) for UI styling.
+41 solitaire games, free in your browser. Klondike, Spider and FreeCell are here, and so are Montana, Poker Squares and 36 more. Play it at https://fuzzley.games/play/solitaire/.
 
-Play it at https://fuzzley.games/play/solitaire/.
+The table is drawn with [Phaser 4](https://phaser.io/), in an [Angular 22](https://angular.dev/) shell styled with [Sass](https://sass-lang.com/).
 
 ## Included Solitaire Games
 
