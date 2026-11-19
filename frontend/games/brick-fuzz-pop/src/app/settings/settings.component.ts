@@ -16,6 +16,7 @@ import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
+import { FLIGHT_PACE } from "../../view/round_play";
 import { onDemand } from "../on_demand";
 import { LOAD_DEBUG_MENU } from "../tokens";
 import {
@@ -28,20 +29,19 @@ import {
 
 /** What the announcer says when the debug menu couldn't be loaded. */
 export const MENU_FAILED_WORDS =
-  "The debug menu couldn't be loaded. Check the connection, then open the settings again.";
+  "The debug menu couldn't be loaded. Check your connection and open Settings again.";
 
 /** What the drawer says of each way a pointer may aim. */
 const AIMING_INFO: Readonly<Record<Aiming, Omit<ChoiceOption<Aiming>, "id">>> =
   {
     pointAndHold: {
       name: "Point and hold",
-      detail:
-        "Point where to aim, then hold to charge, up to five and down again. Let go to fly.",
+      detail: "Point where to aim, then hold to charge. Let go to shoot.",
     },
     pullBack: {
       name: "Pull back",
       detail:
-        "Press anywhere on the field and drag away from the aim: the longer the pull, the more charge. Let go to fly.",
+        "Drag from anywhere, away from where you want to shoot. The longer the pull, the more charge. Let go to shoot.",
     },
   };
 
@@ -57,13 +57,16 @@ const FLIGHT_SPEED_INFO: Readonly<
 > = {
   normal: {
     name: "Normal",
-    detail: "Every bounce easy to follow.",
+    detail: "Easy to follow every bounce.",
   },
   fast: {
     name: "Fast",
     detail: "Quicker, for a wall you know well.",
   },
 };
+
+/** What the drawer says under Speed up long shots, from the pace. */
+const LONG_SHOTS = `If a shot lasts more than ${String(FLIGHT_PACE.longFlightMs / 1000)} seconds, it speeds up.`;
 
 /** The flight's speeds, as the drawer offers them. */
 const FLIGHT_SPEED_CHOICES: readonly ChoiceOption<FlightSpeed>[] =
@@ -118,6 +121,8 @@ export class SettingsComponent {
   protected readonly aimings = AIMING_CHOICES;
 
   protected readonly flightSpeeds = FLIGHT_SPEED_CHOICES;
+
+  protected readonly longShots = LONG_SHOTS;
 
   /** Where the debug menu goes, below the settings. */
   private readonly menuHost = viewChild.required("menuHost", {

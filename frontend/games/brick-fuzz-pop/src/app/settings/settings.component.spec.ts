@@ -129,7 +129,9 @@ describe("SettingsComponent", () => {
           .map((radio) => radio.textContent.trim()),
       ).toEqual([
         expect.stringMatching(/^Point and hold\s*Point where to aim/),
-        expect.stringMatching(/^Pull back\s*Press anywhere on the field/),
+        expect.stringMatching(
+          /^Pull back\s*Drag from anywhere, away from where you want to shoot/,
+        ),
       ]);
     });
 
@@ -147,11 +149,11 @@ describe("SettingsComponent", () => {
       expect(screen.getByRole("radio", { name: /^Pull back/ })).toBeChecked();
     });
 
-    it("says the keys aim whichever way is chosen", async () => {
+    it("says the keys work the same either way", async () => {
       await renderSettings();
 
       expect(group("Aiming")).toHaveAccessibleDescription(
-        "The keys aim and charge whichever way is chosen.",
+        "Changes how you aim with a mouse or a finger. The keys work the same either way.",
       );
     });
 
@@ -165,25 +167,25 @@ describe("SettingsComponent", () => {
     });
   });
 
-  describe("the flight's speed", () => {
+  describe("the shot speed", () => {
     it("offers Normal and Fast, in that order", async () => {
       await renderSettings();
 
       expect(
-        within(group("The flight's speed"))
+        within(group("Shot speed"))
           .getAllByRole("radio")
           .map((radio) => radio.textContent.trim()),
       ).toEqual([
-        expect.stringMatching(/^Normal\s*Every bounce easy to follow/),
+        expect.stringMatching(/^Normal\s*Easy to follow every bounce/),
         expect.stringMatching(/^Fast\s*Quicker/),
       ]);
     });
 
-    it("says Fast-forward stays on from flight to flight, and Drop brings any flight down, keeping only what it had done", async () => {
+    it("says Fast-forward stays on until turned off, and Drop ends a shot early, keeping what it broke", async () => {
       await renderSettings();
 
-      expect(group("The flight's speed")).toHaveAccessibleDescription(
-        "Fast-forward, in the bar, once switched on, stays on from flight to flight until you switch it off. Drop, there from the start of every flight, brings it down where it is, keeping only what it had done by then.",
+      expect(group("Shot speed")).toHaveAccessibleDescription(
+        "Fast-forward stays on until you turn it off. Drop ends a shot early and keeps what it has broken.",
       );
     });
 
@@ -209,31 +211,31 @@ describe("SettingsComponent", () => {
     });
   });
 
-  describe("long flights", () => {
-    it("says a long flight doubles its speed", async () => {
+  describe("long shots", () => {
+    it("says a shot speeds up once it has lasted as long as the pace says", async () => {
       await renderSettings();
 
-      expect(checkbox("Speed up long flights")).toHaveAccessibleDescription(
-        "A flight that goes on and on doubles its speed by itself.",
+      expect(checkbox("Speed up long shots")).toHaveAccessibleDescription(
+        "If a shot lasts more than 8 seconds, it speeds up.",
       );
     });
 
     it("speeds them up until told otherwise", async () => {
       await renderSettings();
 
-      expect(checkbox("Speed up long flights")).toBeChecked();
+      expect(checkbox("Speed up long shots")).toBeChecked();
     });
 
     it("leaves the box clear where they were kept at their speed", async () => {
       await renderSettings({ speedUpLongFlights: false });
 
-      expect(checkbox("Speed up long flights")).not.toBeChecked();
+      expect(checkbox("Speed up long shots")).not.toBeChecked();
     });
 
     it("leaves them at their speed once the box is cleared", async () => {
       const { user, store } = await renderSettings();
 
-      await user.click(checkbox("Speed up long flights"));
+      await user.click(checkbox("Speed up long shots"));
 
       expect(store.settings().speedUpLongFlights).toBe(false);
     });
@@ -243,7 +245,7 @@ describe("SettingsComponent", () => {
         speedUpLongFlights: false,
       });
 
-      await user.click(checkbox("Speed up long flights"));
+      await user.click(checkbox("Speed up long shots"));
 
       expect(store.settings().speedUpLongFlights).toBe(true);
     });
@@ -253,27 +255,27 @@ describe("SettingsComponent", () => {
     it("says what the guide shows", async () => {
       await renderSettings();
 
-      expect(checkbox("Show the aim guide")).toHaveAccessibleDescription(
-        /^Dots show the shot's flight to its first turn/,
+      expect(checkbox("Show aim guide")).toHaveAccessibleDescription(
+        "Shows where the shot will go, up to its first bounce. Outlines the bricks it will break on the way.",
       );
     });
 
     it("shows it until told otherwise", async () => {
       await renderSettings();
 
-      expect(checkbox("Show the aim guide")).toBeChecked();
+      expect(checkbox("Show aim guide")).toBeChecked();
     });
 
     it("leaves the box clear where it was kept hidden", async () => {
       await renderSettings({ guide: false });
 
-      expect(checkbox("Show the aim guide")).not.toBeChecked();
+      expect(checkbox("Show aim guide")).not.toBeChecked();
     });
 
     it("hides it once the box is cleared", async () => {
       const { user, store } = await renderSettings();
 
-      await user.click(checkbox("Show the aim guide"));
+      await user.click(checkbox("Show aim guide"));
 
       expect(store.settings().guide).toBe(false);
     });
@@ -281,18 +283,18 @@ describe("SettingsComponent", () => {
     it("shows it again once the box is ticked", async () => {
       const { user, store } = await renderSettings({ guide: false });
 
-      await user.click(checkbox("Show the aim guide"));
+      await user.click(checkbox("Show aim guide"));
 
       expect(store.settings().guide).toBe(true);
     });
   });
 
   describe("the sound", () => {
-    it("says what the sounds are, the notch's tick rising with the charge", async () => {
+    it("says it turns all sound on or off, as the Sound button does", async () => {
       await renderSettings();
 
       expect(checkbox("Play sounds")).toHaveAccessibleDescription(
-        "A tick for each notch of charge, rising with the charge; each brick struck and broken, rising along a round; and a chime for a level cleared.",
+        "Turns all sound on or off. Same as the Sound button.",
       );
     });
 

@@ -32,7 +32,7 @@ interface Figure {
 
 /**
  * Shows an ended run's result over the board: whether a level was lost or
- * every level cleared, where, the score and the best, with "New best" when
+ * every level cleared, where, the score and the best, with "New best!" when
  * it set one, and the levels and stars it earned.
  *
  * The board opens it once the wall has settled and its card's wait is over.

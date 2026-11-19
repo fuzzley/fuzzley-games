@@ -34,7 +34,7 @@ const READY: ReadyCard = {
   newKind: "tough",
 };
 
-/** A level cleared in 7 rounds of a par of 9, for three stars, with two friends freed. */
+/** A level cleared in 7 shots of a par of 9, for three stars, with two friends freed. */
 const CLEARED: ClearedCard = {
   kind: "cleared",
   level: 3,
@@ -167,7 +167,7 @@ describe("BoardCardComponent", () => {
 
       expect(
         screen.getByText(
-          "Clear to the dashed line and the wall jumps: your next shot is a hot shot.",
+          "If you break everything you can below the dashed line, the wall jumps. Then your next shot is a hot shot.",
         ),
       ).toBeInTheDocument();
     });
@@ -177,7 +177,7 @@ describe("BoardCardComponent", () => {
 
       expect(
         screen.getByText(
-          "Clear to the dashed line and the wall jumps: your next shot is a triple shot.",
+          "If you break everything you can below the dashed line, the wall jumps. Then your next shot is a triple shot.",
         ),
       ).toBeInTheDocument();
     });
@@ -219,13 +219,13 @@ describe("BoardCardComponent", () => {
       expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
 
-    it("says the game is larger upright on a phone on its side", async () => {
+    it("asks for the phone upright, for a bigger board, on a phone on its side", async () => {
       installFakeViewport(844, 390);
 
       await renderCard(READY);
 
       expect(
-        screen.getByText("The game is larger upright."),
+        screen.getByText("Turn your phone upright for a bigger board."),
       ).toBeInTheDocument();
     });
 
@@ -270,7 +270,7 @@ describe("BoardCardComponent", () => {
     it("names the level cleared", async () => {
       await renderCard(CLEARED);
 
-      expect(screen.getByText("Level 3 cleared")).toBeInTheDocument();
+      expect(screen.getByText("Level 3 cleared!")).toBeInTheDocument();
     });
 
     it("draws a star for each earned, and says how many", async () => {
@@ -281,10 +281,10 @@ describe("BoardCardComponent", () => {
       expect(stars?.querySelectorAll("fz-icon")).toHaveLength(2);
     });
 
-    it("says the rounds it took against its par", async () => {
+    it("says the shots it took against its par", async () => {
       await renderCard(CLEARED);
 
-      expect(screen.getByText("7 rounds, par 9")).toBeInTheDocument();
+      expect(screen.getByText("7 shots, par 9")).toBeInTheDocument();
     });
 
     it("adds up its points, each part grouped in thousands", async () => {
@@ -410,16 +410,16 @@ describe("BoardCardComponent", () => {
     });
   });
 
-  describe("Restoring the board", () => {
-    it("says the board is being restored, and the game waits till it is back", async () => {
+  describe("Graphics stopped", () => {
+    it("says the graphics stopped, and the game is paused until they come back", async () => {
       await render(BoardCardComponent, {
         inputs: { card: null, restoring: true },
       });
 
       expect(
         within(
-          screen.getByRole("group", { name: "Restoring the board" }),
-        ).getByText("The game waits until it is back."),
+          screen.getByRole("group", { name: "Graphics stopped" }),
+        ).getByText("The game is paused until they come back."),
       ).toBeInTheDocument();
     });
 
@@ -429,7 +429,7 @@ describe("BoardCardComponent", () => {
       });
 
       expect(screen.getByRole("group")).toHaveAccessibleName(
-        "Restoring the board",
+        "Graphics stopped",
       );
     });
 
@@ -448,7 +448,7 @@ describe("BoardCardComponent", () => {
   it.each([
     ["Ready", READY, "Level 3: Thicker"],
     ["Paused", { kind: "paused", score: 0 }, "Paused"],
-    ["Cleared", CLEARED, "Level 3 cleared"],
+    ["Cleared", CLEARED, "Level 3 cleared!"],
     ["Ended, a level lost,", LOST, "Game over"],
     ["Ended, the last level cleared,", WON, "Every level cleared!"],
   ] as const)(
@@ -545,7 +545,7 @@ describe("BoardCardComponent", () => {
       couldNotDraw: screen
         .getByRole("alert")
         .textContent.includes("The board couldn't be drawn"),
-      restoring: screen.queryByText("Restoring the board"),
+      restoring: screen.queryByText("Graphics stopped"),
     }).toEqual({ couldNotDraw: true, restoring: null });
   });
 });

@@ -128,16 +128,10 @@ describe("BarComponent", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows the level, the rounds, the rows left, the score and the crew", async () => {
+    it("shows the level, the shots, the rows left, the score and the crew", async () => {
       await renderBar();
 
-      expect(terms()).toEqual([
-        "Level",
-        "Rounds",
-        "Rows left",
-        "Score",
-        "Crew",
-      ]);
+      expect(terms()).toEqual(["Level", "Shots", "Rows left", "Score", "Crew"]);
     });
 
     it("shows the level and the rows left", async () => {
@@ -146,28 +140,28 @@ describe("BarComponent", () => {
       expect([figure("Level"), figure("Rows left")]).toEqual(["12", "23"]);
     });
 
-    it("shows the rounds against par", async () => {
+    it("shows the shots against par", async () => {
       await renderBar();
 
-      expect(within(figureValue("Rounds")).getByText("4/9")).toHaveAttribute(
+      expect(within(figureValue("Shots")).getByText("4/9")).toHaveAttribute(
         "aria-hidden",
         "true",
       );
     });
 
-    it("says the rounds against par in words", async () => {
+    it("says the shots against par in words", async () => {
       await renderBar();
 
       expect(
-        within(figureValue("Rounds")).getByText("4 rounds, par 9"),
+        within(figureValue("Shots")).getByText("4 shots, par 9"),
       ).toHaveClass("fz-visually-hidden");
     });
 
-    it("says a single round as one", async () => {
+    it("says a single shot as one", async () => {
       await renderBar({ rounds: 1 });
 
       expect(
-        within(figureValue("Rounds")).getByText("1 round, par 9"),
+        within(figureValue("Shots")).getByText("1 shot, par 9"),
       ).toBeInTheDocument();
     });
 
@@ -389,10 +383,10 @@ describe("BarComponent", () => {
       installFakeViewport(width, height);
     });
 
-    it("shows the rounds and the score alone", async () => {
+    it("shows the shots and the score alone", async () => {
       await renderBar();
 
-      expect(terms()).toEqual(["Rounds", "Score"]);
+      expect(terms()).toEqual(["Shots", "Score"]);
     });
   });
 

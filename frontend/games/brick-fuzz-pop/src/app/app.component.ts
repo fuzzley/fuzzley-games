@@ -44,7 +44,7 @@ const PASSING_KEYS: ReadonlySet<string> = new Set([
 
 /** What the announcer says when How to play couldn't be loaded. */
 export const HELP_FAILED_WORDS =
-  "How to play couldn't be loaded. Check the connection, then try again.";
+  "How to play couldn't be loaded. Check your connection and try again.";
 
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the

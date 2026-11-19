@@ -454,8 +454,8 @@ helpers.
   (`[fzPlayRoom]`), which pauses the level in play (`lookAway()`).
   - `bar/` — the game bar, `<app-bar>`, showing what it is handed and asking
     for each action: from the desktop width (`fitsActionLabels`), unless the
-    window is compact, the level, the rounds against par, the rows left, the
-    score and the crew; otherwise the rounds and the score alone, as
+    window is compact, the level, the shots against par, the rows left, the
+    score and the crew; otherwise the shots and the score alone, as
     `figures.ts`'s `showsEveryFigure()` says, which the board reads too, the
     lintel's count hidden where the bar counts the rows. Every action is
     round; Pause, Fast-forward (`button[appFastForward]`) and Drop
@@ -480,8 +480,8 @@ helpers.
     functions over `GameService` (`WallSceneOptions`); sets the drawn gate
     from the canvas's state and whether its WebGL context is lost, as it
     hears on its way down to the canvas: lost, it pauses the run, the gate
-    holding any shot, and shows the card that says the board is being
-    restored, taking the focus from a button on the card it puts away, and
+    holding any shot, and shows the card that says the graphics stopped,
+    taking the focus from a button on the card it puts away, and
     restored, takes the card away, the run left paused for the player to go
     on, the announcer saying each (`BOARD_CONTEXT_WORDS`); and hands the game
     a later bake's pictures only once the atlas has settled
@@ -506,23 +506,23 @@ helpers.
     count of the rows too. The cards are `<app-board-card>`, handed the one
     to show (`BoardCard`) and what it shows: Ready, the level's number and
     name, what its jumps earn, the kind of brick it brings in and, on a phone
-    on its side, that the game is larger upright; Paused, the score, then
-    Resume; Cleared, the stars, the rounds against par, the tally, the score
-    and the crew, then Next level; and Ended, once a run's result is closed,
-    where the run was lost or the trophy, the score, then Try again from the
-    level or New game. Each is a group named by its title, an `<h2>`; while
-    the board is being restored (`restoring`), its card shows in place of
-    any. `<app-board-card>` reads the field's margin from `--margin`, which
-    the board sets, shows no card of its own while the canvas's cards
-    (`<fz-canvas-cards>`), projected into it, show one, keeps its buttons'
-    keys from Phaser's keyboard, and hands on each press.
+    on its side, that a phone held upright gives a bigger board; Paused, the
+    score, then Resume; Cleared, the stars, the shots against par, the
+    tally, the score and the crew, then Next level; and Ended, once a run's
+    result is closed, where the run was lost or the trophy, the score, then
+    Try again from the level or New game. Each is a group named by its
+    title, an `<h2>`; while the board is being restored (`restoring`), its
+    card shows in place of any. `<app-board-card>` reads the field's margin
+    from `--margin`, which the board sets, shows no card of its own while
+    the canvas's cards (`<fz-canvas-cards>`), projected into it, show one,
+    keeps its buttons' keys from Phaser's keyboard, and hands on each press.
   - `panels/` — the two panels beside a wide room's field, each a region
     named by its heading, wearing `@fz/style`'s `board-panel`, so it takes
     no pointer and no size of its own, to be laid over its room with
     `cssRectStyle()`: Coming next, `<app-coming-next>`, the level's number and
     name, the rows waiting over the ceiling as squares in each brick's ink,
-    hidden from assistive technology beside a sentence counting them, and what
-    a jump earns; and In this wall, `<app-in-this-wall>`, each kind of brick
+    hidden from assistive technology beside their count ("2 rows waiting"),
+    and what a jump earns; and In this wall, `<app-in-this-wall>`, each kind of brick
     the wall holds, through `helpEntries()`, with its picture once the scene
     has drawn it, the friends freed, and the boon's badge, lit through `lit`
     while the shot being aimed carries it. `panels.ts` reads the wall for both
@@ -530,9 +530,9 @@ helpers.
   - `settings/` — the settings drawer, `<app-settings>`: how a pointer aims
     (pointing and holding, or pulling back, the mouse and fingers alike; a
     "by the pointer" kept from before, which had a finger pull back, is read
-    as pointing and holding), the flight's speed, under which a line says
-    what the bar's Fast-forward and Drop do, long flights sped up, the aim
-    guide, sound and the palette, each applied at once; `SettingsService`
+    as pointing and holding), Shot speed, under which a line says what the
+    bar's Fast-forward and Drop do, Speed up long shots, the aim guide,
+    sound and the palette, each applied at once; `SettingsService`
     keeps them, and whether fast-forward is on, which has no control in the
     drawer, the bar's Fast-forward and F being its controls. Where
     `@fz/game-ui/debug_menu`'s `DEBUG_MENU` says so, in a development build
@@ -576,7 +576,7 @@ helpers.
     run's own `aria-current`; it hands on the level chosen.
   - `result/` — the result card over a run's end, `<app-result>`: "Game
     over" or "Every level cleared!", the score and the best, the levels
-    cleared and the stars earned, "New best" and the trophy, then Try again
+    cleared and the stars earned, "New best!" and the trophy, then Try again
     from the level or New game, Choose a level and Close. It opens on its
     title, where Enter presses the first of them and Space nothing, so a
     player still holding Space presses nothing. `end_words.ts` holds the

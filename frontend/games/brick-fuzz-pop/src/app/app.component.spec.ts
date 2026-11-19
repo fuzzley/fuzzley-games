@@ -257,8 +257,8 @@ describe("AppComponent", () => {
       expect({
         level: figure("Level"),
         rounds:
-          within(figureValue("Rounds")).queryByText(
-            `1 round, par ${String(game.par())}`,
+          within(figureValue("Shots")).queryByText(
+            `1 shot, par ${String(game.par())}`,
           ) !== null,
         rowsLeft: figure("Rows left"),
         score: figure("Score"),
@@ -919,7 +919,7 @@ describe("AppComponent", () => {
 
       expect({
         best: figure("Best", result),
-        newBest: within(result).queryByText("New best") !== null,
+        newBest: within(result).queryByText("New best!") !== null,
       }).toEqual({ best: String(SPEC_POINTS.jump), newBest: true });
     });
 

@@ -33,12 +33,12 @@ export function boonName(boon: Boon): string {
 }
 
 /**
- * Returns what a level's jumps earn, in a sentence, as the Ready card and
- * the announcer say it: "Clear to the dashed line and the wall jumps: your
- * next shot is a hot shot."
+ * Returns what a level's jumps earn, in two sentences, as the Ready card and
+ * the announcer say it: "If you break everything you can below the dashed
+ * line, the wall jumps. Then your next shot is a hot shot."
  */
 export function describeBoon(boon: Boon): string {
-  return `Clear to the dashed line and the wall jumps: your next shot is a ${boonName(boon)}.`;
+  return `If you break everything you can below the dashed line, the wall jumps. Then your next shot is a ${boonName(boon)}.`;
 }
 
 /** Returns what is said as a level begins: its number, its name and its boon. */
@@ -169,6 +169,16 @@ function stepWords(next: RoundStart, rowsDown: number): string {
 }
 
 /**
+ * Returns how many rows wait over the ceiling, as the lintel and Coming next
+ * show it: "6 rows waiting", or "No rows waiting".
+ */
+export function rowsWaiting(rows: number): string {
+  return rows === 0
+    ? "No rows waiting"
+    : `${count(rows, "row", "rows")} waiting`;
+}
+
+/**
  * Returns how many of the wall's rows wait over the ceiling where a round
  * starts, counted as the lintel counts them (`waitingRows()`, in
  * `src/app/panels/panels.ts`), in words for a sentence: "6 rows waiting",
@@ -176,9 +186,7 @@ function stepWords(next: RoundStart, rowsDown: number): string {
  */
 function waitingWords({ wall, depth }: RoundStart): string {
   const rows = Math.max(0, wall.rows - Math.max(0, depth - wall.lowestRow));
-  return rows === 0
-    ? "no rows waiting"
-    : `${count(rows, "row", "rows")} waiting`;
+  return rows === 0 ? "no rows waiting" : rowsWaiting(rows);
 }
 
 /**

@@ -103,10 +103,10 @@ describe("ResultComponent", () => {
     await renderResult();
 
     expect({
-      newBest: screen.getByText("New best").textContent,
-      // The trophy is hidden from assistive technology, which "New best" tells.
+      newBest: screen.getByText("New best!").textContent,
+      // The trophy is hidden from assistive technology, which "New best!" tells.
       trophy: document.querySelector('fz-icon[name="trophy"]') !== null,
-    }).toEqual({ newBest: "New best", trophy: true });
+    }).toEqual({ newBest: "New best!", trophy: true });
   });
 
   it("shows the best a lost run fell short of, with no new best or trophy", async () => {
@@ -114,7 +114,7 @@ describe("ResultComponent", () => {
 
     expect({
       best: figure("Best"),
-      newBest: screen.queryByText("New best"),
+      newBest: screen.queryByText("New best!"),
       trophy: document.querySelector('fz-icon[name="trophy"]'),
     }).toEqual({ best: "90,000", newBest: null, trophy: null });
   });
