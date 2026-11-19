@@ -231,7 +231,8 @@ helpers.
   3", or "62 degrees, hot shot" for one carrying it) to a round, the
   wall's lowest rows (`describeRows()`: each brick's kind, its hits left,
   its plates, and a portal by its pair's badge, shut while its twin
-  waits), a pause and the end.
+  waits), a pause and the end, and the rows waiting as the lintel and
+  Coming next show them (`rowsWaiting()`).
 - **`src/view/`** — what to draw and when, without Phaser, tested in Node.
   `round_play.ts` holds `RoundPlay`, which plays a round's flight back a
   frame at a time, counting its breaks' points as it reaches them
@@ -490,8 +491,9 @@ helpers.
     waiting", "No rows waiting"), read as the page is where neither the bar's
     Rows left nor Coming next says it and hidden from assistive technology
     where one does; the Ready card lies under it. Only its `.play` element is
-    the application, named for the level and described by its keys, around
-    the canvas and the focus ring; the panels and the card are its siblings,
+    the application, named for the level and described by a list of the
+    keys needed to play (F and X are left to How to play), around the
+    canvas and the focus ring; the panels and the card are its siblings,
     read as a page is. The board puts the focus on `.play` for a press on it,
     from `focus()` after the next render, and back from a card's button
     before the game moves on. For the layout check (`tools/check-layout.mjs`)

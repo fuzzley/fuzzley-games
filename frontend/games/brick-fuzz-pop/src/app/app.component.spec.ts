@@ -537,7 +537,7 @@ describe("AppComponent", () => {
 
       expect(
         await screen.findByText(
-          `Paused, with a score of ${String(2 * SPEC_POINTS.step)}. Press Enter to go on.`,
+          `Paused. Score ${String(2 * SPEC_POINTS.step)}. Press Enter to resume.`,
           // The settings drawer's own region, for while it is open, says it too.
           { ignore: "dialog *" },
         ),

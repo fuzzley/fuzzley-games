@@ -86,8 +86,8 @@ export function describeRound(
   if (result === "on") {
     words.push(
       jumped
-        ? `The lower two-thirds are clear. The wall jumped ${count(rowsDown, "row", "rows")}, with ${waitingWords(next)}.`
-        : stepWords(next, rowsDown),
+        ? `The wall jumped ${count(rowsDown, "row", "rows")}. ${waitingWords(next)}.`
+        : stepWords(next),
     );
     if (next.boon !== null) words.push(`Next shot: ${boonName(next.boon)}.`);
   }
@@ -112,32 +112,32 @@ export function describeRows(start: RoundStart): string {
       rows.push(`Row ${String(row)}: ${words.join(", ")}.`);
     }
   }
-  return rows.length > 0 ? rows.join(" ") : "No bricks in the field.";
+  return rows.length > 0 ? rows.join(" ") : "No bricks on the screen.";
 }
 
 /**
  * Returns what is said as a level is cleared, the last among them: the
- * rounds it took against its par, the stars they earned, and the score.
+ * shots it took against its par, the stars they earned, and the score.
  */
 export function describeCleared(run: Run): string {
-  return `Level ${String(run.level)} cleared in ${count(run.rounds, "round", "rounds")}, par ${String(run.par)}: ${count(starsOf(run), "star", "stars")}! Score ${formatPoints(run.score)}.`;
+  return `Level ${String(run.level)} cleared in ${count(run.rounds, "shot", "shots")}, par ${String(run.par)}. ${count(starsOf(run), "star", "stars")}. Score ${formatPoints(run.score)}.`;
 }
 
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
-  return `Paused, with a score of ${formatPoints(run.score)}. Press Enter to go on.`;
+  return `Paused. Score ${formatPoints(run.score)}. Press Enter to resume.`;
 }
 
-/** Returns what is said as a paused run goes on. */
+/** Returns what is said as a paused run resumes. */
 export function describeResume(): string {
-  return "Going on.";
+  return "Resumed.";
 }
 
 /** Returns what is said as a run kept before the page was left is taken up: where it stands, paused. */
 export function describeTakenUp(run: Run, entry: LevelEntry): string {
-  const rounds =
-    run.rounds === 0 ? "" : ` ${count(run.rounds, "round", "rounds")} in,`;
-  return `Your last run is paused on level ${String(entry.number)}, ${entry.data.name},${rounds} with a score of ${formatPoints(run.score)}. Press Enter to go on.`;
+  const shots =
+    run.rounds === 0 ? "" : ` ${count(run.rounds, "shot", "shots")} taken.`;
+  return `Paused on level ${String(entry.number)}, ${entry.data.name}.${shots} Score ${formatPoints(run.score)}. Press Enter to resume.`;
 }
 
 /** Returns what an ended run is called, on its card and as the announcer says it ends. */
@@ -147,24 +147,25 @@ export function endTitle(run: Pick<Run, "outcome">): string {
 
 /** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */
 export function describeEnd(run: Run, newBest: boolean): string {
-  const best = newBest ? " A new best!" : "";
+  const best = newBest ? " New best." : "";
   return `${asSentence(endTitle(run))} Score ${formatPoints(run.score)}, at level ${String(run.level)}.${best}`;
 }
 
 /**
- * Returns what is said of the wall's step: how far it came, how far its
- * lowest brick the level needs stands from the floor, how many bricks it
- * needs stand under the jump line, how many rows wait over the ceiling,
- * and the danger once a brick it needs stands in the row over the floor's.
+ * Returns what is said after the wall's step, which is always a row and
+ * goes unsaid: how far its lowest brick the level needs stands from the
+ * floor, how many bricks it needs stand under the jump line, how many rows
+ * wait over the ceiling, and the danger once a brick it needs stands in the
+ * row over the floor's.
  */
-function stepWords(next: RoundStart, rowsDown: number): string {
+function stepWords(next: RoundStart): string {
   const { wall, depth } = next;
   const { jumpLine } = thirdsOf(depth);
   const lowest = lowestNeededRow(wall);
   const toJump = neededBelow(wall, jumpLine);
-  const words = `The wall came down ${count(rowsDown, "row", "rows")}: ${count(lowest, "row", "rows")} from the floor, ${count(toJump, "brick", "bricks")} to a jump, ${waitingWords(next)}.`;
+  const words = `${count(lowest, "row", "rows")} to the floor. ${count(toJump, "brick", "bricks")} to a jump. ${waitingWords(next)}.`;
   return inDanger(wall)
-    ? `${words} Danger: the next step down loses the level.`
+    ? `${words} Danger. Break the bottom bricks this shot, or you lose the level.`
     : words;
 }
 
@@ -181,12 +182,13 @@ export function rowsWaiting(rows: number): string {
 /**
  * Returns how many of the wall's rows wait over the ceiling where a round
  * starts, counted as the lintel counts them (`waitingRows()`, in
- * `src/app/panels/panels.ts`), in words for a sentence: "6 rows waiting",
- * or "no rows waiting".
+ * `src/app/panels/panels.ts`) and in its words: "6 rows waiting", or "No
+ * rows waiting".
  */
 function waitingWords({ wall, depth }: RoundStart): string {
-  const rows = Math.max(0, wall.rows - Math.max(0, depth - wall.lowestRow));
-  return rows === 0 ? "no rows waiting" : rowsWaiting(rows);
+  return rowsWaiting(
+    Math.max(0, wall.rows - Math.max(0, depth - wall.lowestRow)),
+  );
 }
 
 /**
@@ -240,7 +242,7 @@ function platedWords(plates: number): string {
   return `plated toward ${listed(faces)}`;
 }
 
-/** Returns words as a sentence: ending in a full stop, unless they end in a mark of their own. */
+/** Returns a title as a sentence to be said, ending in a full stop: an exclamation mark becomes one, as a screen reader doesn't read it. */
 function asSentence(words: string): string {
-  return /[.!?]$/.test(words) ? words : `${words}.`;
+  return /[.?]$/.test(words) ? words : `${words.replace(/!$/, "")}.`;
 }
