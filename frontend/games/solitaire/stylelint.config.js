@@ -1,5 +1,6 @@
 // `yarn lint:styles` checks every stylesheet under src/ with @fz/style's
-// rules: colours come from the tokens, read with var() (see AGENTS.md).
+// rules: colours come from the tokens, read with var() (see
+// frontend/AGENTS.md).
 
 /** @type {import("stylelint").Config} */
 export default {

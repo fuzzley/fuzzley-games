@@ -48,7 +48,7 @@ Run these from `frontend/games/snake/`, or as
   needs one is the scene's or the shell's to test. Their code must hold
   nothing Analog's plugin must compile, such as a decorated class: `dom`
   compiles it with Vite's oxc, as `pure` does, so that coverage counts it
-  once (`frontend/lib/dev/AGENTS.md`).
+  once (`frontend/lib/dev/src/vitest.ts`).
 - `src/test-setup.ts` calls `@fz/phaser/testing`'s
   `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
   TestBed, loads jest-dom's matchers, polyfills `<dialog>`, and gives each

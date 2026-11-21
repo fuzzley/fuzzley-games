@@ -83,9 +83,9 @@ every move. Follow that: new engine types describing something that happened are
 
 ## Architectural Import Boundaries
 
-Enforced as hard ESLint errors in `eslint.config.js`. The canonical table lives
-in this workspace's `AGENTS.md` and is explained in the `add-solitaire-game` skill —
-**read it there rather than keeping a fourth copy in sync.**
+Enforced as hard ESLint errors in `eslint.config.js`, which holds each tier's
+fence. The `add-solitaire-game` skill explains them —
+**read them there rather than keeping another copy in sync.**
 
 Two points that are easy to get wrong:
 

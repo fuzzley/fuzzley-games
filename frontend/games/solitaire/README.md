@@ -63,7 +63,7 @@ yarn workspace solitaire typecheck     # type-check the app, the tests and the t
 yarn verify                            # lint, type-check, test and build every workspace
 ```
 
-The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`. [AGENTS.md](AGENTS.md) describes its layers and the rest of its scripts.
+The game code lives in `src/` (bundled by Vite via `src/ui/app/main.ts`). The Angular UI components and Sass design system (`src/ui/app/styles/`) are located in `src/ui/`, while the Phaser game logic, rendering, and solitaire runtime reside in `src/engine/` and `src/games/`. `eslint.config.js` holds its layers' boundaries, and `package.json` the rest of its scripts.
 
 The site's `yarn build` builds it, copies `dist/` to `/play/solitaire/`, and
 adds the site's analytics tags. It began in a repository of its own,
