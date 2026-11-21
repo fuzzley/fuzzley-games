@@ -9,14 +9,14 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 | Stage | What                                              | The audit's | Touches                                  |
 | ----- | ------------------------------------------------- | ----------- | ---------------------------------------- |
 | 1     | One `yarn verify:changed` a commit, in turn       | 5           | `commit-review-process`, `@fz/dev`       |
-| 2     | Reviews in the background                         | 1           | `commit-review-process`, the plugin      |
+| 2     | Reviews in the background                         | 1           | The two process skills, the plugin       |
 | 3     | A `commit-reviewer` agent type, and its effort    | 2, 6        | `.agents/`, the replay set               |
 | 4     | A skill for how a build runs                      | 3 to 7      | a new skill                              |
 | 5     | A build's state, to check by hand                 | 7           | the plugin, outside the repository       |
 | 6     | The first measured build, to be chosen            | all         | that feature's plan                      |
 | 7     | The standing docs, skills and plugins: the review | 3           | every `AGENTS.md`, every skill, settings |
 
-- **Stages 1 to 5 change no game code.** They edit two skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
+- **Stages 1 to 5 change no game code.** They edit three skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
 - **Stage 6 is the test.** Nothing before it is proven: every saving in the audit is an estimate from logs.
 - **Stage 7 runs after that build,** so the build gives a before-figure for what the pruning buys.
 
@@ -109,14 +109,14 @@ The audit's recommendation 1. With the reviewer at `high` (decision 5) the gain 
 1. **The author commits the change** once `yarn verify:changed` passes, with its message in final form.
 2. **It starts the reviewer in the background** (`run_in_background`) on that commit. The reviewer reads `git show <sha>`, and a file as it was at that commit with `git show <sha>:<path>`.
 3. **It goes on to the next change,** keeping it small until the report is in.
-4. **When the report arrives, it answers every finding** in an `amend!` commit, which carries the fix and the commit's new message, its answers in the body. `git commit --fixup=amend:<sha>` would make one, but it opens an editor and refuses `-m`. So an agent writes it by hand: a message file whose first line is `amend! <the commit's subject>` and whose rest is the whole new message, then `git commit -F <file>`, with `--allow-empty` where there is an answer and nothing to fix.
-5. **Before it reports its package done,** it runs `git rebase --autosquash --keep-base <the branch it left>` on its own branch, in its own worktree, with `GIT_EDITOR=true`, and `yarn verify:changed` on the result. `--keep-base` squashes without also moving the branch. So the orchestrator lands whole, reviewed commits and no `amend!`. The recipe was tried on Nov 21 in a scratch repository, on git 2.47.
+4. **When the report arrives, it answers every finding** in an `amend!` commit, which carries the fix and the commit's new message, its answers in the body. `git commit --fixup=amend:<sha>` would make one, but it opens an editor and refuses `-m`. So an agent writes it by hand: a message whose first line is `amend! <the commit's subject>` and whose rest is the whole new message, handed to `git commit -F -` with the fix's files named, or with `--allow-empty --only` where there is an answer and nothing to fix.
+5. **Before it reports its package done,** it runs `git rebase --autosquash --keep-base <the branch it left>` on its own branch, in its own worktree, with `GIT_EDITOR=true`, then checks that the tree came out as it went in (`git diff` against the tip from before prints nothing). Only where it differs does `yarn verify:changed` run again. `--keep-base` squashes without also moving the branch. So the orchestrator lands whole, reviewed commits and no `amend!`. The recipe was tried on Nov 21 in a scratch repository, on git 2.47.
 
 **The rules that keep it safe:**
 
 - **At most two changes wait on a report at once.** With two out, the author waits.
 - **A fix that reshapes a change** still earns a second review, as now.
-- **A squash that conflicts** is settled by the author, and what the conflict changed is reviewed again.
+- **A squash that conflicts** is settled by the author. One that changes the tree, by a conflict or without one, is checked again and the difference reviewed.
 - **One change on its own,** such as a doc fix in a session with nothing else to do, keeps the present flow: stage, review, answer, commit.
 
 **Steps:**
@@ -124,13 +124,34 @@ The audit's recommendation 1. With the reviewer at `high` (decision 5) the gain 
 1. Rewrite steps 2 and 3 of `commit-review-process` to this, with the present flow kept as the short case. Its description, its opening line and step 1's heading say "before it is committed" and "staged", and change with them.
 2. Change the brief's first lines: "Review the commit `<sha>`…", and "the author is working on in the same checkout, so read a file with `git show <sha>:<path>`".
 3. Try it by hand in one session: two small real changes, the second begun while the first is in review. Check that the squashed history is what a foreground review would have left.
-4. In the plugin, count the `amend!` commits a run's logs show being made, by worker. After the squash git no longer shows them, and they are this stage's measure of what a review changed.
+4. In the plugin, count the `amend!` commits a run's logs show being made. After the squash git no longer shows them, and they are this stage's measure of what a review changed.
 
 **Measure.** A worker's elapsed minutes and context rewrites a commit. Not the minutes blocked on a reviewer, which fall to nothing by definition. For quality: `amend!` commits that carry a fix, for each report, against the 68% of reviews after which a Brick Breaker worker changed source.
 
 **What it risks.** A worker building on a change its reviewer then faults. The limit of two and the small next change bound it.
 
 **Done when** the skill is rewritten, the trial in step 3 is written up here, and the plugin counts `amend!` commits.
+
+**Where it stands (Nov 21).** Built, on the branch `agent-efficiency-2-reviews`. The skill is rewritten. `merge-to-main` changed with it, which the steps above did not foresee: it now lands no `amend!` commit and pushes with no review out, since the specs it has written for coverage are committed and reviewed on the way. The plugin counts `amend!` commits and the waits in stage 1's queue.
+
+- **The trial.** The stage's own two changes went through the new flow in one session: the skill's rewrite, then `merge-to-main`'s change, written once the first's review had started and committed 27 seconds after the first. All three reviews ran in the background at `high`, and the plugin's counting was written while the first two did. This write-up then went the same way: one review of 2.8 minutes, and six findings answered in an `amend!` commit.
+
+  | Review of           | Took    | Findings | Answered in              |
+  | ------------------- | ------- | -------- | ------------------------ |
+  | The skill's rewrite | 3.4 min | 8        | An `amend!` with a fix   |
+  | `merge-to-main`     | 1.7 min | 3        | An `amend!` with a fix   |
+  | The first's fix     | 3.5 min | 5        | A second `amend!`, a fix |
+
+- **The history it left.** Five commits before the trial's squash, three of them `amend!`. Two after it, each with its answers in its body and none `amend!`. The tree after the squash is the tree before it. That is what a review in the foreground would have left.
+- **What the trial changed in the design.** The first review's findings rewrote the skill's steps 3 to 5:
+  - **A report is answered between changes,** with the change in hand committed first. Otherwise the check and the `amend!` take what is half built.
+  - **A fix is committed by its files' names,** and answers alone with `--only`, so nothing else that is staged goes into the reviewed commit.
+  - **The `amend!` line comes from a command,** `git log -1 --format='amend! %s' <sha>`. A mistyped subject is left unfolded, and a cut one folds into the wrong commit.
+  - **What a fix changes in a later commit goes in that commit's own `amend!`.** Folded into the first, it would come before the commit it mends. A scratch repository showed the conflict that follows.
+  - **The squash is checked by a diff, not by a second run of the check.** A squash only folds, so the tree should come out as it went in. `yarn verify:changed` runs again only where it didn't. That saves a package one check of one to three minutes.
+- **What it did not show.** Both changes were Markdown, in one session whose author was not a worker with its own worktree. The second change touched another file and built on nothing in the first, so the risk above, of building on a commit its reviewer then faults, was not met. No squash conflicted in the trial itself. The last review of a package is still waited on, since the squash needs every report in: here that was 3.5 minutes.
+- **The plugin.** It counts an `amend!` commit from the `amend!` line in the command's message or in what git printed, as a fix-up and not as a commit, and counts apart those that carry a fix. It totals them across a run's authors and by arm, not worker by worker. Two past runs came out as before, but for the new figures. It also adds up `Waited <n> s for its turn.`, stage 1's measure.
+- **Not measured yet.** A worker's elapsed minutes and rewrites a commit wait for the stage 6 build.
 
 ## Stage 3. A `commit-reviewer` agent type, and its effort
 
@@ -346,3 +367,4 @@ A week's allowance comes to about $1,960 at list prices, good to a sixth either 
 ## As built
 
 - **Stage 1 (Nov 21).** `commit-review-process` names one check, `yarn verify:changed`, and starts its reviewer at `high` effort. The command queues itself, one run at a time across the repository's worktrees, after the timings showed that four at once fail on time limits or run the machine out of memory. Its figures are under [stage 1](#stage-1-one-check-a-commit-each-in-its-turn).
+- **Stage 2 (Nov 21).** An author commits a checked change, starts its review in the background and keeps working, with two reports out at most. It answers each in an `amend!` commit and squashes those in before the work lands. `merge-to-main` lands no `amend!` and pushes with no review out. The plugin counts the `amend!` commits. The trial is under [stage 2](#stage-2-reviews-in-the-background).
