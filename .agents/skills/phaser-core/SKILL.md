@@ -201,14 +201,12 @@ Only in the folders that draw. A game's `eslint.config.js` fences its rules
 and its layout off from `/phaser`, anchored, so `@fz/phaser`'s pure entries
 still pass: the Solitaire Collection's `src/engine/render/phaser` and
 `src/engine/board` draw, and its cards, rules, layout and games are fenced.
-Snake keeps four layers (`frontend/games/snake/AGENTS.md`): its rules, a
-view that works out what to draw without Phaser, so its specs are plain,
-the scene, the one folder that imports Phaser, and the shell. Brick
-Breaker keeps the same four (`frontend/games/brick-breaker/AGENTS.md`),
-its physics in its rules, and so do Asteroid Breaker
-(`frontend/games/asteroid-breaker/AGENTS.md`) and Brick Fuzz Pop
-(`frontend/games/brick-fuzz-pop/AGENTS.md`); all four take their fences
-from `@fz/dev`'s `phaserGameLayers()` (`frontend/lib/dev/AGENTS.md`).
+Snake keeps four layers: its rules, a view that works out what to draw
+without Phaser, so its specs are plain, the scene, the one folder that
+imports Phaser, and the shell. Brick Breaker keeps the same four, its
+physics in its rules, and so do Asteroid Breaker and Brick Fuzz Pop; all
+four take their fences from `@fz/dev`'s `phaserGameLayers()`
+(`frontend/lib/dev/src/eslint.ts`).
 The Angular shell imports `@fz/phaser/canvas` and a scene source, never
 Phaser itself; a source that loads the scene with `import()` keeps Phaser
 out of the first download.

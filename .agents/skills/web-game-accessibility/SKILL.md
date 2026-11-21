@@ -8,12 +8,8 @@ description: Accessibility (a11y) rules for the site and the games, ARIA state b
 This skill defines the accessibility rules the site and the games built here
 share. The shared libraries' components meet them by themselves, so the
 first way to meet one is to use the library's piece (the `fuzzley-ui` skill
-lists them); each workspace's `AGENTS.md` names what it keeps of its own:
-`frontend/site/AGENTS.md`, `frontend/games/solitaire/AGENTS.md`,
-`frontend/games/minesweeper/AGENTS.md`, `frontend/games/sudoku/AGENTS.md`,
-`frontend/games/snake/AGENTS.md`, `frontend/games/brick-breaker/AGENTS.md`,
-`frontend/games/asteroid-breaker/AGENTS.md` and
-`frontend/games/brick-fuzz-pop/AGENTS.md`.
+lists them). A workspace's `AGENTS.md` adds a rule that is its own, as
+`frontend/games/sudoku/AGENTS.md` does for its one-key shortcuts.
 
 ## Core Accessibility Rules
 

@@ -1,6 +1,6 @@
 # The frontend
 
-See [AGENTS.md](AGENTS.md) for what every workspace keeps: the layout of
-`frontend/`, the Yarn commands, and the Angular and Sass rules the apps share.
+See [AGENTS.md](AGENTS.md) for the rules every workspace under `frontend/`
+keeps.
 
 @AGENTS.md

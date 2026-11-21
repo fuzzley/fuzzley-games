@@ -1,135 +1,76 @@
 # The frontend
 
-`frontend/`: the Yarn workspace root for all client code, the site, the games
-built here and the libraries they share, and nothing else. These rules hold
-for every workspace in it. The repository's, in
-[.agents/AGENTS.md](../.agents/AGENTS.md), apply here too, and each workspace
-keeps its own in an `AGENTS.md` in its folder. Paths are relative to
-`frontend/`.
+These rules hold for every workspace under `frontend/`: the site (`site/`),
+the games (`games/`) and the libraries they share (`lib/`, each named
+`@fz/<folder>`). The repository's, in
+[.agents/AGENTS.md](../.agents/AGENTS.md), apply here too. Paths are relative
+to `frontend/`.
 
-## Layout
+## Workspaces
 
-- **The root** runs the workspaces and holds nothing of their own. Its
-  `package.json` declares the workspaces and pins Yarn and Node. Its scripts
-  run the workspaces' own (`yarn build`, `yarn verify`), picking them by path
-  (`--include "games/*"`), each `foreach` running them side by side
-  (`--parallel`, as many at once as half the machine's cores), each
-  workspace's output printed whole once it is done, so no workspace's step
-  may wait on another's. `yarn test` and `yarn test:coverage` run through
-  `tools/run-tests.mjs` instead, since `foreach` starts workspaces by name:
-  it starts those with the most spec files first, which takes the longest
-  suites, such as the Solitaire Collection's, off the end, four at a time,
-  each Vitest on a quarter of the cores (`--maxWorkers`, as a number),
-  which fits a machine of four cores or more, as CI's is; more would starve
-  the specs of their five seconds. Its dependencies are only the tools that run from here: Prettier, ESLint, TypeScript and `@fz/dev`
-  for the `.agents/` scripts and its own `tools/`, with the
-  `eslint.config.js` and `tsconfig.scripts.json` beside it, and `semver` for
-  the constraints.
-  `tools/` holds the scripts that act on every workspace at once, such as
-  `yarn stop`'s and `yarn test`'s. `yarn.lock` and `.yarnrc.yml` exist only here. A backend,
-  when there is one, goes in a folder of its own beside `frontend/`.
-- **`yarn.config.cjs`** holds the constraints `yarn lint` checks every
-  `package.json` against: a package has the same range in every workspace
-  that depends on it, a peer range is the workspace's own devDependency
-  range for it, only the root sets `packageManager`, `workspaces` and
-  `engines`, each workspace is private and named after its folder, a library
-  depends on no workspace but another library, and every workspace has
-  `lint`, `typecheck`, `test` and `test:coverage` scripts (a game `build`
-  too), since the
-  root's `yarn workspaces foreach run` skips a workspace without one and
-  says nothing. `yarn constraints --fix` gives every workspace the highest
-  of a package's ranges, and a peer its devDependency's.
-- **Each workspace is self-contained:** its `package.json` lists everything
-  it imports or runs, and its configs sit in its folder and cover only it.
-  They build on `@fz/dev`'s presets, so every workspace is checked by the
-  same rules, and add only what is the workspace's own. Its ESLint and
-  Stylelint configs are checked as its scripts are, linted by `@fz/dev`'s
-  `scripts()` block and type-checked from their JSDoc in its
-  `tsconfig.scripts.json`, which its solution, `tsconfig.json`, references.
-  The site and the games never import each other's code; the site takes a
-  game's built `dist/`, through `games.json`, and nothing else, but for
-  `yarn dev:all`, which runs each game's own dev server in its workspace
-  and serves it at the site's `/play/<slug>/`.
-- **`site/`** is the site, the Angular app (workspace `site`), and the build
-  the image serves, with the games under `/play/`: `site/AGENTS.md`.
-- **`lib/`** holds the libraries the site and the games share, one workspace
-  each, named after its folder under the `@fz` scope (`lib/style` is
-  `@fz/style`). Imports go one way only: the site and the games may import a
-  library, through a `workspace:` dependency in their `package.json`, and a
-  library may import another library, but never the site or a game. An app
-  compiles a library from its source; nothing in `lib/` is built on its own.
-  A library's coverage counts its `src/testing/`, the helpers it hands
-  specs, with no floor of its own, so what of them goes untested shows.
-  Each keeps its own rules in an `AGENTS.md` in its folder:
-  `lib/core/AGENTS.md`, for the small helpers the games share with no
-  framework and no platform, which a game's rules may import,
-  `lib/style/AGENTS.md`, for the styles every app shares, with no framework,
-  `lib/ui/AGENTS.md`, for the Angular components and services,
-  `lib/game-ui/AGENTS.md`, for the chrome only the games share,
-  `lib/phaser/AGENTS.md`, for what every game drawn with Phaser shares, and
-  `lib/dev/AGENTS.md`, for the lint, compiler, test and game build presets
-  every workspace is checked and built with, the scripts' headless Chrome,
-  and the games' sound synths and sound lab, which no app's code imports.
-  The `fuzzley-ui` skill says which piece to reach for, and how an app
-  adopts them; the `phaser-core` skill covers `@fz/phaser`.
-- **`games/`** holds the games built here, one workspace each, named after
-  its folder. What every game keeps, and how to add one, is in
-  `games/AGENTS.md`; what each keeps of its own is in its folder's:
-  `games/solitaire/AGENTS.md`, `games/minesweeper/AGENTS.md`,
-  `games/sudoku/AGENTS.md`, `games/snake/AGENTS.md`,
-  `games/brick-breaker/AGENTS.md`, `games/asteroid-breaker/AGENTS.md` and
-  `games/brick-fuzz-pop/AGENTS.md`.
+- **A workspace lists everything it imports or runs in its own
+  `package.json`.** Its configs sit in its folder, build on `@fz/dev`'s
+  presets and add only what is its own, so every workspace is checked by
+  the same rules. `yarn lint` holds every `package.json` to the constraints
+  in `yarn.config.cjs`, and `yarn constraints --fix` settles a range that
+  differs between workspaces.
+- **Imports go one way.** The site and the games import a library, through
+  a `workspace:` dependency, and a library may import another library, but
+  never the site or a game. The site and the games never import each
+  other's code.
+- **Reach for a shared piece before writing one.** The `fuzzley-ui` skill
+  says which library holds what, and how an app adopts it. The
+  `phaser-core` skill covers `@fz/phaser`.
+- **Before changing a library, read the `fuzzley-ui` skill's "Changing a
+  library",** or `phaser-core` for `@fz/phaser`. A piece added to a library,
+  or one whose name or inputs change, changes its row in that skill in the
+  same change: no `AGENTS.md` lists what a library holds.
+- **A workspace's exception to a lint rule goes in its own
+  `eslint.config.js`, with its reason,** never into a preset. A block there
+  that sets a rule a preset sets replaces the preset's options in its
+  files, so it restates what it must keep. An import fence of its own uses
+  `@typescript-eslint/no-restricted-imports`, which adds to the presets'
+  fence on the `testing` entries, where ESLint's own rule would replace it.
+- **What a browser stores outlives the code.** Renaming a storage key, or an
+  id stored under one, such as a palette's, passes every check and loses
+  what players saved.
+- **Take the newest version past the age gate rather than lifting it.**
+  `.yarnrc.yml` sets `npmMinimalAgeGate` to a day, so Yarn calls a version
+  published since then "quarantined" and won't install it.
 
-## Yarn and Node
+## Checking
 
-This project uses **Yarn 4**, through Corepack, pinned in `package.json`.
-Always use Yarn commands instead of NPM (`yarn <command>`), run from here;
-`yarn workspace <name> <script>` runs a script of one workspace.
-
-`.yarnrc.yml` sets `npmMinimalAgeGate` to a day: Yarn won't install a version
-published less than a day ago (it says the versions are "quarantined"). Take
-the newest version past the gate rather than lifting it. Dependabot waits the
-same day before proposing an update.
-
-Node is version 26, as the repository's `.node-version` says;
-`package.json`'s `engines` says so too.
-
-## Commands
-
-Run from `frontend/`. Each of these builds or checks every workspace; a
-workspace's own scripts, such as `yarn workspace site lint:styles`, run one
-step, and its `AGENTS.md` says what they do.
-
-- **Run Development Server:** `yarn start` or `yarn dev` (builds the workspaces under `games/`, then the site puts the games in `site/public/play/` and launches the Vite dev server at `http://localhost:4200/`; `--open` opens it in the browser, which no dev server does unless asked). The games are the builds made when it started, so an edit to one shows only once it is built again.
-- **Run Every Dev Server:** `yarn dev:all` (runs `site/tools/dev-all.mjs`: the site's Vite dev server at `http://localhost:4200/`, and each game's own on the ports after it, which the site serves at `/play/<slug>/`, so an edit to a component's template or styles, in the site, a game or a library, swaps into the running page, keeping the game in play, and any other edit reloads the page, from which each game takes up the game it saved; `--port <n>` moves the site, and the games with it, to another port, failing rather than taking another when one is in use, and `--open` opens the site in the browser once it is up). When one server stops, the others do too.
-- **Production Build:** `yarn build` (builds the workspaces under `games/` with `yarn build:games`, then the site's `build` puts every game `games.json` lists into `site/public/play/`, bundles into `site/dist/`, writes `version.json` with the commit it was built from and the games' builds, then adds the analytics tags to each game). It fails if the catalog links a game the games' builds don't have, or calls one by another name, as each build's `game.json` says.
-- **Copy the Games:** `yarn games` (builds the workspaces and copies every game into `site/public/play/`; `yarn start` and `yarn build` do it first).
-- **Preview Build:** `yarn preview` (serves the site's production build locally).
-- **Stop Development Servers:** `yarn stop` (runs `tools/stop-dev-servers.mjs` to force stop every Vite dev server running from this checkout's frontend, whichever workspace started it, with the yarn processes that launched it, on Windows and Linux; `--dry-run` lists them without stopping them). Don't run it while a build runs: it stops the Dart Sass a build spawns too.
-- **Check the Layout:** `yarn check:layout` (runs each game's `check:layout`, where it has one, as Sudoku, Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop do: it serves the game's build and opens it in headless Chrome at a roomy window, an upright phone and one on its side, each as a large phone and a small one, a few pages at once (`--pages`: four, or two where `CI` is `true`), failing on an error the page reports, a page that scrolls, a control of the game bar out of the window, a board drawn with Phaser out of its shape or its place, a deck beside it that lacks a zone it must show (one shown all or none may show none of them, or, told the room it needs, must show exactly where that room is spare) or whose zones lie off the canvas or over the board, each other or the bar, or what the game's own inspection finds, with `@fz/dev/layout`; Snake's, Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's turn the phone too). It checks the builds `yarn build` made, and CI runs it in its `build` job, after `yarn build`.
-- **Run Unit Tests:** `yarn test` (runs each workspace's `test`, every spec once, without coverage, the workspaces with the most spec files first, and prints when each started and how long it ran; off CI, each Vitest keeps Node's compile cache in `node_modules/.cache/node-compile-cache/`, about half a second off each start, which `NODE_DISABLE_COMPILE_CACHE=1` turns off, and `yarn test:coverage` keeps none; `yarn test --jobs <n>` runs another number at once, `--only` and `--except` take workspaces' names by commas, what follows `--` reaches each Vitest, and `yarn test --help` says so; `yarn test:coverage` takes the same).
-- **Run Unit Tests with Coverage:** `yarn test:coverage` (runs each workspace's `test:coverage`, which collects coverage and fails below the floor its config sets: the site's in the `test` block of its `vite.config.ts`, every other workspace's in its `vitest.config.ts`; Brick Breaker's, Asteroid Breaker's and Brick Fuzz Pop's then run the specs that play or lay out every level or wave, or time a flight, without it). A workspace's `test:coverage` that runs Vitest twice, as those three do, hands each run its arguments (`"$@"`), the root's `--maxWorkers` among them, since Yarn adds them to the last command of a script that names none. A floor holds for the whole suite, so run one spec with `yarn vitest run <path>` from its workspace instead, naming its project where the workspace has several (`yarn vitest run --project pure <path>`), or Vitest starts every project. CI runs it, in three jobs that each choose their workspaces with `--only` or `--except` (the `github-actions-ci-cd` skill); run it, through `yarn verify:full`, before merging into `main`, as the `merge-to-main` skill says.
-- **Type Checking:** `yarn typecheck` (runs `tsc7` over the `.agents` scripts, the root's `tools/`, the constraints and its `eslint.config.js` from their JSDoc (`tsconfig.scripts.json`), then each workspace's `typecheck`, which checks its lint configs too). Vitest strips types without checking them, so this is the only check a spec's types get. The Angular compiler (`ngc`) runs on TypeScript 6, which ESLint and Analog's plugin load too, since 7.0 has no compiler API; every other pass runs on TypeScript 7 through `@fz/dev`'s `tsc7`, about eight times faster, and keeps nothing between runs, as 7 checks a project whole faster than 6 checked what changed.
-- **Linting:** `yarn lint` (checks the paths and links in the skills and every `AGENTS.md`, checks every `package.json` against the constraints in `yarn.config.cjs` (`yarn constraints`), checks the lockfile holds no copy `yarn dedupe` would merge (`yarn dedupe --check`), runs ESLint over `.agents`, the root's `tools/`, those constraints and `eslint.config.js` itself with that config, runs each workspace's `lint` with its own config, over its lint configs too, then checks formatting with `yarn prettier:check`).
-- **Verification Pipeline:** `yarn verify` (runs `yarn lint && yarn typecheck && yarn test && yarn build`), the check while working.
-- **Full Verification Pipeline:** `yarn verify:full` (runs `yarn lint && yarn typecheck && yarn test:coverage && yarn build`), the checks CI runs in jobs side by side, one after another.
-- **Verify What Changed:** `yarn verify:changed` (runs `tools/verify-changed.mjs`: the root's lint, typecheck and Prettier's check, and the lint, typecheck, tests, build and layout check of each workspace that a file the branch changed since it left `origin/main` reaches, in its commits, staged, unstaged or untracked, with every workspace that depends on it, or of every workspace for a change to what all of them read, such as `package.json` or `yarn.lock`, but for Markdown, which reaches none; side by side, as many at once as the cores and the free memory allow, the longest first, a layout check after its game's build and the site's build after the games'; a run takes the whole machine, so it waits for any that started before it, in this checkout or another worktree of the repository, and says how many; `--base <ref>` compares with another, `--coverage` runs `test:coverage`, `--dry-run` says what it would run, and `yarn verify:changed --help` says so). It is the check while working on a few workspaces; `yarn verify` still checks everything, and merging takes `yarn verify:full`.
-- **One Workspace While Editing:** `yarn test --only <name> -- --changed` runs only the specs that import what git sees changed, or every spec once a `package.json` has, and follows static imports alone, so it is no gate. ESLint's `--concurrency 4` lints one game alone in about half the time at twice the memory (`yarn workspace <name> eslint --concurrency 4 src tools`); it doesn't suit every workspace linting at once.
-- **Format Codebase:** `yarn prettier` (formats the whole repository with
-  Prettier); `yarn prettier:check` only reports what it would change. Both
-  run Prettier's experimental CLI (`--experimental-cli`), which honours
-  each folder's `.gitignore` and `.prettierignore`, not only the
-  repository's, and keeps a cache in `node_modules/.cache/prettier/`, keyed
-  on each file's contents and Prettier's options, so a second check takes
-  about a second.
-
-## Running & Debugging
-
-- **Local Testing:** Start the server with `yarn start`, or `yarn dev:all` to work on the site and the games at once, and navigate to `http://localhost:4200/`.
-- **Chrome DevTools MCP:** Use the `chrome-devtools-mcp` server to inspect and
-  verify the local running site when making UI or behavioral changes.
-- **Browser Tools:** Close any browser instance you start for debugging when
-  you are done with it, so none are left running.
+- **`yarn typecheck` is the only check a spec's types get,** since Vitest
+  strips types without checking them.
+- **Run one spec with `yarn vitest run <path>` from its workspace,** naming
+  its project where the workspace has several
+  (`yarn vitest run --project pure <path>`), or Vitest starts every
+  project. `yarn test --only <name>` runs one workspace's specs from here.
+  A coverage floor holds for a whole suite, so `test:coverage` fails on
+  one spec.
+- **A coverage floor sits a little under the suite's figures,** and is
+  raised as they rise.
+- **A script that runs Vitest twice hands each run its arguments (`"$@"`).**
+  Yarn adds them to a script's last command alone, so the first run would
+  miss the root's `--maxWorkers`, take every core beside three other
+  suites, and time their specs out: flaky, and no check fails.
+- **A workspace's step reads nothing another workspace's step writes.** The
+  root runs every workspace's `lint`, `typecheck`, `test` and `build` side
+  by side, so none may wait on another's.
+- **A `tools/` script that a spec imports exports its logic as functions,
+  and runs only as the file Node started** (`if (import.meta.main)`).
+  Without the guard, importing it does its work: the site's would copy the
+  games' builds or start dev servers in the middle of `yarn test`.
+- **Format one file with `node_modules/.bin/prettier --write <path>`.**
+  `yarn prettier` formats the whole repository, whatever follows it.
+- **`yarn start` serves the games as they were built when it started.**
+  `yarn dev:all` runs every app's own dev server, so an edit to a game or
+  a library shows as soon as it is saved.
+- **Don't run `yarn stop` while a build runs.** It stops the Dart Sass a
+  build spawns, along with the dev servers.
+- **Look at a UI or behavior change in the running page,** at
+  `http://localhost:4200/`, through the `chrome-devtools-mcp` server. Close
+  any browser you start when you are done with it.
 
 ## Angular and Sass
 
@@ -148,9 +89,11 @@ their templates and stylesheets alike.
   (`@let shownCard = card();`). Over any other value, a `@default { … }`
   says what shows. Lint asks every `@switch` for a `@default`.
 - **Visible state is announced state.** A control that looks selected
-  carries `aria-checked`, `aria-current` or `aria-pressed`. The rules are
-  the `web-game-accessibility` skill's; the template accessibility lint
-  rules enforce the common cases.
+  carries `aria-checked`, `aria-current` or `aria-pressed`. A menu built
+  on Angular Aria binds `aria-checked` itself, since Aria sets the role
+  and not the state, and gives each item a `searchTerm`, without which
+  typing a name finds nothing. The rules are the `web-game-accessibility`
+  skill's; the template accessibility lint rules enforce the common cases.
 - **The libraries' pieces first.** Overlays are `<fz-dialog>`, never a
   hand-rolled focus trap, Escape handler or z-index; the question before
   something is lost is `@fz/ui/confirm`'s `ConfirmService.ask()`; buttons
@@ -158,7 +101,7 @@ their templates and stylesheets alike.
   `@fz/ui/announcer`; and icons are `<fz-icon name="…">`, never an inline
   `<svg>`. An icon is hidden from assistive technology, so the text beside
   it, or its control's label, says what it means, and a new one goes into
-  `@fz/ui` (`lib/ui/AGENTS.md` says how). The `fuzzley-ui` skill lists the
+  `@fz/ui` (the `fuzzley-ui` skill says how). The `fuzzley-ui` skill lists the
   rest.
 - **Colors and sizes are `@fz/style`'s tokens, by their own names**
   (`--fz-accent`, `--fz-space-3`, `--fz-radius-md`), read with `var()`.

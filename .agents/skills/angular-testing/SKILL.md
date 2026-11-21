@@ -28,7 +28,7 @@ repository's root.
   Brick Fuzz Pop's do, is what runs the simulations apart, without
   coverage. The site's config of Vitest projects is built from its pieces,
   `angularSpecs()`, `nodeSpecs()` and `coverage()`
-  (`frontend/lib/dev/AGENTS.md`). The Solitaire Collection keeps a config
+  (`frontend/lib/dev/src/vitest.ts`). The Solitaire Collection keeps a config
   of its own, its specs under `test/`, in Node unless one asks for jsdom.
 - **The setup file** starts Angular's zoneless TestBed and loads jest-dom's
   matchers, and polyfills `<dialog>`, which jsdom lacks, where the app opens

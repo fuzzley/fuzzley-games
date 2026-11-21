@@ -91,6 +91,7 @@ brief spells out.
   always written but maybe empty is `x: T | undefined`; only an option handed
   on, given or not, is `x?: T | undefined`.
 - **`readonly` collections** for data not meant to change.
+- **A union of ids is derived from its list** (`as const satisfies`).
 - **A rule or a helper lives once,** in the highest layer it holds for. The
   site and the games never import each other's code; a library imports only
   another library.
@@ -127,6 +128,8 @@ scripts
   what can't be inspected. Real objects over mocks.
 - **Each spec can fail.** Ask of each new one what broken code it would
   catch.
+- **No code bends to its specs:** the harness or the fake changes, and the
+  code gains no branch for a spec.
 
 **Angular and Sass,** in the site and the games
 
@@ -134,7 +137,8 @@ scripts
   method call, a comparison or a plural in the template.
 - **A `@switch` over a union ends in `@default never;`.**
 - **Visible state is announced state:** what looks selected carries
-  `aria-checked`, `aria-current` or `aria-pressed`.
+  `aria-checked`, `aria-current` or `aria-pressed`. A menu on Angular Aria
+  binds `aria-checked` itself and gives each item a `searchTerm`.
 - **The libraries' pieces first:** `<fz-dialog>` for an overlay,
   `ConfirmService.ask()` before something is lost, `.fz-button`,
   `<fz-icon name="…">` and the announcer, never one rolled by hand.

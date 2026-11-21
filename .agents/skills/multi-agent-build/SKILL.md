@@ -78,8 +78,9 @@ Reviews: <a `commit-reviewer` is offered, or what to do without one>.
   entry, a field, a function of its own, a line of docs. It renames, moves
   and restyles nothing there.
 - **It builds in small commits, each whole:** its code, its specs, its
-  docs. It adds to an `AGENTS.md` or a skill only what a later agent
-  can't see in the code.
+  docs. It adds to an `AGENTS.md` only a rule or a major caveat, as
+  `.agents/AGENTS.md` says under Agent Configuration, and to a skill only
+  what a later agent can't see in the code.
 - **Each commit is checked, as section 5 says, and reviewed** as
   `commit-review-process` says, each reviewer's description opening
   `[review pkg=<id>]`.

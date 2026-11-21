@@ -1,129 +1,61 @@
 # The games
 
-`frontend/games/`: the games built here, one workspace each, named after its
-folder: the Solitaire Collection (`solitaire/`), Minesweeper (`minesweeper/`),
-Sudoku (`sudoku/`), Snake (`snake/`), Brick Breaker (`brick-breaker/`),
-Asteroid Breaker (`asteroid-breaker/`) and Brick Fuzz Pop (`brick-fuzz-pop/`).
-These rules hold for every game. The frontend's, in
-[frontend/AGENTS.md](../AGENTS.md), and the repository's apply too, and each
-game keeps its own in its folder's `AGENTS.md`. Paths are relative to
-`frontend/games/`.
+These rules hold for every game under `frontend/games/`. The frontend's, in
+[frontend/AGENTS.md](../AGENTS.md), and the repository's apply too.
 
-## What every game keeps
-
-- **It knows nothing of the site.** Nothing in a game imports from the
-  site, or the site from a game, even when both use the same library. The
-  site copies the game's build to `/play/<slug>/` and adds its analytics
-  tags there, so a game carries no analytics of its own.
-- **Its `vite.config.ts` is `@fz/dev/vite`'s `gameConfig()`**, given its
-  port, its name and, for a collection, its catalog, with what is the
-  game's own merged in. The build has a relative base, so it plays from any
-  folder, and writes `dist/` with `index.html` at its top, its files in
-  `assets/`, and `game.json`, which says what it holds: its name, and for a
-  collection the `id` and `name` of every game it opens. The site's build
-  fails when its catalog calls a game anything else, or links an id the
-  build doesn't open. It stamps the page with the commit the build comes
-  from and the time, which the bottom of the game's settings shows as its
-  version (`@fz/game-ui/build_info`). Its dev server swaps an edited component's
-  template or styles into the running page, which needs the `rootDir`
-  `@fz/dev`'s tsconfig gives it (`frontend/lib/dev/AGENTS.md`).
-- **Its dev server has a port of its own,** which its screenshot script defaults
-  to: 9000 is the Solitaire Collection's, 9001 Minesweeper's, 9002 Sudoku's,
-  9003 Snake's, 9004 Brick Breaker's, 9005 Asteroid Breaker's and 9006 Brick
-  Fuzz Pop's, so the next game takes 9007. It opens no browser unless started
-  with `--open` (`yarn dev --open`). The root's `yarn dev:all` runs it on one
-  after the site's instead, at `/play/<slug>/`, which the site's dev server
-  serves, so nothing the game loads may assume it sits at `/`.
-- **Its layout can be checked in a browser,** which jsdom can't: a
-  `check:layout` script on `@fz/dev/layout` opens its build at each shape a
-  game takes and fails on an error, a page that scrolls, or what its own
-  inspection of the page finds. The root's `yarn check:layout` runs every
-  game's that has one, and CI runs it after the build; Sudoku's
-  `tools/check-layout.mjs` is one to start from, and Snake's one for a
-  board drawn with Phaser, which `@fz/dev/layout` inspects as it does
-  every such board, given the board's description.
-- **Its screenshots are the site's.** `public/docs/screenshots/<id>/` holds
-  the `thumb.webp` and `preview.webp` the site's catalog shows of each game
-  it opens, written from a capture by `@fz/dev/screenshots`'s
-  `writeSiteImages()`, and a preview is the link preview image in its
-  `index.html`. Its `tools/capture-screenshots.mjs` holds only the states
-  it captures and how it sets them up, and hands them to
-  `runScreenshotScript()`, which reads the command line, checks that the
-  game's dev server answers, and runs the capture in a headless Chrome.
-- **It shares the palette with the site.** `@fz/style`'s Vite plugin
-  (`gameConfig()` adds it) writes `theme.js` and the tag that loads it first
-  in `index.html`'s head, with the icons' links, so the page writes none of
-  them. `theme.js` puts the palette the player chose, on the site or in any
-  game, on the page as `data-theme` before anything paints. `ThemeService` from
-  `@fz/ui/theme` takes it from there, and the game's settings offer the
-  choice.
-- **It wears the games' chrome.** `@fz/game-ui`'s game bar, breakpoints and
-  viewport frame every game alike and change its shape at the same widths
-  (`frontend/lib/game-ui/AGENTS.md`). A game played in runs on a board
-  drawn with Phaser, as Snake, Brick Breaker, Asteroid Breaker and Brick
-  Fuzz Pop are, takes its run's lifecycle from there too: its `GameService`
-  extends `RunLifecycle`, which pauses, goes on and starts runs at the keys
-  every such game shares, holds the drawn gate its `resume()` waits on, and
-  asks before a run in progress is lost.
-- **It shares `@fz/core`'s helpers,** the seeded random and its seeds mixed
-  in named streams, a run's stages and the keys every run shares, a new
-  run's id and seed, the readers for stored JSON and a data file's keys, a
-  best kept as it is beaten, counts in words, words in a list, points
-  grouped in thousands, a clamp, a lerp, the curves a flourish moves by and
-  the next mark on a ladder of points, a ladder of multipliers and its
-  words, a ball swept against a box's faces and corners or a point, and
-  which of a box's sides a grid leaves exposed, a clock of fixed steps, a
-  count up to a mark, a log of numbered events and its readers' view of it,
-  a field played by them, a frame's sounds gathered, a flourish's records
-  played in turn, a key pressed as a shortcut, the keys held to steer, the
-  last pressed winning, and a record's keys typed as its own, a value
-  checked as one of them or of a list, a record made from them or a copy of
-  some of its entries, and, for specs, a game played a frame at a time and
-  the variant a spec file is named for, rather than keeping copies
-  (`frontend/lib/core/AGENTS.md`). It is the one library a game's rules may
-  import.
+- **A game knows nothing of the site.** Nothing in a game imports from the
+  site, or the site from a game. The site copies the game's build to
+  `/play/<slug>/` and adds its analytics tags there, so a game carries no
+  analytics of its own, and nothing it loads may assume it sits at `/`.
+- **Its `vite.config.ts` is `@fz/dev/vite`'s `gameConfig()`.** That writes
+  the theme script, the icons' links, the build's stamp and `game.json`, so
+  a game's `index.html` and config add none of them.
+- **It wears the games' chrome and shares their helpers.** The game bar,
+  breakpoints and viewport are `@fz/game-ui`'s. A game played in runs on a
+  board drawn with Phaser has its `GameService` extend `RunLifecycle`,
+  rather than pausing, resuming and starting runs for itself. Take a helper
+  from `@fz/core` rather than keeping a copy: it is the one library a
+  game's rules may import. The `fuzzley-ui` skill lists what each holds.
+- **Nothing a game wraps its bar in takes a `transform`, `filter`,
+  `backdrop-filter`, `contain` or container query.** Any of them holds a
+  menu's fixed dismiss layer inside the wrapper, so the tap that should
+  only close the menu presses the board, and no spec sees it.
+- **A new feature gets a folder of its own, named for what it does,** never
+  for the kind of code in it (no `services/` or `components/`).
+- **In a game drawn with Phaser, work goes in the lowest layer that can
+  hold it:** what a move does in the rules, what to draw (places, shapes,
+  colors, timings) in the view, and the scene only draws it. The layers'
+  fences are `@fz/dev/eslint`'s `phaserGameLayers()`, or `gameRules()` for
+  a game without Phaser. They hold what a layer imports, not what belongs
+  in it. What is the game's own goes in their options, never in a block of
+  its own, and no folder inside a layer is named `view`, `scene`, `app` or
+  `testing`, which the fences match anywhere in a path.
 - **Saved games outlive the code.** What a game stores goes through
-  `@fz/ui/storage`, under keys its `AGENTS.md` lists: its settings and records
-  as a `storedSignal()`, and a game under way with `keepSaved()`, which takes
-  it up and writes it as it changes, or only at the moments its `track` names,
-  and as the page is hidden or goes away. The Solitaire Collection is the
-  exception: its presentation settings and recent games are stored signals,
-  but its game choice and options, and its game in play, which it keeps at
-  each change, go through `LocalStorageService` alone. Renaming a key loses
-  what players saved, and a build reads what the last one stored: an entry
-  whose shape changes carries a version (`writeVersioned()`), and a reader
-  drops one it can't trust rather than failing.
-
-## Adding a game
-
-1. **A workspace:** a folder here, named for the game, with a
-   `package.json` of the same name, private, listing everything it imports
-   or runs (`@fz/dev` and the libraries as `workspace:*`) and the `lint`,
-   `typecheck`, `test`, `test:coverage` and `build` scripts the constraints
-   require.
-   Minesweeper is the one to copy.
-2. **Its configs from `@fz/dev`'s presets:** `vite.config.ts` is
-   `gameConfig({ port, name })`, `vitest.config.ts` is `angularTests()`,
-   given the folders of its projects where its rules and its view touch no
-   page, as Snake's do, so their specs run in Node, `eslint.config.js` is
-   the blocks, `phaserGameLayers()` among them for a game drawn with Phaser
-   in four layers, as Snake's is, or `gameRules()` for one drawn without
-   Phaser, as Minesweeper's is, and `tsconfig.json` extends
-   `@fz/dev/tsconfig/angular.json` (`frontend/lib/dev/AGENTS.md`).
-3. **Its screenshots,** from a script on `@fz/dev/screenshots`'s
-   `runScreenshotScript()`, as Minesweeper's `tools/capture-screenshots.mjs`
-   is, or Snake's for a board drawn with Phaser, whose thumbnail
-   `thumbRegionAround()` crops around the board.
-4. **Its instructions:** an `AGENTS.md` for what is its own, with a
-   `CLAUDE.md` beside it that imports it (`@AGENTS.md`), and any skills of
-   its own in its `.agents/skills/`, their names starting with its own
-   (`minesweeper-testing`). The repository's and the frontend's `AGENTS.md`
-   name it where they list the games.
-5. **The site:** `yarn install` from `frontend/`, then the game's build in
-   `frontend/site/games.json` (`"<slug>": { "workspace": "games/<folder>" }`)
-   and its entry in the site's catalog,
-   `frontend/site/src/app/provider/games.ts`, with
-   `play: { build: "<slug>" }` and the name its `game.json` gives it, and
-   `inDevelopment: true` while it plays but isn't finished, which the site
-   says beside its name and on its page, and which lets its build ship no
-   screenshots yet. `docs/operations.md` covers the rest of the pipeline.
+  `@fz/ui/storage`: settings and records as a `storedSignal()`, a game
+  under way with `keepSaved()`. State a change adds to a game in play joins
+  what the game saves, and its saved-game spec, or is left out on purpose:
+  nothing fails for one left out, and it is reset when a run is taken up
+  after a reload. A field added to a stored entry is read as optional, with
+  a default. Any other change of shape takes a new version
+  (`writeVersioned()`), which drops what every player stored under the old
+  one, and a reader drops an entry it can't trust rather than failing. A
+  `tools/` script that stores an entry by hand, as a layout check's does,
+  changes with it.
+- **A color the player must tell from what it lies on joins the game's
+  `contrast.spec.ts`,** which holds each pair it lists to its ratio in
+  every palette. The list is kept by hand, so a new color it doesn't name
+  is checked in none.
+- **A change to a game's layout is checked in a browser,** since jsdom lays
+  nothing out. `check:layout` opens the game's build in headless Chrome at
+  each shape a game takes, and `yarn verify:changed` runs it after the
+  build. Run alone, it checks `dist/` as last built, so build first.
+  Minesweeper and the Solitaire Collection have none: look at their pages
+  yourself, roomy, as a phone held upright and as one on its side.
+- **A new game starts as a copy of one:** Minesweeper, or Snake for a board
+  drawn with Phaser. Search the repository for the copied game's name to
+  find every place that lists the games, the site's `games.json` and
+  catalog among them, and give its dev server the next port after the
+  highest in use. A copy of Minesweeper gains a `check:layout`, starting
+  from Sudoku's `sudoku/tools/check-layout.mjs`. It gets an `AGENTS.md`,
+  with a `CLAUDE.md` beside it, only once it has a rule or a skill of its
+  own.

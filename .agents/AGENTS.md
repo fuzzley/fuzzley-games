@@ -1,210 +1,85 @@
 # Fuzzley Games
 
-The Fuzzley Games portal and gallery (https://fuzzley.games): an Angular
-single-page app built with Vite, served by nginx from a Docker image on Google
-Cloud Run. The games are built here too, under `frontend/games/`, and
-served as static pages under `/play/<slug>/`: the Solitaire Collection,
-Minesweeper, Sudoku, Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz
-Pop.
+The Fuzzley Games site (https://fuzzley.games) and the games it serves. All
+client code is under `frontend/`, a Yarn workspace root: the site, the games
+and the libraries they share. `docs/operations.md` says how it is built,
+served, deployed and configured.
 
-## Technology Stack
+## Checking and Shipping
 
-- **Site:** Angular, Vite and Vitest, in TypeScript and SCSS; see
-  `frontend/site/AGENTS.md`.
-- **Games built here:** each keeps its own stack. The Solitaire Collection's
-  is Phaser 4 for the table and Angular for its shell, with Vite and Vitest
-  like the site; see `frontend/games/solitaire/AGENTS.md`. Minesweeper is an
-  Angular app, with Vite and Vitest, on the shared libraries alone; see
-  `frontend/games/minesweeper/AGENTS.md`. Sudoku is one too; see
-  `frontend/games/sudoku/AGENTS.md`. Snake draws its board with Phaser 4,
-  through `@fz/phaser` as the Solitaire Collection does, in an Angular
-  shell on the shared libraries; see `frontend/games/snake/AGENTS.md`.
-  Brick Breaker is drawn the same way, its rules, physics included, kept
-  free of any framework; see `frontend/games/brick-breaker/AGENTS.md`.
-  Asteroid Breaker is too, on a field that wraps; see
-  `frontend/games/asteroid-breaker/AGENTS.md`. Brick Fuzz Pop is too, its
-  fuzzball aimed and charged at a wall that comes down; see
-  `frontend/games/brick-fuzz-pop/AGENTS.md`.
-- **Package Manager:** Yarn 4 via Corepack, pinned in `frontend/package.json`
-- **Serving:** nginx in a Docker image, on Google Cloud Run
+- **Run every `yarn` command from `frontend/`,** with Yarn 4, never NPM.
+- **Check with `yarn verify:changed` while working.** It lints, type-checks,
+  tests and builds only the workspaces a branch's changes reach.
+  `yarn verify` does so for every workspace, and `yarn verify:full` is what
+  CI runs, with each workspace's coverage held to its floor.
+- **A commit follows the `commit-review-process` skill, a merge into `main`
+  the `merge-to-main` skill, and a plan built by several agents at once the
+  `multi-agent-build` skill.**
+- **A push to `main` deploys.** When `.github/workflows/verify.yml` passes,
+  its `promote` job moves `live` to that commit, and Cloud Run builds from
+  `live`. Never push to `live` yourself, except to roll back. The
+  `github-actions-ci-cd` skill covers the workflow.
+- **`docs/archive/` holds plans as they were built.** They describe the
+  code as it was, so check a path against the tree before following one.
 
----
+## Content Security Policy
 
-## Repository Layout
+nginx sends the site's own pages, not the games under `/play/`, a Content
+Security Policy from `nginx/content-security-policy.conf`.
 
-- **`frontend/`** — the Yarn workspace root for all client code, and nothing
-  else: the site (`frontend/site/`), the games built here
-  (`frontend/games/`) and the libraries they share (`frontend/lib/`), one
-  workspace each. Its layout, its Yarn commands and the rules every
-  workspace keeps are in `frontend/AGENTS.md`, what every game keeps in
-  `frontend/games/AGENTS.md`, and each workspace's own in its folder's.
-- **`Dockerfile`, `nginx.conf.template`, `nginx/`, `docker-entrypoint.d/`** —
-  the image that serves the build, its nginx config, the security header
-  snippets it includes, and the startup script that writes `env.js` from the
-  container's environment. `docs/operations.md` explains each.
-- **`docs/operations.md`** — how the site is built, served, deployed and
-  configured, and how the games are built and served. `README.md` is only a
-  short summary for GitHub.
-- **`docs/archive/`** — plans that were built and shipped, kept for their
-  decisions. They describe the code as it was, so check a path against the
-  tree before following one.
+- **A new origin goes into the policy in the same change.** Anything the
+  site starts loading from another origin (a script, stylesheet, font,
+  image, API call, iframe or embed) is added there with it. Otherwise
+  browsers block it in production, and only there: `yarn start` and
+  `yarn preview` send no policy, so it works locally.
+- **No inline scripts.** The policy doesn't allow them. Don't add a
+  `<script>` with a body to `index.html`, or an `on…=` attribute anywhere.
+- **Check it in the image.** Build and serve the image as
+  `docs/operations.md` shows, open the page, and look for "Refused to load"
+  in the console. `.github/scripts/check-image.sh` checks the policy is
+  there, not that what the page loads fits it.
 
----
+## Agent Configuration
 
-## Build & Deploy System
-
-### Building and Checking
-
-Run every `yarn` command from `frontend/`, with Yarn 4, never NPM.
-`yarn start` serves the site and the games at `http://localhost:4200/`,
-`yarn dev:all` serves them there from every app's own dev server, so an edit
-to any of them shows as soon as it is saved, `yarn verify` lints,
-type-checks, tests without coverage, then builds, `yarn verify:full` runs
-what CI runs: the same, with the tests' coverage held to each workspace's
-floors, and `yarn verify:changed` checks only the workspaces a branch's
-changes reach, their steps side by side.
-`frontend/AGENTS.md` lists every command and what it checks.
-
-Merging into `main` follows the `merge-to-main` skill: a change to code
-passes `yarn verify:full`, its coverage gaps filled, before it is pushed.
-
-To test the image itself, build and run it with Docker as `docs/operations.md`
-shows.
-
-### Deployment
-
-Cloud Run builds and deploys the `Dockerfile` from the `live` branch, never
-from `main`. When `.github/workflows/verify.yml` passes on a push to `main`,
-its `promote` job moves `live` to that commit, so a red run means the commit
-never went live. Don't push to `live` yourself except to roll back. The games
-are built in the same commit as the site, so they go live with it.
-`docs/operations.md` covers the deployment, the games and runtime
-configuration; the `github-actions-ci-cd` skill covers the workflow.
-
-### Content Security Policy
-
-nginx sends security headers on every response, and the site's own pages (not
-the games under `/play/`) carry a Content Security Policy, from
-`nginx/content-security-policy.conf`. It allows scripts from the site itself
-and Google Analytics, styles and fonts from the site (inline styles too, which
-Angular needs), images and requests to Google Analytics' endpoints, and
-nothing else.
-
-- **A new origin goes into the policy in the same change.** Anything the site
-  starts loading from another origin (a script, stylesheet, font, image, API
-  call, iframe or embed) is added to `nginx/content-security-policy.conf`
-  with it. Otherwise browsers block it in production, and only there:
-  `yarn start` and `yarn preview` send no policy, so it works locally.
-- **No inline scripts.** The policy doesn't allow them, which is why
-  `theme.js`, `env.js` and `analytics.js` are files. Don't add a `<script>`
-  with a body to `index.html`, or an `on…=` attribute anywhere.
-- **Check it in the image.** Build and serve the image (`docs/operations.md`),
-  open the page, and look for "Refused to load" in the console.
-  `.github/scripts/check-image.sh` checks the policy is there, not that what
-  the page loads fits it.
-
----
-
-## Agent Configuration (`.agents/`)
-
-`.agents/` is the committed, tool-neutral home for what agents read about the
-whole repository. What concerns one workspace sits with it instead: its
-`AGENTS.md`, and its skills in its own `.agents/skills/`. The per-tool
-directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
-
-- **Instructions:** this file. The root `AGENTS.md` and `CLAUDE.md` are thin
-  pointers to it, because those are the filenames agents actually look for —
-  `AGENTS.md` for Codex, Cursor, Copilot, and Amp; `CLAUDE.md` for Claude Code,
-  which does not read `AGENTS.md`. Edit this file, not the pointers.
-- **The frontend's instructions** sit in layers below this file, each an
-  `AGENTS.md` with a `CLAUDE.md` beside it that imports it (`@AGENTS.md`), which
-  agents read once they work on a file beneath it: `frontend/AGENTS.md`, for
-  every workspace; `frontend/games/AGENTS.md`, for every game; and each
-  workspace's in its folder: `frontend/site/AGENTS.md`,
-  `frontend/lib/core/AGENTS.md`, `frontend/lib/style/AGENTS.md`,
-  `frontend/lib/ui/AGENTS.md`, `frontend/lib/game-ui/AGENTS.md`,
-  `frontend/lib/phaser/AGENTS.md`, `frontend/lib/dev/AGENTS.md`,
-  `frontend/games/solitaire/AGENTS.md`, `frontend/games/minesweeper/AGENTS.md`,
-  `frontend/games/sudoku/AGENTS.md`, `frontend/games/snake/AGENTS.md`,
-  `frontend/games/brick-breaker/AGENTS.md`,
-  `frontend/games/asteroid-breaker/AGENTS.md` and
-  `frontend/games/brick-fuzz-pop/AGENTS.md`. So the site's rules never reach a
-  game, nor a game's the site. A rule is written once, in the highest layer it
-  holds for: one for the whole repository, such as how code, comments and tests
-  are written, belongs here.
-- **Skills:** a skill every workspace can use lives in
-  `.agents/skills/<name>/SKILL.md`; a skill about one workspace lives in that
-  workspace's `.agents/skills/<name>/SKILL.md` (`frontend/site/.agents/skills/`,
-  `frontend/games/solitaire/.agents/skills/`,
-  `frontend/games/minesweeper/.agents/skills/`,
-  `frontend/games/sudoku/.agents/skills/`,
-  `frontend/games/snake/.agents/skills/`,
-  `frontend/games/brick-breaker/.agents/skills/`,
-  `frontend/games/asteroid-breaker/.agents/skills/`,
-  `frontend/games/brick-fuzz-pop/.agents/skills/`), and cites paths from its
-  folder. Gemini CLI reads the repository's directly. Claude Code only
-  discovers `.claude/skills/<name>/SKILL.md`, so
-  **`node .agents/link-claude-skills.mjs`** links each skill into the
-  `.claude/skills/` beside its `.agents/skills/` (a junction on Windows). It
-  loads the repository's at startup and a workspace's once it reads or edits a
-  file in that workspace, and keeps every one it loaded, so a workspace's
-  skills start with its name (`site-testing`, `solitaire-styles`) and their
-  triggers name it. The links hold absolute paths inside gitignored
-  `.claude/`, so re-run the script after a fresh clone or a move — a
-  dangling link silently drops the skill. Outside CI, the reference check
-  below warns about a skill with no link, or a link that leads nowhere.
-  Restart Claude Code if `.claude/skills` did not exist when the session
-  started.
-- **Agent definitions:** an agent type any session may start lives in
-  `.agents/agents/<name>.md`, as `commit-reviewer` does, the reviewer the
-  `commit-review-process` skill starts. Claude Code looks for one in the
-  `.claude/agents/` of each folder from where a session starts up to that
-  repository's root, so the link script links each definition into the
-  repository's `.claude/agents/`, for a session started inside it. Each is a
-  link to a file, which Windows makes only in Developer Mode or from an
-  elevated shell; where it can't, the script says so and still links the
-  skills. A session started in another folder, such as one above the clone, is
-  offered none of them:
-  `node .agents/link-claude-skills.mjs --also-in <folder>` links them into
-  that folder's `.claude/agents/` as well, and
-  `--also-in <folder> --remove` takes those links out. Nothing runs the script
-  with that option, since the folder is one machine's choice. There it makes,
-  replaces and removes only links that lead into this repository's
-  `.agents/agents/`, so a link of the same name to another clone's definition
-  stays, with a warning. Re-run the script, with the option where it was used,
-  after a fresh clone or a move; a link that folder holds to the repository's
-  old path is then for a person to remove. The reference check below reads a
-  definition as it reads a skill, and warns, outside CI, about one the
-  repository's `.claude/agents/` has no link to. `commit-reviewer` holds this
-  file's rules for code, doc comments and specs, and `frontend/AGENTS.md`'s
-  for Angular and Sass, condensed, so a change to those rules changes
-  `.agents/agents/commit-reviewer.md` in the same commit.
-- **Flat skills directories.** Every skill lives directly under an
-  `.agents/skills/` folder, as `<name>/SKILL.md`, including the
-  namespaced `phaser-*` ones. Adding a skill means a new
-  top-level directory there plus a re-run of the link script.
-- **A skill describes code that exists,** and so does an `AGENTS.md`. Both
-  are read as authoritative, so an agent follows an invented path into a
-  compile error rather than looking. A design for something not yet built
-  belongs in a doc or an issue, not in a skill.
-  `node .agents/check-skill-references.mjs` (part of `yarn lint`) enforces
-  the checkable half of this, for every folder of skills, every agent
-  definition and every `AGENTS.md`:
-  every relative markdown link must resolve, and every backticked path must
-  exist, unless git ignores it, as it does what a build writes. Run it after
-  changing a skill, an agent definition or an `AGENTS.md`. Skills quoting another
-  project's source tree, the vendored Angular ones and the Phaser ones
-  copied from Phaser's package, are listed as upstream exceptions there; a
-  skill about this repository is checked by default.
-- **Vendored skills:** `angular-developer` and `angular-new-app` come from
-  upstream and are hash-locked in `skills-lock.json`, so `.prettierignore`
-  leaves them unformatted. Do not hand-edit them. The Phaser skills, all
-  but `phaser-core` and `phaser-canvas-performance`, are copies of the
-  `skills/` folder in Phaser's package, for the parts of Phaser the games
-  use, which `.prettierignore` leaves as copied too; `phaser-core` says
-  how to add one.
-
----
+- **An `AGENTS.md` holds instructions, and nothing else:** specific
+  strategies that keep the code's quality and health, and the rare major
+  caveat. It does not list files, describe features or how the code works,
+  tell history, or repeat a doc comment, a skill, a check or another
+  `AGENTS.md`. A file left with no rule of its own is removed.
+- **A rule is written once, in the highest layer it holds for:** this file
+  for the whole repository, `frontend/AGENTS.md` for every workspace,
+  `frontend/games/AGENTS.md` for every game, and a workspace's own in its
+  folder. An agent reads a layer once it works on a file beneath it.
+- **Edit this file, not the root's `AGENTS.md` and `CLAUDE.md`,** which
+  only point here. Every other `AGENTS.md` has a `CLAUDE.md` beside it that
+  imports it (`@AGENTS.md`), since Claude Code reads no `AGENTS.md`.
+- **How to do one kind of task is a skill.** One every workspace can use
+  is `.agents/skills/<name>/SKILL.md`. One about a single workspace is in
+  that workspace's own `.agents/skills/`, and its name starts with the
+  workspace's (`site-testing`). Name a skill in the `AGENTS.md` of the
+  layer its task belongs to: agents come to a skill by a name they were
+  given far more often than by its description.
+- **Run `node .agents/link-claude-skills.mjs` after adding a skill or an
+  agent definition, a fresh clone or a move.** Claude Code finds the
+  skills, and the agent types in `.agents/agents/`, only through the links
+  it makes in the gitignored `.claude/` folders, and a dangling link drops
+  a skill without a word. A session started in a folder above the clone is
+  offered the agent types only once `--also-in <folder>` has linked them
+  there.
+- **A skill, an agent definition and an `AGENTS.md` describe code that
+  exists.** They are read as authoritative, so an agent follows an invented
+  path into a compile error rather than looking. A design for something not
+  yet built belongs in a doc under `docs/`.
+  `node .agents/check-skill-references.mjs`, part of `yarn lint`, fails a
+  relative link that does not resolve and a backticked path that does not
+  exist.
+- **`.agents/agents/commit-reviewer.md` changes in the same commit as the
+  rules it condenses:** this file's for code, doc comments and specs, and
+  `frontend/AGENTS.md`'s for Angular and Sass.
+- **Don't hand-edit a vendored skill.** `angular-developer` and
+  `angular-new-app` are hash-locked in `skills-lock.json`, and the
+  `phaser-*` skills, all but `phaser-core` and `phaser-canvas-performance`,
+  are copies from Phaser's package. `phaser-core` says how to add one.
 
 ## Coding Best Practices
 
@@ -218,8 +93,7 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   written, but maybe empty, is `x: T | undefined`; and only an option a
   caller hands on, given or not, is typed `x?: T | undefined`.
 - **`readonly` collections** for data that is not meant to change, such as the game catalog.
-
----
+- **A union of ids is derived from its list** (`as const satisfies`), so the two can't disagree.
 
 ## Writing Documentation
 
@@ -253,8 +127,6 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 /** Subscribes a listener to an event and returns a function that unsubscribes it. */
 ```
 
----
-
 ## Writing for Players
 
 These rules cover every word a player or visitor reads or hears: labels,
@@ -272,17 +144,11 @@ help, messages, announcements, blurbs and page descriptions.
   is one or two short sentences. A catalog line is about 12 words, never over 20.
 - **Say less.** Leave out what the player will see for themselves.
 
----
-
 ## Writing Unit Tests
 
-These rules hold for every workspace's specs. The `angular-testing` skill holds
-the patterns every Angular workspace's specs share: Testing Library by role,
-user-event, jest-dom and zoneless change detection. An app also has a skill of
-its own for its runner setup, fixtures and floors (`site-testing`,
-`minesweeper-testing`, `sudoku-testing`, `snake-testing`,
-`brick-breaker-testing`, `asteroid-breaker-testing`, `brick-fuzz-pop-testing`,
-`solitaire-testing`), and its `AGENTS.md` says where its specs go.
+These rules hold for every workspace's specs. Before writing one in an
+Angular workspace, read the `angular-testing` skill. An app's own
+`AGENTS.md` names its testing skill.
 
 - **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.
@@ -292,3 +158,4 @@ its own for its runner setup, fixtures and floors (`site-testing`,
 - **Verifying State > Verifying Interaction:** Prefer asserting resulting state over checking call counts/interactions, reserving interaction mocks only for when state cannot be inspected directly.
 - **Real Objects > Mocks:** Use real object instances instead of mocks whenever feasible.
 - **Avoid Any Casts:** Avoid `as any`. Use proper typing or `instance as unknown as TargetType` as a last resort.
+- **No code bends to its specs.** Where a spec can't run something, change the harness or the fake. Never give the code a branch for it.

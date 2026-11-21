@@ -65,16 +65,17 @@ quoted>
   reaches it through the brief or not at all. They come from:
   - the `AGENTS.md` of each workspace the change touches;
   - `frontend/games/AGENTS.md`, for a game;
+  - `frontend/AGENTS.md`'s Workspaces and Checking sections, for a change in
+    any workspace: the definition condenses only its Angular and Sass;
   - the sections of `.agents/AGENTS.md` that the definition doesn't
     condense, such as Content Security Policy and Agent Configuration, for a
     change outside every workspace;
   - a skill, where the change hangs on a rule only the skill states, such
     as `phaser-core`'s on where Phaser may be imported.
-- **Quote sentences, not bullets, in 300 words at most.** A bullet in those
-  files often runs past a hundred words, most of them saying what a file
-  holds. Quote the sentences that state a rule for the files, the folders or
-  the kind of thing the change touches: a "never", an "only", who may import
-  what, a key that is stored. Where the limit leaves out a rule that bears,
+- **Quote the rules that bear, in 300 words at most.** Quote the sentences
+  that state a rule for the files, the folders or the kind of thing the
+  change touches: a "never", an "only", who may import what, a key that is
+  stored. Where the limit leaves out a rule that bears,
   name its file and its opening words, for the reviewer to search for.
   Where no rule bears, leave the paragraph out.
 - **A change that adds or edits words a player reads** gains a paragraph:
