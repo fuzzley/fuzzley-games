@@ -5,10 +5,9 @@ description: What adding to Brick Fuzz Pop takes — a level, a set of levels, a
 
 # Adding to Brick Fuzz Pop
 
-This skill walks through what each addition to the game takes. The layers
-and the rest of the code are in the workspace's `AGENTS.md`; how the specs
-run, how the certificates and the floors are found and replayed, and what
-to do when a replay or a floor fails are the
+This skill walks through what each addition to the game takes. How the
+specs run, how the certificates and the floors are found and replayed, and
+what to do when a replay or a floor fails are the
 [`brick-fuzz-pop-testing`](../brick-fuzz-pop-testing/SKILL.md) skill's. The
 design, the kinds' table ("The bricks") and the rules a level keeps are in
 `docs/archive/brick-fuzz-pop/plan.md`. Paths are relative to

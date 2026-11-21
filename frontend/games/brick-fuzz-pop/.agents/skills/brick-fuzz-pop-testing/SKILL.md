@@ -44,7 +44,7 @@ Run these from `frontend/games/brick-fuzz-pop/`, or as
 - **Check the Layout:** `yarn build`, then `yarn check:layout`
   (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
   each shape and turn, then again over a run kept by the rules, which each
-  page takes up; the workspace's `AGENTS.md` says what it holds.
+  page takes up; the script's own doc says what it holds.
 
 ## Setup
 
