@@ -76,7 +76,7 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   draws. One of the rules, the view or `src/testing/` has no page, so what
   needs one is the scene's or the shell's to test.
 - `dom` leaves the code of `pure`'s folders to Vite's oxc rather than to
-  Analog's plugin, as `frontend/lib/dev/AGENTS.md` says: coverage adds a
+  Analog's plugin, as `frontend/lib/dev/src/vitest.ts` says: coverage adds a
   file's two runs up only where both compiled it alike, and compiled two
   ways, each of its functions would count twice, untested in the project
   that never calls it, and the rules would fall below their floor. So lint
@@ -181,7 +181,8 @@ Run these from `frontend/games/asteroid-breaker/`, or as
   draws a field and reads the steering `pilot()` gives it.
 - `yarn report:waves` plays the same games, `--seeds <n>` many more,
   `--field wide` or `--field tall` on the larger fields, and `--endless`
-  Endless's, for tuning (the workspace's `AGENTS.md`). It loads them
+  Endless's, for tuning (the `asteroid-breaker-content` skill says what to
+  read in it). It loads them
   through `src/testing/report_api.ts`'s `REPORT_API`, typed by
   `src/testing/script_api.ts`, which imports nothing, so the script is
   checked against it and a name changed in the autopilot fails to compile

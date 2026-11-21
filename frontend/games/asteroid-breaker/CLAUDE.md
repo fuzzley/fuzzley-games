@@ -1,6 +1,6 @@
 # Asteroid Breaker
 
-See [AGENTS.md](AGENTS.md) for the rules Asteroid Breaker keeps: its layers,
-what each may import, and its tests.
+See [AGENTS.md](AGENTS.md) for the rules Asteroid Breaker keeps of its own,
+and the skills to read before a spec or an addition to the game.
 
 @AGENTS.md

@@ -5,9 +5,8 @@ description: What adding to Asteroid Breaker takes — a wave, a sector, a forma
 
 # Adding to Asteroid Breaker
 
-This skill walks through what each addition to the game takes. The layers
-and the rest of the code are in the workspace's `AGENTS.md`, and how its
-specs run in the `asteroid-breaker-testing` skill. Paths are relative to
+This skill walks through what each addition to the game takes. How its
+specs run is in the `asteroid-breaker-testing` skill. Paths are relative to
 `frontend/games/asteroid-breaker/`.
 
 ## How the Game Holds What It Plays
