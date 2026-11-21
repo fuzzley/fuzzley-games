@@ -1,6 +1,6 @@
 # Brick Breaker
 
-See [AGENTS.md](AGENTS.md) for the rules Brick Breaker keeps: its layers,
-what each may import, and its tests.
+See [AGENTS.md](AGENTS.md) for the skills to read before adding to Brick
+Breaker or writing its specs.
 
 @AGENTS.md

@@ -5,9 +5,8 @@ description: What adding to Brick Breaker takes — a level, a set of levels, a 
 
 # Adding to Brick Breaker
 
-This skill walks through what each addition to the game takes. The layers
-and the rest of the code are in the workspace's `AGENTS.md`, and how its
-specs run in the `brick-breaker-testing` skill. Paths are relative to
+This skill walks through what each addition to the game takes. How its
+specs run is in the `brick-breaker-testing` skill. Paths are relative to
 `frontend/games/brick-breaker/`.
 
 ## How the Game Holds What It Plays
