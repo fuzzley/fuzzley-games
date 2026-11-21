@@ -203,7 +203,7 @@ The audit's recommendation 2, with recommendation 6 for reviewers: 7 to 9% of sp
 
 **3d. The side-by-side.** One new arm, `agent-high`, over the 20 cases and 3a's five more, beside the present review at `high`.
 
-- **The quoted rules.** A replay case has no author to quote the workspace's rules. A helper that has not seen the planted defects writes each case's quote by one recipe: the bullets and paragraphs of the workspace's `AGENTS.md` that name a path the change touches, up to the brief's 300 words. So a quote cannot point at a defect. A heading will not do as the unit: the largest file's "Layout" section alone runs to 1,350 lines.
+- **The quoted rules.** A replay case has no author to quote the workspace's rules. A helper that has not seen the planted defects writes each case's quote by one recipe: the bullets and paragraphs of the workspace's `AGENTS.md` that name a path the change touches, up to the brief's 300 words. So a quote cannot point at a defect. (As built, the helper was shown the change, and this no longer holds: see "Where it stands".) A heading will not do as the unit: the largest file's "Layout" section alone runs to 1,350 lines.
 - **Adopt the agent type if** it finds as many of the first 20 planted defects as the present review, give or take one, misses none of 3a's five that the present review finds, each of those run twice, and a review costs a quarter less or better. Where it misses more, look at which: a missed defect of practice or docs most likely means a rule the rubric lacks, or one the author's quote should have carried. Mend that and run the arm again.
 - **A cheaper model** is one more arm, `agent-sonnet`, if you want it tried while the set is warm. The audit set it aside until after this stage.
 
@@ -214,6 +214,37 @@ The audit's recommendation 2, with recommendation 6 for reviewers: 7 to 9% of sp
 **What it risks.** A reviewer that no longer reads a workspace's whole `AGENTS.md` misses a rule nobody quoted. The side-by-side is the guard, and so is the rubric's upkeep: from this stage on, a change to the rules for code, doc comments or specs in `.agents/AGENTS.md` changes the rubric in the same commit.
 
 **Done when** the definition, the scripts and the skill are merged, and the arms' report is in this file.
+
+**Where it stands (Nov 21).** Built, on the branch `agent-efficiency-3-reviewer`, and the agent type meets the rule in 3d, counting a review's own cost. The set now has 25 cases. The new reviewer ran over all of them beside the present review at `high`, the five new cases twice each.
+
+| A review                              | Present, `high` | `commit-reviewer` |
+| ------------------------------------- | --------------: | ----------------: |
+| The first 20 planted defects found    |        20 of 20 |          20 of 20 |
+| The new cases' 6 defects, in two runs |        11 of 12 |          12 of 12 |
+| Cost (median)                         |           $0.65 |             $0.31 |
+| Minutes (median)                      |             1.7 |               1.2 |
+| Tool calls (median)                   |              12 |                 8 |
+| Context at the start (median)         |          31,300 |             7,500 |
+| Context at its peak (median)          |          70,100 |            35,500 |
+| Reviews over five minutes             |         0 of 30 |           0 of 30 |
+
+- **The rule in 3d.** It found all of the first 20, missed none of the new cases' defects in either run, and a review costs half, where the rule asked for a quarter less. So `commit-review-process` starts a `commit-reviewer`. The cost is the review's own. With what the helper took to write a quote added, $0.23, the two come to $0.54 against $0.65, a sixth less. What a quote costs an author, who already holds the files, is not known.
+- **What it starts with (3b.3).** 7,500 tokens, against 31,300 in a replay and 53,000 in a build. Its first request holds the definition as its system prompt, the shell and the tool that hands its report back, and the harness's snapshot of git's status. It holds no skill list, no `CLAUDE.md` and no `AGENTS.md`. The frontmatter's Opus and `high` both took. The MCP servers' own instructions, about 750 tokens, arrive after its first call.
+- **How it read.** With no Read tool, nothing loaded a folder's `AGENTS.md` for it. It made 8 calls a review where the present review makes 12. Of its 30 reviews, 14 searched the `AGENTS.md` files and skills for a rule's words, and 12 printed a slice of one by line numbers. Seven read a skill whole: `player-text` six times, as the brief of a change to a player's words asks, and the CI skill once, unasked.
+- **The five new cases** break rules that four `AGENTS.md` files state: an icon's color in `@fz/ui`, a containing block inside the bar in `@fz/game-ui`, a copied `@fz/core` helper and an unversioned stored entry in the games' shared file, and a stored entry's version raised in Asteroid Breaker's. The present review missed the containing block in one run of two. The relay changed one brief of the 30, by three words added at its end.
+- **The quoted rules were written another way than 3d says.** The skill now asks for the sentences that state a rule for the kind of thing a change touches, which a recipe by paths can't pick. So a helper model, Sonnet, wrote each case's quote from the skill's own instruction. It was shown the staged change and the files an author would draw on, and told nothing of the defects. The harness kept only sentences found in a file word for word. A quote came to 145 words at the median and 206 at most, and cost $0.23 to write at the median, which the table leaves out.
+- **What it did not show.**
+  - **What a rule nobody quoted costs.** The helper left one case's rule out, a sentence of some 200 words on sharing `@fz/core`'s helpers. The reviewer found that defect anyway, from its own "a helper lives once" and a search for the helper, so that case tested no rule the definition lacks. The other four did, and each reached the reviewer quoted. The risk stands as written above.
+  - **A quote chosen without the fault in view.** The helper read each change with its planted lines in it, and in all four of those cases it quoted the very sentence the defect breaks. It was not told a defect was there, and neither is an author who has just written one. But it read the rule files whole and fresh for each change, which an author deep in a build may not.
+  - **More than a sample or two.** A new case was reviewed twice and an old one once. A replay review is lighter than a build's, so carry the ratio over, not the dollars.
+- **What the reviews changed in the design.** Two reviews of the stage's commits made 21 findings, all taken but a spec for the link script, asked for twice:
+  - **The definition reads three kinds of change,** a commit, a staged change and the difference between two commits, each by its own commands through `git -C <path>`, with a sha and a path written out, since a reviewer's shell may be zsh and start outside the repository.
+  - **In the `--also-in` folder the script touches only links that lead into this repository's `.agents/agents/`.** A link of the same name to another clone stays, with a warning. A folder whose `.claude/agents` is the repository's own is refused.
+  - **Where the type isn't offered, the author asks once,** and goes on with a `general-purpose` agent held to the shell only where told to. A session that starts workers asks before it starts them, and a worker with no answer hands its commits back as not reviewed.
+  - **The quote is sentences, not bullets,** from a list of sources the skill names, and a rule the 300 words leave out is named for the reviewer to search for.
+- **Left.** The link script has no spec: no test runner reaches `.agents/`, and its cases were tried by hand in a scratch folder. Its Windows path, where a file link needs Developer Mode, was read and not run. The `agent-sonnet` arm was not run.
+- **What it cost.** $24 at list prices for this stage's runs: $6 for the quotes, $10 for the new reviewer's 30 reviews, $6 for the present review's 10, and $2 for the relays and the judge. With the first two arms that is $65, 3.3% of a week.
+- **Not measured yet.** A review's cost, minutes, requests and peak context in a build, and what writing the quote adds to its author's, wait for stage 6.
 
 ## Stage 4. A skill for how a build runs
 
@@ -357,7 +388,7 @@ The audit considered and set aside: fewer reviews of code, fast mode, a longer c
 | Stage | Model usage (est.)                             |
 | ----- | ---------------------------------------------- |
 | 1, 2  | Under 1% each                                  |
-| 3     | 3 to 4%, the replay arms; 2% is spent          |
+| 3     | 3.3% spent, on the replay arms                 |
 | 4, 5  | About 1% each                                  |
 | 6     | The build's own: 0.6% a commit at the baseline |
 | 7     | 3 to 5% for the review, 1 to 2% for the cuts   |
@@ -368,3 +399,4 @@ A week's allowance comes to about $1,960 at list prices, good to a sixth either 
 
 - **Stage 1 (Nov 21).** `commit-review-process` names one check, `yarn verify:changed`, and starts its reviewer at `high` effort. The command queues itself, one run at a time across the repository's worktrees, after the timings showed that four at once fail on time limits or run the machine out of memory. Its figures are under [stage 1](#stage-1-one-check-a-commit-each-in-its-turn).
 - **Stage 2 (Nov 21).** An author commits a checked change, starts its review in the background and keeps working, with two reports out at most. It answers each in an `amend!` commit and squashes those in before the work lands. `merge-to-main` lands no `amend!` and pushes with no review out. The plugin counts the `amend!` commits. The trial is under [stage 2](#stage-2-reviews-in-the-background).
+- **Stage 3 (Nov 21).** A review is a `commit-reviewer`, an agent type defined in `.agents/agents/commit-reviewer.md` and linked into `.claude/agents/` by `link-claude-skills.mjs`, which links it into one more folder only when run with `--also-in <folder>`. It holds the repository's rules itself, reads with the shell alone, and runs on Opus at `high`. The author's brief gives what the change is for and the rules that bear on it, quoted in 300 words at most. On the replay set's 25 cases it found every planted defect at half the present review's cost. The figures are under [stage 3](#stage-3-a-commit-reviewer-agent-type-and-its-effort).

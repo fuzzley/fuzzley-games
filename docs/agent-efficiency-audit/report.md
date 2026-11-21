@@ -5,10 +5,10 @@ Measured on 2026-11-16 from Claude Code's own session logs on the devbox: the se
 **Updated on 2026-11-21.** The scripts were run again on that day's logs. They print the seven efforts' tables exactly as before, so every baseline below stands. What is new:
 
 - **One effort since is measured beside the seven,** the player-text rewrite of Nov 16 to 19, in [Since the audit](#since-the-audit-the-player-text-rewrite). It is kept out of the seven's totals: its subagents ran at `high` effort, its orchestrator on Claude Fable 5.2, and it rewrote text, not code.
-- **Each recommendation says where the repository stands.** Recommendations 5 and 1 are built, as the plan's stages 1 and 2, and the rest of the first six are not. Two had moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
-- **The comparison of efforts has run once.** The present review found all 20 planted defects at `xhigh` and at `high`, at about half the cost and time at `high`, so the set as it stands does not tell the two apart ([The first comparison](#the-first-comparison)).
+- **Each recommendation says where the repository stands.** Recommendations 5, 1 and 2 are built, as the plan's stages 1 to 3, and the rest of the first six are not. Two had moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
+- **The comparison of efforts has run once.** The present review found all 20 planted defects at `xhigh` and at `high`, at about half the cost and time at `high`, so the set as it stands does not tell the two apart ([The first comparison](#the-first-comparison)). The agent type recommendation 2 asks for has since run beside the present review at `high`, and found every planted defect at half a review's cost ([The second comparison](#the-second-comparison)).
 - **A plan builds the recommendations in stages,** in [`plan.md`](plan.md).
-- **The measuring is now a tool, and the seventh is partly built into it.** A plugin kept outside the repository measures a session as it runs, reads the account's weekly limit, watches a build's agents for hangs and holds the 20 staged changes recommendation 2 asks for, in [Measuring a build as it runs](#measuring-a-build-as-it-runs).
+- **The measuring is now a tool, and the seventh is partly built into it.** A plugin kept outside the repository measures a session as it runs, reads the account's weekly limit, watches a build's agents for hangs and holds the staged changes recommendation 2 asks for, 25 of them now, in [Measuring a build as it runs](#measuring-a-build-as-it-runs).
 - **Two tables read every session on the machine,** a check's duration against load and the API's speed, so they now take in the later sessions. The root's lint alone reads 58 s where it read 57, the API's speed with five or more other requests in flight reads 102 tokens a second where it read 105, and a request's fixed time reads 0.3 s where it read 0.2.
 
 Three of the seven efforts kept only part of their logs ([What to trust](#what-to-trust)), so the two builds logged whole, Brick Fuzz Pop and the Brick Breaker uplift, carry most of the conclusions.
@@ -354,7 +354,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** A quarter to a third of what reviews cost, so 7 to 9% of spend (est.). Not minutes: a review's 38,000 tokens of output take six minutes to write however little it reads.
 - **Then try `high` effort for it.** 71% of a reviewer's output is thinking, a fifth of what a review costs and most of its minutes, so this is also what could bring a review inside the cache's 5 minutes. Run both efforts over the same 20 staged changes and compare the findings, the behaviour bugs above all. Keep `xhigh` unless the lists match.
 - **Measure.** Requests, peak context, cost and minutes per review in section 5, and findings per review in `extras.py`. The side-by-side on the same staged changes is the real test of quality, since this reviewer no longer reads a workspace's whole `AGENTS.md`: run the old review and the new over the same 20 changes before adopting it.
-- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared. The 20 staged changes now exist, with defects planted in 16 of them, and the present review has run over them at `xhigh` and at `high` ([The first comparison](#the-first-comparison)). Both found every planted defect, and `high` took about half the cost and time and never passed five minutes. That is no loss shown, on defects that proved too easy to show one, so the set could not have shown a small one. On that evidence the reviewer goes to `high` (decided Nov 21), and the agent type will be tested at `high`.
+- **Where it stands (Nov 21).** Built, as [the plan's](plan.md) stage 3: `.agents/agents/commit-reviewer.md`, linked by `link-claude-skills.mjs`, and a brief in `commit-review-process` cut to what the change is for and the rules that bear on it. The clause on a player's words goes into the brief of a change that touches them, and no other. The effort was settled first, on the present review: `xhigh` and `high` both found all 20 planted defects, and `high` took about half the cost and time ([The first comparison](#the-first-comparison)), so the reviewer runs at `high` (decided Nov 21). The agent type was then run beside the present review at `high`, over those 20 cases and five more that break a rule a workspace's `AGENTS.md` states ([The second comparison](#the-second-comparison)). It found every planted defect, and a review cost $0.31 against $0.65. What a build's review costs with it waits for the first measured build.
 
 ### 3. Docs on a budget, briefs with excerpts
 
@@ -416,7 +416,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 2. **On the next build:** run half the packages on the old review and half on the new, and compare cost and minutes per commit, findings per review, the fixes that follow a report, and what the finishing audit and CI catch afterwards.
 3. **What is left of 7,** beside those: a time limit on the orchestrator's connector calls, and a build's state made plain to a look by hand.
 4. **Last, and the largest:** 3's budget and pruning, as a review of every `AGENTS.md`, every skill and every plugin, with rules for adding to them from then on.
-5. **The effort comparison** has run once on the present review ([The first comparison](#the-first-comparison)). It did not separate the two, and the reviewer goes to `high` on it. Run the set again on the agent type once 2 has settled.
+5. **The effort comparison** has run once on the present review ([The first comparison](#the-first-comparison)). It did not separate the two, and the reviewer goes to `high` on it. The set has since run on the agent type ([The second comparison](#the-second-comparison)).
 
 Measure each build that tries one of these with the plugin below, with the recommendations' numbers as the run's labels. [`plan.md`](plan.md) sets these out as stages, with the steps and the measure for each.
 
@@ -462,8 +462,8 @@ While a run is measured, each time the orchestrator's turn ends with agents stil
 
 Recommendation 2 asks for the old review and the new over the same 20 staged changes. They are kept with the plugin's results, in `~/claude-metrics/replay/fuzzley-games-20`.
 
-- **Twenty real commits of this repository,** made on `main` between Oct 27 and Nov 18, each staged again on its parent. Sixteen have one or two defects planted in them, 20 in all: 10 of behaviour, 4 a comment or doc untrue to the code, 3 a spec that would pass with the code broken, 2 a player's words and 1 of practice. Four are the real commit untouched. Each defect has its file, its line and how hard it is to see.
-- **A way of reviewing is one small file:** an agent type, a model, an effort and a brief. The first two are the brief in `commit-review-process` as it stands, at `xhigh` and at `high`.
+- **Twenty real commits of this repository,** made on `main` between Oct 27 and Nov 18, each staged again on its parent. Sixteen have one or two defects planted in them, 20 in all: 10 of behaviour, 4 a comment or doc untrue to the code, 3 a spec that would pass with the code broken, 2 a player's words and 1 of practice. Four are the real commit untouched. Each defect has its file, its line and how hard it is to see. Five more cases, added for the agent type, each break a rule that a workspace's `AGENTS.md` states: six defects, four of practice, one of behaviour and one a spec.
+- **A way of reviewing is one small file:** an agent type, a model, an effort and a brief. The first two are the brief `commit-review-process` had at the audit, at `xhigh` and at `high`. The third, `agent-high`, is the `commit-reviewer` agent type with the short brief, whose quoted rules a helper model writes for each case, shown the change and told nothing of the defects (`/measure replay quote`).
 - **`/measure replay run --arm <name>`** stages each case in a throwaway clone and starts the reviewer as a subagent, as a build does. A second model then reads each report against the planted defects and says which it found.
 - **`/measure replay report`** sets the ways of reviewing side by side: defects found, by kind and by how hard, and a review's cost, minutes, tool calls and context.
 - **What to keep in mind.** The defects were planted by reading, in clones that could not run the checks. One review of a case is one sample, so a difference of a defect or two is within the noise. A real commit has real faults too, so a finding beyond the planted ones is not a false alarm.
@@ -491,6 +491,31 @@ Run on Nov 21: the present review, a `general-purpose` agent on Opus 5.5 with th
 - **A replay review is lighter than a build's.** It starts at 31,000 tokens where a build's starts at 53,000, and at `xhigh` it cost $1.25 against the builds' $2.47. Carry the ratio between the two over to a build, not the dollars.
 - **The two runs cost $41 at list prices,** about 2% of a week's allowance.
 - **What it would take to say more:** defects that take more to find, such as one that only a file outside the diff shows, planted until the present review misses some; a check of the findings beyond the planted ones against the code; and each case reviewed twice.
+
+### The second comparison
+
+Run on Nov 21, once the agent type was built: `commit-reviewer` with the short brief beside the present review at `high`, over the first 20 cases once and the five new ones twice.
+
+| A review                              | Present, `high` | `commit-reviewer` |
+| ------------------------------------- | --------------: | ----------------: |
+| The first 20 planted defects found    |        20 of 20 |          20 of 20 |
+| The new cases' 6 defects, in two runs |        11 of 12 |          12 of 12 |
+| Findings (median)                     |               3 |                 3 |
+| Findings on a clean change (median)   |               2 |                 2 |
+| Cost (median)                         |           $0.65 |             $0.31 |
+| Minutes (median)                      |             1.7 |               1.2 |
+| Tool calls (median)                   |              12 |                 8 |
+| Context at the start (median)         |          31,300 |             7,500 |
+| Context at its peak (median)          |          70,100 |            35,500 |
+| Output tokens (median)                |           9,300 |             7,100 |
+| Reviews over five minutes             |         0 of 30 |           0 of 30 |
+
+- **The agent type found everything the present review found, at half the cost.** That is more than the quarter to a third recommendation 2 expected, and it took half a minute off a review as well.
+- **It starts at 7,500 tokens.** Its first request holds its own definition and the shell: no skill list, no `CLAUDE.md` and no `AGENTS.md`. Nothing loaded one later either, since it has no Read tool.
+- **Reading no `AGENTS.md` whole cost it nothing here.** Four of the five new cases break a rule its definition lacks, and each reached it quoted in the brief. The fifth's rule was left out by the helper that wrote the quotes, and the reviewer still found the defect, from its own rule that a helper lives once and a search of the code.
+- **So the set still cannot show what an unquoted rule costs.** No case here has a defect that only an unquoted rule reveals. And the helper chose each quote with the planted lines in front of it, though not told of them: in all four cases it quoted the sentence the defect breaks. An author in a build may quote less well. That risk is the one the plan's stage 3 names, and a build is where it would show.
+- **The quotes are not in the cost.** A helper model wrote each case's in 145 words at the median, for $0.23. With that added, the agent type comes to $0.54 against $0.65, a sixth less and not a half. In a build the author writes the quote, from files it already holds, and what that adds is not measured.
+- **The runs cost $24 at list prices,** 1.2% of a week's allowance, and $65 with the first comparison.
 
 ## Running it again
 
