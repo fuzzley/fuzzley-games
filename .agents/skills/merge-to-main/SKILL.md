@@ -11,9 +11,9 @@ description: How a finished change is merged into main here, once the user asks 
 A push to `main` deploys, once the Verify workflow passes on it (the
 `github-actions-ci-cd` skill), so the push and the remote deletions happen
 only when the user asked for the merge. Run `git` from the repository's root
-and `yarn` from `frontend/`. Every commit made on the way goes through the
-`commit-review-process` skill first, the specs written for coverage among
-them.
+and `yarn` from `frontend/`. Every commit made on the way is reviewed as the
+`commit-review-process` skill has it, its report answered and folded in
+before the push, the specs written for coverage among them.
 
 ## 1. Know what lands
 
@@ -26,12 +26,18 @@ them.
 - **What lands** is `git log --oneline origin/main..HEAD`, after
   `git fetch origin`. Where that holds a commit that isn't the change's,
   stop and ask: pushing would send it live too.
+- **No `amend!` commit lands, and every review is in and answered.** The
+  author folds each `amend!` into the commit it answers before the merge
+  (`commit-review-process`, step 5). Where the log still shows one,
+  `GIT_EDITOR=true git rebase --autosquash --keep-base origin/main` folds
+  it in, on the change's branch or on `main`.
 - **It sits on `origin/main` as it is now.** Where
   `git merge-base --is-ancestor origin/main HEAD` fails,
-  `git rebase origin/main`, on the change's branch or on `main`. A rebase won't start
-  while tracked files hold changes; where those are another session's, ask
-  rather than move them. History here is linear: no merge commits, no
-  squashes.
+  `git rebase origin/main`, on the change's branch or on `main`. History
+  here is linear: no merge commits, and a change's commits are never
+  squashed into one.
+- **Neither rebase starts while tracked files hold changes.** Where those
+  are another session's, ask rather than move them.
 
 ## 2. What the change touches decides its checks
 
@@ -82,8 +88,8 @@ the steps after it.
   checked through the public API, real objects over mocks. Never lower a
   floor, widen an `exclude` or add an ignore comment to pass. Iterate on the
   workspace alone, `yarn workspace <name> test:coverage` (`site`, a game's
-  folder name, or a library's `@fz/<lib>`), then commit the specs through
-  `commit-review-process` and run `yarn verify:full` again.
+  folder name, or a library's `@fz/<lib>`), then commit the specs, wait for
+  their review, fold any `amend!` in, and run `yarn verify:full` again.
 
 - **A floor the figures have outgrown rises with them.** Each sits a little
   under its workspace's figures; where they now clear it, raise it to a
@@ -97,8 +103,9 @@ the steps after it.
 Never force-push `main`, and never push `live`: the Verify workflow's
 `promote` job moves `live` once the pushed commit passes.
 
-- **Push it as a fast-forward:** `git push origin HEAD:main`, from `main` or
-  the change's branch.
+- **Push it as a fast-forward,** once what lands is as step 1 has it again,
+  no review out and no `amend!` left: `git push origin HEAD:main`, from
+  `main` or the change's branch.
 - **From a branch, bring the local `main` up to it:**
   `git fetch origin main:main` where no worktree has `main` checked out, or
   `git -C <worktree> merge --ff-only origin/main` in the one that does
