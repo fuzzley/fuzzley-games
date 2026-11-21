@@ -1,0 +1,161 @@
+What an agent starts with once every AGENTS.md is cut to its rules, on 2026-11-21,
+Claude Code 2.1.330, the working tree at 78ffc9da.
+
+Two sessions of one small model, each started in the folder above the clone, as
+`plugins-trial.txt`'s "as-in-a-build" ones were: the session reads
+fuzzley-games/frontend/games/snake/package.json with the Read tool, then starts one
+general-purpose agent that reads one file with the Read tool and replies.
+
+  claude -p "<prompt>" --model haiku --output-format json > <name>.json
+  python3 scripts/first_request.py <name>.json ...
+
+"after-cut-snake": the agent reads fuzzley-games/frontend/games/snake/package.json.
+"after-cut-asteroid-breaker": it reads
+fuzzley-games/frontend/games/asteroid-breaker/package.json.
+Both ran with five of the account's seven plugins, their owner having removed
+`desktop-commander` and `modern-web-guidance` that day, and with the memory index
+trimmed from 8,350 bytes to 4,595.
+
+== after-cut-snake.json ==
+  the session itself
+    a skill list, at the start: 51 skills, 23662 characters
+      anthropic-skills             skills= 13 named only=  0 chars=  9502
+      the harness's and the user's skills= 15 named only=  0 chars=  7533
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+    a request of 30093 tokens
+    loaded fuzzley-games/CLAUDE.md: 129 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10832 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 8199 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/snake/CLAUDE.md: 126 characters
+    loaded fuzzley-games/frontend/games/snake/AGENTS.md: 448 characters
+    a skill list, added later: 33 skills, 17426 characters
+      the repository's             skills= 33 named only=  0 chars= 17426
+    a request of 48056 tokens
+    a request of 48958 tokens
+    notices in all: deferred_tools_delta 9575, agent_listing_delta 4273, mcp_instructions_delta 2157
+  its agent agent-a4ca6eeb717ad28ab
+    a skill list, at the start: 84 skills, 29871 characters
+      the repository's             skills= 33 named only=  3 chars= 15093
+      the harness's and the user's skills= 15 named only=  1 chars=  7460
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+      anthropic-skills             skills= 13 named only= 12 chars=   691
+    a request of 24745 tokens
+    loaded fuzzley-games/CLAUDE.md: 129 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10832 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 8199 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/snake/CLAUDE.md: 126 characters
+    loaded fuzzley-games/frontend/games/snake/AGENTS.md: 448 characters
+    a request of 37847 tokens
+    notices in all: deferred_tools_delta 9730, agent_listing_delta 4273, mcp_instructions_delta 2157
+== after-cut-asteroid-breaker.json ==
+  the session itself
+    a skill list, at the start: 51 skills, 23662 characters
+      anthropic-skills             skills= 13 named only=  0 chars=  9502
+      the harness's and the user's skills= 15 named only=  0 chars=  7533
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+    a request of 30099 tokens
+    loaded fuzzley-games/CLAUDE.md: 129 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10832 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 8199 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/snake/CLAUDE.md: 126 characters
+    loaded fuzzley-games/frontend/games/snake/AGENTS.md: 448 characters
+    a skill list, added later: 33 skills, 17426 characters
+      the repository's             skills= 33 named only=  0 chars= 17426
+    a request of 47966 tokens
+    a skill list, added later: 2 skills, 2127 characters
+      the repository's             skills=  2 named only=  0 chars=  2127
+    a request of 49829 tokens
+    notices in all: deferred_tools_delta 9575, agent_listing_delta 4273, mcp_instructions_delta 2157
+  its agent agent-a7b0b31b037ff7446
+    a skill list, at the start: 84 skills, 29871 characters
+      the repository's             skills= 33 named only=  3 chars= 15093
+      the harness's and the user's skills= 15 named only=  1 chars=  7460
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+      anthropic-skills             skills= 13 named only= 12 chars=   691
+    a request of 24751 tokens
+    loaded fuzzley-games/CLAUDE.md: 129 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10832 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 8199 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/asteroid-breaker/CLAUDE.md: 173 characters
+    loaded fuzzley-games/frontend/games/asteroid-breaker/AGENTS.md: 2245 characters
+    a skill list, added later: 2 skills, 2127 characters
+      the repository's             skills=  2 named only=  0 chars=  2127
+    a request of 39632 tokens
+    notices in all: deferred_tools_delta 9730, agent_listing_delta 4273, mcp_instructions_delta 2157
+
+An earlier run of the first session, an hour before, with the memory index
+already trimmed and all seven plugins still on. Its working tree was a few review
+fixes short of 78ffc9da, which bears on what opening a file loads and not on an
+agent's first request, so only its agent's first request is quoted from it:
+
+== after-cut-snake.json, the earlier run ==
+  the session itself
+    a skill list, at the start: 59 skills, 29899 characters
+      anthropic-skills             skills= 13 named only=  0 chars=  9502
+      the harness's and the user's skills= 15 named only=  0 chars=  7533
+      desktop-commander            skills=  6 named only=  0 chars=  4328
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      modern-web-guidance          skills=  2 named only=  0 chars=  1909
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+    a request of 33402 tokens
+    loaded fuzzley-games/CLAUDE.md: 192 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10760 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 7633 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/snake/CLAUDE.md: 126 characters
+    loaded fuzzley-games/frontend/games/snake/AGENTS.md: 448 characters
+    a skill list, added later: 33 skills, 17426 characters
+      the repository's             skills= 33 named only=  0 chars= 17426
+    a request of 51133 tokens
+    a request of 52032 tokens
+    notices in all: deferred_tools_delta 13113, agent_listing_delta 4273, mcp_instructions_delta 3045
+  its agent agent-a163fd16daa24e961
+    a skill list, at the start: 92 skills, 29911 characters
+      the repository's             skills= 33 named only= 19 chars=  8957
+      the harness's and the user's skills= 15 named only=  2 chars=  7399
+      desktop-commander            skills=  6 named only=  0 chars=  4328
+      engineering                  skills= 10 named only=  0 chars=  2811
+      design                       skills=  7 named only=  0 chars=  2000
+      modern-web-guidance          skills=  2 named only=  0 chars=  1909
+      productivity                 skills=  4 named only=  0 chars=  1093
+      cowork-plugin-management     skills=  2 named only=  0 chars=   723
+      anthropic-skills             skills= 13 named only= 12 chars=   691
+    a request of 25426 tokens
+    loaded fuzzley-games/CLAUDE.md: 192 characters
+    loaded fuzzley-games/.agents/AGENTS.md: 10760 characters
+    loaded fuzzley-games/frontend/CLAUDE.md: 110 characters
+    loaded fuzzley-games/frontend/AGENTS.md: 7633 characters
+    loaded fuzzley-games/frontend/games/CLAUDE.md: 95 characters
+    loaded fuzzley-games/frontend/games/AGENTS.md: 4002 characters
+    loaded fuzzley-games/frontend/games/snake/CLAUDE.md: 126 characters
+    loaded fuzzley-games/frontend/games/snake/AGENTS.md: 448 characters
+    a request of 38747 tokens
+    notices in all: deferred_tools_delta 13268, agent_listing_delta 4273, mcp_instructions_delta 3045

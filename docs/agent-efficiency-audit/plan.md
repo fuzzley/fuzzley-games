@@ -18,7 +18,7 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 
 - **Stages 1 to 5 change no game code.** They edit three skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
 - **Stage 6 is the test.** Nothing before it is proven: every saving in the audit is an estimate from logs.
-- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift.
+- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift. Its cut of the `AGENTS.md` files is made, 560.5 KB to 38.3 KB, by your rule that one holds instructions alone. The skills and the budgets are still to do.
 
 The figures to beat, from the Brick Breaker uplift, which is the plugin's baseline run:
 
@@ -440,7 +440,7 @@ A draft, to be settled in step 4's reading:
 
 **Done when** no file of the repository's own is over its budget, the check holds the budgets, the rules are in `.agents/AGENTS.md`, and the figures above are measured.
 
-**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Step 1 is done. Step 2 is tried, with nothing turned off: which plugins go, and where, is yours to say. Steps 3 to 7 have not begun, but for one reading agent sent to Asteroid Breaker's file, to show what a table of verdicts looks like before the other 24 are spent.
+**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Steps 1 and 2 are done. Steps 3, 4 and 6 are done for every `AGENTS.md`, by the rule you gave in place of a table to read for each file. Step 5, the skills, has not begun, and of step 7 the rule is written and the budgets are not.
 
 **Step 1, the evidence.** [`scripts/standing.py`](scripts/standing.py) counts what the agents of the eight efforts did with each file, 825 agents in all, and [`data/standing.txt`](data/standing.txt) holds what it printed. It reads the commands as the extraction kept them, so a command over 1,800 characters, one in 17, is counted by its head and tail alone. A file counts as read whole by a command that prints it, by `git show`, or by a Read call that returned half of it or more, and as read in lines where such a command is piped into `sed`, `head` or `tail`.
 
@@ -523,11 +523,66 @@ A draft, to be settled in step 4's reading:
 - **A reviewer then looked twelve of its rows up in the code,** eight cuts, the largest first, and four merges, and all twelve hold. The verdict to read hardest is "keep": six of the ten kept parts are not rules an agent would break, being signposts or said elsewhere, so less than 7.5 KB stays. The table also missed a pointer its cuts would leave stale, in `asteroid-breaker-content`. The table's last section says which rows.
 - **So the brief for the other files gains three things:** a verdict for a signpost, with the test for "keep" in the plan's words; a search of the skills and the layers for pointers into the file, each a row; and, for each rule found in passing, where it is written already.
 
-**What this changes in the steps,** each for you to settle:
+**Your answers (Nov 21).**
 
-- **Step 2.** All seven plugins and the account's skills are unused here. Turning them off is worth 2,250 to 2,800 tokens in each worker's every request, and it gives the repository's skills their descriptions back. They would go off in the `.claude/settings.local.json` of the folder your sessions start in, which holds both repositories, and stay on everywhere else.
-- **Step 3** could take the eight files of the table first, 94% of the cost, and the other nine afterwards or more lightly.
-- **Step 5** could give the ten skills of the table the section-by-section reading, judge the Phaser copies whole as planned, and give the rest a lighter pass. A description's budget buys what it trims: with the plugins and the account's skills off, a worker's list was 24,959 characters, 17,426 of them the 33 skills of the repository that were listed, about 7,000 tokens in every request.
+- **Plugins.** You removed two of the seven from your account, `desktop-commander` and `modern-web-guidance`, and kept the other five and the account's skills. The two held 8 of the plugins' 31 skills, 6,200 of their 12,900 characters, and a session's list went from 59 skills to 51.
+- **What an `AGENTS.md` is for,** in your words: "AGENTS.md should exist to instruct agent on specific strategies to maintain high code quality and health, plus in rare cases where a major caveat or gotcha needs to be documented. Most other AGENTS entries should be cut. If an AGENTS file does not contain any useful instructions, it is okay to completely remove it. It is also okay to merge the more general AGENTS.md instructions into the root AGENTS.md, to avoid duplication." This took the place of step 3's list of verdicts and of step 4's table to read for each file: the rule is the verdict. It is written into `.agents/AGENTS.md`, under Agent Configuration.
+- **The memory index is in scope.**
+
+**Steps 3, 4 and 6, the cut.**
+
+- **How it ran.** The three shared layers were rewritten first. Then one fresh agent for each of the 14 workspaces rewrote its file against the code, with your rule quoted in its brief and four tests for a line: it instructs or warns; no doc comment, type, lint rule, spec or script's failure already says it; no layer above and no skill of the workspace says it; and it is the workspace's own. Each reported what it left out for a layer above, what pointed at its file from outside, and what it was unsure of. Every file was then read, what the agents proposed for the layers above was checked against the code, and those rules were written there once.
+- **All 18 files went from 560.5 KB to 38.3 KB.** The table at the head of this stage counted 557 KB, and they had grown by 3 KB since.
+
+  | File                       | KB before | KB now | Rules |
+  | -------------------------- | --------: | -----: | ----: |
+  | `.agents/AGENTS.md`        |      18.0 |   10.8 |       |
+  | `frontend/AGENTS.md`       |      18.8 |    8.2 |       |
+  | `frontend/games/AGENTS.md` |       8.4 |    4.0 |    10 |
+  | Asteroid Breaker's         |     130.1 |    2.2 |     6 |
+  | Brick Breaker's            |      83.3 |    0.8 |     2 |
+  | Brick Fuzz Pop's           |      63.5 |    1.5 |     4 |
+  | `@fz/dev`'s                |      55.5 |    1.5 |     4 |
+  | `@fz/phaser`'s             |      34.1 |    0.9 |     2 |
+  | The Solitaire Collection's |      23.8 |    1.4 |     7 |
+  | `@fz/game-ui`'s            |      22.6 |    0.7 |     1 |
+  | Snake's                    |      19.6 |    0.4 |     1 |
+  | `@fz/style`'s              |      17.8 |    0.8 |     2 |
+  | `@fz/core`'s               |      16.5 |    1.0 |     2 |
+  | Sudoku's                   |      15.3 |    1.2 |     3 |
+  | `@fz/ui`'s                 |      13.1 |    0.4 |     1 |
+  | Minesweeper's              |      10.0 |    0.6 |     2 |
+  | The site's                 |       9.2 |    1.0 |     3 |
+
+  The root's pointer, 0.7 KB, was reworded, not cut. The two largest shared layers keep the rules for code, doc comments, players' text, specs, Angular and Sass, which were rules already.
+
+- **No file was removed.** Each names a skill or holds a rule of its own. Brick Breaker's and Snake's hold only their skills' names, which step 1 showed is how an agent comes to a skill.
+- **Most of what read as rules was already held by a check.** The four Phaser games' layers are lint's (`phaserGameLayers()`). Their Layout sections were in doc comments, and their Tests sections were their testing skills' nearly word for word, as the pilot found of Asteroid Breaker's.
+- **Rules that moved up, each written once.** To `.agents/AGENTS.md`: a union of ids derived from its list, and no code bent to its specs. To `frontend/AGENTS.md`: what to read before changing a library, and the skill's table kept true; where a workspace's lint exception goes; a stored key renamed; a coverage floor; a menu on Angular Aria. To `frontend/games/AGENTS.md`: a containing block around the bar, which `@fz/game-ui`'s file states too, for whoever changes the bar itself; a feature's folder; work in the lowest layer; state a saved game must name, and a field added to a stored entry; a color's contrast pair.
+- **Rules no file stated, found on the way:** Phaser lights an image by ten lights at most, and Asteroid Breaker's scene makes seven; Minesweeper and the Solitaire Collection have no layout check, so `yarn verify:changed` passes a broken layout there; a new entry of `@fz/phaser` is held by no lint fence until it is given one; a script that stores a game's entry by hand passes on the defaults once the entry's version moves; and `yarn prettier` formats the whole repository whatever follows it.
+- **One proposal not taken.** "A spec sits beside the file it tests" does not hold for the Solitaire Collection, whose specs are under `test/`, so it stays in the testing skills.
+- **Sixteen skills sent readers to these files for what they no longer hold,** and now name the code or another skill. `multi-agent-build` has a worker add only a rule or a major caveat to an `AGENTS.md`, which is where the growth came from.
+- **What an agent has loaded,** measured as step 2 measured it ([`data/after-cut-trial.txt`](data/after-cut-trial.txt)):
+
+  | A worker, as in a build            |        Before |    Now |
+  | ---------------------------------- | ------------: | -----: |
+  | First request                      |        27,034 | 24,745 |
+  | After one file of Snake            |        56,397 | 37,847 |
+  | After one file of Asteroid Breaker | 97,000 (est.) | 39,632 |
+
+  In tokens, with a brief of one line, the tree at 78ffc9da. Asteroid Breaker's "before" is step 2's estimate: the first request's 27,000, plus about 70,000 for the 175,000 characters that opening a file loaded. The first request is 2,300 tokens smaller for two reasons outside the repository. A run made after the memory index was trimmed and before the two plugins went gave 25,426, so the index is 1,600 of them and the plugins 700.
+
+- **Seven commits, each reviewed.** The reviewers read each old file whole and looked for where every rule in it is still said. They found one kept line false, the arithmetic `@fz/core` owes, which the merge had worded wrongly, and three rules the cut had dropped that nothing else said: a script that runs Vitest twice hands each run its arguments, no workspace's step waits on another's, and a script a spec imports runs only as the file Node started. All four are put right. They also found the root's two pointer files promising what was gone, and an order of commits that left pointers stale for a commit or two.
+- **It cost $55.28 at list prices,** by this session's logs, 14 agents in 461 requests, beside the pilot's $7.76. That is more than the $30 to $40 put to you for the seven costly files alone, and inside the $60 to $100 this stage set aside for 25 agents. The seven reviews came to $6.49.
+
+**The memory index** went from 8.4 KB, which it had grown to from the 7 KB this stage first counted, to 4.6 KB. Each of its 33 lines keeps its link and a shorter hook, and no memory was removed. Nine of the lines only record finished work, and dropping those is yours to say.
+
+**What is left of this stage.**
+
+- **Step 5, the skills.** 48 skills, 817 KB of bodies. They now hold what the games' files pointed to, and the cut moved no text into them. The ten of step 1's table come first: `asteroid-breaker-testing` is 27.5 KB and `fuzzley-ui` 54 KB. The Phaser copies are judged whole, and a description's budget buys what it trims in every request.
+- **Step 7's budgets, and the check.** The drafted 25 KB and 20 KB are now far above every file, so they would hold nothing. A budget that would hold the cut is 4 KB for a workspace's file and 12 KB for a shared layer, and it is yours to settle.
+- **"Nothing found is lost."** The replay set, run again on the present review, spends usage and waits for your yes.
+- **The real after-figure** is the next measured build, stage 6.
 
 ## What this plan leaves out
 
