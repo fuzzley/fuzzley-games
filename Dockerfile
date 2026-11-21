@@ -24,7 +24,7 @@ RUN npm install -g corepack@0.36.0 && corepack enable && yarn install --immutabl
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
-FROM nginx:1.31.8-alpine3.24@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
+FROM nginx:1.31.9-alpine3.24@sha256:fb4658584bd9a916ffb6f6e365f97c25cfdb2923801f551ea08356e695f14ff7
 
 # Copy the build output to Nginx's default public directory
 COPY --from=build /app/frontend/site/dist /usr/share/nginx/html
