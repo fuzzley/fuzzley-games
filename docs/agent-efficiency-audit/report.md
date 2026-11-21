@@ -364,7 +364,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Turn off the plugins this project never uses.** Their skills are most of the 12,000-token list in every agent's first request.
 - **Expected.** 10 to 15% of what workers cost (est.), and it stops the growth from compounding.
 - **Measure.** A worker's context at its first edit and what it is made of (`extras.py`), mean context per request (section 3), the files' sizes.
-- **Where it stands (Nov 21).** No budget, and `check-skill-references.mjs` checks no sizes. Five `AGENTS.md` files are over 25 KB ([The standing docs](#the-standing-docs)), so the pruning is five files' work, not three. The player-text rewrite wrote no work log, which is the third bullet done once without being asked for. The second and third bullets are now rules of the `multi-agent-build` skill ([the plan's](plan.md) stage 4): a brief quotes its package's part of the plan and names what to read, and no package keeps a log. Review answers go in the commit's body, as `commit-review-process` already has it. The orchestrator's one log holds no token counts, since the `measure` plugin keeps every agent's raw log whole. The plugins are still on: 58 skills, 11,700 tokens, in every subagent's first request.
+- **Where it stands (Nov 21).** No budget, and `check-skill-references.mjs` checks no sizes. Five `AGENTS.md` files are over 25 KB ([The standing docs](#the-standing-docs)), so the pruning is five files' work, not three. The player-text rewrite wrote no work log, which is the third bullet done once without being asked for. The second and third bullets are now rules of the `multi-agent-build` skill ([the plan's](plan.md) stage 4): a brief quotes its package's part of the plan and names what to read, and no package keeps a log. Review answers go in the commit's body, as `commit-review-process` already has it. The orchestrator's one log holds no token counts, since the `measure` plugin keeps every agent's raw log whole. The plugins are still on. A worker's skill list is capped near 29,900 characters, about 12,000 tokens, and the plugins' skills take 43% of it; the plan's stage 7 has the trial of turning them off.
 
 ### 4. Four at once, three to nine commits a package, a fresh agent each
 
@@ -530,12 +530,15 @@ python3 scripts/profile.py     # who was busy, minute by minute
 python3 scripts/summarize.py   # the tables above
 python3 scripts/extras.py      # lock waits, ramp-up, package size, API speed, reviews
 python3 scripts/concurrency.py # a check's duration against what else ran
+python3 scripts/standing.py    # the agents that used each AGENTS.md and each skill
 ```
 
-- **`AUDIT_DATA` must be set.** The extracted logs are 223 MB and stay outside the repository, in the folder it names; every script but `extract.py` reads and writes there.
+- **`AUDIT_DATA` must be set.** The extracted logs are 223 MB and stay outside the repository, in the folder it names; every script but `extract.py` and `first_request.py` reads and writes there.
 - **Extract into a new dated folder each time, and keep the old ones.** A log can lose its start after the fact: one session's log of Nov 16 was whole on that day and cut by Nov 21. An old extraction is then the only copy of what was lost. [`data/`](data/) holds what each script printed for this report.
 - **With no more set, the scripts measure the seven,** `BASELINE` in `scripts/lib.py`, and print the tables in [`data/`](data/).
 - **A new effort** needs its session's id and a name in `LATER` there, and its name in `WHOLE` beside it unless its workers' logs are cut. Run the same commands from `build.py` on with `AUDIT_EFFORTS` set to its name (`AUDIT_EFFORTS=player-text`), and its tables go to a folder of that name under `AUDIT_DATA`, apart from the seven's. Several names, a comma between them, are measured together. [`data/player-text/`](data/player-text/) holds what that run printed.
 - **A model family the efforts did not use** needs its prices in `PRICE`; `build.py` says which requests it could not price. Each request is priced at its own model's rates.
 - **`concurrency.py`** prints the 14 commonest checks, or the ones named as arguments (`'ROOT:lint' 'asteroid-breaker:test'`); `data/check-vs-load.txt` holds the nine the table above draws on. It and the API's speed in `extras.py` read every session on the machine, whatever `AUDIT_EFFORTS` says.
+- **`standing.py`** measures the eight efforts together, the seven and the one since, unless `AUDIT_EFFORTS` names others; [`data/standing.txt`](data/standing.txt) holds what it printed for [the plan's](plan.md) stage 7. It reads the repository's files as they are now, so a file's size is today's.
+- **`first_request.py`** needs no `AUDIT_DATA`. It prints what the agents of one small session started with, from that session's log: `python3 scripts/first_request.py <session id>`. [`data/plugins-trial.txt`](data/plugins-trial.txt) holds the trial it was written for.
 - **The scripts** need Python 3.10 or later and nothing else.

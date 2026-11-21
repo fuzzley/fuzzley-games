@@ -18,7 +18,7 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 
 - **Stages 1 to 5 change no game code.** They edit three skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
 - **Stage 6 is the test.** Nothing before it is proven: every saving in the audit is an estimate from logs.
-- **Stage 7 runs after that build,** so the build gives a before-figure for what the pruning buys.
+- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift.
 
 The figures to beat, from the Brick Breaker uplift, which is the plugin's baseline run:
 
@@ -439,6 +439,74 @@ A draft, to be settled in step 4's reading:
 - **What it should buy:** a subagent's first request near 40,000 tokens, a worker's context at its first edit under 200,000, and every `AGENTS.md` together under 300 KB. The draft budgets alone allow about 305 KB, so the rest comes from the section-by-section cuts in files already inside their budget.
 
 **Done when** no file of the repository's own is over its budget, the check holds the budgets, the rules are in `.agents/AGENTS.md`, and the figures above are measured.
+
+**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Step 1 is done. Step 2 is tried, with nothing turned off: which plugins go, and where, is yours to say. Steps 3 to 7 have not begun, but for one reading agent sent to Asteroid Breaker's file, to show what a table of verdicts looks like before the other 24 are spent.
+
+**Step 1, the evidence.** [`scripts/standing.py`](scripts/standing.py) counts what the agents of the eight efforts did with each file, 825 agents in all, and [`data/standing.txt`](data/standing.txt) holds what it printed. It reads the commands as the extraction kept them, so a command over 1,800 characters, one in 17, is counted by its head and tail alone. A file counts as read whole by a command that prints it, by `git show`, or by a Read call that returned half of it or more, and as read in lines where such a command is piped into `sed`, `head` or `tail`.
+
+- **Agents do not load skills with the Skill tool.** The 825 agents called it twice, beside 59,168 shell commands, and the machine's 891 agents eight times. They read a `SKILL.md` by a shell command, because a brief, an `AGENTS.md` or another skill named it. So in a build a skill's description is not what brings an agent to it: its name in a brief is.
+- **Ten skills carry the reading.** Agents that read each, whole or in lines:
+
+  | Skill                      |  KB | Whole | Lines only |
+  | -------------------------- | --: | ----: | ---------: |
+  | `commit-review-process`    |  11 |   112 |         37 |
+  | `asteroid-breaker-testing` |  28 |    34 |        115 |
+  | `phaser-core`              |  36 |    18 |        124 |
+  | `angular-testing`          |   9 |    59 |         55 |
+  | `brick-breaker-testing`    |  18 |    47 |         65 |
+  | `fuzzley-ui`               |  54 |    24 |         58 |
+  | `web-game-accessibility`   |   9 |    23 |         45 |
+  | `brick-fuzz-pop-testing`   |  28 |    32 |         36 |
+  | `brick-breaker-content`    |  22 |    26 |         37 |
+  | `player-text`              |  13 |    57 |          0 |
+
+  The large ones are looked things up in, by line range, more than they are read. `player-text` dates from Nov 17, so it had one effort to be read in.
+
+- **Thirteen skills no agent read, even in lines:** eleven of the twenty Phaser copies, `angular-new-app`, and `multi-agent-build`, which is newer than the efforts. The other nine Phaser copies were each read by one or two agents. A copy nobody loads costs only its line in the skill list, so dropping one tidies more than it saves.
+- **Reference files.** `player-text`'s nine were each read by 15 to 50 agents. Of `angular-developer`'s 37, 136 KB, five were read, by one or two agents each. None of the Phaser copies' eight was.
+- **Eight `AGENTS.md` files carry 94% of the cost,** taking a file's size when the harness loaded it, at the median, times its loads plus its whole reads:
+
+  | File                       | KB then | KB now | Had it | Loaded | Read whole |
+  | -------------------------- | ------: | -----: | -----: | -----: | ---------: |
+  | `.agents/AGENTS.md`        |      15 |     18 |    781 |    391 |        390 |
+  | `frontend/AGENTS.md`       |      16 |     19 |    628 |    301 |        353 |
+  | Asteroid Breaker's         |      65 |    130 |    280 |     63 |         59 |
+  | Brick Fuzz Pop's           |      50 |     64 |    200 |     42 |        111 |
+  | Brick Breaker's            |      62 |     83 |    199 |     58 |         44 |
+  | `frontend/games/AGENTS.md` |       8 |      8 |    538 |    229 |        309 |
+  | `frontend/lib/dev`'s       |      38 |     55 |    122 |     41 |         30 |
+  | `frontend/lib/phaser`'s    |      22 |     34 |    146 |     39 |         59 |
+
+  "Had it" counts an agent that had the file loaded, read it whole or read lines of it. The other nine are each under 25 KB and were had by 13 to 85 agents. The five large ones have grown since: at today's sizes Asteroid Breaker's would lead the table.
+
+- **The three shared layers reached most agents, and 14 to 24% of those that had each had it twice:** loaded by the harness, and read as well, whole or in lines. 640 of the 825 agents were reviews, by the audit's reading of their descriptions. A `commit-reviewer` now reads none of these files, and a worker reads none its brief does not name. So stages 3 and 4 should take the reviews' share and the second reading, once a build runs by them.
+- **The games' files are looked things up in.** Of the 280 agents that had Asteroid Breaker's, 193 read only lines of it. That is how reference is used, not rules.
+- **Nothing from outside the repository was used.** No agent on the machine loaded a plugin's skill or one of the account's, or called a plugin's connector. The connectors called were the two Chrome ones, by 67 agents, the harness's own, and the account's Docs connector, by two. Nor did any agent name a file of a plugin's skill: the script lists the skills' files named outside the repository's, and all are Phaser's own or names since changed.
+
+**Step 2, the trial.** Eight small sessions on the cheapest model, started where a build's sessions start, each with one agent. [`scripts/first_request.py`](scripts/first_request.py) reads what each agent started with, and [`data/plugins-trial.txt`](data/plugins-trial.txt) holds the commands and what it printed. The settings were passed for one run each (`--settings`), so no file of yours changed.
+
+- **A plugin synced from the account obeys the scope.** `claude plugin disable <name>@synced --scope local`, tried in a scratch folder on one plugin, wrote `enabledPlugins` into that folder's `.claude/settings.local.json`. The plugin was then off for a session started there or in a folder beneath it, and on everywhere else.
+- **The account's own skills are a second setting,** `syncClaudeAiSkills`. They are thirteen (`docx`, `pptx`, `pdf` and the like), 9,500 characters, the largest group in the list, and no plugin holds them.
+- **A skill list is capped near 29,900 characters,** and a skill that does not fit is listed by its name alone. So with the plugins on, a worker's list names 19 of the repository's 33 skills without their descriptions, and keeps every plugin's in full. "Most of it is plugins' skills", in the table above, was wrong: the plugins' are 12,900 characters, 43% of a list at its cap.
+- **What an agent starts with, as a build's worker does:**
+
+  | Setting                        | Skills | First request | After one file |
+  | ------------------------------ | -----: | ------------: | -------------: |
+  | As now                         |     92 |        27,034 |         56,397 |
+  | Plugins off                    |     61 |        26,429 |         55,249 |
+  | Plugins and account skills off |     48 |        24,790 |         53,610 |
+
+  In tokens, with a brief of one line. The audit's 53,000 for a first request counted a real brief.
+
+- **So the plugins cost a build's worker little:** 600 to 1,150 tokens, and 2,250 to 2,800 with the account's skills. That is a twelfth of the trial's first request, and 4 to 5% of the 53,000 the audit measured with a real brief. The cap is why: the room the plugins leave is taken by the repository's own descriptions. An agent in a session that has opened no file of the repository gains more, 26,471 tokens down to 18,124, since its list is then the plugins' and the account's alone.
+- **The first file is what costs.** Opening one file of Snake loaded four `AGENTS.md` files, 64,700 characters, and the request went from 27,000 tokens to 56,000. The same step in Asteroid Breaker loads 175,000 characters, about 70,000 tokens. Steps 3 to 6 are where this stage's saving is.
+- **`security-guidance` holds no skill and adds nothing to a request.** Its hooks run at each prompt, each edit and each shell command: three processes a command, 0.16 seconds each, off to the side. Its two model reviews, of each commit and at each turn's end, have never run here: its own log, `~/.claude/security/log.txt`, which this repository holds no copy of, says "no API credentials" for all 84 commits and 298 turn ends it has seen since Nov 15. So it spends no usage. Were a sign-in to reach it, each commit would start a review on Opus, outside the session's own log.
+
+**What this changes in the steps,** each for you to settle:
+
+- **Step 2.** All seven plugins and the account's skills are unused here. Turning them off is worth 2,250 to 2,800 tokens in each worker's every request, and it gives the repository's skills their descriptions back. They would go off in the `.claude/settings.local.json` of the folder your sessions start in, which holds both repositories, and stay on everywhere else.
+- **Step 3** could take the eight files of the table first, 94% of the cost, and the other nine afterwards or more lightly.
+- **Step 5** could give the ten skills of the table the section-by-section reading, judge the Phaser copies whole as planned, and give the rest a lighter pass. A description's budget buys what it trims: with the plugins and the account's skills off, a worker's list was 24,959 characters, 17,426 of them the 33 skills of the repository that were listed, about 7,000 tokens in every request.
 
 ## What this plan leaves out
 
