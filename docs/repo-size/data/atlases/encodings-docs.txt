@@ -1,0 +1,798 @@
+group: docs, 52 files, 52 distinct blobs
+sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/hulls-ink-dark.png
+  256x170, 4 channels, >256 colours, ICC no
+  png-at-HEAD               6 KiB  100.0%  
+  oxipng-max                6 KiB   98.8%  lossless
+  oxipng-max-alpha          6 KiB   98.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     6 KiB  100.0%  lossless
+  png-9-adaptive            8 KiB  135.9%  lossless
+  png-palette               4 KiB   60.3%  max 5 premult (193 straight), mean 0.017, 0 px >8
+  webp-lossless             4 KiB   64.4%  lossless
+  webp-lossless-exact       4 KiB   64.4%  lossless
+  webp-near-80              3 KiB   54.2%  max 2 premult (1 straight), mean 0.031, 0 px >8
+  webp-near-60              3 KiB   46.4%  max 4 premult (2 straight), mean 0.069, 0 px >8
+  webp-q90                  5 KiB   76.1%  max 51 premult (241 straight), mean 0.195, 537 px >8
+  webp-q80                  4 KiB   65.1%  max 54 premult (238 straight), mean 0.266, 892 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/hulls-ink-light.png
+  256x170, 4 channels, >256 colours, ICC no
+  png-at-HEAD               6 KiB  100.0%  
+  oxipng-max                6 KiB   98.0%  lossless
+  oxipng-max-alpha          6 KiB   98.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     6 KiB  100.0%  lossless
+  png-9-adaptive            8 KiB  139.4%  lossless
+  png-palette               4 KiB   61.7%  max 2 premult (219 straight), mean 0.014, 0 px >8
+  webp-lossless             4 KiB   61.0%  lossless
+  webp-lossless-exact       4 KiB   61.0%  lossless
+  webp-near-80              3 KiB   58.0%  max 2 premult (1 straight), mean 0.039, 0 px >8
+  webp-near-60              3 KiB   47.9%  max 3 premult (2 straight), mean 0.067, 0 px >8
+  webp-q90                  4 KiB   71.6%  max 28 premult (193 straight), mean 0.165, 190 px >8
+  webp-q80                  4 KiB   60.7%  max 29 premult (185 straight), mean 0.239, 563 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/hulls-lit-dark.png
+  256x170, 4 channels, >256 colours, ICC no
+  png-at-HEAD               9 KiB  100.0%  
+  oxipng-max                9 KiB   99.4%  lossless
+  oxipng-max-alpha          9 KiB   99.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     9 KiB  100.0%  lossless
+  png-9-adaptive           10 KiB  108.7%  lossless
+  png-palette               4 KiB   43.9%  max 20 premult (179 straight), mean 0.101, 102 px >8
+  webp-lossless             7 KiB   76.8%  lossless once premultiplied
+  webp-lossless-exact       7 KiB   80.6%  lossless
+  webp-near-80              6 KiB   66.3%  max 2 premult (255 straight), mean 0.035, 0 px >8
+  webp-near-60              5 KiB   58.1%  max 4 premult (255 straight), mean 0.064, 0 px >8
+  webp-q90                  5 KiB   56.6%  max 51 premult (239 straight), mean 0.338, 1160 px >8
+  webp-q80                  4 KiB   45.6%  max 49 premult (243 straight), mean 0.382, 1430 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/hulls-lit-light.png
+  256x170, 4 channels, >256 colours, ICC no
+  png-at-HEAD               9 KiB  100.0%  
+  oxipng-max                9 KiB   99.9%  lossless
+  oxipng-max-alpha          9 KiB   99.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     9 KiB  100.0%  lossless
+  png-9-adaptive           10 KiB  110.2%  lossless
+  png-palette               4 KiB   45.4%  max 15 premult (179 straight), mean 0.076, 46 px >8
+  webp-lossless             7 KiB   75.6%  lossless once premultiplied
+  webp-lossless-exact       7 KiB   79.1%  lossless
+  webp-near-80              6 KiB   65.1%  max 2 premult (255 straight), mean 0.032, 0 px >8
+  webp-near-60              5 KiB   56.5%  max 4 premult (255 straight), mean 0.059, 0 px >8
+  webp-q90                  5 KiB   52.2%  max 41 premult (203 straight), mean 0.231, 340 px >8
+  webp-q80                  4 KiB   42.6%  max 35 premult (198 straight), mean 0.352, 1010 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/hulls-normal.png
+  256x170, 4 channels, >256 colours, ICC no
+  png-at-HEAD               9 KiB  100.0%  
+  oxipng-max                9 KiB   98.4%  lossless
+  oxipng-max-alpha          9 KiB   96.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     9 KiB  100.0%  lossless
+  png-9-adaptive           10 KiB  106.6%  lossless
+  png-palette               4 KiB   39.2%  max 29 premult (179 straight), mean 0.194, 605 px >8
+  webp-lossless             7 KiB   78.1%  lossless once premultiplied
+  webp-lossless-exact       8 KiB   81.6%  lossless
+  webp-near-80              6 KiB   68.4%  max 2 premult (255 straight), mean 0.034, 0 px >8
+  webp-near-60              6 KiB   59.6%  max 4 premult (255 straight), mean 0.064, 0 px >8
+  webp-q90                  6 KiB   60.4%  max 112 premult (255 straight), mean 0.518, 1777 px >8
+  webp-q80                  5 KiB   49.2%  max 108 premult (251 straight), mean 0.604, 2336 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-glow-dark.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             175 KiB  100.0%  
+  oxipng-max              165 KiB   94.6%  lossless
+  oxipng-max-alpha        165 KiB   94.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   175 KiB  100.0%  lossless
+  png-9-adaptive          232 KiB  132.5%  lossless
+  png-palette              79 KiB   45.2%  max 4 premult (204 straight), mean 0.020, 0 px >8
+  webp-lossless           152 KiB   86.8%  lossless once premultiplied
+  webp-lossless-exact     151 KiB   86.6%  lossless
+  webp-near-80            147 KiB   83.8%  max 2 premult (255 straight), mean 0.059, 0 px >8
+  webp-near-60            136 KiB   77.7%  max 4 premult (255 straight), mean 0.108, 0 px >8
+  webp-q90                142 KiB   81.4%  max 7 premult (255 straight), mean 0.021, 0 px >8
+  webp-q80                102 KiB   58.1%  max 4 premult (255 straight), mean 0.022, 0 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-glow-light.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             177 KiB  100.0%  
+  oxipng-max              169 KiB   95.3%  lossless
+  oxipng-max-alpha        169 KiB   95.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   177 KiB  100.0%  lossless
+  png-9-adaptive          240 KiB  135.5%  lossless
+  png-palette              72 KiB   40.7%  max 10 premult (192 straight), mean 0.022, 1 px >8
+  webp-lossless           178 KiB  100.5%  lossless once premultiplied
+  webp-lossless-exact     178 KiB  100.4%  lossless
+  webp-near-80            162 KiB   91.6%  max 2 premult (255 straight), mean 0.047, 0 px >8
+  webp-near-60            145 KiB   81.7%  max 4 premult (255 straight), mean 0.093, 0 px >8
+  webp-q90                169 KiB   95.7%  max 12 premult (255 straight), mean 0.031, 51 px >8
+  webp-q80                126 KiB   70.9%  max 17 premult (255 straight), mean 0.038, 477 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-ink-dark.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             439 KiB  100.0%  
+  oxipng-max              419 KiB   95.4%  lossless
+  oxipng-max-alpha        419 KiB   95.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   439 KiB  100.0%  lossless
+  png-9-adaptive          552 KiB  125.9%  lossless
+  png-palette             176 KiB   40.1%  max 58 premult (179 straight), mean 0.076, 1129 px >8
+  webp-lossless           414 KiB   94.4%  lossless once premultiplied
+  webp-lossless-exact     428 KiB   97.5%  lossless
+  webp-near-80            287 KiB   65.5%  max 2 premult (255 straight), mean 0.042, 0 px >8
+  webp-near-60            220 KiB   50.1%  max 4 premult (255 straight), mean 0.069, 0 px >8
+  webp-q90                245 KiB   55.8%  max 74 premult (255 straight), mean 0.338, 26797 px >8
+  webp-q80                213 KiB   48.5%  max 74 premult (255 straight), mean 0.393, 34714 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-ink-light.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             437 KiB  100.0%  
+  oxipng-max              415 KiB   95.1%  lossless
+  oxipng-max-alpha        416 KiB   95.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   437 KiB  100.0%  lossless
+  png-9-adaptive          552 KiB  126.4%  lossless
+  png-palette             177 KiB   40.6%  max 49 premult (186 straight), mean 0.061, 980 px >8
+  webp-lossless           411 KiB   94.1%  lossless once premultiplied
+  webp-lossless-exact     424 KiB   97.2%  lossless
+  webp-near-80            290 KiB   66.4%  max 2 premult (255 straight), mean 0.038, 0 px >8
+  webp-near-60            222 KiB   50.9%  max 4 premult (255 straight), mean 0.063, 0 px >8
+  webp-q90                238 KiB   54.6%  max 76 premult (255 straight), mean 0.276, 24789 px >8
+  webp-q80                210 KiB   48.1%  max 74 premult (255 straight), mean 0.335, 34313 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-dark.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             708 KiB  100.0%  
+  oxipng-max              687 KiB   97.0%  lossless
+  oxipng-max-alpha        687 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   708 KiB  100.0%  lossless
+  png-9-adaptive          808 KiB  114.1%  lossless
+  png-palette             190 KiB   26.8%  max 59 premult (226 straight), mean 0.427, 35067 px >8
+  webp-lossless           586 KiB   82.8%  lossless once premultiplied
+  webp-lossless-exact     592 KiB   83.6%  lossless
+  webp-near-80            495 KiB   69.9%  max 2 premult (255 straight), mean 0.076, 0 px >8
+  webp-near-60            408 KiB   57.6%  max 4 premult (255 straight), mean 0.141, 0 px >8
+  webp-q90                370 KiB   52.3%  max 59 premult (255 straight), mean 0.443, 42804 px >8
+  webp-q80                296 KiB   41.7%  max 59 premult (255 straight), mean 0.573, 66213 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-light.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             695 KiB  100.0%  
+  oxipng-max              673 KiB   96.9%  lossless
+  oxipng-max-alpha        673 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   695 KiB  100.0%  lossless
+  png-9-adaptive          782 KiB  112.5%  lossless
+  png-palette             189 KiB   27.2%  max 67 premult (213 straight), mean 0.378, 32202 px >8
+  webp-lossless           572 KiB   82.4%  lossless once premultiplied
+  webp-lossless-exact     579 KiB   83.4%  lossless
+  webp-near-80            476 KiB   68.6%  max 2 premult (255 straight), mean 0.069, 0 px >8
+  webp-near-60            396 KiB   57.0%  max 4 premult (255 straight), mean 0.128, 0 px >8
+  webp-q90                369 KiB   53.1%  max 72 premult (255 straight), mean 0.427, 42360 px >8
+  webp-q80                302 KiB   43.5%  max 68 premult (255 straight), mean 0.542, 60977 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-normal.png
+  2030x1064, 4 channels, >256 colours, ICC no
+  png-at-HEAD             689 KiB  100.0%  
+  oxipng-max              659 KiB   95.6%  lossless
+  oxipng-max-alpha        637 KiB   92.5%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   689 KiB  100.0%  lossless
+  png-9-adaptive          697 KiB  101.1%  lossless
+  png-palette             154 KiB   22.4%  max 60 premult (179 straight), mean 0.980, 126996 px >8
+  webp-lossless           521 KiB   75.6%  lossless once premultiplied
+  webp-lossless-exact     532 KiB   77.2%  lossless
+  webp-near-80            456 KiB   66.2%  max 2 premult (255 straight), mean 0.050, 0 px >8
+  webp-near-60            375 KiB   54.5%  max 4 premult (255 straight), mean 0.093, 0 px >8
+  webp-q90                321 KiB   46.6%  max 104 premult (255 straight), mean 0.760, 123133 px >8
+  webp-q80                269 KiB   39.0%  max 111 premult (255 straight), mean 0.909, 160137 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/things-dark.png
+  991x336, 4 channels, >256 colours, ICC no
+  png-at-HEAD             113 KiB  100.0%  
+  oxipng-max              109 KiB   96.0%  lossless
+  oxipng-max-alpha        109 KiB   96.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   113 KiB  100.0%  lossless
+  png-9-adaptive          150 KiB  132.8%  lossless
+  png-palette              34 KiB   30.4%  max 34 premult (184 straight), mean 0.286, 1676 px >8
+  webp-lossless           114 KiB  101.1%  lossless once premultiplied
+  webp-lossless-exact     115 KiB  101.2%  lossless
+  webp-near-80            103 KiB   91.3%  max 2 premult (255 straight), mean 0.125, 0 px >8
+  webp-near-60             83 KiB   73.4%  max 4 premult (255 straight), mean 0.236, 0 px >8
+  webp-q90                 86 KiB   75.6%  max 59 premult (255 straight), mean 0.282, 6264 px >8
+  webp-q80                 68 KiB   59.8%  max 77 premult (255 straight), mean 0.378, 9537 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/atlas/things-light.png
+  991x336, 4 channels, >256 colours, ICC no
+  png-at-HEAD              92 KiB  100.0%  
+  oxipng-max               88 KiB   95.7%  lossless
+  oxipng-max-alpha         88 KiB   95.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    92 KiB  100.0%  lossless
+  png-9-adaptive          127 KiB  138.5%  lossless
+  png-palette              33 KiB   36.4%  max 38 premult (238 straight), mean 0.200, 868 px >8
+  webp-lossless            94 KiB  102.7%  lossless once premultiplied
+  webp-lossless-exact      94 KiB  102.5%  lossless
+  webp-near-80             82 KiB   89.5%  max 2 premult (255 straight), mean 0.096, 0 px >8
+  webp-near-60             74 KiB   80.1%  max 4 premult (255 straight), mean 0.177, 0 px >8
+  webp-q90                 84 KiB   91.3%  max 42 premult (255 straight), mean 0.240, 4215 px >8
+  webp-q80                 67 KiB   72.7%  max 62 premult (255 straight), mean 0.340, 8820 px >8
+
+docs/archive/asteroid-breaker-uplift/assets/art/sprites/tint/ring.png
+  256x256, 4 channels, 250 colours, ICC no
+  png-at-HEAD               5 KiB  100.0%  
+  oxipng-max                4 KiB   81.0%  lossless
+  oxipng-max-alpha          4 KiB   81.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                     5 KiB  100.0%  lossless
+  png-9-adaptive            6 KiB  107.6%  lossless
+  png-palette               5 KiB   86.5%  lossless once premultiplied
+  webp-lossless             3 KiB   60.0%  lossless
+  webp-lossless-exact       3 KiB   60.0%  lossless
+  webp-near-80              3 KiB   60.0%  lossless
+  webp-near-60              3 KiB   60.0%  lossless
+  webp-q90                  4 KiB   68.2%  lossless once premultiplied
+  webp-q80                  4 KiB   67.8%  lossless once premultiplied
+
+docs/archive/asteroid-breaker-uplift/assets/art/sprites/tint/soft-disc.png
+  256x256, 4 channels, 224 colours, ICC no
+  png-at-HEAD              13 KiB  100.0%  
+  oxipng-max                5 KiB   35.1%  lossless
+  oxipng-max-alpha          5 KiB   35.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    13 KiB  100.0%  lossless
+  png-9-adaptive            8 KiB   61.3%  lossless
+  png-palette               9 KiB   67.8%  lossless once premultiplied
+  webp-lossless             5 KiB   40.8%  lossless once premultiplied
+  webp-lossless-exact       6 KiB   41.7%  lossless
+  webp-near-80              5 KiB   39.2%  max 1 premult (255 straight), mean 0.041, 0 px >8
+  webp-near-60              5 KiB   39.2%  max 1 premult (255 straight), mean 0.041, 0 px >8
+  webp-q90                  3 KiB   21.9%  lossless once premultiplied
+  webp-q80                  3 KiB   21.9%  lossless once premultiplied
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/beds.png
+  1616x180, 4 channels, >256 colours, ICC no
+  png-at-HEAD             166 KiB  100.0%  
+  oxipng-max              144 KiB   86.6%  lossless
+  oxipng-max-alpha        144 KiB   86.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   168 KiB  101.0%  lossless
+  png-9-adaptive          213 KiB  128.2%  lossless
+  png-palette              92 KiB   55.6%  max 10 premult (10 straight), mean 0.057, 6 px >8
+  webp-lossless           156 KiB   93.5%  lossless
+  webp-lossless-exact     156 KiB   93.5%  lossless
+  webp-near-80            124 KiB   74.7%  max 1 premult (1 straight), mean 0.144, 0 px >8
+  webp-near-60            100 KiB   60.3%  max 2 premult (2 straight), mean 0.276, 0 px >8
+  webp-q90                 49 KiB   29.2%  max 80 premult (80 straight), mean 2.116, 53009 px >8
+  webp-q80                 32 KiB   19.1%  max 81 premult (81 straight), mean 2.456, 63400 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/chain.png
+  1616x180, 4 channels, >256 colours, ICC no
+  png-at-HEAD              49 KiB  100.0%  
+  oxipng-max               39 KiB   79.1%  lossless
+  oxipng-max-alpha         39 KiB   79.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    45 KiB   90.8%  lossless
+  png-9-adaptive           46 KiB   94.3%  lossless
+  png-palette              24 KiB   48.5%  max 5 premult (5 straight), mean 0.016, 0 px >8
+  webp-lossless            30 KiB   60.4%  lossless
+  webp-lossless-exact      30 KiB   60.4%  lossless
+  webp-near-80             26 KiB   53.7%  max 1 premult (1 straight), mean 0.032, 0 px >8
+  webp-near-60             22 KiB   44.4%  max 2 premult (2 straight), mean 0.065, 0 px >8
+  webp-q90                 14 KiB   28.4%  max 95 premult (95 straight), mean 0.957, 12523 px >8
+  webp-q80                  9 KiB   19.1%  max 101 premult (101 straight), mean 1.089, 16432 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/hazards.png
+  1616x524, 4 channels, >256 colours, ICC no
+  png-at-HEAD             290 KiB  100.0%  
+  oxipng-max              252 KiB   87.0%  lossless
+  oxipng-max-alpha        252 KiB   87.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   285 KiB   98.4%  lossless
+  png-9-adaptive          323 KiB  111.3%  lossless
+  png-palette             166 KiB   57.2%  max 13 premult (13 straight), mean 0.057, 12 px >8
+  webp-lossless           223 KiB   76.8%  lossless
+  webp-lossless-exact     223 KiB   76.8%  lossless
+  webp-near-80            189 KiB   65.1%  max 1 premult (1 straight), mean 0.127, 0 px >8
+  webp-near-60            157 KiB   54.3%  max 2 premult (2 straight), mean 0.249, 0 px >8
+  webp-q90                101 KiB   34.9%  max 95 premult (95 straight), mean 1.626, 102429 px >8
+  webp-q80                 66 KiB   22.8%  max 95 premult (95 straight), mean 2.011, 143747 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/pickups.png
+  1616x524, 4 channels, >256 colours, ICC no
+  png-at-HEAD             144 KiB  100.0%  
+  oxipng-max              117 KiB   81.6%  lossless
+  oxipng-max-alpha        117 KiB   81.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   134 KiB   92.8%  lossless
+  png-9-adaptive          153 KiB  106.0%  lossless
+  png-palette              83 KiB   57.6%  max 8 premult (8 straight), mean 0.037, 0 px >8
+  webp-lossless           109 KiB   75.9%  lossless
+  webp-lossless-exact     109 KiB   75.9%  lossless
+  webp-near-80             96 KiB   66.4%  max 1 premult (1 straight), mean 0.076, 0 px >8
+  webp-near-60             83 KiB   57.4%  max 2 premult (2 straight), mean 0.148, 0 px >8
+  webp-q90                 70 KiB   48.8%  max 105 premult (105 straight), mean 1.450, 83648 px >8
+  webp-q80                 46 KiB   32.2%  max 106 premult (106 straight), mean 1.731, 106969 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/rescue.png
+  1616x352, 4 channels, >256 colours, ICC no
+  png-at-HEAD             131 KiB  100.0%  
+  oxipng-max              111 KiB   85.0%  lossless
+  oxipng-max-alpha        111 KiB   85.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   124 KiB   94.8%  lossless
+  png-9-adaptive          135 KiB  103.4%  lossless
+  png-palette              79 KiB   60.7%  max 6 premult (6 straight), mean 0.044, 0 px >8
+  webp-lossless           101 KiB   77.0%  lossless
+  webp-lossless-exact     101 KiB   77.0%  lossless
+  webp-near-80             88 KiB   67.3%  max 1 premult (1 straight), mean 0.092, 0 px >8
+  webp-near-60             76 KiB   58.3%  max 2 premult (2 straight), mean 0.180, 0 px >8
+  webp-q90                 53 KiB   40.4%  max 97 premult (97 straight), mean 1.417, 54148 px >8
+  webp-q80                 35 KiB   27.1%  max 97 premult (97 straight), mean 1.746, 76700 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/rocks.png
+  1616x1556, 4 channels, >256 colours, ICC no
+  png-at-HEAD             871 KiB  100.0%  
+  oxipng-max              756 KiB   86.8%  lossless
+  oxipng-max-alpha        756 KiB   86.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   852 KiB   97.9%  lossless
+  png-9-adaptive          971 KiB  111.5%  lossless
+  png-palette             509 KiB   58.5%  max 14 premult (14 straight), mean 0.055, 6 px >8
+  webp-lossless           645 KiB   74.1%  lossless
+  webp-lossless-exact     645 KiB   74.1%  lossless
+  webp-near-80            548 KiB   62.9%  max 1 premult (1 straight), mean 0.114, 0 px >8
+  webp-near-60            457 KiB   52.5%  max 2 premult (2 straight), mean 0.224, 0 px >8
+  webp-q90                308 KiB   35.4%  max 105 premult (105 straight), mean 1.660, 309382 px >8
+  webp-q80                205 KiB   23.6%  max 106 premult (106 straight), mean 1.954, 405897 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/ship.png
+  1616x1212, 4 channels, >256 colours, ICC no
+  png-at-HEAD             415 KiB  100.0%  
+  oxipng-max              350 KiB   84.3%  lossless
+  oxipng-max-alpha        350 KiB   84.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   395 KiB   95.1%  lossless
+  png-9-adaptive          439 KiB  105.8%  lossless
+  png-palette             232 KiB   55.9%  max 11 premult (11 straight), mean 0.056, 6 px >8
+  webp-lossless           302 KiB   72.8%  lossless
+  webp-lossless-exact     302 KiB   72.8%  lossless
+  webp-near-80            263 KiB   63.3%  max 1 premult (1 straight), mean 0.114, 0 px >8
+  webp-near-60            224 KiB   54.0%  max 2 premult (2 straight), mean 0.226, 0 px >8
+  webp-q90                186 KiB   44.7%  max 90 premult (90 straight), mean 1.479, 201376 px >8
+  webp-q80                124 KiB   30.0%  max 97 premult (97 straight), mean 1.832, 280498 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/stingers.png
+  1616x524, 4 channels, >256 colours, ICC no
+  png-at-HEAD             207 KiB  100.0%  
+  oxipng-max              173 KiB   84.0%  lossless
+  oxipng-max-alpha        173 KiB   84.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   198 KiB   95.9%  lossless
+  png-9-adaptive          222 KiB  107.5%  lossless
+  png-palette             109 KiB   52.7%  max 6 premult (6 straight), mean 0.031, 0 px >8
+  webp-lossless           155 KiB   74.8%  lossless
+  webp-lossless-exact     155 KiB   74.8%  lossless
+  webp-near-80            125 KiB   60.7%  max 1 premult (1 straight), mean 0.067, 0 px >8
+  webp-near-60            107 KiB   51.6%  max 2 premult (2 straight), mean 0.135, 0 px >8
+  webp-q90                 66 KiB   32.0%  max 104 premult (104 straight), mean 1.434, 78886 px >8
+  webp-q80                 44 KiB   21.0%  max 104 premult (104 straight), mean 1.677, 101759 px >8
+
+docs/archive/asteroid-breaker-uplift/sound/sheets/voice.png
+  1616x696, 4 channels, >256 colours, ICC no
+  png-at-HEAD             191 KiB  100.0%  
+  oxipng-max              152 KiB   79.7%  lossless
+  oxipng-max-alpha        152 KiB   79.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   175 KiB   91.7%  lossless
+  png-9-adaptive          207 KiB  108.5%  lossless
+  png-palette             112 KiB   58.7%  max 7 premult (7 straight), mean 0.032, 0 px >8
+  webp-lossless           147 KiB   77.2%  lossless
+  webp-lossless-exact     147 KiB   77.2%  lossless
+  webp-near-80            124 KiB   64.9%  max 1 premult (1 straight), mean 0.070, 0 px >8
+  webp-near-60            104 KiB   54.7%  max 2 premult (2 straight), mean 0.142, 0 px >8
+  webp-q90                 96 KiB   50.6%  max 103 premult (103 straight), mean 1.603, 128829 px >8
+  webp-q80                 63 KiB   33.1%  max 107 premult (107 straight), mean 1.784, 148917 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-1-today.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD             105 KiB  100.0%  
+  oxipng-max               73 KiB   69.9%  lossless
+  oxipng-max-alpha         73 KiB   69.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    83 KiB   78.8%  lossless
+  png-9-adaptive          109 KiB  103.9%  lossless
+  png-palette              36 KiB   34.4%  max 28 premult (28 straight), mean 0.024, 756 px >8
+  webp-lossless            65 KiB   61.5%  lossless
+  webp-lossless-exact      65 KiB   61.5%  lossless
+  webp-near-80             62 KiB   59.4%  max 1 premult (1 straight), mean 0.019, 0 px >8
+  webp-near-60             52 KiB   49.7%  max 2 premult (2 straight), mean 0.037, 0 px >8
+  webp-q90                 55 KiB   52.5%  max 101 premult (101 straight), mean 0.572, 42097 px >8
+  webp-q80                 38 KiB   36.6%  max 124 premult (124 straight), mean 0.720, 60963 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-2-gauge.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD             112 KiB  100.0%  
+  oxipng-max               80 KiB   71.1%  lossless
+  oxipng-max-alpha         80 KiB   71.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    90 KiB   79.7%  lossless
+  png-9-adaptive          119 KiB  106.0%  lossless
+  png-palette              39 KiB   34.4%  max 29 premult (29 straight), mean 0.026, 580 px >8
+  webp-lossless            69 KiB   61.6%  lossless
+  webp-lossless-exact      69 KiB   61.6%  lossless
+  webp-near-80             66 KiB   59.2%  max 1 premult (1 straight), mean 0.020, 0 px >8
+  webp-near-60             56 KiB   50.1%  max 2 premult (2 straight), mean 0.039, 0 px >8
+  webp-q90                 57 KiB   51.1%  max 95 premult (95 straight), mean 0.594, 44518 px >8
+  webp-q80                 40 KiB   35.5%  max 124 premult (124 straight), mean 0.746, 64748 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-3-gauge-pull-back.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD             104 KiB  100.0%  
+  oxipng-max               72 KiB   68.9%  lossless
+  oxipng-max-alpha         72 KiB   68.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    81 KiB   78.1%  lossless
+  png-9-adaptive          102 KiB   98.5%  lossless
+  png-palette              33 KiB   31.7%  max 31 premult (31 straight), mean 0.023, 624 px >8
+  webp-lossless            59 KiB   56.4%  lossless
+  webp-lossless-exact      59 KiB   56.4%  lossless
+  webp-near-80             57 KiB   54.6%  max 1 premult (1 straight), mean 0.017, 0 px >8
+  webp-near-60             49 KiB   47.0%  max 2 premult (2 straight), mean 0.034, 0 px >8
+  webp-q90                 50 KiB   47.8%  max 98 premult (98 straight), mean 0.539, 41194 px >8
+  webp-q80                 35 KiB   33.7%  max 124 premult (124 straight), mean 0.719, 64476 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-4-gauge-ceiling.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD             131 KiB  100.0%  
+  oxipng-max               97 KiB   73.9%  lossless
+  oxipng-max-alpha         97 KiB   73.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   108 KiB   82.6%  lossless
+  png-9-adaptive          130 KiB   99.2%  lossless
+  png-palette              42 KiB   32.4%  max 33 premult (33 straight), mean 0.031, 953 px >8
+  webp-lossless            78 KiB   59.3%  lossless
+  webp-lossless-exact      78 KiB   59.3%  lossless
+  webp-near-80             73 KiB   55.5%  max 1 premult (1 straight), mean 0.021, 0 px >8
+  webp-near-60             62 KiB   47.6%  max 2 premult (2 straight), mean 0.040, 0 px >8
+  webp-q90                 60 KiB   46.0%  max 91 premult (91 straight), mean 0.617, 44613 px >8
+  webp-q80                 42 KiB   32.0%  max 94 premult (94 straight), mean 0.822, 69708 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-5-lintel.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD             107 KiB  100.0%  
+  oxipng-max               75 KiB   70.1%  lossless
+  oxipng-max-alpha         75 KiB   70.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    85 KiB   79.1%  lossless
+  png-9-adaptive          111 KiB  103.4%  lossless
+  png-palette              37 KiB   34.6%  max 33 premult (33 straight), mean 0.026, 714 px >8
+  webp-lossless            67 KiB   62.1%  lossless
+  webp-lossless-exact      67 KiB   62.1%  lossless
+  webp-near-80             64 KiB   60.1%  max 1 premult (1 straight), mean 0.021, 0 px >8
+  webp-near-60             54 KiB   50.4%  max 2 premult (2 straight), mean 0.040, 0 px >8
+  webp-q90                 58 KiB   54.5%  max 95 premult (95 straight), mean 0.633, 53218 px >8
+  webp-q80                 41 KiB   38.0%  max 124 premult (124 straight), mean 0.783, 69120 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-6-gauge-light.png
+  780x1688, 4 channels, >256 colours, ICC no
+  png-at-HEAD              79 KiB  100.0%  
+  oxipng-max               63 KiB   79.4%  lossless
+  oxipng-max-alpha         63 KiB   79.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    71 KiB   90.4%  lossless
+  png-9-adaptive           87 KiB  110.5%  lossless
+  png-palette              31 KiB   39.7%  max 20 premult (20 straight), mean 0.017, 326 px >8
+  webp-lossless            46 KiB   58.7%  lossless
+  webp-lossless-exact      46 KiB   58.7%  lossless
+  webp-near-80             46 KiB   58.4%  max 1 premult (1 straight), mean 0.014, 0 px >8
+  webp-near-60             43 KiB   54.1%  max 2 premult (2 straight), mean 0.031, 0 px >8
+  webp-q90                 43 KiB   54.2%  max 69 premult (69 straight), mean 0.351, 24758 px >8
+  webp-q80                 30 KiB   38.0%  max 80 premult (80 straight), mean 0.454, 35752 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/charge-sheet.png
+  1282x1900, 4 channels, >256 colours, ICC no
+  png-at-HEAD             431 KiB  100.0%  
+  oxipng-max              348 KiB   80.9%  lossless
+  oxipng-max-alpha        348 KiB   80.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   394 KiB   91.6%  lossless
+  png-9-adaptive          442 KiB  102.7%  lossless
+  png-palette             127 KiB   29.4%  max 35 premult (35 straight), mean 0.175, 11070 px >8
+  webp-lossless           309 KiB   71.7%  lossless
+  webp-lossless-exact     309 KiB   71.7%  lossless
+  webp-near-80            250 KiB   58.0%  max 1 premult (1 straight), mean 0.065, 0 px >8
+  webp-near-60            210 KiB   48.8%  max 2 premult (2 straight), mean 0.118, 0 px >8
+  webp-q90                177 KiB   41.1%  max 96 premult (96 straight), mean 0.741, 109094 px >8
+  webp-q80                127 KiB   29.6%  max 100 premult (100 straight), mean 1.010, 161178 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/controls-sheet.png
+  1460x1360, 4 channels, >256 colours, ICC no
+  png-at-HEAD             248 KiB  100.0%  
+  oxipng-max              193 KiB   77.7%  lossless
+  oxipng-max-alpha        193 KiB   77.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   215 KiB   86.7%  lossless
+  png-9-adaptive          293 KiB  118.2%  lossless
+  png-palette             105 KiB   42.5%  max 27 premult (27 straight), mean 0.022, 96 px >8
+  webp-lossless           129 KiB   52.0%  lossless
+  webp-lossless-exact     129 KiB   52.0%  lossless
+  webp-near-80            116 KiB   46.6%  max 1 premult (1 straight), mean 0.028, 0 px >8
+  webp-near-60            102 KiB   41.1%  max 2 premult (2 straight), mean 0.051, 0 px >8
+  webp-q90                105 KiB   42.1%  max 41 premult (41 straight), mean 0.334, 7502 px >8
+  webp-q80                 78 KiB   31.6%  max 48 premult (48 straight), mean 0.524, 27148 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-today-flying.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              49 KiB  100.0%  
+  oxipng-max               37 KiB   75.8%  lossless
+  oxipng-max-alpha         37 KiB   75.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    43 KiB   87.8%  lossless
+  png-9-adaptive           51 KiB  105.3%  lossless
+  png-palette              21 KiB   42.7%  max 16 premult (16 straight), mean 0.008, 103 px >8
+  webp-lossless            19 KiB   38.7%  lossless
+  webp-lossless-exact      19 KiB   38.7%  lossless
+  webp-near-80             21 KiB   43.3%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60             20 KiB   41.2%  max 2 premult (2 straight), mean 0.049, 0 px >8
+  webp-q90                 36 KiB   74.1%  max 78 premult (78 straight), mean 0.454, 35231 px >8
+  webp-q80                 25 KiB   51.3%  max 86 premult (86 straight), mean 0.543, 46375 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-tuned-flying-fast-desktop.png
+  2560x1600, 3 channels, >256 colours, ICC no
+  png-at-HEAD             186 KiB  100.0%  
+  oxipng-max              147 KiB   78.7%  lossless
+  oxipng-max-alpha        147 KiB   78.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   169 KiB   90.8%  lossless
+  png-9-adaptive          200 KiB  107.1%  lossless
+  png-palette              74 KiB   39.4%  max 35 premult (35 straight), mean 0.020, 985 px >8
+  webp-lossless            72 KiB   38.7%  lossless
+  webp-lossless-exact      72 KiB   38.7%  lossless
+  webp-near-80             77 KiB   41.1%  max 1 premult (1 straight), mean 0.023, 0 px >8
+  webp-near-60             76 KiB   40.8%  max 2 premult (2 straight), mean 0.051, 0 px >8
+  webp-q90                108 KiB   58.2%  max 88 premult (88 straight), mean 0.461, 69832 px >8
+  webp-q80                 79 KiB   42.5%  max 89 premult (89 straight), mean 0.575, 97493 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-tuned-flying-fast-light.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              48 KiB  100.0%  
+  oxipng-max               37 KiB   77.6%  lossless
+  oxipng-max-alpha         37 KiB   77.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    43 KiB   90.1%  lossless
+  png-9-adaptive           51 KiB  107.4%  lossless
+  png-palette              20 KiB   42.2%  max 14 premult (14 straight), mean 0.009, 68 px >8
+  webp-lossless            18 KiB   38.5%  lossless
+  webp-lossless-exact      18 KiB   38.5%  lossless
+  webp-near-80             20 KiB   42.3%  max 1 premult (1 straight), mean 0.019, 0 px >8
+  webp-near-60             19 KiB   39.5%  max 2 premult (2 straight), mean 0.039, 0 px >8
+  webp-q90                 35 KiB   72.9%  max 70 premult (70 straight), mean 0.322, 24408 px >8
+  webp-q80                 25 KiB   52.3%  max 79 premult (79 straight), mean 0.408, 32705 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-tuned-flying-fast.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              50 KiB  100.0%  
+  oxipng-max               38 KiB   76.3%  lossless
+  oxipng-max-alpha         38 KiB   76.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    43 KiB   87.8%  lossless
+  png-9-adaptive           52 KiB  105.3%  lossless
+  png-palette              21 KiB   42.3%  max 16 premult (16 straight), mean 0.009, 125 px >8
+  webp-lossless            20 KiB   39.7%  lossless
+  webp-lossless-exact      20 KiB   39.7%  lossless
+  webp-near-80             22 KiB   44.8%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60             21 KiB   42.4%  max 2 premult (2 straight), mean 0.048, 0 px >8
+  webp-q90                 37 KiB   74.2%  max 78 premult (78 straight), mean 0.457, 35869 px >8
+  webp-q80                 26 KiB   51.6%  max 86 premult (86 straight), mean 0.547, 47289 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-tuned-waiting-fast.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              51 KiB  100.0%  
+  oxipng-max               39 KiB   76.3%  lossless
+  oxipng-max-alpha         39 KiB   76.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    45 KiB   87.9%  lossless
+  png-9-adaptive           54 KiB  105.4%  lossless
+  png-palette              22 KiB   42.3%  max 21 premult (21 straight), mean 0.009, 161 px >8
+  webp-lossless            21 KiB   40.0%  lossless
+  webp-lossless-exact      21 KiB   40.0%  lossless
+  webp-near-80             23 KiB   44.9%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60             22 KiB   42.3%  max 2 premult (2 straight), mean 0.048, 0 px >8
+  webp-q90                 36 KiB   71.2%  max 78 premult (78 straight), mean 0.456, 35860 px >8
+  webp-q80                 25 KiB   49.6%  max 86 premult (86 straight), mean 0.546, 47172 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/bar-tuned-waiting.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              50 KiB  100.0%  
+  oxipng-max               38 KiB   76.0%  lossless
+  oxipng-max-alpha         38 KiB   76.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    44 KiB   87.7%  lossless
+  png-9-adaptive           53 KiB  105.2%  lossless
+  png-palette              22 KiB   43.0%  max 21 premult (21 straight), mean 0.009, 143 px >8
+  webp-lossless            20 KiB   39.2%  lossless
+  webp-lossless-exact      20 KiB   39.2%  lossless
+  webp-near-80             22 KiB   43.6%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60             21 KiB   41.5%  max 2 premult (2 straight), mean 0.049, 0 px >8
+  webp-q90                 36 KiB   70.9%  max 78 premult (78 straight), mean 0.453, 35220 px >8
+  webp-q80                 25 KiB   49.1%  max 86 premult (86 straight), mean 0.542, 46284 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/desktop-dark.png
+  2560x1600, 3 channels, >256 colours, ICC no
+  png-at-HEAD             197 KiB  100.0%  
+  oxipng-max              155 KiB   78.7%  lossless
+  oxipng-max-alpha        155 KiB   78.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   177 KiB   90.0%  lossless
+  png-9-adaptive          211 KiB  107.4%  lossless
+  png-palette              76 KiB   38.6%  max 41 premult (41 straight), mean 0.022, 1663 px >8
+  webp-lossless           106 KiB   54.1%  lossless
+  webp-lossless-exact     106 KiB   54.1%  lossless
+  webp-near-80            107 KiB   54.4%  max 1 premult (1 straight), mean 0.014, 0 px >8
+  webp-near-60             92 KiB   46.6%  max 2 premult (2 straight), mean 0.027, 0 px >8
+  webp-q90                111 KiB   56.3%  max 86 premult (86 straight), mean 0.463, 69180 px >8
+  webp-q80                 81 KiB   41.0%  max 86 premult (86 straight), mean 0.640, 122452 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/phone-dark-steep.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              60 KiB  100.0%  
+  oxipng-max               45 KiB   74.6%  lossless
+  oxipng-max-alpha         45 KiB   74.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    52 KiB   86.0%  lossless
+  png-9-adaptive           64 KiB  105.6%  lossless
+  png-palette              24 KiB   39.6%  max 22 premult (22 straight), mean 0.010, 273 px >8
+  webp-lossless            24 KiB   40.2%  lossless
+  webp-lossless-exact      24 KiB   40.2%  lossless
+  webp-near-80             27 KiB   44.2%  max 1 premult (1 straight), mean 0.026, 0 px >8
+  webp-near-60             25 KiB   41.6%  max 2 premult (2 straight), mean 0.051, 0 px >8
+  webp-q90                 40 KiB   65.4%  max 89 premult (89 straight), mean 0.470, 36312 px >8
+  webp-q80                 28 KiB   45.7%  max 92 premult (92 straight), mean 0.571, 48605 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/phone-dark.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              61 KiB  100.0%  
+  oxipng-max               45 KiB   73.8%  lossless
+  oxipng-max-alpha         45 KiB   73.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    52 KiB   85.0%  lossless
+  png-9-adaptive           64 KiB  104.8%  lossless
+  png-palette              24 KiB   39.3%  max 20 premult (20 straight), mean 0.011, 275 px >8
+  webp-lossless            24 KiB   39.1%  lossless
+  webp-lossless-exact      24 KiB   39.1%  lossless
+  webp-near-80             27 KiB   43.9%  max 1 premult (1 straight), mean 0.026, 0 px >8
+  webp-near-60             25 KiB   41.0%  max 2 premult (2 straight), mean 0.052, 0 px >8
+  webp-q90                 39 KiB   64.6%  max 100 premult (100 straight), mean 0.465, 35538 px >8
+  webp-q80                 27 KiB   44.9%  max 117 premult (117 straight), mean 0.562, 47746 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/phone-light-steep.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              56 KiB  100.0%  
+  oxipng-max               43 KiB   76.2%  lossless
+  oxipng-max-alpha         43 KiB   76.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    50 KiB   88.4%  lossless
+  png-9-adaptive           60 KiB  106.8%  lossless
+  png-palette              23 KiB   40.1%  max 15 premult (15 straight), mean 0.010, 147 px >8
+  webp-lossless            21 KiB   37.9%  lossless
+  webp-lossless-exact      21 KiB   37.9%  lossless
+  webp-near-80             23 KiB   40.5%  max 1 premult (1 straight), mean 0.020, 0 px >8
+  webp-near-60             22 KiB   38.2%  max 2 premult (2 straight), mean 0.041, 0 px >8
+  webp-q90                 37 KiB   66.2%  max 70 premult (70 straight), mean 0.331, 25090 px >8
+  webp-q80                 27 KiB   47.3%  max 80 premult (80 straight), mean 0.410, 33646 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/shots/phone-light.png
+  780x1688, 3 channels, >256 colours, ICC no
+  png-at-HEAD              58 KiB  100.0%  
+  oxipng-max               44 KiB   76.0%  lossless
+  oxipng-max-alpha         44 KiB   76.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    51 KiB   88.1%  lossless
+  png-9-adaptive           62 KiB  106.9%  lossless
+  png-palette              23 KiB   40.1%  max 26 premult (26 straight), mean 0.010, 169 px >8
+  webp-lossless            22 KiB   38.4%  lossless
+  webp-lossless-exact      22 KiB   38.4%  lossless
+  webp-near-80             24 KiB   41.2%  max 1 premult (1 straight), mean 0.020, 0 px >8
+  webp-near-60             22 KiB   38.7%  max 2 premult (2 straight), mean 0.041, 0 px >8
+  webp-q90                 37 KiB   64.4%  max 69 premult (69 straight), mean 0.332, 24982 px >8
+  webp-q80                 27 KiB   46.0%  max 80 premult (80 straight), mean 0.416, 33606 px >8
+
+docs/archive/brick-fuzz-pop-tune-up/mocks/wool.png
+  1116x924, 4 channels, >256 colours, ICC no
+  png-at-HEAD              95 KiB  100.0%  
+  oxipng-max               68 KiB   71.8%  lossless
+  oxipng-max-alpha         68 KiB   71.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    76 KiB   80.8%  lossless
+  png-9-adaptive          108 KiB  114.3%  lossless
+  png-palette              37 KiB   39.3%  max 40 premult (40 straight), mean 0.019, 27 px >8
+  webp-lossless            38 KiB   40.0%  lossless
+  webp-lossless-exact      38 KiB   40.0%  lossless
+  webp-near-80             40 KiB   42.2%  max 1 premult (1 straight), mean 0.041, 0 px >8
+  webp-near-60             39 KiB   41.4%  max 2 premult (2 straight), mean 0.076, 0 px >8
+  webp-q90                 66 KiB   69.2%  max 86 premult (86 straight), mean 0.697, 48950 px >8
+  webp-q80                 50 KiB   52.8%  max 95 premult (95 straight), mean 0.968, 68286 px >8
+
+docs/archive/snake-qa-rail.png
+  1334x640, 3 channels, >256 colours, ICC no
+  png-at-HEAD              52 KiB  100.0%  
+  oxipng-max               41 KiB   78.6%  lossless
+  oxipng-max-alpha         41 KiB   78.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    47 KiB   90.3%  lossless
+  png-9-adaptive           54 KiB  105.4%  lossless
+  png-palette              26 KiB   49.9%  max 14 premult (14 straight), mean 0.006, 16 px >8
+  webp-lossless            20 KiB   37.7%  lossless
+  webp-lossless-exact      20 KiB   37.7%  lossless
+  webp-near-80             21 KiB   41.1%  max 1 premult (1 straight), mean 0.032, 0 px >8
+  webp-near-60             21 KiB   41.3%  max 2 premult (2 straight), mean 0.070, 0 px >8
+  webp-q90                 18 KiB   34.8%  max 45 premult (45 straight), mean 0.539, 2205 px >8
+  webp-q80                 13 KiB   25.7%  max 45 premult (45 straight), mean 0.665, 5629 px >8
+
+docs/archive/snake-qa-small-board.png
+  640x960, 3 channels, >256 colours, ICC no
+  png-at-HEAD              44 KiB  100.0%  
+  oxipng-max               31 KiB   68.9%  lossless
+  oxipng-max-alpha         31 KiB   68.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    35 KiB   78.4%  lossless
+  png-9-adaptive           45 KiB  102.2%  lossless
+  png-palette              20 KiB   46.0%  max 8 premult (8 straight), mean 0.004, 0 px >8
+  webp-lossless            16 KiB   36.8%  lossless
+  webp-lossless-exact      16 KiB   36.8%  lossless
+  webp-near-80             17 KiB   39.4%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60             17 KiB   38.8%  max 2 premult (2 straight), mean 0.056, 0 px >8
+  webp-q90                 15 KiB   34.2%  max 36 premult (36 straight), mean 0.523, 1132 px >8
+  webp-q80                 11 KiB   24.8%  max 37 premult (37 straight), mean 0.629, 4247 px >8
+
+frontend/games/solitaire/docs/card-sharpness/direct-vs-shrunk.png
+  1100x1258, 4 channels, >256 colours, ICC no
+  png-at-HEAD              41 KiB  100.0%  
+  oxipng-max               21 KiB   50.2%  lossless
+  oxipng-max-alpha         21 KiB   50.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    41 KiB  100.0%  lossless
+  png-9-adaptive           31 KiB   75.7%  lossless
+  png-palette              17 KiB   40.5%  max 7 premult (7 straight), mean 0.069, 0 px >8
+  webp-lossless            10 KiB   24.6%  lossless
+  webp-lossless-exact      10 KiB   24.6%  lossless
+  webp-near-80             16 KiB   38.4%  max 1 premult (1 straight), mean 0.034, 0 px >8
+  webp-near-60             18 KiB   43.1%  max 2 premult (2 straight), mean 0.052, 0 px >8
+  webp-q90                 37 KiB   91.4%  max 49 premult (49 straight), mean 0.387, 29709 px >8
+  webp-q80                 28 KiB   68.0%  max 65 premult (65 straight), mean 0.799, 71609 px >8
+
+frontend/games/solitaire/docs/card-sharpness/klondike-dpr3.png
+  1020x1410, 4 channels, >256 colours, ICC no
+  png-at-HEAD              83 KiB  100.0%  
+  oxipng-max               57 KiB   69.1%  lossless
+  oxipng-max-alpha         57 KiB   69.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    83 KiB  100.0%  lossless
+  png-9-adaptive           86 KiB  104.1%  lossless
+  png-palette              42 KiB   50.2%  max 20 premult (20 straight), mean 0.052, 144 px >8
+  webp-lossless            37 KiB   44.2%  lossless
+  webp-lossless-exact      37 KiB   44.2%  lossless
+  webp-near-80             56 KiB   67.1%  max 1 premult (1 straight), mean 0.046, 0 px >8
+  webp-near-60             60 KiB   72.3%  max 2 premult (2 straight), mean 0.110, 0 px >8
+  webp-q90                 47 KiB   56.1%  max 45 premult (45 straight), mean 0.489, 20523 px >8
+  webp-q80                 35 KiB   42.7%  max 49 premult (49 straight), mean 0.678, 38009 px >8
+
+frontend/games/solitaire/docs/card-sharpness/klondike-shipped.png
+  1020x1410, 4 channels, >256 colours, ICC no
+  png-at-HEAD              92 KiB  100.0%  
+  oxipng-max               64 KiB   69.9%  lossless
+  oxipng-max-alpha         64 KiB   69.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    92 KiB  100.0%  lossless
+  png-9-adaptive           93 KiB  101.0%  lossless
+  png-palette              45 KiB   48.7%  max 20 premult (20 straight), mean 0.085, 297 px >8
+  webp-lossless            44 KiB   48.1%  lossless
+  webp-lossless-exact      44 KiB   48.1%  lossless
+  webp-near-80             54 KiB   58.4%  max 1 premult (1 straight), mean 0.032, 0 px >8
+  webp-near-60             55 KiB   59.5%  max 2 premult (2 straight), mean 0.059, 0 px >8
+  webp-q90                 55 KiB   59.6%  max 54 premult (54 straight), mean 0.626, 31234 px >8
+  webp-q80                 41 KiB   44.5%  max 61 premult (61 straight), mean 0.862, 55629 px >8
+
+frontend/games/solitaire/docs/card-sharpness/mobile-drawn.png
+  1020x940, 4 channels, >256 colours, ICC no
+  png-at-HEAD              40 KiB  100.0%  
+  oxipng-max               30 KiB   73.7%  lossless
+  oxipng-max-alpha         30 KiB   73.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    40 KiB  100.0%  lossless
+  png-9-adaptive           44 KiB  109.3%  lossless
+  png-palette              21 KiB   53.2%  max 8 premult (8 straight), mean 0.011, 0 px >8
+  webp-lossless            16 KiB   39.4%  lossless
+  webp-lossless-exact      16 KiB   39.4%  lossless
+  webp-near-80             22 KiB   55.8%  max 1 premult (1 straight), mean 0.033, 0 px >8
+  webp-near-60             25 KiB   63.1%  max 2 premult (2 straight), mean 0.086, 0 px >8
+  webp-q90                 31 KiB   78.7%  max 61 premult (61 straight), mean 0.526, 17968 px >8
+  webp-q80                 25 KiB   62.3%  max 57 premult (57 straight), mean 0.669, 28037 px >8
+
+frontend/games/solitaire/docs/card-sharpness/spider-dpr2.png
+  960x844, 4 channels, >256 colours, ICC no
+  png-at-HEAD              43 KiB  100.0%  
+  oxipng-max               29 KiB   66.4%  lossless
+  oxipng-max-alpha         29 KiB   66.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                    43 KiB  100.0%  lossless
+  png-9-adaptive           45 KiB  104.7%  lossless
+  png-palette              19 KiB   45.0%  max 8 premult (8 straight), mean 0.086, 0 px >8
+  webp-lossless            18 KiB   41.6%  lossless
+  webp-lossless-exact      18 KiB   41.6%  lossless
+  webp-near-80             26 KiB   59.5%  max 1 premult (1 straight), mean 0.043, 0 px >8
+  webp-near-60             31 KiB   72.9%  max 2 premult (2 straight), mean 0.106, 0 px >8
+  webp-q90                 32 KiB   73.6%  max 48 premult (48 straight), mean 0.633, 21147 px >8
+  webp-q80                 25 KiB   56.8%  max 79 premult (79 straight), mean 1.232, 60424 px >8
+
+Totals over distinct blobs (each counted once):
+  png-at-HEAD             8.51 MiB  100.0%  saves   0.00 MiB  lossless on every file
+  oxipng-max              7.36 MiB   86.4%  saves   1.16 MiB  lossless on every file
+  oxipng-max-alpha        7.34 MiB   86.2%  saves   1.18 MiB  lossless on every file
+  png-9                   8.12 MiB   95.3%  saves   0.40 MiB  lossless on every file
+  png-9-adaptive          9.50 MiB  111.6%  saves  -0.99 MiB  lossless on every file
+  png-palette             3.49 MiB   41.0%  saves   5.03 MiB  lossy on some file
+  webp-lossless           6.18 MiB   72.6%  saves   2.33 MiB  lossless on every file
+  webp-lossless-exact     6.23 MiB   73.2%  saves   2.28 MiB  lossless on every file
+  webp-near-80            5.36 MiB   63.0%  saves   3.15 MiB  lossy on some file
+  webp-near-60            4.57 MiB   53.7%  saves   3.94 MiB  lossy on some file
+  webp-q90                4.35 MiB   51.1%  saves   4.16 MiB  lossy on some file
+  webp-q80                3.28 MiB   38.5%  saves   5.24 MiB  lossy on some file
+
+At HEAD the group's 52 paths hold 8.51 MiB (blobs shared by several paths counted at each).

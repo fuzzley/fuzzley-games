@@ -1,0 +1,12 @@
+all-corner-pips/0.5x/card_assets-0.png:
+  (1647, 318) card-diamonds-9 at (109, 152) of 110x154: HEAD rgba 76,76,76,244 -> run 74,74,74,233
+  (1647, 319) card-diamonds-9 at (109, 153) of 110x154: HEAD rgba 82,82,82,129 -> run 60,60,60,107
+all-corner-pips/0.75x/card_assets-0.png:
+  (3282, 231) card-hearts-6 at (164, 227) of 165x230: HEAD rgba 77,77,77,255 -> run 73,73,73,234
+  (3282, 232) card-hearts-6 at (164, 228) of 165x230: HEAD rgba 27,27,27,199 -> run 25,25,25,192
+  (2936, 469) card-diamonds-ace at (164, 227) of 165x230: HEAD rgba 78,78,78,255 -> run 75,75,75,234
+  (2936, 470) card-diamonds-ace at (164, 228) of 165x230: HEAD rgba 31,31,31,206 -> run 24,24,24,194
+classic/0.5x/card_assets-0.png:
+  (1647, 318) card-diamonds-9 at (109, 152) of 110x154: HEAD rgba 76,76,76,244 -> run 74,74,74,233
+  (1647, 319) card-diamonds-9 at (109, 153) of 110x154: HEAD rgba 82,82,82,129 -> run 60,60,60,107
+classic/0.75x/card_assets-0.png:

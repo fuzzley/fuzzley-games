@@ -1,0 +1,14 @@
+asteroid-breaker: no dist/ built
+brick-breaker: no dist/ built
+brick-fuzz-pop: no dist/ built
+minesweeper: 2 screenshots in public/, 2 in dist/, 2 byte-identical; lossless originals in dist/: 0
+snake: no dist/ built
+solitaire: 123 screenshots in public/, 123 in dist/, 123 byte-identical; lossless originals in dist/: 0
+sudoku: no dist/ built
+
+.dockerignore lines that leave screenshots or docs out of the image's build:
+1:.git
+2:.github
+8:*.md
+9:.gitignore
+11:frontend/games/solitaire/docs

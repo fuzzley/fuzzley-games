@@ -1,0 +1,3 @@
+measure	blobs	MiB on disk
+not at main tip, left after S2	15251	14.4
+of which at paths absent at main tip only	4271	11.6

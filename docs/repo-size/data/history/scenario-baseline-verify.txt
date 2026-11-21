@@ -1,0 +1,19 @@
+scenario: baseline
+tree entries, refs/heads/main: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> 305edc247db599d368faadd37882946c1af799e5; commit-map gives 305edc247db599d368faadd37882946c1af799e5
+tree entries, refs/heads/live: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> 305edc247db599d368faadd37882946c1af799e5; commit-map gives 305edc247db599d368faadd37882946c1af799e5
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 0 of all (no map)
+commits whose hash stayed: 0
+commits default pruning drops: 0, 0 of them on main
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 0
+message hash references to commits that kept their hash: 20
+message hash references wrong: 0

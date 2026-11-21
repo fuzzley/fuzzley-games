@@ -1,0 +1,13 @@
+measure	count	MiB on disk
+blobs in the repacked baseline	19610	285.8
+blobs at main tip	3317	68.0
+blobs not at main tip	16293	217.7
+S1: paths removed (--paths-from-file, --invert-paths)	8	
+S1: blobs that leave history	8	7.1
+S1: blobs at those paths kept by another path	3	1.8
+S1b: paths removed, every folder	64	
+S1b: blobs that leave history	112	64.8
+S2: blobs stripped (--strip-blobs-with-ids)	1042	203.3
+S2: blobs kept, at main or live tip	210	43.8
+S2: stripped blobs also stored at another path	0	0.0
+S3: blobs under screenshot and atlas paths	1252	247.1

@@ -1,0 +1,107 @@
+read at 2026-11-21T18:38:10Z
+== repository
+diskUsage KB: 304769 (297 MiB)
+forks: 0
+visibility: PUBLIC
+default branch: main
+pushed at: 2026-11-21T18:01:01Z
+size (REST, KB): 304769
+forks_count: 0
+allow_force_pushes on repo: n/a (per branch)
+forks listed: 0
+== GitHub's branches against the mirror's
+main: mirror at 305edc24, GitHub at 4676dcda: 2 commits ahead, 0 behind, 13 files, 0 of them screenshots or atlases
+live: mirror at 305edc24, GitHub at 4676dcda: 2 commits ahead, 0 behind, 13 files, 0 of them screenshots or atlases
+== branch protection and rulesets
+  protection-main: gh: Branch not protected (HTTP 404) 
+main: protected: true
+main: rules that apply: ["deletion","non_fast_forward","update","creation","pull_request"]
+  protection-live: gh: Branch not protected (HTTP 404) 
+live: protected: false
+live: rules that apply: []
+rulesets: 1
+  main-branch-needs-pull-request (active, target branch): include ~DEFAULT_BRANCH, exclude ; rules deletion, non_fast_forward, update, creation, pull_request; bypass RepositoryRole:always, User:always; the token's user can bypass: always
+== pull requests and issues
+pull requests: 33
+  CLOSED: 19
+  MERGED: 10
+  OPEN: 4
+  by dependabot: 33
+  open: #33 dependabot/npm_and_yarn/frontend/angular-cedb384501; #32 dependabot/npm_and_yarn/frontend/lint-and-test-b70ff37dab; #31 dependabot/docker/nginx-1.31.9-alpine3.24; #30 dependabot/npm_and_yarn/frontend/everything-else-e9e490dcbf
+issues: 0
+issue and PR comments: 23, review comments: 0, commit comments: 0
+commit hashes named in PR and issue bodies and comments: 0 references in 0 bodies or comments
+== Dependabot
+  dependabot-alerts: gh: Dependabot alerts are disabled for this repository. (HTTP 403) gh: This API operation needs the "admin:repo_hook" scope. To request it, run:  gh auth refres
+dependabot branches: 4
+== Actions
+workflow runs: 282
+  workflow: Verify (.github/workflows/verify.yml), active
+  workflow: Dependabot Updates (dynamic/dependabot/dependabot-updates), active
+caches: 41, 1318 MiB
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-4676dcdaaad6b517f8c19dce376a356b3e3358df
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-305edc247db599d368faadd37882946c1af799e5
+  refs/heads/main	yarn-Linux-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6
+  refs/heads/main	corepack-Linux-0.36.0-yarn@4.18.1
+  refs/pull/33/merge	prettier-5b734554eb58c4becf7efea6692bff40df288a4efbf0040af88f2081abcad1cb-8a497be890f158af89bdb935c425a1eb11858dcd
+  refs/pull/33/merge	yarn-Linux-fedc0bf8dd7ed05b7644be9be4e973e399ecec1f32202c6df9fe96e9a64c2317
+  refs/pull/32/merge	yarn-Linux-68088ab9f9dc6b1a49ced32578fbdfebb99e619e34cb77ad75f70593fcae1607
+  refs/pull/30/merge	prettier-7a19cf7e31589a81e5c6fc89c6b26e14aaf81dd3adbeeedd4becc2ef400db1fd-38ac6b52813c84c0039bdc3d2b4e78e06192a267
+  refs/pull/30/merge	yarn-Linux-927936c3298311a39d2f35f2b73d2cb752eb4a9a1ae837ee9bb9c514edc3f1ea
+  refs/pull/31/merge	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-654f8ef216c362d02989df65144d4721ada3d89c
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-d887d12bb5d67ff147594df6fe84794793459c15
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-fe9407cc04b8f800ecd32222705857ad59d8de37
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-aee7fac7b687729231371dd01843748f8ce3c426
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-414f164b977269a1641f3bf3ee0bc27ea57df450
+  refs/heads/main	prettier-72cc01becf1793fa8dbe6ebce10f81fdd81a52e054df66093ecda8c60f6d98a6-1823367c1584033f3a0ada12d4ce623b1e82be8b
+  refs/heads/main	prettier-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8-fd5c050fe17482a9a051a82286c3ed4292791e5f
+  refs/heads/main	yarn-Linux-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8
+  refs/heads/main	prettier-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8-7fbd968aef09e618b657f649e4e346ef97f41a9a
+  refs/heads/main	prettier-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8-6a5b58e61769c74bc3ef27f0a2a83338375a8393
+  refs/pull/29/merge	prettier-85be4757b3bb909c903e09486ac66f1173129f622de008e57b88523574c7ff8f-babb29f28ea42358ecdeb4d93d97eb1fdf09eb42
+  refs/pull/29/merge	yarn-Linux-02187b9ee5f1f6ec231fd3be31d539a4238324c1edbccf26c0b3f0a954bdcabc
+  refs/heads/ci-control	tsc-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-e6740e040c018eaa88dc5f915f32d66a3add1441
+  refs/heads/main	yarn-Linux-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758
+  refs/heads/local-pipeline	yarn-Linux-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8
+  refs/heads/main	prettier-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-e6740e040c018eaa88dc5f915f32d66a3add1441
+  refs/heads/local-pipeline	prettier-fd3a6083199f6f4e21a144f8e82f5d9986683fb1abe9e6a775a19e957fa5a7a8-15c09afe8aee5d943138ed8d6a68a2af6ddbf9b5
+  refs/heads/main	tsc-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-9bba39fe6233cc8b677192e1308a626a7609705e
+  refs/heads/main	prettier-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-5d42b0f6f3255688cc7fae729fa3c2bb04719d02
+  refs/heads/main	prettier-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-9bba39fe6233cc8b677192e1308a626a7609705e
+  refs/pull/30/merge	prettier-0d0a3fc086d1d49af18c520d699812f1773ef0a9f492c7e1ddccf295bc8ce21c-1ab42d9b83df7ff1ab33f1e56a18b560a0cddbef
+  refs/pull/30/merge	yarn-Linux-05fe6452e4b7261c017c2b61a33a0ed64ae6007cbaa8ae5a85cff98d82b17d04
+  refs/pull/30/merge	tsc-0d0a3fc086d1d49af18c520d699812f1773ef0a9f492c7e1ddccf295bc8ce21c-1ab42d9b83df7ff1ab33f1e56a18b560a0cddbef
+  refs/pull/29/merge	tsc-3fadf38ff714105f176a141afb276aaf98772affc40d4943a80ee2d99d25e495-de16968223abaaa1fbde3e747a37d8206028244e
+  refs/pull/29/merge	yarn-Linux-d2e554936935f57ce188f3bd73c3994343053acb9390f919188e56b7e0fb4b4f
+  refs/pull/29/merge	prettier-3fadf38ff714105f176a141afb276aaf98772affc40d4943a80ee2d99d25e495-de16968223abaaa1fbde3e747a37d8206028244e
+  refs/heads/ci-speedup	tsc-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-4d37058fa3097b577290af089a23a4d1e4c4b0a5
+  refs/heads/ci-speedup	yarn-Linux-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758
+  refs/heads/ci-speedup	corepack-Linux-0.36.0-yarn@4.18.1
+  refs/heads/ci-speedup	prettier-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-4d37058fa3097b577290af089a23a4d1e4c4b0a5
+  refs/heads/ci-speedup	tsc-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-a02e63af329275bb19656a08deb34873a0e2c857
+  refs/heads/ci-speedup	prettier-10a4b3a9f5048a23943a4835e75248202d30c9cec470ab190d428fc460f91758-a02e63af329275bb19656a08deb34873a0e2c857
+cache keys that end in a commit hash (github.sha): 28
+cache keys without one (lockfile or version only): 13
+artifacts: 0
+== releases, tags, deployments, environments, hooks, pages
+releases: 0
+tags: 0
+deployments: 0
+environments: 0
+webhooks: 0 [] 
+  installation: gh: A JSON web token could not be decoded (HTTP 401) 
+  pages: gh: Not Found (HTTP 404) 
+autolinks: 0
+== links to commits no branch holds
+refs/pull/1/head 34ed060 on a branch: 0
+  API commits/34ed060: 34ed0604711d0ae9237e101653453a2ee8c2af15
+  web /commit/34ed060: HTTP 200
+  web /commit/0000000 (no such commit): HTTP 404
+live site's version.json commit: 4676dcd, web /commit/4676dcd: HTTP 200
+== what a new repository in its place would have to carry over
+stars: 1, watchers: 0, has wiki: false, has discussions: false, created: 2026-10-11T05:00:15Z
+actions secrets: 0 []
+actions variables: 0
+dependabot secrets: 0
+deploy keys: 0
+collaborators: 1

@@ -1,0 +1,18 @@
+Verify runs created 2026-10-22..2026-11-21: 157
+
+By event and branch kind (runs, event, branch):
+     91 push	main
+     51 pull_request	dependabot/*
+     15 workflow_dispatch	other
+
+Jobs that ran, not skipped (job, runs):
+    147 docker
+    117 verify
+     82 promote
+     36 lint
+     36 changes
+     30 typecheck
+     30 test (the rest)
+     30 test (brick-fuzz-pop, solitaire)
+     30 test (asteroid-breaker, brick-breaker)
+     30 build

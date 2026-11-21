@@ -1,0 +1,3 @@
+Samples of freecell, each a row of 320 x 180 crops at 1:1, left to right: lossless, 80, 70, 60, 50
+docs/repo-size/data/screenshots/samples/freecell-preview-2560-qualities.webp: 203 KiB; from the 2560 x 1440 preview, rows: a face card and ranks (at 40, 900); the game bar's labels (at 820, 0)
+docs/repo-size/data/screenshots/samples/freecell-thumb-576-qualities.webp: 199 KiB; from the 576 x 324 thumbnail, rows: the board's ranks and pips (at 128, 124)

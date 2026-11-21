@@ -1,0 +1,33 @@
+scenario: s2
+tree entries, refs/heads/main: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> 0b8be03ac8526cb0d18c5295886ac15447ab1c25; commit-map gives 0b8be03ac8526cb0d18c5295886ac15447ab1c25
+tree entries, refs/heads/live: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> 0b8be03ac8526cb0d18c5295886ac15447ab1c25; commit-map gives 0b8be03ac8526cb0d18c5295886ac15447ab1c25
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1706 of 1742
+commits whose hash stayed: 36
+commits default pruning drops: 6, 6 of them on main
+  21eaaab6 2026-08-03 docs(simplesimon): add the board overview screenshot
+  811e476d 2026-10-10 docs: retake every game's screenshots with the light under the cards
+  a3d033d2 2026-10-27 docs(sudoku): screenshots with Fill in notes and the deeper shading
+  a822e6cc 2026-10-25 docs: retake the games' screenshots with the new wordmark
+  a9af4b96 2026-10-28 docs: the games' screenshots with the choice menu's badge
+  fbf76b25 2026-07-03 Add more background plceholder pictures to sprite sheet.
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> ea50007aaf names a416ef6e
+  fd5c050fe1 names afeaabd8 -> 1bbe205fd7 names 02bda833
+  fd5c050fe1 names b3ae2e81 -> 1bbe205fd7 names 69bb20ad
+  def2479266 names b3ae2e81 -> 7cf7585666 names 69bb20ad
+  05b6fd8b0f names e6740e04 -> 2f594fa6c2 names d3038881
+  aec288786a names eb560e1f -> d1aa23b9a9 names 1a415e2e
+  b870830e16 names 3af8a55f -> fa3a429d66 names 4bd3fbb7
+  21dbcad2c2 names c004b2ce -> a793726e69 names 27a925c2

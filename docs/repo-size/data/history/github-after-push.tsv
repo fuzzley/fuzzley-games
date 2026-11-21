@@ -1,0 +1,3 @@
+scenario	size-pack MiB	objects	old refs/pull kept	old commits only they reach
+s2	290.2	52363	37	1706
+s3	290.2	52658	37	1706

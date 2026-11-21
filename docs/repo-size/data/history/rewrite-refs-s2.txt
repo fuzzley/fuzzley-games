@@ -1,0 +1,91 @@
+mode: write
+files read: 320
+tokens: 1041
+commits in old: 854
+ambiguous in old: 0
+resolve in other repository too: 0
+pruned (map gives 0000…): 0
+hash unchanged: 0
+rewritten at the same length: 854
+rewritten longer, as the same length was ambiguous: 0
+old token resolves to something else in the new repository: 0
+replacements: 1369 in 54 files
+  809	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/history.tsv
+  113	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/ci-runs.tsv
+  51	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/brick-breaker-worklog.md
+  51	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/shared-lib-plan.md
+  46	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/ci-performance-audit/report.md
+  29	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/work-log.md
+  24	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/asteroid-breaker-uplift/implementation-plan.md
+  23	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/asteroid-breaker-worklog.md
+  22	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/games-follow-ups-plan.md
+  21	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/ci-performance-audit/report-after.md
+  20	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/ci-performance-audit/work-log.md
+  18	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/report.md
+  14	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/snake-qa-findings.md
+  11	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/MEMORY.md
+  9	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-build-benchmark-2026-11.md
+  8	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/ci-tests-ab-first.tsv
+  8	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/ci-tests-ab.tsv
+  6	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/asteroid-breaker-review-plan.md
+  6	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/brick-fuzz-pop-tune-up/implementation-plan.md
+  5	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/history.mjs
+  5	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/brick-breaker-uplift-plan.md
+  5	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/brick-fuzz-pop-tune-up-plan.md
+  5	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-ci-audit-2026-11-14.md
+  5	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-local-pipeline-audit-2026-11-14.md
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/asteroid-breaker-execution-plan.md
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/bench.sh
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/asteroid-breaker-uplift.md
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-dependabot-resolution.md
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-ci-software-webgl.md
+  4	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-phaser-first-test-timeouts.md
+  3	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-ci-chrome-launch-flake.md
+  2	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/brick-breaker-review-plan.md
+  2	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/snake-qa-fixes-plan.md
+  2	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/ts7-compare.sh
+  2	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/brick-fuzz-pop-name.md
+  2	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/rickashay-design.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/asteroid-breaker-uplift/research/the-game-today.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/minesweeper-ui-plan.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/snake-mobile-qa-plan.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/snake-qa-plan.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/sudoku-qa-plan.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/archive/sudoku-review-plan.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/steps-after-meta.txt
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/steps-after-step-5-meta.txt
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/data/steps-warm-meta.txt
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/layout-pages.sh
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/one-game.sh
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/local-pipeline-audit/scripts/overlap.sh
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/text-style/inventory/counts-before.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/repo/docs/text-style/inventory/measures-before.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/agent-efficiency-audit-2026-11-16.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-ci-true-repro.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/fuzzley-games-phaser-freeze-repro.md
+  1	/home/dev/Projects/personal/repo-size-2026-11-21/rewrite-dry-run-s2/memory/player-text-style-plan.md
+
+== the copies afterwards
+changed lines (diff -r, - and + each): 2579
+second pass: commits in old: 0
+second pass: rewritten at the same length: 0
+second pass: rewritten longer, as the same length was ambiguous: 0
+second pass: replacements: 0 in 0 files
+
+== references to the commits default pruning would drop
+21eaaab6 2026-08-03: 0 references in the copies of docs/ and the memory notes
+811e476d 2026-10-10: 0 references in the copies of docs/ and the memory notes
+a3d033d2 2026-10-27: 0 references in the copies of docs/ and the memory notes
+a822e6cc 2026-10-25: 2 references in the copies of docs/ and the memory notes
+a9af4b96 2026-10-28: 2 references in the copies of docs/ and the memory notes
+fbf76b25 2026-07-03: 0 references in the copies of docs/ and the memory notes
+
+== this worktree's docs/repo-size/, at 2026-11-21T18:48:00Z, a dry run
+files read: 92
+excluded: /home/dev/Projects/personal/fuzzley-games-repo-size/docs/repo-size/data/history
+excluded: /home/dev/Projects/personal/fuzzley-games-repo-size/docs/repo-size/research/history-rewrite.md
+commits in old: 125
+ambiguous in old: 0
+rewritten at the same length: 125
+rewritten longer, as the same length was ambiguous: 0
+replacements: 1409 in 15 files

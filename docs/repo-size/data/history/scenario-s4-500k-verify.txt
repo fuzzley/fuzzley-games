@@ -1,0 +1,68 @@
+scenario: s4-500k
+tree entries, refs/heads/main: 3459 before, 3407 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 76
+  - 100644 blob 99885d11755c8e7c095dd7b00e9c51fb237f304a	docs/archive/asteroid-breaker-uplift/art/energy-and-effects.svg
+  - 100644 blob d4733ebedb4e7bf60007d3c35e1fa33301999e01	docs/archive/asteroid-breaker-uplift/art/pickups-and-hazards.svg
+  - 100644 blob 878bf096bf787c1aa6366e671ff7aa5baf3e36c5	docs/archive/asteroid-breaker-uplift/art/pilot-and-pod.svg
+  - 100644 blob b4ee9d122f596bd7e13ba9c8fe18a324547f722c	docs/archive/asteroid-breaker-uplift/art/preview/energy-and-effects.webp
+  - 100644 blob 43cd77893a7645fec664732fd9728d9d3e5d7464	docs/archive/asteroid-breaker-uplift/art/preview/pilot-and-pod.webp
+  - 100644 blob 701e7394b62a047b997598ba1b696b17b06f0ca0	docs/archive/asteroid-breaker-uplift/art/rocks.svg
+  - 100644 blob 2bf3d074a0a089288b02164636ef7610df783117	docs/archive/asteroid-breaker-uplift/art/sectors.svg
+  - 100644 blob fa32affb57c58057b9d21209976e3567ef55ef97	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-dark.png
+  - 100644 blob 0706f6c86bf86ed1587776fc2de3053fcaaea1f2	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-light.png
+  - 100644 blob 45da9196ef870f3a3d4f79440ae67e31a26dde89	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-normal.png
+  + 100644 blob fbd0d3c2f74228ca74feae3fbbc93d8a7c618719	frontend/games/solitaire/docs/screenshots/bakers/overview.png
+  + 100644 blob 9e330abad9d5b9a86b19ed6f3c1d29685fe80ac2	frontend/games/solitaire/docs/screenshots/blackhole/overview.png
+  + 100644 blob 7e286c77a2525c318488e6a0daeea0502ef6c032	frontend/games/solitaire/docs/screenshots/challengefreecell/overview.png
+  + 100644 blob f3e676380ad65c7b171550fad5c6853634531491	frontend/games/solitaire/docs/screenshots/eightoff/overview.png
+  + 100644 blob c1ed5217035b44a37eef6dd50847359d9e365fb8	frontend/games/solitaire/docs/screenshots/flowergarden/overview.png
+  + 100644 blob 18ba4140e71af9dc967660ba7e4fd97458cc87b3	frontend/games/solitaire/docs/screenshots/fortythieves/overview.png
+  + 100644 blob 53c953689087dde9c2b01637e29ba1cb2d1c547d	frontend/games/solitaire/docs/screenshots/lucas/overview.png
+  + 100644 blob e381f9b783a73e4987d9872b6fae687796975e48	frontend/games/solitaire/docs/screenshots/montecarlo/overview.png
+  + 100644 blob 32bedf3c664fc1e98f495f9604ea672450290886	frontend/games/solitaire/docs/screenshots/mrsmop/overview.png
+  + 100644 blob 3d690aacb5116487f7d3b6b3e4fc9b98f4898650	frontend/games/solitaire/docs/screenshots/scorpion/overview.png
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> a8c0b7692b2a48479040aa6bf923e585f84dee53; commit-map gives a8c0b7692b2a48479040aa6bf923e585f84dee53
+tree entries, refs/heads/live: 3459 before, 3407 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 76
+  - 100644 blob 99885d11755c8e7c095dd7b00e9c51fb237f304a	docs/archive/asteroid-breaker-uplift/art/energy-and-effects.svg
+  - 100644 blob d4733ebedb4e7bf60007d3c35e1fa33301999e01	docs/archive/asteroid-breaker-uplift/art/pickups-and-hazards.svg
+  - 100644 blob 878bf096bf787c1aa6366e671ff7aa5baf3e36c5	docs/archive/asteroid-breaker-uplift/art/pilot-and-pod.svg
+  - 100644 blob b4ee9d122f596bd7e13ba9c8fe18a324547f722c	docs/archive/asteroid-breaker-uplift/art/preview/energy-and-effects.webp
+  - 100644 blob 43cd77893a7645fec664732fd9728d9d3e5d7464	docs/archive/asteroid-breaker-uplift/art/preview/pilot-and-pod.webp
+  - 100644 blob 701e7394b62a047b997598ba1b696b17b06f0ca0	docs/archive/asteroid-breaker-uplift/art/rocks.svg
+  - 100644 blob 2bf3d074a0a089288b02164636ef7610df783117	docs/archive/asteroid-breaker-uplift/art/sectors.svg
+  - 100644 blob fa32affb57c58057b9d21209976e3567ef55ef97	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-dark.png
+  - 100644 blob 0706f6c86bf86ed1587776fc2de3053fcaaea1f2	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-lit-light.png
+  - 100644 blob 45da9196ef870f3a3d4f79440ae67e31a26dde89	docs/archive/asteroid-breaker-uplift/assets/art/atlas/rocks-normal.png
+  + 100644 blob fbd0d3c2f74228ca74feae3fbbc93d8a7c618719	frontend/games/solitaire/docs/screenshots/bakers/overview.png
+  + 100644 blob 9e330abad9d5b9a86b19ed6f3c1d29685fe80ac2	frontend/games/solitaire/docs/screenshots/blackhole/overview.png
+  + 100644 blob 7e286c77a2525c318488e6a0daeea0502ef6c032	frontend/games/solitaire/docs/screenshots/challengefreecell/overview.png
+  + 100644 blob f3e676380ad65c7b171550fad5c6853634531491	frontend/games/solitaire/docs/screenshots/eightoff/overview.png
+  + 100644 blob c1ed5217035b44a37eef6dd50847359d9e365fb8	frontend/games/solitaire/docs/screenshots/flowergarden/overview.png
+  + 100644 blob 18ba4140e71af9dc967660ba7e4fd97458cc87b3	frontend/games/solitaire/docs/screenshots/fortythieves/overview.png
+  + 100644 blob 53c953689087dde9c2b01637e29ba1cb2d1c547d	frontend/games/solitaire/docs/screenshots/lucas/overview.png
+  + 100644 blob e381f9b783a73e4987d9872b6fae687796975e48	frontend/games/solitaire/docs/screenshots/montecarlo/overview.png
+  + 100644 blob 32bedf3c664fc1e98f495f9604ea672450290886	frontend/games/solitaire/docs/screenshots/mrsmop/overview.png
+  + 100644 blob 3d690aacb5116487f7d3b6b3e4fc9b98f4898650	frontend/games/solitaire/docs/screenshots/scorpion/overview.png
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> a8c0b7692b2a48479040aa6bf923e585f84dee53; commit-map gives a8c0b7692b2a48479040aa6bf923e585f84dee53
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1724 of 1742
+commits whose hash stayed: 18
+commits default pruning drops: 1, 1 of them on main
+  21eaaab6 2026-08-03 docs(simplesimon): add the board overview screenshot
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> 713b6cacfb names b0636d64
+  fd5c050fe1 names afeaabd8 -> b0377bc8e9 names 5ecf4a1c
+  fd5c050fe1 names b3ae2e81 -> b0377bc8e9 names 6e03d754
+  def2479266 names b3ae2e81 -> 4f940c965a names 6e03d754
+  05b6fd8b0f names e6740e04 -> 2917833c6d names 0a6d5025
+  aec288786a names eb560e1f -> 393765a63a names ad51f407
+  b870830e16 names 3af8a55f -> d1d5f9ba1d names 200f5a47
+  21dbcad2c2 names c004b2ce -> 13d4327601 names 5a4b2448

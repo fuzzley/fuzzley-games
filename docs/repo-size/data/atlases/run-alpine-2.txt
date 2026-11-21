@@ -1,0 +1,25 @@
+alpine 3.24.4, node v26.13.1, musl libc (x86_64)
+cpus in container: 24
+frontend/node_modules/@img:
+colour
+sharp-libvips-linuxmusl-x64
+sharp-linuxmusl-x64
+
+frontend/node_modules/@resvg:
+resvg-js
+resvg-js-linux-x64-musl
+label: alpine
+mirror: /scratch/mirror-alpine
+command: node tools/build-card-atlas.mjs
+node_modules: /repo/frontend/node_modules
+tools from: the worktree
+VIPS_NOVECTOR: unset
+sharp 0.35.5, libvips 8.18.7, @resvg/resvg-js 2.6.2, node v26.13.1, linux-x64
+cpus: all (24)
+exit code: 0
+wall seconds: 45.37
+user cpu seconds: 81.39
+system cpu seconds: 31.75
+peak rss MiB (sampled): 444
+generator's last line: Built 4 deck(s).
+generator printed 53 lines

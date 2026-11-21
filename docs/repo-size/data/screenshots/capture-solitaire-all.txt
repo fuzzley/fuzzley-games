@@ -1,0 +1,171 @@
+game: solitaire
+runs: 1, game ids: acesup allinarow bakers bakersdozen beleagueredcastle bisley blackhole bluemoon bristol calculation canfield challengefreecell doubleklondike easthaven eightoff flowergarden fortress fortythieves freecell golf grandfathersclock klondike labellelucie limited lucas maria montana montecarlo mrsmop nestor penguin pokersquares pyramid scorpion seahaven simplesimon spider spiderette trefoil tripeaks yukon
+cpus: 24
+served: http://127.0.0.1:9109/ (vite dev server), answering after 5.4 s
+run 1: 271.2 s, Chromes left on its profile: none after 0.0 s
+  acesup: overview.png
+  allinarow: overview.png
+  bakers: overview.png
+  bakersdozen: overview.png
+  beleagueredcastle: overview.png
+  bisley: overview.png
+  blackhole: overview.png
+  bluemoon: overview.png
+  bristol: overview.png
+  calculation: overview.png
+  canfield: overview.png
+  challengefreecell: overview.png
+  doubleklondike: overview.png
+  easthaven: overview.png
+  eightoff: overview.png
+  flowergarden: overview.png
+  fortress: overview.png
+  fortythieves: overview.png
+  freecell: overview.png
+  golf: overview.png
+  grandfathersclock: overview.png
+  klondike: overview.png
+  labellelucie: overview.png
+  limited: overview.png
+  lucas: overview.png
+  maria: overview.png
+  montana: overview.png
+  montecarlo: overview.png
+  mrsmop: overview.png
+  nestor: overview.png
+  penguin: overview.png
+  pokersquares: overview.png
+  pyramid: overview.png
+  scorpion: overview.png
+  seahaven: overview.png
+  simplesimon: overview.png
+  spider: overview.png
+  spiderette: overview.png
+  trefoil: overview.png
+  tripeaks: overview.png
+  yukon: overview.png
+  Captured 41 of 41.
+  Run yarn build:thumbs to make the images the site serves.
+
+acesup/overview.png: 399997 bytes, sha256 2130dee78cd9ec31 in run 1
+  HEAD: 400079 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+allinarow/overview.png: 467960 bytes, sha256 0846f154fe7894c2 in run 1
+  HEAD: 468042 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1129-2604, y 41-121 of 2880x1620
+
+bakers/overview.png: 583818 bytes, sha256 39c42f3a146ff278 in run 1
+  HEAD: 583906 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1143-2604, y 41-121 of 2880x1620
+
+bakersdozen/overview.png: 413976 bytes, sha256 891c03313543c72c in run 1
+  HEAD: 414051 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1145-2604, y 41-121 of 2880x1620
+
+beleagueredcastle/overview.png: 458434 bytes, sha256 a863b8117a26f051 in run 1
+  HEAD: 458483 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 859-2604, y 41-111 of 2880x1620
+
+bisley/overview.png: 467623 bytes, sha256 3f952e730a4ed20b in run 1
+  HEAD: 467715 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1511-2604, y 41-121 of 2880x1620
+
+blackhole/overview.png: 656163 bytes, sha256 bbce168b1133bef6 in run 1
+  HEAD: 656205 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1545-2604, y 41-121 of 2880x1620
+
+bluemoon/overview.png: 869886 bytes, sha256 8db599d4786af4ae in run 1
+  HEAD: 869972 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1545-2604, y 41-121 of 2880x1620
+
+bristol/overview.png: 507628 bytes, sha256 26e3ceedb00f36c2 in run 1
+  HEAD: 507710 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1515-2604, y 41-121 of 2880x1620
+
+calculation/overview.png: 190999 bytes, sha256 2f5e9a84ecebf966 in run 1
+  HEAD: 191078 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+canfield/overview.png: 302215 bytes, sha256 854547f9e887bf44 in run 1
+  HEAD: 302296 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+challengefreecell/overview.png: 587712 bytes, sha256 def633ab44c66664 in run 1
+  HEAD: 587806 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+doubleklondike/overview.png: 367860 bytes, sha256 bc8fcaf604a6c7fe in run 1
+  HEAD: 368065 bytes, bytes differ; pixels: 121 of 4665600 pixels differ (0.003%), 0 by more than 16, largest change 9, all within x 1423-2604, y 18-125 of 2880x1620
+
+easthaven/overview.png: 494236 bytes, sha256 852e364552d618ac in run 1
+  HEAD: 494299 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+eightoff/overview.png: 552993 bytes, sha256 c684faf376b0da54 in run 1
+  HEAD: 553081 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+flowergarden/overview.png: 519194 bytes, sha256 0d5884b196dc37af in run 1
+  HEAD: 519232 bytes, bytes differ; pixels: 117 of 4665600 pixels differ (0.003%), 0 by more than 16, largest change 9, all within x 1402-2604, y 22-121 of 2880x1620
+
+fortress/overview.png: 437710 bytes, sha256 70f4b3b04da9a8cf in run 1
+  HEAD: 437778 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1103-2604, y 41-121 of 2880x1620
+
+fortythieves/overview.png: 559458 bytes, sha256 ffc87406dcdd9b8e in run 1
+  HEAD: 559534 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1143-2604, y 41-121 of 2880x1620
+
+freecell/overview.png: 567544 bytes, sha256 80be1c2b05068390 in run 1
+  HEAD: 567631 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+golf/overview.png: 733175 bytes, sha256 4b1519d3b9dbac80 in run 1
+  HEAD: 733349 bytes, bytes differ; pixels: 107 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 908-2604, y 18-125 of 2880x1620
+
+grandfathersclock/overview.png: 507481 bytes, sha256 6b1a8351bd82cc0f in run 1
+  HEAD: 507552 bytes, bytes differ; pixels: 75 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 867-2604, y 41-121 of 2880x1620
+
+klondike/overview.png: 395368 bytes, sha256 21615067f594e897 in run 1
+  HEAD: 395437 bytes, bytes differ; pixels: 74 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1107-2604, y 41-121 of 2880x1620
+
+labellelucie/overview.png: 588154 bytes, sha256 0dc2d4683a360ee9 in run 1
+  HEAD: 588225 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1143-2604, y 41-121 of 2880x1620
+
+limited/overview.png: 452202 bytes, sha256 ed5b4c82c0b7a93b in run 1
+  HEAD: 452248 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+lucas/overview.png: 513383 bytes, sha256 a0bd264e89e4800b in run 1
+  HEAD: 513422 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1511-2604, y 41-121 of 2880x1620
+
+maria/overview.png: 333686 bytes, sha256 2ee1414e05a022b8 in run 1
+  HEAD: 333772 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1085-2604, y 41-121 of 2880x1620
+
+montana/overview.png: 947292 bytes, sha256 c9b76c2a627b8bf5 in run 1
+  HEAD: 947375 bytes, bytes differ; pixels: 74 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1109-2604, y 41-121 of 2880x1620
+
+montecarlo/overview.png: 675924 bytes, sha256 cc3e6d09b843a289 in run 1
+  HEAD: 675998 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1345-2604, y 41-121 of 2880x1620
+
+mrsmop/overview.png: 576999 bytes, sha256 5d7a15602ceb600a in run 1
+  HEAD: 577065 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+nestor/overview.png: 679536 bytes, sha256 49eb39c2f6aa7944 in run 1
+  HEAD: 679612 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620
+
+penguin/overview.png: 359559 bytes, sha256 6fc6e4434004e575 in run 1
+  HEAD: 359617 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1103-2604, y 41-121 of 2880x1620
+
+pokersquares/overview.png: 168740 bytes, sha256 3677a86055f487c1 in run 1
+  HEAD: 168772 bytes, bytes differ; pixels: 83 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1575-2604, y 28-115 of 2880x1620
+
+pyramid/overview.png: 588760 bytes, sha256 6419681239a659ee in run 1
+  HEAD: 588830 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+scorpion/overview.png: 555457 bytes, sha256 8db24649adf78f4b in run 1
+  HEAD: 555551 bytes, bytes differ; pixels: 74 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1109-2604, y 41-121 of 2880x1620
+
+seahaven/overview.png: 414151 bytes, sha256 6c205b2074ba7497 in run 1
+  HEAD: 414233 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1595-2604, y 41-121 of 2880x1620
+
+simplesimon/overview.png: 388291 bytes, sha256 1a2d38681bc59455 in run 1
+  HEAD: 388336 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1143-2604, y 41-121 of 2880x1620
+
+spider/overview.png: 477426 bytes, sha256 c26e0de7451d3b00 in run 1
+  HEAD: 477489 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1515-2604, y 41-121 of 2880x1620
+
+spiderette/overview.png: 402578 bytes, sha256 e1db65471a63ee14 in run 1
+  HEAD: 402669 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1545-2604, y 41-121 of 2880x1620
+
+trefoil/overview.png: 725433 bytes, sha256 ffcc8c455d1036a0 in run 1
+  HEAD: 725535 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1515-2604, y 41-121 of 2880x1620
+
+tripeaks/overview.png: 617479 bytes, sha256 daaf8303439d4347 in run 1
+  HEAD: 617536 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+yukon/overview.png: 532088 bytes, sha256 440397930428a39a in run 1
+  HEAD: 532187 bytes, bytes differ; pixels: 72 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 2527-2604, y 41-102 of 2880x1620

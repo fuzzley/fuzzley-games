@@ -1,0 +1,33 @@
+scenario: s3
+tree entries, refs/heads/main: 3459 before, 3238 after
+tree entries removed on purpose, refs/heads/main: 221
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> d653c434ac26b579e6686fb8f0ead0413065faa4; commit-map gives d653c434ac26b579e6686fb8f0ead0413065faa4
+tree entries, refs/heads/live: 3459 before, 3238 after
+tree entries removed on purpose, refs/heads/live: 221
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> d653c434ac26b579e6686fb8f0ead0413065faa4; commit-map gives d653c434ac26b579e6686fb8f0ead0413065faa4
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1706 of 1742
+commits whose hash stayed: 36
+commits default pruning drops: 6, 6 of them on main
+  21eaaab6 2026-08-03 docs(simplesimon): add the board overview screenshot
+  811e476d 2026-10-10 docs: retake every game's screenshots with the light under the cards
+  a3d033d2 2026-10-27 docs(sudoku): screenshots with Fill in notes and the deeper shading
+  a822e6cc 2026-10-25 docs: retake the games' screenshots with the new wordmark
+  a9af4b96 2026-10-28 docs: the games' screenshots with the choice menu's badge
+  fbf76b25 2026-07-03 Add more background plceholder pictures to sprite sheet.
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> 0dd1f57b47 names b6020382
+  fd5c050fe1 names afeaabd8 -> 5943c12e8e names a4ea8f31
+  fd5c050fe1 names b3ae2e81 -> 5943c12e8e names e63e8c97
+  def2479266 names b3ae2e81 -> 788029d2d5 names e63e8c97
+  05b6fd8b0f names e6740e04 -> 6cbb8d952a names d85dd18d
+  aec288786a names eb560e1f -> 8f4d1d2e44 names c6fb3e28
+  b870830e16 names 3af8a55f -> b1b92e3600 names 267ff900
+  21dbcad2c2 names c004b2ce -> 3feb936704 names da2fac59

@@ -1,0 +1,43 @@
+Screenshots at HEAD: 11.48 MiB served (public/), 31.55 MiB with the Solitaire Collection's originals
+
+Checkouts in the 2026-10-22..2026-11-21 window that need the served screenshots:
+  147	docker (builds the image)
+  117	verify (before the split, built the site)
+  30	build (builds the site)
+  30	test jobs (the Solitaire Collection's spec globs public/)
+  82	promote, each a Cloud Build at most
+  406	in all
+
+GitHub Free's Git LFS quota: 10 GiB of bandwidth a month and 10 GiB of storage
+If every checkout fetched the served screenshots: 4.55 GiB a month (46% of the bandwidth)
+If every checkout fetched the originals too:     12.51 GiB a month (125% of the bandwidth)
+
+What history gained each month, MiB on disk (an LFS store would keep the same):
+  2026-08	12.26
+  2026-09	12.18
+  2026-10	145.32
+  2026-11	31.20
+  at October's rate, 10 GiB of storage lasts 70 months
+
+Solitaire capture: runs of 3 games took 21.3 s and 17.4 s; the faster is 5.8 s a game
+  every one of the 41 games at that pace: 4.0 min, then build:thumbs 55 s
+  measured: all 41 in one run took 271.2 s (4.5 min, the dev server's first compile included)
+  against HEAD: 0 of 41 originals byte-identical, 0 pixel-identical, the largest channel change in any 9
+  each differs from HEAD's in 0.002-0.003% of its pixels, all within rows 18-125 of 1620
+  a retake from this capture would rewrite 30.27 MiB (reencode.txt, step 2)
+
+One full Solitaire retake today: 31.06 MiB. The originals are 65% of it, overview.webp 14%, and the thumbnails and previews 21%
+  preview 2560x1440 q70 e4: 5024 KiB against preview 2560x1440 q80 e4's 5962, 16% smaller
+  preview 2560x1440 q50 e4: 4321 KiB against preview 2560x1440 q80 e4's 5962, 28% smaller
+  preview 1920x1080 q80 e4: 4197 KiB against preview 2560x1440 q80 e4's 5962, 30% smaller
+  preview 2560x1440 q80 e6: 5838 KiB against preview 2560x1440 q80 e4's 5962, 2% smaller
+  thumb 576x324 q80 e6: 798 KiB against thumb 576x324 q80 e4's 813, 2% smaller
+  thumb 576x324 q70 e4: 688 KiB against thumb 576x324 q80 e4's 813, 15% smaller
+
+The Solitaire Collection's 8 full retakes added 169.87 MiB. The same number of retakes at today's sizes, by plan:
+  248.5 MiB	today: originals PNG + thumb q80 + preview 2560 q80 + overview 1600 q90
+  88.0 MiB	today's WebP alone, no originals tracked
+  53.0 MiB	no originals; the rules page shows preview.webp, no overview.webp
+  43.6 MiB	no originals; thumb q70 e6, preview 2560 q70 e6, no overview
+  38.5 MiB	no originals; thumb q80 e6, preview 1920 q80 e6 for both pages, no overview
+  31.0 MiB	no originals; thumb q70 e6, preview 1600 q80 e6 for both pages, no overview

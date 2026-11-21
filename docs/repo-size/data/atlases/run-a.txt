@@ -1,0 +1,11 @@
+label: run-a
+mirror: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-a
+command: node tools/build-card-atlas.mjs
+cpus: all (24)
+exit code: 0
+wall seconds: 31.95
+user cpu seconds: 54.89
+system cpu seconds: 12.55
+peak rss MiB (sampled): 964
+generator's last line: Built 4 deck(s).
+generator printed 53 lines

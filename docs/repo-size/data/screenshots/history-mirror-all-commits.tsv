@@ -1,0 +1,70 @@
+date	commit	game	folder	blobs added	KiB raw	KiB on disk	formats	subject
+2026-08-01	ee5fc7dc	solitaire	public	8	5590	5345	png	feat: add game documentation system and public assets
+2026-08-03	21eaaab6	solitaire	public	1	710	691	png	docs(simplesimon): add the board overview screenshot
+2026-08-03	1c2544b9	solitaire	public	1	463	440	png	feat(bakersdozen): add Baker's Dozen
+2026-08-03	596bafdc	solitaire	public	1	867	849	png	feat(seahaven): add Seahaven Towers
+2026-08-03	79474e16	solitaire	public	1	786	765	png	feat(spiderette): add Spiderette and Will o' the Wisp
+2026-08-03	31bb1d01	solitaire	public	1	743	719	png	feat(easthaven): add Easthaven
+2026-08-03	24cd1e74	solitaire	public	1	717	698	png	feat(fortythieves): add Forty Thieves, Josephine and Rank and File
+2026-08-03	b37252ec	solitaire	public	2	1461	1423	png	feat(fortythieves): add Maria and Limited
+2026-08-03	d9abc29b	solitaire	public	1	653	632	png	feat(doubleklondike): add Double Klondike
+2026-08-03	795810cc	solitaire	public	1	1009	995	png	feat(montana): add Montana
+2026-09-27	9c191a04	solitaire	public	34	1097	1092	webp	build(browser): shrink the screenshots into the browser's thumbnails
+2026-09-27	3abe7ba2	solitaire	public	51	11523	11377	png,webp	docs: re-capture the rules-page screenshots without the rail
+2026-10-03	a7deaf18	solitaire	public	3	1362	1353	png,webp	docs: retake Montana's screenshot with the redeal pips and describe the placeholder hooks
+2026-10-03	4641a1c1	solitaire	public	3	655	637	png,webp	feat: add Challenge FreeCell, with Super Challenge as its Kings-only option
+2026-10-03	9f23109f	solitaire	public	3	572	547	png,webp	feat: add Lucas, sharing the Forty Thieves game
+2026-10-03	c3f20fb8	solitaire	public	3	703	682	png,webp	feat: add Mrs. Mop, sharing the Simple Simon game
+2026-10-03	21e5bc3c	solitaire	public	3	1150	1134	png,webp	feat: add Blue Moon, with Red Moon as its deal, on a generalised Montana
+2026-10-03	e83b96cc	solitaire	public	3	663	640	png,webp	feat: add Bisley, with foundations from each Ace and each King
+2026-10-03	034b6db2	solitaire	public	3	480	457	png,webp	feat: add Aces Up, with an Aces-only spaces option
+2026-10-03	4f942dbc	solitaire	public	3	1001	980	png,webp	feat: add wrapping ranks, and Golf with Putt Putt
+2026-10-03	a80fc351	solitaire	public	3	250	222	png,webp	feat: add Calculation, with Sir Tommy as its variant
+2026-10-03	174aa9af	solitaire	public	3	459	434	png,webp	feat: place skeleton slots by percentage, and add Flower Garden
+2026-10-03	9c836cdc	solitaire	public	3	438	414	png,webp	feat: add Bristol, with Belvedere as its variant
+2026-10-03	9b81d1ff	solitaire	public	3	731	715	png,webp	feat: add pair removal, and Nestor
+2026-10-03	d89a5cec	solitaire	public	3	812	787	png,webp	feat: add Monte Carlo, with Thirteens as its variant
+2026-10-03	0abbf3b4	solitaire	public	6	1266	1229	png,webp	feat: add La Belle Lucie with The Fan and Shamrocks, and Trefoil
+2026-10-03	95564873	solitaire	public	3	401	376	png,webp	feat: add base-rank foundations, and Canfield with Storehouse, Superior Canfield and Rainbow
+2026-10-03	8013e47f	solitaire	public	3	479	454	png,webp	feat: add Penguin
+2026-10-03	73c71ab9	solitaire	public	6	1096	1057	png,webp	feat: add Black Hole and All in a Row, and a shared play-on-press gesture
+2026-10-03	2349f17c	solitaire	public	3	629	608	png,webp	feat: add Grandfather's Clock, with its foundations on a dial
+2026-10-03	a3dc2162	solitaire	public	3	714	690	png,webp	feat: add grab rules for covered cards, and Pyramid
+2026-10-03	a84c90ab	solitaire	public	3	1667	1647	png,webp	feat: add TriPeaks, and only prefer a drop target the card lies well over
+2026-10-03	aeff6784	solitaire	public	6	1233	1186	png,webp	feat: add drop areas along sideways fans, and the Beleaguered Castle family
+2026-10-03	f8783eac	solitaire	public	3	498	470	png,webp	feat: add Poker Squares, with American and English scoring
+2026-10-05	503567ba	solitaire	public	123	22774	21870	png,webp	docs: re-capture the screenshots on default settings, and keep the header in the previews
+2026-10-10	811e476d	solitaire	public	123	22919	22178	png,webp	docs: retake every game's screenshots with the light under the cards
+2026-10-10	e704711d	solitaire	public	41	4319	4311	webp	perf: serve the rules screenshots as 1600 px WebP
+2026-10-17	9bb3809c	minesweeper	public	2	29	29	webp	ci(deploy): publish the game and screenshots for fuzzley.games
+2026-10-24	5bbda669	solitaire	originals	41	18398	17716	png	docs: retake Solitaire's screenshots with the game bar
+2026-10-24	5bbda669	solitaire	public	123	6706	6696	webp	docs: retake Solitaire's screenshots with the game bar
+2026-10-25	7e03b0ba	minesweeper	public	2	34	34	webp	docs(minesweeper): capture its screenshots, and describe the Angular game
+2026-10-25	67a5dbb3	solitaire	originals	41	19157	18496	png	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	67a5dbb3	solitaire	public	123	10854	10786	webp	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	908dcb35	minesweeper	public	2	84	81	webp	docs(minesweeper): capture the screenshots on Casino night, at twice their size
+2026-10-25	a822e6cc	minesweeper	public	2	84	82	webp	docs: retake the games' screenshots with the new wordmark
+2026-10-25	a822e6cc	solitaire	originals	41	19208	18544	png	docs: retake the games' screenshots with the new wordmark
+2026-10-25	a822e6cc	solitaire	public	123	10907	10838	webp	docs: retake the games' screenshots with the new wordmark
+2026-10-27	06362c2a	sudoku	public	2	65	62	webp	docs(sudoku): screenshots, the docs and the testing skill
+2026-10-27	a3d033d2	sudoku	public	2	66	64	webp	docs(sudoku): screenshots with Fill in notes and the deeper shading
+2026-10-28	0adaecc3	snake	public	2	31	27	webp	docs(snake): screenshots, Snake's AGENTS.md, README and testing skill, and the lists that name the games
+2026-10-28	a9af4b96	minesweeper	public	2	85	82	webp	docs: the games' screenshots with the choice menu's badge
+2026-10-28	a9af4b96	snake	public	1	27	24	webp	docs: the games' screenshots with the choice menu's badge
+2026-10-28	a9af4b96	sudoku	public	1	56	53	webp	docs: the games' screenshots with the choice menu's badge
+2026-10-30	9eaf65f5	brick-breaker	public	2	46	41	webp	feat(brick-breaker): the screenshots: Rocket part broken at Normal on Classic felt, kept by the rules' own keptRun() and taken up in headless Chrome, the ball waiting under the launch card, with the link preview in index.html
+2026-10-31	e967b60b	brick-breaker	public	2	47	42	webp	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
+2026-10-31	e967b60b	snake	public	2	30	27	webp	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
+2026-11-02	663ee4a4	asteroid-breaker	public	2	33	29	webp	feat(asteroid-breaker): the site lists it, badged in development, and ?debug offers the debug menu in production
+2026-11-04	d83e32fd	asteroid-breaker	public	2	49	46	webp	feat(asteroid-breaker): the site's screenshots, a run the autopilot played taken up as a stray drifts in
+2026-11-09	7206317a	brick-breaker	public	2	47	43	webp	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, as @fz/dev/screenshots now takes them
+2026-11-09	7206317a	minesweeper	public	2	86	84	webp	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, as @fz/dev/screenshots now takes them
+2026-11-09	7206317a	snake	public	2	31	28	webp	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, as @fz/dev/screenshots now takes them
+2026-11-09	7206317a	sudoku	public	2	67	65	webp	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, as @fz/dev/screenshots now takes them
+2026-11-09	a5420072	solitaire	originals	41	20549	19932	png	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded by the game's id
+2026-11-09	a5420072	solitaire	public	123	11260	11198	webp	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded by the game's id
+2026-11-11	d1710593	brick-fuzz-pop	public	2	105	102	webp	feat(brick-fuzz-pop): capture the site's screenshots from a run kept by the rules, and check the layout over a run taken up
+2026-11-11	3c78f61d	brick-fuzz-pop	public	2	130	127	webp	feat(brick-fuzz-pop): the site's screenshots on level 18, powder keg, its next shot aimed up through a bomb
+2026-11-14	c3381ee4	brick-breaker	public	2	102	101	webp	docs(brick-breaker): take the site's screenshots again on the uplift's look, the thumbnail the whole page
+2026-11-15	98d4ba5a	brick-fuzz-pop	public	2	134	132	webp	feat(brick-fuzz-pop): the site's screenshots retaken on the tuned game, a round into Powder keg so the wall still shows every kind it holds
+2026-11-16	2cbfb0bb	asteroid-breaker	public	2	72	71	webp	feat(asteroid-breaker): capture the uplifted game, waiting for the stray in the field's time, and keep the old picture beside the plan

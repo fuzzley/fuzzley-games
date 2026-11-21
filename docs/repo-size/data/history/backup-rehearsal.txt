@@ -1,0 +1,7 @@
+bundle: 299 MiB, 44 refs, made in 1.4 s
+bundle verify: ok
+refs of the mirror restored from the bundle: identical to the original's
+fsck of the restored mirror: ok
+before rollback, main: 0b8be03ac8526cb0d18c5295886ac15447ab1c25
+after rollback, refs/heads/main: the old commit again, 305edc24
+after rollback, refs/heads/live: the old commit again, 305edc24

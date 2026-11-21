@@ -1,0 +1,145 @@
+
+== Tracked files under the atlas folder
+45 files, 18.73 MiB
+  PNG pages: 24 files, 18.22 MiB
+  JSON: 21 files, 0.51 MiB
+
+== Source that imports the manifests, vectors.json or the pages
+frontend/games/solitaire/src/engine/render/deck/card_deck.ts:70: sprites/atlas/`, and the `DECKS` list in `tools/build-card-atlas.mjs`
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:10: sprites/atlas/indexed/0.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:11: sprites/atlas/indexed/0.75x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:12: sprites/atlas/indexed/1x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:13: sprites/atlas/indexed/1.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:14: sprites/atlas/indexed/2x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:15: sprites/atlas/all-corner-pips/0.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:16: sprites/atlas/all-corner-pips/0.75x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:17: sprites/atlas/all-corner-pips/1x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:18: sprites/atlas/all-corner-pips/1.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:19: sprites/atlas/all-corner-pips/2x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:20: sprites/atlas/mobile/0.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:21: sprites/atlas/mobile/0.75x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:22: sprites/atlas/mobile/1x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:23: sprites/atlas/mobile/1.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:24: sprites/atlas/mobile/2x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:54: sprites/atlas/*/*/card_assets-*.png
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:5: sprites/atlas/classic/0.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:6: sprites/atlas/classic/0.75x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:7: sprites/atlas/classic/1x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:8: sprites/atlas/classic/1.5x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:9: sprites/atlas/classic/2x/card_assets_atlas.json
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_vectors.ts:19: sprites/atlas/mobile/vectors.json
+
+== Specs and test support that import manifests or read pages
+frontend/games/solitaire/test/engine/board/table_board_scene.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/deck/card_deck_atlas.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/deck/drawn_deck_painter.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/scene/board_input_manager.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/scene/phaser_card_factory.spec.ts
+frontend/games/solitaire/test/engine/render/phaser/scene/phaser_table_renderer.spec.ts
+frontend/games/solitaire/test/games/common/zone_presets.spec.ts
+frontend/games/solitaire/test/support/atlas_scene.ts
+frontend/games/solitaire/test/support/fake_table/scene.ts
+frontend/games/solitaire/test/support/workspace_files.ts
+frontend/games/solitaire/test/ui/app/component/game_canvas/game_canvas.component.spec.ts
+spec files in the workspace: 172
+
+== The headless harness sizes a served image from its PNG header only
+frontend/lib/phaser/src/testing/served_files.ts:35: * task, at the size its PNG header gives, or at 0 × 0 if it is no PNG, and
+frontend/lib/phaser/src/testing/served_files.ts:235:const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+frontend/lib/phaser/src/testing/served_files.ts:238:function pngSize(bytes: Uint8Array): { width: number; height: number } {
+
+== Typed lint: the TypeScript preset's parser options
+frontend/lib/dev/src/eslint.ts:118:        projectService: true,
+
+== JSON modules in the compiler presets
+frontend/lib/dev/tsconfig/base.json:21:    "resolveJsonModule": true,
+
+== What git, Prettier and Docker ignore near the atlases
+atlas pages: not ignored
+11:frontend/games/solitaire/docs
+
+== Docs, skills and notices that name the atlas folder or say it is committed
+frontend/games/solitaire/.agents/skills/solitaire-build/SKILL.md
+frontend/games/solitaire/.agents/skills/solitaire-phaser/SKILL.md
+frontend/games/solitaire/NOTICE
+
+== The solitaire build and test scripts
+build: vite build
+build:atlas: node tools/build-card-atlas.mjs
+test: vitest run
+test:coverage: vitest run --coverage
+lint: eslint src test tools eslint.config.js stylelint.config.js vite.config.ts vitest.config.ts && yarn lint:styles
+typecheck: ngc -p tsconfig.app.json --noEmit && tsc7 -p tsconfig.spec.json --noEmit && tsc7 -p tsconfig.node.json && tsc7 -p tsconfig.scripts.json
+
+== Build targets: any build.target or browserslist in the repo
+none
+
+== Vite's default build target, which applies
+vite 8.3.8
+const ESBUILD_BASELINE_WIDELY_AVAILABLE_TARGET = [
+	"chrome111",
+	"edge111",
+	"firefox114",
+	"safari16.4",
+	"ios16.4"
+];
+
+== WebP the site and games already ship
+tracked .webp files: 165, of them under public/: 135
+
+== Which games load image files with Phaser's loader
+frontend/games/solitaire/src/engine/render/phaser/deck/board_deck_loader.ts:127:    this.host.load.once(Loader.Events.COMPLETE, () => {
+frontend/games/solitaire/src/engine/render/phaser/deck/board_deck_loader.ts:146:    this.host.load.start();
+frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts:205:  loader.multiatlas(textureKey, manifest as unknown as string, undefined);
+frontend/lib/phaser/src/sound/layer_player.ts:199:    this.scene.load.audio(layer.key, layer.url);
+frontend/lib/phaser/src/sound/layer_player.ts:200:    this.scene.load.start();
+frontend/lib/phaser/src/sound/sprite_player.ts:225:    scene.load.start();
+
+== Renderer type each Phaser host asks for
+frontend/lib/phaser/src/host/phaser_host.spec.ts:503:        config: { ...OPTIONS.config, type: CANVAS },
+frontend/lib/phaser/src/host/phaser_host.ts:41:   * defaults are `type: AUTO`, `autoFocus` and `render` with `antialias` and
+frontend/lib/phaser/src/host/phaser_host.ts:144:      type: Phaser.AUTO,
+frontend/lib/phaser/src/testing/start_game.ts:27:    type: WEBGL,
+
+== Code that reads texture pixels
+none outside specs and testing helpers
+
+== PNG chunks in each atlas page at HEAD (colour-management chunks would be gAMA, cHRM, sRGB, iCCP)
+     24 IHDRx1 pHYsx1 IDAT(several) IENDx1
+
+== PNGs at HEAD by where they sit
+atlas pages: 24 files, 18.22 MiB
+other docs/ folders: 52 files, 8.51 MiB
+solitaire docs/screenshots (lossless originals): 41 files, 20.07 MiB
+
+== Screenshot files each game keeps at HEAD, by extension (a lossless original is a .png outside public/)
+      2 asteroid-breaker public webp
+      2 brick-breaker public webp
+      2 brick-fuzz-pop public webp
+      2 minesweeper public webp
+      2 snake public webp
+     41 solitaire docs png
+    123 solitaire public webp
+      2 sudoku public webp
+
+== Which games' screenshot scripts write the site's images straight from the capture
+frontend/games/asteroid-breaker/tools/capture-screenshots.mjs
+frontend/games/brick-breaker/tools/capture-screenshots.mjs
+frontend/games/brick-fuzz-pop/tools/capture-screenshots.mjs
+frontend/games/minesweeper/tools/capture-screenshots.mjs
+frontend/games/snake/tools/capture-screenshots.mjs
+frontend/games/solitaire/tools/build-screenshot-thumbs.mjs
+frontend/games/solitaire/tools/capture-screenshots.mjs
+frontend/games/sudoku/tools/capture-screenshots.mjs
+
+== What already runs sharp or resvg when an app builds (outside specs and tools/)
+frontend/lib/dev/src/screenshots.ts:9:import sharp from "sharp";
+frontend/lib/dev/src/screenshots.ts:10:import type { Region, ResizeOptions } from "sharp";
+frontend/lib/dev/src/screenshots.ts:37:export type { Region } from "sharp";
+frontend/lib/style/src/build/fuzzball_raster.ts:24:  const { default: sharp } = await import("sharp");
+frontend/lib/dev/src/vite.ts:236:      fuzzleyStyle(),
+frontend/site/vite.config.ts:20:    fuzzleyStyle(),
+frontend/lib/style/src/build/vite.ts:9:import { fuzzballIco, fuzzballPng } from "./fuzzball_raster.ts";
+frontend/lib/style/src/build/vite.ts:81:      make: () => fuzzballIco(color(light, "accent")),
+frontend/lib/style/src/build/vite.ts:89:        fuzzballPng(color(light, "accent"), TOUCH_ICON_SIZE, {

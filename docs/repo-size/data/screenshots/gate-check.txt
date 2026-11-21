@@ -1,0 +1,28 @@
+Retakes on this machine that changed nothing a person could see, against HEAD: 166
+By file (file, retakes, largest channel change, most pixels over 16, over 32, over 48, largest 8x8 block change):
+minesweeper thumb.webp	1	22	21	0	0	4.8
+minesweeper preview.webp	1	0	0	0	0	0.0
+solitaire overview.png	41	9	0	0	0	1.0
+solitaire thumb.webp	41	0	0	0	0	0.0
+solitaire preview.webp	41	40	940	2	0	10.1
+solitaire overview.webp	41	23	6	0	0	8.1
+
+Retakes in history between versions of the same size: 896
+The eight with the smallest largest 8x8 block change (commit and image, largest channel change, pixels over 16, over 32, over 48, largest block change):
+7206317a snake/snake/thumb.webp	44	168	21	0	9.8
+7206317a sudoku/sudoku/thumb.webp	52	1151	80	5	12.5
+7206317a brick-breaker/brick-breaker/thumb.webp	86	465	80	24	18.9
+5bbda669 solitaire/calculation/thumb.webp	188	257	70	46	21.9
+5bbda669 solitaire/pokersquares/thumb.webp	223	80	42	30	23.3
+811e476d solitaire/pokersquares/thumb.webp	223	80	47	36	30.0
+811e476d solitaire/calculation/thumb.webp	255	274	159	135	47.7
+7206317a minesweeper/minesweeper/thumb.webp	186	1629	472	286	58.9
+
+rule	unchanged retakes it calls changed (of 166)	history's changes it would keep (of 896)
+a pixel moved more than 16	50	0
+a pixel moved more than 32	6	0
+a pixel moved more than 48	0	1
+an 8x8 block's mean change is more than 2	83	0
+an 8x8 block's mean change is more than 4	41	0
+an 8x8 block's mean change is more than 6	26	0
+an 8x8 block's mean change is more than 8	4	0

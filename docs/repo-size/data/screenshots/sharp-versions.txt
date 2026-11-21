@@ -1,0 +1,3 @@
+frontend/yarn.lock's sharp and libvips (linux-x64), oldest first, since 2026-10-17:
+2026-10-17 bb293d8a sharp=none libvips=none
+2026-10-18 2ccd9fa5 sharp=0.35.5 libvips=1.3.4

@@ -1,0 +1,14 @@
+label: run-tools-678ec188
+mirror: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-tools-678ec188
+command: node tools/build-card-atlas.mjs
+node_modules: /home/dev/Projects/personal/fuzzley-games-repo-size/frontend/node_modules
+tools from: 678ec188
+sharp 0.35.5, libvips 8.18.7, @resvg/resvg-js 2.6.2, node v26.13.0, linux-x64
+cpus: all (24)
+exit code: 0
+wall seconds: 32.06
+user cpu seconds: 56.08
+system cpu seconds: 12.66
+peak rss MiB (sampled): 902
+generator's last line: Built 4 deck(s).
+generator printed 52 lines

@@ -1,0 +1,28 @@
+game: solitaire
+runs: 2, game ids: klondike spider freecell
+cpus: 24
+served: http://127.0.0.1:9108/ (vite dev server), answering after 3.5 s
+run 1: 21.3 s, Chromes left on its profile: none after 0.0 s
+  klondike: overview.png
+  spider: overview.png
+  freecell: overview.png
+  Captured 3 of 3.
+  Run yarn build:thumbs to make the images the site serves.
+run 2: 17.4 s, Chromes left on its profile: none after 0.0 s
+  klondike: overview.png
+  spider: overview.png
+  freecell: overview.png
+  Captured 3 of 3.
+  Run yarn build:thumbs to make the images the site serves.
+
+freecell/overview.png: 567544 bytes, sha256 80be1c2b05068390 in run 1
+  run 2: 567544 bytes, sha256 80be1c2b05068390, byte-identical; pixels: pixel-identical
+  HEAD: 567631 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1529-2604, y 41-121 of 2880x1620
+
+klondike/overview.png: 395368 bytes, sha256 21615067f594e897 in run 1
+  run 2: 395368 bytes, sha256 21615067f594e897, byte-identical; pixels: pixel-identical
+  HEAD: 395437 bytes, bytes differ; pixels: 74 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1107-2604, y 41-121 of 2880x1620
+
+spider/overview.png: 477426 bytes, sha256 c26e0de7451d3b00 in run 1
+  run 2: 477426 bytes, sha256 c26e0de7451d3b00, byte-identical; pixels: pixel-identical
+  HEAD: 477489 bytes, bytes differ; pixels: 73 of 4665600 pixels differ (0.002%), 0 by more than 16, largest change 9, all within x 1515-2604, y 41-121 of 2880x1620

@@ -1,0 +1,12 @@
+read at 2026-11-21T18:17:46Z
+
+== clone: /home/dev/Projects/personal/fuzzley-games
+local branches: 2
+commits on local branches that no remote-tracking branch holds: 0
+stash entries (shared by every worktree): 1
+branches (name, upstream, track, commits not on origin/main):
+  main	origin/main		0
+  repo-size-plan	origin/main	[behind 2]	0
+worktrees:
+  /home/dev/Projects/personal/fuzzley-games	main	1 changed paths, 0 staged
+  /home/dev/Projects/personal/fuzzley-games-repo-size	repo-size-plan	1 changed paths, 0 staged

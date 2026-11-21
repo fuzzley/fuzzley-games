@@ -1,0 +1,33 @@
+scenario: s2-after
+tree entries, refs/heads/main: 3459 before, 3353 after
+tree entries removed on purpose, refs/heads/main: 106
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> a373b1b3098510e8181f7a7357343953f670b4de; commit-map gives a373b1b3098510e8181f7a7357343953f670b4de
+tree entries, refs/heads/live: 3459 before, 3353 after
+tree entries removed on purpose, refs/heads/live: 106
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> a373b1b3098510e8181f7a7357343953f670b4de; commit-map gives a373b1b3098510e8181f7a7357343953f670b4de
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1706 of 1742
+commits whose hash stayed: 36
+commits default pruning drops: 6, 6 of them on main
+  21eaaab6 2026-08-03 docs(simplesimon): add the board overview screenshot
+  811e476d 2026-10-10 docs: retake every game's screenshots with the light under the cards
+  a3d033d2 2026-10-27 docs(sudoku): screenshots with Fill in notes and the deeper shading
+  a822e6cc 2026-10-25 docs: retake the games' screenshots with the new wordmark
+  a9af4b96 2026-10-28 docs: the games' screenshots with the choice menu's badge
+  fbf76b25 2026-07-03 Add more background plceholder pictures to sprite sheet.
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> bdcebbe85a names 0e66a907
+  fd5c050fe1 names afeaabd8 -> 9c41c2111f names e8a7db68
+  fd5c050fe1 names b3ae2e81 -> 9c41c2111f names 0621a849
+  def2479266 names b3ae2e81 -> c0e5939c8e names 0621a849
+  05b6fd8b0f names e6740e04 -> bb2098bb9c names bab5a583
+  aec288786a names eb560e1f -> 80846413e6 names b4ee1533
+  b870830e16 names 3af8a55f -> 37ff23c7e0 names e3651a09
+  21dbcad2c2 names c004b2ce -> 5d85381bce names 604f5ab2

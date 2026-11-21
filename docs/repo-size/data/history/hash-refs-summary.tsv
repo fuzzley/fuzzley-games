@@ -1,0 +1,10 @@
+place	files	references	distinct tokens	distinct commits	all-digit tokens	token lengths	ambiguous in fuzzley-games	resolve in fuzzley too
+repo: docs (not archive)	20	1091	818	818	28	8:1091	0	0
+repo: docs/archive	17	211	179	178	3	7:11 8:200	0	0
+repo: AGENTS.md and CLAUDE.md	0	0	0	0	0		0	0
+repo: skills (.agents)	0	0	0	0	0		0	0
+repo: other markdown	0	0	0	0	0		0	0
+repo: code and config	3	12	3	3	0	7:12	0	0
+memory notes	17	67	38	37	0	7:2 8:65	0	0
+fuzzley repository	0	0	0	0	0		0	0
+all	57	1381		848				

@@ -1,0 +1,42 @@
+atlas page: classic/1x/card_assets-0.png, 3876x1260
+Phaser 4.2.1; Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36
+  png                  918682 bytes, served as image/png
+  webp-lossless        524404 bytes, served as image/webp
+  webp-lossless-exact  524404 bytes, served as image/webp
+  webp-near-60         428726 bytes, served as image/webp
+  webp-q90             640182 bytes, served as image/webp
+  webp-q80             495612 bytes, served as image/webp
+
+WEBGL WebGL 1.0 (OpenGL ES 2.0 Chromium)
+  load errors: none
+  scale 1    webp-lossless        0 pixels differ from the PNG's drawing, max 0, mean 0.0000
+  scale 1    webp-lossless-exact  0 pixels differ from the PNG's drawing, max 0, mean 0.0000
+  scale 1    webp-near-60         543336 pixels differ from the PNG's drawing, max 3, mean 0.0966
+  scale 1    webp-q90             1206303 pixels differ from the PNG's drawing, max 138, mean 0.8028
+  scale 1    webp-q80             1396707 pixels differ from the PNG's drawing, max 139, mean 0.9911
+  scale 0.7  webp-lossless        0 pixels differ from the PNG's drawing, max 0, mean 0.0000
+  scale 0.7  webp-lossless-exact  0 pixels differ from the PNG's drawing, max 0, mean 0.0000
+  scale 0.7  webp-near-60         287661 pixels differ from the PNG's drawing, max 2, mean 0.0397
+  scale 0.7  webp-q90             621504 pixels differ from the PNG's drawing, max 118, mean 0.3246
+  scale 0.7  webp-q80             734626 pixels differ from the PNG's drawing, max 117, mean 0.4058
+
+CANVAS 
+  load errors: none
+  scale 1    webp-lossless        434 pixels differ from the PNG's drawing, max 1, mean 0.0001
+  scale 1    webp-lossless-exact  434 pixels differ from the PNG's drawing, max 1, mean 0.0001
+  scale 1    webp-near-60         543290 pixels differ from the PNG's drawing, max 3, mean 0.0967
+  scale 1    webp-q90             1206339 pixels differ from the PNG's drawing, max 138, mean 0.8028
+  scale 1    webp-q80             1396753 pixels differ from the PNG's drawing, max 139, mean 0.9911
+  scale 0.7  webp-lossless        211 pixels differ from the PNG's drawing, max 1, mean 0.0000
+  scale 0.7  webp-lossless-exact  211 pixels differ from the PNG's drawing, max 1, mean 0.0000
+  scale 0.7  webp-near-60         280873 pixels differ from the PNG's drawing, max 3, mean 0.0384
+  scale 0.7  webp-q90             653099 pixels differ from the PNG's drawing, max 116, mean 0.3296
+  scale 0.7  webp-q80             759345 pixels differ from the PNG's drawing, max 117, mean 0.4103
+
+Median of 7 decodes by an image element (img.decode()), in ms:
+  png                  25.1
+  webp-lossless        40.7
+  webp-lossless-exact  40.0
+  webp-near-60         38.8
+  webp-q90             100.4
+  webp-q80             88.6

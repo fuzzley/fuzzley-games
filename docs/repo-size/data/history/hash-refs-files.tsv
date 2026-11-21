@@ -1,0 +1,58 @@
+place	file	references
+repo: docs (not archive)	docs/local-pipeline-audit/data/history.tsv	809
+repo: docs (not archive)	docs/local-pipeline-audit/data/ci-runs.tsv	113
+repo: docs/archive	docs/archive/brick-breaker-worklog.md	51
+repo: docs/archive	docs/archive/shared-lib-plan.md	51
+repo: docs (not archive)	docs/ci-performance-audit/report.md	46
+repo: docs (not archive)	docs/local-pipeline-audit/work-log.md	29
+repo: docs/archive	docs/archive/asteroid-breaker-uplift/implementation-plan.md	24
+repo: docs/archive	docs/archive/asteroid-breaker-worklog.md	23
+repo: docs/archive	docs/archive/games-follow-ups-plan.md	22
+repo: docs (not archive)	docs/ci-performance-audit/report-after.md	21
+repo: docs (not archive)	docs/ci-performance-audit/work-log.md	20
+repo: docs (not archive)	docs/local-pipeline-audit/report.md	18
+repo: docs/archive	docs/archive/snake-qa-findings.md	14
+memory notes	MEMORY.md	11
+memory notes	fuzzley-games-build-benchmark-2026-11.md	9
+repo: docs (not archive)	docs/local-pipeline-audit/data/ci-tests-ab-first.tsv	8
+repo: docs (not archive)	docs/local-pipeline-audit/data/ci-tests-ab.tsv	8
+repo: code and config	frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	8
+repo: docs/archive	docs/archive/asteroid-breaker-review-plan.md	6
+repo: docs/archive	docs/archive/brick-fuzz-pop-tune-up/implementation-plan.md	6
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/history.mjs	5
+memory notes	brick-breaker-uplift-plan.md	5
+memory notes	brick-fuzz-pop-tune-up-plan.md	5
+memory notes	fuzzley-games-ci-audit-2026-11-14.md	5
+memory notes	fuzzley-games-local-pipeline-audit-2026-11-14.md	5
+repo: docs/archive	docs/archive/asteroid-breaker-execution-plan.md	4
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/bench.sh	4
+memory notes	asteroid-breaker-uplift.md	4
+memory notes	fuzzley-dependabot-resolution.md	4
+memory notes	fuzzley-games-ci-software-webgl.md	4
+memory notes	fuzzley-games-phaser-first-test-timeouts.md	4
+memory notes	fuzzley-games-ci-chrome-launch-flake.md	3
+repo: docs/archive	docs/archive/brick-breaker-review-plan.md	2
+repo: docs/archive	docs/archive/snake-qa-fixes-plan.md	2
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/ts7-compare.sh	2
+repo: code and config	frontend/lib/dev/src/build_info.spec.ts	2
+repo: code and config	frontend/site/tools/vite-plugins.spec.ts	2
+memory notes	brick-fuzz-pop-name.md	2
+memory notes	rickashay-design.md	2
+repo: docs/archive	docs/archive/asteroid-breaker-uplift/research/the-game-today.md	1
+repo: docs/archive	docs/archive/minesweeper-ui-plan.md	1
+repo: docs/archive	docs/archive/snake-mobile-qa-plan.md	1
+repo: docs/archive	docs/archive/snake-qa-plan.md	1
+repo: docs/archive	docs/archive/sudoku-qa-plan.md	1
+repo: docs/archive	docs/archive/sudoku-review-plan.md	1
+repo: docs (not archive)	docs/local-pipeline-audit/data/steps-after-meta.txt	1
+repo: docs (not archive)	docs/local-pipeline-audit/data/steps-after-step-5-meta.txt	1
+repo: docs (not archive)	docs/local-pipeline-audit/data/steps-warm-meta.txt	1
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/layout-pages.sh	1
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/one-game.sh	1
+repo: docs (not archive)	docs/local-pipeline-audit/scripts/overlap.sh	1
+repo: docs (not archive)	docs/text-style/inventory/counts-before.md	1
+repo: docs (not archive)	docs/text-style/inventory/measures-before.md	1
+memory notes	agent-efficiency-audit-2026-11-16.md	1
+memory notes	fuzzley-games-ci-true-repro.md	1
+memory notes	fuzzley-games-phaser-freeze-repro.md	1
+memory notes	player-text-style-plan.md	1

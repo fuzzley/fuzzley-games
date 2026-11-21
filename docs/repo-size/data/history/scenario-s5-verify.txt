@@ -1,0 +1,43 @@
+scenario: s5
+tree entries, refs/heads/main: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> b5e41b1e9cbdcef743f8f2229a19ace8820400b6; commit-map gives b5e41b1e9cbdcef743f8f2229a19ace8820400b6
+tree entries, refs/heads/live: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> b5e41b1e9cbdcef743f8f2229a19ace8820400b6; commit-map gives b5e41b1e9cbdcef743f8f2229a19ace8820400b6
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1740 of 1742
+commits whose hash stayed: 2
+commits default pruning drops: 19, 19 of them on main
+  0c088035 2026-11-08 docs(asteroid-breaker): run-lifecycle's QA logged, the branch verified, its layouts held a
+  1268dd34 2026-10-30 docs(brick-breaker): Q5: every level of set 1 and the last of each set by keys, mouse and 
+  1dd13969 2026-08-02 fix(security): resolve Dependabot alerts by updating transitive dependencies
+  21eaaab6 2026-08-03 docs(simplesimon): add the board overview screenshot
+  28e05d3f 2026-11-08 docs(asteroid-breaker): ui-lifts' QA logged, the branch verified, its layouts held and the
+  2af77854 2026-10-29 docs(brick-breaker): Q4's checks: every dialog by keyboard and by mouse, the settings, rec
+  4faccdfe 2026-11-11 docs(brick-fuzz-pop): log X2, Y2 and Y3, Q4 for every level, and F1's passes and first fix
+  72154992 2026-10-29 docs(brick-breaker): Q3, the first playable build played by mouse, keys and touch at each 
+  7fcf2583 2026-11-11 docs(brick-fuzz-pop): plan.md's words for a step and a jump end with the rows waiting
+  811e476d 2026-10-10 docs: retake every game's screenshots with the light under the cards
+  95eddcfb 2026-08-02 fix(ci): update yarn.lock to sync with package.json
+  a0eb5352 2026-11-08 docs(asteroid-breaker): phaser-lifts' QA logged, the branch verified, its layouts held and
+  a3d033d2 2026-10-27 docs(sudoku): screenshots with Fill in notes and the deeper shading
+  a822e6cc 2026-10-25 docs: retake the games' screenshots with the new wordmark
+  a829f087 2026-11-11 docs(brick-fuzz-pop): log the scissor, the bake, F1's last trace, Z1, the last checks, Q6 
+  ... and 4 more
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> 625713968e names fbc2fb27
+  fd5c050fe1 names afeaabd8 -> 7189a4afad names ffccd9c8
+  fd5c050fe1 names b3ae2e81 -> 7189a4afad names d0c518f8
+  def2479266 names b3ae2e81 -> 2c7719077c names d0c518f8
+  05b6fd8b0f names e6740e04 -> 9d4c3ee8bc names 525fb0a4
+  aec288786a names eb560e1f -> 5636cba4ed names e37b537d
+  b870830e16 names 3af8a55f -> 17b7d7369c names c5ab9fb2
+  21dbcad2c2 names c004b2ce -> 3d61069881 names cbb76366

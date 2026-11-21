@@ -1,0 +1,47 @@
+scenario: s4-1m
+tree entries, refs/heads/main: 3459 before, 3444 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 15
+  - 100644 blob 99885d11755c8e7c095dd7b00e9c51fb237f304a	docs/archive/asteroid-breaker-uplift/art/energy-and-effects.svg
+  - 100644 blob 878bf096bf787c1aa6366e671ff7aa5baf3e36c5	docs/archive/asteroid-breaker-uplift/art/pilot-and-pod.svg
+  - 100644 blob 701e7394b62a047b997598ba1b696b17b06f0ca0	docs/archive/asteroid-breaker-uplift/art/rocks.svg
+  - 100644 blob 2bf3d074a0a089288b02164636ef7610df783117	docs/archive/asteroid-breaker-uplift/art/sectors.svg
+  - 100644 blob 5d6117ce885b853ddbd3cdefaafa605e96da1cf0	docs/archive/asteroid-breaker-uplift/assets/sound/sprite/sounds.m4a
+  - 100644 blob 5d6117ce885b853ddbd3cdefaafa605e96da1cf0	frontend/games/asteroid-breaker/src/scene/sounds/sprite.m4a
+  - 100644 blob 9a1aad9f82e0d7f1416b661d6227c933db2d937e	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/1.5x/card_assets-0.png
+  - 100644 blob 96737c8c15647250d06622da4b5866dde3c98980	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-0.png
+  - 100644 blob a00bb18d60a7add8da2abc8c14f749eb77d30049	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/1.5x/card_assets-0.png
+  - 100644 blob 61ef85c28c045914b13c23243fa744335969c2c9	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/2x/card_assets-0.png
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> 90dd91eda54e9b0cd2ad1843929502e98a1df75d; commit-map gives 90dd91eda54e9b0cd2ad1843929502e98a1df75d
+tree entries, refs/heads/live: 3459 before, 3444 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 15
+  - 100644 blob 99885d11755c8e7c095dd7b00e9c51fb237f304a	docs/archive/asteroid-breaker-uplift/art/energy-and-effects.svg
+  - 100644 blob 878bf096bf787c1aa6366e671ff7aa5baf3e36c5	docs/archive/asteroid-breaker-uplift/art/pilot-and-pod.svg
+  - 100644 blob 701e7394b62a047b997598ba1b696b17b06f0ca0	docs/archive/asteroid-breaker-uplift/art/rocks.svg
+  - 100644 blob 2bf3d074a0a089288b02164636ef7610df783117	docs/archive/asteroid-breaker-uplift/art/sectors.svg
+  - 100644 blob 5d6117ce885b853ddbd3cdefaafa605e96da1cf0	docs/archive/asteroid-breaker-uplift/assets/sound/sprite/sounds.m4a
+  - 100644 blob 5d6117ce885b853ddbd3cdefaafa605e96da1cf0	frontend/games/asteroid-breaker/src/scene/sounds/sprite.m4a
+  - 100644 blob 9a1aad9f82e0d7f1416b661d6227c933db2d937e	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/1.5x/card_assets-0.png
+  - 100644 blob 96737c8c15647250d06622da4b5866dde3c98980	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-0.png
+  - 100644 blob a00bb18d60a7add8da2abc8c14f749eb77d30049	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/1.5x/card_assets-0.png
+  - 100644 blob 61ef85c28c045914b13c23243fa744335969c2c9	frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/2x/card_assets-0.png
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> 90dd91eda54e9b0cd2ad1843929502e98a1df75d; commit-map gives 90dd91eda54e9b0cd2ad1843929502e98a1df75d
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1724 of 1742
+commits whose hash stayed: 18
+commits default pruning drops: 0, 0 of them on main
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> bb30d22784 names b568c495
+  fd5c050fe1 names afeaabd8 -> 40a2b1c057 names 9ed6bff5
+  fd5c050fe1 names b3ae2e81 -> 40a2b1c057 names 7cef32d3
+  def2479266 names b3ae2e81 -> d0cc722f1b names 7cef32d3
+  05b6fd8b0f names e6740e04 -> f743eb099d names a024d234
+  aec288786a names eb560e1f -> ebadb47fde names a49c5022
+  b870830e16 names 3af8a55f -> 9c38cdd709 names 5d895975
+  21dbcad2c2 names c004b2ce -> 51ae834f6d names 23e3bd3b

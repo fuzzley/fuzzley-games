@@ -1,0 +1,30 @@
+HEAD: 45 files
+/tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/alpine/mirror-alpine/src/engine/render/assets/sprites/atlas: 45 files
+/tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-a/src/engine/render/assets/sprites/atlas: 45 files
+
+== HEAD  vs  /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/alpine/mirror-alpine/src/engine/render/assets/sprites/atlas
+all-corner-pips/0.5x/card_assets-0.png: bytes differ (375899 vs 375908); pixels differ: 2 pixels, max channel diff 22
+all-corner-pips/0.75x/card_assets-0.png: bytes differ (626478 vs 626495); pixels differ: 4 pixels, max channel diff 21
+classic/0.5x/card_assets-0.png: bytes differ (374798 vs 374808); pixels differ: 2 pixels, max channel diff 22
+classic/0.75x/card_assets-0.png: bytes differ (624621 vs 624637); pixels differ: 4 pixels, max channel diff 21
+indexed/0.5x/card_assets-0.png: bytes differ (375666 vs 375674); pixels differ: 2 pixels, max channel diff 22
+indexed/0.75x/card_assets-0.png: bytes differ (626035 vs 626051); pixels differ: 4 pixels, max channel diff 21
+39 of 45 shared files byte-identical
+
+== HEAD  vs  /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-a/src/engine/render/assets/sprites/atlas
+all-corner-pips/0.5x/card_assets-0.png: bytes differ (375899 vs 375907); pixels differ: 6 pixels, max channel diff 31
+all-corner-pips/0.75x/card_assets-0.png: bytes differ (626478 vs 626477); pixels differ: 3 pixels, max channel diff 13
+classic/0.5x/card_assets-0.png: bytes differ (374798 vs 374808); pixels differ: 6 pixels, max channel diff 31
+classic/0.75x/card_assets-0.png: bytes differ (624621 vs 624619); pixels differ: 3 pixels, max channel diff 13
+indexed/0.5x/card_assets-0.png: bytes differ (375666 vs 375673); pixels differ: 6 pixels, max channel diff 31
+indexed/0.75x/card_assets-0.png: bytes differ (626035 vs 626036); pixels differ: 3 pixels, max channel diff 13
+39 of 45 shared files byte-identical
+
+== /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/alpine/mirror-alpine/src/engine/render/assets/sprites/atlas  vs  /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-a/src/engine/render/assets/sprites/atlas
+all-corner-pips/0.5x/card_assets-0.png: bytes differ (375908 vs 375907); pixels differ: 4 pixels, max channel diff 31
+all-corner-pips/0.75x/card_assets-0.png: bytes differ (626495 vs 626477); pixels differ: 7 pixels, max channel diff 21
+classic/0.5x/card_assets-0.png: bytes differ (374808 vs 374808); pixels differ: 4 pixels, max channel diff 31
+classic/0.75x/card_assets-0.png: bytes differ (624637 vs 624619); pixels differ: 7 pixels, max channel diff 21
+indexed/0.5x/card_assets-0.png: bytes differ (375674 vs 375673); pixels differ: 4 pixels, max channel diff 31
+indexed/0.75x/card_assets-0.png: bytes differ (626051 vs 626036); pixels differ: 7 pixels, max channel diff 21
+39 of 45 shared files byte-identical

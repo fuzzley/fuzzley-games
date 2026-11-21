@@ -1,0 +1,11 @@
+use	folder	blobs	MiB raw	MiB on disk
+art contact sheet	docs/asteroid-breaker-uplift/art/preview	10	4.12	4.08
+sound sheet	docs/asteroid-breaker-uplift/sound/sheets	13	3.62	3.52
+generated art asset	docs/asteroid-breaker-uplift/assets/art/atlas	14	3.48	3.42
+plan mock	docs/brick-fuzz-pop-tune-up/mocks	9	1.38	1.21
+game capture kept in a plan	docs/asteroid-breaker-uplift/mocks/preview	7	0.82	0.81
+game capture kept in a plan	docs/brick-fuzz-pop-tune-up/mocks/shots	11	0.85	0.70
+generated art asset	docs/asteroid-breaker-uplift/assets/art/backdrops	16	0.32	0.32
+card sharpness study	frontend/games/solitaire/docs/card-sharpness	5	0.29	0.22
+game capture kept in a plan	docs	3	0.14	0.12
+generated art asset	docs/asteroid-breaker-uplift/assets/art/sprites/tint	2	0.02	0.02

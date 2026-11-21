@@ -1,0 +1,15 @@
+kind	folder	files at main tip	paths in history	paths absent at tip	blobs in history	blobs at main tip	MiB on disk, all	MiB on disk, not at main tip
+screenshot	frontend/games/solitaire/public/docs/screenshots	123	165	42	957	123	126.6	115.7
+screenshot	frontend/games/solitaire/docs/screenshots	41	41	0	205	41	92.1	72.6
+atlas	frontend/games/solitaire/src/engine/render/assets/sprites/atlas	45	57	12	77	32	39.0	26.1
+atlas	frontend/games/solitaire/src/game/assets/sprites/atlas	0	4	4	7	0	7.0	7.0
+atlas	frontend/games/solitaire/src/assets/sprites/atlas	0	2	2	6	0	3.6	3.6
+atlas	frontend/games/solitaire/public/assets/sprites/atlas	0	2	2	2	0	1.9	1.9
+screenshot	frontend/games/minesweeper/public/docs/screenshots	2	2	0	12	2	0.4	0.3
+screenshot	frontend/games/brick-fuzz-pop/public/docs/screenshots	2	2	0	6	2	0.4	0.2
+screenshot	frontend/games/sudoku/public/docs/screenshots	2	2	0	7	2	0.2	0.2
+screenshot	frontend/games/brick-breaker/public/docs/screenshots	2	2	0	8	3	0.2	0.1
+screenshot	frontend/games/asteroid-breaker/public/docs/screenshots	2	2	0	6	3	0.1	0.0
+screenshot	frontend/games/snake/public/docs/screenshots	2	2	0	7	2	0.1	0.1
+screenshot	frontend/apps/minesweeper/public/docs/screenshots	0	2	2	2	0	0.0	0.0
+all	every screenshot and atlas folder (each blob once)				1252	210	247.1	203.3

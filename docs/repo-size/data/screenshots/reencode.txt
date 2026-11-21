@@ -1,0 +1,204 @@
+games: 41
+sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0
+site image quality in @fz/dev/screenshots: 80; site images: thumb.webp 576x324, preview.webp 2560x1440
+
+1. build:thumbs remade from HEAD's originals in 54.9 s (41 games, one at a time)
+   overview.webp byte-identical to HEAD: 41
+   preview.webp byte-identical to HEAD: 41
+   thumb.webp byte-identical to HEAD: 41
+
+2. From the fresh capture in /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/screenshots/capture-solitaire-all/run-1:
+   acesup/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   acesup/preview.webp: bytes differ from HEAD; 124674 pixels differ, the largest channel change 30
+   acesup/overview.webp: bytes differ from HEAD; 28298 pixels differ, the largest channel change 18
+   allinarow/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   allinarow/preview.webp: bytes differ from HEAD; 178459 pixels differ, the largest channel change 27
+   allinarow/overview.webp: bytes differ from HEAD; 49840 pixels differ, the largest channel change 15
+   bakers/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   bakers/preview.webp: bytes differ from HEAD; 135231 pixels differ, the largest channel change 28
+   bakers/overview.webp: bytes differ from HEAD; 64319 pixels differ, the largest channel change 15
+   bakersdozen/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   bakersdozen/preview.webp: bytes differ from HEAD; 51758 pixels differ, the largest channel change 31
+   bakersdozen/overview.webp: bytes differ from HEAD; 43087 pixels differ, the largest channel change 16
+   beleagueredcastle/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   beleagueredcastle/preview.webp: bytes differ from HEAD; 93427 pixels differ, the largest channel change 30
+   beleagueredcastle/overview.webp: bytes differ from HEAD; 51625 pixels differ, the largest channel change 14
+   bisley/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   bisley/preview.webp: bytes differ from HEAD; 101742 pixels differ, the largest channel change 32
+   bisley/overview.webp: bytes differ from HEAD; 25196 pixels differ, the largest channel change 14
+   blackhole/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   blackhole/preview.webp: bytes differ from HEAD; 154549 pixels differ, the largest channel change 32
+   blackhole/overview.webp: bytes differ from HEAD; 65691 pixels differ, the largest channel change 18
+   bluemoon/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   bluemoon/preview.webp: bytes differ from HEAD; 129395 pixels differ, the largest channel change 31
+   bluemoon/overview.webp: bytes differ from HEAD; 52608 pixels differ, the largest channel change 14
+   bristol/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   bristol/preview.webp: bytes differ from HEAD; 37688 pixels differ, the largest channel change 28
+   bristol/overview.webp: bytes differ from HEAD; 46206 pixels differ, the largest channel change 21
+   calculation/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   calculation/preview.webp: bytes differ from HEAD; 11366 pixels differ, the largest channel change 32
+   calculation/overview.webp: bytes differ from HEAD; 5994 pixels differ, the largest channel change 9
+   canfield/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   canfield/preview.webp: bytes differ from HEAD; 58364 pixels differ, the largest channel change 24
+   canfield/overview.webp: bytes differ from HEAD; 8082 pixels differ, the largest channel change 11
+   challengefreecell/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   challengefreecell/preview.webp: bytes differ from HEAD; 267455 pixels differ, the largest channel change 32
+   challengefreecell/overview.webp: bytes differ from HEAD; 68119 pixels differ, the largest channel change 13
+   doubleklondike/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   doubleklondike/preview.webp: bytes differ from HEAD; 117875 pixels differ, the largest channel change 28
+   doubleklondike/overview.webp: bytes differ from HEAD; 52867 pixels differ, the largest channel change 14
+   easthaven/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   easthaven/preview.webp: bytes differ from HEAD; 180177 pixels differ, the largest channel change 39
+   easthaven/overview.webp: bytes differ from HEAD; 48500 pixels differ, the largest channel change 14
+   eightoff/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   eightoff/preview.webp: bytes differ from HEAD; 258927 pixels differ, the largest channel change 28
+   eightoff/overview.webp: bytes differ from HEAD; 23989 pixels differ, the largest channel change 13
+   flowergarden/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   flowergarden/preview.webp: bytes differ from HEAD; 139839 pixels differ, the largest channel change 27
+   flowergarden/overview.webp: bytes differ from HEAD; 50960 pixels differ, the largest channel change 14
+   fortress/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   fortress/preview.webp: bytes differ from HEAD; 110698 pixels differ, the largest channel change 36
+   fortress/overview.webp: bytes differ from HEAD; 33116 pixels differ, the largest channel change 22
+   fortythieves/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   fortythieves/preview.webp: bytes differ from HEAD; 129153 pixels differ, the largest channel change 27
+   fortythieves/overview.webp: bytes differ from HEAD; 52570 pixels differ, the largest channel change 13
+   freecell/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   freecell/preview.webp: bytes differ from HEAD; 382296 pixels differ, the largest channel change 28
+   freecell/overview.webp: bytes differ from HEAD; 66998 pixels differ, the largest channel change 14
+   golf/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   golf/preview.webp: bytes differ from HEAD; 320793 pixels differ, the largest channel change 30
+   golf/overview.webp: bytes differ from HEAD; 96223 pixels differ, the largest channel change 14
+   grandfathersclock/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   grandfathersclock/preview.webp: bytes differ from HEAD; 149933 pixels differ, the largest channel change 27
+   grandfathersclock/overview.webp: bytes differ from HEAD; 45279 pixels differ, the largest channel change 13
+   klondike/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   klondike/preview.webp: bytes differ from HEAD; 160181 pixels differ, the largest channel change 30
+   klondike/overview.webp: bytes differ from HEAD; 64911 pixels differ, the largest channel change 14
+   labellelucie/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   labellelucie/preview.webp: bytes differ from HEAD; 228420 pixels differ, the largest channel change 28
+   labellelucie/overview.webp: bytes differ from HEAD; 49759 pixels differ, the largest channel change 16
+   limited/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   limited/preview.webp: bytes differ from HEAD; 124453 pixels differ, the largest channel change 30
+   limited/overview.webp: bytes differ from HEAD; 29331 pixels differ, the largest channel change 14
+   lucas/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   lucas/preview.webp: bytes differ from HEAD; 213353 pixels differ, the largest channel change 32
+   lucas/overview.webp: bytes differ from HEAD; 44581 pixels differ, the largest channel change 13
+   maria/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   maria/preview.webp: bytes differ from HEAD; 132292 pixels differ, the largest channel change 29
+   maria/overview.webp: bytes differ from HEAD; 24234 pixels differ, the largest channel change 13
+   montana/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   montana/preview.webp: bytes differ from HEAD; 203362 pixels differ, the largest channel change 33
+   montana/overview.webp: bytes differ from HEAD; 63304 pixels differ, the largest channel change 19
+   montecarlo/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   montecarlo/preview.webp: bytes differ from HEAD; 122464 pixels differ, the largest channel change 26
+   montecarlo/overview.webp: bytes differ from HEAD; 61328 pixels differ, the largest channel change 16
+   mrsmop/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   mrsmop/preview.webp: bytes differ from HEAD; 374586 pixels differ, the largest channel change 40
+   mrsmop/overview.webp: bytes differ from HEAD; 94131 pixels differ, the largest channel change 15
+   nestor/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   nestor/preview.webp: bytes differ from HEAD; 268480 pixels differ, the largest channel change 29
+   nestor/overview.webp: bytes differ from HEAD; 99561 pixels differ, the largest channel change 14
+   penguin/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   penguin/preview.webp: bytes differ from HEAD; 48923 pixels differ, the largest channel change 23
+   penguin/overview.webp: bytes differ from HEAD; 40350 pixels differ, the largest channel change 23
+   pokersquares/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   pokersquares/preview.webp: bytes differ from HEAD; 13293 pixels differ, the largest channel change 19
+   pokersquares/overview.webp: bytes differ from HEAD; 8844 pixels differ, the largest channel change 11
+   pyramid/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   pyramid/preview.webp: bytes differ from HEAD; 148790 pixels differ, the largest channel change 24
+   pyramid/overview.webp: bytes differ from HEAD; 143444 pixels differ, the largest channel change 20
+   scorpion/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   scorpion/preview.webp: bytes differ from HEAD; 258299 pixels differ, the largest channel change 26
+   scorpion/overview.webp: bytes differ from HEAD; 158039 pixels differ, the largest channel change 14
+   seahaven/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   seahaven/preview.webp: bytes differ from HEAD; 245839 pixels differ, the largest channel change 25
+   seahaven/overview.webp: bytes differ from HEAD; 23225 pixels differ, the largest channel change 14
+   simplesimon/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   simplesimon/preview.webp: bytes differ from HEAD; 125349 pixels differ, the largest channel change 31
+   simplesimon/overview.webp: bytes differ from HEAD; 35393 pixels differ, the largest channel change 13
+   spider/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   spider/preview.webp: bytes differ from HEAD; 47329 pixels differ, the largest channel change 25
+   spider/overview.webp: bytes differ from HEAD; 38104 pixels differ, the largest channel change 15
+   spiderette/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   spiderette/preview.webp: bytes differ from HEAD; 146340 pixels differ, the largest channel change 26
+   spiderette/overview.webp: bytes differ from HEAD; 43078 pixels differ, the largest channel change 13
+   trefoil/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   trefoil/preview.webp: bytes differ from HEAD; 205834 pixels differ, the largest channel change 35
+   trefoil/overview.webp: bytes differ from HEAD; 76712 pixels differ, the largest channel change 19
+   tripeaks/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   tripeaks/preview.webp: bytes differ from HEAD; 360668 pixels differ, the largest channel change 34
+   tripeaks/overview.webp: bytes differ from HEAD; 154198 pixels differ, the largest channel change 13
+   yukon/thumb.webp: byte-identical from HEAD; 0 pixels differ, the largest channel change 0
+   yukon/preview.webp: bytes differ from HEAD; 292334 pixels differ, the largest channel change 29
+   yukon/overview.webp: bytes differ from HEAD; 89265 pixels differ, the largest channel change 14
+   By file (file, byte-identical to HEAD, differ, pixels that differ in those that do, largest channel change, MiB of those that differ):
+   overview.png (original)	0	41	72-121	9	20.06
+   thumb.webp	41	0	-	0	0.00
+   preview.webp	0	41	11366-382296	40	5.82
+   overview.webp	0	41	5994-158039	23	4.38
+   A retake from this capture would rewrite 30.27 MiB of files.
+
+3. Other settings, all 41 games (see reencode-settings.tsv):
+   swept in 557.5 s
+   image	width	height	quality	effort	today's	KiB for 41	KiB each	mean PSNR dB	mean SSIM	lowest SSIM
+   thumb	576	324	90	4		1075	26.2	34.43	0.9968	0.9944
+   thumb	576	324	90	6		1062	25.9	34.43	0.9967	0.9944
+   thumb	576	324	80	4	yes	813	19.8	33.70	0.9950	0.9879
+   thumb	576	324	80	6		798	19.5	33.67	0.9940	0.9856
+   thumb	576	324	70	4		688	16.8	32.97	0.9922	0.9783
+   thumb	576	324	70	6		674	16.4	32.93	0.9914	0.9759
+   thumb	576	324	60	4		639	15.6	32.58	0.9908	0.9734
+   thumb	576	324	60	6		624	15.2	32.53	0.9902	0.9708
+   thumb	576	324	50	4		591	14.4	32.14	0.9894	0.9706
+   thumb	576	324	50	6		575	14.0	32.06	0.9888	0.9668
+   preview	2560	1440	90	4		8062	196.6	40.01	0.9982	0.9960
+   preview	2560	1440	90	6		7926	193.3	39.95	0.9982	0.9926
+   preview	2560	1440	80	4	yes	5962	145.4	38.94	0.9973	0.9931
+   preview	2560	1440	80	6		5838	142.4	38.88	0.9973	0.9929
+   preview	2560	1440	70	4		5024	122.5	38.00	0.9962	0.9890
+   preview	2560	1440	70	6		4902	119.6	37.88	0.9959	0.9885
+   preview	2560	1440	60	4		4668	113.9	37.43	0.9956	0.9822
+   preview	2560	1440	60	6		4539	110.7	37.29	0.9952	0.9837
+   preview	2560	1440	50	4		4321	105.4	36.87	0.9947	0.9810
+   preview	2560	1440	50	6		4194	102.3	36.74	0.9944	0.9819
+   preview	1920	1080	90	4		5629	137.3	38.41	0.9976	0.9949
+   preview	1920	1080	90	6		5542	135.2	38.40	0.9977	0.9950
+   preview	1920	1080	80	4		4197	102.4	37.51	0.9966	0.9901
+   preview	1920	1080	80	6		4122	100.5	37.47	0.9964	0.9899
+   preview	1920	1080	70	4		3552	86.6	36.74	0.9955	0.9851
+   preview	1920	1080	70	6		3474	84.7	36.66	0.9952	0.9794
+   preview	1920	1080	60	4		3304	80.6	36.24	0.9944	0.9779
+   preview	1920	1080	60	6		3223	78.6	36.16	0.9940	0.9763
+   preview	1920	1080	50	4		3062	74.7	35.76	0.9938	0.9795
+   preview	1920	1080	50	6		2977	72.6	35.63	0.9931	0.9739
+   preview	1600	900	90	4		4486	109.4	37.50	0.9975	0.9944
+   preview	1600	900	90	6		4421	107.8	37.49	0.9975	0.9944
+   preview	1600	900	80	4		3344	81.6	36.66	0.9961	0.9893
+   preview	1600	900	80	6		3286	80.2	36.63	0.9959	0.9889
+   preview	1600	900	70	4		2834	69.1	35.92	0.9946	0.9830
+   preview	1600	900	70	6		2770	67.6	35.86	0.9943	0.9830
+   preview	1600	900	60	4		2633	64.2	35.49	0.9938	0.9806
+   preview	1600	900	60	6		2568	62.6	35.41	0.9935	0.9796
+   preview	1600	900	50	4		2440	59.5	35.02	0.9928	0.9767
+   preview	1600	900	50	6		2375	57.9	34.91	0.9924	0.9771
+   overview	1600	900	90	4	yes	4486	109.4	37.50	0.9975	0.9944
+   overview	1600	900	90	6		4421	107.8	37.49	0.9975	0.9944
+   overview	1600	900	80	4		3344	81.6	36.66	0.9961	0.9893
+   overview	1600	900	80	6		3286	80.2	36.63	0.9959	0.9889
+   overview	1600	900	70	4		2834	69.1	35.92	0.9946	0.9830
+   overview	1600	900	70	6		2770	67.6	35.86	0.9943	0.9830
+   overview	1600	900	60	4		2633	64.2	35.49	0.9938	0.9806
+   overview	1600	900	60	6		2568	62.6	35.41	0.9935	0.9796
+   overview	1600	900	50	4		2440	59.5	35.02	0.9928	0.9767
+   overview	1600	900	50	6		2375	57.9	34.91	0.9924	0.9771
+
+   What one full retake of the 41 games adds to history, by plan:
+   31.06 MiB (100%)	today: originals PNG + thumb q80 + preview 2560 q80 + overview 1600 q90
+   11.00 MiB (35%)	today's WebP alone, no originals tracked
+   6.62 MiB (21%)	no originals; the rules page shows preview.webp, no overview.webp
+   5.45 MiB (18%)	no originals; thumb q70 e6, preview 2560 q70 e6, no overview
+   4.81 MiB (15%)	no originals; thumb q80 e6, preview 1920 q80 e6 for both pages, no overview
+   3.87 MiB (12%)	no originals; thumb q70 e6, preview 1600 q80 e6 for both pages, no overview
+
+4. Originals: PNG 20.07 MiB; lossless WebP 14.47 MiB (72%), encoded in 83.0 s
+

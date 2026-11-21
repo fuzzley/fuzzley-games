@@ -1,0 +1,9 @@
+tip paths the plans remove, on main: 106
+distinct blobs among them, stripped on top of S2's 1042: 103
+their raw size: 41.00 MiB
+S2 and them, measured: mirror 49.3 MiB, clone 49.9 MiB
+atlas pages as lossless WebP, added back: 9.17 MiB
+projected after the plans and S2: mirror 58.5 MiB, clone 59.1 MiB
+against S2 today, clone: 88.8 MiB; against no rewrite, clone: 290.1 MiB (20% left)
+tree check: tree entries removed on purpose, refs/heads/main: 106;tree differences, refs/heads/main: 0;
+commits on main: 1705, message refs wrong: 0, fsck: ok

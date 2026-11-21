@@ -1,0 +1,26 @@
+threshold KiB	blobs	MiB raw	MiB on disk
+0	4270	131.5	11.6
+10	1793	122.7	10.8
+50	542	97.2	9.2
+100	297	80.0	7.6
+250	66	48.8	6.1
+500	17	33.3	2.4
+
+s5-strip-ids.txt: S2's 1042 and 297 more over 100 KiB
+
+folder (four levels)	blobs	MiB on disk (a blob at two paths counts in both)
+docs/asteroid-breaker-uplift/assets/sound	7	2.0
+docs/asteroid-breaker-uplift/art/preview	5	2.0
+docs/asteroid-breaker-uplift/sound/sheets	4	1.2
+frontend/games/solitaire/custom_typings	7	0.7
+frontend/games/solitaire	37	0.6
+frontend/apps/minesweeper/public	13	0.5
+frontend/games/solitaire/src	3	0.4
+frontend/games/minesweeper/public	8	0.4
+frontend/apps/minesweeper/scripts	7	0.3
+docs/brick-fuzz-pop/worklog	30	0.2
+frontend/games/solitaire/public	1	0.1
+docs/asteroid-breaker-uplift/art	5	0.1
+frontend/apps/minesweeper/content	5	0.1
+docs/brick-fuzz-pop/mocks	4	0.1
+docs	175	0.1

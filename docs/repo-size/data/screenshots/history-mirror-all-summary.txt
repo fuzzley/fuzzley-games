@@ -1,0 +1,94 @@
+git dir: /home/dev/Projects/personal/repo-size-2026-11-21/fuzzley-games.git
+revisions: --all
+non-merge commits read: 1694
+
+Screenshot blobs, each counted once, at the commit that first added it:
+all	1167 blobs	206.51 MiB raw	200.97 MiB on disk
+screenshot blobs reachable but never added by a non-merge commit: 0 (0.00 MiB on disk)
+
+By game and folder (game, folder, blobs, MiB raw, MiB on disk, commits that added one):
+solitaire	public	957	129.51	126.59	41
+solitaire	originals	164	75.50	72.94	4
+minesweeper	public	12	0.39	0.38	6
+brick-fuzz-pop	public	6	0.36	0.35	3
+sudoku	public	7	0.25	0.24	4
+brick-breaker	public	8	0.24	0.22	4
+asteroid-breaker	public	6	0.15	0.14	3
+snake	public	7	0.12	0.10	4
+
+By game and folder as `git rev-list --objects` names each blob's path (game, folder, blobs, MiB raw, MiB on disk):
+solitaire	public	916	109.67	107.47
+solitaire	originals	205	95.34	92.06
+minesweeper	public	12	0.39	0.38
+brick-fuzz-pop	public	6	0.36	0.35
+sudoku	public	7	0.25	0.24
+brick-breaker	public	7	0.19	0.19
+asteroid-breaker	public	5	0.11	0.11
+snake	public	7	0.12	0.10
+
+By format (format, blobs, MiB raw, MiB on disk):
+png	306	153.24	147.98
+webp	861	53.27	52.98
+
+By game, folder and format (game, folder, format, blobs, MiB raw, MiB on disk):
+solitaire	public	png	142	77.75	75.05
+solitaire	originals	png	164	75.50	72.94
+solitaire	public	webp	815	51.76	51.54
+minesweeper	public	webp	12	0.39	0.38
+brick-fuzz-pop	public	webp	6	0.36	0.35
+sudoku	public	webp	7	0.25	0.24
+brick-breaker	public	webp	8	0.24	0.22
+asteroid-breaker	public	webp	6	0.15	0.14
+snake	public	webp	7	0.12	0.10
+
+By game, folder, file and format (game, folder, file, format, blobs, MiB raw, MiB on disk):
+solitaire	public	overview	png	141	76.59	73.91
+solitaire	originals	overview	png	164	75.50	72.94
+solitaire	public	preview	webp	305	27.52	27.33
+solitaire	public	overview	webp	205	21.15	21.11
+solitaire	public	thumb	webp	305	3.10	3.10
+solitaire	public	rules_modal_preview	png	1	1.16	1.13
+minesweeper	public	preview	webp	6	0.33	0.32
+brick-fuzz-pop	public	preview	webp	3	0.31	0.30
+sudoku	public	preview	webp	4	0.22	0.21
+brick-breaker	public	preview	webp	4	0.21	0.19
+asteroid-breaker	public	preview	webp	3	0.13	0.12
+snake	public	preview	webp	4	0.11	0.09
+minesweeper	public	thumb	webp	6	0.06	0.06
+brick-fuzz-pop	public	thumb	webp	3	0.05	0.05
+sudoku	public	thumb	webp	3	0.03	0.03
+brick-breaker	public	thumb	webp	4	0.03	0.03
+asteroid-breaker	public	thumb	webp	3	0.02	0.02
+snake	public	thumb	webp	3	0.01	0.01
+
+First and last commit that added each format (game, folder, format, first, last):
+asteroid-breaker	public	webp	2026-11-02 663ee4a4	2026-11-16 2cbfb0bb
+brick-breaker	public	webp	2026-10-30 9eaf65f5	2026-11-14 c3381ee4
+brick-fuzz-pop	public	webp	2026-11-11 d1710593	2026-11-15 98d4ba5a
+minesweeper	public	webp	2026-10-17 9bb3809c	2026-11-09 7206317a
+snake	public	webp	2026-10-28 0adaecc3	2026-11-09 7206317a
+solitaire	originals	png	2026-10-24 5bbda669	2026-11-09 a5420072
+solitaire	public	png	2026-08-01 ee5fc7dc	2026-10-10 811e476d
+solitaire	public	webp	2026-09-27 9c191a04	2026-11-09 a5420072
+sudoku	public	webp	2026-10-27 06362c2a	2026-11-09 7206317a
+
+Commits that deleted screenshots, by commit (date, commit, files deleted, folders, subject):
+2026-08-01	2b1c66f1	1	solitaire/public	refactor: implement senior engineer code review improvements for documentation modal and loading placeholder
+2026-10-10	e704711d	41	solitaire/public	perf: serve the rules screenshots as 1600 px WebP
+2026-10-18	81fe9d4c	2	minesweeper/public	refactor: keep the games built here in frontend/games/
+
+Images in docs folders that aren't screenshots (all):
+all	90 blobs	15.05 MiB raw	14.41 MiB on disk
+By use (use, blobs, MiB raw, MiB on disk):
+art contact sheet	10	4.12	4.08
+generated art asset	32	3.82	3.76
+sound sheet	13	3.62	3.52
+game capture kept in a plan	21	1.81	1.63
+plan mock	9	1.38	1.21
+card sharpness study	5	0.29	0.22
+
+Images in docs folders whose blob was a screenshot first, so cost nothing more (path, blob):
+docs/archive/asteroid-breaker-uplift/before.webp	5e2d613c
+docs/archive/brick-breaker-uplift/before.webp	1204b519
+docs/asteroid-breaker-uplift/before.webp	5e2d613c
+docs/brick-breaker-uplift/before.webp	1204b519

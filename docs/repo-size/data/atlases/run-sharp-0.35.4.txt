@@ -1,0 +1,13 @@
+label: run-sharp-0.35.4
+mirror: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-sharp-0.35.4
+command: node tools/build-card-atlas.mjs
+node_modules: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/sharp-0.35.4/node_modules
+sharp 0.35.4, libvips 8.18.6, @resvg/resvg-js 2.6.2, node v26.13.0, linux-x64
+cpus: all (24)
+exit code: 0
+wall seconds: 32.04
+user cpu seconds: 54.86
+system cpu seconds: 12.37
+peak rss MiB (sampled): 994
+generator's last line: Built 4 deck(s).
+generator printed 53 lines

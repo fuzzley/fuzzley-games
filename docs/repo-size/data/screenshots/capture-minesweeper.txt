@@ -1,0 +1,27 @@
+game: minesweeper
+runs: 3
+cpus: 24
+build: 5.3 s (yarn build in the workspace, dist/ removed first)
+served: http://127.0.0.1:9107/ (vite preview of dist/), answering after 0.7 s
+run 1: 2.1 s, Chromes left on its profile: none after 0.0 s
+  Cleared 48%, 12 flags, the clock at 1:24.
+  thumb.webp: 14 KB
+  preview.webp: 72 KB
+run 2: 2.1 s, Chromes left on its profile: none after 0.0 s
+  Cleared 48%, 12 flags, the clock at 1:24.
+  thumb.webp: 14 KB
+  preview.webp: 72 KB
+run 3: 2.1 s, Chromes left on its profile: none after 0.0 s
+  Cleared 48%, 12 flags, the clock at 1:24.
+  thumb.webp: 14 KB
+  preview.webp: 72 KB
+
+preview.webp: 74140 bytes, sha256 4febbcdbb14e5858 in run 1
+  run 2: 74140 bytes, sha256 4febbcdbb14e5858, byte-identical; pixels: pixel-identical
+  run 3: 74140 bytes, sha256 4febbcdbb14e5858, byte-identical; pixels: pixel-identical
+  HEAD: 74140 bytes, byte-identical; pixels: pixel-identical
+
+thumb.webp: 14418 bytes, sha256 f6124f5d38248279 in run 1
+  run 2: 14418 bytes, sha256 f6124f5d38248279, byte-identical; pixels: pixel-identical
+  run 3: 14418 bytes, sha256 f6124f5d38248279, byte-identical; pixels: pixel-identical
+  HEAD: 14428 bytes, bytes differ; pixels: 36617 of 186624 pixels differ (19.621%), 21 by more than 16, largest change 22, all within x 144-519, y 11-323 of 576x324

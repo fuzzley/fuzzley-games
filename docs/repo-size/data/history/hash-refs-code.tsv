@@ -1,0 +1,13 @@
+file	line	token	commit	text
+frontend/lib/dev/src/build_info.spec.ts	27	e76741b	e76741b2b5	expect(commitHash({}, () => "e76741b\n")).toBe("e76741b");
+frontend/lib/dev/src/build_info.spec.ts	27	e76741b	e76741b2b5	expect(commitHash({}, () => "e76741b\n")).toBe("e76741b");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	21	5b87385	5b873854e9	await renderBuiltFrom("5b87385");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	29	5b87385	5b873854e9	await renderBuiltFrom("5b87385");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	40	5b87385	5b873854e9	await renderBuiltFrom("5b87385");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	54	5b87385	5b873854e9	await renderBuiltFrom("5b87385");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	57	5b87385	5b873854e9	"Built from 5b87385 on June 15, 2031",
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	62	5b87385	5b873854e9	await renderBuiltFrom("5b87385");
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	65	5b87385	5b873854e9	name: "5b87385 (opens in a new tab)",
+frontend/site/src/app/component/site_footer/site_footer.component.spec.ts	70	5b87385	5b873854e9	"https://github.com/fuzzley/fuzzley-games/commit/5b87385",
+frontend/site/tools/vite-plugins.spec.ts	38	e72f5a7	e72f5a731f	expect(servedBuilds({ minesweeper }, "e72f5a7")).toEqual({
+frontend/site/tools/vite-plugins.spec.ts	39	e72f5a7	e72f5a731f	minesweeper: { workspace: "games/minesweeper", commit: "e72f5a7" },

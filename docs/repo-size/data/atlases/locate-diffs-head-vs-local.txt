@@ -1,0 +1,33 @@
+all-corner-pips/0.5x/card_assets-0.png:
+  (1292, 4) card-clubs-jack at (108, 0) of 110x154: HEAD rgba 82,82,82,254 -> run 83,83,83,255
+  (4007, 156) card-spades-8 at (109, 152) of 110x154: HEAD rgba 74,74,74,244 -> run 73,73,73,233
+  (3544, 157) card-spades-5 at (0, 153) of 110x154: HEAD rgba 94,94,94,183 -> run 76,76,76,152
+  (1302, 166) card-diamonds-7 at (0, 0) of 110x154: HEAD rgba 102,102,102,190 -> run 93,93,93,168
+  (1647, 318) card-diamonds-9 at (109, 152) of 110x154: HEAD rgba 76,76,76,244 -> run 74,74,74,233
+  (1647, 319) card-diamonds-9 at (109, 153) of 110x154: HEAD rgba 82,82,82,129 -> run 60,60,60,107
+all-corner-pips/0.75x/card_assets-0.png:
+  (2426, 243) card-spades-queen at (0, 1) of 165x230: HEAD rgba 74,74,74,255 -> run 73,73,73,244
+  (860, 707) card-diamonds-queen at (164, 227) of 165x230: HEAD rgba 69,69,69,235 -> run 71,71,71,245
+  (860, 708) card-diamonds-queen at (164, 228) of 165x230: HEAD rgba 23,23,23,183 -> run 31,31,31,196
+classic/0.5x/card_assets-0.png:
+  (1292, 4) card-clubs-jack at (108, 0) of 110x154: HEAD rgba 82,82,82,254 -> run 83,83,83,255
+  (4007, 156) card-spades-8 at (109, 152) of 110x154: HEAD rgba 74,74,74,244 -> run 73,73,73,233
+  (3544, 157) card-spades-5 at (0, 153) of 110x154: HEAD rgba 94,94,94,183 -> run 76,76,76,152
+  (1302, 166) card-diamonds-7 at (0, 0) of 110x154: HEAD rgba 102,102,102,190 -> run 93,93,93,168
+  (1647, 318) card-diamonds-9 at (109, 152) of 110x154: HEAD rgba 76,76,76,244 -> run 74,74,74,233
+  (1647, 319) card-diamonds-9 at (109, 153) of 110x154: HEAD rgba 82,82,82,129 -> run 60,60,60,107
+classic/0.75x/card_assets-0.png:
+  (2426, 243) card-spades-queen at (0, 1) of 165x230: HEAD rgba 74,74,74,255 -> run 73,73,73,244
+  (860, 707) card-diamonds-queen at (164, 227) of 165x230: HEAD rgba 69,69,69,235 -> run 71,71,71,245
+  (860, 708) card-diamonds-queen at (164, 228) of 165x230: HEAD rgba 23,23,23,183 -> run 31,31,31,196
+indexed/0.5x/card_assets-0.png:
+  (1292, 4) card-clubs-jack at (108, 0) of 110x154: HEAD rgba 82,82,82,254 -> run 83,83,83,255
+  (4007, 156) card-spades-8 at (109, 152) of 110x154: HEAD rgba 74,74,74,244 -> run 73,73,73,233
+  (3544, 157) card-spades-5 at (0, 153) of 110x154: HEAD rgba 94,94,94,183 -> run 76,76,76,152
+  (1302, 166) card-diamonds-7 at (0, 0) of 110x154: HEAD rgba 102,102,102,190 -> run 93,93,93,168
+  (1647, 318) card-diamonds-9 at (109, 152) of 110x154: HEAD rgba 76,76,76,244 -> run 74,74,74,233
+  (1647, 319) card-diamonds-9 at (109, 153) of 110x154: HEAD rgba 82,82,82,129 -> run 60,60,60,107
+indexed/0.75x/card_assets-0.png:
+  (2426, 243) card-spades-queen at (0, 1) of 165x230: HEAD rgba 74,74,74,255 -> run 73,73,73,244
+  (860, 707) card-diamonds-queen at (164, 227) of 165x230: HEAD rgba 69,69,69,235 -> run 71,71,71,245
+  (860, 708) card-diamonds-queen at (164, 228) of 165x230: HEAD rgba 23,23,23,183 -> run 31,31,31,196

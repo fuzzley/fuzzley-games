@@ -1,0 +1,11 @@
+key: 3b317428b511adbe
+files hashed: 12, 5.16 MiB
+toolchain:
+  sharp 0.35.5
+  libvips 8.18.7
+  @resvg/resvg-js 2.6.2
+  @img/sharp-libvips-linux-x64 1.3.4
+  @img/sharp-linux-x64 0.35.5
+  @resvg/resvg-js-linux-x64-gnu 2.6.2
+  linux-x64-glibc
+median of 7 runs: 12.3 ms (fastest 12.0 ms, slowest 65.9 ms)

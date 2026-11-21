@@ -1,0 +1,3 @@
+commit-map of a second S2 run identical to the first: yes
+main after the second run: 0b8be03ac8526cb0d18c5295886ac15447ab1c25
+main after the first run:  0b8be03ac8526cb0d18c5295886ac15447ab1c25

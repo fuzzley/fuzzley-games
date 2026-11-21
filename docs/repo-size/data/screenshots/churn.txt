@@ -1,0 +1,98 @@
+Screenshot blobs added, on disk: 200.96 MiB, in 58 commits
+
+By game (game, commits, blobs, blobs a commit: median and most, MiB on disk):
+solitaire	41	1121	3	164	199.52
+minesweeper	6	12	2	2	0.38
+brick-fuzz-pop	3	6	2	2	0.35
+sudoku	4	7	2	2	0.24
+brick-breaker	4	8	2	2	0.22
+asteroid-breaker	3	6	2	2	0.14
+snake	4	7	2	2	0.10
+
+By reason (reason, commits, blobs, MiB on disk, share of all):
+a game's first screenshots	37	102	27.55	14%
+the game's look changed	10	519	87.22	43%
+the capture's scene, palette, seed or tool changed	7	305	52.24	26%
+the format or size changed	4	241	33.95	17%
+
+Retakes of every Solitaire game at once (date, commit, reason, blobs, MiB on disk, subject):
+2026-09-27	3abe7ba2	the game's look changed	51	11.11	docs: re-capture the rules-page screenshots without the rail
+2026-10-05	503567ba	the capture's scene, palette, seed or tool changed	123	21.36	docs: re-capture the screenshots on default settings, and keep the header in the previews
+2026-10-10	811e476d	the game's look changed	123	21.66	docs: retake every game's screenshots with the light under the cards
+2026-10-10	e704711d	the format or size changed	41	4.21	perf: serve the rules screenshots as 1600 px WebP
+2026-10-24	5bbda669	the game's look changed	164	23.84	docs: retake Solitaire's screenshots with the game bar
+2026-10-25	67a5dbb3	the format or size changed	164	28.60	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	a822e6cc	the game's look changed	164	28.69	docs: retake the games' screenshots with the new wordmark
+2026-11-09	a5420072	the capture's scene, palette, seed or tool changed	164	30.40	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a d
+all 8				169.87	85% of all screenshot bytes
+
+Every commit, with its reason (date, commit, game, folder, blobs, KiB on disk, reason, subject):
+2026-08-01	ee5fc7dc	solitaire	public	8	5345	first	feat: add game documentation system and public assets
+2026-08-03	21eaaab6	solitaire	public	1	691	first	docs(simplesimon): add the board overview screenshot
+2026-08-03	1c2544b9	solitaire	public	1	440	first	feat(bakersdozen): add Baker's Dozen
+2026-08-03	596bafdc	solitaire	public	1	849	first	feat(seahaven): add Seahaven Towers
+2026-08-03	79474e16	solitaire	public	1	765	first	feat(spiderette): add Spiderette and Will o' the Wisp
+2026-08-03	31bb1d01	solitaire	public	1	719	first	feat(easthaven): add Easthaven
+2026-08-03	24cd1e74	solitaire	public	1	698	first	feat(fortythieves): add Forty Thieves, Josephine and Rank and File
+2026-08-03	b37252ec	solitaire	public	2	1423	first	feat(fortythieves): add Maria and Limited
+2026-08-03	d9abc29b	solitaire	public	1	632	first	feat(doubleklondike): add Double Klondike
+2026-08-03	795810cc	solitaire	public	1	995	first	feat(montana): add Montana
+2026-09-27	9c191a04	solitaire	public	34	1092	format	build(browser): shrink the screenshots into the browser's thumbnails
+2026-09-27	3abe7ba2	solitaire	public	51	11377	look	docs: re-capture the rules-page screenshots without the rail
+2026-10-03	a7deaf18	solitaire	public	3	1353	look	docs: retake Montana's screenshot with the redeal pips and describe the placeholder hooks
+2026-10-03	4641a1c1	solitaire	public	3	637	first	feat: add Challenge FreeCell, with Super Challenge as its Kings-only option
+2026-10-03	9f23109f	solitaire	public	3	547	first	feat: add Lucas, sharing the Forty Thieves game
+2026-10-03	c3f20fb8	solitaire	public	3	682	first	feat: add Mrs. Mop, sharing the Simple Simon game
+2026-10-03	21e5bc3c	solitaire	public	3	1134	first	feat: add Blue Moon, with Red Moon as its deal, on a generalised Montana
+2026-10-03	e83b96cc	solitaire	public	3	640	first	feat: add Bisley, with foundations from each Ace and each King
+2026-10-03	034b6db2	solitaire	public	3	457	first	feat: add Aces Up, with an Aces-only spaces option
+2026-10-03	4f942dbc	solitaire	public	3	980	first	feat: add wrapping ranks, and Golf with Putt Putt
+2026-10-03	a80fc351	solitaire	public	3	222	first	feat: add Calculation, with Sir Tommy as its variant
+2026-10-03	174aa9af	solitaire	public	3	434	first	feat: place skeleton slots by percentage, and add Flower Garden
+2026-10-03	9c836cdc	solitaire	public	3	414	first	feat: add Bristol, with Belvedere as its variant
+2026-10-03	9b81d1ff	solitaire	public	3	715	first	feat: add pair removal, and Nestor
+2026-10-03	d89a5cec	solitaire	public	3	787	first	feat: add Monte Carlo, with Thirteens as its variant
+2026-10-03	0abbf3b4	solitaire	public	6	1229	first	feat: add La Belle Lucie with The Fan and Shamrocks, and Trefoil
+2026-10-03	95564873	solitaire	public	3	376	first	feat: add base-rank foundations, and Canfield with Storehouse, Superior Canfield and Rainbow
+2026-10-03	8013e47f	solitaire	public	3	454	first	feat: add Penguin
+2026-10-03	73c71ab9	solitaire	public	6	1057	first	feat: add Black Hole and All in a Row, and a shared play-on-press gesture
+2026-10-03	2349f17c	solitaire	public	3	608	first	feat: add Grandfather's Clock, with its foundations on a dial
+2026-10-03	a3dc2162	solitaire	public	3	690	first	feat: add grab rules for covered cards, and Pyramid
+2026-10-03	a84c90ab	solitaire	public	3	1647	first	feat: add TriPeaks, and only prefer a drop target the card lies well over
+2026-10-03	aeff6784	solitaire	public	6	1186	first	feat: add drop areas along sideways fans, and the Beleaguered Castle family
+2026-10-03	f8783eac	solitaire	public	3	470	first	feat: add Poker Squares, with American and English scoring
+2026-10-05	503567ba	solitaire	public	123	21870	setup	docs: re-capture the screenshots on default settings, and keep the header in the previews
+2026-10-10	811e476d	solitaire	public	123	22178	look	docs: retake every game's screenshots with the light under the cards
+2026-10-10	e704711d	solitaire	public	41	4311	format	perf: serve the rules screenshots as 1600 px WebP
+2026-10-17	9bb3809c	minesweeper	public	2	29	first	ci(deploy): publish the game and screenshots for fuzzley.games
+2026-10-24	5bbda669	solitaire	originals	41	17716	look	docs: retake Solitaire's screenshots with the game bar
+2026-10-24	5bbda669	solitaire	public	123	6696	look	docs: retake Solitaire's screenshots with the game bar
+2026-10-25	7e03b0ba	minesweeper	public	2	34	setup	docs(minesweeper): capture its screenshots, and describe the Angular game
+2026-10-25	67a5dbb3	solitaire	originals	41	18496	format	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	67a5dbb3	solitaire	public	123	10786	format	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	908dcb35	minesweeper	public	2	81	format	docs(minesweeper): capture the screenshots on Casino night, at twice their size
+2026-10-25	a822e6cc	minesweeper	public	2	82	look	docs: retake the games' screenshots with the new wordmark
+2026-10-25	a822e6cc	solitaire	originals	41	18544	look	docs: retake the games' screenshots with the new wordmark
+2026-10-25	a822e6cc	solitaire	public	123	10838	look	docs: retake the games' screenshots with the new wordmark
+2026-10-27	06362c2a	sudoku	public	2	62	first	docs(sudoku): screenshots, the docs and the testing skill
+2026-10-27	a3d033d2	sudoku	public	2	64	look	docs(sudoku): screenshots with Fill in notes and the deeper shading
+2026-10-28	0adaecc3	snake	public	2	27	first	docs(snake): screenshots, Snake's AGENTS.md, README and testing skill, and the lists that name the g
+2026-10-28	a9af4b96	minesweeper	public	2	82	look	docs: the games' screenshots with the choice menu's badge
+2026-10-28	a9af4b96	snake	public	1	24	look	docs: the games' screenshots with the choice menu's badge
+2026-10-28	a9af4b96	sudoku	public	1	53	look	docs: the games' screenshots with the choice menu's badge
+2026-10-30	9eaf65f5	brick-breaker	public	2	41	first	feat(brick-breaker): the screenshots: Rocket part broken at Normal on Classic felt, kept by the rule
+2026-10-31	e967b60b	brick-breaker	public	2	42	setup	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
+2026-10-31	e967b60b	snake	public	2	27	setup	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
+2026-11-02	663ee4a4	asteroid-breaker	public	2	29	first	feat(asteroid-breaker): the site lists it, badged in development, and ?debug offers the debug menu i
+2026-11-04	d83e32fd	asteroid-breaker	public	2	46	setup	feat(asteroid-breaker): the site's screenshots, a run the autopilot played taken up as a stray drift
+2026-11-09	7206317a	brick-breaker	public	2	43	setup	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
+2026-11-09	7206317a	minesweeper	public	2	84	setup	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
+2026-11-09	7206317a	snake	public	2	28	setup	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
+2026-11-09	7206317a	sudoku	public	2	65	setup	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
+2026-11-09	a5420072	solitaire	originals	41	19932	setup	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded
+2026-11-09	a5420072	solitaire	public	123	11198	setup	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded
+2026-11-11	d1710593	brick-fuzz-pop	public	2	102	first	feat(brick-fuzz-pop): capture the site's screenshots from a run kept by the rules, and check the lay
+2026-11-11	3c78f61d	brick-fuzz-pop	public	2	127	setup	feat(brick-fuzz-pop): the site's screenshots on level 18, powder keg, its next shot aimed up through
+2026-11-14	c3381ee4	brick-breaker	public	2	101	look	docs(brick-breaker): take the site's screenshots again on the uplift's look, the thumbnail the whole
+2026-11-15	98d4ba5a	brick-fuzz-pop	public	2	132	look	feat(brick-fuzz-pop): the site's screenshots retaken on the tuned game, a round into Powder keg so t
+2026-11-16	2cbfb0bb	asteroid-breaker	public	2	71	look	feat(asteroid-breaker): capture the uplifted game, waiting for the stray in the field's time, and ke

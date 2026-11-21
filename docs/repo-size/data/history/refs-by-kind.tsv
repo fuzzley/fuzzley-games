@@ -1,0 +1,7 @@
+kind	count	in a normal clone
+branch-dependabot	4	yes, as refs/remotes/origin/*
+branch-live	1	yes, as refs/remotes/origin/*
+branch-main	1	yes, as refs/remotes/origin/*
+pull-head	33	no: only a mirror or an explicit refspec fetches refs/pull/*
+pull-merge	4	no: only a mirror or an explicit refspec fetches refs/pull/*
+total	43	

@@ -1,0 +1,633 @@
+group: screenshots, 41 files, 41 distinct blobs
+sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0
+
+frontend/games/solitaire/docs/screenshots/acesup/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             391 KiB  100.0%  
+  oxipng-max              379 KiB   96.9%  lossless
+  oxipng-max-alpha        379 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   433 KiB  110.9%  lossless
+  png-9-adaptive          519 KiB  132.9%  lossless
+  png-palette             179 KiB   45.9%  max 48 premult (48 straight), mean 0.038, 3315 px >8
+  webp-lossless           290 KiB   74.3%  lossless
+  webp-lossless-exact     290 KiB   74.3%  lossless
+  webp-near-80            283 KiB   72.5%  max 1 premult (1 straight), mean 0.016, 0 px >8
+  webp-near-60            250 KiB   63.9%  max 2 premult (2 straight), mean 0.030, 0 px >8
+  webp-q90                156 KiB   40.0%  max 121 premult (121 straight), mean 0.427, 84819 px >8
+  webp-q80                113 KiB   28.9%  max 113 premult (113 straight), mean 0.518, 115201 px >8
+
+frontend/games/solitaire/docs/screenshots/allinarow/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             457 KiB  100.0%  
+  oxipng-max              442 KiB   96.7%  lossless
+  oxipng-max-alpha        442 KiB   96.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   500 KiB  109.5%  lossless
+  png-9-adaptive          586 KiB  128.2%  lossless
+  png-palette             206 KiB   45.0%  max 55 premult (55 straight), mean 0.053, 8003 px >8
+  webp-lossless           339 KiB   74.1%  lossless
+  webp-lossless-exact     339 KiB   74.1%  lossless
+  webp-near-80            334 KiB   73.0%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60            296 KiB   64.8%  max 2 premult (2 straight), mean 0.041, 0 px >8
+  webp-q90                201 KiB   44.0%  max 134 premult (134 straight), mean 0.499, 112070 px >8
+  webp-q80                149 KiB   32.5%  max 142 premult (142 straight), mean 0.606, 162030 px >8
+
+frontend/games/solitaire/docs/screenshots/bakers/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             570 KiB  100.0%  
+  oxipng-max              555 KiB   97.3%  lossless
+  oxipng-max-alpha        555 KiB   97.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   624 KiB  109.5%  lossless
+  png-9-adaptive          698 KiB  122.4%  lossless
+  png-palette             247 KiB   43.3%  max 46 premult (46 straight), mean 0.076, 7229 px >8
+  webp-lossless           382 KiB   66.9%  lossless
+  webp-lossless-exact     382 KiB   66.9%  lossless
+  webp-near-80            382 KiB   67.0%  max 1 premult (1 straight), mean 0.037, 0 px >8
+  webp-near-60            335 KiB   58.8%  max 2 premult (2 straight), mean 0.066, 0 px >8
+  webp-q90                254 KiB   44.6%  max 118 premult (118 straight), mean 0.553, 141408 px >8
+  webp-q80                190 KiB   33.3%  max 123 premult (123 straight), mean 0.704, 201842 px >8
+
+frontend/games/solitaire/docs/screenshots/bakersdozen/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             404 KiB  100.0%  
+  oxipng-max              390 KiB   96.6%  lossless
+  oxipng-max-alpha        390 KiB   96.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   445 KiB  110.1%  lossless
+  png-9-adaptive          525 KiB  129.7%  lossless
+  png-palette             188 KiB   46.4%  max 40 premult (40 straight), mean 0.045, 4763 px >8
+  webp-lossless           289 KiB   71.4%  lossless
+  webp-lossless-exact     289 KiB   71.4%  lossless
+  webp-near-80            285 KiB   70.5%  max 1 premult (1 straight), mean 0.023, 0 px >8
+  webp-near-60            259 KiB   64.1%  max 2 premult (2 straight), mean 0.040, 0 px >8
+  webp-q90                182 KiB   44.9%  max 121 premult (121 straight), mean 0.460, 86472 px >8
+  webp-q80                134 KiB   33.1%  max 128 premult (128 straight), mean 0.569, 128611 px >8
+
+frontend/games/solitaire/docs/screenshots/beleagueredcastle/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             448 KiB  100.0%  
+  oxipng-max              434 KiB   96.8%  lossless
+  oxipng-max-alpha        434 KiB   96.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   492 KiB  109.8%  lossless
+  png-9-adaptive          559 KiB  124.9%  lossless
+  png-palette             212 KiB   47.4%  max 51 premult (51 straight), mean 0.043, 3823 px >8
+  webp-lossless           300 KiB   67.1%  lossless
+  webp-lossless-exact     300 KiB   67.1%  lossless
+  webp-near-80            296 KiB   66.0%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60            271 KiB   60.6%  max 2 premult (2 straight), mean 0.044, 0 px >8
+  webp-q90                211 KiB   47.1%  max 129 premult (129 straight), mean 0.493, 118084 px >8
+  webp-q80                161 KiB   35.9%  max 142 premult (142 straight), mean 0.595, 150199 px >8
+
+frontend/games/solitaire/docs/screenshots/bisley/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             457 KiB  100.0%  
+  oxipng-max              442 KiB   96.7%  lossless
+  oxipng-max-alpha        442 KiB   96.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   500 KiB  109.6%  lossless
+  png-9-adaptive          580 KiB  126.9%  lossless
+  png-palette             207 KiB   45.3%  max 44 premult (44 straight), mean 0.057, 8062 px >8
+  webp-lossless           326 KiB   71.3%  lossless
+  webp-lossless-exact     326 KiB   71.3%  lossless
+  webp-near-80            323 KiB   70.8%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60            294 KiB   64.4%  max 2 premult (2 straight), mean 0.044, 0 px >8
+  webp-q90                202 KiB   44.1%  max 123 premult (123 straight), mean 0.525, 111118 px >8
+  webp-q80                149 KiB   32.7%  max 126 premult (126 straight), mean 0.631, 155321 px >8
+
+frontend/games/solitaire/docs/screenshots/blackhole/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             641 KiB  100.0%  
+  oxipng-max              621 KiB   96.9%  lossless
+  oxipng-max-alpha        621 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   704 KiB  109.8%  lossless
+  png-9-adaptive          814 KiB  127.1%  lossless
+  png-palette             289 KiB   45.1%  max 51 premult (51 straight), mean 0.075, 6327 px >8
+  webp-lossless           453 KiB   70.7%  lossless
+  webp-lossless-exact     453 KiB   70.7%  lossless
+  webp-near-80            438 KiB   68.4%  max 1 premult (1 straight), mean 0.037, 0 px >8
+  webp-near-60            390 KiB   60.8%  max 2 premult (2 straight), mean 0.066, 0 px >8
+  webp-q90                284 KiB   44.4%  max 118 premult (118 straight), mean 0.610, 159385 px >8
+  webp-q80                217 KiB   33.8%  max 126 premult (126 straight), mean 0.868, 277185 px >8
+
+frontend/games/solitaire/docs/screenshots/bluemoon/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             850 KiB  100.0%  
+  oxipng-max              825 KiB   97.1%  lossless
+  oxipng-max-alpha        825 KiB   97.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   932 KiB  109.7%  lossless
+  png-9-adaptive         1078 KiB  126.9%  lossless
+  png-palette             372 KiB   43.8%  max 41 premult (41 straight), mean 0.111, 14095 px >8
+  webp-lossless           633 KiB   74.5%  lossless
+  webp-lossless-exact     633 KiB   74.5%  lossless
+  webp-near-80            615 KiB   72.4%  max 1 premult (1 straight), mean 0.041, 0 px >8
+  webp-near-60            539 KiB   63.4%  max 2 premult (2 straight), mean 0.075, 0 px >8
+  webp-q90                384 KiB   45.2%  max 144 premult (144 straight), mean 0.821, 240837 px >8
+  webp-q80                292 KiB   34.4%  max 137 premult (137 straight), mean 0.991, 306085 px >8
+
+frontend/games/solitaire/docs/screenshots/bristol/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             496 KiB  100.0%  
+  oxipng-max              481 KiB   97.0%  lossless
+  oxipng-max-alpha        481 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   547 KiB  110.4%  lossless
+  png-9-adaptive          635 KiB  128.1%  lossless
+  png-palette             220 KiB   44.5%  max 39 premult (39 straight), mean 0.058, 5001 px >8
+  webp-lossless           343 KiB   69.3%  lossless
+  webp-lossless-exact     343 KiB   69.3%  lossless
+  webp-near-80            342 KiB   69.0%  max 1 premult (1 straight), mean 0.028, 0 px >8
+  webp-near-60            304 KiB   61.2%  max 2 premult (2 straight), mean 0.052, 0 px >8
+  webp-q90                211 KiB   42.6%  max 108 premult (108 straight), mean 0.532, 111246 px >8
+  webp-q80                155 KiB   31.3%  max 110 premult (110 straight), mean 0.682, 171271 px >8
+
+frontend/games/solitaire/docs/screenshots/calculation/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             187 KiB  100.0%  
+  oxipng-max              179 KiB   95.9%  lossless
+  oxipng-max-alpha        179 KiB   95.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   207 KiB  111.0%  lossless
+  png-9-adaptive          247 KiB  132.2%  lossless
+  png-palette             105 KiB   56.4%  max 26 premult (26 straight), mean 0.007, 228 px >8
+  webp-lossless           124 KiB   66.3%  lossless
+  webp-lossless-exact     124 KiB   66.3%  lossless
+  webp-near-80            119 KiB   63.9%  max 1 premult (1 straight), mean 0.009, 0 px >8
+  webp-near-60            111 KiB   59.4%  max 2 premult (2 straight), mean 0.019, 0 px >8
+  webp-q90                 60 KiB   32.3%  max 48 premult (48 straight), mean 0.282, 22474 px >8
+  webp-q80                 42 KiB   22.5%  max 54 premult (54 straight), mean 0.341, 36940 px >8
+
+frontend/games/solitaire/docs/screenshots/canfield/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             295 KiB  100.0%  
+  oxipng-max              286 KiB   97.0%  lossless
+  oxipng-max-alpha        286 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   327 KiB  110.7%  lossless
+  png-9-adaptive          385 KiB  130.6%  lossless
+  png-palette             142 KiB   48.1%  max 39 premult (39 straight), mean 0.027, 2508 px >8
+  webp-lossless           203 KiB   68.6%  lossless
+  webp-lossless-exact     203 KiB   68.6%  lossless
+  webp-near-80            201 KiB   68.0%  max 1 premult (1 straight), mean 0.015, 0 px >8
+  webp-near-60            184 KiB   62.2%  max 2 premult (2 straight), mean 0.028, 0 px >8
+  webp-q90                115 KiB   39.1%  max 106 premult (106 straight), mean 0.367, 52975 px >8
+  webp-q80                 82 KiB   27.8%  max 117 premult (117 straight), mean 0.446, 83096 px >8
+
+frontend/games/solitaire/docs/screenshots/challengefreecell/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             574 KiB  100.0%  
+  oxipng-max              558 KiB   97.2%  lossless
+  oxipng-max-alpha        558 KiB   97.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   627 KiB  109.3%  lossless
+  png-9-adaptive          705 KiB  122.9%  lossless
+  png-palette             248 KiB   43.2%  max 49 premult (49 straight), mean 0.076, 7522 px >8
+  webp-lossless           381 KiB   66.4%  lossless
+  webp-lossless-exact     381 KiB   66.4%  lossless
+  webp-near-80            379 KiB   66.0%  max 1 premult (1 straight), mean 0.037, 0 px >8
+  webp-near-60            332 KiB   57.8%  max 2 premult (2 straight), mean 0.067, 0 px >8
+  webp-q90                254 KiB   44.3%  max 126 premult (126 straight), mean 0.548, 140077 px >8
+  webp-q80                190 KiB   33.2%  max 116 premult (116 straight), mean 0.696, 198238 px >8
+
+frontend/games/solitaire/docs/screenshots/doubleklondike/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             359 KiB  100.0%  
+  oxipng-max              348 KiB   96.8%  lossless
+  oxipng-max-alpha        348 KiB   96.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   396 KiB  110.1%  lossless
+  png-9-adaptive          462 KiB  128.4%  lossless
+  png-palette             165 KiB   45.8%  max 58 premult (58 straight), mean 0.040, 4464 px >8
+  webp-lossless           260 KiB   72.5%  lossless
+  webp-lossless-exact     260 KiB   72.5%  lossless
+  webp-near-80            264 KiB   73.5%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60            226 KiB   62.8%  max 2 premult (2 straight), mean 0.044, 0 px >8
+  webp-q90                175 KiB   48.6%  max 118 premult (118 straight), mean 0.540, 123236 px >8
+  webp-q80                124 KiB   34.5%  max 124 premult (124 straight), mean 0.681, 185642 px >8
+
+frontend/games/solitaire/docs/screenshots/easthaven/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             483 KiB  100.0%  
+  oxipng-max              468 KiB   97.0%  lossless
+  oxipng-max-alpha        468 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   529 KiB  109.5%  lossless
+  png-9-adaptive          597 KiB  123.6%  lossless
+  png-palette             200 KiB   41.4%  max 43 premult (43 straight), mean 0.067, 6855 px >8
+  webp-lossless           336 KiB   69.6%  lossless
+  webp-lossless-exact     336 KiB   69.6%  lossless
+  webp-near-80            331 KiB   68.7%  max 1 premult (1 straight), mean 0.028, 0 px >8
+  webp-near-60            290 KiB   60.0%  max 2 premult (2 straight), mean 0.054, 0 px >8
+  webp-q90                193 KiB   40.1%  max 96 premult (96 straight), mean 0.545, 135497 px >8
+  webp-q80                138 KiB   28.5%  max 98 premult (98 straight), mean 0.683, 193406 px >8
+
+frontend/games/solitaire/docs/screenshots/eightoff/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             540 KiB  100.0%  
+  oxipng-max              528 KiB   97.7%  lossless
+  oxipng-max-alpha        528 KiB   97.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   599 KiB  110.9%  lossless
+  png-9-adaptive          674 KiB  124.7%  lossless
+  png-palette             234 KiB   43.4%  max 50 premult (50 straight), mean 0.071, 9429 px >8
+  webp-lossless           378 KiB   70.0%  lossless
+  webp-lossless-exact     378 KiB   70.0%  lossless
+  webp-near-80            373 KiB   69.1%  max 1 premult (1 straight), mean 0.027, 0 px >8
+  webp-near-60            328 KiB   60.7%  max 2 premult (2 straight), mean 0.050, 0 px >8
+  webp-q90                215 KiB   39.9%  max 127 premult (127 straight), mean 0.536, 123370 px >8
+  webp-q80                159 KiB   29.5%  max 127 premult (127 straight), mean 0.663, 175592 px >8
+
+frontend/games/solitaire/docs/screenshots/flowergarden/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             507 KiB  100.0%  
+  oxipng-max              494 KiB   97.4%  lossless
+  oxipng-max-alpha        494 KiB   97.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   559 KiB  110.3%  lossless
+  png-9-adaptive          652 KiB  128.7%  lossless
+  png-palette             232 KiB   45.7%  max 49 premult (49 straight), mean 0.059, 5764 px >8
+  webp-lossless           369 KiB   72.7%  lossless
+  webp-lossless-exact     369 KiB   72.7%  lossless
+  webp-near-80            367 KiB   72.4%  max 1 premult (1 straight), mean 0.029, 0 px >8
+  webp-near-60            327 KiB   64.5%  max 2 premult (2 straight), mean 0.050, 0 px >8
+  webp-q90                235 KiB   46.3%  max 145 premult (145 straight), mean 0.558, 123933 px >8
+  webp-q80                176 KiB   34.7%  max 142 premult (142 straight), mean 0.674, 164777 px >8
+
+frontend/games/solitaire/docs/screenshots/fortress/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             428 KiB  100.0%  
+  oxipng-max              417 KiB   97.6%  lossless
+  oxipng-max-alpha        417 KiB   97.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   473 KiB  110.5%  lossless
+  png-9-adaptive          531 KiB  124.3%  lossless
+  png-palette             197 KiB   46.0%  max 49 premult (49 straight), mean 0.048, 4838 px >8
+  webp-lossless           269 KiB   63.0%  lossless
+  webp-lossless-exact     269 KiB   63.0%  lossless
+  webp-near-80            270 KiB   63.1%  max 1 premult (1 straight), mean 0.021, 0 px >8
+  webp-near-60            247 KiB   57.8%  max 2 premult (2 straight), mean 0.039, 0 px >8
+  webp-q90                174 KiB   40.7%  max 145 premult (145 straight), mean 0.435, 90027 px >8
+  webp-q80                129 KiB   30.2%  max 155 premult (155 straight), mean 0.539, 131722 px >8
+
+frontend/games/solitaire/docs/screenshots/fortythieves/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             546 KiB  100.0%  
+  oxipng-max              529 KiB   96.8%  lossless
+  oxipng-max-alpha        529 KiB   96.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   601 KiB  109.9%  lossless
+  png-9-adaptive          702 KiB  128.6%  lossless
+  png-palette             239 KiB   43.7%  max 53 premult (53 straight), mean 0.071, 6309 px >8
+  webp-lossless           418 KiB   76.5%  lossless
+  webp-lossless-exact     418 KiB   76.5%  lossless
+  webp-near-80            418 KiB   76.5%  max 1 premult (1 straight), mean 0.035, 0 px >8
+  webp-near-60            365 KiB   66.9%  max 2 premult (2 straight), mean 0.065, 0 px >8
+  webp-q90                260 KiB   47.6%  max 146 premult (146 straight), mean 0.649, 159408 px >8
+  webp-q80                194 KiB   35.5%  max 149 premult (149 straight), mean 0.810, 228210 px >8
+
+frontend/games/solitaire/docs/screenshots/freecell/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             554 KiB  100.0%  
+  oxipng-max              539 KiB   97.2%  lossless
+  oxipng-max-alpha        539 KiB   97.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   607 KiB  109.5%  lossless
+  png-9-adaptive          678 KiB  122.4%  lossless
+  png-palette             243 KiB   43.9%  max 40 premult (40 straight), mean 0.075, 6109 px >8
+  webp-lossless           365 KiB   65.9%  lossless
+  webp-lossless-exact     365 KiB   65.9%  lossless
+  webp-near-80            363 KiB   65.4%  max 1 premult (1 straight), mean 0.037, 0 px >8
+  webp-near-60            318 KiB   57.4%  max 2 premult (2 straight), mean 0.067, 0 px >8
+  webp-q90                242 KiB   43.6%  max 137 premult (137 straight), mean 0.515, 126356 px >8
+  webp-q80                180 KiB   32.5%  max 135 premult (135 straight), mean 0.665, 183996 px >8
+
+frontend/games/solitaire/docs/screenshots/golf/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             716 KiB  100.0%  
+  oxipng-max              694 KiB   96.9%  lossless
+  oxipng-max-alpha        694 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   779 KiB  108.8%  lossless
+  png-9-adaptive          924 KiB  129.0%  lossless
+  png-palette             306 KiB   42.8%  max 56 premult (56 straight), mean 0.082, 6133 px >8
+  webp-lossless           532 KiB   74.2%  lossless
+  webp-lossless-exact     532 KiB   74.2%  lossless
+  webp-near-80            522 KiB   72.9%  max 1 premult (1 straight), mean 0.035, 0 px >8
+  webp-near-60            454 KiB   63.3%  max 2 premult (2 straight), mean 0.061, 0 px >8
+  webp-q90                332 KiB   46.3%  max 111 premult (111 straight), mean 0.621, 187015 px >8
+  webp-q80                248 KiB   34.6%  max 109 premult (109 straight), mean 0.769, 254038 px >8
+
+frontend/games/solitaire/docs/screenshots/grandfathersclock/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             496 KiB  100.0%  
+  oxipng-max              481 KiB   97.1%  lossless
+  oxipng-max-alpha        481 KiB   97.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   545 KiB  110.0%  lossless
+  png-9-adaptive          632 KiB  127.5%  lossless
+  png-palette             225 KiB   45.4%  max 46 premult (46 straight), mean 0.058, 6594 px >8
+  webp-lossless           341 KiB   68.8%  lossless
+  webp-lossless-exact     341 KiB   68.8%  lossless
+  webp-near-80            329 KiB   66.5%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60            298 KiB   60.1%  max 2 premult (2 straight), mean 0.044, 0 px >8
+  webp-q90                211 KiB   42.7%  max 129 premult (129 straight), mean 0.498, 113636 px >8
+  webp-q80                157 KiB   31.8%  max 139 premult (139 straight), mean 0.605, 150333 px >8
+
+frontend/games/solitaire/docs/screenshots/klondike/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             386 KiB  100.0%  
+  oxipng-max              374 KiB   96.9%  lossless
+  oxipng-max-alpha        374 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   423 KiB  109.5%  lossless
+  png-9-adaptive          486 KiB  126.0%  lossless
+  png-palette             170 KiB   44.0%  max 46 premult (46 straight), mean 0.045, 3769 px >8
+  webp-lossless           268 KiB   69.3%  lossless
+  webp-lossless-exact     268 KiB   69.3%  lossless
+  webp-near-80            258 KiB   66.9%  max 1 premult (1 straight), mean 0.023, 0 px >8
+  webp-near-60            235 KiB   60.8%  max 2 premult (2 straight), mean 0.046, 0 px >8
+  webp-q90                196 KiB   50.6%  max 90 premult (90 straight), mean 0.576, 151247 px >8
+  webp-q80                139 KiB   36.0%  max 101 premult (101 straight), mean 0.716, 203425 px >8
+
+frontend/games/solitaire/docs/screenshots/labellelucie/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             574 KiB  100.0%  
+  oxipng-max              557 KiB   97.0%  lossless
+  oxipng-max-alpha        557 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   633 KiB  110.1%  lossless
+  png-9-adaptive          736 KiB  128.1%  lossless
+  png-palette             259 KiB   45.0%  max 42 premult (42 straight), mean 0.066, 5438 px >8
+  webp-lossless           416 KiB   72.5%  lossless
+  webp-lossless-exact     416 KiB   72.5%  lossless
+  webp-near-80            416 KiB   72.4%  max 1 premult (1 straight), mean 0.033, 0 px >8
+  webp-near-60            372 KiB   64.8%  max 2 premult (2 straight), mean 0.056, 0 px >8
+  webp-q90                279 KiB   48.6%  max 120 premult (120 straight), mean 0.595, 160067 px >8
+  webp-q80                213 KiB   37.0%  max 120 premult (120 straight), mean 0.730, 210201 px >8
+
+frontend/games/solitaire/docs/screenshots/limited/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             442 KiB  100.0%  
+  oxipng-max              428 KiB   96.9%  lossless
+  oxipng-max-alpha        428 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   487 KiB  110.3%  lossless
+  png-9-adaptive          557 KiB  126.2%  lossless
+  png-palette             190 KiB   43.1%  max 47 premult (47 straight), mean 0.061, 8640 px >8
+  webp-lossless           324 KiB   73.4%  lossless
+  webp-lossless-exact     324 KiB   73.4%  lossless
+  webp-near-80            325 KiB   73.6%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60            288 KiB   65.2%  max 2 premult (2 straight), mean 0.046, 0 px >8
+  webp-q90                188 KiB   42.6%  max 106 premult (106 straight), mean 0.515, 113324 px >8
+  webp-q80                137 KiB   31.0%  max 116 premult (116 straight), mean 0.643, 166430 px >8
+
+frontend/games/solitaire/docs/screenshots/lucas/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             501 KiB  100.0%  
+  oxipng-max              486 KiB   97.0%  lossless
+  oxipng-max-alpha        486 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   549 KiB  109.5%  lossless
+  png-9-adaptive          638 KiB  127.2%  lossless
+  png-palette             223 KiB   44.5%  max 49 premult (49 straight), mean 0.065, 8258 px >8
+  webp-lossless           365 KiB   72.7%  lossless
+  webp-lossless-exact     365 KiB   72.7%  lossless
+  webp-near-80            357 KiB   71.2%  max 1 premult (1 straight), mean 0.027, 0 px >8
+  webp-near-60            318 KiB   63.5%  max 2 premult (2 straight), mean 0.048, 0 px >8
+  webp-q90                213 KiB   42.5%  max 127 premult (127 straight), mean 0.553, 126312 px >8
+  webp-q80                157 KiB   31.4%  max 134 premult (134 straight), mean 0.663, 168845 px >8
+
+frontend/games/solitaire/docs/screenshots/maria/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             326 KiB  100.0%  
+  oxipng-max              313 KiB   96.1%  lossless
+  oxipng-max-alpha        313 KiB   96.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   359 KiB  110.2%  lossless
+  png-9-adaptive          425 KiB  130.4%  lossless
+  png-palette             159 KiB   48.7%  max 35 premult (35 straight), mean 0.029, 2235 px >8
+  webp-lossless           226 KiB   69.5%  lossless
+  webp-lossless-exact     226 KiB   69.5%  lossless
+  webp-near-80            225 KiB   69.1%  max 1 premult (1 straight), mean 0.026, 0 px >8
+  webp-near-60            214 KiB   65.7%  max 2 premult (2 straight), mean 0.044, 0 px >8
+  webp-q90                160 KiB   49.1%  max 130 premult (130 straight), mean 0.500, 89632 px >8
+  webp-q80                115 KiB   35.4%  max 136 premult (136 straight), mean 0.619, 126122 px >8
+
+frontend/games/solitaire/docs/screenshots/montana/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             925 KiB  100.0%  
+  oxipng-max              899 KiB   97.1%  lossless
+  oxipng-max-alpha        899 KiB   97.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1012 KiB  109.4%  lossless
+  png-9-adaptive         1171 KiB  126.5%  lossless
+  png-palette             400 KiB   43.2%  max 58 premult (58 straight), mean 0.121, 16450 px >8
+  webp-lossless           684 KiB   73.9%  lossless
+  webp-lossless-exact     684 KiB   73.9%  lossless
+  webp-near-80            667 KiB   72.1%  max 1 premult (1 straight), mean 0.045, 0 px >8
+  webp-near-60            578 KiB   62.5%  max 2 premult (2 straight), mean 0.083, 0 px >8
+  webp-q90                407 KiB   44.0%  max 129 premult (129 straight), mean 0.835, 248669 px >8
+  webp-q80                306 KiB   33.1%  max 138 premult (138 straight), mean 1.012, 330821 px >8
+
+frontend/games/solitaire/docs/screenshots/montecarlo/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             660 KiB  100.0%  
+  oxipng-max              645 KiB   97.7%  lossless
+  oxipng-max-alpha        645 KiB   97.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   729 KiB  110.4%  lossless
+  png-9-adaptive          827 KiB  125.2%  lossless
+  png-palette             272 KiB   41.2%  max 43 premult (43 straight), mean 0.092, 12643 px >8
+  webp-lossless           470 KiB   71.2%  lossless
+  webp-lossless-exact     470 KiB   71.2%  lossless
+  webp-near-80            461 KiB   69.8%  max 1 premult (1 straight), mean 0.029, 0 px >8
+  webp-near-60            398 KiB   60.3%  max 2 premult (2 straight), mean 0.055, 0 px >8
+  webp-q90                259 KiB   39.2%  max 138 premult (138 straight), mean 0.581, 156820 px >8
+  webp-q80                194 KiB   29.3%  max 132 premult (132 straight), mean 0.700, 206663 px >8
+
+frontend/games/solitaire/docs/screenshots/mrsmop/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             564 KiB  100.0%  
+  oxipng-max              546 KiB   96.9%  lossless
+  oxipng-max-alpha        546 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   616 KiB  109.3%  lossless
+  png-9-adaptive          716 KiB  127.0%  lossless
+  png-palette             249 KiB   44.3%  max 52 premult (52 straight), mean 0.079, 9584 px >8
+  webp-lossless           397 KiB   70.5%  lossless
+  webp-lossless-exact     397 KiB   70.5%  lossless
+  webp-near-80            399 KiB   70.7%  max 1 premult (1 straight), mean 0.036, 0 px >8
+  webp-near-60            351 KiB   62.3%  max 2 premult (2 straight), mean 0.062, 0 px >8
+  webp-q90                266 KiB   47.2%  max 134 premult (134 straight), mean 0.638, 157171 px >8
+  webp-q80                199 KiB   35.3%  max 139 premult (139 straight), mean 0.771, 204717 px >8
+
+frontend/games/solitaire/docs/screenshots/nestor/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             664 KiB  100.0%  
+  oxipng-max              646 KiB   97.3%  lossless
+  oxipng-max-alpha        646 KiB   97.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   725 KiB  109.3%  lossless
+  png-9-adaptive          827 KiB  124.6%  lossless
+  png-palette             284 KiB   42.7%  max 55 premult (55 straight), mean 0.082, 7773 px >8
+  webp-lossless           453 KiB   68.3%  lossless
+  webp-lossless-exact     453 KiB   68.3%  lossless
+  webp-near-80            443 KiB   66.7%  max 1 premult (1 straight), mean 0.039, 0 px >8
+  webp-near-60            386 KiB   58.2%  max 2 premult (2 straight), mean 0.067, 0 px >8
+  webp-q90                289 KiB   43.5%  max 126 premult (126 straight), mean 0.576, 159995 px >8
+  webp-q80                216 KiB   32.5%  max 115 premult (115 straight), mean 0.725, 223606 px >8
+
+frontend/games/solitaire/docs/screenshots/penguin/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             351 KiB  100.0%  
+  oxipng-max              340 KiB   96.9%  lossless
+  oxipng-max-alpha        340 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   388 KiB  110.3%  lossless
+  png-9-adaptive          442 KiB  125.9%  lossless
+  png-palette             172 KiB   48.9%  max 48 premult (48 straight), mean 0.034, 2653 px >8
+  webp-lossless           245 KiB   69.7%  lossless
+  webp-lossless-exact     245 KiB   69.7%  lossless
+  webp-near-80            242 KiB   68.8%  max 1 premult (1 straight), mean 0.022, 0 px >8
+  webp-near-60            226 KiB   64.3%  max 2 premult (2 straight), mean 0.038, 0 px >8
+  webp-q90                171 KiB   48.6%  max 128 premult (128 straight), mean 0.495, 101569 px >8
+  webp-q80                128 KiB   36.4%  max 133 premult (133 straight), mean 0.596, 130638 px >8
+
+frontend/games/solitaire/docs/screenshots/pokersquares/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             165 KiB  100.0%  
+  oxipng-max              159 KiB   96.5%  lossless
+  oxipng-max-alpha        159 KiB   96.5%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   182 KiB  110.6%  lossless
+  png-9-adaptive          205 KiB  124.6%  lossless
+  png-palette              95 KiB   57.5%  max 21 premult (21 straight), mean 0.006, 191 px >8
+  webp-lossless           108 KiB   65.3%  lossless
+  webp-lossless-exact     108 KiB   65.3%  lossless
+  webp-near-80            107 KiB   64.7%  max 1 premult (1 straight), mean 0.009, 0 px >8
+  webp-near-60            101 KiB   61.0%  max 2 premult (2 straight), mean 0.022, 0 px >8
+  webp-q90                 53 KiB   32.3%  max 50 premult (50 straight), mean 0.286, 18088 px >8
+  webp-q80                 36 KiB   22.0%  max 55 premult (55 straight), mean 0.345, 37671 px >8
+
+frontend/games/solitaire/docs/screenshots/pyramid/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             575 KiB  100.0%  
+  oxipng-max              562 KiB   97.7%  lossless
+  oxipng-max-alpha        562 KiB   97.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   632 KiB  109.9%  lossless
+  png-9-adaptive          734 KiB  127.7%  lossless
+  png-palette             246 KiB   42.8%  max 45 premult (45 straight), mean 0.067, 6210 px >8
+  webp-lossless           415 KiB   72.2%  lossless
+  webp-lossless-exact     415 KiB   72.2%  lossless
+  webp-near-80            409 KiB   71.1%  max 1 premult (1 straight), mean 0.028, 0 px >8
+  webp-near-60            357 KiB   62.1%  max 2 premult (2 straight), mean 0.049, 0 px >8
+  webp-q90                263 KiB   45.8%  max 126 premult (126 straight), mean 0.515, 135897 px >8
+  webp-q80                197 KiB   34.2%  max 134 premult (134 straight), mean 0.649, 195784 px >8
+
+frontend/games/solitaire/docs/screenshots/scorpion/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             543 KiB  100.0%  
+  oxipng-max              528 KiB   97.3%  lossless
+  oxipng-max-alpha        528 KiB   97.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   592 KiB  109.2%  lossless
+  png-9-adaptive          673 KiB  124.1%  lossless
+  png-palette             225 KiB   41.5%  max 37 premult (37 straight), mean 0.079, 7157 px >8
+  webp-lossless           378 KiB   69.7%  lossless
+  webp-lossless-exact     378 KiB   69.7%  lossless
+  webp-near-80            371 KiB   68.3%  max 1 premult (1 straight), mean 0.036, 0 px >8
+  webp-near-60            321 KiB   59.2%  max 2 premult (2 straight), mean 0.065, 0 px >8
+  webp-q90                233 KiB   43.0%  max 128 premult (128 straight), mean 0.565, 139321 px >8
+  webp-q80                170 KiB   31.3%  max 123 premult (123 straight), mean 0.730, 216940 px >8
+
+frontend/games/solitaire/docs/screenshots/seahaven/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             405 KiB  100.0%  
+  oxipng-max              390 KiB   96.3%  lossless
+  oxipng-max-alpha        390 KiB   96.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   444 KiB  109.8%  lossless
+  png-9-adaptive          516 KiB  127.5%  lossless
+  png-palette             194 KiB   48.0%  max 55 premult (55 straight), mean 0.044, 3361 px >8
+  webp-lossless           278 KiB   68.8%  lossless
+  webp-lossless-exact     278 KiB   68.8%  lossless
+  webp-near-80            279 KiB   68.9%  max 1 premult (1 straight), mean 0.028, 0 px >8
+  webp-near-60            260 KiB   64.4%  max 2 premult (2 straight), mean 0.051, 0 px >8
+  webp-q90                200 KiB   49.4%  max 126 premult (126 straight), mean 0.537, 114366 px >8
+  webp-q80                150 KiB   37.1%  max 139 premult (139 straight), mean 0.715, 182911 px >8
+
+frontend/games/solitaire/docs/screenshots/simplesimon/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             379 KiB  100.0%  
+  oxipng-max              367 KiB   96.9%  lossless
+  oxipng-max-alpha        367 KiB   96.9%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   418 KiB  110.2%  lossless
+  png-9-adaptive          490 KiB  129.3%  lossless
+  png-palette             184 KiB   48.6%  max 33 premult (33 straight), mean 0.036, 2451 px >8
+  webp-lossless           265 KiB   69.9%  lossless
+  webp-lossless-exact     265 KiB   69.9%  lossless
+  webp-near-80            259 KiB   68.3%  max 1 premult (1 straight), mean 0.023, 0 px >8
+  webp-near-60            241 KiB   63.5%  max 2 premult (2 straight), mean 0.039, 0 px >8
+  webp-q90                183 KiB   48.2%  max 139 premult (139 straight), mean 0.478, 97387 px >8
+  webp-q80                137 KiB   36.2%  max 134 premult (134 straight), mean 0.580, 130996 px >8
+
+frontend/games/solitaire/docs/screenshots/spider/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             466 KiB  100.0%  
+  oxipng-max              453 KiB   97.2%  lossless
+  oxipng-max-alpha        453 KiB   97.2%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   516 KiB  110.7%  lossless
+  png-9-adaptive          601 KiB  128.9%  lossless
+  png-palette             203 KiB   43.5%  max 41 premult (41 straight), mean 0.066, 6442 px >8
+  webp-lossless           358 KiB   76.8%  lossless
+  webp-lossless-exact     358 KiB   76.8%  lossless
+  webp-near-80            368 KiB   79.0%  max 1 premult (1 straight), mean 0.034, 0 px >8
+  webp-near-60            307 KiB   65.8%  max 2 premult (2 straight), mean 0.060, 0 px >8
+  webp-q90                231 KiB   49.6%  max 115 premult (115 straight), mean 0.655, 163152 px >8
+  webp-q80                167 KiB   35.9%  max 114 premult (114 straight), mean 0.801, 218307 px >8
+
+frontend/games/solitaire/docs/screenshots/spiderette/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             393 KiB  100.0%  
+  oxipng-max              381 KiB   97.0%  lossless
+  oxipng-max-alpha        381 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   430 KiB  109.4%  lossless
+  png-9-adaptive          507 KiB  128.9%  lossless
+  png-palette             177 KiB   44.9%  max 49 premult (49 straight), mean 0.047, 4206 px >8
+  webp-lossless           264 KiB   67.1%  lossless
+  webp-lossless-exact     264 KiB   67.1%  lossless
+  webp-near-80            261 KiB   66.3%  max 1 premult (1 straight), mean 0.026, 0 px >8
+  webp-near-60            230 KiB   58.5%  max 2 premult (2 straight), mean 0.050, 0 px >8
+  webp-q90                163 KiB   41.4%  max 83 premult (83 straight), mean 0.484, 92162 px >8
+  webp-q80                116 KiB   29.5%  max 88 premult (88 straight), mean 0.625, 148164 px >8
+
+frontend/games/solitaire/docs/screenshots/trefoil/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             709 KiB  100.0%  
+  oxipng-max              690 KiB   97.4%  lossless
+  oxipng-max-alpha        690 KiB   97.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   776 KiB  109.6%  lossless
+  png-9-adaptive          902 KiB  127.3%  lossless
+  png-palette             314 KiB   44.3%  max 51 premult (51 straight), mean 0.080, 7600 px >8
+  webp-lossless           535 KiB   75.5%  lossless
+  webp-lossless-exact     535 KiB   75.5%  lossless
+  webp-near-80            535 KiB   75.5%  max 1 premult (1 straight), mean 0.036, 0 px >8
+  webp-near-60            460 KiB   64.9%  max 2 premult (2 straight), mean 0.064, 0 px >8
+  webp-q90                333 KiB   46.9%  max 121 premult (121 straight), mean 0.679, 204294 px >8
+  webp-q80                252 KiB   35.6%  max 127 premult (127 straight), mean 0.814, 265234 px >8
+
+frontend/games/solitaire/docs/screenshots/tripeaks/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             603 KiB  100.0%  
+  oxipng-max              583 KiB   96.8%  lossless
+  oxipng-max-alpha        583 KiB   96.8%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   662 KiB  109.7%  lossless
+  png-9-adaptive          781 KiB  129.5%  lossless
+  png-palette             270 KiB   44.7%  max 51 premult (51 straight), mean 0.081, 7843 px >8
+  webp-lossless           574 KiB   95.3%  lossless
+  webp-lossless-exact     574 KiB   95.3%  lossless
+  webp-near-80            575 KiB   95.3%  max 1 premult (1 straight), mean 0.047, 0 px >8
+  webp-near-60            457 KiB   75.8%  max 2 premult (2 straight), mean 0.084, 0 px >8
+  webp-q90                298 KiB   49.5%  max 124 premult (124 straight), mean 0.794, 177176 px >8
+  webp-q80                210 KiB   34.8%  max 122 premult (122 straight), mean 0.980, 249884 px >8
+
+frontend/games/solitaire/docs/screenshots/yukon/overview.png
+  2880x1620, 3 channels, >256 colours, ICC no
+  png-at-HEAD             520 KiB  100.0%  
+  oxipng-max              507 KiB   97.5%  lossless
+  oxipng-max-alpha        507 KiB   97.5%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   571 KiB  109.8%  lossless
+  png-9-adaptive          648 KiB  124.6%  lossless
+  png-palette             219 KiB   42.2%  max 36 premult (36 straight), mean 0.080, 7585 px >8
+  webp-lossless           353 KiB   68.0%  lossless
+  webp-lossless-exact     353 KiB   68.0%  lossless
+  webp-near-80            356 KiB   68.4%  max 1 premult (1 straight), mean 0.034, 0 px >8
+  webp-near-60            309 KiB   59.5%  max 2 premult (2 straight), mean 0.062, 0 px >8
+  webp-q90                235 KiB   45.2%  max 121 premult (121 straight), mean 0.574, 148418 px >8
+  webp-q80                172 KiB   33.1%  max 129 premult (129 straight), mean 0.725, 215553 px >8
+
+Totals over distinct blobs (each counted once):
+  png-at-HEAD            20.07 MiB  100.0%  saves   0.00 MiB  lossless on every file
+  oxipng-max             19.48 MiB   97.1%  saves   0.59 MiB  lossless on every file
+  oxipng-max-alpha       19.48 MiB   97.1%  saves   0.59 MiB  lossless on every file
+  png-9                  22.04 MiB  109.8%  saves  -1.98 MiB  lossless on every file
+  png-9-adaptive         25.46 MiB  126.9%  saves  -5.39 MiB  lossless on every file
+  png-palette             8.94 MiB   44.6%  saves  11.12 MiB  lossy on some file
+  webp-lossless          14.36 MiB   71.6%  saves   5.70 MiB  lossless on every file
+  webp-lossless-exact    14.36 MiB   71.6%  saves   5.70 MiB  lossless on every file
+  webp-near-80           14.21 MiB   70.8%  saves   5.86 MiB  lossy on some file
+  webp-near-60           12.53 MiB   62.4%  saves   7.54 MiB  lossy on some file
+  webp-q90                8.96 MiB   44.6%  saves  11.11 MiB  lossy on some file
+  webp-q80                6.63 MiB   33.0%  saves  13.44 MiB  lossy on some file
+
+At HEAD the group's 41 paths hold 20.07 MiB (blobs shared by several paths counted at each).

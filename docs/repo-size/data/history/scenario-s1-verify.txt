@@ -1,0 +1,28 @@
+scenario: s1
+tree entries, refs/heads/main: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/main: 0
+tree differences, refs/heads/main: 0
+tip, refs/heads/main: 305edc247db599d368faadd37882946c1af799e5 -> 96f610389787f9054c3fb00639368b58c933bada; commit-map gives 96f610389787f9054c3fb00639368b58c933bada
+tree entries, refs/heads/live: 3459 before, 3459 after
+tree entries removed on purpose, refs/heads/live: 0
+tree differences, refs/heads/live: 0
+tip, refs/heads/live: 305edc247db599d368faadd37882946c1af799e5 -> 96f610389787f9054c3fb00639368b58c933bada; commit-map gives 96f610389787f9054c3fb00639368b58c933bada
+commits, refs/heads/main: 1705 before, 1705 after
+commits, refs/heads/live: 1705 before, 1705 after
+commits, --all: 1742 before, 1742 after
+commits whose hash changed: 1704 of 1742
+commits whose hash stayed: 38
+commits default pruning drops: 1, 1 of them on main
+  fbf76b25 2026-07-03 Add more background plceholder pictures to sprite sheet.
+message hash references: 20, 12 of them in main's commits
+message hash references rewritten: 20
+message hash references to commits that kept their hash: 0
+message hash references wrong: 0
+  414f164b97 names 1823367c -> 1540903c2e names 9e163e1f
+  fd5c050fe1 names afeaabd8 -> b126caaaea names 2d8616b3
+  fd5c050fe1 names b3ae2e81 -> b126caaaea names c28b022a
+  def2479266 names b3ae2e81 -> 7a2e59a79a names c28b022a
+  05b6fd8b0f names e6740e04 -> 995552e1d3 names 61d52deb
+  aec288786a names eb560e1f -> 659f576e0b names 2e1f4be2
+  b870830e16 names 3af8a55f -> dacb2c1ffd names 9a454890
+  21dbcad2c2 names c004b2ce -> 5468627198 names 4c0b04d0

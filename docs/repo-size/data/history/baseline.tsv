@@ -1,0 +1,2 @@
+scenario	size-pack KiB	size-pack MiB	objects	commits (all refs)	commits (main)	gc s
+baseline	296451	289.5	44479	1742	1705	108.1

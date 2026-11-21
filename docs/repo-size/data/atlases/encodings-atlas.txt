@@ -1,0 +1,333 @@
+group: atlas, 24 files, 21 distinct blobs
+sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/0.5x/card_assets-0.png
+  4012x324, 4 channels, >256 colours, ICC no
+  png-at-HEAD             367 KiB  100.0%  
+  oxipng-max              357 KiB   97.3%  lossless
+  oxipng-max-alpha        357 KiB   97.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   367 KiB  100.0%  lossless
+  png-9-adaptive          493 KiB  134.3%  lossless
+  png-palette             174 KiB   47.5%  max 48 premult (113 straight), mean 0.098, 6645 px >8
+  webp-lossless           218 KiB   59.3%  lossless
+  webp-lossless-exact     218 KiB   59.3%  lossless
+  webp-near-80            190 KiB   51.7%  max 1 premult (1 straight), mean 0.057, 0 px >8
+  webp-near-60            174 KiB   47.3%  max 3 premult (2 straight), mean 0.119, 0 px >8
+  webp-q90                242 KiB   65.9%  max 168 premult (255 straight), mean 1.199, 123178 px >8
+  webp-q80                189 KiB   51.4%  max 172 premult (255 straight), mean 1.433, 149414 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/0.75x/card_assets-0.png
+  3979x714, 4 channels, >256 colours, ICC no
+  png-at-HEAD             612 KiB  100.0%  
+  oxipng-max              593 KiB   97.0%  lossless
+  oxipng-max-alpha        593 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   612 KiB  100.0%  lossless
+  png-9-adaptive          846 KiB  138.2%  lossless
+  png-palette             293 KiB   47.9%  max 64 premult (113 straight), mean 0.069, 9111 px >8
+  webp-lossless           361 KiB   59.0%  lossless
+  webp-lossless-exact     361 KiB   59.0%  lossless
+  webp-near-80            314 KiB   51.4%  max 1 premult (1 straight), mean 0.046, 0 px >8
+  webp-near-60            287 KiB   46.9%  max 2 premult (2 straight), mean 0.117, 0 px >8
+  webp-q90                429 KiB   70.2%  max 150 premult (255 straight), mean 0.966, 225660 px >8
+  webp-q80                334 KiB   54.5%  max 150 premult (255 straight), mean 1.167, 275354 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/1.5x/card_assets-0.png
+  4056x2814, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1498 KiB  100.0%  
+  oxipng-max             1442 KiB   96.3%  lossless
+  oxipng-max-alpha       1442 KiB   96.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1498 KiB  100.0%  lossless
+  png-9-adaptive         2096 KiB  139.9%  lossless
+  png-palette             763 KiB   51.0%  max 48 premult (143 straight), mean 0.029, 9242 px >8
+  webp-lossless           834 KiB   55.7%  lossless
+  webp-lossless-exact     834 KiB   55.7%  lossless
+  webp-near-80            751 KiB   50.1%  max 1 premult (1 straight), mean 0.029, 0 px >8
+  webp-near-60            693 KiB   46.3%  max 2 premult (2 straight), mean 0.069, 0 px >8
+  webp-q90               1122 KiB   74.9%  max 139 premult (255 straight), mean 0.591, 563385 px >8
+  webp-q80                856 KiB   57.2%  max 141 premult (255 straight), mean 0.751, 740779 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/1x/card_assets-0.png
+  3876x1260, 4 channels, >256 colours, ICC no
+  png-at-HEAD             900 KiB  100.0%  
+  oxipng-max              865 KiB   96.1%  lossless
+  oxipng-max-alpha        865 KiB   96.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   900 KiB  100.0%  lossless
+  png-9-adaptive         1261 KiB  140.1%  lossless
+  png-palette             447 KiB   49.6%  max 69 premult (113 straight), mean 0.053, 10413 px >8
+  webp-lossless           515 KiB   57.2%  lossless
+  webp-lossless-exact     515 KiB   57.2%  lossless
+  webp-near-80            457 KiB   50.8%  max 1 premult (1 straight), mean 0.039, 0 px >8
+  webp-near-60            422 KiB   46.9%  max 2 premult (2 straight), mean 0.097, 0 px >8
+  webp-q90                639 KiB   71.1%  max 138 premult (255 straight), mean 0.816, 334093 px >8
+  webp-q80                495 KiB   55.0%  max 139 premult (255 straight), mean 1.003, 416583 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-0.png
+  4032x3732, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1410 KiB  100.0%  
+  oxipng-max             1341 KiB   95.1%  lossless
+  oxipng-max-alpha       1341 KiB   95.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1410 KiB  100.0%  lossless
+  png-9-adaptive         1987 KiB  141.0%  lossless
+  png-palette             819 KiB   58.1%  max 65 premult (173 straight), mean 0.011, 5486 px >8
+  webp-lossless           765 KiB   54.3%  lossless
+  webp-lossless-exact     765 KiB   54.3%  lossless
+  webp-near-80            753 KiB   53.4%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60            739 KiB   52.4%  max 2 premult (2 straight), mean 0.061, 0 px >8
+  webp-q90               1344 KiB   95.3%  max 140 premult (163 straight), mean 0.519, 654258 px >8
+  webp-q80               1018 KiB   72.2%  max 147 premult (170 straight), mean 0.666, 868356 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-1.png (and 3 more paths, same blob)
+  3136x1244, 4 channels, >256 colours, ICC no
+  png-at-HEAD             570 KiB  100.0%  
+  oxipng-max              548 KiB   96.1%  lossless
+  oxipng-max-alpha        547 KiB   96.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   570 KiB  100.0%  lossless
+  png-9-adaptive          763 KiB  133.9%  lossless
+  png-palette             247 KiB   43.3%  max 24 premult (113 straight), mean 0.017, 32 px >8
+  webp-lossless           262 KiB   45.9%  lossless
+  webp-lossless-exact     262 KiB   45.9%  lossless
+  webp-near-80            179 KiB   31.5%  max 1 premult (1 straight), mean 0.025, 0 px >8
+  webp-near-60            128 KiB   22.5%  max 2 premult (2 straight), mean 0.045, 0 px >8
+  webp-q90                281 KiB   49.3%  max 77 premult (255 straight), mean 0.428, 145351 px >8
+  webp-q80                210 KiB   36.8%  max 81 premult (255 straight), mean 0.543, 217313 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/0.5x/card_assets-0.png
+  4012x324, 4 channels, >256 colours, ICC no
+  png-at-HEAD             366 KiB  100.0%  
+  oxipng-max              355 KiB   97.0%  lossless
+  oxipng-max-alpha        355 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   366 KiB  100.0%  lossless
+  png-9-adaptive          491 KiB  134.1%  lossless
+  png-palette             174 KiB   47.6%  max 51 premult (191 straight), mean 0.097, 7202 px >8
+  webp-lossless           216 KiB   59.1%  lossless
+  webp-lossless-exact     216 KiB   59.1%  lossless
+  webp-near-80            188 KiB   51.3%  max 1 premult (1 straight), mean 0.056, 0 px >8
+  webp-near-60            172 KiB   46.9%  max 3 premult (2 straight), mean 0.118, 0 px >8
+  webp-q90                235 KiB   64.2%  max 168 premult (255 straight), mean 1.178, 121161 px >8
+  webp-q80                183 KiB   49.9%  max 172 premult (255 straight), mean 1.405, 146514 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/0.75x/card_assets-0.png
+  3979x714, 4 channels, >256 colours, ICC no
+  png-at-HEAD             610 KiB  100.0%  
+  oxipng-max              592 KiB   97.1%  lossless
+  oxipng-max-alpha        592 KiB   97.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   610 KiB  100.0%  lossless
+  png-9-adaptive          842 KiB  138.1%  lossless
+  png-palette             292 KiB   47.8%  max 64 premult (113 straight), mean 0.066, 9290 px >8
+  webp-lossless           359 KiB   58.8%  lossless
+  webp-lossless-exact     359 KiB   58.8%  lossless
+  webp-near-80            312 KiB   51.2%  max 1 premult (1 straight), mean 0.046, 0 px >8
+  webp-near-60            284 KiB   46.6%  max 2 premult (2 straight), mean 0.116, 0 px >8
+  webp-q90                418 KiB   68.6%  max 150 premult (255 straight), mean 0.950, 222664 px >8
+  webp-q80                325 KiB   53.3%  max 150 premult (255 straight), mean 1.148, 270866 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/1.5x/card_assets-0.png
+  4056x2814, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1493 KiB  100.0%  
+  oxipng-max             1438 KiB   96.3%  lossless
+  oxipng-max-alpha       1438 KiB   96.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1493 KiB  100.0%  lossless
+  png-9-adaptive         2086 KiB  139.7%  lossless
+  png-palette             758 KiB   50.8%  max 65 premult (143 straight), mean 0.029, 8568 px >8
+  webp-lossless           829 KiB   55.5%  lossless
+  webp-lossless-exact     829 KiB   55.5%  lossless
+  webp-near-80            746 KiB   50.0%  max 1 premult (1 straight), mean 0.029, 0 px >8
+  webp-near-60            688 KiB   46.1%  max 2 premult (2 straight), mean 0.068, 0 px >8
+  webp-q90               1101 KiB   73.8%  max 140 premult (255 straight), mean 0.582, 555729 px >8
+  webp-q80                840 KiB   56.3%  max 142 premult (255 straight), mean 0.739, 727671 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/1x/card_assets-0.png
+  3876x1260, 4 channels, >256 colours, ICC no
+  png-at-HEAD             897 KiB  100.0%  
+  oxipng-max              862 KiB   96.1%  lossless
+  oxipng-max-alpha        862 KiB   96.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   897 KiB  100.0%  lossless
+  png-9-adaptive         1255 KiB  139.9%  lossless
+  png-palette             446 KiB   49.7%  max 62 premult (113 straight), mean 0.052, 9719 px >8
+  webp-lossless           512 KiB   57.1%  lossless
+  webp-lossless-exact     512 KiB   57.1%  lossless
+  webp-near-80            453 KiB   50.5%  max 1 premult (1 straight), mean 0.039, 0 px >8
+  webp-near-60            419 KiB   46.7%  max 2 premult (2 straight), mean 0.097, 0 px >8
+  webp-q90                625 KiB   69.7%  max 138 premult (255 straight), mean 0.803, 329703 px >8
+  webp-q80                484 KiB   53.9%  max 139 premult (255 straight), mean 0.991, 413477 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/classic/2x/card_assets-0.png
+  4032x3732, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1403 KiB  100.0%  
+  oxipng-max             1334 KiB   95.1%  lossless
+  oxipng-max-alpha       1334 KiB   95.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1403 KiB  100.0%  lossless
+  png-9-adaptive         1977 KiB  140.9%  lossless
+  png-palette             812 KiB   57.9%  max 68 premult (173 straight), mean 0.010, 4998 px >8
+  webp-lossless           757 KiB   54.0%  lossless
+  webp-lossless-exact     757 KiB   54.0%  lossless
+  webp-near-80            746 KiB   53.2%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60            732 KiB   52.2%  max 2 premult (2 straight), mean 0.060, 0 px >8
+  webp-q90               1316 KiB   93.8%  max 140 premult (163 straight), mean 0.510, 645254 px >8
+  webp-q80                997 KiB   71.1%  max 148 premult (170 straight), mean 0.654, 858400 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/indexed/0.5x/card_assets-0.png
+  4012x324, 4 channels, >256 colours, ICC no
+  png-at-HEAD             367 KiB  100.0%  
+  oxipng-max              357 KiB   97.4%  lossless
+  oxipng-max-alpha        357 KiB   97.4%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   367 KiB  100.0%  lossless
+  png-9-adaptive          492 KiB  134.2%  lossless
+  png-palette             175 KiB   47.7%  max 48 premult (113 straight), mean 0.098, 7436 px >8
+  webp-lossless           217 KiB   59.2%  lossless
+  webp-lossless-exact     217 KiB   59.2%  lossless
+  webp-near-80            188 KiB   51.3%  max 1 premult (1 straight), mean 0.056, 0 px >8
+  webp-near-60            173 KiB   47.3%  max 3 premult (2 straight), mean 0.118, 0 px >8
+  webp-q90                237 KiB   64.6%  max 168 premult (255 straight), mean 1.185, 121686 px >8
+  webp-q80                185 KiB   50.3%  max 174 premult (255 straight), mean 1.415, 147700 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/indexed/0.75x/card_assets-0.png
+  3979x714, 4 channels, >256 colours, ICC no
+  png-at-HEAD             611 KiB  100.0%  
+  oxipng-max              593 KiB   97.0%  lossless
+  oxipng-max-alpha        593 KiB   97.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   611 KiB  100.0%  lossless
+  png-9-adaptive          844 KiB  138.1%  lossless
+  png-palette             290 KiB   47.5%  max 64 premult (113 straight), mean 0.069, 9861 px >8
+  webp-lossless           360 KiB   58.9%  lossless
+  webp-lossless-exact     360 KiB   58.9%  lossless
+  webp-near-80            313 KiB   51.2%  max 1 premult (1 straight), mean 0.046, 0 px >8
+  webp-near-60            286 KiB   46.7%  max 2 premult (2 straight), mean 0.116, 0 px >8
+  webp-q90                422 KiB   69.0%  max 151 premult (255 straight), mean 0.955, 223333 px >8
+  webp-q80                328 KiB   53.7%  max 154 premult (255 straight), mean 1.156, 272037 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/indexed/1.5x/card_assets-0.png
+  4056x2814, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1496 KiB  100.0%  
+  oxipng-max             1441 KiB   96.3%  lossless
+  oxipng-max-alpha       1441 KiB   96.3%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1496 KiB  100.0%  lossless
+  png-9-adaptive         2093 KiB  139.8%  lossless
+  png-palette             758 KiB   50.6%  max 52 premult (143 straight), mean 0.031, 9799 px >8
+  webp-lossless           831 KiB   55.6%  lossless
+  webp-lossless-exact     831 KiB   55.6%  lossless
+  webp-near-80            749 KiB   50.1%  max 1 premult (1 straight), mean 0.029, 0 px >8
+  webp-near-60            691 KiB   46.2%  max 2 premult (2 straight), mean 0.068, 0 px >8
+  webp-q90               1108 KiB   74.0%  max 138 premult (255 straight), mean 0.584, 558142 px >8
+  webp-q80                845 KiB   56.5%  max 142 premult (255 straight), mean 0.743, 733876 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/indexed/1x/card_assets-0.png
+  3876x1260, 4 channels, >256 colours, ICC no
+  png-at-HEAD             899 KiB  100.0%  
+  oxipng-max              864 KiB   96.1%  lossless
+  oxipng-max-alpha        864 KiB   96.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   899 KiB  100.0%  lossless
+  png-9-adaptive         1259 KiB  140.0%  lossless
+  png-palette             450 KiB   50.0%  max 59 premult (113 straight), mean 0.053, 9914 px >8
+  webp-lossless           515 KiB   57.2%  lossless
+  webp-lossless-exact     515 KiB   57.2%  lossless
+  webp-near-80            456 KiB   50.7%  max 1 premult (1 straight), mean 0.039, 0 px >8
+  webp-near-60            420 KiB   46.7%  max 2 premult (2 straight), mean 0.097, 0 px >8
+  webp-q90                629 KiB   70.0%  max 138 premult (255 straight), mean 0.808, 331012 px >8
+  webp-q80                487 KiB   54.2%  max 141 premult (255 straight), mean 0.996, 415140 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/indexed/2x/card_assets-0.png
+  4032x3732, 4 channels, >256 colours, ICC no
+  png-at-HEAD            1408 KiB  100.0%  
+  oxipng-max             1338 KiB   95.1%  lossless
+  oxipng-max-alpha       1338 KiB   95.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                  1408 KiB  100.0%  lossless
+  png-9-adaptive         1984 KiB  140.9%  lossless
+  png-palette             812 KiB   57.7%  max 49 premult (158 straight), mean 0.011, 5708 px >8
+  webp-lossless           761 KiB   54.0%  lossless
+  webp-lossless-exact     761 KiB   54.0%  lossless
+  webp-near-80            750 KiB   53.3%  max 1 premult (1 straight), mean 0.024, 0 px >8
+  webp-near-60            735 KiB   52.2%  max 2 premult (2 straight), mean 0.060, 0 px >8
+  webp-q90               1325 KiB   94.1%  max 140 premult (164 straight), mean 0.513, 647277 px >8
+  webp-q80               1004 KiB   71.3%  max 147 premult (170 straight), mean 0.658, 860607 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/mobile/0.5x/card_assets-0.png
+  4012x324, 4 channels, >256 colours, ICC no
+  png-at-HEAD             165 KiB  100.0%  
+  oxipng-max              162 KiB   98.1%  lossless
+  oxipng-max-alpha        162 KiB   98.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   165 KiB  100.0%  lossless
+  png-9-adaptive          202 KiB  122.4%  lossless
+  png-palette              71 KiB   42.9%  max 38 premult (113 straight), mean 0.022, 46 px >8
+  webp-lossless           105 KiB   63.5%  lossless once premultiplied
+  webp-lossless-exact     105 KiB   63.6%  lossless
+  webp-near-80            106 KiB   64.1%  max 2 premult (255 straight), mean 0.054, 0 px >8
+  webp-near-60             92 KiB   55.9%  max 3 premult (255 straight), mean 0.098, 0 px >8
+  webp-q90                122 KiB   73.8%  max 63 premult (255 straight), mean 0.717, 50707 px >8
+  webp-q80                 92 KiB   56.1%  max 76 premult (255 straight), mean 0.947, 68593 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/mobile/0.75x/card_assets-0.png
+  3979x714, 4 channels, >256 colours, ICC no
+  png-at-HEAD             280 KiB  100.0%  
+  oxipng-max              273 KiB   97.7%  lossless
+  oxipng-max-alpha        273 KiB   97.7%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   280 KiB  100.0%  lossless
+  png-9-adaptive          343 KiB  122.6%  lossless
+  png-palette             112 KiB   40.2%  max 52 premult (113 straight), mean 0.019, 62 px >8
+  webp-lossless           177 KiB   63.1%  lossless once premultiplied
+  webp-lossless-exact     177 KiB   63.3%  lossless
+  webp-near-80            181 KiB   64.6%  max 2 premult (255 straight), mean 0.043, 0 px >8
+  webp-near-60            159 KiB   56.8%  max 2 premult (255 straight), mean 0.082, 0 px >8
+  webp-q90                196 KiB   70.2%  max 64 premult (255 straight), mean 0.563, 83625 px >8
+  webp-q80                149 KiB   53.2%  max 65 premult (255 straight), mean 0.738, 113694 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/mobile/1.5x/card_assets-0.png
+  4056x2814, 4 channels, >256 colours, ICC no
+  png-at-HEAD             754 KiB  100.0%  
+  oxipng-max              728 KiB   96.6%  lossless
+  oxipng-max-alpha        728 KiB   96.6%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   754 KiB  100.0%  lossless
+  png-9-adaptive          921 KiB  122.2%  lossless
+  png-palette             338 KiB   44.9%  max 58 premult (128 straight), mean 0.011, 219 px >8
+  webp-lossless           454 KiB   60.2%  lossless once premultiplied
+  webp-lossless-exact     454 KiB   60.2%  lossless
+  webp-near-80            445 KiB   59.0%  max 2 premult (255 straight), mean 0.023, 0 px >8
+  webp-near-60            403 KiB   53.4%  max 3 premult (255 straight), mean 0.044, 0 px >8
+  webp-q90                470 KiB   62.3%  max 77 premult (255 straight), mean 0.388, 202023 px >8
+  webp-q80                354 KiB   46.9%  max 86 premult (255 straight), mean 0.512, 291988 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/mobile/1x/card_assets-0.png
+  3876x1260, 4 channels, >256 colours, ICC no
+  png-at-HEAD             423 KiB  100.0%  
+  oxipng-max              415 KiB   98.1%  lossless
+  oxipng-max-alpha        415 KiB   98.1%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   423 KiB  100.0%  lossless
+  png-9-adaptive          532 KiB  125.7%  lossless
+  png-palette             187 KiB   44.1%  max 52 premult (113 straight), mean 0.015, 120 px >8
+  webp-lossless           208 KiB   49.1%  lossless
+  webp-lossless-exact     208 KiB   49.1%  lossless
+  webp-near-80            170 KiB   40.1%  max 1 premult (1 straight), mean 0.018, 0 px >8
+  webp-near-60            149 KiB   35.3%  max 2 premult (2 straight), mean 0.076, 0 px >8
+  webp-q90                280 KiB   66.1%  max 75 premult (255 straight), mean 0.505, 122553 px >8
+  webp-q80                211 KiB   49.8%  max 76 premult (255 straight), mean 0.653, 168584 px >8
+
+frontend/games/solitaire/src/engine/render/assets/sprites/atlas/mobile/2x/card_assets-0.png
+  4032x3732, 4 channels, >256 colours, ICC no
+  png-at-HEAD             417 KiB  100.0%  
+  oxipng-max              375 KiB   90.0%  lossless
+  oxipng-max-alpha        375 KiB   90.0%  lossless but for colour under alpha 0, which --alpha may change
+  png-9                   417 KiB  100.0%  lossless
+  png-9-adaptive          411 KiB   98.4%  lossless
+  png-palette             204 KiB   49.0%  max 34 premult (113 straight), mean 0.001, 69 px >8
+  webp-lossless           140 KiB   33.5%  lossless
+  webp-lossless-exact     140 KiB   33.5%  lossless
+  webp-near-80            140 KiB   33.5%  max 2 premult (1 straight), mean 0.006, 0 px >8
+  webp-near-60            141 KiB   33.7%  max 2 premult (2 straight), mean 0.040, 0 px >8
+  webp-q90                347 KiB   83.1%  max 46 premult (165 straight), mean 0.314, 135534 px >8
+  webp-q80                260 KiB   62.3%  max 57 premult (165 straight), mean 0.427, 230850 px >8
+
+Totals over distinct blobs (each counted once):
+  png-at-HEAD            16.55 MiB  100.0%  saves   0.00 MiB  lossless on every file
+  oxipng-max             15.89 MiB   96.0%  saves   0.65 MiB  lossless on every file
+  oxipng-max-alpha       15.89 MiB   96.0%  saves   0.65 MiB  lossless on every file
+  png-9                  16.55 MiB  100.0%  saves   0.00 MiB  lossless on every file
+  png-9-adaptive         22.63 MiB  136.8%  saves  -6.08 MiB  lossless on every file
+  png-palette             8.42 MiB   50.9%  saves   8.13 MiB  lossy on some file
+  webp-lossless           9.17 MiB   55.4%  saves   7.38 MiB  lossless on every file
+  webp-lossless-exact     9.17 MiB   55.4%  saves   7.37 MiB  lossless on every file
+  webp-near-80            8.39 MiB   50.7%  saves   8.16 MiB  lossy on some file
+  webp-near-60            7.80 MiB   47.1%  saves   8.75 MiB  lossy on some file
+  webp-q90               12.59 MiB   76.1%  saves   3.96 MiB  lossy on some file
+  webp-q80                9.61 MiB   58.1%  saves   6.93 MiB  lossy on some file
+
+At HEAD the group's 24 paths hold 18.22 MiB (blobs shared by several paths counted at each).

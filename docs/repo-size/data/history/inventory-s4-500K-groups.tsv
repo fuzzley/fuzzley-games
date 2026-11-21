@@ -1,0 +1,6 @@
+group	blobs	MiB on disk
+all blobs over the limit	224	143.5
+of which S2 strips too	148	109.5
+S4 only: other, not at main tip	19	2.4
+S4 only: other, at main tip	23	9.0
+S4 only: screenshot or atlas, at main tip	34	22.5

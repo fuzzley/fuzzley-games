@@ -1,0 +1,10 @@
+scenario	size-pack MiB	saved MiB	left, % of baseline	clone (heads only) MiB	left, % of baseline clone	objects	main tip differences	GitHub until refs/pull go, MiB
+baseline	289.5	0.0	100%	290.1	100%	44479	0	
+s1	283.0	6.5	98%	282.9	98%	44450	0	
+s1b	224.6	64.9	78%	225.2	78%	44282	0	
+s2	88.9	200.6	31%	88.8	31%	42632	0	290.2
+s3	42.3	247.2	15%	42.2	15%	42237	0	290.2
+s4-1m	243.0	46.5	84%	243.0	84%	44352	15	
+s4-500k	146.3	143.2	51%	146.2	50%	44060	76	
+s5	81.7	207.8	28%	82.3	28%	42100	0	
+s2-after	49.3	240.2	17%	49.9	17%	42448	0	

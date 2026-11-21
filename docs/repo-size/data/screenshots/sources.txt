@@ -1,0 +1,24 @@
+Read on 2026-11-21.
+
+https://docs.github.com/en/billing/concepts/product-billing/git-lfs
+  ... Free use of Git LFS The following amounts of storage and bandwidth for downloads are included in your GitHub plan. Plan Bandwidth Storage GitHub Free 10 GiB 10 GiB GitHub Pro 10 GiB 10 GiB GitHub Free for organizations 10 GiB 10 GiB Git ...
+  ... lling information . Bandwidth is billed for each GiB of data downloaded. Storage is billed by calculating an hourly usage rate. To estimate costs for paid Git LFS usage, use the GitHub pricing calculator . To ...
+  ... ent method on file, Git LFS support is disabled on your account until the next month. Paying for additional Git LFS use You pay for any additional use above your quota using the payment method set up for your GitHub a ...
+  mentions of LFS on the page: 43
+
+https://docs.cloud.google.com/build/docs/automating-builds/create-manage-triggers
+  ... n a Git repository, Cloud Build performs a shallow clone of the repository. This means that only the single commit that started the build is checked out in the workspace to build. Cloud Build does not check out any other branc ...
+  mentions of LFS on the page: 0
+
+https://docs.cloud.google.com/run/docs/continuous-deployment-with-cloud-build
+  ... t repository with a Dockerfile or your codebase is written in one of the languages supported by Google Cloud's buildpacks . Enable the Cloud Build API, if it is not already enabled. Roles required to ...
+  ... Cloud Build. In the Build Configuration step, fill in the options: Branch Indicates what source should be used when running the trigger. You can put the regex here. Matched branches are automatically verified: ...
+  mentions of LFS on the page: 0
+
+GitHub's API, repos/fuzzley/fuzzley-games:
+  visibility public; size 304769 KiB (297.6 MiB)
+
+https://raw.githubusercontent.com/actions/checkout/main/action.yml
+    lfs:
+      description: 'Whether to download Git-LFS files'
+      default: false
