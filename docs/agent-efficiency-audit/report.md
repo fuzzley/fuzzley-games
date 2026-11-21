@@ -5,7 +5,8 @@ Measured on 2026-11-16 from Claude Code's own session logs on the devbox: the se
 **Updated on 2026-11-21.** The scripts were run again on that day's logs. They print the seven efforts' tables exactly as before, so every baseline below stands. What is new:
 
 - **One effort since is measured beside the seven,** the player-text rewrite of Nov 16 to 19, in [Since the audit](#since-the-audit-the-player-text-rewrite). It is kept out of the seven's totals: its subagents ran at `high` effort, its orchestrator on Claude Fable 5.2, and it rewrote text, not code.
-- **Each recommendation says where the repository stands.** None of the seven has been built. Two have moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
+- **Each recommendation says where the repository stands.** None of the first six has been built. Two have moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
+- **The measuring is now a tool, and the seventh is partly built into it.** A plugin kept outside the repository measures a session as it runs, reads the account's weekly limit, watches a build's agents for hangs and holds the 20 staged changes recommendation 2 asks for, in [Measuring a build as it runs](#measuring-a-build-as-it-runs).
 - **Two tables read every session on the machine,** a check's duration against load and the API's speed, so they now take in the later sessions. The root's lint alone reads 58 s where it read 57, the API's speed with five or more other requests in flight reads 102 tokens a second where it read 105, and a request's fixed time reads 0.3 s where it read 0.2.
 
 Three of the seven efforts kept only part of their logs ([What to trust](#what-to-trust)), so the two builds logged whole, Brick Fuzz Pop and the Brick Breaker uplift, carry most of the conclusions.
@@ -325,6 +326,8 @@ Its workers made 27 commits, 14 of the 15 that committed making one or two. Thre
 
 **A third kind of outage, 45.3 hours.** By the orchestrator's log, the account's weekly limit ran out at 06:03 UTC on Nov 17 (01:03 local), 26 to 28 minutes into the first attempt. The ten agents then at work, five workers and five just started, all failed within two minutes. The build resumed on "Try again" at 03:21 UTC on Nov 19 and finished in 77 minutes. Nothing warned beforehand that the week was nearly spent. Width did not spend it, 26 minutes in; width set how many agents were cut off mid-task.
 
+**It was that week's second refusal, and the limit was 20 of the 45 hours.** The week began at 02:00 UTC on Nov 11 and first ran out at 04:14 UTC on Nov 15, during the CI and pipeline audits, with $1,962 logged since its start. A request was answered six minutes later, on "Try again", and the logs do not say what allowed it. The Asteroid Breaker uplift, the tune-up and the start of this rewrite then ran on that same week, which had logged $3,319 when it ran out again. That refusal gave the week's reset as 02:00 UTC on Nov 18, so the build could have been resumed 20 hours after it stopped, and stood another 25 until it was. [The weekly limit](#the-weekly-limit) sets each effort beside a week's allowance.
+
 ## Recommendations and experiments
 
 Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a worker's 26.5 elapsed minutes and 0.70 context rewrites a commit; $2.47 and 6.1 minutes a review; source changed after 68% of the reviews of code a worker waited on.** Across all seven, a review's median is 43 tool calls.
@@ -349,7 +352,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** A quarter to a third of what reviews cost, so 7 to 9% of spend (est.). Not minutes: a review's 38,000 tokens of output take six minutes to write however little it reads.
 - **Then try `high` effort for it.** 71% of a reviewer's output is thinking, a fifth of what a review costs and most of its minutes, so this is also what could bring a review inside the cache's 5 minutes. Run both efforts over the same 20 staged changes and compare the findings, the behaviour bugs above all. Keep `xhigh` unless the lists match.
 - **Measure.** Requests, peak context, cost and minutes per review in section 5, and findings per review in `extras.py`. The side-by-side on the same staged changes is the real test of quality, since this reviewer no longer reads a workspace's whole `AGENTS.md`: run the old review and the new over the same 20 changes before adopting it.
-- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared.
+- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared. The 20 staged changes now exist, with defects planted in 16 of them, and the present review at `xhigh` and at `high` are the first two ways of reviewing to be run over them ([The replay set](#the-replay-set)). So the comparison of efforts no longer waits on the agent type.
 
 ### 3. Docs on a budget, briefs with excerpts
 
@@ -392,9 +395,9 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 
 - **A phone notification when a build has made no progress for 20 minutes.** The Asteroid Breaker uplift's orchestrator set itself timers to check on its agents, which is the right habit, but a timer cannot interrupt a call that hangs, and nothing told the user either build had stopped.
 - **No call without a timeout on the orchestrator's path.** The 7.7-hour hang was a connector call that tidied up a timer; it did not need to block.
-- **A look at the account's usage before a wide build starts,** and fewer workers where the week is nearly spent. The player-text rewrite lost 45 hours to the weekly limit, with ten agents cut off mid-task.
-- **Expected.** The 14 hours of wall-clock above on a bad night, and the 45 that a spent week cost.
-- **Where it stands (Nov 21).** Not built. The harness's push notifications are on (`agentPushNotifEnabled`), which is something to build it on.
+- **A look at the account's usage before a wide build starts,** and fewer workers where the week is nearly spent. The player-text rewrite stood for 45 hours after the weekly limit ran out, 20 of them until the week reset and 25 more before it was resumed, with ten agents cut off mid-task.
+- **Expected.** The 14 hours of wall-clock above on a bad night, and most of the 45 that followed a spent week.
+- **Where it stands (Nov 21).** Partly built, outside the repository, in the `measure` plugin ([The watchdog](#the-watchdog)). It catches a subagent that hangs or is refused while the orchestrator is idle, and wakes the orchestrator to send the notification. It reads the account's usage when a measured run starts, and warns as the week fills. It would have caught none of the three outages above: Brick Fuzz Pop's session had ended, so there was no orchestrator to wake; the Asteroid Breaker uplift's orchestrator hung inside its own call, where nothing watches; and in the spent week the orchestrator was refused along with its agents. What is left is a way to reach the phone that does not pass through the orchestrator, and timeouts on the orchestrator's own calls.
 
 ### Considered and set aside
 
@@ -409,10 +412,62 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 
 1. **Before the next build:** 1, 2 without the effort change, 5 and 6. They are edits to one skill, one agent definition with the link that loads it, and the briefs.
 2. **In the next build's plan:** 3's briefs and 4's package sizes. Run half the packages on the old review and half on the new, and compare cost and minutes per commit, findings per review, the fixups that follow a report, and what the finishing audit and CI catch afterwards.
-3. **As its own small task:** 3's budget and pruning for the five `AGENTS.md` files over 25 KB, and 7.
-4. **Once 2 has settled:** the effort comparison.
+3. **As its own small task:** 3's budget and pruning for the five `AGENTS.md` files over 25 KB, and what is left of 7: a notification that does not need the orchestrator, and timeouts on the orchestrator's calls.
+4. **The effort comparison** can run now, on the present review, over [the replay set](#the-replay-set). Run it again on the agent type once 2 has settled.
+
+Measure each build that tries one of these with the plugin below, with the recommendations' numbers as the run's labels.
+
+## Measuring a build as it runs
+
+Since Nov 21 a Claude Code plugin, `measure`, does for one session what this report did for seven. It is kept outside the repository, at `~/.claude/skills/measure` on the devbox, with its own `README.md`; its results are kept in `~/claude-metrics`. It reads the logs with these scripts' code, so its figures for a worker and for a review are this report's. It counts commits from git across the whole run, so the Brick Breaker uplift's cost a commit reads $10.99 there, over 79 commits, against $11.30 here, over 77.
+
+- **`/measure start <name> --trying 1,5`** at the top of a session, and **`/measure stop`** at its end. The labels after `--trying` say what the run tries, here recommendations 1 and 5.
+- **The scorecard** it prints gives the run's cost, its hours by activity, its commits and lines from git, and the baselines above: a worker's elapsed minutes, check commands and context rewrites a commit, and a review's cost and minutes. Each sits beside the Brick Breaker uplift's figure and the run before.
+- **The ledger** keeps a row for each run. The seven efforts and the player-text rewrite are in it, taken in from their logs, at the costs in the tables above.
+- **A copy of the logs** is kept as they grow, so a log that later loses its start is still whole in the run's folder.
+
+### The weekly limit
+
+The plugin reads the account's usage, the figure Claude Code's `/usage` shows, when a run starts and stops and every few minutes between. A reading ties a share of the week to the dollars logged since the week began, which gives what a week's allowance comes to in this report's dollars.
+
+- **About $1,960 a week at list prices.** The week of Nov 11 first ran out with $1,962 logged. A reading on Nov 21 showed 10% of the week used with $195 logged, which makes $1,954.
+- **It is not one fixed sum.** The week of Nov 4 logged $2,224 and did not run out. The limit is not priced in dollars, so a point of it may not cost the same on every model or mix of cached and written tokens. Read the shares below as good to about a sixth either way.
+- **The week resets at 02:00 UTC on Wednesdays,** and Claude Fable has an allowance of its own, half the week.
+
+| Effort                      |   Cost | Of a week (est.) |
+| --------------------------- | -----: | ---------------: |
+| Asteroid Breaker follow-ups |  $684+ |             35%+ |
+| Shared library              |   $408 |              21% |
+| Brick Fuzz Pop              | $1,627 |              83% |
+| Brick Breaker uplift        |   $868 |              44% |
+| CI and pipeline audits      |   $178 |               9% |
+| Asteroid Breaker uplift     |  $886+ |             45%+ |
+| Brick Fuzz Pop tune-up      |  $180+ |              9%+ |
+| Player-text rewrite         |  $254+ |             13%+ |
+
+So a build of Brick Fuzz Pop's size takes most of a week, and a commit at the baseline's $11.30 is about 0.6% of one. The eight efforts ran in the twelve days of Nov 8 to 19 and came to at least 2.6 weeks' allowance between them, and the week of Nov 11 ran out twice. A plus marks an effort whose logs are cut, so its figures are lower bounds.
+
+### The watchdog
+
+While a run is measured, each time the orchestrator's turn ends with agents still running, a hook starts a script that reads the end of every unfinished agent's log each half minute.
+
+- **What it calls a hang:** no answer from the model for 15 minutes, or a tool call 5 minutes past its own time limit. It also speaks when an agent is refused by a usage limit, and when the week passes 80% or 95% with agents running.
+- **How it speaks.** The script cannot send a notification itself. It wakes the idle orchestrator, which is told to send the push notification and then deal with the agent. A planted hung agent woke a test session this way on Nov 21.
+- **What it misses.** The orchestrator itself is not watched, so a call that hangs in its own turn goes unseen, as does an agent it waits on in the foreground. Where the orchestrator is refused along with its agents, as when the week runs out, it cannot answer the alert. For that case the plugin can run a command of the user's own on each alert (`watch.notify_command`), and none is set.
+
+### The replay set
+
+Recommendation 2 asks for the old review and the new over the same 20 staged changes. They are kept with the plugin's results, in `~/claude-metrics/replay/fuzzley-games-20`.
+
+- **Twenty real commits of this repository,** made on `main` between Oct 27 and Nov 18, each staged again on its parent. Sixteen have one or two defects planted in them, 20 in all: 10 of behaviour, 4 a comment or doc untrue to the code, 3 a spec that would pass with the code broken, 2 a player's words and 1 of practice. Four are the real commit untouched. Each defect has its file, its line and how hard it is to see.
+- **A way of reviewing is one small file:** an agent type, a model, an effort and a brief. The first two are the brief in `commit-review-process` as it stands, at `xhigh` and at `high`.
+- **`/measure replay run --arm <name>`** stages each case in a throwaway clone and starts the reviewer as a subagent, as a build does. A second model then reads each report against the planted defects and says which it found.
+- **`/measure replay report`** sets the ways of reviewing side by side: defects found, by kind and by how hard, and a review's cost, minutes, tool calls and context.
+- **What to keep in mind.** The defects were planted by reading, in clones that could not run the checks. One review of a case is one sample, so a difference of a defect or two is within the noise. A real commit has real faults too, so a finding beyond the planted ones is not a false alarm.
 
 ## Running it again
+
+These scripts measure past sessions together, as this report did. A session measured with the plugin needs none of what follows.
 
 ```sh
 export AUDIT_DATA=/home/dev/Projects/personal/agent-efficiency-audit-2026-11-21/data
