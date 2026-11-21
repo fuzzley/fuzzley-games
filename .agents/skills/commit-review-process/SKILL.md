@@ -1,6 +1,6 @@
 ---
 name: commit-review-process
-description: How a change is reviewed here before it lands — the author checks and commits it, a fresh subagent, given only the project's and the phase's context, reviews that commit in the background, taking the author's checks as passed, for correctness, engineering practice, the language's style and the frameworks' and libraries' practices, while the author keeps working; then the author answers every comment in an amend! commit and squashes those in before the work lands. Triggers on: commit review, review a commit, review before committing, review agent, reviewer, code review, review comments, address review, amend!, fixup, autosquash.
+description: How a change is reviewed here before it lands — the author checks and commits it, a fresh commit-reviewer agent, given only what the change is for and the rules that bear on it, reviews that commit in the background, taking the author's checks as passed, for correctness, engineering practice, the language's style and the frameworks' and libraries' practices, while the author keeps working; then the author answers every comment in an amend! commit and squashes those in before the work lands. Triggers on: commit review, review a commit, review before committing, review agent, reviewer, code review, review comments, address review, amend!, fixup, autosquash.
 ---
 
 # The commit review process
@@ -37,59 +37,73 @@ can't.
 - **The check is the author's alone:** the reviewer takes it as passed and
   runs nothing.
 
-## 2. A fresh agent reviews the commit, in the background
+## 2. A `commit-reviewer` reviews the commit, in the background
 
-Launch a fresh `general-purpose` agent, never a fork, at `high` effort (the
-Agent tool's `effort`), whatever the session's own, in the background
-(`run_in_background`), so its report arrives as a message. It gets only the
-project's and the phase's context: what the work is and what this change is
-meant to do, not the reasoning that led to the code, so it judges the code as
-a reader who has only the code. It reads and reports, and runs and changes
-nothing.
-
-Its brief:
+Launch a `commit-reviewer` agent (the Agent tool's `subagent_type`) in the
+background (`run_in_background`), so its report arrives as a message. Its
+definition, `.agents/agents/commit-reviewer.md`, holds what every review
+needs: how to read a change, what to review it for, the repository's rules
+for code, doc comments, specs, Angular and Sass, and the report's form. So
+the brief carries only what its author knows:
 
 ```text
-Review the commit <sha> in the repository at <path>. Read it with
-`git show <sha>`, and a file as it was at that commit with
-`git show <sha>:<path>`: the author keeps working in the same checkout, so
-the files there may have moved on. The author has run `yarn verify:changed`,
-which lints, type-checks, tests and builds what the change reaches, and it
-passes.
+Review the commit <sha> in the repository at <path>.
 
 The project: <one or two sentences, or the plan to read, e.g. a doc in docs/>.
-This phase: <what the phase builds>. This change: <what it is meant to do,
-and the files it touches>.
+This change: <what it is meant to do, in two or three sentences>.
 
-Read first: `.agents/AGENTS.md`, `frontend/AGENTS.md`, the AGENTS.md of each
-workspace the change touches, and <the skills for the frameworks and
-libraries it uses>.
-
-Review it for:
-- correctness: bugs, edge cases, behaviour changed beyond what the change
-  says, specs that would pass with the code broken;
-- engineering practice: structure, names, duplication, layering, error
-  handling, specs that check state through the public API;
-- the language's style and idioms: Google's TypeScript style guide and the
-  repository's rules for code, doc comments and specs;
-- the frameworks' and libraries' practices: <Angular, Phaser, Sass, Vitest,
-  as the change uses them>;
-- the words a player reads, where the change adds or edits any: read each
-  new string against the `player-text` skill (its `SKILL.md`, the file
-  for that kind of text, and its read-back list), for its shape and budget,
-  the ordinary word, and whether it is true to the code.
-
-Review the code by reading it: the diff, the files around it and anything
-else in the repository. Don't run the checks, a build, the specs or a script
-of your own; take the author's checks as passed, and let each finding stand
-on the code you cite. Don't change, stage, unstage, commit or check out
-anything.
-
-Report a numbered list, most important first, each with the file and line,
-what is wrong, why it matters and a concrete fix; then what you read and
-found fine. If nothing matters, say so plainly rather than reaching for nits.
-Keep it under 900 words.
+The rules that bear on it:
+From <a file>: <its sentences that state a rule for what the change touches,
+quoted>
 ```
+
+- **Say what the change is for, not how you came to it,** so the reviewer
+  judges the code as a reader who has only the code.
+- **Quote the rules; don't send the reviewer to read them.** It reads no
+  `AGENTS.md` and no skill whole, so a rule its definition doesn't hold
+  reaches it through the brief or not at all. They come from:
+  - the `AGENTS.md` of each workspace the change touches;
+  - `frontend/games/AGENTS.md`, for a game;
+  - the sections of `.agents/AGENTS.md` that the definition doesn't
+    condense, such as Content Security Policy and Agent Configuration, for a
+    change outside every workspace;
+  - a skill, where the change hangs on a rule only the skill states, such
+    as `phaser-core`'s on where Phaser may be imported.
+- **Quote sentences, not bullets, in 300 words at most.** A bullet in those
+  files often runs past a hundred words, most of them saying what a file
+  holds. Quote the sentences that state a rule for the files, the folders or
+  the kind of thing the change touches: a "never", an "only", who may import
+  what, a key that is stored. Where the limit leaves out a rule that bears,
+  name its file and its opening words, for the reviewer to search for.
+  Where no rule bears, leave the paragraph out.
+- **A change that adds or edits words a player reads** gains a paragraph:
+  "It adds or edits words a player reads. Read
+  `.agents/skills/player-text/SKILL.md`, the file for that kind of text in
+  `.agents/skills/player-text/references/`, and `read-back.md` there. Read
+  each new string against them, for its shape and budget, the ordinary
+  word, and whether it is true to the code."
+- **Where no `commit-reviewer` is among the agent types offered,** don't
+  review with another type in silence. The definition isn't linked, or the
+  session started outside the repository. Say so to the person the session
+  works for, with the way out:
+  - `node .agents/link-claude-skills.mjs`, in a fresh clone or worktree,
+    where nothing is linked yet;
+  - a session started inside the repository, or that script with
+    `--also-in <the folder the session starts in>`;
+  - then Claude Code started again, if the type still isn't offered.
+
+  Their answer holds for the session. Go on without the type only where they
+  say to, and then with a `general-purpose` agent, never a fork, at `high`
+  effort (the Agent tool's `effort`), whose brief opens "Read
+  `.agents/agents/commit-reviewer.md` in the repository at `<path>`, and
+  review as it says. Use only the shell, and only to read."
+
+- **A session that starts workers looks before it starts them,** asks once,
+  and writes the answer into each worker's brief. A worker can't ask, since
+  its report ends its run. One that isn't offered the type, and whose brief
+  doesn't say what to do then, hands its work back with each commit named as
+  not reviewed, and nothing of it lands until whoever started it has had
+  them reviewed.
 
 ## 3. The author keeps working, two reviews out at most
 
@@ -165,8 +179,9 @@ hold changes; where those are another session's, ask rather than move them.
   `ORIG_HEAD`, to diff against: `git diff --stat ORIG_HEAD HEAD`.
 - **Where the diff prints something,** after a conflict or without one, the
   squash changed what lands: run `yarn verify:changed`, and have the
-  difference reviewed, by step 2's brief with `git diff <the tip before> HEAD`
-  in place of `git show <sha>`.
+  difference reviewed, by step 2's brief, opening "Review what
+  `git diff <the tip before> <the tip now>` shows in the repository at
+  `<path>`.", each tip by its commit's name, since `HEAD` moves on.
 - **An `amend!` still in the log** named a subject no commit has. Say so
   rather than land it.
 
@@ -178,6 +193,5 @@ A session with a single change and nothing to do while it is reviewed, such
 as a doc fix, keeps the short way: stage the change once the check passes,
 review the staged change in the foreground, answer every comment, fix what
 needs it, check again, then commit, the answers in the message's body. The
-brief then opens "Review the staged change in the repository at `<path>`.
-Read it with `git diff --cached`.", in place of its first sentence and the
-one on `git show`.
+brief then opens "Review the staged change in the repository at `<path>`."
+in place of its first sentence.
