@@ -327,6 +327,36 @@ The audit's recommendation 7, as far as decision 4 takes it. Outside the reposit
 
 **Done when** all three planted outages read plainly from a second session.
 
+**Where it stands (Nov 21).** Built, in the plugin and in your settings file, both outside the repository. All three planted outages read plainly from a second session.
+
+- **`/measure watch <name>`** answers from any session on the machine. It gives a line for the orchestrator, a line for each unfinished agent with the hung ones first, the newest commit and the week's share used. The orchestrator's line and each agent's say how long ago that log last moved. The commit is the newest at any local branch's tip, a worker's included, where step 1 asked for the last one landed: the plugin does not know which branch a build lands on, and the newest tip shows work moving. It is worked out from the logs and the hooks' notes each time it is asked, and nothing keeps the state between askings.
+- **The orchestrator's line** says working, waiting on its agents, idle, HUNG, refused, or ended. HUNG has a third cause the steps did not list: agents the orchestrator started itself finished 15 minutes ago, and its log has not moved since. That is how an orchestrator that stopped between turns shows.
+- **The hooks' notes.** `StopFailure` is told only that a rate limit refused the turn, not which limit or when it lifts. So the hook reads both from the log's last refusal, and failing that from the last reading of the account, where a window stands at 95% or more. `SessionEnd` notes the reason and the agents left unfinished.
+- **The three outages, planted:**
+
+  | Outage                    | Planted by                   | Read as                   |
+  | ------------------------- | ---------------------------- | ------------------------- |
+  | A session ended mid-build | A real session, interrupted  | Ended, 1 agent unfinished |
+  | Hung in its own call      | A real session, `kill -STOP` | HUNG, 7 min on Bash       |
+  | A turn a limit refused    | A `StopFailure` fed by hand  | Refused, and the reset    |
+
+  The refusal's reset came from the account's reading: the hook is told of no reset, the frozen session's log held no refusal, and the test's store had a full week planted in it. The two real sessions ran on the cheapest model with their own store, so the ledger holds none of it. The frozen one read HUNG at the usual thresholds, seven minutes in: its command's limit of 100 seconds and the five minutes' grace.
+
+- **The time limit on a connector's call** is `MCP_TOOL_TIMEOUT`, in milliseconds, as the harness's docs have it. Unset, a call is given about 28 hours, which is how one could hang for 7.7. It is now 600000, ten minutes, in the `env` of your settings file, with the file as it was kept beside it. A planted connector whose one tool never answers was cut off at 20 seconds with the variable at 20000, and was still hanging at 80 seconds without it. A session started after the change sees the value. One already running does not until it restarts.
+- **What `watch` cannot tell.** A process stopped from outside leaves its logs as they were. Inside a call that reads HUNG once the call is five minutes past its limit. Between turns, with no agent of its own finishing, it reads "waiting" or "idle", and only the time since the log moved says more.
+- **Its checks.** The plugin gains `tests/test_watch.py`: thirty checks on logs made up for each state and on the hooks' notes. Fourteen rules broken on purpose, one at a time, each fail a check.
+- **What a review changed.** The plugin is no repository, so `commit-review-process` has no commit to work on there. An agent that had not seen the change written reviewed it as a diff against a copy kept from before, and ran the new code over the real logs of past builds. It found eight things, all taken:
+  - **A log's last move was read from its file's time,** which bookkeeping records and copying move hours after the last turn. A build that had ended cleanly read as HUNG, and an ending the hook had noted would have stopped counting. The time now comes from the last record of work.
+  - **A record no model answers read as a wait for the model:** what a local command such as `/effort` leaves, and a headless session's last result. An idle orchestrator read HUNG after fifteen minutes.
+  - **A run two sessions had joined** counted as two runs, so `watch` with no name fell back to the asking session's own agents.
+  - **Agents left behind hours before** were counted as cut off by a session's end.
+  - **A stopped run** read as "ended, with the run still open". It now says the run is over and points at its scorecard.
+  - **The hook wrote its note after reading the logs,** so a slow read could lose the note. The read is now given five seconds.
+  - **A wait on an agent hid a hung call made beside it,** and a refusal still counted for a minute after a retry began.
+  - **The watchdog and `watch` gave a connector's call different limits.** Both now read the settings' one.
+- **What was updated.** The plugin's README, its page and its skill. The `multi-agent-build` skill still names no setting: it tells an orchestrator to make no connector call the build can do without, which holds whatever the limit. Its reason, that a hung call holds the build until a person looks, is true where no limit is set. Here such a call now holds a build for ten minutes.
+- **Not measured.** Nothing here moves a build's figures. What it buys is the hours an outage stands unseen, and the next outage will say.
+
 ## Stage 6. The first measured build
 
 Not work of its own: a multi-agent build still to be chosen (decision 6), run by stage 4's skill. Until there is one, stages 1 to 5 stand unproven, and stage 7 waits for it only so that the pruning has a before-figure. If no build is near, stage 7 can go first and take its before-figure from the Brick Breaker uplift.
@@ -432,3 +462,4 @@ A week's allowance comes to about $1,960 at list prices, good to a sixth either 
 - **Stage 2 (Nov 21).** An author commits a checked change, starts its review in the background and keeps working, with two reports out at most. It answers each in an `amend!` commit and squashes those in before the work lands. `merge-to-main` lands no `amend!` and pushes with no review out. The plugin counts the `amend!` commits. The trial is under [stage 2](#stage-2-reviews-in-the-background).
 - **Stage 3 (Nov 21).** A review is a `commit-reviewer`, an agent type defined in `.agents/agents/commit-reviewer.md` and linked into `.claude/agents/` by `link-claude-skills.mjs`, which links it into one more folder only when run with `--also-in <folder>`. It holds the repository's rules itself, reads with the shell alone, and runs on Opus at `high`. The author's brief gives what the change is for and the rules that bear on it, quoted in 300 words at most. On the replay set's 25 cases it found every planted defect at half the present review's cost. The figures are under [stage 3](#stage-3-a-commit-reviewer-agent-type-and-its-effort).
 - **Stage 4 (Nov 21).** The `multi-agent-build` skill holds how a build by several agents runs: packages of three to nine commits, four fresh workers at once in worktrees of their own, a brief that quotes its package's part of the plan, one queued check a commit, no work logs, and a landing by a rebase, a check and a fast-forward. Against the Brick Breaker uplift's plan it leaves 58 of the 177 lines of the two sections every plan copied. What it decided is under [stage 4](#stage-4-a-skill-for-how-a-build-runs).
+- **Stage 5 (Nov 21).** `/measure watch <name>` prints a build's state from any session: its orchestrator, each unfinished agent with the hung ones first, the newest commit and the week. It is worked out from the logs when asked, with the two endings a log does not show noted by their hooks. A connector's call now has ten minutes, by `MCP_TOOL_TIMEOUT` in the settings file. The three planted outages and what each read as are under [stage 5](#stage-5-a-builds-state-to-check-by-hand).
