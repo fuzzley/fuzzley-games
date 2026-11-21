@@ -233,8 +233,8 @@ describe("SpritePlayer's sounds made once", () => {
    * one does where audio plays, and returns the sounds each play started,
    * in turn.
    */
-  function playOn(): Sound.BaseSound[] {
-    const started: Sound.BaseSound[] = [];
+  function playOn(): Sound.NoAudioSound[] {
+    const started: Sound.NoAudioSound[] = [];
     vi.spyOn(Sound.NoAudioSound.prototype, "play").mockImplementation(function (
       this: Sound.NoAudioSound,
     ) {
@@ -246,7 +246,7 @@ describe("SpritePlayer's sounds made once", () => {
   }
 
   /** Has a sound done playing, as one that ends is. */
-  function end(sound: Sound.BaseSound | undefined): void {
+  function end(sound: Sound.NoAudioSound | undefined): void {
     Object.assign(sound ?? {}, { isPlaying: false });
   }
 
@@ -386,7 +386,7 @@ describe("SpritePlayer's sounds made once", () => {
     expect(started[0]?.pendingRemove).toBe(true);
   });
 
-  it.each<[string, Partial<Sound.BaseSound>]>([
+  it.each<[string, Partial<Sound.NoAudioSound>]>([
     ["playing", {}],
     ["paused", { isPlaying: false, isPaused: true }],
   ])("keeps a sound it made that is %s as the scene ends", async (_, state) => {
@@ -667,7 +667,7 @@ function drawing(...numbers: number[]): () => number {
 
 /** Describes a play the game started: on which sound, of which marker, with what config. */
 interface Started {
-  readonly sound: Sound.BaseSound;
+  readonly sound: Sound.NoAudioSound;
   readonly marker: string;
   readonly config: Types.Sound.SoundConfig;
 }

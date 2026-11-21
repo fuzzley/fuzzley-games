@@ -21,7 +21,7 @@ const LAYERS: Readonly<Record<Name, SoundLayer>> = {
 
 /** Describes a layer's play the game started: its sound and the config it started with. */
 interface Started {
-  readonly sound: Sound.BaseSound;
+  readonly sound: Sound.NoAudioSound;
   readonly config: Types.Sound.SoundConfig;
 }
 
@@ -72,18 +72,16 @@ describe("LayerPlayer", () => {
   }
 
   /** Returns the sounds of a layer the game holds, not yet let go. */
-  function soundsOf(scene: Scene, name: Name): Sound.BaseSound[] {
+  function soundsOf(scene: Scene, name: Name): Sound.NoAudioSound[] {
     return scene.sound
-      .getAll(LAYERS[name].key)
+      .getAll<Sound.NoAudioSound>(LAYERS[name].key)
       .filter((sound) => !sound.pendingRemove);
   }
 
   /** Returns the volume a layer's one sound plays at, or undefined where it plays none. */
   function volumeOf(scene: Scene, name: Name): number | undefined {
     const [sound] = soundsOf(scene, name);
-    return sound === undefined
-      ? undefined
-      : (sound as Sound.NoAudioSound).volume;
+    return sound?.volume;
   }
 
   /** Moves the game on, a frame at a time. */

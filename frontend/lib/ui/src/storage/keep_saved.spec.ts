@@ -180,6 +180,7 @@ describe("keepSaved", () => {
         [],
         TestBed.inject(EnvironmentInjector),
       );
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- an EnvironmentInjector implements Injector without extending it.
       runInInjectionContext(injector, () => {
         keepSaved({
           key: "key",

@@ -39,17 +39,17 @@
     "@fz/core": "workspace:*",
     "@fz/style": "workspace:*",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "angular-eslint": "^22.6.0",
-    "eslint-plugin-jsdoc": "^65.4.6",
+    "angular-eslint": "^22.8.0",
+    "eslint-plugin-jsdoc": "^65.5.0",
     "sharp": "^0.35.5",
-    "typescript-eslint": "^8.72.2"
+    "typescript-eslint": "^8.73.0"
   },
   "peerDependencies": {
     "@analogjs/vite-plugin-angular": "^2.9.7",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "peerDependenciesMeta": {
     "@analogjs/vite-plugin-angular": {
@@ -65,11 +65,11 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.9.7",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
-    "eslint": "^10.14.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "eslint": "^10.15.0",
     "jsdom": "^31.0.1",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }

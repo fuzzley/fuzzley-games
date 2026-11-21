@@ -98,9 +98,15 @@ interface Played {
   take: number;
 }
 
+/**
+ * Describes a sound the scene's sound manager makes: where there is no
+ * audio, Phaser's stand-in, which acts as a `BaseSound` but isn't one.
+ */
+type MadeSound = ReturnType<Sound.BaseSoundManager["addAudioSprite"]>;
+
 /** Describes a sound made once to play one sound of a sprite, again and again: a voice while it sounds. */
 interface Pooled extends Voice {
-  readonly sound: Sound.BaseSound;
+  readonly sound: MadeSound;
   /**
    * What each take's marker's config held as it was made, by take, put
    * back before each play: Phaser writes a play's config into its marker's,
@@ -156,7 +162,7 @@ export class SpritePlayer<Name extends string> {
   private mono: boolean | null = null;
 
   /** The sounds held, each looping until it is let go, by name. */
-  private readonly heldSounds = new Map<Name, Sound.BaseSound>();
+  private readonly heldSounds = new Map<Name, MadeSound>();
 
   /** How a risen sound is played, made once and changed for each: Phaser copies it as the sound starts. */
   private readonly risen: Types.Sound.SoundConfig = { detune: 0 };
