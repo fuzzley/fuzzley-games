@@ -1,5 +1,5 @@
 # Fuzzley Games site
 
-See [AGENTS.md](AGENTS.md) for the site's guidelines: its layout, checks, and Angular and Sass rules.
+See [AGENTS.md](AGENTS.md) for the rules the site keeps of its own.
 
 @AGENTS.md

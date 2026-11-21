@@ -1,6 +1,6 @@
 # @fz/core
 
-See [AGENTS.md](AGENTS.md) for what the framework-free helpers library holds
-and the rules it keeps.
+See [AGENTS.md](AGENTS.md) for the rules the framework-free helpers library
+keeps.
 
 @AGENTS.md
