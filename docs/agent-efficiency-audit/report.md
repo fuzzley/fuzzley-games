@@ -6,6 +6,8 @@ Measured on 2026-11-16 from Claude Code's own session logs on the devbox: the se
 
 - **One effort since is measured beside the seven,** the player-text rewrite of Nov 16 to 19, in [Since the audit](#since-the-audit-the-player-text-rewrite). It is kept out of the seven's totals: its subagents ran at `high` effort, its orchestrator on Claude Fable 5.2, and it rewrote text, not code.
 - **Each recommendation says where the repository stands.** None of the first six has been built. Two have moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
+- **The comparison of efforts has run once.** The present review found all 20 planted defects at `xhigh` and at `high`, at about half the cost and time at `high`, so the set as it stands does not tell the two apart ([The first comparison](#the-first-comparison)).
+- **A plan builds the recommendations in stages,** in [`plan.md`](plan.md).
 - **The measuring is now a tool, and the seventh is partly built into it.** A plugin kept outside the repository measures a session as it runs, reads the account's weekly limit, watches a build's agents for hangs and holds the 20 staged changes recommendation 2 asks for, in [Measuring a build as it runs](#measuring-a-build-as-it-runs).
 - **Two tables read every session on the machine,** a check's duration against load and the API's speed, so they now take in the later sessions. The root's lint alone reads 58 s where it read 57, the API's speed with five or more other requests in flight reads 102 tokens a second where it read 105, and a request's fixed time reads 0.3 s where it read 0.2.
 
@@ -339,7 +341,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** About 5% of spend and up to 12% of busy time (est.).
 - **Measure.** A worker's elapsed minutes and its rewrites a commit, in `summarize.py`'s section 7. The minutes blocked on a reviewer fall to nothing by definition, so they are not the test: a worker that starts its reviewer in the background and then only waits has gained nothing. The count of commits leaves `fixup!` commits out, so they do not flatter the figures; section 7 counts them apart.
 - **Quality.** The same review, answered the same way. The risk is a worker building on a change its reviewer then faults, so keep the next change small until the report is in. One measure is lost: what an author changes after a review no longer tells the review's effect from the next change's work. Count the `fixup!` commits that follow a report instead.
-- **Where it stands (Nov 21).** Not built: the skill still has the author wait. The player-text rewrite's workers started 7 of 31 reviews in the background. Its reviews, at `high`, came back in 3.8 minutes, so the rewrites all but went (2) while the blocking stayed, at 3.2 minutes a commit. If the reviewer stays under five minutes, this recommendation's gain is those minutes and not the $247.
+- **Where it stands (Nov 21).** Not built: the skill still has the author wait. The player-text rewrite's workers started 7 of 31 reviews in the background. Its reviews, at `high`, came back in 3.8 minutes, so the rewrites all but went (2) while the blocking stayed, at 3.2 minutes a commit. If the reviewer stays under five minutes, this recommendation's gain is those minutes and not the $247. The reviewer now goes to `high` (decided Nov 21), so that is the case. The plan also changes who squashes: the author commits before its review and folds its own fixes in before its package lands, not the orchestrator at landing.
 
 ### 2. An agent type for reviews
 
@@ -352,7 +354,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** A quarter to a third of what reviews cost, so 7 to 9% of spend (est.). Not minutes: a review's 38,000 tokens of output take six minutes to write however little it reads.
 - **Then try `high` effort for it.** 71% of a reviewer's output is thinking, a fifth of what a review costs and most of its minutes, so this is also what could bring a review inside the cache's 5 minutes. Run both efforts over the same 20 staged changes and compare the findings, the behaviour bugs above all. Keep `xhigh` unless the lists match.
 - **Measure.** Requests, peak context, cost and minutes per review in section 5, and findings per review in `extras.py`. The side-by-side on the same staged changes is the real test of quality, since this reviewer no longer reads a workspace's whole `AGENTS.md`: run the old review and the new over the same 20 changes before adopting it.
-- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared. The 20 staged changes now exist, with defects planted in 16 of them, and the present review at `xhigh` and at `high` are the first two ways of reviewing to be run over them ([The replay set](#the-replay-set)). So the comparison of efforts no longer waits on the agent type.
+- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared. The 20 staged changes now exist, with defects planted in 16 of them, and the present review has run over them at `xhigh` and at `high` ([The first comparison](#the-first-comparison)). Both found every planted defect, and `high` took about half the cost and time and never passed five minutes. That is no loss shown, on defects that proved too easy to show one, so the set could not have shown a small one. On that evidence the reviewer goes to `high` (decided Nov 21), and the agent type will be tested at `high`.
 
 ### 3. Docs on a budget, briefs with excerpts
 
@@ -397,7 +399,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **No call without a timeout on the orchestrator's path.** The 7.7-hour hang was a connector call that tidied up a timer; it did not need to block.
 - **A look at the account's usage before a wide build starts,** and fewer workers where the week is nearly spent. The player-text rewrite stood for 45 hours after the weekly limit ran out, 20 of them until the week reset and 25 more before it was resumed, with ten agents cut off mid-task.
 - **Expected.** The 14 hours of wall-clock above on a bad night, and most of the 45 that followed a spent week.
-- **Where it stands (Nov 21).** Partly built, outside the repository, in the `measure` plugin ([The watchdog](#the-watchdog)). It catches a subagent that hangs or is refused while the orchestrator is idle, and wakes the orchestrator to send the notification. It reads the account's usage when a measured run starts, and warns as the week fills. It would have caught none of the three outages above: Brick Fuzz Pop's session had ended, so there was no orchestrator to wake; the Asteroid Breaker uplift's orchestrator hung inside its own call, where nothing watches; and in the spent week the orchestrator was refused along with its agents. What is left is a way to reach the phone that does not pass through the orchestrator, and timeouts on the orchestrator's own calls.
+- **Where it stands (Nov 21).** Partly built, outside the repository, in the `measure` plugin ([The watchdog](#the-watchdog)). It catches a subagent that hangs or is refused while the orchestrator is idle, and wakes the orchestrator to send the notification. It reads the account's usage when a measured run starts, and warns as the week fills. It would have caught none of the three outages above: Brick Fuzz Pop's session had ended, so there was no orchestrator to wake; the Asteroid Breaker uplift's orchestrator hung inside its own call, where nothing watches; and in the spent week the orchestrator was refused along with its agents. What is left is timeouts on the orchestrator's own calls, and a build's state made plain to someone who looks in by hand: a way to reach the phone that does not pass through the orchestrator was weighed and left out (decided Nov 21).
 
 ### Considered and set aside
 
@@ -410,12 +412,13 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 
 ### An order to try them in
 
-1. **Before the next build:** 1, 2 without the effort change, 5 and 6. They are edits to one skill, one agent definition with the link that loads it, and the briefs.
-2. **In the next build's plan:** 3's briefs and 4's package sizes. Run half the packages on the old review and half on the new, and compare cost and minutes per commit, findings per review, the fixups that follow a report, and what the finishing audit and CI catch afterwards.
-3. **As its own small task:** 3's budget and pruning for the five `AGENTS.md` files over 25 KB, and what is left of 7: a notification that does not need the orchestrator, and timeouts on the orchestrator's calls.
-4. **The effort comparison** can run now, on the present review, over [the replay set](#the-replay-set). Run it again on the agent type once 2 has settled.
+1. **Before the next build:** the reviewer to `high`, then 5, 1, 2 and 6, and one skill that holds how a build runs, with 4's package sizes and 3's briefs in it. They are edits to two skills, one agent definition with the link that loads it, and the scripts under `.agents/`.
+2. **On the next build:** run half the packages on the old review and half on the new, and compare cost and minutes per commit, findings per review, the fixes that follow a report, and what the finishing audit and CI catch afterwards.
+3. **What is left of 7,** beside those: a time limit on the orchestrator's connector calls, and a build's state made plain to a look by hand.
+4. **Last, and the largest:** 3's budget and pruning, as a review of every `AGENTS.md`, every skill and every plugin, with rules for adding to them from then on.
+5. **The effort comparison** has run once on the present review ([The first comparison](#the-first-comparison)). It did not separate the two, and the reviewer goes to `high` on it. Run the set again on the agent type once 2 has settled.
 
-Measure each build that tries one of these with the plugin below, with the recommendations' numbers as the run's labels.
+Measure each build that tries one of these with the plugin below, with the recommendations' numbers as the run's labels. [`plan.md`](plan.md) sets these out as stages, with the steps and the measure for each.
 
 ## Measuring a build as it runs
 
@@ -464,6 +467,30 @@ Recommendation 2 asks for the old review and the new over the same 20 staged cha
 - **`/measure replay run --arm <name>`** stages each case in a throwaway clone and starts the reviewer as a subagent, as a build does. A second model then reads each report against the planted defects and says which it found.
 - **`/measure replay report`** sets the ways of reviewing side by side: defects found, by kind and by how hard, and a review's cost, minutes, tool calls and context.
 - **What to keep in mind.** The defects were planted by reading, in clones that could not run the checks. One review of a case is one sample, so a difference of a defect or two is within the noise. A real commit has real faults too, so a finding beyond the planted ones is not a false alarm.
+
+### The first comparison
+
+Run on Nov 21: the present review, a `general-purpose` agent on Opus 5.5 with the skill's brief, at `xhigh` and at `high`, one review of each case.
+
+| A review                            |  `xhigh` |   `high` |
+| ----------------------------------- | -------: | -------: |
+| Planted defects found               | 20 of 20 | 20 of 20 |
+| Findings (median)                   |        4 |        4 |
+| Findings on a clean change (median) |        4 |        2 |
+| Findings beyond the planted, in all |       56 |       48 |
+| Cost (median)                       |    $1.25 |    $0.66 |
+| Minutes (median)                    |      3.9 |      1.8 |
+| Tool calls (median)                 |       26 |       12 |
+| Context at its peak (median)        |  110,000 |   73,000 |
+| Output tokens (median)              |   22,100 |    9,900 |
+| Reviews over five minutes           |  5 of 20 |  0 of 20 |
+
+- **`high` found every planted defect, at about half the cost and time.** No review at `high` outlasted the cache's five minutes, where a quarter at `xhigh` did.
+- **The set did not tell the two apart.** Both found all 20, the five marked hardest among them. So the planted defects are too easy to show what `xhigh` buys. This run shows no loss at `high`; it could not have shown a small one.
+- **What differs is the findings nobody planted.** `xhigh` listed 56 and `high` 48, six and four of them of behaviour. Two of those were the same in both, and each arm reported some the other did not. None was checked against the code, so this run does not say which were real.
+- **A replay review is lighter than a build's.** It starts at 31,000 tokens where a build's starts at 53,000, and at `xhigh` it cost $1.25 against the builds' $2.47. Carry the ratio between the two over to a build, not the dollars.
+- **The two runs cost $41 at list prices,** about 2% of a week's allowance.
+- **What it would take to say more:** defects that take more to find, such as one that only a file outside the diff shows, planted until the present review misses some; a check of the findings beyond the planted ones against the code; and each case reviewed twice.
 
 ## Running it again
 
