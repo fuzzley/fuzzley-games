@@ -27,7 +27,8 @@ can't.
 - **On a branch that holds more than this change,** such as a package of a
   build that lands on an integration branch, pass `--base <that branch>`.
   Left alone it compares with `origin/main`, and checks every workspace
-  that anything on the branch reaches.
+  that anything on the branch reaches. How such a build runs, its packages,
+  briefs and landings, is the `multi-agent-build` skill's.
 - **Give it ten minutes** (the Bash tool's `timeout`), and no lock of your
   own. A run takes the whole machine, so it waits for any that started
   before it in the repository's worktrees, and says how many. Alone it takes
