@@ -8,7 +8,7 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 
 | Stage | What                                              | The audit's | Touches                                  |
 | ----- | ------------------------------------------------- | ----------- | ---------------------------------------- |
-| 1     | One `yarn verify:changed` a commit, no lock       | 5           | `commit-review-process`                  |
+| 1     | One `yarn verify:changed` a commit, in turn       | 5           | `commit-review-process`, `@fz/dev`       |
 | 2     | Reviews in the background                         | 1           | `commit-review-process`, the plugin      |
 | 3     | A `commit-reviewer` agent type, and its effort    | 2, 6        | `.agents/`, the replay set               |
 | 4     | A skill for how a build runs                      | 3 to 7      | a new skill                              |
@@ -57,7 +57,7 @@ Settled with you on Nov 21:
 - **Merged when you ask,** by `merge-to-main`.
 - **This plan gains a "Where it stands" line** under each stage as it is built, and an "As built" section at the end, as the other plans have.
 
-## Stage 1. One check a commit, and no lock
+## Stage 1. One check a commit, each in its turn
 
 The audit's recommendation 5. The smallest change, and it stands alone.
 
@@ -77,6 +77,26 @@ The audit's recommendation 5. The smallest change, and it stands alone.
 **Measure.** Check commands and check minutes a commit, and the context rewrites that follow a check, on the stage 6 build's scorecard.
 
 **Done when** the skill names one command, and step 1's timings are written here.
+
+**Where it stands (Nov 21).** Built, on the branch `agent-efficiency-1-checks`. The timings ruled out running without a lock, and a lock for two as well, so `yarn verify:changed` now queues itself, one run at a time.
+
+- **The timings.** Four worktrees on the 24 cores and 23 GB, about 20.5 GB of it free as each set began. The light change was a comment in one game's `src/main.ts`, a different game in each. It reaches that game alone, but builds every game and the site, since the site's build takes them all. The heavy change added a comment in `lib/core/src/math.ts`, which reaches every workspace. The memory column is the least the whole machine had free while the set ran, sampled twice a second, in place of each run's own peak.
+
+  | At once | Change | Each took            | Passed     | Least free     |
+  | ------- | ------ | -------------------- | ---------- | -------------- |
+  | 1       | Light  | 38 to 92 s           | 4 of 4     | 3.4 to 9.1 GB  |
+  | 2       | Light  | 38 to 105 s          | 6 of 6     | 2.8 to 8.2 GB  |
+  | 4       | Light  | 75 to 139 s          | 4 of 8     | 1.1 GB         |
+  | 1       | Heavy  | 152 and 195 s        | 2 of 2     | 8.6 and 9.1 GB |
+  | 2       | Heavy  | Stopped at 28 s      | None ended | 1.9 GB         |
+  | 4       | Heavy  | Unfinished at 13 min | None ended | 0, it ran out  |
+
+- **What went wrong at four.** Each run sizes itself to every core and all the free memory as it starts, so four that start together claim the machine four times. In the light case the same two runs failed both times, on time limits and not on the code: a Brick Breaker spec passed its 5 s, and Asteroid Breaker's layout check waited out its 10 s for the canvas. The load reached 77 on the 24 cores. In the heavy case the load passed 240, the machine ran out of memory, and the session that started the runs went down with them.
+- **Two at once.** Two light runs both passed, and the pair ended sooner than in turn: 105 s against 151 s for Brick Breaker's with Asteroid Breaker's. Two heavy runs had the machine under 2 GB free in 28 s, where a guard added after the outage stopped them. A run doesn't know what the one beside it will claim, so two at once is safe only when both are light.
+- **The decision: a queue of one, inside the command.** `yarn verify:changed` joins a queue before its tasks and runs once every run that started before it has ended, in any worktree of the repository. It says how many it waits for, then how long it waited, and reads the free memory only once its turn comes. No brief carries a lock and no worker can leave one out. A run marks its place every 5 s, and a place a minute unmarked is passed over, so a run that was killed holds the queue for a minute at most. A look that finds the clock has jumped, as it does when the machine wakes, passes over nothing. `@fz/dev`'s `src/queue.ts` holds it, with its specs.
+- **What a turn costs.** A worker at the baseline lands a commit every 26 minutes, and its one check takes one to three, so most runs find the queue empty. The worst case is four heavy runs joining together: the last waits about nine minutes, and its call passes the ten minutes a shell command may take. The skill's step 1 gives the command ten minutes. Stage 4's skill says what a worker does past that.
+- **The skill.** Step 1 names the one command, `--base` for a branch that holds more than the change, and the ten minutes. The brief's third sentence says the author ran it. The reviewer starts at `high` effort.
+- **Not measured yet.** Check commands and minutes a commit, the time spent in the queue, and the rewrites that follow a check wait for the stage 6 build. A run that waited prints `Waited <n> s for its turn.`, which is the line to count. `yarn verify` and `yarn verify:full` join no queue. Each runs its steps one after another, and merging runs one at a time already.
 
 ## Stage 2. Reviews in the background
 
@@ -188,7 +208,7 @@ The audit's recommendations 4 and 6, the briefs and the commit-body answers of 3
    - **Width.** Four workers at once. Five only when five packages are ready with nothing between them.
    - **The brief.** It quotes the plan's section for the package, names the files and line ranges to read, and quotes the workspace's rules that bear on it. It says not to read the plan, the other packages' work or an `AGENTS.md` whole. It carries one line on reading: what you already know you need, in one command or in parallel calls. A template is in the skill.
    - **Tags.** `[worker pkg=3]`, `[review pkg=3 arm=new]` and `[helper]` in each agent's description, which the plugin reads.
-   - **Checks.** Stage 1's one command and its answer on the lock. Mutants, where a plan asks for them, come from one script that plan provides, with a time limit; the skill names none.
+   - **Checks.** Stage 1's one command, which queues itself, and what a worker does when its turn is more than ten minutes away. Mutants, where a plan asks for them, come from one script that plan provides, with a time limit; the skill names none.
    - **Reviews.** Stage 2's flow. Answers go in the commit's body.
    - **No work logs.** Nothing a later package must read, and nothing to review. The orchestrator keeps one short log of what landed and what it decided. The plugin keeps every agent's raw log whole, so the log no longer needs each agent's token counts.
    - **Landing.** Rebase, settle, `yarn verify:changed` on the rebased branch, fast-forward. A commit the rebase changed beyond a list or a paragraph is reviewed again.
@@ -322,3 +342,7 @@ The audit considered and set aside: fewer reviews of code, fast mode, a longer c
 | 7     | 3 to 5% for the review, 1 to 2% for the cuts   |
 
 A week's allowance comes to about $1,960 at list prices, good to a sixth either way.
+
+## As built
+
+- **Stage 1 (Nov 21).** `commit-review-process` names one check, `yarn verify:changed`, and starts its reviewer at `high` effort. The command queues itself, one run at a time across the repository's worktrees, after the timings showed that four at once fail on time limits or run the machine out of memory. Its figures are under [stage 1](#stage-1-one-check-a-commit-each-in-its-turn).

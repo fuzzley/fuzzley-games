@@ -469,7 +469,26 @@ too. Paths are relative to `frontend/lib/dev/`.
   prints each task's output once it ends, then when each started and how long
   it ran, as `yarn test` does, through `@fz/dev/workspaces`' `printedRun()`
   and `timesTable()`, and returns 1 where any failed or was skipped, and 2 for
-  a command line it can't read or a base git can't find.
+  a command line it can't read or a base git can't find. A run claims the
+  whole machine, so runs take turns: four started together in four worktrees
+  left 1 GB free and timed a spec and a layout check out, and with a shared
+  library changed ran the machine out of memory, as
+  `docs/agent-efficiency-audit/plan.md` records. Before its tasks, but for
+  `--dry-run`, a run joins the queue in `fz-verify-queue/`, in the folder a
+  repository's worktrees share with git (`git rev-parse --git-common-dir`),
+  says how many runs started before it, each time that changes, then how long
+  it waited, and reads the free memory only once its turn comes.
+- `src/queue.ts`: the queue those runs wait in, which `src/verify.ts` alone
+  loads. `waitInQueue()` joins a folder's queue with a file of its own, a
+  place, named for the time it joined, resolves once no place before it is
+  left, and returns the function that leaves. A run marks its place every 5 s
+  (`MARK_MS`) until it leaves, and a place not marked for a minute
+  (`STALE_MS`) is passed over and removed, as a run killed where it stood
+  leaves one; it goes by marks rather than process IDs, which a sandbox may
+  number apart. A look that finds the clock has jumped, as a machine's does
+  when it wakes, passes over nothing, so the runs ahead mark their places
+  first, and a mark that fails is left to the next. Two runs that join within
+  a few milliseconds can go together.
 - `src/tsc7.ts` and `bin/tsc7.mjs`, the `tsc7` binary: TypeScript 7's
   `tsc`, run on its arguments, for the type-check passes that need no
   compiler API, which every workspace's `typecheck` runs, and the root's.
@@ -746,7 +765,10 @@ own, which `yarn workspace @fz/dev <script>` runs alone.
   lanes, real commands through the shell, and the script over fake ones;
   `src/verify.spec.ts` reads what branches of repositories it writes
   changed, works out what a change reaches and the tasks that verify it,
-  runs tasks on a fake clock under budgets, and the script over a fake shell;
+  runs tasks on a fake clock under budgets, and the script over a fake shell,
+  waiting in a queue it is handed, or its own in the repository it writes;
+  `src/queue.spec.ts` has runs join, wait in and leave a queue in a folder of
+  its own, by a clock it sets and a sleep that runs its steps;
   `src/tsc7.spec.ts` runs TypeScript 7 over projects it writes, holding
   `runTsc7()` to its exit code;
   `src/sound_lab_mix.spec.ts` varies and pans plays at the lab's numbers,

@@ -1,12 +1,14 @@
 // Verifies what a branch changed, each workspace's steps side by side under
-// a budget of cores and memory: the root's `yarn verify:changed`, through
-// its `tools/verify-changed.mjs`.
+// a budget of cores and memory, one run at a time across the repository's
+// worktrees: the root's `yarn verify:changed`, through its
+// `tools/verify-changed.mjs`.
 
 import { execFile } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 import { promisify } from "node:util";
+import { waitInQueue } from "./queue.ts";
 import {
   CONSOLE,
   type Env,
@@ -79,21 +81,29 @@ export interface Reach {
 
 /**
  * Says where `runVerifyChanged()` prints, how many cores and how much free
- * memory it shares out, the environment it runs in, how it runs a command
- * and the clock it times them by, each its own unless a spec hands it
- * another.
+ * memory it shares out, the environment it runs in, how it runs a command,
+ * the clock it times them by and how it waits its turn, each its own unless
+ * a spec hands it another.
  */
 export interface VerifyIo extends Partial<Printer> {
   /** How many cores the machine has. */
   readonly cores?: number;
-  /** How much memory is free as it starts, in GB. */
-  readonly freeMemoryGb?: number;
+  /** Reads how much memory is free, in GB, which it does once its turn comes. */
+  readonly freeMemoryGb?: () => number;
   /** The environment the script runs in, which says whether it runs on CI. */
   readonly env?: Env;
   /** Runs a command line in a folder, in an environment. */
   readonly run?: RunCommand;
   /** Reads a clock in milliseconds. */
   readonly now?: () => number;
+  /**
+   * Waits in a folder's queue for the run's turn, telling `onWait` how many
+   * runs are ahead, and returns the function that leaves it.
+   */
+  readonly queue?: (
+    folder: string,
+    onWait: (ahead: number) => void,
+  ) => Promise<() => void>;
 }
 
 /** The root's scripts, which run whatever changed. */
@@ -198,6 +208,12 @@ const GUESSED_OTHERWISE_SECONDS = 10;
 /** Where the runner keeps how long each task took when it last passed, from the root's folder. */
 const TIMES_FILE = "node_modules/.cache/fz-verify/times.json";
 
+/**
+ * Where the runs queue, in the folder a repository's worktrees share with
+ * git, so a run in one waits for a run in another.
+ */
+const QUEUE_FOLDER = "fz-verify-queue";
+
 const USAGE = `Usage: yarn verify:changed [options]
 
 Verifies what changed since the branch left --base: the workspaces holding
@@ -209,7 +225,9 @@ typecheck, tests, build and layout check where it has them, side by side,
 as many at once as the cores and the free memory allow, those with the
 longest way to go first; a layout check after its game's build, and the
 site's build after the games'. It prints each task's output once it ends,
-then when each started and how long it ran, and fails if any fails.
+then when each started and how long it ran, and fails if any fails. A run
+takes the whole machine, so it waits for any that started before it in the
+repository's worktrees, saying how many, and then how long it waited.
 yarn verify still verifies everything.
 
       --base <ref>   What the branch is compared with (origin/main)
@@ -462,6 +480,9 @@ export async function runTasks(
  * `tools/verify-changed.mjs` does, and returns the code to exit with: 1
  * where a task failed or was skipped, and 2 for a command line it can't
  * read or a base git can't find.
+ *
+ * It runs its tasks once every run that started before it, in any worktree
+ * of the repository, has ended, as each claims the whole machine.
  */
 export async function runVerifyChanged(
   args: readonly string[],
@@ -470,10 +491,11 @@ export async function runVerifyChanged(
     print = CONSOLE.print,
     printError = CONSOLE.printError,
     cores = availableParallelism(),
-    freeMemoryGb = process.availableMemory() / 1e9,
+    freeMemoryGb = () => process.availableMemory() / 1e9,
     env = process.env,
     run = runCommand,
     now,
+    queue = (folder, onWait) => waitInQueue(folder, { onWait }),
   }: VerifyIo = {},
 ): Promise<number> {
   const printer = { print, printError };
@@ -498,14 +520,19 @@ export async function runVerifyChanged(
   const workspaces = declaredWorkspaces(root);
   const reach = reachOf(workspaces, root, prefix, files);
   print(reachWords(reach, base));
-  const budget = {
-    cores,
-    memoryGb: Math.max(0, Math.floor((freeMemoryGb - HEADROOM_GB) * 10) / 10),
+  /** Returns the budget and the tasks that share it, from the memory free as it is called. */
+  const planned = (): { budget: Budget; tasks: Task[] } => {
+    const spareGb = freeMemoryGb() - HEADROOM_GB;
+    const budget = {
+      cores,
+      memoryGb: Math.max(0, Math.floor(spareGb * 10) / 10),
+    };
+    const tasks = tasksOf(workspaces, root, reach.names, {
+      coverage: read.values.coverage === true,
+      budget,
+    });
+    return { budget, tasks };
   };
-  const tasks = tasksOf(workspaces, root, reach.names, {
-    coverage: read.values.coverage === true,
-    budget,
-  });
   const timesFile = join(root, TIMES_FILE);
   const times = readTimes(timesFile);
   const secondsOf = (task: Task): number =>
@@ -513,6 +540,7 @@ export async function runVerifyChanged(
     GUESSED_SECONDS[scriptOf(task)] ??
     GUESSED_OTHERWISE_SECONDS;
   if (read.values["dry-run"] === true) {
+    const { budget, tasks } = planned();
     print(`The budget: ${coresIn(budget.cores)} and ${budget.memoryGb} GB.`);
     for (const task of inOrder(tasks, secondsOf)) {
       const after =
@@ -524,23 +552,47 @@ export async function runVerifyChanged(
     return 0;
   }
   const testsEnv = compileCached(env, root);
-  const outcomes = await runTasks(
-    tasks,
-    budget,
-    secondsOf,
-    (task) =>
-      printedRun(
-        task.name,
-        () =>
-          run(
-            task.command,
-            task.folder,
-            task.keepsCompileCache ? testsEnv : env,
-          ),
-        print,
-      ),
-    now,
+  const shared = await git(
+    root,
+    "rev-parse",
+    "--path-format=absolute",
+    "--git-common-dir",
   );
+  const clock = now ?? ((): number => performance.now());
+  const joined = clock();
+  const heard: number[] = [];
+  const leave = await queue(join(shared.trim(), QUEUE_FOLDER), (ahead) => {
+    heard.push(ahead);
+    print(waitingWords(ahead));
+  });
+  if (heard.length > 0) {
+    const seconds = Math.round((clock() - joined) / 1000);
+    print(`Waited ${String(seconds)} s for its turn.`);
+  }
+  let outcomes: TaskOutcome[];
+  try {
+    // Planned only now, as the runs before this one held the memory until they ended.
+    const { budget, tasks } = planned();
+    outcomes = await runTasks(
+      tasks,
+      budget,
+      secondsOf,
+      (task) =>
+        printedRun(
+          task.name,
+          () =>
+            run(
+              task.command,
+              task.folder,
+              task.keepsCompileCache ? testsEnv : env,
+            ),
+          print,
+        ),
+      now,
+    );
+  } finally {
+    leave();
+  }
   for (const { task, code, tookMs } of outcomes) {
     if (code === 0) times[task.name] = Math.round(tookMs / 100) / 10;
   }
@@ -583,6 +635,12 @@ function reachWords({ names, everything }: Reach, base: string): string {
     return `No workspace changed since ${base}, so only the root's checks run.`;
   }
   return `What changed since ${base} reaches ${[...names].sort().join(", ")}.`;
+}
+
+/** Returns what the runner says while it waits for the runs that started before it. */
+function waitingWords(ahead: number): string {
+  const runs = ahead === 1 ? "1 run" : `${String(ahead)} runs`;
+  return `Waiting for ${runs} of verify:changed that started first.`;
 }
 
 /** Returns every workspace, as a reach, for the file that reaches them all. */

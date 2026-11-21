@@ -382,8 +382,8 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Mutants from one shared script, with a time limit,** if a plan asks for them at all.
 - **Not a cache of passes.** An earlier version of this report proposed it here. The local pipeline audit looked at it again and left it out: an edit in a workspace reruns that workspace's steps anyway, and the risk of a false pass stays.
 - **Expected.** About 2 of the 8 to 9 check minutes a commit (est.). Few tokens.
-- **Measure.** Check minutes and check commands per commit in section 7, the waits on a lock and the rewrites that follow a check in `extras.py` and section 4.
-- **Where it stands (Nov 21).** Half in use: the player-text rewrite ran `verify:changed` for 81 of its check commands, 3.7 a commit in all against 13.8. The skill's step 1 is unchanged, and the lock took back the time.
+- **Measure.** Check minutes and check commands per commit in section 7, and the rewrites that follow a check in section 4. `extras.py` finds the past builds' waits by their lock's path. A run that queues now prints `Waited <n> s for its turn.`, which is the line to count from here on.
+- **Where it stands (Nov 21).** Built, as the plan's stage 1, and not as written here. The skill's step 1 names the one command. But four runs started together don't share the machine: each sizes itself to all of it, so four light runs timed specs and a layout check out, and four heavy ones ran it out of memory. Two heavy runs ran short too. So the command now queues itself, one run at a time across the repository's worktrees, and no brief carries a lock. With four workers and one check a commit, most runs should find the queue empty. The next build measures the wait. [`plan.md`](plan.md) has the timings.
 
 ### 6. Batch the reads
 

@@ -71,6 +71,7 @@ export default defineConfig(
       "src/script.ts",
       "src/workspaces.ts",
       "src/verify.ts",
+      "src/queue.ts",
       "src/report.ts",
       "src/screenshots.ts",
       "src/screenshot_page.ts",

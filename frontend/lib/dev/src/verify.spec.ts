@@ -1,5 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { type Env, recordingPrinter } from "./script.ts";
@@ -681,7 +689,7 @@ describe("runVerifyChanged", () => {
     const code = await runVerifyChanged(["--base", "main"], root, {
       ...recordingPrinter(),
       cores: 8,
-      freeMemoryGb: 35,
+      freeMemoryGb: () => 35,
       env: { CI: "true" },
       run: shell.run,
     });
@@ -862,7 +870,7 @@ describe("runVerifyChanged", () => {
       await runVerifyChanged(["--base", "main", "--dry-run"], root, {
         ...printer,
         cores: 8,
-        freeMemoryGb: 16,
+        freeMemoryGb: () => 16,
         run: fakeShell().run,
       });
       return printer.out;
@@ -900,7 +908,7 @@ describe("runVerifyChanged", () => {
     const code = await runVerifyChanged(["--base", "main", "--dry-run"], root, {
       ...printer,
       cores: 1,
-      freeMemoryGb: 16,
+      freeMemoryGb: () => 16,
       run: fakeShell().run,
     });
 
@@ -919,7 +927,7 @@ describe("runVerifyChanged", () => {
     const code = await runVerifyChanged(["--base", "main", "--dry-run"], root, {
       ...printer,
       cores: 8,
-      freeMemoryGb: 16,
+      freeMemoryGb: () => 16,
       run: shell.run,
     });
 
@@ -976,6 +984,143 @@ describe("runVerifyChanged", () => {
     expect(printer.err.join("\n")).toMatch(
       /^Unknown option '--bogus'[^]*Usage: yarn verify:changed/,
     );
+  });
+
+  it("waits its turn before it runs a task, in a queue the repository's worktrees share", async () => {
+    const { top, root } = await frontendRepository();
+    git(top, "worktree", "add", "--quiet", "--detach", join(top, "other"));
+    const order: string[] = [];
+    const io = {
+      ...recordingPrinter(),
+      cores: 8,
+      run: (command: string): Promise<Ran> => {
+        order.push(command);
+        return Promise.resolve({ code: 0, output: "" });
+      },
+      queue: (folder: string): Promise<() => void> => {
+        order.push(folder);
+        return Promise.resolve(() => order.push("left"));
+      },
+    };
+
+    await runVerifyChanged(["--base", "main"], root, io);
+    await runVerifyChanged(
+      ["--base", "main"],
+      join(top, "other", "frontend"),
+      io,
+    );
+
+    const queue = join(realpathSync.native(top), ".git", "fz-verify-queue");
+    expect(order.map((entry) => entry.replace(/^yarn run .*/, "ran"))).toEqual([
+      queue,
+      "ran",
+      "ran",
+      "ran",
+      "left",
+      queue,
+      "ran",
+      "ran",
+      "ran",
+      "left",
+    ]);
+  });
+
+  it("joins a queue of its own in the repository, unless handed one, and leaves it", async () => {
+    const { top, root } = await frontendRepository();
+    const printer = recordingPrinter();
+
+    await runVerifyChanged(["--base", "main"], root, {
+      ...printer,
+      cores: 8,
+      run: fakeShell().run,
+    });
+
+    expect({
+      places: await readdir(join(top, ".git", "fz-verify-queue")),
+      waited: printer.out.filter((line) => line.startsWith("Wait")),
+    }).toEqual({ places: [], waited: [] });
+  });
+
+  it("says how many runs it waits for, and then how long it waited", async () => {
+    const { root } = await frontendRepository();
+    const printer = recordingPrinter();
+    let ms = 0;
+
+    await runVerifyChanged(["--base", "main"], root, {
+      ...printer,
+      cores: 8,
+      run: fakeShell().run,
+      now: () => ms,
+      queue: (_folder, onWait) => {
+        onWait(2);
+        onWait(1);
+        ms = 212_400;
+        return Promise.resolve(() => undefined);
+      },
+    });
+
+    expect(printer.out.slice(1, 4)).toEqual([
+      "Waiting for 2 runs of verify:changed that started first.",
+      "Waiting for 1 run of verify:changed that started first.",
+      "Waited 212 s for its turn.",
+    ]);
+  });
+
+  it("shares out the memory free once its turn comes, not as it joined the queue", async () => {
+    const { top, root } = await frontendRepository();
+    await writeFiles(top, { "frontend/games/snake/src/board.ts": "changed" });
+    const shell = fakeShell();
+    let freeGb = 4;
+
+    await runVerifyChanged(["--base", "main"], root, {
+      ...recordingPrinter(),
+      cores: 8,
+      freeMemoryGb: () => freeGb,
+      env: { CI: "true" },
+      run: shell.run,
+      queue: () => {
+        freeGb = 35;
+        return Promise.resolve(() => undefined);
+      },
+    });
+
+    expect(shell.ran.map(({ command }) => command)).toContain(
+      "yarn run test --maxWorkers=6",
+    );
+  });
+
+  it("leaves the queue where its tasks can't be planned", async () => {
+    const { root } = await frontendRepository();
+    let left = 0;
+
+    const ran = runVerifyChanged(["--base", "main"], root, {
+      ...recordingPrinter(),
+      cores: 8,
+      freeMemoryGb: () => {
+        throw new Error("No memory to read");
+      },
+      run: fakeShell().run,
+      queue: () => Promise.resolve(() => (left += 1)),
+    });
+
+    await expect(ran).rejects.toThrow("No memory to read");
+    expect(left).toBe(1);
+  });
+
+  it("joins no queue for --dry-run", async () => {
+    const { root } = await frontendRepository();
+    let joined = 0;
+
+    await runVerifyChanged(["--base", "main", "--dry-run"], root, {
+      ...recordingPrinter(),
+      run: fakeShell().run,
+      queue: () => {
+        joined += 1;
+        return Promise.resolve(() => undefined);
+      },
+    });
+
+    expect(joined).toBe(0);
   });
 
   it("compares with origin/main unless given a base", async () => {
