@@ -364,7 +364,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Turn off the plugins this project never uses.** Their skills are most of the 12,000-token list in every agent's first request.
 - **Expected.** 10 to 15% of what workers cost (est.), and it stops the growth from compounding.
 - **Measure.** A worker's context at its first edit and what it is made of (`extras.py`), mean context per request (section 3), the files' sizes.
-- **Where it stands (Nov 21).** No budget, and `check-skill-references.mjs` checks no sizes. Five `AGENTS.md` files are over 25 KB ([The standing docs](#the-standing-docs)), so the pruning is five files' work, not three. The player-text rewrite wrote no work log, which is the third bullet done once without being asked for; it is not yet in the skill. The plugins are still on: 58 skills, 11,700 tokens, in every subagent's first request.
+- **Where it stands (Nov 21).** No budget, and `check-skill-references.mjs` checks no sizes. Five `AGENTS.md` files are over 25 KB ([The standing docs](#the-standing-docs)), so the pruning is five files' work, not three. The player-text rewrite wrote no work log, which is the third bullet done once without being asked for. The second and third bullets are now rules of the `multi-agent-build` skill ([the plan's](plan.md) stage 4): a brief quotes its package's part of the plan and names what to read, and no package keeps a log. Review answers go in the commit's body, as `commit-review-process` already has it. The orchestrator's one log holds no token counts, since the `measure` plugin keeps every agent's raw log whole. The plugins are still on: 58 skills, 11,700 tokens, in every subagent's first request.
 
 ### 4. Four at once, three to nine commits a package, a fresh agent each
 
@@ -373,7 +373,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **No long-lived streams.** A stream's next package gets a fresh agent and the last one's summary, as the two uplifts did.
 - **Expected.** A few percent of spend; mostly it avoids the dearest patterns in the tables above.
 - **Measure.** The cost-by-package-size and commits-against-busy-workers tables in `extras.py`, and the hours workers wait for the orchestrator in section 2b.
-- **Where it stands (Nov 21).** Not followed: the player-text rewrite ran ten workers at once, and 14 of the 15 that committed made one or two commits. Its text suited small packages, and it has too few half-hour windows to say what ten bought. What it does show is a cost of width this report had not met, a queue for checks, and what width adds to an outage: ten agents cut off at once when the weekly limit ran out.
+- **Where it stands (Nov 21).** Not followed: the player-text rewrite ran ten workers at once, and 14 of the 15 that committed made one or two commits. Its text suited small packages, and it has too few half-hour windows to say what ten bought. What it does show is a cost of width this report had not met, a queue for checks, and what width adds to an outage: ten agents cut off at once when the weekly limit ran out. The three rules are now in the `multi-agent-build` skill (the plan's stage 4), with a look at the week's allowance before a build starts. No build has run by it yet.
 
 ### 5. Fewer, faster checks per commit
 
@@ -391,7 +391,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Why.** 92% of requests carry one tool call, half of a worker's reads return under 1,500 characters, and each request re-reads the whole context.
 - **Expected.** A tenth to a fifth fewer requests, so 5 to 10% of spend (est.). Little time: a request costs next to none of its own.
 - **Measure.** Tool calls per request in section 3.
-- **Where it stands (Nov 21).** Not built. 96% of the player-text rewrite's workers' requests carried one tool call.
+- **Where it stands (Nov 21).** Written, and not yet measured. The `commit-reviewer` definition asks for the change and its files in one command, and the `multi-agent-build` skill asks the same of a worker for what its brief names. 96% of the player-text rewrite's workers' requests carried one tool call.
 
 ### 7. A watchdog for the night
 

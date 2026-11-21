@@ -273,6 +273,37 @@ The audit's recommendations 4 and 6, the briefs and the commit-body answers of 3
 
 **Done when** the skill is merged and linked, and step 3's review is written up here.
 
+**Where it stands (Nov 21).** Built, on the branch `agent-efficiency-4-build-skill`: `.agents/skills/multi-agent-build/SKILL.md`, 7,998 bytes, linked by the link script, and one sentence in `commit-review-process` that points at it. No build has run by it, and no worker has been started from its brief.
+
+- **What it holds.** Eight sections: before a build starts, packages and width, the brief and its template, how a worker works, the checks, landing a package, the orchestrator's own calls, and what a plan still holds. A brief sends its worker to the skill's section 4, so the standing rules are written once and a brief carries only its package.
+- **What step 1 left open, and what the skill says:**
+  - **Past the ten minutes.** A call in the foreground shows nothing of a queued run until it ends, so a worker can't choose by how many are ahead. Where the limit ends the check, it runs it once more. Where that ends too, it stops and reports how many runs each try waited for. It calls nothing hung: the queue also holds the orchestrator's checks, and a long queue can be a healthy one.
+  - **The orchestrator's log** is `.claude/build-log.md` in the integration worktree, which git ignores. So it is never committed and needs no review.
+  - **A commit a landing rebase changed** beyond a list or a paragraph is the orchestrator's to have reviewed, answer and squash, before the check. It finds such a commit with `git range-diff <the integration branch> <the old tip> HEAD`, tried in a scratch repository on a rebase that stopped for a conflict. A check that fails, or a collision it can't settle, goes to a fresh worker. The rebase of the integration branch onto `origin/main` follows the same rule, with `origin/main` as the first argument.
+  - **The whole build's check** between landings is `yarn verify:changed` with no `--base`, which waits its turn. `yarn verify` and `yarn verify:full` join no queue, so the skill keeps both out of a build until the merge.
+  - **A worktree for each package,** as the Asteroid Breaker uplift had, and not one for each stream.
+  - **The time limit on a connector's call** is not named: the skill says to make no such call the build can do without, and stage 5 checks the setting's name before anything cites it.
+- **Step 3: against the Brick Breaker uplift.** Its sections 7 and 9 run to 177 lines, 10.1 KB. By the skill, 58 lines would stay, 4.5 KB, nearly half of that the table of who owns what:
+
+  | Its section               | Stays in the plan             | Goes                          |
+  | ------------------------- | ----------------------------- | ----------------------------- |
+  | 7.1 The dependencies      | All of it                     | Nothing                       |
+  | 7.2 Streams and waves     | The waves' table              | The cap, a fresh agent each   |
+  | 7.3 Who owns what         | The table, the add-only files | "Add, restyle nothing"        |
+  | 7.4 How an agent works    | The ports                     | The rest, to the skill        |
+  | 7.5 How it comes together | Nothing                       | All of it, to the skill       |
+  | 7.6 The work logs         | Nothing                       | All of it, with the logs      |
+  | 9 Each commit's checks    | Nothing                       | All of it, to the one command |
+  | 9 Budgets                 | All of it                     | Nothing                       |
+
+  So yes: what is left is its streams, their order, the owners, the ports and the budgets. One pair of packages that restyle the same file, ordered by the plan, stays too.
+
+- **What the comparison added to the draft.** Two rules every plan carried that step 1's list left out: format the files changed by name and never with `yarn prettier`, and a package that changes what a player sees looks at it in a browser before its last commit and says what it saw. The second came from the plans' "Practices", outside the two sections.
+- **What the old sections held that is gone on purpose.** A worker count for the specs (`--maxWorkers`) and the lock around the root's checks, which the queue replaces. `yarn verify` and `yarn check:layout` at each wave's end, which the unbased `yarn verify:changed` replaces, since it builds and runs the layout checks. Sending a large collision to the stream's next agent, since no stream has one.
+- **What the reviews changed.** A `commit-reviewer` read the draft against the code and the three plans and found eight things, all taken. The largest: nothing said who has a rebased commit reviewed once its worker is gone, and the draft left open how a worker opens a browser, where `frontend/AGENTS.md` points at a Chrome connector that sessions share. A worker now scripts `@fz/dev`'s headless Chrome. A second review, of the fix, found five more, all taken. Two were rules the cut to 8 KB had dropped: the `[helper]` tag, and a worker's report of what it added to files it doesn't own.
+- **What the 8 KB cost.** The draft with the first review's fixes in it ran to 8,559 bytes, as measured in the working tree before the cut. The cut took a longer description and opening, the queue's own words, reasons, and sentences that `commit-review-process` already holds. After the second review it took no rule.
+- **Not measured yet.** A worker's context at its first edit, cost by package size, requests with one tool call and the hours workers wait all need the stage 6 build.
+
 ## Stage 5. A build's state, to check by hand
 
 The audit's recommendation 7, as far as decision 4 takes it. Outside the repository, in the plugin.
@@ -400,3 +431,4 @@ A week's allowance comes to about $1,960 at list prices, good to a sixth either 
 - **Stage 1 (Nov 21).** `commit-review-process` names one check, `yarn verify:changed`, and starts its reviewer at `high` effort. The command queues itself, one run at a time across the repository's worktrees, after the timings showed that four at once fail on time limits or run the machine out of memory. Its figures are under [stage 1](#stage-1-one-check-a-commit-each-in-its-turn).
 - **Stage 2 (Nov 21).** An author commits a checked change, starts its review in the background and keeps working, with two reports out at most. It answers each in an `amend!` commit and squashes those in before the work lands. `merge-to-main` lands no `amend!` and pushes with no review out. The plugin counts the `amend!` commits. The trial is under [stage 2](#stage-2-reviews-in-the-background).
 - **Stage 3 (Nov 21).** A review is a `commit-reviewer`, an agent type defined in `.agents/agents/commit-reviewer.md` and linked into `.claude/agents/` by `link-claude-skills.mjs`, which links it into one more folder only when run with `--also-in <folder>`. It holds the repository's rules itself, reads with the shell alone, and runs on Opus at `high`. The author's brief gives what the change is for and the rules that bear on it, quoted in 300 words at most. On the replay set's 25 cases it found every planted defect at half the present review's cost. The figures are under [stage 3](#stage-3-a-commit-reviewer-agent-type-and-its-effort).
+- **Stage 4 (Nov 21).** The `multi-agent-build` skill holds how a build by several agents runs: packages of three to nine commits, four fresh workers at once in worktrees of their own, a brief that quotes its package's part of the plan, one queued check a commit, no work logs, and a landing by a rebase, a check and a fast-forward. Against the Brick Breaker uplift's plan it leaves 58 of the 177 lines of the two sections every plan copied. What it decided is under [stage 4](#stage-4-a-skill-for-how-a-build-runs).
