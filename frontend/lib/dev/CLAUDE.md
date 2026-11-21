@@ -1,6 +1,6 @@
 # @fz/dev
 
-See [AGENTS.md](AGENTS.md) for what the shared lint, compiler, test, build
-and script library holds and how a workspace uses it.
+See [AGENTS.md](AGENTS.md) for the rules a change to the shared presets and
+script helpers keeps.
 
 @AGENTS.md
