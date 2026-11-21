@@ -1,16 +1,24 @@
 #!/usr/bin/env node
 // Checks that the skills, the repository's under `.agents/skills` and each
-// workspace's under its own, and every `AGENTS.md` still describe the code as
-// it is: every relative markdown link resolves, and every backticked path
-// exists. Outside CI, it also warns about a skill Claude Code can't load,
-// whose link in the `.claude/skills` beside it is missing or leads nowhere.
+// workspace's under its own, the agent definitions under `.agents/agents`
+// and every `AGENTS.md` still describe the code as it is: every relative
+// markdown link resolves, and every backticked path exists. Outside CI, it
+// also warns about a skill or a definition Claude Code can't load, whose link
+// in the `.claude/skills` beside it, or in the repository's `.claude/agents`,
+// is missing or leads nowhere.
 //
 // Usage: node .agents/check-skill-references.mjs
 
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { REPO_ROOT, skillRoots } from "./skill-roots.mjs";
+import {
+  AGENT_DEFINITIONS,
+  REPO_ROOT,
+  agentDefinitions,
+  skillRoots,
+  skillsIn,
+} from "./skill-roots.mjs";
 
 /** @import { SkillRoot } from "./skill-roots.mjs" */
 
@@ -253,41 +261,67 @@ function realPath(candidate) {
 }
 
 /**
- * Returns a warning for each skill in a folder that Claude Code can't load:
- * one the `.claude/skills` beside it has no link to, and a link there that
+ * Returns a warning for each skill or agent definition that Claude Code
+ * can't load: one its folder of links has no link to, and a link there that
  * leads nowhere, such as one to a skill since renamed.
  *
- * @param {SkillRoot} root
+ * @param {string} links The folder of links, a `.claude/skills` or the
+ *   repository's `.claude/agents`.
+ * @param {string} sources The folder the links lead into.
+ * @param {string[]} names The skills' or the definitions' names there.
+ * @param {string} noun What a name is: a skill, or a definition.
  * @returns {string[]}
  */
-function linkWarnings(root) {
-  const links = path.join(root.base, ".claude", "skills");
+function linkWarnings(links, sources, names, noun) {
   const where = (/** @type {string} */ name) =>
     path.relative(REPO_ROOT, path.join(links, name));
-  const skills = fs
-    .readdirSync(root.skills, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .filter((name) => fs.existsSync(path.join(root.skills, name, "SKILL.md")));
-  const unlinked = skills
+  const unlinked = names
     .filter(
       (name) =>
-        realPath(path.join(links, name)) !==
-        realPath(path.join(root.skills, name)),
+        realPath(path.join(links, name)) !== realPath(path.join(sources, name)),
     )
-    .map((name) => `${where(name)}: no link to the skill`);
+    .map((name) => `${where(name)}: no link to the ${noun}`);
   const dangling = fs.existsSync(links)
     ? fs
         .readdirSync(links)
         .filter(
           (name) =>
-            !skills.includes(name) &&
+            !names.includes(name) &&
             fs.lstatSync(path.join(links, name)).isSymbolicLink() &&
             realPath(path.join(links, name)) === null,
         )
         .map((name) => `${where(name)}: leads nowhere`)
     : [];
   return [...unlinked, ...dangling];
+}
+
+/**
+ * Returns the warnings for a folder of skills, against the `.claude/skills`
+ * beside it.
+ *
+ * @param {SkillRoot} root
+ * @returns {string[]}
+ */
+function skillWarnings(root) {
+  const links = path.join(root.base, ".claude", "skills");
+  return linkWarnings(links, root.skills, skillsIn(root.skills), "skill");
+}
+
+/**
+ * Returns the warnings for the agent definitions, against the repository's
+ * `.claude/agents`, where a session started inside the repository finds
+ * them.
+ *
+ * @returns {string[]}
+ */
+function definitionWarnings() {
+  const links = path.join(REPO_ROOT, ".claude", "agents");
+  return linkWarnings(
+    links,
+    AGENT_DEFINITIONS,
+    agentDefinitions(),
+    "definition",
+  );
 }
 
 /** @type {string[]} */
@@ -306,6 +340,12 @@ for (const root of skillRoots()) {
     }
   }
 }
+for (const name of agentDefinitions()) {
+  const file = path.join(AGENT_DEFINITIONS, name);
+  const text = fs.readFileSync(file, "utf8");
+  checkRelativeLinks(file, text, problems);
+  checkPaths(file, text, REPO_ROOT, problems);
+}
 for (const file of agentsFilesIn(REPO_ROOT)) {
   const text = fs.readFileSync(file, "utf8");
   checkRelativeLinks(file, text, problems);
@@ -314,10 +354,13 @@ for (const file of agentsFilesIn(REPO_ROOT)) {
 
 // CI has no `.claude`, which is machine-local.
 if (!process.env["CI"]) {
-  const warnings = skillRoots().flatMap(linkWarnings);
+  const warnings = [
+    ...skillRoots().flatMap(skillWarnings),
+    ...definitionWarnings(),
+  ];
   if (warnings.length) {
     console.warn(
-      `Claude Code can't load ${warnings.length} skill link(s); run node .agents/link-claude-skills.mjs:
+      `Claude Code can't load ${warnings.length} skill or agent link(s); run node .agents/link-claude-skills.mjs:
 `,
     );
     for (const warning of warnings) console.warn(`  ${warning}`);
@@ -329,9 +372,9 @@ if (problems.length) {
   console.error(`Reference check failed (${problems.length}):\n`);
   for (const problem of problems) console.error(`  ${problem}`);
   console.error(
-    "\nA skill or AGENTS.md that names a path which does not exist will be followed anyway.",
+    "\nA skill, an agent definition or an AGENTS.md that names a path which does not exist will be followed anyway.",
   );
   process.exit(1);
 }
 
-console.log("Skill and AGENTS.md references OK.");
+console.log("Skill, agent definition and AGENTS.md references OK.");

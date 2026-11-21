@@ -155,6 +155,30 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   below warns about a skill with no link, or a link that leads nowhere.
   Restart Claude Code if `.claude/skills` did not exist when the session
   started.
+- **Agent definitions:** an agent type any session may start lives in
+  `.agents/agents/<name>.md`, as `commit-reviewer` does, the reviewer the
+  `commit-review-process` skill starts. Claude Code looks for one in the
+  `.claude/agents/` of each folder from where a session starts up to that
+  repository's root, so the link script links each definition into the
+  repository's `.claude/agents/`, for a session started inside it. Each is a
+  link to a file, which Windows makes only in Developer Mode or from an
+  elevated shell; where it can't, the script says so and still links the
+  skills. A session started in another folder, such as one above the clone, is
+  offered none of them:
+  `node .agents/link-claude-skills.mjs --also-in <folder>` links them into
+  that folder's `.claude/agents/` as well, and
+  `--also-in <folder> --remove` takes those links out. Nothing runs the script
+  with that option, since the folder is one machine's choice. There it makes,
+  replaces and removes only links that lead into this repository's
+  `.agents/agents/`, so a link of the same name to another clone's definition
+  stays, with a warning. Re-run the script, with the option where it was used,
+  after a fresh clone or a move; a link that folder holds to the repository's
+  old path is then for a person to remove. The reference check below reads a
+  definition as it reads a skill, and warns, outside CI, about one the
+  repository's `.claude/agents/` has no link to. `commit-reviewer` holds this
+  file's rules for code, doc comments and specs, and `frontend/AGENTS.md`'s
+  for Angular and Sass, condensed, so a change to those rules changes
+  `.agents/agents/commit-reviewer.md` in the same commit.
 - **Flat skills directories.** Every skill lives directly under an
   `.agents/skills/` folder, as `<name>/SKILL.md`, including the
   namespaced `phaser-*` ones. Adding a skill means a new
@@ -164,10 +188,11 @@ directories (`.claude/`, `.gemini/`) are gitignored and machine-local.
   compile error rather than looking. A design for something not yet built
   belongs in a doc or an issue, not in a skill.
   `node .agents/check-skill-references.mjs` (part of `yarn lint`) enforces
-  the checkable half of this, for every folder of skills and every `AGENTS.md`:
+  the checkable half of this, for every folder of skills, every agent
+  definition and every `AGENTS.md`:
   every relative markdown link must resolve, and every backticked path must
   exist, unless git ignores it, as it does what a build writes. Run it after
-  changing a skill or an `AGENTS.md`. Skills quoting another
+  changing a skill, an agent definition or an `AGENTS.md`. Skills quoting another
   project's source tree, the vendored Angular ones and the Phaser ones
   copied from Phaser's package, are listed as upstream exceptions there; a
   skill about this repository is checked by default.
