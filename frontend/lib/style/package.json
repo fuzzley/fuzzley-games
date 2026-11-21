@@ -34,10 +34,10 @@
   },
   "peerDependencies": {
     "sass": "^1.108.2",
-    "stylelint": "^18.0.0",
+    "stylelint": "^18.1.0",
     "stylelint-config-standard-scss": "^18.0.0",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "peerDependenciesMeta": {
     "sass": {
@@ -59,15 +59,15 @@
   "devDependencies": {
     "@fz/dev": "workspace:*",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
-    "eslint": "^10.14.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "eslint": "^10.15.0",
     "jsdom": "^31.0.1",
     "postcss": "^8.5.32",
     "sass": "^1.108.2",
-    "stylelint": "^18.0.0",
+    "stylelint": "^18.1.0",
     "stylelint-config-standard-scss": "^18.0.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
