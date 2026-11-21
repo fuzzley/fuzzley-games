@@ -16,9 +16,8 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import CHARS_PER_TOKEN, DATA, EFFORTS, classify, commits_in, cost, load, quantile, review_costs, steps
+from lib import CHARS_PER_TOKEN, classify, commits_in, cost, EFFORTS, load, median, OUT, quantile, review_costs, steps, WHOLE
 
-WHOLE = ("brick-breaker-uplift", "brick-fuzz-pop")
 SCRATCH = re.compile(r"worklog|/docs/|scratchpad|/tmp/")
 DOCS = re.compile(r"worklog|/docs/|scratchpad|/tmp/|\.md\b")
 ITEM = re.compile(
@@ -149,8 +148,8 @@ def chars_per_token(agents):
 
 
 def main():
-    rows = json.load(open(os.path.join(DATA, "agents.json")))
-    spans = json.load(open(os.path.join(DATA, "spans.json")))
+    rows = json.load(open(os.path.join(OUT, "agents.json")))
+    spans = json.load(open(os.path.join(OUT, "spans.json")))
     by_key = {r["key"]: r for r in rows}
     agents = {a["key"]: a for a in load() if a["session"] in EFFORTS}
     role_of = {key: by_key[key]["role"] for key in agents}
@@ -159,7 +158,7 @@ def main():
     start, end = {}, {}
     locks = defaultdict(set)
     for span in spans:
-        if span["st"] == "tool" and span.get("lock") and span["lock"].endswith(".lock"):
+        if span["st"] == "tool" and span.get("lock") and span["lock"].endswith(".lock") and by_key[span["a"]]["effort"]:
             start[span["id"]] = min(start.get(span["id"], 1e18), span["s"])
             end[span["id"]] = max(end.get(span["id"], 0), span["e"])
             locks[span["lock"]].add(span["id"])
@@ -176,7 +175,7 @@ def main():
 
     print("\n== Characters to a token, in tool results of 20,000 characters or more ==")
     ratios = chars_per_token(agents.values())
-    print(f"  results={len(ratios)} median={statistics.median(ratios):.2f} (a quarter under {quantile(ratios, 0.25):.2f}, a quarter over {quantile(ratios, 0.75):.2f}); lib.py uses {CHARS_PER_TOKEN}")
+    print(f"  results={len(ratios)} median={median(ratios):.2f} (a quarter under {quantile(ratios, 0.25):.2f}, a quarter over {quantile(ratios, 0.75):.2f}); lib.py uses {CHARS_PER_TOKEN}")
 
     print("\n== A worker's ramp-up: from its start to its first source edit (whole logs only) ==")
     for effort in EFFORTS.values():
@@ -218,12 +217,12 @@ def main():
             f"      of that context, a worker's median: {mid['start'] / 1e3:.0f}k at its first request, {mid['results'] / 1e3:.0f}k of tool results, "
             f"{mid['loaded'] / 1e3:.0f}k of instruction files the harness loaded, {mid['wrote'] / 1e3:.0f}k of its own output"
         )
-        total = sum(reading.values())
+        total = sum(reading.values()) or 1
         print("      the tool results: " + ", ".join(f"{k} {v / total:.0%}" for k, v in reading.most_common(6)))
 
     print("\n== Cost and time a commit, by how many commits the worker made ==")
     review_cost = review_costs(rows)
-    for effort in WHOLE:
+    for effort in (e for e in WHOLE if e in EFFORTS.values()):
         sized = []
         for agent in agents.values():
             r = by_key[agent["key"]]
@@ -287,7 +286,7 @@ def main():
     print(f"  a request's seconds, fitted over {len(short)} requests: {intercept:.1f} s, and its output at {1 / slope:.0f} tokens a second")
 
     print("\n== Commits against busy workers, in half-hour windows ==")
-    profile = json.load(open(os.path.join(DATA, "profile.json")))
+    profile = json.load(open(os.path.join(OUT, "profile.json")))
     for session, effort in EFFORTS.items():
         if effort not in WHOLE:
             continue
@@ -296,6 +295,8 @@ def main():
             if agent["session"] == session and role_of[agent["key"]] == "worker":
                 for call in agent["tools"]:
                     commits += [call["t_call"]] * commits_in(call)
+        if effort not in profile:
+            continue
         series = profile[effort]["series"]
         began = profile[effort]["start"]
         windows = []
@@ -341,15 +342,15 @@ def main():
         by_command["frontend/AGENTS.md"] += bool(re.search(r"(?<![\w/-])frontend/AGENTS\.md|/fuzzley-games/frontend/AGENTS\.md|\b[\w-]+/frontend/AGENTS\.md", named))
         by_command["any AGENTS.md"] += "AGENTS.md" in named
     count = len(reviews)
-    mid = {key: statistics.median(r[key] for r in reviews) for key in ("calls", "results", "loaded", "start", "wrote", "peak")}
+    mid = {key: median(r[key] for r in reviews) for key in ("calls", "results", "loaded", "start", "wrote", "peak")}
     print(f"  reviews={count}; a review's median: {mid['calls']:.0f} tool calls, {mid['results'] / 1e3:.0f}k tokens of results")
-    total = sum(read.values())
+    total = sum(read.values()) or 1
     print("  the results by what was read: " + ", ".join(f"{k} {v / total:.0%}" for k, v in read.most_common()))
     print(
         f"  a review's median context: {mid['start'] / 1e3:.0f}k at its first request, {mid['peak'] / 1e3:.0f}k at its largest; "
-        f"its own output {mid['wrote'] / 1e3:.0f}k; instruction files the harness loaded: mean {statistics.mean(r['loaded'] for r in reviews) / 1e3:.0f}k"
+        f"its own output {mid['wrote'] / 1e3:.0f}k; instruction files the harness loaded: mean {sum(r['loaded'] for r in reviews) / max(1, count) / 1e3:.0f}k"
     )
-    print("  read by a command or the Read tool: " + ", ".join(f"{name} by {n / count:.0%}" for name, n in by_command.items()))
+    print("  read by a command or the Read tool: " + ", ".join(f"{name} by {n / max(1, count):.0%}" for name, n in by_command.items()))
     held = [r for r in reviews if r["any loaded"]]
     print(f"  the harness loaded an AGENTS.md for {len(held)} of {count}; {sum(1 for r in held if r['twice'])} of those also read one of the same by command")
 
@@ -387,10 +388,10 @@ def main():
             found[kind] += 1
             if index == 0:
                 top[kind] += 1
-    everything = sum(found.values())
+    everything = sum(found.values()) or 1
     print(
         f"  reports with a count of findings={len(counts)} ({pointers} of them the shared library's, counted from its hand-back line): "
-        f"a review's median={statistics.median(counts):.0f}, none in {sum(1 for c in counts if c == 0)}; {not_lists} more reports were not a list of findings"
+        f"a review's median={median(counts):.0f}, none in {sum(1 for c in counts if c == 0)}; {not_lists} more reports were not a list of findings"
     )
     for kind, n in found.most_common():
         print(f"      {kind:32s} {n / everything:4.0%} of findings; the first finding in {top[kind] / max(1, sum(top.values())):4.0%} of reviews")
@@ -440,14 +441,50 @@ def main():
                 small[(role, "all")] += 1
                 small[(role, "small")] += (call.get("res_chars") or 0) < 1500
     for role in ("worker", "reviewer"):
-        print(f"  {role}: {small[(role, 'small')] / small[(role, 'all')]:.0%} of its {small[(role, 'all')]} reads and searches returned under 1,500 characters")
+        print(f"  {role}: {small[(role, 'small')] / max(1, small[(role, 'all')]):.0%} of its {small[(role, 'all')]} reads and searches returned under 1,500 characters")
     for role in ("worker", "reviewer", "main"):
-        print(f"  {role}: {touched[(role, 'log')]} of its {touched[(role, 'all')]} tool calls touched a work log ({touched[(role, 'log')] / touched[(role, 'all')]:.1%})")
+        print(f"  {role}: {touched[(role, 'log')]} of its {touched[(role, 'all')]} tool calls touched a work log ({touched[(role, 'log')] / max(1, touched[(role, 'all')]):.1%})")
     for role in ("worker", "reviewer"):
-        print(f"  {role}: instruction files the harness loaded, median {statistics.median(loaded[role]) / 1e3:.0f}k tokens, none for {sum(1 for v in loaded[role] if not v)} of {len(loaded[role])}")
+        print(f"  {role}: instruction files the harness loaded, median {median(loaded[role]) / 1e3:.0f}k tokens, none for {sum(1 for v in loaded[role] if not v)} of {len(loaded[role])}")
     for role in ("worker", "reviewer"):
-        print(f"  {role}: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median {statistics.median(notices[role]) / 1e3:.0f}k tokens")
-    print(f"  the skills listed in a subagent's first request: median {statistics.median(s[0] for s in listed):.0f} skills, {tokens(statistics.median(s[1] for s in listed)) / 1e3:.1f}k tokens")
+        print(f"  {role}: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median {median(notices[role]) / 1e3:.0f}k tokens")
+    print(f"  the skills listed in a subagent's first request: median {median(s[0] for s in listed):.0f} skills, {tokens(median(s[1] for s in listed)) / 1e3:.1f}k tokens")
+
+    print("\n== A commit's cost with the workers that made none left out ==")
+    for effort in EFFORTS.values():
+        workers = [r for r in rows if r["effort"] == effort and r["role"] == "worker"]
+        made = {r["key"]: sum(commits_in(call) for call in agents[r["key"]]["tools"]) for r in workers}
+        commits = sum(made.values())
+        idle = [r for r in workers if not made[r["key"]]]
+        if not commits or not idle:
+            continue
+        dollars = sum(r["tokens"]["cost"] for r in workers)
+        with_reviews = dollars + sum(review_cost[r["key"]] for r in workers)
+        less = sum(r["tokens"]["cost"] for r in idle)
+        less_reviews = less + sum(review_cost[r["key"]] for r in idle)
+        model = sum(r["states"].get("model", 0) for r in workers) / 60
+        less_model = sum(r["states"].get("model", 0) for r in idle) / 60
+        print(
+            f"  {effort:28s} {len(idle)} of {len(workers)} workers made no commit: ${less:.0f} of the workers' ${dollars:.0f}, "
+            f"{sum(r['states'].get('model', 0) + r['states'].get('tool', 0) for r in idle) / 60:.0f} busy minutes"
+        )
+        print(
+            f"      a commit with them: ${dollars / commits:.2f}, ${with_reviews / commits:.2f} with reviewers', {model / commits:.1f} min with the model; "
+            f"without: ${(dollars - less) / commits:.2f}, ${(with_reviews - less_reviews) / commits:.2f}, {(model - less_model) / commits:.1f} min"
+        )
+        print("      " + "; ".join(f"{(r['desc'] or '?')[:48]} ({(r['model'] or '?').replace('claude-', '')}, ${r['tokens']['cost']:.0f})" for r in idle[:6]))
+
+    print("\n== Models, effort levels and the most workers busy at once ==")
+    for effort in EFFORTS.values():
+        kinds = Counter()
+        for agent in agents.values():
+            r = by_key[agent["key"]]
+            if r["effort"] == effort:
+                level = max(agent["efforts"], key=agent["efforts"].get) if agent["efforts"] else "no level logged"
+                kinds[(r["role"], (r["model"] or "?").replace("claude-", ""), level)] += 1
+        most = max((p[0] for p in profile.get(effort, {}).get("series", [])), default=0)
+        print(f"  {effort}: at most {most} workers busy in one minute")
+        print("      " + ", ".join(f"{n} {role} on {model} at {level}" for (role, model, level), n in sorted(kinds.items())))
 
 
 if __name__ == "__main__":

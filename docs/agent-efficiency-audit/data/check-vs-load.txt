@@ -1,11 +1,11 @@
 
-ROOT:lint  (n=267)
-   other checks running   0: n= 107 median=  57.4s p90=  75.2s
-   other checks running  ~1: n= 108 median=  68.3s p90=  85.0s
+ROOT:lint  (n=266)
+   other checks running   0: n= 105 median=  57.7s p90=  75.2s
+   other checks running  ~1: n= 109 median=  68.2s p90=  85.0s
    other checks running  ~2: n=  41 median=  67.9s p90=  75.3s
    other checks running  ~3: n=   9 median=  74.3s p90= 112.0s
-   agents active  1-2:        n=  62 median=  56.8s
-   agents active  3-4:        n=  80 median=  64.3s
+   agents active  1-2:        n=  63 median=  56.5s
+   agents active  3-4:        n=  78 median=  65.5s
    agents active  5-6:        n= 100 median=  67.3s
    agents active   7+:        n=  25 median=  68.5s
 
@@ -46,11 +46,11 @@ brick-fuzz-pop:lint && brick-fuzz-pop:typecheck  (n=104)
    agents active  5-6:        n=  62 median=  34.6s
    agents active   7+:        n=  21 median=  25.1s
 
-asteroid-breaker:test  (n=58)
+asteroid-breaker:test  (n=59)
    other checks running   0: n=  30 median=  40.9s p90=  62.3s
-   other checks running  ~1: n=  23 median=  41.1s p90=  46.3s
+   other checks running  ~1: n=  24 median=  41.1s p90=  48.1s
    other checks running  ~2: n=   5 median=  41.9s p90=  46.9s
-   agents active  1-2:        n=  23 median=  41.1s
+   agents active  1-2:        n=  24 median=  41.2s
    agents active  3-4:        n=  24 median=  41.2s
    agents active  5-6:        n=  11 median=  39.1s
 

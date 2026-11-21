@@ -1,0 +1,74 @@
+== Waits on the root checks' lock ==
+  /tmp/fz-player-text.lock: 111 runs, waited 3.66 h in all (p90 285 s, most 577 s), a run's median 27 s
+
+== Characters to a token, in tool results of 20,000 characters or more ==
+  results=89 median=2.64 (a quarter under 2.34, a quarter over 2.99); lib.py uses 2.5
+
+== A worker's ramp-up: from its start to its first source edit (whole logs only) ==
+  player-text                  workers=15 minutes= 5.0 requests= 44 cost=$2.84 context at the first edit=219k
+      of that context, a worker's median: 53k at its first request, 123k of tool results, 0k of instruction files the harness loaded, 25k of its own output
+      the tool results: source files 41%, other 18%, plans and design docs 15%, skills 14%, AGENTS.md files 8%, git diff, show and log 4%
+
+== Cost and time a commit, by how many commits the worker made ==
+  player-text
+      1-2  commits: workers=14 $  5.8 a commit,  19.8 busy minutes a commit, 0.0 compactions a worker
+      3-4  commits: workers= 1 $  6.1 a commit,  20.3 busy minutes a commit, 0.0 compactions a worker
+      workers that compacted at least once: 0 of 18
+
+== The API's speed against the requests in flight (every session on the machine) ==
+  0  other requests:  14095 requests, 105.3 output tokens a second,  21% of the model's seconds
+  1  other requests:  18889 requests, 104.7 output tokens a second,  28% of the model's seconds
+  2  other requests:  17525 requests, 106.2 output tokens a second,  26% of the model's seconds
+  3  other requests:  10751 requests, 106.0 output tokens a second,  15% of the model's seconds
+  4  other requests:   4954 requests, 104.9 output tokens a second,   7% of the model's seconds
+  5+ other requests:   2514 requests, 102.4 output tokens a second,   3% of the model's seconds
+  a request's seconds, fitted over 68727 requests: 0.3 s, and its output at 109 tokens a second
+
+== Commits against busy workers, in half-hour windows ==
+  player-text: 27 commits
+      1-2  busy:  1 windows,  4.0 commits an hour, 4.00 a busy worker-hour
+      2-3  busy:  3 windows,  5.3 commits an hour, 2.42 a busy worker-hour
+      4-5  busy:  1 windows, 10.0 commits an hour, 2.29 a busy worker-hour
+      5+   busy:  1 windows, 24.0 commits an hour, 2.50 a busy worker-hour
+
+== What reviewers read, and what the harness loaded for them ==
+  reviews=36; a review's median: 34 tool calls, 58k tokens of results
+  the results by what was read: source files 34%, skills 23%, plans and design docs 18%, git diff, show and log 13%, AGENTS.md files 7%, other 6%
+  a review's median context: 56k at its first request, 148k at its largest; its own output 21k; instruction files the harness loaded: mean 16k
+  read by a command or the Read tool: .agents/AGENTS.md by 64%, frontend/AGENTS.md by 42%, any AGENTS.md by 81%
+  the harness loaded an AGENTS.md for 22 of 36; 15 of those also read one of the same by command
+
+== What reviewers found ==
+  reports with a count of findings=34 (0 of them the shared library's, counted from its hand-back line): a review's median=7, none in 0; 0 more reports were not a list of findings
+      docs, comments, logs              34% of findings; the first finding in  26% of reviews
+      other                             33% of findings; the first finding in  18% of reviews
+      behaviour bug                     17% of findings; the first finding in  35% of reviews
+      spec gap or weak spec             12% of findings; the first finding in  15% of reviews
+      structure, naming, duplication     5% of findings; the first finding in   6% of reviews
+
+== What a worker changed between its review's report and its next commit ==
+  player-text              reviews of code waited on         n= 22: source  41%, docs or logs only  41%, nothing  18%
+
+== Reviews by subject ==
+  code: 33 reviews, $53, docs, plans, skills: 3 reviews, $11
+
+== A few counts the report quotes ==
+  worker: 38% of its 964 reads and searches returned under 1,500 characters
+  reviewer: 37% of its 974 reads and searches returned under 1,500 characters
+  worker: 0 of its 1672 tool calls touched a work log (0.0%)
+  reviewer: 0 of its 1177 tool calls touched a work log (0.0%)
+  main: 0 of its 115 tool calls touched a work log (0.0%)
+  worker: instruction files the harness loaded, median 16k tokens, none for 5 of 18
+  reviewer: instruction files the harness loaded, median 7k tokens, none for 14 of 36
+  worker: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 21k tokens
+  reviewer: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 20k tokens
+  the skills listed in a subagent's first request: median 58 skills, 11.7k tokens
+
+== A commit's cost with the workers that made none left out ==
+  player-text                  3 of 18 workers made no commit: $40 of the workers' $149, 87 busy minutes
+      a commit with them: $5.53, $7.40 with reviewers', 7.9 min with the model; without: $4.04, $5.83, 5.6 min
+      Rewrite Asteroid Breaker text (opus-5-5, $7); Research how-to-play writing (fable-5-2, $18); Research game descriptions and site copy (fable-5-2, $15)
+
+== Models, effort levels and the most workers busy at once ==
+  player-text: at most 10 workers busy in one minute
+      2 helper on fable-5-2 at xhigh, 6 helper on opus-5-5 at high, 1 main on fable-5-2 at high, 1 reviewer on fable-5-2 at xhigh, 35 reviewer on opus-5-5 at high, 2 worker on fable-5-2 at xhigh, 16 worker on opus-5-5 at high

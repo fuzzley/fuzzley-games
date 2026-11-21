@@ -15,7 +15,7 @@ import sys
 from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import CHECKS, DATA, HEREDOC, SCRIPT_TAG, YARN_RUN, load
+from lib import CHECKS, HEREDOC, load, OUT, SCRIPT_TAG, YARN_RUN
 
 HEAVY = set(CHECKS) | {"report-sim"}
 
@@ -52,7 +52,7 @@ def overlap_load(spans_sorted, starts, start, end, skip):
 
 
 def main():
-    spans = json.load(open(os.path.join(DATA, "spans.json")))
+    spans = json.load(open(os.path.join(OUT, "spans.json")))
     cmds = {}
     for agent in load():
         for call in agent["tools"]:
@@ -94,7 +94,7 @@ def main():
             sel = sorted(r[0] for r in rows if low <= r[2] < high)
             if len(sel) >= 4:
                 print(f"   agents active {label:>4s}:        n={len(sel):4d} median={statistics.median(sel):6.1f}s")
-    json.dump(out, open(os.path.join(DATA, "check-vs-load.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(OUT, "check-vs-load.json"), "w"), indent=1)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,12 @@
 # Agent efficiency audit: where the long builds' time and tokens went
 
-Measured on 2026-11-16 from Claude Code's own session logs on the devbox: the seven long multi-agent efforts of 2026-11-08 to 11-16, all on Claude Opus 5.5 at `xhigh` effort. They cover 762 agent transcripts, 61,184 API requests and 474 agent-hours. Dollar figures price the logged tokens at Opus 5.5's list prices ($4 in, $20 out, $0.20 cache read, and $5 or $8 cache write for the 5-minute or 1-hour cache, a million tokens), so on a subscription read them as shares of usage, not as a bill. Nothing here was tried: every saving below is an estimate from the logs, and each recommendation says how to measure it.
+Measured on 2026-11-16 from Claude Code's own session logs on the devbox: the seven long multi-agent efforts of 2026-11-08 to 11-16, on Claude Opus 5.5 at `xhigh` effort but for five of Brick Fuzz Pop's agents. They cover 762 agent transcripts, 61,184 API requests and 474 agent-hours. Dollar figures price the logged tokens at Opus 5.5's list prices ($4 in, $20 out, $0.20 cache read, and $5 or $8 cache write for the 5-minute or 1-hour cache, a million tokens), so on a subscription read them as shares of usage, not as a bill. Nothing here was tried: every saving below is an estimate from the logs, and each recommendation says how to measure it.
+
+**Updated on 2026-11-21.** The scripts were run again on that day's logs. They print the seven efforts' tables exactly as before, so every baseline below stands. What is new:
+
+- **One effort since is measured beside the seven,** the player-text rewrite of Nov 16 to 19, in [Since the audit](#since-the-audit-the-player-text-rewrite). It is kept out of the seven's totals: its subagents ran at `high` effort, its orchestrator on Claude Fable 5.2, and it rewrote text, not code.
+- **Each recommendation says where the repository stands.** None of the seven has been built. Two have moved on their own: `yarn verify:changed` is in use and already runs the root's checks, and the last build wrote no work log.
+- **Two tables read every session on the machine,** a check's duration against load and the API's speed, so they now take in the later sessions. The root's lint alone reads 58 s where it read 57, the API's speed with five or more other requests in flight reads 102 tokens a second where it read 105, and a request's fixed time reads 0.3 s where it read 0.2.
 
 Three of the seven efforts kept only part of their logs ([What to trust](#what-to-trust)), so the two builds logged whole, Brick Fuzz Pop and the Brick Breaker uplift, carry most of the conclusions.
 
@@ -19,7 +25,7 @@ Three of the seven efforts kept only part of their logs ([What to trust](#what-t
 - **Reviews are about 27% of spend, and they are acted on.** That is $825 of $3,081 in the four efforts logged whole; over all seven it reads 35%, because the cut logs lost workers' requests and no reviewer's. There were 604 reviews at about $2.50 and 6 to 7 minutes each. Where a worker waited on a review of code, it changed source before committing after about seven in ten. What is wasteful is how each one starts: from 53,000 tokens of fixed prefix it reads another 78,000 over 43 one-at-a-time calls, a fifth of it `AGENTS.md` files, and 265 of the 604 reviewers read by command a file the harness had also loaded for them.
 - **A worker that waits on its reviewer pays twice.** It is blocked for the review (30 agent-hours in all, 12% of busy time), and since a subagent's cache lasts 5 minutes and a review takes 6 to 7, it then re-writes its whole context: 194 times, $247. All such rewrites come to $417, 16% of what workers cost.
 - **Of 258 busy agent-hours, the model takes 54%, checks 21%, waiting on a reviewer 12%.** Per commit, a Brick Breaker worker spent 10.9 minutes with the model, 8.4 in checks and 3.8 blocked on review; a Brick Fuzz Pop worker 15.0, 9.4 and 8.5.
-- **More agents at once was not what the machine or the API limited.** The root's lint went from 57 s alone to 68 s beside one or two other checks, one game's specs did not slow at all, and the API wrote 105 tokens a second whether one request was in flight or six.
+- **More agents at once was not what the machine or the API limited.** The root's lint went from 58 s alone to 68 s beside one or two other checks, one game's specs did not slow at all, and the API wrote 105 tokens a second with one request in flight and 102 with six or more.
 - **But past four or five, more agents did not seem to buy more.** In Brick Fuzz Pop, commits per busy worker-hour peaked at 1.7 with three to five workers busy and were 1.3 with five or more, where the whole build made fewer commits an hour (6.9) than with four to five (7.8). That is seven half-hour windows of one build, so a sign and not a proof. The firmer figure is the waiting: its six streams sat idle 32 hours between packages, 19 of them while the orchestrator was itself waiting on other agents.
 - **Every agent has a fixed cost.** A worker takes 7 minutes, 56 requests and $3.70 to reach its first edit, by then at 265,000 tokens of context. In the Brick Breaker uplift a package of one or two commits cost $14.20 a commit against about $10 for larger ones.
 - **The standing docs more than doubled in twelve days.** Every `AGENTS.md` together went from 243 KB to 553 KB. Asteroid Breaker's alone is 130 KB, about 50,000 tokens, which an agent working on that game takes in once and then re-reads on every request.
@@ -31,7 +37,7 @@ Three of the seven efforts kept only part of their logs ([What to trust](#what-t
 2. Give reviews an agent type of their own: a short rubric in place of the standing docs, reads batched, and a lower effort tried against the present one.
 3. Put the standing docs on a budget, and have briefs carry excerpts rather than "read the plan".
 4. Keep four workers at once, in packages of three to nine commits, each a fresh agent; no long-lived streams.
-5. One `yarn verify:changed` a commit, the root's lint once a package.
+5. One `yarn verify:changed` a commit and no other check, with no lock that queues it.
 6. Batch the reads: what an agent knows it needs, in one command.
 7. A watchdog for sessions left overnight.
 
@@ -45,7 +51,7 @@ Together these should take about a fifth off the tokens and up to a fifth off a 
 - **Three efforts are cut short.** The Asteroid Breaker follow-ups (Nov 8), the Asteroid Breaker uplift and the Brick Fuzz Pop tune-up kept nothing from before an agent's first compaction, for the orchestrator and for every worker that compacted (20 of the uplift's 22). Three of the uplift's workers reported 884, 794 and 765 tool uses in their completion notices, against 278, 236 and 197 in their logs. So those efforts' worker and orchestrator figures are lower bounds (for those three workers, about a third of the truth); their reviewers, which never compact, are whole. A share of spend taken over all seven therefore leans toward reviewers.
 - **What a review found is not judged here.** The scripts count a report's numbered findings, sort them by keyword, and see whether a worker that waited on its review then changed files before committing. None of that says a finding was right. Read the keyword shares as rough.
 - **Tokens from characters.** Where a figure turns characters into tokens, it uses 2.5 characters a token, the median measured here over 665 large tool results.
-- **One machine, one model.** 24 cores and 23 GB, every agent on Opus 5.5 at `xhigh`.
+- **One machine, one model.** 24 cores and 23 GB, every agent on Opus 5.5 at `xhigh` but five of Brick Fuzz Pop's: four reviewers on Sonnet 5.5 and a helper on Haiku 5.5, at `medium`.
 
 ## The seven efforts
 
@@ -61,7 +67,7 @@ Together these should take about a fifth off the tokens and up to a fifth off a 
 | **All seven**                        |            |            |     **109, 604** |   **$4,831** |       |
 
 - **Brick Fuzz Pop:** 120 commits and 69,000 lines added under `frontend/` by `git log`, so $13.60 a commit all told. Six streams, each one agent kept alive for about 22 hours through 4 to 10 compactions.
-- **Brick Breaker uplift:** 77 commits, 27,000 lines, $11.30 a commit. 23 fresh agents, one a package, at most four at once.
+- **Brick Breaker uplift:** 77 commits, 27,000 lines, $11.30 a commit. 23 fresh agents, one a package, four at once by its plan.
 - **Shared library:** the build itself ran about 5 hours. For 29 of the session's 35 the orchestrator had nothing to do but wait for the user: by its log, 8.4 hours on its plan's questions overnight, the rest after the work was done.
 
 ## Where the time went
@@ -84,7 +90,7 @@ Together these should take about a fifth off the tokens and up to a fifth off a 
 | Idle: the orchestrator, on a timer                        |       7.1 |               |
 | Outage                                                    |      36.3 |               |
 
-- **The model's time is its output.** It writes about 105 tokens a second, and 55% of what it writes is thinking (71% for reviewers). A straight-line fit of a request's seconds on its output leaves 0.2 s that does not depend on the output, so a request costs next to no time of its own.
+- **The model's time is its output.** It writes about 105 tokens a second, and 55% of what it writes is thinking (71% for reviewers). A straight-line fit of a request's seconds on its output leaves 0.3 s that does not depend on the output, so a request costs next to no time of its own.
 - **Of the 103 hours agents sat idle after reporting, most were not waste and one part was.** 48 are the Nov 8 effort's agents, reviewers among them, kept alive for a later message. 18 are Brick Fuzz Pop's streams while its session was down, and 5 the shared library's workers between packages. The 32 that matter are Brick Fuzz Pop's streams between packages ([Parallelism](#parallelism)). An idle agent costs no tokens until it wakes; then a subagent re-writes its context ([Cache rewrites](#cache-rewrites)).
 
 **One commit, as its worker lived it** (the two builds logged whole):
@@ -173,8 +179,11 @@ Sizes from the repository's history:
 | Nov 14, before the Brick Breaker uplift   |            411 KB |              66 KB |           48 KB |      724 KB |
 | Nov 14, after it                          |            453 KB |              66 KB |           83 KB |      767 KB |
 | Nov 16, after the Asteroid Breaker uplift |            553 KB |             130 KB |           83 KB |      788 KB |
+| Nov 21, after the player-text rewrite     |            557 KB |             130 KB |           83 KB |      802 KB |
 
 Each uplift grew its game's `AGENTS.md` by 75 to 100%. The plans made these files add-only for every package, and the finishing step audits them against the code but does not prune them. Every later agent in that game pays for the growth on each request, so the cost compounds from one effort to the next.
+
+The player-text rewrite added little: 4 KB across the `AGENTS.md` files, and the `player-text` skill, whose `SKILL.md` is 13 KB with 43 KB of reference files beside it that the table does not count. On Nov 21 five `AGENTS.md` files are over 25 KB: Asteroid Breaker's (130 KB), Brick Breaker's (83 KB), Brick Fuzz Pop's (64 KB), `frontend/lib/dev`'s (54 KB) and `frontend/lib/phaser`'s (34 KB).
 
 The work logs were large too: 437 KB for the Brick Breaker uplift, 909 KB for Brick Fuzz Pop and 1.26 MB in 92 files for the Asteroid Breaker uplift, all deleted at the merge. 6.8% of workers' tool calls and 5.5% of reviewers' touched one, and 32 reviews ($81) reviewed a log.
 
@@ -216,7 +225,7 @@ So about seven reviews in ten are followed by a change to source, and the saving
 - **The lock on root checks cost little:** 1.26 hours of waiting across 191 runs in the Brick Breaker uplift (90% waited under 87 s), 0.40 hours across 161 in the Asteroid Breaker uplift.
 - **Failures are cheap.** A failed run is short, and the failed runs of lint, specs and typecheck together took 4.0 hours.
 - **Mutants were Brick Fuzz Pop's:** 423 of the runs and 5.4 of the hours, each stream writing its own script.
-- **`yarn verify:changed` came too late for these builds.** It landed on Nov 15 at 38 to 41 s for one game changed (the local pipeline audit's figure), against Asteroid Breaker's lint, typecheck and specs one after another (23, 14 and 42 s in the uplift's plan) and then the root's lint.
+- **`yarn verify:changed` came too late for these builds.** It landed on Nov 15 at 38 to 41 s for one game changed (the local pipeline audit's figure), against Asteroid Breaker's lint, typecheck and specs one after another (23, 14 and 42 s in the uplift's plan) and then the root's lint. The player-text rewrite was the first build to use it ([Since the audit](#since-the-audit-the-player-text-rewrite)).
 
 ## Parallelism
 
@@ -224,14 +233,14 @@ So about seven reviews in ten are followed by a change to source, and the saving
 
 | A run of                                   | Alone | Beside ~1 other check |     ~2 |    ~3 |
 | ------------------------------------------ | ----: | --------------------: | -----: | ----: |
-| The root's `yarn lint`                     |  57 s |                  68 s |   68 s |  74 s |
+| The root's `yarn lint`                     |  58 s |                  68 s |   68 s |  74 s |
 | Brick Fuzz Pop's specs (one file or a few) | 8.9 s |                 7.3 s | 10.1 s | 7.8 s |
 | Asteroid Breaker's `test`                  |  41 s |                  41 s |   42 s |     – |
 | Brick Breaker's lint, typecheck and test   |  48 s |                  51 s |   54 s |     – |
 
 More than three heavy checks at once was rare, because agents spend most of their time with the model.
 
-**Nor was the API.** Output ran at 105 tokens a second with no other request in flight, and at 105 with five or more. Two or more others were in flight for half of the model's seconds.
+**Nor was the API.** Output ran at 105 tokens a second with no other request in flight, and at 102 with five or more. Two or more others were in flight for half of the model's seconds.
 
 **How many were busy:**
 
@@ -275,6 +284,47 @@ More than three heavy checks at once was rare, because agents spend most of thei
 
 **So is it better not to over-parallelize?** On this evidence yes, with the caveat above on how thin one part of it is. More than four or five at once added waiting and, as far as seven windows can say, no commits. In the one build that varied its package sizes, a package of one or two commits cost four tenths more per commit than a larger one. But long-lived agents are not the cure either: the streams that made ten or more commits each were the slowest per commit and among the dearest, compacting 7.5 times on average. The best figures here belong to a fresh agent that makes three to nine commits and compacts at most once.
 
+## Since the audit: the player-text rewrite
+
+One multi-agent effort has run since: the rewrite of every string a player reads, across the games and the site, on Nov 16 to 19. The same scripts measure it on its own, into [`data/player-text/`](data/player-text/). Read it as a sign of where things stand, not as a test of any recommendation: nothing in it was set up to be compared.
+
+**How it differs from the seven:**
+
+- **It rewrote text.** Its commits change strings and the specs that assert them, so a commit here is lighter than a commit of game code.
+- **Its subagents ran at `high` effort, not `xhigh`.** 16 of its 18 workers and 35 of its 36 reviewers ran on Opus 5.5 at `high`. The orchestrator ran on Claude Fable 5.2, priced here at its own rates ($8 in, $40 out, $0.20 cache read, $10 or $16 cache write).
+- **It ran ten workers at once,** each in a worktree of its own, where the seven ran at most seven.
+- **Its orchestrator's log is cut:** it starts at a compaction on Nov 17, so the $254 logged is a lower bound. Its workers and reviewers are whole, and none compacted.
+
+**One commit, as its worker lived it,** beside the Brick Breaker uplift's:
+
+| Per commit                            | Brick Breaker uplift | Player-text rewrite |
+| ------------------------------------- | -------------------: | ------------------: |
+| With the model                        |             10.9 min |             7.9 min |
+| In checks                             |              8.4 min |             9.8 min |
+| Blocked on its review                 |              3.8 min |             3.2 min |
+| Waiting on a background job           |              1.8 min |             1.6 min |
+| Other tools                           |              1.2 min |             0.7 min |
+| Elapsed, its own waits included       |             26.5 min |            23.1 min |
+| Check commands run (formatting aside) |                 13.8 |                 3.7 |
+| Times it re-wrote its whole context   |                 0.70 |                0.70 |
+| Reviews it started in the background  |             31 of 73 |             7 of 31 |
+| The worker's tokens                   |                $7.90 |               $5.50 |
+| With its reviewers'                   |               $10.60 |               $7.40 |
+
+Its workers made 27 commits, 14 of the 15 that committed making one or two. Three of the 18 made none: the plan's two research agents, on Fable 5.2 on Nov 16, and one the limit cut off. With those three left out, a commit took $4.04 of its worker's tokens, $5.83 with its reviewers', and 5.6 minutes with the model.
+
+**What it shows:**
+
+- **These reviews came in under the cache's five minutes.** The 36 took a median 3.8 minutes (5.0 at the ninetieth percentile) and $1.73, against 6.1 minutes and $2.47. A review wrote 21,000 tokens where the seven's wrote 38,000, and read 58,000 over 34 tool calls where theirs read 78,000 over 43. Only 2 of the workers' 19 context rewrites followed a foreground review, where 194 of 368 did before.
+- **That is not yet a verdict on `high`.** The effort level is one cause of three: these reviews also read less, of lighter changes. And nobody set their findings beside an `xhigh` review of the same change. A report listed a median 7 findings. A worker that waited on its review changed source after 41% of 22, changed only docs after 41%, and changed nothing after 18%, against 68%, 30% and 2% in the Brick Breaker uplift. Recommendation 2's side-by-side is still owed.
+- **`yarn verify:changed` cut the check commands to a quarter, and a lock gave the time back.** The build ran it 81 times, beside 35 runs of specs alone, and never ran the root's lint as a command of its own: 3.7 check commands a commit against 13.8. But the ten workers shared one lock, `/tmp/fz-player-text.lock`. A run behind it took a median 27 s, and its 111 runs waited 3.66 hours in all, 285 s at the ninetieth percentile and 577 s at the longest. So a commit's minutes in checks went up, to 9.8. And 14 of the 19 rewrites ($15 of $23) followed a check or script that ran over five minutes, which with a 27 s check is most likely the queue.
+- **The largest cost of rewrites moved.** It was the foreground review; here it is a long wait on a check. Both are a worker waiting more than five minutes with a full context.
+- **No work log was written.** None of its 2,964 tool calls touched one, where 6.8% of workers' calls did before.
+- **The fixed costs are the same in kind.** A worker took 5.0 minutes, 44 requests and $2.84 to reach its first edit, at 219,000 tokens. Every subagent's first request still listed 58 skills, 11,700 tokens. 96% of workers' requests carried one tool call. Reviewers still opened `.agents/AGENTS.md` by command in 64% of reviews, and 15 of the 22 the harness loaded an `AGENTS.md` for held one twice.
+- **Reviews were 25% of the logged spend,** as before. What a reviewer read shifted with the brief's new clause: skills are 23% of it and `AGENTS.md` files 7%, where they were 5% and 22%.
+
+**A third kind of outage, 45.3 hours.** By the orchestrator's log, the account's weekly limit ran out at 06:03 UTC on Nov 17 (01:03 local), 26 to 28 minutes into the first attempt. The ten agents then at work, five workers and five just started, all failed within two minutes. The build resumed on "Try again" at 03:21 UTC on Nov 19 and finished in 77 minutes. Nothing warned beforehand that the week was nearly spent. Width did not spend it, 26 minutes in; width set how many agents were cut off mid-task.
+
 ## Recommendations and experiments
 
 Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a worker's 26.5 elapsed minutes and 0.70 context rewrites a commit; $2.47 and 6.1 minutes a review; source changed after 68% of the reviews of code a worker waited on.** Across all seven, a review's median is 43 tool calls.
@@ -286,6 +336,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** About 5% of spend and up to 12% of busy time (est.).
 - **Measure.** A worker's elapsed minutes and its rewrites a commit, in `summarize.py`'s section 7. The minutes blocked on a reviewer fall to nothing by definition, so they are not the test: a worker that starts its reviewer in the background and then only waits has gained nothing. The count of commits leaves `fixup!` commits out, so they do not flatter the figures; section 7 counts them apart.
 - **Quality.** The same review, answered the same way. The risk is a worker building on a change its reviewer then faults, so keep the next change small until the report is in. One measure is lost: what an author changes after a review no longer tells the review's effect from the next change's work. Count the `fixup!` commits that follow a report instead.
+- **Where it stands (Nov 21).** Not built: the skill still has the author wait. The player-text rewrite's workers started 7 of 31 reviews in the background. Its reviews, at `high`, came back in 3.8 minutes, so the rewrites all but went (2) while the blocking stayed, at 3.2 minutes a commit. If the reviewer stays under five minutes, this recommendation's gain is those minutes and not the $247.
 
 ### 2. An agent type for reviews
 
@@ -298,6 +349,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Expected.** A quarter to a third of what reviews cost, so 7 to 9% of spend (est.). Not minutes: a review's 38,000 tokens of output take six minutes to write however little it reads.
 - **Then try `high` effort for it.** 71% of a reviewer's output is thinking, a fifth of what a review costs and most of its minutes, so this is also what could bring a review inside the cache's 5 minutes. Run both efforts over the same 20 staged changes and compare the findings, the behaviour bugs above all. Keep `xhigh` unless the lists match.
 - **Measure.** Requests, peak context, cost and minutes per review in section 5, and findings per review in `extras.py`. The side-by-side on the same staged changes is the real test of quality, since this reviewer no longer reads a workspace's whole `AGENTS.md`: run the old review and the new over the same 20 changes before adopting it.
+- **Where it stands (Nov 21).** Not built: there are no agent definitions, under `.agents/` or `.claude/agents/`, and `link-claude-skills.mjs` links skills only, so it needs a second kind of link. The brief has since grown a clause that has the reviewer read the `player-text` skill where a change touches a player's words. In the new agent type that clause belongs in the brief of such a change alone. `high` effort has now run, unplanned, for 35 reviews of text ([Since the audit](#since-the-audit-the-player-text-rewrite)): cheaper and inside the cache, with its findings not yet compared.
 
 ### 3. Docs on a budget, briefs with excerpts
 
@@ -307,6 +359,7 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Turn off the plugins this project never uses.** Their skills are most of the 12,000-token list in every agent's first request.
 - **Expected.** 10 to 15% of what workers cost (est.), and it stops the growth from compounding.
 - **Measure.** A worker's context at its first edit and what it is made of (`extras.py`), mean context per request (section 3), the files' sizes.
+- **Where it stands (Nov 21).** No budget, and `check-skill-references.mjs` checks no sizes. Five `AGENTS.md` files are over 25 KB ([The standing docs](#the-standing-docs)), so the pruning is five files' work, not three. The player-text rewrite wrote no work log, which is the third bullet done once without being asked for; it is not yet in the skill. The plugins are still on: 58 skills, 11,700 tokens, in every subagent's first request.
 
 ### 4. Four at once, three to nine commits a package, a fresh agent each
 
@@ -315,15 +368,17 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **No long-lived streams.** A stream's next package gets a fresh agent and the last one's summary, as the two uplifts did.
 - **Expected.** A few percent of spend; mostly it avoids the dearest patterns in the tables above.
 - **Measure.** The cost-by-package-size and commits-against-busy-workers tables in `extras.py`, and the hours workers wait for the orchestrator in section 2b.
+- **Where it stands (Nov 21).** Not followed: the player-text rewrite ran ten workers at once, and 14 of the 15 that committed made one or two commits. Its text suited small packages, and it has too few half-hour windows to say what ten bought. What it does show is a cost of width this report had not met, a queue for checks, and what width adds to an outage: ten agents cut off at once when the weekly limit ran out.
 
 ### 5. Fewer, faster checks per commit
 
-- **One `yarn verify:changed` before a review,** in place of the workspace's lint, typecheck and specs in turn and then the root's lint. Update the skill's step 1 and the plans' check lists to match.
-- **The root's lint once a package,** before the hand-back, since the orchestrator runs it at landing.
+- **One `yarn verify:changed` before a review, and no other check.** It runs the root's own checks (`lint:root`, `prettier:check`, `typecheck:root`) beside each changed workspace's, so the root's lint needs no run of its own. Update the skill's step 1, which still lists each workspace's lint, typecheck and specs and then the root's lint, and the plans' check lists to match.
+- **No single lock around it.** `verify:changed` already sizes its own run to the cores and the free memory. In the player-text rewrite one lock for ten worktrees turned a 27 s check into 3.66 hours of waiting, and most likely into most of the 14 context rewrites that followed a long check. With four workers, try it with no lock; if memory then runs short, use a lock that lets two through.
 - **Mutants from one shared script, with a time limit,** if a plan asks for them at all.
-- **A cache of passes** (the local pipeline audit's #5) now has a second reason: the orchestrator re-runs on a rebased tree what the worker just passed.
+- **Not a cache of passes.** An earlier version of this report proposed it here. The local pipeline audit looked at it again and left it out: an edit in a workspace reruns that workspace's steps anyway, and the risk of a false pass stays.
 - **Expected.** About 2 of the 8 to 9 check minutes a commit (est.). Few tokens.
-- **Measure.** Check minutes and root lints per commit in section 7.
+- **Measure.** Check minutes and check commands per commit in section 7, the waits on a lock and the rewrites that follow a check in `extras.py` and section 4.
+- **Where it stands (Nov 21).** Half in use: the player-text rewrite ran `verify:changed` for 81 of its check commands, 3.7 a commit in all against 13.8. The skill's step 1 is unchanged, and the lock took back the time.
 
 ### 6. Batch the reads
 
@@ -331,12 +386,15 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 - **Why.** 92% of requests carry one tool call, half of a worker's reads return under 1,500 characters, and each request re-reads the whole context.
 - **Expected.** A tenth to a fifth fewer requests, so 5 to 10% of spend (est.). Little time: a request costs next to none of its own.
 - **Measure.** Tool calls per request in section 3.
+- **Where it stands (Nov 21).** Not built. 96% of the player-text rewrite's workers' requests carried one tool call.
 
 ### 7. A watchdog for the night
 
 - **A phone notification when a build has made no progress for 20 minutes.** The Asteroid Breaker uplift's orchestrator set itself timers to check on its agents, which is the right habit, but a timer cannot interrupt a call that hangs, and nothing told the user either build had stopped.
 - **No call without a timeout on the orchestrator's path.** The 7.7-hour hang was a connector call that tidied up a timer; it did not need to block.
-- **Expected.** The 14 hours of wall-clock above, on a bad night.
+- **A look at the account's usage before a wide build starts,** and fewer workers where the week is nearly spent. The player-text rewrite lost 45 hours to the weekly limit, with ten agents cut off mid-task.
+- **Expected.** The 14 hours of wall-clock above on a bad night, and the 45 that a spent week cost.
+- **Where it stands (Nov 21).** Not built. The harness's push notifications are on (`agentPushNotifEnabled`), which is something to build it on.
 
 ### Considered and set aside
 
@@ -349,15 +407,15 @@ Baselines to beat, from the Brick Breaker uplift: **$11.30 a commit all told; a 
 
 ### An order to try them in
 
-1. **Before the next build:** 1, 2 without the effort change, 5 and 6. They are edits to one skill, one agent definition and the briefs.
+1. **Before the next build:** 1, 2 without the effort change, 5 and 6. They are edits to one skill, one agent definition with the link that loads it, and the briefs.
 2. **In the next build's plan:** 3's briefs and 4's package sizes. Run half the packages on the old review and half on the new, and compare cost and minutes per commit, findings per review, the fixups that follow a report, and what the finishing audit and CI catch afterwards.
-3. **As its own small task:** 3's budget and pruning for the three largest `AGENTS.md` files, and 7.
+3. **As its own small task:** 3's budget and pruning for the five `AGENTS.md` files over 25 KB, and 7.
 4. **Once 2 has settled:** the effort comparison.
 
 ## Running it again
 
 ```sh
-export AUDIT_DATA=/home/dev/Projects/personal/agent-efficiency-audit-2026-11-16/data
+export AUDIT_DATA=/home/dev/Projects/personal/agent-efficiency-audit-2026-11-21/data
 python3 scripts/extract.py ~/.claude/projects "$AUDIT_DATA/agents"
 python3 scripts/build.py       # agents.json and spans.json
 python3 scripts/profile.py     # who was busy, minute by minute
@@ -366,7 +424,10 @@ python3 scripts/extras.py      # lock waits, ramp-up, package size, API speed, r
 python3 scripts/concurrency.py # a check's duration against what else ran
 ```
 
-- **`AUDIT_DATA` must be set.** The extracted logs are 140 MB and stay outside the repository, in the folder it names; every script but `extract.py` reads and writes there. [`data/`](data/) holds what each script printed for this report.
-- **A new effort** needs its session's id and a name in `EFFORTS`, in `scripts/lib.py`, and a model family the efforts did not use needs its prices in `PRICE` there; `build.py` says which requests it could not price.
-- **`concurrency.py`** prints the 14 commonest checks, or the ones named as arguments (`'ROOT:lint' 'asteroid-breaker:test'`); `data/check-vs-load.txt` holds the nine the table above draws on.
+- **`AUDIT_DATA` must be set.** The extracted logs are 223 MB and stay outside the repository, in the folder it names; every script but `extract.py` reads and writes there.
+- **Extract into a new dated folder each time, and keep the old ones.** A log can lose its start after the fact: one session's log of Nov 16 was whole on that day and cut by Nov 21. An old extraction is then the only copy of what was lost. [`data/`](data/) holds what each script printed for this report.
+- **With no more set, the scripts measure the seven,** `BASELINE` in `scripts/lib.py`, and print the tables in [`data/`](data/).
+- **A new effort** needs its session's id and a name in `LATER` there, and its name in `WHOLE` beside it unless its workers' logs are cut. Run the same commands from `build.py` on with `AUDIT_EFFORTS` set to its name (`AUDIT_EFFORTS=player-text`), and its tables go to a folder of that name under `AUDIT_DATA`, apart from the seven's. Several names, a comma between them, are measured together. [`data/player-text/`](data/player-text/) holds what that run printed.
+- **A model family the efforts did not use** needs its prices in `PRICE`; `build.py` says which requests it could not price. Each request is priced at its own model's rates.
+- **`concurrency.py`** prints the 14 commonest checks, or the ones named as arguments (`'ROOT:lint' 'asteroid-breaker:test'`); `data/check-vs-load.txt` holds the nine the table above draws on. It and the API's speed in `extras.py` read every session on the machine, whatever `AUDIT_EFFORTS` says.
 - **The scripts** need Python 3.10 or later and nothing else.

@@ -14,7 +14,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import CHECKS, DATA, EFFORTS, FIXUP, HEREDOC, attribute, commits_in, cost, fmt, load, main_model, price_of, quantile, review_costs, scope, steps
+from lib import attribute, CHECKS, commits_in, cost, EFFORTS, FIXUP, fmt, HEREDOC, load, OUT, price_of, quantile, review_costs, scope, steps
 
 ROLES = ("main", "worker", "reviewer", "helper")
 ROOT_LINT = re.compile(r"(yarn\.js\"?|\by|yarn|\$YJ)\s+lint\b")
@@ -46,18 +46,24 @@ def category(span, role):
 
 
 def main():
-    rows = json.load(open(os.path.join(DATA, "agents.json")))
-    spans = json.load(open(os.path.join(DATA, "spans.json")))
+    rows = json.load(open(os.path.join(OUT, "agents.json")))
+    spans = json.load(open(os.path.join(OUT, "spans.json")))
     by_key = {r["key"]: r for r in rows}
     agents = {a["key"]: a for a in load() if a["session"] in EFFORTS}
-    model = main_model(agents.values())
-    prices = price_of(model)
+    # Sections 3 and 4 price each request at its own model's rates, and leave
+    # out a model that served under 1% of the efforts' requests: a few stray
+    # calls, whose contexts say nothing about the efforts' agents.
+    served = Counter(r.get("model") for a in agents.values() for r in a["requests"] if not r["synthetic"])
+    models = {m for m, n in served.items() if price_of(m) and n >= 0.01 * sum(served.values())}
     out = {}
 
     print("== 1. The efforts ==")
     table = []
     for session, effort in EFFORTS.items():
         mine = [r for r in rows if r["session"] == session]
+        if not mine:
+            print(f"  {effort}: no logs under AUDIT_DATA", file=sys.stderr)
+            continue
         start = min(r["t0"] for r in mine if r["t0"])
         end = max(r["t1"] for r in mine if r["t1"])
         tokens = Counter()
@@ -90,11 +96,11 @@ def main():
         total[cat] += d
     cats = [c for c, _ in total.most_common()]
     out["hours_total"] = {c: round(v, 1) for c, v in total.items()}
-    everything = sum(total.values())
+    everything = sum(total.values()) or 1
     for cat in cats:
         print(f"  {cat:34s} {total[cat]:7.1f} h {total[cat] / everything:6.1%}")
     busy = [c for c in cats if not c.startswith("idle") and c != "outage"]
-    busy_total = sum(total[c] for c in busy)
+    busy_total = sum(total[c] for c in busy) or 1
     print("  busy hours:", round(busy_total, 1), {c: f"{total[c] / busy_total:.0%}" for c in busy})
     out["hours_by_role"] = {}
     for effort in EFFORTS.values():
@@ -145,12 +151,13 @@ def main():
     calls_per_request = defaultdict(Counter)
     for agent in agents.values():
         role = by_key[agent["key"]]["role"]
-        reqs = [r for r in agent["requests"] if not r["synthetic"] and r.get("model") == model]
+        reqs = [r for r in agent["requests"] if not r["synthetic"] and r.get("model") in models]
         if not reqs:
             continue
         first[role].append(reqs[0]["in"] + reqs[0]["cr"] + reqs[0]["cw"])
         per_message = Counter(c["req"] for c in agent["tools"])
         for r in reqs:
+            prices = price_of(r["model"])
             ctx = r["in"] + r["cr"] + r["cw"]
             write5, write1h = r["cw5"], r["cw1h"]
             if write5 + write1h == 0:
@@ -214,8 +221,9 @@ def main():
         mine = sorted(by_agent[agent["key"]], key=lambda s: s["s"])
         prev = None
         for r in agent["requests"]:
-            if r["synthetic"] or r.get("model") != model or not r["t_first"]:
+            if r["synthetic"] or r.get("model") not in models or not r["t_first"]:
                 continue
+            prices = price_of(r["model"])
             ctx = r["in"] + r["cr"] + r["cw"]
             if prev is not None and ctx > 60000 and r["cw"] > 0.5 * ctx:
                 low, high = prev, r["t_first"]
@@ -300,7 +308,7 @@ def main():
         out["checks"][tag] = {"runs": c["n"], "hours": round(c["s"] / 3600, 1), "failed": c["failed"], "failed_hours": round(c["failed_s"] / 3600, 1)}
         print(f"  {tag:10s} runs={c['n']:5d} hours={c['s'] / 3600:5.1f} failed={c['failed'] / c['n']:4.0%}, {c['failed_s'] / 3600:4.1f} h in the failed runs")
     print("  mutation runs by effort: " + ", ".join(f"{effort} {c['n']} runs, {c['s'] / 3600:.1f} h" for effort, c in sorted(mutants.items(), key=lambda kv: -kv[1]["s"])))
-    print(f"  the root's lint as a command of its own: {len(root_lint_alone)} runs, median {statistics.median(root_lint_alone):.0f} s, {sum(root_lint_alone) / 3600:.1f} h")
+    print(f"  the root's lint as a command of its own: {len(root_lint_alone)} runs, median {statistics.median(root_lint_alone or [0]):.0f} s, {sum(root_lint_alone) / 3600:.1f} h")
     print(f"  failed runs of lint, test and typecheck together: {sum(checks[t]['failed_s'] for t in ('lint', 'test', 'typecheck')) / 3600:.1f} h")
 
     print("\n== 7. A worker's commit loop ==")
@@ -344,7 +352,7 @@ def main():
         out["commit_loop"][effort] = loop
         print(f"  {effort:24s} {loop}")
 
-    json.dump(out, open(os.path.join(DATA, "summary.json"), "w"), indent=1)
+    json.dump(out, open(os.path.join(OUT, "summary.json"), "w"), indent=1)
 
 
 if __name__ == "__main__":

@@ -4,11 +4,12 @@ import glob
 import json
 import os
 import re
+import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
 
 # The extracted logs are large, so they live outside the repository, in the
-# folder AUDIT_DATA names. Every script reads and writes there.
+# folder AUDIT_DATA names. Every script reads the agents from there.
 DATA = os.environ.get("AUDIT_DATA")
 if not DATA:
     raise SystemExit("Set AUDIT_DATA to the folder that holds the extracted logs, as the report's last section shows.")
@@ -21,12 +22,15 @@ CHARS_PER_TOKEN = 2.5
 # List prices by model family in November 2026, dollars per million tokens:
 # input, output, a cache read, and a cache write kept 5 minutes or 1 hour.
 PRICE = {
+    "fable": {"in": 8.0, "out": 40.0, "cr": 0.20, "cw5": 10.0, "cw1h": 16.0},
     "opus": {"in": 4.0, "out": 20.0, "cr": 0.20, "cw5": 5.0, "cw1h": 8.0},
     "sonnet": {"in": 2.0, "out": 10.0, "cr": 0.10, "cw5": 2.5, "cw1h": 4.0},
     "haiku": {"in": 0.1, "out": 0.5, "cr": 0.01, "cw5": 0.125, "cw1h": 0.2},
 }
 
-EFFORTS = {
+# The seven efforts the report measured on 2026-11-16, which its baselines
+# come from.
+BASELINE = {
     "6ab6d332-06f3-5f2d-a60b-301b1ecc9edb": "asteroid-breaker-follow-ups",
     "756eb193-bb72-5d5f-95cf-acd37f74cca4": "shared-lib",
     "b774e36f-2f9d-4d89-9c4e-43a7bede3ef6": "brick-fuzz-pop",
@@ -35,6 +39,35 @@ EFFORTS = {
     "22b692dc-547f-5c4d-951b-ae6a54689b02": "asteroid-breaker-uplift",
     "daf8088a-bf6a-5149-bf38-f894fbae0a3e": "bfp-tune-up",
 }
+# Efforts since, each measured on its own so the baseline's tables stay as
+# they were.
+LATER = {
+    "b14579b9-1286-5e46-af2b-d819322c1376": "player-text",
+}
+# The efforts whose workers' logs are whole, so `extras.py` can set a
+# worker's commits and cost against its size and against how many were busy.
+# A new effort belongs here too unless its workers' logs are cut.
+WHOLE = ("brick-breaker-uplift", "brick-fuzz-pop", "player-text")
+
+
+def chosen_efforts():
+    """Returns the efforts AUDIT_EFFORTS names, a comma between them, or the baseline's where it is unset."""
+    names = os.environ.get("AUDIT_EFFORTS")
+    if not names:
+        return dict(BASELINE)
+    known = {**BASELINE, **LATER}
+    wanted = [name.strip() for name in names.split(",")]
+    unknown = sorted(set(wanted) - set(known.values()))
+    if unknown:
+        raise SystemExit(f"AUDIT_EFFORTS names {unknown}, and lib.py lists only {sorted(known.values())}.")
+    return {session: name for session, name in known.items() if name in wanted}
+
+
+EFFORTS = chosen_efforts()
+# Where the tables built from the agents go: the data folder for the
+# baseline, and a folder of its own for any other choice of efforts.
+OUT = os.path.join(DATA, "+".join(EFFORTS.values())) if os.environ.get("AUDIT_EFFORTS") else DATA
+os.makedirs(OUT, exist_ok=True)
 
 
 def fmt(t, style="%m-%d %H:%M"):
@@ -54,16 +87,6 @@ def load(session_prefix=None):
 def price_of(model):
     """Returns the prices of a model's family, or None where PRICE lists none."""
     return next((price for family, price in PRICE.items() if family in (model or "")), None)
-
-
-def main_model(agents):
-    """Returns the model that served most of the agents' requests."""
-    counts = defaultdict(int)
-    for agent in agents:
-        for req in agent["requests"]:
-            if not req["synthetic"]:
-                counts[req.get("model")] += 1
-    return max(counts, key=counts.get) if counts else None
 
 
 def cost(req):
@@ -330,6 +353,12 @@ def commits_in(call, pattern=COMMIT):
     if call.get("name") != "Bash" or call.get("err"):
         return 0
     return len(pattern.findall(HEREDOC.sub(" ", call.get("cmd") or "")))
+
+
+def median(values):
+    """Returns the median, or 0 of nothing: an effort can have no reviewer, or no worker."""
+    values = list(values)
+    return statistics.median(values) if values else 0
 
 
 def quantile(values, q):

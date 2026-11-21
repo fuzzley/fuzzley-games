@@ -12,14 +12,14 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import DATA, EFFORTS, fmt
+from lib import EFFORTS, fmt, OUT
 
 STEP = 60.0
 
 
 def main():
-    agents = {r["key"]: r for r in json.load(open(os.path.join(DATA, "agents.json")))}
-    spans = json.load(open(os.path.join(DATA, "spans.json")))
+    agents = {r["key"]: r for r in json.load(open(os.path.join(OUT, "agents.json")))}
+    spans = json.load(open(os.path.join(OUT, "spans.json")))
     out = {}
     for session, effort in EFFORTS.items():
         mine = [s for s in spans if agents[s["a"]]["session"] == session]
@@ -88,7 +88,7 @@ def main():
             "series": [(len(busy[i]), len(waiting[i]), len(reviewing[i]), main_state[i], down[i]) for i in range(slots)],
             "start": start,
         }
-    json.dump(out, open(os.path.join(DATA, "profile.json"), "w"))
+    json.dump(out, open(os.path.join(OUT, "profile.json"), "w"))
 
 
 if __name__ == "__main__":

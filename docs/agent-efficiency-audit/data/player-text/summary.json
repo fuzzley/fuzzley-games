@@ -1,0 +1,175 @@
+{
+  "efforts": [
+    {
+      "effort": "player-text",
+      "start": "11-16 15:58",
+      "wall_h": 60.7,
+      "agents": 63,
+      "workers": 18,
+      "reviewers": 36,
+      "helpers": 8,
+      "requests": 2981,
+      "out_M": 2.4,
+      "read_M": 505,
+      "write_M": 15.6,
+      "cost": 254
+    }
+  ],
+  "hours_total": {
+    "model": 6.5,
+    "other tools": 0.4,
+    "checks": 4.9,
+    "wait: reviewer": 1.5,
+    "wait: background job": 0.7,
+    "idle: waiting for the orchestrator": 0.0,
+    "compact": 0.0,
+    "idle: other": 0.0,
+    "idle: agents": 0.9,
+    "outage": 45.3,
+    "idle: user": 0.0,
+    "wait: CI": 0.0,
+    "idle: its own background task": 0.0
+  },
+  "hours_by_role": {
+    "player-text/main": {
+      "model": 0.3,
+      "wait: reviewer": 0.1,
+      "idle: other": 0.0,
+      "compact": 0.0,
+      "other tools": 0.0,
+      "checks": 0.5,
+      "idle: agents": 0.9,
+      "outage": 45.3,
+      "idle: user": 0.0,
+      "wait: CI": 0.0
+    },
+    "player-text/worker": {
+      "model": 3.5,
+      "other tools": 0.3,
+      "checks": 4.4,
+      "wait: reviewer": 1.4,
+      "wait: background job": 0.7,
+      "idle: waiting for the orchestrator": 0.0,
+      "idle: its own background task": 0.0
+    },
+    "player-text/reviewer": {
+      "model": 2.2,
+      "other tools": 0.1
+    },
+    "player-text/helper": {
+      "model": 0.5,
+      "other tools": 0.0,
+      "checks": 0.0,
+      "wait: reviewer": 0.0,
+      "compact": 0.0
+    }
+  },
+  "waits_meanwhile": {},
+  "spend": {
+    "main": {
+      "n": 96,
+      "out": 4.8,
+      "think": 1.3,
+      "read": 5.2,
+      "write": 8.6,
+      "in": 0.0
+    },
+    "worker": {
+      "n": 1576,
+      "out": 33.0,
+      "think": 14.6,
+      "read": 63.4,
+      "write": 53.0,
+      "in": 0.0
+    },
+    "reviewer": {
+      "n": 1057,
+      "out": 16.6,
+      "think": 10.4,
+      "read": 25.0,
+      "write": 22.7,
+      "in": 0.0
+    },
+    "helper": {
+      "n": 252,
+      "out": 6.1,
+      "think": 3.5,
+      "read": 7.4,
+      "write": 8.0,
+      "in": 0.0
+    },
+    "all": {
+      "n": 2981,
+      "out": 60.5,
+      "think": 29.7,
+      "read": 101.0,
+      "write": 92.3,
+      "in": 0.0
+    }
+  },
+  "rewrites": {
+    "worker": {
+      "a check or script over 5 min": [14, 15],
+      "nothing (under 5 min; the prefix changed)": [1, 3],
+      "a background job": [2, 3],
+      "a foreground reviewer": [2, 2]
+    },
+    "main": {
+      "an outage": [1, 3],
+      "nothing (under 5 min; the prefix changed)": [1, 1]
+    },
+    "reviewer": {}
+  },
+  "checks": {
+    "verify": {
+      "runs": 81,
+      "hours": 3.0,
+      "failed": 4,
+      "failed_hours": 0.2
+    },
+    "test": {
+      "runs": 35,
+      "hours": 1.0,
+      "failed": 9,
+      "failed_hours": 0.2
+    },
+    "format": {
+      "runs": 109,
+      "hours": 0.9,
+      "failed": 10,
+      "failed_hours": 0.1
+    },
+    "layout": {
+      "runs": 1,
+      "hours": 0.0,
+      "failed": 0,
+      "failed_hours": 0.0
+    },
+    "lint": {
+      "runs": 2,
+      "hours": 0.0,
+      "failed": 0,
+      "failed_hours": 0.0
+    }
+  },
+  "commit_loop": {
+    "player-text": {
+      "workers": 18,
+      "commits": 27,
+      "fixups": 0,
+      "reviews": 31,
+      "reviews_in_background": 7,
+      "root_lints": 0,
+      "check_runs": 101,
+      "model_min": 7.9,
+      "checks_min": 9.8,
+      "review_wait_min": 3.2,
+      "background_wait_min": 1.6,
+      "other_tools_min": 0.7,
+      "elapsed_min": 23.1,
+      "rewrites_per_commit": 0.7,
+      "worker_cost": 5.5,
+      "with_reviews_cost": 7.4
+    }
+  }
+}

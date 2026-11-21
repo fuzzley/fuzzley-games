@@ -1,0 +1,7 @@
+
+## player-text: 11-16 15:58 to 11-19 04:38, 60.7 h wall, 15.4 h up
+   busy workers:        0:87%  1:1%  2:4%  3:1%  4:0%  5:1%  6:3%  7:4%   mean 0.59
+   waiting, reported:   0:100%
+   reviewers running:   0:90%  1:5%  2:3%  3:2%  4:0%
+   orchestrator:        no-log:88%  busy:7%  idle:task-notification:5%  idle:compact:0%  stall:None:0%  idle:human:0%
+   after the last worker went quiet: 0.2 h

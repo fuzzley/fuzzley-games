@@ -11,7 +11,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import DATA, EFFORTS, classify, cost, hierarchy, intervals, load, lock_file, price_of, role_of, scope, steps
+from lib import classify, cost, EFFORTS, hierarchy, intervals, load, lock_file, OUT, price_of, role_of, scope, steps
 
 
 def main():
@@ -102,9 +102,9 @@ def main():
                 "n_drops": len(agent["drops"]),
             }
         )
-    with open(os.path.join(DATA, "agents.json"), "w") as handle:
+    with open(os.path.join(OUT, "agents.json"), "w") as handle:
         json.dump(rows, handle)
-    with open(os.path.join(DATA, "spans.json"), "w") as handle:
+    with open(os.path.join(OUT, "spans.json"), "w") as handle:
         json.dump(spans, handle)
     print(len(rows), "agents;", len(spans), "spans")
     if unpriced:
