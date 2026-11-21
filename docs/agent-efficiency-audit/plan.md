@@ -502,6 +502,27 @@ A draft, to be settled in step 4's reading:
 - **The first file is what costs.** Opening one file of Snake loaded four `AGENTS.md` files, 64,700 characters, and the request went from 27,000 tokens to 56,000. The same step in Asteroid Breaker loads 175,000 characters, about 70,000 tokens. Steps 3 to 6 are where this stage's saving is.
 - **`security-guidance` holds no skill and adds nothing to a request.** Its hooks run at each prompt, each edit and each shell command: three processes a command, 0.16 seconds each, off to the side. Its two model reviews, of each commit and at each turn's end, have never run here: its own log, `~/.claude/security/log.txt`, which this repository holds no copy of, says "no API credentials" for all 84 commits and 298 turn ends it has seen since Nov 15. So it spends no usage. Were a sign-in to reach it, each commit would start a review on Opus, outside the session's own log.
 
+**Step 3, tried on one file.** One fresh agent read Asteroid Breaker's `AGENTS.md` against the code and gave each part a verdict. [`review/asteroid-breaker.md`](review/asteroid-breaker.md) holds its table, a draft for you to change, and nothing in it is applied.
+
+- **It judged 105 parts, and they add up to the file's 130,093 bytes.**
+
+  | Verdict         | Parts |   KB |
+  | --------------- | ----: | ---: |
+  | Cut             |    49 | 94.7 |
+  | Merge           |    36 | 23.7 |
+  | Move to a skill |     5 |  4.9 |
+  | Keep            |    10 |  3.3 |
+  | Make it a check |     3 |  3.0 |
+  | Move a layer    |     2 |  0.5 |
+
+- **About 7.5 KB would stay,** the ten kept parts and 37 lines kept out of parts that are otherwise cut, against a budget of 25 KB.
+- **The file is mostly an index of the code.** Its Layout section is 94 KB, and walks the source folder by folder. The agent found nearly every sentence of it in a doc comment on the thing it names, and the Tests section and the long commands in `asteroid-breaker-testing` nearly word for word.
+- **It cost $7.76 at list prices and 13 minutes,** in 47 requests. The other seven files of step 1's table are 281 KB together, so they would come to about $30 to $40 (est.), and all 17 files, the root's pointer aside, to less than the $60 to $100 this stage set aside for 25 agents.
+- **It listed six rules the file does not state.** A second look found five of them written elsewhere, in a comment or a skill. Only one has no home: Phaser lights an image by ten lights at most, and seven are taken.
+- **`asteroid-breaker-testing` is 27.5 KB,** already over the 20 KB drafted for a skill.
+- **A reviewer then looked twelve of its rows up in the code,** eight cuts, the largest first, and four merges, and all twelve hold. The verdict to read hardest is "keep": six of the ten kept parts are not rules an agent would break, being signposts or said elsewhere, so less than 7.5 KB stays. The table also missed a pointer its cuts would leave stale, in `asteroid-breaker-content`. The table's last section says which rows.
+- **So the brief for the other files gains three things:** a verdict for a signpost, with the test for "keep" in the plan's words; a search of the skills and the layers for pointers into the file, each a row; and, for each rule found in passing, where it is written already.
+
 **What this changes in the steps,** each for you to settle:
 
 - **Step 2.** All seven plugins and the account's skills are unused here. Turning them off is worth 2,250 to 2,800 tokens in each worker's every request, and it gives the repository's skills their descriptions back. They would go off in the `.claude/settings.local.json` of the folder your sessions start in, which holds both repositories, and stay on everywhere else.
