@@ -2,10 +2,11 @@
 // Checks that the skills, the repository's under `.agents/skills` and each
 // workspace's under its own, the agent definitions under `.agents/agents`
 // and every `AGENTS.md` still describe the code as it is: every relative
-// markdown link resolves, and every backticked path exists. Outside CI, it
-// also warns about a skill or a definition Claude Code can't load, whose link
-// in the `.claude/skills` beside it, or in the repository's `.claude/agents`,
-// is missing or leads nowhere.
+// markdown link resolves, and every backticked path exists. It holds each
+// `AGENTS.md` to its budget of bytes. Outside CI, it also warns about a skill
+// or a definition Claude Code can't load, whose link in the `.claude/skills`
+// beside it, or in the repository's `.claude/agents`, is missing or leads
+// nowhere.
 //
 // Usage: node .agents/check-skill-references.mjs
 
@@ -61,6 +62,19 @@ const ROOT_FILES = new Set([
 // and what builds and tests write. Hidden folders are skipped too, but for
 // `.agents`.
 const SKIPPED_FOLDERS = new Set(["node_modules", "dist", "coverage", "public"]);
+
+// The `AGENTS.md` that many workspaces read, by path from the repository's
+// root: the repository's, every workspace's and every game's.
+const SHARED_LAYERS = new Set([
+  ".agents/AGENTS.md",
+  "frontend/AGENTS.md",
+  "frontend/games/AGENTS.md",
+]);
+
+// The most bytes an `AGENTS.md` may hold, a shared layer and any other. An
+// agent loads each one whole with the first file it opens beneath it.
+const SHARED_LAYER_BUDGET = 12_000;
+const OWN_BUDGET = 4_000;
 
 /**
  * Returns whether a skill cites another project's source tree, so its paths
@@ -246,6 +260,22 @@ function checkPaths(file, text, base, problems) {
 }
 
 /**
+ * Adds a problem for an `AGENTS.md` that holds more bytes than its budget.
+ *
+ * @param {string} file
+ * @param {string} text The file's contents.
+ * @param {string[]} problems
+ */
+function checkSize(file, text, problems) {
+  const name = path.relative(REPO_ROOT, file).split(path.sep).join("/");
+  const budget = SHARED_LAYERS.has(name) ? SHARED_LAYER_BUDGET : OWN_BUDGET;
+  const size = Buffer.byteLength(text);
+  if (size > budget) {
+    problems.push(`${name}: ${size} bytes, over its budget of ${budget}`);
+  }
+}
+
+/**
  * Returns where a path leads once every link on the way is followed, or
  * null if it leads nowhere.
  *
@@ -346,10 +376,13 @@ for (const name of agentDefinitions()) {
   checkRelativeLinks(file, text, problems);
   checkPaths(file, text, REPO_ROOT, problems);
 }
+/** @type {string[]} */
+const oversized = [];
 for (const file of agentsFilesIn(REPO_ROOT)) {
   const text = fs.readFileSync(file, "utf8");
   checkRelativeLinks(file, text, problems);
   checkPaths(file, text, baseOfAgentsFile(file), problems);
+  checkSize(file, text, oversized);
 }
 
 // CI has no `.claude`, which is machine-local.
@@ -374,7 +407,16 @@ if (problems.length) {
   console.error(
     "\nA skill, an agent definition or an AGENTS.md that names a path which does not exist will be followed anyway.",
   );
-  process.exit(1);
 }
+if (oversized.length) {
+  if (problems.length) console.error("");
+  console.error(`AGENTS.md size check failed (${oversized.length}):\n`);
+  for (const problem of oversized) console.error(`  ${problem}`);
+  console.error(
+    "\nAn AGENTS.md holds rules alone. Cut what a doc comment, a check or a skill already says, or move a task's steps into a skill.",
+  );
+}
+if (problems.length || oversized.length) process.exit(1);
 
 console.log("Skill, agent definition and AGENTS.md references OK.");
+console.log("Every AGENTS.md is within its budget.");

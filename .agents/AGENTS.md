@@ -45,7 +45,20 @@ Security Policy from `nginx/content-security-policy.conf`.
   strategies that keep the code's quality and health, and the rare major
   caveat. It does not list files, describe features or how the code works,
   tell history, or repeat a doc comment, a skill, a check or another
-  `AGENTS.md`. A file left with no rule of its own is removed.
+  `AGENTS.md`: what a change built or taught goes in doc comments, its
+  commit's message or a doc under `docs/`. A file left with no rule of its
+  own is removed.
+- **Add to one only what an agent would get wrong without it.** A line
+  belongs when it tells an agent what to do or never do, or warns of a
+  major caveat, and when it bears on changes still to come, not only on the
+  one that adds it. Where a lint rule, a type or a spec can hold the rule,
+  write that instead. Good grounds are a rule the owner gives, a mistake a
+  review caught that the code gave no warning of, and a caveat that cost
+  real work to find.
+- **An `AGENTS.md` keeps to its budget,** which `yarn lint` holds: 12,000
+  bytes for this file, `frontend/AGENTS.md` and `frontend/games/AGENTS.md`,
+  and 4,000 for any other. A file near its budget gains a line only as it
+  loses one. Only the owner raises a budget.
 - **A rule is written once, in the highest layer it holds for:** this file
   for the whole repository, `frontend/AGENTS.md` for every workspace,
   `frontend/games/AGENTS.md` for every game, and a workspace's own in its
@@ -104,7 +117,7 @@ These rules cover every doc comment: classes, interfaces, functions, HTML, CSS, 
 - **Functions and methods:** Write in the third person, always starting with a verb phrase, as if "This function" came before it, e.g. `Returns the game a slug names.` or `Applies a palette to the page.`
 - **Further paragraphs are rare.** Add additional paragraphs only when it stops a caller from misusing the code, or when it answers a "why" that a reader is very likely to ask and cannot answer from the name or the code itself. Don't use one to restate the implementation, list alternatives you rejected, or tell the history of the code.
 - **`@param` and `@returns` only when they add something.** In TypeScript, leave them out when they only repeat the name and type or when they are already described sufficiently in the description.
-- **A script writes down every type.** The `.mjs` scripts, under `.agents/` and each workspace's `tools/`, are plain JavaScript, so a JSDoc tag is the only place a type can go. Every parameter has an `@param {Type} name`, and every function that returns a value has an `@returns {Type}`, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import` rather than spelling it out again. `yarn lint` requires the tags (`eslint-plugin-jsdoc`, in `@fz/dev`'s `scripts()` block), and `yarn typecheck` checks the types under `strict`.
+- **A `.mjs` script writes down every type in JSDoc,** having nowhere else to put one: an `@param {Type} name` for every parameter and an `@returns {Type}` for every value returned, which `yarn lint` requires, described only when the description adds something. A shape used more than once is a `@typedef`, which another script takes with `@import`.
 - **Inline comments follow the same rules:** Only write implementation comments for what the code cannot say for itself (e.g. disambiguate a "why" that a user is very likely to ask after reading the code).
 
 ```ts

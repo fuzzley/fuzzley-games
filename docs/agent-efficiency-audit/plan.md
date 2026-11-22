@@ -18,7 +18,7 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 
 - **Stages 1 to 5 change no game code.** They edit three skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
 - **Stage 6 is the test.** Nothing before it is proven: every saving in the audit is an estimate from logs.
-- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift. Its cut of the `AGENTS.md` files is made, 560.5 KB to 38.3 KB, by your rule that one holds instructions alone. The skills and the budgets are still to do.
+- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift. Its cut of the `AGENTS.md` files is made, 560.5 KB to 38.3 KB, by your rule that one holds instructions alone, and the lint now holds each file to a budget. The skills are still to do.
 
 The figures to beat, from the Brick Breaker uplift, which is the plugin's baseline run:
 
@@ -440,7 +440,7 @@ A draft, to be settled in step 4's reading:
 
 **Done when** no file of the repository's own is over its budget, the check holds the budgets, the rules are in `.agents/AGENTS.md`, and the figures above are measured.
 
-**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Steps 1 and 2 are done. Steps 3, 4 and 6 are done for every `AGENTS.md`, by the rule you gave in place of a table to read for each file. Step 5, the skills, has not begun, and of step 7 the rule is written and the budgets are not.
+**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Steps 1 and 2 are done. Steps 3, 4 and 6 are done for every `AGENTS.md`, by the rule you gave in place of a table to read for each file. Step 7 is done for the `AGENTS.md` files: the rules are written, and the check holds each file to a budget. Step 5, the skills, has not begun, and a skill has no budget yet.
 
 **Step 1, the evidence.** [`scripts/standing.py`](scripts/standing.py) counts what the agents of the eight efforts did with each file, 825 agents in all, and [`data/standing.txt`](data/standing.txt) holds what it printed. It reads the commands as the extraction kept them, so a command over 1,800 characters, one in 17, is counted by its head and tail alone. A file counts as read whole by a command that prints it, by `git show`, or by a Read call that returned half of it or more, and as read in lines where such a command is piped into `sed`, `head` or `tail`.
 
@@ -528,6 +528,8 @@ A draft, to be settled in step 4's reading:
 - **Plugins.** You removed two of the seven from your account, `desktop-commander` and `modern-web-guidance`, and kept the other five and the account's skills. The two held 8 of the plugins' 31 skills, 6,200 of their 12,900 characters, and a session's list went from 59 skills to 51.
 - **What an `AGENTS.md` is for,** in your words: "AGENTS.md should exist to instruct agent on specific strategies to maintain high code quality and health, plus in rare cases where a major caveat or gotcha needs to be documented. Most other AGENTS entries should be cut. If an AGENTS file does not contain any useful instructions, it is okay to completely remove it. It is also okay to merge the more general AGENTS.md instructions into the root AGENTS.md, to avoid duplication." This took the place of step 3's list of verdicts and of step 4's table to read for each file: the rule is the verdict. It is written into `.agents/AGENTS.md`, under Agent Configuration.
 - **The memory index is in scope.**
+- **Later the same day, yes to five things:** merge the cut to `main`; a budget of 4 KB for a workspace's `AGENTS.md` and 12 KB for a shared layer, held by `yarn lint`; go on to the skills; drop the nine memory-index lines that only record finished work; and run the replay set again.
+- **And one more rule:** `.agents/AGENTS.md` is to say when an addition to an `AGENTS.md` is right.
 
 **Steps 3, 4 and 6, the cut.**
 
@@ -575,13 +577,22 @@ A draft, to be settled in step 4's reading:
 - **Seven commits, each reviewed.** The reviewers read each old file whole and looked for where every rule in it is still said. They found one kept line false, the arithmetic `@fz/core` owes, which the merge had worded wrongly, and three rules the cut had dropped that nothing else said: a script that runs Vitest twice hands each run its arguments, no workspace's step waits on another's, and a script a spec imports runs only as the file Node started. All four are put right. They also found the root's two pointer files promising what was gone, and an order of commits that left pointers stale for a commit or two.
 - **It cost $55.28 at list prices,** by this session's logs, 14 agents in 461 requests, beside the pilot's $7.76. That is more than the $30 to $40 put to you for the seven costly files alone, and inside the $60 to $100 this stage set aside for 25 agents. The seven reviews came to $6.49.
 
-**The memory index** went from 8.4 KB, which it had grown to from the 7 KB this stage first counted, to 4.6 KB. Each of its 33 lines keeps its link and a shorter hook, and no memory was removed. Nine of the lines only record finished work, and dropping those is yours to say.
+**The memory index** went from 8.4 KB, which it had grown to from the 7 KB this stage first counted, to 4.6 KB. Each of its 33 lines kept its link and a shorter hook. Nine of the lines only recorded finished work: a timing baseline, a fixed timeout, a rename and six builds and audits whose plans and reports are in `docs/`. At your yes those nine left the index, which is now 24 lines and 3.4 KB. Their memory files stay on disk, where the memories that link to them still lead.
+
+**The budgets and the rule for additions (step 7).**
+
+- **A budget for each `AGENTS.md`:** 12,000 bytes for the three shared layers and 4,000 for any other, the root's pointer included. `check-skill-references.mjs`, which `yarn lint` runs, fails a file over its budget and names it with its size. The drafted 25 KB and 20 KB were far above every file after the cut, so they would have held nothing.
+- **Where each file stands against it.** The largest workspace file is Asteroid Breaker's, 2.2 KB of 4. `frontend/AGENTS.md` is 8.2 KB of 12 and `frontend/games/AGENTS.md` 4.0 KB of 12. `.agents/AGENTS.md` is 11.4 KB of 12 once it holds these two rules, so its next line displaces one.
+- **When a line may be added,** now in `.agents/AGENTS.md` under Agent Configuration: only what an agent would get wrong without it. It instructs or warns, it bears on changes still to come, and no check or doc comment can say it. A rule you give, a mistake a review caught that the code gave no warning of, and a caveat that cost real work to find are good grounds. What a change built or taught goes in doc comments, the commit's message or a doc under `docs/`.
+- **One in, one out** is the budget bullet's: a file near its budget gains a line only as it loses one, and only you raise a budget.
+- **Made room for.** The root's bullet on a script's JSDoc types lost what the lint's own failure says, 280 bytes.
+- **A skill has no budget yet.** The draft's 20 KB for a `SKILL.md` and 600 characters for a description are settled with step 5.
 
 **What is left of this stage.**
 
 - **Step 5, the skills.** 48 skills, 817 KB of bodies. They now hold what the games' files pointed to, and the cut moved no text into them. The ten of step 1's table come first: `asteroid-breaker-testing` is 27.5 KB and `fuzzley-ui` 54 KB. The Phaser copies are judged whole, and a description's budget buys what it trims in every request.
-- **Step 7's budgets, and the check.** The drafted 25 KB and 20 KB are now far above every file, so they would hold nothing. A budget that would hold the cut is 4 KB for a workspace's file and 12 KB for a shared layer, and it is yours to settle.
-- **"Nothing found is lost."** The replay set, run again on the present review, spends usage and waits for your yes.
+- **A skill's budget,** with step 5.
+- **"Nothing found is lost."** The replay set, run again on the present review, has your yes and runs once the cut is on `main`.
 - **The real after-figure** is the next measured build, stage 6.
 
 ## What this plan leaves out
