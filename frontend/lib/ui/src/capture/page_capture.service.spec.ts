@@ -1,3 +1,4 @@
+import { DOCUMENT } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import type {
   CaptureContext,
@@ -182,11 +183,20 @@ function boardIn(page: Document): HTMLElement {
   return board;
 }
 
-/** Provides a drawer, as snapdom loaded, in place of any before, and returns the service. */
-function captureWith(draw: () => Promise<DrawPage>): PageCaptureService {
+/**
+ * Provides a drawer, as snapdom loaded, in place of any before, and returns
+ * the service, over the page given or jsdom's.
+ */
+function captureWith(
+  draw: () => Promise<DrawPage>,
+  page: Document = document,
+): PageCaptureService {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
-    providers: [{ provide: PAGE_DRAWER, useValue: draw }],
+    providers: [
+      { provide: PAGE_DRAWER, useValue: draw },
+      { provide: DOCUMENT, useValue: page },
+    ],
   });
   return TestBed.inject(PageCaptureService);
 }
@@ -235,6 +245,20 @@ describe("PageCaptureService", () => {
     await capture.capture();
 
     expect(drawer.asked[0]?.options.backgroundColor).toBe("rgb(4, 5, 6)");
+  });
+
+  it("lays the picture on no background where the page has no window to work its colors out", async () => {
+    const page = document.implementation.createHTMLDocument();
+    capture = captureWith(() => Promise.resolve(drawer.draw), page);
+
+    await capture.capture();
+
+    expect(drawer.asked).toEqual([
+      {
+        element: page.documentElement,
+        options: expect.objectContaining({ backgroundColor: "" }) as unknown,
+      },
+    ]);
   });
 
   it("leaves out every dialog", async () => {
