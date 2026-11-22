@@ -101,9 +101,10 @@ export interface PlayerSteer extends Steer {
   /**
    * Whether the serve's guide shows: once a press holding the serve has
    * been held {@link GUIDE_DELAY_MS} or has turned the aim, while its drag
-   * isn't back within its zone.
+   * isn't back within its zone. Left out, as by a steer typed as the rules'
+   * `Steer`, which the shell hands the play, none does.
    */
-  showsGuide: boolean;
+  showsGuide?: boolean;
 }
 
 /** Names what holds the serve's aim: a launch key, the mouse, or a finger. */

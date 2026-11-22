@@ -1,3 +1,4 @@
+import { createServeGuide, serveGuide } from "../rules/field/guide";
 import type { Steer } from "../rules/paddle/paddle";
 import { STEP_MS } from "../rules/stepper";
 import { MAX_STEPS_PER_FRAME, STEP_S } from "../rules/tuning";
@@ -9,10 +10,21 @@ import {
 } from "../testing/field_picture";
 import { SERVE_MS } from "./effects/timing";
 import { LevelPlay } from "./level_play";
+import type { PlayerSteer } from "./steering/steering";
+
+/** Steering that holds the serve's aim at an angle, with the guide shown. */
+function aimedAt(aim: number): PlayerSteer {
+  return { ...NO_STEER, aim, showsGuide: true };
+}
 
 /** Returns a level's play over a field that stays in play while nothing moves. */
 function stillPlay(): LevelPlay {
   return new LevelPlay(playWithoutBall(fieldFrom(KEEPER)));
+}
+
+/** Returns a level's play whose ball waits to be served, under a brick. */
+function servingPlay(): LevelPlay {
+  return new LevelPlay(fieldFrom(KEEPER));
 }
 
 /** Returns a level's play whose last ball was just lost. */
@@ -74,6 +86,67 @@ describe("LevelPlay", () => {
       play.advance(STEP_MS, toward, deaf);
 
       expect(play.field.paddle.x).toBeLessThan(from);
+    });
+  });
+
+  describe("the serve's guide", () => {
+    it("is none while the steering doesn't say it shows", () => {
+      const play = servingPlay();
+
+      play.advance(STEP_MS, NO_STEER, deaf);
+
+      expect(play.frame().guide).toBeNull();
+    });
+
+    it("is none while the steering leaves out whether it shows", () => {
+      const play = servingPlay();
+
+      play.advance(STEP_MS, { ...NO_STEER, aim: -30 }, deaf);
+
+      expect(play.frame().guide).toBeNull();
+    });
+
+    it("is the rules' guide along the aim held, from the field as it stands, while the steering says it shows", () => {
+      const play = servingPlay();
+      const expected = createServeGuide();
+
+      play.advance(STEP_MS, aimedAt(-30), deaf);
+      serveGuide(play.field, expected);
+
+      expect({
+        guide: play.frame().guide,
+        empty: expected.dots.count === 0,
+      }).toEqual({ guide: expected, empty: false });
+    });
+
+    it("is written into one record each frame", () => {
+      const play = servingPlay();
+      play.advance(STEP_MS, aimedAt(-30), deaf);
+      const first = play.frame().guide;
+
+      play.advance(STEP_MS, aimedAt(30), deaf);
+
+      expect({
+        same: play.frame().guide === first,
+        shown: first !== null,
+      }).toEqual({ same: true, shown: true });
+    });
+
+    it("is none once the field no longer serves, though the steering says it shows", () => {
+      const play = stillPlay();
+
+      play.advance(STEP_MS, aimedAt(0), deaf);
+
+      expect(play.frame().guide).toBeNull();
+    });
+
+    it("is none again once the steering stops showing it", () => {
+      const play = servingPlay();
+      play.advance(STEP_MS, aimedAt(0), deaf);
+
+      play.advance(STEP_MS, NO_STEER, deaf);
+
+      expect(play.frame().guide).toBeNull();
     });
   });
 

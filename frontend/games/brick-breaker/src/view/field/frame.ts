@@ -5,6 +5,7 @@ import type { BallKindId } from "../../rules/catalog/balls";
 import type { EffectKind, PaddleMode } from "../../rules/catalog/capsules";
 import type { FieldEvent } from "../../rules/field/events";
 import type { FieldState } from "../../rules/field/field";
+import type { ServeGuide } from "../../rules/field/guide";
 import type { Level } from "../../rules/levels/level";
 import type { Ball } from "../../rules/paddle/balls";
 import type { Bolt } from "../../rules/paddle/bolts";
@@ -63,4 +64,12 @@ export interface FieldFrame {
    * once; a new log comes with a new field, and stops what the last set off.
    */
   readonly events: EventLogView<FieldEvent>;
+  /**
+   * The serve's guide while the steering shows it, from the field as of its
+   * last step: one record, written again each frame the field moves on, or
+   * null while none shows. A frame the field no longer moves on, as the game
+   * pauses, keeps the last, so the scene draws it only while its own
+   * steering shows it.
+   */
+  readonly guide: Readonly<ServeGuide> | null;
 }

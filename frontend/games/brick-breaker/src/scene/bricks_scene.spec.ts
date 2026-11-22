@@ -184,6 +184,7 @@ class FakeShell implements BricksSceneOptions {
     field: this.field,
     alpha: this.alpha,
     events: this.field.events,
+    guide: null,
   });
   readonly palette = (): BricksPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
