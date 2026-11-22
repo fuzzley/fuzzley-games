@@ -661,7 +661,7 @@ describe("Catch", () => {
     stepTimes(field, 10);
     catchCapsule(field, "narrow", 0, 0);
     stepTimes(field, 60);
-    steerField(field, { to: FIELD_WIDTH, by: 0, push: 0 });
+    steerField(field, { to: FIELD_WIDTH, by: 0, push: 0, aim: null });
     stepTimes(field, 30);
 
     launch(field);

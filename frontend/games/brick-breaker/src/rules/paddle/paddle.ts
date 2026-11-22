@@ -25,6 +25,12 @@ export interface Steer {
   by: number;
   /** Which way held keys push the paddle: -1, 0 or 1. */
   push: -1 | 0 | 1;
+  /**
+   * The aim the player holds for the serve, in whole degrees from straight
+   * up, positive to the right, or null; while the field serves, it holds the
+   * paddle still in place of the rest.
+   */
+  aim: number | null;
 }
 
 /** Describes the paddle: where it is, how wide, and how it is steered. */
@@ -51,7 +57,7 @@ export interface Paddle {
   push: -1 | 0 | 1;
   /** How fast held keys move it, in units a second, signed. */
   speed: number;
-  /** Which way it last moved, which a serve leaves toward. */
+  /** Which way it last moved, which a serve with no aim leaves toward. */
   facing: -1 | 1;
 }
 
@@ -102,6 +108,16 @@ export function steerPaddle(paddle: Paddle, steer: Readonly<Steer>): void {
     paddle.target = within(paddle, from + steer.by);
     paddle.dragging = true;
   }
+}
+
+/**
+ * Stops the paddle where it is, letting go of where it was asked to be and
+ * of its keys, as it stays put while the player aims a serve.
+ */
+export function stopPaddle(paddle: Paddle): void {
+  paddle.target = null;
+  paddle.push = 0;
+  paddle.speed = 0;
 }
 
 /**

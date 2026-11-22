@@ -213,7 +213,7 @@ describe("GameService", () => {
     it("lets the paddle be steered before the first serve", () => {
       const game = TestBed.inject(GameService);
 
-      playFor(game, 1000, { to: 3, by: 0, push: 0 });
+      playFor(game, 1000, { to: 3, by: 0, push: 0, aim: null });
 
       expect(game.frame().field.paddle.x).toBeLessThan(FIELD_WIDTH / 2);
     });

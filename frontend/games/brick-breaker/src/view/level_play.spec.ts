@@ -69,7 +69,7 @@ describe("LevelPlay", () => {
     it("steers the field before it steps it", () => {
       const play = stillPlay();
       const from = play.field.paddle.x;
-      const toward: Steer = { to: from - 5, by: 0, push: 0 };
+      const toward: Steer = { to: from - 5, by: 0, push: 0, aim: null };
 
       play.advance(STEP_MS, toward, deaf);
 

@@ -66,7 +66,7 @@ export class Steering {
   /** How far a dragging finger has moved this frame, in device pixels. */
   private byPx = 0;
   // Written again each frame, so steering makes nothing.
-  private readonly steer: Steer = { to: null, by: 0, push: 0 };
+  private readonly steer: Steer = { to: null, by: 0, push: 0, aim: null };
 
   constructor(private metrics: FieldMetrics) {}
 

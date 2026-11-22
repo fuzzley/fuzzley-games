@@ -1,17 +1,18 @@
 import { headingOf } from "../../testing/field_picture";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../grid";
 import {
+  AIM_MOST,
   BALL_RADIUS,
   FIELD_WIDTH,
   FLATTEST,
   FRIEND_INKS,
   PADDLE_TOP,
-  SERVE_ANGLE,
 } from "../tuning";
 import {
   type Ball,
   OWN_INK,
   createBall,
+  faceServe,
   followPaddle,
   holdBall,
   isBallInCell,
@@ -163,15 +164,41 @@ describe("nextFriendInk", () => {
 });
 
 describe("serveBall", () => {
+  it.each([20, -35, 0])("sends a resting ball off at %i°", (degrees) => {
+    const ball = createBall();
+    holdBall(ball, createPaddle(), 0);
+
+    serveBall(ball, degrees);
+
+    expect({ held: ball.held, heading: headingOf(ball) }).toEqual({
+      held: false,
+      heading: expect.closeTo(degrees) as unknown,
+    });
+  });
+
   it.each([
-    [1, SERVE_ANGLE],
-    [-1, -SERVE_ANGLE],
-  ] as const)("sends a ball facing %i off at %i°", (facing, angle) => {
+    [AIM_MOST + 15, AIM_MOST],
+    [-90, -AIM_MOST],
+  ])("sends a ball asked to go off at %i° off at %i°", (degrees, sent) => {
     const ball = createBall();
 
-    serveBall(ball, facing);
+    serveBall(ball, degrees);
 
-    expect(headingOf(ball)).toBeCloseTo(angle);
+    expect(headingOf(ball)).toBeCloseTo(sent);
+  });
+});
+
+describe("faceServe", () => {
+  it("points a resting ball the way a serve would send it, and leaves it resting", () => {
+    const ball = createBall();
+    holdBall(ball, createPaddle(), 0);
+
+    faceServe(ball, AIM_MOST + 15);
+
+    expect({ held: ball.held, heading: headingOf(ball) }).toEqual({
+      held: true,
+      heading: expect.closeTo(AIM_MOST) as unknown,
+    });
   });
 });
 

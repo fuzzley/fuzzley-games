@@ -8,15 +8,18 @@ import {
   stepTimes,
   throwBall,
 } from "../../testing/field_picture";
+import { catchCapsule } from "../bricks/capsules";
 import { OWN_INK } from "../paddle/balls";
 import { CUSTOM_PERCENT, SPEED_INFO, ballSpeed, customFactor } from "../speed";
 import { STEP_MS } from "../stepper";
 import {
+  AIM_MOST,
   BALL_RADIUS,
   FIELD_HEIGHT,
   FLATTEST,
   KEY_RAMP_MS,
   KEY_SPEED,
+  PADDLE_ANGLE,
   PADDLE_TOP,
   SERVE_ANGLE,
   STEP_S,
@@ -28,6 +31,7 @@ import {
   launch,
   reshapeField,
   serve,
+  serveAim,
   steerField,
   stepField,
 } from "./field";
@@ -39,6 +43,21 @@ const FAR_BRICK = ["o"];
 function lastMove(field: Field): number {
   const ball = ballOf(field);
   return Math.hypot(ball.x - ball.lastX, ball.y - ball.lastY);
+}
+
+/** Returns a field waiting to serve, its paddle moved left a little, so it faces left. */
+function facingLeft(): Field {
+  const field = fieldFrom(FAR_BRICK);
+  steerField(field, { ...NO_STEER, to: 8 });
+  stepTimes(field, 2);
+  return field;
+}
+
+/** Returns a field waiting to serve, the player holding an aim. */
+function aimedAt(degrees: number): Field {
+  const field = fieldFrom(FAR_BRICK);
+  steerField(field, { ...NO_STEER, aim: degrees });
+  return field;
 }
 
 describe("a new field", () => {
@@ -146,14 +165,30 @@ describe("the serve", () => {
   });
 
   it("sends the ball off toward the way the paddle last moved", () => {
-    const field = fieldFrom(FAR_BRICK);
-    steerField(field, { ...NO_STEER, to: 8 });
-    stepTimes(field, 2);
+    const field = facingLeft();
 
     launch(field);
 
     expect(headingOf(ballOf(field))).toBeCloseTo(-SERVE_ANGLE);
   });
+
+  it.each([
+    ["right", () => fieldFrom(FAR_BRICK), SERVE_ANGLE],
+    ["left", facingLeft, -SERVE_ANGLE],
+  ])(
+    "sends the ball off with no aim exactly as it always has, facing %s",
+    (_, fieldOf, degrees) => {
+      const field = fieldOf();
+      const radians = (degrees * Math.PI) / 180;
+
+      launch(field);
+
+      expect([ballOf(field).dx, ballOf(field).dy]).toEqual([
+        Math.sin(radians),
+        -Math.cos(radians),
+      ]);
+    },
+  );
 
   it("launches nothing once the last ball is lost", () => {
     const field = fieldFrom(FAR_BRICK);
@@ -218,6 +253,130 @@ describe("the serve", () => {
     stepField(field);
 
     expect(lastMove(field)).toBeCloseTo(ballSpeed("fast", 1, 0) * STEP_S);
+  });
+});
+
+describe("an aimed serve", () => {
+  it("sends the ball off at the aim held", () => {
+    const field = aimedAt(-35);
+
+    launch(field);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(-35);
+  });
+
+  it.each([
+    [AIM_MOST + 20, AIM_MOST],
+    [-AIM_MOST - 20, -AIM_MOST],
+  ])("sends the ball aimed at %i° off at %i°", (aim, degrees) => {
+    const field = aimedAt(aim);
+
+    launch(field);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(degrees);
+  });
+
+  it("lets go of the aim as it launches", () => {
+    const field = aimedAt(-35);
+
+    launch(field);
+
+    expect(field.aim).toBeNull();
+  });
+
+  it("holds the paddle where it is while the aim is held, whatever else steers it", () => {
+    const field = fieldFrom(FAR_BRICK);
+    steerField(field, { ...NO_STEER, to: 20 });
+    stepTimes(field, 2);
+    const heldAt = field.paddle.x;
+
+    steerField(field, { to: 3, by: 4, push: -1, aim: 10 });
+    stepTimes(field, 30);
+
+    expect(field.paddle.x).toBe(heldAt);
+  });
+
+  it("lets the paddle be steered again once the aim is let go", () => {
+    const field = aimedAt(10);
+
+    steerField(field, { ...NO_STEER, to: 20 });
+    stepTimes(field, 30);
+
+    expect(field.paddle.x).toBe(20);
+  });
+
+  it("is no aim once the level is in play, which leaves the paddle steered", () => {
+    const field = fieldFrom(FAR_BRICK);
+    throwBall(field, 13, 15, 0);
+
+    steerField(field, { ...NO_STEER, to: 20, aim: 10 });
+    stepTimes(field, 30);
+
+    expect({ aim: field.aim, x: field.paddle.x }).toEqual({
+      aim: null,
+      x: 20,
+    });
+  });
+
+  it("aims no ball the paddle caught, which leaves by where it landed", () => {
+    const field = fieldFrom(FAR_BRICK);
+    catchCapsule(field, "catch", 0, 0);
+    throwBall(field, 14, 26, 180);
+    stepTimes(field, 10);
+    steerField(field, { ...NO_STEER, aim: -40 });
+
+    launch(field);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(PADDLE_ANGLE / 2);
+  });
+});
+
+describe("serveAim", () => {
+  it.each([
+    ["the aim held", 12, 12],
+    ["the way a quick press serves, with no aim", null, SERVE_ANGLE],
+  ])("is %s", (_, aim, degrees) => {
+    const field = fieldFrom(FAR_BRICK);
+
+    steerField(field, { ...NO_STEER, aim });
+
+    expect(serveAim(field)).toBe(degrees);
+  });
+
+  it("is toward the way the paddle last moved, with no aim", () => {
+    const field = facingLeft();
+
+    expect(serveAim(field)).toBe(-SERVE_ANGLE);
+  });
+});
+
+describe("the ball waiting to be served", () => {
+  it("looks the way a quick press would serve it", () => {
+    const field = fieldFrom(FAR_BRICK);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(SERVE_ANGLE);
+  });
+
+  it("looks the other way once the paddle moves that way", () => {
+    const field = facingLeft();
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(-SERVE_ANGLE);
+  });
+
+  it("looks along the aim as soon as it is held", () => {
+    const field = aimedAt(-35);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(-35);
+  });
+
+  it("looks the way a quick press would serve it once served again after a loss", () => {
+    const field = fieldFrom(FAR_BRICK);
+    throwBall(field, 5, 29.5, 180);
+    stepTimes(field, 10);
+
+    serve(field);
+
+    expect(headingOf(ballOf(field))).toBeCloseTo(SERVE_ANGLE);
   });
 });
 

@@ -218,7 +218,7 @@ describe("Steering's finger, dragging", () => {
     steering.pointerDown(finger(20), "drag");
     steering.pointerMove(finger(23));
 
-    expect(steering.read()).toEqual({ to: null, by: 3, push: 0 });
+    expect(steering.read()).toEqual({ to: null, by: 3, push: 0, aim: null });
   });
 
   it("moves the paddle only by what it moved since the last frame", () => {
@@ -271,7 +271,7 @@ describe("Steering's finger, followed", () => {
     steering.pointerDown(finger(6), "follow");
     steering.pointerMove(finger(11));
 
-    expect(steering.read()).toEqual({ to: 11, by: 0, push: 0 });
+    expect(steering.read()).toEqual({ to: 11, by: 0, push: 0, aim: null });
   });
 
   it("asks for nothing once the steering lets go", () => {
@@ -378,7 +378,10 @@ describe("Steering", () => {
     expect({
       steer: steering.read(),
       tapped: steering.pointerUp(finger(20)),
-    }).toEqual({ steer: { to: null, by: 0, push: 0 }, tapped: false });
+    }).toEqual({
+      steer: { to: null, by: 0, push: 0, aim: null },
+      tapped: false,
+    });
   });
 
   it("reads places by where the field now lies", () => {

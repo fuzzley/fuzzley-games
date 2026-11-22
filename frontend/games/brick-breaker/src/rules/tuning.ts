@@ -87,6 +87,12 @@ export const CLIMB = 0.015;
 /** The angle a served ball leaves at, from straight up, in degrees. */
 export const SERVE_ANGLE = 20;
 
+/**
+ * The most an aimed serve leans from straight up, either way, in degrees; a
+ * serve with no aim leaves at {@link SERVE_ANGLE}.
+ */
+export const AIM_MOST = 60;
+
 /** The most slanted a ball leaves the paddle's ends at, from straight up, in degrees. */
 export const PADDLE_ANGLE = 60;
 

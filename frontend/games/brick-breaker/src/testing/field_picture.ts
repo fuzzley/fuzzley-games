@@ -53,7 +53,12 @@ export const KEEPER: readonly string[] = [
 ];
 
 /** Steering that asks nothing of the paddle. */
-export const NO_STEER: Readonly<Steer> = { to: null, by: 0, push: 0 };
+export const NO_STEER: Readonly<Steer> = {
+  to: null,
+  by: 0,
+  push: 0,
+  aim: null,
+};
 
 /**
  * Returns a field from a picture of its bricks, a row of up to 13 characters

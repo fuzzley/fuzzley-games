@@ -168,7 +168,12 @@ export function autoplay(
     if (field.state === "lost") serve(field);
     launch(field);
     fireBolts(field);
-    steerField(field, { to: targetOf(field, aim, random), by: 0, push: 0 });
+    steerField(field, {
+      to: targetOf(field, aim, random),
+      by: 0,
+      push: 0,
+      aim: null,
+    });
     stepField(field);
     field.events.forEachSince(seen, (event) => {
       if (event.kind === "paddle") {

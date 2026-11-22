@@ -20,6 +20,7 @@ import {
   paddleBox,
   paddleTopOf,
   steerPaddle,
+  stopPaddle,
 } from "./paddle";
 
 /** The steps held keys take to bring the paddle to its fastest. */
@@ -27,7 +28,7 @@ const RAMP_STEPS = Math.ceil(KEY_RAMP_MS / STEP_MS);
 
 /** Steers a paddle, then moves it a number of steps. */
 function drive(paddle: Paddle, steer: Partial<Steer>, steps = 1): void {
-  steerPaddle(paddle, { to: null, by: 0, push: 0, ...steer });
+  steerPaddle(paddle, { to: null, by: 0, push: 0, aim: null, ...steer });
   for (let i = 0; i < steps; i++) movePaddle(paddle);
 }
 
@@ -69,7 +70,7 @@ describe("the paddle by keys", () => {
 
   it("ramps up to the speed it is given instead", () => {
     const paddle = createPaddle();
-    steerPaddle(paddle, { to: null, by: 0, push: 1 });
+    steerPaddle(paddle, { to: null, by: 0, push: 1, aim: null });
 
     for (let i = 0; i < RAMP_STEPS; i++) movePaddle(paddle, 2 * KEY_SPEED);
 
@@ -190,6 +191,23 @@ describe("the paddle by a pointer", () => {
     drive(paddle, { to: 14 }, 3);
 
     expect(paddle.facing).toBe(1);
+  });
+});
+
+describe("stopPaddle", () => {
+  it.each<[string, Partial<Steer>]>([
+    ["heading for a pointer", { to: 20 }],
+    ["dragged by a finger", { by: 6 }],
+    ["pushed by keys", { push: 1 }],
+  ])("stops a paddle %s where it is", (_, steer) => {
+    const paddle = createPaddle();
+    drive(paddle, steer, 2);
+    const stoppedAt = paddle.x;
+
+    stopPaddle(paddle);
+    drive(paddle, {}, 10);
+
+    expect(paddle.x).toBe(stoppedAt);
   });
 });
 

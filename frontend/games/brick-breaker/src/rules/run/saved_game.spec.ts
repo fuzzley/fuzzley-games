@@ -183,7 +183,12 @@ function playOn(
     if (field.state === "lost") serve(field);
     launch(field);
     const ball = field.balls.find((each) => each.live);
-    steerField(field, { to: ball ? aim(ball.x) : null, by: 0, push: 0 });
+    steerField(field, {
+      to: ball ? aim(ball.x) : null,
+      by: 0,
+      push: 0,
+      aim: null,
+    });
     stepField(field);
   }
 }

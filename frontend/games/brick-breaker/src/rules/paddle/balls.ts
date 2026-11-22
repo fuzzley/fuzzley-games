@@ -2,12 +2,12 @@ import { clamp } from "@fz/core/math";
 import type { Box } from "@fz/core/sweep";
 import { brickBox, columnOf, rowOf } from "../grid";
 import {
+  AIM_MOST,
   BALL_RADIUS,
   FIELD_WIDTH,
   FLATTEST,
   FRIEND_INKS,
   PADDLE_ANGLE,
-  SERVE_ANGLE,
 } from "../tuning";
 import type { Paddle } from "./paddle";
 
@@ -188,12 +188,20 @@ export function releaseBall(
 }
 
 /**
- * Sends a resting ball off the paddle, {@link SERVE_ANGLE} from straight up
- * toward the way it faces.
+ * Sends a resting ball off the paddle at an angle from straight up, in
+ * degrees, positive to the right, held within {@link AIM_MOST} either way.
  */
-export function serveBall(ball: Ball, facing: -1 | 1): void {
+export function serveBall(ball: Ball, degrees: number): void {
   ball.held = false;
-  aim(ball, facing * SERVE_ANGLE);
+  faceServe(ball, degrees);
+}
+
+/**
+ * Points a ball the way {@link serveBall} would send it at an angle, and
+ * leaves it where it is, resting or not.
+ */
+export function faceServe(ball: Ball, degrees: number): void {
+  aim(ball, clamp(degrees, -AIM_MOST, AIM_MOST));
 }
 
 /**

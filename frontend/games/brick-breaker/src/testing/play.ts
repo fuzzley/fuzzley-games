@@ -143,23 +143,28 @@ export function provideSpecLevels(
 }
 
 /** Leaves the paddle where it is. */
-export const STILL: Readonly<Steer> = { to: null, by: 0, push: 0 };
+export const STILL: Readonly<Steer> = { to: null, by: 0, push: 0, aim: null };
 
 /** Returns the steering that keeps the paddle under the lowest ball in play. */
 export function under(game: GameService): Steer {
-  return { to: lowestBallX(game), by: 0, push: 0 };
+  return { to: lowestBallX(game), by: 0, push: 0, aim: null };
 }
 
 /** Returns the steering that sends the paddle to the wall farthest from the lowest ball. */
 export function awayFrom(game: GameService): Steer {
   const x = lowestBallX(game) ?? FIELD_WIDTH / 2;
-  return { to: x < FIELD_WIDTH / 2 ? FIELD_WIDTH : 0, by: 0, push: 0 };
+  return {
+    to: x < FIELD_WIDTH / 2 ? FIELD_WIDTH : 0,
+    by: 0,
+    push: 0,
+    aim: null,
+  };
 }
 
 /** Returns the steering that puts the paddle under a falling capsule, else under the ball. */
 export function underCapsule(game: GameService): Steer {
   const capsule = game.frame().field.falling.find((each) => each.live);
-  return capsule ? { to: capsule.x, by: 0, push: 0 } : under(game);
+  return capsule ? { to: capsule.x, by: 0, push: 0, aim: null } : under(game);
 }
 
 /** Returns where the lowest ball in play is across, or null with none. */

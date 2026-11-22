@@ -28,6 +28,7 @@ import {
   OWN_INK,
   bounceOffPaddle,
   createBall,
+  faceServe,
   followPaddle,
   holdBall,
   serveBall,
@@ -40,6 +41,7 @@ import {
   movePaddle,
   paddleTopOf,
   steerPaddle,
+  stopPaddle,
 } from "../paddle/paddle";
 import {
   PRESET_SPEEDS,
@@ -55,6 +57,7 @@ import {
   KEY_SPEED,
   MAX_BALLS,
   NET_DEPTH,
+  SERVE_ANGLE,
   STEP_S,
   TALLEST_FIELD,
 } from "../tuning";
@@ -111,6 +114,13 @@ export interface Field {
   /** The balls, in play and waiting, as many as there may ever be. */
   readonly balls: readonly Ball[];
   readonly paddle: Paddle;
+  /**
+   * The aim the player holds for the serve (`Steer.aim`), kept while the
+   * field serves and null at any other time; while it is set, the paddle
+   * stays put. The saved game leaves it out, as it lives only while a press
+   * does.
+   */
+  aim: number | null;
   /** The level's points so far, before what clearing it adds. */
   score: number;
   /** What the streaks added to the level's points, beyond the bricks' own. */
@@ -191,7 +201,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
   const paddle = createPaddle();
   const first = createBall();
   holdBall(first, paddle, 0);
-  return {
+  const field: Field = {
     level,
     setup,
     state: "serve",
@@ -210,6 +220,7 @@ export function createField(level: Level, setup: FieldSetup): Field {
     keysLeft: unbrokenKeys(bricks),
     balls: [first, ...Array.from({ length: MAX_BALLS - 1 }, createBall)],
     paddle,
+    aim: null,
     score: 0,
     streakPoints: 0,
     darePoints: 0,
@@ -237,11 +248,40 @@ export function createField(level: Level, setup: FieldSetup): Field {
     friendsFreed: 0,
     events: new FieldEventLog(),
   };
+  faceServes(field);
+  return field;
 }
 
-/** Takes a frame's steering, which the steps until the next frame follow. */
+/**
+ * Takes a frame's steering, which the steps until the next frame follow: an
+ * aim held while the field serves stops the paddle where it is, and turns
+ * the waiting ball with it.
+ */
 export function steerField(field: Field, steer: Readonly<Steer>): void {
-  steerPaddle(field.paddle, steer);
+  field.aim = field.state === "serve" ? steer.aim : null;
+  if (field.aim === null) steerPaddle(field.paddle, steer);
+  else stopPaddle(field.paddle);
+  faceServes(field);
+}
+
+/**
+ * Returns the angle a launch serves at, in degrees from straight up,
+ * positive to the right: the aim the player holds, or else
+ * {@link SERVE_ANGLE} toward the way the paddle last moved.
+ */
+export function serveAim(field: Readonly<Field>): number {
+  return field.aim ?? field.paddle.facing * SERVE_ANGLE;
+}
+
+/**
+ * Points each ball waiting to be served the way a launch would serve it,
+ * which its eyes look, while the field serves.
+ */
+function faceServes(field: Field): void {
+  if (field.state !== "serve") return;
+  for (const ball of field.balls) {
+    if (ball.live && ball.held) faceServe(ball, serveAim(field));
+  }
 }
 
 /**
@@ -322,6 +362,7 @@ function stepBalls(field: Field): void {
     if (ball.held) {
       followPaddle(ball, field.paddle);
       if (field.state === "playing") holdCaught(field, ball);
+      else faceServe(ball, serveAim(field));
       continue;
     }
     seek(field, ball);
@@ -333,16 +374,19 @@ function stepBalls(field: Field): void {
 }
 
 /**
- * Serves the ball waiting on the paddle, toward the way the paddle last
- * moved, or lets go of the balls it has caught, each by where it landed.
+ * Serves the ball waiting on the paddle at {@link serveAim}, letting go of
+ * the aim, or lets go of the balls the paddle has caught, each by where it
+ * landed.
  */
 export function launch(field: Field): void {
   const serving = field.state === "serve";
   if (!serving && field.state !== "playing") return;
+  const degrees = serveAim(field);
   field.state = "playing";
+  field.aim = null;
   for (const ball of field.balls) {
     if (!ball.live || !ball.held) continue;
-    if (serving) serveBall(ball, field.paddle.facing);
+    if (serving) serveBall(ball, degrees);
     else letGo(field, ball);
     field.events.add("launched", ball.x, ball.y);
     leftPaddle(field);
@@ -376,6 +420,7 @@ export function serve(field: Field): void {
   holdBall(ball, field.paddle, 0);
   ball.ink = OWN_INK;
   field.state = "serve";
+  faceServes(field);
 }
 
 /** Lets a caught ball go once it has waited on the paddle its longest. */
