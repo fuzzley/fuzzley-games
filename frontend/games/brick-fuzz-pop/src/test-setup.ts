@@ -5,6 +5,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting,
 } from "@angular/platform-browser/testing";
+import { provideReportPicture } from "@fz/game-ui/testing";
 import { installHeadlessPhaser } from "@fz/phaser/testing";
 import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
 
@@ -28,7 +29,9 @@ Object.defineProperty(document, "fonts", {
 });
 
 // Each test's app stores in a store of its own, so nothing it keeps leaks
-// into the next.
+// into the next, and a report's picture is a spec's own, not the page's.
 beforeEach(() => {
-  TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(), provideReportPicture()],
+  });
 });

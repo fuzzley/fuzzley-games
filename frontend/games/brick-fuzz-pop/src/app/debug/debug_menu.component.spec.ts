@@ -239,6 +239,17 @@ describe("DebugMenuComponent", () => {
     );
   });
 
+  it("offers to load a reported state, saying it sets the field's depth", async () => {
+    await renderMenu();
+
+    expect(
+      screen.getByRole("textbox", { name: "Load game state" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Loading a game state also sets the field's depth\./),
+    ).toBeInTheDocument();
+  });
+
   it("plays the certificate at Play the certificate, telling the drawer", async () => {
     const { user, game, playCertificate, fixture } = await renderMenu(
       filesCertifying(fieldDepth),

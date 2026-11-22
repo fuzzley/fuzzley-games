@@ -12,6 +12,7 @@ import {
   collectErrors,
   provideFakePhaserCanvas,
 } from "@fz/phaser/testing";
+import { CAPTURE_SKIP } from "@fz/ui/capture";
 import { figures } from "@fz/ui/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
@@ -252,6 +253,15 @@ describe("BoardCardComponent", () => {
       await renderCard({ kind: "paused", score: 12940 });
 
       expect(screen.getByText("Score 12,940")).toBeInTheDocument();
+    });
+
+    it("is left out of a bug report's picture, which shows the game beneath", async () => {
+      await renderCard({ kind: "paused", score: 0 });
+
+      expect(screen.getByRole("group", { name: "Paused" })).toHaveAttribute(
+        CAPTURE_SKIP.name,
+        CAPTURE_SKIP.value,
+      );
     });
 
     it("goes on at Resume", async () => {

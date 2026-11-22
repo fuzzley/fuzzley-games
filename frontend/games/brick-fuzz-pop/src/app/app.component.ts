@@ -12,6 +12,7 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
@@ -49,12 +50,12 @@ export const HELP_FAILED_WORDS =
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * live region that says what happens, the Levels dialog, How to play and
- * the settings the bar opens, the result card over an ended run, and the
- * question before a run is thrown away, each wired to `GameService`. How
- * to play is a chunk of its own, loaded as it first opens (`onDemand()`):
- * the bar shows its button busy meanwhile, Escape, or the focus, a press or
- * a key outside the bar, drops the opening, and the announcer says so if
- * the load fails.
+ * the settings the bar opens, the result card over an ended run, the
+ * Report a bug dialog the settings open, and the question before a run is
+ * thrown away, each wired to `GameService`. How to play is a chunk of its
+ * own, loaded as it first opens (`onDemand()`): the bar shows its button
+ * busy meanwhile, Escape, or the focus, a press or a key outside the bar,
+ * drops the opening, and the announcer says so if the load fails.
  *
  * The board takes the focus as a run begins, as the page loads, after a
  * dialog over it closes, and after the bar's Resume, so the keys steer at
@@ -68,6 +69,10 @@ export const HELP_FAILED_WORDS =
     AnnouncerComponent,
     BarComponent,
     BoardComponent,
+    // In the main chunk, though few pages show it: loaded on demand, it
+    // shares the shell's components, and Rolldown then splits the main
+    // chunk into several that weigh more gzipped than the dialog does.
+    BugReportDialogComponent,
     ConfirmDialogComponent,
     LevelsComponent,
     PlayRoomDirective,

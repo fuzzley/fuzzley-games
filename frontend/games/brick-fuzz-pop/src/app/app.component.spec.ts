@@ -2,6 +2,11 @@ import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { REPORT_PICTURE } from "@fz/game-ui/bug_report";
+import {
+  installCompressionStreams,
+  installFakeViewport,
+} from "@fz/game-ui/testing";
 import { collectErrors, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
 import { recordOf } from "@fz/core/records";
@@ -26,6 +31,7 @@ import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
+import { provideBugReports } from "./bug_report/bug_report_source";
 import { CERTIFICATE_FILES } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent } from "./help/help.component";
@@ -43,7 +49,8 @@ interface RenderedApp {
 
 /**
  * Renders the app over the specs' levels, its rounds played as a script
- * says, on a fake canvas, and waits for its scene to be drawn.
+ * says, on a fake canvas, taking bug reports as `main.ts` has it, and waits
+ * for its scene to be drawn.
  */
 async function renderApp(
   ...script: readonly SpecRound[]
@@ -77,6 +84,7 @@ async function renderAppWith(
     providers: [
       provideFakePhaserCanvas(),
       ...provideSpecPlay(scriptedRounds(...script)),
+      ...provideBugReports(),
       { provide: DEBUG_MENU, useValue: false },
       ...providers,
     ],
@@ -102,6 +110,7 @@ async function renderCertifiedApp(): Promise<RenderedApp> {
     providers: [
       provideFakePhaserCanvas(),
       ...provideSpecPlay(),
+      ...provideBugReports(),
       { provide: DEBUG_MENU, useValue: true },
       {
         provide: CERTIFICATE_FILES,
@@ -145,6 +154,25 @@ function leaveRoom(): void {
   const board = screen.getByRole("application");
   board.focus();
   board.blur();
+}
+
+/**
+ * Stands in for the links a page shows a picture from, which jsdom lacks,
+ * until the test finishes.
+ */
+function standInPictureLinks(): void {
+  Object.defineProperty(URL, "createObjectURL", {
+    configurable: true,
+    value: (): string => "blob:http://localhost/picture",
+  });
+  Object.defineProperty(URL, "revokeObjectURL", {
+    configurable: true,
+    value: (): void => undefined,
+  });
+  onTestFinished(() => {
+    Reflect.deleteProperty(URL, "createObjectURL");
+    Reflect.deleteProperty(URL, "revokeObjectURL");
+  });
 }
 
 /** Returns one of the bar's buttons by its name. */
@@ -481,6 +509,64 @@ describe("AppComponent", () => {
         settings: screen.queryByRole("dialog", { name: "Settings" }),
         focused: question.contains(document.activeElement),
       }).toEqual({ settings: null, focused: true });
+    });
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    it("opens from the settings, filed as Brick Fuzz Pop's", async () => {
+      const { user } = await renderApp();
+      await user.click(barButton("Settings"));
+
+      await user.click(screen.getByRole("button", { name: "Report a bug" }));
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      const link = within(report).getByRole("link", { name: /^Open GitHub/ });
+      expect(
+        new URL(link.getAttribute("href") ?? "").searchParams.get("title"),
+      ).toBe("[Brick Fuzz Pop] ");
+    });
+
+    it("says to save the picture first on a touch screen", async () => {
+      installFakeViewport(1280).setCoarsePointer(true);
+      standInPictureLinks();
+      const picture = new Blob(["png"], { type: "image/png" });
+      const { user } = await renderAppWith([
+        { provide: REPORT_PICTURE, useValue: () => Promise.resolve(picture) },
+      ]);
+      await user.click(barButton("Settings"));
+
+      await user.click(screen.getByRole("button", { name: "Report a bug" }));
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      expect(report).toHaveAccessibleDescription(
+        "Tap Save picture, then Open GitHub, and add the picture under Screenshot.",
+      );
+    });
+
+    it("offers no reported state to load where the debug menu isn't offered", async () => {
+      const { user } = await renderApp();
+
+      await user.click(barButton("Settings"));
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("offers a reported state to load in the debug menu, where it is offered", async () => {
+      const { user } = await renderCertifiedApp();
+
+      await user.click(barButton("Settings"));
+
+      expect(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      ).toBeVisible();
     });
   });
 

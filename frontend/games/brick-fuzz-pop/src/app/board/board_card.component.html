@@ -25,7 +25,13 @@
       </div>
     }
     @case ("paused") {
-      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+      <!-- Left out of a bug report's picture, which shows the game beneath. -->
+      <div
+        class="card"
+        role="group"
+        data-fz-capture="skip"
+        [attr.aria-labelledby]="titleId"
+      >
         <h2 class="card-title" [id]="titleId">Paused</h2>
         <p>Score {{ card.score }}</p>
         <button

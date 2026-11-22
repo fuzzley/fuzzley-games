@@ -1,5 +1,6 @@
 import { Component, computed, inject, output } from "@angular/core";
 import { count } from "@fz/core/format";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import {
   DebugTuningComponent,
   type ShownSlider,
@@ -36,7 +37,7 @@ const DEPTHS: readonly number[] = Array.from(
  * and the boredom, with the lines they would replace; whether the
  * certificates are stale and the records kept; then the game's own
  * controls, the field's depth over the room's, every level open, and Play
- * the certificate.
+ * the certificate; and last, the field that loads a bug report's state.
  *
  * What it sets, it hands `DebugService`. It provides `CertificatesService`,
  * which offers it the certificate of the level in play on the field's
@@ -45,7 +46,7 @@ const DEPTHS: readonly number[] = Array.from(
  */
 @Component({
   selector: "app-debug-menu",
-  imports: [DebugTuningComponent],
+  imports: [BugReportLoaderComponent, DebugTuningComponent],
   providers: [CertificatesService],
   templateUrl: "./debug_menu.component.html",
   styleUrl: "./debug_menu.component.scss",
