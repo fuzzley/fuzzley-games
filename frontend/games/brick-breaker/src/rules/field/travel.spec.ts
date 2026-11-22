@@ -1138,6 +1138,18 @@ describe("firstContact", () => {
     }).toEqual({ turns: false, bricks: [brickAt(field, 6, 5)] });
   });
 
+  it("goes by the bricks in the cells it is given, as a fire ball goes by those it broke", () => {
+    const field = fieldFrom(["o", "", "", "......o", "", "......o"]);
+    const ball = throwBall(field, 13, 12, 0);
+
+    const met = firstContact(field, ball, 10, {
+      cells: [cellIndex(6, 5)],
+      count: 1,
+    });
+
+    expect(met.bricks.slice(0, met.count)).toEqual([brickAt(field, 6, 3)]);
+  });
+
   it("finds a portal", () => {
     const field = fieldFrom([
       "o",

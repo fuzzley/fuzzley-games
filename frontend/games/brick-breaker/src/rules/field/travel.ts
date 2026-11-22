@@ -117,6 +117,15 @@ export interface Contacts {
   portal: Brick | null;
 }
 
+/** Lists cells of the grid: the first `count` of `cells`. */
+export interface Cells {
+  readonly cells: number[];
+  count: number;
+}
+
+/** No cells. */
+const NO_CELLS: Readonly<Cells> = { cells: [], count: 0 };
+
 /** How close two contacts' moments are for the ball to meet both at once. */
 const AT_ONCE = 1e-9;
 
@@ -205,7 +214,8 @@ export function travel(field: Field, ball: Ball, distance: number): void {
 /**
  * Returns what a ball going a distance along its way meets first, as
  * {@link travel} finds it, its moment a share of that distance, and does
- * nothing there: no hit, event or draw.
+ * nothing there: no hit, event or draw. It meets none of the bricks in the
+ * `passed` cells, as a fire ball meets none it has gone through.
  *
  * The record returned is made once, and the next call, or a step's, writes
  * it again.
@@ -214,12 +224,13 @@ export function firstContact(
   field: Readonly<Field>,
   ball: Readonly<Ball>,
   distance: number,
+  passed: Readonly<Cells> = NO_CELLS,
 ): Readonly<Contacts> {
   move.x = ball.x;
   move.y = ball.y;
   move.dx = ball.dx * distance;
   move.dy = ball.dy * distance;
-  findContacts(field, ball);
+  findContacts(field, ball, passed);
   return met;
 }
 
@@ -281,9 +292,14 @@ function paddleReach(paddle: Readonly<Paddle>, reach: Box): Box {
 /**
  * Gathers into {@link met} what the ball's {@link move} meets first: the
  * walls, the paddle, and the bricks in the cells it passes, a bumper by its
- * disc, and a portal by its disc unless the ball passes over portals.
+ * disc, and a portal by its disc unless the ball passes over portals, but
+ * for the bricks in the `passed` cells.
  */
-function findContacts(field: Readonly<Field>, ball: Readonly<Ball>): void {
+function findContacts(
+  field: Readonly<Field>,
+  ball: Readonly<Ball>,
+  passed: Readonly<Cells>,
+): void {
   clearContacts(MISSED);
   noteBox(LEFT_WALL, SIDE.right, "wall");
   noteBox(TOP_WALL, SIDE.bottom, "wall");
@@ -300,7 +316,7 @@ function findContacts(field: Readonly<Field>, ball: Readonly<Ball>): void {
   for (let row = firstRow; row <= lastRow; row++) {
     for (let column = firstColumn; column <= lastColumn; column++) {
       const brick = field.bricks[cellIndex(column, row)];
-      if (!brick || brick.broken) continue;
+      if (!brick || brick.broken || isListed(passed, brick.cell)) continue;
       if (isBumper(brick)) {
         noteDisc(column, row, BUMPER_RADIUS, brick, "unhurt");
         continue;
@@ -447,6 +463,14 @@ function clearContacts(t: number): void {
   met.count = 0;
   met.unhurtCount = 0;
   met.portal = null;
+}
+
+/** Returns whether a cell is among those listed. */
+function isListed(listed: Readonly<Cells>, cell: number): boolean {
+  for (let i = 0; i < listed.count; i++) {
+    if (listed.cells[i] === cell) return true;
+  }
+  return false;
 }
 
 /** Returns whether a brick is among the first `count` of a list of those met. */

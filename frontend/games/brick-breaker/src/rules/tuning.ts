@@ -93,6 +93,27 @@ export const SERVE_ANGLE = 20;
  */
 export const AIM_MOST = 60;
 
+/**
+ * How far apart the dots of the serve's guide lie along the serve, the
+ * first that far from the ball's middle.
+ */
+export const GUIDE_DOT_GAP = 1;
+
+/**
+ * How far the serve's guide runs on past its first turn, or less where the
+ * ball would meet something sooner.
+ */
+export const GUIDE_PAST_TURN = 3;
+
+/**
+ * The most dots the serve's guide lays, its pool made once: as many as lie
+ * along the tallest field's diagonal, the longest way to a first turn, and
+ * past the turn.
+ */
+export const MOST_GUIDE_DOTS =
+  Math.ceil(Math.hypot(FIELD_WIDTH, TALLEST_FIELD) / GUIDE_DOT_GAP) +
+  Math.ceil(GUIDE_PAST_TURN / GUIDE_DOT_GAP);
+
 /** The most slanted a ball leaves the paddle's ends at, from straight up, in degrees. */
 export const PADDLE_ANGLE = 60;
 
