@@ -159,8 +159,6 @@ Each library keeps its specs' helpers in its `testing` entry. The
   role, and its `color-scheme`, in
   `frontend/lib/style/src/tokens/_palettes.scss`, and
   `frontend/lib/style/src/themes.ts` lists the palettes with their modes.
-- **Read roles, and never branch on a palette's id.** There are light
-  palettes and dark ones, and an app's chrome wears whichever is in use.
 - **A tint of `--fz-text` turns with the mode:** dark in a light palette,
   light in a dark one. What lies on a game's table rather than on its chrome
   takes `--fz-on-felt`, the felt's own ink, instead.

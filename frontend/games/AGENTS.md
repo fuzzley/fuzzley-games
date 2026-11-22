@@ -30,6 +30,9 @@ These rules hold for every game under `frontend/games/`. The frontend's, in
   in it. What is the game's own goes in their options, never in a block of
   its own, and no folder inside a layer is named `view`, `scene`, `app` or
   `testing`, which the fences match anywhere in a path.
+- **Before writing or changing a scene, read the `phaser-core` skill.** It
+  has what a scene lets go of as it ends, since the host's one game
+  outlives every scene, and how one hears the keys.
 - **Saved games outlive the code.** What a game stores goes through
   `@fz/ui/storage`: settings and records as a `storedSignal()`, a game
   under way with `keepSaved()`. State a change adds to a game in play joins

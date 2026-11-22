@@ -49,12 +49,8 @@ stylesheet beside it).
 - **A line on the page that says how something stands is `role="status"`,**
   and `role="alert"`, which interrupts, only for what the player must hear
   at once, such as an error.
-- **An icon-only button has one name:** an `aria-label`, or, where a
-  tooltip shows its name, that `title` alone. Never give one an
-  `aria-label` and a `title` that say the same: a browser reads the label
-  as the name and the tooltip again as the description. Words only a screen
-  reader reads take `@fz/style`'s `.fz-visually-hidden` class or its
-  `visually-hidden` mixin.
+- **Words only a screen reader reads** take `@fz/style`'s
+  `.fz-visually-hidden` class or its `visually-hidden` mixin.
 
 ### 3. Focus Management & Modals
 

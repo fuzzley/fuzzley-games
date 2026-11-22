@@ -94,6 +94,10 @@ their templates and stylesheets alike.
   and not the state, and gives each item a `searchTerm`, without which
   typing a name finds nothing. The rules are the `web-game-accessibility`
   skill's; the template accessibility lint rules enforce the common cases.
+- **An icon-only button has one name:** its `title`, which shows as its
+  tooltip too, or an `aria-label` where no tooltip is wanted. Never both
+  saying the same, which a browser reads as the name and again as the
+  description.
 - **The libraries' pieces first.** Overlays are `<fz-dialog>`, never a
   hand-rolled focus trap, Escape handler or z-index; the question before
   something is lost is `@fz/ui/confirm`'s `ConfirmService.ask()`; buttons
@@ -113,6 +117,9 @@ their templates and stylesheets alike.
   them; the inks such games share live in `@fz/phaser/color`. A custom
   property of an app's own has no `--fz-` prefix, and exists only where no
   `--fz-*` one will do.
+- **Read a palette's roles, and never branch on a palette's id.** There are
+  light palettes and dark ones, and an app's chrome wears whichever is in
+  use.
 - **Runtime values are custom properties; build-time values are Sass.**
   What changes while the page runs, such as the palette or a gutter, is a
   custom property read with `var()`, and so is what a part of a page may

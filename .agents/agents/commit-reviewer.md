@@ -139,13 +139,16 @@ scripts
 - **Visible state is announced state:** what looks selected carries
   `aria-checked`, `aria-current` or `aria-pressed`. A menu on Angular Aria
   binds `aria-checked` itself and gives each item a `searchTerm`.
+- **An icon-only button has one name:** its `title` or an `aria-label`,
+  never both saying the same.
 - **The libraries' pieces first:** `<fz-dialog>` for an overlay,
   `ConfirmService.ask()` before something is lost, `.fz-button`,
   `<fz-icon name="…">` and the announcer, never one rolled by hand.
 - **Colors and sizes are `@fz/style`'s tokens,** read with `var()`. A game
   keeps colors of its own in one stylesheet, or, drawn on a canvas, in its
   view's TypeScript, with the inks such games share in `@fz/phaser/color`.
-  An app's own custom property has no `--fz-` prefix.
+  An app's own custom property has no `--fz-` prefix. A palette's roles are
+  read, and nothing branches on a palette's id.
 - **What changes while the page runs is a custom property;** Sass holds what
   is fixed at build time. `@use`, never `@import`. Breakpoints by name.
   `@keyframes` several components use are declared once, globally. `//`
