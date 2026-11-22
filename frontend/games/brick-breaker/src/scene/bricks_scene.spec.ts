@@ -22,7 +22,7 @@ import type { Place } from "../rules/levels/levels";
 import type { Ball } from "../rules/paddle/balls";
 import { type Field, reshapeField } from "../rules/field/field";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
-import { type Steer, paddleTopOf } from "../rules/paddle/paddle";
+import { paddleTopOf } from "../rules/paddle/paddle";
 import { stepsIn } from "../rules/stepper";
 import {
   BALL_RADIUS,
@@ -87,7 +87,11 @@ import {
   placeTile,
   tileSide,
 } from "../view/places/places";
-import type { TouchSteering } from "../view/steering/steering";
+import {
+  MOST_FINGERS,
+  type PlayerSteer,
+  type TouchSteering,
+} from "../view/steering/steering";
 import { TAG_SPACING, firstTagX, tagY } from "../view/field/tags";
 import {
   DROP_IN_MS,
@@ -143,7 +147,7 @@ const ROWS_DRAWN = ["o3"];
 /** What the scene handed the shell on a frame. */
 interface Tick {
   readonly deltaMs: number;
-  readonly steer: Steer;
+  readonly steer: PlayerSteer;
 }
 
 /** Plays the shell's part, keeping what the scene tells it. */
@@ -164,13 +168,15 @@ class FakeShell implements BricksSceneOptions {
   readonly ticks: Tick[] = [];
   readonly layouts: FieldMetrics[] = [];
   readonly commands: FieldCommand[] = [];
+  /** The aim the last frame steered as each command came, which the rules launch at. */
+  readonly aimsAtCommands: (number | null)[] = [];
   /**
    * What the scene handed over at each bake of the atlas to picture How to
    * play's art with, a bake each, the last bake's last.
    */
   readonly bakes: (() => Pictures)[] = [];
 
-  readonly tick = (deltaMs: number, steer: Readonly<Steer>): void => {
+  readonly tick = (deltaMs: number, steer: Readonly<PlayerSteer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
     if (this.heightAsked !== null) reshapeField(this.field, this.heightAsked);
   };
@@ -190,6 +196,7 @@ class FakeShell implements BricksSceneOptions {
   };
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
+    this.aimsAtCommands.push(this.ticks.at(-1)?.steer.aim ?? null);
   };
   readonly onPictures = (pictures: () => Pictures): void => {
     this.bakes.push(pictures);
@@ -212,11 +219,21 @@ class FakeShell implements BricksSceneOptions {
   }
 
   /** Returns the steering handed over on the last frame. */
-  lastSteer(): Steer {
+  lastSteer(): PlayerSteer {
     const tick = this.ticks.at(-1);
     if (!tick) throw new Error("No frame yet.");
     return tick.steer;
   }
+}
+
+/** Gives a shell the option that says whether the run lets a press aim the serve, which it otherwise leaves out. */
+function letAim(shell: FakeShell, may: boolean): void {
+  Object.assign(shell, { mayAim: () => may });
+}
+
+/** Sets a shell up for a run that lets a press aim the serve. */
+function aiming(shell: FakeShell): void {
+  letAim(shell, true);
 }
 
 /** Sets a shell up for a player who prefers less motion. */
@@ -1944,7 +1961,6 @@ describe("BricksScene", () => {
       const { shell, run } = await startBoard();
 
       run.pointer("down", 200, 300);
-      run.pointer("up", 200, 300);
 
       expect(shell.commands).toEqual(["launch"]);
     });
@@ -2032,6 +2048,221 @@ describe("BricksScene", () => {
       run.advance(16);
 
       expect(shell.lastSteer().by).toBe(26 / metricsAt().unit);
+    });
+  });
+
+  describe("the serve's aim", () => {
+    it("is held by a launch key pressed while a ball waits, where the ball looks, launching nothing yet", async () => {
+      const { shell, run } = await startBoard(aiming);
+
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      expect({ commands: shell.commands, steer: shell.lastSteer() }).toEqual({
+        commands: [],
+        steer: { to: null, by: 0, push: 0, aim: 20, showsGuide: false },
+      });
+    });
+
+    it("launches as the launch key holding it is let go, once the next frame hands its aim on", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      run.key("keyup", "Space", " ");
+      const atOnce = [...shell.commands];
+      run.advance(16);
+
+      expect({
+        atOnce,
+        commands: shell.commands,
+        at: shell.aimsAtCommands,
+      }).toEqual({ atOnce: [], commands: ["launch"], at: [20] });
+    });
+
+    it.each([
+      [
+        "the shell lets no press aim",
+        (each: FakeShell) => {
+          letAim(each, false);
+        },
+      ],
+      ["the shell says nothing of it", () => undefined],
+      [
+        "no ball waits",
+        (each: FakeShell) => {
+          aiming(each);
+          playWithoutBall(each.field);
+        },
+      ],
+    ])(
+      "isn't held while %s, a launch key launching at once",
+      async (_, setUp) => {
+        const { shell, run } = await startBoard(setUp);
+
+        run.key("keydown", "Space", " ");
+        run.advance(16);
+
+        expect({
+          commands: shell.commands,
+          aim: shell.lastSteer().aim,
+        }).toEqual({
+          commands: ["launch"],
+          aim: null,
+        });
+      },
+    );
+
+    it("turns by the arrows pressed while a launch key holds it", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+
+      run.key("keydown", "ArrowRight");
+      run.advance(100, 100);
+
+      expect(shell.lastSteer()).toMatchObject({ aim: 25, showsGuide: true });
+    });
+
+    it("shows the guide once a press is held long enough", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+
+      const shown = Array.from({ length: 10 }, () => {
+        run.advance(16);
+        return shell.lastSteer().showsGuide;
+      });
+
+      // 9 frames come to 144 ms, the 10th to 160.
+      expect(shown.lastIndexOf(false)).toBe(8);
+    });
+
+    it("is called off as Esc pauses, its key launching nothing as it is let go", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      run.key("keydown", "Escape");
+      run.key("keyup", "Space", " ");
+      run.advance(16);
+
+      expect({ commands: shell.commands, aim: shell.lastSteer().aim }).toEqual({
+        commands: ["pause"],
+        aim: null,
+      });
+    });
+
+    it("launches nothing let go of once the shell lets no press aim, as the run pauses", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.pointer("down", 200, 300);
+      run.pointer("up", 200, 300);
+
+      letAim(shell, false);
+      run.advance(16);
+
+      expect(shell.commands).toEqual([]);
+    });
+
+    it("is called off as the player looks away", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+      run.advance(16);
+
+      run.game.events.emit(Core.Events.BLUR);
+      run.key("keyup", "Space", " ");
+      run.advance(16);
+
+      expect({ commands: shell.commands, aim: shell.lastSteer().aim }).toEqual({
+        commands: [],
+        aim: null,
+      });
+    });
+
+    it("is held by the mouse pressed while a ball waits, which launches as it is let go", async () => {
+      const { shell, run } = await startBoard(aiming);
+
+      run.pointer("down", 200, 300);
+      const pressed = [...shell.commands];
+      run.pointer("up", 200, 300);
+      run.advance(16);
+
+      expect({ pressed, let: shell.commands }).toEqual({
+        pressed: [],
+        let: ["launch"],
+      });
+    });
+
+    it("turns the way the mouse drags", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.pointer("down", 200, 300);
+
+      run.pointer("move", 230, 270);
+      run.advance(16);
+
+      expect(shell.lastSteer()).toMatchObject({
+        to: null,
+        aim: 45,
+        showsGuide: true,
+      });
+    });
+
+    it("launches as the mouse is let go past the canvas", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.pointer("down", 200, 300);
+      run.pointer("move", 230, 270);
+
+      run.pointer("up", 230, 270, { on: document.body });
+      run.advance(16);
+
+      expect({ commands: shell.commands, at: shell.aimsAtCommands }).toEqual({
+        commands: ["launch"],
+        at: [45],
+      });
+    });
+
+    it("is called off at a right-click, the mouse launching nothing as it is let go", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.pointer("down", 200, 300);
+
+      run.pointer("down", 200, 300, { button: 2 });
+      run.pointer("up", 200, 300, { button: 2 });
+      run.pointer("up", 200, 300);
+      run.advance(16);
+
+      expect(shell.commands).toEqual([]);
+    });
+
+    it("turns the way a finger drags up, which launches at it as it lifts, though no frame came between", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.touch("start", 200, 300);
+      run.touch("move", 230, 270);
+
+      run.touch("end", 230, 270);
+      run.advance(16);
+
+      expect({ commands: shell.commands, at: shell.aimsAtCommands }).toEqual({
+        commands: ["launch"],
+        at: [45],
+      });
+    });
+
+    it("is called off as the browser takes an aiming finger's touch away", async () => {
+      const { shell, run } = await startBoard(aiming);
+      run.touch("start", 200, 300);
+      run.touch("move", 200, 270);
+
+      run.touch("cancel", 200, 270);
+      run.advance(16);
+
+      expect({ commands: shell.commands, aim: shell.lastSteer().aim }).toEqual({
+        commands: [],
+        aim: null,
+      });
+    });
+
+    it("listens for a second finger, whose press calls it off", async () => {
+      const { scene } = await startBoard(aiming);
+
+      expect(scene.input.manager.pointersTotal).toBe(MOST_FINGERS);
     });
   });
 

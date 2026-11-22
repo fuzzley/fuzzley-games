@@ -18,7 +18,6 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import { cellMiddleX, cellMiddleY } from "../rules/grid";
 import type { Place } from "../rules/levels/levels";
-import type { Steer } from "../rules/paddle/paddle";
 import { PICTURE_FRAMES, type Pictures, ballFrame } from "../view/art/art";
 import { brickColor } from "../view/art/brick_art";
 import type { BricksPalette } from "../view/colors/palette";
@@ -39,7 +38,13 @@ import { type FieldMetrics, fieldMetrics } from "../view/field/field_metrics";
 import type { FieldEvent, FieldFrame, FieldView } from "../view/field/frame";
 import { LAYERS, type Layer } from "../view/field/layers";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
-import { Steering, type TouchSteering } from "../view/steering/steering";
+import {
+  MOST_FINGERS,
+  type PlayerSteer,
+  Steering,
+  type TouchSteering,
+  waitingAim,
+} from "../view/steering/steering";
 import { ATLAS, bakeBricksAtlas } from "./atlas";
 import { BallPainter } from "./painters/ball_painter";
 import { BoltPainter } from "./painters/bolt_painter";
@@ -59,8 +64,12 @@ import spriteUrl from "./sounds/sounds.wav?url";
 
 /** What the scene asks of the shell, and tells it. */
 export interface BricksSceneOptions {
-  /** Moves the game on by the time a frame took, the paddle steered as the player steers it. */
-  readonly tick: (deltaMs: number, steer: Readonly<Steer>) => void;
+  /**
+   * Moves the game on by the time a frame took, the paddle steered and the
+   * serve aimed as the player steers and aims them, and whether the serve's
+   * guide shows with them.
+   */
+  readonly tick: (deltaMs: number, steer: Readonly<PlayerSteer>) => void;
   /** Returns the field to draw, as the game now stands. */
   readonly frame: () => FieldFrame;
   /** Returns the colors to draw in; a new value repaints the field. */
@@ -92,6 +101,13 @@ export interface BricksSceneOptions {
   readonly onPictures: (pictures: () => Pictures) => void;
   /** Returns the place the level's set is in, which the field is tiled with. */
   readonly place: () => Place;
+  /**
+   * Returns whether the run lets a press aim the serve, rather than launch
+   * at once, while a ball waits: as it is ready or playing and the board is
+   * drawn. Left out, none may, and every press launches as it did before
+   * the serve could be aimed.
+   */
+  readonly mayAim?: () => boolean;
 }
 
 /** The keys the browser would otherwise scroll the page by, in Phaser's names. */
@@ -250,9 +266,9 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Hands the shell the time the frame took and the steering, then plays
-   * what happened on the field since the last frame, once each, and draws
-   * it as it now stands.
+   * Hands the shell the time the frame took and the steering, and the
+   * launch of a serve let go of, then plays what happened on the field
+   * since the last frame, once each, and draws it as it now stands.
    *
    * It allocates nothing of its own but on a new layout, a new palette or a
    * new level; Phaser makes a buffer source for each sound it plays, as Web
@@ -262,7 +278,9 @@ export class BricksScene extends Scene {
     this.frameTime = time;
     this.context.now = flourishTime(time, this.heldAt);
     let stale = this.fit();
-    this.options.tick(delta, this.steering.read(delta, null));
+    this.options.tick(delta, this.steering.read(delta, this.serve()));
+    // A serve let go of launches once the rules hold the aim it let go at.
+    if (this.steering.launches()) this.options.command("launch");
     this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
@@ -497,11 +515,26 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Turns the keys and the pointer into steering and commands, and lets go of
-   * every key and finger as the player looks away, so none sticks.
+   * Returns the aim a press would start the serve from, where the waiting
+   * ball looks, or null where none may aim: no ball waits, or the shell
+   * says the run lets none.
+   */
+  private serve(): number | null {
+    if (!(this.options.mayAim?.() ?? false)) return null;
+    return waitingAim(this.options.frame().field);
+  }
+
+  /**
+   * Turns the keys and the pointer into steering, the serve's aim and
+   * commands, a pointer let go past the canvas too, and lets go of every
+   * key and finger, and the aim, as the player looks away, so none sticks.
    */
   private listen(): void {
     this.input.keyboard?.addCapture(CAPTURED_KEYS);
+    // The game outlives the scene, so a scene built after another adds none.
+    this.input.addPointer(
+      Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
+    );
     onKeyDown(this, (event) => {
       this.press(event);
     });
@@ -509,7 +542,8 @@ export class BricksScene extends Scene {
       this.steering.keyUp(event.code);
     });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
-      if (this.steering.pointerDown(pointer, this.options.touch(), null)) {
+      const touch = this.options.touch();
+      if (this.steering.pointerDown(pointer, touch, this.serve())) {
         this.options.command("launch");
       }
     });
@@ -527,14 +561,14 @@ export class BricksScene extends Scene {
   }
 
   /**
-   * Lands the bricks dropping in, holds a key that pushes the paddle, and
-   * passes on what any other key asks, each once per press, not at a held
-   * key's repeat, leaving the browser its shortcuts.
+   * Lands the bricks dropping in, hands the steering a key that steers or
+   * holds the serve, and passes on what any other key asks, each once per
+   * press, not at a held key's repeat, leaving the browser its shortcuts.
    */
   private press(event: KeyboardEvent): void {
     if (isShortcut(event)) return;
     if (!event.repeat) this.bricks.land();
-    if (this.steering.keyDown(event, null)) return;
+    if (this.steering.keyDown(event, this.serve())) return;
     if (event.repeat) return;
     const command = commandOfKey(event.code);
     if (command) this.options.command(command);
