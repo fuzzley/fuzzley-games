@@ -22,6 +22,7 @@ import {
   type FieldMoment,
   layMoment,
   readMoment,
+  reportPlay,
   takeMoment,
 } from "./report_state";
 import { type Run, catchUp, createRun, levelSeed, startLevel } from "./run";
@@ -497,6 +498,149 @@ describe("readMoment", () => {
   ])("refuses effects with %j", (change) => {
     expect(() => readMoment(withEffects(change))).toThrow(
       "The game state's moment.effects doesn't fit this build.",
+    );
+  });
+});
+
+/** Two levels of three plain bricks, the second after the first. */
+const PAIR = levelsOf([
+  {
+    id: "pair",
+    name: "Pair",
+    place: "playroom",
+    drops: 0,
+    levels: [
+      {
+        id: "first",
+        name: "First",
+        mark: 5,
+        capsules: [],
+        bricks: ["ooo.........."],
+      },
+      {
+        id: "second",
+        name: "Second",
+        mark: 5,
+        capsules: [],
+        bricks: ["ooo.........."],
+      },
+    ],
+  },
+]);
+
+/** Returns a run of the pair at its first level, waiting for its first serve, and the level's field. */
+function pairPlay(): { run: Run; field: Field } {
+  const run = createRun({
+    id: 1,
+    seed: 3,
+    speed: "normal",
+    lastLevel: 2,
+    level: 1,
+  });
+  const [entry] = PAIR;
+  if (!entry) throw new Error("No level 1.");
+  return {
+    run,
+    field: createField(parseLevel(entry), {
+      speed: run.speed,
+      seed: levelSeed(run),
+    }),
+  };
+}
+
+describe("reportPlay", () => {
+  it("takes a level under way as the saved game keeps it, with the field's moment", () => {
+    const { run, field } = pairPlay();
+    const playing = startLevel(run);
+    throwBall(field, 5, 20, 30);
+
+    expect(reportPlay(playing, field, PAIR)).toEqual({
+      summary: "Level 1 · Score 0 · 3 lives · 1 ball in play",
+      game: saveGame(playing, field, PAIR),
+      moment: takeMoment(field),
+    });
+  });
+
+  it("takes a run waiting for its first serve as one begun, to take up", () => {
+    const { run, field } = pairPlay();
+
+    const { game, moment } = reportPlay(run, field, PAIR);
+
+    expect(game).toEqual(saveGame(startLevel(run), field, PAIR));
+    expect(restoreGame(game, PAIR, 2)?.run.level).toBe(1);
+    expect(moment).toEqual(takeMoment(field));
+  });
+
+  it("takes a run whose level was just cleared at the start of the next, with no moment", () => {
+    const { run, field } = pairPlay();
+
+    const { game, moment } = reportPlay(
+      { ...run, outcome: "cleared" },
+      field,
+      PAIR,
+    );
+
+    expect({ level: game?.level, field: game?.field, moment }).toEqual({
+      level: 2,
+      field: null,
+      moment: null,
+    });
+  });
+
+  it.each(["over", "won"] as const)("takes no game of a run %s", (outcome) => {
+    const { run, field } = pairPlay();
+
+    const { game, moment } = reportPlay({ ...run, outcome }, field, PAIR);
+
+    expect({ game, moment }).toEqual({ game: null, moment: null });
+  });
+
+  /** Returns the summary of the pair's run, changed as given, over its field, changed too. */
+  function summaryOf(
+    change: Partial<Run>,
+    setUp: (field: Field) => void = () => undefined,
+  ): string {
+    const { run, field } = pairPlay();
+    setUp(field);
+    return reportPlay({ ...run, ...change }, field, PAIR).summary;
+  }
+
+  it.each<[string, Partial<Run>, (field: Field) => void, string]>([
+    ["not begun", {}, () => undefined, "not started"],
+    [
+      "waiting to serve",
+      { outcome: "paused" },
+      () => undefined,
+      "ball on the paddle",
+    ],
+    [
+      "with 3 balls in play",
+      { outcome: "playing" },
+      (field) => {
+        for (const index of [0, 1, 2]) throwBall(field, 5, 20, 30, index);
+      },
+      "3 balls in play",
+    ],
+    [
+      "its last ball lost",
+      { outcome: "paused" },
+      (field) => {
+        field.state = "lost";
+      },
+      "ball lost",
+    ],
+    ["cleared", { outcome: "cleared" }, () => undefined, "level cleared"],
+    ["over", { outcome: "over" }, () => undefined, "game over"],
+    ["won", { outcome: "won" }, () => undefined, "every level cleared"],
+  ])("sums up a run %s", (_, change, setUp, standing) => {
+    expect(summaryOf(change, setUp)).toBe(
+      `Level 1 · Score 0 · 3 lives · ${standing}`,
+    );
+  });
+
+  it("sums up the run's level, score and lives", () => {
+    expect(summaryOf({ level: 2, score: 12_500, lives: 1 })).toBe(
+      "Level 2 · Score 12,500 · 1 life · not started",
     );
   });
 });

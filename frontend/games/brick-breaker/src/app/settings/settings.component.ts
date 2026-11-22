@@ -39,7 +39,7 @@ const TOUCH_INFO: Readonly<
 };
 
 /** The ways a finger may steer the paddle, as the drawer offers them. */
-const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
+export const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
   TOUCH_STEERINGS.map((id) => ({ id, ...TOUCH_INFO[id] }));
 
 /**

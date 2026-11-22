@@ -58,6 +58,7 @@ import {
   saveGame,
   takeUpField,
 } from "../../rules/run/saved_game";
+import { type ReportedPlay, reportPlay } from "../../rules/run/report_state";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { type StarId, starsWon } from "../../rules/run/stars";
 import { FIELD_HEIGHT } from "../../rules/tuning";
@@ -435,6 +436,14 @@ export class GameService extends RunLifecycle {
    */
   saved(): SavedGame | null {
     return saveGame(this.runState(), this.levelPlay.field, this.levels);
+  }
+
+  /**
+   * Returns the run and the level in play as a bug report takes them, at
+   * once: as the saved game keeps them, with the field's moment beyond it.
+   */
+  reported(): ReportedPlay {
+    return reportPlay(this.runState(), this.levelPlay.field, this.levels);
   }
 
   /**

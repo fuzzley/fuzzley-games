@@ -1,3 +1,4 @@
+import { count, formatPoints } from "@fz/core/format";
 import {
   isCount,
   isFiniteNumber,
@@ -27,7 +28,9 @@ import { BOLT_POOL, type Bolt } from "../paddle/bolts";
 import type { Paddle } from "../paddle/paddle";
 import { isCustomPercent } from "../speed";
 import { FIELD_HEIGHT, FRIEND_INKS, MAX_BALLS, TALLEST_FIELD } from "../tuning";
-import type { SavableField } from "./saved_game";
+import type { LevelEntry } from "../levels/levels";
+import { type Run, startLevel } from "./run";
+import { type SavableField, type SavedGame, saveGame } from "./saved_game";
 
 /**
  * The parts of a field its moment leaves out: what the saved game keeps of
@@ -359,5 +362,62 @@ function layRecords<T extends object>(
 ): void {
   for (const [index, record] of records.entries()) {
     Object.assign(record, from[index]);
+  }
+}
+
+/** Describes the level in play as a bug report takes it, at once. */
+export interface ReportedPlay {
+  /** Sums it up in a line for people: "Level 9 · Score 950 · 2 lives · 1 ball in play". */
+  readonly summary: string;
+  /**
+   * The run and its level's field as the saved game keeps them: a run
+   * waiting for its first serve as one begun, a run whose level was just
+   * cleared at the start of the next, or null for a run that has ended.
+   */
+  readonly game: SavedGame | null;
+  /** The field's moment, where the saved game keeps the field: else null. */
+  readonly moment: FieldMoment | null;
+}
+
+/** Returns the level in play as a bug report takes it. */
+export function reportPlay(
+  run: Run,
+  field: Readonly<Field>,
+  levels: readonly LevelEntry[],
+): ReportedPlay {
+  const kept = run.outcome === "ready" ? startLevel(run) : run;
+  const game = saveGame(kept, field, levels);
+  return {
+    summary: `Level ${String(run.level)} · Score ${formatPoints(run.score)} · ${count(run.lives, "life", "lives")} · ${standing(run, field)}`,
+    game,
+    moment: game?.field ? takeMoment(field) : null,
+  };
+}
+
+/** Returns where a run and its field stand, as a report's summary ends. */
+function standing(run: Run, field: Readonly<Field>): string {
+  switch (run.outcome) {
+    case "ready":
+      return "not started";
+    case "cleared":
+      return "level cleared";
+    case "over":
+      return "game over";
+    case "won":
+      return "every level cleared";
+    case "playing":
+    case "paused":
+      break;
+  }
+  switch (field.state) {
+    case "serve":
+      return "ball on the paddle";
+    case "lost":
+      return "ball lost";
+    case "playing":
+    case "cleared": {
+      const live = field.balls.filter((ball) => ball.live).length;
+      return `${count(live, "ball", "balls")} in play`;
+    }
   }
 }
