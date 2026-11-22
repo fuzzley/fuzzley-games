@@ -1,343 +1,269 @@
 ---
 name: brick-breaker-content
-description: What adding to Brick Breaker takes — a level, a set of levels, a capsule, a new kind of effect, a ball kind, a brick kind or a brick trait — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: brick breaker level, new level, level design, level set, brick kind, brick trait, capsule, power-up, seeker, double pay, ball kind, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES, EVENT_EFFECTS, voice, sound, build-sounds, legend, tints, layout, redraw, place, PLACE_ART, backdrop, pace, drops, mark, streak mark, report:levels, long level, frontend/games/brick-breaker levels.
+description: What adding a level, a set, a place, a capsule, a kind of effect, a ball kind, a brick kind or a brick trait to Brick Breaker takes, and what no check asks for. Triggers on: frontend/games/brick-breaker levels, level design, redraw, layout, tints, mark, report:levels, BRICK_KINDS, CAPSULES, BALL_KINDS, TRAIT_RULES, EFFECT_RULES.
 ---
 
 # Adding to Brick Breaker
 
-This skill walks through what each addition to the game takes. How its
+What each addition to the game takes, and what no check asks for. How its
 specs run is in the `brick-breaker-testing` skill. Paths are relative to
 `frontend/games/brick-breaker/`.
 
 ## How the Game Holds What It Plays
 
-- **Three catalogs,** in `src/rules/catalog/`, list everything the levels
-  can hold: `BRICK_KINDS` (`bricks.ts`), `BALL_KINDS` (`balls.ts`) and
-  `CAPSULES` (`capsules.ts`). Each is a readonly object written
-  `as const satisfies`, so its ids are a type, in How to play's order. How
-  to play shows every entry, its name, its sentence and its picture, with
-  no change of its own.
-- **Records keyed by those ids** make the compiler ask for what a new entry
-  needs: its art, its symbol, its color, its rule. A new id that compiles
-  has everything drawn and played.
+- **Three catalogs,** in `src/rules/catalog/`, list everything a level can
+  hold: `BRICK_KINDS` (`bricks.ts`), `BALL_KINDS` (`balls.ts`) and
+  `CAPSULES` (`capsules.ts`). An entry's fields are its interface's there.
+  How to play shows every entry, with no change of its own.
+- **Records keyed by the catalogs' ids** make the compiler ask for what a
+  new entry needs: its art, its symbol, its color, its rule. So add the
+  id, run `yarn typecheck`, and write what it asks for. The sections below
+  say where each goes, and what the compiler can't ask for.
 - **The levels** are JSON, a file for each set in `src/rules/levels/`,
-  listed in order in `src/rules/levels/levels.ts` (`LEVEL_SETS`) and
+  listed in order in `LEVEL_SETS` (`src/rules/levels/levels.ts`) and
   numbered from 1 across the sets (`LEVELS`).
-- **The checks** that hold it whole:
-
-  | Check               | Where                               | What it holds                                                                                                                                   |
-  | ------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                          | Every trait and effect has its rule, and every brick, ball and capsule its art                                                                  |
-  | The catalog spec    | `src/rules/catalog/catalog.spec.ts` | Every entry's name and sentence, the weights, every kind used by a level, every capsule able to fall from its level                             |
-  | The levels spec     | `src/rules/levels/levels.spec.ts`   | Every level parses, its id and name its own, needed bricks in reach, a key for a gate, a pace that never falls in a set, every set in its place |
-  | The autopilot specs | `src/rules/levels/every_level/`     | Every level cleared at every preset speed in eight minutes, its last bricks in one; and in time on the tallest field                            |
-  | The contrast spec   | `src/view/colors/contrast.spec.ts`  | Every color against the field, and the outline and the marks against what they cross, in every palette                                          |
-  | The places spec     | `src/view/places/places.spec.ts`    | Every set's place drawn, each tile's commands inside it, and every place dim over the field and the page, in every palette                      |
-  | The scene spec      | `src/scene/bricks_scene.spec.ts`    | Every kind, in every state, drawn from a frame of the atlas                                                                                     |
-  | The effects spec    | `src/view/effects/effects.spec.ts`  | Every event's sound and flourishes, and every kind's voice, each written in a record the compiler holds complete                                |
-  | The sounds' spec    | `tools/build-sounds.spec.ts`        | The sprite checked in is what `tools/build-sounds.mjs` writes now, its sounds `SOUNDS`, in order                                                |
-
-  The levels spec holds each level to two portals of each pair or none too.
+- **The counts are written by hand** in `index.html`'s descriptions
+  ("50 levels") and in `README.md` (the levels, sets, capsules, kinds of
+  ball and each brick kind by name). No check holds them.
+- **Each section names the spec that holds its piece.** Run one with
+  `yarn vitest run --project pure <path>` from
+  `frontend/games/brick-breaker/`. The specs that play every level are the
+  `sim` project's.
 
 ## A Level
 
-Its block in a set's file:
+Its block in a set's file, as `src/rules/levels/basics.json` shows.
+`LevelData` (`src/rules/levels/levels.ts`) says what each key holds, and
+`parseLevel()` throws for one it can't read, naming what is wrong. What
+neither says:
 
-- `id`, kebab-case, for good: the records and the progress are kept by it,
-  so it never changes once shipped. `name`, what the player sees.
-- `layout`, the number of the layout its bricks are in, a whole number
-  from 1, left out for the first. Redrawing a level that has shipped raises
-  it, so the bests made on the old bricks are let go, while the progress
-  and the stars, kept by the id, stay.
-- `bricks`: a row of 13 characters for each of up to 16 rows, from the
-  top, in the shared legend's characters (`src/rules/levels/legend.ts`):
-  `o` plain, `2` to `4` tough, `#` steel, `*` blast, `?` gift, `~` ghost,
-  `+` regrowing, `c` cage, `u` and `U` plated, of one hit and two, `k` key,
-  `=` gate,
-  `O` bumper,
-  `@` and `%` portals, of two pairs,
-  `>` and `<` sliders, heading right and left, `.`
-  none. A `legend` of its own adds characters, each a kind with its hits or
-  the capsule a gift gives.
-  A level with a gate has a key, whose last opens it.
-  A level has two portals of each pair or none: a ball that touches one
-  leaves the other. Only the shared legend draws a portal, as its pair is
-  the character's. A brick in the row above or below a portal is met at
-  once by a ball coming out of it toward that brick, which, turned while
-  still within the disc, goes straight back through: leave a row between
-  them where a ball is meant to come out into the room.
-  Only the shared legend draws a slider too, as its way is the
-  character's. Sliders of a row that touch and head one way step as a
-  train, a cell each beat, and turn at a wall or an unbroken brick, so a
-  row left open beside a train is the room it moves in.
-- `tints`, if it is a picture: each brick's tint, 1 to 8, in the same shape,
-  `.` for its row's; without them each row takes the next tint, as stripes.
-  The eight are `@fz/phaser/color`'s `TILE_INKS`: 1 red, 2 orange,
-  3 amber, 4 green, 5 teal, 6 blue, 7 violet and 8 pink. Steel, blast,
-  gift and regrowing bricks, cages, keys, gates and bumpers are drawn in
-  colors of their own, and portals in their pair's, whatever their tint; a
-  tough or plated brick takes its tint a little deeper. By
-  custom a picture leaves steel `.`, as Finale does, and marks a blast or
-  gift brick with the tint of the part it sits in, as Rocket does, so the
-  grid reads as the picture. Changing tints changes no play, so no bests:
-  `layout` stays.
-- `pace`, the ball's speed against its speed's own, which never falls
-  within a set; `mark`, the streak its third star asks for, which
-  `yarn report:levels --marks` prints by one rule for every level, and at
-  which the field rings the ball and writes the count as at a streak's
-  step; `drops`,
-  the chance a needed brick lets a capsule fall, if not its set's;
-  `capsules`, the pool, if not every capsule whose level has come.
-
-Its number is its place across the sets: a level put before others moves
-their numbers, and with them the levels each capsule first falls from. The
-screenshots keep a run on level 9, Rocket, by the places of its bricks
-(`tools/capture-screenshots.mjs`), and `keptRun()` throws for a place with
-no brick.
+- **`id` is for good.** The records, the progress and the stars are kept
+  by it, so it never changes once shipped.
+- **Redrawing a shipped level's bricks raises its `layout`,** a whole
+  number from 1, left out for the first. The bests made on the old bricks
+  are then let go, while the progress and the stars, kept by the id, stay.
+  No check asks for it. Changing `tints` changes no play, so `layout`
+  stays.
+- **`bricks` are drawn in the shared legend's characters,** `LEGEND` in
+  `src/rules/levels/legend.ts`. A `legend` of the level's own adds
+  characters, each a kind with its hits or the capsule a gift gives. Only
+  the shared legend draws a portal or a slider, as its pair or its way is
+  the character's.
+- **`tints` make a picture:** 1 red, 2 orange, 3 amber, 4 green, 5 teal,
+  6 blue, 7 violet and 8 pink, `.` for the row's. Steel, blast, gift and
+  regrowing bricks, cages, keys, gates, bumpers and portals are drawn in
+  colors of their own whatever their tint, and a tough or plated brick
+  takes its tint a little deeper. By custom a picture leaves steel `.`,
+  as Finale does, and gives a blast or gift brick the tint of the part it
+  sits in, as Rocket does, so the grid reads as the picture.
+- **Leave a row between a portal and the bricks a ball is meant to come
+  out to.** A brick in the row above or below a portal is met at once by a
+  ball coming out toward it, which turns while still within the disc and
+  goes straight back through.
+- **Leave a train of sliders room in its row.** Sliders that touch and head
+  one way step together, and turn at a wall or an unbroken brick.
+- **Its number is its place across the sets.** A level put before others
+  moves their numbers, and with them the level each capsule first falls
+  from (its `from`), the seed the autopilot plays each level from, and the
+  runs two scripts keep by a level's number and its bricks' places: Rocket,
+  level 9, in `tools/capture-screenshots.mjs` (`RUN`), and Fuse, level 13,
+  in `tools/stored_run.mjs` (`CLEARING_RUN`). `keptRun()` throws for a
+  place with no brick.
 
 Then:
 
 1. `yarn vitest run --project pure src/rules/levels/levels.spec.ts src/rules/catalog/catalog.spec.ts`.
 2. `yarn vitest run --project sim src/rules/levels/every_level/`, which
    plays it from its number as the seed.
-3. `yarn report:levels`, then `yarn report:levels --seeds 20`: its middle time
-   should sit with its set's, rising through the game, and never past 2:00 at
-   Relaxed on the least field, which the report marks `+`; a long endgame
-   (`!`) on one seed in many is luck, but on many seeds, leaving the same
-   bricks for last, it is a level to redraw, raising its `layout` once it has
-   shipped. Its `away`, the longest a play went between two touches of the
-   paddle by any ball, is the longest the paddle had nothing to meet: a ball
-   held out of its reach, in a sealed room or above a wall, shows there only
-   while no other ball is in play. Past a minute the report marks it `^`, a
-   play that hangs, its only ball circling what can't break. `--height 45`
-   plays it on the tallest field, as an upright phone shows it.
+3. `yarn report:levels`, then `yarn report:levels --seeds 20`. Its middle
+   time should sit with its set's, rising through the game, and never past
+   2:00 at Relaxed on the least field, which the report marks `+`. A long
+   endgame (`!`) on one seed in many is luck. On many seeds, leaving the
+   same bricks for last, it is a level to redraw. Its `away` is the longest
+   the paddle had no ball to meet: a ball held out of its reach, in a
+   sealed room or above a wall, shows there only while no other ball is in
+   play. Past a minute the report marks it `^`, a play that hangs, which no
+   spec holds. `--height 45` plays it on the tallest field, as an upright
+   phone shows it.
 4. `yarn report:levels --marks`, and its `mark` set to what it prints. A
-   redraw sets it again; a star won under the old mark is kept
-   (`src/rules/run/stars.ts`).
+   redraw sets it again; a star won under the old mark is kept.
 
-What drags an endgame, as the levels have shown: bricks above steel,
-a channel one cell wide at a wall, the inner corners of an enclosure, a
-corridor two rows high between steel, and bricks shaded from below by a
-single steel cell. A steel floor under bricks traps the ball above them,
-and clears them fast.
+What drags an endgame, or holds the ball away from the paddle:
 
-Plated bricks drag an endgame too. A ball breaks one only from above or a
-side, and neither the autopilot nor a seeking ball turns toward one, so the
-last of them are met by chance. One against a side wall, with a side fewer
-to be met from, drags most, and one of two hits more than one of one:
-Pachinko's draft, its cups of two hits, ran 21 endgames of 900 past a
-minute, and with cups of one hit 2.
-
-Bricks met only through a portal drag an endgame too: neither the autopilot
-nor a seeking ball aims at a portal, so the ball comes through the one that
-leads to them by chance. Two rooms' draft, eight bricks in a sealed room
-behind each portal, ran an endgame past a minute in one play of six, and so
-did every redraw of it without a blast, one with a row left open between
-the portal and the bricks among them. A blast right over each room's
-portal, where a ball coming out meets it at once, has the whole room in its
-reach and clears it at the first entry: none of 300 plays ran past.
-
-A room behind a portal holds the ball away from the paddle while it is in
-there, and a pocket left only by narrow channels holds it longer, which the
-report's `away` shows while no other ball is in play. Switchyard's draft,
-its keys in rooms of three by two over a strongroom in the middle of the
-field, held a ball past a minute (`^`), and a probe of the autopilot found
-it in the pocket over the strongroom, whose gates stay shut till the keys
-break, left only by channels two cells wide at the walls. With its
-strongroom near the top and each room a shaft a cell wide at a wall, steel
-over and under it and its key over its portal, every ball that comes out
-goes straight back: one heading up breaks the key, or meets the steel once
-the key is gone, and one heading down meets the steel under the portal.
-Over 300 plays, the longest the paddle waited was 0:15.
-
-Two bumpers whose middles lie on a line flatter than the flattest a ball
-travels (`FLATTEST`, 20°), near enough that a ball leaving one at the
-flattest still meets the other, can hold a ball between them: it bounces
-back and forth at the flattest, and each turn of the nudge flatter is undone
-as the ball is held to it. Pinball's lowest bumper lies 6 units across
-from each of the other two and three rows below them, on a line of 27°, so
-it holds no ball with either. Its two level with each other, 12 units
-apart, can't: a ball leaving one at the flattest passes the other 4.4 units off
-its middle, far beyond the 0.86 it meets the disc at.
+- **Bricks the ball seldom reaches:** bricks above steel, a channel one
+  cell wide at a wall, the inner corners of an enclosure, a corridor two
+  rows high between steel, and bricks shaded from below by a single steel
+  cell. A steel floor under bricks traps the ball above them, and clears
+  them fast.
+- **Plated bricks.** A ball breaks one only from above or a side, and
+  neither the autopilot nor a seeking ball turns toward one, so the last
+  of them are met by chance. One against a side wall drags most, and one
+  of two hits (`U`) far more than one of one (`u`): Pachinko's cups are of
+  one hit.
+- **Bricks met only through a portal.** Neither the autopilot nor a
+  seeking ball aims at a portal, so the ball comes through by chance. A
+  blast right over the room's portal, where a ball coming out meets it at
+  once, has the whole room in its reach and clears it at the first entry,
+  as in Two rooms. A row left open between the portal and the bricks does
+  not help.
+- **A room behind a portal, or a pocket left only by narrow channels,**
+  holds the ball away from the paddle (`away`, `^`). Switchyard shows the
+  shape that doesn't: each key's room a shaft one cell wide at a wall,
+  steel over and under it and its key over its portal, so every ball that
+  comes out goes straight back.
+- **Two bumpers can hold a ball between them** where their middles lie on
+  a line flatter than the flattest a ball travels (`FLATTEST`, 20°) and
+  near enough that a ball leaving one at the flattest still meets the
+  other: within 0.86 units of its middle. Pinball's lowest bumper lies 6
+  units across and three rows below each of the other two, on a line of
+  27°, and those two, level and 12 units apart, are too far for a ball at
+  20° to meet both.
 
 ## A Set
 
-Its file in `src/rules/levels/`, with its `id`, `name`, `place` (one of
-`PLACES` in `src/rules/levels/levels.ts`, which `placeOf()` checks:
-`playroom`, `workshop`, `funfair`, `garden` or `arcade`), `drops` (the chance
-of a capsule its levels share),
-`nudge`, where a lull's nudge turns a ball in its levels (`NUDGES` in
-`src/rules/levels/level.ts`: `walls`, the default, or `unbreakable`, off
-anything that can't break, as Machines does and a set after it would, so a
-ball looping off steel or bumpers is turned out of its loop, unless two
-bumpers hold it at the flattest, as above),
-and `levels`, imported in
-`src/rules/levels/levels.ts` and placed in `LEVEL_SETS`. Its place's look is
-its art in `PLACE_ART` (`src/view/places/places.ts`), which a place new to
-the game needs, as "A Place" below says. The Levels dialog
-shows each set under its name. The levels spec lists each set's place by its
-id, in `placeOf`'s spec, and its nudge, in another, so a new set adds its
-own to both. It holds a set's paces from falling only
-within it, so a new set's paces start where the last set's end, kept so by
-hand: Basics runs 1 to 1.06, Steel 1.06 to 1.12 and Tricks 1.12 to 1.2. A set that asks for
-thought rather than speed starts lower: Friends runs 1.12 to 1.18.
-Machines, the kinds that move a ball or themselves, runs 1.16 to 1.22.
+- **Its file in `src/rules/levels/`,** as `LevelSetData` describes it,
+  imported in `src/rules/levels/levels.ts` and placed in `LEVEL_SETS`.
+- **Its `place`** is one of `PLACES`. One new to the game needs its art,
+  as "A Place" below says.
+- **Its `nudge`** says where a lull's nudge turns a ball in its levels
+  (`NUDGES` in `src/rules/levels/level.ts`): `walls`, the default, or
+  `unbreakable`, off anything that can't break, as Machines does and a set
+  after it would, so a ball looping off steel or bumpers is turned out of
+  its loop.
+- **The levels spec lists each set's place by its id,** in `placeOf`'s
+  spec, and its nudge, in another. A new set adds its own to both.
+- **Its paces start about where the last set's end,** kept so by hand: the
+  levels spec holds the paces from falling only within a set. A set that
+  asks for thought rather than speed starts lower, as Friends does after
+  Tricks.
 
 ## A Place
 
-- A member of `PLACES` (`src/rules/levels/levels.ts`), its id what a set's
-  `place` names.
-- Its art in `PLACE_ART` (`src/view/places/places.ts`), which the compiler
-  asks for: its `Motif`, in `src/view/places/motifs.ts`, a few shapes about
-  a middle in shares of their size, of which a pick from 0 to 1 chooses one
-  and turns it; whether a drawing board's grid lies under them; and how
-  much of the text it takes over the field and, a little more, over the
-  page.
-- The places spec holds its tile's commands inside it at every scale a
-  field is drawn at, and it to 1.05:1 to 1.2:1 against the field and the
-  page in every palette, so it reads but never competes with what is
-  played; the motifs spec, `src/view/places/motifs.spec.ts`, holds its
-  motif, as it holds every one of `PLACES`, to its ink, to two thirds of
-  its size and to no polyline's corner sharper than `SHARPEST`, as
-  `coverOf()` counts on. The scene tiles the field with it, and the board
-  masks the page with it, with nothing more to add. Look at it in a
-  browser too, in greyscale, with three balls in play: the ball still
-  shows first.
+- **A member of `PLACES`** (`src/rules/levels/levels.ts`), its id what a
+  set's `place` names.
+- **Its art in `PLACE_ART`** (`src/view/places/places.ts`), which the
+  compiler asks for, as `PlaceArt` describes it. Its `Motif` goes in
+  `src/view/places/motifs.ts`: a few shapes about a middle, in shares of
+  their size.
+- **The places spec and `src/view/places/motifs.spec.ts` hold it** with no
+  line added: its tile's commands inside the tile at every scale, its
+  contrast between 1.05:1 and 1.2:1 against the field and the page in
+  every palette, and its motif to its ink, to two thirds of its size and
+  to no polyline's corner sharper than `SHARPEST`. The scene tiles the
+  field with it, and the board masks the page with it, with nothing more
+  to add.
+- **Look at it in a browser too,** in greyscale, with three balls in play:
+  the ball still shows first.
 
 ## A Capsule With an Effect That Exists
 
-- Its entry in `CAPSULES`, among the others by its `from`, as the catalog
-  spec holds them in the order they join the pool: its `name` and `about`,
-  its `tone` (`bad` ones never fall at Relaxed), its `weight` against the
-  others in a pool, the level it first falls `from`, and its `effect`. A bad
-  one `pays` 2: bricks pay double while its effect is in play, after the
-  streak's multiplier, which its `about` says ("score double"), and its effect
-  lasts a time, as the catalog spec holds; a good one leaves `pays` out.
-- Its symbol in `SYMBOLS` (`src/view/art/symbols.ts`), drawn in a square
-  in shares of it, reaching no further than its edges, which the compiler
-  asks for; its tag under the paddle is drawn from the same. Its tone's
-  shape, in `CAPSULE_ART` (`src/view/art/art.ts`), lays it across the
-  capsule's face, and a bad one's gold lip says it pays double; the
-  compiler asks for a new tone's.
-- The announcer says its name as it is caught, and "Double score." for one
-  that pays; How to play lists it.
+- **Its entry in `CAPSULES`,** among the others by its `from`, as the
+  catalog spec holds them in the order they join the pool. The spec holds
+  its `from` to the first level it can fall in, so that level's pool takes
+  it: the level names no `capsules` of its own, or names this one.
+- **A bad one `pays` 2 and says so in its `about`** ("score double"), and
+  its effect lasts a time, as the catalog spec holds. A good one leaves
+  `pays` out.
+- **Its symbol in `SYMBOLS`** (`src/view/art/symbols.ts`), drawn in a
+  square in shares of it, reaching no further than its edges. The compiler
+  asks for it, and for a new tone's shape in `CAPSULE_ART`
+  (`src/view/art/art.ts`).
 
 ## A New Kind of Effect
 
-- A member of the `CapsuleEffect` union (`src/rules/catalog/capsules.ts`):
-  its kind is its group, so catching one replaces whatever of its kind is
-  in play, and runs beside the other groups' effects, as the Seeker's
-  `seek` runs beside a fire or blast ball's `ball`. Each group in play
-  shows a tag under the paddle, in `EFFECT_RULES`' order (`EFFECT_KINDS`).
-- Its rule in `EFFECT_RULES` (`src/rules/bricks/capsules.ts`): `start` as it is
-  caught, and `end` to undo it as its time runs out, the next of its group
-  is caught, or a life is lost. Most set a field of `Field` the rules read
-  as they play, as `seek` sets `seeking`, which `src/rules/field/seeker.ts`
-  reads.
-- Its record in `createEffects()`. The compiler asks for each.
-- The effects in play aren't kept across a reload, so the saved game needs
-  nothing.
+- **A new kind is a new group.** Catching a capsule replaces whatever of
+  its effect's kind is in play, and runs beside the other kinds', so an
+  effect that must end another is a variant of that one's kind, as
+  `paddle-mode`'s two modes are.
+- **A member of the `CapsuleEffect` union**
+  (`src/rules/catalog/capsules.ts`).
+- **Its rule in `EFFECT_RULES`** (`src/rules/bricks/capsules.ts`), its
+  place there being its tag's place under the paddle. Most set a field of
+  `Field` the rules read as they play, as `seek` sets `seeking`, which
+  `src/rules/field/seeker.ts` reads.
+- **Its record in `createEffects()`.** The compiler asks for each.
+- **The saved game needs nothing:** the effects in play aren't kept across
+  a reload.
 
 ## A Ball Kind
 
-- Its entry in `BALL_KINDS`: its `damage` (a number of hits, or `breaks`),
-  whether it `passes` through what it breaks, whether it `reaches` the
-  bricks around, and its `speed`.
-- Its fur in `FUR` (`src/view/art/fuzzball_art.ts`), combed into a shape
-  of its own so it shows apart from the other kinds without its color, and
-  its color in `bricksPalette()`'s `balls` (`src/view/colors/palette.ts`);
-  the compiler asks for both. Only a normal ball's fur lifts with the
-  streak (`STREAK_FUR`); another kind keeps its own at any streak. A
-  friend a cage frees wears its ink (`Ball.ink`) only while the balls are
-  normal; while they are of another kind it wears that kind's look, as
-  `ballFrame()` and `ballColor()` (`src/view/art/art.ts`) hold.
-- A capsule whose effect is `{ kind: "ball", ball: "<id>", ms }`.
-- The physics needs nothing new while one that passes breaks what it
-  passes through at a hit, as the catalog spec holds. Every ball's radius
-  is `BALL_RADIUS`: a ball of another size needs a `size` here, which the
-  move `src/rules/field/travel.ts` sweeps, the paddle's reach and the check
-  that no ball sits where a regrowing brick would grow read where they now
-  read `BALL_RADIUS`.
+- **Its entry in `BALL_KINDS`.**
+- **Its fur in `FUR`** (`src/view/art/fuzzball_art.ts`), combed into a
+  shape of its own so it shows apart from the other kinds without its
+  color, and its color in `bricksPalette()`'s `balls`
+  (`src/view/colors/palette.ts`). The compiler asks for both.
+- **A capsule that makes it,** its effect
+  `{ kind: "ball", ball: "<id>", ms }`, which the catalog spec asks for.
+- **One that `passes` breaks what it passes through at a hit,** as the
+  catalog spec holds, so the physics needs nothing new. Every ball's
+  radius is `BALL_RADIUS`: a kind of another size is no catalog entry
+  alone.
 
 ## A Brick Kind With Traits That Exist
 
-- Its entry in `BRICK_KINDS`: its `name` and `about`, its `hits` and
-  `mostHits`, whether a level `needed` it broken, its `points` for each hit,
-  and its `traits`.
-- Its look in every tint and state in `BRICK_ART`
-  (`src/view/art/brick_art.ts`), on the slab (`BRICK_SLAB`) with marks that
-  tell it apart by their shape,
-  but for a round kind, a disc on no slab, which the art spec's slab spec
-  leaves out, as a bumper and a portal are drawn through
-  `@fz/phaser/bricks`' `bumperMark()` and `portalMark()`,
-  and How to play's picture in
-  `PICTURED_BRICKS` (`src/view/art/art.ts`); the compiler asks for both. A
-  color of its own, as steel's, blast's, gift's and a regrowing brick's
-  earth, goes in `bricksPalette()`'s `bricks`, and an ink its marks take
-  beside the marks' own color in its `kindInks`. The contrast spec holds
-  an ink that tells a kind to 3:1 against what it is drawn on, and leaves
-  out one that only shades, as the gift's ribbon and the moss's shadow
-  do. Two looks of a kind told apart by ink alone, as a portal's two pairs
-  are, the contrast spec holds apart by hue (`deltaE()`), and a mark of
-  another shape tells them apart besides, for a player who can't tell the
-  inks apart, as a portal's badge, a dot or a diamond, does. A look that
-  differs by what the legend lays a brick with reads it from the
-  `BrickLook` (`pair`, `heading`), a frame for each, as a portal's does by
-  its pair and a slider's by its heading. A kind that `regrows` shows the ring a regrowing brick fills as it
-  grows back while it is broken (`regrowingFrame()`, which `cellFrame()`
-  picks), with nothing more. A look that reads the field beside its brick
-  reads it from the `CellField` its art's `frameOf()` is handed, which
-  `cellFrame()` hands on, as a cage shows the friend the field frees next
-  (by the rules' `nextFriendInk()`), a frame for each of
-  the friends' inks.
-- Its character in the shared legend, or a level's own legend.
-- Its voice: the sound of a hit it holds and of its breaking, which the
-  effects spec's `VOICES_OF_KINDS` asks for, and its field of every kind
-  (`EVERY_KIND`) holds one of. A kind knocks as it holds and bloops as it
-  breaks, or rings as steel if it never breaks; one that sounds in a voice
-  of its own takes its line in `VOICES` (`src/view/effects/effects.ts`),
-  and a sound of its own is a recipe at the end of `RECIPES`
-  (`tools/build-sounds.mjs`) and its name at the end of `SOUNDS`
-  (`effects.ts`), in the same order, written into the sprite by
-  `yarn build:sounds`. A broken brick's sound, whichever, rises along the
-  streak.
-- A level that brings it in: the catalog spec fails while a kind is used by
-  none.
+- **Its entry in `BRICK_KINDS`.**
+- **Its look in every tint and state in `BRICK_ART`**
+  (`src/view/art/brick_art.ts`), and How to play's picture in
+  `PICTURED_BRICKS` (`src/view/art/art.ts`). The compiler asks for both,
+  and `src/view/art/brick_art.spec.ts` holds every state of it to a frame
+  the atlas holds. It stands on the slab (`BRICK_SLAB`), with marks that
+  tell it apart by their shape. A round kind is a disc on no slab, as a
+  bumper and a portal are drawn through `@fz/phaser/bricks`'
+  `bumperMark()` and `portalMark()`.
+- **A look the legend lays, or the field changes,** is a frame for each. A
+  portal reads its pair and a slider its heading from the `BrickLook`, and
+  a cage reads the friend the field frees next from the `CellField` its
+  `frameOf()` is handed.
+- **Its colors.** A color of its own goes in `bricksPalette()`'s `bricks`
+  (`src/view/colors/palette.ts`), its kind joining `UntintedKind`, and the
+  contrast spec holds it with no line added. An ink its marks take beside
+  the marks' own color goes in `kindInks`, and joins the contrast spec by
+  hand: 3:1 against what it is drawn on for one that tells a kind, and
+  nothing for one that only shades, as the gift's ribbon and the moss's
+  shadow do. Two looks of a kind told apart by ink alone, as a portal's
+  two pairs are, the contrast spec holds apart by hue (`deltaE()`), and a
+  mark of another shape tells them apart besides.
+- **Its character** in the shared legend, or a level's own.
+- **Its voice.** The effects spec's `VOICES_OF_KINDS` asks for it, and its
+  `EVERY_KIND` field gains its character. A kind knocks as it holds and
+  bloops as it breaks, or rings as steel if it never breaks, with nothing
+  written. One with a voice of its own takes a line in `VOICES`
+  (`src/view/effects/effects.ts`).
+- **A sound of its own** is a recipe in `RECIPES` (`tools/build-sounds.mjs`)
+  and its name in `SOUNDS` (`src/view/effects/effects.ts`), in the same
+  order. `yarn build:sounds` writes the sprite, and the sounds' spec fails
+  until the one checked in is what it writes.
+- **A level that brings it in.** The catalog spec fails while a kind is
+  used by none.
 
 ## A Brick Trait
 
-- A member of the `BrickTrait` union (`src/rules/catalog/bricks.ts`).
-- Its rule in `TRAIT_RULES` (`src/rules/bricks/bricks.ts`), at the moments it
-  acts: `laid` as the level lays the brick out, `hit` before a hit's
-  damage, `broken` as it breaks, and `step` at each step; the compiler asks
-  for the rule.
-- Any state it keeps on `Brick`, set by its rule's `laid`.
-- If it makes a kind round, a disc at its cell's middle rather than a box,
-  as a bumper's `bumps` and a portal's `jumps` do: its kinds join `ROUND`
-  (`src/rules/bricks/bricks.ts`), which `isRound()` reads, so the travel
-  leaves its cell open (`boxed` and `hardBoxed`), and the faces beside it
-  stay exposed, while `Field.solid` holds it whole, and `inSight()` with
-  it; the travel meets its disc by `sweepPoint()` (`noteDisc()`).
-- If it moves a brick, as a slider's `slides` does, it moves it through
-  `src/rules/bricks/sliders.ts`, which steps before the traits' step
-  (`stepSliders()`), changing `Brick.cell` with the field's list, and
-  the saved game keeps the cell and refuses one no move comes to
-  (`restoredPlace()`). Each slider it moves records `slid` at its new
-  cell, a train's lead first, with its way (`FieldEvent.way`), by which
+- **A member of the `BrickTrait` union** (`src/rules/catalog/bricks.ts`),
+  and its rule in `TRAIT_RULES` (`src/rules/bricks/bricks.ts`), which the
+  compiler asks for. `TraitRule` names the moments a rule acts at.
+- **Any state it keeps is a field of `Brick`,** set by its rule's `laid`.
+- **The saved game keeps that state.** In `src/rules/run/saved_game.ts`
+  its key joins `KEPT_OF_BRICK`, and `restoredBrick()` reads it and
+  refuses a state no run comes to, which the compiler asks for. Its spec's
+  round trip gains the state too, as the `brick-breaker-testing` skill's
+  "The Saved Game" says, or a take-up that drops it fails nothing.
+- **If it makes a kind round,** a disc at its cell's middle rather than a
+  box, as `bumps` and `jumps` do, three places take it by hand. Its kinds
+  join `ROUND` (`src/rules/bricks/bricks.ts`) through a set of their own,
+  as `BUMPERS` and `PORTALS` do, so the travel leaves the cell open about
+  it. `findContacts()` (`src/rules/field/travel.ts`) gains a branch that
+  meets its disc with `noteDisc()`, as a bumper's does. And the slab spec
+  in `src/view/art/brick_art.spec.ts` leaves its trait out, beside `bumps`
+  and `jumps`.
+- **If it moves a brick,** as `slides` does, it moves it as
+  `src/rules/bricks/sliders.ts` does: `Brick.cell` changes with the
+  field's list, each brick moved records `slid` with its way, by which
   `BrickPainter` (`src/scene/painters/brick_painter.ts`) slides its
-  picture in from the cell it left, carrying any move it had under way
-  there in place of one left in the cell it takes.
-- An event it records, as a cage's freeing records `freed`: a member of
-  `FieldEventKind` (`src/rules/field/events.ts`), and its entry in
-  `EVENT_EFFECTS` (`src/view/effects/effects.ts`), its sound and the
-  flourishes it plays, which the compiler asks for, as the effects spec's
-  `VOICES_OF_EVENTS` does. A sound of its own is made as a kind's is,
-  above.
-- **The saved game keeps that state:** in `src/rules/run/saved_game.ts`, its
-  key joins `KEPT_OF_BRICK`, from which `SavedBrick` is typed and by which
-  `savedField()` writes it and `takeUpField()` lays it on the new field,
-  and `restoredBrick()` reads it and refuses a state no run comes to; the
-  compiler asks for that. In `src/rules/run/saved_game.spec.ts`, the round
-  trip's crowd gains a brick with the trait, and `PLAYED_STATES` the
-  state, so a take-up that drops it fails.
-- Its look in `BRICK_ART`, for each state a player must tell apart.
+  picture, and the saved game's `restoredPlace()` refuses a cell no move
+  comes to.
+- **An event it records** is a member of `FieldEventKind`
+  (`src/rules/field/events.ts`) and an entry in `EVENT_EFFECTS`
+  (`src/view/effects/effects.ts`), its sound and its flourishes. The
+  compiler asks for that, and for its line in the effects spec's
+  `VOICES_OF_EVENTS`. A sound of its own is made as a kind's is, above.
+- **Its look in `BRICK_ART`,** for each state a player must tell apart.
