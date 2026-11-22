@@ -253,6 +253,10 @@ scene without shutting it down first, so the end is whichever comes first.
   draw in one batch. Each draws it again after a lost WebGL context, which
   Phaser restores only for the textures it loaded. Anything else drawn at run
   time redraws itself through `onContextRestored()`.
+- **A dynamic texture comes from `dynamicTexture(scene, key)`,** which
+  hands back the one an earlier scene of the game made under the key, or
+  makes it, in place of a texture of another kind there: the game outlives
+  the scene, and Phaser makes no texture under a key in use.
 - **After an atlas is baked again, every object on it sets its frame again.**
   `retakeFrames(scene, key)` has every image and sprite on the texture do
   it, in layers and containers too. An object takes a frame's new size and

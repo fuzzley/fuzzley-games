@@ -1,5 +1,5 @@
 import { shareDone } from "@fz/core/math";
-import { onContextRestored } from "@fz/phaser/scene";
+import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
 import { cellAt, columnOf, fieldRowOf } from "../../rules/grid";
@@ -14,7 +14,6 @@ import { SWELL_MS } from "../../view/effects/timing";
 import type { FieldMetrics } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import { FIELD_FRAMES } from "../field_art";
-import { dynamicTexture } from "./dynamic_texture";
 import type { PaintContext, Painter } from "./painter";
 
 /** The most frames a brick shows stacked in its cell: a tough brick's tile, pips and cracks. */

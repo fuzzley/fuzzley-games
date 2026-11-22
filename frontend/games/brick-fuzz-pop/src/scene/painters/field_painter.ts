@@ -1,5 +1,5 @@
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
-import { onContextRestored } from "@fz/phaser/scene";
+import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
 import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
@@ -16,7 +16,6 @@ import {
 import { ATLAS } from "../atlas";
 import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
 import { placeDot } from "./dots";
-import { dynamicTexture } from "./dynamic_texture";
 import type { PaintContext, Painter } from "./painter";
 
 /** The key of the texture the cells, the floor's band and the grid's dots are drawn on, once a layout. */

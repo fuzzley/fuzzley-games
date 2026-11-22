@@ -1,6 +1,6 @@
-import type { HostedScene } from "@fz/phaser/host";
-import { type SceneRun, runBareScene } from "@fz/phaser/testing";
 import { Textures } from "phaser";
+import type { HostedScene } from "../host";
+import { type SceneRun, runBareScene } from "../testing";
 import { dynamicTexture } from "./dynamic_texture";
 
 describe("dynamicTexture", () => {
@@ -9,6 +9,7 @@ describe("dynamicTexture", () => {
   afterEach(() => {
     run?.destroy();
     run = null;
+    vi.restoreAllMocks();
   });
 
   it("makes a dynamic texture of a key the scene's textures lack", async () => {
@@ -41,5 +42,16 @@ describe("dynamicTexture", () => {
       dynamic: made instanceof Textures.DynamicTexture,
       kept: run.scene.textures.get("bake") === made,
     }).toEqual({ dynamic: true, kept: true });
+  });
+
+  it("throws for a key no texture can be made under, such as an empty one", async () => {
+    run = await runBareScene();
+    const scene = run.scene;
+    // Phaser logs the key it refuses before handing back nothing.
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => dynamicTexture(scene, "")).toThrow(
+      'The texture "" could not be made.',
+    );
   });
 });
