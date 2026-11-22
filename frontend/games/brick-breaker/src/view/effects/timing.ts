@@ -92,3 +92,6 @@ export const STREAK_MS = 300;
  * run on.
  */
 export const HOLD_MS = 120;
+
+/** How long the serve's guide takes to fade in as it shows, where motion is welcome. */
+export const GUIDE_FADE_MS = 120;

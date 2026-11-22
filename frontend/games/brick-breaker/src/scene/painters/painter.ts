@@ -1,3 +1,4 @@
+import type { ServeGuide } from "../../rules/field/guide";
 import type { Place } from "../../rules/levels/levels";
 import type { BricksPalette } from "../../view/colors/palette";
 import type { FieldMetrics } from "../../view/field/field_metrics";
@@ -34,6 +35,8 @@ export interface PaintContext extends Baked {
   brokeAt: number;
   /** The place the level's set is in, which the field is tiled with. */
   place: Place;
+  /** The serve's guide while it shows, or null while none does. */
+  guide: Readonly<ServeGuide> | null;
 }
 
 /** Draws a part of the field, in the layers it was given, each frame. */

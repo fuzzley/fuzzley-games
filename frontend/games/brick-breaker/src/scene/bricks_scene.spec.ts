@@ -21,6 +21,11 @@ import { catchCapsule } from "../rules/bricks/capsules";
 import type { Place } from "../rules/levels/levels";
 import type { Ball } from "../rules/paddle/balls";
 import { type Field, reshapeField } from "../rules/field/field";
+import {
+  type ServeGuide,
+  createServeGuide,
+  serveGuide,
+} from "../rules/field/guide";
 import { cellIndex, cellMiddleX, cellMiddleY } from "../rules/grid";
 import { paddleTopOf } from "../rules/paddle/paddle";
 import { stepsIn } from "../rules/stepper";
@@ -32,6 +37,7 @@ import {
   FIELD_HEIGHT,
   FIELD_WIDTH,
   MAX_BALLS,
+  MOST_GUIDE_DOTS,
   NET_DEPTH,
   PADDLE_HEIGHT,
   PADDLE_TOP,
@@ -88,6 +94,7 @@ import {
   tileSide,
 } from "../view/places/places";
 import {
+  GUIDE_DELAY_MS,
   MOST_FINGERS,
   type PlayerSteer,
   type TouchSteering,
@@ -98,6 +105,7 @@ import {
   FADE_MS,
   GLOW_AFTER_MS,
   GLOW_PULSE_MS,
+  GUIDE_FADE_MS,
   HOLD_MS,
   MEET_MS,
   OPEN_MS,
@@ -117,6 +125,7 @@ import {
   makeBricksScene,
 } from "./bricks_scene";
 import type { Burst, Fade } from "./painters/effects_painter";
+import { MOST_OUTLINED } from "./painters/guide_painter";
 import { PLACE_TEXTURE } from "./painters/place_painter";
 
 const LIGHT = bricksPalette(
@@ -175,16 +184,30 @@ class FakeShell implements BricksSceneOptions {
    * play's art with, a bake each, the last bake's last.
    */
   readonly bakes: (() => Pictures)[] = [];
+  /** The serve's guide, worked out from the field as the steering shows it, made once. */
+  readonly guide = createServeGuide();
+  /**
+   * Whether the frame keeps handing over the guide as it last stood, as a
+   * game that pauses moves its field on no more, rather than as each
+   * frame's steering shows it.
+   */
+  keepsGuide = false;
+  /** The guide the frame hands over, or null. */
+  private handed: Readonly<ServeGuide> | null = null;
 
   readonly tick = (deltaMs: number, steer: Readonly<PlayerSteer>): void => {
     this.ticks.push({ deltaMs, steer: { ...steer } });
     if (this.heightAsked !== null) reshapeField(this.field, this.heightAsked);
+    if (this.keepsGuide) return;
+    const shows = steer.showsGuide === true;
+    if (shows) serveGuide(this.field, this.guide);
+    this.handed = shows ? this.guide : null;
   };
   readonly frame = (): FieldFrame => ({
     field: this.field,
     alpha: this.alpha,
     events: this.field.events,
-    guide: null,
+    guide: this.handed,
   });
   readonly palette = (): BricksPalette => this.colors;
   readonly motion = (): boolean => this.welcomesMotion;
@@ -705,6 +728,48 @@ function fillsOf(graphics: GameObjects.Graphics): readonly number[] {
   return commandsOf(graphics).flatMap((command) =>
     command.kind === "fillStyle" ? [command.color] : [],
   );
+}
+
+/**
+ * Runs the scene on a shell that lets a press aim, readied as a spec asks,
+ * and holds a launch key down till the guide shows, its first frame drawn.
+ */
+async function holdToGuide(
+  setUp: (shell: FakeShell) => void = () => undefined,
+): Promise<Board> {
+  const board = await startBoard((shell) => {
+    aiming(shell);
+    setUp(shell);
+  });
+  board.run.key("keydown", "Space", " ");
+  // The 10th frame comes to 160 ms, past the delay.
+  board.run.advance(GUIDE_DELAY_MS + 10, 16);
+  return board;
+}
+
+/**
+ * Returns the place of each of the guide's dots the scene draws amiss:
+ * hidden, its middle more than half a pixel from its place on the canvas,
+ * or its edges off whole pixels.
+ */
+function dotsAmiss({ shell, scene }: Board): number[] {
+  const metrics = shell.layouts.at(-1);
+  if (!metrics) throw new Error("No layout yet.");
+  const { places, count } = shell.guide.dots;
+  return places.slice(0, count).flatMap((place, i) => {
+    const dot = scene.guide.dots[i];
+    const left = (dot?.x ?? NaN) - (dot?.width ?? NaN) / 2;
+    const top = (dot?.y ?? NaN) - (dot?.height ?? NaN) / 2;
+    const near =
+      Math.abs((dot?.x ?? NaN) - toCanvasX(metrics, place.x)) <= 0.5 &&
+      Math.abs((dot?.y ?? NaN) - toCanvasY(metrics, place.y)) <= 0.5;
+    return dot?.visible &&
+      near &&
+      Number.isInteger(left) &&
+      Number.isInteger(top)
+      ? []
+      : [i];
+  });
 }
 
 /** Returns how many of a set of images show. */
@@ -2264,6 +2329,183 @@ describe("BricksScene", () => {
       const { scene } = await startBoard(aiming);
 
       expect(scene.input.manager.pointersTotal).toBe(MOST_FINGERS);
+    });
+  });
+
+  describe("the serve's guide", () => {
+    it("shows none while a press is held for less than the guide's delay", async () => {
+      const { scene, run } = await startBoard(aiming);
+      run.key("keydown", "Space", " ");
+
+      run.advance(GUIDE_DELAY_MS - 20, 16);
+
+      expect(scene.guide.layer.visible).toBe(false);
+    });
+
+    it("draws a dot at each of the guide's places, on whole pixels, once a press is held long enough", async () => {
+      const board = await holdToGuide();
+
+      const amiss = dotsAmiss(board);
+
+      expect({
+        layer: board.scene.guide.layer.visible,
+        shown: showing(board.scene.guide.dots),
+        amiss,
+      }).toEqual({
+        layer: true,
+        shown: board.shell.guide.dots.count,
+        amiss: [],
+      });
+    });
+
+    it("moves the dots as the guide turns", async () => {
+      const board = await holdToGuide();
+      const first = board.scene.guide.dots.map((dot) => dot.x);
+
+      // As the rules hold the aim the player turns to.
+      board.shell.field.aim = -30;
+      board.run.advance(16);
+
+      expect({
+        moved: board.scene.guide.dots.some((dot, i) => dot.x !== first[i]),
+        shown: showing(board.scene.guide.dots),
+        amiss: dotsAmiss(board),
+      }).toEqual({
+        moved: true,
+        shown: board.shell.guide.dots.count,
+        amiss: [],
+      });
+    });
+
+    it("outlines each brick the guide marks, where the brick is drawn", async () => {
+      const { shell, scene } = await holdToGuide((shell) => {
+        shell.showField(["ooooooooooooo"]);
+      });
+
+      const { cells, count } = shell.guide.marked;
+      const marked = cells.slice(0, count);
+
+      expect({
+        marked: count > 0,
+        shown: showing(scene.guide.outlines),
+        places: scene.guide.outlines
+          .slice(0, count)
+          .map((outline) => ({ x: outline.x, y: outline.y })),
+      }).toEqual({
+        marked: true,
+        shown: count,
+        places: marked.map((cell) => ({
+          x: scene.bricks.images[cell]?.x,
+          y: scene.bricks.images[cell]?.y,
+        })),
+      });
+    });
+
+    it("outlines a brick where it is drawn as it slides in from the cell it left", async () => {
+      const { shell, scene, run } = await startBoard((shell) => {
+        aiming(shell);
+        shell.showField([">>>>>>>>>>>>"]);
+      });
+      run.advance(DROP_IN_MS);
+      run.key("keydown", "Space", " ");
+      run.advance(GUIDE_DELAY_MS + 10, 16);
+      stepTimes(shell.field, stepsIn(SLIDER_BEAT_MS));
+
+      run.advance(16);
+
+      const { cells, count } = shell.guide.marked;
+      const cell = cells[0] ?? NaN;
+      const [outline] = scene.guide.outlines;
+      expect({
+        marked: count > 0,
+        sliding: leftOfPlace(scene, cell) > 0,
+        outline: { visible: outline?.visible, x: outline?.x, y: outline?.y },
+      }).toEqual({
+        marked: true,
+        sliding: true,
+        outline: {
+          visible: true,
+          x: scene.bricks.images[cell]?.x,
+          y: scene.bricks.images[cell]?.y,
+        },
+      });
+    });
+
+    it("hides the outlines a guide no longer marks", async () => {
+      const { shell, scene, run } = await holdToGuide((shell) => {
+        shell.showField(["ooooooooooooo"]);
+      });
+      const before = showing(scene.guide.outlines);
+
+      shell.showField([]);
+      run.advance(16);
+
+      expect({
+        before: before > 0,
+        marked: shell.guide.marked.count,
+        shown: showing(scene.guide.outlines),
+      }).toEqual({ before: true, marked: 0, shown: 0 });
+    });
+
+    it("fades in over its fade's time where motion is welcome", async () => {
+      const { scene, run } = await holdToGuide();
+      const first = scene.guide.layer.alpha;
+
+      run.advance(GUIDE_FADE_MS / 2, GUIDE_FADE_MS / 2);
+      const halfway = scene.guide.layer.alpha;
+      run.advance(GUIDE_FADE_MS / 2, GUIDE_FADE_MS / 2);
+
+      expect([first, halfway, scene.guide.layer.alpha]).toEqual([0, 0.5, 1]);
+    });
+
+    it("shows at once where motion isn't welcome", async () => {
+      const { scene } = await holdToGuide(stillness);
+
+      expect(scene.guide.layer.alpha).toBe(1);
+    });
+
+    it("hides as the press is let go", async () => {
+      const { scene, run } = await holdToGuide();
+
+      run.key("keyup", "Space", " ");
+      run.advance(16);
+
+      expect(scene.guide.layer.visible).toBe(false);
+    });
+
+    it("hides as the steering calls the aim off, though the frame still holds the guide, as a paused game's does", async () => {
+      const { shell, scene, run } = await holdToGuide();
+      shell.keepsGuide = true;
+
+      run.key("keydown", "Escape");
+      run.advance(16);
+
+      expect({
+        held: shell.frame().guide !== null,
+        shown: scene.guide.layer.visible,
+      }).toEqual({ held: true, shown: false });
+    });
+
+    it("makes its dots and outlines once, however often it shows", async () => {
+      const { scene, run } = await holdToGuide();
+      const made = scene.children.length + scene.guide.layer.length;
+
+      run.key("keyup", "Space", " ");
+      run.advance(16);
+      run.key("keydown", "Space", " ");
+      run.advance(GUIDE_DELAY_MS + 10, 16);
+
+      expect({
+        dots: scene.guide.dots.length,
+        outlines: scene.guide.outlines.length,
+        layer: scene.guide.layer.length,
+        made: scene.children.length + scene.guide.layer.length,
+      }).toEqual({
+        dots: MOST_GUIDE_DOTS,
+        outlines: MOST_OUTLINED,
+        layer: MOST_GUIDE_DOTS + MOST_OUTLINED,
+        made,
+      });
     });
   });
 

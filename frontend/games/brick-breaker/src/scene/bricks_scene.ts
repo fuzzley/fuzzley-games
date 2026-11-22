@@ -53,6 +53,7 @@ import { CapsulePainter } from "./painters/capsule_painter";
 import { EffectsPainter } from "./painters/effects_painter";
 import { FieldPainter } from "./painters/field_painter";
 import { GlowPainter } from "./painters/glow_painter";
+import { GuidePainter } from "./painters/guide_painter";
 import { PaddlePainter } from "./painters/paddle_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PlacePainter } from "./painters/place_painter";
@@ -132,6 +133,8 @@ export class BricksScene extends Scene {
   glow!: GlowPainter;
   /** Draws the shards, the rings and the fades, and shakes the field. */
   effects!: EffectsPainter;
+  /** Draws the serve's guide while it shows. */
+  guide!: GuidePainter;
   /** Draws the capsules falling. */
   capsules!: CapsulePainter;
   /** Draws the laser's bolts. */
@@ -211,6 +214,7 @@ export class BricksScene extends Scene {
       layers.balls,
       this.painted,
     );
+    this.guide = new GuidePainter(this, layers.guide, this.bricks);
     this.capsules = new CapsulePainter(this, layers.capsules);
     this.bolts = new BoltPainter(this, layers.bolts);
     this.paddle = new PaddlePainter(
@@ -232,6 +236,7 @@ export class BricksScene extends Scene {
       this.bricks,
       this.glow,
       this.effects,
+      this.guide,
       this.capsules,
       this.bolts,
       this.paddle,
@@ -250,6 +255,7 @@ export class BricksScene extends Scene {
       motion: this.options.motion(),
       brokeAt: field.steps,
       place: this.options.place(),
+      guide: null,
     };
     this.sounds = new SpritePlayer(this, {
       key: "bricks-sounds",
@@ -278,7 +284,8 @@ export class BricksScene extends Scene {
     this.frameTime = time;
     this.context.now = flourishTime(time, this.heldAt);
     let stale = this.fit();
-    this.options.tick(delta, this.steering.read(delta, this.serve()));
+    const steer = this.steering.read(delta, this.serve());
+    this.options.tick(delta, steer);
     // A serve let go of launches once the rules hold the aim it let go at.
     if (this.steering.launches()) this.options.command("launch");
     this.sounds.follow(this.options.sound());
@@ -304,14 +311,19 @@ export class BricksScene extends Scene {
     }
     this.delayed.playDue(time, this.frameSounds);
     this.frameSounds.playEach(this.sounds.playRisen);
-    this.draw(frame);
+    this.draw(frame, steer.showsGuide === true);
   }
 
-  /** Has each painter draw the field as it stands, in its layer. */
-  private draw({ field, alpha }: FieldFrame): void {
+  /**
+   * Has each painter draw the field as it stands, in its layer, and the
+   * serve's guide the frame holds while the steering shows it, as a frame
+   * the shell no longer moves on, as it pauses, still holds the last.
+   */
+  private draw({ field, alpha, guide }: FieldFrame, showsGuide: boolean): void {
     const context = this.context;
     context.field = field;
     context.alpha = alpha;
+    context.guide = showsGuide ? guide : null;
     context.metrics = this.metrics;
     context.palette = this.painted;
     context.place = this.options.place();

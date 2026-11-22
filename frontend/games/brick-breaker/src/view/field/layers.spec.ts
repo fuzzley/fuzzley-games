@@ -18,6 +18,10 @@ describe("depthOf", () => {
     ]);
   });
 
+  it("draws the serve's guide over the bricks it outlines and what bursts from them, under the capsules", () => {
+    expect(depthOf("guide")).toBe(depthOf("bursts") + 1);
+  });
+
   it("draws the balls' tails, then a streak's step, just behind the balls", () => {
     expect([depthOf("tails"), depthOf("streak")]).toEqual([
       depthOf("balls") - 2,

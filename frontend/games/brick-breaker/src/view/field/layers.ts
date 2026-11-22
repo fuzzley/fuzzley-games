@@ -2,7 +2,8 @@
  * The layers the field is drawn in, back to front, in one list, so each
  * layer's depth is its place here: the field and its wall, the pattern of
  * the place its set is in, the bricks,
- * what bursts from them as they break (shards and rings), the capsules,
+ * what bursts from them as they break (shards and rings), the serve's
+ * guide, over the bricks it outlines, the capsules,
  * the bolts, the paddle, the tags of the effects in play, below it, the
  * balls' tails in a streak, a streak's step (its ring and its count), and
  * the balls, which nothing hides.
@@ -12,6 +13,7 @@ export const LAYERS = [
   "place",
   "bricks",
   "bursts",
+  "guide",
   "capsules",
   "bolts",
   "paddle",
