@@ -1,6 +1,7 @@
 import { Component, inject, signal } from "@angular/core";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
@@ -19,6 +20,7 @@ import { SettingsComponent } from "./settings/settings.component";
     AnnouncerComponent,
     BarComponent,
     BoardComponent,
+    BugReportDialogComponent,
     ConfirmDialogComponent,
     HelpComponent,
     ResultComponent,

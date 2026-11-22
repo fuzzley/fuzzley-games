@@ -1,8 +1,14 @@
 import { TestBed } from "@angular/core/testing";
+import { BUG_REPORT_SOURCE, packState } from "@fz/game-ui/bug_report";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, waitFor } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { pictureOf } from "../../testing/field_picture";
 import { playOn } from "../../testing/game";
+import { MinesweeperReports } from "../bug_report/minesweeper_reports";
+import { REPORT_TAG } from "../bug_report/reported_game";
 import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
 import { SettingsService } from "./settings.service";
@@ -252,5 +258,69 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     expect(screen.getByRole("radio", { name: /^Medium/ })).toBeChecked();
+  });
+
+  describe("in a game that takes bug reports", () => {
+    installCompressionStreams();
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: BUG_REPORT_SOURCE, useExisting: MinesweeperReports },
+          { provide: DEBUG_MENU, useValue: true },
+        ],
+      });
+    });
+
+    it("offers Report a bug", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("button", { name: "Report a bug" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers to load a reported game where the debug menu shows", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers no loader on the site without ?debug", async () => {
+      TestBed.configureTestingModule({
+        providers: [{ provide: DEBUG_MENU, useValue: false }],
+      });
+
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).toBeNull();
+    });
+
+    it("loads a reported game, and closes to show it", async () => {
+      const { user, closed } = await renderSettings();
+      const reported = ["*1_", ".21", "..*"];
+      playOn(reported);
+      const packed = await packState(
+        REPORT_TAG,
+        TestBed.inject(MinesweeperReports).capture().value,
+      );
+      // A game already lost, which the load takes over without asking.
+      playOn(["x1.", ".2.", "..x"], { lives: 2 });
+      await user.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await user.paste(packed);
+
+      await user.click(screen.getByRole("button", { name: "Load" }));
+
+      await waitFor(() => {
+        expect(closed).toHaveBeenCalledOnce();
+      });
+      expect(pictureOf(TestBed.inject(GameService).field())).toEqual(reported);
+    });
   });
 });

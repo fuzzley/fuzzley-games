@@ -82,4 +82,12 @@
     <span class="setting-label" aria-hidden="true">Theme</span>
     <fz-theme-picker />
   </div>
+
+  <!-- Shows only in a development build and at ?debug (DEBUG_MENU). -->
+  <fz-bug-report-loader (loaded)="close()">
+    <p class="setting-desc">
+      A game you load counts in your stats. Use the window shape the report
+      gives to see the field as it was.
+    </p>
+  </fz-bug-report-loader>
 </fz-settings-drawer>

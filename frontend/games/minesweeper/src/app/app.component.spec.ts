@@ -1,7 +1,13 @@
+import { TestBed } from "@angular/core/testing";
+import { BUG_REPORT_SOURCE } from "@fz/game-ui/bug_report";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { pictureOf } from "../testing/field_picture";
 import { pauseAtEnd, playOn } from "../testing/game";
 import { AppComponent } from "./app.component";
+import { MinesweeperReports } from "./bug_report/minesweeper_reports";
+import { GameService } from "./play/game.service";
 
 /** Renders the game over a field drawn as a picture. */
 async function renderApp(picture: readonly string[]): Promise<UserEvent> {
@@ -26,6 +32,17 @@ function announcer(): HTMLElement {
 }
 
 describe("AppComponent", () => {
+  installCompressionStreams();
+
+  // As main.ts provides it.
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: BUG_REPORT_SOURCE, useExisting: MinesweeperReports },
+      ],
+    });
+  });
+
   it("names the page with one heading", async () => {
     await render(AppComponent);
 
@@ -131,5 +148,32 @@ describe("AppComponent", () => {
     await waitFor(() => {
       expect(document.activeElement).toHaveAttribute("role", "gridcell");
     });
+  });
+
+  it("opens a bug report from the settings", async () => {
+    const user = await renderApp(["*..", "...", "..*"]);
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+
+    await user.click(screen.getByRole("button", { name: "Report a bug" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Report a bug" }),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the game as it was on closing the bug report", async () => {
+    const user = await renderApp(["*1_", ".21", "..*"]);
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Report a bug" }));
+    const report = await screen.findByRole("dialog", { name: "Report a bug" });
+
+    await user.click(
+      within(report).getByRole("button", { name: "Close bug report" }),
+    );
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const game = TestBed.inject(GameService);
+    expect(pictureOf(game.field())).toEqual(["*1_", ".21", "..*"]);
+    expect(game.inProgress()).toBe(true);
   });
 });

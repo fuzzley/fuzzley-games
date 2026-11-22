@@ -15,6 +15,7 @@ import {
   submit,
   validateTree,
 } from "@angular/forms/signals";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import {
   ChoiceListComponent,
@@ -75,7 +76,8 @@ const DIFFICULTY_CHOICES: readonly ChoiceOption<DifficultyId>[] =
 
 /**
  * Shows the settings in a drawer: the difficulty, with Custom's own field,
- * the lives, and the palette.
+ * the lives, and the palette, then, in a development build and at `?debug`,
+ * a field that loads a game from a bug report.
  *
  * Choosing a difficulty or the lives deals a new game, after asking if one
  * is under way, so the choices are radios the arrow keys move between
@@ -84,6 +86,7 @@ const DIFFICULTY_CHOICES: readonly ChoiceOption<DifficultyId>[] =
 @Component({
   selector: "app-settings",
   imports: [
+    BugReportLoaderComponent,
     ChoiceListComponent,
     FormField,
     RadioGroupDirective,
