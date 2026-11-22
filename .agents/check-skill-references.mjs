@@ -17,7 +17,7 @@ import {
   AGENT_DEFINITIONS,
   REPO_ROOT,
   agentDefinitions,
-  skillRoots,
+  skillBases,
   skillsIn,
 } from "./skill-roots.mjs";
 
@@ -356,8 +356,9 @@ function linkWarnings(links, sources, names, noun) {
 }
 
 /**
- * Returns the warnings for a folder of skills, against the `.claude/skills`
- * beside it.
+ * Returns the warnings for a folder's skills, against the `.claude/skills`
+ * beside them: for a folder with no skill, a link left there that leads
+ * nowhere.
  *
  * @param {SkillRoot} root
  * @returns {string[]}
@@ -388,7 +389,8 @@ function definitionWarnings() {
 const problems = [];
 /** @type {string[]} */
 const longDescriptions = [];
-for (const root of skillRoots()) {
+const bases = skillBases();
+for (const root of bases.filter((base) => fs.existsSync(base.skills))) {
   for (const entry of fs.readdirSync(root.skills, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const skillDir = path.join(root.skills, entry.name);
@@ -422,10 +424,7 @@ for (const file of agentsFilesIn(REPO_ROOT)) {
 
 // CI has no `.claude`, which is machine-local.
 if (!process.env["CI"]) {
-  const warnings = [
-    ...skillRoots().flatMap(skillWarnings),
-    ...definitionWarnings(),
-  ];
+  const warnings = [...bases.flatMap(skillWarnings), ...definitionWarnings()];
   if (warnings.length) {
     console.warn(
       `Claude Code can't load ${warnings.length} skill or agent link(s); run node .agents/link-claude-skills.mjs:

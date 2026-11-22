@@ -18,7 +18,8 @@ export const AGENT_DEFINITIONS = path.join(REPO_ROOT, ".agents", "agents");
 /**
  * @typedef {object} SkillRoot A folder of skills, and the folder they are about.
  * @property {string} base The repository's root, or a workspace's folder.
- * @property {string} skills The `.agents/skills` folder in it.
+ * @property {string} skills The `.agents/skills` folder in it, which
+ *   `skillBases()` names whether or not it is there.
  */
 
 /**
@@ -47,24 +48,32 @@ export function workspaceFolders() {
 }
 
 /**
- * Returns every folder of skills, the repository's first.
+ * Returns every folder that may have skills about it, the repository's root
+ * first and then each frontend workspace's, with the folder its skills go
+ * in, there or not.
+ *
+ * A workspace whose last skill was deleted has no such folder left, and may
+ * still hold a link to one.
  *
  * @returns {SkillRoot[]}
  */
-export function skillRoots() {
-  return [REPO_ROOT, ...workspaceFolders()]
-    .map((base) => ({ base, skills: path.join(base, ".agents", "skills") }))
-    .filter((root) => fs.existsSync(root.skills));
+export function skillBases() {
+  return [REPO_ROOT, ...workspaceFolders()].map((base) => ({
+    base,
+    skills: path.join(base, ".agents", "skills"),
+  }));
 }
 
 /**
  * Returns the skills in a folder of skills: the name of each directory
- * directly under it that holds a `SKILL.md`.
+ * directly under it that holds a `SKILL.md`, and none where the folder is
+ * not there.
  *
  * @param {string} skills
  * @returns {string[]}
  */
 export function skillsIn(skills) {
+  if (!fs.existsSync(skills)) return [];
   return fs
     .readdirSync(skills, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())

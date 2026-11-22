@@ -4,7 +4,8 @@
 // own, and each workspace's, which Claude Code loads once it works on a file
 // in that workspace. And links each agent definition in `.agents/agents` into
 // the repository's `.claude/agents`, where Claude Code finds agent types for
-// a session started inside the repository.
+// a session started inside the repository. A link whose skill or definition
+// is gone is pruned, in a workspace left with no skill as in any other.
 //
 // A session started in another folder finds no agent type here, so
 // `--also-in <folder>` links the definitions into that folder's
@@ -30,7 +31,7 @@ import {
   AGENT_DEFINITIONS,
   REPO_ROOT,
   agentDefinitions,
-  skillRoots,
+  skillBases,
   skillsIn,
 } from "./skill-roots.mjs";
 
@@ -298,16 +299,21 @@ function claudeSkillsOf(root) {
 }
 
 /**
- * Links one folder of skills, and reports what it did.
+ * Links a folder's skills, pruning the links beside them that this script
+ * owns and that match no skill, and reports what it did.
+ *
+ * A folder with no skill has only links to prune: nothing is made for it,
+ * and it is reported only where a link was removed or left.
  *
  * @param {SkillRoot} root
  * @returns {number} How many of the folder's skills are linked.
  */
 function linkRoot(root) {
   const dir = claudeSkillsOf(root);
+  const skills = skillsIn(root.skills);
+  if (skills.length === 0 && !fs.existsSync(dir)) return 0;
   fs.mkdirSync(dir, { recursive: true });
 
-  const skills = skillsIn(root.skills);
   const results = noResults();
   for (const name of skills) {
     const target = path.join(root.skills, name);
@@ -315,7 +321,9 @@ function linkRoot(root) {
   }
   pruneStaleLinks(dir, skills, throughAgents, results);
 
-  report(dir, results, "skill", "directory", FOREIGN);
+  if (skills.length || results.pruned.length || results.foreign.length) {
+    report(dir, results, "skill", "directory", FOREIGN);
+  }
   return linked(results);
 }
 
@@ -449,7 +457,7 @@ const FOREIGN = "links outside .agents, so this script does not own it";
 const { alsoIn, remove } = readOptions();
 
 let total = 0;
-for (const root of skillRoots()) total += linkRoot(root);
+for (const root of skillBases()) total += linkRoot(root);
 const definitions = linkDefinitions(REPO_ROOT);
 if (alsoIn !== undefined) {
   if (remove) unlinkDefinitions(alsoIn);
