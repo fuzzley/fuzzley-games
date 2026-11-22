@@ -3,10 +3,10 @@
 // workspace's under its own, the agent definitions under `.agents/agents`
 // and every `AGENTS.md` still describe the code as it is: every relative
 // markdown link resolves, and every backticked path exists. It holds each
-// `AGENTS.md` to its budget of bytes. Outside CI, it also warns about a skill
-// or a definition Claude Code can't load, whose link in the `.claude/skills`
-// beside it, or in the repository's `.claude/agents`, is missing or leads
-// nowhere.
+// `AGENTS.md` to its budget of bytes, and each skill's description to its cap
+// of characters. Outside CI, it also warns about a skill or a definition
+// Claude Code can't load, whose link in the `.claude/skills` beside it, or in
+// the repository's `.claude/agents`, is missing or leads nowhere.
 //
 // Usage: node .agents/check-skill-references.mjs
 
@@ -23,8 +23,9 @@ import {
 
 /** @import { SkillRoot } from "./skill-roots.mjs" */
 
-// Skills whose backticked paths point into another project's source tree, so
-// they aren't checked: the vendored Angular one.
+// Skills pulled from another project, whose backticked paths point into its
+// source tree and whose descriptions are its own to write, so neither is
+// checked: the vendored Angular one.
 //
 // A skill about this repository needs no entry here, so it is checked.
 const UPSTREAM_SKILLS = new Set(["angular-developer"]);
@@ -66,6 +67,11 @@ const SHARED_LAYER_BUDGETS = new Map([
 
 // The most bytes any other `AGENTS.md` may hold.
 const OWN_BUDGET = 8_000;
+
+// The most characters the description in a skill's frontmatter may hold. Every
+// request of every agent carries every skill's, in a list that is itself
+// capped, so a long one crowds the others out.
+const DESCRIPTION_CAP = 400;
 
 /**
  * Returns every markdown file under a directory.
@@ -255,6 +261,51 @@ function checkSize(file, text, problems) {
 }
 
 /**
+ * Returns the description in a skill's frontmatter as one line, or undefined
+ * where the file has no frontmatter or the frontmatter no description.
+ *
+ * @param {string} text The `SKILL.md`'s contents.
+ * @returns {string | undefined}
+ */
+function descriptionOf(text) {
+  // As a checkout has it, whatever wrote the working tree's copy.
+  const unix = text.replace(/^\uFEFF/, "").replace(/\r\n?/g, "\n");
+  const frontmatter = /^---\n(.*?)\n---/s.exec(unix)?.[1];
+  // Up to the next key, so a description folded over several lines counts
+  // whole.
+  const value = /^description:(.*?)(?=\n[\w-]+:|$(?![^]))/ms.exec(
+    frontmatter ?? "",
+  )?.[1];
+  return value
+    ?.replace(/^\s*[>|][1-9+-]*[ \t]*(#.*)?\n/, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^(["'])(.*)\1$/, "$2");
+}
+
+/**
+ * Adds a problem for a skill whose description is missing or over the cap.
+ *
+ * @param {string} file The skill's `SKILL.md`.
+ * @param {string} text The file's contents.
+ * @param {string[]} problems
+ */
+function checkDescription(file, text, problems) {
+  const name = path.relative(REPO_ROOT, file).split(path.sep).join("/");
+  const description = descriptionOf(text);
+  if (!description) {
+    problems.push(`${name}: no description in its frontmatter`);
+    return;
+  }
+  const size = [...description].length;
+  if (size > DESCRIPTION_CAP) {
+    problems.push(
+      `${name}: a description of ${size} characters, over the cap of ${DESCRIPTION_CAP}`,
+    );
+  }
+}
+
+/**
  * Returns where a path leads once every link on the way is followed, or
  * null if it leads nowhere.
  *
@@ -335,6 +386,8 @@ function definitionWarnings() {
 
 /** @type {string[]} */
 const problems = [];
+/** @type {string[]} */
+const longDescriptions = [];
 for (const root of skillRoots()) {
   for (const entry of fs.readdirSync(root.skills, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
@@ -345,6 +398,9 @@ for (const root of skillRoots()) {
       checkRelativeLinks(file, text, problems);
       if (!UPSTREAM_SKILLS.has(entry.name)) {
         checkPaths(file, text, root.base, problems);
+        if (file === path.join(skillDir, "SKILL.md")) {
+          checkDescription(file, text, longDescriptions);
+        }
       }
     }
   }
@@ -395,7 +451,20 @@ if (oversized.length) {
     "\nAn AGENTS.md holds rules alone. Cut what a doc comment, a check or a skill already says, or move a task's steps into a skill.",
   );
 }
-if (problems.length || oversized.length) process.exit(1);
+if (longDescriptions.length) {
+  if (problems.length || oversized.length) console.error("");
+  console.error(
+    `Skill description check failed (${longDescriptions.length}):\n`,
+  );
+  for (const problem of longDescriptions) console.error(`  ${problem}`);
+  console.error(
+    "\nA description goes out with every request. Say the task, then `Triggers on:` and the words that call for it.",
+  );
+}
+if (problems.length || oversized.length || longDescriptions.length) {
+  process.exit(1);
+}
 
 console.log("Skill, agent definition and AGENTS.md references OK.");
 console.log("Every AGENTS.md is within its budget.");
+console.log("Every skill's description is within its cap.");

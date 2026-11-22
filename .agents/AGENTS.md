@@ -79,6 +79,9 @@ Security Policy from `nginx/content-security-policy.conf`.
   (`brick-breaker-testing`). Name a skill in the `AGENTS.md` of the layer
   its task belongs to: agents come to a skill by a name they were given far
   more often than by its description.
+- **A skill's description is 400 characters at most,** which `yarn lint`
+  holds. It says the task, then `Triggers on:` and the words that call for
+  it.
 - **Run `node .agents/link-claude-skills.mjs` after adding, deleting or
   moving a skill or an agent definition, or a fresh clone.** Claude Code finds the
   skills, and the agent types in `.agents/agents/`, only through the links
