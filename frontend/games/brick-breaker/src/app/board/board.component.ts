@@ -56,6 +56,7 @@ import {
   fingerRoomOf,
 } from "../../view/field/field_metrics";
 import { RIM, rimWidth } from "../../view/field/rim";
+import { GUIDE_FADE_MS } from "../../view/effects/timing";
 import { backdropStyle } from "../../view/places/backdrop";
 import { BenchComponent } from "../panels/bench.component";
 import { InPlayComponent } from "../panels/in_play.component";
@@ -128,6 +129,7 @@ const FULL_CLEARED_CARD_FIELD_CSS_PX = 380;
     "[style.--finger-room]": "fingerRoom()",
     "[style.--card-drop]": "cardDrop",
     "[style.--card-foot]": "cardFoot()",
+    "[style.--card-fade]": "cardFade",
     "[style.--pixel-ratio]": "pixelRatio()",
     "[style.--rim-width]": "rim()?.width",
     "[style.--rim-corner]": "rim()?.corner",
@@ -146,6 +148,8 @@ export class BoardComponent {
 
   protected readonly across = FIELD_WIDTH;
   protected readonly cardDrop = CARD_DROP;
+  /** How long the Ready card takes to fade as it steps aside, and back: the guide's fade. */
+  protected readonly cardFade = `${String(GUIDE_FADE_MS)}ms`;
 
   /**
    * How far below the field's middle the Ready card's foot may reach, in
@@ -360,11 +364,23 @@ export class BoardComponent {
       : helpEntries(ids, brickKind, this.pictures()?.bricks);
   });
 
-  /** What the Ready card says launches the ball: a tap on a touch screen, else Space or a click. */
+  /**
+   * What the Ready card says launches the ball, then aims it, a line each: a
+   * tap and a drag up on a touch screen, else Space or a click, and a hold.
+   */
   protected readonly launchWords = computed(() =>
     this.viewport.isTouchScreen()
-      ? "Tap to launch."
-      : "Press Space or click to launch.",
+      ? ["Tap to launch.", "Drag up to aim."]
+      : ["Press Space or click to launch.", "Hold to aim."],
+  );
+
+  /**
+   * Whether the Ready card steps aside as the player aims, faded out of the
+   * guide's way and hidden from a screen reader, which hears the aim
+   * instead: "true", or null while it shows.
+   */
+  protected readonly readyAside = computed(() =>
+    this.game.aiming() ? "true" : null,
   );
 
   /** The run's score, as the cards write it. */

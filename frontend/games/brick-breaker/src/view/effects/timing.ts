@@ -93,5 +93,8 @@ export const STREAK_MS = 300;
  */
 export const HOLD_MS = 120;
 
-/** How long the serve's guide takes to fade in as it shows, where motion is welcome. */
+/**
+ * How long the serve's guide takes to fade in as it shows, and the Ready
+ * card to fade out of its way, where motion is welcome.
+ */
 export const GUIDE_FADE_MS = 120;

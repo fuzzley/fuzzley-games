@@ -26,7 +26,8 @@
 
 <p id="board-keys" class="fz-visually-hidden">
   Left and Right, or A and D: move the paddle. Space: launch the ball, or fire.
-  P: pause and resume. Esc: pause. Enter: resume, or go to the next level.
+  Hold Space, then Left or Right: aim the launch. P: pause and resume. Esc:
+  pause. Enter: resume, or go to the next level.
 </p>
 
 @if (panelStyles(); as panels) {
@@ -56,12 +57,15 @@
   <fz-canvas-cards [canvas]="canvas" />
   @switch (shownCard) {
     @case ("ready") {
-      <div class="card ready">
+      <!-- Faded out of the guide's way, and hidden, while the player aims. -->
+      <div class="card ready" [attr.aria-hidden]="readyAside()">
         <p class="card-title">{{ levelTitle() }}</p>
         @if (opening()) {
           <app-stars [held]="game.starsHeld()" [mark]="game.mark()" />
         }
-        <p>{{ launchWords() }}</p>
+        @for (line of launchWords(); track line) {
+          <p>{{ line }}</p>
+        }
         @for (kind of newKinds(); track kind.id) {
           <div class="new-kind">
             <!-- Its room kept, so the words stay put as the picture comes. -->

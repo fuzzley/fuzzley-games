@@ -60,13 +60,20 @@ import {
 import { STAR } from "../../rules/run/stars";
 import { RIM, rimWidth } from "../../view/field/rim";
 import { backdropStyle } from "../../view/places/backdrop";
-import { GUIDE_DELAY_MS } from "../../view/steering/steering";
+import { GUIDE_DELAY_MS, type PlayerSteer } from "../../view/steering/steering";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { StarsService } from "../stats/stars.service";
 import { BoardComponent } from "./board.component";
 
 const SPACE = browserKey("Space", " ");
+
+/** The steering of a launch key held to aim the serve, the guide shown. */
+const AIMING: PlayerSteer = { ...STILL, aim: 20, showsGuide: true };
+
+/** What a query passes over to find only what a screen reader hears: what is hidden from it, and scripts and styles. */
+const HEARD_ONLY =
+  "script, style, [aria-hidden='true'], [aria-hidden='true'] *";
 
 /** The longest the scene plays a level for before a spec gives up on it. */
 const LEVEL_LIMIT_MS = 10_000;
@@ -168,7 +175,7 @@ describe("BoardComponent", () => {
         name: "Brick Breaker, level 1: Blasts",
       });
       expect(board).toHaveAccessibleDescription(
-        "Left and Right, or A and D: move the paddle. Space: launch the ball, or fire. P: pause and resume. Esc: pause. Enter: resume, or go to the next level.",
+        "Left and Right, or A and D: move the paddle. Space: launch the ball, or fire. Hold Space, then Left or Right: aim the launch. P: pause and resume. Esc: pause. Enter: resume, or go to the next level.",
       );
     });
 
@@ -414,12 +421,38 @@ describe("BoardComponent", () => {
   });
 
   describe("the cards", () => {
-    it("name the level, and say how to launch, while the ball waits", async () => {
+    it("name the level, and say how to launch and how to aim, while the ball waits", async () => {
       await renderBoard();
 
       expect(screen.getByText("Level 1: Blasts")).toBeInTheDocument();
       expect(
         screen.getByText("Press Space or click to launch."),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Hold to aim.")).toBeInTheDocument();
+    });
+
+    it("step aside while the player aims, hidden from a screen reader", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+
+      game.tick(FRAME_MS, AIMING);
+      detectChanges();
+
+      expect({
+        inPage: screen.queryByText("Hold to aim.") !== null,
+        heard: screen.queryByText("Hold to aim.", { ignore: HEARD_ONLY }),
+      }).toEqual({ inPage: true, heard: null });
+    });
+
+    it("come back as the aim is called off", async () => {
+      const { game, detectChanges } = await renderAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, AIMING);
+      detectChanges();
+
+      game.tick(FRAME_MS, STILL);
+      detectChanges();
+
+      expect(
+        screen.getByText("Hold to aim.", { ignore: HEARD_ONLY }),
       ).toBeInTheDocument();
     });
 
@@ -488,10 +521,11 @@ describe("BoardComponent", () => {
         installFakeViewport(390, 844).setCoarsePointer(true);
       });
 
-      it("say to tap", async () => {
+      it("say to tap to launch, and to drag up to aim", async () => {
         await renderBoard();
 
         expect(screen.getByText("Tap to launch.")).toBeInTheDocument();
+        expect(screen.getByText("Drag up to aim.")).toBeInTheDocument();
       });
     });
 

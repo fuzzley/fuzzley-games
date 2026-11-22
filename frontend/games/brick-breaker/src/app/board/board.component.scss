@@ -119,12 +119,16 @@
   @include board-card(var(--room));
 }
 
-// The Ready card, the one shown while the player aims, between the bricks and
+// The Ready card, the one shown while the ball waits, between the bricks and
 // the paddle, `--card-drop` units below the field's middle, but raised where
 // it is too tall for the gap, so its foot stays `--card-foot` units below
 // the middle, clear of the ball; and no wider than the field, so a new
-// kind's line wraps on it.
+// kind's line wraps on it. It fades out over `--card-fade` while the player
+// aims, as the guide crosses the gap it covers, and back as the aim is
+// called off.
 .ready {
+  @include transition(opacity, $duration: var(--card-fade));
+
   // `board-card()`'s own most, and the field's width.
   max-width: min(
     320px,
@@ -133,6 +137,10 @@
   );
   translate: 0
     min(var(--card-drop) * var(--unit), var(--card-foot) * var(--unit) - 50%);
+
+  &[aria-hidden="true"] {
+    opacity: 0;
+  }
 }
 
 // A kind of brick new in the level, on the Ready card: its picture beside
