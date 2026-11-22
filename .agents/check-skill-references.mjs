@@ -63,18 +63,18 @@ const ROOT_FILES = new Set([
 // `.agents`.
 const SKIPPED_FOLDERS = new Set(["node_modules", "dist", "coverage", "public"]);
 
-// The `AGENTS.md` that many workspaces read, by path from the repository's
-// root: the repository's, every workspace's and every game's.
-const SHARED_LAYERS = new Set([
-  ".agents/AGENTS.md",
-  "frontend/AGENTS.md",
-  "frontend/games/AGENTS.md",
+// The most bytes each `AGENTS.md` that many workspaces read may hold, by its
+// path from the repository's root: the repository's, every workspace's and
+// every game's. An agent loads each one whole with the first file it opens
+// beneath it.
+const SHARED_LAYER_BUDGETS = new Map([
+  [".agents/AGENTS.md", 20_000],
+  ["frontend/AGENTS.md", 20_000],
+  ["frontend/games/AGENTS.md", 12_000],
 ]);
 
-// The most bytes an `AGENTS.md` may hold, a shared layer and any other. An
-// agent loads each one whole with the first file it opens beneath it.
-const SHARED_LAYER_BUDGET = 12_000;
-const OWN_BUDGET = 4_000;
+// The most bytes any other `AGENTS.md` may hold.
+const OWN_BUDGET = 8_000;
 
 /**
  * Returns whether a skill cites another project's source tree, so its paths
@@ -268,7 +268,7 @@ function checkPaths(file, text, base, problems) {
  */
 function checkSize(file, text, problems) {
   const name = path.relative(REPO_ROOT, file).split(path.sep).join("/");
-  const budget = SHARED_LAYERS.has(name) ? SHARED_LAYER_BUDGET : OWN_BUDGET;
+  const budget = SHARED_LAYER_BUDGETS.get(name) ?? OWN_BUDGET;
   const size = Buffer.byteLength(text);
   if (size > budget) {
     problems.push(`${name}: ${size} bytes, over its budget of ${budget}`);

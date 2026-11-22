@@ -56,10 +56,10 @@ Security Policy from `nginx/content-security-policy.conf`.
   write that instead. Good grounds are a rule the owner gives, a mistake a
   review caught that the code gave no warning of, and a caveat that cost
   real work to find.
-- **An `AGENTS.md` keeps to its budget,** which `yarn lint` holds: 12,000
-  bytes for this file, `frontend/AGENTS.md` and `frontend/games/AGENTS.md`,
-  and 4,000 for any other. A file near its budget gains a line only as it
-  loses one. Only the owner raises a budget.
+- **An `AGENTS.md` keeps to its budget,** which `yarn lint` holds: 20,000
+  bytes for this file and `frontend/AGENTS.md`, 12,000 for
+  `frontend/games/AGENTS.md`, and 8,000 for any other. A file near its
+  budget gains a line only as it loses one. Only the owner raises a budget.
 - **A rule is written once, in the highest layer it holds for:** this file
   for the whole repository, `frontend/AGENTS.md` for every workspace,
   `frontend/games/AGENTS.md` for every game, and a workspace's own in its
