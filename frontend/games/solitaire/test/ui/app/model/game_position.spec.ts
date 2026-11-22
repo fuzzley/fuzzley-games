@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { packState, unpackState } from "@fz/game-ui/bug_report";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
+import type { AppliedMove } from "@/engine/tableau/moves/move";
 import {
   POSITION_TAG,
   readGamePosition,
+  reportedPosition,
   type GamePosition,
 } from "@/ui/app/model/game_position";
 
@@ -82,5 +84,72 @@ describe("a reported game's position", () => {
     expect(() => readGamePosition(malformed)).toThrow(
       /position\.snapshot\.piles is not a list/,
     );
+  });
+});
+
+/** Returns a draw of one card from the stock to the waste. */
+function draw(cardId: string): AppliedMove {
+  return {
+    kind: "draw",
+    transfers: [
+      {
+        cardIds: [cardId],
+        fromPileId: "stock",
+        toPileId: "waste",
+        faceUpBefore: false,
+      },
+    ],
+    scoreDelta: 0,
+    flippedCardIds: [cardId],
+  };
+}
+
+/** {@link DRAWN} with three draws to undo, oldest first. */
+const DRAWN_THRICE: GamePosition = {
+  ...DRAWN,
+  snapshot: {
+    ...DRAWN.snapshot,
+    history: [draw("hearts-ace"), draw("spades-king"), draw("hearts-ace")],
+  },
+};
+
+describe("reportedPosition", () => {
+  it("sums up the score and the moves, over the position whole", () => {
+    expect(reportedPosition(DRAWN_THRICE)).toMatchObject({
+      summary: "Score 5 · 3 moves",
+      value: DRAWN_THRICE,
+    });
+  });
+
+  it("shrinks by as many undo steps as it has", () => {
+    expect(reportedPosition(DRAWN_THRICE).trim?.most).toBe(3);
+  });
+
+  it("keeps the newest undo steps, and says how many of them", () => {
+    const [, second, third] = DRAWN_THRICE.snapshot.history;
+
+    expect(reportedPosition(DRAWN_THRICE).trim?.at(2)).toEqual({
+      value: {
+        ...DRAWN_THRICE,
+        snapshot: { ...DRAWN_THRICE.snapshot, history: [second, third] },
+      },
+      note: "2 of 3 undo steps",
+    });
+  });
+
+  it("keeps the board alone, with no undo steps, at its smallest", () => {
+    expect(reportedPosition(DRAWN_THRICE).trim?.at(0)).toEqual({
+      value: { ...DRAWN_THRICE, snapshot: { ...DRAWN.snapshot, history: [] } },
+      note: "0 of 3 undo steps",
+    });
+  });
+
+  it("can't shrink a position with no undo steps", () => {
+    const dealt = { ...DRAWN, snapshot: { ...DRAWN.snapshot, history: [] } };
+
+    expect(reportedPosition(dealt)).toEqual({
+      summary: "Score 5 · 0 moves",
+      value: dealt,
+    });
   });
 });

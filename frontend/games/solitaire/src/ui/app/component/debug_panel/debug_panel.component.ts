@@ -1,4 +1,6 @@
 import { Component, inject, output, signal } from "@angular/core";
+import { unpackState } from "@fz/game-ui/bug_report";
+import { SolitaireReportSource } from "../../bug_report/solitaire_report_source";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { OptionGroupComponent } from "../option_group/option_group.component";
@@ -16,6 +18,7 @@ import { OptionGroupComponent } from "../option_group/option_group.component";
 export class DebugPanelComponent {
   protected readonly catalog = inject(GameCatalogService);
   private readonly lifecycle = inject(GameLifecycleService);
+  private readonly reports = inject(SolitaireReportSource);
 
   /** Emitted once a bug report's game is on the table. */
   readonly loaded = output();
@@ -32,7 +35,8 @@ export class DebugPanelComponent {
   protected async loadPosition(text: string): Promise<void> {
     this.loadProblem.set("");
     try {
-      if (await this.lifecycle.loadPosition(text)) this.loaded.emit();
+      const state = await unpackState(this.reports.tag, text);
+      if (await this.reports.load(state)) this.loaded.emit();
     } catch (error) {
       this.loadProblem.set(
         error instanceof Error ? error.message : String(error),

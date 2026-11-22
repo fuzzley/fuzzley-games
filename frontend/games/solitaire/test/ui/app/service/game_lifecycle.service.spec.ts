@@ -1,9 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import { packState } from "@fz/game-ui/bug_report";
-import { installCompressionStreams } from "@fz/game-ui/testing";
-import { type GamePosition, POSITION_TAG } from "@/ui/app/model/game_position";
+import type { GamePosition } from "@/ui/app/model/game_position";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -330,28 +328,24 @@ describe("GameLifecycleService", () => {
   });
 
   describe("loading a reported game", () => {
-    installCompressionStreams();
-
-    /** Returns a report's game state for the given game, rules and snapshot. */
+    /** Returns a reported position: the mock's game, unless told otherwise. */
     function reported(
       harness: Harness,
       position: Partial<GamePosition> = {},
-    ): Promise<string> {
-      return packState(POSITION_TAG, {
+    ): GamePosition {
+      return {
         gameId: "klondike",
         options: { drawCount: 3, almostWin: 0 },
         snapshot: harness.model.snapshot(),
         ...position,
-      });
+      };
     }
 
     it("puts the reported position on the table", async () => {
       const harness = buildLifecycle();
       const snapshot = { ...harness.model.snapshot(), score: 250 };
 
-      await harness.lifecycle.loadPosition(
-        await reported(harness, { snapshot }),
-      );
+      await harness.lifecycle.loadPosition(reported(harness, { snapshot }));
 
       expect(harness.model.restore).toHaveBeenCalledWith(snapshot);
     });
@@ -360,7 +354,7 @@ describe("GameLifecycleService", () => {
       const harness = buildLifecycle();
 
       await harness.lifecycle.loadPosition(
-        await reported(harness, { gameId: "freecell", options: {} }),
+        reported(harness, { gameId: "freecell", options: {} }),
       );
 
       expect(harness.catalog.catalog.selectedId()).toBe("freecell");
@@ -370,7 +364,7 @@ describe("GameLifecycleService", () => {
       const harness = buildLifecycle();
 
       await harness.lifecycle.loadPosition(
-        await reported(harness, { options: { drawCount: 1 } }),
+        reported(harness, { options: { drawCount: 1 } }),
       );
 
       expect(harness.catalog.catalog.valueOf("drawCount")).toBe(1);
@@ -379,7 +373,7 @@ describe("GameLifecycleService", () => {
     it("asks before loading over a game in progress", async () => {
       const harness = buildLifecycle({ moves: 4 });
 
-      void harness.lifecycle.loadPosition(await reported(harness));
+      void harness.lifecycle.loadPosition(reported(harness));
 
       await vi.waitFor(() => {
         expect(harness.confirmation.prompt()).toMatchObject({
@@ -392,7 +386,7 @@ describe("GameLifecycleService", () => {
 
     it("does not load over a game in progress when the prompt is declined", async () => {
       const harness = buildLifecycle({ moves: 4 });
-      const loading = harness.lifecycle.loadPosition(await reported(harness));
+      const loading = harness.lifecycle.loadPosition(reported(harness));
       await vi.waitFor(() => {
         expect(harness.confirmation.isOpen()).toBe(true);
       });
@@ -404,7 +398,6 @@ describe("GameLifecycleService", () => {
     });
 
     it.each([
-      ["no game state", () => Promise.resolve("hello"), /no game state/],
       [
         "a game this build lacks",
         (harness: Harness) => reported(harness, { gameId: "poker" }),
@@ -415,12 +408,13 @@ describe("GameLifecycleService", () => {
         (harness: Harness) => reported(harness, { options: { drawCount: 5 } }),
         /no rule "drawCount" of 5/,
       ],
-    ])("rejects text with %s", async (_name, text, error) => {
-      const harness = buildLifecycle();
+    ])("refuses %s, before asking", async (_name, position, error) => {
+      const harness = buildLifecycle({ moves: 4 });
 
       await expect(
-        harness.lifecycle.loadPosition(await text(harness)),
+        harness.lifecycle.loadPosition(position(harness)),
       ).rejects.toThrow(error);
+      expect(harness.confirmation.isOpen()).toBe(false);
     });
   });
 });
