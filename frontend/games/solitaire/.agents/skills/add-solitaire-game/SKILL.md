@@ -1,586 +1,315 @@
 ---
 name: add-solitaire-game
-description: Add a solitaire game or a rule variant to the Solitaire Collection — deciding between a new catalog entry and a variant option, the files to write and register, the shared pieces to build a board out of instead of hand-rolling, and which layer new code is allowed to live in.
+description: Adds a game or a rule variant to the Solitaire Collection — a catalog entry or an option on one, the files a game is made of, its arranged grids, the four provider edits, and the engine tier new code belongs in. Triggers on: new solitaire game, rule variant, src/games, game_catalog.ts, gameOption, zone_presets, arrangedLayouts, board_catalog.ts, lint refuses an import.
 ---
 
 # Adding a solitaire game
 
-A new game is seven small files under `src/games/<game>/` and three provider
-edits. Almost none of it is new machinery: the board, the moves, undo, the win
-check, the drag and the sprites already exist and are the same in every game.
-What a game actually contributes is **what its piles are, what they accept, what
-may be lifted off them, and how the cards start out**.
+A new game is up to six files under `src/games/<game>/` and four provider
+edits. The board, the moves, undo, the win check, the drag and the sprites are
+the engine's, the same in every game. A game says only what its piles are,
+what they accept, what may be lifted off them and how the cards start out.
 
-Work in this order. Each step compiles against the one before it.
-
----
+Work in this order: each step compiles against the one before. Read a sibling
+first and keep its shape: `src/games/klondike/` for a stock and a waste,
+`src/games/freecell/` for cells and no stock. Paths are relative to
+`frontend/games/solitaire/`.
 
 ## 1. Decide: a new entry, or an option on an existing game?
 
-The one hard constraint: **a catalog entry carries exactly one `layout`**, so an
-option cannot change the grid. A different board grid is therefore always a new
-entry. Maria, Limited and Lucas are entries of their own for exactly this
-reason — nine, twelve and thirteen columns are not Forty Thieves' ten — while
-still sharing `FortyThievesGame`, its module and its gestures. Mrs. Mop shares
-`SimpleSimonGame`, Blue Moon `MontanaGame`, Trefoil `LaBelleLucieGame`, All in
-a Row `BlackHoleGame` and Fortress `CastleGame` the same way.
-
-Same grid, different rules: default to a **variant option** on the existing
-entry. Whitehead, Thumb and Pouch and Saratoga are options on Klondike, Alaska,
-Russian Solitaire and Moosehide on Yukon, Josephine, Rank and File, Indian and
-Number Ten on Forty Thieves, Will o' the Wisp on Spiderette, Red Moon on Blue
-Moon, Putt Putt on Golf, Sir Tommy on Calculation, Belvedere on Bristol, The Fan
-and Shamrocks on La Belle Lucie, Storehouse, Superior Canfield and Rainbow on
-Canfield, and Streets and Alleys and Citadel on Beleaguered Castle — all
-traditional games with their own names, all options.
-
-Baker's Game and Challenge FreeCell are the ones that go the other way: each is
-its own catalog entry on FreeCell's grid, sharing `FreeCellGame` and
-`FREECELL_LAYOUT`, so that FreeCell's entry can stay optionless. Follow the
-default unless you have that kind of reason.
-
-These are three independent decisions, and it is worth keeping them apart:
-
-| Decision                                                | Driven by                                                |
-| :------------------------------------------------------ | :------------------------------------------------------- |
-| Share the game **class**?                               | How much of the rules differ. Two lines → share it.      |
-| Share the **catalog entry** (i.e. be a variant option)? | Same grid → yes by default. Different grid → impossible. |
-| Share the **gestures**?                                 | Always, when the class is shared.                        |
+- **A catalog entry carries exactly one `layout`, so an option cannot change
+  the grid.** A different grid is always a new entry. Maria, Limited and
+  Lucas are entries of their own, on nine, twelve and thirteen columns, and
+  still share `FortyThievesGame`, its rules and its gestures.
+- **Same grid, different rules: a variant option on the existing entry,**
+  even for a traditional game with a name of its own, as Whitehead is on
+  Klondike and Alaska on Yukon.
+- **An entry of its own on a shared grid needs a reason.** Baker's Game and
+  Challenge FreeCell are entries on FreeCell's grid, sharing `FreeCellGame`
+  and `FREECELL_LAYOUT`, so that FreeCell's entry stays without options.
+- **Share the game class when little of the rules differs.** The gestures go
+  with the class.
 
 ### Adding a variant to an existing game
 
-No new directory, no new board. Add a member to the game's variant union in
-`<game>_rules.ts`, add its row to that file's variant table, and add a choice to
-the option in `src/ui/app/provider/game_catalog.ts`. Each choice carries two
-things: its `rule`, the variant member the game is handed, and its `value`, the
-number the settings panel stores. Give a new choice the next unused `value` and
-never renumber an old one, or a saved preference picks a different game. Build
-the option with `gameOption<MyVariant>({ …, defaultRule })` — as `YUKON_VARIANT`
-and `SPIDERETTE_VARIANT` do — so `optionRule` hands back the variant without a
-cast and the default cannot name a choice that is not offered. Data written in
-the game's own terms, such as a profile's `values`, converts through
-`storedValue` or `storedValues` rather than spelling out a number. A variant
-option has the id
-`variant` and `control: "list"`, which offers one choice to a row, and every
-choice carries a one-line `description` of what sets it apart; the catalog spec
-fails a variant option without them. Then document the new choice under
-`settingsAndVariants` in
-`src/ui/app/provider/game_documentation_data.ts`.
+No new folder and no new board.
 
-If the variant is known by a name of its own, as Whitehead and Russian Solitaire
-are, also add it to its game's `variants` in
-`src/ui/app/provider/game_profile_data.ts`, so the game browser lists it as a
-game. A choice that only makes the game easier or harder, as Spider's suit count
-does, stays a rule: rate it with a `DifficultyByRule` instead.
-
----
+1. **Add a member to the variant union in `<game>_rules.ts`,** and its row to
+   that file's variant table.
+2. **Add a choice to the option in `src/ui/app/provider/game_catalog.ts`.**
+   Its `rule` is the variant member the game is handed, and its `value` the
+   number the settings store. Give it a `value` one more than the highest the
+   option has, and never reuse or renumber one, or a saved preference picks a
+   different game. A new option is built with
+   `gameOption<MyVariant>({ …, defaultRule })`, as `YUKON_VARIANT` is. A
+   variant option has the id `variant`, and the catalog spec then holds it
+   to `control: "list"` and a one-line `description` on every choice.
+3. **Document the choice under `settingsAndVariants`** in
+   `src/ui/app/provider/game_documentation_data.ts`.
+4. **A variant known by a name of its own, as Whitehead and Russian Solitaire
+   are, also joins its game's `variants`** in
+   `src/ui/app/provider/game_profile_data.ts`, so the game browser lists it as
+   a game, and `index.html` names it (step 8). Its `values` come from
+   `storedValues()`, never a number spelled out. A choice that only makes the
+   game easier or harder, as Spider's suit count does, stays a rule: rate it
+   with a `DifficultyByRule`.
 
 ## 2. `<game>_rules.ts` — roles and what each pile accepts
 
-Two things: a `Role` const object naming the parts a pile can play, and the
-`PlacementRule` each destination pile plays by, as named constants or functions
-of the variant (`KLONDIKE_FOUNDATION_RULE`, `klondikeTableauRule(variant)`).
-The zones in step 3 name them directly. A pile that is never a destination
-gets `accept: null` there, which is a different statement from "always
-refuses", and stops a drag offering the stock as a target. Do not write a
-function mapping a role back to its rule: the zone already knows which rule it
-wants.
-
-Compose the rule from the vocabulary in `src/engine/tableau/rules/` rather than
-writing predicates by hand:
-
-- **Combinators** (`placement.ts`) — `all`, `any`, `byEmptiness(whenEmpty, whenOccupied)`,
-  `cardIs(predicate)`, `hasRank`, `never`, `anyCard`, `singleCardOnly`,
-  `maxStackSize(limit)`.
-- **Adjacency** (`adjacency.ts`: what may sit directly on what, an `Adjacency`) — `isOrderedPair`,
-  `isSameSuitRun`, `isSameColorRun`, `isDifferentSuitRun`, `isAnySuitRun`,
-  the wrapping forms where an Ace takes a King (`isOrderedPairWrapping`,
-  `isSameSuitRunWrapping`, `isAnySuitRunWrapping`), and `isAdjacentRank(wraps)`
-  for the Golf family's one rank up or down.
-- **Builds** (`builds.ts`), each derived from an adjacency via `buildsOn` —
-  `descendingAlternatingColor`, `descendingSameSuit`, `descendingSameColor`,
-  `descendingDifferentSuit`, `descendingAnySuit`, their `…Wrapping` forms,
-  `ascendingSameSuit`, `ascendingSameSuitWrapping` and `ascendingAnySuit`.
-- **Whole piles** — `suitFoundation` (Ace up by suit), `singleCardCell`, and
-  `baseRankFoundation(role)` for foundations that start on a rank the deal
-  chooses, read off the board with `baseRankOf` (Canfield, Penguin).
-- **Staging** — `cellStagingLimit(cellRole)` for the `free cells + 1` supermove
-  limit shared by Eight Off, Seahaven and Kings-only Baker's Game.
-
-A rule that needs to see the rest of the board gets `context.board`
-(`BoardQuery`: `pile`, `pilesByRole`, `emptyCount`) — that is what FreeCell's
-`supermoveLimit` counts empty cells and columns with.
-
-**Derive a column's build and lift from one adjacency.** When the runs a
-player may lift are the runs they may build, use `runColumn({ adjacent,
-whenEmpty, maxStack })` from `src/engine/tableau/rules/run_column.ts`, which returns the
-`accept` and `grab` together, and spread it into `columnRow` (Eight Off,
-Seahaven, Easthaven, Penguin, Canfield, FreeCell). A run that can be lifted
-under one rule and not landed under the other is a bug that only appears
-mid-drag. Spider, Spiderette and Simple Simon build on any suit but lift only
-same-suit runs, deliberately, so they name the two apart.
-
-**If the game has variants, put them in one table.** `freecell_rules.ts` keeps
-each variant's `runColumn` options in a single `Record`, and
-`forty_thieves_rules.ts` and `klondike_rules.ts` pair each build rule with its
-grab rule there, so a reader can check them at a glance.
-
----
+- **A const object of roles (`KlondikeRole`) names the parts a pile can
+  play, and each destination pile's `PlacementRule` is a named constant or a
+  function of the variant** (`KLONDIKE_FOUNDATION_RULE`,
+  `klondikeTableauRule(variant)`). The zones in step 3 name them directly, so
+  write no function from a role back to its rule.
+- **Compose a rule from `src/engine/tableau/rules/`,** not from predicates
+  written by hand: the combinators in `placement.ts` (`all`, `byEmptiness`,
+  `cardIs`, `maxStackSize`), what may sit on what in `adjacency.ts`, and in
+  `builds.ts` the builds made from those and the whole piles
+  (`suitFoundation`, `singleCardCell`, `baseRankFoundation`). A rule that
+  must see the rest of the board reads `context.board`.
+- **Derive a column's build and lift from one adjacency.** Where the runs a
+  player may lift are the runs they may build,
+  `runColumn({ adjacent, whenEmpty, maxStack })`
+  (`src/engine/tableau/rules/run_column.ts`) returns the `accept` and the
+  `grab` together, to spread into `columnRow`. A run that lifts under one
+  rule and can't land under the other is a bug that shows only mid-drag.
+  Spider, Spiderette and Simple Simon build on any suit and lift only
+  same-suit runs, on purpose, so they name the two apart.
+- **A game with variants keeps them in one table,** each build rule beside
+  the grab rule it must agree with, as `src/games/klondike/klondike_rules.ts`
+  and `src/games/freecell/freecell_rules.ts` do.
+- **Take a supermove limit from a sibling:** `supermoveLimit` in
+  `freecell_rules.ts`, or `cellStagingLimit(cellRole)` from `builds.ts` where
+  an empty column takes only a King. One written fresh tends to count the
+  empty column the run is moving into, which can stage none of it.
 
 ## 3. `<game>_zones.ts` — the board as data
 
-A `ZoneSpec` per pile (`src/engine/tableau/zones/zone.ts`): how it plays, its
-`ZoneRules` (id, role, `accept`, `grab`, `draggable`, optionally `capacity`),
-and how it looks, its `ZoneLook` (`src/engine/tableau/zones/zone_look.ts`: grid
-slot, `layout`, `face`, optionally `backgroundKey`, `emptyIsActionable`). This replaces switching on a pile's role
-anywhere else.
-
-Build the rows from `src/games/common/zone_presets.ts` — `foundationRow`,
-`cellRow`, `columnRow`, `stockZone`, `wasteZone` — which already carry the
-placeholder artwork, the stacking, the face rule and the sane grab defaults.
-Ids come from `src/games/common/pile_ids.ts` (`foundationPileId`,
-`tableauPileId`, `cellPileId`, `STOCK_PILE_ID`, `WASTE_PILE_ID`) so the model and
-the render layout cannot name the same pile differently. Pile arrangements come
-from `src/games/common/pile_layouts.ts` — `STACKED_PILE_LAYOUT`,
-`BURIED_COLUMN_LAYOUT` (any card dealt face down), `OPEN_COLUMN_LAYOUT` (all face
-up), `wasteFanLayout(drawCount)`.
-
-`GrabRule` (`src/engine/tableau/rules/grab.ts`) is the interesting choice: `"none"`, `"top-only"`, `"any-face-up"`
-(Klondike columns — deliberately lax), `{ kind: "run", adjacent }` (FreeCell,
-Spider), or `{ kind: "uncovered", coveredBy }` for a card free only once the
-piles lying over it are empty (Pyramid, TriPeaks; `isUncovered` in
-`src/engine/tableau/rules/grab.ts` asks the same of an accept rule). It must agree
-with the build rule from step 2.
-
-**Write it as a plain function of the choices that shape the board**, such as
-the variant or the draw count. The game hands the result to `super` once and
-`TableGame` indexes it there, so a game's zones are fixed for its life: changing
-a rule deals a new game rather than reshaping this one.
-
-For a slot that is not a plain consecutive row — Montana's grid — `zoneRow`
-(`src/engine/tableau/zones/zone_builder.ts`)
-accepts a function for `column`. Slots may be fractional: Flower Garden's
-bouquet overlaps at fractional columns, Pyramid's rows sit half a row apart and
-Grandfather's Clock lays its foundations on a circle. Piles are drawn in
-declaration order, so declare the ones that should lie on top last; the loading
-skeleton places fractional slots too.
-
----
+- **One `ZoneSpec` per pile** (`src/engine/tableau/zones/zone.ts`): how it
+  plays, its `ZoneRules`, and how it looks, its `ZoneLook`. Nothing else
+  switches on a pile's role.
+- **Build the rows from `src/games/common/zone_presets.ts`** (`foundationRow`,
+  `cellRow`, `columnRow`, `stockZone`, `wasteZone`), which carry the
+  placeholder artwork, the stacking, the face rule and the grab defaults. Ids
+  come from `src/games/common/pile_ids.ts`, and how a pile arranges its cards
+  from `src/games/common/pile_layouts.ts`.
+- **A pile that is never a destination gets `accept: null`,** not a rule that
+  refuses everything: null keeps a drag from offering it as a target.
+- **A zone's `grab` must agree with its build rule from step 2.** The kinds
+  are `GrabRule`'s, in `src/engine/tableau/rules/grab.ts`.
+- **Write the zones as a plain function of the choices that shape the
+  board,** such as the variant or the draw count. The game hands the result
+  to `super` once, so its zones are fixed for its life: changing a rule deals
+  a new game.
+- **A slot need not be a whole cell of a plain row.** `zoneRow`
+  (`src/engine/tableau/zones/zone_builder.ts`) takes a function for `column`,
+  as in `src/games/flower_garden/flower_garden_zones.ts`, and `zoneAt`, beside
+  it, places one slot anywhere, at a fraction of a cell if need be, as in
+  `src/games/pyramid/pyramid_zones.ts`.
+  Piles are drawn in the order declared, so declare last the ones that lie on
+  top.
 
 ## 4. `<game>_deal.ts` — the opening position
 
-A plain function taking the `Deal` (`src/engine/tableau/dealing/deal.ts`) and the
-piles. The deal hands out the shuffled deck, last card first, and places cards
-through the tabletop: `dealTo(pile, faceUp)` deals the next card,
-`dealEach(piles, faceUp)` one to each pile, `dealRest(pile, faceUp)` all
-that is left, `pull(predicate)` and `pullFirst(predicate)` take out cards the
-deal places before the rest (Aces that start on the foundations), and
-`place(card, pile, faceUp)` puts a card you drew or pulled. `peek`,
-`putBack`, `putUnder` and `drawAll` cover the odd deal (Penguin's beak,
-FreeCell's buried Aces, Nestor's rank rule, La Belle Lucie's fans). Never call
-a pile's `addCard`. Reuse first:
+A plain function of the `Deal` (`src/engine/tableau/dealing/deal.ts`) and the
+piles, which says the side every card shows as it is placed.
 
-- `dealColumnsThenCells(deal, tableaus, cells, cardsPerColumn)` —
-  `src/games/common/row_deal.ts`, the opening of every all-face-up cell game.
-- `dealRowFromStock(tabletop, stock, columns)` — same file, for a Spider-style
-  stock that
-  pushes a card onto every column and returns one transfer per card.
-- `dealRowCollectingRuns(tabletop, stock, dealTo, columns, foundations)` —
-  same file, for
-  a stock deal that can finish a run: it deals, sends every completed run to a
-  foundation, and returns the transfers and flipped cards to commit together.
-- `sinkKings(column)` — `src/games/common/sink_kings.ts`, for a game whose
-  columns never take a King (Baker's Dozen, Bristol).
-
-Say which side every card shows as you place it. Dealing puts cards into piles
-directly and so **bypasses the placement rules entirely** — a cell's
-`capacity: 1` is declared on its zone and enforced on moves, but the deal has to
-honour it itself.
-
----
+- **Place every card through the `Deal`,** never a pile's `addCard`. It
+  covers the odd deal too: `pull()` for cards placed before the rest, then
+  `peek()`, `putBack()`, `putUnder()` and `drawAll()`.
+- **Reuse first:** `dealColumnsThenCells()`, `dealRowFromStock()` and
+  `dealRowCollectingRuns()` in `src/games/common/row_deal.ts`, and
+  `sinkKings()` in `src/games/common/sink_kings.ts`.
+- **A deal bypasses the placement rules,** so it keeps to a pile's `capacity`
+  itself. A cell's `capacity: 1` holds for moves, not for the deal.
 
 ## 5. `<game>_game.ts` — the class
 
-Extend `DealtTableGame` (`src/engine/tableau/game/dealt_table_game.ts`). It already owns the
-new-game and restart cycle, including keeping the dealt order aside so a restart
-replays the same game.
+Extend `DealtTableGame` (`src/engine/tableau/game/dealt_table_game.ts`), which
+owns the new-game and restart cycle. `src/games/klondike/klondike_game.ts`
+shows the shape.
 
-```ts
-super({
-  zones: myGameZoneSpecs(variant),
-  deck: { cardIds, random, dealsFaceUp: true },
-  autoMoveRoles: [MyRole.FOUNDATION, MyRole.TABLEAU, MyRole.CELL],
-  winsWhenAllCardsIn: MyRole.FOUNDATION,
-});
-```
-
-Then grab your piles with `this.pilesOfRole(role)` / `this.requirePile(id)`.
-They come back as `ReadonlyCardPile`s (`src/engine/core/card/card_pile.ts`),
-which is also how the game hands them to anyone else: a game changes a pile
-only through `this.tabletop` or, while dealing, the `Deal`.
-
-Constructor shape, followed by every game: one options object extending
-`DeckOptions` (`src/games/common/deck_options.ts`), destructured with its
-defaults — `constructor({ cardIds = ALL_PLAYING_CARD_IDS, random,
-variant = DEFAULT_MY_VARIANT }: MyGameOptions = {})`. `cardIds` and `random` are
-there so a test can supply a short deck and a fixed shuffle; `DealtTableGame`
-builds the deck from them, shuffling with `Math.random` when `random` is left
-out. A variant is an
-option rather than a field set later because the zones are built from it during
-`super`.
-
-The only required override is `dealBoard(deal)`. Optionally:
-
-- `applyMoveEffects(move)` — what a move does beyond relocating cards. Two shapes
-  are already written in `src/games/common/move_effects.ts`: `flipOnlyEffects`
-  (Yukon, Easthaven, Forty Thieves) and `runCollectingEffects` (Spider,
-  Spiderette, Scorpion). The Klondike family scores its flip, so
-  `KlondikeFamilyGame` (`src/games/klondike/klondike_family_game.ts`) calls
-  `flipExposedTopOfColumn` directly. A game played with Klondike's stock and
-  scoring extends that class and writes only `dealBoard`, as Double Klondike
-  does. A pairing game (Nestor, Monte Carlo, Pyramid) takes `pairsWithTop`,
-  `sameRank` or `totalsThirteen` and `discardPairEffects` from
-  `src/games/common/pair_removal.ts`: the partner's pile takes the card, then
-  the effect sends both to the discard. Such a pile must have no `capacity`,
-  which is checked before the accept rule.
-- A stock action. `drawToWaste(tabletop, stock, waste, count)` and
-  `recycleWasteToStock(tabletop, waste, stock)` from
-  `src/games/common/stock_pile.ts` move
-  the cards and return transfers. The game commits them with
-  `commitAction(kind, transfers, options)`, because whether a recycle costs
-  points is the game's business, not the stock's.
-  Name the action with `ActionKind` from `src/games/common/action_kinds.ts`.
-  A game that limits an action, such as Klondike's recycles or Montana's
-  redeals, reads `timesApplied(kind)` rather than keeping a count of its own:
-  the count comes from the history, so undo, restart and restore keep it right
-  with nothing to save or take back.
-- `isWon()` — only for a game won by the order of its cards rather than by
-  gathering them into one role. Montana overrides it and leaves
-  `winsWhenAllCardsIn` unset.
-
-**Every recorded change of pile goes through `this.tabletop`**
-(`src/engine/tableau/game/tabletop.ts`). `relocate(cards, to, { faceUp })` moves
-cards from the one pile holding them and returns the `CardTransfer` that undo
-needs; `rearrange(layout)` lays out several piles at once, as a redeal does
-(La Belle Lucie, Montana, Monte Carlo), and returns transfers that restore them
-all. Never build a `CardTransfer` by hand or call a pile's `addCard` or
-`removeCard` in an action: the transfer would be a second description of the
-change, free to disagree with it. The shared helpers above take the tabletop
-as their first argument for the same reason.
-
-**Everything you do not write:** the piles and where every card is, move
-legality, `moveCardToPile` / `autoMoveCard`, undo and the move history, the win
-check, hover, the double-press window, the stack in hand, sprite lifecycle.
-
-Two things to get right when the game acts outside the normal move path:
-
-1. **Fold consequences into the causing action.** A completed run collected after
-   a move goes in that move's `followUpTransfers` / `flippedCardIds`, so one undo
-   takes the whole thing back. Commit a dealt row and the runs it completed with
-   a single `commitAction` call, which `dealRowCollectingRuns` sets up.
-2. **Commit through `commitAction`, and nothing else.** It records the action,
-   which is what counts it as a move, makes it undoable, applies the
-   `scoreDelta` you pass and checks for a win, as `moveCardToPile` does. A
-   game never writes its metrics: `state` is read-only, the move count is the
-   length of the history, and the score changes only by the deltas a game
-   reports, from `applyMoveEffects` or `commitAction`. A game whose deal
-   starts at a score other than zero overrides `initialScore()`, as Vegas
-   Klondike does.
-
----
+- **The constructor takes one options object extending `DeckOptions`**
+  (`src/games/common/deck_options.ts`), destructured with its defaults.
+  `cardIds` and `random` are there so a spec can deal a short deck and a
+  fixed shuffle. A variant is an option, not a field set later, because the
+  zones are built from it in `super`.
+- **The one override a game must write is `dealBoard(deal)`.**
+- **`applyMoveEffects(move)` is what a move does beyond moving its cards.**
+  `src/games/common/move_effects.ts` has the two common shapes,
+  `flipOnlyEffects` and `runCollectingEffects`. A game with Klondike's stock
+  and scoring extends `KlondikeFamilyGame`
+  (`src/games/klondike/klondike_family_game.ts`) and writes only `dealBoard`,
+  as Double Klondike does. A pairing game (Nestor, Monte Carlo, Pyramid)
+  takes its rule and its effect from `src/games/common/pair_removal.ts`; its
+  paired piles must have no `capacity`, which is checked before the accept
+  rule.
+- **A stock action moves its cards with `drawToWaste()` or
+  `recycleWasteToStock()`** (`src/games/common/stock_pile.ts`) and commits
+  the transfers they return with `commitAction(kind, transfers, options)`,
+  its kind an `ActionKind` (`src/games/common/action_kinds.ts`).
+- **A game that limits an action reads `timesApplied(kind)`,** never a count
+  of its own: the history keeps it right through undo, restart and restore.
+- **Every recorded change of pile goes through `this.tabletop`**
+  (`src/engine/tableau/game/tabletop.ts`): `relocate()` for cards leaving one
+  pile, `rearrange()` for a redeal. Never build a `CardTransfer` by hand, or
+  call a pile's `addCard` or `removeCard`. Undo re-appends a transfer's cards
+  in the order they sat in the pile they left, which is easy to get backwards
+  when cards land turned over, as a draw's do.
+- **Fold a consequence into the action that caused it.** A run collected
+  after a move goes in that move's `followUpTransfers` and `flippedCardIds`,
+  and a dealt row and the runs it completed go in one `commitAction` call,
+  which `dealRowCollectingRuns()` sets up. Recorded as an action of its own,
+  it takes undo two presses.
+- **A game never writes its metrics.** The score changes only by the
+  `scoreDelta` a game reports from `applyMoveEffects` or `commitAction`. A
+  deal that starts at a score other than zero overrides `initialScore()`.
+- **Override `isWon()` only for a game won by the order of its cards,** as
+  Montana is, and leave `winsWhenAllCardsIn` unset there.
 
 ## 6. `<game>_layout.ts` — the grid
 
-```ts
-export const MY_GAME_LAYOUT = boardLayout({
-  columns: TABLEAU_COUNT,
-  rows: 2,
-  zones: myGameZoneSpecs(),
-  designHeightPx: 1047,
-});
-```
+`boardLayout()` (`src/games/common/board_layout.ts`) reads the slots off the
+zones, as `src/games/klondike/klondike_layout.ts` shows.
 
-`boardLayout` (`src/games/common/board_layout.ts`) reads the slots off the zones,
-so a pile cannot be declared in one place and positioned in another. The only
-judgement is `designHeightPx`: the grid's own height is not enough, because a
-column fans well below its row. Klondike authors 877, FreeCell 1047 for columns
-that can reach thirteen cards at 45px apart. It is the board's own height: the
-shell's chrome lies over the canvas, and the board reads how far in it reaches
-from each edge (`--fz-canvas-inset-top`, `-right`, `-bottom`, `-left`) at run
-time rather than reserving it.
-
-The catalog entry carries this layout (step 8), and both the loading skeleton
-and the board are drawn on it. Every rule option of one entry must therefore
-deal onto the same grid, which `test/ui/app/provider/catalog.spec.ts` checks for
-every game.
+- **`designHeightPx` is the grid's height plus room for the longest column to
+  fan,** or long columns fall off the board: Klondike's 877 on a grid of 746,
+  FreeCell's 1047 for columns of thirteen cards 45 apart. A board where
+  nothing fans down leaves it out. Add no room for the shell's chrome, which
+  the board reads from the canvas's insets at run time.
+- **Every rule option of an entry deals onto this one grid,** which
+  `test/ui/app/provider/catalog.spec.ts` checks for every game.
 
 ### Arranged grids (optional)
 
-Without arranged grids a game lies on this one grid everywhere, compacted on a
-phone. To lay it out for a phone, with columns that fan to fit, and let a
-player put its piles at the top or the bottom and its side pile at the left or
-the right, declare its board to `arrangedLayouts`
-(`src/games/common/arranged_layouts.ts`) beside the grid. Most games in the
-catalog do; `src/games/klondike/klondike_layout.ts` is the plainest:
+Without them a game lies on its one grid everywhere, compacted on a phone.
+With them it is laid out for a phone, its columns fanning to fit, and a player
+may put its piles at the top or the bottom and its side pile at the left or
+the right. Most games have them.
 
-```ts
-export const MY_GAME_ARRANGED_LAYOUTS = arrangedLayouts({
-  roomy: MY_GAME_LAYOUT,
-  columns: pileIdsInRow(ZONES, 1),
-  row: pilesInRow(ZONES, 0),
-  side: STOCK_PILE_ID,
-  rails: {
-    left: FOUNDATIONS.map((pileId) => ({ pileId, overlapped: true })),
-    right: [{ pileId: STOCK_PILE_ID }],
-  },
-  longestColumn: { faceDown: 6, faceUp: 12 },
-  roomyBottomMaxHeightPx: 1184,
-});
-```
-
-- **roomy** is the grid above, with the row over the columns; the larger
-  screen's grid with the row below them takes its gaps and padding.
-- **columns** fan down and take the height, left to right; every grid keeps
-  them in the grid columns `roomy` gives them (so columns centred under a wider
-  row stay centred), and a sideways phone puts them side by side between its
-  rails. A mirror moves them as one block, in order. **row** is the other
-  piles, read off the zones with `pilesInRow`, so a pile is still placed in one
-  place.
-- **beside** (optional) names piles in the columns' row that are not columns,
-  laid out with them but mirrored on their own, as Canfield's reserve follows
-  its stock (`src/games/canfield/canfield_layout.ts`).
-- **side** (optional) is the row pile the side setting places: the stock, or
-  in a game without one the pile a player plays from most, such as FreeCell's
-  free cells. A grid that has it in the other half from the side chosen is
-  mirrored. Leave it out where the row holds only foundations, or where a
-  mirror would hurt (Flower Garden's bouquet would show each card's suit edge
-  rather than its rank): the board is then never mirrored, and the drawer
-  offers Piles alone.
-- **uprightLines** (optional) gives an upright phone the row in lines, from the
-  columns outward, when the row is wider than the columns (Eight Off,
-  Penguin, Flower Garden); the upright grid is then only as wide as the
-  columns, which sit from its left edge.
-- **rails** say which row piles stack down which edge of a sideways phone. Every
-  row pile goes on exactly one rail. Mark a pile `overlapped` when the pile
-  below may cover all but its index strip, as foundations, cells and reserves
-  may; give a pile that spreads down the rail `spreadsDown` and the `reach` its
-  cards need. An overlapped pile showing `FOUNDATION_PLACEHOLDER` shows its
-  ring at the top edge there instead (`COVERED_FOUNDATION_PLACEHOLDER`, or
-  `RAIL_FOUNDATION_PLACEHOLDER` for the last), through the grid's
-  `pileBackgrounds`; nothing to declare. **Never put a pile that can sit empty
-  under an overlapped pile of cards of another kind:** every pile's outline is
-  drawn beneath all the cards, so the card above would hide it. Give such a
-  pile a rail of its own, or show the pile above it whole (Flower Garden's
-  foundations, Nestor's discard). Cards stack in the order the zones are
-  declared, so list a rail's piles in that order too.
-- **longestColumn** is the column every grid keeps on screen with fans at
-  their floor; the builder sets each phone grid's design height from it, and
-  grows the larger screen's grid with the row below the columns to fit it.
-- **roomyBottomMaxHeightPx** (optional) caps that growth. The catalog spec
-  holds every arranged game's cards with the piles below to at least 85% of
-  their size with the piles above on a 1920 × 1080 window, so set it to
-  `floor(1007 / (0.85 × s))`, where `s` is the grid above's scale there
-  (`min(1920 / width, 1007 / height, 1)`), when the column would need more.
-- **pileLayouts** (optional) changes how a pile arranges its cards on every
-  phone grid, as Spider's stock shows one sliver per deal
-  (`sliverStockLayout` in `src/games/common/pile_layouts.ts`).
-
-The builder gives two grids for each shape of screen, the row at the top or
-the bottom: on a larger screen, the grid above and that grid with its rows the
-other way up; upright, the same with phone gaps; sideways, the rail piles at
-the edges, hung from the top or stood on the bottom. Every grid keeps the row
-in the order the larger screen has it and fits each column's fan to the room
-below it.
-
-A board with no columns to fan, such as a grid of cards or a pyramid, writes
-its `ArrangedLayouts` out by hand, with `phoneLayout` for the phone grids'
-gaps and padding, `PHONE_GAP` and `fannedColumnHeight` for any column it does
-have, and `columns` naming the piles a mirror keeps in order, as
-`src/games/poker_squares/poker_squares_layout.ts` and
-`src/games/pyramid/pyramid_layout.ts` do. The grid with the piles at the top
-on a larger screen must be the catalog's own grid.
-
-Name the grids on the catalog entry (step 8) as `arrangement`, with
-`pilesName` and `sideName`: what the drawer calls the row's piles and the side
-pile, in the rules page's words ("stock and foundations", "stock"), the second
-given exactly when the grids name a side pile. The settings drawer then offers
-Piles, and the side setting labelled after the side pile, each with an Auto
-that puts the piles at the bottom and the side pile at the right on a phone and
-keeps the grid above on a larger screen; the catalog spec checks every grid
-places every pile. Add a `<game>_layout.spec.ts` that calls
-`itLaysOutArrangedGrids` from `test/support/arranged_grids.ts`, which checks
-the longest column on six phone sizes under every arrangement, the columns'
-order, the side pile and the larger screen's default, and add the game's own
-checks beside it, as `test/games/klondike/klondike_layout.spec.ts` does.
-
----
+- **Declare the board to `arrangedLayouts()`**
+  (`src/games/common/arranged_layouts.ts`), beside the grid. `ArrangedBoard`
+  there says what each field is, and `src/games/klondike/klondike_layout.ts`
+  is the plainest use. For the rarer fields, see `beside` in
+  `src/games/canfield/canfield_layout.ts`, `uprightLines` in
+  `src/games/eight_off/eight_off_layout.ts` and `pileLayouts` in
+  `src/games/spider/spider_layout.ts`.
+- **`side` is the row pile the side setting places:** the stock, or in a game
+  without one the pile a player plays from most, such as FreeCell's free
+  cells. Leave it out where the row holds only foundations, or where a mirror
+  would hurt: Flower Garden's bouquet would show each card's suit edge, not
+  its rank. The board is then never mirrored.
+- **On `rails`, mark `overlapped` a pile whose top card is all a player
+  reads:** a foundation, a cell, a reserve. An overlapped foundation moves
+  its ring to the top edge by itself. List a rail's piles in the order their
+  zones are declared, since cards stack in that order.
+- **Never put a pile that can sit empty under an overlapped pile of another
+  kind.** Every pile's outline is drawn beneath all the cards, so the card
+  above would hide it. Give it a rail of its own, or show the pile above it
+  whole, as Flower Garden's foundations and Nestor's discard are.
+- **Set `roomyBottomMaxHeightPx` when the catalog spec's 85% check fails.**
+  On a 1920 × 1080 window it holds a game's cards with the piles below to 85%
+  of their size with the piles above. The cap is `floor(1007 / (0.85 × s))`,
+  where `s` is the grid above's scale there,
+  `min(1920 / width, 1007 / height, 1)`.
+- **A board with no columns to fan writes its `ArrangedLayouts` out by
+  hand,** with `phoneLayout()` for the phone grids, as
+  `src/games/poker_squares/poker_squares_layout.ts` and
+  `src/games/pyramid/pyramid_layout.ts` do;
+  `src/games/aces_up/aces_up_layout.ts` adds `PHONE_GAP` and
+  `fannedColumnHeight()` for the columns it has. Its `columns` names the
+  piles a mirror keeps in order, and its grid with the piles at the top on a
+  larger screen must be the catalog's own.
+- **Name the grids on the catalog entry as `arrangement`** (step 8), with
+  `pilesName` and, exactly when the grids name a side pile, `sideName`: what
+  the drawer calls the row's piles and the side pile, in the rules page's
+  words ("stock and foundations", "stock").
+- **Add a `test/games/<game>/<game>_layout.spec.ts` that calls
+  `itLaysOutArrangedGrids()`** (`test/support/arranged_grids.ts`), with the
+  game's own checks beside it, as
+  `test/games/klondike/klondike_layout.spec.ts` does.
 
 ## 7. `<game>_gestures.ts` — only if a press means something
 
-A game with no stock does not need this file at all: map it to
-`stocklessGestures` from `src/engine/tableau/gestures/table_gestures.ts` in step 8, as
-FreeCell does.
-
-Otherwise call `tableGestures(game, options)` with:
-
-- `onCardPress` — from `src/engine/tableau/gestures/press_handlers.ts`,
-  `drawOnStockTop(role, draw)` for a stock whose top card draws
-  (Klondike, Forty Thieves), `dealOnStockPress(role, deal)` for one that deals
-  a row wherever it is pressed (Spider, Scorpion, Easthaven), or
-  `playOnPress(game, roles)` where a single press plays a card (Golf, Black
-  Hole, TriPeaks) — with `autoMoveFrom: []`, so a double press plays nothing
-  more.
-- `onPilePress` — a press on an _empty_ slot: Klondike's recycle, Montana's
-  redeal. Pair it with `emptyIsActionable` on the zone, which is what gives the
-  slot a pointer cursor and a hover border.
-
-  If the slot can run out of things to do, mark it in the game's constructor
-  with `markPile(pile, marker)`, as `KlondikeFamilyGame` and `MontanaGame` do.
-  The view asks the marker every frame for the artwork and whether the empty
-  slot is pressable, so the slot drops its pointer and shows
-  `CLOSED_STOCK_PLACEHOLDER` the moment a press would do nothing. Build the
-  marker with `recycleMarker({ usable, remaining, allowed })` from
-  `src/games/common/zone_presets.ts`, which also shows the recycles or redeals
-  left as pips when they are counted. Pip artwork exists only for the counts
-  in its `PIP_COUNTS`. Do not override `pileBackgroundKey` or
-  `isEmptySlotActionable`.
-
-- `autoMoveFrom` — which roles answer a double press. Omit it entirely for a
-  stockless game: everything on the board is in play.
-
----
+- **A game with no stock needs no file.** Map it to `stocklessGestures`
+  (`src/engine/tableau/gestures/table_gestures.ts`) in step 8.
+- **Otherwise call `tableGestures(game, options)`,** as
+  `src/games/klondike/klondike_gestures.ts` does. `onCardPress` takes a
+  handler from `src/engine/tableau/gestures/press_handlers.ts`:
+  `drawOnStockTop()` for a stock whose top card draws, `dealOnStockPress()`
+  for one that deals a row wherever it is pressed, and `playOnPress()` where
+  one press plays a card, with `autoMoveFrom: []`.
+- **`onPilePress` is a press on an empty slot,** such as Klondike's recycle.
+  Pair it with `emptyIsActionable` on the zone, which gives the slot its
+  pointer cursor and hover border.
+- **A slot that can run out of things to do is marked in the game's
+  constructor,** with `markPile(pile, marker)` and a marker from
+  `recycleMarker()` (`src/games/common/zone_presets.ts`), as
+  `KlondikeFamilyGame` and `MontanaGame` do. Don't override
+  `pileBackgroundKey` or `isEmptySlotActionable`. Pip artwork exists only for
+  the counts in `PIP_COUNTS`.
+- **`autoMoveFrom` lists the roles a double press sends a card from.** Leave
+  it out where every pile answers one.
 
 ## 8. Register it — four provider edits
 
-1. **`src/ui/app/provider/game_catalog.ts`** — declare the entry (`id`, `name`,
-   `options`, `layout`, optional `arrangement`, `create`) with `satisfies
-CatalogEntry<MyGame>`, not an explicit annotation: the `satisfies` is what
-   preserves the literal id and concrete game type that the board registry is
-   checked against. Add it to `CATALOG_ENTRIES`. `create` returns
-   `dealt(new MyGame({ … }))`, which deals the game before handing it over.
-2. **`src/ui/app/provider/board_catalog.ts`** — map the id to its gestures in
-   `GESTURES`. The mapped type means a missing or mismatched entry is a compile
-   error, not a runtime throw. There is no per-game board file:
-   `makeTableBoardScene` (`src/engine/board/table_board_scene.ts`) draws every
-   game from its gestures and its entry's grids (`boardLayoutsOf`), and
-   `<fz-phaser-canvas>` (`@fz/phaser/canvas`, the `phaser-core` skill)
-   swaps in whatever board it is handed, so the shell never imports a game in
-   order to host one.
-3. **`src/ui/app/provider/game_documentation_data.ts`** — add the rules page.
-   `CompleteGameDocumentation` is `Record<GameId, …>`, so shipping a game with no
-   page is also a compile error. With the dev server running,
-   `yarn capture:screenshots <id>` captures its hero screenshot, losslessly,
-   to `docs/screenshots/<id>/overview.png`: the whole page, header included,
-   on Casino night and a seeded deal, with every other setting at its default,
-   at 1440 × 810 CSS px and 2×. Then run `yarn build:thumbs`: it writes the
-   images the site serves to `public/docs/screenshots/<id>/`, the rules page's
-   `overview.webp` (point the rules page's `screenshot.url` at it), the game
-   browser's `thumb.webp`, cropped to the board, and `preview.webp`, the whole
-   page. Specs fail while any of them is missing.
-4. **`src/ui/app/provider/game_profile_data.ts`** — add the profile the game
-   browser lists it by: its family, tagline, difficulty, decks, whether every
-   card is dealt in view, and any variants with names of their own.
-   `CompleteGameProfiles` is keyed by `GameId` as well, and
-   `test/ui/app/provider/game_profile.spec.ts` checks the deck count and
-   visibility against a deal.
+1. **`src/ui/app/provider/game_catalog.ts`:** declare the entry with
+   `satisfies CatalogEntry<MyGame>` and its `id` `as const`, not with a type
+   annotation, which would lose the literal id and the game's type that the
+   board registry is checked against. Add it to `CATALOG_ENTRIES`. Its
+   `create` returns `dealt(new MyGame({ … }))`.
+2. **`src/ui/app/provider/board_catalog.ts`:** map the id to its gestures in
+   `GESTURES`. There is no board file for a game.
+3. **`src/ui/app/provider/game_documentation_data.ts`:** add the rules page.
+   Then, with the dev server running, run `yarn capture:screenshots <id>` and
+   `yarn build:thumbs`, and point the page's `screenshot.url` at
+   `./docs/screenshots/<id>/overview.webp`. Specs fail while one of the
+   game's images is missing.
+4. **`src/ui/app/provider/game_profile_data.ts`:** add the profile the game
+   browser lists it by. `test/ui/app/provider/game_profile.spec.ts` checks
+   its `decks` and `allCardsVisible` against a deal.
 
-**Routes and the game browser need no other edit** — the routes are derived
-from the catalog, and the browser lists a game from its entry and its profile.
-`index.html` does: name the game and its named variants in its `<noscript>`
-list, in the browser's order, and them and their aliases in its keywords, for
-search engines; `test/ui/index_html.spec.ts` fails until you do.
+A game missing from the last three doesn't compile. Two more places follow:
 
-**The site lists it only once its own catalog does.** The build writes every
-entry's `id` and `name` into `dist/game.json`, and the site's build checks
-its catalog, `frontend/site/src/app/provider/games.ts`, against it: a new
-game is simply not on the site yet, but renaming a game or its id fails the
-site's build until that file follows.
-
----
+- **`index.html` names the game and its named variants** in its `<noscript>`
+  list, in the browser's order, and them and their aliases in its keywords.
+  `test/ui/index_html.spec.ts` fails until it does. The routes and the game
+  browser need no edit.
+- **The site lists the game only once its own catalog does:**
+  `frontend/site/src/app/provider/games.ts`. The site's build checks that
+  file against the `id` and `name` this build writes to `dist/game.json`, so
+  renaming a game or its id fails the site's build until that file follows.
 
 ## 9. Test it
 
-`test/games/<game>/<game>_game.spec.ts` — the deal, each rule that is actually
-this game's own, the win condition, and undo of anything that moves more than one
-card at a time. Pass a fixed `random` and, where it sharpens the test, a short
-`cardIds` deck; both constructor parameters exist for this. Assert board state
-through the public API rather than counting calls. See the `solitaire-testing`
-skill; UI-side specs use `configureUiTestBed` from `test/support/ui`.
-
-Then `yarn verify` from `frontend/` (lint → typecheck → test → build, for
-every workspace). `yarn lint` runs `yarn skills:check` first, so a skill
-naming a path you have moved fails here too.
-
----
+`test/games/<game>/<game>_game.spec.ts` covers the deal, each rule that is
+this game's own, the win, and undo of anything that moves more than one card
+at a time, on a fixed `random` and, where it sharpens the spec, a short
+`cardIds` deck. The fixtures are in `test/support/`.
 
 ## Where new code is allowed to live
 
-Each tier may depend only on the tiers below it, enforced as build errors by
-`@typescript-eslint/no-restricted-imports` in `eslint.config.js`.
+Each tier imports only the tiers below it. `eslint.config.js` holds each
+tier's fence and says what it refuses. When unsure where a piece belongs:
 
-```
-       [ src/ui ]              Angular shell (header, navigation, controls)
-           |
-      [ src/games ]            Game rules & variants — one directory per game
-           |
-  +--------+--------+
-  |                 |
-  v                 v
-[ engine/tableau ] [ engine/render/phaser ]   Solitaire runtime & Phaser adapter
-  |                 |
-  +--------+--------+
-           |
-           v
-   [ engine/render ]           Layout math, view contracts, drag math (Phaser-free)
-           |
-           v
-    [ engine/core ]            Cards, piles, decks, suits, ranks, shuffling
-```
-
-| Tier                                  | May import                                       | Must not import                                                                                         |
-| :------------------------------------ | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| `src/engine/core`                     | Standard TS only                                 | `@/engine/render/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `phaser`, `@angular/*`, `rxjs`        |
-| `src/engine/render` _(excl. phaser/)_ | `engine/core`                                    | `phaser`, `@/engine/render/phaser/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs` |
-| `src/engine/render/phaser`            | Phaser 4, `engine/core`, `engine/render`         | `@/engine/board/*`, `@/engine/tableau/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                   |
-| `src/engine/tableau`                  | `engine/core`, `engine/render`                   | `phaser`, `@/engine/render/phaser/*`, `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                       |
-| `src/engine/board`                    | every `engine/*` tier, Phaser 4                  | `@/games/*`, `@/ui/*`, `@angular/*`, `rxjs`                                                             |
-| `src/games/*`                         | `engine/core`, `engine/render`, `engine/tableau` | `phaser`, `@/engine/render/phaser/*`, `@/engine/board/*`, `@/ui/*`, `@angular/*`, `rxjs`                |
-
-Reading it as a decision, when you are unsure where a new piece belongs:
-
-- Does it name a **card, pile, rank, suit or shuffle** and nothing else? →
-  `engine/core`.
-- Is it **geometry** — where a card sits, what a drag is over? →
-  `engine/render`. It may not name Phaser, which is what keeps the renderer a
-  port rather than a habit, and keeps the math testable with no mocks.
-- Does it **draw**? → `engine/render/phaser`.
-- Does it work for **any solitaire** — moves, undo, zones, rule combinators? →
-  `engine/tableau`. Every game inherits this tier, so a dependency added here is
-  a dependency of all of them, and naming a particular game here defeats the
-  point of it.
-- Is it this **one game's** rules, deal, layout, gestures or board? →
-  `src/games/<game>/`.
-- Do **two or more games** need the same helper? → `src/games/common/`. Not
-  before the second one needs it.
-- A game publishes through the engine's own `EventEmitter`; the Angular shell
-  adapts to reactive types at its own boundary. That is why `rxjs` is banned all
-  the way down.
-
----
-
-## Traps that have actually bitten
-
-- **Grab and build rules disagreeing** — a run liftable but not landable, which
-  only shows up mid-drag. Pair them in one table.
-- **A supermove limit the board cannot honour** — an empty _destination_ column
-  does not count towards its own staging capacity (it is where the run is going),
-  and under Kings-only empty columns the `× 2 ^ (empty columns)` term disappears
-  entirely, because a moving same-suit run's only King is its bottom card.
-- **Dealing past a capacity** — deals bypass placement rules.
-- **A consequence recorded as its own action** — undo then takes it back in two
-  presses instead of one.
-- **A transfer written by hand** — undo re-appends a transfer's cards in the
-  order they sat in the pile they came from, which is easy to get backwards
-  when cards land turned over, as a draw's do. `tabletop.relocate` records
-  that order itself, whatever order the cards land in; use it.
-- **`designHeightPx` left at the grid height** — long columns fall off the board.
+- **It names a card, pile, rank, suit or shuffle and nothing else:**
+  `src/engine/core`.
+- **It is geometry,** where a card sits or what a drag is over:
+  `src/engine/render`, which never names Phaser, so its math is specced with
+  no mocks.
+- **It draws:** `src/engine/render/phaser`, which takes nothing from
+  `src/engine/tableau`. The adapter draws what it is handed, and the tableau
+  runtime reaches it only as data in `BoardSceneOptions`.
+- **It works for any solitaire** (moves, undo, zones, rule combinators):
+  `src/engine/tableau`. Every game inherits this tier, so it never names a
+  game, and what it depends on they all do.
+- **It joins a table game to the Phaser board:** `src/engine/board`.
+- **It is one game's rules, deal, layout or gestures:** `src/games/<game>/`.
+- **Two or more games need the same helper:** `src/games/common/`, and not
+  before the second needs it.
+- **It names a game from the shell:** `src/ui/app/provider`, the only folder
+  of the shell that may.
+- **No tier under the shell imports `rxjs` or Angular.** A game publishes
+  through the engine's own `EventEmitter`
+  (`src/engine/core/common/event_emitter.ts`), and the shell adapts at its
+  own boundary.

@@ -689,13 +689,9 @@ no behaviour that any game sees today.
 - **Docs:**
   - `frontend/games/solitaire/NOTICE`: the six page paths, and
     `card_assets-1.png` at line 59.
-  - The `solitaire-build` skill: "PNG pages … Pages are PNG, not WebP"
-    becomes lossless WebP pages, and why (half the size, the same pixels),
-    and "an `import.meta.glob` of the PNGs" further down names the WebP
-    pages.
-  - The `solitaire-phaser` skill, line 33: "one or more PNG pages".
-  - `frontend/games/solitaire/AGENTS.md`'s "Build Card Atlas" line, if it
-    names the format.
+  - `frontend/games/solitaire/AGENTS.md`'s rule on `yarn build:atlas`, if
+    it names the format. The `solitaire-build` and `solitaire-phaser`
+    skills, which named PNG pages, have since been deleted.
 
 **Checks before committing:**
 
