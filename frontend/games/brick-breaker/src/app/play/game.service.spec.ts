@@ -6,6 +6,8 @@ import { ConfirmService } from "@fz/ui/confirm";
 import { FEW_BRICKS } from "../../rules/run/describe";
 import { STAR } from "../../rules/run/stars";
 import { levelsOf } from "../../rules/levels/levels";
+import type { FieldMoment } from "../../rules/run/report_state";
+import { type TakenUp, restoreGame } from "../../rules/run/saved_game";
 import { STEP_MS } from "../../rules/stepper";
 import {
   FIELD_HEIGHT,
@@ -1675,6 +1677,85 @@ describe("GameService", () => {
       await game.startAt(SPEC_LEVEL.last);
 
       expect(game.level().number).toBe(SPEC_LEVEL.last);
+    });
+  });
+
+  describe("a reported run taken up", () => {
+    /** Returns the run on the steel level, served, as a report reads it back: taken up anew, and its field's moment. */
+    async function reportedSteel(): Promise<{
+      takenUp: TakenUp;
+      moment: FieldMoment | null;
+    }> {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+      game.tick(10 * STEP_MS, STILL);
+      const { game: saved, moment } = game.reported();
+      const takenUp = restoreGame(saved, SPEC_LEVELS, game.run().id + 1);
+      if (!takenUp) throw new Error("The reported run wasn't taken up.");
+      return { takenUp, moment };
+    }
+
+    it("is taken up paused, at the ball's speed reported, and says so", async () => {
+      const { takenUp, moment } = await reportedSteel();
+      const game = TestBed.inject(GameService);
+      const starting = game.startAt(SPEC_LEVEL.blasts);
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      await game.takeUpReported(takenUp, moment, 1.5);
+
+      expect({
+        outcome: game.outcome(),
+        level: game.level().number,
+        scale: game.ballSpeedScale(),
+        said: said(),
+      }).toEqual({
+        outcome: "paused",
+        level: SPEC_LEVEL.steel,
+        scale: 1.5,
+        said: "Paused on level 3, Steel. Score 0. 3 lives. Press Enter to resume.",
+      });
+    });
+
+    it("asks first where a run is in progress", async () => {
+      const { takenUp, moment } = await reportedSteel();
+
+      void TestBed.inject(GameService).takeUpReported(takenUp, moment, 1);
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Load this game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Load",
+      });
+    });
+
+    it("leaves the player's Custom speed as it is for a run at another speed", async () => {
+      const { takenUp, moment } = await reportedSteel();
+      const settings = TestBed.inject(SettingsService);
+      settings.update({ customPercent: 80 });
+      const taking = TestBed.inject(GameService).takeUpReported(
+        takenUp,
+        moment && { ...moment, customPercent: 150 },
+        1,
+      );
+      TestBed.inject(ConfirmService).accept();
+
+      await taking;
+
+      expect(settings.settings().customPercent).toBe(80);
+    });
+
+    it("takes the report's Custom speed for a run at Custom", async () => {
+      const { takenUp, moment } = await reportedSteel();
+      const taking = TestBed.inject(GameService).takeUpReported(
+        { ...takenUp, run: { ...takenUp.run, speed: "custom" } },
+        moment && { ...moment, customPercent: 150 },
+        1,
+      );
+      TestBed.inject(ConfirmService).accept();
+
+      await taking;
+
+      expect(TestBed.inject(GameService).customPercent()).toBe(150);
     });
   });
 });

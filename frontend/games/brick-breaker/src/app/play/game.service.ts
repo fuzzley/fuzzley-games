@@ -10,6 +10,7 @@ import { RunNumbers } from "@fz/core/run_numbers";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
+import type { ConfirmRequest } from "@fz/ui/confirm";
 import { fireBolts } from "../../rules/paddle/bolts";
 import { capsule } from "../../rules/catalog/capsules";
 import {
@@ -58,7 +59,12 @@ import {
   saveGame,
   takeUpField,
 } from "../../rules/run/saved_game";
-import { type ReportedPlay, reportPlay } from "../../rules/run/report_state";
+import {
+  type FieldMoment,
+  type ReportedPlay,
+  layMoment,
+  reportPlay,
+} from "../../rules/run/report_state";
 import { SPEED_INFO, type Speed } from "../../rules/speed";
 import { type StarId, starsWon } from "../../rules/run/stars";
 import { FIELD_HEIGHT } from "../../rules/tuning";
@@ -81,6 +87,14 @@ import { ProgressService } from "../stats/progress.service";
 import { StarsService } from "../stats/stars.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS } from "../tokens";
+
+/** What is asked before a reported game is loaded over one in progress. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
 
 /**
  * Plays the game: holds the run and the level in play's field, moves the
@@ -456,6 +470,38 @@ export class GameService extends RunLifecycle {
     takeUpField(this.levelPlay.field, field, run);
     this.bestStreakState.set(this.levelPlay.field.bestStreak);
     this.announcer.say(describeTakenUp(run, this.level()));
+  }
+
+  /**
+   * Takes up a run a bug report carried, paused, as `takeUp()` does, at the
+   * ball's speed the report's debug menu tuned, with its field's moment
+   * laid on, and a Custom run at the report's Custom speed, asking first if
+   * a run is in progress; resolves to whether it did.
+   *
+   * With no moment, as for a report trimmed to fit its link or one of a
+   * level just cleared, the ball waits on the paddle, and a Custom run
+   * keeps the player's Custom speed, which the report's settings name.
+   */
+  async takeUpReported(
+    takenUp: TakenUp,
+    moment: FieldMoment | null,
+    ballSpeedScale: number,
+  ): Promise<boolean> {
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    this.setBallSpeedScale(ballSpeedScale);
+    this.takeUp(takenUp);
+    if (!moment) return true;
+    const field = this.levelPlay.field;
+    layMoment(field, moment);
+    if (takenUp.run.speed === "custom") {
+      this.setCustomPercent(moment.customPercent);
+    }
+    this.fitField();
+    this.servingState.set(field.state === "serve");
+    this.multiplierState.set(multiplier(field.streak));
+    this.streakState.set(field.streak);
+    this.followEffects(field);
+    return true;
   }
 
   /**
