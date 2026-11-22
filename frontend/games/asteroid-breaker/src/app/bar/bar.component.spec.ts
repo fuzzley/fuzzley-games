@@ -125,6 +125,19 @@ function pips(): boolean[] {
 
 describe("BarComponent", () => {
   describe("on a roomy screen", () => {
+    // A browser reads a tooltip that says what an `aria-label` says again,
+    // as the description, so each round button is named by its tooltip.
+    it.each(["Sectors", "How to play", "Settings"])(
+      "gives %s no label beside its tooltip, so its name is read once",
+      async (name) => {
+        await renderBar();
+
+        expect(screen.getByRole("button", { name })).not.toHaveAttribute(
+          "aria-label",
+        );
+      },
+    );
+
     it("names the page with one heading", async () => {
       await renderBar();
 

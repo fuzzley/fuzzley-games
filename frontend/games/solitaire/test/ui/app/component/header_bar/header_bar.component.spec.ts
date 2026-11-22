@@ -21,7 +21,9 @@ import {
   queryAll,
   queryRequired,
   queryText,
+  rootElement,
 } from "@test/support/dom";
+import { within } from "@testing-library/dom";
 import { flushMicrotasks } from "@test/support/async";
 
 /** A window with room for every action, and one without. */
@@ -106,16 +108,16 @@ describe("HeaderBarComponent", () => {
     it("is the home button below the wordmark's width, still named Fuzzley Games", () => {
       resize(WORDMARK_MIN_WIDTH_PX - 1, 900);
 
-      expect([
-        homeLink()?.textContent.trim(),
-        homeLink()?.getAttribute("aria-label"),
-      ]).toEqual(["", "Fuzzley Games"]);
+      expect([homeLink()?.textContent.trim(), homeLink()?.title]).toEqual([
+        "",
+        "Fuzzley Games",
+      ]);
     });
 
     it("is the home button on a phone", () => {
       resize(390, 844);
 
-      expect(homeLink()?.getAttribute("aria-label")).toBe("Fuzzley Games");
+      expect(homeLink()?.title).toBe("Fuzzley Games");
     });
 
     it("leaves the bar on the narrowest phones", () => {
@@ -253,16 +255,40 @@ describe("HeaderBarComponent", () => {
     });
   });
 
+  describe("the buttons with a tooltip", () => {
+    // A browser reads a tooltip that says what an `aria-label` says again,
+    // as the description.
+    it.each(["Undo", "Restart", "How to play", "Settings"])(
+      "gives %s no label beside its tooltip, so its name is read once",
+      (name) => {
+        expect(
+          within(rootElement(fixture))
+            .getByRole("button", { name })
+            .hasAttribute("aria-label"),
+        ).toBe(false);
+      },
+    );
+  });
+
   describe("undo", () => {
-    it("is disabled with nothing to take back", () => {
-      expect(undoButton().disabled).toBe(true);
+    it("is dimmed with nothing to take back, and never disabled", () => {
+      expect([
+        undoButton().getAttribute("aria-disabled"),
+        undoButton().disabled,
+      ]).toEqual(["true", false]);
     });
 
-    it("is enabled once the game has history", () => {
+    it("does nothing when pressed with nothing to take back", () => {
+      undoButton().click();
+
+      expect(harness.model.undo).not.toHaveBeenCalled();
+    });
+
+    it("is no longer dimmed once the game has history", () => {
       harness.model.state.update({ undoDepth: 1 });
       fixture.detectChanges();
 
-      expect(undoButton().disabled).toBe(false);
+      expect(undoButton().hasAttribute("aria-disabled")).toBe(false);
     });
 
     it("takes the move back on the game when clicked", () => {
@@ -331,7 +357,7 @@ describe("HeaderBarComponent", () => {
       const openSettings = vi.fn();
       fixture.componentInstance.openSettings.subscribe(openSettings);
 
-      clickElement(fixture, "button[aria-label='Settings']");
+      clickElement(fixture, "button[title='Settings']");
 
       expect(openSettings).toHaveBeenCalledOnce();
     });
@@ -376,7 +402,7 @@ describe("HeaderBarComponent", () => {
         query(fixture, "button[title*='Restart']"),
         query(fixture, ".btn-help"),
         query(fixture, ".btn-bug-report"),
-        query(fixture, "button[aria-label='Settings']"),
+        query(fixture, "button[title='Settings']"),
       ]).toEqual([null, null, null, null]);
     });
 

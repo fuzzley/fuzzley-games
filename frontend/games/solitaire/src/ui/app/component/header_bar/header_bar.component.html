@@ -45,14 +45,14 @@
     </div>
   </div>
 
+  <!-- Dimmed rather than disabled, so the focus never falls off it. -->
   <button
     fzBarActions
     type="button"
     class="fz-button fz-button-secondary action"
     (click)="lifecycle.undo()"
-    [disabled]="!metrics.canUndo()"
+    [attr.aria-disabled]="metrics.canUndo() ? null : 'true'"
     title="Undo the last move"
-    aria-label="Undo the last move"
   >
     <fz-icon name="undo" />
     <span class="btn-text">Undo</span>
@@ -70,7 +70,6 @@
       class="fz-button fz-button-secondary action"
       (click)="restart()"
       title="Restart this game"
-      aria-label="Restart this game"
     >
       <fz-icon name="restart" />
       <span class="btn-text">Restart</span>
@@ -96,7 +95,6 @@
       class="fz-button fz-button-secondary fz-button-circle action btn-help"
       (click)="openHelp()"
       title="How to play"
-      aria-label="How to play"
     >
       <fz-icon name="help" />
     </button>
@@ -130,7 +128,6 @@
       class="fz-button fz-button-secondary fz-button-circle action settings"
       (click)="openSettings.emit()"
       title="Settings"
-      aria-label="Settings"
     >
       <fz-icon name="settings" />
     </button>

@@ -39,8 +39,10 @@
     }
 
     // Dimmed rather than hidden, so an action that isn't available yet still
-    // shows that it exists.
-    &:disabled {
+    // shows that it exists: disabled, or marked `aria-disabled` where the
+    // focus must not fall off it. After `:hover`, so neither lights up.
+    &:disabled,
+    &[aria-disabled="true"] {
       background: var(--fz-button-fill);
       opacity: 0.4;
       cursor: default;

@@ -163,17 +163,9 @@
 /// `.settings` gear turning under the pointer where motion is welcome, and,
 /// below `desktop`, each round and its `.btn-text` heard but not seen, with
 /// the bar's gaps tightened on the `:host`.
-///
-/// An action marked `aria-disabled`, such as Pause with no run to pause, is
-/// dimmed rather than disabled, so the focus never falls off it.
 @mixin bar-actions {
   .action {
     @include fz.tap-target;
-
-    &[aria-disabled="true"] {
-      opacity: 0.4;
-      cursor: default;
-    }
   }
 
   @media (prefers-reduced-motion: no-preference) {

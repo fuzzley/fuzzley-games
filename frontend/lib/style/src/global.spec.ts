@@ -43,6 +43,33 @@ describe("global.scss", () => {
     expect([...families]).toEqual(["Figtree Variable"]);
   });
 
+  it("dims a button disabled or marked aria-disabled, after its hover so neither lights up", () => {
+    const rules: { selector: string; declarations: string[] }[] = [];
+
+    parse(compiled("global.scss")).walkRules(/^\.fz-button[:[]/, (rule) => {
+      const declarations: string[] = [];
+      rule.walkDecls(({ prop, value }) => {
+        declarations.push(`${prop}: ${value}`);
+      });
+      rules.push({ selector: rule.selector.replace(/\s+/g, ""), declarations });
+    });
+
+    expect(rules).toEqual([
+      {
+        selector: ".fz-button:hover",
+        declarations: ["background: var(--fz-button-hover)"],
+      },
+      {
+        selector: ".fz-button:disabled,.fz-button[aria-disabled=true]",
+        declarations: [
+          "background: var(--fz-button-fill)",
+          "opacity: 0.4",
+          "cursor: default",
+        ],
+      },
+    ]);
+  });
+
   it("styles only classes named with fz, so none collides with an app's", () => {
     const unprefixed = new Set<string>();
 

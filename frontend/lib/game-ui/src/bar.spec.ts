@@ -78,7 +78,6 @@ describe("the bar's mixins", () => {
       ".metric dt fz-icon",
       ".value",
       ".action",
-      ".action[aria-disabled=true]",
       `${MOTION_WELCOME} .settings`,
       `${MOTION_WELCOME} .settings:hover`,
       `${BELOW_DESKTOP} :host`,
@@ -334,15 +333,6 @@ describe("the bar's mixins", () => {
         ]),
         "inset(50%)",
       ]);
-    });
-
-    it("dims an action marked disabled, keeping it in reach", () => {
-      expect(declared(defaults, ".action[aria-disabled=true]")).toEqual(
-        new Map([
-          ["opacity", "0.4"],
-          ["cursor", "default"],
-        ]),
-      );
     });
   });
 });

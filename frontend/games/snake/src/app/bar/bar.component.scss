@@ -8,8 +8,6 @@
 
 // The score and the best, each a card.
 @include bar-figures(72px, var(--fz-space-2));
-
-// The actions, Pause dimmed while there is no run to pause.
 @include bar-actions;
 
 // Below this width the cards tighten too.

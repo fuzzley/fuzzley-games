@@ -66,6 +66,12 @@ describe("GameBarComponent", () => {
     expect(homeLink().textContent.trim()).toBe("");
   });
 
+  it("gives the home button no label beside its tooltip, so its name is read once", async () => {
+    await renderBar({ home: "icon" });
+
+    expect(homeLink()).not.toHaveAttribute("aria-label");
+  });
+
   it("leaves the link home out when asked", async () => {
     await renderBar({ home: "none" });
 
