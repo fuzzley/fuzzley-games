@@ -52,11 +52,36 @@ describe("HelpComponent", () => {
     ).toEqual([
       "Move",
       "Launch or fire",
+      "Aim the launch",
       "Pause",
       "Resume",
       "Next level",
       "New game, once the game is over",
     ]);
+  });
+
+  it("says how to aim the launch with the mouse, a finger and the keys", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    const aim = screen.getByRole("row", { name: /^Aim the launch/ });
+
+    expect(
+      within(aim)
+        .getAllByRole("cell")
+        .map((cell) => cell.textContent.trim()),
+    ).toEqual([
+      "Hold the button and drag",
+      "Drag up",
+      "Hold Space, then hold ← or →",
+    ]);
+  });
+
+  it("says what aiming shows, how it launches and how to cancel it", async () => {
+    await render(HelpComponent, { inputs: { open: true } });
+
+    expect(screen.getByText(/^Aiming\./).parentElement).toHaveTextContent(
+      "Aiming. While you hold, a dotted line shows where the ball will go. Let go to launch. To cancel, drag back to where you started, right-click or pause.",
+    );
   });
 
   it("sets out how a streak, a clearing and the lives add up, from the tuning", async () => {
