@@ -1,21 +1,10 @@
 import { defineConfig } from "vitest/config";
-import { searchForWorkspaceRoot } from "vite";
 import path from "path";
 import angular from "@analogjs/vite-plugin-angular";
 import { coverage, phaserFromCommonJs } from "@fz/dev/vitest";
 
 export default defineConfig({
   plugins: [angular(), phaserFromCommonJs()],
-  server: {
-    fs: {
-      // Vite reads files only from inside frontend/, but the bug report spec
-      // checks the issue form, which GitHub reads from the repository's root.
-      allow: [
-        searchForWorkspaceRoot(import.meta.dirname),
-        path.resolve(import.meta.dirname, "../../../.github/ISSUE_TEMPLATE"),
-      ],
-    },
-  },
   test: {
     globals: true,
     environment: "node",
