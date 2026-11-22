@@ -1,4 +1,5 @@
 import { Component, inject, input, output } from "@angular/core";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
@@ -42,7 +43,12 @@ export const ARROWS: readonly ChoiceOption<Arrows>[] = [
  */
 @Component({
   selector: "app-settings",
-  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
+  imports: [
+    BugReportLoaderComponent,
+    ChoiceListComponent,
+    SettingsDrawerComponent,
+    ThemePickerComponent,
+  ],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })

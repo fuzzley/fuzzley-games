@@ -1,5 +1,9 @@
-import { Injectable, inject } from "@angular/core";
-import type { BugReportSource, ReportState } from "@fz/game-ui/bug_report";
+import { Injectable, type Provider, inject } from "@angular/core";
+import {
+  BUG_REPORT_SOURCE,
+  type BugReportSource,
+  type ReportState,
+} from "@fz/game-ui/bug_report";
 import type { ChoiceOption } from "@fz/ui/radio_group";
 import { reportRun, summarizeRun } from "../../rules/reported_run";
 import { SPEED_INFO } from "../../rules/speed";
@@ -61,6 +65,14 @@ export class SnakeBugReports implements BugReportSource {
     this.store.update(state.settings);
     return true;
   }
+}
+
+/**
+ * Returns the provider that has Snake take bug reports, which the settings
+ * drawer then offers.
+ */
+export function provideSnakeBugReports(): Provider {
+  return { provide: BUG_REPORT_SOURCE, useExisting: SnakeBugReports };
 }
 
 /** Returns the name the settings give a choice. */

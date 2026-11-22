@@ -1,5 +1,9 @@
 import { TestBed } from "@angular/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  installCompressionStreams,
+  installFakeViewport,
+} from "@fz/game-ui/testing";
 import { FakePhaserCanvas, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
@@ -10,6 +14,7 @@ import {
 } from "@fz/ui/testing";
 import { playToTheEnd, provideFixedSeed } from "../testing/play";
 import { AppComponent } from "./app.component";
+import { provideSnakeBugReports } from "./bug_report/snake_bug_reports";
 import { GameService } from "./play/game.service";
 import {
   type Arrows,
@@ -33,7 +38,11 @@ beforeEach(() => {
  */
 async function renderApp(readyAtOnce = true): Promise<GameService> {
   const { fixture } = await render(AppComponent, {
-    providers: [provideFakePhaserCanvas({ readyAtOnce }), provideFixedSeed()],
+    providers: [
+      provideFakePhaserCanvas({ readyAtOnce }),
+      provideFixedSeed(),
+      provideSnakeBugReports(),
+    ],
   });
   await fixture.whenStable();
   return TestBed.inject(GameService);
@@ -336,6 +345,31 @@ describe("AppComponent", () => {
       );
 
       expect(game.outcome()).toBe("paused");
+    });
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    it("opens from the settings, filed as Snake's, the settings closed", async () => {
+      const game = await renderApp();
+      game.turn("up");
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Report a bug" }),
+      );
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      const link = within(report).getByRole("link", { name: /^Open GitHub/ });
+      expect(
+        new URL(link.getAttribute("href") ?? "").searchParams.get("title"),
+      ).toBe("[Snake] ");
+      expect(
+        screen.queryByRole("dialog", { name: "Settings" }),
+      ).not.toBeInTheDocument();
     });
   });
 });

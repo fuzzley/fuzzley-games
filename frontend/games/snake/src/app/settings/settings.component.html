@@ -52,4 +52,12 @@
     <span class="setting-label" aria-hidden="true">Theme</span>
     <fz-theme-picker />
   </div>
+
+  <!-- Only in a development build, and on the site at ?debug. -->
+  <fz-bug-report-loader (loaded)="closed.emit()">
+    <p class="setting-desc">
+      Your settings change to the ones in the report. If you play on to the end,
+      the score counts toward your best.
+    </p>
+  </fz-bug-report-loader>
 </fz-settings-drawer>

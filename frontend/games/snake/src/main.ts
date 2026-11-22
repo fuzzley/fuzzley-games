@@ -6,6 +6,7 @@ import {
 import { bootstrapApplication } from "@angular/platform-browser";
 import { THEME_COLOR_ROLE } from "@fz/ui/theme";
 import { AppComponent } from "./app/app.component";
+import { provideSnakeBugReports } from "./app/bug_report/snake_bug_reports";
 import { SavedGameService } from "./app/play/saved_game.service";
 import "./app/styles/global.scss";
 
@@ -15,6 +16,8 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideZonelessChangeDetection(),
     { provide: THEME_COLOR_ROLE, useValue: "page" },
+    // The settings drawer offers Report a bug, filed with the run's state.
+    provideSnakeBugReports(),
     // Takes up the run a reload interrupted, before the board first shows.
     provideAppInitializer(() => {
       inject(SavedGameService);

@@ -15,6 +15,7 @@ import {
   watchResizes,
 } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
+import { CAPTURE_SKIP } from "@fz/ui/capture";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import { stepMs } from "../../rules/speed";
@@ -223,6 +224,19 @@ describe("BoardComponent", () => {
 
       expect(screen.getByText("Paused")).toBeInTheDocument();
       expect(screen.getByText("Score 0")).toBeInTheDocument();
+    });
+
+    it("leave the Paused card out of a bug report's picture, since Settings paused the run", async () => {
+      const { game, detectChanges } = await renderBoard();
+      game.turn("up");
+
+      game.pause();
+      detectChanges();
+
+      expect(screen.getByText("Paused").parentElement).toHaveAttribute(
+        CAPTURE_SKIP.name,
+        CAPTURE_SKIP.value,
+      );
     });
 
     it("go on at Resume, handing the board the focus", async () => {

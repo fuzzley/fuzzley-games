@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from "@angular/core";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
@@ -29,6 +30,7 @@ import { SettingsService } from "./settings/settings.service";
     ArrowsComponent,
     BarComponent,
     BoardComponent,
+    BugReportDialogComponent,
     ConfirmDialogComponent,
     HelpComponent,
     PlayRoomDirective,

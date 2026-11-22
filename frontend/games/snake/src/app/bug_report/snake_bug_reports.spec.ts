@@ -2,7 +2,6 @@ import { TestBed } from "@angular/core/testing";
 import { BUILD_INFO } from "@fz/game-ui/build_info";
 import {
   BUG_REPORT_CONFIG,
-  BUG_REPORT_SOURCE,
   BugReportService,
   packState,
   unpackState,
@@ -25,7 +24,7 @@ import {
   type Settings,
   SettingsService,
 } from "../settings/settings.service";
-import { SnakeBugReports } from "./snake_bug_reports";
+import { SnakeBugReports, provideSnakeBugReports } from "./snake_bug_reports";
 import { readSnakeState } from "./snake_state";
 
 /**
@@ -195,9 +194,7 @@ describe("SnakeBugReports", () => {
 
     it("loads the whole game-state field of a report", async () => {
       TestBed.configureTestingModule({
-        providers: [
-          { provide: BUG_REPORT_SOURCE, useExisting: SnakeBugReports },
-        ],
+        providers: [provideSnakeBugReports()],
       });
       endedGame();
       const packed = await packState("sn1", reports().capture().value);
@@ -306,7 +303,7 @@ describe("SnakeBugReports", () => {
     it("fits the largest, a run won on the full board, in the link whole", async () => {
       TestBed.configureTestingModule({
         providers: [
-          { provide: BUG_REPORT_SOURCE, useExisting: SnakeBugReports },
+          provideSnakeBugReports(),
           {
             provide: BUILD_INFO,
             useValue: {

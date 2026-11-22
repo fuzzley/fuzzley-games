@@ -1,7 +1,14 @@
 import { TestBed } from "@angular/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import {
+  SnakeBugReports,
+  provideSnakeBugReports,
+} from "../bug_report/snake_bug_reports";
 import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
 import { type Settings, SettingsService } from "./settings.service";
@@ -112,5 +119,68 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     expect(closed).toHaveBeenCalledOnce();
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    /** Has the game take bug reports, and offer its debug menu or not. */
+    function takeReports(debugMenu: boolean): void {
+      TestBed.configureTestingModule({
+        providers: [
+          provideSnakeBugReports(),
+          { provide: DEBUG_MENU, useValue: debugMenu },
+        ],
+      });
+    }
+
+    it("is offered as the game takes reports", async () => {
+      takeReports(false);
+
+      await renderSettings();
+
+      expect(
+        screen.getByRole("button", { name: "Report a bug" }),
+      ).toBeInTheDocument();
+    });
+
+    it("asks for a reported state to load where the game offers its debug menu", async () => {
+      takeReports(true);
+
+      await renderSettings();
+
+      expect(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/^Your settings change to the ones in the report\./),
+      ).toBeInTheDocument();
+    });
+
+    it("asks for none where the game doesn't offer its debug menu", async () => {
+      takeReports(false);
+
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("asks to close once a reported state is loaded", async () => {
+      takeReports(true);
+      const { user, closed } = await renderSettings();
+      const state = TestBed.inject(SnakeBugReports).capture().value;
+
+      await user.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await user.paste(await packState("sn1", state));
+      await user.click(screen.getByRole("button", { name: "Load" }));
+
+      await vi.waitFor(() => {
+        expect(closed).toHaveBeenCalledOnce();
+      });
+    });
   });
 });
