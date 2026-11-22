@@ -440,7 +440,7 @@ A draft, to be settled in step 4's reading:
 
 **Done when** no file of the repository's own is over its budget, the check holds the budgets, the rules are in `.agents/AGENTS.md`, and the figures above are measured.
 
-**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Steps 1 and 2 are done. Steps 3, 4 and 6 are done for every `AGENTS.md`, by the rule you gave in place of a table to read for each file. Step 7 is done for the `AGENTS.md` files: the rules are written, and the check holds each file to a budget. Step 5 is done too, by a second rule of yours, for what earns a skill: 30 of the 48 are deleted and the 17 written here are pruned. A skill has no budget, and whether it gets one is yours to say.
+**Where it stands (Nov 21).** You skipped stage 6 for now, so this stage began first, with the Brick Breaker uplift as its before-figure. Steps 1 and 2 are done. Steps 3, 4 and 6 are done for every `AGENTS.md`, by the rule you gave in place of a table to read for each file. Step 7 is done for the `AGENTS.md` files: the rules are written, and the check holds each file to a budget. Step 5 is done too, by a second rule of yours, for what earns a skill: 30 of the 48 are deleted and the 17 written here are pruned. A skill's description is capped at 400 characters, by your answer, and its body has no budget.
 
 **Step 1, the evidence.** [`scripts/standing.py`](scripts/standing.py) counts what the agents of the eight efforts did with each file, 825 agents in all, and [`data/standing.txt`](data/standing.txt) holds what it printed. It reads the commands as the extraction kept them, so a command over 1,800 characters, one in 17, is counted by its head and tail alone. A file counts as read whole by a command that prints it, by `git show`, or by a Read call that returned half of it or more, and as read in lines where such a command is piped into `sed`, `head` or `tail`.
 
@@ -533,6 +533,7 @@ A draft, to be settled in step 4's reading:
 - **Two edits to the rule on what one holds.** It may also hold, in your words, "instructions for development/CI process to optimize development velocity and maintain high code quality/health". And its last sentence names the file: "An `AGENTS.md` file with no rule of its own is removed."
 - **What earns a skill,** in your words: "Be more aggressive about just deleting skills.md files too if they are not adding enough value. The most important skills are those that dictate development processes used for this project or those that explain library/tool/framework/platform usage that applies generally or can't be easily found in documentation, readme, or interface." This took the place of step 5's questions for each skill, and is written into `.agents/AGENTS.md`, under Agent Configuration.
 - **Then higher budgets, in three steps:** 20 KB for `.agents/AGENTS.md` and for `frontend/AGENTS.md`, where the first budget gave each 12, and 8 KB for a workspace's own, where it gave 4. You set that last one at 10 first and then at 8, so the sizes step up from a workspace's file through the games' layer, which keeps its 12, to the two main ones.
+- **And five answers on what step 5 left open:** merge it; keep `angular-developer`; "just cap description", for a skill's budget; fix the two faults it found in the code; and, of the rules the skills held that no `AGENTS.md` stated, "move general rules that apply across most sessions to AGENTS.md, keep skills when they are clear instructions to perform a task a specific way in a specific situation".
 
 **Steps 3, 4 and 6, the cut.**
 
@@ -589,7 +590,7 @@ A draft, to be settled in step 4's reading:
 - **When a line may be added,** now in `.agents/AGENTS.md` under Agent Configuration: only what an agent would get wrong without it. It instructs or warns, it bears on changes still to come, and no check or doc comment can say it. A rule you give, a mistake a review caught that the code gave no warning of, and a caveat that cost real work to find are good grounds. What a change built or taught goes in doc comments, the commit's message or a doc under `docs/`.
 - **One in, one out** is the budget bullet's: a file near its budget gains a line only as it loses one, and only you raise a budget.
 - **Made room for.** The root's bullet on a script's JSDoc types lost what the lint's own failure says, 280 bytes.
-- **A skill has no budget.** Step 5 wrote each description in 400 characters or fewer by hand, and no check holds that or a `SKILL.md`'s size.
+- **A skill's description is capped at 400 characters,** which the same check holds, the vendored `angular-developer` aside. Step 5 had written each within that by hand. A `SKILL.md`'s size has no budget: you asked for the description alone.
 
 **Step 5, the skills.**
 
@@ -623,7 +624,7 @@ A draft, to be settled in step 4's reading:
   - **The 20 copies of Phaser's skills,** 513 KB with their reference files. Phaser's package ships the installed version's own, in `frontend/node_modules/phaser/skills/`, and `phaser-core` now sends an agent there. Step 1 had found eleven of the copies never read and the other nine read by one or two agents each.
   - **`angular-new-app`,** 4.3 KB. Nothing here runs `ng new`: a new game starts as a copy of one.
   - **Snake's, Sudoku's, Minesweeper's and the site's testing skills,** 19.7 KB, and **five of the Solitaire Collection's six,** 31.8 KB. Each toured code whose doc comments say the same. What an agent would get wrong without them is now 13 rules in those workspaces' own `AGENTS.md` files, in place of the nine bullets that sent it to a skill. The 18 `AGENTS.md` files hold 41.2 KB with them, where they held 38.8, and the largest workspace's is still Asteroid Breaker's, 2.2 KB of its 8.
-- **`angular-developer` stays,** the one vendored skill left, 9.7 KB with 37 reference files of 136 KB. It says how a framework is used, which your rule keeps. Step 1 found it read whole by one agent of the 825 and in part by a few more, so it is yours to drop.
+- **`angular-developer` stays,** the one vendored skill left, 9.7 KB with 37 reference files of 136 KB. It says how a framework is used, which your rule keeps. Step 1 found it read whole by one agent of the 825 and in part by a few more, and you kept it.
 - **Checking each claim against the code found about two dozen wrong.** An agent following the skill would have met each as a compile error, a failed command or a wrong belief. Among them: `fz.glass()` requires a `$blur`; `readVersioned()` and `writeVersioned()` are `LocalStorageService`'s methods, not exports; Asteroid Breaker's scene specs start with `startBoard()`, not `runScene()`; Minesweeper announces "Opened 12 squares.", not "Revealed"; no template uses `aria-live="assertive"`; and Chrome's DevTools MCP server is configured by nothing in the repository. Each commit's message lists its own.
 - **The reviews caught what the pruning dropped.** Each reviewer read the old skill against the new and looked for a step, a trap or a name that nothing else says. Across the ten commits they made 40 findings: seven in Asteroid Breaker's two skills, the three places a round brick is taken by hand in Brick Breaker, five names in `fuzzley-ui`'s tables, the trigger words several descriptions had lost, and, of the rules written into the workspaces' files, three worded wider than the code. All but two were taken, which is why `fuzzley-ui` ends at 36.7 KB and not the 32.7 its agent left. `multi-agent-build`'s description stays as it was written, and the Solitaire Collection's Undo, below, is the code's to mend.
 - **What an agent starts with,** measured as before ([`data/after-skills-trial.txt`](data/after-skills-trial.txt)):
@@ -636,16 +637,11 @@ A draft, to be settled in step 4's reading:
 
   In tokens. The saving is small because the skill list was at its cap of 29,900 characters before and is at 28,900 now. The repository's skills take 5,200 characters of it where they took 15,100, and the room they gave up went to your account's 13 skills, 12 of which the cap had cut to their names and which are now listed in full, 9,500 characters. What the step buys is in the list's content: every skill of the repository's is listed with its description, where three were named only, and the skills an agent reads whole are smaller, by 30 to 46% for the games' and `add-solitaire-game`.
 
-- **Rules the agents found in the skills that no `AGENTS.md` states.** They are left in the skills, and whether any moves to a layer is yours to say:
-  - Read a palette's roles, and never branch on a palette's id.
-  - Everything a library shares carries the `fz` prefix.
-  - A scene lets go of whatever it follows outside itself as it ends, since the host's one game outlives every scene.
-  - A scene hears keys through `onKeyDown()` and `onKeyUp()`.
-  - An icon-only button has one name: never an `aria-label` and a `title` that say the same.
-  - A field added to Asteroid Breaker's `RunState` joins `ownOf()` and `BEGUN_OWN`.
-  - A shipped Brick Breaker level keeps its `id`, and a redraw raises its `layout`.
-  - The Solitaire Collection stores a game in play with its piles' ids, so a pile renamed drops saved games.
-- **Two faults in the code, found on the way and not fixed.** Seventeen icon-only buttons, in seven templates, carry an `aria-label` and a `title` that say the same. And the Solitaire Collection's Undo is dimmed with `disabled`, where `web-game-accessibility` asks for `aria-disabled`.
+- **Rules the agents found in the skills that no `AGENTS.md` stated,** sorted by your answer:
+  - **Two apply to most sessions that touch the UI, and moved to `frontend/AGENTS.md`,** each leaving its skill: an icon-only button has one name, its `title` or an `aria-label` and never both saying the same; and a palette's roles are read, and nothing branches on a palette's id. The reviewer's definition gained both.
+  - **Five are how one task is done, and stay in their skills:** a scene lets go of whatever it follows as it ends, and hears keys through `onKeyDown()` and `onKeyUp()` (`phaser-core`); everything a library shares carries the `fz` prefix (`fuzzley-ui`'s "Changing a library"); a field added to Asteroid Breaker's `RunState` joins `ownOf()` and `BEGUN_OWN`; and a shipped Brick Breaker level keeps its `id`, with a redraw raising its `layout`. `frontend/games/AGENTS.md` now names `phaser-core` for whoever writes or changes a scene, since nothing in the games' layer sent an agent there once the games' own files were cut.
+  - **One was an agent's own finding, in no skill,** and is left out: the Solitaire Collection stores a game in play with its piles' ids. `frontend/AGENTS.md` already says an id stored under a key outlives the code.
+- **Two faults in the code, found on the way and since fixed.** Seventeen buttons and links, in seven templates, carried an `aria-label` and a `title` that said the same. Each keeps its `title`, which names the fifteen that are an icon alone; the Solitaire Collection's Undo and Restart are named by the word they show. And the Solitaire Collection's Undo was dimmed with `disabled`, where `web-game-accessibility` asks for `aria-disabled`, which it now has.
 - **It cost $80.15 at list prices,** by this session's logs: the eight pruning agents $69.95 in 552 requests, where the 14 that cut the `AGENTS.md` files cost $55.28, and the ten reviews $10.20, where that cut's seven cost $6.49. So it cost more than the cut, for a smaller saving in every request.
 - **The stage has cost about $166 so far,** which is over what this plan gave it: the pilot's $7.76, the cut's $61.77 with its reviews, this step's $80.15 and the replay's $16.36. That is 8.5% of a week's allowance, where the plan put the stage at 4 to 7%, and its review alone at $60 to $100.
 
@@ -669,9 +665,9 @@ A draft, to be settled in step 4's reading:
 
 **What is left of this stage.**
 
-- **A budget for a skill, if you want one.** A description held to 400 characters by the check would keep what step 5 trimmed from every request. A size for a `SKILL.md` is less clear: at 20 KB, `fuzzley-ui` and `phaser-core` would fail today.
-- **The rules and the two faults above,** each yours to take or leave.
 - **The real after-figure** is the next measured build, stage 6.
+
+**Seen on the way.** One spec failed twice in a full run on Nov 21, each time by the last digits of a number: Asteroid Breaker's `src/scene/flourishes.spec.ts`, once on "fans a held hit's sparks back the way the shot came, from where it struck" and once on "rests the field within 0.3 s of the blow", with every other suite running beside it. Run alone it passed, three times in three. This stage changed nothing under that game's scene or `@fz/phaser`.
 
 ## What this plan leaves out
 
