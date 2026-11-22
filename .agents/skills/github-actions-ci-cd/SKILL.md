@@ -1,6 +1,6 @@
 ---
 name: github-actions-ci-cd
-description: The Verify workflow (.github/workflows/verify.yml), its jobs side by side and what each checks in the frontend and the Docker image, the caches they restore, the docs-only run, and how its promote job gates the Cloud Run deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, quality gate, verify.yml, setup-frontend, changes-code.sh, actions/cache, dependabot, yarn dedupe, check-image.sh, docker check, games.json, deploy, live branch, rollback.
+description: The Verify workflow (.github/workflows/verify.yml): its jobs and what each checks, the caches they restore, the docs-only run, and how its promote job gates the deploy by moving the live branch. Triggers on: github actions, workflow, ci/cd, verify.yml, changes-code.sh, actions/cache, dependabot, docker image check, check-image.sh, nginx headers, games.json, deploy, live branch, rollback.
 ---
 
 # GitHub Actions CI

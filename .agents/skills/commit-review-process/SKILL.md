@@ -1,6 +1,6 @@
 ---
 name: commit-review-process
-description: How a change is reviewed here before it lands — the author checks and commits it, a fresh commit-reviewer agent, given only what the change is for and the rules that bear on it, reviews that commit in the background, taking the author's checks as passed, for correctness, engineering practice, the language's style and the frameworks' and libraries' practices, while the author keeps working; then the author answers every comment in an amend! commit and squashes those in before the work lands. Triggers on: commit review, review a commit, review before committing, review agent, reviewer, code review, review comments, address review, amend!, fixup, autosquash.
+description: How a change is reviewed here before it lands: the author checks and commits it, a commit-reviewer agent reviews the commit in the background, and the author answers every comment in an amend! commit, squashed in before the work lands. Triggers on: commit review, review a commit, review before committing, reviewer, code review, review comments, address review, amend!, fixup, autosquash.
 ---
 
 # The commit review process

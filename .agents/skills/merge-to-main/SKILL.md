@@ -1,6 +1,6 @@
 ---
 name: merge-to-main
-description: How a finished change is merged into main here, once the user asks for the merge — a change that touches code first passes yarn verify:full, every workspace's coverage floor holding and the change's own code covered, its gaps filled with specs; then it lands on main as a fast-forward and is pushed, which deploys it, and the branches it leaves behind are deleted. Triggers on: merge to main, merge into main, land the change, ship it, push to main, ready to merge, clean up merged branches.
+description: How a finished change is merged into main here, once the user asks: code passes yarn verify:full with every floor holding and its own lines covered, then it lands as a fast-forward and is pushed, which deploys it, and the branches it leaves behind are deleted. Triggers on: merge to main, land the change, ship it, push to main, ready to merge, clean up merged branches.
 ---
 
 # Merging into main

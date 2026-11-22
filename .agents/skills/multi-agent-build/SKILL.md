@@ -1,6 +1,6 @@
 ---
 name: multi-agent-build
-description: How a plan is built here by several agents at once — packages of three to nine commits, four fresh workers at a time, each in its own worktree with a brief that quotes its part of the plan, each package landed on an integration branch by a rebase, a check and a fast-forward, with no work logs. Triggers on: multi-agent build, parallel build, orchestrator, integrator, integration branch, work package, worker agent, worktree, running it in parallel.
+description: How a plan is built here by several agents at once: packages of three to nine commits, four workers at a time in their own worktrees, each landed on an integration branch by a rebase, a check and a fast-forward. Triggers on: multi-agent build, parallel build, orchestrator, integration branch, work package, worker agent, worktree.
 ---
 
 # A build by several agents
