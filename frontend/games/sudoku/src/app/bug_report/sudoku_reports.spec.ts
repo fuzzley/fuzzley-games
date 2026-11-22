@@ -10,7 +10,9 @@ import {
   installCompressionStreams,
   installFakeViewport,
 } from "@fz/game-ui/testing";
-import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import { ConfirmService } from "@fz/ui/confirm";
+import { MemoryStorage, figures, provideMemoryStorage } from "@fz/ui/testing";
+import { render, screen, within } from "@testing-library/angular";
 import { at } from "../../rules/cells";
 import {
   type Grid,
@@ -21,13 +23,14 @@ import {
 } from "../../rules/grid";
 import { playOn } from "../../testing/game";
 import { gridFrom, solvedBut, squareAt } from "../../testing/grid_picture";
+import { AppComponent } from "../app.component";
 import { GameService } from "../play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "../play/saved_game.service";
 import {
   DEFAULT_SETTINGS,
   SettingsService,
 } from "../settings/settings.service";
-import { REPORT_TAG, readReportedGame } from "./reported_game";
+import { REPORT_TAG, readReportedGame, reportedValue } from "./reported_game";
 import { SudokuReports } from "./sudoku_reports";
 
 /** An expert puzzle of the bank's, the one with the fewest givens: 24. */
@@ -243,6 +246,115 @@ describe("SudokuReports", () => {
       );
       expect(length).toBeGreaterThan(600);
       expect(field).toContain(`· ${length} of 1200 undo steps\n`);
+    });
+  });
+
+  describe("loading a reported game", () => {
+    /** Returns what the page shows of the game, by what a screen reader hears. */
+    function shown(): object {
+      const tools = screen.getByRole("group", { name: "Tools" });
+      return {
+        squares: screen
+          .getAllByRole("gridcell")
+          .map((square) => [
+            square.getAttribute("aria-label"),
+            square.getAttribute("aria-selected"),
+            square.dataset["shade"],
+          ]),
+        figures: figures(),
+        tools: within(tools)
+          .getAllByRole("button")
+          .map((tool) => [
+            tool.textContent.trim(),
+            tool.getAttribute("aria-pressed"),
+            tool.getAttribute("aria-disabled"),
+          ]),
+        card: screen.queryByRole("alertdialog"),
+      };
+    }
+
+    /**
+     * Reports the game on the page, then deals a new one at the defaults,
+     * Notes mode off, and returns the report's game-state field.
+     */
+    async function reportThenDeal(): Promise<string> {
+      const url = await TestBed.inject(BugReportService).issueUrl(
+        reports().capture(),
+      );
+      const game = TestBed.inject(GameService);
+      const dealing = game.newGame();
+      // Where the game reported was under way, the deal asks first.
+      TestBed.inject(ConfirmService).accept();
+      await dealing;
+      if (game.notesMode()) game.toggleNotesMode();
+      TestBed.inject(SettingsService).update(DEFAULT_SETTINGS);
+      return gameStateOf(new URL(url));
+    }
+
+    it("shows a game under way as it was reported", async () => {
+      const { fixture } = await render(AppComponent);
+      const game = playOn({ seconds: 95 });
+      TestBed.inject(SettingsService).update({ markMistakes: true });
+      game.select(squareAt("r1c1"));
+      game.enter(9);
+      game.useHint();
+      game.select(squareAt("r9c9"));
+      game.toggleNotesMode();
+      await fixture.whenStable();
+      const reported = shown();
+      const field = await reportThenDeal();
+
+      const loaded = await TestBed.inject(BugReportService).load(field);
+      await fixture.whenStable();
+
+      expect(loaded).toBe(true);
+      expect(shown()).toEqual(reported);
+    });
+
+    it("shows a solved puzzle as it was reported, without its card", async () => {
+      const { fixture } = await render(AppComponent);
+      const game = playOn({ digits: solvedBut("r1c1"), seconds: 754 });
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+      game.closeResult();
+      game.select(squareAt("r5c5"));
+      await fixture.whenStable();
+      const reported = shown();
+      const field = await reportThenDeal();
+
+      await TestBed.inject(BugReportService).load(field);
+      await fixture.whenStable();
+
+      expect(shown()).toEqual(reported);
+    });
+
+    it("leaves the game under way when the player backs out", async () => {
+      const { fixture } = await render(AppComponent);
+      const game = playOn();
+      const state = reports().capture();
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+      await fixture.whenStable();
+      const before = shown();
+
+      const loading = reports().load(state.value);
+      TestBed.inject(ConfirmService).cancel();
+      const loaded = await loading;
+      await fixture.whenStable();
+
+      expect(loaded).toBe(false);
+      expect(shown()).toEqual(before);
+    });
+
+    it("names the part of a state it can't read, and loads nothing", async () => {
+      playOn({ givens: EXPERT, level: "expert" });
+      const spoiled = { ...reportedValue(taken()), selected: 81 };
+      const game = playOn();
+
+      await expect(reports().load(spoiled)).rejects.toThrow(
+        "This build can't read selected in the game state.",
+      );
+      expect(game.level()).toBe("easy");
     });
   });
 });

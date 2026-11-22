@@ -5,19 +5,25 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
 import { at } from "../../rules/cells";
 import { digitsIn } from "../../rules/digits";
+import { place } from "../../rules/grid";
+import { hintFor } from "../../rules/hint";
 import { createRandom } from "@fz/core/random";
 import { playOn } from "../../testing/game";
 import {
   EASY,
   EASY_SOLUTION,
   STALLED,
+  gridFrom,
   rowsOf,
   solvedBut,
   squareAt,
 } from "../../testing/grid_picture";
-import { SettingsService } from "../settings/settings.service";
+import {
+  DEFAULT_SETTINGS,
+  SettingsService,
+} from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GameService } from "./game.service";
+import { GameService, type LoadedGame } from "./game.service";
 
 /** Eight rows with no digit in them, to draw a row of the player's above. */
 const EMPTY = new Array<string>(8).fill(".........");
@@ -527,6 +533,114 @@ describe("GameService", () => {
       game.cover(false);
 
       expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+  });
+
+  describe("loading a game as it stood", () => {
+    /**
+     * Returns a game of `EASY` at Hard, played again after it was solved,
+     * with a wrong 9 at row 1, column 1 and the hint showing it, Notes mode
+     * on and the last square selected, with what a change gives.
+     */
+    function loaded(change: Partial<LoadedGame> = {}): LoadedGame {
+      const grid = place(
+        gridFrom(EASY, { level: "hard" }),
+        squareAt("r1c1"),
+        9,
+        { clearNotes: false },
+      );
+      return {
+        grid,
+        seconds: 95,
+        selected: squareAt("r9c9"),
+        notesMode: true,
+        hint: hintFor(grid),
+        settings: { level: "hard", markMistakes: true, clearNotes: false },
+        replay: true,
+        ...change,
+      };
+    }
+
+    it("puts the game back as it stood", async () => {
+      const game = TestBed.inject(GameService);
+      const reported = loaded();
+
+      await game.load(reported);
+
+      expect(game.grid()).toEqual(reported.grid);
+      expect(game.seconds()).toBe(95);
+      expect(game.selected()).toBe(squareAt("r9c9"));
+      expect(game.notesMode()).toBe(true);
+      expect(game.hint()).toEqual(reported.hint);
+      expect(game.replay()).toBe(true);
+    });
+
+    it("takes up a game under way as one taken up after a reload", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.load(loaded());
+
+      expect(game.inProgress()).toBe(true);
+      expect(TestBed.inject(StopwatchService).running()).toBe(true);
+    });
+
+    it("puts back a solved puzzle, its card put away", async () => {
+      const game = TestBed.inject(GameService);
+      const solved = gridFrom(EASY, { digits: solvedBut() });
+
+      await game.load(loaded({ grid: solved, hint: null }));
+
+      expect(game.solved()).toBe(true);
+      expect(game.resultOpen()).toBe(false);
+      expect(TestBed.inject(StopwatchService).running()).toBe(false);
+    });
+
+    it("deals new games from the settings it was played with", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.load(loaded());
+
+      expect(TestBed.inject(SettingsService).settings()).toEqual({
+        level: "hard",
+        markMistakes: true,
+        clearNotes: false,
+      });
+    });
+
+    it("asks before it loses the game under way", () => {
+      const game = playOn();
+
+      void game.load(loaded());
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Load this game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Load",
+      });
+    });
+
+    it("keeps the game under way when the player backs out", async () => {
+      const game = playOn({ digits: RIGHT_6 });
+
+      const loading = game.load(loaded());
+      TestBed.inject(ConfirmService).cancel();
+
+      expect(await loading).toBe(false);
+      expect(rowsOf(game.grid().digits)[0]).toBe("6..5..2..");
+      expect(game.notesMode()).toBe(false);
+      expect(TestBed.inject(SettingsService).settings()).toEqual(
+        DEFAULT_SETTINGS,
+      );
+    });
+
+    it("loads over the game under way when the player goes ahead", async () => {
+      const game = playOn();
+
+      const loading = game.load(loaded());
+      TestBed.inject(ConfirmService).accept();
+
+      expect(await loading).toBe(true);
+      expect(game.level()).toBe("hard");
     });
   });
 });

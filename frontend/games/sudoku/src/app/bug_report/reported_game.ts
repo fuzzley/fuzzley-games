@@ -4,9 +4,9 @@ import type { ReportState } from "@fz/game-ui/bug_report";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import { CELLS } from "../../rules/cells";
 import { isLevel } from "../../rules/difficulty";
-import type { Grid } from "../../rules/grid";
-import { type Hint, hintFor } from "../../rules/hint";
+import { hintFor } from "../../rules/hint";
 import { type SavedGrid, restoreGrid, saveGrid } from "../../rules/saved_grid";
+import type { LoadedGame } from "../play/game.service";
 import type { Settings } from "../settings/settings.service";
 
 /**
@@ -16,24 +16,10 @@ import type { Settings } from "../settings/settings.service";
 export const REPORT_TAG = "sd1";
 
 /**
- * Describes the game as a bug report carries it: the grid as it stood,
- * solved or not, with every move undo could take back, and what else the
- * player saw of it.
+ * Describes the game as a bug report carries it: the game to load as it
+ * stood, solved or not, with every move undo could take back.
  */
-export interface ReportedGame {
-  readonly grid: Grid;
-  /** The time on the clock, in whole seconds. */
-  readonly seconds: number;
-  /** The square selected. */
-  readonly selected: number;
-  /** Whether a digit adds or takes away a note rather than placing it. */
-  readonly notesMode: boolean;
-  /** The hint showing, which is the one the grid gives, or null. */
-  readonly hint: Hint | null;
-  readonly settings: Settings;
-  /** Whether the puzzle was being played again after it was solved. */
-  readonly replay: boolean;
-}
+export type ReportedGame = LoadedGame;
 
 /**
  * Describes a reported game as it is packed: plain JSON, its grid as saved,

@@ -25,7 +25,7 @@ import {
 import { type Hint, fillHint, firstBlank, hintFor } from "../../rules/hint";
 import { count } from "@fz/core/format";
 import { randomSeed } from "@fz/core/random";
-import { SettingsService } from "../settings/settings.service";
+import { type Settings, SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 
 /** What a new deal asks before it throws away the game under way. */
@@ -51,6 +51,34 @@ const RESTART_QUESTION: ConfirmRequest = {
   confirmLabel: "Restart",
   tone: "danger",
 };
+
+/** What loading a reported game asks before it throws away the game under way. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
+
+/**
+ * Describes a game to put back as it stood, such as one from a bug report:
+ * the grid, solved or not, what else the player saw of it, and the settings
+ * it was played with.
+ */
+export interface LoadedGame {
+  readonly grid: Grid;
+  /** The time on the clock, in whole seconds. */
+  readonly seconds: number;
+  /** The square selected. */
+  readonly selected: number;
+  /** Whether a digit adds or takes away a note rather than placing it. */
+  readonly notesMode: boolean;
+  /** The hint showing, which is the one the grid gives, or null. */
+  readonly hint: Hint | null;
+  readonly settings: Settings;
+  /** Whether the puzzle was being played again after it was solved. */
+  readonly replay: boolean;
+}
 
 /**
  * Plays the game: holds the grid and the square selected, makes the player's
@@ -286,6 +314,25 @@ export class GameService {
   /** Takes up a game where it was left, such as one saved before a reload. */
   resume(grid: Grid, seconds: number, replay = false): void {
     this.begin(grid, seconds, true, replay);
+  }
+
+  /**
+   * Puts back a game as it stood, with its square selected, Notes mode, the
+   * hint showing and its settings, asking first if a game is under way, and
+   * resolves to whether it did.
+   *
+   * Unlike a game taken up after a reload, it may be solved, and then shows
+   * its board without the card. Otherwise it is taken up as one is: counted
+   * as under way, its clock running once nothing covers the board.
+   */
+  async load(game: LoadedGame): Promise<boolean> {
+    if (!(await this.mayLoseGame(LOAD_QUESTION))) return false;
+    this.settings.update(game.settings);
+    this.resume(game.grid, game.seconds, game.replay);
+    this.select(game.selected);
+    this.notesModeState.set(game.notesMode);
+    this.hintState.set(game.hint);
+    return true;
   }
 
   /** Puts away the card over a solved puzzle, leaving the board to look at. */
