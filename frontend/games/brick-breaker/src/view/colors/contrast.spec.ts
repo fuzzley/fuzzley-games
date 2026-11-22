@@ -30,7 +30,10 @@ const PAIRS_APART = 27;
 // and its cannons among it, a bad capsule's gold lip, which says it pays
 // double, the sparks about a ball at the streak's top multiplier and a
 // seeking ball's sight, each outlined as a ball is, and the ring a broken
-// regrowing brick fills as it grows back, and so is the last bricks' glow;
+// regrowing brick fills as it grows back, and so are the last bricks' glow
+// and the serve's guide, one ink: its dots lie on the field, and its outline
+// lies on a brick, which the text can't clear in every palette, so it is held
+// against the field alone, as Brick Fuzz Pop holds its guide;
 // the wall, which only frames the field, is left at a wash of the text, as
 // Snake's is. A ball or a capsule falls through the gutter under the paddle,
 // washed with the danger color, so each is held to 3:1 against it too, and
@@ -133,6 +136,7 @@ describe("the field's contrast", () => {
       ...ballMarks,
       ...regrowing,
       ["glow", palette.glow] as const,
+      ["serve's guide", palette.guide] as const,
     ])("keeps the %s at 3:1 or more against the field", (_, color) => {
       expect(
         contrast(rgbOf(color), rgbOf(palette.field)),

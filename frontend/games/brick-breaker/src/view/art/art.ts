@@ -45,6 +45,7 @@ import {
 import type { BricksPalette } from "../colors/palette";
 import { BRICK_ART, type BrickLook, brickFrame } from "./brick_art";
 import { FUR, REACH, STREAK_FUR, streakStep } from "./fuzzball_art";
+import { guideFrames } from "./guide_art";
 import { paddleFrames } from "./paddle_art";
 import { streakArt } from "./streak_art";
 import { SYMBOLS } from "./symbols";
@@ -624,7 +625,7 @@ function otherArt(
  * brick kind in each tint and state, each ball kind as it flies and with
  * its eyes, a normal ball as it flies in each friend's ink too, each
  * capsule and its tag, the balls' eyes, the paddle's ends, cannons and
- * hooks, the bolt and the flourishes.
+ * hooks, the bolt, the flourishes and the serve's guide.
  */
 export function atlasFrames(
   palette: BricksPalette,
@@ -639,6 +640,7 @@ export function atlasFrames(
     ...paddleFrames(palette, scale),
     ...otherArt(palette, scale),
     ...streakArt(scale),
+    ...guideFrames(palette, scale),
   ];
 }
 

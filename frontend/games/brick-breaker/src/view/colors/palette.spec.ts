@@ -89,6 +89,10 @@ describe("bricksPalette", () => {
     expect(bricksPalette(ROLES, "light").glow).toBe(0x000000);
   });
 
+  it("draws the serve's guide in the text", () => {
+    expect(bricksPalette(ROLES, "light").guide).toBe(0x000000);
+  });
+
   it("keeps the text, for a place's pattern to be washed from", () => {
     expect(bricksPalette(ROLES, "light").text).toBe(0x000000);
   });
