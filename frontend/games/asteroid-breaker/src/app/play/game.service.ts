@@ -100,6 +100,11 @@ export type ReportedRun = Pick<ReadGame, "moment" | "torus" | "tuning"> & {
   readonly takenUp: TakenUp;
 };
 
+/** Describes a run a bug report carried before its first wave was flown, as the game starts it. */
+export type ReportedRunStart = Pick<ReadGame, "torus" | "tuning"> & {
+  readonly start: NonNullable<ReadGame["start"]>;
+};
+
 /**
  * Plays the game: holds the run and the wave in play's field, moves the field
  * on by the time the board's frames take, steered as the player steers, and
@@ -619,6 +624,30 @@ export class GameService extends RunLifecycle {
       layMoment(this.wavePlay.field, moment);
       this.setRun({ ...this.run(), crew: moment.crew });
     }
+    return true;
+  }
+
+  /**
+   * Starts a run a bug report carried before its first wave was flown, as
+   * it was reported: at its wave and speed, its field laid out from its
+   * seed, on its field's shape and with its tuning, asking first if a run
+   * is in progress, and resolves to whether it did.
+   *
+   * The shape holds through `setRoom()` until a new run begins, as a
+   * reported run's does.
+   */
+  async startReported({
+    start,
+    torus,
+    tuning,
+  }: ReportedRunStart): Promise<boolean> {
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    this.tuneTo(tuning);
+    const { wave, speed, seed } = start;
+    const run = createRun({ id: this.numbers.next().id, seed, speed, wave });
+    this.forced = true;
+    this.torus = torus;
+    this.begin(newRunState(run));
     return true;
   }
 

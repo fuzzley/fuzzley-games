@@ -59,11 +59,16 @@ import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import { TALLY_COUNT_MS } from "../../view/tally";
+import { startOf } from "../bug_report/reported_game";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES, TUNING } from "../tokens";
-import { GameService, type ReportedRun } from "./game.service";
+import {
+  GameService,
+  type ReportedRun,
+  type ReportedRunStart,
+} from "./game.service";
 
 /** A board with no margin and no deck, as on a screen with no touch. */
 const BOARD: BoardSetting = {
@@ -2016,5 +2021,137 @@ describe("GameService, taking up a reported run", () => {
       tuning: TestBed.inject(TUNING).tuning(),
       shape: game.shape(),
     }).toEqual({ loaded: false, ...before });
+  });
+
+  describe("one reported before its first wave was flown", () => {
+    /** Describes a run's start a bug report carried, and what its game showed as it was reported. */
+    interface ReportedAtStart {
+      readonly reported: ReportedRunStart;
+      readonly shown: Record<string, unknown>;
+    }
+
+    /**
+     * Returns the run waiting at the specs' second wave on a wide board's
+     * field, Fast, as a bug report carries it, and what the game showed:
+     * flown on numbers of its own, the debug menu and the speed then put
+     * back, as another page's are.
+     */
+    async function reportedStart(game: GameService): Promise<ReportedAtStart> {
+      tune("thrust", REPORTED_FEEL.thrust);
+      tune("rockSpeed", REPORTED_FEEL.rockSpeed);
+      game.setRoom(WIDE, BOARD);
+      await game.changeSpeed("fast");
+      await game.startAt(SPEC_WAVE.gift);
+      const start = startOf(game.run(), game.saved(), game.wave());
+      if (!start) throw new Error("The run waiting has no start.");
+      const reported = viaJson({
+        start,
+        torus: game.shape(),
+        tuning: TestBed.inject(TUNING).tuning(),
+      });
+      const shown = {
+        ...shownBy(game),
+        wave: game.wave().number,
+        speed: game.speed(),
+      };
+      resetTuning();
+      TestBed.inject(SettingsService).update({ speed: "normal" });
+      return { reported, shown };
+    }
+
+    it("shows the run's start as it was reported, its field laid out on its shape", async () => {
+      const { reported, shown } = await reportedStart(
+        TestBed.inject(GameService),
+      );
+      const game = anotherGame();
+      game.setRoom(SQUARE, BOARD);
+
+      await game.startReported(reported);
+
+      expect({
+        ...shownBy(game),
+        wave: game.wave().number,
+        speed: game.speed(),
+      }).toEqual(shown);
+    });
+
+    it("starts the run from the seed it was reported with", async () => {
+      const { reported } = await reportedStart(TestBed.inject(GameService));
+      const seed = reported.start.seed + 1;
+      const game = anotherGame();
+
+      await game.startReported({
+        ...reported,
+        start: { ...reported.start, seed },
+      });
+
+      expect(game.run().seed).toBe(seed);
+    });
+
+    it("starts it as a run of its own, past the one it ends", async () => {
+      const { reported } = await reportedStart(TestBed.inject(GameService));
+      const game = anotherGame();
+      const before = game.run().id;
+
+      await game.startReported(reported);
+
+      expect(game.run().id).toBeGreaterThan(before);
+    });
+
+    it("tunes the debug menu to the numbers the run was to be flown on", async () => {
+      const { reported } = await reportedStart(TestBed.inject(GameService));
+      const game = anotherGame();
+
+      await game.startReported(reported);
+
+      expect(TestBed.inject(TUNING).tuning()).toEqual(REPORTED_FEEL);
+    });
+
+    it("keeps the reported field's shape through the board's room", async () => {
+      const { reported } = await reportedStart(TestBed.inject(GameService));
+      const game = anotherGame();
+      await game.startReported(reported);
+
+      game.setRoom(SQUARE, BOARD);
+
+      expect(game.frame().field.torus).toEqual(reported.torus);
+    });
+
+    it("asks Solitaire's question before it throws away a run in progress", async () => {
+      const game = TestBed.inject(GameService);
+      const { reported } = await reportedStart(game);
+      knockOneLoose(game);
+
+      void game.startReported(reported);
+      await flush();
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Load this game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Load",
+      });
+    });
+
+    it("leaves the run in progress, the debug menu and the field's shape as they are if the player cancels", async () => {
+      const game = TestBed.inject(GameService);
+      const { reported } = await reportedStart(game);
+      knockOneLoose(game);
+      game.setRoom(SQUARE, BOARD);
+      const before = {
+        run: game.run(),
+        tuning: TestBed.inject(TUNING).tuning(),
+        shape: game.shape(),
+      };
+
+      const loading = game.startReported(reported);
+      TestBed.inject(ConfirmService).cancel();
+
+      expect({
+        loaded: await loading,
+        run: game.run(),
+        tuning: TestBed.inject(TUNING).tuning(),
+        shape: game.shape(),
+      }).toEqual({ loaded: false, ...before });
+    });
   });
 });

@@ -5,12 +5,16 @@ import { ConfirmService } from "@fz/ui/confirm";
 import {
   SPEC_WAVE,
   SPEC_WAVES,
+  endRun,
   knockOneLoose,
   provideSpecWaves,
 } from "../../testing/play";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
-import { AsteroidBreakerBugReports } from "./asteroid_breaker_bug_reports";
+import {
+  AsteroidBreakerBugReports,
+  ENDED_WORDS,
+} from "./asteroid_breaker_bug_reports";
 import { REPORT_TAG, readReportedGame } from "./reported_game";
 
 /** Returns a value as JSON carries it, as a report's link does. */
@@ -27,6 +31,14 @@ function shownBy(game: GameService): Record<string, unknown> {
     crew: game.crew(),
     torus: game.frame().field.torus,
   };
+}
+
+/** Returns where the field's rocks lie, as the game shows them. */
+function rocksOf(game: GameService): readonly { x: number; y: number }[] {
+  return game
+    .frame()
+    .field.rocks.filter((rock) => rock.live)
+    .map(({ x, y }) => ({ x, y }));
 }
 
 /** Returns a state as the report's link carries it, packed and read back. */
@@ -81,19 +93,38 @@ describe("AsteroidBreakerBugReports", () => {
     });
   });
 
-  it("refuses a report filed with no game in progress, before asking", async () => {
+  it("loads a report taken before a first wave over a run in progress, showing the run's start as it was reported", async () => {
     const game = TestBed.inject(GameService);
     const reports = TestBed.inject(AsteroidBreakerBugReports);
     await game.startAt(SPEC_WAVE.gift);
+    const shown = { ...shownBy(game), rocks: rocksOf(game) };
     const state = await throughTheLink(reports.capture().value);
     knockOneLoose(game);
     game.pause();
 
     const loading = reports.load(state);
+    TestBed.inject(ConfirmService).accept();
+    const loaded = await loading;
 
-    await expect(loading).rejects.toThrow(
-      "This report was filed with no game in progress. Only a game in progress can be loaded.",
-    );
+    expect({
+      loaded,
+      shown: { ...shownBy(game), rocks: rocksOf(game) },
+    }).toEqual({ loaded: true, shown });
+  });
+
+  it("refuses a report filed once its game was over, before asking", async () => {
+    const game = TestBed.inject(GameService);
+    const reports = TestBed.inject(AsteroidBreakerBugReports);
+    await game.startAt(SPEC_WAVE.gift);
+    endRun(game);
+    const state = await throughTheLink(reports.capture().value);
+    await game.startAt(SPEC_WAVE.gift);
+    knockOneLoose(game);
+    game.pause();
+
+    const loading = reports.load(state);
+
+    await expect(loading).rejects.toThrow(ENDED_WORDS);
     expect(TestBed.inject(ConfirmService).isOpen()).toBe(false);
   });
 });

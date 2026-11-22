@@ -54,15 +54,25 @@ import { DEFAULT_SETTINGS, type Settings } from "../settings/settings.service";
 import {
   REPORT_TAG,
   type ReportedGame,
+  type ReportedStart,
   gameLine,
   readReportedGame,
   reportState,
   settingsLines,
+  startOf,
   summaryOf,
 } from "./reported_game";
 
 /** The id the specs take a reported run up under. */
 const ID = 9;
+
+/** Where a run waiting at the specs' third wave, Fast, starts. */
+const START: ReportedStart = {
+  waveId: waveEntryOf(WAVES, 3).data.id,
+  wave: 3,
+  speed: "fast",
+  seed: 7,
+};
 
 /**
  * The steps the largest likely field is played before it is reported: as
@@ -162,11 +172,17 @@ function reportedGameOf(
   const saved = saveGame(run, field, WAVES, { broughtHome: [], tuned: false });
   return {
     saved,
+    start: null,
     moment: momentOf(field),
     torus: field.torus,
     tuning: TUNED,
     settings,
   };
+}
+
+/** Returns a run waiting at its first wave as a report carries it: where it starts, and no saved game or moment. */
+function reportedStart(start: unknown = START): unknown {
+  return { ...reportedGameOf(busyRun()), saved: null, start, moment: null };
 }
 
 /**
@@ -234,6 +250,7 @@ describe("reportState", () => {
 
     expect(read).toEqual({
       takenUp: restoreGame(viaJson(game.saved), WAVES, ID),
+      start: null,
       moment: game.moment,
       torus: game.torus,
       tuning: TUNED,
@@ -332,6 +349,39 @@ describe("reportState", () => {
     const state = reportState(game, played.run);
 
     expect(state.trim).toBeUndefined();
+  });
+});
+
+describe("startOf", () => {
+  it("takes where a run waiting at its first wave starts, which its game saves nothing of", () => {
+    const run = createRun({ id: 1, seed: 7, speed: "fast", wave: 3 });
+
+    const start = startOf(run, null, waveEntryOf(WAVES, 3));
+
+    expect(start).toEqual(START);
+  });
+
+  it("takes no start of a run its game saves", () => {
+    const { run, field } = busyRun();
+    const saved = saveGame(run, field, WAVES, {
+      broughtHome: [],
+      tuned: false,
+    });
+
+    const start = startOf(run, saved, waveEntryOf(WAVES, run.wave));
+
+    expect(start).toBeNull();
+  });
+
+  it("takes no start of a run over, which its game saves nothing of", () => {
+    const run = runUnderWay({
+      outcome: "over",
+      crew: { pilot: null, tow: [], home: [0, 1, 3, 5, 6], lastGiven: 6 },
+    });
+
+    const start = startOf(run, null, waveEntryOf(WAVES, run.wave));
+
+    expect(start).toBeNull();
   });
 });
 
@@ -444,6 +494,36 @@ describe("readReportedGame", () => {
       (game) => ({ ...game, saved: null }),
     ],
     [
+      "no start",
+      "The state's start can't be read.",
+      (game) => ({ ...game, start: undefined }),
+    ],
+    [
+      "a start that isn't a record",
+      "The state's start can't be read.",
+      () => reportedStart(1),
+    ],
+    [
+      "a start of a wave there isn't",
+      "The state's start can't be read.",
+      () => reportedStart({ ...START, waveId: "gone" }),
+    ],
+    [
+      "a start at a speed there isn't",
+      "The state's start can't be read.",
+      () => reportedStart({ ...START, speed: "warp" }),
+    ],
+    [
+      "a start from a seed that isn't whole",
+      "The state's start can't be read.",
+      () => reportedStart({ ...START, seed: 7.5 }),
+    ],
+    [
+      "a start beside a saved game",
+      "The state has both a start and a saved game.",
+      (game) => ({ ...game, start: START }),
+    ],
+    [
       "a moment of a saved game that keeps no field",
       "The state has a moment but no saved field.",
       (game) => ({ ...game, saved: savedAfterClearing() }),
@@ -470,6 +550,15 @@ describe("readReportedGame", () => {
     const read = readReportedGame(viaJson(game), WAVES, ID);
 
     expect(read.takenUp).toBeNull();
+  });
+
+  it("reads where a run its game kept nothing of starts", () => {
+    const read = readReportedGame(viaJson(reportedStart()), WAVES, ID);
+
+    expect({ takenUp: read.takenUp, start: read.start }).toEqual({
+      takenUp: null,
+      start: START,
+    });
   });
 
   it("reads the settings as they were reported", () => {

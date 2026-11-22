@@ -1,6 +1,7 @@
 import { isRecord } from "@fz/core/json";
 import { formatPoints } from "@fz/core/format";
 import { isOneOf, keysOf, pick } from "@fz/core/records";
+import { hasEnded } from "@fz/core/run";
 import type { ReportState } from "@fz/game-ui/bug_report";
 import { readTorus } from "../../rules/field/kept_field";
 import { type FieldMoment, readMoment } from "../../rules/field/moment";
@@ -8,10 +9,12 @@ import type { Outcome, Run } from "../../rules/run/run";
 import {
   type SavedGame,
   type TakenUp,
+  hasKnownWave,
+  hasSpeedAndSeed,
   restoreGame,
 } from "../../rules/run/saved_game";
 import { END_TITLE, inTowWords } from "../../rules/run/describe";
-import { SPEED_INFO, isSpeed } from "../../rules/speed";
+import { SPEED_INFO, type Speed, isSpeed } from "../../rules/speed";
 import type { Torus } from "../../rules/torus";
 import { waveToPlay } from "../../rules/waves/endless";
 import { type WaveEntry, waveEntryOf } from "../../rules/waves/waves";
@@ -29,9 +32,23 @@ import {
 export const REPORT_TAG = "ab1";
 
 /**
+ * Where a run starts, as a bug report carries one waiting at its first
+ * wave, which the game saves nothing of: the wave, by its number and the
+ * id the game gives it there, the speed, and the seed its field is laid
+ * out from.
+ */
+export interface ReportedStart {
+  readonly waveId: string;
+  readonly wave: number;
+  readonly speed: Speed;
+  readonly seed: number;
+}
+
+/**
  * A run of the game as a bug report carries it: what the game saves of it,
- * the moment of its field the save leaves out, the field's shape and the
- * numbers it was flown on, the debug menu's tuning, and the settings.
+ * or where it starts, the moment of its field the save leaves out, the
+ * field's shape and the numbers it was flown on, the debug menu's tuning,
+ * and the settings.
  */
 export interface ReportedGame {
   /**
@@ -39,6 +56,12 @@ export interface ReportedGame {
    * wave not yet flown, or a run over.
    */
   readonly saved: SavedGame | null;
+  /**
+   * Where the run starts, for one waiting at its first wave, which the
+   * game saves nothing of, or null for any other: one it saves, or one
+   * over.
+   */
+  readonly start: ReportedStart | null;
   /**
    * The moment of the field the saved game keeps, or null where it keeps
    * none, or the link had no room for it.
@@ -55,7 +78,10 @@ export interface ReportedGame {
   readonly settings: Settings;
 }
 
-/** A reported run read back: the run taken up, paused, and the rest as reported. */
+/**
+ * A reported run read back: the run taken up, paused, or where it starts,
+ * and the rest as reported.
+ */
 export interface ReadGame extends Omit<ReportedGame, "saved"> {
   /** The run taken up from what the game saved of it, or null for none. */
   readonly takenUp: TakenUp | null;
@@ -130,6 +156,20 @@ export function reportState(game: ReportedGame, run: Run): ReportState {
 }
 
 /**
+ * Returns where a run waiting at its first wave starts, or null for a run
+ * its game saves or one that is over.
+ */
+export function startOf(
+  run: Run,
+  saved: SavedGame | null,
+  entry: WaveEntry,
+): ReportedStart | null {
+  if (saved !== null || hasEnded(run.outcome)) return null;
+  const { wave, speed, seed } = run;
+  return { waveId: entry.data.id, wave, speed, seed };
+}
+
+/**
  * Returns a run in one line, for a report's summary: its wave, its score,
  * how many follow in tow, and where it stands.
  */
@@ -170,7 +210,8 @@ export function settingsLines(settings: Settings): readonly string[] {
 
 /**
  * Returns a reported run read back, its saved game taken up, paused, under
- * a run's id, and its moment read against the field the save keeps.
+ * a run's id, or its start, and its moment read against the field the save
+ * keeps.
  *
  * @throws Error naming the first part that can't be trusted, or doesn't fit
  *   this build's waves.
@@ -184,6 +225,10 @@ export function readReportedGame(
   const { saved } = value;
   const takenUp = saved === null ? null : restoreGame(saved, waves, id);
   if (saved !== null && !takenUp) throw unreadable("saved game");
+  const start = readStart(value["start"], waves);
+  if (start && takenUp) {
+    throw new Error("The state has both a start and a saved game.");
+  }
   const torus = readTorus(value["torus"]);
   if (!torus) throw unreadable("field size");
   if (takenUp?.field && !isSameSize(takenUp.field.torus, torus)) {
@@ -195,6 +240,7 @@ export function readReportedGame(
   if (!settings) throw unreadable("settings");
   return {
     takenUp,
+    start,
     moment: readMomentOf(value["moment"], takenUp, waves),
     torus,
     tuning,
@@ -227,6 +273,27 @@ function isSameSize(one: Torus, other: Torus): boolean {
 /** Returns an error naming the part of a reported state that can't be trusted. */
 function unreadable(part: string): Error {
   return new Error(`The state's ${part} can't be read.`);
+}
+
+/**
+ * Returns a run's start read, or null for none.
+ *
+ * @throws Error for a start of a wave this build doesn't have under its
+ *   number, at a speed there isn't, or from a seed that isn't whole.
+ */
+function readStart(
+  value: unknown,
+  waves: readonly WaveEntry[],
+): ReportedStart | null {
+  if (value === null) return null;
+  if (!isRecord(value)) throw unreadable("start");
+  // A start is its run's first wave.
+  const start = { ...value, firstWave: value["wave"] };
+  if (!hasKnownWave(start, waves) || !hasSpeedAndSeed(start)) {
+    throw unreadable("start");
+  }
+  const { waveId, wave, speed, seed } = start;
+  return { waveId, wave, speed, seed };
 }
 
 /**
