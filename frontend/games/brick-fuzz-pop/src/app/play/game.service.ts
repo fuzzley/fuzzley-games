@@ -17,6 +17,7 @@ import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
+import type { ConfirmRequest } from "@fz/ui/confirm";
 import { ThemeService } from "@fz/ui/theme";
 import { kindIntroducedAt } from "../../rules/catalog/bricks";
 import {
@@ -58,7 +59,12 @@ import {
   takeDepth,
   takeRound,
 } from "../../rules/run/run";
-import type { PlayedGame, PlayedRound } from "../../rules/run/reported_game";
+import type {
+  PlayedGame,
+  PlayedRound,
+  ReadRound,
+  ReplayedGame,
+} from "../../rules/run/reported_game";
 import type { TakenUp } from "../../rules/run/saved_game";
 import { tallyOf } from "../../rules/run/scoring";
 import { levelResultOf } from "../../rules/run/stats";
@@ -112,6 +118,27 @@ const FIRST_SHAPE: FieldShape = fieldShape({
   pixelRatio: 1,
   insets: NO_INSETS,
 });
+
+/**
+ * What loading a reported game asks before it throws away a run under way,
+ * as every game's loader asks it: Solitaire's.
+ */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
+
+/**
+ * The pace a reported round is flown to its moment at, a field unit a
+ * millisecond at either speed, at which a frame's time is the distance it
+ * plays.
+ */
+const UNIT_A_MS: PlayOptions["pace"]["unitsPerSecond"] = {
+  normal: 1000,
+  fast: 1000,
+};
 
 /** Describes a guide cast, with the start, the numbers and the shot it was cast for. */
 interface GuideCast {
@@ -830,6 +857,33 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
+   * Takes up a game a bug report kept, asking first if a run is in
+   * progress: off the record, the field forced to the depth its round
+   * starts on, the run and where its round starts taken up as a saved game
+   * is, the rounds its level played on the way recorded, and its round in
+   * play, if any, released again from where it started, dropped where it
+   * was, flown to the moment reported and paused. Resolves to whether it
+   * did.
+   *
+   * @throws Error where a round is in play and the board isn't drawn yet,
+   *   which can't fly it, before anything is asked.
+   */
+  async takeUpReport({ game, rounds, round }: ReplayedGame): Promise<boolean> {
+    if (round !== null && !this.drawn()) {
+      throw new Error("The board isn't drawn yet. Try again once it shows.");
+    }
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    this.debug.setDepth(game.start.depth);
+    // At once, rather than as the depth's effect runs, so the run is taken
+    // up on it.
+    this.reshape();
+    this.takeUp({ ...game, tuned: true });
+    this.levelRounds = [...rounds];
+    if (round !== null) this.flyReported(round);
+    return true;
+  }
+
+  /**
    * Releases the round aimed at a shot, if the board is drawn and its level
    * waits for the first shot or is under way: the rules play it whole, on
    * the numbers handed, the run takes it in, counted in the records as it
@@ -873,6 +927,43 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
+   * Releases a reported round in play again from the start aimed, the run
+   * taken up going on, drops it at the moment it was dropped, if it was,
+   * and flies it on to the moment reported, then pauses the run there, or
+   * leaves a level it ended to open its card.
+   */
+  private flyReported({ shot, rules, moment, dropped }: ReadRound): void {
+    const state = this.runState();
+    this.runState.set({ ...state, run: resume(state.run) });
+    if (this.release(shot, rules, "player")) {
+      if (dropped !== null) {
+        this.flyTo(dropped);
+        this.drop();
+      }
+      this.flyTo(moment);
+    }
+    this.pause();
+  }
+
+  /**
+   * Plays the round in the air on to a moment of its flight in one frame,
+   * at a field unit a millisecond, neither fast-forwarded nor sped up, so
+   * the frame's time is the distance to the moment, played back unrounded:
+   * at the flight's own pace, a time worked out from the distance and
+   * turned back into one can miss the moment by a rounding.
+   */
+  private flyTo(moment: number): void {
+    const frame = this.frameOptions(false);
+    const options: PlayOptions = {
+      ...frame,
+      pace: { ...frame.pace, unitsPerSecond: UNIT_A_MS },
+      fast: false,
+      speedUp: false,
+    };
+    this.playFrame(moment - this.play.moment, false, landRound, options);
+  }
+
+  /**
    * Lands the round in the air at once, whatever the run's stage: its
    * flight skipped to its end at a frame of no time, and the run, with the
    * records, as {@link afterLanding} lands it, a paused run left paused
@@ -889,14 +980,16 @@ export class GameService extends RunLifecycle implements KeptGame {
    * to: the run landed as the flight ends, while it is under way, or as
    * the move handed lands it, with what the landing brings to the records,
    * the next round aimed as an ongoing round's wall comes to rest, the card
-   * that opened, and the words for all of it.
+   * that opened, and the words for all of it. The frame plays as the
+   * settings, the player and the run say, unless handed how.
    */
   private playFrame(
     deltaMs: number,
     paused: boolean,
     land: (run: Run) => Run = landRound,
+    options: Readonly<PlayOptions> = this.frameOptions(paused),
   ): void {
-    const change = this.play.advance(deltaMs, this.frameOptions(paused));
+    const change = this.play.advance(deltaMs, options);
     if (this.play.phase !== "flying") this.droppableRound.set(null);
     const before = this.runState();
     const run =

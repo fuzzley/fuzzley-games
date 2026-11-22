@@ -7,10 +7,15 @@
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
 import type { CertifiedShot } from "../levels/certificate";
 import { type LevelEntry, levelEntryOf } from "../levels/levels";
-import { RULES, type RoundRules, type RoundStart } from "../round/round";
+import {
+  RULES,
+  type RoundRules,
+  type RoundStart,
+  playRound,
+} from "../round/round";
 import { type Boon, type Shot, isAim, isBoon, isCharge } from "../shot";
 import { isDepth } from "../wall/wall";
-import type { Run } from "./run";
+import { type Run, levelOf, takeRound } from "./run";
 import {
   type SavedGame,
   type SavedStart,
@@ -143,6 +148,17 @@ export interface ReadGame {
 }
 
 /**
+ * Describes a reported game ready for the game to take up: the run and
+ * where its round starts, the rounds its level played on the way, for the
+ * game to record, and the round in play to fly again.
+ */
+export interface ReplayedGame {
+  readonly game: TakenUp;
+  readonly rounds: readonly PlayedRound[];
+  readonly round: ReadRound | null;
+}
+
+/**
  * Describes how a reported game shrinks to fit a report's link:
  * `at(kept)` keeps `kept` of its `most` parts, the most useful first, and
  * says what it left out.
@@ -236,6 +252,70 @@ export function readReportedGame(
         : readRecord(record, levels, id, pars, game.run.level),
     round: round === null ? null : readRound(round),
   };
+}
+
+/**
+ * Returns a reported game ready to take up, once its level's shots, played
+ * again from where the record began, each as it was played, come to the
+ * run and the start it keeps, with the rounds played on the way. Only a
+ * brick's hits change in play, so the start it keeps is the one they come
+ * to, its depth the field's since the last shot.
+ *
+ * @throws Error where a shot ends the level, the shots come to another
+ *   run or wall than the report keeps, or the level's boon isn't the one
+ *   the shot in the air flew with, as a build that plays them otherwise
+ *   does.
+ */
+export function replayReported(
+  { game, record, round }: ReadGame,
+  levels: readonly LevelEntry[],
+  play: typeof playRound = playRound,
+): ReplayedGame {
+  const { boon } = levelOf(game.run, levels);
+  if (round !== null && round.levelBoon !== boon) {
+    throw new Error(
+      "The level in the game state has a different boon in this build.",
+    );
+  }
+  if (record === null) return { game, rounds: [], round };
+  let run: Run = { ...record.from.run, outcome: "playing" };
+  let { start } = record.from;
+  const rounds: PlayedRound[] = [];
+  for (const [
+    index,
+    { shot, rules, dropped, depth },
+  ] of record.shots.entries()) {
+    const from = start.depth === depth ? start : { ...start, depth };
+    const played = play(
+      from,
+      shot,
+      boon,
+      rules,
+      dropped === null ? undefined : { stop: "drop", at: dropped },
+    );
+    if (played.outcome.result !== "on") {
+      throw new Error(
+        `Shot ${String(index + 1)} of the game state ends the level in this build.`,
+      );
+    }
+    rounds.push({
+      started: run,
+      start: from,
+      shot,
+      levelBoon: boon,
+      rules,
+      dropped,
+    });
+    run = takeRound(run, played.outcome);
+    start = played.next;
+  }
+  const differs = replayDiffers(run, start, game);
+  if (differs !== null) {
+    throw new Error(
+      `The shots in the game state play out differently in this build. ${differs}`,
+    );
+  }
+  return { game, rounds, round };
 }
 
 /**
@@ -472,4 +552,33 @@ function isMoment(value: unknown): value is number {
 /** Returns whether a value is a boredom a round may fly on: a number over 0. */
 function isBored(value: unknown): value is number {
   return isFiniteNumber(value) && value > 0;
+}
+
+/**
+ * Says what of the run and start a record's shots came to differs from
+ * what the report keeps, the first part that does, or returns null where
+ * none does.
+ */
+function replayDiffers(
+  run: Run,
+  start: RoundStart,
+  game: TakenUp,
+): string | null {
+  const kept = game.run;
+  if (run.rounds !== kept.rounds) return "The shot count doesn't match.";
+  if (run.jumps !== kept.jumps) return "The jump count doesn't match.";
+  if (run.score !== kept.score) return "The score doesn't match.";
+  const replayed = savedStartOf(start);
+  const reported = savedStartOf(game.start);
+  if (
+    replayed.lowestRow !== reported.lowestRow ||
+    JSON.stringify(replayed.hits) !== JSON.stringify(reported.hits)
+  ) {
+    return "The wall doesn't match.";
+  }
+  if (replayed.x !== reported.x) return "The fuzzball's start doesn't match.";
+  if (JSON.stringify(replayed.friends) !== JSON.stringify(reported.friends)) {
+    return "The friends don't match.";
+  }
+  return replayed.boon === reported.boon ? null : "The boon doesn't match.";
 }

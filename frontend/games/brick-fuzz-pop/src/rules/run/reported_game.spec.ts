@@ -10,7 +10,9 @@ import {
   type PlayedGame,
   type PlayedRound,
   type ReportedGame,
+  type ReadGame,
   readReportedGame,
+  replayReported,
   reportedGameOf,
   trimReported,
 } from "./reported_game";
@@ -33,6 +35,9 @@ const DEPTH = 11;
 
 /** A boredom the debug menu might retune a round to. */
 const RETUNED: RoundRules = { bored: 300 };
+
+/** The least boredom the debug menu tunes a round to, at which a fuzzball soon tires. */
+const BORED_SOON: RoundRules = { bored: 10 };
 
 /** Describes a shot the specs play, and what differs from a plain one. */
 interface Aimed {
@@ -606,6 +611,182 @@ describe("readReportedGame", () => {
     const value = withRound({ moment: 0, dropped: 0 });
 
     expect(problemOf(value)).toBe("");
+  });
+});
+
+describe("replayReported", () => {
+  /** Girder after the specs' shots, read back. */
+  const read = readReportedGame(REPORTED, LEVELS, 7);
+
+  /** Returns {@link read} with its saved game's run changed. */
+  function withRun(parts: Partial<Run>): ReadGame {
+    return {
+      ...read,
+      game: { ...read.game, run: { ...read.game.run, ...parts } },
+    };
+  }
+
+  /** Returns {@link read} with where its round starts changed. */
+  function withStart(parts: Partial<RoundStart>): ReadGame {
+    return {
+      ...read,
+      game: { ...read.game, start: { ...read.game.start, ...parts } },
+    };
+  }
+
+  /** Returns what replaying a game read back throws, or nothing where it replays. */
+  function replayProblem(game: ReadGame): string {
+    try {
+      replayReported(game, LEVELS);
+      return "";
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  }
+
+  it("plays the level's shots again to the wall they left, every brick as it was", () => {
+    const { rounds } = played(SHOTS);
+
+    const { game } = replayReported(read, LEVELS);
+
+    expect({ run: game.run, start: game.start }).toEqual({
+      run: read.game.run,
+      start: rounds[3]?.start,
+    });
+  });
+
+  it("hands back the rounds it played on the way, as the game played them", () => {
+    const { rounds } = played(SHOTS);
+
+    const replayed = replayReported(read, LEVELS);
+
+    expect(
+      replayed.rounds.map(({ started, ...round }) => ({
+        ...round,
+        score: started.score,
+      })),
+    ).toEqual(
+      rounds
+        .slice(0, 3)
+        .map(({ started, ...round }) => ({ ...round, score: started.score })),
+    );
+  });
+
+  it("plays each shot as it flew: dropped, bored soon and on its depth", () => {
+    const shots: readonly Aimed[] = [
+      { shot: { aim: 100, charge: 1 }, rules: BORED_SOON },
+      { shot: { aim: 500, charge: 2 }, dropped: 3.5, depth: 12 },
+      { shot: { aim: 300, charge: 0 } },
+    ];
+    const value: unknown = JSON.parse(
+      JSON.stringify(reportedGameOf(gameAfter(shots, false), LEVELS)),
+    );
+
+    const { rounds } = replayReported(
+      readReportedGame(value, LEVELS, 7),
+      LEVELS,
+    );
+
+    expect(
+      rounds.map(({ start, rules, dropped }) => ({
+        depth: start.depth,
+        rules,
+        dropped,
+      })),
+    ).toEqual([
+      { depth: 11, rules: BORED_SOON, dropped: null },
+      { depth: 12, rules: RULES, dropped: 3.5 },
+      { depth: 12, rules: RULES, dropped: null },
+    ]);
+  });
+
+  it("leaves the start on the depth reported, where the field took another after the last shot", () => {
+    const game = gameAfter(SHOTS, false);
+    const moved = { ...game, start: { ...game.start, depth: 13 } };
+    const value: unknown = JSON.parse(
+      JSON.stringify(reportedGameOf(moved, LEVELS)),
+    );
+
+    const { game: replayed } = replayReported(
+      readReportedGame(value, LEVELS, 7),
+      LEVELS,
+    );
+
+    expect(replayed.start).toEqual(moved.start);
+  });
+
+  it("takes the game as reported where it has no record", () => {
+    const game = { ...read, record: null };
+
+    expect(replayReported(game, LEVELS)).toEqual({
+      game: read.game,
+      rounds: [],
+      round: read.round,
+    });
+  });
+
+  it("plays the shots through the round player handed", () => {
+    const ending: typeof playRound = (...round) => {
+      const played = playRound(...round);
+      return { ...played, outcome: { ...played.outcome, result: "lost" } };
+    };
+
+    expect(() => replayReported(read, LEVELS, ending)).toThrow(
+      "Shot 1 of the game state ends the level in this build.",
+    );
+  });
+
+  it.each<readonly [string, ReadGame, string]>([
+    ["more shots", withRun({ rounds: 4 }), "The shot count doesn't match."],
+    ["more jumps", withRun({ jumps: 1 }), "The jump count doesn't match."],
+    ["another score", withRun({ score: 1 }), "The score doesn't match."],
+    [
+      "a wall come further down",
+      withStart({ wall: { ...read.game.start.wall, lowestRow: 1 } }),
+      "The wall doesn't match.",
+    ],
+    [
+      "a brick with another hit left",
+      withStart({
+        wall: {
+          ...read.game.start.wall,
+          bricks: read.game.start.wall.bricks.map((brick) =>
+            brick && brick.hits > 0
+              ? { ...brick, hits: brick.hits + 1 }
+              : brick,
+          ),
+        },
+      }),
+      "The wall doesn't match.",
+    ],
+    [
+      "the fuzzball elsewhere",
+      withStart({ x: 1.25 }),
+      "The fuzzball's start doesn't match.",
+    ],
+    [
+      "a friend more",
+      withStart({ crew: { friends: [2] } }),
+      "The friends don't match.",
+    ],
+    ["a boon", withStart({ boon: "hot" }), "The boon doesn't match."],
+  ])("names a record that comes to %s than reported", (_name, game, part) => {
+    expect(replayProblem(game)).toBe(
+      `The shots in the game state play out differently in this build. ${part}`,
+    );
+  });
+
+  it("names a level whose boon isn't the one the shot in the air flew with", () => {
+    const boon = read.round?.levelBoon === "hot" ? "triple" : "hot";
+    const game: ReadGame = {
+      ...read,
+      record: null,
+      round: read.round && { ...read.round, levelBoon: boon },
+    };
+
+    expect(replayProblem(game)).toBe(
+      "The level in the game state has a different boon in this build.",
+    );
   });
 });
 
