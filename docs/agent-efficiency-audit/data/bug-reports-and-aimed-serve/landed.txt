@@ -1,0 +1,68 @@
+What the bug-reports-and-aimed-serve build landed, counted on 2026-11-22.
+
+The run's range, de3937a1..31dfef98, is the integration branch as the run was
+stopped. It held the orchestrator's work log, a commit of its own each time,
+which was dropped before the merge, so main's history holds no 31dfef98.
+
+$ git log --format=%s de3937a1..31dfef98 | wc -l
+89
+
+$ git log --format=%s de3937a1..31dfef98 | grep -c "^docs(work-log)"
+26
+
+$ git log --format=%s de3937a1..31dfef98 | grep -v "^docs(work-log)" | sed "s/[(:].*//" | sort | uniq -c
+      1 chore
+      5 docs
+     45 feat
+      3 fix
+      1 perf
+      2 refactor
+      6 test
+
+What reached main: those 63, and the commit that archived the design and the
+plan as built, 313144f9, which was made after the run was stopped:
+
+$ git log --format=%s de3937a1..313144f9 | sed "s/[(:].*//" | sort | uniq -c
+      1 chore
+      6 docs
+     45 feat
+      3 fix
+      1 perf
+      2 refactor
+      6 test
+
+$ git log --format=%s de3937a1..313144f9 | wc -l
+64
+
+$ git diff --shortstat de3937a1 313144f9 -- frontend
+ 236 files changed, 21717 insertions(+), 1432 deletions(-)
+
+The Verify workflow on main, after the merge:
+
+$ gh run list --workflow verify.yml --branch main --limit 2 --json databaseId,headSha,conclusion
+45052255882  313144f9  success
+45050689962  cb80ac2a  success
+
+Every AGENTS.md together, in bytes and in KB of 1,000 as the plan counts them:
+at a commit made during the Brick Breaker uplift, main's newest before noon on
+Nov 14; at stage 7's last commit; at the run's base and head; and on main after
+the merge:
+
+$ for c in 43055f36 1e419943 de3937a1 31dfef98 313144f9; do git ls-tree -r -l $c | awk -v c=$c '$5 ~ /(^|\/)AGENTS\.md$/ {n += 1; s += $4} END {printf "%s  %d files  %6d bytes  %5.1f KB\n", c, n, s, s / 1000}'; done
+43055f36  18 files  452485 bytes  452.5 KB
+1e419943  18 files   41948 bytes   41.9 KB
+de3937a1  18 files   42525 bytes   42.5 KB
+31dfef98  18 files   42525 bytes   42.5 KB
+313144f9  18 files   42525 bytes   42.5 KB
+
+The two files every agent of the repository starts with, CLAUDE.md and the
+.agents/AGENTS.md it takes in, at the first of those commits and at the run's
+base:
+
+$ for c in 43055f36 de3937a1; do git ls-tree -l $c CLAUDE.md .agents/AGENTS.md | awk -v c=$c '{s += $4; printf "%s  %-18s %6d bytes\n", c, $5, $4} END {printf "%s  %-18s %6d bytes  %4.1f KB\n", c, "together", s, s / 1000}'; done
+43055f36  .agents/AGENTS.md   15238 bytes
+43055f36  CLAUDE.md             192 bytes
+43055f36  together            15430 bytes  15.4 KB
+de3937a1  .agents/AGENTS.md   12173 bytes
+de3937a1  CLAUDE.md             129 bytes
+de3937a1  together            12302 bytes  12.3 KB

@@ -5,8 +5,8 @@ For an `AGENTS.md`: the agents the harness loaded it for, and those that read
 or searched it by a command. For a skill: the agents that loaded it with the
 Skill tool, read its `SKILL.md`, searched it, or read one of its reference
 files. Then the skills, agent types and connectors from outside the
-repository that any agent used. It measures the eight efforts, or the ones
-`AUDIT_EFFORTS` names. Run `extract.py` and `build.py` first.
+repository that any agent used. It measures the seven efforts and those run
+since, or the ones `AUDIT_EFFORTS` names. Run `extract.py` and `build.py` first.
 
 What it cannot see: a command the extraction cut short is read by its head
 and tail alone, a file named only by a shell variable set outside a `for` is
@@ -23,7 +23,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib import BASELINE, CHARS_PER_TOKEN, DATA, EFFORTS, HEREDOC, LATER, LEAD, load
+from lib import BASELINE, CHARS_PER_TOKEN, EFFORTS, HEREDOC, LATER, LEAD, OUT, load
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
 ROLES = ("worker", "reviewer", "helper", "main")
@@ -229,7 +229,7 @@ def by_role(agents, role_of):
 def main():
     files, skills = repo_docs()
     efforts = EFFORTS if os.environ.get("AUDIT_EFFORTS") else {**BASELINE, **LATER}
-    with open(os.path.join(DATA, "agents.json")) as handle:
+    with open(os.path.join(OUT, "agents.json")) as handle:
         role_of = {row["key"]: row["role"] for row in json.load(handle)}
     everyone = load()
     agents = [agent for agent in everyone if agent["session"] in efforts]

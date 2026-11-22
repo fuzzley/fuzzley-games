@@ -1,0 +1,19 @@
+The commit loop of the baseline run and of this build, as the measure plugin
+worked each out: the commit_loop, workers.ramp_up, reviews and counts of each
+run's results.json under ~/claude-metrics/runs/, printed on 2026-11-22. The
+scorecard shows part of it; this is the rest the plan quotes.
+
+2026-11-14-brick-breaker-uplift
+  authors' commits and what went with them: {'agents': 23, 'commits': 69, 'fixups': 2, 'amends': 0, 'amends_with_fix': 0, 'subagents_started': 73, 'started_in_background': 31, 'check_runs': 955, 'rewrites': 48, 'usd': 545.27, 'usd_with_reviews': 731.06, 'requests': 6215}
+  a commit: {'model_min': 10.9, 'checks_min': 8.4, 'review_wait_min': 3.8, 'background_wait_min': 1.8, 'other_tools_min': 1.2, 'busy_min': 26.3, 'elapsed_min': 26.5, 'check_runs': 13.8, 'rewrites': 0.7, 'requests': 90.1, 'usd': 7.9, 'usd_with_reviews': 10.6}
+  to a worker's first edit: {'workers': 23, 'minutes_median': 7.4, 'requests_median': 56, 'usd_median': 3.72, 'context_at_first_edit_median': 265047}
+  a review: {'count': 92, 'minutes_median': 6.1, 'minutes_p90': 8.8, 'usd_median': 2.47, 'usd_total': 247.76, 'share_of_spend': 0.285, 'requests_median': 41.0, 'tool_calls_median': 44.0, 'peak_context_median': 182102, 'results_tokens_median': 74636, 'output_tokens_median': 37068, 'over_5_minutes': 64, 'started_in_background': 40}
+  counts: {'tool_calls': 11872, 'reads_and_searches': 6725, 'reads_under_1500_chars_share': 0.441, 'skills_listed_median': 58.0, 'skills_listed_tokens_median': 11738, 'instruction_tokens_loaded_median': 6393}
+
+2026-11-22-bug-and-brick-breaker-add
+  authors' commits and what went with them: {'agents': 16, 'commits': 69, 'fixups': 58, 'amends': 58, 'amends_with_fix': 55, 'subagents_started': 67, 'started_in_background': 66, 'check_runs': 524, 'rewrites': 6, 'usd': 236.32, 'usd_with_reviews': 273.04, 'requests': 2645}
+  a commit: {'model_min': 6.6, 'checks_min': 5.0, 'review_wait_min': 0.0, 'queue_wait_min': 1.0, 'background_wait_min': 0.3, 'other_tools_min': 0.8, 'busy_min': 12.8, 'elapsed_min': 13.3, 'check_runs': 7.6, 'rewrites': 0.09, 'requests': 38.3, 'usd': 3.42, 'usd_with_reviews': 3.96}
+  to a worker's first edit: {'workers': 16, 'minutes_median': 7.2, 'requests_median': 34.5, 'usd_median': 2.82, 'context_at_first_edit_median': 203866}
+  a review: {'count': 72, 'minutes_median': 2.0, 'minutes_p90': 3.1, 'usd_median': 0.53, 'usd_total': 41.03, 'share_of_spend': 0.121, 'requests_median': 10.0, 'tool_calls_median': 11.0, 'peak_context_median': 52402, 'results_tokens_median': 34658, 'output_tokens_median': 11166, 'over_5_minutes': 1, 'started_in_background': 71}
+  counts: {'tool_calls': 4495, 'reads_and_searches': 1786, 'reads_under_1500_chars_share': 0.408, 'skills_listed_median': 69, 'skills_listed_tokens_median': 11912, 'instruction_tokens_loaded_median': 11150, 'instruction_tokens_loaded_by_role': {'main': 33174, 'worker': 11150, 'reviewer': 0, 'helper': 0}}
+

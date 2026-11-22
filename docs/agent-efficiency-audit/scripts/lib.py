@@ -43,11 +43,12 @@ BASELINE = {
 # they were.
 LATER = {
     "b14579b9-1286-5e46-af2b-d819322c1376": "player-text",
+    "7f1bb2c3-18f2-5371-99d1-649d9e347577": "bug-reports-and-aimed-serve",
 }
 # The efforts whose workers' logs are whole, so `extras.py` can set a
 # worker's commits and cost against its size and against how many were busy.
 # A new effort belongs here too unless its workers' logs are cut.
-WHOLE = ("brick-breaker-uplift", "brick-fuzz-pop", "player-text")
+WHOLE = ("brick-breaker-uplift", "brick-fuzz-pop", "player-text", "bug-reports-and-aimed-serve")
 
 
 def chosen_efforts():

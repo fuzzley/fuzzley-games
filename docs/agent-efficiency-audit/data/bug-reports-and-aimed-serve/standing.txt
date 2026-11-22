@@ -1,0 +1,125 @@
+== The agents ==
+  efforts=1 agents=96 (workers/reviewers/helpers/main 15/73/7/1); the machine's other sessions hold 1419 more
+  their tool calls: Bash 3896, Read 161, Edit 56, Write 93, Skill 22, a connector's tool 22
+  shell commands the extraction cut short, read here by head and tail alone: 333 of 3896
+
+== Each AGENTS.md: the agents that had it, of the efforts' ==
+  now: its size today; then: its median size as the harness loaded it, today's where it never did
+  loaded: the harness loaded it, as the agent opened a file beside it with Read, Edit or Write
+  read: a Read call that returned half of it or more, a command that prints a file whole, or git show of it
+  part: lines of it only (sed -n, head, tail, a pipe into one, a shorter Read), and no whole read
+  both: loaded, and read or read in part; had it: any of those, as workers/reviewers/helpers/main
+  searched: by grep or over a wildcard, and none of those
+  share: of every file's size then, times its loads plus its whole reads, so an agent with both counts twice
+  file                                        now  then loaded  read  part  both searched  share  had it
+  .agents/AGENTS.md                            12    12     19     1     2     2        0    48%  20 (15/1/3/1)
+  frontend/AGENTS.md                            9     9     17     1     8     7        1    30%  19 (15/1/2/1)
+  frontend/games/AGENTS.md                      4     4     14     2     1     3        2    14%  14 (12/0/1/1)
+  frontend/games/asteroid-breaker/AGENTS.md     2     2      3     1     0     1        0     2%  3 (3/0/0/0)
+  frontend/games/brick-breaker/AGENTS.md        1     1      7     1     1     2        1     1%  7 (5/0/1/1)
+  frontend/games/brick-fuzz-pop/AGENTS.md       1     1      3     1     1     1        2     1%  4 (2/0/1/1)
+  frontend/games/sudoku/AGENTS.md               2     2      1     1     1     1        1     1%  2 (1/0/1/0)
+  frontend/games/solitaire/AGENTS.md            2     2      1     1     1     1        1     1%  2 (1/0/0/1)
+  frontend/games/minesweeper/AGENTS.md          1     1      3     1     1     1        0     1%  4 (2/0/1/1)
+  frontend/lib/dev/AGENTS.md                    1     1      2     0     0     0        0     1%  2 (1/0/1/0)
+  frontend/games/snake/AGENTS.md                1     1      2     1     0     1        0     1%  2 (1/0/0/1)
+  frontend/lib/game-ui/AGENTS.md                1     1      2     1     2     1        1     0%  4 (2/0/1/1)
+  frontend/lib/phaser/AGENTS.md                 1     1      0     1     1     0        0     0%  2 (1/1/0/0)
+  frontend/lib/ui/AGENTS.md                     0     0      1     1     3     1        1     0%  4 (2/0/1/1)
+  frontend/lib/core/AGENTS.md                   1     1      0     0     1     0        1     0%  1 (0/0/0/1)
+  frontend/lib/style/AGENTS.md                  1     1      0     0     0     0        0     0%  0 (0/0/0/0)
+  frontend/site/AGENTS.md                       1     1      0     0     0     0        0     0%  0 (0/0/0/0)
+  agents that had no AGENTS.md: 73 (0/70/3/0)
+  the first eight's share together: 97.5%
+  every file's size then, times its loads plus its whole reads: 0.2M tokens
+
+== Each skill: the agents that used it ==
+  tool: loaded with the Skill tool; read: its SKILL.md by a Read call that returned half of it or more,
+  a command that prints a file whole, or git show of it; part: lines of its SKILL.md only
+  searched: its SKILL.md by grep or over a wildcard, and no more. A sweep of every skill counts for each,
+  and for a skill newer than the sweep, since a wildcard is matched against today's files
+  refs: read a reference file of it, whole or in part; edited: changed its SKILL.md with Edit or Write
+  elsewhere: agents of the machine's other sessions that loaded it or read it, whole or in part
+  skill                                KB  desc refs KB  added tool  read  part searched  refs edited elsewhere
+  add-solitaire-game                   18   371       0  08-12    0     0     0        2     0      0        19
+  angular-developer                    10   331     136  10-11    1     0     0        1     0      0         3
+  angular-testing                       7   395       0  10-26    4     5     3        1     0      0       145
+  asteroid-breaker-content             11   365       0  11-04    0     0     0        1     0      0        42
+  asteroid-breaker-testing             15   354       0  11-04    1     2     1        1     0      0       164
+  brick-breaker-content                15   330       0  10-30    0     0     1        1     0      0        75
+  brick-breaker-testing                11   311       0  10-30    0     5     1        1     0      0       125
+  brick-fuzz-pop-content               11   329       0  11-11    0     0     0        1     0      0        26
+  brick-fuzz-pop-testing               17   368       0  11-11    1     0     1        2     0      0        83
+  commit-review-process                11   389       0  10-30    3    15     2        1     0      1       197
+  fuzzley-ui                           38   355       0  10-25    2     3     6        2     0      1       102
+  github-actions-ci-cd                 10   390       0  10-11    0     0     0        1     0      0        23
+  merge-to-main                         8   370       0  11-10    0     0     1        1     0      0        45
+  multi-agent-build                     8   331       0  11-21    1     5    15        1     0      1         6
+  phaser-canvas-performance             5   341       0  10-27    0     1     0        1     0      0        36
+  phaser-core                          25   356       0  10-27    0     2     2        1     0      0       180
+  player-text                          12   394      43  11-17    6    34     1        1    36      0        78
+  web-game-accessibility                8   376       0  10-11    3     1     2        1     0      0        96
+  loaded or read by no agent on the machine, even in part: none
+
+== Each reference file: the agents that read it, whole or in part, of the efforts' and elsewhere ==
+  angular-developer/references/angular-animations.md                 4 KB  read by   0 and  0
+  angular-developer/references/angular-aria.md                      18 KB  read by   0 and  0
+  angular-developer/references/cli.md                                4 KB  read by   0 and  0
+  angular-developer/references/component-harnesses.md                3 KB  read by   0 and  0
+  angular-developer/references/component-styling.md                  3 KB  read by   0 and  0
+  angular-developer/references/components.md                         3 KB  read by   0 and  0
+  angular-developer/references/creating-services.md                  3 KB  read by   0 and  1
+  angular-developer/references/data-resolvers.md                     2 KB  read by   0 and  0
+  angular-developer/references/define-routes.md                      2 KB  read by   0 and  0
+  angular-developer/references/defining-providers.md                 2 KB  read by   0 and  0
+  angular-developer/references/di-fundamentals.md                    3 KB  read by   0 and  1
+  angular-developer/references/e2e-testing.md                        3 KB  read by   0 and  0
+  angular-developer/references/effects.md                            3 KB  read by   0 and  3
+  angular-developer/references/environment-configuration.md          3 KB  read by   0 and  0
+  angular-developer/references/hierarchical-injectors.md             2 KB  read by   0 and  0
+  angular-developer/references/host-elements.md                      2 KB  read by   0 and  0
+  angular-developer/references/injection-context.md                  2 KB  read by   0 and  1
+  angular-developer/references/inputs.md                             3 KB  read by   0 and  0
+  angular-developer/references/linked-signal.md                      3 KB  read by   0 and  0
+  angular-developer/references/loading-strategies.md                 1 KB  read by   0 and  0
+  angular-developer/references/mcp.md                                4 KB  read by   0 and  0
+  angular-developer/references/migrations.md                         2 KB  read by   0 and  0
+  angular-developer/references/navigate-to-routes.md                 2 KB  read by   0 and  0
+  angular-developer/references/outputs.md                            3 KB  read by   0 and  0
+  angular-developer/references/reactive-forms.md                     4 KB  read by   0 and  0
+  angular-developer/references/rendering-strategies.md               2 KB  read by   0 and  0
+  angular-developer/references/resource.md                           3 KB  read by   0 and  0
+  angular-developer/references/route-animations.md                   2 KB  read by   0 and  0
+  angular-developer/references/route-guards.md                       1 KB  read by   0 and  0
+  angular-developer/references/router-lifecycle.md                   2 KB  read by   0 and  0
+  angular-developer/references/router-testing.md                     4 KB  read by   0 and  0
+  angular-developer/references/show-routes-with-outlets.md           2 KB  read by   0 and  0
+  angular-developer/references/signal-forms.md                      28 KB  read by   0 and  0
+  angular-developer/references/signals-overview.md                   3 KB  read by   0 and  1
+  angular-developer/references/tailwind-css.md                       2 KB  read by   0 and  0
+  angular-developer/references/template-driven-forms.md              4 KB  read by   0 and  0
+  angular-developer/references/testing-fundamentals.md               3 KB  read by   0 and  0
+  player-text/references/catalogs.md                                 3 KB  read by   0 and 29
+  player-text/references/descriptions.md                             4 KB  read by   1 and 32
+  player-text/references/how-to-play.md                              6 KB  read by   2 and 36
+  player-text/references/labels.md                                   4 KB  read by  14 and 32
+  player-text/references/messages.md                                 4 KB  read by  19 and 30
+  player-text/references/read-back.md                                6 KB  read by  33 and 67
+  player-text/references/spoken.md                                   2 KB  read by   5 and 28
+  player-text/references/swipe.md                                    6 KB  read by   1 and 15
+  player-text/references/words.md                                    7 KB  read by  10 and 49
+
+== The Skill tool, connectors and agent types, on the whole machine ==
+  the Skill tool's calls, 31 in 1515 agents: player-text 6, commit-review-process 6, angular-testing 4, web-game-accessibility 3, update-config (not the repository's) 2, claude-api (not the repository's) 2, merge-to-main 2, fuzzley-ui 2, asteroid-breaker-testing 1, multi-agent-build 1, angular-developer 1, brick-fuzz-pop-testing 1
+  files of skills that are not the repository's, named in a call, by skill: measure 559, snake-testing 68, solitaire-testing 50, sudoku-testing 33, site-testing 30, solitaire-styles 26, minesweeper-testing 25, solitaire-phaser 20, solitaire-build 15, phaser-tweens 15, phaser-graphics-and-shapes 14, tweens 14, phaser-audio-and-sound 13, phaser-particles 13, phaser-text-and-bitmaptext 13, solitaire-types 12, phaser-cameras 9, phaser-scenes 9, text-and-bitmaptext 9, phaser-sprites-and-images 8, measure} 6, scenes 5, phaser-input-keyboard-mouse-touch 4, phaser-render-textures 4, phaser-v4-new-features 3, cameras 3, particles 3, input-keyboard-mouse-touch 3, phaser-groups-and-containers 2, visitor-text 2, phaser-time-and-timers 1, phaser-loading-assets 1, snapdom 1, @fz 1, phaser-scale-and-responsive 1, pruned-then-deleted 1, render-textures 1, v4-new-features 1, v3-to-v4-migration 1, groups-and-containers 1, sprites-and-images 1, phaser-v3-to-v4-migration 1, brick-fuzz-pop-tests 1, canvas-performance 1
+  agent types started: general-purpose 649, commit-reviewer 180, fork 10, none given 2, Explore 2, web-fetch 2
+  connectors called:
+    chrome-devtools              agents= 26 calls=2285
+    chrome-devtools-headless     agents= 50 calls=1860
+    ccd_turn                     agents= 25 calls=203
+    claude_ai_Claude_Docs        agents=  2 calls=32
+    Claude_Browser               agents=  2 calls=15
+    claude-code-remote           agents=  5 calls=15
+    ccd_session                  agents=  5 calls=12
+    hang                         agents=  2 calls=2
+    the two Chrome ones together agents= 71

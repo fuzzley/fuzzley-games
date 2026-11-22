@@ -1,0 +1,87 @@
+== Waits on the root checks' lock ==
+  /tmp/bbu-root-checks.lock: 191 runs, waited 1.26 h in all (p90 87 s, most 213 s), a run's median 69 s
+
+== Characters to a token, in tool results of 20,000 characters or more ==
+  results=119 median=2.55 (a quarter under 2.34, a quarter over 2.58); lib.py uses 2.5
+
+== A worker's ramp-up: from its start to its first source edit (whole logs only) ==
+  brick-breaker-uplift         workers=23 minutes= 7.4 requests= 56 cost=$3.72 context at the first edit=265k
+      of that context, a worker's median: 52k at its first request, 146k of tool results, 6k of instruction files the harness loaded, 41k of its own output
+      the tool results: source files 44%, plans and design docs 19%, AGENTS.md files 11%, skills 8%, other 8%, work logs 7%
+
+== Cost and time a commit, by how many commits the worker made ==
+  brick-breaker-uplift
+      1-2  commits: workers= 7 $ 14.2 a commit,  33.8 busy minutes a commit, 0.4 compactions a worker
+      3-4  commits: workers=13 $ 10.1 a commit,  25.7 busy minutes a commit, 0.8 compactions a worker
+      5-9  commits: workers= 3 $  9.8 a commit,  23.0 busy minutes a commit, 1.0 compactions a worker
+      workers that compacted at least once: 14 of 23
+
+== The API's speed against the requests in flight (every session on the machine) ==
+  0  other requests:  16395 requests, 104.9 output tokens a second,  21% of the model's seconds
+  1  other requests:  21000 requests, 104.3 output tokens a second,  27% of the model's seconds
+  2  other requests:  18832 requests, 105.8 output tokens a second,  24% of the model's seconds
+  3  other requests:  12072 requests, 105.3 output tokens a second,  15% of the model's seconds
+  4  other requests:   6018 requests, 104.2 output tokens a second,   8% of the model's seconds
+  5+ other requests:   4703 requests, 104.7 output tokens a second,   5% of the model's seconds
+  a request's seconds, fitted over 79019 requests: 0.3 s, and its output at 109 tokens a second
+
+== Commits against busy workers, in half-hour windows ==
+  brick-breaker-uplift: 69 commits
+      1-2  busy:  2 windows,  3.0 commits an hour, 2.22 a busy worker-hour
+      2-3  busy:  2 windows,  5.0 commits an hour, 2.07 a busy worker-hour
+      3-4  busy: 13 windows,  8.5 commits an hour, 2.26 a busy worker-hour
+      4-5  busy:  1 windows, 10.0 commits an hour, 2.50 a busy worker-hour
+
+== What reviewers read, and what the harness loaded for them ==
+  reviews=92; a review's median: 44 tool calls, 75k tokens of results
+  the results by what was read: source files 32%, AGENTS.md files 24%, git diff, show and log 11%, plans and design docs 11%, other 9%, skills 7%, work logs 6%
+  a review's median context: 52k at its first request, 182k at its largest; its own output 37k; instruction files the harness loaded: mean 14k
+  read by a command or the Read tool: .agents/AGENTS.md by 79%, frontend/AGENTS.md by 77%, any AGENTS.md by 97%
+  the harness loaded an AGENTS.md for 57 of 92; 48 of those also read one of the same by command
+
+== What reviewers found ==
+  reports with a count of findings=92 (0 of them the shared library's, counted from its hand-back line): a review's median=5, none in 0; 0 more reports were not a list of findings
+      behaviour bug                     34% of findings; the first finding in  43% of reviews
+      docs, comments, logs              27% of findings; the first finding in  20% of reviews
+      spec gap or weak spec             24% of findings; the first finding in  22% of reviews
+      other                             13% of findings; the first finding in  14% of reviews
+      structure, naming, duplication     3% of findings; the first finding in   1% of reviews
+
+== What a worker changed between its review's report and its next commit ==
+  brick-breaker-uplift     reviews of code in the background n= 31: source  81%, docs or logs only  13%, nothing   6%
+  brick-breaker-uplift     reviews of code waited on         n= 40: source  68%, docs or logs only  30%, nothing   2%
+
+== Reviews by subject ==
+  code: 77 reviews, $195, docs, plans, skills: 11 reviews, $40, a work log: 4 reviews, $12
+
+== A few counts the report quotes ==
+  worker: 47% of its 2946 reads and searches returned under 1,500 characters
+  reviewer: 41% of its 3419 reads and searches returned under 1,500 characters
+  worker: 458 of its 6683 tool calls touched a work log (6.9%)
+  reviewer: 261 of its 4289 tool calls touched a work log (6.1%)
+  main: 82 of its 807 tool calls touched a work log (10.2%)
+  worker: instruction files the harness loaded, median 46k tokens, none for 0 of 23
+  reviewer: instruction files the harness loaded, median 3k tokens, none for 35 of 92
+  worker: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 43k tokens
+  reviewer: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 20k tokens
+  the skills listed in a subagent's first request: median 58 skills, 11.7k tokens
+
+== A commit's cost with the workers that made none left out ==
+
+== Models, effort levels and the most workers busy at once ==
+  brick-breaker-uplift: at most 5 workers busy in one minute
+      2 helper on opus-5-5 at xhigh, 1 main on opus-5-5 at xhigh, 92 reviewer on opus-5-5 at xhigh, 23 worker on opus-5-5 at xhigh
+
+== A subagent's first request, in parts ==
+  from the cache: what the request read there, which is what the agents of a type share as they start
+  its own: what it wrote, which holds its brief and the lists the harness attaches
+  the second line is in characters: its brief, then each list over the agent's whole log, so one sent twice counts twice
+  brick-breaker-uplift worker: n=23 median 52.3k tokens: 35.0k from the cache (19 of them read 35,010), 17.4k its own
+      its brief 4,161, the skills' list 65,326, the tools' 25,612, the agent types' 3,590, the connectors' notes 6,090; Claude Code 2.1.325
+      started as: general-purpose 23
+  brick-breaker-uplift reviewer: n=92 median 52.5k tokens: 35.0k from the cache (46 of them read 35,010), 17.2k its own
+      its brief 3,526, the skills' list 32,663, the tools' 12,806, the agent types' 1,795, the connectors' notes 3,045; Claude Code 2.1.325
+      started as: general-purpose 89, fork 3
+  brick-breaker-uplift helper: n=2 median 47.9k tokens: 0.0k from the cache (2 of them read 0), 47.9k its own
+      its brief 3,146, the skills' list 32,663, the tools' 12,774, the agent types' 0, the connectors' notes 3,045; Claude Code 2.1.325
+      started as: Explore 2

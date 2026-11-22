@@ -3,8 +3,9 @@
 
 Lock waits, characters to a token, a worker's ramp-up, cost by package size,
 the API's speed under load, commits against busy workers, what reviewers read
-and found and what their authors then changed, and a few counts the report
-quotes. Run `extract.py`, `build.py` and `profile.py` first.
+and found and what their authors then changed, a few counts the report
+quotes, and the parts of a subagent's first request. Run `extract.py`,
+`build.py` and `profile.py` first.
 """
 
 import bisect
@@ -485,6 +486,33 @@ def main():
         most = max((p[0] for p in profile.get(effort, {}).get("series", [])), default=0)
         print(f"  {effort}: at most {most} workers busy in one minute")
         print("      " + ", ".join(f"{n} {role} on {model} at {level}" for (role, model, level), n in sorted(kinds.items())))
+
+    print("\n== A subagent's first request, in parts ==")
+    print("  from the cache: what the request read there, which is what the agents of a type share as they start")
+    print("  its own: what it wrote, which holds its brief and the lists the harness attaches")
+    print("  the second line is in characters: its brief, then each list over the agent's whole log, so one sent twice counts twice")
+    # A request the harness made up, as where a session was refused, is no agent's first.
+    asked = {a["key"]: [q for q in a["requests"] if not q["synthetic"]] for a in agents.values()}
+    for effort in EFFORTS.values():
+        for role in ("worker", "reviewer", "helper"):
+            started = [a for a in agents.values() if by_key[a["key"]]["effort"] == effort and role_of[a["key"]] == role and a["is_sub"] and asked[a["key"]]]
+            if not started:
+                continue
+            first = [asked[a["key"]][0] for a in started]
+            attached = [a.get("attached") or {} for a in started]
+            shared = Counter(req["cr"] for req in first).most_common(1)[0]
+            versions = sorted({version for a in started for version in a.get("versions") or []})
+            types = Counter((a.get("meta") or {}).get("agentType") or "no type logged" for a in started)
+            print(
+                f"  {effort} {role}: n={len(started)} median {median(context(req) for req in first) / 1e3:.1f}k tokens: "
+                f"{median(req['cr'] for req in first) / 1e3:.1f}k from the cache ({shared[1]} of them read {shared[0]:,}), {median(req['cw'] for req in first) / 1e3:.1f}k its own"
+            )
+            print(
+                f"      its brief {median((a.get('prompts') or [{}])[0].get('chars', 0) for a in started):,.0f}, the skills' list {median(at.get('skill_listing', 0) for at in attached):,.0f}, "
+                f"the tools' {median(at.get('deferred_tools_delta', 0) for at in attached):,.0f}, the agent types' {median(at.get('agent_listing_delta', 0) for at in attached):,.0f}, "
+                f"the connectors' notes {median(at.get('mcp_instructions_delta', 0) for at in attached):,.0f}; Claude Code {', '.join(versions) or 'not logged'}"
+            )
+            print("      started as: " + ", ".join(f"{name} {count}" for name, count in types.most_common()))
 
 
 if __name__ == "__main__":

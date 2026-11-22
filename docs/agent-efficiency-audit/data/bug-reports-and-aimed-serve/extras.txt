@@ -1,0 +1,85 @@
+== Waits on the root checks' lock ==
+
+== Characters to a token, in tool results of 20,000 characters or more ==
+  results=84 median=2.40 (a quarter under 2.23, a quarter over 2.56); lib.py uses 2.5
+
+== A worker's ramp-up: from its start to its first source edit (whole logs only) ==
+  bug-reports-and-aimed-serve  workers=15 minutes= 7.3 requests= 35 cost=$2.86 context at the first edit=205k
+      of that context, a worker's median: 67k at its first request, 90k of tool results, 5k of instruction files the harness loaded, 45k of its own output
+      the tool results: source files 67%, skills 16%, plans and design docs 6%, other 6%, AGENTS.md files 3%, git diff, show and log 2%
+
+== Cost and time a commit, by how many commits the worker made ==
+  bug-reports-and-aimed-serve
+      3-4  commits: workers= 1 $  2.4 a commit,   8.5 busy minutes a commit, 0.0 compactions a worker
+      5-9  commits: workers=10 $  2.7 a commit,   8.2 busy minutes a commit, 0.5 compactions a worker
+      10+  commits: workers= 4 $  1.5 a commit,   5.2 busy minutes a commit, 0.5 compactions a worker
+      workers that compacted at least once: 7 of 15
+
+== The API's speed against the requests in flight (every session on the machine) ==
+  0  other requests:  16395 requests, 104.9 output tokens a second,  21% of the model's seconds
+  1  other requests:  21000 requests, 104.3 output tokens a second,  27% of the model's seconds
+  2  other requests:  18832 requests, 105.8 output tokens a second,  24% of the model's seconds
+  3  other requests:  12072 requests, 105.3 output tokens a second,  15% of the model's seconds
+  4  other requests:   6018 requests, 104.2 output tokens a second,   8% of the model's seconds
+  5+ other requests:   4703 requests, 104.7 output tokens a second,   5% of the model's seconds
+  a request's seconds, fitted over 79019 requests: 0.3 s, and its output at 109 tokens a second
+
+== Commits against busy workers, in half-hour windows ==
+  bug-reports-and-aimed-serve: 125 commits
+      1-2  busy:  1 windows, 20.0 commits an hour, 11.54 a busy worker-hour
+      2-3  busy:  3 windows, 22.0 commits an hour, 9.08 a busy worker-hour
+      3-4  busy:  3 windows, 26.0 commits an hour, 7.38 a busy worker-hour
+      4-5  busy:  2 windows, 29.0 commits an hour, 7.25 a busy worker-hour
+
+== What reviewers read, and what the harness loaded for them ==
+  reviews=73; a review's median: 11 tool calls, 34k tokens of results
+  the results by what was read: git diff, show and log 56%, skills 17%, plans and design docs 11%, other 10%, AGENTS.md files 3%, source files 3%
+  a review's median context: 7k at its first request, 52k at its largest; its own output 11k; instruction files the harness loaded: mean 0k
+  read by a command or the Read tool: .agents/AGENTS.md by 1%, frontend/AGENTS.md by 3%, any AGENTS.md by 44%
+  the harness loaded an AGENTS.md for 0 of 73; 0 of those also read one of the same by command
+
+== What reviewers found ==
+  reports with a count of findings=72 (0 of them the shared library's, counted from its hand-back line): a review's median=4, none in 0; 1 more reports were not a list of findings
+      spec gap or weak spec             26% of findings; the first finding in  14% of reviews
+      behaviour bug                     24% of findings; the first finding in  36% of reviews
+      docs, comments, logs              23% of findings; the first finding in  18% of reviews
+      other                             20% of findings; the first finding in  29% of reviews
+      structure, naming, duplication     8% of findings; the first finding in   3% of reviews
+
+== What a worker changed between its review's report and its next commit ==
+  bug-reports-and-aimed-serve reviews of code in the background n= 59: source  51%, docs or logs only   2%, nothing  47%
+
+== Reviews by subject ==
+  code: 62 reviews, $33, docs, plans, skills: 11 reviews, $8
+
+== A few counts the report quotes ==
+  worker: 41% of its 1270 reads and searches returned under 1,500 characters
+  reviewer: 7% of its 43 reads and searches returned under 1,500 characters
+  worker: 1 of its 2780 tool calls touched a work log (0.0%)
+  reviewer: 2 of its 836 tool calls touched a work log (0.2%)
+  main: 40 of its 458 tool calls touched a work log (8.7%)
+  worker: instruction files the harness loaded, median 11k tokens, none for 0 of 15
+  reviewer: instruction files the harness loaded, median 0k tokens, none for 73 of 73
+  worker: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 22k tokens
+  reviewer: the harness's other attachments (lists of skills and tools, files it attached, notices of edits), median 1k tokens
+  the skills listed in a subagent's first request: median 69 skills, 11.9k tokens
+
+== A commit's cost with the workers that made none left out ==
+
+== Models, effort levels and the most workers busy at once ==
+  bug-reports-and-aimed-serve: at most 5 workers busy in one minute
+      7 helper on opus-5-5 at xhigh, 1 main on opus-5-5 at xhigh, 73 reviewer on opus-5-5 at high, 15 worker on opus-5-5 at xhigh
+
+== A subagent's first request, in parts ==
+  from the cache: what the request read there, which is what the agents of a type share as they start
+  its own: what it wrote, which holds its brief and the lists the harness attaches
+  the second line is in characters: its brief, then each list over the agent's whole log, so one sent twice counts twice
+  bug-reports-and-aimed-serve worker: n=15 median 66.8k tokens: 47.7k from the cache (11 of them read 47,691), 19.7k its own
+      its brief 9,140, the skills' list 36,723, the tools' 9,620, the agent types' 4,273, the connectors' notes 2,157; Claude Code 2.1.330
+      started as: general-purpose 15
+  bug-reports-and-aimed-serve reviewer: n=73 median 7.3k tokens: 5.4k from the cache (54 of them read 5,352), 2.0k its own
+      its brief 2,405, the skills' list 0, the tools' 0, the agent types' 0, the connectors' notes 2,157; Claude Code 2.1.330
+      started as: commit-reviewer 73
+  bug-reports-and-aimed-serve helper: n=7 median 62.3k tokens: 0.0k from the cache (4 of them read 0), 62.0k its own
+      its brief 3,432, the skills' list 30,081, the tools' 9,620, the agent types' 4,273, the connectors' notes 2,157; Claude Code 2.1.330
+      started as: general-purpose 7

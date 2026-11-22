@@ -13,29 +13,31 @@ The stage that prunes the `AGENTS.md` files comes last. It is the largest and th
 | 3     | A `commit-reviewer` agent type, and its effort    | 2, 6        | `.agents/`, the replay set               |
 | 4     | A skill for how a build runs                      | 3 to 7      | a new skill                              |
 | 5     | A build's state, to check by hand                 | 7           | the plugin, outside the repository       |
-| 6     | The first measured build, to be chosen            | all         | that feature's plan                      |
+| 6     | The first measured build: bug reports, Nov 22     | all         | that feature's plan                      |
 | 7     | The standing docs, skills and plugins: the review | 3           | every `AGENTS.md`, every skill, settings |
 
 - **Stages 1 to 5 change no game code.** They edit three skills, the scripts under `.agents/`, one agent definition and the plugin. Each is a branch of one to four commits, reviewed by `commit-review-process` and merged when you ask.
-- **Stage 6 is the test.** Nothing before it is proven: every saving in the audit is an estimate from logs.
-- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift. Its cut of the `AGENTS.md` files is made, 560.5 KB to 38.3 KB, by your rule that one holds instructions alone, and the lint now holds each file to a budget. The skills followed, by your rule for what earns one: 48 became 18, and their bodies went from 817 KB to 237.
+- **Stage 6 was the test,** and it ran on Nov 22: the bug-reports build, measured against the Brick Breaker uplift. A worker's commit cost under half and took half the minutes, and a review cost a fifth. Three figures did not move. [Stage 6](#stage-6-the-first-measured-build) has what the build showed and what it cannot.
+- **Stage 7 was to run after that build,** so the build would give a before-figure for what the pruning buys. On Nov 21 you skipped stage 6 for now, so stage 7 began first and takes its before-figure from the Brick Breaker uplift. Its cut of the `AGENTS.md` files is made, 560.5 KB to 38.3 KB, by your rule that one holds instructions alone, and the lint now holds each file to a budget. The skills followed, by your rule for what earns one: 48 became 18, and their bodies went from 817 KB to 237. With the rules those skills left behind and two changes since, the `AGENTS.md` files hold 42.5 KB. The build of Nov 22 ran with both in place.
 
-The figures to beat, from the Brick Breaker uplift, which is the plugin's baseline run:
+The figures to beat, from the Brick Breaker uplift, which is the plugin's baseline run, and what the bug-reports build measured on Nov 22:
 
-| Per commit, or per review            | Now    | Hoped for (est.) | Stage |
-| ------------------------------------ | ------ | ---------------- | ----- |
-| Cost a commit, all told              | $11.30 | about $9         | all   |
-| A worker's elapsed minutes a commit  | 26.5   | about 21         | 1, 2  |
-| A worker's context rewrites a commit | 0.70   | under 0.3        | 1, 2  |
-| Check commands a commit              | 13.8   | 4 or fewer       | 1     |
-| A review's cost                      | $2.47  | about $1.50      | 1, 3  |
-| A review's minutes                   | 6.1    | under 5          | 1     |
-| Requests that carry one tool call    | 92%    | under 80%        | 3, 4  |
-| A worker's context at its first edit | 265k   | under 200k       | 4, 7  |
-| A subagent's first request           | 53k    | about 40k        | 7     |
-| Every `AGENTS.md` together           | 557 KB | under 300 KB     | 7     |
+| Per commit, or per review            | Baseline | Hoped for (est.) | Measured   | Stage |
+| ------------------------------------ | -------- | ---------------- | ---------- | ----- |
+| Cost a commit, all told              | $11.30   | about $9         | $5.37      | all   |
+| A worker's elapsed minutes a commit  | 26.5     | about 21         | 13.3       | 1, 2  |
+| A worker's context rewrites a commit | 0.70     | under 0.3        | 0.09       | 1, 2  |
+| Check commands a commit              | 13.8     | 4 or fewer       | 7.6        | 1     |
+| A review's cost                      | $2.47    | about $1.50      | $0.53      | 1, 3  |
+| A review's minutes                   | 6.1      | under 5          | 2.0        | 1     |
+| Requests that carry one tool call    | 92%      | under 80%        | 93%        | 3, 4  |
+| A worker's context at its first edit | 265k     | under 200k       | 204k       | 4, 7  |
+| A subagent's first request           | 53k      | about 40k        | 67k and 7k | 7     |
+| Every `AGENTS.md` together           | 557 KB   | under 300 KB     | 42.5 KB    | 7     |
 
 One build is one data point. A figure that moves by a tenth on one build has not moved. And stage 6 turns stages 1 to 5 on together, so the last column says which stage should move a figure, not which one a single build can prove did.
+
+The measured column is the build's [scorecard](data/bug-reports-and-aimed-serve/scorecard.md), read as [stage 6](#stage-6-the-first-measured-build) sets out. Four rows need a word here. The cost a commit is the build's $338 over the 63 commits it landed; the scorecard prints $3.80, over 89 that count a work log's 26, and reads the baseline at $10.99 by its own count of that build's commits. The first request is a worker's 67k beside a `commit-reviewer`'s 7k. The baseline's 92% and 53k are the audit's seven efforts together: the Brick Breaker uplift alone, which the scorecard and the stages below compare with, gives 94% and 52k. The `AGENTS.md` row's 557 KB is the files on Nov 21, before the cut; the uplift itself ran with 411 to 453 KB of them, by the report. [`landed.txt`](data/bug-reports-and-aimed-serve/landed.txt) counts them at the build's start and end.
 
 ## Decisions
 
@@ -46,7 +48,7 @@ Settled with you on Nov 21:
 3. **One skill for how a build runs,** `multi-agent-build`, in place of the sections on running in parallel and on checks that each plan has copied forward.
 4. **No notification from outside the orchestrator.** You will look in on a build by hand now and then. So stage 5 makes that look quick and plain, and sends nothing anywhere.
 5. **The reviewer runs at `high` effort.** On the first comparison ([stage 3a](#stage-3-a-commit-reviewer-agent-type-and-its-effort)) it found all 20 planted defects that `xhigh` found, at about half the cost and time. The set could not have shown a small loss, and that risk is taken with eyes open: stage 6 watches what the finishing audit and CI catch.
-6. **The test build is not chosen yet.** Stage 6 is not work of its own; it is the first feature built the new way, measured. Which feature that is will be decided later.
+6. **The test build was the bug-reports build,** on Nov 22. Stage 6 is not work of its own; it is the first feature built the new way, measured. You started that build yourself with `/measure` on, and named it afterwards as the one to count.
 7. **The budgets and the rules** wait for stage 7, which settles them with you file by file.
 
 ## How each stage is done
@@ -96,7 +98,9 @@ The audit's recommendation 5. The smallest change, and it stands alone.
 - **The decision: a queue of one, inside the command.** `yarn verify:changed` joins a queue before its tasks and runs once every run that started before it has ended, in any worktree of the repository. It says how many it waits for, then how long it waited, and reads the free memory only once its turn comes. No brief carries a lock and no worker can leave one out. A run marks its place every 5 s, and a place a minute unmarked is passed over, so a run that was killed holds the queue for a minute at most. A look that finds the clock has jumped, as it does when the machine wakes, passes over nothing. `@fz/dev`'s `src/queue.ts` holds it, with its specs.
 - **What a turn costs.** A worker at the baseline lands a commit every 26 minutes, and its one check takes one to three, so most runs find the queue empty. The worst case is four heavy runs joining together: the last waits about nine minutes, and its call passes the ten minutes a shell command may take. The skill's step 1 gives the command ten minutes. Stage 4's skill says what a worker does past that.
 - **The skill.** Step 1 names the one command, `--base` for a branch that holds more than the change, and the ten minutes. The brief's third sentence says the author ran it. The reviewer starts at `high` effort.
-- **Not measured yet.** Check commands and minutes a commit, the time spent in the queue, and the rewrites that follow a check wait for the stage 6 build. A run that waited prints `Waited <n> s for its turn.`, which is the line to count. `yarn verify` and `yarn verify:full` join no queue. Each runs its steps one after another, and merging runs one at a time already.
+- **Measured on Nov 22,** on [the stage 6 build](#stage-6-the-first-measured-build). A worker ran 7.6 check commands a commit, where the baseline's ran 13.8, and spent 5.0 minutes a commit in them against 8.4. Of the build's six context rewrites, two followed a check or script of over five minutes. The 7.6 are the workers' own 524 commands over their 69 commits. The scorecard's table of checks counts every agent's, some 900 runs: 173 of `verify`, of which the line under the table counts `yarn verify:changed` 172 times, a workspace's tests 304 and Prettier 233.
+- **The queue cost more than "most runs find the queue empty" foresaw.** About 77 of the 172 runs waited their turn, 1.4 hours together and a minute of the five a commit, with 134 seconds at the 90th percentile and 261 at most. These are estimates. A run that waited prints `Waited <n> s for its turn.` before its tasks, and every one of the 172 calls kept only the end of its output, sent it to a file or ran on in the background. So the plugin works a wait out from the times of the calls that overlapped. [`queue-waits.txt`](data/bug-reports-and-aimed-serve/queue-waits.txt) checks that against the 65 calls whose kept output still showed the run's own table of tasks: their length less the table's span comes to 0.80 hours at most, since that also counts any other step of the command, and the working-out gives the same calls 0.73. The two differ on which calls waited five seconds or more: 45 by the first, 36 by the second.
+- **What joins no queue.** `yarn verify` and `yarn verify:full`. Each runs its steps one after another, and merging runs one at a time already.
 
 ## Stage 2. Reviews in the background
 
@@ -151,7 +155,8 @@ The audit's recommendation 1. With the reviewer at `high` (decision 5) the gain 
   - **The squash is checked by a diff, not by a second run of the check.** A squash only folds, so the tree should come out as it went in. `yarn verify:changed` runs again only where it didn't. That saves a package one check of one to three minutes.
 - **What it did not show.** Both changes were Markdown, in one session whose author was not a worker with its own worktree. The second change touched another file and built on nothing in the first, so the risk above, of building on a commit its reviewer then faults, was not met. No squash conflicted in the trial itself. The last review of a package is still waited on, since the squash needs every report in: here that was 3.5 minutes.
 - **The plugin.** It counts an `amend!` commit from the `amend!` line in the command's message or in what git printed, as a fix-up and not as a commit, and counts apart those that carry a fix. It totals them across a run's authors and by arm, not worker by worker. Two past runs came out as before, but for the new figures. It also adds up `Waited <n> s for its turn.`, stage 1's measure.
-- **Not measured yet.** A worker's elapsed minutes and rewrites a commit wait for the stage 6 build.
+- **Measured on Nov 22,** on [the stage 6 build](#stage-6-the-first-measured-build). A worker's elapsed minutes a commit were 13.3 against the baseline's 26.5, none of them blocked on a review where 3.8 were. Its rewrites a commit were 0.09 against 0.70: six in the build, two of them as a worker waited on a background task or subagent. Of the 72 reviews, 71 ran in the background. Workers answered theirs in 58 `amend!` commits, 55 with a fix. The audit's script counts another way, by what a worker changed between a review's report and its next commit: source after 51% of this build's 59 reviews of code in the background, where the baseline had 81% of its 31 in the background and 68% of the 40 a worker waited on. The 51% is lower than 55 fixes would give. The script's window closes at the worker's next commit, so it may miss an answer made after that, and may count an edit for the next change as one.
+- **What the stage risked is not measured:** the figures do not show whether a worker built on a commit its reviewer then faulted. What did go wrong, by the build's work log, is that two workers handed their packages back with their last review still out. At your word the skill now has an author wait for that review like any other, with a half-hour timer on each review in the background. A third worker did the same after that, and was sent back to wait.
 
 ## Stage 3. A `commit-reviewer` agent type, and its effort
 
@@ -244,7 +249,8 @@ The audit's recommendation 2, with recommendation 6 for reviewers: 7 to 9% of sp
   - **The quote is sentences, not bullets,** from a list of sources the skill names, and a rule the 300 words leave out is named for the reviewer to search for.
 - **Left.** The link script has no spec: no test runner reaches `.agents/`, and its cases were tried by hand in a scratch folder. Its Windows path, where a file link needs Developer Mode, was read and not run. The `agent-sonnet` arm was not run.
 - **What it cost.** $24 at list prices for this stage's runs: $6 for the quotes, $10 for the new reviewer's 30 reviews, $6 for the present review's 10, and $2 for the relays and the judge. With the first two arms that is $65, 3.3% of a week.
-- **Not measured yet.** A review's cost, minutes, requests and peak context in a build, and what writing the quote adds to its author's, wait for stage 6.
+- **Measured on Nov 22,** on [the stage 6 build](#stage-6-the-first-measured-build), where every review was a `commit-reviewer`. A review cost $0.53 at the median against the baseline's $2.47 and took 2.0 minutes against 6.1, with one of the 72 past five. It made 10 requests against 41 and 11 tool calls against 44, started at 7k of context and peaked at 52k against 182k. Reviews were 12% of the build's cost, where they were 28%. The harness loaded an `AGENTS.md` for none of them, and 44% read from one by a command. Each report held a finding, four at the median.
+- **What the quote adds to its author's cost** was not measured apart. A review's brief ran to 2,400 characters at the median.
 
 ## Stage 4. A skill for how a build runs
 
@@ -302,7 +308,9 @@ The audit's recommendations 4 and 6, the briefs and the commit-body answers of 3
 - **What the old sections held that is gone on purpose.** A worker count for the specs (`--maxWorkers`) and the lock around the root's checks, which the queue replaces. `yarn verify` and `yarn check:layout` at each wave's end, which the unbased `yarn verify:changed` replaces, since it builds and runs the layout checks. Sending a large collision to the stream's next agent, since no stream has one.
 - **What the reviews changed.** A `commit-reviewer` read the draft against the code and the three plans and found eight things, all taken. The largest: nothing said who has a rebased commit reviewed once its worker is gone, and the draft left open how a worker opens a browser, where `frontend/AGENTS.md` points at a Chrome connector that sessions share. A worker now scripts `@fz/dev`'s headless Chrome. A second review, of the fix, found five more, all taken. Two were rules the cut to 8 KB had dropped: the `[helper]` tag, and a worker's report of what it added to files it doesn't own.
 - **What the 8 KB cost.** The draft with the first review's fixes in it ran to 8,559 bytes, as measured in the working tree before the cut. The cut took a longer description and opening, the queue's own words, reasons, and sentences that `commit-review-process` already holds. After the second review it took no rule.
-- **Not measured yet.** A worker's context at its first edit, cost by package size, requests with one tool call and the hours workers wait all need the stage 6 build.
+- **Measured on Nov 22.** [The stage 6 build](#stage-6-the-first-measured-build) ran by the skill: sixteen workers in worktrees of their own, five busy at most and 2.2 on average, each from a brief of 9,100 characters at the median. A worker reached its first edit at 204k of context against the baseline's 265k, in 34 requests against 56. What it read on the way fell from 146k of tool results to 90k, and the plan, the `AGENTS.md` files and the skills were a quarter of that reading, where with the work logs they were 45%. Workers waited 0.1 hours for the orchestrator.
+- **What did not move.** Requests with one tool call, 93% of a worker's. A worker's mean context, 266k a request against 269k, with 7 of the 16 compacting. And its first request grew, to 67k from 52k, which [stage 7](#stage-7-the-standing-docs-skills-and-plugins) takes up.
+- **Cost by package size is not read from this build.** Seven workers made three or four commits, five made five to nine, one ten or more and three one or two, and the audit's script counts each `amend!` as a commit of its own.
 
 ## Stage 5. A build's state, to check by hand
 
@@ -374,6 +382,66 @@ Not work of its own: a multi-agent build still to be chosen (decision 6), run by
 - **The week:** the share it used, read from the account at both ends.
 
 **What follows.** A recommendation whose figure did not move is looked at again before the next build, and this plan's table gains a column for what was measured.
+
+**Where it stands (Nov 22).** Run, and measured. You started the bug-reports build yourself with `/measure` on, and named it afterwards as the build to count: a bug report that carries the page's picture and the game's state, for all seven games on shared pieces, and Brick Breaker's aimed serve. Sixteen workers built it in 6.9 hours, and it landed on `main` as 63 commits. [`data/bug-reports-and-aimed-serve/`](data/bug-reports-and-aimed-serve/) holds its scorecard, and what the audit's scripts printed for the same session.
+
+- **How it ran, against the steps above.** By `multi-agent-build` and `commit-review-process` as merged, with stages 1 to 5 and 7 all in place. It carried no `--trying` label. Every review was a `commit-reviewer`, so step 2's reviews by halves were not run, and at your word they are dropped: the replay set the two reviews side by side, and a build would pay the old review's price on half its packages to learn that again.
+- **Cost and time,** by a worker's own loop, which is 69 commits in both builds:
+
+  | A worker's commit           | Baseline | This build |
+  | --------------------------- | -------: | ---------: |
+  | Cost                        |    $7.90 |      $3.42 |
+  | Cost, with its reviews      |   $10.60 |      $3.96 |
+  | Requests                    |       90 |         38 |
+  | Elapsed minutes             |     26.5 |       13.3 |
+  | Minutes with the model      |     10.9 |        6.6 |
+  | Minutes in checks           |      8.4 |        5.0 |
+  | Minutes blocked on a review |      3.8 |          0 |
+  | Context rewrites            |     0.70 |       0.09 |
+
+  The whole build cost $338 at list prices against $868, and $1.46 for 100 lines of source and specs against $2.96. A landed commit was the same size in both, about 370 such lines: 23,168 over 63, and 29,358 over 79. Workers cost $236 where they cost $545, and reviews $41 where they cost $248.
+
+- **Where the saving came from.** Fewer requests, not cheaper ones. A worker made 38 requests a commit where it made 90, and each still carried 266k of context at the mean, against 269k. It reached its first edit in 34 requests against 56, checked with the one queued command where it ran a list of them, never stood blocked on a review, and wrote its context again six times in the build against 48. A review made 10 requests against 41, and started at 7k of context where it started at 52k.
+- **What did not move, or fell short of what was hoped:**
+  - **Requests with one tool call,** 93% of a worker's, where under 80% was hoped for. The brief's line on reading in one command or in parallel calls changed nothing that shows here.
+  - **A worker's context.** It reaches its first edit at 204k, down from 265k, then grows as before: 266k a request at the mean, and 7 of the 16 workers compacted.
+  - **Check commands a commit,** 7.6 where four or fewer were hoped for. Across every agent, `yarn verify:changed` ran 172 times in the build, a workspace's tests 304 and Prettier 233. The minutes fell, and the count was a stand-in for those.
+  - **A worker's first request,** 67k where it was 52k. [Stage 7](#stage-7-the-standing-docs-skills-and-plugins) has what grew, which is most likely not the repository's.
+  - **The hours checks stood waiting.** The queue's waits come to 1.4 hours, where the baseline's lock cost 1.26.
+- **Quality:**
+  - **Every review found something.** The 72 reports held four findings at the median, and none held zero. Workers answered theirs in 58 `amend!` commits, 55 with a fix.
+  - **The finishing check found two faults in code that had landed reviewed.** Brick Fuzz Pop left its drawer open over a loaded report, and Asteroid Breaker refused a report filed before a first wave. Both came to light when a report was filed and loaded back in each game, end to end, which no review of a commit does. A package of two commits mended them.
+  - **`yarn verify:full` passed at its first run,** in 3 minutes 11 seconds with every floor holding. The layout checks and the image held too. A coverage run then found 11 added lines no spec ran, and a last package wrote specs that reach eight of them.
+  - **CI passed on `main`** after the merge, on both pushes.
+  - **No landing collided.**
+  - **One fault of process,** stage 2's: three workers handed back with a review still out, the third after the skill said to wait.
+  - **On the reviewer's effort (decision 5),** nothing here says `high` missed what `xhigh` would have caught. Nothing could: the two faults the finish found showed only with the game running, which a reviewer at either effort never has.
+
+  The second, third, fifth and sixth of these are from the build's work log. It was dropped before the merge, as you asked of it, so no file here holds them.
+
+- **The week.** About 18.7% of a week's allowance (est.), and 12 points by the account's own reading, 50% to 62%, while this machine logged $339. The build's [plan](../archive/bug-reports-and-aimed-serve/implementation-plan.md) set aside 35% for 59 commits at the baseline's 0.6% each. It used 0.3% a commit over the 63 it landed.
+- **What it cannot say:**
+  - **Which stage did what.** Stages 1 to 5 and 7 were all on, in one build, of another feature than the baseline's. The models were the same: Opus at `xhigh` for workers in both, with reviewers at `high` here.
+  - **How long a check waited, exactly.** The waits are worked out from the calls' times, as [stage 1](#stage-1-one-check-a-commit-each-in-its-turn) says.
+  - **What the audit's scripts say of commits.** They read the whole session, which went on past the run to the merge, and count an `amend!` as a commit. So their totals are a little over the scorecard's, $345 and 73 reviews against $338 and 72, and their commit loop is not read here. They also take for a helper one agent the plugin takes for a worker: 15 workers and 7 helpers, where the scorecard has 16 and 6.
+- **To look at again before the next build,** as "What follows" has it:
+  - **One tool call a request** has stood at 92 to 96% in every build measured. Read a sample of a worker's requests for what kept each to one call, before another line goes into a brief.
+  - **What a request carries.** The saving so far is in how many requests a commit takes. A worker's still carry 266k each, at 9 cents a request.
+  - **The queue of one.** 77 of 172 runs waited. Stage 1's timings had two light runs pass together, so letting a second through when neither reaches a shared library is worth timing again.
+  - **The wait's line.** `yarn verify:changed` could say how long it waited in its last line as well, where a call that keeps only the end of its output still holds it.
+  - **The check count's target.** Four or fewer counted every command. If a test run and Prettier by name are how a change is written, the figure to hold is the minutes.
+  - **The first request's shared part,** 12,700 tokens larger than in the baseline build. One trial with `first_request.py` on the model a build's workers use would show what it holds.
+- **What the build showed wrong in the plugin,** since mended, outside the repository:
+  - **The queue's waits read 0,** the line that names a wait having been cut from the output. They are now worked out, and the scorecard says how many were.
+  - **"Instruction files loaded" read 0,** as one median over every agent, most of them reviewers. It is now given for each role.
+  - **`/measure <name>` with no `start` opened a run** on a guess, and a bare `/measure stop` in a session with no run of its own closed another session's. Each now changes nothing and says what to type, and `/measure drop <name>` sets a run opened by mistake aside.
+  - **A stopped run, derived again later, counted commits up to that day's `HEAD`.** A stop now keeps the commit each repository stands at.
+
+  An agent that had not written the fixes reviewed them against a copy kept from before, round by round, and `tests/test_measure.py` holds 41 checks of them. Both are the plugin's own, which is in no repository, so no file here prints them. The build's scorecard here was derived again afterwards, and came out the same after the last round.
+
+- **Seen on the way:**
+  - **The history rewrite of Nov 22** left the replay set's 25 cases naming commits that are gone. Each was translated by the rewrite's commit map, once its change was shown to be the same in the old clone and the new, and `/measure replay check` finds all 25 sound.
+  - **The link script left a dead link in a workspace that had lost its last skill,** as four did in stage 7. It now prunes there too, and the reference check warns of such a link.
 
 ## Stage 7. The standing docs, skills and plugins
 
@@ -663,9 +731,21 @@ A draft, to be settled in step 4's reading:
 - **What it cannot show.** One review of a case is one sample. The helper wrote each quote with the planted lines in front of it, though not told of them, as before. And the quotes were taken before step 5, so this is a check on the cut of the `AGENTS.md` files and says nothing of the skills' pruning. The next build's reviews and its finishing audit are what test that.
 - **It cost $16.36 at list prices:** $11.28 for the 30 reviews and $5.08 for the 25 briefs' quotes, about 20 cents a case where a few cents had been expected.
 
-**What is left of this stage.**
+**The after-figure (Nov 22),** from [the stage 6 build](#stage-6-the-first-measured-build), which ran with the cut and the pruned skills in place. [`data/bug-reports-and-aimed-serve/extras.txt`](data/bug-reports-and-aimed-serve/extras.txt) and [`standing.txt`](data/bug-reports-and-aimed-serve/standing.txt) hold it, with the baseline's own beside them in [`extras-baseline.txt`](data/bug-reports-and-aimed-serve/extras-baseline.txt).
 
-- **The real after-figure** is the next measured build, stage 6.
+- **What the harness loaded for a worker,** over its whole log, fell from 46k tokens of instruction files to 11k at the median. For a reviewer it loaded none.
+- **Every `AGENTS.md` together** is 42.5 KB, at the build's start and at its end alike: it added to none. [`landed.txt`](data/bug-reports-and-aimed-serve/landed.txt) counts it, and 41.9 KB at this stage's last commit, before two changes of other work. The build's 96 agents' loads and whole reads of the files come to 0.2 million tokens, where the eight efforts' 825 agents' came to 22.6 million: some 2,000 an agent against 27,000.
+- **A worker's context at its first edit** is 204k, against the 200k hoped for and the baseline's 265k. `AGENTS.md` files were 3% of what it read on the way, where they were 11%.
+- **A subagent's first request did not shrink.** A worker's is 67k, where 40k was hoped for and the baseline had 52k. Two parts make it up:
+  - **What it reads from the cache as it starts** went from 35,010 tokens to 47,691, the same figure for 11 of the 15 workers. That part is what the agents of a type share, so it is not a brief, and the lists the harness attaches, the skills' among them, are in the other part. The logs do not hold what is in it. It is most likely not the repository's: the file an agent of the repository starts with, the root `CLAUDE.md` with the `.agents/AGENTS.md` it takes in, is 12.3 KB, about 5k tokens at the audit's 2.5 characters a token, and was 15.4 KB during the uplift ([`landed.txt`](data/bug-reports-and-aimed-serve/landed.txt)), so it shrank while this part grew by 12.7k. Claude Code went from 2.1.325 to 2.1.330 between the two builds.
+  - **Its own part** went from 17k to 20k, with a brief of 9,100 characters where the baseline's was 4,200, which stage 4's skill asks for.
+
+  A `commit-reviewer` starts at 7k.
+
+- **Skills are still reached by name.** `commit-review-process` was read whole by 15 agents, `multi-agent-build` whole by 5 and in lines by 15, and `player-text` whole by 34. The Skill tool was called 22 times, where the eight efforts called it twice.
+- **The build gives no sign that the cut cost it.** Its reviews, its finishing check and CI are under [stage 6](#stage-6-the-first-measured-build). The two faults its finish found are in pieces the build itself made, which no rule from before could have named.
+
+**What is left of this stage.** Nothing of its own. The first request's shared part is on stage 6's list to look at again.
 
 **Seen on the way.** One spec failed twice in a full run on Nov 21, each time by the last digits of a number: Asteroid Breaker's `src/scene/flourishes.spec.ts`, once on "fans a held hit's sparks back the way the shot came, from where it struck" and once on "rests the field within 0.3 s of the blow", with every other suite running beside it. Run alone it passed, three times in three. This stage changed nothing under that game's scene or `@fz/phaser`.
 
@@ -675,13 +755,13 @@ The audit considered and set aside: fewer reviews of code, fast mode, a longer c
 
 ## What the stages use of a week
 
-| Stage | Model usage (est.)                             |
-| ----- | ---------------------------------------------- |
-| 1, 2  | Under 1% each                                  |
-| 3     | 3.3% spent, on the replay arms                 |
-| 4, 5  | About 1% each                                  |
-| 6     | The build's own: 0.6% a commit at the baseline |
-| 7     | 3 to 5% for the review, 1 to 2% for the cuts   |
+| Stage | Model usage (est.)                           |
+| ----- | -------------------------------------------- |
+| 1, 2  | Under 1% each                                |
+| 3     | 3.3% spent, on the replay arms               |
+| 4, 5  | About 1% each                                |
+| 6     | 18.7% for the build, 0.3% a commit           |
+| 7     | 3 to 5% for the review, 1 to 2% for the cuts |
 
 A week's allowance comes to about $1,960 at list prices, good to a sixth either way.
 
@@ -692,3 +772,5 @@ A week's allowance comes to about $1,960 at list prices, good to a sixth either 
 - **Stage 3 (Nov 21).** A review is a `commit-reviewer`, an agent type defined in `.agents/agents/commit-reviewer.md` and linked into `.claude/agents/` by `link-claude-skills.mjs`, which links it into one more folder only when run with `--also-in <folder>`. It holds the repository's rules itself, reads with the shell alone, and runs on Opus at `high`. The author's brief gives what the change is for and the rules that bear on it, quoted in 300 words at most. On the replay set's 25 cases it found every planted defect at half the present review's cost. The figures are under [stage 3](#stage-3-a-commit-reviewer-agent-type-and-its-effort).
 - **Stage 4 (Nov 21).** The `multi-agent-build` skill holds how a build by several agents runs: packages of three to nine commits, four fresh workers at once in worktrees of their own, a brief that quotes its package's part of the plan, one queued check a commit, no work logs, and a landing by a rebase, a check and a fast-forward. Against the Brick Breaker uplift's plan it leaves 58 of the 177 lines of the two sections every plan copied. What it decided is under [stage 4](#stage-4-a-skill-for-how-a-build-runs).
 - **Stage 5 (Nov 21).** `/measure watch <name>` prints a build's state from any session: its orchestrator, each unfinished agent with the hung ones first, the newest commit and the week. It is worked out from the logs when asked, with the two endings a log does not show noted by their hooks. A connector's call now has ten minutes, by `MCP_TOOL_TIMEOUT` in the settings file. The three planted outages and what each read as are under [stage 5](#stage-5-a-builds-state-to-check-by-hand).
+- **Stage 6 (Nov 22).** The bug-reports build was the first measured: sixteen workers, 63 commits landed in 6.9 hours, $338 at list prices and about 18.7% of a week. Against the Brick Breaker uplift, a worker's commit cost $3.42 where it cost $7.90 and took 13.3 minutes where it took 26.5, and a review cost $0.53 where it cost $2.47. Requests with one tool call, a worker's mean context and its first request did not move. The finishing check found two faults that reviews had passed, and CI passed. Reviews by halves were dropped. What it showed and what it cannot is under [stage 6](#stage-6-the-first-measured-build).
+- **Stage 7 (Nov 21).** The 18 `AGENTS.md` files hold instructions alone, 42.5 KB where they held 560.5, each kept to a budget by `yarn lint`. The 48 skills became 18, each with a description of 400 characters at most. Two plugins left your account. In the build of Nov 22 the harness loaded a worker with 11k tokens of instruction files where it had loaded 46k. The cuts and what they cost are under [stage 7](#stage-7-the-standing-docs-skills-and-plugins).

@@ -1,0 +1,14 @@
+The waits in yarn verify:changed's queue that the measure plugin works out for
+the build, set beside a direct reading of the calls that allow one. Printed on
+2026-11-22 from the run's kept logs.
+
+A call whose kept output still shows the run's own table of tasks ran for the
+table's span. The rest of the call's length, less the two seconds a run takes
+to start, is what it waited or spent on another step of its command.
+
+calls that run the check: 172; their output cut: 172; in the background: 23; behind a lock: 0
+waits read from a run's own line: 0; worked out: 77, 1.40 h
+the repository each call's folder gave: {'/home/dev/Projects/personal/fuzzley-games': 161, None: 11}
+calls whose kept output shows the run's table of tasks: 65 of 172
+  by their length less the table's span: 0.80 h, 45 of them 5 s or more
+  worked out for the same calls:         0.73 h, 36 of them 5 s or more
