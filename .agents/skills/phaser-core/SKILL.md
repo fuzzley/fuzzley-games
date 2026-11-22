@@ -1,335 +1,234 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 — the @fz/phaser library (the canvas component, the host, the scene helpers, the headless test harness), where Phaser may be imported, how the Angular shell and a scene talk, how a scene lets go of what it follows, how its specs run, and which phaser-* skill covers each part of Phaser in use. Start here for any Phaser work. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, PhaserHost, @fz/phaser, WebGL, game object, headless, runScene, pointer, wheel, PointerOptions, exact arithmetic, inks, TILE_INKS, FUZZBALL_INKS, cssHex, areas, outlineRoundRect, dashes, svgOf, sidePanels, settledPictures, @fz/phaser/bricks, slabCommands, TILE_SLAB, BRICK_SLAB, combedStrands, fuzzballWearing, wornSparks, eyesCommands, staticSparkCommands, Graphics, pathDetailThreshold, wash, WashCommand, PaintCommand, paintCommands, paintTexture, softDisc, halo, canvasTexture, SpritePlayer, LayerPlayer, SpriteMixing, SoundMix, playAt, followMono, limiter.
+description: How a game here is drawn with Phaser 4 on @fz/phaser — which piece of the library to reach for, where Phaser may be imported, how the shell and a scene talk, input, a scene's end, headless specs, and the phaser-* skill for each part of Phaser. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, @fz/phaser, bakeAtlas, shapes, SpritePlayer, runScene, headless, WebGL.
 ---
 
 # Phaser games here
 
 A game drawn with Phaser 4 keeps Phaser to the code that draws, and builds on
 `@fz/phaser` (`frontend/lib/phaser/`), which holds what every such game shares.
-Its rules are in [its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md). Five
-games are built this way: the Solitaire Collection, whose card-specific rules
-are in its own `solitaire-phaser` skill; Snake (`frontend/games/snake/`), the
-smaller one to start from; Brick Breaker (`frontend/games/brick-breaker/`),
-which draws every brick, ball and capsule from one atlas baked at run time
-(`bakeAtlas()`); Asteroid Breaker (`frontend/games/asteroid-breaker/`),
-which does the same for its rocks, ship and pickups, on a field that wraps,
-beside a deck of controls for a touch screen; and Brick Fuzz Pop
-(`frontend/games/brick-fuzz-pop/`), which bakes its bricks and fuzzballs
-into one atlas too (`bakeWallAtlas()`), on a field as deep as its window
-holds.
+The library's own rules are in
+[its AGENTS.md](../../../frontend/lib/phaser/AGENTS.md).
+
+Snake (`frontend/games/snake/`) is the small game to read first. Its board
+(`frontend/games/snake/src/app/board/board.component.ts`, with its template)
+shows a scene, and its scene (`frontend/games/snake/src/scene/snake_scene.ts`)
+does most of what this skill asks of one. Brick Breaker, Asteroid Breaker and
+Brick Fuzz Pop are laid out as Snake is, and bake their art into one atlas at
+run time (`frontend/games/brick-breaker/src/scene/atlas.ts`). The Solitaire
+Collection is laid out its own way, which its `solitaire-phaser` skill covers.
 
 ## The library
 
-- **`@fz/phaser/canvas`**: `<fz-phaser-canvas>`, the one place an app shows
-  Phaser. Its `scene` is a `SceneSource`, a function returning a scene's
-  factory, `(surroundings: SceneSurroundings) => HostedScene`, or a promise
-  of one, and each new one swaps into the same game; `options`
-  are the host's (`title`, `background`, Phaser's `config`), read once,
-  which a game's board takes from `boardHostOptions(title, element)`;
-  `label`, if given, names the canvas to assistive technology as an image. Its
-  `state` is `loading`, `ready` or `failed`, also as `data-state` on the
-  element. It fails a scene that isn't ready in a minute, or whose source
-  rejects or that can't be built or mounted, handing that error to Angular's
-  `ErrorHandler`, and after 8 seconds `slow` (`data-slow`) says it is still
-  loading. What the app projects as `[fzCanvasPlaceholder]` lies over the
-  canvas until the scene is ready. It loads the host, and Phaser with it,
-  with `import()` when it first shows a scene
-  (`frontend/lib/phaser/src/canvas/`). `<fz-canvas-cards [canvas]="canvas">`,
-  placed in the board's own card layer, says both to the player in every
-  game drawn with Phaser: Still loading, its words in a status region it
-  keeps in the page, the card itself hidden from assistive technology, and
-  couldn't be drawn, an alert with Reload.
-  `canvasCardOf(canvas)` says which shows, as the cards' `card` does, so the
-  board shows none of its own meanwhile, read after `<fz-phaser-canvas>` in
-  the board's template, since the canvas's state needs the scene it is
-  given. The board sets them as it sets its own, through
-  `--fz-canvas-card-room`, `--fz-canvas-card-drop` and `@fz/style`'s
-  `board-card-small`, on the element or around it.
-  Beside them, `canvasRoom()`, called as a board is made, gives the board the
-  canvas it makes, as the host sizes it, and the ratio it renders at, as
-  signals (`viewport`, `pixelRatio`), measured as it is first drawn and each
-  time its size, the zoom or the display changes, so its placeholder lays the
-  board out as the scene will, `fzKeepKeys` keeps a button's keys from the
-  board around it, and `settledPictures(hand)`, called as a board is made
-  too, hands on to `hand` the pictures of each bake of the scene's atlas the
-  board is handed: the first at once, and a later one only once the atlas
-  has settled (`PICTURES_SETTLE_MS`).
-- **`@fz/phaser/host`**: the types a scene and a board take of the host,
-  and nothing else: `HostedScene`, `SceneSurroundings` and `HostOptions`.
-  The host itself, `PhaserHost`, which keeps one Phaser game, and so one
-  WebGL context, for the canvas's whole life, and its `ViewportScaler`,
-  which keeps the canvas at its box's size in device pixels, are the
-  library's own: only the canvas makes a host, so no app can load Phaser
-  past it.
-- **`@fz/phaser/scene`**: the helpers below, for a scene that lives in a game
-  that outlives it.
-- **`@fz/phaser/sound`**: `SpritePlayer`, made in a scene's `create()` so
-  the scene never waits for its sprite, which plays the sprite's sounds,
-  named by its spritemap, while the player wants sound, muting the game
-  while they don't, plays one risen by some cents (`playRisen()`), which a
-  scene hands to `@fz/core`'s `FrameSounds.playEach()`, and loops one while
-  a scene holds it (`hold()`); a sprite that fails to load leaves the game
-  silent, not broken. It plays each sound on sound objects made once and
-  played again, at most `MOST_AT_ONCE` of a sound at once, rather than
-  Phaser's `playAudioSprite()`, which makes one for each play. Handed a
-  mix (`@fz/core/sound_mix`'s `SoundMix`), it plays by it: each sound's
-  takes in turn, a busy noisy one varied, a play at a place across the
-  field panned (`playAt()`), the voices of a sound, a family and all
-  limited, the busy levels ducked under a huge sound, and a limiter after
-  the game's master volume; `followMono()` sums the two ears into one.
-  `LayerPlayer` loops layers of sound while a scene holds them, such as a
-  bed and the layers over it, all on one bar line, each faded in and out.
-  `@fz/dev/sounds` synthesizes a sprite, or packs takes that
-  `@fz/dev/synth` renders (`packSoundSprite()`), as Asteroid Breaker's are.
-- **`@fz/phaser/measure`**: what reads the page for a canvas, as the host
-  sizes it and `canvasRoom()` measures it: `watchDevicePixels()` counts an
-  element's device pixels, `watchDevicePixelRatio()` hears the display's
-  ratio change, as a zoom that leaves the device pixels as they were
-  changes it, and `canvasInsetsOf()` reads the insets an element declares
-  for the canvas through its own window. It knows no Phaser and no
-  framework, and a game's view can't take it, since it reads the page.
-- **`@fz/phaser/testing`**: the headless harness and the fake canvas, below.
-- **`@fz/phaser/insets`**, **`@fz/phaser/color`**, **`@fz/phaser/layout`**
-  and **`@fz/phaser/shapes`** import nothing but each other, so a game's
-  code without Phaser can take them. `color` reads a palette's roles as the
-  numbers Phaser takes and mixes them, and holds the inks the games share,
-  for light palettes and for dark: the tiles' (`TILE_INKS`) and those that
-  tell fuzzballs apart (`FUZZBALL_INKS`), which a game takes rather than
-  its own copies and holds to 3:1 against its own field in its own contrast
-  spec. `fitCells()` in `layout` fits a field of cells, across by down,
-  inside a canvas's insets, each cell whole device pixels; a field that isn't cells lays itself out with its steps,
+An entry is `@fz/phaser/<folder>`. Its `index.ts`, in
+`frontend/lib/phaser/src/<folder>/`, lists all it holds, and each piece's doc
+comment says how to call it. This list names what to reach for before
+writing a piece, not all an entry holds: its `index.ts` has the rest. A piece
+named here that is renamed, or one added that a game would write for itself
+without knowing of it, changes its line in the same change, as
+`frontend/AGENTS.md` asks.
+
+- **`canvas` shows a scene in a page.** `<fz-phaser-canvas>` takes a `scene`
+  (a `SceneSource`: a function returning the scene's factory, or a promise of
+  it), `options`, read once, which a board takes from
+  `boardHostOptions(title, element)`, and a `label` where the canvas is to be
+  named as an image. Each new `scene` swaps into the same game. What the app
+  projects as `[fzCanvasPlaceholder]` lies over the canvas until the scene is
+  ready. Its `state` is `loading`, `ready` or `failed`, and `slow` says a load
+  is taking long. `<fz-canvas-cards [canvas]="canvas">`, in the board's own
+  card layer, tells the player the board is still loading or couldn't be
+  drawn, and `canvasCardOf(canvas)` names the card it shows, so the board
+  shows none of its own meanwhile. `canvasRoom()` gives a board the canvas's
+  size and pixel ratio as signals, so its placeholder lays the board out as
+  the scene will. `fzKeepKeys` keeps a button's keys from the board.
+  `settledPictures(hand)` hands on the pictures of each bake of the scene's
+  atlas, a later one only once a resize has stopped.
+- **`host` holds types alone:** `HostedScene`, `SceneSurroundings` and
+  `HostOptions`. Only the canvas makes a host, which keeps one Phaser game,
+  and so one WebGL context, for the canvas's whole life.
+- **`scene` holds a scene's helpers,** which Input, Phaser 4's surprises and
+  A scene ends, below, name.
+- **`sound` plays a sound sprite.** `SpritePlayer`, made in a scene's
+  `create()` so the scene never waits for its sprite, plays the sprite's
+  sounds by name (`play()`), mutes the game while the player wants no sound
+  (`follow()`), sums the two ears into one while they want mono
+  (`followMono()`) and loops a sound while a scene holds it (`hold()`). Its
+  `playRisen()` and `playAt()` are functions made once, for a scene to hand
+  `@fz/core/frame_sounds`'s `FrameSounds.playEach()` each frame. Handed a mix
+  (`@fz/core/sound_mix`'s `SoundMix`), it varies, pans, limits and ducks its
+  sounds by it. `LayerPlayer` loops layers of sound on one bar line, such as
+  a bed and the layers over it. A game's `tools/build-sounds.mjs` makes its
+  sprite with `@fz/dev/sounds`.
+- **`shapes` is what a game's art is drawn in:** each shape of a frame as
+  plain data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
+  Phaser, and `scene`'s `atlasFrameOf()` plays a frame into `bakeAtlas()`. A
+  builder takes the geometry first and the style last:
+  `ring(ORIGIN, radius, { color, width })` strokes, `{ color }` fills, and an
+  `alpha` draws one shape at part strength. A drawing at part strength as a
+  whole is baked at full strength, and its image shown with `setAlpha()`.
+  Look here before writing a helper: the art's line (`lineWidth()`,
+  `stroke()`), the points of curves (`arcPoints()` and the rest), what moves,
+  scales and frames a drawing (`shifted()`, `scaledBy()`, `centered()`,
+  `bounded()`, `turned()`), what lays a frame out in an area (`within()`,
+  `pointAt()`, `share()`, `inset()`, `middleSquare()`, `frameAround()`),
+  outlines (`outlineRoundRect()`, `crispOutline()`), `star()`, `diamond()`,
+  `dashes()`, the area a command covers (`extentOf()`), a line as a band
+  (`bandAlong()`), a brick's pips (`diePips()`,
+  `pipRow()`) and a symbol's dots and rims (`dotIn()`, `discIn()`,
+  `rimIn()`). `svgOf()` writes a drawing as an SVG document, so a page shows
+  what a scene bakes, as an image or a CSS mask. A wash (`wash()`), an
+  ellipse filled with a radial gradient, is a `PaintCommand` and no
+  `DrawCommand`, since a `Graphics` draws no gradient: only `svgOf()` and
+  `scene`'s `paintCommands()` and `paintTexture()` take one.
+- **`fuzzball` draws `@fz/style`'s fuzzball in `shapes`'s commands:**
+  `fuzzballCommands()` its body and fur, `eyesCommands()` its eyes at any
+  face, baked as a frame of their own where a scene moves them as the
+  fuzzball looks, `combedStrands()` and `sparkCommands()` its fur on end and
+  the sparks about it, `fuzzballWearing()` its outline as one with what it
+  wears (`wornSparks()`), and `staticSparkCommands()` static's sparks.
+- **`bricks` draws a brick game's brick:** the slab it stands on
+  (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`,
+  laid out by a `SlabShares`: `TILE_SLAB` for a square tile, `BRICK_SLAB` for
+  a brick twice as wide as tall), `topCap()`, `showsDetail()`, and the marks
+  over a slab, their inks handed in: `bombMark()`, `sproutMark()`, `sheen()`,
+  `portalMark()`, `bumperMark()`, `scallopedCap()`, `rivets()`,
+  `cagedFriend()`, `cageBars()` and `plateTeeth()`.
+- **`color` reads a palette's roles as the numbers Phaser takes**
+  (`colorNumber()`, and `cssHex()` back), mixes them (`mixColors()`), and
+  holds the inks the games share, for light palettes and for dark: the tiles'
+  (`TILE_INKS`) and those that tell fuzzballs apart (`FUZZBALL_INKS`). A game
+  takes them rather than its own copies, and holds them to 3:1 against its
+  own field in its own contrast spec.
+- **`layout` lays a field out on a canvas, in whole device pixels.**
+  `fitCells()` fits a field of cells inside a canvas's insets, an `Insets`
+  from `insets`. A field that isn't cells lays itself out with its steps,
   `roomInside()`, `framePixels()` and `cssRectOf()`, so its insets and frame
-  round as every board's do; `sidePanels()` stands a panel either side of a
-  field where the room spares a gap and a panel's least a side, 184 CSS px
-  at a whole pixel ratio (`PANEL_GAP_CSS_PX` and `PANEL_WIDTH_CSS_PX`), as
-  wide rooms show them; `canvasPixelRatio()` is the ratio a canvas
-  renders at on a display, `canvasSizeFor()` the size the host makes a canvas
-  of a box, in the device pixels the browser counted where it can, and the
-  ratio it renders it at, past 2× only within a budget of device pixels, which
-  a placeholder drawn in CSS sizes its cells by, and `rectAttribute()` and
-  `namedRectsAttribute()` write where the scene drew a board, or a deck's
-  zones, into the board's attributes, as `@fz/dev/layout`'s layout check reads
-  them (`readRect()`, `readNamedRects()`), and `cssRectStyle()` lays the
-  board's focus ring there. `shapes` is
-  the vocabulary a game's art is drawn in, each shape of a frame as plain
-  data (`DrawCommand`, `ArtFrame`), so the art and its specs need no
-  Phaser; `atlasFrameOf()` in `scene` plays a frame into `bakeAtlas()`.
-  Its builders take the geometry first, an `Area`, a `Point` and a radius,
-  or a list of `Point`s, and the style last, `{ color }` to fill and
-  `{ color, width }` to stroke (`ring(ORIGIN, radius, { color, width })`),
-  with an `alpha` from 0 to 1 for a shape at part strength in its frame
-  (`{ color, alpha: 0.4 }`), opaque where left out (a drawing at part
-  strength as a whole is baked at full strength and its image shown with
-  `setAlpha()`), and `extentOf()` gives back an `Area`. The art's line
-  (`lineWidth()`), round-ended lines (`stroke()`), the points of curves
-  (`arcPoints()` and the rest), what moves, scales and frames a drawing
-  (`shifted()`, `scaledBy()`, `centered()`, `bounded()`, and `turned()` for
-  a point),
-  what lays a frame out in an area and draws in it (`within()`,
-  `pointAt()`, `share()`, `inset()`, `middleSquare()`, `frameAround()`,
-  `outlineRoundRect()`, `crispOutline()` on whole pixels, `star()`,
-  `diamond()` and `dashes()`), a line drawn as a band (`bandAlong()`), a
-  brick's pips as a die's face or a row (`diePips()`, `pipRow()`) and a
-  symbol's dots and rims in a square (`dotIn()`, `discIn()`, `rimIn()`)
-  are there too, so a game draws with them rather than its own copies.
-  `svgOf()` writes a drawing's commands as an SVG document, so a page shows
-  the drawing a scene bakes, as an image or a CSS mask, from one list. A
-  wash (`wash()`, a `WashCommand`), an ellipse filled with a radial
-  gradient of color stops, is a `PaintCommand` and no `DrawCommand`, since a
-  `Graphics` draws no gradient: `svgOf()` writes it, and `scene`'s
-  `paintCommands()` paints it on a canvas, with every other shape as
-  `atlasFrameOf()` has a `Graphics` draw it, and `paintTexture()` paints such
-  a picture into a canvas texture, again after a lost context.
-- **`@fz/phaser/fuzzball`** draws `@fz/style`'s fuzzball in `shapes`'s
-  commands, and imports nothing else, so a game's view takes it as it takes
-  the pure entries: `fuzzballCommands()`, its body and fur, `by` device
-  pixels to a unit of its 32-unit grid (`FUZZBALL_GRID`), outlined where a
-  game asks and in fur combed by `combedStrands()` or its own way
-  (`FUZZBALL_STRANDS`, each a
-  `Strand` about the body's middle), `furReach()`, how far that fur
-  reaches, and `eyesCommands()`, its eyes and their glints, which a game
-  bakes as a frame of their own so its scene moves them toward what the
-  fuzzball looks at, by `FUZZBALL_LOOK` along the way it looks, as the
-  brick games do, or by `@fz/style/fuzzball`'s `lookOffset()` at
-  `FUZZBALL_LOOK_FAR`, as Asteroid Breaker's pilots do. `combedStrands()`
-  combs the fur a share of the way to standing on end, as Brick Fuzz Pop's
-  charge lifts it, and `sparkCommands()` draws the sparks about fur on
-  end, so a game that lifts its fur takes the one comb rather than its
-  own.
-  `fuzzballWearing()` outlines a fuzzball as one with what it wears (a
-  `Worn`), such as the sparks (`wornSparks()`) or Brick Fuzz Pop's
-  flames, so no outline covers any of it.
-  `eyesCommands()` takes an `EyesPose` too, for any of `@fz/style`'s nine
-  faces, a look and the small form, and `staticSparkCommands()` draws
-  static's sparks as `@fz/style/fuzzball`'s `fuzzballShape()` poses them,
-  so a fuzzball that acts with its face and fur is the one fuzzball too.
-  Its halos come back opaque, for a frame of their own that a game fades
-  to `SPARK_LOOK.haloAlpha` with `setAlpha()`: in one frame with the
-  cores, they would show as solid ink.
-- **`@fz/phaser/bricks`** is what a brick game draws a brick with, in
-  `shapes`'s commands, a pure entry a game's view takes too, importing
-  only `shapes`, `color` and `fuzzball`; Brick Fuzz Pop's tiles and Brick
-  Breaker's bricks are drawn through it. It holds the slab a brick stands on
-  (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`),
-  laid out by a `SlabShares` whose every length is a share of the cell's short
-  side, so a square tile (`TILE_SLAB`, Brick Fuzz Pop's) and a brick twice as
-  wide as tall (`BRICK_SLAB`, Brick Breaker's) take the same code; `topCap()`,
-  what covers a slab's top down to a foot; `showsDetail()`, whether a brick so
-  many units wide is drawn wide enough for its finest detail; and the marks
-  drawn over a slab, their inks handed in: each at shares of a square it is
-  handed, its lines' widths too, a CSS pixel at least at the pixel ratio it is
-  handed, a square tile's cell or, on a wider brick, a square of its own, as
-  large as the mark, which may reach past the brick's edges, `bombMark()`,
-  `sproutMark()`, `sheen()`, `portalMark()` and `bumperMark()`, and laid
-  out across a brick by places and sizes given,
-  `scallopedCap()`, `rivets()`, `cagedFriend()`, `cageBars()` and
-  `plateTeeth()`.
-- **`@fz/dev`** builds and lints a Phaser game: `gameConfig()` puts Phaser in
-  a `phaser` chunk of its own, `phaser({ files })` from `@fz/dev/eslint`
-  lets the folders that draw off `no-unnecessary-condition`, since Phaser
-  types a scene's systems as always there, though they aren't before it
-  boots or after it ends, and `phaserGameLayers()` fences the four layers
-  of a game laid out in them and keeps its rules and view off the clock,
-  unseeded numbers and the page, and, given `exact`, its rules to
-  arithmetic every engine rounds alike, so a run plays the same on every
-  engine.
+  round as every board's do. `sidePanels()` stands a panel either side of a
+  field where the room spares one. `canvasPixelRatio()` is the ratio a canvas
+  renders at on a display, for a placeholder drawn in CSS. `rectAttribute()`
+  and `namedRectsAttribute()` write where the scene drew a board, or a deck's
+  zones, into the board's attributes, where the layout check reads them, and
+  `cssRectStyle()` lays the board's focus ring there.
+- **`measure` reads the page for a canvas,** for the host and `canvasRoom()`.
+  A game's view can't import it.
+- **`testing` holds the headless harness and the fake canvas,** under Testing,
+  below.
 
 ## Where Phaser may be imported
 
-Only in the folders that draw. A game's `eslint.config.js` fences its rules
-and its layout off from `/phaser`, anchored, so `@fz/phaser`'s pure entries
-still pass: the Solitaire Collection's `src/engine/render/phaser` and
-`src/engine/board` draw, and its cards, rules, layout and games are fenced.
-Snake keeps four layers: its rules, a view that works out what to draw
-without Phaser, so its specs are plain, the scene, the one folder that
-imports Phaser, and the shell. Brick Breaker keeps the same four, its
-physics in its rules, and so do Asteroid Breaker and Brick Fuzz Pop; all
-four take their fences from `@fz/dev`'s `phaserGameLayers()`
-(`frontend/lib/dev/src/eslint.ts`).
-The Angular shell imports `@fz/phaser/canvas` and a scene source, never
-Phaser itself; a source that loads the scene with `import()` keeps Phaser
-out of the first download.
+Only in the folders that draw.
+
+- **In a game, only `src/scene/` imports Phaser.** The rules (`src/rules/`)
+  and the view (`src/view/`) are plain TypeScript, so their specs run in
+  Node. Of `@fz/phaser`, the view takes only the entries with no Phaser and
+  no framework in them: `bricks`, `color`, `fuzzball`, `insets`, `layout` and
+  `shapes`.
+- **The shell (`src/app/`) never imports Phaser.** It imports
+  `@fz/phaser/canvas`, takes the scene and `@fz/phaser/host`, `scene` and
+  `sound` by type alone, and loads the scene with `import()` in its
+  `SceneSource`, which keeps Phaser out of the first download.
+- **`phaserGameLayers()` holds both,** from `@fz/dev/eslint`
+  (`frontend/lib/dev/src/eslint.ts`). The Solitaire Collection's fences are
+  its own.
+- **A folder that draws is named in `phaser({ files })`,** in its workspace's
+  `eslint.config.js`, which turns `no-unnecessary-condition` off there.
+  Phaser types a scene's systems as always there, though they aren't before
+  it boots or after it ends, so the guards on them stay.
+- **Import Phaser from `phaser`, never the global `Phaser`.** Only the build
+  the specs load sets the global, so code that reads it passes its specs and
+  throws in the game. Lint refuses it.
+- **In `@fz/phaser`,** the `host`, `scene` and `sound` folders import Phaser.
+  The `canvas` and `testing` folders take it by type, or with `import()`
+  where they need a class.
 
 ## How the shell and a scene talk
 
-- **A scene is built with what it needs.** A scene's factory is handed its
-  `SceneSurroundings`, `insets()` and `ready()`, and the game's own ports go
-  in beside them, as the Solitaire Collection's
-  `makeBoardScene(gameId, game, { presentation, onReady, insets })` does
-  (`frontend/games/solitaire/src/ui/app/provider/board_catalog.ts`).
-  Snake's `makeSnakeScene(options)` takes only plain functions over the
-  game (`frontend/games/snake/src/scene/snake_scene.ts`), so its specs hand
-  it a fake shell.
-- **A game that runs in time takes the scene's.** Snake's scene hands the
-  game each frame's time in `update()`, as Brick Breaker's hands its game
-  the time and the steering, and the game steps the run and hands back the
-  frame to draw, so the run never steps without being drawn and stops
+- **A scene is built with what it needs.** Its factory is handed its
+  `SceneSurroundings`, `insets()` and `ready()`, and takes the game's own
+  ports beside them as plain functions over the game, as
+  `makeSnakeScene(options)` does, so its specs hand it a fake shell.
+- **A game that runs in time takes the scene's.** The scene hands the game
+  each frame's time in `update()`, and the game steps the run and hands back
+  the frame to draw, so the run never steps without being drawn, and stops
   when Phaser does. A game of fixed steps keeps them with `@fz/core/clock`,
   and its scene reads what each step did from an `@fz/core/event_log`, as
-  Brick Breaker's does (the `fuzzley-ui` skill).
-- **A scene says when it has drawn,** with `ready()`, once its first frame
-  is up: `onFirstFrame()` calls it at the right time. The canvas uncovers
-  the scene then.
-- **The chrome over the canvas** is declared on the canvas's parent, as
-  `--fz-canvas-inset-top`, `-right`, `-bottom` and `-left`, and a scene
-  reads it with `insets()`, a board's placeholder with `canvasRoom()`.
-  Chrome that moves without the canvas changing size calls the canvas's
+  Brick Breaker's does.
+- **A scene says when it has drawn,** with `ready()`, once its first frame is
+  up: `onFirstFrame()` calls it at the right time. The canvas uncovers the
+  scene then.
+- **The canvas's state is read once the canvas has its scene:** in the
+  board's template after `<fz-phaser-canvas>`, or in an `afterRenderEffect()`,
+  never in a host binding. `canvasCardOf()` reads it too.
+- **The chrome over the canvas is declared on the board's element,** as
+  `--fz-canvas-inset-top`, `-right`, `-bottom` and `-left`. A scene reads it
+  with `insets()`, a board's placeholder with `canvasRoom()`. Chrome that
+  moves without the canvas changing size calls the canvas's
   `refreshInsets()`.
-- **Every scene is a `HostedScene`,** a Phaser scene with a key no other
+- **Every scene is a `HostedScene`,** a Phaser scene with a `key` no other
   shares, since Phaser throws on a key in use:
-  `uniqueSceneKey("snake-scene")` numbers the scenes of a prefix as they
-  are built.
+  `uniqueSceneKey("snake-scene")` numbers the scenes of a prefix as they are
+  built.
 
 ## Input
 
-- **The keyboard listens where the game says.** Set Phaser's
-  `input.keyboard.target` to the board's element, as `boardHostOptions()`
-  does, so the keys reach the scene only while it has the focus, and a
-  dialog or the bar keeps its own.
+- **The keyboard listens on the board's element.** `boardHostOptions()` sets
+  it as Phaser's `input.keyboard.target`, so the keys reach the scene only
+  while the board has the focus, and a dialog or the bar keeps its own.
 - **Hear the keys through `onKeyDown()` and `onKeyUp()`,** from
-  `@fz/phaser/scene`, not the keyboard's own key events. Phaser runs
-  through the frame's whole queue of key events as each new one comes,
-  dropping only one that repeats the event just before, so from the third
-  key of a frame on, every key before it is handed over again; the helpers
+  `@fz/phaser/scene`, not the keyboard's own key events. From the third key
+  of a frame on, Phaser hands every key before it over again; the helpers
   hand over each once.
 - **A captured key's default is cancelled only on the keyboard's target,**
-  pressed there or on anything inside it. The captures are the game's,
-  shared by every scene. Capture only the keys the game uses, and ignore a
-  held key and one pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
+  pressed there or on anything inside it. The captures are the game's, shared
+  by every scene. Capture only the keys the game uses, and ignore a held
+  key's repeats and a key pressed with Ctrl, Alt or Meta (`@fz/core/keys`'s
   `isShortcut()`), so the browser's shortcuts still work.
-- **Hold the keys a scene steers by with `HeldKeys`,** from
-  `@fz/core/keys`, made with what each `event.code` steers. Two keys held
-  for one way hold it until both are let go, a key held repeats nothing,
-  and `axis()` takes the way pressed last while both ways are held. The
-  scene hands it each key pressed and let go; reading it makes nothing, so
-  the steering reads it every frame, and its `letGo()` is safe to repeat.
-- **Let go as the player looks away.** A scene that holds a key or a
-  finger while it is down lets go of it through `onPlayerAway()`, as the
-  window loses the focus, the page is hidden or the focus leaves the
-  keyboard's target for anything outside it, since the key's or the
-  finger's release may never reach it. One look-away may call the listener
-  more than once, so letting go must be safe to repeat.
-- **A button over the board keeps its keys with `fzKeepKeys`,** from
-  `@fz/phaser/canvas`. Without it, a key pressed on the button reaches the
-  scene too, which acts on Enter or Space besides the button, and Phaser
-  cancels Space's keyup, at which a browser clicks a button, so the focus is
-  left on a button that goes.
+- **Hold the keys a scene steers by with `HeldKeys`,** from `@fz/core/keys`,
+  made with what each `event.code` steers. Two keys held for one way hold it
+  until both are let go, and `axis()` takes the way pressed last while both
+  ways are held. The scene hands it each key pressed and let go, and reads it
+  every frame. Its `letGo()` is safe to repeat.
+- **Let go as the player looks away.** A scene that holds a key or a finger
+  while it is down lets go of it through `onPlayerAway()`, since the release
+  may never reach it. One look-away may call the listener more than once, so
+  letting go must be safe to repeat.
+- **A button over the board keeps its keys with `fzKeepKeys`.** Without it, a
+  key pressed on the button reaches the scene too, which acts on Enter or
+  Space besides the button, and Phaser cancels Space's keyup, at which a
+  browser clicks a button.
 - **Phaser's mouse prevents the default of `mousedown`,** which keeps the
-  focus off the canvas; an element that should take the focus at a click
-  focuses itself on `pointerdown`.
+  focus off the board. An element that should take the focus at a click
+  focuses itself on `pointerdown`, as Snake's board does.
 
 ## Phaser 4's surprises
 
-- A `Grid`'s `cellPadding` is 0.5 unless set, which leaves a hairline
-  between its cells; its `setSize()` is private in the typings, so set
-  `width` and `height`; and its alternate cells are those where
-  x + y is odd.
-- `load.audioSprite()` takes the spritemap itself where its typings ask
-  for the JSON's URL, which needs a cast (`SpritePlayer` makes it); under
-  `noAudio`, as the test harness's game has, it loads nothing, so a scene
-  plays a sound only once the cache has it, and a spec that wants one
-  played adds the sprite there itself, with `@fz/phaser/testing`'s
-  `cacheSounds()`. There a sound's `play()` returns false and plays
-  nothing, so a spec watches `Sound.NoAudioSound.prototype.play`.
-- A sound's `play(marker, config)` writes the config into the marker's
-  own, so a later play of that marker without the config keeps it;
-  `SpritePlayer` puts back what the marker held as it was made before
-  each play. Under `noAudio` a sound's `stop()` does nothing either, and
-  the manager has no audio context, so what wires Web Audio itself, as the
-  limiter does, checks first that the manager is a `WebAudioSoundManager`,
-  and its spec fakes one.
-- `tweens.killAll()` stops every tween a scene runs, for a new run that
+- **A `Grid`'s `cellPadding` is 0.5 unless set,** which leaves a hairline
+  between its cells. Its `setSize()` is missing from the typings, so set
+  `width` and `height`. Its alternate cells are those where x + y is odd.
+- **A sound's `play(marker, config)` writes the config into the marker's
+  own,** so a later play of that marker without one keeps it. `SpritePlayer`
+  puts the marker back before each play, so play a sprite through it.
+- **`tweens.killAll()` stops every tween a scene runs,** for a new run that
   must not inherit the last one's.
-- Before it fills or strokes a path, a WebGL `Graphics` drops each point
-  within `render.pathDetailThreshold` of the last one it kept, across and
-  down, in screen pixels: a pixel unless the game's config sets it lower,
-  since a `Graphics`' own `pathDetailThreshold` can only raise it, whatever
+- **A WebGL `Graphics` drops points that lie close.** Before it fills or
+  strokes a path, it drops each point within `render.pathDetailThreshold` of
+  the last one it kept: a pixel unless the game's config sets it lower, since
+  a `Graphics`' own `pathDetailThreshold` can only raise it, whatever
   Phaser's doc says. So `outlineRoundRect()`'s band drawn live, its line no
-  wider than that, can drop the point where its two edges join, which cuts
-  a wedge across the band's left side. A 2D canvas drops none, so such a
-  shape is baked into an atlas.
-- A `CanvasTexture`'s `setSize()` uploads its canvas, blank, whenever the
-  size changes; its `clear()` reads the canvas back and uploads it, unless
-  its last argument is `false`; and `createCanvas()` uploads a new one
-  blank and reads it back. So a canvas texture drawn again under its own
-  key, as a bake is, goes through `drawCanvasTexture()`, from
-  `@fz/phaser/scene`, each time: it sizes the canvas, its source and its
-  whole frame by hand at a new size, clears it with `clear(…, false)` at
-  the same one, and draws a new texture on a canvas of Phaser's pool
-  before making it, so each drawing uploads once. The drawing touches
-  nothing but the context it is handed, which is saved before it and
-  restored after, so no transform or clip it leaves narrows the next
-  clear. A `Graphics` draws there with
-  `generateTexture(context.canvas, width, height)`: its
-  `generateTexture()` of the key would upload the texture again, as its
-  `refresh()` would, and on a first drawing, where the key has no texture
-  yet, make one of its own, for which `drawCanvasTexture()` throws.
-  `bakeTexture()` draws through it, and so do Asteroid Breaker's points. A
-  canvas drawn once, then added under a fresh key with `addCanvas()`, as
-  the Solitaire Collection's deck is
-  (`frontend/games/solitaire/src/engine/render/phaser/deck/drawn_deck_painter.ts`),
-  uploads once already, and needs none of it.
+  wider than that, can lose the point where its two edges join, which cuts a
+  wedge across it. A 2D canvas drops none, so such a shape is baked into an
+  atlas.
+- **A `CanvasTexture` uploads its canvas more often than it looks.** Its
+  `setSize()` uploads the canvas blank, its `clear()` reads it back and
+  uploads it unless its last argument is `false`, and `createCanvas()`
+  uploads a new one blank. So a canvas texture drawn again under its own key
+  goes through `drawCanvasTexture()`, from `@fz/phaser/scene`, which uploads
+  once: `bakeTexture()` and `paintTexture()` draw through it. A `Graphics`
+  draws there with `generateTexture(context.canvas, width, height)`. Its
+  `generateTexture()` of the key would upload again, and on a first drawing
+  make a texture of its own, for which `drawCanvasTexture()` throws. A canvas
+  drawn once, then added under a fresh key with `addCanvas()`, uploads once
+  already.
 
 ## A scene ends; its game doesn't
 
@@ -337,188 +236,149 @@ The host swaps scenes into one game, so a scene lets go of everything it
 follows when it ends, or the game keeps it alive. Phaser destroys a removed
 scene without shutting it down first, so the end is whichever comes first.
 
-- `whenSceneEnds(scene, release)` runs `release` then.
-- `onScaleResize()`, `onContextRestored()`, `onFirstFrame()` and
-  `onPlayerAway()` subscribe until the scene ends, for the game's scale
-  manager, its renderer, the scene's first frame drawn, and the window,
-  the page and the keyboard's target.
-- `bakeTexture()` draws a texture at run time, with a throwaway `Graphics`,
-  and draws it again after a lost WebGL context, which Phaser restores only
-  for textures it loaded. `bakeAtlas()` does the same for many frames in
-  one texture, each a named frame of it, so the objects showing them draw
-  in one batch. It packs them in rows with a gutter, tallest first, so a
-  game hands them over in any order. Baked again, it moves its
-  frames and keeps their objects, but an object showing one takes its new
-  size and origin only once it sets the frame again (`setFrame()`, or
-  `setTexture()` for a `NineSlice`), and one left on a frame the new bake
-  dropped throws as it draws: a scene sets every frame again after a
-  bake, as `retakeFrames(scene, key)` has every image and sprite on the
-  texture do, in layers and containers too; a particle emitter reads its
-  frames as it emits and needs nothing. `picturesWhenAsked()` returns a
-  function that, as it is first called, encodes the frames that records and
-  lists of names give, as How to play shows them, and returns the same
-  pictures after; a scene hands its shell a new one at each bake, which
-  a board takes as it comes, as Asteroid Breaker's does, or through
-  `@fz/phaser/canvas`'s `settledPictures()`, which hands on the first bake
-  at once and a later one only once a resize stops, where its panels show the
-  pictures, as Brick Breaker's and Brick Fuzz Pop's do, so nothing is encoded
-  until How to play or a panel shows it. `paintTexture()` paints a picture
-  from paint commands, washes among them, into a canvas texture, and paints
-  it again after a lost context too: a key is drawn again the last way
-  either drew it. `softDisc()` paints a white disc fading to nothing through
-  it, once, which a scene shows as a halo, an image tinted, scaled and faded
-  under plain alpha, so a halo costs an image, never a gradient drawn each
-  frame, and shows on a white field, where an additive blend shows nothing.
-  Anything else drawn at run time redraws itself through
-  `onContextRestored()`.
-- `pixelRatioOf()` is the ratio Phaser maps the pointer by, to lay out in
-  device pixels. `viewportOf(scene, insets)` is the `Viewport` a scene lays
-  itself out on, its canvas as it now is under the chrome given, and
-  `canvasChanged(scene, last)` says whether that canvas has a new size or
-  pixel ratio since `last`, or `last` is `null`; the chrome, and anything
-  else a scene lays out by, are the scene's to compare.
-- `strokeShareArc(graphics, x, y, radius, share)` strokes a share of a
-  circle, from 0 to 1, clockwise from its top, in the line the `Graphics`
-  holds: the ring that empties as a breaker's tag runs out, or fills as
-  Asteroid Breaker's Dash recharges.
+- **`whenSceneEnds(scene, release)` runs `release` then.** `onScaleResize()`,
+  `onContextRestored()`, `onFirstFrame()`, `onPlayerAway()`, `onKeyDown()` and
+  `onKeyUp()` subscribe until the scene ends.
+- **A texture drawn at run time goes through `bakeTexture()`,** or
+  `bakeAtlas()` for many frames in one texture, so the objects showing them
+  draw in one batch. Each draws it again after a lost WebGL context, which
+  Phaser restores only for the textures it loaded. Anything else drawn at run
+  time redraws itself through `onContextRestored()`.
+- **After an atlas is baked again, every object on it sets its frame again.**
+  `retakeFrames(scene, key)` has every image and sprite on the texture do
+  it, in layers and containers too. An object takes a frame's new size and
+  origin only then (`setFrame()`, or `setTexture()` for a `NineSlice`), and
+  one left on a frame the new bake dropped throws as it draws. A particle
+  emitter needs nothing.
+- **A gradient is painted once, never drawn each frame.** `paintTexture()`
+  paints paint commands, washes among them, into a canvas texture, and again
+  after a lost context. `softDisc()` paints a white disc fading to nothing,
+  which a scene shows as a halo: an image tinted, scaled and faded under
+  plain alpha. An additive blend would show nothing on a white field.
+- **A baked frame shown in the page,** as How to play shows one, comes from
+  `picturesWhenAsked()`, which encodes the frames only once they are asked
+  for. A scene hands its shell a new one at each bake. A board takes it as it
+  comes or, where its panels show the pictures as they come, through
+  `@fz/phaser/canvas`'s `settledPictures()`, so a resize under way encodes
+  none.
+- **A scene lays itself out in device pixels,** on
+  `viewportOf(scene, insets)`, and again once `canvasChanged(scene, last)`
+  says the canvas has a new size or pixel ratio. The chrome, and anything
+  else it lays out by, are the scene's to compare. `pixelRatioOf()` is the
+  ratio Phaser maps the pointer by.
+- **`strokeShareArc(graphics, x, y, radius, share)` strokes a share of a
+  circle,** clockwise from its top: a ring that empties or fills.
 
 ## Testing
 
-Specs assert on a scene's game objects, never on pixels; pixels are for a
-browser, through a game's screenshots and its `check:layout`.
+Specs assert on a scene's game objects, never on pixels. Pixels are for a
+browser, through a game's screenshots and its `check:layout`. A game's own
+testing skill has its fixtures.
 
-- **A shell's specs** take `provideFakePhaserCanvas()`, which loads no
-  Phaser; `FakePhaserCanvas` keeps the hosts it made, and readies or fails
-  each scene they were shown. A scene it readies at once is ready only
-  after the `show()` that asked has returned, as a real host's is, so a
-  spec that needs the board drawn awaits `fixture.whenStable()` after
-  rendering it. A spec that fails a scene calls `collectErrors()` before
-  it renders, which keeps what the canvas hands Angular's `ErrorHandler`
-  rather than printing it, and asserts on it. jsdom has no
-  `ResizeObserver`, so a board that watches its size is specced inside a
-  describe that calls `watchResizes()`, which stands `FakeResizeObserver`
-  in, and `resize()` lays the board out at a size and tells it, with the
-  device pixels the browser counted where the spec gives them. A change of
-  zoom that leaves those as they were reaches the board through a
-  `(resolution)` query, which `@fz/game-ui/testing`'s fake viewport answers
-  and changes (`setPixelRatio()`).
-- **A scene's specs** run real Phaser in jsdom, its WebGL renderer
-  included, on a context that draws nothing. The test setup calls
-  `installHeadlessPhaser()` before anything imports Phaser, which tests for
-  WebGL as it loads, and `runScene()` runs the scene in a WebGL game whose
-  frames, clock, input, context and loads the spec drives. `advance()`
-  moves the clock Phaser's tweens read, so a spec fakes no `Date`. Filters,
-  dynamic textures and gradients work as in a browser, a canvas is laid
-  out at its CSS size, its 2D context measures text as a font whose every
-  character is alike, at the size its `font` names, and
-  `await loseContext()` and `await restoreContext()` lose and restore the
-  context as a browser may, its events on a later task, for a spec of what
-  a scene draws again.
-- **Input is a browser's.** `key()` sends a key with the `keyCode` a browser
-  gives it, which Phaser hands the scene at once and keeps with the frame's
-  other keys until the frame ends, so the keys sent before one `advance()` are
-  one frame's. A scene that hears them through `onKeyDown()` and `onKeyUp()`
-  takes any number a frame; Phaser's own key events hand the earlier ones over
-  again from the third on, in a browser too. `pointer()` presses, moves and
-  lets go with the mouse, on the canvas or, given `on`, on an element of the
-  page over it (which Phaser hears through the window, raising
-  `pointerdownoutside`), pressing and letting go of its main button or,
-  given `button`, another, each event carrying the buttons still held
-  (`buttons`), as a browser's does, so a move with none pressed is a hover;
-  `wheel()` turns the wheel over the canvas, which Phaser raises as
-  `wheel`; and `touch()` presses, moves and lets go with a finger, or takes
-  it away (`"cancel"`),
-  which Phaser raises as a `pointerup` whose `wasCanceled` is true. Phaser
-  hit-tests and raises its own events. An object made interactive answers
-  from the next frame, when Phaser takes it in, so `advance()` a frame
-  before the first press. Phaser's drag thresholds are 0, so a press on a
-  draggable object starts its drag at once.
+- **The test setup calls `installHeadlessPhaser()` before anything imports
+  Phaser,** which tests for WebGL as it loads, as
+  `frontend/games/snake/src/test-setup.ts` does.
+- **A shell's specs take `provideFakePhaserCanvas()` among their
+  providers,** which loads no Phaser. `TestBed.inject(FakePhaserCanvas)`
+  keeps the hosts the canvases made: `host` is the latest, with the `options`
+  it was made with, and `host.latest` the scene it was last shown. A scene is
+  ready as soon as it is shown, but only after the `show()` that asked has
+  returned, as a real host's is, so a spec that needs the board drawn awaits
+  `fixture.whenStable()` after rendering it. Under
+  `provideFakePhaserCanvas({ readyAtOnce: false })`, a scene waits for the
+  spec: `host.latest.ready()` readies it, and
+  `host.latest.fail()` fails it.
+- **A spec that fails a scene calls `collectErrors()` before it renders.** It
+  returns what the canvas hands Angular's `ErrorHandler`, kept rather than
+  printed, for the spec to assert on.
+- **A board that watches its size is specced inside a describe that calls
+  `watchResizes()`,** since jsdom has no `ResizeObserver`.
+  `resize(element, width, height)` lays the board out at a size in CSS px
+  and tells it, with the device pixels the browser counted where the spec
+  gives them as a fourth argument. A change of zoom reaches the board through
+  `@fz/game-ui/testing`'s fake viewport (`setPixelRatio()`).
+- **A scene's specs run real Phaser in jsdom,** its WebGL renderer included,
+  on a context that draws nothing. `runScene(make, options)` runs the scene
+  a factory makes in a game of 400 × 400 pixels, or the `width` and `height`
+  given, under the `insets` given, and resolves to a run: its `scene`, its
+  `game`, whether the scene has said it is `ready`, and `destroy()`, which
+  the spec calls when it is done. The run draws no frame until the spec
+  steps one: `advance(ms)` steps the game on, a frame of 16 ms at a time or
+  of the `frameMs` given, and moves the clock Phaser's tweens read, so a spec
+  fakes no `Date`. Filters, dynamic textures and gradients work as in a
+  browser, and a 2D context measures text as a font whose every character is
+  alike.
+- **A scene run as a board shows it takes `runKeyedScene(make, options)`,**
+  which resolves to `{ run, keys }`: `keys` is the element of the page
+  Phaser's keyboard listens on, which takes the focus. It destroys the run
+  and removes the element once the test finishes, so a spec needs no
+  `afterEach`. A board's own spec runs the scene its fake canvas was shown
+  through `runShownScene(fake, board)`, its keyboard on the board's element,
+  the run destroyed as the test finishes too. Code that only needs a scene,
+  such as a factory of sprites, runs in `runBareScene()`.
+- **Input is a browser's,** sent through the run, and Phaser hit-tests and
+  raises its own events. `key("keydown", code)`, or `"keyup"`, sends a key
+  to the keyboard's target with the `keyCode` a browser gives it, and the
+  keys sent before one `advance()` are one frame's.
+  `pointer("down", x, y)`, `"move"` or `"up"`, sends the mouse at a point in
+  the canvas's pixels, with its main button or, given `{ button }`, another.
+  Given `{ on }`, it goes to an element of the page over the canvas, and
+  reaches Phaser through the window, which Phaser raises as
+  `pointerdownoutside`, not `pointerdown`.
+  `wheel(deltaY, x, y)` turns the wheel over the canvas.
+  `touch("start", x, y)`, `"move"` or `"end"`, sends a finger, and
+  `"cancel"` takes it away, which Phaser raises as a `pointerup` whose
+  `wasCanceled` is true.
+- **`advance()` a frame before the first press.** An object made interactive
+  answers only from the next frame, when Phaser takes it in. Phaser's drag
+  thresholds are 0, so a press on a draggable object starts its drag at once.
 - **user-event's keys carry no `keyCode`,** which Phaser's capture reads, so
   Phaser cancels nothing user-event presses. A spec of a capture, such as
   Space kept from the board by a button's `fzKeepKeys`, sends the key with
-  `fireEvent` and its `keyCode`, as `key()` does, through `browserKey()`
-  (`browserKey("Space", " ")`). It takes a letter's or a digit's `keyCode`
-  (`KeyA` to `KeyZ`, `Digit0` to `Digit9`) from its code and any other's
-  from its table, throwing for one the table lacks rather than guess.
-  Phaser also drops a key event whose key code, type and time match those
-  of the one before it, so two keydowns in a row from user-event in one
-  millisecond, as under fake timers, reach the scene as one.
-- **An error a handler throws** while Phaser hears a browser's event
-  reaches the window's `error` event, not the spec, so a spec that
-  expects one listens for it there while it acts.
-- **The specs load Phaser's CommonJS build,** through `@fz/dev`'s
-  `phaserFromCommonJs()`, rather than the ESM build the games ship, which
-  Vitest would run through Vite. Only the CommonJS build sets a global
-  `Phaser`, so code imports Phaser from `phaser` and never reads the
-  global, as ESLint checks.
-- **Code that takes a game,** such as the host and the scaler, is checked
-  on a real one: `@fz/phaser`'s own specs start one with its
-  `src/testing/start_game.ts`, so Phaser's own writes to the canvas and
-  its scale manager are part of what they check.
-- **Code that only needs a scene,** such as a factory of sprites, runs in
-  `runBareScene()`, a scene with nothing of its own, and the spec makes
-  its objects there and reads them back, as Phaser made them.
-- **A scene run as a board shows it** takes `runKeyedScene()`, whose
-  keyboard listens on an element of the page that takes the focus, as a
-  board's does, and which destroys the run and removes the element once
-  the test finishes, so a spec's helper that starts the board needs no
-  `afterEach`. A board's own spec runs, through `runShownScene()`, the
-  scene its fake canvas was shown, its keyboard on the board's element, and
-  the run is destroyed as the test finishes, the board left to its spec.
-- **What a scene drew is read through the harness,** never by hand:
-  `objectsIn()` and `imagesIn()` count and find its game objects,
-  in its layers too, and a `Graphics` is read with `commandsOf()`, its
-  command buffer as commands by name, `strokesOf()`, the arcs it strokes,
-  as WebGL draws them, each in the width set as it is drawn and the color
-  set as its path is stroked, and `colorsOf()`, the colors it fills and
-  strokes in. Phaser doesn't export the numbers it writes for each
-  command, so `commandsOf()` keeps its own, and its spec
-  (`frontend/lib/phaser/src/testing/graphics_commands.spec.ts`) draws every
-  command and reads it back, so a release that numbers them anew fails
-  there first, and no spec reads a buffer by those numbers itself. A
-  texture painted on a canvas, as `paintTexture()` or `softDisc()` paints
-  one, is found by `canvasTexture()`, which throws for a key that names
-  none.
-- **A spec in Node,** of a game's view, takes `@fz/phaser/testing/pure`,
-  which loads no Phaser: `viewport()` is a canvas's `Viewport` from a CSS
-  size, a pixel ratio and its chrome, and the art's specs read a game's
-  atlas with `frameNamed(frames, name)`, a frame of it by its name, and
-  `drawnIn(frame, kind, color)`, the commands of a frame of a kind that
-  draw in a color.
-- **What a scene loads is served.** The harness answers every request
-  itself, from `runScene()`'s `serve`, a function from the URL, resolved
-  against the page's, to the file's text or bytes, or to nothing, which
-  is a 404 that fails the load as a server's would. It asks `serve` as a
-  request is sent and answers on a later task, so a server that notes
-  what it is asked for knows at once. An image decodes at the size its
-  PNG header gives, so a spec serves a real one from disk (the library's
-  own make theirs with `pngOfSize()`, in
-  `frontend/lib/phaser/src/testing/served_files.ts`); an image from an
-  object URL the page made itself loads too, at 0 × 0, and `decode()`
-  resolves once an image has loaded. A canvas keeps the one context it
-  was first asked for. `await loaded()` waits out a load the scene starts
-  once it runs, stepping frames as a browser's go on, since Phaser takes
-  in a file queued during a load only on a frame; `prepare` readies the
-  game before the scene is added, as an earlier scene may have left it,
-  such as with textures loaded. Nothing reaches the network. The
-  harness's own specs (`frontend/lib/phaser/src/testing/run_scene.spec.ts`)
-  check what it relies on in Phaser, so an upgrade that breaks it fails
-  there first.
-- Snake's scene specs are the worked example of a scene played with keys
-  (`frontend/games/snake/src/scene/snake_scene.spec.ts`, and its
-  `snake-testing` skill); Brick Breaker's, of one whose atlas is baked at
-  run time, played with keys and the pointer
-  (`frontend/games/brick-breaker/src/scene/bricks_scene.spec.ts`, and its
-  `brick-breaker-testing` skill); Asteroid Breaker's, of one played with
-  keys, the mouse and a deck drawn on the canvas
-  (`frontend/games/asteroid-breaker/src/scene/belt_scene.spec.ts`, and its
-  `asteroid-breaker-testing` skill); Brick Fuzz Pop's, of one aimed with
-  keys, the mouse, the wheel and fingers
-  (`frontend/games/brick-fuzz-pop/src/scene/wall_scene.spec.ts`, and its
-  `brick-fuzz-pop-testing` skill); and the Solitaire Collection's of a board
-  whose atlases are served and loaded, played with the mouse
-  (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
-  and its `solitaire-testing` skill).
+  `fireEvent` and `browserKey("Space", " ")`. Phaser also drops a key event
+  whose key code, type and time match those of the one before it, so two
+  keydowns in a row from user-event in one millisecond, as under fake timers,
+  reach the scene as one.
+- **An error a handler throws while Phaser hears a browser's event** reaches
+  the window's `error` event, not the spec, so a spec that expects one
+  listens for it there while it acts.
+- **A spec of what a scene draws again** loses and restores the context as a
+  browser may, with `await loseContext()` and `await restoreContext()`.
+- **What a scene drew is read through the harness,** never by hand.
+  `objectsIn()` and `imagesIn()` count and find its game objects, in its
+  layers too. A `Graphics` is read with `commandsOf()`, its commands by name,
+  `strokesOf()`, the arcs it strokes, and `colorsOf()`, the colors it fills
+  and strokes in: no spec reads its command buffer by Phaser's numbers
+  itself. `canvasTexture()` finds a texture painted on a canvas.
+- **A spec of a sound played puts the sprite in the cache itself,** with
+  `cacheSounds(scene, key)`, since the harness's game loads no audio, and
+  watches `Sound.NoAudioSound.prototype.play`, since a sound's `play()` there
+  returns false and plays nothing.
+- **What a scene loads is served.** `runScene()`'s `serve` is a function from
+  the URL to the file's text or bytes, or to nothing, which is a 404 that
+  fails the load. `await loaded()` waits out a load the scene starts once it
+  runs, and `prepare` readies the game before the scene is added, such as
+  with textures loaded. An image decodes at the size its PNG header gives, so
+  a spec serves a real one from disk. Nothing reaches the network.
+- **A spec in Node, of a game's view, takes `@fz/phaser/testing/pure`,**
+  which loads no Phaser: `viewport()` makes a canvas's `Viewport`, and
+  `frameNamed()` and `drawnIn()` read the frames of a game's atlas.
+- **In `@fz/phaser` itself, code that takes a game,** such as the host and
+  the scaler, is checked on a real one, which its specs start with
+  `src/testing/start_game.ts`. The harness's own specs
+  (`frontend/lib/phaser/src/testing/run_scene.spec.ts`, and
+  `graphics_commands.spec.ts` beside it) check what it relies on in Phaser,
+  so an upgrade that breaks it fails there first.
+- **The worked examples are the games' scene specs:** Snake's, played with
+  keys (`frontend/games/snake/src/scene/snake_scene.spec.ts`); Brick
+  Breaker's, its atlas baked at run time, played with keys and the pointer
+  (`frontend/games/brick-breaker/src/scene/bricks_scene.spec.ts`); Asteroid
+  Breaker's, played with keys, the mouse and a deck drawn on the canvas
+  (`frontend/games/asteroid-breaker/src/scene/belt_scene.spec.ts`); Brick
+  Fuzz Pop's, aimed with keys, the mouse, the wheel and fingers
+  (`frontend/games/brick-fuzz-pop/src/scene/wall_scene.spec.ts`); and the
+  Solitaire Collection's, its atlases served and loaded
+  (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`).
 
 ## The parts of Phaser in use
 
@@ -546,5 +406,6 @@ All but this one and `phaser-canvas-performance` are copies of the
 curves, geometry, the data manager, actions, physics and tile maps. When a
 game starts using one of those, copy its folder into `.agents/skills/` as
 `phaser-<name>`, with its `name` and its `../<skill>/` paths prefixed the
-same way, and leave the rest as copied, which `.prettierignore` does. Then
-run `node .agents/link-claude-skills.mjs`.
+same way, and a path to a skill not copied here taken out, which the
+reference check fails. Leave the rest as copied, which `.prettierignore`
+does. Then run `node .agents/link-claude-skills.mjs`.
