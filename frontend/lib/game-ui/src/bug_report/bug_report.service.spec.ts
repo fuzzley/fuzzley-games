@@ -1,9 +1,8 @@
 import { DOCUMENT } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
 import { ThemeService } from "@fz/ui/theme";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
 import { BUILD_INFO } from "../build_info";
-import { installFakeViewport } from "../testing";
+import { installCompressionStreams, installFakeViewport } from "../testing";
 import { BugReportService, PICTURE_LIMIT_MS } from "./bug_report.service";
 import { ISSUE_FIELDS } from "./issue_link";
 import { packState, unpackState } from "./packed";
@@ -84,15 +83,7 @@ function fieldOf(url: string, fieldId: string): string {
   return new URL(url).searchParams.get(fieldId) ?? "";
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 afterEach(() => {
   vi.useRealTimers();

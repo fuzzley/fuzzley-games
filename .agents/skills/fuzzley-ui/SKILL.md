@@ -151,7 +151,11 @@ Each library keeps its specs' helpers in its `testing` entry. The
   `provideMemoryStorage()`, `setPageVisibility()`, and `figure()`,
   `figureValue()` and `figures()` for a bar's or a card's figures.
 - `@fz/game-ui/testing`: `installFakeViewport()` too, and `barChoice()`,
-  `chooseInBar()` and `openBarMenu()` for the bar's menus.
+  `chooseInBar()` and `openBarMenu()` for the bar's menus, and
+  `installCompressionStreams()`, called at a spec file's top or in a
+  describe, for a spec that packs a bug report's state, since jsdom has no
+  compression streams; it takes off every stubbed global after each test, so
+  such a spec stubs its own in a test or a `beforeEach`.
 - `@fz/style/testing`: `stylesheetPalettes()`, `paintRoles()` and
   `contrast()`, for a contrast spec.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, for a shell's specs.

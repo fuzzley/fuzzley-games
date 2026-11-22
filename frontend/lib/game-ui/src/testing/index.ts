@@ -2,3 +2,4 @@
 // game's specs take it here, beside the viewport service it answers.
 export { type FakeViewport, installFakeViewport } from "@fz/ui/testing";
 export { barChoice, chooseInBar, openBarMenu } from "./bar_menus";
+export { installCompressionStreams } from "./compression_streams";

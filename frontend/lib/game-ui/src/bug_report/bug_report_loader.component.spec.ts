@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
 import { DEBUG_MENU } from "../debug_menu";
+import { installCompressionStreams } from "../testing";
 import { BugReportLoaderComponent } from "./bug_report_loader.component";
 import { packState } from "./packed";
 import { BUG_REPORT_SOURCE, type BugReportSource } from "./tokens";
@@ -68,15 +68,7 @@ async function loadText(user: UserEvent, text: string): Promise<void> {
   await user.click(screen.getByRole("button", { name: "Load" }));
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 describe("BugReportLoaderComponent", () => {
   it("shows nothing where the game offers no debug menu", async () => {

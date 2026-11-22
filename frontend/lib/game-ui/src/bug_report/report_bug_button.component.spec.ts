@@ -2,7 +2,7 @@ import { ErrorHandler } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
+import { installCompressionStreams } from "../testing";
 import { BugReportService } from "./bug_report.service";
 import { ReportBugButtonComponent } from "./report_bug_button.component";
 import { BUG_REPORT_SOURCE, type BugReportSource } from "./tokens";
@@ -35,15 +35,7 @@ async function renderButton(source: BugReportSource = SOURCE): Promise<{
   return { chosen, handleError };
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 describe("ReportBugButtonComponent", () => {
   it("asks whether the player found a problem, over the button", async () => {

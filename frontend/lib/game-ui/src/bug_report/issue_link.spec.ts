@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
+import { installCompressionStreams } from "../testing";
 import {
   ISSUE_FIELDS,
   type ReportLinkFields,
@@ -123,15 +123,7 @@ async function keptMoves(
   return moves;
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 describe("BUG_REPORT_CONFIG", () => {
   it("files reports on the games' shared form unless told otherwise", () => {

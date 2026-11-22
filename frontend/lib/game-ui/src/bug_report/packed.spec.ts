@@ -1,4 +1,4 @@
-import { CompressionStream, DecompressionStream } from "node:stream/web";
+import { installCompressionStreams } from "../testing";
 import {
   decodeBase64Url,
   encodeBase64Url,
@@ -41,15 +41,7 @@ function field(packed: string): string {
   return ["Level 9 · Score 950", "", "```", packed, "```"].join("\n");
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 describe("base64url", () => {
   it("decodes what it encodes", () => {

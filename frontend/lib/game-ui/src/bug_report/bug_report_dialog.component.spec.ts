@@ -1,7 +1,7 @@
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
+import { installCompressionStreams } from "../testing";
 import { BugReportService } from "./bug_report.service";
 import { BugReportDialogComponent } from "./bug_report_dialog.component";
 import {
@@ -121,15 +121,7 @@ function installShare(files: boolean): File[] {
   return shared;
 }
 
-// jsdom has no compression streams, so Node's stand in.
-beforeAll(() => {
-  vi.stubGlobal("CompressionStream", CompressionStream);
-  vi.stubGlobal("DecompressionStream", DecompressionStream);
-});
-
-afterAll(() => {
-  vi.unstubAllGlobals();
-});
+installCompressionStreams();
 
 // jsdom makes no links to blobs, and follows no link, so fakes stand in.
 beforeEach(() => {

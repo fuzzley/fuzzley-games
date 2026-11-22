@@ -1,13 +1,13 @@
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { TestBed } from "@angular/core/testing";
-import { CompressionStream, DecompressionStream } from "node:stream/web";
 import {
   BUG_REPORT_SOURCE,
   BugReportService,
   type BugReportSource,
 } from "../bug_report";
 import { BUILD_INFO, type BuildInfo } from "../build_info";
+import { installCompressionStreams } from "../testing";
 import { SettingsDrawerComponent } from "./settings_drawer.component";
 
 /** A build stamped with its commit and the time it ran. */
@@ -163,16 +163,7 @@ describe("SettingsDrawerComponent", () => {
   });
 
   describe("in a game that takes bug reports", () => {
-    // jsdom has no compression streams, which the report packs its state
-    // with, so Node's stand in.
-    beforeAll(() => {
-      vi.stubGlobal("CompressionStream", CompressionStream);
-      vi.stubGlobal("DecompressionStream", DecompressionStream);
-    });
-
-    afterAll(() => {
-      vi.unstubAllGlobals();
-    });
+    installCompressionStreams();
 
     it("offers Report a bug between the settings and the version", async () => {
       await renderReportingDrawer();
