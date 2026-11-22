@@ -72,7 +72,7 @@ export class LevelPlay extends FieldPlay<
     hear: (event: Readonly<FieldEvent>) => void,
   ): void {
     super.advance(deltaMs, steer, hear);
-    const shows = steer.showsGuide === true && this.field.state === "serve";
+    const shows = steer.showsGuide && this.field.state === "serve";
     if (shows) serveGuide(this.field, this.guide);
     this.written.guide = shows ? this.guide : null;
   }

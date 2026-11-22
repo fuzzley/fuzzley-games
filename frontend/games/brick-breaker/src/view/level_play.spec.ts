@@ -1,5 +1,4 @@
 import { createServeGuide, serveGuide } from "../rules/field/guide";
-import type { Steer } from "../rules/paddle/paddle";
 import { STEP_MS } from "../rules/stepper";
 import { MAX_STEPS_PER_FRAME, STEP_S } from "../rules/tuning";
 import {
@@ -81,7 +80,7 @@ describe("LevelPlay", () => {
     it("steers the field before it steps it", () => {
       const play = stillPlay();
       const from = play.field.paddle.x;
-      const toward: Steer = { to: from - 5, by: 0, push: 0, aim: null };
+      const toward: PlayerSteer = { ...NO_STEER, to: from - 5 };
 
       play.advance(STEP_MS, toward, deaf);
 

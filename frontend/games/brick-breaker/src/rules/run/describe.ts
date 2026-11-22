@@ -92,6 +92,21 @@ export function describeStarsWon(won: readonly StarId[]): string | null {
   return `${count(won.length, "new star", "new stars")}.`;
 }
 
+/**
+ * Returns what is said of the serve's aim, in whole degrees from straight
+ * up, positive to the right: as the guide shows, "Aiming 20 degrees
+ * right.", and as the keys turn it, the aim alone, "35 degrees left." or
+ * "Straight up."
+ */
+export function describeAim(degrees: number, at: "shown" | "turned"): string {
+  if (degrees === 0) {
+    return at === "shown" ? "Aiming straight up." : "Straight up.";
+  }
+  const side = degrees < 0 ? "left" : "right";
+  const way = `${count(Math.abs(degrees), "degree", "degrees")} ${side}`;
+  return at === "shown" ? `Aiming ${way}.` : `${way}.`;
+}
+
 /** Returns what is said as a run pauses. */
 export function describePause(run: Run): string {
   return `Paused. Score ${formatPoints(run.score)}. Press Enter to resume.`;

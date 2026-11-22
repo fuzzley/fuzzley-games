@@ -311,7 +311,7 @@ export class BricksScene extends Scene {
     }
     this.delayed.playDue(time, this.frameSounds);
     this.frameSounds.playEach(this.sounds.playRisen);
-    this.draw(frame, steer.showsGuide === true);
+    this.draw(frame, steer.showsGuide);
   }
 
   /**

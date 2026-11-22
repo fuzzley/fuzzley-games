@@ -27,6 +27,7 @@ import {
 import { viewport } from "@fz/phaser/testing/pure";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { figures } from "@fz/ui/testing";
 import {
   SPEC_LEVEL,
@@ -59,6 +60,7 @@ import {
 import { STAR } from "../../rules/run/stars";
 import { RIM, rimWidth } from "../../view/field/rim";
 import { backdropStyle } from "../../view/places/backdrop";
+import { GUIDE_DELAY_MS } from "../../view/steering/steering";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import { StarsService } from "../stats/stars.service";
@@ -1189,8 +1191,41 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("launches the ball at Space pressed on the board's application", async () => {
+    it("holds the serve at Space pressed on the board's application, launching nothing yet", async () => {
       const { application, game, run } = await runBoardScene();
+
+      fireEvent.keyDown(application, SPACE);
+      run.advance(FRAME_MS);
+
+      expect(game.outcome()).toBe("ready");
+    });
+
+    it("launches the ball as Space pressed on the board's application is let go", async () => {
+      const { application, game, run } = await runBoardScene();
+      fireEvent.keyDown(application, SPACE);
+      run.advance(FRAME_MS);
+
+      fireEvent.keyUp(application, SPACE);
+      run.advance(FRAME_MS);
+
+      expect(game.outcome()).toBe("playing");
+    });
+
+    it("says the aim as Space held on the board's application shows the guide", async () => {
+      const { application, run } = await runBoardScene();
+
+      fireEvent.keyDown(application, SPACE);
+      run.advance(GUIDE_DELAY_MS, FRAME_MS);
+
+      expect(TestBed.inject(AnnouncerService).message()).toBe(
+        "Aiming 20 degrees right.",
+      );
+    });
+
+    it("goes on at once at Space pressed while the run is paused", async () => {
+      const { application, game, run } = await runBoardScene();
+      game.launch();
+      game.pause();
 
       fireEvent.keyDown(application, SPACE);
       run.advance(FRAME_MS);
@@ -1276,6 +1311,9 @@ describe("BoardComponent", () => {
     it("plays a level to its end in the scene's time", async () => {
       const { game, run } = await runBoardScene();
       run.key("keydown", "Space", " ");
+      run.key("keyup", "Space", " ");
+      // The let-go launches at the next frame.
+      run.advance(FRAME_MS);
 
       advanceWhilePlaying(run, game);
 

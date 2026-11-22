@@ -94,17 +94,23 @@ export interface KeyPress {
 }
 
 /**
- * Says how the player steers a frame: the rules' `Steer`, and whether the
- * serve's guide shows, which only the view reads.
+ * Says how the player steers a frame: the rules' `Steer`, whether the
+ * serve's guide shows, which only the view reads, and whether a turn of the
+ * aim by the keys just ended, which the shell says.
  */
 export interface PlayerSteer extends Steer {
   /**
    * Whether the serve's guide shows: once a press holding the serve has
    * been held {@link GUIDE_DELAY_MS} or has turned the aim, while its drag
-   * isn't back within its zone. Left out, as by a steer typed as the rules'
-   * `Steer`, which the shell hands the play, none does.
+   * isn't back within its zone.
    */
-  showsGuide?: boolean;
+  showsGuide: boolean;
+  /**
+   * Whether a turn of the aim by the keys ended since the frame before, its
+   * key let go of or the other way pressed, so the shell says where the aim
+   * now points. A drag's turn never sets it.
+   */
+  turnEnded: boolean;
 }
 
 /** Names what holds the serve's aim: a launch key, the mouse, or a finger. */
@@ -198,6 +204,7 @@ export class Steering {
     push: 0,
     aim: null,
     showsGuide: false,
+    turnEnded: false,
   };
 
   constructor(private metrics: FieldMetrics) {}
@@ -372,6 +379,9 @@ export class Steering {
    */
   read(deltaMs: number, serve: number | null): Readonly<PlayerSteer> {
     if (serve === null) this.callOff();
+    // Taken after the call-off, which turns no way, so a turn that ends as
+    // the serve is let go of or called off isn't said.
+    const wayBefore = this.turnWay;
     this.launching = this.launchPending;
     this.launchPending = false;
     if (this.holder !== null) {
@@ -388,6 +398,7 @@ export class Steering {
       this.holder !== null &&
       (this.turned || this.heldMs >= GUIDE_DELAY_MS) &&
       (this.isOut || !this.wentOut);
+    steer.turnEnded = wayBefore !== 0 && this.turnWay !== wayBefore;
     this.toX = null;
     this.byPx = 0;
     return steer;

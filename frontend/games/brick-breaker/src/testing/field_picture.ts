@@ -15,9 +15,9 @@ import {
   type Nudge,
 } from "../rules/levels/level";
 import type { Ball } from "../rules/paddle/balls";
-import type { Steer } from "../rules/paddle/paddle";
 import type { Speed } from "../rules/speed";
 import { COLUMNS, FIELD_HEIGHT, ROWS } from "../rules/tuning";
+import type { PlayerSteer } from "../view/steering/steering";
 
 /** Says how a pictured field is played, where a spec cares. */
 export interface PictureOptions {
@@ -52,12 +52,14 @@ export const KEEPER: readonly string[] = [
   "o",
 ];
 
-/** Steering that asks nothing of the paddle. */
-export const NO_STEER: Readonly<Steer> = {
+/** Steering that asks nothing of the paddle, holds no aim and shows no guide. */
+export const NO_STEER: Readonly<PlayerSteer> = {
   to: null,
   by: 0,
   push: 0,
   aim: null,
+  showsGuide: false,
+  turnEnded: false,
 };
 
 /**

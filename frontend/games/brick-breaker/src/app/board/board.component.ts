@@ -456,6 +456,7 @@ export class BoardComponent {
       this.takePictures(pictures);
     },
     place: () => this.place(),
+    mayAim: () => this.game.mayAim(),
   };
 
   /**

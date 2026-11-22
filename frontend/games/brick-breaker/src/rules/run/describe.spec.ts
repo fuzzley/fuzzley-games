@@ -1,6 +1,7 @@
 import { LEVELS } from "../levels/levels";
 import { MAX_LIVES } from "../tuning";
 import {
+  describeAim,
   describeCaught,
   describeCleared,
   describeEnd,
@@ -179,6 +180,29 @@ describe("describe", () => {
     "says a run %s ends (a new best: %s)",
     (outcome, newBest, words) => {
       expect(describeEnd(runAt({ outcome }), newBest)).toBe(words);
+    },
+  );
+});
+
+describe("describeAim", () => {
+  it.each([
+    [20, "Aiming 20 degrees right."],
+    [-35, "Aiming 35 degrees left."],
+    [1, "Aiming 1 degree right."],
+    [0, "Aiming straight up."],
+  ] as const)("says the aim of %d as the guide shows", (degrees, words) => {
+    expect(describeAim(degrees, "shown")).toBe(words);
+  });
+
+  it.each([
+    [-35, "35 degrees left."],
+    [60, "60 degrees right."],
+    [-1, "1 degree left."],
+    [0, "Straight up."],
+  ] as const)(
+    "says the aim of %d alone as the keys turn it",
+    (degrees, words) => {
+      expect(describeAim(degrees, "turned")).toBe(words);
     },
   );
 });

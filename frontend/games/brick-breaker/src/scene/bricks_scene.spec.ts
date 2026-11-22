@@ -199,7 +199,7 @@ class FakeShell implements BricksSceneOptions {
     this.ticks.push({ deltaMs, steer: { ...steer } });
     if (this.heightAsked !== null) reshapeField(this.field, this.heightAsked);
     if (this.keepsGuide) return;
-    const shows = steer.showsGuide === true;
+    const shows = steer.showsGuide;
     if (shows) serveGuide(this.field, this.guide);
     this.handed = shows ? this.guide : null;
   };
@@ -2126,7 +2126,14 @@ describe("BricksScene", () => {
 
       expect({ commands: shell.commands, steer: shell.lastSteer() }).toEqual({
         commands: [],
-        steer: { to: null, by: 0, push: 0, aim: 20, showsGuide: false },
+        steer: {
+          to: null,
+          by: 0,
+          push: 0,
+          aim: 20,
+          showsGuide: false,
+          turnEnded: false,
+        },
       });
     });
 

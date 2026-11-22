@@ -28,7 +28,9 @@ import {
   under,
   underCapsule,
 } from "../../testing/play";
+import { headingOf } from "../../testing/field_picture";
 import { CLEARED_MS, FADE_MS, SERVE_MS } from "../../view/effects/timing";
+import type { PlayerSteer } from "../../view/steering/steering";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StarsService } from "../stats/stars.service";
@@ -148,6 +150,19 @@ async function endedAt(level: number): Promise<GameService> {
   return game;
 }
 
+/** Returns the steering of a press that holds the serve at an aim, the guide shown, the keys just done turning it or not. */
+function aimedAt(aim: number | null, turnEnded = false): PlayerSteer {
+  return { ...STILL, aim, showsGuide: true, turnEnded };
+}
+
+/** Returns the game with its run's ball lost, and the next waiting on the paddle. */
+async function servingAgainAt(level: number): Promise<GameService> {
+  const game = await gameAt(level);
+  loseBall(game);
+  game.tick(SERVE_MS, STILL);
+  return game;
+}
+
 /** A level whose bricks let a wide paddle or a narrow one fall, at a chance of a half. */
 const MIXED_POOL = levelsOf([
   {
@@ -213,9 +228,129 @@ describe("GameService", () => {
     it("lets the paddle be steered before the first serve", () => {
       const game = TestBed.inject(GameService);
 
-      playFor(game, 1000, { to: 3, by: 0, push: 0, aim: null });
+      playFor(game, 1000, { ...STILL, to: 3 });
 
       expect(game.frame().field.paddle.x).toBeLessThan(FIELD_WIDTH / 2);
+    });
+  });
+
+  describe("aiming the serve", () => {
+    it("lets a press aim as the run waits for its first serve", () => {
+      const game = TestBed.inject(GameService);
+
+      expect(game.mayAim()).toBe(true);
+    });
+
+    it("lets a press aim while the run plays", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+
+      expect(game.mayAim()).toBe(true);
+    });
+
+    it("lets no press aim before the board is drawn", () => {
+      const game = TestBed.inject(GameService);
+
+      game.setDrawn(false);
+
+      expect(game.mayAim()).toBe(false);
+    });
+
+    it("lets no press aim while the run is paused", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+
+      game.pause();
+
+      expect(game.mayAim()).toBe(false);
+    });
+
+    it("lets no press aim over a cleared level", async () => {
+      const game = await clearedAt(SPEC_LEVEL.blasts);
+
+      expect(game.mayAim()).toBe(false);
+    });
+
+    it("aims while the guide shows, and says the aim as it starts to", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      game.tick(FRAME_MS, aimedAt(-35));
+
+      expect({ aiming: game.aiming(), said: said() }).toEqual({
+        aiming: true,
+        said: "Aiming 35 degrees left.",
+      });
+    });
+
+    it("says where a quick press would serve as the guide shows with no aim held", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+
+      game.tick(FRAME_MS, aimedAt(null));
+
+      expect(said()).toBe("Aiming 20 degrees right.");
+    });
+
+    it("says nothing more as a drag turns the aim", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, aimedAt(-35));
+
+      game.tick(FRAME_MS, aimedAt(-40));
+
+      expect(said()).toBe("Aiming 35 degrees left.");
+    });
+
+    it("says the aim alone as the keys end a turn of it", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, aimedAt(-35));
+
+      game.tick(FRAME_MS, aimedAt(0, true));
+
+      expect(said()).toBe("Straight up.");
+    });
+
+    it("stops aiming as the guide hides", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, aimedAt(20));
+
+      game.tick(FRAME_MS, STILL);
+
+      expect(game.aiming()).toBe(false);
+    });
+
+    it("says the aim again as the guide shows again", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, aimedAt(20));
+      game.tick(FRAME_MS, STILL);
+
+      game.tick(FRAME_MS, aimedAt(25));
+
+      expect(said()).toBe("Aiming 25 degrees right.");
+    });
+
+    it("doesn't aim while the run is paused", async () => {
+      const game = await servingAgainAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, aimedAt(20));
+      game.pause();
+
+      game.tick(FRAME_MS, aimedAt(20));
+
+      expect(game.aiming()).toBe(false);
+    });
+
+    it("doesn't aim while the ball is in play", async () => {
+      const game = await launchedAt(SPEC_LEVEL.steel);
+
+      game.tick(FRAME_MS, aimedAt(20));
+
+      expect(game.aiming()).toBe(false);
+    });
+
+    it("serves at the aim held as the launch comes", async () => {
+      const game = await gameAt(SPEC_LEVEL.steel);
+      game.tick(FRAME_MS, { ...STILL, aim: -35 });
+
+      game.launch();
+
+      const [ball] = game.frame().field.balls;
+      expect(ball && Math.round(headingOf(ball))).toBe(-35);
     });
   });
 

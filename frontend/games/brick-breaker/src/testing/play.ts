@@ -9,8 +9,8 @@ import {
   type LevelSetData,
   levelsOf,
 } from "../rules/levels/levels";
-import type { Steer } from "../rules/paddle/paddle";
 import { FIELD_WIDTH } from "../rules/tuning";
+import type { PlayerSteer } from "../view/steering/steering";
 
 /** Returns a level of gifts that each let a capsule fall, before a wall of steel. */
 function giftsOf(capsule: string, name: string): LevelData {
@@ -142,29 +142,31 @@ export function provideSpecLevels(
   ];
 }
 
-/** Leaves the paddle where it is. */
-export const STILL: Readonly<Steer> = { to: null, by: 0, push: 0, aim: null };
+/** Leaves the paddle where it is, and holds no aim. */
+export const STILL: Readonly<PlayerSteer> = {
+  to: null,
+  by: 0,
+  push: 0,
+  aim: null,
+  showsGuide: false,
+  turnEnded: false,
+};
 
 /** Returns the steering that keeps the paddle under the lowest ball in play. */
-export function under(game: GameService): Steer {
-  return { to: lowestBallX(game), by: 0, push: 0, aim: null };
+export function under(game: GameService): PlayerSteer {
+  return { ...STILL, to: lowestBallX(game) };
 }
 
 /** Returns the steering that sends the paddle to the wall farthest from the lowest ball. */
-export function awayFrom(game: GameService): Steer {
+export function awayFrom(game: GameService): PlayerSteer {
   const x = lowestBallX(game) ?? FIELD_WIDTH / 2;
-  return {
-    to: x < FIELD_WIDTH / 2 ? FIELD_WIDTH : 0,
-    by: 0,
-    push: 0,
-    aim: null,
-  };
+  return { ...STILL, to: x < FIELD_WIDTH / 2 ? FIELD_WIDTH : 0 };
 }
 
 /** Returns the steering that puts the paddle under a falling capsule, else under the ball. */
-export function underCapsule(game: GameService): Steer {
+export function underCapsule(game: GameService): PlayerSteer {
   const capsule = game.frame().field.falling.find((each) => each.live);
-  return capsule ? { to: capsule.x, by: 0, push: 0, aim: null } : under(game);
+  return capsule ? { ...STILL, to: capsule.x } : under(game);
 }
 
 /** Returns where the lowest ball in play is across, or null with none. */

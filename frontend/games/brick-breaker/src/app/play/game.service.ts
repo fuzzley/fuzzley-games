@@ -13,6 +13,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { fireBolts } from "../../rules/paddle/bolts";
 import { capsule } from "../../rules/catalog/capsules";
 import {
+  describeAim,
   describeCaught,
   describeCleared,
   describeEnd,
@@ -31,9 +32,9 @@ import {
   createField,
   launch as launchBalls,
   reshapeField,
+  serveAim,
 } from "../../rules/field/field";
 import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
-import type { Steer } from "../../rules/paddle/paddle";
 import {
   type Run,
   catchUp,
@@ -63,6 +64,7 @@ import { FIELD_HEIGHT } from "../../rules/tuning";
 import type { FieldCommand } from "../../view/steering/controls";
 import type { FieldFrame } from "../../view/field/frame";
 import { LevelPlay } from "../../view/level_play";
+import type { PlayerSteer } from "../../view/steering/steering";
 import { clearedDelayMs, resultDelayMs } from "../../view/effects/timing";
 import {
   type EffectInPlay,
@@ -130,6 +132,7 @@ export class GameService extends RunLifecycle {
   private readonly chimesState = signal(0);
   private readonly fieldHeightState = signal(FIELD_HEIGHT);
   private readonly ballSpeedScaleState = signal(1);
+  private readonly aimingState = signal(false);
 
   /** The run on the board. */
   readonly run = this.runState.asReadonly();
@@ -212,6 +215,19 @@ export class GameService extends RunLifecycle {
   /** Whether a ball waits on the paddle to be served, for the card that says how. */
   readonly serving = this.servingState.asReadonly();
 
+  /**
+   * Whether a press may hold a waiting ball's serve to aim it, rather than
+   * launch at once: while the run is ready or playing and the board is
+   * drawn.
+   */
+  readonly mayAim = computed(() => {
+    const outcome = this.runState().outcome;
+    return (outcome === "ready" || outcome === "playing") && this.drawn();
+  });
+
+  /** Whether the serve's guide shows, as the player holds the serve to aim it, for the board. */
+  readonly aiming = this.aimingState.asReadonly();
+
   /** How many times a hit now scores, by the streak, for the bar while it is more than one. */
   readonly multiplier = this.multiplierState.asReadonly();
 
@@ -252,12 +268,15 @@ export class GameService extends RunLifecycle {
 
   /**
    * Moves the field on by the time a frame took, as often as the time holds
-   * a step, steered as the player steers it, and takes what it came to into
-   * the run; or, with the level cleared or the run ended, opens the card it
-   * waits for once its time has run. A paused level stays as it is.
+   * a step, steered and aimed as the player steers and aims it, says the
+   * aim as the guide shows and again as the keys end a turn of it, and
+   * takes what it came to into the run; or, with the level cleared or the
+   * run ended, opens the card it waits for once its time has run. A paused
+   * level stays as it is.
    */
-  tick(deltaMs: number, steer: Readonly<Steer>): void {
-    switch (this.runState().outcome) {
+  tick(deltaMs: number, steer: Readonly<PlayerSteer>): void {
+    const outcome = this.runState().outcome;
+    switch (outcome) {
       case "ready":
       case "playing":
         this.playOn(deltaMs, steer);
@@ -276,6 +295,9 @@ export class GameService extends RunLifecycle {
         break;
       case "paused":
         break;
+    }
+    if (outcome !== "ready" && outcome !== "playing") {
+      this.aimingState.set(false);
     }
     this.fitField();
     this.sayNews();
@@ -466,10 +488,11 @@ export class GameService extends RunLifecycle {
    * into the run, then, with the level still in play, serves again once a
    * lost ball's beat has run.
    */
-  private playOn(deltaMs: number, steer: Readonly<Steer>): void {
+  private playOn(deltaMs: number, steer: Readonly<PlayerSteer>): void {
     const field = this.levelPlay.field;
     const needed = field.needed;
     this.levelPlay.advance(deltaMs, steer, this.hear);
+    this.followAim(steer.turnEnded);
     const fewLeft = describeFewLeft(needed, field.needed);
     if (fewLeft !== null) this.news.push(fewLeft);
     this.takeIn(catchUp(this.runState(), field));
@@ -481,6 +504,20 @@ export class GameService extends RunLifecycle {
     this.streakState.set(field.streak);
     this.bestStreakState.set(field.bestStreak);
     this.followEffects(field);
+  }
+
+  /**
+   * Notes whether the serve's guide shows, and says the aim as it starts to,
+   * and again as the keys end a turn of it.
+   */
+  private followAim(turnEnded: boolean): void {
+    const shows = this.levelPlay.frame().guide !== null;
+    const shown = this.aimingState();
+    if (shows && (turnEnded || !shown)) {
+      const aim = serveAim(this.levelPlay.field);
+      this.news.push(describeAim(aim, shown ? "turned" : "shown"));
+    }
+    this.aimingState.set(shows);
   }
 
   /** Copies the effects in play on a field, if they are no longer those shown. */

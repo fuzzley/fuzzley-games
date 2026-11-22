@@ -306,7 +306,14 @@ describe("Steering's launch keys", () => {
 
       expect({ taken, steer: frame(steering) }).toEqual({
         taken: true,
-        steer: { to: null, by: 0, push: 0, aim: SERVE, showsGuide: false },
+        steer: {
+          to: null,
+          by: 0,
+          push: 0,
+          aim: SERVE,
+          showsGuide: false,
+          turnEnded: false,
+        },
       });
     },
   );
@@ -402,7 +409,14 @@ describe("Steering's launch keys", () => {
     steering.keyUp("Space");
 
     expect({ steer, served: served(steering) }).toEqual({
-      steer: { to: null, by: 0, push: 0, aim: null, showsGuide: false },
+      steer: {
+        to: null,
+        by: 0,
+        push: 0,
+        aim: null,
+        showsGuide: false,
+        turnEnded: false,
+      },
       served: CALLED_OFF,
     });
   });
@@ -543,6 +557,7 @@ describe("Steering's launch keys", () => {
       push: 1,
       aim: SERVE,
       showsGuide: false,
+      turnEnded: false,
     });
   });
 
@@ -565,6 +580,53 @@ describe("Steering's launch keys", () => {
     const { aim } = frame(steering, SERVE, 100);
 
     expect(aim).toBe(SERVE);
+  });
+
+  it("say a turn ended on the frame after its key is let go, and on that frame alone", () => {
+    const steering = keyHeld();
+    steering.keyDown(key("ArrowRight"), SERVE);
+    const turning = frame(steering).turnEnded;
+
+    steering.keyUp("ArrowRight");
+    const ended = frame(steering).turnEnded;
+    const after = frame(steering).turnEnded;
+
+    expect({ turning, ended, after }).toEqual({
+      turning: false,
+      ended: true,
+      after: false,
+    });
+  });
+
+  it("say a turn ended as the other way is pressed over it", () => {
+    const steering = keyHeld();
+    steering.keyDown(key("ArrowRight"), SERVE);
+    frame(steering);
+
+    steering.keyDown(key("ArrowLeft"), SERVE);
+
+    expect(frame(steering).turnEnded).toBe(true);
+  });
+
+  it("say no turn ended as the serve is let go of while a key turns it", () => {
+    const steering = keyHeld();
+    steering.keyDown(key("ArrowRight"), SERVE);
+    frame(steering);
+
+    steering.keyUp("Space");
+    steering.keyUp("ArrowRight");
+
+    expect(frame(steering).turnEnded).toBe(false);
+  });
+
+  it("say no turn ended as a drag turns the aim", () => {
+    const steering = mouseHeld();
+    steering.pointerMove(moved(mouse(10), 20, -30));
+    frame(steering);
+
+    steering.pointerMove(moved(mouse(10), -20, -30));
+
+    expect(frame(steering).turnEnded).toBe(false);
   });
 });
 
@@ -637,7 +699,14 @@ describe("Steering's mouse", () => {
 
     expect({ launches, steer: frame(steering) }).toEqual({
       launches: false,
-      steer: { to: null, by: 0, push: 0, aim: SERVE, showsGuide: false },
+      steer: {
+        to: null,
+        by: 0,
+        push: 0,
+        aim: SERVE,
+        showsGuide: false,
+        turnEnded: false,
+      },
     });
   });
 
@@ -798,6 +867,7 @@ describe("Steering's finger, dragging", () => {
       push: 0,
       aim: null,
       showsGuide: false,
+      turnEnded: false,
     });
   });
 
@@ -857,6 +927,7 @@ describe("Steering's finger, followed", () => {
       push: 0,
       aim: null,
       showsGuide: false,
+      turnEnded: false,
     });
   });
 
@@ -882,6 +953,7 @@ describe("Steering's finger, as a ball waits", () => {
       push: 0,
       aim: null,
       showsGuide: false,
+      turnEnded: false,
     });
   });
 
@@ -934,6 +1006,7 @@ describe("Steering's finger, as a ball waits", () => {
         by: across / metricsAt().unit,
         aim: null,
         showsGuide: false,
+        turnEnded: false,
       });
     },
   );
@@ -1014,7 +1087,14 @@ describe("Steering's finger, as a ball waits", () => {
     steering.pointerUp(moved(finger(10), 20, -30));
 
     expect({ steer, served: served(steering) }).toEqual({
-      steer: { to: null, by: 0, push: 0, aim: null, showsGuide: false },
+      steer: {
+        to: null,
+        by: 0,
+        push: 0,
+        aim: null,
+        showsGuide: false,
+        turnEnded: false,
+      },
       served: CALLED_OFF,
     });
   });
@@ -1139,7 +1219,14 @@ describe("Steering", () => {
       steer: { ...frame(steering, NO_SERVE) },
       tapped: steering.pointerUp(finger(20)),
     }).toEqual({
-      steer: { to: null, by: 0, push: 0, aim: null, showsGuide: false },
+      steer: {
+        to: null,
+        by: 0,
+        push: 0,
+        aim: null,
+        showsGuide: false,
+        turnEnded: false,
+      },
       tapped: false,
     });
   });
