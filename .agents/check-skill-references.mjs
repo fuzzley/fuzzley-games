@@ -23,20 +23,11 @@ import {
 
 /** @import { SkillRoot } from "./skill-roots.mjs" */
 
-// Skills whose backticked paths point into another project's source tree: the
-// vendored Angular ones.
+// Skills whose backticked paths point into another project's source tree, so
+// they aren't checked: the vendored Angular one.
 //
 // A skill about this repository needs no entry here, so it is checked.
-const UPSTREAM_SKILLS = new Set(["angular-developer", "angular-new-app"]);
-
-// The Phaser skills are copies of the `skills/` folder Phaser's package ships
-// (frontend/node_modules/phaser/skills/), each renamed with a `phaser-` prefix,
-// and cite Phaser's source tree, all but these two, which were written here
-// and cite this repository.
-const PHASER_SKILLS_WRITTEN_HERE = new Set([
-  "phaser-core",
-  "phaser-canvas-performance",
-]);
+const UPSTREAM_SKILLS = new Set(["angular-developer"]);
 
 // In the repository's skills, a backticked token is treated as a path when it
 // starts with one of these. Anything else in backticks is prose, an
@@ -75,18 +66,6 @@ const SHARED_LAYER_BUDGETS = new Map([
 
 // The most bytes any other `AGENTS.md` may hold.
 const OWN_BUDGET = 8_000;
-
-/**
- * Returns whether a skill cites another project's source tree, so its paths
- * aren't checked.
- *
- * @param {string} name
- * @returns {boolean}
- */
-function isUpstream(name) {
-  if (UPSTREAM_SKILLS.has(name)) return true;
-  return name.startsWith("phaser-") && !PHASER_SKILLS_WRITTEN_HERE.has(name);
-}
 
 /**
  * Returns every markdown file under a directory.
@@ -364,7 +343,7 @@ for (const root of skillRoots()) {
     for (const file of markdownFilesIn(skillDir)) {
       const text = fs.readFileSync(file, "utf8");
       checkRelativeLinks(file, text, problems);
-      if (!isUpstream(entry.name)) {
+      if (!UPSTREAM_SKILLS.has(entry.name)) {
         checkPaths(file, text, root.base, problems);
       }
     }

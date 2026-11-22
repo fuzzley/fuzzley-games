@@ -1,6 +1,6 @@
 ---
 name: phaser-core
-description: How a game here is drawn with Phaser 4 on @fz/phaser — which piece of the library to reach for, where Phaser may be imported, how the shell and a scene talk, input, a scene's end, headless specs, and the phaser-* skill for each part of Phaser. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, @fz/phaser, bakeAtlas, shapes, SpritePlayer, runScene, headless, WebGL.
+description: How a game here is drawn with Phaser 4 on @fz/phaser — which piece of the library to reach for, where Phaser may be imported, how the shell and a scene talk, input, a scene's end, headless specs, and where Phaser's own skills are. Triggers on: Phaser, scene, canvas, fz-phaser-canvas, @fz/phaser, bakeAtlas, shapes, SpritePlayer, runScene, headless, WebGL.
 ---
 
 # Phaser games here
@@ -16,7 +16,8 @@ shows a scene, and its scene (`frontend/games/snake/src/scene/snake_scene.ts`)
 does most of what this skill asks of one. Brick Breaker, Asteroid Breaker and
 Brick Fuzz Pop are laid out as Snake is, and bake their art into one atlas at
 run time (`frontend/games/brick-breaker/src/scene/atlas.ts`). The Solitaire
-Collection is laid out its own way, which its `solitaire-phaser` skill covers.
+Collection is laid out its own way, which its `add-solitaire-game` skill
+covers.
 
 ## The library
 
@@ -380,32 +381,18 @@ testing skill has its fixtures.
   Solitaire Collection's, its atlases served and loaded
   (`frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`).
 
-## The parts of Phaser in use
+## Phaser's own skills
 
-One skill for each, with its API and pitfalls:
+Phaser's package ships a skill for each part of Phaser, with its API and its
+pitfalls: `frontend/node_modules/phaser/skills/<name>/SKILL.md`, the installed
+version's own, so none is copied here. List the folder, and read the one for
+the part a task touches (`scenes`, `tweens`, `render-textures`,
+`input-keyboard-mouse-touch`) before writing against that part from memory.
+Where one has a `references/REFERENCE.md` beside it, that holds its tables.
+`v4-new-features` and `v3-to-v4-migration` say where Phaser 4 differs from
+Phaser 3.
 
-- **Setting up and running:** `phaser-game-setup-and-config`,
-  `phaser-scenes`, `phaser-scale-and-responsive`
-- **Assets and textures:** `phaser-loading-assets`,
-  `phaser-sprites-and-images`, `phaser-render-textures`
-- **Drawing:** `phaser-game-object-components`,
-  `phaser-graphics-and-shapes`, `phaser-groups-and-containers`,
-  `phaser-text-and-bitmaptext`
-- **Motion and time:** `phaser-tweens`, `phaser-time-and-timers`,
-  `phaser-particles`
-- **Input:** `phaser-input-keyboard-mouse-touch`
-- **Sound:** `phaser-audio-and-sound`
-- **Cameras and effects:** `phaser-cameras`, `phaser-filters-and-postfx`
-- **Events:** `phaser-events-system`
-- **Phaser 4 itself:** `phaser-v3-to-v4-migration`, `phaser-v4-new-features`
-- **Performance:** `phaser-canvas-performance`
-
-All but this one and `phaser-canvas-performance` are copies of the
-`skills/` folder Phaser's package ships, in
-`frontend/node_modules/phaser/skills/`, which also covers animations,
-curves, geometry, the data manager, actions, physics and tile maps. When a
-game starts using one of those, copy its folder into `.agents/skills/` as
-`phaser-<name>`, with its `name` and its `../<skill>/` paths prefixed the
-same way, and a path to a skill not copied here taken out, which the
-reference check fails. Leave the rest as copied, which `.prettierignore`
-does. Then run `node .agents/link-claude-skills.mjs`.
+They are written for a plain JavaScript game: their examples use the global
+`Phaser` and Phaser's own key events. Where one differs from this skill,
+this skill holds. Keeping a game here fast is the
+`phaser-canvas-performance` skill's.

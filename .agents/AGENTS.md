@@ -96,10 +96,9 @@ Security Policy from `nginx/content-security-policy.conf`.
 - **`.agents/agents/commit-reviewer.md` changes in the same commit as the
   rules it condenses:** this file's for code, doc comments and specs, and
   `frontend/AGENTS.md`'s for Angular and Sass.
-- **Don't hand-edit a vendored skill.** `angular-developer` and
-  `angular-new-app` are hash-locked in `skills-lock.json`, and the
-  `phaser-*` skills, all but `phaser-core` and `phaser-canvas-performance`,
-  are copies from Phaser's package. `phaser-core` says how to add one.
+- **Don't hand-edit a vendored skill, or copy one in.** `angular-developer`
+  is hash-locked in `skills-lock.json`. Phaser's own skills are read where
+  its package ships them, as `phaser-core` says.
 
 ## Coding Best Practices
 

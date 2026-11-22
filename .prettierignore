@@ -4,16 +4,9 @@ frontend/site/public/play
 frontend/.yarn
 coverage
 
-# Vendored skills. These are pulled from upstream and their content hashes are
-# recorded in skills-lock.json, so reformatting them would defeat the lock.
+# The vendored skill. It is pulled from upstream and its content hash is
+# recorded in skills-lock.json, so reformatting it would defeat the lock.
 .agents/skills/angular-developer
-.agents/skills/angular-new-app
-
-# The Phaser skills copied from Phaser's package, left as copied so a fresh
-# copy can be compared with them; the two written here are formatted.
-.agents/skills/phaser-*
-!.agents/skills/phaser-core
-!.agents/skills/phaser-canvas-performance
 
 # What the Asteroid Breaker uplift's scripts write: its assets, and the
 # reports on its sounds, which the build that makes them lays out.

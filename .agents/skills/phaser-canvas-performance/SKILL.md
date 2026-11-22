@@ -9,8 +9,8 @@ description: Keeping a Phaser 4 game here at its frame rate, by measuring first,
 > end to every scene.
 
 What a game does about its own artwork is its own: the Solitaire
-Collection's card atlases and their densities are in its `solitaire-phaser`
-skill.
+Collection's card atlases and their densities are in
+`frontend/games/solitaire/docs/card-sharpness.md`.
 
 ## Measure first
 
@@ -53,10 +53,11 @@ and write to it each time.
 ## 4. Pooled objects
 
 - **Pool what comes and goes often.** Take a burst of sprites from a `Group`
-  and give them back, rather than creating and destroying each
-  (`phaser-groups-and-containers`). A flourish played a set number at a time
-  takes `@fz/core/turns`'s `Turns` instead, made with its game objects, each
-  taken in turn, as the breakers' and Brick Fuzz Pop's painters do. A tween
+  and give them back, rather than creating and destroying each (Phaser's
+  own `groups-and-containers` skill, found as `phaser-core` says). A
+  flourish played a set number at a time takes `@fz/core/turns`'s `Turns`
+  instead, made with its game objects, each taken in turn, as the breakers'
+  and Brick Fuzz Pop's painters do. A tween
   or a timer that runs again and again is one object too, not a new one each
   time.
 - **A pooled object that hides still costs a frame while it lies in a
