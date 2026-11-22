@@ -1,0 +1,56 @@
+{
+  "brick-breaker": {
+    "canvases": 1,
+    "framesMs": 67,
+    "modern-screenshot": {
+      "ms": [1240, 1185, 1115],
+      "pngBytes": 201651,
+      "differing": 0,
+      "meanLevels": 0.05,
+      "transparent": 0
+    },
+    "snapdom": {
+      "ms": [764, 333, 285],
+      "pngBytes": 201568,
+      "differing": 0,
+      "meanLevels": 0.06,
+      "transparent": 0
+    }
+  },
+  "sudoku": {
+    "canvases": 0,
+    "framesMs": 2,
+    "modern-screenshot": {
+      "ms": [548, 548, 552],
+      "pngBytes": 91210,
+      "differing": 0.0001,
+      "meanLevels": 0.03,
+      "transparent": 0
+    },
+    "snapdom": {
+      "ms": [219, 53, 48],
+      "pngBytes": 91241,
+      "differing": 0.0001,
+      "meanLevels": 0.03,
+      "transparent": 0
+    }
+  },
+  "solitaire": {
+    "canvases": 1,
+    "framesMs": 197,
+    "modern-screenshot": {
+      "ms": [34155, 32497, 32851],
+      "pngBytes": 274114,
+      "differing": 0,
+      "meanLevels": 0,
+      "transparent": 0
+    },
+    "snapdom": {
+      "ms": [2146, 1773, 1668],
+      "pngBytes": 274114,
+      "differing": 0,
+      "meanLevels": 0,
+      "transparent": 0
+    }
+  }
+}
