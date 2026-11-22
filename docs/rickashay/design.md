@@ -14,8 +14,9 @@ called "Rickashay". It differs in three ways, in the user's words:
 Other games of the kind were to be read for inspiration, and no source
 code.
 
-This is a design, not a build plan. Nothing is built, and nothing here says in
-what order to build it. [Brick Fuzz Pop's
+This is a design, not a build plan. Beyond the few steps the user settled
+("What the user settled"), nothing here says in what order to build it:
+[`implementation-plan.md`](implementation-plan.md) does. [Brick Fuzz Pop's
 plan](../archive/brick-fuzz-pop/plan.md) set this game aside in its first
 decision, "a game that wins more by bouncing off the bricks and walls is to be
 designed apart, later", and this is that game. It keeps Brick Fuzz Pop's field,
@@ -144,13 +145,39 @@ can be changed without unpicking the rest:
    25 and 45 strikes, a star for a long flight, and points that climb with
    the rally.
 
+Five more were put to the user with the build plan, each with a
+recommendation, and on 2026-11-22 the user took all five as recommended.
+"Decisions" marks them **the user's** too, all but the eleventh, which risk 1
+carries:
+
+8. **Where the parts shared with Brick Fuzz Pop go** (decision 26): into
+   one new library, `@fz/brick-wall`, laid out in a game's four layers,
+   which holds what the two wall games mean alike and nothing else. A piece
+   any game could use goes into the library that holds its kind.
+9. **Fast-forward is a switch** (decision 22), as Brick Fuzz Pop's is: four
+   times the speed, on top of Normal or Fast, switched by the bar or F and
+   kept with the settings. One bar should behave alike in both games.
+10. **Skip, and no Drop** (decision 22). Skip lands a flight at once, with
+    everything it would have done. Brick Fuzz Pop's Drop brings its
+    fuzzball straight down and keeps only what it had done by then, which
+    here would throw away the rally a player was watching; the dash home
+    already cuts the tail of a flight with nothing left to strike.
+11. **The feel is tried on the site** (risk 1). Once Warm-up plays end to
+    end, with sound, the game goes up on the site, its tile marked "In
+    development", and the user plays it on a phone and a desktop and says
+    what to change. The other sets wait for the user's word on the numbers.
+12. **Brick Fuzz Pop's lifts land on their own** (decision 26). What moves
+    out of Brick Fuzz Pop into the libraries reaches the site by itself,
+    before any of Rickashay, at the user's word, as Brick Fuzz Pop's own
+    lifts did.
+
 ## Decisions
 
 The design's choices, cited by number below. "Asked for" marks what the ask
-settled; **the user's** marks what the user kept on 2026-11-10, of the
-seven choices "What the user settled" lists; and "Brick Fuzz Pop's" marks
-what is taken from that plan as it stands, several of them the user's own
-answers there. Each of the rest says what it could be instead.
+settled; **the user's** marks the choices "What the user settled" lists,
+kept on 2026-11-10 or answered on 2026-11-22; and "Brick Fuzz Pop's"
+marks what is taken from that plan as it stands, several of them the user's
+own answers there. Each of the rest says what it could be instead.
 
 1. **The name is Rickashay** (asked for, and **the user's** to keep), at
    `/play/rickashay/`, workspace `games/rickashay`, port 9007, in Arcade.
@@ -272,15 +299,18 @@ answers there. Each of the rest says what it could be instead.
     the announcer can say what a flight did the moment it leaves.
 17. **The guide shows a flight to its third turn** (**the user's**). A ring
     marks each turn, and the bricks it strikes on the way are marked too. A
-    setting makes it the first turn or the fifth. Brick Fuzz Pop's stops at
-    the first, which is the genre's habit, and in Okay? where the complaints
-    of trial and error sit; and the retry such games lean on doesn't exist
-    here, since the wall moves every round. The whole path would make the
-    game a search for a number. In the sketch a player who chose by the
-    guide alone cleared several times as many levels seeing three turns as
-    seeing one ("The sketch", 9), so this one setting moves the game
-    further than any other number in it. Instead: the first turn and one
-    more, the least that is fair; or the fifth, for a gentler game.
+    setting makes it the first turn or the fifth. It is the rules' own
+    flight, stopped a unit and a half past that turn, so a floor bounce in
+    hand shows in it too, and it is cast again only when the aim, the start
+    or the hot shot changes. Brick Fuzz Pop's stops at the first, which is
+    the genre's habit, and in Okay? where the complaints of trial and error
+    sit; and the retry such games lean on doesn't exist here, since the wall
+    moves every round. The whole path would make the game a search for a
+    number. In the sketch a player who chose by the guide alone cleared
+    several times as many levels seeing three turns as seeing one ("The
+    sketch", 9), so this one setting moves the game further than any other
+    number in it. Instead: the first turn and one more, the least that is
+    fair; or the fifth, for a gentler game.
 18. **Aiming:** a finger and a mouse alike point and hold: press where to
     aim, the guide follows as the finger or the mouse drags, and letting
     go releases. Holding charges nothing, as there is nothing to charge.
@@ -306,15 +336,23 @@ answers there. Each of the rest says what it could be instead.
     careless player's best flight reaches every other game ("The
     guarantee"). Brick Fuzz Pop's three are all for rounds. Here one is
     for the thing the game is about, and it can be had on a slow clear.
-    They are honours, and nothing is locked behind them.
+    Each is kept once it is earned in any game that clears the level, so the
+    three needn't come in one game. They are honours, and nothing is locked
+    behind them.
 21. **Scoring by the rally** (**the user's**). Ten points a strike, times a
     step that climbs with the flight's rally, and a bonus for each floor
     bounce earned, each jump and each star.
 22. **The flight is never a wait.** It quickens as its rally grows, it
-    dashes home once its last strike is behind it, and fast-forward and
-    Skip are there from its first moment, as in Brick Fuzz Pop. Its timer
-    that doubles a flight's speed after eight seconds is not: here a long
-    flight is the prize, and the game shouldn't hurry the player past it.
+    dashes home once its last strike is behind it, and Fast-forward and
+    Skip are there from its first moment. Fast-forward is a switch, as Brick
+    Fuzz Pop's is (**the user's**): four times the speed while it is on,
+    kept from flight to flight, and live while a shot is aimed. Skip lands
+    the flight at once, with everything it would have done (**the user's**).
+    Brick Fuzz Pop's Drop, which brings its fuzzball straight down with only
+    what it had done by then, is not here, nor its timer that doubles a
+    flight's speed after eight seconds: here a long flight is the prize, and
+    the game shouldn't throw away the rally a player was watching or hurry
+    them past it.
 23. **Flat art in the site's palettes,** Brick Fuzz Pop's tiles with their
     corners cut, so a brick's picture is the shape a flight meets. The
     sheets in `art/` are its design.
@@ -325,9 +363,15 @@ answers there. Each of the rest says what it could be instead.
     yawns when it is bored; the hot shot is the fuzzball itself, red-hot.
 26. **Built after Brick Fuzz Pop, on its parts.** The field's sizes, the
     wall, the round played back, the certificates, the panels, the bar and
-    the debug menu are that game's, and what both need is lifted into the
-    libraries when this one is built. How, and in what order, is a build
-    plan's to say, once Brick Fuzz Pop's feel is settled.
+    the debug menu are that game's. What the two wall games mean alike is
+    lifted into one new library, `@fz/brick-wall` (**the user's**), laid
+    out in a game's four layers, rules, view, scene and shell, and fenced as
+    a game's are: a game's layer may import the library's same layer. It
+    holds nothing else, so no other game is reached by it, and a piece any
+    game could use goes into the library that holds its kind. Brick Fuzz Pop
+    moves onto those pieces first, playing as before, and that reaches the
+    site on its own, before any of Rickashay (**the user's**). In what order
+    the rest is built is the build plan's to say.
 27. **Not now:** a gamepad, haptics, an endless mode, a daily wall, moving
     bricks, a level editor ("Not in this design").
 
@@ -395,22 +439,35 @@ nine by eleven.
 - **It strikes each brick it turns off,** taking one hit, two as a hot
   shot. Steel, a ramp, a hatch, a plated face and a lock still shut turn
   it and take nothing; they aren't strikes.
-- **Everything it meets at one moment is struck, and it turns once.**
-  Flats turn it first; then a long 45° face, if it still flies into one;
-  and a corner's cut only where nothing else turned it. So a fuzzball that
-  flies into the foot of a wall, where a brick's bottom and its neighbor's
-  side meet, comes back the way it came, and strikes both.
+- **Everything it meets at one moment is struck, and it turns once.** A
+  moment is every contact within a hair of the soonest (`AT_ONCE`), and
+  all of them are gathered before any turns it. Flats turn it first; then
+  a long 45° face, if it still flies into one; and a corner's cut only
+  where nothing else turned it. So a fuzzball that flies into the foot of a
+  wall, where a brick's bottom and its neighbor's side meet, comes back the
+  way it came, and strikes both. Each brick met in a moment is met once,
+  the lowest row first and each row from the left, which is the order
+  their hits, breaks, events and points are written in.
+- **A turn is a moment its heading changes,** counted once whatever met
+  it. A floor bounce and a hatch's hold are turns; passing a portal isn't.
+  The locks count these ("The bricks"), and so does the guard against
+  turning in place, below.
 - **The floor ends its flight,** unless it holds a floor bounce ("The rally
   and the floor bounce"). It waits where it touched, no nearer a side wall
   than half a unit, and the next round leaves from there (decision 19). A
   level's first round leaves from the floor's middle, x = 4.5.
-- **A bored fuzzball comes home,** as Brick Fuzz Pop's does: one that flies
-  60 units without a strike yawns and drops to the floor from where it is.
-  A floor bounce in hand doesn't save it; it has stopped caring. In the
-  sketch 17 flights in 100 ended this way, at a rally of 9 at the middle:
-  flights that had done their work and found nothing more in reach. Two in
-  five were under the wall when they yawned, as many among its bricks and
-  one in five over it ("Risks").
+- **A bored fuzzball comes home:** one that flies 60 units without a strike
+  yawns at the point it has flown exactly 60, and drops to the floor from
+  where it is. Only a strike starts the count again; a turn off steel, a
+  ramp, a hatch's bar, a plated face or a shut lock doesn't. A floor bounce
+  in hand doesn't save it; it has stopped caring. Brick Fuzz Pop's is bored
+  after 180 units, and counts any touch on a brick that can break. This game
+  keeps 60: a flight that still strikes never yawns, the dash home flies a
+  bored tail at three times the speed, and the floors, sweet spots and marks
+  below were measured at 60. In the sketch 17 flights in 100 ended this way,
+  at a rally of 9 at the middle: flights that had done their work and found
+  nothing more in reach. Two in five were under the wall when they yawned,
+  as many among its bricks and one in five over it ("Risks").
 - **So no flight is endless.** Every 60 units it must take a hit off a
   brick, and a wall has only so many hits: 52 to 207 in the drafts. Two
   guards stand behind that rule and should never be met: 4,000 units of
@@ -441,8 +498,9 @@ nine by eleven.
   45, then at 70, 100, 135 and on: the first costs ten strikes and each
   further one five more than the last.
 - **A fuzzball holds three at most.** One earned while it holds three is
-  lost. A spring brick gives one as it breaks ("The bricks"), and a hot
-  shot leaves with one ("The hot shot").
+  lost, though it is still announced. A spring brick gives one as it
+  breaks ("The bricks"), which pays as one earned, and a hot shot leaves
+  with one ("The hot shot"), which doesn't.
 - **It is spent by itself.** A fuzzball that reaches the floor with one in
   hand turns off the floor as off a wall and flies on, one fewer in hand.
   There is nothing to press and nothing to time.
@@ -537,7 +595,8 @@ hot shot's rally has less to draw on. It is a help and not a rescue
 ### The bricks
 
 Eleven kinds. `o`, `2` and the rest are how a level's picture writes them
-("The levels").
+("The levels"). The letters are this game's own: `x`, `y` and `z` are locks
+here, where Brick Fuzz Pop's `x` is a zapper.
 
 | Kind         | In a picture    | Hits    | What it does                                                                                                                  | First level    |
 | ------------ | --------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------- |
@@ -586,17 +645,17 @@ The details that decide a flight:
   them. So a gem always moves a flight from four of its eight directions
   to the other four. Its four points are cut by short flats, as a ramp's
   are.
-- **A portal** takes a fuzzball as its middle reaches the portal's eye,
+- **A portal** takes a fuzzball as its middle crosses into the portal's eye,
   the half-unit square at the middle of its cell, and puts it at the same
-  place in its twin's eye, flying the same way. The eye keeps a quarter of
-  a unit from the cell's edges, as far as a fuzzball's middle keeps from
-  any face, so a twin never sets one down inside a brick beside it or in a
-  side wall. A fuzzball that only clips the cell's corner flies on. It
-  can't go back into the eye it came out of until it has turned off
-  something. A portal whose twin still waits over the ceiling is shut, and
-  a fuzzball flies through it as air. Passing a portal isn't a turn.
-  Portals come in twos, a pair marked with a dot and a pair with a
-  diamond, and a level has two pairs at most.
+  place in its twin's eye, flying the same way. The eye keeps a quarter of a
+  unit from the cell's edges, as far as a fuzzball's middle keeps from any
+  face, so a twin never sets one down inside a brick beside it or in a side
+  wall. A fuzzball that only clips the cell's corner flies on. Once through,
+  it passes every portal as air, the one it came out of too, until it next
+  turns. A portal whose twin still waits over the ceiling is shut, and a
+  fuzzball flies through it as air. Passing a portal isn't a turn. Portals
+  come in twos, a pair marked with a dot and a pair with a diamond, and a
+  level has two pairs at most.
 - **A plated brick** is plated underneath (`v`, `V`) or underneath and on
   both sides (`U`). It must be struck on a bare face: from the side, or
   from over it. A cut corner between a plated face and a bare one counts
@@ -608,9 +667,10 @@ The details that decide a flight:
 - **A lock's bolts are the flight's own count.** Every fourth turn of the
   flight, off anything, slides a bolt back on every lock in the field: a
   lock of one bolt is open once the flight has turned four times, of two
-  after eight, of three after twelve. Open, it breaks at a strike. A
-  flight's turns off the floor and off a hatch count; passing a portal
-  doesn't. The bolts are drawn sliding, and they shut again as the
+  after eight, of three after twelve. Open, it breaks at a strike. A turn
+  is a moment the heading changes, counted once whatever met it ("The
+  flight"): a flight's turns off the floor and off a hatch count; passing a
+  portal doesn't. The bolts are drawn sliding, and they shut again as the
   fuzzball lands. A lock is a brick only a flight that has stayed up can
   break.
 
@@ -644,7 +704,11 @@ A level is data: an id, a name, what its wall is built around, and its
 wall as rows of nine characters, the top row first, in the letters "The
 bricks" gives and `.` for air. A set is a JSON file of nine. A level names
 no boon, since there is one. The drafts are in [`levels/`](levels/), their
-mocks in [`mocks/`](mocks/), and their courses in the appendix.
+mocks in [`mocks/`](mocks/), and their courses in the appendix. The game's
+levels are those files, copied as they are into
+`games/rickashay/src/rules/levels/`, which is their source: a level that
+fails a check is changed there. `levels/build.mjs` stays here, as the tool
+that drew them.
 
 What a wall is made of. Each is a place for one kind of flight, and the
 levels are named for them:
@@ -774,7 +838,9 @@ that this game needs, each by a check that fails loudly.
 1. **A certificate for every level on every depth,** found by
    `yarn certify:levels` as Brick Fuzz Pop's are and kept beside the
    level. With no charge a round has 657 choices where its has 3,942, so
-   the search is a sixth of the work. A line counts only if no brick the
+   the search is a sixth of the work. The solver tries every fourth aim
+   first and then every aim, as Brick Fuzz Pop's does, and a certificate
+   keeps only the aims, by number. A line counts only if no brick the
    level needs ever stands in the row over the floor's. It also writes
    each level's par and its rally mark for each depth.
 2. **Every certificate is replayed** by the specs, through the function
@@ -804,7 +870,10 @@ that this game needs, each by a check that fails loudly.
    replayed with it.
 7. **The same answer in every browser.** The rules add, subtract, multiply
    and divide numbers written out, and nothing else, which IEEE 754 fixes
-   the result of ("The flight"); Brick Fuzz Pop's lint holds them to it.
+   the result of ("The flight"). Brick Fuzz Pop's lint holds them to it,
+   unchanged. It also allows a square root, which IEEE 754 fixes too, and
+   the flight uses none. The 45° faces' stand-off is written out in the
+   game's `tuning.ts`, as the sketch's `H` is.
 
 What it doesn't say: that a level is easy, that a player who has let the
 wall down to the danger line can still win from there, or that a long
@@ -841,10 +910,11 @@ long flight isn't out of reach.
   either.
 - **Keys,** by `event.code`: Left and Right swing the aim a degree, four
   aims, or a quarter of one with Shift held; Space releases. A and D do
-  the same. F holds the flight fast, and X skips it. G reads the guide and
-  R the wall's lowest rows ("Accessibility"). The run's keys are the
-  libraries'.
-- **Aims are numbered** 0 to 656, as Brick Fuzz Pop's.
+  the same. F switches fast-forward on or off, while aiming too, and X
+  skips a flight. G reads the guide and R the wall's lowest rows
+  ("Accessibility"). The run's keys are the libraries'.
+- **Aims are numbered** 0 to 656, and are Brick Fuzz Pop's own: aim i is
+  8° + i/4°, its numbers written out. A shot is an aim and nothing else.
 - **Settings:** Aiming (point and hold, pull back), for the mouse and
   fingers alike; Release with a button; the aim guide (to the first turn,
   the third, the fifth); the flight's speed (Normal, Fast); sound; the
@@ -852,14 +922,17 @@ long flight isn't out of reach.
 
 ### The feel, in numbers
 
-First guesses, to be settled on real screens once Brick Fuzz Pop's are;
-where a number is that game's, this takes whatever it settles on.
+First guesses, to be settled on real screens: Warm-up is played on the
+site, on a phone and a desktop, before the other sets are tuned (risk 1).
+Where a row says Brick Fuzz Pop's, it is what that game plays with. The
+bored distance is this game's own, 60 units where that game's is 180 ("The
+flight").
 
 | What               | Value                                                                                                                       |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | The field          | Brick Fuzz Pop's: 9 across, 11 to 22 deep; the floor's row is row 0                                                         |
 | The fuzzball       | radius 0.25; waits no nearer a side wall than 0.5                                                                           |
-| Aims               | 657, a quarter of a degree apart, from 8° above the floor either way                                                        |
+| Aims               | Brick Fuzz Pop's 657, a quarter of a degree apart, from 8° above the floor either way; aim i is 8° + i/4°                   |
 | A face             | a flat 0.25 out from a brick's side; a 45° cut across each open corner, 0.25 out along each flat                            |
 | A strike           | 1 hit; a hot shot's, 2                                                                                                      |
 | Floor bounces      | at a rally of 10, 25, 45, 70, 100, 135 and on; 3 in hand at most; none kept past the flight                                 |
@@ -868,16 +941,16 @@ where a number is that game's, this takes whatever it settles on.
 | A lock             | 1, 2 or 3 bolts; a bolt back at every 4th turn of the flight                                                                |
 | A portal's eye     | the middle half of its cell, 0.5 by 0.5                                                                                     |
 | Moss               | a hit back after each round, to what it began with                                                                          |
-| Bored              | 60 units without a strike                                                                                                   |
+| Bored              | 60 units without a strike, the yawn at exactly 60                                                                           |
 | The guards         | 4,000 units a flight; 8 turns running without flying between                                                                |
 | The wall           | Brick Fuzz Pop's: a row a round; a jump of J rows when nothing needed is left below the jump line; opens on row D − 2J      |
 | The flight's speed | 14 units a second; 17 from a rally of 10, 20 from 25, 24 from 45. Fast: 22, 26, 30 and 36                                   |
 | The dash home      | 3 times the flight's speed, from its last strike to the floor                                                               |
-| Fast-forward       | 4 times, held                                                                                                               |
+| Fast-forward       | 4 times, on top of Normal or Fast; a switch, kept with the settings, as Brick Fuzz Pop's                                    |
 | The wall's step    | Brick Fuzz Pop's: 260 ms a row; a jump 480 ms in all                                                                        |
-| The guide          | to the third turn and 1.5 units past it; a setting, the first or the fifth                                                  |
+| The guide          | the rules' own flight, to the third turn and 1.5 units past it; a setting, the first or the fifth                           |
 | Pull back          | the setting's dead zone, 0.5 units, to call a shot off                                                                      |
-| Points             | 10 a strike, times the rally's step; 100 for each floor bounce earned; 100 for a jump                                       |
+| Points             | 10 a strike, times the rally's step; 100 for each floor bounce earned, a spring brick's, not a hot shot's; 100 for a jump   |
 | The rally's step   | 2 from the flight's 5th strike, 3 from its 10th, 4 from its 25th, 5 from its 45th (`@fz/core/math`'s `multiplierAt()`)      |
 | Stars              | one for clearing; one for clearing within par; one for a flight at the rally mark, in a game that clears; 200 points a star |
 | Par                | the level's certificate for the depth, and half as many rounds again, rounded up                                            |
@@ -971,12 +1044,14 @@ is the game, still flies, and can be skipped.
 
 ### Sound
 
-About twenty sounds from `@fz/dev/sounds`, one sprite: the release, a hot
+Twenty-five sounds from `@fz/dev/sounds`, one sprite: the release, a hot
 shot's release, a wall's knock, a brick struck, a brick broken, steel's
 clank, a ramp's ring, a hatch's thud, the hatches swinging open, a spring
 brick, a gem, a portal, a plated face, a lock's bolt, a lock opening, a floor
 bounce earned, a floor bounce spent, the landing, a yawn, the wall's step,
-the jump, the danger line's warning, a level's chime and a lost level.
+the jump, the danger line's warning, a level's chime, a lost level, and the
+"Rickashay!" call's own chord. They are synthesized, so there is no
+recorded voice.
 
 **A struck brick's note climbs with the rally,** a step of a five-note
 scale a strike, two octaves up and then holding, so a flight is heard
@@ -986,7 +1061,9 @@ note the rally has reached.
 
 ### Cards, the bar and the panels
 
-As Brick Fuzz Pop's, every overlay an `<fz-dialog>`:
+As Brick Fuzz Pop's: Ready, Paused, Cleared and Ended are cards in the
+board itself, over the field (`role="group"`), and the result and Levels
+are dialogs (`<fz-dialog>`).
 
 - **Ready,** before a level's first round: its number and name, what its
   wall is built around, its par and its rally mark for this screen, and, in
@@ -994,7 +1071,8 @@ As Brick Fuzz Pop's, every overlay an `<fz-dialog>`:
 - **Paused;** **Cleared,** with its three stars each named ("Cleared",
   "Within 9 rounds", "A rally of 24"), the level's best rally, how the
   points added up, and Next level; **the result** over a lost level or a
-  finished run.
+  finished run, and **Ended,** the card it leaves in the board once it is
+  closed.
 - **Levels:** each set under its name, a level's stars and its best rally
   once cleared, "Locked" until the one before it is.
 - **How to play:** the aim; that every strike turns the fuzzball; the cut
@@ -1006,9 +1084,9 @@ As Brick Fuzz Pop's, every overlay an `<fz-dialog>`:
 
 The bar is `@fz/game-ui`'s: the level, the rounds against par, the rows
 left, the level's best rally against its mark, and the score; Nudge while
-a shot is aimed, and Release where the setting asks for it; Fast-forward
-and Skip while a flight plays; Pause, Sound, Levels, New game, How to play
-and Settings.
+a shot is aimed, and Release where the setting asks for it; Fast-forward,
+a switch, while a shot is aimed and while it flies; Skip while a flight
+plays; Pause, Sound, Levels, New game, How to play and Settings.
 
 The panels stand beside the field where the room is wide, as Brick Fuzz
 Pop's do, and take no pointer:
@@ -1033,12 +1111,15 @@ bounces' first cost and its step, and the hatches' holds; the field's
 depth; any level, open; **Play the certificate** and **Play the rally
 line.** A run played on retuned numbers keeps no records.
 
-Each in `localStorage` through `@fz/ui/storage`, versioned:
+Each in `localStorage` through `@fz/ui/storage`, each at version 1:
 `rickashay-settings`; `rickashay-stats`, the runs and, for each level, its
 best points, its fewest rounds, its best rally and its stars;
 `rickashay-progress`, the levels cleared; and `rickashay-game`, the run
 under way between rounds, a round kept as it is released, with its
-outcome, so a reload mid-flight comes back after it.
+outcome, so a reload mid-flight comes back after it. Records are kept as
+each flight lands, as Brick Fuzz Pop's are, and a page hidden mid-flight
+lands its flight at once, as it would have flown. A bug report packs the
+game's state under the tag `rk1`.
 
 ### Accessibility
 
@@ -1057,15 +1138,16 @@ since nothing here is timed either:
   mark; the aim as the keys change it; each floor bounce earned ("Rally
   10: a floor bounce"); each round's end ("A rally of 14. Broke 6. The
   wall came down 1 row: 5 rows from the floor."); each jump; the danger
-  line; a level cleared, with its stars; a pause, going on and the end. R
-  reads the wall's three lowest rows, from the floor.
+  line; the "Rickashay!" call; a level cleared, with its stars; a pause,
+  going on and the end. R reads the wall's three lowest rows, from the
+  floor.
 - **Color is never the only signal:** kinds by shape, hits by pips, bolts
   by slots, holds by dots, the floor bounces by springs lit and unlit and
   by a count.
 - **Motion follows the player's preference,** and a flight can always be
   skipped. The quickening is the flight's speed and not a flourish; the
-  Fast setting and Skip are there for a player who would sooner not watch
-  it.
+  Fast setting, fast-forward and Skip are there for a player who would
+  sooner not watch it.
 
 ### Fuzzley flavor
 
@@ -1083,7 +1165,11 @@ fur shows is what this game counts:
    home.
 4. **It says the name.** A flight that reaches the level's rally mark gets
    one call across the field: "Rickashay!" It is the only shout in the
-   game, and it is for the thing the game is named for.
+   game, and it is for the thing the game is named for. The call is a line
+   of text over the field, drawn by the game's shell, since the scene
+   draws no text, and it moves only where motion is welcome. The announcer
+   says it, so the text is hidden from assistive technology, and its sound
+   is a chord of its own ("Sound").
 
 ### What it shares with Brick Fuzz Pop
 
@@ -1094,6 +1180,7 @@ fur shows is what this game counts:
 | Corners         | Round                                                      | Cut at 45°: eight directions                                        |
 | What is counted | Bricks broken, rounds                                      | The rally, and rounds                                               |
 | Staying up      | Charge 5 to reach the attic                                | Floor bounces, earned by the rally                                  |
+| Bored           | 180 units without touching a brick that can break          | 60 units without a strike                                           |
 | The field       | Nine across, upright, 11 to 22 deep, panels beside it      | The same                                                            |
 | The wall        | A row a round; a jump of a third when two-thirds are clear | The same                                                            |
 | Boons           | The hot shot or the triple shot, by the level              | The hot shot: two hits a strike and a floor bounce                  |
@@ -1101,11 +1188,13 @@ fur shows is what this game counts:
 | Kinds           | Sixteen, six of them breaking others or splitting the ball | Eleven, six of them shared; none breaks another or splits the ball  |
 | Levels          | 36, walls of 64 to 252 bricks, to be drilled               | 36, walls of 30 to 99 bricks, to be got into                        |
 | The guide       | To the first turn                                          | To the third                                                        |
+| Ending early    | Drop: straight down, with what it had done by then         | Skip: landed at once, with all it would have done                   |
 | Stars           | Three, by rounds                                           | Three: cleared, within par, a flight at the rally mark              |
 | The proof       | Certificates, a careless floor, exact arithmetic           | Those, and a ceiling on luck, room for a hand, and a reachable mark |
 
-What Rickashay would use as it stands: the field's sizes and its layout
-check, the wall's step and jump, the round played back, the flight's speed
+What Rickashay would use as it stands, from `@fz/brick-wall` and the
+libraries beside it (decision 26): the field's sizes and its layout check,
+the wall's step and jump, the round played back, the flight's speed
 controls, the certificates' tooling, the cards, the bar, the panels, the
 debug menu, the storage and the announcer. What it needs of its own: the
 flight's faces, the kinds, the rally, the levels and the art.
@@ -1192,7 +1281,12 @@ flew. What it found, and what the design did about it:
    things and this one's sets one. The sketch says the one matters, and
    that its good values come in runs a hand can find; it can't say whether
    finding them is fun for thirty-six levels. Only play on a real screen
-   answers that, and the first nine levels would be enough to.
+   answers that, and the first nine levels would be enough to. So once
+   Warm-up plays end to end, with sound, the game goes up on the site, its
+   tile marked "In development", and the user plays it on a phone and a
+   desktop and says what to change (**the user's**). Six of the later kinds
+   are built meanwhile, the moss and the lock waiting (risk 9), and the
+   other sets wait for that word on the numbers.
 2. **Past the guide, a long flight is found more than planned.** A rally
    of 40 has seventy turns or more in it and the guide shows three. What
    keeps that from being Peggle's luck is that the faces are flat, the
@@ -1215,12 +1309,14 @@ flew. What it found, and what the design did about it:
    Skip are always there. BBTAN's players resented a speed-up forced on
    them; this one is tied to the rally, and if it still reads as being
    hurried, it becomes a setting.
-6. **The bored rule is Brick Fuzz Pop's, and suits this game less.** Sixty
-   units is by distance, and a shallow aim spends distance crossing the
-   field: 8° from the floor needs 57 units to climb eight rows. Of the
-   sketch's 1,354 bored flights, 53 had struck nothing at all. Counting
-   from a flight's first strike, or counting turns in place of units, are
-   the two things to try; the sketch's numbers would move with either.
+6. **The bored rule is by distance, which suits this game less.** A
+   shallow aim spends distance crossing the field: 8° from the floor needs
+   57 units to climb eight rows. Of the sketch's 1,354 bored flights, 53
+   had struck nothing at all. Counting from a flight's first strike, or
+   counting turns in place of units, are the two things to try; the
+   sketch's numbers would move with either. Before either, it stays at 60,
+   where they were measured; if flights end too soon on real screens, 120
+   is the distance to try first, on the debug menu's slider.
 7. **The hot shot may feel like too little, and it works against the
    rally.** It is what clearing two-thirds of the screen pays, and its
    best flights broke fewer bricks than a plain shot's. Its second hit is
@@ -1239,7 +1335,9 @@ flew. What it found, and what the design did about it:
    that neither needs reading, and each has a level to itself first. If
    one must go, it is the lock, whose count of turns nobody can aim for;
    the hatch earns its place: Skylight, chimneys over hatches, has the
-   longest flights of any wall but Six-pack.
+   longest flights of any wall but Six-pack. So the lock, and the moss
+   that shares its set, are built only once Warm-up has been played on the
+   site (risk 1); the other later kinds aren't held back.
 10. **Gem lattices are twitchy.** Chandelier's and Kaleidoscope's sweet
     spots are a degree or less. Every face is a slope, so every strike
     swaps the flight's directions, and near aims part early. On their
@@ -1255,12 +1353,15 @@ flew. What it found, and what the design did about it:
 12. **The players in the sketch aren't people.** The careless one sees
     sixteen whole flights a round, which no person does, and plans no
     round ahead, which a person does. Par and the rally mark are set from
-    it and the solver, and both want checking against real play.
+    it and the solver, and both want checking against real play, which
+    begins with Warm-up on the site (risk 1).
 13. **The name is shared** (decision 1). The user kept it knowing so; it
     wants a trademark search before the game ships.
-14. **It leans on a game that isn't built.** If Brick Fuzz Pop's field,
-    wall or boon change when its feel is settled, this design takes the
-    change.
+14. **It leans on another game.** The field, the wall and the round are
+    Brick Fuzz Pop's, held for both in `@fz/brick-wall`, so a change to
+    them there is a change here, which this design takes. Where the two
+    games differ on purpose, as the bored distance and Skip do, each keeps
+    its own.
 15. **The drafts are built by pattern.** Each wall is a few courses
     stacked and repeated, which the sketch can measure and a player may
     find samey by the third repeat. None is a picture. They are a proof
@@ -1268,9 +1369,9 @@ flew. What it found, and what the design did about it:
 
 ## Not in this design
 
-- **How it is built:** the phases, the specs, the branches, and what is
-  lifted into the libraries from Brick Fuzz Pop. That is a build plan's,
-  after that game.
+- **How it is built:** the phases, the specs, the branches, and which of
+  Brick Fuzz Pop's pieces go into `@fz/brick-wall` and which into the
+  other libraries. That is [the build plan](implementation-plan.md)'s.
 - **A gamepad, haptics, music.**
 - **An endless mode and a daily wall.** Both suit it, a best rally being a
   number worth chasing, and both want the levels proved first.
