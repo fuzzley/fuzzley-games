@@ -51,7 +51,7 @@ type ResolvedAtlasManifest = AtlasManifest;
 
 /** The bundled URL of every atlas page image, keyed by source path. */
 const atlasPageUrls = import.meta.glob<string>(
-  "@/engine/render/assets/sprites/atlas/*/*/card_assets-*.png",
+  "@/engine/render/assets/sprites/atlas/*/*/card_assets-*.webp",
   { eager: true, query: "?url", import: "default" },
 );
 

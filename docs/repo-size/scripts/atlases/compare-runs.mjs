@@ -1,7 +1,7 @@
 /**
  * Compares the atlases two or more generator runs wrote with each other and
- * with the ones committed at HEAD: bytes first, then, for a PNG whose bytes
- * differ, its decoded pixels, and for JSON, its parsed value.
+ * with the ones committed at HEAD: bytes first, then, for a page whose bytes
+ * differ, PNG or WebP, its decoded pixels, and for JSON, its parsed value.
  *
  *   node docs/repo-size/scripts/atlases/compare-runs.mjs <atlas dir> [<atlas dir> ...]
  *
@@ -57,7 +57,7 @@ function hash(bytes) {
 }
 
 /**
- * Compares two PNGs' decoded RGBA pixels.
+ * Compares two pages' decoded RGBA pixels, each a PNG or a WebP.
  *
  * @param {Buffer} a
  * @param {Buffer} b
@@ -99,7 +99,7 @@ async function comparePixels(a, b) {
 async function compareFile(file, a, b) {
   if (a.equals(b))
     return { same: true, line: `${file}: bytes identical (${hash(a)})` };
-  if (file.endsWith(".png")) {
+  if (/\.(png|webp)$/.test(file)) {
     return {
       same: false,
       line: `${file}: bytes differ (${a.length} vs ${b.length}); ${await comparePixels(a, b)}`,

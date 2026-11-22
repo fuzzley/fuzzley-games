@@ -220,7 +220,7 @@ function packPages(frames, frameW, frameH) {
 async function cleanOutput(outDir) {
   const existing = await readdir(outDir).catch(() => []);
   for (const file of existing) {
-    if (/^card_assets(-\d+)?\.png$/.test(file)) {
+    if (/^card_assets(-\d+)?\.(png|webp)$/.test(file)) {
       await unlink(join(outDir, file));
     }
   }
@@ -243,7 +243,7 @@ async function writeAtlas(frames, artScale, outDir) {
   /** @type {AtlasTexture[]} */
   const textures = [];
   for (const [index, page] of pages.entries()) {
-    const image = `card_assets-${index}.png`;
+    const image = `card_assets-${index}.webp`;
     await sharp({
       create: {
         width: page.width,
@@ -259,7 +259,9 @@ async function writeAtlas(frames, artScale, outDir) {
           top: frame.y,
         })),
       )
-      .png({ compressionLevel: 9 })
+      // Lossless, and exact even where a pixel is see-through, so the page
+      // holds the same pixels a PNG would at half its bytes.
+      .webp({ lossless: true, effort: 6, exact: true })
       .toFile(join(outDir, image));
 
     textures.push({

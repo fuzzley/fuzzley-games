@@ -42,12 +42,12 @@ Files covered
         The vector source, in the three cuts this project offers as decks.
         All are modified; see "Modifications" below.
 
-    src/engine/render/assets/sprites/atlas/classic/2x/card_assets-0.png
-    src/engine/render/assets/sprites/atlas/classic/1x/card_assets-0.png
-    src/engine/render/assets/sprites/atlas/indexed/2x/card_assets-0.png
-    src/engine/render/assets/sprites/atlas/indexed/1x/card_assets-0.png
-    src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-0.png
-    src/engine/render/assets/sprites/atlas/all-corner-pips/1x/card_assets-0.png
+    src/engine/render/assets/sprites/atlas/classic/2x/card_assets-0.webp
+    src/engine/render/assets/sprites/atlas/classic/1x/card_assets-0.webp
+    src/engine/render/assets/sprites/atlas/indexed/2x/card_assets-0.webp
+    src/engine/render/assets/sprites/atlas/indexed/1x/card_assets-0.webp
+    src/engine/render/assets/sprites/atlas/all-corner-pips/2x/card_assets-0.webp
+    src/engine/render/assets/sprites/atlas/all-corner-pips/1x/card_assets-0.webp
 
         The texture atlas pages `yarn build:atlas` renders from the three
         sheets above, a directory per deck and within it one per density:
@@ -56,7 +56,7 @@ Files covered
         artwork is redistributed with this repository in raster form as well
         as in vector form, and these pages carry its license with them.
 
-        At `2x`, each deck's second page, `card_assets-1.png`, holds only the
+        At `2x`, each deck's second page, `card_assets-1.webp`, holds only the
         pile placeholders cut from `card_placeholders.svg`, which is this
         project's own work; at `1x` they share the one page. It is named here
         because the split between pages is a packing detail that can change,

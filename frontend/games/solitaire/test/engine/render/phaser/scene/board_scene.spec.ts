@@ -58,7 +58,7 @@ import { relocate } from "@test/support/game_scenarios";
 const DESIGN = designSize(FAKE_TABLE_LAYOUT);
 
 /** An atlas page's path, which names its deck, density and page. */
-const ATLAS_PAGE = /\/atlas\/([^/]+)\/([\d.]+)x\/card_assets-(\d+)\.png$/;
+const ATLAS_PAGE = /\/atlas\/([^/]+)\/([\d.]+)x\/card_assets-(\d+)\.webp$/;
 
 /** Returns a deck at a density, 1x unless said otherwise. */
 function atlas(deckId: CardDeckId, artScale: CardArtScale = 1): CardAtlas {

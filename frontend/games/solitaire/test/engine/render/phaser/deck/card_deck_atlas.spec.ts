@@ -167,7 +167,7 @@ describe("card deck atlases", () => {
   });
 
   it("resolves a page to its own deck's and density's copy", () => {
-    // Every atlas names its first page `card_assets-0.png`, so a lookup that
+    // Every atlas names its first page `card_assets-0.webp`, so a lookup that
     // matched on the filename alone would hand out another atlas's artwork.
     const firstPages = EVERY_ATLAS.map(
       (atlas) => cardAtlasSource(atlas).manifest.textures[0].image,

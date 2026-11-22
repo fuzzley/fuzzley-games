@@ -13,7 +13,7 @@ const REPO = resolve(import.meta.dirname, "../../../..");
 const ATLAS = "frontend/games/solitaire/src/engine/render/assets/sprites/atlas";
 
 /**
- * Decodes a PNG to RGBA.
+ * Decodes a page, a PNG or a WebP, to RGBA.
  *
  * @param {Buffer} png
  * @returns {Promise<{data: Buffer, info: import("sharp").OutputInfo}>}
@@ -31,7 +31,7 @@ async function main() {
   )
     .trim()
     .split("\n")
-    .filter((path) => path.endsWith(".png"))
+    .filter((path) => /\.(png|webp)$/.test(path))
     .map((path) => path.slice(ATLAS.length + 1));
 
   for (const page of pages) {
