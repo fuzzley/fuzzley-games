@@ -95,8 +95,9 @@ Reviews: <a `commit-reviewer` is offered, or what to do without one>.
   stops the server, and says in its report what it saw.
 - **Where the plan leaves a point unsettled,** it takes the choice the
   plan's spirit gives, and says so in its report.
-- **It ends with the squash** of `commit-review-process` step 5, then its
-  report: what each commit made, what it added to whose files, what it
+- **It ends, once every review is in and answered,** with the squash of
+  `commit-review-process` step 5, then its report: what each commit made
+  and how its review was answered, what it added to whose files, what it
   chose, what it measured and what it left, in 300 words. It writes no log.
 
 ## 5. The checks
@@ -120,7 +121,12 @@ Reviews: <a `commit-reviewer` is offered, or what to do without one>.
 The orchestrator, when a package reports:
 
 1. **Reads the report,** and checks that
-   `git log --oneline <the integration branch>..<branch>` shows no `amend!`.
+   `git log --oneline <the integration branch>..<branch>` shows no `amend!`,
+   and that its report says how the review of each commit in that log was
+   answered, or names it as still running or not reviewed. A package handed
+   back with a review still running goes back to its worker, sent a message
+   that resumes it in its own run (`SendMessage`), to wait for it, answer it
+   and squash.
 2. **Notes the branch's tip, rebases it onto the integration tip** in the
    package's worktree, and settles what collides.
    `git range-diff <the integration branch> <the old tip> HEAD` shows what

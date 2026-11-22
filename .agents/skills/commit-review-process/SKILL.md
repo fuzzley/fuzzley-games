@@ -116,6 +116,22 @@ quoted>
 - **Answer a report between changes.** Bring the change in hand to its
   commit first, so the tree holds only the fix, and the check and the
   `amend!` take nothing half-built.
+- **The last review is waited for like the others.** With nothing left to
+  build and a review still out, the next step is that report, not the hand
+  back: an agent ends its turn without its final report, which alone hands
+  its work back, and the reviewer's report wakes it. Where it is told to
+  hand back anyway, its report names each commit whose review is still
+  running.
+- **A review that never reports is started again.** With each review in
+  the background, the author starts a half-hour timer there too
+  (`sleep 1800`, the Bash tool's `run_in_background`, its description
+  naming the commit), which wakes it if the report hasn't; once the report
+  is in, its timer is stopped (`TaskStop`), so a finished author isn't left
+  waiting on it. A reviewer that outlasts its timer is stopped the same
+  way, and one that ends without a report is let go; either way a
+  fresh one reviews that commit, and only its report is answered. An
+  author resumed to wait whose reviewer or timer no longer runs starts the
+  review again the same way.
 
 ## 4. The author answers each report in an `amend!` commit
 
