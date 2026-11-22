@@ -1,5 +1,6 @@
 import { FUZZBALL_INKS } from "@fz/phaser/color";
 import {
+  AIM_MOST,
   BALL_RADIUS,
   BRICKS_TOP,
   BRICK_HEIGHT,
@@ -11,12 +12,16 @@ import {
   FLATTEST,
   FRIEND_INKS,
   FRIEND_SPREAD,
+  GUIDE_DOT_GAP,
+  GUIDE_PAST_TURN,
   KEY_SPEED,
   MAX_LIVES,
+  MOST_GUIDE_DOTS,
   PADDLE_HEIGHT,
   PADDLE_TOP,
   PADDLE_WIDTH,
   ROWS,
+  SERVE_ANGLE,
   TALLEST_FIELD,
 } from "./tuning";
 import { PRESET_SPEEDS, SPEED_INFO } from "./speed";
@@ -47,6 +52,33 @@ describe("the tuning", () => {
 
   it("sends a freed friend up no flatter than the flattest a ball travels", () => {
     expect(FRIEND_SPREAD).toBeLessThanOrEqual(90 - FLATTEST);
+  });
+
+  it("sends an aimed serve up no flatter than the flattest a ball travels", () => {
+    expect(AIM_MOST).toBeLessThanOrEqual(90 - FLATTEST);
+  });
+
+  it("serves a quick press within an aim's reach, so the aim's limit never turns it", () => {
+    expect(SERVE_ANGLE).toBeLessThanOrEqual(AIM_MOST);
+  });
+
+  it("lays the guide's first dot's middle beyond the ball's edge", () => {
+    expect(GUIDE_DOT_GAP).toBeGreaterThan(BALL_RADIUS);
+  });
+
+  it("lays a dot past the guide's turn, which shows the way the ball turns", () => {
+    expect(GUIDE_PAST_TURN).toBeGreaterThanOrEqual(GUIDE_DOT_GAP);
+  });
+
+  // The pool is worked out from the field, so this holds a number written
+  // in its place.
+  it("pools the guide's dots along the tallest field's diagonal and past its turn", () => {
+    expect(MOST_GUIDE_DOTS).toBeGreaterThanOrEqual(
+      Math.ceil(
+        (Math.hypot(FIELD_WIDTH, TALLEST_FIELD) + GUIDE_PAST_TURN) /
+          GUIDE_DOT_GAP,
+      ),
+    );
   });
 
   it.each(["light", "dark"] as const)(
