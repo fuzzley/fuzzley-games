@@ -92,7 +92,8 @@ export interface BricksPalette {
   readonly field: number;
   /**
    * The outline around every ball and capsule, so it stands out from any
-   * brick it crosses: the field's color, which every brick keeps 3:1 from.
+   * brick it crosses, and the ring each side of the guide's outline round a
+   * brick: the field's color, which every brick keeps 3:1 from.
    */
   readonly outline: number;
   /**
@@ -104,7 +105,7 @@ export interface BricksPalette {
   readonly wall: number;
   /** The frame around each of the last bricks a level needs, once they glow: the text. */
   readonly glow: number;
-  /** The serve's guide, its dots and its outline round each brick the serve would meet: the text. */
+  /** The serve's guide, its dots and its outline round each brick the serve would meet, ringed in the outline: the text. */
   readonly guide: number;
   /** The text, which a place's pattern is washed from over the field (`src/view/places/`). */
   readonly text: number;

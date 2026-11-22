@@ -1,3 +1,4 @@
+import { BRICK_SLAB, slabCommands } from "@fz/phaser/bricks";
 import { THEMES } from "@fz/style/themes";
 import { contrast, deltaE, rgbOf } from "@fz/style/testing";
 import { FIELD_ROLES } from "../../app/board/field_roles";
@@ -13,6 +14,26 @@ function named(
     `${key} ${what}`,
     color,
   ]);
+}
+
+/** A brick's cell, at a size whose slab draws its lip and its strip. */
+const BRICK_CELL = { x: 0, y: 0, width: 80, height: 40 } as const;
+
+/**
+ * Returns the colors of the slab a brick is drawn on in a color, as the art
+ * kit draws it, each named: its lip, its face and its strip, all of which
+ * lie under the edge the guide outlines it along.
+ */
+function slabOf([name, ink]: readonly [string, number]): readonly (readonly [
+  string,
+  number,
+])[] {
+  const [lip, face, strip] = slabCommands(BRICK_CELL, ink, BRICK_SLAB);
+  return [
+    [`${name}'s lip`, lip?.color ?? NaN],
+    [name, face?.color ?? NaN],
+    [`${name}'s strip`, strip?.color ?? NaN],
+  ];
 }
 
 /** The contrast a hidden ghost keeps against the field: faint by design, as the art draws it, yet there to be found. */
@@ -31,9 +52,14 @@ const PAIRS_APART = 27;
 // double, the sparks about a ball at the streak's top multiplier and a
 // seeking ball's sight, each outlined as a ball is, and the ring a broken
 // regrowing brick fills as it grows back, and so are the last bricks' glow
-// and the serve's guide, one ink: its dots lie on the field, and its outline
-// lies on a brick, which the text can't clear in every palette, so it is held
-// against the field alone, as Brick Fuzz Pop holds its guide;
+// and the serve's guide, one ink, whose dots lie on the field. Its outline
+// lies on a brick, which the text can't clear in every palette, so the ink is
+// ringed each side in the outline's color, which it is held to 3:1 against;
+// and the outline is held to 3:1 against each brick it can lie on, its slab's
+// lip and strip among it, though nothing else is, and the inks at a brick's
+// edge, by whichever of its ring and its ink stands further from it, since a
+// hidden ghost, steel's frame and the moss's shadows sit near the field in
+// one mode or the other, where the ink clears them;
 // the wall, which only frames the field, is left at a wash of the text, as
 // Snake's is. A ball or a capsule falls through the gutter under the paddle,
 // washed with the danger color, so each is held to 3:1 against it too, and
@@ -127,6 +153,21 @@ describe("the field's contrast", () => {
     const regrowing = [
       ["regrowing brick's ring", palette.kindInks.regrowRing] as const,
     ];
+    const guideLiesOn = [
+      ...[
+        ...tints,
+        ...toughTints,
+        ...shownGhosts,
+        ...named(palette.bricks, "brick"),
+      ].flatMap(slabOf),
+      ...hiddenGhosts,
+      ["moss", palette.kindInks.moss] as const,
+      ["moss's shadows", palette.kindInks.mossShadow] as const,
+      ["plate", palette.kindInks.plate] as const,
+      ["plate's shine", palette.kindInks.plateShine] as const,
+      ["steel's frame", palette.kindInks.steelLine] as const,
+      ["gift's ribbon", palette.kindInks.ribbon] as const,
+    ];
 
     it.each([
       ...crossed,
@@ -142,6 +183,24 @@ describe("the field's contrast", () => {
         contrast(rgbOf(color), rgbOf(palette.field)),
       ).toBeGreaterThanOrEqual(3);
     });
+
+    it("keeps the serve's guide at 3:1 or more against the ring each side of its outline", () => {
+      expect(
+        contrast(rgbOf(palette.guide), rgbOf(palette.outline)),
+      ).toBeGreaterThanOrEqual(3);
+    });
+
+    it.each(guideLiesOn)(
+      "keeps the guide's outline at 3:1 or more against the %s, by its ring or its ink",
+      (_, color) => {
+        expect(
+          Math.max(
+            contrast(rgbOf(palette.outline), rgbOf(color)),
+            contrast(rgbOf(palette.guide), rgbOf(color)),
+          ),
+        ).toBeGreaterThanOrEqual(3);
+      },
+    );
 
     it.each(hiddenGhosts)(
       "keeps the %s at 2:1 or more against the field, faint but there",

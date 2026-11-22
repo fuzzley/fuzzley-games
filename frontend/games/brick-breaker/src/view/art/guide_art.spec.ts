@@ -10,14 +10,14 @@ import { BRICK_HEIGHT, BRICK_WIDTH } from "../../rules/tuning";
 import { ART_FRAMES, ART_PALETTE, ART_SCALE } from "../../testing/art_frames";
 import { GUIDE_DOT, GUIDE_FRAMES, guideFrames } from "./guide_art";
 
-/** Returns where the outline round a brick reaches at a number of device pixels to a CSS pixel. */
+/** Returns where the outline round a brick, its ring, reaches at a number of device pixels to a CSS pixel. */
 function outlineAt(pixelRatio: number): Area {
   const scale = { unit: 20 * pixelRatio, pixelRatio };
   const outline = frameNamed(
     guideFrames(ART_PALETTE, scale),
     GUIDE_FRAMES.outline,
   );
-  const [drawn] = drawnIn(outline, "polygon", ART_PALETTE.guide);
+  const [drawn] = drawnIn(outline, "polygon", ART_PALETTE.outline);
   if (drawn === undefined) throw new Error("No outline drawn");
   return extentOf(drawn);
 }
@@ -42,33 +42,33 @@ describe("the guide's frames", () => {
     );
   });
 
-  it("draw the outline round a brick in the atlas, a brick's cell in size, in the guide's ink", () => {
+  it("draw the outline round a brick in the atlas, a brick's cell in size, in the guide's ink over a ring in the outline's color", () => {
     const outline = frameNamed(ART_FRAMES, GUIDE_FRAMES.outline);
-
-    const drawn = drawnIn(outline, "polygon", ART_PALETTE.guide);
 
     expect({
       width: outline.width,
       height: outline.height,
-      drawn: drawn.length,
+      ring: drawnIn(outline, "polygon", ART_PALETTE.outline).length,
+      ink: drawnIn(outline, "polygon", ART_PALETTE.guide).length,
     }).toEqual({
       width: BRICK_WIDTH * ART_SCALE.unit,
       height: BRICK_HEIGHT * ART_SCALE.unit,
-      drawn: 1,
+      ring: 1,
+      ink: 1,
     });
   });
 
-  it("draw the outline 4 device pixels wide at a unit of 40, 2 to a CSS pixel, its middle 3 in from the slab, round corners that follow the slab's", () => {
+  it("draw the outline's ink 4 device pixels wide at a unit of 40, 2 to a CSS pixel, ringed 2 each side, its middle 5 in from the slab, round corners that follow the slab's", () => {
     const outline = frameNamed(ART_FRAMES, GUIDE_FRAMES.outline);
 
-    const drawn = drawnIn(outline, "polygon", ART_PALETTE.guide);
-
     // The slab lies 2 in from the cell, 76 by 36, its corners 6.4 round.
-    expect(drawn).toEqual([
-      outlineRoundRect({ x: 5, y: 5, width: 70, height: 30 }, 6.4 - 3, {
-        color: ART_PALETTE.guide,
-        width: 4,
+    const path = { x: 7, y: 7, width: 66, height: 26 };
+    expect(outline.commands).toEqual([
+      outlineRoundRect(path, 6.4 - 5, {
+        color: ART_PALETTE.outline,
+        width: 8,
       }),
+      outlineRoundRect(path, 6.4 - 5, { color: ART_PALETTE.guide, width: 4 }),
     ]);
   });
 
