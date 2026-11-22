@@ -21,6 +21,10 @@ served, deployed and configured.
   `github-actions-ci-cd` skill covers the workflow.
 - **`docs/archive/` holds plans as they were built.** They describe the
   code as it was, so check a path against the tree before following one.
+- **A raster picture kept with a plan under `docs/` is WebP,** lossless
+  only where it must be exact, since every version stays in history for
+  good. A "before" picture of what a game's committed `preview.webp` or
+  `thumb.webp` shows copies it rather than taking a new capture.
 
 ## Content Security Policy
 
