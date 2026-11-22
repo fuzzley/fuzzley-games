@@ -363,7 +363,7 @@ describe("GameService", () => {
       void game.load(lost());
 
       expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
-        title: "Load the reported game?",
+        title: "Load this game?",
         message: "You'll lose the game in progress.",
         confirmLabel: "Load",
       });

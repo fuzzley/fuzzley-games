@@ -82,7 +82,7 @@ const RESTART_QUESTION: ConfirmRequest = {
 
 /** What loading a reported game asks before it throws away the game under way. */
 const LOAD_QUESTION: ConfirmRequest = {
-  title: "Load the reported game?",
+  title: "Load this game?",
   message: "You'll lose the game in progress.",
   confirmLabel: "Load",
   tone: "danger",
