@@ -4,7 +4,7 @@
  * from a running dev server.
  *
  *   cd frontend/games/brick-breaker && npx -y corepack yarn dev --port 9110 --strictPort
- *   node docs/bug-reports-and-aimed-serve/mocks/capture.mjs [--url <address>]
+ *   node docs/archive/bug-reports-and-aimed-serve/mocks/capture.mjs [--url <address>]
  *
  * It opens the game in a headless Chrome at each of `SHOTS`' windows, takes
  * up the run the game's own preview shows (`RUN` in the game's
@@ -19,23 +19,26 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { RUN } from "../../../frontend/games/brick-breaker/tools/capture-screenshots.mjs";
+import { RUN } from "../../../../frontend/games/brick-breaker/tools/capture-screenshots.mjs";
 import {
   SAVED_GAME_KEY,
   loadScreenshotApi,
   storedRun,
-} from "../../../frontend/games/brick-breaker/tools/stored_run.mjs";
-import { withChrome, withPage } from "../../../frontend/lib/dev/src/chrome.ts";
+} from "../../../../frontend/games/brick-breaker/tools/stored_run.mjs";
+import {
+  withChrome,
+  withPage,
+} from "../../../../frontend/lib/dev/src/chrome.ts";
 import {
   SCREENSHOT_VIEWPORT,
   setUpPage,
   takenUpBoard,
-} from "../../../frontend/lib/dev/src/screenshots.ts";
+} from "../../../../frontend/lib/dev/src/screenshots.ts";
 
-/** @import { Page } from "../../../frontend/lib/dev/src/chrome.ts" */
+/** @import { Page } from "../../../../frontend/lib/dev/src/chrome.ts" */
 
 const MOCKS = dirname(fileURLToPath(import.meta.url));
-const FRONTEND = resolve(MOCKS, "../../../frontend");
+const FRONTEND = resolve(MOCKS, "../../../../frontend");
 const SHOTS_FOLDER = join(MOCKS, "shots");
 const LEVELS = join(
   FRONTEND,

@@ -28,8 +28,8 @@ root:
 
 ```sh
 (cd frontend/games/brick-breaker && npx -y corepack yarn dev --port 9110 --strictPort) &
-node docs/bug-reports-and-aimed-serve/mocks/capture.mjs
-node docs/bug-reports-and-aimed-serve/mocks/make-mocks.mjs
+node docs/archive/bug-reports-and-aimed-serve/mocks/capture.mjs
+node docs/archive/bug-reports-and-aimed-serve/mocks/make-mocks.mjs
 ```
 
 `capture.mjs` writes PNG captures to `shots/`, and writes `shots.json` with

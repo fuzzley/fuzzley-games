@@ -172,8 +172,8 @@ skill or `AGENTS.md` that describes what it changed, in the same commit, as
 Four commits:
 
 1. _The library, chosen._ A script under
-   `docs/bug-reports-and-aimed-serve/spike/` that draws Brick Breaker, Sudoku
-   and the Solitaire Collection (each on port 9102 in turn) with
+   `docs/archive/bug-reports-and-aimed-serve/spike/` that draws Brick Breaker,
+   Sudoku and the Solitaire Collection (each on port 9102 in turn) with
    modern-screenshot and with snapdom, its frames swapped in, and a note of
    what each drew wrong, with WebP pictures. It picks modern-screenshot unless
    that draws a game wrong.
@@ -191,7 +191,8 @@ Four commits:
 4. _The skills._ The `fuzzley-ui` row for `@fz/ui/capture`; the `phaser-core`
    skill's line on `frame()`.
 
-- **Owns:** `lib/ui/src/capture/`, `docs/bug-reports-and-aimed-serve/spike/`.
+- **Owns:** `lib/ui/src/capture/`,
+  `docs/archive/bug-reports-and-aimed-serve/spike/`.
 - **Adds to:** `lib/phaser/src/host/phaser_host.ts`,
   `lib/phaser/src/canvas/phaser_canvas.component.ts`, both libraries'
   `package.json`, `yarn.lock`, the two skills.

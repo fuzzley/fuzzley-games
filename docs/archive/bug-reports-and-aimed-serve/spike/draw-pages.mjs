@@ -4,7 +4,7 @@
  * canvas swapped for a frame of it, beside Chrome's own screenshot, for the
  * choice of the library a bug report's picture is drawn with.
  *
- *   node docs/bug-reports-and-aimed-serve/spike/draw-pages.mjs
+ *   node docs/archive/bug-reports-and-aimed-serve/spike/draw-pages.mjs
  *
  * It downloads each library's browser build from npm, checked against the
  * registry's integrity, into a folder of its own; serves each game on port
@@ -27,12 +27,15 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as sleep } from "node:timers/promises";
-import { withChrome, withPage } from "../../../frontend/lib/dev/src/chrome.ts";
+import {
+  withChrome,
+  withPage,
+} from "../../../../frontend/lib/dev/src/chrome.ts";
 
-/** @import { Page } from "../../../frontend/lib/dev/src/chrome.ts" */
+/** @import { Page } from "../../../../frontend/lib/dev/src/chrome.ts" */
 
 const SPIKE = dirname(fileURLToPath(import.meta.url));
-const FRONTEND = resolve(SPIKE, "../../../frontend");
+const FRONTEND = resolve(SPIKE, "../../../../frontend");
 const GAMES_FOLDER = join(FRONTEND, "games");
 const PRETTIER = join(FRONTEND, "node_modules/.bin/prettier");
 

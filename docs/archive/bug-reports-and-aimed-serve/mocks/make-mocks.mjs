@@ -2,7 +2,7 @@
 /**
  * Draws the aimed serve's mocks over the game's own screenshots.
  *
- *   node docs/bug-reports-and-aimed-serve/mocks/make-mocks.mjs [--keep-shots] [--check <folder>]
+ *   node docs/archive/bug-reports-and-aimed-serve/mocks/make-mocks.mjs [--keep-shots] [--check <folder>]
  *
  * It reads `shots/` and `shots.json`, which `capture.mjs` wrote, and writes
  * beside itself `aim-ready.webp`, `aim-aiming.webp`, `aim-steep.webp`,
@@ -33,8 +33,11 @@ import {
   FIELD_WIDTH,
   PADDLE_HEIGHT,
   PADDLE_TOP,
-} from "../../../frontend/games/brick-breaker/src/rules/tuning.ts";
-import { withChrome, withPage } from "../../../frontend/lib/dev/src/chrome.ts";
+} from "../../../../frontend/games/brick-breaker/src/rules/tuning.ts";
+import {
+  withChrome,
+  withPage,
+} from "../../../../frontend/lib/dev/src/chrome.ts";
 
 /** @typedef {{x: number, y: number}} Point */
 /** @typedef {{left: number, top: number, right: number, bottom: number}} Box */
@@ -103,7 +106,7 @@ import { withChrome, withPage } from "../../../frontend/lib/dev/src/chrome.ts";
  */
 
 const MOCKS = dirname(fileURLToPath(import.meta.url));
-const FRONTEND = resolve(MOCKS, "../../../frontend");
+const FRONTEND = resolve(MOCKS, "../../../../frontend");
 const SHOTS_FOLDER = join(MOCKS, "shots");
 const sharp = createRequire(join(FRONTEND, "package.json"))("sharp");
 const FONT = join(
