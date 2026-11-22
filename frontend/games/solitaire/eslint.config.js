@@ -14,13 +14,14 @@ export default defineConfig(
     files: [
       "src/**/*.ts",
       "test/**/*.ts",
+      "tools/**/*.ts",
       "vite.config.ts",
       "vitest.config.ts",
     ],
   }),
   angular({ files: ["src/ui/**/*.ts"], prefix: "app" }),
   templates({ files: ["src/ui/**/*.html"] }),
-  tests({ files: ["test/**/*.ts"] }),
+  tests({ files: ["test/**/*.ts", "tools/**/*.spec.ts"] }),
   scripts({
     files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
   }),

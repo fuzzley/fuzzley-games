@@ -100,7 +100,7 @@ export function describeImage(file: string, written: WrittenImage): string {
 /**
  * The page a game's capture script takes the site's screenshots at: 1280 ×
  * 720 CSS px, at twice the pixels, so the preview's capture is its 2560 ×
- * 1440. The Solitaire Collection shoots its rules page at its own size.
+ * 1440. The Solitaire Collection shoots its games at its own size.
  */
 export const SCREENSHOT_VIEWPORT: Viewport = {
   width: 1280,
@@ -117,7 +117,8 @@ const THUMB_MARGIN = 24;
  * where the site's catalog looks for them.
  *
  * @param root The game's workspace folder.
- * @param id The game's id in the site's catalog, such as "snake".
+ * @param id The game's id in the site's catalog, such as "snake", or "" for
+ *   the folder that holds every game's.
  */
 export function siteImagesFolder(root: string, id: string): string {
   return join(root, "public/docs/screenshots", id);

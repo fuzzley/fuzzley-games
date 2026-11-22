@@ -20,7 +20,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     setupFiles: ["test/test-setup.ts"],
-    include: ["test/**/*.spec.ts"],
+    include: ["test/**/*.spec.ts", "tools/**/*.spec.ts"],
     coverage: coverage({
       thresholds: {
         // A floor a little under the suite's real figures; raise it as they

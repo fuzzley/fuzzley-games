@@ -89,7 +89,8 @@ describe("browserItems", () => {
   });
 
   it("pictures every item with images that exist", () => {
-    // What `yarn build:thumbs` writes, as the paths the public folder serves.
+    // What `yarn capture:screenshots` writes, as the paths the public folder
+    // serves.
     const images = new Set(
       Object.keys(import.meta.glob("/public/docs/screenshots/*/*.webp")).map(
         (path) => path.replace("/public/", "./"),

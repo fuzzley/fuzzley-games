@@ -70,7 +70,8 @@
   @include game-ui.bar-size;
 
   // The game browser: the most room it takes, the width of its list, and a
-  // row's picture of a board, which `yarn build:thumbs` draws at twice this.
+  // row's picture of a board, which `yarn capture:screenshots` writes at twice
+  // this.
   --browser-width: 1080px;
   --browser-height: 760px;
   --browser-list-width: 400px;
