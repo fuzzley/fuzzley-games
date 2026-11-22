@@ -1,0 +1,56 @@
+@use "@fz/style" as fz;
+
+// No scrim or z-index: <fz-dialog> puts the card in the top layer.
+.card {
+  @include fz.dialog-card(520px);
+
+  h2 {
+    margin: 0 0 var(--fz-space-4);
+    font-size: var(--fz-font-2xl);
+    font-weight: 700;
+  }
+
+  .close {
+    @include fz.corner-close-button;
+  }
+}
+
+// Scaled to fit, its whole frame in sight, however the window is shaped.
+.picture {
+  display: block;
+  box-sizing: border-box;
+  max-width: 100%;
+  max-height: 40dvh;
+  margin: 0 auto var(--fz-space-4);
+  border: 1px solid var(--fz-edge-2);
+  border-radius: var(--fz-radius-md);
+  object-fit: contain;
+}
+
+// `--fz-muted` and `--fz-text` clear 4.5:1 on the card's surface.
+.words {
+  margin: 0 0 var(--fz-space-4);
+  color: var(--fz-muted);
+  font-size: var(--fz-font-md);
+  line-height: var(--fz-leading-normal);
+}
+
+.notice {
+  margin: 0 0 var(--fz-space-3);
+  color: var(--fz-text);
+  font-size: var(--fz-font-sm);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--fz-space-3);
+
+  // On a touch screen, one under the other, in the order they are tapped.
+  &.stacked {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

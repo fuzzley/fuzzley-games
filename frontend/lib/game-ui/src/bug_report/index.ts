@@ -1,4 +1,5 @@
 export { BugReportService, type OpenReport } from "./bug_report.service";
+export { BugReportDialogComponent } from "./bug_report_dialog.component";
 export {
   decodeBase64Url,
   encodeBase64Url,

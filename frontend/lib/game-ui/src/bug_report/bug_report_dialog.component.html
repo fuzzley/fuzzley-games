@@ -1,0 +1,59 @@
+@let open = shown();
+<fz-dialog
+  [open]="isOpen()"
+  label="Report a bug"
+  [describedBy]="wordsId"
+  (closed)="close()"
+>
+  @if (open) {
+    <div class="card">
+      <button
+        type="button"
+        class="close"
+        aria-label="Close bug report"
+        (click)="close()"
+      >
+        <fz-icon name="close" />
+      </button>
+      <h2>Report a bug</h2>
+
+      @if (open.picture; as picture) {
+        <img
+          class="picture"
+          [src]="picture.src"
+          alt="The game as you left it"
+        />
+      }
+      <p class="words" [id]="wordsId">{{ open.words }}</p>
+      @if (copyFailed()) {
+        <p class="notice">Couldn't copy the picture</p>
+      }
+
+      <div class="actions" [class.stacked]="touch()">
+        @if (open.picture; as picture) {
+          <a
+            class="fz-button fz-button-secondary"
+            [href]="picture.src"
+            [attr.download]="picture.fileName"
+            (click)="savePicture($event, picture)"
+            >Save picture</a
+          >
+        }
+        <a
+          class="fz-button"
+          [href]="open.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="openGitHub(open.picture)"
+        >
+          Open GitHub
+          <fz-icon name="external" />
+          <span class="fz-visually-hidden">(opens in a new tab)</span>
+        </a>
+      </div>
+
+      <!-- The page behind a modal is hidden from a screen reader. -->
+      <fz-announcer />
+    </div>
+  }
+</fz-dialog>
