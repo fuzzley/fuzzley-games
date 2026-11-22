@@ -2,7 +2,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
-import { encodePosition } from "@/ui/app/model/game_position";
+import { packState } from "@fz/game-ui/bug_report";
+import { installCompressionStreams } from "@fz/game-ui/testing";
+import { POSITION_TAG } from "@/ui/app/model/game_position";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
   clickElement,
@@ -59,6 +61,8 @@ describe("DebugPanelComponent", () => {
   });
 
   describe("loading a bug report's game", () => {
+    installCompressionStreams();
+
     /** Pastes text into the loader and presses Load. */
     function load(text: string): void {
       queryRequired(fixture, ".load-text", HTMLTextAreaElement).value = text;
@@ -67,7 +71,7 @@ describe("DebugPanelComponent", () => {
 
     /** Returns a report's game state for the mock game. */
     function reported(): Promise<string> {
-      return encodePosition({
+      return packState(POSITION_TAG, {
         gameId: "klondike",
         options: { drawCount: 3, almostWin: 0 },
         snapshot: harness.model.snapshot(),

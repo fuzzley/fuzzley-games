@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By, Title } from "@angular/platform-browser";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import type { ThemeId } from "@fz/style/themes";
 import { ThemeService } from "@fz/ui/theme";
 import { AppComponent } from "@/ui/app/component/app/app.component";
@@ -14,6 +15,9 @@ import { query, queryRequired } from "@test/support/dom";
 describe("AppComponent Composition", () => {
   let fixture: ComponentFixture<AppComponent>;
   let harness: UiHarness;
+
+  // The open settings build their link to a report, which packs the game.
+  installCompressionStreams();
 
   beforeEach(async () => {
     harness = await configureUiTestBed(AppComponent);

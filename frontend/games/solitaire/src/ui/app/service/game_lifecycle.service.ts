@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
+import { unpackState } from "@fz/game-ui/bug_report";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
-import { decodePosition } from "../model/game_position";
+import { POSITION_TAG, readGamePosition } from "../model/game_position";
 import type { GameOptionValues } from "../provider/game_catalog";
 import { GameCatalogService } from "./game_catalog.service";
 import { GameMetricsService } from "./game_metrics.service";
@@ -133,11 +134,14 @@ export class GameLifecycleService {
    *
    * @param text The report's game state, or any text containing it.
    * @returns Whether it was loaded, which it is not when the player declines.
-   * @throws Error if the text holds no game state, or one naming a game or
-   *   rule this build does not have, or a position that does not fit it.
+   * @throws Error if the text holds no game state this build can read, or
+   *   one naming a game or rule this build does not have, or a position that
+   *   does not fit it.
    */
   async loadPosition(text: string): Promise<boolean> {
-    const { gameId, options, snapshot } = await decodePosition(text);
+    const { gameId, options, snapshot } = readGamePosition(
+      await unpackState(POSITION_TAG, text),
+    );
     const entry = this.catalog.games.find((game) => game.id === gameId);
     if (!entry) throw new Error(`There is no game "${gameId}".`);
     for (const [optionId, value] of Object.entries(options)) {

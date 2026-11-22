@@ -3,6 +3,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { BUILD_INFO } from "@fz/game-ui/build_info";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ThemeService } from "@fz/ui/theme";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
@@ -24,6 +25,9 @@ import { CARD_BACKS } from "@/engine/render/deck/card_back";
 describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
   let harness: UiHarness;
+
+  // The open drawer builds its link to a report, which packs the game.
+  installCompressionStreams();
 
   beforeEach(async () => {
     harness = await configureUiTestBed(SettingsDrawerComponent);

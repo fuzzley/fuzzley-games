@@ -1,10 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
-import {
-  encodePosition,
-  type GamePosition,
-} from "@/ui/app/model/game_position";
+import { packState } from "@fz/game-ui/bug_report";
+import { installCompressionStreams } from "@fz/game-ui/testing";
+import { type GamePosition, POSITION_TAG } from "@/ui/app/model/game_position";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
 import { ConfirmService } from "@fz/ui/confirm";
@@ -331,12 +330,14 @@ describe("GameLifecycleService", () => {
   });
 
   describe("loading a reported game", () => {
+    installCompressionStreams();
+
     /** Returns a report's game state for the given game, rules and snapshot. */
     function reported(
       harness: Harness,
       position: Partial<GamePosition> = {},
     ): Promise<string> {
-      return encodePosition({
+      return packState(POSITION_TAG, {
         gameId: "klondike",
         options: { drawCount: 3, almostWin: 0 },
         snapshot: harness.model.snapshot(),

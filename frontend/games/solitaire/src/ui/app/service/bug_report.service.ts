@@ -1,7 +1,8 @@
 import { DOCUMENT } from "@angular/common";
 import { Injectable, inject } from "@angular/core";
+import { packState } from "@fz/game-ui/bug_report";
 import { ThemeService } from "@fz/ui/theme";
-import { type GamePosition, encodePosition } from "../model/game_position";
+import { type GamePosition, POSITION_TAG } from "../model/game_position";
 import { BUG_REPORT_CONFIG } from "../provider/bug_report_config";
 import { GameCatalogService } from "./game_catalog.service";
 import { PresentationSettingsService } from "./presentation_settings.service";
@@ -114,7 +115,7 @@ export class BugReportService {
       ...position.snapshot,
       history: history.slice(history.length - kept),
     };
-    const encoded = await encodePosition({ ...position, snapshot });
+    const encoded = await packState(POSITION_TAG, { ...position, snapshot });
     return [
       `Score ${snapshot.score} · ${history.length} moves · ${kept} of ${history.length} undo steps`,
       "",

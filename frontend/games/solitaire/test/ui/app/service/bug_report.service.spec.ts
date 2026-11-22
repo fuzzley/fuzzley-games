@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, describe, it, expect, vi } from "vitest";
 import { TestBed } from "@angular/core/testing";
+import { unpackState } from "@fz/game-ui/bug_report";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { THEME_COLOR_ROLE } from "@fz/ui/theme";
 import {
   BUG_REPORT_FIELDS,
@@ -12,7 +14,11 @@ import {
 } from "@/ui/app/provider/bug_report_config";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
-import { decodePosition } from "@/ui/app/model/game_position";
+import {
+  type GamePosition,
+  POSITION_TAG,
+  readGamePosition,
+} from "@/ui/app/model/game_position";
 import { DEFAULT_DESKTOP_CARD_DECK } from "@/engine/render/deck/card_deck";
 import type { GameSnapshot } from "@/engine/tableau/session/game_snapshot";
 import type { AppliedMove } from "@/engine/tableau/moves/move";
@@ -84,6 +90,11 @@ async function prefilled(
   return new URL(await reportUrl(service)).searchParams.get(fieldId) ?? "";
 }
 
+/** Returns the position packed in a report's game-state field. */
+async function unpackPosition(field: string): Promise<GamePosition> {
+  return readGamePosition(await unpackState(POSITION_TAG, field));
+}
+
 /** Returns a snapshot with a long history of distinct actions, newest last. */
 function longHistory(actions: number): GameSnapshot {
   const history = Array.from({ length: actions }, (_, index): AppliedMove => ({
@@ -113,6 +124,8 @@ function formFieldIds(form: string): string[] {
 }
 
 describe("BugReportService", () => {
+  installCompressionStreams();
+
   afterEach(() => {
     vi.restoreAllMocks();
     delete document.documentElement.dataset["theme"];
@@ -224,7 +237,7 @@ describe("BugReportService", () => {
 
       const field = await prefilled(service, BUG_REPORT_FIELDS.gameState);
 
-      expect(await decodePosition(field)).toEqual({
+      expect(await unpackPosition(field)).toEqual({
         gameId: "klondike",
         options: { drawCount: 3, almostWin: 0 },
         snapshot: model.snapshot(),
@@ -256,7 +269,7 @@ describe("BugReportService", () => {
 
       const field = await prefilled(service, BUG_REPORT_FIELDS.gameState);
 
-      const kept = (await decodePosition(field)).snapshot.history;
+      const kept = (await unpackPosition(field)).snapshot.history;
       expect(kept.length).toBeGreaterThan(0);
       expect(kept.length).toBeLessThan(300);
       expect(kept).toEqual(snapshot.history.slice(300 - kept.length));

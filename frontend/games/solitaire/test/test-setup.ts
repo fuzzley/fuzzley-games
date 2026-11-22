@@ -3,7 +3,6 @@ import { TestBed } from "@angular/core/testing";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
 import { installHeadlessPhaser } from "@fz/phaser/testing";
 import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
-import { installCompressionStreams } from "./support/compression_streams";
 
 setupTestBed({
   zoneless: true,
@@ -17,8 +16,6 @@ if (typeof window !== "undefined") {
   installDialogPolyfill(window);
   installHeadlessPhaser();
 }
-
-installCompressionStreams();
 
 // Each test's app stores in a store of its own, so nothing it keeps leaks
 // into the next.

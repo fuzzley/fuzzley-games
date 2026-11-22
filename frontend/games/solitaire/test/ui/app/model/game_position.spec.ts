@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
+import { packState, unpackState } from "@fz/game-ui/bug_report";
 import { KlondikeGame } from "@/games/klondike/klondike_game";
 import {
-  decodePosition,
-  encodePosition,
+  POSITION_TAG,
   readGamePosition,
   type GamePosition,
 } from "@/ui/app/model/game_position";
@@ -19,74 +19,67 @@ function position(): GamePosition {
   };
 }
 
-/** `not json`, gzipped and encoded as game state. */
-const NOT_JSON = "fs1.H4sIAAAAAAAACsvLL1HIKs7PAwBmy4zGCAAAAA";
+/** A Klondike game by Draw 1, the ace of hearts drawn from the stock. */
+const DRAWN: GamePosition = {
+  gameId: "klondike",
+  options: { drawCount: 1 },
+  snapshot: {
+    piles: [
+      { id: "stock", cards: [{ id: "spades-king", faceUp: false }] },
+      { id: "waste", cards: [{ id: "hearts-ace", faceUp: true }] },
+    ],
+    score: 5,
+    history: [
+      {
+        kind: "draw",
+        transfers: [
+          {
+            cardIds: ["hearts-ace"],
+            fromPileId: "stock",
+            toPileId: "waste",
+            faceUpBefore: false,
+          },
+        ],
+        scoreDelta: 5,
+        flippedCardIds: ["hearts-ace"],
+      },
+    ],
+    deal: ["spades-king", "hearts-ace"],
+  },
+};
 
-describe("game position encoding", () => {
-  it("decodes what it encodes", async () => {
+/**
+ * {@link DRAWN} as the Solitaire Collection packed it before every game's
+ * reports were shared, with its own codec.
+ */
+const FILED =
+  "fs1.H4sIAAAAAAAAA22QsW7DMAxE_-VmZcjQRWOTJVuXToUHwqJiwYokiAyCwvC_F7KdwkG7HvnujpxwpRtfHCzGmJMLI8MgFw05CewEV-lxyveksMfZQBIVGbK2UQmRBfZrQmi8aO5HGPRU3V4u5FgOY0hXGHjq-bPAeorCczebbetBovwXHpiqyoF63rFa7w3tDKTPlWHfDIYgmuv3Qo4hNbY1h4FWSuK5rq7N_7Ik7L07A1_z7SPE9RXPUzT_Ss-Ca4l39kvydsbW5MxRaanjYyiF3en_tAY4ptj01_e8bM0_5pBSFp0BAAA";
+
+describe("a reported game's position", () => {
+  it("reads back as it was packed", async () => {
     const original = position();
 
-    const decoded = await decodePosition(await encodePosition(original));
-
-    expect(decoded).toEqual(original);
-  });
-
-  it("encodes to text that is safe in a URL", async () => {
-    const encoded = await encodePosition(position());
-
-    expect(encoded).toMatch(/^fs1\.[A-Za-z0-9_-]+$/);
-  });
-
-  it("finds the game state within the text around it", async () => {
-    const original = position();
-    const field = `Score 0\n\n\`\`\`\n${await encodePosition(original)}\n\`\`\``;
-
-    const decoded = await decodePosition(field);
-
-    expect(decoded).toEqual(original);
-  });
-
-  it("reads back a position written out as JSON", () => {
-    const original = position();
-
-    const read = readGamePosition(JSON.parse(JSON.stringify(original)));
+    const read = readGamePosition(
+      await unpackState(POSITION_TAG, await packState(POSITION_TAG, original)),
+    );
 
     expect(read).toEqual(original);
   });
 
-  it("rejects text with no game state in it", async () => {
-    await expect(decodePosition("Score 0")).rejects.toThrow(/no game state/);
+  it("reads back from a report filed before the reports were shared", async () => {
+    const read = readGamePosition(await unpackState(POSITION_TAG, FILED));
+
+    expect(read).toEqual(DRAWN);
   });
 
-  it("rejects game state that is not gzipped", async () => {
-    await expect(decodePosition("fs1.AAAA")).rejects.toThrow(/corrupt/);
+  it("refuses a position that names no game", () => {
+    expect(() => readGamePosition({})).toThrow(/position\.gameId is not text/);
   });
 
-  it("rejects game state that is not JSON", async () => {
-    await expect(decodePosition(NOT_JSON)).rejects.toThrow(/corrupt/);
-  });
-
-  it("rejects game state that unpacks past the limit", async () => {
-    const encoded = await encodePosition(position());
-
-    await expect(decodePosition(encoded, 100)).rejects.toThrow(
-      /over 100 bytes/,
-    );
-  });
-
-  it("rejects game state that names no game", async () => {
-    const encoded = await encodePosition({} as unknown as GamePosition);
-
-    await expect(decodePosition(encoded)).rejects.toThrow(
-      /position\.gameId is not text/,
-    );
-  });
-
-  it("rejects game state whose snapshot is malformed", async () => {
+  it("refuses a position whose snapshot is malformed", () => {
     const malformed = { ...position(), snapshot: { score: "high" } };
-    const encoded = await encodePosition(malformed as unknown as GamePosition);
 
-    await expect(decodePosition(encoded)).rejects.toThrow(
+    expect(() => readGamePosition(malformed)).toThrow(
       /position\.snapshot\.piles is not a list/,
     );
   });
