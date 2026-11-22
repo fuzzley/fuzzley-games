@@ -71,16 +71,31 @@ describe("readReportedGame", () => {
     );
   });
 
-  it.each<[string, object]>([
-    ["field", { field: { ...PACKED.field, squares: "rr" } }],
-    ["difficulty", { difficulty: "expert" }],
-    ["seconds", { seconds: -1 }],
-    ["flagMode", { flagMode: "on" }],
-    ["lives", { lives: 6 }],
-    ["custom", { custom: { rows: 31, cols: 5, mines: 1 } }],
-    ["turned", { turned: 1 }],
-    ["scroll", { scroll: { left: 1.5, top: 0 } }],
-  ])("names the state's %s where it can't read it", (part, change) => {
+  it.each<[string, string, object]>([
+    [
+      "field",
+      "holds squares it can't read",
+      { field: { ...PACKED.field, squares: "rr" } },
+    ],
+    ["difficulty", "is no difficulty", { difficulty: "expert" }],
+    ["seconds", "is below 0", { seconds: -1 }],
+    ["flagMode", "isn't a yes or a no", { flagMode: "on" }],
+    ["lives", "gives more lives than a game can have", { lives: 6 }],
+    ["custom", "holds no size", { custom: null }],
+    [
+      "custom",
+      "counts half a column",
+      { custom: { rows: 5, cols: 8.5, mines: 12 } },
+    ],
+    [
+      "custom",
+      "is taller than a field can be",
+      { custom: { rows: 31, cols: 5, mines: 1 } },
+    ],
+    ["turned", "isn't a yes or a no", { turned: 1 }],
+    ["scroll", "holds no scroll", { scroll: null }],
+    ["scroll", "scrolls part of a pixel", { scroll: { left: 1.5, top: 0 } }],
+  ])("names the state's %s where it %s", (part, _, change) => {
     expect(() => readReportedGame({ ...PACKED, ...change })).toThrow(
       `This build can't read ${part} in the game state.`,
     );
