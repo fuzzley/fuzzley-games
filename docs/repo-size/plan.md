@@ -1,8 +1,10 @@
 # Repository size: the plan
 
-Written 2026-11-21, before any change was made. It plans three of the five
-strategies for making the repository smaller, in the order they should be
-built:
+Written 2026-11-21, before any change was made, and checked against `main`
+at ba66e77d the same day. By then the agent-efficiency work had cut the
+`AGENTS.md` files and deleted the skills that the first draft's doc steps
+named (§12). It plans three of the five strategies for making the
+repository smaller, in the order they should be built:
 
 - **Part A, strategy 2:** stop the screenshots piling up in history.
 - **Part B, strategies 3 and 4:** build the card atlases at build time
@@ -56,7 +58,7 @@ What each future change adds to history:
 ### The order of work
 
 1. **P0. Commit this plan's folder** to `main`, without its two sample
-   images. This happens only once the user says so.
+   images, and make the backup. Done on 2026-11-21 (§12).
 2. **Part A, the screenshots.**
    - **A1:** a gate in `@fz/dev/screenshots`, so a retake writes only the
      images where something visibly changed, with a `--force` flag to
@@ -132,9 +134,9 @@ for Part C only.
 - The rewrite replaces every commit on GitHub, so a copy of the repository
   as it stood just before is the only way to undo it.
 - It is a bare mirror, `~/Projects/personal/fuzzley-games-backup.git`,
-  made when P0 lands, with its push URL disabled. C2 brings it up to date
-  just before the rewrite, then cuts it off from GitHub, and writes a
-  bundle of it beside it.
+  made at P0 on 2026-11-21, at b67c3c01, with its push URL disabled. C2
+  brings it up to date just before the rewrite, then cuts it off from
+  GitHub, and writes a bundle of it beside it.
 - Parts A and B need no backup. They are ordinary commits, which git's
   history keeps.
 
@@ -156,16 +158,18 @@ Claude's memory notes name 37 commits of this repository, 67 times.
 - **Why:** every commit gets a new hash. Work based on the old commits,
   such as an unpushed branch, a worktree or a stash, must be pushed or
   saved before, and moved across after.
-  - Today that is the `agent-efficiency-1-checks` branch, checked out in
-    the main checkout, and one stash entry.
+  - On 2026-11-21 that was one stash entry, "local-pipeline steps 3 and
+    4". The branch the first draft named, `agent-efficiency-1-checks`, has
+    since landed, and the remote holds only `main` and `live`.
+    `08-local-clones.sh` lists what there is on the day.
   - Anything pushed during the window is either refused (the push is
     leased) or lost.
   - An old clone used after it would bring the old history back.
 
-**D6. This folder goes to `main`, and is pushed.** That is P0, without the
-two sample sheets in `data/screenshots/samples/`. The research, scripts and
-data are about 1 MiB of text. Part C runs from these scripts, so they
-must be in a clone on the day.
+**D6. This folder goes to `main`, and is pushed.** That was P0, without the
+two sample sheets in `data/screenshots/samples/`, done as b67c3c01. The
+research, scripts and data are about 1 MiB of text. Part C runs from these
+scripts, so they must be in a clone on the day.
 
 ---
 
@@ -322,18 +326,27 @@ These are the names and types the packages share, fixed before code.
  */
 export const UNCHANGED_LEVELS = 48;
 
-/** What writing an image did. */
-export interface WrittenImage {
-  /** The size in bytes of the file now on disk. */
-  readonly bytes: number;
-  /** Whether the committed file was kept, as nothing in it moved far enough. */
-  readonly kept: boolean;
-  /**
-   * The largest change in any channel against the committed image, of 255,
-   * or undefined where there was none of the same size to compare.
-   */
-  readonly moved: number | undefined;
-}
+/** What writing an image did: wrote it, or kept the committed one. */
+export type WrittenImage =
+  | {
+      /** The committed file was kept, as nothing in it moved far enough. */
+      readonly kept: true;
+      /** The size in bytes of the file on disk. */
+      readonly bytes: number;
+      /** The largest change in any channel against the committed image, of 255. */
+      readonly moved: number;
+    }
+  | {
+      readonly kept: false;
+      /** The size in bytes of the file written. */
+      readonly bytes: number;
+      /**
+       * The change that ruled the committed image out, of 255, or undefined
+       * where nothing was compared: `force` was set, or no committed image
+       * of the same size decoded.
+       */
+      readonly moved: number | undefined;
+    };
 
 export interface ImageOptions {
   readonly region?: Region | undefined;
@@ -366,7 +379,7 @@ export function keepShot(
   shot: Shot | Missed,
   folder: string,
   printer: Printer,
-  options?: { readonly force?: boolean | undefined },
+  options?: { readonly force?: boolean },
 ): Promise<number>;
 
 export interface ScreenshotRequest {
@@ -431,319 +444,627 @@ WebP's three headers, after `RIFF` (bytes 0–3) and `WEBP` (bytes 8–11):
 
 ## 6. Work packages
 
-Each package is one or two commits, and each commit passes `yarn verify`
-on its own. Every commit goes through the `commit-review-process` skill,
-and every merge to `main` follows the `merge-to-main` skill: `yarn
-verify:full` for code. Nothing is pushed until the user asks.
+Each package is one commit and passes `yarn verify:changed` on its own.
+They are built in the order A1, A2, A3, A4, B1, B2 (§1 says why B2 comes
+after A3). §6.0 is the routine every package follows. Each package after it
+gives its edits file by file, its specs, its checks, its commit's subject,
+and the rules its review brief quotes.
 
-### P0. Commit this plan
+Line numbers are as of `ba66e77d`, when this section was last checked
+against the tree. An earlier package can move them, so find each place by
+the name given with it.
 
-1. Rebase the `repo-size-plan` worktree onto `origin/main`, which was
-   0814f99f at the time of writing. The three commits since 305edc24 touch
-   only `docs/agent-efficiency-audit/`.
-2. Delete the two sample sheets,
-   `docs/repo-size/data/screenshots/samples/*.webp`, and say in
-   `research/screenshots.md` that `samples.mjs` makes them again.
-3. Run `frontend/node_modules/.bin/prettier --check docs/repo-size`, on
-   that path only. `yarn prettier` would rewrite the whole repository.
-4. Commit it as `docs(repo-size): …`. It is Markdown, scripts and data
-   under `docs/`, so the merge needs `yarn lint`, and no coverage run.
-5. Push it to `main`.
-6. Make D3's backup repository, a bare mirror nothing pushes from:
+P0, which committed this folder and made the backup, is done (§12).
+
+### 6.0 How every package is built
+
+**Once, before A1,** in the worktree
+`~/Projects/personal/fuzzley-games-repo-size`, on the branch
+`repo-size-plan`:
+
+1. `git fetch origin && git rebase origin/main`, so the branch starts from
+   that day's `main`. It was cut at ba66e77d.
+2. From `frontend/`, run `npx -y corepack yarn install --immutable`. The
+   worktree has no `node_modules` until then, and every check needs them.
+3. From the root, run `node .agents/link-claude-skills.mjs`, which links the
+   skills and agent definitions into the worktree's `.claude/`.
+4. Check that `commit-reviewer` is among the agent types offered. Sessions
+   start in `~/Projects/personal`, which links it already. If it is missing,
+   ask the user once, as `commit-review-process` step 2 says.
+
+**For each package:**
+
+1. Make its edits and write its specs. Before changing a library, read the
+   `fuzzley-ui` skill's "Changing a library" (A1, for `@fz/dev`), or
+   `phaser-core` (B1, for `@fz/phaser`), as `frontend/AGENTS.md` asks.
+2. Run `npx -y corepack yarn verify:changed` from `frontend/`, with the Bash
+   tool's timeout at ten minutes.
+   - It runs the root's lint, Prettier and typecheck, and the lint,
+     typecheck, tests, build and layout check of each workspace the change
+     reaches.
+   - It waits for any run in another worktree, so it needs no lock.
+3. Commit the package's files by name, with `git add` for new files and
+   `git rm` for deletions first: `git commit -F - -- <paths>`. Use the
+   subject the package gives, and no attribution lines.
+4. Start a `commit-reviewer` agent in the background, with
+   `commit-review-process`'s brief. It names:
+   - the commit;
+   - "the project: `docs/repo-size/plan.md`, §6 <package>";
+   - what the change does;
+   - the rules the package lists, quoted.
+5. Go on to the next package. At most two reviews are out at once.
+6. Answer each report in an `amend!` commit, as `commit-review-process`
+   step 4 says, once `verify:changed` passes again.
+7. Measure what the package adds to history (§9), and note it for §12.
+
+**When A is done, and again when B is,** with every report answered:
+
+1. Fold the `amend!` commits in:
 
    ```sh
-   git clone --mirror https://github.com/fuzzley/fuzzley-games.git ~/Projects/personal/fuzzley-games-backup.git
-   git -C ~/Projects/personal/fuzzley-games-backup.git remote set-url --push origin DISABLED
+   before=$(git rev-parse HEAD) &&
+     GIT_EDITOR=true git rebase --autosquash --keep-base origin/main &&
+     git diff --stat "$before" HEAD &&  # prints nothing
+     git log --oneline origin/main..HEAD  # shows no amend!
    ```
 
-**Done when** the folder is on `main`, `yarn lint` passes, and the backup
-mirror holds `main` at the pushed commit.
+2. Run `npx -y corepack yarn verify:full` from `frontend/`.
+   - Run it alone on the machine. Unlike `verify:changed`, it doesn't wait
+     for other runs, and two heavy checks at once have run the devbox out
+     of memory before.
+   - Then check that every line the packages changed is covered, as
+     `merge-to-main` §3 asks, except the lines a commit's body names as
+     uncovered.
+3. Report to the user, with §12 filled in. **Nothing is pushed until they
+   say so.**
+4. On their word, land it as `merge-to-main` §4 says:
+   1. `git fetch origin`. If `main` has moved, rebase onto it, and run
+      `verify:full` again where the packages or what landed before them
+      touch code.
+   2. `git push origin HEAD:main`.
+   3. `git -C ~/Projects/personal/fuzzley-games merge --ff-only origin/main`,
+      if the main checkout has `main` checked out and is clean.
+   4. Watch the Verify run, with
+      `gh run list --workflow verify.yml --commit "$(git rev-parse HEAD)"`,
+      and `live` move to the commit.
 
 ### A1. The gate
 
-**Files:**
+**What it does:** a retake writes a site image only where some pixel's
+channel moved by more than 48 levels against the committed image (S1).
+`--force` writes every image.
 
-- `frontend/lib/dev/src/screenshots.ts`:
-  - `writeImage()` encodes the WebP to a buffer instead of a file. Then,
-    unless `force` is set:
-    - it decodes that encoded buffer again, and the committed file, if
-      there is one, each with `sharp(…).removeAlpha().raw().toBuffer({
-resolveWithObject: true })`, as `gate-check.mjs` measured them. The
-      new image's pixels are the encoded ones, not the capture's, so the
-      same capture written twice compares as 0.
-    - where the committed file's width and height match the new image's,
-      it finds the largest absolute difference across the two buffers,
-      stopping early once it passes `UNCHANGED_LEVELS`;
-    - where that is at most `UNCHANGED_LEVELS`, it leaves the file as it
-      is and returns `{ kept: true }`.
-    - A committed file that doesn't decode counts as nothing to compare,
-      and is replaced, rather than ending a run of many games.
-  - Otherwise it writes the buffer, with `writeFile`.
-  - `writeSiteImages()` passes `force` through. `keepShot()` takes the
-    options and prints each image's `describeImage()` line (§5).
-  - `readRequest()` reads `--force`, and `usageOf()` lists it.
-- **The six other games' `tools/capture-screenshots.mjs`** (Minesweeper,
-  Sudoku, Snake, Brick Breaker, Asteroid Breaker, Brick Fuzz Pop): each
-  takes `force` from its request beside `url`, and passes `{ force }` to
-  `keepShot()`. That is one line in each.
-- `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs` is changed
-  only as far as the new return type needs (it prints `bytes`), since A3
-  deletes it. Its JSDoc is type-checked, so the commit fails without it.
-- **Docs:**
-  - `frontend/lib/dev/AGENTS.md`, the screenshots entry: the gate, its
-    tolerance, the report and `--force`.
-  - `frontend/games/AGENTS.md`, "Its screenshots are the site's": a retake
-    keeps what didn't visibly change.
-  - Every game's `AGENTS.md` entry for `capture:screenshots`, where it
-    lists the options.
+**Edits:**
 
-**Specs**, in `frontend/lib/dev/src/screenshots.spec.ts`, on images made
-with sharp in a temporary folder:
+1. `frontend/lib/dev/src/screenshots.ts`:
+   - **New exports,** beside `SITE_IMAGE_QUALITY`: `UNCHANGED_LEVELS`,
+     `WrittenImage` and `describeImage()` (§5).
+   - **`ImageOptions`** gains `force` (§5).
+   - **`writeImage()`** (line 107):
+     1. It encodes as now, but with `.toBuffer()` in place of
+        `.toFile(target)`.
+     2. Unless `force` is set, it reads the committed file with
+        `readFile(target)`, not by path, since sharp keeps a file it opened
+        by path locked on Windows (the spec's `open()` says the same).
+     3. It decodes the committed file and the encoded buffer, each with
+        `sharp(…).removeAlpha().raw().toBuffer({ resolveWithObject: true })`.
+        The new image is decoded from what was encoded, not from the
+        capture, so the same capture written twice compares as 0.
+     4. Only the committed file's read and decode are caught. A file that
+        can't be read or decoded counts as nothing to compare. An error in
+        encoding the capture still throws.
+     5. If both decode at the same width and height, a private
+        `largestChange(a, b)` returns the largest absolute difference
+        between the two buffers' bytes. It stops as soon as the difference
+        passes `UNCHANGED_LEVELS`, so a written image's `moved` is a lower
+        bound.
+     6. If the difference is at most `UNCHANGED_LEVELS`, it writes nothing,
+        so the file's mtime holds. It returns
+        `{ kept: true, bytes: <the committed file's length>, moved }`.
+     7. Otherwise it writes the buffer with `writeFile(target, encoded)`,
+        and returns `{ kept: false, bytes: encoded.length, moved }`.
+     8. Its doc comment gains one paragraph on why it uses a tolerance and
+        not a comparison of bytes: two captures of an unchanged page differ
+        by a few pixels in the game bar, and WebP spreads that into changes
+        of up to 40 levels.
+   - **Imports:** `stat` is no longer imported; `readFile` and `writeFile`
+     are.
+   - **`SiteImageOptions`** gains `force`. **`writeSiteImages()`**
+     (line 127) hands it to each `writeImage()`, and returns
+     `Map<string, WrittenImage>`.
+   - **`keepShot()`** (line 269) takes a fourth parameter,
+     `{ force }: { readonly force?: boolean } = {}`, since every caller hands
+     it the request's `boolean`. It hands
+     `force` to `writeSiteImages()`, and prints
+     `describeImage(file, written)` for each image in place of its `KB`
+     line.
+   - **`ScreenshotRequest`** (line 289) gains `force` (§5).
+   - **`readRequest()`** (line 374) reads
+     `force: { type: "boolean", default: false }`, and returns it with
+     `url` and `names`. `runScreenshotScript()` hands it on in `asked`,
+     unchanged.
+   - **`usageOf()`** (line 403) lists
+     `  --force          Write every image, even one that looks unchanged`
+     before `-h, --help`, in the same 17-column layout.
+   - **The module's opening comment** adds that a capture's image is
+     written only where it visibly changed.
+2. **The six other games' `tools/capture-screenshots.mjs`:** each
+   `capture:` callback takes `force` beside `url`, and hands `{ force }`
+   to `keepShot()` as its fourth argument. These are the lines, at
+   ba66e77d:
 
-- It writes an image where none exists, and reports `moved: undefined`.
-- Writing the same capture twice keeps the file, unchanged in bytes and
-  mtime, with `moved: 0`.
-- A capture with one 16 × 16 block moved by 10 levels is kept.
-- A capture with that block moved by 120 levels is written, and `moved`
-  is over 48.
-- A committed image of another size is replaced.
-- A committed file that isn't an image is replaced, without throwing.
-- `force: true` writes an image that would otherwise be kept.
-- `keepShot()` prints both forms of the report line.
-- `readRequest()` reads `--force`, and the usage lists it.
+   | Game             | `capture:` | `keepShot(` |
+   | ---------------- | ---------: | ----------: |
+   | minesweeper      |        240 |         241 |
+   | sudoku           |        243 |         244 |
+   | snake            |        122 |         123 |
+   | brick-breaker    |        148 |         153 |
+   | asteroid-breaker |        320 |         321 |
+   | brick-fuzz-pop   |        229 |         234 |
 
-**Done when:**
+3. `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs`, only as far
+   as the new return type needs, since A3 deletes it. Its import of
+   `@fz/dev/screenshots` (lines 18–22) adds `describeImage()`, and `shrink()`
+   (line 115) maps each `[file, written]`
+   through it in place of its `KB` line. `tsconfig.scripts.json`
+   type-checks the script's JSDoc, so the commit fails without this.
+4. `frontend/games/AGENTS.md` gains one rule, after "A change to a game's
+   layout is checked in a browser":
 
-- `yarn verify:changed`, then `yarn verify:full`, pass.
-- In the real app, `yarn workspace minesweeper dev` is started and
-  `yarn workspace minesweeper capture:screenshots` run. It reports both
-  images as kept, and `git status` is clean. With `--force` it writes
-  them, and then `git checkout` puts them back.
-- The research found that Minesweeper's thumbnail drifts by up to 22
-  levels on this machine. The kept report shows that number.
+   > - **Retake the screenshots with `--force` after a change every image
+   >   should show, such as a palette or a font.** Without it, a retake
+   >   keeps any image in which no pixel moved by more than
+   >   `UNCHANGED_LEVELS` (`@fz/dev/screenshots`), so a change that faint
+   >   everywhere keeps every old image.
+
+   This is the only `AGENTS.md` line A1 adds. What the gate does goes in
+   `screenshots.ts`'s doc comments, as `.agents/AGENTS.md` asks.
+
+**Specs,** in `frontend/lib/dev/src/screenshots.spec.ts`.
+
+These existing specs change where the types do:
+
+- `writeSiteImages`' "returns each file's size" (line 124): `sizes` is a
+  `Map<string, WrittenImage>`. The spec checks the two names, and that each
+  image was written (`kept: false`, `bytes > 0`, `moved: undefined`), since
+  the folder is new.
+- `writeImage`'s spec (line 143) names its file `fitted.webp` rather than
+  `overview.webp`, so A2's `git grep` finds no `overview.webp`.
+- The two request specs (lines 572 and 580) expect `force: false` beside
+  `url` and `names`.
+- The `--help` spec (line 591) expects the `--force` line.
+
+New specs under `writeImage`, each in a folder of its own under the spec's
+temporary folder. The image is written at the capture's own 1280 × 720, so
+no resize blurs a change away:
+
+- It writes an image where none is, with `moved: undefined`.
+- Written twice from the same capture, the second call keeps the file:
+  `kept: true`, `moved: 0`, and its bytes and mtime as the first call left
+  them.
+- A capture with a 16 × 16 block moved by 10 levels is kept, with `moved`
+  above 0 and at most 48.
+- The same block moved by 120 levels is written, with `moved` above 48.
+- A committed image of another size is replaced, with `moved: undefined`.
+- A committed file holding text is replaced, without throwing.
+- `force: true` writes the image the second spec kept.
+
+New specs elsewhere:
+
+- `describeImage()` gives `thumb.webp: 20 KB` for an image written at
+  20,480 bytes, and `thumb.webp: kept, moved at most 23 of 255` for one
+  kept.
+- `keepShot()`, run twice on one folder, prints the `kept` form the second
+  time.
+- `runScreenshotScript()` hands the capture `force: true` for `--force`.
+
+**Checks:**
+
+1. `verify:changed`. It reaches `@fz/dev`, and so every workspace, so it
+   may take most of its ten minutes.
+2. In the real app, with `yarn workspace minesweeper dev` running in the
+   background, on port 9001:
+   - `yarn workspace minesweeper capture:screenshots` prints
+     `thumb.webp: kept, moved at most <n> of 255`, and the same for
+     `preview.webp`. `git status` is clean afterwards. The research measured
+     Minesweeper's thumbnail moving by up to 22 levels on this machine, so
+     `<n>` should be about that.
+   - `yarn workspace minesweeper capture:screenshots --force` prints both
+     images as written, in KB.
+   - Then run
+     `git checkout -- frontend/games/minesweeper/public/docs/screenshots`,
+     and stop the dev server.
+
+**Commit:**
+
+```text
+feat(dev, minesweeper, sudoku, snake, brick-breaker, asteroid-breaker, brick-fuzz-pop, solitaire): a retake keeps each of the site's images whose pixels moved by 48 levels at most, and says so, unless --force writes every one
+```
+
+Its body names the lines no spec runs: each game's `capture:` callback,
+which runs only in Chrome, as it does today.
+
+**Rules for the review brief:** the reviewer's definition already holds
+the rules for code, doc comments and specs, so quote only these:
+
+- From `frontend/AGENTS.md`:
+  - "A `tools/` script that a spec imports exports its logic as functions,
+    and runs only as the file Node started…", since three of the capture
+    scripts have specs that import them;
+  - "Before changing a library, read the `fuzzley-ui` skill's 'Changing a
+    library'… A piece added to a library, or one whose name or inputs
+    change, changes its row in that skill in the same change". Its
+    `@fz/dev` row names only "what `tools/` scripts share", so it doesn't
+    change.
+- From `frontend/lib/dev/AGENTS.md`: "Nothing here reaches an app's
+  bundle."
+- From `.agents/AGENTS.md`'s Agent Configuration, for the new rule: "Add
+  to one only what an agent would get wrong without it…" and "A rule is
+  written once, in the highest layer it holds for…"
 
 ### A2. The rules pages show the preview
 
-**Files:**
+**What it does:** S4. The rules page's `<img>`, at
+`game_help_modal.component.html` line 124, shows `preview.webp`, and the
+41 `overview.webp` files go.
 
-- `frontend/games/solitaire/src/ui/app/provider/game_documentation_data.ts`:
-  each of the 41 `screenshot.url`s goes from `…/overview.webp` to
-  `…/preview.webp`. That is a mechanical replacement, so check that the
-  count is 41.
-- `frontend/games/solitaire/src/ui/app/model/game_documentation.model.ts`:
-  the example in the doc comment.
-- `git rm frontend/games/solitaire/public/docs/screenshots/*/overview.webp`,
-  41 files.
-- `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs`: stop
-  writing `overview.webp`, by removing `OVERVIEW` and `OVERVIEW_QUALITY`.
-  This keeps `build:thumbs` honest until A3.
-- **The specs' comments** that say "What `yarn build:thumbs` writes":
-  - `frontend/games/solitaire/test/ui/app/provider/game_documentation.spec.ts`;
-  - `frontend/games/solitaire/test/ui/app/model/game_browser_item.spec.ts`.
+**Edits:**
 
-  They name the capture once A3 lands. Here they lose "overview".
+1. `frontend/games/solitaire/src/ui/app/provider/game_documentation_data.ts`:
+   run `sed -i 's#/overview\.webp"#/preview.webp"#'` on it. Then
+   `grep -c 'preview\.webp"'` gives 41, and `grep -c overview` gives 0.
+2. `frontend/games/solitaire/src/ui/app/model/game_documentation.model.ts`,
+   line 5: the example becomes `./docs/screenshots/klondike/preview.webp`.
+3. Run `git rm frontend/games/solitaire/public/docs/screenshots/*/overview.webp`,
+   which removes 41 files. Once they are gone, zsh finds no match for that
+   glob, so the commit names the folder,
+   `frontend/games/solitaire/public/docs/screenshots`, among its paths.
+4. `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs`:
+   - Remove `OVERVIEW` and `OVERVIEW_QUALITY`, the `writeImage()` call
+     and its import, and the map that joins its result to the site's two.
+   - The header says the script writes two images.
+   - This keeps `build:thumbs` true until A3 deletes it.
+5. `frontend/games/solitaire/.agents/skills/add-solitaire-game/SKILL.md`,
+   step 3 (line 266): `screenshot.url` points at
+   `./docs/screenshots/<id>/preview.webp`.
 
-- **Docs:**
-  - `frontend/games/solitaire/AGENTS.md`, under Build Screenshot
-    Thumbnails: the rules page's image is no longer listed.
-  - The `add-solitaire-game` skill, step 3: point `screenshot.url` at
-    `preview.webp`.
-  - `frontend/lib/dev/AGENTS.md`, the screenshots entry: `writeImage()` is
-    no longer used "as the Solitaire Collection's rules-page image is", so
-    that example goes here, not in A3.
+**Specs:** none new.
+`test/ui/app/provider/game_documentation.spec.ts` already fails for a
+rules page whose image isn't in `public/`, so it proves that all 41 new URLs
+exist. Its comment, "What `yarn build:thumbs` writes", is still true. It
+changes in A3.
 
-**Specs:** `game_documentation.spec.ts` already fails on a rules page
-whose image doesn't exist, so it proves every page's new URL is there. No
-new spec is needed.
+**Checks:**
 
-**Done when:**
+1. `verify:changed`, which reaches the Solitaire Collection.
+2. `git grep -n overview.webp -- frontend` finds nothing.
+3. In a browser through the `chrome-devtools` MCP server, with
+   `yarn workspace solitaire dev` running on port 9000:
+   - Open `http://localhost:9000/#/klondike`, then `#/montana`, and open
+     each game's rules.
+   - The screenshot loads, at the same size as before: roomy, as a phone
+     held upright, and as one on its side.
+   - The network panel shows `preview.webp` with a 200, and the console
+     shows no 404.
+   - Close the browser afterwards.
 
-- `yarn verify:changed` and `yarn verify:full` pass.
-- In a browser on the dev server (port 9000), Klondike's rules page and
-  Montana's show their screenshots, at the same size as before, with no
-  404 in the console.
-- `git grep -n overview.webp -- frontend` finds nothing.
+**Commit:**
+
+```text
+refactor(solitaire): the rules pages show the preview the game browser shows, and the 41 overview.webp go
+```
+
+**Rules for the review brief:**
+
+- From `frontend/AGENTS.md`: "Look at a UI or behavior change in the
+  running page…".
+- From `frontend/games/AGENTS.md`: "Minesweeper and the Solitaire
+  Collection have none: look at their pages yourself, roomy, as a phone
+  held upright and as one on its side."
+- From `.agents/AGENTS.md`: "A skill, an agent definition and an
+  `AGENTS.md` describe code that exists.", for the skill's step 3.
 
 ### A3. The Solitaire Collection captures like every other game
 
-**Files:**
+**What it does:** S2, S3 and S5. The capture writes `thumb.webp` and
+`preview.webp` straight from the capture's PNG, and keeps no original.
+`build:thumbs` goes.
 
-- `frontend/games/solitaire/tools/capture-screenshots.mjs`:
-  - The capture's PNG buffer goes to `writeSiteImages(shot.png,
-siteImagesFolder(ROOT, id), { thumbRegion: region, resize, force })`,
-    with `region` and the felt from `findBoard(shot.png)`, and
-    `resize = { fit: "contain", position: "top", background: felt }`.
-    `findBoard()` and `isFelt()` move here, and `findBoard()` takes
-    `string | Buffer`.
-  - Where `findBoard()` finds no felt, the game is skipped, named by its
-    id, as a capture that fails is today, rather than throwing out of the
-    run. Its message names the game, not the buffer.
-  - Each image's line is `describeImage()`'s, prefixed with the game's id.
-  - `everyGame()` reads the folders under `public/docs/screenshots/`.
-  - `TARGET`, `SCREENSHOT_DIR`, the `sharp(…).png()` write, and the closing
-    "Run yarn build:thumbs" line go.
-  - The header comment says what it writes now, and that it keeps
-    no original.
-- **Delete** `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs`,
-  and the `build:thumbs` script in `frontend/games/solitaire/package.json`.
-- `git rm -r frontend/games/solitaire/docs/screenshots/`, the 41
-  `overview.png` files (20.07 MiB).
-- **Comments:**
-  - `frontend/games/solitaire/src/ui/app/styles/_tokens.scss`, line 73:
-    "which the capture draws at twice this".
-  - The two specs' "What `yarn build:thumbs` writes", which becomes "What
-    `yarn capture:screenshots` writes".
-- **Docs:**
-  - `frontend/games/solitaire/AGENTS.md`: rewrite "Capture Screenshots" as
-    this command, remove "Build Screenshot Thumbnails", and fix "Its
-    history began in fSolitaire" ("`docs/` holds … the lossless
-    screenshots", which is no longer true).
-  - The `add-solitaire-game` skill, step 3: one command, no second step.
-  - `frontend/lib/dev/AGENTS.md`: remove the Solitaire exception ("makes
-    them from that with `build:thumbs`", and "or, as the Solitaire
-    Collection's does, what it writes of its own"). Keep that it shoots
-    its page at 1440 × 810.
-  - `frontend/games/AGENTS.md`, if it mentions the exception.
-- **Keep** `.dockerignore`'s `frontend/games/solitaire/docs`, since that
-  folder still holds the design notes.
+**Edits:**
 
-**Specs:** the tool is a script with no spec today, so none is added.
-The shared writer it now calls is A1's, and that is specced there.
+1. `frontend/games/solitaire/tools/capture-screenshots.mjs`:
+   - **`isFelt()`, `MAX_CHROME_FRACTION` and `findBoard()`** move in from
+     `build-screenshot-thumbs.mjs`, unchanged but in two ways:
+     - `findBoard()` takes `string | Buffer`;
+     - where it finds no felt, it returns
+       `{ problem: "found no felt below the header" }` rather than throwing,
+       since its message would print the buffer.
+   - **`captureEach()`** reads `force` from the request. For each game it
+     takes the capture, then runs `findBoard(shot.png)`. A problem from
+     either one skips the game, as a failed capture does now. Then:
 
-**Done when:**
+     ```js
+     const written = await writeSiteImages(
+       shot.png,
+       siteImagesFolder(ROOT, id),
+       {
+         thumbRegion: board.region,
+         // Contained rather than cropped, since a wide board runs edge to
+         // edge; any strip left over goes below it, as more felt.
+         resize: { fit: "contain", position: "top", background: board.felt },
+         force,
+       },
+     );
+     for (const [file, image] of written) {
+       print(`${id}: ${describeImage(file, image)}`);
+     }
+     ```
 
-- `yarn verify:changed` and `yarn verify:full` pass, and
-  `node .agents/check-skill-references.mjs` passes.
-- In the real app, with `yarn workspace solitaire dev` running,
-  `yarn workspace solitaire capture:screenshots klondike spider freecell`
-  reports all 6 images kept, and `git status` is clean.
-  - That is the proof that S5's crop is unchanged and that the gate
-    holds. The research measured a fresh capture's previews moving by up
-    to 40 levels.
-  - With `--force klondike`, the run writes two images, and they look the
-    same as HEAD's. Then restore them with `git checkout`.
-- Run all 41 once, in about 4.5 minutes. Every image is reported kept, or
-  any that isn't is looked at before committing. Commit only those that
-  changed visibly, and expect none.
-- `git grep -n -e build:thumbs -e build-screenshot-thumbs -e overview.png --
-. ':!docs'` finds nothing.
+   - **The closing line** counts what was kept:
+     `Captured 41 of 41: wrote 2 images, kept 80.`
+   - **`everyGame()`** lists the folders under `siteImagesFolder(ROOT, "")`,
+     so the path is written once, in `@fz/dev`.
+   - **What goes:** `SCREENSHOT_DIR`, `TARGET`, the `sharp(…).png()` write,
+     the `mkdir`, the line "Run yarn build:thumbs…", and the sentence in
+     `about` that says it.
+   - **Comments:**
+     - The header says what the script writes, where, and that it keeps no
+       original.
+     - `THEME`'s comment names the capture, not `build:thumbs`, as what
+       finds the board by its felt.
+2. **Delete** `frontend/games/solitaire/tools/build-screenshot-thumbs.mjs`,
+   and the `build:thumbs` script in `frontend/games/solitaire/package.json`
+   (line 14).
+3. Run `git rm -r frontend/games/solitaire/docs/screenshots/`. That removes
+   the 41 `overview.png` files, 20.07 MiB. The folder's other docs stay, and
+   so does `.dockerignore`'s `frontend/games/solitaire/docs`.
+4. **Comments:**
+   - `frontend/games/solitaire/src/ui/app/styles/_tokens.scss`, line 73:
+     "which `yarn capture:screenshots` writes at twice this".
+   - `test/ui/app/provider/game_documentation.spec.ts` (line 6) and
+     `test/ui/app/model/game_browser_item.spec.ts` (line 92): "What
+     `yarn capture:screenshots` writes, …".
+   - `frontend/lib/dev/src/screenshots.ts`, `SCREENSHOT_VIEWPORT`'s
+     comment: "The Solitaire Collection shoots its games at its own size."
+5. `frontend/games/solitaire/.agents/skills/add-solitaire-game/SKILL.md`,
+   step 3 (lines 264–267): one command, `yarn capture:screenshots <id>`,
+   with no second step.
+
+**Specs:** none. The script has no spec today, and the writer it now calls
+is A1's, which is specced there.
+
+**Checks:**
+
+1. `verify:changed`.
+2. `git grep -n -e build:thumbs -e build-screenshot-thumbs -e overview.png -- . ':!docs'`
+   finds nothing.
+3. In the real app, with `yarn workspace solitaire dev` running:
+   1. `yarn workspace solitaire capture:screenshots klondike spider freecell`
+      prints all 6 images as kept, and `git status` is clean afterwards.
+      This proves that the crop is unchanged (S5) and that the gate holds.
+      The research measured a fresh capture's previews moving by up to 40
+      levels.
+   2. `yarn workspace solitaire capture:screenshots --force klondike` writes
+      two images that look the same as HEAD's. Then `git checkout` them
+      back.
+   3. Run all 41 games once, which takes about 4.5 minutes.
+      - Every image should be reported as kept. Look at any that isn't
+        before committing.
+      - Commit only images that changed visibly, and expect none.
+
+**Commit:**
+
+```text
+refactor(solitaire): the capture writes the site's images itself, as every game's does, and the 41 PNG originals and build:thumbs go
+```
+
+**Rules for the review brief:** from `.agents/AGENTS.md`, "A skill, an
+agent definition and an `AGENTS.md` describe code that exists.", for the
+skill's step 3. The rules for the script's JSDoc and comments are in the
+reviewer's definition.
 
 ### A4. Plan images (S10)
 
-**File:** `.agents/AGENTS.md`, "Writing Documentation". Add one bullet: a
-picture kept with a plan is WebP, made lossless only when it must be exact,
-and a "before" picture copies the committed `preview.webp` rather than
-taking a new capture.
+**Edit:** `.agents/AGENTS.md` gains one rule, after the bullet
+"`docs/archive/` holds plans as they were built" (line 22):
 
-**Done when** the bullet is there, and the docs check passes. It is
-Markdown, so no coverage run is needed.
+> - **A picture kept with a plan under `docs/` is WebP,** lossless only
+>   where it must be exact, since every version stays in history for good.
+>   A "before" picture copies the committed `preview.webp` or `thumb.webp`
+>   rather than taking a new capture.
+
+- The file is 11,892 bytes, against a budget of 20,000.
+- `.agents/agents/commit-reviewer.md` condenses only the file's rules for
+  code, doc comments and specs, so it doesn't change.
+
+**Checks:** `verify:changed`, which for Markdown alone runs the root's
+checks.
+
+**Commit:**
+
+```text
+docs(agents): a picture kept with a plan is WebP, and a before picture copies the committed one
+```
+
+**Rules for the review brief:** the first three rules under Agent
+Configuration in `.agents/AGENTS.md`: what an `AGENTS.md` holds, what earns
+a line, and its budget.
 
 ### B1. The harness reads WebP
 
-**Files:**
+**What it does:** S7. `@fz/phaser/testing` sizes a served WebP from its
+header, as it does a PNG, so B2's pages load at their size in specs.
 
-- `frontend/lib/phaser/src/testing/served_files.ts`: `pngSize()` becomes
-  `imageSize()`, with §5's three WebP readers, each checked against the
-  file's length. The `src` setter calls `imageSize()`.
-- **Docs:**
-  - The `phaser-core` skill, line 496: "An image decodes at the size its
-    PNG header gives" names the WebP header too.
-  - `frontend/lib/phaser/AGENTS.md` names only `pngOfSize()`, which stays,
-    so it needs no edit.
+**Edits:**
 
-**Specs**, in `frontend/lib/phaser/src/testing/served_files.spec.ts`:
+1. `frontend/lib/phaser/src/testing/served_files.ts`:
+   - **`pngSize()`** (line 238) becomes `imageSize()`. It returns the PNG's
+     size as now, else the WebP's, else 0 × 0. The `src` setter (line 73)
+     calls it.
+   - **The WebP reader:**
+     - It checks for `RIFF` at bytes 0–3 and `WEBP` at bytes 8–11, then
+       reads the chunk at bytes 12–15 (§5).
+     - Each form checks the length it needs first, and gives 0 × 0 for
+       less: 30 bytes for `VP8X` and `VP8 `, 25 for `VP8L`.
+     - `VP8L` also checks for its signature, 0x2f, at byte 20.
+     - A `DataView` reads the fields, little-endian. `VP8L`'s 28 bits come
+       from `getUint32(21, true)`.
+   - **`installServedFiles()`'s doc comment** (line 35) says: "at the size
+     its PNG or WebP header gives, or at 0 × 0 if it is neither".
+2. `.agents/skills/phaser-core/SKILL.md`, line 362: "An image decodes at the
+   size its PNG or WebP header gives".
 
-- A served `VP8L`, `VP8X` and `VP8 ` image, each built byte by byte in the
-  spec from §5's layout, loads with the right `naturalWidth` and
-  `naturalHeight`.
-- Use sizes whose bits cross a byte boundary, such as 3876 × 1260 (the
-  classic 1x page).
-- A `RIFF` file that isn't a WebP, and one cut short, size to 0 × 0.
-- The PNG specs stay as they are.
+**Specs,** in `frontend/lib/phaser/src/testing/served_files.spec.ts`, beside
+"decodes a served image at the size its PNG header gives" (line 190). A
+private helper in the spec builds each form's header byte by byte, from
+§5's table:
 
-**Done when** `yarn verify:changed` and `yarn verify:full` pass. B1 changes
-no behaviour that any game sees today.
+- Each of `VP8L`, `VP8X` and `VP8 `, served at 3876 × 1260, loads with that
+  `naturalWidth` and `naturalHeight`. That is the 1x page's size, whose
+  14-bit fields cross byte boundaries.
+- `VP8X` also loads at 4032 × 3732, the 2x page's size, and at
+  65537 × 65537. Its fields hold the size less 1, so only a side of at
+  least 65537 puts anything in a field's third byte.
+- A `RIFF` file that isn't a WebP, and a `VP8L` header cut to 24 bytes,
+  each load at 0 × 0.
+
+**Checks:** `verify:changed`. It reaches `@fz/phaser`, and so every game
+drawn with Phaser. B1 changes nothing that any game sees today.
+
+**Commit:**
+
+```text
+feat(phaser): the test harness sizes a served WebP from its header, as it does a PNG
+```
+
+**Rules for the review brief:** from `frontend/AGENTS.md`, "Before
+changing a library, read … `phaser-core` for `@fz/phaser`. A piece added
+to a library, or one whose name or inputs change, changes its row in that
+skill in the same change", which is why `phaser-core`'s line changes with
+it.
 
 ### B2. Atlas pages as lossless WebP
 
-**Files:**
+**What it does:** S6. The generator writes each page as a lossless WebP,
+exact in every pixel, and the pages are made again and committed once.
 
-- `frontend/games/solitaire/tools/card-atlas/atlas-writer.mjs`:
-  - In `writeAtlas()`, `card_assets-${index}.webp`, with
-    `.webp({ lossless: true, effort: 6, exact: true })` in place of
-    `.png({ compressionLevel: 9 })`.
-  - `cleanOutput()` matches `/^card_assets(-\d+)?\.(png|webp)$/`, so the
-    old PNG pages go.
-  - The frames' in-memory `.png()` steps stay as they are.
-- `frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts`:
-  the glob becomes `card_assets-*.webp`.
-- `frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`:
-  `ATLAS_PAGE` matches `\.webp$`.
-- `frontend/games/solitaire/test/engine/render/phaser/deck/card_deck_atlas.spec.ts`:
-  the comment at line 170.
-- **Regenerate:** run `yarn workspace solitaire build:atlas` once. It takes
-  about 35 s. Commit the 24 new pages (21 distinct files, as the four 2x
-  second pages are the same), the 20 manifests (only their `image` fields
-  change; `mobile/vectors.json` names no page and stays as it is), and the
-  deletion of the 24 PNG pages.
-- **Docs:**
-  - `frontend/games/solitaire/NOTICE`: the six page paths, and
-    `card_assets-1.png` at line 59.
-  - `frontend/games/solitaire/AGENTS.md`'s rule on `yarn build:atlas`, if
-    it names the format. The `solitaire-build` and `solitaire-phaser`
-    skills, which named PNG pages, have since been deleted.
+**Before any edit,** on the commit A3 left:
+
+1. Make this machine's PNG pages, outside the tree:
+
+   ```sh
+   ATLAS_SCRATCH=~/Projects/personal/repo-size-2026-11-21/atlases \
+     node docs/repo-size/scripts/atlases/run-generator.mjs png-before
+   ```
+
+   `ATLAS_SCRATCH` must be given. The script's default is a scratch folder
+   of the session that wrote it, which may be gone.
+
+2. Measure the build's assets as they are, for check 4:
+   `yarn workspace solitaire build`, then
+   `du -sb frontend/games/solitaire/dist/assets`.
+
+**Edits:**
+
+1. `frontend/games/solitaire/tools/card-atlas/atlas-writer.mjs`:
+   - `writeAtlas()` names each page `card_assets-${index}.webp` (line 246),
+     and writes it with `.webp({ lossless: true, effort: 6, exact: true })`
+     in place of `.png({ compressionLevel: 9 })` (line 262).
+   - `cleanOutput()` (line 223) matches
+     `/^card_assets(-\d+)?\.(png|webp)$/`, so the regeneration removes the
+     PNG pages.
+   - The frames' in-memory `.png()` steps stay as they are.
+2. `frontend/games/solitaire/src/engine/render/phaser/deck/card_deck_atlas.ts`,
+   line 54: the glob ends `card_assets-*.webp`.
+3. `frontend/games/solitaire/test/engine/render/phaser/scene/board_scene.spec.ts`,
+   line 61: `ATLAS_PAGE` ends `\.webp$`.
+4. `frontend/games/solitaire/test/engine/render/phaser/deck/card_deck_atlas.spec.ts`,
+   line 170: the comment names `card_assets-0.webp`.
+5. **Regenerate:** run `yarn workspace solitaire build:atlas`, which takes
+   about 35 s. Then stage it all with
+   `git add -A frontend/games/solitaire/src/engine/render/assets/sprites/atlas`:
+   - the 24 new pages, which are 21 distinct files, since the four decks'
+     2x second pages are alike;
+   - the 20 manifests, of which only the `image` fields change.
+     `mobile/vectors.json` names no page, and stays as it is;
+   - the deletion of the 24 PNG pages.
+6. `frontend/games/solitaire/NOTICE`: the six page paths (lines 45–50) end
+   in `.webp`, and line 59 names `card_assets-1.webp`.
+
+`frontend/games/solitaire/AGENTS.md`'s rule on `yarn build:atlas` doesn't
+name the format, so it stays as it is.
 
 **Checks before committing:**
 
 1. **The same pixels.**
-   - Before switching the writer, run the generator into a scratch copy, as
-     `scripts/atlases/run-generator.mjs` does, to get this machine's PNG
-     pages.
-   - After switching, decode both sets with sharp and compare the RGBA of
-     each of the 24 pairs. All 24 must be identical.
-   - Write this check as `docs/repo-size/scripts/atlases/check-webp-pages.mjs`,
-     with its output in `data/atlases/`.
+   - Write `docs/repo-size/scripts/atlases/check-webp-pages.mjs`. It
+     decodes each of the 24 new pages, and its PNG from the scratch run,
+     with sharp's `ensureAlpha().raw()`, and compares the RGBA.
+   - Its output goes in `data/atlases/check-webp-pages.txt`.
+   - All 24 must be identical.
    - Against HEAD's committed PNGs, expect only the 6 pages the research
      found to differ by platform, in the same few corner pixels
      ([`compare-local-runs.txt`](data/atlases/compare-local-runs.txt)).
-2. **The size.** The 21 distinct new pages come to 9.17 MiB, give or take
-   a little.
+2. **The size.** The 21 distinct pages come to about 9.17 MiB.
 3. **The same drawing.**
-   - With `yarn workspace solitaire dev`, the capture for `klondike spider
-freecell` reports every image kept, since WebGL draws lossless WebP
-     identically ([`phaser-webp-check.txt`](data/atlases/phaser-webp-check.txt)).
-   - In a browser, each of the four decks is chosen in Settings and a deal
-     is looked at, at a roomy size and as a phone. Look for no missing
-     card, and no console error ("Atlas page not found" is what a glob
-     mismatch throws).
+   - With `yarn workspace solitaire dev` running,
+     `capture:screenshots klondike spider freecell` prints every image as
+     kept. WebGL draws a lossless WebP the same as the PNG
+     ([`phaser-webp-check.txt`](data/atlases/phaser-webp-check.txt)).
+   - In a browser, choose each of the four decks in Settings, and look at
+     a deal at a roomy size and as a phone. No card is missing, and the
+     console shows no error. "Atlas page not found" is what a glob that
+     misses throws.
+   - The Solitaire Collection has no layout check, so this look in a
+     browser stands in for one.
 4. **The build.**
    - `frontend/games/solitaire/dist/assets/` holds 21 `card_assets-*.webp`
-     files with hashed names, as the bundler writes the shared 2x second
-     page once, and no `card_assets-*.png`.
-   - `du -sb` of its `assets/` falls by about 7.4 MiB.
+     files with hashed names, and no `card_assets-*.png`.
+   - `du -sb` of `assets/` is about 7.4 MiB less than step 2 measured
+     before the edits.
+5. `verify:changed`.
 
-**Done when** the four checks hold, and `yarn verify:full` passes. The
-Solitaire Collection has no layout check, so check 3 is the look in a
-browser.
+**Commit:**
+
+```text
+perf(solitaire): the card atlas pages are lossless WebP, half the bytes and the same pixels
+```
+
+`check-webp-pages.mjs` and its output go in the same commit, under
+`docs/repo-size/`.
+
+**Rules for the review brief:**
+
+- From `frontend/games/solitaire/AGENTS.md`: "Run `yarn build:atlas` and
+  commit what it writes…" and "No spec sees a blurred card…".
+- From `frontend/games/AGENTS.md`: "Minesweeper and the Solitaire
+  Collection have none: look at their pages yourself, roomy, as a phone
+  held upright and as one on its side."
+- From `frontend/AGENTS.md`: "Look at a UI or behavior change in the
+  running page…".
 
 ---
 
 ## 7. Running the build
 
-- **One session is enough for A and B.** They are about a dozen files
-  each, and most of the time goes into the checks. Build them on one
-  branch from `origin/main`, in the order A1, A2, A3, A4, B1, B2, each
-  commit reviewed. B2 must follow A3 (§1). Merge them to `main` in one push or several, as the user
-  likes.
-- If the user wants them sooner, two agents in worktrees can build A and
-  B1 side by side. B2 then follows once A3 has landed. Their files overlap
-  only in `frontend/games/solitaire/AGENTS.md`, which rebases easily.
-- **Cost:** none of A or B is a big change, so no workflow and no more than
-  two agents are needed.
-- **Another session may be building at the same time,** today the
-  agent-efficiency work. Use `verify:changed` while working, and run
-  `verify:full` once before the merge, not in parallel with another
-  session's.
+- **One session builds A and B,** in §6's order, on the `repo-size-plan`
+  branch.
+  - They are about a dozen files each, and most of the time goes into the
+    checks.
+  - Only the reviews run as agents. No workflow and no worker agents are
+    needed.
+- **The `multi-agent-build` skill isn't used.** Its packages are three to
+  nine commits each, and these six are one commit each. A on one branch
+  and B1 on another, with B2 after both, would save little.
+- **Another session may be building at the same time.**
+  - `verify:changed` waits for other runs by itself.
+  - `verify:full` doesn't, so run it only once no other session is
+    checking.
+- **Where the build stops for the user:**
+  1. After A1–A4: the report, and the merge if the user wants A live
+     before B.
+  2. After B1–B2: the report and the merge.
+  3. D5, once both are live.
 - **No push without the user's word.** A push to `main` deploys, once
   Verify passes.
 
@@ -766,9 +1087,9 @@ rehearsed on mirrors, except the pushes.
 2. **No pull request is open.** Take the open Dependabot updates by hand,
    in one deduplicated commit on `main`, as the memory note on Dependabot
    says. Dependabot then closes its pull requests and deletes their
-   branches. Today those are #30–#33. `gh pr list -R fuzzley/fuzzley-games
---state open` must list none on the day, or each is closed and its
-   branch deleted at C6.
+   branches. None was open on 2026-11-21, when this was last checked.
+   `gh pr list -R fuzzley/fuzzley-games --state open` must list none on
+   the day, or each is closed and its branch deleted at C6.
 3. **D5 is answered:** the day, and the freeze around it.
 4. **Rehearse it the day before**, into a scratch folder, so the real
    figures are known:
@@ -900,6 +1221,7 @@ git -C "$WORK/s2.git" push --atomic \
 ```sh
 git clone https://github.com/fuzzley/fuzzley-games.git "$WORK/after"
 cd "$WORK/after"
+(cd frontend && npx -y corepack yarn install --immutable)
 node docs/repo-size/scripts/history/rewrite-refs.mjs \
   --map "$WORK/s2.git/filter-repo/commit-map" \
   --old "$WORK/fuzzley-games.git" --new "$WORK/s2.git" \
@@ -911,11 +1233,15 @@ node docs/repo-size/scripts/history/rewrite-refs.mjs \
 
 - Check the counts against C5's, then run it again with `--write`.
 - C5 found nothing to lengthen, so every rewritten hash keeps its length
-  and no line's formatting changes. Check that with the main checkout's
-  Prettier, since this clone has no `node_modules`:
-  `~/Projects/personal/fuzzley-games/frontend/node_modules/.bin/prettier --check $(git diff --name-only)`.
+  and no line's formatting changes.
+- Run `npx -y corepack yarn verify:changed` from `frontend/`. For Markdown
+  alone it runs the root's lint, Prettier and typecheck, which check the
+  docs' links and paths.
 - Commit as `docs: name the commits as the rewritten history has them`,
-  reviewed, and push it to `main` (Verify only lints docs).
+  and push it to `main` (Verify only lints docs). It is one change with
+  nothing to do while it is reviewed, so the review takes
+  `commit-review-process`'s short way: the staged change, reviewed in the
+  foreground, before the commit.
 - **The memory notes (D4).** Run the same command with
   `~/.claude/projects/-home-dev-Projects-personal/memory` in place of
   `docs`, without `--write`, and read the list.
@@ -936,10 +1262,13 @@ two, and a later push would bring the old objects back.
 mv ~/Projects/personal/fuzzley-games ~/Projects/personal/fuzzley-games-old
 git clone https://github.com/fuzzley/fuzzley-games.git ~/Projects/personal/fuzzley-games
 cd ~/Projects/personal/fuzzley-games
-node .agents/link-claude-skills.mjs
-(cd frontend && npx -y corepack yarn install)
+node .agents/link-claude-skills.mjs --also-in ~/Projects/personal
+(cd frontend && npx -y corepack yarn install --immutable)
 ```
 
+- `--also-in` links the agent definitions into `~/Projects/personal/.claude/`
+  too, as sessions start there. Without it, `commit-reviewer` isn't
+  offered.
 - Copy any untracked files across.
 - An unpushed branch moves with `git rebase --onto <new base> <old base>
 <branch>`, the new base taken from the commit map.
@@ -1010,23 +1339,32 @@ commits. Delete the dry runs' 3 GB in
 ## 9. Checks and budgets
 
 **Before each merge:** `yarn verify:full` for code (the `merge-to-main`
-skill), and the package's own "done when".
+skill), and each package's own checks in §6.
 
-**What each package may add to history**, measured on its branch before
-the push:
+**What each package adds to history** is measured on its branch, before
+the push, two ways:
 
 ```sh
+# What a push sends, compressed and as deltas: near enough what history
+# grows by.
+printf '%s\n' HEAD ^origin/main | git pack-objects --revs --thin --stdout -q \
+  | wc -c | awk '{ printf "%.2f MiB packed\n", $1 / 1048576 }'
+# Every new blob at its full size, before compression.
 git rev-list --objects origin/main..HEAD \
   | git cat-file --batch-check='%(objecttype) %(objectsize) %(rest)' \
-  | awk '$1 == "blob" { s += $2 } END { printf "%.2f MiB\n", s / 1048576 }'
+  | awk '$1 == "blob" { s += $2 } END { printf "%.2f MiB raw\n", s / 1048576 }'
 ```
 
-| Package | Budget                                                                                                           |
-| ------- | ---------------------------------------------------------------------------------------------------------------- |
-| P0      | under 2 MiB, text                                                                                                |
-| A1–A4   | under 0.1 MiB: code and docs, and deletions, which add no blob                                                   |
-| B1      | under 0.05 MiB                                                                                                   |
-| B2      | about 9.7 MiB of raw blobs: 9.17 of pages and 0.5 of manifests, which delta well, so the pack grows by about 9.2 |
+For a single commit, use `<sha> ^<sha>~1` in the first command and
+`<sha>~1..<sha>` in the second. Both were checked on the 39 commits from
+b67c3c01 to ba66e77d, which give 0.32 MiB packed and 3.36 MiB raw.
+
+| Package | Packed          | Raw             | What it is                                                                                |
+| ------- | --------------- | --------------- | ----------------------------------------------------------------------------------------- |
+| P0      | 0.32 (measured) | 1.06 (measured) | text                                                                                      |
+| A1–A4   | under 0.1       | under 0.4       | new versions of about 20 text files, 0.2 MiB at full size, and deletions, which add none  |
+| B1      | under 0.02      | under 0.05      | two source files and a skill                                                              |
+| B2      | about 9.2       | about 9.6       | 9.17 of WebP pages, which barely compress, and 0.41 of manifests, which delta to almost 0 |
 
 **After C:** a fresh clone's `git count-objects -vH` shows `size-pack`
 near 59 MiB. `gh api repos/fuzzley/fuzzley-games --jq .size` is recorded
@@ -1038,10 +1376,10 @@ recomputes.
 - The site's checks (`checkGameImages()`) and the Solitaire Collection's
   image specs must still pass after A. They read `thumb.webp` and
   `preview.webp`, which A keeps.
-- Lint's skill-reference check fails on any backticked path a package
-  deletes. Every doc that names `build-screenshot-thumbs.mjs`,
-  `docs/screenshots/<id>/overview.png` or a `.png` page must change in the
-  same commit.
+- Lint's reference check fails a skill or an `AGENTS.md` that names, in
+  backticks, a path a package deletes. Today that is only the
+  `add-solitaire-game` skill's step 3, which A2 and A3 rewrite. The docs
+  under `docs/` aren't checked, so §6's `git grep` lines check those.
 
 ---
 
@@ -1086,5 +1424,47 @@ recomputes.
 
 ## 12. As built
 
-- **P0:** steps 1–3 were done in the commit that adds this folder, on
-  2026-11-21.
+- **P0, done on 2026-11-21.**
+  - The folder went to `main` as b67c3c01, without the two sample sheets,
+    and Prettier and `yarn lint` passed on it.
+  - Verify run 44943520092 passed, and `promote` moved `live` to the same
+    commit.
+  - It added 0.32 MiB packed (1.06 MiB raw), within its 2 MiB.
+  - The backup mirror, `~/Projects/personal/fuzzley-games-backup.git`, was
+    made at b67c3c01, with its push URL disabled. It held 2 heads, 4
+    Dependabot branches and 37 `refs/pull/*`, in 301 MB.
+- **The plan checked against `main` at ba66e77d, on 2026-11-21.**
+  - The 39 commits since b67c3c01 cut every `AGENTS.md`, deleted the
+    `solitaire-build` and `solitaire-phaser` skills, and changed how a
+    commit is reviewed. None of them touched the code §6 changes, so its
+    edits held. These changed:
+    - **The doc steps.** The `AGENTS.md` sections they named, on the
+      screenshots, Capture Screenshots and Build Screenshot Thumbnails,
+      are gone, and an `AGENTS.md` now holds rules, not descriptions. So
+      A1 puts what the gate does in `screenshots.ts`'s doc comments, and
+      adds one rule to `frontend/games/AGENTS.md`, on `--force`. A2 and A3
+      edit no `AGENTS.md`. A4's rule moves to sit beside the one on
+      `docs/archive/`, as Writing Documentation now covers only doc
+      comments.
+    - **Line numbers.** `phaser-core`'s line on the PNG header moved from
+      496 to 362, and the `add-solitaire-game` skill's step 3 is now at
+      lines 264–267.
+    - **The review.** Each commit is made first, and a `commit-reviewer`
+      reviews it in the background. The answers go in `amend!` commits,
+      folded in before the merge (§6.0). `verify:changed` now runs the
+      root's lint too, and waits for other runs.
+    - **Steps that would have failed as written:**
+      - A2's `git grep` would have found `overview.webp` in
+        `screenshots.spec.ts`, so A1 renames that spec's file.
+      - A1 changes the request and usage, which four existing specs check
+        exactly.
+      - B1 also changes `installServedFiles()`'s doc comment, which names
+        the PNG header.
+      - B2's first check needs `ATLAS_SCRATCH`, since
+        `run-generator.mjs` defaults to the scratch folder of the session
+        that wrote it.
+    - **Smaller fixes:**
+      - `WrittenImage` is a union, so a kept image always has `moved`.
+      - §9 measures packed size as well as raw.
+      - C10 links the agent definitions with `--also-in`.
+      - No pull request is open (§8).
