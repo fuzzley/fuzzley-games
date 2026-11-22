@@ -1,4 +1,5 @@
 import { Component, inject, input, output } from "@angular/core";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
@@ -11,7 +12,9 @@ import { SettingsService } from "./settings.service";
 type Assist = "markMistakes" | "clearNotes";
 
 /**
- * Shows the settings in a drawer: the level, the assists, and the palette.
+ * Shows the settings in a drawer: the level, the assists, and the palette,
+ * then, in a development build and at `?debug`, a field that loads a game
+ * from a bug report.
  *
  * Choosing a level deals a new puzzle, after asking if a game is under way,
  * so the levels are radios the arrow keys move between without choosing.
@@ -19,7 +22,12 @@ type Assist = "markMistakes" | "clearNotes";
  */
 @Component({
   selector: "app-settings",
-  imports: [ChoiceListComponent, SettingsDrawerComponent, ThemePickerComponent],
+  imports: [
+    BugReportLoaderComponent,
+    ChoiceListComponent,
+    SettingsDrawerComponent,
+    ThemePickerComponent,
+  ],
   templateUrl: "./settings.component.html",
   styleUrl: "./settings.component.scss",
 })

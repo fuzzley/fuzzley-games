@@ -5,6 +5,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting,
 } from "@angular/platform-browser/testing";
+import { provideReportPicture } from "@fz/game-ui/testing";
 import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
 
 getTestBed().initTestEnvironment(
@@ -15,7 +16,10 @@ getTestBed().initTestEnvironment(
 installDialogPolyfill(window);
 
 // Each test's app stores in a store of its own, so nothing it keeps leaks
-// into the next.
+// into the next, and takes its bug reports with no picture, which jsdom
+// can't draw.
 beforeEach(() => {
-  TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(), provideReportPicture()],
+  });
 });

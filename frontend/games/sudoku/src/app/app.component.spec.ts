@@ -1,11 +1,14 @@
 import { TestBed } from "@angular/core/testing";
+import { BUG_REPORT_SOURCE } from "@fz/game-ui/bug_report";
 import { StopwatchService } from "@fz/game-ui/stopwatch";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../testing/game";
 import { solvedBut, squareAt } from "../testing/grid_picture";
 import { FakeResizeObserver } from "../testing/resize_observer";
 import { AppComponent } from "./app.component";
+import { SudokuReports } from "./bug_report/sudoku_reports";
 import type { GameService } from "./play/game.service";
 
 /**
@@ -37,6 +40,15 @@ async function renderCramped(): Promise<{
 }
 
 describe("AppComponent", () => {
+  installCompressionStreams();
+
+  // As main.ts provides it.
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: BUG_REPORT_SOURCE, useExisting: SudokuReports }],
+    });
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -226,5 +238,32 @@ describe("AppComponent", () => {
     expect(
       await screen.findByRole("gridcell", { name: "Blank", selected: true }),
     ).toHaveFocus();
+  });
+
+  it("opens a bug report from the settings", async () => {
+    const { user } = await renderPlayed();
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+
+    await user.click(screen.getByRole("button", { name: "Report a bug" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Report a bug" }),
+    ).toBeInTheDocument();
+  });
+
+  it("leaves the game as it was on closing the bug report, its clock going again", async () => {
+    const { user, game } = await renderPlayed();
+    await user.click(screen.getByRole("button", { name: "Settings" }));
+    await user.click(screen.getByRole("button", { name: "Report a bug" }));
+    const report = await screen.findByRole("dialog", { name: "Report a bug" });
+
+    await user.click(
+      within(report).getByRole("button", { name: "Close bug report" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(game.grid().digits[squareAt("r1c1")]).toBe(6);
+    expect(game.inProgress()).toBe(true);
+    expect(TestBed.inject(StopwatchService).running()).toBe(true);
   });
 });

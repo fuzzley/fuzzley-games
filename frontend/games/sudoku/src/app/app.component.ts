@@ -1,4 +1,5 @@
 import { Component, effect, inject, signal, viewChild } from "@angular/core";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
@@ -27,6 +28,7 @@ import { SettingsComponent } from "./settings/settings.component";
     AnnouncerComponent,
     BarComponent,
     BoardComponent,
+    BugReportDialogComponent,
     ConfirmDialogComponent,
     HelpComponent,
     PadComponent,

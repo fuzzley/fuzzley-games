@@ -49,4 +49,12 @@
     <span class="setting-label" aria-hidden="true">Theme</span>
     <fz-theme-picker />
   </div>
+
+  <!-- Shows only in a development build and at ?debug (DEBUG_MENU). -->
+  <fz-bug-report-loader (loaded)="closed.emit()">
+    <p class="setting-desc">
+      Your settings change to the ones in the report. If you solve a puzzle you
+      load, it counts in your stats.
+    </p>
+  </fz-bug-report-loader>
 </fz-settings-drawer>

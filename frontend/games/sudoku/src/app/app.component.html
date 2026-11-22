@@ -24,4 +24,6 @@
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <app-help [open]="helpOpen()" (closed)="helpOpen.set(false)" />
 <app-result />
+<!-- Opened from the settings drawer's Report a bug. -->
+<fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
 <fz-confirm-dialog />

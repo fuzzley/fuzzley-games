@@ -1,8 +1,14 @@
 import { TestBed } from "@angular/core/testing";
+import { BUG_REPORT_SOURCE, packState } from "@fz/game-ui/bug_report";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, waitFor } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { playOn } from "../../testing/game";
+import { rowsOf, solvedBut, squareAt } from "../../testing/grid_picture";
+import { REPORT_TAG } from "../bug_report/reported_game";
+import { SudokuReports } from "../bug_report/sudoku_reports";
 import { GameService } from "../play/game.service";
 import { SettingsComponent } from "./settings.component";
 import { type Settings, SettingsService } from "./settings.service";
@@ -124,5 +130,70 @@ describe("SettingsComponent", () => {
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     expect(closed).toHaveBeenCalledOnce();
+  });
+
+  describe("in a game that takes bug reports", () => {
+    installCompressionStreams();
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        providers: [
+          { provide: BUG_REPORT_SOURCE, useExisting: SudokuReports },
+          { provide: DEBUG_MENU, useValue: true },
+        ],
+      });
+    });
+
+    it("offers Report a bug", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("button", { name: "Report a bug" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers to load a reported game where the debug menu shows", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      ).toBeInTheDocument();
+    });
+
+    it("offers no loader on the site without ?debug", async () => {
+      TestBed.configureTestingModule({
+        providers: [{ provide: DEBUG_MENU, useValue: false }],
+      });
+
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("loads a reported game, and closes to show it", async () => {
+      const { user, closed } = await renderSettings();
+      const game = playOn();
+      game.select(squareAt("r1c1"));
+      game.enter(6);
+      const packed = await packState(
+        REPORT_TAG,
+        TestBed.inject(SudokuReports).capture().value,
+      );
+      // A puzzle already solved, which the load takes over without asking.
+      playOn({ digits: solvedBut() });
+      await user.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await user.paste(packed);
+
+      await user.click(screen.getByRole("button", { name: "Load" }));
+
+      await waitFor(() => {
+        expect(closed).toHaveBeenCalledOnce();
+      });
+      expect(rowsOf(game.grid().digits)[0]).toBe("6..5..2..");
+    });
   });
 });
