@@ -8,13 +8,12 @@
 // the cell's edges, so the grid's dots and the flourishes under the wall show
 // past it; its steel stands out of the tile, as the art's does.
 
-import { plateTeeth } from "@fz/phaser/bricks";
+import { TILE_SLAB, bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
   type Area,
   type ArtScale,
   type DrawCommand,
   type Point,
-  arcPoints,
   circle,
   polygon,
   roundRect,
@@ -32,7 +31,7 @@ import {
 } from "../frames";
 import { itemAt } from "../../items";
 import { cellFrame, detailed, diePips, pointAt } from "../symbols";
-import { tileBody, tileFrame, tileRadius } from "./brick";
+import { tileFrame } from "./brick";
 
 /** The tint of the tile under a plated brick's plates, which is its body in every palette. */
 export const PLATED_TINT = TINT.orange;
@@ -149,24 +148,6 @@ function gapEdge(cell: Area): number {
 }
 
 /**
- * Returns the outline of a tile's body with rounded corners, a radius
- * round, clockwise from the left end of its top left corner, each corner
- * drawn as points round it.
- */
-function outlineOf(body: Area, corner: number): readonly Point[] {
-  const left = body.x + corner;
-  const right = body.x + body.width - corner;
-  const top = body.y + corner;
-  const foot = body.y + body.height - corner;
-  return [
-    ...arcPoints({ x: left, y: top }, corner, Math.PI, 1.5 * Math.PI),
-    ...arcPoints({ x: right, y: top }, corner, 1.5 * Math.PI, 2 * Math.PI),
-    ...arcPoints({ x: right, y: foot }, corner, 0, 0.5 * Math.PI),
-    ...arcPoints({ x: left, y: foot }, corner, 0.5 * Math.PI, Math.PI),
-  ];
-}
-
-/**
  * Returns the part of a convex polygon on one side of a line across it,
  * above it or below: its points on that side or on the line, and those
  * where its sides cross the line, none where it lies wholly on the other.
@@ -228,11 +209,9 @@ function plateCommands(
   const toothFoot = barFoot - (TEETH.base - BAR.from) * side;
   const teeth = detailed(scale) ? TEETH.count : TEETH.fewer;
   const point = (shape: Point) => turnedIn(cell, shape, turns);
-  const gapPoints = cutAt(
-    outlineOf(tileBody(cell), tileRadius(cell)),
-    inner,
-    "below",
-  ).map(point);
+  const gapPoints = cutAt(bodyOutline(cell, TILE_SLAB), inner, "below").map(
+    point,
+  );
   const bar = turnedAreaIn(
     cell,
     {

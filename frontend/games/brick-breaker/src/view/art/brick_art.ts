@@ -1162,7 +1162,7 @@ function shownGhost(
   const step = body.width / GHOST_HEM.scallops;
   const radius = Math.max(0, step / 2 - kitLength(cell, SCALLOP_GAP) / 2);
   return [
-    polygon(topCap(body, slabRadius(cell, BRICK_SLAB), foot), { color }),
+    polygon(topCap(cell, BRICK_SLAB, foot), { color }),
     ...Array.from({ length: GHOST_HEM.scallops }, (_, i) =>
       circle({ x: body.x + step * (i + 0.5), y: foot }, radius, { color }),
     ),
@@ -1178,8 +1178,8 @@ function regrowMarks(
 ): readonly DrawCommand[] {
   return [
     ...scallopedCap(
-      slabBody(cell, BRICK_SLAB),
-      slabRadius(cell, BRICK_SLAB),
+      cell,
+      BRICK_SLAB,
       cell.y + kitLength(cell, MOSS_CAP.foot),
       {
         count: MOSS_CAP.count,

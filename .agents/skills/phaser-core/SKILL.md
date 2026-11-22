@@ -94,11 +94,14 @@ without knowing of it, changes its line in the same change, as
   wears (`wornSparks()`), and `staticSparkCommands()` static's sparks.
 - **`bricks` draws a brick game's brick:** the slab it stands on
   (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`,
-  laid out by a `SlabShares`: `TILE_SLAB` for a square tile, `BRICK_SLAB` for
-  a brick twice as wide as tall), `topCap()`, `showsDetail()`, and the marks
-  over a slab, their inks handed in: `bombMark()`, `sproutMark()`, `sheen()`,
-  `portalMark()`, `bumperMark()`, `scallopedCap()`, `rivets()`,
-  `cagedFriend()`, `cageBars()` and `plateTeeth()`.
+  laid out by a `SlabShares`, whose `corner` rounds its corners and whose
+  `cut` cuts them across at 45°: `TILE_SLAB` for a square tile, `BRICK_SLAB`
+  for a brick twice as wide as tall), `bodyOutline()`, the body's edge as
+  points, which a mark that follows it is cut from, `topCap()`,
+  `showsDetail()`, and the marks over a slab, their inks handed in:
+  `bombMark()`, `sproutMark()`, `sheen()`, `portalMark()`, `bumperMark()`,
+  `scallopedCap()`, `rivets()`, `cagedFriend()`, `cageBars()` and
+  `plateTeeth()`.
 - **`color` reads a palette's roles as the numbers Phaser takes**
   (`colorNumber()`, and `cssHex()` back), mixes them (`mixColors()`), and
   holds the inks the games share, for light palettes and for dark: the tiles'

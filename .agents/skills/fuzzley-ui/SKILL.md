@@ -139,7 +139,7 @@ a shell reaches for most.
 | The inks of a game's tiles, or of fuzzballs told apart | `TILE_INKS` and `FUZZBALL_INKS` from `@fz/phaser/color`, by mode (`TILE_INKS[mode]`), which `cssHex()` writes as CSS for a shell; each game holds them to 3:1 against its own field in its own contrast spec |
 | A frame of a game's art laid out in an area            | `@fz/phaser/shapes`: `within()`, `inset()`, `outlineRoundRect()`, `dashes()` and the rest of `frontend/lib/phaser/src/shapes/areas.ts`                                                                       |
 | A drawing a scene bakes, shown in the page too         | `svgOf()` from `@fz/phaser/shapes`, its commands as an SVG document, for an image or a CSS mask                                                                                                              |
-| A brick of a brick game                                | `slabCommands()` from `@fz/phaser/bricks`, and the marks over it, such as `bombMark()`                                                                                                                       |
+| A brick of a brick game                                | `slabCommands()` from `@fz/phaser/bricks`, its corners round or cut at 45° as its `SlabShares` say; `bodyOutline()` for a mark that follows its edge; and the marks over it, such as `bombMark()`            |
 | The fuzzball on a game's canvas                        | `fuzzballCommands()`, `eyesCommands()` and `staticSparkCommands()` from `@fz/phaser/fuzzball`                                                                                                                |
 
 ### In specs

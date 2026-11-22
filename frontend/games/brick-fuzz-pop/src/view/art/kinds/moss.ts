@@ -5,7 +5,7 @@
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`. Its tile is the plain brick's
 // in amber, the moss's body, and its cap and its pips are frames over it.
 
-import { scallopedCap, sproutMark } from "@fz/phaser/bricks";
+import { TILE_SLAB, scallopedCap, sproutMark } from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
 import type { Area, ArtScale, DrawCommand } from "@fz/phaser/shapes";
 import { TINT, inkAt } from "../../colors/inks";
@@ -14,7 +14,7 @@ import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
 import { itemAt } from "../../items";
 import { cellFrame, diePips } from "../symbols";
-import { tileBody, tileFrame, tileRadius } from "./brick";
+import { tileFrame } from "./brick";
 
 /** The tint of the tile under a moss brick's cap, which is the moss's body in every palette. */
 export const MOSS_TINT = TINT.amber;
@@ -66,8 +66,8 @@ function capCommands(
   );
   return [
     ...scallopedCap(
-      tileBody(cell),
-      tileRadius(cell),
+      cell,
+      TILE_SLAB,
       cell.y + CAP_FOOT * cell.height,
       {
         count: SCALLOPS,

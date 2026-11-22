@@ -41,7 +41,7 @@ import {
   widthOf,
   within,
 } from "../shapes";
-import { topCap } from "./slab";
+import { type SlabShares, slabBody, topCap } from "./slab";
 
 const WHITE = 0xffffff;
 const BLACK = 0x000000;
@@ -198,16 +198,17 @@ export interface CapInks {
 }
 
 /**
- * Returns a cap over a slab's body, as moss grows on a brick: over its top,
- * round its corners, to a foot of scallops, the first and last flush with
- * the body's sides, each over a shadow.
+ * Returns a cap over a slab's body in its cell, as moss grows on a brick:
+ * over its top, round and cut across its corners as the slab's shares say,
+ * to a foot of scallops, the first and last flush with the body's sides,
+ * each over a shadow.
  *
  * @throws {RangeError} for a count of scallops that isn't a whole number,
  *   or is under two, which can't reach from one side to the other.
  */
 export function scallopedCap(
-  body: Area,
-  radius: number,
+  cell: Area,
+  shares: SlabShares,
   foot: number,
   scallops: Scallops,
   inks: CapInks,
@@ -217,6 +218,7 @@ export function scallopedCap(
       `A cap's foot takes two scallops or more, not ${String(scallops.count)}`,
     );
   }
+  const body = slabBody(cell, shares);
   const middles = Array.from({ length: scallops.count }, (_, at) => ({
     x:
       body.x +
@@ -230,7 +232,7 @@ export function scallopedCap(
         color: inks.shadow,
       }),
     ),
-    polygon(topCap(body, radius, foot), { color: inks.cap }),
+    polygon(topCap(cell, shares, foot), { color: inks.cap }),
     ...middles.map((middle) =>
       circle(middle, scallops.radius, { color: inks.cap }),
     ),

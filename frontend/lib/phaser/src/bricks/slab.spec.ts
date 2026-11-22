@@ -9,7 +9,9 @@ import {
 } from "../shapes";
 import {
   BRICK_SLAB,
+  type SlabShares,
   TILE_SLAB,
+  bodyOutline,
   showsDetail,
   slabBody,
   slabCommands,
@@ -23,6 +25,12 @@ const SQUARE: Area = { x: 0, y: 0, width: 50, height: 50 };
 
 /** A brick's cell twice as wide as tall, 200 device pixels by 100, as Brick Breaker's is. */
 const WIDE: Area = { x: 0, y: 0, width: 200, height: 100 };
+
+/** A square tile's shares with its corners cut at 45°, 0.11 of its side along each, and not round, as Rickashay's bricks are: 5.5 device pixels in a square cell. */
+const CUT_SLAB: SlabShares = { ...TILE_SLAB, corner: 0, cut: 0.11 };
+
+/** A square tile's shares with its corners both round and cut, 10 device pixels round and 7.5 along each side in a square cell, so the cut reaches past each arc's middle but not its ends. */
+const ROUND_AND_CUT: SlabShares = { ...TILE_SLAB, corner: 0.2, cut: 0.15 };
 
 const INK = 0x3366cc;
 
@@ -39,6 +47,56 @@ function inBillionths({ x, y, width, height }: Area): Area {
     width: billionths(width),
     height: billionths(height),
   };
+}
+
+/** Returns points to a billionth of a pixel. */
+function pointsInBillionths(points: readonly Point[]): readonly Point[] {
+  return points.map(({ x, y }) => ({ x: billionths(x), y: billionths(y) }));
+}
+
+/** Returns the points of a rectangle from one corner to another with each corner cut at 45°, a cut's length along each side, clockwise from the top of its left side. */
+function octagon(from: Point, to: Point, cut: number): readonly Point[] {
+  return [
+    { x: from.x, y: from.y + cut },
+    { x: from.x + cut, y: from.y },
+    { x: to.x - cut, y: from.y },
+    { x: to.x, y: from.y + cut },
+    { x: to.x, y: to.y - cut },
+    { x: to.x - cut, y: to.y },
+    { x: from.x + cut, y: to.y },
+    { x: from.x, y: to.y - cut },
+  ];
+}
+
+/** Returns how far in from the nearest of a body's corners a point lies, along both its sides at once. */
+function inFromCorner(point: Point, body: Area): number {
+  const across = Math.min(point.x - body.x, body.x + body.width - point.x);
+  const down = Math.min(point.y - body.y, body.y + body.height - point.y);
+  return billionths(across + down);
+}
+
+/** Returns how far a point lies off the edge of a body whose corners are a radius round, out or in. */
+function offRoundEdge(point: Point, body: Area, radius: number): number {
+  const across = Math.max(
+    body.x + radius - point.x,
+    point.x - (body.x + body.width - radius),
+    0,
+  );
+  const down = Math.max(
+    body.y + radius - point.y,
+    point.y - (body.y + body.height - radius),
+    0,
+  );
+  return across > 0 && down > 0
+    ? billionths(Math.hypot(across, down) - radius)
+    : billionths(
+        Math.min(
+          point.x - body.x,
+          body.x + body.width - point.x,
+          point.y - body.y,
+          body.y + body.height - point.y,
+        ),
+      );
 }
 
 /** Returns the points of a polygon, and none of any other command. */
@@ -162,6 +220,7 @@ describe("slabFace", () => {
   it.each([
     ["a square tile's", SQUARE, TILE_SLAB],
     ["a wide brick's", WIDE, BRICK_SLAB],
+    ["a cut tile's", SQUARE, CUT_SLAB],
   ])("is where the slab draws %s body in its ink", (_, cell, shares) => {
     const [, body] = slabCommands(cell, INK, shares);
 
@@ -179,6 +238,65 @@ describe("slabRadius", () => {
       expect(slabRadius(cell, shares)).toBe(radius);
     },
   );
+});
+
+describe("bodyOutline", () => {
+  it.each([
+    ["a square tile's", SQUARE, TILE_SLAB],
+    ["a wide brick's", WIDE, BRICK_SLAB],
+  ])(
+    "runs round %s body from the top of its left side, every point on its edge, round each corner",
+    (_, cell, shares) => {
+      const body = slabBody(cell, shares);
+      const radius = slabRadius(cell, shares);
+      const outline = bodyOutline(cell, shares);
+
+      expect({
+        first: pointsInBillionths(outline.slice(0, 1)),
+        extent: inBillionths(extentOf(polygon(outline, { color: 0 }))),
+        off: outline.filter((point) => offRoundEdge(point, body, radius) !== 0),
+      }).toEqual({
+        first: [{ x: body.x, y: body.y + radius }],
+        extent: body,
+        off: [],
+      });
+    },
+  );
+
+  it("runs clockwise round a body, along its top first", () => {
+    const [first, second] = bodyOutline(SQUARE, TILE_SLAB);
+
+    expect((second?.y ?? 0) < (first?.y ?? 0)).toBe(true);
+  });
+
+  it("cuts each of a cut tile's corners across at 45°, the cut's length along each side from it, clockwise from the top of its left side", () => {
+    expect(pointsInBillionths(bodyOutline(SQUARE, CUT_SLAB))).toEqual(
+      octagon({ x: 2, y: 2 }, { x: 48, y: 48 }, 5.5),
+    );
+  });
+
+  it("cuts a corner's arc away whole where the cut is longer than its radius", () => {
+    const shares = { ...ROUND_AND_CUT, corner: 0.1 };
+
+    expect(pointsInBillionths(bodyOutline(SQUARE, shares))).toEqual(
+      octagon({ x: 2, y: 2 }, { x: 48, y: 48 }, 7.5),
+    );
+  });
+
+  it("cuts across a corner both round and cut where the cut reaches past its arc, keeping the arc either side of it", () => {
+    const body = slabBody(SQUARE, ROUND_AND_CUT);
+    const outline = bodyOutline(SQUARE, ROUND_AND_CUT);
+    const onCut = (point: Point) => inFromCorner(point, body) === 7.5;
+
+    expect({
+      off: outline.filter(
+        (point) => !onCut(point) && offRoundEdge(point, body, 10) !== 0,
+      ),
+      nearer: outline.filter((point) => inFromCorner(point, body) < 7.5),
+      cut: outline.filter(onCut).length,
+      arc: outline.filter((point) => !onCut(point)).length > 8,
+    }).toEqual({ off: [], nearer: [], cut: 8, arc: true });
+  });
 });
 
 describe("slabCommands in a square tile's cell", () => {
@@ -249,6 +367,41 @@ describe("slabCommands in a cell twice as wide as tall", () => {
   });
 });
 
+describe("slabCommands in a cut tile's cell", () => {
+  const [lip, body, strip] = slabCommands(SQUARE, INK, CUT_SLAB);
+
+  it("lays its lip and its body each with its corners cut across, as polygons, the lip reaching its foot", () => {
+    expect(
+      [lip, body].map((command) => ({
+        color: command?.color,
+        points: pointsInBillionths(pointsOf(command)),
+      })),
+    ).toEqual([
+      {
+        color: mixColors(0x000000, INK, 0.22),
+        points: octagon({ x: 2, y: 2 + 4 }, { x: 48, y: 48 }, 5.5),
+      },
+      {
+        color: INK,
+        points: octagon({ x: 2, y: 2 }, { x: 48, y: 48 - 4 }, 5.5),
+      },
+    ]);
+  });
+
+  it("lays its strip along its top and down its cut corners, its lower edge the same cut moved down by its depth", () => {
+    expect(pointsInBillionths(pointsOf(strip))).toEqual([
+      { x: 2, y: 7.5 },
+      { x: 7.5, y: 2 },
+      { x: 42.5, y: 2 },
+      { x: 48, y: 7.5 },
+      { x: 48, y: 7.5 + 3 },
+      { x: 42.5, y: 2 + 3 },
+      { x: 7.5, y: 2 + 3 },
+      { x: 2, y: 7.5 + 3 },
+    ]);
+  });
+});
+
 describe("slabCommands' strip", () => {
   it.each([
     ["a square tile's", SQUARE, TILE_SLAB, 7, 3],
@@ -274,16 +427,35 @@ describe("slabCommands' strip", () => {
       }).toEqual({ off: [], between: new Set([body.y, body.y + depth]) });
     },
   );
+
+  it("runs along the top of a body both round and cut across its corners, as its outline does, its lower edge the same moved down by its depth", () => {
+    const points = pointsOf(slabCommands(SQUARE, INK, ROUND_AND_CUT)[2]);
+    const half = points.length / 2;
+    const top = points.slice(0, half);
+
+    expect({
+      top: pointsInBillionths(top),
+      foot: pointsInBillionths(points.slice(half)),
+    }).toEqual({
+      top: pointsInBillionths(
+        bodyOutline(SQUARE, ROUND_AND_CUT).slice(0, half),
+      ),
+      foot: pointsInBillionths(
+        top.map(({ x, y }) => ({ x, y: y + 3 })).reverse(),
+      ),
+    });
+  });
 });
 
 describe("topCap", () => {
   it.each([
-    ["a square tile's", slabBody(SQUARE, TILE_SLAB), 7, 13.5],
-    ["a wide brick's", slabBody(WIDE, BRICK_SLAB), 16, 30],
+    ["a square tile's", SQUARE, TILE_SLAB, 7, 13.5],
+    ["a wide brick's", WIDE, BRICK_SLAB, 16, 30],
   ])(
     "covers %s body from its top down to a foot, from the foot at its left edge, round its top corners, to the foot at its right",
-    (_, body, radius, foot) => {
-      const cap = topCap(body, radius, foot);
+    (_, cell, shares, radius, foot) => {
+      const body = slabBody(cell, shares);
+      const cap = topCap(cell, shares, foot);
 
       expect({
         ends: [cap[0], cap.at(-1)],
@@ -306,4 +478,15 @@ describe("topCap", () => {
       });
     },
   );
+
+  it("covers a cut tile's body down to a foot, its top corners cut across", () => {
+    expect(pointsInBillionths(topCap(SQUARE, CUT_SLAB, 13.5))).toEqual([
+      { x: 2, y: 13.5 },
+      { x: 2, y: 7.5 },
+      { x: 7.5, y: 2 },
+      { x: 42.5, y: 2 },
+      { x: 48, y: 7.5 },
+      { x: 48, y: 13.5 },
+    ]);
+  });
 });

@@ -35,10 +35,19 @@ import {
   sheen,
   sproutMark,
 } from "./marks";
-import { BRICK_SLAB, TILE_SLAB, slabBody, slabRadius, topCap } from "./slab";
+import {
+  BRICK_SLAB,
+  type SlabShares,
+  TILE_SLAB,
+  slabBody,
+  topCap,
+} from "./slab";
 
 /** A square tile's cell, 62 device pixels a side, a unit of 31 CSS pixels at 2 to one. */
 const SQUARE: Area = { x: 0, y: 0, width: 62, height: 62 };
+
+/** A square tile's shares with its corners cut at 45°, 0.11 of its side along each, and not round, as Rickashay's bricks are. */
+const CUT_SLAB: SlabShares = { ...TILE_SLAB, corner: 0, cut: 0.11 };
 
 /** A brick's cell twice as wide as tall at the same scale, 124 device pixels by 62. */
 const WIDE: Area = { x: 0, y: 0, width: 124, height: 62 };
@@ -327,11 +336,11 @@ describe("scallopedCap", () => {
   it.each([
     ["a square tile's", SQUARE, TILE_SLAB, 0.27 * 62],
     ["a wide brick's", WIDE, BRICK_SLAB, 0.3 * 62],
+    ["a cut tile's", SQUARE, CUT_SLAB, 0.27 * 62],
   ])(
-    "covers %s body down to its foot, scalloped, the first and last scallop flush with its sides, each over a shadow dropped under it",
+    "covers %s body down to its foot, round or cut across its corners as the slab is, scalloped, the first and last scallop flush with its sides, each over a shadow dropped under it",
     (_, cell, shares, foot) => {
       const body = slabBody(cell, shares);
-      const radius = slabRadius(cell, shares);
       const scallops = { count: 4, radius: 5, drop: 2 };
       const step = (body.width - 10) / 3;
       const middles = [0, 1, 2, 3].map((at) => ({
@@ -340,13 +349,13 @@ describe("scallopedCap", () => {
       }));
 
       expect(
-        billionths(scallopedCap(body, radius, foot, scallops, inks)),
+        billionths(scallopedCap(cell, shares, foot, scallops, inks)),
       ).toEqual(
         billionths([
           ...middles.map(({ x, y }) =>
             circle({ x, y: y + 2 }, 5, { color: inks.shadow }),
           ),
-          polygon(topCap(body, radius, foot), { color: inks.cap }),
+          polygon(topCap(cell, shares, foot), { color: inks.cap }),
           ...middles.map((middle) => circle(middle, 5, { color: inks.cap })),
         ]),
       );
@@ -357,7 +366,13 @@ describe("scallopedCap", () => {
     "refuses %s scallops, short of two or not a whole number",
     (count) => {
       expect(() =>
-        scallopedCap(SQUARE, 8, 20, { count, radius: 5, drop: 2 }, inks),
+        scallopedCap(
+          SQUARE,
+          TILE_SLAB,
+          20,
+          { count, radius: 5, drop: 2 },
+          inks,
+        ),
       ).toThrow(RangeError);
     },
   );

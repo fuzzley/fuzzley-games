@@ -25,6 +25,7 @@ export {
   BRICK_SLAB,
   type SlabShares,
   TILE_SLAB,
+  bodyOutline,
   showsDetail,
   slabBody,
   slabCommands,
