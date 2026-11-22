@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@fz/core": "workspace:*",
-    "@fz/style": "workspace:*"
+    "@fz/style": "workspace:*",
+    "@zumer/snapdom": "^3.8.1"
   },
   "peerDependencies": {
     "@angular/aria": "~22.3.0",

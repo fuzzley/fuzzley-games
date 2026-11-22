@@ -1357,6 +1357,7 @@ __metadata:
     "@testing-library/user-event": "npm:^14.6.13"
     "@types/node": "npm:^26.6.6"
     "@vitest/coverage-v8": "npm:^5.1.1"
+    "@zumer/snapdom": "npm:^3.8.1"
     eslint: "npm:^10.15.0"
     jsdom: "npm:^31.0.1"
     postcss: "npm:^8.5.33"
@@ -3775,6 +3776,13 @@ __metadata:
   version: 0.27.0
   resolution: "@yuku-toolchain/win32-x64@npm:0.27.0"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@zumer/snapdom@npm:^3.8.1":
+  version: 3.8.1
+  resolution: "@zumer/snapdom@npm:3.8.1"
+  checksum: 10c0/47582359ec538e334b95d81e111025ca908ba87ff3752e7c03e5da66fb8374c74648e4d3cd824a3f7d04ce6833dce96126807dbb1aa54223823fa536d5793afa
   languageName: node
   linkType: hard
 

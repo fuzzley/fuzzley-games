@@ -69,6 +69,7 @@ they carry no prefix. Each mixin's doc comment, in
 | `localStorage`                                       | `LocalStorageService` from `@fz/ui/storage`, which survives a browser that refuses storage: `storedSignal()` for a setting or a record, `keepSaved()` for a game under way, its `readVersioned()` and `writeVersioned()` for the rest |
 | The fuzzball on its own, such as a game's            | `<fz-fuzzball>` from `@fz/ui/fuzzball`, in the text's color, sized by `width` and `height`, at any `face` and static's `lift`                                                                                                         |
 | The "Fuzzley Games" name                             | `<fz-wordmark>` from `@fz/ui/wordmark`, inside the app's own link                                                                                                                                                                     |
+| A picture of the page, such as a bug report's        | `PageCaptureService.capture()` from `@fz/ui/capture`: a PNG at CSS pixel size, or null, every `<dialog>` and what carries `CAPTURE_SKIP` left out; a canvas board registers a `CaptureSurface`, drawn from its frame                  |
 
 ### A game's chrome: `@fz/game-ui`
 
