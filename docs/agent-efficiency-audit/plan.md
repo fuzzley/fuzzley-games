@@ -530,6 +530,7 @@ A draft, to be settled in step 4's reading:
 - **The memory index is in scope.**
 - **Later the same day, yes to five things:** merge the cut to `main`; a budget of 4 KB for a workspace's `AGENTS.md` and 12 KB for a shared layer, held by `yarn lint`; go on to the skills; drop the nine memory-index lines that only record finished work; and run the replay set again.
 - **And one more rule:** `.agents/AGENTS.md` is to say when an addition to an `AGENTS.md` is right.
+- **Two edits to the rule on what one holds.** It may also hold, in your words, "instructions for development/CI process to optimize development velocity and maintain high code quality/health". And its last sentence names the file: "An `AGENTS.md` file with no rule of its own is removed."
 
 **Steps 3, 4 and 6, the cut.**
 
@@ -582,7 +583,7 @@ A draft, to be settled in step 4's reading:
 **The budgets and the rule for additions (step 7).**
 
 - **A budget for each `AGENTS.md`:** 12,000 bytes for the three shared layers and 4,000 for any other, the root's pointer included. `check-skill-references.mjs`, which `yarn lint` runs, fails a file over its budget and names it with its size. The drafted 25 KB and 20 KB were far above every file after the cut, so they would have held nothing.
-- **Where each file stands against it.** The largest workspace file is Asteroid Breaker's, 2.2 KB of 4. `frontend/AGENTS.md` is 8.2 KB of 12 and `frontend/games/AGENTS.md` 4.0 KB of 12. `.agents/AGENTS.md` is 11.4 KB of 12 once it holds these two rules, so its next line displaces one.
+- **Where each file stands against it.** The largest workspace file is Asteroid Breaker's, 2.2 KB of 4. `frontend/AGENTS.md` is 8.2 KB of 12 and `frontend/games/AGENTS.md` 4.0 KB of 12. `.agents/AGENTS.md` is 11.4 KB of 12 once it holds these two rules and your two edits to its first, so its next line displaces one. The edits' own 100 bytes displaced the unit tests' bullet on `as any`, which repeated the one under Coding Best Practices.
 - **When a line may be added,** now in `.agents/AGENTS.md` under Agent Configuration: only what an agent would get wrong without it. It instructs or warns, it bears on changes still to come, and no check or doc comment can say it. A rule you give, a mistake a review caught that the code gave no warning of, and a caveat that cost real work to find are good grounds. What a change built or taught goes in doc comments, the commit's message or a doc under `docs/`.
 - **One in, one out** is the budget bullet's: a file near its budget gains a line only as it loses one, and only you raise a budget.
 - **Made room for.** The root's bullet on a script's JSDoc types lost what the lint's own failure says, 280 bytes.

@@ -42,12 +42,13 @@ Security Policy from `nginx/content-security-policy.conf`.
 ## Agent Configuration
 
 - **An `AGENTS.md` holds instructions, and nothing else:** specific
-  strategies that keep the code's quality and health, and the rare major
-  caveat. It does not list files, describe features or how the code works,
-  tell history, or repeat a doc comment, a skill, a check or another
-  `AGENTS.md`: what a change built or taught goes in doc comments, its
-  commit's message or a doc under `docs/`. A file left with no rule of its
-  own is removed.
+  strategies that keep the code's quality and health; instructions for the
+  development and CI process, to speed development and keep that quality;
+  and the rare major caveat. It does not list files, describe features or
+  how the code works, tell history, or repeat a doc comment, a skill, a
+  check or another `AGENTS.md`: what a change built or taught goes in doc
+  comments, its commit's message or a doc under `docs/`. An `AGENTS.md`
+  file with no rule of its own is removed.
 - **Add to one only what an agent would get wrong without it.** A line
   belongs when it tells an agent what to do or never do, or warns of a
   major caveat, and when it bears on changes still to come, not only on the
@@ -170,5 +171,4 @@ Angular workspace, read the `angular-testing` skill. An app's own
 - **Test via Public API:** Avoid accessing private fields or methods (and avoid using `as any` or bracket property accessors to bypass visibility).
 - **Verifying State > Verifying Interaction:** Prefer asserting resulting state over checking call counts/interactions, reserving interaction mocks only for when state cannot be inspected directly.
 - **Real Objects > Mocks:** Use real object instances instead of mocks whenever feasible.
-- **Avoid Any Casts:** Avoid `as any`. Use proper typing or `instance as unknown as TargetType` as a last resort.
 - **No code bends to its specs.** Where a spec can't run something, change the harness or the fake. Never give the code a branch for it.
