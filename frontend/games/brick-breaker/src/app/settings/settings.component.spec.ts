@@ -1,11 +1,17 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { SPEC_LEVEL, provideSpecLevels } from "../../testing/play";
+import {
+  BrickBreakerBugReports,
+  provideBrickBreakerBugReports,
+} from "../bug_report/brick_breaker_bug_reports";
 import { GameService } from "../play/game.service";
 import { speedLines } from "./debug_tuning";
 import { SettingsComponent } from "./settings.component";
@@ -392,6 +398,62 @@ describe("SettingsComponent", () => {
 
       expect(await navigator.clipboard.readText()).toBe(speedLines(1.05));
     });
+
+    it("asks for a reported state to load, saying what loading one does", async () => {
+      await renderSettings(DEBUG_MENU_OFFERED);
+
+      const debug = within(screen.getByRole("region", { name: "Debug" }));
+      expect(
+        debug.getByRole("textbox", { name: "Load game state" }),
+      ).toBeInTheDocument();
+      expect(
+        debug.getByText(/^Levels you clear count toward your stars and best/),
+      ).toBeInTheDocument();
+    });
+
+    describe("a reported state", () => {
+      installCompressionStreams();
+
+      it("is loaded, and the drawer asks to close", async () => {
+        const { user, game, closed } = await renderSettings([
+          ...DEBUG_MENU_OFFERED,
+          provideBrickBreakerBugReports(),
+        ]);
+        game.setBallSpeedScale(1.5);
+        const { value } = TestBed.inject(BrickBreakerBugReports).capture();
+        game.setBallSpeedScale(1);
+
+        await user.click(
+          screen.getByRole("textbox", { name: "Load game state" }),
+        );
+        await user.paste(await packState("bb1", value));
+        await user.click(screen.getByRole("button", { name: "Load" }));
+
+        await vi.waitFor(() => {
+          expect(closed).toHaveBeenCalledOnce();
+        });
+        expect(game.ballSpeedScale()).toBe(1.5);
+      });
+    });
+  });
+
+  it("offers Report a bug where the game takes reports", async () => {
+    await renderSettings([provideBrickBreakerBugReports()]);
+
+    expect(
+      screen.getByRole("button", { name: "Report a bug" }),
+    ).toBeInTheDocument();
+  });
+
+  it("asks for no reported state where DEBUG_MENU says not to", async () => {
+    await renderSettings([
+      { provide: DEBUG_MENU, useValue: false },
+      provideBrickBreakerBugReports(),
+    ]);
+
+    expect(
+      screen.queryByRole("textbox", { name: "Load game state" }),
+    ).not.toBeInTheDocument();
   });
 
   it("offers no debug menu where DEBUG_MENU says not to", async () => {

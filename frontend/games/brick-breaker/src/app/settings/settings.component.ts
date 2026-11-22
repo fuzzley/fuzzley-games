@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output } from "@angular/core";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU, DebugTuningComponent } from "@fz/game-ui/debug_menu";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
@@ -46,7 +47,7 @@ export const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
  * Shows the settings in a drawer: the speed, and the ball's at Custom, how a
  * finger steers the paddle, the sound, and the palette, and where
  * `DEBUG_MENU` offers it the debug menu (`<fz-debug-tuning>`), the ball's
- * speed to try.
+ * speed to try and the loader of a bug report's state.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -55,6 +56,7 @@ export const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
 @Component({
   selector: "app-settings",
   imports: [
+    BugReportLoaderComponent,
     ChoiceListComponent,
     DebugTuningComponent,
     SettingsDrawerComponent,

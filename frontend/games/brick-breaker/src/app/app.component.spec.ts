@@ -1,7 +1,11 @@
 import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  installCompressionStreams,
+  installFakeViewport,
+} from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
   FakePhaserCanvas,
@@ -10,6 +14,7 @@ import {
   runShownScene,
 } from "@fz/phaser/testing";
 import { ARRIVAL_MS } from "@fz/ui/announcer";
+import { CAPTURE_SKIP } from "@fz/ui/capture";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
 import {
@@ -34,6 +39,7 @@ import { paintRoles } from "@fz/style/testing";
 import { FIELD_ROLES } from "./board/field_roles";
 import { ROLES } from "../testing/roles";
 import { AppComponent } from "./app.component";
+import { provideBrickBreakerBugReports } from "./bug_report/brick_breaker_bug_reports";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
 
@@ -43,7 +49,9 @@ let storage: MemoryStorage;
 beforeEach(() => {
   storage = new MemoryStorage();
   TestBed.configureTestingModule({
-    providers: [provideMemoryStorage(storage)],
+    // The bug report's dialog in the root template needs the game's
+    // reports, as `main.ts` provides them.
+    providers: [provideMemoryStorage(storage), provideBrickBreakerBugReports()],
   });
 });
 
@@ -352,6 +360,43 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("ready");
       expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    it("opens from the settings, filed as Brick Breaker's, the settings closed", async () => {
+      await renderApp();
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Report a bug" }),
+      );
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      const link = within(report).getByRole("link", { name: /^Open GitHub/ });
+      expect(
+        new URL(link.getAttribute("href") ?? "").searchParams.get("title"),
+      ).toBe("[Brick Breaker] ");
+      expect(
+        screen.queryByRole("dialog", { name: "Settings" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("leaves the Paused card out of its picture, since Settings paused the run", async () => {
+      const game = await renderApp();
+      game.launch();
+      game.pause();
+
+      await settle();
+
+      expect(screen.getByText("Paused").parentElement).toHaveAttribute(
+        CAPTURE_SKIP.name,
+        CAPTURE_SKIP.value,
+      );
     });
   });
 });

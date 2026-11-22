@@ -78,6 +78,13 @@
       [lines]="debugLines()"
       (tune)="setBallSpeedScale($event.value)"
       (resetNumbers)="resetBallSpeed()"
-    />
+    >
+      <fz-bug-report-loader (loaded)="closed.emit()">
+        <p class="setting-desc">
+          Levels you clear count toward your stars and best, and open the next.
+          If the report is at Custom, your Custom ball speed changes to match.
+        </p>
+      </fz-bug-report-loader>
+    </fz-debug-tuning>
   }
 </fz-settings-drawer>

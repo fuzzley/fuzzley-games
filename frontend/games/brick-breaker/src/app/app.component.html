@@ -28,3 +28,4 @@
 <app-result (chooseLevel)="levelsOpen.set(true)" />
 <app-levels [open]="levelsOpen()" (closed)="levelsOpen.set(false)" />
 <fz-confirm-dialog />
+<fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
