@@ -4,6 +4,7 @@ import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
+import { StageScrollDirective } from "./bug_report/stage_scroll";
 import { HelpComponent } from "./help/help.component";
 import { ResultComponent } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
@@ -22,6 +23,7 @@ import { SettingsComponent } from "./settings/settings.component";
     HelpComponent,
     ResultComponent,
     SettingsComponent,
+    StageScrollDirective,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
