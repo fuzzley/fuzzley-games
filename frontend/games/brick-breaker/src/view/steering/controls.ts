@@ -7,8 +7,11 @@ import { RUN_KEYS, type RunCommand } from "@fz/core/run";
  */
 export type FieldCommand = "launch" | RunCommand;
 
-/** Names a key held to push the paddle. */
-export type HeldKey = "left" | "right";
+/**
+ * Names a key held to steer: left or right, which push the paddle or turn
+ * the serve's aim, or Shift, which turns it in small steps.
+ */
+export type HeldKey = "left" | "right" | "fine";
 
 /**
  * What each key asks, by `event.code`, the key's place on the keyboard
@@ -22,12 +25,14 @@ const COMMAND_KEYS: Readonly<Record<string, FieldCommand>> = {
   KeyW: "launch",
 };
 
-/** Which way each key pushes the paddle while it is held, by `event.code`. */
+/** What each key steers while it is held, by `event.code`. */
 const HELD_KEYS: Readonly<Record<string, HeldKey>> = {
   ArrowLeft: "left",
   KeyA: "left",
   ArrowRight: "right",
   KeyD: "right",
+  ShiftLeft: "fine",
+  ShiftRight: "fine",
 };
 
 /** Returns what a key asks of the game, or null for a key that asks nothing. */
@@ -35,7 +40,7 @@ export function commandOfKey(code: string): FieldCommand | null {
   return COMMAND_KEYS[code] ?? null;
 }
 
-/** Returns the way a key pushes the paddle while it is held, or null for one that doesn't. */
+/** Returns what a key steers while it is held, or null for one that steers nothing. */
 export function heldKeyOf(code: string): HeldKey | null {
   return HELD_KEYS[code] ?? null;
 }

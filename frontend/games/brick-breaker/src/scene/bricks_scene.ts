@@ -262,7 +262,7 @@ export class BricksScene extends Scene {
     this.frameTime = time;
     this.context.now = flourishTime(time, this.heldAt);
     let stale = this.fit();
-    this.options.tick(delta, this.steering.read());
+    this.options.tick(delta, this.steering.read(delta, null));
     this.sounds.follow(this.options.sound());
     const frame = this.options.frame();
     const palette = this.options.palette();
@@ -506,10 +506,10 @@ export class BricksScene extends Scene {
       this.press(event);
     });
     onKeyUp(this, (event) => {
-      this.steering.release(event.code);
+      this.steering.keyUp(event.code);
     });
     this.input.on(Input.Events.POINTER_DOWN, (pointer: Input.Pointer) => {
-      if (this.steering.pointerDown(pointer, this.options.touch())) {
+      if (this.steering.pointerDown(pointer, this.options.touch(), null)) {
         this.options.command("launch");
       }
     });
@@ -534,7 +534,7 @@ export class BricksScene extends Scene {
   private press(event: KeyboardEvent): void {
     if (isShortcut(event)) return;
     if (!event.repeat) this.bricks.land();
-    if (this.steering.press(event.code)) return;
+    if (this.steering.keyDown(event, null)) return;
     if (event.repeat) return;
     const command = commandOfKey(event.code);
     if (command) this.options.command(command);

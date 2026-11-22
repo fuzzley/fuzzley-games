@@ -24,11 +24,16 @@ describe("heldKeyOf", () => {
     ["KeyA", "left"],
     ["ArrowRight", "right"],
     ["KeyD", "right"],
-  ])("reads %s held as a push %s", (code, key) => {
+    ["ShiftLeft", "fine"],
+    ["ShiftRight", "fine"],
+  ])("reads %s held as %s", (code, key) => {
     expect(heldKeyOf(code)).toBe(key);
   });
 
-  it.each(["Space", "KeyQ", "ArrowDown"])("reads %s as no push", (code) => {
-    expect(heldKeyOf(code)).toBeNull();
-  });
+  it.each(["Space", "KeyQ", "ArrowDown"])(
+    "reads %s as held to steer nothing",
+    (code) => {
+      expect(heldKeyOf(code)).toBeNull();
+    },
+  );
 });
