@@ -263,7 +263,7 @@ the right. Most games have them.
 3. **`src/ui/app/provider/game_documentation_data.ts`:** add the rules page.
    Then, with the dev server running, run `yarn capture:screenshots <id>` and
    `yarn build:thumbs`, and point the page's `screenshot.url` at
-   `./docs/screenshots/<id>/overview.webp`. Specs fail while one of the
+   `./docs/screenshots/<id>/preview.webp`. Specs fail while one of the
    game's images is missing.
 4. **`src/ui/app/provider/game_profile_data.ts`:** add the profile the game
    browser lists it by. `test/ui/app/provider/game_profile.spec.ts` checks

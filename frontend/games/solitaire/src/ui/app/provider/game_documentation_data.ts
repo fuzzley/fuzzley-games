@@ -37,7 +37,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Klondike Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/klondike/overview.webp",
+      url: "./docs/screenshots/klondike/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 7 columns below.",
       altText:
@@ -125,7 +125,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "FreeCell",
     wikipediaUrl: "https://en.wikipedia.org/wiki/FreeCell",
     screenshot: {
-      url: "./docs/screenshots/freecell/overview.webp",
+      url: "./docs/screenshots/freecell/preview.webp",
       caption:
         "A new deal, with the free cells at the top left and 8 columns below.",
       altText: "A new game of FreeCell, with every card face up in 8 columns.",
@@ -157,7 +157,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Spider Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Spider_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/spider/overview.webp",
+      url: "./docs/screenshots/spider/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 8 foundations beside it.",
       altText:
@@ -208,7 +208,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Yukon Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Yukon_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/yukon/overview.webp",
+      url: "./docs/screenshots/yukon/preview.webp",
       caption: "A new deal, with 4 foundations at the top and 7 columns below.",
       altText:
         "A new game of Yukon, with most of the cards face up in 7 columns.",
@@ -263,7 +263,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Baker's Game",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker%27s_Game",
     screenshot: {
-      url: "./docs/screenshots/bakers/overview.webp",
+      url: "./docs/screenshots/bakers/preview.webp",
       caption:
         "A new deal, with the free cells at the top left and 8 columns below.",
       altText:
@@ -311,7 +311,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   challengefreecell: {
     title: "Challenge FreeCell",
     screenshot: {
-      url: "./docs/screenshots/challengefreecell/overview.webp",
+      url: "./docs/screenshots/challengefreecell/preview.webp",
       caption: "A new deal, where every column starts with an Ace or a 2.",
       altText:
         "A new game of Challenge FreeCell, with every card face up in 8 columns.",
@@ -361,7 +361,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Eight Off",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Eight_Off",
     screenshot: {
-      url: "./docs/screenshots/eightoff/overview.webp",
+      url: "./docs/screenshots/eightoff/preview.webp",
       caption: "A new deal, with 4 of the 8 free cells holding a card.",
       altText: "A new game of Eight Off, with 8 columns of 6 cards face up.",
     },
@@ -392,7 +392,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Scorpion Solitaire",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Scorpion_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/scorpion/overview.webp",
+      url: "./docs/screenshots/scorpion/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 7 columns below.",
       altText:
@@ -444,7 +444,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Simple Simon",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Simple_Simon_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/simplesimon/overview.webp",
+      url: "./docs/screenshots/simplesimon/preview.webp",
       caption: "A new deal, with 10 columns stepping down from 8 cards to 1.",
       altText:
         "A new game of Simple Simon, with every card face up in 10 columns.",
@@ -471,7 +471,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Mrs. Mop",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Mrs._Mop",
     screenshot: {
-      url: "./docs/screenshots/mrsmop/overview.webp",
+      url: "./docs/screenshots/mrsmop/preview.webp",
       caption:
         "A new deal, with 8 foundations at the top and 13 columns below.",
       altText: "A new game of Mrs. Mop, with 13 columns of 8 cards face up.",
@@ -498,7 +498,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Baker's Dozen",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Baker's_Dozen_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/bakersdozen/overview.webp",
+      url: "./docs/screenshots/bakersdozen/preview.webp",
       caption:
         "A new deal, with the foundations at the top right and 13 columns below.",
       altText:
@@ -530,7 +530,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Seahaven Towers",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Seahaven_Towers",
     screenshot: {
-      url: "./docs/screenshots/seahaven/overview.webp",
+      url: "./docs/screenshots/seahaven/preview.webp",
       caption: "A new deal, with 2 of the 4 free cells holding a card.",
       altText:
         "A new game of Seahaven Towers, with 10 columns of 5 cards face up.",
@@ -562,7 +562,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Spiderette",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Spiderette",
     screenshot: {
-      url: "./docs/screenshots/spiderette/overview.webp",
+      url: "./docs/screenshots/spiderette/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 4 foundations beside it.",
       altText:
@@ -611,7 +611,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Easthaven",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Easthaven_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/easthaven/overview.webp",
+      url: "./docs/screenshots/easthaven/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 7 columns below.",
       altText:
@@ -645,7 +645,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Forty Thieves",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/fortythieves/overview.webp",
+      url: "./docs/screenshots/fortythieves/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 8 foundations beside it.",
       altText:
@@ -708,7 +708,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Maria",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/maria/overview.webp",
+      url: "./docs/screenshots/maria/preview.webp",
       caption:
         "A new deal, with the stock at the top left and 9 columns below.",
       altText: "A new game of Maria, with 9 columns of 4 cards face up.",
@@ -740,7 +740,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Limited",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/limited/overview.webp",
+      url: "./docs/screenshots/limited/preview.webp",
       caption:
         "A new deal, with the stock and 8 foundations above 12 short columns.",
       altText:
@@ -775,7 +775,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Lucas",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Forty_Thieves_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/lucas/overview.webp",
+      url: "./docs/screenshots/lucas/preview.webp",
       caption:
         "A new deal, with all 8 Aces on the foundations and 13 short columns.",
       altText: "A new game of Lucas, with 8 Aces above 13 columns of 3 cards.",
@@ -809,7 +809,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Double Klondike",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Klondike_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/doubleklondike/overview.webp",
+      url: "./docs/screenshots/doubleklondike/preview.webp",
       caption: "A new deal, with the stock and 8 foundations above 9 columns.",
       altText: "A new game of Double Klondike, with 9 columns of 1 to 9 cards.",
     },
@@ -843,7 +843,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Montana",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Montana_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/montana/overview.webp",
+      url: "./docs/screenshots/montana/preview.webp",
       caption:
         "A new deal, with 4 rows of cards, 4 gaps and the redeal button.",
       altText: "A new game of Montana, with 48 cards in 4 rows and 4 gaps.",
@@ -886,7 +886,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Blue Moon",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Gaps",
     screenshot: {
-      url: "./docs/screenshots/bluemoon/overview.webp",
+      url: "./docs/screenshots/bluemoon/preview.webp",
       caption: "A new deal, with an Ace at the start of each row and 4 gaps.",
       altText: "A new game of Blue Moon, with 52 cards in 4 rows and 4 gaps.",
     },
@@ -931,7 +931,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Bisley",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Bisley_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/bisley/overview.webp",
+      url: "./docs/screenshots/bisley/preview.webp",
       caption:
         "A new deal, with the Aces and the empty King foundations above 13 columns.",
       altText: "A new game of Bisley, with 4 Aces above 13 face-up columns.",
@@ -964,7 +964,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Aces Up",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Aces_Up",
     screenshot: {
-      url: "./docs/screenshots/acesup/overview.webp",
+      url: "./docs/screenshots/acesup/preview.webp",
       caption:
         "A new deal, with the stock, 4 columns of 1 card and the empty discard.",
       altText:
@@ -1012,7 +1012,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Golf",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Golf_(patience)",
     screenshot: {
-      url: "./docs/screenshots/golf/overview.webp",
+      url: "./docs/screenshots/golf/preview.webp",
       caption:
         "A new deal, with the stock, 1 card on the foundation and 7 columns.",
       altText: "A new game of Golf, with 5 face-up cards on each of 7 columns.",
@@ -1065,7 +1065,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Calculation",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Calculation_(card_game)",
     screenshot: {
-      url: "./docs/screenshots/calculation/overview.webp",
+      url: "./docs/screenshots/calculation/preview.webp",
       caption: "A new deal, with an Ace, 2, 3 and 4 starting the foundations.",
       altText:
         "A new game of Calculation, with 4 foundations started and 4 empty waste piles.",
@@ -1111,7 +1111,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Flower Garden",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Flower_Garden_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/flowergarden/overview.webp",
+      url: "./docs/screenshots/flowergarden/preview.webp",
       caption: "A new deal, with the bouquet fanned out above 6 columns.",
       altText:
         "A new game of Flower Garden, with a 16-card bouquet and 6 columns of 6.",
@@ -1142,7 +1142,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Bristol",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Bristol_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/bristol/overview.webp",
+      url: "./docs/screenshots/bristol/preview.webp",
       caption:
         "A new deal, with the stock, 3 reserves, 4 foundations and 8 columns.",
       altText:
@@ -1193,7 +1193,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Nestor",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Nestor_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/nestor/overview.webp",
+      url: "./docs/screenshots/nestor/preview.webp",
       caption:
         "A new deal, with 4 reserve cards above 8 columns and the empty discard.",
       altText:
@@ -1224,7 +1224,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Monte Carlo",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Monte_Carlo_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/montecarlo/overview.webp",
+      url: "./docs/screenshots/montecarlo/preview.webp",
       caption: "A new deal, with the stock beside 25 cards in a 5 by 5 grid.",
       altText:
         "A new game of Monte Carlo, with 25 face-up cards in 5 rows of 5.",
@@ -1270,7 +1270,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "La Belle Lucie",
     wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
     screenshot: {
-      url: "./docs/screenshots/labellelucie/overview.webp",
+      url: "./docs/screenshots/labellelucie/preview.webp",
       caption:
         "A new deal, with the redeal space at the top left and 18 fans below.",
       altText:
@@ -1324,7 +1324,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Trefoil",
     wikipediaUrl: "https://en.wikipedia.org/wiki/La_Belle_Lucie",
     screenshot: {
-      url: "./docs/screenshots/trefoil/overview.webp",
+      url: "./docs/screenshots/trefoil/preview.webp",
       caption:
         "A new deal, with the 4 Aces on the foundations and 16 fans below.",
       altText:
@@ -1359,7 +1359,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Canfield",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Canfield_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/canfield/overview.webp",
+      url: "./docs/screenshots/canfield/preview.webp",
       caption:
         "A new deal, with the reserve under the stock and 4 columns of 1 card.",
       altText: "A new game of Canfield, with a King on the first foundation.",
@@ -1417,7 +1417,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Penguin",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Penguin_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/penguin/overview.webp",
+      url: "./docs/screenshots/penguin/preview.webp",
       caption:
         "A new deal, with 3 foundations started and 7 columns of 7 cards.",
       altText:
@@ -1450,7 +1450,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Black Hole",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Black_Hole_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/blackhole/overview.webp",
+      url: "./docs/screenshots/blackhole/preview.webp",
       caption: "A new deal, with the Ace of spades in the hole and 17 fans.",
       altText: "A new game of Black Hole, with the Ace of spades in the hole.",
     },
@@ -1476,7 +1476,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   allinarow: {
     title: "All in a Row",
     screenshot: {
-      url: "./docs/screenshots/allinarow/overview.webp",
+      url: "./docs/screenshots/allinarow/preview.webp",
       caption:
         "A new deal, with the empty foundation above 13 columns of 4 cards.",
       altText: "A new game of All in a Row, with 13 columns of face-up cards.",
@@ -1505,7 +1505,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   grandfathersclock: {
     title: "Grandfather's Clock",
     screenshot: {
-      url: "./docs/screenshots/grandfathersclock/overview.webp",
+      url: "./docs/screenshots/grandfathersclock/preview.webp",
       caption:
         "A new deal, with 12 foundations in a circle and 8 columns of 5 cards.",
       altText:
@@ -1535,7 +1535,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Pyramid",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Pyramid_(solitaire)",
     screenshot: {
-      url: "./docs/screenshots/pyramid/overview.webp",
+      url: "./docs/screenshots/pyramid/preview.webp",
       caption:
         "A new deal, with the stock face down beside a pyramid of 7 rows.",
       altText: "A new game of Pyramid, with 28 cards face up in 7 rows.",
@@ -1596,7 +1596,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "TriPeaks",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Tri_Peaks_(game)",
     screenshot: {
-      url: "./docs/screenshots/tripeaks/overview.webp",
+      url: "./docs/screenshots/tripeaks/preview.webp",
       caption: "A new deal, with 3 peaks of face-down cards over a row of 10.",
       altText: "A new game of TriPeaks, with 10 cards face up under 3 peaks.",
     },
@@ -1627,7 +1627,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Beleaguered Castle",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Beleaguered_Castle",
     screenshot: {
-      url: "./docs/screenshots/beleagueredcastle/overview.webp",
+      url: "./docs/screenshots/beleagueredcastle/preview.webp",
       caption: "A new deal, with the 4 Aces in a column between 8 rows.",
       altText:
         "A new game of Beleaguered Castle, with 48 cards face up in 8 rows.",
@@ -1677,7 +1677,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
   fortress: {
     title: "Fortress",
     screenshot: {
-      url: "./docs/screenshots/fortress/overview.webp",
+      url: "./docs/screenshots/fortress/preview.webp",
       caption: "A new deal, with 4 empty foundations and 5 rows on each side.",
       altText: "A new game of Fortress, with every card face up in 10 rows.",
     },
@@ -1708,7 +1708,7 @@ export const GAME_DOCUMENTATION_REGISTRY: GameDocumentationRegistry &
     title: "Poker Squares",
     wikipediaUrl: "https://en.wikipedia.org/wiki/Poker_squares",
     screenshot: {
-      url: "./docs/screenshots/pokersquares/overview.webp",
+      url: "./docs/screenshots/pokersquares/preview.webp",
       caption: "A new deal, with the first card face up beside an empty grid.",
       altText: "A new game of Poker Squares, with an empty grid of 25 squares.",
     },

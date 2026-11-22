@@ -4,12 +4,11 @@
  *   yarn build:thumbs
  *
  * Reads the lossless original, `docs/screenshots/<id>/overview.png`, which
- * `yarn capture:screenshots` writes, and writes three WebP images to
- * `public/docs/screenshots/<id>/`: an `overview.webp` of the whole page for
- * the rules page, a `thumb.webp` of the board alone for a row of the game
- * browser's list, and a `preview.webp` of the whole page for the preview pane
- * beside it and for link previews. The originals run to half a megabyte
- * apiece, so they stay out of `public/`.
+ * `yarn capture:screenshots` writes, and writes two WebP images to
+ * `public/docs/screenshots/<id>/`: a `thumb.webp` of the board alone for a
+ * row of the game browser's list, and a `preview.webp` of the whole page for
+ * the preview pane beside it, the rules page and link previews. The
+ * originals run to half a megabyte apiece, so they stay out of `public/`.
  */
 import sharp from "sharp";
 import { readdir } from "node:fs/promises";
@@ -18,7 +17,6 @@ import { fileURLToPath } from "node:url";
 import {
   describeImage,
   siteImagesFolder,
-  writeImage,
   writeSiteImages,
 } from "@fz/dev/screenshots";
 
@@ -27,16 +25,6 @@ import {
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_DIR = join(ROOT, "docs/screenshots");
 const SOURCE = "overview.png";
-
-/**
- * The rules page's image, twice the 800 CSS px it is shown at, so that it
- * stays sharp on a high density display. It is looked at closely, so it is
- * written at a higher quality than the site's images.
- */
-const OVERVIEW = { file: "overview.webp", width: 1600, height: 900 };
-
-/** The WebP quality of the rules page's image. */
-const OVERVIEW_QUALITY = 90;
 
 /**
  * The most of the height the header may take before the crop is assumed to
@@ -104,9 +92,8 @@ async function findBoard(source) {
 }
 
 /**
- * Writes the rules page's image and the site's two of one game's screenshot,
- * each unless the committed one looks the same, returning what it did with
- * each.
+ * Writes the site's two images of one game's screenshot, each unless the
+ * committed one looks the same, returning what it did with each.
  *
  * The site's thumbnail is cropped to the board, since the header would be an
  * illegible strip at its size.
@@ -122,17 +109,10 @@ async function shrink(id) {
   // strip left over goes below it, as more felt.
   /** @type {ResizeOptions} */
   const resize = { fit: "contain", position: "top", background: felt };
-  const sizes = await writeSiteImages(source, targetDir, {
+  const written = await writeSiteImages(source, targetDir, {
     thumbRegion: region,
     resize,
   });
-  const overview = await writeImage(
-    source,
-    join(targetDir, OVERVIEW.file),
-    OVERVIEW,
-    { resize, quality: OVERVIEW_QUALITY },
-  );
-  const written = new Map([[OVERVIEW.file, overview], ...sizes]);
   return [...written].map(([file, image]) => describeImage(file, image));
 }
 
