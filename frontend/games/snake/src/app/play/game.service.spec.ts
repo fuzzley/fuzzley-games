@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { pause } from "../../rules/run";
+import { type Run, createRun, pause } from "../../rules/run";
 import { stepMs } from "../../rules/speed";
 import {
   endedGame,
@@ -14,7 +14,7 @@ import { runFrom } from "../../testing/run_picture";
 import { FADE_MS } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GameService } from "./game.service";
+import { type EndStage, GameService } from "./game.service";
 
 /** How long a first step lasts at Normal speed. */
 const STEP = stepMs("normal", 0);
@@ -548,6 +548,118 @@ describe("GameService", () => {
       await starting;
 
       expect(game.run().id).toBe(41);
+    });
+  });
+
+  describe("a reported run taken up", () => {
+    /** A run that ran into the wall on the right, an apple eaten. */
+    const CRASHED: Run = {
+      ...runFrom([".....", "..>>@", ".....", ".....", "*...."], {
+        id: 30,
+        eaten: 1,
+        steps: 12,
+        outcome: "over",
+      }),
+      crash: "wall",
+      last: "crashed",
+    };
+
+    /** Resolves to what the game made of a reported run, asked nothing. */
+    function takeUpReported(
+      run: Run,
+      stage: EndStage = { newBest: false, card: "coming" },
+    ): Promise<boolean> {
+      return TestBed.inject(GameService).takeUpReported(run, stage);
+    }
+
+    it("is paused where it was under way, and says so", async () => {
+      const playing = runFrom([".....", ".>>@.", ".....", ".....", "....*"], {
+        eaten: 2,
+        steps: 9,
+        outcome: "playing",
+      });
+
+      await takeUpReported(playing);
+
+      expect(TestBed.inject(GameService).run()).toEqual(pause(playing));
+      expect(said()).toBe("Paused. Score 2. Press Space to resume.");
+    });
+
+    it("waits for its first direction where it did, saying nothing", async () => {
+      const ready = createRun({ id: 3, seed: 8, speed: "slow" });
+
+      await takeUpReported(ready);
+
+      expect(TestBed.inject(GameService).run()).toEqual(ready);
+      expect(said()).toBe("");
+    });
+
+    it("ends as it ended, with its new best, and says how", async () => {
+      await takeUpReported(CRASHED, { newBest: true, card: "closed" });
+
+      const game = TestBed.inject(GameService);
+      expect({ run: game.run(), stage: game.endStage() }).toEqual({
+        run: CRASHED,
+        stage: { newBest: true, card: "closed" },
+      });
+      expect(said()).toBe("The snake ran into the wall. Score 1. New best.");
+    });
+
+    it("opens the card over an ended run where it was showing", async () => {
+      await takeUpReported(CRASHED, { newBest: false, card: "open" });
+
+      expect(TestBed.inject(GameService).resultOpen()).toBe(true);
+    });
+
+    it("opens the card over an ended run once its fade has run, where it was still to come", async () => {
+      await takeUpReported(CRASHED);
+      const game = TestBed.inject(GameService);
+
+      game.tick(16);
+
+      expect(game.resultOpen()).toBe(true);
+    });
+
+    it("comes before the next new run", async () => {
+      await takeUpReported(CRASHED);
+      const game = TestBed.inject(GameService);
+
+      await game.newGame();
+
+      expect(game.run().id).toBe(31);
+    });
+
+    it("asks first where a run is under way", () => {
+      startedGame();
+
+      void takeUpReported(CRASHED);
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Load this game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Load",
+      });
+    });
+
+    it("takes the run's place once the player says to", async () => {
+      startedGame();
+
+      const taking = takeUpReported(CRASHED);
+      TestBed.inject(ConfirmService).accept();
+
+      expect(await taking).toBe(true);
+      expect(TestBed.inject(GameService).run()).toEqual(CRASHED);
+    });
+
+    it("leaves the run under way where the player says no", async () => {
+      const game = startedGame();
+      const before = game.run();
+
+      const taking = takeUpReported(CRASHED);
+      TestBed.inject(ConfirmService).cancel();
+
+      expect(await taking).toBe(false);
+      expect(game.run()).toBe(before);
     });
   });
 });

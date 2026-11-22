@@ -5,6 +5,7 @@ import { RunNumbers } from "@fz/core/run_numbers";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
+import type { ConfirmRequest } from "@fz/ui/confirm";
 import {
   describeEnd,
   describePause,
@@ -32,6 +33,14 @@ export interface EndStage {
   readonly newBest: boolean;
   readonly card: ResultCard;
 }
+
+/** What loading a reported run asks before it throws away the one under way. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
 
 /** The frame the scene is handed, one object written again each frame. */
 interface Frame {
@@ -225,6 +234,38 @@ export class GameService extends RunLifecycle {
     this.numbers.takeUp(run.id);
     this.begin(pause(run));
     this.announcer.say(describePause(run));
+  }
+
+  /**
+   * Takes up a run from a bug report, asking first if one is under way, and
+   * resolves to whether it did: one under way as `takeUp()` takes up a
+   * saved one, paused, and one waiting for its first direction, or ended, as
+   * it was, an ended one's new best and card as far on as the report found
+   * them.
+   */
+  async takeUpReported(run: Run, stage: EndStage): Promise<boolean> {
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    if (isUnderWay(run.outcome)) {
+      this.takeUp(run);
+      return true;
+    }
+    this.numbers.takeUp(run.id);
+    this.begin(run);
+    if (!hasEnded(run.outcome)) return true;
+    this.newBestState.set(stage.newBest);
+    switch (stage.card) {
+      case "coming":
+        this.resultWait.start();
+        break;
+      case "open":
+        this.resultOpenState.set(true);
+        break;
+      case "closed":
+        this.resultClosedState.set(true);
+        break;
+    }
+    this.announcer.say(describeEnd(run, stage.newBest));
+    return true;
   }
 
   /** Puts away the card over an ended run, leaving the board to look at. */
