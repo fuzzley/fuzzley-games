@@ -1,6 +1,5 @@
 # Snake
 
-See [AGENTS.md](AGENTS.md) for the rule Snake keeps of its own: the skill to
-read before writing a spec.
+See [AGENTS.md](AGENTS.md) for the rules Snake keeps of its own.
 
 @AGENTS.md

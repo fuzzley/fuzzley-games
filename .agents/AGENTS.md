@@ -67,14 +67,20 @@ Security Policy from `nginx/content-security-policy.conf`.
 - **Edit this file, not the root's `AGENTS.md` and `CLAUDE.md`,** which
   only point here. Every other `AGENTS.md` has a `CLAUDE.md` beside it that
   imports it (`@AGENTS.md`), since Claude Code reads no `AGENTS.md`.
-- **How to do one kind of task is a skill.** One every workspace can use
-  is `.agents/skills/<name>/SKILL.md`. One about a single workspace is in
-  that workspace's own `.agents/skills/`, and its name starts with the
-  workspace's (`site-testing`). Name a skill in the `AGENTS.md` of the
-  layer its task belongs to: agents come to a skill by a name they were
-  given far more often than by its description.
-- **Run `node .agents/link-claude-skills.mjs` after adding a skill or an
-  agent definition, a fresh clone or a move.** Claude Code finds the
+- **How to do one kind of task is a skill, where it earns one.** A skill
+  sets out a development process used here, or says how a library, a tool,
+  a framework or a platform is used, where that applies widely or can't
+  easily be found in its documentation, a readme or its interface. One that
+  adds too little to those is deleted, and a rule it held goes into the
+  `AGENTS.md` of its layer.
+- **A skill every workspace can use is `.agents/skills/<name>/SKILL.md`.**
+  One about a single workspace is in that workspace's own
+  `.agents/skills/`, and its name starts with the workspace's
+  (`brick-breaker-testing`). Name a skill in the `AGENTS.md` of the layer
+  its task belongs to: agents come to a skill by a name they were given far
+  more often than by its description.
+- **Run `node .agents/link-claude-skills.mjs` after adding, deleting or
+  moving a skill or an agent definition, or a fresh clone.** Claude Code finds the
   skills, and the agent types in `.agents/agents/`, only through the links
   it makes in the gitignored `.claude/` folders, and a dangling link drops
   a skill without a word. A session started in a folder above the clone is
@@ -162,7 +168,7 @@ help, messages, announcements, blurbs and page descriptions.
 
 These rules hold for every workspace's specs. Before writing one in an
 Angular workspace, read the `angular-testing` skill. An app's own
-`AGENTS.md` names its testing skill.
+`AGENTS.md` names its testing skill, where it has one.
 
 - **Test Coverage:** Cover new and changed code with specs.
 - **Arrange, Act, Assert:** Structure each test case cleanly: arrange block, act block, assert block. Avoid multiple AAA cycles per test case; create focused test cases instead.

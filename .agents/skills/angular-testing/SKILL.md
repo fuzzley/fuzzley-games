@@ -7,8 +7,8 @@ description: How a spec is written in any Angular workspace here (the site, a ga
 
 What every Angular workspace's specs share. The rules every spec follows are
 in `.agents/AGENTS.md`, under "Writing Unit Tests", and how to run one spec
-and check its types in `frontend/AGENTS.md`, under "Checking". Each app's own
-testing skill, named for it (`site-testing`, `snake-testing`), has its
+and check its types in `frontend/AGENTS.md`, under "Checking". An app's own
+testing skill, where it has one (`brick-breaker-testing`), has its
 fixtures and floors, and the `phaser-core` skill has a scene's specs. Paths
 are relative to the repository's root.
 

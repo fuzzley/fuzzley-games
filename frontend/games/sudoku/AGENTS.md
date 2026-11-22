@@ -4,8 +4,22 @@ Sudoku is an Angular app that deals its puzzles from a graded bank, and these
 rules are its own; the games', in [frontend/games/AGENTS.md](../AGENTS.md),
 the frontend's and the repository's apply too.
 
-- **Before writing or changing a spec, read the `sudoku-testing` skill,**
-  which has the fixtures that draw a grid and put one in play.
+- **Draw the grid a spec needs rather than deal one,** with `gridFrom()`
+  (`src/testing/grid_picture.ts`), and put it in play with `playOn()`
+  (`src/testing/game.ts`), called after `render()`, since it injects the
+  game. `EASY` is the puzzle most specs play.
+- **The rules read a square through `at()`, `peersOf()` and `unitsOf()`**
+  (`src/rules/cells.ts`), never with a fallback of their own.
+  `noUncheckedIndexedAccess` makes every read of a list a branch, and a
+  fallback no spec can reach counts against the branch floor.
+- **A spec reaches the hint's short form only with a `ResizeObserver`,**
+  which jsdom lacks, so the hint's words always fit their room there. Stub
+  the global with `FakeResizeObserver` (`src/testing/resize_observer.ts`)
+  before rendering, and report the heights through it.
+- **A key that a layout pairs differently is pressed with
+  `fireEvent.keyDown`,** given its `code` and its `key`, as AZERTY's top
+  row is (`{ code: "Digit6", key: "-" }`). user-event presses a US
+  keyboard's pairs.
 - **Write the bank again after changing the grader or the generator,** that
   is, anything `generate()` in `src/rules/generate.ts` runs, with
   `yarn generate:puzzles`. The game deals only from `src/rules/bank/`, so

@@ -337,7 +337,7 @@ describe("reachOf", () => {
     "frontend/games/AGENTS.md",
     "frontend/games/CLAUDE.md",
     "frontend/games/snake/AGENTS.md",
-    "frontend/games/snake/.agents/skills/snake-testing/SKILL.md",
+    "frontend/games/brick-breaker/.agents/skills/brick-breaker-testing/SKILL.md",
     ".agents/skills/fuzzley-ui/SKILL.md",
     ".github/workflows/verify.yml",
     "docs/operations.md",
