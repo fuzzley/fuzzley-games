@@ -26,7 +26,7 @@ import {
 import { SettingsService } from "./settings.service";
 
 /** What the drawer says of each way a finger may steer the paddle. */
-const TOUCH_INFO: Readonly<
+export const TOUCH_INFO: Readonly<
   Record<TouchSteering, Omit<ChoiceOption<TouchSteering>, "id">>
 > = {
   drag: {
@@ -40,7 +40,7 @@ const TOUCH_INFO: Readonly<
 };
 
 /** The ways a finger may steer the paddle, as the drawer offers them. */
-export const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
+const TOUCH_CHOICES: readonly ChoiceOption<TouchSteering>[] =
   TOUCH_STEERINGS.map((id) => ({ id, ...TOUCH_INFO[id] }));
 
 /**

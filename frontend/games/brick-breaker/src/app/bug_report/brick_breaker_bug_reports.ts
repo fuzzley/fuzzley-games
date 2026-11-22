@@ -8,7 +8,7 @@ import { formatCustomPercent } from "../../rules/run/describe";
 import { SPEED_INFO } from "../../rules/speed";
 import { GameService } from "../play/game.service";
 import { formatScale } from "../settings/debug_tuning";
-import { TOUCH_CHOICES } from "../settings/settings.component";
+import { TOUCH_INFO } from "../settings/settings.component";
 import { SettingsService } from "../settings/settings.service";
 import { GAME_LEVELS } from "../tokens";
 import {
@@ -46,8 +46,6 @@ export class BrickBreakerBugReports implements BugReportSource {
    */
   settings(): readonly string[] {
     const { touch, sound } = this.store.settings();
-    const touchName =
-      TOUCH_CHOICES.find((choice) => choice.id === touch)?.name ?? touch;
     const custom = this.play.customPercent();
     const scale = this.play.ballSpeedScale();
     return [
@@ -55,7 +53,7 @@ export class BrickBreakerBugReports implements BugReportSource {
       ...(custom === null
         ? []
         : [`Custom ball speed: ${formatCustomPercent(custom)}`]),
-      `Touch controls: ${touchName}`,
+      `Touch controls: ${TOUCH_INFO[touch].name}`,
       `Sound: ${sound ? "On" : "Off"}`,
       ...(scale === 1 ? [] : [`Ball speed (debug): ${formatScale(scale)}`]),
     ];

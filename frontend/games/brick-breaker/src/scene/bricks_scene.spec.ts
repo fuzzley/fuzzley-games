@@ -2438,6 +2438,33 @@ describe("BricksScene", () => {
       });
     });
 
+    it("outlines a brick where it is drawn as it drops in, as a level starts under a held press", async () => {
+      const { shell, scene, run } = await holdToGuide();
+      shell.showField(["ooooooooooooo"]);
+      // Straight up, at the middle column, mid-fall halfway through the drop-in.
+      shell.field.aim = 0;
+      run.advance(DROP_IN_MS / 2, 16);
+      const cell = shell.guide.marked.cells[0] ?? NaN;
+      const above = heightAbove(scene, cell);
+
+      run.advance(16);
+
+      const [outline] = scene.guide.outlines;
+      expect({
+        marked: shell.guide.marked.count > 0,
+        falling: heightAbove(scene, cell) < above,
+        outline: { visible: outline?.visible, x: outline?.x, y: outline?.y },
+      }).toEqual({
+        marked: true,
+        falling: true,
+        outline: {
+          visible: true,
+          x: scene.bricks.images[cell]?.x,
+          y: scene.bricks.images[cell]?.y,
+        },
+      });
+    });
+
     it("hides the outlines a guide no longer marks", async () => {
       const { shell, scene, run } = await holdToGuide((shell) => {
         shell.showField(["ooooooooooooo"]);
