@@ -1472,7 +1472,9 @@ recomputes.
       - No pull request is open (§8).
 - **Parts A and B, built on 2026-11-21 on `repo-size-plan`,** from
   7142d6cb, as six commits, each reviewed by a `commit-reviewer` and its
-  answers folded in. Not pushed: they wait on the user's word (§6.0).
+  answers folded in. Pushed to `main` together at the user's word, with
+  §12's record (5b63a375), on 2026-11-22: Verify run 44983747119 passed
+  and `promote` moved `live` there.
 
   | Package | Commit   | Packed (MiB) | Raw (MiB) |
   | ------- | -------- | -----------: | --------: |
@@ -1485,8 +1487,8 @@ recomputes.
   | All six |          |        9.221 |     9.740 |
 
   Each commit is measured against its parent, and all six over the range
-  from 7142d6cb, not summed. The hashes hold until the branch is rebased
-  onto a `main` that has moved.
+  from 7142d6cb, not summed. They landed as built, and the hashes are the
+  rewritten history's, as C8 made them.
 
   - **What the gate does on the devbox.**
     - Minesweeper's retake kept both images, the thumbnail having moved 22
@@ -1537,5 +1539,72 @@ recomputes.
     - **Checks:** one `verify:full` ran for A and B together, alone on the
       machine, and passed in 3 minutes. Every line the six commits change
       is covered.
-  - **Next:** on the user's word, land A and B, or A alone first (§6.0,
-    "When A is done"), then ask D5.
+  - **D5:** asked once A and B were live, and answered "Do it now".
+
+- **Part C, run on 2026-11-22 from 04:32 UTC, its push at 04:40,** with
+  `WORK=~/Projects/personal/repo-rewrite-2026-11-21` (`date +%F` gave the
+  devbox's local date, 2026-11-21), which keeps the mirrors, the logs and
+  `data/`.
+
+  | Measure                      | Before        | After     |
+  | ---------------------------- | ------------- | --------- |
+  | A fresh clone (`size-pack`)  | about 290 MiB | 59.74 MiB |
+  | The mirror, repacked tightly | 299.3 MiB     | 59.1 MiB  |
+  | GitHub's figure (`.size`)    | about 290 MiB | 298.2 MiB |
+  | Commits on `main`            | 1,756         | 1,756     |
+
+  A fresh clone is a fifth of what it was, as the plan set out.
+
+  - **Before the day.** No pull request was open. The rehearsal the day
+    before was not run, as the user asked for the rewrite at once: C3 to
+    C5 ran on a fresh mirror, and their checks held the push. The freeze:
+    the two other Claude sessions on the devbox were idle (one plans the
+    `fuzzley` repository, the other reviews the agent efficiency audit),
+    and `08-local-clones.sh` found no commit that no remote held. The
+    stash entry was saved as `~/Projects/personal/stash-local-pipeline.patch`,
+    and this plan's worktree and branch were removed.
+  - **C1.** `main` and `live` were both 180b3d69 (the old history's
+    hash), its Verify run had passed, and the site served it.
+  - **C2.** The work mirror held 35 refs: `main`, `live` and 33
+    `refs/pull/*/head`, 309.6 MiB as cloned. The backup was fetched to the
+    same refs (the `diff` printed nothing), cut off from GitHub, and passed
+    `fsck`. The bundle, `~/Projects/personal/fuzzley-games-pre-rewrite.bundle`,
+    is 308.2 MiB and verifies, and `fuzzley-games-backup.refs.txt` lists its 35
+    refs.
+  - **C3 and C4.** S2 stripped 1,155 blobs, 240.0 MiB: every blob ever
+    stored under a screenshot or atlas folder, except the 128 at `main`'s
+    and `live`'s tips (S8). `main` and `live` showed 0 tree differences, all 1,756 commits on `main` were
+    kept, the 17 hashes in commit messages were rewritten and 0 were
+    wrong, and `fsck` passed. A clone's refs alone, repacked tightly, came
+    to 59.0 MiB, against the 59.1 projected.
+  - **C5.** Of 2,682 commits named in `docs/` and the memory notes, none
+    was ambiguous or lengthened, and a second pass found nothing.
+  - **C6 and C7.** `main` and `live` went from 180b3d69 to 5b63a375 in one
+    leased push, which GitHub recorded as a bypass of the ruleset. No
+    Dependabot branch was left. Verify run 44986071134 passed, and the site
+    served 5b63a37 within minutes.
+  - **C8.** 2,783 replacements in 58 files, C5's count for them, as
+    9accf385. Three edits were made by hand. The build's check found that
+    the `churn.mjs` `WHY` keys that became a hash starting with a digit
+    needed quoting. The review asked for the two atlas records named for
+    a commit to be renamed to its new hash, as `compare-tools-a89a667f.txt`
+    and `run-tools-a89a667f.txt`, and for §2 and this section to name the
+    backup's b67c3c01, its hash there. In the memory notes, 61 commits
+    named 88 times in 18 notes were all rewritten, none removed: each
+    points at where a piece of work landed.
+  - **C9.** GitHub's figure grew from about 290 MiB to 298.2 MiB, with
+    the new objects, as C9 allows.
+  - **C10.** The main checkout was cloned again, its skills and agent
+    linked with `--also-in`, and installed. The one ignored file worth
+    keeping, `docs/text-style/inventory/strings.json`, was copied across.
+    The stash entry was moved onto its base's new hash, 1624f87b, with the
+    same files, staged and untracked as they were. `~/Projects/personal/fuzzley-games-old` is kept until
+    nothing in it is wanted. The Windows side's clones are the user's to
+    clone again.
+  - **C11.** The backup and its bundle are kept until 2027-02-22 at least.
+    The dry runs' mirrors in `~/Projects/personal/repo-size-2026-11-21/`
+    were deleted.
+  - **Next (§11):** read GitHub's figure on 2026-11-23 and 2026-11-29, and
+    record both here. After the second, move this folder to
+    `docs/archive/repo-size/`: §11 has it move once C is done, but this
+    section is filled in until then.
