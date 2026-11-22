@@ -35,36 +35,11 @@
   }
 }
 
-// --- Loading a bug report's game ---
-
-.load-position {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fz-space-2);
-  margin-top: var(--fz-space-4);
-}
-
-.load-label {
-  @include field-label;
-}
-
-.load-text {
-  box-sizing: border-box;
-  width: 100%;
-  padding: var(--fz-space-2);
-  font-family: var(--fz-font-mono);
-  font-size: var(--fz-font-2xs);
-  color: var(--fz-text);
-  background: var(--fz-wash-2);
-  border: 1px solid var(--fz-edge-2);
-  border-radius: var(--fz-radius-sm);
-  resize: vertical;
-}
-
-.load-problem {
-  min-height: var(--fz-space-5);
+// What loading a report changes, under the loader's field. `--fz-text`, as
+// the loader's own words, which clears 4.5:1 on the panel's tinted band.
+.load-note {
   margin: 0;
-  font-size: var(--fz-font-2xs);
+  color: var(--fz-text);
+  font-size: var(--fz-font-xs);
   line-height: var(--fz-leading-tight);
-  color: var(--fz-danger);
 }

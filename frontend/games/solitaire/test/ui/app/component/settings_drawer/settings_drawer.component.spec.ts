@@ -2,13 +2,14 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { BugReportService } from "@fz/game-ui/bug_report";
 import { BUILD_INFO } from "@fz/game-ui/build_info";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ThemeService } from "@fz/ui/theme";
 import { SettingsDrawerComponent } from "@/ui/app/component/settings_drawer/settings_drawer.component";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
-import { BugReportService } from "@/ui/app/service/bug_report.service";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
 import {
   clickElement,
@@ -19,6 +20,7 @@ import {
 } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 import { clickBackdrop, isDialogOpen, pressEscape } from "@test/support/dialog";
+import { within } from "@testing-library/dom";
 import { DESKTOP_CARD_DECKS } from "@/engine/render/deck/card_deck";
 import { CARD_BACKS } from "@/engine/render/deck/card_back";
 
@@ -26,7 +28,7 @@ describe("SettingsDrawerComponent", () => {
   let fixture: ComponentFixture<SettingsDrawerComponent>;
   let harness: UiHarness;
 
-  // The open drawer builds its link to a report, which packs the game.
+  // A report started packs the game for its link.
   installCompressionStreams();
 
   beforeEach(async () => {
@@ -576,65 +578,41 @@ describe("SettingsDrawerComponent", () => {
   });
 
   describe("reporting a bug", () => {
-    /** Returns the link to a new bug report. */
-    function reportLink(): HTMLAnchorElement {
-      return queryRequired(fixture, ".btn-report", HTMLAnchorElement);
+    /** Returns the drawer's Report a bug button. */
+    function reportButton(): HTMLElement {
+      return within(queryRequired(fixture, ".drawer-content")).getByRole(
+        "button",
+        { name: "Report a bug" },
+      );
     }
 
-    it("links to a new report describing the game on the table", async () => {
-      const service = TestBed.inject(BugReportService);
+    it("offers Report a bug", () => {
       openDrawer();
 
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      expect(reportLink().href).toBe(await service.issueUrl(service.draft()));
+      expect(reportButton()).toBeTruthy();
     });
 
-    it("follows a rule changed while the drawer is open", async () => {
-      openDrawer();
-      await fixture.whenStable();
-
-      harness.catalog.setOption("drawCount", 1);
-      await fixture.whenStable();
-      fixture.detectChanges();
-
-      expect(new URL(reportLink().href).searchParams.get("game")).toBe(
-        "Klondike · Draw Mode: Draw 1",
-      );
-    });
-
-    it("has nowhere to lead while the drawer is closed", () => {
-      expect(reportLink().hasAttribute("href")).toBe(false);
-    });
-
-    it("opens the report in a new tab, leaving the board where it is", () => {
-      openDrawer();
-
-      expect(reportLink().target).toBe("_blank");
-      expect(reportLink().relList.contains("noopener")).toBe(true);
-    });
-  });
-
-  describe("the debug panel", () => {
-    it("is offered for a game with no debug rules, to load a report", () => {
-      harness.catalog.select("freecell");
-
-      openDrawer();
-
-      expect(query(fixture, "app-debug-panel")).not.toBeNull();
-    });
-
-    it("closes the drawer once a reported game is loaded", () => {
+    it("closes itself out of the way of the report's picture", () => {
       openDrawer();
       const closed = onClose();
-      const panel = fixture.debugElement.query(
-        By.directive(DebugPanelComponent),
-      ).componentInstance as DebugPanelComponent;
 
-      panel.loaded.emit();
+      reportButton().click();
 
       expect(closed).toHaveBeenCalledOnce();
+    });
+
+    it("reports the game on the table", async () => {
+      openDrawer();
+      const reports = TestBed.inject(BugReportService);
+
+      reportButton().click();
+
+      await vi.waitFor(() => {
+        expect(reports.report()?.title).toBe("[Solitaire Collection] ");
+      });
+      expect(
+        new URL(reports.report()?.url ?? "").searchParams.get("game"),
+      ).toBe("Klondike · Draw Mode: Draw 3");
     });
   });
 
@@ -654,6 +632,47 @@ describe("SettingsDrawerComponent", () => {
     clickElement(fixture, ".drawer-content .fz-button-secondary");
 
     expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
+    expect(closed).toHaveBeenCalledOnce();
+  });
+});
+
+describe("SettingsDrawerComponent's debug panel", () => {
+  let fixture: ComponentFixture<SettingsDrawerComponent>;
+
+  /** Opens the drawer, where the game offers its debug menu or not. */
+  async function openDrawer(debugMenu: boolean): Promise<void> {
+    await configureUiTestBed(SettingsDrawerComponent);
+    TestBed.overrideProvider(DEBUG_MENU, { useValue: debugMenu });
+    fixture = TestBed.createComponent(SettingsDrawerComponent);
+    fixture.componentRef.setInput("open", true);
+    fixture.detectChanges();
+  }
+
+  it("is offered where the game offers its debug menu, to load a report", async () => {
+    await openDrawer(true);
+
+    expect(
+      within(queryRequired(fixture, "app-debug-panel")).getByRole("textbox", {
+        name: "Load game state",
+      }),
+    ).toBeTruthy();
+  });
+
+  it("is left out where the game offers no debug menu", async () => {
+    await openDrawer(false);
+
+    expect(query(fixture, "app-debug-panel")).toBeNull();
+  });
+
+  it("closes the drawer once a reported game is loaded", async () => {
+    await openDrawer(true);
+    const closed = vi.fn();
+    fixture.componentInstance.closed.subscribe(closed);
+    const panel = fixture.debugElement.query(By.directive(DebugPanelComponent))
+      .componentInstance as DebugPanelComponent;
+
+    panel.loaded.emit();
+
     expect(closed).toHaveBeenCalledOnce();
   });
 });

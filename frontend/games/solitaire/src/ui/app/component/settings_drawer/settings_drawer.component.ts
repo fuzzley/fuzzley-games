@@ -1,12 +1,7 @@
-import {
-  Component,
-  computed,
-  inject,
-  input,
-  output,
-  resource,
-} from "@angular/core";
+import { Component, computed, inject, input, output } from "@angular/core";
+import { ReportBugButtonComponent } from "@fz/game-ui/bug_report";
 import { BuildInfoComponent } from "@fz/game-ui/build_info";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { THEMES } from "@fz/style/themes";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
@@ -16,7 +11,6 @@ import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { FELT_KEYS, type FeltKey, TABLE_FELTS } from "../../model/table_felt";
 import { GameDocumentationService } from "../../service/game_documentation.service";
-import { BugReportService } from "../../service/bug_report.service";
 import {
   type CardStyle,
   PresentationSettingsService,
@@ -204,8 +198,8 @@ interface FeltSwatch {
 
 /**
  * Offers the running game's rules, the card back, style and deck, the palette
- * and the felt, and links to the rules page and a bug report, over the
- * version of the game that is running.
+ * and the felt, the rules page and Report a bug, over the version of the game
+ * that is running.
  */
 @Component({
   selector: "app-settings-drawer",
@@ -216,6 +210,7 @@ interface FeltSwatch {
     DialogComponent,
     IconComponent,
     RadioGroupDirective,
+    ReportBugButtonComponent,
     ThemePickerComponent,
   ],
   templateUrl: "./settings_drawer.component.html",
@@ -227,11 +222,13 @@ export class SettingsDrawerComponent {
 
   protected readonly presentation = inject(PresentationSettingsService);
   private readonly docService = inject(GameDocumentationService);
-  private readonly bugReport = inject(BugReportService);
   private readonly theme = inject(ThemeService);
 
-  /** Whether this is a development build, which shows the debug panel. */
-  protected readonly isDevMode = import.meta.env.DEV;
+  /**
+   * Whether the game offers its debug menu, which shows the debug panel: in
+   * a development build, and on the site at `?debug`.
+   */
+  protected readonly debugMenu = inject(DEBUG_MENU);
 
   /** Title of the game currently active. */
   protected readonly activeGameTitle = computed(
@@ -376,20 +373,6 @@ export class SettingsDrawerComponent {
 
   /** Whether the side settings drawer is visible. */
   readonly open = input<boolean>(false);
-
-  /**
-   * The bug report link, rebuilt each time the drawer opens and whenever
-   * something it describes changes while open.
-   */
-  private readonly bugReportLink = resource({
-    params: () => (this.open() ? this.bugReport.draft() : undefined),
-    loader: ({ params }) => this.bugReport.issueUrl(params),
-  });
-
-  /** Where "Report a bug" leads, once the link is ready. */
-  protected readonly bugReportUrl = computed(() =>
-    this.bugReportLink.hasValue() ? this.bugReportLink.value() : null,
-  );
 
   /**
    * Emitted when the player asks to close the drawer; not `close`, which would

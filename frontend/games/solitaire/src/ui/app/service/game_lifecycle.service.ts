@@ -1,4 +1,5 @@
 import { Injectable, inject } from "@angular/core";
+import { DEV_BUILD } from "@fz/game-ui/debug_menu";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import type { GamePosition } from "../model/game_position";
 import type { GameOptionValues } from "../provider/game_catalog";
@@ -26,6 +27,9 @@ export class GameLifecycleService {
   private readonly catalog = inject(GameCatalogService);
   private readonly metrics = inject(GameMetricsService);
   private readonly confirm = inject(ConfirmService);
+
+  /** Whether this is a development build, which offers the debug rules. */
+  private readonly devBuild = inject(DEV_BUILD);
 
   /**
    * Puts a game on the table by the given rules, asking first when that would
@@ -131,6 +135,10 @@ export class GameLifecycleService {
    * Puts a reported game on the table: its game, its rules and its position,
    * asking first when that would throw away a game under way.
    *
+   * A debug rule the report names, such as Almost Win Mode, is taken only in
+   * a development build, whose debug panel alone can turn it off again. The
+   * board is the report's, whatever rule dealt it.
+   *
    * @returns Whether it was loaded, which it is not when the player declines.
    * @throws Error if the position names a game or a rule this build does not
    *   have, before asking anything, or a board that does not fit the game.
@@ -158,7 +166,14 @@ export class GameLifecycleService {
       return false;
     }
 
-    this.catalog.load(entry.id, options);
+    const rules = Object.fromEntries(
+      Object.entries(options).filter(
+        ([optionId]) =>
+          this.devBuild ||
+          !entry.options.some((spec) => spec.id === optionId && spec.debugOnly),
+      ),
+    );
+    this.catalog.load(entry.id, rules);
     this.catalog.session().game.restore(snapshot);
     return true;
   }

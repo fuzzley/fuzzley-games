@@ -1,4 +1,10 @@
-import { Component, computed, inject, output } from "@angular/core";
+import {
+  Component,
+  ErrorHandler,
+  computed,
+  inject,
+  output,
+} from "@angular/core";
 import {
   type BarOverflowAction,
   BarOverflowComponent,
@@ -6,6 +12,7 @@ import {
   SETTINGS_MENU_ACTION,
   withHomeLink,
 } from "@fz/game-ui/bar_overflow";
+import { BugReportService } from "@fz/game-ui/bug_report";
 import { type BarPlacement, GameBarComponent } from "@fz/game-ui/game_bar";
 import { IconComponent } from "@fz/ui/icon";
 import { GameMetricsService } from "../../service/game_metrics.service";
@@ -13,7 +20,6 @@ import { GameLifecycleService } from "../../service/game_lifecycle.service";
 import { GameDocumentationService } from "../../service/game_documentation.service";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import { BugReportService } from "../../service/bug_report.service";
 import { GameBrowserService } from "../../service/game_browser.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
 
@@ -49,7 +55,8 @@ export class HeaderBarComponent {
   protected readonly browser = inject(GameBrowserService);
 
   private readonly catalog = inject(GameCatalogService);
-  private readonly bugReport = inject(BugReportService);
+  private readonly reports = inject(BugReportService);
+  private readonly errors = inject(ErrorHandler);
   private readonly presentation = inject(PresentationSettingsService);
 
   /** Emitted when the user requests to open the settings panel. */
@@ -130,8 +137,13 @@ export class HeaderBarComponent {
     this.docService.openHelp();
   }
 
-  /** Opens a new bug report about the game on the table, in a new tab. */
+  /**
+   * Starts a bug report on the game on the table, handing what goes wrong to
+   * the app's error handler.
+   */
   protected reportBug(): void {
-    void this.bugReport.openReport();
+    this.reports.start().catch((error: unknown) => {
+      this.errors.handleError(error);
+    });
   }
 }

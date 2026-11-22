@@ -206,24 +206,14 @@
         </button>
       </div>
 
-      <!-- Report a bug, in a new tab so the board being reported is kept -->
-      <div class="setting">
-        <span class="setting-label">Found a problem?</span>
-        <a
-          class="fz-button fz-button-secondary fz-button-block btn-report"
-          [attr.href]="bugReportUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <fz-icon name="bug" />
-          Report a bug
-          <fz-icon name="external" />
-          <span class="new-tab-hint">(opens GitHub in a new tab)</span>
-        </a>
-      </div>
+      <!-- Report a bug, which closes the drawer before the report is taken -->
+      <fz-report-bug-button (chosen)="closed.emit()" />
 
-      <!-- Debug Settings (dev mode); closes once a reported game is loaded -->
-      @if (isDevMode) {
+      <!--
+        Debug options, where the game offers its debug menu (a development
+        build, or the site at ?debug); closes once a reported game is loaded
+      -->
+      @if (debugMenu) {
         <app-debug-panel (loaded)="closed.emit()" />
       }
 

@@ -4,6 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import type { GamePosition } from "@/ui/app/model/game_position";
 import { GameLifecycleService } from "@/ui/app/service/game_lifecycle.service";
 import { GameMetricsService } from "@/ui/app/service/game_metrics.service";
+import { DEV_BUILD } from "@fz/game-ui/debug_menu";
 import { ConfirmService } from "@fz/ui/confirm";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import {
@@ -21,13 +22,23 @@ interface Harness {
   catalog: ReturnType<typeof createMockCatalog>;
 }
 
-function buildLifecycle(overrides: MockGameModelOverrides = {}): Harness {
+/** Says what kind of build a spec's lifecycle runs in. */
+interface Build {
+  /** Whether it is a development build, as unless told otherwise. */
+  readonly devBuild?: boolean;
+}
+
+function buildLifecycle(
+  overrides: MockGameModelOverrides = {},
+  { devBuild = true }: Build = {},
+): Harness {
   const model = createMockGameModel(overrides);
   const catalog = createMockCatalog(model);
 
   TestBed.configureTestingModule({
     providers: [
       { provide: GameCatalogService, useValue: asCatalog(catalog.catalog) },
+      { provide: DEV_BUILD, useValue: devBuild },
     ],
   });
 
@@ -368,6 +379,40 @@ describe("GameLifecycleService", () => {
       );
 
       expect(harness.catalog.catalog.valueOf("drawCount")).toBe(1);
+    });
+
+    it("plays it by a reported debug rule in a development build", async () => {
+      const harness = buildLifecycle();
+
+      await harness.lifecycle.loadPosition(
+        reported(harness, { options: { drawCount: 3, almostWin: 1 } }),
+      );
+
+      expect(harness.catalog.catalog.valueOf("almostWin")).toBe(1);
+    });
+
+    it("leaves a reported debug rule out of any other build", async () => {
+      const harness = buildLifecycle({}, { devBuild: false });
+
+      await harness.lifecycle.loadPosition(
+        reported(harness, { options: { drawCount: 1, almostWin: 1 } }),
+      );
+
+      expect([
+        harness.catalog.catalog.valueOf("drawCount"),
+        harness.catalog.catalog.valueOf("almostWin"),
+      ]).toEqual([1, 0]);
+    });
+
+    it("still puts the reported board on the table in any other build", async () => {
+      const harness = buildLifecycle({}, { devBuild: false });
+      const snapshot = { ...harness.model.snapshot(), score: 250 };
+
+      await harness.lifecycle.loadPosition(
+        reported(harness, { options: { almostWin: 1 }, snapshot }),
+      );
+
+      expect(harness.model.restore).toHaveBeenCalledWith(snapshot);
     });
 
     it("asks before loading over a game in progress", async () => {

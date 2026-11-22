@@ -1,6 +1,7 @@
 import "@angular/compiler";
 import { TestBed } from "@angular/core/testing";
 import { setupTestBed } from "@analogjs/vitest-angular/setup-testbed";
+import { provideReportPicture } from "@fz/game-ui/testing";
 import { installHeadlessPhaser } from "@fz/phaser/testing";
 import { installDialogPolyfill, provideMemoryStorage } from "@fz/ui/testing";
 
@@ -18,7 +19,10 @@ if (typeof window !== "undefined") {
 }
 
 // Each test's app stores in a store of its own, so nothing it keeps leaks
-// into the next.
+// into the next. A bug report takes no picture, which over jsdom takes long
+// enough to time a spec out.
 beforeEach(() => {
-  TestBed.configureTestingModule({ providers: [provideMemoryStorage()] });
+  TestBed.configureTestingModule({
+    providers: [provideMemoryStorage(), provideReportPicture()],
+  });
 });

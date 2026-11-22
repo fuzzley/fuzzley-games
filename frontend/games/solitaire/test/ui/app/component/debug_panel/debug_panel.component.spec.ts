@@ -3,16 +3,12 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { DebugPanelComponent } from "@/ui/app/component/debug_panel/debug_panel.component";
 import { packState } from "@fz/game-ui/bug_report";
+import { DEBUG_MENU, DEV_BUILD } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
 import { POSITION_TAG } from "@/ui/app/model/game_position";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import {
-  clickElement,
-  query,
-  queryAll,
-  queryRequired,
-  queryText,
-} from "@test/support/dom";
+import { within } from "@testing-library/dom";
+import { query, queryAll, queryText, rootElement } from "@test/support/dom";
 import { flushMicrotasks } from "@test/support/async";
 
 describe("DebugPanelComponent", () => {
@@ -65,8 +61,13 @@ describe("DebugPanelComponent", () => {
 
     /** Pastes text into the loader and presses Load. */
     function load(text: string): void {
-      queryRequired(fixture, ".load-text", HTMLTextAreaElement).value = text;
-      clickElement(fixture, ".btn-load");
+      const panel = within(rootElement(fixture));
+      const field = panel.getByRole("textbox", { name: "Load game state" });
+      if (!(field instanceof HTMLTextAreaElement)) {
+        throw new Error("The loader's field is no text area.");
+      }
+      field.value = text;
+      panel.getByRole("button", { name: "Load" }).click();
     }
 
     /** Returns a report's game state for the mock game. */
@@ -78,11 +79,13 @@ describe("DebugPanelComponent", () => {
       });
     }
 
-    /** Returns the loader's problem line, as rendered. */
-    function problem(): string {
-      fixture.detectChanges();
-      return queryText(fixture, ".load-problem");
-    }
+    it("says under the field that the report's rules become yours", () => {
+      expect(
+        within(rootElement(fixture)).getByText(
+          "Your rules for the reported game change to match the report.",
+        ),
+      ).toBeTruthy();
+    });
 
     it("puts the pasted game on the table", async () => {
       const text = await reported();
@@ -110,12 +113,35 @@ describe("DebugPanelComponent", () => {
       load("hello");
 
       await vi.waitFor(() => {
-        expect(problem()).not.toBe("");
+        fixture.detectChanges();
+        expect(
+          within(rootElement(fixture)).getByRole("status").textContent,
+        ).toBe("There is no game state in that text.");
       });
     });
+  });
+});
 
-    it("has no problem to report before anything is loaded", () => {
-      expect(problem()).toBe("");
-    });
+describe("DebugPanelComponent outside a development build", () => {
+  let fixture: ComponentFixture<DebugPanelComponent>;
+
+  beforeEach(async () => {
+    await configureUiTestBed(DebugPanelComponent);
+    TestBed.overrideProvider(DEV_BUILD, { useValue: false });
+    TestBed.overrideProvider(DEBUG_MENU, { useValue: true });
+    fixture = TestBed.createComponent(DebugPanelComponent);
+    fixture.detectChanges();
+  });
+
+  it("offers no debug rule, which nothing would turn off again", () => {
+    expect(queryAll(fixture, "app-option-group")).toEqual([]);
+  });
+
+  it("still loads a report's game, as on the site at ?debug", () => {
+    expect(
+      within(rootElement(fixture)).getByRole("textbox", {
+        name: "Load game state",
+      }),
+    ).toBeTruthy();
   });
 });

@@ -1,31 +1,19 @@
 <div class="debug-panel" role="group" aria-labelledby="debug-panel-label">
   <p class="debug-label" id="debug-panel-label">Debug options</p>
-  @for (option of catalog.debugOptions(); track option.id) {
-    <app-option-group
-      [option]="option"
-      [value]="catalog.optionValues()[option.id]"
-      [compactLabel]="true"
-      (choose)="chooseRule(option.id, $event)"
-    />
+  @if (devBuild) {
+    @for (option of catalog.debugOptions(); track option.id) {
+      <app-option-group
+        [option]="option"
+        [value]="catalog.optionValues()[option.id]"
+        [compactLabel]="true"
+        (choose)="chooseRule(option.id, $event)"
+      />
+    }
   }
 
-  <div class="load-position">
-    <label class="load-label" for="load-position-text">Load game state</label>
-    <textarea
-      #positionText
-      id="load-position-text"
-      class="load-text"
-      rows="3"
-      placeholder="Paste a bug report's game state"
-    ></textarea>
-    <button
-      type="button"
-      class="fz-button fz-button-secondary fz-button-block btn-load"
-      (click)="loadPosition(positionText.value)"
-    >
-      Load
-    </button>
-    <!-- Always present, so a problem is announced when it arrives. -->
-    <p class="load-problem" role="status">{{ loadProblem() }}</p>
-  </div>
+  <fz-bug-report-loader (loaded)="loaded.emit()">
+    <p class="load-note">
+      Your rules for the reported game change to match the report.
+    </p>
+  </fz-bug-report-loader>
 </div>

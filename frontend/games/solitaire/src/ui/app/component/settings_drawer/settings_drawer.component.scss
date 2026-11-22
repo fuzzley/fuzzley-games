@@ -267,10 +267,3 @@
   background-color: var(--fz-text);
   border-radius: 50%;
 }
-
-// --- Reporting a problem ---
-
-// For screen readers; the icon beside it says the same visually.
-.new-tab-hint {
-  @include visually-hidden;
-}

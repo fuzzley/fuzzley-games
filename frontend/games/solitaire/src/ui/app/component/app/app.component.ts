@@ -2,6 +2,8 @@ import { DOCUMENT } from "@angular/common";
 import { Component, effect, inject, signal } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
+import { GameViewportService } from "@fz/game-ui/viewport";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { GameCatalogService } from "../../service/game_catalog.service";
 import { PresentationSettingsService } from "../../service/presentation_settings.service";
@@ -14,7 +16,7 @@ import { GameBrowserService } from "../../service/game_browser.service";
 
 /**
  * Composes the chrome around the routed board: header, game browser, settings
- * drawer, help modal, victory card and confirmation prompt.
+ * drawer, help modal, victory card, confirmation prompt and bug report.
  */
 @Component({
   selector: "app-root",
@@ -30,12 +32,14 @@ import { GameBrowserService } from "../../service/game_browser.service";
     GameHelpModalComponent,
     VictoryOverlayComponent,
     ConfirmDialogComponent,
+    BugReportDialogComponent,
   ],
   templateUrl: "./app.component.html",
   styleUrl: "./app.component.scss",
 })
 export class AppComponent {
   protected readonly browser = inject(GameBrowserService);
+  protected readonly viewport = inject(GameViewportService);
 
   private readonly presentation = inject(PresentationSettingsService);
   private readonly catalog = inject(GameCatalogService);

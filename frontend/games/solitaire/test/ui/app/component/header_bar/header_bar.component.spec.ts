@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import { ErrorHandler } from "@angular/core";
 import { TestBed, type ComponentFixture } from "@angular/core/testing";
 import { HeaderBarComponent } from "@/ui/app/component/header_bar/header_bar.component";
 import { GameDocumentationService } from "@/ui/app/service/game_documentation.service";
 import { ConfirmService } from "@fz/ui/confirm";
-import { BugReportService } from "@/ui/app/service/bug_report.service";
+import { BugReportService } from "@fz/game-ui/bug_report";
 import { GameBrowserService } from "@/ui/app/service/game_browser.service";
+import { SolitaireReportSource } from "@/ui/app/bug_report/solitaire_report_source";
 import { By } from "@angular/platform-browser";
 import { GameBarComponent } from "@fz/game-ui/game_bar";
 import {
@@ -14,7 +16,11 @@ import {
   WORDMARK_MIN_WIDTH_PX,
 } from "@fz/game-ui/breakpoints";
 import { configureUiTestBed, type UiHarness } from "@test/support/ui/testbed";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  installCompressionStreams,
+  installFakeViewport,
+} from "@fz/game-ui/testing";
 import {
   clickElement,
   query,
@@ -34,6 +40,9 @@ describe("HeaderBarComponent", () => {
   let fixture: ComponentFixture<HeaderBarComponent>;
   let harness: UiHarness;
   let viewport: FakeViewport;
+
+  // A report started packs the game for its link.
+  installCompressionStreams();
 
   beforeEach(async () => {
     viewport = installFakeViewport(WIDE);
@@ -78,11 +87,13 @@ describe("HeaderBarComponent", () => {
     );
   }
 
-  /** Watches for a bug report being opened, without opening one. */
-  function spyOnReports() {
-    return vi
-      .spyOn(TestBed.inject(BugReportService), "openReport")
-      .mockResolvedValue();
+  /** Resolves to the title of the bug report that opens. */
+  async function openedReport(): Promise<string | undefined> {
+    const reports = TestBed.inject(BugReportService);
+    await vi.waitFor(() => {
+      expect(reports.report()).not.toBeNull();
+    });
+    return reports.report()?.title;
   }
 
   describe("the heading", () => {
@@ -339,18 +350,37 @@ describe("HeaderBarComponent", () => {
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
 
-    it("reports a bug from an icon beside the rules", () => {
-      const openReport = spyOnReports();
+    it("reports a bug from an icon beside the rules", async () => {
+      clickElement(fixture, ".btn-bug-report");
+
+      expect(await openedReport()).toBe("[Solitaire Collection] ");
+    });
+
+    it("hands what goes wrong with a report to the app's error handler", async () => {
+      const problem = new Error("The game can't be taken.");
+      vi.spyOn(
+        TestBed.inject(SolitaireReportSource),
+        "capture",
+      ).mockImplementation(() => {
+        throw problem;
+      });
+      const handled = vi
+        .spyOn(TestBed.inject(ErrorHandler), "handleError")
+        .mockImplementation(() => undefined);
 
       clickElement(fixture, ".btn-bug-report");
 
-      expect(openReport).toHaveBeenCalledOnce();
+      await vi.waitFor(() => {
+        expect(handled).toHaveBeenCalledWith(problem);
+      });
     });
 
-    it("names the icon-only bug report button for a screen reader", () => {
-      expect(
-        queryRequired(fixture, ".btn-bug-report").getAttribute("aria-label"),
-      ).toContain("Report a bug");
+    it("names the icon-only bug report button once, by its tooltip", () => {
+      const button = within(rootElement(fixture)).getByRole("button", {
+        name: "Report a bug",
+      });
+
+      expect(button.getAttribute("aria-label")).toBeNull();
     });
 
     it("asks the shell to open settings", () => {
@@ -445,13 +475,12 @@ describe("HeaderBarComponent", () => {
       expect(TestBed.inject(GameDocumentationService).isOpen()).toBe(true);
     });
 
-    it("reports a bug from the menu", () => {
-      const openReport = spyOnReports();
+    it("reports a bug from the menu", async () => {
       openMenu();
 
       choose("Report a bug");
 
-      expect(openReport).toHaveBeenCalledOnce();
+      expect(await openedReport()).toBe("[Solitaire Collection] ");
     });
 
     it("asks the shell to open settings from the menu", () => {

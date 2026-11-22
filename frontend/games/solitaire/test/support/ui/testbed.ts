@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import type { Type } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
+import { provideSolitaireReports } from "@/ui/app/bug_report/solitaire_report_source";
 import { GameCatalogService } from "@/ui/app/service/game_catalog.service";
 import { PresentationSettingsService } from "@/ui/app/service/presentation_settings.service";
 import { GAME_DOCUMENTATION } from "@/ui/app/provider/game_documentation_data";
@@ -62,6 +63,8 @@ export async function configureUiTestBed(
       { provide: GAME_PROFILES, useValue: TEST_PROFILES },
       // A canvas that loads no Phaser.
       provideFakePhaserCanvas(),
+      // As main.ts provides them, so Report a bug reports the mock's game.
+      provideSolitaireReports(),
     ],
   }).compileComponents();
 
