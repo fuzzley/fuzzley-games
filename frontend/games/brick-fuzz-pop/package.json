@@ -16,6 +16,7 @@
     "capture:screenshots": "node tools/capture-screenshots.mjs",
     "certify:levels": "node tools/certify-levels.mjs",
     "report:levels": "node tools/report-levels.mjs",
+    "golden:flights": "node tools/golden-flights.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim \"$@\"",
