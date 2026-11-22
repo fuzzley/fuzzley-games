@@ -405,6 +405,37 @@ describe("GameService", () => {
     });
   });
 
+  describe("the end's stage", () => {
+    it("holds no new best and its card to come for a run under way", () => {
+      const game = startedGame();
+
+      expect(game.endStage()).toEqual({ newBest: false, card: "coming" });
+    });
+
+    it("holds an ended run's new best, its card still to come", () => {
+      const game = endedGame("right");
+
+      expect(game.endStage()).toEqual({ newBest: true, card: "coming" });
+    });
+
+    it("holds the card over an ended run as showing, once it shows", () => {
+      const game = endedGame();
+
+      game.tick(16);
+
+      expect(game.endStage().card).toBe("open");
+    });
+
+    it("holds the card over an ended run as put away", () => {
+      const game = endedGame();
+      game.tick(16);
+
+      game.closeResult();
+
+      expect(game.endStage().card).toBe("closed");
+    });
+  });
+
   describe("a new game", () => {
     it("starts a new run without asking while none is under way", async () => {
       const game = TestBed.inject(GameService);

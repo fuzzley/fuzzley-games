@@ -21,6 +21,18 @@ import { resultDelayMs } from "../../view/timing";
 import { SettingsService } from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
 
+/** Says where the card over an ended run is: still to come, showing, or put away. */
+export type ResultCard = "coming" | "open" | "closed";
+
+/**
+ * Says what the board shows of a run beyond the run itself: whether it set a
+ * new best, and where the card over its end is.
+ */
+export interface EndStage {
+  readonly newBest: boolean;
+  readonly card: ResultCard;
+}
+
 /** The frame the scene is handed, one object written again each frame. */
 interface Frame {
   run: Run;
@@ -78,6 +90,16 @@ export class GameService extends RunLifecycle {
    * to look at, from which another run starts at a key.
    */
   readonly resultClosed = this.resultClosedState.asReadonly();
+
+  /**
+   * What the board shows of the run beyond the run: its new best, and where
+   * the card over its end is, still to come until the run ends.
+   */
+  readonly endStage = computed<EndStage>(() => {
+    const newBest = this.newBestState();
+    if (this.resultOpenState()) return { newBest, card: "open" };
+    return { newBest, card: this.resultClosedState() ? "closed" : "coming" };
+  });
 
   /** The apples eaten this run. */
   readonly score = computed(() => this.runState().eaten);

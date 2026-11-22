@@ -11,7 +11,8 @@ import {
   SettingsService,
 } from "./settings.service";
 
-const MOVEMENTS: readonly ChoiceOption<Movement>[] = [
+/** How the snake may move, as the settings offer it. */
+export const MOVEMENTS: readonly ChoiceOption<Movement>[] = [
   {
     id: "glide",
     name: "Glide",
@@ -20,7 +21,8 @@ const MOVEMENTS: readonly ChoiceOption<Movement>[] = [
   { id: "step", name: "Step", detail: "Jumps a whole square at a time." },
 ];
 
-const ARROWS: readonly ChoiceOption<Arrows>[] = [
+/** When the on-screen arrows may show, as the settings offer it. */
+export const ARROWS: readonly ChoiceOption<Arrows>[] = [
   {
     id: "touch",
     name: "On a touch screen",
