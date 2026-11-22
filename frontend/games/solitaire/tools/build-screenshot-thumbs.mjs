@@ -16,6 +16,7 @@ import { readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  describeImage,
   siteImagesFolder,
   writeImage,
   writeSiteImages,
@@ -104,7 +105,8 @@ async function findBoard(source) {
 
 /**
  * Writes the rules page's image and the site's two of one game's screenshot,
- * returning their sizes.
+ * each unless the committed one looks the same, returning what it did with
+ * each.
  *
  * The site's thumbnail is cropped to the board, since the header would be an
  * illegible strip at its size.
@@ -131,9 +133,7 @@ async function shrink(id) {
     { resize, quality: OVERVIEW_QUALITY },
   );
   const written = new Map([[OVERVIEW.file, overview], ...sizes]);
-  return [...written].map(
-    ([file, bytes]) => `${file} ${Math.round(bytes / 1024)} KB`,
-  );
+  return [...written].map(([file, image]) => describeImage(file, image));
 }
 
 async function main() {

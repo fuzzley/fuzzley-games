@@ -119,13 +119,14 @@ const SCRIPT = {
   game: "Snake",
   root: ROOT,
   port: 9003,
-  capture: async (devtools, { url }, printer) =>
+  capture: async (devtools, { url, force }, printer) =>
     keepShot(
       await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
         capture(page, url),
       ),
       SCREENSHOT_DIR,
       printer,
+      { force },
     ),
 };
 

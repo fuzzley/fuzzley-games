@@ -54,6 +54,11 @@ These rules hold for every game under `frontend/games/`. The frontend's, in
   build. Run alone, it checks `dist/` as last built, so build first.
   Minesweeper and the Solitaire Collection have none: look at their pages
   yourself, roomy, as a phone held upright and as one on its side.
+- **Retake the screenshots with `--force` after a change every image
+  should show, such as a palette or a font.** Without it, a retake
+  keeps any image in which no pixel moved by more than
+  `UNCHANGED_LEVELS` (`@fz/dev/screenshots`), so a change that faint
+  everywhere keeps every old image.
 - **A new game starts as a copy of one:** Minesweeper, or Snake for a board
   drawn with Phaser. Search the repository for the copied game's name to
   find every place that lists the games, the site's `games.json` and

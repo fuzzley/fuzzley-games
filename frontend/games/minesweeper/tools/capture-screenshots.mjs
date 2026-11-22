@@ -237,13 +237,14 @@ const SCRIPT = {
   game: "Minesweeper",
   root: ROOT,
   port: 9001,
-  capture: async (devtools, { url }, printer) =>
+  capture: async (devtools, { url, force }, printer) =>
     keepShot(
       await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
         capture(page, url),
       ),
       SCREENSHOT_DIR,
       printer,
+      { force },
     ),
 };
 

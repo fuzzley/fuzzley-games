@@ -2,9 +2,11 @@
 // screenshot script writes into its build's docs/screenshots/<id>/, where the
 // site's catalog looks for them (screenshotUrl() in the site's model), and
 // what runs every game's screenshot script: its command line, the server it
-// captures from, the Chrome it captures in, and the page it sets up there.
+// captures from, the Chrome it captures in, and the page it sets up there. A
+// retake writes an image only where it visibly changed, so a retake of an
+// unchanged page adds nothing to the repository's history.
 
-import { mkdir, stat } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import sharp from "sharp";
 import type { Region, ResizeOptions } from "sharp";
@@ -60,6 +62,42 @@ export const SITE_IMAGES = {
 export const SITE_IMAGE_QUALITY = 80;
 
 /**
+ * The most any channel of any pixel may move, of 255, for a capture's image
+ * to count as unchanged and the committed one kept.
+ */
+export const UNCHANGED_LEVELS = 48;
+
+/** What writing an image did: wrote it, or kept the committed one. */
+export type WrittenImage =
+  | {
+      /** The committed file was kept, as nothing in it moved far enough. */
+      readonly kept: true;
+      /** The size in bytes of the file on disk. */
+      readonly bytes: number;
+      /** The largest change in any channel against the committed image, of 255. */
+      readonly moved: number;
+    }
+  | {
+      readonly kept: false;
+      /** The size in bytes of the file written. */
+      readonly bytes: number;
+      /**
+       * The change that ruled the committed image out, of 255, or undefined
+       * where nothing was compared: `force` was set, or no committed image
+       * of the same size decoded. The comparison stops at the first change
+       * past {@link UNCHANGED_LEVELS}, so the largest may be more.
+       */
+      readonly moved: number | undefined;
+    };
+
+/** Returns the line a capture prints for an image it wrote or kept. */
+export function describeImage(file: string, written: WrittenImage): string {
+  return written.kept
+    ? `${file}: kept, moved at most ${String(written.moved)} of 255`
+    : `${file}: ${String(Math.round(written.bytes / 1024))} KB`;
+}
+
+/**
  * The page a game's capture script takes the site's screenshots at: 1280 ×
  * 720 CSS px, at twice the pixels, so the preview's capture is its 2560 ×
  * 1440. The Solitaire Collection shoots its rules page at its own size.
@@ -93,6 +131,8 @@ export interface ImageOptions {
   readonly resize?: ResizeOptions | undefined;
   /** The WebP quality, from 1 to 100: {@link SITE_IMAGE_QUALITY} unless given. */
   readonly quality?: number;
+  /** Writes the image even where the committed one would be kept. */
+  readonly force?: boolean | undefined;
 }
 
 /** Says how the site's two images are made from a capture. */
@@ -101,45 +141,136 @@ export interface SiteImageOptions {
   readonly thumbRegion?: Region | undefined;
   /** How the capture is fitted to each image's size. */
   readonly resize?: ResizeOptions;
+  /** Writes both images even where the committed ones would be kept. */
+  readonly force?: boolean | undefined;
 }
 
-/** Writes a capture to a WebP image of the given size, and returns its size in bytes. */
+/**
+ * Writes a capture to a WebP image of the given size, unless the committed
+ * image looks the same, and says which it did.
+ *
+ * The committed image is kept where it is the same size and no channel of
+ * any pixel moved by more than {@link UNCHANGED_LEVELS}, so a retake of an
+ * unchanged page leaves the file as it was. It is a tolerance and not a
+ * comparison of bytes because two captures of an unchanged page differ by a
+ * few pixels in the game bar, and WebP spreads that into changes of up to 40
+ * levels.
+ */
 export async function writeImage(
   capture: string | Buffer,
   target: string,
   image: Image,
-  { region, resize, quality = SITE_IMAGE_QUALITY }: ImageOptions = {},
-): Promise<number> {
+  {
+    region,
+    resize,
+    quality = SITE_IMAGE_QUALITY,
+    force = false,
+  }: ImageOptions = {},
+): Promise<WrittenImage> {
   const source = sharp(capture);
-  await (region ? source.extract(region) : source)
+  const encoded = await (region ? source.extract(region) : source)
     .resize(image.width, image.height, resize)
     // Smart subsampling keeps a small, saturated detail, such as a red suit
     // or a number's ink, from bleeding into what surrounds it.
     .webp({ quality, smartSubsample: true })
-    .toFile(target);
-  return (await stat(target)).size;
+    .toBuffer();
+  const committed = force ? undefined : await readCommitted(target);
+  // Decoded from what was encoded, not from the capture, so the same capture
+  // written twice compares as unchanged.
+  const moved = committed
+    ? changeFrom(committed.pixels, await decoded(encoded))
+    : undefined;
+  if (committed && moved !== undefined && moved <= UNCHANGED_LEVELS) {
+    return { kept: true, bytes: committed.bytes, moved };
+  }
+  await writeFile(target, encoded);
+  return { kept: false, bytes: encoded.length, moved };
+}
+
+/** An image's pixels, decoded to a channel a byte, without alpha. */
+interface Pixels {
+  readonly data: Buffer;
+  readonly width: number;
+  readonly height: number;
+  readonly channels: number;
+}
+
+/** Returns an image's pixels, decoded. */
+async function decoded(image: Buffer): Promise<Pixels> {
+  const { data, info } = await sharp(image)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  return { data, ...info };
 }
 
 /**
- * Writes the site's thumbnail and preview of a game into a folder, and
- * returns each file's name and size in bytes.
+ * Returns the committed image at a path, its size in bytes and its pixels,
+ * or undefined where there is none to compare: no file, or one that doesn't
+ * decode.
+ *
+ * It reads the file before sharp sees it, since sharp keeps a file it opened
+ * by path locked on Windows, and it could not then be written.
+ */
+async function readCommitted(
+  target: string,
+): Promise<{ bytes: number; pixels: Pixels } | undefined> {
+  try {
+    const file = await readFile(target);
+    return { bytes: file.length, pixels: await decoded(file) };
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Returns the largest change in any channel between two images, of 255, or
+ * undefined for images of different sizes.
+ *
+ * It stops once the change passes {@link UNCHANGED_LEVELS}, so a larger one is
+ * only a lower bound.
+ */
+function changeFrom(before: Pixels, after: Pixels): number | undefined {
+  if (
+    before.width !== after.width ||
+    before.height !== after.height ||
+    before.channels !== after.channels
+  ) {
+    return undefined;
+  }
+  return largestChange(before.data, after.data);
+}
+
+/** Returns the largest difference between two buffers' bytes, or the first past {@link UNCHANGED_LEVELS}. */
+function largestChange(a: Buffer, b: Buffer): number {
+  let largest = 0;
+  for (let i = 0; i < a.length && largest <= UNCHANGED_LEVELS; i++) {
+    largest = Math.max(largest, Math.abs(a.readUInt8(i) - b.readUInt8(i)));
+  }
+  return largest;
+}
+
+/**
+ * Writes the site's thumbnail and preview of a game into a folder, each
+ * unless the committed one looks the same, and returns what it did with
+ * each, by the file's name.
  */
 export async function writeSiteImages(
   capture: string | Buffer,
   folder: string,
-  { thumbRegion, resize }: SiteImageOptions = {},
-): Promise<Map<string, number>> {
+  { thumbRegion, resize, force }: SiteImageOptions = {},
+): Promise<Map<string, WrittenImage>> {
   await mkdir(folder, { recursive: true });
-  const sizes = new Map<string, number>();
+  const written = new Map<string, WrittenImage>();
   for (const [kind, image] of Object.entries(SITE_IMAGES)) {
     const region = kind === "thumb" ? thumbRegion : undefined;
     const target = join(folder, image.file);
-    sizes.set(
+    written.set(
       image.file,
-      await writeImage(capture, target, image, { region, resize }),
+      await writeImage(capture, target, image, { region, resize, force }),
     );
   }
-  return sizes;
+  return written;
 }
 
 /**
@@ -263,24 +394,28 @@ export interface Missed {
 
 /**
  * Writes the site's images of a shot into a folder, printing what it shows
- * and each image's size, or prints why it was missed, and returns the code
- * to exit with.
+ * and each image's size, or that it was kept, or prints why it was missed,
+ * and returns the code to exit with.
+ *
+ * @param options `force` writes every image, even one that looks unchanged.
  */
 export async function keepShot(
   shot: Shot | Missed,
   folder: string,
   { print, printError }: Printer,
+  { force }: { readonly force?: boolean } = {},
 ): Promise<number> {
   if ("problem" in shot) {
     printError(`Not captured: ${shot.problem}.`);
     return 1;
   }
   print(shot.says);
-  const sizes = await writeSiteImages(shot.png, folder, {
+  const written = await writeSiteImages(shot.png, folder, {
     thumbRegion: shot.thumbRegion,
+    force,
   });
-  for (const [file, bytes] of sizes) {
-    print(`${file}: ${String(Math.round(bytes / 1024))} KB`);
+  for (const [file, image] of written) {
+    print(describeImage(file, image));
   }
   return 0;
 }
@@ -291,6 +426,8 @@ export interface ScreenshotRequest {
   readonly url: string;
   /** The words after the options, which only a script that takes them is given. */
   readonly names: readonly string[];
+  /** Whether `--force` was given: write every image. */
+  readonly force: boolean;
 }
 
 /** Says what a game's `tools/capture-screenshots.mjs` captures. */
@@ -383,12 +520,13 @@ function readRequest(
         default: `http://localhost:${String(script.port)}/`,
       },
       chrome: { type: "string" },
+      force: { type: "boolean", default: false },
     },
     allowPositionals: script.nameLabel !== undefined,
     usage,
   });
   if (isStop(read)) return read;
-  const { url, chrome } = read.values;
+  const { url, chrome, force } = read.values;
   const protocol = URL.parse(url)?.protocol;
   if (protocol !== "http:" && protocol !== "https:") {
     return misread(
@@ -396,7 +534,7 @@ function readRequest(
       usage,
     );
   }
-  return { url, chrome, names: read.positionals };
+  return { url, chrome, force, names: read.positionals };
 }
 
 /** Returns what a screenshot script's `--help` prints. */
@@ -413,6 +551,7 @@ ${wrapped(about)}
   --url <url>      The server (default: http://localhost:${String(script.port)}/)
   --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
                    install location)
+  --force          Write every image, even one that looks unchanged
   -h, --help       Show this message`;
 }
 

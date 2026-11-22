@@ -1,4 +1,12 @@
-import { access, mkdtemp, readFile, rm } from "node:fs/promises";
+import {
+  access,
+  mkdtemp,
+  readFile,
+  rm,
+  stat,
+  utimes,
+  writeFile,
+} from "node:fs/promises";
 import { type Server, createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
@@ -15,8 +23,11 @@ import { PHASER_CANVAS_SETTLED, type PhaserPageState } from "./board_page.ts";
 import {
   type ScreenshotRequest,
   type ScreenshotScript,
+  type WrittenImage,
   SCREENSHOT_VIEWPORT,
   SITE_IMAGES,
+  UNCHANGED_LEVELS,
+  describeImage,
   keepShot,
   runScreenshotScript,
   settled,
@@ -59,6 +70,27 @@ async function capture(): Promise<Buffer> {
     .toBuffer();
 }
 
+/** Where a block of the board lies: one whole 16 × 16 tile of the WebP encoder's. */
+const BLOCK = { left: 640, top: 320, width: 16, height: 16 };
+
+/** Returns a capture whose block of the board is lighter in every channel by some levels. */
+async function captureMoved(levels: number): Promise<Buffer> {
+  const block = await sharp({
+    create: {
+      width: BLOCK.width,
+      height: BLOCK.height,
+      channels: 3,
+      background: { r: levels, g: 120 + levels, b: levels },
+    },
+  })
+    .png()
+    .toBuffer();
+  return sharp(await capture())
+    .composite([{ input: block, top: BLOCK.top, left: BLOCK.left }])
+    .png()
+    .toBuffer();
+}
+
 /**
  * Opens an image written to disk. Sharp would keep a file it opened by path
  * locked on Windows, and the folder could not be removed.
@@ -92,11 +124,11 @@ describe("writeSiteImages", () => {
   // Written once, into a folder that doesn't exist yet, since the preview
   // takes a while to encode.
   let images: string;
-  let sizes: Map<string, number>;
+  let written: Map<string, WrittenImage>;
 
   beforeAll(async () => {
     images = join(folder, "docs", "screenshots", "klondike");
-    sizes = await writeSiteImages(await capture(), images, {
+    written = await writeSiteImages(await capture(), images, {
       thumbRegion: BOARD,
     });
   });
@@ -121,9 +153,18 @@ describe("writeSiteImages", () => {
     ]);
   });
 
-  it("returns each file's size", () => {
-    expect([...sizes.keys()]).toEqual(["thumb.webp", "preview.webp"]);
-    expect([...sizes.values()].every((size) => size > 0)).toBe(true);
+  it("says it wrote each file, there being none to compare, and how large it is", () => {
+    const said = [...written].map(([file, { kept, bytes, moved }]) => [
+      file,
+      kept,
+      bytes > 0,
+      moved,
+    ]);
+
+    expect(said).toEqual([
+      ["thumb.webp", false, true, undefined],
+      ["preview.webp", false, true, undefined],
+    ]);
   });
 
   it("crops the thumbnail to the region it is given", async () => {
@@ -140,18 +181,155 @@ describe("writeSiteImages", () => {
 });
 
 describe("writeImage", () => {
+  /** An image at the capture's own size, so no resize blurs a change away. */
+  const WHOLE = { file: "image.webp", width: 1280, height: 720 };
+
+  /** A day before the specs ran, which a file written again would lose. */
+  const YESTERDAY = new Date(Date.now() - 86_400_000);
+
+  /** Returns where to write an image, in a folder of its own. */
+  async function newTarget(): Promise<string> {
+    return join(await mkdtemp(join(folder, "image-")), WHOLE.file);
+  }
+
+  /** Writes the capture to a target, then dates the file a day back. */
+  async function committed(target: string): Promise<WrittenImage> {
+    const written = await writeImage(await capture(), target, WHOLE);
+    await utimes(target, YESTERDAY, YESTERDAY);
+    return written;
+  }
+
   it("fits the capture as it is told", async () => {
-    const target = join(folder, "overview.webp");
+    const target = join(folder, "fitted.webp");
 
     await writeImage(
       await capture(),
       target,
-      { file: "overview.webp", width: 400, height: 400 },
+      { file: "fitted.webp", width: 400, height: 400 },
       { resize: { fit: "contain", position: "top", background: "#00ff00" } },
     );
 
     const { width, height } = await (await open(target)).metadata();
     expect([width, height]).toEqual([400, 400]);
+  });
+
+  it("writes an image where none is, having nothing to compare", async () => {
+    const target = await newTarget();
+
+    const written = await writeImage(await capture(), target, WHOLE);
+
+    expect(written).toEqual({
+      kept: false,
+      bytes: (await stat(target)).size,
+      moved: undefined,
+    });
+  });
+
+  it("keeps the committed image, its bytes and its date, when the same capture is written again", async () => {
+    const target = await newTarget();
+    const first = await committed(target);
+    const bytes = await readFile(target);
+
+    const written = await writeImage(await capture(), target, WHOLE);
+
+    expect({
+      written,
+      same: (await readFile(target)).equals(bytes),
+      mtime: (await stat(target)).mtimeMs,
+    }).toEqual({
+      written: { kept: true, bytes: first.bytes, moved: 0 },
+      same: true,
+      mtime: YESTERDAY.getTime(),
+    });
+  });
+
+  it("keeps the committed image where a block moved by a few levels, and says how far", async () => {
+    const target = await newTarget();
+    await committed(target);
+
+    const written = await writeImage(await captureMoved(10), target, WHOLE);
+
+    expect(written.kept).toBe(true);
+    expect(written.moved).toBeGreaterThan(0);
+    expect(written.moved).toBeLessThanOrEqual(UNCHANGED_LEVELS);
+  });
+
+  it("writes the image where a block moved further than the gate allows", async () => {
+    const target = await newTarget();
+    await committed(target);
+
+    const written = await writeImage(await captureMoved(120), target, WHOLE);
+
+    expect({ kept: written.kept, bytes: (await stat(target)).size }).toEqual({
+      kept: false,
+      bytes: written.bytes,
+    });
+    expect(written.moved).toBeGreaterThan(UNCHANGED_LEVELS);
+  });
+
+  it("replaces a committed image of another size, having nothing to compare", async () => {
+    const target = await newTarget();
+    await writeImage(await capture(), target, {
+      ...WHOLE,
+      width: 640,
+      height: 360,
+    });
+
+    const written = await writeImage(await capture(), target, WHOLE);
+
+    const { width } = await (await open(target)).metadata();
+    expect({ kept: written.kept, moved: written.moved, width }).toEqual({
+      kept: false,
+      moved: undefined,
+      width: WHOLE.width,
+    });
+  });
+
+  it("replaces a committed file that is no image, having nothing to compare", async () => {
+    const target = await newTarget();
+    await writeFile(target, "Not an image.");
+
+    const written = await writeImage(await capture(), target, WHOLE);
+
+    const { format } = await (await open(target)).metadata();
+    expect({ kept: written.kept, moved: written.moved, format }).toEqual({
+      kept: false,
+      moved: undefined,
+      format: "webp",
+    });
+  });
+
+  it("writes an image it would keep when forced, comparing nothing", async () => {
+    const target = await newTarget();
+    await committed(target);
+
+    const written = await writeImage(await capture(), target, WHOLE, {
+      force: true,
+    });
+
+    expect({
+      kept: written.kept,
+      moved: written.moved,
+      rewritten: (await stat(target)).mtimeMs > YESTERDAY.getTime(),
+    }).toEqual({ kept: false, moved: undefined, rewritten: true });
+  });
+});
+
+describe("describeImage", () => {
+  it("gives an image written its size in KB", () => {
+    expect(
+      describeImage("thumb.webp", {
+        kept: false,
+        bytes: 20_480,
+        moved: undefined,
+      }),
+    ).toBe("thumb.webp: 20 KB");
+  });
+
+  it("gives an image kept the most it moved", () => {
+    expect(
+      describeImage("thumb.webp", { kept: true, bytes: 20_480, moved: 23 }),
+    ).toBe("thumb.webp: kept, moved at most 23 of 255");
   });
 });
 
@@ -448,6 +626,44 @@ describe("keepShot", () => {
     expect(red).toBeLessThan(50);
   });
 
+  it("says it kept each image of a shot taken again of the same page", async () => {
+    const images = join(folder, "kept-twice");
+    const shot = {
+      png: await capture(),
+      thumbRegion: BOARD,
+      says: "Took up the run.",
+    };
+    await keepShot(shot, images, recordingPrinter());
+    const printer = recordingPrinter();
+
+    await keepShot(shot, images, printer);
+
+    expect(printer.out).toEqual([
+      "Took up the run.",
+      "thumb.webp: kept, moved at most 0 of 255",
+      "preview.webp: kept, moved at most 0 of 255",
+    ]);
+  });
+
+  it("writes each image of a shot taken again of the same page when forced, and says how large it is", async () => {
+    const images = join(folder, "forced");
+    const shot = {
+      png: await capture(),
+      thumbRegion: BOARD,
+      says: "Took up the run.",
+    };
+    await keepShot(shot, images, recordingPrinter());
+    const printer = recordingPrinter();
+
+    await keepShot(shot, images, printer, { force: true });
+
+    expect(printer.out).toEqual([
+      "Took up the run.",
+      expect.stringMatching(/^thumb\.webp: \d+ KB$/) as unknown,
+      expect.stringMatching(/^preview\.webp: \d+ KB$/) as unknown,
+    ]);
+  });
+
   it("says why a shot was missed, writes nothing, and fails", async () => {
     const images = join(folder, "missed");
     const printer = recordingPrinter();
@@ -574,7 +790,15 @@ describe("runScreenshotScript", () => {
 
     await ran(["--url", url], script({}, asked));
 
-    expect(asked).toEqual([{ url, names: [] }]);
+    expect(asked).toEqual([{ url, names: [], force: false }]);
+  });
+
+  it("tells the capture to write every image for --force", async () => {
+    const asked: ScreenshotRequest[] = [];
+
+    await ran(["--url", url, "--force"], script({}, asked));
+
+    expect(asked).toEqual([{ url, names: [], force: true }]);
   });
 
   it("hands the names after the options to a script that takes them", async () => {
@@ -585,7 +809,9 @@ describe("runScreenshotScript", () => {
       script({ nameLabel: "game id" }, asked),
     );
 
-    expect(asked).toEqual([{ url, names: ["klondike", "spider"] }]);
+    expect(asked).toEqual([
+      { url, names: ["klondike", "spider"], force: false },
+    ]);
   });
 
   it("prints its usage for --help, the game's own server its default, and starts no Chrome", async () => {
@@ -599,6 +825,7 @@ Captures the screenshots the site shows of Snake from a running server.
   --url <url>      The server (default: http://localhost:9003/)
   --chrome <path>  The Chrome to run (default: $CHROME_PATH, or the usual
                    install location)
+  --force          Write every image, even one that looks unchanged
   -h, --help       Show this message`,
       ],
       err: [],

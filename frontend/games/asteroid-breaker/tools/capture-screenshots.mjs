@@ -317,11 +317,12 @@ function scriptLoading(load) {
     game: "Asteroid Breaker",
     root: ROOT,
     port: 9005,
-    capture: async (devtools, { url }, printer) =>
+    capture: async (devtools, { url, force }, printer) =>
       keepShot(
         await shapeAndCapture(devtools, url, load),
         SCREENSHOT_DIR,
         printer,
+        { force },
       ),
   };
 }

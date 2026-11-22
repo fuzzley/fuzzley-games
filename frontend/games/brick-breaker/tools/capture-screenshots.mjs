@@ -145,12 +145,12 @@ const SCRIPT = {
   game: "Brick Breaker",
   root: ROOT,
   port: 9004,
-  capture: async (devtools, { url }, printer) => {
+  capture: async (devtools, { url, force }, printer) => {
     const run = shownRun(await loadScreenshotApi());
     const shot = await withPage(devtools, SCREENSHOT_VIEWPORT, (page) =>
       capture(page, url, run),
     );
-    return keepShot(shot, SCREENSHOT_DIR, printer);
+    return keepShot(shot, SCREENSHOT_DIR, printer, { force });
   },
 };
 
