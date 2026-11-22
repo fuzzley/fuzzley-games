@@ -1,0 +1,52 @@
+# The form behind every game's "Report a bug".
+#
+# A game opens it through a link that fills fields in by `id`, so renaming
+# one silently stops it being filled in. `@fz/game-ui`'s
+# frontend/lib/game-ui/src/bug_report/issue_form.spec.ts checks them.
+name: Game bug
+description: Something in one of the games doesn't work the way it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. If you came here from a
+        game, the game and your setup below are already filled in.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: upload
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: If the game copied a picture, paste it here. You can also add one you saved.
+    validations:
+      accept: ".png,.jpg,.jpeg,.gif,.webp"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: If you know how to make it happen again, list the steps.
+      placeholder: |
+        1. Start a new game
+        2. Play until the second level
+        3. ...
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: The game you were playing, and its mode or level.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Which build of the game, and the browser and settings it was running with.
+  - type: textarea
+    id: game-state
+    attributes:
+      label: Game state
+      description: The game as it was when you filed this, so it can be loaded as you saw it. Please leave it in.
