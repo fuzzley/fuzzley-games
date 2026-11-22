@@ -115,9 +115,9 @@ const TAG = /^([a-z]{2})([1-9]\d*)$/;
  */
 const GZIP_HEADER = "H4sI";
 
-/** Finds a state packed under any tag. */
+/** Finds a state packed under any tag: the tag, its letters and its version. */
 const ANY_PACKED = new RegExp(
-  `(?<![A-Za-z0-9])([a-z]{2})([1-9]\\d*)\\.${GZIP_HEADER}`,
+  `(?<![A-Za-z0-9])(([a-z]{2})([1-9]\\d*))\\.${GZIP_HEADER}`,
   "g",
 );
 
@@ -147,6 +147,15 @@ export async function packState(tag: string, value: unknown): Promise<string> {
   readTag(tag);
   const json = new TextEncoder().encode(JSON.stringify(value));
   return `${tag}.${encodeBase64Url(await gzip(json))}`;
+}
+
+/**
+ * Returns the tag of the first state packed in a piece of text, whichever
+ * game's it is, or undefined where it holds none.
+ */
+export function packedTag(text: string): string | undefined {
+  const [first] = text.matchAll(ANY_PACKED);
+  return first?.[1];
 }
 
 /**
@@ -185,7 +194,7 @@ export async function unpackState(
 
 /** Says why text holds no state under a tag: none at all, or whose it holds. */
 function whyMissing(wanted: Tag, text: string): string {
-  const found = [...text.matchAll(ANY_PACKED)].map(([, game, version]) => ({
+  const found = [...text.matchAll(ANY_PACKED)].map(([, , game, version]) => ({
     game,
     version: Number(version),
   }));

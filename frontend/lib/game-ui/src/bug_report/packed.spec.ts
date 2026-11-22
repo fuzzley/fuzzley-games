@@ -5,6 +5,7 @@ import {
   gunzip,
   gzip,
   packState,
+  packedTag,
   unpackState,
 } from "./packed";
 
@@ -117,6 +118,28 @@ describe("packState", () => {
     await expect(packState("brick1", STATE)).rejects.toThrow(
       "A tag is two lowercase letters and a version, such as bb1: brick1",
     );
+  });
+});
+
+describe("packedTag", () => {
+  it("finds the tag of the state in a report's whole field", () => {
+    expect(packedTag(FILED)).toBe("bb1");
+  });
+
+  it("finds the first of two states", async () => {
+    const text = `${await packState("ms12", {})}\n${await packState("sn1", {})}`;
+
+    expect(packedTag(text)).toBe("ms12");
+  });
+
+  it("passes over a word that only looks like a tag", async () => {
+    const packed = await packState("sn1", STATE);
+
+    expect(packedTag(`See ab1.txt.\n${packed}`)).toBe("sn1");
+  });
+
+  it("finds none in text that holds no state", () => {
+    expect(packedTag("It froze on level 3.")).toBeUndefined();
   });
 });
 
