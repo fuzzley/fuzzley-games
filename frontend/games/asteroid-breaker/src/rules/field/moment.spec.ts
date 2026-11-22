@@ -77,8 +77,10 @@ function busyField(): Field {
   placeShot(field, "gun", ...at(1, 0), ship.angle);
   placePickup(field, "shield", ...at(12, 6));
   placeSpark(field, ...at(-8, 0));
-  placeSpark(field, ...at(-9, 1)).live = false;
+  const between = placeSpark(field, ...at(-9, 1));
   placeSpark(field, ...at(-10, 2));
+  // Freed once the last spark is out, which would otherwise refill its slot.
+  between.live = false;
   placeStray(field, ...at(-14, -10), 0.5);
   field.strays.sent = 1;
   knockLastLoose(field, ship);
@@ -247,6 +249,21 @@ describe("readMoment", () => {
     const moment = carried(field);
 
     expect(moment).toEqual(momentOf(field));
+  });
+
+  it("reads back a free slot between two sparks as free", () => {
+    const field = playedField(RUN);
+    const first = placeSpark(field, 10, 10);
+    const between = placeSpark(field, 11, 10);
+    const last = placeSpark(field, 12, 10);
+    between.live = false;
+    const slots = [first, between, last].map((spark) =>
+      field.sparks.indexOf(spark),
+    );
+
+    const { sparks } = carried(field);
+
+    expect(slots.map((slot) => sparks[slot])).toEqual([first, null, last]);
   });
 
   it("reads back a moment with no stray adrift and nothing in flight", () => {
