@@ -1468,3 +1468,72 @@ recomputes.
       - §9 measures packed size as well as raw.
       - C10 links the agent definitions with `--also-in`.
       - No pull request is open (§8).
+- **Parts A and B, built on 2026-11-21 on `repo-size-plan`,** from
+  92f00d6b, as six commits, each reviewed by a `commit-reviewer` and its
+  answers folded in. Not pushed: they wait on the user's word (§6.0).
+
+  | Package | Commit   | Packed (MiB) | Raw (MiB) |
+  | ------- | -------- | -----------: | --------: |
+  | A1      | 5fe72ad9 |        0.016 |     0.097 |
+  | A2      | ae0697d8 |        0.007 |     0.087 |
+  | A3      | 483f2d63 |        0.007 |     0.068 |
+  | A4      | 242d1f65 |        0.001 |     0.012 |
+  | B1      | a5091cae |        0.004 |     0.044 |
+  | B2      | efc3e076 |        9.179 |     9.432 |
+  | All six |          |        9.221 |     9.740 |
+
+  Each commit is measured against its parent, and all six over the range
+  from 92f00d6b, not summed. The hashes hold until the branch is rebased
+  onto a `main` that has moved.
+
+  - **What the gate does on the devbox.**
+    - Minesweeper's retake kept both images, the thumbnail having moved 22
+      levels at most and the preview 0, and `--force` wrote both.
+    - The Solitaire Collection's 41 games, retaken through A3's capture,
+      wrote 0 images and kept 82. Every thumbnail moved 0, so the crop is
+      unchanged (S5), and the previews moved 40 at most: the research's
+      figure, 8 under the tolerance.
+  - **What differed from §6.**
+    - **A1:** `largestChange()` reads with `Buffer.readUInt8()`, since lint
+      forbids `!` there, and the sizes compared include the channel count.
+      A `keepShot()` spec with `force: true` was added in review. The
+      Solitaire Collection's capture took `--force` but did nothing with it
+      until A3, which lands with A1.
+    - **A2:** Angular's dev build warns (NG0913) that the rules page's
+      preview is much larger than it is drawn, where it is drawn under 1360
+      device pixels wide: roomy at 1×, or on a phone held upright. The
+      review asked for the rules page's address to come from the game's id,
+      as the game browser's does, rather than 41 hand-written URLs. That
+      was left for a change of its own.
+    - **A3:** `findBoard()` takes the capture's `Buffer`, and `capture()`
+      calls it. Review asked for a spec of it, against §6's "Specs: none", so
+      it is exported, the script running only behind `import.meta.main`, and
+      `tools/capture-screenshots.spec.ts` holds the column it searches, the
+      felt it samples and the depth of a fifth. For that, the workspace's
+      `tsconfig.node.json`, ESLint and Vitest configs reach `tools/**/*.ts`,
+      as Asteroid Breaker's do. `siteImagesFolder()`'s doc says `""` names the
+      folder of every game's images, and `.gcloudignore`'s comment no longer
+      names the lossless screenshots.
+    - **A4:** in review, the rule became "a raster picture", so SVG mocks
+      stay SVG, and its "before" sentence holds only where a game's
+      committed image shows the state wanted. The file is 12,173 bytes.
+    - **B1:** the spec's lossless header sets the alpha bit above the height,
+      as every atlas page does: read without the mask, the 1x page is 17,644
+      px tall. The lossy header carries a scale in each field. Each form cut
+      short, and an unknown first chunk, load at 0 × 0.
+    - **B2:** `check-webp-pages.mjs` takes the commit to compare with
+      (`data/atlases/check-webp-pages.txt`): all 24 pages match this machine's
+      PNG pages exactly, and 18 match those committed at 92f00d6b, the other 6
+      differing in the platform's corner pixels. The build's assets fell by
+      7.37 MiB. Each deck was looked at roomy, on a phone held upright, and on
+      its side, where it loads its 1.5x page. `compare-runs.mjs` and
+      `locate-diffs.mjs` decode WebP pages too.
+    - **The order:** A and B were both built before either was reported,
+      so they are reported together, where §6.0 has A reported and landed
+      before B. No file is touched by both, so A's four commits can still
+      land first, on their own.
+    - **Checks:** one `verify:full` ran for A and B together, alone on the
+      machine, and passed in 3 minutes. Every line the six commits change
+      is covered.
+  - **Next:** on the user's word, land A and B, or A alone first (§6.0,
+    "When A is done"), then ask D5.
