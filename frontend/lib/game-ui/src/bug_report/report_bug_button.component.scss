@@ -1,0 +1,13 @@
+@use "@fz/style" as fz;
+
+// A setting's row in the drawer, above the version line.
+:host {
+  display: block;
+  margin: 0 0 var(--fz-space-6);
+}
+
+.label {
+  @include fz.field-label;
+
+  margin-top: 0;
+}

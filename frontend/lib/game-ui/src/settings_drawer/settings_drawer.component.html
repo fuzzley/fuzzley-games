@@ -14,6 +14,9 @@
 
     <div class="drawer-content">
       <ng-content />
+      @if (reportsBugs) {
+        <fz-report-bug-button (chosen)="closed.emit()" />
+      }
       <fz-build-info />
     </div>
   </div>

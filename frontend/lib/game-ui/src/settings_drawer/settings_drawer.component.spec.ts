@@ -1,5 +1,12 @@
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
+import { TestBed } from "@angular/core/testing";
+import { CompressionStream, DecompressionStream } from "node:stream/web";
+import {
+  BUG_REPORT_SOURCE,
+  BugReportService,
+  type BugReportSource,
+} from "../bug_report";
 import { BUILD_INFO, type BuildInfo } from "../build_info";
 import { SettingsDrawerComponent } from "./settings_drawer.component";
 
@@ -26,6 +33,35 @@ async function renderDrawer(open = true): Promise<RenderedDrawer> {
       imports: [SettingsDrawerComponent],
       componentProperties: { open, closed },
       providers: [{ provide: BUILD_INFO, useValue: BUILD }],
+    },
+  );
+  return { user: userEvent.setup(), closed };
+}
+
+/** Snake's reports, as far as the drawer needs them. */
+const SOURCE: BugReportSource = {
+  title: "Snake",
+  tag: "sn1",
+  game: () => "Snake · Normal",
+  settings: () => [],
+  capture: () => ({ summary: "Score 12", value: { score: 12 } }),
+  load: () => Promise.resolve(true),
+};
+
+/** Renders the drawer, open, in a game that takes bug reports. */
+async function renderReportingDrawer(): Promise<RenderedDrawer> {
+  const closed = vi.fn();
+  await render(
+    `<fz-settings-drawer [open]="true" (closed)="closed()">
+      <label><input type="checkbox" /> Play sounds</label>
+    </fz-settings-drawer>`,
+    {
+      imports: [SettingsDrawerComponent],
+      componentProperties: { closed },
+      providers: [
+        { provide: BUILD_INFO, useValue: BUILD },
+        { provide: BUG_REPORT_SOURCE, useValue: SOURCE },
+      ],
     },
   );
   return { user: userEvent.setup(), closed };
@@ -116,5 +152,55 @@ describe("SettingsDrawerComponent", () => {
     await user.click(screen.getByRole("button", { name: "Close settings" }));
 
     expect(dialog().open).toBe(true);
+  });
+
+  it("offers no bug report in a game that takes none", async () => {
+    await renderDrawer();
+
+    expect(
+      screen.queryByRole("button", { name: "Report a bug" }),
+    ).not.toBeInTheDocument();
+  });
+
+  describe("in a game that takes bug reports", () => {
+    // jsdom has no compression streams, which the report packs its state
+    // with, so Node's stand in.
+    beforeAll(() => {
+      vi.stubGlobal("CompressionStream", CompressionStream);
+      vi.stubGlobal("DecompressionStream", DecompressionStream);
+    });
+
+    afterAll(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("offers Report a bug between the settings and the version", async () => {
+      await renderReportingDrawer();
+
+      const settings = screen.getByRole("checkbox", { name: "Play sounds" });
+      const report = screen.getByRole("button", { name: "Report a bug" });
+      const version = screen.getByRole("link", {
+        name: "549c93a (opens in a new tab)",
+      });
+
+      expect(settings.compareDocumentPosition(report)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+      expect(report.compareDocumentPosition(version)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+
+    it("asks to close as Report a bug is pressed", async () => {
+      const { user, closed } = await renderReportingDrawer();
+
+      await user.click(screen.getByRole("button", { name: "Report a bug" }));
+      // The report it starts packs its state, which ends with the test.
+      await vi.waitFor(() => {
+        expect(TestBed.inject(BugReportService).report()).not.toBeNull();
+      });
+
+      expect(closed).toHaveBeenCalledOnce();
+    });
   });
 });

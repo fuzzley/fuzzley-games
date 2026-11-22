@@ -1,0 +1,22 @@
+@if (offered) {
+  <div class="loader">
+    <label class="label" [for]="fieldId">Load game state</label>
+    <textarea
+      #state
+      class="text"
+      [id]="fieldId"
+      rows="3"
+      placeholder="Paste the game state from a bug report"
+    ></textarea>
+    <ng-content />
+    <button
+      type="button"
+      class="fz-button fz-button-secondary fz-button-block"
+      (click)="load(state.value)"
+    >
+      Load
+    </button>
+    <!-- Always present, so a problem is announced when it arrives. -->
+    <p class="problem" role="status">{{ problem() }}</p>
+  </div>
+}

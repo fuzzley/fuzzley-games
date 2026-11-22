@@ -70,7 +70,10 @@ export interface BugReportSource {
   load(state: unknown): Promise<boolean>;
 }
 
-/** The game's reports, which a game provides in its `main.ts`. */
+/**
+ * The game's reports, which a game provides in its `main.ts`; where it is
+ * provided, the settings drawer offers Report a bug.
+ */
 export const BUG_REPORT_SOURCE = new InjectionToken<BugReportSource>(
   "BUG_REPORT_SOURCE",
 );
