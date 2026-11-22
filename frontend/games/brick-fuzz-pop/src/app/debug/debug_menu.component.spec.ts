@@ -1,11 +1,18 @@
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { filesCertifying, loadsSettled } from "../../testing/certificates";
 import { STILL, provideSpecPlay } from "../../testing/play";
 import { TUNED_NUMBERS, tuningLines } from "../../view/debug/debug_tuning";
+import {
+  BrickFuzzPopReports,
+  provideBugReports,
+} from "../bug_report/bug_report_source";
+import { REPORT_TAG } from "../bug_report/report_state";
 import { GameService } from "../play/game.service";
 import {
   CERTIFICATE_FILES,
@@ -20,6 +27,7 @@ interface RenderedMenu {
   readonly debug: DebugService;
   readonly game: GameService;
   readonly playCertificate: ReturnType<typeof vi.fn>;
+  readonly loaded: ReturnType<typeof vi.fn>;
   readonly fixture: ComponentFixture<DebugMenuComponent>;
 }
 
@@ -29,10 +37,12 @@ interface RenderedMenu {
  */
 async function renderMenu(files: CertificateFiles = {}): Promise<RenderedMenu> {
   const playCertificate = vi.fn();
+  const loaded = vi.fn();
   const { fixture } = await render(DebugMenuComponent, {
-    on: { playCertificate },
+    on: { playCertificate, loaded },
     providers: [
       ...provideSpecPlay(),
+      ...provideBugReports(),
       { provide: DEBUG_MENU, useValue: true },
       { provide: CERTIFICATE_FILES, useValue: files },
     ],
@@ -43,8 +53,16 @@ async function renderMenu(files: CertificateFiles = {}): Promise<RenderedMenu> {
     debug: TestBed.inject(DebugService),
     game: TestBed.inject(GameService),
     playCertificate,
+    loaded,
     fixture,
   };
+}
+
+/** Pastes a state into the loader and presses Load, as a developer does. */
+async function loadState(user: UserEvent, state: string): Promise<void> {
+  await user.click(screen.getByRole("textbox", { name: "Load game state" }));
+  await user.paste(state);
+  await user.click(screen.getByRole("button", { name: "Load" }));
 }
 
 /** Returns the field's depth, as the game lays it out. */
@@ -248,6 +266,34 @@ describe("DebugMenuComponent", () => {
     expect(
       screen.getByText(/^Loading a game state also sets the field's depth\./),
     ).toBeInTheDocument();
+  });
+
+  describe("a reported state", () => {
+    installCompressionStreams();
+
+    it("tells the drawer once the state loaded is in play", async () => {
+      const { user, game, loaded } = await renderMenu();
+      const state = await packState(
+        REPORT_TAG,
+        TestBed.inject(BrickFuzzPopReports).capture().value,
+      );
+
+      await loadState(user, state);
+
+      await vi.waitFor(() => {
+        expect(loaded).toHaveBeenCalledOnce();
+      });
+      expect(game.outcome()).toBe("paused");
+    });
+
+    it("tells the drawer nothing where a state can't be loaded, saying why itself", async () => {
+      const { user, loaded } = await renderMenu();
+
+      await loadState(user, "It froze on level 3.");
+
+      await screen.findByText("There is no game state in that text.");
+      expect(loaded).not.toHaveBeenCalled();
+    });
   });
 
   it("plays the certificate at Play the certificate, telling the drawer", async () => {

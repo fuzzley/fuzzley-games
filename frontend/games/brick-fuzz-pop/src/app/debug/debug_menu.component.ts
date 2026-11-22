@@ -61,6 +61,9 @@ export class DebugMenuComponent {
   /** Emitted at Play the certificate, so the drawer can put itself away as the line plays. */
   readonly playCertificate = output();
 
+  /** Emitted once a reported state the menu loads is in play, so the drawer can put itself away. */
+  readonly loaded = output();
+
   /** The sliders, each at the number in use, read in its unit. */
   protected readonly sliders = computed(
     (): readonly ShownSlider<TunedNumber>[] => {

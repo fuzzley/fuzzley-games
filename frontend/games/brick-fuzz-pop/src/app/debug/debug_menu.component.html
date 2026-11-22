@@ -59,7 +59,7 @@
     </p>
   </div>
 
-  <fz-bug-report-loader>
+  <fz-bug-report-loader (loaded)="loaded.emit()">
     <p class="setting-desc">
       Loading a game state also sets the field's depth. Use the build named in
       the report.

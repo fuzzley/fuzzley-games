@@ -2,7 +2,7 @@ import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
-import { REPORT_PICTURE } from "@fz/game-ui/bug_report";
+import { REPORT_PICTURE, packState } from "@fz/game-ui/bug_report";
 import {
   installCompressionStreams,
   installFakeViewport,
@@ -31,7 +31,11 @@ import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
-import { provideBugReports } from "./bug_report/bug_report_source";
+import {
+  BrickFuzzPopReports,
+  provideBugReports,
+} from "./bug_report/bug_report_source";
+import { REPORT_TAG } from "./bug_report/report_state";
 import { CERTIFICATE_FILES } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent } from "./help/help.component";
@@ -567,6 +571,28 @@ describe("AppComponent", () => {
       expect(
         screen.getByRole("textbox", { name: "Load game state" }),
       ).toBeVisible();
+    });
+
+    it("puts the settings away once the reported state loaded is in play", async () => {
+      const { game, user } = await renderCertifiedApp();
+      const state = await packState(
+        REPORT_TAG,
+        TestBed.inject(BrickFuzzPopReports).capture().value,
+      );
+      await user.click(barButton("Settings"));
+
+      await user.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await user.paste(state);
+      await user.click(screen.getByRole("button", { name: "Load" }));
+
+      await vi.waitFor(() => {
+        expect(
+          screen.queryByRole("dialog", { name: "Settings" }),
+        ).not.toBeInTheDocument();
+      });
+      expect(game.outcome()).toBe("paused");
     });
   });
 

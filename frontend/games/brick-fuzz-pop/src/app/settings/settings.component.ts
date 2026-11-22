@@ -112,7 +112,7 @@ export class SettingsComponent {
   /** Whether the drawer is showing. */
   readonly open = input.required<boolean>();
 
-  /** Emitted when the drawer asks to close. */
+  /** Emitted when the drawer asks to close, or once the debug menu has put a reported state in play. */
   readonly closed = output();
 
   /** Emitted at the debug menu's Play the certificate, as the menu plays it. */
@@ -136,6 +136,9 @@ export class SettingsComponent {
     [
       outputBinding("playCertificate", () => {
         this.playCertificate.emit();
+      }),
+      outputBinding("loaded", () => {
+        this.closed.emit();
       }),
     ],
   );

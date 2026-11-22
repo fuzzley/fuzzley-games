@@ -1,5 +1,7 @@
 import { TestBed } from "@angular/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { collectErrors } from "@fz/phaser/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
@@ -8,6 +10,11 @@ import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { filesCertifying, loadsSettled } from "../../testing/certificates";
 import { type HeldLoad, OFFLINE, heldLoad } from "../../testing/loads";
 import { provideSpecPlay } from "../../testing/play";
+import {
+  BrickFuzzPopReports,
+  provideBugReports,
+} from "../bug_report/bug_report_source";
+import { REPORT_TAG } from "../bug_report/report_state";
 import {
   CERTIFICATE_FILES,
   type CertificateFiles,
@@ -64,6 +71,7 @@ async function renderSettings(
     providers: [
       provideMemoryStorage(storage),
       ...provideSpecPlay(),
+      ...provideBugReports(),
       { provide: DEBUG_MENU, useValue: debugMenu },
       { provide: CERTIFICATE_FILES, useValue: files },
       ...(menu ? [{ provide: LOAD_DEBUG_MENU, useValue: menu.load }] : []),
@@ -364,6 +372,28 @@ describe("SettingsComponent", () => {
       );
 
       expect(playCertificate).toHaveBeenCalledOnce();
+    });
+
+    describe("a reported state", () => {
+      installCompressionStreams();
+
+      it("asks to close once the menu has put it in play", async () => {
+        const { user, closed } = await renderSettings({}, { debugMenu: true });
+        const state = await packState(
+          REPORT_TAG,
+          TestBed.inject(BrickFuzzPopReports).capture().value,
+        );
+
+        await user.click(
+          screen.getByRole("textbox", { name: "Load game state" }),
+        );
+        await user.paste(state);
+        await user.click(screen.getByRole("button", { name: "Load" }));
+
+        await vi.waitFor(() => {
+          expect(closed).toHaveBeenCalledOnce();
+        });
+      });
     });
 
     describe("on a slow connection", () => {
