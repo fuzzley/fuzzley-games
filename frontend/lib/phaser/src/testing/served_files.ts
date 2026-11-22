@@ -32,9 +32,9 @@ export function serveFrom(serve: FileServer | undefined): void {
  * {@link serveFrom}'s server, so nothing a spec loads reaches the network.
  *
  * An image whose `src` is a `data:` URL, or an object URL, loads on a later
- * task, at the size its PNG header gives, or at 0 × 0 if it is no PNG, and
- * `decode()` resolves once it has. One at any other address loads as jsdom
- * loads it, which is not at all.
+ * task, at the size its PNG or WebP header gives, or at 0 × 0 if it is
+ * neither, and `decode()` resolves once it has. One at any other address
+ * loads as jsdom loads it, which is not at all.
  */
 export function installServedFiles(): void {
   for (const scope of new Set<object>([globalThis, window])) {
@@ -70,7 +70,7 @@ export function installServedFiles(): void {
       loaded.delete(this);
       const bytes = imageBytes(value);
       if (!bytes) return;
-      const { width, height } = pngSize(bytes);
+      const { width, height } = imageSize(bytes);
       Object.defineProperties(this, {
         naturalWidth: { configurable: true, value: width },
         naturalHeight: { configurable: true, value: height },
@@ -234,14 +234,84 @@ function imageBytes(src: string): Uint8Array | undefined {
 /** The bytes every PNG starts with. */
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
-/** Returns a PNG's size from its header, or 0 × 0 for bytes that are no PNG. */
-function pngSize(bytes: Uint8Array): { width: number; height: number } {
+/** The byte a lossless WebP's image data starts with. */
+const VP8L_SIGNATURE = 0x2f;
+
+/** An image's size in pixels. */
+interface ImageSize {
+  readonly width: number;
+  readonly height: number;
+}
+
+/** Returns a PNG's or a WebP's size from its header, or 0 × 0 for bytes that are neither. */
+function imageSize(bytes: Uint8Array): ImageSize {
+  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  return (
+    pngSize(bytes, header) ?? webpSize(bytes, header) ?? { width: 0, height: 0 }
+  );
+}
+
+/** Returns a PNG's size from its header, or undefined for bytes that are no PNG. */
+function pngSize(bytes: Uint8Array, header: DataView): ImageSize | undefined {
   const isPng =
     bytes.length >= 24 &&
     PNG_SIGNATURE.every((byte, index) => bytes[index] === byte);
-  if (!isPng) return { width: 0, height: 0 };
-  const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+  if (!isPng) return undefined;
   return { width: header.getUint32(16), height: header.getUint32(20) };
+}
+
+/**
+ * Returns a WebP's size from the header of its first chunk, in whichever of
+ * its three forms it is, or undefined for bytes that are no WebP or too few
+ * to hold the size.
+ */
+function webpSize(bytes: Uint8Array, header: DataView): ImageSize | undefined {
+  if (
+    bytes.length < 16 ||
+    ascii(bytes, 0, 4) !== "RIFF" ||
+    ascii(bytes, 8, 4) !== "WEBP"
+  ) {
+    return undefined;
+  }
+  switch (ascii(bytes, 12, 4)) {
+    case "VP8X":
+      // The extended form: 24 bits each of the width and height less one.
+      if (bytes.length < 30) return undefined;
+      return {
+        width: uint24(header, 24) + 1,
+        height: uint24(header, 27) + 1,
+      };
+    case "VP8L": {
+      // The lossless form: after its signature, 14 bits of the width less
+      // one, then 14 of the height less one, from the lowest bit up.
+      if (bytes.length < 25 || bytes[20] !== VP8L_SIGNATURE) return undefined;
+      const bits = header.getUint32(21, true);
+      return {
+        width: (bits & 0x3fff) + 1,
+        height: ((bits >>> 14) & 0x3fff) + 1,
+      };
+    }
+    case "VP8 ":
+      // The lossy form: 16 bits each, of which the top two scale the image
+      // and the low 14 are its width and height.
+      if (bytes.length < 30) return undefined;
+      return {
+        width: header.getUint16(26, true) & 0x3fff,
+        height: header.getUint16(28, true) & 0x3fff,
+      };
+    default:
+      return undefined;
+  }
+}
+
+/** Returns bytes read as ASCII text. */
+function ascii(bytes: Uint8Array, start: number, length: number): string {
+  return String.fromCharCode(...bytes.subarray(start, start + length));
+}
+
+/** Returns the 24-bit little-endian number at an offset. */
+function uint24(header: DataView, offset: number): number {
+  return header.getUint16(offset, true) | (header.getUint8(offset + 2) << 16);
 }
 
 /**

@@ -359,8 +359,8 @@ testing skill has its fixtures.
   the URL to the file's text or bytes, or to nothing, which is a 404 that
   fails the load. `await loaded()` waits out a load the scene starts once it
   runs, and `prepare` readies the game before the scene is added, such as
-  with textures loaded. An image decodes at the size its PNG header gives, so
-  a spec serves a real one from disk. Nothing reaches the network.
+  with textures loaded. An image decodes at the size its PNG or WebP header
+  gives, so a spec serves a real one from disk. Nothing reaches the network.
 - **A spec in Node, of a game's view, takes `@fz/phaser/testing/pure`,**
   which loads no Phaser: `viewport()` makes a canvas's `Viewport`, and
   `frameNamed()` and `drawnIn()` read the frames of a game's atlas.
