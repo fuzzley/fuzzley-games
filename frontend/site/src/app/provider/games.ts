@@ -334,15 +334,6 @@ export const GAMES: readonly Game[] = [
     play: { build: "asteroid-breaker" },
   },
   {
-    slug: "brick-breaker",
-    name: "Brick Breaker",
-    category: "arcade",
-    blurb: "Break every brick. Don’t let the ball get past your paddle.",
-    players: SOLO,
-    minutes: 10,
-    play: { build: "brick-breaker" },
-  },
-  {
     slug: "brick-fuzz-pop",
     name: "Brick Fuzz Pop",
     category: "arcade",
@@ -350,6 +341,15 @@ export const GAMES: readonly Game[] = [
     players: SOLO,
     minutes: 10,
     play: { build: "brick-fuzz-pop" },
+  },
+  {
+    slug: "brick-breaker",
+    name: "Brick Breaker",
+    category: "arcade",
+    blurb: "Break every brick. Don’t let the ball get past your paddle.",
+    players: SOLO,
+    minutes: 10,
+    play: { build: "brick-breaker" },
   },
   {
     slug: "snake",
