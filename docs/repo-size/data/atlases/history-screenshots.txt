@@ -1,44 +1,44 @@
 commit | date | subject | new PNG blobs | MiB as blobs | MiB packed
-ee5fc7dc95da667add0b3ed6bcd6c1d20cce2f53 | 2026-08-01 | feat: add game documentation system and public assets | 8 | 5.46 | 5.22
-21eaaab6998c39cd7f0840d3f8c5dd4b2ea1f902 | 2026-08-03 | docs(simplesimon): add the board overview screenshot | 1 | 0.69 | 0.67
-1c2544b963e70dffd6d5adb465d15afb0c2904c5 | 2026-08-03 | feat(bakersdozen): add Baker's Dozen | 1 | 0.45 | 0.43
-596bafdc46d993d7ef3baa34d4f50bb557cbcd8c | 2026-08-03 | feat(seahaven): add Seahaven Towers | 1 | 0.85 | 0.83
-79474e167eebbb6ff291f066db08035d4339f24c | 2026-08-03 | feat(spiderette): add Spiderette and Will o' the Wisp | 1 | 0.77 | 0.75
-31bb1d013e6d264474e05e54d109706f3c9a8396 | 2026-08-03 | feat(easthaven): add Easthaven | 1 | 0.73 | 0.70
-24cd1e7444ed8681bc2061bc47c80dc9cec1b2e9 | 2026-08-03 | feat(fortythieves): add Forty Thieves, Josephine and Rank and File | 1 | 0.70 | 0.68
-b37252ec8576ee4f55350fa732a74dd0e934d3ae | 2026-08-03 | feat(fortythieves): add Maria and Limited | 2 | 1.43 | 1.39
-d9abc29b609541fb2bad65eb5001b599739deaf3 | 2026-08-03 | feat(doubleklondike): add Double Klondike | 1 | 0.64 | 0.62
-795810cc624ae7f35116f46030b6dc59cf6d1f5b | 2026-08-03 | feat(montana): add Montana | 1 | 0.99 | 0.97
-3abe7ba2c722895fe8b7cc53c01a9ac4752466ab | 2026-09-27 | docs: re-capture the rules-page screenshots without the rail | 17 | 10.17 | 10.03
-a7deaf18f49220a74346a9a85914537dfddae808 | 2026-10-03 | docs: retake Montana's screenshot with the redeal pips and describe th | 1 | 1.23 | 1.22
-4641a1c15c8fa5911534658d22fbd3d0d136a7b2 | 2026-10-03 | feat: add Challenge FreeCell, with Super Challenge as its Kings-only o | 1 | 0.56 | 0.55
-9f23109f65a74f00f1c06fc9acd9e49f0e605f5e | 2026-10-03 | feat: add Lucas, sharing the Forty Thieves game | 1 | 0.51 | 0.49
-c3f20fb8839ab8ea07917968f3bbcf3e991bc903 | 2026-10-03 | feat: add Mrs. Mop, sharing the Simple Simon game | 1 | 0.62 | 0.60
-21e5bc3cabf196460ca2c31a4c831e7aa5979eb1 | 2026-10-03 | feat: add Blue Moon, with Red Moon as its deal, on a generalised Monta | 1 | 1.02 | 1.01
-e83b96cca959664d5675df5accc3d2b7b35ccaeb | 2026-10-03 | feat: add Bisley, with foundations from each Ace and each King | 1 | 0.59 | 0.57
-034b6db25f45770f38ea4d7b1143ce8a5504899b | 2026-10-03 | feat: add Aces Up, with an Aces-only spaces option | 1 | 0.43 | 0.41
-4f942dbcd423fd8a8ebcea2f70ddd653e02d18e5 | 2026-10-03 | feat: add wrapping ranks, and Golf with Putt Putt | 1 | 0.89 | 0.87
-a80fc3516762986ba9c846f95aba7f7990291815 | 2026-10-03 | feat: add Calculation, with Sir Tommy as its variant | 1 | 0.23 | 0.20
-174aa9af60b4e5ee959b966ca7309e8350a5a7cc | 2026-10-03 | feat: place skeleton slots by percentage, and add Flower Garden | 1 | 0.39 | 0.37
-9c836cdc755306599ec166ce7af134010562e834 | 2026-10-03 | feat: add Bristol, with Belvedere as its variant | 1 | 0.38 | 0.36
-9b81d1ff76f8ba8458a39209d370e59c79642232 | 2026-10-03 | feat: add pair removal, and Nestor | 1 | 0.63 | 0.61
-d89a5cec441d47c87373cfdef0a7a6dbea60dfa8 | 2026-10-03 | feat: add Monte Carlo, with Thirteens as its variant | 1 | 0.74 | 0.71
-0abbf3b4aa3b143b238d56aa5454382abcb8eced | 2026-10-03 | feat: add La Belle Lucie with The Fan and Shamrocks, and Trefoil | 2 | 1.09 | 1.05
-95564873c1e551b4df6976201eb0bb986e45e5e6 | 2026-10-03 | feat: add base-rank foundations, and Canfield with Storehouse, Superio | 1 | 0.35 | 0.33
-8013e47ff9481a9ccb0dbcab2edc10eb4dd07c61 | 2026-10-03 | feat: add Penguin | 1 | 0.41 | 0.39
-73c71ab9ac0993b688219834e7982a0713e2137d | 2026-10-03 | feat: add Black Hole and All in a Row, and a shared play-on-press gest | 2 | 0.95 | 0.91
-2349f17c21bef2472ea2f0d9d7cf819a40ba8139 | 2026-10-03 | feat: add Grandfather's Clock, with its foundations on a dial | 1 | 0.56 | 0.54
-a3dc2162b804a519fb782701027a13791221eb42 | 2026-10-03 | feat: add grab rules for covered cards, and Pyramid | 1 | 0.63 | 0.60
-a84c90ab2684a337b84d47d1e315634244897efa | 2026-10-03 | feat: add TriPeaks, and only prefer a drop target the card lies well o | 1 | 1.48 | 1.46
-aeff67846ef50247dee56bfc8d5ce010c37b4875 | 2026-10-03 | feat: add drop areas along sideways fans, and the Beleaguered Castle f | 2 | 1.10 | 1.05
-f8783eac145abe6d2f8b4a7bd9565892d0440cbd | 2026-10-03 | feat: add Poker Squares, with American and English scoring | 1 | 0.45 | 0.43
-503567ba83a211c09ccc88a03bab9a1d740c45b3 | 2026-10-05 | docs: re-capture the screenshots on default settings, and keep the hea | 41 | 19.79 | 18.91
-811e476dbeba40bc39725aa101668044d51b5fd0 | 2026-10-10 | docs: retake every game's screenshots with the light under the cards | 41 | 19.84 | 19.12
-e704711dc8461950c1601509beed39db8842941b | 2026-10-10 | perf: serve the rules screenshots as 1600 px WebP | 41 | 19.84 | 19.12
-5bbda66970b663d9046d5a57143c07efdfcccfee | 2026-10-24 | docs: retake Solitaire's screenshots with the game bar | 41 | 17.97 | 17.30
-67a5dbb341a198f19c4a84202477769048e5672c | 2026-10-25 | docs(solitaire): retake the screenshots, and serve them at twice their | 41 | 18.71 | 18.06
-a822e6cc7fa2ab11e7783c56f52d342b1f4dc6ab | 2026-10-25 | docs: retake the games' screenshots with the new wordmark | 41 | 18.76 | 18.11
-a5420072e4791599f3a79c884b830db9c493979a | 2026-11-09 | docs(solitaire): the site's screenshots of every game taken again, on  | 41 | 20.07 | 19.46
+db5ca04bb5f876c9f3c134d46771546fa10a7a0c | 2026-08-01 | feat: add game documentation system and public assets | 8 | 5.46 | 5.22
+b6e5d1aa5f07b92e421b777df98dc6534e2df075 | 2026-08-03 | docs(simplesimon): add the board overview screenshot | 1 | 0.69 | 0.67
+0cc7f174f6184d2b0ce0d4a01c325bd237dd05a3 | 2026-08-03 | feat(bakersdozen): add Baker's Dozen | 1 | 0.45 | 0.43
+030768dfc89bdb39c375e844fa03477ac24e2708 | 2026-08-03 | feat(seahaven): add Seahaven Towers | 1 | 0.85 | 0.83
+50f110341e5f76dfde24465eb9ddc34ac5a5161f | 2026-08-03 | feat(spiderette): add Spiderette and Will o' the Wisp | 1 | 0.77 | 0.75
+51bdbb6e8564ba51fad3963990b1f898523d3dea | 2026-08-03 | feat(easthaven): add Easthaven | 1 | 0.73 | 0.70
+5c53604dc561d31206dccacf5c66b0cd27aed49b | 2026-08-03 | feat(fortythieves): add Forty Thieves, Josephine and Rank and File | 1 | 0.70 | 0.68
+02a0ecefc38cc5602a77e3cd6c66ce94c805649f | 2026-08-03 | feat(fortythieves): add Maria and Limited | 2 | 1.43 | 1.39
+13f3c9d35dedd52e1aef0d5cd12299f5436e72e3 | 2026-08-03 | feat(doubleklondike): add Double Klondike | 1 | 0.64 | 0.62
+5123641f8d2d1b10729f8cf46187583f525d58e9 | 2026-08-03 | feat(montana): add Montana | 1 | 0.99 | 0.97
+529c3153c9ef9e0795cd2bb5e692553901319b5a | 2026-09-27 | docs: re-capture the rules-page screenshots without the rail | 17 | 10.17 | 10.03
+3ae509ee9ad13fb336355d2a6018edcf575665b6 | 2026-10-03 | docs: retake Montana's screenshot with the redeal pips and describe th | 1 | 1.23 | 1.22
+9c74b3900b1cde005a918e5b9e0d66b760efe0f7 | 2026-10-03 | feat: add Challenge FreeCell, with Super Challenge as its Kings-only o | 1 | 0.56 | 0.55
+ce20a3babf913df87b1714b12546a19dcf3c1dbf | 2026-10-03 | feat: add Lucas, sharing the Forty Thieves game | 1 | 0.51 | 0.49
+5f66c4f0dd026e117aa05c98e3350ece91ab9a56 | 2026-10-03 | feat: add Mrs. Mop, sharing the Simple Simon game | 1 | 0.62 | 0.60
+fcf7433076f0fa72149ec6cf7469051e40ad901e | 2026-10-03 | feat: add Blue Moon, with Red Moon as its deal, on a generalised Monta | 1 | 1.02 | 1.01
+e3d6ad2f6801640aaa06bf2ea902ae7a214d378b | 2026-10-03 | feat: add Bisley, with foundations from each Ace and each King | 1 | 0.59 | 0.57
+34913b87022b0ea58f1df3b16b9ddbe1ce1358c9 | 2026-10-03 | feat: add Aces Up, with an Aces-only spaces option | 1 | 0.43 | 0.41
+3a586181021063b00ee1d5af69197650e623b740 | 2026-10-03 | feat: add wrapping ranks, and Golf with Putt Putt | 1 | 0.89 | 0.87
+ffc9915cb8bb2c1060f5960da38230ea81af72c0 | 2026-10-03 | feat: add Calculation, with Sir Tommy as its variant | 1 | 0.23 | 0.20
+274b169fae7200290df25587f8e5588bd7401d1b | 2026-10-03 | feat: place skeleton slots by percentage, and add Flower Garden | 1 | 0.39 | 0.37
+37e5b7ac50019e40f413323c3ccd70e73bce579a | 2026-10-03 | feat: add Bristol, with Belvedere as its variant | 1 | 0.38 | 0.36
+e80efe4644cceb12f6b480acd78841f36b15670d | 2026-10-03 | feat: add pair removal, and Nestor | 1 | 0.63 | 0.61
+b29699b8294fef71bec1dcbb600ba5b15e3aa4ca | 2026-10-03 | feat: add Monte Carlo, with Thirteens as its variant | 1 | 0.74 | 0.71
+27cdf8049c95afd21298f765d77fa79a831a2e75 | 2026-10-03 | feat: add La Belle Lucie with The Fan and Shamrocks, and Trefoil | 2 | 1.09 | 1.05
+9ceb836c9337dcb556471673b88cd9755c71e7b0 | 2026-10-03 | feat: add base-rank foundations, and Canfield with Storehouse, Superio | 1 | 0.35 | 0.33
+579310edbb2f555cb9c09807c04f560f27768130 | 2026-10-03 | feat: add Penguin | 1 | 0.41 | 0.39
+5b0027bf02b24c3252baa0a3cfe89ce44de1f994 | 2026-10-03 | feat: add Black Hole and All in a Row, and a shared play-on-press gest | 2 | 0.95 | 0.91
+9906006bbfd44692cc822969475c579a72b920e6 | 2026-10-03 | feat: add Grandfather's Clock, with its foundations on a dial | 1 | 0.56 | 0.54
+ca257c009dc45ea4a835352bc0abdae6990fb7e0 | 2026-10-03 | feat: add grab rules for covered cards, and Pyramid | 1 | 0.63 | 0.60
+d4759f553ec94f27dfbaaf3224a746db2b002b51 | 2026-10-03 | feat: add TriPeaks, and only prefer a drop target the card lies well o | 1 | 1.48 | 1.46
+e1aa171696f1d20e2ecb9f8aace2fd304c4dffdc | 2026-10-03 | feat: add drop areas along sideways fans, and the Beleaguered Castle f | 2 | 1.10 | 1.05
+38f0960920c8beb6653f087ddff4baa90d598e9c | 2026-10-03 | feat: add Poker Squares, with American and English scoring | 1 | 0.45 | 0.43
+3cb045ea49a5fbd560cb69215cee608b177d7aea | 2026-10-05 | docs: re-capture the screenshots on default settings, and keep the hea | 41 | 19.79 | 18.91
+ec685c425f8ca8a58db8127f7cfd11c0d7e2199e | 2026-10-10 | docs: retake every game's screenshots with the light under the cards | 41 | 19.84 | 19.12
+c6b8178d7eeb43878100447d734e4d3ce2f0d789 | 2026-10-10 | perf: serve the rules screenshots as 1600 px WebP | 41 | 19.84 | 19.12
+1b20d9f4e6a85fcda5dbc603285895ecaf5915b1 | 2026-10-24 | docs: retake Solitaire's screenshots with the game bar | 41 | 17.97 | 17.30
+39b14edfb9eeb0a9bfb9c421c4b23e19175c4ee8 | 2026-10-25 | docs(solitaire): retake the screenshots, and serve them at twice their | 41 | 18.71 | 18.06
+ba9e2808451c7930fa6ae30d26ca29e915282c89 | 2026-10-25 | docs: retake the games' screenshots with the new wordmark | 41 | 18.76 | 18.11
+8c359e75437fdb47d00bca6b9876d44021bc755c | 2026-11-09 | docs(solitaire): the site's screenshots of every game taken again, on  | 41 | 20.07 | 19.46
 
 40 commits wrote screenshots: 347 blobs counted per commit, 173.09 MiB as blobs, 167.10 MiB packed
 306 distinct PNG blobs: 153.24 MiB as blobs, 147.98 MiB packed (what the history holds)

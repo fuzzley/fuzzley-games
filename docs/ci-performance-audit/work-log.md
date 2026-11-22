@@ -1,12 +1,12 @@
 # Work log: acting on the CI performance audit
 
 The log of the work that acts on [report.md](report.md), the audit of
-Nov 14, 2026 at `main` 3af8a55f: each recommendation built, each commit,
+Nov 14, 2026 at `main` 51738832: each recommendation built, each commit,
 what each review found and how it was answered, what was measured, and what
 was left. It is written as the work goes, so a session that picks it up
 starts from the last entry.
 
-- **Branch:** `ci-speedup`, from `main` at b870830e. It merges into `main`
+- **Branch:** `ci-speedup`, from `main` at 7ef482e2. It merges into `main`
   as a fast-forward once every recommendation is built and the audit is run
   again (the `merge-to-main` skill).
 - **Commits:** each through the `commit-review-process` skill.
@@ -42,16 +42,16 @@ built:
 
 ### 2026-11-14: the near-limit specs (#3)
 
-What CI's logs say, in the green runs since Nov 11 (after 523c959b), of
+What CI's logs say, in the green runs since Nov 11 (after cb43a4d2), of
 the specs that run without a timeout of their own:
 
 - Brick Breaker's `autopilot.spec` "aims only at a brick it can see": up to
-  3,808 ms, and 5,297 ms in 9c84dc18's red run.
+  3,808 ms, and 5,297 ms in 1ba33047's red run.
 - Sudoku's `bank.spec` "holds only puzzles whose hints all agree with the
-  solution": up to 3,795 ms, and 5,492 ms in b6f74baf's red run.
+  solution": up to 3,795 ms, and 5,492 ms in 0f5d7360's red run.
 - `@fz/dev`'s `eslint.spec` "keeps a library's testing helpers out of what
-  isn't a test": up to 3,453 ms, and 4,639 ms in 9c84dc18's red run, after
-  523c959b.
+  isn't a test": up to 3,453 ms, and 4,639 ms in 1ba33047's red run, after
+  cb43a4d2.
 
 The report's fourth, Asteroid Breaker's "brings most of the strays that
 cross home", has had a 20 s timeout of its own since Nov 3; the report
@@ -86,7 +86,7 @@ The review, and the answers:
    Breaker calls hidden, while the test's brick sits in plain view behind
    steel. Fixed: `BEHIND_STEEL_TIMEOUT_MS`, its doc saying so.
 2. The log said the eslint spec's first test reached 4,729 ms "before",
-   as if 523c959b had brought it down; it reached 4,639 ms in 9c84dc18's
+   as if cb43a4d2 had brought it down; it reached 4,639 ms in 1ba33047's
    red run, after that fix. Fixed above.
 3. The plan's table and the entry's subject were left as placeholders.
    Fixed, with the note above on spreading the cost.
@@ -96,7 +96,7 @@ The review, and the answers:
 `build(dev, solitaire): give Chrome a minute to start, and write coverage's HTML report only off CI`
 (steps 2 and 3, one commit, both in `@fz/dev`'s presets):
 
-- In eb560e1f's red run, both Chromes failed 16 s into the layout step:
+- In 67f71c6c's red run, both Chromes failed 16 s into the layout step:
   the first two on a fresh runner, started side by side, Asteroid Breaker's
   and Brick Breaker's, while Snake's, Sudoku's and Brick Fuzz Pop's,
   started after them, all held. That is a cold start, not a hang, so
@@ -455,13 +455,13 @@ The review, and the answers:
   43654599384 at 83b23e28, failed in six jobs' "Set up the frontend", with
   `changes` and `docker` passing: the Corepack guard's message,
   `${COREPACK_VERSION:?…Dockerfile's…}`, opened a quote in bash. Its review
-  fix hadn't been run. Fixed by amending that commit, now a02e63af, and the
+  fix hadn't been run. Fixed by amending that commit, now cf7aa0bf, and the
   branch pushed again with a lease. The audit's `scripts/check-runs.cjs`
   then ran `bash -n` once over every `run:` block of the workflow and the
   action, and found nothing else; nothing runs it on each change yet, which
   the report recommends.
-- Runs 43655116933 (a02e63af, every cache empty), 43655417436 and
-  43655725239 (4d37058f, caches restored): the checks ended at 199 s,
+- Runs 43655116933 (cf7aa0bf, every cache empty), 43655417436 and
+  43655725239 (464a4e09, caches restored): the checks ended at 199 s,
   170 s and 153 s, against 784 s. Their jobs, steps and logs are in the
   audit's `data/after/` and `logs/after/`.
 - The test pairs weren't changed again: Asteroid Breaker's suite took 95,
@@ -543,7 +543,7 @@ The second review, of the answers, and its answers:
    and the estimate is 1.7 to 2.3 minutes.
 4. "Made cheaper" contradicted the step 1 entry: their cost is spread, not
    cut. Fixed: no one test carries it; and `viewport_scaler.spec`, which
-   72ecbcf4 fixed too, is named beside Snake's.
+   0da2f763 fixed too, is named beside Snake's.
 5. The estimates said they scale by one CI range, while #3 used the layout
    check's own. Fixed: each scales by its phase's own range; and the next
    job ended 10 to 36 s after the longest, not 0 to 40.
@@ -558,17 +558,17 @@ The second review, of the answers, and its answers:
 
 `docs(ci-performance-audit): record the first runs on main and Dependabot's under the new workflow`
 
-- Before the merge, at 4d37058f with the report staged, `yarn verify:full`
+- Before the merge, at 464a4e09 with the report staged, `yarn verify:full`
   passed in 159 s and `yarn check:layout` in 35 s. The change's own code is
   covered: `workspaces.ts` and `script.ts` in full, and in `chrome.ts` every
   line it added; the uncovered lines left in the files it touched, a real Chrome's
   start and timeout in `chrome.ts`, line 295 of `vitest.ts` and a branch of
   `report.ts`, are older than it.
-- The seven commits, 6b2808a0 to 9bba39fe, went to `main` as a
-  fast-forward from b870830e. `ci-speedup` was deleted here and on
+- The seven commits, 9aea89e1 to cdc04ba5, went to `main` as a
+  fast-forward from 7ef482e2. `ci-speedup` was deleted here and on
   `origin`.
 - `main`'s run, 43657595375, passed every job, its checks ending at 150 s
-  with `main`'s caches empty, and `promote` moved `live` to 9bba39fe at
+  with `main`'s caches empty, and `promote` moved `live` to cdc04ba5 at
   161 s.
 - Dependabot, reading the new `everything-else` group, opened #29
   (`lint-and-test`, ESLint 10.15.0) and #30 (`everything-else`, PostCSS
@@ -577,7 +577,7 @@ The second review, of the answers, and its answers:
   on the lockfile deduped (43657771606, 216 s; 43657815452, 201 s), and
   `lint` warned on each to land it by hand. They are left open, to land by
   hand as the `github-actions-ci-cd` skill says.
-- This entry's commit, 5d42b0f6, changes only `docs/`, and its push,
+- This entry's commit, 074ea7c6, changes only `docs/`, and its push,
   run 43658412043, was the first to check lint alone: `changes` found only
   Markdown and `docs/`, `lint` passed, ending at 84 s, with the four other
   checks skipped, and `promote` moved `live` to it at 94 s. A skipped matrix

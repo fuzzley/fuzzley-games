@@ -14,7 +14,7 @@ stays is the game: Minesweeper with lives.
 
 It replaces the earlier plan of the same day, which kept the 2016 code and
 took only `@fz/style`. That plan is in git history
-(`git show d1b77db:docs/minesweeper-ui-plan.md`).
+(`git show 19bec51:docs/minesweeper-ui-plan.md`).
 
 ## Where things start
 

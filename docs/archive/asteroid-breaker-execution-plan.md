@@ -15,10 +15,10 @@ before it was committed. Part 1 was built on the branch
 `asteroid-breaker-lift`, cut from the plan's branch once that was rebased
 onto `main`, and Part 2 on `asteroid-breaker`, cut from Part 1's tip. On
 the user's ask, `main` was fast-forwarded early, on 2026-11-02, to
-`663ee4a4`, which held Part 1, Part 2 through A9 and the lifts made at Q3,
+`2330fa2e`, which held Part 1, Part 2 through A9 and the lifts made at Q3,
 and the game was listed on the site badged "In development". The rest
 merges into `main` on the user's word (A17.3), a fast-forward, as `main`
-hasn't moved since `663ee4a4`. "As built" gathers what the work log
+hasn't moved since `2330fa2e`. "As built" gathers what the work log
 decided that the steps and the design reference don't say, and what it
 left open. The log itself is beside this plan, in
 `asteroid-breaker-worklog.md`. Both describe the code as it was, so check a
@@ -135,7 +135,7 @@ left for the user.
 - **`main` took the game early, and Part 1 with it** (On the site early,
   2026-11-02). The user asked to try the debug menu in production and to
   list the game as still in development, so `main` was fast-forwarded to
-  `663ee4a4`, and Part 1 reached it with Part 2 through A9 rather than on
+  `2330fa2e`, and Part 1 reached it with Part 2 through A9 rather than on
   its own first, as decision 22 has it. The game went up with its debug
   menu at `?debug`, two screenshots of wave 4 for the gallery, and
   "Thirty waves, then Endless" dropped from its page until A17.1.
@@ -347,7 +347,7 @@ left for the user.
     (A12.2.2).
   - **The dev server** stopped serving components' stylesheets as new
     component files came in (A10.2.2, A10.2.3). Q4's fix in `@fz/dev`
-    (`c10d8f33`), for an unencapsulated component's in every game's dev
+    (`edc6c4a3`), for an unencapsulated component's in every game's dev
     server, may be the same fault; the log doesn't say.
   - **The screenshot scripts:** `thumbRegion()` is in four games' scripts,
     Asteroid Breaker's alone grown for a field wider than a thumbnail and

@@ -1,6 +1,6 @@
 # Plan: a review of Sudoku, and what to improve
 
-Reviewed 2026-10-27, the day Sudoku shipped (`c140884`), and built the same
+Reviewed 2026-10-27, the day Sudoku shipped (`72cf937`), and built the same
 day on the branch `sudoku-review`, cut from `main`, with a commit for each
 step. The user's decisions are at the end, and an "As built" note under each
 finding says what came of it. The plan and its notes describe the code as it

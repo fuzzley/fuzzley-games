@@ -1,27 +1,27 @@
 commit | date | subject | new PNG blobs | MiB as blobs | MiB packed
-db3183f8bac8459b8606e059784c61940b1ae34c | 2023-09-17 | Load card images as sprites via atlas JSON mapping. | 1 | 1.86 | 1.85
-b099f662fc0138ea2f8d8b06e110c74f0a321bf0 | 2026-05-24 | Upgrade to latest frameworks for build, test, and Phaser. | 1 | 1.86 | 1.85
-962b73e1e7041d5c55df7d3603b024d3e11d966d | 2026-05-24 | Add assets in new location. | 1 | 1.86 | 1.85
-fbf76b256b325e5df8a9e62d726a023267c0b3fb | 2026-07-03 | Add more background plceholder pictures to sprite sheet. | 1 | 1.77 | 1.75
-848d5203830e9029fa5cd7cf506a8ce779008a5c | 2026-07-04 | Create a 'game' root folder for solitaire logic, to make room for ui c | 1 | 1.77 | 1.75
-e64507d54d17ef809210c7b4d1679a9130c9f4e5 | 2026-07-26 | feat(assets): rebuild the card atlas from vector sources at 2x | 2 | 1.86 | 1.80
-8302b1b421288adf38ab9ec6fe6a17c476e6539e | 2026-07-26 | fix(assets): stop cards carrying their neighbour's edge into the frame | 1 | 1.79 | 1.74
-ca5f3bb5a9da97f84c3664e5b76e24ab43b405c2 | 2026-07-26 | fix(assets): give cards an edge so overlapping ones stay apart | 1 | 1.80 | 1.75
-9911e48955848693e14240cc71e9f4cd3b1af08d | 2026-07-27 | refactor: split the codebase into engine tiers | 2 | 1.81 | 1.76
-4c3c21ecbfa3b0076475f4ef1833d225ff5b16ff | 2026-08-02 | feat(cards): show the suit on an ace or court the fan has covered | 1 | 1.80 | 1.74
-ac5514463b8b1482418cb47fef5d80161a647021 | 2026-08-03 | feat(cards): let the player choose which deck the table is dealt from | 3 | 3.61 | 3.50
-2f46e743b0787f857083a942af9cb0b73d329eab | 2026-08-03 | feat(render): add All Corner Pips card deck and SVG asset | 2 | 1.82 | 1.76
-7d90f37d9830dff3cbcc15f2b0bab140acc9cdeb | 2026-08-04 | Update non-recycling stock piles to use closed placeholder background | 1 | 0.02 | 0.01
-8ecccd898584f44811ab4c325cbc608e35e25006 | 2026-10-03 | build: build every deck's atlas at 1x as well as 2x | 7 | 10.06 | 8.82
-2a8d5223d02038ae56b4602b4dbf2c3aada1cc29 | 2026-10-03 | feat: add redeal placeholders with a pip per redeal | 4 | 4.68 | 3.59
-81536d95bf50395414821180c81db8de76eaa028 | 2026-10-03 | feat: add Addiction as Montana with three redeals, and three-pip artwo | 4 | 4.73 | 4.66
-eda8c1bbba67f9d45a0d2c840b4a41f057a7410a | 2026-10-04 | build: generate a mobile card deck with indices that survive a fan | 3 | 0.70 | 0.52
-7194909658e2239d4f1dbb65ffe15601066fb875 | 2026-10-04 | build: leave a margin above the mobile deck's index | 2 | 0.66 | 0.49
-384a417dfdc07d4c5a35cf122b7ed0c9923130bc | 2026-10-04 | build: draw every mobile face with the rank over its pip on a panel | 2 | 0.81 | 0.64
-9208708e46868d4b008afa61f2d51f02856d426d | 2026-10-04 | feat: draw a foundation placeholder for a phone's rail | 5 | 5.17 | 4.79
-fb90b2b47da4b1bf2870ef83f636ad93084ae390 | 2026-10-04 | feat: build every card back into every deck's atlas | 8 | 10.21 | 8.64
-de0c0315bce52772befdc41985f74e7af57f678c | 2026-10-10 | build: draw every atlas density from the SVG rather than shrinking 2x | 5 | 3.60 | 3.45
-678ec18834322bd850285c4adf3b7dbdd7c95ead | 2026-10-10 | feat: build the deck at 0.5x, 0.75x and 1.5x as well as 1x and 2x | 12 | 8.42 | 8.05
+b47eb320891245a614971c712138ff20429fcd78 | 2023-09-17 | Load card images as sprites via atlas JSON mapping. | 1 | 1.86 | 1.85
+d918d0fbaa441df88d6855e71ba7b9058e39f22a | 2026-05-24 | Upgrade to latest frameworks for build, test, and Phaser. | 1 | 1.86 | 1.85
+d2ce6b569b824f2231be032cebae82f493594da7 | 2026-05-24 | Add assets in new location. | 1 | 1.86 | 1.85
+01c91d73404c9d39e97f3f47c8e48aa91f390259 | 2026-07-03 | Add more background plceholder pictures to sprite sheet. | 1 | 1.77 | 1.75
+bb74bc36ffff9c6100d00c4ca64ff30591312a91 | 2026-07-04 | Create a 'game' root folder for solitaire logic, to make room for ui c | 1 | 1.77 | 1.75
+4f849d2ab3aa2ac0d71f2c52171544c635197dd2 | 2026-07-26 | feat(assets): rebuild the card atlas from vector sources at 2x | 2 | 1.86 | 1.80
+19967c2e5717074df0fdd7be0da7b8b529782758 | 2026-07-26 | fix(assets): stop cards carrying their neighbour's edge into the frame | 1 | 1.79 | 1.74
+ecbf81fae3266fa636177178f366bec57863226c | 2026-07-26 | fix(assets): give cards an edge so overlapping ones stay apart | 1 | 1.80 | 1.75
+15e80106d496f0bb2fb5245d9be34ba82f057fd0 | 2026-07-27 | refactor: split the codebase into engine tiers | 2 | 1.81 | 1.76
+63251b07473452245abaab3750d33903dd391071 | 2026-08-02 | feat(cards): show the suit on an ace or court the fan has covered | 1 | 1.80 | 1.74
+cc3d73b2f85495e3cf07ced23c46ecee6c5f4c83 | 2026-08-03 | feat(cards): let the player choose which deck the table is dealt from | 3 | 3.61 | 3.50
+b1593627f6b47fe6340d934e6ec5dc57dc4a7927 | 2026-08-03 | feat(render): add All Corner Pips card deck and SVG asset | 2 | 1.82 | 1.76
+445b15df801c3d0cca4a5e8c93c6dfb6bcb3dc50 | 2026-08-04 | Update non-recycling stock piles to use closed placeholder background | 1 | 0.02 | 0.01
+142f00051258f7b1c754d7a85bd9a3d3a81c757e | 2026-10-03 | build: build every deck's atlas at 1x as well as 2x | 7 | 10.06 | 8.82
+efdac5baaf0fcef05d6cb0f714e5d73ab3b6ebd2 | 2026-10-03 | feat: add redeal placeholders with a pip per redeal | 4 | 4.68 | 3.59
+a1f22368eb8dbac528bdfbe2c9e0b30dc9ca030a | 2026-10-03 | feat: add Addiction as Montana with three redeals, and three-pip artwo | 4 | 4.73 | 4.66
+f31898eafcc550ecbbedef0f49a52294e40c8c71 | 2026-10-04 | build: generate a mobile card deck with indices that survive a fan | 3 | 0.70 | 0.52
+846bf5cb533f44e94db696de65d66b01e15716ea | 2026-10-04 | build: leave a margin above the mobile deck's index | 2 | 0.66 | 0.49
+9afbceb2632271042bf3b1dc0e5c58da5e3467a3 | 2026-10-04 | build: draw every mobile face with the rank over its pip on a panel | 2 | 0.81 | 0.64
+7d025485e277b5c8cd2b8d143cda89acc98a7ed0 | 2026-10-04 | feat: draw a foundation placeholder for a phone's rail | 5 | 5.17 | 4.79
+fc115ae77e654cb35f5730c8b80e3625148b154d | 2026-10-04 | feat: build every card back into every deck's atlas | 8 | 10.21 | 8.64
+05652c5139fb37477c658522fef0228f4045ef2f | 2026-10-10 | build: draw every atlas density from the SVG rather than shrinking 2x | 5 | 3.60 | 3.45
+a89a667f2acfd3c20c1109ab5d4c8aa34adc8c13 | 2026-10-10 | feat: build the deck at 0.5x, 0.75x and 1.5x as well as 1x and 2x | 12 | 8.42 | 8.05
 
 23 commits wrote atlas pages: 70 blobs counted per commit, 72.66 MiB as blobs, 66.77 MiB packed
 57 distinct PNG blobs: 58.07 MiB as blobs, 52.52 MiB packed (what the history holds)

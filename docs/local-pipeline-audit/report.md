@@ -1,6 +1,6 @@
 # Local pipeline audit: lint, typecheck, tests, build and layout check
 
-Measured on 2026-11-14 at e6740e04, on the 24-core devbox (23 GB, Node 26.13, Yarn 4.18.1), with warm caches, as a developer reruns `yarn verify` and `yarn check:layout`. The CI audit is in [`../ci-performance-audit/report-after.md`](../ci-performance-audit/report-after.md). Its findings are referred to here, not repeated. Every figure is from one run unless it says otherwise, so read it as ±10%. What was built from it, and what it measured after, is under [As built](#as-built).
+Measured on 2026-11-14 at 1624f87b, on the 24-core devbox (23 GB, Node 26.13, Yarn 4.18.1), with warm caches, as a developer reruns `yarn verify` and `yarn check:layout`. The CI audit is in [`../ci-performance-audit/report-after.md`](../ci-performance-audit/report-after.md). Its findings are referred to here, not repeated. Every figure is from one run unless it says otherwise, so read it as ±10%. What was built from it, and what it measured after, is under [As built](#as-built).
 
 ## Summary
 
@@ -22,9 +22,9 @@ Measured on 2026-11-14 at e6740e04, on the 24-core devbox (23 GB, Node 26.13, Ya
 
 Built on `local-pipeline`, one reviewed commit a step, as [work-log.md](work-log.md) records: #1, #2, #3 with the budget of #4 for the runs it starts, #6's compile cache and its notes, and #7. #4 for the full run, #5 and #8 are left, for the reasons the work log's plan gives.
 
-Locally, warm, on the same devbox at 15c09afe, as `bench.sh` times the steps ([`data/steps-after.tsv`](data/steps-after.tsv)):
+Locally, warm, on the same devbox at aecbc5fe, as `bench.sh` times the steps ([`data/steps-after.tsv`](data/steps-after.tsv)):
 
-| Step                                               | At e6740e04 | At 15c09afe |
+| Step                                               | At 1624f87b | At aecbc5fe |
 | -------------------------------------------------- | ----------: | ----------: |
 | skills, constraints, `dedupe --check`, root ESLint |       3.8 s |       2.7 s |
 | ESLint and Stylelint, every workspace (`foreach`)  |      31.1 s |      31.2 s |
@@ -35,7 +35,7 @@ Locally, warm, on the same devbox at 15c09afe, as `bench.sh` times the steps ([`
 | layout check                                       |      34.2 s |      23.4 s |
 | **total**                                          |   **171 s** | **146.5 s** |
 
-- **The total fell by 14%,** and its CPU from 1,818 to 1,676 s. A run at bf297ad9, with step 6's work in the tree, took the same 146.5 s ([`data/steps-after-step-5.tsv`](data/steps-after-step-5.tsv)).
+- **The total fell by 14%,** and its CPU from 1,818 to 1,676 s. A run at c509a31f, with step 6's work in the tree, took the same 146.5 s ([`data/steps-after-step-5.tsv`](data/steps-after-step-5.tsv)).
 - **The typecheck took 11 s,** against the 8 s estimated.
 - **The layout check took 23 s,** against the 15–20 s estimated.
 - **`yarn test` took 63 s,** 6 s less, within a single run's ±10%. Step 5 timed whole runs with the compile cache off, empty and full, in 65.7–67.4 s, and couldn't tell them apart. At half a second a Vitest start, and three or four starts a lane, it would save about 2 s (est.).
@@ -51,9 +51,9 @@ Locally, warm, on the same devbox at 15c09afe, as `bench.sh` times the steps ([`
 
 On CI, the Verify workflow ran fourteen times, all passing ([`data/ci-runs.tsv`](data/ci-runs.tsv), from `ci-steps.sh`):
 
-- **Seven at 15c09afe,** three dispatched one at a time, then four each dispatched with a run of main's code.
-- **Seven on main's code:** the CI audit's two runs at 4d37058f, the push of 9bba39fe, and the four paired runs at e6740e04. Those four ran from a branch of their own, `ci-control`, since a dispatch on `main` runs `promote`.
-- **The three commits run the same code:** 4d37058f, 9bba39fe and e6740e04 differ only in docs.
+- **Seven at aecbc5fe,** three dispatched one at a time, then four each dispatched with a run of main's code.
+- **Seven on main's code:** the CI audit's two runs at 464a4e09, the push of cdc04ba5, and the four paired runs at 1624f87b. Those four ran from a branch of their own, `ci-control`, since a dispatch on `main` runs `promote`.
+- **The three commits run the same code:** 464a4e09, cdc04ba5 and 1624f87b differ only in docs.
 
 Medians, with the range:
 
@@ -217,7 +217,7 @@ The four big games carry most of the time. The three Breaker games are also the 
 
 ### What a change touches
 
-[`scripts/history.mjs`](scripts/history.mjs) classed the 809 non-merge commits on main's first-parent line from the site becoming a workspace of its own (193fc133, 2026-10-18) to e6740e04, by the workspaces a cache keyed on their inputs would recheck. That is the changed workspaces and every workspace depending on them, as e6740e04 declares them, or all of them for a change to any other file of the root's, such as `package.json`, `yarn.lock` or `.yarnrc.yml`, but its own scripts and configs ([`data/history.tsv`](data/history.tsv)). Before 193fc133 the site's files lived in `frontend/` itself, so they named no workspace.
+[`scripts/history.mjs`](scripts/history.mjs) classed the 809 non-merge commits on main's first-parent line from the site becoming a workspace of its own (b427863e, 2026-10-18) to 1624f87b, by the workspaces a cache keyed on their inputs would recheck. That is the changed workspaces and every workspace depending on them, as 1624f87b declares them, or all of them for a change to any other file of the root's, such as `package.json`, `yarn.lock` or `.yarnrc.yml`, but its own scripts and configs ([`data/history.tsv`](data/history.tsv)). Before b427863e the site's files lived in `frontend/` itself, so they named no workspace.
 
 | What the commit touched                                     | Commits |
 | ----------------------------------------------------------- | ------: |
@@ -243,7 +243,7 @@ Ranked by what they save for the effort. The local figures are measured unless m
 | 4   | One step runner for the full run, in `@fz/dev`: every workspace's steps as tasks in one pool, with a budget of cores and memory, the longest first, and layout after build              | The full run 171 s → 120 s measured with `overlap.sh`; a scheduler lands somewhere between that and the CPU floor of 76 s                                                                                                                        | Medium–large | Oversubscription runs memory low and times specs out, as seen, so the budget is the point of it                                                                                                                                                                                                               |
 | 5   | Keep each passed step's input hash, and skip a step whose hash matches                                                                                                                  | A rerun after fixing one lint error skips the tests; a branch switch reuses its passes                                                                                                                                                           | Medium       | A key that misses an input gives a false pass. Key on the files git tracks plus the working tree's changes, the lockfile and the packages installed, the root's configs, `CI`, the command, and what git doesn't track: the Node that runs and, for the layout check, Chrome's version and what `dist/` holds |
 | 6   | Document the edit loop: `yarn test -- --changed`, ESLint `--concurrency 4` for one game alone, and `NODE_COMPILE_CACHE` set for Vitest by `tools/run-tests.mjs`                         | Brick Fuzz Pop's specs 28 s → 19 s for one view file; its ESLint 22 s → 12 s; 0.5 s per Vitest start                                                                                                                                             | Small        | `--changed` follows static imports only, so it is a loop tool, not a gate                                                                                                                                                                                                                                     |
-| 7   | Give Brick Fuzz Pop's `solver.spec.ts` case room, as Sudoku's `bank.spec.ts` got in 6b2808a0                                                                                            | A flake avoided                                                                                                                                                                                                                                  | Small        | None                                                                                                                                                                                                                                                                                                          |
+| 7   | Give Brick Fuzz Pop's `solver.spec.ts` case room, as Sudoku's `bank.spec.ts` got in 9aea89e1                                                                                            | A flake avoided                                                                                                                                                                                                                                  | Small        | None                                                                                                                                                                                                                                                                                                          |
 | 8   | Trial Analog's `fastCompile` for builds                                                                                                                                                 | A game's build 6.0 s → 2.8 s, so `yarn build`, and the `build:games` that `yarn start` runs, about halve (est.)                                                                                                                                  | Small        | A new compile path for what ships: compare the bundles, and run the layout checks and the image, before adopting                                                                                                                                                                                              |
 
 ### 1. Layout pages side by side
@@ -312,7 +312,7 @@ So a runner of the repository's own fits better. Turborepo is the fallback if ke
 
 ## Method
 
-- **Machine and state:** the devbox had nothing else running, at e6740e04 with a clean tree but for these docs. After the first review, every script below but `bench.sh`, whose figures it found sound, was run again in turn, with the work that followed stashed, and the figures here are that second run's. `bench.sh` takes wall-clock and CPU from bash's `time`, CPU being the user plus system time of every process a step started; the other scripts take wall-clock from `date +%s%N`.
+- **Machine and state:** the devbox had nothing else running, at 1624f87b with a clean tree but for these docs. After the first review, every script below but `bench.sh`, whose figures it found sound, was run again in turn, with the work that followed stashed, and the figures here are that second run's. `bench.sh` takes wall-clock and CPU from bash's `time`, CPU being the user plus system time of every process a step started; the other scripts take wall-clock from `date +%s%N`.
 - **Warm:** Prettier's, `tsc`'s and Vitest's caches as an earlier run left them.
 - **Scratch edits:** `fast-compile.sh` copies its configs into the games and deletes them after, putting Brick Breaker's own build back; `layout-pages.sh` applies its patch and takes it out again; `ts7-compare.sh` installs TypeScript 7.0.2 beside the logs, outside the repository.
 - **The scripts, in [`scripts/`](scripts/),** each sourcing `env.sh`, which finds the repository through git and Yarn where Corepack keeps the version `package.json` pins, unless `YARN` is set, and writes the raw logs outside the repository, under `local-pipeline-audit-2026-11-14/logs/` beside the checkout, unless `LOGS` is set:

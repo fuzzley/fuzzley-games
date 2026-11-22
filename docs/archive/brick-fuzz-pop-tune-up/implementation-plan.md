@@ -634,7 +634,7 @@ To format, never `yarn prettier`, which rewrites the whole repository, but
 `node_modules/.bin/prettier --write <paths>` from `frontend/` over the
 files changed (the paths relative to it, or `../docs/…`).
 
-**Timings at the start** (`7fbd968a`, warm, in a fresh worktree, with the
+**Timings at the start** (`46b0b958`, warm, in a fresh worktree, with the
 Asteroid Breaker build's agents at work beside it): the game's lint 25 s,
 its typecheck 7 s, its tests 40 s on four workers (6,489 specs in 147
 files), of which `sim`, alone, 17 s (555 specs in 29 files).
@@ -682,7 +682,7 @@ game's other plans were.
 ## 9. As built (2026-11-15)
 
 Built on 2026-11-15, on the branch `brick-fuzz-pop-tune-up`, cut from `main` at
-`7fbd968a`, in a day: the nine packages and the finish, three agents at a time
+`46b0b958`, in a day: the nine packages and the finish, three agents at a time
 beside the Asteroid Breaker build, each in a worktree of its own; every commit
 reviewed by a fresh agent before it was made, its answers in the commit's body;
 and each package rebased onto the tip and checked there before the branch
@@ -737,14 +737,14 @@ what was left for the user. The user asked for the merge the same day.
 - **R1 renamed `idleFrom` to `touchedFrom`,** as its review asked, since a touch
   moves it, not a hit. The bored fixture's steel now runs to row 14, and the
   solver's `THICK` test wall was drawn again, both for the longer air time.
-- **The sound lab's bored scene** (`c39be23c`, the integrator's) says the
+- **The sound lab's bored scene** (`f032db5d`, the integrator's) says the
   fuzzball touches only the walls and steel for `BORED` units, its knocks every
   9 units until the yawn, from the constant.
-- **The site's screenshots are a round into Powder keg, not two** (`98d4ba5a`):
+- **The site's screenshots are a round into Powder keg, not two** (`f734330a`):
   after the first two shots of its certificate on 11 deep, the wall was nearly
   gone, so `RUN` takes the first alone, the next shot aimed by the keys at 110°
   and a charge of 3, its guide through three bricks; `og:image:alt` says so.
-- **The docs were read through against the code** (Z1, `9ccea8de`): the game's
+- **The docs were read through against the code** (Z1, `73b4ccea`): the game's
   `AGENTS.md` now says how a fuzzball comes home (boredom, the idle limit and
   the caps), names `afterLanding()` and `RoundPlay.skip()` where the shell now
   calls them, and lists How to play's new paragraphs; the content skill says a
@@ -771,7 +771,7 @@ what was left for the user. The user asked for the merge the same day.
   three workers at a load of 13, against 17 s at the start, inside its 25 s
   budget.
 - **R2 moved `fly()`'s median** in the benchmark from 56.47 µs on R1's tip
-  (`b3ae2e81`) to 60.36 µs, and with the crew from 281.89 µs to 292.21 µs,
+  (`dad33785`) to 60.36 µs, and with the crew from 281.89 µs to 292.21 µs,
   within the noise of a machine the other build loaded (single runs spread from
   56 to 69 µs). R1's longer flights changed what the benchmark flies, so the
   start's figure doesn't compare with either.

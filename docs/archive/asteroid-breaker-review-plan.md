@@ -1,6 +1,6 @@
 # Plan: a review of Asteroid Breaker, and what to improve
 
-Reviewed 2026-11-08 at `f896a336`, `main`'s tip, eight days after Asteroid
+Reviewed 2026-11-08 at `5521dce9`, `main`'s tip, eight days after Asteroid
 Breaker shipped. The same day the user took every recommendation, so each
 finding below states the change as decided, and the decisions are listed at
 the end. The review covers `frontend/games/asteroid-breaker/` (its rules, view,
@@ -11,14 +11,14 @@ It looks for what would make the code easier to read, reuse, test and
 change, and for where it strays from the repository's rules, Google's
 TypeScript style guide, and Angular's, Phaser's and Vitest's own practice.
 Paths are relative to `frontend/games/asteroid-breaker/` unless they start
-with `frontend/`, and line numbers are as of `f896a336`.
+with `frontend/`, and line numbers are as of `5521dce9`.
 
 It was built on 2026-11-08 on the branches `asteroid-breaker-review`,
 `core-lifts`, `dev-lifts`, `phaser-lifts`, `ui-lifts` and `run-lifecycle`,
 each commit reviewed before it was made, and each branch merged into `main`
 once its QA passed. "As built" gathers what the work log decided that the
 findings don't say, and what it left open. The log was then deleted;
-`git show ecbf4785:docs/asteroid-breaker-review-worklog.md` reads it, step by
+`git show f9497cab:docs/asteroid-breaker-review-worklog.md` reads it, step by
 step.
 
 Each finding gives a **priority** (High, Medium or Low), a rough **effort**
@@ -1042,7 +1042,7 @@ commits (step 16d).
   the breakers do and as five games' question before a run is lost does.
   The Solitaire Collection's win card's "Play Again" says "New game" too,
   and its bar's button is named so, where its `aria-label` said "Start a
-  brand new game" (`ecbf4785`, on `new-game-label`).
+  brand new game" (`f9497cab`, on `new-game-label`).
 
 ### Left open
 
@@ -1097,11 +1097,11 @@ commits (step 16d).
 - **The Solitaire Collection's question before a new deal** is "Confirm
   Action", with "Confirm", where the other five ask "Start a new game?" with
   "New game"; it asks the same before a change of variant, draw or scoring
-  (`ecbf4785`).
+  (`f9497cab`).
 - **The Solitaire Collection's other labels are in title case** ("How to
   Play", "Report a Bug", "Game Settings"), and the sentence case the other
   games keep is written down nowhere; the rule belongs in
-  `frontend/games/AGENTS.md` once the code holds it (`ecbf4785`).
+  `frontend/games/AGENTS.md` once the code holds it (`f9497cab`).
 
 ## Decisions
 

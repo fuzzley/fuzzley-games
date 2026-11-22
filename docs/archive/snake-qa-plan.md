@@ -5,7 +5,7 @@ https://fuzzley.games/play/snake/, on a desktop or laptop with a keyboard
 and a mouse: its interface, its controls and its rules. Phones and tablets,
 held either way, have a plan of their own, `docs/archive/snake-mobile-qa-plan.md`,
 which borrows this plan's helpers and leaves the rules to it. Written
-2026-10-28 from the code on `main` at `cfd56a6`. Paths are relative to
+2026-10-28 from the code on `main` at `44df45f`. Paths are relative to
 `frontend/games/snake/`.
 
 The pass ends in a write-up of findings shaped like

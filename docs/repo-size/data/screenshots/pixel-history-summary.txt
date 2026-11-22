@@ -3,24 +3,24 @@ A pixel counts as changed where a channel moved more than 16 of 255;
 a change to under 0.01% of the pixels counts as too small to see.
 
 date	commit	pixel-identical	too small to see	visible change	resized	subject
-2026-09-27	3abe7ba2	0	0	41	10	docs: re-capture the rules-page screenshots without the rail
-2026-10-03	a7deaf18	0	0	3	0	docs: retake Montana's screenshot with the redeal pips and describe the placeholder hooks
-2026-10-05	503567ba	0	0	123	0	docs: re-capture the screenshots on default settings, and keep the header in the previews
-2026-10-10	811e476d	0	0	123	0	docs: retake every game's screenshots with the light under the cards
-2026-10-24	5bbda669	0	0	164	0	docs: retake Solitaire's screenshots with the game bar
-2026-10-25	7e03b0ba	0	0	2	0	docs(minesweeper): capture its screenshots, and describe the Angular game
-2026-10-25	67a5dbb3	0	0	82	82	docs(solitaire): retake the screenshots, and serve them at twice their size
-2026-10-25	908dcb35	0	0	0	2	docs(minesweeper): capture the screenshots on Casino night, at twice their size
-2026-10-25	a822e6cc	0	0	166	0	docs: retake the games' screenshots with the new wordmark
-2026-10-27	a3d033d2	0	0	2	0	docs(sudoku): screenshots with Fill in notes and the deeper shading
-2026-10-28	a9af4b96	0	0	4	0	docs: the games' screenshots with the choice menu's badge
-2026-10-31	e967b60b	0	0	4	0	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
-2026-11-04	d83e32fd	0	0	2	0	feat(asteroid-breaker): the site's screenshots, a run the autopilot played taken up as a stray drift
-2026-11-09	7206317a	0	0	8	0	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
-2026-11-09	a5420072	0	0	164	0	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded
-2026-11-11	3c78f61d	0	0	2	0	feat(brick-fuzz-pop): the site's screenshots on level 18, powder keg, its next shot aimed up through
-2026-11-14	c3381ee4	0	0	2	0	docs(brick-breaker): take the site's screenshots again on the uplift's look, the thumbnail the whole
-2026-11-15	98d4ba5a	0	0	2	0	feat(brick-fuzz-pop): the site's screenshots retaken on the tuned game, a round into Powder keg so t
-2026-11-16	2cbfb0bb	0	0	2	0	feat(asteroid-breaker): capture the uplifted game, waiting for the stray in the field's time, and ke
+2026-09-27	529c3153	0	0	41	10	docs: re-capture the rules-page screenshots without the rail
+2026-10-03	3ae509ee	0	0	3	0	docs: retake Montana's screenshot with the redeal pips and describe the placeholder hooks
+2026-10-05	3cb045ea	0	0	123	0	docs: re-capture the screenshots on default settings, and keep the header in the previews
+2026-10-10	ec685c42	0	0	123	0	docs: retake every game's screenshots with the light under the cards
+2026-10-24	1b20d9f4	0	0	164	0	docs: retake Solitaire's screenshots with the game bar
+2026-10-25	65588f7c	0	0	2	0	docs(minesweeper): capture its screenshots, and describe the Angular game
+2026-10-25	39b14edf	0	0	82	82	docs(solitaire): retake the screenshots, and serve them at twice their size
+2026-10-25	093d0607	0	0	0	2	docs(minesweeper): capture the screenshots on Casino night, at twice their size
+2026-10-25	ba9e2808	0	0	166	0	docs: retake the games' screenshots with the new wordmark
+2026-10-27	4b68178d	0	0	2	0	docs(sudoku): screenshots with Fill in notes and the deeper shading
+2026-10-28	5b0b534e	0	0	4	0	docs: the games' screenshots with the choice menu's badge
+2026-10-31	1856269b	0	0	4	0	docs(games): the arcade games' gallery screenshots are dark, as the classics' are
+2026-11-04	69956338	0	0	2	0	feat(asteroid-breaker): the site's screenshots, a run the autopilot played taken up as a stray drift
+2026-11-09	c8ad2156	0	0	8	0	docs(minesweeper, sudoku, snake, brick-breaker): the site's screenshots of four games taken again, a
+2026-11-09	8c359e75	0	0	164	0	docs(solitaire): the site's screenshots of every game taken again, on Casino night and a deal seeded
+2026-11-11	4cc97240	0	0	2	0	feat(brick-fuzz-pop): the site's screenshots on level 18, powder keg, its next shot aimed up through
+2026-11-14	0a7edc49	0	0	2	0	docs(brick-breaker): take the site's screenshots again on the uplift's look, the thumbnail the whole
+2026-11-15	f734330a	0	0	2	0	feat(brick-fuzz-pop): the site's screenshots retaken on the tuned game, a round into Powder keg so t
+2026-11-16	21fdc172	0	0	2	0	feat(asteroid-breaker): capture the uplifted game, waiting for the stray in the field's time, and ke
 
 all		0	0	896	94

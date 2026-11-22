@@ -1,8 +1,8 @@
 # Work log: acting on the local pipeline audit
 
-The log of the work that acts on [report.md](report.md), the audit of Nov 14, 2026 at `main` e6740e04. It records each change built, each commit, what each review found and how it was answered, and what was measured. It is written as the work goes, so a session that picks it up starts from the last entry.
+The log of the work that acts on [report.md](report.md), the audit of Nov 14, 2026 at `main` 1624f87b. It records each change built, each commit, what each review found and how it was answered, and what was measured. It is written as the work goes, so a session that picks it up starts from the last entry.
 
-- **Branch:** `local-pipeline`, from `main` at e6740e04. It is not merged until the user asks.
+- **Branch:** `local-pipeline`, from `main` at 1624f87b. It is not merged until the user asks.
 - **Commits:** each goes through the `commit-review-process` skill.
 - **CI:** no change may slow down or weaken the Verify workflow. Each change that reaches a CI job is timed there by dispatching the workflow on the branch (`gh workflow run verify.yml --ref local-pipeline`), one run at a time, and compared with main's runs. What helps only locally is turned on only where `CI` isn't `true`.
 - **Measuring:** with the report's scripts, in [`scripts/`](scripts/), one at a time on a quiet devbox.
@@ -13,12 +13,12 @@ The changes, in the order they are committed, with the report's numbers. TypeScr
 
 | Step | #   | Change                                                                                                                               | Status   |
 | ---- | --- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| 1    | —   | The audit's report, scripts and data                                                                                                 | 05b6fd8b |
-| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | edcd1961 |
-| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | ed629c55 |
-| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               | 7ed7026a |
-| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 | bf297ad9 |
-| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory | 15c09afe |
+| 1    | —   | The audit's report, scripts and data                                                                                                 | b7ec98ac |
+| 2    | 2   | TypeScript 7 for the plain `tsc` passes, with `ngc`, ESLint and Analog left on TypeScript 6                                          | 6bba6d4c |
+| 3    | 7   | Room for Brick Fuzz Pop's solver spec, which timed out under load                                                                    | 82751b2b |
+| 4    | 1   | The layout check's pages side by side, a few at a time                                                                               | f1575e8c |
+| 5    | 6   | Node's compile cache for the Vitest runs `yarn test` starts, locally                                                                 | c509a31f |
+| 6    | 3   | `yarn verify:changed`: only the workspaces a change reaches, each workspace's steps side by side, under a budget of cores and memory | aecbc5fe |
 | 7    | —   | The pipeline timed again, locally and on CI, and the report brought up to date                                                       | done     |
 
 What the plan leaves out, and why:
@@ -32,13 +32,13 @@ What the plan leaves out, and why:
 
 ### 2026-11-14: the audit's report, scripts and data (step 1)
 
-`docs(local-pipeline-audit): audit the local lint, typecheck, test, build and layout pipeline at e6740e04, with its scripts, data and the plan that acts on it`
-(05b6fd8b, step 1): `report.md`, this log, the scripts each figure came from in [`scripts/`](scripts/), and their tables in [`data/`](data/). The raw logs stay outside the repository, under `local-pipeline-audit-2026-11-14/logs/`, beside the checkout.
+`docs(local-pipeline-audit): audit the local lint, typecheck, test, build and layout pipeline at 1624f87b, with its scripts, data and the plan that acts on it`
+(b7ec98ac, step 1): `report.md`, this log, the scripts each figure came from in [`scripts/`](scripts/), and their tables in [`data/`](data/). The raw logs stay outside the repository, under `local-pipeline-audit-2026-11-14/logs/`, beside the checkout.
 
-The first review, and the answers. Every figure it touched was measured again at e6740e04 with the scripts as committed, one script at a time on a quiet devbox, with this branch's later changes stashed:
+The first review, and the answers. Every figure it touched was measured again at 1624f87b with the scripts as committed, one script at a time on a quiet devbox, with this branch's later changes stashed:
 
 1. **The model of skipping unchanged workspaces used each workspace's times from the full run, contended by twelve others, so its median was Brick Fuzz Pop's chain at 131 s where the report measured 85 s.** Fixed. [`scripts/alone.sh`](scripts/alone.sh) times each workspace's steps with nothing else running ([`data/workspace-times-alone.tsv`](data/workspace-times-alone.tsv)), and `estimate.mjs` reads those, takes the measured 171 s for a commit that reaches every workspace, and adds the site's build where the site itself is in the set, not only a game. The median commit now models at 102 s, and the report says the model errs short where several workspaces run, since it leaves out their contention.
-2. **`history.mjs` counted the commits from before the site became a workspace (193fc133) as reaching everything, and `.prettier*` as a root input.** Fixed: it starts at 193fc133, 809 commits, and classes `.prettier*` as formatting, which runs every time. The shares are 44% one workspace, 20% two to thirteen, 17% none, 11% a library every workspace depends on and 7% the root's config or lockfile, 4.6 workspaces a commit on average.
+2. **`history.mjs` counted the commits from before the site became a workspace (b427863e) as reaching everything, and `.prettier*` as a root input.** Fixed: it starts at b427863e, 809 commits, and classes `.prettier*` as formatting, which runs every time. The shares are 44% one workspace, 20% two to thirteen, 17% none, 11% a library every workspace depends on and 7% the root's config or lockfile, 4.6 workspaces a commit on average.
 3. **`one-game.sh` printed `date`'s exit code, not the step's.** Fixed: `timed`, in [`scripts/env.sh`](scripts/env.sh), which every shell script sources, takes `rc=$?` straight after the command. Its logs go under `$LOGS/one-game-<game>/`, and its two tables are in `data/`. In the re-run, the side-by-side run's root check exited 1 because Prettier found `report.md` unformatted while it was being edited. Prettier is the check's last part, and every part before it passed, so its time stands; the same goes for lint's exit in both overlap runs.
 4. **Recommendation #2 said CI's typecheck runs cold, which it doesn't, and left the `tsc7` design open.** Fixed: the report says CI restores TypeScript 6's build info, which the CI audit found saved nothing, so that cache step can go. It chooses the design: `@fz/dev` gives every workspace a `tsc7` binary, which a scratch Yarn project showed leaves `tsc` on 6. Rewriting `frontend/AGENTS.md`'s Type Checking entry and removing the cache step belong to step 2, which makes the change.
 5. **Several figures had no script or data behind them, and the shell scripts hardcoded their paths.** Fixed. These scripts were added, each re-run with its table in `data/`:
@@ -59,7 +59,7 @@ The first review, and the answers. Every figure it touched was measured again at
    - Method says `bench.sh` times with bash's `time` and the other scripts with `date`.
    - Recommendation #1 says "on 4 local cores with CI's software WebGL".
    - The big games' share reads 39–51%.
-   - The Sudoku spec is named: `bank.spec.ts`, split into quarters in 6b2808a0.
+   - The Sudoku spec is named: `bank.spec.ts`, split into quarters in 9aea89e1.
    - The InfoQ article, the TypeScript 7.0 announcement, typescript-eslint's FAQ and Oxlint's post are linked.
 
 The second review, and the answers. It found the first review's points 1–4 and 7 answered, and 5, 6 and 8 partly open:
@@ -76,7 +76,7 @@ The second review, and the answers. It found the first review's points 1–4 and
    - The first overlap runs' tables are kept as `overlap-1-first.tsv` and `overlap-3-first.tsv`, from the stash that held them.
    - Asteroid Breaker's per-file times are listed under Method's "By hand", and the compilation API's six failures under "Read off the raw logs".
 7. **An estimate of Asteroid Breaker's tests on 24 workers contradicted the alone run's 29 s.** Fixed: the report cites the 29 s, and says something beyond the files' sum sets its time, which the audit didn't look into.
-8. **`history.mjs` read the working tree and ran to `main`, so it would count other commits once this branch merges.** Fixed: it takes `[since] [until]`, 193fc133 and e6740e04 unless given, and reads the workspaces as `until` declares them; its output is the same rows, only the names in a row in git's order. Its header says "all" is any other file of `frontend/`'s but the root's own scripts and configs.
+8. **`history.mjs` read the working tree and ran to `main`, so it would count other commits once this branch merges.** Fixed: it takes `[since] [until]`, b427863e and 1624f87b unless given, and reads the workspaces as `until` declares them; its output is the same rows, only the names in a row in git's order. Its header says "all" is any other file of `frontend/`'s but the root's own scripts and configs.
 9. **The report called the changed-only run `yarn verify --changed`.** Fixed: `yarn verify:changed`, as a script of its own, since Yarn would hand `--changed` to `yarn verify`'s last command alone; plain `yarn verify` keeps its chain until #4.
 
 The smaller points, all fixed: the most-changed workspaces are the three Breaker games, at 46–51%, with Snake and Solitaire at 39–40%; the model's shares have a decimal, 18.5% within 30 s and 18.5% at the full time, the 11.1% and 7.4% that reach every workspace; and `one-game.sh`, the summary and the side-by-side finding name the root's checks it runs, its skills, constraints, dedupe and Prettier checks, not its ESLint or `tsc`.
@@ -86,7 +86,7 @@ The second review's fixes correct what it found rather than reshape the change, 
 ### 2026-11-14: TypeScript 7 for the plain passes (step 2)
 
 `build(dev): type-check every pass but ngc's on TypeScript 7, through a tsc7 binary of @fz/dev's, keeping no build info`
-(edcd1961, step 2):
+(6bba6d4c, step 2):
 
 - `@fz/dev` depends on TypeScript 7.0.2 under the alias `@typescript/native`, and declares a `tsc7` binary, `bin/tsc7.mjs` on `src/tsc7.ts`. Every workspace's `typecheck`, and the root's, runs it for each plain pass; `ngc` stays on TypeScript 6, as ESLint and Analog's plugin do. The alias lives in `@fz/dev` alone, the one workspace that declares it. In a scratch project, the alias beside `typescript` took `node_modules/.bin/tsc` while `yarn tsc` still ran 6. Here `frontend/node_modules/.bin/tsc` is TypeScript 6's, and `@fz/dev`'s own `.bin` holds only `tsc7`; no script runs a plain `tsc` any more either way.
 - No pass keeps build info. The `--incremental` flags go, and with them the step of CI's `typecheck` job that restored `tsconfig.*.tsbuildinfo`. `.gitignore` still ignores those files, for checkouts that hold some.
@@ -100,13 +100,13 @@ The review, and the answers:
 2. **Six workspaces' `AGENTS.md` still said their plain passes run `tsc`.** Fixed: the site's, `@fz/core`'s, `@fz/style`'s, `@fz/ui`'s, Minesweeper's and the Solitaire Collection's say `tsc7`.
 3. **`frontend/AGENTS.md`'s Type Checking tied the missing compiler API to the wrong clause, and kept "names each file" from the build-info sentence.** Fixed, as the review worded it.
 4. **This entry's line on the image was edited after staging.** Fixed: staged with this commit.
-5. **The audit's scripts still time TypeScript 6's passes with build info.** Left as they are, since they record how the audit measured at e6740e04. Step 7 times the pipeline with `bench.sh` and `one-game.sh` changed to run each workspace's own `typecheck` as it stands, or the "after" figures would time TypeScript 6.
+5. **The audit's scripts still time TypeScript 6's passes with build info.** Left as they are, since they record how the audit measured at 1624f87b. Step 7 times the pipeline with `bench.sh` and `one-game.sh` changed to run each workspace's own `typecheck` as it stands, or the "after" figures would time TypeScript 6.
 6. **Each pass starts Node twice,** once for the binary and once for TypeScript 7's launcher. Left: about 40 passes against `yarn typecheck`'s 12 s, and step 7's timings show whether it matters. Its point on why `yarn tsc` stays on 6 inside `@fz/dev` is answered in the first bullet above.
 
 ### 2026-11-14: room for Brick Fuzz Pop's solver spec (step 3)
 
 `test(brick-fuzz-pop): give the solver's search of a level no shot takes a hit off as long as a search no batch can split`
-(ed629c55, step 3):
+(82751b2b, step 3):
 
 - `src/testing/solver.spec.ts`'s "finds nothing for a level no shot takes a hit off" runs every search, down to every aim and a beam of 4, each failing: 517 ms alone. It timed out at Vitest's 5 s in the audit's first overlap run, every step started at once, and passed in the second.
 - It takes `SIM_TIMEOUT_MS`, 60 s, as the `THICK` case's `beforeAll` does, through the options object every other per-test timeout here uses. Under `yarn test` or `yarn test:coverage` alone it had never come near 5 s; what timed it out was lint, typecheck and the builds running beside the tests, which step 6 makes the usual run. So `src/testing/timing.ts`'s doc now names that too, and the workspace's `AGENTS.md` and its `brick-fuzz-pop-testing` skill name the case beside `THICK`.
@@ -114,14 +114,14 @@ The review, and the answers:
 
 The review, and the answers:
 
-1. **Step 2's row in the plan had no status.** Fixed: `edcd1961`.
+1. **Step 2's row in the plan had no status.** Fixed: `6bba6d4c`.
 2. **The entry gave `timing.ts`'s reason, but what timed the case out was every step run at once.** Fixed above: the entry says so, and `timing.ts`'s doc names the steps beside the tests.
 3. **The case set its timeout as a third argument, where every other per-test timeout here uses the options object, and its comment held a figure that will go stale.** Fixed: `{ timeout: SIM_TIMEOUT_MS }`, and the comment gives `THICK`'s reason, coverage and the specs beside it, without the figure.
 
 ### 2026-11-14: the layout check's pages side by side (step 4)
 
 `perf(dev): open the layout check's pages a few at once, four locally and two where CI is true, each check opening no more once one fails`
-(7ed7026a, step 4):
+(f1575e8c, step 4):
 
 - `@fz/dev/chrome`'s `DevToolsConnection` takes how many pages it opens at once (`pagesAtOnce`), one unless given, and `withPage()` waits its turn for one, the pages waiting in the order they asked. `withChrome()` hands its connection the `pagesAtOnce` its options say.
 - `withPage()` tells each page it has the focus (`Emulation.setFocusEmulationEnabled`). A new target takes the window's focus, so a page opened beside another would take it from that one, and the games pause when the focus leaves them.
@@ -159,7 +159,7 @@ These fixes reshaped the change, so it had a second review, which found nothing 
 ### 2026-11-15: Node's compile cache for the tests' Vitest runs (step 5)
 
 `perf(dev): keep node's compile cache for each vitest run yarn test starts, off CI`
-(bf297ad9, step 5):
+(c509a31f, step 5):
 
 - `runTestsScript()`, which `yarn test` and `yarn test:coverage` run, hands each workspace's run of `test` an environment with `NODE_COMPILE_CACHE` set to the root's `node_modules/.cache/node-compile-cache/`. It leaves the environment as it is where `CI` is `true`, as a runner starts with no cache, where `NODE_COMPILE_CACHE` names one already, and for `test:coverage`, as Node says coverage can be less precise in code read from the cache. Vitest doesn't turn the cache on itself, where tsc, ESLint, Vite and Prettier do. `NODE_DISABLE_COMPILE_CACHE=1` turns it off.
 - `runCommand()` takes the environment to run in, the process's unless given, and `TestsScriptIo` takes the one the script runs in, for its specs.
@@ -177,7 +177,7 @@ The review, and the answers:
 ### 2026-11-15: `yarn verify:changed` (step 6)
 
 `feat(dev): verify only the workspaces a branch's changes reach, each step side by side under a budget of cores and memory, through yarn verify:changed`
-(15c09afe, step 6):
+(aecbc5fe, step 6):
 
 - `@fz/dev/verify` is the runner, and the root's `tools/verify-changed.mjs` runs it as `yarn verify:changed`.
   - It finds the files the branch changed since it left `--base` (`origin/main`), in its commits, staged, unstaged or untracked.
@@ -247,7 +247,7 @@ The second review's fixes correct what it found rather than reshape the change, 
 `docs(local-pipeline-audit): time the pipeline again locally and on CI after steps 2–6, with the scripts that time verify:changed and CI's jobs`
 (step 7). The figures are in the report's As built; this entry says how they were taken.
 
-- **Locally,** at 15c09afe, warm, one at a time:
+- **Locally,** at aecbc5fe, warm, one at a time:
   - `bench.sh after-2` took 146.5 s, against the audit's 171.1 s, the same as a run after step 5 (`data/steps-after-step-5.tsv`). Its root `tsc` is now `yarn typecheck:root`, and `one-game.sh`'s typecheck runs `tsc7`, as each workspace's does.
   - `verify-changed.sh`, new, timed `yarn verify:changed`: 41.2 s with one of Brick Fuzz Pop's files touched, against `HEAD`, and 111.2 s for the branch, which reaches every workspace. The script as fixed after the reviews ran the one-game case twice more, in 41.3 and 37.8 s.
 - **The first one-game run took 10 s more than the game's own steps,** for five other games' builds and the site's, which the second review of step 6 made every site build wait on. They queued behind the tests' claim of 12 GB for 12 workers. Left as a follow-up: claim each suite's own memory per worker, as `step-memory.tsv` shows Brick Fuzz Pop's take half a GB each and the Solitaire Collection's about one. That reshapes the scheduler, so it is a change of its own, with its own review.
@@ -258,10 +258,10 @@ The second review's fixes correct what it found rather than reshape the change, 
   - `ci-steps.sh`, new, reads each run's jobs and steps, and `ci-workspace-tests.sh`, new, each workspace's suite from the test jobs' logs.
   - In the slow runs of the breakers' job, Asteroid Breaker and Brick Breaker both took 52–62% longer than main's medians, though the branch leaves their code as it was. In run 2, the branch ran that job as fast as main's code.
   - `ci-tests-ab.sh`, new, ran the two big-game jobs as CI does, on 4 cores with `CI=true`, in a worktree of `main` and on the branch in turn.
-  - Then four pairs of runs, each dispatched at once from the branch and from `ci-control`, a branch pushed at e6740e04 for them, since a dispatch on `main` runs `promote`, all passing: 43686044385 and 43686045855, 43686323679 and 43686325350, then, after the second review, 43689636808 and 43689638860, and 43689899782 and 43689901720. Main's code drew the slow runners in the first and third pairs, the branch in the second, third and fourth. `ci-control` was deleted after each two.
+  - Then four pairs of runs, each dispatched at once from the branch and from `ci-control`, a branch pushed at 1624f87b for them, since a dispatch on `main` runs `promote`, all passing: 43686044385 and 43686045855, 43686323679 and 43686325350, then, after the second review, 43689636808 and 43689638860, and 43689899782 and 43689901720. Main's code drew the slow runners in the first and third pairs, the branch in the second, third and fourth. `ci-control` was deleted after each two.
 - **No job ran slower for the branch's code, by what the pairs and the A/B can tell,** so the CI default of two layout pages stays. Its runs ended 39 s later in median, most of it in test jobs on slow runners. With those set aside, 11 s later, within the runs' spread, and fourteen runs can't rule out a small effect.
 - **The data, and where each came from:**
-  - `data/steps-after.tsv`, with its `steps-after-meta.txt`, is `bench.sh after-2`'s. `steps-after-step-5.tsv`, with its own, is from `bench.sh` as it is, at bf297ad9 with step 6's work in the tree, uncommitted.
+  - `data/steps-after.tsv`, with its `steps-after-meta.txt`, is `bench.sh after-2`'s. `steps-after-step-5.tsv`, with its own, is from `bench.sh` as it is, at c509a31f with step 6's work in the tree, uncommitted.
   - `verify-changed.tsv` joins the `times.tsv` of four runs, under a column naming each: `one-game` and `branch`, with the script before the reviews' fixes, which changed none of its timing, and `t3` and `t5`, with the script as each review left it. `verify-changed-one-game-times.txt` is the three one-game runs' tables, each under a line naming it. `verify-changed-one-game-dry-run.txt` is a dry run's output, after the first.
   - `ci-runs.tsv` and `ci-workspace-tests.tsv` are what `ci-steps.sh` and `ci-workspace-tests.sh` print for the fourteen runs.
   - `ci-tests-ab.tsv` joins the two jobs' tables from `ci-tests-ab.sh`, under one header. `ci-tests-ab-first.tsv` is the first set, put together by hand from the script before the review.
@@ -293,9 +293,9 @@ The review, and the answers:
    - Five other games' builds, as the Solitaire Collection's ended before the game's own steps.
    - 52–62%, against main's medians.
    - The recommendations' "none was measured on CI" now says until As built.
-   - The step 6 entry names 15c09afe.
+   - The step 6 entry names aecbc5fe.
    - `check-runs.cjs` is named as the CI audit's, kept outside the repository.
-   - `bench.sh`'s header says `typecheck:root` exists from 15c09afe, and that `steps-warm.tsv` came from the script at 05b6fd8b.
+   - `bench.sh`'s header says `typecheck:root` exists from aecbc5fe, and that `steps-warm.tsv` came from the script at b7ec98ac.
 
 The first review's fixes rewrote the CI verdict and four scripts, so the change had a second review. It recomputed every figure from the data and found them right, and nothing blocking. Its answers:
 

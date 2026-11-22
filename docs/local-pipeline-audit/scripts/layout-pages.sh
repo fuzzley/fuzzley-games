@@ -33,7 +33,7 @@ check() {
   done
 }
 check "one page at a time"
-# The patch fits e6740e04's layout.ts; where it no longer applies, there is
+# The patch fits 1624f87b's layout.ts; where it no longer applies, there is
 # nothing to compare, so stop rather than time the code as it is.
 git -C "$REPO" apply "$here/layout-pages.patch" || {
   echo "layout-pages.patch doesn't apply to this checkout." >&2

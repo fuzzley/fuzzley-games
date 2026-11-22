@@ -1,6 +1,6 @@
 # Asteroid Breaker as it is today
 
-This note was read from the game's own code on 2026-11-14, at commit `eb560e1f`.
+This note was read from the game's own code on 2026-11-14, at commit `67f71c6c`.
 It is an inventory, not a review: what the game draws, plays, sounds and counts,
 with the file and the name each fact comes from, so it can be checked. Paths are
 from `frontend/games/asteroid-breaker/` unless they start with `frontend/`,

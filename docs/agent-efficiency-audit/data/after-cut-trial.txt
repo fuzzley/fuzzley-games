@@ -1,5 +1,5 @@
 What an agent starts with once every AGENTS.md is cut to its rules, on 2026-11-21,
-Claude Code 2.1.330, the working tree at 78ffc9da.
+Claude Code 2.1.330, the working tree at 6eec316c.
 
 Two sessions of one small model, each started in the folder above the clone, as
 `plugins-trial.txt`'s "as-in-a-build" ones were: the session reads
@@ -109,7 +109,7 @@ trimmed from 8,350 bytes to 4,595.
 
 An earlier run of the first session, an hour before, with the memory index
 already trimmed and all seven plugins still on. Its working tree was a few review
-fixes short of 78ffc9da, which bears on what opening a file loads and not on an
+fixes short of 6eec316c, which bears on what opening a file loads and not on an
 agent's first request, so only its agent's first request is quoted from it:
 
 == after-cut-snake.json, the earlier run ==

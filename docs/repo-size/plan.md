@@ -1,7 +1,7 @@
 # Repository size: the plan
 
 Written 2026-11-21, before any change was made, and checked against `main`
-at ba66e77d the same day. By then the agent-efficiency work had cut the
+at 1e419943 the same day. By then the agent-efficiency work had cut the
 `AGENTS.md` files and deleted the skills that the first draft's doc steps
 named (§12). It plans three of the five strategies for making the
 repository smaller, in the order they should be built:
@@ -134,9 +134,10 @@ for Part C only.
 - The rewrite replaces every commit on GitHub, so a copy of the repository
   as it stood just before is the only way to undo it.
 - It is a bare mirror, `~/Projects/personal/fuzzley-games-backup.git`,
-  made at P0 on 2026-11-21, at b67c3c01, with its push URL disabled. C2
-  brings it up to date just before the rewrite, then cuts it off from
-  GitHub, and writes a bundle of it beside it.
+  made at P0 on 2026-11-21, at b67c3c01 (2f9057f0 after the rewrite),
+  with its push URL disabled. C2 brings it up to date just before the
+  rewrite, then cuts it off from GitHub, and writes a bundle of it beside
+  it.
 - Parts A and B need no backup. They are ordinary commits, which git's
   history keeps.
 
@@ -167,7 +168,7 @@ Claude's memory notes name 37 commits of this repository, 67 times.
   - An old clone used after it would bring the old history back.
 
 **D6. This folder goes to `main`, and is pushed.** That was P0, without the
-two sample sheets in `data/screenshots/samples/`, done as b67c3c01. The
+two sample sheets in `data/screenshots/samples/`, done as 2f9057f0. The
 research, scripts and data are about 1 MiB of text. Part C runs from these
 scripts, so they must be in a clone on the day.
 
@@ -187,7 +188,7 @@ any channel.**
   a few pixels in the game bar. WebP then spreads that into changes of up
   to 40 levels ([`gate-check.txt`](data/screenshots/gate-check.txt)).
 - A tolerance of 48 kept all 166 unchanged retakes, and missed one of
-  history's 896 real changes. That one, Snake's thumbnail in 7206317a,
+  history's 896 real changes. That one, Snake's thumbnail in c8ad2156,
   moved at most 44 levels, and may itself have shown no visible change.
 - The margin is thin, so each kept image is reported with its largest
   change, and `--force` writes every image.
@@ -450,7 +451,7 @@ after A3). §6.0 is the routine every package follows. Each package after it
 gives its edits file by file, its specs, its checks, its commit's subject,
 and the rules its review brief quotes.
 
-Line numbers are as of `ba66e77d`, when this section was last checked
+Line numbers are as of `1e419943`, when this section was last checked
 against the tree. An earlier package can move them, so find each place by
 the name given with it.
 
@@ -463,7 +464,7 @@ P0, which committed this folder and made the backup, is done (§12).
 `repo-size-plan`:
 
 1. `git fetch origin && git rebase origin/main`, so the branch starts from
-   that day's `main`. It was cut at ba66e77d.
+   that day's `main`. It was cut at 1e419943.
 2. From `frontend/`, run `npx -y corepack yarn install --immutable`. The
    worktree has no `node_modules` until then, and every check needs them.
 3. From the root, run `node .agents/link-claude-skills.mjs`, which links the
@@ -591,7 +592,7 @@ channel moved by more than 48 levels against the committed image (S1).
 2. **The six other games' `tools/capture-screenshots.mjs`:** each
    `capture:` callback takes `force` beside `url`, and hands `{ force }`
    to `keepShot()` as its fourth argument. These are the lines, at
-   ba66e77d:
+   1e419943:
 
    | Game             | `capture:` | `keepShot(` |
    | ---------------- | ---------: | ----------: |
@@ -1357,7 +1358,7 @@ git rev-list --objects origin/main..HEAD \
 
 For a single commit, use `<sha> ^<sha>~1` in the first command and
 `<sha>~1..<sha>` in the second. Both were checked on the 39 commits from
-b67c3c01 to ba66e77d, which give 0.32 MiB packed and 3.36 MiB raw.
+2f9057f0 to 1e419943, which give 0.32 MiB packed and 3.36 MiB raw.
 
 | Package | Packed          | Raw             | What it is                                                                                |
 | ------- | --------------- | --------------- | ----------------------------------------------------------------------------------------- |
@@ -1425,16 +1426,17 @@ recomputes.
 ## 12. As built
 
 - **P0, done on 2026-11-21.**
-  - The folder went to `main` as b67c3c01, without the two sample sheets,
+  - The folder went to `main` as 2f9057f0, without the two sample sheets,
     and Prettier and `yarn lint` passed on it.
   - Verify run 44943520092 passed, and `promote` moved `live` to the same
     commit.
   - It added 0.32 MiB packed (1.06 MiB raw), within its 2 MiB.
   - The backup mirror, `~/Projects/personal/fuzzley-games-backup.git`, was
-    made at b67c3c01, with its push URL disabled. It held 2 heads, 4
-    Dependabot branches and 37 `refs/pull/*`, in 301 MB.
-- **The plan checked against `main` at ba66e77d, on 2026-11-21.**
-  - The 39 commits since b67c3c01 cut every `AGENTS.md`, deleted the
+    made at b67c3c01 (2f9057f0 after the rewrite), with its push URL
+    disabled. It held 2 heads, 4 Dependabot branches and 37 `refs/pull/*`,
+    in 301 MB.
+- **The plan checked against `main` at 1e419943, on 2026-11-21.**
+  - The 39 commits since 2f9057f0 cut every `AGENTS.md`, deleted the
     `solitaire-build` and `solitaire-phaser` skills, and changed how a
     commit is reviewed. None of them touched the code §6 changes, so its
     edits held. These changed:
@@ -1469,21 +1471,21 @@ recomputes.
       - C10 links the agent definitions with `--also-in`.
       - No pull request is open (§8).
 - **Parts A and B, built on 2026-11-21 on `repo-size-plan`,** from
-  92f00d6b, as six commits, each reviewed by a `commit-reviewer` and its
+  7142d6cb, as six commits, each reviewed by a `commit-reviewer` and its
   answers folded in. Not pushed: they wait on the user's word (§6.0).
 
   | Package | Commit   | Packed (MiB) | Raw (MiB) |
   | ------- | -------- | -----------: | --------: |
-  | A1      | 5fe72ad9 |        0.016 |     0.097 |
-  | A2      | ae0697d8 |        0.007 |     0.087 |
-  | A3      | 483f2d63 |        0.007 |     0.068 |
-  | A4      | 242d1f65 |        0.001 |     0.012 |
-  | B1      | a5091cae |        0.004 |     0.044 |
-  | B2      | efc3e076 |        9.179 |     9.432 |
+  | A1      | 31291b17 |        0.016 |     0.097 |
+  | A2      | 8e5f0279 |        0.007 |     0.087 |
+  | A3      | f863f196 |        0.007 |     0.068 |
+  | A4      | ce408e56 |        0.001 |     0.012 |
+  | B1      | 05979d9c |        0.004 |     0.044 |
+  | B2      | 8f4d7f97 |        9.179 |     9.432 |
   | All six |          |        9.221 |     9.740 |
 
   Each commit is measured against its parent, and all six over the range
-  from 92f00d6b, not summed. The hashes hold until the branch is rebased
+  from 7142d6cb, not summed. The hashes hold until the branch is rebased
   onto a `main` that has moved.
 
   - **What the gate does on the devbox.**
@@ -1523,7 +1525,7 @@ recomputes.
       short, and an unknown first chunk, load at 0 × 0.
     - **B2:** `check-webp-pages.mjs` takes the commit to compare with
       (`data/atlases/check-webp-pages.txt`): all 24 pages match this machine's
-      PNG pages exactly, and 18 match those committed at 92f00d6b, the other 6
+      PNG pages exactly, and 18 match those committed at 7142d6cb, the other 6
       differing in the platform's corner pixels. The build's assets fell by
       7.37 MiB. Each deck was looked at roomy, on a phone held upright, and on
       its side, where it loads its 1.5x page. `compare-runs.mjs` and

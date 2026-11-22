@@ -9,12 +9,12 @@ never makes a game's own code harder to follow. Paths are relative to
 reading the files side by side.
 
 It was built the same day on the branch `shared-lib`, cut from `main` at
-`72ecbcf4`, in five tracks side by side, each in a worktree on a branch of its
+`0da2f763`, in five tracks side by side, each in a worktree on a branch of its
 own, each step a commit reviewed by a fresh agent and then picked onto
 `shared-lib`. The branch merges into `main` on the user's word, as a
 fast-forward, so the commits named here stay on `main`. "As built" gathers what
 the work log decided that the steps don't say, and what it left open. The log
-was then deleted; `git show ec8284d1:docs/shared-lib-worklog.md` reads it, step
+was then deleted; `git show 93c00428:docs/shared-lib-worklog.md` reads it, step
 by step. Both describe the code as it was, so check a path against the tree
 before following one.
 
@@ -28,124 +28,124 @@ picked.
 
 ### Phase 0
 
-F6 (`e2686777`) and F7 (`fa3cf019`) were built as planned, but a build from
+F6 (`f5f21101`) and F7 (`06aa5ccb`) were built as planned, but a build from
 before F6 can't read what F6 writes and deals afresh, so a rollback past it
 loses every Minesweeper and Sudoku game in progress once.
 
-- **F4 (`3ef7d84c`) changed Brick Breaker's scene and board too,** not only the
+- **F4 (`7a36d96a`) changed Brick Breaker's scene and board too,** not only the
   app's binding, since Asteroid Breaker's way rests on the scene encoding How to
   play's pictures only when first asked.
-- **F4b (`b626f00f`) is a step of its own.** It lifts the lazy pictures F4 left
+- **F4b (`4266116e`) is a step of its own.** It lifts the lazy pictures F4 left
   in both breakers' scenes into `@fz/phaser/scene`'s
   `picturesWhenAsked(scene, key, frames)`. The entry exports it and `Pictured`
   alone, so a scene can't encode at every bake again.
-- **F5 (`c366c302`) hands the script `SAVED_GAME_VERSION` alone** through
+- **F5 (`f1e6ead2`) hands the script `SAVED_GAME_VERSION` alone** through
   `SCREENSHOT_API`. `SAVED_GAME_KEY` stays a commented copy, as the key is the
   shell's, which the script's entry can't import.
 
 ### Phase 1
 
-1.1 (`092711ab`) and 1.3 (`217982e1`) were built as planned.
+1.1 (`54d1883d`) and 1.3 (`f0d84471`) were built as planned.
 
-- **1.2 (`971c24be`) drops each stats reader's early return:** it takes
+- **1.2 (`b78553ad`) drops each stats reader's early return:** it takes
   `saved?.[key]`, which `parseStats()` turns into none when nothing is stored.
 
-- **1.4 (`8eae6ccc`) leaves the rules' specs outside the import fence,** as the
+- **1.4 (`fdfb9fc5`) leaves the rules' specs outside the import fence,** as the
   Phaser games' are, since they import the pictures under
   `games/minesweeper/src/testing/` and Sudoku's.
-- **1.5 (`52ac6a92`) gave `cssRectStyle()` to Asteroid Breaker too,** for its
+- **1.5 (`10d4e1b2`) gave `cssRectStyle()` to Asteroid Breaker too,** for its
   placeholder field, ring and card.
 
 ### Phase 2
 
-- **2.1 (`f54cbaf6`) dropped Asteroid Breaker's `FieldCommand`,** which was
+- **2.1 (`b742d8dc`) dropped Asteroid Breaker's `FieldCommand`,** which was
   exactly `RunCommand`, and `@fz/game-ui` now depends on `@fz/core`.
-- **2.2 (`7d0915f2`): `HeldKeys.press()` says whether it holds a key afresh,**
+- **2.2 (`beddb496`): `HeldKeys.press()` says whether it holds a key afresh,**
   which Asteroid Breaker needs to take the heading from the mouse only on a
   fresh press. Brick Breaker's paddle no longer stops as a key it never held
   comes up.
-- **2.3 (`a8869f8b`) gave `Turns` its first spec,** as Asteroid Breaker's had
+- **2.3 (`fd1d5b3f`) gave `Turns` its first spec,** as Asteroid Breaker's had
   none. Brick Breaker's rings and fades are each a `Turns<Burst>`, made by one
   `burstOf()`; its painter is no shorter, but has no round-robin of its own.
-- **2.4 (`09b15619`) keeps each breaker's `multiplier()`,** one line over
+- **2.4 (`38da297d`) keeps each breaker's `multiplier()`,** one line over
   `multiplierAt()`, so its callers and its spec stay as they were.
-- **2.5 and 2.6 are one commit (`53599461`).** `withHigherCount()` takes a
+- **2.5 and 2.6 are one commit (`0a18ba69`).** `withHigherCount()` takes a
   missing count as -Infinity, not the games' -1, and `FieldPlay` asks a field's
   log only for an `EventLogView`.
 
 ### Phase 3
 
-3.1 (`54f83fea`) and 3.3 (`020f8412`) were built as planned.
+3.1 (`da6ab401`) and 3.3 (`14c21f4a`) were built as planned.
 
-- **3.2 (`2ad0c2ee`): `viewportOf()` keeps the insets it is given, not a copy**
+- **3.2 (`14f0ad39`): `viewportOf()` keeps the insets it is given, not a copy**
   (`lib/phaser/src/scene/viewport.ts`), since Snake's scene compares them by
   identity and a copy would lay it out every frame.
-- **3.4 (`b66c857d`) lets `@fz/style/themes` in by type in the fence itself,**
+- **3.4 (`4552b41f`) lets `@fz/style/themes` in by type in the fence itself,**
   not through a game's `viewAllows`, which would let its values in too, and may
   no longer name it.
 
 ### Phase 4
 
-- **4.1 (`e6c40859`): `game-frame` takes no `$stage`,** as all five games call
+- **4.1 (`a4d542bb`): `game-frame` takes no `$stage`,** as all five games call
   it `.stage`, and makes it `container: stage / size`. `@fz/game-ui/global`
   writes its two rules in `@fz/style`'s `fz.tokens` and `fz.base` layers, so a
   game's own rules win.
-- **4.2's two steps are two commits.** 4.2a (`13569e5b`) made the `choice-list`
-  mixin, and 4.2b (`c4a6d1a6`) `<fz-choice-list>`, which styles itself, so
+- **4.2's two steps are two commits.** 4.2a (`5a525495`) made the `choice-list`
+  mixin, and 4.2b (`ae220202`) `<fz-choice-list>`, which styles itself, so
   `settings-drawer` no longer includes the mixin. `BarChoiceOption` is an alias
   of `ChoiceOption`, and the lists the bar and drawer share are the shells'
   (`games/snake/src/app/settings/choices.ts`), not the rules'. Minesweeper
   keeps two lists, as its bar says Custom's size where the drawer says what
   Custom is.
-- **4.3 (`be150fbf`) keeps the frame's styles in `@fz/style`,** as
+- **4.3 (`461e1731`) keeps the frame's styles in `@fz/style`,** as
   `settings-drawer-frame($width)`, which `<fz-settings-drawer>` includes.
   `settings-drawer` stays whole for the Solitaire Collection's drawer (6.4),
   which the component can't be.
-- **4.4 (`624e98dd`) has Asteroid Breaker's board stylesheet load the game's
+- **4.4 (`5356c8da`) has Asteroid Breaker's board stylesheet load the game's
   toolkit** (`@use "../styles" as *;`), which it didn't need before.
-- **4.5 (`15ef9024`): `setting-fields` doesn't include `segmented`,** which
+- **4.5 (`1860cb52`): `setting-fields` doesn't include `segmented`,** which
   would put dead rules in every other drawer; Minesweeper and the Solitaire
   Collection include it where they draw one.
-- **4.6 (`52cb9bde`) also dropped the hint's `handBack`,** whose focus call
+- **4.6 (`d452a3e1`) also dropped the hint's `handBack`,** whose focus call
   clashed with `refocusWhenUncovered()`.
-- **4.7's spike and adoption are two commits.** Snake's (`86078f06`) read
-  better, so 4.7b (`10c10917`) took `keepSaved()` into the other four, and
+- **4.7's spike and adoption are two commits.** Snake's (`973f442a`) read
+  better, so 4.7b (`e7c9aece`) took `keepSaved()` into the other four, and
   `@fz/ui/storage` no longer exports `keepOnLeave()`. Minesweeper and Sudoku
   keep `save()` and `restore()` as methods, so they are only two lines shorter.
-- **4.8 (`a762e1ca`) drops `help-card` rather than splitting it.**
+- **4.8 (`58c383d9`) drops `help-card` rather than splitting it.**
   `<fz-help-dialog>` builds its card from `dialog-card(580px)` and
   `corner-close-button`; `@fz/style` keeps `help-text` and `help-controls`.
-- **4.9 (`9455dcdc`) reaches the Solitaire Collection's header,** which takes
+- **4.9 (`2ae13025`) reaches the Solitaire Collection's header,** which takes
   `withHomeLink()` and `SETTINGS_MENU_ACTION` but keeps its own How to Play.
-- **4.10 (`a3c57a17`) is `headTags()`,** one of `fuzzleyStyle()`'s plugins. It
+- **4.10 (`d7a6f1f1`) is `headTags()`,** one of `fuzzleyStyle()`'s plugins. It
   writes the tags before `<meta charset>`, which a head-prepended tag can't
   follow, at Vite's last stage (`order: "post"`).
 
 ### Phase 5
 
-- **5.1 (`6c4ffc25`) and 5.2 (`89909690`) take Testing Library as an optional
+- **5.1 (`378207ad`) and 5.2 (`48efeea0`) take Testing Library as an optional
   peer** of `@fz/game-ui` and `@fz/ui`. 5.2 adds `figureValue()`, which both
   breakers' bars need, and calls the element to look in `container`, as `within`
   would shadow Testing Library's.
-- **5.3 (`c91222b1`) took out 31 restores, not 28,** the Solitaire Collection's
+- **5.3 (`860884de`) took out 31 restores, not 28,** the Solitaire Collection's
   three among them. The cleanup runs after `vi.restoreAllMocks()`, so the fake
   puts back only a pixel ratio it set and still holds.
-- **5.4 (`737bfa7b`): `paintRoles(names, colors)` takes the names a game reads
+- **5.4 (`1ec2a592`): `paintRoles(names, colors)` takes the names a game reads
   its roles by,** as `ThemeService.roles()` does, and `stylesheetPalettes()`
   gained `palette(id)` at review.
-- **5.5 and 5.6 are one commit (`7b7a77ce`).** `browserKey()` throws for a code
+- **5.5 and 5.6 are one commit (`51afea68`).** `browserKey()` throws for a code
   its table lacks rather than give 0. `runShownScene()` draws no frame; each
   caller steps its first.
-- **5.7 (`09cae782`) adds `PHASER_CHECKED_AT`** and stops exporting `turnsAt()`.
-- **5.8 (`1eeaacd0`): `takenUpBoard(page, board, score)` takes the score as a
+- **5.7 (`f580616c`) adds `PHASER_CHECKED_AT`** and stops exporting `turnsAt()`.
+- **5.8 (`04539cc6`): `takenUpBoard(page, board, score)` takes the score as a
   string** and names the board in its problems. The Solitaire Collection's
   `build:thumbs` writes to `siteImagesFolder()`, but its capture keeps its own
   1440 × 810 page. `@fz/dev/screenshots` no longer re-exports
   `describePhaserPage`, `readRect` or `PHASER_CANVAS_SETTLED`, which stay in
   `@fz/dev/board-page`, and `describePhaserPage()` always waits 800 ms, its
   `waitMs` gone.
-- **5.9 (`6f5fc7fb`) found six copies, not four,** three in `@fz/dev`'s specs.
-- **5.10 and 5.11 are one commit (`ac434d9e`), and the loop is in
+- **5.9 (`64817a96`) found six copies, not four,** three in `@fz/dev`'s specs.
+- **5.10 and 5.11 are one commit (`ea0fd6b3`), and the loop is in
   `@fz/core/testing`,** not `@fz/game-ui/testing`: it imports nothing, so core's
   fence holds it. Two reviews settled its typing: `playUntil()` takes
   `game: Game & Ticking<Steer>` and a rule typed
@@ -155,16 +155,16 @@ loses every Minesweeper and Sudoku game in progress once.
 
 ### Phase 6
 
-6.3 (`4d4d6f9b`), 6.5 (`7355fa76`) and 6.6 (`195ab7ed`) were built as planned.
+6.3 (`50982a35`), 6.5 (`67631d73`) and 6.6 (`1272e35f`) were built as planned.
 
-- **6.1 (`66e68746`) confirmed F1 by reading the compiled cascade,** not in a
+- **6.1 (`2a686a8a`) confirmed F1 by reading the compiled cascade,** not in a
   browser. The loading badge, centred on the board as a card is, hides while a
   card shows and once the board isn't loading.
-- **6.2 (`c0c6f265`) left `seedFrom()` alone in its file,** now
+- **6.2 (`c2b9e494`) left `seedFrom()` alone in its file,** now
   `games/solitaire/src/engine/core/random/seed_from.ts`. At review, its fences
   were made to hold what the docs claim: the engine's core refuses every `@fz/*`
   library, and the tableau runtime and the games all but `@fz/core`.
-- **6.4 (`dab9c3d6`): the option group draws its own list with the `choice-list`
+- **6.4 (`db3106e9`): the option group draws its own list with the `choice-list`
   mixin,** not `<fz-choice-list>`, as each choice is named by its name alone and
   described by its line. Beyond the plan's renames, `.choice-row`,
   `.choice-name` and `.choice-desc` become `.choice`, `.name` and `.desc`, and
@@ -175,7 +175,7 @@ loses every Minesweeper and Sudoku game in progress once.
 
 ### Integration
 
-- **The checks:** `yarn verify` passes at `ac434d9e`, and `yarn check:layout`
+- **The checks:** `yarn verify` passes at `ea0fd6b3`, and `yarn check:layout`
   holds for Sudoku, Snake and both breakers at every shape and turn.
 - **The games played:** a fresh agent played all six games and the site's home
   in headed Chrome, at 1280 × 800 and by touch at 390 × 844 and 844 × 390. It
@@ -184,7 +184,7 @@ loses every Minesweeper and Sudoku game in progress once.
   overlaps the figures beside it by 3 to 8px, against at most 1px before. It is
   accepted, as it takes a game past an hour on a phone.
 - **The screenshots:** Minesweeper's, Sudoku's, Snake's and Brick Breaker's were
-  taken again (`7206317a`), and the Solitaire Collection's (`a5420072`), each
+  taken again (`c8ad2156`), and the Solitaire Collection's (`8c359e75`), each
   of its games on Casino night, its deal seeded by its id. Asteroid Breaker's
   are kept.
 

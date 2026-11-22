@@ -1,6 +1,6 @@
 # Screenshots: what they cost history, and how to stop them piling up
 
-Research for the repo-size plan, done on 2026-11-21 in the `repo-size-plan` worktree at 305edc24, on the 24-core devbox (sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0). No product code changed and nothing was committed. Every figure here is printed by a script in [`../scripts/screenshots/`](../scripts/screenshots/) into [`../data/screenshots/`](../data/screenshots/), and each section names the file. The captures and re-encodes went to a scratch folder outside the repository, never over a tracked file.
+Research for the repo-size plan, done on 2026-11-21 in the `repo-size-plan` worktree at c98aa92e, on the 24-core devbox (sharp 0.35.5, libvips 8.18.7, libwebp 1.6.0). No product code changed and nothing was committed. Every figure here is printed by a script in [`../scripts/screenshots/`](../scripts/screenshots/) into [`../data/screenshots/`](../data/screenshots/), and each section names the file. The captures and re-encodes went to a scratch folder outside the repository, never over a tracked file.
 
 ## Summary
 
@@ -63,7 +63,7 @@ From [`history-origin-summary.txt`](../data/screenshots/history-origin-summary.t
 | Snake                          |         7 |        0.10 |       4 |
 | **All**                        | **1,167** |  **200.97** |         |
 
-The brief's split, 107.5 MiB in `public/` and 92.1 MiB in `docs/screenshots/`, goes by the path `git rev-list --objects` names for each blob, which is where the newest commit keeps it. The summary prints that view too: 916 blobs and 107.47 MiB, against 205 and 92.06. The two views differ by 41 PNG blobs. On 2026-10-10, e704711d ("perf: serve the rules screenshots as 1600 px WebP") deleted 41 files from Solitaire's `public/`, as the summary's list of deletions shows: it moved the 41 `overview.png` into the new `docs/screenshots/`, the same blobs. They were first added under `public/`, and rev-list names them by where they ended up. The total is the same either way.
+The brief's split, 107.5 MiB in `public/` and 92.1 MiB in `docs/screenshots/`, goes by the path `git rev-list --objects` names for each blob, which is where the newest commit keeps it. The summary prints that view too: 916 blobs and 107.47 MiB, against 205 and 92.06. The two views differ by 41 PNG blobs. On 2026-10-10, c6b8178d ("perf: serve the rules screenshots as 1600 px WebP") deleted 41 files from Solitaire's `public/`, as the summary's list of deletions shows: it moved the 41 `overview.png` into the new `docs/screenshots/`, the same blobs. They were first added under `public/`, and rev-list names them by where they ended up. The total is the same either way.
 
 By format, PNG is 306 blobs and 147.98 MiB, and WebP 861 blobs and 52.98 MiB. By file, Solitaire's `overview.png` is 73.91 MiB from when `public/` served it (141 blobs) and 72.94 MiB as the originals since (164). Its `preview.webp` is 27.33 MiB (305 blobs), `overview.webp` 21.11 MiB (205) and `thumb.webp` 3.10 MiB (305).
 
@@ -87,25 +87,25 @@ History gained 12.26 MiB of screenshots in August, 12.18 in September, 145.32 in
 
 | Date       | Commit   | Why                                         | Blobs | MiB on disk |
 | ---------- | -------- | ------------------------------------------- | ----: | ----------: |
-| 2026-09-27 | 3abe7ba2 | look: without the rail                      |    51 |       11.11 |
-| 2026-10-05 | 503567ba | setup: default settings, header kept        |   123 |       21.36 |
-| 2026-10-10 | 811e476d | look: the light under the cards             |   123 |       21.66 |
-| 2026-10-10 | e704711d | format: the rules images as WebP            |    41 |        4.21 |
-| 2026-10-24 | 5bbda669 | look: the game bar                          |   164 |       23.84 |
-| 2026-10-25 | 67a5dbb3 | format: served at twice their size          |   164 |       28.60 |
-| 2026-10-25 | a822e6cc | look: the new wordmark                      |   164 |       28.69 |
-| 2026-11-09 | a5420072 | setup: Casino night and a seeded deal       |   164 |       30.40 |
+| 2026-09-27 | 529c3153 | look: without the rail                      |    51 |       11.11 |
+| 2026-10-05 | 3cb045ea | setup: default settings, header kept        |   123 |       21.36 |
+| 2026-10-10 | ec685c42 | look: the light under the cards             |   123 |       21.66 |
+| 2026-10-10 | c6b8178d | format: the rules images as WebP            |    41 |        4.21 |
+| 2026-10-24 | 1b20d9f4 | look: the game bar                          |   164 |       23.84 |
+| 2026-10-25 | 39b14edf | format: served at twice their size          |   164 |       28.60 |
+| 2026-10-25 | ba9e2808 | look: the new wordmark                      |   164 |       28.69 |
+| 2026-11-09 | 8c359e75 | setup: Casino night and a seeded deal       |   164 |       30.40 |
 |            |          | **All eight: 85% of every screenshot byte** |       |  **169.87** |
 
-Since 5bbda669, each full retake is 41 PNG originals and 123 WebP images: 164 blobs.
+Since 1b20d9f4, each full retake is 41 PNG originals and 123 WebP images: 164 blobs.
 
 ### PNG to WebP
 
 From the summary's first and last commit to add each format:
 
-- **The site's thumbnails and previews went to WebP on 2026-09-27**, in 9c191a04 ("build(browser): shrink the screenshots into the browser's thumbnails"). The last PNG added under Solitaire's `public/` was in 811e476d, on 2026-10-10.
-- **The rules pages' image went to WebP on 2026-10-10**, in e704711d, which moved the 41 PNG originals to `docs/screenshots/`.
-- **The PNG originals never stopped.** Each full retake since added 41 more, the last in a5420072 on 2026-11-09: 164 blobs and 72.94 MiB in all.
+- **The site's thumbnails and previews went to WebP on 2026-09-27**, in 562b8d9b ("build(browser): shrink the screenshots into the browser's thumbnails"). The last PNG added under Solitaire's `public/` was in ec685c42, on 2026-10-10.
+- **The rules pages' image went to WebP on 2026-10-10**, in c6b8178d, which moved the 41 PNG originals to `docs/screenshots/`.
+- **The PNG originals never stopped.** Each full retake since added 41 more, the last in 8c359e75 on 2026-11-09: 164 blobs and 72.94 MiB in all.
 - Every other game has used WebP since its first screenshot.
 
 ### Why they are retaken
@@ -119,7 +119,7 @@ From the summary's first and last commit to add each format:
 | The capture's scene, palette, seed or tool changed |       7 |   305 |       52.24 |   26% |
 | The format or size changed                         |       4 |   241 |       33.95 |   17% |
 
-When one game's look changes, only that game's images are retaken (Montana's redeal pips, a7deaf18: 3 blobs). But a change to something every game shows retakes the whole catalog: the game bar (5bbda669), the wordmark (a822e6cc), the choice menu's badge (a9af4b96). So does a change to how captures are set up (palette, seed, default settings), or to their format. Solitaire's catalog is 41 games of 4 files each.
+When one game's look changes, only that game's images are retaken (Montana's redeal pips, 3ae509ee: 3 blobs). But a change to something every game shows retakes the whole catalog: the game bar (1b20d9f4), the wordmark (ba9e2808), the choice menu's badge (5b0b534e). So does a change to how captures are set up (palette, seed, default settings), or to their format. Solitaire's catalog is 41 games of 4 files each.
 
 **Every retake in history changed what it retook.** `pixel-history.mjs` compared each screenshot with its version before, decoded. 896 comparisons were between images of the same size, and all 896 changed visibly; 94 more changed size. None was pixel-identical, and none moved fewer than 0.01% of its pixels by more than 16 levels ([`pixel-history-summary.txt`](../data/screenshots/pixel-history-summary.txt)). So a pixel-diff gate would have saved nothing so far. Its use is the future: retakes that change nothing, which are the norm now (next section), and whole-catalog retakes after a change to only some games.
 
@@ -158,7 +158,7 @@ So `capture:screenshots` then `build:thumbs`, run today, would rewrite all 41 or
 | an 8 × 8 block's mean change is over 6 |                                          26 |                                        0 |
 | an 8 × 8 block's mean change is over 8 |                                           4 |                                        0 |
 
-Averaging over 8 × 8 blocks doesn't help, since the encoder's noise gathers around the game bar's text. The rule at 48 levels misses one change in history: Snake's thumbnail in 7206317a, retaken when "@fz/dev/screenshots now takes them", which moved 21 pixels by more than 32 and none by more than 48 (at most 44). That retake may itself have changed nothing visible. The margin is thin either way: unchanged retakes moved a pixel by up to 40 levels, and the smallest real change in history by up to 44. So a gate at 48 levels should say which images it kept, and take `--force`.
+Averaging over 8 × 8 blocks doesn't help, since the encoder's noise gathers around the game bar's text. The rule at 48 levels misses one change in history: Snake's thumbnail in c8ad2156, retaken when "@fz/dev/screenshots now takes them", which moved 21 pixels by more than 32 and none by more than 48 (at most 44). That retake may itself have changed nothing visible. The margin is thin either way: unchanged retakes moved a pixel by up to 40 levels, and the smallest real change in history by up to 44. So a gate at 48 levels should say which images it kept, and take `--force`.
 
 ## 4. Options
 

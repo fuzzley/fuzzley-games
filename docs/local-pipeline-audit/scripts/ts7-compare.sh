@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Times every plain `tsc` project, the 40 passes e6740e04's `typecheck`
+# Times every plain `tsc` project, the 40 passes 1624f87b's `typecheck`
 # scripts ran with `tsc` and the three Angular libraries' `tsconfig.lib.json`
 # that `ngc` checks, with no build info, one after another on TypeScript 6
 # and then on TypeScript 7.0.2, installed into $LOGS/ts7/. Then the 11 `ngc`
@@ -68,7 +68,7 @@ twelve "ngc on 6 and the rest on 7, twelve at a time" "$jobs"
 grep "$NGC" "$jobs" > "$out/ngc.txt"
 twelve "ngc alone, twelve at a time" "$out/ngc.txt"
 # Brick Fuzz Pop's passes, each alone: `ngc`'s on TypeScript 6; then each
-# plain one on 6 warm, as e6740e04's typecheck ran it with its build info,
+# plain one on 6 warm, as 1624f87b's typecheck ran it with its build info,
 # run twice and the second timed, then cold on 6 and on 7, with the files
 # each reads. Writes `brick-fuzz-pop.tsv` to $LOGS/ts7/.
 bfp=$out/brick-fuzz-pop.tsv

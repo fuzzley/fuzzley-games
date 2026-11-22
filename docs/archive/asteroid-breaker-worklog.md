@@ -13,7 +13,7 @@ it records. Newest last.
   committed, as the `commit-review-process` skill says, with close
   attention to readability and to the language's, the frameworks' and the
   engineering's best practice.
-- **Branch.** `asteroid-breaker-plan` rebased onto `main` at `fc53b01e`, and
+- **Branch.** `asteroid-breaker-plan` rebased onto `main` at `2fe1d0a5`, and
   `asteroid-breaker-lift` cut from it, in the sibling worktree
   `fuzzley-games-asteroid-breaker`, with its own `yarn install` and skill
   links.
@@ -379,7 +379,7 @@ and build across every workspace.
 
 ## L5.1 and Q1: Brick Breaker unchanged
 
-2026-10-31, on `9aa6769f`.
+2026-10-31, on `88c38350`.
 
 - **`yarn verify`** passed: lint, typecheck, test and build across every
   workspace. It is L4's run too.
@@ -390,7 +390,7 @@ and build across every workspace.
   `sounds.wav` `e14d3425…bc4e214f` and `sounds.json` `098d8d41…f2d14e01`
   (SHA-256), as `main`'s are, and left the tree unchanged.
 - **`yarn report:levels`, the same numbers.** Its table on this branch and
-  on `main` (`fc53b01e`) are the same, line for line: every level's time,
+  on `main` (`2fe1d0a5`) are the same, line for line: every level's time,
   the time on its last three bricks, bounces and balls lost, at each
   speed.
 - **Played** on the worktree's dev server in the DevTools MCP's Chrome,
@@ -446,7 +446,7 @@ and build across every workspace.
 ## A1.1: the workspace
 
 2026-10-31, on `asteroid-breaker`, cut from `asteroid-breaker-lift` at
-`a52ebd30`.
+`e418bf90`.
 
 - **Built.** `frontend/games/asteroid-breaker/`, the workspace
   `asteroid-breaker`, from Brick Breaker's: its `package.json`, with the
@@ -522,7 +522,7 @@ and build across every workspace.
 
 ## A1: done
 
-2026-10-31. `yarn verify` passed on A1.1's commit, `f0069a09`: lint,
+2026-10-31. `yarn verify` passed on A1.1's commit, `c8583e10`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's among
 them. The site's build copied the five games `games.json` lists, and not
 Asteroid Breaker.
@@ -1108,8 +1108,8 @@ Asteroid Breaker.
 
 ## A2: done
 
-2026-10-31. `yarn verify` passed on A2.4's commit, `1b425c40`, with the lift
-before it, `fcbe223f`: lint, typecheck, test and build across every
+2026-10-31. `yarn verify` passed on A2.4's commit, `0c1ba407`, with the lift
+before it, `466c0d96`: lint, typecheck, test and build across every
 workspace, Asteroid Breaker's 210 tests among them, the rules fully covered.
 
 ## A3.1: the rocks' catalog
@@ -1437,7 +1437,7 @@ prettier:check`. Eleven mutants of the catalog, each caught: a crystal
 
 ## A3: done
 
-2026-11-01. `yarn verify` passed on A3.3's commit, `71a9a887`: lint,
+2026-11-01. `yarn verify` passed on A3.3's commit, `77cefb98`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 422
 tests among them, the rules fully covered but one branch the catalog rules
 out.
@@ -1811,7 +1811,7 @@ out.
 
 ## A4: done
 
-2026-11-01. `yarn verify` passed on A4.3's commit, `6a31f77a`: lint,
+2026-11-01. `yarn verify` passed on A4.3's commit, `59b7b0b7`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 787
 tests among them, the rules fully covered but the one branch the catalog
 rules out.
@@ -1826,7 +1826,7 @@ rules out.
   says to type the known keys by the data's type, as both callers do.
   `@fz/core`'s `AGENTS.md`, its package's description, the games'
   `AGENTS.md` and the `fuzzley-ui` skill, its triggers among it, name it.
-  Committed `c317e7ef`.
+  Committed `e0bf2417`.
 - **Choices.** It goes in `json`, beside the other readers of JSON, not
   `records`, whose `keysOf()` is for catalogs written as literals; and
   its signature stays as it was: a known keys record typed by the data's
@@ -2170,7 +2170,7 @@ rules out.
 
 ## A5: done
 
-2026-11-01. `yarn verify` passed on A5.3's commit, `60e7e9cb`: lint,
+2026-11-01. `yarn verify` passed on A5.3's commit, `1b5fcaf1`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 1,151
 tests among them, the rules fully covered but the one branch the catalog
 rules out.
@@ -2299,7 +2299,7 @@ rules out.
 
 ## A6: done
 
-2026-11-01. `yarn verify` passed on A6.1's commit, `0a137445`: lint,
+2026-11-01. `yarn verify` passed on A6.1's commit, `1d6a4a39`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 1,230
 tests among them, the rules fully covered but the one branch the catalog
 rules out.
@@ -3040,7 +3040,7 @@ rules out.
 
 ## A7: done
 
-2026-11-01. `yarn verify` passed on A7.4.2's commit, `699782fb`: lint,
+2026-11-01. `yarn verify` passed on A7.4.2's commit, `20f0f676`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 2,316
 tests among them, the rules and the view fully covered but for the
 branches strict indexing and the catalog rule out.
@@ -3460,7 +3460,7 @@ branches strict indexing and the catalog rule out.
 
 ## A8: done
 
-2026-11-01. `yarn verify` passed on A8.2.2's commit, `6d65d0c2`: lint,
+2026-11-01. `yarn verify` passed on A8.2.2's commit, `39242dd5`: lint,
 typecheck, test and build across every workspace.
 
 ## A9.1: play, the run and what is said
@@ -3824,7 +3824,7 @@ typecheck, test and build across every workspace.
 
 ## A9: done
 
-2026-11-02. `yarn verify` passed on A9.3's commit, `ac0da0ee`: lint,
+2026-11-02. `yarn verify` passed on A9.3's commit, `338c5d7d`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 2,773
 tests among them.
 
@@ -3988,7 +3988,7 @@ worktree of its own, so the dev server the phones reach stays as it was.
 
 ## Lifts: done
 
-2026-11-02. `yarn verify` passed on the second lift's commit, `ff350e52`:
+2026-11-02. `yarn verify` passed on the second lift's commit, `44a6f624`:
 lint, typecheck, test and build across every workspace.
 
 ## On the site early: `?debug` and "In development"
@@ -4666,7 +4666,7 @@ Breaker's line for line.
 
 ## A10: done
 
-2026-11-04. `yarn verify` passed on A10.2.5's commit, `fda25a6c`: lint,
+2026-11-04. `yarn verify` passed on A10.2.5's commit, `f2119a18`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 2,964
 tests among them.
 
@@ -4779,7 +4779,7 @@ for line Brick Breaker's.
 
 ## A11: done
 
-2026-11-04. `yarn verify` passed on A11.1's commit, `0d4584df`: lint,
+2026-11-04. `yarn verify` passed on A11.1's commit, `c0325bb0`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 2,990
 tests among them.
 
@@ -5011,7 +5011,7 @@ and takes up a run by them.
 
 ## A12: done
 
-2026-11-04. `yarn verify` passed on A12.2.2's commit, `8dfde4af`: lint,
+2026-11-04. `yarn verify` passed on A12.2.2's commit, `032d9b47`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 3,138
 tests among them.
 
@@ -5258,7 +5258,7 @@ tests among them.
 
 ## A13: done
 
-2026-11-04. `yarn verify` passed on A13.3's commit, `f7bc1df1`: lint,
+2026-11-04. `yarn verify` passed on A13.3's commit, `22d7bf06`: lint,
 typecheck, test and build across every workspace, Asteroid Breaker's 4,317
 tests among them.
 
@@ -5435,7 +5435,7 @@ tests among them.
 
 ## A14: done
 
-2026-11-04. `yarn verify` passes at 75776fbd: lint, type-check, every
+2026-11-04. `yarn verify` passes at 3a907155: lint, type-check, every
 workspace's tests and the build.
 
 ## Q4: the whole shell
@@ -5449,7 +5449,7 @@ a 390 × 844 phone at 3× with touch, and 2560 × 1440.
   `@fz/phaser`'s canvas is, with a bare `?ngcomp`, which Analog's live
   reload takes only as `ngcomp=`, so the request fell through to the page.
   It held in every game's dev server, never in a build. Fixed in `@fz/dev`
-  (`componentStylesheets()`, c10d8f33), reviewed on its own.
+  (`componentStylesheets()`, edc6c4a3), reviewed on its own.
 - **Endless:** Sectors lists it, "From wave 31", once reached; Storm
   cleared's card shows the trophy, "Storm cleared. Endless begins.", and the
   announcer says "Storm cleared! Endless begins. Score 1,000."; wave 31's
@@ -5852,7 +5852,7 @@ the games, each reviewed.
 
 ## Q6: the site's build
 
-2026-11-04, on the site's preview of `yarn verify`'s build at `3d5d767c`,
+2026-11-04, on the site's preview of `yarn verify`'s build at `2e065fb9`,
 with A17.1's listing, in the DevTools MCP's Chrome. Docker is off on this
 machine, so the image waits for CI: its check that the policy is sent, and
 the live site for what it lets load, as `yarn preview` sends none.

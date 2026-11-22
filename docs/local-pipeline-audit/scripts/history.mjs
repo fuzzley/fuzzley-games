@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Says, for each commit on main's first-parent line from the site becoming a
-// workspace of its own (193fc133) to the audited commit (e6740e04), which
+// workspace of its own (b427863e) to the audited commit (1624f87b), which
 // workspaces a cache keyed on each workspace's inputs would have to check
 // again: those whose files the commit changed, and every workspace
 // depending on them; or all of them for a change to any other file of
 // frontend/'s, such as the root's package.json, yarn.lock or .yarnrc.yml,
 // but the root's own scripts and configs, which only the root's checks
-// read. Before 193fc133 the site lived in frontend/ itself, so its paths
+// read. Before b427863e the site lived in frontend/ itself, so its paths
 // name no workspace.
 //
 //   node history.mjs [since] [until] > history.tsv
@@ -21,8 +21,8 @@ import { dirname } from "node:path";
 const REPO = execFileSync("git", ["rev-parse", "--show-toplevel"], {
   encoding: "utf8",
 }).trim();
-const since = process.argv[2] ?? "193fc133";
-const until = process.argv[3] ?? "e6740e04";
+const since = process.argv[2] ?? "b427863e";
+const until = process.argv[3] ?? "1624f87b";
 
 /**
  * Returns what a git command prints, run in the repository.

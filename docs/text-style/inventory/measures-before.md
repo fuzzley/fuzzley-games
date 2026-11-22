@@ -1,6 +1,6 @@
 # Text inventory: measures
 
-Kept from before the rewrite, as the scripts wrote it at commit `d887d12b`.
+Kept from before the rewrite, as the scripts wrote it at commit `3279d5c0`.
 No script writes this file now.
 
 Written by `measure.mjs`; do not edit by hand. Sentences are measured only

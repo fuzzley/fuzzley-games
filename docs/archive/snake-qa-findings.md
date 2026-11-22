@@ -1,7 +1,7 @@
 # QA of Snake on the live site: findings
 
 Tested 2026-10-28 at https://fuzzley.games/play/snake/, the build from
-`cfd56a6` (built 2026-10-28 19:48 UTC, as `version.json` says), following
+`44df45f` (built 2026-10-28 19:48 UTC, as `version.json` says), following
 `docs/archive/snake-qa-plan.md` (desktop) and `docs/archive/snake-mobile-qa-plan.md`
 (phones and tablets). Twelve findings, ordered by priority: two High, six
 Medium and four Low, all fixed on 2026-10-29 as
@@ -178,7 +178,7 @@ px), while Sudoku's fits (268 to 312 px). The rail's groups don't give way
 (`.rail .status { flex: none; }` in
 `frontend/lib/game-ui/src/game_bar/game_bar.component.scss`).
 
-On `main` after this pass (`6565c77`), where the speed badge opens a menu
+On `main` after this pass (`2683ef1`), where the speed badge opens a menu
 and stands 30 px tall on the rail rather than 18, it is worse: Snake's ⋮
 spans 318 to 362 px, so the rail needs 370 px. At 320 px tall 2 px of it
 show, at 750 × 342 24 px, and at 640 × 360 (a small Android) it is cut too.
@@ -604,18 +604,18 @@ Emulation can't show these; they need a person with real devices.
 
 | #   | Finding                                                   | Priority | Effort | Where                     | Fixed in   |
 | --- | --------------------------------------------------------- | -------- | ------ | ------------------------- | ---------- |
-| 1   | Turning the phone leaves the board drawn small            | High     | S      | `@fz/phaser`, phones      | `ab5bcbc`  |
-| 2   | A slow connection is told the board is broken             | High     | S      | `@fz/phaser`, everywhere  | `7dbfdbb7` |
-| 3   | Small phones get a small board with the arrows showing    | Medium   | S      | Snake, phones             | `6288568d` |
-| 4   | The rail's ⋮ runs off a short phone held sideways         | Medium   | S      | `@fz/game-ui`, phones     | `2e6446ec` |
-| 5   | Turning the phone mid-run doesn't pause it                | Medium   | S      | Snake, phones             | `e910cd01` |
-| 6   | Nothing says how to play again after the result card      | Medium   | S      | Snake, everywhere         | `842a58ba` |
-| 7   | A click beside the board pauses, and the keys don't reach | Medium   | S      | Snake, desktop            | `cbdb2f0f` |
-| 8   | A press while the board loads starts an unseen run        | Medium   | S      | Snake, slow connections   | `0d03a774` |
-| 9   | A paused run ignores the direction back                   | Low      | S      | Snake, everywhere         | `892b4de0` |
-| 10  | A keyboard press on an on-screen arrow cuts the keys off  | Low      | S      | Snake, keyboard and touch | `cbdb2f0f` |
-| 11  | Small things in the words and sizes                       | Low      | S      | Snake                     | `a28082c5` |
-| 12  | nginx's bare 404 under `/play/`, naming its version       | Low      | S      | nginx                     | `93035612` |
+| 1   | Turning the phone leaves the board drawn small            | High     | S      | `@fz/phaser`, phones      | `14373a6`  |
+| 2   | A slow connection is told the board is broken             | High     | S      | `@fz/phaser`, everywhere  | `0df5fd7f` |
+| 3   | Small phones get a small board with the arrows showing    | Medium   | S      | Snake, phones             | `d943dc4f` |
+| 4   | The rail's ⋮ runs off a short phone held sideways         | Medium   | S      | `@fz/game-ui`, phones     | `c4856d43` |
+| 5   | Turning the phone mid-run doesn't pause it                | Medium   | S      | Snake, phones             | `f16063a2` |
+| 6   | Nothing says how to play again after the result card      | Medium   | S      | Snake, everywhere         | `b989ed97` |
+| 7   | A click beside the board pauses, and the keys don't reach | Medium   | S      | Snake, desktop            | `92d690ee` |
+| 8   | A press while the board loads starts an unseen run        | Medium   | S      | Snake, slow connections   | `cac5697d` |
+| 9   | A paused run ignores the direction back                   | Low      | S      | Snake, everywhere         | `61c2c9a9` |
+| 10  | A keyboard press on an on-screen arrow cuts the keys off  | Low      | S      | Snake, keyboard and touch | `92d690ee` |
+| 11  | Small things in the words and sizes                       | Low      | S      | Snake                     | `9499e0fb` |
+| 12  | nginx's bare 404 under `/play/`, naming its version       | Low      | S      | nginx                     | `aeb95ce0` |
 
 ## Suggested order
 

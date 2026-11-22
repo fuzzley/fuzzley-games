@@ -18,7 +18,7 @@ finding, and the QA checkpoints. Newest last.
   answered on the real code at Q2 and Q3. Part 2's branch is cut from Part
   1's tip rather than from `main` after a merge, so nothing waits on one.
   Nothing is pushed or merged into `main` without the user's go-ahead.
-- **Branch.** `brick-breaker-lift`, cut from `main` at `c0220468`.
+- **Branch.** `brick-breaker-lift`, cut from `main` at `5520e72d`.
 - **Numbers to compare against.** Snake's entry chunk is 77.7 kB gzipped,
   its scene 4.0 kB and its `phaser` chunk 351.7 kB (from the design plan).
 
@@ -226,7 +226,7 @@ the uploads `bakeTexture()` already made.
   nothing was left for a step of its own: the libraries' `AGENTS.md`,
   Snake's, and the `phaser-core`, `phaser-canvas-performance`, `fuzzley-ui`
   and `web-game-accessibility` skills.
-- **`yarn verify`** passed at `0af7a840`: every workspace's lint, typecheck
+- **`yarn verify`** passed at `7495ed88`: every workspace's lint, typecheck
   and tests (Snake 395, `@fz/phaser` 249, `@fz/game-ui` 156, `@fz/dev` 109),
   and the build. Snake's entry chunk is 81.2 kB gzipped, its scene 3.8 kB
   and its `phaser` chunk 357.1 kB.
@@ -255,14 +255,14 @@ since neither reads what the other writes. Its findings:
 Left as advised: the `setTimeout` settle and the `FakeViewport | null`
 copied from Snake's spec, `setVisibility()` copied (a helper in
 `@fz/game-ui/testing` can come when Brick Breaker's shell needs it), and
-`FOCUSABLE` as it was. The fix's commit (`21d65a12`) missed the skill's
+`FOCUSABLE` as it was. The fix's commit (`f286fb07`) missed the skill's
 line and this entry, which the next commit adds.
 
 ## Q1: Snake unchanged
 
-At `ba7354fd`, on Windows, Chrome in the app's browser pane:
+At `58ec7c5c`, on Windows, Chrome in the app's browser pane:
 
-- **Suite.** `yarn verify` passed at `0af7a840`; since then Snake's 395 specs
+- **Suite.** `yarn verify` passed at `7495ed88`; since then Snake's 395 specs
   pass on each fix, and its `app.component.spec.ts` pausing cases among
   them.
 - **Layout.** `yarn workspace snake check:layout` on a fresh build: the
@@ -1224,7 +1224,7 @@ Checked in a scratch spec, deleted after.
 - **Checks.** lint, typecheck, test (732), the rules and the view at 100% of
   statements.
 
-## B4.2's review (c8f6ba56, cc6c8463)
+## B4.2's review (14330a62, 3e36be57)
 
 1. **The endgame wasn't bounded.** A lone brick behind a steel shelf with
    one gap passed the spec.
@@ -1304,7 +1304,7 @@ Checked in a scratch spec, deleted after.
 
 - **Checks.** lint, typecheck, test, the report (above).
 
-## B5.1's review (a29543fe, 6c1ce745, 4d058dc7)
+## B5.1's review (8ae6336b, 3448a5e8, 45ee4ac0)
 
 1. **A paddle held at a wall left a gap as it narrowed.** A pointer resting
    past the wall sends no place after B5.1, so the target stayed clamped to
@@ -1360,7 +1360,7 @@ Checked in a scratch spec, deleted after.
 - **Checks.** lint, typecheck, test (738), the rules and the view at 100%
   of statements.
 
-## B5.2's review (7f5077b1)
+## B5.2's review (f88852b6)
 
 1. **Capsules cross bricks too.**
    - A capsule falls straight through the bricks below, drawn over them, at
@@ -1584,7 +1584,7 @@ Checked in a scratch spec, deleted after.
     `timeLeft()`'s guard for an effect without a time was unreachable on
     its own line, so it was folded into the guard before it.
 
-## B5.3's review (fc9a04aa, 6ddedb75, 8c83df33, 6a363973)
+## B5.3's review (4cab376c, 71ccdc81, b176f64d, 9d957796)
 
 The review came back with eleven findings. Each is answered here, and the
 fixes are in one commit.
@@ -1674,7 +1674,7 @@ satisfies`, so they are readonly.
       after going on to the next level leaves the score where the clearing
       left it.
 
-## B6.1's review (f0f5e025)
+## B6.1's review (3a3ecc1f)
 
 The review ran 24 mutations, and 21 survived the scene spec. Each of its
 ten findings is answered here, and the fixes are in one commit.
@@ -1748,7 +1748,7 @@ hidden page, focus within the board, each modifier, the drop's stagger,
 both interpolations, the cannons, the rim, the body's top and the rim's
 color) all fail a spec.
 
-## B6.2's review (49e62230)
+## B6.2's review (8b1901dd)
 
 The review ran 16 mutations and its own probe specs. Each of its six
 findings is answered here, and the fixes are in one commit.
@@ -1930,7 +1930,7 @@ findings is answered here, and the fixes are in one commit.
     The rules and the view stay at 100% of statements.
   - Q3 waits for B7.1's review, whose fixes change how the service plays.
 
-## B7.1's review (b5a7c578, with 92ceb61c, 40d7b26e and 1e8c0e32)
+## B7.1's review (db06d39f, with 48314962, f08d526b and 53a83f62)
 
 The review came back with eight findings. B7.2 was committed first, since
 it touched the same service, and the fixes are in one commit on top of
@@ -2119,7 +2119,7 @@ through Phaser's input and the scene's `Steering`.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,369),
   build.
 
-## B7.2's review (fd37e168, with 578f4386)
+## B7.2's review (91c3c90d, with 3716adec)
 
 The reviewer ran two findings against the real scene in a scratch copy
 before reporting. Every finding was taken.
@@ -2275,7 +2275,7 @@ before reporting. Every finding was taken.
   build. The first run failed only at Prettier on the settings template,
   which was formatted.
 
-## B8.1's review (adb6aebb, with 16336def)
+## B8.1's review (49adecee, with 28b2fee8)
 
 The reviewer proved findings 1 and 2 by running code: a scratch copy, a
 jsdom probe, and a page in Chrome. Every finding was taken. B8.2 was built
@@ -2418,7 +2418,7 @@ before these fixes, and they came after its commit.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,451),
   build, clean on the first run.
 
-## B8.2's review (aaa53ef1, with 8bed5b3d)
+## B8.2's review (44c30695, with a800c372)
 
 The reviewer checked out the two commits from `git archive` and ran a
 mutant for each finding marked as tested. Every one of those mutants
@@ -2607,7 +2607,7 @@ passed the specs it should have failed.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,516),
   build, clean on the first run.
 
-## B9's review (0f11461d, with 52abf4be)
+## B9's review (1d609257, with 2143f802)
 
 The reviewer worked in a `git archive` copy and ran a mutant for each
 test finding. Every one passed the specs.
@@ -2615,7 +2615,7 @@ test finding. Every one passed the specs.
 1. **No spec showed a sound played, or its pitch.** The scene's specs
    checked only the mute. Three mutants passed: no sounds played, no
    event's sound heard, and every detune 0. **Fixed in B10.1's commit
-   (9e960ade)**, which needed the same spy to spec the chime:
+   (9c15d1da)**, which needed the same spy to spec the chime:
    - `SpritePlayer.prototype.play` records each sound and its detune as it
      plays.
    - "Play a broken brick's, risen along its streak" expects
@@ -2624,7 +2624,7 @@ test finding. Every one passed the specs.
    - The B9 entry's "a sound heard when wanted" overstated the mute spec,
      which only a scene that always mutes would fail.
 2. **The won card couldn't tell the run's first level from level 1.**
-   52abf4be's won run started on level 1. A subtitle hard-coded to level
+   2143f802's won run started on level 1. A subtitle hard-coded to level
    1 passed the whole suite, and New game at level 1 passed the result
    spec. **Fixed:**
    - `TWO_SETS` is now Blasts and Again, then Last.
@@ -2756,7 +2756,7 @@ test finding. Every one passed the specs.
   statements): three guards and the restore of a level not yet begun had
   no spec. Four specs cover them.
 
-## B10.1's review (9e960ade, with d6ae2cc3)
+## B10.1's review (9c15d1da, with 9a71c4de)
 
 The reviewer found no bug in what the game does. Eleven of their
 seventeen mutants passed every spec, though, and the closed Levels dialog
@@ -2949,7 +2949,7 @@ the last life and the place of a lost ball were set from the page.
   1,641), and the references check. AGENTS.md names the set, the report's
   option and the catalog spec's shorter list.
 
-## B10.2's review (cb7b4d43, with 089163a3)
+## B10.2's review (891ad93f, with 7626eabe)
 
 The reviewer found no bug in what a normal run does. They proved five things
 by running them:
@@ -3094,7 +3094,7 @@ The specs were the weak spot: 20 of their 21 mutants passed the whole suite.
 - **Checks.** `yarn verify`: lint, typecheck, test (Brick Breaker's 1,734),
   build. AGENTS.md names the set and the catalog spec's full check.
 
-## B11.1's review (e58b8c5b, with 702a6e44)
+## B11.1's review (f274ada4, with 3bd55f1f)
 
 The reviewer found no bug in a real run. A probe kept, read back and took
 up the field every 23 steps of autopilot play on every level: no state was
@@ -3296,7 +3296,7 @@ needed to reach into the page. Nothing was found to fix.
   and through it Phaser, only by `import()`.
 - **The console** stayed clean on both pages through every check.
 
-## B11.2's review (819b2427, with 71b26f09)
+## B11.2's review (3ffa09ee, with 9cf911fc)
 
 The reviewer played the Tricks levels from 40 seeds each, ran mutants
 against the specs, and probed the announcer with a spec of its own.
@@ -3530,7 +3530,7 @@ against the specs, and probed the announcer with a spec of its own.
   catalog's name in its `game.json`. `yarn check:layout` holds for all
   three games that have one.
 
-## B12.1's review (b2dff36a, with 525d05a5)
+## B12.1's review (07aaf550, with 99976163)
 
 The reviewer ran the layout check with what it measured printed, mutants
 against the announcer, the round trip and `catchUp()`, and the level report
@@ -3611,7 +3611,7 @@ over 40 seeds, which reproduced the table exactly.
   `check-image.sh` checks every game `games.json` lists, Brick Breaker with
   them: its status and redirects, its caching, the security headers, no
   policy, the analytics tags and its assets.
-- **The site's build** at `44e0e6aa`, from `yarn build`, served by
+- **The site's build** at `67e90bad`, from `yarn build`, served by
   `yarn preview`. Checked in the DevTools MCP's Chrome, in a context of its
   own.
   - **The catalog** lists it in Arcade, after Snake: New, Solo, 10 min,
@@ -3626,7 +3626,7 @@ over 40 seeds, which reproduced the table exactly.
     - A ball launched by Space broke bricks for 50 points. Lost, unsteered,
       it was announced ("Ball lost. 2 lives left."), and the Ready card came
       back.
-  - **The footer** names the commit, `44e0e6aa`, as `version.json` does for
+  - **The footer** names the commit, `67e90bad`, as `version.json` does for
     each game's build.
 - **The console.**
   - **On the game's page,** only Chrome's info line that autofocus was
@@ -3655,7 +3655,7 @@ over 40 seeds, which reproduced the table exactly.
 - **Checks.** Prettier and the references pass. Nothing outside the
   archive names either file.
 
-## B13.1 to B14.1's review (9eaf65f5, 80e90a40, 18def931, 04258c5c, with 44e0e6aa)
+## B13.1 to B14.1's review (a647d2d3, 8facf161, b6d765b6, 996af0b4, with 67e90bad)
 
 The reviewer found no bug in the game. It ran mutants against `keptRun()`,
 `catchUp()`, the announcer, the round trip and the layout check, checked the
@@ -3723,7 +3723,7 @@ against its build.
   `yarn capture:screenshots` ran against the dev server and wrote the same
   images byte for byte.
 
-## B14.2's review (6f8d136e, with a8e6a64a)
+## B14.2's review (e82c677f, with 618201ee)
 
 The reviewer found no bug in the game. Every finding was in the record:
 the plan's "As built" section, checked against the log, the code and
@@ -3826,7 +3826,7 @@ the plan's "As built" section, checked against the log, the code and
 - **Checks.** `keptRun()`'s and the run's specs pass. Prettier, the
   references, lint and typecheck pass.
 
-## The last fixes' review (93f0c273)
+## The last fixes' review (0a4e9b70)
 
 The reviewer found no bug. It ran the report again and compared all ninety
 of the table's times, which match, and ran mutants against both specs,

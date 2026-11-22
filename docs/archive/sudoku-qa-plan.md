@@ -1,7 +1,7 @@
 # Plan: QA of Sudoku on the live site, and what to fix
 
 Tested 2026-10-27 at https://fuzzley.games/play/sudoku/ (the build from
-`c140884`), and built the same day: the user said "Apply fixes", asking
+`72cf937`), and built the same day: the user said "Apply fixes", asking
 that finding 3 be checked, and fixed, in the other games too, with regular
 commits on a branch of its own. That took the recommendation in each of
 the decisions at the end, on the branch `sudoku-qa`, cut from `main`; the

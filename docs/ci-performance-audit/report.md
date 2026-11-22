@@ -1,6 +1,6 @@
 # fuzzley-games build, test and CI performance audit
 
-Nov 14, 2026 · `main` at 3af8a55f
+Nov 14, 2026 · `main` at 51738832
 
 The recommendations were built and timed again the same day: [report-after.md](report-after.md).
 
@@ -25,7 +25,7 @@ Suggested order:
 
 ## Scope and method
 
-The audit covers fuzzley-games at `main` 3af8a55f: 15 Yarn workspaces (7 games, 6 libraries, the site) and its one workflow, `.github/workflows/verify.yml`, with its `verify`, `docker` and `promote` jobs.
+The audit covers fuzzley-games at `main` 51738832: 15 Yarn workspaces (7 games, 6 libraries, the site) and its one workflow, `.github/workflows/verify.yml`, with its `verify`, `docker` and `promote` jobs.
 
 - **CI history:** the last 100 Actions runs, Oct 27 to Nov 14, 2026.
   - That is 71 Verify runs: 44 pushes and 22 pull requests that finished, plus 5 cancelled.
@@ -89,31 +89,31 @@ Seconds per phase in 13 green push runs:
 
 | Date   | Commit   | Tests | Lint | Typecheck | Build | Layout | Job |
 | ------ | -------- | ----: | ---: | --------: | ----: | -----: | --: |
-| Oct 27 | 8353bda1 |   165 |   79 |        50 |    20 |     13 | 347 |
-| Oct 30 | 8d6095c6 |   254 |  115 |        76 |    31 |     32 | 529 |
-| Nov 2  | 663ee4a4 |   251 |   99 |        65 |    27 |     26 | 490 |
-| Nov 8  | 6629a47c |   313 |   87 |        56 |    23 |     39 | 536 |
-| Nov 8  | f896a336 |   402 |   77 |        48 |    21 |     40 | 609 |
-| Nov 9  | 846824a2 |   352 |   79 |        55 |    21 |     32 | 559 |
-| Nov 10 | 9fbc77ad |   463 |  109 |        74 |    28 |     47 | 743 |
-| Nov 11 | 523c959b |   329 |   76 |        50 |    20 |     40 | 535 |
-| Nov 11 | 4d0d95ab |   328 |   84 |        56 |    21 |     49 | 556 |
-| Nov 14 | 8e818f2d |   375 |   92 |        57 |    22 |     52 | 618 |
-| Nov 14 | 21dbcad2 |   376 |   81 |        54 |    23 |     83 | 633 |
-| Nov 14 | 59df3917 |   460 |  105 |        66 |    26 |     92 | 770 |
-| Nov 14 | 3af8a55f |   462 |  109 |        66 |    27 |     92 | 780 |
+| Oct 27 | 94a5d2ab |   165 |   79 |        50 |    20 |     13 | 347 |
+| Oct 30 | 0d4e25f9 |   254 |  115 |        76 |    31 |     32 | 529 |
+| Nov 2  | 2330fa2e |   251 |   99 |        65 |    27 |     26 | 490 |
+| Nov 8  | 33429cca |   313 |   87 |        56 |    23 |     39 | 536 |
+| Nov 8  | 5521dce9 |   402 |   77 |        48 |    21 |     40 | 609 |
+| Nov 9  | f662d02a |   352 |   79 |        55 |    21 |     32 | 559 |
+| Nov 10 | 6d5e3bd9 |   463 |  109 |        74 |    28 |     47 | 743 |
+| Nov 11 | cb43a4d2 |   329 |   76 |        50 |    20 |     40 | 535 |
+| Nov 11 | afac7880 |   328 |   84 |        56 |    21 |     49 | 556 |
+| Nov 14 | 8087deef |   375 |   92 |        57 |    22 |     52 | 618 |
+| Nov 14 | 3c5aff52 |   376 |   81 |        54 |    23 |     83 | 633 |
+| Nov 14 | 11567498 |   460 |  105 |        66 |    26 |     92 | 770 |
+| Nov 14 | 51738832 |   462 |  109 |        66 |    27 |     92 | 780 |
 
-e700d409 landed between the two Nov 8 runs.
+8cfe800e landed between the two Nov 8 runs.
 
 - **Running the tests in parallel made CI slower.**
-  - e700d409 (Nov 8) ran 4 workspaces at a time with one Vitest worker each.
+  - 8cfe800e (Nov 8) ran 4 workspaces at a time with one Vitest worker each.
   - Locally it cut tests from about 392 s to 97 s.
   - On CI, summed Vitest time went from 280 s to 989 s, and the test phase from 313 s to 402 s.
   - Solitaire alone went from 46 s to 227 s, because its 172 spec files now share one worker.
 - **New games account for the rest.** Brick Breaker (Oct 29) and Asteroid Breaker (Oct 31) added most of the growth before Nov 8. Brick Fuzz Pop (Nov 11) and the Brick Breaker uplift (Nov 14) mostly made Solitaire's tests start later.
 - **The layout check grew from 13 s to 92 s.** Brick Breaker's and Asteroid Breaker's checks came first, then Brick Fuzz Pop's on Nov 11. The Brick Breaker uplift and its 60 s wait for the Cleared card came on Nov 14.
 - **Runner noise is 15 to 20%.**
-  - The same commit, eb560e1f, took 498 s and then 590 s for `verify:full`.
+  - The same commit, 67f71c6c, took 498 s and then 590 s for `verify:full`.
   - The last two runs on Nov 14 were 15 to 25% slower in every phase at once, which points at the runner.
   - The runner image moved from Ubuntu 24.04 to 26.04 on Nov 11.
 - **Nothing is cached.**
@@ -135,13 +135,13 @@ A red run skips `promote`, so each one held the push back from going live.
 
 | Date   | Commit                | Step    | Cause                                                                                                 | What made it green        | Delay to live    |
 | ------ | --------------------- | ------- | ----------------------------------------------------------------------------------------------------- | ------------------------- | ---------------- |
-| Nov 14 | 59df3917              | Install | Corepack's download of Yarn failed with `ENETUNREACH`, trying only IPv6 addresses                     | Re-run                    | 15 min           |
-| Nov 14 | 9c84dc18              | Tests   | Brick Breaker `autopilot.spec` "aims only at a brick it can see" took 5,297 ms, on a docs-only commit | Next push, unchanged test | 36 min           |
-| Nov 14 | c004b2ce (2 attempts) | Layout  | Brick Breaker's Cleared card didn't show within 10 s; software WebGL draws a few frames a second      | Fix 21dbcad2, a 60 s wait | 46 min           |
-| Nov 14 | eb560e1f              | Layout  | "Chrome did not start within 15000 ms" for Asteroid Breaker and Brick Breaker, launched side by side  | Re-run                    | 23 min           |
-| Nov 11 | b6f74baf              | Tests   | `@fz/dev` `eslint.spec` ran out of heap under `CI=true`; Sudoku `bank.spec` took 5,492 ms             | Fix 523c959b              | 34 min           |
-| Nov 9  | 9bf03334              | Tests   | Snake board spec took 5,501 ms, waiting on Phaser's first load                                        | Fix 72ecbcf4              | 9.5 h            |
-| Nov 9  | 395170ba              | Tests   | Snake board spec 5,399 ms; `@fz/phaser` `viewport_scaler.spec` 5,229 ms                               | Fix 72ecbcf4              | 9.9 h, overnight |
+| Nov 14 | 11567498              | Install | Corepack's download of Yarn failed with `ENETUNREACH`, trying only IPv6 addresses                     | Re-run                    | 15 min           |
+| Nov 14 | 1ba33047              | Tests   | Brick Breaker `autopilot.spec` "aims only at a brick it can see" took 5,297 ms, on a docs-only commit | Next push, unchanged test | 36 min           |
+| Nov 14 | a3db2abd (2 attempts) | Layout  | Brick Breaker's Cleared card didn't show within 10 s; software WebGL draws a few frames a second      | Fix 3c5aff52, a 60 s wait | 46 min           |
+| Nov 14 | 67f71c6c              | Layout  | "Chrome did not start within 15000 ms" for Asteroid Breaker and Brick Breaker, launched side by side  | Re-run                    | 23 min           |
+| Nov 11 | 0f5d7360              | Tests   | `@fz/dev` `eslint.spec` ran out of heap under `CI=true`; Sudoku `bank.spec` took 5,492 ms             | Fix cb43a4d2              | 34 min           |
+| Nov 9  | cafce1b7              | Tests   | Snake board spec took 5,501 ms, waiting on Phaser's first load                                        | Fix 0da2f763              | 9.5 h            |
+| Nov 9  | 8c0d9087              | Tests   | Snake board spec 5,399 ms; `@fz/phaser` `viewport_scaler.spec` 5,229 ms                               | Fix 0da2f763              | 9.9 h, overnight |
 
 - **Tests near the 5,000 ms limit in green runs:**
   - Asteroid Breaker `autopilot.spec` "brings most of the strays that cross home" reached 4,774 ms.
@@ -157,7 +157,7 @@ A red run skips `promote`, so each one held the push back from going live.
 
 The test phase is 60% of the job, and a third of it is a scheduling tail. Yarn starts workspaces in alphabetical order, so Solitaire, the slowest suite on CI, starts 13th.
 
-Run 3af8a55f, seconds after the test phase began, 4 lanes of one Vitest worker each:
+Run 51738832, seconds after the test phase began, 4 lanes of one Vitest worker each:
 
 | Workspace        | Start | End | Duration |
 | ---------------- | ----: | --: | -------: |
@@ -217,7 +217,7 @@ Splitting `verify` into parallel jobs is the one change that cuts the wait from 
 | 4   | Layout check: raise Chrome's 15 s launch limit and give it its own job. Split it one game per runner if it becomes the longest job.                                                                  | Removes the launch failure. Estimated 92 s to about 55 s per runner, since Brick Breaker alone took 54 s on 4 cores.                                                                                          | Small  | `LAUNCH_TIMEOUT_MS` in `lib/dev/src/chrome.ts`                                                                                                                |
 | 5   | Run Prettier beside ESLint, with `--experimental-cli` and its cache kept by `actions/cache`                                                                                                          | 24 s on CI. Measured on 4 cores: 25 s cold, 0.8 s with the cache, against 33 s.                                                                                                                               | Small  | The CLI is experimental, so check it reports the same problems as the classic one first                                                                       |
 | 6   | Cache Yarn's packages and the Yarn binary, or vendor Yarn through `yarnPath`                                                                                                                         | 5 to 10 s per job, and no more `ENETUNREACH` from Corepack                                                                                                                                                    | Small  | Restore with `actions/cache`, not `setup-node`'s `cache: yarn`, as the `github-actions-ci-cd` skill says                                                      |
-| 7   | Run only lint for pushes that change nothing but `docs/` and Markdown                                                                                                                                | 12 min on each of 6 of the last 48 pushes; also keeps flaky tests off docs commits such as 9c84dc18                                                                                                           | Medium | `promote` must still run. Compare with the last green commit, not the previous push.                                                                          |
+| 7   | Run only lint for pushes that change nothing but `docs/` and Markdown                                                                                                                                | 12 min on each of 6 of the last 48 pushes; also keeps flaky tests off docs commits such as 1ba33047                                                                                                           | Medium | `promote` must still run. Compare with the last green commit, not the previous push.                                                                          |
 | 8   | `tsc --incremental` with `.tsbuildinfo` cached, for the spec, Node and scripts passes                                                                                                                | 10 to 20 s of typecheck. Measured Nov 7: 2.1 s warm against 5.1 s cold per pass.                                                                                                                              | Medium | `ngc` gains nothing. Off the critical path once #1 lands.                                                                                                     |
 | 9   | Drop the HTML coverage report on CI                                                                                                                                                                  | A few seconds per workspace                                                                                                                                                                                   | Small  | Keep it locally, where it is read                                                                                                                             |
 | 10  | Dependabot PRs: run `yarn dedupe` on them in a workflow, or limit Dependabot to security updates                                                                                                     | 13 red PRs, and about 106 runner-minutes a weekly cycle on PRs whose updates are applied by hand                                                                                                              | Medium | A push with `GITHUB_TOKEN` doesn't trigger workflows, so this needs a GitHub App token                                                                        |
@@ -255,16 +255,16 @@ Runs cited, newest first:
 
 | Commit   | Date   | Run                                                                              | Cited for                                                |
 | -------- | ------ | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| 3af8a55f | Nov 14 | [43636815179](https://github.com/fuzzley/fuzzley-games/actions/runs/43636815179) | Latest green run: the pipeline map and the test timeline |
-| 59df3917 | Nov 14 | [43635076641](https://github.com/fuzzley/fuzzley-games/actions/runs/43635076641) | Corepack `ENETUNREACH`, green on attempt 2               |
-| 9c84dc18 | Nov 14 | [43633226652](https://github.com/fuzzley/fuzzley-games/actions/runs/43633226652) | Brick Breaker autopilot timeout                          |
-| 21dbcad2 | Nov 14 | [43629753240](https://github.com/fuzzley/fuzzley-games/actions/runs/43629753240) | The 60 s Cleared wait, layout check 83 s                 |
-| c004b2ce | Nov 14 | [43626533027](https://github.com/fuzzley/fuzzley-games/actions/runs/43626533027) | Cleared card not shown, 2 attempts                       |
-| eb560e1f | Nov 14 | [43571829430](https://github.com/fuzzley/fuzzley-games/actions/runs/43571829430) | Chrome launch timeout, green on attempt 2                |
-| b6f74baf | Nov 11 | [43105446129](https://github.com/fuzzley/fuzzley-games/actions/runs/43105446129) | `eslint.spec` out of heap                                |
-| 9fbc77ad | Nov 10 | [42867689271](https://github.com/fuzzley/fuzzley-games/actions/runs/42867689271) | First `verify:full` run                                  |
-| 9bf03334 | Nov 9  | [42568328536](https://github.com/fuzzley/fuzzley-games/actions/runs/42568328536) | Snake board timeout                                      |
-| 395170ba | Nov 9  | [42566091575](https://github.com/fuzzley/fuzzley-games/actions/runs/42566091575) | Snake board and `viewport_scaler` timeouts               |
-| f896a336 | Nov 8  | [42451470682](https://github.com/fuzzley/fuzzley-games/actions/runs/42451470682) | First run after e700d409                                 |
-| 6629a47c | Nov 8  | [42428590351](https://github.com/fuzzley/fuzzley-games/actions/runs/42428590351) | Last run before e700d409                                 |
-| 8353bda1 | Oct 27 | [40588683688](https://github.com/fuzzley/fuzzley-games/actions/runs/40588683688) | Baseline, 347 s                                          |
+| 51738832 | Nov 14 | [43636815179](https://github.com/fuzzley/fuzzley-games/actions/runs/43636815179) | Latest green run: the pipeline map and the test timeline |
+| 11567498 | Nov 14 | [43635076641](https://github.com/fuzzley/fuzzley-games/actions/runs/43635076641) | Corepack `ENETUNREACH`, green on attempt 2               |
+| 1ba33047 | Nov 14 | [43633226652](https://github.com/fuzzley/fuzzley-games/actions/runs/43633226652) | Brick Breaker autopilot timeout                          |
+| 3c5aff52 | Nov 14 | [43629753240](https://github.com/fuzzley/fuzzley-games/actions/runs/43629753240) | The 60 s Cleared wait, layout check 83 s                 |
+| a3db2abd | Nov 14 | [43626533027](https://github.com/fuzzley/fuzzley-games/actions/runs/43626533027) | Cleared card not shown, 2 attempts                       |
+| 67f71c6c | Nov 14 | [43571829430](https://github.com/fuzzley/fuzzley-games/actions/runs/43571829430) | Chrome launch timeout, green on attempt 2                |
+| 0f5d7360 | Nov 11 | [43105446129](https://github.com/fuzzley/fuzzley-games/actions/runs/43105446129) | `eslint.spec` out of heap                                |
+| 6d5e3bd9 | Nov 10 | [42867689271](https://github.com/fuzzley/fuzzley-games/actions/runs/42867689271) | First `verify:full` run                                  |
+| cafce1b7 | Nov 9  | [42568328536](https://github.com/fuzzley/fuzzley-games/actions/runs/42568328536) | Snake board timeout                                      |
+| 8c0d9087 | Nov 9  | [42566091575](https://github.com/fuzzley/fuzzley-games/actions/runs/42566091575) | Snake board and `viewport_scaler` timeouts               |
+| 5521dce9 | Nov 8  | [42451470682](https://github.com/fuzzley/fuzzley-games/actions/runs/42451470682) | First run after 8cfe800e                                 |
+| 33429cca | Nov 8  | [42428590351](https://github.com/fuzzley/fuzzley-games/actions/runs/42428590351) | Last run before 8cfe800e                                 |
+| 94a5d2ab | Oct 27 | [40588683688](https://github.com/fuzzley/fuzzley-games/actions/runs/40588683688) | Baseline, 347 s                                          |

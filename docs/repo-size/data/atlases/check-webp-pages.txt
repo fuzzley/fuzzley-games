@@ -1,31 +1,31 @@
 24 WebP pages in frontend/games/solitaire/src/engine/render/assets/sprites/atlas
-against PNG pages in ~/Projects/personal/repo-size-2026-11-21/atlases/mirror-png-before/src/engine/render/assets/sprites/atlas and at 92f00d6b
+against PNG pages in ~/Projects/personal/repo-size-2026-11-21/atlases/mirror-png-before/src/engine/render/assets/sprites/atlas and at 7142d6cb
 
-all-corner-pips/0.5x/card_assets-0.webp (223066 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 6 pixels differ, max channel diff 31
-all-corner-pips/0.75x/card_assets-0.webp (369574 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 3 pixels differ, max channel diff 13
-all-corner-pips/1.5x/card_assets-0.webp (853622 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-all-corner-pips/1x/card_assets-0.webp (527132 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-all-corner-pips/2x/card_assets-0.webp (783630 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-all-corner-pips/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-classic/0.5x/card_assets-0.webp (221514 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 6 pixels differ, max channel diff 31
-classic/0.75x/card_assets-0.webp (367276 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 3 pixels differ, max channel diff 13
-classic/1.5x/card_assets-0.webp (848734 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-classic/1x/card_assets-0.webp (524404 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-classic/2x/card_assets-0.webp (775350 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-classic/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-indexed/0.5x/card_assets-0.webp (222288 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 6 pixels differ, max channel diff 31
-indexed/0.75x/card_assets-0.webp (368570 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: 3 pixels differ, max channel diff 13
-indexed/1.5x/card_assets-0.webp (851248 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-indexed/1x/card_assets-0.webp (526968 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-indexed/2x/card_assets-0.webp (779042 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-indexed/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/0.5x/card_assets-0.webp (107440 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/0.75x/card_assets-0.webp (181388 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/1.5x/card_assets-0.webp (464654 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/1x/card_assets-0.webp (212934 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/2x/card_assets-0.webp (142968 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
-mobile/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 92f00d6b's PNG: identical pixels
+all-corner-pips/0.5x/card_assets-0.webp (223066 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 6 pixels differ, max channel diff 31
+all-corner-pips/0.75x/card_assets-0.webp (369574 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 3 pixels differ, max channel diff 13
+all-corner-pips/1.5x/card_assets-0.webp (853622 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+all-corner-pips/1x/card_assets-0.webp (527132 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+all-corner-pips/2x/card_assets-0.webp (783630 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+all-corner-pips/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+classic/0.5x/card_assets-0.webp (221514 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 6 pixels differ, max channel diff 31
+classic/0.75x/card_assets-0.webp (367276 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 3 pixels differ, max channel diff 13
+classic/1.5x/card_assets-0.webp (848734 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+classic/1x/card_assets-0.webp (524404 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+classic/2x/card_assets-0.webp (775350 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+classic/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+indexed/0.5x/card_assets-0.webp (222288 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 6 pixels differ, max channel diff 31
+indexed/0.75x/card_assets-0.webp (368570 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: 3 pixels differ, max channel diff 13
+indexed/1.5x/card_assets-0.webp (851248 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+indexed/1x/card_assets-0.webp (526968 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+indexed/2x/card_assets-0.webp (779042 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+indexed/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/0.5x/card_assets-0.webp (107440 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/0.75x/card_assets-0.webp (181388 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/1.5x/card_assets-0.webp (464654 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/1x/card_assets-0.webp (212934 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/2x/card_assets-0.webp (142968 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
+mobile/2x/card_assets-1.webp (267786 bytes, VP8L): this machine's PNG: identical pixels; 7142d6cb's PNG: identical pixels
 
 24 of 24 identical to this machine's PNG pages
-18 of 24 identical to 92f00d6b's
+18 of 24 identical to 7142d6cb's
 21 distinct WebP pages, 9619588 bytes (9.17 MiB)

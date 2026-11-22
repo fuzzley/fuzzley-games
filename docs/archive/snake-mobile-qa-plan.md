@@ -7,7 +7,7 @@ and back, once upright and once sideways, then checks what is particular to
 touch and small screens: the layout at each size, turning the device
 mid-run, swipes and the on-screen arrows, and what the browser and the
 system do around the page. Written 2026-10-28 from the code on `main` at
-`cfd56a6`. Paths are relative to `frontend/games/snake/`.
+`44df45f`. Paths are relative to `frontend/games/snake/`.
 
 The desktop plan, `docs/archive/snake-qa-plan.md`, tests the rules, the timing and
 the storage in depth, and this plan doesn't repeat them. It borrows that

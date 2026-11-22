@@ -11,7 +11,7 @@
 #
 # The typecheck's passes are the workspace's own, `ngc` on TypeScript 6 and
 # the rest on TypeScript 7 through `tsc7`, keeping no build info, as step 2 of
-# the work log made them; at e6740e04 they were all TypeScript 6's, with
+# the work log made them; at 1624f87b they were all TypeScript 6's, with
 # their build info.
 set -uo pipefail
 game=$1

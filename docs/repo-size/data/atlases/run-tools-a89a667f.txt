@@ -1,8 +1,8 @@
-label: run-tools-678ec188
-mirror: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-tools-678ec188
+label: run-tools-a89a667f
+mirror: /tmp/claude-1000/-home-dev-Projects-personal/0429104f-131c-55d3-83d6-9e70ee0dbce1/scratchpad/atlases/mirror-run-tools-a89a667f
 command: node tools/build-card-atlas.mjs
 node_modules: /home/dev/Projects/personal/fuzzley-games-repo-size/frontend/node_modules
-tools from: 678ec188
+tools from: a89a667f
 sharp 0.35.5, libvips 8.18.7, @resvg/resvg-js 2.6.2, node v26.13.0, linux-x64
 cpus: all (24)
 exit code: 0

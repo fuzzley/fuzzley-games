@@ -9,7 +9,7 @@
 #
 # LINT_JOBS and TC_JOBS, when given, run lint's and typecheck's foreach that
 # many at once, where Yarn's default is half the cores, with the root's
-# commands as e6740e04's `yarn lint` and `yarn typecheck` ran them.
+# commands as 1624f87b's `yarn lint` and `yarn typecheck` ran them.
 set -uo pipefail
 label=$1
 shift

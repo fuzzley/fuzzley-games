@@ -1,4 +1,4 @@
-Screenshots tracked at HEAD (305edc24): 176 files, 31.54 MiB
+Screenshots tracked at HEAD (c98aa92e): 176 files, 31.54 MiB
 
 game	folder	files	MiB
 solitaire	originals	41	20.07

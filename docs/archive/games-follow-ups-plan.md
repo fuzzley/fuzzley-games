@@ -1,7 +1,7 @@
 # The other games' follow-ups
 
 Brick Breaker's build (`docs/archive/brick-breaker-execution-plan.md`,
-merged into `main` as `8d6095c6` on 2026-10-30) found problems in the
+merged into `main` as `0d4e25f9` on 2026-10-30) found problems in the
 games before it, and pieces each game copies, which it left for the user.
 The user asked for them to be addressed once Brick Breaker was merged. This
 plan lists them, in the order they are built, and how the work runs; the
@@ -9,7 +9,7 @@ log is at its end.
 
 ## How the work runs
 
-- **One branch,** `games-follow-ups`, cut from `8d6095c6`, `main`'s tip.
+- **One branch,** `games-follow-ups`, cut from `0d4e25f9`, `main`'s tip.
 - **A step is a commit,** in the repository's form (`fix(snake): …`),
   once the workspaces it touched pass their `lint`, `typecheck` and `test`,
   and `yarn prettier:check` passes. What it adds is covered by specs, the
@@ -156,7 +156,7 @@ log is at its end.
 - **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
   the references.
 
-### G1's review (b8928cbf)
+### G1's review (6ee5f0e7)
 
 The reviewer found the fix sound, and proved its findings in a scratch
 copy: a raw listener given three keys in a frame heard five, the helper's
@@ -200,7 +200,7 @@ listeners were gone after a restart, and a key is heard before any
 - **Not taken:** G4's line in the plan says what changes, not what goes
   wrong today. Its log entry will.
 
-### G3's review (d76297f2)
+### G3's review (e21ae40f)
 
 The reviewer confirmed the diagnosis in a script of its own: the same 13
 values, 0.5 eating one and 0.121 two, and 1.42% over a million runs of
@@ -236,7 +236,7 @@ spec the seed could fail today. Every finding was taken.
 - **Checks:** Snake's lint, typecheck and test (397) pass, and Prettier and
   the references.
 
-### G2's review (7a115b83)
+### G2's review (589d055c)
 
 The reviewer found the fix right, and proved its findings on the commit's
 code in a scratch copy, with probe specs run with and without the
@@ -311,7 +311,7 @@ stands above the board. Every finding was taken.
 
 ### G-Q1: the fixes, checked
 
-At `5b5569c1`, with G2's review fixes in and G4's and G5's reviews under
+At `62ae1d4d`, with G2's review fixes in and G4's and G5's reviews under
 way.
 
 - **`yarn verify`:** lint, typecheck, test and build pass in every
@@ -332,7 +332,7 @@ way.
 - **Snake's screenshot script** (G4) ran against the dev server, took up
   its run with a score of 12, and wrote both images byte for byte as they
   were.
-- **Brick Breaker on fuzzley.games,** once its merge went live (`8d6095c`
+- **Brick Breaker on fuzzley.games,** once its merge went live (`0d4e25f`
   in `version.json`): its card in Arcade links `/play/brick-breaker/`, the
   level drew, Space launched the ball, a brick broke for 50, the ball was
   lost to a still paddle and announced ("Ball lost. 2 lives left."), and
@@ -370,7 +370,7 @@ way.
   Minesweeper (376), Sudoku (591), Snake (399) and Brick Breaker (1,753),
   and Prettier and the references.
 
-### G4's review (3e8faf8b, with 1e20ccfe and 1a82886f)
+### G4's review (45c4ce88, with e5ec2691 and 796f6479)
 
 The reviewer ran a probe of two keys in a frame (nothing replayed), and a
 module-wide `WeakSet` (the new spec fails it). It found the seed in every
@@ -407,7 +407,7 @@ to Phaser's source. Every finding was taken but the last.
   and then a fixed time for the flourishes, which `settle()` doesn't; G8
   lifts the layout check's runner, not the screenshots'.
 
-### G5's review (5b5569c1, with d635611f)
+### G5's review (62ae1d4d, with 2ae81191)
 
 The reviewer took `fzKeepKeys` out of both games in a scratch copy: three
 of Snake's specs and three of Brick Breaker's fail, and New Game's `runs`
@@ -493,7 +493,7 @@ but one nit.
   each game's layout holds where it did, and Sudoku's `--help` prints the
   usage.
 
-### G6's review (0ab9f8e1)
+### G6's review (f8ee7bb7)
 
 The reviewer compiled scratch stylesheets with the repository's Sass, and
 found the mixin rightly whole and rightly in `@fz/style`, and G6's log true
@@ -542,7 +542,7 @@ as far as it could check without Chrome. Every finding was taken but the
    an unclear "its". **Fixed:** "right", and the head comment lists the
    parts and the whole dialogs apart.
 
-### G7's review (78f58cc9, with cc9bfb2a)
+### G7's review (606b534f, with cd64c0fa)
 
 The reviewer built both games' sounds from the scripts before and after
 G7, against the library's source, and found them and the committed files
@@ -582,7 +582,7 @@ finding was taken.
   sounds' and keys' specs, both games' `yarn build:sounds`, which wrote the
   same files, and Prettier and the references.
 
-### G8's review (cd86abb5)
+### G8's review (994b9637)
 
 The reviewer found nothing a script did lost: the shapes, turns and pixel
 ratios, Snake's two passes and their labels, the words printed, the exit
@@ -628,7 +628,7 @@ part of the seventh.
   `check:layout --bogus` reports the option with the usage and exits 2,
   and `yarn check:layout` says each game's layout holds where it did.
 
-### The review of the three reviews' fixes (baad8126, cccbfdd5, c524ff2e)
+### The review of the three reviews' fixes (3bc6ccc3, 9f6eb23e, 8c304987)
 
 The reviewer found each commit does what its entry says, and checked the
 arpeggio's values, the server's close and the key helpers' docs against
@@ -672,7 +672,7 @@ taken.
 
 ### G-Q2: the lifts, checked
 
-- **`yarn verify`** passed at `c524ff2e`: lint, typecheck, every
+- **`yarn verify`** passed at `8c304987`: lint, typecheck, every
   workspace's tests (the Solitaire Collection's 6,872, Brick Breaker's
   1,753, Sudoku's 591, Snake's 399, Minesweeper's 376, `@fz/phaser`'s 266,
   `@fz/style`'s 254 and `@fz/dev`'s 124 among them) and the build.
@@ -686,7 +686,7 @@ taken.
 - **The sounds:** `yarn build:sounds` in Snake and Brick Breaker wrote the
   committed files byte for byte, after G7's review as after G7.
 
-### The last fixes' review (8d60373f)
+### The last fixes' review (079a9e08)
 
 The reviewer found nothing wrong in the commit, each of its eight fixes
 doing what its entry says, and three things beside it, all taken.
@@ -713,6 +713,6 @@ doing what its entry says, and three things beside it, all taken.
 - **Done:** this plan and its log moved to `docs/archive/`, with every step
   built: the fixes G1 to G5, the lifts G6 to G8, both QA checkpoints, and
   every commit but the last, to specs alone, reviewed, its findings answered
-  here, in the 18 commits on `games-follow-ups` from `8d6095c6` before this
+  here, in the 18 commits on `games-follow-ups` from `0d4e25f9` before this
   one. Nothing has been pushed; merging into `main` waits for the user's
   go-ahead.

@@ -1,7 +1,7 @@
 # Plan: fixing what the Snake QA found
 
 Written 2026-10-29 from `docs/archive/snake-qa-findings.md`, against `main`
-at `6565c77`, and built the same day, with the defaults the user took for
+at `2683ef1`, and built the same day, with the defaults the user took for
 every decision, on the branch `snake-qa-fixes`, a commit for each step,
 fast-forwarded into `main`. "As built" below says where the code differs
 from the plan. The plan describes the code as it was, so check a path
@@ -47,7 +47,7 @@ against the tree before following one. Paths are relative to `frontend/`.
 - **`main` is ahead of the build tested.** The speed badge now opens a
   menu (`<fz-bar-choice>`) and stands 30 px tall on the rail rather than
   18, so Snake's rail needs 370 px: its ⋮ button spans 318 to 362 px at
-  every short size, measured on a local build of `6565c77`. Finding 4 now
+  every short size, measured on a local build of `2683ef1`. Finding 4 now
   bites at 640 × 360 and 750 × 342 as well as 320 px tall.
 - **The layout check missed every layout finding.** `yarn check:layout`
   loads each game fresh at three shapes (`SHAPES` in

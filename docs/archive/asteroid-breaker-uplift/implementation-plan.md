@@ -22,7 +22,7 @@ decided, and what it left for the user.
 
 - `plan.md`, read whole, its mocks, and the art's and the sound's kits and
   assets (`art/`, `sound/`, `assets/`, with `assets/art/README.md`).
-- Four maps of the code as it stands at `e6740e04`, each read by an agent
+- Four maps of the code as it stands at `1624f87b`, each read by an agent
   from the source: the sound (`@fz/dev/sounds`, `@fz/phaser/sound`, the
   game's `tools/build-sounds.mjs` and `src/view/effects/`), the art (the
   game's `src/view/art/`, its painters, `@fz/phaser/shapes`,
@@ -941,7 +941,7 @@ To format, never `yarn prettier`, which rewrites the whole repository, but
 `node_modules/.bin/prettier --write <paths>` from `frontend/` over the files
 changed (the paths relative to it, or `../docs/...`).
 
-**Timings at the start** (`e6740e04`, warm, on this machine's 24 cores and
+**Timings at the start** (`1624f87b`, warm, on this machine's 24 cores and
 23 GB): the game's tests 42 s on eight workers (5,219 specs in 95 files),
 its lint 23 s and its typecheck 14 s. Five packages at once, each on four
 workers, take 20 of the 24 cores at their peak; ESLint's type-aware rules
@@ -1009,8 +1009,8 @@ and pushed, once it is done. So, after Z1:
 ## 12. As built (2026-11-16)
 
 Built on 2026-11-15 and 2026-11-16, on the branch `asteroid-breaker-uplift`,
-from `8064279e`, this plan's commit on the CI work the build, paused at the
-user's ask, had waited for (`6a5b58e6`). It took §6's twenty-one packages
+from `4f333366`, this plan's commit on the CI work the build, paused at the
+user's ask, had waited for (`85716be4`). It took §6's twenty-one packages
 and one the integrator added outside §6, Q1, the frame: five at the start,
 L0, R1, S1, S2 and P2, and each of the rest as a slot came free and its
 waits ended, up to five agents at a time, each in a worktree of its own.
@@ -1019,9 +1019,9 @@ package was rebased onto the tip and checked there before the branch
 fast-forwarded to it, what its rebase settled read from `git range-diff`
 by a fresh reviewer or the integrator; two settles, R2's onto S3's sounds
 and P1's onto R2, were read only after they had landed, by a fresh agent
-that found no bug, and its findings were taken in `5fe8971a` and by P4.
+that found no bug, and its findings were taken in `b92eec4e` and by P4.
 The branch was rebased onto `main` once, mid-build, its 82 commits onto
-`fd5c050f`, Brick Fuzz Pop's tune-up, ending at `086b363c`, without a
+`2b05bb42`, Brick Fuzz Pop's tune-up, ending at `9f404dc3`, without a
 conflict, after R3 and P4 had landed, as `main`'s move went unseen until
 a review of the log; R4 and F1, under way, followed with
 `git rebase --onto`. The commits named here are as that rebase wrote
@@ -1086,7 +1086,7 @@ the tree before following one.
   rocks; `burrs` (R4), those clinging over the hull, the burrs adrift lying
   under the comets in `hazards`; and `flash`, the old overlay's, kept for
   F1's muzzle flash and F2's pod flash and glow, under the ship. The `field`
-  layer held nothing from L3 on, and Z1 took it out (`edd8534b`).
+  layer held nothing from L3 on, and Z1 took it out (`9ebbf759`).
 - **The last rocks are steered toward the pod, not pulled** (decision 13,
   R3), where the plan says "as a lodestone does": a pull weak enough not to
   put a rock in orbit round the ship did nothing a tail could show. Once a
@@ -1117,18 +1117,18 @@ the tree before following one.
   name. The sound kit's own build (`sound/build.mjs`) likewise rewrites its
   nine tracked contact sheets.
 - **Z1** said on Iron reach's sector card that burrs cling and slow the pod
-  until a dash (`8637b889`), its news kept to two lines, which wrap where
+  until a dash (`85c01d71`), its news kept to two lines, which wrap where
   Endless's longest does, so the card measured tallest is still Endless's
   ("What was left for the user"). It added the specs the branch's own code
-  lacked: the line in tow's copy past both edges at once (`f198f765`), a
+  lacked: the line in tow's copy past both edges at once (`654068df`), a
   burr's glint as it comes in, and every take of every sound but the beds
   rendered to the bytes of the kit's WAVs, where the recipes had been 7%
-  covered (`4b8a582c`); and it took the empty `field` layer out. Its read
+  covered (`5a3997ce`); and it took the empty `field` layer out. Its read
   through the docs was two fresh audits against the code, of the game's
   `AGENTS.md` and skills and of every library `AGENTS.md` and skill the
   branch changed, whose findings, claims a later package had left stale,
-  names the lists lacked and one wrong name, were fixed (`87f6be0a`). It
-  took the site's screenshots again on the uplift's look (`2cbfb0bb`),
+  names the lists lacked and one wrong name, were fixed (`235dab3e`). It
+  took the site's screenshots again on the uplift's look (`21fdc172`),
   from a run that now comes about 3 s into Crowd, not 9.8, and flies
   otherwise since R2, the capture counting its waits in the field's time,
   which a page drawing in software moves on far slower than the clock;
@@ -1190,7 +1190,7 @@ the tree before following one.
   all read.
 - **A break's event carries `times`, static's multiplier it scored at,** 0
   for a comet's smash, and the bell rings once a frame at the note of the
-  highest; its notes are keyed by static's multipliers (`5fe8971a`), so a
+  highest; its notes are keyed by static's multipliers (`b92eec4e`), so a
   new step fails to compile without its note.
 - **The hull's arcs crawl at full static, 40 (`isStaticFull()`), not at
   ×4,** so they say the next dash is a zap, which the fur's ×4 doesn't.
@@ -1256,8 +1256,8 @@ the tree before following one.
   46 MB at most; each place three field-sized textures, the Storm four.
 - **The frame** (§9: wave 9, Crowd, on the widest field, a quarter of the
   CPU, the median frame's scripting and rendering), in Q1's last sitting,
-  on `5f6d44fe`: the start, `8064279e`, 3.29 ms; the tip without Q1
-  (`de1277e8`) 4.60 ms, 40% over; Q1's last 3.81 ms, 16% over, inside the
+  on `c80414c5`: the start, `4f333366`, 3.29 ms; the tip without Q1
+  (`8ea4ca49`) 4.60 ms, 40% over; Q1's last 3.81 ms, 16% over, inside the
   third (4.39 ms) by 0.58 ms, the cheaper in all seven rounds. Tempest went
   from 6.73 to 5.47 ms and Foundry from 4.58 to 3.67. The field's layers
   held 2,822 objects for the 81 they showed, and hold 158. The start's own
@@ -1268,7 +1268,7 @@ the tree before following one.
   rocks to the clearing, summed: 213 s to 168 s on the narrow field, 778 s
   to 493 s on the wide and 791 s to 487 s on the tall, no wave's longer
   beyond the figure's own noise. The burr waves take from 1.5% less time to
-  5% more (R4). At the tip, on `4c3dffce`, whose rules it keeps, every
+  5% more (R4). At the tip, on `4553b15e`, whose rules it keeps, every
   written wave cleared at every speed on the narrow, wide and tall fields,
   from one seed and from twelve, and Endless's 31 to 60 from one, every
   report exiting 0 ([`waves/`](waves/)): the twelve seeds' middle tails,
@@ -1276,7 +1276,7 @@ the tree before following one.
   longest play 1:16 (Iron heart, tall, Normal); no play had more than two
   of the crew knocked loose, three on the wide field, or two floating
   home; and 13, 18 and 19 burrs clung of the 1,118, 2,536 and 2,571 sent.
-- **Specs:** Asteroid Breaker's 5,219 in 95 files at `e6740e04`; 8,384 in
+- **Specs:** Asteroid Breaker's 5,219 in 95 files at `1624f87b`; 8,384 in
   150 files at Q1's landing, 1,620 of them in `sim`, which plays every wave
   at every speed; 8,492 in 150 files at the merge, the same 1,620 in `sim`.
   Coverage, of `dom` and `pure` together with the specs' helpers and the
@@ -1286,10 +1286,10 @@ the tree before following one.
   (`beds.mjs`, 2%, its six beds 24 s to render).
 - **Five verify runs on the tip,** each every workspace's tests, two at a
   time on four workers each, the build and Asteroid Breaker's layout check,
-  all passing: on `ab96435a`, six packages landed, in 3 min 13 s; on
-  `d719a02d`, eleven, 3 min 13 s; on `f1ab17e8`, sixteen, 3 min 49 s; on
-  `086b363c`, after the rebase onto `main`, 3 min 40 s, with Brick Fuzz
-  Pop's layout check too; and on `de1277e8`, after F1, R4 and F2, 3 min
+  all passing: on `e874ecb5`, six packages landed, in 3 min 13 s; on
+  `25a7da7f`, eleven, 3 min 13 s; on `02cef072`, sixteen, 3 min 49 s; on
+  `9f404dc3`, after the rebase onto `main`, 3 min 40 s, with Brick Fuzz
+  Pop's layout check too; and on `8ea4ca49`, after F1, R4 and F2, 3 min
   42 s; the root's typecheck after each from the second. Before the
   merge, Z1 ran `yarn verify:full`, what CI runs, and every game's
   `yarn check:layout` on the tip, both passing, in 3 min 11 s and 34 s.

@@ -11,10 +11,10 @@
 # $LOGS/<label>/.
 #
 # The root's tsc is its `typecheck:root`, which exists from step 6 of the
-# work log (15c09afe), on TypeScript 7 since step 2, keeping no build info.
-# `data/steps-warm.tsv` came from this script as it was at 05b6fd8b, which
-# ran TypeScript 6 with its build info, as e6740e04 does;
-# `data/steps-after-step-5.tsv` from it as it is, at bf297ad9 with step 6's
+# work log (aecbc5fe), on TypeScript 7 since step 2, keeping no build info.
+# `data/steps-warm.tsv` came from this script as it was at b7ec98ac, which
+# ran TypeScript 6 with its build info, as 1624f87b does;
+# `data/steps-after-step-5.tsv` from it as it is, at c509a31f with step 6's
 # work in the tree, uncommitted.
 set -uo pipefail
 label=$1

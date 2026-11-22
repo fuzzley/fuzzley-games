@@ -10,7 +10,7 @@ they are built, and how the work runs; the log is at its end.
 
 ## How the work runs
 
-- **One branch,** `brick-breaker-review`, cut from `e53169fa`, `main`'s tip.
+- **One branch,** `brick-breaker-review`, cut from `6158bf88`, `main`'s tip.
 - **A step is a commit,** in the repository's form (`fix(phaser): …`),
   once the workspaces it touched pass their `lint`, `typecheck` and `test`,
   and `yarn prettier:check` passes. What it adds is covered by specs, and
@@ -712,5 +712,5 @@ faded, and the result opened. Neither page reported an error.
 This plan and its log moved to `docs/archive/`, with every step built:
 R1 to R12, each reviewed before its commit and its findings answered
 here, and the QA checkpoint, in the 13 commits on `brick-breaker-review`
-from `e53169fa` before this one. The user gave the go-ahead to merge it
+from `6158bf88` before this one. The user gave the go-ahead to merge it
 into `main`.

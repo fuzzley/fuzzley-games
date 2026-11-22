@@ -9,14 +9,14 @@ solitaire overview.webp	41	23	6	0	0	8.1
 
 Retakes in history between versions of the same size: 896
 The eight with the smallest largest 8x8 block change (commit and image, largest channel change, pixels over 16, over 32, over 48, largest block change):
-7206317a snake/snake/thumb.webp	44	168	21	0	9.8
-7206317a sudoku/sudoku/thumb.webp	52	1151	80	5	12.5
-7206317a brick-breaker/brick-breaker/thumb.webp	86	465	80	24	18.9
-5bbda669 solitaire/calculation/thumb.webp	188	257	70	46	21.9
-5bbda669 solitaire/pokersquares/thumb.webp	223	80	42	30	23.3
-811e476d solitaire/pokersquares/thumb.webp	223	80	47	36	30.0
-811e476d solitaire/calculation/thumb.webp	255	274	159	135	47.7
-7206317a minesweeper/minesweeper/thumb.webp	186	1629	472	286	58.9
+c8ad2156 snake/snake/thumb.webp	44	168	21	0	9.8
+c8ad2156 sudoku/sudoku/thumb.webp	52	1151	80	5	12.5
+c8ad2156 brick-breaker/brick-breaker/thumb.webp	86	465	80	24	18.9
+1b20d9f4 solitaire/calculation/thumb.webp	188	257	70	46	21.9
+1b20d9f4 solitaire/pokersquares/thumb.webp	223	80	42	30	23.3
+ec685c42 solitaire/pokersquares/thumb.webp	223	80	47	36	30.0
+ec685c42 solitaire/calculation/thumb.webp	255	274	159	135	47.7
+c8ad2156 minesweeper/minesweeper/thumb.webp	186	1629	472	286	58.9
 
 rule	unchanged retakes it calls changed (of 166)	history's changes it would keep (of 896)
 a pixel moved more than 16	50	0

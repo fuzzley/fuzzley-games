@@ -62,20 +62,20 @@ asteroid-breaker	public	thumb	webp	3	0.02	0.02
 snake	public	thumb	webp	3	0.01	0.01
 
 First and last commit that added each format (game, folder, format, first, last):
-asteroid-breaker	public	webp	2026-11-02 663ee4a4	2026-11-16 2cbfb0bb
-brick-breaker	public	webp	2026-10-30 9eaf65f5	2026-11-14 c3381ee4
-brick-fuzz-pop	public	webp	2026-11-11 d1710593	2026-11-15 98d4ba5a
-minesweeper	public	webp	2026-10-17 9bb3809c	2026-11-09 7206317a
-snake	public	webp	2026-10-28 0adaecc3	2026-11-09 7206317a
-solitaire	originals	png	2026-10-24 5bbda669	2026-11-09 a5420072
-solitaire	public	png	2026-08-01 ee5fc7dc	2026-10-10 811e476d
-solitaire	public	webp	2026-09-27 9c191a04	2026-11-09 a5420072
-sudoku	public	webp	2026-10-27 06362c2a	2026-11-09 7206317a
+asteroid-breaker	public	webp	2026-11-02 2330fa2e	2026-11-16 21fdc172
+brick-breaker	public	webp	2026-10-30 a647d2d3	2026-11-14 0a7edc49
+brick-fuzz-pop	public	webp	2026-11-11 aef58c7c	2026-11-15 f734330a
+minesweeper	public	webp	2026-10-17 543ab8f7	2026-11-09 c8ad2156
+snake	public	webp	2026-10-28 6826ffbb	2026-11-09 c8ad2156
+solitaire	originals	png	2026-10-24 1b20d9f4	2026-11-09 8c359e75
+solitaire	public	png	2026-08-01 db5ca04b	2026-10-10 ec685c42
+solitaire	public	webp	2026-09-27 562b8d9b	2026-11-09 8c359e75
+sudoku	public	webp	2026-10-27 2244bde0	2026-11-09 c8ad2156
 
 Commits that deleted screenshots, by commit (date, commit, files deleted, folders, subject):
-2026-08-01	2b1c66f1	1	solitaire/public	refactor: implement senior engineer code review improvements for documentation modal and loading placeholder
-2026-10-10	e704711d	41	solitaire/public	perf: serve the rules screenshots as 1600 px WebP
-2026-10-18	81fe9d4c	2	minesweeper/public	refactor: keep the games built here in frontend/games/
+2026-08-01	def73c5a	1	solitaire/public	refactor: implement senior engineer code review improvements for documentation modal and loading placeholder
+2026-10-10	c6b8178d	41	solitaire/public	perf: serve the rules screenshots as 1600 px WebP
+2026-10-18	4a67a4ae	2	minesweeper/public	refactor: keep the games built here in frontend/games/
 
 Images in docs folders that aren't screenshots (all):
 all	90 blobs	15.05 MiB raw	14.41 MiB on disk
