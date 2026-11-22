@@ -17,14 +17,12 @@ function drawPagesWith(draw: DrawPage): void {
   });
 }
 
-/** Draws every page as {@link PICTURE}. */
+/** Draws every page as {@link PICTURE}, encoded as a data URL. */
 const drawPicture: DrawPage = () =>
   Promise.resolve({
     toCanvas: () =>
       Promise.resolve({
-        toBlob: (done: BlobCallback) => {
-          done(PICTURE);
-        },
+        toDataURL: () => `data:image/png;base64,${btoa("png")}`,
       }),
   });
 
@@ -34,7 +32,8 @@ describe("REPORT_PICTURE", () => {
 
     const picture = await TestBed.inject(REPORT_PICTURE)();
 
-    expect(picture).toBe(PICTURE);
+    expect(picture?.type).toBe(PICTURE.type);
+    expect(await picture?.text()).toBe(await PICTURE.text());
   });
 
   it("takes none where the page can't be drawn", async () => {

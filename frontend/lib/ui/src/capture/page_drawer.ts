@@ -4,7 +4,7 @@ import type { SnapdomOptions } from "@zumer/snapdom";
 /** Describes a page drawn, which gives its picture as a canvas. */
 export interface DrawnPage {
   /** Returns the picture on a canvas, for the browser to encode. */
-  toCanvas(): Promise<Pick<HTMLCanvasElement, "toBlob">>;
+  toCanvas(): Promise<Pick<HTMLCanvasElement, "toDataURL">>;
 }
 
 /** Draws an element of the page as snapdom does: the part of snapdom a picture takes. */

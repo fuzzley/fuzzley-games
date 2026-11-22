@@ -33,6 +33,9 @@ const FRAME_TIMEOUT_MS = 1_000;
  */
 const FRAME_MARK = "data-fz-capture-frame";
 
+/** What a PNG's data URL starts with, before its bytes in base64. */
+const PNG_DATA_URL = "data:image/png;base64,";
+
 /**
  * Takes pictures of the page as it shows, each canvas on it drawn from its
  * own frame.
@@ -111,7 +114,7 @@ export class PageCaptureService {
         filterMode: "remove",
         plugins: [framesFor(mark, urls)],
       });
-      return await pngOf(await page.toCanvas());
+      return pngOf(await page.toCanvas());
     } catch {
       return null;
     } finally {
@@ -220,12 +223,25 @@ function framesFor(
   };
 }
 
-/** Encodes a canvas as a PNG with the browser's own encoder, far quicker than snapdom's. */
-function pngOf(canvas: Pick<HTMLCanvasElement, "toBlob">): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((png) => {
-      if (png) resolve(png);
-      else reject(new Error("The picture couldn't be encoded"));
-    }, "image/png");
-  });
+/**
+ * Encodes a canvas as a PNG with the browser's own encoder, far quicker than
+ * snapdom's, and at once.
+ *
+ * It reads the canvas with `toDataURL()`, not `toBlob()`: Chrome starts
+ * `toBlob()`, and an `OffscreenCanvas`'s `convertToBlob()`, only in an idle
+ * period, which a page that draws every frame never has, so either waits
+ * about a second for nothing.
+ */
+function pngOf(canvas: Pick<HTMLCanvasElement, "toDataURL">): Blob {
+  const url = canvas.toDataURL("image/png");
+  // A canvas the browser can't encode, as one with no pixels, gives "data:,".
+  if (!url.startsWith(PNG_DATA_URL)) {
+    throw new Error("The picture couldn't be encoded");
+  }
+  const text = atob(url.slice(PNG_DATA_URL.length));
+  const bytes = new Uint8Array(text.length);
+  // A loop, as `Uint8Array.from()` with a map takes 15 times as long, and
+  // not every browser the games run in has `Uint8Array.fromBase64()`.
+  for (let at = 0; at < text.length; at++) bytes[at] = text.charCodeAt(at);
+  return new Blob([bytes], { type: "image/png" });
 }

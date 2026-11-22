@@ -53,20 +53,24 @@ function copyOf(element: Element, options: SnapdomOptions): Element {
   return copy;
 }
 
+/** Returns a PNG's data URL that carries `bytes`, as the browser's encoder gives one. */
+function pngUrl(bytes: Uint8Array): string {
+  return `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`;
+}
+
+/** Returns a page drawn whose canvas the browser encodes as `toDataURL` says. */
+function encodedAs(toDataURL: () => string): DrawnPage {
+  return { toCanvas: () => Promise.resolve({ toDataURL }) };
+}
+
 /**
  * Returns a drawer that copies the page as snapdom does, runs each plugin
  * over the copy, and gives a picture whose bytes are the copy's HTML, or
  * the picture `picture` makes of the copy.
  */
 function fakeDrawer(
-  picture: (copy: Element) => DrawnPage = (copy) => ({
-    toCanvas: () =>
-      Promise.resolve({
-        toBlob: (done: BlobCallback) => {
-          done(new Blob([copy.outerHTML], { type: "image/png" }));
-        },
-      }),
-  }),
+  picture: (copy: Element) => DrawnPage = (copy) =>
+    encodedAs(() => pngUrl(new TextEncoder().encode(copy.outerHTML))),
 ): FakeDrawer {
   const asked: DrawAsked[] = [];
   const draw: DrawPage = async (element, options) => {
@@ -158,6 +162,12 @@ function boardDrawn(
 async function pageIn(picture: Blob | null): Promise<Document> {
   if (!picture) throw new Error("No picture was taken");
   return new DOMParser().parseFromString(await picture.text(), "text/html");
+}
+
+/** Returns a picture's bytes, failing where none was taken. */
+async function bytesIn(picture: Blob | null): Promise<Uint8Array> {
+  if (!picture) throw new Error("No picture was taken");
+  return new Uint8Array(await picture.arrayBuffer());
 }
 
 /** Returns the text a picture the fake drawer made shows. */
@@ -394,16 +404,34 @@ describe("PageCaptureService", () => {
     await expect(capture.capture()).resolves.toBeNull();
   });
 
+  it("encodes the picture as a PNG, byte for byte as the browser does", async () => {
+    const png = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x00, 0x7f, 0x80, 0xff,
+    ]);
+    const encoded = fakeDrawer(() => encodedAs(() => pngUrl(png)));
+    capture = captureWith(() => Promise.resolve(encoded.draw));
+
+    const picture = await capture.capture();
+
+    expect(picture?.type).toBe("image/png");
+    expect(await bytesIn(picture)).toEqual(png);
+  });
+
   it("resolves to null where the picture can't be encoded", async () => {
-    const unencoded = fakeDrawer(() => ({
-      toCanvas: () =>
-        Promise.resolve({
-          toBlob: (done: BlobCallback) => {
-            done(null);
-          },
-        }),
-    }));
+    // What a browser gives for a canvas it can't encode, as one with no pixels.
+    const unencoded = fakeDrawer(() => encodedAs(() => "data:,"));
     capture = captureWith(() => Promise.resolve(unencoded.draw));
+
+    await expect(capture.capture()).resolves.toBeNull();
+  });
+
+  it("resolves to null where the picture can't be read", async () => {
+    const tainted = fakeDrawer(() =>
+      encodedAs(() => {
+        throw new DOMException("The canvas has been tainted", "SecurityError");
+      }),
+    );
+    capture = captureWith(() => Promise.resolve(tainted.draw));
 
     await expect(capture.capture()).resolves.toBeNull();
   });
