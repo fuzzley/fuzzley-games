@@ -1,6 +1,7 @@
 // A ball's travel is played through the field's steps, as a picture of
 // the field reads best.
 
+import { MISSED } from "@fz/core/sweep";
 import {
   NO_STEER,
   ballOf,
@@ -30,6 +31,7 @@ import {
   STEP_S,
 } from "../tuning";
 import { type Field, steerField, stepField } from "./field";
+import { firstContact, mirrorTurn, travel } from "./travel";
 
 /** A brick in the top left corner, far from where the specs throw their balls. */
 const FAR_BRICK = ["o"];
@@ -1052,4 +1054,150 @@ describe("a blast ball", () => {
       });
     },
   );
+});
+
+describe("firstContact", () => {
+  it("finds the brick a ball meets first, its moment a share of the distance, and does nothing there", () => {
+    // Rising straight up from 12, the ball's top meets the brick's foot, at
+    // 8, when its middle is 0.36 below it.
+    const field = fieldFrom(sixthRow("......o"));
+    const ball = throwBall(field, 13, 12, 0);
+
+    const met = firstContact(field, ball, 10);
+
+    expect({
+      t: met.t,
+      turns: met.turns,
+      bricks: met.bricks.slice(0, met.count),
+      hits: brickAt(field, 6, 5).hits,
+      ball: [ball.x, ball.y],
+      events: eventsOf(field),
+    }).toEqual({
+      t: expect.closeTo((12 - 8 - BALL_RADIUS) / 10) as unknown,
+      turns: true,
+      bricks: [brickAt(field, 6, 5)],
+      hits: 1,
+      ball: [13, 12],
+      events: [],
+    });
+  });
+
+  it("meets nothing a ball doesn't reach within the distance", () => {
+    const field = fieldFrom(sixthRow("......o"));
+    const ball = throwBall(field, 13, 12, 0);
+
+    expect(firstContact(field, ball, 3).t).toBe(MISSED);
+  });
+
+  it("keeps nothing of what an earlier call met where it meets nothing", () => {
+    const field = fieldFrom([
+      "o",
+      "......@",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "......@",
+    ]);
+    const ball = throwBall(field, 13, 12, 0);
+    firstContact(field, ball, 10);
+
+    const met = firstContact(field, ball, 0.5);
+
+    expect({ portal: met.portal, turns: met.turns, count: met.count }).toEqual({
+      portal: null,
+      turns: false,
+      count: 0,
+    });
+  });
+
+  it("finds a wall", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 2, 15, -90);
+
+    const met = firstContact(field, ball, 5);
+
+    expect({ wall: met.wall, t: met.t }).toEqual({
+      wall: true,
+      t: expect.closeTo((2 - BALL_RADIUS) / 5) as unknown,
+    });
+  });
+
+  it("finds a fire ball passing through a brick it would break, which turns it not", () => {
+    const field = fieldFrom(sixthRow("......o"));
+    const ball = throwBall(field, 13, 12, 0);
+    catchCapsule(field, "fire", 0, 0);
+
+    const met = firstContact(field, ball, 10);
+
+    expect({
+      turns: met.turns,
+      bricks: met.bricks.slice(0, met.count),
+    }).toEqual({ turns: false, bricks: [brickAt(field, 6, 5)] });
+  });
+
+  it("finds a portal", () => {
+    const field = fieldFrom([
+      "o",
+      "......@",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "......@",
+    ]);
+    const ball = throwBall(field, 13, 12, 0);
+
+    expect(firstContact(field, ball, 10).portal).toBe(brickAt(field, 6, 8));
+  });
+});
+
+describe("mirrorTurn", () => {
+  it.each<[string, string[], number, number, number]>([
+    ["a wall", FAR_BRICK, 2, 15, -50],
+    ["a brick's face", sixthRow("......o"), 13, 12, 10],
+    ["a brick's corner", sixthRow("......o"), 11.75, 12, 0],
+    ["a bumper", sixthRow("......O"), 13.3, 12, 0],
+    ["a wall, held to the flattest", FAR_BRICK, 1, 15, -80],
+  ])(
+    "turns a ball off %s as its travel turns it there",
+    (_, rows, x, y, heading) => {
+      const field = fieldFrom(rows);
+      const ball = throwBall(field, x, y, heading);
+      const twin = fieldFrom(rows);
+      const travelled = throwBall(twin, x, y, heading);
+      // Just past the contact, so the travel turns there and meets no more.
+      const distance = 10 * firstContact(field, ball, 10).t + 0.01;
+
+      mirrorTurn(ball, firstContact(field, ball, distance));
+      travel(twin, travelled, distance);
+
+      expect([ball.dx, ball.dy]).toEqual([travelled.dx, travelled.dy]);
+    },
+  );
+
+  it("turns a ball off a wall with no lull, no event and no draw", () => {
+    const field = fieldFrom(FAR_BRICK);
+    const ball = throwBall(field, 2, 15, -45);
+    ball.bounces = LULL_BOUNCES;
+    const met = firstContact(field, ball, 5);
+
+    mirrorTurn(ball, met);
+
+    expect({
+      heading: headingOf(ball),
+      bounces: ball.bounces,
+      draws: field.draws,
+      events: eventsOf(field),
+    }).toEqual({
+      heading: expect.closeTo(45) as unknown,
+      bounces: LULL_BOUNCES,
+      draws: 0,
+      events: [],
+    });
+  });
 });

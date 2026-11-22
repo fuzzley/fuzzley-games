@@ -83,7 +83,7 @@ type Obstacle = Brick | "wall" | "paddle";
 type Touch = "turns" | "passes" | "unhurt" | "jumps";
 
 /** Gathers what a ball meets at the earliest moment of a move. */
-interface Contacts {
+export interface Contacts {
   /** The moment, as a share of the move, or {@link MISSED}. */
   t: number;
   /** The normals of the faces met, summed, across and down. */
@@ -92,14 +92,17 @@ interface Contacts {
   /** The normals of the corners and discs met, summed, across and down. */
   cornerX: number;
   cornerY: number;
+  /** Whether a wall was among what was met. */
   wall: boolean;
+  /** Whether the paddle was among what was met. */
   paddle: boolean;
   /** Whether anything met turns the ball, rather than letting it pass. */
   turns: boolean;
   /** Whether a brick that can't break was among what turned the ball. */
   hard: boolean;
-  /** The bricks met, the first `count` of them. */
+  /** The bricks met, the first `count` of them, which a ball's hit strikes. */
   readonly bricks: Brick[];
+  /** How many of `bricks` were met. */
   count: number;
   /**
    * The bricks met that take no hit, the first `unhurtCount` of them: the
@@ -108,6 +111,7 @@ interface Contacts {
    * bumpers.
    */
   readonly unhurt: Brick[];
+  /** How many of `unhurt` were met. */
   unhurtCount: number;
   /** The portal met, the last in the grid of those met at once, else null. */
   portal: Brick | null;
@@ -154,7 +158,8 @@ const PADDLE_SIDES =
   SIDE.top | SIDE.right | SIDE.left | SIDE.topLeft | SIDE.topRight;
 
 // Made once and reused, so a step makes nothing: the move a ball is making,
-// a box being met, and what the move meets first.
+// a box being met, what the move meets first, and the normal it turns about
+// there.
 const move: Move = { x: 0, y: 0, dx: 0, dy: 0, r: BALL_RADIUS };
 const box: Box = { left: 0, top: 0, right: 0, bottom: 0 };
 const met: Contacts = {
@@ -173,6 +178,7 @@ const met: Contacts = {
   unhurtCount: 0,
   portal: null,
 };
+const normal = { x: 0, y: 0 };
 
 /**
  * Moves a ball a distance along its way, turning at each contact, up to
@@ -182,22 +188,52 @@ const met: Contacts = {
 export function travel(field: Field, ball: Ball, distance: number): void {
   let remaining = distance;
   for (let contact = 0; contact < MAX_CONTACTS && remaining > 0; contact++) {
-    move.x = ball.x;
-    move.y = ball.y;
-    move.dx = ball.dx * remaining;
-    move.dy = ball.dy * remaining;
-    findContacts(field, ball);
-    if (met.t === MISSED) {
+    const { t } = firstContact(field, ball, remaining);
+    if (t === MISSED) {
       ball.x += move.dx;
       ball.y += move.dy;
       return;
     }
-    ball.x += move.dx * met.t;
-    ball.y += move.dy * met.t;
-    remaining -= remaining * met.t;
+    ball.x += move.dx * t;
+    ball.y += move.dy * t;
+    remaining -= remaining * t;
     turn(field, ball);
     if (ball.held || field.state === "cleared") return;
   }
+}
+
+/**
+ * Returns what a ball going a distance along its way meets first, as
+ * {@link travel} finds it, its moment a share of that distance, and does
+ * nothing there: no hit, event or draw.
+ *
+ * The record returned is made once, and the next call, or a step's, writes
+ * it again.
+ */
+export function firstContact(
+  field: Readonly<Field>,
+  ball: Readonly<Ball>,
+  distance: number,
+): Readonly<Contacts> {
+  move.x = ball.x;
+  move.y = ball.y;
+  move.dx = ball.dx * distance;
+  move.dy = ball.dy * distance;
+  findContacts(field, ball);
+  return met;
+}
+
+/**
+ * Turns a ball as a mirror off what it meets first, as {@link firstContact}
+ * returned it, as {@link travel} turns it there but for a lull's nudge, and
+ * does nothing else: no hit, event or draw.
+ *
+ * Call it only for a contact that turns the ball (`turns`) and isn't the
+ * paddle's, which sends a ball off by where it lands instead.
+ */
+export function mirrorTurn(ball: Ball, contacts: Readonly<Contacts>): void {
+  reflectOff(ball, contacts);
+  settleBall(ball, normal.x, normal.y);
 }
 
 /**
@@ -247,8 +283,8 @@ function paddleReach(paddle: Readonly<Paddle>, reach: Box): Box {
  * walls, the paddle, and the bricks in the cells it passes, a bumper by its
  * disc, and a portal by its disc unless the ball passes over portals.
  */
-function findContacts(field: Field, ball: Readonly<Ball>): void {
-  met.t = MISSED;
+function findContacts(field: Readonly<Field>, ball: Readonly<Ball>): void {
+  clearContacts(MISSED);
   noteBox(LEFT_WALL, SIDE.right, "wall");
   noteBox(TOP_WALL, SIDE.bottom, "wall");
   noteBox(RIGHT_WALL, SIDE.left, "wall");
@@ -375,20 +411,7 @@ function noteDisc(
  */
 function noteContact(t: number, what: Obstacle, touch: Touch): boolean {
   if (t > met.t + AT_ONCE) return false;
-  if (t < met.t - AT_ONCE) {
-    met.t = t;
-    met.faceX = 0;
-    met.faceY = 0;
-    met.cornerX = 0;
-    met.cornerY = 0;
-    met.wall = false;
-    met.paddle = false;
-    met.turns = false;
-    met.hard = false;
-    met.count = 0;
-    met.unhurtCount = 0;
-    met.portal = null;
-  }
+  if (t < met.t - AT_ONCE) clearContacts(t);
   if (what === "wall") met.wall = true;
   else if (what === "paddle") met.paddle = true;
   else if (touch === "jumps") {
@@ -408,6 +431,22 @@ function noteContact(t: number, what: Obstacle, touch: Touch): boolean {
   met.turns = true;
   if (typeof what !== "string" && !canBreak(what)) met.hard = true;
   return true;
+}
+
+/** Clears {@link met} of all it gathered, to gather what is met at a moment. */
+function clearContacts(t: number): void {
+  met.t = t;
+  met.faceX = 0;
+  met.faceY = 0;
+  met.cornerX = 0;
+  met.cornerY = 0;
+  met.wall = false;
+  met.paddle = false;
+  met.turns = false;
+  met.hard = false;
+  met.count = 0;
+  met.unhurtCount = 0;
+  met.portal = null;
 }
 
 /** Returns whether a brick is among the first `count` of a list of those met. */
@@ -481,16 +520,34 @@ function unhurtBy(brick: Readonly<Brick>): FieldEventKind {
  * Turns a ball as a mirror off the walls and bricks it met, by a lull's few
  * degrees after too many bounces, where the level nudges it: at a wall, or,
  * from Machines on, off anything that can't break.
+ */
+function mirror(field: Field, ball: Ball): void {
+  reflectOff(ball, met);
+  ball.bounces++;
+  if (ball.bounces > LULL_BOUNCES && nudgesHere(field)) {
+    turnBall(ball, lullTurn(field));
+    // A turn back into what it met is turned out of it again.
+    reflectBall(ball, normal.x, normal.y);
+    ball.bounces = 0;
+  }
+  if (met.wall) field.events.add("wall", ball.x, ball.y);
+  settleBall(ball, normal.x, normal.y);
+}
+
+/**
+ * Reflects a ball off what it met, unsettled, and writes the normal it
+ * turned about into {@link normal}, of length 1.
  *
  * Each face met turns the ball along its own axis, so two met at once at a
  * right angle send it back the way it came. A corner, met with no face,
  * turns it about the line from the corner to the ball's middle, and a disc
  * about the line from its middle to the ball's.
  */
-function mirror(field: Field, ball: Ball): void {
-  const faced = met.faceX !== 0 || met.faceY !== 0;
-  let nx = faced ? Math.sign(met.faceX) : met.cornerX;
-  let ny = faced ? Math.sign(met.faceY) : met.cornerY;
+function reflectOff(ball: Ball, contacts: Readonly<Contacts>): void {
+  const { faceX, faceY, cornerX, cornerY } = contacts;
+  const faced = faceX !== 0 || faceY !== 0;
+  let nx = faced ? Math.sign(faceX) : cornerX;
+  let ny = faced ? Math.sign(faceY) : cornerY;
   if (faced) {
     reflectBall(ball, nx, 0);
     reflectBall(ball, 0, ny);
@@ -501,15 +558,8 @@ function mirror(field: Field, ball: Ball): void {
   nx /= length;
   ny /= length;
   if (!faced) reflectBall(ball, nx, ny);
-  ball.bounces++;
-  if (ball.bounces > LULL_BOUNCES && nudgesHere(field)) {
-    turnBall(ball, lullTurn(field));
-    // A turn back into what it met is turned out of it again.
-    reflectBall(ball, nx, ny);
-    ball.bounces = 0;
-  }
-  if (met.wall) field.events.add("wall", ball.x, ball.y);
-  settleBall(ball, nx, ny);
+  normal.x = nx;
+  normal.y = ny;
 }
 
 /**
