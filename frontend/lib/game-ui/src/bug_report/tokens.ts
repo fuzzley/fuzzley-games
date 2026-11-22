@@ -74,3 +74,13 @@ export interface BugReportSource {
 export const BUG_REPORT_SOURCE = new InjectionToken<BugReportSource>(
   "BUG_REPORT_SOURCE",
 );
+
+/**
+ * Takes the report's picture, a PNG of the page as the player left it, or
+ * resolves null where it can't: none at all, unless a game or a spec
+ * provides its own.
+ */
+export const REPORT_PICTURE = new InjectionToken<() => Promise<Blob | null>>(
+  "REPORT_PICTURE",
+  { providedIn: "root", factory: () => () => Promise.resolve(null) },
+);

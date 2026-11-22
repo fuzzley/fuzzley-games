@@ -1,3 +1,4 @@
+export { BugReportService, type OpenReport } from "./bug_report.service";
 export {
   decodeBase64Url,
   encodeBase64Url,
@@ -11,5 +12,6 @@ export {
   BUG_REPORT_SOURCE,
   type BugReportConfig,
   type BugReportSource,
+  REPORT_PICTURE,
   type ReportState,
 } from "./tokens";
