@@ -169,6 +169,12 @@
         />
         <label for="carry-ship">Shots carry the ship's speed</label>
       </div>
+      <fz-bug-report-loader (loaded)="closed.emit()">
+        <p class="setting-desc">
+          The numbers above change to the ones in the report. The game counts
+          toward your sectors, and your best unless the numbers are tuned.
+        </p>
+      </fz-bug-report-loader>
     </fz-debug-tuning>
   }
 </fz-settings-drawer>

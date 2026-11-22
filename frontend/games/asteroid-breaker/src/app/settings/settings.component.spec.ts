@@ -1,11 +1,23 @@
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS } from "@fz/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { ConfirmService } from "@fz/ui/confirm";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { provideSpecWaves, shoot } from "../../testing/play";
+import {
+  SPEC_WAVE,
+  knockOneLoose,
+  provideSpecWaves,
+  shoot,
+} from "../../testing/play";
 import { TUNED, tuningLines } from "../../view/debug_tuning";
+import {
+  AsteroidBreakerBugReports,
+  provideAsteroidBreakerBugReports,
+} from "../bug_report/asteroid_breaker_bug_reports";
+import { REPORT_TAG } from "../bug_report/reported_game";
 import { GameService } from "../play/game.service";
 import { TUNING } from "../tokens";
 import { SettingsComponent } from "./settings.component";
@@ -336,6 +348,68 @@ describe("SettingsComponent", () => {
       expect(await navigator.clipboard.readText()).toBe(
         tuningLines({ ...TUNED, topSpeed: 18 }),
       );
+    });
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        providers: [provideAsteroidBreakerBugReports()],
+      });
+    });
+
+    it("is offered as the game takes reports", async () => {
+      await renderSettings();
+
+      expect(
+        screen.getByRole("button", { name: "Report a bug" }),
+      ).toBeInTheDocument();
+    });
+
+    it("asks for a reported state to load in the debug menu, where the game offers it", async () => {
+      await renderSettings({ debugMenu: true });
+
+      const debug = screen.getByRole("region", { name: "Debug" });
+
+      expect(
+        within(debug).getByRole("textbox", { name: "Load game state" }),
+      ).toBeInTheDocument();
+      expect(
+        within(debug).getByText(
+          /^The numbers above change to the ones in the report\./,
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("asks for none where the game doesn't offer its debug menu", async () => {
+      await renderSettings();
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("asks to close once a reported state is loaded", async () => {
+      const { user, game, closed } = await renderSettings({ debugMenu: true });
+      await game.startAt(SPEC_WAVE.gift);
+      knockOneLoose(game);
+      game.pause();
+      const state = TestBed.inject(AsteroidBreakerBugReports).capture().value;
+      const starting = game.newGame();
+      TestBed.inject(ConfirmService).accept();
+      await starting;
+
+      await user.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await user.paste(await packState(REPORT_TAG, state));
+      await user.click(screen.getByRole("button", { name: "Load" }));
+
+      await vi.waitFor(() => {
+        expect(closed).toHaveBeenCalledOnce();
+      });
     });
   });
 });

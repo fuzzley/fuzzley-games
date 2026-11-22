@@ -1,7 +1,11 @@
 import { ApplicationRef, inject, provideAppInitializer } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
-import { type FakeViewport, installFakeViewport } from "@fz/game-ui/testing";
+import {
+  type FakeViewport,
+  installCompressionStreams,
+  installFakeViewport,
+} from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import {
   FakePhaserCanvas,
@@ -37,6 +41,7 @@ import { paintRoles } from "@fz/style/testing";
 import { FIELD_ROLES } from "./board/field_roles";
 import { ROLES } from "../testing/roles";
 import { AppComponent } from "./app.component";
+import { provideAsteroidBreakerBugReports } from "./bug_report/asteroid_breaker_bug_reports";
 import { GameService } from "./play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "./play/saved_game.service";
 
@@ -56,7 +61,11 @@ beforeEach(() => {
 /** Renders the game on a fake canvas, and waits for its scene to be drawn. */
 async function renderApp(): Promise<GameService> {
   const { fixture } = await render(AppComponent, {
-    providers: [provideFakePhaserCanvas(), ...provideSpecWaves()],
+    providers: [
+      provideFakePhaserCanvas(),
+      ...provideSpecWaves(),
+      provideAsteroidBreakerBugReports(),
+    ],
   });
   await fixture.whenStable();
   return TestBed.inject(GameService);
@@ -115,6 +124,7 @@ async function renderTakingUp(): Promise<void> {
     providers: [
       provideFakePhaserCanvas(),
       ...provideSpecWaves(),
+      provideAsteroidBreakerBugReports(),
       provideAppInitializer(() => {
         inject(SavedGameService);
       }),
@@ -495,6 +505,30 @@ describe("AppComponent", () => {
 
       expect(game.outcome()).toBe("ready");
       expect(screen.getByRole("application")).toHaveFocus();
+    });
+  });
+
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    it("opens from the settings, filed as Asteroid Breaker's, the settings closed", async () => {
+      await startedApp();
+      await userEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Report a bug" }),
+      );
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      const link = within(report).getByRole("link", { name: /^Open GitHub/ });
+      expect({
+        title: new URL(link.getAttribute("href") ?? "").searchParams.get(
+          "title",
+        ),
+        settings: screen.queryByRole("dialog", { name: "Settings" }),
+      }).toEqual({ title: "[Asteroid Breaker] ", settings: null });
     });
   });
 });

@@ -33,3 +33,4 @@
 />
 <app-settings [open]="settingsOpen()" (closed)="settingsOpen.set(false)" />
 <fz-confirm-dialog />
+<fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />

@@ -4,6 +4,7 @@ import {
   DebugTuningComponent,
   type SliderMove,
 } from "@fz/game-ui/debug_menu";
+import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
@@ -53,7 +54,8 @@ const DECK_CHOICES: readonly ChoiceOption<DeckShowing>[] = DECK_SHOWINGS.map(
  * its switches, the effects, the voice, the bed and mono, and the palette,
  * and where `DEBUG_MENU` offers it the debug menu (`<fz-debug-tuning>`),
  * the numbers that set the feel, tuned on the field in play: a slider for
- * each, and whether shots carry the ship's speed.
+ * each, whether shots carry the ship's speed, and a bug report's state to
+ * load.
  *
  * Choosing a speed starts a new run, after asking if one is under way, so
  * the speeds are radios the arrow keys move between without choosing. The
@@ -62,6 +64,7 @@ const DECK_CHOICES: readonly ChoiceOption<DeckShowing>[] = DECK_SHOWINGS.map(
 @Component({
   selector: "app-settings",
   imports: [
+    BugReportLoaderComponent,
     ChoiceListComponent,
     DebugTuningComponent,
     SettingsDrawerComponent,

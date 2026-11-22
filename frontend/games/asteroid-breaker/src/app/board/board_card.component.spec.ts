@@ -4,6 +4,7 @@ import { installFakeViewport } from "@fz/game-ui/testing";
 import { fireEvent, render, screen } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { figure, figures } from "@fz/ui/testing";
+import { CAPTURE_SKIP } from "@fz/ui/capture";
 import { createRun } from "../../rules/run/run";
 import { STILL } from "../../rules/ship/ship";
 import { STATIC_STEPS } from "../../rules/tuning";
@@ -196,6 +197,18 @@ describe("BoardCardComponent", () => {
 
     expect(screen.getByText("Paused")).toBeInTheDocument();
     expect(screen.getByText("Score 0")).toBeInTheDocument();
+  });
+
+  it("leaves the Paused card out of a bug report's picture, since Settings paused the run", async () => {
+    const { game, detectChanges } = await startedAt(SPEC_WAVE.gift);
+
+    game.pause();
+    detectChanges();
+
+    expect(screen.getByText("Paused").closest(".card")).toHaveAttribute(
+      CAPTURE_SKIP.name,
+      CAPTURE_SKIP.value,
+    );
   });
 
   it("draws the crew aboard on a paused wave, the pilot at the controls ringed, then those knocked loose, wide eyed, and says how many", async () => {

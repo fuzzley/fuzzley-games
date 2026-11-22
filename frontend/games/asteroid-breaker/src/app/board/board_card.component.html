@@ -25,7 +25,8 @@
         </div>
       }
       @case ("paused") {
-        <div class="card">
+        <!-- Left out of a bug report's picture: Settings paused the run. -->
+        <div class="card" data-fz-capture="skip">
           <p class="card-title">Paused</p>
           <p>Score {{ score() }}</p>
           <app-pilot-row

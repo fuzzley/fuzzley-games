@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from "@angular/core";
+import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
@@ -14,8 +15,8 @@ import { SettingsComponent } from "./settings/settings.component";
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the live
  * region that says what happens, the sectors, How to play and the settings
- * the bar opens, the result card over an ended run, and the question
- * before a run is thrown away.
+ * the bar opens, the result card over an ended run, the question before a
+ * run is thrown away, and the bug report the settings start.
  *
  * The board takes the focus as a run begins, as the page loads or after a
  * new game, and whenever the last dialog over it closes, so the keys steer
@@ -28,6 +29,7 @@ import { SettingsComponent } from "./settings/settings.component";
     AnnouncerComponent,
     BarComponent,
     BoardComponent,
+    BugReportDialogComponent,
     ConfirmDialogComponent,
     HelpComponent,
     PlayRoomDirective,
