@@ -1,5 +1,5 @@
-import { Injectable, inject } from "@angular/core";
-import type { ReportState } from "@fz/game-ui/bug_report";
+import { Injectable, Injector, afterNextRender, inject } from "@angular/core";
+import type { BugReportSource, ReportState } from "@fz/game-ui/bug_report";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { describeSize, difficultyName } from "../../rules/difficulty";
 import { GameService } from "../play/game.service";
@@ -7,22 +7,25 @@ import { SettingsService } from "../settings/settings.service";
 import {
   REPORT_TAG,
   type ReportedGame,
+  readReportedGame,
   reportSummary,
   reportedValue,
 } from "./reported_game";
 import { StageScroll } from "./stage_scroll";
 
 /**
- * Says what Minesweeper puts in a bug report: the game in play in a line,
- * its settings, and its state as it stands, taken from the game itself,
- * since the game's save is removed once a game ends.
+ * Says what Minesweeper puts in a bug report, and puts a reported game back:
+ * the game in play in a line, its settings, and its state as it stands,
+ * taken from the game itself, since the game's save is removed once a game
+ * ends.
  */
 @Injectable({ providedIn: "root" })
-export class MinesweeperReports {
+export class MinesweeperReports implements BugReportSource {
   private readonly play = inject(GameService);
   private readonly settingsInUse = inject(SettingsService);
   private readonly viewport = inject(GameViewportService);
   private readonly stage = inject(StageScroll);
+  private readonly injector = inject(Injector);
 
   readonly title = "Minesweeper";
   readonly tag = REPORT_TAG;
@@ -53,6 +56,26 @@ export class MinesweeperReports {
   capture(): ReportState {
     const game = this.take();
     return { summary: reportSummary(game), value: reportedValue(game) };
+  }
+
+  /**
+   * Puts a reported game on the board as the player left it, an ended one
+   * without its card, asking first if a game is under way, and resolves to
+   * whether it did. The board turns as it did only in an upright window.
+   *
+   * @throws Error naming the first part of the state this build can't read.
+   */
+  async load(state: unknown): Promise<boolean> {
+    const game = readReportedGame(state);
+    if (!(await this.play.load(game))) return false;
+    // The stage scrolls as far as the board it holds, once that has drawn.
+    afterNextRender(
+      () => {
+        this.stage.scrollTo(game.scroll);
+      },
+      { injector: this.injector },
+    );
+    return true;
   }
 
   private take(): ReportedGame {

@@ -2,18 +2,18 @@ import { count } from "@fz/core/format";
 import { isCount, isRecord, isWhole, unknownKey } from "@fz/core/json";
 import { formatClock } from "@fz/game-ui/stopwatch";
 import {
-  type DifficultyId,
   type FieldSize,
   isDifficultyId,
   isValidLives,
   isValidSize,
 } from "../../rules/difficulty";
-import { type Field, type Outcome, minesLeft } from "../../rules/field";
+import { type Outcome, minesLeft } from "../../rules/field";
 import {
   type SavedField,
   restoreField,
   saveField,
 } from "../../rules/saved_field";
+import type { LoadedGame } from "../play/game.service";
 
 /**
  * The tag Minesweeper's state is packed under. A change to the shape of
@@ -28,22 +28,10 @@ export interface StageScrollAt {
 }
 
 /**
- * Describes the game as a bug report carries it: what the player saw, ended
- * or not, and the settings a new game would be dealt from.
+ * Describes the game as a bug report carries it: the game to load as it
+ * stood, ended or not, and what else the player saw of it.
  */
-export interface ReportedGame {
-  /** The field, in any outcome. */
-  readonly field: Field;
-  /** The difficulty the field was dealt at. */
-  readonly difficulty: DifficultyId;
-  /** The time on the clock, in whole seconds. */
-  readonly seconds: number;
-  /** Whether a tap or click flagged a square rather than revealing it. */
-  readonly flagMode: boolean;
-  /** The lives the settings deal a new game with. */
-  readonly lives: number;
-  /** The field the settings' Custom deals. */
-  readonly custom: FieldSize;
+export interface ReportedGame extends LoadedGame {
   /** Whether the board stood the field on end, on an upright screen. */
   readonly turned: boolean;
   /** How far the stage around the board was scrolled. */

@@ -1,10 +1,8 @@
 import { TestBed } from "@angular/core/testing";
-import { inject } from "@angular/core";
 import { createRandom } from "@fz/core/random";
 import {
   BUG_REPORT_SOURCE,
   BugReportService,
-  type BugReportSource,
   unpackState,
 } from "@fz/game-ui/bug_report";
 import { BUILD_INFO } from "@fz/game-ui/build_info";
@@ -12,18 +10,19 @@ import {
   installCompressionStreams,
   installFakeViewport,
 } from "@fz/game-ui/testing";
-import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
+import { ConfirmService } from "@fz/ui/confirm";
+import { MemoryStorage, figures, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen } from "@testing-library/angular";
 import { CUSTOM_SIDE, type FieldSize, maxMines } from "../../rules/difficulty";
 import { type Field, type Square, layoutOf } from "../../rules/field";
-import { fieldFrom } from "../../testing/field_picture";
+import { fieldFrom, pictureOf } from "../../testing/field_picture";
 import { pauseAtEnd, playOn } from "../../testing/game";
 import { AppComponent } from "../app.component";
 import { GameService } from "../play/game.service";
 import { SAVED_GAME_KEY, SavedGameService } from "../play/saved_game.service";
 import { SettingsService } from "../settings/settings.service";
 import { MinesweeperReports } from "./minesweeper_reports";
-import { REPORT_TAG, readReportedGame } from "./reported_game";
+import { REPORT_TAG, readReportedGame, reportedValue } from "./reported_game";
 
 /** A game under way: 2 mines, 1 square of ground and 2 numbers open. */
 const IN_PLAY = ["*1_", ".21", "..*"];
@@ -34,6 +33,11 @@ const WIDE = ["*1___", "11___"];
 /** The longest a phone's browser names itself, near enough. */
 const LONG_USER_AGENT =
   "Mozilla/5.0 (Linux; Android 15; SM-S938U Build/AP3A.240905.015.A2; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.135 Mobile Safari/537.36 SamsungBrowser/27.0";
+
+/** Returns the game-state field a report's link fills in. */
+function gameStateOf(url: URL): string {
+  return url.searchParams.get("game-state") ?? "";
+}
 
 /** Returns the reports, as a game's bug report takes them. */
 function reports(): MinesweeperReports {
@@ -91,6 +95,14 @@ function largestField(): Field {
 
 describe("MinesweeperReports", () => {
   installCompressionStreams();
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: BUG_REPORT_SOURCE, useExisting: MinesweeperReports },
+      ],
+    });
+  });
 
   it("takes the game as it stands", () => {
     const game = playOn(IN_PLAY, { seconds: 42, difficulty: "easy" });
@@ -209,20 +221,6 @@ describe("MinesweeperReports", () => {
             provide: BUILD_INFO,
             useValue: { commit: "549c93a", buildTime: "2031-06-15T09:30:00Z" },
           },
-          {
-            provide: BUG_REPORT_SOURCE,
-            useFactory: (): BugReportSource => {
-              const source = inject(MinesweeperReports);
-              return {
-                title: source.title,
-                tag: source.tag,
-                game: () => source.game(),
-                settings: () => source.settings(),
-                capture: () => source.capture(),
-                load: () => Promise.resolve(false),
-              };
-            },
-          },
         ],
       });
     });
@@ -248,9 +246,110 @@ describe("MinesweeperReports", () => {
       );
 
       expect(url.toString().length).toBeLessThanOrEqual(6000);
-      expect(
-        await unpackState(REPORT_TAG, url.searchParams.get("game-state") ?? ""),
-      ).toEqual(state.value);
+      expect(await unpackState(REPORT_TAG, gameStateOf(url))).toEqual(
+        state.value,
+      );
+    });
+  });
+
+  describe("loading a reported game", () => {
+    beforeEach(() => {
+      pauseAtEnd(0);
+    });
+
+    /** Returns what the page shows of the game, by what a screen reader hears. */
+    function shown(): object {
+      const stage = screen.getByRole("main");
+      return {
+        board: screen.getByRole("grid").getAttribute("aria-label"),
+        squares: screen
+          .getAllByRole("gridcell")
+          .map((square) => square.getAttribute("aria-label")),
+        figures: figures(),
+        flagMode: screen
+          .getByRole("button", { name: "Flag mode" })
+          .getAttribute("aria-pressed"),
+        card: screen.queryByRole("dialog"),
+        scroll: [stage.scrollLeft, stage.scrollTop],
+      };
+    }
+
+    /**
+     * Reports the game on the page, then deals a new one, its stage scrolled
+     * home and Flag mode off, and returns the report's game-state field.
+     */
+    async function reportThenDeal(): Promise<string> {
+      const reporting = TestBed.inject(BugReportService);
+      const url = await reporting.issueUrl(reports().capture());
+      const game = TestBed.inject(GameService);
+      await game.newGame();
+      if (game.flagMode()) game.toggleFlagMode();
+      const stage = screen.getByRole("main");
+      stage.scrollLeft = 0;
+      stage.scrollTop = 0;
+      return gameStateOf(new URL(url));
+    }
+
+    it("shows a lost game as it was reported, without its card", async () => {
+      const { fixture } = await render(AppComponent);
+      const game = playOn(IN_PLAY, { lives: 1, seconds: 95 });
+      game.reveal(0);
+      game.closeResult();
+      game.toggleFlagMode();
+      screen.getByRole("main").scrollLeft = 30;
+      screen.getByRole("main").scrollTop = 12;
+      await fixture.whenStable();
+      const reported = shown();
+      const field = await reportThenDeal();
+
+      const loaded = await TestBed.inject(BugReportService).load(field);
+      await fixture.whenStable();
+
+      expect(loaded).toBe(true);
+      expect(shown()).toEqual(reported);
+    });
+
+    it("shows a turned board as it was reported, in an upright window", async () => {
+      installFakeViewport(390, 844);
+      const { fixture } = await render(AppComponent);
+      playOn(WIDE);
+      await fixture.whenStable();
+      const reported = shown();
+      const field = await reportThenDeal();
+
+      await TestBed.inject(BugReportService).load(field);
+      await fixture.whenStable();
+
+      expect(shown()).toEqual(reported);
+    });
+
+    it("leaves the game under way when the player backs out", async () => {
+      const { fixture } = await render(AppComponent);
+      playOn(IN_PLAY);
+      const state = reports().capture();
+      const game = TestBed.inject(GameService);
+      game.reveal(3);
+      await fixture.whenStable();
+      const before = shown();
+
+      const loading = reports().load(state.value);
+      TestBed.inject(ConfirmService).cancel();
+      const loaded = await loading;
+      await fixture.whenStable();
+
+      expect(loaded).toBe(false);
+      expect(shown()).toEqual(before);
+    });
+
+    it("names the part of a state it can't read, and loads nothing", async () => {
+      playOn(WIDE);
+      const spoiled = { ...reportedValue(taken()), lives: 9 };
+      playOn(IN_PLAY);
+
+      await expect(reports().load(spoiled)).rejects.toThrow(
+        "This build can't read lives in the game state.",
+      );
+      expect(pictureOf(TestBed.inject(GameService).field())).toEqual(IN_PLAY);
     });
   });
 });

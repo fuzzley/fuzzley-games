@@ -12,7 +12,11 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { describeMove } from "../../rules/describe";
-import { type DifficultyId, difficultyName } from "../../rules/difficulty";
+import {
+  type DifficultyId,
+  type FieldSize,
+  difficultyName,
+} from "../../rules/difficulty";
 import {
   type Field,
   createField,
@@ -75,6 +79,33 @@ const RESTART_QUESTION: ConfirmRequest = {
   confirmLabel: "Restart",
   tone: "danger",
 };
+
+/** What loading a reported game asks before it throws away the game under way. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load the reported game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
+
+/**
+ * Describes a game to put back as it stood, such as one from a bug report,
+ * with the settings and Flag mode it was played with.
+ */
+export interface LoadedGame {
+  /** The field, in any outcome. */
+  readonly field: Field;
+  /** The time on the clock, in whole seconds. */
+  readonly seconds: number;
+  /** The difficulty the field was dealt at. */
+  readonly difficulty: DifficultyId;
+  /** Whether a tap or click flags a square rather than revealing it. */
+  readonly flagMode: boolean;
+  /** The lives the settings deal a new game with. */
+  readonly lives: number;
+  /** The field the settings' Custom deals. */
+  readonly custom: FieldSize;
+}
 
 /**
  * Plays the game: holds the field, makes the player's moves on it, runs its
@@ -210,6 +241,20 @@ export class GameService {
   /** Takes up a game where it was left, such as one saved before a reload. */
   resume(field: Field, seconds: number, difficulty: DifficultyId): void {
     this.begin(field, seconds, difficulty);
+  }
+
+  /**
+   * Puts back a game as it stood, ended or not, with its settings and Flag
+   * mode, asking first if a game is under way, and resolves to whether it
+   * did. An ended game shows its board without the card.
+   */
+  async load(game: LoadedGame): Promise<boolean> {
+    if (!(await this.mayLoseGame(LOAD_QUESTION))) return false;
+    const { field, seconds, difficulty, flagMode, lives, custom } = game;
+    this.settings.update({ difficulty, lives, custom });
+    this.resume(field, seconds, difficulty);
+    this.flagModeState.set(flagMode);
+    return true;
   }
 
   /** Puts away the card at the end of a game, leaving the board to look at. */

@@ -2,12 +2,15 @@ import { TestBed } from "@angular/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmService } from "@fz/ui/confirm";
-import { pictureOf } from "../../testing/field_picture";
+import { fieldFrom, pictureOf } from "../../testing/field_picture";
 import { pauseAtEnd, playOn } from "../../testing/game";
 import { LANDING_MS } from "../board/landing";
-import { SettingsService } from "../settings/settings.service";
+import {
+  DEFAULT_SETTINGS,
+  SettingsService,
+} from "../settings/settings.service";
 import { StatsService } from "../stats/stats.service";
-import { GameService, LOOK_MS } from "./game.service";
+import { GameService, type LoadedGame, LOOK_MS } from "./game.service";
 
 /**
  * A field in play. Revealing its top-right corner, a blank, opens the four
@@ -313,6 +316,81 @@ describe("GameService", () => {
 
       expect(game.resultOpen()).toBe(false);
       expect(game.field().outcome).toBe("won");
+    });
+  });
+
+  describe("loading a game as it stood", () => {
+    /** A game lost on its last life, both mines stepped on, at Easy. */
+    function lost(): LoadedGame {
+      return {
+        field: fieldFrom(["x1.", ".2.", "..x"], { lives: 2 }),
+        seconds: 95,
+        difficulty: "easy",
+        flagMode: true,
+        lives: 2,
+        custom: { rows: 12, cols: 24, mines: 60 },
+      };
+    }
+
+    it("puts the game back as it stood, its card put away", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.load(lost());
+
+      expect(pictureOf(game.field())).toEqual(["x1.", ".2.", "..x"]);
+      expect(game.field().outcome).toBe("lost");
+      expect(game.seconds()).toBe(95);
+      expect(game.difficulty()).toBe("easy");
+      expect(game.flagMode()).toBe(true);
+      expect(game.resultOpen()).toBe(false);
+    });
+
+    it("deals new games from the settings it was played with", async () => {
+      const game = TestBed.inject(GameService);
+
+      await game.load(lost());
+
+      expect(TestBed.inject(SettingsService).settings()).toEqual({
+        difficulty: "easy",
+        lives: 2,
+        custom: { rows: 12, cols: 24, mines: 60 },
+      });
+    });
+
+    it("asks before it loses the game under way", () => {
+      const game = playOn(IN_PLAY);
+
+      void game.load(lost());
+
+      expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+        title: "Load the reported game?",
+        message: "You'll lose the game in progress.",
+        confirmLabel: "Load",
+      });
+    });
+
+    it("keeps the game under way when the player backs out", async () => {
+      const game = playOn(IN_PLAY);
+
+      const loading = game.load(lost());
+      TestBed.inject(ConfirmService).cancel();
+
+      expect(await loading).toBe(false);
+      expect(pictureOf(game.field())).toEqual(IN_PLAY);
+      expect(game.flagMode()).toBe(false);
+      expect(TestBed.inject(SettingsService).settings()).toEqual(
+        DEFAULT_SETTINGS,
+      );
+    });
+
+    it("loads over the game under way when the player goes ahead", async () => {
+      const game = playOn(IN_PLAY);
+
+      const loading = game.load(lost());
+      TestBed.inject(ConfirmService).accept();
+
+      expect(await loading).toBe(true);
+      expect(game.field().outcome).toBe("lost");
     });
   });
 
