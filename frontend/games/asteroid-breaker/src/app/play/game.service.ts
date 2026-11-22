@@ -6,12 +6,14 @@ import {
   inject,
   signal,
 } from "@angular/core";
+import { keysOf } from "@fz/core/records";
 import { hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle, speedQuestion } from "@fz/game-ui/run_lifecycle";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { Viewport } from "@fz/phaser/layout";
+import type { ConfirmRequest } from "@fz/ui/confirm";
 import {
   type EndMarks,
   describePause,
@@ -26,6 +28,11 @@ import {
   fieldFor,
   reshapeField,
 } from "../../rules/field/field";
+import {
+  type FieldMoment,
+  layMoment,
+  momentOf,
+} from "../../rules/field/moment";
 import { rocksLeft } from "../../rules/rocks/rocks";
 import { sectorSpans } from "../../rules/run/progress";
 import {
@@ -57,7 +64,7 @@ import {
   opensEndless,
   waveEntryOf,
 } from "../../rules/waves/waves";
-import { fieldTuning, tuneField } from "../../view/debug_tuning";
+import { type Feel, fieldTuning, tuneField } from "../../view/debug_tuning";
 import { type BoardSetting, fieldShape } from "../../view/field/field_metrics";
 import { constellationAt } from "../../view/field/specks";
 import { hasLodestone } from "../../view/effects/field_sounds";
@@ -66,6 +73,7 @@ import type { FieldFrame } from "../../view/field/frame";
 import { RunFrames } from "../../view/run_frames";
 import { type RunState, newRunState, withFrame } from "../../view/run_state";
 import { WavePlay } from "../../view/wave_play";
+import type { ReadGame } from "../bug_report/reported_game";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
@@ -77,6 +85,19 @@ import { describeSector, sectorCardOf } from "./sector_card";
 const FIRST_TORUS: Torus = {
   width: FIELD_SHORT_SIDE,
   height: FIELD_SHORT_SIDE,
+};
+
+/** What loading a reported run asks before it throws away one in progress, as Solitaire asks. */
+const LOAD_QUESTION: ConfirmRequest = {
+  title: "Load this game?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Load",
+  tone: "danger",
+};
+
+/** Describes a run a bug report carried, as the game takes it up: one with a run to take up. */
+export type ReportedRun = Pick<ReadGame, "moment" | "torus" | "tuning"> & {
+  readonly takenUp: TakenUp;
 };
 
 /**
@@ -115,6 +136,13 @@ export class GameService extends RunLifecycle {
 
   /** The field's shape for the board's room, which a wave takes as it starts. */
   private torus = FIRST_TORUS;
+  /** The field's shape for the board's room as it last gave it, which a new run takes once a forced one is let go. */
+  private roomTorus = FIRST_TORUS;
+  /**
+   * Whether the field's shape is one a reported run forced, which the
+   * board's room leaves as it is until a new run begins.
+   */
+  private forced = false;
   /**
    * What the player held as the last frame was handed over, which a new
    * wave's ship takes as held.
@@ -538,10 +566,13 @@ export class GameService extends RunLifecycle {
    * Takes the room the board lays the field out in, which the next wave is
    * shaped for. A wave yet to begin is laid out again at once, a paused one
    * stretched to it, and one in play stretched as it pauses; a room that
-   * keeps the field's shape changes nothing.
+   * keeps the field's shape changes nothing. While a reported run's shape
+   * holds, the room is only noted, for the next run.
    */
   setRoom(viewport: Viewport, board: BoardSetting): void {
-    const torus = fieldShape(viewport, board, this.torus);
+    const torus = fieldShape(viewport, board, this.roomTorus);
+    this.roomTorus = torus;
+    if (this.forced) return;
     const { width, height } = this.torus;
     if (torus.width === width && torus.height === height) return;
     this.torus = torus;
@@ -551,6 +582,44 @@ export class GameService extends RunLifecycle {
     } else if (run.outcome === "paused") {
       reshapeField(this.wavePlay.field, torus);
     }
+  }
+
+  /**
+   * Returns the moment of the wave in play's field, what `saved()` leaves
+   * out of it, copied as it stands, or null once the run is over.
+   */
+  moment(): FieldMoment | null {
+    return momentOf(this.wavePlay.field);
+  }
+
+  /**
+   * Returns the field's shape a wave is laid out for: the board's room's,
+   * or the one a reported run forced.
+   */
+  shape(): Torus {
+    return this.torus;
+  }
+
+  /**
+   * Takes up a run a bug report carried, paused, on its field's shape and
+   * with its tuning, asking first if one is in progress, and resolves to
+   * whether it did.
+   *
+   * The shape holds through `setRoom()` until a new run begins, and the
+   * crew knocked loose show from the next frame, as a paused field's do.
+   */
+  async takeUpReported(reported: ReportedRun): Promise<boolean> {
+    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
+    this.tuneTo(reported.tuning);
+    this.forced = true;
+    this.torus = reported.torus;
+    this.takeUp(reported.takenUp);
+    const { moment } = reported;
+    if (moment) {
+      layMoment(this.wavePlay.field, moment);
+      this.setRun({ ...this.run(), crew: moment.crew });
+    }
+    return true;
   }
 
   /** Puts away the card over an ended run, leaving the board to look at. */
@@ -620,9 +689,26 @@ export class GameService extends RunLifecycle {
     if (news !== null) this.announcer.say(news);
   }
 
-  /** Returns a new run at a speed, waiting at a wave for its first move. */
+  /**
+   * Returns a new run at a speed, waiting at a wave for its first move, and
+   * lets go of a shape a reported run forced, so its field is laid out on
+   * the board's room.
+   */
   private create(speed: Speed, wave: number): Run {
+    this.forced = false;
+    this.torus = this.roomTorus;
     return createRun({ ...this.numbers.next(), speed, wave });
+  }
+
+  /**
+   * Tunes each number that sets the feel to a tuning's, as the debug menu
+   * would, leaving those it holds already as they are.
+   */
+  private tuneTo(tuning: Feel): void {
+    const now = this.tuner.tuning();
+    for (const id of keysOf(tuning)) {
+      if (now[id] !== tuning[id]) this.tuner.tune(id, tuning[id]);
+    }
   }
 
   /**

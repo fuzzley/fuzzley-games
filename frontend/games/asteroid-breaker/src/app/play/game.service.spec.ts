@@ -53,7 +53,7 @@ import {
   shoot,
   takeUpCharged,
 } from "../../testing/play";
-import type { Feel } from "../../view/debug_tuning";
+import { type Feel, TUNED } from "../../view/debug_tuning";
 import { CLEARED_BUZZ, LOST_BUZZ } from "../../view/effects/haptics";
 import { CLEARED_MS } from "../../view/effects/timing";
 import type { BoardSetting } from "../../view/field/field_metrics";
@@ -63,7 +63,7 @@ import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_WAVES, TUNING } from "../tokens";
-import { GameService } from "./game.service";
+import { GameService, type ReportedRun } from "./game.service";
 
 /** A board with no margin and no deck, as on a screen with no touch. */
 const BOARD: BoardSetting = {
@@ -1847,5 +1847,174 @@ describe("GameService", () => {
 
       expect(rockVelocities(game)).toEqual(before);
     });
+  });
+});
+
+describe("GameService, taking up a reported run", () => {
+  /** The numbers the specs' reported run was flown on: the game's, but its thrust and its rocks' speed. */
+  const REPORTED_FEEL: Feel = { ...TUNED, thrust: 31, rockSpeed: 1.5 };
+
+  /** A room with no area, as a hidden page's is. */
+  const HIDDEN: Viewport = { ...WIDE, width: 0, height: 0 };
+
+  /** Describes a run a bug report carried, and what its game showed as it was reported. */
+  interface Reported {
+    readonly reported: ReportedRun;
+    readonly shown: Record<string, unknown>;
+  }
+
+  /** Returns a value as JSON carries it, as a report's link does. */
+  function viaJson<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T;
+  }
+
+  /** Returns another game, made beside the first, as a page loaded again makes one. */
+  function anotherGame(): GameService {
+    return TestBed.runInInjectionContext(() => new GameService());
+  }
+
+  /**
+   * Returns the run in play on a wide board's field as a bug report carries
+   * it, and what the game showed: paused, one of its crew knocked loose,
+   * flown on numbers of its own, the debug menu then put back, as another
+   * page's is.
+   */
+  async function reportedRun(game: GameService): Promise<Reported> {
+    tune("thrust", REPORTED_FEEL.thrust);
+    tune("rockSpeed", REPORTED_FEEL.rockSpeed);
+    game.setRoom(WIDE, BOARD);
+    await game.startAt(SPEC_WAVE.pebble);
+    knockOneLoose(game);
+    game.pause();
+    const reported = viaJson({
+      takenUp: takenUp(game, game.saved()),
+      moment: game.moment(),
+      torus: game.shape(),
+      tuning: TestBed.inject(TUNING).tuning(),
+    });
+    const shown = shownBy(game);
+    resetTuning();
+    return { reported, shown };
+  }
+
+  /** Returns what the game shows of its run and its field. */
+  function shownBy(game: GameService): Record<string, unknown> {
+    const { field } = game.frame();
+    return {
+      outcome: game.outcome(),
+      score: game.score(),
+      crew: game.crew(),
+      loose: game.loose(),
+      moment: viaJson(game.moment()),
+      rocks: field.rocks
+        .filter((rock) => rock.live)
+        .map(({ vx, vy }) => ({ vx, vy })),
+      torus: field.torus,
+    };
+  }
+
+  it("shows the run as it was reported, paused, its field's moment laid on and its rocks at their speeds", async () => {
+    const { reported, shown } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+    game.setRoom(SQUARE, BOARD);
+
+    await game.takeUpReported(reported);
+    game.tick(FRAME_MS, STILL);
+
+    expect(shownBy(game)).toEqual(shown);
+  });
+
+  it("tunes the debug menu to the numbers the run was flown on", async () => {
+    const { reported } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+
+    await game.takeUpReported(reported);
+
+    expect(TestBed.inject(TUNING).tuning()).toEqual(REPORTED_FEEL);
+  });
+
+  it("keeps the reported field's shape through the board's room", async () => {
+    const { reported } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+    await game.takeUpReported(reported);
+
+    game.setRoom(SQUARE, BOARD);
+
+    expect(game.frame().field.torus).toEqual(reported.torus);
+  });
+
+  it("lets the reported field's shape go as a new run begins, for the board's room", async () => {
+    const { reported } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+    await game.takeUpReported(reported);
+    game.setRoom(SQUARE, BOARD);
+    const square = anotherGame();
+    square.setRoom(SQUARE, BOARD);
+
+    const starting = game.newGame();
+    TestBed.inject(ConfirmService).accept();
+    await starting;
+
+    expect(game.frame().field.torus).toEqual(square.shape());
+  });
+
+  it("lets a new run take the board's last room with area, though a hidden page's came while the reported shape held", async () => {
+    const { reported } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+    game.setRoom(SQUARE, BOARD);
+    await game.takeUpReported(reported);
+    game.setRoom(HIDDEN, BOARD);
+    const square = anotherGame();
+    square.setRoom(SQUARE, BOARD);
+
+    const starting = game.newGame();
+    TestBed.inject(ConfirmService).accept();
+    await starting;
+
+    expect(game.frame().field.torus).toEqual(square.shape());
+  });
+
+  it("takes up a run reported with no moment as its saved game keeps it", async () => {
+    const { reported } = await reportedRun(TestBed.inject(GameService));
+    const game = anotherGame();
+
+    await game.takeUpReported({ ...reported, moment: null });
+
+    expect(game.crew()).toEqual(reported.takenUp.run.crew);
+  });
+
+  it("asks Solitaire's question before it throws away a run in progress", async () => {
+    const game = TestBed.inject(GameService);
+    const { reported } = await reportedRun(game);
+
+    void game.takeUpReported(reported);
+    await flush();
+
+    expect(TestBed.inject(ConfirmService).prompt()).toMatchObject({
+      title: "Load this game?",
+      message: "You'll lose the game in progress.",
+      confirmLabel: "Load",
+    });
+  });
+
+  it("leaves the run in progress, the debug menu and the field's shape as they are if the player cancels", async () => {
+    const game = TestBed.inject(GameService);
+    const { reported } = await reportedRun(game);
+    game.setRoom(SQUARE, BOARD);
+    const before = {
+      run: game.run(),
+      tuning: TestBed.inject(TUNING).tuning(),
+      shape: game.shape(),
+    };
+
+    const loading = game.takeUpReported(reported);
+    TestBed.inject(ConfirmService).cancel();
+
+    expect({
+      loaded: await loading,
+      run: game.run(),
+      tuning: TestBed.inject(TUNING).tuning(),
+      shape: game.shape(),
+    }).toEqual({ loaded: false, ...before });
   });
 });
