@@ -1,123 +1,112 @@
 ---
 name: asteroid-breaker-content
-description: What adding to Asteroid Breaker takes — a wave, a sector, a formation, a rock kind or trait, a pickup or its effect, a weapon, or a change to Endless — the files to write, the catalogs and typed records the compiler holds complete, what the saved game must keep, and the specs and the autopilot's report that check each. Triggers on: asteroid breaker wave, new wave, wave design, sector, Endless, endlessWave, formation, ring, wall, cluster, scatter, rock kind, rock trait, pickup, power-up, effect, weapon, ROCK_KINDS, PICKUPS, WEAPONS, TRAIT_RULES, EFFECT_RULES, FORMATIONS, LAYOUTS, pace, drops, strays, comets, burrs, report:waves, frontend/games/asteroid-breaker waves.
+description: What adding to Asteroid Breaker takes — a wave, a sector, a formation, a rock kind or trait, a pickup, an effect or a weapon, or a change to Endless — the records to fill and the specs and the report to run. Triggers on: asteroid breaker wave, new wave, sector, Endless, formation, rock kind, pickup, weapon, ROCK_KINDS, PICKUPS, WEAPONS, TRAIT_RULES, report:waves.
 ---
 
 # Adding to Asteroid Breaker
 
-This skill walks through what each addition to the game takes. How its
-specs run is in the `asteroid-breaker-testing` skill. Paths are relative to
+What each addition to the game takes. How its specs run is in the
+`asteroid-breaker-testing` skill. Paths are relative to
 `frontend/games/asteroid-breaker/`.
 
 ## How the Game Holds What It Plays
 
 - **Three catalogs,** in `src/rules/catalog/`, list everything the waves
   can hold: `ROCK_KINDS` (`rocks.ts`), `PICKUPS` (`pickups.ts`) and
-  `WEAPONS` (`weapons.ts`), the plain gun and those a pickup arms the ship
-  with. Each is a readonly object written `as const`, so its ids are a
-  type; the rocks and the pickups are in How to play's order, which shows
-  every rock kind and pickup, its name, its sentence and its picture, with
-  no change of its own.
-- **Records keyed by those ids** make the compiler ask for what a new entry
-  needs: how a rock is cut and marked (`KIND_CUTS`,
-  `src/view/art/rocks/rock_shape.ts`) and comes apart (`BREAK_STYLES`,
-  `src/view/art/breaks.ts`), its glows among its marks, which the scene
-  shows as halos under it (`rockHalos()`), each tone of glow in its color
-  (`rockGlows`, `src/view/colors/palette.ts`), its ink in each set of inks
-  (`src/view/colors/inks.ts`), a trait's rule (`TRAIT_RULES`,
-  `src/rules/rocks/rocks.ts`), a pickup's symbol (`SYMBOLS`,
-  `src/view/art/symbols.ts`), an effect's group's rim on its orb
-  (`ORB_RIMS`, `src/view/art/things.ts`), a weapon's shot's art (`SHOTS`,
-  `src/view/art/energy.ts`), an effect's rule (`EFFECT_RULES`,
-  `src/rules/rocks/pickups.ts`), a formation's layout (`LAYOUTS`,
-  `src/rules/field/spawn.ts`), a size's radius and speed
-  (`src/rules/tuning.ts`), and the sounds of `src/view/effects/sounds.ts`:
-  a kind's break at each size it comes in (`BREAK_SOUNDS`) and its held
-  hit (`HIT_SOUNDS`), a pickup's catch (`CATCH_SOUNDS`), a weapon's shot
-  (`SHOT_SOUNDS`), and an effect's start as a pickup caught starts it
-  (`START_SOUNDS`) and its end as its time runs out (`END_SOUNDS`).
-  The rest is made from the ids, a pickup's frame and tag and an effect's
-  record in play among them, so a new id that compiles has everything
-  drawn and played.
-- **The waves** are JSON, a file for each sector in `src/rules/waves/`,
-  listed in order in `src/rules/waves/waves.ts` (`SECTORS`) and numbered
-  from 1 across the sectors (`WAVES`), ten to a sector, each sector ending
-  with its set piece, a boulder of a kind its own. Past the last, `waveEntryOf()` gives Endless's waves,
-  which `src/rules/waves/endless.ts` makes as they are played;
-  `waveToPlay()` makes any wave ready to play.
-- **The checks** that hold it whole:
-
-  | Check               | Where                                                                | What it holds                                                                                                                                                                      |
-  | ------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | The compiler        | everywhere                                                           | Every rock kind has its cut, ink and sounds, every pickup its symbol and sound, every weapon its shot's art and sound, every trait and effect its rule, every formation its layout |
-  | The catalog spec    | `src/rules/catalog/catalog.spec.ts`                                  | Every entry's name and sentence, the hits, points and traits, every kind laid by a wave, every pickup first able to come at the wave its `from` names, and none before             |
-  | The waves spec      | `src/rules/waves/waves.spec.ts`                                      | Every wave parses, its id and name its own, every sector of ten ending with its own set piece, every name from the file read                                                       |
-  | The spawn specs     | `src/rules/field/every_layout/`                                      | Every wave laid out fairly, in every formation, on the narrowest and the widest fields, either way up, at every speed                                                              |
-  | The Endless spec    | `src/rules/waves/endless.spec.ts`                                    | Endless's waves keep to their budget, their share of iron, their crystal and the cap, climb as written, and are the same for the same seed                                         |
-  | The autopilot specs | `src/rules/waves/every_wave/`, `src/rules/waves/every_endless_wave/` | Every wave at every speed, on the narrowest and widest fields, cleared within four minutes; Endless's 31 to 60 too, with nothing able to take the ship                             |
-  | The contrast spec   | `src/view/colors/contrast.spec.ts`                                   | Every rock's ink, at its darkest and brightest face under the palette's light, every pickup and the pilots against the field, in every palette                                     |
+  `WEAPONS` (`weapons.ts`). Each is written `as const`, so its ids are a
+  type.
+- **Records keyed by those ids make the compiler ask for what a new entry
+  needs:** its art, its ink, its sounds and its rules. Add the entry, run
+  `yarn typecheck`, and fill each record it names. The sections below say
+  where each is, and what the compiler can't ask for.
+- **The rest is made from the ids,** a pickup's frame and tag and an
+  effect's record in play among them. How to play shows every rock kind
+  and pickup, in the catalogs' order, with no change of its own.
+- **The waves are JSON,** a file for each sector in `src/rules/waves/`,
+  listed in order in `SECTORS` (`src/rules/waves/waves.ts`) and numbered
+  from 1 across the sectors (`WAVES`). Past the last, `waveEntryOf()` gives
+  Endless's waves, which `src/rules/waves/endless.ts` makes as they are
+  played.
+- **These checks hold it whole:**
+  - the compiler: every id has its records;
+  - `src/rules/catalog/catalog.spec.ts`: every entry's name and sentence,
+    the hits, points and traits, every kind laid by a wave, and every
+    pickup first able to come at the wave its `from` names;
+  - `src/rules/waves/waves.spec.ts`: every wave parses, its id and name
+    its own, in three sectors of ten, a boulder in no wave but each
+    sector's last, its own set piece;
+  - `src/rules/field/every_layout/`: every wave laid out fairly, in every
+    formation, on the narrowest and the widest fields, at every speed;
+  - `src/rules/waves/endless.spec.ts`: Endless's waves keep to their
+    budget, their share of iron, their crystal and the cap, climb as
+    written, and are the same for the same seed;
+  - `src/rules/waves/every_wave/` and
+    `src/rules/waves/every_endless_wave/`: the autopilot clears every wave
+    at every speed within four minutes, and Endless's 31 to 60 with
+    nothing able to take the ship;
+  - `src/view/colors/contrast.spec.ts`: every rock's ink, at its darkest
+    and brightest face too, at 3:1 against the field in every palette.
 
 ## A Wave
 
-Its block in a sector's file, its keys those of `WaveData`
-(`src/rules/waves/waves.ts`), any other refused:
+A block in its sector's file, its keys those of `WaveData`
+(`src/rules/waves/waves.ts`), each with its default there. `parseWave()`
+refuses any other key, and says what is wrong with a value.
 
-- `id`, kebab-case, for good: the saved game takes a run's wave up by it,
-  so it never changes once shipped. `name`, what the player sees.
-- `rocks`: each kind, size and count, written for a field of 40 by 40 and
-  grown with the field's area (`src/rules/field/fill.ts`), up to the cap.
-- `formation`: `scatter` (the default), `ring`, `wall` or `cluster`.
-- `pace`, the rocks' speed against their own, rising through a sector;
-  `drops`, the chance a broken rock lets a pickup go, if not its sector's;
-  `pickups`, the pool, if not every pickup whose wave has come; `strays`,
-  if not one from wave 3, the first 4 seconds into its play on any field
-  (a pilot left with no one in tow, and none knocked loose to catch again,
-  is thrown one more at once, once a wave, whatever the wave says); `comets`, `{ "every": [least, most] }` in
-  seconds, for a wave that has them; `burrs`, how many burrs it sends, for
-  a wave that has them, none by default, grown with the field's area as
-  its rocks are (`src/rules/hazards/burrs.ts`); `waveKind`, the rock its
-  boulders break into, if not stone.
-
-A sector holds ten waves, its last its set piece alone, one boulder of a
-kind its own or two (`crumbling`, `ironclad`, `stormheart`), so a new wave
-takes the place of one. Its number is its place across the sectors, and the
-waves each pickup first comes in go by number. The screenshots keep a run
-on wave 9, Crowd (`tools/capture-screenshots.mjs`), which
-`tools/capture-screenshots.spec.ts` keeps too.
+- **Its `id` is for good.** The saved game takes a run's wave up by it, so
+  it never changes once shipped.
+- **Its counts are written for a field of 40 by 40,** `ROCK_CAP` rocks at
+  most. `fillFor()` (`src/rules/field/fill.ts`) grows its rocks, strays and
+  burrs with the field's area.
+- **Its `pace` never falls within its sector,** which the waves spec
+  holds.
+- **It takes the place of a wave.** A sector holds ten, and only its last
+  holds a boulder, the sector's set piece. A wave's number is its place
+  across the sectors, and what goes by number moves with it: the wave each
+  pickup first comes in (`from`), a stray in every wave from the third,
+  and the screenshots' run on wave 9, Crowd
+  (`tools/capture-screenshots.mjs`). Whatever a wave's `strays` says, it
+  also throws one stray at once to a pilot with no one in tow, so
+  `strays: 0` is not a wave without one.
 
 Then:
 
 1. `yarn vitest run --project pure --project sim src/rules/waves/waves.spec.ts src/rules/catalog/catalog.spec.ts src/rules/field/every_layout/ tools/capture-screenshots.spec.ts`.
-2. `yarn vitest run --project sim src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`, which plays it from its
-   number as the seed.
+2. `yarn vitest run --project sim src/rules/waves/every_wave/ src/rules/waves/every_endless_wave/`,
+   which plays it from its number as the seed.
 3. `yarn report:waves`, then with `--seeds 12`, and each again with
-   `--field wide` and `--field tall`: its middle time should sit between
-   its neighbours', rising through its sector, its tail, the time from its
-   last few rocks to its clearing, with its neighbours' on the same field,
-   and the crew it knocks loose in the most costly of twelve seeds should
-   keep to one at Relaxed and two at Normal or Fast, few of them floating
-   home; for a wave that sends burrs, `clung` counts those that clung to
-   the pod of those sent, as the spec plays it. The last few lean toward
-   the ship, which keeps every tail short
-   (`LAST_FEW`, `LAST_FEW_LEAN` and `LAST_FEW_NEAR` in
-   `src/rules/tuning.ts`). A wave whose hits end the run on one seed in
-   many is luck; on many, it is a wave to redraw.
+   `--field wide` and `--field tall`. Read these:
+   - its middle time, which should sit between its neighbours', rising
+     through its sector;
+   - its tail, the time from its last few rocks to its clearing, which
+     should sit with its neighbours' on the same field. The last few lean
+     toward the ship, which keeps every tail short (`LAST_FEW`,
+     `LAST_FEW_LEAN` and `LAST_FEW_NEAR` in `src/rules/tuning.ts`);
+   - the crew it knocks loose in the most costly of twelve seeds, which
+     should keep to one at Relaxed and two at Normal or Fast, few of them
+     floating home;
+   - `clung`, for a wave that sends burrs: those that clung to the pod, of
+     those sent.
+
+   A wave whose hits end the run on one seed in many is luck. On many, it
+   is a wave to redraw.
 
 ## A Sector
 
-A file in `src/rules/waves/`, `{ id, name, drops, waves }`, its ten waves
-ending with its set piece, a boulder kind of its own in `ROCK_KINDS`,
-which the waves spec names, added to `SECTORS` in its place. Its id is kept for
-good in the records' bests and the sectors reached, and the Sectors dialog
-lists it with no change of its own. The card over its first wave says what
-is new there, a sentence or two under its id in `SECTOR_NEWS`
-(`src/app/play/sector_card.ts`), whose spec holds every sector of the
-game's, Endless's among them, to having its words. But a sector more takes
-more than that, as these places hold the game to thirty waves in three
-sectors:
+A file in `src/rules/waves/`, `{ id, name, drops, waves }`, added to
+`SECTORS` in its place: ten waves, the last holding its set piece, a
+boulder kind of its own in `ROCK_KINDS`. Its id is kept for good, in the
+records' bests and the sectors reached. The Sectors dialog lists it with no
+change of its own. The card over its first wave says what is new there, a
+sentence or two under its id in `SECTOR_NEWS`
+(`src/app/play/sector_card.ts`), whose spec holds every sector, Endless
+among them, to having its words.
+
+A sector more takes more than that, as these hold the game to thirty waves
+in three sectors:
 
 - `src/rules/waves/waves.spec.ts` holds the game to thirty waves and three
-  sectors.
+  sectors, and names each sector's set piece.
 - Endless begins past the last wave (`ENDLESS_FROM`), but some of its
   numbers are waves of the game, `COMETS_CLOSED_AT` (60) and
   `TWO_STRAYS_FROM` (50) in `src/rules/waves/endless.ts`, and
@@ -130,88 +119,86 @@ sectors:
 
 ## Endless
 
-`src/rules/waves/endless.ts` makes each wave from the run's seed and its number,
-so a saved game makes its wave again from the two. Its climbs, its comets,
-its boulders, its strays and its buys are numbers at its top, each with
-what it does; it sends no burrs. A change there is checked by `endless.spec.ts`, then
-`yarn report:waves --endless` on each field, which fails only on a play
-that didn't clear in time with nothing able to take the ship: Endless is
-held to being fair, not to what it costs.
+`src/rules/waves/endless.ts` makes each wave from the run's seed and its
+number, so a saved game makes its wave again from the two. Its climbs, its
+comets, its boulders, its strays and the rocks its budget buys (`BUYS`) are
+numbers at its top. It sends no burrs. A change there is checked by
+`src/rules/waves/endless.spec.ts`, then `yarn report:waves --endless` on
+each field, which fails only on a play that didn't clear in time with
+nothing able to take the ship: Endless is held to being fair, not to what
+it costs.
 
 ## A Formation
 
 An entry in `FORMATIONS` (`src/rules/waves/waves.ts`) and its layout in
-`LAYOUTS` (`src/rules/field/spawn.ts`), which lays the rocks about the waiting
-ship by the field's draws and keeps each fair (`keepClear()`), or flies
-them all fairly at one speed (`flyFairly()`). The spawn spec lays every wave
-out in it on every field. Endless draws from every formation for a wave
-of `GATHERED_MOST` rocks or fewer and no boulders, and only from
-`SPREAD_FORMATIONS` for the rest (`src/rules/waves/endless.ts`).
+`LAYOUTS` (`src/rules/field/spawn.ts`), which lays the rocks about the
+waiting ship by the field's draws and keeps each fair (`keepClear()`), or
+flies them all fairly at one speed (`flyFairly()`). The specs in
+`src/rules/field/every_layout/` lay every wave out in it on every field.
+Endless draws from every formation for a wave of `GATHERED_MOST` rocks or
+fewer and no boulders, and only from `SPREAD_FORMATIONS` for the rest
+(`src/rules/waves/endless.ts`).
 
 ## A Rock Kind or a Trait
 
-- **A kind:** an entry in `ROCK_KINDS`: its name and sentence, written as
-  the `player-text` skill's catalog lines are, its hits and
-  points at each size it comes in, what it breaks into (`splits`), its speed and
-  its traits. Then how it is cut and marked at each size in `KIND_CUTS`,
-  which the rocks' atlas draws lit (`src/view/art/rock_art.ts`), how it
-  comes apart in `BREAK_STYLES` (`src/view/art/breaks.ts`): its shards that
-  fly the whole time, how far and how fast they turn, its sparks, glints
-  and dust, and whether its facets fly as they are, as slivers or as
-  plates; and its ink in both sets of inks, checked at 3:1 against the
-  field, at its darkest and brightest faces too, by the contrast spec; its
-  sounds, its break at each size it comes in in `BREAK_SOUNDS` and its
-  held hit in `HIT_SOUNDS` (`src/view/effects/sounds.ts`), by the plan's
-  names in `SOUNDS`; and a wave that lays it, which the catalog spec asks
-  for. Each kind is drawn in each of its outlines at each count of hits,
-  and a kind of boulder takes a sheet of the atlas's room, so a set piece
-  is drawn in two outlines (`SET_PIECE_OUTLINES`, `outlinesOf()` in
-  `src/view/art/rock_art.ts`), and a rock's outline is mapped onto them as
-  it is drawn; the atlas packs to 4096 pixels square, and the art spec
-  fails a kind that won't fit.
-- **A trait:** a case of `RockTrait` (`src/rules/catalog/rocks.ts`) and its
-  rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), what it does at each
-  moment it cares for: as a hit holds the rock, as it breaks, at each step,
-  or as its blast goes off; one another part reads, as the pickups read
+- **A kind is an entry in `ROCK_KINDS`,** its name and sentence written as
+  the `player-text` skill's catalog lines are. The compiler then asks for:
+  - how it is cut and marked at each size it comes in, in `KIND_CUTS`
+    (`src/view/art/rocks/rock_shape.ts`);
+  - how it comes apart, in `BREAK_STYLES` (`src/view/art/breaks.ts`);
+  - its ink in both sets of inks (`src/view/colors/inks.ts`), which the
+    contrast spec checks at 3:1 against the field;
+  - its break's sound at each size, in `BREAK_SOUNDS`, and its held hit's,
+    in `HIT_SOUNDS` (`src/view/effects/sounds.ts`), each a name in
+    `SOUNDS`.
+- **It needs a wave that lays it,** which the catalog spec asks for.
+  Endless lays only the kinds its budget buys, a crystal and its boulders.
+- **A kind of boulder takes a sheet of the atlas's room,** so a set piece
+  is drawn in two outlines (`SET_PIECE_OUTLINES` in
+  `src/view/art/rock_art.ts`). Add a new kind of boulder there: the
+  compiler doesn't ask. The atlas packs to 4096 pixels square, and
+  `src/view/art/rock_art.spec.ts` fails a kind that won't fit.
+- **A trait is a case of `RockTrait`** (`src/rules/catalog/rocks.ts`) and
+  its rule in `TRAIT_RULES` (`src/rules/rocks/rocks.ts`), at the moments
+  `TraitRule` names there. One another part reads, as the pickups read
   `gives` and the sparks `sheds`, has an empty rule. A held rule may lay a
-  rock, as `chips` knocks a piece off its rim (`addRock()`), or hit the
-  rocks round it, as `vents` does, through `hitWithin()`, whose last
-  argument spares what it names, here the boulders. An event a trait logs
-  of its own is a case of `RockEventKind` (`src/rules/field/events.ts`),
-  whose sound (`EVENT_SOUNDS`, or a case of `soundOf()` for one heard as
-  another's, as `shed` is the piece's break) and effect (`EVENT_EFFECTS`,
-  `src/view/effects/effects.ts`) the compiler asks for, and which the
-  scene's spec (`EVERY_EVENT`) and the sounds' spec hear. A step rule acts on
-  the rock alone, seeing only the course it flies by (`CourseField`), since
-  the layout flies a copy of a rock ahead by it. What a trait leaves on a
-  rock between steps, such as a blast's fuse, is kept by the saved game
-  (`KEPT_OF_ROCK`, `src/rules/field/kept_field.ts`), with the check its
-  kept value must pass in `ROCK_CHECKS`, which the compiler asks for, and
-  its round trip must reach it.
+  rock (`addRock()`), as `chips` does, or hit the rocks round it through
+  `hitWithin()`, as `vents` does, whose last argument spares what it
+  names.
+- **An event a trait logs of its own is a case of `RockEventKind`**
+  (`src/rules/field/events.ts`). The compiler asks for its sound
+  (`EVENT_SOUNDS`, or a case of `soundOf()` for one heard as another's),
+  its effect (`EVENT_EFFECTS`, `src/view/effects/effects.ts`), and its row
+  in the scene's spec's `EVERY_EVENT`. The sounds' spec
+  (`src/view/effects/sounds.spec.ts`) lists its events by hand: add a
+  rock's to `rockEventsOf()` and any other to `EVENTS`. Nothing fails for
+  one left out, unless its sound is new.
+- **What a trait leaves on a rock between steps is kept by the saved
+  game,** such as a blast's fuse: its key in `KEPT_OF_ROCK`
+  (`src/rules/field/kept_field.ts`), the check its kept value must pass in
+  `ROCK_CHECKS`, which the compiler asks for, and its round trip in
+  `src/rules/field/kept_field.spec.ts`.
 
-## A Pickup or an Effect
+## A Pickup, an Effect or a Weapon
 
-- **A pickup:** an entry in `PICKUPS`: its name and sentence, written as
-  the `player-text` skill's catalog lines are, its weight in
-  the pool, the wave it joins from, and its effect. Then its symbol in
+- **A pickup is an entry in `PICKUPS`:** its name and sentence, written as
+  the `player-text` skill's catalog lines are, its weight in the pool, the
+  wave it joins from and its effect. The compiler asks for its symbol in
   `SYMBOLS` (`src/view/art/symbols.ts`) and its catch's sound in
-  `CATCH_SOUNDS` (`src/view/effects/sounds.ts`); its frame, and its tag in
-  the row at the field's bottom left while its effect lasts, are made from
-  it. The catalog spec holds every pickup to coming first at its `from`.
-- **An effect:** a case of `PickupEffect` (`src/rules/catalog/pickups.ts`)
-  and its rule in `EFFECT_RULES` (`src/rules/rocks/pickups.ts`), what it
-  does as it starts and as it ends, reaching only what of the field the
-  pickups act on (`PickupField`); its record in play is made from its
-  kind, its group's rim on its pickups' orbs in `ORB_RIMS`
-  (`src/view/art/things.ts`), and its sounds as a pickup caught starts it
-  and as its time runs out, or none, in `START_SOUNDS` and `END_SOUNDS`
-  (`src/view/effects/sounds.ts`). The saved game keeps no
-  effect in play, as it keeps no pickup or shot.
-- **A weapon:** an entry in `WEAPONS`: the shots a pull fires and the angle
-  between them, the time between pulls, how many may be in flight and how
-  many rocks a shot breaks; a `weapon` effect arms the ship with it for its
-  time. Its shot's sound goes in `SHOT_SOUNDS`
-  (`src/view/effects/sounds.ts`), each pull of fire the field logs naming
-  its weapon, and its shot's art, its body, middle, tail, halo and any
-  barbs, in `SHOTS` (`src/view/art/energy.ts`), which names its frame and
-  how far it reaches from the ids.
+  `CATCH_SOUNDS` (`src/view/effects/sounds.ts`). The catalog spec holds the
+  pickups to the order they join the pool in, and each to first coming at
+  its `from`.
+- **An effect is a case of `PickupEffect`**
+  (`src/rules/catalog/pickups.ts`) and its rule in `EFFECT_RULES`
+  (`src/rules/rocks/pickups.ts`): what it does as it starts and as it ends,
+  reaching only what of the field the pickups act on (`PickupField`). The
+  compiler asks for its group's rim on its pickups' orbs, in `ORB_RIMS`
+  (`src/view/art/things.ts`), and its sounds as it starts and as its time
+  runs out, or none, in `START_SOUNDS` and `END_SOUNDS`
+  (`src/view/effects/sounds.ts`). The saved game keeps no effect in play,
+  as it keeps no pickup or shot.
+- **A weapon is an entry in `WEAPONS`,** which a `weapon` effect arms the
+  ship with for its time. The compiler asks for its shot's sound in
+  `SHOT_SOUNDS` (`src/view/effects/sounds.ts`) and its shot's art in
+  `SHOTS` (`src/view/art/energy.ts`). The catalog spec asks for a pickup
+  that hands it to the ship.

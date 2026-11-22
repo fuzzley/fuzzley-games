@@ -1,426 +1,253 @@
 ---
 name: asteroid-breaker-testing
-description: How Asteroid Breaker runs and writes its specs — its Vitest setup with headless Phaser installed first, the coverage floor on its rules and view, fields drawn as pictures with fieldFrom, the autopilot that holds every wave and Endless's first thirty to being cleared, the saved game's specs, the scene run for real with runScene and a FakeShell, the shell's specs on its small waves through provideSpecWaves and tick, the contrast spec over every palette, the places held quiet by the quiet spec, and the layout check. Triggers on: asteroid breaker spec, asteroid breaker test, fieldFrom, KEEPER, placeRock, placeComet, placeStray, placeLoose, placeBurr, autopilot spec, playWave, ENDLESS_PLAYED, report:waves, FakeShell, startBoard, provideSpecWaves, SPEC_WAVE, SPEC_WAVES, playToClear, clearToNext, endRun, keptRun, clearingRun, CLEARING_RUN, storedRun, stored_run, runUnderWay, RunFrames, run_frames, withFrame, run_state, check:layout, REPORT_API, SCREENSHOT_API, script_api, readArgs, shownRun, quiet spec, places quiet, asteroid breaker coverage, frontend/games/asteroid-breaker tests.
+description: How to run and write Asteroid Breaker's specs — which Vitest project a spec runs in, the coverage floors, and what src/testing/ holds for the rules, the autopilot, the saved game, the scene and the shell. Triggers on: frontend/games/asteroid-breaker spec, fieldFrom, playWave, startBoard, FakeShell, provideSpecWaves, keptRun, report:waves, check:layout.
 ---
 
 # Testing Asteroid Breaker
 
-This skill covers how Asteroid Breaker runs its specs and what they share.
-The patterns every Angular workspace's specs follow (Testing Library by
-role, user-event, jest-dom, zoneless change detection, fake timers, what
-jsdom keeps and lacks) are the repository's `angular-testing` skill's, the
-headless Phaser harness is `phaser-core`'s, and the rules every spec
+How Asteroid Breaker's specs run, and what `src/testing/` holds for them.
+What every Angular workspace's specs share is the `angular-testing` skill's,
+the headless Phaser harness is `phaser-core`'s, and the rules every spec
 follows are in `.agents/AGENTS.md`, under "Writing Unit Tests". Paths are
 relative to `frontend/games/asteroid-breaker/`.
 
 ## Commands and Coverage
 
-Run these from `frontend/games/asteroid-breaker/`, or as
-`yarn workspace asteroid-breaker <script>` from `frontend/`.
+Run these from `frontend/games/asteroid-breaker/`.
 
-- **Run Tests**: `yarn test` (the whole suite once, without coverage),
-  `yarn test:coverage` (the `dom` and `pure` projects with coverage, then
-  the `sim` project without) or
-  `yarn test:watch`. `yarn vitest run --project <project> <path>` runs one
-  spec without coverage, starting its project alone: `pure` for the rules,
-  the view, `src/testing/` and `tools/`, `dom` for the scene and the
-  shell, and `sim` for the simulations. Without
-  `--project`, Vitest starts all three, Analog's plugin among them, and a
-  spec of the rules takes three times as long. The whole suite takes
-  minutes, most of them the autopilot playing every wave at every speed on
-  three fields.
-- **Coverage Floor**: `vitest.config.ts` holds `src/rules/` and `src/view/`
-  to 100% of statements, functions and lines and 95% of branches, and
-  `src/scene/` and `src/app/` a little under what their specs reach (the
-  scene 98% of statements, 92% of branches, 100% of functions and 99% of
-  lines; the shell 98, 97, 97 and 98), raised as they rise, so a part
-  without specs fails the run. `yarn test:coverage`, which CI runs, fails below any
-  of them. `src/testing/` and the scripts under `tools/` are measured with
-  no floor, so what of them goes untested shows; what the scripts load
-  through Vite escapes it, so `src/testing/report_api.spec.ts` and
-  `src/testing/screenshot_api.spec.ts` measure their entries. Coverage
-  measures the `dom` and `pure` projects together, not `sim`, so what only
-  the simulations reach, `every_wave.ts` and most of `every_layout.ts`
-  among it, counts as untested.
-- **Check the Layout**: `yarn build`, then `yarn check:layout`
-  (`tools/check-layout.mjs`), which opens the build in a headless Chrome at
-  `@fz/dev/layout`'s shapes and turns, with the deck shown, and holds the
-  field to its shape, its short side of 40 units and the room it fills
-  (`data-room`), the deck's zones off it and the bar, and the sector's
-  card off the ship waiting in the field's middle; then opens each shape
-  over a run kept to clear as soon as it goes on (`clearingRun()`, on
-  `CLEARING_RUN`, the last written wave, in `tools/stored_run.mjs`), which
-  each page goes on with by Resume, and holds the Cleared card, its trophy
-  over it, to the field.
-
-## Setup
-
-- `vitest.config.ts` is `@fz/dev/vitest`'s `angularTests()`, given the
-  floors, what coverage measures and leaves out (`src/main.ts` and the
-  setup) and the folders of its three Vitest projects, each a config of its
-  own, so each starts only what its specs need:
-  - `pure`, the specs of the rules, the view, `src/testing/` and the
-    scripts under `tools/`, in Node, but for the simulations;
-  - `sim`, the specs that play every wave or lay every wave out, in Node
-    too, without coverage;
-  - `dom`, every other spec, the scene's and the shell's, in jsdom after
-    the setup below, with Analog's plugin. It takes whatever the other two
-    don't, so a spec in a new folder under `src/` runs in jsdom rather than
-    in neither.
-- A spec sits beside the file it tests, named after it, and its folder
-  sets its project, so a spec of `src/testing/` runs in Node.
-  `belt_board.ts`, the one helper there that runs the scene, has no spec:
-  what it reads a scene with is `@fz/phaser/testing`'s, specced there; nor
-  does `pilots.ts`, which reads a page: the pilot's own spec, in `dom`,
-  holds `poseIn()` to reading back each face and each lift `<app-pilot>`
-  draws. One of the rules, the view or `src/testing/` has no page, so what
-  needs one is the scene's or the shell's to test.
-- `dom` leaves the code of `pure`'s folders to Vite's oxc rather than to
-  Analog's plugin, as `frontend/lib/dev/src/vitest.ts` says: coverage adds a
-  file's two runs up only where both compiled it alike, and compiled two
-  ways, each of its functions would count twice, untested in the project
-  that never calls it, and the rules would fall below their floor. So lint
-  lets `src/testing/` take Angular by type alone.
-- A helper whose answer a spec trusts has a spec of its own beside it, so
-  one that answered wrongly can't let a spec pass that tests nothing:
-  `art_frames.ts`'s `within()`, `distanceToEdge()` and `edgeOf()`,
-  `crossings.ts`'s `entryOf()` and `entriesOf()`, `every_layout.ts`'s
-  `nearness()`, `canvases.ts`'s `boardOf()`, against the bar's and the
-  rail's sizes compiled from the app's stylesheets, `numbers.ts`'s
-  `stepsBetween()` and `field_picture.ts`'s `fieldFrom()` and what it
-  refuses. `@fz/phaser/testing`'s readers, `strokesOf()` among them, are
-  held by the library's specs, against what Phaser really drew, and
-  `pilots.ts`' `poseIn()` by the pilot's, against what `<app-pilot>` drew.
-- `src/test-setup.ts` calls `@fz/phaser/testing`'s
-  `installHeadlessPhaser()` before anything imports Phaser, starts Angular's
-  TestBed, loads jest-dom's matchers, polyfills `<dialog>`, gives the page
-  `document.fonts`, which jsdom lacks and the board waits on, its faces
-  there at once, which a spec makes arrive late by holding back `load()`
-  and answering `check()`, and gives each test's app a store of its own in
-  memory (`provideMemoryStorage()`).
+- **Run one spec with `yarn vitest run --project <project> <path>`.** A
+  spec sits beside the file it tests, and its folder sets its project:
+  - `pure`, in Node: `src/rules/`, `src/view/`, `src/testing/` and `tools/`;
+  - `sim`, in Node: the folders that play or lay out every wave,
+    `src/rules/waves/every_wave/`, `src/rules/waves/every_endless_wave/`
+    and `src/rules/field/every_layout/`;
+  - `dom`, in jsdom: every other spec under `src/`, the scene's and the
+    shell's.
+- **What needs a page is the scene's or the shell's to test.** A spec of
+  the rules, the view or `src/testing/` runs in Node, with no DOM, TestBed
+  or Phaser game.
+- **`yarn test` runs the whole suite, which takes minutes,** most of them
+  the autopilot's. `yarn test:coverage`, which CI runs, measures `dom` and
+  `pure`, then runs `sim` without coverage.
+- **The floors are in `vitest.config.ts`.** `src/rules/` and `src/view/`
+  are held to 100% of statements, functions and lines and 95% of branches,
+  `src/scene/` and `src/app/` a little under what their specs reach.
+- **What only the simulations reach counts as untested,** since coverage
+  leaves `sim` out. A branch of the rules needs a spec of its own in
+  `pure`, however often the autopilot flies through it.
+- **A helper in `src/testing/` whose answer a spec trusts has a spec of
+  its own beside it,** as `src/testing/field_picture.spec.ts` is, so one
+  that answered wrongly can't let a spec pass that tests nothing. One held
+  by the spec of what it reads needs none: `src/testing/pilots.ts`'s
+  `poseIn()` by the pilot's, `src/testing/belt_board.ts`'s readers by the
+  scene's.
+- **Check the layout with `yarn build`, then `yarn check:layout`.** The
+  header of `tools/check-layout.mjs` lists what it holds.
 
 ## The Rules
 
-- Draw a field rather than play to it: `fieldFrom(rows, options)`
-  (`src/testing/field_picture.ts`) lays a field out from a picture, a row
-  of characters for each 4 units down (`CELL`), each a cell that many units
-  across: `B` a boulder, `L`, `M` and `S` a large, a medium and a small
-  rock of the options' kind, each still in its cell's middle, `^` the ship,
-  its nose up, its crew's line in tow laid straight out behind it, and `.`
-  or a space nothing. The field is 72 by 40 unless the options give its
-  `torus`; they set what a picture can't show: the seed, the pace, the
-  kind, the chance of a pickup and the pool, the strays, the comets and the
-  burrs, and the crew, a run's first unless given. `KEEPER` is a picture of one large
-  rock, so a wave doesn't clear while a spec plays on. A picture's rocks
-  are its wave's last few once no more than its shape's are whole, and lean
-  toward the ship only once its wave has held more (`hadMore`), so a
-  picture of a few rocks flies them as laid however long a spec plays.
-- `placeRock()`, `placePickup()`, `catchOn()`, `placeSpark()`,
-  `placeStray()`, `placeLoose()`, `placeComet()` and `placeBurr()` put more
-  on a field, `placeLoose()` leaving the crew as it is, `placeBurr()` a burr
-  that wraps unless told it is still coming in, and `placeShot()` a shot
-  that breaks as many as its weapon's; `stepTimes(field, n)` steps it;
-  `shipOf()`, `wholeRocks()`, `floatingPickups()`, `loggedOn()` and
-  `kindsLoggedOn()` read it back, and `speedOf()` how fast a rock, the
-  ship, a shot or a pickup on it flies. A blast, or a set piece's vent,
-  passes by a rock laid on the step it goes off (`hitWithin()`), so a spec
-  that places a rock for one to hit steps the field once first.
-- A stray, a comet or a burr comes in off an edge as `comeIn()`
-  (`src/rules/hazards/crossing.ts`) puts it, and
-  `src/testing/crossings.ts` reads where it waits (`entryOf()`) and holds a
-  run of them, over many seeds, to every edge, their margin and their tilt
-  (`entriesOf()`).
-- A field changes in place, from records made once, so a spec asserts on
-  the records after the steps, and on the events the field logged.
-- The rules and the view know no framework, so their specs call the
-  functions directly and assert on what they return.
-- A spec of the records, in the rules or the shell, gives what a change in
-  a run brings to them with `src/testing/records.ts`'s `runRecords()`,
-  nothing but what it names.
-- A spec that holds a table of the rules to rising or falling, the rocks'
-  sizes and speeds and static's steps in `src/rules/tuning.spec.ts` or
-  each kind's points in `src/rules/catalog/catalog.spec.ts`, takes how
-  much each number differs from the one before from
-  `src/testing/numbers.ts`'s `stepsBetween()`, and asserts none goes the
-  wrong way.
+- **Draw a field rather than play to it.** `fieldFrom(rows, options)`
+  (`src/testing/field_picture.ts`) lays one out from a picture. Its doc
+  comment gives the characters, and `PictureOptions` what a picture can't
+  show. `KEEPER` is a picture of one large rock, which keeps a wave from
+  clearing while a spec plays on.
+- **Put more on it with the same file's helpers:** `placeRock()`,
+  `placeShot()`, `placePickup()`, `catchOn()`, `placeSpark()`,
+  `placeStray()`, `placeLoose()`, `placeComet()` and `placeBurr()`.
+  `stepTimes(field, n)` steps it. `shipOf()`, `wholeRocks()`,
+  `floatingPickups()`, `loggedOn()`, `kindsLoggedOn()` and `speedOf()` read
+  it back.
+- **Assert on the field's records and the events it logged,** after the
+  steps. A field changes in place, from records made once.
+- **Step the field once before a blast is to hit a rock a spec placed.** A
+  blast, or a set piece's vent, passes by a rock laid on the step it goes
+  off (`hitWithin()`).
+- **A stray, a comet or a burr coming in off an edge is read with
+  `src/testing/crossings.ts`:** `entryOf()` says where one waits, and
+  `entriesOf()` holds a run of them, over many seeds, to every edge, their
+  margin and their tilt.
+- **What a change in a run brings to the records is `runRecords()`**
+  (`src/testing/records.ts`), nothing but what the spec names.
+- **A table held to rising or falling takes its differences from
+  `stepsBetween()`** (`src/testing/numbers.ts`), as
+  `src/rules/tuning.spec.ts` does.
 
 ## The Waves and the Autopilot
 
-- `src/rules/waves/waves.spec.ts` holds every wave to parsing, ids and names
-  of its own, and every sector to its ten; `src/rules/catalog/catalog.spec.ts`
-  holds the catalogs to their rules, and the waves to laying every rock kind
-  and letting every pickup first come at the wave its `from` names.
-- `src/rules/field/every_layout/` lays every wave out, in every formation, on
-  the narrowest and the widest fields, either way up, and holds each rock to
-  starting far enough from the ship on a course that keeps clear of it: a
-  file for each speed, each passing its own file to
-  `src/testing/every_layout.ts`'s `holdEveryLayout()`, which lays out the
-  speed the file is named for, so Vitest lays the speeds out side by side.
-  `src/rules/field/spawn.spec.ts` holds the rest of `layOut()`, and that the
-  folder keeps a file for every speed.
-- `src/rules/waves/endless.spec.ts` holds Endless's waves 31 to 60, over many
-  seeds, and some past them, to their budget, their share of iron, their
-  crystal and the cap, to the climb, and to being the same for the same
-  seed.
-- `src/rules/waves/every_wave/` has `src/testing/autopilot.ts` play every
-  wave at every speed (`playWave()`, from the wave's number as the seed) on
-  the narrowest field and the widest, on its side and upright (`FIELDS`:
-  `NARROWEST`, `WIDEST`, `TALLEST`), and holds each to being cleared within
-  four minutes of game time (`AUTOPILOT_LIMIT`), meeting a comet, a stray
-  and a burr where the wave sends them, its tally adding up to its score;
-  and
-  `src/rules/waves/every_endless_wave/` Endless's 31 to 60
-  (`ENDLESS_PLAYED`) the same, with nothing able to take the ship. Each
-  keeps a file for each speed, passing its own file (`import.meta.filename`)
-  to `src/testing/every_wave.ts`'s `holdEveryWave()` or
-  `holdEveryEndlessWave()`, which play the speed the file is named for,
-  since Vitest plays a file's specs one after another but the files side by
-  side.
-- `src/rules/waves/autopilot.spec.ts` holds the autopilot itself, and those
-  folders to a file for every speed: a spec of a frame of the autopilot's
-  draws a field and reads the steering `pilot()` gives it.
-- `yarn report:waves` plays the same games, `--seeds <n>` many more,
-  `--field wide` or `--field tall` on the larger fields, and `--endless`
-  Endless's, for tuning (the `asteroid-breaker-content` skill says what to
-  read in it). It loads them
-  through `src/testing/report_api.ts`'s `REPORT_API`, typed by
-  `src/testing/script_api.ts`, which imports nothing, so the script is
-  checked against it and a name changed in the autopilot fails to compile
-  there; `src/testing/report_api.spec.ts` holds `REPORT_API` to the waves,
-  the fields and the plays the autopilot's spec has.
-  `tools/report-waves.spec.ts` holds its command line, the lines it prints
-  and the code it exits with (`run()`, handed a small API of its own and
-  where to print), and that it loads the autopilot's `playWave()` through
-  Vite. Its command line and the screenshots' script's are read the same
-  way, by `@fz/dev/script`'s `readArgs()`, and its table is laid out by
-  `@fz/dev/report`'s `printReport()`, whose own specs, in `frontend/lib/dev`,
-  hold the layout and the readers every report shares.
-  `tools/build-sounds.spec.ts` holds the sprite in `src/scene/sounds/` to
-  the recipes, by name, loop and place, from the lengths recorded beside
-  its map, the view's mix (`SOUNDS`) to them, by name, family, level and
-  takes, the view's ladder to the kit's `CHAIN_CENTS`, and the sound lab's
-  words (`tools/sound-lab/plays.ts`) to the recipes' `plays`; renders every
-  take of every sound but the beds to the bytes of the uplift's kit's WAVs
-  of them (`KIT_SOUNDS`) and to its recorded length, the beds, about 24 s
-  to render, left out, and five short takes to their levels under the
-  ceiling, with nothing to warn of; and runs the build whole (`run()`) on
-  families of its own, into temporary folders, with a fake encoder or
-  none.
+- **Three folders of simulations hold every wave,** in `sim`:
+  - `src/rules/waves/every_wave/` has the autopilot play every wave at
+    every speed on three fields (`FIELDS` in `src/testing/autopilot.ts`),
+    each cleared within four minutes of game time (`AUTOPILOT_LIMIT`),
+    meeting the comet, the stray and the burr it sends, its tally adding
+    up to its score;
+  - `src/rules/waves/every_endless_wave/` plays Endless's waves 31 to 60
+    (`ENDLESS_PLAYED`) the same, with nothing able to take the ship;
+  - `src/rules/field/every_layout/` lays every wave out, in every
+    formation, on the same fields, each rock far enough from the ship on a
+    course that keeps clear of it.
+- **Each folder keeps a file for each speed, which only calls its
+  holder** with its own file (`holdEveryWave(import.meta.filename)`), so
+  Vitest runs the speeds side by side. A check on every wave goes in the
+  holder: `src/testing/every_wave.ts` or `src/testing/every_layout.ts`.
+  `src/rules/waves/autopilot.spec.ts` and `src/rules/field/spawn.spec.ts`
+  hold each folder to a file for every speed.
+- **Play a wave in a spec of your own with `playWave()`,** given its entry
+  and a speed, from its number as the seed unless given another.
+  `playField()` plays a field the spec made, to `untilStep` if given. Both
+  return an `AutopilotReport`.
+- **The autopilot's own spec is `src/rules/waves/autopilot.spec.ts`.** A
+  spec of one frame of it draws a field and reads the steering `pilot()`
+  gives it.
+- **`yarn report:waves` plays the same games, for tuning:** `--seeds <n>`
+  many more, `--field wide` or `--field tall` on the larger fields, and
+  `--endless` Endless's. The `asteroid-breaker-content` skill says what to
+  read in it.
+- **A script under `tools/` takes the game's code through one entry,**
+  loaded through Vite: `REPORT_API` (`src/testing/report_api.ts`) or
+  `SCREENSHOT_API` (`src/testing/screenshot_api.ts`), each typed by
+  `src/testing/script_api.ts`, which imports nothing. What a script newly
+  needs is added to the type there, then to the entry, then to the entry's
+  spec (`src/testing/report_api.spec.ts` or
+  `src/testing/screenshot_api.spec.ts`): coverage doesn't see what a
+  script loads through Vite, so nothing fails for a field left untested.
+- **A script's spec sits beside it,** in `pure`, and calls the script's
+  `run()` with a command line and where to print, as
+  `tools/report-waves.spec.ts` does. `tools/build-sounds.spec.ts` holds the
+  sprite in `src/scene/sounds/` and the view's mix (`SOUNDS`) to the
+  recipes in `tools/sounds/`.
 
 ## The Saved Game
 
-- `src/rules/run/saved_game.spec.ts` keeps a run (`saveGame()`) and takes
-  it up (`restoreGame()`, `readRun()`) with its field (`takeUpField()`),
-  Endless's among them, its wave made again from the run's seed, and
-  `src/rules/field/kept_field.spec.ts` keeps its field (`savedField()`),
-  reads it back (`readField()`) and lays it out again
-  (`layOutKeptField()`). Both start from
-  `src/testing/run_under_way.ts`'s run under way and its field, played a
-  second (`runUnderWay()`, `playedField()`).
-- A spoiled entry is a stored game read back from JSON with one thing
-  changed (`Spoil`). Each is written once, in a table named for the check
-  it spoils (`KNOWN_WAVE_SPOILS`, `CREW_SPOILS`, `STATE_SPOILS` and the
-  rest), which that check's own spec holds to failing it, so a spoil can't
-  pass by failing another, and the reader's spec holds to being refused.
-- `src/app/play/saved_game.service.spec.ts` keeps a run through the
-  service and takes it up after a reload (`reload()`, a new TestBed), as a
-  page loaded again would.
-- `keptRun()` (`src/testing/kept_run.ts`) keeps a run begun at a wave, on
-  a field of a shape, played by the autopilot until the wave's first stray
-  is as near as it names (`playField()`'s `untilStep`), which the
-  screenshots take up (`tools/capture-screenshots.mjs`), loading it through
-  `src/testing/screenshot_api.ts`'s `SCREENSHOT_API`, with the version the
-  run is kept under (`SAVED_GAME_VERSION`), which
-  `src/testing/screenshot_api.spec.ts` holds to the rules'. Beside it,
-  `clearingRun()` keeps a run whose wave clears as soon as it goes on,
-  nothing steered: its rocks gone but a volatile one, broken, its fuse
-  lit; the layout check takes it up for the Cleared card, and its spec
-  steps the field it is taken up to through the fuse to the clearing.
-  Both scripts load the API, and store a run as the game stores one,
-  through `tools/stored_run.mjs` (`loadScreenshotApi()`, `storedRun()`),
-  whose spec loads the API through Vite and holds the layout check's run
-  (`CLEARING_RUN`) to the last written wave, taken up paused with its
-  field, and to clearing it as its fuse burns down.
-  `tools/capture-screenshots.spec.ts` keeps the script's run (`RUN`) so,
-  stamped with that version and taken up by the rules (`shownRun()`), and
-  holds its command line, `--url` among it, and the code it exits with for
-  one that captures nothing (`run()`); the thumbnail's region, and the rest
-  of what `runScreenshotScript()` does for every game, are held by
-  `@fz/dev/screenshots`' own specs, in `frontend/lib/dev`.
+- **Both specs start from `src/testing/run_under_way.ts`:** `runUnderWay()`
+  is a run on its third wave, and `playedField()` its field, played a
+  second. `src/rules/run/saved_game.spec.ts` keeps a run and takes it up,
+  and `src/rules/field/kept_field.spec.ts` its field.
+- **A spoiled entry is written once, in the table named for the check it
+  spoils** (`KNOWN_WAVE_SPOILS`, `CREW_SPOILS`, `STATE_SPOILS` and the
+  rest, each row a `Spoil`). That check's own spec holds each row to
+  failing it, so a spoil can't pass by failing another check, and the
+  reader's spec holds each to being refused.
+- **`src/app/play/saved_game.service.spec.ts` takes a run up after
+  `reload()`,** a new TestBed, as a page loaded again would.
+- **The scripts take up runs the rules keep,** so they store a run in
+  whatever shape the rules save. `keptRun()` and `clearingRun()`
+  (`src/testing/kept_run.ts`) reach them through `SCREENSHOT_API`, and
+  `tools/stored_run.mjs` stores each under the rules' `SAVED_GAME_VERSION`.
+  `keptRun()` is the screenshots' (`tools/capture-screenshots.mjs`), played
+  by the autopilot until its wave's first stray is near. `clearingRun()`
+  is the layout check's (`CLEARING_RUN`, the last written wave), and clears
+  its wave as soon as it goes on. `tools/capture-screenshots.spec.ts` and
+  `tools/stored_run.spec.ts` hold both.
 
 ## The View
 
-- `src/view/run_frames.spec.ts` plays a run's frames as the shell does,
-  over fields drawn with `fieldFrom()` and waves of its own, and asserts on
-  what each frame changed, its buzz, the time it counts toward the
-  Cleared card's sum and the face and the lift of the pilot at the
-  controls among it, and what it said. It takes
-  nothing from `src/testing/play.ts`, which imports the shell's tokens, so
-  it runs without Angular, as every spec of the view does.
-  `src/view/run_state.spec.ts` folds a frame's change, written by hand, into
-  what is a run's own (`withFrame()`), and holds which frames fly a run on
-  tuned numbers and how far the Cleared card's sum counts up;
-  `src/view/tally.spec.ts` holds the sum as it shows at a time, line by
-  line.
-- `src/testing/art_frames.ts` draws the field's atlas in one palette
-  (`ART_PALETTE`) at one scale (`ART_SCALE`), as `ART_FRAMES`, and
-  `src/view/art/rock_art.spec.ts` the rocks' in the same, each in its inks
-  and as its normal map (`rockFrames()`), so the art's specs check the
-  commands a frame is drawn with, finding the frame by its name and its
-  commands by their kind and color with `@fz/phaser/testing/pure`'s
-  `frameNamed()` and `drawnIn()`; at every scale a field is drawn at
-  (`ART_SCALES`), they hold what each piece that wraps draws within the
-  reach the scene draws its copies by (`reachOf()`).
-- `src/view/colors/contrast.spec.ts` checks every palette in `@fz/style`'s
-  `THEMES`: it reads each palette's roles from the global stylesheet, by
-  the names the board reads them by (`PALETTES.rolesIn()`, from
-  `src/testing/roles.ts`), builds the field's palette from them, and holds
-  every rock, the pod, the shots, the pickups, the comet, a burr's ink,
-  the strays and the pilots to 3:1 against what they are drawn on, each
-  rock, the pod's hull and the comet's head at its darkest and brightest
-  faces too, under the palette's light (`faceExtremes()`), each pilot
-  against the pod's glass and its shade too (`podTones()`), the marks and
-  outlines against what they cross, and the deck's symbols at rest
-  against its buttons and its knob against the stick's base.
-- `src/view/places/quiet.spec.ts` holds each place quiet by the plan's
-  measure, in every palette of `THEMES`, on a wide field and a tall one: it
-  paints the place's wash, its landmark at rest and its vignette, without
-  its stars and hair lines, a pixel at a time over the field, at 4 device
-  pixels a unit, as the kit's sheet measures it, and holds the most any
-  pixel stands out from the field above 1.1 to 1, so a place that painted
-  nothing fails, and to 1.3 at most; its own specs hold the painting first.
+- **A spec of the view runs without Angular.** It takes nothing from
+  `src/testing/play.ts`, which imports the shell's tokens.
+  `src/view/run_frames.spec.ts` plays a run's frames as the shell does,
+  over fields drawn with `fieldFrom()` and waves of its own.
+- **An art spec checks the commands a frame is drawn with.**
+  `src/testing/art_frames.ts` draws the field's atlas once (`ART_FRAMES`,
+  in `ART_PALETTE` at `ART_SCALE`). Find a frame by its name with
+  `@fz/phaser/testing/pure`'s `frameNamed()`, and its commands by their
+  kind and color with `drawnIn()`. A piece that wraps is held, at every
+  scale in `ART_SCALES`, to drawing within the reach the scene draws its
+  copies by (`reachOf()`).
+- **`src/view/colors/contrast.spec.ts` holds each color to 3:1 against
+  what it is drawn on, in every palette of `THEMES`.** It reads each
+  palette's roles from the global stylesheet (`PALETTES`, in
+  `src/testing/roles.ts`). It takes every rock kind's ink from the
+  palette, and checks what is lit, as a rock is, at its darkest and
+  brightest faces too (`faceExtremes()`). Any other new color joins it by
+  hand.
+- **`src/view/places/quiet.spec.ts` holds every place in `PLACE_IDS`
+  quiet,** in every palette, on a wide field and a tall one: nothing large
+  in it stands out from the field by more than 1.3 to 1, and its landmark
+  does by more than 1.1, so a place that painted none fails.
 
 ## The Scene
 
-`src/scene/belt_scene.spec.ts`, `src/scene/flourishes.spec.ts`,
-`src/scene/flourish_player.spec.ts` and a painter's own beside it, such as
-`src/scene/painters/halo_painter.spec.ts` or
-`src/scene/painters/tow_painter.spec.ts`, run the real scene in a headless
-Phaser game through `runScene()`:
-
-- `FakeShell` (`src/testing/belt_board.ts`) plays the shell's part of
-  `BeltSceneOptions`: it hands the scene a frame, a palette, the motion,
-  sound and board settings, whether the ship thrusts and a lodestone is on
-  the field (`thrusts`, `lodestoneOn`), the multiplier (`times`), the place
-  the wave after is played in (`nextPlace`) and the points' font
-  (`typeface`, in `SHELL_FONT`, which a spec replaces as the page would on
-  loading a face late), and keeps the frames' times and steering, the
-  layouts the scene hands it (`FieldLayout`), the commands and what the
-  scene hands back at each bake to picture How to play's art with (`bakes`),
-  which `askPictures()` asks as the board does; `withShip`, `stillness`,
-  `stepping` and `reshaping`, which shapes the field to each room the scene
-  lays it out in, as the game does a paused one, set it up.
-- `startBoard()` runs the scene for a fake shell through
-  `@fz/phaser/testing`'s `runKeyedScene()` and draws the first frame; the
-  game is destroyed and the board's element removed as the test finishes.
-  A spec that calls `runScene()` itself cleans up after itself.
-- Drive it with the run's `advance(ms)`, keys and the pointer, and change
-  the shell's frame as the rules would; assert on the game objects
-  (`@fz/phaser/testing`'s `imagesIn()`, `strokesOf()` and `commandsOf()`,
-  and `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `shardTints()`, the
-  triangles and the lines a `Graphics` draws, `trianglesOf()` and
-  `linesOf()`, as a break's are, the rounds it fills, each the triangles
-  after a fill style of its own, `roundsOf()`, and the rings among them,
-  `bandsOf()`, as the ring painter's are, these two held through the
-  scene's specs, the field camera's `scrolledBy()`), the
-  lights the rocks are lit by (the scene's `lights`, a held hit's flash
-  among them), the sounds (`humsIn()` after `@fz/phaser/testing`'s
-  `cacheSounds()`, given the scene's `SOUNDS_KEY`, or a spy on
-  `SpritePlayer`'s `play()`, which the sprite, not loaded headless, leaves
-  the only witness of what plays, as a spy on `LayerPlayer`'s `hold()` and
-  `fetch()` is of the beds; the scene's spec logs every kind of event, a
-  record over `FieldEventKind` the compiler holds whole, and holds the
-  sounds each plays) or on what the shell kept. A headless game draws no
-  pixels and plays no sound.
-- A thing drawn through `Copies` lies in its layer only while it shows, so
-  `imagesIn()` and `layersOf()` find only the copies that show, and a
-  hidden copy keeps the frame, tint, turn, scale and opacity it last
-  showed with until it shows again. A layer draws its children by their
-  depths (`keepJoinOrder()`), so a spec holding things that hide to an
-  order reads their depths, as the burrs' under the comets does. A spec
-  that counts
-  every game object the scene holds, as those holding a frame of play to
-  making none do, counts with `objectsHeldBy()`, which adds those hidden
-  out of their layers (the scene's `layeredObjects`).
-- `flourish_player.spec.ts` steps no frame: it plays each flourish through
-  a `FlourishPlayer` of its own, on the running scene's painters, then has
-  the painter draw from a `PaintContext` it writes, at a time of its own.
+- **Start the real scene with `startBoard(setUp, canvas)`**
+  (`src/testing/belt_board.ts`). It runs the scene headless for a
+  `FakeShell`, through `@fz/phaser/testing`'s `runKeyedScene()`, draws the
+  first frame, and destroys the game as the test finishes. It returns the
+  shell, the run, the scene and the element its keys listen on. A spec
+  that calls `runScene()` itself destroys its run, as
+  `src/app/board/board.component.spec.ts` does.
+- **`FakeShell` plays the shell's part.** Change its fields as the rules
+  or the settings would (`field`, `colors`, `welcomesMotion`, `switches`,
+  `thrusts`, `lodestoneOn`, `times`, `setting`, `typeface`), and read what
+  it kept: `ticks`, `layouts`, `commands` and `bakes`. `withShip`,
+  `stillness`, `stepping` and `reshaping` set one up, handed to
+  `startBoard()`.
+- **Drive it with the run's `advance(ms)`, keys and the pointer, and
+  assert on the game objects.** `@fz/phaser/testing` reads them with
+  `imagesIn()`, `commandsOf()` and `strokesOf()`. `belt_board.ts` adds
+  `metricsOf()`, `zoomOf()`, `pointsZoomOf()`, `scrolledBy()` and
+  `shardTints()`, and reads what a `Graphics` draws as `trianglesOf()`,
+  `linesOf()`, `roundsOf()` and `bandsOf()`. The lights the rocks are lit
+  by are the scene's `lights`.
+- **A spy is the only witness of a sound.** The sprite isn't loaded
+  headless, so a spec spies on `SpritePlayer`'s `play()`, and on
+  `LayerPlayer`'s `hold()` and `fetch()` for the beds, both
+  `@fz/phaser/sound`'s. `humsIn()` counts the hums a scene holds, after
+  `@fz/phaser/testing`'s `cacheSounds()`, given the scene's `SOUNDS_KEY`.
+- **A thing drawn through `Copies` lies in its layer only while it
+  shows.** So `imagesIn()` and `layersOf()` find only the copies that
+  show, and a hidden copy keeps the frame, tint, turn, scale and opacity it
+  last showed with. A spec that counts every game object the scene holds
+  counts with `objectsHeldBy()`, which adds those hidden out of their
+  layers. A layer draws its children by their depths (`keepJoinOrder()`,
+  in `src/scene/layer_order.ts`), so a spec of the order of things that
+  hide reads their depths.
+- **`src/scene/flourish_player.spec.ts` steps no frame.** It plays each
+  flourish through a `FlourishPlayer` of its own, on the running scene's
+  painters, then has the painter draw from a `PaintContext` it writes, at a
+  time of its own.
 
 ## The Shell
 
-- A component that shows the board runs it on
-  `provideFakePhaserCanvas()`, which loads no Phaser. The board's spec also
-  runs the scene the board hands its canvas for real, through
-  `runShownScene()`.
-  The cards over the field are `<app-board-card>`, whose spec renders it
-  alone, with no canvas, given what the board tells it (how the ship flies);
-  the board's spec holds only that it tells it so, that it gives way to the
-  canvas's own, which the board hands it (`@fz/phaser/canvas`'s
-  `<fz-canvas-cards>`, whose words, region and Reload the library's spec
-  holds), that the board takes back the focus as the player goes on from a
-  card, and, with the real scene, that one key goes on from the Cleared card
-  and starts the next wave. A spec that fails the scene on purpose has the
-  app's `ErrorHandler` collect what the canvas hands it, as the board's does
-  (`@fz/phaser/testing`'s `collectErrors()`), and asserts on that, so the
-  run prints no error it expects.
-- What a frame of play comes to is `RunFrames`'s, and how it folds into
-  what is a run's own `withFrame()`'s, which the view's specs hold; the
-  shell's spec holds `GameService` to taking it into its signals, the
-  records, the live region and the phone's buzz, to the flow between waves
-  (one press going on, the sector's card until the first move, the sum
-  counting up), and to beginning each run with none of the last one's
-  (`ownOf()`, which a field added to `RunState` joins, as it joins
-  `BEGUN_OWN`); `HapticsService`'s holds the buzz to where the settings
-  say to. Both stand a buzzer in for `navigator.vibrate()`, which jsdom
-  lacks.
-- `GameService` plays the small waves of `src/testing/play.ts`, handed to
-  it with a seed of its own (`provideSpecWaves()`): `SPEC_WAVES`, by their
-  numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which Endless
-  begins at wave 4; or `STRAY_WAVES`, `ONE_STRAY_WAVES` and
-  `SECTOR_WAVES`, each set up for one thing. It runs on the time it is
-  given: `game.tick(FRAME_MS, steer)`, steered `STILL`, by `shoot()`,
-  `ram()`, `toStray()` or `toSpark()`; `playUntil()`, `playFor()`,
-  `knockOneLoose()`, `endRun()`, `bringStraysHome()`, `gatherSparks()`
-  (a break's sparks gathered, for a tally that counts them),
-  `playToClear()` and
-  `clearToNext()` play on to a point, `takeUpCharged()` takes the run in
-  play up again with the pilot's static at a level, as a run kept with it
-  comes back, and `pauseIn()`,
-  `clearIn()` and `endIn()` until the Paused, Cleared or Ended card shows;
-  `pressOn()` goes on from the Cleared card as a flight key does,
-  `command("go")` and then a frame holding it, which starts the next wave,
-  or, into a sector's first, leaves it waiting under the sector's card.
-  `clearToNext()` goes on by Next wave, `nextWave()`, which holds no press,
-  as a run begun by `newGame()` holds none; one a key starts, by
-  `command("go")` once an ended run's result is put away and a flush,
-  waits under its card until a fresh move.
-  jsdom welcomes no motion, so the Cleared card's sum shows whole at once
-  (`tallyMs()` is `TALLY_COUNT_MS`); a spec of it counting up installs the
-  fake viewport. `SECTOR_WAVES` has a run go on into a sector, its card
-  over the wave; the specs' sectors have no words of what is new there, so
-  a spec of them hands the card the game's own `WAVES`.
-  `FRAME_MS`, `playUntil()` and `playFor()` are `@fz/core/testing`'s.
-  `ROOMY` is how the board lays the field out on a roomy screen with no
-  touch, and `SPACE` the key as a browser sends it, made by
-  `@fz/phaser/testing`'s `browserKey()`. A run under way
-  asks before it is thrown away, which a spec answers through
-  `ConfirmService`'s `accept()` or `cancel()`.
-- The pilots are pictures, hidden from a screen reader, so no role finds
-  them: `src/testing/pilots.ts` reads the colors of those an element draws
-  (`pilotsIn()`, against `inkOf()`) and the face and the lift of the first
-  (`poseIn()`), matching its fuzzball's marks against what
-  `@fz/style/fuzzball`'s `fuzzballDrawing()` draws for each face and each
-  lift of its fur, 0 to `MOST_LIFT`; it also reads each one's color and face
-  (`posesIn()`), and which is ringed as the pilot at the controls, by its
-  `data-at-controls` (`ringedIn()`). The bar's spec finds
-  the face cam in the Crew figure's term (the `dt`), reads static's pips by
-  their `data-lit`, and brings static to each multiplier, ×4 among them, by
-  `takeUpCharged()` and a frame of the run it takes up, which shows the
-  pilot's fur.
-- jsdom has no `matchMedia`, so motion isn't welcome and the board is no
-  touch screen. A spec of the waits, or of a finger, installs
-  `@fz/game-ui/testing`'s fake viewport, which takes itself off after.
-- The app's spec renders the app as `main.ts` starts it on fake timers
-  (`setTimeout` and `clearTimeout` alone), and moves them on by
-  `@fz/ui/announcer`'s `ARRIVAL_MS` for the live region to speak, rather
-  than racing a real wait.
+- **A component that shows the board runs it on
+  `provideFakePhaserCanvas()`,** as `phaser-core` says. The board's spec
+  also runs the scene its canvas was shown, through `runShownScene()`. A
+  card over the field is `<app-board-card>`, whose spec renders it alone,
+  with no canvas (`src/app/board/board_card.component.spec.ts`).
+- **`GameService` plays small waves, on the time a spec gives it.**
+  `provideSpecWaves()` (`src/testing/play.ts`) hands it `SPEC_WAVES`, by
+  their numbers in `SPEC_WAVE` (`pebble`, `gift` and `last`), past which
+  Endless begins at wave 4, or `STRAY_WAVES`, `ONE_STRAY_WAVES` or
+  `SECTOR_WAVES`, each set up for one thing, and a seed that is always the
+  same. A frame is `game.tick(FRAME_MS, steer)`, steered `STILL` or by
+  `shoot()`, `ram()`, `toStray()` or `toSpark()`.
+- **Play on to a point with the same file's helpers:** `playToClear()`,
+  `clearIn()`, `clearToNext()`, `pressOn()`, `pauseIn()`, `endRun()`,
+  `endIn()`, `knockOneLoose()`, `bringStraysHome()`, `gatherSparks()` and
+  `takeUpCharged()`, each with its doc comment. `FRAME_MS`, `playUntil()`
+  and `playFor()` are `@fz/core/testing`'s.
+- **How a spec goes on from the Cleared card decides what follows.**
+  `pressOn()` goes on as a flight key does, `command("go")` and then a
+  frame holding it. That starts the next wave or, into a sector's first,
+  leaves it waiting under the sector's card until a fresh move.
+  `clearToNext()` goes on by Next wave (`nextWave()`), which holds no
+  press.
+- **jsdom welcomes no motion, and its board is no touch screen,** having
+  no `matchMedia`. So the Cleared card's sum shows whole at once
+  (`tallyMs()` is `TALLY_COUNT_MS`). A spec of it counting up, of a wait or
+  of a finger installs `@fz/game-ui/testing`'s fake viewport first.
+- **The specs' sectors have no words of what is new there,** so a spec of
+  the sector's card hands it the game's own `WAVES`.
+- **A run under way asks before it is thrown away,** which a spec answers
+  through `ConfirmService`'s `accept()` or `cancel()`.
+- **A field added to `RunState` joins `ownOf()` and `BEGUN_OWN`** in
+  `src/app/play/game.service.spec.ts`, which hold each run to beginning
+  with none of the last one's. Nothing fails for one left out.
+- **jsdom has no `navigator.vibrate()`,** so a spec of the phone's buzz
+  stands a buzzer in for it, as `src/app/play/haptics.service.spec.ts`
+  does.
+- **The pilots are pictures, hidden from a screen reader, so no role
+  finds them.** `src/testing/pilots.ts` reads those an element draws:
+  their colors (`pilotsIn()`, against `inkOf()`), each one's color and face
+  (`posesIn()`), the first's face and lift (`poseIn()`), and which is
+  ringed as the pilot at the controls (`ringedIn()`).
+- **The app's spec fakes `setTimeout` and `clearTimeout` alone,** and
+  moves them on by `@fz/ui/announcer`'s `ARRIVAL_MS` for the live region to
+  speak, rather than racing a real wait.
