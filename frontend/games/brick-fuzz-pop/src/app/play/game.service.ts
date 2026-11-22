@@ -58,6 +58,7 @@ import {
   takeDepth,
   takeRound,
 } from "../../rules/run/run";
+import type { PlayedGame, PlayedRound } from "../../rules/run/reported_game";
 import type { TakenUp } from "../../rules/run/saved_game";
 import { tallyOf } from "../../rules/run/scoring";
 import { levelResultOf } from "../../rules/run/stats";
@@ -152,6 +153,9 @@ type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
  * takes off the record. It plays on the numbers the debug menu tunes, at
  * the depth it sets.
  *
+ * It records the level in play's shots, in memory only, which a bug report
+ * takes and plays again.
+ *
  * The run and what the shell shows beside the field are one signal,
  * replaced whole as each run begins, which changes only as the run or its
  * round does, never at a frame that changes neither. The round's view
@@ -192,6 +196,12 @@ export class GameService extends RunLifecycle implements KeptGame {
   private lineShots: Line = [];
   /** The field's depth the line playing was found on. */
   private lineDepth = 0;
+  /**
+   * The level in play's rounds released since the game began recording
+   * them, as the level began or a run was taken up, in order, the round in
+   * play's last, which a bug report plays again; kept in memory only.
+   */
+  private levelRounds: PlayedRound[] = [];
   /** How the next frame plays the round, written again each frame. */
   private readonly frame: FrameOptions = {
     pace: paceOf(this.debug.tuning.tuning()),
@@ -612,6 +622,7 @@ export class GameService extends RunLifecycle implements KeptGame {
       stop: "drop",
       at: this.play.moment,
     });
+    this.recordDrop(this.play.moment);
     const state = this.runState();
     const taken = takeRound(started, round.outcome);
     const run = state.run.outcome === "paused" ? pause(taken) : taken;
@@ -715,6 +726,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     const run = nextLevel(state.run, this.room.depth, this.levels);
     const start = openingOf(run, levelOf(run, this.levels));
     this.lineShots = [];
+    this.levelRounds = [];
     this.aim(start);
     this.runState.set({
       ...state,
@@ -788,6 +800,23 @@ export class GameService extends RunLifecycle implements KeptGame {
   }
 
   /**
+   * Returns the game as it stands, as a bug report takes it: the run, where
+   * the round aimed or in play starts, and the level's rounds since the
+   * game began recording them, from the game itself, never storage.
+   */
+  report(): PlayedGame {
+    const { run, start, round } = this.runState();
+    return {
+      run,
+      start,
+      rounds: [...this.levelRounds],
+      inPlay: round !== null,
+      moment: this.play.moment,
+      tuned: this.debug.runOffRecord(),
+    };
+  }
+
+  /**
    * Takes up a run storage kept, paused, its next round moved onto the
    * field's depth, or its level begun again on it if no round was played,
    * marks the levels it cleared cleared, and says so.
@@ -823,6 +852,14 @@ export class GameService extends RunLifecycle implements KeptGame {
     const round = this.playRound(state.start, shot, levelBoon, rules);
     const run = takeRound(started, round.outcome);
     this.keepStart(state.run);
+    this.levelRounds.push({
+      started,
+      start: state.start,
+      shot,
+      levelBoon,
+      rules,
+      dropped: null,
+    });
     this.droppableRound.set(
       by === "player"
         ? { started, start: state.start, shot, levelBoon, rules }
@@ -956,6 +993,14 @@ export class GameService extends RunLifecycle implements KeptGame {
     }
   }
 
+  /** Records the round in play, the level's last released, as dropped at a moment, for a bug report. */
+  private recordDrop(at: number): void {
+    const last = this.levelRounds.length - 1;
+    this.levelRounds = this.levelRounds.map((round, index) =>
+      index === last ? { ...round, dropped: at } : round,
+    );
+  }
+
   /**
    * Returns the next shot of the certificate's line the level in play
    * plays, if any, the line dropped once the field takes a depth it wasn't
@@ -1032,6 +1077,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     this.droppableRound.set(null);
     this.aim(start);
     this.lineShots = [];
+    this.levelRounds = [];
     this.debug.startRun(
       keeping ?? { locked: !this.progress.isOpen(run.level) },
     );
