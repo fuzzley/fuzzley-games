@@ -3,3 +3,4 @@
 export { type FakeViewport, installFakeViewport } from "@fz/ui/testing";
 export { barChoice, chooseInBar, openBarMenu } from "./bar_menus";
 export { installCompressionStreams } from "./compression_streams";
+export { provideReportPicture } from "./report_picture";

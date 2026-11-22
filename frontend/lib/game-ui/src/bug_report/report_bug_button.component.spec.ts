@@ -2,7 +2,7 @@ import { ErrorHandler } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { installCompressionStreams } from "../testing";
+import { installCompressionStreams, provideReportPicture } from "../testing";
 import { BugReportService } from "./bug_report.service";
 import { ReportBugButtonComponent } from "./report_bug_button.component";
 import { BUG_REPORT_SOURCE, type BugReportSource } from "./tokens";
@@ -29,6 +29,7 @@ async function renderButton(source: BugReportSource = SOURCE): Promise<{
     componentProperties: { chosen },
     providers: [
       { provide: BUG_REPORT_SOURCE, useValue: source },
+      provideReportPicture(),
       { provide: ErrorHandler, useValue: { handleError } },
     ],
   });

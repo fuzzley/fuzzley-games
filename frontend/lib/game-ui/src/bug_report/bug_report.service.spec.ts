@@ -151,17 +151,6 @@ describe("BugReportService", () => {
       expect(picture).toHaveBeenCalledOnce();
     });
 
-    it("opens with no picture where none is provided", async () => {
-      TestBed.configureTestingModule({
-        providers: [{ provide: BUG_REPORT_SOURCE, useValue: new FakeSource() }],
-      });
-      const service = TestBed.inject(BugReportService);
-
-      await service.start();
-
-      expect(service.report()?.picture).toBeNull();
-    });
-
     it("opens with no picture where taking one fails", async () => {
       const { service } = makeService(() =>
         Promise.reject(new Error("The canvas is tainted.")),

@@ -7,7 +7,7 @@ import {
   type BugReportSource,
 } from "../bug_report";
 import { BUILD_INFO, type BuildInfo } from "../build_info";
-import { installCompressionStreams } from "../testing";
+import { installCompressionStreams, provideReportPicture } from "../testing";
 import { SettingsDrawerComponent } from "./settings_drawer.component";
 
 /** A build stamped with its commit and the time it ran. */
@@ -61,6 +61,7 @@ async function renderReportingDrawer(): Promise<RenderedDrawer> {
       providers: [
         { provide: BUILD_INFO, useValue: BUILD },
         { provide: BUG_REPORT_SOURCE, useValue: SOURCE },
+        provideReportPicture(),
       ],
     },
   );

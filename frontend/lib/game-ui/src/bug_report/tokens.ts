@@ -1,4 +1,5 @@
-import { InjectionToken } from "@angular/core";
+import { InjectionToken, inject } from "@angular/core";
+import { PageCaptureService } from "@fz/ui/capture";
 
 /** Says where reports are filed. */
 export interface BugReportConfig {
@@ -80,10 +81,16 @@ export const BUG_REPORT_SOURCE = new InjectionToken<BugReportSource>(
 
 /**
  * Takes the report's picture, a PNG of the page as the player left it, or
- * resolves null where it can't: none at all, unless a game or a spec
+ * null where it can't; `PageCaptureService.capture()` unless a spec
  * provides its own.
  */
 export const REPORT_PICTURE = new InjectionToken<() => Promise<Blob | null>>(
   "REPORT_PICTURE",
-  { providedIn: "root", factory: () => () => Promise.resolve(null) },
+  {
+    providedIn: "root",
+    factory: () => {
+      const page = inject(PageCaptureService);
+      return () => page.capture();
+    },
+  },
 );

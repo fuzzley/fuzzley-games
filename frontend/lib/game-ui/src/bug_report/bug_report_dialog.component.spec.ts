@@ -1,14 +1,10 @@
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { installCompressionStreams } from "../testing";
+import { installCompressionStreams, provideReportPicture } from "../testing";
 import { BugReportService } from "./bug_report.service";
 import { BugReportDialogComponent } from "./bug_report_dialog.component";
-import {
-  BUG_REPORT_SOURCE,
-  type BugReportSource,
-  REPORT_PICTURE,
-} from "./tokens";
+import { BUG_REPORT_SOURCE, type BugReportSource } from "./tokens";
 
 /** Brick Breaker's reports, as far as the dialog needs them. */
 const SOURCE: BugReportSource = {
@@ -70,7 +66,7 @@ async function openDialog({
     inputs: { touch },
     providers: [
       { provide: BUG_REPORT_SOURCE, useValue: SOURCE },
-      { provide: REPORT_PICTURE, useValue: () => Promise.resolve(picture) },
+      provideReportPicture(picture),
     ],
   });
   const user = userEvent.setup();

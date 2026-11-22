@@ -94,7 +94,7 @@ choice, Pause, Sound and the overflow menu.
 | A game's clock                                       | `StopwatchService` from `@fz/game-ui/stopwatch`: whole seconds, counted only while the page is in view; `formatClock()` from the same entry writes them as "2:13"                                                                                                                               |
 | Where a game's seeds are drawn from                  | `GAME_RANDOM` from `@fz/game-ui/random`: `Math.random` unless a spec provides a source of its own, as one that plays to a known end does                                                                                                                                                        |
 | A game's run paused, gone on and started at its keys | `RunLifecycle` from `@fz/game-ui/run_lifecycle`, which a game's `GameService` extends, as in `frontend/games/snake/src/app/play/game.service.ts`, calling `began()` as each run begins and `mayLoseRun()` before one in progress is lost, with `speedQuestion(name)` for a run at another speed |
-| A game's Report a bug, with its state and a picture  | A `BugReportSource`, its `title` and `tag` (`bb1`), provided as `BUG_REPORT_SOURCE` from `@fz/game-ui/bug_report` in `main.ts`, and one `<fz-bug-report-dialog [touch]>` in the root template; the drawer then shows Report a bug, and `REPORT_PICTURE` takes the picture, null unless provided |
+| A game's Report a bug, with its state and a picture  | A `BugReportSource`, its `title` and `tag` (`bb1`), provided as `BUG_REPORT_SOURCE` from `@fz/game-ui/bug_report` in `main.ts`, and one `<fz-bug-report-dialog [touch]>` in the root template; the drawer shows Report a bug, and `REPORT_PICTURE` takes the picture, with `PageCaptureService` |
 | A reported state loaded back into the game           | `<fz-bug-report-loader (loaded)>` from `@fz/game-ui/bug_report`, in the game's debug menu, shown only at `DEBUG_MENU`, with a line of the game's own projected under its field                                                                                                                  |
 | A game's state packed into text, or read back        | `packState()` and `unpackState()` from `@fz/game-ui/bug_report`; a Node script imports `frontend/lib/game-ui/src/bug_report/packed.ts` itself, which imports nothing, as `frontend/tools/read-report.mjs` does                                                                                  |
 
@@ -155,7 +155,10 @@ Each library keeps its specs' helpers in its `testing` entry. The
   `installCompressionStreams()`, called at a spec file's top or in a
   describe, for a spec that packs a bug report's state, since jsdom has no
   compression streams; it takes off every stubbed global after each test, so
-  such a spec stubs its own in a test or a `beforeEach`.
+  such a spec stubs its own in a test or a `beforeEach`. And
+  `provideReportPicture()`, given to each test in the setup file of a game
+  that takes reports, since snapdom can't draw a page in jsdom and fails
+  slowly enough to time a spec out.
 - `@fz/style/testing`: `stylesheetPalettes()`, `paintRoles()` and
   `contrast()`, for a contrast spec.
 - `@fz/phaser/testing`: `provideFakePhaserCanvas()`, for a shell's specs.
