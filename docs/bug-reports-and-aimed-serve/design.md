@@ -1,6 +1,7 @@
 # Report a bug in every game, and an aimed serve in Brick Breaker
 
-Written 2026-11-22. A design only: nothing here is built. Two asks:
+Written 2026-11-22, and built the same day: [As built](#as-built-2026-11-22)
+says what the build decided. Two asks:
 
 1. **Report a bug, everywhere.** Lift the Solitaire Collection's bug reporter
    into the shared libraries, add it to the other six games, have each attach
@@ -16,6 +17,119 @@ for several agents to build at once. `mocks/` holds the pictures of the aimed
 serve, drawn over real captures of the game, and the scripts that draw them.
 
 Paths are relative to `frontend/` unless they start with `docs/` or `.github/`.
+
+---
+
+## As built (2026-11-22)
+
+Built on 2026-11-22 to [`implementation-plan.md`](implementation-plan.md), on
+`bug-reports-and-aimed-serve`, cut from `main`, by packages in worktrees of
+their own, each commit reviewed, each package landed by a rebase and a
+fast-forward. The owner took the design's picks for D1 to D8, and for D9 its
+other way: the build ran at once. The sections below describe the code as it
+was planned, so check a path against the tree before following one.
+
+What the build decided that the sections below don't say:
+
+- **The shared pieces** keep §1.5's names. `@fz/game-ui/bug_report` holds
+  the codec, which gains `packedTag()`; the tokens; `BugReportService`, its
+  `report` an `OpenReport`, its `issueUrl(state)` what a game's spec
+  measures its largest state with; `<fz-bug-report-dialog [touch]>`;
+  `<fz-report-bug-button (chosen)>`; and `<fz-bug-report-loader (loaded)>`,
+  which shows a line of the game's own under its field. Save picture offers
+  the share sheet on a touch screen only. `@fz/game-ui/testing` gains
+  `installCompressionStreams()` and `provideReportPicture()`, which each
+  game's spec setup provides. `tools/check-report.mjs` checks each game's
+  report end to end.
+- **Each game's state,** under §1.3's tag: its summary; its trim; its
+  largest likely link, of 6,000 characters.
+  - Solitaire: "Score 35 · 12 moves"; the undo history, newest kept; Spider
+    after 1,000 moves keeps 343, at 5,987. Its title is its build's
+    `game.json` name, `[Solitaire Collection] `.
+  - Snake: the score, the steps and where the run stands; none; a run won on
+    the full board, 1,778.
+  - Minesweeper: "In play · 0:42 · 3 of 3 lives · 2 mines left"; none; a
+    30 × 30 field of 891 mines, 3,644.
+  - Sudoku: "In play · 12:34 · 30 blank squares · 2 hints · Notes on"; the
+    history, newest kept; 1,200 expert moves keep 897, at 5,999. §1.6 has
+    `restoreGrid()` wrong: it takes a solved grid, and the saved game's
+    restore is what refuses one.
+  - Brick Breaker: "Level 3 · Score 0 · 3 lives · 1 ball in play"; the moment
+    dropped, "bricks only"; 4,269.
+  - Asteroid Breaker: "Wave 3 · Score 800 · 3 following · Paused"; the
+    sparks and shots, then the moment; 5,949 on the widest field, its
+    numbers cut to a thousandth.
+  - Brick Fuzz Pop: "Level 1 · 2 shots · Score 40 · 13 rows · shot in the
+    air"; the level's shots, then the shot in the air; 2,108.
+- **The picture** is snapdom 3.8.1's: modern-screenshot waited 33 s a
+  picture on the Solitaire Collection's hidden thumbnails
+  ([`spike/`](spike/)). `@fz/ui/capture` loads it by a dynamic `import()`
+  behind `PAGE_DRAWER`, a chunk of 111,188 B gzipped; the capture service
+  added 1,105 B gzipped to Snake's main chunk. A board's frame, from
+  `PhaserHost.frame()`, is laid as the background of its element's copy,
+  since snapdom drew an image of it blurred. Every `<dialog>` and each
+  `CAPTURE_SKIP`, the four Paused cards, is left out, and the browser
+  encodes the PNG.
+- **The picture's time,** from the press to the dialog with its picture,
+  the second and third reports on a page at 1× (the first loads snapdom):
+  Sudoku 153 to 196 ms, Snake 164 to 197, Minesweeper 184 to 219, Brick
+  Fuzz Pop 263 to 282, Brick Breaker 376 to 390, Asteroid Breaker 567 to
+  615, and the Solitaire Collection 655 to 746, its first 1,153. At 2×,
+  headless Chrome's software compositing about doubles the canvas games',
+  and the Solitaire Collection's first took 3,077 ms. The page's PNG is
+  encoded with `toDataURL()`, not `toBlob()`, which Chrome starts only in
+  an idle period, and a page that draws every frame never has one: 1,081
+  ms there against 53. Its size at 1280 × 720, at 1× and 2×: Snake 69 and
+  70 KB, Minesweeper 75 and 75, Sudoku 95 and 94, Brick Fuzz Pop 133 and
+  136, Brick Breaker 203 and 202, the Solitaire Collection 289 and 340,
+  Asteroid Breaker 613 and 420. `tools/check-report.mjs` marks a report
+  over a second or a picture over 300 KB, and fails neither.
+- **The aimed serve** keeps §2.3.5's names: `serveAim()`, `serveBall()` held
+  within `AIM_MOST`, `faceServe()` for the eyes, `firstContact()` and
+  `mirrorTurn()` shared with `travel()`, `serveGuide()`, `GuidePainter`,
+  `GameService.aiming`, and the scene's `mayAim` option. Every number in
+  §2.3.4's table is the code's, and `AIM_MOST` stays apart from
+  `PADDLE_ANGLE`, so tuning one leaves the other. A launch with no aim
+  serves as before: `yarn report:levels` printed the same bytes. How to
+  play's words follow the word list: "Hold Space, then hold ← or →", and "To
+  cancel, drag back to where you started, right-click or pause." The
+  guide's first outline, in the text's ink, fell under 3:1 on many bricks
+  in the dark palettes, so the build ringed it in the palette's outline
+  color, 3:1 against every brick.
+- **Departures the owner should know of:**
+  - Brick Fuzz Pop's report dialog loads eagerly: by `onDemand()`, it had
+    Rolldown split the main chunk into seven, 138.15 kB gzipped against
+    137.29 kB with the dialog in it. The first download grew 4.44 kB gzipped.
+  - The Solitaire Collection's debug rules, such as Almost Win Mode, come
+    only in a development build: one chosen at `?debug` stayed in force
+    once the address dropped it.
+  - Asteroid Breaker loads a report taken before a first wave as the run's
+    start (`GameService.startReported()`), refuses one filed after a game
+    over, and leaves the page's settings as they are, since a load would
+    store the report's.
+  - Every game asks "Load this game?", Solitaire's words, before a reported
+    game replaces one in progress, and closes its settings once one loads.
+- **Left for the owner at the merge:** what only hands and devices can
+  judge (the plan's §7): Save picture and the Screenshot field on an iPhone
+  and an Android phone; a paste after Open GitHub in desktop Safari and
+  Firefox; the aim by mouse, touch and keys, whether a finger meant to
+  steer ever aims, and §2.3.4's numbers on real screens; a report filed for
+  real and loaded back. Then what the build found and left: the picture
+  over §1.4.1's 300 KB for Asteroid Breaker, at 1× and 2×, and for the
+  Solitaire Collection at 2×, Asteroid Breaker's because Chrome dithers its
+  backdrop's washes (`wash()` in `@fz/phaser/shapes`, drawn as radial
+  gradients) into noise PNG can't shrink; reports over a second at 2× in
+  the canvas games and the Solitaire Collection, and the Solitaire
+  Collection's first at 1×, which a phone should judge, since headless
+  Chrome composites in software;
+  Snake's bar showing Best 0 beside a reported New best; the Solitaire
+  Collection's waste fan off after a load and its clock restarting, both
+  older than the build; a report trimmed to its bricks keeping the player's
+  Custom speed in Brick Breaker; and shared pieces the reviews named for
+  later: one `untrustedPart()` reader, a choice's name lookup in
+  `@fz/ui/radio_group`, one load question in `@fz/game-ui/run_lifecycle`,
+  `onWholePixels()` in `@fz/phaser`, and Minesweeper's `sizeFrom()`,
+  written twice.
 
 ---
 
@@ -40,7 +154,10 @@ choose otherwise.
 
 ## 1. Report a bug in every game
 
-### 1.1 What Solitaire does today
+### 1.1 What Solitaire did before
+
+The shared reporter replaced all of this, and the paths below are those of
+before.
 
 - **Where:** a bug button in Solitaire's own header
   (`games/solitaire/src/ui/app/component/header_bar/`), an item in its compact
