@@ -1,0 +1,130 @@
+{
+  "bricks": [
+    [6, 0],
+    [5, 1],
+    [6, 1],
+    [7, 1],
+    [4, 2],
+    [5, 2],
+    [6, 2],
+    [7, 2],
+    [8, 2],
+    [4, 3],
+    [5, 3],
+    [6, 3],
+    [7, 3],
+    [8, 3],
+    [4, 4],
+    [5, 4],
+    [6, 4],
+    [7, 4],
+    [8, 4],
+    [4, 5],
+    [5, 5],
+    [6, 5],
+    [7, 5],
+    [8, 5],
+    [4, 6],
+    [5, 6],
+    [6, 6],
+    [7, 6],
+    [8, 6],
+    [4, 7],
+    [5, 7],
+    [6, 7],
+    [7, 7],
+    [8, 7],
+    [3, 8],
+    [4, 8],
+    [5, 8],
+    [6, 8],
+    [7, 8],
+    [8, 8],
+    [9, 8],
+    [2, 9],
+    [3, 9],
+    [4, 9],
+    [6, 9],
+    [7, 9],
+    [8, 9],
+    [9, 9],
+    [2, 10],
+    [3, 10],
+    [4, 10],
+    [7, 10],
+    [8, 10],
+    [9, 10],
+    [10, 10],
+    [11, 10],
+    [1, 11],
+    [4, 11],
+    [6, 11],
+    [11, 11],
+    [8, 12]
+  ],
+  "shots": {
+    "desktop-ready": {
+      "name": "desktop-ready",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "deviceScaleFactor": 2
+      },
+      "card": "Level 9: Rocket Press Space or click to launch. Hold to aim.",
+      "outcome": "playing",
+      "field": "386.5 31 507 585",
+      "canvas": {
+        "left": 0,
+        "top": 73
+      },
+      "across": 26,
+      "down": 30,
+      "pixelRatio": 2,
+      "text": "#e6edf7",
+      "page": "rgb(14, 26, 43)",
+      "font": "\"Figtree Variable\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI Variable Text\", \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+    },
+    "desktop-aiming": {
+      "name": "desktop-aiming",
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "deviceScaleFactor": 2
+      },
+      "card": "",
+      "outcome": "playing",
+      "field": "386.5 31 507 585",
+      "canvas": {
+        "left": 0,
+        "top": 73
+      },
+      "across": 26,
+      "down": 30,
+      "pixelRatio": 2,
+      "text": "#e6edf7",
+      "page": "rgb(14, 26, 43)",
+      "font": "\"Figtree Variable\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI Variable Text\", \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+    },
+    "phone-aiming": {
+      "name": "phone-aiming",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 3
+      },
+      "card": "",
+      "outcome": "playing",
+      "field": "17.333333333333332 52.333333333333336 355.3333333333333 615",
+      "canvas": {
+        "left": 0,
+        "top": 0
+      },
+      "across": 26,
+      "down": 45,
+      "pixelRatio": 3,
+      "text": "#e6edf7",
+      "page": "rgb(14, 26, 43)",
+      "font": "\"Figtree Variable\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI Variable Text\", \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+    }
+  }
+}
