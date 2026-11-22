@@ -454,6 +454,117 @@ describe("PhaserHost", () => {
     });
   });
 
+  describe("frame", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+      vi.useRealTimers();
+      // Phaser tears a game down on its next frame, which a sleeping loop
+      // never draws.
+      for (const { game } of started) {
+        if (!game.loop.running) game.loop.wake();
+      }
+    });
+
+    /** Shows a scene and resolves to its game once booted, its loop asleep for the spec to step. */
+    async function sleeping(): Promise<Game> {
+      show();
+      await only().booted;
+      only().game.loop.sleep();
+      return only().game;
+    }
+
+    /** Steps a game a frame on, drawing it. */
+    function drawFrame(game: Game): void {
+      game.step(game.loop.time + 16, 16);
+    }
+
+    it("copies the canvas, at its size, as the game draws its next frame", async () => {
+      const game = await sleeping();
+      const framed = host.frame();
+
+      drawFrame(game);
+      const copy = await framed;
+
+      expect({
+        copy: copy instanceof HTMLCanvasElement && copy !== game.canvas,
+        width: copy?.width,
+        height: copy?.height,
+      }).toEqual({
+        copy: true,
+        width: game.canvas.width,
+        height: game.canvas.height,
+      });
+    });
+
+    it("gives null where the game draws no frame within a second", async () => {
+      await sleeping();
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+      const framed = host.frame();
+      await vi.advanceTimersByTimeAsync(1_000);
+
+      await expect(framed).resolves.toBeNull();
+    });
+
+    it("stops listening for a frame once it gives up", async () => {
+      const game = await sleeping();
+      const listening = game.events.listenerCount(Core.Events.POST_RENDER);
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+
+      const framed = host.frame();
+      await vi.advanceTimersByTimeAsync(1_000);
+      await framed;
+
+      expect(game.events.listenerCount(Core.Events.POST_RENDER)).toBe(
+        listening,
+      );
+    });
+
+    it("gives null before the game has booted", async () => {
+      show();
+
+      await expect(host.frame()).resolves.toBeNull();
+    });
+
+    it("gives null for a frame still to come as the host is destroyed", async () => {
+      await sleeping();
+      const framed = host.frame();
+
+      host.destroy();
+
+      await expect(framed).resolves.toBeNull();
+    });
+
+    it("gives null where the browser gives no 2D canvas to copy onto", async () => {
+      const game = await sleeping();
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+      const framed = host.frame();
+
+      drawFrame(game);
+
+      await expect(framed).resolves.toBeNull();
+    });
+
+    it("gives null, and throws nothing into the frame, where the copy fails", async () => {
+      const game = await sleeping();
+      const broken = {
+        drawImage: () => {
+          throw new Error("can't draw");
+        },
+      };
+      // A stand-in for the browser's context, of which a frame's copy only
+      // draws an image.
+      vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
+        broken as unknown as CanvasRenderingContext2D,
+      );
+      const framed = host.frame();
+
+      drawFrame(game);
+
+      await expect(framed).resolves.toBeNull();
+    });
+  });
+
   describe("destroy", () => {
     it("tears down the game it started, and its canvas", async () => {
       show();

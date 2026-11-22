@@ -27,6 +27,18 @@ describe("provideFakePhaserCanvas", () => {
     expect(fake.host.options).toBe(OPTIONS);
   });
 
+  it("hands over no frame unless a spec sets one", async () => {
+    await expect(fakeCanvas().host.frame()).resolves.toBeNull();
+  });
+
+  it("hands over the frame a spec sets", async () => {
+    const host = fakeCanvas().host;
+    const drawn = document.createElement("canvas");
+    host.drawn = drawn;
+
+    await expect(host.frame()).resolves.toBe(drawn);
+  });
+
   it("says a scene is ready as soon as it is shown", async () => {
     const onReady = vi.fn();
 

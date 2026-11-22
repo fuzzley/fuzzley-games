@@ -20,6 +20,12 @@ export interface CanvasHost {
   show(source: SceneSource, onReady: () => void): Promise<void>;
   /** Reads the insets again, for chrome that moved without the canvas changing size. */
   refreshInsets(): void;
+  /**
+   * Returns a copy of what the canvas draws next, taken in that frame, or
+   * null before it has a game, where none is drawn within a limit, or where
+   * the host ends first.
+   */
+  frame(): Promise<CanvasImageSource | null>;
   /** Destroys the game, which frees its WebGL context. */
   destroy(): void;
 }
@@ -73,6 +79,10 @@ class LazyPhaserHost implements CanvasHost {
 
   refreshInsets(): void {
     this.host?.refreshInsets();
+  }
+
+  frame(): Promise<CanvasImageSource | null> {
+    return this.host?.frame() ?? Promise.resolve(null);
   }
 
   destroy(): void {

@@ -1257,7 +1257,9 @@ __metadata:
   resolution: "@fz/phaser@workspace:lib/phaser"
   dependencies:
     "@analogjs/vite-plugin-angular": "npm:^2.9.7"
+    "@angular/aria": "npm:~22.3.0"
     "@angular/build": "npm:^22.3.0"
+    "@angular/cdk": "npm:~22.3.0"
     "@angular/common": "npm:^22.3.0"
     "@angular/compiler": "npm:^22.3.0"
     "@angular/compiler-cli": "npm:^22.3.0"
@@ -1267,6 +1269,7 @@ __metadata:
     "@fz/core": "workspace:*"
     "@fz/dev": "workspace:*"
     "@fz/style": "workspace:*"
+    "@fz/ui": "workspace:*"
     "@testing-library/angular": "npm:^19.6.0"
     "@testing-library/dom": "npm:^10.4.2"
     "@testing-library/jest-dom": "npm:^8.0.0"
@@ -1286,6 +1289,8 @@ __metadata:
     vite: "npm:^8.3.8"
     vitest: "npm:^5.1.1"
   peerDependencies:
+    "@angular/aria": ~22.3.0
+    "@angular/cdk": ~22.3.0
     "@angular/common": ^22.3.0
     "@angular/core": ^22.3.0
     phaser: ^4.2.1

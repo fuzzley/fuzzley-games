@@ -12,6 +12,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { PageCaptureService } from "@fz/ui/capture";
 import type { HostOptions } from "../host";
 import {
   type CanvasHost,
@@ -99,12 +100,17 @@ export class PhaserCanvasComponent {
 
   private readonly createHost = inject(PHASER_CANVAS_HOST);
   private readonly errors = inject(ErrorHandler);
+  private readonly capture = inject(PageCaptureService);
   private readonly surface =
     viewChild.required<ElementRef<HTMLElement>>("surface");
   private host?: CanvasHost;
 
+  /** Takes the canvas out of the page's pictures, once its host has started. */
+  private removeSurface?: () => void;
+
   constructor() {
     inject(DestroyRef).onDestroy(() => {
+      this.removeSurface?.();
       this.host?.destroy();
     });
 
@@ -133,10 +139,7 @@ export class PhaserCanvasComponent {
       });
 
       untracked(() => {
-        this.host ??= this.createHost(
-          this.surface().nativeElement,
-          this.options(),
-        );
+        this.host ??= this.startHost();
         this.host
           .show(source, () => {
             settle("ready");
@@ -152,5 +155,20 @@ export class PhaserCanvasComponent {
   /** Reads the insets again, for chrome that moved without the canvas changing size. */
   refreshInsets(): void {
     this.host?.refreshInsets();
+  }
+
+  /**
+   * Makes the canvas's host, and adds the canvas to the page's pictures,
+   * drawn from the host's frames, as a WebGL canvas keeps its pixels only in
+   * the frame that drew them.
+   */
+  private startHost(): CanvasHost {
+    const element = this.surface().nativeElement;
+    const host = this.createHost(element, this.options());
+    this.removeSurface = this.capture.register({
+      element,
+      frame: () => host.frame(),
+    });
+    return host;
   }
 }

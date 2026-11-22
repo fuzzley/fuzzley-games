@@ -47,6 +47,11 @@ without knowing of it, changes its line in the same change, as
 - **`host` holds types alone:** `HostedScene`, `SceneSurroundings` and
   `HostOptions`. Only the canvas makes a host, which keeps one Phaser game,
   and so one WebGL context, for the canvas's whole life.
+- **A canvas is in the page's pictures,** `@fz/ui/capture`'s, drawn from
+  its host's `frame()`: a copy of the canvas taken at the next
+  `POST_RENDER`, since a WebGL canvas keeps its pixels only in the frame
+  that drew them. The canvas registers itself as its host starts, so a game
+  adds nothing for its board.
 - **`scene` holds a scene's helpers,** which Input, Phaser 4's surprises and
   A scene ends, below, name.
 - **`sound` plays a sound sprite.** `SpritePlayer`, made in a scene's
@@ -288,7 +293,8 @@ testing skill has its fixtures.
   `fixture.whenStable()` after rendering it. Under
   `provideFakePhaserCanvas({ readyAtOnce: false })`, a scene waits for the
   spec: `host.latest.ready()` readies it, and
-  `host.latest.fail()` fails it.
+  `host.latest.fail()` fails it. `host.drawn` is the frame the host hands
+  over, none unless the spec sets one.
 - **A spec that fails a scene calls `collectErrors()` before it renders.** It
   returns what the canvas hands Angular's `ErrorHandler`, kept rather than
   printed, for the spec to assert on.

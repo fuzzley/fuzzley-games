@@ -42,6 +42,8 @@ export class FakeCanvasHost implements CanvasHost {
   insetsRefreshed = 0;
   /** Whether it has been destroyed. */
   destroyed = false;
+  /** The frame it hands over when asked for one: none, unless a spec sets one. */
+  drawn: CanvasImageSource | null = null;
 
   constructor(
     /** The element the canvas gave it to draw in. */
@@ -81,6 +83,10 @@ export class FakeCanvasHost implements CanvasHost {
 
   refreshInsets(): void {
     this.insetsRefreshed++;
+  }
+
+  frame(): Promise<CanvasImageSource | null> {
+    return Promise.resolve(this.drawn);
   }
 
   destroy(): void {

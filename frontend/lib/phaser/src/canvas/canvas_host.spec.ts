@@ -135,6 +135,16 @@ describe("PHASER_CANVAS_HOST", () => {
     });
   });
 
+  it("gives no frame before it has a game", async () => {
+    await expect(host.frame()).resolves.toBeNull();
+  });
+
+  it("gives a copy of what the scene draws", async () => {
+    await showUntilReady(makeReadyScene([], "board"));
+
+    await expect(host.frame()).resolves.toBeInstanceOf(HTMLCanvasElement);
+  });
+
   it("reads no insets before it has a game to tell", () => {
     expect(() => {
       host.refreshInsets();

@@ -59,6 +59,9 @@ export type CreateGame = (config: Types.Core.GameConfig) => Phaser.Game;
 /** Builds a Phaser game. */
 const createPhaserGame: CreateGame = (config) => new Phaser.Game(config);
 
+/** How long {@link PhaserHost.frame} waits for a frame, in milliseconds. */
+const FRAME_TIMEOUT_MS = 1_000;
+
 /**
  * Describes a scene waiting to be mounted: how to build it, what to tell once
  * it draws, and how to settle the `show()` that asked for it.
@@ -97,6 +100,9 @@ export class PhaserHost {
 
   /** What kept the game's canvas from being sized as it booted, if anything did. */
   private bootError?: Error;
+
+  /** Gives up on each frame asked for and not yet drawn, as the host ends. */
+  private readonly framesAsked = new Set<() => void>();
 
   /** Creates a host that mounts a canvas into `parent` when first shown a scene. */
   constructor(
@@ -229,10 +235,42 @@ export class PhaserHost {
   }
 
   /**
+   * Returns a copy of the canvas as the game next draws it, on a 2D canvas of
+   * the same size, or null where no frame is drawn within a second, the host
+   * ends first, or the game hasn't booted.
+   *
+   * A WebGL canvas keeps its pixels only in the frame that drew them, so the
+   * copy is taken at the next `POST_RENDER`, inside that frame. No frame is
+   * drawn while the page is hidden, when Phaser sleeps.
+   */
+  frame(): Promise<HTMLCanvasElement | null> {
+    const game = this.game;
+    if (!game || !this.booted) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const settle = (copy: HTMLCanvasElement | null): void => {
+        clearTimeout(timer);
+        game.events.off(Phaser.Core.Events.POST_RENDER, copyFrame);
+        this.framesAsked.delete(giveUp);
+        resolve(copy);
+      };
+      const copyFrame = (): void => {
+        settle(copyOf(game.canvas));
+      };
+      const giveUp = (): void => {
+        settle(null);
+      };
+      const timer = setTimeout(giveUp, FRAME_TIMEOUT_MS);
+      game.events.once(Phaser.Core.Events.POST_RENDER, copyFrame);
+      this.framesAsked.add(giveUp);
+    });
+  }
+
+  /**
    * Tears the game down, releasing the scaler's listeners, the canvas and its
    * WebGL context.
    */
   destroy(): void {
+    for (const giveUp of this.framesAsked) giveUp();
     this.scaler?.stop();
     this.scaler = undefined;
     this.scene = undefined;
@@ -254,5 +292,24 @@ export class PhaserHost {
       }
     });
     game.destroy(true);
+  }
+}
+
+/**
+ * Returns a copy of a canvas on a 2D canvas, or null where none can be made.
+ * It throws nothing, since it runs inside a frame, and Phaser's loop stops
+ * at anything thrown there.
+ */
+function copyOf(canvas: HTMLCanvasElement): HTMLCanvasElement | null {
+  try {
+    const copy = canvas.ownerDocument.createElement("canvas");
+    copy.width = canvas.width;
+    copy.height = canvas.height;
+    const context = copy.getContext("2d");
+    if (!context) return null;
+    context.drawImage(canvas, 0, 0);
+    return copy;
+  } catch {
+    return null;
   }
 }

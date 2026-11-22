@@ -1,6 +1,7 @@
 import { Component, input } from "@angular/core";
 import type { ComponentFixture } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { type CaptureSurface, PageCaptureService } from "@fz/ui/capture";
 import { render, screen } from "@testing-library/angular";
 import type { HostOptions } from "../host";
 import {
@@ -34,12 +35,27 @@ class TestCanvasHostComponent {
   readonly options = OPTIONS;
 }
 
+/** Stands in for the page's pictures, keeping each canvas added to them. */
+class FakePictures {
+  /** The canvases in the page's pictures, by what each draws in. */
+  readonly surfaces = new Set<CaptureSurface>();
+
+  register(surface: CaptureSurface): () => void {
+    this.surfaces.add(surface);
+    return () => {
+      this.surfaces.delete(surface);
+    };
+  }
+}
+
 /** A canvas rendered in a spec, and the fake host it made. */
 interface RenderedCanvas {
   readonly fixture: ComponentFixture<TestCanvasHostComponent>;
   readonly canvas: PhaserCanvasComponent;
   readonly element: HTMLElement;
   readonly host: FakeCanvasHost;
+  /** The page's pictures, as the canvas joins them. */
+  readonly pictures: FakePictures;
   /** Shows another scene in the canvas. */
   readonly show: (scene: SceneSource) => Promise<void>;
   /** Lets what the fake host settled reach the page. */
@@ -51,9 +67,13 @@ interface RenderedCanvas {
 /** Renders a canvas whose scenes wait to be told they are ready. */
 async function renderCanvas(label?: string): Promise<RenderedCanvas> {
   const errors = collectErrors();
+  const pictures = new FakePictures();
   const { fixture, rerender } = await render(TestCanvasHostComponent, {
     inputs: label === undefined ? {} : { label },
-    providers: [provideFakePhaserCanvas({ readyAtOnce: false })],
+    providers: [
+      provideFakePhaserCanvas({ readyAtOnce: false }),
+      { provide: PageCaptureService, useValue: pictures },
+    ],
   });
   const debug = fixture.debugElement.query(By.directive(PhaserCanvasComponent));
   return {
@@ -61,6 +81,7 @@ async function renderCanvas(label?: string): Promise<RenderedCanvas> {
     canvas: debug.componentInstance as PhaserCanvasComponent,
     element: debug.nativeElement as HTMLElement,
     host: fixture.debugElement.injector.get(FakePhaserCanvas).host,
+    pictures,
     show: async (scene) => {
       await rerender({ inputs: { scene }, partialUpdate: true });
     },
@@ -130,6 +151,35 @@ describe("PhaserCanvasComponent", () => {
       fixture.destroy();
 
       expect(host.destroyed).toBe(true);
+    });
+  });
+
+  describe("in the page's pictures", () => {
+    it("is added once its host starts, at the element the host draws in", async () => {
+      const { host, pictures } = await renderCanvas();
+
+      expect([...pictures.surfaces].map(({ element }) => element)).toEqual([
+        host.parent,
+      ]);
+    });
+
+    it("is drawn from its host's frame", async () => {
+      const { host, pictures } = await renderCanvas();
+      const drawn = document.createElement("canvas");
+      host.drawn = drawn;
+
+      const [surface] = pictures.surfaces;
+      const frame = await surface?.frame();
+
+      expect(frame).toBe(drawn);
+    });
+
+    it("is taken out as the canvas goes", async () => {
+      const { fixture, pictures } = await renderCanvas();
+
+      fixture.destroy();
+
+      expect(pictures.surfaces.size).toBe(0);
     });
   });
 
