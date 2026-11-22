@@ -5,6 +5,8 @@
 // one clinging slows the ship, each starting at `tuning.ts`'s and written
 // back as its lines, so a feel found by playing is pasted straight in.
 
+import { isFiniteNumber, isRecord } from "@fz/core/json";
+import { keysOf, pick } from "@fz/core/records";
 import { ROCK_SIZES } from "../rules/catalog/rocks";
 import type { Field } from "../rules/field/field";
 import { TUNED_BURRING } from "../rules/hazards/burrs";
@@ -219,6 +221,27 @@ export function tuneField(field: Field, tuning: Feel): void {
   field.sparking = sparking;
   field.burring = burring;
   tuneRockSpeed(field, rockSpeed);
+}
+
+/**
+ * Returns the numbers that set the feel as JSON carried them, such as a
+ * bug report's, each of the kind `tuning.ts`'s is, or null where one isn't.
+ */
+export function readFeel(value: unknown): Feel | null {
+  return isFeel(value) ? pick(value, keysOf(TUNED)) : null;
+}
+
+/** Returns whether a value read holds each number that sets the feel, of its kind. */
+function isFeel(value: unknown): value is Feel {
+  return (
+    isRecord(value) &&
+    keysOf(TUNED).every((id) => {
+      const tuned = value[id];
+      return typeof TUNED[id] === "boolean"
+        ? typeof tuned === "boolean"
+        : isFiniteNumber(tuned);
+    })
+  );
 }
 
 /** Returns a number as `tuning.ts` writes it, to so many places at most, two unless given, as a slider's steps leave it. */

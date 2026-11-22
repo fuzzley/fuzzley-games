@@ -9,6 +9,7 @@ import {
   type TuningNumber,
   fieldTuning,
   formatTuning,
+  readFeel,
   tuneField,
   tuningLines,
 } from "./debug_tuning";
@@ -159,5 +160,28 @@ describe("tuneField", () => {
     tuneField(field, TRIED);
 
     expect({ vx: rock.vx, vy: rock.vy }).toEqual({ vx: 3, vy: -1.5 });
+  });
+});
+
+describe("readFeel", () => {
+  const { burrSlow, ...withoutBurrSlow } = TRIED;
+
+  it("reads numbers that set the feel back as JSON carried them", () => {
+    const value: unknown = JSON.parse(JSON.stringify(TRIED));
+
+    const feel = readFeel(value);
+
+    expect(feel).toEqual(TRIED);
+  });
+
+  it.each([
+    ["a value that isn't a record", null],
+    ["a number that isn't one", { ...TRIED, thrust: "lots" }],
+    ["a switch that isn't a yes or a no", { ...TRIED, carryShip: 1 }],
+    ["a number left out", withoutBurrSlow],
+  ])("refuses %s", (_what, value) => {
+    const feel = readFeel(JSON.parse(JSON.stringify(value)));
+
+    expect(feel).toBeNull();
   });
 });
