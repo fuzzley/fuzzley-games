@@ -1,5 +1,8 @@
 import type { FieldArt } from "@fz/brick-wall/scene/field_painter";
+import type { WallArt } from "@fz/brick-wall/scene/wall_painter";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
+import type { BrickKindId } from "../rules/catalog/bricks";
+import { brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import type { WallPalette } from "../view/colors/palette";
 import {
@@ -38,4 +41,18 @@ export const FIELD_ART: FieldArt = {
   gridDot: FIELD_FRAMES.gridDot,
   countDot: FIELD_FRAMES.countDot,
   countDotWidth: COUNT_DOT,
+};
+
+/** The most frames a brick shows stacked in its cell: a tough brick's tile, pips and cracks. */
+export const MOST_LAYERS = 3;
+
+/**
+ * How `@fz/brick-wall/scene/wall_painter`'s `WallPainter` draws Brick Fuzz
+ * Pop's bricks: the art's frames for each, stacked, and the warning frame
+ * over a brick one step from losing the level.
+ */
+export const WALL_ART: WallArt<BrickKindId> = {
+  layersOf: brickLayers,
+  mostLayers: MOST_LAYERS,
+  warning: FIELD_FRAMES.warning,
 };

@@ -1,23 +1,40 @@
-import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
-import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
-import { DANGER_ROW, dangerCells } from "@fz/brick-wall/rules/wall";
-import { ATLAS } from "@fz/brick-wall/scene/atlas";
-import { swellScale } from "@fz/brick-wall/view/easing";
-import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
-import { SWELL_MS } from "@fz/brick-wall/view/timing";
+// A wall game's wall: each brick standing still stamped on one texture,
+// a struck one swelling over it, the warning over each brick one step from
+// losing the level, and the wall eased down its step or its jump.
+
 import { shareDone } from "@fz/core/math";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
-import { WALL_RULES, type Wall } from "../../rules/wall/wall";
-import { brickLayers } from "../../view/art/art";
-import type { FrameName } from "../../view/art/frames";
-import type { WallPalette } from "../../view/colors/palette";
-import { FIELD_FRAMES } from "../field_art";
-import type { PaintContext, Painter } from "./painter";
+import { COLUMNS, MOST_DEPTH } from "../rules/field";
+import { cellAt, columnOf, fieldRowOf } from "../rules/grid";
+import {
+  type Brick,
+  DANGER_ROW,
+  type Wall,
+  type WallRules,
+  dangerCells,
+} from "../rules/wall";
+import { swellScale } from "../view/easing";
+import type { FieldMetrics } from "../view/field_metrics";
+import type { WallPalette } from "../view/palette";
+import { SWELL_MS } from "../view/timing";
+import { ATLAS } from "./atlas";
+import type { PaintContext, Painter, WallView } from "./painter";
 
-/** The most frames a brick shows stacked in its cell: a tough brick's tile, pips and cracks. */
-export const MOST_LAYERS = 3;
+/**
+ * Says how a game's bricks are drawn: the frames a brick shows in its cell,
+ * from the bottom of its stack up, the most any brick shows, and the
+ * warning over a brick one step from losing the level.
+ */
+export interface WallArt<K extends string> {
+  /** Returns the frames a brick shows in its cell, from the bottom of its stack up, {@link mostLayers} at most. */
+  readonly layersOf: (brick: Brick<K>) => readonly string[];
+  /** The most frames any brick shows stacked in its cell. */
+  readonly mostLayers: number;
+  /** The frame over a brick the level needs at or under the row over the floor's. */
+  readonly warning: string;
+}
 
 /** The key of the texture the wall standing still is stamped on, a brick's stack in each cell. */
 export const WALL_BAKE = "wall-bake";
@@ -30,7 +47,7 @@ export const WALL_BAKE = "wall-bake";
 export const MOST_SWELLING = 16;
 
 /** The frames a cell shows where no brick stands. */
-const NO_LAYERS: readonly FrameName[] = [];
+const NO_LAYERS: readonly string[] = [];
 
 /** The field cell of a swelling that shows none. */
 const NO_CELL = -1;
@@ -67,7 +84,9 @@ interface SwellPlace extends Swelling {
  * rises, as a new level's may, stands where it is at once. It hands over
  * another wall each frame a brick changes.
  */
-export class WallPainter implements Painter {
+export class WallPainter<K extends string> implements Painter<
+  PaintContext<WallView<K>>
+> {
   /** Shows the bake, its top left at the cells'. */
   readonly image: GameObjects.Image;
   /** The struck bricks that may swell at once, each over the bake. */
@@ -79,7 +98,7 @@ export class WallPainter implements Painter {
   /** The texture the wall standing still is stamped on. */
   private readonly bake: Textures.DynamicTexture;
   /** The frames stamped in each field cell of the bake, row by row from the floor. */
-  private readonly stamped: (readonly FrameName[])[];
+  private readonly stamped: (readonly string[])[];
   /** Whether the bake must be stamped whole though nothing was laid out anew: once a lost context is restored. */
   private lost = false;
   /** How a brick's frames are stamped on the bake: about its cell's middle, scaled as the layout has them, made once a layout. */
@@ -90,7 +109,7 @@ export class WallPainter implements Painter {
   private still: number | null = null;
   /** What the bake was last stamped for, and how far over its place the wall was last drawn, so a frame where none changed stamps nothing. */
   private readonly drawn: {
-    wall: Wall | null;
+    wall: Wall<K> | null;
     over: number;
     metrics: FieldMetrics | null;
     depth: number;
@@ -105,19 +124,24 @@ export class WallPainter implements Painter {
     palette: null,
   };
 
-  constructor(scene: Scene, layer: GameObjects.Layer) {
+  constructor(
+    scene: Scene,
+    layer: GameObjects.Layer,
+    private readonly art: WallArt<K>,
+    private readonly rules: WallRules<K>,
+  ) {
     this.bake = dynamicTexture(scene, WALL_BAKE);
     this.image = scene.add.image(0, 0, WALL_BAKE).setOrigin(0, 0);
     this.places = Array.from({ length: MOST_SWELLING }, () => ({
       cell: NO_CELL,
       at: Number.NEGATIVE_INFINITY,
-      images: Array.from({ length: MOST_LAYERS }, () =>
+      images: Array.from({ length: art.mostLayers }, () =>
         scene.add.image(0, 0, ATLAS).setVisible(false),
       ),
     }));
     this.swellings = this.places;
     this.warnings = Array.from({ length: (DANGER_ROW + 1) * COLUMNS }, () =>
-      scene.add.image(0, 0, ATLAS, FIELD_FRAMES.warning).setVisible(false),
+      scene.add.image(0, 0, ATLAS, art.warning).setVisible(false),
     );
     this.stamped = Array.from(
       { length: MOST_DEPTH * COLUMNS },
@@ -141,7 +165,7 @@ export class WallPainter implements Painter {
    * two walls later, so the one drawn the frame before holds its bricks
    * through the next.
    */
-  drawnWall(): Wall | null {
+  drawnWall(): Wall<K> | null {
     return this.drawn.wall;
   }
 
@@ -150,7 +174,7 @@ export class WallPainter implements Painter {
    * field: afresh where it already swells, or in the place of the swell
    * that started first where every place is taken.
    */
-  swell(wall: Wall, cell: number, now: number): void {
+  swell(wall: Wall<K>, cell: number, now: number): void {
     const row = fieldRowOf(wall, cell);
     if (row < 0 || row >= MOST_DEPTH) return;
     const fieldCell = row * COLUMNS + columnOf(cell);
@@ -172,7 +196,7 @@ export class WallPainter implements Painter {
     palette,
     motion,
     now,
-  }: Readonly<PaintContext>): void {
+  }: Readonly<PaintContext<WallView<K>>>): void {
     const { wall } = view;
     const done = motion ? Math.min(1, Math.max(0, view.wallDrop)) : 1;
     if (this.still === null || done === 1 || wall.lowestRow > this.still) {
@@ -218,7 +242,7 @@ export class WallPainter implements Painter {
   }
 
   /** Clears the bake whole, stamps every field cell's stack on it, and renders it. */
-  private stampWhole(wall: Wall, unit: number, depth: number): void {
+  private stampWhole(wall: Wall<K>, unit: number, depth: number): void {
     this.bake.clear();
     this.stamped.fill(NO_LAYERS);
     this.lost = false;
@@ -227,7 +251,7 @@ export class WallPainter implements Painter {
   }
 
   /** Stamps each field cell whose stack is not the one the bake shows, and renders the bake where it stamped any. */
-  private stampChanged(wall: Wall, unit: number, depth: number): void {
+  private stampChanged(wall: Wall<K>, unit: number, depth: number): void {
     if (this.stampCells(wall, unit, depth)) this.bake.render();
   }
 
@@ -236,7 +260,7 @@ export class WallPainter implements Painter {
    * clearing it first, and returns whether it drew in any; a swelling
    * brick's cell shows none.
    */
-  private stampCells(wall: Wall, unit: number, depth: number): boolean {
+  private stampCells(wall: Wall<K>, unit: number, depth: number): boolean {
     const { bake, stamped, cellStamp } = this;
     let changed = false;
     for (let row = 0; row < depth; row++) {
@@ -245,7 +269,7 @@ export class WallPainter implements Painter {
         const cell = row * COLUMNS + column;
         const frames = this.isSwelling(cell)
           ? NO_LAYERS
-          : layersAt(wall, row, column);
+          : this.layersAt(wall, row, column);
         const shown = stamped[cell] ?? NO_LAYERS;
         if (sameFrames(frames, shown)) continue;
         const left = column * unit;
@@ -312,7 +336,7 @@ export class WallPainter implements Painter {
 
   /** Shows each swelling brick's stack over its cell, the wall some device pixels over its place, scaled as its swell has it at a time. */
   private swellOn(
-    wall: Wall,
+    wall: Wall<K>,
     { x, y, unit }: FieldMetrics,
     depth: number,
     over: number,
@@ -324,11 +348,11 @@ export class WallPainter implements Painter {
       if (cell === NO_CELL) continue;
       const row = Math.floor(cell / COLUMNS);
       const column = cell % COLUMNS;
-      const frames = layersAt(wall, row, column);
+      const frames = this.layersAt(wall, row, column);
       const swollen = scale * swellScale(shareDone(swelling.at, now, SWELL_MS));
       const middleX = x + (column + 0.5) * unit;
       const middleY = y + (depth - 1 - row + 0.5) * unit - over;
-      for (let layer = 0; layer < MOST_LAYERS; layer++) {
+      for (let layer = 0; layer < images.length; layer++) {
         const image = images[layer];
         if (!image) continue;
         const frame = frames[layer];
@@ -365,10 +389,24 @@ export class WallPainter implements Painter {
     }
   }
 
+  /**
+   * Returns the frames a brick shows in a field row and column of a wall, or
+   * none where no brick stands there, as in a row under the wall or over it,
+   * past either end of its bricks.
+   */
+  private layersAt(
+    wall: Wall<K>,
+    row: number,
+    column: number,
+  ): readonly string[] {
+    const brick = wall.bricks[cellAt(wall, column, row)];
+    return brick ? this.art.layersOf(brick) : NO_LAYERS;
+  }
+
   /** Shows the warning frame over each brick a wall's level needs at or under the row over the floor's, and hides the rest. */
-  private frameDanger(wall: Wall): void {
+  private frameDanger(wall: Wall<K>): void {
     for (const warning of this.warnings) warning.setVisible(false);
-    for (const cell of dangerCells(wall, WALL_RULES)) {
+    for (const cell of dangerCells(wall, this.rules)) {
       const row = fieldRowOf(wall, cell);
       if (row >= 0) {
         this.warnings[row * COLUMNS + columnOf(cell)]?.setVisible(true);
@@ -383,25 +421,11 @@ function startedFirst<T extends Swelling>(first: T, second: T): T {
 }
 
 /** Returns whether two stacks of frames are the same, frame for frame. */
-function sameFrames(a: readonly FrameName[], b: readonly FrameName[]): boolean {
+function sameFrames(a: readonly string[], b: readonly string[]): boolean {
   if (a === b) return true;
   if (a.length !== b.length) return false;
   for (let at = 0; at < a.length; at++) {
     if (a[at] !== b[at]) return false;
   }
   return true;
-}
-
-/**
- * Returns the frames a brick shows in a field row and column of a wall, or
- * none where no brick stands there, as in a row under the wall or over it,
- * past either end of its bricks.
- */
-function layersAt(
-  wall: Wall,
-  row: number,
-  column: number,
-): readonly FrameName[] {
-  const brick = wall.bricks[cellAt(wall, column, row)];
-  return brick ? brickLayers(brick) : NO_LAYERS;
 }

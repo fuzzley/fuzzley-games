@@ -36,9 +36,9 @@ export interface PaintContext<V, P extends WallPalette = WallPalette> {
 }
 
 /**
- * Says what of a game's view of the round the field's painter draws from,
- * as a played-back round's view has it: the wall as it looks at this
- * moment, and how far through its step or jump it is.
+ * Says what of a game's view of the round the field's and the wall's
+ * painters draw from, as a played-back round's view has it: the wall as it
+ * looks at this moment, and how far through its step or jump it is.
  */
 export type WallView<K extends string> = Pick<
   PlaybackView<K, At, BallPlace, unknown>,

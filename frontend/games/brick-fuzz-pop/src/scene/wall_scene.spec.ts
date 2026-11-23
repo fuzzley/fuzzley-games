@@ -1,5 +1,5 @@
 import { AIMS, AIMS_PER_DEGREE } from "@fz/brick-wall/rules/aims";
-import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
+import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
@@ -15,6 +15,7 @@ import {
   GROUP_GAP,
   JUMP_LINE,
 } from "@fz/brick-wall/scene/field_painter";
+import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
 import {
   type BakeCommand,
   fillsIn,
@@ -118,7 +119,7 @@ import {
 } from "../view/round_play";
 import type { FieldCommand } from "../view/steering/controls";
 import type { Steer } from "../view/steering/steering";
-import { wallAtlasFrames } from "./atlas";
+import { MOST_LAYERS, wallAtlasFrames } from "./atlas";
 import {
   FIELD_FRAMES,
   FLIGHT_FRAMES,
@@ -132,7 +133,6 @@ import {
   SHARD_SPEED,
 } from "./painters/effects_painter";
 import { MOST_GUIDE_DOTS, MOST_PUNCHED } from "./painters/guide_painter";
-import { MOST_LAYERS, MOST_SWELLING, WALL_BAKE } from "./painters/wall_painter";
 import {
   PICTURE_FRAMES,
   PICTURE_LAYERS,
@@ -1276,180 +1276,6 @@ describe("WallScene", () => {
   });
 
   describe("the wall", () => {
-    it("shows each brick in its cell, its frames stacked from the bottom up", async () => {
-      const { scene } = await startBoard();
-      const wall = PLAIN.start.wall;
-
-      expect({
-        brick: framesAt(scene, 5, 0),
-        tough: framesAt(scene, 5, 8),
-        gap: framesAt(scene, 5, 1),
-        place: placeAt(scene, 5, 8),
-      }).toEqual({
-        brick: [...brickLayers(brickAt(wall, 0))],
-        tough: [...brickLayers(brickAt(wall, 8))],
-        gap: [],
-        place: toCanvas(metricsAt(), 8.5, 5.5),
-      });
-    });
-
-    it("stamps each brick about its cell's middle on its bake, shown at the cells' top left", async () => {
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-      const { scene } = await startBoard();
-      const { x, y, unit } = metricsAt();
-
-      // The tough brick at wall cell 8 stands in field row 5, column 8, of
-      // 11 rows.
-      const tough = stampsIn(bakes(WALL_BAKE)).filter(
-        (stamp) => stamp.x === 8.5 * unit && stamp.y === 5.5 * unit,
-      );
-
-      expect({
-        image: { x: scene.wall.image.x, y: scene.wall.image.y },
-        tough,
-      }).toEqual({
-        image: { x, y },
-        tough: brickLayers(brickAt(PLAIN.start.wall, 8)).map((frame) => ({
-          kind: "stamp",
-          frame,
-          x: 8.5 * unit,
-          y: 5.5 * unit,
-          scale: 1,
-        })),
-      });
-    });
-
-    it("hides the rows waiting over the ceiling, its bake as deep as the field", async () => {
-      const { scene } = await startBoard();
-
-      // The plain round's wall stands from row 5 to row 12, two rows over
-      // the ceiling of a field 11 deep.
-      expect({
-        over: Array.from({ length: MOST_DEPTH - 11 }, (_, above) =>
-          framesAt(scene, 11 + above, 0),
-        ).flat(),
-        height: scene.wall.image.height,
-      }).toEqual({ over: [], height: 11 * metricsAt().unit });
-    });
-
-    it("shows a brick's frames anew as it takes a hit", async () => {
-      const { shell, run, scene } = await startBoard();
-      const next = PLAIN.round.next.wall;
-
-      shell.showWall(next);
-      run.advance(16);
-
-      expect(framesAt(scene, 4, 8)).toEqual([...brickLayers(brickAt(next, 8))]);
-    });
-
-    it("stamps only the cell whose brick changed, cleared first", async () => {
-      const { shell, run } = await startBoard();
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-      const { unit } = metricsAt();
-      const bricks = [...PLAIN.start.wall.bricks];
-      const hit = { ...brickAt(PLAIN.start.wall, 8), hits: 1 };
-      bricks[8] = hit;
-
-      shell.showWall({ ...PLAIN.start.wall, bricks });
-      run.advance(16);
-
-      expect(bakes(WALL_BAKE)).toEqual([
-        {
-          kind: "clear",
-          rect: { x: 8 * unit, y: 5 * unit, width: unit, height: unit },
-        },
-        ...brickLayers(hit).map((frame) => ({
-          kind: "stamp",
-          frame,
-          x: 8.5 * unit,
-          y: 5.5 * unit,
-          scale: 1,
-        })),
-        { kind: "render" },
-      ]);
-    });
-
-    it("stamps the whole wall afresh in a new palette", async () => {
-      const { shell, run } = await startBoard();
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-
-      shell.colors = DARK;
-      run.advance(16);
-
-      const baked = bakes(WALL_BAKE);
-      expect({
-        first: baked[0],
-        stamps: stampsIn(baked).length,
-      }).toEqual({
-        first: { kind: "clear", rect: null },
-        stamps: wallStamps(PLAIN.start.wall, 11),
-      });
-    });
-
-    it("stamps the whole wall afresh once a lost context is restored", async () => {
-      const { run } = await startBoard();
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-      await run.loseContext();
-      await run.restoreContext();
-
-      run.advance(16);
-
-      const baked = bakes(WALL_BAKE);
-      expect({
-        first: baked[0],
-        stamps: stampsIn(baked).length,
-      }).toEqual({
-        first: { kind: "clear", rect: null },
-        stamps: wallStamps(PLAIN.start.wall, 11),
-      });
-    });
-
-    it("bakes nothing again the frame after it bakes for a restored context", async () => {
-      const { run } = await startBoard();
-      await run.loseContext();
-      await run.restoreContext();
-      run.advance(16);
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-
-      run.advance(16);
-
-      expect(bakes(WALL_BAKE)).toEqual([]);
-    });
-
-    it("bakes nothing again in a frame where nothing changed", async () => {
-      const { run } = await startBoard();
-      const bakes = recordBakes(Textures.DynamicTexture.prototype);
-
-      run.advance(48, 16);
-
-      expect(bakes(WALL_BAKE)).toEqual([]);
-    });
-
-    it("hides a brick once it breaks", async () => {
-      const { shell, run, scene } = await startBoard();
-      const wall = PLAIN.start.wall;
-
-      shell.showWall({
-        ...wall,
-        bricks: [null, ...wall.bricks.slice(1)],
-      });
-      run.advance(16);
-
-      expect(framesAt(scene, 5, 0)).toEqual([]);
-    });
-
-    it("shows the wall standing still in one image, and makes a stack of images for each brick that may swell at once", async () => {
-      const { scene } = await startBoard();
-
-      expect({
-        image: scene.wall.image.texture.key,
-        swells: scene.wall.swellings.map(({ images }) => images.length),
-      }).toEqual({
-        image: WALL_BAKE,
-        swells: Array.from({ length: MOST_SWELLING }, () => MOST_LAYERS),
-      });
-    });
-
     it("stacks deep enough for every look a brick takes", () => {
       const deepest = Math.max(
         ...BRICK_KIND_IDS.flatMap((kind) =>
@@ -1458,69 +1284,6 @@ describe("WallScene", () => {
       );
 
       expect(deepest).toBe(MOST_LAYERS);
-    });
-
-    it("stands where the wall came down at once, before it eases", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-
-      // The tough brick ends in row 4, from row 5.
-      expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 5.5));
-    });
-
-    it("eases down as the view goes through the wall's step", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-
-      shell.bringDown(PLAIN.round.next.wall, 0.5);
-      run.advance(16);
-
-      const end = toCanvas(metricsAt(), 8.5, 4.5);
-      expect(placeAt(scene, 4, 8)).toEqual({
-        x: end.x,
-        y: end.y - Math.round(0.5 * metricsAt().unit),
-      });
-    });
-
-    it("comes to rest where the view's step ends, and stays", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.bringDown(PLAIN.round.next.wall, 0.5);
-      run.advance(16);
-      shell.bringDown(PLAIN.round.next.wall, 1);
-      run.advance(16);
-
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-
-      expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 4.5));
-    });
-
-    it("eases a jump down its rows", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(ZAP.start.wall);
-      });
-      const unit = metricsAt().unit;
-      shell.bringDown(ZAP.round.next.wall, 0, ZAP.round.outcome.rowsDown);
-      run.advance(16);
-
-      shell.bringDown(ZAP.round.next.wall, 0.5, ZAP.round.outcome.rowsDown);
-      run.advance(16);
-
-      // The steel at wall cell 2 ends in row 2, from row 5.
-      expect(placeAt(scene, 2, 2).y).toBe(
-        toCanvas(metricsAt(), 2.5, 2.5).y - Math.round(1.5 * unit),
-      );
-    });
-
-    it("stands the wall it starts on where it is, however far the view says it has come down", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.bringDown(PLAIN.start.wall, 0);
-      });
-
-      expect(placeAt(scene, 5, 8)).toEqual(toCanvas(metricsAt(), 8.5, 5.5));
     });
 
     it("eases the wall the round leaves down from where the flight's stood, as the round played hands it over", async () => {
@@ -1537,60 +1300,6 @@ describe("WallScene", () => {
       );
     });
 
-    it("takes a step the view has gone past the end of as ended", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.bringDown(PLAIN.round.next.wall, 1.5);
-      run.advance(16);
-
-      expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 4.5));
-    });
-
-    it("takes a step the view hasn't begun as not begun", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.bringDown(PLAIN.round.next.wall, -0.5);
-      run.advance(16);
-
-      expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 5.5));
-    });
-
-    it("cuts as much off its bake's top as lies over the ceiling, as the rows come in", async () => {
-      const { shell, run, scene } = await startBoard();
-      // Phaser keeps the crop where its typings don't show it.
-      const crop = vi.spyOn(scene.wall.image, "setCrop");
-      const { width, height, unit } = metricsAt();
-      const cut = Math.round(0.5 * unit);
-
-      // Wall row 6 comes from row 11, over the ceiling, into row 10.
-      shell.bringDown(PLAIN.round.next.wall, 0.5);
-      run.advance(16);
-
-      expect(crop).toHaveBeenLastCalledWith(0, cut, width, height - cut);
-    });
-
-    it("shows none of a row still wholly over the ceiling", async () => {
-      const { shell, run, scene } = await startBoard();
-      const crop = vi.spyOn(scene.wall.image, "setCrop");
-      const { width, height, unit } = metricsAt();
-
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-
-      expect(crop).toHaveBeenLastCalledWith(0, unit, width, height - unit);
-    });
-
-    it("cuts nothing off once the wall is in", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.bringDown(PLAIN.round.next.wall, 0.5);
-      run.advance(16);
-
-      shell.bringDown(PLAIN.round.next.wall, 1);
-      run.advance(16);
-
-      expect(scene.wall.image.isCropped).toBe(false);
-    });
-
     it("comes down at once once the player turns motion off", async () => {
       const { shell, run, scene } = await startBoard();
       stillness(shell);
@@ -1600,72 +1309,11 @@ describe("WallScene", () => {
 
       expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 4.5));
     });
-
-    it("comes down at once where the player prefers less motion", async () => {
-      const { shell, run, scene } = await startBoard(stillness);
-
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-
-      expect(placeAt(scene, 4, 8)).toEqual(toCanvas(metricsAt(), 8.5, 4.5));
-    });
-
-    it("stands a wall that rises where it is at once, as a new level's may", async () => {
-      const { shell, run, scene } = await startBoard();
-      const risen = { ...PLAIN.start.wall, lowestRow: 7 };
-
-      shell.bringDown(risen, 0);
-      run.advance(16);
-
-      expect(placeAt(scene, 7, 8)).toEqual(toCanvas(metricsAt(), 8.5, 7.5));
-    });
-
-    it("shows the wall where a new layout puts it", async () => {
-      const board = await startBoard();
-
-      resizeTo(board, 600, 500);
-
-      expect(placeAt(board.scene, 5, 8)).toEqual(
-        toCanvas(metricsAt(600, 500), 8.5, 5.5),
-      );
-    });
-
-    it("shows the rows a deeper field brings in", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.fieldShape = { ...shell.fieldShape, depth: 12 };
-      run.advance(16);
-
-      expect(framesAt(scene, 11, 0)).toEqual([
-        ...brickLayers(brickAt(PLAIN.start.wall, 6 * COLUMNS)),
-      ]);
-    });
   });
 
   describe("the danger", () => {
     /** A wall whose row over the floor's holds bricks the level needs in columns 0, 2 and 4, and steel. */
     const ENDANGERING = wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 1 });
-
-    it("frames each brick the level needs in the row over the floor's, and no other", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(ENDANGERING);
-      });
-      const first = scene.wall.warnings[COLUMNS];
-
-      expect({
-        framed: framedIn(scene),
-        frame: first?.frame.name,
-        place: { x: first?.x, y: first?.y },
-      }).toEqual({
-        framed: [
-          [0, 1],
-          [2, 1],
-          [4, 1],
-        ],
-        frame: FIELD_FRAMES.warning,
-        place: toCanvas(metricsAt(), 0.5, 1.5),
-      });
-    });
 
     it("frames none while only bricks the level doesn't need stand there", async () => {
       const { scene } = await startBoard((shell) => {
@@ -1677,41 +1325,7 @@ describe("WallScene", () => {
       expect(framedIn(scene)).toEqual([]);
     });
 
-    it("frames none while the wall stands higher", async () => {
-      const { scene } = await startBoard();
-
-      expect(framedIn(scene)).toEqual([]);
-    });
-
-    it("unframes a brick broken there", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(ENDANGERING);
-      });
-
-      shell.showWall(wallFrom(["..o.o.#.."], WALL_LEGEND, { lowestRow: 1 }));
-      run.advance(16);
-
-      expect(framedIn(scene)).toEqual([
-        [2, 1],
-        [4, 1],
-      ]);
-    });
-
-    it("brings the frames down with the wall as it eases", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
-      });
-
-      shell.bringDown(ENDANGERING, 0.5);
-      run.advance(16);
-
-      // Halfway down a row of 31 px, 15.5 rounded.
-      expect(scene.wall.warnings[COLUMNS]?.y).toBe(
-        toCanvas(metricsAt(), 0.5, 1.5).y - 16,
-      );
-    });
-
-    it("keeps the frames on the bricks, and the line lit, through the step that loses the level", async () => {
+    it("keeps the warning's frames on the bricks, and the line lit, through the step that loses the level", async () => {
       const { shell, run, scene } = await startBoard((each) => {
         each.showWall(ENDANGERING);
       });
@@ -1725,6 +1339,7 @@ describe("WallScene", () => {
       // Halfway down from the row over the floor's to the floor's.
       expect({
         framed: framedIn(scene),
+        frame: scene.wall.warnings[0]?.frame.name,
         y: scene.wall.warnings[0]?.y,
         lit: rectsIn(scene.field.lines, LIGHT.dangerLine).length,
       }).toEqual({
@@ -1733,34 +1348,10 @@ describe("WallScene", () => {
           [2, 0],
           [4, 0],
         ],
+        frame: FIELD_FRAMES.warning,
         y: toCanvas(metricsAt(), 0.5, 0.5).y - 16,
         lit: 1,
       });
-    });
-
-    it("shows the frames over the wall and every swell", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(ENDANGERING);
-      });
-      const swells = scene.wall.swellings.flatMap(({ images }) => images);
-
-      const under = Math.max(...placesInLayer([scene.wall.image, ...swells]));
-      const firstFrame = Math.min(...placesInLayer(scene.wall.warnings));
-
-      expect(firstFrame).toBeGreaterThan(under);
-    });
-
-    it("shows the frames scaled up with the wall's frames past the atlas's largest unit", async () => {
-      const { scene } = await startBoard(
-        (shell) => {
-          shell.showWall(ENDANGERING);
-        },
-        { width: 1300, height: 1800 },
-      );
-
-      expect(scene.wall.warnings.at(-1)?.scale).toBe(
-        metricsAt(1300, 1800).unit / MOST_BAKED_UNIT,
-      );
     });
   });
 
@@ -3306,139 +2897,6 @@ describe("WallScene", () => {
         swollen: rounded(swollen),
         settled: swellAt(scene, 5, 8),
       }).toEqual({ swollen: rounded(1 + SWELL), settled: [] });
-    });
-
-    it("swell a struck brick over its cell, cleared from the wall's bake while it swells, and stamped back once it settles", async () => {
-      const { shell, run, scene } = await startBoard();
-      const layers = [...brickLayers(brickAt(PLAIN.start.wall, 8))];
-      shell.reach([STRIKE_8, ["swell"]]);
-      run.advance(16);
-      const swelling = {
-        baked: framesAt(scene, 5, 8),
-        swells: swellAt(scene, 5, 8).map((image) => image.frame.name),
-        place: { x: swellAt(scene, 5, 8)[0]?.x, y: swellAt(scene, 5, 8)[0]?.y },
-      };
-
-      run.advance(SWELL_MS);
-
-      expect({ swelling, settled: framesAt(scene, 5, 8) }).toEqual({
-        swelling: {
-          baked: [],
-          swells: layers,
-          place: toCanvas(metricsAt(), 8.5, 5.5),
-        },
-        settled: layers,
-      });
-    });
-
-    it("swell as many bricks at once as it has places, the next struck taking the place of the first", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(
-          wallFrom(["ooooooooo", "ooooooooo"], WALL_LEGEND, { lowestRow: 5 }),
-        );
-      });
-      // Wall cells 0 to 16 stand in field rows 5 and 6.
-      const strikes = Array.from(
-        { length: MOST_SWELLING + 1 },
-        (_, cell): ReachedEvent => [{ ...STRIKE_8, cell }, ["swell"]],
-      );
-
-      shell.reach(...strikes);
-      run.advance(16);
-
-      expect({
-        first: swellAt(scene, 5, 0),
-        last: swellAt(scene, 6, 7).length,
-        swelling: scene.wall.swellings.filter(({ images }) =>
-          images.some((image) => image.visible),
-        ).length,
-      }).toEqual({ first: [], last: 1, swelling: MOST_SWELLING });
-    });
-
-    it("stamp the first swell's brick back in the bake as a brick struck past the places in a later frame takes its place", async () => {
-      const wall = wallFrom(["ooooooooo", "ooooooooo"], WALL_LEGEND, {
-        lowestRow: 5,
-      });
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wall);
-      });
-      // Wall cells 0 to 16 stand in field rows 5 and 6, cell 0 swelling
-      // first in the pool, cell 16 in field row 6, column 7.
-      shell.reach(
-        ...Array.from({ length: MOST_SWELLING }, (_, cell): ReachedEvent => [
-          { ...STRIKE_8, cell },
-          ["swell"],
-        ]),
-      );
-      run.advance(16);
-
-      shell.reach([{ ...STRIKE_8, cell: MOST_SWELLING }, ["swell"]]);
-      run.advance(16);
-
-      expect({
-        first: framesAt(scene, 5, 0),
-        last: framesAt(scene, 6, 7),
-      }).toEqual({
-        first: [...brickLayers(brickAt(wall, 0))],
-        last: [],
-      });
-    });
-
-    it("swell a brick struck as the wall eases down where the brick shows", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.bringDown(PLAIN.round.next.wall, 0);
-      run.advance(16);
-      shell.bringDown(PLAIN.round.next.wall, 0.5);
-
-      // The tough brick at wall cell 8 stands in field row 4, from row 5.
-      shell.reach([STRIKE_8, ["swell"]]);
-      run.advance(16);
-
-      expect(swellAt(scene, 4, 8)[0]?.y).toBe(placeAt(scene, 4, 8).y);
-    });
-
-    it("swell a brick struck again afresh, in the place it swells in", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.reach([STRIKE_8, ["swell"]]);
-      run.advance(16);
-      run.advance(SWELL_MS / 2);
-
-      shell.reach([STRIKE_8, ["swell"]]);
-      run.advance(16);
-
-      expect({
-        scale: rounded(swellAt(scene, 5, 8)[0]?.scale ?? 0),
-        places: scene.wall.swellings.filter(
-          ({ cell }) => cell === 5 * COLUMNS + 8,
-        ).length,
-      }).toEqual({ scale: rounded(1 + SWELL), places: 1 });
-    });
-
-    it("let a swell go as the wall that comes down is handed over, rather than swell the brick come into its row", async () => {
-      const rows = ["ooooooooo", "ooooooooo"];
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(rows, WALL_LEGEND, { lowestRow: 5 }));
-      });
-      shell.reach([STRIKE_8, ["swell"]]);
-      run.advance(16);
-      const swollen = swellAt(scene, 5, 8).length > 0;
-      // Wall cell 17, of the row over cell 8's, comes into field row 5.
-      const down = wallFrom(rows, WALL_LEGEND, { lowestRow: 4 });
-
-      shell.bringDown(down, 0);
-      run.advance(16);
-
-      expect({
-        swollen,
-        after: scene.wall.swellings.flatMap(({ images }) =>
-          images.filter((image) => image.visible),
-        ),
-        baked: framesAt(scene, 5, 8),
-      }).toEqual({
-        swollen: true,
-        after: [],
-        baked: [...brickLayers(brickAt(down, 17))],
-      });
     });
 
     it("burst a broken brick into shards of its color", async () => {

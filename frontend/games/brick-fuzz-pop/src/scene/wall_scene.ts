@@ -3,6 +3,7 @@ import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { ATLAS, WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
+import { WallPainter } from "@fz/brick-wall/scene/wall_painter";
 import {
   type PointerAiming,
   STRAIGHT_UP,
@@ -52,7 +53,7 @@ import {
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Steer, Steering } from "../view/steering/steering";
-import { FIELD_ART, wallAtlasFrames } from "./atlas";
+import { FIELD_ART, WALL_ART, wallAtlasFrames } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
@@ -60,7 +61,6 @@ import { GaugePainter } from "./painters/gauge_painter";
 import { GuidePainter } from "./painters/guide_painter";
 import { MeterPainter } from "./painters/meter_painter";
 import type { PaintContext, Painter } from "./painters/painter";
-import { WallPainter } from "./painters/wall_painter";
 import { PICTURE_FRAMES, type Pictures } from "./pictures";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
@@ -147,7 +147,7 @@ export class WallScene extends Scene {
   /** Draws the field, its band, its lintel, its frame and its lines. */
   field!: FieldPainter<BrickKindId>;
   /** Draws the wall. */
-  wall!: WallPainter;
+  wall!: WallPainter<BrickKindId>;
   /** Draws the guide. */
   guide!: GuidePainter;
   /** Draws what bursts from the wall and the jump line's flash. */
@@ -225,7 +225,7 @@ export class WallScene extends Scene {
     this.handPictures();
     const layers = this.layers();
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
-    this.wall = new WallPainter(this, layers.wall);
+    this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
     this.guide = new GuidePainter(this, layers.guide, this.field);
     this.effects = new EffectsPainter(this, layers);
     this.meter = new MeterPainter(this, layers.balls);

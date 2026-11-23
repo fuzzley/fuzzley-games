@@ -1,13 +1,17 @@
 import { viewport } from "@fz/phaser/testing/pure";
+import type { Brick } from "../../rules/wall";
 import { fieldMetrics, fieldShape } from "../../view/field_metrics";
 import { marginInsets } from "../canvases";
 import {
   DARK_MADE_UP,
   LIGHT_MADE_UP,
+  MADE_UP_MOST_LAYERS,
   MADE_UP_SQUARES,
   madeUpField,
   madeUpFrames,
+  madeUpLayers,
 } from "./field";
+import type { MadeUpKind } from "./wall";
 
 describe("the made-up palettes", () => {
   it("are made from roles each a color no other role of either takes", () => {
@@ -62,6 +66,11 @@ describe("madeUpFrames", () => {
       ["cell", 40, 40, [LIGHT_MADE_UP.steel]],
       ["grid-dot", 2, 2, [LIGHT_MADE_UP.line]],
       ["count-dot", 6, 6, [LIGHT_MADE_UP.jumpLine]],
+      ["clay", 36, 36, [LIGHT_MADE_UP.steel]],
+      ["moss", 36, 36, [LIGHT_MADE_UP.spark]],
+      ["pip-2", 8, 8, [LIGHT_MADE_UP.text]],
+      ["pip-3", 8, 8, [LIGHT_MADE_UP.field]],
+      ["warning", 40, 40, [LIGHT_MADE_UP.dangerLine]],
     ]);
   });
 
@@ -76,6 +85,36 @@ describe("madeUpFrames", () => {
 
     expect(frames.map(({ name }) => name)).toEqual(
       Object.keys(MADE_UP_SQUARES),
+    );
+  });
+});
+
+/** Returns a whole made-up brick of a kind and some hits. */
+function brickOf(kind: MadeUpKind, hits: number): Brick<MadeUpKind> {
+  return { kind, hits, full: hits, plates: 0, tint: 0, twin: null };
+}
+
+describe("madeUpLayers", () => {
+  it.each([
+    ["clay", 0, ["clay"]],
+    ["clay", 1, ["clay"]],
+    ["clay", 2, ["clay", "pip-2"]],
+    ["moss", 3, ["moss", "pip-2", "pip-3"]],
+    ["moss", 9, ["moss", "pip-2", "pip-3"]],
+  ] as const)(
+    "stacks a brick of %s of %i hits as its kind's square and a pip for each hit past the first, two at most",
+    (kind, hits, frames) => {
+      expect(madeUpLayers(brickOf(kind, hits))).toEqual(frames);
+    },
+  );
+
+  it("stacks as many frames at most as it says", () => {
+    expect(madeUpLayers(brickOf("clay", 9))).toHaveLength(MADE_UP_MOST_LAYERS);
+  });
+
+  it("hands a brick of a kind and its hits the same list each time", () => {
+    expect(madeUpLayers(brickOf("clay", 3))).toBe(
+      madeUpLayers(brickOf("clay", 3)),
     );
   });
 });
