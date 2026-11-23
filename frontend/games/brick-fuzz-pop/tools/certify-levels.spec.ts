@@ -1,7 +1,7 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { DANGER_ROW } from "@fz/brick-wall/rules/wall";
 import { recordingPrinter } from "@fz/dev/script";
 import { LEVELS, parseLevel } from "../src/rules/levels/levels";
-import { DANGER_ROW } from "../src/rules/wall/lower";
 import { replayLine } from "../src/testing/solver";
 import type {
   CertifyApi,

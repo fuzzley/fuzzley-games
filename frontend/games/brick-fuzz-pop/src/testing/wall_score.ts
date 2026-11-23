@@ -5,14 +5,14 @@
 // rules are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { fieldRowOf } from "@fz/brick-wall/rules/grid";
-import type { RoundOutcome, RoundStart } from "../rules/round/round";
 import {
   DANGER_ROW,
   inDanger,
   isNeeded,
   lowestNeededRow,
-} from "../rules/wall/lower";
-import type { Wall } from "../rules/wall/wall";
+} from "@fz/brick-wall/rules/wall";
+import type { RoundOutcome, RoundStart } from "../rules/round/round";
+import { WALL_RULES, type Wall } from "../rules/wall/wall";
 
 /** What a lost level measures: less than any wall still standing. */
 const LOST_SCORE = -1_000_000_000;
@@ -64,7 +64,7 @@ export function wallScore(
   const { wall, crew, boon } = next;
   let weight = 0;
   for (const [cell, brick] of wall.bricks.entries()) {
-    if (brick === null || !isNeeded(brick)) continue;
+    if (brick === null || !isNeeded(brick, WALL_RULES)) continue;
     const row = fieldRowOf(wall, cell);
     weight += (brick.hits + BRICK_WEIGHT) * (1 + LOW_WEIGHT / (row * row));
   }
@@ -78,6 +78,8 @@ export function wallScore(
 
 /** Returns what the lowest brick a wall's level needs takes off for its row: the most in danger, less a row over it, else nothing. */
 function dangerOf(wall: Wall): number {
-  if (inDanger(wall)) return DANGER_COST;
-  return lowestNeededRow(wall) === DANGER_ROW + 1 ? NEAR_DANGER_COST : 0;
+  if (inDanger(wall, WALL_RULES)) return DANGER_COST;
+  return lowestNeededRow(wall, WALL_RULES) === DANGER_ROW + 1
+    ? NEAR_DANGER_COST
+    : 0;
 }

@@ -237,8 +237,8 @@ function inspectField(field) {
     }
     return problems;
   }
-  // `thirdsOf()`'s `opensOn`, in src/rules/wall/wall.ts, at the depth the
-  // board laid the field out in: two jumps under the ceiling.
+  // `thirdsOf()`'s `opensOn`, in @fz/brick-wall/rules/wall, at the depth
+  // the board laid the field out in: two jumps under the ceiling.
   const opensOn = laidDepth - 2 * Math.floor((laidDepth - 1) / 3);
   if (outcome !== "ready") {
     problems.push(

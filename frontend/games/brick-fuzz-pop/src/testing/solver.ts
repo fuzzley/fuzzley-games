@@ -5,6 +5,11 @@
 // their exact arithmetic.
 
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
+import {
+  DANGER_ROW,
+  inDanger,
+  lowestNeededRow,
+} from "@fz/brick-wall/rules/wall";
 import { type Line, shotOf } from "../rules/levels/certificate";
 import { type Level, levelStart } from "../rules/levels/level";
 import {
@@ -15,7 +20,7 @@ import {
 } from "../rules/round/round";
 import { type Charge, type Shot, isCharge } from "../rules/shot";
 import { MOST_CHARGE } from "../rules/tuning";
-import { DANGER_ROW, inDanger, lowestNeededRow } from "../rules/wall/lower";
+import { WALL_RULES } from "../rules/wall/wall";
 import { wallScore } from "./wall_score";
 
 // P3's scripts and specs were built to take a certificate's types from here.
@@ -128,7 +133,7 @@ export function replayLine(
       const cleared = outcome.result === "cleared";
       return { cleared, rounds: played + 1, jumps, leastRow };
     }
-    leastRow = Math.min(leastRow, lowestNeededRow(next.wall));
+    leastRow = Math.min(leastRow, lowestNeededRow(next.wall, WALL_RULES));
     start = next;
   }
   return { cleared: false, rounds: line.length, jumps, leastRow };
@@ -171,7 +176,10 @@ function searchLine(
         const line = [...reached.line, [shot.aim, shot.charge] as const];
         const jumps = reached.jumps + (round.outcome.jumped ? 1 : 0);
         if (round.outcome.result === "cleared") return { line, jumps };
-        if (round.outcome.result === "on" && !inDanger(round.next.wall)) {
+        if (
+          round.outcome.result === "on" &&
+          !inDanger(round.next.wall, WALL_RULES)
+        ) {
           const score = wallScore(round, rounds);
           measured.push({ start: round.next, line, jumps, score });
         }

@@ -1,4 +1,5 @@
 import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import { isCleared, lowerWall } from "@fz/brick-wall/rules/wall";
 import { clamp } from "@fz/core/math";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
@@ -11,8 +12,7 @@ import {
 } from "../flight/flight";
 import type { Boon, Shot } from "../shot";
 import { BORED, IDLE_SHARE, JUMP_POINTS, TRIPLE_MATES } from "../tuning";
-import { isCleared, lowerWall } from "../wall/lower";
-import type { Wall } from "../wall/wall";
+import { WALL_RULES, type Wall } from "../wall/wall";
 
 /** Describes the friends a level's cages have freed, who fly behind the player's fuzzball every round. */
 export interface Crew {
@@ -110,7 +110,7 @@ export function playRoundBy(
   drop?: FlightDrop,
 ): Round {
   const { flight, wall } = fly(flightStartOf(start, shot), rules, drop);
-  const lowered = lowerWall(wall, start.depth);
+  const lowered = lowerWall(wall, start.depth, WALL_RULES);
   let points = lowered.jumped ? JUMP_POINTS : 0;
   let broken = 0;
   let waits = start.x;
@@ -141,7 +141,11 @@ export function playRoundBy(
       rowsDown: lowered.rowsDown,
       jumped: lowered.jumped,
       freed: friends.length - start.crew.friends.length,
-      result: isCleared(wall) ? "cleared" : lowered.lost ? "lost" : "on",
+      result: isCleared(wall, WALL_RULES)
+        ? "cleared"
+        : lowered.lost
+          ? "lost"
+          : "on",
     },
     next: {
       wall: lowered.wall,

@@ -1,50 +1,147 @@
-import { thirdsOf } from "./wall";
+import { lowerWall } from "@fz/brick-wall/rules/wall";
+import { keysOf } from "@fz/core/records";
+import {
+  FLIGHT_FIXTURES,
+  type FlightFixture,
+} from "../../testing/flight_fixtures";
+import { wallFrom } from "../../testing/wall_picture";
+import { BRICK_KIND_IDS, brickKind } from "../catalog/bricks";
+import { NO_BRICK } from "../levels/legend";
+import { WALL_RULES, type Wall, regrow } from "./wall";
 
-describe("thirdsOf", () => {
-  // plan.md's table in "The wall": a depth, its jump, and the row a wall
-  // opens on and a jump lands it on.
-  it.each([
-    [11, 3, 5],
-    [12, 3, 6],
-    [13, 4, 5],
-    [14, 4, 6],
-    [15, 4, 7],
-    [16, 5, 6],
-    [17, 5, 7],
-    [18, 5, 8],
-    [19, 6, 7],
-    [20, 6, 8],
-    [21, 6, 9],
-    [22, 7, 8],
-  ])(
-    "gives a field %s deep a jump of %s rows, its wall opening on row %s",
-    (depth, jump, opensOn) => {
-      expect(thirdsOf(depth)).toEqual({
-        depth,
-        jump,
-        jumpLine: depth - jump,
-        opensOn,
-      });
+const AIR = NO_BRICK.repeat(9);
+
+/** Returns a wall drawn with `wallFrom()` as one row of the legend's characters, standing in a field row. */
+function wallOf(row: string, lowestRow = 5): Wall {
+  return wallFrom([row], { lowestRow });
+}
+
+/** Returns a wall with every brick it holds worn to a number of hits, as a round's strikes leave them. */
+function wornTo(wall: Wall, hits: number): Wall {
+  return {
+    ...wall,
+    bricks: wall.bricks.map((brick) =>
+      brick === null ? null : { ...brick, hits },
+    ),
+  };
+}
+
+/** Returns the hits each brick of a wall has left, in order, null for no brick. */
+function hitsOf(wall: Wall): (number | null)[] {
+  return wall.bricks.map((brick) => brick?.hits ?? null);
+}
+
+/**
+ * Returns the wall a hand-made round's flight leaves, before it comes
+ * down: the next round's, standing where the start's stood, with each brick
+ * the round didn't break back from the start's.
+ */
+function flownWall({ start, round }: FlightFixture): Wall {
+  const broken = new Set(
+    round.flight.events.flatMap((event) =>
+      event.kind === "break" ? [event.cell] : [],
+    ),
+  );
+  return {
+    bricks: round.next.wall.bricks.map(
+      (brick, cell) =>
+        brick ?? (broken.has(cell) ? null : (start.wall.bricks[cell] ?? null)),
+    ),
+    rows: start.wall.rows,
+    lowestRow: start.wall.lowestRow,
+  };
+}
+
+describe("WALL_RULES", () => {
+  it.each(BRICK_KIND_IDS)(
+    "needs a brick of %s broken only as the catalog marks its kind",
+    (kind) => {
+      expect(WALL_RULES.needed(kind)).toBe(brickKind(kind).needed);
     },
   );
 
-  it("runs the jump line under the top third, the jump's rows", () => {
-    const { depth, jump, jumpLine } = thirdsOf(16);
+  it("grows worn moss a hit as the wall comes down", () => {
+    const wall = wornTo(wallOf("M...N...."), 1);
 
-    expect(depth - jumpLine).toBe(jump);
+    const lowered = lowerWall(wall, 11, WALL_RULES);
+
+    expect([lowered.wall.lowestRow, hitsOf(lowered.wall)]).toEqual([
+      4,
+      [2, null, null, null, 2, null, null, null, null],
+    ]);
   });
 
-  // A jump brings down nothing that stood under the jump line, so a wall it
-  // lands stands where a level opens, or higher.
-  it("lands a jump from the jump line on the row a level opens on", () => {
-    const { jump, jumpLine, opensOn } = thirdsOf(19);
+  // K2's rounds made by hand, which the view, the scene and the shell are
+  // built against, come down as the rules bring the wall down.
+  it.each(keysOf(FLIGHT_FIXTURES))(
+    "brings the wall down as the hand-made %s round does",
+    (name) => {
+      const fixture = FLIGHT_FIXTURES[name];
+      const { outcome, next } = fixture.round;
 
-    expect(jumpLine - jump).toBe(opensOn);
+      const lowered = lowerWall(
+        flownWall(fixture),
+        fixture.start.depth,
+        WALL_RULES,
+      );
+
+      expect(lowered).toMatchObject({
+        wall: next.wall,
+        rowsDown: outcome.rowsDown,
+        jumped: outcome.jumped,
+        lost: outcome.result === "lost",
+      });
+    },
+  );
+});
+
+describe("regrow", () => {
+  it("gives no hit back to a worn brick of a kind that doesn't regrow", () => {
+    const worn = wornTo(wallOf("....2...."), 1);
+
+    expect(regrow(worn)).toEqual(worn);
   });
 
-  it.each([10, 23, 11.5, Number.NaN])("refuses a depth of %s", (depth) => {
-    expect(() => thirdsOf(depth)).toThrow(
-      `A field is a whole number from 11 to 22 rows deep, not ${depth}.`,
-    );
+  it("gives worn moss back one hit, however worn", () => {
+    const worn = wornTo(wallOf("N...M...o"), 1);
+
+    expect(hitsOf(regrow(worn))).toEqual([
+      2,
+      null,
+      null,
+      null,
+      2,
+      null,
+      null,
+      null,
+      1,
+    ]);
+  });
+
+  it("grows moss no further than its full hits", () => {
+    const wall = wallOf("N...M....");
+
+    expect(regrow(wall)).toBe(wall);
+  });
+
+  it("grows moss worn by one back to its full hits", () => {
+    const worn = wornTo(wallOf("N........"), 2);
+
+    expect(hitsOf(regrow(worn))[0]).toBe(3);
+  });
+
+  it("leaves a wall with no brick as it is", () => {
+    const wall = wallOf(AIR);
+
+    expect(regrow(wall)).toBe(wall);
+  });
+
+  it("leaves the wall it is handed as it was", () => {
+    const worn = wornTo(wallOf("N...M...."), 1);
+    const before = structuredClone(worn);
+
+    regrow(worn);
+
+    expect(worn).toStrictEqual(before);
   });
 });

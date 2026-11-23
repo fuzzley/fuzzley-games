@@ -1,11 +1,11 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import { DANGER_ROW, dangerCells } from "@fz/brick-wall/rules/wall";
 import { shareDone } from "@fz/core/math";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
-import { DANGER_ROW, dangerCells } from "../../rules/wall/lower";
-import type { Wall } from "../../rules/wall/wall";
+import { WALL_RULES, type Wall } from "../../rules/wall/wall";
 import { brickLayers } from "../../view/art/art";
 import type { FrameName } from "../../view/art/frames";
 import type { WallPalette } from "../../view/colors/palette";
@@ -368,7 +368,7 @@ export class WallPainter implements Painter {
   /** Shows the warning frame over each brick a wall's level needs at or under the row over the floor's, and hides the rest. */
   private frameDanger(wall: Wall): void {
     for (const warning of this.warnings) warning.setVisible(false);
-    for (const cell of dangerCells(wall)) {
+    for (const cell of dangerCells(wall, WALL_RULES)) {
       const row = fieldRowOf(wall, cell);
       if (row >= 0) {
         this.warnings[row * COLUMNS + columnOf(cell)]?.setVisible(true);

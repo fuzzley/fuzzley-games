@@ -1,3 +1,4 @@
+import { inDanger } from "@fz/brick-wall/rules/wall";
 import { Countdown } from "@fz/core/clock";
 import {
   EventLog,
@@ -8,8 +9,7 @@ import { easeOutCubic } from "@fz/core/math";
 import type { BallRole, FlightEvent, Waypoint } from "../rules/flight/events";
 import type { Round, RoundResult, RoundStart } from "../rules/round/round";
 import { MOST_CHARGE, ZAP_HITS } from "../rules/tuning";
-import { inDanger } from "../rules/wall/lower";
-import type { Brick, Wall } from "../rules/wall/wall";
+import { type Brick, WALL_RULES, type Wall } from "../rules/wall/wall";
 import { type Beat, type EventEffects, FlightEffects } from "./effects/effects";
 import {
   JUMP_MS,
@@ -648,7 +648,9 @@ export class RoundPlay {
     this.atRest = true;
     this.change.settled = round;
     if (result === "lost") this.logBeat("lost");
-    if (result === "on" && inDanger(round.next.wall)) this.logBeat("danger");
+    if (result === "on" && inDanger(round.next.wall, WALL_RULES)) {
+      this.logBeat("danger");
+    }
     if (result !== "on") this.cardWait.start();
   }
 

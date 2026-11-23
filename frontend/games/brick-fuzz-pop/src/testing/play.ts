@@ -1,4 +1,5 @@
 import type { Provider } from "@angular/core";
+import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import type { GameService } from "../app/play/game.service";
@@ -14,7 +15,7 @@ import {
   playRound,
 } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
-import { type Wall, thirdsOf } from "../rules/wall/wall";
+import type { Wall } from "../rules/wall/wall";
 import { STRAIGHT_UP } from "../view/steering/aiming";
 import type { Steer } from "../view/steering/steering";
 import { FLIGHT_FIXTURES, type FlightFixture } from "./flight_fixtures";

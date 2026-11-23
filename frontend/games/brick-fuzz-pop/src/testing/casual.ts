@@ -5,6 +5,7 @@
 // rules are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
+import { lowestNeededRow } from "@fz/brick-wall/rules/wall";
 import { createRandom } from "@fz/core/random";
 import { shotOf } from "../rules/levels/certificate";
 import { type Level, levelStart } from "../rules/levels/level";
@@ -16,7 +17,7 @@ import {
   playRound,
 } from "../rules/round/round";
 import { MOST_CHARGE } from "../rules/tuning";
-import { lowestNeededRow } from "../rules/wall/lower";
+import { WALL_RULES } from "../rules/wall/wall";
 import type { LinePlayed } from "./solver";
 import { wallScore } from "./wall_score";
 
@@ -66,7 +67,7 @@ export function playCasually(
     if (outcome.result !== "on") {
       return { cleared: outcome.result === "cleared", rounds, jumps, leastRow };
     }
-    leastRow = Math.min(leastRow, lowestNeededRow(next.wall));
+    leastRow = Math.min(leastRow, lowestNeededRow(next.wall, WALL_RULES));
     start = next;
   }
   return { cleared: false, rounds: CASUAL_ROUNDS, jumps, leastRow };

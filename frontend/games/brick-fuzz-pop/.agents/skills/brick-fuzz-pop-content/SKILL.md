@@ -187,8 +187,9 @@ spec.
 - **What no hook does yet** is a new member of `Hooks`, which the flight's
   `Flying` (`src/rules/flight/flight.ts`) implements.
 - **A trait that acts between rounds** rather than in a flight does so
-  where the wall comes down, as `regrow()` does in
-  `src/rules/wall/lower.ts`.
+  in the wall's `betweenRounds`, as `regrow()` does in `WALL_RULES`
+  (`src/rules/wall/wall.ts`), which `@fz/brick-wall/rules/wall`'s
+  `lowerWall()` is handed.
 - **A trait that lets a shot reach a brick a new way** is taught to
   `sealedIn()`, the flood fill of `src/rules/levels/levels.spec.ts`, which
   knows only the open field, portals and zaps.

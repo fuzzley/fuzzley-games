@@ -4,6 +4,7 @@ import {
   SIDE_MARGIN,
   isDepth,
 } from "@fz/brick-wall/rules/field";
+import { isCleared, thirdsOf } from "@fz/brick-wall/rules/wall";
 import {
   isCount,
   isFiniteNumber,
@@ -16,8 +17,7 @@ import { type LevelEntry, levelEntryOf } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
 import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";
-import { isCleared } from "../wall/lower";
-import { type Brick, type Wall, thirdsOf } from "../wall/wall";
+import { type Brick, WALL_RULES, type Wall } from "../wall/wall";
 import {
   type Run,
   afterLanding,
@@ -352,7 +352,7 @@ export function readWall(
     }
   }
   const wall = { bricks, rows: level.rows, lowestRow };
-  return hasTwins(wall) && !isCleared(wall) && !standsOnFloor(wall)
+  return hasTwins(wall) && !isCleared(wall, WALL_RULES) && !standsOnFloor(wall)
     ? wall
     : null;
 }

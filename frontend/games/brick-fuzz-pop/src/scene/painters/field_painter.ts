@@ -1,10 +1,16 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import {
+  DANGER_ROW,
+  type Thirds,
+  inDanger,
+  neededBelow,
+  thirdsOf,
+} from "@fz/brick-wall/rules/wall";
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
-import { DANGER_ROW, inDanger, neededBelow } from "../../rules/wall/lower";
-import { type Thirds, type Wall, thirdsOf } from "../../rules/wall/wall";
+import { WALL_RULES, type Wall } from "../../rules/wall/wall";
 import type { WallPalette } from "../../view/colors/palette";
 import {
   FRAME_CSS_PX,
@@ -178,9 +184,9 @@ export class FieldPainter implements Painter {
     if (laidOut || this.lost) this.bakeGround(metrics, shape, palette, baked);
     if (!laidOut && view.wall === this.wall) return;
     this.wall = view.wall;
-    const left = neededBelow(view.wall, this.thirds.jumpLine);
+    const left = neededBelow(view.wall, this.thirds.jumpLine, WALL_RULES);
     const counted = left <= MOST_COUNTED ? left : 0;
-    const danger = inDanger(view.wall);
+    const danger = inDanger(view.wall, WALL_RULES);
     if (!laidOut && counted === this.counted && danger === this.danger) {
       return;
     }

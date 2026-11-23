@@ -1,5 +1,5 @@
+import { DANGER_ROW } from "@fz/brick-wall/rules/wall";
 import type { Level } from "../rules/levels/level";
-import { DANGER_ROW } from "../rules/wall/lower";
 import { HIGH_BRICK, NO_HITS, levelFrom } from "./level_picture";
 import {
   type Line,

@@ -8,14 +8,19 @@ import {
   brickAt,
   fieldRowOf,
 } from "@fz/brick-wall/rules/grid";
+import {
+  inDanger,
+  lowestNeededRow,
+  neededBelow,
+  thirdsOf,
+} from "@fz/brick-wall/rules/wall";
 import { count, formatPoints, listed } from "@fz/core/format";
 import { brickKind } from "../catalog/bricks";
 import { PORTAL_BADGES } from "../levels/legend";
 import type { LevelEntry } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import type { Boon, Shot } from "../shot";
-import { inDanger, lowestNeededRow, neededBelow } from "../wall/lower";
-import { type Brick, thirdsOf } from "../wall/wall";
+import { type Brick, WALL_RULES } from "../wall/wall";
 import type { Run } from "./run";
 import { starsOf } from "./stars";
 
@@ -162,10 +167,10 @@ export function describeEnd(run: Run, newBest: boolean): string {
 function stepWords(next: RoundStart): string {
   const { wall, depth } = next;
   const { jumpLine } = thirdsOf(depth);
-  const lowest = lowestNeededRow(wall);
-  const toJump = neededBelow(wall, jumpLine);
+  const lowest = lowestNeededRow(wall, WALL_RULES);
+  const toJump = neededBelow(wall, jumpLine, WALL_RULES);
   const words = `${count(lowest, "row", "rows")} to the floor. ${count(toJump, "brick", "bricks")} to a jump. ${waitingWords(next)}.`;
-  return inDanger(wall)
+  return inDanger(wall, WALL_RULES)
     ? `${words} Danger. Break the bottom bricks this shot, or you lose the level.`
     : words;
 }

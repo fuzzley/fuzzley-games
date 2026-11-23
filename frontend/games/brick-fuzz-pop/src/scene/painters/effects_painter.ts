@@ -1,10 +1,11 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf, wallRowOf } from "@fz/brick-wall/rules/grid";
+import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_FRIENDS } from "../../rules/tuning";
-import { type Wall, thirdsOf } from "../../rules/wall/wall";
+import type { Wall } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
 import { hopHeight, ringScale } from "../../view/effects/flourish";
 import {

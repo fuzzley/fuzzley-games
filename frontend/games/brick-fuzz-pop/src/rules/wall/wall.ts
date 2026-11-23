@@ -1,72 +1,44 @@
-import { LEAST_DEPTH, MOST_DEPTH, isDepth } from "@fz/brick-wall/rules/field";
-import type { BrickKindId } from "../catalog/bricks";
+// Brick Fuzz Pop's wall: @fz/brick-wall/rules/wall's, of the catalog's kinds
+// of brick, and what the wall's rules say of them, which the library's
+// lowerWall() and the danger row's helpers are handed.
 
-/** Describes a brick of a wall, as it stands this round. */
-export interface Brick {
-  readonly kind: BrickKindId;
-  /** Its hits left: 0 for a kind that never breaks, which has the trait "never", so no hits are ever Infinity. */
-  readonly hits: number;
-  /** Its hits when whole, which moss grows back to. */
-  readonly full: number;
-  /** Its plated faces, a set of the `FieldFace` bits `@fz/brick-wall/rules/grid` names: 0 for a brick with no plate. */
-  readonly plates: number;
-  /**
-   * Its ink, 0 to 7: its row's for a plain or tough brick; for a portal, its
-   * pair's mark, 0 for a wall's first pair and 1 for its second; for a cage,
-   * the ink of the friend it holds, its number among the wall's cages from
-   * the lowest row up and left to right; else 0, as every other kind keeps
-   * an ink of its own.
-   */
-  readonly tint: number;
-  /** A portal's twin, as a wall cell; null for any other brick. */
-  readonly twin: number | null;
-}
+import type {
+  Brick as BrickOf,
+  Wall as WallOf,
+  WallRules,
+} from "@fz/brick-wall/rules/wall";
+import { type BrickKindId, brickKind, hasTrait } from "../catalog/bricks";
+
+/** Describes a brick of a wall, of a kind the catalog holds, as it stands this round. */
+export type Brick = BrickOf<BrickKindId>;
+
+/** Describes a level's wall of the catalog's kinds, a value each round replaces. */
+export type Wall = WallOf<BrickKindId>;
 
 /**
- * Describes a level's wall, a value each round replaces: its bricks, in the
- * field and waiting over the ceiling, and how far it has come down.
- *
- * The wall knows no depth, so a field that changes depth between rounds
- * leaves it as it is, its distance from the floor kept.
+ * Returns a wall with each brick that regrows, moss, given back a hit up to
+ * its full hits, as it grows after each round it survives; or the same
+ * wall where none grows.
  */
-export interface Wall {
-  /** Each cell's brick or null, by wall cell: wall row × 9 + column, wall row 0 its lowest. */
-  readonly bricks: readonly (Brick | null)[];
-  /** How many rows it has. */
-  readonly rows: number;
-  /** The field row wall row 0 stands in: at the depth or over it, a row waits; at 0 or under, it has reached the floor. */
-  readonly lowestRow: number;
-}
-
-/** Describes a field's thirds at a depth, in whole rows. */
-export interface Thirds {
-  readonly depth: number;
-  /** How many rows a jump brings the wall down: the top third. */
-  readonly jump: number;
-  /** The row the jump line runs under, the top third's lowest: what stands below it keeps the wall from jumping. */
-  readonly jumpLine: number;
-  /** The row a wall's lowest stands in as a level opens, and as a jump lands it. */
-  readonly opensOn: number;
-}
-
-/**
- * Returns a field's thirds at a depth: a jump is the whole part of
- * (depth − 1) / 3, the rows left over going to the third by the floor, and
- * a level opens as a jump leaves it.
- *
- * It throws for a depth no field has, a whole number from 11 to 22.
- */
-export function thirdsOf(depth: number): Thirds {
-  if (!isDepth(depth)) {
-    throw new RangeError(
-      `A field is a whole number from ${LEAST_DEPTH} to ${MOST_DEPTH} rows deep, not ${String(depth)}.`,
-    );
-  }
-  const jump = Math.floor((depth - 1) / 3);
+export function regrow(wall: Wall): Wall {
+  if (!wall.bricks.some(grows)) return wall;
   return {
-    depth,
-    jump,
-    jumpLine: depth - jump,
-    opensOn: depth - 2 * jump,
+    ...wall,
+    bricks: wall.bricks.map((brick) =>
+      grows(brick) ? { ...brick, hits: brick.hits + 1 } : brick,
+    ),
   };
 }
+
+/** Returns whether a cell holds a brick that grows a hit back after the round: moss short of its full hits. */
+function grows(brick: Brick | null): brick is Brick {
+  return (
+    brick !== null && brick.hits < brick.full && hasTrait(brick.kind, "regrows")
+  );
+}
+
+/** What the wall's rules say of its bricks: a level needs those of a kind the catalog marks needed broken, and moss regrows between rounds. */
+export const WALL_RULES: WallRules<BrickKindId> = {
+  needed: (kind) => brickKind(kind).needed,
+  betweenRounds: regrow,
+};

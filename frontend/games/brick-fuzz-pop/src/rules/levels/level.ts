@@ -1,7 +1,8 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
+import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import type { RoundStart } from "../round/round";
 import type { Boon } from "../shot";
-import { type Brick, thirdsOf } from "../wall/wall";
+import type { Brick } from "../wall/wall";
 
 /** Describes a level, ready to play. */
 export interface Level {
