@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { parOf } from "@fz/brick-wall/rules/par";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -28,7 +29,7 @@ import {
   restoreGame,
   saveGame,
 } from "../../rules/run/saved_game";
-import { parOf } from "../../rules/run/stars";
+import { PARS } from "../../rules/run/stars";
 import type { Line } from "../../rules/levels/certificate";
 import type { Pictures } from "../../scene/pictures";
 import {
@@ -342,7 +343,7 @@ describe("GameService", () => {
 
       expect({ start: game.start(), par: game.par() }).toEqual({
         start: openingOf({ depth }, levelOf({ level: 1 }, SPEC_LEVELS)),
-        par: parOf(FIRST_ID, depth),
+        par: parOf(FIRST_ID, depth, PARS),
       });
     });
 
@@ -485,7 +486,7 @@ describe("GameService", () => {
       }).toEqual({
         score,
         depth,
-        par: parOf(SECOND_ID, depth),
+        par: parOf(SECOND_ID, depth, PARS),
         start: openingOf({ depth }, levelOf({ level: 2 }, SPEC_LEVELS)),
       });
     });
@@ -1679,7 +1680,7 @@ describe("GameService", () => {
         start: game.start(),
       }).toEqual({
         depth,
-        par: parOf(SECOND_ID, depth),
+        par: parOf(SECOND_ID, depth, PARS),
         start: openingOf({ depth }, levelOf({ level: 2 }, SPEC_LEVELS)),
       });
     });

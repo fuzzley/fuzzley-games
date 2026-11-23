@@ -1,5 +1,5 @@
+import { isOpen } from "@fz/brick-wall/rules/progress";
 import type { LevelEntry } from "../../rules/levels/levels";
-import { isOpen } from "../../rules/run/progress";
 import type { Stats } from "../../rules/run/stats";
 import type { LevelMark } from "../levels/levels.component";
 

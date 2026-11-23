@@ -1,4 +1,5 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { parFrom, parOf } from "@fz/brick-wall/rules/par";
 import { variantOfSpec } from "@fz/core/testing";
 import { SEED_STRIDE } from "@fz/dev/report";
 import sparks from "../rules/levels/certificates/sparks.json";
@@ -11,7 +12,8 @@ import {
   type LevelEntry,
   parseLevel,
 } from "../rules/levels/levels";
-import { parFrom, parOf } from "../rules/run/stars";
+import { PARS } from "../rules/run/stars";
+import { PAR_SHARE } from "../rules/tuning";
 import { CASUAL_FLOORS, playCasually } from "./casual";
 import { type CertifiedShot, type Line, lineHolds, replayLine } from "./solver";
 import { SIM_TIMEOUT_MS } from "./timing";
@@ -113,10 +115,10 @@ export function holdEveryCertificate(specFile: string): void {
         expect(
           {
             holds: lineHolds(shots, played),
-            par: parOf(entry.data.id, depth),
+            par: parOf(entry.data.id, depth, PARS),
           },
           `Level "${entry.data.id}"'s certificate on a field ${String(depth)} deep, of ${String(shots.length)} shots, ${played.cleared ? "cleared" : "didn't clear"} it in ${String(played.rounds)} rounds, its needed bricks down to row ${String(played.leastRow)}: ${CERTIFY_AGAIN}.`,
-        ).toEqual({ holds: true, par: parFrom(shots.length) });
+        ).toEqual({ holds: true, par: parFrom(shots.length, PAR_SHARE) });
       },
     );
   });

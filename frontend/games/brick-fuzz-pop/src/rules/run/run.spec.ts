@@ -1,3 +1,4 @@
+import { type Pars, parOf } from "@fz/brick-wall/rules/par";
 import type { RunStage } from "@fz/core/run";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { LEVELS, levelEntryOf, levelStart, parseLevel } from "../levels/levels";
@@ -19,7 +20,7 @@ import {
   startLevel,
   takeRound,
 } from "./run";
-import { type Pars, parOf } from "./stars";
+import { PARS } from "./stars";
 
 /** A round that leaves its level on, as the plain round made by hand does. */
 const ON = FLIGHT_FIXTURES.plain.round.outcome;
@@ -87,7 +88,7 @@ describe("createRun", () => {
       firstLevel: 3,
       level: 3,
       depth: 14,
-      par: parOf("pips", 14),
+      par: parOf("pips", 14, PARS),
       rounds: 0,
       jumps: 0,
       banked: 0,
@@ -354,7 +355,7 @@ describe("nextLevel", () => {
       ...run,
       level: 3,
       depth: 16,
-      par: parOf("pips", 16),
+      par: parOf("pips", 16, PARS),
       rounds: 0,
       jumps: 0,
       banked: run.score,

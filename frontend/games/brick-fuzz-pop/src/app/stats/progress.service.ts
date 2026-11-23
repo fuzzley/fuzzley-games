@@ -1,6 +1,9 @@
 import { Injectable, inject } from "@angular/core";
 import { storedSignal } from "@fz/ui/storage";
-import { clearedOf, isOpen as isLevelOpen } from "../../rules/run/progress";
+import {
+  clearedOf,
+  isOpen as isLevelOpen,
+} from "@fz/brick-wall/rules/progress";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the progress is kept. Renaming it loses every player's. */

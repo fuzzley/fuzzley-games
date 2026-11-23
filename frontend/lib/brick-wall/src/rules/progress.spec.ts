@@ -1,19 +1,21 @@
-import { type LevelSetData, levelsOf } from "../levels/levels";
-import { clearedOf, isOpen } from "./progress";
+import { clearedOf, isOpen, levelIdOf } from "./progress";
 
-/** Four levels, "a" to "d", numbered 1 to 4. */
-const LEVELS = levelsOf([
-  {
-    id: "set",
-    name: "Set",
-    levels: ["a", "b", "c", "d"].map((id) => ({
-      id,
-      name: id,
-      boon: "hot",
-      bricks: [],
-    })),
-  } satisfies LevelSetData,
-]);
+/** Four levels made up for the spec, "a" to "d", numbered 1 to 4. */
+const LEVELS = ["a", "b", "c", "d"].map((id) => ({ data: { id } }));
+
+describe("levelIdOf", () => {
+  it("finds a level's id by its number, from 1", () => {
+    expect([1, 4].map((level) => levelIdOf(LEVELS, level))).toEqual(["a", "d"]);
+  });
+
+  it.each([0, 5])("throws for level %i, which the game hasn't", (level) => {
+    expect(() => levelIdOf(LEVELS, level)).toThrow(
+      new RangeError(
+        `There is no level ${String(level)}: the levels run from 1 to 4.`,
+      ),
+    );
+  });
+});
 
 describe("isOpen", () => {
   it("opens the first level from the start", () => {

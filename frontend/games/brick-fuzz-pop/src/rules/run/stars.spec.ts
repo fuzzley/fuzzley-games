@@ -1,51 +1,13 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { parOf } from "@fz/brick-wall/rules/par";
 import type { RunStage } from "@fz/core/run";
 import { LEVELS } from "../levels/levels";
-import { PARS, type Pars, parFrom, parOf, starsFor, starsOf } from "./stars";
-
-/** Pars of two levels, each on a depth or two. */
-const SOME_PARS: Pars = { first: { "11": 6, "12": 5 }, second: { "22": 9 } };
-
-describe("parFrom", () => {
-  it.each([
-    [1, 2],
-    [2, 3],
-    [4, 6],
-    [5, 8],
-    [10, 15],
-  ])("sets par for a certificate of %i rounds at %i", (rounds, par) => {
-    expect(parFrom(rounds)).toBe(par);
-  });
-});
-
-describe("parOf", () => {
-  it("finds a level's par by its id and the depth", () => {
-    expect([
-      parOf("first", 11, SOME_PARS),
-      parOf("first", 12, SOME_PARS),
-      parOf("second", 22, SOME_PARS),
-    ]).toEqual([6, 5, 9]);
-  });
-
-  it.each<[string, string, number]>([
-    ["a level the pars lack", "third", 11],
-    ["a depth the level's pars lack", "second", 11],
-    ["a name every object has", "constructor", 11],
-  ])("throws for %s", (_, id, depth) => {
-    expect(() => parOf(id, depth, SOME_PARS)).toThrow(
-      `Level "${id}" has no par on a field ${String(depth)} deep.`,
-    );
-  });
-
-  it("reads the levels' pars by default", () => {
-    expect(parOf("hello-wall", 11)).toBe(PARS["hello-wall"]?.["11"]);
-  });
-});
+import { PARS, starsFor, starsOf } from "./stars";
 
 describe("PARS", () => {
   it("holds a par of a round or more for every level on every depth", () => {
     const pars = LEVELS.flatMap(({ data: { id } }) =>
-      DEPTHS.map((depth) => parOf(id, depth)),
+      DEPTHS.map((depth) => parOf(id, depth, PARS)),
     );
 
     expect(pars.filter((par) => !Number.isInteger(par) || par < 1)).toEqual([]);

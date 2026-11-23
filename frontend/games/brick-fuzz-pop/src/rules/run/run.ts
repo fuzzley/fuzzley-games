@@ -1,3 +1,5 @@
+import { type Pars, parOf } from "@fz/brick-wall/rules/par";
+import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { type RunStage, hasEnded } from "@fz/core/run";
 import {
   type Level,
@@ -8,7 +10,7 @@ import {
 } from "../levels/levels";
 import type { RoundOutcome, RoundResult, RoundStart } from "../round/round";
 import { starPoints } from "./scoring";
-import { PARS, type Pars, parOf, starsFor } from "./stars";
+import { PARS, starsFor } from "./stars";
 
 /**
  * Says where a run stands: a level waiting for the player's first move,
@@ -252,6 +254,6 @@ function levelBegun(
   level: number,
   depth: number,
 ): Pick<Run, "level" | "depth" | "par" | "rounds" | "jumps"> {
-  const { id } = levelEntryOf(levels, level).data;
-  return { level, depth, par: parOf(id, depth, pars), rounds: 0, jumps: 0 };
+  const par = parOf(levelIdOf(levels, level), depth, pars);
+  return { level, depth, par, rounds: 0, jumps: 0 };
 }

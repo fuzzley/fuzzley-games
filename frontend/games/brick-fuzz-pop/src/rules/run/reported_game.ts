@@ -6,9 +6,11 @@
 
 import { isAim } from "@fz/brick-wall/rules/aims";
 import { isDepth } from "@fz/brick-wall/rules/field";
+import type { Pars } from "@fz/brick-wall/rules/par";
+import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
 import type { CertifiedShot } from "../levels/certificate";
-import { type LevelEntry, levelEntryOf } from "../levels/levels";
+import type { LevelEntry } from "../levels/levels";
 import {
   RULES,
   type RoundRules,
@@ -24,7 +26,7 @@ import {
   hasKnownLevel,
   restoreGame,
 } from "./saved_game";
-import { PARS, type Pars } from "./stars";
+import { PARS } from "./stars";
 
 /**
  * A shot of a level as a report keeps it: the aim's index and the charge,
@@ -356,7 +358,7 @@ function savedGameOf(
   tuned: boolean,
 ): SavedGame {
   return {
-    levelId: levelEntryOf(levels, run.level).data.id,
+    levelId: levelIdOf(levels, run.level),
     level: run.level,
     firstLevel: run.firstLevel,
     depth: run.depth,

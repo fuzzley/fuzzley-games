@@ -10,6 +10,7 @@ import {
   untracked,
 } from "@angular/core";
 import type { Aim } from "@fz/brick-wall/rules/aims";
+import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -1065,7 +1066,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     if (this.debug.runOffRecord()) return false;
     const result = levelResultOf(landed);
     if (result !== null) {
-      const { id } = levelEntryOf(this.levels, landed.level).data;
+      const id = levelIdOf(this.levels, landed.level);
       this.stats.recordLevel(id, result);
       this.progress.recordCleared(id);
     }
@@ -1083,7 +1084,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   private keepClearedBefore(run: Run): void {
     if (this.debug.runOffRecord()) return;
     for (let level = run.firstLevel; level < run.level; level++) {
-      this.progress.recordCleared(levelEntryOf(this.levels, level).data.id);
+      this.progress.recordCleared(levelIdOf(this.levels, level));
     }
   }
 

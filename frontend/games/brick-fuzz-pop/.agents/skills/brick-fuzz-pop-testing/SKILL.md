@@ -86,9 +86,9 @@ Then:
   (`lineHolds()`, `src/testing/solver.ts`). `yarn certify:levels` finds
   them with the solver and writes them to
   `src/rules/levels/certificates/<set>.json`. It writes each level's par on
-  each depth, half as many rounds again (`parFrom()`), to
-  `src/rules/levels/par.json`. A run writes the same bytes as the last
-  unless a line changed.
+  each depth, half as many rounds again (`@fz/brick-wall/rules/par`'s
+  `parFrom()`), to `src/rules/levels/par.json`. A run writes the same bytes
+  as the last unless a line changed.
 - **`src/rules/levels/every_level/`** has a file for each depth, 11 to 22,
   each `holdEveryCertificate(import.meta.filename)`
   (`src/testing/every_level.ts`). It replays every level's line on that

@@ -1,4 +1,5 @@
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { parOf } from "@fz/brick-wall/rules/par";
 import { WALL_LEGEND } from "../levels/legend";
 import {
   LEVELS,
@@ -29,7 +30,7 @@ import {
   saveGame,
 } from "./saved_game";
 import { starPoints } from "./scoring";
-import { parOf, starsFor } from "./stars";
+import { PARS, starsFor } from "./stars";
 
 /** A change a browser might make to what storage keeps, named for the specs. */
 type Spoil = readonly [string, Readonly<Record<string, unknown>>];
@@ -169,7 +170,7 @@ function runUnderWay(change: Partial<Run> = {}): Run {
     firstLevel: 3,
     level: 5,
     depth: 11,
-    par: parOf("girder", 11),
+    par: parOf("girder", 11, PARS),
     rounds: 3,
     jumps: 0,
     banked: 3000,
@@ -408,7 +409,7 @@ describe("restoreGame", () => {
       id: 9,
       level: 6,
       depth: 12,
-      par: parOf("zip-line", 12),
+      par: parOf("zip-line", 12, PARS),
       rounds: 0,
       banked: 4100,
       outcome: "paused",

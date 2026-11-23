@@ -1,6 +1,7 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { parFrom } from "@fz/brick-wall/rules/par";
 import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
-import { parFrom } from "../rules/run/stars";
+import { PAR_SHARE } from "../rules/tuning";
 import type { CertifyApi } from "./script_api";
 import { lineHolds, replayLine, solveLevel } from "./solver";
 
@@ -26,5 +27,5 @@ export const CERTIFY_API: CertifyApi = {
     }
     return solved;
   },
-  parFrom,
+  parFrom: (rounds) => parFrom(rounds, PAR_SHARE),
 };

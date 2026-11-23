@@ -4,6 +4,8 @@ import {
   SIDE_MARGIN,
   isDepth,
 } from "@fz/brick-wall/rules/field";
+import { type Pars, parOf } from "@fz/brick-wall/rules/par";
+import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { isCleared, thirdsOf } from "@fz/brick-wall/rules/wall";
 import {
   isCount,
@@ -12,7 +14,7 @@ import {
   isRecord,
   isWhole,
 } from "@fz/core/json";
-import { type Level, type LevelEntry, levelEntryOf } from "../levels/levels";
+import type { Level, LevelEntry } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
 import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";
@@ -24,7 +26,7 @@ import {
   levelOf,
   openingOf,
 } from "./run";
-import { MOST_STARS, PARS, type Pars, parOf } from "./stars";
+import { MOST_STARS, PARS } from "./stars";
 
 /**
  * The version of `SavedGame`, which the shell keeps a run under; the
@@ -364,7 +366,7 @@ function savedRun(
   tuned: boolean,
 ): SavedGame {
   return {
-    levelId: levelEntryOf(levels, run.level).data.id,
+    levelId: levelIdOf(levels, run.level),
     level: run.level,
     firstLevel: run.firstLevel,
     depth: run.depth,
