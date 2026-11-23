@@ -1,12 +1,35 @@
-import { type BallTrack, type Waypoint, positionAt } from "./events";
+import {
+  type At,
+  type BallTrack,
+  type KeyedEvent,
+  type Waypoint,
+  byMoment,
+  positionAt,
+} from "./track";
 
-/** Returns the player's track through places given as [at, x, y]. */
-function trackOf(...places: (readonly [number, number, number])[]): BallTrack {
+/** Roles made up for the specs: the fuzzball shot, and one that follows it. */
+type Role = "lead" | "follower";
+
+/** Returns the lead's track through places given as [at, x, y]. */
+function trackOf(
+  ...places: (readonly [number, number, number])[]
+): BallTrack<Role> {
   return {
     ball: 0,
-    role: "player",
+    role: "lead",
     waypoints: places.map(([at, x, y]) => ({ at, x, y })),
   };
+}
+
+/** Returns an event at a moment keyed by its section, what it happens to, its rank and when it happened. */
+function keyed(
+  at: number,
+  section: number,
+  who: number,
+  rank: number,
+  seq: number,
+): KeyedEvent<At> {
+  return { event: { at }, section, who, rank, seq };
 }
 
 // Up to the right wall, back to the left, up to a brick, down to the floor:
@@ -63,7 +86,7 @@ describe("positionAt", () => {
     expect(positionAt(ZIGZAG, 22.001)).toBeNull();
   });
 
-  it("finds a fuzzball through a portal where it comes out, at the moment it goes in", () => {
+  it("finds a fuzzball through a pair of twins where it comes out, at the moment it goes in", () => {
     const track = trackOf(
       [0, 4.5, 0.25],
       [3, 4.5, 3.25],
@@ -93,5 +116,61 @@ describe("positionAt", () => {
 
   it("finds no fuzzball at no moment", () => {
     expect(positionAt(ZIGZAG, Number.NaN)).toBeNull();
+  });
+});
+
+describe("byMoment", () => {
+  it.each<[string, KeyedEvent<At>, KeyedEvent<At>]>([
+    ["an earlier moment", keyed(1, 9, 9, 9, 9), keyed(2, 0, 0, 0, 0)],
+    [
+      "a lower section, at one moment",
+      keyed(1, 0, 9, 9, 9),
+      keyed(1, 1, 0, 0, 0),
+    ],
+    [
+      "a lower fuzzball or cell, in one section",
+      keyed(1, 1, 0, 9, 9),
+      keyed(1, 1, 1, 0, 0),
+    ],
+    [
+      "a lower rank, for one fuzzball or cell",
+      keyed(1, 1, 1, 0, 9),
+      keyed(1, 1, 1, 1, 0),
+    ],
+    [
+      "an earlier happening, at one rank",
+      keyed(1, 1, 1, 1, 0),
+      keyed(1, 1, 1, 1, 1),
+    ],
+  ])("puts an event first for %s", (_, first, second) => {
+    expect([
+      Math.sign(byMoment(first, second)),
+      Math.sign(byMoment(second, first)),
+    ]).toEqual([-1, 1]);
+  });
+
+  it("puts an event level with itself", () => {
+    const event = keyed(1, 1, 1, 1, 1);
+
+    expect(byMoment(event, event)).toBe(0);
+  });
+
+  it("sorts a flight's events into one order, whichever order they were written in", () => {
+    const events = [
+      keyed(2, 0, 0, 0, 4),
+      keyed(1, 1, 3, 0, 1),
+      keyed(1, 0, 1, 2, 2),
+      keyed(1, 0, 1, 0, 0),
+      keyed(1, 0, 0, 8, 3),
+    ];
+
+    const orders = [events, [...events].reverse()].map((written) =>
+      [...written].sort(byMoment).map(({ seq }) => seq),
+    );
+
+    expect(orders).toEqual([
+      [3, 0, 2, 1, 4],
+      [3, 0, 2, 1, 4],
+    ]);
   });
 });

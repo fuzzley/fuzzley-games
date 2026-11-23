@@ -4,13 +4,13 @@ import {
   FIRST_AIM_DEGREES,
 } from "@fz/brick-wall/rules/aims";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { positionAt } from "@fz/brick-wall/rules/track";
 import { eventsOf, near } from "../../testing/flights";
 import { WALL_LEGEND } from "../levels/legend";
 import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import { type RoundStart, playRound } from "../round/round";
 import type { Shot } from "../shot";
 import { GUIDE_DOT_GAP, GUIDE_PAST_TURN } from "../tuning";
-import { positionAt } from "./events";
 import { type GuidePlace, guideOf } from "./guide";
 
 /** Returns an aim's index from its angle, in degrees counter-clockwise from the floor on the right. */

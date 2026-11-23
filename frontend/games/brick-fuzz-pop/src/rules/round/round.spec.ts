@@ -1,11 +1,11 @@
 import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { positionAt } from "@fz/brick-wall/rules/track";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { eventsOf, near } from "../../testing/flights";
 import { PRISM, STAND_IN_RULES } from "../../testing/stand_ins";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
-import { positionAt } from "../flight/events";
 import { WALL_LEGEND } from "../levels/legend";
 import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import { BORED, TRIPLE_MATES } from "../tuning";

@@ -2,6 +2,7 @@
 // what it punches through on the way, worked out by the flight's own rules
 // so it never shows what the shot won't do.
 
+import { positionAt } from "@fz/brick-wall/rules/track";
 import {
   RULES,
   type RoundRules,
@@ -11,7 +12,7 @@ import {
 } from "../round/round";
 import type { Shot } from "../shot";
 import { GUIDE_DOT_GAP } from "../tuning";
-import { type BallTrack, positionAt } from "./events";
+import type { BallTrack } from "./events";
 import { fly } from "./flight";
 
 /** Describes a place on the field, in field units. */

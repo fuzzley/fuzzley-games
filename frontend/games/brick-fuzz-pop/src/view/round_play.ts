@@ -1,3 +1,4 @@
+import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { inDanger } from "@fz/brick-wall/rules/wall";
 import { Countdown } from "@fz/core/clock";
 import {
@@ -6,7 +7,7 @@ import {
   type NumberedEvent,
 } from "@fz/core/event_log";
 import { easeOutCubic } from "@fz/core/math";
-import type { BallRole, FlightEvent, Waypoint } from "../rules/flight/events";
+import type { BallRole, FlightEvent } from "../rules/flight/events";
 import type { Round, RoundResult, RoundStart } from "../rules/round/round";
 import { MOST_CHARGE, ZAP_HITS } from "../rules/tuning";
 import { type Brick, WALL_RULES, type Wall } from "../rules/wall/wall";

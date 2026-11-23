@@ -165,6 +165,14 @@ describe("pictureProblem", () => {
       picture(["@pppppppp", PEBBLES, "@pppppppp"]),
     ],
     ["a row of air between bricks", picture([PEBBLES, AIR, PEBBLES])],
+    [
+      "rows of air apart, each as many together as the rules let",
+      [PEBBLES, AIR, PEBBLES, AIR, PEBBLES],
+    ],
+    [
+      `the most rows the rules let, ${String(RULES.rows.most)}`,
+      Array<string>(RULES.rows.most).fill(PEBBLES),
+    ],
   ])("finds none in a picture with %s", (_, rows) => {
     expect(pictureProblem(rows, RULES)).toBeNull();
   });

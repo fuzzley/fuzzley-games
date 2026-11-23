@@ -1,15 +1,10 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
-import {
-  type BallRole,
-  type BallTrack,
-  type FlightEvent,
-  type Waypoint,
-  positionAt,
-} from "../rules/flight/events";
+import type { BallRole, BallTrack, FlightEvent } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";
 import {
   RULES,

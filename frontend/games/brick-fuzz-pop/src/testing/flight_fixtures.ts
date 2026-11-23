@@ -9,6 +9,7 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { clamp, multiplierAt } from "@fz/core/math";
 import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
 import type {
@@ -18,7 +19,6 @@ import type {
   Flight,
   FlightEvent,
   TurnOff,
-  Waypoint,
   ZapPattern,
 } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";

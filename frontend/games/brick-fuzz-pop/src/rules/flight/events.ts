@@ -1,3 +1,4 @@
+import type { At, BallTrack as TrackOf } from "@fz/brick-wall/rules/track";
 import type { BrickKindId } from "../catalog/bricks";
 
 /**
@@ -18,12 +19,6 @@ export type ZapPattern = "row" | "column" | "cross" | "x" | "blast";
 
 /** Names what broke a brick: a fuzzball's strike, a zap, or a bomb's blast. */
 export type BreakCause = "fuzzball" | "zap" | "blast";
-
-/** Says when something happens in a flight. */
-interface At {
-  /** Units flown since the shot was released, on the round's one clock. */
-  readonly at: number;
-}
 
 /**
  * Describes something that happens in a flight, at a moment.
@@ -145,24 +140,13 @@ export type FlightEvent = At &
       }
   );
 
-/** Describes where a fuzzball's middle is at a moment of its flight. */
-export interface Waypoint {
-  readonly at: number;
-  readonly x: number;
-  readonly y: number;
-}
-
 /**
- * Describes a fuzzball's path: where it left, each place it turned and where
- * it landed, in order of `at`, joined by straight lines flown at a unit a
- * unit of `at`. A portal's two places share a moment. A fuzzball a drop kept
- * from leaving has none.
+ * Describes a fuzzball's path in one of this game's roles, as
+ * `@fz/brick-wall/rules/track` lays one out.
+ *
+ * A fuzzball a drop kept from leaving has no waypoints.
  */
-export interface BallTrack {
-  readonly ball: number;
-  readonly role: BallRole;
-  readonly waypoints: readonly Waypoint[];
-}
+export type BallTrack = TrackOf<BallRole>;
 
 /** Describes everything that happens in a round once its shot is released. */
 export interface Flight {
@@ -181,50 +165,4 @@ export interface Flight {
   readonly length: number;
   /** How many fuzzballs the cap of `MOST_FLIGHT` or the still turns brought home, not boredom or a drop: 0 in play. */
   readonly capped: number;
-}
-
-/**
- * Returns where a fuzzball is at a moment, or null before it leaves, after
- * it lands, or ever for one that never left.
- *
- * At a moment two of its waypoints share, as a portal's, it is at the
- * later, where it flies on from.
- */
-export function positionAt(track: BallTrack, at: number): Waypoint | null {
-  const { waypoints } = track;
-  const first = waypoints[0];
-  const last = waypoints[waypoints.length - 1];
-  if (first === undefined || last === undefined) {
-    return null;
-  }
-  if (!(at >= first.at && at <= last.at)) {
-    return null;
-  }
-  // The last waypoint at or before the moment, the one it flies on from,
-  // found by halves, since the view asks for every fuzzball every frame.
-  let from = first;
-  let fromIndex = 0;
-  let low = 1;
-  let high = waypoints.length - 1;
-  while (low <= high) {
-    const middle = Math.floor((low + high) / 2);
-    const waypoint = waypoints[middle];
-    if (waypoint === undefined || waypoint.at > at) {
-      high = middle - 1;
-    } else {
-      from = waypoint;
-      fromIndex = middle;
-      low = middle + 1;
-    }
-  }
-  const to = waypoints[fromIndex + 1];
-  if (to === undefined) {
-    return { at, x: from.x, y: from.y };
-  }
-  const share = (at - from.at) / (to.at - from.at);
-  return {
-    at,
-    x: from.x + (to.x - from.x) * share,
-    y: from.y + (to.y - from.y) * share,
-  };
 }

@@ -6,15 +6,11 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { brickBox, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
 import type { Box } from "@fz/core/sweep";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
-import {
-  type Flight,
-  type FlightEvent,
-  type Waypoint,
-  positionAt,
-} from "../rules/flight/events";
+import type { Flight, FlightEvent } from "../rules/flight/events";
 import type { FlightRules, FlightStart, Flown } from "../rules/flight/flight";
 import type { TraitRules } from "../rules/flight/hooks";
 import { shapeOf } from "../rules/grid";

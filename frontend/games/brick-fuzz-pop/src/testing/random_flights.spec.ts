@@ -1,7 +1,8 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import type { Flight, FlightEvent, Waypoint } from "../rules/flight/events";
+import type { Waypoint } from "@fz/brick-wall/rules/track";
+import type { Flight, FlightEvent } from "../rules/flight/events";
 import { type FlightStart, type Flown, fly } from "../rules/flight/flight";
 import { WALL_LEGEND } from "../rules/levels/legend";
 import { RULES, flightRulesOf } from "../rules/round/round";

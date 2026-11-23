@@ -1,6 +1,6 @@
 // A round's flight, from its release to its last event, the last landing or a
-// zap that lands after it, worked out whole on the round's one clock, as
-// src/rules/flight/events.ts describes it.
+// zap that lands after it, worked out whole on the round's one clock of
+// @fz/brick-wall/rules/track, as src/rules/flight/events.ts describes it.
 //
 // The fuzzballs leave in their order, LAUNCH_GAP apart, and each flies from one
 // thing it meets to the next, cast() finding what and when: the one whose next
@@ -23,6 +23,11 @@ import {
   columnOf,
   fieldRowOf,
 } from "@fz/brick-wall/rules/grid";
+import {
+  type KeyedEvent,
+  type Waypoint,
+  byMoment,
+} from "@fz/brick-wall/rules/track";
 import { multiplierAt } from "@fz/core/math";
 import { MISSED } from "@fz/core/sweep";
 import { strike } from "../bricks/bricks";
@@ -56,7 +61,6 @@ import type {
   Flight,
   FlightEvent,
   TurnOff,
-  Waypoint,
   ZapPattern,
 } from "./events";
 import type { Hooks, Struck, TraitRules } from "./hooks";
@@ -206,18 +210,13 @@ interface Split {
   readonly sin: number;
 }
 
-/** Describes an event, with where it goes among those of its moment. */
-interface Keyed {
-  readonly event: FlightEvent;
-  /** 0 for a fuzzball's events, which go first, 1 for a zap's, {@link DROPS} for a drop's, which go last. */
-  readonly section: number;
-  /** The fuzzball's number, or the zap's cell. */
-  readonly who: number;
-  /** Where its kind goes among a fuzzball's at a moment. */
-  readonly rank: number;
-  /** The order it happened in, which keeps what a strike or a zap caused right after it. */
-  readonly seq: number;
-}
+/**
+ * Describes an event, with where it goes among those of its moment: its
+ * section 0 for a fuzzball's events, which go first, 1 for a zap's and
+ * {@link DROPS} for a drop's, which go last, then by the fuzzball's number
+ * or the zap's cell, and by {@link BALL_RANK}.
+ */
+type Keyed = KeyedEvent<FlightEvent>;
 
 /** The order a fuzzball's events go in at one moment, `FlightEvent`'s order of kinds. */
 const BALL_RANK = {
@@ -1153,19 +1152,3 @@ const RAYS: Readonly<
     [1, 1],
   ],
 };
-
-/**
- * Returns where an event goes in a flight: by moment, the fuzzballs' before
- * the zaps' and the drops last, then by fuzzball or zap, by kind, and by
- * when it happened, so what a strike or a zap caused stays right after it;
- * a total order, as the implementation plan's §5.6 asks.
- */
-function byMoment(a: Keyed, b: Keyed): number {
-  return (
-    a.event.at - b.event.at ||
-    a.section - b.section ||
-    a.who - b.who ||
-    a.rank - b.rank ||
-    a.seq - b.seq
-  );
-}

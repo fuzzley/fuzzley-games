@@ -1,4 +1,5 @@
 import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { keysOf } from "@fz/core/records";
 import { brickKind } from "../rules/catalog/bricks";
 import type {
@@ -7,7 +8,6 @@ import type {
   BreakCause,
   Flight,
   FlightEvent,
-  Waypoint,
   ZapPattern,
 } from "../rules/flight/events";
 import {
