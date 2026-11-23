@@ -2,11 +2,13 @@
 // `WallAtlas`, which bakes the art's `wallAtlasFrames()`: the frames each of
 // the library's painters draws the game's field and wall with.
 
+import type { EffectsArt } from "@fz/brick-wall/scene/effects";
 import type { FieldArt } from "@fz/brick-wall/scene/field_painter";
 import type { GuideArt } from "@fz/brick-wall/scene/guide";
 import type { WallArt } from "@fz/brick-wall/scene/wall_painter";
 import type { KindId } from "../rules/catalog/kinds";
 import { brickLayers } from "../view/art/atlas_frames";
+import { EFFECT_FRAMES } from "../view/art/effect_frames";
 import { COUNT_DOT, FIELD_FRAMES } from "../view/art/field_frames";
 import { FRAMES } from "../view/art/frames";
 import { GUIDE_FRAMES } from "../view/art/guide_frames";
@@ -46,4 +48,18 @@ export const GUIDE_ART: GuideArt = {
   mostDots: MOST_GUIDE_DOTS,
   struck: GUIDE_FRAMES.struck,
   turns: { ring: FRAMES.guideRing, most: MOST_GUIDE_RINGS },
+};
+
+/**
+ * The frames `@fz/brick-wall/scene/effects`' `EffectsPainter` shows of
+ * Rickashay's flourishes: a broken brick's shard and the ring a fuzzball
+ * leaves as its fur lifts. It plays no streak of its own, as the streak
+ * behind a fuzzball dashing home follows it, drawn with it, so a burst's
+ * streak would fade at once.
+ */
+export const EFFECTS_ART: EffectsArt = {
+  shard: EFFECT_FRAMES.shard,
+  streak: EFFECT_FRAMES.streak,
+  ring: EFFECT_FRAMES.ring,
+  streakMs: 0,
 };

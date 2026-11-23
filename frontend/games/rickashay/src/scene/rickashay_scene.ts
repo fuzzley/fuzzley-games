@@ -1,4 +1,5 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
+import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { WallRules } from "@fz/brick-wall/rules/wall";
 import { WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
@@ -16,6 +17,7 @@ import {
   fieldMetrics,
   hasRoom,
 } from "@fz/brick-wall/view/field_metrics";
+import type { EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { SceneSurroundings } from "@fz/phaser/host";
 import { type Insets, NO_INSETS } from "@fz/phaser/insets";
@@ -29,10 +31,24 @@ import {
   viewportOf,
 } from "@fz/phaser/scene";
 import { type GameObjects, Input, Scene } from "phaser";
-import { type KindId, kindOf } from "../rules/catalog/kinds";
+import { type KindId, type Wall, kindOf } from "../rules/catalog/kinds";
+import type { FlightEvent } from "../rules/flight/events";
 import type { FlightRules } from "../rules/tuning";
+import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
-import { type BallView, type RoundView, waitingX } from "../view/run_state";
+import {
+  type Flourish,
+  beatEffectsOf,
+  flourishesOf,
+} from "../view/effects/effects";
+import { type Strip, rampFaceOf } from "../view/effects/flourish";
+import {
+  type BallView,
+  type LoggedBeat,
+  type LoggedEvent,
+  type RoundView,
+  waitingX,
+} from "../view/run_state";
 import type { FieldCommand } from "../view/steering/controls";
 import { Steering } from "../view/steering/steering";
 import { type GuideFlight, WallGuides } from "../view/field/guide";
@@ -40,6 +56,7 @@ import { wallAtlasFrames } from "../view/art/atlas_frames";
 import { FIELD_ART, GUIDE_ART, WALL_ART } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
+import { EffectsPainter } from "./painters/effects_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PillPainter } from "./painters/pill_painter";
 import { SpringsPainter } from "./painters/springs_painter";
@@ -102,9 +119,11 @@ export interface RickashaySceneOptions {
 /**
  * Draws a level of Rickashay: reads the player's keys, mouse and fingers
  * through its `Steering`, hands the shell each frame's time and aim, then
- * pulls the round to draw and draws the field, its springs, the wall, the
- * guide, the fuzzball and the rally's pill beside it as they stand; a key
- * the steering doesn't take becomes a command.
+ * pulls the round to draw, plays the flourishes of what it reached since
+ * the last frame where motion is welcome, and draws the field, its
+ * springs, the wall, the guide, the flourishes, the fuzzball and the
+ * rally's pill beside it as they stand; a key the steering doesn't take
+ * becomes a command.
  */
 export class RickashayScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -118,13 +137,15 @@ export class RickashayScene extends Scene {
   wall!: WallPainter<KindId>;
   /** Draws the guide of the shot being aimed. */
   guide!: GuidePainter<KindId>;
+  /** Draws what bursts from the wall and flashes on the field. */
+  effects!: EffectsPainter;
   /** Draws the fuzzball. */
   balls!: BallPainter;
   /** Draws the rally in its pill beside the fuzzball. */
   pill!: PillPainter;
   /** Turns the player's keys, mouse and fingers into the shot being aimed, which the bar's nudges and Release reach too. */
   steering!: Steering;
-  /** Frames the camera on the field. */
+  /** Frames the camera on the field, and shakes it. */
   private fieldCamera!: FieldCamera;
   /** Every painter, back to front, which each frame draws, the field before the guide, which keeps its dots off the field's count. */
   private painters: readonly Painter[] = [];
@@ -151,6 +172,16 @@ export class RickashayScene extends Scene {
   private releasing!: PointerRelease;
   /** Where the fuzzball last waited, across the field, which the steering aims a pointer from while it flies too. */
   private from: number = FIRST_X;
+  /** The view's log of events played from, and the latest of its events played. */
+  private eventLog: EventLogView<LoggedEvent> | null = null;
+  private played = 0;
+  /** The view's log of beats played from, and the latest of its beats played. */
+  private beatLog: EventLogView<LoggedBeat> | null = null;
+  private beaten = 0;
+  /** Where the fuzzball last turned, on the field, which a spark flies from and a puff spreads from, written at each turn played. */
+  private readonly turned = { x: 0, y: 0 };
+  /** The strip a ramp's flash runs along, written for each. */
+  private readonly rampFace: Strip = { x: 0, y: 0, length: 0, angle: 0 };
 
   constructor(
     private readonly options: RickashaySceneOptions,
@@ -163,7 +194,8 @@ export class RickashayScene extends Scene {
 
   /**
    * Measures, bakes the atlas, builds the field in its layers, back to
-   * front, makes the steering, and starts listening.
+   * front, makes the steering, and starts listening, the events and beats
+   * the view has reached already left unplayed.
    */
   create(): void {
     const { options } = this;
@@ -179,6 +211,7 @@ export class RickashayScene extends Scene {
     this.springs = new SpringsPainter(this, layers.springs);
     this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
     this.guide = new GuidePainter(this, layers.guide, GUIDE_ART, this.field);
+    this.effects = new EffectsPainter(this, layers.bursts);
     this.balls = new BallPainter(this, layers.balls);
     this.pill = new PillPainter(this, layers.pill);
     this.fieldCamera = new FieldCamera(this.cameras.main);
@@ -187,10 +220,12 @@ export class RickashayScene extends Scene {
       this.springs,
       this.wall,
       this.guide,
+      this.effects,
       this.balls,
       this.pill,
       this.fieldCamera,
     ];
+    this.effects.layout(this.metrics);
     this.fieldCamera.fit(this.metrics, this.laidOut);
     this.steering = new Steering(this.metrics, this.canvas);
     this.aiming = options.pointerAiming();
@@ -199,6 +234,7 @@ export class RickashayScene extends Scene {
     this.steering.releaseBy(this.releasing);
     const view = options.view();
     this.wait(view.ball);
+    this.follow(view);
     const rules = options.rules();
     this.context = {
       view,
@@ -224,7 +260,8 @@ export class RickashayScene extends Scene {
 
   /**
    * Reads the steering, hands the shell the time the frame took and the
-   * aim, then draws the round as the view now has it.
+   * aim, then plays what the round reached since the last frame, once
+   * each, and draws the round as the view now has it.
    *
    * It builds nothing of its own but on a new layout, a new palette, or
    * rules retuned to hold more floor bounces than it has springs for.
@@ -244,7 +281,144 @@ export class RickashayScene extends Scene {
     context.motion = options.motion();
     context.rules = options.rules();
     context.guide = this.guides.of(options.guide(), context.rules);
+    this.follow(view);
+    view.events.forEachSince(this.played, this.playEvent);
+    this.played = view.events.latest;
+    view.beats.forEachSince(this.beaten, this.playBeat);
+    this.beaten = view.beats.latest;
     this.draw();
+  }
+
+  /**
+   * Takes up a log of events or of beats the scene hasn't read from yet at
+   * its latest, so what it held before the scene met it goes unplayed, and
+   * what comes after plays.
+   */
+  private follow(view: RoundView): void {
+    if (view.events !== this.eventLog) {
+      this.eventLog = view.events;
+      this.played = view.events.latest;
+    }
+    if (view.beats !== this.beatLog) {
+      this.beatLog = view.beats;
+      this.beaten = view.beats.latest;
+    }
+  }
+
+  /**
+   * Plays an event of the flight: keeps where it turns, and plays the
+   * flourishes it calls for where motion is welcome.
+   *
+   * Made once, as the event log takes it each frame.
+   */
+  private readonly playEvent = ({
+    event,
+    effects,
+  }: Readonly<LoggedEvent>): void => {
+    if (event.kind === "turn") {
+      this.turned.x = event.x;
+      this.turned.y = event.y;
+    }
+    this.flourishAll(flourishesOf(effects, this.context.motion), event);
+  };
+
+  /**
+   * Plays a beat of the round: its flourishes, where motion is welcome.
+   *
+   * Made once, as the beat log takes it each frame.
+   */
+  private readonly playBeat = ({ beat }: Readonly<LoggedBeat>): void => {
+    this.flourishAll(
+      flourishesOf(beatEffectsOf(beat), this.context.motion),
+      null,
+    );
+  };
+
+  /** Plays each of a moment's flourishes, read by number, as a frame's round of them makes nothing. */
+  private flourishAll(
+    flourishes: readonly Flourish[],
+    event: Readonly<FlightEvent> | null,
+  ): void {
+    const count = flourishes.length;
+    for (let at = 0; at < count; at++) {
+      const flourish = flourishes[at];
+      if (flourish !== undefined) this.flourish(flourish, event);
+    }
+  }
+
+  /**
+   * Plays one of an event's or a beat's flourishes, where it plays: on the
+   * wall drawn the frame before, as the frame that reaches a flight's last
+   * events hands over the wall that comes down under where the flight's
+   * still shows. A hatch's dip and swing and a lock's slide play nothing
+   * till their bricks are drawn.
+   */
+  private flourish(
+    flourish: Flourish,
+    event: Readonly<FlightEvent> | null,
+  ): void {
+    const { now, view } = this.context;
+    const wall = this.wall.drawnWall() ?? view.wall;
+    switch (flourish.kind) {
+      case "swell":
+        this.wall.swell(wall, flourish.cell, now);
+        return;
+      case "shards":
+        this.shatter(wall, flourish.cell);
+        return;
+      case "flash": {
+        const face = rampFaceOf(wall, flourish.cell, this.rampFace);
+        if (face) this.effects.flashRamp(face, this.atlas.palette.spark, now);
+        return;
+      }
+      case "spark":
+        this.effects.spark(this.turned.x, this.turned.y, now);
+        return;
+      case "draw-in":
+      case "let-out":
+        this.effects.swirl(
+          columnOf(flourish.cell) + 0.5,
+          fieldRowOf(wall, flourish.cell) + 0.5,
+          flourish.kind === "draw-in",
+          now,
+        );
+        return;
+      case "ring":
+        this.effects.ring(view.ball.x, view.ball.y, now);
+        return;
+      case "kick":
+        if (event?.kind === "bounce-spent") this.springs.kick(event.held, now);
+        this.effects.puff(this.turned.x, this.turned.y, now);
+        return;
+      case "streak":
+        this.balls.dash();
+        return;
+      case "jump-line":
+        this.effects.flashLine(now);
+        return;
+      case "flare":
+        this.balls.flare(now);
+        return;
+      case "shake":
+        this.fieldCamera.shake(now);
+        return;
+      case "dip":
+      case "swing":
+      case "slide":
+        return;
+    }
+  }
+
+  /** Bursts the brick a wall cell of a wall holds into shards of its color, if one does. */
+  private shatter(wall: Wall, cell: number): void {
+    const brick = wall.bricks[cell];
+    if (!brick) return;
+    this.effects.shatter(
+      columnOf(cell) + 0.5,
+      fieldRowOf(wall, cell) + 0.5,
+      brickColor(brick, this.atlas.palette),
+      this.metrics,
+    );
   }
 
   /** Has each painter draw the field as it stands, in its layer. */
@@ -292,6 +466,7 @@ export class RickashayScene extends Scene {
     if (!this.moved() || !this.measure()) return;
     this.options.onLayout(this.metrics);
     this.steering.measure(this.metrics, this.canvas);
+    this.effects.layout(this.metrics);
     this.fieldCamera.fit(this.metrics, this.laidOut);
   }
 

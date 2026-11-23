@@ -115,7 +115,8 @@ export function stillShowing(
  * a scene plays them only where motion is welcome.
  *
  * A game that plays bursts of its own extends it, drawing them after it,
- * with its `burstAll()` and `placeOn()`.
+ * with its `burstAll()` and `placeOn()`, or `spreadAll()` for bursts that
+ * spread as a ring does.
  */
 export class EffectsPainter implements Painter<PaintContext<unknown>> {
   /** Throws a broken brick's shards, tinted as the brick was. */
@@ -269,6 +270,32 @@ export class EffectsPainter implements Painter<PaintContext<unknown>> {
     }
   }
 
+  /**
+   * Spreads each of a pool of bursts that shows from where it plays, as a
+   * ring spreads, fading from an opacity through some milliseconds, and
+   * hides it once it is over, read by number, as {@link burstAll} does.
+   */
+  protected spreadAll(
+    bursts: readonly Burst[],
+    ms: number,
+    alpha: number,
+    now: number,
+    metrics: FieldMetrics,
+    scale: number,
+  ): void {
+    const count = bursts.length;
+    for (let at = 0; at < count; at++) {
+      const burst = bursts[at];
+      if (!burst?.image.visible) continue;
+      const done = shareDone(burst.at, now, ms);
+      this.placeOn(burst, metrics);
+      burst.image
+        .setScale(scale * ringScale(done))
+        .setAlpha(alpha * fadeAlpha(done))
+        .setVisible(done < 1);
+    }
+  }
+
   /** Puts a burst's image where its place on the field lies on the canvas. */
   protected placeOn(
     burst: Playing & { readonly image: GameObjects.Image },
@@ -338,8 +365,12 @@ export class StripFlashes implements Painter<PaintContext<unknown>> {
   private lastStarted: number | null = null;
   /** Where a strip is drawn, written for each. */
   private readonly place: Place = { x: 0, y: 0 };
+  /** How long each flash takes to fade, in milliseconds. */
+  private readonly ms: number;
 
-  constructor(scene: Scene, layer: GameObjects.Layer) {
+  /** Makes a strip for each flash that may show at once, in a layer, each fading over `ms`: the wall games' `FLASH_MS` unless a game's flash takes its own time. */
+  constructor(scene: Scene, layer: GameObjects.Layer, ms: number = FLASH_MS) {
+    this.ms = ms;
     this.flashes = new Turns(MOST_FLASHES, () => ({
       strip: scene.add.rectangle(0, 0, 1, 1).setVisible(false),
       at: Number.NEGATIVE_INFINITY,
@@ -384,7 +415,7 @@ export class StripFlashes implements Painter<PaintContext<unknown>> {
       const flash = flashes[at];
       if (flash?.strip.visible) this.flashOn(flash, now, metrics);
     }
-    this.lastStarted = stillShowing(this.lastStarted, now, FLASH_MS);
+    this.lastStarted = stillShowing(this.lastStarted, now, this.ms);
   }
 
   /**
@@ -393,7 +424,7 @@ export class StripFlashes implements Painter<PaintContext<unknown>> {
    * or hides it once it is over.
    */
   private flashOn(flash: Flash, now: number, metrics: FieldMetrics): void {
-    const done = shareDone(flash.at, now, FLASH_MS);
+    const done = shareDone(flash.at, now, this.ms);
     if (flash.sizedFor !== metrics) {
       flash.sizedFor = metrics;
       const { x, y } = toCanvas(metrics, flash.x, flash.y, this.place);

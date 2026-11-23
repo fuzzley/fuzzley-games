@@ -7,6 +7,7 @@ import { type Brick, KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import type { WallPalette } from "../colors/palette";
 import type { KindArt, KindLook } from "./art";
 import type { FrameName } from "./frames";
+import { effectFrames } from "./effect_frames";
 import { fieldFrames, springFrames } from "./field_frames";
 import { fuzzballFrames } from "./fuzzball_art";
 import { guideFrames } from "./guide_frames";
@@ -50,8 +51,8 @@ export function atlasFrames(
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, which the scene's `WallAtlas` bakes: the bricks' and the
  * fuzzball's, then the field's own dots and warning frame, the floor
- * bounces' springs, the rally's pill and its digits, and the guide's dot,
- * ring and band round a brick it strikes.
+ * bounces' springs, the rally's pill and its digits, the guide's dot, ring
+ * and band round a brick it strikes, and the flourishes'.
  */
 export function wallAtlasFrames(
   palette: WallPalette,
@@ -63,6 +64,7 @@ export function wallAtlasFrames(
     ...springFrames(palette, scale),
     ...pillFrames(palette, scale),
     ...guideFrames(palette, scale),
+    ...effectFrames(palette, scale),
   ];
 }
 

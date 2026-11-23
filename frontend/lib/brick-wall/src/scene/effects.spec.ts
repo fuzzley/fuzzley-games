@@ -1,6 +1,7 @@
+import { Turns } from "@fz/core/turns";
 import type { HostedScene } from "@fz/phaser/host";
 import { type SceneRun, runBareScene } from "@fz/phaser/testing";
-import type { GameObjects } from "phaser";
+import type { GameObjects, Scene } from "phaser";
 import { thirdsOf } from "../rules/wall";
 import {
   LIGHT_MADE_UP,
@@ -10,8 +11,9 @@ import {
 import { RING_FROM } from "../view/easing";
 import { toCanvas } from "../view/field_metrics";
 import { FLASH_MS, RING_MS, SHARDS } from "../view/timing";
-import { MOST_BAKED_UNIT, WallAtlas } from "./atlas";
+import { ATLAS, MOST_BAKED_UNIT, WallAtlas } from "./atlas";
 import {
+  type Burst,
   type EffectsArt,
   EffectsPainter,
   FLASH_ALPHA,
@@ -38,6 +40,39 @@ const ART: EffectsArt = {
   ring: "ring",
   streakMs: STREAK_MS,
 };
+
+/** How long a made-up game's own bloom takes to spread and fade. */
+const BLOOM_MS = 240;
+
+/** How opaque a made-up game's own bloom starts. */
+const BLOOM_ALPHA = 0.4;
+
+/** Paints a made-up game's own blooms beside every wall game's effects, spreading as its rings do. */
+class BloomingPainter extends EffectsPainter {
+  /** A bloom for each that may show at once, played in turn. */
+  readonly blooms: Turns<Burst>;
+
+  constructor(scene: Scene, layer: GameObjects.Layer) {
+    super(scene, layer, ART);
+    this.blooms = new Turns(2, () =>
+      burstOf(scene.add.image(0, 0, ATLAS, ART.ring)),
+    );
+    layer.add(this.blooms.all.map(({ image }) => image));
+  }
+
+  /** Blooms from a place on the field, from a time. */
+  bloom(x: number, y: number, now: number): void {
+    this.blooms.play(x, y, now).image.setVisible(true);
+  }
+
+  /** Moves every wall game's effects and the blooms on to the scene's time. */
+  override draw(context: Readonly<PaintContext<unknown>>): void {
+    super.draw(context);
+    const { now, metrics, baked } = context;
+    const scale = metrics.unit / baked.unit;
+    this.spreadAll(this.blooms.all, BLOOM_MS, BLOOM_ALPHA, now, metrics, scale);
+  }
+}
 
 /** Describes the effects painted in a scene and the context they are drawn from. */
 interface Painted {
@@ -426,6 +461,42 @@ describe("EffectsPainter", () => {
     });
   });
 
+  describe("a game's own bursts", () => {
+    it("spread from their place as a ring does, fading from the opacity they start at, then hide", async () => {
+      const { run, layer, context } = await paintEffects();
+      const painter = new BloomingPainter(run.scene, layer);
+      const [bloom] = painter.blooms.all;
+      painter.bloom(8.5, 5.5, 0);
+      painter.draw(context);
+      const first = {
+        x: bloom?.image.x,
+        y: bloom?.image.y,
+        scale: bloom?.image.scale,
+        alpha: bloom?.image.alpha,
+      };
+      context.now = BLOOM_MS / 2;
+      painter.draw(context);
+      const halfway = bloom?.image.alpha ?? 0;
+
+      context.now = BLOOM_MS;
+      painter.draw(context);
+
+      expect({
+        first,
+        halfway: tenths(halfway),
+        after: bloom?.image.visible,
+      }).toEqual({
+        first: {
+          ...toCanvas(context.metrics, 8.5, 5.5),
+          scale: RING_FROM,
+          alpha: BLOOM_ALPHA,
+        },
+        halfway: tenths(BLOOM_ALPHA / 2),
+        after: false,
+      });
+    });
+  });
+
   it("holds as many of each as may show at once, made once", async () => {
     const { painter } = await paintEffects();
 
@@ -476,14 +547,14 @@ interface Flashing {
   readonly context: PaintContext<unknown>;
 }
 
-/** Makes the strips that flash on a canvas of 400 × 400 CSS pixels, in a scene running till the test finishes, none flashing yet. */
-async function flashStrips(): Promise<Flashing> {
+/** Makes the strips that flash on a canvas of 400 × 400 CSS pixels, each over the wall games' time or one given, in a scene running till the test finishes, none flashing yet. */
+async function flashStrips(ms?: number): Promise<Flashing> {
   const run = await runBareScene();
   onTestFinished(() => {
     run.destroy();
   });
   const { shape, metrics } = madeUpField(400, 400);
-  const strips = new StripFlashes(run.scene, run.scene.add.layer());
+  const strips = new StripFlashes(run.scene, run.scene.add.layer(), ms);
   const context: PaintContext<unknown> = {
     view: null,
     shape,
@@ -552,6 +623,21 @@ describe("StripFlashes", () => {
         alpha: FLASH_ALPHA,
         color: 0x336699,
       },
+      halfway: tenths(FLASH_ALPHA / 2),
+      after: false,
+    });
+  });
+
+  it("fades a strip over a game's own time, where it is given one", async () => {
+    const flashing = await flashStrips(FLASH_MS / 2);
+    flashing.strips.flash(4.5, 3, 2, 0, 0x336699, 0);
+    flashAt(flashing, FLASH_MS / 4);
+    const [{ strip } = { strip: undefined }] = flashing.strips.flashes.all;
+    const halfway = strip?.fillAlpha ?? 0;
+
+    flashAt(flashing, FLASH_MS / 2);
+
+    expect({ halfway: tenths(halfway), after: strip?.visible }).toEqual({
       halfway: tenths(FLASH_ALPHA / 2),
       after: false,
     });

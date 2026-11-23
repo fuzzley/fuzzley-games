@@ -1,4 +1,4 @@
-import { RADIUS } from "@fz/brick-wall/rules/field";
+import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { positionAt } from "@fz/brick-wall/rules/track";
@@ -24,12 +24,13 @@ import {
   fieldShape,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
-import type { EventLogView } from "@fz/core/event_log";
+import { EventLog, type EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
 import { type SceneRun, colorsOf, runKeyedScene } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
-import type { Wall } from "../rules/catalog/kinds";
+import type { Brick, Wall } from "../rules/catalog/kinds";
+import type { FlightEvent } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";
 import { FLIGHT_RULES, type FlightRules } from "../rules/tuning";
 import { ART_PALETTE, ART_ROLES, billionths } from "../testing/art_frames";
@@ -39,12 +40,23 @@ import { FIELD_FRAMES } from "../view/art/field_frames";
 import { GUIDE_FRAMES } from "../view/art/guide_frames";
 import { FRAMES, FURS } from "../view/art/frames";
 import { eyesAt } from "../view/art/fuzzball_art";
+import { EFFECT_FRAMES } from "../view/art/effect_frames";
 import { PILL_FRAMES, digitAcross, pillPlace } from "../view/art/pill_art";
+import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
+import { type Flourish, QUIET } from "../view/effects/effects";
+import {
+  KICK_MS,
+  PORTAL_MS,
+  RAMP_FLASH_MS,
+  SPARK_MS,
+  STREAK,
+} from "../view/effects/timing";
 import { type GuideFlight, wallGuideOf } from "../view/field/guide";
 import { bandSprings } from "../view/field/springs";
 import type {
   BallView,
+  Beat,
   LoggedBeat,
   LoggedEvent,
   RoundView,
@@ -288,6 +300,13 @@ function firstOf<T>(pool: readonly T[]): T {
   return first;
 }
 
+/** Returns the brick a wall cell of a wall holds, which a case needs there. */
+function brickIn(wall: Wall, cell: number): Brick {
+  const brick = wall.bricks[cell];
+  if (!brick) throw new RangeError(`No brick in cell ${cell}`);
+  return brick;
+}
+
 /**
  * Returns a flight as the rules cast the guide of its shot: stopped in the
  * air `guidePast` past its `guideTurns`th turn, as rules set them, its
@@ -311,6 +330,54 @@ function castOf(
     },
     events: events.filter(({ at, kind }) => at <= end.at && kind !== "land"),
   };
+}
+
+/** Returns a log of a flight's events as the view keeps one, empty. */
+function eventLog(): EventLog<LoggedEvent> {
+  return new EventLog<LoggedEvent>(16, () => ({
+    serial: 0,
+    event: { kind: "land", at: 0, x: 0 },
+    effects: QUIET,
+  }));
+}
+
+/** Writes an event to a log, calling for some flourishes and no sound. */
+function logEvent(
+  log: EventLog<LoggedEvent>,
+  event: FlightEvent,
+  ...flourishes: Flourish[]
+): void {
+  const record = log.next();
+  record.event = event;
+  record.effects = { flourishes, sounds: [] };
+}
+
+/** Returns a log of a round's beats as the view keeps one, empty. */
+function beatLog(): EventLog<LoggedBeat> {
+  return new EventLog<LoggedBeat>(16, () => ({ serial: 0, beat: "release" }));
+}
+
+/** Writes a beat to a log. */
+function logBeat(log: EventLog<LoggedBeat>, beat: Beat): void {
+  log.next().beat = beat;
+}
+
+/** Returns a turn of a flight at a place, off the floor or as given. */
+function turnAt(
+  x: number,
+  y: number,
+  off: "floor" | "brick" = "floor",
+): FlightEvent {
+  return { kind: "turn", at: 1, x, y, dx: 1, dy: 1, off, cells: [] };
+}
+
+/** Returns the images of a pool of bursts that show, where each does. */
+function burstsShown(
+  bursts: readonly { readonly image: GameObjects.Image }[],
+): { x: number; y: number }[] {
+  return bursts
+    .filter(({ image }) => image.visible)
+    .map(({ image }) => ({ x: image.x, y: image.y }));
 }
 
 /** Returns the square each spring of a set fills, its foot's middle on the square's, on the canvas. */
@@ -907,6 +974,387 @@ describe("RickashayScene", () => {
         underCount: guide < layerPlaceOf(scene, firstOf(scene.field.countDots)),
         underFuzzball: guide < layerPlaceOf(scene, scene.balls.body),
       }).toEqual({ overLines: true, underCount: true, underFuzzball: true });
+    });
+  });
+
+  describe("the flourishes", () => {
+    /** The plain round's tough brick, in field row 5 and column 8, as a wall cell. */
+    const TOUGH = 8;
+
+    /** Runs the scene with the view's logs of events and beats, which the specs write to. */
+    async function startPlaying(
+      setUp: (shell: FakeShell) => void = () => undefined,
+    ): Promise<
+      Board & {
+        events: EventLog<LoggedEvent>;
+        beats: EventLog<LoggedBeat>;
+      }
+    > {
+      const events = eventLog();
+      const beats = beatLog();
+      const board = await startBoard((shell) => {
+        shell.show({ events, beats });
+        setUp(shell);
+      });
+      return { ...board, events, beats };
+    }
+
+    /** The ramp round's wall, with a ramp in field row 5 and column 4. */
+    const RAMPS = FLIGHT_FIXTURES.ramp.start.wall;
+
+    /** Logs the fuzzball turning off the ramp round's ramp, which flashes. */
+    function logRampFlash(events: EventLog<LoggedEvent>): void {
+      logEvent(events, turnAt(3.75, 4.75, "brick"), {
+        kind: "flash",
+        cell: cellAt(RAMPS, 4, 5),
+      });
+    }
+
+    /** Logs the fuzzball turning off the tough brick's plated face, which throws a spark. */
+    function logSpark(events: EventLog<LoggedEvent>): void {
+      logEvent(events, turnAt(6.25, 4.75, "brick"));
+      logEvent(
+        events,
+        { kind: "shielded", at: 1, cell: TOUGH, by: "plate" },
+        { kind: "spark", cell: TOUGH },
+      );
+    }
+
+    /** Logs the fuzzball passing from a portal in the corner cell to its twin in the tough brick's, each of which swirls. */
+    function logTeleport(events: EventLog<LoggedEvent>): void {
+      logEvent(
+        events,
+        { kind: "teleport", at: 1, from: 0, to: 8 },
+        { kind: "draw-in", cell: 0 },
+        { kind: "let-out", cell: TOUGH },
+      );
+    }
+
+    /** Logs the fuzzball turning off the floor and spending the floor bounce it held, which kicks its spring. */
+    function logKick(events: EventLog<LoggedEvent>): void {
+      logEvent(events, turnAt(2, RADIUS));
+      logEvent(
+        events,
+        { kind: "bounce-spent", at: 1, held: 0 },
+        { kind: "kick" },
+      );
+    }
+
+    it("swells a struck brick that holds, in its cell", async () => {
+      const { scene, events, run } = await startPlaying();
+
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 1, broke: false, rally: 1 },
+        { kind: "swell", cell: TOUGH },
+      );
+      run.advance(16);
+
+      expect(scene.wall.swellings.map(({ cell }) => cell)).toContain(
+        5 * COLUMNS + 8,
+      );
+    });
+
+    it("bursts a broken brick into shards of its color", async () => {
+      const { scene, events, run } = await startPlaying();
+      const brick = brickIn(PLAIN.start.wall, TOUGH);
+      const tints = new Set<number>();
+
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 2, broke: true, rally: 1 },
+        { kind: "shards", cell: TOUGH },
+      );
+      run.advance(16);
+
+      scene.effects.shards.forEachAlive((shard) => tints.add(shard.tint), null);
+      expect([...tints]).toEqual([brickColor(brick, LIGHT)]);
+    });
+
+    it("flashes a ramp along its long face, across its cell", async () => {
+      const { scene, events, run } = await startPlaying((shell) => {
+        shell.show({ wall: RAMPS });
+      });
+
+      logRampFlash(events);
+      run.advance(16);
+
+      const shown = scene.effects.ramps.flashes.all.filter(
+        ({ strip }) => strip.visible,
+      );
+      expect(
+        shown.map(({ strip }) => ({
+          x: strip.x,
+          y: strip.y,
+          angle: billionths(strip.rotation),
+          color: strip.fillColor,
+        })),
+      ).toEqual([
+        {
+          ...toCanvas(metricsAt(), 4.5, 5.5),
+          angle: billionths(Math.PI / 4),
+          color: LIGHT.spark,
+        },
+      ]);
+    });
+
+    it("throws a spark from where a shielding face turned the fuzzball", async () => {
+      const { scene, events, run } = await startPlaying();
+
+      logSpark(events);
+      run.advance(16);
+
+      expect(burstsShown(scene.effects.sparks.all)).toEqual([
+        toCanvas(metricsAt(), 6.25, 4.75),
+      ]);
+    });
+
+    it("swirls a portal as it draws the fuzzball in, and its twin as it lets it out", async () => {
+      const { scene, events, run } = await startPlaying();
+      const metrics = metricsAt();
+
+      logTeleport(events);
+      run.advance(16);
+
+      expect(burstsShown(scene.effects.swirls.all)).toEqual([
+        toCanvas(metrics, 0.5, 5.5),
+        toCanvas(metrics, 8.5, 5.5),
+      ]);
+    });
+
+    it("shrinks the swirl drawing the fuzzball in from its widest, and spreads its twin's from nothing", async () => {
+      const { scene, events, run } = await startPlaying();
+      const metrics = metricsAt();
+
+      logTeleport(events);
+      run.advance(16);
+
+      expect(
+        scene.effects.swirls.all.slice(0, 2).map(({ image }) => image.scaleX),
+      ).toEqual([metrics.unit / bakedScaleOf(metrics).unit, 0]);
+    });
+
+    it("spreads a ring from the fuzzball as its fur lifts", async () => {
+      const { scene, shell, events, run } = await startPlaying();
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 10 }) });
+
+      logEvent(
+        events,
+        {
+          kind: "strike",
+          at: 1,
+          cell: TOUGH,
+          took: 1,
+          broke: false,
+          rally: 10,
+        },
+        { kind: "ring" },
+      );
+      run.advance(16);
+
+      expect(burstsShown(scene.effects.rings.all)).toEqual([
+        toCanvas(metricsAt(), 3, 4),
+      ]);
+    });
+
+    it("kicks the spent floor bounce's spring, squashing it on its foot, and puffs where the fuzzball turned off the floor", async () => {
+      const { scene, shell, events, run } = await startPlaying((each) => {
+        each.show({ held: 1 });
+      });
+      const spring = firstOf(scene.springs.springs);
+      const height = spring.displayHeight;
+      shell.show({ held: 0 });
+
+      logKick(events);
+      run.advance(16);
+
+      expect({
+        squashed: spring.displayHeight < height,
+        puffs: burstsShown(scene.effects.puffs.all),
+      }).toEqual({ squashed: true, puffs: [toCanvas(metricsAt(), 2, RADIUS)] });
+    });
+
+    it("stands the kicked spring back at its height once its kick is over", async () => {
+      const { scene, events, run } = await startPlaying((each) => {
+        each.show({ held: 1 });
+      });
+      const spring = firstOf(scene.springs.springs);
+      const height = spring.displayHeight;
+
+      logKick(events);
+      run.advance(16);
+      run.advance(400);
+
+      expect(spring.displayHeight).toBe(height);
+    });
+
+    it("streaks the fuzzball dashing home from its last strike, behind it, the way it flies", async () => {
+      const { scene, shell, events, run } = await startPlaying();
+      const ball = ballAt(3, { y: 4, dx: 0, dy: 2 });
+      shell.show({ ball });
+
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 1, broke: false, rally: 1 },
+        { kind: "streak" },
+      );
+      run.advance(16);
+
+      const { streak } = scene.balls;
+      expect({
+        shows: streak.visible,
+        frame: streak.frame.name,
+        ...placeInBillionths(streak),
+        angle: billionths(streak.rotation),
+      }).toEqual({
+        shows: true,
+        frame: EFFECT_FRAMES.streak,
+        ...placeInBillionths(toCanvas(metricsAt(), 3, 4 - STREAK / 2)),
+        angle: billionths(-Math.PI / 2),
+      });
+    });
+
+    it("streaks a hot shot in its own color", async () => {
+      const { scene, shell, events, run } = await startPlaying();
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 2, hot: true }) });
+
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 1, broke: false, rally: 1 },
+        { kind: "streak" },
+      );
+      run.advance(16);
+
+      expect(scene.balls.streak.frame.name).toBe(EFFECT_FRAMES.hotStreak);
+    });
+
+    it("ends the streak as the fuzzball lands", async () => {
+      const { scene, shell, events, run } = await startPlaying((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 2 }) });
+      });
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 1, broke: false, rally: 1 },
+        { kind: "streak" },
+      );
+      run.advance(16);
+
+      shell.show({ ball: ballAt(5) });
+      run.advance(16);
+
+      expect(scene.balls.streak.visible).toBe(false);
+    });
+
+    it.each<[string, Wall, (events: EventLog<LoggedEvent>) => void, number]>([
+      ["a ramp's flash", RAMPS, logRampFlash, RAMP_FLASH_MS],
+      ["a spark", PLAIN.start.wall, logSpark, SPARK_MS],
+      ["a portal's swirls", PLAIN.start.wall, logTeleport, PORTAL_MS],
+      ["a floor bounce's puff", PLAIN.start.wall, logKick, KICK_MS],
+    ])("ends %s once its own time is over", async (_, wall, log, ms) => {
+      const { scene, events, run } = await startPlaying((shell) => {
+        shell.show({ wall });
+      });
+
+      log(events);
+      run.advance(ms + 32, 16);
+
+      expect({
+        bursts: burstsShown([
+          ...scene.effects.sparks.all,
+          ...scene.effects.swirls.all,
+          ...scene.effects.puffs.all,
+        ]),
+        ramps: scene.effects.ramps.flashes.all.filter(
+          ({ strip }) => strip.visible,
+        ),
+      }).toEqual({ bursts: [], ramps: [] });
+    });
+
+    it("flashes the jump line and flares the waiting fuzzball into a hot shot as the wall jumps", async () => {
+      const { scene, beats, run } = await startPlaying();
+      run.advance(16);
+      const scale = scene.balls.body.scaleX;
+
+      logBeat(beats, "jump");
+      run.advance(16);
+
+      expect({
+        flash: scene.effects.flash.visible,
+        flared: scene.balls.body.scaleX < scale,
+      }).toEqual({ flash: true, flared: true });
+    });
+
+    it("shakes the field as a level is lost", async () => {
+      const { scene, beats, run } = await startPlaying();
+      const camera = scene.cameras.main;
+      const rest = { x: camera.x, y: camera.y };
+
+      logBeat(beats, "lost");
+      run.advance(16);
+      run.advance(16);
+
+      expect({ x: camera.x, y: camera.y }).not.toEqual(rest);
+    });
+
+    it("plays nothing for a hatch's dip, the hatches' swing or a lock's slide, whose bricks aren't drawn yet", async () => {
+      const { scene, events, run } = await startPlaying();
+
+      logEvent(
+        events,
+        { kind: "hold", at: 1, cell: TOUGH, left: 2 },
+        {
+          kind: "dip",
+          cell: TOUGH,
+        },
+      );
+      logEvent(events, { kind: "hatches-open", at: 1 }, { kind: "swing" });
+      logEvent(events, { kind: "bolt", at: 1, drawn: 1 }, { kind: "slide" });
+      run.advance(16);
+
+      expect({
+        bursts: burstsShown([
+          ...scene.effects.sparks.all,
+          ...scene.effects.swirls.all,
+          ...scene.effects.puffs.all,
+          ...scene.effects.rings.all,
+        ]),
+        swelling: scene.wall.swellings.filter(({ cell }) => cell >= 0),
+        shards: scene.effects.shards.getAliveParticleCount(),
+        ramps: scene.effects.ramps.flashes.all.filter(
+          ({ strip }) => strip.visible,
+        ),
+      }).toEqual({ bursts: [], swelling: [], shards: 0, ramps: [] });
+    });
+
+    it("plays no flourish where motion isn't welcome", async () => {
+      const { scene, events, run } = await startPlaying((each) => {
+        each.welcomesMotion = false;
+      });
+
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 2, broke: true, rally: 1 },
+        { kind: "shards", cell: TOUGH },
+      );
+      run.advance(16);
+
+      expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
+    });
+
+    it("leaves unplayed what the view's log held before the scene met it", async () => {
+      const events = eventLog();
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 2, broke: true, rally: 1 },
+        { kind: "shards", cell: TOUGH },
+      );
+      const { scene, run } = await startBoard((shell) => {
+        shell.show({ events });
+      });
+
+      run.advance(16);
+
+      expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
     });
   });
 
