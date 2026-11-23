@@ -779,3 +779,157 @@ describe("fly's floor bounces", () => {
     expect(() => kept?.earn()).toThrow(Error);
   });
 });
+
+describe("fly's way home", () => {
+  /** A wall of two rows by the ceiling, which a shot at the lowest aim never reaches. */
+  const HIGH_WALL = ["ooooooooo", "ooooooooo"];
+
+  // At the lowest aim it rattles up between the side walls, seven times,
+  // and is bored before it reaches the wall.
+  it("yawns where it has flown the bored distance from its release without a strike, and drops straight to the floor", () => {
+    const [dx, dy] = headingOf(aimAt(8));
+    const flown = flyAt({ picture: HIGH_WALL, lowestRow: 9, degrees: 8 });
+    const turns = eventsOf(flown, "turn");
+    const [bored] = eventsOf(flown, "bored");
+
+    expect([turns.length, bored, eventsOf(flown, "land")]).toEqual([
+      7,
+      {
+        at: FLIGHT_RULES.bored,
+        kind: "bored",
+        x: near(
+          (turns.at(-1)?.x ?? 0) -
+            dx * (FLIGHT_RULES.bored - (turns.at(-1)?.at ?? 0)),
+        ),
+        y: near(RADIUS + dy * FLIGHT_RULES.bored),
+      },
+      [
+        {
+          at: near(FLIGHT_RULES.bored + (bored?.y ?? 0) - RADIUS),
+          kind: "land",
+          x: bored?.x,
+        },
+      ],
+    ]);
+  });
+
+  // Bored 10 units after its strike at about 6.4, the hot shot spends its
+  // floor bounce at about 12.7 and is bored on its way up from there.
+  it("counts the bored distance from its last strike", () => {
+    const rules = { ...FLIGHT_RULES, bored: 10 };
+
+    const flown = flyAt({ picture: ["........o"], hot: true, rules });
+
+    expect(eventsOf(flown, "bored").map(({ at }) => at)).toEqual([
+      (flown.flight.lastStrike ?? 0) + 10,
+    ]);
+  });
+
+  // Its turn off the steel, at about 6.4, starts no count again.
+  it("is bored all the same for turning off what takes nothing", () => {
+    const rules = { ...FLIGHT_RULES, bored: 10 };
+
+    const flown = flyAt({ picture: ["........#"], rules });
+
+    expect(eventsOf(flown, "bored").map(({ at }) => at)).toEqual([10]);
+  });
+
+  // A hot shot holds its floor bounce, yet lands where it drops.
+  it("drops home holding a floor bounce, which it never spends", () => {
+    const rules = { ...FLIGHT_RULES, bored: 10 };
+
+    const flown = flyAt({ picture: ["........#"], hot: true, rules });
+
+    expect(flown.flight.events.slice(-2).map(({ kind }) => kind)).toEqual([
+      "bored",
+      "land",
+    ]);
+  });
+
+  // Bored as it turns off the steel, it turns there first.
+  it("plays a moment it meets as it is bored before it yawns", () => {
+    const steel = ["........#"];
+    const [turn] = eventsOf(flyAt({ picture: steel }), "turn").slice(1);
+    const rules = { ...FLIGHT_RULES, bored: turn?.at ?? 0 };
+
+    const flown = flyAt({ picture: steel, rules });
+
+    expect(flown.flight.events.slice(-3)).toEqual([
+      expect.objectContaining({ at: turn?.at, kind: "turn", off: "brick" }),
+      expect.objectContaining({ at: turn?.at, kind: "bored" }),
+      expect.objectContaining({ kind: "land" }),
+    ]);
+  });
+
+  // A strike at the moment it would be bored starts the count again.
+  it("is kept from boredom by a strike at the moment it would yawn", () => {
+    const brick = ["........o"];
+    const [strike] = eventsOf(flyAt({ picture: brick }), "strike");
+    const rules = { ...FLIGHT_RULES, bored: strike?.at ?? 0 };
+
+    const flown = flyAt({ picture: brick, rules });
+
+    expect(
+      eventsOf(flown, "bored").filter(({ at }) => at <= (strike?.at ?? 0)),
+    ).toEqual([]);
+  });
+
+  it("is brought home by its guard where the longest flight comes before boredom", () => {
+    const rules = { ...FLIGHT_RULES, longest: 50 };
+
+    const flown = flyAt({
+      picture: HIGH_WALL,
+      lowestRow: 9,
+      degrees: 8,
+      rules,
+    });
+
+    expect(eventsOf(flown, "guard")).toEqual([
+      expect.objectContaining({ at: 50, by: "length" }),
+    ]);
+  });
+
+  // At 30°, into the joint of the steel brick's floorward flat and the cut
+  // across its corner, at (4, 1.75): the flat turns it, and it still flies
+  // into the cut, which turns it again with no flight between.
+  it("is brought home by its guard after so many turns running with no flight between them", () => {
+    const rules = { ...FLIGHT_RULES, stillTurns: 2 };
+
+    const flown = flyAt({
+      picture: ["....#...."],
+      lowestRow: 2,
+      x: xToReach(30, [4, 2 - RADIUS]),
+      degrees: 30,
+      rules,
+    });
+    const turns = eventsOf(flown, "turn");
+
+    expect([turns.map(({ at }) => at), flown.flight.events.slice(-2)]).toEqual([
+      [turns[0]?.at, near(turns[0]?.at ?? 0)],
+      [
+        {
+          at: turns[1]?.at,
+          kind: "guard",
+          x: near(4),
+          y: near(2 - RADIUS),
+          by: "turns",
+        },
+        expect.objectContaining({ kind: "land", x: near(4) }),
+      ],
+    ]);
+  });
+
+  it("flies on from turns with no flight between them, short of its guard", () => {
+    const flown = flyAt({
+      picture: ["....#...."],
+      lowestRow: 2,
+      x: xToReach(30, [4, 2 - RADIUS]),
+      degrees: 30,
+    });
+
+    expect([eventsOf(flown, "turn").length, eventsOf(flown, "guard")]).toEqual([
+      2,
+      [],
+    ]);
+  });
+});

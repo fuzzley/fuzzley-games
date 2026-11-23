@@ -11,14 +11,21 @@
 // at the moments hooks.ts names. It lands at the floor, unless it holds a
 // floor bounce, which it spends turning off the floor as off a flat; it
 // earns them as its rally climbs FlightRules' ladder (C5), and as a
-// brick's rules give one.
+// brick's rules give one. Bored, as it flies FlightRules.bored without a
+// strike, it yawns and drops home (C2), as it does at either guard: the
+// longest flight, and so many turns running with no flight between them.
 //
 // A flight's state is made as it starts, and what the fuzzball meets is
 // cast into one record the module keeps, so a cast makes nothing; records
 // are made only as events are.
 
 import { AIMS } from "@fz/brick-wall/rules/aims";
-import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import {
+  AT_ONCE,
+  COLUMNS,
+  RADIUS,
+  SIDE_MARGIN,
+} from "@fz/brick-wall/rules/field";
 import {
   CEILINGWARD,
   FLOORWARD,
@@ -45,6 +52,7 @@ import type {
   EarnedBy,
   Flight,
   FlightEvent,
+  Guard,
   RoundStart,
   TurnOff,
 } from "./events";
@@ -117,6 +125,10 @@ class Flying implements Hooks {
   /** Whether a portal's eye takes the fuzzball: not from crossing into one until it next turns. */
   private eyes = true;
   private turns = 0;
+  /** The moment of its last turn. */
+  private turnedAt = 0;
+  /** How many turns running it has made with no flight between them, as near as `AT_ONCE`. */
+  private still = 0;
   private rally = 0;
   /** The floor bounces it was released with. */
   private readonly released: number;
@@ -194,12 +206,19 @@ class Flying implements Hooks {
   }
 
   /**
-   * Flies the fuzzball on to what it meets next and plays that moment, or,
-   * where it would fly past the longest flight first, flies it to there
-   * and brings it home.
+   * Flies the fuzzball on to what it meets next and plays that moment; or,
+   * where it is bored or at the longest flight first, flies it to there.
+   *
+   * Called at a moment it is bored or brought home at, once everything it
+   * met there is played, it brings it home without casting.
    */
   private flyOn(): void {
-    const home = this.rules.longest;
+    const bored = (this.lastStrike ?? 0) + this.rules.bored;
+    const home = Math.min(bored, this.rules.longest);
+    if (this.at >= home) {
+      this.comeHome(bored <= this.rules.longest ? null : "length");
+      return;
+    }
     const met = cast(
       this.field,
       this.x,
@@ -210,7 +229,7 @@ class Flying implements Hooks {
       contacts,
     );
     if (this.at + met.distance > home) {
-      this.comeHome(home);
+      this.flyTo(home);
       return;
     }
     this.x = met.x;
@@ -243,6 +262,11 @@ class Flying implements Hooks {
     const off = this.turn();
     if (off !== null) {
       this.turns++;
+      // Turns no farther apart than contacts met at one moment are, as a
+      // sum's rounding leaves two turns at one place, have no flight
+      // between them.
+      this.still = this.at - this.turnedAt <= AT_ONCE ? this.still + 1 : 1;
+      this.turnedAt = this.at;
       this.eyes = true;
       const { at, x, y, dx, dy } = this;
       this.events.push({
@@ -277,6 +301,9 @@ class Flying implements Hooks {
       if (face.kind === "eye") {
         this.enter(face.owner.cell);
       }
+    }
+    if (this.still >= this.rules.stillTurns) {
+      this.comeHome("turns");
     }
   }
 
@@ -511,17 +538,28 @@ class Flying implements Hooks {
   }
 
   /**
-   * Brings the fuzzball home from where it flies at a moment, as the
-   * longest flight its guard allows: it flies on to there, and drops
-   * straight down to the floor through whatever lies between.
+   * Flies the fuzzball on along its heading to a moment, which it is then
+   * at exactly, however the sum of its flight so far rounds.
    */
-  private comeHome(home: number): void {
-    const flown = home - this.at;
-    this.x += this.dx * flown;
-    this.y += this.dy * flown;
-    this.at = home;
+  private flyTo(moment: number): void {
+    const distance = moment - this.at;
+    this.x += this.dx * distance;
+    this.y += this.dy * distance;
+    this.at = moment;
+  }
+
+  /**
+   * Brings the fuzzball home from where it is: bored, it yawns, or a guard
+   * brings it; and it drops straight down to the floor through whatever
+   * lies between, a floor bounce in hand or not.
+   */
+  private comeHome(guard: Guard | null): void {
     const { at, x, y } = this;
-    this.events.push({ at, kind: "guard", x, y, by: "length" });
+    this.events.push(
+      guard === null
+        ? { at, kind: "bored", x, y }
+        : { at, kind: "guard", x, y, by: guard },
+    );
     this.waypoint();
     this.at += this.y - RADIUS;
     this.land();
