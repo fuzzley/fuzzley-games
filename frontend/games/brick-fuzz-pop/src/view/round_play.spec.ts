@@ -2,6 +2,7 @@ import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
+import { JUMP_MS, STEP_MS } from "@fz/brick-wall/view/timing";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
 import type { BallRole, BallTrack, FlightEvent } from "../rules/flight/events";
@@ -19,7 +20,6 @@ import {
   type FlightFixture,
 } from "../testing/flight_fixtures";
 import type { Beat, SoundName } from "./effects/effects";
-import { JUMP_MS, STEP_MS } from "./effects/timing";
 import {
   type BallView,
   FLIGHT_PACE,

@@ -1,28 +1,27 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf, wallRowOf } from "@fz/brick-wall/rules/grid";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import { ringScale } from "@fz/brick-wall/view/easing";
 import {
   type FieldMetrics,
   type FieldShape,
   type Place,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
+import {
+  FLASH_MS,
+  RING_MS,
+  SHARDS,
+  SHARDS_MS,
+} from "@fz/brick-wall/view/timing";
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_FRIENDS } from "../../rules/tuning";
 import type { Wall } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
-import { hopHeight, ringScale } from "../../view/effects/flourish";
-import {
-  BOLT_MS,
-  FLASH_MS,
-  HOP_MS,
-  RING_MS,
-  SHARDS,
-  SHARDS_MS,
-  STREAK_MS,
-} from "../../view/effects/timing";
+import { hopHeight } from "../../view/effects/flourish";
+import { BOLT_MS, HOP_MS, STREAK_MS } from "../../view/effects/timing";
 import { ATLAS, bakedScaleOf } from "../atlas";
 import { FLIGHT_FRAMES } from "../field_art";
 import { INKED } from "./ball_painter";

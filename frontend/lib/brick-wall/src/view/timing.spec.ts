@@ -1,12 +1,20 @@
 import {
   CLEARED_MS,
+  JUMP_MS,
   LOST_MS,
   LOST_STILL_MS,
   SHAKE_MS,
   SHARDS_MS,
+  STEP_MS,
   clearedDelayMs,
   resultDelayMs,
 } from "./timing";
+
+describe("the wall's step and jump", () => {
+  it("steps the wall a row in 260 ms and jumps it in 480 ms, however far", () => {
+    expect([STEP_MS, JUMP_MS]).toEqual([260, 480]);
+  });
+});
 
 describe("clearedDelayMs", () => {
   it("waits for the last brick's shards where motion is welcome", () => {

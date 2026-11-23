@@ -1,11 +1,11 @@
+import { type Shift, shakeOf } from "@fz/brick-wall/view/easing";
 import type {
   FieldMetrics,
   FieldShape,
 } from "@fz/brick-wall/view/field_metrics";
+import { SHAKE_MS } from "@fz/brick-wall/view/timing";
 import type { PixelRect } from "@fz/phaser/layout";
 import type { Cameras } from "phaser";
-import { type Shift, shakeOf } from "../view/effects/flourish";
-import { SHAKE_MS } from "../view/effects/timing";
 import { frameBounds } from "./painters/field_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 

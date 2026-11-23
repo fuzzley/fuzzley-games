@@ -1,6 +1,8 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
+import { flareScale } from "@fz/brick-wall/view/easing";
 import { type Place, toCanvas } from "@fz/brick-wall/view/field_metrics";
+import { FLARE_MS } from "@fz/brick-wall/view/timing";
 import { shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
@@ -9,8 +11,6 @@ import type { Crew } from "../../rules/round/round";
 import { LAUNCH_GAP, MOST_FUZZBALLS, TRIPLE_MATES } from "../../rules/tuning";
 import { CHARGES, FRAMES, type FrameName, INKS } from "../../view/art/frames";
 import { fuzzballGrid } from "../../view/art/fuzzball_art";
-import { flareScale } from "../../view/effects/flourish";
-import { FLARE_MS } from "../../view/effects/timing";
 import type { BallView } from "../../view/round_play";
 import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";

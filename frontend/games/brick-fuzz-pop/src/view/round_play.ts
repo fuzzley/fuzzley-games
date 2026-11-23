@@ -1,5 +1,11 @@
 import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { inDanger } from "@fz/brick-wall/rules/wall";
+import {
+  JUMP_MS,
+  STEP_MS,
+  clearedDelayMs,
+  resultDelayMs,
+} from "@fz/brick-wall/view/timing";
 import { Countdown } from "@fz/core/clock";
 import {
   EventLog,
@@ -12,12 +18,6 @@ import type { Round, RoundResult, RoundStart } from "../rules/round/round";
 import { MOST_CHARGE, ZAP_HITS } from "../rules/tuning";
 import { type Brick, WALL_RULES, type Wall } from "../rules/wall/wall";
 import { type Beat, type EventEffects, FlightEffects } from "./effects/effects";
-import {
-  JUMP_MS,
-  STEP_MS,
-  clearedDelayMs,
-  resultDelayMs,
-} from "./effects/timing";
 import type { Card, RoundChange, RoundPhase } from "./run_state";
 
 /** Names how fast a flight plays back, as the settings offer it. */

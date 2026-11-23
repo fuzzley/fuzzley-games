@@ -4,6 +4,7 @@ import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
+import { FLARE_FROM, RING_FROM, SWELL } from "@fz/brick-wall/view/easing";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
@@ -15,6 +16,14 @@ import {
   lintelPixels,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
+import {
+  FLARE_MS,
+  FLASH_MS,
+  RING_MS,
+  SHAKE_MS,
+  SHARDS,
+  SWELL_MS,
+} from "@fz/brick-wall/view/timing";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
@@ -62,18 +71,7 @@ import { brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { FRAMES, FRAME_NAMES } from "../view/art/frames";
 import { fuzzballGrid } from "../view/art/fuzzball_art";
-import { FLARE_FROM, RING_FROM, SWELL } from "../view/effects/flourish";
-import {
-  BOLT_MS,
-  FLARE_MS,
-  FLASH_MS,
-  HOP_MS,
-  RING_MS,
-  SHAKE_MS,
-  SHARDS,
-  STREAK_MS,
-  SWELL_MS,
-} from "../view/effects/timing";
+import { BOLT_MS, HOP_MS, STREAK_MS } from "../view/effects/timing";
 import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import {
