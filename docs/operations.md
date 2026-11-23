@@ -48,8 +48,9 @@ in `frontend/games/sudoku/`, at `/play/sudoku/`, Snake in
 `frontend/games/snake/`, at `/play/snake/`, Brick Breaker in
 `frontend/games/brick-breaker/`, at `/play/brick-breaker/`, Asteroid
 Breaker in `frontend/games/asteroid-breaker/`, at
-`/play/asteroid-breaker/`, and Brick Fuzz Pop in
-`frontend/games/brick-fuzz-pop/`, at `/play/brick-fuzz-pop/`.
+`/play/asteroid-breaker/`, Brick Fuzz Pop in
+`frontend/games/brick-fuzz-pop/`, at `/play/brick-fuzz-pop/`, and
+Rickashay in `frontend/games/rickashay/`, at `/play/rickashay/`.
 
 `frontend/site/games.json` lists each game's build, by the slug it is served
 at: a Yarn workspace under `frontend/games/`, named by its folder in
@@ -96,9 +97,9 @@ workspace, or names one differently from its build, apostrophes aside.
 
 The Solitaire Collection and Minesweeper began in repositories of their own,
 fSolitaire and fMinesweeper, and were branched off into this one with their
-history; Sudoku, Snake, Brick Breaker, Asteroid Breaker and Brick Fuzz Pop
-began here. Nothing here builds from those repositories or links to them, and
-each game may diverge from its own.
+history; Sudoku, Snake, Brick Breaker, Asteroid Breaker, Brick Fuzz Pop and
+Rickashay began here. Nothing here builds from those repositories or links
+to them, and each game may diverge from its own.
 
 ## Security headers
 

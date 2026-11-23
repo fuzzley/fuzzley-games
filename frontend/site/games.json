@@ -11,6 +11,9 @@
   "minesweeper": {
     "workspace": "games/minesweeper"
   },
+  "rickashay": {
+    "workspace": "games/rickashay"
+  },
   "snake": {
     "workspace": "games/snake"
   },
