@@ -1,3 +1,39 @@
-<main>
-  <h1>Rickashay</h1>
+<!-- A <main> landmark a screen reader can jump to, the board in it. -->
+<main class="stage">
+  <h1 class="fz-visually-hidden">Rickashay</h1>
+  <div class="room" fzPlayRoom (away)="game.lookAway($event)">
+    <app-board />
+  </div>
 </main>
+
+<!-- In the page from the start, so a screen reader is listening to it. -->
+<fz-announcer />
+
+<!--
+  The result card before the Levels dialog: its Choose a level puts it away
+  as it opens the dialog, and the dialogs open and close in this order, so
+  the card gives the focus back before the dialog takes it.
+-->
+@if (lastEnd(); as end) {
+  <fz-result
+    [open]="game.resultOpen()"
+    [end]="end"
+    [best]="game.best()"
+    [newBest]="game.newBest()"
+    (tryAgain)="game.tryAgain()"
+    (newGame)="newGame()"
+    (chooseLevel)="chooseLevel()"
+    (closed)="game.closeResult()"
+  />
+}
+<fz-levels
+  [open]="levelsOpen()"
+  [marks]="marks()"
+  [current]="game.run().level"
+  [levels]="levels"
+  [mostStars]="mostStars"
+  figure="Best rally"
+  (chosen)="startAt($event)"
+  (closed)="levelsOpen.set(false)"
+/>
+<fz-confirm-dialog />

@@ -30,3 +30,6 @@ export const KICK_MS = 300;
 
 /** How far behind the fuzzball dashing home its streak reaches. */
 export const STREAK = 1.5;
+
+/** How long the "Rickashay!" call shows over the field, moving across it where motion is welcome. */
+export const CALL_MS = 1200;

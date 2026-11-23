@@ -1,6 +1,6 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
-import { WallAtlas } from "@fz/brick-wall/scene/atlas";
+import { ATLAS, WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
 import { GuidePainter } from "@fz/brick-wall/scene/guide";
@@ -26,6 +26,7 @@ import {
   onFirstFrame,
   onKeyDown,
   onPlayerAway,
+  picturesWhenAsked,
   uniqueSceneKey,
   viewportOf,
 } from "@fz/phaser/scene";
@@ -56,13 +57,13 @@ import {
 import type { FieldCommand } from "../view/steering/controls";
 import { Steering } from "../view/steering/steering";
 import { type GuideFlight, WallGuides } from "../view/field/guide";
-import { wallAtlasFrames } from "../view/art/atlas_frames";
 import { FIELD_ART, GUIDE_ART, WALL_ART } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PillPainter } from "./painters/pill_painter";
+import { PICTURE_FRAMES, type Pictures, atlasWithPictures } from "./pictures";
 import { SpringsPainter } from "./painters/springs_painter";
 import spritemap from "./sounds/sounds.json";
 import spriteUrl from "./sounds/sounds.wav?url";
@@ -115,6 +116,12 @@ export interface RickashaySceneOptions {
   readonly onLayout: (metrics: FieldMetrics) => void;
   /** Takes what a key asks of the game. */
   readonly command: (command: FieldCommand) => void;
+  /**
+   * Takes a picture of each drawn kind of brick as the atlas bakes, again
+   * as it bakes afresh: a function that draws them only once a page shows
+   * them.
+   */
+  readonly onPictures: (pictures: () => Pictures) => void;
 }
 
 /**
@@ -208,10 +215,11 @@ export class RickashayScene extends Scene {
     this.measure();
     this.atlas = new WallAtlas(
       this,
-      wallAtlasFrames,
+      atlasWithPictures,
       options.palette(),
       this.metrics,
     );
+    this.handPictures();
     const layers = this.layers();
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
     this.springs = new SpringsPainter(this, layers.springs);
@@ -289,7 +297,9 @@ export class RickashayScene extends Scene {
     this.sounds.follow(options.sound());
     // The tick may have reshaped the field, between rounds.
     this.fit();
-    this.atlas.bakeFor(options.palette(), this.metrics);
+    if (this.atlas.bakeFor(options.palette(), this.metrics)) {
+      this.handPictures();
+    }
     const view = options.view();
     this.wait(view.ball);
     context.view = view;
@@ -556,6 +566,11 @@ export class RickashayScene extends Scene {
     onPlayerAway(this, () => {
       steering.callOff();
     });
+  }
+
+  /** Hands the shell the pictures of each drawn kind of brick, as the atlas last baked them. */
+  private handPictures(): void {
+    this.options.onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES));
   }
 }
 

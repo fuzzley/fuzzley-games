@@ -1,23 +1,16 @@
-// The view's two records of play: what the shell shows of a run beside its
-// field, a value each change replaces whole, and what the scene draws of a
-// round at a moment, one record reused frame after frame.
+// What the view hands on of a round in play: what its flight has played
+// back so far and what a frame of it came to, which the shell reads, and
+// what the scene draws of it at a moment, one record reused frame after
+// frame. Where a round stands, the card over a level's end and the run's
+// state as the shell shows it are every wall game's, in `@fz/brick-wall`'s
+// `view/rounds_played` and the round's driver.
 
+import type { LevelCard } from "@fz/brick-wall/view/rounds_played";
 import type { EventLogView, NumberedEvent } from "@fz/core/event_log";
 import type { Wall } from "../rules/catalog/kinds";
-import type {
-  EarnedBy,
-  FlightEvent,
-  Round,
-  RoundStart,
-} from "../rules/flight/events";
+import type { EarnedBy, FlightEvent, Round } from "../rules/flight/events";
 import type { Fur } from "./art/frames";
 import type { EventEffects } from "./effects/effects";
-
-/** Names where a round stands: aimed, its flight played back, or the wall settling after it. */
-export type RoundPhase = "aiming" | "flying" | "settling";
-
-/** Names the card over a level's end: Cleared, or the result of one lost. */
-export type Card = "cleared" | "result";
 
 /** Describes what the round in play's flight has played back so far, as the bar and the panel count it. */
 export interface FlightSoFar {
@@ -53,114 +46,12 @@ export type RoundNews =
       readonly round: Round;
     };
 
-/**
- * Holds what the shell shows of a run beside its field, a value each change
- * replaces: the run, the round aimed or in play, where it stands and what
- * its flight has played back so far, the card over the level's end, the
- * news not yet said, and whether its end set a new best.
- *
- * A frame that changes none of them leaves it as it is, so a frame of play
- * makes nothing. `R` is the run, the rules' record of the game on the board.
- */
-export interface RunState<R> {
-  /** The run on the board. */
-  readonly run: R;
-  /** Where the round aimed, or in play, started. */
-  readonly start: RoundStart;
-  /** The round in play once it is released, until the next is aimed; else null. */
-  readonly round: Round | null;
-  readonly phase: RoundPhase;
-  /** What the round in play's flight has played back so far, or, while it is aimed, what it leaves with. */
-  readonly soFar: FlightSoFar;
-  /** The card over the level's end, once its wait has run out; else null. */
-  readonly card: Card | null;
-  /** Whether the card over the run's end has been put away, leaving the board to look at. */
-  readonly resultClosed: boolean;
-  /** What the rounds came to that the announcer hasn't said yet, in order. */
-  readonly news: readonly RoundNews[];
-  /** Whether the run's end set a new best score, as the records said as they kept it. */
-  readonly newBest: boolean;
-}
-
-/** Describes what a level's play holds, as the run's state takes it in. */
-export interface PlayState {
-  readonly start: RoundStart;
-  readonly round: Round | null;
-  readonly phase: RoundPhase;
-  readonly soFar: FlightSoFar;
-}
-
 /** Describes what a frame of a level's play came to, as it is handed on for the run's state to take in. */
 export interface RoundChange {
   /** What the frame came to that the announcer says, in order. */
   readonly news: readonly RoundNews[];
   /** The card whose wait the frame ran out, after a round that cleared or lost the level; else null. */
-  readonly opens: Card | null;
-}
-
-/**
- * Returns the state of a run as it begins, or is taken up, its play as it
- * stands, with nothing to say and no card.
- */
-export function newRunState<R>(run: R, play: PlayState): RunState<R> {
-  return {
-    run,
-    ...play,
-    card: null,
-    resultClosed: false,
-    news: [],
-    newBest: false,
-  };
-}
-
-/**
- * Returns a run's state with a frame of its play taken in: the round
- * aimed or in play, where it stands and what its flight has played back so
- * far, the card the frame opened, and its news added to what is still to
- * say; or the same state for a frame that changed none of them.
- */
-export function withFrame<R>(
-  state: RunState<R>,
-  play: PlayState,
-  change: RoundChange,
-): RunState<R> {
-  const { start, round, phase } = play;
-  const soFar = sameSoFar(play.soFar, state.soFar) ? state.soFar : play.soFar;
-  const { news, opens } = change;
-  if (
-    start === state.start &&
-    round === state.round &&
-    phase === state.phase &&
-    soFar === state.soFar &&
-    opens === null &&
-    news.length === 0
-  ) {
-    return state;
-  }
-  return {
-    ...state,
-    start,
-    round,
-    phase,
-    soFar,
-    card: opens ?? state.card,
-    news: news.length === 0 ? state.news : [...state.news, ...news],
-  };
-}
-
-/** Returns a run's state with its news said, or the same state when there was none. */
-export function withNewsSaid<R>(state: RunState<R>): RunState<R> {
-  return state.news.length === 0 ? state : { ...state, news: [] };
-}
-
-/** Returns whether two counts of a flight played back so far say the same. */
-function sameSoFar(a: FlightSoFar, b: FlightSoFar): boolean {
-  return (
-    a.rally === b.rally &&
-    a.held === b.held &&
-    a.turns === b.turns &&
-    a.points === b.points
-  );
+  readonly opens: LevelCard | null;
 }
 
 /** Describes the fuzzball as the scene draws it at a moment. */

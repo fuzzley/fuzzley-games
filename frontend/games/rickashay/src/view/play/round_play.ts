@@ -6,6 +6,7 @@
 // the floor bounces in hand, the hatches' holds and the bolts drawn; and
 // what it calls for, effects/effects.ts's, is logged with it.
 
+import type { LevelCard, RoundPhase } from "@fz/brick-wall/view/rounds_played";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { inDanger } from "@fz/brick-wall/rules/wall";
 import {
@@ -44,12 +45,10 @@ import {
 import type {
   BallView,
   Beat,
-  Card,
   FlightSoFar,
   LoggedBeat,
   RoundChange,
   RoundNews,
-  RoundPhase,
   RoundView,
 } from "../run_state";
 import { type FlightPace, type FlightSpeed, paceOf } from "./pace";
@@ -91,7 +90,7 @@ interface Shown extends RoundView {
 /** Describes the frame's change, written in place. */
 interface Change extends RoundChange {
   readonly news: RoundNews[];
-  opens: Card | null;
+  opens: LevelCard | null;
 }
 
 /** Plays a round's flight back, its fuzzball drawn from the record the scene reads. */

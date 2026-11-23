@@ -28,6 +28,11 @@ const BRICK_ART: Partial<Readonly<Record<KindId, KindArt>>> = {
   steel: STEEL_ART,
 };
 
+/** The kinds of brick the art draws, in the catalog's order: those a picture shows. */
+export const DRAWN_KINDS: readonly KindId[] = KIND_IDS.filter(
+  (kind) => BRICK_ART[kind] !== undefined,
+);
+
 /**
  * Returns every frame the atlas holds, drawn in a palette at a scale: each
  * drawn kind of brick's, in the catalog's order, then the fuzzball's.

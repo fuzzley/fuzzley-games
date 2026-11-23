@@ -24,7 +24,11 @@ import { ThemeService } from "@fz/ui/theme";
 import type { Round, RoundStart } from "../../rules/flight/events";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { LevelEntry } from "../../rules/levels/levels";
-import { describeGuide, describeRows } from "../../rules/run/describe";
+import {
+  CALL_WORDS,
+  describeGuide,
+  describeRows,
+} from "../../rules/run/describe";
 import type { ReadRound } from "../../rules/run/reported_game";
 import { levelOf, openingOf, runRulesOf } from "../../rules/run/run";
 import type { LevelTally } from "../../rules/run/scoring";
@@ -32,7 +36,9 @@ import { rallyMarkOf } from "../../rules/run/stars";
 import { statsRulesOf } from "../../rules/run/stats";
 import type { Shot } from "../../rules/shot";
 import { FLIGHT_RULES, type FlightRules } from "../../rules/tuning";
+import type { Pictures } from "../../scene/pictures";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
+import { CALL_MS } from "../../view/effects/timing";
 import {
   FLIGHT_PACE,
   type FlightPace,
@@ -46,6 +52,7 @@ import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, GAME_MARKS, PLAY_ROUND } from "../tokens";
+import { boardCardOf } from "./cards";
 import { PlayedRounds } from "./played_rounds";
 import { KEPT_GAME } from "./saved_game.service";
 import { RunWords, fastForwardWords } from "./words";
@@ -153,6 +160,12 @@ export class GameService extends RoundDriver<
     paused: false,
   };
   private readonly soFarState = signal(NOT_FLOWN);
+  /** How many times a flight has been called out, which numbers the call showing. */
+  private calls = 0;
+  /** How long the call showing has left over the field. */
+  private callLeftMs = 0;
+  private readonly callState = signal<number | null>(null);
+  private readonly picturesState = signal<(() => Pictures) | null>(null);
 
   /** The best score of any run, as of the last that ended. */
   readonly best = computed(() => this.stats.stats().best);
@@ -207,6 +220,19 @@ export class GameService extends RoundDriver<
     guideTurns: this.settings().guideTurns,
   }));
 
+  /**
+   * The "Rickashay!" call showing over the field, numbered from 1 so each
+   * shows afresh, for `CALL_MS` from the frame its flight reached the
+   * level's rally mark; or null for none.
+   */
+  readonly call = this.callState.asReadonly();
+
+  /** The card over the field, or null for none. */
+  readonly boardCard = computed(() => boardCardOf(this));
+
+  /** The pictures of each drawn kind of brick, as the scene last baked them, or null before it has. */
+  readonly pictures = this.picturesState.asReadonly();
+
   /** The colors the field is drawn in, from the palette on the page, a new value as it changes. */
   readonly palette = computed(() =>
     wallPalette(this.roles(), this.theme.mode()),
@@ -227,6 +253,12 @@ export class GameService extends RoundDriver<
     this.aimedAt = aim.aim;
     if (aim.release) this.release({ aim: aim.aim }, FLIGHT_RULES);
     this.playFrame(deltaMs);
+    this.showCall(deltaMs);
+  }
+
+  /** Takes the pictures of each drawn kind of brick the scene's atlas baked. */
+  onPictures(pictures: () => Pictures): void {
+    this.picturesState.set(pictures);
   }
 
   /** Returns the round in play as the scene draws it at this moment: one record, written again each frame. */
@@ -357,6 +389,24 @@ export class GameService extends RoundDriver<
     });
     this.soFarState.set(this.play.soFar);
     return change;
+  }
+
+  /**
+   * Shows the call over the field, and says it, as the frame's flight
+   * reached the level's rally mark, and puts it away once it has shown for
+   * `CALL_MS`.
+   */
+  private showCall(deltaMs: number): void {
+    if (this.play.news.some(({ kind }) => kind === "called")) {
+      this.calls++;
+      this.callLeftMs = CALL_MS;
+      this.callState.set(this.calls);
+      this.announcer.say(CALL_WORDS);
+      return;
+    }
+    if (this.callState() === null) return;
+    this.callLeftMs -= deltaMs;
+    if (this.callLeftMs <= 0) this.callState.set(null);
   }
 
   /** Says what the guide shows of the shot being aimed, while one shows. */

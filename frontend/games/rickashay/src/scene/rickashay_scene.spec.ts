@@ -94,6 +94,7 @@ import {
   MOST_SPARKS,
   MOST_SWIRLS,
 } from "./painters/effects_painter";
+import { PICTURE_FRAMES, type Pictures } from "./pictures";
 import spritemap from "./sounds/sounds.json";
 
 /** The light palette the specs draw in, the art's specs'. */
@@ -225,6 +226,11 @@ class FakeShell implements RickashaySceneOptions {
   };
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
+  };
+  /** The pictures of the kinds the atlas handed over at each bake. */
+  readonly pictures: (() => Pictures)[] = [];
+  readonly onPictures = (pictures: () => Pictures): void => {
+    this.pictures.push(pictures);
   };
 
   /** Aims a fixture's round, played from then on as the game plays it. */
@@ -584,6 +590,39 @@ describe("RickashayScene", () => {
       expect([atlas.has(FRAMES.bounceOff), atlas.has(FRAMES.bounceOn)]).toEqual(
         [true, true],
       );
+    });
+
+    it("holds a picture of each drawn kind of brick", async () => {
+      const { scene } = await startBoard();
+      const atlas = scene.textures.get(ATLAS);
+
+      expect(
+        Object.values(PICTURE_FRAMES.bricks).filter(
+          (frame) => !atlas.has(frame),
+        ),
+      ).toEqual([]);
+    });
+
+    it("hands the shell the kinds' pictures as it bakes, and again as it bakes in a new palette", async () => {
+      const { shell, run } = await startBoard();
+      const handed = shell.pictures.length;
+
+      shell.colors = DARK;
+      run.advance(16);
+
+      expect([handed, shell.pictures.length]).toEqual([1, 2]);
+    });
+
+    it("pictures each drawn kind, once asked, as a PNG's data: URL", async () => {
+      const { shell } = await startBoard();
+
+      const pictures = shell.pictures[0]?.();
+
+      expect(
+        Object.values(pictures?.bricks ?? {}).map((picture) =>
+          picture.startsWith("data:image/png"),
+        ),
+      ).toEqual(Object.values(PICTURE_FRAMES.bricks).map(() => true));
     });
 
     it("bakes again in a new palette, the field painted in it", async () => {

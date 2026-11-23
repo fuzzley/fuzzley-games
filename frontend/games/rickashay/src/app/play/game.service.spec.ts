@@ -279,6 +279,21 @@ describe("GameService", () => {
     });
   });
 
+  describe("the call", () => {
+    it("is said as a flight reaches the level's rally mark", () => {
+      const game = gameOf("rally");
+      release(game);
+
+      playUntil(
+        game,
+        () => STILL,
+        () => game.call() !== null,
+      );
+
+      expect(said()).toBe("Rickashay!");
+    });
+  });
+
   describe("the guide", () => {
     it("is the rules' own flight for the aim, cast to the turn the settings ask for", () => {
       const game = gameOf();

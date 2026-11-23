@@ -1,3 +1,4 @@
+import type { LevelCard } from "@fz/brick-wall/view/rounds_played";
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { positionAt } from "@fz/brick-wall/rules/track";
@@ -16,7 +17,7 @@ import {
   type FixtureName,
   type FlightFixture,
 } from "../../testing/flight_fixtures";
-import type { Beat, Card, RoundNews } from "../run_state";
+import type { Beat, RoundNews } from "../run_state";
 import { flightEffects } from "../effects/effects";
 import type { SoundName } from "../effects/sounds";
 import { FLIGHT_PACE } from "./pace";
@@ -147,7 +148,7 @@ function playUntilEnded(play: RoundPlay, frame: PlayOptions = NORMAL): number {
 function playUntilOpens(
   play: RoundPlay,
   frame: PlayOptions = NORMAL,
-): { ms: number; card: Card } {
+): { ms: number; card: LevelCard } {
   for (let played = FRAME_MS; played < 10_000; played += FRAME_MS) {
     const { opens } = play.advance(FRAME_MS, frame);
     if (opens !== null) return { ms: played, card: opens };
@@ -156,7 +157,7 @@ function playUntilOpens(
 }
 
 /** Plays frames for a while, and returns the first card whose wait runs out in them, or null for none. */
-function opensWithin(play: RoundPlay, ms: number): Card | null {
+function opensWithin(play: RoundPlay, ms: number): LevelCard | null {
   for (let played = 0; played < ms; played += FRAME_MS) {
     const { opens } = play.advance(FRAME_MS, NORMAL);
     if (opens !== null) return opens;

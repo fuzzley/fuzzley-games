@@ -1,0 +1,138 @@
+@use "../styles" as *;
+
+// Over the field, where the board lays the layer, a card in its middle, but
+// for the Ready card. A card keeps the margin the board keeps around the
+// field (`--margin`), the canvas's own too (`--fz-canvas-card-room`), and
+// sizes itself by the board, the size container around it.
+:host {
+  @include board-card-layer;
+
+  --fz-canvas-card-room: var(--margin);
+}
+
+.card {
+  @include board-card(var(--margin));
+}
+
+// Over the wall, at the top of the field, clear of the floor, where the
+// fuzzball waits for the first shot.
+.ready {
+  align-self: start;
+  margin-top: var(--margin);
+}
+
+// The kind of brick the level brings in: its picture, square as a brick is,
+// beside its name and what it does.
+.new-kind {
+  display: flex;
+  align-items: center;
+  gap: var(--fz-space-3);
+  text-align: start;
+}
+
+.picture {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.upright {
+  color: var(--fz-muted);
+  font-size: var(--fz-font-sm);
+}
+
+// Each star on a line of its own by its name, an earned one in the
+// warning's gold, as the levels show them, and a missed one outlined and
+// muted.
+.stars {
+  display: grid;
+  gap: var(--fz-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: start;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--fz-space-2);
+  }
+
+  fz-icon {
+    --fz-icon-size: 24px;
+
+    color: var(--fz-warning);
+  }
+
+  .missed {
+    color: var(--fz-muted);
+
+    fz-icon {
+      color: var(--fz-muted);
+    }
+  }
+}
+
+// Each figure on a line, its name and its value at either end, as wide as
+// the card allows on a small board.
+.figures {
+  display: grid;
+  gap: var(--fz-space-1);
+  min-width: min(14em, 100%);
+  margin: 0;
+
+  > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--fz-space-4);
+  }
+
+  dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// How the points added up, set apart from the shots and the rally above it.
+.tally {
+  padding-top: var(--fz-space-1);
+  border-top: 1px solid var(--fz-edge-3);
+}
+
+// The trophy over the Ended card once every level is cleared.
+.card-icon {
+  --fz-icon-size: 40px;
+
+  color: var(--fz-warning);
+}
+
+// On a short board, as on a phone on its side, the Cleared card's stars sit
+// in a row, as Brick Fuzz Pop's do, each named for a screen reader alone,
+// so the card and its Next level fit over the field.
+@container (height < 480px) {
+  .stars {
+    grid-auto-flow: column;
+    justify-content: center;
+  }
+
+  .star-name {
+    @include visually-hidden;
+  }
+}
+
+// On a small board, as on the smallest phones and a phone on its side under
+// 380 px tall, every card in the layer sets smaller, the canvas's own too:
+// 20 px taller than Brick Fuzz Pop's, as the Cleared card is taller.
+@container (width < 280px) or (height < 380px) {
+  :host {
+    @include board-card-small;
+  }
+
+  .card-icon {
+    --fz-icon-size: 28px;
+  }
+
+  .stars fz-icon {
+    --fz-icon-size: 18px;
+  }
+}

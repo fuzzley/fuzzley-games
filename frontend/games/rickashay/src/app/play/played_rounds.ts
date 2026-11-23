@@ -1,6 +1,7 @@
 import type {
   FrameChange,
   LevelCard,
+  RoundPhase,
   RoundsPlayed,
 } from "@fz/brick-wall/view/rounds_played";
 import type { Round, RoundStart } from "../../rules/flight/events";
@@ -9,7 +10,6 @@ import type {
   FlightSoFar,
   RoundChange,
   RoundNews,
-  RoundPhase,
   RoundView,
 } from "../../view/run_state";
 

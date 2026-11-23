@@ -15,7 +15,7 @@ import { endTitle, whereLost } from "@fz/brick-wall/rules/end_words";
 import { inDanger, lowestNeededRow } from "@fz/brick-wall/rules/wall";
 import { count, formatPoints, listed } from "@fz/core/format";
 import { WALL_RULES } from "../bricks/wall_rules";
-import { type Brick, kindOf } from "../catalog/kinds";
+import { type Brick, type KindId, kindOf } from "../catalog/kinds";
 import type {
   EarnedBy,
   FlightEvent,
@@ -23,7 +23,7 @@ import type {
   RoundStart,
 } from "../flight/events";
 import type { LevelEntry } from "../levels/levels";
-import type { FlightRules } from "../tuning";
+import { FLIGHT_RULES, type FlightRules } from "../tuning";
 import type { Run } from "./run";
 import { STARS, type Star, type StarFlags } from "./stars";
 
@@ -129,6 +129,32 @@ export function describeLevel(
   return `Level ${String(entry.number)}, ${entry.data.name}. Par ${String(par)}. Rally mark ${String(mark)}.`;
 }
 
+/** What the announcer says as a flight reaches the level's rally mark, the call the shell shows over the field too. */
+export const CALL_WORDS = "Rickashay!";
+
+/**
+ * What each kind of brick does, in a sentence or two, as the Ready card
+ * says it of the kind a level brings in, by the rules' own numbers.
+ */
+const KIND_LINES: Readonly<Record<KindId, string>> = {
+  brick: "Breaks at 1 strike.",
+  tough: "Loses a pip at each strike.",
+  steel: "Can't be broken.",
+  ramp: "Sends the fuzzball off its slope at a right angle. Can't be broken.",
+  hatch: `Lets the fuzzball rise through. Holds it up on the way down, ${count(FLIGHT_RULES.hatchHolds, "time", "times")} a shot.`,
+  spring: "Gives your shot a floor bounce when it breaks.",
+  gem: "Bounces the fuzzball off at an angle from every side.",
+  portal: "Sends the fuzzball out of its twin, flying the same way.",
+  plated: "Loses a pip at each strike, but not on its steel.",
+  moss: "Grows a pip back after each shot it survives.",
+  lock: `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
+};
+
+/** Returns what a kind of brick does, as the Ready card says it of the kind a level brings in: "Loses a pip at each strike." */
+export function describeKind(kind: KindId): string {
+  return KIND_LINES[kind];
+}
+
 /**
  * Returns a star's name on the Cleared card, by its par and the rally mark
  * it was cleared against: "Cleared", "Within 9 shots" and "A rally of 24".
@@ -151,6 +177,13 @@ export function describeCleared(
     starWords(star, run.par, mark),
   );
   return `Level ${String(run.level)} cleared in ${count(run.rounds, "shot", "shots")}. ${count(earned.length, "star", "stars")}: ${listed(earned)}. Score ${formatPoints(run.score)}.`;
+}
+
+/** Returns how many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
+export function rowsWaiting(rows: number): string {
+  return rows === 0
+    ? "No rows waiting"
+    : `${count(rows, "row", "rows")} waiting`;
 }
 
 /** Returns what is said as a run pauses: its score, and the key that resumes it. */

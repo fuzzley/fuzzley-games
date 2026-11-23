@@ -21,7 +21,7 @@ export interface LevelData {
   readonly id: string;
   /** Names it to the player. */
   readonly name: string;
-  /** What its wall is built around, as the design's table of the drafts says it. */
+  /** What its wall is built around, as the design's table of the drafts says it, which the Ready card shows the player. */
   readonly around: string;
   /** A picture of its wall, top row first, nine of the legend's characters a row. */
   readonly bricks: readonly string[];

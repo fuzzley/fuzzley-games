@@ -15,12 +15,14 @@ import {
   describeEnd,
   describeGuide,
   describeJump,
+  describeKind,
   describeLevel,
   describePause,
   describeResume,
   describeRound,
   describeRows,
   describeTakenUp,
+  rowsWaiting,
   starLabel,
 } from "./describe";
 
@@ -427,5 +429,32 @@ describe("describeRows", () => {
     expect(describeRows(startOf(["ooooooooo"], 11))).toBe(
       "No bricks on the screen.",
     );
+  });
+});
+
+describe("describeKind", () => {
+  it.each([
+    ["brick", "Breaks at 1 strike."],
+    ["tough", "Loses a pip at each strike."],
+    ["steel", "Can't be broken."],
+  ] as const)("says what a %s does", (kind, words) => {
+    expect(describeKind(kind)).toBe(words);
+  });
+
+  it("says a hatch's holds and a lock's bolts by the rules' numbers", () => {
+    expect([describeKind("hatch"), describeKind("lock")]).toEqual([
+      `Lets the fuzzball rise through. Holds it up on the way down, ${String(FLIGHT_RULES.hatchHolds)} times a shot.`,
+      `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
+    ]);
+  });
+});
+
+describe("rowsWaiting", () => {
+  it.each([
+    [0, "No rows waiting"],
+    [1, "1 row waiting"],
+    [5, "5 rows waiting"],
+  ])("says %i rows waiting as %s", (rows, words) => {
+    expect(rowsWaiting(rows)).toBe(words);
   });
 });

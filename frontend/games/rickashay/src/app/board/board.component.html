@@ -1,0 +1,47 @@
+<fz-wall-board
+  #board
+  name="Rickashay"
+  [label]="label()"
+  [keys]="keys"
+  [scene]="scene"
+  [metrics]="game.metrics()"
+  [shape]="game.shape()"
+  [palette]="game.palette()"
+  [outcome]="game.outcome()"
+  [wallRow]="game.start().wall.lowestRow"
+  [waiting]="rowsWaiting()"
+  [compact]="compact()"
+  [cardUnderLintel]="cardUnderLintel()"
+  (room)="game.setRoom($event)"
+  (drawn)="game.setDrawn($event)"
+  (contextLost)="game.pause()"
+>
+  <!--
+    The call, heard from the announcer, under the card, which covers it as
+    the player pauses.
+  -->
+  @for (call of calls(); track call) {
+    <div
+      class="call-layer"
+      aria-hidden="true"
+      [style]="board.cardPlace()"
+      [style.--call-time]="callTime"
+    >
+      <p class="call" [class.moving]="moving()">{{ callWords }}</p>
+    </div>
+  }
+
+  <app-board-card
+    [style]="board.cardPlace()"
+    [card]="game.boardCard()"
+    [restoring]="board.restoring()"
+    [pictures]="cardPictures()"
+    (resumeRun)="resumeRun()"
+    (nextLevel)="nextLevel()"
+    (tryAgain)="tryAgain()"
+    (newGame)="newGame()"
+  >
+    <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+    <fz-canvas-cards [canvas]="board.canvas()" />
+  </app-board-card>
+</fz-wall-board>

@@ -1,6 +1,7 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { JUMP_MS } from "@fz/brick-wall/view/timing";
 import {
+  CALL_MS,
   DIP,
   DIP_MS,
   KICK_MS,
@@ -31,5 +32,9 @@ describe("the flourishes' timings", () => {
 
   it("draws the dash's streak longer than the fuzzball", () => {
     expect(STREAK).toBeGreaterThan(2 * RADIUS);
+  });
+
+  it("shows the call longer than the wall's jump, long enough to read", () => {
+    expect(CALL_MS).toBeGreaterThan(JUMP_MS);
   });
 });

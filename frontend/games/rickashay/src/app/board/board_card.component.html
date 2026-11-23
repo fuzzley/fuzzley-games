@@ -1,0 +1,126 @@
+<!-- The canvas's own cards, which the board hands it. -->
+<ng-content />
+@let card = shown();
+@if (card) {
+  <!-- By its kind, which narrows the card in each case, as `card.kind` can't. -->
+  @let kind = card.kind;
+  @switch (kind) {
+    @case ("ready") {
+      <div class="card ready" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
+        <p>{{ card.around }}</p>
+        <dl class="figures">
+          @for (line of card.figures; track line.label) {
+            <div>
+              <dt>{{ line.label }}</dt>
+              <dd>{{ line.value }}</dd>
+            </div>
+          }
+        </dl>
+        @if (card.newKind; as newKind) {
+          <div class="new-kind">
+            @if (newKind.picture; as picture) {
+              <img class="picture" [src]="picture" alt="" />
+            }
+            <p>
+              <strong>New: {{ newKind.name }}.</strong> {{ newKind.about }}
+            </p>
+          </div>
+        }
+        @if (sideways()) {
+          <p class="upright">Turn your phone upright for a bigger board.</p>
+        }
+      </div>
+    }
+    @case ("paused") {
+      <!-- Left out of a bug report's picture, which shows the game beneath. -->
+      <div
+        class="card"
+        role="group"
+        data-fz-capture="skip"
+        [attr.aria-labelledby]="titleId"
+      >
+        <h2 class="card-title" [id]="titleId">Paused</h2>
+        <p>Score {{ card.score }}</p>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="resumeRun.emit()"
+        >
+          Resume
+        </button>
+      </div>
+    }
+    @case ("cleared") {
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
+        <p class="fz-visually-hidden">{{ card.starsWords }}</p>
+        <!-- Each star by its name, a missed one outlined, and said so. -->
+        <ul class="stars" role="list">
+          @for (star of card.stars; track star.label) {
+            <li [class.missed]="!star.earned">
+              <fz-icon [name]="star.earned ? 'star' : 'star-outline'" />
+              @if (!star.earned) {
+                <span class="fz-visually-hidden">Missed: </span>
+              }
+              <span class="star-name">{{ star.label }}</span>
+            </li>
+          }
+        </ul>
+        <dl class="figures">
+          @for (line of card.play; track line.label) {
+            <div>
+              <dt>{{ line.label }}</dt>
+              <dd>{{ line.value }}</dd>
+            </div>
+          }
+        </dl>
+        <dl class="figures tally">
+          @for (line of card.tally; track line.label) {
+            <div>
+              <dt>{{ line.label }}</dt>
+              <dd>{{ line.value }}</dd>
+            </div>
+          }
+        </dl>
+        <p>Score {{ card.score }}</p>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="nextLevel.emit()"
+        >
+          Next level
+        </button>
+      </div>
+    }
+    @case ("ended") {
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        @if (card.won) {
+          <fz-icon class="card-icon" name="trophy" />
+        }
+        <h2 class="card-title" [id]="titleId">{{ card.title }}</h2>
+        @if (card.where; as where) {
+          <p>{{ where }}</p>
+        }
+        <p>Score {{ card.score }}</p>
+        <button
+          type="button"
+          class="fz-button"
+          fzKeepKeys
+          (click)="startAgain(card.won)"
+        >
+          {{ card.againLabel }}
+        </button>
+      </div>
+    }
+    @case ("restoring") {
+      <div class="card" role="group" [attr.aria-labelledby]="titleId">
+        <h2 class="card-title" [id]="titleId">Graphics stopped</h2>
+        <p>The game is paused until they come back.</p>
+      </div>
+    }
+    @default never;
+  }
+}

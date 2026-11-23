@@ -1,0 +1,49 @@
+// The board is the wall games' frame, which takes the room the stage gives
+// it, as though this element weren't there.
+:host {
+  display: contents;
+}
+
+// Over the field, where the board lays the card, the call in its middle,
+// taking no pointer.
+.call-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// One shout across the field, in the warning's gold, as the stars are: it
+// sweeps in from one side and out the other where motion is welcome, and
+// stands still otherwise, for as long as the game shows it.
+.call {
+  margin: 0;
+  color: var(--fz-warning);
+  font-size: clamp(1.75rem, 12cqmin, 3.5rem);
+  font-weight: 800;
+  text-shadow: 0 2px 0 var(--fz-text);
+
+  &.moving {
+    animation: call-across var(--call-time) ease-in-out both;
+  }
+}
+
+@keyframes call-across {
+  0% {
+    transform: translateX(-60cqw) rotate(-8deg);
+  }
+
+  30% {
+    transform: translateX(0) rotate(-4deg) scale(1.15);
+  }
+
+  70% {
+    transform: translateX(0) rotate(-4deg) scale(1.15);
+  }
+
+  100% {
+    transform: translateX(60cqw) rotate(-8deg);
+  }
+}
