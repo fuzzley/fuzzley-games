@@ -29,7 +29,11 @@ export interface SolvedLine {
   readonly search: ScriptSearch;
 }
 
-/** Holds what `tools/certify-levels.mjs` plays: the levels, the depths and the solver. */
+/**
+ * Holds what `tools/certify-levels.mjs` plays: the levels, the depths and the solver.
+ *
+ * `tools/certify-levels.spec.ts` holds it to `@fz/dev/certify`'s `CertifyApi`, the pool's.
+ */
 export interface CertifyApi {
   /** Every level, in the order played. */
   readonly levels: readonly ScriptLevel[];

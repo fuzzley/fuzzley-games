@@ -84,12 +84,12 @@ Then:
   that clears a level on a depth: in as many rounds as it has shots, no
   brick the level needs ever coming down to the row over the floor's
   (`lineHolds()`, `@fz/brick-wall/testing/solver`). `yarn certify:levels`
-  finds them with the library's solver, over the game's play of a line
-  (`linePlayOf()`, `src/testing/solver.ts`), and writes them to
-  `src/rules/levels/certificates/<set>.json`. It writes each level's par on
-  each depth, half as many rounds again (`@fz/brick-wall/rules/par`'s
-  `parFrom()`), to `src/rules/levels/par.json`. A run writes the same bytes
-  as the last unless a line changed.
+  finds them on `@fz/dev/certify`'s pool with the library's solver, over
+  the game's play of a line (`linePlayOf()`, `src/testing/solver.ts`), and
+  writes them to `src/rules/levels/certificates/<set>.json`. It writes each
+  level's par on each depth, half as many rounds again
+  (`@fz/brick-wall/rules/par`'s `parFrom()`), to `src/rules/levels/par.json`.
+  A run writes the same bytes as the last unless a line changed.
 - **`src/rules/levels/every_level/`** has a file for each depth, 11 to 22,
   each `holdEveryCertificate(import.meta.filename)`
   (`src/testing/every_level.ts`, over `@fz/brick-wall/testing/holders`). It
@@ -154,8 +154,9 @@ failed:
    own walls and starts.
 4. **Certify again only what the change touches:** `--set <id>`,
    `--level <id or number>` or `--depth <n>`, the other lines kept as
-   written. It uses every core, so certify one thing at a time, and run
-   nothing beside it that needs them.
+   written. It takes every core, so it waits its turn in the queue
+   `yarn verify:changed` keeps; certify one thing at a time, as a second
+   run waits for the first.
 5. **Read the diff** of the certificates and `par.json`. A par that moved
    moves the stars the level gives, and a line that moved under the
    screenshots' run moves the screenshots. Commit them in the change that

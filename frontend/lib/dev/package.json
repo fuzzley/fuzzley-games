@@ -25,6 +25,7 @@
     "./verify": "./src/verify.ts",
     "./queue": "./src/queue.ts",
     "./mutants": "./src/mutants.ts",
+    "./certify": "./src/certify.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
   },
   "bin": {

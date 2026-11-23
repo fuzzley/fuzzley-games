@@ -64,11 +64,12 @@ export default defineConfig(
     },
   },
   // What the scripts load of this library, from @fz/dev/script, /report,
-  // /screenshots, /workspaces and /verify, and what the tsc7 binary loads,
-  // loads Vite only once a script asks for it.
+  // /screenshots, /workspaces, /verify and /certify, and what the tsc7
+  // binary loads, loads Vite only once a script asks for it.
   {
     files: [
       "src/script.ts",
+      "src/certify.ts",
       "src/workspaces.ts",
       "src/verify.ts",
       "src/queue.ts",

@@ -2,7 +2,8 @@
 // runs at a time, whichever process starts each, and the folder, shared by a
 // repository's worktrees, where the runs that take the whole machine queue.
 // The scripts that queue there: `yarn verify:changed`, through `./verify.ts`,
-// and `yarn mutants`, through `./mutants.ts`.
+// `yarn mutants`, through `./mutants.ts`, and a game's
+// `yarn certify:levels`, through `./certify.ts`.
 
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
