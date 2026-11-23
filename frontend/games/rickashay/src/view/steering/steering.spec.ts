@@ -566,3 +566,132 @@ describe("Steering, released by a button", () => {
     expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
   });
 });
+
+describe("Steering at the screen's edge", () => {
+  // On a phone held upright the canvas is the screen's width, and the
+  // field's walls stand 15 CSS px in from its sides: inside the 16 CSS px
+  // where a finger's swipe is the browser's, to go back or forward.
+
+  it.each([
+    ["left", 0],
+    ["right", 9],
+  ])(
+    "leaves a finger on the field's %s wall, within 16 CSS px of the screen's edge, to the browser",
+    (_side, x) => {
+      const steering = steeringOf();
+
+      steering.pointerDown(finger(x, 1.25));
+
+      expect(frame(steering)).toMatchObject({
+        aim: STRAIGHT_UP,
+        touch: false,
+      });
+    },
+  );
+
+  it.each([
+    ["left", 0.05, AIM_COUNT - 1],
+    ["right", 8.95, 0],
+  ])(
+    "aims at a finger a sliver in from the field's %s wall, past the browser's 16 CSS px",
+    (_side, x, aim) => {
+      const steering = steeringOf();
+
+      steering.pointerDown(finger(x, 0.25));
+
+      expect(frame(steering)).toMatchObject({ aim, touch: true });
+    },
+  );
+
+  it("lets nothing fly as a finger left to the browser lets go", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(0, 1.25));
+
+    steering.pointerUp(finger(0, 1.25));
+
+    expect(frame(steering).release).toBe(false);
+  });
+
+  it("leaves a pull back pressed at the screen's edge to the browser, so its drag flies nothing", () => {
+    const steering = steeringOf("pullBack");
+    steering.pointerDown(finger(0, 8));
+    steering.pointerMove(finger(2, 6));
+
+    steering.pointerUp(finger(2, 6));
+
+    expect(frame(steering)).toMatchObject({
+      aim: STRAIGHT_UP,
+      release: false,
+    });
+  });
+
+  it("keeps a shot pressed as a second finger lands at the screen's edge", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+
+    steering.pointerDown(finger(0, 6, { id: 2 }));
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
+  });
+
+  it("lets a click at the screen's very edge fly the aim the mouse left", () => {
+    const steering = steeringOf();
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25, { x: 0 }));
+    steering.pointerUp(mouse(FIRST_X + 1, 1.25, { x: 0 }));
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
+  });
+
+  it.each([
+    { x: 47, aims: false, verdict: "is the browser's" },
+    { x: 48, aims: true, verdict: "aims" },
+  ])(
+    "measures the edge on the canvas handed last, in its device pixels: at 3×, a finger at $x device px $verdict",
+    ({ x, aims }) => {
+      const canvas = boardCanvas(390, 844, 3);
+      const metrics = fieldMetrics(canvas, fieldShape(canvas));
+      const steering = steeringOf();
+      steering.measure(metrics, canvas);
+
+      steering.pointerDown(finger(FIRST_X, 5, { x }, metrics));
+
+      expect(frame(steering).touch).toBe(aims);
+    },
+  );
+});
+
+describe("Steering, a shot aimed by each input in turn", () => {
+  it("flies the keys' turn of the mouse's aim, nudged by the wheel, at a click where the mouse rests", () => {
+    const steering = steeringOf();
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+    steering.keyDown(key("ArrowLeft"));
+    steering.keyDown(key("ArrowLeft"));
+    steering.wheel(100);
+
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25));
+    steering.pointerUp(mouse(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45 + 7,
+      release: true,
+    });
+  });
+
+  it("aims at a finger over the keys' aim, and flies the keys' turn of it at Space while it is held", () => {
+    const steering = steeringOf();
+    steering.keyDown(key("ArrowLeft"));
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+    steering.keyDown(key("ArrowRight", { shiftKey: true }));
+
+    steering.keyDown(key("Space"));
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45 - 1,
+      release: true,
+      touch: false,
+    });
+  });
+});

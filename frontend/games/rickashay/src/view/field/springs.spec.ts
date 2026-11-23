@@ -82,6 +82,18 @@ describe("bandSprings", () => {
     expect(evenlySpaced(springs, SPRING_GAP_CSS_PX)).toBe(true);
   });
 
+  it("narrows springs too many for the band's width no more than they must", () => {
+    const { metrics } = laidOut(boardCanvas(390, 844));
+    const room = metrics.width - 2 * SPRINGS_RIGHT_CSS_PX;
+    const count = 20;
+    const gaps = (count - 1) * SPRING_GAP_CSS_PX;
+
+    const { size } = springsOn(boardCanvas(390, 844), { mostBounces: count });
+
+    expect(count * size + gaps).toBeLessThanOrEqual(room);
+    expect(count * (size + 1) + gaps).toBeGreaterThan(room);
+  });
+
   it("lays no spring past the field's walls however many the rules retuned say a fuzzball holds", () => {
     const { metrics } = laidOut(boardCanvas(390, 844));
 
