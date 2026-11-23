@@ -1,5 +1,5 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
-import { levelStart } from "../rules/levels/level";
+import { levelStart } from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
 import { MOST_CHARGE } from "../rules/tuning";
 import {

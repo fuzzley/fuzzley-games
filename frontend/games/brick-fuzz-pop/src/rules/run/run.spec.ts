@@ -1,7 +1,6 @@
 import type { RunStage } from "@fz/core/run";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
-import { levelStart } from "../levels/level";
-import { LEVELS, levelEntryOf, parseLevel } from "../levels/levels";
+import { LEVELS, levelEntryOf, levelStart, parseLevel } from "../levels/levels";
 import type { RoundOutcome } from "../round/round";
 import { STAR_POINTS } from "../tuning";
 import {

@@ -9,11 +9,12 @@ import {
   RIGHT,
   cellOf,
 } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { ALL_SIDES, exposureOf } from "@fz/core/sweep";
 import { STAND_INS } from "../testing/stand_ins";
-import { wallFrom } from "../testing/wall_picture";
 import { type BrickKind, brickKind } from "./catalog/bricks";
 import { SHAPES, boxesIn, shapeOf, shapesOf } from "./grid";
+import { WALL_LEGEND } from "./levels/legend";
 import type { Wall } from "./wall/wall";
 
 /** The depth of the field the specs play on, but where one says otherwise. */
@@ -106,10 +107,13 @@ describe("boxesIn, read through exposureOf", () => {
   // Of two bricks stacked, the lower shows its face to the floor, and the
   // higher its face to the ceiling.
   it("shows a stack's lower brick to the floor, not to the ceiling", () => {
-    const wall = wallFrom([
-      "....o....", //
-      "....o....",
-    ]);
+    const wall = wallFrom(
+      [
+        "....o....", //
+        "....o....",
+      ],
+      WALL_LEGEND,
+    );
 
     expect(exposure(wall, 4, 1)).toBe(
       FLOORWARD | LEFT | RIGHT | FLOORWARD_LEFT | FLOORWARD_RIGHT,
@@ -117,10 +121,13 @@ describe("boxesIn, read through exposureOf", () => {
   });
 
   it("shows a stack's higher brick to the ceiling, not to the floor", () => {
-    const wall = wallFrom([
-      "....o....", //
-      "....o....",
-    ]);
+    const wall = wallFrom(
+      [
+        "....o....", //
+        "....o....",
+      ],
+      WALL_LEGEND,
+    );
 
     expect(exposure(wall, 4, 2)).toBe(
       CEILINGWARD | LEFT | RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
@@ -128,28 +135,31 @@ describe("boxesIn, read through exposureOf", () => {
   });
 
   it("shows every face and corner of a brick alone", () => {
-    const wall = wallFrom(["....o...."]);
+    const wall = wallFrom(["....o...."], WALL_LEGEND);
 
     expect(exposure(wall, 4, 1)).toBe(ALL_SIDES);
   });
 
   it("makes one face of bricks side by side", () => {
-    const wall = wallFrom(["...ooo..."]);
+    const wall = wallFrom(["...ooo..."], WALL_LEGEND);
 
     expect(exposure(wall, 4, 1)).toBe(FLOORWARD | CEILINGWARD);
   });
 
   it("shows a corner only where no brick touches it", () => {
-    const wall = wallFrom([
-      "...o.....", //
-      "....o....",
-    ]);
+    const wall = wallFrom(
+      [
+        "...o.....", //
+        "....o....",
+      ],
+      WALL_LEGEND,
+    );
 
     expect(exposure(wall, 4, 1)).toBe(ALL_SIDES & ~CEILINGWARD_LEFT);
   });
 
   it("stands steel as a box, as any brick", () => {
-    const wall = wallFrom(["...o#o..."]);
+    const wall = wallFrom(["...o#o..."], WALL_LEGEND);
 
     expect([exposure(wall, 3, 1), exposure(wall, 4, 1)]).toEqual([
       FLOORWARD | CEILINGWARD | LEFT | FLOORWARD_LEFT | CEILINGWARD_LEFT,
@@ -158,7 +168,7 @@ describe("boxesIn, read through exposureOf", () => {
   });
 
   it("counts the cells beyond the left side wall as solid", () => {
-    const wall = wallFrom(["o........"]);
+    const wall = wallFrom(["o........"], WALL_LEGEND);
 
     expect(exposure(wall, 0, 1)).toBe(
       FLOORWARD | CEILINGWARD | RIGHT | FLOORWARD_RIGHT | CEILINGWARD_RIGHT,
@@ -166,7 +176,7 @@ describe("boxesIn, read through exposureOf", () => {
   });
 
   it("counts the cells beyond the right side wall as solid", () => {
-    const wall = wallFrom(["........o"]);
+    const wall = wallFrom(["........o"], WALL_LEGEND);
 
     expect(exposure(wall, 8, 1)).toBe(
       FLOORWARD | CEILINGWARD | LEFT | FLOORWARD_LEFT | CEILINGWARD_LEFT,
@@ -179,6 +189,7 @@ describe("boxesIn, read through exposureOf", () => {
         "....o....", //
         "....o....",
       ],
+      WALL_LEGEND,
       { lowestRow: 10 },
     );
 
@@ -200,7 +211,11 @@ describe("boxesIn, read through exposureOf", () => {
   ])(
     "counts %s cell as open, its neighbours showing it their faces",
     (_, row) => {
-      const solid = boxesIn(wallFrom([row]), DEPTH, shapesOf(STAND_INS));
+      const solid = boxesIn(
+        wallFrom([row], WALL_LEGEND),
+        DEPTH,
+        shapesOf(STAND_INS),
+      );
 
       expect([exposureOf(solid, 3, 1), exposureOf(solid, 5, 1)]).toEqual([
         ALL_SIDES,
@@ -210,7 +225,7 @@ describe("boxesIn, read through exposureOf", () => {
   );
 
   it("reads the wall as it stands when asked", () => {
-    const wall = wallFrom(["...oo...."]);
+    const wall = wallFrom(["...oo...."], WALL_LEGEND);
     const bricks = [...wall.bricks];
     const solid = boxesIn({ ...wall, bricks }, DEPTH, SHAPES);
 

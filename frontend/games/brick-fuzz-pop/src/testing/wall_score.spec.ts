@@ -1,8 +1,9 @@
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import type { RoundResult } from "../rules/round/round";
 import type { Wall } from "../rules/wall/wall";
 import type { Boon } from "../rules/shot";
 import { FLIGHT_FIXTURES } from "./flight_fixtures";
-import { wallFrom } from "./wall_picture";
 import { type MeasuredRound, wallScore } from "./wall_score";
 
 /** Says what a round left beside its wall, where a spec cares. */
@@ -17,7 +18,7 @@ function leftOn(
   lowestRow: number,
   left: Left = {},
 ): MeasuredRound {
-  return leftWith(wallFrom(picture, { lowestRow }), left);
+  return leftWith(wallFrom(picture, WALL_LEGEND, { lowestRow }), left);
 }
 
 /** Returns a round that left its level on with a wall. */
@@ -94,7 +95,7 @@ describe("wallScore", () => {
   });
 
   it("weighs a worn brick by the hits it has left, not those it had whole", () => {
-    const whole = wallFrom(["3........"], { lowestRow: 4 });
+    const whole = wallFrom(["3........"], WALL_LEGEND, { lowestRow: 4 });
     const worn = whole.bricks.map((brick) =>
       brick === null ? null : { ...brick, hits: 1 },
     );

@@ -1,6 +1,11 @@
 import { type RunStage, hasEnded } from "@fz/core/run";
-import { type Level, levelStart } from "../levels/level";
-import { type LevelEntry, levelEntryOf, parseLevel } from "../levels/levels";
+import {
+  type Level,
+  type LevelEntry,
+  levelEntryOf,
+  levelStart,
+  parseLevel,
+} from "../levels/levels";
 import type { RoundOutcome, RoundResult, RoundStart } from "../round/round";
 import { starPoints } from "./scoring";
 import { PARS, type Pars, parOf, starsFor } from "./stars";

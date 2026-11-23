@@ -3,12 +3,13 @@
 // value matched as near as the flight's arithmetic finds it.
 
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { expect } from "vitest";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
 import type { Flight, FlightEvent } from "../rules/flight/events";
 import { type Flown, fly } from "../rules/flight/flight";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import { RULES, flightRulesOf } from "../rules/round/round";
-import { wallFrom } from "./wall_picture";
 
 /** Describes a shot at a wall drawn as a picture. */
 export interface PictureShot {
@@ -38,7 +39,7 @@ export function flyPicture({
   friends = 0,
   kinds = BRICK_KINDS,
 }: PictureShot): Flown {
-  const wall = wallFrom(picture, { lowestRow });
+  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow });
   const aim = (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
   return fly(
     { wall, depth: 11, x, aim, charge, hot, mates: 0, friends },

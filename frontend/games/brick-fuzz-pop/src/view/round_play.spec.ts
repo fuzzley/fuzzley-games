@@ -1,5 +1,6 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
 import {
@@ -9,6 +10,7 @@ import {
   type Waypoint,
   positionAt,
 } from "../rules/flight/events";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import {
   RULES,
   type Round,
@@ -21,7 +23,6 @@ import {
   FLIGHT_FIXTURES,
   type FlightFixture,
 } from "../testing/flight_fixtures";
-import { wallFrom } from "../testing/wall_picture";
 import type { Beat, SoundName } from "./effects/effects";
 import { JUMP_MS, STEP_MS } from "./effects/timing";
 import {
@@ -235,7 +236,10 @@ function endingOn(
   rows: readonly string[],
   lowestRow: number,
 ): FlightFixture {
-  const next = { ...fixture.round.next, wall: wallFrom(rows, { lowestRow }) };
+  const next = {
+    ...fixture.round.next,
+    wall: wallFrom(rows, WALL_LEGEND, { lowestRow }),
+  };
   return { ...fixture, round: { ...fixture.round, next } };
 }
 
@@ -922,6 +926,7 @@ const FIVE_START: RoundStart = {
       ".......2.",
       "o..|....o",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   ),
   depth: 11,
@@ -971,6 +976,7 @@ const WORN: FlightFixture = ruled(
         ".......2.",
         "o..|....o",
       ],
+      WALL_LEGEND,
       { lowestRow: 5 },
     ),
   },

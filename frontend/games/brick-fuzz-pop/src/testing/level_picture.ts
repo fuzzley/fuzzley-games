@@ -1,7 +1,8 @@
-import type { Level } from "../rules/levels/level";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { WALL_LEGEND } from "../rules/levels/legend";
+import type { Level } from "../rules/levels/levels";
 import type { RoundRules } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
-import { wallFrom } from "./wall_picture";
 
 /** Rules under which a fuzzball yawns before it reaches any wall, so no shot takes a hit off a brick. */
 export const NO_HITS: RoundRules = { bored: 0.5 };
@@ -15,7 +16,7 @@ export function levelFrom(
   picture: readonly string[],
   boon: Boon = "hot",
 ): Level {
-  const { bricks, rows } = wallFrom(picture);
+  const { bricks, rows } = wallFrom(picture, WALL_LEGEND);
   return { boon, bricks, rows };
 }
 

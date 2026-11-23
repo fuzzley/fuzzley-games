@@ -1,8 +1,9 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { eventsOf, flyPicture } from "../../testing/flights";
-import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KINDS } from "../catalog/bricks";
 import { fly } from "../flight/flight";
+import { WALL_LEGEND } from "../levels/legend";
 import { MOST_CHARGE } from "../tuning";
 import { TRAIT_RULES } from "./trait_rules";
 
@@ -96,7 +97,7 @@ describe("the bricks' own rules, flown", () => {
   ])("%s", (_, mostIdle, yawned) => {
     const flown = fly(
       {
-        wall: wallFrom(["....S...."], { lowestRow: 3 }),
+        wall: wallFrom(["....S...."], WALL_LEGEND, { lowestRow: 3 }),
         depth: 11,
         x: 4.5,
         aim: (90 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE,

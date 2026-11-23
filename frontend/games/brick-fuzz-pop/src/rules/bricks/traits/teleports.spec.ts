@@ -1,7 +1,8 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
-import { wallFrom } from "../../../testing/wall_picture";
 import { fly } from "../../flight/flight";
+import { WALL_LEGEND } from "../../levels/legend";
 import { RULES, flightRulesOf } from "../../round/round";
 
 /** A portal's twin, its pair's other portal, 3 rows over it and 4 columns right. */
@@ -47,7 +48,7 @@ describe("TELEPORTS_RULE, flown", () => {
 
   // No level lays a portal out alone, but a wall handed in may hold one.
   it("lets a fuzzball through a portal with no twin, there and back", () => {
-    const wall = wallFrom(PAIR, { lowestRow: 4 });
+    const wall = wallFrom(PAIR, WALL_LEGEND, { lowestRow: 4 });
     const bricks = wall.bricks.map((brick) =>
       brick === null ? null : { ...brick, twin: null },
     );

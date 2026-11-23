@@ -1,6 +1,10 @@
 import { shotOf } from "../rules/levels/certificate";
-import { levelStart } from "../rules/levels/level";
-import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
+import {
+  LEVELS,
+  levelEntryOf,
+  levelStart,
+  parseLevel,
+} from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
 import { restoreGame } from "../rules/run/saved_game";
 import { certificateOf } from "./every_level";

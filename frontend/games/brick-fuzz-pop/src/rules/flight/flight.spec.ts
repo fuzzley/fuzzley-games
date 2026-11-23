@@ -5,6 +5,7 @@ import {
 } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { FLOORWARD, LEFT } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { createRandom } from "@fz/core/random";
 import {
   FLIGHT_FIXTURES,
@@ -23,9 +24,9 @@ import {
   STAND_INS,
   STAND_IN_RULES,
 } from "../../testing/stand_ins";
-import { wallFrom } from "../../testing/wall_picture";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
+import { WALL_LEGEND } from "../levels/legend";
 import {
   BORED,
   IDLE_SHARE,
@@ -90,7 +91,7 @@ function flyShot({
 
 /** Returns a wall drawn as a picture, its lowest row standing in a field row. */
 function wallOf(lowestRow: number, picture: readonly string[]): Wall {
-  return wallFrom(picture, { lowestRow });
+  return wallFrom(picture, WALL_LEGEND, { lowestRow });
 }
 
 describe("fly, against the rounds made by hand", () => {

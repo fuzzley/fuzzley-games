@@ -11,7 +11,7 @@ import {
   lowestNeededRow,
 } from "@fz/brick-wall/rules/wall";
 import { type Line, shotOf } from "../rules/levels/certificate";
-import { type Level, levelStart } from "../rules/levels/level";
+import { type Level, levelStart } from "../rules/levels/levels";
 import {
   RULES,
   type RoundRules,

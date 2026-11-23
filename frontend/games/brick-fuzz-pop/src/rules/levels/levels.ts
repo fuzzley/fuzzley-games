@@ -1,15 +1,44 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { wallRowOf } from "@fz/brick-wall/rules/grid";
+import {
+  type LevelWall,
+  type PictureRules,
+  levelOpening,
+  pictureProblem,
+  wallFrom,
+} from "@fz/brick-wall/rules/level_picture";
 import { unknownKey } from "@fz/core/json";
-import { isKeyOf } from "@fz/core/records";
-import { isBoon } from "../shot";
-import type { Brick } from "../wall/wall";
-import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "./legend";
-import type { Level } from "./level";
+import type { BrickKindId } from "../catalog/bricks";
+import type { RoundStart } from "../round/round";
+import { type Boon, isBoon } from "../shot";
+import type { Wall } from "../wall/wall";
+import { NO_BRICK, WALL_LEGEND } from "./legend";
 import sparks from "./sparks.json";
 import thickWalls from "./thick-walls.json";
 import tricks from "./tricks.json";
 import warmUp from "./warm-up.json";
+
+/** Describes a level, ready to play: its wall as its picture lays it out, and its boon. */
+export interface Level extends LevelWall<BrickKindId> {
+  /** The boon each jump of its wall earns the next shot. */
+  readonly boon: Boon;
+}
+
+/**
+ * Returns where a level's first round starts on a field of a depth: its
+ * wall's lowest row where a jump would land it, the fuzzball waiting at the
+ * floor's middle, with no friend freed and no boon.
+ *
+ * It throws for a depth no field has, as `levelOpening()` does.
+ */
+export function levelStart(level: Level, depth: number): RoundStart {
+  return {
+    ...levelOpening(level, depth),
+    depth,
+    crew: { friends: [] },
+    boon: null,
+  };
+}
 
 /** Describes a level as its set's file holds it, its boon text until {@link parseLevel} checks it. */
 export interface LevelData {
@@ -79,6 +108,14 @@ export const MOST_AIR = 2;
 /** The most rows a portal's twin stands from it, so both stand in the shallowest field at once. */
 export const TWIN_ROWS = 4;
 
+/** The rules a level's picture keeps, read against the game's legend. */
+const PICTURE_RULES: PictureRules<BrickKindId> = {
+  legend: WALL_LEGEND,
+  rows: WALL_ROWS,
+  mostAir: MOST_AIR,
+  twinRows: TWIN_ROWS,
+};
+
 /** A row of a picture with no brick. */
 const AIR = NO_BRICK.repeat(COLUMNS);
 
@@ -107,16 +144,13 @@ export function parseLevel(data: LevelData): Level {
   if (!isBoon(boon)) {
     throw wrong(data, `its boon, "${boon}", is no boon`);
   }
-  checkPicture(data);
-  // The picture's characters by wall cell, its lowest row first.
-  const characters = [...data.bricks].reverse().join("");
-  const twins = twinsOf(data, characters);
-  checkSteel(data, characters, twins);
-  return {
-    boon,
-    bricks: twins.map((twin, cell) => brickAt(characters, cell, twin)),
-    rows: data.bricks.length,
-  };
+  const problem = pictureProblem(data.bricks, PICTURE_RULES);
+  if (problem !== null) {
+    throw wrong(data, problem);
+  }
+  const { bricks, rows } = wallFrom(data.bricks, PICTURE_RULES.legend);
+  checkSteel(data, bricks);
+  return { boon, bricks, rows };
 }
 
 /** Returns an error that names what is wrong with a level's data. */
@@ -125,117 +159,24 @@ function wrong(data: LevelData, problem: string): Error {
 }
 
 /**
- * Throws unless a level's picture has a wall's rows, each nine of the
- * legend's characters, its highest and lowest not air, and no more than
- * {@link MOST_AIR} rows of air together.
- */
-function checkPicture(data: LevelData): void {
-  const { bricks } = data;
-  const { least, most } = WALL_ROWS;
-  if (bricks.length < least || bricks.length > most) {
-    throw wrong(
-      data,
-      `its wall has ${String(bricks.length)} rows, not ${String(least)} to ${String(most)}`,
-    );
-  }
-  let air = 0;
-  for (const [index, row] of bricks.entries()) {
-    if (row.length !== COLUMNS) {
-      throw wrong(
-        data,
-        `row ${String(index + 1)} of its picture is ${String(row.length)} long, not ${String(COLUMNS)}`,
-      );
-    }
-    const stray = row
-      .split("")
-      .find(
-        (character) => character !== NO_BRICK && !isKeyOf(character, LEGEND),
-      );
-    if (stray !== undefined) {
-      throw wrong(
-        data,
-        `"${stray}", in row ${String(index + 1)} of its picture, stands for no brick`,
-      );
-    }
-    air = row === AIR ? air + 1 : 0;
-    if (air > MOST_AIR) {
-      throw wrong(
-        data,
-        `rows ${String(index + 1 - MOST_AIR)} to ${String(index + 1)} of its picture are air, more than ${String(MOST_AIR)} together`,
-      );
-    }
-  }
-  if (bricks.at(0) === AIR) {
-    throw wrong(data, "its wall's highest row is air");
-  }
-  if (bricks.at(-1) === AIR) {
-    throw wrong(data, "its wall's lowest row is air");
-  }
-}
-
-/**
- * Returns each wall cell's twin, the cell of the other portal of its pair,
- * or null for a cell that holds no portal, throwing unless each mark of
- * {@link PORTAL_MARKS} a picture uses makes one pair, no more than
- * {@link TWIN_ROWS} rows apart, and a second pair comes with a first.
- */
-function twinsOf(data: LevelData, characters: string): (number | null)[] {
-  const twins: (number | null)[] = characters.split("").map(() => null);
-  let pairs = 0;
-  for (const mark of PORTAL_MARKS) {
-    const cells = characters
-      .split("")
-      .flatMap((character, cell) => (character === mark ? [cell] : []));
-    if (cells.length === 0) {
-      continue;
-    }
-    if (mark !== PORTAL_MARKS[pairs]) {
-      throw wrong(
-        data,
-        `its portals "${mark}" are a second pair, with no first, "${PORTAL_MARKS[0]}"`,
-      );
-    }
-    pairs += 1;
-    const [one, other] = cells;
-    if (one === undefined || other === undefined || cells.length > 2) {
-      throw wrong(
-        data,
-        `it has ${String(cells.length)} of the portal "${mark}", where a pair has 2`,
-      );
-    }
-    const apart = wallRowOf(other) - wallRowOf(one);
-    if (apart > TWIN_ROWS) {
-      throw wrong(
-        data,
-        `its portals "${mark}" stand ${String(apart)} rows apart, more than ${String(TWIN_ROWS)}`,
-      );
-    }
-    twins[one] = other;
-    twins[other] = one;
-  }
-  return twins;
-}
-
-/**
  * Throws unless every row of steel from side to side stands in a wall's top
  * course: over everything, or with no air over it and a portal past it.
  */
-function checkSteel(
-  data: LevelData,
-  characters: string,
-  twins: readonly (number | null)[],
-): void {
+function checkSteel(data: LevelData, bricks: Wall["bricks"]): void {
   const rows = data.bricks.length;
   for (let row = 0; row < rows; row++) {
-    const line = characters.slice(row * COLUMNS, (row + 1) * COLUMNS);
-    if (row === rows - 1 || !line.split("").every(isSteel)) {
+    const line = bricks.slice(row * COLUMNS, (row + 1) * COLUMNS);
+    if (row === rows - 1 || !line.every((brick) => brick?.kind === "steel")) {
       continue;
     }
     // The picture's rows over this one, top first.
     const above = data.bricks.slice(0, rows - 1 - row);
-    const passed = twins.some(
-      (twin, cell) =>
-        twin !== null && wallRowOf(cell) < row && wallRowOf(twin) > row,
+    const passed = bricks.some(
+      (brick, cell) =>
+        brick !== null &&
+        brick.twin !== null &&
+        wallRowOf(cell) < row &&
+        wallRowOf(brick.twin) > row,
     );
     if (above.includes(AIR) || !passed) {
       throw wrong(
@@ -244,31 +185,4 @@ function checkSteel(
       );
     }
   }
-}
-
-/** Returns whether a character of a picture stands for steel. */
-function isSteel(character: string): boolean {
-  return isKeyOf(character, LEGEND) && LEGEND[character].kind === "steel";
-}
-
-/** Returns the brick a level lays in a wall cell, whole, or null for none. */
-function brickAt(
-  characters: string,
-  cell: number,
-  twin: number | null,
-): Brick | null {
-  const character = characters.charAt(cell);
-  // The picture is checked, so a character the legend lacks is no brick's.
-  if (!isKeyOf(character, LEGEND)) {
-    return null;
-  }
-  const { kind, hits, plates } = LEGEND[character];
-  return {
-    kind,
-    hits,
-    full: hits,
-    plates,
-    tint: tintOf(characters, cell),
-    twin,
-  };
 }

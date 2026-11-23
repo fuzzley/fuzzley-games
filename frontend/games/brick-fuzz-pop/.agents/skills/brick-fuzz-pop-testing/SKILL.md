@@ -45,11 +45,12 @@ Then:
 
 ## The Rules
 
-- **Draw a wall rather than play to it.** `wallFrom(rows, { lowestRow })`
-  (`src/testing/wall_picture.ts`) lays a wall out from a picture: a row of
-  nine of the legend's characters (`src/rules/levels/legend.ts`) for each
-  of its rows, from the top. `levelFrom()` (`src/testing/level_picture.ts`)
-  makes a level of one.
+- **Draw a wall rather than play to it.**
+  `wallFrom(rows, WALL_LEGEND, { lowestRow })`, from
+  `@fz/brick-wall/rules/level_picture`, lays a wall out from a picture: a
+  row of nine of the legend's characters for each of its rows, from the
+  top, read against `WALL_LEGEND` (`src/rules/levels/legend.ts`).
+  `levelFrom()` (`src/testing/level_picture.ts`) makes a level of one.
 - **Fly a shot at it** with `flyPicture()` (`src/testing/flights.ts`). Its
   `PictureShot` says what a shot is unless told. It stands the wall's
   lowest row in field row 3, where `wallFrom()` alone stands it in row 1.

@@ -1,9 +1,11 @@
-import { wallFrom } from "../../testing/wall_picture";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { WALL_LEGEND } from "../../rules/levels/legend";
 import { kindsIn, waitingRows } from "./panels";
 
 /** A wall of five rows, each a kind of its own but the plain bricks' gap, its lowest in field row 8. */
 const WALL = wallFrom(
   ["|||||||||", "---------", "#########", "oo.oooooo", "222222222"],
+  WALL_LEGEND,
   { lowestRow: 8 },
 );
 
@@ -66,6 +68,9 @@ describe("kindsIn", () => {
   });
 
   it("gives only the kinds a wall holds", () => {
-    expect(kindsIn(wallFrom(["#...o...#"]))).toEqual(["brick", "steel"]);
+    expect(kindsIn(wallFrom(["#...o...#"], WALL_LEGEND))).toEqual([
+      "brick",
+      "steel",
+    ]);
   });
 });

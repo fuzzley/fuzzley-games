@@ -5,21 +5,18 @@ import {
   RIGHT,
   wallRowOf,
 } from "@fz/brick-wall/rules/grid";
+import type {
+  Legend,
+  LegendBrick as PictureBrick,
+} from "@fz/brick-wall/rules/level_picture";
 import { isKeyOf, isOneOf } from "@fz/core/records";
 import type { BrickKindId } from "../catalog/bricks";
 
 /** A plate's faces toward both side walls. */
 const SIDES = LEFT | RIGHT;
 
-/** Describes the brick a character of a level's picture stands for. */
-export interface LegendBrick {
-  /** Its kind's id. */
-  readonly kind: BrickKindId;
-  /** Its hits when whole: 0 for a kind that never breaks. */
-  readonly hits: number;
-  /** Its plated faces, as a brick's `plates` holds them. */
-  readonly plates: number;
-}
+/** Describes the brick a character of a level's picture stands for, of a kind the catalog holds. */
+export type LegendBrick = PictureBrick<BrickKindId>;
 
 /** The character of a cell with no brick. */
 export const NO_BRICK = ".";
@@ -109,3 +106,11 @@ export function tintOf(characters: string, cell: number): number {
   }
   return isOneOf(character, PORTAL_MARKS) ? PORTAL_MARKS.indexOf(character) : 0;
 }
+
+/** How a level's picture is read: the legend's characters, `.` for no brick, the portals' marks as the twins', and each brick's ink. */
+export const WALL_LEGEND: Legend<BrickKindId> = {
+  none: NO_BRICK,
+  bricks: LEGEND,
+  twinMarks: PORTAL_MARKS,
+  tintOf,
+};

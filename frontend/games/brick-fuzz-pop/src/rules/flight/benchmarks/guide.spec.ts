@@ -6,8 +6,7 @@ import {
   quantile,
   sortedTimes,
 } from "../../../testing/timing";
-import { levelStart } from "../../levels/level";
-import { LEVELS, parseLevel } from "../../levels/levels";
+import { LEVELS, levelStart, parseLevel } from "../../levels/levels";
 import type { RoundStart } from "../../round/round";
 import type { Charge } from "../../shot";
 import { GUIDE_PAST_TURN } from "../../tuning";

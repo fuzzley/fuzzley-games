@@ -1,13 +1,14 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import type { Flight, FlightEvent, Waypoint } from "../rules/flight/events";
 import { type FlightStart, type Flown, fly } from "../rules/flight/flight";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import { RULES, flightRulesOf } from "../rules/round/round";
 import type { Brick } from "../rules/wall/wall";
 import { eventsOf } from "./flights";
 import { clearanceProblemsOf, dropProblemsOf } from "./random_flights";
 import { STAND_INS } from "./stand_ins";
-import { wallFrom } from "./wall_picture";
 
 /** Returns a flight of one fuzzball along a track, with events. */
 function flightAlong(
@@ -24,7 +25,7 @@ function flightAlong(
 
 /** Returns the problems of a flight past a wall drawn as a picture, its lowest row in field row 5 of a field 11 deep. */
 function problemsPast(picture: readonly string[], flight: Flight): string[] {
-  const wall = wallFrom(picture, { lowestRow: 5 });
+  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow: 5 });
   return clearanceProblemsOf(flight, wall, 11, STAND_INS);
 }
 
@@ -90,7 +91,7 @@ describe("clearanceProblemsOf", () => {
 // dropped at 1, before any does, the first two in the air and the last
 // never leaving.
 const TOUGH_START: FlightStart = {
-  wall: wallFrom(["....6...."], { lowestRow: 3 }),
+  wall: wallFrom(["....6...."], WALL_LEGEND, { lowestRow: 3 }),
   depth: 11,
   x: 4.5,
   aim: (90 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE,
@@ -124,7 +125,7 @@ const BORED_DROPPED = fly(TOUGH_START, BORED_RULES, {
 // is set off.
 const ZAPPERS_START: FlightStart = {
   ...TOUGH_START,
-  wall: wallFrom(["...|-...."], { lowestRow: 3 }),
+  wall: wallFrom(["...|-...."], WALL_LEGEND, { lowestRow: 3 }),
   friends: 0,
 };
 

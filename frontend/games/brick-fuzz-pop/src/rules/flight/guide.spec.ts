@@ -3,10 +3,10 @@ import {
   AIM_COUNT,
   FIRST_AIM_DEGREES,
 } from "@fz/brick-wall/rules/aims";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { eventsOf, near } from "../../testing/flights";
-import { wallFrom } from "../../testing/wall_picture";
-import { levelStart } from "../levels/level";
-import { LEVELS, parseLevel } from "../levels/levels";
+import { WALL_LEGEND } from "../levels/legend";
+import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import { type RoundStart, playRound } from "../round/round";
 import type { Shot } from "../shot";
 import { GUIDE_DOT_GAP, GUIDE_PAST_TURN } from "../tuning";
@@ -23,7 +23,7 @@ const PAST_TURN = 1.5;
 
 /** Returns where a round starts on a field 11 deep, from a place on the floor, at a wall drawn as a picture whose lowest row stands in field row 3. */
 function startAt(picture: readonly string[], x = 4.5): RoundStart {
-  const wall = wallFrom(picture, { lowestRow: 3 });
+  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow: 3 });
   return { wall, depth: 11, x, crew: { friends: [] }, boon: null };
 }
 

@@ -12,8 +12,7 @@ import {
   isRecord,
   isWhole,
 } from "@fz/core/json";
-import type { Level } from "../levels/level";
-import { type LevelEntry, levelEntryOf } from "../levels/levels";
+import { type Level, type LevelEntry, levelEntryOf } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
 import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";

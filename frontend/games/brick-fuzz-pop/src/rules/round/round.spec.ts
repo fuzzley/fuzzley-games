@@ -1,13 +1,13 @@
 import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { eventsOf, near } from "../../testing/flights";
 import { PRISM, STAND_IN_RULES } from "../../testing/stand_ins";
-import { wallFrom } from "../../testing/wall_picture";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
 import { positionAt } from "../flight/events";
-import { levelStart } from "../levels/level";
-import { LEVELS, parseLevel } from "../levels/levels";
+import { WALL_LEGEND } from "../levels/legend";
+import { LEVELS, levelStart, parseLevel } from "../levels/levels";
 import { BORED, TRIPLE_MATES } from "../tuning";
 import {
   RULES,
@@ -20,7 +20,7 @@ import {
 
 /** Returns where a round starts on a field 11 deep, its fuzzball waiting at the floor's middle, at a wall drawn as a picture whose lowest row stands in a field row, 3 unless given. */
 function startAt(picture: readonly string[], lowestRow = 3): RoundStart {
-  const wall = wallFrom(picture, { lowestRow });
+  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow });
   return { wall, depth: 11, x: 4.5, crew: { friends: [] }, boon: null };
 }
 

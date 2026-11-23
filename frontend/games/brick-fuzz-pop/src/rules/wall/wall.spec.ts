@@ -1,19 +1,19 @@
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { lowerWall } from "@fz/brick-wall/rules/wall";
 import { keysOf } from "@fz/core/records";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
 } from "../../testing/flight_fixtures";
-import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KIND_IDS, brickKind } from "../catalog/bricks";
-import { NO_BRICK } from "../levels/legend";
+import { NO_BRICK, WALL_LEGEND } from "../levels/legend";
 import { WALL_RULES, type Wall, regrow } from "./wall";
 
 const AIR = NO_BRICK.repeat(9);
 
 /** Returns a wall drawn with `wallFrom()` as one row of the legend's characters, standing in a field row. */
 function wallOf(row: string, lowestRow = 5): Wall {
-  return wallFrom([row], { lowestRow });
+  return wallFrom([row], WALL_LEGEND, { lowestRow });
 }
 
 /** Returns a wall with every brick it holds worn to a number of hits, as a round's strikes leave them. */

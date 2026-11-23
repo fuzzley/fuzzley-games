@@ -1,7 +1,7 @@
 import { CEILINGWARD, FLOORWARD, RIGHT } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
-import { wallFrom } from "../../testing/wall_picture";
-import { PORTAL_BADGES, PORTAL_MARKS } from "../levels/legend";
+import { PORTAL_BADGES, PORTAL_MARKS, WALL_LEGEND } from "../levels/legend";
 import { LEVELS, levelEntryOf } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import {
@@ -48,7 +48,7 @@ function runOf(change: Partial<Run> = {}): Run {
 /** Returns where a round starts on a field 11 deep, its wall pictured, its lowest row standing in a field row. */
 function startOf(picture: readonly string[], lowestRow: number): RoundStart {
   return {
-    wall: wallFrom(picture, { lowestRow }),
+    wall: wallFrom(picture, WALL_LEGEND, { lowestRow }),
     depth: 11,
     x: 4.5,
     crew: { friends: [] },
@@ -251,7 +251,7 @@ describe("describeRows", () => {
   });
 
   it("reads a brick plated toward the floor, the ceiling and one side, the sides last", () => {
-    const drawn = wallFrom(["v........"], { lowestRow: 3 });
+    const drawn = wallFrom(["v........"], WALL_LEGEND, { lowestRow: 3 });
     const plates = RIGHT | CEILINGWARD | FLOORWARD;
     const bricks = drawn.bricks.map((brick) =>
       brick === null ? null : { ...brick, plates },
@@ -269,7 +269,7 @@ describe("describeRows", () => {
 
   // No level lays a portal out alone, but a wall handed in may hold one.
   it("reads a portal with no twin by its pair's badge, never shut", () => {
-    const drawn = wallFrom(["&...&...."], { lowestRow: 3 });
+    const drawn = wallFrom(["&...&...."], WALL_LEGEND, { lowestRow: 3 });
     const bricks = drawn.bricks.map((brick) =>
       brick === null ? null : { ...brick, twin: null },
     );

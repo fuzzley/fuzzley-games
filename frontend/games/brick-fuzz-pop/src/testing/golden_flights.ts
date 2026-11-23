@@ -8,7 +8,7 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { createRandom } from "@fz/core/random";
 import { type Line, shotOf } from "../rules/levels/certificate";
-import { type Level, levelStart } from "../rules/levels/level";
+import { type Level, levelStart } from "../rules/levels/levels";
 import { type Round, playRound } from "../rules/round/round";
 import type { Shot } from "../rules/shot";
 import { MOST_CHARGE } from "../rules/tuning";

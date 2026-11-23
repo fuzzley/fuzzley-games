@@ -1,6 +1,7 @@
 import { AIMS, AIMS_PER_DEGREE } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
 import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
@@ -30,6 +31,7 @@ import type { MockInstance } from "vitest";
 import { BRICK_KIND_IDS, brickKind } from "../rules/catalog/bricks";
 import type { FlightEvent } from "../rules/flight/events";
 import { type Guide, guideOf } from "../rules/flight/guide";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import { GUIDE_PAST_TURN, MOST_CHARGE, MOST_FUZZBALLS } from "../rules/tuning";
@@ -45,7 +47,6 @@ import {
   FLIGHT_FIXTURES,
   type FlightFixture,
 } from "../testing/flight_fixtures";
-import { wallFrom } from "../testing/wall_picture";
 import { brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { FRAMES, FRAME_NAMES } from "../view/art/frames";
@@ -1251,7 +1252,7 @@ describe("WallScene", () => {
     });
 
     it("bakes the cracks' frames empty under 30 CSS pixels a unit, and shows them", async () => {
-      const worn = wallFrom(["2........"], { lowestRow: 1 });
+      const worn = wallFrom(["2........"], WALL_LEGEND, { lowestRow: 1 });
       const hit = { ...brickAt(worn, 0), hits: 1 };
       const wall = { ...worn, bricks: [hit, ...worn.bricks.slice(1)] };
 
@@ -1651,7 +1652,9 @@ describe("WallScene", () => {
 
     it("group the count's dots in threes, further apart than the dots of a group", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["oooo.oooo", "o........"], { lowestRow: 1 }));
+        shell.showWall(
+          wallFrom(["oooo.oooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
+        );
       });
 
       const xs = scene.field.countDots.map((dot) => dot.x);
@@ -1710,12 +1713,16 @@ describe("WallScene", () => {
       "stop the jump line short of a count of %i, leaving off whole dashes where they stood, %i of them kept",
       async (left, kept) => {
         const { shell, run, scene } = await startBoard((each) => {
-          each.showWall(wallFrom(["ooooooooo", "o........"], { lowestRow: 1 }));
+          each.showWall(
+            wallFrom(["ooooooooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
+          );
         });
         const uncounted = rectsIn(scene.field.lines, LIGHT.jumpLine);
 
         shell.showWall(
-          wallFrom(["o".repeat(left).padEnd(COLUMNS, ".")], { lowestRow: 1 }),
+          wallFrom(["o".repeat(left).padEnd(COLUMNS, ".")], WALL_LEGEND, {
+            lowestRow: 1,
+          }),
         );
         run.advance(16);
 
@@ -1739,7 +1746,7 @@ describe("WallScene", () => {
     it("count again as the wall under the line changes", async () => {
       const { shell, run, scene } = await startBoard();
 
-      shell.showWall(wallFrom(["o.o.o.o.o"], { lowestRow: 1 }));
+      shell.showWall(wallFrom(["o.o.o.o.o"], WALL_LEGEND, { lowestRow: 1 }));
       run.advance(16);
 
       expect(showing(scene.field.countDots)).toBe(5);
@@ -1747,7 +1754,7 @@ describe("WallScene", () => {
 
     it("count no brick the level doesn't need", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["#o#o#####"], { lowestRow: 1 }));
+        shell.showWall(wallFrom(["#o#o#####"], WALL_LEGEND, { lowestRow: 1 }));
       });
 
       expect(showing(scene.field.countDots)).toBe(2);
@@ -1756,7 +1763,7 @@ describe("WallScene", () => {
     it("count no brick over the jump line", async () => {
       const { shell, scene } = await startBoard((each) => {
         each.showWall(
-          wallFrom(["ooooooooo", "o........"], {
+          wallFrom(["ooooooooo", "o........"], WALL_LEGEND, {
             lowestRow: thirdsOf(each.fieldShape.depth).jumpLine - 1,
           }),
         );
@@ -1770,7 +1777,9 @@ describe("WallScene", () => {
 
     it("count as many as nine", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["oooo.oooo", "o........"], { lowestRow: 1 }));
+        shell.showWall(
+          wallFrom(["oooo.oooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
+        );
       });
 
       expect(showing(scene.field.countDots)).toBe(9);
@@ -1778,7 +1787,9 @@ describe("WallScene", () => {
 
     it("show no count while more than nine are left, the dashes running on to the end", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["ooooooooo", "o........"], { lowestRow: 1 }));
+        shell.showWall(
+          wallFrom(["ooooooooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
+        );
       });
       const metrics = metricsAt();
       const last = rectsIn(scene.field.lines, LIGHT.jumpLine).at(-1);
@@ -1795,7 +1806,7 @@ describe("WallScene", () => {
 
     it("show no count once none is left", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["#########"], { lowestRow: 1 }));
+        shell.showWall(wallFrom(["#########"], WALL_LEGEND, { lowestRow: 1 }));
       });
 
       expect(showing(scene.field.countDots)).toBe(0);
@@ -2177,7 +2188,7 @@ describe("WallScene", () => {
 
   describe("the danger", () => {
     /** A wall whose row over the floor's holds bricks the level needs in columns 0, 2 and 4, and steel. */
-    const ENDANGERING = wallFrom(["o#o.o.#.."], { lowestRow: 1 });
+    const ENDANGERING = wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 1 });
 
     it("frames each brick the level needs in the row over the floor's, and no other", async () => {
       const { scene } = await startBoard((shell) => {
@@ -2202,7 +2213,9 @@ describe("WallScene", () => {
 
     it("frames none while only bricks the level doesn't need stand there", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["ooo......", "###......"], { lowestRow: 1 }));
+        shell.showWall(
+          wallFrom(["ooo......", "###......"], WALL_LEGEND, { lowestRow: 1 }),
+        );
       });
 
       expect(framedIn(scene)).toEqual([]);
@@ -2219,7 +2232,7 @@ describe("WallScene", () => {
         each.showWall(ENDANGERING);
       });
 
-      shell.showWall(wallFrom(["..o.o.#.."], { lowestRow: 1 }));
+      shell.showWall(wallFrom(["..o.o.#.."], WALL_LEGEND, { lowestRow: 1 }));
       run.advance(16);
 
       expect(framedIn(scene)).toEqual([
@@ -2230,7 +2243,7 @@ describe("WallScene", () => {
 
     it("brings the frames down with the wall as it eases", async () => {
       const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+        each.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
       });
 
       shell.bringDown(ENDANGERING, 0.5);
@@ -2247,7 +2260,10 @@ describe("WallScene", () => {
         each.showWall(ENDANGERING);
       });
 
-      shell.bringDown(wallFrom(["o#o.o.#.."], { lowestRow: 0 }), 0.5);
+      shell.bringDown(
+        wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 0 }),
+        0.5,
+      );
       run.advance(16);
 
       // Halfway down from the row over the floor's to the floor's.
@@ -2297,7 +2313,7 @@ describe("WallScene", () => {
 
     it("brightens the danger line as the wall comes down into the row over the floor's, its count unchanged", async () => {
       const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+        each.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
       });
 
       shell.bringDown(ENDANGERING, 0);
@@ -2308,7 +2324,7 @@ describe("WallScene", () => {
 
     it("brightens the danger line for a brick in the last column alone", async () => {
       const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["........o"], { lowestRow: 1 }));
+        shell.showWall(wallFrom(["........o"], WALL_LEGEND, { lowestRow: 1 }));
       });
 
       expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toHaveLength(1);
@@ -2332,7 +2348,7 @@ describe("WallScene", () => {
         each.showWall(ENDANGERING);
       });
 
-      shell.showWall(wallFrom(["o#o.o.#.."], { lowestRow: 2 }));
+      shell.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
       run.advance(16);
 
       expect(
@@ -3827,7 +3843,7 @@ describe("WallScene", () => {
       const [dot] = scene.guide.dots;
       const before = dot?.visible;
 
-      shell.showWall(wallFrom(["#########"], { lowestRow: 1 }));
+      shell.showWall(wallFrom(["#########"], WALL_LEGEND, { lowestRow: 1 }));
       run.advance(16);
 
       expect({ before, after: dot?.visible }).toEqual({
@@ -3910,7 +3926,9 @@ describe("WallScene", () => {
 
     it("swell as many bricks at once as it has places, the next struck taking the place of the first", async () => {
       const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(["ooooooooo", "ooooooooo"], { lowestRow: 5 }));
+        each.showWall(
+          wallFrom(["ooooooooo", "ooooooooo"], WALL_LEGEND, { lowestRow: 5 }),
+        );
       });
       // Wall cells 0 to 16 stand in field rows 5 and 6.
       const strikes = Array.from(
@@ -3931,7 +3949,9 @@ describe("WallScene", () => {
     });
 
     it("stamp the first swell's brick back in the bake as a brick struck past the places in a later frame takes its place", async () => {
-      const wall = wallFrom(["ooooooooo", "ooooooooo"], { lowestRow: 5 });
+      const wall = wallFrom(["ooooooooo", "ooooooooo"], WALL_LEGEND, {
+        lowestRow: 5,
+      });
       const { shell, run, scene } = await startBoard((each) => {
         each.showWall(wall);
       });
@@ -3990,13 +4010,13 @@ describe("WallScene", () => {
     it("let a swell go as the wall that comes down is handed over, rather than swell the brick come into its row", async () => {
       const rows = ["ooooooooo", "ooooooooo"];
       const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(rows, { lowestRow: 5 }));
+        each.showWall(wallFrom(rows, WALL_LEGEND, { lowestRow: 5 }));
       });
       shell.reach([STRIKE_8, ["swell"]]);
       run.advance(16);
       const swollen = swellAt(scene, 5, 8).length > 0;
       // Wall cell 17, of the row over cell 8's, comes into field row 5.
-      const down = wallFrom(rows, { lowestRow: 4 });
+      const down = wallFrom(rows, WALL_LEGEND, { lowestRow: 4 });
 
       shell.bringDown(down, 0);
       run.advance(16);
@@ -4204,7 +4224,9 @@ describe("WallScene", () => {
         // Rows of the wall under the floor, which the zapper's column
         // reaches down into from the floor's row.
         each.showWall(
-          wallFrom(["o........", "o........", "o........"], { lowestRow: -2 }),
+          wallFrom(["o........", "o........", "o........"], WALL_LEGEND, {
+            lowestRow: -2,
+          }),
         );
       });
 

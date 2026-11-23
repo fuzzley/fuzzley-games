@@ -1,4 +1,4 @@
-import { COLUMNS, LEAST_DEPTH } from "@fz/brick-wall/rules/field";
+import { COLUMNS, FIRST_X, LEAST_DEPTH } from "@fz/brick-wall/rules/field";
 import { FLOORWARD } from "@fz/brick-wall/rules/grid";
 import { isOneOf, keysOf } from "@fz/core/records";
 import {
@@ -11,16 +11,17 @@ import type { ZapPattern } from "../flight/events";
 import { MOST_FRIENDS } from "../tuning";
 import type { Brick } from "../wall/wall";
 import { LEGEND, NO_BRICK, PORTAL_MARKS } from "./legend";
-import type { Level } from "./level";
 import {
   LEVELS,
   LEVEL_SETS,
+  type Level,
   type LevelData,
   type LevelSetData,
   MOST_AIR,
   TWIN_ROWS,
   WALL_ROWS,
   levelEntryOf,
+  levelStart,
   levelsOf,
   parseLevel,
 } from "./levels";
@@ -259,23 +260,6 @@ describe("parseLevel", () => {
     ]);
   });
 
-  it("lays its picture out from the wall's lowest row up", () => {
-    const level = parsed(picture(["#oooooooo"], ["o2.......", "..3......"]));
-
-    expect(
-      [...rowOf(level, 0), ...rowOf(level, 1)].map((brick) => brick?.hits),
-    ).toEqual([
-      undefined,
-      undefined,
-      3,
-      ...Array<undefined>(6).fill(undefined),
-      1,
-      2,
-      ...Array<undefined>(7).fill(undefined),
-    ]);
-    expect(rowOf(level, 11)[0]?.kind).toBe("steel");
-  });
-
   it("tints plain and tough bricks by their row, in turn from the wall's lowest up", () => {
     const level = parsed(Array<string>(12).fill("o2ooooooo"));
 
@@ -349,51 +333,14 @@ describe("parseLevel", () => {
       "its wall has 41 rows, not 12 to 40",
     ],
     [
-      "a row too short",
-      picture(["oooooooo"]),
-      "row 1 of its picture is 8 long, not 9",
-    ],
-    [
-      "a row too long",
-      picture([], ["oooooooooo"]),
-      "row 12 of its picture is 10 long, not 9",
-    ],
-    [
-      "a character no legend has",
-      picture([], ["ooooZoooo"]),
-      `"Z", in row 12 of its picture, stands for no brick`,
-    ],
-    ["a highest row of air", picture([AIR]), "its wall's highest row is air"],
-    ["a lowest row of air", picture([], [AIR]), "its wall's lowest row is air"],
-    [
       "three rows of air together",
       picture([PLAIN, AIR, AIR, AIR]),
       "rows 2 to 4 of its picture are air, more than 2 together",
     ],
     [
-      "a portal with no twin",
-      picture(["oooo@oooo"]),
-      `it has 1 of the portal "@", where a pair has 2`,
-    ],
-    [
-      "three portals of one mark",
-      picture(["o@oo@oo@o"]),
-      `it has 3 of the portal "@", where a pair has 2`,
-    ],
-    [
-      "a second pair's portal with no twin",
-      picture(["o@o&oo@oo"]),
-      `it has 1 of the portal "&", where a pair has 2`,
-    ],
-    [
-      "a second pair of portals with no first",
-      picture(["oo&ooo&oo"]),
-      `its portals "&" are a second pair, with no first, "@"`,
-    ],
-    [
       `a portal more than ${String(TWIN_ROWS)} rows from its twin`,
       picture(["oooo@oooo", PLAIN, PLAIN, PLAIN, PLAIN, "oooo@oooo"]),
-      `its portals "@" stand 5 rows apart, more than 4`,
+      `its twins "@" stand 5 rows apart, more than 4`,
     ],
     [
       "a row of steel under its top course's air",
@@ -452,9 +399,22 @@ describe("parseLevel", () => {
       "a portal past a row of steel in its top course",
       picture([PLAIN, "oooo@oooo", STEEL, "o@ooooooo"]),
     ],
-    ["two pairs of portals", picture(["@@&&ooooo"])],
   ])("takes a wall that keeps the portals' rules with %s", (_, bricks) => {
     expect(() => parsed(bricks)).not.toThrow();
+  });
+});
+
+describe("levelStart", () => {
+  it("starts with the level's wall where it opens, its fuzzball at the floor's middle, no friend and no boon", () => {
+    const level = parsed(picture(["o........"]), { boon: "triple" });
+
+    expect(levelStart(level, 16)).toEqual({
+      wall: { bricks: level.bricks, rows: level.rows, lowestRow: 6 },
+      depth: 16,
+      x: FIRST_X,
+      crew: { friends: [] },
+      boon: null,
+    });
   });
 });
 

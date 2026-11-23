@@ -9,6 +9,7 @@ import {
   RIGHT,
   cellOf,
 } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { createRandom } from "@fz/core/random";
 import {
   type Cast,
@@ -18,10 +19,10 @@ import {
   randomShot,
 } from "../../testing/cast_reference";
 import { BUMPER, STAND_INS } from "../../testing/stand_ins";
-import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
 import { SHAPES } from "../grid";
 import { MISSED } from "@fz/core/sweep";
+import { WALL_LEGEND } from "../levels/legend";
 import {
   type CastField,
   type Met,
@@ -41,7 +42,11 @@ const NONE_CROSSED = { entered: -1, enteredAt: MISSED } as const;
 
 /** Returns a field 11 deep holding a wall drawn as a picture, its lowest row standing in a field row, its kinds the stand-ins'. */
 function fieldOf(lowestRow: number, picture: readonly string[]): CastField {
-  return castField(wallFrom(picture, { lowestRow }), DEPTH, STAND_INS);
+  return castField(
+    wallFrom(picture, WALL_LEGEND, { lowestRow }),
+    DEPTH,
+    STAND_INS,
+  );
 }
 
 /** Returns what a fuzzball meets first, cast from a place along a heading, as plain values. */
@@ -111,7 +116,7 @@ describe("castField", () => {
   });
 
   it("takes the catalog's kinds unless handed others", () => {
-    const field = castField(wallFrom(["o........"]), DEPTH);
+    const field = castField(wallFrom(["o........"], WALL_LEGEND), DEPTH);
 
     expect(field.shapes).toEqual(SHAPES);
   });
@@ -126,7 +131,7 @@ describe("castField", () => {
   it("takes a kind that kicks from a disc as wide as its cell", () => {
     const kinds = kicking(0.5);
 
-    const field = castField(wallFrom(["-........"]), DEPTH, kinds);
+    const field = castField(wallFrom(["-........"], WALL_LEGEND), DEPTH, kinds);
 
     expect(field.reaches.rowZapper).toBe(RADIUS + 0.5);
   });
@@ -134,9 +139,9 @@ describe("castField", () => {
   it("throws for a kind that kicks from a disc wider than its cell", () => {
     const kinds = kicking(0.5000001);
 
-    expect(() => castField(wallFrom(["-........"]), DEPTH, kinds)).toThrow(
-      RangeError,
-    );
+    expect(() =>
+      castField(wallFrom(["-........"], WALL_LEGEND), DEPTH, kinds),
+    ).toThrow(RangeError);
   });
 });
 
@@ -451,7 +456,7 @@ describe("cast", () => {
   });
 
   it("reads the wall as it stands at each cast", () => {
-    const wall = wallFrom(["....o...."], { lowestRow: 5 });
+    const wall = wallFrom(["....o...."], WALL_LEGEND, { lowestRow: 5 });
     const bricks = [...wall.bricks];
     const field = castField({ ...wall, bricks }, DEPTH, BRICK_KINDS);
     bricks[cellOf(4, 0)] = null;

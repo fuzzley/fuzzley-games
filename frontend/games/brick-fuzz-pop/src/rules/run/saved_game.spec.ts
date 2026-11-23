@@ -1,9 +1,11 @@
-import { wallFrom } from "../../testing/wall_picture";
-import { type Level, levelStart } from "../levels/level";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { WALL_LEGEND } from "../levels/legend";
 import {
   LEVELS,
+  type Level,
   type LevelSetData,
   levelEntryOf,
+  levelStart,
   levelsOf,
   parseLevel,
 } from "../levels/levels";
@@ -658,10 +660,12 @@ describe("readWall", () => {
     /** A level of two steel bricks twinned as a portal's pair stand in for, over a row of bricks. */
     const TWINNED: Level = {
       boon: "hot",
-      bricks: wallFrom(["#......#.", "ooooooooo"]).bricks.map((brick, cell) => {
-        if (cell === 9) return brick && { ...brick, twin: 16 };
-        return cell === 16 && brick ? { ...brick, twin: 9 } : brick;
-      }),
+      bricks: wallFrom(["#......#.", "ooooooooo"], WALL_LEGEND).bricks.map(
+        (brick, cell) => {
+          if (cell === 9) return brick && { ...brick, twin: 16 };
+          return cell === 16 && brick ? { ...brick, twin: 9 } : brick;
+        },
+      ),
       rows: 2,
     };
 

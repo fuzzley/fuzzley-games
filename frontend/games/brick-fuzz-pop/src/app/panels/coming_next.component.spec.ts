@@ -1,13 +1,14 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen } from "@testing-library/angular";
+import { WALL_LEGEND } from "../../rules/levels/legend";
 import { LEVELS, levelEntryOf } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import type { Boon } from "../../rules/shot";
 import { describeBoon } from "../../rules/run/describe";
 import { ART_PALETTE } from "../../testing/art_frames";
-import { wallFrom } from "../../testing/wall_picture";
 import { brickColor } from "../../view/colors/brick_colors";
 import { ComingNextComponent } from "./coming_next.component";
 
@@ -19,9 +20,13 @@ const LEVEL = levelEntryOf(LEVELS, 3);
  * its top two wait: steel, and under it the next to come in, plain bricks
  * with gaps between them.
  */
-const WALL = wallFrom(["#########", "o.o.o.o.o", "---------", "222222222"], {
-  lowestRow: 9,
-});
+const WALL = wallFrom(
+  ["#########", "o.o.o.o.o", "---------", "222222222"],
+  WALL_LEGEND,
+  {
+    lowestRow: 9,
+  },
+);
 
 /** Returns where a round starts over {@link WALL} on a field a depth deep. */
 function startOn(depth: number): RoundStart {

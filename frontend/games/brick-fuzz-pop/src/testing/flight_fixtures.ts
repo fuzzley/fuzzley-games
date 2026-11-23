@@ -8,6 +8,7 @@
 
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { clamp, multiplierAt } from "@fz/core/math";
 import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
 import type {
@@ -20,6 +21,7 @@ import type {
   Waypoint,
   ZapPattern,
 } from "../rules/flight/events";
+import { WALL_LEGEND } from "../rules/levels/legend";
 import type {
   Round,
   RoundOutcome,
@@ -36,7 +38,6 @@ import {
   ZAP_HITS,
 } from "../rules/tuning";
 import type { Wall } from "../rules/wall/wall";
-import { wallFrom } from "./wall_picture";
 
 /** Describes a round made by hand: where it starts, its shot, the level's boon, and the round it plays. */
 export interface FlightFixture {
@@ -761,6 +762,7 @@ function plain(): FlightFixture {
       ".........",
       "o.......2",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   return played({
@@ -783,6 +785,7 @@ function punch(): FlightFixture {
       ".......3.",
       "........o",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const path = pathOf(0, [WAITS, RIGHT_WALL, UNDER_7_6, [2, RADIUS]]);
@@ -821,6 +824,7 @@ function punchThrough(): FlightFixture {
       ".......oo",
       ".....o..o",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const path = pathOf(0, [
@@ -873,6 +877,7 @@ function zap(): FlightFixture {
       ".........",
       "o2#o....-",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const zapped = STRUCK_8_5 + ZAP_DELAY;
@@ -910,6 +915,7 @@ function columnZap(): FlightFixture {
       "........o",
       "oo......|",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const zapped = STRUCK_8_5 + ZAP_DELAY;
@@ -951,6 +957,7 @@ function hotShot(): FlightFixture {
       ".........",
       ".#.......",
     ],
+    WALL_LEGEND,
     { lowestRow: 1 },
   );
   const path = pathOf(0, [WAITS, RIGHT_WALL, UNDER_7_6, [2, RADIUS]]);
@@ -991,6 +998,7 @@ function triple(): FlightFixture {
       ".......2.",
       "o.......o",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const player = pathOf(0, OFF_8_5);
@@ -1052,6 +1060,7 @@ function friend(): FlightFixture {
       ".........",
       "o.......2",
     ],
+    WALL_LEGEND,
     { lowestRow: 5 },
   );
   const player = pathOf(0, OFF_8_5);
@@ -1123,6 +1132,7 @@ function sideTurns(
 function bored(): FlightFixture {
   const wall = wallFrom(
     ["ooooooooo", "2o2o2o2o2", "ooooooooo", "ooooooooo", "######o##"],
+    WALL_LEGEND,
     { lowestRow: 14 },
   );
   const radians = (FIRST_AIM_DEGREES * Math.PI) / 180;
@@ -1168,7 +1178,7 @@ function bored(): FlightFixture {
 
 /** A plain shot breaks the last brick the level needs, beside steel it doesn't: cleared. */
 function cleared(): FlightFixture {
-  const wall = wallFrom(["##.....##", ".........", "#.......o"], {
+  const wall = wallFrom(["##.....##", ".........", "#.......o"], WALL_LEGEND, {
     lowestRow: 5,
   });
   return played({
@@ -1194,6 +1204,7 @@ function lost(): FlightFixture {
       ".........",
       "ooo......",
     ],
+    WALL_LEGEND,
     { lowestRow: 1 },
   );
   const path = pathOf(0, OFF_8_5);
