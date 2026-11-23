@@ -11,6 +11,7 @@ import type {
   RoundStart,
 } from "../rules/flight/events";
 import type { Fur } from "./art/frames";
+import type { EventEffects } from "./effects/effects";
 
 /** Names where a round stands: aimed, its flight played back, or the wall settling after it. */
 export type RoundPhase = "aiming" | "flying" | "settling";
@@ -220,10 +221,14 @@ export interface RoundView {
  */
 export interface LoggedEvent extends NumberedEvent {
   event: FlightEvent;
+  /** What it calls for: nothing for an event skipped. */
+  effects: EventEffects;
 }
 
-/** Every moment of a round beyond its flight's events: the wall's step or its jump, the danger line, and the level cleared or lost. */
+/** Every moment of a round beyond its flight's events: the shot's release, hot or not, the wall's step or its jump, the danger line, and the level cleared or lost. */
 export const BEATS = [
+  "release",
+  "hot-release",
   "step",
   "jump",
   "danger",

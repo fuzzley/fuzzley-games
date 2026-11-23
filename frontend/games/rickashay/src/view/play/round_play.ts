@@ -3,7 +3,8 @@
 // released, its flight at its pace and its wall's step or jump after it.
 // What each of the flight's events does to the frame the scene draws is
 // this game's own: a cell's hits, the fuzzball's heading, rally and fur,
-// the floor bounces in hand, the hatches' holds and the bolts drawn.
+// the floor bounces in hand, the hatches' holds and the bolts drawn; and
+// what it calls for, effects/effects.ts's, is logged with it.
 
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { type WallRules, inDanger } from "@fz/brick-wall/rules/wall";
@@ -33,6 +34,12 @@ import {
   STRIKE_POINTS,
 } from "../../rules/tuning";
 import type { Fur } from "../art/frames";
+import {
+  type EventEffects,
+  QUIET,
+  callsOut,
+  flightEffects,
+} from "../effects/effects";
 import type {
   BallView,
   Beat,
@@ -87,7 +94,7 @@ interface Change extends RoundChange {
 }
 
 /** Plays a round's flight back, its fuzzball drawn from the record the scene reads. */
-type RoundPlayback = Playback<KindId, FlightEvent, BallRecord, null>;
+type RoundPlayback = Playback<KindId, FlightEvent, BallRecord, EventEffects>;
 
 /** How many beats the log keeps: far more than a frame's few. */
 const BEATS_KEPT = 16;
@@ -139,6 +146,11 @@ export class RoundPlay {
     motion: true,
   };
   private readonly change: Change = { news: [], opens: null };
+  /** What each event of the flight in play calls for, in order, and how many of them the playback has reached. */
+  private effects: readonly EventEffects[] = [];
+  private reached = 0;
+  /** Whether the flight in the air is landing unseen as the page is hidden, which hushes all it reaches, its landing and its beats too. */
+  private unseen = false;
   private readonly shown: Shown;
 
   /** Starts a level, its first round aimed from where it starts, the hatches and the hot shot as the rules hold them. */
@@ -153,14 +165,20 @@ export class RoundPlay {
       {
         ball: (ball) => (ball === 0 ? own : waiting(start)),
         reach: (event, quiet) => {
-          this.takeIn(event, quiet);
-          return null;
+          const hushed = quiet || this.unseen;
+          this.takeIn(event, hushed);
+          // The playback reaches each event once, in order, from the first,
+          // so the count is the index of its effects.
+          const effects = this.effects[this.reached++] ?? QUIET;
+          if (hushed) return QUIET;
+          if (callsOut(effects)) this.change.news.push({ kind: "called" });
+          return effects;
         },
         isLanding: (event) => event.kind === "land",
         changesOf: leftBy,
       },
       start.wall,
-      { event: NO_EVENT, effects: null },
+      { event: NO_EVENT, effects: QUIET },
     );
     const { view } = this.playback;
     const { tally } = this;
@@ -238,22 +256,27 @@ export class RoundPlay {
 
   /**
    * Starts playing back the round released from the start aimed, its whole
-   * flight decided; a round released while none is aimed is ignored.
+   * flight decided, and called as it reaches the level's rally mark; a
+   * round released while none is aimed is ignored.
    */
-  release(round: Round): void {
+  release(round: Round, rallyMark: number): void {
     if (this.played !== null) return;
     this.played = round;
     const { flight } = round;
+    this.effects = flightEffects(this.aimed, flight, rallyMark);
+    this.reached = 0;
     this.leave(flight.held);
     leaveAlong(flight.track, this.ball);
+    this.logBeat(this.aimed.hot ? "hot-release" : "release");
     this.playback.play(decided(round));
   }
 
   /**
    * Lands the flight in play at once, at the next frame played, with
-   * everything it would have done but its news, which the events it skips
-   * say nothing of; at any other time, does nothing, as the next flight
-   * starts afresh.
+   * everything it would have done, the events it skips calling for nothing
+   * and saying no news, the call at the rally mark among them, but its
+   * landing, which sounds; at any other time, does nothing, as the next
+   * flight starts afresh.
    */
   skip(): void {
     this.playback.landAtOnce();
@@ -262,13 +285,21 @@ export class RoundPlay {
   /**
    * Lands the flight in the air at once as the page is hidden, which may
    * never be seen again, so the run keeps all it would have done: at a frame
-   * of no time, paused or not, as a skip lands it, and returns what the
-   * frame came to; with no flight in the air, plays nothing.
+   * of no time, paused or not, as a skip lands it but with nothing heard or
+   * seen of it, its landing and the beats of that frame quiet too, and
+   * returns what the frame came to; with no flight in the air, plays
+   * nothing. A wall that comes to rest later, where motion is welcome,
+   * sounds a level lost or the danger line then, as it is seen.
    */
   landUnseen(options: Readonly<PlayOptions>): RoundChange {
     if (this.phase !== "flying") return this.nothing();
-    this.playback.landAtOnce();
-    return this.advance(0, { ...options, paused: false });
+    this.unseen = true;
+    try {
+      this.playback.landAtOnce();
+      return this.advance(0, { ...options, paused: false });
+    } finally {
+      this.unseen = false;
+    }
   }
 
   /**
@@ -433,9 +464,9 @@ export class RoundPlay {
     if (result !== "on") this.cardWait.start();
   }
 
-  /** Logs a beat of the round. */
+  /** Logs a beat of the round, but one a flight landing unseen reaches. */
   private logBeat(beat: Beat): void {
-    this.beatLog.next().beat = beat;
+    if (!this.unseen) this.beatLog.next().beat = beat;
   }
 }
 

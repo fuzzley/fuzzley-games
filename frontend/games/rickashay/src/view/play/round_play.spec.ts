@@ -17,6 +17,8 @@ import {
   type FlightFixture,
 } from "../../testing/flight_fixtures";
 import type { Beat, Card, RoundNews } from "../run_state";
+import { flightEffects } from "../effects/effects";
+import type { SoundName } from "../effects/sounds";
 import { FLIGHT_PACE } from "./pace";
 import { type PlayOptions, RoundPlay } from "./round_play";
 
@@ -38,6 +40,9 @@ const {
 
 /** Every fixture's name. */
 const FIXTURES = Object.keys(FLIGHT_FIXTURES) as FixtureName[];
+
+/** The rally mark of the levels these specs play, past every hand-made flight's rally. */
+const MARK = 20;
 
 /** A frame's time in these specs, which adds up to whole milliseconds exactly. */
 const FRAME_MS = 10;
@@ -64,7 +69,7 @@ function aimed(fixture: FlightFixture): RoundPlay {
 /** Returns a level's play, a fixture's round released. */
 function playing(fixture: FlightFixture): RoundPlay {
   const play = aimed(fixture);
-  play.release(fixture.round);
+  play.release(fixture.round, MARK);
   return play;
 }
 
@@ -86,6 +91,15 @@ function loggedEvents(play: RoundPlay): FlightEvent[] {
   const events: FlightEvent[] = [];
   play.view.events.forEachSince(0, ({ event }) => events.push(event));
   return events;
+}
+
+/** Returns the sounds of the events a level's play has handed on, in order, each event's as a list. */
+function loggedSounds(play: RoundPlay): SoundName[][] {
+  const sounds: SoundName[][] = [];
+  play.view.events.forEachSince(0, ({ effects }) =>
+    sounds.push(effects.sounds.map(({ sound }) => sound)),
+  );
+  return sounds;
 }
 
 /** Returns the beats a level's play has handed on, in order. */
@@ -234,7 +248,7 @@ describe("RoundPlay, released", () => {
     const play = playing(plain);
     play.advance(100, NORMAL);
 
-    play.release(rally.round);
+    play.release(rally.round, MARK);
     play.advance(100, NORMAL);
 
     expect([play.round, offTrack(play, plain, 2.8)]).toEqual([
@@ -263,7 +277,7 @@ describe("RoundPlay, released", () => {
     playUntilEnded(play);
     play.aim(rally.round.next);
 
-    play.release(plain.round);
+    play.release(plain.round, MARK);
 
     expect(play.soFar).toEqual({ rally: 0, held: 0, turns: 0, points: 0 });
   });
@@ -329,7 +343,7 @@ describe("RoundPlay's pace", () => {
     const play = playing(plain);
     playUntilEnded(play);
     play.aim(plain.round.next);
-    play.release(rally.round);
+    play.release(rally.round, MARK);
 
     play.advance(TO_LAST_MS + 50, NORMAL);
 
@@ -418,15 +432,18 @@ describe("What RoundPlay's flight does to the fuzzball", () => {
     const { flight } = plain.round;
     const play = aimed(plain);
     const struck = { ...first, rally: rallyOf };
-    play.release({
-      ...plain.round,
-      flight: {
-        ...flight,
-        events: flight.events.map((event) =>
-          event === first ? struck : event,
-        ),
+    play.release(
+      {
+        ...plain.round,
+        flight: {
+          ...flight,
+          events: flight.events.map((event) =>
+            event === first ? struck : event,
+          ),
+        },
       },
-    });
+      MARK,
+    );
 
     playUntilReached(play, struck);
 
@@ -625,7 +642,7 @@ describe("What RoundPlay's flight does to the counts", () => {
   it("lets the floor bounces it still holds go as a bored fuzzball lands", () => {
     const flight = { ...bored.round.flight, held: 1 };
     const play = aimed(bored);
-    play.release({ ...bored.round, flight });
+    play.release({ ...bored.round, flight }, MARK);
     playUntilReached(play, eventOf(bored, "bored"));
     const held = play.view.held;
 
@@ -688,19 +705,24 @@ describe("RoundPlay's news", () => {
   it("says a floor bounce earned while the fuzzball holds the most, which it loses and which scores nothing", () => {
     const { flight } = rally.round;
     const full = aimed(rally);
-    full.release({
-      ...rally.round,
-      flight: {
-        ...flight,
-        held: 3,
-        events: flight.events.map((event) => {
-          if (event.kind === "bounce-earned") {
-            return { ...event, held: 3, kept: false };
-          }
-          return event.kind === "bounce-spent" ? { ...event, held: 2 } : event;
-        }),
+    full.release(
+      {
+        ...rally.round,
+        flight: {
+          ...flight,
+          held: 3,
+          events: flight.events.map((event) => {
+            if (event.kind === "bounce-earned") {
+              return { ...event, held: 3, kept: false };
+            }
+            return event.kind === "bounce-spent"
+              ? { ...event, held: 2 }
+              : event;
+          }),
+        },
       },
-    });
+      MARK,
+    );
 
     const news = playUntilReached(full, eventOf(rally, "strike", 9));
     playUntilLanded(full);
@@ -709,6 +731,25 @@ describe("RoundPlay's news", () => {
       [{ kind: "earned", by: "rally", rally: 10, kept: false }],
       rally.round.outcome.points - BOUNCE_POINTS,
     ]);
+  });
+
+  it("calls a flight as it reaches the level's rally mark, in the frame that reaches it", () => {
+    const play = aimed(rally);
+    play.release(rally.round, 5);
+
+    const news = playUntilReached(play, eventOf(rally, "strike", 4));
+
+    expect(news).toEqual([{ kind: "called" }]);
+  });
+
+  it("calls a flight once, as it reaches the mark and not after", () => {
+    const play = aimed(rally);
+    play.release(rally.round, 5);
+    playUntilReached(play, eventOf(rally, "strike", 4));
+
+    const news = playUntilLanded(play);
+
+    expect(news).toEqual([]);
   });
 
   it("says the round has ended as its wall comes to rest, and nothing more", () => {
@@ -764,10 +805,11 @@ describe("RoundPlay's landing", () => {
   });
 
   it.each([
-    ["plain", plain, ["step"]],
-    ["jumped", jumped, ["jump"]],
-    ["cleared", cleared, ["cleared"]],
-    ["lost", lost, ["step", "lost"]],
+    ["plain", plain, ["release", "step"]],
+    ["jumped", jumped, ["release", "jump"]],
+    ["cleared", cleared, ["release", "cleared"]],
+    ["lost", lost, ["release", "step", "lost"]],
+    ["hot", hot, ["hot-release", "step"]],
   ] as const)("logs the %s round's beats", (_, fixture, beats) => {
     const play = playing(fixture);
 
@@ -780,11 +822,11 @@ describe("RoundPlay's landing", () => {
     const { round } = plain;
     const wall = { ...round.next.wall, lowestRow: 1 };
     const play = aimed(plain);
-    play.release({ ...round, next: { ...round.next, wall } });
+    play.release({ ...round, next: { ...round.next, wall } }, MARK);
 
     playUntilEnded(play);
 
-    expect(loggedBeats(play)).toEqual(["step", "danger"]);
+    expect(loggedBeats(play)).toEqual(["release", "step", "danger"]);
   });
 });
 
@@ -833,7 +875,7 @@ describe("RoundPlay's cards", () => {
     const play = playing(cleared);
     playUntilEnded(play);
     play.aim(plain.start);
-    play.release(plain.round);
+    play.release(plain.round, MARK);
     playUntilEnded(play);
 
     expect(opensWithin(play, 2000)).toBeNull();
@@ -875,6 +917,25 @@ describe("RoundPlay, skipped", () => {
     expect(news).toEqual([]);
   });
 
+  it("hushes every event it skips but the landing", () => {
+    const play = playing(plain);
+    play.skip();
+
+    play.advance(0, NORMAL);
+
+    expect(loggedSounds(play)).toEqual([[], [], [], ["land"]]);
+  });
+
+  it("calls none of the flight it skips", () => {
+    const play = aimed(rally);
+    play.release(rally.round, 5);
+    play.skip();
+
+    const { news } = play.advance(0, NORMAL);
+
+    expect(news).toEqual([]);
+  });
+
   it("says the round has ended as its wall comes to rest", () => {
     const play = playing(rally);
     play.skip();
@@ -887,7 +948,7 @@ describe("RoundPlay, skipped", () => {
   it("skips nothing while a round is aimed, the next flight playing from its start", () => {
     const play = aimed(rally);
     play.skip();
-    play.release(rally.round);
+    play.release(rally.round, MARK);
 
     play.advance(500, NORMAL);
 
@@ -927,6 +988,45 @@ describe("RoundPlay, landed unseen as the page is hidden", () => {
     const { news } = play.landUnseen(NORMAL);
 
     expect(news).toEqual([]);
+  });
+
+  it("hushes every event it lands, its landing too", () => {
+    const play = playing(plain);
+
+    play.landUnseen(NORMAL);
+
+    expect(loggedSounds(play)).toEqual([[], [], [], []]);
+  });
+
+  it("logs none of the beats it reaches", () => {
+    const play = playing(lost);
+
+    play.landUnseen(options({ motion: false }));
+
+    expect(loggedBeats(play)).toEqual(["release"]);
+  });
+
+  it("logs the beats of a wall that comes to rest after it, where motion is welcome", () => {
+    const play = playing(lost);
+    play.landUnseen(NORMAL);
+
+    playUntilEnded(play);
+
+    expect(loggedBeats(play)).toEqual(["release", "lost"]);
+  });
+
+  it("hears the next flight as it plays", () => {
+    const play = playing(plain);
+    play.landUnseen(options({ motion: false }));
+    play.aim(plain.round.next);
+    play.release(plain.round, MARK);
+
+    playUntilEnded(play);
+
+    expect([loggedSounds(play).slice(4), loggedBeats(play)]).toEqual([
+      [["knock"], [], ["strike"], ["land"]],
+      ["release", "release", "step"],
+    ]);
   });
 
   it("says the round has ended at once where motion is unwelcome", () => {
@@ -981,11 +1081,27 @@ describe("RoundPlay, round after round", () => {
     },
   );
 
+  it.each(FIXTURES)(
+    "hands on with each of the %s flight's events what it calls for",
+    (name) => {
+      const { start, round } = FLIGHT_FIXTURES[name];
+      const play = playing(FLIGHT_FIXTURES[name]);
+
+      playUntilLanded(play);
+
+      const effects: unknown[] = [];
+      play.view.events.forEachSince(0, (logged) =>
+        effects.push(logged.effects),
+      );
+      expect(effects).toEqual(flightEffects(start, round.flight, MARK));
+    },
+  );
+
   it("numbers the events on from one round to the next", () => {
     const play = playing(plain);
     playUntilEnded(play);
     play.aim(plain.round.next);
-    play.release(rally.round);
+    play.release(rally.round, MARK);
 
     playUntilLanded(play);
 
@@ -1000,7 +1116,7 @@ describe("RoundPlay, round after round", () => {
     const { ball } = view;
     playUntilEnded(play);
     play.aim(plain.round.next);
-    play.release(rally.round);
+    play.release(rally.round, MARK);
 
     play.advance(500, NORMAL);
 

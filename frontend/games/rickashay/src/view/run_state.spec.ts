@@ -169,7 +169,15 @@ describe("withNewsSaid", () => {
 });
 
 describe("BEATS", () => {
-  it("lists the wall's step and its jump, the danger line, and the level cleared or lost", () => {
-    expect(BEATS).toEqual(["step", "jump", "danger", "cleared", "lost"]);
+  it("lists the shot's release, hot or not, the wall's step and its jump, the danger line, and the level cleared or lost", () => {
+    expect(BEATS).toEqual([
+      "release",
+      "hot-release",
+      "step",
+      "jump",
+      "danger",
+      "cleared",
+      "lost",
+    ]);
   });
 });
