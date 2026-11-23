@@ -1,7 +1,15 @@
-import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { realpathSync } from "node:fs";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MARK_MS, type QueueIo, STALE_MS, waitInQueue } from "./queue.ts";
+import {
+  MARK_MS,
+  type QueueIo,
+  STALE_MS,
+  queueFolder,
+  waitInQueue,
+} from "./queue.ts";
 
 /** Folders made for a spec, removed after it. */
 const made: string[] = [];
@@ -17,7 +25,7 @@ afterEach(async () => {
 });
 
 /** Returns a queue's folder, not yet made, in a folder of a spec's own. */
-async function queueFolder(): Promise<string> {
+async function freshQueue(): Promise<string> {
   const folder = await mkdtemp(join(tmpdir(), "fz-queue-"));
   made.push(folder);
   return join(folder, "queue");
@@ -68,7 +76,7 @@ function scripted(...steps: (() => void)[]): Scripted {
 
 describe("waitInQueue", () => {
   it("goes at once where no run is ahead, making the folder and keeping a place in it", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
 
     await waitInQueue(folder, scripted().io);
 
@@ -76,7 +84,7 @@ describe("waitInQueue", () => {
   });
 
   it("leaves no place behind once it leaves", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const leave = await waitInQueue(folder, scripted().io);
 
     leave();
@@ -85,7 +93,7 @@ describe("waitInQueue", () => {
   });
 
   it("waits for a run that joined before it, until that one leaves", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const first = scripted();
     const leaveFirst = await waitInQueue(folder, first.io);
     const order: string[] = [];
@@ -105,7 +113,7 @@ describe("waitInQueue", () => {
   });
 
   it("goes in the order the runs joined, whichever looks first", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const first = scripted();
     const leaveFirst = await waitInQueue(folder, first.io);
     const second = scripted();
@@ -126,7 +134,7 @@ describe("waitInQueue", () => {
   });
 
   it("says how many runs are ahead as it starts to wait, and each time that changes", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const first = scripted();
     const leaveFirst = await waitInQueue(folder, first.io);
     const before = scripted();
@@ -146,7 +154,7 @@ describe("waitInQueue", () => {
   });
 
   it("passes over a place not marked for a minute, and removes it", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const killed = scripted();
     await waitInQueue(folder, killed.io);
     const next = scripted();
@@ -161,7 +169,7 @@ describe("waitInQueue", () => {
   });
 
   it("passes over no place on a look that finds the clock has jumped, until the next", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const asleep = scripted();
     await waitInQueue(folder, asleep.io);
     const order: string[] = [];
@@ -181,7 +189,7 @@ describe("waitInQueue", () => {
   });
 
   it("waits for a place marked within the minute", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const first = scripted();
     await waitInQueue(folder, first.io);
     const next = scripted();
@@ -193,7 +201,7 @@ describe("waitInQueue", () => {
   });
 
   it("marks its place again each time it is asked to, so a long run isn't passed over", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const long = scripted();
     await waitInQueue(folder, long.io);
     long.time += STALE_MS;
@@ -207,7 +215,7 @@ describe("waitInQueue", () => {
   });
 
   it("asks to mark its place more often than a place goes stale, and stops once it leaves", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const stage = scripted();
     const asked: number[] = [];
     const leave = await waitInQueue(folder, {
@@ -228,7 +236,7 @@ describe("waitInQueue", () => {
   });
 
   it("takes its place back where another run removed it as stale", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const slept = scripted();
     await waitInQueue(folder, slept.io);
     const [place = ""] = await readdir(folder);
@@ -240,7 +248,7 @@ describe("waitInQueue", () => {
   });
 
   it("carries on where a mark fails, as the next may not", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const stage = scripted();
     await waitInQueue(folder, stage.io);
     await rm(folder, { recursive: true });
@@ -254,7 +262,7 @@ describe("waitInQueue", () => {
   });
 
   it("leaves the queue where its wait fails", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
     const first = scripted();
     await waitInQueue(folder, first.io);
     const [place = ""] = await readdir(folder);
@@ -270,11 +278,63 @@ describe("waitInQueue", () => {
   });
 
   it("waits by the clock and a timer of its own unless handed others", async () => {
-    const folder = await queueFolder();
+    const folder = await freshQueue();
 
     const leave = await waitInQueue(folder);
     leave();
 
     expect(await readdir(folder)).toEqual([]);
+  });
+});
+
+describe("queueFolder", () => {
+  /** Returns the real path of a repository of one commit, in a folder of a spec's own. */
+  async function repository(): Promise<string> {
+    const top = await mkdtemp(join(tmpdir(), "fz-queue-repo-"));
+    made.push(top);
+    execFileSync("git", ["init", "--quiet"], { cwd: top });
+    execFileSync(
+      "git",
+      [
+        "-c",
+        "user.name=Spec",
+        "-c",
+        "user.email=spec@example.com",
+        "commit",
+        "--quiet",
+        "--allow-empty",
+        "--message",
+        "Start",
+      ],
+      { cwd: top },
+    );
+    return realpathSync.native(top);
+  }
+
+  it("finds the queue in the folder git keeps, from a folder below the top", async () => {
+    const top = await repository();
+    await mkdir(join(top, "frontend"));
+
+    expect(await queueFolder(join(top, "frontend"))).toBe(
+      join(top, ".git", "fz-verify-queue"),
+    );
+  });
+
+  it("finds the same queue from each of a repository's worktrees", async () => {
+    const top = await repository();
+    execFileSync(
+      "git",
+      ["worktree", "add", "--quiet", "--detach", join(top, "other")],
+      { cwd: top },
+    );
+
+    expect(await queueFolder(join(top, "other"))).toBe(await queueFolder(top));
+  });
+
+  it("rejects for a folder in no repository", async () => {
+    const folder = await mkdtemp(join(tmpdir(), "fz-queue-none-"));
+    made.push(folder);
+
+    await expect(queueFolder(folder)).rejects.toThrow("not a git repository");
   });
 });

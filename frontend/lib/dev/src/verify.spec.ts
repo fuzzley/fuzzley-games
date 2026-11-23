@@ -1060,8 +1060,8 @@ describe("runVerifyChanged", () => {
     });
 
     expect(printer.out.slice(1, 4)).toEqual([
-      "Waiting for 2 runs of verify:changed that started first.",
-      "Waiting for 1 run of verify:changed that started first.",
+      "Waiting for 2 runs that started first (verify:changed or another script that takes the whole machine).",
+      "Waiting for 1 run that started first (verify:changed or another script that takes the whole machine).",
       "Waited 212 s for its turn.",
     ]);
   });

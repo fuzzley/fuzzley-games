@@ -1,14 +1,14 @@
 // Verifies what a branch changed, each workspace's steps side by side under
 // a budget of cores and memory, one run at a time across the repository's
-// worktrees: the root's `yarn verify:changed`, through its
-// `tools/verify-changed.mjs`.
+// worktrees among the scripts that take the whole machine: the root's
+// `yarn verify:changed`, through its `tools/verify-changed.mjs`.
 
 import { execFile } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 import { promisify } from "node:util";
-import { waitInQueue } from "./queue.ts";
+import { queueFolder, waitInQueue } from "./queue.ts";
 import {
   CONSOLE,
   type Env,
@@ -208,12 +208,6 @@ const GUESSED_OTHERWISE_SECONDS = 10;
 /** Where the runner keeps how long each task took when it last passed, from the root's folder. */
 const TIMES_FILE = "node_modules/.cache/fz-verify/times.json";
 
-/**
- * Where the runs queue, in the folder a repository's worktrees share with
- * git, so a run in one waits for a run in another.
- */
-const QUEUE_FOLDER = "fz-verify-queue";
-
 const USAGE = `Usage: yarn verify:changed [options]
 
 Verifies what changed since the branch left --base: the workspaces holding
@@ -226,8 +220,9 @@ as many at once as the cores and the free memory allow, those with the
 longest way to go first; a layout check after its game's build, and the
 site's build after the games'. It prints each task's output once it ends,
 then when each started and how long it ran, and fails if any fails. A run
-takes the whole machine, so it waits for any that started before it in the
-repository's worktrees, saying how many, and then how long it waited.
+takes the whole machine, so it waits for any run of it, or of another script
+that takes the whole machine, that started before it in the repository's
+worktrees, saying how many, and then how long it waited.
 yarn verify still verifies everything.
 
       --base <ref>   What the branch is compared with (origin/main)
@@ -481,8 +476,9 @@ export async function runTasks(
  * where a task failed or was skipped, and 2 for a command line it can't
  * read or a base git can't find.
  *
- * It runs its tasks once every run that started before it, in any worktree
- * of the repository, has ended, as each claims the whole machine.
+ * It runs its tasks once every run of it, or of another script that takes
+ * the whole machine, that started before it in any worktree of the
+ * repository has ended, as each claims the whole machine.
  */
 export async function runVerifyChanged(
   args: readonly string[],
@@ -552,16 +548,11 @@ export async function runVerifyChanged(
     return 0;
   }
   const testsEnv = compileCached(env, root);
-  const shared = await git(
-    root,
-    "rev-parse",
-    "--path-format=absolute",
-    "--git-common-dir",
-  );
+  const machineQueue = await queueFolder(root);
   const clock = now ?? ((): number => performance.now());
   const joined = clock();
   const heard: number[] = [];
-  const leave = await queue(join(shared.trim(), QUEUE_FOLDER), (ahead) => {
+  const leave = await queue(machineQueue, (ahead) => {
     heard.push(ahead);
     print(waitingWords(ahead));
   });
@@ -640,7 +631,7 @@ function reachWords({ names, everything }: Reach, base: string): string {
 /** Returns what the runner says while it waits for the runs that started before it. */
 function waitingWords(ahead: number): string {
   const runs = ahead === 1 ? "1 run" : `${String(ahead)} runs`;
-  return `Waiting for ${runs} of verify:changed that started first.`;
+  return `Waiting for ${runs} that started first (verify:changed or another script that takes the whole machine).`;
 }
 
 /** Returns every workspace, as a reach, for the file that reaches them all. */

@@ -1,7 +1,9 @@
 // A queue kept in a folder, which the runs of a command wait in so that one
-// runs at a time, whichever process starts each: `yarn verify:changed`'s,
-// through `./verify.ts`.
+// runs at a time, whichever process starts each, and the folder, shared by a
+// repository's worktrees, where the runs that take the whole machine queue.
+// The scripts that queue there: `yarn verify:changed`, through `./verify.ts`.
 
+import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
   closeSync,
@@ -14,6 +16,7 @@ import {
 } from "node:fs";
 import { basename, join } from "node:path";
 import { setTimeout as sleepFor } from "node:timers/promises";
+import { promisify } from "node:util";
 
 /**
  * Says how `waitInQueue()` reads the time, waits and keeps marking its
@@ -42,6 +45,28 @@ const LOOK_MS = 1_000;
 
 /** How many digits a place's name gives the time it joined, so names sort by it. */
 const TIME_DIGITS = 15;
+
+/**
+ * The name of the queue of the runs that take the whole machine, the one
+ * `yarn verify:changed` has always waited in, so a worktree on older code
+ * still waits in it with the rest.
+ */
+const MACHINE_QUEUE = "fz-verify-queue";
+
+/**
+ * Returns the folder of the queue that the runs that take the whole machine
+ * wait in, such as `yarn verify:changed`'s, in the folder git shares between
+ * a repository's worktrees, found from a folder in any of them, so a run in
+ * one waits for a run in another. It rejects for a folder in no repository.
+ */
+export async function queueFolder(folder: string): Promise<string> {
+  const { stdout } = await promisify(execFile)(
+    "git",
+    ["rev-parse", "--path-format=absolute", "--git-common-dir"],
+    { cwd: folder },
+  );
+  return join(stdout.trim(), MACHINE_QUEUE);
+}
 
 /**
  * Joins a folder's queue, resolves once every run that joined before it has

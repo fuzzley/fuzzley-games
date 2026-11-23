@@ -23,6 +23,7 @@
     "./sound-lab-page": "./src/sound_lab_page.ts",
     "./workspaces": "./src/workspaces.ts",
     "./verify": "./src/verify.ts",
+    "./queue": "./src/queue.ts",
     "./tsconfig/*.json": "./tsconfig/*.json"
   },
   "bin": {

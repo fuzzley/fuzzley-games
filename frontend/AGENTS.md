@@ -57,6 +57,10 @@ to `frontend/`.
 - **A workspace's step reads nothing another workspace's step writes.** The
   root runs every workspace's `lint`, `typecheck`, `test` and `build` side
   by side, so none may wait on another's.
+- **A script that takes the whole machine waits its turn in the queue
+  `yarn verify:changed` keeps,** with `@fz/dev/queue`'s `waitInQueue()` in
+  its `queueFolder()`, so it never runs beside a run of `yarn verify:changed`
+  or of another such script.
 - **A `tools/` script that a spec imports exports its logic as functions,
   and runs only as the file Node started** (`if (import.meta.main)`).
   Without the guard, importing it does its work: the site's would copy the
