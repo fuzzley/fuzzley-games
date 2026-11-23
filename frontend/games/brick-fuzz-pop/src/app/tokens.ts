@@ -1,4 +1,5 @@
-import { InjectionToken, type Type } from "@angular/core";
+import { InjectionToken } from "@angular/core";
+import type { ComponentLoad } from "@fz/ui/on_demand";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
 
@@ -19,9 +20,6 @@ export const PLAY_ROUND = new InjectionToken<RoundPlayer>("PLAY_ROUND", {
   providedIn: "root",
   factory: () => playRound,
 });
-
-/** Loads a component a chunk of its own holds, as `onDemand()` takes one. */
-export type ComponentLoad = () => Promise<Type<unknown>>;
 
 /**
  * Loads How to play, its chunk fetched as it first opens: but in specs,

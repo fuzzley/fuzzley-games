@@ -3,19 +3,22 @@ import {
   DestroyRef,
   ErrorHandler,
   PendingTasks,
+  type Type,
   type ViewContainerRef,
   inject,
 } from "@angular/core";
-import type { ComponentLoad } from "./tokens";
+
+/** Loads a component a chunk of its own holds: an `import()` of its file, `.then()` to the component. */
+export type ComponentLoad = () => Promise<Type<unknown>>;
 
 /**
  * Returns a function that, the first time it is called, loads a component
  * and creates it at the end of a container, with the bindings given.
  *
- * It is how the shell keeps a piece the page may never show, with what
- * only it imports, out of the main chunk, fetched once it is first wanted,
- * as Angular's `@defer` would, without its runtime, which costs the main
- * chunk about 6 kB.
+ * It is how an app keeps a piece the page may never show, with what only
+ * it imports, out of the main chunk, fetched once it is first wanted, as
+ * Angular's `@defer` would, without its runtime, which costs the main chunk
+ * about 6 kB.
  *
  * Every call hands back the first one's promise, which says, once the load
  * has settled, whether the component was made. Until then the load is a

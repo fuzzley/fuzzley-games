@@ -1,5 +1,5 @@
 import type { Type } from "@angular/core";
-import type { ComponentLoad } from "../app/tokens";
+import type { ComponentLoad } from "@fz/ui/on_demand";
 
 /** A load of a component that a spec holds, as a slow connection holds a chunk. */
 export interface HeldLoad {

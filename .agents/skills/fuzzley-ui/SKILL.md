@@ -70,6 +70,7 @@ they carry no prefix. Each mixin's doc comment, in
 | The fuzzball on its own, such as a game's            | `<fz-fuzzball>` from `@fz/ui/fuzzball`, in the text's color, sized by `width` and `height`, at any `face` and static's `lift`                                                                                                         |
 | The "Fuzzley Games" name                             | `<fz-wordmark>` from `@fz/ui/wordmark`, inside the app's own link                                                                                                                                                                     |
 | A picture of the page, such as a bug report's        | `PageCaptureService.capture()` from `@fz/ui/capture`: a PNG at CSS pixel size, or null, every `<dialog>` and what carries `CAPTURE_SKIP` left out; a canvas board registers a `CaptureSurface`, drawn from its frame                  |
+| A piece kept out of the first download               | `onDemand(load, host, bindings)` from `@fz/ui/on_demand`, in the component's injection context, `load` its file's `import()`, `.then()` to the component: `@defer` without the 6 kB its runtime adds to the main chunk                |
 
 ### A game's chrome: `@fz/game-ui`
 

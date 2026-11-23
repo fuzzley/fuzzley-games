@@ -14,10 +14,10 @@ import {
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
+import { onDemand } from "@fz/ui/on_demand";
 import { ChoiceListComponent, type ChoiceOption } from "@fz/ui/radio_group";
 import { ThemePickerComponent } from "@fz/ui/theme";
 import { FLIGHT_PACE } from "../../view/round_play";
-import { onDemand } from "../on_demand";
 import { LOAD_DEBUG_MENU } from "../tokens";
 import {
   AIMINGS,

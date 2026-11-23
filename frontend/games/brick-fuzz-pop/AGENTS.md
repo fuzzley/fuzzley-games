@@ -17,7 +17,7 @@ field drawn with Phaser in an Angular shell. Every game's, in
   `brick-fuzz-pop-content` skill.** It has the files each takes, the order
   they land in and the checks that hold each.
 - **Keep the first download to what every page shows.** A piece a page may
-  never show loads with `onDemand()` (`src/app/on_demand.ts`), not `@defer`,
+  never show loads with `@fz/ui/on_demand`'s `onDemand()`, not `@defer`,
   whose runtime costs the main chunk about 6 kB. The shell takes nothing by
   value from `src/view/art/` or `src/view/steering/steering.ts`, which only
   the scene's chunk carries: what it needs of them stands in a file apart,

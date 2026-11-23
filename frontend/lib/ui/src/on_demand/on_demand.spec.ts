@@ -15,22 +15,22 @@ import {
 import type { ComponentFixture } from "@angular/core/testing";
 import { render, screen } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { onDemand } from "./on_demand";
+import { type ComponentLoad, onDemand } from "./on_demand";
 
 /** Counts the components a spec's host has had made. */
 interface Made {
   count: number;
 }
 
-/** Where `<app-loaded>` counts itself as it is made. */
+/** Where `<fz-test-loaded>` counts itself as it is made. */
 const MADE = new InjectionToken<Made>("MADE");
 
 /** Loads the component a spec's host puts on demand. */
-const LOAD = new InjectionToken<() => Promise<Type<unknown>>>("LOAD");
+const LOAD = new InjectionToken<ComponentLoad>("LOAD");
 
 /** Shows its words on a button, and says when it is pressed. */
 @Component({
-  selector: "app-loaded",
+  selector: "fz-test-loaded",
   template: `<button type="button" (click)="pressed.emit()">
     {{ words() }}
   </button>`,
@@ -69,14 +69,14 @@ interface RenderedHost {
   readonly reported: readonly unknown[];
 }
 
-/** Returns a load that hands over `<app-loaded>` once a timer has run, as a chunk fetched does. */
+/** Returns a load that hands over `<fz-test-loaded>` once a timer has run, as a chunk fetched does. */
 function slowLoad(): Promise<Type<unknown>> {
   return new Promise((resolve) => setTimeout(resolve, 10, LoadedComponent));
 }
 
 /** Renders the host, loading through `load`. */
 async function renderHost(
-  load: () => Promise<Type<unknown>> = slowLoad,
+  load: ComponentLoad = slowLoad,
 ): Promise<RenderedHost> {
   const made: Made = { count: 0 };
   const reported: unknown[] = [];
@@ -177,7 +177,7 @@ describe("onDemand", () => {
 
   it("tries a load that failed again at the next ask", async () => {
     const load = vi
-      .fn<() => Promise<Type<unknown>>>()
+      .fn<ComponentLoad>()
       .mockRejectedValueOnce(new Error("Offline"))
       .mockImplementation(slowLoad);
     const { fixture, show } = await renderHost(load);
