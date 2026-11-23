@@ -249,6 +249,28 @@ describe("AppComponent", () => {
     ]).toEqual([null, "ready"]);
   });
 
+  it("keeps Levels open, and the level under way, where the player cancels the level chosen", async () => {
+    const app = await renderApp();
+    release(app.game);
+    app.detectChanges();
+    const run = app.game.run().id;
+    await userEvent.click(barButton("Levels"));
+    await userEvent.click(
+      screen.getByRole("button", { name: /^1 First bounce/ }),
+    );
+
+    await userEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "Cancel",
+      }),
+    );
+
+    expect([
+      screen.getByRole("dialog", { name: "Levels" }),
+      app.game.run().id,
+    ]).toEqual([expect.anything(), run]);
+  });
+
   it("starts a new game from the result once every level is cleared", async () => {
     const app = await renderApp("cleared");
     await app.game.startAt(3);
