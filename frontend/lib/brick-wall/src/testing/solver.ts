@@ -18,7 +18,7 @@ export type Line<C> = readonly C[];
 /** Names how a round leaves its level: still on, cleared or lost. */
 export type LineResult = "on" | "cleared" | "lost";
 
-/** Describes a round a line played, so far as the solver reads it. */
+/** Describes a round a line played, so far as the solver and the careless player read it. */
 export interface PlayedRound<T> {
   readonly outcome: {
     readonly result: LineResult;
@@ -36,14 +36,15 @@ export interface WallStart<K extends string> {
 
 /**
  * Describes how a wall game plays a level on a field of a depth, which the
- * solver searches and a replay plays: where it opens, every shot a round can
- * take, a shot played, what tells one round's start from another, how well
- * a round leaves the level, and which kinds of brick it needs broken.
+ * solver searches, a replay plays and the careless player plays: where it
+ * opens, every shot a round can take, a shot played, what tells one round's
+ * start from another, how well a round leaves the level, and which kinds of
+ * brick it needs broken.
  */
 export interface LinePlay<K extends string, T extends WallStart<K>, C> {
   /** Where the level's first round starts. */
   readonly opening: T;
-  /** Every shot a round can take, by aim: each aim's, in the order tried. */
+  /** Every shot a round can take, by aim: each aim's, in the order tried, and one at least in all. */
   readonly shots: readonly (readonly C[])[];
   /** Returns the round a shot plays from where a round starts, throwing a `RangeError` for a shot that isn't one. */
   readonly play: (start: T, shot: C) => PlayedRound<T>;

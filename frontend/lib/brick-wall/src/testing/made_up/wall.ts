@@ -1,8 +1,8 @@
-// A wall game made up for the solver's specs, on the library's own wall: a
-// shot is an aim alone, one of nine, which breaks the lowest brick in play in
-// the column of its number, whole, and the wall comes down after a round as
-// the library's rules bring it down. It stands in a folder beside the
-// entries, which a game's fences refuse it.
+// A wall game made up for the specs of the solver and the careless player,
+// on the library's own wall: a shot is an aim alone, one of nine, which
+// breaks the lowest brick in play in the column of its number, whole, and
+// the wall comes down after a round as the library's rules bring it down. It
+// stands in a folder beside the entries, which a game's fences refuse it.
 
 import { COLUMNS } from "../../rules/field";
 import { brickAt, cellAt } from "../../rules/grid";

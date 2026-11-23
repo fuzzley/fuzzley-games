@@ -10,21 +10,18 @@ describe("playCasually", () => {
     expect(playCasually(THREES, 11, 1).cleared).toBe(true);
   });
 
-  it("plays the same game from the same seed", () => {
-    expect(playCasually(THREES, 11, 7)).toEqual(playCasually(THREES, 11, 7));
-  });
-
-  it("plays the game its seed draws, the first best of sixteen looks a round", () => {
-    // Seeds whose games 15 looks a round, or the last best of a tie, would
-    // change. A change to the flight or the tuning may change them too: then
-    // find two seeds again whose games those two mistakes change.
+  it("plays the game its seed draws over every aim at every charge", () => {
+    // Seeds whose games the charges drawn from the most would change; the
+    // aims drawn from the last mirror this wall's games, which the solver's
+    // spec catches. A change to the flight or the tuning may change them too:
+    // then find two seeds again whose games that mistake changes.
     const rounds = [7, 11].map((seed) => playCasually(THREES, 11, seed).rounds);
 
     expect(rounds).toEqual([4, 3]);
   });
 
-  it("loses a level it can't take a hit off, counting its rounds, its jumps and the lowest row a needed brick stood in", () => {
-    expect(playCasually(HIGH_BRICK, 11, 1, NO_HITS)).toEqual({
+  it("plays through the rules it is handed, losing a level no shot takes a hit off", () => {
+    expect(playCasually(HIGH_BRICK, 11, 1, NO_HITS)).toMatchObject({
       cleared: false,
       rounds: 6,
       jumps: 1,

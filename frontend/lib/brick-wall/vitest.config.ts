@@ -18,6 +18,7 @@ export default defineConfig(
     thresholds: {
       "src/rules/**": PURE_FLOOR,
       "src/testing/solver.ts": PURE_FLOOR,
+      "src/testing/careless.ts": PURE_FLOOR,
       "src/view/**": PURE_FLOOR,
       "src/scene/**": {
         statements: 98,

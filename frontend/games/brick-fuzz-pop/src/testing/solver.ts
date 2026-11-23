@@ -1,8 +1,9 @@
 // How the game plays a level's line, which @fz/brick-wall's solver searches
 // for the levels' certificates and replays to hold them to their levels
-// (docs/archive/brick-fuzz-pop/plan.md, "The guarantee"). A line found in
-// Node must clear its level in every browser, so this is held as the rules
-// are (eslint.config.js), to their fence and their exact arithmetic.
+// (docs/archive/brick-fuzz-pop/plan.md, "The guarantee"), and its careless
+// player plays. A line found in Node must clear its level in every browser,
+// so this is held as the rules are (eslint.config.js), to their fence and
+// their exact arithmetic.
 
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import * as solver from "@fz/brick-wall/testing/solver";
@@ -46,9 +47,10 @@ const SHOTS: readonly (readonly CertifiedShot[])[] = Array.from(
 
 /**
  * Returns how the game plays a level on a field of a depth, through
- * `playRound()`, as the solver searches it: its rounds measured by
- * `wallScore()`, and its starts told apart by their walls' hits and height,
- * where the fuzzball waits, the crew and the boon.
+ * `playRound()`, as the solver searches it and the careless player plays
+ * it: its rounds measured by `wallScore()`, and its starts told apart by
+ * their walls' hits and height, where the fuzzball waits, the crew and the
+ * boon.
  */
 export function linePlayOf(
   level: Level,

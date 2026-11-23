@@ -1,31 +1,18 @@
 // The careless player each level must clear often enough
-// (docs/archive/brick-fuzz-pop/plan.md, "The guarantee"), so no level is
-// beatable only by a line nobody would find. Its floors are held over seeds in
-// every browser's arithmetic as the certificates are, so it is held as the
-// rules are (eslint.config.js), to their fence and their exact arithmetic.
+// (docs/archive/brick-fuzz-pop/plan.md, "The guarantee"), @fz/brick-wall's,
+// over the game's play of a line, and the floors it is held to. Its floors
+// are held over seeds in every browser's arithmetic as the certificates are,
+// so this is held as the rules are (eslint.config.js), to their fence and
+// their exact arithmetic.
 
-import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
-import { lowestNeededRow } from "@fz/brick-wall/rules/wall";
-import { createRandom } from "@fz/core/random";
-import { shotOf } from "../rules/levels/certificate";
-import { type Level, levelStart } from "../rules/levels/levels";
 import {
-  RULES,
-  type Round,
-  type RoundRules,
-  type RoundStart,
-  playRound,
-} from "../rules/round/round";
-import { MOST_CHARGE } from "../rules/tuning";
-import { WALL_RULES } from "../rules/wall/wall";
-import type { LinePlayed } from "./solver";
-import { wallScore } from "./wall_score";
-
-/** How many shots the careless player looks at each round, drawn at random, before it plays the best. */
-export const CASUAL_LOOKS = 16;
-
-/** The most rounds the careless player plays a level for: no wall stands that long. */
-export const CASUAL_ROUNDS = 150;
+  type PlayedCarelessly,
+  playCarelessly,
+} from "@fz/brick-wall/testing/careless";
+import type { CertifiedShot } from "../rules/levels/certificate";
+import type { Level } from "../rules/levels/levels";
+import { RULES, type RoundRules } from "../rules/round/round";
+import { linePlayOf } from "./solver";
 
 /**
  * How often, in percent, the careless player must clear each level of a
@@ -39,69 +26,16 @@ export const CASUAL_FLOORS: Readonly<Record<string, number>> = {
   "thick-walls": 40,
 };
 
-/** How many charges a shot can take. */
-const CHARGE_COUNT = MOST_CHARGE + 1;
-
-/** How many shots a round can take: every aim at every charge. */
-const SHOTS = AIM_COUNT * CHARGE_COUNT;
-
 /**
  * Returns how the careless player plays a level on a field of a depth from
- * a seed: each round it looks at {@link CASUAL_LOOKS} shots drawn from the
- * seed and plays the one that leaves the wall best (`wallScore()`), the
- * first of the best where they tie, till the level is cleared or lost.
+ * a seed, as `playCarelessly()` plays the game's line: each round the best
+ * of sixteen shots drawn from the seed, by `wallScore()`.
  */
 export function playCasually(
   level: Level,
   depth: number,
   seed: number,
   rules: RoundRules = RULES,
-): LinePlayed {
-  const random = createRandom(seed);
-  let start = levelStart(level, depth);
-  let jumps = 0;
-  let leastRow = Number.POSITIVE_INFINITY;
-  for (let rounds = 1; rounds <= CASUAL_ROUNDS; rounds++) {
-    const { outcome, next } = bestLooked(level, start, rounds, random, rules);
-    jumps += outcome.jumped ? 1 : 0;
-    if (outcome.result !== "on") {
-      return { cleared: outcome.result === "cleared", rounds, jumps, leastRow };
-    }
-    leastRow = Math.min(leastRow, lowestNeededRow(next.wall, WALL_RULES));
-    start = next;
-  }
-  return { cleared: false, rounds: CASUAL_ROUNDS, jumps, leastRow };
-}
-
-/** Returns the best of the rounds the careless player looks at from where a round starts, by their measure. */
-function bestLooked(
-  level: Level,
-  start: RoundStart,
-  rounds: number,
-  random: () => number,
-  rules: RoundRules,
-): Round {
-  let best = lookedAt(level, start, random, rules);
-  let bestScore = wallScore(best, rounds);
-  for (let look = 1; look < CASUAL_LOOKS; look++) {
-    const round = lookedAt(level, start, random, rules);
-    const score = wallScore(round, rounds);
-    if (score > bestScore) {
-      best = round;
-      bestScore = score;
-    }
-  }
-  return best;
-}
-
-/** Returns the round a shot drawn at random plays from where a round starts: an aim, then a charge, from one draw over every shot. */
-function lookedAt(
-  level: Level,
-  start: RoundStart,
-  random: () => number,
-  rules: RoundRules,
-): Round {
-  const drawn = Math.floor(random() * SHOTS);
-  const shot = shotOf([Math.floor(drawn / CHARGE_COUNT), drawn % CHARGE_COUNT]);
-  return playRound(start, shot, level.boon, rules);
+): PlayedCarelessly<CertifiedShot> {
+  return playCarelessly(linePlayOf(level, depth, rules), seed);
 }

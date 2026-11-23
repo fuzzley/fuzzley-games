@@ -98,7 +98,8 @@ Then:
 - **`src/rules/levels/every_floor/`** has a file for each set on 11, 13 and
   22 deep (`<set>_<depth>.spec.ts`), each
   `holdEveryFloor(import.meta.filename)`. The careless player
-  (`playCasually()`, `src/testing/casual.ts`) must clear each of the set's
+  (`playCasually()`, `src/testing/casual.ts`, the game's play of a line
+  handed to `@fz/brick-wall/testing/careless`) must clear each of the set's
   levels at least `CASUAL_FLOORS` times in 100, over `FLOOR_SEEDS` games
   from the level's own seeds.
 - **`src/testing/every_level.spec.ts`** fails for a file either folder
@@ -169,11 +170,12 @@ A floor that fails (`every_floor/`) says how often the careless player
 cleared the level in its twenty games. Those games are the gate, and their
 seeds are the level's number's (`number * SEED_STRIDE + game`). So adding,
 taking away or moving a level seeds every level after it anew, and a change
-to `casual.ts` or `wall_score.ts` moves every floor: either can fail a level
-nobody touched. `yarn report:levels --depth <n>` plays the same games and
-more, which tells a level under its floor from twenty unlucky games. But
-the spec must pass on its own seeds, so a level that fails them is redrawn
-or eased until it does, and certified again.
+to the careless player, the order of `linePlayOf()`'s shots or
+`wall_score.ts` moves every floor: any can fail a level nobody touched.
+`yarn report:levels --depth <n>` plays the same games and more, which tells
+a level under its floor from twenty unlucky games. But the spec must pass
+on its own seeds, so a level that fails them is redrawn or eased until it
+does, and certified again.
 
 ## Slow Specs and the Benchmarks
 
