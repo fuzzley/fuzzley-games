@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import type { Aim } from "@fz/brick-wall/rules/aims";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -70,7 +71,7 @@ import { tallyOf } from "../../rules/run/scoring";
 import { levelResultOf } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
-import type { Aim, Boon, Charge, Shot } from "../../rules/shot";
+import type { Boon, Charge, Shot } from "../../rules/shot";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
 import {
   type FieldMetrics,

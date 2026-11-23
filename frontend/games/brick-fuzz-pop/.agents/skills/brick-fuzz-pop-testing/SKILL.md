@@ -36,10 +36,9 @@ Then:
   `dom` and `pure`, not `sim`, so the rules' own specs hold the rules to
   their floor. `vitest.config.ts` has the floors; `src/testing/` and
   `tools/` are measured with none.
-- **Never edit a file a script writes.** `src/rules/aims.spec.ts` fails
-  while `src/rules/aims.ts` isn't what `yarn build:aims` writes, and
-  `tools/build-sounds.spec.ts` while `src/scene/sounds/` isn't what
-  `yarn build:sounds` makes. Change the script and run it.
+- **Never edit a file a script writes.** `tools/build-sounds.spec.ts`
+  fails while `src/scene/sounds/` isn't what `yarn build:sounds` makes.
+  Change the script and run it.
 - **A helper in `src/testing/` whose answer a spec trusts has a spec of its
   own beside it,** so one that answers wrongly can't let a spec pass that
   tests nothing. A change to one that has none yet adds its spec first.

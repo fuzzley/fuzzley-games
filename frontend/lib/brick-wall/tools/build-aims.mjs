@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Writes `src/rules/aims.ts`: the heading of each of the 657 aims a
- * fuzzball can leave along, a unit long, as two numbers written out.
+ * Writes `src/rules/aims.ts`: how many aims a wall game's fuzzball can leave
+ * along, how far apart, and the heading of each, a unit long, as two
+ * numbers written out. Run it from the library's folder:
  *
  *   yarn build:aims
  *
@@ -16,16 +17,20 @@
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  AIM_COUNT,
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-} from "../src/rules/tuning.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Where the aims are written. */
 export const AIMS_FILE = join(ROOT, "src", "rules", "aims.ts");
+
+/** How many aims there are, a quarter of a degree apart. */
+export const AIM_COUNT = 657;
+
+/** The first aim's angle, in degrees counter-clockwise from the floor on the right. */
+export const FIRST_AIM_DEGREES = 8;
+
+/** How many aims a degree holds. */
+export const AIMS_PER_DEGREE = 4;
 
 /**
  * Returns the angle an aim points at, in degrees counter-clockwise from the
@@ -55,7 +60,9 @@ export function angleOf(aim) {
  * @returns {string}
  */
 export function aimsSource() {
-  const last = degreesOf(AIM_COUNT - 1);
+  const first = `${String(FIRST_AIM_DEGREES)}°`;
+  const last = `${String(degreesOf(AIM_COUNT - 1))}°`;
+  const perDegree = `${String(AIMS_PER_DEGREE)}°`;
   const pairs = Array.from({ length: AIM_COUNT }, (_, aim) => {
     const angle = angleOf(aim);
     return `  [${String(Math.cos(angle))}, ${String(Math.sin(angle))}],`;
@@ -64,10 +71,32 @@ export function aimsSource() {
     "// Written by tools/build-aims.mjs (`yarn build:aims`), which",
     "// src/rules/aims.spec.ts holds it to: run the script rather than edit it.",
     "",
+    `/** How many aims there are, 1/${perDegree} apart. */`,
+    `export const AIM_COUNT = ${String(AIM_COUNT)};`,
+    "",
+    "/** The first aim's angle, in degrees counter-clockwise from the floor on the right. */",
+    `export const FIRST_AIM_DEGREES = ${String(FIRST_AIM_DEGREES)};`,
+    "",
+    "/** How many aims a degree holds. */",
+    `export const AIMS_PER_DEGREE = ${String(AIMS_PER_DEGREE)};`,
+    "",
+    `/** An aim's index, 0 to ${String(AIM_COUNT - 1)}: ${first} + index / ${perDegree}, counter-clockwise from the floor on the right. */`,
+    "export type Aim = number;",
+    "",
+    `/** Returns whether a value is an aim's index: a whole number from 0 to ${String(AIM_COUNT - 1)}. */`,
+    "export function isAim(value: unknown): value is Aim {",
+    "  return (",
+    '    typeof value === "number" &&',
+    "    Number.isInteger(value) &&",
+    "    value >= 0 &&",
+    "    value < AIM_COUNT",
+    "  );",
+    "}",
+    "",
     "/**",
-    ` * Each aim's heading, \`[dx, dy]\`, a unit long: aim \`i\` points`,
-    ` * ${FIRST_AIM_DEGREES}° + i/${AIMS_PER_DEGREE}° from the floor on the right, counter-clockwise, from`,
-    ` * ${FIRST_AIM_DEGREES}° to ${last}°, as Node's \`Math.cos()\` and \`Math.sin()\` give them.`,
+    " * Each aim's heading, `[dx, dy]`, a unit long: aim `i` points",
+    ` * ${first} + i/${perDegree} from the floor on the right, counter-clockwise, from`,
+    ` * ${first} to ${last}, as Node's \`Math.cos()\` and \`Math.sin()\` give them.`,
     " */",
     "export const AIMS: readonly (readonly [dx: number, dy: number])[] = [",
     ...pairs,

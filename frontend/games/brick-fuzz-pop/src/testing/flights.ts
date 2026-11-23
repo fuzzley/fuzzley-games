@@ -2,12 +2,12 @@
 // flown by the bricks' own rules, a flight's events of one kind, and a
 // value matched as near as the flight's arithmetic finds it.
 
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { expect } from "vitest";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
 import type { Flight, FlightEvent } from "../rules/flight/events";
 import { type Flown, fly } from "../rules/flight/flight";
 import { RULES, flightRulesOf } from "../rules/round/round";
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../rules/tuning";
 import { wallFrom } from "./wall_picture";
 
 /** Describes a shot at a wall drawn as a picture. */

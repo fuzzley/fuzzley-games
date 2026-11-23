@@ -1,6 +1,7 @@
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { levelStart } from "../rules/levels/level";
 import { playRound } from "../rules/round/round";
-import { AIM_COUNT, MOST_CHARGE } from "../rules/tuning";
+import { MOST_CHARGE } from "../rules/tuning";
 import {
   canonicalText,
   drawnShots,

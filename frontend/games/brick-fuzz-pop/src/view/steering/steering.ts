@@ -1,13 +1,14 @@
+import {
+  AIMS_PER_DEGREE,
+  AIM_COUNT,
+  type Aim,
+  FIRST_AIM_DEGREES,
+} from "@fz/brick-wall/rules/aims";
 import { FIRST_X, RADIUS } from "@fz/brick-wall/rules/field";
 import { clamp } from "@fz/core/math";
 import type { Viewport } from "@fz/phaser/layout";
-import type { Aim, Charge } from "../../rules/shot";
-import {
-  AIM_COUNT,
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-  MOST_CHARGE,
-} from "../../rules/tuning";
+import type { Charge } from "../../rules/shot";
+import { MOST_CHARGE } from "../../rules/tuning";
 import { type FieldMetrics, type Place, toField } from "../field/field_metrics";
 import { type PointerAiming, STRAIGHT_UP } from "./aiming";
 import { type SteerKey, commandOfKey, steerKeyOf } from "./controls";

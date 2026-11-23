@@ -1,3 +1,4 @@
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import {
   SIM_TIMEOUT_MS,
@@ -9,7 +10,7 @@ import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
 import type { RoundStart } from "../../round/round";
 import type { Charge } from "../../shot";
-import { AIM_COUNT, GUIDE_PAST_TURN } from "../../tuning";
+import { GUIDE_PAST_TURN } from "../../tuning";
 import { guideOf } from "../guide";
 
 /** How many rounds of guides are timed, after one that warms the code up. */

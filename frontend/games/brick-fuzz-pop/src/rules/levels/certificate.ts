@@ -1,4 +1,5 @@
-import { type Shot, isAim, isCharge } from "../shot";
+import { isAim } from "@fz/brick-wall/rules/aims";
+import { type Shot, isCharge } from "../shot";
 
 /** A shot of a level's certificate as its file keeps it: an aim's index, 0 to 656, and a charge, 0 to 5 (C14). */
 export type CertifiedShot = readonly [aim: number, charge: number];

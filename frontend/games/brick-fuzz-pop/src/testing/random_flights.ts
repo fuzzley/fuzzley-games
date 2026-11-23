@@ -3,6 +3,7 @@
 // fly past, and the check that a flight dropped is the whole flight to the
 // drop.
 
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import type { Box } from "@fz/core/sweep";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
@@ -18,7 +19,6 @@ import type { TraitRules } from "../rules/flight/hooks";
 import { brickBox, columnOf, fieldRowOf, shapeOf } from "../rules/grid";
 import { RULES, flightRulesOf } from "../rules/round/round";
 import {
-  AIM_COUNT,
   MOST_CHARGE,
   MOST_FRIENDS,
   TRIPLE_MATES,

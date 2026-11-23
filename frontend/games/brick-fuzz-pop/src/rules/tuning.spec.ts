@@ -1,9 +1,6 @@
 import { AT_ONCE } from "@fz/brick-wall/rules/field";
 import {
-  AIMS_PER_DEGREE,
-  AIM_COUNT,
   BORED,
-  FIRST_AIM_DEGREES,
   IDLE_SHARE,
   MOST_FLIGHT,
   MOST_FRIENDS,
@@ -15,12 +12,6 @@ import {
 
 // The numbers are the game's to tune; these hold what tuning must not break.
 describe("the tuning", () => {
-  it("aims as far toward one side as toward the other", () => {
-    const last = FIRST_AIM_DEGREES + (AIM_COUNT - 1) / AIMS_PER_DEGREE;
-
-    expect(last).toBe(180 - FIRST_AIM_DEGREES);
-  });
-
   it("flies the player's fuzzball, a triple shot's mates and every friend at once", () => {
     expect(MOST_FUZZBALLS).toBeGreaterThanOrEqual(
       1 + TRIPLE_MATES + MOST_FRIENDS,

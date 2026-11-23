@@ -2,8 +2,7 @@
 // which only the scene runs: the ways a pointer aims, and the aim the
 // steering starts at.
 
-import type { Aim } from "../../rules/shot";
-import { AIM_COUNT } from "../../rules/tuning";
+import { AIM_COUNT, type Aim } from "@fz/brick-wall/rules/aims";
 
 /**
  * Names a way the mouse and fingers aim: pointed and held, or pulled back

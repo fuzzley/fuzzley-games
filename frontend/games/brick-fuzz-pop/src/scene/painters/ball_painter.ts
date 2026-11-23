@@ -1,8 +1,8 @@
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
-import { AIMS } from "../../rules/aims";
 import type { FlightEvent } from "../../rules/flight/events";
 import type { Crew } from "../../rules/round/round";
 import { LAUNCH_GAP, MOST_FUZZBALLS, TRIPLE_MATES } from "../../rules/tuning";

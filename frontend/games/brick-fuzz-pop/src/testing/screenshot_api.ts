@@ -1,9 +1,9 @@
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { formatPoints } from "@fz/core/format";
 import { shotOf } from "../rules/levels/certificate";
 import { LEVELS } from "../rules/levels/levels";
 import { describeShot } from "../rules/run/describe";
 import { SAVED_GAME_VERSION } from "../rules/run/saved_game";
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../rules/tuning";
 import { keptRun } from "./kept_run";
 import type { ScreenshotApi } from "./script_api";
 

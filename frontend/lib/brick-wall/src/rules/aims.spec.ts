@@ -5,8 +5,13 @@ import {
   angleOf,
   degreesOf,
 } from "../../tools/build-aims.mjs";
-import { AIMS } from "./aims";
-import { AIM_COUNT } from "./tuning";
+import {
+  AIMS,
+  AIMS_PER_DEGREE,
+  AIM_COUNT,
+  FIRST_AIM_DEGREES,
+  isAim,
+} from "./aims";
 
 /** How far a heading's length may stray from 1, or two neighbours' turn from a quarter of a degree. */
 const WITHIN = 1e-15;
@@ -23,6 +28,12 @@ function aimsWhere(
 describe("AIMS", () => {
   it("holds a heading for each aim", () => {
     expect(AIMS).toHaveLength(AIM_COUNT);
+  });
+
+  it("aims as far toward one side as toward the other", () => {
+    const last = FIRST_AIM_DEGREES + (AIM_COUNT - 1) / AIMS_PER_DEGREE;
+
+    expect(last).toBe(180 - FIRST_AIM_DEGREES);
   });
 
   it.each([
@@ -56,7 +67,7 @@ describe("AIMS", () => {
   // Read from the headings alone, so an angle the script works out wrong,
   // such as a degree's four aims alike, fails here.
   it("turns each aim a quarter of a degree from the one before", () => {
-    const quarter = Math.cos(Math.PI / 720);
+    const quarter = Math.cos(Math.PI / 180 / AIMS_PER_DEGREE);
     const astray = AIMS.slice(1).flatMap(([dx, dy], i) => {
       const [beforeX, beforeY] = AIMS[i] ?? [0, 0];
       const dot = dx * beforeX + dy * beforeY;
@@ -69,4 +80,17 @@ describe("AIMS", () => {
   it("is what tools/build-aims.mjs writes now", () => {
     expect(readFileSync(AIMS_FILE, "utf8")).toBe(aimsSource());
   });
+});
+
+describe("isAim", () => {
+  it.each([0, 1, 328, 656])("takes %s for an aim", (value) => {
+    expect(isAim(value)).toBe(true);
+  });
+
+  it.each([-1, 657, 1.5, Number.NaN, Number.POSITIVE_INFINITY, "3", null])(
+    "refuses %s",
+    (value) => {
+      expect(isAim(value)).toBe(false);
+    },
+  );
 });

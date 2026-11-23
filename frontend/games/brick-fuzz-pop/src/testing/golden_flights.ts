@@ -5,12 +5,13 @@
 // moves. `tools/golden-flights.mjs` loads them, so they are held as the rules
 // are (eslint.config.js), to their fence and their exact arithmetic.
 
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { createRandom } from "@fz/core/random";
 import { type Line, shotOf } from "../rules/levels/certificate";
 import { type Level, levelStart } from "../rules/levels/level";
 import { type Round, playRound } from "../rules/round/round";
 import type { Shot } from "../rules/shot";
-import { AIM_COUNT, MOST_CHARGE } from "../rules/tuning";
+import { MOST_CHARGE } from "../rules/tuning";
 
 /** How many shots are drawn at each level's opening on each depth. */
 export const GOLDEN_SHOTS = 50;

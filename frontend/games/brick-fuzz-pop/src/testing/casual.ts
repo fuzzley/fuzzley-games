@@ -4,6 +4,7 @@
 // every browser's arithmetic as the certificates are, so it is held as the
 // rules are (eslint.config.js), to their fence and their exact arithmetic.
 
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { createRandom } from "@fz/core/random";
 import { shotOf } from "../rules/levels/certificate";
 import { type Level, levelStart } from "../rules/levels/level";
@@ -14,7 +15,7 @@ import {
   type RoundStart,
   playRound,
 } from "../rules/round/round";
-import { AIM_COUNT, MOST_CHARGE } from "../rules/tuning";
+import { MOST_CHARGE } from "../rules/tuning";
 import { lowestNeededRow } from "../rules/wall/lower";
 import type { LinePlayed } from "./solver";
 import { wallScore } from "./wall_score";

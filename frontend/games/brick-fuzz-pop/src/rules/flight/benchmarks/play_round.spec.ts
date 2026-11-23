@@ -1,3 +1,4 @@
+import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
@@ -6,7 +7,7 @@ import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
 import { playRound } from "../../round/round";
 import type { Shot } from "../../shot";
-import { AIM_COUNT, MOST_CHARGE } from "../../tuning";
+import { MOST_CHARGE } from "../../tuning";
 
 /** How many seeded random shots are timed at each opening wall, each round. */
 const SHOTS = 20;

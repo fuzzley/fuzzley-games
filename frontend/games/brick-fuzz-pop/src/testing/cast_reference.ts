@@ -9,6 +9,7 @@
 // two agree to the bit where they meet the same things. With it, the seeded
 // random walls and shots the property spec and the benchmark cast through.
 
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import {
   AT_ONCE,
   COLUMNS,
@@ -31,7 +32,6 @@ import {
   sweepFace,
   sweepPoint,
 } from "@fz/core/sweep";
-import { AIMS } from "../rules/aims";
 import {
   BRICK_KIND_IDS,
   type BrickKind,

@@ -1,3 +1,8 @@
+import {
+  AIMS,
+  AIMS_PER_DEGREE,
+  FIRST_AIM_DEGREES,
+} from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import {
@@ -18,13 +23,10 @@ import {
   STAND_IN_RULES,
 } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
-import { AIMS } from "../aims";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
 import {
-  AIMS_PER_DEGREE,
   BORED,
-  FIRST_AIM_DEGREES,
   IDLE_SHARE,
   MOST_CHARGE,
   MOST_FLIGHT,

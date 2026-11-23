@@ -1,3 +1,4 @@
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
@@ -15,12 +16,7 @@ import {
   playRound,
 } from "../rules/round/round";
 import type { Shot } from "../rules/shot";
-import {
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-  JUMP_POINTS,
-  LAUNCH_GAP,
-} from "../rules/tuning";
+import { JUMP_POINTS, LAUNCH_GAP } from "../rules/tuning";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,

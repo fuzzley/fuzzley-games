@@ -1,26 +1,15 @@
 // The numbers the rules read, in one file, so tuning them touches nothing
-// else: lengths in field units, a unit a brick's side. The field's own, which
-// every wall game shares, are @fz/brick-wall/rules/field's. A number the kinds of
-// brick differ by, such as a bumper's radius, a prism's angle or an X
-// zapper's reach, is the kind's catalog entry's, and the view keeps its own
-// durations and speeds. The debug menu retunes only what RoundRules hands
-// the rules, never this module. tools/build-aims.mjs loads it in Node as it
-// is, its types stripped, so it keeps to syntax Node can strip, such as no
-// enum, and imports only types.
+// else: lengths in field units, a unit a brick's side. The field's own and
+// the aims, which every wall game shares, are @fz/brick-wall/rules/field's
+// and @fz/brick-wall/rules/aims'. A number the kinds of brick differ by, such
+// as a bumper's radius, a prism's angle or an X zapper's reach, is the kind's
+// catalog entry's, and the view keeps its own durations and speeds. The
+// debug menu retunes only what RoundRules hands the rules, never this module.
 
 import type { MultiplierTier } from "@fz/core/math";
 
 /** The most charge a fuzzball holds, a hot shot's always. */
 export const MOST_CHARGE = 5;
-
-/** How many aims there are, a quarter of a degree apart. */
-export const AIM_COUNT = 657;
-
-/** The first aim's angle, in degrees counter-clockwise from the floor on the right. */
-export const FIRST_AIM_DEGREES = 8;
-
-/** How many aims a degree holds. */
-export const AIMS_PER_DEGREE = 4;
 
 /** How far behind one another a round's fuzzballs leave: a triple shot's mates, then the friends. */
 export const LAUNCH_GAP = 0.7;

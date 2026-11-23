@@ -1,3 +1,4 @@
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { count, formatPoints, listed } from "@fz/core/format";
 import { brickKind } from "../catalog/bricks";
@@ -13,7 +14,6 @@ import { PORTAL_BADGES } from "../levels/legend";
 import type { LevelEntry } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";
 import type { Boon, Shot } from "../shot";
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../tuning";
 import { inDanger, lowestNeededRow, neededBelow } from "../wall/lower";
 import { type Brick, thirdsOf } from "../wall/wall";
 import type { Run } from "./run";

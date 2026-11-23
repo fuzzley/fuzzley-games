@@ -1,3 +1,4 @@
+import { AIMS, AIMS_PER_DEGREE } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
@@ -30,13 +31,7 @@ import { type Guide, guideOf } from "../rules/flight/guide";
 import { FLOORWARD, cellAt } from "../rules/grid";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
-import {
-  AIMS_PER_DEGREE,
-  GUIDE_PAST_TURN,
-  MOST_CHARGE,
-  MOST_FUZZBALLS,
-} from "../rules/tuning";
-import { AIMS } from "../rules/aims";
+import { GUIDE_PAST_TURN, MOST_CHARGE, MOST_FUZZBALLS } from "../rules/tuning";
 import { type Brick, type Wall, thirdsOf } from "../rules/wall/wall";
 import {
   ART_PALETTE,

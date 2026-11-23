@@ -1,16 +1,15 @@
+import {
+  AIMS_PER_DEGREE,
+  AIM_COUNT,
+  FIRST_AIM_DEGREES,
+} from "@fz/brick-wall/rules/aims";
 import { eventsOf, near } from "../../testing/flights";
 import { wallFrom } from "../../testing/wall_picture";
 import { levelStart } from "../levels/level";
 import { LEVELS, parseLevel } from "../levels/levels";
 import { type RoundStart, playRound } from "../round/round";
 import type { Shot } from "../shot";
-import {
-  AIMS_PER_DEGREE,
-  AIM_COUNT,
-  FIRST_AIM_DEGREES,
-  GUIDE_DOT_GAP,
-  GUIDE_PAST_TURN,
-} from "../tuning";
+import { GUIDE_DOT_GAP, GUIDE_PAST_TURN } from "../tuning";
 import { positionAt } from "./events";
 import { type GuidePlace, guideOf } from "./guide";
 

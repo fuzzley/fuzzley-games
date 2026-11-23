@@ -4,6 +4,7 @@
 // a certificate keeps one; and the round in play, with the moment its
 // playback had reached.
 
+import { isAim } from "@fz/brick-wall/rules/aims";
 import { isDepth } from "@fz/brick-wall/rules/field";
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
 import type { CertifiedShot } from "../levels/certificate";
@@ -14,7 +15,7 @@ import {
   type RoundStart,
   playRound,
 } from "../round/round";
-import { type Boon, type Shot, isAim, isBoon, isCharge } from "../shot";
+import { type Boon, type Shot, isBoon, isCharge } from "../shot";
 import { type Run, levelOf, takeRound } from "./run";
 import {
   type SavedGame,

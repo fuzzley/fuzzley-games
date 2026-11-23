@@ -1,8 +1,8 @@
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
 import { wallFrom } from "../../../testing/wall_picture";
 import { fly } from "../../flight/flight";
 import { RULES, flightRulesOf } from "../../round/round";
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "../../tuning";
 
 /** A portal's twin, its pair's other portal, 3 rows over it and 4 columns right. */
 const PAIR = ["......@..", ".........", ".........", "..@......"];

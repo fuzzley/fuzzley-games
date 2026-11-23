@@ -1,4 +1,4 @@
-import { AIMS } from "../../rules/aims";
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { STRAIGHT_UP } from "./aiming";
 
 describe("STRAIGHT_UP", () => {

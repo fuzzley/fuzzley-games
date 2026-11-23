@@ -15,10 +15,10 @@
 // what a fuzzball meets is cast into records the module keeps and reuses, so a
 // cast makes nothing; records are made only as events are.
 
+import { AIMS, type Aim } from "@fz/brick-wall/rules/aims";
 import { AT_ONCE, RADIUS } from "@fz/brick-wall/rules/field";
 import { multiplierAt } from "@fz/core/math";
 import { MISSED } from "@fz/core/sweep";
-import { AIMS } from "../aims";
 import { strike } from "../bricks/bricks";
 import type {
   BrickKind,
@@ -27,7 +27,6 @@ import type {
   TraitOf,
 } from "../catalog/bricks";
 import { brickAt, cellAt, columnOf, fieldRowOf } from "../grid";
-import type { Aim } from "../shot";
 import {
   LAUNCH_GAP,
   MOST_CHARGE,

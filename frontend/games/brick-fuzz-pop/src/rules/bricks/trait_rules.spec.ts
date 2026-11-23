@@ -1,8 +1,9 @@
+import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { eventsOf, flyPicture } from "../../testing/flights";
 import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KINDS } from "../catalog/bricks";
 import { fly } from "../flight/flight";
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES, MOST_CHARGE } from "../tuning";
+import { MOST_CHARGE } from "../tuning";
 import { TRAIT_RULES } from "./trait_rules";
 
 describe("the bricks' own rules, flown", () => {

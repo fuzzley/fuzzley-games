@@ -1,6 +1,28 @@
 // Written by tools/build-aims.mjs (`yarn build:aims`), which
 // src/rules/aims.spec.ts holds it to: run the script rather than edit it.
 
+/** How many aims there are, 1/4° apart. */
+export const AIM_COUNT = 657;
+
+/** The first aim's angle, in degrees counter-clockwise from the floor on the right. */
+export const FIRST_AIM_DEGREES = 8;
+
+/** How many aims a degree holds. */
+export const AIMS_PER_DEGREE = 4;
+
+/** An aim's index, 0 to 656: 8° + index / 4°, counter-clockwise from the floor on the right. */
+export type Aim = number;
+
+/** Returns whether a value is an aim's index: a whole number from 0 to 656. */
+export function isAim(value: unknown): value is Aim {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value < AIM_COUNT
+  );
+}
+
 /**
  * Each aim's heading, `[dx, dy]`, a unit long: aim `i` points
  * 8° + i/4° from the floor on the right, counter-clockwise, from

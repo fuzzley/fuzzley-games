@@ -1,3 +1,4 @@
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import {
@@ -9,7 +10,6 @@ import {
 } from "../../testing/cast_reference";
 import { BUMPER, STAND_INS } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
-import { AIMS } from "../aims";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
 import {
   CEILINGWARD,
