@@ -1,4 +1,5 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
+import { endTitle } from "@fz/brick-wall/rules/end_words";
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import {
   CEILINGWARD,
@@ -144,11 +145,6 @@ export function describeTakenUp(run: Run, entry: LevelEntry): string {
   const shots =
     run.rounds === 0 ? "" : ` ${count(run.rounds, "shot", "shots")} taken.`;
   return `Paused on level ${String(entry.number)}, ${entry.data.name}.${shots} Score ${formatPoints(run.score)}. Press Enter to resume.`;
-}
-
-/** Returns what an ended run is called, on its card and as the announcer says it ends. */
-export function endTitle(run: Pick<Run, "outcome">): string {
-  return run.outcome === "won" ? "Every level cleared!" : "Game over";
 }
 
 /** Returns what is said as a run ends: how, the score, the level reached, and whether it is a new best. */

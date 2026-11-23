@@ -1,8 +1,8 @@
-@use "../styles" as *;
+@use "@fz/style" as fz;
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .card {
-  @include result-card;
+  @include fz.result-card;
 
   // Four figures, two by two: the score over the levels cleared, the best
   // over the stars.

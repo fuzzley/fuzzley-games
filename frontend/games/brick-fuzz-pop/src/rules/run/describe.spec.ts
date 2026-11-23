@@ -16,7 +16,6 @@ import {
   describeRows,
   describeShot,
   describeTakenUp,
-  endTitle,
 } from "./describe";
 import type { Run } from "./run";
 
@@ -365,15 +364,6 @@ describe("describeTakenUp", () => {
     expect(describeTakenUp(run, ZIP_LINE)).toBe(
       "Paused on level 6, Zip line. Score 4,210. Press Enter to resume.",
     );
-  });
-});
-
-describe("endTitle", () => {
-  it("calls a run won every level cleared, and any other run over", () => {
-    expect([
-      endTitle({ outcome: "won" }),
-      endTitle({ outcome: "over" }),
-    ]).toEqual(["Every level cleared!", "Game over"]);
   });
 });
 

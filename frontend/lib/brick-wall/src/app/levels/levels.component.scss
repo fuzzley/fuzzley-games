@@ -1,8 +1,8 @@
-@use "../styles" as *;
+@use "@fz/style" as fz;
 
 // No scrim or z-index: <fz-dialog> puts this in the top layer.
 .card {
-  @include dialog-card(580px);
+  @include fz.dialog-card(580px);
 
   h2 {
     margin: 0 0 var(--fz-space-2);
@@ -11,7 +11,7 @@
   }
 
   h3 {
-    @include field-label;
+    @include fz.field-label;
 
     margin-top: var(--fz-space-5);
   }
@@ -24,7 +24,7 @@
 }
 
 .close {
-  @include corner-close-button;
+  @include fz.corner-close-button;
 }
 
 // As many columns as fit a level's name, at least two on the narrowest phone.
@@ -38,7 +38,7 @@
 }
 
 .level {
-  @include start-tile;
+  @include fz.start-tile;
 
   .number {
     color: var(--fz-text);

@@ -2,23 +2,13 @@ import { Component, computed, input, output } from "@angular/core";
 import { formatPoints } from "@fz/core/format";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { LEVELS, type LevelEntry } from "../../rules/levels/levels";
-import { MOST_STARS } from "../../rules/run/stars";
+import type { LevelMark } from "./level_marks";
 
-/**
- * Describes how far a level has been played, as the Levels dialog shows it,
- * which `levelMarksOf()` works out from the progress and the stats kept.
- */
-export interface LevelMark {
-  /**
-   * Whether a run may start there: the first level, the one after a level
-   * cleared, or any while the debug menu opens every level.
-   */
-  readonly open: boolean;
-  /** The most stars it has earned: 1 to 3 once it is cleared, which it is once it has one, else 0. */
-  readonly stars: number;
-  /** Its best points, or null for none. */
-  readonly best: number | null;
+/** Describes a level as the Levels dialog lists it: by its number, its set and its own name and id. */
+export interface ListedLevel {
+  readonly number: number;
+  readonly set: { readonly id: string; readonly name: string };
+  readonly data: { readonly id: string; readonly name: string };
 }
 
 /** What a level not marked shows: locked, never cleared. */
@@ -34,7 +24,7 @@ interface LevelChoice {
   readonly open: boolean;
   /** Whether it has been cleared, so it shows its stars and its best. */
   readonly cleared: boolean;
-  /** Each star it has earned, by its place from 1: one to three once cleared. */
+  /** Each star it has earned, by its place from 1: one at least once cleared. */
   readonly stars: readonly number[];
   /** What its stars say to a screen reader, such as "2 of 3 stars". */
   readonly starsWords: string;
@@ -52,17 +42,17 @@ interface SetChoice {
 }
 
 /**
- * Shows the Levels dialog: each set of levels under its name, its levels as
- * buttons in a grid, each with its number and name, the stars it earned
- * and its best once cleared, "Locked" until the one before it is, and the
- * run's own marked.
+ * Shows a wall game's Levels dialog: each set of levels under its name, its
+ * levels as buttons in a grid, each with its number and name, the stars it
+ * earned and its best of the figure the game names once cleared, "Locked"
+ * until the one before it is, and the run's own marked.
  *
  * Choosing an open level hands its number on through `chosen`; the board
  * starts a run there, asking first if one is under way, and closes the
  * dialog once it has. A locked level is shown and can't be chosen.
  */
 @Component({
-  selector: "app-levels",
+  selector: "fz-levels",
   imports: [DialogComponent, IconComponent],
   templateUrl: "./levels.component.html",
   styleUrl: "./levels.component.scss",
@@ -77,8 +67,14 @@ export class LevelsComponent {
   /** The number of the level of the run on the board, or null for none. */
   readonly current = input<number | null>(null);
 
-  /** The levels to offer, in the order played: the game's, unless a spec hands others. */
-  readonly levels = input<readonly LevelEntry[]>(LEVELS);
+  /** The levels to offer, in the order played. */
+  readonly levels = input.required<readonly ListedLevel[]>();
+
+  /** The most stars a level earns. */
+  readonly mostStars = input.required<number>();
+
+  /** What a level's tile calls its best once cleared, before its value, such as "Best". */
+  readonly figure = input.required<string>();
 
   /** Emitted with an open level's number when it is chosen. */
   readonly chosen = output<number>();
@@ -89,11 +85,12 @@ export class LevelsComponent {
   protected readonly sets = computed<readonly SetChoice[]>(() => {
     const marks = this.marks();
     const current = this.current();
+    const words = { mostStars: this.mostStars(), figure: this.figure() };
     const bySet = new Map<string, { name: string; levels: LevelChoice[] }>();
     for (const { number, set, data } of this.levels()) {
       const choices = bySet.get(set.id) ?? { name: set.name, levels: [] };
       choices.levels.push(
-        choiceOf(number, data.name, marks[data.id] ?? UNMARKED, current),
+        choiceOf(number, data.name, marks[data.id] ?? UNMARKED, current, words),
       );
       bySet.set(set.id, choices);
     }
@@ -111,12 +108,19 @@ export class LevelsComponent {
   }
 }
 
+/** Describes the words a level's tile is told in: how many stars a level earns, and what its best is called. */
+interface TileWords {
+  readonly mostStars: number;
+  readonly figure: string;
+}
+
 /** Returns a level as the dialog offers it, from its mark. */
 function choiceOf(
   number: number,
   name: string,
   { open, stars, best }: LevelMark,
   current: number | null,
+  { mostStars, figure }: TileWords,
 ): LevelChoice {
   const cleared = stars > 0;
   return {
@@ -126,8 +130,8 @@ function choiceOf(
     open,
     cleared,
     stars: Array.from({ length: stars }, (_, index) => index + 1),
-    starsWords: `${String(stars)} of ${String(MOST_STARS)} stars`,
-    status: statusOf(open, cleared, best),
+    starsWords: `${String(stars)} of ${String(mostStars)} stars`,
+    status: statusOf(open, cleared, best, figure),
   };
 }
 
@@ -136,7 +140,8 @@ function statusOf(
   open: boolean,
   cleared: boolean,
   best: number | null,
+  figure: string,
 ): string | null {
   if (!open) return "Locked";
-  return cleared && best !== null ? `Best ${formatPoints(best)}` : null;
+  return cleared && best !== null ? `${figure} ${formatPoints(best)}` : null;
 }

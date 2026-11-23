@@ -41,7 +41,7 @@
   the card gives the focus back before the dialog takes it.
 -->
 @if (lastEnd(); as end) {
-  <app-result
+  <fz-result
     [open]="game.resultOpen()"
     [end]="end"
     [best]="game.best()"
@@ -52,11 +52,13 @@
     (closed)="game.closeResult()"
   />
 }
-<app-levels
+<fz-levels
   [open]="levelsOpen()"
   [marks]="marks()"
   [current]="game.run().level"
   [levels]="levels"
+  [mostStars]="mostStars"
+  figure="Best"
   (chosen)="startAt($event)"
   (closed)="levelsOpen.set(false)"
 />

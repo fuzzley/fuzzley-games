@@ -12,21 +12,21 @@ import {
   signal,
   viewChild,
 } from "@angular/core";
+import { LevelsComponent, levelMarksOf } from "@fz/brick-wall/app/levels";
+import { ResultComponent, type RunEnd } from "@fz/brick-wall/app/result";
 import { BugReportDialogComponent } from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent, AnnouncerService } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
 import { onDemand } from "@fz/ui/on_demand";
+import { MOST_STARS } from "../rules/run/stars";
 import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { DebugService } from "./debug/debug.service";
 import type { HelpPictures } from "./help/help.component";
-import { LevelsComponent } from "./levels/levels.component";
 import { GameService } from "./play/game.service";
-import { ResultComponent, type RunEnd } from "./result/result.component";
 import { SettingsComponent } from "./settings/settings.component";
-import { levelMarksOf } from "./stats/level_marks";
 import { ProgressService } from "./stats/progress.service";
 import { StatsService } from "./stats/stats.service";
 import { GAME_LEVELS, LOAD_HELP } from "./tokens";
@@ -147,15 +147,20 @@ export class AppComponent {
     ],
   );
 
+  /** The most stars a level earns, as the Levels dialog counts them. */
+  protected readonly mostStars = MOST_STARS;
+
   /**
-   * How far each level has been played, as the Levels dialog shows it,
-   * every level open while the debug menu opens them.
+   * How far each level has been played, as the Levels dialog shows it, its
+   * stars and best points from the stats, every level open while the debug
+   * menu opens them.
    */
   protected readonly marks = computed(() =>
     levelMarksOf(
       this.levels,
       this.progress.cleared(),
-      this.stats.stats(),
+      this.stats.stats().levels,
+      ({ stars, points }) => ({ stars: stars ?? 0, best: points ?? null }),
       this.debug.everyLevelOpen(),
     ),
   );

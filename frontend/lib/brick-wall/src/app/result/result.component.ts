@@ -4,10 +4,9 @@ import { isShortcut } from "@fz/core/keys";
 import type { RunStage } from "@fz/core/run";
 import { DialogComponent } from "@fz/ui/dialog";
 import { IconComponent } from "@fz/ui/icon";
-import { endTitle } from "../../rules/run/describe";
-import { tryAgainLabel, whereLost } from "./end_words";
+import { endTitle, tryAgainLabel, whereLost } from "../../rules/end_words";
 
-/** Describes how a run ended, as the result card shows it. */
+/** Describes how a wall game's run ended, as the result card shows it. */
 export interface RunEnd {
   /** Whether a level was lost (`"over"`), or the last level cleared, as the run's lifecycle names its end. */
   readonly outcome: Extract<RunStage, "over" | "won">;
@@ -31,9 +30,9 @@ interface Figure {
 }
 
 /**
- * Shows an ended run's result over the board: whether a level was lost or
- * every level cleared, where, the score and the best, with "New best!" when
- * it set one, and the levels and stars it earned.
+ * Shows a wall game's ended run's result over the board: whether a level
+ * was lost or every level cleared, where, the score and the best, with "New
+ * best!" when it set one, and the levels and stars it earned.
  *
  * The board opens it once the wall has settled and its card's wait is over.
  * A lost run offers to try the level again, and a won one a new game;
@@ -41,7 +40,7 @@ interface Figure {
  * board. Each choice is handed on, for the board to act on and close it.
  */
 @Component({
-  selector: "app-result",
+  selector: "fz-result",
   imports: [DialogComponent, IconComponent],
   templateUrl: "./result.component.html",
   styleUrl: "./result.component.scss",

@@ -2,6 +2,7 @@ import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
+import { formatPoints } from "@fz/core/format";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { REPORT_PICTURE, packState } from "@fz/game-ui/bug_report";
@@ -42,6 +43,7 @@ import { DebugService } from "./debug/debug.service";
 import { HelpComponent } from "./help/help.component";
 import { GameService } from "./play/game.service";
 import { ProgressService } from "./stats/progress.service";
+import { StatsService } from "./stats/stats.service";
 import { LOAD_HELP } from "./tokens";
 
 /** What a spec gets back from rendering the app. */
@@ -731,16 +733,20 @@ describe("AppComponent", () => {
       ).not.toHaveAttribute("aria-disabled");
     });
 
-    it("keeps each level's stars while the debug menu opens every level", async () => {
+    it("keeps each level's stars and best points while the debug menu opens every level", async () => {
       const { game, user, settle } = await renderApp("cleared");
       playUntilCard(game);
       TestBed.inject(DebugService).openEveryLevel(true);
       await settle();
+      const best =
+        TestBed.inject(StatsService).stats().levels["hello-wall"]?.points ?? 0;
 
       await user.click(barButton("Levels"));
 
       expect(
-        screen.getByRole("button", { name: /^1 Hello, wall 3 of 3 stars/ }),
+        screen.getByRole("button", {
+          name: `1 Hello, wall 3 of 3 stars Best ${formatPoints(best)}`,
+        }),
       ).toBeInTheDocument();
     });
 

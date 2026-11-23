@@ -6,19 +6,23 @@ import {
   input,
   output,
 } from "@angular/core";
+import {
+  endTitle,
+  tryAgainLabel,
+  whereLost,
+} from "@fz/brick-wall/rules/end_words";
 import { count, formatPoints } from "@fz/core/format";
 import type { RunStage } from "@fz/core/run";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { type BrickKindId, brickKind } from "../../rules/catalog/bricks";
-import { describeBoon, endTitle } from "../../rules/run/describe";
+import { describeBoon } from "../../rules/run/describe";
 import type { LevelTally } from "../../rules/run/scoring";
 import { MOST_STARS, starsFor } from "../../rules/run/stars";
 import type { Boon } from "../../rules/shot";
 import { CrewComponent } from "../bar/crew.component";
 import type { HelpPictures } from "../help/help.component";
-import { tryAgainLabel, whereLost } from "../result/end_words";
 
 /** What the Ready card shows, over a level waiting for its first move. */
 export interface ReadyCard {

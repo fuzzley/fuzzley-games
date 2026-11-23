@@ -1,18 +1,14 @@
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import {
-  LEVELS,
-  type LevelEntry,
-  type LevelSetData,
-  levelsOf,
-} from "../../rules/levels/levels";
-import { type LevelMark, LevelsComponent } from "./levels.component";
+import type { LevelMark } from "./level_marks";
+import { LevelsComponent, type ListedLevel } from "./levels.component";
 
 /** What a spec renders the dialog with, but what it leaves to the defaults. */
 interface LevelsInputs {
+  readonly open?: boolean;
   readonly marks?: Readonly<Record<string, LevelMark>>;
   readonly current?: number | null;
-  readonly levels?: readonly LevelEntry[];
+  readonly mostStars?: number;
 }
 
 /** What a spec gets back from rendering the dialog: what it emitted. */
@@ -24,37 +20,46 @@ interface RenderedLevels {
 /** A level open and never cleared. */
 const OPEN: LevelMark = { open: true, stars: 0, best: null };
 
-/** Returns a set of levels as its file holds them, each named for its id. */
-function setOf(id: string, levelIds: readonly string[]): LevelSetData {
-  return {
-    id,
-    name: `The ${id}`,
-    levels: levelIds.map((levelId) => ({
-      id: levelId,
-      name: levelId,
-      boon: "hot",
-      bricks: [],
-    })),
-  };
+/** Returns a set's levels, numbered from the first handed, each named for its id. */
+function setOf(
+  id: string,
+  first: number,
+  levelIds: readonly string[],
+): ListedLevel[] {
+  return levelIds.map((levelId, index) => ({
+    number: first + index,
+    set: { id, name: `The ${id}` },
+    data: { id: levelId, name: levelId },
+  }));
 }
 
 /** Two sets of levels, two in the first and one in the second. */
-const TWO_SETS = levelsOf([setOf("first", ["a", "b"]), setOf("second", ["c"])]);
+const TWO_SETS = [
+  ...setOf("first", 1, ["a", "b"]),
+  ...setOf("second", 3, ["c"]),
+];
 
-/** Renders the dialog, open, with the inputs given, every level locked unless they say. */
+/**
+ * Renders the dialog over {@link TWO_SETS}, its best called "Longest", with
+ * the inputs given: open, every level locked and a level earning 3 stars at
+ * most unless they say.
+ */
 async function renderLevels({
+  open = true,
   marks = {},
   current = null,
-  levels,
+  mostStars = 3,
 }: LevelsInputs = {}): Promise<RenderedLevels> {
   const chosen = vi.fn();
   const closed = vi.fn();
   await render(LevelsComponent, {
     inputs: {
-      open: true,
+      open,
       marks,
       current,
-      ...(levels === undefined ? {} : { levels }),
+      levels: TWO_SETS,
+      mostStars,
+      figure: "Longest",
     },
     on: { chosen, closed },
   });
@@ -75,14 +80,13 @@ function levelButton(name: RegExp): HTMLElement {
 
 describe("LevelsComponent", () => {
   it("stays shut until asked to open", async () => {
-    await render(LevelsComponent, { inputs: { open: false, marks: {} } });
+    await renderLevels({ open: false });
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("lists each set's levels under its name, by number and name", async () => {
     await renderLevels({
-      levels: TWO_SETS,
       marks: { a: OPEN, b: OPEN, c: OPEN },
     });
 
@@ -92,31 +96,14 @@ describe("LevelsComponent", () => {
     ]);
   });
 
-  it("offers the game's own levels unless handed others", async () => {
-    const allOpen = Object.fromEntries(
-      LEVELS.map(({ data }) => [data.id, OPEN]),
-    );
-    await renderLevels({ marks: allOpen });
-
-    expect(
-      screen
-        .getAllByRole("region")
-        .flatMap((set) => within(set).getAllByRole("button"))
-        .map((level) => level.textContent.replace(/\s+/g, " ").trim()),
-    ).toEqual(
-      LEVELS.map(({ number, data }) => `${String(number)} ${data.name}`),
-    );
-  });
-
   it.each([
     [1, "1 of 3 stars"],
     [2, "2 of 3 stars"],
     [3, "3 of 3 stars"],
   ])(
-    "shows a level cleared with %i stars as many, says so, and its best",
+    "shows a level cleared with %i stars as many, says so, and its best as the game names it",
     async (stars, words) => {
       await renderLevels({
-        levels: TWO_SETS,
         marks: { a: { open: true, stars, best: 1240 } },
       });
 
@@ -124,13 +111,21 @@ describe("LevelsComponent", () => {
       expect({
         name: level.textContent.replace(/\s+/g, " ").trim(),
         stars: level.querySelectorAll('fz-icon[name="star"]').length,
-      }).toEqual({ name: `1 a ${words} Best 1,240`, stars });
+      }).toEqual({ name: `1 a ${words} Longest 1,240`, stars });
     },
   );
 
+  it("counts a level's stars out of the most the game's levels earn", async () => {
+    await renderLevels({
+      marks: { a: { open: true, stars: 1, best: null } },
+      mostStars: 4,
+    });
+
+    expect(levelsIn("The first")).toEqual(["1 a 1 of 4 stars", "2 b Locked"]);
+  });
+
   it("shows a cleared level's stars alone where it has no best", async () => {
     await renderLevels({
-      levels: TWO_SETS,
       marks: { a: { open: true, stars: 1, best: null } },
     });
 
@@ -139,7 +134,6 @@ describe("LevelsComponent", () => {
 
   it("shows no stars or best on a level open and not yet cleared", async () => {
     await renderLevels({
-      levels: TWO_SETS,
       marks: { a: { open: true, stars: 0, best: 800 } },
     });
 
@@ -152,7 +146,6 @@ describe("LevelsComponent", () => {
 
   it("starts a run at an open level as it is chosen", async () => {
     const { chosen } = await renderLevels({
-      levels: TWO_SETS,
       marks: { a: OPEN, b: OPEN },
     });
 
@@ -163,7 +156,6 @@ describe("LevelsComponent", () => {
 
   it("shows a locked level, which can't be chosen", async () => {
     const { chosen } = await renderLevels({
-      levels: TWO_SETS,
       marks: { a: OPEN, b: { open: false, stars: 0, best: null } },
     });
 
@@ -178,7 +170,6 @@ describe("LevelsComponent", () => {
 
   it("marks the level of the run on the board, and no other", async () => {
     await renderLevels({
-      levels: TWO_SETS,
       marks: { a: OPEN, b: OPEN },
       current: 2,
     });
@@ -191,7 +182,7 @@ describe("LevelsComponent", () => {
   });
 
   it("marks no level where no run is on the board", async () => {
-    await renderLevels({ levels: TWO_SETS, marks: { a: OPEN } });
+    await renderLevels({ marks: { a: OPEN } });
 
     expect(screen.queryAllByRole("button", { current: true })).toHaveLength(0);
   });

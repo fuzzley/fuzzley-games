@@ -8,7 +8,7 @@ const LOST: RunEnd = {
   outcome: "over",
   firstLevel: 1,
   level: 3,
-  levelName: "Pips",
+  levelName: "Gravel",
   score: 4560,
   cleared: 2,
   stars: 5,
@@ -19,7 +19,7 @@ const WON: RunEnd = {
   outcome: "won",
   firstLevel: 4,
   level: 9,
-  levelName: "Gatehouse",
+  levelName: "Quarry",
   score: 31_200,
   cleared: 6,
   stars: 14,
@@ -77,7 +77,7 @@ describe("ResultComponent", () => {
 
     expect(
       screen.getByRole("alertdialog", { name: "Game over" }),
-    ).toHaveAccessibleDescription("Lost on level 3, Pips");
+    ).toHaveAccessibleDescription("Lost on level 3, Gravel");
   });
 
   it("says every level was cleared, from where the run started", async () => {
