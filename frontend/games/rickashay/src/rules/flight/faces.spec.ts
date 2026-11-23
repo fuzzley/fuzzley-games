@@ -260,6 +260,15 @@ describe("brickFaces", () => {
     );
   });
 
+  it("faces a brick in the floor row as any other, its floorward flat under the floor", () => {
+    const faces = facesAt(["....o...."], 0, 4, 0);
+
+    expect(flatsOf(faces)).toContainEqual(
+      expect.objectContaining({ along: "across", line: -RADIUS }),
+    );
+    expect(sidesOf(faces)).toHaveLength(8);
+  });
+
   it("shows a face toward the floor from the field's lowest row a brick stands in", () => {
     const faces = facesAt(["....o...."], 1, 4, 1);
 
@@ -349,6 +358,13 @@ describe("brickFaces, of a ramp", () => {
     expect(sidesOf(brick)).toContain("up -1");
     expect(sidesOf(brick)).not.toContain("slant -1 -1");
     expect(sidesOf(brick)).toContain("slant -1 1");
+  });
+
+  it("cuts no point a brick over it covers", () => {
+    const faces = facesAt(["....o....", "....L...."], 5, 4, 5);
+
+    expect(sidesOf(faces)).not.toContain("across 1");
+    expect(sidesOf(faces)).toContain("up 1");
   });
 
   it("shows no flat along a short side a brick covers, and cuts neither corner it would join", () => {
@@ -584,7 +600,7 @@ describe("facesOf", () => {
       lowestRow: 5,
     });
 
-    const faces = facesOf(wall, DEPTH);
+    const faces = facesOf(fieldShapes(wall, DEPTH));
 
     expect(faces.slice(0, 4)).toEqual(boundsOf(DEPTH));
     expect(faces.map(faceOrder)).toEqual(
@@ -598,7 +614,7 @@ describe("facesOf", () => {
       lowestRow: DEPTH - 1,
     });
 
-    expect(facesOf(wall, DEPTH)).toEqual(boundsOf(DEPTH));
+    expect(facesOf(fieldShapes(wall, DEPTH))).toEqual(boundsOf(DEPTH));
   });
 });
 
@@ -618,6 +634,7 @@ describe("meetsAt", () => {
     expect(meetsAt(UNDER, 2, 2, 0, 1)).toBe(1);
     expect(meetsAt(UNDER, 3 + OVERLAP, 2, 0, 1)).toBe(1);
     expect(meetsAt(UNDER, 3 + 2 * OVERLAP, 2, 0, 1)).toBe(MISSED);
+    expect(meetsAt(UNDER, 2 - OVERLAP, 2, 0, 1)).toBe(1);
     expect(meetsAt(UNDER, 2 - 2 * OVERLAP, 2, 0, 1)).toBe(MISSED);
   });
 
@@ -636,6 +653,15 @@ describe("meetsAt", () => {
     expect(meetsAt(cut, 3.5, 3.5, 0, 1)).toBe(MISSED);
     expect(meetsAt(cut, 3.875, 3.875, 0.6, -0.8)).toBe(MISSED);
     expect(meetsAt(cut, 3.875, 5, 0, 1)).toBe(MISSED);
+  });
+
+  it("never meets a slant flown along, even on its line", () => {
+    // x + y = 8.75 from x = 3.75 to 4, facing left and down.
+    const cut = faceNamed(facesAt(["....o...."], 5, 4, 5), "slant -1 -1");
+
+    expect(meetsAt(cut, 3.875, 4.875, Math.SQRT1_2, -Math.SQRT1_2)).toBe(
+      MISSED,
+    );
   });
 
   it("meets a side wall, the ceiling and the floor from beyond them, at once", () => {

@@ -285,6 +285,23 @@ describe("cast", () => {
     );
   });
 
+  it("meets three faces at one point: a brick's flat and its cut corner, and the bar of a hatch beside it", () => {
+    // The brick's top flat ends at x = 5, where its cut starts and the
+    // hatch's bar, at the same height, starts too.
+    const field = fieldOf(5, ["....o=..."]);
+
+    const met = castFrom(field, [5, 7], [0, -1]);
+
+    expect(metOf(met)).toEqual(
+      expected(1 - RADIUS, [brick(4, 0), brick(4, 0), brick(5, 0)]),
+    );
+    expect(met.met.slice(0, met.count).map(({ face }) => face.kind)).toEqual([
+      "flat",
+      "slant",
+      "bar",
+    ]);
+  });
+
   it("meets both a flat and the cut its end joins, where they join", () => {
     const field = fieldOf(5, ["....o...."]);
 

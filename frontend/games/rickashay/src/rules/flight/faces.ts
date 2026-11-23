@@ -690,12 +690,12 @@ export function boundsOf(depth: number): readonly Face[] {
 }
 
 /**
- * Returns every face of a field of a depth, its wall's bricks in play as
- * they stand, listed as {@link faceOrder} lists them: the side walls', the
+ * Returns every face of a field, built afresh from what stands in its
+ * cells, listed as {@link faceOrder} lists them: the side walls', the
  * ceiling's and the floor's, then each brick's.
  */
-export function facesOf(wall: Wall, depth: number): Face[] {
-  const field = fieldShapes(wall, depth);
+export function facesOf(field: FieldShapes): Face[] {
+  const { depth } = field;
   const faces: Face[] = [...boundsOf(depth)];
   for (let row = 0; row < depth; row++) {
     for (let column = 0; column < COLUMNS; column++) {
@@ -795,8 +795,8 @@ function entersBand(offset: number, speed: number): number {
 
 /**
  * Returns how far a fuzzball's middle flies, as {@link entersBand} has it,
- * to leave the band an eye spans: ∞ for one in it and flying along it, and
- * −∞ for one flying along it outside it.
+ * to leave the band an eye spans: ∞ for one flying along it, which never
+ * leaves it, or never comes into it, as `entersBand()` says.
  */
 function leavesBand(offset: number, speed: number): number {
   const half = EYE / 2;
@@ -806,9 +806,7 @@ function leavesBand(offset: number, speed: number): number {
   if (speed < 0) {
     return (-half - offset) / speed;
   }
-  return offset > -half && offset < half
-    ? Number.POSITIVE_INFINITY
-    : Number.NEGATIVE_INFINITY;
+  return Number.POSITIVE_INFINITY;
 }
 
 /**
