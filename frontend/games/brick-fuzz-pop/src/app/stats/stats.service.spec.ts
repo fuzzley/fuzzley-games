@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
+import type { EndedRun } from "@fz/brick-wall/rules/stats";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
-import type { EndedRun, LevelResult } from "../../rules/run/stats";
+import type { LevelResult } from "../../rules/run/stats";
 import { StatsService } from "./stats.service";
 
 /** Where the stats are kept, in its own words, so a rename fails. */

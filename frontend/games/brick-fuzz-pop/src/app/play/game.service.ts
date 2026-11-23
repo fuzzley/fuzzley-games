@@ -24,6 +24,7 @@ import {
   takeDepth,
   takeRound,
 } from "@fz/brick-wall/rules/run";
+import { levelResultOf } from "@fz/brick-wall/rules/stats";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -67,7 +68,7 @@ import type {
 } from "../../rules/run/reported_game";
 import type { TakenUp } from "../../rules/run/saved_game";
 import { tallyOf } from "../../rules/run/scoring";
-import { levelResultOf } from "../../rules/run/stats";
+import { STATS_RULES } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { Boon, Charge, Shot } from "../../rules/shot";
@@ -1062,7 +1063,7 @@ export class GameService extends RunLifecycle implements KeptGame {
    */
   private keepRecords(landed: Run): boolean {
     if (this.debug.runOffRecord()) return false;
-    const result = levelResultOf(landed);
+    const result = levelResultOf(landed, STATS_RULES);
     if (result !== null) {
       const id = levelIdOf(this.levels, landed.level);
       this.stats.recordLevel(id, result);

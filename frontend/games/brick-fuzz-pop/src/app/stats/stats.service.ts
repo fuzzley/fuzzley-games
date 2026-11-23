@@ -1,14 +1,14 @@
 import { Injectable, inject } from "@angular/core";
-import { storedSignal } from "@fz/ui/storage";
 import {
   type EndedRun,
-  type LevelResult,
   isNewBest,
   statsOf,
   withLevelCleared,
   withRunEnded,
   withRunStarted,
-} from "../../rules/run/stats";
+} from "@fz/brick-wall/rules/stats";
+import { storedSignal } from "@fz/ui/storage";
+import { type LevelResult, STATS_RULES } from "../../rules/run/stats";
 import { GAME_LEVELS } from "../tokens";
 
 /** Where the stats are kept. Renaming it loses every player's. */
@@ -30,7 +30,7 @@ export class StatsService {
   private readonly state = storedSignal({
     key: STATS_KEY,
     version: STATS_VERSION,
-    read: (saved) => statsOf(saved, this.levels),
+    read: (saved) => statsOf(saved, this.levels, STATS_RULES),
   });
 
   /** The stats so far. */
@@ -54,6 +54,6 @@ export class StatsService {
 
   /** Keeps a cleared level's points, rounds and stars, by its id, each that beats its record. */
   recordLevel(id: string, result: LevelResult): void {
-    this.state.set(withLevelCleared(this.state(), id, result));
+    this.state.set(withLevelCleared(this.state(), id, result, STATS_RULES));
   }
 }
