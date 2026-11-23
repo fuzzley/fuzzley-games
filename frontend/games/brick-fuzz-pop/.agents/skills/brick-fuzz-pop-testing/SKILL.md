@@ -19,9 +19,8 @@ to `frontend/games/brick-fuzz-pop/`, where the commands run.
   `tools/`, but for `sim`'s folders.
 - **`sim`, in Node, never with coverage:** the replays in
   `src/rules/levels/every_level/`, the floors in
-  `src/rules/levels/every_floor/`, the benchmarks in
-  `src/rules/flight/benchmarks/` and the golden flights in
-  `src/rules/levels/golden/`.
+  `src/rules/levels/every_floor/` and the benchmarks in
+  `src/rules/flight/benchmarks/`.
 - **`dom`, in jsdom:** every other spec under `src/`, the scene's and the
   shell's. A spec in a new folder outside those runs here until the config
   names its folder.
@@ -116,14 +115,6 @@ Then:
   screenshots' `RUN` to the first shot of its level's line on its depth. A
   line certified anew there with another first shot fails it until `RUN`
   takes that shot and `yarn capture:screenshots` runs again.
-- **`src/rules/levels/golden/golden.spec.ts`** holds every round each
-  level's certificate plays on each depth, and 50 shots drawn at each
-  level's opening, to the hashes of their flights, outcomes and next starts
-  in `golden.json`, which `yarn golden:flights` writes
-  (`src/testing/golden_flights.ts`). It fails for any change to how a shot
-  plays, a replay's line still holding or not, so a change that only moves
-  the rules' code keeps it passing. Where one fails it, the failure is the
-  bug: write the file again only for a change meant to change a round.
 - **To watch a line play,** use the debug menu's Play the certificate, in a
   development build or at `?debug` in a production one. It plays the line
   of the level in play on the field's depth.

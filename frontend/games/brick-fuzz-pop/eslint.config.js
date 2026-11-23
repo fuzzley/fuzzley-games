@@ -11,7 +11,7 @@ import { defineConfig } from "eslint/config";
 
 // The specs' helpers held as the rules are: the solver, the careless player
 // and the measure of a wall the certificates and the floors are found with,
-// the golden flights, and what the scripts load through Vite.
+// and what the scripts load through Vite.
 // Node runs them as it runs the rules, and a certificate found in Node holds
 // in every browser only if they keep to the same exact arithmetic. A file
 // of src/testing/ off this list is held only to the helpers' fence below.
@@ -25,8 +25,6 @@ export const HELD_AS_RULES = [
   "src/testing/certify_api.ts",
   "src/testing/report_api.ts",
   "src/testing/screenshot_api.ts",
-  "src/testing/golden_flights.ts",
-  "src/testing/golden_api.ts",
 ];
 
 export default defineConfig(

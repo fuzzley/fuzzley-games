@@ -2,9 +2,9 @@
 // This module imports nothing, so `tsconfig.scripts.json`, which resolves
 // modules as Node does, checks the scripts against it without reading the
 // rules, which name their modules without extensions. Each script's entry,
-// `certify_api.ts`, `report_api.ts`, `screenshot_api.ts` and
-// `golden_api.ts`, is held to it in turn, so a name changed in the rules,
-// the solver or the careless player fails to compile there.
+// `certify_api.ts`, `report_api.ts` and `screenshot_api.ts`, is held to it
+// in turn, so a name changed in the rules, the solver or the careless
+// player fails to compile there.
 
 /** Describes a level, so far as the scripts name it. */
 export interface ScriptLevel {
@@ -97,16 +97,4 @@ export interface ScreenshotApi {
   readonly shotWords: (degrees: number, charge: number) => string;
   /** The version storage keeps a run under, which the page drops any other of. */
   readonly savedGameVersion: number;
-}
-
-/** Holds what `tools/golden-flights.mjs` plays: the levels, the depths, and the hash of the rounds each level's certificate and its drawn shots play on each. */
-export interface GoldenApi {
-  /** Every level, in the order played. */
-  readonly levels: readonly ScriptLevel[];
-  /** Every depth a field has, shallowest first. */
-  readonly depths: readonly number[];
-  /** Returns the hash of the rounds a level's certificate plays, by the level's number, on a field of a depth, each round's flight, outcome and next start. */
-  readonly certificateHash: (level: number, depth: number) => string;
-  /** Returns the hash of the rounds the shots drawn at a level's opening play, by its number, on a field of a depth, each from the opening. */
-  readonly shotsHash: (level: number, depth: number) => string;
 }
