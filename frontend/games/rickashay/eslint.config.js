@@ -17,7 +17,10 @@ import { defineConfig } from "eslint/config";
 // that isn't there. A file of src/testing/ off this list is held only to the
 // helpers' fence below.
 /** @type {readonly string[]} */
-export const HELD_AS_RULES = [];
+export const HELD_AS_RULES = [
+  "src/testing/line_play.ts",
+  "src/testing/wall_score.ts",
+];
 
 export default defineConfig(
   typescript({
