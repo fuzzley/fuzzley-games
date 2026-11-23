@@ -5,6 +5,7 @@ import {
   ART_ROLES,
   billionths,
   distanceToSegment,
+  octagon,
   pastOutline,
   pointInBillionths,
 } from "./art_frames";
@@ -113,5 +114,27 @@ describe("pastOutline", () => {
     expect(billionths(pastOutline({ x: 6, y: 4 }, triangle))).toBe(
       billionths(Math.SQRT2),
     );
+  });
+});
+
+describe("octagon", () => {
+  it("cuts each corner of a rectangle across a cut's length along each side, clockwise from the top of its left side", () => {
+    expect(octagon({ x: 0, y: 0 }, { x: 10, y: 6 }, 2)).toEqual([
+      { x: 0, y: 2 },
+      { x: 2, y: 0 },
+      { x: 8, y: 0 },
+      { x: 10, y: 2 },
+      { x: 10, y: 4 },
+      { x: 8, y: 6 },
+      { x: 2, y: 6 },
+      { x: 0, y: 4 },
+    ]);
+  });
+
+  it("gives each point to a billionth", () => {
+    expect(octagon({ x: 0, y: 0 }, { x: 1, y: 1 }, 0.1 + 0.2)[0]).toEqual({
+      x: 0,
+      y: 0.3,
+    });
   });
 });

@@ -1,10 +1,11 @@
 import { inkAt } from "@fz/brick-wall/view/inks";
 import { mixColors } from "@fz/phaser/color";
-import type { DrawCommand, Point } from "@fz/phaser/shapes";
+import type { DrawCommand } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import {
   ART_PALETTE,
   ART_SCALE,
+  octagon,
   pointInBillionths,
 } from "../../../testing/art_frames";
 import { INKS } from "../frames";
@@ -17,24 +18,6 @@ const ART_BOX = { x: 0, y: 0, width: 100, height: 100 };
 
 /** A cell at 31 CSS pixels a unit, 2 device pixels to one. */
 const CELL = { x: 0, y: 0, width: 62, height: 62 };
-
-/**
- * Returns the points of a rectangle from one corner to another with each
- * corner cut across at 45°, a cut's length along each side from it, as the
- * art's `octagon()` gives them, but clockwise from the top of its left side.
- */
-function octagon(from: Point, to: Point, cut: number): readonly Point[] {
-  return [
-    { x: from.x, y: from.y + cut },
-    { x: from.x + cut, y: from.y },
-    { x: to.x - cut, y: from.y },
-    { x: to.x, y: from.y + cut },
-    { x: to.x, y: to.y - cut },
-    { x: to.x - cut, y: to.y },
-    { x: from.x + cut, y: to.y },
-    { x: from.x, y: to.y - cut },
-  ].map(pointInBillionths);
-}
 
 /** Returns a command's color, and its points to a billionth where it is a polygon. */
 function shapeOf(command: DrawCommand | undefined): object {

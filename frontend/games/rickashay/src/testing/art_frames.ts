@@ -97,3 +97,22 @@ export function pastOutline(point: Point, outline: readonly Point[]): number {
     }),
   );
 }
+
+/**
+ * Returns the points of a rectangle from one corner to another with each
+ * corner cut across at 45°, a cut's length along each side from it,
+ * clockwise from the top of its left side, as a tile's outline runs, each
+ * to a billionth.
+ */
+export function octagon(from: Point, to: Point, cut: number): readonly Point[] {
+  return [
+    { x: from.x, y: from.y + cut },
+    { x: from.x + cut, y: from.y },
+    { x: to.x - cut, y: from.y },
+    { x: to.x, y: from.y + cut },
+    { x: to.x, y: to.y - cut },
+    { x: to.x - cut, y: to.y },
+    { x: from.x + cut, y: to.y },
+    { x: from.x, y: to.y - cut },
+  ].map(pointInBillionths);
+}
