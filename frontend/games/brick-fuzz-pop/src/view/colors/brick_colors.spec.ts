@@ -1,10 +1,11 @@
+import { TINT } from "@fz/brick-wall/view/inks";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { isKeyOf, isOneOf, keysOf, recordOf } from "@fz/core/records";
 import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
 import { PORTAL_MARKS } from "../../rules/levels/legend";
 import { PALETTES } from "../../testing/roles";
 import { brickColor } from "./brick_colors";
-import { TINT } from "./inks";
-import { FIELD_ROLES, type WallPalette, wallPalette } from "./palette";
+import { type WallPalette, wallPalette } from "./palette";
 
 /** Classic felt's palette, whose colors the spec's own replace where it reads them. */
 const MADE = wallPalette(PALETTES.rolesIn("classic", FIELD_ROLES), "light");

@@ -1,5 +1,6 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { REPORT_PICTURE, packState } from "@fz/game-ui/bug_report";
@@ -29,7 +30,6 @@ import {
 import { filesCertifying, loadsSettled } from "../testing/certificates";
 import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
-import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
 import {
   BrickFuzzPopReports,

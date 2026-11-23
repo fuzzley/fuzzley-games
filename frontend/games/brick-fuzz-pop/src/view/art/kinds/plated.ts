@@ -9,6 +9,7 @@
 // past it; its steel stands out of the tile, as the art's does.
 
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { TINT } from "@fz/brick-wall/view/inks";
 import { TILE_SLAB, bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -19,7 +20,6 @@ import {
   polygon,
   roundRect,
 } from "@fz/phaser/shapes";
-import { TINT } from "../../colors/inks";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import {

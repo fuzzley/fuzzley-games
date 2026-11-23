@@ -1,3 +1,5 @@
+import { TINT, inkAt } from "@fz/brick-wall/view/inks";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { mixColors } from "@fz/phaser/color";
 import {
   type ArtFrame,
@@ -21,8 +23,7 @@ import {
   pastRoundRect,
 } from "../../../testing/art_frames";
 import { PALETTES } from "../../../testing/roles";
-import { TINT, inkAt } from "../../colors/inks";
-import { FIELD_ROLES, wallPalette } from "../../colors/palette";
+import { wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, THICK_HITS } from "../frames";
 import { cellOf } from "../symbols";

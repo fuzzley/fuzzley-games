@@ -10,6 +10,7 @@ import {
   fieldShape,
   lintelPixels,
 } from "@fz/brick-wall/view/field_metrics";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { formatPoints } from "@fz/core/format";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readNamedRects, readRect } from "@fz/dev/board-page";
@@ -64,7 +65,6 @@ import {
 } from "../../testing/play";
 import { PALETTES } from "../../testing/roles";
 import { FRAMES, INKS } from "../../view/art/frames";
-import { FIELD_ROLES } from "../../view/colors/palette";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";

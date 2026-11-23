@@ -204,9 +204,11 @@ does, and certified again.
   other helpers measure and round what a frame draws.
 - **A spec of the layout** takes the canvas a board has in a window from
   `boardCanvas()` (`@fz/brick-wall/testing/canvases`).
-- **The field's contrast** is `src/view/colors/contrast.spec.ts`'s, in each
-  palette `PALETTES` (`src/testing/roles.ts`) reads from the global
-  stylesheet.
+- **The field's contrast** is `src/view/colors/contrast.spec.ts`'s for the
+  game's own colors, in each palette `PALETTES` (`src/testing/roles.ts`)
+  reads from the global stylesheet, and
+  `frontend/lib/brick-wall/src/view/contrast.spec.ts`'s for those every
+  wall game draws in.
 
 ## The Scene
 

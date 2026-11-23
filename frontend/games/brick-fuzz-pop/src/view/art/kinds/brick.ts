@@ -2,6 +2,7 @@
 // and `brick()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`, the slab
 // `@fz/phaser/bricks` draws in a square tile's shares (`TILE_SLAB`).
 
+import { inkAt } from "@fz/brick-wall/view/inks";
 import {
   TILE_SLAB,
   slabBody,
@@ -9,7 +10,6 @@ import {
   slabRadius,
 } from "@fz/phaser/bricks";
 import type { Area, DrawCommand } from "@fz/phaser/shapes";
-import { inkAt } from "../../colors/inks";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, INKS } from "../frames";
 import { itemAt } from "../../items";

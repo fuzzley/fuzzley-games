@@ -1,4 +1,6 @@
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { inkAt } from "@fz/brick-wall/view/inks";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import {
   type ArtFrame,
   type ArtScale,
@@ -23,8 +25,7 @@ import {
   reachPastRoundRect,
 } from "../../../testing/art_frames";
 import { PALETTES } from "../../../testing/roles";
-import { inkAt } from "../../colors/inks";
-import { FIELD_ROLES, wallPalette } from "../../colors/palette";
+import { wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, PLATINGS, type PlatedHits, type Plating } from "../frames";
 import { itemAt } from "../../items";

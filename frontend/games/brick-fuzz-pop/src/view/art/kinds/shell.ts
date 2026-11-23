@@ -4,6 +4,7 @@
 // frame of its own, in the shell's own tile, and its pips one for each count of
 // them, over it.
 
+import type { KindInks } from "@fz/brick-wall/view/palette";
 import {
   type Area,
   type DrawCommand,
@@ -11,7 +12,6 @@ import {
   roundRect,
   share,
 } from "@fz/phaser/shapes";
-import type { KindInks } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
 import { itemAt } from "../../items";

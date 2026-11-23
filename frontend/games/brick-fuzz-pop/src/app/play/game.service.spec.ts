@@ -6,6 +6,7 @@ import {
   fieldMetrics,
   fieldShape,
 } from "@fz/brick-wall/view/field_metrics";
+import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -54,7 +55,7 @@ import {
 } from "../../testing/play";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { PALETTES } from "../../testing/roles";
-import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
+import { wallPalette } from "../../view/colors/palette";
 import { FLIGHT_PACE } from "../../view/round_play";
 import type { Steer } from "../../view/steering/steering";
 import { DebugService } from "../debug/debug.service";

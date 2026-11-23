@@ -45,9 +45,10 @@ These rules hold for every game under `frontend/games/`. The frontend's, in
   `tools/` script that stores an entry by hand, as a layout check's does,
   changes with it.
 - **A color the player must tell from what it lies on joins the game's
-  `contrast.spec.ts`,** which holds each pair it lists to its ratio in
-  every palette. The list is kept by hand, so a new color it doesn't name
-  is checked in none.
+  `contrast.spec.ts`,** or, for one every wall game draws in,
+  `frontend/lib/brick-wall/src/view/contrast.spec.ts`. Either holds each
+  pair it lists to its ratio in every palette. The list is kept by hand,
+  so a new color it doesn't name is checked in none.
 - **A change to a game's layout is checked in a browser,** since jsdom lays
   nothing out. `check:layout` opens the game's build in headless Chrome at
   each shape a game takes, and `yarn verify:changed` runs it after the

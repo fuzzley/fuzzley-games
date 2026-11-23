@@ -1,4 +1,5 @@
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { FIELD_ROLES, type PaletteRoles } from "@fz/brick-wall/view/palette";
 import { keysOf, recordOf } from "@fz/core/records";
 import { colorNumber } from "@fz/phaser/color";
 import {
@@ -11,7 +12,6 @@ import {
   roundRect,
 } from "@fz/phaser/shapes";
 import { INKS } from "../view/art/frames";
-import { FIELD_ROLES, type PaletteRoles } from "../view/colors/palette";
 import {
   ART_ROLES,
   billionths,

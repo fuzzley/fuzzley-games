@@ -2,10 +2,10 @@
 // from the art that draws it, so the shell can show a brick's color without
 // loading the art.
 
+import { inkAt } from "@fz/brick-wall/view/inks";
 import type { BrickKindId } from "../../rules/catalog/bricks";
 import type { Brick } from "../../rules/wall/wall";
 import { itemAt } from "../items";
-import { inkAt } from "./inks";
 import type { InkedKind, WallPalette } from "./palette";
 
 /** Describes what a brick's color reads of it: its kind and its tint. */

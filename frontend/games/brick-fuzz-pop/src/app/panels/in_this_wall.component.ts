@@ -1,4 +1,5 @@
 import { Component, computed, input } from "@angular/core";
+import { inkAt } from "@fz/brick-wall/view/inks";
 import { count } from "@fz/core/format";
 import { cssHex } from "@fz/phaser/color";
 import { helpEntries } from "@fz/game-ui/help_catalog";
@@ -8,7 +9,6 @@ import type { RoundStart } from "../../rules/round/round";
 import { boonName } from "../../rules/run/describe";
 import type { Boon } from "../../rules/shot";
 import type { WallPalette } from "../../view/colors/palette";
-import { inkAt } from "../../view/colors/inks";
 import type { HelpPictures } from "../help/help.component";
 import { kindsIn } from "./panels";
 

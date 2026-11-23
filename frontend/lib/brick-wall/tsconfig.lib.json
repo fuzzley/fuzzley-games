@@ -7,5 +7,12 @@
     "types": []
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts", "src/test-setup.ts"]
+  // The specs and their setup, and the helper that imports
+  // @fz/style/testing, which needs Node's types: tsconfig.spec.json checks
+  // them with those types.
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/test-setup.ts",
+    "src/testing/contrast.ts"
+  ]
 }

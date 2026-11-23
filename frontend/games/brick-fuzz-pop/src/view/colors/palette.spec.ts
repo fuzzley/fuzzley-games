@@ -1,7 +1,11 @@
+import { TINT, type TintName, inkAt } from "@fz/brick-wall/view/inks";
+import {
+  type PaletteRoles,
+  wallPalette as wallColors,
+} from "@fz/brick-wall/view/palette";
 import { FUZZBALL_INKS, TILE_INKS, mixColors } from "@fz/phaser/color";
 import type { ColorMode } from "@fz/style/themes";
-import { TINT, type TintName, inkAt } from "./inks";
-import { FIELD_ROLES, type PaletteRoles, wallPalette } from "./palette";
+import { wallPalette } from "./palette";
 
 // Each role differs from the others, from white and black, and from every
 // color mixed from them, so a color mixed from the wrong ones shows.
@@ -36,34 +40,18 @@ function ink(name: TintName, mode: ColorMode = "light"): number {
 }
 
 describe("wallPalette", () => {
-  it("lays the field in its color, framed in its line, the floor's band in a wash of its text, and cuts the marks out in its color", () => {
-    const palette = wallPalette(ROLES, "light");
+  it.each(["light", "dark"] as const)(
+    "takes the colors every wall game draws in, in a %s palette",
+    (mode) => {
+      expect(wallPalette(ROLES, mode)).toMatchObject(wallColors(ROLES, mode));
+    },
+  );
 
-    expect([palette.field, palette.line, palette.band, palette.mark]).toEqual([
-      0xfafafa, 0xd0d0d0, 0xdcdcdc, 0xfafafa,
-    ]);
-  });
-
-  it("draws the fuzzball and the jump line in the accent, the hot shot and the danger line in the danger color, and the sparks in the warning color", () => {
-    const palette = wallPalette(ROLES, "light");
-
-    expect([
-      palette.fuzzball,
-      palette.jumpLine,
-      palette.hotShot,
-      palette.dangerLine,
-      palette.spark,
-    ]).toEqual([0x00aa00, 0x00aa00, 0xff0000, 0xff0000, 0xffa500]);
-  });
-
-  it("draws the guide in the field's text, and the meter's pips lit in the warning color and unlit in its muted text", () => {
-    const palette = wallPalette(ROLES, "light");
-
-    expect([palette.guide, palette.text, palette.meter]).toEqual([
-      0x101010,
-      0x101010,
-      { on: 0xffa500, off: 0x707070 },
-    ]);
+  it("lights the meter's pips in the warning color and leaves them unlit in the field's muted text", () => {
+    expect(wallPalette(ROLES, "light").meter).toEqual({
+      on: 0xffa500,
+      off: 0x707070,
+    });
   });
 
   it("lays the gauge's plate in the band's wash, as the lintel is, rimmed in three fifths of the field's muted text over the field", () => {
@@ -71,17 +59,6 @@ describe("wallPalette", () => {
 
     expect(palette.gauge).toEqual({ plate: palette.band, rim: 0xa7a7a7 });
   });
-
-  it("mixes steel from three fifths of the field's text over the field", () => {
-    expect(wallPalette(ROLES, "light").steel).toBe(STEEL);
-  });
-
-  it.each(["light", "dark"] as const)(
-    "tints the bricks with the tiles' %s inks in a palette of that mode",
-    (mode) => {
-      expect(wallPalette(ROLES, mode).tints).toBe(TILE_INKS[mode]);
-    },
-  );
 
   it.each(["light", "dark"] as const)(
     "gives the friends the fuzzballs' %s inks in a palette of that mode",
@@ -202,21 +179,4 @@ describe("wallPalette", () => {
       });
     },
   );
-});
-
-describe("FIELD_ROLES", () => {
-  // The page's text, muted text and line may differ from the field's, as
-  // the line does in a dark palette.
-  it("reads each of the field's colors from the field's own role where the page has one", () => {
-    expect(FIELD_ROLES).toEqual({
-      field: "field",
-      fieldLine: "field-line",
-      fieldText: "field-text",
-      fieldMuted: "field-muted",
-      page: "page",
-      accent: "accent",
-      danger: "danger",
-      warning: "warning",
-    });
-  });
 });

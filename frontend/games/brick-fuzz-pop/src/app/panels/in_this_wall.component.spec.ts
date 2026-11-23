@@ -1,5 +1,6 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { inkAt } from "@fz/brick-wall/view/inks";
 import { recordOf } from "@fz/core/records";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen, within } from "@testing-library/angular";
@@ -8,7 +9,6 @@ import { WALL_LEGEND } from "../../rules/levels/legend";
 import type { Crew, RoundStart } from "../../rules/round/round";
 import type { Boon } from "../../rules/shot";
 import { ART_PALETTE } from "../../testing/art_frames";
-import { inkAt } from "../../view/colors/inks";
 import type { HelpPictures } from "../help/help.component";
 import { InThisWallComponent } from "./in_this_wall.component";
 

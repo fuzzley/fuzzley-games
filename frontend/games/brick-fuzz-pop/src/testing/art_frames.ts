@@ -1,3 +1,4 @@
+import type { PaletteRoles } from "@fz/brick-wall/view/palette";
 import {
   type Area,
   type ArtFrame,
@@ -12,7 +13,7 @@ import { LEGEND, PORTAL_MARKS } from "../rules/levels/legend";
 import type { BrickLook } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { INKS } from "../view/art/frames";
-import { type PaletteRoles, wallPalette } from "../view/colors/palette";
+import { wallPalette } from "../view/colors/palette";
 
 /**
  * The roles the art's specs draw in, each a color no other role takes:
