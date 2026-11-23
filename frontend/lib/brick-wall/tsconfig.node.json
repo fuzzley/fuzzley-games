@@ -1,0 +1,13 @@
+{
+  // What runs in Node through Vite: the config Vitest runs, and the specs
+  // under tools/, of the scripts there.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    // tools/*.mjs carry their types in JSDoc; tsconfig.scripts.json checks them.
+    "allowJs": true,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["vitest.config.ts", "tools/**/*.ts"]
+}

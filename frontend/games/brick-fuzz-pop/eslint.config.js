@@ -85,12 +85,14 @@ export default defineConfig(
   scripts({
     files: ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"],
   }),
-  // Each layer imports only the layers below it, and the rules and the view
-  // read only what they are handed. The rules, and the helpers held as they
-  // are, keep to arithmetic every engine rounds alike, so a certificate found
-  // in Node holds in every browser; the messages speak of the rules and the
-  // view alone.
+  // Each layer imports only the layers below it, and the same layer of
+  // @fz/brick-wall and those below it, and the rules and the view read only
+  // what they are handed. The rules, and the helpers held as they are, keep
+  // to arithmetic every engine rounds alike, so a certificate found in Node
+  // holds in every browser; the messages speak of the rules and the view
+  // alone.
   phaserGameLayers({
+    layered: ["@fz/brick-wall"],
     heldAsRules: { root: import.meta.dirname, files: HELD_AS_RULES },
     exact: true,
   }),

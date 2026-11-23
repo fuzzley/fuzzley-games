@@ -1,6 +1,6 @@
 ---
 name: fuzzley-ui
-description: Which piece of the shared libraries under frontend/lib/ to reach for (a token, mixin, component, service or helper), how an app adopts them, and what a change to one keeps. Triggers on: @fz/style, @fz/ui, @fz/game-ui, @fz/core, fz-dialog, fz-icon, design tokens, palette, game bar, settings drawer, RunLifecycle, storedSignal, FieldPlay, shared component.
+description: Which piece of the shared libraries under frontend/lib/ to reach for (a token, mixin, component, service or helper), how an app adopts them, and what a change to one keeps. Triggers on: @fz/style, @fz/ui, @fz/game-ui, @fz/core, @fz/brick-wall, fz-dialog, fz-icon, design tokens, palette, game bar, settings drawer, RunLifecycle, storedSignal, FieldPlay, shared component.
 ---
 
 # The shared UI libraries
@@ -10,14 +10,15 @@ through the libraries under `frontend/lib/`. This skill says which piece to
 reach for, how an app takes them up, and what a change to a library keeps. A
 library's own `AGENTS.md` adds the few rules that are its own.
 
-| Library       | For                                                                                                                                                                                                       | Its rules                        |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `@fz/style`   | Every app, Angular or not: the palettes and tokens, the global stylesheet, fragments such as `.fz-button`, Sass mixins, `theme.js`, the fuzzball and the page's icons, and the stylelint preset           | `frontend/lib/style/AGENTS.md`   |
-| `@fz/ui`      | Every Angular app: dialogs, the confirmation, the announcer, the theme's service and pickers, icons, the radio group, storage, the fuzzball and the wordmark                                              | `frontend/lib/ui/AGENTS.md`      |
-| `@fz/game-ui` | Angular games only: the game bar and its menus, Pause and Sound, the viewport and breakpoints, the page frame, the settings drawer, How to play, the stopwatch, the run's lifecycle and the debug menu    | `frontend/lib/game-ui/AGENTS.md` |
-| `@fz/core`    | A game's code with no framework, its rules above all: the seeded random, readers for stored JSON, a clock of fixed steps, an event log, a field's play, a run's stages and keys, sweeps and the sound mix | `frontend/lib/core/AGENTS.md`    |
-| `@fz/phaser`  | Games drawn with Phaser: the canvas component, the host, a scene's helpers, shapes, inks and bricks, and headless Phaser for specs. The `phaser-core` skill covers it                                     | `frontend/lib/phaser/AGENTS.md`  |
-| `@fz/dev`     | Every workspace's checks and builds, never an app's bundle: the ESLint, TypeScript, Vitest and Vite presets, and what `tools/` scripts share                                                              | `frontend/lib/dev/AGENTS.md`     |
+| Library          | For                                                                                                                                                                                                       | Its rules                           |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `@fz/style`      | Every app, Angular or not: the palettes and tokens, the global stylesheet, fragments such as `.fz-button`, Sass mixins, `theme.js`, the fuzzball and the page's icons, and the stylelint preset           | `frontend/lib/style/AGENTS.md`      |
+| `@fz/ui`         | Every Angular app: dialogs, the confirmation, the announcer, the theme's service and pickers, icons, the radio group, storage, the fuzzball and the wordmark                                              | `frontend/lib/ui/AGENTS.md`         |
+| `@fz/game-ui`    | Angular games only: the game bar and its menus, Pause and Sound, the viewport and breakpoints, the page frame, the settings drawer, How to play, the stopwatch, the run's lifecycle and the debug menu    | `frontend/lib/game-ui/AGENTS.md`    |
+| `@fz/core`       | A game's code with no framework, its rules above all: the seeded random, readers for stored JSON, a clock of fixed steps, an event log, a field's play, a run's stages and keys, sweeps and the sound mix | `frontend/lib/core/AGENTS.md`       |
+| `@fz/brick-wall` | The wall games' code, laid out in a game's own layers: each entry is taken by the same layer of a game, or one above it                                                                                   | `frontend/lib/brick-wall/AGENTS.md` |
+| `@fz/phaser`     | Games drawn with Phaser: the canvas component, the host, a scene's helpers, shapes, inks and bricks, and headless Phaser for specs. The `phaser-core` skill covers it                                     | `frontend/lib/phaser/AGENTS.md`     |
+| `@fz/dev`        | Every workspace's checks and builds, never an app's bundle: the ESLint, TypeScript, Vitest and Vite presets, and what `tools/` scripts share                                                              | `frontend/lib/dev/AGENTS.md`        |
 
 An entry maps into its library's `src/`, as the `exports` of its
 `package.json` say: `@fz/ui/dialog` is `frontend/lib/ui/src/dialog/`, and
@@ -128,6 +129,22 @@ choice, Pause, Sound and the overflow menu.
 | A ball that can't pass through what it meets              | `sweepFace()`, `sweepCorner()` and `sweepPoint()` from `@fz/core/sweep`: the share of a `Move` at which it first touches, else `MISSED`; `exposureOf()` for which of a box's sides a grid leaves exposed                                                                                       |
 | A spec that plays a game a frame at a time                | `playUntil()` and `playFor()` from `@fz/core/testing`                                                                                                                                                                                                                                          |
 | A spec file that plays the variant it is named for        | `variantOfSpec(import.meta.filename, variants, folder)` from `@fz/core/testing`                                                                                                                                                                                                                |
+
+### A wall game's layers: `@fz/brick-wall`
+
+An entry names its layer, `@fz/brick-wall/<layer>/<entry>`, and is
+`frontend/lib/brick-wall/src/<layer>/<entry>.ts`. A wall game passes
+`layered: ["@fz/brick-wall"]` to `phaserGameLayers()`, which lets each of
+its layers take the library's entries of the same layer and those below
+it, as its own fences allow, and its files held as the rules are the
+library's `testing` entries.
+
+| You need                                                                          | Use                                                                                                                                           |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| The ids of a catalog's kinds a test holds for, such as those a level needs broken | `kindsWhere(catalog, holds)` from `@fz/brick-wall/rules/kinds`, in the catalog's order                                                        |
+| Whether a blinking cue shows, a time into its blinking                            | `blinkShows(elapsedMs, periodMs)` from `@fz/brick-wall/view/blink`, at most `MOST_BLINKS_A_SECOND` a second                                   |
+| A cue blinking in a scene, till stopped or the scene ends                         | `blink(scene, target, periodMs, steady)` from `@fz/brick-wall/scene/blink`, held shown each frame `steady()` reads true; returns its stop     |
+| A cue held steady while the player asks for less motion                           | `steadyForLessMotion(viewport)` from `@fz/brick-wall/app/blink`, as `blink()`'s `steady`, over `@fz/game-ui/viewport`'s `GameViewportService` |
 
 ### Drawn with Phaser: `@fz/phaser`
 

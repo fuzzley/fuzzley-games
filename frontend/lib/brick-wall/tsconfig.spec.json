@@ -1,0 +1,16 @@
+{
+  // The specs, which Vitest runs.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // A spec may run a script under tools/, which carries its types in
+    // JSDoc; tsconfig.scripts.json checks it.
+    "allowJs": true,
+    // `@fz/dev/layout` imports its modules by their full file names, as Node
+    // needs. Rewriting those names, rather than not emitting, allows them
+    // while Analog's plugin still compiles the libraries' Angular code for
+    // the specs.
+    "rewriteRelativeImportExtensions": true,
+    "types": ["node", "vite/client", "vitest/globals"]
+  },
+  "include": ["src/**/*.ts"]
+}

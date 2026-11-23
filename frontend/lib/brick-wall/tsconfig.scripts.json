@@ -1,0 +1,6 @@
+{
+  // The Node scripts under tools/, and the ESLint and Stylelint configs,
+  // type-checked from their JSDoc.
+  "extends": "@fz/dev/tsconfig/scripts.json",
+  "include": ["tools/**/*.mjs", "eslint.config.js", "stylelint.config.js"]
+}

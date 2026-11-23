@@ -1,0 +1,87 @@
+{
+  "name": "@fz/brick-wall",
+  "version": "0.0.0",
+  "description": "What the wall games share, laid out in a game's own layers, each entry taken by the same layer of a game or one above it: the rules, among them the kinds of brick a test holds for; the view, among them when a blinking cue shows; the scene, among them a cue blinking; the shell, among them a cue held steady for a player who asks for less motion; and the specs' helpers.",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "exports": {
+    "./rules/*": "./src/rules/*.ts",
+    "./view/*": "./src/view/*.ts",
+    "./scene/*": "./src/scene/*.ts",
+    "./app/*": "./src/app/*.ts",
+    "./testing/*": "./src/testing/*.ts"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim --passWithNoTests \"$@\"",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit && tsc7 -p tsconfig.spec.json --noEmit && tsc7 -p tsconfig.node.json && tsc7 -p tsconfig.scripts.json",
+    "lint": "eslint . && yarn lint:styles",
+    "lint:styles": "stylelint --allow-empty-input \"src/**/*.scss\""
+  },
+  "dependencies": {
+    "@fz/core": "workspace:*",
+    "@fz/game-ui": "workspace:*",
+    "@fz/phaser": "workspace:*",
+    "@fz/style": "workspace:*",
+    "@fz/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "@angular/aria": "~22.3.0",
+    "@angular/cdk": "~22.3.0",
+    "@angular/common": "^22.3.0",
+    "@angular/core": "^22.3.0",
+    "@testing-library/angular": "^19.6.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/user-event": "^14.6.13",
+    "phaser": "^4.2.1",
+    "rxjs": "~7.8.2",
+    "vitest": "^5.1.1"
+  },
+  "peerDependenciesMeta": {
+    "@testing-library/angular": {
+      "optional": true
+    },
+    "@testing-library/dom": {
+      "optional": true
+    },
+    "@testing-library/user-event": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@analogjs/vite-plugin-angular": "^2.9.7",
+    "@angular/aria": "~22.3.0",
+    "@angular/build": "^22.3.0",
+    "@angular/cdk": "~22.3.0",
+    "@angular/common": "^22.3.0",
+    "@angular/compiler": "^22.3.0",
+    "@angular/compiler-cli": "^22.3.0",
+    "@angular/core": "^22.3.0",
+    "@angular/platform-browser": "^22.3.0",
+    "@angular/router": "^22.3.0",
+    "@fz/dev": "workspace:*",
+    "@testing-library/angular": "^19.6.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^8.0.0",
+    "@testing-library/user-event": "^14.6.13",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.1",
+    "eslint": "^10.15.0",
+    "jsdom": "^31.0.1",
+    "phaser": "^4.2.1",
+    "postcss": "^8.5.33",
+    "rxjs": "~7.8.2",
+    "sass": "^1.108.2",
+    "stylelint": "^18.1.0",
+    "stylelint-config-standard-scss": "^18.0.0",
+    "tslib": "^2.9.1",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

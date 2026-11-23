@@ -65,6 +65,7 @@
     "@angular/compiler": "^22.3.0",
     "@angular/core": "^22.3.0",
     "@angular/platform-browser": "^22.3.0",
+    "@fz/brick-wall": "workspace:*",
     "@fz/core": "workspace:*",
     "@fz/game-ui": "workspace:*",
     "@fz/phaser": "workspace:*",

@@ -55,6 +55,8 @@ export interface Projects {
    * The folders of the specs that play or lay out every level or wave,
    * which run in `sim`, in Node, and which a `test:coverage` script runs
    * apart, without the coverage that would slow them several times over.
+   * A folder may be a glob, such as one that matches a folder named
+   * benchmarks in any layer.
    */
   readonly sim?: readonly string[];
 }
