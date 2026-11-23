@@ -1,5 +1,6 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
 import { flareScale } from "@fz/brick-wall/view/easing";
 import { type Place, toCanvas } from "@fz/brick-wall/view/field_metrics";
 import { FLARE_MS } from "@fz/brick-wall/view/timing";
@@ -12,7 +13,6 @@ import { LAUNCH_GAP, MOST_FUZZBALLS, TRIPLE_MATES } from "../../rules/tuning";
 import { CHARGES, FRAMES, type FrameName, INKS } from "../../view/art/frames";
 import { fuzzballGrid } from "../../view/art/fuzzball_art";
 import type { BallView } from "../../view/round_play";
-import { ATLAS } from "../atlas";
 import type { PaintContext, Painter } from "./painter";
 
 /** The player's fuzzball's frame with no charge, which a charge or an ink no frame has falls back on. */

@@ -1,6 +1,7 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { DANGER_ROW, dangerCells } from "@fz/brick-wall/rules/wall";
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
 import { swellScale } from "@fz/brick-wall/view/easing";
 import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import { SWELL_MS } from "@fz/brick-wall/view/timing";
@@ -12,7 +13,6 @@ import { WALL_RULES, type Wall } from "../../rules/wall/wall";
 import { brickLayers } from "../../view/art/art";
 import type { FrameName } from "../../view/art/frames";
 import type { WallPalette } from "../../view/colors/palette";
-import { ATLAS } from "../atlas";
 import { FIELD_FRAMES } from "../field_art";
 import type { PaintContext, Painter } from "./painter";
 

@@ -1,5 +1,10 @@
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
-import { PANEL_GAP_CSS_PX, type Viewport, roomInside } from "@fz/phaser/layout";
+import {
+  PANEL_GAP_CSS_PX,
+  type Viewport,
+  framePixels,
+  roomInside,
+} from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
 import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../rules/field";
 import { thirdsOf } from "../rules/wall";
@@ -13,6 +18,7 @@ import {
   bandPixels,
   fieldMetrics,
   fieldShape,
+  frameBounds,
   hasRoom,
   lintelPixels,
   toCanvas,
@@ -816,6 +822,39 @@ describe("lintelPixels and bandPixels", () => {
       lintelPixels(shape, shape.unit),
       bandPixels(shape, shape.unit),
     ]).toEqual([19, 31]);
+  });
+});
+
+describe("frameBounds", () => {
+  it("bounds the field from the lintel's top to the band's bottom, the frame around it", () => {
+    const canvas = boardCanvas(400, 400);
+    const shape = fieldShape(canvas);
+    const metrics = fieldMetrics(canvas, shape);
+    const { x, y, width, height, unit } = metrics;
+
+    expect(frameBounds(metrics, shape)).toEqual({
+      x: x - FRAME_CSS_PX,
+      y: y - lintelPixels(shape, unit) - FRAME_CSS_PX,
+      width: width + 2 * FRAME_CSS_PX,
+      height:
+        lintelPixels(shape, unit) +
+        height +
+        bandPixels(shape, unit) +
+        2 * FRAME_CSS_PX,
+    });
+  });
+
+  it("thickens the frame as the pixel ratio has it", () => {
+    const canvas = boardCanvas(400, 400, 2);
+    const shape = fieldShape(canvas);
+    const metrics = fieldMetrics(canvas, shape);
+
+    const bounds = frameBounds(metrics, shape);
+
+    expect([metrics.x - bounds.x, bounds.width - metrics.width]).toEqual([
+      framePixels(FRAME_CSS_PX, 2),
+      2 * framePixels(FRAME_CSS_PX, 2),
+    ]);
   });
 });
 

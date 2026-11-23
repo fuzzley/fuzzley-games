@@ -1,6 +1,7 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf, wallRowOf } from "@fz/brick-wall/rules/grid";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import { ATLAS, bakedScaleOf } from "@fz/brick-wall/scene/atlas";
 import { ringScale } from "@fz/brick-wall/view/easing";
 import {
   type FieldMetrics,
@@ -22,7 +23,6 @@ import type { Wall } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
 import { hopHeight } from "../../view/effects/flourish";
 import { BOLT_MS, HOP_MS, STREAK_MS } from "../../view/effects/timing";
-import { ATLAS, bakedScaleOf } from "../atlas";
 import { FLIGHT_FRAMES } from "../field_art";
 import { INKED } from "./ball_painter";
 import type { PaintContext, Painter } from "./painter";

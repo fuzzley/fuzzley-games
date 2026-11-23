@@ -9,6 +9,7 @@ import {
   type SidePanels,
   type Viewport,
   cssRectOf,
+  framePixels,
   roomInside,
   sidePanels,
 } from "@fz/phaser/layout";
@@ -205,6 +206,27 @@ export function lintelPixels(shape: FieldShape, unit: number): number {
 /** Returns how thick a shape's floor's band is at a unit, in whole device pixels, rounded down. */
 export function bandPixels(shape: FieldShape, unit: number): number {
   return wholeOf(shape.band * unit);
+}
+
+/**
+ * Returns where the field laid out in a shape lies from the lintel's top to
+ * the band's bottom with the frame around it, in device pixels: the frame's
+ * outer edge, inside which a wall game draws all of its field.
+ */
+export function frameBounds(
+  metrics: FieldMetrics,
+  shape: FieldShape,
+): PixelRect {
+  const { x, y, width, height, unit } = metrics;
+  const frame = framePixels(FRAME_CSS_PX, metrics.pixelRatio);
+  const top = y - lintelPixels(shape, unit) - frame;
+  const bottom = y + height + bandPixels(shape, unit) + frame;
+  return {
+    x: x - frame,
+    y: top,
+    width: width + 2 * frame,
+    height: bottom - top,
+  };
 }
 
 /** Returns how tall a shape's field is at a unit, from the lintel's top to the band's bottom, in device pixels. */

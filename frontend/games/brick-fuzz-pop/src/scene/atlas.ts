@@ -1,32 +1,14 @@
-import { atlasFrameOf, bakeAtlas } from "@fz/phaser/scene";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
-import type { Scene } from "phaser";
 import { atlasFrames } from "../view/art/atlas_frames";
 import type { WallPalette } from "../view/colors/palette";
 import { fieldFrames, flightFrames } from "./field_art";
 import { pictureFrames } from "./pictures";
 
-/** The atlas's texture key, which every image on the field shows a frame of. */
-export const ATLAS = "wall-atlas";
-
-/** The largest unit the atlas is baked at, in device pixels; a field's larger unit shows its frames scaled up. */
-export const MOST_BAKED_UNIT = 128;
-
 /**
- * Returns the scale the atlas is baked at for a field's: its unit, but no
- * more than {@link MOST_BAKED_UNIT}, at its pixel ratio.
- */
-export function bakedScaleOf(scale: ArtScale): ArtScale {
-  return {
-    unit: Math.min(scale.unit, MOST_BAKED_UNIT),
-    pixelRatio: scale.pixelRatio,
-  };
-}
-
-/**
- * Returns every frame the field shows, at a scale and in a palette: the
- * art's, the scene's own dots, warning frame and frames of a round in play,
- * and a picture of each kind of brick for the page.
+ * Returns every frame the field shows, at a scale and in a palette, which
+ * `@fz/brick-wall/scene/atlas`'s `WallAtlas` bakes: the art's, the scene's
+ * own dots, warning frame and frames of a round in play, and a picture of
+ * each kind of brick for the page.
  */
 export function wallAtlasFrames(
   palette: WallPalette,
@@ -39,13 +21,4 @@ export function wallAtlasFrames(
     ...flightFrames(palette, scale),
     ...pictureFrames(art, scale),
   ];
-}
-
-/** Bakes every frame the field shows into the atlas, at a scale and in a palette ({@link wallAtlasFrames}). */
-export function bakeWallAtlas(
-  scene: Scene,
-  palette: WallPalette,
-  scale: ArtScale,
-): void {
-  bakeAtlas(scene, ATLAS, wallAtlasFrames(palette, scale).map(atlasFrameOf));
 }

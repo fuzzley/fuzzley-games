@@ -1,4 +1,6 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
+import { placeDot } from "@fz/brick-wall/scene/painter";
 import {
   type FieldMetrics,
   type Place,
@@ -8,8 +10,6 @@ import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_CHARGE } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/frames";
-import { ATLAS } from "../atlas";
-import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
 /** How far each pip of the meter lies from the waiting fuzzball's middle, in field units, as the art draws it: 20.5 of a cell of 40. */

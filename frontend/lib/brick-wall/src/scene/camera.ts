@@ -1,24 +1,26 @@
-import { type Shift, shakeOf } from "@fz/brick-wall/view/easing";
-import type {
-  FieldMetrics,
-  FieldShape,
-} from "@fz/brick-wall/view/field_metrics";
-import { SHAKE_MS } from "@fz/brick-wall/view/timing";
+// A wall game's camera, framed on its field and shaken as a level is lost.
+
 import type { PixelRect } from "@fz/phaser/layout";
 import type { Cameras } from "phaser";
-import { frameBounds } from "./painters/field_painter";
-import type { PaintContext, Painter } from "./painters/painter";
+import { type Shift, shakeOf } from "../view/easing";
+import {
+  type FieldMetrics,
+  type FieldShape,
+  frameBounds,
+} from "../view/field_metrics";
+import { SHAKE_MS } from "../view/timing";
+import type { PaintContext, Painter } from "./painter";
 
 /**
- * Frames the scene's camera on the field, and moves it as a lost level's
- * shake has the field, the one place its viewport is written.
+ * Frames a scene's camera on a wall game's field, and moves it as a lost
+ * level's shake has the field, the one place its viewport is written.
  *
  * Its viewport is the frame's outer edge, so nothing drawn shows past the
  * frame, and it shows the canvas's own pixels, so a place on the canvas is
  * the same in its world. A shake moves the viewport, so the field and its
  * frame shake whole together.
  */
-export class FieldCamera implements Painter {
+export class FieldCamera implements Painter<PaintContext<unknown>> {
   /** Where the viewport rests on the canvas: the frame's outer edge, in device pixels. */
   private rest: PixelRect = { x: 0, y: 0, width: 0, height: 0 };
   /** When the level was lost, in the scene's time. */
@@ -53,7 +55,7 @@ export class FieldCamera implements Painter {
   draw({
     now,
     metrics,
-  }: Readonly<Pick<PaintContext, "now" | "metrics">>): void {
+  }: Readonly<Pick<PaintContext<unknown>, "now" | "metrics">>): void {
     if (!this.shaken) return;
     const since = now - this.shakenAt;
     const { x, y } = shakeOf(since, metrics.pixelRatio, this.shift);

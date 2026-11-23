@@ -3,6 +3,11 @@ import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
 import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import {
+  ATLAS,
+  MOST_BAKED_UNIT,
+  bakedScaleOf,
+} from "@fz/brick-wall/scene/atlas";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
 import {
   type PointerAiming,
@@ -25,7 +30,6 @@ import {
   FLARE_MS,
   FLASH_MS,
   RING_MS,
-  SHAKE_MS,
   SHARDS,
   SWELL_MS,
 } from "@fz/brick-wall/view/timing";
@@ -102,7 +106,7 @@ import {
 } from "../view/round_play";
 import type { FieldCommand } from "../view/steering/controls";
 import type { Steer } from "../view/steering/steering";
-import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf, wallAtlasFrames } from "./atlas";
+import { wallAtlasFrames } from "./atlas";
 import {
   FIELD_FRAMES,
   FLIGHT_FRAMES,
@@ -4447,33 +4451,6 @@ describe("WallScene", () => {
       });
     });
 
-    it("still the field once the shake is over, the viewport back at rest", async () => {
-      const { shell, run, scene } = await startBoard();
-      const rest = cameraOf(scene);
-      shell.beat("lost");
-      run.advance(32);
-
-      run.advance(SHAKE_MS);
-
-      expect(cameraOf(scene)).toEqual(rest);
-    });
-
-    it("still a shaken field where it is laid out again before the shake is over", async () => {
-      const board = await startBoard();
-      board.shell.beat("lost");
-      board.run.advance(16);
-      resizeTo(board, 600, 500);
-
-      board.run.advance(SHAKE_MS);
-
-      const frame = frameOf(board.scene);
-      expect(cameraOf(board.scene)).toEqual({
-        ...frame,
-        scrollX: frame.x,
-        scrollY: frame.y,
-      });
-    });
-
     it("play a flight's last flourishes where their bricks still show, as the wall that comes down is handed over", async () => {
       const { shell, run, scene } = await startBoard();
 
@@ -4667,22 +4644,6 @@ describe("WallScene", () => {
         calls: 0,
         commands: [],
       });
-    });
-  });
-});
-
-describe("bakedScaleOf", () => {
-  it("bakes at a field's unit and pixel ratio", () => {
-    expect(bakedScaleOf({ unit: 62, pixelRatio: 2 })).toEqual({
-      unit: 62,
-      pixelRatio: 2,
-    });
-  });
-
-  it("bakes at no more than the largest unit, at the field's pixel ratio", () => {
-    expect(bakedScaleOf({ unit: 291, pixelRatio: 3 })).toEqual({
-      unit: MOST_BAKED_UNIT,
-      pixelRatio: 3,
     });
   });
 });

@@ -6,22 +6,23 @@ import {
   neededBelow,
   thirdsOf,
 } from "@fz/brick-wall/rules/wall";
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
+import { placeDot } from "@fz/brick-wall/scene/painter";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
   type FieldShape,
   bandPixels,
+  frameBounds,
   lintelPixels,
 } from "@fz/brick-wall/view/field_metrics";
-import { type PixelRect, framePixels } from "@fz/phaser/layout";
+import { framePixels } from "@fz/phaser/layout";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
 import { WALL_RULES, type Wall } from "../../rules/wall/wall";
 import type { WallPalette } from "../../view/colors/palette";
-import { ATLAS } from "../atlas";
 import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
-import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
 /** The key of the texture the cells, the floor's band and the grid's dots are drawn on, once a layout. */
@@ -64,27 +65,6 @@ export interface FieldLayers {
   readonly lines: GameObjects.Layer;
   readonly count: GameObjects.Layer;
   readonly rim: GameObjects.Layer;
-}
-
-/**
- * Returns where the field laid out in a shape lies from the lintel's top to
- * the band's bottom with the frame around it, in device pixels: the frame's
- * outer edge, inside which the painters draw all of the field.
- */
-export function frameBounds(
-  metrics: FieldMetrics,
-  shape: FieldShape,
-): PixelRect {
-  const { x, y, width, height, unit } = metrics;
-  const frame = framePixels(FRAME_CSS_PX, metrics.pixelRatio);
-  const top = y - lintelPixels(shape, unit) - frame;
-  const bottom = y + height + bandPixels(shape, unit) + frame;
-  return {
-    x: x - frame,
-    y: top,
-    width: width + 2 * frame,
-    height: bottom - top,
-  };
 }
 
 /**

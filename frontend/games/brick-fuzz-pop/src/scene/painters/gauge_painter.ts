@@ -1,11 +1,11 @@
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
+import { placeDot } from "@fz/brick-wall/scene/painter";
 import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_CHARGE } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/frames";
 import { createGaugePlace, gaugeOf } from "../../view/gauge/gauge";
 import { itemAt } from "../../view/items";
-import { ATLAS } from "../atlas";
-import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
 /**

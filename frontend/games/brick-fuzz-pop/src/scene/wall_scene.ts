@@ -1,5 +1,7 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import { ATLAS, WallAtlas } from "@fz/brick-wall/scene/atlas";
+import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import {
   type PointerAiming,
   STRAIGHT_UP,
@@ -23,11 +25,9 @@ import {
   onKeyDown,
   onPlayerAway,
   picturesWhenAsked,
-  retakeFrames,
   uniqueSceneKey,
   viewportOf,
 } from "@fz/phaser/scene";
-import type { ArtScale } from "@fz/phaser/shapes";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import type { FlightEvent } from "../rules/flight/events";
@@ -50,8 +50,7 @@ import {
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Steer, Steering } from "../view/steering/steering";
-import { ATLAS, bakeWallAtlas, bakedScaleOf } from "./atlas";
-import { FieldCamera } from "./field_camera";
+import { wallAtlasFrames } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
@@ -178,10 +177,8 @@ export class WallScene extends Scene {
   /** The field's shape it was last laid out by. */
   private laidOut!: FieldShape;
   private metrics!: FieldMetrics;
-  /** The scale the atlas was last baked at. */
-  private baked!: ArtScale;
-  /** The palette the atlas was last baked in. */
-  private painted!: WallPalette;
+  /** Bakes the atlas, in the palette and at the field's scale. */
+  private atlas!: WallAtlas<WallPalette>;
   /** The canvas the field was last laid out on. */
   private canvas!: Viewport;
   /** How the mouse and fingers aim, as the steering was last told. */
@@ -217,9 +214,14 @@ export class WallScene extends Scene {
    */
   create(): void {
     const { options } = this;
-    this.painted = options.palette();
     this.measure();
-    this.bake();
+    this.atlas = new WallAtlas(
+      this,
+      wallAtlasFrames,
+      options.palette(),
+      this.metrics,
+    );
+    this.handPictures();
     const layers = this.layers();
     this.field = new FieldPainter(this, layers);
     this.wall = new WallPainter(this, layers.wall);
@@ -255,8 +257,8 @@ export class WallScene extends Scene {
       guide: options.guide(),
       shape: this.laidOut,
       metrics: this.metrics,
-      baked: this.baked,
-      palette: this.painted,
+      baked: this.atlas.scale,
+      palette: this.atlas.palette,
       now: 0,
       motion: options.motion(),
     };
@@ -290,19 +292,16 @@ export class WallScene extends Scene {
   override update(time: number, delta: number): void {
     const { options, context } = this;
     context.now = time;
-    let stale = this.fit();
+    this.fit();
     this.aim();
     const steer = this.steering.read(time, this.from);
     options.tick(delta, steer);
     this.sounds.follow(options.sound());
-    const palette = options.palette();
     // The tick may have reshaped the field, between rounds.
-    stale = this.fit() || stale;
-    if (palette !== this.painted) {
-      this.painted = palette;
-      stale = true;
+    this.fit();
+    if (this.atlas.bakeFor(options.palette(), this.metrics)) {
+      this.handPictures();
     }
-    if (stale) this.rebake();
     const view = options.view();
     context.view = view;
     context.steer = steer;
@@ -325,8 +324,8 @@ export class WallScene extends Scene {
     context.guide = this.options.guide();
     context.shape = this.laidOut;
     context.metrics = this.metrics;
-    context.baked = this.baked;
-    context.palette = this.painted;
+    context.baked = this.atlas.scale;
+    context.palette = this.atlas.palette;
     this.painters.forEach(this.paint);
   }
 
@@ -513,7 +512,7 @@ export class WallScene extends Scene {
     this.effects.shatter(
       columnOf(cell) + 0.5,
       fieldRowOf(wall, cell) + 0.5,
-      brickColor(brick, this.painted),
+      brickColor(brick, this.atlas.palette),
       this.metrics,
     );
   }
@@ -523,22 +522,13 @@ export class WallScene extends Scene {
     return recordOf(LAYERS, () => this.add.layer());
   }
 
-  /**
-   * Lays the field out again if the canvas, the chrome over it or its shape
-   * changed, and returns whether the atlas must be baked again: at a new
-   * scale.
-   */
-  private fit(): boolean {
-    if (!this.moved() || !this.measure()) return false;
+  /** Lays the field out again if the canvas, the chrome over it or its shape changed. */
+  private fit(): void {
+    if (!this.moved() || !this.measure()) return;
     this.options.onLayout(this.metrics);
     this.steering.measure(this.metrics, this.canvas);
     this.effects.layout(this.metrics);
     this.fieldCamera.fit(this.metrics, this.laidOut);
-    const scale = bakedScaleOf(this.metrics);
-    return (
-      scale.unit !== this.baked.unit ||
-      scale.pixelRatio !== this.baked.pixelRatio
-    );
   }
 
   /** Returns whether the canvas, its pixel ratio, the chrome over it or the field's shape changed. */
@@ -567,20 +557,9 @@ export class WallScene extends Scene {
     return true;
   }
 
-  /**
-   * Bakes the atlas at the field's scale, in the palette, and hands the
-   * shell what pictures it for How to play.
-   */
-  private bake(): void {
-    this.baked = bakedScaleOf(this.metrics);
-    bakeWallAtlas(this, this.painted, this.baked);
+  /** Hands the shell what pictures the atlas as last baked for How to play. */
+  private handPictures(): void {
     this.options.onPictures(picturesWhenAsked(this, ATLAS, PICTURE_FRAMES));
-  }
-
-  /** Bakes the atlas again, and has every image take up its frame anew. */
-  private rebake(): void {
-    this.bake();
-    retakeFrames(this, ATLAS);
   }
 
   /**

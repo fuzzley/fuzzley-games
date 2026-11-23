@@ -1,5 +1,7 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import { ATLAS } from "@fz/brick-wall/scene/atlas";
+import { placeDot } from "@fz/brick-wall/scene/painter";
 import {
   type FieldMetrics,
   type Place,
@@ -9,8 +11,6 @@ import type { GameObjects, Scene } from "phaser";
 import type { Guide, GuidePlace } from "../../rules/flight/guide";
 import type { Wall } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
-import { ATLAS } from "../atlas";
-import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";
 
 /**
