@@ -6,8 +6,8 @@
  *   yarn report:levels [--seeds <n>] [--depth <n>]…
  *
  * For each level and depth it plays the careless player's games through
- * `playCasually()` in `src/testing/casual.ts`, as the specs in
- * `src/rules/levels/every_floor/` do, each level from seeds of its own
+ * `playCasually()` in `src/testing/casual.ts`, the games the specs in
+ * `src/rules/levels/every_floor/` play, each level from seeds of its own
  * numbered as theirs are, so the report's first games are the spec's. It
  * prints how often the player cleared the level, marked `!` under its set's
  * floor, and the rounds and the wall's jumps a game took at the mean. It

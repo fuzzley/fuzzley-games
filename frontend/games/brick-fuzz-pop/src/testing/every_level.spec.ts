@@ -2,7 +2,16 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { LEVELS, LEVEL_SETS } from "../rules/levels/levels";
-import { CERTIFICATES, FLOOR_SPECS, certificateOf } from "./every_level";
+import { floorGames } from "@fz/brick-wall/testing/holders";
+import { SEED_STRIDE } from "@fz/dev/report";
+import {
+  CERTIFICATES,
+  FLOORED,
+  FLOOR_SEEDS,
+  FLOOR_SPECS,
+  certificateOf,
+} from "./every_level";
+import { REPORT_API } from "./report_api";
 
 /** Returns the files in a folder of `src/rules/levels/`. */
 function filesIn(folder: string): Set<string> {
@@ -82,7 +91,7 @@ describe("certificateOf", () => {
     );
   });
 
-  it.each([[[100]], [[100, 3, 1]]])(
+  it.each([[[100]], [[100, 3, 1]], [["100", 3]]])(
     "throws for a shot of %j, which isn't an aim and a charge",
     (shot) => {
       const certificates = { "warm-up": { [id]: { "11": [shot] } } };
@@ -92,4 +101,20 @@ describe("certificateOf", () => {
       );
     },
   );
+});
+
+describe("FLOORED", () => {
+  it("plays a level's games on a depth as yarn report:levels plays its first, from the same seeds", () => {
+    const [entry] = LEVELS;
+    const seeds = Array.from(
+      { length: FLOOR_SEEDS },
+      (_, game) => entry!.number * SEED_STRIDE + game,
+    );
+
+    const games = floorGames(FLOORED.linePlayOf, entry!, 13);
+
+    expect(games).toEqual(
+      seeds.map((seed) => REPORT_API.playCasually(entry!.number, 13, seed)),
+    );
+  });
 });

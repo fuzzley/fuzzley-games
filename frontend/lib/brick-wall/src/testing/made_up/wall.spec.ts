@@ -1,5 +1,5 @@
 import { DANGER_ROW } from "../../rules/wall";
-import { madeUpPlay } from "./wall";
+import { madeUpPlay, readMadeUpShot } from "./wall";
 
 /** Returns the hits of the bricks of a wall, by wall cell, `.` for none. */
 function hitsOf(wall: {
@@ -127,4 +127,17 @@ describe("madeUpPlay", () => {
 
     expect(new Set([...keys, play.keyOf(play.opening)]).size).toBe(4);
   });
+});
+
+describe("readMadeUpShot", () => {
+  it("reads an aim", () => {
+    expect(readMadeUpShot(8)).toBe(8);
+  });
+
+  it.each([[9], [-1], [1.5], ["4"], [[4, 0]]])(
+    "throws a RangeError for %j",
+    (kept) => {
+      expect(() => readMadeUpShot(kept)).toThrow(RangeError);
+    },
+  );
 });

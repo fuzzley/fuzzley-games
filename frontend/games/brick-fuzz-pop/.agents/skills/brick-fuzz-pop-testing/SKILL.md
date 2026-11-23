@@ -92,16 +92,16 @@ Then:
   as the last unless a line changed.
 - **`src/rules/levels/every_level/`** has a file for each depth, 11 to 22,
   each `holdEveryCertificate(import.meta.filename)`
-  (`src/testing/every_level.ts`). It replays every level's line on that
-  depth through `playRound()`, and holds the line to `lineHolds()` and its
-  par to `par.json`.
+  (`src/testing/every_level.ts`, over `@fz/brick-wall/testing/holders`). It
+  replays every level's line on that depth through `playRound()`, and holds
+  the line to `lineHolds()` and its par to `par.json`.
 - **`src/rules/levels/every_floor/`** has a file for each set on 11, 13 and
   22 deep (`<set>_<depth>.spec.ts`), each
   `holdEveryFloor(import.meta.filename)`. The careless player
-  (`playCasually()`, `src/testing/casual.ts`, the game's play of a line
-  handed to `@fz/brick-wall/testing/careless`) must clear each of the set's
-  levels at least `CASUAL_FLOORS` times in 100, over `FLOOR_SEEDS` games
-  from the level's own seeds.
+  (`@fz/brick-wall/testing/holders`' `floorGames()`, over the game's play
+  of a line, `linePlayOf()`) must clear each of the set's levels at least
+  `CASUAL_FLOORS` times in 100, over `FLOOR_SEEDS` games from the level's
+  own seeds: the games `playCasually()` plays first for the report.
 - **`src/testing/every_level.spec.ts`** fails for a file either folder
   lacks, or has too many of.
 - **`yarn report:levels`** plays the careless player over more games, 40 a
@@ -131,14 +131,14 @@ Then:
 ## When a Replay Fails
 
 A spec in `every_level/` holds two things at once: that the level's line
-still holds (`holds`), and that `par.json` gives the level the par its line
-earns (`par`). Its message says to run `yarn certify:levels`. Don't, until
-you know why it failed:
+still holds, and that `par.json` gives the level the par its line earns.
+Its message says to run `yarn certify:levels`. Don't, until you know why it
+failed:
 
-1. **See which of the two failed,** in the diff Vitest prints. If `holds`
-   is still true and only `par` differs, the line clears its level and
-   `par.json` is stale against `parFrom()`, as when `PAR_SHARE` is
-   retuned. Certify any one level again (`--level 1 --depth 11`): that
+1. **See which of the two failed,** in the message. If it says only that
+   the level's par isn't the one its certificate earns, the line clears its
+   level and `par.json` is stale against `parFrom()`, as when `PAR_SHARE`
+   is retuned. Certify any one level again (`--level 1 --depth 11`): that
    keeps every other line and writes every level's par from every line.
 2. **If the line no longer holds, ask whether the change meant to change a
    round.** A replay reads only the rules, `@fz/core`'s sweep and

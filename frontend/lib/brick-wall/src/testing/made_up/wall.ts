@@ -1,8 +1,9 @@
-// A wall game made up for the specs of the solver and the careless player,
-// on the library's own wall: a shot is an aim alone, one of nine, which
-// breaks the lowest brick in play in the column of its number, whole, and
-// the wall comes down after a round as the library's rules bring it down. It
-// stands in a folder beside the entries, which a game's fences refuse it.
+// A wall game made up for the specs of the solver, the careless player and
+// the holders, on the library's own wall: a shot is an aim alone, one of
+// nine, which breaks the lowest brick in play in the column of its number,
+// whole, and the wall comes down after a round as the library's rules bring
+// it down. Its certificates keep each shot's aim alone. It stands in a
+// folder beside the entries, which a game's fences refuse it.
 
 import { COLUMNS } from "../../rules/field";
 import { brickAt, cellAt } from "../../rules/grid";
@@ -96,9 +97,25 @@ export function madeUpPlay(
   };
 }
 
-/** Returns whether a number is one of the made-up game's aims: a whole number from 0 to 8. */
-function isMadeUpAim(value: number): boolean {
-  return Number.isInteger(value) && value >= 0 && value < COLUMNS;
+/**
+ * Returns a shot as the made-up game's certificates keep it, an aim alone:
+ * their codec, which throws a `RangeError` for anything else.
+ */
+export function readMadeUpShot(kept: unknown): number {
+  if (!isMadeUpAim(kept)) {
+    throw new RangeError(`${JSON.stringify(kept)} isn't an aim.`);
+  }
+  return kept;
+}
+
+/** Returns whether a value is one of the made-up game's aims: a whole number from 0 to 8. */
+function isMadeUpAim(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value < COLUMNS
+  );
 }
 
 /** Returns the round a shot at an aim plays from where a round starts on a field of a depth, throwing a `RangeError` for an aim that isn't one. */
