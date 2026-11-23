@@ -1,4 +1,5 @@
 import type { Pars } from "@fz/brick-wall/rules/par";
+import { isLevelCleared } from "@fz/brick-wall/rules/run";
 import par from "../levels/par.json";
 import { TWO_STARS_PAST_PAR } from "../tuning";
 import type { Run } from "./run";
@@ -26,6 +27,5 @@ export function starsFor(rounds: number, par: number): Stars {
 export function starsOf(
   run: Pick<Run, "outcome" | "rounds" | "par">,
 ): Stars | 0 {
-  const cleared = run.outcome === "cleared" || run.outcome === "won";
-  return cleared ? starsFor(run.rounds, run.par) : 0;
+  return isLevelCleared(run) ? starsFor(run.rounds, run.par) : 0;
 }

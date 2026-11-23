@@ -8,6 +8,7 @@ import { isAim } from "@fz/brick-wall/rules/aims";
 import { isDepth } from "@fz/brick-wall/rules/field";
 import type { Pars } from "@fz/brick-wall/rules/par";
 import { levelIdOf } from "@fz/brick-wall/rules/progress";
+import { takeRound } from "@fz/brick-wall/rules/run";
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
 import type { CertifiedShot } from "../levels/certificate";
 import type { LevelEntry } from "../levels/levels";
@@ -18,7 +19,7 @@ import {
   playRound,
 } from "../round/round";
 import { type Boon, type Shot, isBoon, isCharge } from "../shot";
-import { type Run, levelOf, takeRound } from "./run";
+import { RUN_RULES, type Run, levelOf } from "./run";
 import {
   type SavedGame,
   type SavedStart,
@@ -309,7 +310,7 @@ export function replayReported(
       rules,
       dropped,
     });
-    run = takeRound(run, played.outcome);
+    run = takeRound(run, played.outcome, RUN_RULES);
     start = played.next;
   }
   const differs = replayDiffers(run, start, game);
@@ -363,7 +364,7 @@ function savedGameOf(
     firstLevel: run.firstLevel,
     depth: run.depth,
     rounds: run.rounds,
-    jumps: run.jumps,
+    jumps: run.tally.jumps,
     banked: run.banked,
     stars: run.stars,
     score: run.score,
@@ -569,7 +570,9 @@ function replayDiffers(
 ): string | null {
   const kept = game.run;
   if (run.rounds !== kept.rounds) return "The shot count doesn't match.";
-  if (run.jumps !== kept.jumps) return "The jump count doesn't match.";
+  if (run.tally.jumps !== kept.tally.jumps) {
+    return "The jump count doesn't match.";
+  }
   if (run.score !== kept.score) return "The score doesn't match.";
   const replayed = savedStartOf(start);
   const reported = savedStartOf(game.start);

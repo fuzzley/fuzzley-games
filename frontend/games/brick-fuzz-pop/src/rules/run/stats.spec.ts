@@ -38,7 +38,7 @@ function clearedRun(change: Partial<Run> = {}): Run {
     depth: 11,
     par: 8,
     rounds: 9,
-    jumps: 1,
+    tally: { jumps: 1 },
     banked: 1500,
     stars: 5,
     score: 2500,

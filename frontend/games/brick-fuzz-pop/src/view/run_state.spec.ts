@@ -1,5 +1,6 @@
+import { createRun } from "@fz/brick-wall/rules/run";
 import { LEVELS } from "../rules/levels/levels";
-import { type Run, createRun } from "../rules/run/run";
+import { RUN_RULES, type Run } from "../rules/run/run";
 import { FLIGHT_FIXTURES } from "../testing/flight_fixtures";
 import {
   type PlayState,
@@ -27,7 +28,7 @@ const AIMED: PlayState = {
 const FLYING: PlayState = { ...AIMED, round: plain.round, phase: "flying" };
 
 /** A run waiting for its first move on the first level. */
-const RUN: Run = createRun({ id: 1, level: 1, depth: 11 }, LEVELS);
+const RUN: Run = createRun({ id: 1, level: 1, depth: 11 }, LEVELS, RUN_RULES);
 
 /** The state of the plain shot's level as it begins. */
 const BEGUN: RunState = newRunState(RUN, plain.start);

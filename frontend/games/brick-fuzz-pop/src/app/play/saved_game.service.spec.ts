@@ -1,23 +1,21 @@
 import { computed, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
+  createRun,
+  landRound,
+  nextLevel,
+  pause,
+  startLevel,
+  takeRound,
+} from "@fz/brick-wall/rules/run";
+import {
   MemoryStorage,
   provideMemoryStorage,
   setPageVisibility,
 } from "@fz/ui/testing";
 import { LEVELS } from "../../rules/levels/levels";
 import type { RoundResult, RoundStart } from "../../rules/round/round";
-import {
-  type Run,
-  createRun,
-  landRound,
-  levelOf,
-  nextLevel,
-  openingOf,
-  pause,
-  startLevel,
-  takeRound,
-} from "../../rules/run/run";
+import { RUN_RULES, type Run, levelOf, openingOf } from "../../rules/run/run";
 import { type TakenUp, saveGame } from "../../rules/run/saved_game";
 import {
   KEPT_GAME,
@@ -33,19 +31,24 @@ const FIRST_ID = 7;
 
 /** Returns a run on the first level, on a field 11 deep, waiting to be started. */
 function newRun(id = FIRST_ID): Run {
-  return createRun({ id, level: 1, depth: 11 }, LEVELS);
+  return createRun({ id, level: 1, depth: 11 }, LEVELS, RUN_RULES);
 }
 
 /** Returns a run with its first level cleared and its second waiting for the first move. */
 function onLevelTwo(): Run {
   const cleared = landRound(
-    takeRound(startLevel(newRun()), {
-      points: 0,
-      jumped: false,
-      result: "cleared",
-    }),
+    takeRound(
+      startLevel(newRun()),
+      {
+        points: 0,
+        jumped: false,
+        result: "cleared",
+      },
+      RUN_RULES,
+    ),
+    RUN_RULES,
   );
-  return nextLevel(cleared, cleared.depth, LEVELS);
+  return nextLevel(cleared, cleared.depth, LEVELS, RUN_RULES);
 }
 
 /** Returns where a run's level opens. */
@@ -83,7 +86,9 @@ class FakeGame implements KeptGame {
       this.run().outcome === "ready" ? startLevel(this.run()) : this.run();
     this.started = run;
     this.nextStart.set(downARow(this.nextStart()));
-    this.run.set(takeRound(run, { points: 0, jumped: false, result }));
+    this.run.set(
+      takeRound(run, { points: 0, jumped: false, result }, RUN_RULES),
+    );
   }
 
   /**
@@ -95,7 +100,11 @@ class FakeGame implements KeptGame {
   drop(): void {
     this.nextStart.set(downARow(this.nextStart()));
     this.run.set(
-      takeRound(this.started, { points: 0, jumped: false, result: "on" }),
+      takeRound(
+        this.started,
+        { points: 0, jumped: false, result: "on" },
+        RUN_RULES,
+      ),
     );
   }
 }
@@ -245,7 +254,12 @@ describe("SavedGameService", () => {
 
     game.run.set(
       landRound(
-        takeRound(game.run(), { points: 0, jumped: false, result: "lost" }),
+        takeRound(
+          game.run(),
+          { points: 0, jumped: false, result: "lost" },
+          RUN_RULES,
+        ),
+        RUN_RULES,
       ),
     );
     TestBed.tick();

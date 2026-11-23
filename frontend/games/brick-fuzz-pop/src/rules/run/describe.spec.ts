@@ -35,7 +35,7 @@ function runOf(change: Partial<Run> = {}): Run {
     depth: 11,
     par: 9,
     rounds: 7,
-    jumps: 2,
+    tally: { jumps: 2 },
     banked: 3000,
     stars: 10,
     score: 4210,

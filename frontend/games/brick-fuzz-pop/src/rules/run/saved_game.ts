@@ -6,6 +6,7 @@ import {
 } from "@fz/brick-wall/rules/field";
 import { type Pars, parOf } from "@fz/brick-wall/rules/par";
 import { levelIdOf } from "@fz/brick-wall/rules/progress";
+import { afterLanding, isInProgress } from "@fz/brick-wall/rules/run";
 import { isCleared, thirdsOf } from "@fz/brick-wall/rules/wall";
 import {
   isCount,
@@ -19,13 +20,7 @@ import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
 import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";
 import { type Brick, WALL_RULES, type Wall } from "../wall/wall";
-import {
-  type Run,
-  afterLanding,
-  isInProgress,
-  levelOf,
-  openingOf,
-} from "./run";
+import { RUN_RULES, type Run, levelOf, openingOf } from "./run";
 import { MOST_STARS, PARS } from "./stars";
 
 /**
@@ -114,7 +109,7 @@ export function saveGame(
   levels: readonly LevelEntry[],
   { tuned }: RunKeeping,
 ): SavedGame | null {
-  const landed = afterLanding(run);
+  const landed = afterLanding(run, RUN_RULES);
   if (!isInProgress(landed)) return null;
   if (landed.outcome === "cleared") {
     // The next level as nextLevel() begins it, but for its par, which
@@ -124,7 +119,7 @@ export function saveGame(
       level: landed.level + 1,
       depth: next.depth,
       rounds: 0,
-      jumps: 0,
+      tally: RUN_RULES.untallied,
       banked: landed.score,
     };
     return savedRun(begun, null, levels, tuned);
@@ -187,7 +182,7 @@ export function readRun(
     depth,
     par: parOf(levelId, depth, pars),
     rounds,
-    jumps,
+    tally: { jumps },
     banked: value.banked,
     stars,
     score: value.score,
@@ -273,14 +268,14 @@ export function hasSoundScore(
 export function readStart(
   value: unknown,
   level: Level,
-  run: Pick<Run, "depth" | "rounds" | "jumps">,
+  run: Pick<Run, "depth" | "rounds" | "tally">,
 ): RoundStart | null {
   if (
     !isRecord(value) ||
     !hasDepth(value) ||
     !hasSoundPlace(value) ||
     !hasSoundCrew(value) ||
-    !hasEarnedBoon(value, level, run.jumps)
+    !hasEarnedBoon(value, level, run.tally.jumps)
   ) {
     return null;
   }
@@ -330,7 +325,7 @@ export function hasEarnedBoon(
 export function readWall(
   value: Kept,
   level: Level,
-  run: Pick<Run, "depth" | "rounds" | "jumps">,
+  run: Pick<Run, "depth" | "rounds" | "tally">,
 ): Wall | null {
   const { hits, lowestRow } = value;
   if (
@@ -371,7 +366,7 @@ function savedRun(
     firstLevel: run.firstLevel,
     depth: run.depth,
     rounds: run.rounds,
-    jumps: run.jumps,
+    jumps: run.tally.jumps,
     banked: run.banked,
     stars: run.stars,
     score: run.score,
@@ -400,10 +395,10 @@ function savedStart({ wall, depth, x, crew, boon }: RoundStart): SavedStart {
 function highestAfter({
   depth,
   rounds,
-  jumps,
-}: Pick<Run, "depth" | "rounds" | "jumps">): number {
+  tally,
+}: Pick<Run, "depth" | "rounds" | "tally">): number {
   const moreForAJump = thirdsOf(LEAST_DEPTH).jump - 1;
-  return thirdsOf(depth).opensOn - rounds - jumps * moreForAJump;
+  return thirdsOf(depth).opensOn - rounds - tally.jumps * moreForAJump;
 }
 
 /** Returns whether a value kept is a friend's ink, from 0. */

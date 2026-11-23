@@ -1,5 +1,11 @@
 import { TestBed } from "@angular/core/testing";
 import { MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import {
+  createRun,
+  landRound,
+  startLevel,
+  takeRound,
+} from "@fz/brick-wall/rules/run";
 import { FRAME_MS } from "@fz/core/testing";
 import { createRandom } from "@fz/core/random";
 import {
@@ -23,15 +29,7 @@ import {
   readReportedGame,
   reportedGameOf,
 } from "../../rules/run/reported_game";
-import {
-  type Run,
-  createRun,
-  landRound,
-  levelOf,
-  openingOf,
-  startLevel,
-  takeRound,
-} from "../../rules/run/run";
+import { RUN_RULES, type Run, levelOf, openingOf } from "../../rules/run/run";
 import {
   RELEASE,
   SPEC_LEVELS,
@@ -372,6 +370,7 @@ function largestGame(): PlayedGame {
   let run: Run = createRun(
     { id: 1, level: entry.number, depth: MOST_DEPTH },
     LEVELS,
+    RUN_RULES,
   );
   let start: RoundStart = openingOf(run, levelOf(run, LEVELS));
   const rounds: PlayedRound[] = [];
@@ -398,7 +397,7 @@ function largestGame(): PlayedGame {
       dropped === null ? undefined : { stop: "drop", at: dropped },
     );
     if (round.outcome.result === "on") {
-      run = landRound(takeRound(started, round.outcome));
+      run = landRound(takeRound(started, round.outcome, RUN_RULES), RUN_RULES);
       start = round.next;
     }
   }
@@ -411,7 +410,11 @@ function largestGame(): PlayedGame {
     dropped: 41.123456789,
   };
   return {
-    run: takeRound(inPlay.started, { points: 0, jumped: false, result: "on" }),
+    run: takeRound(
+      inPlay.started,
+      { points: 0, jumped: false, result: "on" },
+      RUN_RULES,
+    ),
     start,
     rounds: [...rounds.slice(1), inPlay],
     inPlay: true,

@@ -7,7 +7,7 @@ const CLEARED = {
   outcome: "cleared",
   rounds: 7,
   par: 6,
-  jumps: 2,
+  tally: { jumps: 2 },
   banked: 1000,
   score: 2900,
 } as const;

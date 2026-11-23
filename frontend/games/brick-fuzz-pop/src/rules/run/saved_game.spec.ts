@@ -1,5 +1,11 @@
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { parOf } from "@fz/brick-wall/rules/par";
+import {
+  createRun,
+  pause,
+  startLevel,
+  takeRound,
+} from "@fz/brick-wall/rules/run";
 import { WALL_LEGEND } from "../levels/legend";
 import {
   LEVELS,
@@ -12,7 +18,7 @@ import {
 } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import type { Brick } from "../wall/wall";
-import { type Run, createRun, pause, startLevel, takeRound } from "./run";
+import { RUN_RULES, type Run } from "./run";
 import {
   type RunKeeping,
   hasDepth,
@@ -85,7 +91,7 @@ const SUNK = {
 };
 
 /** What of a run its wall is read against, three rounds into Girder on a field 11 deep, none of them a jump. */
-const THREE_ROUNDS = { depth: 11, rounds: 3, jumps: 0 };
+const THREE_ROUNDS = { depth: 11, rounds: 3, tally: { jumps: 0 } };
 
 /** Levels a run kept may name that the game doesn't have so, each failing `hasKnownLevel()`. */
 const KNOWN_LEVEL_SPOILS: readonly Spoil[] = [
@@ -172,7 +178,7 @@ function runUnderWay(change: Partial<Run> = {}): Run {
     depth: 11,
     par: parOf("girder", 11, PARS),
     rounds: 3,
-    jumps: 0,
+    tally: { jumps: 0 },
     banked: 3000,
     stars: 5,
     score: 3450,
@@ -240,7 +246,11 @@ describe("saveGame", () => {
   });
 
   it("keeps a run whose level was just cleared at the start of the next, on the field's depth", () => {
-    const run = runUnderWay({ jumps: 1, score: 4100, outcome: "cleared" });
+    const run = runUnderWay({
+      tally: { jumps: 1 },
+      score: 4100,
+      outcome: "cleared",
+    });
 
     const saved = saveGame(run, PLAYED, LEVELS, KEEPING);
 
@@ -260,11 +270,15 @@ describe("saveGame", () => {
   });
 
   it("keeps a round in flight that clears its level as it lands, at the start of the next", () => {
-    const run = takeRound(runUnderWay(), {
-      points: 10,
-      jumped: false,
-      result: "cleared",
-    });
+    const run = takeRound(
+      runUnderWay(),
+      {
+        points: 10,
+        jumped: false,
+        result: "cleared",
+      },
+      RUN_RULES,
+    );
 
     const saved = saveGame(run, PLAYED, LEVELS, KEEPING);
 
@@ -277,11 +291,15 @@ describe("saveGame", () => {
   });
 
   it("keeps a paused round in flight that clears its level as it lands", () => {
-    const run = takeRound(runUnderWay(), {
-      points: 10,
-      jumped: false,
-      result: "cleared",
-    });
+    const run = takeRound(
+      runUnderWay(),
+      {
+        points: 10,
+        jumped: false,
+        result: "cleared",
+      },
+      RUN_RULES,
+    );
 
     const saved = saveGame(
       { ...run, outcome: "paused" },
@@ -294,11 +312,15 @@ describe("saveGame", () => {
   });
 
   it("keeps nothing of a run whose round in flight loses its level", () => {
-    const run = takeRound(runUnderWay(), {
-      points: 0,
-      jumped: false,
-      result: "lost",
-    });
+    const run = takeRound(
+      runUnderWay(),
+      {
+        points: 0,
+        jumped: false,
+        result: "lost",
+      },
+      RUN_RULES,
+    );
 
     expect(saveGame(run, PLAYED, LEVELS, KEEPING)).toBeNull();
   });
@@ -333,15 +355,19 @@ describe("saveGame", () => {
   it.each<[string, Run]>([
     [
       "waiting for its first level's first move",
-      createRun({ id: 1, level: 5, depth: 11 }, LEVELS),
+      createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES),
     ],
     [
       "under way on its first level with no round played",
-      startLevel(createRun({ id: 1, level: 5, depth: 11 }, LEVELS)),
+      startLevel(createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES)),
     ],
     [
       "paused on its first level with no round played",
-      pause(startLevel(createRun({ id: 1, level: 5, depth: 11 }, LEVELS))),
+      pause(
+        startLevel(
+          createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES),
+        ),
+      ),
     ],
     ["over", runUnderWay({ outcome: "over" })],
     ["won", runUnderWay({ level: LEVELS.length, outcome: "won" })],
@@ -544,7 +570,7 @@ describe("hasSoundScore", () => {
 
 describe("readStart", () => {
   it("reads where a round starts as kept", () => {
-    expect(readStart(STORED.start, GIRDER, runUnderWay())).toEqual(PLAYED);
+    expect(readStart(STORED.start, GIRDER, THREE_ROUNDS)).toEqual(PLAYED);
   });
 
   it.each([
@@ -554,11 +580,11 @@ describe("readStart", () => {
     ...BOON_SPOILS,
     ["a wall that can't be trusted", { lowestRow: 6 }] as const,
   ])("drops a start of %s", (_, change) => {
-    expect(readStart(tamperedStart(change), GIRDER, runUnderWay())).toBeNull();
+    expect(readStart(tamperedStart(change), GIRDER, THREE_ROUNDS)).toBeNull();
   });
 
   it("drops something that isn't a start", () => {
-    expect(readStart([], GIRDER, runUnderWay())).toBeNull();
+    expect(readStart([], GIRDER, THREE_ROUNDS)).toBeNull();
   });
 });
 
@@ -621,13 +647,13 @@ describe("readWall", () => {
   });
 
   it("reads a wall come down a jump's rows for a round that jumped", () => {
-    const run = { ...THREE_ROUNDS, jumps: 1 };
+    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
 
     expect(readWall(tamperedStart(SUNK), GIRDER, run)).not.toBeNull();
   });
 
   it("drops a wall come down a row less than a jump brings it", () => {
-    const run = { ...THREE_ROUNDS, jumps: 1 };
+    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
     const start = tamperedStart({ ...SUNK, lowestRow: 1 });
 
     expect(readWall(start, GIRDER, run)).toBeNull();
@@ -671,7 +697,7 @@ describe("readWall", () => {
     };
 
     /** What of a run its wall is read against: none of its rounds played yet. */
-    const NO_ROUNDS = { depth: 11, rounds: 0, jumps: 0 };
+    const NO_ROUNDS = { depth: 11, rounds: 0, tally: { jumps: 0 } };
 
     /** Returns the twins' hits kept, each as given, over a row of bricks. */
     function twins(

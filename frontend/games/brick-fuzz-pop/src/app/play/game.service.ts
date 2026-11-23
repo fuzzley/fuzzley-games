@@ -11,6 +11,19 @@ import {
 } from "@angular/core";
 import type { Aim } from "@fz/brick-wall/rules/aims";
 import { levelIdOf } from "@fz/brick-wall/rules/progress";
+import {
+  afterLanding,
+  createRun,
+  isInProgress,
+  landRound,
+  levelsCleared,
+  nextLevel,
+  pause,
+  resume,
+  startLevel,
+  takeDepth,
+  takeRound,
+} from "@fz/brick-wall/rules/run";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -45,22 +58,7 @@ import {
   describeShot,
   describeTakenUp,
 } from "../../rules/run/describe";
-import {
-  type Run,
-  afterLanding,
-  createRun,
-  isInProgress,
-  landRound,
-  levelOf,
-  levelsCleared,
-  nextLevel,
-  openingOf,
-  pause,
-  resume,
-  startLevel,
-  takeDepth,
-  takeRound,
-} from "../../rules/run/run";
+import { RUN_RULES, type Run, levelOf, openingOf } from "../../rules/run/run";
 import type {
   PlayedGame,
   PlayedRound,
@@ -653,7 +651,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     });
     this.recordDrop(this.play.moment);
     const state = this.runState();
-    const taken = takeRound(started, round.outcome);
+    const taken = takeRound(started, round.outcome, RUN_RULES);
     const run = state.run.outcome === "paused" ? pause(taken) : taken;
     this.droppableRound.set(null);
     this.play.dropTo(round);
@@ -752,7 +750,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   nextLevel(): void {
     const state = this.runState();
     if (state.card !== "cleared" || !this.drawn()) return;
-    const run = nextLevel(state.run, this.room.depth, this.levels);
+    const run = nextLevel(state.run, this.room.depth, this.levels, RUN_RULES);
     const start = openingOf(run, levelOf(run, this.levels));
     this.lineShots = [];
     this.levelRounds = [];
@@ -906,7 +904,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     const shot: Shot = { aim, charge };
     const levelBoon = this.levelBoon();
     const round = this.playRound(state.start, shot, levelBoon, rules);
-    const run = takeRound(started, round.outcome);
+    const run = takeRound(started, round.outcome, RUN_RULES);
     this.keepStart(state.run);
     this.levelRounds.push({
       started,
@@ -962,7 +960,7 @@ export class GameService extends RunLifecycle implements KeptGame {
       fast: false,
       speedUp: false,
     };
-    this.playFrame(moment - this.play.moment, false, landRound, options);
+    this.playFrame(moment - this.play.moment, false, landInPlay, options);
   }
 
   /**
@@ -974,7 +972,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   private landAtOnce(): void {
     if (!this.flying()) return;
     this.play.skip();
-    this.playFrame(0, false, afterLanding);
+    this.playFrame(0, false, (run) => afterLanding(run, RUN_RULES));
   }
 
   /**
@@ -988,7 +986,7 @@ export class GameService extends RunLifecycle implements KeptGame {
   private playFrame(
     deltaMs: number,
     paused: boolean,
-    land: (run: Run) => Run = landRound,
+    land: (run: Run) => Run = landInPlay,
     options: Readonly<PlayOptions> = this.frameOptions(paused),
   ): void {
     const change = this.play.advance(deltaMs, options);
@@ -1120,7 +1118,7 @@ export class GameService extends RunLifecycle implements KeptGame {
 
   /** Returns a run on the depth the board's room now gives, as the rules lay it out ({@link takeDepth}). */
   private laidOut(run: Run): Run {
-    return takeDepth(run, this.room.depth, this.levels);
+    return takeDepth(run, this.room.depth, this.levels, RUN_RULES);
   }
 
   /** Aims a round on the field as the board's room now shapes it. */
@@ -1150,7 +1148,11 @@ export class GameService extends RunLifecycle implements KeptGame {
   /** Returns a new run at a level, waiting on the board's depth for its first shot. */
   private create(level: number): Run {
     const { id } = this.numbers.next();
-    return createRun({ id, level, depth: this.room.depth }, this.levels);
+    return createRun(
+      { id, level, depth: this.room.depth },
+      this.levels,
+      RUN_RULES,
+    );
   }
 
   /**
@@ -1168,7 +1170,7 @@ export class GameService extends RunLifecycle implements KeptGame {
     keeping?: RunStart,
   ): void {
     const left = this.runState().run;
-    if (left.ending !== null) this.keepRecords(afterLanding(left));
+    if (left.ending !== null) this.keepRecords(afterLanding(left, RUN_RULES));
     this.droppableRound.set(null);
     this.aim(start);
     this.lineShots = [];
@@ -1187,6 +1189,11 @@ export class GameService extends RunLifecycle implements KeptGame {
  */
 function fastForwardWords(on: boolean): string {
   return on ? "Fast-forward on." : "Fast-forward off.";
+}
+
+/** Returns the run with its round in flight landed, as the run's rules land it while its level plays. */
+function landInPlay(run: Run): Run {
+  return landRound(run, RUN_RULES);
 }
 
 /** Returns whether two shapes of field are alike in every measure. */

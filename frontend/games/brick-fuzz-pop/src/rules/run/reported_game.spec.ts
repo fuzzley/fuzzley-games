@@ -1,3 +1,9 @@
+import {
+  createRun,
+  landRound,
+  startLevel,
+  takeRound,
+} from "@fz/brick-wall/rules/run";
 import { LEVELS, levelEntryOf } from "../levels/levels";
 import {
   RULES,
@@ -16,15 +22,7 @@ import {
   reportedGameOf,
   trimReported,
 } from "./reported_game";
-import {
-  type Run,
-  createRun,
-  landRound,
-  levelOf,
-  openingOf,
-  startLevel,
-  takeRound,
-} from "./run";
+import { RUN_RULES, type Run, levelOf, openingOf } from "./run";
 import { saveGame } from "./saved_game";
 
 /** Girder, the level the specs play: its wall's lowest row steel, so a few shots leave it standing. */
@@ -69,7 +67,11 @@ const SHOTS: readonly Aimed[] = [
 
 /** Returns a run at Girder's opening, waiting for its first shot, and where that starts. */
 function opening(): { readonly run: Run; readonly start: RoundStart } {
-  const run = createRun({ id: 1, level: GIRDER, depth: DEPTH }, LEVELS);
+  const run = createRun(
+    { id: 1, level: GIRDER, depth: DEPTH },
+    LEVELS,
+    RUN_RULES,
+  );
   return { run, start: openingOf(run, levelOf(run, LEVELS)) };
 }
 
@@ -101,7 +103,7 @@ function played(shots: readonly Aimed[]): Played {
       rules,
       dropped: dropped ?? null,
     });
-    run = landRound(takeRound(started, round.outcome));
+    run = landRound(takeRound(started, round.outcome, RUN_RULES), RUN_RULES);
     start = round.next;
   }
   return { rounds, run, start };
@@ -117,11 +119,15 @@ function gameAfter(
   const last = rounds.at(-1);
   return inPlay && last
     ? {
-        run: takeRound(last.started, {
-          points: 0,
-          jumped: false,
-          result: "on",
-        }),
+        run: takeRound(
+          last.started,
+          {
+            points: 0,
+            jumped: false,
+            result: "on",
+          },
+          RUN_RULES,
+        ),
         start: last.start,
         rounds,
         inPlay,
@@ -738,7 +744,11 @@ describe("replayReported", () => {
 
   it.each<readonly [string, ReadGame, string]>([
     ["more shots", withRun({ rounds: 4 }), "The shot count doesn't match."],
-    ["more jumps", withRun({ jumps: 1 }), "The jump count doesn't match."],
+    [
+      "more jumps",
+      withRun({ tally: { jumps: 1 } }),
+      "The jump count doesn't match.",
+    ],
     ["another score", withRun({ score: 1 }), "The score doesn't match."],
     [
       "a wall come further down",

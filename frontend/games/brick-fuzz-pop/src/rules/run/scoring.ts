@@ -41,9 +41,9 @@ export interface LevelTally {
 
 /** Returns how the level in play's points add up, as the run stands. */
 export function tallyOf(
-  run: Pick<Run, "outcome" | "rounds" | "par" | "jumps" | "banked" | "score">,
+  run: Pick<Run, "outcome" | "rounds" | "par" | "tally" | "banked" | "score">,
 ): LevelTally {
-  const jumps = run.jumps * JUMP_POINTS;
+  const jumps = run.tally.jumps * JUMP_POINTS;
   const stars = starPoints(starsOf(run));
   return { bricks: run.score - run.banked - jumps - stars, jumps, stars };
 }

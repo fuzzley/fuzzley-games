@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { parOf } from "@fz/brick-wall/rules/par";
+import { startLevel, takeRound } from "@fz/brick-wall/rules/run";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -23,7 +24,7 @@ import {
   describeShot,
   describeTakenUp,
 } from "../../rules/run/describe";
-import { levelOf, openingOf, startLevel, takeRound } from "../../rules/run/run";
+import { RUN_RULES, levelOf, openingOf } from "../../rules/run/run";
 import {
   type TakenUp,
   restoreGame,
@@ -814,13 +815,18 @@ describe("GameService", () => {
       droppedAfterAFrame(game);
 
       expect(game.run()).toEqual(
-        takeRound(startLevel(before), {
-          // The whole round's less its brick's, broken after the drop.
-          points:
-            SPEC_POINTS.cleared - FLIGHT_FIXTURES.cleared.round.outcome.points,
-          jumped: false,
-          result: "on",
-        }),
+        takeRound(
+          startLevel(before),
+          {
+            // The whole round's less its brick's, broken after the drop.
+            points:
+              SPEC_POINTS.cleared -
+              FLIGHT_FIXTURES.cleared.round.outcome.points,
+            jumped: false,
+            result: "on",
+          },
+          RUN_RULES,
+        ),
       );
     });
 

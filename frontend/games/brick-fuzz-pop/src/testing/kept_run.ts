@@ -3,16 +3,11 @@
 // rules play them, so it is held as the rules are (eslint.config.js), to
 // their fence and their exact arithmetic.
 
+import { createRun, startLevel, takeRound } from "@fz/brick-wall/rules/run";
 import { type CertifiedShot, shotOf } from "../rules/levels/certificate";
 import type { LevelEntry } from "../rules/levels/levels";
 import { playRound } from "../rules/round/round";
-import {
-  createRun,
-  levelOf,
-  openingOf,
-  startLevel,
-  takeRound,
-} from "../rules/run/run";
+import { RUN_RULES, levelOf, openingOf } from "../rules/run/run";
 import { type SavedGame, saveGame } from "../rules/run/saved_game";
 
 /** Describes a run begun at a level on a field of a depth, and the rounds played into it. */
@@ -38,7 +33,11 @@ export function keptRun(
   levels: readonly LevelEntry[],
   kept: KeptRun,
 ): SavedGame {
-  let run = createRun({ id: 1, level: kept.level, depth: kept.depth }, levels);
+  let run = createRun(
+    { id: 1, level: kept.level, depth: kept.depth },
+    levels,
+    RUN_RULES,
+  );
   const level = levelOf(run, levels);
   let start = openingOf(run, level);
   for (const [index, shot] of kept.shots.entries()) {
@@ -49,7 +48,7 @@ export function keptRun(
       );
     }
     // A round that leaves its level on lands as it is taken in.
-    run = takeRound(startLevel(run), outcome);
+    run = takeRound(startLevel(run), outcome, RUN_RULES);
     start = next;
   }
   const saved = saveGame(run, start, levels, { tuned: false });
