@@ -157,7 +157,7 @@ function warningFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
  * Returns a band round a cell, some way in from its edge, its corners cut
  * as the cell's own cut runs that far in, as steel's frame is drawn.
  */
-function bandIn(
+export function bandIn(
   cell: Area,
   cut: number,
   from: number,

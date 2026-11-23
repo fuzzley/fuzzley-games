@@ -1,38 +1,16 @@
 // What Rickashay's field shows of the one atlas, `@fz/brick-wall`'s
-// `WallAtlas`: every frame it bakes, and the frames each of the library's
-// painters draws the game's field and wall with.
+// `WallAtlas`, which bakes the art's `wallAtlasFrames()`: the frames each of
+// the library's painters draws the game's field and wall with.
 
 import type { FieldArt } from "@fz/brick-wall/scene/field_painter";
+import type { GuideArt } from "@fz/brick-wall/scene/guide";
 import type { WallArt } from "@fz/brick-wall/scene/wall_painter";
-import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import type { KindId } from "../rules/catalog/kinds";
-import { atlasFrames, brickLayers } from "../view/art/atlas_frames";
-import {
-  COUNT_DOT,
-  FIELD_FRAMES,
-  fieldFrames,
-  springFrames,
-} from "../view/art/field_frames";
-import { pillFrames } from "../view/art/pill_art";
-import type { WallPalette } from "../view/colors/palette";
-
-/**
- * Returns every frame the field shows, drawn in a palette at a scale, which
- * `WallAtlas` bakes: the bricks' and the fuzzball's, then the field's own
- * dots and warning frame, the floor bounces' springs, and the rally's pill
- * and its digits.
- */
-export function wallAtlasFrames(
-  palette: WallPalette,
-  scale: ArtScale,
-): readonly ArtFrame[] {
-  return [
-    ...atlasFrames(palette, scale),
-    ...fieldFrames(palette, scale),
-    ...springFrames(palette, scale),
-    ...pillFrames(palette, scale),
-  ];
-}
+import { brickLayers } from "../view/art/atlas_frames";
+import { COUNT_DOT, FIELD_FRAMES } from "../view/art/field_frames";
+import { FRAMES } from "../view/art/frames";
+import { GUIDE_FRAMES } from "../view/art/guide_frames";
+import { MOST_GUIDE_DOTS, MOST_GUIDE_RINGS } from "../view/field/guide";
 
 /**
  * The frames `@fz/brick-wall/scene/field_painter`'s `FieldPainter` shows,
@@ -56,4 +34,16 @@ export const WALL_ART: WallArt<KindId> = {
   layersOf: brickLayers,
   mostLayers: MOST_LAYERS,
   warning: FIELD_FRAMES.warning,
+};
+
+/**
+ * The frames `@fz/brick-wall/scene/guide`'s `GuidePainter` shows of
+ * Rickashay's guide: a dot, the most it shows; the ring at a turn, the most
+ * turns it rings; and the band round a brick the shot strikes.
+ */
+export const GUIDE_ART: GuideArt = {
+  dot: FRAMES.guideDot,
+  mostDots: MOST_GUIDE_DOTS,
+  struck: GUIDE_FRAMES.struck,
+  turns: { ring: FRAMES.guideRing, most: MOST_GUIDE_RINGS },
 };

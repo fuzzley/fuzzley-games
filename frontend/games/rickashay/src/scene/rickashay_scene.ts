@@ -3,6 +3,7 @@ import type { WallRules } from "@fz/brick-wall/rules/wall";
 import { WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
+import { GuidePainter } from "@fz/brick-wall/scene/guide";
 import { WallPainter } from "@fz/brick-wall/scene/wall_painter";
 import type {
   PointerAiming,
@@ -34,7 +35,9 @@ import type { WallPalette } from "../view/colors/palette";
 import { type BallView, type RoundView, waitingX } from "../view/run_state";
 import type { FieldCommand } from "../view/steering/controls";
 import { Steering } from "../view/steering/steering";
-import { FIELD_ART, WALL_ART, wallAtlasFrames } from "./atlas";
+import { type GuideFlight, WallGuides } from "../view/field/guide";
+import { wallAtlasFrames } from "../view/art/atlas_frames";
+import { FIELD_ART, GUIDE_ART, WALL_ART } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import type { PaintContext, Painter } from "./painters/painter";
@@ -74,8 +77,20 @@ export interface RickashaySceneOptions {
   readonly palette: () => WallPalette;
   /** Returns the field's shape, worked out between rounds; a new value lays the field out again. */
   readonly shape: () => FieldShape;
-  /** Returns the rules' numbers, as the debug menu may retune them. */
+  /**
+   * Returns the rules' numbers, as the debug menu may retune them, with the
+   * turn the guide follows a shot to, `guideTurns`, as the player's setting
+   * asks.
+   */
   readonly rules: () => FlightRules;
+  /**
+   * Returns the flight the guide shows, or null where none shows, as while
+   * the fuzzball flies: the rules' own cast for the aim, stopped
+   * `guidePast` past its `guideTurns`th turn, as the rules handed over
+   * with it say, and cast again as the aim, the start, the hot shot or
+   * the rules change.
+   */
+  readonly guide: () => GuideFlight | null;
   /** Returns whether the player welcomes motion. */
   readonly motion: () => boolean;
   /** Takes where the field and its panels now lie on the canvas. */
@@ -88,8 +103,8 @@ export interface RickashaySceneOptions {
  * Draws a level of Rickashay: reads the player's keys, mouse and fingers
  * through its `Steering`, hands the shell each frame's time and aim, then
  * pulls the round to draw and draws the field, its springs, the wall, the
- * fuzzball and the rally's pill beside it as they stand; a key the
- * steering doesn't take becomes a command.
+ * guide, the fuzzball and the rally's pill beside it as they stand; a key
+ * the steering doesn't take becomes a command.
  */
 export class RickashayScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -101,6 +116,8 @@ export class RickashayScene extends Scene {
   springs!: SpringsPainter;
   /** Draws the wall. */
   wall!: WallPainter<KindId>;
+  /** Draws the guide of the shot being aimed. */
+  guide!: GuidePainter<KindId>;
   /** Draws the fuzzball. */
   balls!: BallPainter;
   /** Draws the rally in its pill beside the fuzzball. */
@@ -109,10 +126,12 @@ export class RickashayScene extends Scene {
   steering!: Steering;
   /** Frames the camera on the field. */
   private fieldCamera!: FieldCamera;
-  /** Every painter, back to front, which each frame draws. */
+  /** Every painter, back to front, which each frame draws, the field before the guide, which keeps its dots off the field's count. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
   private context!: PaintContext;
+  /** Reads the flight the guide shows as the guide's painter draws it, again only as it changes. */
+  private readonly guides = new WallGuides();
 
   /** The canvas as the field was last measured on it, or null before it first was. */
   private viewport: Viewport | null = null;
@@ -159,6 +178,7 @@ export class RickashayScene extends Scene {
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
     this.springs = new SpringsPainter(this, layers.springs);
     this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
+    this.guide = new GuidePainter(this, layers.guide, GUIDE_ART, this.field);
     this.balls = new BallPainter(this, layers.balls);
     this.pill = new PillPainter(this, layers.pill);
     this.fieldCamera = new FieldCamera(this.cameras.main);
@@ -166,6 +186,7 @@ export class RickashayScene extends Scene {
       this.field,
       this.springs,
       this.wall,
+      this.guide,
       this.balls,
       this.pill,
       this.fieldCamera,
@@ -178,6 +199,7 @@ export class RickashayScene extends Scene {
     this.steering.releaseBy(this.releasing);
     const view = options.view();
     this.wait(view.ball);
+    const rules = options.rules();
     this.context = {
       view,
       shape: this.laidOut,
@@ -186,7 +208,8 @@ export class RickashayScene extends Scene {
       palette: this.atlas.palette,
       now: 0,
       motion: options.motion(),
-      rules: options.rules(),
+      rules,
+      guide: this.guides.of(options.guide(), rules),
     };
     // The game outlives the scene, so a scene built after another adds none.
     this.input.addPointer(
@@ -220,6 +243,7 @@ export class RickashayScene extends Scene {
     context.view = view;
     context.motion = options.motion();
     context.rules = options.rules();
+    context.guide = this.guides.of(options.guide(), context.rules);
     this.draw();
   }
 

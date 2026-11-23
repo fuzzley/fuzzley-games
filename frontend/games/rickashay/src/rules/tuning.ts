@@ -78,9 +78,9 @@ export interface FlightRules {
   readonly hatchHolds: number;
   /** How many turns of a flight slide a bolt back on every lock in the field. */
   readonly boltTurns: number;
-  /** How many turns of a shot the guide follows it to, where the player's setting doesn't ask for the first or the fifth. */
+  /** How many turns of a shot the guide follows it to, where the player's setting doesn't ask for the first or the fifth. The scene's pools hold a guide of five turns at most. */
   readonly guideTurns: number;
-  /** How far the guide runs on past its last turn. */
+  /** How far the guide runs on past its last turn. The scene's pools hold a guide of five turns at most and 1.5 units past them. */
   readonly guidePast: number;
 }
 

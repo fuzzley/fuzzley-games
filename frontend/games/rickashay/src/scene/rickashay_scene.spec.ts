@@ -1,6 +1,7 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
-import { cellAt } from "@fz/brick-wall/rules/grid";
+import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { positionAt } from "@fz/brick-wall/rules/track";
 import { ATLAS, bakedScaleOf } from "@fz/brick-wall/scene/atlas";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
 import {
@@ -33,17 +34,14 @@ import { WALL_LEGEND } from "../rules/levels/legend";
 import { FLIGHT_RULES, type FlightRules } from "../rules/tuning";
 import { ART_PALETTE, ART_ROLES, billionths } from "../testing/art_frames";
 import { FLIGHT_FIXTURES } from "../testing/flight_fixtures";
-import { atlasFrames, brickLayers } from "../view/art/atlas_frames";
-import { FIELD_FRAMES, fieldFrames } from "../view/art/field_frames";
+import { brickLayers, wallAtlasFrames } from "../view/art/atlas_frames";
+import { FIELD_FRAMES } from "../view/art/field_frames";
+import { GUIDE_FRAMES } from "../view/art/guide_frames";
 import { FRAMES, FURS } from "../view/art/frames";
 import { eyesAt } from "../view/art/fuzzball_art";
-import {
-  PILL_FRAMES,
-  digitAcross,
-  pillFrames,
-  pillPlace,
-} from "../view/art/pill_art";
+import { PILL_FRAMES, digitAcross, pillPlace } from "../view/art/pill_art";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
+import { type GuideFlight, wallGuideOf } from "../view/field/guide";
 import { bandSprings } from "../view/field/springs";
 import type {
   BallView,
@@ -147,6 +145,8 @@ class FakeShell implements RickashaySceneOptions {
   colors: WallPalette = LIGHT;
   fieldShape: FieldShape = shapeAt(CANVAS.width, CANVAS.height);
   flightRules: FlightRules = FLIGHT_RULES;
+  /** The flight the guide shows, or null where none shows. */
+  guideFlight: GuideFlight | null = null;
   welcomesMotion = true;
   /** The chrome the board declares over the canvas, the margin it keeps around the field. */
   chrome: Insets = INSETS;
@@ -167,6 +167,7 @@ class FakeShell implements RickashaySceneOptions {
   readonly palette = (): WallPalette => this.colors;
   readonly shape = (): FieldShape => this.fieldShape;
   readonly rules = (): FlightRules => this.flightRules;
+  readonly guide = (): GuideFlight | null => this.guideFlight;
   readonly motion = (): boolean => this.welcomesMotion;
   readonly onLayout = (metrics: FieldMetrics): void => {
     this.layouts.push(metrics);
@@ -278,6 +279,38 @@ function placeInBillionths({ x, y }: { x: number; y: number }): {
   y: number;
 } {
   return { x: billionths(x), y: billionths(y) };
+}
+
+/** Returns the first of a pool, which a scene makes whole as it starts. */
+function firstOf<T>(pool: readonly T[]): T {
+  const [first] = pool;
+  if (first === undefined) throw new RangeError("An empty pool");
+  return first;
+}
+
+/**
+ * Returns a flight as the rules cast the guide of its shot: stopped in the
+ * air `guidePast` past its `guideTurns`th turn, as rules set them, its
+ * events to there, or whole where it lands first.
+ *
+ * It stands in for the rules' own `guideOf()`, which another package
+ * builds, and gives way to it once that lands.
+ */
+function castOf(
+  flight: GuideFlight,
+  { guideTurns, guidePast }: FlightRules = FLIGHT_RULES,
+): GuideFlight {
+  const { track, events } = flight;
+  const last = events.filter(({ kind }) => kind === "turn")[guideTurns - 1];
+  const end = last && positionAt(track, last.at + guidePast);
+  if (!last || !end) return flight;
+  return {
+    track: {
+      ...track,
+      waypoints: [...track.waypoints.filter(({ at }) => at < end.at), end],
+    },
+    events: events.filter(({ at, kind }) => at <= end.at && kind !== "land"),
+  };
 }
 
 /** Returns the square each spring of a set fills, its foot's middle on the square's, on the canvas. */
@@ -395,17 +428,14 @@ describe("RickashayScene", () => {
   });
 
   describe("the atlas", () => {
-    it("holds every frame of the art, the field's own and the rally's pill's", async () => {
+    it("holds every frame the art draws for the field", async () => {
       const { scene } = await startBoard();
       const atlas = scene.textures.get(ATLAS);
-      const metrics = metricsAt();
 
       expect(
-        [
-          ...atlasFrames(LIGHT, metrics),
-          ...fieldFrames(LIGHT, metrics),
-          ...pillFrames(LIGHT, metrics),
-        ].filter((frame) => !atlas.has(frame.name)),
+        wallAtlasFrames(LIGHT, metricsAt()).filter(
+          (frame) => !atlas.has(frame.name),
+        ),
       ).toEqual([]);
     });
 
@@ -727,6 +757,156 @@ describe("RickashayScene", () => {
       expect(layerPlaceOf(scene, scene.pill.pill)).toBeGreaterThan(
         layerPlaceOf(scene, scene.balls.body),
       );
+    });
+  });
+
+  describe("the guide", () => {
+    /** The plain round's flight, which turns twice, strikes a tough brick and lands, as the guide of its shot. */
+    const GUIDE = castOf(PLAIN.round.flight);
+
+    /** The hot shot's flight, which turns five times, as the guide of its shot casts it, stopped past its third turn. */
+    const FADING = castOf(FLIGHT_FIXTURES.hot.round.flight);
+
+    it("shows nothing while no guide shows", async () => {
+      const { scene } = await startBoard();
+
+      expect(
+        shownOf([
+          ...scene.guide.dots,
+          ...scene.guide.rings,
+          ...scene.guide.marks,
+        ]),
+      ).toEqual([]);
+    });
+
+    it("lays a dot about each of the guide's places, on whole pixels, as strongly as each shows, fading past its last turn", async () => {
+      const { scene, shell, run } = await startBoard();
+      const metrics = metricsAt();
+      const { dots } = wallGuideOf(FADING, FLIGHT_RULES);
+
+      shell.guideFlight = FADING;
+      run.advance(16);
+
+      expect(
+        scene.guide.dots.slice(0, dots.length).map((dot) => ({
+          x: Math.round(dot.x),
+          y: Math.round(dot.y),
+          alpha: dot.alpha,
+        })),
+      ).toEqual(
+        dots.map(({ x, y, alpha }) => {
+          const place = toCanvas(metrics, x, y);
+          return {
+            x: Math.round(place.x),
+            y: Math.round(place.y),
+            alpha: alpha ?? 1,
+          };
+        }),
+      );
+    });
+
+    it("hides the dots past the guide's last", async () => {
+      const { scene, shell, run } = await startBoard();
+      const { dots } = wallGuideOf(GUIDE, FLIGHT_RULES);
+
+      shell.guideFlight = GUIDE;
+      run.advance(16);
+
+      expect(shownOf(scene.guide.dots.slice(dots.length))).toEqual([]);
+    });
+
+    it("rings each of its turns", async () => {
+      const { scene, shell, run } = await startBoard();
+      const metrics = metricsAt();
+      const { turns } = wallGuideOf(GUIDE, FLIGHT_RULES);
+
+      shell.guideFlight = GUIDE;
+      run.advance(16);
+
+      expect(shownOf(scene.guide.rings)).toEqual(
+        turns.map(({ x, y }) => ({
+          frame: FRAMES.guideRing,
+          ...toCanvas(metrics, x, y),
+        })),
+      );
+    });
+
+    it("marks each brick the shot strikes, about its cell's middle", async () => {
+      const { scene, shell, run } = await startBoard();
+      const metrics = metricsAt();
+      const { wall } = PLAIN.start;
+      const { struck } = wallGuideOf(GUIDE, FLIGHT_RULES);
+
+      shell.guideFlight = GUIDE;
+      run.advance(16);
+
+      expect(shownOf(scene.guide.marks)).toEqual(
+        struck.map((cell) => ({
+          frame: GUIDE_FRAMES.struck,
+          ...toCanvas(
+            metrics,
+            columnOf(cell) + 0.5,
+            fieldRowOf(wall, cell) + 0.5,
+          ),
+        })),
+      );
+    });
+
+    it("follows the guide as it is cast again", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.guideFlight = GUIDE;
+      });
+      shell.guideFlight = FADING;
+      run.advance(16);
+
+      expect(shownOf(scene.guide.rings)).toHaveLength(
+        wallGuideOf(FADING, FLIGHT_RULES).turns.length,
+      );
+    });
+
+    it("draws the guide again as the rules are retuned, and it is cast again by them", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.guideFlight = FADING;
+      });
+      const retuned = { ...FLIGHT_RULES, guidePast: 3 };
+      const recast = castOf(FLIGHT_FIXTURES.hot.round.flight, retuned);
+      const { dots } = wallGuideOf(recast, retuned);
+
+      shell.flightRules = retuned;
+      shell.guideFlight = recast;
+      run.advance(16);
+
+      expect(
+        scene.guide.dots.slice(0, dots.length).map((dot) => dot.alpha),
+      ).toEqual(dots.map(({ alpha }) => alpha ?? 1));
+    });
+
+    it("hides as the guide goes, as it does once the shot flies", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.guideFlight = GUIDE;
+      });
+
+      shell.guideFlight = null;
+      run.advance(16);
+
+      expect(
+        shownOf([
+          ...scene.guide.dots,
+          ...scene.guide.rings,
+          ...scene.guide.marks,
+        ]),
+      ).toEqual([]);
+    });
+
+    it("lies over the wall's lines and under the jump line's count and the fuzzball", async () => {
+      const { scene } = await startBoard();
+      const guide = layerPlaceOf(scene, firstOf(scene.guide.dots));
+
+      expect({
+        overLines: guide > layerPlaceOf(scene, scene.field.lines),
+        underCount: guide < layerPlaceOf(scene, firstOf(scene.field.countDots)),
+        underFuzzball: guide < layerPlaceOf(scene, scene.balls.body),
+      }).toEqual({ overLines: true, underCount: true, underFuzzball: true });
     });
   });
 

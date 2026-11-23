@@ -13,7 +13,7 @@ import {
   PIXEL_RATIOS,
   pastOutline,
 } from "../../testing/art_frames";
-import { atlasFrames, brickLayers } from "./atlas_frames";
+import { atlasFrames, brickLayers, wallAtlasFrames } from "./atlas_frames";
 import { cellOf } from "./cells";
 import { CRACKS, FRAMES, FRAME_NAMES, FURS, INKS, PIPS } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
@@ -179,6 +179,49 @@ describe.each(ART_SCALES)(
               const width = lineOf(command);
               return width === null || width >= scale.pixelRatio;
             }),
+        ),
+      ).toEqual([]);
+    });
+
+    it(`fits the atlas in ${String(ATLAS_SIDE)} × ${String(ATLAS_SIDE)}`, () => {
+      const { width, height } = atlasSize(frames);
+
+      expect(Math.max(width, height)).toBeLessThanOrEqual(ATLAS_SIDE);
+    });
+  },
+);
+
+describe.each(ART_SCALES)(
+  "wallAtlasFrames at a unit of $unit device pixels, $pixelRatio to a CSS pixel",
+  (scale) => {
+    const frames = wallAtlasFrames(ART_PALETTE, scale);
+    const art = new Set(
+      atlasFrames(ART_PALETTE, scale).map(({ name }) => name),
+    );
+    // The field's own frames, beside the art's, which its own cases hold.
+    const added = frames.filter(({ name }) => !art.has(name));
+
+    it("names every frame once", () => {
+      const names = frames.map((frame) => frame.name);
+
+      expect(new Set(names).size).toBe(names.length);
+    });
+
+    it("draws each of the field's own frames within itself", () => {
+      expect(
+        breaking(added, (frame) =>
+          frame.commands.every((command) => drawsWithin(command, frame)),
+        ),
+      ).toEqual([]);
+    });
+
+    it("draws each of the field's own frames' lines a CSS pixel wide or more", () => {
+      expect(
+        breaking(added, (frame) =>
+          frame.commands.every((command) => {
+            const width = lineOf(command);
+            return width === null || width >= scale.pixelRatio;
+          }),
         ),
       ).toEqual([]);
     });
