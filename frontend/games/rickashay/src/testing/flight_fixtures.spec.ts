@@ -101,6 +101,8 @@ describe("FLIGHT_FIXTURES", () => {
     ["bored", "on", 0, 0, 0, true, 3, 100],
     ["guard", "on", 0, 0, 0, true, 3, 100],
     ["corner", "on", 1, 0, 0, false, 1, 10],
+    ["ramp", "on", 0, 0, 0, true, 3, 100],
+    ["gem", "on", 1, 1, 0, true, 3, 110],
   ] as const)(
     "plays %s to a round %s, a rally of %s, %s broken, %s earned, jumped %s, %s rows down, for %s points",
     (name, result, rally, broken, earned, jumped, rowsDown, points) => {

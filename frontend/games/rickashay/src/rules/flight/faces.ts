@@ -10,7 +10,9 @@
 // ceiling shows none toward it. Where two of its open faces meet, and
 // nothing else reaches the corner between them, a 45° face cuts it, joining
 // their flats' ends, so the faces close round every clump of bricks and
-// leave a fuzzball's middle no way in.
+// leave a fuzzball's middle no way in. A ramp's long face, and each of a
+// gem's four, stands off its line by STAND_OFF, a radius out, and its
+// points are cut square by short flats.
 
 import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
@@ -26,7 +28,8 @@ import {
   brickAt,
   cellOf,
 } from "@fz/brick-wall/rules/grid";
-import type { Wall } from "../catalog/kinds";
+import { type Brick, type Wall, kindOf } from "../catalog/kinds";
+import { STAND_OFF } from "../tuning";
 
 /** Names what a face belongs to: a brick, by its wall cell, a side wall, or the ceiling. */
 export type FaceOwner =
@@ -137,6 +140,9 @@ export type FaceKind = Face["kind"];
 /** A face a brick shows: any but the floor. */
 export type BrickFace = Exclude<Face, { readonly kind: "floor" }>;
 
+/** Names a brick, as a face it shows is owned. */
+type BrickOwner = Extract<FaceOwner, { readonly kind: "brick" }>;
+
 /** What {@link meetsAt} returns for a face a fuzzball never meets. */
 export const MISSED = Number.POSITIVE_INFINITY;
 
@@ -148,15 +154,28 @@ export const MISSED = Number.POSITIVE_INFINITY;
  */
 export const OVERLAP = AT_ONCE;
 
+/** How long the short flat is that cuts a ramp's or a gem's point square, from the point's side of its cell to its long face. */
+const TIP = STAND_OFF - RADIUS;
+
 /**
  * The shapes a field cell's brick takes, as its faces and those beside it
- * are built: none, the box of its cell, and the side walls and the
- * ceiling beyond the field, which fill every side of their cells.
+ * are built: none, the box of its cell, the side walls and the ceiling
+ * beyond the field, which fill every side of their cells, a ramp by the
+ * corner of its cell its right angle sits in, and a gem.
  */
 export const SHAPE = {
   air: 0,
   box: 1,
   beyond: 2,
+  /** A ramp whose right angle sits in its cell's floorward left corner, `L`. */
+  rampFloorwardLeft: 3,
+  /** A ramp whose right angle sits in its cell's floorward right corner, `J`. */
+  rampFloorwardRight: 4,
+  /** A ramp whose right angle sits in its cell's ceilingward left corner, `F`. */
+  rampCeilingwardLeft: 5,
+  /** A ramp whose right angle sits in its cell's ceilingward right corner, `7`. */
+  rampCeilingwardRight: 6,
+  gem: 7,
 } as const;
 
 /** A field cell's shape, one of {@link SHAPE}'s. */
@@ -167,6 +186,11 @@ const FILLS: Readonly<Record<Shape, number>> = {
   [SHAPE.air]: 0,
   [SHAPE.box]: FLOORWARD | CEILINGWARD | LEFT | RIGHT,
   [SHAPE.beyond]: FLOORWARD | CEILINGWARD | LEFT | RIGHT,
+  [SHAPE.rampFloorwardLeft]: FLOORWARD | LEFT,
+  [SHAPE.rampFloorwardRight]: FLOORWARD | RIGHT,
+  [SHAPE.rampCeilingwardLeft]: CEILINGWARD | LEFT,
+  [SHAPE.rampCeilingwardRight]: CEILINGWARD | RIGHT,
+  [SHAPE.gem]: 0,
 };
 
 /** The corners of its cell each shape reaches, as `rules/grid`'s corner bits: no corner beside one it reaches is cut. */
@@ -176,6 +200,17 @@ const REACHES: Readonly<Record<Shape, number>> = {
     FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
   [SHAPE.beyond]:
     FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
+  // A ramp reaches every corner of its cell but the one across from its
+  // right angle.
+  [SHAPE.rampFloorwardLeft]:
+    FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_LEFT,
+  [SHAPE.rampFloorwardRight]:
+    FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_RIGHT,
+  [SHAPE.rampCeilingwardLeft]:
+    FLOORWARD_LEFT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
+  [SHAPE.rampCeilingwardRight]:
+    FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
+  [SHAPE.gem]: 0,
 };
 
 /** Each side of a cell's opposite: the side of the cell beside it that faces it. */
@@ -201,12 +236,50 @@ export function fieldShapes(wall: Wall, depth: number): FieldShapes {
   const shapes = new Uint8Array(COLUMNS * depth);
   for (let row = 0; row < depth; row++) {
     for (let column = 0; column < COLUMNS; column++) {
-      if (brickAt(wall, depth, column, row) !== null) {
-        shapes[row * COLUMNS + column] = SHAPE.box;
+      const brick = brickAt(wall, depth, column, row);
+      if (brick !== null) {
+        shapes[row * COLUMNS + column] = shapeOf(brick);
       }
     }
   }
   return { depth, lowestRow: wall.lowestRow, shapes };
+}
+
+/**
+ * Returns the shape a brick's kind gives it: a ramp's, by the corner its
+ * plates name, where its kind slants; a gem's, where it is faceted; and a
+ * box where none of its traits shapes it.
+ */
+function shapeOf(brick: Brick): Shape {
+  for (const trait of kindOf(brick.kind).traits) {
+    switch (trait.kind) {
+      case "slants":
+        return rampOf(brick.plates);
+      case "faceted":
+        return SHAPE.gem;
+      case "never":
+      case "holds":
+      case "springs":
+      case "teleports":
+      case "plated":
+      case "regrows":
+      case "bolted":
+        break;
+    }
+  }
+  return SHAPE.box;
+}
+
+/** Returns the ramp whose right angle sits in the corner its plates name: the two faces of its cell its short sides lie along. */
+function rampOf(plates: number): Shape {
+  if ((plates & CEILINGWARD) !== 0) {
+    return (plates & RIGHT) !== 0
+      ? SHAPE.rampCeilingwardRight
+      : SHAPE.rampCeilingwardLeft;
+  }
+  return (plates & RIGHT) !== 0
+    ? SHAPE.rampFloorwardRight
+    : SHAPE.rampFloorwardLeft;
 }
 
 /**
@@ -306,7 +379,7 @@ function cut(
   y: number,
   facingX: Facing,
   facingY: Facing,
-  owner: Extract<FaceOwner, { readonly kind: "brick" }>,
+  owner: BrickOwner,
 ): BrickFace {
   const end = x + facingX * RADIUS;
   return {
@@ -323,9 +396,9 @@ function cut(
 }
 
 /**
- * Returns the faces the brick in a field cell shows: a flat a radius out
- * from each of its open sides, and a cut across each free corner between
- * two of them, owned by its wall cell. A cell with no brick shows none.
+ * Returns the faces the brick in a field cell shows, owned by its wall
+ * cell, as its shape and those about it give them. A cell with no brick
+ * shows none.
  */
 export function brickFaces(
   field: FieldShapes,
@@ -333,13 +406,36 @@ export function brickFaces(
   row: number,
 ): BrickFace[] {
   const shape = shapeAt(field, column, row);
-  if (shape !== SHAPE.box) {
+  if (shape === SHAPE.air || shape === SHAPE.beyond) {
     return [];
   }
-  const owner = {
+  const owner: BrickOwner = {
     kind: "brick",
     cell: cellOf(column, row - field.lowestRow),
-  } as const;
+  };
+  switch (shape) {
+    case SHAPE.box:
+      return boxFaces(field, column, row, owner);
+    case SHAPE.rampFloorwardLeft:
+    case SHAPE.rampFloorwardRight:
+    case SHAPE.rampCeilingwardLeft:
+    case SHAPE.rampCeilingwardRight:
+      return rampFaces(field, column, row, shape, owner);
+    case SHAPE.gem:
+      return gemFaces(column, row, owner);
+  }
+}
+
+/**
+ * Returns a box's faces: a flat a radius out from each of its open sides,
+ * and a cut across each free corner between two of them.
+ */
+function boxFaces(
+  field: FieldShapes,
+  column: number,
+  row: number,
+  owner: BrickOwner,
+): BrickFace[] {
   const floorward = isOpen(field, column, row, FLOORWARD);
   const ceilingward = isOpen(field, column, row, CEILINGWARD);
   const left = isOpen(field, column, row, LEFT);
@@ -368,6 +464,145 @@ export function brickFaces(
     }
   }
   return faces;
+}
+
+/**
+ * Returns a ramp's faces: a flat a radius out from each of its two short
+ * sides that is open, and a cut across their corner where it is free; a
+ * short flat cutting each of its points square where the side of its cell
+ * the point touches is open, and a cut where it meets the short side's
+ * flat; and its long face, a radius out from its long side, facing away
+ * from its right angle.
+ */
+function rampFaces(
+  field: FieldShapes,
+  column: number,
+  row: number,
+  shape: Shape,
+  owner: BrickOwner,
+): BrickFace[] {
+  const right =
+    shape === SHAPE.rampFloorwardRight || shape === SHAPE.rampCeilingwardRight;
+  const top =
+    shape === SHAPE.rampCeilingwardLeft || shape === SHAPE.rampCeilingwardRight;
+  // Its right angle, at (x, y); the way its short sides run from there,
+  // which is the way its long face looks; and the other way, which their
+  // flats look.
+  const x = right ? column + 1 : column;
+  const y = top ? row + 1 : row;
+  const sx: Facing = right ? -1 : 1;
+  const sy: Facing = top ? -1 : 1;
+  const backX: Facing = right ? 1 : -1;
+  const backY: Facing = top ? 1 : -1;
+  const legAcross = isOpen(field, column, row, top ? CEILINGWARD : FLOORWARD);
+  const legUp = isOpen(field, column, row, right ? RIGHT : LEFT);
+  const faces: BrickFace[] = [];
+  if (legAcross) {
+    faces.push(across(y - sy * RADIUS, column, column + 1, backY, owner));
+  }
+  if (legUp) {
+    faces.push(up(x - sx * RADIUS, row, row + 1, backX, owner));
+  }
+  if (legAcross && legUp && isFree(field, column, row, x, y)) {
+    faces.push(cut(x, y, backX, backY, owner));
+  }
+  // The point at the end of the short side across, and at the end of the
+  // one up.
+  if (isOpen(field, column, row, right ? LEFT : RIGHT)) {
+    const end = y + sy * TIP;
+    faces.push(
+      up(x + sx + sx * RADIUS, Math.min(y, end), Math.max(y, end), sx, owner),
+    );
+    if (legAcross && isFree(field, column, row, x + sx, y)) {
+      faces.push(cut(x + sx, y, sx, backY, owner));
+    }
+  }
+  if (isOpen(field, column, row, top ? FLOORWARD : CEILINGWARD)) {
+    const end = x + sx * TIP;
+    faces.push(
+      across(
+        y + sy + sy * RADIUS,
+        Math.min(x, end),
+        Math.max(x, end),
+        sy,
+        owner,
+      ),
+    );
+    if (legUp && isFree(field, column, row, x, y + sy)) {
+      faces.push(cut(x, y + sy, backX, sy, owner));
+    }
+  }
+  // sx × x + sy × y = 1 along its long side, STAND_OFF further out.
+  faces.push(
+    longFace(
+      sx,
+      sy,
+      x + sx * sy * y + sx * (1 + STAND_OFF),
+      x + sx * TIP,
+      x + sx * (1 + RADIUS),
+      owner,
+    ),
+  );
+  return faces;
+}
+
+/**
+ * Returns a gem's faces: its four long faces, each a radius out from a side
+ * of the square it stands as on its point, and a short flat cutting each
+ * of its four points square, a radius out from the side of its cell the
+ * point touches.
+ */
+function gemFaces(column: number, row: number, owner: BrickOwner): BrickFace[] {
+  const middleX = column + 0.5;
+  const middleY = row + 0.5;
+  const faces: BrickFace[] = [];
+  for (const [sx, sy] of [
+    [-1, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+  ] as const) {
+    // sx × x + sy × y = 0.5 about its middle along each side, STAND_OFF
+    // further out.
+    faces.push(
+      longFace(
+        sx,
+        sy,
+        middleX + sx * sy * middleY + sx * (0.5 + STAND_OFF),
+        middleX + sx * TIP,
+        middleX + sx * (0.5 + RADIUS),
+        owner,
+      ),
+    );
+  }
+  faces.push(
+    across(row - RADIUS, middleX - TIP, middleX + TIP, -1, owner),
+    across(row + 1 + RADIUS, middleX - TIP, middleX + TIP, 1, owner),
+    up(column - RADIUS, middleY - TIP, middleY + TIP, -1, owner),
+    up(column + 1 + RADIUS, middleY - TIP, middleY + TIP, 1, owner),
+  );
+  return faces;
+}
+
+/** Returns a long 45° face, a ramp's or a gem's, its line's c given, spanning the x between two ends. */
+function longFace(
+  facingX: Facing,
+  facingY: Facing,
+  c: number,
+  end: number,
+  otherEnd: number,
+  owner: BrickOwner,
+): BrickFace {
+  return {
+    kind: "slant",
+    facingX,
+    facingY,
+    c,
+    from: Math.min(end, otherEnd),
+    to: Math.max(end, otherEnd),
+    long: true,
+    owner,
+  };
 }
 
 /**
@@ -444,10 +679,6 @@ export function meetsAt(
     case "bar":
     case "eye":
       return MISSED;
-    default: {
-      const never: never = face;
-      return never;
-    }
   }
 }
 
@@ -531,10 +762,6 @@ export function faceOrder(face: Face): number {
     case "bar":
     case "eye":
       return ownerOrder(face.owner) * 16;
-    default: {
-      const never: never = face;
-      return never;
-    }
   }
 }
 
@@ -547,9 +774,5 @@ function ownerOrder(owner: FaceOwner): number {
       return 2;
     case "brick":
       return 4 + owner.cell;
-    default: {
-      const never: never = owner;
-      return never;
-    }
   }
 }

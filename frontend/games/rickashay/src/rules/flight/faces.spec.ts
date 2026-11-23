@@ -2,6 +2,7 @@ import { RADIUS } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { WALL_LEGEND } from "../levels/legend";
+import { STAND_OFF } from "../tuning";
 import {
   type BrickFace,
   type Face,
@@ -17,6 +18,9 @@ import {
 
 /** The depth of the field the specs play on. */
 const DEPTH = 11;
+
+/** How long the short flat is that cuts a ramp's or a gem's point square. */
+const TIP = STAND_OFF - RADIUS;
 
 /** Returns the faces a field cell's brick shows, its wall drawn as a picture whose lowest row stands in field row `lowestRow`. */
 function facesAt(
@@ -62,6 +66,34 @@ function flatsOf(faces: readonly BrickFace[]): BrickFace[] {
 /** Returns what the brick in a wall cell owns. */
 function brickOwner(cell: number): { kind: "brick"; cell: number } {
   return { kind: "brick", cell };
+}
+
+/** Where a brick stands beside a ramp at column 4 of row 5, by its cell and the face it shows toward the ramp, if it shows one. */
+const BESIDE = [
+  ["below", 4, 4, "across 1"],
+  ["above", 4, 6, "across -1"],
+  ["left", 3, 5, "up 1"],
+  ["right", 5, 5, "up -1"],
+] as const;
+
+/** Where a brick stands at a corner of a ramp at column 4 of row 5, by its cell and the cut it shows toward the ramp, if it shows one. */
+const DIAGONAL = [
+  ["below left", 3, 4, "slant 1 1"],
+  ["below right", 5, 4, "slant -1 1"],
+  ["above left", 3, 6, "slant 1 -1"],
+  ["above right", 5, 6, "slant -1 -1"],
+] as const;
+
+/** Returns where, of the places given, a brick shows its face toward a ramp at column 4 of row 5, the wall drawn as a picture whose lowest row stands in field row 4. */
+function towardRamp(
+  picture: readonly string[],
+  places: readonly (readonly [string, number, number, string])[],
+): string[] {
+  return places
+    .filter(([, column, row, face]) =>
+      sidesOf(facesAt(picture, 4, column, row)).includes(face),
+    )
+    .map(([place]) => place);
 }
 
 /** A flat across at y = 3, from x = 2 to 3, facing down, as a brick in row 3's floorward flat is, but a radius lower. */
@@ -239,6 +271,182 @@ describe("brickFaces", () => {
   it("shows none for a cell with no brick, or one waiting over the ceiling", () => {
     expect(facesAt(["....o...."], 5, 3, 5)).toEqual([]);
     expect(facesAt(["....o...."], DEPTH, 4, DEPTH)).toEqual([]);
+  });
+});
+
+describe("brickFaces, of a ramp", () => {
+  it("shows its short sides' flats, its long face, and its points cut square, each cut where it meets a short side", () => {
+    const faces = facesAt(["....L...."], 5, 4, 5);
+
+    expect(sidesOf(faces)).toEqual([
+      "across -1",
+      "up -1",
+      "slant -1 -1",
+      "up 1",
+      "slant 1 -1",
+      "across 1",
+      "slant -1 1",
+      "slant 1 1",
+    ]);
+  });
+
+  it("stands its long face off its long side by STAND_OFF, from point to point", () => {
+    const faces = facesAt(["....L...."], 5, 4, 5);
+
+    expect(faceNamed(faces, "slant 1 1")).toEqual({
+      kind: "slant",
+      facingX: 1,
+      facingY: 1,
+      c: expect.closeTo(4 + 5 + 1 + STAND_OFF, 12) as number,
+      from: expect.closeTo(4 + TIP, 12) as number,
+      to: 5 + RADIUS,
+      long: true,
+      owner: brickOwner(cellOf(4, 0)),
+    });
+  });
+
+  it("cuts its points square with short flats, a radius out from its cell", () => {
+    const faces = facesAt(["....L...."], 5, 4, 5);
+
+    expect(faceNamed(faces, "up 1")).toMatchObject({
+      line: 5 + RADIUS,
+      from: 5,
+      to: expect.closeTo(5 + TIP, 12) as number,
+    });
+    expect(faceNamed(faces, "across 1")).toMatchObject({
+      line: 6 + RADIUS,
+      from: 4,
+      to: expect.closeTo(4 + TIP, 12) as number,
+    });
+  });
+
+  it.each([
+    ["L", "slant 1 1"],
+    ["J", "slant -1 1"],
+    ["F", "slant 1 -1"],
+    ["7", "slant -1 -1"],
+  ])("turns %s's long face away from its right angle", (letter, long) => {
+    const faces = facesAt([`....${letter}....`], 5, 4, 5);
+
+    expect(faces.filter((face) => face.kind === "slant" && face.long)).toEqual([
+      faceNamed(faces, long),
+    ]);
+  });
+
+  it("makes one face with a brick beside a short side", () => {
+    const ramp = facesAt(["...oL...."], 5, 4, 5);
+    const brick = facesAt(["...oL...."], 5, 3, 5);
+
+    expect(sidesOf(ramp)).not.toContain("up -1");
+    expect(sidesOf(brick)).not.toContain("up 1");
+  });
+
+  it("cuts no point a brick beside it covers, and the brick shows its face toward the ramp, cut only where the ramp leaves its corner free", () => {
+    const ramp = facesAt(["....Lo..."], 5, 4, 5);
+    const brick = facesAt(["....Lo..."], 5, 5, 5);
+
+    expect(sidesOf(ramp)).not.toContain("up 1");
+    expect(sidesOf(brick)).toContain("up -1");
+    expect(sidesOf(brick)).not.toContain("slant -1 -1");
+    expect(sidesOf(brick)).toContain("slant -1 1");
+  });
+
+  it("shows no flat along a short side a brick covers, and cuts neither corner it would join", () => {
+    const faces = facesAt(["....L....", "....o...."], 5, 4, 6);
+
+    expect(sidesOf(faces)).toEqual([
+      "up -1",
+      "up 1",
+      "across 1",
+      "slant -1 1",
+      "slant 1 1",
+    ]);
+  });
+
+  it("cuts no corner of its short sides another brick touches", () => {
+    const faces = facesAt(["....L....", "...o.o..."], 4, 4, 5);
+
+    expect(sidesOf(faces)).toEqual([
+      "across -1",
+      "up -1",
+      "up 1",
+      "across 1",
+      "slant -1 1",
+      "slant 1 1",
+    ]);
+  });
+
+  it.each([
+    ["L", ["above", "right"]],
+    ["J", ["above", "left"]],
+    ["F", ["below", "right"]],
+    ["7", ["below", "left"]],
+  ])(
+    "leaves the bricks beside %s their faces toward it only off its long side",
+    (letter, open) => {
+      const picture = ["....o....", `...o${letter}o...`, "....o...."];
+
+      expect(towardRamp(picture, BESIDE)).toEqual(open);
+    },
+  );
+
+  it.each([
+    ["L", ["above right"]],
+    ["J", ["above left"]],
+    ["F", ["below right"]],
+    ["7", ["below left"]],
+  ])(
+    "leaves the bricks at %s's corners their cuts toward it only across from its right angle",
+    (letter, cut) => {
+      const picture = ["...o.o...", `....${letter}....`, "...o.o..."];
+
+      expect(towardRamp(picture, DIAGONAL)).toEqual(cut);
+    },
+  );
+});
+
+describe("brickFaces, of a gem", () => {
+  it("shows four long faces and its four points cut square", () => {
+    const faces = facesAt(["....G...."], 5, 4, 5);
+
+    expect(sidesOf(faces)).toEqual([
+      "slant -1 -1",
+      "slant 1 -1",
+      "slant -1 1",
+      "slant 1 1",
+      "across -1",
+      "across 1",
+      "up -1",
+      "up 1",
+    ]);
+  });
+
+  it("stands each long face off a side of the square it stands as, by STAND_OFF", () => {
+    const faces = facesAt(["....G...."], 5, 4, 5);
+
+    expect(faceNamed(faces, "slant -1 -1")).toEqual({
+      kind: "slant",
+      facingX: -1,
+      facingY: -1,
+      c: expect.closeTo(4.5 + 5.5 - 0.5 - STAND_OFF, 12) as number,
+      from: 4 - RADIUS,
+      to: expect.closeTo(4.5 - TIP, 12) as number,
+      long: true,
+      owner: brickOwner(cellOf(4, 0)),
+    });
+    expect(faceNamed(faces, "across -1")).toMatchObject({
+      line: 5 - RADIUS,
+      from: expect.closeTo(4.5 - TIP, 12) as number,
+      to: expect.closeTo(4.5 + TIP, 12) as number,
+    });
+  });
+
+  it("leaves the bricks beside it their faces toward it and their corners cut", () => {
+    const faces = facesAt(["...oG...."], 5, 3, 5);
+
+    expect(sidesOf(faces)).toEqual(
+      expect.arrayContaining(["up 1", "slant 1 -1", "slant 1 1"]),
+    );
   });
 });
 

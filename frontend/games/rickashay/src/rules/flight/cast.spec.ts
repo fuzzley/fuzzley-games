@@ -7,6 +7,7 @@ import {
   type FixtureName,
 } from "../../testing/flight_fixtures";
 import { WALL_LEGEND } from "../levels/legend";
+import { STAND_OFF } from "../tuning";
 import {
   type CastField,
   type Contacts,
@@ -200,6 +201,37 @@ describe("cast", () => {
       expected(3 - RADIUS / Math.SQRT2, [brick(4, 0)]),
     );
     expect(met.met[0]?.face).toMatchObject({ kind: "slant", c: 8.75 });
+  });
+
+  it("meets a ramp's long face, a radius out from its long side", () => {
+    const field = fieldOf(5, ["....L...."]);
+
+    const met = castFrom(field, [4.5, 9], [0, -1]);
+
+    expect(metOf(met)).toEqual(expected(9 - (5.5 + STAND_OFF), [brick(4, 0)]));
+    expect(met.met[0]?.face).toMatchObject({ kind: "slant", long: true });
+  });
+
+  it("meets the short flat that cuts a ramp's point square", () => {
+    const field = fieldOf(5, ["....L...."]);
+
+    const met = castFrom(field, [7, 5.05], [-1, 0]);
+
+    expect(metOf(met)).toEqual(expected(1.75, [brick(4, 0)]));
+    expect(met.met[0]?.face).toMatchObject({ kind: "flat", line: 5.25 });
+  });
+
+  it("meets a gem's face, a radius out from its side", () => {
+    const field = fieldOf(5, ["....G...."]);
+
+    const met = castFrom(field, [4.25, RADIUS], [0, 1]);
+
+    expect(metOf(met)).toEqual(expected(5 - STAND_OFF, [brick(4, 0)]));
+    expect(met.met[0]?.face).toMatchObject({
+      kind: "slant",
+      facingX: -1,
+      facingY: -1,
+    });
   });
 
   it("meets both a flat and the cut its end joins, where they join", () => {
@@ -447,6 +479,8 @@ describe("cast, along the flights made by hand", () => {
     "bored",
     "guard",
     "corner",
+    "ramp",
+    "gem",
   ] as const)("meets each face %s turns off, where it turns", (name) => {
     const legs = legsOf(name);
 

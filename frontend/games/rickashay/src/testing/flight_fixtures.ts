@@ -46,6 +46,7 @@ import {
   JUMP_POINTS,
   RALLY_MARKS,
   RALLY_STEPS,
+  STAND_OFF,
   STRIKE_POINTS,
   bounceRally,
 } from "../rules/tuning";
@@ -62,10 +63,8 @@ export interface FlightFixture {
 /** A line the fuzzball's middle flies to: a flat's up the field, at an x, or across it, at a y. */
 type Line = { readonly x: number } | { readonly y: number };
 
-/** A 45° face's line the fuzzball's middle flies to: x + y = `sum`. */
-interface Slant {
-  readonly sum: number;
-}
+/** A 45° face's line the fuzzball's middle flies to: x + y = `sum`, or x − y = `difference`. */
+type Slant = { readonly sum: number } | { readonly difference: number };
 
 /** The ceiling's flat on a field 11 deep, a radius under it. */
 const CEILING = 11 - RADIUS;
@@ -182,8 +181,12 @@ class Flier {
    */
   swap(slant: Slant, off: TurnOff, cells: readonly number[]): this {
     const { x, y, dx, dy } = this;
-    this.flyFor((slant.sum - (x + y)) / (dx + dy));
-    [this.dx, this.dy] = [-dy, -dx];
+    this.flyFor(
+      "sum" in slant
+        ? (slant.sum - (x + y)) / (dx + dy)
+        : (slant.difference - (x - y)) / (dx - dy),
+    );
+    [this.dx, this.dy] = "sum" in slant ? [-dy, -dx] : [dy, dx];
     this.turns++;
     const { at } = this;
     this.events.push({
@@ -509,9 +512,9 @@ function plain(): FlightFixture {
 const AT_60 = 208;
 
 /**
- * Flies a shot at 60° from x = 1.3 to the face of the brick at column 4 of
- * row 5 it meets first, told how it turns off it and what the brick does,
- * then off the left wall to land.
+ * Flies a shot at 60° from where its start puts the fuzzball to the face
+ * of the brick at column 4 of row 5 it meets first, told how it turns off
+ * it and what the brick does, then off the left wall to land.
  */
 function offTheLeft(
   start: RoundStart,
@@ -533,6 +536,47 @@ function corner(): FlightFixture {
     }),
     (flier, cell) =>
       flier.swap({ sum: 4 + 5 - RADIUS }, "brick", [cell]).strike(cell),
+  );
+}
+
+/**
+ * A shot meets the long face of a ramp whose right angle sits in its
+ * cell's ceilingward right corner, which sends it back down shallow; the
+ * bricks the level needs wait over the jump line, so the wall jumps.
+ */
+function ramp(): FlightFixture {
+  return offTheLeft(
+    startOn(["ooooooooo", ".........", ".........", "....7...."], 5, {
+      x: 1.5,
+    }),
+    (flier, cell) =>
+      flier.swap({ sum: 4 + 5 + 1 - STAND_OFF }, "brick", [cell]),
+  );
+}
+
+/** The aim at 120°, as steep as {@link AT_60} the other way. */
+const AT_120 = 448;
+
+/**
+ * A shot at 120° from x = 7.7 meets a gem's floorward right face, which
+ * swaps its two speeds and sends it down shallow the other way, and breaks
+ * it, then turns off the right wall to land; the bricks the level needs
+ * wait over the jump line, so the wall jumps.
+ */
+function gem(): FlightFixture {
+  return flown(
+    startOn(["ooooooooo", ".........", ".........", "....G...."], 5, {
+      x: 7.7,
+    }),
+    AT_120,
+    (flier, cell) =>
+      flier
+        .swap({ difference: 4.5 - 5.5 + 0.5 + STAND_OFF }, "brick", [
+          cell(4, 5),
+        ])
+        .strike(cell(4, 5))
+        .turn({ x: RIGHT_WALL }, "wall")
+        .land(),
   );
 }
 
@@ -759,8 +803,8 @@ function sideTurns(flier: Flier, turns: number): Flier {
  * Rounds made by hand, by what each shows: a plain shot; a level cleared,
  * one lost and a wall's jump; a plated face; a long rally, its floor
  * bounce earned and spent; a spring brick's; a hot shot's; a lock's bolt;
- * the hatches' holds; a portal; a bored fuzzball's yawn; a guard; and a
- * brick's cut corner.
+ * the hatches' holds; a portal; a bored fuzzball's yawn; a guard; a
+ * brick's cut corner; a ramp's long face; and a gem's.
  */
 export const FLIGHT_FIXTURES = {
   plain: plain(),
@@ -777,6 +821,8 @@ export const FLIGHT_FIXTURES = {
   bored: bored(),
   guard: guard(),
   corner: corner(),
+  ramp: ramp(),
+  gem: gem(),
 } as const satisfies Readonly<Record<string, FlightFixture>>;
 
 /** A fixture's name, such as "rally". */

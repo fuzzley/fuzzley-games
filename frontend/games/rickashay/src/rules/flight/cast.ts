@@ -196,10 +196,6 @@ function reachesInto(face: BrickFace, column: number, row: number): boolean {
     case "bar":
     case "eye":
       return false;
-    default: {
-      const never: never = face;
-      return never;
-    }
   }
 }
 
