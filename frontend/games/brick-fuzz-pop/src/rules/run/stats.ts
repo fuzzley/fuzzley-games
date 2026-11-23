@@ -4,6 +4,7 @@ import {
   isCount,
   isRecord,
   withHigherCount,
+  withLowerCount,
 } from "@fz/core/json";
 import type { LevelEntry } from "../levels/levels";
 import type { Run } from "./run";
@@ -111,23 +112,4 @@ function isSound({
   stars = 1,
 }: Partial<Record<LevelRecord, number>>): boolean {
   return rounds >= 1 && stars >= 1 && stars <= MOST_STARS;
-}
-
-/**
- * Returns the counts with an id's count under a key lowered to a value
- * lower than the one kept, as the fewest rounds is beaten, or the same
- * counts for a value no lower: `@fz/core/json`'s `withHigherCount()` the
- * other way up, which only this game's records need.
- */
-function withLowerCount<K extends string>(
-  counts: CountsById<K>,
-  id: string,
-  key: K,
-  value: number,
-): CountsById<K> {
-  const kept = counts[id];
-  if (value >= (kept?.[key] ?? Infinity)) return counts;
-  const lowered: Partial<Record<K, number>> = { ...kept };
-  lowered[key] = value;
-  return { ...counts, [id]: lowered };
 }
