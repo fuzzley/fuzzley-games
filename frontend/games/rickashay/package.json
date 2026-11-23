@@ -12,6 +12,7 @@
     "build:prod": "vite build --mode production",
     "build:sounds": "node tools/build-sounds.mjs",
     "certify:levels": "node tools/certify-levels.mjs",
+    "report:levels": "node tools/report-levels.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage --project dom --project pure \"$@\" && vitest run --project sim \"$@\"",

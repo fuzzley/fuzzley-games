@@ -24,6 +24,7 @@ export const HELD_AS_RULES = [
   "src/testing/sweet_spot.ts",
   "src/testing/rally_mark.ts",
   "src/testing/certify_api.ts",
+  "src/testing/report_api.ts",
 ];
 
 export default defineConfig(

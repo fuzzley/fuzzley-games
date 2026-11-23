@@ -318,10 +318,14 @@ export function poolOf(game: Pick<CertifyGame, "root" | "api">): Pool {
  * it is certified, so the order they come in may change from run to run.
  *
  * Once a thread fails, it stops every thread and rejects with what failed.
+ *
+ * A script whose own pool's threads answer jobs of more than a level and a
+ * depth hands those in, and `done` is handed whatever its threads post back.
  */
-export async function solveOnThreads(
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- a thread's message comes untyped, and what it posts is its script's to say.
+export async function solveOnThreads<Done = Certified>(
   jobs: readonly CertifyJob[],
-  done: (certified: Certified) => void,
+  done: (certified: Done) => void,
   pool: Pool,
 ): Promise<void> {
   const queue = [...jobs];
@@ -342,10 +346,11 @@ export async function solveOnThreads(
  * Has a thread of the pool solve jobs from the queue until none is left,
  * rejecting if it fails or stops before then.
  */
-function solveOnThread(
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- as solveOnThreads()'s.
+function solveOnThread<Done>(
   thread: Worker,
   queue: CertifyJob[],
-  done: (certified: Certified) => void,
+  done: (certified: Done) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let idle = false;
@@ -358,7 +363,7 @@ function solveOnThread(
       }
       thread.postMessage(job);
     };
-    thread.on("message", (certified: Certified) => {
+    thread.on("message", (certified: Done) => {
       done(certified);
       next();
     });
