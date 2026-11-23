@@ -5,8 +5,10 @@
  * The layers the field is drawn in, back to front: the field, its band and
  * its grid's dots; the floor bounces' springs in the band; the wall; the
  * jump line and the danger line, drawn over the wall; the jump line's
- * count; and the field's rim, its lintel, its ceiling and its frame, over
- * everything, so nothing that flies covers them.
+ * count; the fuzzball; the rally's pill beside it, over it, so the
+ * fuzzball never covers its number; and the field's rim, its lintel, its
+ * ceiling and its frame, over everything, so nothing that flies covers
+ * them.
  */
 export const LAYERS = [
   "field",
@@ -14,6 +16,8 @@ export const LAYERS = [
   "wall",
   "lines",
   "count",
+  "balls",
+  "pill",
   "rim",
 ] as const satisfies readonly string[];
 

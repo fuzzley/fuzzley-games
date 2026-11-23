@@ -1,7 +1,7 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import { ATLAS } from "@fz/brick-wall/scene/atlas";
+import { ATLAS, bakedScaleOf } from "@fz/brick-wall/scene/atlas";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
 import {
   type BakeCommand,
@@ -27,15 +27,22 @@ import type { EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
 import { type SceneRun, colorsOf, runKeyedScene } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
-import { Core, type GameObjects, Textures } from "phaser";
+import { Core, GameObjects, Textures } from "phaser";
 import type { Wall } from "../rules/catalog/kinds";
 import { WALL_LEGEND } from "../rules/levels/legend";
 import { FLIGHT_RULES, type FlightRules } from "../rules/tuning";
-import { ART_PALETTE, ART_ROLES } from "../testing/art_frames";
+import { ART_PALETTE, ART_ROLES, billionths } from "../testing/art_frames";
 import { FLIGHT_FIXTURES } from "../testing/flight_fixtures";
 import { atlasFrames, brickLayers } from "../view/art/atlas_frames";
 import { FIELD_FRAMES, fieldFrames } from "../view/art/field_frames";
-import { FRAMES } from "../view/art/frames";
+import { FRAMES, FURS } from "../view/art/frames";
+import { eyesAt } from "../view/art/fuzzball_art";
+import {
+  PILL_FRAMES,
+  digitAcross,
+  pillFrames,
+  pillPlace,
+} from "../view/art/pill_art";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import { bandSprings } from "../view/field/springs";
 import type {
@@ -240,6 +247,22 @@ function layersAt(wall: Wall, row: number, column: number): readonly string[] {
   return brick ? brickLayers(brick) : [];
 }
 
+/** Returns where an object stands among those of the layer it is in, back to front. */
+function placeAmong(object: GameObjects.GameObject): number {
+  return object.displayList?.getIndex(object) ?? -1;
+}
+
+/** Returns where the layer an object is in stands among the scene's layers, back to front. */
+function layerPlaceOf(
+  scene: RickashayScene,
+  object: GameObjects.GameObject,
+): number {
+  const layer = object.displayList;
+  return layer instanceof GameObjects.Layer
+    ? scene.children.getIndex(layer)
+    : -1;
+}
+
 /** Returns where each image of a set shows, which it shows, and its frame. */
 function shownOf(
   images: readonly GameObjects.Image[],
@@ -247,6 +270,14 @@ function shownOf(
   return images
     .filter((image) => image.visible)
     .map((image) => ({ frame: image.frame.name, x: image.x, y: image.y }));
+}
+
+/** Returns a place on the canvas to a billionth of a pixel, so two worked out in another order match. */
+function placeInBillionths({ x, y }: { x: number; y: number }): {
+  x: number;
+  y: number;
+} {
+  return { x: billionths(x), y: billionths(y) };
 }
 
 /** Returns the square each spring of a set fills, its foot's middle on the square's, on the canvas. */
@@ -364,15 +395,17 @@ describe("RickashayScene", () => {
   });
 
   describe("the atlas", () => {
-    it("holds every frame of the art and the field's own", async () => {
+    it("holds every frame of the art, the field's own and the rally's pill's", async () => {
       const { scene } = await startBoard();
       const atlas = scene.textures.get(ATLAS);
       const metrics = metricsAt();
 
       expect(
-        [...atlasFrames(LIGHT, metrics), ...fieldFrames(LIGHT, metrics)].filter(
-          (frame) => !atlas.has(frame.name),
-        ),
+        [
+          ...atlasFrames(LIGHT, metrics),
+          ...fieldFrames(LIGHT, metrics),
+          ...pillFrames(LIGHT, metrics),
+        ].filter((frame) => !atlas.has(frame.name)),
       ).toEqual([]);
     });
 
@@ -536,6 +569,164 @@ describe("RickashayScene", () => {
           .filter((warning) => warning.visible)
           .map((warning) => warning.frame.name),
       ).toEqual([FIELD_FRAMES.warning]);
+    });
+  });
+
+  describe("the fuzzball", () => {
+    it("draws the fuzzball waiting at its middle, scaled as the field is laid out, its fur as it grew", async () => {
+      const { scene } = await startBoard((each) => {
+        each.show({ ball: ballAt(2) });
+      });
+      const metrics = metricsAt();
+      const at = toCanvas(metrics, 2, RADIUS);
+
+      expect({
+        frame: scene.balls.body.frame.name,
+        x: scene.balls.body.x,
+        y: scene.balls.body.y,
+        scale: scene.balls.body.scale,
+      }).toEqual({
+        frame: FRAMES.fuzzball(0),
+        x: at.x,
+        y: at.y,
+        scale: metrics.unit / bakedScaleOf(metrics).unit,
+      });
+    });
+
+    it.each(FURS)(
+      "draws its fur lifted as the view has it, %i",
+      async (fur) => {
+        const { scene, shell, run } = await startBoard();
+
+        shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, fur }) });
+        run.advance(16);
+
+        expect(scene.balls.body.frame.name).toBe(FRAMES.fuzzball(fur));
+      },
+    );
+
+    it("draws a hot shot red-hot under its crown of flame", async () => {
+      const { scene } = await startBoard((each) => {
+        each.show({ ball: ballAt(2, { hot: true }) });
+      });
+
+      expect(scene.balls.body.frame.name).toBe(FRAMES.hotShot);
+    });
+
+    it("draws its eyes over it, looking the way it flies", async () => {
+      const { scene, shell, run } = await startBoard();
+      const ball = ballAt(3, { y: 4, dx: -1, dy: 2 });
+
+      shell.show({ ball });
+      run.advance(16);
+
+      const place = eyesAt(ball, { x: 0, y: 0 });
+      const at = toCanvas(metricsAt(), place.x, place.y);
+      expect({
+        frame: scene.balls.eyes.frame.name,
+        x: scene.balls.eyes.x,
+        y: scene.balls.eyes.y,
+      }).toEqual({ frame: FRAMES.eyes, x: at.x, y: at.y });
+    });
+
+    it("half shuts its eyes as it drops home", async () => {
+      const { scene, shell, run } = await startBoard();
+
+      shell.show({ ball: ballAt(3, { y: 4, home: true }) });
+      run.advance(16);
+
+      expect(scene.balls.eyes.frame.name).toBe(FRAMES.yawn);
+    });
+
+    it("draws its eyes over its body", async () => {
+      const { scene } = await startBoard();
+      const { body, eyes } = scene.balls;
+
+      expect({
+        together: eyes.displayList === body.displayList,
+        over: placeAmong(eyes) > placeAmong(body),
+      }).toEqual({ together: true, over: true });
+    });
+  });
+
+  describe("the rally's pill", () => {
+    it("hides while the fuzzball has struck nothing", async () => {
+      const { scene } = await startBoard();
+
+      expect(shownOf([scene.pill.pill, ...scene.pill.digits])).toEqual([]);
+    });
+
+    it("writes the rally beside the fuzzball in a pill as wide as its digits, where the view places it", async () => {
+      const { scene, shell, run } = await startBoard();
+      const ball = ballAt(3, { y: 4, dx: 1, dy: 1, rally: 15 });
+
+      shell.show({ ball });
+      run.advance(16);
+
+      const metrics = metricsAt();
+      const middle = pillPlace(ball, shell.fieldShape.depth, { x: 0, y: 0 });
+      const at = (across: number): { x: number; y: number } =>
+        placeInBillionths(toCanvas(metrics, middle.x + across, middle.y));
+      expect(
+        shownOf([scene.pill.pill, ...scene.pill.digits]).map(
+          ({ frame, ...place }) => ({ frame, ...placeInBillionths(place) }),
+        ),
+      ).toEqual([
+        { frame: PILL_FRAMES.pill(2), ...at(0) },
+        { frame: PILL_FRAMES.digit(1), ...at(digitAcross(2, 0)) },
+        { frame: PILL_FRAMES.digit(5), ...at(digitAcross(2, 1)) },
+      ]);
+    });
+
+    it("writes a rally that takes more digits in a wider pill as it climbs", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 99 }) });
+      });
+
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 100 }) });
+      run.advance(16);
+
+      expect(
+        shownOf([scene.pill.pill, ...scene.pill.digits]).map(
+          (one) => one.frame,
+        ),
+      ).toEqual([
+        PILL_FRAMES.pill(3),
+        PILL_FRAMES.digit(1),
+        PILL_FRAMES.digit(0),
+        PILL_FRAMES.digit(0),
+      ]);
+    });
+
+    it("follows the fuzzball as it flies", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 3 }) });
+      });
+      const before = scene.pill.pill.x;
+
+      shell.show({ ball: ballAt(4, { y: 5, dx: 1, dy: 1, rally: 3 }) });
+      run.advance(16);
+
+      expect(scene.pill.pill.x - before).toBe(metricsAt().unit);
+    });
+
+    it("hides as the fuzzball lands and waits", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 12 }) });
+      });
+
+      shell.show({ ball: ballAt(5) });
+      run.advance(16);
+
+      expect(shownOf([scene.pill.pill, ...scene.pill.digits])).toEqual([]);
+    });
+
+    it("draws over the fuzzball, so the fuzzball never covers its number", async () => {
+      const { scene } = await startBoard();
+
+      expect(layerPlaceOf(scene, scene.pill.pill)).toBeGreaterThan(
+        layerPlaceOf(scene, scene.balls.body),
+      );
     });
   });
 

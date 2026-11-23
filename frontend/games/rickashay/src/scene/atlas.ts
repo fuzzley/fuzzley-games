@@ -13,12 +13,14 @@ import {
   fieldFrames,
   springFrames,
 } from "../view/art/field_frames";
+import { pillFrames } from "../view/art/pill_art";
 import type { WallPalette } from "../view/colors/palette";
 
 /**
  * Returns every frame the field shows, drawn in a palette at a scale, which
  * `WallAtlas` bakes: the bricks' and the fuzzball's, then the field's own
- * dots and warning frame, and the floor bounces' springs.
+ * dots and warning frame, the floor bounces' springs, and the rally's pill
+ * and its digits.
  */
 export function wallAtlasFrames(
   palette: WallPalette,
@@ -28,6 +30,7 @@ export function wallAtlasFrames(
     ...atlasFrames(palette, scale),
     ...fieldFrames(palette, scale),
     ...springFrames(palette, scale),
+    ...pillFrames(palette, scale),
   ];
 }
 

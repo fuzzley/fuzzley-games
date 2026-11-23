@@ -36,7 +36,9 @@ import type { FieldCommand } from "../view/steering/controls";
 import { Steering } from "../view/steering/steering";
 import { FIELD_ART, WALL_ART, wallAtlasFrames } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
+import { BallPainter } from "./painters/ball_painter";
 import type { PaintContext, Painter } from "./painters/painter";
+import { PillPainter } from "./painters/pill_painter";
 import { SpringsPainter } from "./painters/springs_painter";
 
 /** The keys the scene keeps from the page, so the arrows and Space steer rather than scroll it. */
@@ -85,8 +87,9 @@ export interface RickashaySceneOptions {
 /**
  * Draws a level of Rickashay: reads the player's keys, mouse and fingers
  * through its `Steering`, hands the shell each frame's time and aim, then
- * pulls the round to draw and draws the field, its springs and the wall as
- * they stand; a key the steering doesn't take becomes a command.
+ * pulls the round to draw and draws the field, its springs, the wall, the
+ * fuzzball and the rally's pill beside it as they stand; a key the
+ * steering doesn't take becomes a command.
  */
 export class RickashayScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -98,6 +101,10 @@ export class RickashayScene extends Scene {
   springs!: SpringsPainter;
   /** Draws the wall. */
   wall!: WallPainter<KindId>;
+  /** Draws the fuzzball. */
+  balls!: BallPainter;
+  /** Draws the rally in its pill beside the fuzzball. */
+  pill!: PillPainter;
   /** Turns the player's keys, mouse and fingers into the shot being aimed, which the bar's nudges and Release reach too. */
   steering!: Steering;
   /** Frames the camera on the field. */
@@ -152,8 +159,17 @@ export class RickashayScene extends Scene {
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
     this.springs = new SpringsPainter(this, layers.springs);
     this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
+    this.balls = new BallPainter(this, layers.balls);
+    this.pill = new PillPainter(this, layers.pill);
     this.fieldCamera = new FieldCamera(this.cameras.main);
-    this.painters = [this.field, this.springs, this.wall, this.fieldCamera];
+    this.painters = [
+      this.field,
+      this.springs,
+      this.wall,
+      this.balls,
+      this.pill,
+      this.fieldCamera,
+    ];
     this.fieldCamera.fit(this.metrics, this.laidOut);
     this.steering = new Steering(this.metrics, this.canvas);
     this.aiming = options.pointerAiming();
