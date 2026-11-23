@@ -264,7 +264,7 @@ export function holdEveryFloor<
 }
 
 /** Returns each level as a spec's row: its number, its name and the level. */
-function levelRows<E extends HeldLevel>(
+export function levelRows<E extends HeldLevel>(
   levels: readonly E[],
 ): readonly (readonly [number, string, E])[] {
   return levels.map((entry) => [entry.number, entry.data.name, entry] as const);

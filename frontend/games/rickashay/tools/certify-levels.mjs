@@ -18,7 +18,9 @@
  * `lines/<set>.json`, their keys sorted and laid out as Prettier lays them
  * out, so a run writes the same bytes as the last unless a line changed. As
  * each level is done, it prints the rounds its lines take and how widely
- * the solver searched.
+ * the solver searched. The specs in `src/rules/levels/every_level/` replay
+ * every line, and those in `every_check/` hold the rally marks to the
+ * careless player's games.
  *
  * With `--set`, `--level` or `--depth`, it certifies only those, keeping
  * every other line and mark as written, and writes only the files of the

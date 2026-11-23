@@ -2,9 +2,10 @@
 // for the levels' certificates and replays to hold them to their levels, and
 // its careless player plays (docs/rickashay/design.md, "The guarantee"):
 // each shot an aim's index alone, as a certificate keeps it (C14), and each
-// round played whole by playRound(). A line found in Node must clear its
-// level in every browser, so this is held as the rules are
-// (eslint.config.js), to their fence and their exact arithmetic.
+// round played whole by playRound(); and the floors that careless player
+// is held to, as blind.ts keeps the blind player's ceiling. A line found in
+// Node must clear its level in every browser, so this is held as the rules
+// are (eslint.config.js), to their fence and their exact arithmetic.
 
 import { AIM_COUNT, type Aim } from "@fz/brick-wall/rules/aims";
 import type { LinePlay } from "@fz/brick-wall/testing/solver";
@@ -66,6 +67,19 @@ export function linePlayOf(
 export function levelPlayOf(entry: LevelEntry, depth: number): RoundPlay {
   return linePlayOf(parseLevel(entry.data), depth);
 }
+
+/**
+ * The times in 100 the careless player must clear each level of a set, on
+ * every depth, by the set's id (docs/rickashay/design.md, "The guarantee",
+ * check 3): the first sets safe, and Long rallies meant to be lost
+ * sometimes.
+ */
+export const CARELESS_FLOORS = {
+  "warm-up": 90,
+  angles: 85,
+  tricks: 80,
+  "long-rallies": 50,
+} as const satisfies Readonly<Record<string, number>>;
 
 /** Returns what tells one round's start from another: its wall's hits and height, where the fuzzball waits, and whether the shot is hot. */
 function keyOf({ wall, x, hot }: RoundStart): string {
