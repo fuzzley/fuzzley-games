@@ -7,6 +7,7 @@ import {
   signal,
 } from "@angular/core";
 import { waitingRows } from "@fz/brick-wall/app/panels";
+import { RunRecords } from "@fz/brick-wall/app/records";
 import {
   RoundDriver,
   type RoundDriving,
@@ -39,6 +40,7 @@ import {
   levelOf,
   openingOf,
 } from "../../rules/run/run";
+import { STATS_RULES } from "../../rules/run/stats";
 import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { Boon, Charge, Shot } from "../../rules/shot";
@@ -62,7 +64,6 @@ import { StatsService } from "../stats/stats.service";
 import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
 import { CertificateLine } from "./line";
-import { RunRecords } from "./records";
 import { KEPT_GAME } from "./saved_game.service";
 import { ROUND_WORDS, fastForwardWords } from "./words";
 
@@ -119,12 +120,14 @@ function brickFuzzPopDriving(): RoundDriving<
     rules: RUN_RULES,
     openingOf: (run) => openingOf(run, levelOf(run, levels)),
     playOf: (start) => new RoundPlay(start),
-    records: new RunRecords(
-      inject(StatsService),
-      inject(ProgressService),
+    records: new RunRecords({
+      stats: inject(StatsService),
+      progress: inject(ProgressService),
       levels,
-      debug,
-    ),
+      rules: RUN_RULES,
+      results: STATS_RULES,
+      menu: debug,
+    }),
     words: ROUND_WORDS,
     depthSet: debug.depth,
   };

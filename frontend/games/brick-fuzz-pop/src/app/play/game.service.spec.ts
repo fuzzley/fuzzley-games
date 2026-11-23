@@ -763,15 +763,6 @@ describe("GameService", () => {
       expect(TestBed.inject(StatsService).stats().runs).toBe(1);
     });
 
-    it("counts a run started once, not again at its second round", () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-
-      playRoundOut(game);
-
-      expect(TestBed.inject(StatsService).stats().runs).toBe(1);
-    });
-
     it("keeps no level cleared while the flight that clears it is in the air", () => {
       const game = gameOf("cleared");
 
@@ -890,17 +881,6 @@ describe("GameService", () => {
       await answered(game.startAt(2), true);
 
       expect(game.tuned()).toBe(false);
-    });
-
-    it("keeps nothing of a flight still in the air as another run begins, where the run left was off the record", async () => {
-      const game = gameOf("cleared");
-      await game.startAt(2);
-      release(game);
-      game.pause();
-
-      await answered(game.startAt(1), true);
-
-      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
     });
 
     it("keeps nothing for a run played on retuned numbers", () => {
@@ -1073,42 +1053,6 @@ describe("GameService", () => {
       expect(TestBed.inject(ProgressService).cleared()).toEqual(
         new Set([FIRST_ID, SECOND_ID]),
       );
-    });
-
-    it("marks only the levels from the one it began at", async () => {
-      const played = gameOf("cleared");
-      await played.startAt(2);
-      playUntilCard(played);
-      const taken = kept(played, 2);
-      afresh();
-      const game = gameOf("step");
-
-      game.takeUp(taken);
-
-      expect(TestBed.inject(ProgressService).cleared()).toEqual(
-        new Set([SECOND_ID]),
-      );
-    });
-
-    it("leaves the stats as they were as it marks the levels it cleared", () => {
-      const taken = kept(carded("cleared"), 2);
-      afresh();
-      const game = gameOf("step");
-      const stats = TestBed.inject(StatsService).stats();
-
-      game.takeUp(taken);
-
-      expect(TestBed.inject(StatsService).stats()).toBe(stats);
-    });
-
-    it("marks no level cleared for a run the debug menu took off the record", () => {
-      const taken = kept(carded("cleared"), 2, true);
-      afresh();
-      const game = gameOf("step");
-
-      game.takeUp(taken);
-
-      expect(TestBed.inject(ProgressService).cleared().size).toBe(0);
     });
 
     it("takes up whether the run is played on retuned numbers", () => {

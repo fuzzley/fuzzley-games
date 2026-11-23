@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from "@angular/core";
+import type { RecordsMenu, RunOpened } from "@fz/brick-wall/app/records";
 import { LEAST_DEPTH, MOST_DEPTH, isDepth } from "@fz/brick-wall/rules/field";
 import { type Tuning, createTuning } from "@fz/game-ui/debug_menu";
 import {
@@ -6,16 +7,6 @@ import {
   type TunedNumbers,
   staleCertificates,
 } from "../../view/debug/debug_tuning";
-
-/** Says how a run begins, for its records. */
-export interface RunStart {
-  /** Whether storage kept the run as played off the record. */
-  readonly kept?: boolean;
-  /** Whether it starts at a level the player hasn't opened. */
-  readonly locked?: boolean;
-  /** Whether it plays a certificate's line. */
-  readonly certified?: boolean;
-}
 
 /**
  * Holds what the debug menu sets: the numbers it tunes, the field's depth
@@ -29,7 +20,7 @@ export interface RunStart {
  * `startRun()`.
  */
 @Injectable({ providedIn: "root" })
-export class DebugService {
+export class DebugService implements RecordsMenu {
   /** The numbers the menu tunes: the game's own until it tunes them. */
   readonly tuning: Tuning<TunedNumbers> = createTuning(TUNED_NUMBERS);
 
@@ -75,7 +66,7 @@ export class DebugService {
     kept = false,
     locked = false,
     certified = false,
-  }: RunStart = {}): void {
+  }: RunOpened = {}): void {
     this.runLatch.set(kept || locked || certified || this.tuning.retuned());
   }
 
