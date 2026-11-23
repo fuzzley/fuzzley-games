@@ -30,6 +30,7 @@ export const ICON_NAMES = [
   "restart",
   "search",
   "settings",
+  "skip",
   "sound",
   "sound-off",
   "star",
@@ -48,7 +49,7 @@ export type IconName = (typeof ICON_NAMES)[number];
  * The icons drawn filled; the rest are outlines. Minesweeper's flag, mine and
  * heart are among them, since they sit small on a square, where an outline
  * thins away; so is the star, small in a row as the hearts are; and so are
- * pause, fast-forward and drop, beside play.
+ * pause, fast-forward, drop and skip, beside play.
  */
 const FILLED: ReadonlySet<IconName> = new Set([
   "drop",
@@ -59,6 +60,7 @@ const FILLED: ReadonlySet<IconName> = new Set([
   "more",
   "pause",
   "play",
+  "skip",
   "star",
 ]);
 
