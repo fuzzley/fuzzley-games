@@ -2,6 +2,7 @@ import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { ATLAS, WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
+import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
 import {
   type PointerAiming,
   STRAIGHT_UP,
@@ -30,11 +31,12 @@ import {
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
+import type { BrickKindId } from "../rules/catalog/bricks";
 import type { FlightEvent } from "../rules/flight/events";
 import type { Guide } from "../rules/flight/guide";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
-import type { Wall } from "../rules/wall/wall";
+import { WALL_RULES, type Wall } from "../rules/wall/wall";
 import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
 import {
@@ -50,11 +52,10 @@ import {
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Steer, Steering } from "../view/steering/steering";
-import { wallAtlasFrames } from "./atlas";
+import { FIELD_ART, wallAtlasFrames } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
-import { FieldPainter } from "./painters/field_painter";
 import { GaugePainter } from "./painters/gauge_painter";
 import { GuidePainter } from "./painters/guide_painter";
 import { MeterPainter } from "./painters/meter_painter";
@@ -144,7 +145,7 @@ export class WallScene extends Scene {
   readonly key: string;
 
   /** Draws the field, its band, its lintel, its frame and its lines. */
-  field!: FieldPainter;
+  field!: FieldPainter<BrickKindId>;
   /** Draws the wall. */
   wall!: WallPainter;
   /** Draws the guide. */
@@ -223,7 +224,7 @@ export class WallScene extends Scene {
     );
     this.handPictures();
     const layers = this.layers();
-    this.field = new FieldPainter(this, layers);
+    this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
     this.wall = new WallPainter(this, layers.wall);
     this.guide = new GuidePainter(this, layers.guide, this.field);
     this.effects = new EffectsPainter(this, layers);

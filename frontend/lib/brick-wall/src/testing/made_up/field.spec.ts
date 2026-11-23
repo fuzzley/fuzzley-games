@@ -25,40 +25,43 @@ describe("the made-up palettes", () => {
 });
 
 describe("madeUpFrames", () => {
-  it("draws each made-up frame a square its units wide, in its color", () => {
+  it("draws a frame as one square filling it, in its color", () => {
     const frames = madeUpFrames(LIGHT_MADE_UP, { unit: 40, pixelRatio: 1 });
 
-    expect(frames).toEqual([
-      {
-        name: "dot",
-        width: 8,
-        height: 8,
-        commands: [
-          {
-            kind: "rect",
-            x: 0,
-            y: 0,
-            width: 8,
-            height: 8,
-            color: LIGHT_MADE_UP.guide,
-          },
-        ],
-      },
-      {
-        name: "cell",
-        width: 40,
-        height: 40,
-        commands: [
-          {
-            kind: "rect",
-            x: 0,
-            y: 0,
-            width: 40,
-            height: 40,
-            color: LIGHT_MADE_UP.steel,
-          },
-        ],
-      },
+    expect(frames.find(({ name }) => name === "dot")).toEqual({
+      name: "dot",
+      width: 8,
+      height: 8,
+      commands: [
+        {
+          kind: "rect",
+          x: 0,
+          y: 0,
+          width: 8,
+          height: 8,
+          color: LIGHT_MADE_UP.guide,
+        },
+      ],
+    });
+  });
+
+  it("draws each made-up frame its units wide and high, in its color", () => {
+    const frames = madeUpFrames(LIGHT_MADE_UP, { unit: 40, pixelRatio: 1 });
+
+    expect(
+      frames.map(({ name, width, height, commands }) => [
+        name,
+        width,
+        height,
+        commands.map((command) =>
+          command.kind === "rect" ? command.color : null,
+        ),
+      ]),
+    ).toEqual([
+      ["dot", 8, 8, [LIGHT_MADE_UP.guide]],
+      ["cell", 40, 40, [LIGHT_MADE_UP.steel]],
+      ["grid-dot", 2, 2, [LIGHT_MADE_UP.line]],
+      ["count-dot", 6, 6, [LIGHT_MADE_UP.jumpLine]],
     ]);
   });
 

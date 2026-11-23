@@ -1,7 +1,13 @@
+import type { FieldArt } from "@fz/brick-wall/scene/field_painter";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import { atlasFrames } from "../view/art/atlas_frames";
 import type { WallPalette } from "../view/colors/palette";
-import { fieldFrames, flightFrames } from "./field_art";
+import {
+  COUNT_DOT,
+  FIELD_FRAMES,
+  fieldFrames,
+  flightFrames,
+} from "./field_art";
 import { pictureFrames } from "./pictures";
 
 /**
@@ -22,3 +28,14 @@ export function wallAtlasFrames(
     ...pictureFrames(art, scale),
   ];
 }
+
+/**
+ * The frames `@fz/brick-wall/scene/field_painter`'s `FieldPainter` shows of
+ * the atlas, the grid's dot and the count's, and how wide the count's dot
+ * is drawn.
+ */
+export const FIELD_ART: FieldArt = {
+  gridDot: FIELD_FRAMES.gridDot,
+  countDot: FIELD_FRAMES.countDot,
+  countDotWidth: COUNT_DOT,
+};

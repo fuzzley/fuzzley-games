@@ -8,6 +8,19 @@ import {
   MOST_BAKED_UNIT,
   bakedScaleOf,
 } from "@fz/brick-wall/scene/atlas";
+import {
+  COUNT_GROUP,
+  COUNT_PITCH,
+  FIELD_BAKE,
+  GROUP_GAP,
+  JUMP_LINE,
+} from "@fz/brick-wall/scene/field_painter";
+import {
+  type BakeCommand,
+  fillsIn,
+  recordBakes,
+  stampsIn,
+} from "@fz/brick-wall/testing/bakes";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
 import {
   type PointerAiming,
@@ -57,7 +70,6 @@ import {
 } from "@fz/phaser/testing";
 import { drawnIn, frameNamed, viewport } from "@fz/phaser/testing/pure";
 import { Core, GameObjects, Textures } from "phaser";
-import type { MockInstance } from "vitest";
 import { BRICK_KIND_IDS, brickKind } from "../rules/catalog/bricks";
 import type { FlightEvent } from "../rules/flight/events";
 import { type Guide, guideOf } from "../rules/flight/guide";
@@ -113,12 +125,6 @@ import {
   fieldFrames,
   flightFrames,
 } from "./field_art";
-import {
-  DANGER_LINE,
-  FIELD_BAKE,
-  JUMP_LINE,
-  MOST_COUNTED,
-} from "./painters/field_painter";
 import {
   FLASH_ALPHA,
   MOST_SHARDS_FLYING,
@@ -386,7 +392,7 @@ async function startBoard(
 ): Promise<Board> {
   // What the wall's bake shows is read from what it was handed from the
   // start, as a headless game draws no pixels.
-  spyOnBakes();
+  bakedFromStart = recordBakes(Textures.DynamicTexture.prototype);
   const shell = new FakeShell();
   shell.fieldShape = shapeAt(canvas.width, canvas.height);
   setUp(shell);
@@ -430,7 +436,7 @@ function framesAt(scene: WallScene, row: number, column: number): string[] {
   const middle = { x: (column + 0.5) * unit, y: (depth - row - 0.5) * unit };
   let drawn: string[] = [];
   let shown: string[] = [];
-  for (const command of bakeCommands(spyOnBakes(), WALL_BAKE, FROM_START)) {
+  for (const command of bakedFromStart(WALL_BAKE)) {
     if (command.kind === "render") shown = [...drawn];
     if (command.kind === "clear" && covers(command.rect, middle)) drawn = [];
     if (
@@ -489,143 +495,10 @@ function rectOf(image: GameObjects.Image): PixelRect {
 }
 
 /**
- * Describes a command a bake was handed, in the bake's own pixels: a fill,
- * a stamp of a frame of the atlas from its middle, or the field's grid
- * dots' from its top left, a clear, of the whole bake where it names no
- * rectangle, or a render of what it was handed.
+ * Returns what reads, in order, the commands a bake of a key was handed
+ * since the board last started, which the board starts recording.
  */
-type BakeCommand =
-  | {
-      readonly kind: "fill";
-      readonly color: number;
-      readonly rect: PixelRect;
-    }
-  | {
-      readonly kind: "stamp";
-      readonly frame: string;
-      readonly x: number;
-      readonly y: number;
-      readonly scale: number;
-    }
-  | { readonly kind: "clear"; readonly rect: PixelRect | null }
-  | { readonly kind: "render" };
-
-/**
- * Spies on the commands every bake is handed, until the mocks are restored,
- * through the spies a spec already made where it made them.
- */
-function spyOnBakes(): BakeSpies {
-  const texture = Textures.DynamicTexture.prototype;
-  return {
-    fill: vi.spyOn(texture, "fill"),
-    stamp: vi.spyOn(texture, "stamp"),
-    clear: vi.spyOn(texture, "clear"),
-    render: vi.spyOn(texture, "render"),
-  };
-}
-
-/** The spies on what every bake is handed, each kind of command's. */
-interface BakeSpies {
-  readonly fill: MockInstance<Textures.DynamicTexture["fill"]>;
-  readonly stamp: MockInstance<Textures.DynamicTexture["stamp"]>;
-  readonly clear: MockInstance<Textures.DynamicTexture["clear"]>;
-  readonly render: MockInstance<Textures.DynamicTexture["render"]>;
-}
-
-/** How many calls of each kind of command to pass over, from the first. */
-type CallsPast = Readonly<Record<keyof BakeSpies, number>>;
-
-/** Passes over no call: reads every command since the spies were made. */
-const FROM_START: CallsPast = { fill: 0, stamp: 0, clear: 0, render: 0 };
-
-/**
- * Records every command a bake is handed from now on, until the mocks are
- * restored, and returns what reads, in order, those a bake of a key was
- * handed: a scene's first bakes among them where it is called before the
- * scene starts.
- */
-function recordBakes(): (key: string) => BakeCommand[] {
-  const spies = spyOnBakes();
-  const past: CallsPast = {
-    fill: spies.fill.mock.calls.length,
-    stamp: spies.stamp.mock.calls.length,
-    clear: spies.clear.mock.calls.length,
-    render: spies.render.mock.calls.length,
-  };
-  return (key) => bakeCommands(spies, key, past);
-}
-
-/** Returns, in order, the commands a bake of a key was handed, past the calls given. */
-function bakeCommands(
-  { fill, stamp, clear, render }: BakeSpies,
-  key: string,
-  past: CallsPast,
-): BakeCommand[] {
-  const keyOf = (bake: unknown): string | null =>
-    bake instanceof Textures.DynamicTexture ? bake.key : null;
-  const ordered: [number, BakeCommand][] = [];
-  fill.mock.calls.forEach(
-    ([color, , x = 0, y = 0, width = 0, height = 0], at) => {
-      if (at < past.fill || keyOf(fill.mock.contexts[at]) !== key) return;
-      ordered.push([
-        fill.mock.invocationCallOrder[at] ?? 0,
-        { kind: "fill", color, rect: { x, y, width, height } },
-      ]);
-    },
-  );
-  stamp.mock.calls.forEach(([, frame, x = 0, y = 0, config], at) => {
-    if (at < past.stamp || keyOf(stamp.mock.contexts[at]) !== key) return;
-    ordered.push([
-      stamp.mock.invocationCallOrder[at] ?? 0,
-      {
-        kind: "stamp",
-        frame: String(frame),
-        x,
-        y,
-        scale: config?.scale ?? 1,
-      },
-    ]);
-  });
-  clear.mock.calls.forEach(([x, y, width, height], at) => {
-    if (at < past.clear || keyOf(clear.mock.contexts[at]) !== key) return;
-    ordered.push([
-      clear.mock.invocationCallOrder[at] ?? 0,
-      {
-        kind: "clear",
-        rect:
-          x === undefined || y === undefined
-            ? null
-            : { x, y, width: width ?? 0, height: height ?? 0 },
-      },
-    ]);
-  });
-  render.mock.contexts.forEach((bake, at) => {
-    if (at < past.render || keyOf(bake) !== key) return;
-    ordered.push([
-      render.mock.invocationCallOrder[at] ?? 0,
-      { kind: "render" },
-    ]);
-  });
-  return ordered.sort(([a], [b]) => a - b).map(([, command]) => command);
-}
-
-/** Returns the stamps among a bake's commands. */
-function stampsIn(
-  commands: readonly BakeCommand[],
-): Extract<BakeCommand, { kind: "stamp" }>[] {
-  return commands.flatMap((command) =>
-    command.kind === "stamp" ? [command] : [],
-  );
-}
-
-/** Returns the fills among a bake's commands. */
-function fillsIn(
-  commands: readonly BakeCommand[],
-): Extract<BakeCommand, { kind: "fill" }>[] {
-  return commands.flatMap((command) =>
-    command.kind === "fill" ? [command] : [],
-  );
-}
+let bakedFromStart: (key: string) => BakeCommand[] = () => [];
 
 /** The plain round's break of the brick at wall cell 0, as a flight might reach it. */
 const PLAIN_BREAK: FlightEvent = {
@@ -823,10 +696,13 @@ function layerPlaceOf(
     : -1;
 }
 
-/** Returns where a dot of the jump line's count stands, in field units, counted from its end, on a field of the depth given: the first a gap of the line's and half the count's pitch of 0.24 short of the right wall, and 0.12 further on after each three. */
+/** Returns where a dot of the jump line's count stands, in field units, counted from its end, on a field of the depth given: the first a gap of the line's and half the count's pitch short of the right wall, and a group's gap further on after each group. */
 function countPlace(at: number, depth: number): { x: number; y: number } {
   const x =
-    COLUMNS - (JUMP_LINE.gap + (at + 0.5) * 0.24 + Math.floor(at / 3) * 0.12);
+    COLUMNS -
+    (JUMP_LINE.gap +
+      (at + 0.5) * COUNT_PITCH +
+      Math.floor(at / COUNT_GROUP) * GROUP_GAP);
   return { x, y: thirdsOf(depth).jumpLine };
 }
 
@@ -837,11 +713,6 @@ function frameUntil(board: Board, reached: (play: RoundPlay) => boolean): void {
     board.run.advance(16);
   }
   throw new Error("The play never got there.");
-}
-
-/** Returns where on the canvas a field row's foot runs, in the layout given. */
-function rowFoot(metrics: FieldMetrics, row: number): number {
-  return toCanvas(metrics, 0, row).y;
 }
 
 /** An upright phone's canvas, in CSS pixels, where a finger aims and the gauge shows over it. */
@@ -1162,7 +1033,7 @@ describe("WallScene", () => {
     });
 
     it("bakes the atlas at no more than its largest unit, and stamps a larger one's frames scaled up", async () => {
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
       const board = await startBoard(undefined, { width: 1300, height: 1800 });
       const { unit } = metricsAt(1300, 1800);
 
@@ -1176,7 +1047,7 @@ describe("WallScene", () => {
     });
 
     it("shows the field's dots scaled up with the wall's frames", async () => {
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
       const { scene } = await startBoard(undefined, {
         width: 1300,
         height: 1800,
@@ -1224,7 +1095,7 @@ describe("WallScene", () => {
 
     it("stamps the whole wall afresh at a new unit past its largest, scaled up to it", async () => {
       const board = await startBoard(undefined, { width: 1300, height: 1800 });
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
 
       resizeTo(board, 1400, 1900);
 
@@ -1325,22 +1196,9 @@ describe("WallScene", () => {
   });
 
   describe("the field", () => {
-    it("is painted in the palette", async () => {
-      const bakes = recordBakes();
-      const { scene } = await startBoard();
-
-      expect({
-        ground: fillsIn(bakes(FIELD_BAKE)).map(({ color }) => color),
-        rim: colorsOf(scene.field.rim),
-      }).toEqual({
-        ground: [LIGHT.field, LIGHT.band],
-        rim: [LIGHT.band, LIGHT.line],
-      });
-    });
-
     it("is painted again in a new palette", async () => {
       const { shell, run, scene } = await startBoard();
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
 
       shell.colors = DARK;
       run.advance(16);
@@ -1352,58 +1210,6 @@ describe("WallScene", () => {
         ground: [DARK.field, DARK.band],
         rim: [DARK.band, DARK.line],
       });
-    });
-
-    it("fills its cells and the floor's band under them on its bake, shown at the cells' top left, and the lintel over them", async () => {
-      const bakes = recordBakes();
-      const { shell, scene } = await startBoard();
-      const { x, y, width, height, unit } = metricsAt();
-      const band = bandPixels(shell.fieldShape, unit);
-      const lintel = lintelPixels(shell.fieldShape, unit);
-
-      expect({
-        ground: rectOf(scene.field.ground),
-        baked: bakes(FIELD_BAKE).filter(({ kind }) => kind !== "stamp"),
-        lintel: rectsIn(scene.field.rim, LIGHT.band),
-      }).toEqual({
-        ground: { x, y, width, height: height + band },
-        baked: [
-          { kind: "clear", rect: null },
-          {
-            kind: "fill",
-            color: LIGHT.field,
-            rect: { x: 0, y: 0, width, height },
-          },
-          {
-            kind: "fill",
-            color: LIGHT.band,
-            rect: { x: 0, y: height, width, height: band },
-          },
-          { kind: "render" },
-        ],
-        lintel: [{ x, y: y - lintel, width, height: lintel }],
-      });
-    });
-
-    it("frames them in the margin, and draws the ceiling along the lintel's foot", async () => {
-      const { shell, scene } = await startBoard();
-      const { x, y, width, height, unit } = metricsAt();
-      const frame = framePixels(FRAME_CSS_PX, 1);
-      const top = y - lintelPixels(shell.fieldShape, unit);
-      const bottom = y + height + bandPixels(shell.fieldShape, unit);
-
-      expect(rectsIn(scene.field.rim, LIGHT.line)).toEqual([
-        { x, y: y - frame, width, height: frame },
-        {
-          x: x - frame,
-          y: top - frame,
-          width: width + 2 * frame,
-          height: frame,
-        },
-        { x: x - frame, y: bottom, width: width + 2 * frame, height: frame },
-        { x: x - frame, y: top, width: frame, height: bottom - top },
-        { x: x + width, y: top, width: frame, height: bottom - top },
-      ]);
     });
 
     it("draws its lintel, its ceiling and its frame over all the rest, so nothing that bursts from the wall or flies covers them", async () => {
@@ -1436,392 +1242,15 @@ describe("WallScene", () => {
 
       expect(ground).toBeLessThan(layerPlaceOf(scene, scene.wall.image));
     });
-
-    it("stamps a dot at each corner its cells share", async () => {
-      const bakes = recordBakes();
-      const { shell, scene } = await startBoard();
-      const { unit } = metricsAt();
-      const dots = stampsIn(bakes(FIELD_BAKE));
-      const side = scene.textures.getFrame(ATLAS, FIELD_FRAMES.gridDot).width;
-      const middleOf = (dot: (typeof dots)[number] | undefined): Place => ({
-        x: (dot?.x ?? Number.NaN) + side / 2,
-        y: (dot?.y ?? Number.NaN) + side / 2,
-      });
-
-      // At this unit a grid dot is as wide as it is baked, and an even
-      // number of pixels, so its middle lies on the corner.
-      expect({
-        stamped: dots.length,
-        frames: [...new Set(dots.map(({ frame }) => frame))],
-        scales: [...new Set(dots.map(({ scale }) => scale))],
-        first: middleOf(dots[0]),
-        last: middleOf(dots.at(-1)),
-      }).toEqual({
-        stamped: (COLUMNS - 1) * (shell.fieldShape.depth - 1),
-        frames: [FIELD_FRAMES.gridDot],
-        scales: [1],
-        first: { x: unit, y: unit },
-        last: { x: 8 * unit, y: (shell.fieldShape.depth - 1) * unit },
-      });
-    });
-
-    it("stamps more dots in a deeper field", async () => {
-      const board = await startBoard();
-      const bakes = recordBakes();
-
-      resizeTo(board, 300, 700);
-
-      expect(stampsIn(bakes(FIELD_BAKE))).toHaveLength(
-        (COLUMNS - 1) * (shapeAt(300, 700).depth - 1),
-      );
-    });
-
-    it("bakes its cells, its band and its dots again once a lost context is restored", async () => {
-      const { run } = await startBoard();
-      const bakes = recordBakes();
-      await run.loseContext();
-      await run.restoreContext();
-
-      run.advance(16);
-
-      expect({
-        fills: fillsIn(bakes(FIELD_BAKE)).map(({ color }) => color),
-        dots: stampsIn(bakes(FIELD_BAKE)).length,
-      }).toEqual({
-        fills: [LIGHT.field, LIGHT.band],
-        dots: (COLUMNS - 1) * (11 - 1),
-      });
-    });
-
-    it("bakes nothing again the frame after it bakes for a restored context", async () => {
-      const { run } = await startBoard();
-      await run.loseContext();
-      await run.restoreContext();
-      run.advance(16);
-      const bakes = recordBakes();
-
-      run.advance(16);
-
-      expect({
-        field: bakes(FIELD_BAKE),
-        wall: bakes(WALL_BAKE),
-      }).toEqual({ field: [], wall: [] });
-    });
-
-    it("bakes nothing again in a frame where nothing changed", async () => {
-      const { run } = await startBoard();
-      const bakes = recordBakes();
-
-      run.advance(48, 16);
-
-      expect({
-        field: bakes(FIELD_BAKE),
-        wall: bakes(WALL_BAKE),
-      }).toEqual({ field: [], wall: [] });
-    });
   });
 
   describe("the lines", () => {
-    it("draw the jump line's dashes under the top third, in the jump line's color", async () => {
-      const { shell, scene } = await startBoard();
-      const metrics = metricsAt();
-      const { jumpLine } = thirdsOf(shell.fieldShape.depth);
-      // At 31 px a unit, the art's 2.4 and 14 of a cell of 40.
-      const thick = 2;
-
-      const dashes = rectsIn(scene.field.lines, LIGHT.jumpLine);
-
-      expect({
-        many: dashes.length > 5,
-        rows: new Set(dashes.map(({ y, height }) => `${y} ${height}`)),
-        from: (dashes[0]?.x ?? 0) - metrics.x,
-        dash: dashes[0]?.width,
-      }).toEqual({
-        many: true,
-        rows: new Set([
-          `${rowFoot(metrics, jumpLine) - Math.floor(thick / 2)} ${thick}`,
-        ]),
-        // A gap of 6.2 px in from the left wall.
-        from: 6,
-        dash: 11,
-      });
-    });
-
-    it("draw the danger line's dashes along the top of the floor's row, in the danger color", async () => {
-      const { scene } = await startBoard();
-      const metrics = metricsAt();
-      // At 31 px a unit, the art's 2 and 8 of a cell of 40.
-      const thick = 2;
-
-      const dashes = rectsIn(scene.field.lines, LIGHT.dangerLine);
-
-      expect({
-        many: dashes.length > 5,
-        rows: new Set(dashes.map(({ y, height }) => `${y} ${height}`)),
-        dash: dashes[0]?.width,
-        to:
-          (dashes.at(-1)?.x ?? 0) + (dashes.at(-1)?.width ?? 0) <=
-          metrics.x + metrics.width - DANGER_LINE.gap * metrics.unit + 1,
-      }).toEqual({
-        many: true,
-        rows: new Set([
-          `${rowFoot(metrics, 1) - Math.floor(thick / 2)} ${thick}`,
-        ]),
-        dash: 6,
-        to: true,
-      });
-    });
-
-    it("draw the jump line under the top third of a field reshaped deeper", async () => {
-      const board = await startBoard();
-      const metrics = metricsAt(300, 700);
-      const { jumpLine } = thirdsOf(shapeAt(300, 700).depth);
-
-      resizeTo(board, 300, 700);
-
-      const dashes = rectsIn(board.scene.field.lines, LIGHT.jumpLine);
-      expect(
-        new Set(dashes.map(({ y, height }) => y + Math.floor(height / 2))),
-      ).toEqual(new Set([rowFoot(metrics, jumpLine)]));
-    });
-
-    it("draw the lines across a field laid out anew as across one the scene started on", async () => {
-      const board = await startBoard();
-      const started = await startBoard(undefined, { width: 300, height: 700 });
-      const lines = (scene: WallScene): unknown => ({
-        jump: rectsIn(scene.field.lines, LIGHT.jumpLine),
-        danger: rectsIn(scene.field.lines, LIGHT.dangerLine),
-      });
-
-      resizeTo(board, 300, 700);
-
-      expect(lines(board.scene)).toEqual(lines(started.scene));
-    });
-
-    it("round each dash's ends to the nearest pixel, and thicken each line by its own width", async () => {
-      const { scene } = await startBoard(undefined, {
-        width: 550,
-        height: 550,
-      });
-      const metrics = metricsAt(550, 550);
-      const [jump] = rectsIn(scene.field.lines, LIGHT.jumpLine);
-      const [danger] = rectsIn(scene.field.lines, LIGHT.dangerLine);
-
-      // At 43 px a unit, the jump line's first dash runs from 8.6 px in to
-      // 23.65 and is 2.58 thick; the danger line's from 8.6 to 17.2, 2.15
-      // thick.
-      expect({
-        unit: metrics.unit,
-        jump: [(jump?.x ?? 0) - metrics.x, jump?.width, jump?.height],
-        danger: [(danger?.x ?? 0) - metrics.x, danger?.width, danger?.height],
-      }).toEqual({ unit: 43, jump: [9, 15, 3], danger: [9, 8, 2] });
-    });
-
-    it("are painted again in a new palette", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.colors = DARK;
-      run.advance(16);
-
-      expect(colorsOf(scene.field.lines)).toEqual([
-        DARK.jumpLine,
-        DARK.dangerLine,
-      ]);
-    });
-
-    it("count the bricks the level needs under the jump line, a dot each from its end, once nine or fewer are left", async () => {
-      const { shell, scene } = await startBoard();
-      const metrics = metricsAt();
-      const { jumpLine } = thirdsOf(shell.fieldShape.depth);
-      const end = metrics.x + metrics.width - JUMP_LINE.gap * metrics.unit;
-      const [first, second] = scene.field.countDots;
-
-      // The plain round's wall has a brick and a tough brick under the line.
-      // At 31 px a unit, a dot is 4 px wide and 0.24 of a unit, 7.44 px,
-      // from the next, each moved to stand on whole pixels.
-      expect({
-        end,
-        shown: showing(scene.field.countDots),
-        first: { x: first?.x, y: first?.y, frame: first?.frame.name },
-        second: second?.x,
-      }).toEqual({
-        end: 332.8,
-        shown: 2,
-        first: {
-          x: 329,
-          y: rowFoot(metrics, jumpLine),
-          frame: FIELD_FRAMES.countDot,
-        },
-        second: 322,
-      });
-    });
-
-    it("group the count's dots in threes, further apart than the dots of a group", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(
-          wallFrom(["oooo.oooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
-        );
-      });
-
-      const xs = scene.field.countDots.map((dot) => dot.x);
-
-      // At 31 px a unit, 7.44 px apart in a group and 11.16 between groups,
-      // each dot on whole pixels.
-      expect(xs.slice(1).map((x, at) => (xs[at] ?? 0) - x)).toEqual([
-        7, 8, 11, 7, 8, 11, 7, 8,
-      ]);
-    });
-
-    it("stand the field's dots on whole pixels, so each stays as sharp as it is baked", async () => {
-      const bakes = recordBakes();
-      const { scene } = await startBoard(undefined, {
-        width: 600,
-        height: 600,
-      });
-      const grid = stampsIn(bakes(FIELD_BAKE));
-      const counts = scene.field.countDots.filter((dot) => dot.visible);
-      const offPixel = [
-        ...grid.filter(
-          ({ x, y }) => !Number.isInteger(x) || !Number.isInteger(y),
-        ),
-        ...counts.filter(
-          (dot) =>
-            !Number.isInteger(dot.x - dot.displayWidth / 2) ||
-            !Number.isInteger(dot.y - dot.displayHeight / 2),
-        ),
-      ];
-
-      // At 47 px a unit, a grid dot 3 px wide about a corner, or a count's
-      // dot 7 px wide about the jump line, would stand half a pixel off; and
-      // the plain round counts two bricks.
-      expect({
-        sides: [
-          (grid[0]?.scale ?? 0) *
-            scene.textures.getFrame(ATLAS, FIELD_FRAMES.gridDot).width,
-          counts[0]?.displayWidth,
-        ],
-        counted: counts.length,
-        offPixel,
-      }).toEqual({
-        sides: [3, 7],
-        counted: 2,
-        offPixel: [],
-      });
-    });
-
-    // At 31 px a unit, the line's 16 dashes end at 77, 94, … 316 and 333,
-    // and a count's dashes stop half a pitch, 3.72 px, short of its last dot.
-    it.each([
-      [1, 15],
-      [4, 14],
-      [9, 11],
-    ])(
-      "stop the jump line short of a count of %i, leaving off whole dashes where they stood, %i of them kept",
-      async (left, kept) => {
-        const { shell, run, scene } = await startBoard((each) => {
-          each.showWall(
-            wallFrom(["ooooooooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
-          );
-        });
-        const uncounted = rectsIn(scene.field.lines, LIGHT.jumpLine);
-
-        shell.showWall(
-          wallFrom(["o".repeat(left).padEnd(COLUMNS, ".")], WALL_LEGEND, {
-            lowestRow: 1,
-          }),
-        );
-        run.advance(16);
-
-        const dots = scene.field.countDots.filter((dot) => dot.visible);
-        const reach = Math.min(
-          ...dots.map((dot) => dot.x - dot.displayWidth / 2),
-        );
-        const dashes = rectsIn(scene.field.lines, LIGHT.jumpLine);
-        expect({
-          shown: dots.length,
-          short: Math.max(...dashes.map(({ x, width }) => x + width)) < reach,
-          kept: dashes,
-        }).toEqual({
-          shown: left,
-          short: true,
-          kept: uncounted.slice(0, kept),
-        });
-      },
-    );
-
-    it("count again as the wall under the line changes", async () => {
-      const { shell, run, scene } = await startBoard();
-
-      shell.showWall(wallFrom(["o.o.o.o.o"], WALL_LEGEND, { lowestRow: 1 }));
-      run.advance(16);
-
-      expect(showing(scene.field.countDots)).toBe(5);
-    });
-
     it("count no brick the level doesn't need", async () => {
       const { scene } = await startBoard((shell) => {
         shell.showWall(wallFrom(["#o#o#####"], WALL_LEGEND, { lowestRow: 1 }));
       });
 
       expect(showing(scene.field.countDots)).toBe(2);
-    });
-
-    it("count no brick over the jump line", async () => {
-      const { shell, scene } = await startBoard((each) => {
-        each.showWall(
-          wallFrom(["ooooooooo", "o........"], WALL_LEGEND, {
-            lowestRow: thirdsOf(each.fieldShape.depth).jumpLine - 1,
-          }),
-        );
-      });
-
-      expect({
-        depth: shell.fieldShape.depth,
-        shown: showing(scene.field.countDots),
-      }).toEqual({ depth: 11, shown: 1 });
-    });
-
-    it("count as many as nine", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(
-          wallFrom(["oooo.oooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
-        );
-      });
-
-      expect(showing(scene.field.countDots)).toBe(9);
-    });
-
-    it("show no count while more than nine are left, the dashes running on to the end", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(
-          wallFrom(["ooooooooo", "o........"], WALL_LEGEND, { lowestRow: 1 }),
-        );
-      });
-      const metrics = metricsAt();
-      const last = rectsIn(scene.field.lines, LIGHT.jumpLine).at(-1);
-
-      expect({
-        shown: showing(scene.field.countDots),
-        to:
-          (last?.x ?? 0) + (last?.width ?? 0) >
-          metrics.x +
-            metrics.width -
-            (JUMP_LINE.gap + JUMP_LINE.dash) * metrics.unit,
-      }).toEqual({ shown: 0, to: true });
-    });
-
-    it("show no count once none is left", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["#########"], WALL_LEGEND, { lowestRow: 1 }));
-      });
-
-      expect(showing(scene.field.countDots)).toBe(0);
-    });
-
-    it("hold a dot for the most bricks counted, made once", async () => {
-      const { scene } = await startBoard();
-
-      expect(scene.field.countDots).toHaveLength(MOST_COUNTED);
     });
 
     it("draw the count over the guide, so an outline under it leaves its dots whole, and under what bursts from the wall", async () => {
@@ -1865,7 +1294,7 @@ describe("WallScene", () => {
     });
 
     it("stamps each brick about its cell's middle on its bake, shown at the cells' top left", async () => {
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
       const { scene } = await startBoard();
       const { x, y, unit } = metricsAt();
 
@@ -1915,7 +1344,7 @@ describe("WallScene", () => {
 
     it("stamps only the cell whose brick changed, cleared first", async () => {
       const { shell, run } = await startBoard();
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
       const { unit } = metricsAt();
       const bricks = [...PLAIN.start.wall.bricks];
       const hit = { ...brickAt(PLAIN.start.wall, 8), hits: 1 };
@@ -1942,7 +1371,7 @@ describe("WallScene", () => {
 
     it("stamps the whole wall afresh in a new palette", async () => {
       const { shell, run } = await startBoard();
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
 
       shell.colors = DARK;
       run.advance(16);
@@ -1959,7 +1388,7 @@ describe("WallScene", () => {
 
     it("stamps the whole wall afresh once a lost context is restored", async () => {
       const { run } = await startBoard();
-      const bakes = recordBakes();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
       await run.loseContext();
       await run.restoreContext();
 
@@ -1973,6 +1402,27 @@ describe("WallScene", () => {
         first: { kind: "clear", rect: null },
         stamps: wallStamps(PLAIN.start.wall, 11),
       });
+    });
+
+    it("bakes nothing again the frame after it bakes for a restored context", async () => {
+      const { run } = await startBoard();
+      await run.loseContext();
+      await run.restoreContext();
+      run.advance(16);
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
+
+      run.advance(16);
+
+      expect(bakes(WALL_BAKE)).toEqual([]);
+    });
+
+    it("bakes nothing again in a frame where nothing changed", async () => {
+      const { run } = await startBoard();
+      const bakes = recordBakes(Textures.DynamicTexture.prototype);
+
+      run.advance(48, 16);
+
+      expect(bakes(WALL_BAKE)).toEqual([]);
     });
 
     it("hides a brick once it breaks", async () => {
@@ -2300,42 +1750,6 @@ describe("WallScene", () => {
       expect(firstFrame).toBeGreaterThan(under);
     });
 
-    it("brightens the danger line, solid and twice as thick, while one stands in the row over the floor's", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(ENDANGERING);
-      });
-      const metrics = metricsAt();
-
-      // At 31 px a unit, twice the dashes' 2 px.
-      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toEqual([
-        {
-          x: metrics.x,
-          y: rowFoot(metrics, 1) - 2,
-          width: metrics.width,
-          height: 4,
-        },
-      ]);
-    });
-
-    it("brightens the danger line as the wall comes down into the row over the floor's, its count unchanged", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
-      });
-
-      shell.bringDown(ENDANGERING, 0);
-      run.advance(16);
-
-      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toHaveLength(1);
-    });
-
-    it("brightens the danger line for a brick in the last column alone", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.showWall(wallFrom(["........o"], WALL_LEGEND, { lowestRow: 1 }));
-      });
-
-      expect(rectsIn(scene.field.lines, LIGHT.dangerLine)).toHaveLength(1);
-    });
-
     it("shows the frames scaled up with the wall's frames past the atlas's largest unit", async () => {
       const { scene } = await startBoard(
         (shell) => {
@@ -2347,19 +1761,6 @@ describe("WallScene", () => {
       expect(scene.wall.warnings.at(-1)?.scale).toBe(
         metricsAt(1300, 1800).unit / MOST_BAKED_UNIT,
       );
-    });
-
-    it("dims the danger line again once none stands there", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.showWall(ENDANGERING);
-      });
-
-      shell.showWall(wallFrom(["o#o.o.#.."], WALL_LEGEND, { lowestRow: 2 }));
-      run.advance(16);
-
-      expect(
-        rectsIn(scene.field.lines, LIGHT.dangerLine).length,
-      ).toBeGreaterThan(5);
     });
   });
 

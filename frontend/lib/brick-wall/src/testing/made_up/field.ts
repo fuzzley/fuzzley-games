@@ -61,6 +61,8 @@ interface Square {
 export const MADE_UP_SQUARES = {
   dot: { units: 0.2, ink: "guide" },
   cell: { units: 1, ink: "steel" },
+  "grid-dot": { units: 0.055, ink: "line" },
+  "count-dot": { units: 0.14, ink: "jumpLine" },
 } as const satisfies Readonly<Record<string, Square>>;
 
 /** The name of a made-up frame. */

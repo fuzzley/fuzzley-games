@@ -3,8 +3,10 @@
 
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects } from "phaser";
+import type { At } from "../rules/track";
 import type { FieldMetrics, FieldShape } from "../view/field_metrics";
 import type { WallPalette } from "../view/palette";
+import type { BallPlace, PlaybackView } from "../view/playback";
 
 /**
  * Says what a frame of a wall game's field is drawn from: the game's view of
@@ -32,6 +34,16 @@ export interface PaintContext<V, P extends WallPalette = WallPalette> {
   /** Whether the player welcomes motion. */
   motion: boolean;
 }
+
+/**
+ * Says what of a game's view of the round the field's painter draws from,
+ * as a played-back round's view has it: the wall as it looks at this
+ * moment, and how far through its step or jump it is.
+ */
+export type WallView<K extends string> = Pick<
+  PlaybackView<K, At, BallPlace, unknown>,
+  "wall" | "wallDrop"
+>;
 
 /** Draws a part of a wall game's field, in the layers it was given, each frame. */
 export interface Painter<C> {

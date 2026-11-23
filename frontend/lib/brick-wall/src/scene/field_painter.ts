@@ -1,13 +1,21 @@
-import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+// The field a wall game's wall stands in: its cells, the floor's band and
+// the grid's dots under the wall, the jump line, its count and the danger
+// line over it, and the lintel, the ceiling and the frame over everything.
+
+import { type PixelRect, framePixels } from "@fz/phaser/layout";
+import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
+import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
+import type { GameObjects, Scene, Textures } from "phaser";
+import { COLUMNS, MOST_DEPTH } from "../rules/field";
 import {
   DANGER_ROW,
   type Thirds,
+  type Wall,
+  type WallRules,
   inDanger,
   neededBelow,
   thirdsOf,
-} from "@fz/brick-wall/rules/wall";
-import { ATLAS } from "@fz/brick-wall/scene/atlas";
-import { placeDot } from "@fz/brick-wall/scene/painter";
+} from "../rules/wall";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
@@ -15,43 +23,43 @@ import {
   bandPixels,
   frameBounds,
   lintelPixels,
-} from "@fz/brick-wall/view/field_metrics";
-import { framePixels } from "@fz/phaser/layout";
-import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
-import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
-import type { GameObjects, Scene, Textures } from "phaser";
-import { WALL_RULES, type Wall } from "../../rules/wall/wall";
-import type { WallPalette } from "../../view/colors/palette";
-import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
-import type { PaintContext, Painter } from "./painter";
+} from "../view/field_metrics";
+import type { WallPalette } from "../view/palette";
+import { ATLAS } from "./atlas";
+import {
+  type PaintContext,
+  type Painter,
+  type WallView,
+  placeDot,
+} from "./painter";
 
 /** The key of the texture the cells, the floor's band and the grid's dots are drawn on, once a layout. */
 export const FIELD_BAKE = "field-bake";
 
 /** Says how a dashed line is drawn, in field units: its dashes, the gaps between them, and its width. */
-interface DashedLine {
+export interface DashedLine {
   readonly dash: number;
   readonly gap: number;
   readonly width: number;
 }
 
-/** The jump line, as the art draws it: dashes of 14, gaps of 8 and a line of 2.4, of a cell of 40. */
+/** The jump line: dashes of 14, gaps of 8 and a line of 2.4, of a cell of 40. */
 export const JUMP_LINE: DashedLine = { dash: 0.35, gap: 0.2, width: 0.06 };
 
-/** The danger line, as the art draws it: dashes of 8, gaps of 6 and a line of 2, of a cell of 40. */
+/** The danger line: dashes of 8, gaps of 6 and a line of 2, of a cell of 40. */
 export const DANGER_LINE: DashedLine = { dash: 0.2, gap: 0.15, width: 0.05 };
 
 /** The most bricks left under the jump line whose count shows at its end. */
 export const MOST_COUNTED = 9;
 
 /** How far apart the dots of the jump line's count are, in field units. */
-const COUNT_PITCH = 0.24;
+export const COUNT_PITCH = 0.24;
 
 /** How many of the count's dots stand together, so as many as nine read at a glance, as threes. */
-const COUNT_GROUP = 3;
+export const COUNT_GROUP = 3;
 
 /** How much further apart two groups of the count's dots stand than two dots of one, in field units. */
-const GROUP_GAP = 0.12;
+export const GROUP_GAP = 0.12;
 
 /** Says where a dash of a line across the field runs, in whole device pixels across the canvas. */
 interface Span {
@@ -67,19 +75,48 @@ export interface FieldLayers {
   readonly rim: GameObjects.Layer;
 }
 
+/** Says which of a game's frames the field shows, and how wide the count's dot is drawn. */
+export interface FieldArt {
+  /** The frame of the dot at each corner the cells share. */
+  readonly gridDot: string;
+  /** The frame of a dot of the jump line's count. */
+  readonly countDot: string;
+  /**
+   * How wide the count's dot is drawn, in field units, which another dot
+   * keeps as far from as the count's groups stand apart.
+   */
+  readonly countDotWidth: number;
+}
+
 /**
- * Draws the field: under the wall, its cells, the floor's band and a dot at
- * each corner its cells share, drawn on a texture, the bake, which one
- * image shows; over the wall, the jump line, with a dot for each brick the
- * level needs left under it once nine or fewer are, in threes, over the
- * guide, and the danger line, which brightens, solid and twice as thick,
- * while such a brick stands at or under the row over it; and over
+ * Returns where the floor's band lies on the canvas under the cells of a
+ * field laid out in a shape, in device pixels: the place in it a game draws
+ * its own things into, such as what a player has earned, over the band the
+ * field paints and under its frame.
+ */
+export function bandBounds(
+  metrics: FieldMetrics,
+  shape: FieldShape,
+): PixelRect {
+  const { x, y, width, height, unit } = metrics;
+  return { x, y: y + height, width, height: bandPixels(shape, unit) };
+}
+
+/**
+ * Draws a wall game's field: under the wall, its cells, the floor's band
+ * and a dot at each corner its cells share, drawn on a texture, the bake,
+ * which one image shows; over the wall, the jump line, with a dot for each
+ * brick the level needs left under it once nine or fewer are, in threes,
+ * over the guide, and the danger line, which brightens, solid and twice as
+ * thick, while such a brick stands at or under the row over it; and over
  * everything, the lintel over the ceiling and the frame around them all,
  * so nothing that bursts from the wall or flies covers them. It draws them
  * again only once the layout, the scale, the palette, that count or the
  * danger changes, and the bake once a lost context is restored.
  */
-export class FieldPainter implements Painter {
+export class FieldPainter<K extends string> implements Painter<
+  PaintContext<WallView<K>>
+> {
   /** Shows the bake: the cells, the floor's band under them and a dot at each corner the cells share, its top left at the cells'. */
   readonly ground: GameObjects.Image;
   /** Draws the lintel, the ceiling and the frame, over everything else. */
@@ -103,7 +140,7 @@ export class FieldPainter implements Painter {
   private jumpDashes: readonly Span[] = [];
   /** The danger line's dashes, worked out once a layout. */
   private dangerDashes: readonly Span[] = [];
-  private wall: Wall | null = null;
+  private wall: Wall<K> | null = null;
   /** How many bricks the jump line's count shows, 0 where it shows none. */
   private counted = 0;
   /** How far, in device pixels, another dot's edge keeps from a count's dot's: as far as the count's groups stand apart, worked out once a layout. */
@@ -111,13 +148,18 @@ export class FieldPainter implements Painter {
   /** Whether a brick the level needs stands at or under the row over the floor's, which brightens the danger line. */
   private danger = false;
 
-  constructor(scene: Scene, layers: FieldLayers) {
+  constructor(
+    scene: Scene,
+    layers: FieldLayers,
+    private readonly art: FieldArt,
+    private readonly rules: WallRules<K>,
+  ) {
     this.bake = dynamicTexture(scene, FIELD_BAKE);
     this.ground = scene.add.image(0, 0, FIELD_BAKE).setOrigin(0, 0);
     this.lines = scene.add.graphics();
     this.rim = scene.add.graphics();
     this.countDots = Array.from({ length: MOST_COUNTED }, () =>
-      scene.add.image(0, 0, ATLAS, FIELD_FRAMES.countDot).setVisible(false),
+      scene.add.image(0, 0, ATLAS, art.countDot).setVisible(false),
     );
     layers.field.add(this.ground);
     layers.lines.add(this.lines);
@@ -144,7 +186,13 @@ export class FieldPainter implements Painter {
   }
 
   /** Draws the field as the frame has it, again only where its layout, its scale, its palette, the jump line's count or the danger changed, and bakes it again once a lost context is restored. */
-  draw({ view, shape, metrics, baked, palette }: Readonly<PaintContext>): void {
+  draw({
+    view,
+    shape,
+    metrics,
+    baked,
+    palette,
+  }: Readonly<PaintContext<WallView<K>>>): void {
     const laidOut =
       metrics !== this.metrics ||
       palette !== this.palette ||
@@ -158,15 +206,16 @@ export class FieldPainter implements Painter {
       this.thirds = thirdsOf(shape.depth);
       this.jumpDashes = spansAcross(metrics, JUMP_LINE);
       this.dangerDashes = spansAcross(metrics, DANGER_LINE);
-      this.clearance = (COUNT_PITCH + GROUP_GAP - COUNT_DOT) * metrics.unit;
+      this.clearance =
+        (COUNT_PITCH + GROUP_GAP - this.art.countDotWidth) * metrics.unit;
       this.drawRim(metrics, shape, palette);
     }
     if (laidOut || this.lost) this.bakeGround(metrics, shape, palette, baked);
     if (!laidOut && view.wall === this.wall) return;
     this.wall = view.wall;
-    const left = neededBelow(view.wall, this.thirds.jumpLine, WALL_RULES);
+    const left = neededBelow(view.wall, this.thirds.jumpLine, this.rules);
     const counted = left <= MOST_COUNTED ? left : 0;
-    const danger = inDanger(view.wall, WALL_RULES);
+    const danger = inDanger(view.wall, this.rules);
     if (!laidOut && counted === this.counted && danger === this.danger) {
       return;
     }
@@ -194,7 +243,7 @@ export class FieldPainter implements Painter {
     bake.clear();
     bake.fill(palette.field, 1, 0, 0, width, height);
     bake.fill(palette.band, 1, 0, height, width, band);
-    const dot = bake.manager.getFrame(ATLAS, FIELD_FRAMES.gridDot);
+    const dot = bake.manager.getFrame(ATLAS, this.art.gridDot);
     const side = Math.round(dot.width * (unit / baked.unit));
     // From the dot's top left, its scale its own for the layout.
     const stamp = { scale: side / dot.width, originX: 0, originY: 0 };
@@ -202,7 +251,7 @@ export class FieldPainter implements Painter {
       for (let column = 1; column < COLUMNS; column++) {
         bake.stamp(
           ATLAS,
-          FIELD_FRAMES.gridDot,
+          this.art.gridDot,
           Math.round(column * unit - side / 2),
           Math.round(row * unit - side / 2),
           stamp,
