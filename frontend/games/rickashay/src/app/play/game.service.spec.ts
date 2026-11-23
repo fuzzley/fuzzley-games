@@ -294,6 +294,47 @@ describe("GameService", () => {
     });
   });
 
+  describe("aiming", () => {
+    it("is under way as a level waits for its first shot", () => {
+      const game = gameOf();
+
+      expect(game.aiming()).toBe(true);
+    });
+
+    it("is under way as the next shot is aimed", () => {
+      const game = gameOf();
+
+      playRoundOut(game);
+
+      expect(game.aiming()).toBe(true);
+    });
+
+    it("isn't while a flight is in the air", () => {
+      const game = gameOf();
+
+      release(game);
+
+      expect(game.aiming()).toBe(false);
+    });
+
+    it("isn't while the level is paused", () => {
+      const game = gameOf();
+      playRoundOut(game);
+
+      game.pause();
+
+      expect(game.aiming()).toBe(false);
+    });
+
+    it("isn't once the level is lost", () => {
+      const game = gameOf("lost");
+
+      playUntilCard(game);
+
+      expect(game.aiming()).toBe(false);
+    });
+  });
+
   describe("the guide", () => {
     it("is the rules' own flight for the aim, cast to the turn the settings ask for", () => {
       const game = gameOf();
@@ -434,6 +475,25 @@ describe("GameService", () => {
 
       expect(game.fieldRules()).toEqual({ ...FLIGHT_RULES, guideTurns: 5 });
     });
+  });
+
+  describe("Release", () => {
+    it.each([
+      [false, "onLetGo"],
+      [true, "byButton"],
+    ] as const)(
+      "asks for the bar's button where the settings say %s",
+      (byButton, release) => {
+        const game = gameOf();
+
+        TestBed.inject(SettingsService).update({ releaseByButton: byButton });
+
+        expect([game.releaseByButton(), game.pointerRelease()]).toEqual([
+          byButton,
+          release,
+        ]);
+      },
+    );
   });
 
   describe("the field", () => {

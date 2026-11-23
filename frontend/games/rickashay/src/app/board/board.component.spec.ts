@@ -4,6 +4,7 @@ import { MARGIN_CSS_PX } from "@fz/brick-wall/view/field_metrics";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
+import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import {
   type FakeCanvasOptions,
@@ -163,8 +164,6 @@ describe("BoardComponent", () => {
       ).toEqual([
         "Left and Right, or A and D: aim. Hold Shift for smaller steps.",
         "Space: release the shot.",
-        "F: turn fast-forward on or off.",
-        "X: skip the shot in the air.",
         "G: hear where the guide goes.",
         "R: hear the 3 lowest rows with bricks in them.",
         "Esc: pause.",
@@ -223,6 +222,70 @@ describe("BoardComponent", () => {
         ready: null,
         errors: [new Error("The scene couldn't be loaded")],
       });
+    });
+  });
+
+  describe("the bar's steering", () => {
+    it("nudges the aim either way, as the bar's Nudges ask, once the scene has laid the field out", async () => {
+      const rendered = await renderBoard();
+      const run = await runSceneOn(rendered);
+      const straight = rendered.game.guide();
+
+      rendered.component.nudge("left");
+      run.advance(FRAME_MS);
+      const nudged = rendered.game.guide();
+      rendered.component.nudge("right");
+      run.advance(FRAME_MS);
+
+      expect([nudged, rendered.game.guide()]).toEqual([
+        expect.not.objectContaining(straight ?? {}),
+        straight,
+      ]);
+    });
+
+    it("releases the shot aimed, as the bar's Release asks", async () => {
+      const rendered = await renderBoard();
+      const run = await runSceneOn(rendered);
+
+      rendered.component.releaseShot();
+      run.advance(FRAME_MS);
+
+      expect(rendered.game.flying()).toBe(true);
+    });
+
+    it("steers nothing in a scene made but not yet laid out, its steering still to make", async () => {
+      const { component, fake } = await renderBoard();
+      const make = await fake.host.latest.source();
+      make({ insets: () => NO_INSETS, ready: () => undefined });
+
+      const steer = (): void => {
+        component.nudge("left");
+        component.releaseShot();
+      };
+
+      expect(steer).not.toThrow();
+    });
+
+    it("leaves the lintel's count unread where the bar shows the rows left", async () => {
+      installFakeViewport(1600, 900);
+      const rendered = await renderBoard();
+
+      await runSceneOn(rendered);
+
+      expect(
+        screen.getByText(rowsWaiting(rendered.game.rowsLeft())),
+      ).toHaveAttribute("aria-hidden", "true");
+    });
+
+    it("leaves the lintel's count to be read where the bar has no room for the rows left", async () => {
+      installFakeViewport(UPRIGHT.width, UPRIGHT.height);
+      const rendered = await renderBoard();
+
+      await runSceneOn(rendered);
+
+      expect(
+        screen.getByText(rowsWaiting(rendered.game.rowsLeft())),
+      ).not.toHaveAttribute("aria-hidden");
     });
   });
 

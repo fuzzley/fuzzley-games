@@ -197,6 +197,15 @@ export class GameService extends RoundDriver<
     return Math.max(inAir.started.tally.bestRally, this.soFar().rally);
   });
 
+  /** Whether a shot is being aimed in a level under way, which Nudge and Release steer. */
+  readonly aiming = computed(() => {
+    const outcome = this.outcome();
+    return (
+      this.phase() === "aiming" &&
+      (outcome === "ready" || outcome === "playing")
+    );
+  });
+
   /** Whether fast-forward is on, every flight played fast, as the settings keep it from flight to flight. */
   readonly fast = computed(() => this.settings().fastForward);
 
@@ -206,9 +215,12 @@ export class GameService extends RoundDriver<
   /** How the mouse and fingers aim, as the settings say, for the steering. */
   readonly pointerAiming = computed(() => this.settings().aiming);
 
+  /** Whether the settings ask for the bar's Release to let the shot fly. */
+  readonly releaseByButton = computed(() => this.settings().releaseByButton);
+
   /** How a pointer's press lets the shot fly, as the settings say, for the steering. */
   readonly pointerRelease = computed((): PointerRelease =>
-    this.settings().releaseByButton ? "byButton" : "onLetGo",
+    this.releaseByButton() ? "byButton" : "onLetGo",
   );
 
   /**

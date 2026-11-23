@@ -9,10 +9,13 @@ import {
 import { LevelsComponent, levelMarksOf } from "@fz/brick-wall/app/levels";
 import { ResultComponent, type RunEnd } from "@fz/brick-wall/app/result";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
+import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import { AnnouncerComponent } from "@fz/ui/announcer";
 import { ConfirmDialogComponent } from "@fz/ui/confirm";
+import { ThemePickerComponent } from "@fz/ui/theme";
 import { MOST_STARS, starCount } from "../rules/run/stars";
+import { BarComponent } from "./bar/bar.component";
 import { BoardComponent } from "./board/board.component";
 import { GameService } from "./play/game.service";
 import { ProgressService } from "./stats/progress.service";
@@ -20,25 +23,30 @@ import { StatsService } from "./stats/stats.service";
 import { GAME_LEVELS } from "./tokens";
 
 /**
- * Shows the game: the board in the room the page leaves it, the live region
- * that says what happens, the result card over an ended run, the Levels
- * dialog it offers, and the question before a run is thrown away, each
- * wired to `GameService`.
+ * Shows the game: the bar, the board in the room the bar leaves it, the
+ * live region that says what happens, the result card over an ended run,
+ * the Levels dialog it and the bar offer, the settings the bar opens, and
+ * the question before a run is thrown away, each wired to `GameService`.
+ * The bar's Nudges and Release steer the board's scene.
  *
- * The board takes the focus as a run begins, as the page loads, and after
- * a dialog over it closes, so the keys steer at once. The level in play
- * pauses whenever the player looks away from the room (`[fzPlayRoom]`), a
- * flight in the air landing at once first as the page is hidden.
+ * The board takes the focus as a run begins, as the page loads, after a
+ * dialog over it closes, and after the bar's Resume, so the keys steer at
+ * once. The level in play pauses whenever the player looks away from the
+ * room (`[fzPlayRoom]`), a flight in the air landing at once first as the
+ * page is hidden.
  */
 @Component({
   selector: "app-root",
   imports: [
     AnnouncerComponent,
+    BarComponent,
     BoardComponent,
     ConfirmDialogComponent,
     LevelsComponent,
     PlayRoomDirective,
     ResultComponent,
+    SettingsDrawerComponent,
+    ThemePickerComponent,
   ],
   host: {
     "[class.compact]": "viewport.isCompact()",
@@ -56,6 +64,7 @@ export class AppComponent {
   protected readonly levels = inject(GAME_LEVELS);
 
   protected readonly levelsOpen = signal(false);
+  protected readonly settingsOpen = signal(false);
 
   /**
    * The last run's end, kept as the next run begins, so the result card
@@ -85,6 +94,12 @@ export class AppComponent {
 
   constructor() {
     refocusWhenUncovered(this.board, this.game.runs);
+  }
+
+  /** Goes on with the paused level, as the bar's Resume asks, and hands the board the focus back from it. */
+  protected resumeRun(): void {
+    this.game.resume();
+    this.board().focus();
   }
 
   /** Starts a new run at the level the last one started at, asking first if one is in progress. */

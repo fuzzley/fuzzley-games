@@ -10,6 +10,7 @@
   [outcome]="game.outcome()"
   [wallRow]="game.start().wall.lowestRow"
   [waiting]="rowsWaiting()"
+  [countShown]="countShown()"
   [compact]="compact()"
   [cardUnderLintel]="cardUnderLintel()"
   (room)="game.setRoom($event)"

@@ -8,11 +8,13 @@ import {
   type SpecRound,
   playUntilCard,
   provideSpecPlay,
+  release,
   scriptedRounds,
 } from "../testing/spec_play";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent } from "./app.component";
 import { GameService } from "./play/game.service";
+import { SettingsService } from "./settings/settings.service";
 
 /** The app rendered, and its game. */
 interface RenderedApp {
@@ -52,15 +54,106 @@ describe("AppComponent", () => {
     paintRoles(FIELD_ROLES, PALETTES.rolesIn("classic", FIELD_ROLES));
   });
 
-  it("names the game in the heading of the page's main landmark", async () => {
+  it("names the game in the page's one heading, in the bar", async () => {
     await renderApp();
 
     expect(
-      within(screen.getByRole("main")).getByRole("heading", {
+      within(screen.getByRole("banner")).getByRole("heading", {
         level: 1,
         name: "Rickashay",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("shows the shots against par in the bar", async () => {
+    await renderApp();
+
+    expect(
+      within(screen.getByRole("banner")).getByText("0 shots, par 8"),
+    ).toBeInTheDocument();
+  });
+
+  it("goes on with the paused level as the bar's Resume asks, and hands the board back the focus", async () => {
+    const app = await renderApp();
+    release(app.game);
+    app.game.pause();
+    app.detectChanges();
+
+    await userEvent.click(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Resume",
+      }),
+    );
+
+    expect([app.game.outcome(), screen.getByRole("application")]).toEqual([
+      "playing",
+      expect.toHaveFocus() as unknown,
+    ]);
+  });
+
+  it("skips the flight in the air as the bar's Skip asks", async () => {
+    const app = await renderApp("rally");
+    release(app.game);
+    app.detectChanges();
+
+    await userEvent.click(screen.getByRole("button", { name: "Skip" }));
+
+    expect(app.game.flying()).toBe(false);
+  });
+
+  it.each([
+    [
+      "switches fast-forward on",
+      "Fast-forward",
+      (game: GameService) => game.fast(),
+      true,
+    ],
+    [
+      "turns the sound off",
+      "Sound",
+      (game: GameService) => game.soundOn(),
+      false,
+    ],
+  ] as const)("%s as the bar asks", async (_, name, read, after) => {
+    const { game } = await renderApp();
+
+    await userEvent.click(screen.getByRole("button", { name }));
+
+    expect(read(game)).toBe(after);
+  });
+
+  it.each([
+    ["Levels", "Levels"],
+    ["Settings", "Settings"],
+  ])("opens %s as the bar asks", async (button, dialog) => {
+    await renderApp();
+
+    await userEvent.click(screen.getByRole("button", { name: button }));
+
+    expect(screen.getByRole("dialog", { name: dialog })).toBeVisible();
+  });
+
+  it("offers the bar's Release where the settings ask for it", async () => {
+    const app = await renderApp();
+
+    TestBed.inject(SettingsService).update({ releaseByButton: true });
+    app.detectChanges();
+
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", {
+        name: "Release",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("asks before the bar's New game throws away a level under way", async () => {
+    const app = await renderApp();
+    release(app.game);
+    app.detectChanges();
+
+    await userEvent.click(screen.getByRole("button", { name: "New game" }));
+
+    expect(screen.getByRole("alertdialog")).toBeVisible();
   });
 
   it("shows the result over a level lost", async () => {
@@ -127,7 +220,11 @@ describe("AppComponent", () => {
     await app.game.startAt(3);
     playToEnd(app);
 
-    await userEvent.click(screen.getByRole("button", { name: "New game" }));
+    await userEvent.click(
+      within(screen.getByRole("alertdialog")).getByRole("button", {
+        name: "New game",
+      }),
+    );
 
     expect([screen.queryByRole("alertdialog"), app.game.run().level]).toEqual([
       null,

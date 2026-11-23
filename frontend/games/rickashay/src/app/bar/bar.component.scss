@@ -1,0 +1,76 @@
+@use "../styles" as *;
+
+:host {
+  display: block;
+}
+
+@include bar-title;
+
+// The level, the shots against par, the rows left, the best rally against
+// its mark and the score, each a card, narrower than the breakers' and
+// padded less, so that all five and the game's name fit beside the ten
+// actions at a desktop's width (from 1200 px; with Release, the eleventh,
+// the name is cut where the wordmark shows).
+@include bar-figures(64px, var(--fz-space-2));
+
+.metric {
+  padding-inline: var(--fz-space-1);
+
+  .label {
+    white-space: nowrap;
+  }
+}
+
+// The shots' icon is the player's fuzzball, as the field draws it, hidden
+// as the other figures' icons are.
+.metric dt fz-fuzzball {
+  --fz-fuzzball-eyes: var(--fz-field);
+
+  display: none;
+  color: var(--fz-accent);
+}
+
+@include bar-actions;
+
+// A Nudge's chevron turned to point the way it nudges the aim.
+.nudge.left fz-icon {
+  rotate: 90deg;
+}
+
+.nudge.right fz-icon {
+  rotate: -90deg;
+}
+
+// Pause round at every size, as the rest are, its label heard but not seen
+// and its icon theirs in size.
+.pause {
+  --fz-icon-size: 18px;
+
+  &:not(.fz-button-circle) {
+    padding: var(--fz-space-2);
+    border-radius: 50%;
+  }
+}
+
+// Where the bar has room for the shots and the score alone, each is an icon
+// beside its value, the shots' the player's fuzzball.
+:host(.rounds-and-score) {
+  @include bar-figures-inline(4px);
+
+  .metric dt fz-fuzzball {
+    display: block;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Across the bar, the shots over the score in one card, since a score runs
+// to six figures and the bar has no room for them side by side.
+:host(.rounds-and-score:not(.rail)) {
+  @include bar-figures-paired;
+}
+
+// On a rail, the figures stacked.
+:host(.rail) {
+  @include bar-figures-stacked;
+}

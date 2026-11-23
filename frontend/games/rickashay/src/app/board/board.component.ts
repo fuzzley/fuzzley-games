@@ -1,5 +1,6 @@
 import { Component, computed, inject, viewChild } from "@angular/core";
 import { WallBoardComponent } from "@fz/brick-wall/app/board";
+import type { Nudge } from "@fz/brick-wall/view/aiming";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -8,20 +9,23 @@ import {
 } from "@fz/phaser/canvas";
 import { CALL_WORDS, ROWS_READ, rowsWaiting } from "../../rules/run/describe";
 import type { Pictures } from "../../scene/pictures";
-import type { RickashaySceneOptions } from "../../scene/rickashay_scene";
+import type {
+  RickashayScene,
+  RickashaySceneOptions,
+} from "../../scene/rickashay_scene";
 import { CALL_MS } from "../../view/effects/timing";
+import { showsEveryFigure } from "../bar/figures";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
 
 /**
- * The keys needed to play, one at a time, which describe the board.
- * Fast-forward and Skip have their own buttons too.
+ * The keys needed to play, one at a time, which describe the board, eight
+ * at most. Fast-forward and Skip have their own buttons in the bar, which
+ * leaves F and X out.
  */
 const BOARD_KEYS: readonly string[] = [
   "Left and Right, or A and D: aim. Hold Shift for smaller steps.",
   "Space: release the shot.",
-  "F: turn fast-forward on or off.",
-  "X: skip the shot in the air.",
   "G: hear where the guide goes.",
   `R: hear the ${String(ROWS_READ)} lowest rows with bricks in them.`,
   "Esc: pause.",
@@ -62,6 +66,15 @@ export class BoardComponent {
 
   /** Whether the screen is compact, where the field keeps a smaller margin. */
   protected readonly compact = this.viewport.isCompact;
+
+  /**
+   * Whether the bar's Rows left says how many rows wait, where the bar
+   * shows every figure (`showsEveryFigure()`), so the lintel's count needn't
+   * be read.
+   */
+  protected readonly countShown = computed(() =>
+    showsEveryFigure(this.viewport),
+  );
 
   /** How many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
   protected readonly rowsWaiting = computed(() =>
@@ -114,6 +127,11 @@ export class BoardComponent {
     },
   );
 
+  /** The scene the canvas made, whose steering the bar's Nudges and Release move, or null before it has made one. */
+  private made: RickashayScene | null = null;
+  /** Whether the scene made has laid its field out, its steering made with it. */
+  private steerable = false;
+
   /** What the scene is handed: plain functions over the game. */
   private readonly sceneOptions: RickashaySceneOptions = {
     tick: (deltaMs, aim) => {
@@ -129,6 +147,7 @@ export class BoardComponent {
     motion: () => this.game.motion(),
     sound: () => this.game.sound(),
     onLayout: (metrics) => {
+      this.steerable = true;
       this.game.onLayout(metrics);
     },
     command: (command) => {
@@ -142,8 +161,22 @@ export class BoardComponent {
   /** Loads the scene, and Phaser with it, only once the canvas asks, so the shell paints first. */
   protected readonly scene: SceneSource = async () => {
     const { makeRickashayScene } = await import("../../scene/rickashay_scene");
-    return makeRickashayScene(this.sceneOptions);
+    const make = makeRickashayScene(this.sceneOptions);
+    return (surroundings) => {
+      this.steerable = false;
+      return (this.made = make(surroundings));
+    };
   };
+
+  /** Turns the aim a quarter of a degree, as a Nudge in the bar asks, once the scene has laid its field out. */
+  nudge(toward: Nudge): void {
+    if (this.steerable) this.made?.steering.nudge(toward);
+  }
+
+  /** Lets the shot aimed fly, as the bar's Release asks, once the scene has laid its field out. */
+  releaseShot(): void {
+    if (this.steerable) this.made?.steering.release();
+  }
 
   /** Puts the focus on the board after Angular's next render, as a run begins. */
   focus(options?: FocusOptions): void {
