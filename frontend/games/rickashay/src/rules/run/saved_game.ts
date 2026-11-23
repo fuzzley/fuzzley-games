@@ -20,13 +20,11 @@ import {
   restoreRun,
   saveRun,
 } from "@fz/brick-wall/rules/saved_wall";
-import type { WallRules } from "@fz/brick-wall/rules/wall";
 import { isCount, isFiniteNumber, isRecord } from "@fz/core/json";
-import { type KindId, kindOf } from "../catalog/kinds";
 import type { RoundStart } from "../flight/events";
 import type { Level, LevelEntry } from "../levels/levels";
 import { BOUNCE_POINTS, JUMP_POINTS } from "../tuning";
-import { type Run, levelOf, openingOf, runRulesOf } from "./run";
+import { NEEDED, type Run, levelOf, openingOf, runRulesOf } from "./run";
 import { type LevelTally, rallyPoints } from "./scoring";
 import { MOST_STARS, type Marks } from "./stars";
 
@@ -55,15 +53,6 @@ export type SavedGame = SavedRun<LevelTally, SavedStart>;
 
 /** A run storage kept, taken up: the run, paused, where its next round starts, and how it was played. */
 export type TakenUp = WallTakenUp<LevelTally, RoundStart>;
-
-/**
- * Which kinds a level needs broken, which a wall read back is held to: a
- * wall with none left would be cleared. The catalog says it, as the game's
- * `WallRules` will once the bricks' rules write them, and this goes then.
- */
-const NEEDED: Pick<WallRules<KindId>, "needed"> = {
-  needed: (kind) => kindOf(kind).needed,
-};
 
 /**
  * Returns a run under way and where its level's next round starts as
