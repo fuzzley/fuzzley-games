@@ -20,6 +20,7 @@ import { defineConfig } from "eslint/config";
 export const HELD_AS_RULES = [
   "src/testing/line_play.ts",
   "src/testing/wall_score.ts",
+  "src/testing/blind.ts",
 ];
 
 export default defineConfig(
