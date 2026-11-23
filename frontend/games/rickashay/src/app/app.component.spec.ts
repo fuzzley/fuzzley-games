@@ -1,4 +1,8 @@
+import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { packState } from "@fz/game-ui/bug_report";
+import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
+import { installCompressionStreams } from "@fz/game-ui/testing";
 import { provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
 import { render, screen, within } from "@testing-library/angular";
@@ -13,6 +17,11 @@ import {
 } from "../testing/spec_play";
 import { FIELD_ROLES } from "../view/colors/palette";
 import { AppComponent } from "./app.component";
+import {
+  REPORT_TAG,
+  RickashayReports,
+  provideBugReports,
+} from "./bug_report/bug_report_source";
 import { GameService } from "./play/game.service";
 import { SettingsService } from "./settings/settings.service";
 
@@ -22,14 +31,29 @@ interface RenderedApp {
   readonly detectChanges: () => void;
 }
 
-/** Renders the app on a fake canvas, its rounds played as a script says, over the specs' levels. */
+/**
+ * Renders the app on a fake canvas, its rounds played as a script says,
+ * over the specs' levels, taking bug reports as `main.ts` has it, with no
+ * debug menu offered.
+ */
 async function renderApp(
   ...script: readonly SpecRound[]
+): Promise<RenderedApp> {
+  return renderAppWith([], script);
+}
+
+/** Renders the app as `renderApp()` does, with providers of the spec's own. */
+async function renderAppWith(
+  providers: readonly Provider[],
+  script: readonly SpecRound[] = [],
 ): Promise<RenderedApp> {
   const { fixture } = await render(AppComponent, {
     providers: [
       provideFakePhaserCanvas(),
       ...provideSpecPlay(scriptedRounds(...script)),
+      ...provideBugReports(),
+      { provide: DEBUG_MENU, useValue: false },
+      ...providers,
     ],
   });
   await fixture.whenStable();
@@ -39,6 +63,16 @@ async function renderApp(
       fixture.detectChanges();
     },
   };
+}
+
+/** Renders the app as `renderApp()` does, with the debug menu offered, as at `?debug`. */
+async function renderDebugApp(): Promise<RenderedApp> {
+  return renderAppWith([{ provide: DEBUG_MENU, useValue: true }]);
+}
+
+/** Returns the bar's button a name names. */
+function barButton(name: string): HTMLElement {
+  return within(screen.getByRole("banner")).getByRole("button", { name });
 }
 
 /** Plays rounds until the level's end, and renders the result or the card. */
@@ -230,5 +264,67 @@ describe("AppComponent", () => {
       null,
       3,
     ]);
+  });
+  describe("a bug report", () => {
+    installCompressionStreams();
+
+    it("opens from the settings, filed as Rickashay's", async () => {
+      await renderApp();
+      await userEvent.click(barButton("Settings"));
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Report a bug" }),
+      );
+      const report = await screen.findByRole("dialog", {
+        name: "Report a bug",
+      });
+
+      const link = within(report).getByRole("link", { name: /^Open GitHub/ });
+      expect(
+        new URL(link.getAttribute("href") ?? "").searchParams.get("title"),
+      ).toBe("[Rickashay] ");
+    });
+
+    it("offers no reported state to load where the debug menu isn't offered", async () => {
+      await renderApp();
+
+      await userEvent.click(barButton("Settings"));
+
+      expect(
+        screen.queryByRole("textbox", { name: "Load game state" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("offers a reported state to load in the settings at ?debug", async () => {
+      await renderDebugApp();
+
+      await userEvent.click(barButton("Settings"));
+
+      expect(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      ).toBeVisible();
+    });
+
+    it("puts the settings away once the reported state loaded is in play", async () => {
+      const { game } = await renderDebugApp();
+      const state = await packState(
+        REPORT_TAG,
+        TestBed.inject(RickashayReports).capture().value,
+      );
+      await userEvent.click(barButton("Settings"));
+
+      await userEvent.click(
+        screen.getByRole("textbox", { name: "Load game state" }),
+      );
+      await userEvent.paste(state);
+      await userEvent.click(screen.getByRole("button", { name: "Load" }));
+
+      await vi.waitFor(() => {
+        expect(
+          screen.queryByRole("dialog", { name: "Settings" }),
+        ).not.toBeInTheDocument();
+      });
+      expect(game.outcome()).toBe("paused");
+    });
   });
 });

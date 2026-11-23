@@ -8,6 +8,10 @@ import {
 } from "@angular/core";
 import { LevelsComponent, levelMarksOf } from "@fz/brick-wall/app/levels";
 import { ResultComponent, type RunEnd } from "@fz/brick-wall/app/result";
+import {
+  BugReportDialogComponent,
+  BugReportLoaderComponent,
+} from "@fz/game-ui/bug_report";
 import { PlayRoomDirective, refocusWhenUncovered } from "@fz/game-ui/play_room";
 import { SettingsDrawerComponent } from "@fz/game-ui/settings_drawer";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -25,8 +29,10 @@ import { GAME_LEVELS } from "./tokens";
 /**
  * Shows the game: the bar, the board in the room the bar leaves it, the
  * live region that says what happens, the result card over an ended run,
- * the Levels dialog it and the bar offer, the settings the bar opens, and
- * the question before a run is thrown away, each wired to `GameService`.
+ * the Levels dialog it and the bar offer, the settings the bar opens, the
+ * Report a bug dialog they open, the loader of a reported game state in
+ * them where the game offers its debug menu, and the question before a
+ * run is thrown away, each wired to `GameService`.
  * The bar's Nudges and Release steer the board's scene.
  *
  * The board takes the focus as a run begins, as the page loads, after a
@@ -41,6 +47,11 @@ import { GAME_LEVELS } from "./tokens";
     AnnouncerComponent,
     BarComponent,
     BoardComponent,
+    // In the main chunk, though few pages show it: loaded on demand, it
+    // shares the shell's components, and Rolldown then splits the main
+    // chunk into several that weigh more gzipped than the dialog does.
+    BugReportDialogComponent,
+    BugReportLoaderComponent,
     ConfirmDialogComponent,
     LevelsComponent,
     PlayRoomDirective,

@@ -1,4 +1,5 @@
 @use "@fz/game-ui" as game-ui;
+@use "./styles" as *;
 
 // The page is the game: the bar stands against one edge, and the stage takes
 // the rest, a size container, which the board's layout follows.
@@ -10,3 +11,7 @@
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   height: 100%;
 }
+
+// The line the settings drawer's loader of a reported state shows under its
+// field, which the drawer's rules can't reach.
+@include setting-fields;

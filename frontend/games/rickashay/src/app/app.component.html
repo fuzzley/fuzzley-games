@@ -67,5 +67,16 @@
 />
 <fz-settings-drawer [open]="settingsOpen()" (closed)="settingsOpen.set(false)">
   <fz-theme-picker />
+  <!--
+    A bug report's game state, pasted to load, where the game offers its
+    debug menu: in a development build, and on the site at ?debug.
+  -->
+  <fz-bug-report-loader (loaded)="settingsOpen.set(false)">
+    <p class="setting-desc">
+      Loading a game state also sets the field's depth. Use the build named in
+      the report.
+    </p>
+  </fz-bug-report-loader>
 </fz-settings-drawer>
+<fz-bug-report-dialog [touch]="viewport.isTouchScreen()" />
 <fz-confirm-dialog />
