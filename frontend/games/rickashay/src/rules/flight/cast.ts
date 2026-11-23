@@ -1,7 +1,7 @@
 // What a flying fuzzball's middle meets next, and how far off: the side
-// walls, the ceiling, the floor and the faces of the bricks in play,
-// everything met within AT_ONCE of the soonest gathered, as C3 has a
-// moment's contacts gathered before any turns it.
+// walls, the ceiling, the floor, the faces of the bricks in play and the
+// portals' eyes, everything met within AT_ONCE of the soonest gathered, as
+// C3 has a moment's contacts gathered before any turns it.
 //
 // A cast walks the field a cell at a time along the middle's line, and in
 // each cell tries only the faces that reach into it, which the field keeps
@@ -11,6 +11,7 @@
 import { AT_ONCE, COLUMNS } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { Wall } from "../catalog/kinds";
+import { EYE } from "../tuning";
 import {
   type BrickFace,
   type Face,
@@ -210,7 +211,14 @@ function reachesInto(face: BrickFace, column: number, row: number): boolean {
     case "bar":
       return overlaps(face.from, face.to, face.line, face.line, column, row);
     case "eye":
-      return false;
+      return overlaps(
+        face.x - EYE / 2,
+        face.x + EYE / 2,
+        face.y - EYE / 2,
+        face.y + EYE / 2,
+        column,
+        row,
+      );
   }
 }
 
@@ -235,7 +243,9 @@ function overlaps(
  * Writes into `into` what a fuzzball's middle meets first, flying from a
  * place along a heading a unit long, and returns it: every face it meets
  * within `AT_ONCE` of the soonest, the side walls', the ceiling's and the
- * floor's among them.
+ * floor's among them, and the portals' eyes where `eyes` is true. A
+ * fuzzball passes every eye as air from a teleport until it next turns
+ * (C6), and is cast then with `eyes` false.
  *
  * A fuzzball in the field, flying any way, meets a side wall, the ceiling
  * or the floor by the field's diagonal, so a cast always meets something.
@@ -246,6 +256,7 @@ export function cast(
   y: number,
   dx: number,
   dy: number,
+  eyes: boolean,
   into: Contacts,
 ): Contacts {
   into.distance = MISSED;
@@ -260,7 +271,9 @@ export function cast(
     const within = field.within[row * COLUMNS + column];
     if (within !== undefined) {
       for (const face of within) {
-        note(face, meetsAt(face, x, y, dx, dy), into);
+        if (eyes || face.kind !== "eye") {
+          note(face, meetsAt(face, x, y, dx, dy), into);
+        }
       }
     }
     // How far the middle flies to the next column and the next row, from

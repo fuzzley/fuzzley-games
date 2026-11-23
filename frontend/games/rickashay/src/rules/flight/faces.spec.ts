@@ -507,6 +507,42 @@ describe("brickFaces, of a hatch", () => {
   });
 });
 
+describe("brickFaces, of a portal", () => {
+  it("shows its eye at the middle of its cell, while its twin is in play", () => {
+    expect(facesAt(["..@...@.."], 5, 2, 5)).toEqual([
+      { kind: "eye", x: 2.5, y: 5.5, owner: brickOwner(cellOf(2, 0)) },
+    ]);
+  });
+
+  it("shows nothing while its twin waits over the ceiling", () => {
+    expect(
+      facesAt(["......@..", "..@......"], DEPTH - 1, 2, DEPTH - 1),
+    ).toEqual([]);
+  });
+
+  it("leaves the bricks beside it their faces toward it", () => {
+    const picture = ["@...o....", "...o@o...", "....o...."];
+
+    expect(facingMiddle(picture, BESIDE)).toEqual([
+      "below",
+      "above",
+      "left",
+      "right",
+    ]);
+  });
+
+  it("leaves the bricks at its corners their cuts toward it", () => {
+    const picture = ["...o.o..@", "....@....", "...o.o..."];
+
+    expect(facingMiddle(picture, DIAGONAL)).toEqual([
+      "below left",
+      "below right",
+      "above left",
+      "above right",
+    ]);
+  });
+});
+
 describe("boundsOf", () => {
   it("bounds a field with the side walls and the ceiling a radius in, and the floor", () => {
     expect(boundsOf(DEPTH)).toEqual([
@@ -637,6 +673,29 @@ describe("meetsAt", () => {
     expect(meetsAt(bar, 2.2, 4.25, 0.6, -0.8)).toBeCloseTo(1.25, 12);
     expect(meetsAt(bar, 2.5, 2.25, 0, 1)).toBe(MISSED);
     expect(meetsAt(bar, 3.5, 4.25, 0, -1)).toBe(MISSED);
+  });
+
+  it("meets a portal's eye as the middle crosses into it, or at once inside it", () => {
+    // From x = 2.25 to 2.75 and y = 2.25 to 2.75.
+    const eye: Face = { kind: "eye", x: 2.5, y: 2.5, owner: brickOwner(0) };
+
+    expect(meetsAt(eye, 2.5, 1, 0, 1)).toBe(1.25);
+    expect(meetsAt(eye, 4, 2.3, -1, 0)).toBe(1.25);
+    expect(meetsAt(eye, 1.6, 1, 0.6, 0.8)).toBeCloseTo(1.5625, 12);
+    expect(meetsAt(eye, 2.5, 2.5, 0.6, -0.8)).toBe(0);
+  });
+
+  it("never meets an eye flown past, along its edge, across its corner, or out of from its edge", () => {
+    const eye: Face = { kind: "eye", x: 2.5, y: 2.5, owner: brickOwner(0) };
+    const [dx, dy] = [Math.SQRT1_2, -Math.SQRT1_2];
+
+    expect(meetsAt(eye, 3, 1, 0, 1)).toBe(MISSED);
+    expect(meetsAt(eye, 2.25, 1, 0, 1)).toBe(MISSED);
+    expect(meetsAt(eye, 2.75, 1, 0, 1)).toBe(MISSED);
+    expect(meetsAt(eye, 2.25, 3.25, dx, dy)).toBe(MISSED);
+    expect(meetsAt(eye, 2.5, 2.75, 0, 1)).toBe(MISSED);
+    expect(meetsAt(eye, 2.5, 2.75 - OVERLAP / 2, 0, 1)).toBe(MISSED);
+    expect(meetsAt(eye, 2.5, 3, 0, -1)).toBe(0.25);
   });
 
   it("meets the floor only flying down", () => {

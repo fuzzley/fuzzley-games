@@ -7,7 +7,7 @@ import {
   type FixtureName,
 } from "../../testing/flight_fixtures";
 import { WALL_LEGEND } from "../levels/legend";
-import { STAND_OFF } from "../tuning";
+import { EYE, STAND_OFF } from "../tuning";
 import {
   type CastField,
   type Contacts,
@@ -73,13 +73,14 @@ function metOf(contacts: Contacts): Met {
   };
 }
 
-/** Returns what a fuzzball meets first, cast from a place along a heading. */
+/** Returns what a fuzzball meets first, cast from a place along a heading, meeting the portals' eyes unless told not to. */
 function castFrom(
   field: CastField,
   [x, y]: readonly [number, number],
   [dx, dy]: readonly [number, number],
+  eyes = true,
 ): Contacts {
-  return cast(field, x, y, dx, dy, createContacts());
+  return cast(field, x, y, dx, dy, eyes, createContacts());
 }
 
 /** Returns what a cast is expected to meet: how far, near enough, and the owners of its faces. */
@@ -260,6 +261,30 @@ describe("cast", () => {
     );
   });
 
+  it("meets a portal's eye as its middle crosses into it", () => {
+    const field = fieldOf(5, ["..@...@.."]);
+
+    expect(metOf(castFrom(field, [2.5, RADIUS], [0, 1]))).toEqual(
+      expected(5.5 - EYE / 2 - RADIUS, [brick(2, 0)]),
+    );
+  });
+
+  it("passes every portal's eye as air, cast from a teleport until it next turns", () => {
+    const field = fieldOf(5, ["..@...@.."]);
+
+    expect(metOf(castFrom(field, [2.5, RADIUS], [0, 1], false))).toEqual(
+      expected(DEPTH - 2 * RADIUS, ["ceiling"]),
+    );
+  });
+
+  it("passes a portal whose twin waits over the ceiling as air", () => {
+    const field = fieldOf(DEPTH - 1, ["......@..", "..@......"]);
+
+    expect(metOf(castFrom(field, [2.5, RADIUS], [0, 1]))).toEqual(
+      expected(DEPTH - 2 * RADIUS, ["ceiling"]),
+    );
+  });
+
   it("meets both a flat and the cut its end joins, where they join", () => {
     const field = fieldOf(5, ["....o...."]);
 
@@ -275,15 +300,15 @@ describe("cast", () => {
     const field = fieldOf(5, ["....o...."]);
     const contacts = createContacts();
 
-    expect(cast(field, 4.5, RADIUS, 0, 1, contacts)).toBe(contacts);
+    expect(cast(field, 4.5, RADIUS, 0, 1, true, contacts)).toBe(contacts);
   });
 
   it("writes a record it is handed again afresh", () => {
     const field = fieldOf(5, ["....o...."]);
     const contacts = createContacts();
-    cast(field, 4.5, RADIUS, 0, 1, contacts);
+    cast(field, 4.5, RADIUS, 0, 1, true, contacts);
 
-    cast(field, 1.5, RADIUS, 0, 1, contacts);
+    cast(field, 1.5, RADIUS, 0, 1, true, contacts);
 
     expect(metOf(contacts)).toEqual(
       metOf(castFrom(field, [1.5, RADIUS], [0, 1])),
@@ -459,22 +484,31 @@ function boundsOff(off: TurnOff, x: number): string[] {
 }
 
 /**
- * Returns each leg of a fixture's flight that ends at a turn or its
- * landing: what a cast along it meets, from where the leg leaves, its bricks
- * broken as the flight broke them and its hatches opened where the flight
- * opened them, and what the flight met there.
+ * Returns each leg of a fixture's flight that ends at a turn, a teleport or
+ * its landing: what a cast along it meets, from where the leg leaves, its
+ * bricks broken as the flight broke them, its hatches opened where the
+ * flight opened them and the portals' eyes passed from a teleport to the
+ * next turn, and what the flight met there.
  */
 function legsOf(name: FixtureName): Leg[] {
   const { start, shot, round } = FLIGHT_FIXTURES[name];
   const { waypoints } = round.flight.track;
   const field = castField(start.wall, start.depth);
   let [dx, dy] = headingOf(shot.aim);
+  let eyes = true;
   const legs: Leg[] = [];
   waypoints.slice(1).forEach((to, index) => {
     const from = waypoints[index]!;
+    if (to.at === from.at) {
+      // A leg of no length, as a teleport's two places are, has its
+      // moment's events read with the leg into it.
+      return;
+    }
     const events = round.flight.events.filter(({ at }) => at === to.at);
     const length = to.at - from.at;
-    const met = metOf(cast(field, from.x, from.y, dx, dy, createContacts()));
+    const met = metOf(
+      cast(field, from.x, from.y, dx, dy, eyes, createContacts()),
+    );
     for (const event of events) {
       switch (event.kind) {
         case "turn": {
@@ -484,8 +518,16 @@ function legsOf(name: FixtureName): Leg[] {
           ];
           legs.push({ met, turned: expected(length, owners) });
           [dx, dy] = [event.dx, event.dy];
+          eyes = true;
           break;
         }
+        case "teleport":
+          legs.push({
+            met,
+            turned: expected(length, [`brick ${String(event.from)}`]),
+          });
+          eyes = false;
+          break;
         case "land":
           legs.push({ met, turned: expected(length, ["floor"]) });
           break;
@@ -506,7 +548,6 @@ function legsOf(name: FixtureName): Leg[] {
         case "bounce-spent":
         case "hold":
         case "bolt":
-        case "teleport":
           break;
       }
     }
@@ -530,13 +571,17 @@ describe("cast, along the flights made by hand", () => {
     "bored",
     "guard",
     "hatch",
+    "teleport",
     "corner",
     "ramp",
     "gem",
   ] as const)("meets each face %s turns off, where it turns", (name) => {
+    const { turns, events } = FLIGHT_FIXTURES[name].round.flight;
+    const teleports = events.filter(({ kind }) => kind === "teleport");
+
     const legs = legsOf(name);
 
-    expect(legs).toHaveLength(FLIGHT_FIXTURES[name].round.flight.turns + 1);
+    expect(legs).toHaveLength(turns + teleports.length + 1);
     expect(legs.map(({ met }) => met)).toEqual(
       legs.map(({ turned }) => turned),
     );

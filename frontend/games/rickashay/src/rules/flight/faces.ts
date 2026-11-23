@@ -14,7 +14,9 @@
 // gem's four, stands off its line by STAND_OFF, a radius out, and its
 // points are cut square by short flats. A hatch is a bar along its cell's
 // top and nothing under it, so the bricks about it are faced as if it
-// weren't there (C7).
+// weren't there (C7). A portal is air but for its eye, the half-unit square
+// at the middle of its cell, and all air while its twin waits over the
+// ceiling (C6).
 
 import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
@@ -29,9 +31,10 @@ import {
   RIGHT,
   brickAt,
   cellOf,
+  fieldRowOf,
 } from "@fz/brick-wall/rules/grid";
 import { type Brick, type Wall, kindOf } from "../catalog/kinds";
-import { STAND_OFF } from "../tuning";
+import { EYE, STAND_OFF } from "../tuning";
 
 /** Names what a face belongs to: a brick, by its wall cell, a side wall, or the ceiling. */
 export type FaceOwner =
@@ -166,8 +169,9 @@ const FLOOR_LINE = { line: RADIUS, facing: 1, from: 0, to: COLUMNS } as const;
  * The shapes a field cell's brick takes, as its faces and those beside it
  * are built: none, the box of its cell, the side walls and the ceiling
  * beyond the field, which fill every side of their cells, a ramp by the
- * corner of its cell its right angle sits in, a gem, and a hatch, which
- * is only a bar along its cell's top.
+ * corner of its cell its right angle sits in, a gem, a hatch, which is
+ * only a bar along its cell's top, and a portal whose twin is in play,
+ * which is only its eye.
  */
 export const SHAPE = {
   air: 0,
@@ -183,6 +187,7 @@ export const SHAPE = {
   rampCeilingwardRight: 6,
   gem: 7,
   hatch: 8,
+  portal: 9,
 } as const;
 
 /** A field cell's shape, one of {@link SHAPE}'s. */
@@ -201,6 +206,7 @@ const FILLS: Readonly<Record<Shape, number>> = {
   // A hatch fills no side of its cell for a brick beside it, but joins a
   // hatch beside it into one bar (hatchFaces()).
   [SHAPE.hatch]: 0,
+  [SHAPE.portal]: 0,
 };
 
 /** The corners of its cell each shape reaches, as `rules/grid`'s corner bits: no corner beside one it reaches is cut. */
@@ -222,6 +228,7 @@ const REACHES: Readonly<Record<Shape, number>> = {
     FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
   [SHAPE.gem]: 0,
   [SHAPE.hatch]: 0,
+  [SHAPE.portal]: 0,
 };
 
 /** Each side of a cell's opposite: the side of the cell beside it that faces it. */
@@ -242,14 +249,18 @@ export interface FieldShapes {
   readonly shapes: Uint8Array;
 }
 
-/** Returns what stands in each cell of a field of a depth, from the wall's bricks in play. */
+/**
+ * Returns what stands in each cell of a field of a depth, from the wall's
+ * bricks in play: a portal's cell is air while its twin waits over the
+ * ceiling.
+ */
 export function fieldShapes(wall: Wall, depth: number): FieldShapes {
   const shapes = new Uint8Array(COLUMNS * depth);
   for (let row = 0; row < depth; row++) {
     for (let column = 0; column < COLUMNS; column++) {
       const brick = brickAt(wall, depth, column, row);
       if (brick !== null) {
-        shapes[row * COLUMNS + column] = shapeOf(brick);
+        shapes[row * COLUMNS + column] = shapeOf(brick, wall, depth);
       }
     }
   }
@@ -259,9 +270,11 @@ export function fieldShapes(wall: Wall, depth: number): FieldShapes {
 /**
  * Returns the shape a brick's kind gives it: a ramp's, by the corner its
  * plates name, where its kind slants; a gem's, where it is faceted; a
- * hatch's where it holds; and a box where none of its traits shapes it.
+ * hatch's where it holds; a portal's where it teleports, or air while its
+ * twin waits over the ceiling of a field of a depth; and a box where none
+ * of its traits shapes it.
  */
-function shapeOf(brick: Brick): Shape {
+function shapeOf(brick: Brick, wall: Wall, depth: number): Shape {
   for (const trait of kindOf(brick.kind).traits) {
     switch (trait.kind) {
       case "slants":
@@ -270,9 +283,12 @@ function shapeOf(brick: Brick): Shape {
         return SHAPE.gem;
       case "holds":
         return SHAPE.hatch;
+      case "teleports":
+        return brick.twin !== null && fieldRowOf(wall, brick.twin) < depth
+          ? SHAPE.portal
+          : SHAPE.air;
       case "never":
       case "springs":
-      case "teleports":
       case "plated":
       case "regrows":
       case "bolted":
@@ -437,6 +453,8 @@ export function brickFaces(
       return gemFaces(column, row, owner);
     case SHAPE.hatch:
       return hatchFaces(field, column, row, owner);
+    case SHAPE.portal:
+      return [{ kind: "eye", x: column + 0.5, y: row + 0.5, owner }];
   }
 }
 
@@ -726,8 +744,71 @@ export function meetsAt(
       // Met only coming down onto it.
       return dy < 0 ? withinEnds((face.line - y) / dy, x, dx, face) : MISSED;
     case "eye":
-      return MISSED;
+      return meetsEye(face, x, y, dx, dy);
   }
+}
+
+/**
+ * Returns how far a fuzzball flies before its middle crosses into a
+ * portal's eye, or {@link MISSED}: at once where it is in the eye already,
+ * but never where it only grazes the eye's edge or corner, or lies no more
+ * than {@link OVERLAP} inside its far edge and is leaving, so a middle a
+ * rounding inside it is not taken as it leaves.
+ */
+function meetsEye(
+  { x: middleX, y: middleY }: { readonly x: number; readonly y: number },
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+): number {
+  const enter = Math.max(
+    entersBand(x - middleX, dx),
+    entersBand(y - middleY, dy),
+    0,
+  );
+  const leave = Math.min(
+    leavesBand(x - middleX, dx),
+    leavesBand(y - middleY, dy),
+  );
+  return leave - enter > OVERLAP ? enter : MISSED;
+}
+
+/**
+ * Returns how far a fuzzball's middle flies, from `offset` off an eye's
+ * middle one way and at `speed` that way, to come into the band the eye
+ * spans that way: −∞ for one in it and flying along it, and ∞ for one
+ * flying along it outside it or on its edge.
+ */
+function entersBand(offset: number, speed: number): number {
+  const half = EYE / 2;
+  if (speed > 0) {
+    return (-half - offset) / speed;
+  }
+  if (speed < 0) {
+    return (half - offset) / speed;
+  }
+  return offset > -half && offset < half
+    ? Number.NEGATIVE_INFINITY
+    : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Returns how far a fuzzball's middle flies, as {@link entersBand} has it,
+ * to leave the band an eye spans: ∞ for one in it and flying along it, and
+ * −∞ for one flying along it outside it.
+ */
+function leavesBand(offset: number, speed: number): number {
+  const half = EYE / 2;
+  if (speed > 0) {
+    return (half - offset) / speed;
+  }
+  if (speed < 0) {
+    return (-half - offset) / speed;
+  }
+  return offset > -half && offset < half
+    ? Number.POSITIVE_INFINITY
+    : Number.NEGATIVE_INFINITY;
 }
 
 /**
