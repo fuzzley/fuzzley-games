@@ -6,11 +6,13 @@ import {
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import type { Wall } from "../catalog/kinds";
+import type { TraitKind, Wall } from "../catalog/kinds";
 import { WALL_LEGEND } from "../levels/legend";
+import { TRAIT_RULES } from "../bricks/trait_rules";
 import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
 import { type Flown, fly } from "./flight";
+import type { Struck, TraitRules } from "./hooks";
 
 /** The depth of the field the specs fly in. */
 const DEPTH = 11;
@@ -45,6 +47,8 @@ interface PictureShot {
   readonly degrees?: number;
   readonly hot?: boolean;
   readonly rules?: FlightRules;
+  /** The bricks' trait rules: the game's unless given. */
+  readonly traits?: TraitRules;
 }
 
 /** Returns a wall drawn as a picture, its lowest row standing in a field row. */
@@ -60,9 +64,15 @@ function flyAt({
   degrees = 45,
   hot = false,
   rules = FLIGHT_RULES,
+  traits = TRAIT_RULES,
 }: PictureShot): Flown {
   const wall = wallOf(picture, lowestRow);
-  return fly({ wall, depth: DEPTH, x, hot }, { aim: aimAt(degrees) }, rules);
+  return fly(
+    { wall, depth: DEPTH, x, hot },
+    { aim: aimAt(degrees) },
+    rules,
+    traits,
+  );
 }
 
 /** Returns a flight's events of a kind. */
@@ -302,21 +312,287 @@ describe("fly", () => {
   });
 
   it("leaves the wall it is handed as it was", () => {
-    const wall = wallOf(["ooo2....."], 5);
-    const before = structuredClone(wall);
+    const start = {
+      wall: wallOf(["ooo2....."], 5),
+      depth: DEPTH,
+      x: 4.5,
+      hot: false,
+    };
+    const before = structuredClone(start.wall);
 
-    const { wall: left } = fly(
-      { wall, depth: DEPTH, x: 4.5, hot: false },
-      { aim: aimAt(100) },
-      FLIGHT_RULES,
-    );
+    fly(start, { aim: aimAt(100) }, FLIGHT_RULES, TRAIT_RULES);
 
-    expect([wall, left]).toStrictEqual([before, before]);
+    expect(start.wall).toStrictEqual(before);
+  });
+
+  // Up and to the left, it strikes the tough brick of two in column 3.
+  it("returns the wall it leaves, each brick it struck with the hits it has left", () => {
+    const flown = flyAt({ picture: ["ooo2....."], degrees: 100 });
+
+    expect(flown.wall.bricks.map((brick) => brick?.hits)).toEqual([
+      1,
+      1,
+      1,
+      1,
+      ...Array<undefined>(5),
+    ]);
   });
 
   it("throws for an aim that isn't one of the 657", () => {
     const start = { wall: wallOf([], 5), depth: DEPTH, x: 4.5, hot: false };
 
-    expect(() => fly(start, { aim: 657 }, FLIGHT_RULES)).toThrow(RangeError);
+    expect(() => fly(start, { aim: 657 }, FLIGHT_RULES, TRAIT_RULES)).toThrow(
+      RangeError,
+    );
+  });
+});
+
+describe("fly's strikes", () => {
+  it("strikes a brick it turns off, taking a hit, which breaks it", () => {
+    const flown = flyAt({ picture: ["........o"] });
+
+    expect([eventsOf(flown, "strike"), flown.wall.bricks]).toEqual([
+      [
+        {
+          at: near(4.5 * Math.SQRT2),
+          kind: "strike",
+          cell: 8,
+          took: 1,
+          broke: true,
+          rally: 1,
+        },
+      ],
+      Array<null>(9).fill(null),
+    ]);
+  });
+
+  it("takes a pip off a tough brick, which holds", () => {
+    const flown = flyAt({ picture: ["........3"] });
+
+    expect([eventsOf(flown, "strike"), flown.wall.bricks[8]?.hits]).toEqual([
+      [expect.objectContaining({ cell: 8, took: 1, broke: false })],
+      2,
+    ]);
+  });
+
+  it("takes a hot shot's two hits a strike", () => {
+    const flown = flyAt({ picture: ["........3"], hot: true });
+
+    expect(eventsOf(flown, "strike")).toEqual([
+      expect.objectContaining({ cell: 8, took: 2, broke: false, rally: 1 }),
+    ]);
+  });
+
+  it("strikes each brick it met at a moment once, floor up, counting each in its rally", () => {
+    const x = xToReach(45, [6.75, 4.75]);
+
+    const flown = flyAt({
+      picture: ["......o..", ".......o."],
+      lowestRow: 4,
+      x,
+    });
+
+    expect(
+      eventsOf(flown, "strike").map(({ cell, rally }) => [cell, rally]),
+    ).toEqual([
+      [cellOf(7, 0), 1],
+      [cellOf(6, 1), 2],
+    ]);
+  });
+
+  it.each([
+    ["steel", ["........#"], 4.5, 45],
+    [
+      "a ramp",
+      ["........7"],
+      xToReach(60, [RIGHT_WALL, 5 + RADIUS - STAND_OFF]),
+      60,
+    ],
+    ["a hatch's bar", ["..=......"], 4.5, 45],
+  ] as const)("turns off %s, which takes nothing", (_, picture, x, degrees) => {
+    const flown = flyAt({ picture, x, degrees });
+
+    expect([
+      eventsOf(flown, "strike"),
+      flown.flight.rally,
+      flown.flight.lastStrike,
+    ]).toEqual([[], 0, null]);
+  });
+
+  // The column of tough bricks by the right wall is struck six times as
+  // the fuzzball climbs beside it, and the top course four times from over
+  // it.
+  it("marks the moments of its strikes at the rally's marks, and its last", () => {
+    const flown = flyAt({
+      picture: [
+        "....3333.",
+        ".......3.",
+        ".......3.",
+        ".......3.",
+        ".......3.",
+        ".......3.",
+      ],
+      lowestRow: 4,
+      x: 4.75,
+    });
+    const moments = eventsOf(flown, "strike").map(({ at }) => at);
+
+    expect([
+      moments.length,
+      flown.flight.marks,
+      flown.flight.lastStrike,
+    ]).toEqual([10, [moments[9]], moments[9]]);
+  });
+});
+
+describe("fly's trait rules", () => {
+  /** Returns the game's trait rules with one trait's made up for the spec to note each moment it runs at, and the cell. */
+  function noting(trait: TraitKind, seen: string[]): TraitRules {
+    const note = (moment: string, cell: number): void => {
+      seen.push(`${moment} ${String(cell)}`);
+    };
+    return {
+      ...TRAIT_RULES,
+      [trait]: {
+        struck: ({ cell }: Struck) => {
+          note("struck", cell);
+        },
+        broken: (cell: number) => {
+          note("broken", cell);
+        },
+        met: (cell: number) => {
+          note("met", cell);
+        },
+        entered: (cell: number) => {
+          note("entered", cell);
+        },
+      },
+    };
+  }
+
+  /** The game's trait rules with a plated brick's made up for the spec: a strike on its plates alone takes nothing. */
+  const PLATED: TraitRules = {
+    ...TRAIT_RULES,
+    plated: {
+      struck: (struck) => {
+        const { sides, brick } = struck;
+        if (sides !== 0 && (brick.plates & sides) === sides) {
+          struck.shield = "plate";
+        }
+      },
+    },
+  };
+
+  // Two spring bricks at an inside corner, the one beside it a row under
+  // the one over it.
+  it("runs a brick's rules as a turn strikes it, as it breaks and as it meets it, brick by brick, floor up", () => {
+    const seen: string[] = [];
+    const x = xToReach(45, [6.75, 4.75]);
+
+    flyAt({
+      picture: ["......S..", ".......S."],
+      lowestRow: 4,
+      x,
+      traits: noting("springs", seen),
+    });
+
+    expect(seen).toEqual([
+      "struck 7",
+      "broken 7",
+      "met 7",
+      "struck 15",
+      "broken 15",
+      "met 15",
+    ]);
+  });
+
+  it("runs no rules for a break of a brick that holds", () => {
+    const seen: string[] = [];
+
+    flyAt({ picture: ["........M"], traits: noting("regrows", seen) });
+
+    expect(seen).toEqual(["struck 8", "met 8"]);
+  });
+
+  it("runs only the rules for meeting a brick that never breaks", () => {
+    const seen: string[] = [];
+
+    flyAt({ picture: ["........#"], traits: noting("never", seen) });
+
+    expect(seen).toEqual(["met 8"]);
+  });
+
+  it("shields a brick its rules shield, which takes nothing and isn't a strike", () => {
+    const flown = flyAt({ picture: ["........v"], traits: PLATED });
+
+    expect([
+      flown.flight.events.filter(
+        ({ kind }) => kind === "shielded" || kind === "strike",
+      ),
+      flown.flight.rally,
+      flown.wall.bricks[8]?.hits,
+    ]).toEqual([
+      [{ at: near(4.5 * Math.SQRT2), kind: "shielded", cell: 8, by: "plate" }],
+      0,
+      2,
+    ]);
+  });
+
+  // At (4, 4.75), the brick's plated floorward flat turns the fuzzball,
+  // and the cut across its corner beside it doesn't.
+  it("hands the rules only the sides of the faces that turned it", () => {
+    const flown = flyAt({
+      picture: ["....v...."],
+      x: xToReach(60, [4, 5 - RADIUS]),
+      degrees: 60,
+      traits: PLATED,
+    });
+
+    expect(eventsOf(flown, "shielded")).toEqual([
+      expect.objectContaining({ cell: 4, by: "plate" }),
+    ]);
+  });
+
+  // The cut across the floorward left corner of a brick plated underneath
+  // meets a side its plate leaves bare; one plated on its sides too is
+  // plated on both the cut's sides.
+  it.each([
+    ["v", "strike"],
+    ["U", "shielded"],
+  ] as const)(
+    "hands the rules both sides of a cut corner, so a cut at %s is a %s",
+    (brick, kind) => {
+      const flown = flyAt({
+        picture: [`....${brick}....`],
+        x: 1.3,
+        degrees: 60,
+        traits: PLATED,
+      });
+
+      expect(
+        flown.flight.events.filter(
+          (event) => event.kind === "strike" || event.kind === "shielded",
+        ),
+      ).toEqual([expect.objectContaining({ kind, cell: 4 })]);
+    },
+  );
+
+  // Up from the floor's middle at 45° through the eye of the portal in
+  // column 6 of row 2, off the right wall, the ceiling and the left wall,
+  // and down through its eye's corner, its twin in row 8 out of the way.
+  it("runs a portal's rules as the middle crosses into its eye, passing every eye as air from there until it next turns", () => {
+    const seen: string[] = [];
+
+    flyAt({
+      picture: [
+        "........@",
+        ...Array<string>(5).fill("........."),
+        "......@..",
+      ],
+      lowestRow: 2,
+      traits: noting("teleports", seen),
+    });
+
+    expect(seen).toEqual(["entered 6", "entered 6"]);
   });
 });

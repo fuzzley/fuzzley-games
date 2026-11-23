@@ -6,6 +6,9 @@
 // it still flies into swaps its two speeds, and a corner's cut swaps them
 // only where nothing else turned it. So it keeps to its aim's eight
 // headings, by changes of sign and swaps alone, for as long as it flies.
+// It strikes each brick it met at the moment, floor up and then left to
+// right, each once, as bricks/strike.ts says, their traits' rules running
+// at the moments hooks.ts names.
 //
 // A flight's state is made as it starts, and what the fuzzball meets is
 // cast into one record the module keeps, so a cast makes nothing; records
@@ -13,31 +16,44 @@
 
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
-import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import {
+  CEILINGWARD,
+  FLOORWARD,
+  LEFT,
+  RIGHT,
+  columnOf,
+  fieldRowOf,
+} from "@fz/brick-wall/rules/grid";
 import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { clamp } from "@fz/core/math";
-import type { Wall } from "../catalog/kinds";
+import { strike, takesStrikes } from "../bricks/strike";
+import { type Brick, type Wall, kindOf } from "../catalog/kinds";
 import type { Shot } from "../shot";
-import type { FlightRules } from "../tuning";
+import { type FlightRules, RALLY_MARKS } from "../tuning";
 import {
   type CastField,
   type Contacts,
   cast,
   castField,
+  clearBrick,
   createContacts,
 } from "./cast";
 import type { Flight, FlightEvent, RoundStart, TurnOff } from "./events";
-import { type Face, type FaceOwner, SHAPE } from "./faces";
+import { type Face, SHAPE } from "./faces";
+import type { Struck, TraitRules } from "./hooks";
 
 /** Describes a flight flown, and the wall it leaves. */
 export interface Flown {
   readonly flight: Flight;
-  /** The wall as the flight leaves it, which is the wall it was handed until a strike takes hits. */
+  /** The wall as the flight leaves it: each brick it broke gone, and each it struck with the hits it has left. */
   readonly wall: Wall;
 }
 
 /** A 45° face, one of the faces. */
 type Slant = Extract<Face, { readonly kind: "slant" }>;
+
+/** A face that turns a fuzzball and may belong to a brick: a flat, a 45° face or a hatch's bar. */
+type TurningFace = Extract<Face, { readonly kind: "flat" | "slant" | "bar" }>;
 
 /** Which of what a turn met its `off` names, the lowest first: a brick, a hatch's bar, a side wall, the ceiling, the floor. */
 const OFF_ORDER: Readonly<Record<TurnOff, number>> = {
@@ -48,6 +64,9 @@ const OFF_ORDER: Readonly<Record<TurnOff, number>> = {
   floor: 4,
 };
 
+/** The rallies at which a flight marks the moment of its strike. */
+const MARKS: readonly number[] = RALLY_MARKS;
+
 // What the fuzzball meets is cast into this record, and its faces listed in
 // this one, each made once, as no two flights fly at once.
 const contacts: Contacts = createContacts();
@@ -55,17 +74,23 @@ const faces: Face[] = [];
 
 /**
  * Returns the flight of a round's shot, flown from where the fuzzball
- * waits along its aim until it lands, and the wall it leaves; the wall it
- * is handed it leaves as it was.
+ * waits along its aim until it lands, by the rules' numbers and the bricks'
+ * trait rules, and the wall it leaves; the wall it is handed it leaves as
+ * it was.
  *
  * It throws a `RangeError` for an aim that isn't one of the 657.
  */
-export function fly(start: RoundStart, shot: Shot, rules: FlightRules): Flown {
+export function fly(
+  start: RoundStart,
+  shot: Shot,
+  rules: FlightRules,
+  traits: TraitRules,
+): Flown {
   const heading = AIMS[shot.aim];
   if (heading === undefined) {
     throw new RangeError(`No aim is numbered ${String(shot.aim)}.`);
   }
-  return new Flying(start, heading, rules).fly();
+  return new Flying(start, heading, rules, traits).fly();
 }
 
 /** Flies a flight through, keeping its state. */
@@ -77,19 +102,36 @@ class Flying {
   private dy: number;
   /** Units flown since the release: the moment the fuzzball is at. */
   private at = 0;
+  /** Whether a portal's eye takes the fuzzball: not from crossing into one until it next turns. */
+  private eyes = true;
   private turns = 0;
+  private rally = 0;
+  private readonly marks: number[] = [];
+  private lastStrike: number | null = null;
   private landed = false;
   private readonly waypoints: Waypoint[];
   private readonly events: FlightEvent[] = [];
+  /** Each wall cell's hits left. */
+  private readonly hits: Float64Array;
+  /** Whether each wall cell's brick is broken: 1 once it is. */
+  private readonly broken: Uint8Array;
   /** The wall cells the moment met, floor up and then left to right, each once. */
   private readonly cells: number[] = [];
+  /** The sides of each of {@link cells} that its faces the moment met lie along, as `FieldFace` bits. */
+  private readonly sides: number[] = [];
+  /** The sides of each of {@link cells} that its faces that turned the fuzzball lie along, or -1 where none of them did. */
+  private readonly turning: number[] = [];
 
   constructor(
     private readonly start: RoundStart,
     [dx, dy]: readonly [number, number],
     private readonly rules: FlightRules,
+    private readonly traits: TraitRules,
   ) {
+    const { bricks } = start.wall;
     this.field = castField(start.wall, start.depth);
+    this.hits = Float64Array.from(bricks, (brick) => brick?.hits ?? 0);
+    this.broken = new Uint8Array(bricks.length);
     this.x = start.x;
     this.dx = dx;
     this.dy = dy;
@@ -106,12 +148,27 @@ class Flying {
       events: this.events,
       held: 0,
       length: this.at,
-      rally: 0,
+      rally: this.rally,
       turns: this.turns,
-      marks: [],
-      lastStrike: null,
+      marks: this.marks,
+      lastStrike: this.lastStrike,
     };
-    return { flight, wall: this.start.wall };
+    return { flight, wall: this.wallLeft() };
+  }
+
+  /** Returns the wall as the flight leaves it: each brick it broke gone, and each it struck with the hits it has left. */
+  private wallLeft(): Wall {
+    const { wall } = this.start;
+    return {
+      ...wall,
+      bricks: wall.bricks.map((brick, cell) => {
+        if (brick === null || this.broken[cell] === 1) {
+          return null;
+        }
+        const hits = this.hits[cell] ?? brick.hits;
+        return hits === brick.hits ? brick : { ...brick, hits };
+      }),
+    };
   }
 
   /**
@@ -127,8 +184,7 @@ class Flying {
       this.y,
       this.dx,
       this.dy,
-      // A portal's eye is passed as air.
-      false,
+      this.eyes,
       contacts,
     );
     if (this.at + met.distance > home) {
@@ -143,7 +199,9 @@ class Flying {
 
   /**
    * Plays what the fuzzball meets at a moment: it lands on the floor;
-   * otherwise it turns once, off everything it met.
+   * otherwise it turns once, off everything it met, and meets each brick
+   * there; and it crosses into a portal's eye, passing every eye as air
+   * from then until it next turns.
    */
   private meet(met: Contacts): void {
     faces.length = 0;
@@ -162,6 +220,7 @@ class Flying {
     const off = this.turn();
     if (off !== null) {
       this.turns++;
+      this.eyes = true;
       const { at, x, y, dx, dy } = this;
       this.events.push({
         at,
@@ -174,6 +233,87 @@ class Flying {
         cells: [...this.cells],
       });
       this.waypoint();
+    }
+    for (let index = 0; index < this.cells.length; index++) {
+      const cell = this.cells[index] ?? 0;
+      const brick = this.start.wall.bricks[cell];
+      const turning = this.turning[index] ?? -1;
+      if (brick !== null && brick !== undefined) {
+        this.meetBrick(
+          cell,
+          brick,
+          turning < 0 ? (this.sides[index] ?? 0) : turning,
+        );
+      }
+    }
+    for (const face of faces) {
+      if (face.kind === "eye") {
+        this.enter(face.owner.cell);
+      }
+    }
+  }
+
+  /**
+   * Meets a brick in a wall cell at a turn, on the sides given: strikes
+   * it, if its kind breaks, unless its rules shield it, and breaks it once
+   * it has no hits left; then runs its rules for meeting it.
+   */
+  private meetBrick(cell: number, brick: Brick, sides: number): void {
+    const { traits } = kindOf(brick.kind);
+    if (takesStrikes(brick.kind)) {
+      const struck: Struck = { cell, brick, sides, shield: null };
+      for (const trait of traits) {
+        this.traits[trait.kind].struck?.(struck);
+      }
+      if (struck.shield === null) {
+        this.strike(cell, brick);
+      } else {
+        const { at } = this;
+        this.events.push({ at, kind: "shielded", cell, by: struck.shield });
+      }
+    }
+    for (const trait of traits) {
+      this.traits[trait.kind].met?.(cell, brick);
+    }
+  }
+
+  /** Strikes the brick in a wall cell, taking its hits and counting the rally, and breaks it once it has none left. */
+  private strike(cell: number, brick: Brick): void {
+    const { took, left } = strike(
+      this.hits[cell] ?? 0,
+      this.start.hot,
+      this.rules,
+    );
+    this.hits[cell] = left;
+    this.rally++;
+    this.lastStrike = this.at;
+    if (MARKS.includes(this.rally)) {
+      this.marks.push(this.at);
+    }
+    const broke = left === 0;
+    const { at, rally } = this;
+    this.events.push({ at, kind: "strike", cell, took, broke, rally });
+    if (broke) {
+      this.broken[cell] = 1;
+      clearBrick(this.field, cell);
+      for (const trait of kindOf(brick.kind).traits) {
+        this.traits[trait.kind].broken?.(cell, brick);
+      }
+    }
+  }
+
+  /**
+   * Crosses the fuzzball's middle into the eye of the brick in a wall
+   * cell, running its rules for it, and passes every eye as air until it
+   * next turns.
+   */
+  private enter(cell: number): void {
+    this.eyes = false;
+    const brick = this.start.wall.bricks[cell];
+    if (brick !== null && brick !== undefined) {
+      for (const trait of kindOf(brick.kind).traits) {
+        this.traits[trait.kind].entered?.(cell, brick);
+      }
     }
   }
 
@@ -190,6 +330,8 @@ class Flying {
    */
   private turn(): TurnOff | null {
     this.cells.length = 0;
+    this.sides.length = 0;
+    this.turning.length = 0;
     let flipX = false;
     let flipY = false;
     let off: TurnOff | null = null;
@@ -231,11 +373,13 @@ class Flying {
         cut ??= face;
       } else if (face.facingX * this.dx + face.facingY * this.dy < 0) {
         this.swap(face);
+        this.turnedOff(face, face.owner.cell);
         turned = true;
       }
     }
     if (!turned && cut !== null) {
       this.swap(cut);
+      this.turnedOff(cut, cut.owner.cell);
       turned = true;
     }
     return turned ? off : null;
@@ -244,23 +388,49 @@ class Flying {
   /**
    * Returns what a face met names as what a turn was off, or null for one
    * that turns nothing, and lists its brick's wall cell in {@link cells}
-   * once: a hatch's bar, and the cuts across its ends, are its bar.
+   * once, with the sides it met it on: a hatch's bar, and the cuts across
+   * its ends, are its bar.
    */
   private offOf(face: Face): TurnOff | null {
-    const owner: FaceOwner | null =
-      face.kind === "floor" || face.kind === "eye" ? null : face.owner;
-    if (owner?.kind === "brick") {
-      return this.brickMet(owner.cell);
+    switch (face.kind) {
+      case "floor":
+      case "eye":
+        return null;
+      case "flat":
+        return face.owner.kind === "brick"
+          ? this.brickMet(face, face.owner.cell)
+          : face.owner.kind;
+      case "slant":
+      case "bar":
+        return this.brickMet(face, face.owner.cell);
     }
-    return owner?.kind ?? null;
   }
 
-  /** Lists a wall cell the moment met in {@link cells}, once, and returns what a turn off it is off: a brick, or a hatch's bar. */
-  private brickMet(cell: number): TurnOff {
-    if (this.cells.at(-1) !== cell) {
+  /**
+   * Lists the wall cell of a brick whose face the moment met in
+   * {@link cells}, once, with the sides it met it on, and returns what a
+   * turn off it is off: a brick, or a hatch's bar.
+   */
+  private brickMet(face: TurningFace, cell: number): TurnOff {
+    const last = this.cells.length - 1;
+    if (this.cells[last] === cell) {
+      this.sides[last] = (this.sides[last] ?? 0) | sidesOf(face);
+    } else {
       this.cells.push(cell);
+      this.sides.push(sidesOf(face));
+      this.turning.push(-1);
+    }
+    if (face.kind !== "slant") {
+      // A flat or a bar met always turns the fuzzball.
+      this.turnedOff(face, cell);
     }
     return this.isHatch(cell) ? "bar" : "brick";
+  }
+
+  /** Notes that a face of the brick in a wall cell the moment met turned the fuzzball, with the sides it lies along. */
+  private turnedOff(face: TurningFace, cell: number): void {
+    const index = this.cells.indexOf(cell);
+    this.turning[index] = Math.max(this.turning[index] ?? 0, 0) | sidesOf(face);
   }
 
   /** Returns whether a wall cell in the field holds a hatch, still shut. */
@@ -315,5 +485,27 @@ class Flying {
     if (this.waypoints.at(-1)?.at !== at) {
       this.waypoints.push({ at, x, y });
     }
+  }
+}
+
+/**
+ * Returns the sides of its brick's cell a face lies along, as `FieldFace`
+ * bits: a flat's, or a bar's along its cell's top; both of a cut corner's;
+ * and none of a long 45° face.
+ */
+function sidesOf(face: TurningFace): number {
+  switch (face.kind) {
+    case "flat":
+      if (face.along === "across") {
+        return face.facing > 0 ? CEILINGWARD : FLOORWARD;
+      }
+      return face.facing > 0 ? RIGHT : LEFT;
+    case "slant":
+      return face.long
+        ? 0
+        : (face.facingX > 0 ? RIGHT : LEFT) |
+            (face.facingY > 0 ? CEILINGWARD : FLOORWARD);
+    case "bar":
+      return CEILINGWARD;
   }
 }
