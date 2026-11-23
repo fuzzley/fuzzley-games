@@ -1,8 +1,9 @@
-// What a flight asks of the bricks' rules. fly() runs a brick's trait rules
-// at four moments: as a turn strikes it, as it breaks, as the fuzzball
-// meets it, and as the fuzzball's middle crosses into its eye; so a kind
-// brought in later plugs in through its traits' rules without touching
-// fly().
+// What a flight asks of the bricks' rules, and what they may do to it in
+// turn. fly() runs a brick's trait rules at four moments: as a turn strikes
+// it, as it breaks, as the fuzzball meets it, and as the fuzzball's middle
+// crosses into its eye; and a rule changes the flight only through the
+// hooks it is handed, so a kind brought in later plugs in through its
+// traits' rules without touching fly().
 
 import type { Brick, TraitKind } from "../catalog/kinds";
 import type { Shield } from "./events";
@@ -25,16 +26,32 @@ export interface Struck {
   shield: Shield | null;
 }
 
+/**
+ * Holds what a brick's rules may do to the flight, at the moment they run.
+ *
+ * Each is made only at the moments it says, and throws at any other, as
+ * one kept and called once its flight has flown does.
+ */
+export interface Hooks {
+  /**
+   * Earns the flight a floor bounce from the brick whose rules run, as a
+   * spring brick's break does: kept if the fuzzball holds fewer than
+   * `FlightRules.mostBounces`, and announced either way. Made as a brick
+   * breaks or is met.
+   */
+  earn(): void;
+}
+
 /** Holds what a trait does at each moment of a flight it has a rule for, each moment's rules running in the order of its kind's traits. */
 export interface TraitRule {
   /** Runs as a turn strikes a brick of a kind that breaks, before its hits are taken. */
   readonly struck?: (struck: Struck) => void;
   /** Runs as a strike breaks the brick in a wall cell, after its strike. */
-  readonly broken?: (cell: number, brick: Brick) => void;
+  readonly broken?: (hooks: Hooks, cell: number, brick: Brick) => void;
   /** Runs as the fuzzball meets the brick in a wall cell at a turn, after any strike, whether it struck it or not. */
-  readonly met?: (cell: number, brick: Brick) => void;
+  readonly met?: (hooks: Hooks, cell: number, brick: Brick) => void;
   /** Runs as the fuzzball's middle crosses into the eye of the brick in a wall cell. */
-  readonly entered?: (cell: number, brick: Brick) => void;
+  readonly entered?: (hooks: Hooks, cell: number, brick: Brick) => void;
 }
 
 /** Holds every trait's rule, so a trait without one fails to compile. */

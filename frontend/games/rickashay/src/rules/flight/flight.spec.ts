@@ -12,7 +12,7 @@ import { TRAIT_RULES } from "../bricks/trait_rules";
 import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
 import { type Flown, fly } from "./flight";
-import type { Struck, TraitRules } from "./hooks";
+import type { Hooks, TraitRule, TraitRules } from "./hooks";
 
 /** The depth of the field the specs fly in. */
 const DEPTH = 11;
@@ -21,6 +21,17 @@ const DEPTH = 11;
 const LEFT_WALL = RADIUS;
 const RIGHT_WALL = COLUMNS - RADIUS;
 const CEILING = DEPTH - RADIUS;
+
+/**
+ * A pair of portals, standing from row 2: one in column 6 of row 2, whose
+ * eye a shot at 45° from the floor's middle flies through, and its twin in
+ * column 8 of row 8, out of that shot's way.
+ */
+const PORTALS = [
+  "........@",
+  ...Array<string>(5).fill("........."),
+  "......@..",
+];
 
 /** Returns the aim at an angle, in degrees counter-clockwise from the floor on the right. */
 function aimAt(degrees: number): number {
@@ -420,8 +431,8 @@ describe("fly's strikes", () => {
   });
 
   // The column of tough bricks by the right wall is struck six times as
-  // the fuzzball climbs beside it, and the top course four times from over
-  // it.
+  // the fuzzball climbs beside it, the top course four times from over it,
+  // and the column once more from under it.
   it("marks the moments of its strikes at the rally's marks, and its last", () => {
     const flown = flyAt({
       picture: [
@@ -437,11 +448,10 @@ describe("fly's strikes", () => {
     });
     const moments = eventsOf(flown, "strike").map(({ at }) => at);
 
-    expect([
-      moments.length,
-      flown.flight.marks,
-      flown.flight.lastStrike,
-    ]).toEqual([10, [moments[9]], moments[9]]);
+    expect([flown.flight.marks, flown.flight.lastStrike]).toEqual([
+      [moments[9]],
+      moments.at(-1),
+    ]);
   });
 });
 
@@ -451,23 +461,21 @@ describe("fly's trait rules", () => {
     const note = (moment: string, cell: number): void => {
       seen.push(`${moment} ${String(cell)}`);
     };
-    return {
-      ...TRAIT_RULES,
-      [trait]: {
-        struck: ({ cell }: Struck) => {
-          note("struck", cell);
-        },
-        broken: (cell: number) => {
-          note("broken", cell);
-        },
-        met: (cell: number) => {
-          note("met", cell);
-        },
-        entered: (cell: number) => {
-          note("entered", cell);
-        },
+    const rule: TraitRule = {
+      struck: ({ cell }) => {
+        note("struck", cell);
+      },
+      broken: (_, cell) => {
+        note("broken", cell);
+      },
+      met: (_, cell) => {
+        note("met", cell);
+      },
+      entered: (_, cell) => {
+        note("entered", cell);
       },
     };
+    return { ...TRAIT_RULES, [trait]: rule };
   }
 
   /** The game's trait rules with a plated brick's made up for the spec: a strike on its plates alone takes nothing. */
@@ -584,15 +592,190 @@ describe("fly's trait rules", () => {
     const seen: string[] = [];
 
     flyAt({
-      picture: [
-        "........@",
-        ...Array<string>(5).fill("........."),
-        "......@..",
-      ],
+      picture: PORTALS,
       lowestRow: 2,
       traits: noting("teleports", seen),
     });
 
     expect(seen).toEqual(["entered 6", "entered 6"]);
+  });
+});
+
+describe("fly's floor bounces", () => {
+  /** The wall of the rally's flights: a column of tough bricks of three by the right wall, under a top course of four. */
+  const RALLY = [
+    "....3333.",
+    ".......3.",
+    ".......3.",
+    ".......3.",
+    ".......3.",
+    ".......3.",
+  ];
+
+  /** The game's trait rules with a spring brick's made up for the spec: it earns a floor bounce as it breaks. */
+  const SPRINGS: TraitRules = {
+    ...TRAIT_RULES,
+    springs: {
+      broken: (hooks) => {
+        hooks.earn();
+      },
+    },
+  };
+
+  /** Returns a flight's events that earn, keep and spend floor bounces. */
+  function bouncesOf(flown: Flown): FlightEvent[] {
+    return flown.flight.events.filter(
+      ({ kind }) => kind === "bounce-earned" || kind === "bounce-spent",
+    );
+  }
+
+  it("leaves a hot shot holding its own floor bounce, and a plain shot none", () => {
+    expect([flyAt({ hot: true }).flight.held, flyAt({}).flight.held]).toEqual([
+      FLIGHT_RULES.hotBounces,
+      0,
+    ]);
+  });
+
+  // Down off the left wall, it reaches the floor at x = 8.5, and lands
+  // there the next time.
+  it("spends a floor bounce it holds on the floor, turning off it as off a flat", () => {
+    const [dx, dy] = headingOf(aimAt(45));
+
+    const flown = flyAt({ hot: true });
+    const turns = eventsOf(flown, "turn");
+
+    expect([turns[3], bouncesOf(flown), eventsOf(flown, "land")]).toEqual([
+      expect.objectContaining({
+        x: near(8.5),
+        y: RADIUS,
+        dx,
+        dy,
+        off: "floor",
+      }),
+      [{ at: turns[3]?.at, kind: "bounce-spent", held: 0 }],
+      [expect.objectContaining({ x: near(5) })],
+    ]);
+  });
+
+  // The rally's tenth strike, on the top course, earns it a floor bounce,
+  // which it spends on the floor before it strikes the column from under it.
+  it("earns a floor bounce as its rally reaches the ladder's first rung, and spends it", () => {
+    const flown = flyAt({ picture: RALLY, lowestRow: 4, x: 4.75 });
+    const strikes = eventsOf(flown, "strike");
+
+    expect([strikes.length, bouncesOf(flown)]).toEqual([
+      11,
+      [
+        {
+          at: strikes[9]?.at,
+          kind: "bounce-earned",
+          by: "rally",
+          held: 1,
+          kept: true,
+        },
+        expect.objectContaining({ kind: "bounce-spent", held: 0 }),
+      ],
+    ]);
+  });
+
+  it("earns its floor bounces at the rungs of the ladder its rules give", () => {
+    const rules = {
+      ...FLIGHT_RULES,
+      firstBounce: 1,
+      bounceStep: 1,
+      mostBounces: 10,
+    };
+
+    const flown = flyAt({ picture: RALLY, lowestRow: 4, x: 4.75, rules });
+
+    const earnedAt = flown.flight.events.flatMap((event, index) => {
+      const strike = flown.flight.events[index - 1];
+      return event.kind === "bounce-earned" && strike?.kind === "strike"
+        ? [strike.rally]
+        : [];
+    });
+
+    expect(earnedAt.slice(0, 4)).toEqual([1, 3, 6, 10]);
+  });
+
+  it("loses a floor bounce earned while it holds the most, still announcing it", () => {
+    const rules = { ...FLIGHT_RULES, firstBounce: 1, bounceStep: 1 };
+
+    const flown = flyAt({ picture: RALLY, lowestRow: 4, x: 4.75, rules });
+
+    expect(
+      eventsOf(flown, "bounce-earned")
+        .slice(0, 4)
+        .map(({ held, kept }) => [held, kept]),
+    ).toEqual([
+      [1, true],
+      [2, true],
+      [3, true],
+      [3, false],
+    ]);
+  });
+
+  it("earns a floor bounce through its hook as a brick's rules ask, after the rally's at the same strike", () => {
+    const rules = { ...FLIGHT_RULES, firstBounce: 1 };
+
+    const flown = flyAt({ picture: ["........S"], rules, traits: SPRINGS });
+
+    expect(bouncesOf(flown).slice(0, 2)).toEqual([
+      expect.objectContaining({ by: "rally", held: 1 }),
+      expect.objectContaining({ by: "spring", held: 2 }),
+    ]);
+  });
+
+  it("throws for a floor bounce earned as the middle crosses into an eye", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      teleports: {
+        entered: (hooks) => {
+          hooks.earn();
+        },
+      },
+    };
+
+    expect(() => flyAt({ picture: PORTALS, lowestRow: 2, traits })).toThrow(
+      "A floor bounce is earned only as a brick breaks or is met.",
+    );
+  });
+
+  // A spring brick at an inside corner, under a plated brick met with it.
+  it("throws for a floor bounce earned through hooks kept from one brick's break as another is struck", () => {
+    let kept: Hooks | null = null;
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      springs: {
+        broken: (hooks) => {
+          kept = hooks;
+        },
+      },
+      plated: {
+        struck: () => {
+          kept?.earn();
+        },
+      },
+    };
+    const x = xToReach(45, [6.75, 4.75]);
+
+    expect(() =>
+      flyAt({ picture: ["......v..", ".......S."], lowestRow: 4, x, traits }),
+    ).toThrow("A floor bounce is earned only as a brick breaks or is met.");
+  });
+
+  it("throws for a floor bounce earned through hooks kept past their moment", () => {
+    let kept: Hooks | null = null;
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      springs: {
+        broken: (hooks) => {
+          kept = hooks;
+        },
+      },
+    };
+    flyAt({ picture: ["........S"], traits });
+
+    expect(() => kept?.earn()).toThrow(Error);
   });
 });

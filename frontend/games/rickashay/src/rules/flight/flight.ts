@@ -8,7 +8,10 @@
 // headings, by changes of sign and swaps alone, for as long as it flies.
 // It strikes each brick it met at the moment, floor up and then left to
 // right, each once, as bricks/strike.ts says, their traits' rules running
-// at the moments hooks.ts names.
+// at the moments hooks.ts names. It lands at the floor, unless it holds a
+// floor bounce, which it spends turning off the floor as off a flat; it
+// earns them as its rally climbs FlightRules' ladder (C5), and as a
+// brick's rules give one.
 //
 // A flight's state is made as it starts, and what the fuzzball meets is
 // cast into one record the module keeps, so a cast makes nothing; records
@@ -29,7 +32,7 @@ import { clamp } from "@fz/core/math";
 import { strike, takesStrikes } from "../bricks/strike";
 import { type Brick, type Wall, kindOf } from "../catalog/kinds";
 import type { Shot } from "../shot";
-import { type FlightRules, RALLY_MARKS } from "../tuning";
+import { type FlightRules, RALLY_MARKS, bounceRally } from "../tuning";
 import {
   type CastField,
   type Contacts,
@@ -38,9 +41,15 @@ import {
   clearBrick,
   createContacts,
 } from "./cast";
-import type { Flight, FlightEvent, RoundStart, TurnOff } from "./events";
+import type {
+  EarnedBy,
+  Flight,
+  FlightEvent,
+  RoundStart,
+  TurnOff,
+} from "./events";
 import { type Face, SHAPE } from "./faces";
-import type { Struck, TraitRules } from "./hooks";
+import type { Hooks, Struck, TraitRules } from "./hooks";
 
 /** Describes a flight flown, and the wall it leaves. */
 export interface Flown {
@@ -93,8 +102,11 @@ export function fly(
   return new Flying(start, heading, rules, traits).fly();
 }
 
-/** Flies a flight through, keeping its state. */
-class Flying {
+/** Names the moment a brick's rules run at, which the hooks are made at: none, a brick's at a turn, or an eye's. */
+type Moment = "none" | "brick" | "eye";
+
+/** Flies a flight through, keeping its state, and is the hooks its bricks' rules change it by. */
+class Flying implements Hooks {
   private readonly field: CastField;
   private x: number;
   private y = RADIUS;
@@ -106,6 +118,14 @@ class Flying {
   private eyes = true;
   private turns = 0;
   private rally = 0;
+  /** The floor bounces it was released with. */
+  private readonly released: number;
+  /** The floor bounces it holds. */
+  private held: number;
+  /** The rungs of the floor bounces' ladder its rally has reached. */
+  private rungs = 0;
+  /** The moment the bricks' rules run at, if they run. */
+  private moment: Moment = "none";
   private readonly marks: number[] = [];
   private lastStrike: number | null = null;
   private landed = false;
@@ -132,6 +152,8 @@ class Flying {
     this.field = castField(start.wall, start.depth);
     this.hits = Float64Array.from(bricks, (brick) => brick?.hits ?? 0);
     this.broken = new Uint8Array(bricks.length);
+    this.released = start.hot ? rules.hotBounces : 0;
+    this.held = this.released;
     this.x = start.x;
     this.dx = dx;
     this.dy = dy;
@@ -146,7 +168,7 @@ class Flying {
     const flight: Flight = {
       track: { ball: 0, role: "player", waypoints: this.waypoints },
       events: this.events,
-      held: 0,
+      held: this.released,
       length: this.at,
       rally: this.rally,
       turns: this.turns,
@@ -198,10 +220,11 @@ class Flying {
   }
 
   /**
-   * Plays what the fuzzball meets at a moment: it lands on the floor;
-   * otherwise it turns once, off everything it met, and meets each brick
-   * there; and it crosses into a portal's eye, passing every eye as air
-   * from then until it next turns.
+   * Plays what the fuzzball meets at a moment: it lands on the floor,
+   * unless it holds a floor bounce, which it spends there after the
+   * moment's bricks; otherwise it turns once, off everything it met, and
+   * meets each brick there; and it crosses into a portal's eye, passing
+   * every eye as air from then until it next turns.
    */
   private meet(met: Contacts): void {
     faces.length = 0;
@@ -213,7 +236,7 @@ class Flying {
         floor ||= contact.face.kind === "floor";
       }
     }
-    if (floor) {
+    if (floor && this.held === 0) {
       this.land();
       return;
     }
@@ -246,6 +269,10 @@ class Flying {
         );
       }
     }
+    if (floor) {
+      this.held--;
+      this.events.push({ at: this.at, kind: "bounce-spent", held: this.held });
+    }
     for (const face of faces) {
       if (face.kind === "eye") {
         this.enter(face.owner.cell);
@@ -272,9 +299,11 @@ class Flying {
         this.events.push({ at, kind: "shielded", cell, by: struck.shield });
       }
     }
+    this.moment = "brick";
     for (const trait of traits) {
-      this.traits[trait.kind].met?.(cell, brick);
+      this.traits[trait.kind].met?.(this, cell, brick);
     }
+    this.moment = "none";
   }
 
   /** Strikes the brick in a wall cell, taking its hits and counting the rally, and breaks it once it has none left. */
@@ -293,13 +322,41 @@ class Flying {
     const broke = left === 0;
     const { at, rally } = this;
     this.events.push({ at, kind: "strike", cell, took, broke, rally });
+    if (rally >= bounceRally(this.rungs + 1, this.rules)) {
+      this.rungs++;
+      this.earnBounce("rally");
+    }
     if (broke) {
       this.broken[cell] = 1;
       clearBrick(this.field, cell);
+      this.moment = "brick";
       for (const trait of kindOf(brick.kind).traits) {
-        this.traits[trait.kind].broken?.(cell, brick);
+        this.traits[trait.kind].broken?.(this, cell, brick);
       }
+      this.moment = "none";
     }
+  }
+
+  earn(): void {
+    if (this.moment !== "brick") {
+      throw new Error(
+        "A floor bounce is earned only as a brick breaks or is met.",
+      );
+    }
+    this.earnBounce("spring");
+  }
+
+  /**
+   * Earns the flight a floor bounce, which the fuzzball keeps if it holds
+   * fewer than the most and loses if not, announced either way.
+   */
+  private earnBounce(by: EarnedBy): void {
+    const kept = this.held < this.rules.mostBounces;
+    if (kept) {
+      this.held++;
+    }
+    const { at, held } = this;
+    this.events.push({ at, kind: "bounce-earned", by, held, kept });
   }
 
   /**
@@ -311,9 +368,11 @@ class Flying {
     this.eyes = false;
     const brick = this.start.wall.bricks[cell];
     if (brick !== null && brick !== undefined) {
+      this.moment = "eye";
       for (const trait of kindOf(brick.kind).traits) {
-        this.traits[trait.kind].entered?.(cell, brick);
+        this.traits[trait.kind].entered?.(this, cell, brick);
       }
+      this.moment = "none";
     }
   }
 
@@ -345,10 +404,10 @@ class Flying {
           }
           break;
         case "bar":
+        case "floor":
           flipY = true;
           break;
         case "slant":
-        case "floor":
         case "eye":
           break;
       }
@@ -394,6 +453,7 @@ class Flying {
   private offOf(face: Face): TurnOff | null {
     switch (face.kind) {
       case "floor":
+        return "floor";
       case "eye":
         return null;
       case "flat":
