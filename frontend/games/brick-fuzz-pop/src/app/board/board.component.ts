@@ -1,46 +1,16 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  Injector,
-  afterNextRender,
-  afterRenderEffect,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-  viewChild,
-} from "@angular/core";
-import { COLUMNS } from "@fz/brick-wall/rules/field";
-import {
-  FRAME_CSS_PX,
-  MARGIN_CSS_PX,
-  fieldMetrics,
-  hasRoom,
-} from "@fz/brick-wall/view/field_metrics";
-import { GameViewportService } from "@fz/game-ui/viewport";
-import {
-  CanvasCardsComponent,
-  PhaserCanvasComponent,
-  type SceneSource,
-  boardHostOptions,
-  canvasRoom,
-  settledPictures,
-} from "@fz/phaser/canvas";
-import { cssHex } from "@fz/phaser/color";
-import { AnnouncerService } from "@fz/ui/announcer";
-import {
-  cssRectOf,
-  cssRectStyle,
-  namedRectsAttribute,
-  rectAttribute,
-  roomInside,
-} from "@fz/phaser/layout";
+import { Component, computed, inject, viewChild } from "@angular/core";
+import { WallBoardComponent } from "@fz/brick-wall/app/board";
 import {
   ComingNextComponent,
   InThisWallComponent,
 } from "@fz/brick-wall/app/panels";
+import { GameViewportService } from "@fz/game-ui/viewport";
+import {
+  CanvasCardsComponent,
+  type SceneSource,
+  settledPictures,
+} from "@fz/phaser/canvas";
+import { cssHex } from "@fz/phaser/color";
 import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
 import { ROWS_READ, describeBoon, rowsWaiting } from "../../rules/run/describe";
 import type { Brick } from "../../rules/wall/wall";
@@ -52,31 +22,29 @@ import { CrewAndBoonComponent } from "../panels/crew_and_boon.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
 
-/** What the announcer says as the board's WebGL context is lost, and as it is back. */
-export const BOARD_CONTEXT_WORDS = {
-  lost: "The graphics stopped. The game is paused until they come back.",
-  restored: "The graphics are back.",
-} as const;
+/**
+ * The keys needed to play, one at a time, which describe the board.
+ * Fast-forward and Drop have their own buttons, and How to play lists F and
+ * X.
+ */
+const BOARD_KEYS: readonly string[] = [
+  "Left and Right, or A and D: aim. Hold Shift for smaller steps.",
+  "Up and Down, or W and S: raise and lower the charge.",
+  "Space: shoot.",
+  "Esc: cancel the charge, or pause.",
+  "P: pause and resume.",
+  "Enter: resume, go to the next level, or try again.",
+  `R: hear the ${String(ROWS_READ)} lowest rows with bricks in them.`,
+];
 
 /**
- * Shows the board: the canvas the scene draws the field on, which hears the
- * keys, the mouse and fingers while the board has the focus; a drawing of
- * the empty field in CSS, where the scene will draw it, until the scene has
- * drawn; on the lintel over the ceiling, how many rows wait; the panels
- * beside the field where the room spares them (Coming next and In this
- * wall); and the card over the field under the lintel (`<app-board-card>`),
- * which holds the canvas's own (`<fz-canvas-cards>`), that the board is
- * still loading on a slow connection, or that it couldn't be drawn.
- *
- * Only the canvas and its ring are an application to assistive technology,
- * so a screen reader hands it the keys rather than reading with them; the
- * canvas in it is hidden, the announcer says what happens, and the panels
- * and the card beside it read as a page does, as the lintel's count does
- * where nothing else in the page says it.
- *
- * It measures itself as it is first drawn and hands the game the room,
- * before the scene first lays the field out, so the scene's first frame
- * draws the field the placeholder drew.
+ * Shows Brick Fuzz Pop's board in the wall games' frame
+ * (`<fz-wall-board>`): the wall scene, which it loads once the canvas asks;
+ * the panels beside the field where the room spares them (Coming next and
+ * In this wall, with the crew and the boon); and the card over the field
+ * (`<app-board-card>`), which holds the canvas's own (`<fz-canvas-cards>`),
+ * that the board is still loading on a slow connection, or that it
+ * couldn't be drawn. The announcer says what happens.
  */
 @Component({
   selector: "app-board",
@@ -86,71 +54,18 @@ export const BOARD_CONTEXT_WORDS = {
     ComingNextComponent,
     CrewAndBoonComponent,
     InThisWallComponent,
-    PhaserCanvasComponent,
+    WallBoardComponent,
   ],
-  host: {
-    "[attr.data-field]": "fieldRect()",
-    "[attr.data-room]": "roomRect()",
-    "[attr.data-panels]": "panelZones()",
-    "[attr.data-outcome]": "game.outcome()",
-    "[attr.data-wall]": "wallRow()",
-    "[attr.data-depth]": "depth()",
-    "[style.--across]": "across()",
-    "[style.--down]": "down()",
-    "[style.--pixel-ratio]": "pixelRatio()",
-    "[style.--margin.px]": "marginCss()",
-    "[style.--frame.px]": "frameCss",
-    "[style.--lintel.px]": "shown()?.lintelCss",
-    "[style.--band.px]": "shown()?.bandCss",
-    "[style.--band-ink]": "bandInk()",
-  },
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
 })
 export class BoardComponent {
   protected readonly game = inject(GameService);
   private readonly viewport = inject(GameViewportService);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly injector = inject(Injector);
-  private readonly announcer = inject(AnnouncerService);
-  private readonly canvas = viewChild.required(PhaserCanvasComponent);
-  private readonly play = viewChild.required<ElementRef<HTMLElement>>("play");
+  private readonly board = viewChild.required(WallBoardComponent);
 
-  /**
-   * The canvas the board makes, as the host sizes it, and the ratio it
-   * renders at, as the board measures them as it is first drawn and as its
-   * size or the zoom changes.
-   */
-  private readonly measured = canvasRoom();
-
-  /** The canvas the board makes, as last measured, or null before it is. */
-  private readonly room = this.measured.viewport;
-
-  /**
-   * The device pixels to a CSS pixel the canvas renders at, as the board
-   * last measured it, or as the display has it until then, which the board
-   * publishes for the layout check.
-   */
-  protected readonly pixelRatio = this.measured.pixelRatio;
-
-  /**
-   * How far in from each edge of the canvas the scene lays the field out,
-   * in CSS pixels, which the stylesheet declares as the canvas's insets and
-   * the cards keep around the field.
-   */
-  protected readonly marginCss = computed(() =>
-    this.viewport.isCompact() ? MARGIN_CSS_PX.compact : MARGIN_CSS_PX.roomy,
-  );
-
-  /**
-   * How thick the field's frame is, in CSS pixels, as the scene draws it,
-   * for the placeholder's frame, the focus ring outside it and the size of
-   * the lintel's count.
-   */
-  protected readonly frameCss = FRAME_CSS_PX;
-
-  /** How many of the lowest rows with bricks R reads, as the keys' list says. */
-  protected readonly rowsRead = ROWS_READ;
+  /** The keys needed to play, which describe the board. */
+  protected readonly keys = BOARD_KEYS;
 
   /** Names the board for the level on it, as "Brick Fuzz Pop, level 6: Zip line". */
   protected readonly label = computed(() => {
@@ -158,72 +73,17 @@ export class BoardComponent {
     return `Brick Fuzz Pop, level ${String(number)}: ${data.name}`;
   });
 
-  /** Where the scene last laid the field out, or null before it has. */
-  private readonly laid = this.game.metrics;
+  /** Whether the screen is compact, where the field keeps a smaller margin. */
+  protected readonly compact = this.viewport.isCompact;
 
   /**
-   * The room the board last measured, while it has room for a field: the
-   * room it handed the game.
+   * Whether the bar's Rows left says how many rows wait, where the bar
+   * shows every figure (`showsEveryFigure()`), so the lintel's count needn't
+   * be read.
    */
-  private readonly roomy = computed(() => {
-    const room = this.room();
-    return room && hasRoom(room) ? room : null;
-  });
-
-  /**
-   * Where the placeholder lays the field out: on the room the board
-   * measured, in the shape the game gives it, as the scene will; or null
-   * before the board is measured, or while it has no room.
-   */
-  private readonly placeholder = computed(() => {
-    const room = this.roomy();
-    return room && fieldMetrics(room, this.game.shape());
-  });
-
-  /**
-   * Where the field and the panels show: where the scene laid them out, or,
-   * until it has, where it will, with the lintel's and the band's thickness
-   * in CSS pixels for the placeholder, the lintel's count and the Ready
-   * card's layer; or null before the board is measured, where the
-   * stylesheet fills the board, the margin in.
-   */
-  protected readonly shown = computed(() => {
-    const metrics = this.laid() ?? this.placeholder();
-    if (!metrics) return null;
-    const { css, framed, panels } = metrics;
-    return {
-      framed,
-      panels,
-      lintelCss: css.y - framed.y,
-      bandCss: framed.y + framed.height - css.y - css.height,
-    };
-  });
-
-  /**
-   * Where the field lies on the board, from the lintel's top to the band's
-   * bottom, in CSS pixels, for the placeholder, the focus ring and every
-   * card but Ready.
-   */
-  protected readonly fieldStyle = computed(() => {
-    const shown = this.shown();
-    return shown ? cssRectStyle(shown.framed) : null;
-  });
-
-  /**
-   * Where the lintel lies over the ceiling's line, in CSS pixels, for the
-   * count of the rows waiting, or null before the board is measured.
-   */
-  protected readonly lintelStyle = computed(() => {
-    const shown = this.shown();
-    if (!shown) return null;
-    const { x, y, width } = shown.framed;
-    return cssRectStyle({
-      x,
-      y,
-      width,
-      height: shown.lintelCss - FRAME_CSS_PX,
-    });
-  });
+  protected readonly countShown = computed(() =>
+    showsEveryFigure(this.viewport),
+  );
 
   /** How many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
   protected readonly rowsWaiting = computed(() =>
@@ -231,26 +91,14 @@ export class BoardComponent {
   );
 
   /**
-   * Where the card lies over the field: the Ready card, held at its layer's
-   * top, from the ceiling to the band's bottom, under the lintel, so it
-   * never covers the count of the rows waiting; every other card, centered,
-   * over the whole field, as tall as a Cleared card needs on a phone on its
-   * side; or null before the board is measured.
+   * Whether the card lies under the lintel: the Ready card, held at its
+   * layer's top, so it never covers the count of the rows waiting; every
+   * other card lies over the whole field, as tall as a Cleared card needs
+   * on a phone on its side.
    */
-  protected readonly cardStyle = computed(() => {
-    const shown = this.shown();
-    if (!shown) return null;
-    if (this.game.boardCard()?.kind !== "ready") {
-      return cssRectStyle(shown.framed);
-    }
-    const { x, y, width, height } = shown.framed;
-    return cssRectStyle({
-      x,
-      y: y + shown.lintelCss,
-      width,
-      height: height - shown.lintelCss,
-    });
-  });
+  protected readonly cardUnderLintel = computed(
+    () => this.game.boardCard()?.kind === "ready",
+  );
 
   /** Every kind of brick, in How to play's order, which In this wall lists those of the wall from. */
   protected readonly brickKinds = BRICK_KIND_IDS;
@@ -267,121 +115,26 @@ export class BoardComponent {
   /** What the level in play's jump earns, in two sentences, as Coming next says it. */
   protected readonly jump = computed(() => describeBoon(this.game.levelBoon()));
 
-  /** The pictures of every kind of brick, while the panels or the Ready card show them; else null. */
+  /**
+   * The pictures of every kind of brick the board last handed the game, as
+   * In this wall shows them, or null before the scene has baked. Read only
+   * in the panels, which show only where the room spares them, as each
+   * bake's are encoded as they are first read.
+   */
   protected readonly brickPictures = computed(
-    () => this.pictures()?.bricks ?? null,
+    () => this.game.pictures()?.().bricks ?? null,
   );
-
-  /** Where the panels lie beside the field, or null where the room spares none. */
-  protected readonly panelStyles = computed(() => {
-    const panels = this.shown()?.panels;
-    return panels
-      ? { left: cssRectStyle(panels.left), right: cssRectStyle(panels.right) }
-      : null;
-  });
-
-  /**
-   * Whether the lintel's count is hidden from assistive technology, as
-   * "true" or null: where the page says it already, in Coming next beside
-   * the field, or in the bar's Rows left, where the bar shows every figure
-   * (`showsEveryFigure()`).
-   */
-  protected readonly lintelHidden = computed(() =>
-    this.panelStyles() !== null || showsEveryFigure(this.viewport)
-      ? "true"
-      : null,
-  );
-
-  /**
-   * Where the scene drew the field, from the lintel's top to the band's
-   * bottom, for the layout check: x, y, width and height.
-   */
-  protected readonly fieldRect = computed(() => {
-    const laid = this.laid();
-    return laid ? rectAttribute(laid.framed) : null;
-  });
-
-  /**
-   * The room inside the canvas's insets the board last measured and handed
-   * the game, whose shape the field takes between rounds, for the layout
-   * check, written as the field's rectangle is, once the scene has laid the
-   * field out.
-   */
-  protected readonly roomRect = computed(() => {
-    const room = this.roomy();
-    return this.laid() && room
-      ? rectAttribute(cssRectOf(roomInside(room), room.pixelRatio))
-      : null;
-  });
-
-  /**
-   * Where the scene laid the panels out, for the layout check, by their
-   * names, as "left x y width height, right x y width height", or nothing
-   * where the room spares none; or null before the scene has laid the
-   * field out.
-   */
-  protected readonly panelZones = computed(() => {
-    const laid = this.laid();
-    if (!laid) return null;
-    const { panels } = laid;
-    return panels
-      ? namedRectsAttribute([
-          ["left", panels.left],
-          ["right", panels.right],
-        ])
-      : "";
-  });
-
-  /**
-   * The field row the wall's lowest row stands in, as the round aimed or in
-   * play started, for the layout check, which holds it on the row a level
-   * opens on at the field's depth while the level waits for its first shot,
-   * and on the row a run taken up kept it on, through a turn too.
-   */
-  protected readonly wallRow = computed(() => this.game.start().wall.lowestRow);
-
-  /**
-   * How many rows deep the scene laid the field out, for the layout check,
-   * which holds it to the depth the room's shape asks for.
-   */
-  protected readonly depth = computed(() => {
-    const laid = this.laid();
-    return laid ? laid.height / laid.unit : null;
-  });
-
-  /** How many units across the scene drew the field, for the layout check. */
-  protected readonly across = computed(() => (this.laid() ? COLUMNS : null));
-
-  /**
-   * How many units down the scene drew the field, for the layout check: its
-   * depth, its band and its lintel, each in the whole device pixels it was
-   * drawn in.
-   */
-  protected readonly down = computed(() => {
-    const laid = this.laid();
-    return laid ? (laid.framed.height * laid.pixelRatio) / laid.unit : null;
-  });
-
-  /** The ink the placeholder draws the lintel and the band in, as the scene does. */
-  protected readonly bandInk = computed(() => cssHex(this.game.palette().band));
 
   /**
    * The pictures of every kind of brick the board last handed the game,
-   * while the panels or the Ready card show them; else, or before the
-   * scene has baked, null. Each bake's are encoded as they are first read,
-   * so they are read only where they show.
+   * while the Ready card shows the kind of brick a level brings in; else,
+   * or before the scene has baked, null.
    */
-  protected readonly pictures = computed(() =>
-    this.showsPictures() ? (this.game.pictures()?.() ?? null) : null,
-  );
-
-  /** Whether the panels show, or the Ready card shows the kind of brick a level brings in, each with its picture. */
-  private readonly showsPictures = computed(() => {
+  protected readonly cardPictures = computed(() => {
     const card = this.game.boardCard();
-    return (
-      this.panelStyles() !== null ||
-      (card?.kind === "ready" && card.newKind !== null)
-    );
+    return card?.kind === "ready" && card.newKind !== null
+      ? (this.game.pictures()?.() ?? null)
+      : null;
   });
 
   /**
@@ -420,136 +173,38 @@ export class BoardComponent {
     },
   };
 
-  /**
-   * Loads the scene, and Phaser with it, only once the canvas asks, so the
-   * shell paints first; and hands the game the room the board last
-   * measured as it makes it, so the field's first layout is on that room.
-   */
+  /** Loads the scene, and Phaser with it, only once the canvas asks, so the shell paints first. */
   protected readonly scene: SceneSource = async () => {
     const { makeWallScene } = await import("../../scene/wall_scene");
-    const room = this.room();
-    if (room) this.game.setRoom(room);
     return makeWallScene(this.sceneOptions);
   };
 
-  protected readonly hostOptions = boardHostOptions(
-    "Brick Fuzz Pop",
-    this.host.nativeElement,
-  );
-
-  /**
-   * Whether the canvas has lost its WebGL context, which leaves the field
-   * blank, and the browser has yet to restore it.
-   */
-  protected readonly contextLost = signal(false);
-
-  constructor() {
-    // Nothing goes on before the scene that moves it is drawn, nor while
-    // the board can't draw it. After rendering, since the canvas's state
-    // needs the scene it is given.
-    afterRenderEffect(() => {
-      this.game.setDrawn(
-        this.canvas().state() === "ready" && !this.contextLost(),
-      );
-    });
-    this.watchContext();
-    // The game takes the room's shape between rounds, as it judges.
-    effect(() => {
-      const room = this.room();
-      if (!room) return;
-      untracked(() => {
-        this.game.setRoom(room);
-      });
-    });
-  }
-
-  /**
-   * Pauses the run as the canvas loses its WebGL context, showing the card
-   * that says the board is being restored, and takes the card away as the
-   * browser restores it, the run left paused for the player to go on; the
-   * announcer says each. The restoring card puts away the one shown, so the
-   * board takes the focus from a button on it, which would leave the page
-   * with none.
-   */
-  private watchContext(): void {
-    const host = this.host.nativeElement;
-    const gone = new AbortController();
-    inject(DestroyRef).onDestroy(() => {
-      gone.abort();
-    });
-    // The canvas's context events don't bubble, so the board hears them on
-    // their way down to it.
-    const heard = { capture: true, signal: gone.signal };
-    host.addEventListener(
-      "webglcontextlost",
-      () => {
-        // On a card's button, which goes, or on the board, which keeps it.
-        if (host.contains(host.ownerDocument.activeElement)) {
-          this.takeFocusBack();
-        }
-        this.contextLost.set(true);
-        this.game.pause();
-        this.announcer.say(BOARD_CONTEXT_WORDS.lost);
-      },
-      heard,
-    );
-    host.addEventListener(
-      "webglcontextrestored",
-      () => {
-        this.contextLost.set(false);
-        this.announcer.say(BOARD_CONTEXT_WORDS.restored);
-      },
-      heard,
-    );
-  }
-
   /** Puts the focus on the board after Angular's next render, as a run begins. */
   focus(options?: FocusOptions): void {
-    afterNextRender(
-      () => {
-        this.play().nativeElement.focus(options);
-      },
-      { injector: this.injector },
-    );
-  }
-
-  /**
-   * Takes the focus for a press on the board, which Phaser's pointer
-   * otherwise keeps from it, so the keys work after a tap or a click.
-   */
-  protected takeFocus(): void {
-    this.play().nativeElement.focus({ preventScroll: true });
+    this.board().focus(options);
   }
 
   /** Goes on with the paused level, as the Paused card's Resume asks. */
   protected resumeRun(): void {
-    this.takeFocusBack();
+    this.board().takeFocus();
     this.game.resume();
   }
 
   /** Goes on to the next level, as the Cleared card's Next level asks. */
   protected nextLevel(): void {
-    this.takeFocusBack();
+    this.board().takeFocus();
     this.game.nextLevel();
   }
 
   /** Tries the lost level again, as the Ended card asks. */
   protected tryAgain(): void {
-    this.takeFocusBack();
+    this.board().takeFocus();
     this.game.tryAgain();
   }
 
   /** Starts a new game, as the Ended card asks once every level is cleared. */
   protected newGame(): void {
-    this.takeFocusBack();
+    this.board().takeFocus();
     void this.game.newGame();
-  }
-
-  /**
-   * Takes the focus back from a card's button, which held it and goes with
-   * the card, before the game moves on.
-   */
-  private takeFocusBack(): void {
-    this.play().nativeElement.focus();
   }
 }

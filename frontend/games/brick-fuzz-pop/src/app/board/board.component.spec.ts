@@ -1,9 +1,9 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { BOARD_CONTEXT_WORDS } from "@fz/brick-wall/app/board";
 import { waitingRows } from "@fz/brick-wall/app/panels";
-import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import { MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import {
-  FRAME_CSS_PX,
   type FieldShape,
   MARGIN_CSS_PX,
   bandPixels,
@@ -14,7 +14,6 @@ import {
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { formatPoints } from "@fz/core/format";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
-import { readNamedRects, readRect } from "@fz/dev/board-page";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { PICTURES_SETTLE_MS } from "@fz/phaser/canvas";
 import type { HostedScene } from "@fz/phaser/host";
@@ -24,14 +23,12 @@ import {
   type Viewport,
   cssRectOf,
   cssRectStyle,
-  namedRectsAttribute,
   rectAttribute,
   roomInside,
 } from "@fz/phaser/layout";
 import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
-  FakeResizeObserver,
   type SceneRun,
   collectErrors,
   provideFakePhaserCanvas,
@@ -43,7 +40,6 @@ import { viewport } from "@fz/phaser/testing/pure";
 import { paintRoles } from "@fz/style/testing";
 import { AnnouncerService } from "@fz/ui/announcer";
 import {
-  fireEvent,
   isInaccessible,
   render,
   screen,
@@ -74,16 +70,13 @@ import { brickColor } from "../../view/colors/brick_colors";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";
-import { BOARD_CONTEXT_WORDS, BoardComponent } from "./board.component";
+import { BoardComponent } from "./board.component";
 
 /** A roomy canvas, 1600 by 900 CSS px, which spares the panels room beside the field. */
 const WIDE = { width: 1600, height: 900 } as const;
 
 /** An upright phone's canvas, 390 by 700 CSS px, which spares the panels none. */
 const UPRIGHT = { width: 390, height: 700 } as const;
-
-/** A canvas taller than the deepest field fills, 390 by 1400 CSS px. */
-const TALL = { width: 390, height: 1400 } as const;
 
 /** A small phone's canvas, 300 by 500 CSS px. */
 const SMALL = { width: 300, height: 500 } as const;
@@ -101,7 +94,7 @@ interface BoardSetUp {
 
 /** The board rendered, and what a spec reads of it. */
 interface RenderedBoard {
-  /** The board's element, `app-board`, which publishes the layout check's numbers. */
+  /** The board's frame's element, `fz-wall-board`, which publishes the layout check's numbers. */
   readonly host: HTMLElement;
   /** The application inside it, which takes the focus and the keys. */
   readonly board: HTMLElement;
@@ -127,7 +120,7 @@ async function renderBoard({
   await view.fixture.whenStable();
   const debug = view.fixture.debugElement.query(By.directive(BoardComponent));
   return {
-    host: debug.nativeElement as HTMLElement,
+    host: (debug.nativeElement as HTMLElement).querySelector("fz-wall-board")!,
     board: screen.getByRole("application"),
     component: debug.injector.get(BoardComponent),
     game: TestBed.inject(GameService),
@@ -298,14 +291,6 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("takes the focus for a press on it", async () => {
-      const { board } = await renderBoard();
-
-      fireEvent.pointerDown(board);
-
-      expect(board).toHaveFocus();
-    });
-
     it("takes the focus once rendered, as a run begins", async () => {
       const { board, component, detectChanges } = await renderBoard();
 
@@ -370,27 +355,6 @@ describe("BoardComponent", () => {
           );
         },
       );
-
-      it("frames the placeholder's field as thick as the scene frames it", async () => {
-        const { host } = await renderBoard();
-
-        expect(host.style.getPropertyValue("--frame")).toBe(
-          `${String(FRAME_CSS_PX)}px`,
-        );
-      });
-    });
-
-    it("lays the field the margin in where the browser can't measure the board", async () => {
-      // jsdom has no `ResizeObserver` to measure the board by.
-      const { host } = await renderBoard();
-
-      expect(host.querySelector(".field")).not.toHaveAttribute("style");
-    });
-
-    it("counts no rows on the lintel where the browser can't measure the board", async () => {
-      await renderBoard();
-
-      expect(screen.queryByText(/waiting$/)).toBeNull();
     });
 
     it("makes the scene in the game's shape where the browser can't measure the board", async () => {
@@ -418,18 +382,6 @@ describe("BoardComponent", () => {
   describe("the placeholder", () => {
     watchResizes();
 
-    it("draws the empty field where the scene will lay it out, from the lintel's top to the band's foot", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, UPRIGHT);
-
-      const canvas = canvasOf(UPRIGHT);
-      // The placeholder is only drawn, so it has no role to find it by.
-      expect(rendered.host.querySelector(".field")).toHaveStyle(
-        cssRectStyle(framedOn(canvas, fieldShape(canvas))),
-      );
-    });
-
     it("draws the lintel and the band as thick as the scene will, in their ink", async () => {
       const rendered = await renderBoard();
 
@@ -448,44 +400,6 @@ describe("BoardComponent", () => {
         band: `${String(bandPixels(shape, unit))}px`,
         ink: cssHex(rendered.game.palette().band),
       });
-    });
-
-    it("draws the lintel and the band in CSS pixels on a screen of two device pixels to one", async () => {
-      const rendered = await renderBoard();
-      vi.stubGlobal("devicePixelRatio", 2);
-
-      measureAt(rendered, UPRIGHT);
-
-      const canvas = canvasOf(UPRIGHT, 2);
-      const shape = fieldShape(canvas);
-      const { unit } = fieldMetrics(canvas, shape);
-      const style = rendered.host.style;
-      expect({
-        lintel: style.getPropertyValue("--lintel"),
-        band: style.getPropertyValue("--band"),
-      }).toEqual({
-        lintel: `${String(lintelPixels(shape, unit) / 2)}px`,
-        band: `${String(bandPixels(shape, unit) / 2)}px`,
-      });
-    });
-
-    it("publishes the ratio it lays the field out at, as the canvas renders at", async () => {
-      const rendered = await renderBoard();
-      vi.stubGlobal("devicePixelRatio", 2);
-
-      measureAt(rendered, UPRIGHT);
-
-      expect(rendered.host.style.getPropertyValue("--pixel-ratio")).toBe("2");
-    });
-
-    it("draws nothing where the board has no room, as a hidden board's", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, { width: 0, height: 0 });
-
-      // The placeholder is only drawn, so it has no role to find it by.
-      const field = rendered.host.querySelector<HTMLElement>(".field")!;
-      expect(field.style.cssText).toBe("");
     });
 
     it("lays the field out in the shape the round in flight keeps, on the room as it changes", async () => {
@@ -570,99 +484,6 @@ describe("BoardComponent", () => {
         right: expect.toHaveStyle(cssRectStyle(panels!.right)) as unknown,
       });
     });
-
-    it("lays the field flush with the panels, from the lintel's top to the band's foot", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, WIDE);
-
-      const panel = screen.getByRole("region", { name: "Coming next" }).style;
-      // The placeholder is only drawn, so it has no role to find it by.
-      const field = rendered.host.querySelector<HTMLElement>(".field")!.style;
-      expect({ top: field.top, height: field.height }).toEqual({
-        top: panel.top,
-        height: panel.height,
-      });
-    });
-
-    it("shows no panels where the room spares them none", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, UPRIGHT);
-
-      expect(screen.queryAllByRole("region")).toEqual([]);
-    });
-
-    it("keeps the lintel's count, the panels and the card outside the application, read as a page is", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, WIDE);
-
-      const application = within(rendered.board);
-      expect({
-        panels: screen.getAllByRole("region").length,
-        inApplication: application.queryAllByRole("region").length,
-        card: application.queryByText("Level 1: Hello, wall"),
-        lintels: screen.getAllByText(/waiting$/).length,
-        lintel: application.queryByText(/waiting$/),
-      }).toEqual({
-        panels: 2,
-        inApplication: 0,
-        card: null,
-        // The lintel's count and Coming next's, both outside the application.
-        lintels: 2,
-        lintel: null,
-      });
-    });
-
-    it("publishes nothing for the layout check before the scene has laid the field out", async () => {
-      const rendered = await renderBoard();
-
-      measureAt(rendered, WIDE);
-
-      const { dataset, style } = rendered.host;
-      expect({
-        field: dataset["field"],
-        room: dataset["room"],
-        panels: dataset["panels"],
-        depth: dataset["depth"],
-        across: style.getPropertyValue("--across"),
-        down: style.getPropertyValue("--down"),
-      }).toEqual({
-        field: undefined,
-        room: undefined,
-        panels: undefined,
-        depth: undefined,
-        across: "",
-        down: "",
-      });
-    });
-
-    it("publishes the field's units down from the device pixels the scene laid it out in", async () => {
-      // So tall a field's band and lintel are each a fraction of a unit,
-      // on a screen of two device pixels to one.
-      const { host, game, detectChanges } = await renderBoard();
-      const canvas = canvasOf(TALL, 2);
-      const { framed } = fieldMetrics(canvas, fieldShape(canvas));
-
-      game.onLayout(fieldMetrics(canvas, fieldShape(canvas)));
-      detectChanges();
-
-      expect(Number(host.style.getPropertyValue("--down"))).toBeCloseTo(
-        framed.height / (framed.width / COLUMNS),
-        9,
-      );
-    });
-
-    it("stops watching the board once it is gone", async () => {
-      const { destroy } = await renderBoard();
-
-      destroy();
-
-      expect(FakeResizeObserver.made.map((made) => made.watched.size)).toEqual([
-        0,
-      ]);
-    });
   });
 
   describe("its lintel", () => {
@@ -725,21 +546,6 @@ describe("BoardComponent", () => {
       playUntilRowsWait(rendered, 0);
 
       expect(lintel()).toHaveTextContent(/^No rows waiting$/);
-    });
-
-    it("lies in the lintel, over the ceiling's line, where the field is laid out", async () => {
-      await phoneBoard();
-
-      const canvas = canvasOf(UPRIGHT);
-      const { css, framed } = fieldMetrics(canvas, fieldShape(canvas));
-      expect(lintel()).toHaveStyle(
-        cssRectStyle({
-          x: framed.x,
-          y: framed.y,
-          width: framed.width,
-          height: css.y - framed.y - FRAME_CSS_PX,
-        }),
-      );
     });
 
     it.each([
@@ -1098,30 +904,6 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("hands the board the focus from the card it puts away, so the page keeps it", async () => {
-      const { board, game, detectChanges } = await renderBoard();
-      release(game);
-      game.pause();
-      detectChanges();
-      screen.getByRole("button", { name: "Resume" }).focus();
-
-      raise(board, "webglcontextlost");
-      detectChanges();
-
-      expect(board).toHaveFocus();
-    });
-
-    it("leaves the focus where it is when it isn't on the card", async () => {
-      const { board, detectChanges } = await renderBoard();
-      const elsewhere = screen.getByRole("button", { name: "Elsewhere" });
-      elsewhere.focus();
-
-      raise(board, "webglcontextlost");
-      detectChanges();
-
-      expect(elsewhere).toHaveFocus();
-    });
-
     it("takes its card away as the board is back, the run left paused for the player to go on", async () => {
       const { board, game, detectChanges } = await renderLost();
 
@@ -1139,19 +921,6 @@ describe("BoardComponent", () => {
         card: expect.toHaveAccessibleName("Paused") as unknown,
         said: BOARD_CONTEXT_WORDS.restored,
       });
-    });
-
-    it("stops listening once the board is gone", async () => {
-      const { board, game, destroy } = await renderBoard();
-      release(game);
-
-      destroy();
-      raise(board, "webglcontextlost");
-
-      expect({
-        outcome: game.outcome(),
-        said: TestBed.inject(AnnouncerService).message(),
-      }).toEqual({ outcome: "playing", said: "" });
     });
   });
 
@@ -1267,76 +1036,12 @@ describe("BoardComponent", () => {
       });
     });
 
-    it("publishes the field's shape in its units, nine across and a unit to every row of its height, its band and its lintel as drawn", async () => {
-      // So tall a field has its most rows, and its band and its lintel
-      // their thickest, each a fraction of a unit drawn in whole pixels.
-      const { host, game } = await runBoardScene(TALL);
-
-      const { width, height } = readRect(host.getAttribute("data-field"))!;
-      const across = Number(host.style.getPropertyValue("--across"));
-      const down = Number(host.style.getPropertyValue("--down"));
-      expect({ across, wide: width / across, high: height / down }).toEqual({
-        across: COLUMNS,
-        wide: game.metrics()!.css.width / COLUMNS,
-        high: expect.closeTo(width / across, 9) as unknown,
-      });
-    });
-
-    it("publishes how many rows deep it laid the field out, the most a room so tall asks for", async () => {
-      const { host } = await runBoardScene(TALL);
-
-      expect(host.dataset["depth"]).toBe(String(MOST_DEPTH));
-    });
-
     it("publishes the room the scene laid the field out in, inside the canvas's insets", async () => {
       const { host } = await runBoardScene(WIDE);
 
       expect(host.dataset["room"]).toBe(
         rectAttribute(cssRectOf(roomInside(canvasOf(WIDE)), 1)),
       );
-    });
-
-    it("publishes where the panels lie, by their names, where the room spares them", async () => {
-      const { host, game } = await runBoardScene(WIDE);
-
-      const { panels } = game.metrics()!;
-      expect(host.dataset["panels"]).toBe(
-        namedRectsAttribute([
-          ["left", panels!.left],
-          ["right", panels!.right],
-        ]),
-      );
-    });
-
-    it("publishes the room, the panels and the field's units down in CSS pixels on a canvas of two device pixels to one", async () => {
-      vi.stubGlobal("devicePixelRatio", 2);
-      const { host } = await runBoardScene(WIDE);
-
-      const canvas = canvasOf(WIDE, 2);
-      const { framed, panels } = fieldMetrics(canvas, fieldShape(canvas));
-      expect({
-        room: readRect(host.getAttribute("data-room")),
-        panels: readNamedRects(host.getAttribute("data-panels") ?? "").map(
-          ({ name, rect }) => ({ name, rect }),
-        ),
-        down: Number(host.style.getPropertyValue("--down")),
-      }).toEqual({
-        room: cssRectOf(roomInside(canvas), 2),
-        panels: [
-          { name: "left", rect: panels!.left },
-          { name: "right", rect: panels!.right },
-        ],
-        down: expect.closeTo(
-          framed.height / (framed.width / COLUMNS),
-          9,
-        ) as unknown,
-      });
-    });
-
-    it("publishes that it laid no panels out where the room spares none", async () => {
-      const { host } = await runBoardScene(UPRIGHT);
-
-      expect(host.dataset["panels"]).toBe("");
     });
 
     it("plays the round released on, a frame of the scene's at a time, until the next is aimed", async () => {
@@ -1467,14 +1172,6 @@ describe("BoardComponent", () => {
       rendered.detectChanges();
 
       expect(encode).toHaveBeenCalled();
-    });
-
-    it("publishes no room while the board has none, as a hidden board's", async () => {
-      const rendered = await runBoardScene(UPRIGHT);
-
-      measureAt(rendered, { width: 0, height: 0 });
-
-      expect(rendered.host.dataset["room"]).toBeUndefined();
     });
 
     it("lets the shot fly at Space, handing the game the scene's steering", async () => {

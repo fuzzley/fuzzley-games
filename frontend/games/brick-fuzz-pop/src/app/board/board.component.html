@@ -1,85 +1,59 @@
-<div
-  #play
-  class="play"
-  role="application"
-  tabindex="0"
-  aria-roledescription="game board"
-  aria-describedby="board-keys"
-  [attr.aria-label]="label()"
-  (pointerdown)="takeFocus()"
+<fz-wall-board
+  #board
+  name="Brick Fuzz Pop"
+  [label]="label()"
+  [keys]="keys"
+  [scene]="scene"
+  [metrics]="game.metrics()"
+  [shape]="game.shape()"
+  [palette]="game.palette()"
+  [outcome]="game.outcome()"
+  [wallRow]="game.start().wall.lowestRow"
+  [waiting]="rowsWaiting()"
+  [countShown]="countShown()"
+  [compact]="compact()"
+  [cardUnderLintel]="cardUnderLintel()"
+  (room)="game.setRoom($event)"
+  (drawn)="game.setDrawn($event)"
+  (contextLost)="game.pause()"
 >
-  <fz-phaser-canvas #canvas [scene]="scene" [options]="hostOptions">
-    <!-- The empty field, where the scene will draw it, until it does. -->
-    <div fzCanvasPlaceholder class="placeholder" aria-hidden="true">
-      <div class="field" [style]="fieldStyle()"></div>
-    </div>
-  </fz-phaser-canvas>
-  <div class="ring" [style]="fieldStyle()"></div>
-</div>
-
-<!--
-  How many rows wait over the ceiling, on the lintel, read as the page is
-  where nothing else in it says so, and no live region, as the announcer is
-  the page's one, and says the count as each step or jump ends.
--->
-@if (lintelStyle(); as lintel) {
-  <p class="lintel" [style]="lintel" [attr.aria-hidden]="lintelHidden()">
-    {{ rowsWaiting() }}
-  </p>
-}
-
-<!--
-  The keys needed to play, one at a time, which describe the application.
-  Fast-forward and Drop have their own buttons, and How to play lists F and X.
-  `role="list"`, as Safari's VoiceOver stops calling a list with no markers
-  one.
--->
-<ul id="board-keys" class="fz-visually-hidden" role="list" aria-label="Keys">
-  <li>Left and Right, or A and D: aim. Hold Shift for smaller steps.</li>
-  <li>Up and Down, or W and S: raise and lower the charge.</li>
-  <li>Space: shoot.</li>
-  <li>Esc: cancel the charge, or pause.</li>
-  <li>P: pause and resume.</li>
-  <li>Enter: resume, go to the next level, or try again.</li>
-  <li>R: hear the {{ rowsRead }} lowest rows with bricks in them.</li>
-</ul>
-
-@if (panelStyles(); as panels) {
-  <fz-coming-next
-    [style]="panels.left"
-    [level]="game.level()"
-    [wall]="game.start().wall"
-    [depth]="game.start().depth"
-    [inkOf]="inkOf()"
-    [waiting]="rowsWaiting()"
-    [jump]="jump()"
-  />
-  <fz-in-this-wall
-    [style]="panels.right"
-    [wall]="game.start().wall"
-    [kinds]="brickKinds"
-    [kindOf]="brickKind"
-    [pictures]="brickPictures()"
-  >
-    <app-crew-and-boon
-      [boon]="game.levelBoon()"
-      [crew]="game.start().crew"
-      [lit]="game.lit()"
-      [palette]="game.palette()"
+  @if (board.panels(); as panels) {
+    <fz-coming-next
+      [style]="panels.left"
+      [level]="game.level()"
+      [wall]="game.start().wall"
+      [depth]="game.start().depth"
+      [inkOf]="inkOf()"
+      [waiting]="rowsWaiting()"
+      [jump]="jump()"
     />
-  </fz-in-this-wall>
-}
+    <fz-in-this-wall
+      [style]="panels.right"
+      [wall]="game.start().wall"
+      [kinds]="brickKinds"
+      [kindOf]="brickKind"
+      [pictures]="brickPictures()"
+    >
+      <app-crew-and-boon
+        [boon]="game.levelBoon()"
+        [crew]="game.start().crew"
+        [lit]="game.lit()"
+        [palette]="game.palette()"
+      />
+    </fz-in-this-wall>
+  }
 
-<app-board-card
-  [style]="cardStyle()"
-  [card]="game.boardCard()"
-  [restoring]="contextLost()"
-  [pictures]="pictures()"
-  (resumeRun)="resumeRun()"
-  (nextLevel)="nextLevel()"
-  (tryAgain)="tryAgain()"
-  (newGame)="newGame()"
->
-  <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
-  <fz-canvas-cards [canvas]="canvas" />
-</app-board-card>
+  <app-board-card
+    [style]="board.cardPlace()"
+    [card]="game.boardCard()"
+    [restoring]="board.restoring()"
+    [pictures]="cardPictures()"
+    (resumeRun)="resumeRun()"
+    (nextLevel)="nextLevel()"
+    (tryAgain)="tryAgain()"
+    (newGame)="newGame()"
+  >
+    <!-- Still loading, and couldn't be drawn: the canvas's own cards. -->
+    <fz-canvas-cards [canvas]="board.canvas()" />
+  </app-board-card>
+</fz-wall-board>

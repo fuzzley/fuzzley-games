@@ -44,7 +44,11 @@ const THEME = "midnight";
  * The field, by its name, its element, and its element's attribute that says
  * where the scene drew it on the canvas.
  */
-const FIELD = { name: "field", element: "app-board", drawnAt: "data-field" };
+const FIELD = {
+  name: "field",
+  element: "fz-wall-board",
+  drawnAt: "data-field",
+};
 
 /**
  * The run shown, as `keptRun()` keeps it: begun on Powder keg, on a field
@@ -134,7 +138,7 @@ export function shownRun(api) {
  * @returns {Promise<{outcome: string, depth: number, card: boolean, said: boolean}>}
  */
 async function goOn(keys, aimed) {
-  const board = document.querySelector("app-board");
+  const board = document.querySelector("fz-wall-board");
   /**
    * Waits, up to two seconds, for something to hold.
    *
@@ -159,9 +163,9 @@ async function goOn(keys, aimed) {
       board?.dispatchEvent(event);
     }
   };
-  const resume = [...document.querySelectorAll("app-board .card button")].find(
-    (button) => button.textContent?.trim() === "Resume",
-  );
+  const resume = [
+    ...document.querySelectorAll("fz-wall-board .card button"),
+  ].find((button) => button.textContent?.trim() === "Resume");
   if (resume instanceof HTMLButtonElement) resume.click();
   await until(() => board?.getAttribute("data-outcome") === "playing");
   for (const { code, keyCode } of keys) press(code, keyCode);
@@ -175,7 +179,7 @@ async function goOn(keys, aimed) {
   return {
     outcome: board?.getAttribute("data-outcome") ?? "",
     depth: Number(board?.getAttribute("data-depth")),
-    card: document.querySelector("app-board .card") !== null,
+    card: document.querySelector("fz-wall-board .card") !== null,
     said: said(),
   };
 }

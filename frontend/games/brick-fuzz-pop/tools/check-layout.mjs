@@ -64,7 +64,7 @@ const ROOT = join(import.meta.dirname, "..");
  */
 const FIELD = {
   name: "field",
-  element: "app-board",
+  element: "fz-wall-board",
   drawnAt: "data-field",
   across: "--across",
   down: "--down",
@@ -97,7 +97,7 @@ const FIELD = {
 function inspectField(field) {
   /** @type {string[]} */
   const problems = [];
-  const board = document.querySelector("app-board");
+  const board = document.querySelector("fz-wall-board");
   if (!field || !board) return problems;
   // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in @fz/brick-wall/rules/field;
   // and `FLOOR_BAND` and `LINTEL`, in @fz/brick-wall/view/field_metrics.
@@ -174,14 +174,14 @@ function inspectField(field) {
   const drawnBand = parseFloat(style.getPropertyValue("--band")) * ratio;
   const drawnLintel = parseFloat(style.getPropertyValue("--lintel")) * ratio;
   if (!Number.isFinite(drawnBand)) {
-    problems.push("app-board gives no --band.");
+    problems.push("fz-wall-board gives no --band.");
   } else if (Math.abs(drawnBand - bandPx) > 0.01) {
     problems.push(
       `The floor's band is ${drawnBand} device px, where the field's room asks for ${bandPx}.`,
     );
   }
   if (!Number.isFinite(drawnLintel)) {
-    problems.push("app-board gives no --lintel.");
+    problems.push("fz-wall-board gives no --lintel.");
   } else if (Math.abs(drawnLintel - lintelPx) > 0.01) {
     problems.push(
       `The lintel is ${drawnLintel} device px, where the field's room asks for ${lintelPx}.`,
