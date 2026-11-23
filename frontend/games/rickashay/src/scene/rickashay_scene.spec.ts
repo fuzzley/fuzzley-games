@@ -26,9 +26,15 @@ import {
 } from "@fz/brick-wall/view/field_metrics";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
-import { type SceneRun, colorsOf, runKeyedScene } from "@fz/phaser/testing";
+import {
+  type SceneRun,
+  cacheSounds,
+  colorsOf,
+  runKeyedScene,
+} from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
-import { Core, GameObjects, Textures } from "phaser";
+import { Core, GameObjects, Sound, Textures } from "phaser";
+import type { MockInstance } from "vitest";
 import type { Brick, Wall } from "../rules/catalog/kinds";
 import type { FlightEvent } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";
@@ -44,7 +50,8 @@ import { EFFECT_FRAMES } from "../view/art/effect_frames";
 import { PILL_FRAMES, digitAcross, pillPlace } from "../view/art/pill_art";
 import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
-import { type Flourish, QUIET } from "../view/effects/effects";
+import { type Cue, type Flourish, QUIET } from "../view/effects/effects";
+import { SOUNDS, type SoundName } from "../view/effects/sounds";
 import {
   KICK_MS,
   PORTAL_MS,
@@ -65,8 +72,10 @@ import type { FieldCommand } from "../view/steering/controls";
 import {
   type RickashayScene,
   type RickashaySceneOptions,
+  SOUNDS_KEY,
   makeRickashayScene,
 } from "./rickashay_scene";
+import spritemap from "./sounds/sounds.json";
 
 /** The light palette the specs draw in, the art's specs'. */
 const LIGHT = ART_PALETTE;
@@ -160,6 +169,7 @@ class FakeShell implements RickashaySceneOptions {
   /** The flight the guide shows, or null where none shows. */
   guideFlight: GuideFlight | null = null;
   welcomesMotion = true;
+  wantsSound = true;
   /** The chrome the board declares over the canvas, the margin it keeps around the field. */
   chrome: Insets = INSETS;
   readonly ticks: number[] = [];
@@ -181,6 +191,7 @@ class FakeShell implements RickashaySceneOptions {
   readonly rules = (): FlightRules => this.flightRules;
   readonly guide = (): GuideFlight | null => this.guideFlight;
   readonly motion = (): boolean => this.welcomesMotion;
+  readonly sound = (): boolean => this.wantsSound;
   readonly onLayout = (metrics: FieldMetrics): void => {
     this.layouts.push(metrics);
   };
@@ -350,6 +361,17 @@ function logEvent(
   const record = log.next();
   record.event = event;
   record.effects = { flourishes, sounds: [] };
+}
+
+/** Writes an event to a log, calling for some sounds and no flourish. */
+function logSounds(
+  log: EventLog<LoggedEvent>,
+  event: FlightEvent,
+  ...sounds: Cue[]
+): void {
+  const record = log.next();
+  record.event = event;
+  record.effects = { flourishes: [], sounds };
 }
 
 /** Returns a log of a round's beats as the view keeps one, empty. */
@@ -1355,6 +1377,141 @@ describe("RickashayScene", () => {
       run.advance(16);
 
       expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
+    });
+  });
+
+  describe("the sounds", () => {
+    /** A strike of the plain round's tough brick. */
+    const STRIKE: FlightEvent = {
+      kind: "strike",
+      at: 1,
+      cell: 8,
+      took: 1,
+      broke: false,
+      rally: 1,
+    };
+
+    /** Runs the scene with the view's logs of events and beats, and spies on the sounds it plays from the next frame. */
+    async function startHearing(
+      setUp: (shell: FakeShell) => void = () => undefined,
+    ): Promise<
+      Board & {
+        events: EventLog<LoggedEvent>;
+        beats: EventLog<LoggedBeat>;
+        played: MockInstance<(name: SoundName, detune: number) => void>;
+      }
+    > {
+      const events = eventLog();
+      const beats = beatLog();
+      const board = await startBoard((shell) => {
+        shell.show({ events, beats });
+        setUp(shell);
+      });
+      const played = vi.spyOn(board.scene.sounds, "playRisen");
+      return { ...board, events, beats, played };
+    }
+
+    it("are the view's, in the sprite's order", () => {
+      expect(Object.keys(spritemap.spritemap)).toEqual(SOUNDS);
+    });
+
+    it("can be heard while the player wants them", async () => {
+      const { scene } = await startBoard();
+
+      expect(scene.sound.mute).toBe(false);
+    });
+
+    it("are muted while the player wants none", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.wantsSound = false;
+      run.advance(16);
+
+      expect(scene.sound.mute).toBe(true);
+    });
+
+    it("leave the field drawn where they can't be loaded", async () => {
+      const { run, scene } = await startBoard();
+
+      expect({ loaded: scene.sounds.loaded, ready: run.ready }).toEqual({
+        loaded: false,
+        ready: true,
+      });
+    });
+
+    it("play each sound the frame's events call for once, at the most it rose, in the sprite's order", async () => {
+      const { events, run, played } = await startHearing();
+
+      logSounds(events, STRIKE, { sound: "strike", detune: 500 });
+      logSounds(events, STRIKE, { sound: "strike", detune: 300 });
+      logSounds(events, turnAt(0.5, 3), { sound: "knock", detune: 0 });
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["knock", 0],
+        ["strike", 500],
+      ]);
+    });
+
+    it("reach the sprite, each risen as it calls for", async () => {
+      const { scene, events, run } = await startHearing();
+      cacheSounds(scene, SOUNDS_KEY);
+      const play = vi.spyOn(Sound.NoAudioSound.prototype, "play");
+
+      logSounds(events, STRIKE, { sound: "strike", detune: 300 });
+      run.advance(16);
+
+      expect(play.mock.calls).toEqual([["strike", { detune: 300 }]]);
+    });
+
+    it("play each sound a beat calls for", async () => {
+      const { beats, run, played } = await startHearing();
+
+      logBeat(beats, "cleared");
+      logBeat(beats, "release");
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["release", 0],
+        ["chime", 0],
+      ]);
+    });
+
+    it("play where motion isn't welcome", async () => {
+      const { events, beats, run, played } = await startHearing((each) => {
+        each.welcomesMotion = false;
+      });
+
+      logSounds(events, turnAt(0.5, 3), { sound: "knock", detune: 0 });
+      logBeat(beats, "lost");
+      run.advance(16);
+
+      expect(played.mock.calls).toEqual([
+        ["knock", 0],
+        ["lost", 0],
+      ]);
+    });
+
+    it("play once each, not again in the frames after", async () => {
+      const { beats, run, played } = await startHearing();
+
+      logBeat(beats, "step");
+      run.advance(48, 16);
+
+      expect(played.mock.calls).toEqual([["step", 0]]);
+    });
+
+    it("leave unplayed what the view's logs held before the scene met them", async () => {
+      const events = eventLog();
+      logSounds(events, STRIKE, { sound: "strike", detune: 0 });
+      const { run, scene } = await startBoard((shell) => {
+        shell.show({ events });
+      });
+      const played = vi.spyOn(scene.sounds, "playRisen");
+
+      run.advance(16);
+
+      expect(played).not.toHaveBeenCalled();
     });
   });
 

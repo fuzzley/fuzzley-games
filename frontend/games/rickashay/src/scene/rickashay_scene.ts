@@ -30,6 +30,7 @@ import {
   uniqueSceneKey,
   viewportOf,
 } from "@fz/phaser/scene";
+import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import { type KindId, type Wall, kindOf } from "../rules/catalog/kinds";
 import type { FlightEvent } from "../rules/flight/events";
@@ -37,11 +38,14 @@ import type { FlightRules } from "../rules/tuning";
 import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
 import {
+  type EventEffects,
   type Flourish,
   beatEffectsOf,
+  createFrameSounds,
   flourishesOf,
 } from "../view/effects/effects";
 import { type Strip, rampFaceOf } from "../view/effects/flourish";
+import type { SoundName } from "../view/effects/sounds";
 import {
   type BallView,
   type LoggedBeat,
@@ -60,6 +64,11 @@ import { EffectsPainter } from "./painters/effects_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PillPainter } from "./painters/pill_painter";
 import { SpringsPainter } from "./painters/springs_painter";
+import spritemap from "./sounds/sounds.json";
+import spriteUrl from "./sounds/sounds.wav?url";
+
+/** The key the game's sound sprite is loaded and cached under. */
+export const SOUNDS_KEY = "rickashay-sounds";
 
 /** The keys the scene keeps from the page, so the arrows and Space steer rather than scroll it. */
 const CAPTURED_KEYS = "LEFT,RIGHT,UP,DOWN,SPACE";
@@ -110,6 +119,8 @@ export interface RickashaySceneOptions {
   readonly guide: () => GuideFlight | null;
   /** Returns whether the player welcomes motion. */
   readonly motion: () => boolean;
+  /** Returns whether the player wants sound. */
+  readonly sound: () => boolean;
   /** Takes where the field and its panels now lie on the canvas. */
   readonly onLayout: (metrics: FieldMetrics) => void;
   /** Takes what a key asks of the game. */
@@ -119,11 +130,11 @@ export interface RickashaySceneOptions {
 /**
  * Draws a level of Rickashay: reads the player's keys, mouse and fingers
  * through its `Steering`, hands the shell each frame's time and aim, then
- * pulls the round to draw, plays the flourishes of what it reached since
- * the last frame where motion is welcome, and draws the field, its
- * springs, the wall, the guide, the flourishes, the fuzzball and the
- * rally's pill beside it as they stand; a key the steering doesn't take
- * becomes a command.
+ * pulls the round to draw, plays the sounds of what it reached since the
+ * last frame, and its flourishes where motion is welcome, and draws the
+ * field, its springs, the wall, the guide, the flourishes, the fuzzball
+ * and the rally's pill beside it as they stand; a key the steering
+ * doesn't take becomes a command.
  */
 export class RickashayScene extends Scene {
   /** The key the scene is registered under, which no other shares. */
@@ -139,6 +150,8 @@ export class RickashayScene extends Scene {
   guide!: GuidePainter<KindId>;
   /** Draws what bursts from the wall and flashes on the field. */
   effects!: EffectsPainter;
+  /** Plays the game's sounds, from the one sprite. */
+  sounds!: SpritePlayer<SoundName>;
   /** Draws the fuzzball. */
   balls!: BallPainter;
   /** Draws the rally in its pill beside the fuzzball. */
@@ -182,6 +195,8 @@ export class RickashayScene extends Scene {
   private readonly turned = { x: 0, y: 0 };
   /** The strip a ramp's flash runs along, written for each. */
   private readonly rampFace: Strip = { x: 0, y: 0, length: 0, angle: 0 };
+  /** Gathers the sounds a frame's events and beats call for, so each plays once a frame, at the most it rose. */
+  private readonly frameSounds = createFrameSounds();
 
   constructor(
     private readonly options: RickashaySceneOptions,
@@ -194,8 +209,9 @@ export class RickashayScene extends Scene {
 
   /**
    * Measures, bakes the atlas, builds the field in its layers, back to
-   * front, makes the steering, and starts listening, the events and beats
-   * the view has reached already left unplayed.
+   * front, makes the steering and the sound player, which starts loading
+   * the sprite, and starts listening, the events and beats the view has
+   * reached already left unplayed.
    */
   create(): void {
     const { options } = this;
@@ -252,6 +268,11 @@ export class RickashayScene extends Scene {
       Math.max(0, MOST_FINGERS - this.input.manager.pointersTotal),
     );
     options.onLayout(this.metrics);
+    this.sounds = new SpritePlayer(this, {
+      key: SOUNDS_KEY,
+      spritemap,
+      url: spriteUrl,
+    });
     this.listen();
     onFirstFrame(this, () => {
       this.surroundings.ready();
@@ -264,7 +285,10 @@ export class RickashayScene extends Scene {
    * each, and draws the round as the view now has it.
    *
    * It builds nothing of its own but on a new layout, a new palette, or
-   * rules retuned to hold more floor bounces than it has springs for.
+   * rules retuned to hold more floor bounces than it has springs for; the
+   * sound player makes a voice for a sound the first times its plays
+   * overlap, and Phaser a buffer source for each sound it plays, as Web
+   * Audio starts each only once.
    */
   override update(time: number, delta: number): void {
     const { options, context } = this;
@@ -272,6 +296,7 @@ export class RickashayScene extends Scene {
     this.fit();
     this.followSettings();
     options.tick(delta, this.steering.read(this.from));
+    this.sounds.follow(options.sound());
     // The tick may have reshaped the field, between rounds.
     this.fit();
     this.atlas.bakeFor(options.palette(), this.metrics);
@@ -286,6 +311,7 @@ export class RickashayScene extends Scene {
     this.played = view.events.latest;
     view.beats.forEachSince(this.beaten, this.playBeat);
     this.beaten = view.beats.latest;
+    this.frameSounds.playEach(this.sounds.playRisen);
     this.draw();
   }
 
@@ -306,8 +332,9 @@ export class RickashayScene extends Scene {
   }
 
   /**
-   * Plays an event of the flight: keeps where it turns, and plays the
-   * flourishes it calls for where motion is welcome.
+   * Plays an event of the flight: keeps where it turns, keeps the sounds it
+   * calls for to play with the frame's others, and plays the flourishes it
+   * calls for where motion is welcome.
    *
    * Made once, as the event log takes it each frame.
    */
@@ -319,20 +346,30 @@ export class RickashayScene extends Scene {
       this.turned.x = event.x;
       this.turned.y = event.y;
     }
+    this.hear(effects);
     this.flourishAll(flourishesOf(effects, this.context.motion), event);
   };
 
   /**
-   * Plays a beat of the round: its flourishes, where motion is welcome.
+   * Plays a beat of the round: keeps its sounds, and plays its flourishes
+   * where motion is welcome.
    *
    * Made once, as the beat log takes it each frame.
    */
   private readonly playBeat = ({ beat }: Readonly<LoggedBeat>): void => {
-    this.flourishAll(
-      flourishesOf(beatEffectsOf(beat), this.context.motion),
-      null,
-    );
+    const effects = beatEffectsOf(beat);
+    this.hear(effects);
+    this.flourishAll(flourishesOf(effects, this.context.motion), null);
   };
+
+  /** Keeps the sounds some effects call for, each risen as it says, to play with the frame's others, read by number. */
+  private hear({ sounds }: EventEffects): void {
+    const count = sounds.length;
+    for (let at = 0; at < count; at++) {
+      const cue = sounds[at];
+      if (cue !== undefined) this.frameSounds.hear(cue.sound, cue.detune);
+    }
+  }
 
   /** Plays each of a moment's flourishes, read by number, as a frame's round of them makes nothing. */
   private flourishAll(
