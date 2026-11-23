@@ -780,6 +780,258 @@ describe("fly's floor bounces", () => {
   });
 });
 
+describe("fly's hatches and locks", () => {
+  /** The game's trait rules with a hatch's and a lock's made up for the spec: a hatch holds the fuzzball up as it meets it, and a lock is shut by its tint's bolts. */
+  const HATCHES_AND_LOCKS: TraitRules = {
+    ...TRAIT_RULES,
+    holds: {
+      met: (hooks) => {
+        hooks.hold();
+      },
+    },
+    bolted: { bolts: ({ tint }) => tint },
+  };
+
+  /** A floor of hatches, under four empty rows and a brick by the ceiling. */
+  const HATCH_FLOOR = [
+    "o........",
+    ".........",
+    ".........",
+    ".........",
+    "=========",
+  ];
+
+  /** Two locks of a bolt, under two rows a shot at 45° never reaches. */
+  const LOCKS = ["ooooooooo", "ooooooooo", ".x......x"];
+
+  /** Returns the flight of a shot by the hatches' and the locks' made-up rules. */
+  function flyLocked(shot: PictureShot): Flown {
+    return flyAt({ traits: HATCHES_AND_LOCKS, ...shot });
+  }
+
+  /** Returns a flight's holds and the hatches opening. */
+  function holdsOf(flown: Flown): FlightEvent[] {
+    return flown.flight.events.filter(
+      ({ kind }) => kind === "hold" || kind === "hatches-open",
+    );
+  }
+
+  /** Returns the moments of a flight's turns off a hatch's bar. */
+  function barsOf(flown: Flown): number[] {
+    return eventsOf(flown, "turn")
+      .filter(({ off }) => off === "bar")
+      .map(({ at }) => at);
+  }
+
+  // Up from x = 4.75 at 45° through the hatches in row 7, and down onto
+  // their bar three times, under the ceiling, as the hatch fixture flies.
+  it("is held up by the hatches' bar coming down, three times between them, every hatch opening at the third", () => {
+    const flown = flyLocked({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
+
+    const [first, second, third] = barsOf(flown);
+    expect(holdsOf(flown)).toEqual([
+      { at: first, kind: "hold", cell: cellOf(0, 0), left: 2 },
+      { at: second, kind: "hold", cell: cellOf(5, 0), left: 1 },
+      { at: third, kind: "hold", cell: cellOf(6, 0), left: 0 },
+      { at: third, kind: "hatches-open" },
+    ]);
+  });
+
+  // The flight of the spec before, a lock of a bolt at the foot of the
+  // left column, out of its way, by rules that draw a bolt at the ninth
+  // turn, its third hold.
+  it("draws a bolt after the hatches open at the same moment", () => {
+    const rules = { ...FLIGHT_RULES, boltTurns: 9 };
+    const picture = [
+      ...HATCH_FLOOR,
+      ...Array<string>(6).fill("........."),
+      "x........",
+    ];
+
+    const flown = flyLocked({ picture, lowestRow: 0, x: 4.75, rules });
+
+    const third = barsOf(flown)[2];
+    expect(
+      flown.flight.events
+        .filter(({ at }) => at === third)
+        .map(({ kind }) => kind),
+    ).toEqual(["turn", "hold", "hatches-open", "bolt"]);
+  });
+
+  // Off the ceiling and the left wall, down through row 7 to land.
+  it("falls through the hatches once they open", () => {
+    const flown = flyLocked({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
+
+    expect(placesOf(flown).slice(-2)).toEqual([
+      [near(4.25), near(CEILING)],
+      [near(LEFT_WALL), near(6.75)],
+    ]);
+  });
+
+  // Straight up through the joint of two hatches, and down onto both bars
+  // at once, three times.
+  it("holds once a turn however many bars it meets there, the first naming the hold", () => {
+    const flown = flyLocked({ picture: ["....==..."], x: 5, degrees: 90 });
+
+    expect([
+      eventsOf(flown, "turn")[1]?.cells,
+      eventsOf(flown, "hold").map(({ cell, left }) => [cell, left]),
+    ]).toEqual([
+      [cellOf(4, 0), cellOf(5, 0)],
+      [
+        [cellOf(4, 0), 2],
+        [cellOf(4, 0), 1],
+        [cellOf(4, 0), 0],
+      ],
+    ]);
+  });
+
+  // Up at 30° under a lone hatch, and off the cut at its bar's right end.
+  it("is held up by a turn off a bar's end, flying up", () => {
+    const flown = flyLocked({ picture: ["....=...."], x: 2.25, degrees: 30 });
+
+    expect(holdsOf(flown)[0]).toEqual({
+      at: barsOf(flown)[0],
+      kind: "hold",
+      cell: cellOf(4, 0),
+      left: 2,
+    });
+  });
+
+  // Between two columns of steel at the lowest aim, meeting one at each of
+  // its turns, which hold it up by the made-up rules.
+  it("holds nothing once the hatches have no holds left", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      never: {
+        met: (hooks) => {
+          hooks.hold();
+        },
+      },
+    };
+
+    const flown = flyAt({
+      picture: Array<string>(9).fill("#.......#"),
+      lowestRow: 0,
+      degrees: 8,
+      traits,
+    });
+
+    expect([
+      eventsOf(flown, "turn").length > 3,
+      holdsOf(flown).map(({ kind }) => kind),
+    ]).toEqual([true, ["hold", "hold", "hold", "hatches-open"]]);
+  });
+
+  it("throws for a hold made as the middle crosses into an eye", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      teleports: {
+        entered: (hooks) => {
+          hooks.hold();
+        },
+      },
+    };
+
+    expect(() => flyAt({ picture: PORTALS, lowestRow: 2, traits })).toThrow(
+      "A fuzzball is held up only as a brick breaks or is met.",
+    );
+  });
+
+  // A hot shot from x = 4.75 off the right wall, the lock at column 8, the
+  // floor and the left wall, then the lock at column 1, as the bolt
+  // fixture flies.
+  it("turns off a lock still shut, which takes nothing, and draws its bolt at the fourth turn, opening it to a strike", () => {
+    const flown = flyLocked({ picture: LOCKS, x: 4.75, hot: true });
+
+    const turns = eventsOf(flown, "turn");
+    expect(
+      flown.flight.events.filter(
+        ({ kind }) =>
+          kind === "shielded" || kind === "bolt" || kind === "strike",
+      ),
+    ).toEqual([
+      { at: turns[1]?.at, kind: "shielded", cell: cellOf(8, 0), by: "lock" },
+      { at: turns[3]?.at, kind: "bolt", drawn: 1 },
+      {
+        at: turns[4]?.at,
+        kind: "strike",
+        cell: cellOf(1, 0),
+        took: 1,
+        broke: true,
+        rally: 1,
+      },
+    ]);
+  });
+
+  it("runs no rules for a strike on a lock still shut", () => {
+    const seen: number[] = [];
+    const traits: TraitRules = {
+      ...HATCHES_AND_LOCKS,
+      bolted: {
+        ...HATCHES_AND_LOCKS.bolted,
+        struck: ({ cell }) => {
+          seen.push(cell);
+        },
+      },
+    };
+
+    flyAt({ picture: LOCKS, x: 4.75, hot: true, traits });
+
+    expect(seen).toEqual([cellOf(1, 0)]);
+  });
+
+  // At the lowest aim, off the right wall, the left, the right, and the
+  // lock at the foot of row 4 where the left wall would be.
+  it("meets a lock at the turn that draws its bolt still shut, the bolt drawn after it", () => {
+    const flown = flyLocked({
+      picture: ["x........"],
+      lowestRow: 4,
+      degrees: 8,
+    });
+
+    expect(flown.flight.events.slice(3, 6)).toEqual([
+      expect.objectContaining({ kind: "turn", off: "brick", cells: [0] }),
+      expect.objectContaining({ kind: "shielded", cell: 0, by: "lock" }),
+      expect.objectContaining({ kind: "bolt", drawn: 1 }),
+    ]);
+  });
+
+  // At the lowest aim, between the side walls up to the wall, a lock of
+  // two bolts in its top row, and back down: 15 turns.
+  it("draws a bolt at every fourth turn only while a lock in the field is still shut", () => {
+    const rules = { ...FLIGHT_RULES, bored: 120 };
+
+    const flown = flyLocked({
+      picture: ["yoooooooo", "ooooooooo"],
+      lowestRow: 9,
+      degrees: 8,
+      rules,
+    });
+
+    const turns = eventsOf(flown, "turn");
+    expect([turns.length, eventsOf(flown, "bolt")]).toEqual([
+      15,
+      [
+        { at: turns[3]?.at, kind: "bolt", drawn: 1 },
+        { at: turns[7]?.at, kind: "bolt", drawn: 2 },
+      ],
+    ]);
+  });
+
+  // At the lowest aim, seven turns between the side walls before it is
+  // bored, a lock waiting in row 11.
+  it("draws no bolt for a lock waiting over the ceiling", () => {
+    const flown = flyLocked({
+      picture: ["x........", "ooooooooo", "ooooooooo"],
+      lowestRow: 9,
+      degrees: 8,
+    });
+
+    expect(eventsOf(flown, "bolt")).toEqual([]);
+  });
+});
+
 describe("fly's way home", () => {
   /** A wall of two rows by the ceiling, which a shot at the lowest aim never reaches. */
   const HIGH_WALL = ["ooooooooo", "ooooooooo"];

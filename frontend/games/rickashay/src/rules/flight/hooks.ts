@@ -1,9 +1,10 @@
 // What a flight asks of the bricks' rules, and what they may do to it in
-// turn. fly() runs a brick's trait rules at four moments: as a turn strikes
-// it, as it breaks, as the fuzzball meets it, and as the fuzzball's middle
-// crosses into its eye; and a rule changes the flight only through the
-// hooks it is handed, so a kind brought in later plugs in through its
-// traits' rules without touching fly().
+// turn. fly() reads the bolts a brick is shut by as it starts, and runs a
+// brick's trait rules at four moments: as a turn strikes it, as it breaks,
+// as the fuzzball meets it, and as the fuzzball's middle crosses into its
+// eye; and a rule changes the flight only through the hooks it is handed,
+// so a kind brought in later plugs in through its traits' rules without
+// touching fly().
 
 import type { Brick, TraitKind } from "../catalog/kinds";
 import type { Shield } from "./events";
@@ -40,11 +41,31 @@ export interface Hooks {
    * breaks or is met.
    */
   earn(): void;
+  /**
+   * Counts the turn at which the fuzzball met the hatch whose rules run as
+   * one of the hatches' holds: once a turn, however many bars it met there,
+   * the first naming the hold, until the hatches have held it
+   * `FlightRules.hatchHolds` times between them, when every hatch opens
+   * until it lands. Made as a brick breaks or is met.
+   *
+   * It doesn't turn the fuzzball: the bar has turned it at that moment.
+   */
+  hold(): void;
 }
 
-/** Holds what a trait does at each moment of a flight it has a rule for, each moment's rules running in the order of its kind's traits. */
+/** Holds what a trait does to a flight: the bolts it shuts a brick by, and what it does at each moment it has a rule for, each moment's rules running in the order of its kind's traits. */
 export interface TraitRule {
-  /** Runs as a turn strikes a brick of a kind that breaks, before its hits are taken. */
+  /**
+   * Returns the bolts a brick of the trait is shut by, read as the flight
+   * starts, the most any of its kind's traits give where several do, of
+   * which the flight draws one back at every `FlightRules.boltTurns`th
+   * turn while a brick in the field still has more than are drawn.
+   *
+   * A strike on a brick still shut takes nothing, as a lock's shield, and
+   * its rules for being struck don't run.
+   */
+  readonly bolts?: (brick: Brick) => number;
+  /** Runs as a turn strikes a brick of a kind that breaks, before its hits are taken, unless it is still shut. */
   readonly struck?: (struck: Struck) => void;
   /** Runs as a strike breaks the brick in a wall cell, after its strike. */
   readonly broken?: (hooks: Hooks, cell: number, brick: Brick) => void;

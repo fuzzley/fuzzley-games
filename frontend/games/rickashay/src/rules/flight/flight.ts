@@ -11,9 +11,13 @@
 // at the moments hooks.ts names. It lands at the floor, unless it holds a
 // floor bounce, which it spends turning off the floor as off a flat; it
 // earns them as its rally climbs FlightRules' ladder (C5), and as a
-// brick's rules give one. Bored, as it flies FlightRules.bored without a
-// strike, it yawns and drops home (C2), as it does at either guard: the
-// longest flight, and so many turns running with no flight between them.
+// brick's rules give one. A hatch's rules hold it up, once a turn, until
+// the hatches have held it so many times between them and every one opens
+// (C7); and every so many turns it draws a bolt back on every lock in the
+// field while one is still shut, a strike on a shut lock taking nothing
+// (C4). Bored, as it flies FlightRules.bored without a strike, it yawns
+// and drops home (C2), as it does at either guard: the longest flight, and
+// so many turns running with no flight between them.
 //
 // A flight's state is made as it starts, and what the fuzzball meets is
 // cast into one record the module keeps, so a cast makes nothing; records
@@ -47,6 +51,7 @@ import {
   castField,
   clearBrick,
   createContacts,
+  openHatches,
 } from "./cast";
 import type {
   EarnedBy,
@@ -113,6 +118,9 @@ export function fly(
 /** Names the moment a brick's rules run at, which the hooks are made at: none, a brick's at a turn, or an eye's. */
 type Moment = "none" | "brick" | "eye";
 
+/** Names a trait rule that runs at a brick's moment or an eye's. */
+type BrickRule = "broken" | "met" | "entered";
+
 /** Flies a flight through, keeping its state, and is the hooks its bricks' rules change it by. */
 class Flying implements Hooks {
   private readonly field: CastField;
@@ -138,6 +146,16 @@ class Flying implements Hooks {
   private rungs = 0;
   /** The moment the bricks' rules run at, if they run. */
   private moment: Moment = "none";
+  /** The wall cell of the brick whose rules run. */
+  private ruling = 0;
+  /** The holds the hatches have left between them. */
+  private holdsLeft: number;
+  /** The turn the fuzzball was last held up at. */
+  private heldAt = -1;
+  /** Whether the hatches open as the moment closes. */
+  private opening = false;
+  /** The bolts drawn back on every lock. */
+  private drawn = 0;
   private readonly marks: number[] = [];
   private lastStrike: number | null = null;
   private landed = false;
@@ -147,6 +165,10 @@ class Flying implements Hooks {
   private readonly hits: Float64Array;
   /** Whether each wall cell's brick is broken: 1 once it is. */
   private readonly broken: Uint8Array;
+  /** The bolts each wall cell's brick is shut by, where it stands in the field. */
+  private readonly bolts: Float64Array;
+  /** The most bolts a brick in the field is shut by. */
+  private readonly mostBolts: number;
   /** The wall cells the moment met, floor up and then left to right, each once. */
   private readonly cells: number[] = [];
   /** The sides of each of {@link cells} that its faces the moment met lie along, as `FieldFace` bits. */
@@ -164,6 +186,13 @@ class Flying implements Hooks {
     this.field = castField(start.wall, start.depth);
     this.hits = Float64Array.from(bricks, (brick) => brick?.hits ?? 0);
     this.broken = new Uint8Array(bricks.length);
+    this.bolts = Float64Array.from(bricks, (brick, cell) =>
+      brick === null || fieldRowOf(start.wall, cell) >= start.depth
+        ? 0
+        : boltsOf(brick, traits),
+    );
+    this.mostBolts = Math.max(0, ...this.bolts);
+    this.holdsLeft = rules.hatchHolds;
     this.released = start.hot ? rules.hotBounces : 0;
     this.held = this.released;
     this.x = start.x;
@@ -242,8 +271,9 @@ class Flying implements Hooks {
    * Plays what the fuzzball meets at a moment: it lands on the floor,
    * unless it holds a floor bounce, which it spends there after the
    * moment's bricks; otherwise it turns once, off everything it met, and
-   * meets each brick there; and it crosses into a portal's eye, passing
-   * every eye as air from then until it next turns.
+   * meets each brick there, the hatches opening and a bolt drawn after
+   * them; and it crosses into a portal's eye, passing every eye as air
+   * from then until it next turns.
    */
   private meet(met: Contacts): void {
     faces.length = 0;
@@ -297,6 +327,12 @@ class Flying implements Hooks {
       this.held--;
       this.events.push({ at: this.at, kind: "bounce-spent", held: this.held });
     }
+    if (this.opening) {
+      this.opening = false;
+      this.events.push({ at: this.at, kind: "hatches-open" });
+      openHatches(this.field);
+    }
+    this.drawBolt();
     for (const face of faces) {
       if (face.kind === "eye") {
         this.enter(face.owner.cell);
@@ -309,15 +345,19 @@ class Flying implements Hooks {
 
   /**
    * Meets a brick in a wall cell at a turn, on the sides given: strikes
-   * it, if its kind breaks, unless its rules shield it, and breaks it once
-   * it has no hits left; then runs its rules for meeting it.
+   * it, if its kind breaks, unless it is a lock still shut or its rules
+   * shield it, and breaks it once it has no hits left; then runs its rules
+   * for meeting it.
    */
   private meetBrick(cell: number, brick: Brick, sides: number): void {
-    const { traits } = kindOf(brick.kind);
     if (takesStrikes(brick.kind)) {
       const struck: Struck = { cell, brick, sides, shield: null };
-      for (const trait of traits) {
-        this.traits[trait.kind].struck?.(struck);
+      if ((this.bolts[cell] ?? 0) > this.drawn) {
+        struck.shield = "lock";
+      } else {
+        for (const trait of kindOf(brick.kind).traits) {
+          this.traits[trait.kind].struck?.(struck);
+        }
       }
       if (struck.shield === null) {
         this.strike(cell, brick);
@@ -326,9 +366,15 @@ class Flying implements Hooks {
         this.events.push({ at, kind: "shielded", cell, by: struck.shield });
       }
     }
-    this.moment = "brick";
-    for (const trait of traits) {
-      this.traits[trait.kind].met?.(this, cell, brick);
+    this.runRules("met", cell, brick);
+  }
+
+  /** Runs the rules of a brick's traits for a moment, the hooks made for that moment while they run. */
+  private runRules(rule: BrickRule, cell: number, brick: Brick): void {
+    this.moment = rule === "entered" ? "eye" : "brick";
+    this.ruling = cell;
+    for (const trait of kindOf(brick.kind).traits) {
+      this.traits[trait.kind][rule]?.(this, cell, brick);
     }
     this.moment = "none";
   }
@@ -356,21 +402,32 @@ class Flying implements Hooks {
     if (broke) {
       this.broken[cell] = 1;
       clearBrick(this.field, cell);
-      this.moment = "brick";
-      for (const trait of kindOf(brick.kind).traits) {
-        this.traits[trait.kind].broken?.(this, cell, brick);
-      }
-      this.moment = "none";
+      this.runRules("broken", cell, brick);
     }
   }
 
   earn(): void {
-    if (this.moment !== "brick") {
-      throw new Error(
-        "A floor bounce is earned only as a brick breaks or is met.",
-      );
-    }
+    this.atBrick("A floor bounce is earned");
     this.earnBounce("spring");
+  }
+
+  hold(): void {
+    this.atBrick("A fuzzball is held up");
+    if (this.heldAt === this.turns || this.holdsLeft === 0) {
+      return;
+    }
+    this.heldAt = this.turns;
+    this.holdsLeft--;
+    const { at, holdsLeft: left } = this;
+    this.events.push({ at, kind: "hold", cell: this.ruling, left });
+    this.opening = left === 0;
+  }
+
+  /** Throws unless a brick's rules run at a turn, as it breaks or is met, naming what was made at another moment. */
+  private atBrick(made: string): void {
+    if (this.moment !== "brick") {
+      throw new Error(`${made} only as a brick breaks or is met.`);
+    }
   }
 
   /**
@@ -395,11 +452,22 @@ class Flying implements Hooks {
     this.eyes = false;
     const brick = this.start.wall.bricks[cell];
     if (brick !== null && brick !== undefined) {
-      this.moment = "eye";
-      for (const trait of kindOf(brick.kind).traits) {
-        this.traits[trait.kind].entered?.(this, cell, brick);
-      }
-      this.moment = "none";
+      this.runRules("entered", cell, brick);
+    }
+  }
+
+  /**
+   * Draws a bolt back on every lock in the field at every
+   * `FlightRules.boltTurns`th turn, while a brick there is still shut by
+   * more bolts than are drawn.
+   */
+  private drawBolt(): void {
+    if (
+      this.turns === (this.drawn + 1) * this.rules.boltTurns &&
+      this.mostBolts > this.drawn
+    ) {
+      this.drawn++;
+      this.events.push({ at: this.at, kind: "bolt", drawn: this.drawn });
     }
   }
 
@@ -584,6 +652,15 @@ class Flying implements Hooks {
       this.waypoints.push({ at, x, y });
     }
   }
+}
+
+/** Returns the bolts a brick is shut by, the most its traits' rules give it: none, where none bolts it. */
+function boltsOf(brick: Brick, traits: TraitRules): number {
+  let bolts = 0;
+  for (const trait of kindOf(brick.kind).traits) {
+    bolts = Math.max(bolts, traits[trait.kind].bolts?.(brick) ?? 0);
+  }
+  return bolts;
 }
 
 /**
