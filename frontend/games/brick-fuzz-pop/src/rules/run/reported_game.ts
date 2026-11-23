@@ -7,8 +7,8 @@
 import { isAim } from "@fz/brick-wall/rules/aims";
 import { isDepth } from "@fz/brick-wall/rules/field";
 import type { Pars } from "@fz/brick-wall/rules/par";
-import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { takeRound } from "@fz/brick-wall/rules/run";
+import { hasKnownLevel, savedRunOf } from "@fz/brick-wall/rules/saved_wall";
 import { isFiniteNumber, isRecord, unknownKey } from "@fz/core/json";
 import type { CertifiedShot } from "../levels/certificate";
 import type { LevelEntry } from "../levels/levels";
@@ -22,10 +22,9 @@ import { type Boon, type Shot, isBoon, isCharge } from "../shot";
 import { RUN_RULES, type Run, levelOf } from "./run";
 import {
   type SavedGame,
-  type SavedStart,
   type TakenUp,
-  hasKnownLevel,
   restoreGame,
+  savedStartOf,
 } from "./saved_game";
 import { PARS } from "./stars";
 
@@ -358,31 +357,8 @@ function savedGameOf(
   levels: readonly LevelEntry[],
   tuned: boolean,
 ): SavedGame {
-  return {
-    levelId: levelIdOf(levels, run.level),
-    level: run.level,
-    firstLevel: run.firstLevel,
-    depth: run.depth,
-    rounds: run.rounds,
-    jumps: run.tally.jumps,
-    banked: run.banked,
-    stars: run.stars,
-    score: run.score,
-    tuned,
-    start: run.rounds === 0 ? null : savedStartOf(start),
-  };
-}
-
-/** Returns where a round starts as the saved game keeps it. */
-function savedStartOf({ wall, depth, x, crew, boon }: RoundStart): SavedStart {
-  return {
-    hits: wall.bricks.map((brick) => (brick === null ? null : brick.hits)),
-    lowestRow: wall.lowestRow,
-    depth,
-    x,
-    friends: crew.friends,
-    boon,
-  };
+  const kept = run.rounds === 0 ? null : savedStartOf(start);
+  return savedRunOf(run, kept, levels, tuned);
 }
 
 /** Returns a level's rounds as a report keeps their shots, each saying only what differs from the round's before. */

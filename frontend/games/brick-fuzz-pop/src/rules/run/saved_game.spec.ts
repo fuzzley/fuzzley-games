@@ -1,37 +1,22 @@
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { parOf } from "@fz/brick-wall/rules/par";
-import {
-  createRun,
-  pause,
-  startLevel,
-  takeRound,
-} from "@fz/brick-wall/rules/run";
-import { WALL_LEGEND } from "../levels/legend";
+import { takeRound } from "@fz/brick-wall/rules/run";
+import type { Kept, RunKeeping } from "@fz/brick-wall/rules/saved_wall";
 import {
   LEVELS,
   type Level,
-  type LevelSetData,
   levelEntryOf,
   levelStart,
-  levelsOf,
   parseLevel,
 } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import type { Brick } from "../wall/wall";
 import { RUN_RULES, type Run } from "./run";
 import {
-  type RunKeeping,
-  hasDepth,
   hasEarnedBoon,
-  hasKnownLevel,
   hasSoundCrew,
   hasSoundPlace,
-  hasSoundRounds,
-  hasSoundScore,
-  readRun,
-  readStars,
+  readCounts,
   readStart,
-  readWall,
   restoreGame,
   saveGame,
 } from "./saved_game";
@@ -62,7 +47,7 @@ const PLAYED: RoundStart = {
   boon: null,
 };
 
-/** The run under way and {@link PLAYED} as storage keeps them, every key written out, so renaming one fails. */
+/** The run under way and {@link PLAYED} as storage keeps them, every key written out in the order it keeps them, so renaming or moving one fails. */
 const STORED = {
   levelId: "girder",
   level: 5,
@@ -90,60 +75,18 @@ const SUNK = {
   lowestRow: 0,
 };
 
-/** What of a run its wall is read against, three rounds into Girder on a field 11 deep, none of them a jump. */
+/** What of a run its round's start is read against, three rounds into Girder on a field 11 deep, none of them a jump. */
 const THREE_ROUNDS = { depth: 11, rounds: 3, tally: { jumps: 0 } };
 
-/** Levels a run kept may name that the game doesn't have so, each failing `hasKnownLevel()`. */
-const KNOWN_LEVEL_SPOILS: readonly Spoil[] = [
-  ["a level that isn't a number", { level: "5" }],
-  ["a level before the first", { level: 0 }],
-  ["a level past the last", { level: LEVELS.length + 1 }],
-  [
-    "a level past the last, with no id",
-    { level: LEVELS.length + 1, levelId: undefined },
-  ],
-  ["another level's id", { levelId: "pips" }],
-  ["a first level that isn't a number", { firstLevel: "3" }],
-  ["a first level before the first", { firstLevel: 0 }],
-  ["a first level after the level in play", { firstLevel: 6 }],
-];
-
-/** Depths a value kept may hold that no field has, each failing `hasDepth()`. */
-const DEPTH_SPOILS: readonly Spoil[] = [
-  ["a depth shallower than any field", { depth: 10 }],
-  ["a depth deeper than any field", { depth: 23 }],
-  ["a depth that isn't whole", { depth: 11.5 }],
-  ["a depth that isn't a number", { depth: "11" }],
-];
-
-/** Rounds a run kept may hold that don't add up, each failing `hasSoundRounds()`. */
-const ROUND_SPOILS: readonly Spoil[] = [
-  ["rounds that aren't a number", { rounds: "3" }],
+/** Jumps a run kept may count that its rounds and points can't hold, each failing `readCounts()`. */
+const JUMP_SPOILS: readonly Spoil[] = [
+  ["jumps that aren't a number", { jumps: "0" }],
   ["jumps below nothing", { jumps: -1 }],
   ["more jumps than rounds", { jumps: 4 }],
-];
-
-/** Stars a run kept may hold that its levels cleared can't have earned, each failing `readStars()`. */
-const STAR_SPOILS: readonly Spoil[] = [
-  ["stars that aren't a number", { stars: "5" }],
-  ["stars that aren't whole", { stars: 4.5 }],
-  ["fewer stars than one for each level cleared", { stars: 1 }],
-  ["more stars than the most for each level cleared", { stars: 7 }],
-  ["stars with no level cleared", { firstLevel: 5 }],
-];
-
-/** Points a run kept may hold that don't add up, each failing `hasSoundScore()`. */
-const SCORE_SPOILS: readonly Spoil[] = [
-  ["points banked that aren't a number", { banked: "3000" }],
-  ["a score that isn't a number", { score: null }],
-  ["a score below the points banked", { score: 2999 }],
-  ["fewer points banked than its stars brought", { banked: 999 }],
-  ["points banked with no star earned", { firstLevel: 5, stars: 0 }],
   [
     "fewer points on the level than its jumps scored",
     { jumps: 3, score: 3299 },
   ],
-  ["points on a level with no round played", { rounds: 0 }],
 ];
 
 /** Places a fuzzball kept may wait at that none can, each failing `hasSoundPlace()`. */
@@ -189,22 +132,13 @@ function runUnderWay(change: Partial<Run> = {}): Run {
 }
 
 /** Returns the run kept with some of its values changed, as a browser might come to hold it. */
-function tampered(
-  change: Readonly<Record<string, unknown>>,
-): Record<string, unknown> {
+function tampered(change: Readonly<Record<string, unknown>>): Kept {
   return { ...STORED, ...change };
 }
 
 /** Returns the run kept with some of its round's start's values changed. */
-function tamperedStart(
-  change: Readonly<Record<string, unknown>>,
-): Record<string, unknown> {
+function tamperedStart(change: Readonly<Record<string, unknown>>): Kept {
   return { ...STORED.start, ...change };
-}
-
-/** Returns the hits kept with a cell's changed. */
-function hitsWith(cell: number, hits: unknown): unknown[] {
-  return STORED.start.hits.map((kept, at) => (at === cell ? hits : kept));
 }
 
 /** Returns a value as storage would read it back. */
@@ -212,40 +146,23 @@ function readBack(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
 
-/** Returns the stars a run kept has earned, given the levels it says it cleared. */
-function starsRead(value: Readonly<Record<string, unknown>>): number | null {
-  const cleared = Number(value["level"]) - Number(value["firstLevel"]);
-  return readStars(value, cleared);
-}
-
-/** Returns whether a run kept holds a sound score, given the stars it says it earned, its rounds and its jumps. */
-function scoreHolds(value: Readonly<Record<string, unknown>>): boolean {
-  return hasSoundScore(value, Number(value["stars"]), {
+/** Returns the jumps a run kept counts, read against the rounds and points it holds. */
+function countsRead(value: Kept): unknown {
+  return readCounts(value, {
     rounds: Number(value["rounds"]),
-    jumps: Number(value["jumps"]),
+    banked: Number(value["banked"]),
+    score: Number(value["score"]),
   });
 }
 
 describe("saveGame", () => {
-  it("keeps a run under way and where its next round starts, every key by its name", () => {
-    expect(saveGame(runUnderWay(), PLAYED, LEVELS, KEEPING)).toEqual(STORED);
+  it("keeps a run under way and where its next round starts, every key by its name, in the order storage keeps them", () => {
+    const saved = saveGame(runUnderWay(), PLAYED, LEVELS, KEEPING);
+
+    expect(JSON.stringify(saved)).toBe(JSON.stringify(STORED));
   });
 
-  it("keeps whether the run was tuned", () => {
-    const saved = saveGame(runUnderWay(), PLAYED, LEVELS, { tuned: true });
-
-    expect(saved?.tuned).toBe(true);
-  });
-
-  it("keeps a level with no round played as one to lay out afresh", () => {
-    const run = runUnderWay({ rounds: 0, score: 3000, outcome: "paused" });
-
-    const saved = saveGame(run, PLAYED, LEVELS, KEEPING);
-
-    expect(saved).toMatchObject({ level: 5, rounds: 0, start: null });
-  });
-
-  it("keeps a run whose level was just cleared at the start of the next, on the field's depth", () => {
+  it("keeps a run whose level was just cleared at the start of the next, on the field's depth, no jump counted", () => {
     const run = runUnderWay({
       tally: { jumps: 1 },
       score: 4100,
@@ -269,7 +186,7 @@ describe("saveGame", () => {
     });
   });
 
-  it("keeps a round in flight that clears its level as it lands, at the start of the next", () => {
+  it("keeps a round in flight that clears its level as it lands, with the stars its tiers earn", () => {
     const run = takeRound(
       runUnderWay(),
       {
@@ -288,91 +205,6 @@ describe("saveGame", () => {
       stars: 5 + starsFor(4, run.par),
       start: null,
     });
-  });
-
-  it("keeps a paused round in flight that clears its level as it lands", () => {
-    const run = takeRound(
-      runUnderWay(),
-      {
-        points: 10,
-        jumped: false,
-        result: "cleared",
-      },
-      RUN_RULES,
-    );
-
-    const saved = saveGame(
-      { ...run, outcome: "paused" },
-      PLAYED,
-      LEVELS,
-      KEEPING,
-    );
-
-    expect(saved).toMatchObject({ level: 6, start: null });
-  });
-
-  it("keeps nothing of a run whose round in flight loses its level", () => {
-    const run = takeRound(
-      runUnderWay(),
-      {
-        points: 0,
-        jumped: false,
-        result: "lost",
-      },
-      RUN_RULES,
-    );
-
-    expect(saveGame(run, PLAYED, LEVELS, KEEPING)).toBeNull();
-  });
-
-  it("keeps a cleared level of levels with no par at the start of the next", () => {
-    const levels = levelsOf([
-      {
-        id: "set",
-        name: "Set",
-        levels: ["a", "b"].map((id) => ({
-          id,
-          name: id,
-          boon: "hot",
-          bricks: [],
-        })),
-      } satisfies LevelSetData,
-    ]);
-    const run = runUnderWay({
-      lastLevel: 2,
-      firstLevel: 1,
-      level: 1,
-      banked: 0,
-      outcome: "cleared",
-    });
-
-    expect(saveGame(run, PLAYED, levels, KEEPING)).toMatchObject({
-      levelId: "b",
-      level: 2,
-    });
-  });
-
-  it.each<[string, Run]>([
-    [
-      "waiting for its first level's first move",
-      createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES),
-    ],
-    [
-      "under way on its first level with no round played",
-      startLevel(createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES)),
-    ],
-    [
-      "paused on its first level with no round played",
-      pause(
-        startLevel(
-          createRun({ id: 1, level: 5, depth: 11 }, LEVELS, RUN_RULES),
-        ),
-      ),
-    ],
-    ["over", runUnderWay({ outcome: "over" })],
-    ["won", runUnderWay({ level: LEVELS.length, outcome: "won" })],
-  ])("keeps nothing of a run %s", (_, run) => {
-    expect(saveGame(run, PLAYED, LEVELS, KEEPING)).toBeNull();
   });
 });
 
@@ -402,12 +234,6 @@ describe("restoreGame", () => {
     const takenUp = restoreGame(tampered({ jumps: 1, start }), LEVELS, 9);
 
     expect(takenUp?.start.boon).toBe("hot");
-  });
-
-  it("takes up a run kept before it counted stars, as having earned one a level cleared", () => {
-    const before = readBack(tampered({ stars: undefined }));
-
-    expect(restoreGame(before, LEVELS, 9)?.run.stars).toBe(2);
   });
 
   it("works its par out from the pars it is given", () => {
@@ -443,128 +269,38 @@ describe("restoreGame", () => {
   });
 
   it.each<[string, unknown]>([
-    ["something that isn't a run", 5],
-    ["a run that can't be trusted", tampered({ level: 0 })],
-    ["a tuning that isn't a yes or a no", tampered({ tuned: "no" })],
-    ["a level with rounds played and no start", tampered({ start: null })],
+    ["more stars than three a level cleared", tampered({ stars: 7 })],
+    ["fewer points banked than its stars brought", tampered({ banked: 999 })],
     [
-      "a start of a level with no round played",
-      tampered({ rounds: 0, score: 3000 }),
-    ],
-    ["a start that isn't one", tampered({ start: 5 })],
-    ["no start at all", tampered({ start: undefined })],
-    [
-      "a start that can't be trusted",
+      "a start the game can't trust",
       tampered({ start: tamperedStart({ x: 0 }) }),
     ],
-  ])("drops %s", (_, value) => {
+  ])("drops a run of %s", (_, value) => {
     expect(restoreGame(value, LEVELS, 9)).toBeNull();
   });
-});
 
-describe("readRun", () => {
-  it("reads the run kept, paused, under a new id, its par worked out afresh", () => {
-    expect(readRun(STORED, LEVELS, 9)).toEqual(
-      runUnderWay({ id: 9, outcome: "paused" }),
-    );
-  });
-
-  it.each([
-    ...KNOWN_LEVEL_SPOILS,
-    ...DEPTH_SPOILS,
-    ...ROUND_SPOILS,
-    ...STAR_SPOILS,
-    ...SCORE_SPOILS,
-  ])("drops a run of %s", (_, change) => {
-    expect(readRun(tampered(change), LEVELS, 9)).toBeNull();
-  });
-
-  it("drops a run whose stars it can't read, rather than reading them as none", () => {
-    const spoiled = tampered({ stars: "5", banked: 0, score: 450 });
-
-    expect(readRun(spoiled, LEVELS, 9)).toBeNull();
+  it.each(JUMP_SPOILS)("drops a run of %s", (_, change) => {
+    expect(restoreGame(tampered(change), LEVELS, 9)).toBeNull();
   });
 });
 
-describe("hasKnownLevel", () => {
-  it("holds a run kept to the level the game has under its number", () => {
-    expect(hasKnownLevel(STORED, LEVELS)).toBe(true);
+describe("readCounts", () => {
+  it("reads the jumps a run kept counts", () => {
+    expect(countsRead(STORED)).toEqual({ jumps: 0 });
   });
 
-  it("holds a run kept on its first level", () => {
-    expect(hasKnownLevel(tampered({ firstLevel: 5 }), LEVELS)).toBe(true);
+  it("reads as many jumps as rounds", () => {
+    expect(countsRead(tampered({ jumps: 3 }))).toEqual({ jumps: 3 });
   });
 
-  it.each(KNOWN_LEVEL_SPOILS)("fails a run of %s", (_, change) => {
-    expect(hasKnownLevel(tampered(change), LEVELS)).toBe(false);
-  });
-});
+  it("reads jumps whose points the level holds, and no more", () => {
+    const jumped = tampered({ banked: 1000, jumps: 3, score: 1300 });
 
-describe("hasDepth", () => {
-  it.each([11, 22])("holds a depth of %i", (depth) => {
-    expect(hasDepth(tampered({ depth }))).toBe(true);
+    expect(countsRead(jumped)).toEqual({ jumps: 3 });
   });
 
-  it.each(DEPTH_SPOILS)("fails %s", (_, change) => {
-    expect(hasDepth(tampered(change))).toBe(false);
-  });
-});
-
-describe("hasSoundRounds", () => {
-  it("holds a run kept with as many jumps as rounds", () => {
-    expect(hasSoundRounds(tampered({ jumps: 3 }))).toBe(true);
-  });
-
-  it.each(ROUND_SPOILS)("fails a run of %s", (_, change) => {
-    expect(hasSoundRounds(tampered(change))).toBe(false);
-  });
-});
-
-describe("readStars", () => {
-  it("reads the stars a run kept has earned", () => {
-    expect(starsRead(STORED)).toBe(5);
-  });
-
-  it.each([2, 6])("reads %i stars for two levels cleared", (stars) => {
-    expect(starsRead(tampered({ stars }))).toBe(stars);
-  });
-
-  it("reads no stars for a run kept on its first level", () => {
-    expect(starsRead(tampered({ firstLevel: 5, stars: 0 }))).toBe(0);
-  });
-
-  it("reads a run kept before it counted stars as having earned one a level cleared", () => {
-    expect(starsRead(tampered({ stars: undefined }))).toBe(2);
-  });
-
-  it.each(STAR_SPOILS)("drops %s", (_, change) => {
-    expect(starsRead(tampered(change))).toBeNull();
-  });
-});
-
-describe("hasSoundScore", () => {
-  it("holds a run kept to its points", () => {
-    expect(scoreHolds(STORED)).toBe(true);
-  });
-
-  it("holds a run kept with no round played and nothing scored on its level", () => {
-    expect(scoreHolds(tampered({ rounds: 0, score: 3000 }))).toBe(true);
-  });
-
-  it("holds a run kept on its first level with nothing banked", () => {
-    const first = tampered({ firstLevel: 5, stars: 0, banked: 0 });
-
-    expect(scoreHolds(first)).toBe(true);
-  });
-
-  it("holds a run kept with its stars' points banked, and its jumps' on the level", () => {
-    expect(scoreHolds(tampered({ banked: 1000, jumps: 3, score: 1300 }))).toBe(
-      true,
-    );
-  });
-
-  it.each(SCORE_SPOILS)("fails a run of %s", (_, change) => {
-    expect(scoreHolds(tampered(change))).toBe(false);
+  it.each(JUMP_SPOILS)("drops %s", (_, change) => {
+    expect(countsRead(tampered(change))).toBeNull();
   });
 });
 
@@ -573,13 +309,35 @@ describe("readStart", () => {
     expect(readStart(STORED.start, GIRDER, THREE_ROUNDS)).toEqual(PLAYED);
   });
 
-  it.each([
-    ...DEPTH_SPOILS,
-    ...PLACE_SPOILS,
-    ...CREW_SPOILS,
-    ...BOON_SPOILS,
-    ["a wall that can't be trusted", { lowestRow: 6 }] as const,
-  ])("drops a start of %s", (_, change) => {
+  it("reads a wall come down a jump's rows for a round that jumped", () => {
+    const start = tamperedStart({ ...SUNK, boon: "hot" });
+    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
+
+    expect(readStart(start, GIRDER, run)?.wall.lowestRow).toBe(0);
+  });
+
+  it.each([...PLACE_SPOILS, ...CREW_SPOILS, ...BOON_SPOILS])(
+    "drops a start of %s",
+    (_, change) => {
+      expect(readStart(tamperedStart(change), GIRDER, THREE_ROUNDS)).toBeNull();
+    },
+  );
+
+  it.each<Spoil>([
+    ["a depth no field has", { depth: 10 }],
+    [
+      "a wall come down fewer rows than its rounds bring it from where it opened on the depth its level began on",
+      { lowestRow: 3 },
+    ],
+    [
+      "a wall with nothing left the level needs",
+      {
+        hits: GIRDER.bricks.map((brick) =>
+          brick?.kind === "steel" ? 0 : null,
+        ),
+      },
+    ],
+  ])("drops a start the saved wall's checks fail: %s", (_, change) => {
     expect(readStart(tamperedStart(change), GIRDER, THREE_ROUNDS)).toBeNull();
   });
 
@@ -628,100 +386,5 @@ describe("hasEarnedBoon", () => {
     expect(hasEarnedBoon(tamperedStart({ boon: "triple" }), GIRDER, 2)).toBe(
       false,
     );
-  });
-});
-
-describe("readWall", () => {
-  it("lays the level's bricks out with the hits kept, where the wall has come to", () => {
-    expect(readWall(STORED.start, GIRDER, THREE_ROUNDS)).toEqual(PLAYED.wall);
-  });
-
-  it("keeps each brick as the level lays it out where its hits are whole", () => {
-    const wall = readWall(STORED.start, GIRDER, THREE_ROUNDS);
-
-    expect(wall?.bricks[0]).toBe(GIRDER.bricks[0]);
-  });
-
-  it("reads a wall whose lowest rows have sunk into the floor", () => {
-    expect(readWall(tamperedStart(SUNK), GIRDER, THREE_ROUNDS)).not.toBeNull();
-  });
-
-  it("reads a wall come down a jump's rows for a round that jumped", () => {
-    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
-
-    expect(readWall(tamperedStart(SUNK), GIRDER, run)).not.toBeNull();
-  });
-
-  it("drops a wall come down a row less than a jump brings it", () => {
-    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
-    const start = tamperedStart({ ...SUNK, lowestRow: 1 });
-
-    expect(readWall(start, GIRDER, run)).toBeNull();
-  });
-
-  it.each<Spoil>([
-    ["hits that aren't a list", { hits: 5 }],
-    ["fewer cells than the level's", { hits: STORED.start.hits.slice(1) }],
-    ["more cells than the level's", { hits: [...STORED.start.hits, null] }],
-    ["a lowest row that isn't whole", { lowestRow: 2.5 }],
-    ["a wall come down fewer rows than its rounds bring it", { lowestRow: 3 }],
-    ["a brick where the level has none", { hits: hitsWith(2, 1) }],
-    ["a brick with more hits than whole", { hits: hitsWith(10, 3) }],
-    ["a brick with no hits left", { hits: hitsWith(11, 0) }],
-    ["hits that aren't a count", { hits: hitsWith(11, "1") }],
-    ["hits on a brick that never breaks", { hits: hitsWith(0, 1) }],
-    ["a brick standing on the floor", { lowestRow: 0 }],
-    [
-      "nothing left the level needs",
-      {
-        hits: GIRDER.bricks.map((brick) =>
-          brick?.kind === "steel" ? 0 : null,
-        ),
-      },
-    ],
-  ])("drops a wall of %s", (_, change) => {
-    expect(readWall(tamperedStart(change), GIRDER, THREE_ROUNDS)).toBeNull();
-  });
-
-  describe("with portals", () => {
-    /** A level of two steel bricks twinned as a portal's pair stand in for, over a row of bricks. */
-    const TWINNED: Level = {
-      boon: "hot",
-      bricks: wallFrom(["#......#.", "ooooooooo"], WALL_LEGEND).bricks.map(
-        (brick, cell) => {
-          if (cell === 9) return brick && { ...brick, twin: 16 };
-          return cell === 16 && brick ? { ...brick, twin: 9 } : brick;
-        },
-      ),
-      rows: 2,
-    };
-
-    /** What of a run its wall is read against: none of its rounds played yet. */
-    const NO_ROUNDS = { depth: 11, rounds: 0, tally: { jumps: 0 } };
-
-    /** Returns the twins' hits kept, each as given, over a row of bricks. */
-    function twins(
-      first: number | null,
-      second: number | null,
-    ): Record<string, unknown> {
-      const hits = TWINNED.bricks.map((brick) => brick?.hits ?? null);
-      hits[9] = first;
-      hits[16] = second;
-      return { hits, lowestRow: 1 };
-    }
-
-    it.each([
-      ["both twins kept", 0, 0],
-      ["both twins gone", null, null],
-    ] as const)("reads a wall with %s", (_, first, second) => {
-      expect(readWall(twins(first, second), TWINNED, NO_ROUNDS)).not.toBeNull();
-    });
-
-    it.each([
-      ["the first twin gone", null, 0],
-      ["the second twin gone", 0, null],
-    ] as const)("drops a wall with %s", (_, first, second) => {
-      expect(readWall(twins(first, second), TWINNED, NO_ROUNDS)).toBeNull();
-    });
   });
 });

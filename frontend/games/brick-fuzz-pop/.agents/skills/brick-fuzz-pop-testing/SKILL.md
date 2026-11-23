@@ -276,10 +276,16 @@ Phaser game. A new case uses what the spec already has:
 
 `src/rules/run/saved_game.spec.ts` keeps a run (`STORED`) and spoils it one
 thing at a time (`tampered()`). **A spoil is written once, in the table
-named for the check it spoils** (`KNOWN_LEVEL_SPOILS`, `DEPTH_SPOILS`,
-`ROUND_SPOILS` and the rest). That check's own spec holds each of its
+named for the check it spoils** (`JUMP_SPOILS`, `PLACE_SPOILS`,
+`CREW_SPOILS` and the rest). That check's own spec holds each of its
 spoils to failing it, so a spoil can't pass by failing another, and the
-reader's spec holds each to being dropped.
+reader's spec holds each to being dropped. The checks of the frame every
+wall game keeps, and of its wall, are `@fz/brick-wall/rules/saved_wall`'s,
+whose spec spoils them the same way over kinds made up for it, so this one
+keeps tables only for the game's own: its jumps, and a round's place, crew
+and boon. It holds `readStart()` to the library's checks with a few cases
+written in its own table, and `restoreGame()` to the stars and points the
+game hands in.
 
 ## The Mutation Pass
 

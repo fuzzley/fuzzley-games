@@ -1,26 +1,33 @@
+import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import type { Pars } from "@fz/brick-wall/rules/par";
+import type { RunRules } from "@fz/brick-wall/rules/run";
 import {
-  COLUMNS,
-  LEAST_DEPTH,
-  SIDE_MARGIN,
-  isDepth,
-} from "@fz/brick-wall/rules/field";
-import { type Pars, parOf } from "@fz/brick-wall/rules/par";
-import { levelIdOf } from "@fz/brick-wall/rules/progress";
-import { afterLanding, isInProgress } from "@fz/brick-wall/rules/run";
-import { isCleared, thirdsOf } from "@fz/brick-wall/rules/wall";
-import {
-  isCount,
-  isFiniteNumber,
-  isListOf,
-  isRecord,
-  isWhole,
-} from "@fz/core/json";
+  type Kept,
+  type KeptWall,
+  type RunKeeping,
+  type SavedRules,
+  type SavedRun,
+  type TakenUp as WallTakenUp,
+  hasDepth,
+  keptWallOf,
+  readWall,
+  restoreRun,
+  saveRun,
+} from "@fz/brick-wall/rules/saved_wall";
+import { isCount, isFiniteNumber, isListOf, isRecord } from "@fz/core/json";
 import type { Level, LevelEntry } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
-import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";
-import { type Brick, WALL_RULES, type Wall } from "../wall/wall";
-import { RUN_RULES, type Run, levelOf, openingOf } from "./run";
+import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS } from "../tuning";
+import { WALL_RULES } from "../wall/wall";
+import {
+  type LevelCounts,
+  RUN_RULES,
+  type RoundTaken,
+  type Run,
+  levelOf,
+  openingOf,
+} from "./run";
 import { MOST_STARS, PARS } from "./stars";
 
 /**
@@ -33,38 +40,8 @@ import { MOST_STARS, PARS } from "./stars";
  */
 export const SAVED_GAME_VERSION = 1;
 
-/** A run under way as storage keeps it, between rounds. */
-export interface SavedGame {
-  /** The id of the level in play, which must still be the level of its number. */
-  readonly levelId: string;
-  readonly level: number;
-  readonly firstLevel: number;
-  /** The depth the level in play began on, which its par is set for. */
-  readonly depth: number;
-  readonly rounds: number;
-  readonly jumps: number;
-  readonly banked: number;
-  /**
-   * The stars the levels it has cleared earned. A game kept before the run
-   * counted them lacks it, and is read as having earned one a level.
-   */
-  readonly stars: number;
-  readonly score: number;
-  /** Whether the run keeps no records, as the debug menu took it off the record. */
-  readonly tuned: boolean;
-  /**
-   * Where the level's next round starts, or null for a level with no round
-   * played yet, which is laid out afresh.
-   */
-  readonly start: SavedStart | null;
-}
-
 /** Where a round starts as storage keeps it: what play has changed of its level's wall, and the rest of the round's start. */
-export interface SavedStart {
-  /** Each brick's hits left, by wall cell: null where the level has none, or it has broken or sunk. */
-  readonly hits: readonly (number | null)[];
-  /** The field row the wall's lowest row stands in, which says how far it has come down. */
-  readonly lowestRow: number;
+export interface SavedStart extends KeptWall {
   /** The field's depth as the round was kept, which the room may change. */
   readonly depth: number;
   /** Where the fuzzball waits on the floor. */
@@ -75,64 +52,43 @@ export interface SavedStart {
   readonly boon: Boon | null;
 }
 
-/** What of the run the shell keeps beside it. */
-export interface RunKeeping {
-  /** Whether the run keeps no records, as the debug menu took it off the record. */
-  readonly tuned: boolean;
-}
+/** A run under way as storage keeps it, between rounds: `@fz/brick-wall/rules/saved_wall`'s, the level's jumps beside its rounds. */
+export type SavedGame = SavedRun<LevelCounts, SavedStart>;
 
 /** A run storage kept, taken up: the run, paused, where its next round starts, and how it was played. */
-export interface TakenUp extends RunKeeping {
-  readonly run: Run;
-  readonly start: RoundStart;
-}
+export type TakenUp = WallTakenUp<LevelCounts, RoundStart>;
 
-/** The checks' view of a value read from storage. */
-type Kept = Readonly<Record<string, unknown>>;
+/** What the saved game is handed of the game, but for where a level's rounds start, which reads its levels. */
+const SAVED_RULES: RunRules<LevelCounts, RoundTaken> &
+  Omit<
+    SavedRules<LevelCounts, SavedStart, RoundStart>,
+    "openingOf" | "readStart"
+  > = {
+  ...RUN_RULES,
+  mostStars: MOST_STARS,
+  keptStart: savedStartOf,
+  readTally: readCounts,
+};
 
 /**
  * Returns a run under way and where its level's next round starts as
- * storage keeps them, or null for a run with nothing to keep: one with no
- * round played and no level cleared, or one that has ended.
- *
- * Call it with the round in flight's next start while one flies, so a
- * round is kept as it is released and a page reloaded mid-flight comes back
- * after it: the run is kept as it stands once the round lands
- * (`afterLanding()`). A run whose level is cleared is kept at the start of
- * the next, on the depth the field has, so the page going away over the
- * Cleared card loses nothing; and a level with no round played yet is kept
- * as one to lay out afresh.
+ * storage keeps them, or null for a run with nothing to keep, as
+ * `saveRun()` says: call it with the round in flight's next start while
+ * one flies.
  */
 export function saveGame(
   run: Run,
   next: RoundStart,
   levels: readonly LevelEntry[],
-  { tuned }: RunKeeping,
+  keeping: RunKeeping,
 ): SavedGame | null {
-  const landed = afterLanding(run, RUN_RULES);
-  if (!isInProgress(landed)) return null;
-  if (landed.outcome === "cleared") {
-    // The next level as nextLevel() begins it, but for its par, which
-    // storage doesn't keep.
-    const begun = {
-      ...landed,
-      level: landed.level + 1,
-      depth: next.depth,
-      rounds: 0,
-      tally: RUN_RULES.untallied,
-      banked: landed.score,
-    };
-    return savedRun(begun, null, levels, tuned);
-  }
-  const kept = landed.rounds === 0 ? null : savedStart(next);
-  return savedRun(landed, kept, levels, tuned);
+  return saveRun(run, next, levels, keeping, SAVED_RULES);
 }
 
 /**
  * Returns the run storage kept, paused, under a new id, with where its
- * next round starts, or null if it can't be trusted: it fails one of the
- * run's checks or the round start's, or keeps a start for a level with no
- * round played or none for one with rounds.
+ * next round starts, its par worked out from the pars handed, or null if
+ * it can't be trusted, as `restoreRun()` says.
  */
 export function restoreGame(
   value: unknown,
@@ -140,124 +96,38 @@ export function restoreGame(
   id: number,
   pars: Pars = PARS,
 ): TakenUp | null {
-  if (!isRecord(value)) return null;
-  const run = readRun(value, levels, id, pars);
-  const { tuned, start: kept } = value;
-  if (!run || typeof tuned !== "boolean") return null;
-  const level = levelOf(run, levels);
-  if (kept === null) {
-    return run.rounds === 0
-      ? { run, start: openingOf(run, level), tuned }
-      : null;
-  }
-  const start = run.rounds === 0 ? null : readStart(kept, level, run);
-  return start ? { run, start, tuned } : null;
+  return restoreRun(value, levels, id, {
+    ...SAVED_RULES,
+    pars,
+    openingOf: (run) => openingOf(run, levelOf(run, levels)),
+    readStart: (kept, run) => readStart(kept, levelOf(run, levels), run),
+  });
+}
+
+/** Returns what storage keeps of where a round starts. */
+export function savedStartOf({
+  wall,
+  depth,
+  x,
+  crew,
+  boon,
+}: RoundStart): SavedStart {
+  return { ...keptWallOf(wall), depth, x, friends: crew.friends, boon };
 }
 
 /**
- * Returns the run storage kept, paused, under a new id, or null if it
- * fails a check: its level, its depth, its rounds, its stars or its score.
+ * Returns the jumps a run kept counted on its level, as what the game
+ * tallies of it, or null if they can't be trusted: more than its rounds,
+ * or more than its points on the level hold.
  */
-export function readRun(
+export function readCounts(
   value: Kept,
-  levels: readonly LevelEntry[],
-  id: number,
-  pars: Pars = PARS,
-): Run | null {
-  if (
-    !hasKnownLevel(value, levels) ||
-    !hasDepth(value) ||
-    !hasSoundRounds(value)
-  ) {
-    return null;
-  }
-  const stars = readStars(value, value.level - value.firstLevel);
-  if (stars === null || !hasSoundScore(value, stars, value)) return null;
-  const { levelId, level, firstLevel, depth, rounds, jumps } = value;
-  return {
-    id,
-    lastLevel: levels.length,
-    firstLevel,
-    level,
-    depth,
-    par: parOf(levelId, depth, pars),
-    rounds,
-    tally: { jumps },
-    banked: value.banked,
-    stars,
-    score: value.score,
-    ending: null,
-    outcome: "paused",
-  };
-}
-
-/**
- * Returns whether a run kept names a level the game has under its number,
- * by the id the game gives it there, and a first level from the first to
- * it.
- */
-export function hasKnownLevel(
-  value: Kept,
-  levels: readonly LevelEntry[],
-): value is Kept & Pick<SavedGame, "levelId" | "level" | "firstLevel"> {
-  const { levelId, level, firstLevel } = value;
-  return (
-    typeof levelId === "string" &&
-    isCount(level) &&
-    isCount(firstLevel) &&
-    firstLevel >= 1 &&
-    firstLevel <= level &&
-    levels[level - 1]?.data.id === levelId
-  );
-}
-
-/** Returns whether a value kept holds a depth a field has, a whole number from 11 to 22. */
-export function hasDepth(value: Kept): value is Kept & { depth: number } {
-  const { depth } = value;
-  return isDepth(depth);
-}
-
-/** Returns whether a run kept holds the rounds its level has played and no more jumps than them. */
-export function hasSoundRounds(
-  value: Kept,
-): value is Kept & Pick<SavedGame, "rounds" | "jumps"> {
-  const { rounds, jumps } = value;
-  return isCount(rounds) && isCount(jumps) && jumps <= rounds;
-}
-
-/**
- * Returns the stars a run kept has earned in the levels it has cleared,
- * from one to the most a level, one a level for a game kept before the run
- * counted them, or null if they can't be trusted.
- */
-export function readStars(value: Kept, cleared: number): number | null {
-  const { stars } = value;
-  if (stars === undefined) return cleared;
-  const earned =
-    isCount(stars) && stars >= cleared && stars <= cleared * MOST_STARS;
-  return earned ? stars : null;
-}
-
-/**
- * Returns whether a run kept holds the points of the levels it has
- * cleared, at least its stars' and none if it has earned none, and a score
- * past them by at least its level's jumps' points, and by none before its
- * level's first round.
- */
-export function hasSoundScore(
-  value: Kept,
-  stars: number,
-  { rounds, jumps }: Pick<SavedGame, "rounds" | "jumps">,
-): value is Kept & Pick<SavedGame, "banked" | "score"> {
-  const { banked, score } = value;
-  return (
-    isCount(banked) &&
-    isCount(score) &&
-    banked >= stars * STAR_POINTS &&
-    (stars > 0 || banked === 0) &&
-    score - banked >= jumps * JUMP_POINTS &&
-    (rounds > 0 || score === banked)
-  );
+  { rounds, banked, score }: Pick<Run, "rounds" | "banked" | "score">,
+): LevelCounts | null {
+  const { jumps } = value;
+  const sound =
+    isCount(jumps) && jumps <= rounds && score - banked >= jumps * JUMP_POINTS;
+  return sound ? { jumps } : null;
 }
 
 /**
@@ -279,7 +149,12 @@ export function readStart(
   ) {
     return null;
   }
-  const wall = readWall(value, level, run);
+  const played = {
+    depth: run.depth,
+    rounds: run.rounds,
+    jumps: run.tally.jumps,
+  };
+  const wall = readWall(value, level, played, WALL_RULES);
   if (!wall) return null;
   const { depth, x, friends, boon } = value;
   return { wall, depth, x, crew: { friends }, boon };
@@ -314,117 +189,7 @@ export function hasEarnedBoon(
   return boon === null || (isBoon(boon) && boon === level.boon && jumps > 0);
 }
 
-/**
- * Returns a level's wall as storage kept it, or null if it can't be
- * trusted: a brick where the level has none, hits a brick can't have, a
- * portal without its twin, a wall come down less than the run's rounds
- * bring it from where its level opened on the depth it began on, none
- * left that the level needs, or a brick still standing at the floor,
- * where it sinks or loses the level.
- */
-export function readWall(
-  value: Kept,
-  level: Level,
-  run: Pick<Run, "depth" | "rounds" | "tally">,
-): Wall | null {
-  const { hits, lowestRow } = value;
-  if (
-    !Array.isArray(hits) ||
-    hits.length !== level.bricks.length ||
-    !isWhole(lowestRow) ||
-    lowestRow > highestAfter(run)
-  ) {
-    return null;
-  }
-  const bricks: (Brick | null)[] = [];
-  for (const [cell, placed] of level.bricks.entries()) {
-    const kept: unknown = hits[cell];
-    if (kept === null) {
-      bricks.push(null);
-    } else if (placed && isHitsOf(placed, kept)) {
-      bricks.push(kept === placed.hits ? placed : { ...placed, hits: kept });
-    } else {
-      return null;
-    }
-  }
-  const wall = { bricks, rows: level.rows, lowestRow };
-  return hasTwins(wall) && !isCleared(wall, WALL_RULES) && !standsOnFloor(wall)
-    ? wall
-    : null;
-}
-
-/** Returns a run and where its next round starts as storage keeps them, naming its level by its id. */
-function savedRun(
-  run: Omit<Run, "id" | "lastLevel" | "par" | "ending" | "outcome">,
-  start: SavedStart | null,
-  levels: readonly LevelEntry[],
-  tuned: boolean,
-): SavedGame {
-  return {
-    levelId: levelIdOf(levels, run.level),
-    level: run.level,
-    firstLevel: run.firstLevel,
-    depth: run.depth,
-    rounds: run.rounds,
-    jumps: run.tally.jumps,
-    banked: run.banked,
-    stars: run.stars,
-    score: run.score,
-    tuned,
-    start,
-  };
-}
-
-/** Returns what storage keeps of where a round starts. */
-function savedStart({ wall, depth, x, crew, boon }: RoundStart): SavedStart {
-  return {
-    hits: wall.bricks.map((brick) => (brick === null ? null : brick.hits)),
-    lowestRow: wall.lowestRow,
-    depth,
-    x,
-    friends: crew.friends,
-    boon,
-  };
-}
-
-/**
- * Returns the highest field row a level's wall can stand in after a run's
- * rounds: each brought it down a row from where it opened, at least, and
- * each jump at least the shallowest field's jump.
- */
-function highestAfter({
-  depth,
-  rounds,
-  tally,
-}: Pick<Run, "depth" | "rounds" | "tally">): number {
-  const moreForAJump = thirdsOf(LEAST_DEPTH).jump - 1;
-  return thirdsOf(depth).opensOn - rounds - tally.jumps * moreForAJump;
-}
-
 /** Returns whether a value kept is a friend's ink, from 0. */
 function isFriendInk(value: unknown): value is number {
   return isCount(value) && value < FRIEND_INKS;
-}
-
-/**
- * Returns whether a value kept is hits a brick of a level can have left:
- * none for a kind that never breaks, else from one to its hits whole.
- */
-function isHitsOf(placed: Brick, kept: unknown): kept is number {
-  if (!isCount(kept)) return false;
-  return placed.full === 0 ? kept === 0 : kept >= 1 && kept <= placed.full;
-}
-
-/** Returns whether every portal of a wall has its twin, as a portal sinks with it. */
-function hasTwins(wall: Wall): boolean {
-  return wall.bricks.every((brick) => {
-    const twin = brick?.twin ?? null;
-    return twin === null || Boolean(wall.bricks[twin]);
-  });
-}
-
-/** Returns whether a brick of a wall stands in the floor's row or under it, where none stands between rounds. */
-function standsOnFloor(wall: Wall): boolean {
-  const reached = Math.max(0, 1 - wall.lowestRow) * COLUMNS;
-  return wall.bricks.slice(0, reached).some((brick) => brick !== null);
 }
