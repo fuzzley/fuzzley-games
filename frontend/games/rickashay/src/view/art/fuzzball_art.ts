@@ -4,12 +4,16 @@
 // half way to standing on end (`combedStrands()`); from 25 it stands on end;
 // and from 45 sparks stand about it too (`wornSparks()`). The hot shot is
 // the fuzzball red-hot, its fur on end, under a crown of flame, Brick Fuzz
-// Pop's `hotShot()` there; and a bored fuzzball yawns, its eyes half shut,
-// in a frame of their own. Each fuzzball is outlined in the mark, as one
-// with its sparks or flames (`fuzzballWearing()`).
+// Pop's `hotShot()` there. Its eyes are a frame of their own, cut out in
+// the mark, which `eyesAt()` shifts the way it flies, and half shut once it
+// heads home, bored or brought home by a guard (`eyesFrameOf()`). Each
+// fuzzball is outlined in the mark, as one with its sparks or flames
+// (`fuzzballWearing()`).
 
+import type { Place } from "@fz/brick-wall/view/field_metrics";
 import {
   FUZZBALL_GRID,
+  FUZZBALL_LOOK,
   FUZZBALL_STRANDS,
   type Strand,
   type Worn,
@@ -48,8 +52,17 @@ const FUZZBALL_SIDE = 0.8;
  */
 const OUTLINE_WIDTH = 0.03;
 
+/** How wide a unit of the fuzzball's grid is drawn, in field units. */
+const GRID_UNIT = FUZZBALL_SIDE / FUZZBALL_GRID;
+
 /** How wide a spark's line is, in field units: a unit of the fuzzball's grid. */
-const SPARK_WIDTH = FUZZBALL_SIDE / FUZZBALL_GRID;
+const SPARK_WIDTH = GRID_UNIT;
+
+/** How far the eyes shift the way the fuzzball flies, across the field and up it, in field units: as far as `FUZZBALL_LOOK` shifts the mark's. */
+const LOOK = {
+  across: FUZZBALL_LOOK.across * GRID_UNIT,
+  up: FUZZBALL_LOOK.down * GRID_UNIT,
+} as const;
 
 /** The fur standing on end, made once: the last two lifts' and the hot shot's. */
 const ON_END = combedStrands(1);
@@ -146,6 +159,38 @@ export function bodyFrameOf({
   return hot ? FRAMES.hotShot : FUZZBALL_NAMES[fur];
 }
 
+/**
+ * Returns the frame a fuzzball's eyes are drawn in: half shut once it has
+ * yawned, bored, or a guard has brought it home, as it drops to the floor,
+ * else open.
+ */
+export function eyesFrameOf({ home }: Pick<BallView, "home">): FrameName {
+  return home ? FRAMES.yawn : FRAMES.eyes;
+}
+
+/**
+ * Writes where a fuzzball's eyes are drawn, in field units, into a place
+ * and returns it: at its body's middle, which their frame is drawn about,
+ * shifted down as it drops home, whatever speed it is left with; up while
+ * it waits, toward its shot, with no speed; and else the way it flies, as
+ * `FUZZBALL_LOOK` shifts the mark's, as far at any speed. So Brick Fuzz
+ * Pop's look.
+ */
+export function eyesAt(
+  { x, y, dx, dy, home }: Pick<BallView, "x" | "y" | "dx" | "dy" | "home">,
+  into: Place,
+): Place {
+  const speed = Math.hypot(dx, dy);
+  if (home || speed === 0) {
+    into.x = x;
+    into.y = y + (home ? -LOOK.up : LOOK.up);
+  } else {
+    into.x = x + (dx / speed) * LOOK.across;
+    into.y = y + (dy / speed) * LOOK.up;
+  }
+  return into;
+}
+
 /** Returns how many device pixels a unit of the fuzzball's grid is drawn at. */
 export function fuzzballGrid(scale: ArtScale): number {
   return (scale.unit * FUZZBALL_SIDE) / FUZZBALL_GRID;
@@ -153,9 +198,10 @@ export function fuzzballGrid(scale: ArtScale): number {
 
 /**
  * Returns the fuzzball's frames in a palette at a scale, each about its
- * body's middle: one at each lift of its fur, the hot shot, and its eyes
- * half shut as it yawns. Each fuzzball is outlined in the mark as one with
- * its sparks or flames, and the eyes are cut out in the mark.
+ * body's middle: one at each lift of its fur, the hot shot, and its eyes,
+ * open, looking straight out, and half shut as it yawns. Each fuzzball is
+ * outlined in the mark as one with its sparks or flames, and the eyes are
+ * cut out in the mark.
  */
 export function fuzzballFrames(
   palette: WallPalette,
@@ -202,6 +248,7 @@ export function fuzzballFrames(
         flames,
       ),
     ),
+    centered(FRAMES.eyes, eyesCommands(by, { color: palette.mark })),
     centered(
       FRAMES.yawn,
       eyesCommands(by, { color: palette.mark }, { face: "sleepy" }),

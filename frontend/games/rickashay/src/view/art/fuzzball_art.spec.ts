@@ -1,4 +1,5 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import type { Place } from "@fz/brick-wall/view/field_metrics";
 import {
   FUZZBALL_STRANDS,
   type Strand,
@@ -18,12 +19,15 @@ import {
   ART_PALETTE,
   ART_SCALE,
   PIXEL_RATIOS,
+  billionths,
   distanceToSegment,
   pointInBillionths,
 } from "../../testing/art_frames";
 import { FRAMES, FURS, type Fur } from "./frames";
 import {
   bodyFrameOf,
+  eyesAt,
+  eyesFrameOf,
   furAt,
   fuzzballFrames,
   fuzzballGrid,
@@ -91,6 +95,27 @@ function outlineOf(frame: ArtFrame, color: number): number {
     body?.kind === "circle"
     ? outline.radius - body.radius
     : NaN;
+}
+
+/**
+ * Returns the points of a frame of the eyes, drawn about a place in field
+ * units, that fall off a body of a radius, in device pixels, about that
+ * frame's middle.
+ */
+function offBody(
+  frame: ArtFrame,
+  points: readonly Point[],
+  at: Place,
+  radius: number,
+): Point[] {
+  // Up the field is up the canvas, so the shift's y turns over.
+  return points.filter(
+    ({ x, y }) =>
+      Math.hypot(
+        x - frame.width / 2 + at.x * ART_SCALE.unit,
+        y - frame.height / 2 - at.y * ART_SCALE.unit,
+      ) > radius,
+  );
 }
 
 /**
@@ -165,6 +190,85 @@ describe("bodyFrameOf", () => {
   );
 });
 
+describe("eyesFrameOf", () => {
+  it.each([
+    [false, FRAMES.eyes],
+    [true, FRAMES.yawn],
+  ])(
+    "draws the eyes of a fuzzball that heads home (%s) in %s",
+    (home, frame) => {
+      expect(eyesFrameOf({ home })).toBe(frame);
+    },
+  );
+});
+
+describe("eyesAt", () => {
+  /** How far the eyes shift across the field the way the fuzzball flies, in field units: 1.3 units of its grid, each 0.025 field units. */
+  const ACROSS = 1.3 * 0.025;
+
+  /** How far the eyes shift up or down the field the way the fuzzball flies, in field units: 0.9 units of its grid. */
+  const UP = 0.9 * 0.025;
+
+  it.each([
+    ["up while it waits for its shot, with no speed", 0, 0, false, 5 + UP],
+    ["down as it drops home, with no speed", 0, 0, true, 5 - UP],
+    [
+      "down as it drops home, whatever speed it is left with",
+      1,
+      2,
+      true,
+      5 - UP,
+    ],
+  ])("shifts them %s", (_, dx, dy, home, y) => {
+    const at = eyesAt({ x: 2, y: 5, dx, dy, home }, { x: 0, y: 0 });
+
+    expect(pointInBillionths(at)).toEqual(pointInBillionths({ x: 2, y }));
+  });
+
+  it.each([0.5, 3])(
+    "shifts them across the field the way it flies, as far at a speed of %f as at any",
+    (speed) => {
+      const at = eyesAt(
+        { x: 2, y: 5, dx: -speed, dy: 0, home: false },
+        { x: 0, y: 0 },
+      );
+
+      expect(pointInBillionths(at)).toEqual(
+        pointInBillionths({ x: 2 - ACROSS, y: 5 }),
+      );
+    },
+  );
+
+  it.each([
+    ["up", 2, 5 + UP],
+    ["down", -2, 5 - UP],
+  ])("shifts them %s as it flies that way", (_, dy, y) => {
+    const at = eyesAt({ x: 2, y: 5, dx: 0, dy, home: false }, { x: 0, y: 0 });
+
+    expect(pointInBillionths(at)).toEqual(pointInBillionths({ x: 2, y }));
+  });
+
+  it("shifts them along a slant by each way's share of it", () => {
+    const at = eyesAt(
+      { x: 2, y: 5, dx: 1, dy: -1, home: false },
+      { x: 0, y: 0 },
+    );
+
+    expect(pointInBillionths(at)).toEqual(
+      pointInBillionths({
+        x: 2 + ACROSS / Math.SQRT2,
+        y: 5 - UP / Math.SQRT2,
+      }),
+    );
+  });
+
+  it("writes into the place it is handed, and returns it", () => {
+    const into = { x: 0, y: 0 };
+
+    expect(eyesAt({ x: 1, y: 1, dx: 1, dy: 0, home: false }, into)).toBe(into);
+  });
+});
+
 describe("fuzzballGrid", () => {
   it("draws the fuzzball's grid 0.8 units wide, as the art does", () => {
     expect(fuzzballGrid({ unit: 40, pixelRatio: 1 }) * 32).toBe(32);
@@ -184,10 +288,11 @@ describe("fuzzballGrid", () => {
 });
 
 describe("fuzzballFrames", () => {
-  it("draws a frame for each lift of the fur, in order, then the hot shot and the yawn", () => {
+  it("draws a frame for each lift of the fur, in order, then the hot shot, the eyes and the yawn", () => {
     expect(FUZZBALLS.map(({ name }) => name)).toEqual([
       ...FURS.map((fur) => FRAMES.fuzzball(fur)),
       FRAMES.hotShot,
+      FRAMES.eyes,
       FRAMES.yawn,
     ]);
   });
@@ -450,6 +555,63 @@ describe("fuzzballFrames", () => {
     });
   });
 
+  describe("the eyes", () => {
+    const frame = frameNamed(FUZZBALLS, FRAMES.eyes);
+    const eyes = drawnIn(frame, "polygon", ART_PALETTE.mark);
+
+    it("draws two eyes in the mark and nothing else", () => {
+      expect({ eyes: eyes.length, all: frame.commands.length }).toEqual({
+        eyes: 2,
+        all: 2,
+      });
+    });
+
+    it("sets them about the body's middle, its frame's, as the fuzzball has them: a unit of its grid right and a fifth of one up", () => {
+      const by = fuzzballGrid(ART_SCALE);
+      const [left, right] = eyes.map((eye) => extentOf(eye));
+
+      expect(
+        left &&
+          right && {
+            x: billionths(
+              (left.x + right.x + right.width) / 2 - frame.width / 2,
+            ),
+            y: billionths(left.y + left.height / 2 - frame.height / 2),
+          },
+      ).toEqual({ x: billionths(by), y: billionths(-0.2 * by) });
+    });
+
+    it("keeps them on the body whichever way it flies", () => {
+      const radius = bodyRadius(
+        frameNamed(FUZZBALLS, FRAMES.fuzzball(0)),
+        ART_PALETTE.fuzzball,
+      );
+      const points = eyes.flatMap((eye) =>
+        eye.kind === "polygon" ? eye.points : [],
+      );
+      const headings = Array.from({ length: 24 }, (_, i) => (i * Math.PI) / 12);
+
+      const off = headings.filter((heading) => {
+        const at = eyesAt(
+          {
+            x: 0,
+            y: 0,
+            dx: Math.cos(heading),
+            dy: Math.sin(heading),
+            home: false,
+          },
+          { x: 0, y: 0 },
+        );
+        return offBody(frame, points, at, radius).length > 0;
+      });
+
+      expect({ points: points.length > 0, off }).toEqual({
+        points: true,
+        off: [],
+      });
+    });
+  });
+
   describe("the yawn", () => {
     const frame = frameNamed(FUZZBALLS, FRAMES.yawn);
     const eyes = drawnIn(frame, "polygon", ART_PALETTE.mark);
@@ -477,6 +639,26 @@ describe("fuzzballFrames", () => {
       expect(
         eyes.map((eye, i) => extentOf(eye).y >= (lidTops[i] ?? Infinity)),
       ).toEqual([true, true]);
+    });
+
+    it("keeps them and the ends of their lids on the body as it drops home, its eyes looking down", () => {
+      const radius = bodyRadius(
+        frameNamed(FUZZBALLS, FRAMES.fuzzball(0)),
+        ART_PALETTE.fuzzball,
+      );
+      const points = [
+        ...eyes.flatMap((eye) => (eye.kind === "polygon" ? eye.points : [])),
+        ...lids.flatMap(({ from, to }) => [from, to]),
+      ];
+      const at = eyesAt(
+        { x: 0, y: 0, dx: 0, dy: 0, home: true },
+        { x: 0, y: 0 },
+      );
+
+      expect({
+        points: points.length > 4,
+        off: offBody(frame, points, at, radius),
+      }).toEqual({ points: true, off: [] });
     });
 
     it("droops each lid toward the outside, its outer end lower than its inner", () => {
