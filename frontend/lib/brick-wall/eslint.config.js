@@ -16,7 +16,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 // the list takes no glob and refuses a file that isn't there. A file of
 // src/testing/ off this list is held only to the helpers' fence below.
 /** @type {readonly string[]} */
-export const HELD_AS_RULES = [];
+export const HELD_AS_RULES = ["src/testing/solver.ts"];
 
 export default defineConfig(
   // The report `yarn test:coverage` writes.

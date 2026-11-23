@@ -12,10 +12,12 @@ const PURE_FLOOR = {
 export default defineConfig(
   angularTests({
     // The specs' helpers and the scripts are measured with no floor, so what
-    // of them goes untested shows.
+    // of them goes untested shows, but for the helpers held as the rules are
+    // (eslint.config.js), which keep the rules' floor.
     include: ["src/**/*.ts", "tools/**/*.mjs"],
     thresholds: {
       "src/rules/**": PURE_FLOOR,
+      "src/testing/solver.ts": PURE_FLOOR,
       "src/view/**": PURE_FLOOR,
       "src/scene/**": {
         statements: 98,

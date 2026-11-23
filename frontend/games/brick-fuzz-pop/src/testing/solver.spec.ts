@@ -1,15 +1,13 @@
-import { DANGER_ROW } from "@fz/brick-wall/rules/wall";
 import type { Level } from "../rules/levels/levels";
+import type { RoundRules } from "../rules/round/round";
 import { HIGH_BRICK, NO_HITS, levelFrom } from "./level_picture";
 import {
-  type Line,
-  type LinePlayed,
+  type CertifiedShot,
   type Solved,
-  lineHolds,
+  linePlayOf,
   replayLine,
   solveLevel,
 } from "./solver";
-import { SIM_TIMEOUT_MS } from "./timing";
 
 /** A level of one plain brick, which opens on row 5 of a field 11 deep, under the jump line. */
 const ONE_BRICK = levelFrom(["o........"]);
@@ -25,20 +23,47 @@ const HIGH_SIXES = levelFrom([
   ".........",
 ]);
 
-/** A level of thirteen bricks of six hits, four of them between steel, which takes every aim and a beam to clear on a field 11 deep. */
-const THICK = levelFrom(["666666666", "#6#6#6#6#"]);
-
-/** Returns a line of shots that take no hit under {@link NO_HITS}. */
-function missesOf(count: number): Line {
-  return Array.from({ length: count }, () => [0, 0] as const);
-}
+/** Rules under which a fuzzball yawns 6 units out, before a shot at aim 0 reaches {@link ONE_BRICK}'s brick. */
+const SHORT_FLIGHTS: RoundRules = { bored: 6 };
 
 /** Returns the line the solver finds for a level, failing the spec if it finds none. */
-function solved(level: Level, depth: number): Solved {
+function solved(level: Level, depth: number): Solved<CertifiedShot> {
   const found = solveLevel(level, depth);
   if (!found) throw new Error("The solver found no line.");
   return found;
 }
+
+describe("linePlayOf", () => {
+  it("gives every aim a shot at every charge, as a certificate keeps one", () => {
+    const { shots } = linePlayOf(ONE_BRICK, 11);
+
+    expect({ aims: shots.length, last: shots.at(-1) }).toEqual({
+      aims: 657,
+      last: [
+        [656, 0],
+        [656, 1],
+        [656, 2],
+        [656, 3],
+        [656, 4],
+        [656, 5],
+      ],
+    });
+  });
+
+  it("tells apart the starts of rounds that leave the wall alike but free a friend or earn a boon", () => {
+    const play = linePlayOf(ONE_BRICK, 11);
+    const { opening } = play;
+
+    const keys = [
+      opening,
+      { ...opening, crew: { friends: [3] } },
+      { ...opening, boon: "hot" as const },
+      { ...opening, x: 2 },
+    ].map(play.keyOf);
+
+    expect(new Set(keys).size).toBe(4);
+  });
+});
 
 describe("solveLevel", () => {
   it("clears a level of one brick greedily, at every fourth aim, in a round", () => {
@@ -58,10 +83,6 @@ describe("solveLevel", () => {
     ]);
   });
 
-  it("finds the same line every time", () => {
-    expect(solveLevel(HIGH_SIXES, 11)).toEqual(solveLevel(HIGH_SIXES, 11));
-  });
-
   it("finds a line its replay clears in as many rounds, with as many jumps", () => {
     const { line, jumps } = solved(HIGH_SIXES, 11);
 
@@ -72,51 +93,16 @@ describe("solveLevel", () => {
     });
   });
 
-  // Every search, down to every aim and a beam of 4, each failing: one search
-  // no batch can split, slowed by coverage and the specs beside it.
-  it(
-    "finds nothing for a level no shot takes a hit off",
-    { timeout: SIM_TIMEOUT_MS },
-    () => {
-      expect(solveLevel(ONE_BRICK, 11, NO_HITS)).toBeNull();
-    },
-  );
-
-  describe("on a level greedy search at every fourth aim can't clear", () => {
-    let thick: Solved;
-
-    // All three searches, the last at every aim and a beam of 4: one search
-    // no batch can split, slowed by coverage.
-    beforeAll(() => {
-      thick = solved(THICK, 11);
-    }, SIM_TIMEOUT_MS);
-
-    it("widens its search to every aim and a beam of 4", () => {
-      expect(thick.search).toEqual({ aimStep: 1, beam: 4 });
-    });
-
-    it("keeps every brick the level needs out of the danger row between rounds", () => {
-      const { leastRow } = replayLine(THICK, 11, thick.line);
-
-      expect(leastRow).toBe(DANGER_ROW + 1);
-    });
+  it("searches through the rules it is handed", () => {
+    expect(solveLevel(ONE_BRICK, 11, SHORT_FLIGHTS)?.line).toEqual([[460, 0]]);
   });
 });
 
 describe("replayLine", () => {
-  it("plays a line till it clears its level, and no further", () => {
-    expect(replayLine(ONE_BRICK, 11, [[4, 0], ...missesOf(1)])).toEqual({
-      cleared: true,
-      rounds: 1,
-      jumps: 0,
-      leastRow: Number.POSITIVE_INFINITY,
-    });
-  });
+  it("plays a line through the rules it is handed, till the round that loses the level", () => {
+    const misses = Array.from({ length: 8 }, () => [0, 0] as const);
 
-  it("stops at the round that loses the level, counting its jumps and the lowest row a needed brick stood in", () => {
-    const played = replayLine(HIGH_BRICK, 11, missesOf(8), NO_HITS);
-
-    expect(played).toEqual({
+    expect(replayLine(HIGH_BRICK, 11, misses, NO_HITS)).toEqual({
       cleared: false,
       rounds: 6,
       jumps: 1,
@@ -124,45 +110,7 @@ describe("replayLine", () => {
     });
   });
 
-  it("plays a line to its end with the level still on", () => {
-    expect(replayLine(ONE_BRICK, 11, missesOf(2), NO_HITS)).toEqual({
-      cleared: false,
-      rounds: 2,
-      jumps: 0,
-      leastRow: 3,
-    });
-  });
-
   it("throws a RangeError for a shot of an aim that isn't one", () => {
     expect(() => replayLine(ONE_BRICK, 11, [[657, 0]])).toThrow(RangeError);
-  });
-});
-
-describe("lineHolds", () => {
-  /** A line of two shots, played as a certificate must play it. */
-  const LINE: Line = [
-    [4, 0],
-    [8, 0],
-  ];
-  const HELD: LinePlayed = {
-    cleared: true,
-    rounds: 2,
-    jumps: 0,
-    leastRow: DANGER_ROW + 1,
-  };
-
-  it("holds a line that clears its level in its rounds with a row to spare", () => {
-    expect(lineHolds(LINE, HELD)).toBe(true);
-  });
-
-  it.each([
-    ["doesn't clear its level", { ...HELD, cleared: false }],
-    ["clears it before its last shot", { ...HELD, rounds: 1 }],
-    [
-      "lets a needed brick into the danger row",
-      { ...HELD, leastRow: DANGER_ROW },
-    ],
-  ])("refuses a line that %s", (_, played) => {
-    expect(lineHolds(LINE, played)).toBe(false);
   });
 });

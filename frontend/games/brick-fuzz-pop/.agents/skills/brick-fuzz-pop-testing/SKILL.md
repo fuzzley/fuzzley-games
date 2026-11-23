@@ -83,8 +83,9 @@ Then:
 - **A certificate** is a line of shots, each an aim's index and a charge,
   that clears a level on a depth: in as many rounds as it has shots, no
   brick the level needs ever coming down to the row over the floor's
-  (`lineHolds()`, `src/testing/solver.ts`). `yarn certify:levels` finds
-  them with the solver and writes them to
+  (`lineHolds()`, `@fz/brick-wall/testing/solver`). `yarn certify:levels`
+  finds them with the library's solver, over the game's play of a line
+  (`linePlayOf()`, `src/testing/solver.ts`), and writes them to
   `src/rules/levels/certificates/<set>.json`. It writes each level's par on
   each depth, half as many rounds again (`@fz/brick-wall/rules/par`'s
   `parFrom()`), to `src/rules/levels/par.json`. A run writes the same bytes
@@ -182,8 +183,7 @@ or eased until it does, and certified again.
 - **A long check in `pure` is split into seeded batches,** each well inside
   Vitest's 5 s, as the random walls of `src/rules/flight/flight.spec.ts`
   are: `yarn test:coverage` runs `pure` two or three times slower. Only a
-  search no batch can split, as `src/testing/solver.spec.ts`'s, hands its
-  hook or its test `SIM_TIMEOUT_MS`.
+  search no batch can split hands its hook or its test `SIM_TIMEOUT_MS`.
 - **The benchmarks hold one time only.** `src/rules/flight/benchmarks/`
   prints `cast()`'s, `fly()`'s and `playRound()`'s times at their median
   and 99th percentile, and holds none of them, as no runner times anything
