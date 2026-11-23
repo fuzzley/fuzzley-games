@@ -7,6 +7,11 @@ import {
   type PlaybackFrame,
   type PlaybackView,
 } from "@fz/brick-wall/view/playback";
+import type {
+  FrameChange,
+  RoundPhase,
+  RoundsPlayed,
+} from "@fz/brick-wall/view/rounds_played";
 import { clearedDelayMs, resultDelayMs } from "@fz/brick-wall/view/timing";
 import { Countdown } from "@fz/core/clock";
 import {
@@ -20,7 +25,6 @@ import type { Round, RoundResult, RoundStart } from "../rules/round/round";
 import { MOST_CHARGE, ZAP_HITS } from "../rules/tuning";
 import { type Brick, WALL_RULES } from "../rules/wall/wall";
 import { type Beat, type EventEffects, FlightEffects } from "./effects/effects";
-import type { Card, RoundChange, RoundPhase } from "./run_state";
 
 /** Names how fast a flight plays back, as the settings offer it. */
 export type FlightSpeed = "normal" | "fast";
@@ -122,11 +126,9 @@ type RoundPlayback = Playback<
 >;
 
 /** Describes the frame's change, written in place. */
-interface Change {
-  readonly freed: number[];
-  settled: Round | null;
-  opens: Card | null;
-}
+type Change = {
+  -readonly [Key in keyof FrameChange<Round>]: FrameChange<Round>[Key];
+};
 
 /** What a skipped event calls for: nothing, so a skip is quiet but for its landing. */
 const SKIPPED: EventEffects = { flourishes: [], sound: null };
@@ -145,11 +147,10 @@ const NO_EVENT: FlightEvent = { at: 0, kind: "land", ball: 0, x: 0 };
  * Its view is one record, written again each frame, and a frame of play
  * makes nothing: `@fz/brick-wall`'s playback follows each fuzzball and
  * changes the wall, and this says what each of the game's events does to a
- * fuzzball's record, the points and the friends freed. Make one for the
- * game: its logs number events on through every level and run, so their
- * readers need no other.
+ * fuzzball's record and the points. Make one for the game: its logs number
+ * events on through every level and run, so their readers need no other.
  */
-export class RoundPlay {
+export class RoundPlay implements RoundsPlayed<RoundStart, Round> {
   private aimed: RoundStart;
   /** The round in play, released or dropped, until the next is aimed: null exactly while a round is aimed. */
   private played: Round | null = null;
@@ -180,7 +181,7 @@ export class RoundPlay {
     fastForward: 1,
     motion: true,
   };
-  private readonly change: Change = { freed: [], settled: null, opens: null };
+  private readonly change: Change = { settled: null, opens: null };
   private readonly shown: RoundView;
 
   /** Starts a level, its first round aimed from where it starts. */
@@ -340,9 +341,8 @@ export class RoundPlay {
    *
    * A frame of no time, less, or not a number plays none.
    */
-  advance(deltaMs: number, options: Readonly<PlayOptions>): RoundChange {
+  advance(deltaMs: number, options: Readonly<PlayOptions>): FrameChange<Round> {
     const { change } = this;
-    change.freed.length = 0;
     change.settled = null;
     change.opens = null;
     const round = this.played;
@@ -387,7 +387,7 @@ export class RoundPlay {
     return frame;
   }
 
-  /** Takes in what an event does to its fuzzball, the friend it frees and the points it scores. */
+  /** Takes in what an event does to its fuzzball, and the points it scores. */
   private takeIn(event: FlightEvent): void {
     switch (event.kind) {
       case "launch": {
@@ -408,12 +408,10 @@ export class RoundPlay {
           this.playerLanded = true;
         }
         return;
-      case "free":
-        this.change.freed.push(event.ink);
-        return;
       case "break":
         this.scoredPoints += event.points;
         return;
+      case "free":
       case "turn":
       case "zap":
       case "portal":

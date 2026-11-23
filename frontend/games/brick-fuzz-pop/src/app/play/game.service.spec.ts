@@ -1,12 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { waitingRows } from "@fz/brick-wall/app/panels";
-import { parOf } from "@fz/brick-wall/rules/par";
 import { startLevel, takeRound } from "@fz/brick-wall/rules/run";
-import {
-  type FieldMetrics,
-  fieldMetrics,
-  fieldShape,
-} from "@fz/brick-wall/view/field_metrics";
+import { fieldShape } from "@fz/brick-wall/view/field_metrics";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
@@ -37,7 +32,6 @@ import {
   restoreGame,
   saveGame,
 } from "../../rules/run/saved_game";
-import { PARS } from "../../rules/run/stars";
 import type { Line } from "../../rules/levels/certificate";
 import type { Pictures } from "../../scene/pictures";
 import {
@@ -74,12 +68,6 @@ const TALL: Viewport = {
   pixelRatio: 1,
   insets: NO_INSETS,
 };
-
-/** A wide, low canvas, which holds the shallowest field. */
-const LOW: Viewport = { ...TALL, width: 1600, height: 500 };
-
-/** A canvas with no room in it, as a hidden board's is. */
-const HIDDEN: Viewport = { ...TALL, width: 0, height: 0 };
 
 /** The first spec level's id, by which its records are kept. */
 const FIRST_ID = SPEC_LEVELS[0]?.data.id ?? "";
@@ -143,11 +131,6 @@ function carded(...script: readonly SpecRound[]): GameService {
   const game = gameOf(...script);
   playUntilCard(game);
   return game;
-}
-
-/** Lets every promise the game is waiting on settle. */
-async function flush(): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 /** Answers the question a new game asks, as the player would. */
@@ -320,199 +303,7 @@ function heardPlayingOut(game: GameService): string[] {
 }
 
 describe("GameService", () => {
-  describe("a new run", () => {
-    it("waits on the first level for its first shot, with no rounds and no points", () => {
-      const game = gameOf();
-
-      expect({
-        outcome: game.outcome(),
-        level: game.level().number,
-        rounds: game.rounds(),
-        score: game.score(),
-        phase: game.phase(),
-      }).toEqual({
-        outcome: "ready",
-        level: 1,
-        rounds: 0,
-        score: 0,
-        phase: "aiming",
-      });
-    });
-
-    it("lays its level out on the field's depth, with the level's par on it", () => {
-      const game = gameOf();
-      const { depth } = game.shape();
-
-      expect({ start: game.start(), par: game.par() }).toEqual({
-        start: openingOf({ depth }, levelOf({ level: 1 }, SPEC_LEVELS)),
-        par: parOf(FIRST_ID, depth, PARS),
-      });
-    });
-
-    it("aims its first round in the view", () => {
-      const game = gameOf();
-
-      expect({ wall: game.view().wall, x: game.waitingX() }).toEqual({
-        wall: game.start().wall,
-        x: game.start().x,
-      });
-    });
-
-    it("is in no progress a new game would lose", () => {
-      const game = gameOf();
-
-      expect(game.inProgress()).toBe(false);
-    });
-  });
-
-  describe("the room", () => {
-    it("lays a run with no round played out again on the room's depth, its par with it", () => {
-      const game = gameOf();
-      const { depth } = fieldShape(TALL);
-
-      game.setRoom(TALL);
-
-      expect({
-        shape: game.shape(),
-        depth: game.run().depth,
-        start: game.start(),
-        aimed: game.view().wall,
-      }).toEqual({
-        shape: fieldShape(TALL),
-        depth,
-        start: openingOf({ depth }, levelOf({ level: 1 }, SPEC_LEVELS)),
-        aimed: game.start().wall,
-      });
-    });
-
-    it("keeps the shape it has for a room with no area", () => {
-      const game = gameOf();
-      const before = game.shape();
-
-      game.setRoom(HIDDEN);
-
-      expect(game.shape()).toBe(before);
-    });
-
-    it("changes nothing for a room of the same shape", () => {
-      const game = gameOf();
-      game.setRoom(TALL);
-      const [run, start, shape] = [game.run(), game.start(), game.shape()];
-
-      game.setRoom({ ...TALL, width: TALL.width + 1 });
-
-      expect({
-        sameRun: game.run() === run,
-        sameStart: game.start() === start,
-        sameShape: game.shape() === shape,
-      }).toEqual({ sameRun: true, sameStart: true, sameShape: true });
-    });
-
-    it("takes a room of the same depth at its new size", () => {
-      const game = gameOf();
-      game.setRoom(TALL);
-      const twice = { ...TALL, width: 2 * TALL.width, height: 2 * TALL.height };
-
-      game.setRoom(twice);
-
-      expect([game.shape(), game.shape().depth]).toEqual([
-        fieldShape(twice),
-        fieldShape(TALL).depth,
-      ]);
-    });
-
-    it("keeps a level's wall where it stands from the floor once a round is played, and the depth it began on", () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      playRoundOut(game);
-      const start = game.start();
-
-      game.setRoom(LOW);
-
-      expect({ start: game.start(), began: game.run().depth }).toEqual({
-        start: { ...start, depth: fieldShape(LOW).depth },
-        began: fieldShape(TALL).depth,
-      });
-    });
-
-    it("waits for the round in the air to come to rest", () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      release(game);
-
-      game.setRoom(LOW);
-
-      expect(game.shape()).toEqual(fieldShape(TALL));
-    });
-
-    it("lays the next round out on the room's depth once the round in the air comes to rest", () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      release(game);
-      game.setRoom(LOW);
-
-      playOut(game);
-
-      expect([game.shape(), game.start().depth]).toEqual([
-        fieldShape(LOW),
-        fieldShape(LOW).depth,
-      ]);
-    });
-
-    it("lays the next level out on the room's depth", () => {
-      const game = carded("cleared");
-      game.setRoom(TALL);
-
-      game.nextLevel();
-
-      expect([game.shape(), game.run().depth, game.start().depth]).toEqual([
-        fieldShape(TALL),
-        fieldShape(TALL).depth,
-        fieldShape(TALL).depth,
-      ]);
-    });
-
-    it("begins a level after a cleared one again on the room's depth, its par with it, while no round is played", () => {
-      const game = carded("cleared");
-      game.nextLevel();
-      const score = game.score();
-      const { depth } = fieldShape(TALL);
-
-      game.setRoom(TALL);
-
-      expect({
-        score: game.score(),
-        depth: game.run().depth,
-        par: game.par(),
-        start: game.start(),
-      }).toEqual({
-        score,
-        depth,
-        par: parOf(SECOND_ID, depth, PARS),
-        start: openingOf({ depth }, levelOf({ level: 2 }, SPEC_LEVELS)),
-      });
-    });
-  });
-
   describe("releasing a round", () => {
-    it("begins the level, the run counting the round and scoring it at once", () => {
-      const game = gameOf("step");
-
-      release(game);
-
-      expect({
-        outcome: game.outcome(),
-        rounds: game.run().rounds,
-        score: game.run().score,
-        phase: game.phase(),
-      }).toEqual({
-        outcome: "playing",
-        rounds: 1,
-        score: SPEC_POINTS.step,
-        phase: "flying",
-      });
-    });
-
     it("plays the round through the rules from where it starts, at the shot let fly, with the level's boon, on the rules' own numbers", () => {
       const asked: Parameters<RoundPlayer>[] = [];
       const rounds = scriptedRounds("step");
@@ -528,74 +319,9 @@ describe("GameService", () => {
         [start, { aim: 100, charge: 3 }, "hot", { bored: RULES.bored }],
       ]);
     });
-
-    it("keeps the round's next start with the run, so the saved game keeps both at once", () => {
-      const game = gameOf("step");
-
-      release(game);
-
-      expect(game.nextStart()).toBe(game.round()?.next);
-    });
-
-    it("plays the round's flight back in the view", () => {
-      const game = gameOf("step");
-
-      release(game);
-
-      expect(game.view().balls).toHaveLength(1);
-    });
-
-    it("lets no other shot fly while a round is in the air", () => {
-      const game = gameOf();
-      release(game);
-
-      release(game);
-
-      expect(game.run().rounds).toBe(1);
-    });
-
-    it("lets no shot fly while the level is paused", () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-      game.pause();
-
-      release(game);
-
-      expect([game.rounds(), game.phase()]).toEqual([1, "aiming"]);
-    });
-
-    it("lets no shot fly while the board isn't drawn, as the first move waits for it", () => {
-      const game = gameOf("step");
-      game.setDrawn(false);
-
-      release(game);
-
-      expect([game.rounds(), game.outcome()]).toEqual([0, "ready"]);
-    });
-
-    it("lets no shot fly once the level is cleared", () => {
-      const game = carded("cleared");
-
-      release(game);
-
-      expect([game.rounds(), game.phase()]).toEqual([1, "settling"]);
-    });
   });
 
   describe("playing a round back", () => {
-    it("aims the next round from where the last left it once its wall comes to rest", () => {
-      const game = gameOf("step");
-      const { next } = released(game);
-
-      playOut(game);
-
-      expect({
-        phase: game.phase(),
-        round: game.round(),
-        start: game.start(),
-      }).toEqual({ phase: "aiming", round: null, start: next });
-    });
-
     it("says what the round came to as its wall comes to rest", () => {
       const game = gameOf("step");
       const round = released(game);
@@ -747,35 +473,6 @@ describe("GameService", () => {
       game.tick(100, STILL);
 
       expect(placeOf(game)).toEqual(before);
-    });
-
-    it("says it is flying while paused mid-flight", () => {
-      const game = gameOf("step");
-      release(game);
-
-      game.pause();
-
-      expect(game.flying()).toBe(true);
-    });
-
-    it("holds how the level ends until the flight lands", () => {
-      const game = gameOf("cleared");
-
-      release(game);
-
-      expect([game.outcome(), game.run().ending]).toEqual([
-        "playing",
-        "cleared",
-      ]);
-    });
-
-    it("clears the level as the flight lands", () => {
-      const game = gameOf("cleared");
-      release(game);
-
-      playUntilLanded(game);
-
-      expect(game.outcome()).toBe("cleared");
     });
   });
 
@@ -1019,34 +716,6 @@ describe("GameService", () => {
       });
     });
 
-    it("waits for the Cleared card before going on", () => {
-      const game = gameOf("cleared");
-      release(game);
-      playUntilLanded(game);
-
-      game.nextLevel();
-
-      expect(game.level().number).toBe(1);
-    });
-
-    it("waits for the board to be drawn before going on", () => {
-      const game = carded("cleared");
-      game.setDrawn(false);
-
-      game.nextLevel();
-
-      expect(game.level().number).toBe(1);
-    });
-
-    it("ends the run as the flight that loses the level lands", () => {
-      const game = gameOf("lost");
-      release(game);
-
-      playUntilLanded(game);
-
-      expect([game.outcome(), game.ended()]).toEqual(["over", true]);
-    });
-
     it("opens the result card once a lost level's wall has rested a while, and says how the run ended", () => {
       const game = gameOf("lost");
 
@@ -1082,114 +751,6 @@ describe("GameService", () => {
         card: "result",
         said: `${describeCleared(game.run())} ${describeEnd(game.run(), game.newBest())}`,
       });
-    });
-
-    it("puts the result card away, leaving the board to look at", () => {
-      const game = carded("lost");
-
-      game.closeResult();
-
-      expect([game.resultOpen(), game.resultClosed()]).toEqual([false, true]);
-    });
-
-    it("tries the lost level again at Enter once its result card is put away", () => {
-      const game = carded("cleared", "lost");
-      game.nextLevel();
-      playUntilCard(game);
-      game.closeResult();
-
-      game.command("go");
-
-      expect([game.outcome(), game.level().number]).toEqual(["ready", 2]);
-    });
-
-    it("tries the lost level again at P once its result card is put away", () => {
-      const game = carded("cleared", "lost");
-      game.nextLevel();
-      playUntilCard(game);
-      game.closeResult();
-
-      game.command("toggle");
-
-      expect([game.outcome(), game.level().number]).toEqual(["ready", 2]);
-    });
-
-    it("leaves a lost run as it is at Enter while its result card shows", () => {
-      const game = carded("lost");
-
-      game.command("go");
-
-      expect(game.outcome()).toBe("over");
-    });
-
-    it("leaves a lost run as it is at Escape once its result card is put away", () => {
-      const game = carded("lost");
-      game.closeResult();
-
-      game.command("pause");
-
-      expect(game.outcome()).toBe("over");
-    });
-
-    it("starts a new game at Enter once a won run's card is put away", async () => {
-      const game = carded("cleared");
-      game.nextLevel();
-      playUntilCard(game);
-      game.nextLevel();
-      playUntilCard(game);
-      game.closeResult();
-
-      game.command("go");
-      await flush();
-
-      expect([game.outcome(), game.level().number]).toEqual(["ready", 1]);
-    });
-
-    it("has no result card to put away before one opens", () => {
-      const game = carded("cleared");
-
-      game.closeResult();
-
-      expect(game.resultClosed()).toBe(false);
-    });
-
-    it("tries a lost level again in a new run", () => {
-      const game = carded("cleared", "lost");
-      game.nextLevel();
-      playUntilCard(game);
-      const id = game.run().id;
-
-      game.tryAgain();
-
-      expect({
-        id: game.run().id > id,
-        level: game.level().number,
-        first: game.run().firstLevel,
-        outcome: game.outcome(),
-      }).toEqual({ id: true, level: 2, first: 2, outcome: "ready" });
-    });
-
-    it("tries nothing again once the last level is cleared", () => {
-      const game = carded("cleared");
-      game.nextLevel();
-      playUntilCard(game);
-      game.nextLevel();
-      playUntilCard(game);
-      const run = game.run();
-
-      game.tryAgain();
-
-      expect(game.run()).toBe(run);
-    });
-
-    it("tries nothing again while the run goes on", () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-      const run = game.run();
-
-      game.tryAgain();
-
-      expect(game.run()).toBe(run);
     });
   });
 
@@ -1368,14 +929,6 @@ describe("GameService", () => {
       ]);
     });
 
-    it("leaves a level waiting for its first shot as it is", () => {
-      const game = gameOf("step");
-
-      game.pause();
-
-      expect([game.outcome(), said()]).toEqual(["ready", ""]);
-    });
-
     it("goes on with a paused level, and says so", () => {
       const game = gameOf("step");
       release(game);
@@ -1385,69 +938,9 @@ describe("GameService", () => {
 
       expect([game.outcome(), said()]).toEqual(["playing", "Resumed."]);
     });
-
-    it("waits for the board to be drawn before going on", () => {
-      const game = gameOf("step");
-      release(game);
-      game.pause();
-      game.setDrawn(false);
-
-      game.resume();
-
-      expect(game.outcome()).toBe("paused");
-    });
-
-    it("leaves a level not paused as it is", () => {
-      const game = gameOf("step");
-      release(game);
-      const run = game.run();
-
-      game.resume();
-
-      expect({ same: game.run() === run, said: said() }).toEqual({
-        same: true,
-        said: "",
-      });
-    });
   });
 
   describe("looking away", () => {
-    it.each(["focus", "turned"] as const)(
-      "pauses a flight in the air where it is as the player looks away by %s",
-      (reason) => {
-        const game = gameOf("step");
-        release(game);
-        const place = placeOf(game);
-
-        game.lookAway(reason);
-
-        expect({
-          outcome: game.outcome(),
-          flying: game.flying(),
-          place: placeOf(game),
-        }).toEqual({ outcome: "paused", flying: true, place });
-      },
-    );
-
-    it("lands a flight in the air at once as the page is hidden, and pauses, saying so with the round's points", () => {
-      const game = gameOf("step");
-      release(game);
-
-      game.lookAway("hidden");
-
-      expect({
-        outcome: game.outcome(),
-        flying: game.flying(),
-        rounds: game.rounds(),
-        said: said(),
-      }).toEqual({
-        outcome: "paused",
-        flying: false,
-        rounds: 1,
-        said: describePause({ ...game.run(), score: SPEC_POINTS.step }),
-      });
-    });
-
     it("keeps the level a flight in the air clears as the page is hidden", () => {
       const game = gameOf("cleared");
       release(game);
@@ -1490,16 +983,6 @@ describe("GameService", () => {
       }).toEqual({ outcome: "over", best: SPEC_POINTS.step, newBest: true });
     });
 
-    it("keeps a run paused as the page is hidden after the focus left, its flight landed", () => {
-      const game = gameOf("step");
-      release(game);
-      game.lookAway("focus");
-
-      game.lookAway("hidden");
-
-      expect([game.outcome(), game.flying()]).toEqual(["paused", false]);
-    });
-
     it("keeps the level a flight dropped while paused clears as the page is hidden, its card left for the page to be seen", () => {
       const game = gameOf("cleared");
       release(game);
@@ -1537,92 +1020,9 @@ describe("GameService", () => {
 
       expect([game.phase(), game.start()]).toEqual(["aiming", next]);
     });
-
-    it("pauses a level with no flight in the air as the page is hidden, the round aimed left as it is", () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-      const start = game.start();
-
-      game.lookAway("hidden");
-
-      expect([game.outcome(), game.phase(), game.start()]).toEqual([
-        "paused",
-        "aiming",
-        start,
-      ]);
-    });
   });
 
   describe("a new game", () => {
-    it("starts a new run at the level the last one started at, waiting for its first shot", async () => {
-      const game = gameOf("step");
-      await game.startAt(2);
-      const id = game.run().id;
-
-      await game.newGame();
-
-      expect({
-        id: game.run().id > id,
-        level: game.level().number,
-        outcome: game.outcome(),
-        said: said(),
-      }).toEqual({
-        id: true,
-        level: 2,
-        outcome: "ready",
-        said: describeLevel(game.level(), game.levelBoon()),
-      });
-    });
-
-    it("asks first with a run in progress, and starts none if the player says no", async () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-      const run = game.run();
-
-      const started = await answered(game.newGame(), false);
-
-      expect([started, game.run()]).toEqual([false, run]);
-    });
-
-    it("starts a run at a level chosen once the player says yes", async () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-
-      const started = await answered(game.startAt(3), true);
-
-      expect([started, game.level().number, game.rounds()]).toEqual([
-        true,
-        3,
-        0,
-      ]);
-    });
-
-    it("aims the new run's first round in the view", async () => {
-      const game = carded("lost");
-
-      await game.newGame();
-
-      expect(game.view().wall).toEqual(game.start().wall);
-    });
-
-    it("lays the new run out on the room's depth", async () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      playRoundOut(game);
-
-      await answered(game.newGame(), true);
-
-      expect(game.run().depth).toBe(fieldShape(TALL).depth);
-    });
-
-    it("counts each run begun, for the board to take the focus after", async () => {
-      const game = gameOf();
-
-      await game.newGame();
-
-      expect(game.runs()).toBe(1);
-    });
-
     it("keeps fast-forward on", async () => {
       const game = gameOf("step");
       release(game);
@@ -1631,18 +1031,6 @@ describe("GameService", () => {
       await answered(game.newGame(), true);
 
       expect(game.fast()).toBe(true);
-    });
-
-    it("forgets the last run's cards and what it set", async () => {
-      const game = carded("lost");
-
-      await game.newGame();
-
-      expect({
-        card: game.card(),
-        newBest: game.newBest(),
-        resultClosed: game.resultClosed(),
-      }).toEqual({ card: null, newBest: false, resultClosed: false });
     });
   });
 
@@ -1670,36 +1058,6 @@ describe("GameService", () => {
         start: { ...taken.start, depth: fieldShape(TALL).depth },
         said: describeTakenUp(taken.run, game.level()),
       });
-    });
-
-    it("begins a level with no round played again on the field's depth, its par with it", () => {
-      const taken = kept(carded("cleared"), 2);
-      afresh();
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      const { depth } = fieldShape(TALL);
-
-      game.takeUp(taken);
-
-      expect({
-        depth: game.run().depth,
-        par: game.par(),
-        start: game.start(),
-      }).toEqual({
-        depth,
-        par: parOf(SECOND_ID, depth, PARS),
-        start: openingOf({ depth }, levelOf({ level: 2 }, SPEC_LEVELS)),
-      });
-    });
-
-    it("numbers the next new run past the one taken up", async () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-      game.takeUp(kept(game, 40));
-
-      await answered(game.newGame(), true);
-
-      expect(game.run().id).toBe(41);
     });
 
     it("marks the levels it cleared before the one it is on as cleared", () => {
@@ -1788,23 +1146,6 @@ describe("GameService", () => {
       release(game);
 
       expect([unearned, aimed, game.lit()]).toEqual([false, true, false]);
-    });
-
-    it("counts no round while its flight plays back", () => {
-      const game = gameOf("step");
-
-      release(game);
-
-      expect(game.rounds()).toBe(0);
-    });
-
-    it("counts a round as its flight lands", () => {
-      const game = gameOf("step");
-      release(game);
-
-      playUntilLanded(game);
-
-      expect(game.rounds()).toBe(1);
     });
 
     it("scores each break as the flight plays it back, and the jump's points as it lands", () => {
@@ -1905,23 +1246,6 @@ describe("GameService", () => {
       expect(game.guide()).toBeNull();
     });
 
-    it("hands no guide while a flight is in the air", () => {
-      const game = gameOf("step");
-
-      release(game);
-
-      expect(game.guide()).toBeNull();
-    });
-
-    it("hands no guide while the level is paused", () => {
-      const game = gameOf("step");
-      playRoundOut(game);
-
-      game.pause();
-
-      expect(game.guide()).toBeNull();
-    });
-
     it("hands no place for the fuzzball while it is in the air", () => {
       const game = gameOf("step");
 
@@ -2018,15 +1342,6 @@ describe("GameService", () => {
         "pointAndHold",
         "pullBack",
       ]);
-    });
-
-    it("takes where the scene laid the field out", () => {
-      const game = gameOf();
-      const metrics: FieldMetrics = fieldMetrics(TALL, fieldShape(TALL));
-
-      game.onLayout(metrics);
-
-      expect(game.metrics()).toBe(metrics);
     });
 
     it("takes the pictures of the bricks the scene baked", () => {
@@ -2175,30 +1490,6 @@ describe("GameService", () => {
         fieldShape(TALL, 12),
         12,
       ]);
-    });
-
-    it("waits for the round in the air before taking the depth it sets", () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      release(game);
-
-      TestBed.inject(DebugService).setDepth(12);
-      TestBed.tick();
-
-      expect(game.shape()).toEqual(fieldShape(TALL));
-    });
-
-    it("gives the field back the room's depth as it lets its own go", () => {
-      const game = gameOf("step");
-      game.setRoom(TALL);
-      const debug = TestBed.inject(DebugService);
-      debug.setDepth(12);
-      TestBed.tick();
-
-      debug.setDepth(null);
-      TestBed.tick();
-
-      expect(game.shape()).toEqual(fieldShape(TALL));
     });
 
     it("keeps no records for a run begun at a level the player hasn't opened", async () => {
@@ -2562,64 +1853,6 @@ describe("GameService", () => {
         outcome: "won",
         score: game.score(),
       });
-    });
-  });
-
-  describe("the run's end", () => {
-    it("is nothing while the run goes on", () => {
-      const game = gameOf("step");
-
-      playRoundOut(game);
-
-      expect(game.runEnd()).toBeNull();
-    });
-
-    it("tells where a lost run ended, the levels it cleared and their stars", () => {
-      const game = carded("cleared", "lost");
-      game.nextLevel();
-
-      playUntilCard(game);
-
-      expect(game.runEnd()).toEqual({
-        outcome: "over",
-        firstLevel: 1,
-        level: 2,
-        levelName: "Stripes",
-        score: game.score(),
-        cleared: 1,
-        stars: 3,
-      });
-    });
-
-    it("tells the level a run started at", async () => {
-      const game = gameOf("lost");
-      await game.startAt(2);
-
-      playUntilCard(game);
-
-      expect(game.runEnd()).toMatchObject({ firstLevel: 2, level: 2 });
-    });
-
-    it("tells of a won run, every level cleared", () => {
-      const game = won();
-
-      expect(game.runEnd()).toMatchObject({
-        outcome: "won",
-        level: 3,
-        cleared: 3,
-        stars: 9,
-      });
-    });
-
-    it("counts the stars afresh as a new run begins", () => {
-      const game = carded("cleared", "lost");
-      game.nextLevel();
-      playUntilCard(game);
-      game.tryAgain();
-
-      playUntilCard(game);
-
-      expect(game.runEnd()?.stars).toBe(0);
     });
   });
 

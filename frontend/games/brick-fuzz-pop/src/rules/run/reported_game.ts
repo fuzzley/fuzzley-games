@@ -7,10 +7,11 @@
 import { isAim } from "@fz/brick-wall/rules/aims";
 import type { Pars } from "@fz/brick-wall/rules/par";
 import {
+  type PlayedGame as WallPlayedGame,
   type ReadReport,
   type ReleasedRound,
+  type ReplayedGame as WallReplayedGame,
   type ReportedGame as WallReportedGame,
-  type ReportedPlay,
   type ShotCodec,
   isMoment,
   partsOf,
@@ -67,14 +68,12 @@ export type PlayedRound = ReleasedRound<
 >;
 
 /** Describes the game as it stands, as a report takes it. */
-export interface PlayedGame extends ReportedPlay<
+export type PlayedGame = WallPlayedGame<
   LevelCounts,
   RoundStart,
-  PlayedRound
-> {
-  /** The moment of the round in play's flight the playback has reached. */
-  readonly moment: number;
-}
+  Shot,
+  RoundRules
+>;
 
 /** Describes the round in play read back from a report, ready to fly again. */
 export interface ReadRound {
@@ -103,11 +102,13 @@ export type ReadGame = ReadReport<
  * where its round starts, the rounds its level played on the way, for the
  * game to record, and the round in play to fly again.
  */
-export interface ReplayedGame {
-  readonly game: TakenUp;
-  readonly rounds: readonly PlayedRound[];
-  readonly round: ReadRound | null;
-}
+export type ReplayedGame = WallReplayedGame<
+  LevelCounts,
+  RoundStart,
+  Shot,
+  RoundRules,
+  ReadRound
+>;
 
 /**
  * How a report keeps a shot of the level, as a certificate keeps one, and

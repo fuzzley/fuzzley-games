@@ -27,6 +27,20 @@ export function levelIdOf(
 }
 
 /**
+ * Returns a game's level by its number, from 1, or throws for a number the
+ * game has no level of.
+ */
+export function levelAt<L>(levels: readonly L[], level: number): L {
+  const entry = levels[level - 1];
+  if (entry === undefined) {
+    throw new RangeError(
+      `There is no level ${String(level)}: the levels run from 1 to ${String(levels.length)}.`,
+    );
+  }
+  return entry;
+}
+
+/**
  * Returns whether a run may start at a level, by its number: the first, any
  * level cleared, and the level after one cleared.
  */

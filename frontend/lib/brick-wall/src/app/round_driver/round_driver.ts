@@ -7,8 +7,24 @@ import {
   signal,
   untracked,
 } from "@angular/core";
-import type { RunEnd } from "@fz/brick-wall/app/result";
+import { type RunCommand, hasEnded } from "@fz/core/run";
+import { RunNumbers } from "@fz/core/run_numbers";
+import type { AwayReason } from "@fz/game-ui/play_room";
+import { GAME_RANDOM } from "@fz/game-ui/random";
+import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
+import { NO_INSETS } from "@fz/phaser/insets";
+import type { Viewport } from "@fz/phaser/layout";
+import { type IdentifiedLevel, levelAt } from "../../rules/progress";
+import type {
+  PlayedGame,
+  ReleasedRound,
+  ReplayedGame,
+  ReplayedRound,
+} from "../../rules/reported";
 import {
+  type Run,
+  type RunRules,
+  type TakenRound,
   afterLanding,
   createRun,
   isInProgress,
@@ -20,42 +36,23 @@ import {
   startLevel,
   takeDepth,
   takeRound,
-} from "@fz/brick-wall/rules/run";
+} from "../../rules/run";
+import type { TakenUp } from "../../rules/saved_wall";
 import {
   type FieldMetrics,
   type FieldShape,
   fieldShape,
   hasRoom,
-} from "@fz/brick-wall/view/field_metrics";
-import { type RunCommand, hasEnded } from "@fz/core/run";
-import { RunNumbers } from "@fz/core/run_numbers";
-import type { AwayReason } from "@fz/game-ui/play_room";
-import { GAME_RANDOM } from "@fz/game-ui/random";
-import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
-import { NO_INSETS } from "@fz/phaser/insets";
-import type { Viewport } from "@fz/phaser/layout";
-import { type LevelEntry, levelEntryOf } from "../../rules/levels/levels";
-import type { Round, RoundRules, RoundStart } from "../../rules/round/round";
-import type {
-  PlayedGame,
-  PlayedRound,
-  ReadRound,
-  ReplayedGame,
-} from "../../rules/run/reported_game";
-import { RUN_RULES, type Run } from "../../rules/run/run";
-import type { TakenUp } from "../../rules/run/saved_game";
-import type { Guide } from "../../rules/flight/guide";
-import type { Shot } from "../../rules/shot";
-import type { PlayOptions, RoundPlay } from "../../view/round_play";
+} from "../../view/field_metrics";
+import type { RunEnd } from "../result/result.component";
+import type { KeptRun } from "../stored";
+import type { FrameChange, RoundsPlayed } from "../../view/rounds_played";
 import {
   type RunState,
   newRunState,
   withFrame,
   withNewsSaid,
-} from "../../view/run_state";
-import type { RunStart } from "../debug/debug.service";
-import type { KeptGame } from "./saved_game.service";
-import type { RunRecords } from "./records";
+} from "./run_state";
 
 /**
  * The field's shape before the board says what room it has: an upright
@@ -69,48 +66,107 @@ const FIRST_SHAPE: FieldShape = fieldShape({
   insets: NO_INSETS,
 });
 
-/** Holds what the run's driver says as the run goes: each the words for one moment of it. */
-export interface RoundWords {
+/** Describes a wall game's level as its driver knows it: its id and its name. */
+export interface DrivenLevel extends IdentifiedLevel {
+  readonly data: { readonly id: string; readonly name: string };
+}
+
+/** Describes where a wall game's round starts, as its driver knows it: the field's depth it is aimed on. */
+export interface DrivenStart {
+  readonly depth: number;
+}
+
+/** Describes a wall game's round played, as its driver knows it: what the run takes in of it, and where the next starts, `N`. */
+export interface DrivenRound<N> {
+  readonly outcome: TakenRound;
+  readonly next: N;
+}
+
+/** Holds what a wall game says as its run goes, over its tally, `T`, its levels, `L`, its starts, `N`, and its rounds, `D`. */
+export interface RoundWords<T, L, N, D> {
   /** Returns what is said as a round's wall comes to rest, from where the round aimed next starts. */
-  readonly round: (round: Round, aimed: RoundStart) => string;
+  readonly round: (round: D, aimed: N) => string;
   /** Returns what is said as a level begins. */
-  readonly level: (level: LevelEntry) => string;
+  readonly level: (level: L) => string;
   /** Returns what is said as a level is cleared. */
-  readonly cleared: (run: Run) => string;
+  readonly cleared: (run: Run<T>) => string;
   /** Returns what is said as a run ends, and whether it set a new best. */
-  readonly end: (run: Run, newBest: boolean) => string;
+  readonly end: (run: Run<T>, newBest: boolean) => string;
   /** Returns what is said as a run pauses, its score the bar's. */
-  readonly pause: (run: Run) => string;
+  readonly pause: (run: Run<T>) => string;
   /** Returns what is said as a paused run goes on. */
   readonly resume: () => string;
   /** Returns what is said as a run storage kept is taken up, paused. */
-  readonly takenUp: (run: Run, level: LevelEntry) => string;
+  readonly takenUp: (run: Run<T>, level: L) => string;
 }
 
-/** Holds what the run's driver is handed: what does not change as it plays. */
-export interface RoundDriving {
+/**
+ * Says how a run begins, where it may keep no records: taken up as storage
+ * kept it, off the record or not (`kept`), or playing a certificate's line
+ * (`certified`).
+ */
+export interface RunBegun {
+  readonly kept?: boolean;
+  readonly certified?: boolean;
+}
+
+/** Keeps a wall game's records as its driver plays the run, over what it tallies of a level, `T`. */
+export interface LandingRecords<T> {
+  /** Whether the run under way keeps no records. */
+  readonly offRecord: Signal<boolean>;
+  /** Hears how a run begins: as handed, or a new run. */
+  began(run: Run<T>, begun?: RunBegun): void;
+  /** Counts a run started, from the run as it stood before a round was released, if that is its first. */
+  started(before: Run<T>): void;
+  /** Keeps what a run's landing brings to the records, returning whether it set a new best. */
+  landed(run: Run<T>): boolean;
+  /** Keeps what the round a run left in flight would have brought as it landed. */
+  left(run: Run<T>): void;
+  /** Keeps what a run taken up cleared before its level. */
+  takenUp(run: Run<T>): void;
+}
+
+/**
+ * Holds what a wall game's driver is handed, what does not change as it
+ * plays: the levels, `L`, the run's rules over its tally, `T`, the opening
+ * of each level, its play of the rounds, `P`, its records and words, and
+ * the depth a debug menu sets.
+ */
+export interface RoundDriving<
+  T,
+  L extends DrivenLevel,
+  N extends DrivenStart,
+  D extends DrivenRound<N>,
+  P extends RoundsPlayed<N, D>,
+> {
   /** The levels a run is played through, in order. */
-  readonly levels: readonly LevelEntry[];
+  readonly levels: readonly L[];
+  /** The run's rules, which take each round in and land it. */
+  readonly rules: RunRules<T, D["outcome"]>;
   /** Returns where a level's first round starts, on the depth a run gives. */
-  readonly openingOf: (run: Pick<Run, "level" | "depth">) => RoundStart;
+  readonly openingOf: (run: Pick<Run<T>, "level" | "depth">) => N;
   /** Returns the play of every round, its first aimed from where it starts: called once, as the driver is made. */
-  readonly playOf: (start: RoundStart) => RoundPlay;
-  /** Keeps the records as each flight lands. */
-  readonly records: RunRecords;
+  readonly playOf: (start: N) => P;
+  /** The records kept as each flight lands. */
+  readonly records: LandingRecords<T>;
   /** What is said as the run goes. */
-  readonly words: RoundWords;
-  /** The field's depth the debug menu sets over the room's, or null for the room's own. */
+  readonly words: RoundWords<T, L, N, D>;
+  /** The field's depth a debug menu sets over the room's, or null for the room's own. */
   readonly depthSet: Signal<number | null>;
 }
 
 /**
- * Drives a run's rounds: holds the run and where its round stands, releases
- * each shot through the rules once the board is drawn and plays it back
- * through the view a frame at a time, lands a flight at once as the page is
- * hidden, takes what it comes to into the run and the records as it lands,
- * pauses and starts runs as the player asks, goes on and starts the next
- * level once the board is drawn, lays the field out on the board's room
- * between rounds, and says what happened.
+ * Drives a wall game's run, over what it tallies of a level, `T`, its
+ * levels, `L`, where a round starts, `N`, a shot, `S`, the rules a round
+ * plays on, `R`, a round played, `D`, its play of the rounds, `P`, its
+ * guide, `G`, and a reported round in play read back, `V`: holds the run
+ * and where its round stands, releases each shot through the game's rules
+ * once the board is drawn and has the game's play play it back a frame at
+ * a time, lands a flight at once as a Skip asks or the page is hidden,
+ * takes what it comes to into the run and the records as it lands, pauses
+ * and starts runs as the player asks, goes on and starts the next level
+ * once the board is drawn, lays the field out on the board's room between
+ * rounds, and says what happened.
  *
  * It records the level in play's rounds, in memory only, which a bug
  * report takes and plays again.
@@ -119,18 +175,35 @@ export interface RoundDriving {
  * replaced whole as each run begins, which changes only as the run or its
  * round does, never at a frame that changes neither.
  *
- * The game's service extends it, handing it what does not change as it
- * plays, and how a round is played and cast and how a frame plays it.
+ * A game's service extends it, handing it what does not change as it plays
+ * ({@link RoundDriving}), and giving how a round plays, its guide and how a
+ * frame plays its play, which may read the game's own state. A game whose
+ * play can change a flight in the air, as a drop does, does so beside it,
+ * through {@link droppedAt} and {@link flyOn}.
  */
-export abstract class RoundDriver extends RunLifecycle implements KeptGame {
+export abstract class RoundDriver<
+  T,
+  L extends DrivenLevel,
+  N extends DrivenStart,
+  S,
+  R,
+  D extends DrivenRound<N>,
+  P extends RoundsPlayed<N, D>,
+  G,
+  V extends ReplayedRound<S, R>,
+>
+  extends RunLifecycle
+  implements KeptRun<T, N>
+{
   private readonly numbers = new RunNumbers(inject(GAME_RANDOM));
   /** The levels a run is played through, in order. */
-  protected readonly levels: readonly LevelEntry[];
+  protected readonly levels: readonly L[];
   /** Plays every round back, level after level and run after run. */
-  protected readonly play: RoundPlay;
-  private readonly openingOf: RoundDriving["openingOf"];
-  private readonly records: RunRecords;
-  private readonly words: RoundWords;
+  protected readonly play: P;
+  private readonly rules: RunRules<T, D["outcome"]>;
+  private readonly openingOf: (run: Pick<Run<T>, "level" | "depth">) => N;
+  private readonly records: LandingRecords<T>;
+  private readonly words: RoundWords<T, L, N, D>;
   private readonly depthSet: Signal<number | null>;
 
   /** The board's canvas as it last measured it, or null before it has. */
@@ -147,11 +220,11 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * them, as the level began or a run was taken up, in order, the round in
    * play's last, which a bug report plays again; kept in memory only.
    */
-  private levelRounds: PlayedRound[] = [];
+  private levelRounds: ReleasedRound<T, N, S, R>[] = [];
   /** The round last released, as it was, until another is or it is dropped. */
-  private readonly released = signal<PlayedRound | null>(null);
+  private readonly released = signal<ReleasedRound<T, N, S, R> | null>(null);
   /** The run on the board and what is its own, replaced whole as each run begins. */
-  private readonly runState: WritableSignal<RunState>;
+  private readonly runState: WritableSignal<RunState<T, N, D>>;
 
   /** The run on the board. */
   readonly run = computed(() => this.runState().run);
@@ -175,7 +248,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    */
   readonly nextStart = computed(() => this.round()?.next ?? this.start());
 
-  /** Whether the run keeps no records, as the debug menu took it off the record. */
+  /** Whether the run keeps no records, as a debug menu took it off the record. */
   readonly tuned: Signal<boolean>;
 
   /** Whether the run's end set a new best score. */
@@ -205,9 +278,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   private readonly levelNumber = computed(() => this.run().level);
 
   /** The level in play, or the last one cleared. */
-  readonly level = computed(() =>
-    levelEntryOf(this.levels, this.levelNumber()),
-  );
+  readonly level = computed(() => levelAt(this.levels, this.levelNumber()));
 
   /**
    * The round whose flight is being played back, which the run took in as
@@ -230,9 +301,9 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   readonly par = computed(() => this.run().par);
 
   /**
-   * The run's points so far, as the bar shows them: each break's as the
-   * flight plays it back, and the rest, a jump's and the stars', as it
-   * lands, though the run scores the round as it is released.
+   * The run's points so far, as the bar shows them: what the flight has
+   * played back of the round in the air's, and the rest as it lands, such
+   * as the stars', though the run scores the round as it is released.
    */
   readonly score = computed(() => {
     const flight = this.flight();
@@ -274,9 +345,10 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
     };
   });
 
-  protected constructor(driving: RoundDriving) {
+  protected constructor(driving: RoundDriving<T, L, N, D, P>) {
     super();
     this.levels = driving.levels;
+    this.rules = driving.rules;
     this.openingOf = driving.openingOf;
     this.records = driving.records;
     this.words = driving.words;
@@ -300,28 +372,32 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * Returns the round a shot plays from where it starts, on the rules
    * handed, as the game's rules play it.
    */
-  protected abstract playRound(
-    start: RoundStart,
-    shot: Shot,
-    rules: RoundRules,
-  ): Round;
+  protected abstract playRound(start: N, shot: S, rules: R): D;
 
   /**
    * Returns the guide of the shot the player aims from where the round
    * aimed starts, or null where the game shows none; asked only while a
    * shot can be let fly.
    */
-  protected abstract guideOf(start: RoundStart): Guide | null;
-
-  /** Returns how the next frame plays the round, as the game's settings and the player say, paused or not. */
-  protected abstract frameOptions(paused: boolean): Readonly<PlayOptions>;
+  protected abstract guideOf(start: N): G | null;
 
   /**
-   * Returns how a frame plays a flight at a field unit a millisecond,
-   * neither fast-forwarded nor sped up, so the frame's time is the distance
-   * it plays.
+   * Plays the game's play of the round on by a frame's time, as its
+   * settings and the player say, held still while `paused`, and returns
+   * what the frame came to.
    */
-  protected abstract exactFrameOptions(): Readonly<PlayOptions>;
+  protected abstract advancePlay(
+    deltaMs: number,
+    paused: boolean,
+  ): FrameChange<D>;
+
+  /**
+   * Plays the game's play of the round in the air on by a distance in one
+   * frame, at a field unit a millisecond, neither fast-forwarded nor sped
+   * up, so the frame's time is the distance it plays, and returns what the
+   * frame came to.
+   */
+  protected abstract advanceExactly(distance: number): FrameChange<D>;
 
   /** The depth the board's room now gives the field, which a round aimed takes between rounds. */
   protected get roomDepth(): number {
@@ -333,7 +409,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * fly: the round aimed, its level waiting for the first shot or under
    * way; else null.
    */
-  guide(): Guide | null {
+  guide(): G | null {
     const { outcome } = this.run();
     if (
       this.phase() !== "aiming" ||
@@ -445,7 +521,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   nextLevel(): void {
     const state = this.runState();
     if (state.card !== "cleared" || !this.drawn()) return;
-    const run = nextLevel(state.run, this.room.depth, this.levels, RUN_RULES);
+    const run = nextLevel(state.run, this.room.depth, this.levels, this.rules);
     const start = this.openingOf(run);
     this.levelRounds = [];
     this.aim(start);
@@ -499,7 +575,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * the round aimed or in play starts, and the level's rounds since the
    * game began recording them, from the game itself, never storage.
    */
-  report(): PlayedGame {
+  report(): PlayedGame<T, N, S, R> {
     const { run, start, round } = this.runState();
     return {
       run,
@@ -516,7 +592,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * field's depth, or its level begun again on it if no round was played,
    * marks the levels it cleared cleared, and says so.
    */
-  takeUp({ run, start, tuned }: TakenUp): void {
+  takeUp({ run, start, tuned }: TakenUp<T, N>): void {
     this.numbers.takeUp(run.id);
     const laid = this.laidOut(run);
     this.begin(laid, this.onDepth(start, laid), { kept: tuned });
@@ -532,9 +608,9 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * the moment reported and paused. Set the debug menu's depth first, and
    * ask the player first where a run in progress would be lost.
    *
-   * A round in play is flown only once the board is drawn.
+   * A round in play flies only once the board is drawn.
    */
-  takeUpReplayed({ game, rounds, round }: ReplayedGame): void {
+  takeUpReplayed({ game, rounds, round }: ReplayedGame<T, N, S, R, V>): void {
     // At once, rather than as the depth's effect runs, so the run is taken
     // up on it.
     this.reshape();
@@ -544,11 +620,11 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Flies a reported round in play, just released again, on to the moment
-   * reported: a game whose play can change a flight on the way, as a drop
-   * does, flies it to that change first.
+   * Flies a reported round in play, just released again (`released`), on
+   * to the moment reported: a game whose play can change a flight on the
+   * way, as a drop does, overrides it to make that change first.
    */
-  protected flyOn(round: ReadRound, _released: PlayedRound): void {
+  protected flyOn(round: V, _released: ReleasedRound<T, N, S, R>): void {
     this.flyTo(round.moment);
   }
 
@@ -557,7 +633,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * taken up going on, flies it on to the moment reported ({@link flyOn}),
    * then pauses the run there, or leaves a level it ended to open its card.
    */
-  private flyReported(round: ReadRound): void {
+  private flyReported(round: V): void {
     const state = this.runState();
     this.runState.set({ ...state, run: resume(state.run) });
     const released = this.release(round.shot, round.rules);
@@ -573,36 +649,26 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * turned back into one can miss the moment by a rounding.
    */
   protected flyTo(moment: number): void {
-    this.advance(
-      moment - this.play.moment,
-      false,
-      landInPlay,
-      this.exactFrameOptions(),
-    );
+    this.takeIn(this.advanceExactly(moment - this.play.moment));
   }
 
   /**
    * Releases the round aimed at a shot, if the board is drawn and its level
-   * waits for the first shot or is under way: the rules play it whole, on
-   * the rules handed, the run takes it in, counted in the records as it
-   * plays its first round, and the view starts playing its flight back.
-   * Returns the round as it was released, or null where the shot didn't
-   * fly.
+   * waits for the first shot or is under way: the game's rules play it
+   * whole, on the rules handed, the run takes it in, counted in the records
+   * as it plays its first round, and the play starts playing its flight
+   * back. Returns the round as it was released, or null where the shot
+   * didn't fly. Hand it a shot no one writes again.
    */
-  protected release(
-    { aim, charge }: Readonly<Shot>,
-    rules: RoundRules,
-  ): PlayedRound | null {
+  protected release(shot: S, rules: R): ReleasedRound<T, N, S, R> | null {
     const state = this.runState();
     if (!this.drawn() || state.phase !== "aiming") return null;
     const started = startLevel(state.run);
     if (started.outcome !== "playing") return null;
-    // A copy, as the steer handed is written again each frame.
-    const shot: Shot = { aim, charge };
     const round = this.playRound(state.start, shot, rules);
-    const run = takeRound(started, round.outcome, RUN_RULES);
+    const run = takeRound(started, round.outcome, this.rules);
     this.records.started(state.run);
-    const released: PlayedRound = {
+    const released: ReleasedRound<T, N, S, R> = {
       started,
       start: state.start,
       shot,
@@ -626,14 +692,18 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * again marks that round dropped there. Call it as the game's play plays
    * on with the round dropped.
    */
-  protected droppedAt(released: PlayedRound, round: Round, at: number): void {
+  protected droppedAt(
+    released: ReleasedRound<T, N, S, R>,
+    round: D,
+    at: number,
+  ): void {
     const last = this.levelRounds.length - 1;
     this.levelRounds = this.levelRounds.map((each, index) =>
       index === last ? { ...each, dropped: at } : each,
     );
     this.released.set({ ...released, dropped: at });
     const state = this.runState();
-    const taken = takeRound(released.started, round.outcome, RUN_RULES);
+    const taken = takeRound(released.started, round.outcome, this.rules);
     const run = state.run.outcome === "paused" ? pause(taken) : taken;
     // The run and the round in one value, as at the release, so the saved
     // game writes the round dropped with the run that took it in.
@@ -641,41 +711,39 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   }
 
   /**
-   * Lands the round in the air at once, whatever the run's stage: its
-   * flight skipped to its end at a frame of no time, and the run, with the
-   * records, as {@link afterLanding} lands it, a paused run left paused
-   * but where its level ends.
+   * Lands the round in the air at once, whatever the run's stage, as a Skip
+   * asks: its flight skipped to its end at a frame of no time, everything
+   * it would have done done, and the run, with the records, as
+   * `afterLanding()` lands it, a paused run left paused but where its level
+   * ends.
    */
-  private landAtOnce(): void {
+  landAtOnce(): void {
     if (!this.flying()) return;
     this.play.skip();
-    this.advance(0, false, (run) => afterLanding(run, RUN_RULES));
+    this.takeIn(this.advancePlay(0, false), (run) =>
+      afterLanding(run, this.rules),
+    );
   }
 
   /**
    * Plays the round on by a frame's time and takes in what the frame came
-   * to, as {@link advance} does, as the settings, the player and the run
-   * say: held still while the run is paused.
+   * to, as the game's play plays it: held still while the run is paused.
    */
   protected playFrame(deltaMs: number): void {
-    this.advance(deltaMs, this.run().outcome === "paused");
+    this.takeIn(this.advancePlay(deltaMs, this.run().outcome === "paused"));
   }
 
   /**
-   * Plays the round on by a frame's time and takes in what the frame came
-   * to: the run landed as the flight ends, while it is under way, or as
-   * the move handed lands it, with what the landing brings to the records,
-   * the next round aimed as an ongoing round's wall comes to rest, the card
-   * that opened, and the words for all of it. The frame plays as the
-   * settings, the player and the run say, unless handed how.
+   * Takes in what a frame of the play came to: the run landed as the flight
+   * ends, while it is under way, or as the move handed lands it, with what
+   * the landing brings to the records, the next round aimed as an ongoing
+   * round's wall comes to rest, the card that opened, and the words for all
+   * of it.
    */
-  private advance(
-    deltaMs: number,
-    paused: boolean,
-    land: (run: Run) => Run = landInPlay,
-    options: Readonly<PlayOptions> = this.frameOptions(paused),
+  private takeIn(
+    change: FrameChange<D>,
+    land: (run: Run<T>) => Run<T> = (run) => landRound(run, this.rules),
   ): void {
-    const change = this.play.advance(deltaMs, options);
     const before = this.runState();
     const run =
       this.play.phase !== "flying" && before.run.ending !== null
@@ -702,38 +770,38 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   }
 
   /** Says what a state's news and a card just opened call for, all at once, and returns the state with the news said. */
-  private say(state: RunState, cardBefore: RunState["card"]): RunState {
+  private say(
+    state: RunState<T, N, D>,
+    cardBefore: RunState<T, N, D>["card"],
+  ): RunState<T, N, D> {
     // Most frames have nothing to say, and make no list of words.
     if (state.news.length === 0 && state.card === cardBefore) return state;
-    const words: string[] = [];
-    for (const news of state.news) {
-      if (news.kind === "ended") {
-        // A round that leaves the level on is said of the next as it is
-        // aimed, on the depth the field takes as the words are said, which
-        // the room may have changed while the round flew.
-        words.push(this.words.round(news.round, state.start));
-      }
-    }
+    // A round that leaves the level on is said of the next as it is aimed,
+    // on the depth the field takes as the words are said, which the room
+    // may have changed while the round flew.
+    const words = state.news.map((round) =>
+      this.words.round(round, state.start),
+    );
     if (state.card !== cardBefore) words.push(...this.cardWords(state));
     if (words.length > 0) this.announcer.say(words.join(" "));
     return withNewsSaid(state);
   }
 
   /** Returns what is said as a level's card opens: the level cleared, the run's end, or both. */
-  private cardWords({ run, card, newBest }: RunState): string[] {
+  private cardWords({ run, card, newBest }: RunState<T, N, D>): string[] {
     const cleared = run.outcome === "over" ? [] : [this.words.cleared(run)];
     return card === "result"
       ? [...cleared, this.words.end(run, newBest)]
       : cleared;
   }
 
-  /** Returns a run on the depth the board's room now gives, as the rules lay it out ({@link takeDepth}). */
-  private laidOut(run: Run): Run {
-    return takeDepth(run, this.room.depth, this.levels, RUN_RULES);
+  /** Returns a run on the depth the board's room now gives, as the rules lay it out (`takeDepth()`). */
+  private laidOut(run: Run<T>): Run<T> {
+    return takeDepth(run, this.room.depth, this.levels, this.rules);
   }
 
   /** Aims a round on the field as the board's room now shapes it. */
-  private aim(start: RoundStart): void {
+  private aim(start: N): void {
     this.shapeState.set(this.room);
     this.play.aim(start);
   }
@@ -743,7 +811,7 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
    * a level with no round played laid out afresh on it, any other start's
    * wall kept where it stands from the floor.
    */
-  private onDepth(start: RoundStart, run: Run): RoundStart {
+  private onDepth(start: N, run: Run<T>): N {
     const { depth } = this.room;
     if (start.depth === depth) return start;
     return run.rounds === 0
@@ -757,40 +825,35 @@ export abstract class RoundDriver extends RunLifecycle implements KeptGame {
   }
 
   /** Returns a new run at a level, waiting on the board's depth for its first shot. */
-  protected create(level: number): Run {
+  protected create(level: number): Run<T> {
     const { id } = this.numbers.next();
     return createRun(
       { id, level, depth: this.room.depth },
       this.levels,
-      RUN_RULES,
+      this.rules,
     );
   }
 
   /**
    * Puts a run on the board, its state replaced whole, so nothing of the
    * last run's reaches it, its round aimed from where it starts, and tells
-   * the records how it begins: a new run, by whether its level is open, or
-   * as handed. The last run's round not yet landed in it lands in the
-   * records first, as it would have flown, as nothing can change it once
-   * the run is left, so the level it clears is open to the new run.
+   * the records how it begins: a new run, or as handed. The last run's
+   * round not yet landed in it lands in the records first, as it would
+   * have flown, as nothing can change it once the run is left, so the level
+   * it clears is open to the new run.
    */
   protected begin(
-    run: Run,
-    start: RoundStart = this.openingOf(run),
-    keeping?: RunStart,
+    run: Run<T>,
+    start: N = this.openingOf(run),
+    begun?: RunBegun,
   ): void {
     this.records.left(this.runState().run);
     this.aim(start);
     this.levelRounds = [];
-    this.records.began(run, keeping);
+    this.records.began(run, begun);
     this.runState.set(newRunState(run, start));
     this.began();
   }
-}
-
-/** Returns the run with its round in flight landed, as the run's rules land it while its level plays. */
-function landInPlay(run: Run): Run {
-  return landRound(run, RUN_RULES);
 }
 
 /** Returns whether two shapes of field are alike in every measure. */

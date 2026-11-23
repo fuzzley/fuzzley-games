@@ -7,14 +7,19 @@ import {
   signal,
 } from "@angular/core";
 import { waitingRows } from "@fz/brick-wall/app/panels";
+import {
+  RoundDriver,
+  type RoundDriving,
+} from "@fz/brick-wall/app/round_driver";
 import type { Aim } from "@fz/brick-wall/rules/aims";
 import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
+import type { FrameChange } from "@fz/brick-wall/view/rounds_played";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import type { ConfirmRequest } from "@fz/ui/confirm";
 import { ThemeService } from "@fz/ui/theme";
 import { type Line, shotOf } from "../../rules/levels/certificate";
-import { parseLevel } from "../../rules/levels/levels";
+import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
 import {
   type Crew,
   RULES,
@@ -28,7 +33,12 @@ import type {
   ReadRound,
   ReplayedGame,
 } from "../../rules/run/reported_game";
-import { levelOf, openingOf } from "../../rules/run/run";
+import {
+  type LevelCounts,
+  RUN_RULES,
+  levelOf,
+  openingOf,
+} from "../../rules/run/run";
 import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { Boon, Charge, Shot } from "../../rules/shot";
@@ -53,7 +63,6 @@ import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
 import { boardCardOf } from "./cards";
 import { CertificateLine } from "./line";
 import { RunRecords } from "./records";
-import { RoundDriver, type RoundDriving } from "./round_driver";
 import { KEPT_GAME } from "./saved_game.service";
 import { ROUND_WORDS, fastForwardWords } from "./words";
 
@@ -92,15 +101,22 @@ type FrameOptions = { -readonly [Key in keyof PlayOptions]: PlayOptions[Key] };
 
 /**
  * Returns what the run's driver is handed of Brick Fuzz Pop: its levels,
- * the opening of each, its play of the rounds, its records and words, and
- * the depth the debug menu sets. It must be called in an injection
- * context.
+ * the run's rules, the opening of each level, its play of the rounds, its
+ * records and words, and the depth the debug menu sets. It must be called
+ * in an injection context.
  */
-function brickFuzzPopDriving(): RoundDriving {
+function brickFuzzPopDriving(): RoundDriving<
+  LevelCounts,
+  LevelEntry,
+  RoundStart,
+  Round,
+  RoundPlay
+> {
   const levels = inject(GAME_LEVELS);
   const debug = inject(DebugService);
   return {
     levels,
+    rules: RUN_RULES,
     openingOf: (run) => openingOf(run, levelOf(run, levels)),
     playOf: (start) => new RoundPlay(start),
     records: new RunRecords(
@@ -127,7 +143,17 @@ function brickFuzzPopDriving(): RoundDriving {
  * reads it through {@link view}.
  */
 @Injectable({ providedIn: "root" })
-export class GameService extends RoundDriver {
+export class GameService extends RoundDriver<
+  LevelCounts,
+  LevelEntry,
+  RoundStart,
+  Shot,
+  RoundRules,
+  Round,
+  RoundPlay,
+  Guide,
+  ReadRound
+> {
   private readonly viewport = inject(GameViewportService);
   private readonly theme = inject(ThemeService);
   private readonly settingsService = inject(SettingsService);
@@ -240,8 +266,9 @@ export class GameService extends RoundDriver {
     const shot = this.line.next(this.run(), this.start());
     if (shot === undefined) {
       if (steer.release) {
+        // A copy, as the steer handed is written again each frame.
         const released = this.release(
-          steer,
+          { aim: steer.aim, charge: steer.charge },
           rulesOf(this.debug.tuning.tuning()),
         );
         if (released !== null) this.droppableRound.set(released);
@@ -460,8 +487,27 @@ export class GameService extends RoundDriver {
     return guide;
   }
 
+  /** Plays the round on by a frame's time, as the settings, the player and the run say. */
+  protected override advancePlay(
+    deltaMs: number,
+    paused: boolean,
+  ): FrameChange<Round> {
+    return this.play.advance(deltaMs, this.frameOptions(paused));
+  }
+
+  /** Plays the round in the air on by a distance, at a field unit a millisecond, neither fast-forwarded nor sped up. */
+  protected override advanceExactly(distance: number): FrameChange<Round> {
+    const frame = this.frameOptions(false);
+    return this.play.advance(distance, {
+      ...frame,
+      pace: { ...frame.pace, unitsPerSecond: UNIT_A_MS },
+      fast: false,
+      speedUp: false,
+    });
+  }
+
   /** Returns how the next frame plays the round, as the settings, the player and the run say. */
-  protected override frameOptions(paused: boolean): Readonly<PlayOptions> {
+  private frameOptions(paused: boolean): Readonly<PlayOptions> {
     const { frame } = this;
     const { flightSpeed, speedUpLongFlights } = this.settings();
     frame.speed = flightSpeed;
@@ -470,17 +516,6 @@ export class GameService extends RoundDriver {
     frame.motion = this.viewport.allowsMotion();
     frame.paused = paused;
     return frame;
-  }
-
-  /** Returns how a frame plays a flight at a field unit a millisecond, neither fast-forwarded nor sped up. */
-  protected override exactFrameOptions(): Readonly<PlayOptions> {
-    const frame = this.frameOptions(false);
-    return {
-      ...frame,
-      pace: { ...frame.pace, unitsPerSecond: UNIT_A_MS },
-      fast: false,
-      speedUp: false,
-    };
   }
 }
 

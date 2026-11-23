@@ -2,6 +2,7 @@ import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
+import type { FrameChange, LevelCard } from "@fz/brick-wall/view/rounds_played";
 import { JUMP_MS, STEP_MS } from "@fz/brick-wall/view/timing";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
@@ -28,7 +29,6 @@ import {
   type PlayOptions,
   RoundPlay,
 } from "./round_play";
-import type { Card, RoundChange } from "./run_state";
 
 const { plain, punch, zap, columnZap, hotShot, triple, friend, bored } =
   FLIGHT_FIXTURES;
@@ -64,7 +64,7 @@ function playMs(
   ms: number,
   frame: PlayOptions = NORMAL,
   frameMs = FRAME_MS,
-): RoundChange {
+): FrameChange<Round> {
   let change = play.advance(frameMs, frame);
   for (let played = 1; played < Math.round(ms / frameMs); played++) {
     change = play.advance(frameMs, frame);
@@ -79,7 +79,7 @@ function playOnBy(play: RoundPlay, units: number): void {
 }
 
 /** Plays frames until the round's flight ends, and returns the last frame's change. */
-function playUntilLanded(play: RoundPlay): RoundChange {
+function playUntilLanded(play: RoundPlay): FrameChange<Round> {
   for (let played = FRAME_MS; played < 600_000; played += FRAME_MS) {
     const change = play.advance(FRAME_MS, NORMAL);
     if (play.phase !== "flying") return change;
@@ -112,7 +112,7 @@ function playUntilOpens(
 }
 
 /** Plays frames for a while, and returns the first card whose wait runs out in them, or null for none. */
-function opensWithin(play: RoundPlay, ms: number): Card | null {
+function opensWithin(play: RoundPlay, ms: number): LevelCard | null {
   for (let played = 0; played < ms; played += FRAME_MS) {
     const { opens } = play.advance(FRAME_MS, NORMAL);
     if (opens !== null) return opens;
@@ -433,7 +433,7 @@ describe("RoundPlay, aiming", () => {
     const change = play.advance(1000, NORMAL);
 
     expect([change, play.view.events.latest]).toEqual([
-      { freed: [], settled: null, opens: null },
+      { settled: null, opens: null },
       0,
     ]);
   });
@@ -653,14 +653,6 @@ describe("RoundPlay's flight", () => {
     expect(loggedEvents(play)).toEqual(RIPPLING.round.flight.events);
   });
 
-  it("hands on a friend freed past the last landing", () => {
-    const play = playing(RIPPLING);
-
-    const change = playUntilLanded(play);
-
-    expect(change.freed).toEqual([3]);
-  });
-
   it("skips to the end of a zap that ripples on past the last landing", () => {
     const play = playing(RIPPLING);
     play.skip();
@@ -789,30 +781,6 @@ describe("RoundPlay's flight", () => {
       expect(play.waitingX).toBeNull();
     },
   );
-
-  it("hands on the friends a frame frees", () => {
-    const play = playing(
-      withEvents(plain, [
-        { at: 6.5, kind: "free", cell: 8, ink: 3 },
-        { at: 6.6, kind: "free", cell: 9, ink: 5 },
-      ]),
-    );
-
-    const change = play.advance(500, NORMAL);
-
-    expect(change.freed).toEqual([3, 5]);
-  });
-
-  it("hands on no friends the frame after", () => {
-    const play = playing(
-      withEvents(plain, [{ at: 6.5, kind: "free", cell: 8, ink: 3 }]),
-    );
-    play.advance(500, NORMAL);
-
-    const change = play.advance(FRAME_MS, NORMAL);
-
-    expect(change.freed).toEqual([]);
-  });
 
   it("counts the points of the breaks it has reached, and no more", () => {
     const play = playing(BREAKING_ON);
@@ -1798,7 +1766,7 @@ describe("RoundPlay's settling", () => {
 
     const change = play.advance(FRAME_MS, NORMAL);
 
-    expect(change).toEqual({ freed: [], settled: null, opens: null });
+    expect(change).toEqual({ settled: null, opens: null });
   });
 
   it("steps the wall at once where motion is unwelcome", () => {

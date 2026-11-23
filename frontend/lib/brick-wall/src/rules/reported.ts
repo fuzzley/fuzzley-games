@@ -94,6 +94,34 @@ export interface ReportedPlay<T, N, P> {
   readonly tuned: boolean;
 }
 
+/** Describes a wall game as it stands, as a bug report takes it, its rounds released, with the moment of the round in play's flight the playback has reached. */
+export interface PlayedGame<T, N, S, R> extends ReportedPlay<
+  T,
+  N,
+  ReleasedRound<T, N, S, R>
+> {
+  readonly moment: number;
+}
+
+/** Describes a reported round in play read back, ready to fly again: its shot, `S`, the rules it flew on, `R`, and the moment it was reported at. */
+export interface ReplayedRound<S, R> {
+  readonly shot: S;
+  readonly rules: R;
+  /** The moment of its flight the playback had reached, in field units. */
+  readonly moment: number;
+}
+
+/**
+ * Describes a reported game ready for a wall game to take up: the run and
+ * where its round starts, the rounds its level played on the way, as they
+ * were released, and the round in play, `V`, to fly again.
+ */
+export interface ReplayedGame<T, N, S, R, V extends ReplayedRound<S, R>> {
+  readonly game: TakenUp<T, N>;
+  readonly rounds: readonly ReleasedRound<T, N, S, R>[];
+  readonly round: V | null;
+}
+
 /** Describes a level's shot read back from a report, ready to play again. */
 export interface ReadShot<S, R> {
   readonly shot: S;

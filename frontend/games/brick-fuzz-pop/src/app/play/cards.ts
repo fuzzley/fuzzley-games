@@ -1,11 +1,11 @@
 import type { Signal } from "@angular/core";
+import type { LevelCard } from "@fz/brick-wall/view/rounds_played";
 import { kindIntroducedAt } from "../../rules/catalog/bricks";
 import type { LevelEntry } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import type { Run } from "../../rules/run/run";
 import { tallyOf } from "../../rules/run/scoring";
 import type { Boon } from "../../rules/shot";
-import type { Card } from "../../view/run_state";
 import type { BoardCard } from "../board/board_card.component";
 
 /** Describes what of the game the board's card reads. */
@@ -13,7 +13,7 @@ export interface CardedGame {
   readonly run: Signal<Run>;
   readonly ended: Signal<boolean>;
   readonly resultClosed: Signal<boolean>;
-  readonly card: Signal<Card | null>;
+  readonly card: Signal<LevelCard | null>;
   readonly level: Signal<LevelEntry>;
   readonly levelBoon: Signal<Boon>;
   readonly nextStart: Signal<RoundStart>;

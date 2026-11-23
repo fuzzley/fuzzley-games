@@ -1,10 +1,11 @@
 import type { Signal } from "@angular/core";
+import type { LandingRecords } from "@fz/brick-wall/app/round_driver";
 import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import { afterLanding, isInProgress } from "@fz/brick-wall/rules/run";
 import { levelResultOf } from "@fz/brick-wall/rules/stats";
 import { hasEnded } from "@fz/core/run";
 import type { LevelEntry } from "../../rules/levels/levels";
-import { RUN_RULES, type Run } from "../../rules/run/run";
+import { type LevelCounts, RUN_RULES, type Run } from "../../rules/run/run";
 import { STATS_RULES } from "../../rules/run/stats";
 import type { DebugService, RunStart } from "../debug/debug.service";
 import type { ProgressService } from "../stats/progress.service";
@@ -17,7 +18,7 @@ import type { StatsService } from "../stats/stats.service";
  * debug menu how each run begins, which decides whether it is on the
  * record.
  */
-export class RunRecords {
+export class RunRecords implements LandingRecords<LevelCounts> {
   /** Whether the run under way keeps no records, as the debug menu took it off the record. */
   readonly offRecord: Signal<boolean>;
 

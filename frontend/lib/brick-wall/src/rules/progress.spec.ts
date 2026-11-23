@@ -1,4 +1,4 @@
-import { clearedOf, isOpen, levelIdOf } from "./progress";
+import { clearedOf, isOpen, levelAt, levelIdOf } from "./progress";
 
 /** Four levels made up for the spec, "a" to "d", numbered 1 to 4. */
 const LEVELS = ["a", "b", "c", "d"].map((id) => ({ data: { id } }));
@@ -10,6 +10,23 @@ describe("levelIdOf", () => {
 
   it.each([0, 5])("throws for level %i, which the game hasn't", (level) => {
     expect(() => levelIdOf(LEVELS, level)).toThrow(
+      new RangeError(
+        `There is no level ${String(level)}: the levels run from 1 to 4.`,
+      ),
+    );
+  });
+});
+
+describe("levelAt", () => {
+  it("finds a level by its number, from 1", () => {
+    expect([1, 4].map((level) => levelAt(LEVELS, level))).toEqual([
+      LEVELS[0],
+      LEVELS[3],
+    ]);
+  });
+
+  it.each([0, 5])("throws for level %i, which the game hasn't", (level) => {
+    expect(() => levelAt(LEVELS, level)).toThrow(
       new RangeError(
         `There is no level ${String(level)}: the levels run from 1 to 4.`,
       ),
