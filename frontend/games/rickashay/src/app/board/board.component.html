@@ -17,6 +17,33 @@
   (drawn)="game.setDrawn($event)"
   (contextLost)="game.pause()"
 >
+  @if (board.panels(); as panels) {
+    <fz-coming-next
+      [style]="panels.left"
+      [level]="game.level()"
+      [wall]="game.start().wall"
+      [depth]="game.start().depth"
+      [inkOf]="inkOf()"
+      [waiting]="rowsWaiting()"
+      [jump]="jump"
+    />
+    @if (listedWall(); as wall) {
+      <fz-in-this-wall
+        [style]="panels.right"
+        [wall]="wall"
+        [kinds]="kinds"
+        [kindOf]="kindWords"
+        [pictures]="brickPictures()"
+      >
+        <app-this-shot
+          [soFar]="game.soFar()"
+          [rules]="game.fieldRules()"
+          [springs]="springPictures()"
+        />
+      </fz-in-this-wall>
+    }
+  }
+
   <!--
     The call, heard from the announcer, under the card, which covers it as
     the player pauses.

@@ -1,0 +1,68 @@
+// Its lines are the panel's own rows, under the kinds, set as the panel
+// sets its own.
+:host {
+  display: contents;
+}
+
+// Each figure's name on the left and its value on the right, the rally's
+// large; in a panel too narrow for both on one line, as beside a phone on
+// its side, the value under its name, kept whole and to the right.
+.figures {
+  display: grid;
+  gap: var(--fz-space-1);
+  margin: 0;
+}
+
+.figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--fz-space-2);
+
+  dt {
+    color: var(--fz-muted);
+  }
+
+  dd {
+    display: flex;
+    align-items: center;
+    gap: var(--fz-space-2);
+    margin: 0 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+.rally dd {
+  font-size: var(--fz-font-4xl);
+  line-height: 1;
+}
+
+.springs {
+  display: flex;
+  gap: 2px;
+
+  img {
+    width: var(--fz-space-5);
+    height: var(--fz-space-5);
+  }
+}
+
+// The bar toward the next floor bounce, filled as far as the rally has come
+// from the last.
+.bar {
+  overflow: hidden;
+  width: var(--fz-space-10);
+  height: var(--fz-space-2);
+  border-radius: var(--fz-radius-sm);
+  background: var(--fz-edge-3);
+}
+
+.fill {
+  display: block;
+  width: calc(var(--to-next, 0) * 100%);
+  height: 100%;
+  background: var(--fz-warning);
+}

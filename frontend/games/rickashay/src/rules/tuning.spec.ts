@@ -9,6 +9,7 @@ import {
   STRIKE_HITS,
   STRIKE_POINTS,
   bounceRally,
+  bounceRungs,
 } from "./tuning";
 
 /**
@@ -110,5 +111,28 @@ describe("bounceRally", () => {
     expect([1, 2, 3].map((bounce) => bounceRally(bounce, rules))).toEqual([
       6, 14, 24,
     ]);
+  });
+});
+
+describe("bounceRungs", () => {
+  it.each([
+    [0, { from: 0, at: 10 }],
+    [9, { from: 0, at: 10 }],
+    [10, { from: 10, at: 25 }],
+    [24, { from: 10, at: 25 }],
+    [25, { from: 25, at: 45 }],
+    [140, { from: 135, at: 175 }],
+  ])(
+    "stands a rally of %i between the floor bounces before it and after it",
+    (rally, rungs) => {
+      expect(bounceRungs(rally, FLIGHT_RULES)).toEqual(rungs);
+    },
+  );
+
+  it("finds the rungs as the rules it is handed say", () => {
+    expect(bounceRungs(7, { firstBounce: 6, bounceStep: 2 })).toEqual({
+      from: 6,
+      at: 14,
+    });
   });
 });

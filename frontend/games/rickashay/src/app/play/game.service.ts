@@ -244,7 +244,7 @@ export class GameService extends RoundDriver<
   /** The card over the field, or null for none. */
   readonly boardCard = computed(() => boardCardOf(this));
 
-  /** The pictures of each drawn kind of brick, as the scene last baked them, or null before it has. */
+  /** The pictures the scene last baked, each drawn kind of brick's and a floor bounce's spring, or null before it has. */
   readonly pictures = this.picturesState.asReadonly();
 
   /** The colors the field is drawn in, from the palette on the page, a new value as it changes. */
@@ -280,7 +280,7 @@ export class GameService extends RoundDriver<
     this.showCall(deltaMs);
   }
 
-  /** Takes the pictures of each drawn kind of brick the scene's atlas baked. */
+  /** Takes the pictures the scene's atlas baked: each drawn kind of brick's and a floor bounce's spring. */
   onPictures(pictures: () => Pictures): void {
     this.picturesState.set(pictures);
   }

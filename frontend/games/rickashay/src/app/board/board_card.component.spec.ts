@@ -33,9 +33,10 @@ const CLEARED: ClearedCard = {
   score: 3640,
 };
 
-/** The pictures of the drawn kinds, as the scene hands them. */
+/** The pictures of the drawn kinds and the springs, as the scene hands them. */
 const PICTURES: Pictures = {
   bricks: { brick: "data:image/png;brick", tough: "data:image/png;tough" },
+  springs: { off: "data:image/png;off", on: "data:image/png;on" },
 };
 
 /** What a card's buttons emitted, in order. */
@@ -99,7 +100,9 @@ describe("BoardCardComponent", () => {
 
       expect(
         screen.getByText("New: Tough brick.").parentElement,
-      ).toHaveTextContent("New: Tough brick. Loses a pip at each strike.");
+      ).toHaveTextContent(
+        "New: Tough brick. Takes 2 to 6 strikes. The pips show how many are left.",
+      );
     });
 
     it("shows the new kind's picture once the scene has drawn it", async () => {

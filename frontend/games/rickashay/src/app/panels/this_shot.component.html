@@ -1,0 +1,35 @@
+<h2 class="card-title">This shot</h2>
+<!--
+  A description list, so each figure is announced with what it measures.
+  The springs and the bar are hidden, as the figure beside each says it.
+-->
+<dl class="figures">
+  <div class="figure rally">
+    <dt>Rally</dt>
+    <dd>{{ soFar().rally }}</dd>
+  </div>
+  <div class="figure">
+    <dt>Floor bounces</dt>
+    <dd>
+      <span class="springs" aria-hidden="true">
+        @for (spring of springPictures(); track $index) {
+          <img [src]="spring" alt="" />
+        }
+      </span>
+      {{ held() }}
+    </dd>
+  </div>
+  <div class="figure">
+    <dt>Next floor bounce</dt>
+    <dd>
+      <span class="bar" aria-hidden="true"
+        ><span class="fill" [style.--to-next]="toNext()"></span
+      ></span>
+      {{ next() }}
+    </dd>
+  </div>
+  <div class="figure">
+    <dt>Turns</dt>
+    <dd>{{ soFar().turns }}</dd>
+  </div>
+</dl>

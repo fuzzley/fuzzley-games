@@ -17,7 +17,7 @@ import { GameViewportService } from "@fz/game-ui/viewport";
 import { CanvasCardsComponent, KeepKeysDirective } from "@fz/phaser/canvas";
 import { IconComponent } from "@fz/ui/icon";
 import { type KindId, kindOf } from "../../rules/catalog/kinds";
-import { describeKind, starLabel } from "../../rules/run/describe";
+import { starLabel } from "../../rules/run/describe";
 import type { LevelPoints } from "../../rules/run/scoring";
 import {
   MOST_STARS,
@@ -26,6 +26,7 @@ import {
   starCount,
 } from "../../rules/run/stars";
 import type { Pictures } from "../../scene/pictures";
+import { kindAbout } from "../help/kinds";
 
 /** What the Ready card shows, over a level waiting for its first shot. */
 export interface ReadyCard {
@@ -280,7 +281,7 @@ export class BoardCardComponent {
           ? null
           : {
               name: kindOf(newKind).name,
-              about: describeKind(newKind),
+              about: kindAbout(newKind),
               picture: this.pictures()?.bricks[newKind] ?? null,
             },
     };

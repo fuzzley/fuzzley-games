@@ -1,6 +1,6 @@
-// The pictures of the kinds of brick the scene hands the shell, for the
-// Ready card to show beside the canvas: each drawn kind's whole brick, one
-// frame of the atlas a kind.
+// The pictures the scene hands the shell, to show beside the canvas: each
+// drawn kind's whole brick, one frame of the atlas a kind, for the Ready
+// card and the panels, and a floor bounce's spring, unlit and lit.
 
 import type { WallFrames } from "@fz/brick-wall/scene/atlas";
 import type { Pictured } from "@fz/phaser/scene";
@@ -13,6 +13,7 @@ import {
   wallAtlasFrames,
 } from "../view/art/atlas_frames";
 import { cellOf } from "../view/art/cells";
+import { FRAMES } from "../view/art/frames";
 import type { WallPalette } from "../view/colors/palette";
 
 /**
@@ -28,13 +29,19 @@ const WHOLE_BRICKS = Object.values(LEGEND)
   )
   .sort((a, b) => DRAWN_KINDS.indexOf(a.kind) - DRAWN_KINDS.indexOf(b.kind));
 
-/** The frame each drawn kind's picture is, as `Pictures` takes them: none for a kind the art doesn't draw yet. */
+/**
+ * The frame each picture is, as `Pictures` takes them: each drawn kind's,
+ * none for a kind the art doesn't draw yet, and a floor bounce's spring,
+ * unlit and lit, the band's own frames, for This shot beside the field.
+ */
 export const PICTURE_FRAMES: {
   readonly bricks: Partial<Readonly<Record<KindId, string>>>;
+  readonly springs: { readonly off: string; readonly on: string };
 } = {
   bricks: Object.fromEntries(
     DRAWN_KINDS.map((kind) => [kind, `picture-${kind}`]),
   ),
+  springs: { off: FRAMES.bounceOff, on: FRAMES.bounceOn },
 };
 
 /** Holds a picture of each frame {@link PICTURE_FRAMES} names, as a `data:` URL, in the same records. */

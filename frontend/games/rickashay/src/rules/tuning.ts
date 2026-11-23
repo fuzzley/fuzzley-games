@@ -114,3 +114,31 @@ export function bounceRally(
   // the steps adding up to bounceStep times 0 + 1 + … + (bounce − 1).
   return bounce * firstBounce + (bounceStep * bounce * (bounce - 1)) / 2;
 }
+
+/** Describes the rungs of the floor bounce ladder a rally stands between. */
+export interface BounceRungs {
+  /** The rally the last floor bounce came at, or 0 before the first. */
+  readonly from: number;
+  /** The rally the next floor bounce comes at. */
+  readonly at: number;
+}
+
+/**
+ * Returns the rungs of the floor bounce ladder a rally stands between: the
+ * rally the last floor bounce came at, and the one the next comes at, so a
+ * rally of 10 stands between 10 and 25. `firstBounce` must be 1 at least.
+ */
+export function bounceRungs(
+  rally: number,
+  rules: Pick<FlightRules, "firstBounce" | "bounceStep">,
+): BounceRungs {
+  let from = 0;
+  let bounce = 1;
+  let at = bounceRally(bounce, rules);
+  while (at <= rally) {
+    from = at;
+    bounce++;
+    at = bounceRally(bounce, rules);
+  }
+  return { from, at };
+}

@@ -1,11 +1,15 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
-import { MARGIN_CSS_PX } from "@fz/brick-wall/view/field_metrics";
+import {
+  MARGIN_CSS_PX,
+  fieldMetrics,
+  fieldShape,
+} from "@fz/brick-wall/view/field_metrics";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import type { HostedScene } from "@fz/phaser/host";
 import { NO_INSETS } from "@fz/phaser/insets";
-import type { Viewport } from "@fz/phaser/layout";
+import { type Viewport, cssRectStyle } from "@fz/phaser/layout";
 import {
   type FakeCanvasOptions,
   FakePhaserCanvas,
@@ -14,12 +18,14 @@ import {
   provideFakePhaserCanvas,
   resize,
   runShownScene,
+  watchResizes,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { paintRoles } from "@fz/style/testing";
+import { figure } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { rowsWaiting } from "../../rules/run/describe";
+import { JUMP_WORDS, rowsWaiting } from "../../rules/run/describe";
 import { PALETTES } from "../../testing/roles";
 import {
   STILL,
@@ -34,8 +40,11 @@ import { GameService } from "../play/game.service";
 import type { RoundPlayer } from "../tokens";
 import { BoardComponent } from "./board.component";
 
-/** An upright phone's canvas, 390 by 700 CSS px. */
+/** An upright phone's canvas, 390 by 700 CSS px, which spares the panels no room. */
 const UPRIGHT = { width: 390, height: 700 } as const;
+
+/** A roomy canvas, 1600 by 900 CSS px, which spares the panels room beside the field. */
+const WIDE = { width: 1600, height: 900 } as const;
 
 /** What a spec renders the board with. */
 interface BoardSetUp {
@@ -97,14 +106,11 @@ function canvasOf({
   });
 }
 
-/**
- * Runs the scene the board loads, for real, on a canvas of an upright
- * phone's size, laid out as a browser lays the board out, its first frame
- * drawn, and renders what that changes.
- */
-async function runSceneOn(
+/** Lays the board out at a CSS size, as the browser does, its insets the roomy margin it declares, and renders what that changes. */
+function measureAt(
   rendered: RenderedBoard,
-): Promise<SceneRun<HostedScene>> {
+  { width, height }: { readonly width: number; readonly height: number },
+): void {
   // jsdom works out no `var()`, which the stylesheet declares the insets in.
   for (const edge of ["top", "right", "bottom", "left"]) {
     rendered.host.style.setProperty(
@@ -112,11 +118,23 @@ async function runSceneOn(
       `${String(MARGIN_CSS_PX.roomy)}px`,
     );
   }
-  resize(rendered.host, UPRIGHT.width, UPRIGHT.height);
+  resize(rendered.host, width, height);
   rendered.detectChanges();
+}
+
+/**
+ * Runs the scene the board loads, for real, on a canvas of an upright
+ * phone's size unless given another, laid out as a browser lays the board
+ * out, its first frame drawn, and renders what that changes.
+ */
+async function runSceneOn(
+  rendered: RenderedBoard,
+  size: { readonly width: number; readonly height: number } = UPRIGHT,
+): Promise<SceneRun<HostedScene>> {
+  measureAt(rendered, size);
   const run = await runShownScene(rendered.fake, rendered.host, {
-    ...UPRIGHT,
-    insets: canvasOf(UPRIGHT).insets,
+    ...size,
+    insets: canvasOf(size).insets,
   });
   run.advance(FRAME_MS);
   rendered.detectChanges();
@@ -286,6 +304,94 @@ describe("BoardComponent", () => {
       expect(
         screen.getByText(rowsWaiting(rendered.game.rowsLeft())),
       ).not.toHaveAttribute("aria-hidden");
+    });
+  });
+
+  describe("its panels", () => {
+    watchResizes();
+
+    it("stand beside the field where the room spares them", async () => {
+      const rendered = await renderBoard();
+
+      measureAt(rendered, WIDE);
+
+      const canvas = canvasOf(WIDE);
+      const { panels } = fieldMetrics(canvas, fieldShape(canvas));
+      expect({
+        left: screen.getByRole("region", { name: "Coming next" }),
+        right: screen.getByRole("region", { name: "In this wall" }),
+      }).toEqual({
+        left: expect.toHaveStyle(cssRectStyle(panels!.left)) as unknown,
+        right: expect.toHaveStyle(cssRectStyle(panels!.right)) as unknown,
+      });
+    });
+
+    it("show none where the room spares none", async () => {
+      const rendered = await renderBoard();
+
+      measureAt(rendered, UPRIGHT);
+
+      expect(screen.queryAllByRole("region")).toEqual([]);
+    });
+
+    it("show the level in play, the rows waiting and what the jump does", async () => {
+      const rendered = await renderBoard();
+
+      measureAt(rendered, WIDE);
+
+      const comingNext = screen.getByRole("region", { name: "Coming next" });
+      expect(
+        [
+          "Level 1: First bounce",
+          rowsWaiting(rendered.game.rowsLeft()),
+          JUMP_WORDS,
+        ].map((words) => within(comingNext).queryByText(words) !== null),
+      ).toEqual([true, true, true]);
+    });
+
+    it("list each kind of brick the wall holds, by its name and what it does", async () => {
+      const rendered = await renderBoard();
+
+      measureAt(rendered, WIDE);
+
+      const inThisWall = screen.getByRole("region", { name: "In this wall" });
+      expect(
+        within(within(inThisWall).getByRole("list"))
+          .getAllByRole("listitem")
+          .map((kind) => kind.textContent.trim()),
+      ).toEqual([expect.stringMatching(/^Brick\s*Takes 1 strike\.$/)]);
+    });
+
+    it("show This shot under the kinds, its rally as far as it has played back", async () => {
+      const rendered = await renderBoard({ rounds: scriptedRounds("rally") });
+      measureAt(rendered, WIDE);
+      release(rendered.game);
+
+      playUntil(
+        rendered.game,
+        () => STILL,
+        () => rendered.game.soFar().rally === 5,
+      );
+      rendered.detectChanges();
+
+      const inThisWall = screen.getByRole("region", { name: "In this wall" });
+      expect(figure("Rally", inThisWall)).toBe("5");
+    });
+
+    it("draw This shot's springs, as the scene baked them", async () => {
+      const rendered = await renderBoard();
+
+      await runSceneOn(rendered, WIDE);
+
+      const thisShot = screen.getByRole("heading", { name: "This shot" });
+      const springs = thisShot.parentElement!.querySelectorAll("img");
+      expect(
+        Array.from(springs, (spring) => spring.getAttribute("src")),
+      ).toEqual([
+        expect.stringMatching(/^data:image\/png/),
+        expect.stringMatching(/^data:image\/png/),
+        expect.stringMatching(/^data:image\/png/),
+      ]);
     });
   });
 

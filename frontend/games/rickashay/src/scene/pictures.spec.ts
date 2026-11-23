@@ -5,6 +5,7 @@ import {
   wallAtlasFrames,
 } from "../view/art/atlas_frames";
 import { cellOf } from "../view/art/cells";
+import { FRAMES as FRAME_NAMES } from "../view/art/frames";
 import { PICTURE_FRAMES, atlasWithPictures, pictureFrames } from "./pictures";
 
 /** The field's frames as the art draws them, which the pictures are drawn from. */
@@ -20,6 +21,13 @@ function layered(layers: readonly string[]): unknown[] {
 describe("PICTURE_FRAMES", () => {
   it("names a picture of each drawn kind of brick", () => {
     expect(Object.keys(PICTURE_FRAMES.bricks)).toEqual(DRAWN_KINDS);
+  });
+
+  it("names a floor bounce's spring, unlit and lit, as the band draws it", () => {
+    expect(PICTURE_FRAMES.springs).toEqual({
+      off: FRAME_NAMES.bounceOff,
+      on: FRAME_NAMES.bounceOn,
+    });
   });
 });
 

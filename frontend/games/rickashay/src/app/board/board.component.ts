@@ -1,5 +1,9 @@
 import { Component, computed, inject, viewChild } from "@angular/core";
 import { WallBoardComponent } from "@fz/brick-wall/app/board";
+import {
+  ComingNextComponent,
+  InThisWallComponent,
+} from "@fz/brick-wall/app/panels";
 import type { Nudge } from "@fz/brick-wall/view/aiming";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
@@ -7,14 +11,29 @@ import {
   type SceneSource,
   settledPictures,
 } from "@fz/phaser/canvas";
-import { CALL_WORDS, ROWS_READ, rowsWaiting } from "../../rules/run/describe";
+import { cssHex } from "@fz/phaser/color";
+import type { Brick } from "../../rules/catalog/kinds";
+import {
+  CALL_WORDS,
+  JUMP_WORDS,
+  ROWS_READ,
+  rowsWaiting,
+} from "../../rules/run/describe";
 import type { Pictures } from "../../scene/pictures";
 import type {
   RickashayScene,
   RickashaySceneOptions,
 } from "../../scene/rickashay_scene";
+import { brickColor } from "../../view/colors/brick_colors";
 import { CALL_MS } from "../../view/effects/timing";
 import { showsEveryFigure } from "../bar/figures";
+import {
+  HELP_KIND_IDS,
+  holdsListedKinds,
+  kindPictures,
+  kindWords,
+} from "../help/kinds";
+import { ThisShotComponent } from "../panels/this_shot.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
 
@@ -35,18 +54,27 @@ const BOARD_KEYS: readonly string[] = [
 
 /**
  * Shows Rickashay's board in the wall games' frame (`<fz-wall-board>`): the
- * scene, which it loads once the canvas asks; the "Rickashay!" call over
- * the field as a flight reaches the level's rally mark, hidden from
- * assistive technology, since the announcer says it, and moving across
- * the field only where motion is welcome; and the card over the field
- * (`<app-board-card>`), which holds the canvas's own
- * (`<fz-canvas-cards>`), that the board is still loading on a slow
- * connection, or that it couldn't be drawn. The announcer says what
- * happens.
+ * scene, which it loads once the canvas asks; beside the field, where the
+ * room spares them, the panels: Coming next, the rows waiting and the
+ * jump, and In this wall, each kind of brick the wall holds, with This
+ * shot under them; the "Rickashay!" call over the field as a flight
+ * reaches the level's rally mark, hidden from assistive technology, since
+ * the announcer says it, and moving across the field only where motion is
+ * welcome; and the card over the field (`<app-board-card>`), which holds
+ * the canvas's own (`<fz-canvas-cards>`), that the board is still loading
+ * on a slow connection, or that it couldn't be drawn. The announcer says
+ * what happens.
  */
 @Component({
   selector: "app-board",
-  imports: [BoardCardComponent, CanvasCardsComponent, WallBoardComponent],
+  imports: [
+    BoardCardComponent,
+    CanvasCardsComponent,
+    ComingNextComponent,
+    InThisWallComponent,
+    ThisShotComponent,
+    WallBoardComponent,
+  ],
   templateUrl: "./board.component.html",
   styleUrl: "./board.component.scss",
 })
@@ -79,6 +107,47 @@ export class BoardComponent {
   /** How many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
   protected readonly rowsWaiting = computed(() =>
     rowsWaiting(this.game.rowsLeft()),
+  );
+
+  /** What the jump does, in two sentences, as Coming next says it. */
+  protected readonly jump = JUMP_WORDS;
+
+  /** Returns a brick's ink as CSS, in the palette the field is drawn in, as Coming next draws the rows waiting. */
+  protected readonly inkOf = computed(() => {
+    const palette = this.game.palette();
+    return (brick: Brick): string => cssHex(brickColor(brick, palette));
+  });
+
+  /**
+   * The wall of the round aimed or in play, as In this wall lists its
+   * kinds, or null for one holding a kind the shell doesn't list, which
+   * no level's does.
+   */
+  protected readonly listedWall = computed(() => {
+    const { wall } = this.game.start();
+    return holdsListedKinds(wall) ? wall : null;
+  });
+
+  /** Every kind of brick the shell lists, in the catalog's order, which In this wall lists those of the wall from. */
+  protected readonly kinds = HELP_KIND_IDS;
+
+  /** Returns a kind of brick's name and what it does, as In this wall lists it. */
+  protected readonly kindWords = kindWords;
+
+  /**
+   * The pictures of every kind of brick the board last handed the game, as
+   * In this wall shows them, or null before the scene has baked. Read only
+   * in the panels, which show only where the room spares them, as each
+   * bake's are encoded as they are first read.
+   */
+  protected readonly brickPictures = computed(() => {
+    const pictures = this.game.pictures()?.();
+    return pictures ? kindPictures(pictures.bricks) : null;
+  });
+
+  /** A floor bounce's spring, unlit and lit, as This shot draws them, or null before the scene has baked; read only in the panels, as the kinds' pictures are. */
+  protected readonly springPictures = computed(
+    () => this.game.pictures()?.().springs ?? null,
   );
 
   /**

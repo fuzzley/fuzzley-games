@@ -110,6 +110,10 @@ export function describeJump({
     : null;
 }
 
+/** What the wall's jump does, as Coming next says it beside the field. */
+export const JUMP_WORDS =
+  "If you break everything you can below the dashed line, the wall jumps. Then your next shot is a hot shot.";
+
 /** Returns what is said following a round's end once it leaves a brick the level needs in the row over the floor's, or null. */
 export function describeDanger(
   { result }: RoundOutcome,

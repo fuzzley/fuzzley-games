@@ -625,6 +625,17 @@ describe("RickashayScene", () => {
       ).toEqual(Object.values(PICTURE_FRAMES.bricks).map(() => true));
     });
 
+    it("pictures a floor bounce's spring, unlit and lit, once asked, each a PNG's data: URL", async () => {
+      const { shell } = await startBoard();
+
+      const springs = shell.pictures[0]?.().springs;
+
+      expect([springs?.off, springs?.on]).toEqual([
+        expect.stringMatching(/^data:image\/png/),
+        expect.stringMatching(/^data:image\/png/),
+      ]);
+    });
+
     it("bakes again in a new palette, the field painted in it", async () => {
       const { shell, run, scene } = await startBoard();
 
