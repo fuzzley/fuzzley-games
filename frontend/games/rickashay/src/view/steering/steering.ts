@@ -1,7 +1,7 @@
 // How Rickashay's player aims a shot, a frame at a time: every wall game's
-// aiming, by the mouse and fingers, the wheel and the bar's nudges, which a
-// shot is only an aim of, let fly as a press lets go or by the bar's
-// Release.
+// aiming, by the keys, the mouse and fingers, the wheel and the bar's
+// nudges, which a shot is only an aim of, let fly as a press lets go, at
+// Space or by the bar's Release; and what the game's other keys ask of it.
 
 import type {
   PointerAiming,
@@ -10,18 +10,27 @@ import type {
 import {
   type AimFrame,
   Aiming,
+  type KeyPress,
   type Nudge,
   type PointerView,
 } from "@fz/brick-wall/view/aiming";
 import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
+import { type ShortcutModifiers, isShortcut } from "@fz/core/keys";
 import type { Viewport } from "@fz/phaser/layout";
+import { type FieldCommand, commandOfKey } from "./controls";
+
+/** Describes a key pressed as the steering reads it, as a `KeyboardEvent` has it, with Ctrl, Alt and Meta. */
+export type SteerKeyPress = KeyPress & ShortcutModifiers;
 
 /**
- * Turns the player's mouse and fingers, the wheel and the bar's buttons
- * into the shot being aimed, a frame at a time, as every wall game's
- * `Aiming` does, pointed and held and let fly as a press lets go unless the
- * settings say otherwise: a shot is an aim and nothing else, so nothing
- * builds as a press is held.
+ * Turns the player's keys, mouse and fingers, the wheel and the bar's
+ * buttons into the shot being aimed, a frame at a time, as every wall
+ * game's `Aiming` does, pointed and held and let fly as a press lets go
+ * unless the settings say otherwise: a shot is an aim and nothing else, so
+ * nothing builds as a press is held.
+ *
+ * It answers each other key with what the key asks of the game, once a
+ * press, so the scene hands every key to it and passes on the answer.
  */
 export class Steering {
   /** Turns the aim. */
@@ -52,6 +61,20 @@ export class Steering {
    */
   releaseBy(release: PointerRelease): void {
     this.aiming.releaseBy(release);
+  }
+
+  /**
+   * Takes a key pressed, and returns what it asks of the game, once a press,
+   * or null: for a key that turns the aim, Left and Right or A and D a
+   * degree, a quarter with Shift, or that lets the shot fly, Space, which
+   * the steering takes; for a key held with Ctrl, Alt or Meta, which it
+   * leaves to the browser; and for one that asks nothing.
+   */
+  keyDown(press: SteerKeyPress): FieldCommand | null {
+    if (isShortcut(press) || this.aiming.keyDown(press) || press.repeat) {
+      return null;
+    }
+    return commandOfKey(press.code);
   }
 
   /** Takes a pointer pressed, which starts a shot or calls one off, as `Aiming` says. */

@@ -13,7 +13,7 @@ import {
   fieldShape,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
-import { Steering } from "./steering";
+import { type SteerKeyPress, Steering } from "./steering";
 
 /** An upright phone's canvas: a field 17 rows deep at 40 device px a unit, its cells from (15, 48). */
 const PHONE = boardCanvas(390, 844);
@@ -70,6 +70,22 @@ function mouse(
   return { ...finger(x, y, {}, metrics), id: 0, wasTouch: false, ...changes };
 }
 
+/** Returns a key pressed, by `event.code`, changed as given. */
+function key(
+  code: string,
+  changes: Partial<SteerKeyPress> = {},
+): SteerKeyPress {
+  return {
+    code,
+    shiftKey: false,
+    repeat: false,
+    ctrlKey: false,
+    altKey: false,
+    metaKey: false,
+    ...changes,
+  };
+}
+
 /** Reads a frame of the steering, the fuzzball waiting at the floor's middle. */
 function frame(steering: Steering): Readonly<AimFrame> {
   return steering.read(FIRST_X);
@@ -110,6 +126,142 @@ describe("Steering, at its start", () => {
     steering.pointerMove(mouse(FIRST_X + 1, 1.25));
 
     expect(frame(steering).aim).toBe(RIGHT_45);
+  });
+});
+
+describe("Steering's keys", () => {
+  it.each([
+    ["ArrowLeft", STRAIGHT_UP + 4],
+    ["KeyA", STRAIGHT_UP + 4],
+    ["ArrowRight", STRAIGHT_UP - 4],
+    ["KeyD", STRAIGHT_UP - 4],
+  ])("turn the aim a degree, four aims, at %s", (code, aim) => {
+    const steering = steeringOf();
+
+    steering.keyDown(key(code));
+
+    expect(frame(steering).aim).toBe(aim);
+  });
+
+  it.each([
+    ["ArrowLeft", STRAIGHT_UP + 1],
+    ["KeyA", STRAIGHT_UP + 1],
+    ["ArrowRight", STRAIGHT_UP - 1],
+    ["KeyD", STRAIGHT_UP - 1],
+  ])("turn the aim a quarter of a degree at %s with Shift", (code, aim) => {
+    const steering = steeringOf();
+
+    steering.keyDown(key(code, { shiftKey: true }));
+
+    expect(frame(steering).aim).toBe(aim);
+  });
+
+  it("say the keys turned the aim, for the announcer, on the frame they were pressed", () => {
+    const steering = steeringOf();
+
+    steering.keyDown(key("ArrowLeft"));
+
+    expect(frame(steering).keyed).toBe(true);
+  });
+
+  it("let the shot fly at Space, at the aim", () => {
+    const steering = steeringOf();
+    steering.keyDown(key("ArrowRight"));
+
+    steering.keyDown(key("Space"));
+
+    expect(frame(steering)).toMatchObject({
+      aim: STRAIGHT_UP - 4,
+      release: true,
+    });
+  });
+
+  it("let nothing fly at a held Space's repeat", () => {
+    const steering = steeringOf();
+
+    steering.keyDown(key("Space", { repeat: true }));
+
+    expect(frame(steering).release).toBe(false);
+  });
+
+  it.each([
+    ["KeyF", "fast"],
+    ["KeyX", "skip"],
+    ["KeyG", "readGuide"],
+    ["KeyR", "readRows"],
+    ["Escape", "pause"],
+    ["KeyP", "toggle"],
+    ["Enter", "go"],
+  ])("answer %s with what it asks of the game, %s", (code, command) => {
+    const steering = steeringOf();
+
+    const answer = steering.keyDown(key(code));
+
+    expect(answer).toBe(command);
+  });
+
+  it("answer a key that asks nothing of the game with nothing", () => {
+    const steering = steeringOf();
+
+    const answer = steering.keyDown(key("KeyQ"));
+
+    expect(answer).toBeNull();
+  });
+
+  it("answer a held key's repeat with nothing, so a key asks once a press", () => {
+    const steering = steeringOf();
+
+    const answer = steering.keyDown(key("KeyX", { repeat: true }));
+
+    expect(answer).toBeNull();
+  });
+
+  it.each([
+    ["Ctrl", { ctrlKey: true }],
+    ["Alt", { altKey: true }],
+    ["Meta", { metaKey: true }],
+  ])(
+    "leave the aim to a key held with %s, which the browser keeps",
+    (_held, changes) => {
+      const steering = steeringOf();
+
+      steering.keyDown(key("ArrowLeft", changes));
+      steering.keyDown(key("Space", changes));
+
+      expect(frame(steering)).toMatchObject({
+        aim: STRAIGHT_UP,
+        release: false,
+        keyed: false,
+      });
+    },
+  );
+
+  it.each([
+    ["Ctrl", { ctrlKey: true }],
+    ["Alt", { altKey: true }],
+    ["Meta", { metaKey: true }],
+  ])(
+    "answer a key held with %s, which the browser keeps, with nothing",
+    (_held, changes) => {
+      const steering = steeringOf();
+
+      const answer = steering.keyDown(key("KeyR", changes));
+
+      expect(answer).toBeNull();
+    },
+  );
+
+  it("turn the aim a pressed finger shows, which flies as it lets go", () => {
+    const steering = steeringOf();
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+
+    steering.keyDown(key("ArrowLeft"));
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45 + 4,
+      release: true,
+    });
   });
 });
 
