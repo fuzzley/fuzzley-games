@@ -1,7 +1,7 @@
-@use "../styles" as *;
+@use "@fz/style" as fz;
 
 :host {
-  @include board-panel;
+  @include fz.board-panel;
 
   // The rows waiting take the height the words leave.
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;

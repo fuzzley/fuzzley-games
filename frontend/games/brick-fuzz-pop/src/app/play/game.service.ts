@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from "@angular/core";
+import { waitingRows } from "@fz/brick-wall/app/panels";
 import type { Aim } from "@fz/brick-wall/rules/aims";
 import { levelIdOf } from "@fz/brick-wall/rules/progress";
 import {
@@ -101,7 +102,6 @@ import type { FieldCommand } from "../../view/steering/controls";
 import type { Steer } from "../../view/steering/steering";
 import type { BoardCard } from "../board/board_card.component";
 import { DebugService, type RunStart } from "../debug/debug.service";
-import { waitingRows } from "../panels/panels";
 import type { RunEnd } from "../result/result.component";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";

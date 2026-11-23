@@ -1,0 +1,29 @@
+// Its lines are the panel's own rows, under the kinds, set as the panel
+// sets its own.
+:host {
+  display: contents;
+}
+
+p {
+  margin: 0;
+}
+
+.crew {
+  display: grid;
+  gap: var(--fz-space-1);
+}
+
+.friends {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fz-space-1);
+
+  fz-fuzzball {
+    width: var(--fz-space-5);
+    height: var(--fz-space-5);
+  }
+}
+
+.fz-badge {
+  justify-self: start;
+}

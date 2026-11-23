@@ -188,7 +188,7 @@ export function rowsWaiting(rows: number): string {
 /**
  * Returns how many of the wall's rows wait over the ceiling where a round
  * starts, counted as the lintel counts them (`waitingRows()`, in
- * `src/app/panels/panels.ts`) and in its words: "6 rows waiting", or "No
+ * `@fz/brick-wall/app/panels`) and in its words: "6 rows waiting", or "No
  * rows waiting".
  */
 function waitingWords({ wall, depth }: RoundStart): string {

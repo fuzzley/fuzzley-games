@@ -1,0 +1,11 @@
+@if (crewWords(); as words) {
+  <div class="crew">
+    <span class="friends">
+      @for (ink of friends(); track $index) {
+        <fz-fuzzball [style.color]="ink" />
+      }
+    </span>
+    <p>{{ words }}</p>
+  </div>
+}
+<p class="fz-badge" [class.fz-badge-accent]="lit()">{{ badge() }}</p>

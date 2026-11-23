@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { waitingRows } from "@fz/brick-wall/app/panels";
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import {
   FRAME_CSS_PX,
@@ -49,7 +50,11 @@ import {
   within,
 } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { describeBoon, describeRows } from "../../rules/run/describe";
+import {
+  describeBoon,
+  describeRows,
+  rowsWaiting,
+} from "../../rules/run/describe";
 import { tallyOf } from "../../rules/run/scoring";
 import type { WallScene } from "../../scene/wall_scene";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
@@ -65,6 +70,7 @@ import {
 } from "../../testing/play";
 import { PALETTES } from "../../testing/roles";
 import { FRAMES, INKS } from "../../view/art/frames";
+import { brickColor } from "../../view/colors/brick_colors";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";
@@ -817,6 +823,33 @@ describe("BoardComponent", () => {
       expect(within(inThisWall).getByText("Brick")).toBeVisible();
     });
 
+    it("show the rows waiting in their bricks' inks, how many wait and what a jump earns, in the game's words", async () => {
+      const rendered = await renderBoard();
+      measureAt(rendered, WIDE);
+      const { game } = rendered;
+      const { wall, depth } = game.start();
+
+      const comingNext = screen.getByRole("region", { name: "Coming next" });
+
+      expect({
+        inks: Array.from(
+          comingNext.querySelectorAll<HTMLElement>("[aria-hidden='true'] > *"),
+          (square) => square.style.getPropertyValue("--ink"),
+        ),
+        said: [
+          rowsWaiting(game.rowsLeft()),
+          describeBoon(game.levelBoon()),
+        ].map((words) => within(comingNext).queryByText(words) !== null),
+      }).toEqual({
+        inks: waitingRows(wall, depth)
+          .flat()
+          .map((brick) =>
+            brick === null ? "" : cssHex(brickColor(brick, game.palette())),
+          ),
+        said: [true, true],
+      });
+    });
+
     it("light the boon a jump earned the shot being aimed", async () => {
       const rendered = await renderBoard({ rounds: scriptedRounds("jump") });
       measureAt(rendered, WIDE);
@@ -1363,7 +1396,7 @@ describe("BoardComponent", () => {
       // Each picture is only drawn, beside the kind's name, so it has no role.
       const pictures = [
         ...host.querySelectorAll<HTMLImageElement>("app-board-card img"),
-        ...host.querySelectorAll<HTMLImageElement>("app-in-this-wall img"),
+        ...host.querySelectorAll<HTMLImageElement>("fz-in-this-wall img"),
       ];
       expect(pictures.map((picture) => picture.src.length > 0)).toEqual([
         true,

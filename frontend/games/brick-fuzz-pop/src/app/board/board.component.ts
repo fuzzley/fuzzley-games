@@ -37,12 +37,18 @@ import {
   rectAttribute,
   roomInside,
 } from "@fz/phaser/layout";
-import { ROWS_READ, rowsWaiting } from "../../rules/run/describe";
+import {
+  ComingNextComponent,
+  InThisWallComponent,
+} from "@fz/brick-wall/app/panels";
+import { BRICK_KIND_IDS, brickKind } from "../../rules/catalog/bricks";
+import { ROWS_READ, describeBoon, rowsWaiting } from "../../rules/run/describe";
+import type { Brick } from "../../rules/wall/wall";
 import type { Pictures } from "../../scene/pictures";
 import type { WallSceneOptions } from "../../scene/wall_scene";
+import { brickColor } from "../../view/colors/brick_colors";
 import { showsEveryFigure } from "../bar/figures";
-import { ComingNextComponent } from "../panels/coming_next.component";
-import { InThisWallComponent } from "../panels/in_this_wall.component";
+import { CrewAndBoonComponent } from "../panels/crew_and_boon.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
 
@@ -78,6 +84,7 @@ export const BOARD_CONTEXT_WORDS = {
     BoardCardComponent,
     CanvasCardsComponent,
     ComingNextComponent,
+    CrewAndBoonComponent,
     InThisWallComponent,
     PhaserCanvasComponent,
   ],
@@ -244,6 +251,26 @@ export class BoardComponent {
       height: height - shown.lintelCss,
     });
   });
+
+  /** Every kind of brick, in How to play's order, which In this wall lists those of the wall from. */
+  protected readonly brickKinds = BRICK_KIND_IDS;
+
+  /** Returns a kind of brick's name and what it does, as In this wall lists it. */
+  protected readonly brickKind = brickKind;
+
+  /** Returns a brick's ink as CSS, in the palette the field is drawn in, as Coming next draws the rows waiting. */
+  protected readonly inkOf = computed(() => {
+    const palette = this.game.palette();
+    return (brick: Brick): string => cssHex(brickColor(brick, palette));
+  });
+
+  /** What the level in play's jump earns, in two sentences, as Coming next says it. */
+  protected readonly jump = computed(() => describeBoon(this.game.levelBoon()));
+
+  /** The pictures of every kind of brick, while the panels or the Ready card show them; else null. */
+  protected readonly brickPictures = computed(
+    () => this.pictures()?.bricks ?? null,
+  );
 
   /** Where the panels lie beside the field, or null where the room spares none. */
   protected readonly panelStyles = computed(() => {

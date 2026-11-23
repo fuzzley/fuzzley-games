@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { waitingRows } from "@fz/brick-wall/app/panels";
 import { parOf } from "@fz/brick-wall/rules/par";
 import { startLevel, takeRound } from "@fz/brick-wall/rules/run";
 import {
@@ -59,7 +60,6 @@ import { wallPalette } from "../../view/colors/palette";
 import { FLIGHT_PACE } from "../../view/round_play";
 import type { Steer } from "../../view/steering/steering";
 import { DebugService } from "../debug/debug.service";
-import { waitingRows } from "../panels/panels";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
 import { StatsService } from "../stats/stats.service";

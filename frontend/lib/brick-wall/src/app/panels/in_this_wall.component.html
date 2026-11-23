@@ -1,0 +1,14 @@
+<h2 id="fz-in-this-wall-title" class="card-title">In this wall</h2>
+<!-- `role="list"`, as Safari's VoiceOver stops calling a list with no markers one. -->
+<ul class="kinds" role="list">
+  @for (kind of entries(); track kind.id) {
+    <li>
+      @if (kind.picture) {
+        <img [src]="kind.picture" alt="" />
+      }
+      <span class="name">{{ kind.name }}</span>
+      <span class="about">{{ kind.about }}</span>
+    </li>
+  }
+</ul>
+<ng-content />

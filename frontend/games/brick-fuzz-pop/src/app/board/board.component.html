@@ -45,21 +45,29 @@
 </ul>
 
 @if (panelStyles(); as panels) {
-  <app-coming-next
+  <fz-coming-next
     [style]="panels.left"
     [level]="game.level()"
-    [boon]="game.levelBoon()"
-    [start]="game.start()"
-    [palette]="game.palette()"
+    [wall]="game.start().wall"
+    [depth]="game.start().depth"
+    [inkOf]="inkOf()"
+    [waiting]="rowsWaiting()"
+    [jump]="jump()"
   />
-  <app-in-this-wall
+  <fz-in-this-wall
     [style]="panels.right"
-    [boon]="game.levelBoon()"
-    [start]="game.start()"
-    [lit]="game.lit()"
-    [palette]="game.palette()"
-    [pictures]="pictures()"
-  />
+    [wall]="game.start().wall"
+    [kinds]="brickKinds"
+    [kindOf]="brickKind"
+    [pictures]="brickPictures()"
+  >
+    <app-crew-and-boon
+      [boon]="game.levelBoon()"
+      [crew]="game.start().crew"
+      [lit]="game.lit()"
+      [palette]="game.palette()"
+    />
+  </fz-in-this-wall>
 }
 
 <app-board-card
