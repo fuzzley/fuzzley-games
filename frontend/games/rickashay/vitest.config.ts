@@ -21,7 +21,7 @@ export default defineConfig(
       "src/view/**": PURE_FLOOR,
       // The players and the checks the certificates, the floors and the
       // marks are found and held with, held as the rules are, at their floor.
-      "src/testing/{line_play,wall_score,blind,sweet_spot,rally_mark}.ts":
+      "src/testing/{line_play,wall_score,blind,sweet_spot,rally_mark,certify_api}.ts":
         PURE_FLOOR,
       // The scene and the shell at Brick Fuzz Pop's floors, so a part
       // without specs fails the run.

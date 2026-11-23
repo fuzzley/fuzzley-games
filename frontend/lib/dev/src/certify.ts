@@ -5,6 +5,8 @@
 // lays them out, so a run writes the same bytes as the last unless a line
 // changed. A run waits its turn in the queue `yarn verify:changed` keeps,
 // since it takes the whole machine. This module is the threads' own script.
+// Its steps are exported for a game that keeps more beside its lines, such as
+// a rally mark, to certify through them and write its own files.
 
 import { readFile, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
@@ -275,7 +277,7 @@ export function readDepths(
 }
 
 /** Returns the ids of the sets the levels are in, in the order played. */
-function setIdsOf(levels: readonly CertifyLevel[]): string[] {
+export function setIdsOf(levels: readonly CertifyLevel[]): string[] {
   return [...new Set(levels.map((entry) => entry.set.id))];
 }
 
@@ -298,7 +300,7 @@ export async function loadCertifyApi(
 }
 
 /** Returns the pool a game's levels are certified on: a thread for each the machine runs at once, each running this module. */
-function poolOf(game: Pick<CertifyGame, "root" | "api">): Pool {
+export function poolOf(game: Pick<CertifyGame, "root" | "api">): Pool {
   const thread: PoolThread = {
     pool: POOL_MARK,
     game: { root: game.root, api: game.api },
@@ -395,7 +397,7 @@ export function serveJobs(port: MessagePort, api: CertifyApi): void {
  * Certifies every job, printing each level's line once it and every level
  * before it are certified, and returns them.
  */
-async function certify(
+export async function certify(
   api: CertifyApi,
   jobs: readonly CertifyJob[],
   solve: Solver,
@@ -689,14 +691,16 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 }
 
 /** Returns a copy of a record with its keys sorted. */
-function sorted<T>(record: Readonly<Record<string, T>>): Record<string, T> {
+export function sorted<T>(
+  record: Readonly<Record<string, T>>,
+): Record<string, T> {
   return Object.fromEntries(
     Object.entries(record).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
   );
 }
 
 /** Reads and writes a game's files, by their paths from its folder. */
-function workspaceFiles(root: string): CertifyFiles {
+export function workspaceFiles(root: string): CertifyFiles {
   return {
     read: async (path) => {
       try {
@@ -716,7 +720,7 @@ function isMissingFile(error: unknown): boolean {
 }
 
 /** Waits for a run's turn in the queue `yarn verify:changed` keeps, from a folder of the repository. */
-async function waitForTurn(
+export async function waitForTurn(
   root: string,
   onWait: (ahead: number) => void,
 ): Promise<() => void> {
