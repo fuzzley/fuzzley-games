@@ -1,6 +1,6 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
 import { parFrom } from "../rules/run/stars";
-import { DEPTHS } from "../rules/wall/wall";
 import type { CertifyApi } from "./script_api";
 import { lineHolds, replayLine, solveLevel } from "./solver";
 

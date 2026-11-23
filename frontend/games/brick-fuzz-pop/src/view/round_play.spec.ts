@@ -1,3 +1,4 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import { playFor } from "@fz/core/testing";
 import { easeOutCubic } from "@fz/core/math";
 import {
@@ -19,7 +20,6 @@ import {
   FIRST_AIM_DEGREES,
   JUMP_POINTS,
   LAUNCH_GAP,
-  RADIUS,
 } from "../rules/tuning";
 import {
   FLIGHT_FIXTURES,

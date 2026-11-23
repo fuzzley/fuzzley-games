@@ -1,9 +1,9 @@
 // What the panels beside a wide room's field show of a wall: the rows
 // waiting over the ceiling, and the kinds of brick it holds.
 
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
 import { cellOf } from "../../rules/grid";
-import { COLUMNS } from "../../rules/tuning";
 import type { Brick, Wall } from "../../rules/wall/wall";
 
 /**

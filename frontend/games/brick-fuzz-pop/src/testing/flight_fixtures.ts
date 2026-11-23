@@ -6,6 +6,7 @@
 // drawn as a picture by wallFrom(), its places worked out by hand and its
 // moments from them.
 
+import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { clamp, multiplierAt } from "@fz/core/math";
 import { type BrickKindId, brickKind } from "../rules/catalog/bricks";
 import type {
@@ -28,12 +29,9 @@ import type { Boon, Charge, Shot } from "../rules/shot";
 import {
   AIMS_PER_DEGREE,
   BORED,
-  COLUMNS,
   FIRST_AIM_DEGREES,
   JUMP_POINTS,
   LAUNCH_GAP,
-  RADIUS,
-  SIDE_MARGIN,
   STREAK,
   ZAP_DELAY,
   ZAP_HITS,

@@ -3,9 +3,9 @@
 // lay their walls out with it too, so it is held as the rules are
 // (eslint.config.js), to their fence and their exact arithmetic.
 
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { isKeyOf } from "@fz/core/records";
 import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "../rules/levels/legend";
-import { COLUMNS } from "../rules/tuning";
 import type { Brick, Wall } from "../rules/wall/wall";
 
 /** Says where a pictured wall stands, where a spec cares. */

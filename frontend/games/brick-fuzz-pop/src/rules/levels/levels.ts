@@ -1,8 +1,8 @@
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { unknownKey } from "@fz/core/json";
 import { isKeyOf } from "@fz/core/records";
 import { wallRowOf } from "../grid";
 import { isBoon } from "../shot";
-import { COLUMNS } from "../tuning";
 import type { Brick } from "../wall/wall";
 import { LEGEND, NO_BRICK, PORTAL_MARKS, tintOf } from "./legend";
 import type { Level } from "./level";

@@ -1,3 +1,4 @@
+import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { eventsOf, near } from "../../testing/flights";
 import { PRISM, STAND_IN_RULES } from "../../testing/stand_ins";
@@ -7,7 +8,7 @@ import { BRICK_KINDS } from "../catalog/bricks";
 import { positionAt } from "../flight/events";
 import { levelStart } from "../levels/level";
 import { LEVELS, parseLevel } from "../levels/levels";
-import { BORED, COLUMNS, SIDE_MARGIN, TRIPLE_MATES } from "../tuning";
+import { BORED, TRIPLE_MATES } from "../tuning";
 import {
   RULES,
   type RoundStart,

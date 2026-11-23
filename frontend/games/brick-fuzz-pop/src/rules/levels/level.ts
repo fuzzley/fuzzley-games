@@ -1,6 +1,6 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import type { RoundStart } from "../round/round";
 import type { Boon } from "../shot";
-import { FIRST_X } from "../tuning";
 import { type Brick, thirdsOf } from "../wall/wall";
 
 /** Describes a level, ready to play. */

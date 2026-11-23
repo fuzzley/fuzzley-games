@@ -2,8 +2,8 @@
 // time, each from 0 as it starts to 1 once it is over. The rest only fade
 // or spread, by `@fz/core/math`'s `fadeAlpha()` and `easeOutCubic()`.
 
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import { easeOutCubic, lerp } from "@fz/core/math";
-import { RADIUS } from "../../rules/tuning";
 import { SHAKE_CSS_PX, SHAKE_MS } from "./timing";
 
 /**

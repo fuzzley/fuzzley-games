@@ -1,3 +1,4 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import { SIM_TIMEOUT_MS, described } from "../../../testing/timing";
 import { shotOf } from "../../levels/certificate";
@@ -5,7 +6,7 @@ import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
 import { playRound } from "../../round/round";
 import type { Shot } from "../../shot";
-import { AIM_COUNT, LEAST_DEPTH, MOST_CHARGE, MOST_DEPTH } from "../../tuning";
+import { AIM_COUNT, MOST_CHARGE } from "../../tuning";
 
 /** How many seeded random shots are timed at each opening wall, each round. */
 const SHOTS = 20;
@@ -20,9 +21,9 @@ describe("playRound's time", { timeout: SIM_TIMEOUT_MS }, () => {
     const random = createRandom(2026);
     const openings = LEVELS.flatMap(({ data }) => {
       const level = parseLevel(data);
-      return Array.from({ length: MOST_DEPTH - LEAST_DEPTH + 1 }, (_, i) => ({
+      return DEPTHS.map((depth) => ({
         level,
-        start: levelStart(level, LEAST_DEPTH + i),
+        start: levelStart(level, depth),
         shots: Array.from({ length: SHOTS }, () => randomShot(random)),
       }));
     });

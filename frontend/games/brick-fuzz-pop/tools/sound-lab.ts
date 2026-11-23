@@ -3,6 +3,7 @@
 // will play, and moments of a round played as the game plays them, at a
 // flight's pace and a round's rising breaks, to tune the sounds by at Q3.
 
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import {
   type LabCue,
   type LabScene,
@@ -13,7 +14,6 @@ import {
   BORED,
   MOST_CHARGE,
   MOST_FUZZBALLS,
-  RADIUS,
   ZAP_DELAY,
 } from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sounds.json";

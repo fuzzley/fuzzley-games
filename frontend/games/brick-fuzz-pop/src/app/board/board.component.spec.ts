@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { formatPoints } from "@fz/core/format";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readNamedRects, readRect } from "@fz/dev/board-page";
@@ -40,7 +41,6 @@ import {
 import { userEvent } from "@testing-library/user-event";
 import { describeBoon, describeRows } from "../../rules/run/describe";
 import { tallyOf } from "../../rules/run/scoring";
-import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
 import type { WallScene } from "../../scene/wall_scene";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import {

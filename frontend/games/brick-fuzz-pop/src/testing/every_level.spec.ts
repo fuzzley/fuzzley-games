@@ -1,7 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { LEVELS, LEVEL_SETS } from "../rules/levels/levels";
-import { DEPTHS } from "../rules/wall/wall";
 import { CERTIFICATES, FLOOR_SPECS, certificateOf } from "./every_level";
 
 /** Returns the files in a folder of `src/rules/levels/`. */

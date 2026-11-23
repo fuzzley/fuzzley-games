@@ -1,3 +1,4 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import {
   FLIGHT_FIXTURES,
@@ -27,7 +28,6 @@ import {
   IDLE_SHARE,
   MOST_CHARGE,
   MOST_FLIGHT,
-  RADIUS,
   STILL_TURNS,
   ZAP_DELAY,
 } from "../tuning";

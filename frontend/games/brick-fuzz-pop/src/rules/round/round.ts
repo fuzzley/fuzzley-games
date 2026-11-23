@@ -1,3 +1,4 @@
+import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { clamp } from "@fz/core/math";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import { BRICK_KINDS } from "../catalog/bricks";
@@ -9,14 +10,7 @@ import {
   fly,
 } from "../flight/flight";
 import type { Boon, Shot } from "../shot";
-import {
-  BORED,
-  COLUMNS,
-  IDLE_SHARE,
-  JUMP_POINTS,
-  SIDE_MARGIN,
-  TRIPLE_MATES,
-} from "../tuning";
+import { BORED, IDLE_SHARE, JUMP_POINTS, TRIPLE_MATES } from "../tuning";
 import { isCleared, lowerWall } from "../wall/lower";
 import type { Wall } from "../wall/wall";
 

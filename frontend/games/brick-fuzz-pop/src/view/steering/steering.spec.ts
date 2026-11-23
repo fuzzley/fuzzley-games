@@ -1,5 +1,6 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import type { Viewport } from "@fz/phaser/layout";
-import { AIM_COUNT, FIRST_X } from "../../rules/tuning";
+import { AIM_COUNT } from "../../rules/tuning";
 import { boardCanvas } from "../../testing/canvases";
 import {
   type FieldMetrics,

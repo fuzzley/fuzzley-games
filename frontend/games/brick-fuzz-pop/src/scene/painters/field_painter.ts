@@ -1,8 +1,8 @@
+import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
-import { COLUMNS, MOST_DEPTH } from "../../rules/tuning";
 import { DANGER_ROW, inDanger, neededBelow } from "../../rules/wall/lower";
 import { type Thirds, type Wall, thirdsOf } from "../../rules/wall/wall";
 import type { WallPalette } from "../../view/colors/palette";

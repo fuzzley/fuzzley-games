@@ -1,6 +1,6 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { recordingPrinter } from "@fz/dev/script";
 import { LEVELS, parseLevel } from "../src/rules/levels/levels";
-import { DEPTHS } from "../src/rules/wall/wall";
 import { playCasually } from "../src/testing/casual";
 import { FLOOR_DEPTHS, FLOOR_SEEDS } from "../src/testing/every_level";
 import type {

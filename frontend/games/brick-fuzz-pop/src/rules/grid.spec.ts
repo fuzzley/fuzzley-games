@@ -1,3 +1,4 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import {
   ALL_SIDES,
   type Box,
@@ -31,7 +32,6 @@ import {
   shapesOf,
   wallRowOf,
 } from "./grid";
-import { RADIUS } from "./tuning";
 import type { Wall } from "./wall/wall";
 
 /** The depth of the field the specs play on, but where one says otherwise. */

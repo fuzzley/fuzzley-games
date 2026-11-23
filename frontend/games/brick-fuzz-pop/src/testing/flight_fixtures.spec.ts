@@ -1,3 +1,4 @@
+import { COLUMNS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { keysOf } from "@fz/core/records";
 import { brickKind } from "../rules/catalog/bricks";
 import type {
@@ -11,10 +12,8 @@ import type {
 } from "../rules/flight/events";
 import {
   BORED,
-  COLUMNS,
   JUMP_POINTS,
   LAUNCH_GAP,
-  SIDE_MARGIN,
   ZAP_DELAY,
   ZAP_HITS,
 } from "../rules/tuning";

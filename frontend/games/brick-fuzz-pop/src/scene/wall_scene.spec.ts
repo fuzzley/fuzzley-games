@@ -1,3 +1,4 @@
+import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
@@ -31,12 +32,9 @@ import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import {
   AIMS_PER_DEGREE,
-  COLUMNS,
   GUIDE_PAST_TURN,
   MOST_CHARGE,
-  MOST_DEPTH,
   MOST_FUZZBALLS,
-  RADIUS,
 } from "../rules/tuning";
 import { AIMS } from "../rules/aims";
 import { type Brick, type Wall, thirdsOf } from "../rules/wall/wall";

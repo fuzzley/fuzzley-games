@@ -1,3 +1,4 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import type { EventLogView } from "@fz/core/event_log";
 import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
@@ -22,7 +23,6 @@ import type { Guide } from "../rules/flight/guide";
 import { columnOf, fieldRowOf } from "../rules/grid";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
-import { FIRST_X } from "../rules/tuning";
 import type { Wall } from "../rules/wall/wall";
 import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";

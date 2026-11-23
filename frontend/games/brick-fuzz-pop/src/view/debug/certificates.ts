@@ -5,10 +5,10 @@
 // through `src/testing/every_level.ts`, which throws at what it can't read,
 // as a spec should; this reader drops it, as a page should.
 
+import { isDepth } from "@fz/brick-wall/rules/field";
 import { isRecord, listOf } from "@fz/core/json";
 import type { CertifiedShot, Line } from "../../rules/levels/certificate";
 import { isAim, isCharge } from "../../rules/shot";
-import { isDepth } from "../../rules/wall/wall";
 
 /** A set's certificates: each level's line on each depth it holds one for, by the level's id, then the depth. */
 export type SetCertificates = ReadonlyMap<string, ReadonlyMap<number, Line>>;

@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { FRAME_MS } from "@fz/core/testing";
 import { createRandom } from "@fz/core/random";
 import {
@@ -31,7 +32,6 @@ import {
   startLevel,
   takeRound,
 } from "../../rules/run/run";
-import { MOST_DEPTH } from "../../rules/tuning";
 import {
   RELEASE,
   SPEC_LEVELS,

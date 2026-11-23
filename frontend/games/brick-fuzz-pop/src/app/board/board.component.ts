@@ -12,6 +12,7 @@ import {
   untracked,
   viewChild,
 } from "@angular/core";
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -31,7 +32,6 @@ import {
   roomInside,
 } from "@fz/phaser/layout";
 import { ROWS_READ, rowsWaiting } from "../../rules/run/describe";
-import { COLUMNS } from "../../rules/tuning";
 import type { Pictures } from "../../scene/pictures";
 import type { WallSceneOptions } from "../../scene/wall_scene";
 import {

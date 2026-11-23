@@ -1,3 +1,4 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen } from "@testing-library/angular";
 import { cellOf } from "../../rules/grid";
@@ -5,7 +6,6 @@ import { LEVELS, levelEntryOf } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import type { Boon } from "../../rules/shot";
 import { describeBoon } from "../../rules/run/describe";
-import { FIRST_X } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
 import { wallFrom } from "../../testing/wall_picture";
 import { brickColor } from "../../view/colors/brick_colors";

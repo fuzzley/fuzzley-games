@@ -1,3 +1,4 @@
+import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { clamp } from "@fz/core/math";
 import {
   type CssRect,
@@ -9,7 +10,6 @@ import {
   sidePanels,
 } from "@fz/phaser/layout";
 import type { ArtScale } from "@fz/phaser/shapes";
-import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
 
 /**
  * Says what shape of field a room holds: its unit and its depth, and how

@@ -1,3 +1,4 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import {
   SIM_TIMEOUT_MS,
   described,
@@ -8,12 +9,7 @@ import { levelStart } from "../../levels/level";
 import { LEVELS, parseLevel } from "../../levels/levels";
 import type { RoundStart } from "../../round/round";
 import type { Charge } from "../../shot";
-import {
-  AIM_COUNT,
-  GUIDE_PAST_TURN,
-  LEAST_DEPTH,
-  MOST_DEPTH,
-} from "../../tuning";
+import { AIM_COUNT, GUIDE_PAST_TURN } from "../../tuning";
 import { guideOf } from "../guide";
 
 /** How many rounds of guides are timed, after one that warms the code up. */
@@ -38,9 +34,7 @@ describe("guideOf's time", { timeout: SIM_TIMEOUT_MS }, () => {
   it("keeps under its bound at the 99th percentile over the levels' opening walls, plain or hot", () => {
     const openings = LEVELS.flatMap(({ data }) => {
       const level = parseLevel(data);
-      return Array.from({ length: MOST_DEPTH - LEAST_DEPTH + 1 }, (_, i) =>
-        levelStart(level, LEAST_DEPTH + i),
-      );
+      return DEPTHS.map((depth) => levelStart(level, depth));
     });
     const times = { plain: [], hot: [] } as Record<
       keyof typeof STARTS,

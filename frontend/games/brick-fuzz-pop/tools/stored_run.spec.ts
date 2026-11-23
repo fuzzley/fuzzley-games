@@ -1,6 +1,7 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { LEVELS } from "../src/rules/levels/levels";
 import { SAVED_GAME_VERSION, restoreGame } from "../src/rules/run/saved_game";
-import { DEPTHS, thirdsOf } from "../src/rules/wall/wall";
+import { thirdsOf } from "../src/rules/wall/wall";
 import { LAYOUT_RUN, loadScreenshotApi, storedRun } from "./stored_run.mjs";
 
 describe("storedRun", () => {

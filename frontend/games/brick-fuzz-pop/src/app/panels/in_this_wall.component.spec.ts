@@ -1,10 +1,10 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { recordOf } from "@fz/core/records";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen, within } from "@testing-library/angular";
 import { BRICK_KIND_IDS } from "../../rules/catalog/bricks";
 import type { Crew, RoundStart } from "../../rules/round/round";
 import type { Boon } from "../../rules/shot";
-import { FIRST_X } from "../../rules/tuning";
 import { ART_PALETTE } from "../../testing/art_frames";
 import { wallFrom } from "../../testing/wall_picture";
 import { inkAt } from "../../view/colors/inks";

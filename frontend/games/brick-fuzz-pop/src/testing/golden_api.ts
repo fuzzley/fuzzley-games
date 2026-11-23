@@ -1,3 +1,4 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import sparks from "../rules/levels/certificates/sparks.json";
 import thickWalls from "../rules/levels/certificates/thick-walls.json";
 import tricks from "../rules/levels/certificates/tricks.json";
@@ -9,7 +10,6 @@ import {
   levelEntryOf,
   parseLevel,
 } from "../rules/levels/levels";
-import { DEPTHS } from "../rules/wall/wall";
 import {
   drawnShots,
   lineRounds,

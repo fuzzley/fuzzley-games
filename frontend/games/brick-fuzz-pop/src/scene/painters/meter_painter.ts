@@ -1,6 +1,7 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene } from "phaser";
-import { MOST_CHARGE, RADIUS } from "../../rules/tuning";
+import { MOST_CHARGE } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/frames";
 import {
   type FieldMetrics,

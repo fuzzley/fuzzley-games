@@ -9,6 +9,7 @@
 // its face toward the ceiling SIDE.bottom (CEILINGWARD), and SIDE.left and
 // SIDE.right keep their names. This is the one place the field says so.
 
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { recordOf } from "@fz/core/records";
 import { type Box, SIDE, type Solid } from "@fz/core/sweep";
 import {
@@ -18,7 +19,6 @@ import {
   type BrickKindId,
   type BrickKinds,
 } from "./catalog/bricks";
-import { COLUMNS } from "./tuning";
 import type { Brick, Wall } from "./wall/wall";
 
 /** A brick's face toward the floor: `@fz/core/sweep`'s `SIDE.top`, its edge of least y. */

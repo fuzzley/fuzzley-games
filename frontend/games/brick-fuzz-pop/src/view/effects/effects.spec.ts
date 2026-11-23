@@ -1,3 +1,4 @@
+import { AT_ONCE } from "@fz/brick-wall/rules/field";
 import type {
   BallRole,
   FlightEvent,
@@ -5,7 +6,6 @@ import type {
   ZapPattern,
 } from "../../rules/flight/events";
 import type { Boon } from "../../rules/shot";
-import { AT_ONCE } from "../../rules/tuning";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import {
   type Beat,

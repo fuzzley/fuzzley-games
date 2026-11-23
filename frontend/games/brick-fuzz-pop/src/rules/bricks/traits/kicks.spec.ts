@@ -1,6 +1,6 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import { eventsOf, flyPicture, near } from "../../../testing/flights";
 import { BRICK_KINDS } from "../../catalog/bricks";
-import { RADIUS } from "../../tuning";
 
 // The bumper's middle stands at (4.5, 3.5). Straight up half the reach of
 // its disc to the right of its middle, a fuzzball meets it 30° round from

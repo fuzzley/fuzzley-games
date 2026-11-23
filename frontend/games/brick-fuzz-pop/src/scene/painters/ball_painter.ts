@@ -1,16 +1,11 @@
+import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { shareDone } from "@fz/core/math";
 import { FUZZBALL_LOOK } from "@fz/phaser/fuzzball";
 import type { GameObjects, Scene } from "phaser";
 import { AIMS } from "../../rules/aims";
 import type { FlightEvent } from "../../rules/flight/events";
 import type { Crew } from "../../rules/round/round";
-import {
-  COLUMNS,
-  LAUNCH_GAP,
-  MOST_FUZZBALLS,
-  RADIUS,
-  TRIPLE_MATES,
-} from "../../rules/tuning";
+import { LAUNCH_GAP, MOST_FUZZBALLS, TRIPLE_MATES } from "../../rules/tuning";
 import { CHARGES, FRAMES, type FrameName, INKS } from "../../view/art/frames";
 import { fuzzballGrid } from "../../view/art/fuzzball_art";
 import { flareScale } from "../../view/effects/flourish";

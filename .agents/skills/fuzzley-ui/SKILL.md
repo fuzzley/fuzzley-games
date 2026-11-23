@@ -139,12 +139,13 @@ its layers take the library's entries of the same layer and those below
 it, as its own fences allow, and its files held as the rules are the
 library's `testing` entries.
 
-| You need                                                                          | Use                                                                                                                                           |
-| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| The ids of a catalog's kinds a test holds for, such as those a level needs broken | `kindsWhere(catalog, holds)` from `@fz/brick-wall/rules/kinds`, in the catalog's order                                                        |
-| Whether a blinking cue shows, a time into its blinking                            | `blinkShows(elapsedMs, periodMs)` from `@fz/brick-wall/view/blink`, at most `MOST_BLINKS_A_SECOND` a second                                   |
-| A cue blinking in a scene, till stopped or the scene ends                         | `blink(scene, target, periodMs, steady)` from `@fz/brick-wall/scene/blink`, held shown each frame `steady()` reads true; returns its stop     |
-| A cue held steady while the player asks for less motion                           | `steadyForLessMotion(viewport)` from `@fz/brick-wall/app/blink`, as `blink()`'s `steady`, over `@fz/game-ui/viewport`'s `GameViewportService` |
+| You need                                                                          | Use                                                                                                                                                                          |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The ids of a catalog's kinds a test holds for, such as those a level needs broken | `kindsWhere(catalog, holds)` from `@fz/brick-wall/rules/kinds`, in the catalog's order                                                                                       |
+| The field every wall game plays on, the same in each                              | `COLUMNS`, `LEAST_DEPTH`, `MOST_DEPTH`, `RADIUS`, `SIDE_MARGIN`, `FIRST_X` and `AT_ONCE` from `@fz/brick-wall/rules/field`; `DEPTHS` and `isDepth()` for the depths it takes |
+| Whether a blinking cue shows, a time into its blinking                            | `blinkShows(elapsedMs, periodMs)` from `@fz/brick-wall/view/blink`, at most `MOST_BLINKS_A_SECOND` a second                                                                  |
+| A cue blinking in a scene, till stopped or the scene ends                         | `blink(scene, target, periodMs, steady)` from `@fz/brick-wall/scene/blink`, held shown each frame `steady()` reads true; returns its stop                                    |
+| A cue held steady while the player asks for less motion                           | `steadyForLessMotion(viewport)` from `@fz/brick-wall/app/blink`, as `blink()`'s `steady`, over `@fz/game-ui/viewport`'s `GameViewportService`                                |
 
 ### Drawn with Phaser: `@fz/phaser`
 

@@ -1,3 +1,4 @@
+import { COLUMNS, DEPTHS } from "@fz/brick-wall/rules/field";
 import { keysOf } from "@fz/core/records";
 import {
   FLIGHT_FIXTURES,
@@ -7,7 +8,6 @@ import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KIND_IDS, type BrickKindId, brickKind } from "../catalog/bricks";
 import { cellAt, fieldRowOf } from "../grid";
 import { NO_BRICK } from "../levels/legend";
-import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../tuning";
 import {
   dangerCells,
   inDanger,
@@ -18,12 +18,6 @@ import {
   regrow,
 } from "./lower";
 import { type Brick, type Wall, thirdsOf } from "./wall";
-
-/** Every depth a field has, 11 to 22. */
-const DEPTHS = Array.from(
-  { length: MOST_DEPTH - LEAST_DEPTH + 1 },
-  (_, index) => LEAST_DEPTH + index,
-);
 
 const AIR = NO_BRICK.repeat(COLUMNS);
 const BRICKS = "ooooooooo";

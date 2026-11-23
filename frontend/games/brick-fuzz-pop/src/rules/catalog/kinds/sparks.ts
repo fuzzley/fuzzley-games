@@ -1,4 +1,5 @@
-import { MOST_DEPTH, ZAP_HITS } from "../../tuning";
+import { MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import { ZAP_HITS } from "../../tuning";
 import type { BrickKind } from "../bricks";
 
 /**

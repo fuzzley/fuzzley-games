@@ -1,4 +1,5 @@
 import { Component, computed, inject, output } from "@angular/core";
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { count } from "@fz/core/format";
 import { BugReportLoaderComponent } from "@fz/game-ui/bug_report";
 import {
@@ -6,7 +7,6 @@ import {
   type ShownSlider,
   type SliderMove,
 } from "@fz/game-ui/debug_menu";
-import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
 import {
   TUNING_SLIDERS,
   type TunedNumber,
@@ -24,12 +24,6 @@ const NO_RECORDS = "This run keeps no records.";
 
 /** The depth list's value for the room's own depth. */
 const ROOM = "room";
-
-/** Every depth a field takes, as the depth list offers it. */
-const DEPTHS: readonly number[] = Array.from(
-  { length: MOST_DEPTH - LEAST_DEPTH + 1 },
-  (_, step) => LEAST_DEPTH + step,
-);
 
 /**
  * Shows Brick Fuzz Pop's debug menu, `<fz-debug-tuning>`, below the

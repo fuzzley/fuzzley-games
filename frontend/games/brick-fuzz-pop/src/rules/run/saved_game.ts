@@ -1,4 +1,10 @@
 import {
+  COLUMNS,
+  LEAST_DEPTH,
+  SIDE_MARGIN,
+  isDepth,
+} from "@fz/brick-wall/rules/field";
+import {
   isCount,
   isFiniteNumber,
   isListOf,
@@ -9,17 +15,9 @@ import type { Level } from "../levels/level";
 import { type LevelEntry, levelEntryOf } from "../levels/levels";
 import type { RoundStart } from "../round/round";
 import { type Boon, isBoon } from "../shot";
-import {
-  COLUMNS,
-  FRIEND_INKS,
-  JUMP_POINTS,
-  LEAST_DEPTH,
-  MOST_FRIENDS,
-  SIDE_MARGIN,
-  STAR_POINTS,
-} from "../tuning";
+import { FRIEND_INKS, JUMP_POINTS, MOST_FRIENDS, STAR_POINTS } from "../tuning";
 import { isCleared } from "../wall/lower";
-import { type Brick, type Wall, isDepth, thirdsOf } from "../wall/wall";
+import { type Brick, type Wall, thirdsOf } from "../wall/wall";
 import {
   type Run,
   afterLanding,

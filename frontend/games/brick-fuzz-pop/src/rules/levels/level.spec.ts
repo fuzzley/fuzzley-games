@@ -1,5 +1,5 @@
+import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "../../testing/wall_picture";
-import { FIRST_X } from "../tuning";
 import { type Level, levelStart } from "./level";
 
 const { bricks, rows } = wallFrom(["o........", ".........", "#........"]);

@@ -1,3 +1,4 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { variantOfSpec } from "@fz/core/testing";
 import { SEED_STRIDE } from "@fz/dev/report";
 import sparks from "../rules/levels/certificates/sparks.json";
@@ -11,7 +12,6 @@ import {
   parseLevel,
 } from "../rules/levels/levels";
 import { parFrom, parOf } from "../rules/run/stars";
-import { DEPTHS } from "../rules/wall/wall";
 import { CASUAL_FLOORS, playCasually } from "./casual";
 import { type CertifiedShot, type Line, lineHolds, replayLine } from "./solver";
 import { SIM_TIMEOUT_MS } from "./timing";

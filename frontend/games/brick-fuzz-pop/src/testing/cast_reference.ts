@@ -10,6 +10,13 @@
 // random walls and shots the property spec and the benchmark cast through.
 
 import {
+  AT_ONCE,
+  COLUMNS,
+  LEAST_DEPTH,
+  MOST_DEPTH,
+  RADIUS,
+} from "@fz/brick-wall/rules/field";
+import {
   type Box,
   CORNERS,
   CORNER_AT,
@@ -43,13 +50,6 @@ import {
   fieldRowOf,
   shapeOf,
 } from "../rules/grid";
-import {
-  AT_ONCE,
-  COLUMNS,
-  LEAST_DEPTH,
-  MOST_DEPTH,
-  RADIUS,
-} from "../rules/tuning";
 import type { Brick, Wall } from "../rules/wall/wall";
 import { STAND_INS } from "./stand_ins";
 

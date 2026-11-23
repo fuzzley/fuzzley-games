@@ -1,19 +1,13 @@
+import { AT_ONCE } from "@fz/brick-wall/rules/field";
 import {
   AIMS_PER_DEGREE,
   AIM_COUNT,
-  AT_ONCE,
   BORED,
-  COLUMNS,
   FIRST_AIM_DEGREES,
-  FIRST_X,
   IDLE_SHARE,
-  LEAST_DEPTH,
-  MOST_DEPTH,
   MOST_FLIGHT,
   MOST_FRIENDS,
   MOST_FUZZBALLS,
-  RADIUS,
-  SIDE_MARGIN,
   STREAK,
   TRIPLE_MATES,
   ZAP_DELAY,
@@ -25,22 +19,6 @@ describe("the tuning", () => {
     const last = FIRST_AIM_DEGREES + (AIM_COUNT - 1) / AIMS_PER_DEGREE;
 
     expect(last).toBe(180 - FIRST_AIM_DEGREES);
-  });
-
-  it("lets a fuzzball through a gap one cell wide", () => {
-    expect(2 * RADIUS).toBeLessThan(1);
-  });
-
-  it("keeps a waiting fuzzball clear of the side walls", () => {
-    expect(SIDE_MARGIN).toBeGreaterThanOrEqual(RADIUS);
-  });
-
-  it("starts a level's first shot from the floor's middle", () => {
-    expect(FIRST_X).toBe(COLUMNS / 2);
-  });
-
-  it("lets a field grow no shallower than it is", () => {
-    expect(MOST_DEPTH).toBeGreaterThanOrEqual(LEAST_DEPTH);
   });
 
   it("flies the player's fuzzball, a triple shot's mates and every friend at once", () => {

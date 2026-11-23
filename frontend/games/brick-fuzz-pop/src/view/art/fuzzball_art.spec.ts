@@ -1,3 +1,4 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import {
   FUZZBALL_LOOK,
   FUZZBALL_STRANDS,
@@ -13,7 +14,6 @@ import {
   extentOf,
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
-import { RADIUS } from "../../rules/tuning";
 import {
   ART_FRAMES,
   ART_PALETTE,

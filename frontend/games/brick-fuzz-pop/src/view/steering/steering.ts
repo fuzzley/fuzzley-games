@@ -1,3 +1,4 @@
+import { FIRST_X, RADIUS } from "@fz/brick-wall/rules/field";
 import { clamp } from "@fz/core/math";
 import type { Viewport } from "@fz/phaser/layout";
 import type { Aim, Charge } from "../../rules/shot";
@@ -5,9 +6,7 @@ import {
   AIM_COUNT,
   AIMS_PER_DEGREE,
   FIRST_AIM_DEGREES,
-  FIRST_X,
   MOST_CHARGE,
-  RADIUS,
 } from "../../rules/tuning";
 import { type FieldMetrics, type Place, toField } from "../field/field_metrics";
 import { type PointerAiming, STRAIGHT_UP } from "./aiming";

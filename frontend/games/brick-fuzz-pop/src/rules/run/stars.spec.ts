@@ -1,13 +1,7 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import type { RunStage } from "@fz/core/run";
 import { LEVELS } from "../levels/levels";
-import { LEAST_DEPTH, MOST_DEPTH } from "../tuning";
 import { PARS, type Pars, parFrom, parOf, starsFor, starsOf } from "./stars";
-
-/** Every depth a field has, from 11 to 22. */
-const DEPTHS = Array.from(
-  { length: MOST_DEPTH - LEAST_DEPTH + 1 },
-  (_, index) => LEAST_DEPTH + index,
-);
 
 /** Pars of two levels, each on a depth or two. */
 const SOME_PARS: Pars = { first: { "11": 6, "12": 5 }, second: { "22": 9 } };

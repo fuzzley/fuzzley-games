@@ -1,7 +1,7 @@
+import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { isKeyOf, keysOf } from "@fz/core/records";
 import { BRICK_KIND_IDS, brickKind } from "../catalog/bricks";
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
-import { COLUMNS } from "../tuning";
 import {
   LEGEND,
   type LegendBrick,

@@ -1,3 +1,4 @@
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import { createRandom } from "@fz/core/random";
 import {
   type Cast,
@@ -21,7 +22,6 @@ import {
   cellOf,
 } from "../grid";
 import { MISSED } from "@fz/core/sweep";
-import { RADIUS } from "../tuning";
 import {
   type CastField,
   type Met,

@@ -1,5 +1,5 @@
+import { LEAST_DEPTH, MOST_DEPTH, isDepth } from "@fz/brick-wall/rules/field";
 import type { BrickKindId } from "../catalog/bricks";
-import { LEAST_DEPTH, MOST_DEPTH } from "../tuning";
 
 /** Describes a brick of a wall, as it stands this round. */
 export interface Brick {
@@ -47,22 +47,6 @@ export interface Thirds {
   readonly jumpLine: number;
   /** The row a wall's lowest stands in as a level opens, and as a jump lands it. */
   readonly opensOn: number;
-}
-
-/** Every depth a field has, from 11 rows to 22. */
-export const DEPTHS: readonly number[] = Array.from(
-  { length: MOST_DEPTH - LEAST_DEPTH + 1 },
-  (_, index) => LEAST_DEPTH + index,
-);
-
-/** Returns whether a value is a depth a field has: a whole number of rows from 11 to 22. */
-export function isDepth(value: unknown): value is number {
-  return (
-    typeof value === "number" &&
-    Number.isInteger(value) &&
-    value >= LEAST_DEPTH &&
-    value <= MOST_DEPTH
-  );
 }
 
 /**

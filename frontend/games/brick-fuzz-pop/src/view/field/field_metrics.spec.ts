@@ -1,7 +1,7 @@
+import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
 import { PANEL_GAP_CSS_PX, type Viewport, roomInside } from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
-import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
 import { thirdsOf } from "../../rules/wall/wall";
 import { boardCanvas, marginInsets } from "../../testing/canvases";
 import {

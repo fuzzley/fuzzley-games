@@ -1,7 +1,6 @@
 import { Injectable, computed, signal } from "@angular/core";
+import { LEAST_DEPTH, MOST_DEPTH, isDepth } from "@fz/brick-wall/rules/field";
 import { type Tuning, createTuning } from "@fz/game-ui/debug_menu";
-import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
-import { isDepth } from "../../rules/wall/wall";
 import {
   TUNED_NUMBERS,
   type TunedNumbers,

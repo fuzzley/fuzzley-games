@@ -1,7 +1,7 @@
+import { AT_ONCE } from "@fz/brick-wall/rules/field";
 import { FrameSounds } from "@fz/core/frame_sounds";
 import type { FlightEvent, TurnOff } from "../../rules/flight/events";
 import type { Boon, Charge } from "../../rules/shot";
-import { AT_ONCE } from "../../rules/tuning";
 
 /** The game's twenty-one sounds, in the order the sprite holds them. */
 export const SOUNDS = [

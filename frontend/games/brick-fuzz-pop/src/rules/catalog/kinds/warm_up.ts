@@ -1,4 +1,5 @@
-import { COLUMNS, MOST_DEPTH, ZAP_HITS } from "../../tuning";
+import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import { ZAP_HITS } from "../../tuning";
 import type { BrickKind } from "../bricks";
 
 /** The kinds of brick Warm-up brings in, levels 1 to 9, in How to play's order. */

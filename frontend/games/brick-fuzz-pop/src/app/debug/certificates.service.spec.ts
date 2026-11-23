@@ -1,5 +1,6 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -11,7 +12,6 @@ import {
   levelsOf,
 } from "../../rules/levels/levels";
 import { playRound } from "../../rules/round/round";
-import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
 import {
   TWO_SHOTS,
   filesCertifying,
@@ -127,7 +127,7 @@ describe("CERTIFICATE_FILES", () => {
   it.each(LEVEL_SETS.map(({ id }) => id))(
     "holds a line for every level of %s on every depth, each of which reads",
     async (setId) => {
-      const depths = MOST_DEPTH - LEAST_DEPTH + 1;
+      const depths = DEPTHS.length;
       const levels = LEVELS.filter(({ set }) => set.id === setId);
 
       const certificates = readCertificates(

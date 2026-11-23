@@ -1,6 +1,6 @@
+import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { keysOf } from "@fz/core/records";
 import { breakPoints } from "../../run/scoring";
-import { COLUMNS, MOST_DEPTH } from "../../tuning";
 import { SPARKS_KINDS } from "./sparks";
 
 describe("SPARKS_KINDS", () => {

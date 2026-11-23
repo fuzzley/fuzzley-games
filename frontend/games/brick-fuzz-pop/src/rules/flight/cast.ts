@@ -12,6 +12,7 @@
 // walks the same moves scanning every brick, and a spec holds the two to
 // the same contacts at the same moments, to the bit.
 
+import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
   type Box,
   CORNERS,
@@ -48,7 +49,6 @@ import {
   cellAt,
   shapesOf,
 } from "../grid";
-import { AT_ONCE, COLUMNS, RADIUS } from "../tuning";
 import type { Wall } from "../wall/wall";
 import type { Contact } from "./events";
 

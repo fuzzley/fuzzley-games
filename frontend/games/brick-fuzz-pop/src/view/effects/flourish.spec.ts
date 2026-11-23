@@ -1,4 +1,4 @@
-import { RADIUS } from "../../rules/tuning";
+import { RADIUS } from "@fz/brick-wall/rules/field";
 import {
   FLARE_FROM,
   HOP_HEIGHT,

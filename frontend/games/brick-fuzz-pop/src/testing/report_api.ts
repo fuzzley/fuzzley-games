@@ -1,5 +1,5 @@
+import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { LEVELS, levelEntryOf, parseLevel } from "../rules/levels/levels";
-import { DEPTHS } from "../rules/wall/wall";
 import { CASUAL_FLOORS, playCasually } from "./casual";
 import type { ReportApi } from "./script_api";
 

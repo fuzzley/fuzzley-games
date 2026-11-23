@@ -1,5 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { LEAST_DEPTH, MOST_DEPTH } from "../../rules/tuning";
+import { LEAST_DEPTH, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { TUNED_NUMBERS } from "../../view/debug/debug_tuning";
 import { DebugService } from "./debug.service";
 
