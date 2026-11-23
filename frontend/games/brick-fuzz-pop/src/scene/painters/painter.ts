@@ -2,7 +2,7 @@ import type {
   Painter as PainterOf,
   PaintContext as WallContext,
 } from "@fz/brick-wall/scene/painter";
-import type { Guide } from "../../rules/flight/guide";
+import type { WallGuide } from "@fz/brick-wall/view/guide";
 import type { Boon } from "../../rules/shot";
 import type { WallPalette } from "../../view/colors/palette";
 import type { RoundView } from "../../view/round_play";
@@ -20,8 +20,8 @@ export interface PaintContext extends WallContext<RoundView, WallPalette> {
   waitingX: number | null;
   /** The boon the waiting fuzzball carries, which it wears, or null. */
   boon: Boon | null;
-  /** The guide to draw, or null where none shows. */
-  guide: Guide | null;
+  /** The guide to draw, as a wall game's guide is drawn, or null where none shows. */
+  guide: WallGuide | null;
 }
 
 /** Draws a part of Brick Fuzz Pop's field, in the layers it was given, each frame. */

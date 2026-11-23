@@ -71,6 +71,12 @@ describe("madeUpFrames", () => {
       ["pip-2", 8, 8, [LIGHT_MADE_UP.text]],
       ["pip-3", 8, 8, [LIGHT_MADE_UP.field]],
       ["warning", 40, 40, [LIGHT_MADE_UP.dangerLine]],
+      ["shard", 6, 6, [LIGHT_MADE_UP.spark]],
+      ["streak", 12, 12, [LIGHT_MADE_UP.text]],
+      ["ring", 48, 48, [LIGHT_MADE_UP.dangerLine]],
+      ["guide-dot", 4, 4, [LIGHT_MADE_UP.guide]],
+      ["struck", 40, 40, [LIGHT_MADE_UP.fuzzball]],
+      ["turn-ring", 16, 16, [LIGHT_MADE_UP.guide]],
     ]);
   });
 

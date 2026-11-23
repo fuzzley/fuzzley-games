@@ -15,6 +15,8 @@ import {
   GROUP_GAP,
   JUMP_LINE,
 } from "@fz/brick-wall/scene/field_painter";
+import { FLASH_ALPHA } from "@fz/brick-wall/scene/effects";
+import { MOST_STRUCK } from "@fz/brick-wall/scene/guide";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
 import {
   type BakeCommand,
@@ -43,7 +45,6 @@ import {
 import {
   FLARE_MS,
   FLASH_MS,
-  RING_MS,
   SHARDS,
   SWELL_MS,
 } from "@fz/brick-wall/view/timing";
@@ -93,7 +94,7 @@ import { brickLayers } from "../view/art/art";
 import { atlasFrames } from "../view/art/atlas_frames";
 import { FRAMES, FRAME_NAMES } from "../view/art/frames";
 import { fuzzballGrid } from "../view/art/fuzzball_art";
-import { BOLT_MS, HOP_MS, STREAK_MS } from "../view/effects/timing";
+import { BOLT_MS, HOP_MS } from "../view/effects/timing";
 import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import {
@@ -119,20 +120,13 @@ import {
 } from "../view/round_play";
 import type { FieldCommand } from "../view/steering/controls";
 import type { Steer } from "../view/steering/steering";
-import { MOST_LAYERS, wallAtlasFrames } from "./atlas";
+import { MOST_GUIDE_DOTS, MOST_LAYERS, wallAtlasFrames } from "./atlas";
 import {
   FIELD_FRAMES,
   FLIGHT_FRAMES,
   fieldFrames,
   flightFrames,
 } from "./field_art";
-import {
-  FLASH_ALPHA,
-  MOST_SHARDS_FLYING,
-  SHARD_FALL,
-  SHARD_SPEED,
-} from "./painters/effects_painter";
-import { MOST_GUIDE_DOTS, MOST_PUNCHED } from "./painters/guide_painter";
 import {
   PICTURE_FRAMES,
   PICTURE_LAYERS,
@@ -683,6 +677,11 @@ function framedIn(scene: WallScene): (readonly [number, number])[] {
 /** Returns each object's place in the list it is drawn from, counted from the back. */
 function placesInLayer(objects: readonly GameObjects.GameObject[]): number[] {
   return objects.map((object) => object.displayList.getIndex(object));
+}
+
+/** Returns an object's place in the list it is drawn from, counted from the back, or -1 where there is none. */
+function placeInLayer(object: GameObjects.GameObject | undefined): number {
+  return object?.displayList.getIndex(object) ?? -1;
 }
 
 /** Returns the place in the scene of the layer an object is drawn in, counted from the back, or -1 where it is in none. */
@@ -1257,7 +1256,7 @@ describe("WallScene", () => {
       const { scene } = await startBoard();
       const [count] = scene.field.countDots;
       const [dot] = scene.guide.dots;
-      const [punch] = scene.guide.punches;
+      const [punch] = scene.guide.marks;
 
       const counted = layerPlaceOf(scene, count);
 
@@ -2637,53 +2636,13 @@ describe("WallScene", () => {
   });
 
   describe("the guide", () => {
-    it("draws a dot at each of the guide's places, on whole pixels", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.casting = () => ({
-          dots: [
-            { x: 3.3, y: 2.2 },
-            { x: 4.1, y: 3.7 },
-          ],
-          punched: [],
-        });
-      });
-
-      expect(
-        scene.guide.dots
-          .filter((dot) => dot.visible)
-          .map((dot) => ({
-            frame: dot.frame.name,
-            whole:
-              Number.isInteger(dot.x - dot.displayWidth / 2) &&
-              Number.isInteger(dot.y - dot.displayHeight / 2),
-          })),
-      ).toEqual([
-        { frame: FRAMES.guideDot, whole: true },
-        { frame: FRAMES.guideDot, whole: true },
-      ]);
-    });
-
-    it("draws each dot at its place, to the pixel", async () => {
-      const { scene } = await startBoard((shell) => {
-        shell.casting = () => ({ dots: [{ x: 3.3, y: 2.2 }], punched: [] });
-      });
-      const place = toCanvas(metricsAt(), 3.3, 2.2);
-
-      const [dot] = scene.guide.dots;
-
-      expect({
-        x: Math.abs((dot?.x ?? 0) - place.x) <= 0.5,
-        y: Math.abs((dot?.y ?? 0) - place.y) <= 0.5,
-      }).toEqual({ x: true, y: true });
-    });
-
     it("outlines each brick the shot would punch through", async () => {
       const { scene } = await startBoard((shell) => {
         shell.casting = () => ({ dots: [], punched: [8, 7] });
       });
 
       expect(
-        scene.guide.punches
+        scene.guide.marks
           .filter((punch) => punch.visible)
           .map((punch) => ({
             x: punch.x,
@@ -2694,15 +2653,6 @@ describe("WallScene", () => {
         { ...toCanvas(metricsAt(), 8.5, 5.5), frame: FRAMES.guidePunch },
         { ...toCanvas(metricsAt(), 7.5, 5.5), frame: FRAMES.guidePunch },
       ]);
-    });
-
-    it("outlines no brick waiting over the ceiling", async () => {
-      const { scene } = await startBoard((shell) => {
-        // Wall cell 54 stands in row 11, over the ceiling of a field 11 deep.
-        shell.casting = () => ({ dots: [], punched: [54] });
-      });
-
-      expect(showing(scene.guide.punches)).toBe(0);
     });
 
     it("draws the guide the rules cast for the shot steered, a dot at each of its places", async () => {
@@ -2760,53 +2710,6 @@ describe("WallScene", () => {
       expect(Math.abs((dot?.x ?? 0) - place.x) <= 0.5).toBe(true);
     });
 
-    it("outlines the bricks anew as the wall moves under the same guide", async () => {
-      const guide: Guide = { dots: [], punched: [8] };
-      const { shell, run, scene } = await startBoard((each) => {
-        each.casting = () => guide;
-      });
-
-      shell.showWall({ ...PLAIN.start.wall, lowestRow: 4 });
-      run.advance(16);
-
-      const [punch] = scene.guide.punches;
-      expect({ x: punch?.x, y: punch?.y }).toEqual(
-        toCanvas(metricsAt(), 8.5, 4.5),
-      );
-    });
-
-    it("moves the same guide with the field as the chrome over it changes", async () => {
-      const guide: Guide = { dots: [{ x: 3.3, y: 2.2 }], punched: [] };
-      const { shell, run, scene } = await startBoard((each) => {
-        each.casting = () => guide;
-      });
-      const lopsided = { ...INSETS, left: 60 };
-
-      shell.chrome = lopsided;
-      run.advance(16);
-
-      const metrics = fieldMetrics(
-        viewport(CANVAS.width, CANVAS.height, 1, lopsided),
-        shell.fieldShape,
-      );
-      const place = toCanvas(metrics, 3.3, 2.2);
-      const [dot] = scene.guide.dots;
-      expect(Math.abs((dot?.x ?? 0) - place.x) <= 0.5).toBe(true);
-    });
-
-    it("hides the guide where none shows", async () => {
-      const { shell, run, scene } = await startBoard((each) => {
-        each.casting = () => ({ dots: [{ x: 3, y: 3 }], punched: [8] });
-      });
-
-      shell.casting = null;
-      run.advance(16);
-
-      expect([showing(scene.guide.dots), showing(scene.guide.punches)]).toEqual(
-        [0, 0],
-      );
-    });
-
     it("leaves out a dot that would crowd a dot of the jump line's count, so the count reads alone", async () => {
       const { scene } = await startBoard((shell) => {
         const { x, y } = countPlace(0, shell.fieldShape.depth);
@@ -2850,32 +2753,12 @@ describe("WallScene", () => {
       });
     });
 
-    it("shows its dots and outlines scaled up past the atlas's largest unit", async () => {
-      const { scene } = await startBoard(
-        (shell) => {
-          shell.casting = () => ({ dots: [{ x: 3, y: 3 }], punched: [8] });
-        },
-        { width: 1300, height: 1800 },
-      );
-      const scale = metricsAt(1300, 1800).unit / MOST_BAKED_UNIT;
-      const [dot] = scene.guide.dots;
-      const [punch] = scene.guide.punches;
-
-      expect({
-        dot: dot?.displayWidth,
-        punch: punch?.scale,
-      }).toEqual({
-        dot: Math.round((dot?.width ?? 0) * scale),
-        punch: scale,
-      });
-    });
-
     it("holds the most dots and outlines it shows, made once", async () => {
       const { scene } = await startBoard();
 
-      expect([scene.guide.dots.length, scene.guide.punches.length]).toEqual([
+      expect([scene.guide.dots.length, scene.guide.marks.length]).toEqual([
         MOST_GUIDE_DOTS,
-        MOST_PUNCHED,
+        MOST_STRUCK,
       ]);
     });
   });
@@ -2914,66 +2797,6 @@ describe("WallScene", () => {
           brickColor(brickAt(PLAIN.start.wall, 0), LIGHT),
         ),
       );
-    });
-
-    it("show the shards scaled up past the atlas's largest unit", async () => {
-      const canvas = { width: 1300, height: 1800 } as const;
-      const { shell, run, scene } = await startBoard(undefined, canvas);
-      const { unit } = metricsAt(canvas.width, canvas.height);
-
-      shell.reach([PLAIN_BREAK, ["shards"]]);
-      run.advance(16);
-
-      const scales: number[] = [];
-      scene.effects.shards.forEachAlive((shard) => {
-        scales.push(shard.scaleX, shard.scaleY);
-      }, null);
-      expect({ unit: unit > MOST_BAKED_UNIT, scales }).toEqual({
-        unit: true,
-        scales: Array.from(
-          { length: 2 * SHARDS },
-          () => unit / MOST_BAKED_UNIT,
-        ),
-      });
-    });
-
-    it("throw no more shards at once than the pool made once holds", async () => {
-      const { shell, run, scene } = await startBoard();
-      const made = scene.effects.shards.getParticleCount();
-
-      // Every brick of the plain round's wall, 38 of them, broken at once.
-      shell.reach(
-        ...PLAIN.start.wall.bricks.flatMap((brick, cell) =>
-          brick ? [[{ ...PLAIN_BREAK, cell }, ["shards"]] as const] : [],
-        ),
-      );
-      run.advance(16);
-
-      expect({
-        made,
-        alive: scene.effects.shards.getAliveParticleCount(),
-        after: scene.effects.shards.getParticleCount(),
-      }).toEqual({
-        made: MOST_SHARDS_FLYING,
-        alive: MOST_SHARDS_FLYING,
-        after: MOST_SHARDS_FLYING,
-      });
-    });
-
-    it("throw the shards as fast and let them fall as fast as the field's unit has them, laid out anew", async () => {
-      const board = await startBoard();
-
-      resizeTo(board, 600, 500);
-
-      const { unit } = metricsAt(600, 500);
-      const { shards } = board.scene.effects;
-      expect({
-        speed: shards.ops.speedX.propertyValue,
-        fall: shards.gravityY,
-      }).toEqual({
-        speed: { min: SHARD_SPEED.least * unit, max: SHARD_SPEED.most * unit },
-        fall: SHARD_FALL * unit,
-      });
     });
 
     it("throw no shards for a brick it never drew", async () => {
@@ -3028,22 +2851,6 @@ describe("WallScene", () => {
         ({ image }) => image.visible,
       );
       expect(streak?.image.rotation).toBe(-Math.PI / 2);
-    });
-
-    it("fade a punch's streak through its time, then hide it", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.reach([STRIKE_8, ["streak"]]);
-      run.advance(16);
-      run.advance(STREAK_MS / 2);
-      const [streak] = scene.effects.streaks.all;
-      const halfway = streak?.image.alpha ?? 0;
-
-      run.advance(STREAK_MS);
-
-      expect({
-        halfway: Math.round(halfway * 10) / 10,
-        after: streak?.image.visible,
-      }).toEqual({ halfway: 0.5, after: false });
     });
 
     it("draw a zap's bolt along the row it reaches, a piece a cell, from the zapper's middle", async () => {
@@ -3145,6 +2952,22 @@ describe("WallScene", () => {
       }).toEqual({ halfway: 0.5, after: false });
     });
 
+    it("draw a zap's bolt over the shards and under the rings", async () => {
+      const { scene } = await startBoard();
+      const { shards, bolts, rings } = scene.effects;
+      const [ring] = rings.all;
+
+      const shard = placeInLayer(shards);
+      const pieces = placesInLayer(bolts.all.map(({ image }) => image));
+      const ringPlace = placeInLayer(ring?.image);
+
+      expect({
+        overShards: Math.min(...pieces) > shard,
+        underRings: Math.max(...pieces) < ringPlace,
+        sameLayer: bolts.all[0]?.image.displayList === shards.displayList,
+      }).toEqual({ overShards: true, underRings: true, sameLayer: true });
+    });
+
     it("spread a blast's ring from the bomb", async () => {
       const { shell, run, scene } = await startBoard();
 
@@ -3164,22 +2987,6 @@ describe("WallScene", () => {
       });
     });
 
-    it("fade a blast's ring as it spreads, then hide it", async () => {
-      const { shell, run, scene } = await startBoard();
-      shell.reach([BLAST, ["ring"]]);
-      run.advance(16);
-      run.advance(RING_MS / 2);
-      const [ring] = scene.effects.rings.all;
-      const halfway = ring?.image.alpha ?? 0;
-
-      run.advance(RING_MS);
-
-      expect({
-        halfway: Math.round(halfway * 10) / 10,
-        after: ring?.image.visible,
-      }).toEqual({ halfway: 0.5, after: false });
-    });
-
     it.each<
       [
         string,
@@ -3189,22 +2996,10 @@ describe("WallScene", () => {
       ]
     >([
       [
-        "streak",
-        [STRIKE_8, ["streak"]],
-        STREAK_MS,
-        (scene) => scene.effects.streaks.all.map(({ image }) => image),
-      ],
-      [
         "bolt",
         [ROW_ZAP, ["bolt"]],
         BOLT_MS,
         (scene) => scene.effects.bolts.all.map(({ image }) => image),
-      ],
-      [
-        "ring",
-        [BLAST, ["ring"]],
-        RING_MS,
-        (scene) => scene.effects.rings.all.map(({ image }) => image),
       ],
       [
         "hop",
@@ -3256,6 +3051,16 @@ describe("WallScene", () => {
         risen: true,
         after: false,
       });
+    });
+
+    it("hop a friend freed in an ink the art has none of in the first ink", async () => {
+      const { shell, run, scene } = await startBoard();
+
+      shell.reach([{ ...FREE, ink: 99 }, ["hop"]]);
+      run.advance(16);
+
+      const [hop] = scene.effects.hops.all;
+      expect(hop?.body.frame.name).toBe(FRAMES.friend(0));
     });
 
     it("flash the jump line as the wall jumps, then fade it", async () => {

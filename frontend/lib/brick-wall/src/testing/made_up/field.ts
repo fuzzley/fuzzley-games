@@ -70,6 +70,12 @@ export const MADE_UP_SQUARES = {
   "pip-2": { units: 0.2, ink: "text" },
   "pip-3": { units: 0.2, ink: "field" },
   warning: { units: 1, ink: "dangerLine" },
+  shard: { units: 0.15, ink: "spark" },
+  streak: { units: 0.3, ink: "text" },
+  ring: { units: 1.2, ink: "dangerLine" },
+  "guide-dot": { units: 0.1, ink: "guide" },
+  struck: { units: 1, ink: "fuzzball" },
+  "turn-ring": { units: 0.4, ink: "guide" },
 } as const satisfies Readonly<Record<string, Square>>;
 
 /** The name of a made-up frame. */

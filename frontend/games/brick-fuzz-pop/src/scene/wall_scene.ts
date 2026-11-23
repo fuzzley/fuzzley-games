@@ -3,6 +3,7 @@ import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { ATLAS, WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
+import { GuidePainter } from "@fz/brick-wall/scene/guide";
 import { WallPainter } from "@fz/brick-wall/scene/wall_painter";
 import {
   type PointerAiming,
@@ -53,12 +54,12 @@ import {
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
 import { type Steer, Steering } from "../view/steering/steering";
-import { FIELD_ART, WALL_ART, wallAtlasFrames } from "./atlas";
+import { WallGuides } from "../view/wall_guides";
+import { FIELD_ART, GUIDE_ART, WALL_ART, wallAtlasFrames } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
 import { BallPainter } from "./painters/ball_painter";
 import { EffectsPainter } from "./painters/effects_painter";
 import { GaugePainter } from "./painters/gauge_painter";
-import { GuidePainter } from "./painters/guide_painter";
 import { MeterPainter } from "./painters/meter_painter";
 import type { PaintContext, Painter } from "./painters/painter";
 import { PICTURE_FRAMES, type Pictures } from "./pictures";
@@ -149,7 +150,7 @@ export class WallScene extends Scene {
   /** Draws the wall. */
   wall!: WallPainter<BrickKindId>;
   /** Draws the guide. */
-  guide!: GuidePainter;
+  guide!: GuidePainter<BrickKindId>;
   /** Draws what bursts from the wall and the jump line's flash. */
   effects!: EffectsPainter;
   /** Draws the charge's meter. */
@@ -164,6 +165,8 @@ export class WallScene extends Scene {
   steering!: Steering;
   /** Frames the camera on the field, and shakes it. */
   private fieldCamera!: FieldCamera;
+  /** Reads the guide the shell hands over as the guide's painter draws it. */
+  private guides!: WallGuides;
   /** Every painter, back to front, which each frame draws, the field before the guide, which reads its count. */
   private painters: readonly Painter[] = [];
   /** What the painters draw each frame from, which the scene writes over. */
@@ -226,12 +229,13 @@ export class WallScene extends Scene {
     const layers = this.layers();
     this.field = new FieldPainter(this, layers, FIELD_ART, WALL_RULES);
     this.wall = new WallPainter(this, layers.wall, WALL_ART, WALL_RULES);
-    this.guide = new GuidePainter(this, layers.guide, this.field);
+    this.guide = new GuidePainter(this, layers.guide, GUIDE_ART, this.field);
     this.effects = new EffectsPainter(this, layers);
     this.meter = new MeterPainter(this, layers.balls);
     this.balls = new BallPainter(this, layers.balls);
     this.gauge = new GaugePainter(this, layers.gauge);
     this.fieldCamera = new FieldCamera(this.cameras.main);
+    this.guides = new WallGuides();
     this.painters = [
       this.field,
       this.wall,
@@ -255,7 +259,7 @@ export class WallScene extends Scene {
       steer: UNSTEERED,
       waitingX: options.waitingX(),
       boon: options.boon(),
-      guide: options.guide(),
+      guide: this.guides.of(options.guide()),
       shape: this.laidOut,
       metrics: this.metrics,
       baked: this.atlas.scale,
@@ -322,7 +326,7 @@ export class WallScene extends Scene {
   /** Has each painter draw the field as it stands, in its layer. */
   private draw(): void {
     const context = this.context;
-    context.guide = this.options.guide();
+    context.guide = this.guides.of(this.options.guide());
     context.shape = this.laidOut;
     context.metrics = this.metrics;
     context.baked = this.atlas.scale;
