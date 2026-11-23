@@ -25,6 +25,7 @@ import {
   takeRound,
 } from "@fz/brick-wall/rules/run";
 import { levelResultOf } from "@fz/brick-wall/rules/stats";
+import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
 import {
   type FieldMetrics,
   type FieldShape,
@@ -97,7 +98,6 @@ import {
   withNewsSaid,
 } from "../../view/run_state";
 import type { FieldCommand } from "../../view/steering/controls";
-import { STRAIGHT_UP } from "../../view/steering/aiming";
 import type { Steer } from "../../view/steering/steering";
 import type { BoardCard } from "../board/board_card.component";
 import { DebugService, type RunStart } from "../debug/debug.service";

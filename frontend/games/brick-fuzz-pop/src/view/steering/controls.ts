@@ -1,3 +1,4 @@
+import { type AimKey, aimKeyOf } from "@fz/brick-wall/view/aiming";
 import { RUN_KEYS, type RunCommand } from "@fz/core/run";
 
 /**
@@ -7,11 +8,15 @@ import { RUN_KEYS, type RunCommand } from "@fz/core/run";
  */
 export type FieldCommand = "drop" | "fast" | "read" | RunCommand;
 
+/** Names what a key does to the charge: raises or lowers it a notch. */
+type ChargeKey = "up" | "down";
+
 /**
  * Names what a key does to the shot being aimed: turns the aim left or
- * right, raises or lowers the charge a notch, or lets the shot fly.
+ * right or lets the shot fly, as every wall game's keys do, or changes the
+ * charge.
  */
-export type SteerKey = "left" | "right" | "up" | "down" | "release";
+export type SteerKey = AimKey | ChargeKey;
 
 /**
  * What each key asks of the game, by `event.code`, the key's place on the
@@ -26,19 +31,14 @@ const COMMAND_KEYS: Readonly<Record<string, FieldCommand>> = {
 };
 
 /**
- * What each key does to the shot, by `event.code`, so A, S, D and W steer
- * on a QWERTY keyboard where Q, S, D and Z do on an AZERTY one.
+ * What each key does to the charge, by `event.code`, so W and S charge on a
+ * QWERTY keyboard where Z and S do on an AZERTY one.
  */
-const STEER_KEYS: Readonly<Record<string, SteerKey>> = {
-  ArrowLeft: "left",
-  KeyA: "left",
-  ArrowRight: "right",
-  KeyD: "right",
+const CHARGE_KEYS: Readonly<Record<string, ChargeKey>> = {
   ArrowUp: "up",
   KeyW: "up",
   ArrowDown: "down",
   KeyS: "down",
-  Space: "release",
 };
 
 /** Returns what a key asks of the game, or null for a key that asks nothing of it. */
@@ -48,5 +48,5 @@ export function commandOfKey(code: string): FieldCommand | null {
 
 /** Returns what a key does to the shot being aimed, or null for one that does nothing to it. */
 export function steerKeyOf(code: string): SteerKey | null {
-  return STEER_KEYS[code] ?? null;
+  return aimKeyOf(code) ?? CHARGE_KEYS[code] ?? null;
 }

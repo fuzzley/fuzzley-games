@@ -1,27 +1,19 @@
 import {
-  AIMS_PER_DEGREE,
-  AIM_COUNT,
-  type Aim,
-  FIRST_AIM_DEGREES,
-} from "@fz/brick-wall/rules/aims";
-import { FIRST_X, RADIUS } from "@fz/brick-wall/rules/field";
+  type PointerAiming,
+  STRAIGHT_UP,
+} from "@fz/brick-wall/view/aim_settings";
 import {
-  type FieldMetrics,
-  type Place,
-  toField,
-} from "@fz/brick-wall/view/field_metrics";
+  type AimFrame,
+  Aiming,
+  type KeyPress,
+  type PointerView,
+} from "@fz/brick-wall/view/aiming";
+import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import { clamp } from "@fz/core/math";
 import type { Viewport } from "@fz/phaser/layout";
 import type { Charge } from "../../rules/shot";
 import { MOST_CHARGE } from "../../rules/tuning";
-import { type PointerAiming, STRAIGHT_UP } from "./aiming";
-import { type SteerKey, commandOfKey, steerKeyOf } from "./controls";
-
-/**
- * How far a pull back runs before it aims or charges, in field units; a
- * press let go within it calls the shot off.
- */
-export const DEAD_ZONE = 0.5;
+import { commandOfKey, steerKeyOf } from "./controls";
 
 /** How much further a pull back runs past the dead zone for each notch of charge, in field units. */
 export const PULL_NOTCH = 0.9;
@@ -41,59 +33,14 @@ export const HOLD_NOTCH_MS = 250;
  */
 export const LONGEST_FRAME_MS = 100;
 
-/**
- * How near a side of the canvas a finger's press is left alone, in CSS
- * pixels, so the browser's swipe from the screen's edge keeps it.
- */
-export const EDGE_CSS_PX = 16;
-
-/**
- * How many fingers the scene follows at once, as it adds pointers for: one
- * aiming, and a second, whose press calls the shot off.
- */
-export const MOST_FINGERS = 2;
-
 /** The charges in order, the count of notches each comes to. */
 const CHARGES = [0, 1, 2, 3, 4, 5] as const satisfies readonly Charge[];
-
-/** The mouse's main button, the one that presses. */
-const MAIN_BUTTON = 0;
-
-/** The mouse's right button, whose press calls a charge off. */
-const RIGHT_BUTTON = 2;
 
 /** How much under a whole notch a pull back may fall and still count as it. */
 const WHOLE = 1e-9;
 
-/** Describes a pointer as the steering reads it, as Phaser's pointer has it. */
-export interface PointerView {
-  /** Tells pointers apart: the mouse has one, and each finger its own. */
-  readonly id: number;
-  /** Where it is across the canvas, in device pixels. */
-  readonly x: number;
-  /** Where it is down the canvas, in device pixels. */
-  readonly y: number;
-  /** Whether it is a finger, rather than a mouse. */
-  readonly wasTouch: boolean;
-  /** The mouse button last pressed or let go: 0 is the main one, 2 the right. */
-  readonly button: number;
-  /** Whether the browser took its touch away, as a gesture of its own began. */
-  readonly wasCanceled: boolean;
-}
-
-/** Describes a key pressed, as a `KeyboardEvent` has it. */
-export interface KeyPress {
-  /** The key's place on the keyboard (`event.code`). */
-  readonly code: string;
-  readonly shiftKey: boolean;
-  /** Whether it is a held key's repeat. */
-  readonly repeat: boolean;
-}
-
 /** Describes what the player's hands ask of a frame, which the game reads as it aims and flies a round. */
-export interface Steer {
-  /** The aim the guide shows, or a shot let fly flies along. */
-  aim: Aim;
+export interface Steer extends AimFrame {
   /** The charge the meter shows, or a shot let fly carries. */
   charge: Charge;
   /** Whether the shot was let fly this frame, at the aim and the charge. */
@@ -103,32 +50,6 @@ export interface Steer {
    * Escape calling a charge off among them, which the announcer says.
    */
   keyed: boolean;
-  /**
-   * Whether a finger aims the shot, where its hand may cover the meter:
-   * one that points from its press, or that pulls back once past its dead
-   * zone, until it lets go or the shot is called off. The mouse and the keys
-   * never do.
-   */
-  touch: boolean;
-  /** Where the finger that aims is across the canvas, in device pixels, read only while {@link touch} says one does. */
-  touchX: number;
-  /** Where the finger that aims is down the canvas, in device pixels, read only while {@link touch} says one does. */
-  touchY: number;
-}
-
-/**
- * Returns the aim nearest a heading given across the field and up it, held
- * between the first and the last: a heading under the floor's line takes
- * the aim on its side.
- */
-export function aimToward(across: number, up: number): Aim {
-  let degrees = (Math.atan2(up, across) * 180) / Math.PI;
-  if (degrees < -90) degrees += 360;
-  return clamp(
-    Math.round((degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE),
-    0,
-    AIM_COUNT - 1,
-  );
 }
 
 /**
@@ -151,64 +72,31 @@ function chargeOf(notches: number): Charge {
 
 /**
  * Turns the player's keys, mouse and fingers into the shot being aimed, a
- * frame at a time: the aim, the charge and the shot let fly.
+ * frame at a time: the aim, as every wall game's `Aiming` turns it, and the
+ * charge laid over it, and the shot let fly at both.
  *
- * The mouse and fingers aim the way the settings choose
- * ({@link PointerAiming}). Pointed, the aim follows the pointer, a finger's
- * from its press and a mouse's even unpressed and as the fuzzball waits
- * somewhere new, and a press held charges a notch each
- * {@link HOLD_NOTCH_MS} by the frames' clock, whether it moves or not.
- * Pulled back, a press anywhere on the canvas aims opposite the drag,
- * charging a notch each {@link PULL_NOTCH} past the {@link DEAD_ZONE}.
- * Either flies as it is let go, wherever that is, at the aim and the charge
- * its last move and the last frame showed. Each frame says where a finger
- * that aims is, from its press or once past the dead zone till it lets go,
- * so the charge can show clear of the hand. Only the mouse's main button
- * presses, and its right button calls a charge off; a second press while
- * one is held, a touch the browser takes away, or a pointer lost
- * ({@link callOff}) calls the shot off, and never lets it fly.
- *
- * The scene reads it every frame, follows {@link MOST_FINGERS}, hands a
- * pointer let go past the canvas to {@link pointerUp}, and calls
- * {@link callOff} as the player looks away. A charge may build, and a shot be
- * let fly, at any time: the round reads a shot let fly only while it aims,
- * and a charge built meanwhile waits for the next shot.
+ * A press held pointed charges a notch each {@link HOLD_NOTCH_MS} by the
+ * frames' clock, whether it moves or not, and one pulled back a notch each
+ * {@link PULL_NOTCH} past the `DEAD_ZONE`; Up and Down change the charge a
+ * notch; and a shot flies at the charge the last frame showed. A press
+ * starts its charge afresh, and a shot let fly or called off drops it to
+ * none, as Escape does while a charge builds, which it takes from the
+ * pause. A charge may build, and a shot be let fly, at any time: the round
+ * reads a shot let fly only while it aims, and a charge built meanwhile
+ * waits for the next shot.
  */
 export class Steering {
-  /** How the mouse and fingers aim from their next press on. */
-  private aiming: PointerAiming = "pointAndHold";
-  private aim: Aim = STRAIGHT_UP;
+  /** Turns the aim, and says how a press is held. */
+  private readonly aiming: Aiming;
   private charge: Charge = 0;
-  /** Where the fuzzball waits across the floor, which a pointer aims from. */
-  private from = FIRST_X;
-  /** The pointer pressed, by its id, or null: one at a time aims. */
-  private pressed: number | null = null;
-  /** How the pointer pressed aims. */
-  private way: PointerAiming = "pointAndHold";
-  /** Where the pointer was pressed, in device pixels. */
-  private pressX = 0;
-  private pressY = 0;
-  /** Whether a pull back has left its dead zone at its last move, so it flies if let go. */
-  private armed = false;
-  /** Whether the mouse pointed the aim last, so it aims again as the fuzzball waits somewhere new. */
-  private pointed = false;
   /** How long a pointed press has been held, counted by the frames' clock, for the meter. */
   private heldMs = 0;
   /** When the last frame was read, by the frames' clock, or null before the first. */
   private lastFrameAt: number | null = null;
-  /** Whether the keys changed the aim or the charge since the last frame. */
+  /** Whether the keys changed the charge since the last frame. */
   private keyed = false;
-  /** Whether the pointer pressed is a finger that aims, pointed or pulled past its dead zone, which the frame says. */
-  private touching = false;
-  /** Where the finger pressed was at its press or its last move, in device pixels. */
-  private touchX = 0;
-  private touchY = 0;
-  /** Whether a shot was let fly since the last frame, and at what. */
-  private released = false;
-  private releasedAim: Aim = STRAIGHT_UP;
+  /** The charge the shot let fly since the last frame carries. */
   private releasedCharge: Charge = 0;
-  /** Where a pointer last pointed on the field, written again at each move, so moving makes nothing. */
-  private readonly place: Place = { x: 0, y: 0 };
   // Written again each frame, so steering makes nothing.
   private readonly steer: Steer = {
     aim: STRAIGHT_UP,
@@ -221,15 +109,30 @@ export class Steering {
   };
 
   /** Starts with the aim straight up and no charge, on a field laid out on a canvas. */
-  constructor(
-    private metrics: FieldMetrics,
-    private canvas: Viewport,
-  ) {}
+  constructor(metrics: FieldMetrics, canvas: Viewport) {
+    this.aiming = new Aiming(metrics, canvas, {
+      pressed: () => {
+        this.charge = 0;
+      },
+      pulled: (beyond) => {
+        this.charge =
+          beyond === null
+            ? 0
+            : chargeOf(Math.floor(beyond / PULL_NOTCH + WHOLE));
+      },
+      released: () => {
+        this.releasedCharge = this.charge;
+      },
+      ended: () => {
+        this.heldMs = 0;
+        this.charge = 0;
+      },
+    });
+  }
 
   /** Takes where the field now lies, and the canvas it lies on. */
   measure(metrics: FieldMetrics, canvas: Viewport): void {
-    this.metrics = metrics;
-    this.canvas = canvas;
+    this.aiming.measure(metrics, canvas);
   }
 
   /**
@@ -237,8 +140,7 @@ export class Steering {
    * that no longer points stops aiming at its place.
    */
   aimWith(aiming: PointerAiming): void {
-    this.aiming = aiming;
-    if (aiming !== "pointAndHold") this.pointed = false;
+    this.aiming.aimWith(aiming);
   }
 
   /**
@@ -249,92 +151,39 @@ export class Steering {
    * frame say so, as a key that changes the charge does.
    */
   keyDown(press: KeyPress): boolean {
+    if (this.aiming.keyDown(press)) return true;
     const key = steerKeyOf(press.code);
-    if (key !== null) {
-      this.steerBy(key, press);
+    if (key === "up" || key === "down") {
+      this.charge = chargeOf(this.charge + (key === "up" ? 1 : -1));
+      this.keyed = true;
       return true;
     }
     if (commandOfKey(press.code) === "pause" && this.isBuilding()) {
-      this.callOff();
+      this.aiming.callOff();
       this.keyed = true;
       return true;
     }
     return false;
   }
 
-  /**
-   * Takes a pointer pressed: the mouse's main button or a finger, away from
-   * the canvas's sides, starts a shot, and the mouse's right button or a
-   * second press calls one off. A finger that points aims at once, and the
-   * frame says where it is; a mouse that points has aimed as it moved, and
-   * keeps a nudge since.
-   */
+  /** Takes a pointer pressed, which starts a shot with no charge, or calls one off, as `Aiming` says. */
   pointerDown(pointer: PointerView): void {
-    if (!pointer.wasTouch && pointer.button !== MAIN_BUTTON) {
-      if (pointer.button === RIGHT_BUTTON) this.callOff();
-      return;
-    }
-    if (pointer.wasTouch && this.isNearSide(pointer.x)) return;
-    if (this.pressed !== null) {
-      this.callOff();
-      return;
-    }
-    this.pressed = pointer.id;
-    this.way = this.aiming;
-    this.pressX = pointer.x;
-    this.pressY = pointer.y;
-    this.charge = 0;
-    if (!pointer.wasTouch) return;
-    if (this.way === "pointAndHold") this.pointAt(pointer);
-    this.touchAt(pointer);
+    this.aiming.pointerDown(pointer);
   }
 
-  /**
-   * Takes a pointer moved: the one pressed aims its way, a finger the frame
-   * saying where it is once it aims, and a mouse that points aims unpressed
-   * too.
-   */
+  /** Takes a pointer moved, which aims, and charges a pull back, as `Aiming` says. */
   pointerMove(pointer: PointerView): void {
-    if (this.pressed === null) {
-      if (!pointer.wasTouch && this.aiming === "pointAndHold") {
-        this.pointAt(pointer);
-      }
-      return;
-    }
-    if (pointer.id !== this.pressed) return;
-    if (this.way === "pointAndHold") this.pointAt(pointer);
-    else this.pullTo(pointer);
-    if (pointer.wasTouch) this.touchAt(pointer);
+    this.aiming.pointerMove(pointer);
   }
 
-  /**
-   * Takes a pointer let go, over the canvas or anywhere past it: the one
-   * pressed lets the shot fly as the guide and the meter last showed it,
-   * since a mouse's moves past the canvas reach no one, unless the browser
-   * took its touch away or a pull back's last move left it within its dead
-   * zone, which call it off.
-   */
+  /** Takes a pointer let go, over the canvas or anywhere past it, which lets the shot fly or calls it off, as `Aiming` says. */
   pointerUp(pointer: PointerView): void {
-    if (pointer.id !== this.pressed) return;
-    if (!pointer.wasTouch && pointer.button !== MAIN_BUTTON) return;
-    if (pointer.wasCanceled) {
-      this.callOff();
-      return;
-    }
-    if (this.way === "pullBack" && !this.armed) {
-      this.callOff();
-      return;
-    }
-    this.release();
+    this.aiming.pointerUp(pointer);
   }
 
-  /**
-   * Takes the mouse's wheel turned, which turns the aim an aim, a quarter of
-   * a degree: left as it turns away from the player, right as it turns
-   * toward them.
-   */
+  /** Takes the mouse's wheel turned, which turns the aim an aim, as `Aiming` says. */
   wheel(deltaY: number): void {
-    if (deltaY !== 0) this.turn(-Math.sign(deltaY));
+    this.aiming.wheel(deltaY);
   }
 
   /**
@@ -343,11 +192,7 @@ export class Steering {
    * sticks, and the charge drops to none.
    */
   callOff(): void {
-    this.pressed = null;
-    this.armed = false;
-    this.touching = false;
-    this.heldMs = 0;
-    this.charge = 0;
+    this.aiming.callOff();
   }
 
   /**
@@ -365,115 +210,25 @@ export class Steering {
         ? 0
         : clamp(now - this.lastFrameAt, 0, LONGEST_FRAME_MS);
     this.lastFrameAt = now;
-    this.from = from;
-    if (this.pointed) this.aimAtPlace();
-    if (this.pressed !== null && this.way === "pointAndHold") {
+    if (this.aiming.pressedWay === "pointAndHold") {
       this.heldMs += frameMs;
       this.charge = chargeAfter(this.heldMs);
     }
+    const aimed = this.aiming.read(from);
     const { steer } = this;
-    steer.release = this.released;
-    steer.aim = this.released ? this.releasedAim : this.aim;
-    steer.charge = this.released ? this.releasedCharge : this.charge;
-    steer.keyed = this.keyed;
-    steer.touch = this.touching;
-    steer.touchX = this.touchX;
-    steer.touchY = this.touchY;
-    this.released = false;
+    steer.aim = aimed.aim;
+    steer.release = aimed.release;
+    steer.charge = aimed.release ? this.releasedCharge : this.charge;
+    steer.keyed = aimed.keyed || this.keyed;
+    steer.touch = aimed.touch;
+    steer.touchX = aimed.touchX;
+    steer.touchY = aimed.touchY;
     this.keyed = false;
     return steer;
   }
 
-  /** Takes a key that turns the aim, changes the charge or lets the shot fly, a repeat letting nothing fly. */
-  private steerBy(key: SteerKey, press: KeyPress): void {
-    if (key === "release") {
-      if (!press.repeat) this.release();
-      return;
-    }
-    switch (key) {
-      case "left":
-        this.turn(press.shiftKey ? 1 : AIMS_PER_DEGREE);
-        break;
-      case "right":
-        this.turn(press.shiftKey ? -1 : -AIMS_PER_DEGREE);
-        break;
-      case "up":
-        this.charge = chargeOf(this.charge + 1);
-        break;
-      case "down":
-        this.charge = chargeOf(this.charge - 1);
-        break;
-    }
-    this.keyed = true;
-  }
-
-  /** Turns the aim some aims, left for more, held between the first and the last. */
-  private turn(by: number): void {
-    this.aim = clamp(this.aim + by, 0, AIM_COUNT - 1);
-    this.pointed = false;
-  }
-
-  /** Lets the shot fly at the aim and the charge, the first let fly since the last frame counting, and starts the next with none. */
-  private release(): void {
-    if (!this.released) {
-      this.released = true;
-      this.releasedAim = this.aim;
-      this.releasedCharge = this.charge;
-    }
-    this.callOff();
-  }
-
-  /** Aims from the fuzzball at a pointer, unless the pointer is on the fuzzball itself. */
-  private pointAt(pointer: PointerView): void {
-    toField(this.metrics, pointer.x, pointer.y, this.place);
-    this.pointed = !pointer.wasTouch;
-    this.aimAtPlace();
-  }
-
-  /** Aims from the fuzzball at the place last pointed at, unless it is on the fuzzball itself. */
-  private aimAtPlace(): void {
-    const across = this.place.x - this.from;
-    const up = this.place.y - RADIUS;
-    if (Math.hypot(across, up) < RADIUS) return;
-    this.aim = aimToward(across, up);
-  }
-
-  /**
-   * Keeps where the finger pressed is, which aims once it points, or once it
-   * pulls back past its dead zone, and goes on aiming though the drag comes
-   * back within it, till it lets go or the shot is called off.
-   */
-  private touchAt(pointer: PointerView): void {
-    this.touchX = pointer.x;
-    this.touchY = pointer.y;
-    if (this.way === "pointAndHold" || this.armed) this.touching = true;
-  }
-
-  /** Aims and charges a pull back from where it was pressed to a pointer, opposite the drag. */
-  private pullTo(pointer: PointerView): void {
-    const across = (this.pressX - pointer.x) / this.metrics.unit;
-    const up = (pointer.y - this.pressY) / this.metrics.unit;
-    const length = Math.hypot(across, up);
-    this.armed = length >= DEAD_ZONE;
-    if (!this.armed) {
-      this.charge = 0;
-      return;
-    }
-    this.aim = aimToward(across, up);
-    this.pointed = false;
-    this.charge = chargeOf(
-      Math.floor((length - DEAD_ZONE) / PULL_NOTCH + WHOLE),
-    );
-  }
-
   /** Returns whether a charge builds: a pointer pressed, or a charge the keys chose. */
   private isBuilding(): boolean {
-    return this.pressed !== null || this.charge > 0;
-  }
-
-  /** Returns whether a place across the canvas is within {@link EDGE_CSS_PX} of either side. */
-  private isNearSide(x: number): boolean {
-    const edge = EDGE_CSS_PX * this.canvas.pixelRatio;
-    return x < edge || x > this.canvas.width - edge;
+    return this.aiming.pressedWay !== null || this.charge > 0;
   }
 }

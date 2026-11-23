@@ -1,9 +1,9 @@
 import { Injectable } from "@angular/core";
+import type { PointerAiming } from "@fz/brick-wall/view/aim_settings";
 import { booleanOr } from "@fz/core/json";
 import { isOneOf } from "@fz/core/records";
 import { type StoredFields, storedSignal } from "@fz/ui/storage";
 import type { FlightSpeed } from "../../view/round_play";
-import type { PointerAiming } from "../../view/steering/aiming";
 
 /** Where the settings are kept. Renaming it loses every player's. */
 const SETTINGS_KEY = "brick-fuzz-pop-settings";

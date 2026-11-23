@@ -1,6 +1,11 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import {
+  type PointerAiming,
+  STRAIGHT_UP,
+} from "@fz/brick-wall/view/aim_settings";
+import { MOST_FINGERS } from "@fz/brick-wall/view/aiming";
+import {
   type FieldMetrics,
   type FieldShape,
   fieldMetrics,
@@ -43,9 +48,8 @@ import {
   notchDetuneOf,
 } from "../view/effects/effects";
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
-import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";
-import { MOST_FINGERS, type Steer, Steering } from "../view/steering/steering";
+import { type Steer, Steering } from "../view/steering/steering";
 import { ATLAS, bakeWallAtlas, bakedScaleOf } from "./atlas";
 import { FieldCamera } from "./field_camera";
 import { LAYERS, type Layer } from "./layers";

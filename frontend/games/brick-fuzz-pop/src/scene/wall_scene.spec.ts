@@ -4,6 +4,11 @@ import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { marginInsets } from "@fz/brick-wall/testing/canvases";
+import {
+  type PointerAiming,
+  STRAIGHT_UP,
+} from "@fz/brick-wall/view/aim_settings";
+import { MOST_FINGERS, aimToward } from "@fz/brick-wall/view/aiming";
 import { FLARE_FROM, RING_FROM, SWELL } from "@fz/brick-wall/view/easing";
 import {
   FRAME_CSS_PX,
@@ -95,9 +100,8 @@ import {
   RoundPlay,
   type RoundView,
 } from "../view/round_play";
-import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import type { FieldCommand } from "../view/steering/controls";
-import { MOST_FINGERS, type Steer, aimToward } from "../view/steering/steering";
+import type { Steer } from "../view/steering/steering";
 import { ATLAS, MOST_BAKED_UNIT, bakedScaleOf, wallAtlasFrames } from "./atlas";
 import {
   FIELD_FRAMES,

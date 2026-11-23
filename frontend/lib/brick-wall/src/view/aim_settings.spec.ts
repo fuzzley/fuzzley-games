@@ -1,5 +1,5 @@
-import { AIMS } from "@fz/brick-wall/rules/aims";
-import { STRAIGHT_UP } from "./aiming";
+import { AIMS } from "../rules/aims";
+import { STRAIGHT_UP } from "./aim_settings";
 
 describe("STRAIGHT_UP", () => {
   it("is the middle aim", () => {

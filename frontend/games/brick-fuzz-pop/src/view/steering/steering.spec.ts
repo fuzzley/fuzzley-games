@@ -2,20 +2,21 @@ import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { boardCanvas } from "@fz/brick-wall/testing/canvases";
 import {
+  type PointerAiming,
+  STRAIGHT_UP,
+} from "@fz/brick-wall/view/aim_settings";
+import type { KeyPress, PointerView } from "@fz/brick-wall/view/aiming";
+import {
   type FieldMetrics,
   fieldMetrics,
   fieldShape,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
 import type { Viewport } from "@fz/phaser/layout";
-import { type PointerAiming, STRAIGHT_UP } from "./aiming";
 import {
   HOLD_NOTCH_MS,
-  type KeyPress,
   LONGEST_FRAME_MS,
-  type PointerView,
   Steering,
-  aimToward,
   chargeAfter,
 } from "./steering";
 
@@ -105,38 +106,6 @@ function readFor(steering: Steering, ms: number, frameMs = FRAME_MS): void {
 function frame(steering: Steering) {
   return steering.read(nextFrame(), FIRST_X);
 }
-
-describe("aimToward", () => {
-  it.each([
-    ["straight up", 0, 1, STRAIGHT_UP],
-    [
-      "8° up on the right",
-      Math.cos(Math.PI / 22.5),
-      Math.sin(Math.PI / 22.5),
-      0,
-    ],
-    ["45° up on the right", 1, 1, 148],
-    [
-      "45.1°, nearer 45°",
-      Math.cos((45.1 * Math.PI) / 180),
-      Math.sin((45.1 * Math.PI) / 180),
-      148,
-    ],
-    [
-      "45.2°, nearer 45.25°",
-      Math.cos((45.2 * Math.PI) / 180),
-      Math.sin((45.2 * Math.PI) / 180),
-      149,
-    ],
-    ["along the floor to the right", 1, 0, 0],
-    ["along the floor to the left", -1, 0, AIM_COUNT - 1],
-    ["under the floor on the right", 1, -1, 0],
-    ["under the floor on the left", -1, -1, AIM_COUNT - 1],
-    ["straight down", 0, -1, 0],
-  ])("snaps a heading %s to aim %i", (_name, across, up, aim) => {
-    expect(aimToward(across, up)).toBe(aim);
-  });
-});
 
 describe("chargeAfter", () => {
   it.each([
