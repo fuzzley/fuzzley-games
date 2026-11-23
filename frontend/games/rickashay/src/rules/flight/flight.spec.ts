@@ -18,7 +18,7 @@ import {
 import { STAND_INS } from "../../testing/stand_ins";
 import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
-import { type Flown, fly } from "./flight";
+import { type FlightStop, type Flown, fly } from "./flight";
 import type { Hooks, TraitRule, TraitRules } from "./hooks";
 
 /** The depth of the field the specs fly in. */
@@ -67,6 +67,8 @@ interface PictureShot {
   readonly rules?: FlightRules;
   /** The bricks' trait rules: the game's unless given. */
   readonly traits?: TraitRules;
+  /** Where it stops short, as a guide's flight does: at its landing unless given. */
+  readonly stop?: FlightStop;
 }
 
 /** Returns a wall drawn as a picture, its lowest row standing in a field row. */
@@ -83,6 +85,7 @@ function flyAt({
   hot = false,
   rules = FLIGHT_RULES,
   traits = TRAIT_RULES,
+  stop,
 }: PictureShot): Flown {
   const wall = wallOf(picture, lowestRow);
   return fly(
@@ -90,6 +93,7 @@ function flyAt({
     { aim: aimAt(degrees) },
     rules,
     traits,
+    stop,
   );
 }
 
@@ -1341,6 +1345,111 @@ describe("fly's way home", () => {
     expect([eventsOf(flown, "turn").length, eventsOf(flown, "guard")]).toEqual([
       2,
       [],
+    ]);
+  });
+});
+
+describe("fly's stop", () => {
+  /** A steel brick in column 4, whose lower face a shot straight up from the floor's middle turns off at 4.5, at y 4.75. */
+  const STEEL = ["....#...."];
+
+  it("stops its distance past the turn it names, unlanded", () => {
+    const flown = flyAt({
+      picture: STEEL,
+      degrees: 90,
+      stop: { turn: 1, past: 1.5 },
+    });
+
+    expect([
+      flown.flight.events.map(({ kind }) => kind),
+      flown.flight.length,
+      flown.flight.track.waypoints.at(-1),
+    ]).toEqual([
+      ["turn"],
+      near(6),
+      { at: near(6), x: near(4.5), y: near(3.25) },
+    ]);
+  });
+
+  it("plays the whole moment of the turn it stops right at", () => {
+    const flown = flyAt({
+      picture: ["....o...."],
+      degrees: 90,
+      stop: { turn: 1, past: 0 },
+    });
+
+    expect([flown.flight.events, flown.flight.length]).toEqual([
+      [
+        expect.objectContaining({ at: near(4.5), kind: "turn" }),
+        expect.objectContaining({ at: near(4.5), kind: "strike", broke: true }),
+      ],
+      near(4.5),
+    ]);
+  });
+
+  // A hot shot, it turns off the right wall and the brick, then spends its
+  // floor bounce, its third turn, and flies on up.
+  it("flies as it would without a stop, up to its stop", () => {
+    const shot = { picture: ["........o"], hot: true };
+    const whole = flyAt(shot);
+    const end = (eventsOf(whole, "turn")[2]?.at ?? 0) + 1.5;
+
+    const stopped = flyAt({ ...shot, stop: { turn: 3, past: 1.5 } });
+
+    expect([stopped.flight.events, stopped.flight.length]).toEqual([
+      whole.flight.events.filter(({ at }) => at <= end),
+      end,
+    ]);
+  });
+
+  // Straight up off the steel, it lands having turned once.
+  it("lands as it would without a stop where it lands before its stop's turn", () => {
+    const shot = { picture: STEEL, degrees: 90 };
+
+    const flown = flyAt({ ...shot, stop: { turn: 3, past: 1.5 } });
+
+    expect(flown).toEqual(flyAt(shot));
+  });
+
+  // Bored as it turns off the steel, its second turn, it drops home.
+  it("stops partway down its drop home, where it yawns short of its stop", () => {
+    const steel = ["........#"];
+    const [, turn] = eventsOf(flyAt({ picture: steel }), "turn");
+    const { at = 0, x = 0, y = 0 } = turn ?? {};
+    const rules = { ...FLIGHT_RULES, bored: at };
+
+    const flown = flyAt({
+      picture: steel,
+      rules,
+      stop: { turn: 2, past: 1.5 },
+    });
+
+    expect([
+      flown.flight.events.at(-1),
+      flown.flight.length,
+      flown.flight.track.waypoints.slice(-2),
+    ]).toEqual([
+      { at, kind: "bored", x, y },
+      at + 1.5,
+      [
+        { at, x, y },
+        { at: at + 1.5, x, y: near(y - 1.5) },
+      ],
+    ]);
+  });
+
+  // Bored as it turns off the steel, its second turn, it stops right there.
+  it("yawns at the moment it stops, where it is bored then", () => {
+    const steel = ["........#"];
+    const [, turn] = eventsOf(flyAt({ picture: steel }), "turn");
+    const { at = 0, x = 0, y = 0 } = turn ?? {};
+    const rules = { ...FLIGHT_RULES, bored: at };
+
+    const flown = flyAt({ picture: steel, rules, stop: { turn: 2, past: 0 } });
+
+    expect([flown.flight.events.at(-1), flown.flight.length]).toEqual([
+      { at, kind: "bored", x, y },
+      at,
     ]);
   });
 });

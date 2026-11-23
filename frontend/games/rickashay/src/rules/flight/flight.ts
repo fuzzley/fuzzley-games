@@ -19,7 +19,8 @@
 // eye, to the same place in its twin's, flying on the same way (C6).
 // Bored, as it flies FlightRules.bored without a strike, it yawns and
 // drops home (C2), as it does at either guard: the longest flight, and so
-// many turns running with no flight between them.
+// many turns running with no flight between them. A guide's flight is a
+// round's, stopped short a little past one of its turns (C13).
 //
 // A flight's state is made as it starts, the field it flies through
 // copied from one the module keeps for its wall and depth, and what the
@@ -76,6 +77,20 @@ export interface Flown {
   readonly wall: Wall;
 }
 
+/**
+ * Describes where a flight stops short of its landing, as a guide's does:
+ * so far past one of its turns.
+ */
+export interface FlightStop {
+  /** The turn it stops after, a whole number from 1. */
+  readonly turn: number;
+  /** How far it flies on past that turn, not below 0. */
+  readonly past: number;
+}
+
+/** Stops no flight: a turn none makes. */
+const NO_STOP: FlightStop = { turn: Number.POSITIVE_INFINITY, past: 0 };
+
 /** A 45° face, one of the faces. */
 type Slant = Extract<Face, { readonly kind: "slant" }>;
 
@@ -115,6 +130,11 @@ const fields = new WeakMap<Wall, Map<number, CastField>>();
  * guide's at each aim, flies sooner; a wall, as every value it is handed,
  * never changes.
  *
+ * Given a stop, as a guide's flight is and a round's never, it flies no
+ * farther than the stop's distance past the stop's turn, a moment it
+ * plays whole, and the flight ends there unlanded, its length that
+ * moment; one that lands first lands.
+ *
  * It throws a `RangeError` for an aim that isn't one of the 657.
  */
 export function fly(
@@ -122,12 +142,13 @@ export function fly(
   shot: Shot,
   rules: FlightRules,
   traits: TraitRules,
+  stop: FlightStop = NO_STOP,
 ): Flown {
   const heading = AIMS[shot.aim];
   if (heading === undefined) {
     throw new RangeError(`No aim is numbered ${String(shot.aim)}.`);
   }
-  return new Flying(start, heading, rules, traits).fly();
+  return new Flying(start, heading, rules, traits, stop).fly();
 }
 
 /** Names the moment a brick's rules run at, which the hooks are made at: none, a brick's at a turn, or an eye's. */
@@ -176,6 +197,10 @@ class Flying implements Hooks {
   private readonly marks: number[] = [];
   private lastStrike: number | null = null;
   private landed = false;
+  /** The moment the flight stops short, once it has made its stop's turn: never until then. */
+  private stopAt = Number.POSITIVE_INFINITY;
+  /** Whether it has stopped short, unlanded. */
+  private stopped = false;
   private readonly waypoints: Waypoint[];
   private readonly events: FlightEvent[] = [];
   /** Each wall cell's hits left. */
@@ -198,6 +223,7 @@ class Flying implements Hooks {
     [dx, dy]: readonly [number, number],
     private readonly rules: FlightRules,
     private readonly traits: TraitRules,
+    private readonly stop: FlightStop,
   ) {
     const { wall, depth } = start;
     this.field = fieldOf(wall, depth);
@@ -227,7 +253,7 @@ class Flying implements Hooks {
 
   /** Flies the flight through and returns it with the wall it leaves. */
   fly(): Flown {
-    while (!this.landed) {
+    while (!this.landed && !this.stopped) {
       this.flyOn();
     }
     const flight: Flight = {
@@ -260,16 +286,22 @@ class Flying implements Hooks {
 
   /**
    * Flies the fuzzball on to what it meets next and plays that moment; or,
-   * where it is bored or at the longest flight first, flies it to there.
+   * where it is bored, at the longest flight or at its stop first, flies it
+   * to there.
    *
    * Called at a moment it is bored or brought home at, once everything it
-   * met there is played, it brings it home without casting.
+   * met there is played, it brings it home without casting; and at the
+   * moment it stops at, it stops short there.
    */
   private flyOn(): void {
     const bored = (this.lastStrike ?? 0) + this.rules.bored;
     const home = Math.min(bored, this.rules.longest);
     if (this.at >= home) {
       this.comeHome(bored <= this.rules.longest ? null : "length");
+      return;
+    }
+    if (this.at >= this.stopAt) {
+      this.stopShort();
       return;
     }
     const met = cast(
@@ -281,8 +313,9 @@ class Flying implements Hooks {
       this.eyes,
       contacts,
     );
-    if (this.at + met.distance > home) {
-      this.flyTo(home);
+    const end = Math.min(home, this.stopAt);
+    if (this.at + met.distance > end) {
+      this.flyTo(end);
       return;
     }
     this.x = met.x;
@@ -316,6 +349,9 @@ class Flying implements Hooks {
     const off = this.turn();
     if (off !== null) {
       this.turns++;
+      if (this.turns === this.stop.turn) {
+        this.stopAt = this.at + this.stop.past;
+      }
       // Turns no farther apart than contacts met at one moment are, as a
       // sum's rounding leaves two turns at one place, have no flight
       // between them.
@@ -661,7 +697,8 @@ class Flying implements Hooks {
   /**
    * Brings the fuzzball home from where it is: bored, it yawns, or a guard
    * brings it; and it drops straight down to the floor through whatever
-   * lies between, a floor bounce in hand or not.
+   * lies between, a floor bounce in hand or not, unless it stops short on
+   * the way.
    */
   private comeHome(guard: Guard | null): void {
     const { at, x, y } = this;
@@ -671,8 +708,21 @@ class Flying implements Hooks {
         : { at, kind: "guard", x, y, by: guard },
     );
     this.waypoint();
-    this.at += this.y - RADIUS;
+    const floor = this.at + (this.y - RADIUS);
+    if (floor > this.stopAt) {
+      this.y -= this.stopAt - this.at;
+      this.at = this.stopAt;
+      this.stopShort();
+      return;
+    }
+    this.at = floor;
     this.land();
+  }
+
+  /** Stops the flight short where the fuzzball is, unlanded. */
+  private stopShort(): void {
+    this.stopped = true;
+    this.waypoint();
   }
 
   /** Lands the fuzzball on the floor where it is, waiting no nearer a side wall than `SIDE_MARGIN`. */

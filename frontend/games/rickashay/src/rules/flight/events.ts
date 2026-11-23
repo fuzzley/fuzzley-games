@@ -149,7 +149,7 @@ export type BallTrack = TrackOf<BallRole>;
 
 /** Describes everything that happens in a round once its shot is released, which nothing may change. */
 export interface Flight {
-  /** The fuzzball's path, from where it waited to where it landed, ball 0. */
+  /** The fuzzball's path, from where it waited to where it landed, ball 0; or, for a flight `fly()` stopped short, where it stopped. */
   readonly track: BallTrack;
   /**
    * In order of `at`, and at one moment: its turn; then each brick it met,
@@ -162,7 +162,7 @@ export interface Flight {
   readonly events: readonly FlightEvent[];
   /** The floor bounces it held as it was released: a hot shot's own, `FlightRules.hotBounces`, or none. */
   readonly held: number;
-  /** Its length, its landing's `at`, which no event comes after. */
+  /** Its length, its landing's `at`, which no event comes after; or, for a flight `fly()` stopped short, the moment it stopped. */
   readonly length: number;
   /** Its rally: the strikes it made. */
   readonly rally: number;
