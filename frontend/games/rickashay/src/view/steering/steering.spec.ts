@@ -3,6 +3,7 @@ import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { boardCanvas } from "@fz/brick-wall/testing/canvases";
 import {
   type PointerAiming,
+  type PointerRelease,
   STRAIGHT_UP,
 } from "@fz/brick-wall/view/aim_settings";
 import type { AimFrame, PointerView } from "@fz/brick-wall/view/aiming";
@@ -29,10 +30,14 @@ const LEFT_45 = AIM_COUNT - 1 - RIGHT_45;
 /** How many frames a press is held for, still, in the specs that hold one: four seconds at 60 frames a second. */
 const LONG_HOLD_FRAMES = 240;
 
-/** Returns a steering of the field laid out on {@link PHONE}, its pointers aiming as given. */
-function steeringOf(aiming: PointerAiming = "pointAndHold"): Steering {
+/** Returns a steering of the field laid out on {@link PHONE}, its pointers aiming and letting fly as given. */
+function steeringOf(
+  aiming: PointerAiming = "pointAndHold",
+  release: PointerRelease = "onLetGo",
+): Steering {
   const steering = new Steering(METRICS, PHONE);
   steering.aimWith(aiming);
+  steering.releaseBy(release);
   return steering;
 }
 
@@ -263,5 +268,149 @@ describe("Steering's shot called off", () => {
     steering.pointerUp(finger(4.5, 5));
 
     expect(frame(steering)).toMatchObject({ release: false, touch: false });
+  });
+});
+
+describe("Steering's nudges and wheel", () => {
+  it.each([
+    ["left", STRAIGHT_UP + 1],
+    ["right", STRAIGHT_UP - 1],
+  ] as const)(
+    "turns the aim a quarter of a degree at the bar's nudge %s",
+    (toward, aim) => {
+      const steering = steeringOf();
+
+      steering.nudge(toward);
+
+      expect(frame(steering).aim).toBe(aim);
+    },
+  );
+
+  it.each([
+    ["away from the player, left", -100, STRAIGHT_UP + 1],
+    ["toward the player, right", 100, STRAIGHT_UP - 1],
+    ["sideways, not at all", 0, STRAIGHT_UP],
+  ])("nudges the aim as the wheel turns %s", (_way, deltaY, aim) => {
+    const steering = steeringOf();
+
+    steering.wheel(deltaY);
+
+    expect(frame(steering).aim).toBe(aim);
+  });
+
+  it("lets a click fly at the aim the guide shows, a nudge since the mouse moved included", () => {
+    const steering = steeringOf();
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+    steering.nudge("left");
+
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25));
+    steering.pointerUp(mouse(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45 + 1,
+      release: true,
+    });
+  });
+
+  it("aims at the mouse again once it moves after a nudge", () => {
+    const steering = steeringOf();
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+    steering.wheel(-100);
+
+    steering.pointerMove(mouse(FIRST_X - 1, 1.25));
+
+    expect(frame(steering).aim).toBe(LEFT_45);
+  });
+});
+
+describe("Steering, released by a button", () => {
+  it("lets the shot fly at the bar's Release, at the aim the guide shows", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+
+    steering.release();
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
+  });
+
+  it("leaves the aim where a lifted finger left it, flying nothing, and shows the guide it covered", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45,
+      release: false,
+      touch: false,
+    });
+  });
+
+  it("flies the aim a lifted finger left, nudged, at the bar's Release", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+    steering.nudge("right");
+    steering.nudge("right");
+
+    steering.release();
+
+    expect(frame(steering)).toMatchObject({
+      aim: RIGHT_45 - 2,
+      release: true,
+    });
+  });
+
+  it("flies nothing as a pull back past half a unit lets go", () => {
+    const steering = steeringOf("pullBack", "byButton");
+    steering.pointerDown(finger(4.5, 8));
+    steering.pointerMove(finger(2.5, 6));
+
+    steering.pointerUp(finger(2.5, 6));
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: false });
+  });
+
+  it("flies a pull back let go past half a unit at the bar's Release", () => {
+    const steering = steeringOf("pullBack", "byButton");
+    steering.pointerDown(finger(4.5, 8));
+    steering.pointerMove(finger(2.5, 6));
+    steering.pointerUp(finger(2.5, 6));
+
+    steering.release();
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
+  });
+
+  it("stops following the mouse once its press lets go, so the way to the button moves nothing", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+    steering.pointerMove(mouse(FIRST_X + 1, 1.25));
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25));
+    steering.pointerUp(mouse(FIRST_X + 1, 1.25));
+
+    steering.pointerMove(mouse(FIRST_X - 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: false });
+  });
+
+  it("follows the mouse again once it presses again", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25));
+    steering.pointerUp(mouse(FIRST_X + 1, 1.25));
+    steering.pointerDown(mouse(FIRST_X + 1, 1.25));
+
+    steering.pointerMove(mouse(FIRST_X - 1, 1.25));
+
+    expect(frame(steering).aim).toBe(LEFT_45);
+  });
+
+  it("lets a lifted finger fly again once the settings drop the button", () => {
+    const steering = steeringOf("pointAndHold", "byButton");
+
+    steering.releaseBy("onLetGo");
+    steering.pointerDown(finger(FIRST_X + 1, 1.25));
+    steering.pointerUp(finger(FIRST_X + 1, 1.25));
+
+    expect(frame(steering)).toMatchObject({ aim: RIGHT_45, release: true });
   });
 });

@@ -1,20 +1,27 @@
 // How Rickashay's player aims a shot, a frame at a time: every wall game's
-// aiming, by the mouse and fingers, which a shot is only an aim of.
+// aiming, by the mouse and fingers, the wheel and the bar's nudges, which a
+// shot is only an aim of, let fly as a press lets go or by the bar's
+// Release.
 
-import type { PointerAiming } from "@fz/brick-wall/view/aim_settings";
+import type {
+  PointerAiming,
+  PointerRelease,
+} from "@fz/brick-wall/view/aim_settings";
 import {
   type AimFrame,
   Aiming,
+  type Nudge,
   type PointerView,
 } from "@fz/brick-wall/view/aiming";
 import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import type { Viewport } from "@fz/phaser/layout";
 
 /**
- * Turns the player's mouse and fingers into the shot being aimed, a frame
- * at a time, as every wall game's `Aiming` does, pointed and held unless
- * the settings say otherwise: a shot is an aim and nothing else, so
- * nothing builds as a press is held.
+ * Turns the player's mouse and fingers, the wheel and the bar's buttons
+ * into the shot being aimed, a frame at a time, as every wall game's
+ * `Aiming` does, pointed and held and let fly as a press lets go unless the
+ * settings say otherwise: a shot is an aim and nothing else, so nothing
+ * builds as a press is held.
  */
 export class Steering {
   /** Turns the aim. */
@@ -38,6 +45,15 @@ export class Steering {
     this.aiming.aimWith(aiming);
   }
 
+  /**
+   * Takes how a pointer's press lets the shot fly from its next letting go
+   * on: as it lets go, or only by the bar's Release, its letting go leaving
+   * the aim where it is.
+   */
+  releaseBy(release: PointerRelease): void {
+    this.aiming.releaseBy(release);
+  }
+
   /** Takes a pointer pressed, which starts a shot or calls one off, as `Aiming` says. */
   pointerDown(pointer: PointerView): void {
     this.aiming.pointerDown(pointer);
@@ -48,9 +64,31 @@ export class Steering {
     this.aiming.pointerMove(pointer);
   }
 
-  /** Takes a pointer let go, over the canvas or anywhere past it, which lets the shot fly or calls it off, as `Aiming` says. */
+  /**
+   * Takes a pointer let go, over the canvas or anywhere past it, which lets
+   * the shot fly, calls it off, or, where a button is to fly it, leaves the
+   * aim as it is, as `Aiming` says.
+   */
   pointerUp(pointer: PointerView): void {
     this.aiming.pointerUp(pointer);
+  }
+
+  /**
+   * Takes the mouse's wheel turned, which nudges the aim: left as it turns
+   * away from the player, right as it turns toward them.
+   */
+  wheel(deltaY: number): void {
+    this.aiming.wheel(deltaY);
+  }
+
+  /** Turns the aim an aim, a quarter of a degree, as a nudge's button in the bar does. */
+  nudge(toward: Nudge): void {
+    this.aiming.nudge(toward);
+  }
+
+  /** Lets the shot fly at the aim, as the bar's Release does. */
+  release(): void {
+    this.aiming.release();
   }
 
   /**
