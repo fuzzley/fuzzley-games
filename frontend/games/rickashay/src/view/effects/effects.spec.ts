@@ -21,7 +21,7 @@ import {
   flightEffects,
   flourishesOf,
 } from "./effects";
-import { SOUNDS, type SoundName } from "./sounds";
+import { RALLY_CENTS, SOUNDS, type SoundName } from "./sounds";
 
 /** The rally mark of the levels these specs play, past every hand-made flight's rally. */
 const MARK = 20;
@@ -407,6 +407,69 @@ describe("flightEffects, at a strike", () => {
         flourishes.some(({ kind }) => kind === "streak"),
       ),
     ).toEqual([false, true, false, false]);
+  });
+});
+
+describe("flightEffects, on the rally's notes", () => {
+  it("climbs the rally fixture's strikes a step of the five-note scale a strike, to two octaves up at the 11th", () => {
+    const { start, round } = FLIGHT_FIXTURES.rally;
+
+    const effects = flightEffects(start, round.flight, MARK);
+
+    expect(
+      round.flight.events.flatMap((event, index) =>
+        event.kind === "strike" ? [effects[index]?.sounds[0]] : [],
+      ),
+    ).toEqual(RALLY_CENTS.map((detune) => ({ sound: "strike", detune })));
+  });
+
+  it.each([11, 12, 30])(
+    "holds the strike's note two octaves up at a rally of %i",
+    (rally) => {
+      const effects = lastEffectsOf([strike(BRICK, { rally })]);
+
+      expect(effects.sounds[0]).toEqual({ sound: "strike", detune: 2400 });
+    },
+  );
+
+  it.each([
+    ["a gem", GEM, ["break", "gem", "call"]],
+    ["a spring brick", SPRING, ["break", "spring", "call"]],
+  ] as const)(
+    "raises none of the other sounds of a strike that breaks %s at the rally mark",
+    (_, cell, sounds) => {
+      const effects = lastEffectsOf(
+        [strike(cell, { rally: 5, broke: true })],
+        START,
+        5,
+      );
+
+      expect(effects.sounds.slice(1)).toEqual(
+        sounds.map((sound) => ({ sound, detune: 0 })),
+      );
+    },
+  );
+
+  it("plays a floor bounce's chord on the note the rally has reached", () => {
+    const { start, round } = FLIGHT_FIXTURES.rally;
+
+    const effects = flightEffects(start, round.flight, MARK);
+
+    const earned = round.flight.events.findIndex(
+      ({ kind }) => kind === "bounce-earned",
+    );
+    expect(effects[earned]?.sounds).toEqual([{ sound: "earn", detune: 2100 }]);
+  });
+
+  it("plays a spring brick's floor bounce on the first strike's note", () => {
+    const { start, round } = FLIGHT_FIXTURES.spring;
+
+    const effects = flightEffects(start, round.flight, MARK);
+
+    const earned = round.flight.events.findIndex(
+      ({ kind }) => kind === "bounce-earned",
+    );
+    expect(effects[earned]?.sounds).toEqual([{ sound: "earn", detune: 0 }]);
   });
 });
 

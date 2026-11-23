@@ -1,8 +1,10 @@
 // What each moment of a round calls for, as the design's "Flourishes" and
 // "Sound" give them: the flourishes the scene plays where motion is
 // welcome, each where it plays, and the sounds it plays with motion or
-// without. A flight's are worked out whole as it is released, from the wall
-// it starts on and the level's rally mark, so playing it back makes nothing.
+// without, a strike's note and a floor bounce's chord climbing with the
+// rally. A flight's are worked out whole as it is released, from the wall
+// it starts on and the level's rally mark, so playing it back makes
+// nothing.
 
 import { fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { FrameSounds } from "@fz/core/frame_sounds";
@@ -14,7 +16,7 @@ import type {
 } from "../../rules/flight/events";
 import { RALLY_MARKS } from "../../rules/tuning";
 import type { Beat } from "../run_state";
-import { SOUNDS, type SoundName } from "./sounds";
+import { SOUNDS, type SoundName, rallyCentsOf } from "./sounds";
 
 /** Names a flourish the scene plays, and where. Each moves, so none plays where motion isn't welcome. */
 export type Flourish =
@@ -137,9 +139,6 @@ const BEAT_EFFECTS = {
 /** What a turn off a side wall or the ceiling calls for. */
 const KNOCK = calling(["knock"]);
 
-/** What a floor bounce earned calls for. */
-const EARN = calling(["earn"]);
-
 /** What a floor bounce spent calls for. */
 const SPEND = calling(["spend"], [{ kind: "kick" }]);
 
@@ -181,11 +180,14 @@ export function flightEffects(
   events.forEach(({ kind }, index) => {
     if (kind === "strike") lastStrike = index;
   });
+  // The rally the flight has reached, which a floor bounce's chord is on.
+  let rally = 0;
   return events.map((event, index): EventEffects => {
     switch (event.kind) {
       case "turn":
         return turnEffects(event, kindAt);
       case "strike":
+        rally = event.rally;
         return strikeEffects(
           event,
           kindAt(event.cell),
@@ -195,7 +197,10 @@ export function flightEffects(
       case "shielded":
         return calling(["plate"], [{ kind: "spark", cell: event.cell }]);
       case "bounce-earned":
-        return EARN;
+        return {
+          flourishes: NONE,
+          sounds: [{ sound: "earn", detune: rallyCentsOf(rally) }],
+        };
       case "bounce-spent":
         return SPEND;
       case "hold":
@@ -271,10 +276,11 @@ function turnSoundOf(kind: KindId): SoundName | null {
 }
 
 /**
- * Returns what a strike calls for: its note, and a brick broken's burst or
- * a brick that holds' swell; a gem's own sound, and a spring brick's as
- * it breaks; a ring at each of `RALLY_MARKS`; the "Rickashay!" call at the
- * level's rally mark; and the dash's streak from the flight's last strike.
+ * Returns what a strike calls for: its note, raised with the rally as
+ * `rallyCentsOf()` says, and a brick broken's burst or a brick that holds'
+ * swell; a gem's own sound, and a spring brick's as it breaks; a ring at
+ * each of `RALLY_MARKS`; the "Rickashay!" call at the level's rally mark;
+ * and the dash's streak from the flight's last strike.
  */
 function strikeEffects(
   strike: Strike,
@@ -283,19 +289,19 @@ function strikeEffects(
   rallyMark: number,
 ): EventEffects {
   const { cell, broke, rally } = strike;
-  const sounds: SoundName[] = ["strike"];
+  const sounds: Cue[] = [{ sound: "strike", detune: rallyCentsOf(rally) }];
   const flourishes: Flourish[] = [
     broke ? { kind: "shards", cell } : { kind: "swell", cell },
   ];
-  if (broke) sounds.push("break");
-  if (kind === "gem") sounds.push("gem");
-  if (kind === "spring" && broke) sounds.push("spring");
-  if (rally === rallyMark) sounds.push("call");
+  if (broke) sounds.push(cue("break"));
+  if (kind === "gem") sounds.push(cue("gem"));
+  if (kind === "spring" && broke) sounds.push(cue("spring"));
+  if (rally === rallyMark) sounds.push(cue("call"));
   if (RALLY_MARKS.some((mark) => mark === rally)) {
     flourishes.push({ kind: "ring" });
   }
   if (last) flourishes.push({ kind: "streak" });
-  return calling(sounds, flourishes);
+  return { flourishes, sounds };
 }
 
 /**
