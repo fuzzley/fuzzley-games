@@ -15,9 +15,11 @@
 // the hatches have held it so many times between them and every one opens
 // (C7); and every so many turns it draws a bolt back on every lock in the
 // field while one is still shut, a strike on a shut lock taking nothing
-// (C4). Bored, as it flies FlightRules.bored without a strike, it yawns
-// and drops home (C2), as it does at either guard: the longest flight, and
-// so many turns running with no flight between them.
+// (C4). A portal's rules take it, as its middle crosses into a portal's
+// eye, to the same place in its twin's, flying on the same way (C6).
+// Bored, as it flies FlightRules.bored without a strike, it yawns and
+// drops home (C2), as it does at either guard: the longest flight, and so
+// many turns running with no flight between them.
 //
 // A flight's state is made as it starts, and what the fuzzball meets is
 // cast into one record the module keeps, so a cast makes nothing; records
@@ -37,6 +39,7 @@ import {
   RIGHT,
   columnOf,
   fieldRowOf,
+  wallRowOf,
 } from "@fz/brick-wall/rules/grid";
 import type { Waypoint } from "@fz/brick-wall/rules/track";
 import { clamp } from "@fz/core/math";
@@ -148,6 +151,8 @@ class Flying implements Hooks {
   private moment: Moment = "none";
   /** The wall cell of the brick whose rules run. */
   private ruling = 0;
+  /** The twin of the portal whose eye the fuzzball last crossed into. */
+  private twin: number | null = null;
   /** The holds the hatches have left between them. */
   private holdsLeft: number;
   /** The turn the fuzzball was last held up at. */
@@ -423,6 +428,23 @@ class Flying implements Hooks {
     this.opening = left === 0;
   }
 
+  teleport(to: number): void {
+    if (this.moment !== "eye" || to !== this.twin) {
+      throw new Error(
+        "A fuzzball is teleported only once a moment, as its middle crosses into a portal's eye, to its twin.",
+      );
+    }
+    // A teleport spends the eye's moment, so a second throws.
+    this.moment = "none";
+    const from = this.ruling;
+    this.waypoint();
+    this.x += columnOf(to) - columnOf(from);
+    this.y += wallRowOf(to) - wallRowOf(from);
+    const { at, x, y } = this;
+    this.events.push({ at, kind: "teleport", from, to });
+    this.waypoints.push({ at, x, y });
+  }
+
   /** Throws unless a brick's rules run at a turn, as it breaks or is met, naming what was made at another moment. */
   private atBrick(made: string): void {
     if (this.moment !== "brick") {
@@ -452,6 +474,7 @@ class Flying implements Hooks {
     this.eyes = false;
     const brick = this.start.wall.bricks[cell];
     if (brick !== null && brick !== undefined) {
+      this.twin = brick.twin;
       this.runRules("entered", cell, brick);
     }
   }

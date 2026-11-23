@@ -51,6 +51,13 @@ export interface Hooks {
    * It doesn't turn the fuzzball: the bar has turned it at that moment.
    */
   hold(): void;
+  /**
+   * Takes the fuzzball from the eye whose rules run to the same place in
+   * its twin's, the portal in the wall cell given, flying on the same way:
+   * no turn. Made once, as the middle crosses into a portal's eye, and
+   * only to its twin.
+   */
+  teleport(to: number): void;
 }
 
 /** Holds what a trait does to a flight: the bolts it shuts a brick by, and what it does at each moment it has a rule for, each moment's rules running in the order of its kind's traits. */

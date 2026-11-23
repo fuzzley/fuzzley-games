@@ -1032,6 +1032,126 @@ describe("fly's hatches and locks", () => {
   });
 });
 
+describe("fly's portals", () => {
+  /** The game's trait rules with a portal's made up for the spec: it takes the fuzzball to its twin. */
+  const TELEPORTS: TraitRules = {
+    ...TRAIT_RULES,
+    teleports: {
+      entered: (hooks, _, { twin }) => {
+        if (twin !== null) {
+          hooks.teleport(twin);
+        }
+      },
+    },
+  };
+
+  /**
+   * A pair of portals, standing from row 2: one in column 6 of row 2,
+   * whose eye a shot at 45° from the floor's middle flies through, and its
+   * twin in column 2 of row 5; and a brick waiting over the ceiling.
+   */
+  const TWINS = [
+    "o........",
+    ...Array<string>(5).fill("........."),
+    "..@......",
+    ".........",
+    ".........",
+    "......@..",
+  ];
+
+  // Into the eye in row 2 at its foot, out of its twin's in row 5, and on
+  // up off the ceiling and both walls, as the teleport fixture flies.
+  it("takes the fuzzball through a portal's eye to the same place in its twin's, flying on the same way", () => {
+    const flown = flyAt({ picture: TWINS, lowestRow: 2, traits: TELEPORTS });
+
+    const [teleport] = eventsOf(flown, "teleport");
+    expect([
+      teleport,
+      flown.flight.track.waypoints.slice(1, 4),
+      eventsOf(flown, "turn").map(({ off }) => off),
+    ]).toEqual([
+      {
+        at: near(2 * Math.SQRT2),
+        kind: "teleport",
+        from: cellOf(6, 0),
+        to: cellOf(2, 3),
+      },
+      [
+        { at: teleport?.at, x: near(6.5), y: near(2 + RADIUS) },
+        { at: teleport?.at, x: near(2.5), y: near(5 + RADIUS) },
+        expect.objectContaining({ x: near(8), y: near(CEILING) }),
+      ],
+      ["ceiling", "wall", "wall"],
+    ]);
+  });
+
+  it("throws for a teleport made as a brick breaks", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      springs: {
+        broken: (hooks) => {
+          hooks.teleport(0);
+        },
+      },
+    };
+
+    expect(() => flyAt({ picture: ["........S"], traits })).toThrow(
+      "A fuzzball is teleported only once a moment, as its middle crosses into a portal's eye, to its twin.",
+    );
+  });
+
+  it("throws for a teleport to a cell other than the portal's twin", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      teleports: {
+        entered: (hooks, cell) => {
+          hooks.teleport(cell);
+        },
+      },
+    };
+
+    expect(() => flyAt({ picture: TWINS, lowestRow: 2, traits })).toThrow(
+      "A fuzzball is teleported only once a moment, as its middle crosses into a portal's eye, to its twin.",
+    );
+  });
+
+  it("throws for a second teleport at one moment", () => {
+    const traits: TraitRules = {
+      ...TELEPORTS,
+      never: TELEPORTS.teleports,
+    };
+
+    expect(() => flyAt({ picture: TWINS, lowestRow: 2, traits })).toThrow(
+      "A fuzzball is teleported only once a moment, as its middle crosses into a portal's eye, to its twin.",
+    );
+  });
+
+  // Bored as it crosses into the eye in row 2, it yawns from its twin's.
+  it("takes the fuzzball through a portal at the moment it is bored, before it yawns", () => {
+    const [teleport] = eventsOf(
+      flyAt({ picture: TWINS, lowestRow: 2, traits: TELEPORTS }),
+      "teleport",
+    );
+    const rules = { ...FLIGHT_RULES, bored: teleport?.at ?? 0 };
+
+    const flown = flyAt({
+      picture: TWINS,
+      lowestRow: 2,
+      rules,
+      traits: TELEPORTS,
+    });
+
+    expect(flown.flight.events.slice(0, 2)).toEqual([
+      expect.objectContaining({ kind: "teleport" }),
+      expect.objectContaining({
+        kind: "bored",
+        x: near(2.5),
+        y: near(5 + RADIUS),
+      }),
+    ]);
+  });
+});
+
 describe("fly's way home", () => {
   /** A wall of two rows by the ceiling, which a shot at the lowest aim never reaches. */
   const HIGH_WALL = ["ooooooooo", "ooooooooo"];
