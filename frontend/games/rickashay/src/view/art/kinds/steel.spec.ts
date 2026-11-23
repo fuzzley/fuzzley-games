@@ -193,6 +193,16 @@ describe("STEEL_ART's frame", () => {
     expect(circlesAt(ART_SCALE, SHEEN)).toHaveLength(4);
   });
 
+  it("leaves out its rivets at 29 CSS pixels a unit, too small for them", () => {
+    expect(circlesAt({ unit: 58, pixelRatio: 2 }, mark)).toEqual([]);
+  });
+
+  it("keeps all but its rivets at 29 CSS pixels a unit", () => {
+    expect(steelAt({ unit: 58, pixelRatio: 2 }).commands).toHaveLength(
+      frame.commands.length - 4,
+    );
+  });
+
   it("fills its frame's outer edge at 2 device pixels a unit, where its line is as wide as the frame", () => {
     const { points } = bevelAt({ unit: 2, pixelRatio: 1 });
 

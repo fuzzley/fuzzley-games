@@ -1,5 +1,5 @@
 import { type Area, rect } from "@fz/phaser/shapes";
-import { cellFrame, cellOf } from "./cells";
+import { cellFrame, cellOf, detailed } from "./cells";
 
 describe("cellOf", () => {
   it.each([
@@ -41,4 +41,20 @@ describe("cellFrame", () => {
       ],
     });
   });
+});
+
+describe("detailed", () => {
+  it.each([
+    [60, 2, true],
+    [58, 2, false],
+    [30, 1, true],
+    [29, 1, false],
+    [90, 3, true],
+    [87, 3, false],
+  ])(
+    "draws the finest detail at %i device pixels a unit, %i to a CSS pixel, from 30 CSS pixels a unit: %s",
+    (unit, pixelRatio, shown) => {
+      expect(detailed({ unit, pixelRatio })).toBe(shown);
+    },
+  );
 });

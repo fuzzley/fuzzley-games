@@ -16,7 +16,7 @@ import {
   within,
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
+import { cellFrame, detailed } from "../cells";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
 import { itemAt } from "../items";
 import { tileBody } from "./brick";
@@ -159,7 +159,8 @@ function cracksCommands(
 /**
  * How a tough brick is drawn: its row's tile, its pips while it has two
  * hits left or more, and its cracks once it has taken one. It brings the
- * pips' and the cracks' frames to the atlas.
+ * pips' and the cracks' frames to the atlas, the cracks drawn only at a
+ * scale that shows the finest detail.
  */
 export const TOUGH_ART = {
   layersOf: ({ tint, hits, full }) =>
@@ -174,7 +175,7 @@ export const TOUGH_ART = {
       ),
       ...CRACKS.map((cracks) =>
         cellFrame(FRAMES.cracks(cracks), scale, (cell) =>
-          cracksCommands(cell, cracks, crack),
+          detailed(scale) ? cracksCommands(cell, cracks, crack) : [],
         ),
       ),
     ];

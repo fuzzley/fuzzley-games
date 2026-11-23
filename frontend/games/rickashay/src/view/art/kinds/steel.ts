@@ -22,7 +22,7 @@ import {
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
+import { cellFrame, detailed } from "../cells";
 import { FRAMES } from "../frames";
 import { tileCommands } from "./brick";
 
@@ -96,7 +96,7 @@ function cutOutline(area: Area, cut: number, style: LineStyle): PolygonCommand {
   return polygon([...closed(outside), ...[...closed(inside)].reverse()], style);
 }
 
-/** Returns a steel brick drawn in its cell: a tile of steel, its bevelled frame, a rivet in each of the frame's corners, and the sheen. */
+/** Returns a steel brick drawn in its cell: a tile of steel, its bevelled frame, a rivet in each of the frame's corners where a scale shows the finest detail, and the sheen. */
 function steelCommands(
   cell: Area,
   palette: WallPalette,
@@ -109,9 +109,11 @@ function steelCommands(
       color: mark,
       width: widthOf(BEVEL_WIDTH, scale),
     }),
-    ...rivets(cell, RIVETS.across, RIVETS.down, RIVET_RADIUS * cell.width, {
-      color: mark,
-    }),
+    ...(detailed(scale)
+      ? rivets(cell, RIVETS.across, RIVETS.down, RIVET_RADIUS * cell.width, {
+          color: mark,
+        })
+      : []),
     ...sheen(cell, steel, scale.pixelRatio),
   ];
 }

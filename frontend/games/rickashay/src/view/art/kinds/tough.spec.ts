@@ -27,7 +27,7 @@ const SLACK = 1e-9;
 /** The tough brick's frames in the specs' palette, at their scale. */
 const FRAMES_DRAWN = TOUGH_ART.frames(ART_PALETTE, ART_SCALE);
 
-/** Returns every scale from 30 CSS pixels a unit, the least the design shows a crack at, to 128 device pixels, the most the atlas is baked at, at a pixel ratio. */
+/** Returns every scale from 30 CSS pixels a unit, the least that shows the finest detail, to 128 device pixels, the most the atlas is baked at, at a pixel ratio. */
 function detailedScales(pixelRatio: number): readonly ArtScale[] {
   const least = Math.ceil(30 * pixelRatio);
   return Array.from({ length: 128 - least + 1 }, (_, i) => ({
@@ -237,6 +237,23 @@ describe("TOUGH_ART's frames", () => {
     const [crack] = cracksIn(frameNamed(frames, FRAMES.cracks(1)));
 
     expect(crack && lengthOf(endsOf(crack)[1])).toBe(2);
+  });
+});
+
+describe("TOUGH_ART's frames under 30 CSS pixels a unit", () => {
+  it.each(CRACKS)(
+    "draws none of %i cracks at 29 CSS pixels a unit, too small for them",
+    (cracks) => {
+      const frames = TOUGH_ART.frames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
+
+      expect(frameNamed(frames, FRAMES.cracks(cracks)).commands).toEqual([]);
+    },
+  );
+
+  it("draws the pips there still", () => {
+    const frames = TOUGH_ART.frames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
+
+    expect(pipsIn(frameNamed(frames, FRAMES.pips(6)))).toHaveLength(6);
   });
 });
 
