@@ -11,6 +11,7 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "build:sounds": "node tools/build-sounds.mjs",
+    "check:layout": "node tools/check-layout.mjs",
     "certify:levels": "node tools/certify-levels.mjs",
     "report:levels": "node tools/report-levels.mjs",
     "preview": "vite preview",

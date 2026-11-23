@@ -41,7 +41,8 @@ export default defineConfig(
     projects: {
       root: import.meta.dirname,
       // The rules, the view, the specs' helpers and the scripts touch no
-      // page.
+      // page, but for the layout check's inspection, which its spec runs in
+      // jsdom.
       pure: ["src/rules", "src/view", "src/testing", "tools"],
       // The specs that replay every level's certificates, hold the careless
       // player to its floors, check every level, and time the flight,
