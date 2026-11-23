@@ -129,6 +129,8 @@ export const FRAMES = {
   hotShot: "hot-shot",
   /** The fuzzball's eyes, about its body's middle, which the scene moves the way it flies. */
   eyes: "fuzzball-eyes",
+  /** Its eyes half shut, in their place, as it drops home, bored, or brought home by a guard. */
+  yawn: "fuzzball-yawn",
   /** A dot of the guide, and its ring at each turn. */
   guideDot: "guide-dot",
   guideRing: "guide-ring",
@@ -169,6 +171,7 @@ export const FRAME_NAMES: readonly FrameName[] = [
   ...FURS.map((fur) => FRAMES.fuzzball(fur)),
   FRAMES.hotShot,
   FRAMES.eyes,
+  FRAMES.yawn,
   FRAMES.guideDot,
   FRAMES.guideRing,
   FRAMES.bounceOff,

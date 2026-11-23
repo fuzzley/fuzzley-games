@@ -2,14 +2,19 @@
 // flight's rally, after `fuzzballAt()` in `docs/rickashay/art/make-art.mjs`.
 // Waiting, and to a rally of 9, its fur is as it grew; from 10 it is combed
 // half way to standing on end (`combedStrands()`); from 25 it stands on end;
-// and from 45 sparks stand about it too (`wornSparks()`). Each is outlined
-// in the mark, as one with its sparks (`fuzzballWearing()`).
+// and from 45 sparks stand about it too (`wornSparks()`). The hot shot is
+// the fuzzball red-hot, its fur on end, under a crown of flame, Brick Fuzz
+// Pop's `hotShot()` there; and a bored fuzzball yawns, its eyes half shut,
+// in a frame of their own. Each fuzzball is outlined in the mark, as one
+// with its sparks or flames (`fuzzballWearing()`).
 
 import {
   FUZZBALL_GRID,
   FUZZBALL_STRANDS,
   type Strand,
+  type Worn,
   combedStrands,
+  eyesCommands,
   fuzzballWearing,
   wornSparks,
 } from "@fz/phaser/fuzzball";
@@ -17,12 +22,18 @@ import {
   type ArtFrame,
   type ArtScale,
   type LineStyle,
+  type Point,
   centered,
+  placed,
+  polygon,
+  stroke,
+  turned,
   widthOf,
 } from "@fz/phaser/shapes";
 import { RALLY_MARKS } from "../../rules/tuning";
 import type { WallPalette } from "../colors/palette";
-import { FRAMES, FURS, type Fur } from "./frames";
+import type { BallView } from "../run_state";
+import { FRAMES, FURS, type FrameName, type Fur } from "./frames";
 
 /**
  * How wide the fuzzball's grid is drawn, in field units, as the art draws
@@ -40,19 +51,80 @@ const OUTLINE_WIDTH = 0.03;
 /** How wide a spark's line is, in field units: a unit of the fuzzball's grid. */
 const SPARK_WIDTH = FUZZBALL_SIDE / FUZZBALL_GRID;
 
+/** The fur standing on end, made once: the last two lifts' and the hot shot's. */
+const ON_END = combedStrands(1);
+
 /**
  * The fur at each lift, made once: as it grew, combed half way to standing
  * on end, and on end, at the last lift with sparks about it.
  */
-const FUR: Readonly<Record<Fur, readonly Strand[]>> = {
+const FUR = {
   0: FUZZBALL_STRANDS,
   1: combedStrands(0.5),
-  2: combedStrands(1),
-  3: combedStrands(1),
-};
+  2: ON_END,
+  3: ON_END,
+} as const satisfies Readonly<Record<Fur, readonly Strand[]>>;
 
 /** The lift at which sparks stand about the fur. */
 const SPARKING: Fur = 3;
+
+/** The name of the fuzzball's frame at each lift of its fur, made once, so finding one makes nothing. */
+const FUZZBALL_NAMES = {
+  0: FRAMES.fuzzball(0),
+  1: FRAMES.fuzzball(1),
+  2: FRAMES.fuzzball(2),
+  3: FRAMES.fuzzball(3),
+} as const satisfies Readonly<Record<Fur, FrameName>>;
+
+/** Describes a tongue of the hot shot's flame, on the fuzzball's grid. */
+interface Flame {
+  /** Which way it points from the body's middle, in degrees clockwise from its right. */
+  readonly turn: number;
+  /** How far its tip is from the body's middle. */
+  readonly to: number;
+  /** What its width is drawn to: 0.7 of it at its root, swelling to about five sixths of it, then narrowing to its tip. */
+  readonly width: number;
+  /** How far its tip leans aside, clockwise. */
+  readonly lean: number;
+}
+
+/** The hot shot's crown of flame, from its left to its right. */
+const FLAMES = [
+  { turn: -129, to: 20, width: 8.6, lean: 3 },
+  { turn: -104, to: 24, width: 9.6, lean: 1.2 },
+  { turn: -78, to: 21.6, width: 9, lean: -2.6 },
+  { turn: -53, to: 19.2, width: 8.2, lean: -3 },
+] as const satisfies readonly Flame[];
+
+/** How far from the body's middle a tongue of flame rises, from behind the body, on the fuzzball's grid. */
+const FLAME_FROM = 11.5;
+
+/** How many steps each side of a tongue of flame takes from its root to its tip. */
+const FLAME_STEPS = 8;
+
+/**
+ * Returns a tongue of flame as a polygon's points about the body's middle,
+ * on the fuzzball's grid: it rises from behind the body, swells, then leans
+ * as it narrows to its tip.
+ */
+function tongue({ turn, to, width, lean }: Flame): readonly Point[] {
+  const left: Point[] = [];
+  const right: Point[] = [];
+  for (let step = 0; step <= FLAME_STEPS; step++) {
+    const t = step / FLAME_STEPS;
+    const along = FLAME_FROM + (to - FLAME_FROM) * t;
+    const half =
+      (width / 2) * (1 - t) ** 1.2 * (0.7 + 0.65 * Math.sin(Math.PI * t));
+    left.push({ x: along, y: lean * t * t - half });
+    right.push({ x: along, y: lean * t * t + half });
+  }
+  return [...left, ...right.reverse().slice(1)].map((point) =>
+    turned(point, turn),
+  );
+}
+
+/** The hot shot's tongues of flame, made once, on the fuzzball's grid. */
+const TONGUES: readonly (readonly Point[])[] = FLAMES.map(tongue);
 
 /**
  * Returns how far the fuzzball's fur has lifted at a flight's rally: not at
@@ -66,6 +138,14 @@ export function furAt(rally: number): Fur {
   return rally >= lifts ? 1 : 0;
 }
 
+/** Returns the frame a fuzzball's body is drawn in: red-hot under its crown of flame for a hot shot, else at its fur's lift. */
+export function bodyFrameOf({
+  hot,
+  fur,
+}: Pick<BallView, "hot" | "fur">): FrameName {
+  return hot ? FRAMES.hotShot : FUZZBALL_NAMES[fur];
+}
+
 /** Returns how many device pixels a unit of the fuzzball's grid is drawn at. */
 export function fuzzballGrid(scale: ArtScale): number {
   return (scale.unit * FUZZBALL_SIDE) / FUZZBALL_GRID;
@@ -73,8 +153,9 @@ export function fuzzballGrid(scale: ArtScale): number {
 
 /**
  * Returns the fuzzball's frames in a palette at a scale, each about its
- * body's middle: one at each lift of its fur, outlined in the mark as one
- * with its sparks.
+ * body's middle: one at each lift of its fur, the hot shot, and its eyes
+ * half shut as it yawns. Each fuzzball is outlined in the mark as one with
+ * its sparks or flames, and the eyes are cut out in the mark.
  */
 export function fuzzballFrames(
   palette: WallPalette,
@@ -90,14 +171,40 @@ export function fuzzballFrames(
     { color: palette.spark, width: widthOf(SPARK_WIDTH, scale) },
     outline,
   );
-  return FURS.map((fur) =>
-    centered(
-      FRAMES.fuzzball(fur),
-      fuzzballWearing(
-        by,
-        { color: palette.fuzzball, outline, fur: FUR[fur] },
-        fur === SPARKING ? sparks : {},
+  const tongues = TONGUES.map((points) => placed(points, by));
+  // The tongues of flame lie behind the hot shot, each tongue's outline a
+  // closed line round it, the outline's width either side of its edge.
+  const flames: Worn = {
+    outlines: tongues.flatMap((points) =>
+      stroke([...points, ...points.slice(0, 1)], {
+        color: outline.color,
+        width: 2 * outline.width,
+      }),
+    ),
+    beneath: tongues.map((points) => polygon(points, { color: palette.spark })),
+  };
+  return [
+    ...FURS.map((fur) =>
+      centered(
+        FUZZBALL_NAMES[fur],
+        fuzzballWearing(
+          by,
+          { color: palette.fuzzball, outline, fur: FUR[fur] },
+          fur === SPARKING ? sparks : {},
+        ),
       ),
     ),
-  );
+    centered(
+      FRAMES.hotShot,
+      fuzzballWearing(
+        by,
+        { color: palette.hotShot, outline, fur: ON_END },
+        flames,
+      ),
+    ),
+    centered(
+      FRAMES.yawn,
+      eyesCommands(by, { color: palette.mark }, { face: "sleepy" }),
+    ),
+  ];
 }

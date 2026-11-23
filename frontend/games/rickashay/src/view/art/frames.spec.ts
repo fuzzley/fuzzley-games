@@ -38,9 +38,10 @@ describe("FRAME_NAMES", () => {
   // one, the spring brick, 8 gems, 2 portals, 2 platings at each of 3 hits
   // left, moss's cap and 2 of its pips, locks of 1, 2 and 3 bolts with 0 to
   // all of them shut (2 + 3 + 4), 4 lifts of the fuzzball's fur, the hot
-  // shot, the eyes, 2 of the guide's marks and the floor bounces' 2 springs.
+  // shot, the eyes open and yawning, 2 of the guide's marks and the floor
+  // bounces' 2 springs.
   it("lists every frame the art draws", () => {
-    expect(FRAME_NAMES).toHaveLength(66);
+    expect(FRAME_NAMES).toHaveLength(67);
   });
 
   it("lists each frame once", () => {
@@ -77,6 +78,7 @@ describe("FRAME_NAMES", () => {
         "moss-cap",
         "hot-shot",
         "fuzzball-eyes",
+        "fuzzball-yawn",
         "guide-dot",
         "guide-ring",
         "bounce-off",

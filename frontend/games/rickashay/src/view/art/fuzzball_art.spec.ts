@@ -22,7 +22,12 @@ import {
   pointInBillionths,
 } from "../../testing/art_frames";
 import { FRAMES, FURS, type Fur } from "./frames";
-import { furAt, fuzzballFrames, fuzzballGrid } from "./fuzzball_art";
+import {
+  bodyFrameOf,
+  furAt,
+  fuzzballFrames,
+  fuzzballGrid,
+} from "./fuzzball_art";
 
 /** How far apart two points worked out alike may lie, for a rounding, in device pixels. */
 const SLACK = 1e-9;
@@ -57,6 +62,15 @@ function linesIn(frame: ArtFrame, color: number): readonly LineCommand[] {
 /** Returns the body of a fuzzball's frame: its first circle in a color. */
 function bodyIn(frame: ArtFrame, color: number): DrawCommand | undefined {
   return drawnIn(frame, "circle", color)[0];
+}
+
+/** Returns the radius of a fuzzball's body, its first circle in a color, failing the spec where it has none. */
+function bodyRadius(frame: ArtFrame, color: number): number {
+  const body = bodyIn(frame, color);
+  if (body?.kind !== "circle") {
+    throw new Error(`${frame.name} has no body in ${color.toString(16)}`);
+  }
+  return body.radius;
 }
 
 /** Returns where the middle of a command lies from its frame's middle, to a billionth. */
@@ -127,6 +141,30 @@ describe("furAt", () => {
   });
 });
 
+/** The art's tongues of flame: which way each points, how far out its tip is, its width and its lean, on the fuzzball's grid. */
+const ART_FLAMES = [
+  { turn: -129, to: 20, width: 8.6, lean: 3 },
+  { turn: -104, to: 24, width: 9.6, lean: 1.2 },
+  { turn: -78, to: 21.6, width: 9, lean: -2.6 },
+  { turn: -53, to: 19.2, width: 8.2, lean: -3 },
+] as const;
+
+describe("bodyFrameOf", () => {
+  it.each(FURS)(
+    "draws a fuzzball with its fur at lift %i in its frame",
+    (fur) => {
+      expect(bodyFrameOf({ hot: false, fur })).toBe(FRAMES.fuzzball(fur));
+    },
+  );
+
+  it.each(FURS)(
+    "draws a hot shot red-hot under its crown of flame, whatever its fur, as at lift %i",
+    (fur) => {
+      expect(bodyFrameOf({ hot: true, fur })).toBe(FRAMES.hotShot);
+    },
+  );
+});
+
 describe("fuzzballGrid", () => {
   it("draws the fuzzball's grid 0.8 units wide, as the art does", () => {
     expect(fuzzballGrid({ unit: 40, pixelRatio: 1 }) * 32).toBe(32);
@@ -146,10 +184,12 @@ describe("fuzzballGrid", () => {
 });
 
 describe("fuzzballFrames", () => {
-  it("draws a frame for each lift of the fur, in order", () => {
-    expect(FUZZBALLS.map(({ name }) => name)).toEqual(
-      FURS.map((fur) => FRAMES.fuzzball(fur)),
-    );
+  it("draws a frame for each lift of the fur, in order, then the hot shot and the yawn", () => {
+    expect(FUZZBALLS.map(({ name }) => name)).toEqual([
+      ...FURS.map((fur) => FRAMES.fuzzball(fur)),
+      FRAMES.hotShot,
+      FRAMES.yawn,
+    ]);
   });
 
   describe.each(ART_FUR)(
@@ -307,4 +347,145 @@ describe("fuzzballFrames", () => {
       });
     },
   );
+  describe("the hot shot", () => {
+    const frame = frameNamed(FUZZBALLS, FRAMES.hotShot);
+    const onEnd = frameNamed(FUZZBALLS, FRAMES.fuzzball(2));
+
+    it("draws the fuzzball red-hot, its fur on end as from a rally of 25", () => {
+      expect(
+        linesIn(frame, ART_PALETTE.hotShot).map((line) =>
+          aboutMiddle(frame, line),
+        ),
+      ).toEqual(
+        linesIn(onEnd, ART_PALETTE.fuzzball).map((line) =>
+          aboutMiddle(onEnd, line),
+        ),
+      );
+    });
+
+    it("draws no sparks, as the art's has none", () => {
+      expect({
+        lines: linesIn(frame, ART_PALETTE.spark),
+        dots: drawnIn(frame, "circle", ART_PALETTE.spark),
+      }).toEqual({ lines: [], dots: [] });
+    });
+
+    it("crowns it with four tongues of flame in the palette's spark, each rising past its body", () => {
+      const top = frame.height / 2 - bodyRadius(frame, ART_PALETTE.hotShot);
+      const tongues = drawnIn(frame, "polygon", ART_PALETTE.spark);
+
+      expect({
+        tongues: tongues.length,
+        under: tongues.filter((tongue) => extentOf(tongue).y >= top),
+      }).toEqual({ tongues: 4, under: [] });
+    });
+
+    it.each(ART_FLAMES.map((flame, i) => ({ ...flame, i })))(
+      "draws the tongue pointing $turn° as the art's: rising from behind the body, swelling, then leaning as it narrows to its tip",
+      ({ turn, to, width, lean, i }) => {
+        const tongue = drawnIn(frame, "polygon", ART_PALETTE.spark)[i];
+        const points = tongue?.kind === "polygon" ? tongue.points : [];
+        const swell = (width / 2) * 0.5 ** 1.2 * 1.35;
+        const middle = 11.5 + (to - 11.5) / 2;
+
+        expect({
+          points: points.length,
+          shape: [0, 4, 8, 12, 16].map((at) => {
+            const point = points[at];
+            return point && onGrid(frame, point, turn);
+          }),
+        }).toEqual({
+          points: 17,
+          shape: [
+            { x: 11.5, y: -0.35 * width },
+            { x: middle, y: lean / 4 - swell },
+            { x: to, y: lean },
+            { x: middle, y: lean / 4 + swell },
+            { x: 11.5, y: 0.35 * width },
+          ].map(pointInBillionths),
+        });
+      },
+    );
+
+    it("outlines the fuzzball first, under its flames, two device pixels wider than its body", () => {
+      expect(outlineOf(frame, ART_PALETTE.hotShot)).toBe(2);
+    });
+
+    it("outlines each tongue with a closed line round it in the mark, twice the outline's width", () => {
+      const tongues = drawnIn(frame, "polygon", ART_PALETTE.spark).flatMap(
+        (tongue) => (tongue.kind === "polygon" ? [tongue.points] : []),
+      );
+
+      const outlines = linesIn(frame, ART_PALETTE.mark)
+        .filter((line) => line.width === 4)
+        .map(({ from, to }) => [from, to]);
+
+      expect(outlines).toEqual(
+        tongues.flatMap((points) =>
+          points.map((point, j) => [point, points[(j + 1) % points.length]]),
+        ),
+      );
+    });
+
+    it("outlines it as one, every outline under every tongue and the body over them", () => {
+      const at = (command: DrawCommand): number =>
+        frame.commands.indexOf(command);
+      const lastOutline = Math.max(
+        ...frame.commands
+          .filter(({ color }) => color === ART_PALETTE.mark)
+          .map(at),
+      );
+      const tongues = drawnIn(frame, "polygon", ART_PALETTE.spark).map(at);
+      const firstBody = Math.min(
+        ...frame.commands
+          .filter(({ color }) => color === ART_PALETTE.hotShot)
+          .map(at),
+      );
+
+      expect({
+        tongues: tongues.length,
+        under: lastOutline < Math.min(...tongues),
+        over: firstBody > Math.max(...tongues),
+      }).toEqual({ tongues: 4, under: true, over: true });
+    });
+  });
+
+  describe("the yawn", () => {
+    const frame = frameNamed(FUZZBALLS, FRAMES.yawn);
+    const eyes = drawnIn(frame, "polygon", ART_PALETTE.mark);
+    const lids = linesIn(frame, ART_PALETTE.mark);
+
+    it("draws two eyes and a lid over each, in the mark and nothing else", () => {
+      expect({
+        eyes: eyes.length,
+        lids: lids.length,
+        notMark: frame.commands.filter(
+          ({ color }) => color !== ART_PALETTE.mark,
+        ),
+      }).toEqual({ eyes: 2, lids: 2, notMark: [] });
+    });
+
+    it("half shuts each eye, less than half as tall as the mark's open eye, 6 units of its grid", () => {
+      const by = fuzzballGrid(ART_SCALE);
+
+      expect(eyes.filter((eye) => extentOf(eye).height >= 3 * by)).toEqual([]);
+    });
+
+    it("shuts each eye from the top down to its lid, none reaching above it", () => {
+      const lidTops = lids.map(({ from, to }) => Math.min(from.y, to.y));
+
+      expect(
+        eyes.map((eye, i) => extentOf(eye).y >= (lidTops[i] ?? Infinity)),
+      ).toEqual([true, true]);
+    });
+
+    it("droops each lid toward the outside, its outer end lower than its inner", () => {
+      const [left, right] = lids;
+
+      expect({
+        left: left && left.from.y > left.to.y,
+        right: right && right.to.y > right.from.y,
+      }).toEqual({ left: true, right: true });
+    });
+  });
 });
