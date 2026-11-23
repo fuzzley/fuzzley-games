@@ -3,6 +3,8 @@ import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { positionAt } from "@fz/brick-wall/rules/track";
 import { ATLAS, bakedScaleOf } from "@fz/brick-wall/scene/atlas";
+import { MOST_FLASHES, MOST_RINGS } from "@fz/brick-wall/scene/effects";
+import { MOST_STRUCK } from "@fz/brick-wall/scene/guide";
 import { WALL_BAKE } from "@fz/brick-wall/scene/wall_painter";
 import {
   type BakeCommand,
@@ -24,12 +26,14 @@ import {
   fieldShape,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
+import { RING_MS } from "@fz/brick-wall/view/timing";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
 import {
   type SceneRun,
   cacheSounds,
   colorsOf,
+  objectsIn,
   runKeyedScene,
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
@@ -40,7 +44,10 @@ import type { FlightEvent } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";
 import { FLIGHT_RULES, type FlightRules } from "../rules/tuning";
 import { ART_PALETTE, ART_ROLES, billionths } from "../testing/art_frames";
-import { FLIGHT_FIXTURES } from "../testing/flight_fixtures";
+import {
+  FLIGHT_FIXTURES,
+  type FlightFixture,
+} from "../testing/flight_fixtures";
 import { brickLayers, wallAtlasFrames } from "../view/art/atlas_frames";
 import { FIELD_FRAMES } from "../view/art/field_frames";
 import { GUIDE_FRAMES } from "../view/art/guide_frames";
@@ -59,7 +66,12 @@ import {
   SPARK_MS,
   STREAK,
 } from "../view/effects/timing";
-import { type GuideFlight, wallGuideOf } from "../view/field/guide";
+import {
+  type GuideFlight,
+  MOST_GUIDE_DOTS,
+  MOST_GUIDE_RINGS,
+  wallGuideOf,
+} from "../view/field/guide";
 import { bandSprings } from "../view/field/springs";
 import type {
   BallView,
@@ -68,13 +80,21 @@ import type {
   LoggedEvent,
   RoundView,
 } from "../view/run_state";
+import { FLIGHT_PACE } from "../view/play/pace";
+import { RoundPlay } from "../view/play/round_play";
 import type { FieldCommand } from "../view/steering/controls";
 import {
   type RickashayScene,
   type RickashaySceneOptions,
   SOUNDS_KEY,
+  WALL_RULES,
   makeRickashayScene,
 } from "./rickashay_scene";
+import {
+  MOST_PUFFS,
+  MOST_SPARKS,
+  MOST_SWIRLS,
+} from "./painters/effects_painter";
 import spritemap from "./sounds/sounds.json";
 
 /** The light palette the specs draw in, the art's specs'. */
@@ -170,6 +190,8 @@ class FakeShell implements RickashaySceneOptions {
   guideFlight: GuideFlight | null = null;
   welcomesMotion = true;
   wantsSound = true;
+  /** The level's play, once a case aims a fixture's round, whose view is drawn in place of {@link round} and which each tick plays on. */
+  play: RoundPlay | null = null;
   /** The chrome the board declares over the canvas, the margin it keeps around the field. */
   chrome: Insets = INSETS;
   readonly ticks: number[] = [];
@@ -182,8 +204,15 @@ class FakeShell implements RickashaySceneOptions {
     this.ticks.push(deltaMs);
     // The steering hands the same record each frame, so a copy is kept.
     this.aims.push({ ...aim });
+    this.play?.advance(deltaMs, {
+      pace: FLIGHT_PACE,
+      speed: "normal",
+      fast: false,
+      motion: this.welcomesMotion,
+      paused: false,
+    });
   };
-  readonly view = (): RoundView => this.round;
+  readonly view = (): RoundView => this.play?.view ?? this.round;
   readonly pointerAiming = (): PointerAiming => this.aimingSet;
   readonly pointerRelease = (): PointerRelease => this.releaseSet;
   readonly palette = (): WallPalette => this.colors;
@@ -198,6 +227,12 @@ class FakeShell implements RickashaySceneOptions {
   readonly command = (command: FieldCommand): void => {
     this.commands.push(command);
   };
+
+  /** Aims a fixture's round, played from then on as the game plays it. */
+  aim(fixture: FlightFixture): RoundPlay {
+    this.play = new RoundPlay(fixture.start, this.flightRules);
+    return this.play;
+  }
 
   /** Shows the round with some of what the view draws changed. */
   show(changes: Partial<RoundView>): void {
@@ -411,6 +446,21 @@ function squaresOf(
     top: spring.y - spring.displayHeight,
     size: spring.displayWidth,
   }));
+}
+
+/** The rally mark the fixtures' rounds are released toward, past every hand-made flight's rally. */
+const RALLY_MARK = 20;
+
+/** Returns the most of some times, in order, that start within some milliseconds of one another: the most of a pool that show at once, each for that long. */
+function mostAtOnce(times: readonly number[], ms: number): number {
+  return Math.max(
+    0,
+    ...times.map(
+      (time, at) =>
+        times.filter((other, before) => before <= at && time - other < ms)
+          .length,
+    ),
+  );
 }
 
 describe("RickashayScene", () => {
@@ -641,6 +691,12 @@ describe("RickashayScene", () => {
   });
 
   describe("the wall", () => {
+    it("is drawn by rules that leave a wall between rounds as it stands, as the painters step none", () => {
+      const { wall } = PLAIN.start;
+
+      expect(WALL_RULES.betweenRounds(wall)).toBe(wall);
+    });
+
     it("stamps each brick's frames in its cell of the wall's bake, from the bottom of its stack up", async () => {
       const { shell } = await startBoard();
       const metrics = metricsAt();
@@ -1513,6 +1569,105 @@ describe("RickashayScene", () => {
 
       expect(played).not.toHaveBeenCalled();
     });
+  });
+
+  describe("drawing", () => {
+    it("holds as many of each pool as may show at once", async () => {
+      const { scene } = await startBoard();
+
+      expect({
+        sparks: scene.effects.sparks.all.length,
+        swirls: scene.effects.swirls.all.length,
+        puffs: scene.effects.puffs.all.length,
+        dots: scene.guide.dots.length,
+        rings: scene.guide.rings.length,
+        marks: scene.guide.marks.length,
+        springs: scene.springs.springs.length,
+      }).toEqual({
+        sparks: MOST_SPARKS,
+        swirls: MOST_SWIRLS,
+        puffs: MOST_PUFFS,
+        dots: MOST_GUIDE_DOTS,
+        rings: MOST_GUIDE_RINGS,
+        marks: MOST_STRUCK,
+        springs: FLIGHT_RULES.mostBounces,
+      });
+    });
+
+    it("makes no game object after the first frame, through a new palette, the guide cast and retuned, and a new layout", async () => {
+      const board = await startBoard();
+      const first = objectsIn(board.scene);
+
+      board.shell.colors = DARK;
+      board.shell.guideFlight = castOf(PLAIN.round.flight);
+      board.run.advance(16);
+      board.shell.flightRules = { ...FLIGHT_RULES, guideTurns: 1 };
+      resizeTo(board, 600, 500);
+
+      expect(objectsIn(board.scene)).toBe(first);
+    });
+
+    it.each(Object.entries(FLIGHT_FIXTURES))(
+      "makes no game object, and starts no more of a flourish within its time than its pool holds, through the %s round's flight, its wall coming down and its rest",
+      async (_, fixture) => {
+        const { shell, run, scene } = await startBoard();
+        const play = shell.aim(fixture);
+        run.advance(16);
+        const { effects } = scene;
+        const before = objectsIn(scene);
+        const shards = effects.shards.getParticleCount();
+        const sparks = vi.spyOn(effects, "spark");
+        const swirls = vi.spyOn(effects, "swirl");
+        const puffs = vi.spyOn(effects, "puff");
+        const ramps = vi.spyOn(effects, "flashRamp");
+        const rings = vi.spyOn(effects, "ring");
+
+        play.release(fixture.round, RALLY_MARK);
+        run.advance(600 * 16, 16);
+
+        expect({
+          objects: objectsIn(scene),
+          shards: effects.shards.getParticleCount(),
+          phase: play.phase,
+          rested: play.view.wall,
+          sparks:
+            mostAtOnce(
+              sparks.mock.calls.map(([, , now]) => now),
+              SPARK_MS,
+            ) <= MOST_SPARKS,
+          swirls:
+            mostAtOnce(
+              swirls.mock.calls.map(([, , , now]) => now),
+              PORTAL_MS,
+            ) <= MOST_SWIRLS,
+          puffs:
+            mostAtOnce(
+              puffs.mock.calls.map(([, , now]) => now),
+              KICK_MS,
+            ) <= MOST_PUFFS,
+          ramps:
+            mostAtOnce(
+              ramps.mock.calls.map(([, , now]) => now),
+              RAMP_FLASH_MS,
+            ) <= MOST_FLASHES,
+          rings:
+            mostAtOnce(
+              rings.mock.calls.map(([, , now]) => now),
+              RING_MS,
+            ) <= MOST_RINGS,
+        }).toEqual({
+          objects: before,
+          shards,
+          phase: "settling",
+          rested: fixture.round.next.wall,
+          sparks: true,
+          swirls: true,
+          puffs: true,
+          ramps: true,
+          rings: true,
+        });
+      },
+    );
   });
 
   describe("the keys", () => {

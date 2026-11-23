@@ -32,8 +32,9 @@ import {
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
-import { type KindId, type Wall, kindOf } from "../rules/catalog/kinds";
+import type { KindId, Wall } from "../rules/catalog/kinds";
 import type { FlightEvent } from "../rules/flight/events";
+import { NEEDED } from "../rules/run/run";
 import type { FlightRules } from "../rules/tuning";
 import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
@@ -78,8 +79,8 @@ const CAPTURED_KEYS = "LEFT,RIGHT,UP,DOWN,SPACE";
  * danger reads: the catalog's. The painters read nothing else of a wall's
  * rules, and step no wall between rounds.
  */
-const WALL_RULES: WallRules<KindId> = {
-  needed: (kind) => kindOf(kind).needed,
+export const WALL_RULES: WallRules<KindId> = {
+  ...NEEDED,
   betweenRounds: (wall) => wall,
 };
 

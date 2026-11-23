@@ -86,11 +86,11 @@ export function wallGuideOf(
       struck.push(event.cell);
     }
   }
-  const end = track.waypoints[track.waypoints.length - 1]?.at ?? 0;
   const dots: GuideDot[] = [];
-  for (let dot = 1; dot * GUIDE_DOT_GAP <= end; dot++) {
+  for (let dot = 1; ; dot++) {
     const at = dot * GUIDE_DOT_GAP;
     const place = positionAt(track, at);
+    // Past where the flight stops, it is nowhere.
     if (place === null) break;
     const { x, y } = place;
     dots.push(
