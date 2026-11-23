@@ -15,6 +15,7 @@ import {
   FIXTURE_WALL_RULES,
   FLIGHT_FIXTURES,
 } from "../../testing/flight_fixtures";
+import { STAND_INS } from "../../testing/stand_ins";
 import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
 import { type Flown, fly } from "./flight";
@@ -27,43 +28,6 @@ const DEPTH = 11;
 const LEFT_WALL = RADIUS;
 const RIGHT_WALL = COLUMNS - RADIUS;
 const CEILING = DEPTH - RADIUS;
-
-/**
- * The game's trait rules with the later kinds' made up for the specs: a
- * plated brick takes nothing where a turn met its plates alone, a spring
- * brick earns a floor bounce as it breaks, a hatch holds the fuzzball up
- * as it meets it, a lock is shut by its tint's bolts, and a portal takes
- * the fuzzball to its twin.
- */
-const STAND_INS: TraitRules = {
-  ...TRAIT_RULES,
-  plated: {
-    struck: (struck) => {
-      const { sides, brick } = struck;
-      if (sides !== 0 && (brick.plates & sides) === sides) {
-        struck.shield = "plate";
-      }
-    },
-  },
-  springs: {
-    broken: (hooks) => {
-      hooks.earn();
-    },
-  },
-  holds: {
-    met: (hooks) => {
-      hooks.hold();
-    },
-  },
-  bolted: { bolts: ({ tint }) => tint },
-  teleports: {
-    entered: (hooks, _, { twin }) => {
-      if (twin !== null) {
-        hooks.teleport(twin);
-      }
-    },
-  },
-};
 
 /**
  * A pair of portals, standing from row 2: one in column 6 of row 2, whose

@@ -87,7 +87,6 @@ import {
   type RickashayScene,
   type RickashaySceneOptions,
   SOUNDS_KEY,
-  WALL_RULES,
   makeRickashayScene,
 } from "./rickashay_scene";
 import {
@@ -691,12 +690,6 @@ describe("RickashayScene", () => {
   });
 
   describe("the wall", () => {
-    it("is drawn by rules that leave a wall between rounds as it stands, as the painters step none", () => {
-      const { wall } = PLAIN.start;
-
-      expect(WALL_RULES.betweenRounds(wall)).toBe(wall);
-    });
-
     it("stamps each brick's frames in its cell of the wall's bake, from the bottom of its stack up", async () => {
       const { shell } = await startBoard();
       const metrics = metricsAt();

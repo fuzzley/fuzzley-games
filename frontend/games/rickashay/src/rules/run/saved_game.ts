@@ -21,10 +21,11 @@ import {
   saveRun,
 } from "@fz/brick-wall/rules/saved_wall";
 import { isCount, isFiniteNumber, isRecord } from "@fz/core/json";
+import { WALL_RULES } from "../bricks/wall_rules";
 import type { RoundStart } from "../flight/events";
 import type { Level, LevelEntry } from "../levels/levels";
 import { BOUNCE_POINTS, JUMP_POINTS } from "../tuning";
-import { NEEDED, type Run, levelOf, openingOf, runRulesOf } from "./run";
+import { type Run, levelOf, openingOf, runRulesOf } from "./run";
 import { type LevelTally, rallyPoints } from "./scoring";
 import { MOST_STARS, type Marks } from "./stars";
 
@@ -140,7 +141,7 @@ export function readStart(
     rounds: run.rounds,
     jumps: run.tally.jumps,
   };
-  const wall = readWall(value, level, played, NEEDED);
+  const wall = readWall(value, level, played, WALL_RULES);
   if (!wall) return null;
   const { depth, x, hot } = value;
   return { wall, depth, x, hot };

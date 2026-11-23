@@ -1,12 +1,13 @@
-// Rounds made by hand, as playRound() will play them, so the view, the
-// scene and the shell can play a round of each kind of event, and the
-// rules' specs hold fly() to each flight: a flight for each kind of event,
-// each on a field 11 deep, its wall drawn as a picture by wallFrom(). A flier works out each path, told which face it
-// meets next, and flies to it as the design's "The flight" does, a flat
-// changing the sign of one speed, with the aim's own speeds; it counts the
-// rally, the turns, the floor bounces, the holds and the bolts by the rules
-// it is handed. The design's sketch (docs/rickashay/sketch/sim.mjs) flies
-// each of these walls and aims to the same places. A 45° face swaps the
+// Rounds made by hand, as playRound() plays them, so the view, the scene
+// and the shell can play a round of each kind of event, and the rules'
+// specs hold fly() and playRound() to each: a flight for each kind of
+// event, each on a field 11 deep, its wall drawn as a picture by
+// wallFrom(). A flier works out each path, told which face it meets next,
+// and flies to it as the design's "The flight" does, a flat changing the
+// sign of one speed, with the aim's own speeds; it counts the rally, the
+// turns, the floor bounces, the holds and the bolts by the rules it is
+// handed. The design's sketch (docs/rickashay/sketch/sim.mjs) flies each
+// of these walls and aims to the same places. A 45° face swaps the
 // fuzzball's two speeds, with the signs that send it away.
 
 import { AIMS, type Aim } from "@fz/brick-wall/rules/aims";

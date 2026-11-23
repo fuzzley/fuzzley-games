@@ -13,6 +13,7 @@ import {
 } from "@fz/brick-wall/rules/grid";
 import { inDanger, lowestNeededRow } from "@fz/brick-wall/rules/wall";
 import { count, formatPoints, listed } from "@fz/core/format";
+import { WALL_RULES } from "../bricks/wall_rules";
 import { type Brick, kindOf } from "../catalog/kinds";
 import type {
   EarnedBy,
@@ -22,7 +23,7 @@ import type {
 } from "../flight/events";
 import type { LevelEntry } from "../levels/levels";
 import type { FlightRules } from "../tuning";
-import { NEEDED, type Run } from "./run";
+import type { Run } from "./run";
 import { STARS, type Star, type StarFlags } from "./stars";
 
 /** How many of the field's lowest rows holding a brick R reads. */
@@ -92,7 +93,7 @@ export function describeRound(
   ];
   if (result === "lost") words.push("A brick reached the floor.");
   if (result === "on") {
-    const rows = count(lowestNeededRow(next.wall, NEEDED), "row", "rows");
+    const rows = count(lowestNeededRow(next.wall, WALL_RULES), "row", "rows");
     words.push(`${rows} to the floor.`);
   }
   return words.join(" ");
@@ -113,7 +114,7 @@ export function describeDanger(
   { result }: RoundOutcome,
   { wall }: RoundStart,
 ): string | null {
-  return result === "on" && inDanger(wall, NEEDED)
+  return result === "on" && inDanger(wall, WALL_RULES)
     ? "Danger. Break the bottom bricks this shot, or you lose the level."
     : null;
 }

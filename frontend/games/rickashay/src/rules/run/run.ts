@@ -11,8 +11,6 @@ import {
   type Run as WallRun,
   isLevelCleared,
 } from "@fz/brick-wall/rules/run";
-import type { WallRules } from "@fz/brick-wall/rules/wall";
-import { type KindId, kindOf } from "../catalog/kinds";
 import type { RoundOutcome, RoundStart } from "../flight/events";
 import {
   type Level,
@@ -31,15 +29,6 @@ import { type Marks, type StarFlags, starCount, starsEarned } from "./stars";
 
 /** Describes a run of the game, `@fz/brick-wall/rules/run`'s over what it tallies of a level's rounds. */
 export type Run = WallRun<LevelTally>;
-
-/**
- * Which kinds a level needs broken, which a wall read back is held to and
- * its danger is read by: the catalog's. The game's `WallRules` will say it
- * once the bricks' rules write them, and this goes then.
- */
-export const NEEDED: Pick<WallRules<KindId>, "needed"> = {
-  needed: (kind) => kindOf(kind).needed,
-};
 
 /** Describes what the run takes in of a round as it is released: its points, how it leaves its level, and what its tally counts. */
 export type RoundTaken = Pick<RoundOutcome, "points" | "result"> & RoundCounts;

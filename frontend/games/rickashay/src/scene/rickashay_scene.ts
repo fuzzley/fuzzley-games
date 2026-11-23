@@ -1,6 +1,5 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
-import type { WallRules } from "@fz/brick-wall/rules/wall";
 import { WallAtlas } from "@fz/brick-wall/scene/atlas";
 import { FieldCamera } from "@fz/brick-wall/scene/camera";
 import { FieldPainter } from "@fz/brick-wall/scene/field_painter";
@@ -32,9 +31,9 @@ import {
 } from "@fz/phaser/scene";
 import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
+import { WALL_RULES } from "../rules/bricks/wall_rules";
 import type { KindId, Wall } from "../rules/catalog/kinds";
 import type { FlightEvent } from "../rules/flight/events";
-import { NEEDED } from "../rules/run/run";
 import type { FlightRules } from "../rules/tuning";
 import { brickColor } from "../view/colors/brick_colors";
 import type { WallPalette } from "../view/colors/palette";
@@ -73,16 +72,6 @@ export const SOUNDS_KEY = "rickashay-sounds";
 
 /** The keys the scene keeps from the page, so the arrows and Space steer rather than scroll it. */
 const CAPTURED_KEYS = "LEFT,RIGHT,UP,DOWN,SPACE";
-
-/**
- * Which bricks a level needs broken, which the field's lines count and the
- * danger reads: the catalog's. The painters read nothing else of a wall's
- * rules, and step no wall between rounds.
- */
-export const WALL_RULES: WallRules<KindId> = {
-  ...NEEDED,
-  betweenRounds: (wall) => wall,
-};
 
 /** What the scene asks of the shell, and tells it. */
 export interface RickashaySceneOptions {
