@@ -8,7 +8,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 import { promisify } from "node:util";
-import { queueFolder, waitInQueue } from "./queue.ts";
+import {
+  queueFolder,
+  waitInQueue,
+  waitedWords,
+  waitingWords,
+} from "./queue.ts";
 import {
   CONSOLE,
   type Env,
@@ -556,10 +561,7 @@ export async function runVerifyChanged(
     heard.push(ahead);
     print(waitingWords(ahead));
   });
-  if (heard.length > 0) {
-    const seconds = Math.round((clock() - joined) / 1000);
-    print(`Waited ${String(seconds)} s for its turn.`);
-  }
+  if (heard.length > 0) print(waitedWords(clock() - joined));
   let outcomes: TaskOutcome[];
   try {
     // Planned only now, as the runs before this one held the memory until they ended.
@@ -626,12 +628,6 @@ function reachWords({ names, everything }: Reach, base: string): string {
     return `No workspace changed since ${base}, so only the root's checks run.`;
   }
   return `What changed since ${base} reaches ${[...names].sort().join(", ")}.`;
-}
-
-/** Returns what the runner says while it waits for the runs that started before it. */
-function waitingWords(ahead: number): string {
-  const runs = ahead === 1 ? "1 run" : `${String(ahead)} runs`;
-  return `Waiting for ${runs} that started first (verify:changed or another script that takes the whole machine).`;
 }
 
 /** Returns every workspace, as a reach, for the file that reaches them all. */

@@ -9,6 +9,8 @@ import {
   STALE_MS,
   queueFolder,
   waitInQueue,
+  waitedWords,
+  waitingWords,
 } from "./queue.ts";
 
 /** Folders made for a spec, removed after it. */
@@ -336,5 +338,22 @@ describe("queueFolder", () => {
     made.push(folder);
 
     await expect(queueFolder(folder)).rejects.toThrow("not a git repository");
+  });
+});
+
+describe("waitingWords", () => {
+  it.each([
+    [1, "1 run"],
+    [3, "3 runs"],
+  ])("says it waits for %i runs as %s", (ahead, runs) => {
+    expect(waitingWords(ahead)).toBe(
+      `Waiting for ${runs} that started first (verify:changed or another script that takes the whole machine).`,
+    );
+  });
+});
+
+describe("waitedWords", () => {
+  it("says how long it waited, to the second", () => {
+    expect(waitedWords(2_600)).toBe("Waited 3 s for its turn.");
   });
 });

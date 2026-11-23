@@ -291,16 +291,22 @@ body:
   always true), constant (halved, doubled, nothing), argument, call or line
   (left out), or order (two layers or painters swapped), in the change's
   own code and in the specs' helpers it trusts.
-- **Apply each as a text replacement** that must match once in its file,
-  run the specs, then put the file back whether they passed or failed, from
-  a script kept outside the repository. A replacement that matched nothing
-  then shows as such, not as a survivor or a kill. Never stash or check out
-  over the change while doing it.
-- **Run only the project and folder** whose specs should kill it, without
-  coverage: `yarn vitest run --project dom src/scene` for the scene's,
-  `--project pure src/rules/flight` for the flight's. The replays in `sim`
-  say only that a line stopped holding, so a rules mutant only they kill
-  still wants a spec in `pure` that names what broke.
+- **Apply each with `yarn mutants`** (`frontend/tools/mutants.mjs`), from
+  the frontend's folder, over a list kept outside the repository: each
+  mutant a text replacement that must match once in its file, and the
+  project and folder whose specs should kill it (`yarn mutants --help`
+  gives the form). It waits its turn in the queue `yarn verify:changed`
+  keeps, runs those specs with no mutant in place, then with each, puts the
+  file back whether they passed, failed or were stopped, and prints the
+  table for the commit's body, a replacement that matched nothing shown as
+  such, not as a survivor or a kill. Never stash or check out over the
+  change while doing it.
+- **Name only the project and folder** whose specs should kill it, which
+  the script runs without coverage, as
+  `"project": "dom", "folder": "src/scene"` for the scene's, and
+  `"project": "pure", "folder": "src/rules/flight"` for the flight's. The
+  replays in `sim` say only that a line stopped holding, so a rules mutant
+  only they kill still wants a spec in `pure` that names what broke.
 - **Every survivor gets a spec** that fails on it. The one exception is a
   mutant equivalent to the code, which no input can tell from it, as `<=`
   for `<` between values that are never equal. Name in the commit's body

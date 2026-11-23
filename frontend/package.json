@@ -32,6 +32,7 @@
     "verify": "yarn lint && yarn typecheck && yarn test && yarn build",
     "verify:full": "yarn lint && yarn typecheck && yarn test:coverage && yarn build",
     "verify:changed": "node tools/verify-changed.mjs",
+    "mutants": "node tools/mutants.mjs",
     "prettier": "cd .. && prettier . --write --experimental-cli --cache-location frontend/node_modules/.cache/prettier/cache.json",
     "prettier:check": "cd .. && prettier . --check --experimental-cli --cache-location frontend/node_modules/.cache/prettier/cache.json"
   },
