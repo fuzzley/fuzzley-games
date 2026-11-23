@@ -22,6 +22,7 @@ export const HELD_AS_RULES = [
   "src/testing/wall_score.ts",
   "src/testing/blind.ts",
   "src/testing/sweet_spot.ts",
+  "src/testing/rally_mark.ts",
 ];
 
 export default defineConfig(

@@ -11,13 +11,18 @@ const PURE_FLOOR = {
 
 export default defineConfig(
   angularTests({
-    // The specs' helpers and the scripts are measured with no floor, so what
-    // of them goes untested shows.
+    // The specs' helpers but those held at the rules' floor below, and the
+    // scripts, are measured with no floor, so what of them goes untested
+    // shows.
     include: ["src/**/*.ts", "tools/**/*.mjs"],
     exclude: ["src/main.ts"],
     thresholds: {
       "src/rules/**": PURE_FLOOR,
       "src/view/**": PURE_FLOOR,
+      // The players and the checks the certificates, the floors and the
+      // marks are found and held with, held as the rules are, at their floor.
+      "src/testing/{line_play,wall_score,blind,sweet_spot,rally_mark}.ts":
+        PURE_FLOOR,
       // The scene and the shell at Brick Fuzz Pop's floors, so a part
       // without specs fails the run.
       "src/scene/**": {
