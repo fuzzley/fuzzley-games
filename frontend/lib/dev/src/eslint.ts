@@ -61,8 +61,9 @@ export interface HeldAsRules {
 
 /**
  * Says which libraries' entries a game drawn with Phaser lets its view
- * import beyond what every such game's does, which files outside its rules
- * it holds as the rules are, and whether those keep to exact arithmetic.
+ * import beyond what every such game's does, which libraries are laid out in
+ * its layers, which files outside its rules it holds as the rules are, and
+ * whether those keep to exact arithmetic.
  */
 export interface PhaserGameLayers {
   /**
@@ -73,6 +74,19 @@ export interface PhaserGameLayers {
    * fence can't let in, nor `@fz/style/themes`, whose values are the shell's.
    */
   readonly viewAllows?: readonly string[];
+  /**
+   * The libraries laid out in a game's layers, such as `@fz/brick-wall`,
+   * whose entries are `<library>/<layer>/<entry>`, in the layers a game has.
+   *
+   * Each layer of the game takes a library's entries of its own layer and
+   * of those below it, as the game's own fences allow, the shell the
+   * scene's by type; what is held as the rules are takes its testing
+   * entries too, which every library's testing fence keeps from the layers
+   * themselves. Lint reads only the import, so a testing entry a held file
+   * takes must be held as the rules are in its library, as its solver is.
+   * Each is a library's package, never `@fz/core`.
+   */
+  readonly layered?: readonly string[];
   readonly heldAsRules?: HeldAsRules;
   /**
    * Whether the rules, and the files held as they are, keep to arithmetic
@@ -449,32 +463,107 @@ const RANDOM_SEED: RestrictedImportPattern = {
   message: RANDOM,
 };
 
-// The rules' fence, which what is held as the rules are holds to too.
-const RULES_FENCE: readonly RestrictedImportPattern[] = [
+/**
+ * Names a layer of a game drawn with Phaser, a folder under its `src/`, or of
+ * a library laid out in them (`layered`), a folder of its entries.
+ */
+type Layer = "rules" | "view" | "scene" | "app" | "testing";
+
+/**
+ * Returns the pattern that refuses a library laid out in a game's layers
+ * every path but the entries of the layers a layer of the game takes, each
+ * `<library>/<layer>/<entry>` exactly, and those of the layers a group of
+ * its fence refuses already, which it passes over so an import is refused
+ * once; and the library's package too, unless the fence refuses it already.
+ */
+function layeredPattern(
+  library: string,
   {
-    // @fz/* names a library's package, and refuses its entries as a folder's
-    // files, so @fz/core taken back lets its entries in; the view's fence
-    // names the entries (@fz/*/*), so it takes them back by name.
-    group: [...PHASER, ...FRAMEWORKS, "@fz/*", "!@fz/core"],
-    message: "The rules use no framework and no library but @fz/core.",
+    takes,
+    refused,
+    withPackage,
+  }: {
+    readonly takes: readonly Layer[];
+    readonly refused: readonly Layer[];
+    readonly withPackage: boolean;
   },
-  {
-    group: ["**/view", "**/view/**", "**/scene", "**/scene/**"],
-    message: "The rules know nothing of how the game is drawn.",
-  },
-  {
-    group: ["**/app", "**/app/**"],
-    message: "The rules know nothing of the shell.",
-  },
-  {
-    group: ["**/testing", "**/testing/**"],
-    message: "The rules know nothing of the specs' helpers.",
-  },
-  RANDOM_SEED,
-];
+  message: string,
+): RestrictedImportPattern {
+  const skipped = [
+    `(?:${takes.join("|")})/[^/]+$`,
+    ...(refused.length > 0 ? [`(?:${refused.join("|")})(?:/|$)`] : []),
+  ];
+  const below = `/(?!${skipped.join("|")})`;
+  return {
+    regex: `^${escapeRegExp(library)}${withPackage ? `(?:$|${below})` : below}`,
+    message,
+  };
+}
+
+/**
+ * Returns the rules' fence, which what is held as the rules are holds to
+ * too, taking of each library laid out in a game's layers its rules'
+ * entries, and letting its testing entries by for the files held as the
+ * rules are, such as a script's API, which `typescript()`'s fence on every
+ * library's testing entries keeps from the rules themselves.
+ */
+function rulesFence(layered: readonly string[]): RestrictedImportPattern[] {
+  const names = layered.map(escapeRegExp).join("|");
+  return [
+    {
+      // @fz/* names a library's package, and refuses its entries as a
+      // folder's files, so @fz/core taken back lets its entries in, as a
+      // library laid out in the layers does, whose own pattern below names
+      // the entries it takes; the view's fence names the entries
+      // (@fz/*/*), so it takes them back by name.
+      group: [
+        ...PHASER,
+        ...FRAMEWORKS,
+        "@fz/*",
+        "!@fz/core",
+        ...layered.map((library) => `!${library}`),
+      ],
+      message: `The rules use no framework and no library but @fz/core${layered.map((library) => ` and ${library}'s rules`).join("")}.`,
+    },
+    {
+      group: ["**/view", "**/view/**", "**/scene", "**/scene/**"],
+      message: "The rules know nothing of how the game is drawn.",
+    },
+    {
+      group: ["**/app", "**/app/**"],
+      message: "The rules know nothing of the shell.",
+    },
+    layered.length === 0
+      ? {
+          group: ["**/testing", "**/testing/**"],
+          message: "The rules know nothing of the specs' helpers.",
+        }
+      : {
+          // Git's ignore rules can't take back a file whose folder is
+          // excluded, so a regex names the testing entries let by.
+          regex: `^(?!(?:${names})/testing/[^/]+$)(?:.*/)?testing(?:/.*)?$`,
+          message: "The rules know nothing of the specs' helpers.",
+        },
+    ...layered.map((library) =>
+      layeredPattern(
+        library,
+        {
+          takes: ["rules"],
+          refused: ["view", "scene", "app", "testing"],
+          withPackage: true,
+        },
+        `The rules take of ${library} only its rules, each by its entry, as ${library}/rules/<entry>.`,
+      ),
+    ),
+    RANDOM_SEED,
+  ];
+}
 
 // A library's entry, the one kind of path the view's fence can let back in.
 const LIBRARY_ENTRY = /^@fz\/[\w-]+\/[\w-]+$/;
+
+// A library's package, the one kind of path `layered` takes.
+const LIBRARY_PACKAGE = /^@fz\/[\w-]+$/;
 
 // @fz/style's themes, which the view takes by type alone, such as the mode
 // that picks a palette's inks, while the palettes themselves and the key a
@@ -483,12 +572,19 @@ const THEMES_ENTRY = "@fz/style/themes";
 
 /**
  * Returns the view's fence, which lets in, of the libraries, `@fz/core`,
- * `@fz/phaser`'s pure entries, the entries given and the types of
+ * `@fz/phaser`'s pure entries, the entries given, the view's and the rules'
+ * of each library laid out in the layers, and the types of
  * `@fz/style/themes`.
  */
-function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
+function viewFence(
+  allows: readonly string[],
+  layered: readonly string[],
+): RestrictedImportPattern[] {
   const entries = [...PURE_PHASER_ENTRIES, ...allows];
-  const libraries = `@fz/core, ${entries.join(", ")} and the types of ${THEMES_ENTRY}`;
+  const libraries = `@fz/core, ${[
+    ...entries,
+    ...layered.map((library) => `${library}'s view and rules`),
+  ].join(", ")} and the types of ${THEMES_ENTRY}`;
   return [
     {
       group: [
@@ -501,6 +597,9 @@ function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
         "!@fz/core/*",
         ...entries.map((entry) => `!${entry}`),
         `!${THEMES_ENTRY}`,
+        // A library laid out in the layers, whose own pattern below names
+        // the entries the view takes.
+        ...layered.map((library) => `!${library}/*`),
       ],
       message: `The view is plain TypeScript: no Phaser, no framework, and of the libraries only ${libraries}.`,
     },
@@ -521,40 +620,85 @@ function viewFence(allows: readonly string[]): RestrictedImportPattern[] {
       group: ["**/scene", "**/scene/**", "**/app", "**/app/**"],
       message: "The view knows nothing of the scene or the shell.",
     },
+    ...layered.map((library) =>
+      layeredPattern(
+        library,
+        {
+          takes: ["view", "rules"],
+          refused: ["scene", "app", "testing"],
+          withPackage: false,
+        },
+        `The view takes of ${library} only its view and its rules, each by its entry, as ${library}/view/<entry>.`,
+      ),
+    ),
     RANDOM_SEED,
   ];
 }
 
-const SCENE_FENCE: readonly RestrictedImportPattern[] = [
-  {
-    group: [...FRAMEWORKS, ...SHELL_LIBRARIES, "@fz/phaser/canvas"],
-    message: "The scene draws with Phaser alone, and knows no framework.",
-  },
-  {
-    group: ["**/app", "**/app/**"],
-    message: "The scene knows nothing of the shell.",
-  },
-];
+/** Returns the scene's fence, which takes of each library laid out in the layers its scene's, its view's and its rules' entries. */
+function sceneFence(layered: readonly string[]): RestrictedImportPattern[] {
+  return [
+    {
+      group: [...FRAMEWORKS, ...SHELL_LIBRARIES, "@fz/phaser/canvas"],
+      message: "The scene draws with Phaser alone, and knows no framework.",
+    },
+    {
+      group: ["**/app", "**/app/**"],
+      message: "The scene knows nothing of the shell.",
+    },
+    ...layered.map((library) =>
+      layeredPattern(
+        library,
+        {
+          takes: ["scene", "view", "rules"],
+          refused: ["app", "testing"],
+          withPackage: true,
+        },
+        `The scene takes of ${library} only its scene, its view and its rules, each by its entry, as ${library}/scene/<entry>.`,
+      ),
+    ),
+  ];
+}
 
-const APP_FENCE: readonly RestrictedImportPattern[] = [
-  {
-    group: PHASER,
-    message:
-      "The shell never imports Phaser: the board loads the scene with import().",
-  },
-  {
-    group: [
-      "**/scene",
-      "**/scene/**",
-      "@fz/phaser/host",
-      "@fz/phaser/scene",
-      "@fz/phaser/sound",
-    ],
-    allowTypeImports: true,
-    message:
-      "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
-  },
-];
+/**
+ * Returns the shell's fence, which takes of each library laid out in the
+ * layers its shell's, its view's and its rules' entries, and its scene's by
+ * type.
+ */
+function appFence(layered: readonly string[]): RestrictedImportPattern[] {
+  return [
+    {
+      group: PHASER,
+      message:
+        "The shell never imports Phaser: the board loads the scene with import().",
+    },
+    {
+      // A type import this matches skips every pattern of the fence, so a
+      // library's scene below an entry gets through by type too.
+      group: [
+        "**/scene",
+        "**/scene/**",
+        "@fz/phaser/host",
+        "@fz/phaser/scene",
+        "@fz/phaser/sound",
+      ],
+      allowTypeImports: true,
+      message:
+        "The shell takes the scene and the host by type, and the board loads the scene with import(), so Phaser stays out of the first download.",
+    },
+    ...layered.map((library) =>
+      layeredPattern(
+        library,
+        {
+          takes: ["app", "view", "rules"],
+          refused: ["scene", "testing"],
+          withPackage: true,
+        },
+        `The shell takes of ${library} only its shell, its view and its rules, each by its entry, as ${library}/app/<entry>, and its scene by type.`,
+      ),
+    ),
+  ];
+}
 
 /** Returns the block that fences files, but their specs, off from what they may not import. */
 function fence(
@@ -687,7 +831,7 @@ function heldTogether({ root, files }: HeldAsRules): RestrictedImportPattern {
  * syntax in its rules replaces these rather than adding to them.
  */
 export function gameRules(): Config[] {
-  return defineConfig(rulesLayer([], false));
+  return defineConfig(rulesLayer([], false, []));
 }
 
 /**
@@ -695,9 +839,13 @@ export function gameRules(): Config[] {
  * as they are to what they are handed, and to exact arithmetic where asked:
  * {@link gameRules}, and the rules' part of {@link phaserGameLayers}.
  */
-function rulesLayer(held: readonly string[], exact: boolean): Config[] {
+function rulesLayer(
+  held: readonly string[],
+  exact: boolean,
+  layered: readonly string[],
+): Config[] {
   return [
-    fence(RULES, RULES_FENCE),
+    fence(RULES, rulesFence(layered)),
     deterministic([...RULES, ...held], { exact }),
   ];
 }
@@ -721,12 +869,15 @@ function rulesLayer(held: readonly string[], exact: boolean): Config[] {
  * It throws for a path in `viewAllows` that is no library's entry, such as a
  * library's package or a path below an entry, or is `@fz/style/themes`, whose
  * types the view takes already, which the view's fence would name and yet
- * still refuse; and in `heldAsRules`, for a glob or files of two
- * folders, which the sibling pattern can't be built from, or a file the
- * workspace doesn't have, which ESLint would pass over without a word.
+ * still refuse; in `layered`, for a path that is no library's package, or is
+ * `@fz/core`, whose entries every layer takes already; and in
+ * `heldAsRules`, for a glob or files of two folders, which the sibling
+ * pattern can't be built from, or a file the workspace doesn't have, which
+ * ESLint would pass over without a word.
  */
 export function phaserGameLayers({
   viewAllows = [],
+  layered = [],
   heldAsRules,
   exact = false,
 }: PhaserGameLayers = {}): Config[] {
@@ -741,18 +892,29 @@ export function phaserGameLayers({
       `phaserGameLayers()'s viewAllows can't let in ${THEMES_ENTRY}, whose values are the shell's: the view takes its types already.`,
     );
   }
+  const notPackage = layered.find((library) => !LIBRARY_PACKAGE.test(library));
+  if (notPackage !== undefined) {
+    throw new Error(
+      `phaserGameLayers()'s layered takes only a library's package, as @fz/<lib>, whose entries are @fz/<lib>/<layer>/<entry>, not "${notPackage}".`,
+    );
+  }
+  if (layered.includes("@fz/core")) {
+    throw new Error(
+      "phaserGameLayers()'s layered can't lay out @fz/core, whose entries every layer takes already.",
+    );
+  }
   const held = heldAsRules?.files ?? [];
   return defineConfig(
-    fence(VIEW, viewFence(viewAllows)),
-    fence(["src/scene/**/*.ts"], SCENE_FENCE),
-    fence(["src/app/**/*.ts"], APP_FENCE),
+    fence(VIEW, viewFence(viewAllows, layered)),
+    fence(["src/scene/**/*.ts"], sceneFence(layered)),
+    fence(["src/app/**/*.ts"], appFence(layered)),
     heldAsRules && held.length > 0
-      ? fence(held, [...RULES_FENCE, heldTogether(heldAsRules)])
+      ? fence(held, [...rulesFence(layered), heldTogether(heldAsRules)])
       : [],
     deterministic(VIEW),
     // After the view's, so a file held as the rules are keeps to exact
     // arithmetic wherever it lies.
-    rulesLayer(held, exact),
+    rulesLayer(held, exact, layered),
   );
 }
 

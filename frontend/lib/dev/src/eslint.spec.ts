@@ -817,6 +817,218 @@ describe("phaserGameLayers", () => {
   });
 });
 
+describe("phaserGameLayers({ layered })", () => {
+  /** A library laid out in a game's layers, as a game's config names it. */
+  const LAYERED: PhaserGameLayers = { layered: ["@fz/brick-wall"] };
+
+  /** The rule every library's testing entries are fenced by, which a layer's fence adds to. */
+  const TESTING_FENCE = "no-restricted-imports";
+
+  /** Returns a module that imports each path given for what it does. */
+  function importing(...paths: string[]): string {
+    return paths.map((path) => `import "${path}";\n`).join("");
+  }
+
+  it.each([
+    ["src/rules/run.ts", ["@fz/brick-wall/rules/wall"]],
+    [
+      "src/view/paint.ts",
+      ["@fz/brick-wall/view/paint", "@fz/brick-wall/rules/wall"],
+    ],
+    [
+      "src/scene/belt.ts",
+      [
+        "@fz/brick-wall/scene/belt",
+        "@fz/brick-wall/view/paint",
+        "@fz/brick-wall/rules/wall",
+      ],
+    ],
+    [
+      "src/app/board.ts",
+      [
+        "@fz/brick-wall/app/board",
+        "@fz/brick-wall/view/paint",
+        "@fz/brick-wall/rules/wall",
+      ],
+    ],
+  ])(
+    "lets %s take the library's entries of its layer and below",
+    async (file, paths) => {
+      const problems = await lint(
+        { [file]: importing(...paths) },
+        phaserGameLayers(LAYERED),
+      );
+
+      expect(problems[file]).toEqual([]);
+    },
+  );
+
+  it.each([
+    ["src/rules/run.ts", "@fz/brick-wall/view/paint"],
+    ["src/rules/run.ts", "@fz/brick-wall/scene/belt"],
+    ["src/rules/run.ts", "@fz/brick-wall/app/board"],
+    ["src/rules/run.ts", "@fz/brick-wall/rules/wall/sub"],
+    ["src/rules/run.ts", "@fz/brick-wall/rules"],
+    ["src/rules/run.ts", "@fz/brick-wall/other/thing"],
+    ["src/rules/run.ts", "@fz/brick-wall"],
+    ["src/rules/run.ts", "../testing/fields"],
+    ["src/view/paint.ts", "@fz/brick-wall/scene/belt"],
+    ["src/view/paint.ts", "@fz/brick-wall/scene/belt/sub"],
+    ["src/view/paint.ts", "@fz/brick-wall/app/board"],
+    ["src/view/paint.ts", "@fz/brick-wall/view/paint/sub"],
+    ["src/view/paint.ts", "@fz/brick-wall/view"],
+    ["src/view/paint.ts", "@fz/brick-wall"],
+    ["src/scene/belt.ts", "@fz/brick-wall/app/board"],
+    ["src/scene/belt.ts", "@fz/brick-wall/scene/belt/sub"],
+    ["src/scene/belt.ts", "@fz/brick-wall"],
+    ["src/app/board.ts", "@fz/brick-wall/scene/belt"],
+    ["src/app/board.ts", "@fz/brick-wall/scene/belt/sub"],
+    ["src/app/board.ts", "@fz/brick-wall/app/board/sub"],
+    ["src/app/board.ts", "@fz/brick-wall"],
+  ])("keeps %s off %s, once", async (file, imported) => {
+    const problems = await lint(
+      { [file]: importing(imported) },
+      phaserGameLayers(LAYERED),
+    );
+
+    expect(problems[file]).toEqual([FENCE]);
+  });
+
+  it("lets the shell take the library's scene by type alone", async () => {
+    const problems = await lint(
+      {
+        "src/app/board.ts":
+          'import type { Belt } from "@fz/brick-wall/scene/belt";\nexport type Shown = Belt;\n',
+      },
+      phaserGameLayers(LAYERED),
+    );
+
+    expect(problems["src/app/board.ts"]).toEqual([]);
+  });
+
+  it.each([
+    "src/rules/run.ts",
+    "src/view/paint.ts",
+    "src/scene/belt.ts",
+    "src/app/board.ts",
+  ])(
+    "keeps %s off the library's testing entries by every library's testing fence, once",
+    async (file) => {
+      const problems = await lint(
+        { [file]: importing("@fz/brick-wall/testing/solver") },
+        phaserGameLayers(LAYERED),
+      );
+
+      expect(problems[file]).toEqual([TESTING_FENCE]);
+    },
+  );
+
+  it("lets a file held as the rules are, such as a script's API, take the library's rules and testing entries", async () => {
+    const problems = await lint(
+      {
+        "src/testing/certify_api.ts": importing(
+          "@fz/brick-wall/testing/solver",
+          "@fz/brick-wall/rules/wall",
+        ),
+      },
+      (root) => [
+        ...tests({ files: ["src/testing/**/*.ts"] }),
+        ...phaserGameLayers({
+          ...LAYERED,
+          heldAsRules: { root, files: ["src/testing/certify_api.ts"] },
+        }),
+      ],
+    );
+
+    expect(problems["src/testing/certify_api.ts"]).toEqual([]);
+  });
+
+  it.each([
+    "@fz/brick-wall/view/paint",
+    "@fz/brick-wall/testing/solver/sub",
+    "@fz/core/testing",
+    "./fields",
+  ])("keeps a file held as the rules are off %s, once", async (imported) => {
+    const problems = await lint(
+      {
+        "src/testing/certify_api.ts": importing(imported),
+        "src/testing/fields.ts": "export const field = 1;\n",
+      },
+      (root) => [
+        ...tests({ files: ["src/testing/**/*.ts"] }),
+        ...phaserGameLayers({
+          ...LAYERED,
+          heldAsRules: { root, files: ["src/testing/certify_api.ts"] },
+        }),
+      ],
+    );
+
+    expect(problems["src/testing/certify_api.ts"]).toEqual([FENCE]);
+  });
+
+  it("leaves the specs' other helpers the library's testing entries and every layer", async () => {
+    const problems = await lint(
+      {
+        "src/testing/fields.ts": importing(
+          "@fz/brick-wall/testing/fields",
+          "@fz/brick-wall/scene/belt",
+        ),
+      },
+      [
+        ...tests({ files: ["src/testing/**/*.ts"] }),
+        ...phaserGameLayers(LAYERED),
+      ],
+    );
+
+    expect(problems["src/testing/fields.ts"]).toEqual([]);
+  });
+
+  it("takes each library laid out in the layers", async () => {
+    const problems = await lint(
+      {
+        "src/rules/run.ts": importing(
+          "@fz/brick-wall/rules/wall",
+          "@fz/tile-wall/rules/tiles",
+          "@fz/tile-wall/view/paint",
+        ),
+      },
+      phaserGameLayers({ layered: ["@fz/brick-wall", "@fz/tile-wall"] }),
+    );
+
+    expect(problems["src/rules/run.ts"]).toEqual([FENCE]);
+  });
+
+  it("lets nothing of a library by that a game doesn't lay out in its layers", async () => {
+    const problems = await lint(
+      {
+        "src/rules/run.ts": importing("@fz/brick-wall/rules/wall"),
+        "src/view/paint.ts": importing("@fz/brick-wall/view/paint"),
+      },
+      phaserGameLayers(),
+    );
+
+    expect(problems).toEqual({
+      "src/rules/run.ts": [FENCE],
+      "src/view/paint.ts": [FENCE],
+    });
+  });
+
+  it.each(["@fz/brick-wall/rules", "brick-wall", "@fz/*"])(
+    "refuses to lay out %s, which is no library's package",
+    (library) => {
+      expect(() => phaserGameLayers({ layered: [library] })).toThrow(
+        `phaserGameLayers()'s layered takes only a library's package, as @fz/<lib>, whose entries are @fz/<lib>/<layer>/<entry>, not "${library}"`,
+      );
+    },
+  );
+
+  it("refuses to lay out @fz/core, whose entries every layer takes already", () => {
+    expect(() => phaserGameLayers({ layered: ["@fz/core"] })).toThrow(
+      "phaserGameLayers()'s layered can't lay out @fz/core",
+    );
+  });
+});
+
 describe("phaserGameLayers({ exact })", () => {
   /** The rule each of exact arithmetic's refusals breaks. */
   const SYNTAX = "no-restricted-syntax";
