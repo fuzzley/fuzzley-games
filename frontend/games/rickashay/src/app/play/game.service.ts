@@ -25,7 +25,7 @@ import type { Round, RoundStart } from "../../rules/flight/events";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { LevelEntry } from "../../rules/levels/levels";
 import {
-  CALL_WORDS,
+  describeAim,
   describeGuide,
   describeRows,
 } from "../../rules/run/describe";
@@ -166,6 +166,8 @@ export class GameService extends RoundDriver<
   private callLeftMs = 0;
   private readonly callState = signal<number | null>(null);
   private readonly picturesState = signal<(() => Pictures) | null>(null);
+  /** The words the run is said in, which hold what each frame's flight came to. */
+  private readonly runWords: RunWords;
 
   /** The best score of any run, as of the last that ended. */
   readonly best = computed(() => this.stats.stats().best);
@@ -251,20 +253,30 @@ export class GameService extends RoundDriver<
   );
 
   constructor() {
-    const words = new RunWords(inject(GAME_LEVELS), inject(GAME_MARKS));
+    const words = new RunWords(
+      inject(GAME_LEVELS),
+      inject(GAME_MARKS),
+      FLIGHT_RULES,
+    );
     super(rickashayDriving(words));
     words.follow(this.run);
+    this.runWords = words;
   }
 
   /**
    * Moves the game on by the time a frame took, aimed as the player aims:
-   * releases a shot let fly, on the rules' own numbers, and plays the round
-   * on, taking what it came to into the run.
+   * says the aim as the keys move it, releases a shot let fly, on the
+   * rules' own numbers, and plays the round on, taking what it came to
+   * into the run, and saying what its flight came to that the round's end
+   * didn't say.
    */
   tick(deltaMs: number, aim: Readonly<AimFrame>): void {
     this.aimedAt = aim.aim;
+    if (aim.keyed) this.announcer.say(describeAim(aim.aim));
     if (aim.release) this.release({ aim: aim.aim }, FLIGHT_RULES);
     this.playFrame(deltaMs);
+    const heard = this.runWords.takeHeld();
+    if (heard !== null) this.announcer.say(heard);
     this.showCall(deltaMs);
   }
 
@@ -377,7 +389,9 @@ export class GameService extends RoundDriver<
 
   /**
    * Plays the round on by a frame's time, as the settings, the player and
-   * the run say, or lands it unseen as the page is hidden.
+   * the run say, or lands it unseen as the page is hidden, and holds the
+   * words of what its flight came to, for the round's end to say first or
+   * the frame to say after.
    */
   protected override advancePlay(
     deltaMs: number,
@@ -388,6 +402,7 @@ export class GameService extends RoundDriver<
       ? this.play.landUnseen(options)
       : this.play.advance(deltaMs, options);
     this.soFarState.set(this.play.soFar);
+    this.runWords.hold(this.play.news);
     return change;
   }
 
@@ -404,16 +419,14 @@ export class GameService extends RoundDriver<
   }
 
   /**
-   * Shows the call over the field, and says it, as the frame's flight
-   * reached the level's rally mark, and puts it away once it has shown for
-   * `CALL_MS`.
+   * Shows the call over the field as the frame's flight reached the
+   * level's rally mark, and puts it away once it has shown for `CALL_MS`.
    */
   private showCall(deltaMs: number): void {
     if (this.play.news.some(({ kind }) => kind === "called")) {
       this.calls++;
       this.callLeftMs = CALL_MS;
       this.callState.set(this.calls);
-      this.announcer.say(CALL_WORDS);
       return;
     }
     if (this.callState() === null) return;

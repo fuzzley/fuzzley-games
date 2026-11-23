@@ -9,6 +9,7 @@ import type { RoundStart } from "../../rules/flight/events";
 import { guideOf } from "../../rules/flight/guide";
 import { levelEntryOf } from "../../rules/levels/levels";
 import {
+  describeAim,
   describeGuide,
   describeRound,
   describeRows,
@@ -279,8 +280,63 @@ describe("GameService", () => {
     });
   });
 
-  describe("the call", () => {
-    it("is said as a flight reaches the level's rally mark", () => {
+  describe("the announcer", () => {
+    it("says the aim as the keys move it", () => {
+      const game = gameOf();
+
+      game.tick(FRAME_MS, { ...STILL, aim: LEANING, keyed: true });
+
+      expect(said()).toBe(describeAim(LEANING));
+    });
+
+    it("leaves the aim unsaid as a pointer moves it", () => {
+      const game = gameOf();
+      const before = said();
+
+      game.tick(FRAME_MS, { ...STILL, aim: LEANING });
+
+      expect(said()).toBe(before);
+    });
+
+    it("says a floor bounce earned as the flight reaches it", () => {
+      const game = gameOf("rally");
+      release(game);
+
+      playUntil(
+        game,
+        () => STILL,
+        () => game.soFar().held > 0,
+      );
+
+      expect(said()).toBe("Rally 10: a floor bounce.");
+    });
+
+    it("says the flight's floor bounce and call before the round's end, where one frame brings both", () => {
+      const game = gameOf("rally");
+      release(game);
+
+      game.tick(60_000, STILL);
+
+      expect(said()).toMatch(
+        /^Rickashay! Rally 10: a floor bounce\. A rally of 11\./,
+      );
+    });
+
+    it("says nothing of the floor bounces or the call a flight landed by Skip skipped", () => {
+      const game = gameOf("rally");
+      release(game);
+
+      game.fieldCommand("skip");
+      playUntil(
+        game,
+        () => STILL,
+        () => game.phase() === "aiming",
+      );
+
+      expect(said()).not.toMatch(/floor bounce|Rickashay/);
+    });
+
+    it("says the call as a flight reaches the level's rally mark", () => {
       const game = gameOf("rally");
       release(game);
 

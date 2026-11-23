@@ -28,7 +28,7 @@ const RULES = runRulesOf(SPEC_LEVELS, SPEC_MARKS);
 
 /** Returns the words over the specs' levels and marks. */
 function wordsOf(): RunWords {
-  return new RunWords(SPEC_LEVELS, SPEC_MARKS);
+  return new RunWords(SPEC_LEVELS, SPEC_MARKS, FLIGHT_RULES);
 }
 
 /** Returns a run of the specs' levels, at a level, on a field 13 deep. */
@@ -146,6 +146,43 @@ describe("RunWords", () => {
       "Paused. Score 340. Press Enter to resume.",
       "Resumed.",
       "Paused on level 2, Side door. 2 shots taken. Score 340. Press Enter to resume.",
+    ]);
+  });
+});
+
+describe("RunWords, holding a flight's news", () => {
+  it("says a floor bounce lost by the most a fuzzball holds, from the rules it is handed", () => {
+    const words = new RunWords(SPEC_LEVELS, SPEC_MARKS, { mostBounces: 2 });
+    words.hold([{ kind: "earned", by: "rally", rally: 70, kept: false }]);
+
+    const said = words.takeHeld();
+
+    expect(said).toBe("Rally 70: a floor bounce, but you already have 2.");
+  });
+
+  it("holds a floor bounce earned and the call, in order, until taken", () => {
+    const words = wordsOf();
+    words.hold([
+      { kind: "earned", by: "rally", rally: 10, kept: true },
+      { kind: "called" },
+    ]);
+
+    const said = [words.takeHeld(), words.takeHeld()];
+
+    expect(said).toEqual(["Rally 10: a floor bounce. Rickashay!", null]);
+  });
+
+  it("says what it holds before a round's end the same frame brings, and lets go of it", () => {
+    const words = wordsOf();
+    const round = roundOf("step");
+    const aimed = startOf(1);
+    words.hold([{ kind: "called" }]);
+
+    const said = [words.round(round, aimed), words.takeHeld()];
+
+    expect(said).toEqual([
+      `Rickashay! ${describeRound(round.outcome, aimed)}`,
+      null,
     ]);
   });
 });
