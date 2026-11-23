@@ -7,13 +7,20 @@
 // A brick's faces are built from the shapes of the cells about it: it shows
 // a face only toward a cell that leaves that side of it open, so bricks side
 // by side make one face, and a brick against a side wall or under the
-// ceiling shows none toward it.
+// ceiling shows none toward it. Where two of its open faces meet, and
+// nothing else reaches the corner between them, a 45° face cuts it, joining
+// their flats' ends, so the faces close round every clump of bricks and
+// leave a fuzzball's middle no way in.
 
 import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
   CEILINGWARD,
+  CEILINGWARD_LEFT,
+  CEILINGWARD_RIGHT,
   type FieldFace,
   FLOORWARD,
+  FLOORWARD_LEFT,
+  FLOORWARD_RIGHT,
   LEFT,
   RIGHT,
   brickAt,
@@ -162,6 +169,15 @@ const FILLS: Readonly<Record<Shape, number>> = {
   [SHAPE.beyond]: FLOORWARD | CEILINGWARD | LEFT | RIGHT,
 };
 
+/** The corners of its cell each shape reaches, as `rules/grid`'s corner bits: no corner beside one it reaches is cut. */
+const REACHES: Readonly<Record<Shape, number>> = {
+  [SHAPE.air]: 0,
+  [SHAPE.box]:
+    FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
+  [SHAPE.beyond]:
+    FLOORWARD_LEFT | FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
+};
+
 /** Each side of a cell's opposite: the side of the cell beside it that faces it. */
 const OPPOSITE: Readonly<Record<FieldFace, FieldFace>> = {
   [FLOORWARD]: CEILINGWARD,
@@ -224,6 +240,40 @@ function isOpen(
   return (FILLS[beside] & OPPOSITE[side]) === 0;
 }
 
+/**
+ * Returns whether a corner of a field cell, at a point where four cells
+ * meet, is free: no shape in the three other cells reaches it.
+ */
+function isFree(
+  field: FieldShapes,
+  column: number,
+  row: number,
+  x: number,
+  y: number,
+): boolean {
+  return !(
+    reaches(field, column, row, x - 1, y - 1, CEILINGWARD_RIGHT) ||
+    reaches(field, column, row, x, y - 1, CEILINGWARD_LEFT) ||
+    reaches(field, column, row, x - 1, y, FLOORWARD_RIGHT) ||
+    reaches(field, column, row, x, y, FLOORWARD_LEFT)
+  );
+}
+
+/** Returns whether the shape in a cell, unless it is the brick's own, reaches one of that cell's corners. */
+function reaches(
+  field: FieldShapes,
+  column: number,
+  row: number,
+  otherColumn: number,
+  otherRow: number,
+  corner: number,
+): boolean {
+  const other = otherColumn !== column || otherRow !== row;
+  return (
+    other && (REACHES[shapeAt(field, otherColumn, otherRow)] & corner) !== 0
+  );
+}
+
 /** Returns a flat across the field, along the y of `line`, from x `from` to `to`. */
 function across(
   line: number,
@@ -247,9 +297,35 @@ function up(
 }
 
 /**
+ * Returns the cut across a free corner, at a point, of a brick that looks
+ * out from it across and up as the signs say: a 45° face joining its two
+ * flats' ends, a radius out along each.
+ */
+function cut(
+  x: number,
+  y: number,
+  facingX: Facing,
+  facingY: Facing,
+  owner: Extract<FaceOwner, { readonly kind: "brick" }>,
+): BrickFace {
+  const end = x + facingX * RADIUS;
+  return {
+    kind: "slant",
+    facingX,
+    facingY,
+    // The line through (x, y + facingY × RADIUS) and (end, y).
+    c: x + facingX * facingY * y + facingX * RADIUS,
+    from: Math.min(x, end),
+    to: Math.max(x, end),
+    long: false,
+    owner,
+  };
+}
+
+/**
  * Returns the faces the brick in a field cell shows: a flat a radius out
- * from each of its open sides, owned by its wall cell. A cell with no
- * brick shows none.
+ * from each of its open sides, and a cut across each free corner between
+ * two of them, owned by its wall cell. A cell with no brick shows none.
  */
 export function brickFaces(
   field: FieldShapes,
@@ -264,18 +340,32 @@ export function brickFaces(
     kind: "brick",
     cell: cellOf(column, row - field.lowestRow),
   } as const;
+  const floorward = isOpen(field, column, row, FLOORWARD);
+  const ceilingward = isOpen(field, column, row, CEILINGWARD);
+  const left = isOpen(field, column, row, LEFT);
+  const right = isOpen(field, column, row, RIGHT);
   const faces: BrickFace[] = [];
-  if (isOpen(field, column, row, FLOORWARD)) {
+  if (floorward) {
     faces.push(across(row - RADIUS, column, column + 1, -1, owner));
   }
-  if (isOpen(field, column, row, CEILINGWARD)) {
+  if (ceilingward) {
     faces.push(across(row + 1 + RADIUS, column, column + 1, 1, owner));
   }
-  if (isOpen(field, column, row, LEFT)) {
+  if (left) {
     faces.push(up(column - RADIUS, row, row + 1, -1, owner));
   }
-  if (isOpen(field, column, row, RIGHT)) {
+  if (right) {
     faces.push(up(column + 1 + RADIUS, row, row + 1, 1, owner));
+  }
+  for (const [x, y, facingX, facingY, open] of [
+    [column, row, -1, -1, floorward && left],
+    [column + 1, row, 1, -1, floorward && right],
+    [column, row + 1, -1, 1, ceilingward && left],
+    [column + 1, row + 1, 1, 1, ceilingward && right],
+  ] as const) {
+    if (open && isFree(field, column, row, x, y)) {
+      faces.push(cut(x, y, facingX, facingY, owner));
+    }
   }
   return faces;
 }
@@ -340,7 +430,17 @@ export function meetsAt(
         { line: RADIUS, facing: 1, from: 0, to: COLUMNS },
         true,
       );
-    case "slant":
+    case "slant": {
+      const { facingX, facingY } = face;
+      const toward = facingX * dx + facingY * dy;
+      if (!(toward < 0)) {
+        return MISSED;
+      }
+      // Its line is facingX × x + facingY × y = facingX × c, in front of it
+      // the greater.
+      const t = (facingX * face.c - (facingX * x + facingY * y)) / toward;
+      return withinEnds(t, x, dx, face);
+    }
     case "bar":
     case "eye":
       return MISSED;
@@ -381,6 +481,21 @@ function meetsLine(
   if (bounds) {
     return t > 0 ? t : 0;
   }
+  return withinEnds(t, along, alongD, { from, to });
+}
+
+/**
+ * Returns how far a fuzzball flies to meet a face whose line it meets `t`
+ * along its heading, or {@link MISSED}: it touches one it lies a hair
+ * behind at once, and meets one only between its ends, as far along the
+ * face as `along` and `alongD` say, its place and speed that way.
+ */
+function withinEnds(
+  t: number,
+  along: number,
+  alongD: number,
+  { from, to }: { readonly from: number; readonly to: number },
+): number {
   if (t < -OVERLAP) {
     return MISSED;
   }
@@ -407,6 +522,12 @@ export function faceOrder(face: Face): number {
     case "floor":
       return 3 * 16;
     case "slant":
+      return (
+        ownerOrder(face.owner) * 16 +
+        4 +
+        (face.facingX > 0 ? 1 : 0) +
+        (face.facingY > 0 ? 2 : 0)
+      );
     case "bar":
     case "eye":
       return ownerOrder(face.owner) * 16;

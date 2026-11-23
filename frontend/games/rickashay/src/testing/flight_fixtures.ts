@@ -6,7 +6,8 @@
 // changing the sign of one speed, with the aim's own speeds; it counts the
 // rally, the turns, the floor bounces, the holds and the bolts by the rules
 // it is handed. The design's sketch (docs/rickashay/sketch/sim.mjs) flies
-// each of these walls and aims to the same places.
+// each of these walls and aims to the same places. A 45° face swaps the
+// fuzzball's two speeds, with the signs that send it away.
 
 import { AIMS, type Aim } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
@@ -60,6 +61,11 @@ export interface FlightFixture {
 
 /** A line the fuzzball's middle flies to: a flat's up the field, at an x, or across it, at a y. */
 type Line = { readonly x: number } | { readonly y: number };
+
+/** A 45° face's line the fuzzball's middle flies to: x + y = `sum`. */
+interface Slant {
+  readonly sum: number;
+}
 
 /** The ceiling's flat on a field 11 deep, a radius under it. */
 const CEILING = 11 - RADIUS;
@@ -163,6 +169,33 @@ class Flier {
     this.turns++;
     const { at, x, y, dx, dy } = this;
     this.events.push({ at, kind: "turn", x, y, dx, dy, off, cells });
+    const drawn = this.turns / this.rules.boltTurns;
+    if (Number.isInteger(drawn) && this.lockShut(drawn - 1)) {
+      this.closing.push({ at, kind: "bolt", drawn });
+    }
+    return this;
+  }
+
+  /**
+   * Flies on to a 45° face's line and turns off what met it there, which
+   * swaps its two speeds, with the signs that send it away.
+   */
+  swap(slant: Slant, off: TurnOff, cells: readonly number[]): this {
+    const { x, y, dx, dy } = this;
+    this.flyFor((slant.sum - (x + y)) / (dx + dy));
+    [this.dx, this.dy] = [-dy, -dx];
+    this.turns++;
+    const { at } = this;
+    this.events.push({
+      at,
+      kind: "turn",
+      x: this.x,
+      y: this.y,
+      dx: this.dx,
+      dy: this.dy,
+      off,
+      cells,
+    });
     const drawn = this.turns / this.rules.boltTurns;
     if (Number.isInteger(drawn) && this.lockShut(drawn - 1)) {
       this.closing.push({ at, kind: "bolt", drawn });
@@ -472,6 +505,37 @@ function plain(): FlightFixture {
   );
 }
 
+/** The aim at 60°, steeper than 45°, so a 45° face it meets sends it off shallow. */
+const AT_60 = 208;
+
+/**
+ * Flies a shot at 60° from x = 1.3 to the face of the brick at column 4 of
+ * row 5 it meets first, told how it turns off it and what the brick does,
+ * then off the left wall to land.
+ */
+function offTheLeft(
+  start: RoundStart,
+  met: (flier: Flier, cell: number) => Flier,
+): FlightFixture {
+  return flown(start, AT_60, (flier, cell) =>
+    met(flier, cell(4, 5)).turn({ x: LEFT_WALL }, "wall").land(),
+  );
+}
+
+/**
+ * A shot meets the cut across a tough brick's floorward left corner, which
+ * swaps its two speeds and sends it back down shallow, and strikes it.
+ */
+function corner(): FlightFixture {
+  return offTheLeft(
+    startOn(["ooooooooo", ".........", ".........", "....2...."], 5, {
+      x: 1.3,
+    }),
+    (flier, cell) =>
+      flier.swap({ sum: 4 + 5 - RADIUS }, "brick", [cell]).strike(cell),
+  );
+}
+
 /** A plain shot breaks the last brick the level needs, beside steel it doesn't: cleared. */
 function cleared(): FlightFixture {
   return offTheCorner(
@@ -695,7 +759,8 @@ function sideTurns(flier: Flier, turns: number): Flier {
  * Rounds made by hand, by what each shows: a plain shot; a level cleared,
  * one lost and a wall's jump; a plated face; a long rally, its floor
  * bounce earned and spent; a spring brick's; a hot shot's; a lock's bolt;
- * the hatches' holds; a portal; a bored fuzzball's yawn; and a guard.
+ * the hatches' holds; a portal; a bored fuzzball's yawn; a guard; and a
+ * brick's cut corner.
  */
 export const FLIGHT_FIXTURES = {
   plain: plain(),
@@ -711,6 +776,7 @@ export const FLIGHT_FIXTURES = {
   teleport: teleport(),
   bored: bored(),
   guard: guard(),
+  corner: corner(),
 } as const satisfies Readonly<Record<string, FlightFixture>>;
 
 /** A fixture's name, such as "rally". */

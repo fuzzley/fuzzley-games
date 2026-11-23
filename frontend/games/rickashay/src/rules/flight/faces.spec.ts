@@ -29,11 +29,34 @@ function facesAt(
   return brickFaces(fieldShapes(wall, DEPTH), column, row);
 }
 
-/** Returns a name for each of a brick's faces: a flat's line and the way it faces, as "across -1", or another face's kind. */
+/** Returns a name for each of a brick's faces: a flat's line and the way it faces, as "across -1", a slant's ways, as "slant 1 -1", or another face's kind. */
 function sidesOf(faces: readonly Face[]): string[] {
-  return faces.map((face) =>
-    face.kind === "flat" ? `${face.along} ${String(face.facing)}` : face.kind,
-  );
+  return faces.map((face) => {
+    switch (face.kind) {
+      case "flat":
+        return `${face.along} ${String(face.facing)}`;
+      case "slant":
+        return `slant ${String(face.facingX)} ${String(face.facingY)}`;
+      case "floor":
+      case "bar":
+      case "eye":
+        return face.kind;
+    }
+  });
+}
+
+/** Returns the face of a kind facing as `sidesOf()` names it, throwing where there is none. */
+function faceNamed(faces: readonly Face[], name: string): Face {
+  const face = faces[sidesOf(faces).indexOf(name)];
+  if (face === undefined) {
+    throw new RangeError(`No face is "${name}".`);
+  }
+  return face;
+}
+
+/** Returns a brick's flats. */
+function flatsOf(faces: readonly BrickFace[]): BrickFace[] {
+  return faces.filter(({ kind }) => kind === "flat");
 }
 
 /** Returns what the brick in a wall cell owns. */
@@ -69,7 +92,7 @@ describe("brickFaces", () => {
 
     const faces = facesAt(["....o...."], 5, 4, 5);
 
-    expect(faces).toEqual([
+    expect(flatsOf(faces)).toEqual([
       {
         kind: "flat",
         along: "across",
@@ -109,11 +132,26 @@ describe("brickFaces", () => {
     ]);
   });
 
+  it("cuts each corner of a brick alone, a 45° face joining its two flats' ends", () => {
+    const owner = brickOwner(cellOf(4, 0));
+    const cut = { kind: "slant", long: false, owner } as const;
+
+    const faces = facesAt(["....o...."], 5, 4, 5);
+
+    expect(faces.filter(({ kind }) => kind === "slant")).toEqual([
+      // x + y = 8.75 through (4, 4.75) and (3.75, 5), and so on round.
+      { ...cut, facingX: -1, facingY: -1, c: 8.75, from: 3.75, to: 4 },
+      { ...cut, facingX: 1, facingY: -1, c: 0.25, from: 5, to: 5.25 },
+      { ...cut, facingX: -1, facingY: 1, c: -2.25, from: 3.75, to: 4 },
+      { ...cut, facingX: 1, facingY: 1, c: 11.25, from: 5, to: 5.25 },
+    ]);
+  });
+
   it("names a brick by its wall cell", () => {
     const faces = facesAt(["....o....", "........."], 4, 4, 5);
 
     expect(faces.map(({ owner }) => owner)).toEqual(
-      Array.from({ length: 4 }, () => brickOwner(cellOf(4, 1))),
+      Array.from({ length: 8 }, () => brickOwner(cellOf(4, 1))),
     );
   });
 
@@ -121,8 +159,49 @@ describe("brickFaces", () => {
     const left = facesAt(["...oo...."], 5, 3, 5);
     const right = facesAt(["...oo...."], 5, 4, 5);
 
-    expect(sidesOf(left)).toEqual(["across -1", "across 1", "up -1"]);
-    expect(sidesOf(right)).toEqual(["across -1", "across 1", "up 1"]);
+    expect(sidesOf(left)).toEqual([
+      "across -1",
+      "across 1",
+      "up -1",
+      "slant -1 -1",
+      "slant -1 1",
+    ]);
+    expect(sidesOf(right)).toEqual([
+      "across -1",
+      "across 1",
+      "up 1",
+      "slant 1 -1",
+      "slant 1 1",
+    ]);
+  });
+
+  it("cuts no corner another brick touches", () => {
+    const low = facesAt(["....o....", "...o....."], 5, 3, 5);
+    const high = facesAt(["....o....", "...o....."], 5, 4, 6);
+
+    expect(sidesOf(low)).not.toContain("slant 1 1");
+    expect(sidesOf(high)).not.toContain("slant -1 -1");
+    expect(sidesOf(low)).toContain("slant 1 -1");
+  });
+
+  it("cuts no corner against a side wall or the ceiling", () => {
+    const left = facesAt(["o........"], 5, 0, 5);
+    const top = facesAt(["....o...."], DEPTH - 1, 4, DEPTH - 1);
+
+    expect(sidesOf(left)).toEqual([
+      "across -1",
+      "across 1",
+      "up 1",
+      "slant 1 -1",
+      "slant 1 1",
+    ]);
+    expect(sidesOf(top)).toEqual([
+      "across -1",
+      "up -1",
+      "up 1",
+      "slant -1 -1",
+      "slant 1 -1",
+    ]);
   });
 
   it("shows no face between bricks one over the other", () => {
@@ -210,7 +289,7 @@ describe("facesOf", () => {
     expect(faces.map(faceOrder)).toEqual(
       [...faces.map(faceOrder)].sort((a, b) => a - b),
     );
-    expect(faces).toHaveLength(4 + 3 + 3 + 4);
+    expect(faces).toHaveLength(4 + 5 + 5 + 8);
   });
 
   it("leaves out the bricks waiting over the ceiling", () => {
@@ -245,6 +324,17 @@ describe("meetsAt", () => {
     expect(meetsAt(UNDER, 2.5, 3, 0, 1)).toBe(0);
     expect(meetsAt(UNDER, 2.5, 3 + OVERLAP / 2, 0, 1)).toBe(0);
     expect(meetsAt(UNDER, 2.5, 3 + 2 * OVERLAP, 0, 1)).toBe(MISSED);
+  });
+
+  it("meets a slant flown into at its line, between its ends", () => {
+    // x + y = 8.75 from x = 3.75 to 4, facing left and down.
+    const cut = faceNamed(facesAt(["....o...."], 5, 4, 5), "slant -1 -1");
+
+    expect(meetsAt(cut, 3.875, 3.875, 0, 1)).toBeCloseTo(1, 12);
+    expect(meetsAt(cut, 2.875, 4.875, 1, 0)).toBeCloseTo(1, 12);
+    expect(meetsAt(cut, 3.5, 3.5, 0, 1)).toBe(MISSED);
+    expect(meetsAt(cut, 3.875, 3.875, 0.6, -0.8)).toBe(MISSED);
+    expect(meetsAt(cut, 3.875, 5, 0, 1)).toBe(MISSED);
   });
 
   it("meets a side wall, the ceiling and the floor from beyond them, at once", () => {
@@ -299,12 +389,12 @@ describe("faceOrder", () => {
     expect(new Set(order).size).toBe(order.length);
   });
 
-  it("lists a brick's flats down, up, left and right", () => {
+  it("lists a brick's flats down, up, left and right, then its cuts", () => {
     const faces = facesAt(["....o...."], 5, 4, 5);
 
     const order = faces.map(faceOrder);
 
     expect(order).toEqual([...order].sort((a, b) => a - b));
-    expect(new Set(order).size).toBe(4);
+    expect(new Set(order).size).toBe(8);
   });
 });

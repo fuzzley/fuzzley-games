@@ -180,7 +180,19 @@ function reachesInto(face: BrickFace, column: number, row: number): boolean {
       return face.along === "across"
         ? overlaps(face.from, face.to, face.line, face.line, column, row)
         : overlaps(face.line, face.line, face.from, face.to, column, row);
-    case "slant":
+    case "slant": {
+      // Its line is x + y = c where it faces right and up or left and
+      // down, and x − y = c where it faces right and down or left and up.
+      const sum = face.facingX === face.facingY;
+      return overlaps(
+        face.from,
+        face.to,
+        sum ? face.c - face.to : face.from - face.c,
+        sum ? face.c - face.from : face.to - face.c,
+        column,
+        row,
+      );
+    }
     case "bar":
     case "eye":
       return false;

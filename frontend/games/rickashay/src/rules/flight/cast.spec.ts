@@ -21,6 +21,19 @@ import type { TurnOff } from "./events";
 /** The depth of the field the specs play on. */
 const DEPTH = 11;
 
+/** Returns an aim's heading, throwing for an aim there is none of. */
+function headingOf(aim: number): readonly [number, number] {
+  const heading = AIMS[aim];
+  if (heading === undefined) {
+    throw new RangeError(`There is no aim ${String(aim)}.`);
+  }
+  return heading;
+}
+
+/** The headings at 45° and at the lowest aim, 8°. */
+const AT_45 = headingOf(148);
+const LOWEST = headingOf(0);
+
 /** Returns a field 11 deep holding a wall drawn as a picture, its lowest row standing in a field row. */
 function fieldOf(lowestRow: number, picture: readonly string[]): CastField {
   return castField(wallFrom(picture, WALL_LEGEND, { lowestRow }), DEPTH);
@@ -101,7 +114,7 @@ describe("cast", () => {
     // The brick over the corner and the one beside it, whose flats meet a
     // radius out from each at (3.75, 4.75).
     const field = fieldOf(4, ["...o.....", "....o...."]);
-    const [dx, dy] = AIMS[148] as readonly [number, number];
+    const [dx, dy] = AT_45;
 
     const met = castFrom(field, [3.75 - 2 * dx, 4.75 - 2 * dy], [dx, dy]);
 
@@ -134,7 +147,7 @@ describe("cast", () => {
 
   it("meets a side wall and the ceiling at one moment in the field's corner", () => {
     const field = fieldOf(5, ["....o...."]);
-    const [dx, dy] = AIMS[148] as readonly [number, number];
+    const [dx, dy] = AT_45;
 
     const met = castFrom(
       field,
@@ -160,7 +173,7 @@ describe("cast", () => {
 
   it("walks past empty cells to a face across the field", () => {
     const field = fieldOf(9, ["o........"]);
-    const [dx, dy] = AIMS[0] as readonly [number, number];
+    const [dx, dy] = LOWEST;
 
     const met = castFrom(field, [9 - RADIUS, 9.5 - (7.5 * dy) / dx], [-dx, dy]);
 
@@ -168,17 +181,36 @@ describe("cast", () => {
   });
 
   it("meets a face it tries in two cells once", () => {
-    // The brick's flat, from x = 4 to 5, reaches into the cell left of it,
-    // and is met at its end as the fuzzball crosses into the next.
+    // The brick's floorward flat, from x = 4 to 5, reaches into the cell
+    // left of the one it lies in, which the fuzzball leaves first.
     const field = fieldOf(5, ["....o...."]);
 
-    const met = castFrom(
-      field,
-      [4 - 0.6 * 4, 5 - RADIUS - 0.8 * 4],
-      [0.6, 0.8],
-    );
+    const met = castFrom(field, [3.9, 4], [0.6, 0.8]);
 
-    expect(metOf(met)).toEqual(expected(4, [brick(4, 0)]));
+    expect(metOf(met)).toEqual(expected(0.9375, [brick(4, 0)]));
+  });
+
+  it("meets a brick's cut corner, short of the corner", () => {
+    const field = fieldOf(5, ["....o...."]);
+    const [dx, dy] = AT_45;
+
+    const met = castFrom(field, [4 - 3 * dx, 5 - 3 * dy], [dx, dy]);
+
+    expect(metOf(met)).toEqual(
+      expected(3 - RADIUS / Math.SQRT2, [brick(4, 0)]),
+    );
+    expect(met.met[0]?.face).toMatchObject({ kind: "slant", c: 8.75 });
+  });
+
+  it("meets both a flat and the cut its end joins, where they join", () => {
+    const field = fieldOf(5, ["....o...."]);
+
+    const met = castFrom(field, [4, RADIUS], [0, 1]);
+
+    expect(met.met.slice(0, met.count).map(({ face }) => face.kind)).toEqual([
+      "flat",
+      "slant",
+    ]);
   });
 
   it("writes into the record it is handed, and returns it", () => {
@@ -242,6 +274,24 @@ describe("clearBrick", () => {
     );
   });
 
+  it("cuts a corner of a brick beside it that it touched", () => {
+    // The lower brick's ceilingward right corner, which the higher one
+    // touched, is free once it breaks.
+    const field = fieldOf(5, ["....o....", "...o....."]);
+    const [dx, dy] = AT_45;
+
+    clearBrick(field, cellOf(4, 1));
+
+    const met = castFrom(field, [4 + 3 * dx, 6 + 3 * dy], [-dx, -dy]);
+    expect(met.met.slice(0, met.count).map(({ face }) => face)).toEqual([
+      expect.objectContaining({
+        kind: "slant",
+        c: 10.25,
+        owner: { kind: "brick", cell: cellOf(3, 0) },
+      }),
+    ]);
+  });
+
   it("tries each face of the bricks about it as one face, in every cell it reaches into", () => {
     // The right brick's floorward flat, built again, reaches into the cell
     // right of its own, which the fuzzball crosses first.
@@ -266,6 +316,46 @@ describe("clearBrick", () => {
       expected(5 - 2 * RADIUS, [brick(8, 0)]),
     );
   });
+});
+
+describe("cast, at a clump of bricks", () => {
+  // A clump with an inside corner, an outside one and two bricks that touch
+  // only at a corner, cast at from all round toward the middle of each of
+  // its bricks: a gap in its faces would let a cast reach a brick.
+  const picture = ["...oo....", "...o.....", "....o...."];
+  const field = fieldOf(4, picture);
+  const middles = [
+    [3.5, 6.5],
+    [4.5, 6.5],
+    [3.5, 5.5],
+    [4.5, 4.5],
+  ] as const;
+  const starts = Array.from({ length: 72 }, (_, index) => {
+    const angle = (index * Math.PI) / 36;
+    return [4 + 3.2 * Math.cos(angle), 5.5 + 3.2 * Math.sin(angle)] as const;
+  });
+
+  /** Returns whether a cast from a place toward a brick's middle reaches it, or meets no face of the clump well short of it. */
+  function slipsThrough(
+    [x, y]: readonly [number, number],
+    [mx, my]: readonly [number, number],
+  ): boolean {
+    const length = Math.hypot(mx - x, my - y);
+    const met = castFrom(field, [x, y], [(mx - x) / length, (my - y) / length]);
+    const short = met.distance < length - 0.5;
+    return (
+      !short || metOf(met).owners.some((owner) => !owner.startsWith("brick"))
+    );
+  }
+
+  it.each(middles)(
+    "meets one of the clump's faces from all round before the middle of the brick at (%s, %s)",
+    (mx, my) => {
+      const through = starts.filter((start) => slipsThrough(start, [mx, my]));
+
+      expect(through).toEqual([]);
+    },
+  );
 });
 
 /** Describes a turn of a fixture's flight, as the cast from where it last turned met it and as its turn names it. */
@@ -297,7 +387,7 @@ function legsOf(name: FixtureName): Leg[] {
   const { start, shot, round } = FLIGHT_FIXTURES[name];
   const { waypoints } = round.flight.track;
   const field = castField(start.wall, start.depth);
-  let [dx, dy] = AIMS[shot.aim] as readonly [number, number];
+  let [dx, dy] = headingOf(shot.aim);
   const legs: Leg[] = [];
   waypoints.slice(1).forEach((to, index) => {
     const from = waypoints[index]!;
@@ -356,6 +446,7 @@ describe("cast, along the flights made by hand", () => {
     "bolt",
     "bored",
     "guard",
+    "corner",
   ] as const)("meets each face %s turns off, where it turns", (name) => {
     const legs = legsOf(name);
 
