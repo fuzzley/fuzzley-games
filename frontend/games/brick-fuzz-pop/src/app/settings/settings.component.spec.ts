@@ -14,9 +14,9 @@ import { type HeldLoad, OFFLINE, heldLoad } from "../../testing/loads";
 import { provideSpecPlay } from "../../testing/play";
 import {
   BrickFuzzPopReports,
+  REPORT_TAG,
   provideBugReports,
 } from "../bug_report/bug_report_source";
-import { REPORT_TAG } from "../bug_report/report_state";
 import { CERTIFICATE_FILES } from "../debug/certificates.service";
 import { DebugMenuComponent } from "../debug/debug_menu.component";
 import { GameService } from "../play/game.service";

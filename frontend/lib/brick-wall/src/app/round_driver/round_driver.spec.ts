@@ -6,7 +6,7 @@ import { GAME_RANDOM } from "@fz/game-ui/random";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { AnnouncerService } from "@fz/ui/announcer";
-import { ConfirmService } from "@fz/ui/confirm";
+import { type ConfirmRequest, ConfirmService } from "@fz/ui/confirm";
 import { DEPTHS } from "../../rules/field";
 import type { Pars } from "../../rules/par";
 import type { ReleasedRound, ReplayedRound } from "../../rules/reported";
@@ -375,6 +375,15 @@ class MadeUpGame extends RoundDriver<
     super.flyOn(round, released);
   }
 }
+
+/** A question asked before something would lose the run in progress. */
+const LOSING: ConfirmRequest = {
+  title: "Lose it?",
+  message: "You'll lose the game in progress.",
+  confirmLabel: "Lose it",
+  cancelLabel: "Keep it",
+  tone: "danger",
+};
 
 /** Returns the made-up game, its field on the first shape. */
 function gameOf(): MadeUpGame {
@@ -1318,6 +1327,27 @@ describe("RoundDriver", () => {
       const started = await answered(game.newGame(), false);
 
       expect([started, game.run()]).toEqual([false, run]);
+    });
+
+    it("goes ahead at once where no run in progress would be lost, asking nothing", async () => {
+      const game = gameOf();
+
+      const going = await game.askBeforeLosingRun(LOSING);
+
+      expect([going, TestBed.inject(ConfirmService).isOpen()]).toEqual([
+        true,
+        false,
+      ]);
+    });
+
+    it("asks the question handed before losing a run in progress, going ahead as the player says", async () => {
+      const game = gameOf();
+      playRoundOut(game);
+
+      const asking = game.askBeforeLosingRun(LOSING);
+      const asked = TestBed.inject(ConfirmService).prompt();
+
+      expect([asked, await answered(asking, false)]).toEqual([LOSING, false]);
     });
 
     it("starts a run at a level chosen once the player says yes", async () => {

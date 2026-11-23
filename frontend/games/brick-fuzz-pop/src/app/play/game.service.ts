@@ -17,7 +17,6 @@ import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
 import type { FrameChange } from "@fz/brick-wall/view/rounds_played";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { GameViewportService } from "@fz/game-ui/viewport";
-import type { ConfirmRequest } from "@fz/ui/confirm";
 import { ThemeService } from "@fz/ui/theme";
 import { type Line, shotOf } from "../../rules/levels/certificate";
 import { type LevelEntry, parseLevel } from "../../rules/levels/levels";
@@ -29,11 +28,7 @@ import {
   type RoundStart,
 } from "../../rules/round/round";
 import { describeRows, describeShot } from "../../rules/run/describe";
-import type {
-  PlayedRound,
-  ReadRound,
-  ReplayedGame,
-} from "../../rules/run/reported_game";
+import type { PlayedRound, ReadRound } from "../../rules/run/reported_game";
 import {
   type LevelCounts,
   RUN_RULES,
@@ -66,17 +61,6 @@ import { boardCardOf } from "./cards";
 import { CertificateLine } from "./line";
 import { KEPT_GAME } from "./saved_game.service";
 import { ROUND_WORDS, fastForwardWords } from "./words";
-
-/**
- * What loading a reported game asks before it throws away a run under way,
- * as every game's loader asks it: Solitaire's.
- */
-const LOAD_QUESTION: ConfirmRequest = {
-  title: "Load this game?",
-  message: "You'll lose the game in progress.",
-  confirmLabel: "Load",
-  tone: "danger",
-};
 
 /**
  * The pace a reported round is flown to its moment at, a field unit a
@@ -409,28 +393,6 @@ export class GameService extends RoundDriver<
     this.begin(this.create(level), undefined, { certified: true });
     this.line.start(shots, depth, this.run());
     this.sayLevel();
-    return true;
-  }
-
-  /**
-   * Takes up a game a bug report kept, asking first if a run is in
-   * progress: off the record, the field forced to the depth its round
-   * starts on, the run and where its round starts taken up as a saved game
-   * is, the rounds its level played on the way recorded, and its round in
-   * play, if any, released again from where it started, dropped where it
-   * was, flown to the moment reported and paused. Resolves to whether it
-   * did.
-   *
-   * @throws Error where a round is in play and the board isn't drawn yet,
-   *   which can't fly it, before anything is asked.
-   */
-  async takeUpReport(replayed: ReplayedGame): Promise<boolean> {
-    if (replayed.round !== null && !this.drawn()) {
-      throw new Error("The board isn't drawn yet. Try again once it shows.");
-    }
-    if (!(await this.mayLoseRun(LOAD_QUESTION))) return false;
-    this.debug.setDepth(replayed.game.start.depth);
-    this.takeUpReplayed(replayed);
     return true;
   }
 

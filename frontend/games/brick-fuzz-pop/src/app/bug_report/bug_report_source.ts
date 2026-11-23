@@ -1,9 +1,13 @@
 import { Injectable, type Provider, inject } from "@angular/core";
+import { WallReports } from "@fz/brick-wall/app/reported";
+import { BUG_REPORT_SOURCE } from "@fz/game-ui/bug_report";
 import {
-  BUG_REPORT_SOURCE,
-  type BugReportSource,
-  type ReportState,
-} from "@fz/game-ui/bug_report";
+  type PlayedGame,
+  type ReplayedGame,
+  readReportedGame,
+  replayReported,
+  reportedGameOf,
+} from "../../rules/run/reported_game";
 import {
   TUNED_NUMBERS,
   TUNING_SLIDERS,
@@ -17,8 +21,9 @@ import {
   SettingsService,
 } from "../settings/settings.service";
 import { GAME_LEVELS, PLAY_ROUND } from "../tokens";
-import { loadReport } from "./load_report";
-import { REPORT_TAG, reportStateOf } from "./report_state";
+
+/** The tag Brick Fuzz Pop's reported states are packed under, `bp` and the version of their shape. */
+export const REPORT_TAG = "bp1";
 
 /** Each way a pointer may aim, as the settings drawer names it. */
 const AIMING_NAMES: Readonly<Record<Aiming, string>> = {
@@ -38,26 +43,28 @@ function onOrOff(name: string, on: boolean): string {
 }
 
 /**
- * Says what Brick Fuzz Pop puts in a bug report: its name, the level in
- * play, its settings and what the debug menu has set, and its state, from
- * the game itself; and takes a reported state back into play.
+ * Says what Brick Fuzz Pop puts in a bug report, as every wall game's
+ * reports do, with its settings and what the debug menu has set: its state
+ * kept as `rules/run/reported_game` keeps it, and read back and played
+ * again through the round player.
  */
 @Injectable({ providedIn: "root" })
-export class BrickFuzzPopReports implements BugReportSource {
-  private readonly playing = inject(GameService);
+export class BrickFuzzPopReports extends WallReports<PlayedGame, ReplayedGame> {
   private readonly store = inject(SettingsService);
   private readonly debug = inject(DebugService);
-  private readonly levels = inject(GAME_LEVELS);
-  private readonly playRound = inject(PLAY_ROUND);
 
-  readonly title = "Brick Fuzz Pop";
-
-  readonly tag = REPORT_TAG;
-
-  /** Describes the game in play: "Brick Fuzz Pop · Level 9: Rocket". */
-  game(): string {
-    const { number, data } = this.playing.level();
-    return `${this.title} · Level ${String(number)}: ${data.name}`;
+  constructor() {
+    const levels = inject(GAME_LEVELS);
+    const play = inject(PLAY_ROUND);
+    super({
+      title: "Brick Fuzz Pop",
+      tag: REPORT_TAG,
+      driver: inject(GameService),
+      menu: inject(DebugService),
+      keep: (played) => reportedGameOf(played, levels),
+      replay: (state, id) =>
+        replayReported(readReportedGame(state, levels, id), levels, play),
+    });
   }
 
   /**
@@ -82,21 +89,6 @@ export class BrickFuzzPopReports implements BugReportSource {
         ({ id, name }) => `${name}: ${formatTuning(id, tuned[id])} (debug)`,
       ),
     ];
-  }
-
-  /** Takes the game's state at once, from the game itself. */
-  capture(): ReportState {
-    return reportStateOf(this.playing, this.levels);
-  }
-
-  /**
-   * Puts a reported state in play, paused and off the record, asking first
-   * where a run in progress would be lost; resolves to whether it did.
-   *
-   * @throws Error naming the part that doesn't fit this build.
-   */
-  load(state: unknown): Promise<boolean> {
-    return loadReport(state, this.playing, this.levels, this.playRound);
   }
 }
 

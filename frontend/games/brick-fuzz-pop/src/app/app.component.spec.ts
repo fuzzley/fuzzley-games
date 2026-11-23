@@ -14,7 +14,13 @@ import { collectErrors, provideFakePhaserCanvas } from "@fz/phaser/testing";
 import { paintRoles } from "@fz/style/testing";
 import { recordOf } from "@fz/core/records";
 import { AnnouncerService } from "@fz/ui/announcer";
-import { figure, figureValue, setPageVisibility } from "@fz/ui/testing";
+import {
+  MemoryStorage,
+  figure,
+  figureValue,
+  provideMemoryStorage,
+  setPageVisibility,
+} from "@fz/ui/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
 import { BRICK_KIND_IDS } from "../rules/catalog/bricks";
@@ -35,9 +41,9 @@ import { PALETTES } from "../testing/roles";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";
 import {
   BrickFuzzPopReports,
+  REPORT_TAG,
   provideBugReports,
 } from "./bug_report/bug_report_source";
-import { REPORT_TAG } from "./bug_report/report_state";
 import { CERTIFICATE_FILES } from "./debug/certificates.service";
 import { DebugService } from "./debug/debug.service";
 import { HelpComponent } from "./help/help.component";
@@ -748,6 +754,31 @@ describe("AppComponent", () => {
           name: `1 Hello, wall 3 of 3 stars Best ${formatPoints(best)}`,
         }),
       ).toBeInTheDocument();
+    });
+
+    it("shows no stars and no best for a level cleared whose record lost them", async () => {
+      const storage = new MemoryStorage();
+      storage.setItem(
+        "brick-fuzz-pop-stats",
+        JSON.stringify({
+          version: 1,
+          runs: 1,
+          best: 0,
+          furthest: 1,
+          levels: { "hello-wall": { rounds: 4 } },
+        }),
+      );
+      storage.setItem(
+        "brick-fuzz-pop-progress",
+        JSON.stringify({ version: 1, cleared: ["hello-wall"] }),
+      );
+      const { user } = await renderAppWith([provideMemoryStorage(storage)]);
+
+      await user.click(barButton("Levels"));
+
+      expect(
+        screen.getByRole("button", { name: /^1 Hello, wall/ }),
+      ).toHaveAccessibleName("1 Hello, wall");
     });
 
     it("keeps a level locked until the one before it is cleared", async () => {

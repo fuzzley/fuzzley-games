@@ -12,9 +12,9 @@ import { STILL, provideSpecPlay } from "../../testing/play";
 import { TUNED_NUMBERS, tuningLines } from "../../view/debug/debug_tuning";
 import {
   BrickFuzzPopReports,
+  REPORT_TAG,
   provideBugReports,
 } from "../bug_report/bug_report_source";
-import { REPORT_TAG } from "../bug_report/report_state";
 import { GameService } from "../play/game.service";
 import { CERTIFICATE_FILES } from "./certificates.service";
 import { DebugService } from "./debug.service";

@@ -12,6 +12,7 @@ import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
 import { GAME_RANDOM } from "@fz/game-ui/random";
 import { RunLifecycle } from "@fz/game-ui/run_lifecycle";
+import type { ConfirmRequest } from "@fz/ui/confirm";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { type IdentifiedLevel, levelAt } from "../../rules/progress";
@@ -554,6 +555,15 @@ export abstract class RoundDriver<
     this.begin(this.create(level));
     this.sayLevel();
     return true;
+  }
+
+  /**
+   * Resolves to whether to go ahead with what would lose the run in
+   * progress, asking a question first where one is, as loading a reported
+   * game does.
+   */
+  async askBeforeLosingRun(question: ConfirmRequest): Promise<boolean> {
+    return this.mayLoseRun(question);
   }
 
   /** Starts a new run at the level a lost run reached, as its cards offer. */
