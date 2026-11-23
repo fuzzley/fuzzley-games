@@ -237,20 +237,28 @@ Phaser game. A new case uses what the spec already has:
 
 ## The Shell
 
-- **Script the rounds.** `provideSpecPlay(rounds, levels)`
-  (`src/testing/play.ts`) hands `GameService` the game's first three levels
-  (`SPEC_LEVELS`), a random that always gives the same seed, and a round
-  player. `scriptedRounds(...)` plays the rounds named in turn, the last
-  again once they run out, each with a fixture's flight and points of the
-  spec's own (`SPEC_POINTS`); `SpecRound` names what a round can come to. A
-  spec that wants the real rules hands it `playRound()`.
+- **Script the rounds.** `provideSpecPlay(rounds)` (`src/testing/play.ts`)
+  hands `GameService` the game's first three levels (`SPEC_LEVELS`), a
+  random that always gives the same seed, and a round player.
+  `scriptedRounds(...)` plays the rounds named in turn, the last again once
+  they run out, each with a fixture's flight and points of the spec's own
+  (`SPEC_POINTS`); `SpecRound` names what a round can come to. A spec that
+  wants the real rules hands it `playRound()`.
 - **Play a frame at a time** with `release()`, `playOut()`,
   `playRoundOut()` and `playUntilCard()`, steered `STILL` or `RELEASE`, and
   `@fz/core/testing`'s `FRAME_MS` and `playUntil()`.
-- **Play the flight out before reading the records.** `GameService` counts
-  a run's start as its first round is released, but keeps the rest as a
-  flight lands. Taking up a run on the record marks the levels it cleared
-  before its own in the progress.
+- **Play the flight out before reading the records.**
+  `@fz/brick-wall/app/records` keeps a level's clear and a run's end as
+  the flight lands, so a spec that reads `StatsService` or
+  `ProgressService` plays it out first.
+- **Spec what every wall game's shell does in the library.** The round's
+  driver, the records and the bug report's state and load are
+  `@fz/brick-wall`'s, and their cases go in its specs beside them, in
+  `frontend/lib/brick-wall/src/app/`, over its made-up games. This
+  workspace's specs hold only its wiring of them: the rules and boon a
+  round plays on, its words, the drop, the line and the debug menu, what
+  its own stores keep as its flights land, a drop's and a hidden page's
+  among them, and what its report keeps and plays again.
 - **Wait for what loads on demand.** The shell loads How to play as it
   first opens, and the debug menu where it is offered, through
   `@fz/ui/on_demand`'s `onDemand()`, each load a pending task. So after
