@@ -1,7 +1,7 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { type Brick, kindOf } from "../catalog/kinds";
 import { NO_BRICK } from "./legend";
-import { WALL_ROWS } from "./level_rules";
+import { WALL_ROWS, levelProblem } from "./level_rules";
 import {
   LEVELS,
   LEVEL_SETS,
@@ -15,6 +15,22 @@ import {
 
 const AIR = NO_BRICK.repeat(COLUMNS);
 const PLAIN = "ooooooooo";
+
+/** How many levels a set holds, as the design's "The levels" has it. */
+const SET_LEVELS = 9;
+
+/** Every set by its name. */
+const NAMED_SETS = LEVEL_SETS.map((set) => [set.name, set] as const);
+
+/** Every level by its name. */
+const NAMED_LEVELS = LEVELS.map((entry) => [entry.data.name, entry] as const);
+
+/** Returns the values a list holds more than once, each once, in the order they first come again. */
+function duplicatesOf(values: readonly string[]): string[] {
+  return [
+    ...new Set(values.filter((value, index) => values.indexOf(value) < index)),
+  ];
+}
 
 /**
  * Returns a picture of a wall: rows on top, rows at the bottom, and plain
@@ -198,4 +214,36 @@ describe("the sets", () => {
       ]).toEqual([rows, needed, hits]);
     },
   );
+});
+
+describe("every level of every set", () => {
+  it.each(NAMED_SETS)(`has ${String(SET_LEVELS)} in %s`, (_, { levels }) => {
+    expect(levels).toHaveLength(SET_LEVELS);
+  });
+
+  it("gives every set an id of its own", () => {
+    expect(duplicatesOf(LEVEL_SETS.map(({ id }) => id))).toEqual([]);
+  });
+
+  it("gives every set a name of its own", () => {
+    expect(duplicatesOf(LEVEL_SETS.map(({ name }) => name))).toEqual([]);
+  });
+
+  it("gives every level an id of its own", () => {
+    expect(duplicatesOf(LEVELS.map(({ data }) => data.id))).toEqual([]);
+  });
+
+  it("gives every level a name of its own", () => {
+    expect(duplicatesOf(LEVELS.map(({ data }) => data.name))).toEqual([]);
+  });
+
+  describe.each(NAMED_LEVELS)("%s", (_, { number, data }) => {
+    it("parses", () => {
+      expect(() => parseLevel(data)).not.toThrow();
+    });
+
+    it("keeps the rules a level keeps, at its number", () => {
+      expect(levelProblem(data.bricks, number)).toBeNull();
+    });
+  });
 });
