@@ -272,6 +272,22 @@ describe("RoundPlay, released", () => {
     },
   );
 
+  it("says how far through its flight the playback has reached, in field units", () => {
+    const play = playing(rally);
+
+    play.advance(500, NORMAL);
+
+    expect(play.moment).toBeCloseTo(FLIGHT_PACE.speeds.normal[0] * 0.5, 9);
+  });
+
+  it("says the flight's length as the moment reached once it has landed", () => {
+    const play = playing(plain);
+
+    playUntilLanded(play);
+
+    expect(play.moment).toBe(plain.round.flight.length);
+  });
+
   it("leaves with none of the last flight's rally, turns or points", () => {
     const play = playing(rally);
     playUntilEnded(play);

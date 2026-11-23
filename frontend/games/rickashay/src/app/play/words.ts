@@ -1,0 +1,117 @@
+import type { Signal } from "@angular/core";
+import type { RoundWords } from "@fz/brick-wall/app/round_driver";
+import { levelIdOf } from "@fz/brick-wall/rules/progress";
+import type { Round, RoundStart } from "../../rules/flight/events";
+import { type LevelEntry, levelEntryOf } from "../../rules/levels/levels";
+import {
+  describeCleared,
+  describeDanger,
+  describeEnd,
+  describeJump,
+  describeLevel,
+  describePause,
+  describeResume,
+  describeRound,
+  describeTakenUp,
+} from "../../rules/run/describe";
+import type { Run } from "../../rules/run/run";
+import type { LevelTally } from "../../rules/run/scoring";
+import { type Marks, rallyMarkOf, starsEarned } from "../../rules/run/stars";
+
+/**
+ * Says what Rickashay says as its run goes, each moment's words the rules'
+ * own, as the round's driver asks for them: a round's end with the wall's
+ * jump and the danger after it, a level begun with its par and its rally
+ * mark, a level cleared with its stars, the run's end, a pause, going on,
+ * and a run taken up.
+ *
+ * A level's par and rally mark are those of the depth its run lays it out
+ * on, so the game hands it the run on the board ({@link follow}) as soon as
+ * it is made, before any level begins.
+ */
+export class RunWords implements RoundWords<
+  LevelTally,
+  LevelEntry,
+  RoundStart,
+  Round
+> {
+  /** The run on the board, once the game hands it. */
+  private onBoard: Signal<Run> | null = null;
+
+  constructor(
+    private readonly levels: readonly LevelEntry[],
+    private readonly marks: Marks,
+  ) {}
+
+  /** Takes the run on the board, which a level begun is said on. */
+  follow(run: Signal<Run>): void {
+    this.onBoard = run;
+  }
+
+  /**
+   * Returns what is said as a round's wall comes to rest: the round's end,
+   * of the round aimed next while the level goes on, else of the wall it
+   * left; then the wall's jump, and the danger once the round aimed has a
+   * brick the level needs over the floor's row.
+   */
+  round({ outcome, next }: Round, aimed: RoundStart): string {
+    const after = outcome.result === "on" ? aimed : next;
+    return [
+      describeRound(outcome, after),
+      describeJump(outcome),
+      describeDanger(outcome, after),
+    ]
+      .filter((words) => words !== null)
+      .join(" ");
+  }
+
+  /**
+   * Returns what is said as a level begins: its number, its name, and its
+   * par and rally mark on the depth the run on the board lays it out on.
+   *
+   * @throws Error before the game has handed it the run on the board.
+   */
+  level(level: LevelEntry): string {
+    if (this.onBoard === null) {
+      throw new Error("No run is on the board to say a level of.");
+    }
+    const { par, depth } = this.onBoard();
+    const mark = rallyMarkOf(level.data.id, depth, this.marks);
+    return describeLevel(level, par, mark);
+  }
+
+  /** Returns what is said as a level is cleared: its shots, the stars it earned by name, and the score. */
+  cleared(run: Run): string {
+    const { levels, marks } = this;
+    const mark = rallyMarkOf(levelIdOf(levels, run.level), run.depth, marks);
+    return describeCleared(run, starsEarned(run, levels, marks), mark);
+  }
+
+  /** Returns what is said as a run ends: how, where a lost one was lost, its score, and a new best. */
+  end(run: Run, newBest: boolean): string {
+    return describeEnd(run, levelEntryOf(this.levels, run.level), newBest);
+  }
+
+  /** Returns what is said as a run pauses. */
+  pause(run: Run): string {
+    return describePause(run);
+  }
+
+  /** Returns what is said as a paused run goes on. */
+  resume(): string {
+    return describeResume();
+  }
+
+  /** Returns what is said as a run storage kept is taken up, paused. */
+  takenUp(run: Run, level: LevelEntry): string {
+    return describeTakenUp(run, level);
+  }
+}
+
+/**
+ * Returns what is said as F switches fast-forward on or off, which the bar's
+ * button says for a press by being pressed or not.
+ */
+export function fastForwardWords(on: boolean): string {
+  return on ? "Fast-forward on." : "Fast-forward off.";
+}

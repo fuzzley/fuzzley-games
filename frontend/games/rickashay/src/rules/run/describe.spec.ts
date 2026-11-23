@@ -12,11 +12,15 @@ import {
   describeCleared,
   describeDanger,
   describeEarned,
+  describeEnd,
   describeGuide,
   describeJump,
   describeLevel,
+  describePause,
+  describeResume,
   describeRound,
   describeRows,
+  describeTakenUp,
   starLabel,
 } from "./describe";
 
@@ -294,6 +298,58 @@ describe("describeCleared", () => {
     expect(describeCleared({ ...RUN, rounds: 1 }, stars, 10)).toBe(
       "Level 2 cleared in 1 shot. 1 star: cleared. Score 1,640.",
     );
+  });
+});
+
+describe("describePause", () => {
+  it("says the run paused, its score and the key that resumes it", () => {
+    expect(describePause({ score: 1640 })).toBe(
+      "Paused. Score 1,640. Press Enter to resume.",
+    );
+  });
+});
+
+describe("describeResume", () => {
+  it("says the run goes on", () => {
+    expect(describeResume()).toBe("Resumed.");
+  });
+});
+
+describe("describeTakenUp", () => {
+  it("says the level, the shots taken there, the score and the key that resumes it", () => {
+    expect(
+      describeTakenUp({ rounds: 3, score: 1640 }, levelEntryOf(LEVELS, 2)),
+    ).toBe(
+      "Paused on level 2, Side door. 3 shots taken. Score 1,640. Press Enter to resume.",
+    );
+  });
+
+  it("says no shots for a level not yet begun", () => {
+    expect(
+      describeTakenUp({ rounds: 0, score: 0 }, levelEntryOf(LEVELS, 1)),
+    ).toBe("Paused on level 1, First bounce. Score 0. Press Enter to resume.");
+  });
+});
+
+describe("describeEnd", () => {
+  it("says a lost run's end, where it was lost and its score", () => {
+    expect(
+      describeEnd(
+        { outcome: "over", score: 1240 },
+        levelEntryOf(LEVELS, 3),
+        false,
+      ),
+    ).toBe("Game over. Lost on level 3, Columns. Score 1,240.");
+  });
+
+  it("says a won run's end without an exclamation, and a new best", () => {
+    expect(
+      describeEnd(
+        { outcome: "won", score: 9120 },
+        levelEntryOf(LEVELS, 9),
+        true,
+      ),
+    ).toBe("Every level cleared. Score 9,120. New best.");
   });
 });
 

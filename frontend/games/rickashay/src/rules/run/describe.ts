@@ -11,6 +11,7 @@ import {
   brickAt,
   fieldRowOf,
 } from "@fz/brick-wall/rules/grid";
+import { endTitle, whereLost } from "@fz/brick-wall/rules/end_words";
 import { inDanger, lowestNeededRow } from "@fz/brick-wall/rules/wall";
 import { count, formatPoints, listed } from "@fz/core/format";
 import { WALL_RULES } from "../bricks/wall_rules";
@@ -150,6 +151,48 @@ export function describeCleared(
     starWords(star, run.par, mark),
   );
   return `Level ${String(run.level)} cleared in ${count(run.rounds, "shot", "shots")}. ${count(earned.length, "star", "stars")}: ${listed(earned)}. Score ${formatPoints(run.score)}.`;
+}
+
+/** Returns what is said as a run pauses: its score, and the key that resumes it. */
+export function describePause({ score }: Pick<Run, "score">): string {
+  return `Paused. Score ${formatPoints(score)}. Press Enter to resume.`;
+}
+
+/** Returns what is said as a paused run goes on. */
+export function describeResume(): string {
+  return "Resumed.";
+}
+
+/**
+ * Returns what is said as a run kept before the page was left is taken up,
+ * paused: its level, the shots it has taken there, its score and the key
+ * that resumes it.
+ */
+export function describeTakenUp(
+  { rounds, score }: Pick<Run, "rounds" | "score">,
+  entry: LevelEntry,
+): string {
+  const shots = rounds === 0 ? "" : ` ${count(rounds, "shot", "shots")} taken.`;
+  return `Paused on level ${String(entry.number)}, ${entry.data.name}.${shots} Score ${formatPoints(score)}. Press Enter to resume.`;
+}
+
+/**
+ * Returns what is said as a run ends, on the level handed: how it ended,
+ * where a lost one was lost, its score, and whether that is a new best:
+ * "Game over. Lost on level 3, Columns. Score 1,240. New best."
+ */
+export function describeEnd(
+  run: Pick<Run, "outcome" | "score">,
+  entry: LevelEntry,
+  newBest: boolean,
+): string {
+  const words = [`${endTitle(run).replace(/!$/, "")}.`];
+  if (run.outcome !== "won") {
+    words.push(`${whereLost(entry.number, entry.data.name)}.`);
+  }
+  words.push(`Score ${formatPoints(run.score)}.`);
+  if (newBest) words.push("New best.");
+  return words.join(" ");
 }
 
 /**

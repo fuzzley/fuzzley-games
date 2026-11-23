@@ -7,7 +7,7 @@
 // what it calls for, effects/effects.ts's, is logged with it.
 
 import { RADIUS } from "@fz/brick-wall/rules/field";
-import { type WallRules, inDanger } from "@fz/brick-wall/rules/wall";
+import { inDanger } from "@fz/brick-wall/rules/wall";
 import {
   type DecidedRound,
   Playback,
@@ -17,7 +17,8 @@ import { clearedDelayMs, resultDelayMs } from "@fz/brick-wall/view/timing";
 import { Countdown } from "@fz/core/clock";
 import { EventLog } from "@fz/core/event_log";
 import { multiplierAt } from "@fz/core/math";
-import { type Brick, type KindId, kindOf } from "../../rules/catalog/kinds";
+import { WALL_RULES } from "../../rules/bricks/wall_rules";
+import type { Brick, KindId } from "../../rules/catalog/kinds";
 import type {
   BallTrack,
   Flight,
@@ -101,11 +102,6 @@ const BEATS_KEPT = 16;
 
 /** Stands in a log's record before the first event is written to it. */
 const NO_EVENT: FlightEvent = { at: 0, kind: "land", x: 0 };
-
-/** Says which bricks a level needs broken, for the danger line. */
-const NEEDED: Pick<WallRules<KindId>, "needed"> = {
-  needed: (kind) => kindOf(kind).needed,
-};
 
 /**
  * Plays a level's rounds one after another, as the shell hands them: the
@@ -217,6 +213,14 @@ export class RoundPlay {
   /** The round in play once it is released, until the next is aimed; else null. */
   get round(): Round | null {
     return this.played;
+  }
+
+  /**
+   * The moment of the round in play's flight the playback has reached, in
+   * field units: its flight's length once it has landed.
+   */
+  get moment(): number {
+    return this.playback.moment;
   }
 
   /** Where the round stands: aimed, its flight played back, or its wall settling after it. */
@@ -458,7 +462,7 @@ export class RoundPlay {
     const { result } = round.outcome;
     this.change.news.push({ kind: "ended", round });
     if (result === "lost") this.logBeat("lost");
-    if (result === "on" && inDanger(round.next.wall, NEEDED)) {
+    if (result === "on" && inDanger(round.next.wall, WALL_RULES)) {
       this.logBeat("danger");
     }
     if (result !== "on") this.cardWait.start();
