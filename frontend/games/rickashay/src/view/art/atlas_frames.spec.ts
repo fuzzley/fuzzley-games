@@ -13,7 +13,7 @@ import {
   PIXEL_RATIOS,
   pastOutline,
 } from "../../testing/art_frames";
-import { atlasFrames } from "./atlas_frames";
+import { atlasFrames, brickLayers } from "./atlas_frames";
 import { cellOf } from "./cells";
 import { CRACKS, FRAMES, FRAME_NAMES, FURS, INKS, PIPS } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
@@ -270,3 +270,23 @@ describe.each(PIXEL_RATIOS)(
     });
   },
 );
+
+describe("brickLayers", () => {
+  it("shows a brick its kind's art draws in that art's frames, a plain brick's tile in its tint", () => {
+    expect(
+      brickLayers({ kind: "brick", tint: 3, hits: 1, full: 1, plates: 0 }),
+    ).toEqual([FRAMES.tile(3)]);
+  });
+
+  it("shows a tough brick's tile, its pips for the hits left and its cracks for those taken", () => {
+    expect(
+      brickLayers({ kind: "tough", tint: 0, hits: 2, full: 3, plates: 0 }),
+    ).toEqual([FRAMES.tile(0), FRAMES.pips(2), FRAMES.cracks(1)]);
+  });
+
+  it("shows nothing for a brick whose kind's art isn't drawn yet", () => {
+    expect(
+      brickLayers({ kind: "hatch", tint: 0, hits: 0, full: 0, plates: 0 }),
+    ).toEqual([]);
+  });
+});

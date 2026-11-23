@@ -2,9 +2,10 @@
 // which the scene bakes: each drawn kind of brick's, then the fuzzball's.
 
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
-import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
+import { type Brick, KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import type { WallPalette } from "../colors/palette";
-import type { KindArt } from "./art";
+import type { KindArt, KindLook } from "./art";
+import type { FrameName } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
 import { PLAIN_ART } from "./kinds/brick";
 import { STEEL_ART } from "./kinds/steel";
@@ -36,4 +37,20 @@ export function atlasFrames(
     ),
     ...fuzzballFrames(palette, scale),
   ];
+}
+
+/** The frames of a brick whose kind's art isn't drawn yet: none. */
+const UNDRAWN: readonly FrameName[] = [];
+
+/**
+ * Returns the frames a brick shows as it stands, stacked in its cell from
+ * the bottom up, as its kind's art says: none for a kind whose art isn't
+ * drawn yet, which shows nothing until its art is.
+ *
+ * @throws {RangeError} for a look its kind's art shows no frame for.
+ */
+export function brickLayers(
+  brick: KindLook & Pick<Brick, "kind">,
+): readonly FrameName[] {
+  return BRICK_ART[brick.kind]?.layersOf(brick) ?? UNDRAWN;
 }

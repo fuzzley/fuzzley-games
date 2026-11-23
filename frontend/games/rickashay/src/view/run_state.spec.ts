@@ -7,6 +7,7 @@ import {
   type RoundNews,
   type RunState,
   newRunState,
+  waitingX,
   withFrame,
   withNewsSaid,
 } from "./run_state";
@@ -179,5 +180,22 @@ describe("BEATS", () => {
       "cleared",
       "lost",
     ]);
+  });
+});
+
+describe("waitingX", () => {
+  it("finds a fuzzball that heads nowhere waiting where it stands", () => {
+    expect(waitingX({ x: 3.5, dx: 0, dy: 0, home: false })).toBe(3.5);
+  });
+
+  it.each([
+    ["flies across", { dx: 2, dy: 0 }],
+    ["flies straight up", { dx: 0, dy: 3 }],
+  ])("finds none waiting while it %s", (_, speeds) => {
+    expect(waitingX({ x: 3.5, ...speeds, home: false })).toBeNull();
+  });
+
+  it("finds none waiting while it drops home, heading nowhere", () => {
+    expect(waitingX({ x: 3.5, dx: 0, dy: 0, home: true })).toBeNull();
   });
 });

@@ -181,6 +181,20 @@ export interface BallView {
   readonly home: boolean;
 }
 
+/**
+ * Returns where across the field a fuzzball waits on the floor to be let
+ * fly, in field units, or null for one in the air or dropping home: one
+ * waits while it heads nowhere and drops nowhere.
+ */
+export function waitingX({
+  x,
+  dx,
+  dy,
+  home,
+}: Pick<BallView, "x" | "dx" | "dy" | "home">): number | null {
+  return dx === 0 && dy === 0 && !home ? x : null;
+}
+
 /** Describes a round in play as the scene draws it at a moment, one record reused frame after frame. */
 export interface RoundView {
   /** The fuzzball, waiting or in the air. */

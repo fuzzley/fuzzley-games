@@ -47,7 +47,7 @@ const RIVET_RADIUS = 0.04;
  * the sides are, it meets them √2 further from the corner, which moved out
  * as far along each.
  */
-const CUT_GROWTH = 2 - Math.SQRT2;
+export const CUT_GROWTH = 2 - Math.SQRT2;
 
 /** A steel brick's layers, made once. */
 const STEEL_LAYERS = [FRAMES.steel] as const;
@@ -82,7 +82,11 @@ function closed(points: readonly Point[]): readonly Point[] {
  * hole it rings empty. A line as wide as the edge's shorter side, or wider,
  * leaves no hole, so it fills what its outer edge rings instead.
  */
-function cutOutline(area: Area, cut: number, style: LineStyle): PolygonCommand {
+export function cutOutline(
+  area: Area,
+  cut: number,
+  style: LineStyle,
+): PolygonCommand {
   const edge = crispEdge(area, style.width);
   const half = style.width / 2;
   const outside = cutCorners(inset(edge, -half), cut + half * CUT_GROWTH);
