@@ -1,9 +1,12 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import {
   COLUMNS,
+  DEPTHS,
+  FIRST_X,
   LEAST_DEPTH,
   MOST_DEPTH,
   RADIUS,
+  SIDE_MARGIN,
 } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
@@ -11,12 +14,16 @@ import { createRandom } from "@fz/core/random";
 import { cast, castField, createContacts } from "../rules/flight/cast";
 import { type Face, facesOf, fieldShapes } from "../rules/flight/faces";
 import { WALL_LEGEND } from "../rules/levels/legend";
+import { LEVELS, parseLevel } from "../rules/levels/levels";
 import {
   castByScan,
   castOf,
   headingOf,
+  levelOpenings,
   randomField,
   randomShot,
+  randomStart,
+  unflown,
 } from "./cast_reference";
 
 /** The depth of the field the specs play on. */
@@ -154,6 +161,86 @@ describe("randomField", () => {
         return typeof twin !== "number" || wall.bricks[twin]?.twin !== cell;
       }),
     ).toEqual([]);
+  });
+});
+
+describe("randomStart", () => {
+  it("draws the same start from the same source", () => {
+    const field = randomField(createRandom(17));
+
+    expect(randomStart(field, createRandom(19))).toEqual(
+      randomStart(field, createRandom(19)),
+    );
+  });
+
+  it("starts a round at its field's wall and depth, its fuzzball on the floor no nearer a side wall than SIDE_MARGIN", () => {
+    const random = createRandom(23);
+    const fields = Array.from({ length: 200 }, () => randomField(random));
+
+    const drawn = fields.map((field) => ({
+      field,
+      start: randomStart(field, random),
+    }));
+
+    expect(
+      drawn.filter(
+        ({ field, start: { wall, depth, x } }) =>
+          wall !== field.wall ||
+          depth !== field.depth ||
+          x < SIDE_MARGIN ||
+          x > COLUMNS - SIDE_MARGIN,
+      ),
+    ).toEqual([]);
+  });
+
+  it("draws places on both halves of the floor", () => {
+    const random = createRandom(31);
+    const field = randomField(random);
+
+    const starts = Array.from({ length: 20 }, () => randomStart(field, random));
+
+    expect(new Set(starts.map(({ x }) => x < COLUMNS / 2))).toEqual(
+      new Set([false, true]),
+    );
+  });
+
+  it("draws plain shots and hot ones", () => {
+    const random = createRandom(29);
+    const field = randomField(random);
+
+    const starts = Array.from({ length: 20 }, () => randomStart(field, random));
+
+    expect(new Set(starts.map(({ hot }) => hot))).toEqual(
+      new Set([false, true]),
+    );
+  });
+});
+
+describe("levelOpenings", () => {
+  it("lays every level out at every depth, its fuzzball at the floor's middle and its shot plain", () => {
+    const openings = levelOpenings();
+
+    expect(
+      openings.map(({ wall, depth, x, hot }) => [wall.rows, depth, x, hot]),
+    ).toEqual(
+      LEVELS.flatMap(({ data }) =>
+        DEPTHS.map((depth) => [parseLevel(data).rows, depth, FIRST_X, false]),
+      ),
+    );
+  });
+});
+
+describe("unflown", () => {
+  it("copies a start whole, its wall and its bricks new ones", () => {
+    const [start] = levelOpenings();
+
+    const copy = unflown(start!);
+
+    expect([
+      copy,
+      copy.wall === start?.wall,
+      copy.wall.bricks === start?.wall.bricks,
+    ]).toEqual([start, false, false]);
   });
 });
 

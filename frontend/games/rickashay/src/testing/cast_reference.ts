@@ -4,19 +4,24 @@
 // soonest kept, each once, as faceOrder() lists them. It holds the cells
 // cast() walks and the faces castField(), clearBrick() and openHatches()
 // keep for each cell, not the faces' geometry, which faces.spec.ts holds.
-// With it, the seeded random fields and shots the property specs cast.
+// With it, the seeded random fields and shots the property specs cast, and
+// the rounds' starts they play from: drawn, every level's openings, and a
+// copy of one whose wall fly() has never flown at.
 
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import {
   AT_ONCE,
   COLUMNS,
+  DEPTHS,
   LEAST_DEPTH,
   MOST_DEPTH,
   RADIUS,
+  SIDE_MARGIN,
 } from "@fz/brick-wall/rules/field";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import type { Wall } from "../rules/catalog/kinds";
 import type { Contacts } from "../rules/flight/cast";
+import type { RoundStart } from "../rules/flight/events";
 import { type Face, MISSED, meetsAt } from "../rules/flight/faces";
 import {
   type LegendCharacter,
@@ -24,6 +29,8 @@ import {
   PORTAL_MARKS,
   WALL_LEGEND,
 } from "../rules/levels/legend";
+import { LEVELS, parseLevel } from "../rules/levels/levels";
+import { levelStart } from "../rules/run/run";
 
 /** Describes a face a cast met, and how far it flew to meet it, as plain values a spec compares. */
 export interface Met {
@@ -183,6 +190,32 @@ export function randomShot(
       ? AXES[whole(random, 0, AXES.length - 1)]!
       : headingOf(whole(random, 0, AIMS.length - 1), random);
   return { x, y, dx, dy, eyes: random() < 0.75 };
+}
+
+/**
+ * Returns where a round starts in a field drawn for a spec, from a source
+ * of numbers: the fuzzball waiting anywhere on the floor no nearer a side
+ * wall than `SIDE_MARGIN`, and the shot hot half the time.
+ */
+export function randomStart(
+  { wall, depth }: RandomField,
+  random: () => number,
+): RoundStart {
+  const x = SIDE_MARGIN + random() * (COLUMNS - 2 * SIDE_MARGIN);
+  return { wall, depth, x, hot: random() < 0.5 };
+}
+
+/** Returns where every level's first round starts, at every depth, the levels' order first and then the depths'. */
+export function levelOpenings(): RoundStart[] {
+  return LEVELS.flatMap(({ data }) => {
+    const level = parseLevel(data);
+    return DEPTHS.map((depth) => levelStart(level, depth));
+  });
+}
+
+/** Returns a copy of a round's start, whole, so its wall is one fly() has never flown at. */
+export function unflown(start: RoundStart): RoundStart {
+  return structuredClone(start);
 }
 
 /** Returns one of an aim's eight headings, drawn from a source of numbers: its own, or turned down, back or across its 45° half the time each. */
