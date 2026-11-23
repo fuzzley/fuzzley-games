@@ -1,9 +1,9 @@
-import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "@fz/brick-wall/rules/field";
-import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { SHAPES, SMALLEST, shapesAt } from "@fz/dev/layout";
 import { PANEL_GAP_CSS_PX, type Viewport, roomInside } from "@fz/phaser/layout";
 import { viewport } from "@fz/phaser/testing/pure";
-import { boardCanvas, marginInsets } from "../../testing/canvases";
+import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../rules/field";
+import { thirdsOf } from "../rules/wall";
+import { boardCanvas, marginInsets } from "../testing/canvases";
 import {
   FLOOR_BAND,
   FRAME_CSS_PX,
@@ -19,7 +19,7 @@ import {
   toField,
 } from "./field_metrics";
 
-/** Describes a row of plan.md's table of shapes in "The field". */
+/** Describes a row of the table of shapes a wall game's field takes. */
 interface ShapeRow {
   readonly name: string;
   /** The window, in CSS pixels. */
@@ -38,7 +38,7 @@ interface ShapeRow {
   readonly panels: number | null;
 }
 
-/** plan.md's table of shapes in "The field", worked out again for answer 1's lintel. */
+/** The table of shapes a wall game's field takes in the windows it is played in, with the band and the lintel each room spares. */
 const TABLE: readonly ShapeRow[] = [
   {
     name: "a roomy window",
@@ -226,7 +226,7 @@ function tallness(canvas: Viewport): number {
 }
 
 describe("fieldShape", () => {
-  describe("plan.md's table of shapes", () => {
+  describe("the table of shapes", () => {
     it.each(TABLE)("leaves the field $room in $name's window", (row) => {
       const room = roomInside(boardOf(row));
 

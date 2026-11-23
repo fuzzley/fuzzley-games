@@ -1,7 +1,7 @@
+import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import type { GameObjects, Scene } from "phaser";
 import { MOST_CHARGE } from "../../rules/tuning";
 import { FRAMES } from "../../view/art/frames";
-import type { FieldMetrics } from "../../view/field/field_metrics";
 import { createGaugePlace, gaugeOf } from "../../view/gauge/gauge";
 import { itemAt } from "../../view/items";
 import { ATLAS } from "../atlas";

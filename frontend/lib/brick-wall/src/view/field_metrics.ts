@@ -1,4 +1,7 @@
-import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+// A wall game's field fitted to the room on its canvas: the shape it takes
+// between rounds, its unit, its depth, the floor's band and the lintel, and
+// where it lies, with the margin round it and the panels beside it.
+
 import { clamp } from "@fz/core/math";
 import {
   type CssRect,
@@ -10,6 +13,7 @@ import {
   sidePanels,
 } from "@fz/phaser/layout";
 import type { ArtScale } from "@fz/phaser/shapes";
+import { COLUMNS, LEAST_DEPTH, MOST_DEPTH } from "../rules/field";
 
 /**
  * Says what shape of field a room holds: its unit and its depth, and how
@@ -103,7 +107,7 @@ const WHOLE = 1e-6;
  * unit of a device pixel, so a caller keeps the shape it has where
  * {@link hasRoom} says none.
  *
- * A depth set, as the debug menu sets one, is the field's whatever the
+ * A depth set, as a game's debug menu sets one, is the field's whatever the
  * room: the unit is the largest that fits that many rows past the thinnest
  * band and lintel, and what is left over thickens them.
  */

@@ -6,19 +6,19 @@ import {
   neededBelow,
   thirdsOf,
 } from "@fz/brick-wall/rules/wall";
-import { type PixelRect, framePixels } from "@fz/phaser/layout";
-import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
-import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
-import type { GameObjects, Scene, Textures } from "phaser";
-import { WALL_RULES, type Wall } from "../../rules/wall/wall";
-import type { WallPalette } from "../../view/colors/palette";
 import {
   FRAME_CSS_PX,
   type FieldMetrics,
   type FieldShape,
   bandPixels,
   lintelPixels,
-} from "../../view/field/field_metrics";
+} from "@fz/brick-wall/view/field_metrics";
+import { type PixelRect, framePixels } from "@fz/phaser/layout";
+import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
+import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
+import type { GameObjects, Scene, Textures } from "phaser";
+import { WALL_RULES, type Wall } from "../../rules/wall/wall";
+import type { WallPalette } from "../../view/colors/palette";
 import { ATLAS } from "../atlas";
 import { COUNT_DOT, FIELD_FRAMES } from "../field_art";
 import { placeDot } from "./dots";

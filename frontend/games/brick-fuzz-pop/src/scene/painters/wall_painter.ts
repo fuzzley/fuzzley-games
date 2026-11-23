@@ -1,6 +1,7 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
 import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { DANGER_ROW, dangerCells } from "@fz/brick-wall/rules/wall";
+import type { FieldMetrics } from "@fz/brick-wall/view/field_metrics";
 import { shareDone } from "@fz/core/math";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
@@ -11,7 +12,6 @@ import type { FrameName } from "../../view/art/frames";
 import type { WallPalette } from "../../view/colors/palette";
 import { swellScale } from "../../view/effects/flourish";
 import { SWELL_MS } from "../../view/effects/timing";
-import type { FieldMetrics } from "../../view/field/field_metrics";
 import { ATLAS } from "../atlas";
 import { FIELD_FRAMES } from "../field_art";
 import type { PaintContext, Painter } from "./painter";

@@ -1,13 +1,13 @@
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { FIRST_X } from "@fz/brick-wall/rules/field";
-import type { Viewport } from "@fz/phaser/layout";
-import { boardCanvas } from "../../testing/canvases";
+import { boardCanvas } from "@fz/brick-wall/testing/canvases";
 import {
   type FieldMetrics,
   fieldMetrics,
   fieldShape,
   toCanvas,
-} from "../field/field_metrics";
+} from "@fz/brick-wall/view/field_metrics";
+import type { Viewport } from "@fz/phaser/layout";
 import { type PointerAiming, STRAIGHT_UP } from "./aiming";
 import {
   HOLD_NOTCH_MS,

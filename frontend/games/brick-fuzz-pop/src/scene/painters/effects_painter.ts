@@ -1,6 +1,12 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf, wallRowOf } from "@fz/brick-wall/rules/grid";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import {
+  type FieldMetrics,
+  type FieldShape,
+  type Place,
+  toCanvas,
+} from "@fz/brick-wall/view/field_metrics";
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
@@ -17,12 +23,6 @@ import {
   SHARDS_MS,
   STREAK_MS,
 } from "../../view/effects/timing";
-import {
-  type FieldMetrics,
-  type FieldShape,
-  type Place,
-  toCanvas,
-} from "../../view/field/field_metrics";
 import { ATLAS, bakedScaleOf } from "../atlas";
 import { FLIGHT_FRAMES } from "../field_art";
 import { INKED } from "./ball_painter";

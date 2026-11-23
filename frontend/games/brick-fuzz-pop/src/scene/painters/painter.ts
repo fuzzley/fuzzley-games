@@ -1,8 +1,11 @@
+import type {
+  FieldMetrics,
+  FieldShape,
+} from "@fz/brick-wall/view/field_metrics";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { Guide } from "../../rules/flight/guide";
 import type { Boon } from "../../rules/shot";
 import type { WallPalette } from "../../view/colors/palette";
-import type { FieldMetrics, FieldShape } from "../../view/field/field_metrics";
 import type { RoundView } from "../../view/round_play";
 import type { Steer } from "../../view/steering/steering";
 

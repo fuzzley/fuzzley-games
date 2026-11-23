@@ -1,6 +1,15 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import {
+  FRAME_CSS_PX,
+  type FieldShape,
+  MARGIN_CSS_PX,
+  bandPixels,
+  fieldMetrics,
+  fieldShape,
+  lintelPixels,
+} from "@fz/brick-wall/view/field_metrics";
 import { formatPoints } from "@fz/core/format";
 import { FRAME_MS, playUntil } from "@fz/core/testing";
 import { readNamedRects, readRect } from "@fz/dev/board-page";
@@ -56,15 +65,6 @@ import {
 import { PALETTES } from "../../testing/roles";
 import { FRAMES, INKS } from "../../view/art/frames";
 import { FIELD_ROLES } from "../../view/colors/palette";
-import {
-  FRAME_CSS_PX,
-  type FieldShape,
-  MARGIN_CSS_PX,
-  bandPixels,
-  fieldMetrics,
-  fieldShape,
-  lintelPixels,
-} from "../../view/field/field_metrics";
 import { GameService } from "../play/game.service";
 import { SettingsService } from "../settings/settings.service";
 import type { RoundPlayer } from "../tokens";

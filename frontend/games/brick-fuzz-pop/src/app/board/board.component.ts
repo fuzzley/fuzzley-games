@@ -13,6 +13,12 @@ import {
   viewChild,
 } from "@angular/core";
 import { COLUMNS } from "@fz/brick-wall/rules/field";
+import {
+  FRAME_CSS_PX,
+  MARGIN_CSS_PX,
+  fieldMetrics,
+  hasRoom,
+} from "@fz/brick-wall/view/field_metrics";
 import { GameViewportService } from "@fz/game-ui/viewport";
 import {
   CanvasCardsComponent,
@@ -34,12 +40,6 @@ import {
 import { ROWS_READ, rowsWaiting } from "../../rules/run/describe";
 import type { Pictures } from "../../scene/pictures";
 import type { WallSceneOptions } from "../../scene/wall_scene";
-import {
-  FRAME_CSS_PX,
-  MARGIN_CSS_PX,
-  fieldMetrics,
-  hasRoom,
-} from "../../view/field/field_metrics";
 import { showsEveryFigure } from "../bar/figures";
 import { ComingNextComponent } from "../panels/coming_next.component";
 import { InThisWallComponent } from "../panels/in_this_wall.component";

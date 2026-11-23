@@ -1,7 +1,11 @@
+import { boardCanvas } from "@fz/brick-wall/testing/canvases";
+import {
+  type Place,
+  fieldMetrics,
+  fieldShape,
+} from "@fz/brick-wall/view/field_metrics";
 import { MOST_CHARGE } from "../../rules/tuning";
 import { PIXEL_RATIOS, billionths } from "../../testing/art_frames";
-import { boardCanvas } from "../../testing/canvases";
-import { type Place, fieldMetrics, fieldShape } from "../field/field_metrics";
 import {
   type GaugeField,
   type GaugePlace,

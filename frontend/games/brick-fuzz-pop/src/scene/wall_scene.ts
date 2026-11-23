@@ -1,5 +1,11 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
 import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
+import {
+  type FieldMetrics,
+  type FieldShape,
+  fieldMetrics,
+  hasRoom,
+} from "@fz/brick-wall/view/field_metrics";
 import type { EventLogView } from "@fz/core/event_log";
 import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
@@ -36,12 +42,6 @@ import {
   flourishesOf,
   notchDetuneOf,
 } from "../view/effects/effects";
-import {
-  type FieldMetrics,
-  type FieldShape,
-  fieldMetrics,
-  hasRoom,
-} from "../view/field/field_metrics";
 import type { LoggedBeat, LoggedEvent, RoundView } from "../view/round_play";
 import { type PointerAiming, STRAIGHT_UP } from "../view/steering/aiming";
 import { type FieldCommand, commandOfKey } from "../view/steering/controls";

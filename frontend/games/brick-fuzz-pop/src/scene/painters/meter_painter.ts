@@ -1,13 +1,13 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
-import type { ArtScale } from "@fz/phaser/shapes";
-import type { GameObjects, Scene } from "phaser";
-import { MOST_CHARGE } from "../../rules/tuning";
-import { FRAMES } from "../../view/art/frames";
 import {
   type FieldMetrics,
   type Place,
   toCanvas,
-} from "../../view/field/field_metrics";
+} from "@fz/brick-wall/view/field_metrics";
+import type { ArtScale } from "@fz/phaser/shapes";
+import type { GameObjects, Scene } from "phaser";
+import { MOST_CHARGE } from "../../rules/tuning";
+import { FRAMES } from "../../view/art/frames";
 import { ATLAS } from "../atlas";
 import { placeDot } from "./dots";
 import type { PaintContext, Painter } from "./painter";

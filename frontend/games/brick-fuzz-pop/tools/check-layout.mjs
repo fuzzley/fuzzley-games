@@ -100,7 +100,7 @@ function inspectField(field) {
   const board = document.querySelector("app-board");
   if (!field || !board) return problems;
   // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in @fz/brick-wall/rules/field;
-  // and `FLOOR_BAND` and `LINTEL`, in src/view/field/field_metrics.ts.
+  // and `FLOOR_BAND` and `LINTEL`, in @fz/brick-wall/view/field_metrics.
   const columns = 9;
   const fewestRows = 11;
   const mostRows = 22;

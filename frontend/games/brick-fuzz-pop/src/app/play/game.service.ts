@@ -25,6 +25,12 @@ import {
   takeRound,
 } from "@fz/brick-wall/rules/run";
 import { levelResultOf } from "@fz/brick-wall/rules/stats";
+import {
+  type FieldMetrics,
+  type FieldShape,
+  fieldShape,
+  hasRoom,
+} from "@fz/brick-wall/view/field_metrics";
 import { type RunCommand, hasEnded } from "@fz/core/run";
 import { RunNumbers } from "@fz/core/run_numbers";
 import type { AwayReason } from "@fz/game-ui/play_room";
@@ -73,12 +79,6 @@ import type { Pictures } from "../../scene/pictures";
 import { type Guide, guideOf } from "../../rules/flight/guide";
 import type { Boon, Charge, Shot } from "../../rules/shot";
 import { FIELD_ROLES, wallPalette } from "../../view/colors/palette";
-import {
-  type FieldMetrics,
-  type FieldShape,
-  fieldShape,
-  hasRoom,
-} from "../../view/field/field_metrics";
 import {
   type TunedNumbers,
   paceOf,

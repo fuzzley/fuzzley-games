@@ -1,0 +1,11 @@
+// The bar's size `@fz/game-ui` publishes on a roomy screen and on a compact
+// one, which `canvases.spec.ts` holds the specs' canvases to.
+@use "@fz/game-ui" as game-ui;
+
+.roomy {
+  @include game-ui.bar-size;
+}
+
+.compact {
+  @include game-ui.bar-size($compact: true);
+}

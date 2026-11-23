@@ -3,6 +3,18 @@ import { COLUMNS, MOST_DEPTH, RADIUS } from "@fz/brick-wall/rules/field";
 import { FLOORWARD, cellAt } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
+import { marginInsets } from "@fz/brick-wall/testing/canvases";
+import {
+  FRAME_CSS_PX,
+  type FieldMetrics,
+  type FieldShape,
+  type Place,
+  bandPixels,
+  fieldMetrics,
+  fieldShape,
+  lintelPixels,
+  toCanvas,
+} from "@fz/brick-wall/view/field_metrics";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import { recordOf } from "@fz/core/records";
 import type { Insets } from "@fz/phaser/insets";
@@ -42,7 +54,6 @@ import {
   billionths,
   looksOf,
 } from "../testing/art_frames";
-import { marginInsets } from "../testing/canvases";
 import {
   FLIGHT_FIXTURES,
   type FlightFixture,
@@ -77,17 +88,6 @@ import {
   createGaugePlace,
   gaugeOf,
 } from "../view/gauge/gauge";
-import {
-  FRAME_CSS_PX,
-  type FieldMetrics,
-  type FieldShape,
-  type Place,
-  bandPixels,
-  fieldMetrics,
-  fieldShape,
-  lintelPixels,
-  toCanvas,
-} from "../view/field/field_metrics";
 import type { Beat } from "../view/effects/effects";
 import {
   type BallView,

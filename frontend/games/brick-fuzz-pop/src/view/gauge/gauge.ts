@@ -4,7 +4,7 @@
 // it. Its measures are the finger's, in CSS pixels, not the field's, so it
 // is the same size on every field.
 
-import type { FieldMetrics, Place } from "../field/field_metrics";
+import type { FieldMetrics, Place } from "@fz/brick-wall/view/field_metrics";
 import { itemAt } from "../items";
 
 /** How far the gauge's pips lie from the touch, in CSS pixels: about 12 mm, clear of a thumb's tip. */
