@@ -6,9 +6,15 @@ import {
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
+import { lowerWall } from "@fz/brick-wall/rules/wall";
+import { keysOf } from "@fz/core/records";
 import type { TraitKind, Wall } from "../catalog/kinds";
 import { WALL_LEGEND } from "../levels/legend";
 import { TRAIT_RULES } from "../bricks/trait_rules";
+import {
+  FIXTURE_WALL_RULES,
+  FLIGHT_FIXTURES,
+} from "../../testing/flight_fixtures";
 import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
 import { type Flown, fly } from "./flight";
@@ -21,6 +27,43 @@ const DEPTH = 11;
 const LEFT_WALL = RADIUS;
 const RIGHT_WALL = COLUMNS - RADIUS;
 const CEILING = DEPTH - RADIUS;
+
+/**
+ * The game's trait rules with the later kinds' made up for the specs: a
+ * plated brick takes nothing where a turn met its plates alone, a spring
+ * brick earns a floor bounce as it breaks, a hatch holds the fuzzball up
+ * as it meets it, a lock is shut by its tint's bolts, and a portal takes
+ * the fuzzball to its twin.
+ */
+const STAND_INS: TraitRules = {
+  ...TRAIT_RULES,
+  plated: {
+    struck: (struck) => {
+      const { sides, brick } = struck;
+      if (sides !== 0 && (brick.plates & sides) === sides) {
+        struck.shield = "plate";
+      }
+    },
+  },
+  springs: {
+    broken: (hooks) => {
+      hooks.earn();
+    },
+  },
+  holds: {
+    met: (hooks) => {
+      hooks.hold();
+    },
+  },
+  bolted: { bolts: ({ tint }) => tint },
+  teleports: {
+    entered: (hooks, _, { twin }) => {
+      if (twin !== null) {
+        hooks.teleport(twin);
+      }
+    },
+  },
+};
 
 /**
  * A pair of portals, standing from row 2: one in column 6 of row 2, whose
@@ -153,6 +196,18 @@ describe("fly", () => {
     ).toEqual([
       ["wall", []],
       ["brick", [cellOf(8, 0)]],
+    ]);
+  });
+
+  // Up at 135° off the left wall into the field's top right corner, where
+  // it meets the right wall and the ceiling at once, and back.
+  it("names a side wall what a turn was off where it meets the ceiling there too", () => {
+    const flown = flyAt({ x: 2.25, degrees: 135 });
+
+    expect(eventsOf(flown, "turn").map(({ off, y }) => [off, y])).toEqual([
+      ["wall", near(2.25)],
+      ["wall", near(CEILING)],
+      ["wall", near(2.25)],
     ]);
   });
 
@@ -394,6 +449,18 @@ describe("fly's strikes", () => {
     ]);
   });
 
+  // Straight up, off the brick it breaks, down to spend its floor bounce,
+  // and up through where the brick stood to the ceiling.
+  it("flies through where a brick it broke stood", () => {
+    const flown = flyAt({ picture: ["....o...."], degrees: 90, hot: true });
+
+    expect(eventsOf(flown, "turn").map(({ off }) => off)).toEqual([
+      "brick",
+      "floor",
+      "ceiling",
+    ]);
+  });
+
   it("strikes each brick it met at a moment once, floor up, counting each in its rally", () => {
     const x = xToReach(45, [6.75, 4.75]);
 
@@ -479,17 +546,7 @@ describe("fly's trait rules", () => {
   }
 
   /** The game's trait rules with a plated brick's made up for the spec: a strike on its plates alone takes nothing. */
-  const PLATED: TraitRules = {
-    ...TRAIT_RULES,
-    plated: {
-      struck: (struck) => {
-        const { sides, brick } = struck;
-        if (sides !== 0 && (brick.plates & sides) === sides) {
-          struck.shield = "plate";
-        }
-      },
-    },
-  };
+  const PLATED: TraitRules = { ...TRAIT_RULES, plated: STAND_INS.plated };
 
   // Two spring bricks at an inside corner, the one beside it a row under
   // the one over it.
@@ -613,14 +670,7 @@ describe("fly's floor bounces", () => {
   ];
 
   /** The game's trait rules with a spring brick's made up for the spec: it earns a floor bounce as it breaks. */
-  const SPRINGS: TraitRules = {
-    ...TRAIT_RULES,
-    springs: {
-      broken: (hooks) => {
-        hooks.earn();
-      },
-    },
-  };
+  const SPRINGS: TraitRules = { ...TRAIT_RULES, springs: STAND_INS.springs };
 
   /** Returns a flight's events that earn, keep and spend floor bounces. */
   function bouncesOf(flown: Flown): FlightEvent[] {
@@ -784,12 +834,8 @@ describe("fly's hatches and locks", () => {
   /** The game's trait rules with a hatch's and a lock's made up for the spec: a hatch holds the fuzzball up as it meets it, and a lock is shut by its tint's bolts. */
   const HATCHES_AND_LOCKS: TraitRules = {
     ...TRAIT_RULES,
-    holds: {
-      met: (hooks) => {
-        hooks.hold();
-      },
-    },
-    bolted: { bolts: ({ tint }) => tint },
+    holds: STAND_INS.holds,
+    bolted: STAND_INS.bolted,
   };
 
   /** A floor of hatches, under four empty rows and a brick by the ceiling. */
@@ -1030,19 +1076,33 @@ describe("fly's hatches and locks", () => {
 
     expect(eventsOf(flown, "bolt")).toEqual([]);
   });
+
+  // The flight of the lock of two bolts above, a hatch in its place, by
+  // made-up rules that give a hatch's two traits two bolts and one.
+  it("shuts a brick by the most bolts any of its traits give it", () => {
+    const traits: TraitRules = {
+      ...TRAIT_RULES,
+      never: { bolts: () => 2 },
+      holds: { bolts: () => 1 },
+    };
+
+    const flown = flyAt({
+      picture: ["=oooooooo", "ooooooooo"],
+      lowestRow: 9,
+      degrees: 8,
+      rules: { ...FLIGHT_RULES, bored: 120 },
+      traits,
+    });
+
+    expect(eventsOf(flown, "bolt").map(({ drawn }) => drawn)).toEqual([1, 2]);
+  });
 });
 
 describe("fly's portals", () => {
   /** The game's trait rules with a portal's made up for the spec: it takes the fuzzball to its twin. */
   const TELEPORTS: TraitRules = {
     ...TRAIT_RULES,
-    teleports: {
-      entered: (hooks, _, { twin }) => {
-        if (twin !== null) {
-          hooks.teleport(twin);
-        }
-      },
-    },
+    teleports: STAND_INS.teleports,
   };
 
   /**
@@ -1261,6 +1321,21 @@ describe("fly's way home", () => {
     ]);
   });
 
+  it("yawns, rather than meeting its guard, where the longest flight is the bored distance", () => {
+    const rules = { ...FLIGHT_RULES, longest: FLIGHT_RULES.bored };
+
+    const flown = flyAt({
+      picture: HIGH_WALL,
+      lowestRow: 9,
+      degrees: 8,
+      rules,
+    });
+
+    expect([eventsOf(flown, "bored").length, eventsOf(flown, "guard")]).toEqual(
+      [1, []],
+    );
+  });
+
   // At 30°, into the joint of the steel brick's floorward flat and the cut
   // across its corner, at (4, 1.75): the flat turns it, and it still flies
   // into the cut, which turns it again with no flight between.
@@ -1304,4 +1379,53 @@ describe("fly's way home", () => {
       [],
     ]);
   });
+});
+
+describe("fly's fixtures", () => {
+  /** Returns a value with each number in it matched as near as the flight's arithmetic finds it. */
+  function nearly(value: unknown): unknown {
+    if (typeof value === "number") {
+      return near(value);
+    }
+    if (Array.isArray(value)) {
+      return value.map(nearly);
+    }
+    if (typeof value === "object" && value !== null) {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, field]) => [key, nearly(field)]),
+      );
+    }
+    return value;
+  }
+
+  // The round's outcome, the rest of what the fixture made by hand, is
+  // what playRound() makes of the flight.
+  it.each(keysOf(FLIGHT_FIXTURES))(
+    "flies the %s fixture's flight from its start and its aim, leaving the wall its next round starts on",
+    (name) => {
+      const { start, shot, rules, round } = FLIGHT_FIXTURES[name];
+
+      const { flight, wall } = fly(start, shot, rules, STAND_INS);
+
+      expect([
+        flight,
+        lowerWall(wall, start.depth, FIXTURE_WALL_RULES).wall,
+      ]).toEqual([nearly(round.flight), round.next.wall]);
+    },
+  );
+
+  // The first flight at a copy of its wall builds the field kept for it,
+  // and the second flies through that field as the first left it.
+  it.each(keysOf(FLIGHT_FIXTURES))(
+    "flies the %s fixture's wall again as it flew it, whatever it broke and opened",
+    (name) => {
+      const { start, shot, rules } = FLIGHT_FIXTURES[name];
+      const again = { ...start, wall: { ...start.wall } };
+      const first = fly(again, shot, rules, STAND_INS);
+
+      const second = fly(again, shot, rules, STAND_INS);
+
+      expect(second).toEqual(first);
+    },
+  );
 });

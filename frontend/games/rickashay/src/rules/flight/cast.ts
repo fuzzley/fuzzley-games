@@ -42,8 +42,8 @@ const MOST_MET = 9 * 2 + 2;
 
 /**
  * Describes a field to cast fuzzballs through, as a flight's bricks stand:
- * made once as the flight starts, and changed as its bricks break and its
- * hatches open, so it is the flight's own and nothing else's.
+ * built once for a wall and a depth, and copied for each flight, whose
+ * bricks breaking and hatches opening change its copy alone.
  */
 export interface CastField extends FieldShapes {
   /** The faces each field cell's brick shows, by field cell. */
@@ -108,6 +108,23 @@ export function castField(wall: Wall, depth: number): CastField {
     gather(field, cell % COLUMNS, Math.floor(cell / COLUMNS));
   }
   return field;
+}
+
+/**
+ * Returns a copy of a field that clearBrick() and openHatches() may change
+ * while the field stays as it was.
+ *
+ * They change a field's shapes in place, and give a cell new lists of
+ * faces rather than change one, so the copy's own are its shapes and its
+ * two lists of cells' faces; a change to either rule keeps to that.
+ */
+export function copyField(field: CastField): CastField {
+  return {
+    ...field,
+    shapes: field.shapes.slice(),
+    own: [...field.own],
+    within: [...field.within],
+  };
 }
 
 /**

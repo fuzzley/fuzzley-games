@@ -95,11 +95,14 @@ describe("FLIGHT_FIXTURES", () => {
     ["rally", "on", 11, 0, 1, false, 1, 300],
     ["spring", "on", 2, 2, 1, false, 1, 120],
     ["hot", "on", 2, 2, 0, false, 1, 20],
+    ["capped", "on", 2, 2, 0, false, 1, 20],
     ["bolt", "on", 1, 1, 0, false, 1, 10],
+    ["lockMet", "on", 0, 0, 0, false, 1, 0],
     ["hatch", "on", 0, 0, 0, true, 3, 100],
     ["teleport", "on", 0, 0, 0, true, 3, 100],
     ["bored", "on", 0, 0, 0, true, 3, 100],
     ["guard", "on", 0, 0, 0, true, 3, 100],
+    ["turnsGuard", "on", 0, 0, 0, true, 3, 100],
     ["corner", "on", 1, 0, 0, false, 1, 10],
     ["ramp", "on", 0, 0, 0, true, 3, 100],
     ["gem", "on", 1, 1, 0, true, 3, 110],
@@ -131,12 +134,12 @@ describe("FLIGHT_FIXTURES", () => {
     ]);
   });
 
-  it("flies by the rules, but where its guard is to meet a short flight", () => {
+  it("flies by the rules, but where a guard is to meet a short flight or a fuzzball to hold fewer floor bounces", () => {
     const rules = NAMES.filter(
       (name) => FLIGHT_FIXTURES[name].rules !== FLIGHT_RULES,
     );
 
-    expect(rules).toEqual(["guard"]);
+    expect(rules).toEqual(["capped", "guard", "turnsGuard"]);
   });
 
   it("starts a hot shot holding its own floor bounce, and a plain shot none", () => {

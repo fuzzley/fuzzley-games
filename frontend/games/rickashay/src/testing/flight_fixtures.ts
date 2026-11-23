@@ -1,7 +1,7 @@
 // Rounds made by hand, as playRound() will play them, so the view, the
-// scene and the shell can play a round before fly() is written: a flight
-// for each kind of event, each on a field 11 deep, its wall drawn as a
-// picture by wallFrom(). A flier works out each path, told which face it
+// scene and the shell can play a round of each kind of event, and the
+// rules' specs hold fly() to each flight: a flight for each kind of event,
+// each on a field 11 deep, its wall drawn as a picture by wallFrom(). A flier works out each path, told which face it
 // meets next, and flies to it as the design's "The flight" does, a flat
 // changing the sign of one speed, with the aim's own speeds; it counts the
 // rally, the turns, the floor bounces, the holds and the bolts by the rules
@@ -55,7 +55,7 @@ import {
 export interface FlightFixture {
   readonly start: RoundStart;
   readonly shot: Shot;
-  /** The rules it is flown by: `FLIGHT_RULES`, but where a short flight is to meet a guard. */
+  /** The rules it is flown by: `FLIGHT_RULES`, but where a short flight is to meet a guard, or a fuzzball is to hold fewer floor bounces. */
   readonly rules: FlightRules;
   readonly round: Round;
 }
@@ -82,7 +82,7 @@ const LOWEST = 0;
  * they stand, since none holds moss, the one kind that changes between
  * rounds.
  */
-const FIXTURE_WALL_RULES: WallRules<KindId> = {
+export const FIXTURE_WALL_RULES: WallRules<KindId> = {
   needed: (kind) => kindOf(kind).needed,
   betweenRounds: (wall) => wall,
 };
@@ -165,14 +165,7 @@ class Flier {
     } else {
       this.dy = -this.dy;
     }
-    this.turns++;
-    const { at, x, y, dx, dy } = this;
-    this.events.push({ at, kind: "turn", x, y, dx, dy, off, cells });
-    const drawn = this.turns / this.rules.boltTurns;
-    if (Number.isInteger(drawn) && this.lockShut(drawn - 1)) {
-      this.closing.push({ at, kind: "bolt", drawn });
-    }
-    return this;
+    return this.turned(off, cells);
   }
 
   /**
@@ -186,24 +179,17 @@ class Flier {
         ? (slant.sum - (x + y)) / (dx + dy)
         : (slant.difference - (x - y)) / (dx - dy),
     );
-    [this.dx, this.dy] = "sum" in slant ? [-dy, -dx] : [dy, dx];
-    this.turns++;
-    const { at } = this;
-    this.events.push({
-      at,
-      kind: "turn",
-      x: this.x,
-      y: this.y,
-      dx: this.dx,
-      dy: this.dy,
-      off,
-      cells,
-    });
-    const drawn = this.turns / this.rules.boltTurns;
-    if (Number.isInteger(drawn) && this.lockShut(drawn - 1)) {
-      this.closing.push({ at, kind: "bolt", drawn });
-    }
-    return this;
+    return this.swapped("sum" in slant, off, cells);
+  }
+
+  /**
+   * Turns again where it turned, off a 45° face of a line x + y = c it
+   * still flies into, as at the joint of a brick's flat and the cut across
+   * its corner: its track gains the place again, at the moment.
+   */
+  swapAgain(off: TurnOff, cells: readonly number[]): this {
+    this.waypoints.push({ at: this.at, x: this.x, y: this.y });
+    return this.swapped(true, off, cells);
   }
 
   /** Flies on to the floor and turns off it, spending a floor bounce it holds. */
@@ -282,9 +268,17 @@ class Flier {
     return this.dropHome();
   }
 
-  /** Flies on to the longest flight, is brought home by its guard there, and drops home. */
+  /**
+   * Is brought home by its guard, and drops home: where it is, after its
+   * turns running with no flight between them, or flown on to the longest
+   * flight.
+   */
   guard(by: Guard): this {
-    this.flyFor(this.rules.longest - this.at);
+    if (by === "length") {
+      this.flyFor(this.rules.longest - this.at);
+    } else {
+      this.flush();
+    }
     const { at, x, y } = this;
     this.events.push({ at, kind: "guard", x, y, by });
     return this.dropHome();
@@ -359,6 +353,29 @@ class Flier {
     }
     const { at, held } = this;
     this.events.push({ at, kind: "bounce-earned", by, held, kept });
+  }
+
+  /** Swaps its two speeds off a 45° face along x + y = c, or x − y = c, and turns. */
+  private swapped(
+    alongSum: boolean,
+    off: TurnOff,
+    cells: readonly number[],
+  ): this {
+    const { dx, dy } = this;
+    [this.dx, this.dy] = alongSum ? [-dy, -dx] : [dy, dx];
+    return this.turned(off, cells);
+  }
+
+  /** Counts a turn off what met it, at its new heading, and draws a bolt at the turn the rules name while a lock is shut. */
+  private turned(off: TurnOff, cells: readonly number[]): this {
+    this.turns++;
+    const { at, x, y, dx, dy } = this;
+    this.events.push({ at, kind: "turn", x, y, dx, dy, off, cells });
+    const drawn = this.turns / this.rules.boltTurns;
+    if (Number.isInteger(drawn) && this.lockShut(drawn - 1)) {
+      this.closing.push({ at, kind: "bolt", drawn });
+    }
+    return this;
   }
 
   /** Returns whether a lock in the field has more bolts than were drawn, so one is still shut. */
@@ -480,20 +497,25 @@ function bothCorners(
   start: RoundStart,
   first: (flier: Flier, cell: number) => Flier,
   second: (flier: Flier, cell: number) => Flier,
+  rules: FlightRules = FLIGHT_RULES,
 ): FlightFixture {
-  return flown(start, AT_45, (flier, cell) =>
-    second(
-      first(
-        flier
-          .turn({ x: RIGHT_WALL }, "wall")
-          .turn({ y: 5 - RADIUS }, "brick", [cell(8, 5)]),
-        cell(8, 5),
-      )
-        .floor()
-        .turn({ x: LEFT_WALL }, "wall")
-        .turn({ y: 5 - RADIUS }, "brick", [cell(1, 5)]),
-      cell(1, 5),
-    ).land(),
+  return flown(
+    start,
+    AT_45,
+    (flier, cell) =>
+      second(
+        first(
+          flier
+            .turn({ x: RIGHT_WALL }, "wall")
+            .turn({ y: 5 - RADIUS }, "brick", [cell(8, 5)]),
+          cell(8, 5),
+        )
+          .floor()
+          .turn({ x: LEFT_WALL }, "wall")
+          .turn({ y: 5 - RADIUS }, "brick", [cell(1, 5)]),
+        cell(1, 5),
+      ).land(),
+    rules,
   );
 }
 
@@ -699,6 +721,38 @@ function bolt(): FlightFixture {
 }
 
 /**
+ * A hot shot, by rules that let a fuzzball hold one floor bounce, breaks a
+ * spring brick while it holds its own, so the spring's is lost, though
+ * announced; it spends its own on the floor and breaks a brick.
+ */
+function capped(): FlightFixture {
+  return bothCorners(
+    startOn(["ooooooooo", "ooooooooo", ".o......S"], 5, { x: 4.75, hot: true }),
+    (flier, cell) => flier.strike(cell),
+    (flier, cell) => flier.strike(cell),
+    { ...FLIGHT_RULES, mostBounces: 1 },
+  );
+}
+
+/**
+ * A shot at the lowest aim turns off the right wall, the left and the
+ * right, and fourth off a lock of a bolt at the foot of row 4, where the
+ * left wall would be, still shut as that turn draws its bolt; then, off
+ * the side walls three times more, it is bored and drops home.
+ */
+function lockMet(): FlightFixture {
+  return flown(startOn(["x........"], 4), LOWEST, (flier, cell) =>
+    sideTurns(flier, 3)
+      .turn({ x: 1 + RADIUS }, "brick", [cell(0, 4)])
+      .shielded(cell(0, 4), "lock")
+      .turn({ x: RIGHT_WALL }, "wall")
+      .turn({ x: LEFT_WALL }, "wall")
+      .turn({ x: RIGHT_WALL }, "wall")
+      .bored(),
+  );
+}
+
+/**
  * A shot at 45° from x = 4.75 rises through a floor of hatches in row 7,
  * is held up three times between them and the ceiling, the hatches opening
  * at the third, and falls through them to land, never striking; the brick
@@ -780,7 +834,7 @@ function bored(): FlightFixture {
 /**
  * The shot of {@link bored}, flown by rules that bring a flight home at 50
  * units, so its guard meets it after six turns, before it would have been
- * bored; the guard of turns in place is met by no flight.
+ * bored.
  */
 function guard(): FlightFixture {
   return flown(
@@ -788,6 +842,40 @@ function guard(): FlightFixture {
     LOWEST,
     (flier) => sideTurns(flier, 6).guard("length"),
     { ...FLIGHT_RULES, longest: 50 },
+  );
+}
+
+/** The aim at 30°, shallower than 45°. */
+const AT_30 = 88;
+
+/**
+ * A shot at 30° flies into the joint of a steel brick's floorward flat and
+ * the cut across its floorward left corner, at x = 4 in row 2: the flat
+ * turns it, and it still flies into the cut, which turns it again where it
+ * is; by rules that bring a flight home after two turns running with no
+ * flight between them, its guard drops it home from there.
+ */
+function turnsGuard(): FlightFixture {
+  const [dx, dy] = sure(AIMS[AT_30]);
+  const start = startOn(
+    [
+      "ooooooooo",
+      "ooooooooo",
+      ...Array<string>(6).fill("........."),
+      "....#....",
+    ],
+    2,
+    { x: 4 - (dx * (2 - 2 * RADIUS)) / dy },
+  );
+  return flown(
+    start,
+    AT_30,
+    (flier, cell) =>
+      flier
+        .turn({ y: 2 - RADIUS }, "brick", [cell(4, 2)])
+        .swapAgain("brick", [cell(4, 2)])
+        .guard("turns"),
+    { ...FLIGHT_RULES, stillTurns: 2 },
   );
 }
 
@@ -802,8 +890,10 @@ function sideTurns(flier: Flier, turns: number): Flier {
 /**
  * Rounds made by hand, by what each shows: a plain shot; a level cleared,
  * one lost and a wall's jump; a plated face; a long rally, its floor
- * bounce earned and spent; a spring brick's; a hot shot's; a lock's bolt;
- * the hatches' holds; a portal; a bored fuzzball's yawn; a guard; a
+ * bounce earned and spent; a spring brick's; a hot shot's; a floor bounce
+ * lost at the most a fuzzball holds; a lock's bolt; a lock met at the turn
+ * that draws its bolt; the hatches' holds; a portal; a bored fuzzball's
+ * yawn; a guard at the longest flight, and one at turns in place; a
  * brick's cut corner; a ramp's long face; and a gem's.
  */
 export const FLIGHT_FIXTURES = {
@@ -815,11 +905,14 @@ export const FLIGHT_FIXTURES = {
   rally: rally(),
   spring: spring(),
   hot: hot(),
+  capped: capped(),
   bolt: bolt(),
+  lockMet: lockMet(),
   hatch: hatch(),
   teleport: teleport(),
   bored: bored(),
   guard: guard(),
+  turnsGuard: turnsGuard(),
   corner: corner(),
   ramp: ramp(),
   gem: gem(),

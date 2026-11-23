@@ -14,6 +14,7 @@ import {
   cast,
   castField,
   clearBrick,
+  copyField,
   createContacts,
   openHatches,
 } from "./cast";
@@ -415,6 +416,27 @@ describe("clearBrick", () => {
     expect(metOf(castFrom(field, [8.5, RADIUS], [0, 1]))).toEqual(
       expected(5 - 2 * RADIUS, [brick(8, 0)]),
     );
+  });
+});
+
+describe("copyField", () => {
+  it("copies a field so a brick breaking in the copy and its hatches opening leave the field as it was", () => {
+    const field = fieldOf(5, ["...=o...."]);
+    const shapes = [...field.shapes];
+    const copy = copyField(field);
+
+    clearBrick(copy, cellOf(4, 0));
+    openHatches(copy);
+
+    expect([
+      [...field.shapes],
+      metOf(castFrom(field, [4.5, RADIUS], [0, 1])),
+      metOf(castFrom(field, [3.5, 8], [0, -1])),
+    ]).toEqual([
+      shapes,
+      expected(5 - 2 * RADIUS, [brick(4, 0)]),
+      expected(8 - 6 - RADIUS, [brick(3, 0)]),
+    ]);
   });
 });
 

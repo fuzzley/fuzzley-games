@@ -21,9 +21,10 @@
 // drops home (C2), as it does at either guard: the longest flight, and so
 // many turns running with no flight between them.
 //
-// A flight's state is made as it starts, and what the fuzzball meets is
-// cast into one record the module keeps, so a cast makes nothing; records
-// are made only as events are.
+// A flight's state is made as it starts, the field it flies through
+// copied from one the module keeps for its wall and depth, and what the
+// fuzzball meets is cast into one record the module keeps, so a cast makes
+// nothing; records are made only as events are.
 
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import {
@@ -53,6 +54,7 @@ import {
   cast,
   castField,
   clearBrick,
+  copyField,
   createContacts,
   openHatches,
 } from "./cast";
@@ -97,11 +99,21 @@ const MARKS: readonly number[] = RALLY_MARKS;
 const contacts: Contacts = createContacts();
 const faces: Face[] = [];
 
+// The fields walls are cast through as a flight at them starts, by wall and
+// depth: a guide flies many aims at one wall, and building its field takes
+// longer than most flights.
+const fields = new WeakMap<Wall, Map<number, CastField>>();
+
 /**
  * Returns the flight of a round's shot, flown from where the fuzzball
  * waits along its aim until it lands, by the rules' numbers and the bricks'
  * trait rules, and the wall it leaves; the wall it is handed it leaves as
  * it was.
+ *
+ * It keeps the field it builds to cast through for each wall it is handed,
+ * by the wall itself and the depth, so a later flight at that wall, as a
+ * guide's at each aim, flies sooner; a wall, as every value it is handed,
+ * never changes.
  *
  * It throws a `RangeError` for an aim that isn't one of the 657.
  */
@@ -187,16 +199,23 @@ class Flying implements Hooks {
     private readonly rules: FlightRules,
     private readonly traits: TraitRules,
   ) {
-    const { bricks } = start.wall;
-    this.field = castField(start.wall, start.depth);
-    this.hits = Float64Array.from(bricks, (brick) => brick?.hits ?? 0);
-    this.broken = new Uint8Array(bricks.length);
-    this.bolts = Float64Array.from(bricks, (brick, cell) =>
-      brick === null || fieldRowOf(start.wall, cell) >= start.depth
-        ? 0
-        : boltsOf(brick, traits),
-    );
-    this.mostBolts = Math.max(0, ...this.bolts);
+    const { wall, depth } = start;
+    this.field = fieldOf(wall, depth);
+    this.hits = new Float64Array(wall.bricks.length);
+    this.broken = new Uint8Array(wall.bricks.length);
+    this.bolts = new Float64Array(wall.bricks.length);
+    let mostBolts = 0;
+    wall.bricks.forEach((brick, cell) => {
+      if (brick !== null) {
+        this.hits[cell] = brick.hits;
+        if (fieldRowOf(wall, cell) < depth) {
+          const bolts = boltsOf(brick, traits);
+          this.bolts[cell] = bolts;
+          mostBolts = Math.max(mostBolts, bolts);
+        }
+      }
+    });
+    this.mostBolts = mostBolts;
     this.holdsLeft = rules.hatchHolds;
     this.released = start.hot ? rules.hotBounces : 0;
     this.held = this.released;
@@ -675,6 +694,21 @@ class Flying implements Hooks {
       this.waypoints.push({ at, x, y });
     }
   }
+}
+
+/** Returns a copy of the field a wall at a depth is cast through as a flight starts, built the first time it is asked for. */
+function fieldOf(wall: Wall, depth: number): CastField {
+  let byDepth = fields.get(wall);
+  if (byDepth === undefined) {
+    byDepth = new Map();
+    fields.set(wall, byDepth);
+  }
+  let field = byDepth.get(depth);
+  if (field === undefined) {
+    field = castField(wall, depth);
+    byDepth.set(depth, field);
+  }
+  return copyField(field);
 }
 
 /** Returns the bolts a brick is shut by, the most its traits' rules give it: none, where none bolts it. */

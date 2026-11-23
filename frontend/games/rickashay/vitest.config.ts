@@ -42,10 +42,6 @@ export default defineConfig(
       // player to its floors, check every level, and time the flight,
       // without the coverage that would slow them several times over: the
       // other rules specs alone hold the rules to their floor.
-      // `test:coverage` runs them with `--passWithNoTests` while none is
-      // written, which passes a run that finds no spec there and never one in
-      // which a spec fails; the change that writes the first drops it, so a
-      // list gone stale fails the run.
       sim: [
         "src/rules/levels/every_level",
         "src/rules/levels/every_floor",
