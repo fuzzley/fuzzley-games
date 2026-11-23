@@ -1,6 +1,12 @@
+import {
+  CEILINGWARD,
+  FLOORWARD,
+  LEFT,
+  RIGHT,
+  wallRowOf,
+} from "@fz/brick-wall/rules/grid";
 import { isKeyOf, isOneOf } from "@fz/core/records";
 import type { BrickKindId } from "../catalog/bricks";
-import { CEILINGWARD, FLOORWARD, LEFT, RIGHT, wallRowOf } from "../grid";
 
 /** A plate's faces toward both side walls. */
 const SIDES = LEFT | RIGHT;

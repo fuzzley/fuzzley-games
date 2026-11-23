@@ -1,6 +1,6 @@
+import { CEILINGWARD, FLOORWARD, RIGHT } from "@fz/brick-wall/rules/grid";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { wallFrom } from "../../testing/wall_picture";
-import { CEILINGWARD, FLOORWARD, RIGHT } from "../grid";
 import { PORTAL_BADGES, PORTAL_MARKS } from "../levels/legend";
 import { LEVELS, levelEntryOf } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";

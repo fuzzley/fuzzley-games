@@ -1,3 +1,4 @@
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import {
   type ArtFrame,
   type ArtScale,
@@ -10,7 +11,6 @@ import {
 } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { THEMES } from "@fz/style/themes";
-import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../../../rules/grid";
 import {
   ART_PALETTE,
   ART_SCALE,

@@ -4,6 +4,7 @@ import {
   FIRST_AIM_DEGREES,
 } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { FLOORWARD, LEFT } from "@fz/brick-wall/rules/grid";
 import { createRandom } from "@fz/core/random";
 import {
   FLIGHT_FIXTURES,
@@ -33,7 +34,6 @@ import {
   STILL_TURNS,
   ZAP_DELAY,
 } from "../tuning";
-import { FLOORWARD, LEFT } from "../grid";
 import type { Wall } from "../wall/wall";
 import { RULES, flightRulesOf, flightStartOf } from "../round/round";
 import {

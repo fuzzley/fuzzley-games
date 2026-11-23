@@ -1,7 +1,7 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { isKeyOf, keysOf } from "@fz/core/records";
 import { BRICK_KIND_IDS, brickKind } from "../catalog/bricks";
-import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../grid";
 import {
   LEGEND,
   type LegendBrick,
@@ -77,7 +77,7 @@ describe("the legend", () => {
     expect(LEGEND[character].plates).toBe(0);
   });
 
-  // A plate covers a brick's faces, as grid.ts names them.
+  // A plate covers a brick's faces, as @fz/brick-wall/rules/grid names them.
   it.each<[LegendCharacter, LegendBrick]>([
     ["v", { kind: "plated", hits: 2, plates: FLOORWARD }],
     ["U", { kind: "plated", hits: 2, plates: FLOORWARD | LEFT | RIGHT }],

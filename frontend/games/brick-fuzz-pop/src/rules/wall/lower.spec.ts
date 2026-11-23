@@ -1,4 +1,5 @@
 import { COLUMNS, DEPTHS } from "@fz/brick-wall/rules/field";
+import { cellAt, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { keysOf } from "@fz/core/records";
 import {
   FLIGHT_FIXTURES,
@@ -6,7 +7,6 @@ import {
 } from "../../testing/flight_fixtures";
 import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KIND_IDS, type BrickKindId, brickKind } from "../catalog/bricks";
-import { cellAt, fieldRowOf } from "../grid";
 import { NO_BRICK } from "../levels/legend";
 import {
   dangerCells,

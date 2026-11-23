@@ -4,7 +4,7 @@
 // The solver's certificates are replayed in every browser, so it is held as the
 // rules are (eslint.config.js), to their fence and their exact arithmetic.
 
-import { fieldRowOf } from "../rules/grid";
+import { fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { RoundOutcome, RoundStart } from "../rules/round/round";
 import {
   DANGER_ROW,

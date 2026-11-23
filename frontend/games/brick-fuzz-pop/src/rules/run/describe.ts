@@ -1,7 +1,5 @@
 import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { COLUMNS } from "@fz/brick-wall/rules/field";
-import { count, formatPoints, listed } from "@fz/core/format";
-import { brickKind } from "../catalog/bricks";
 import {
   CEILINGWARD,
   FLOORWARD,
@@ -9,7 +7,9 @@ import {
   RIGHT,
   brickAt,
   fieldRowOf,
-} from "../grid";
+} from "@fz/brick-wall/rules/grid";
+import { count, formatPoints, listed } from "@fz/core/format";
+import { brickKind } from "../catalog/bricks";
 import { PORTAL_BADGES } from "../levels/legend";
 import type { LevelEntry } from "../levels/levels";
 import type { RoundOutcome, RoundStart } from "../round/round";

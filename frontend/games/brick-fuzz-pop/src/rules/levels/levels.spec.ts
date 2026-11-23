@@ -1,4 +1,5 @@
 import { COLUMNS, LEAST_DEPTH } from "@fz/brick-wall/rules/field";
+import { FLOORWARD } from "@fz/brick-wall/rules/grid";
 import { isOneOf, keysOf } from "@fz/core/records";
 import {
   BRICK_KIND_IDS,
@@ -7,7 +8,6 @@ import {
   hasTrait,
 } from "../catalog/bricks";
 import type { ZapPattern } from "../flight/events";
-import { FLOORWARD } from "../grid";
 import { MOST_FRIENDS } from "../tuning";
 import type { Brick } from "../wall/wall";
 import { LEGEND, NO_BRICK, PORTAL_MARKS } from "./legend";

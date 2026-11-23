@@ -1,8 +1,8 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
+import { columnOf, fieldRowOf, wallRowOf } from "@fz/brick-wall/rules/grid";
 import { fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
 import type { GameObjects, Scene } from "phaser";
-import { columnOf, fieldRowOf, wallRowOf } from "../../rules/grid";
 import { MOST_FRIENDS } from "../../rules/tuning";
 import { type Wall, thirdsOf } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";

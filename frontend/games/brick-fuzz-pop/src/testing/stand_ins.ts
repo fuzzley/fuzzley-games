@@ -5,6 +5,7 @@
 // them, the rules they are flown by, and a strike as a brick's rules see
 // it, so a trait's rule is specced on its own.
 
+import { FLOORWARD } from "@fz/brick-wall/rules/grid";
 import { EARTHS_RULE } from "../rules/bricks/traits/earths";
 import { FREES_RULE } from "../rules/bricks/traits/frees";
 import { KICKS_RULE } from "../rules/bricks/traits/kicks";
@@ -20,7 +21,6 @@ import {
   type BrickKinds,
 } from "../rules/catalog/bricks";
 import type { Struck, TraitRules } from "../rules/flight/hooks";
-import { FLOORWARD } from "../rules/grid";
 
 /** A bumper made up for specs: round, never broken, kicking a fuzzball from a disc of 0.38. */
 export const BUMPER: BrickKind = {

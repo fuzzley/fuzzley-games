@@ -1,3 +1,4 @@
+import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { keysOf, recordOf } from "@fz/core/records";
 import { colorNumber } from "@fz/phaser/color";
 import {
@@ -9,7 +10,6 @@ import {
   ring,
   roundRect,
 } from "@fz/phaser/shapes";
-import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "../rules/grid";
 import { INKS } from "../view/art/frames";
 import { FIELD_ROLES, type PaletteRoles } from "../view/colors/palette";
 import {

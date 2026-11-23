@@ -18,6 +18,16 @@ import {
   RADIUS,
 } from "@fz/brick-wall/rules/field";
 import {
+  CEILINGWARD,
+  FLOORWARD,
+  LEFT,
+  RIGHT,
+  brickAt,
+  brickBox,
+  columnOf,
+  fieldRowOf,
+} from "@fz/brick-wall/rules/grid";
+import {
   type Box,
   CORNERS,
   CORNER_AT,
@@ -39,17 +49,7 @@ import {
 } from "../rules/catalog/bricks";
 import type { Contacts, Met } from "../rules/flight/cast";
 import type { Contact } from "../rules/flight/events";
-import {
-  CEILINGWARD,
-  FLOORWARD,
-  LEFT,
-  RIGHT,
-  brickAt,
-  brickBox,
-  columnOf,
-  fieldRowOf,
-  shapeOf,
-} from "../rules/grid";
+import { shapeOf } from "../rules/grid";
 import type { Brick, Wall } from "../rules/wall/wall";
 import { STAND_INS } from "./stand_ins";
 

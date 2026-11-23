@@ -5,6 +5,7 @@
 
 import { AIM_COUNT } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
+import { brickBox, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { Box } from "@fz/core/sweep";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { BRICK_KINDS, type BrickKinds } from "../rules/catalog/bricks";
@@ -16,7 +17,7 @@ import {
 } from "../rules/flight/events";
 import type { FlightRules, FlightStart, Flown } from "../rules/flight/flight";
 import type { TraitRules } from "../rules/flight/hooks";
-import { brickBox, columnOf, fieldRowOf, shapeOf } from "../rules/grid";
+import { shapeOf } from "../rules/grid";
 import { RULES, flightRulesOf } from "../rules/round/round";
 import {
   MOST_CHARGE,

@@ -1,5 +1,14 @@
 import { AIMS } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import {
+  CEILINGWARD,
+  FLOORWARD,
+  FLOORWARD_LEFT,
+  FLOORWARD_RIGHT,
+  LEFT,
+  RIGHT,
+  cellOf,
+} from "@fz/brick-wall/rules/grid";
 import { createRandom } from "@fz/core/random";
 import {
   type Cast,
@@ -11,16 +20,7 @@ import {
 import { BUMPER, STAND_INS } from "../../testing/stand_ins";
 import { wallFrom } from "../../testing/wall_picture";
 import { BRICK_KINDS, type BrickKinds } from "../catalog/bricks";
-import {
-  CEILINGWARD,
-  FLOORWARD,
-  FLOORWARD_LEFT,
-  FLOORWARD_RIGHT,
-  LEFT,
-  RIGHT,
-  SHAPES,
-  cellOf,
-} from "../grid";
+import { SHAPES } from "../grid";
 import { MISSED } from "@fz/core/sweep";
 import {
   type CastField,

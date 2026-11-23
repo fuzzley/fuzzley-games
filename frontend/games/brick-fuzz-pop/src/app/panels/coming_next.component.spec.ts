@@ -1,7 +1,7 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
+import { cellOf } from "@fz/brick-wall/rules/grid";
 import { cssHex } from "@fz/phaser/color";
 import { render, screen } from "@testing-library/angular";
-import { cellOf } from "../../rules/grid";
 import { LEVELS, levelEntryOf } from "../../rules/levels/levels";
 import type { RoundStart } from "../../rules/round/round";
 import type { Boon } from "../../rules/shot";

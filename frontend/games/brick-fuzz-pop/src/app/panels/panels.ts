@@ -2,8 +2,8 @@
 // waiting over the ceiling, and the kinds of brick it holds.
 
 import { COLUMNS } from "@fz/brick-wall/rules/field";
+import { cellOf } from "@fz/brick-wall/rules/grid";
 import { BRICK_KIND_IDS, type BrickKindId } from "../../rules/catalog/bricks";
-import { cellOf } from "../../rules/grid";
 import type { Brick, Wall } from "../../rules/wall/wall";
 
 /**

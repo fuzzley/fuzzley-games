@@ -1,7 +1,7 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { GameObjects, Scene } from "phaser";
 import type { Guide, GuidePlace } from "../../rules/flight/guide";
-import { columnOf, fieldRowOf } from "../../rules/grid";
 import type { Wall } from "../../rules/wall/wall";
 import { FRAMES } from "../../view/art/frames";
 import {

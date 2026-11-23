@@ -17,6 +17,12 @@
 
 import { AIMS, type Aim } from "@fz/brick-wall/rules/aims";
 import { AT_ONCE, RADIUS } from "@fz/brick-wall/rules/field";
+import {
+  brickAt,
+  cellAt,
+  columnOf,
+  fieldRowOf,
+} from "@fz/brick-wall/rules/grid";
 import { multiplierAt } from "@fz/core/math";
 import { MISSED } from "@fz/core/sweep";
 import { strike } from "../bricks/bricks";
@@ -26,7 +32,6 @@ import type {
   TraitKind,
   TraitOf,
 } from "../catalog/bricks";
-import { brickAt, cellAt, columnOf, fieldRowOf } from "../grid";
 import {
   LAUNCH_GAP,
   MOST_CHARGE,

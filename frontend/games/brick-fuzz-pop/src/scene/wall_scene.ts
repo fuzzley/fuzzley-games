@@ -1,4 +1,5 @@
 import { FIRST_X } from "@fz/brick-wall/rules/field";
+import { columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import type { EventLogView } from "@fz/core/event_log";
 import { isShortcut } from "@fz/core/keys";
 import { recordOf } from "@fz/core/records";
@@ -20,7 +21,6 @@ import { SpritePlayer } from "@fz/phaser/sound";
 import { type GameObjects, Input, Scene } from "phaser";
 import type { FlightEvent } from "../rules/flight/events";
 import type { Guide } from "../rules/flight/guide";
-import { columnOf, fieldRowOf } from "../rules/grid";
 import type { Crew } from "../rules/round/round";
 import type { Boon } from "../rules/shot";
 import type { Wall } from "../rules/wall/wall";

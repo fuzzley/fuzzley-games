@@ -1,7 +1,3 @@
-import { eventsOf, flyPicture } from "../../../testing/flights";
-import { struckOf } from "../../../testing/stand_ins";
-import type { TraitOf } from "../../catalog/bricks";
-import type { Struck } from "../../flight/hooks";
 import {
   CEILINGWARD,
   CEILINGWARD_LEFT,
@@ -11,7 +7,11 @@ import {
   FLOORWARD_RIGHT,
   LEFT,
   RIGHT,
-} from "../../grid";
+} from "@fz/brick-wall/rules/grid";
+import { eventsOf, flyPicture } from "../../../testing/flights";
+import { struckOf } from "../../../testing/stand_ins";
+import type { TraitOf } from "../../catalog/bricks";
+import type { Struck } from "../../flight/hooks";
 import { MOST_CHARGE } from "../../tuning";
 import { PLATED_RULE } from "./plated";
 

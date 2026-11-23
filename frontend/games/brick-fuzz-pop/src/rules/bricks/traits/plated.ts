@@ -1,5 +1,3 @@
-import type { TraitOf } from "../../catalog/bricks";
-import type { TraitRule } from "../../flight/hooks";
 import {
   CEILINGWARD,
   CEILINGWARD_LEFT,
@@ -9,7 +7,9 @@ import {
   FLOORWARD_RIGHT,
   LEFT,
   RIGHT,
-} from "../../grid";
+} from "@fz/brick-wall/rules/grid";
+import type { TraitOf } from "../../catalog/bricks";
+import type { TraitRule } from "../../flight/hooks";
 
 /**
  * Returns the faces a strike at a side of a brick meets: a face its own, a

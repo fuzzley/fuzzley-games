@@ -1,6 +1,6 @@
 import { COLUMNS } from "@fz/brick-wall/rules/field";
+import { fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { brickKind, hasTrait } from "../catalog/bricks";
-import { fieldRowOf } from "../grid";
 import { type Brick, type Wall, thirdsOf } from "./wall";
 
 /** Describes a wall come down after a round, and what its coming down did. */

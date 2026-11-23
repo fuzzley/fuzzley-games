@@ -1,9 +1,9 @@
 import { COLUMNS, MOST_DEPTH } from "@fz/brick-wall/rules/field";
+import { cellAt, columnOf, fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { shareDone } from "@fz/core/math";
 import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
 import type { ArtScale } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
-import { cellAt, columnOf, fieldRowOf } from "../../rules/grid";
 import { DANGER_ROW, dangerCells } from "../../rules/wall/lower";
 import type { Wall } from "../../rules/wall/wall";
 import { brickLayers } from "../../view/art/art";

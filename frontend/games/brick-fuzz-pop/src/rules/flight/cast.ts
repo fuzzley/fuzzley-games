@@ -14,6 +14,15 @@
 
 import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
+  CEILINGWARD,
+  FLOORWARD,
+  LEFT,
+  RIGHT,
+  brickAt,
+  brickBox,
+  cellAt,
+} from "@fz/brick-wall/rules/grid";
+import {
   type Box,
   CORNERS,
   CORNER_AT,
@@ -37,18 +46,7 @@ import {
   type BrickKinds,
   type TraitOf,
 } from "../catalog/bricks";
-import {
-  CEILINGWARD,
-  FLOORWARD,
-  LEFT,
-  RIGHT,
-  type Shapes,
-  boxesIn,
-  brickAt,
-  brickBox,
-  cellAt,
-  shapesOf,
-} from "../grid";
+import { type Shapes, boxesIn, shapesOf } from "../grid";
 import type { Wall } from "../wall/wall";
 import type { Contact } from "./events";
 
@@ -109,8 +107,8 @@ export interface Met {
   cell: number;
   /**
    * The face or corner of it met, as `@fz/core/sweep`'s `SIDE` bit, which
-   * `grid.ts` names for the field: a brick's, or the face a side wall, the
-   * ceiling or the floor shows the field; 0 for a bumper.
+   * `@fz/brick-wall/rules/grid` names for the field: a brick's, or the face a
+   * side wall, the ceiling or the floor shows the field; 0 for a bumper.
    */
   side: number;
   /** The way out of it, across, a unit long with `ny`: a face's normal, or the way from a corner or a bumper's middle to the fuzzball's. */
