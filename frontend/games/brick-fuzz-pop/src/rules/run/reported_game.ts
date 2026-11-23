@@ -59,15 +59,12 @@ export interface ReportedRound {
 export type ReportedGame = WallReportedGame<SavedGame, ReportedRound>;
 
 /** Describes a round as the game released it, for a report to play again. */
-export interface PlayedRound extends ReleasedRound<
+export type PlayedRound = ReleasedRound<
   LevelCounts,
   RoundStart,
   Shot,
   RoundRules
-> {
-  /** The boon a jump earns the next shot: the level's. */
-  readonly levelBoon: Boon;
-}
+>;
 
 /** Describes the game as it stands, as a report takes it. */
 export interface PlayedGame extends ReportedPlay<
@@ -147,7 +144,7 @@ export function reportedGameOf(
   const rules = { ...SHOT_CODEC, keptStart: savedStartOf };
   return reportOf(played, levels, rules, (inPlay) => ({
     shot: certifiedShotOf(inPlay.shot),
-    boon: inPlay.levelBoon,
+    boon: levelOf(inPlay.started, levels).boon,
     bored: inPlay.rules.bored,
     moment: played.moment,
     dropped: inPlay.dropped,
@@ -210,11 +207,7 @@ export function replayReported(
       ),
     differs: replayDiffers,
   });
-  return {
-    game,
-    rounds: rounds.map((each) => ({ ...each, levelBoon: boon })),
-    round,
-  };
+  return { game, rounds, round };
 }
 
 /** Returns a report's round in play read back, or throws naming what doesn't fit. */

@@ -98,7 +98,6 @@ function played(shots: readonly Aimed[]): Played {
       started,
       start: from,
       shot,
-      levelBoon: boon,
       rules,
       dropped: dropped ?? null,
     });

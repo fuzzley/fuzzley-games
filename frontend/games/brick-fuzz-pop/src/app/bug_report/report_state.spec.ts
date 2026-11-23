@@ -385,7 +385,6 @@ function largestGame(): PlayedGame {
       started,
       start,
       shot,
-      levelBoon: level.boon,
       rules: RULES,
       dropped,
     });
@@ -405,7 +404,6 @@ function largestGame(): PlayedGame {
     started: startLevel(run),
     start,
     shot: { aim: 328, charge: 5 },
-    levelBoon: level.boon,
     rules: RULES,
     dropped: 41.123456789,
   };
