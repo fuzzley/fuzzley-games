@@ -6,7 +6,12 @@
 // not a softened one.
 
 import { inkAt } from "@fz/brick-wall/view/inks";
-import { type SlabShares, TILE_SLAB, slabCommands } from "@fz/phaser/bricks";
+import {
+  type SlabShares,
+  TILE_SLAB,
+  slabBody,
+  slabCommands,
+} from "@fz/phaser/bricks";
 import type { Area, DrawCommand } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { cellFrame } from "../cells";
@@ -29,6 +34,15 @@ export const CUT_TILE = {
 const TILE_LAYERS: readonly (readonly FrameName[])[] = INKS.map((ink) => [
   FRAMES.tile(ink),
 ]);
+
+/**
+ * Returns a tile's body in its cell, lip and all: a whole number of device
+ * pixels in from it on each side, which the marks on the tile are laid out
+ * in.
+ */
+export function tileBody(cell: Area): Area {
+  return slabBody(cell, CUT_TILE);
+}
 
 /**
  * Returns the tile in its cell, in an ink: a darker lip along its foot, its

@@ -5,6 +5,7 @@ import {
   ART_ROLES,
   billionths,
   distanceToSegment,
+  pastOutline,
   pointInBillionths,
 } from "./art_frames";
 import { PALETTES } from "./roles";
@@ -66,5 +67,51 @@ describe("distanceToSegment", () => {
 
   it("measures to a line of no length as to its one point", () => {
     expect(distanceToSegment({ x: 3, y: 4 }, from, from)).toBe(5);
+  });
+});
+
+describe("pastOutline", () => {
+  // A square from (0, 0) to (10, 10), clockwise on a canvas, whose y runs
+  // down, from its top left corner.
+  const square = [
+    { x: 0, y: 0 },
+    { x: 10, y: 0 },
+    { x: 10, y: 10 },
+    { x: 0, y: 10 },
+  ];
+
+  it.each([
+    ["above it", { x: 5, y: -2 }, 2],
+    ["right of it", { x: 13, y: 5 }, 3],
+    ["below it", { x: 5, y: 14 }, 4],
+    ["left of it", { x: -1, y: 5 }, 1],
+  ])("measures a point %s from the edge it lies past", (_, point, past) => {
+    expect(pastOutline(point, square)).toBe(past);
+  });
+
+  it("measures a point inside it below nothing, by as far as its nearest edge", () => {
+    expect(pastOutline({ x: 2, y: 4 }, square)).toBe(-2);
+  });
+
+  it("measures a point on its edge as nothing", () => {
+    expect(pastOutline({ x: 10, y: 7 }, square)).toBe(0);
+  });
+
+  it("measures past an outline with a point that repeats the one before as past the same outline without it", () => {
+    const repeated = [{ x: 0, y: 0 }, ...square];
+
+    expect(pastOutline({ x: 13, y: 5 }, repeated)).toBe(3);
+  });
+
+  it("measures past a slanting edge square to it", () => {
+    const triangle = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+      { x: 0, y: 10 },
+    ];
+
+    expect(billionths(pastOutline({ x: 6, y: 4 }, triangle))).toBe(
+      billionths(Math.SQRT2),
+    );
   });
 });

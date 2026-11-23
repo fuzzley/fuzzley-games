@@ -74,3 +74,26 @@ export function distanceToSegment(
     point.y - (from.y + along * down),
   );
 }
+
+/**
+ * Returns how far a point lies outside a convex outline whose points run
+ * clockwise, as a tile's do, the most it lies past any of its edges: below
+ * nothing for a point inside it, by as far as its nearest edge. A point
+ * that repeats the one before it makes an edge of no length, which bounds
+ * nothing.
+ */
+export function pastOutline(point: Point, outline: readonly Point[]): number {
+  return Math.max(
+    ...outline.flatMap((from, i) => {
+      const to = outline[(i + 1) % outline.length] ?? from;
+      const across = to.x - from.x;
+      const down = to.y - from.y;
+      const length = Math.hypot(across, down);
+      // Clockwise on the canvas, whose y runs down, the outside of an edge
+      // lies to its left, the way its line turned a quarter back points.
+      return length === 0
+        ? []
+        : [((point.x - from.x) * down - (point.y - from.y) * across) / length];
+    }),
+  );
+}

@@ -2,11 +2,18 @@ import { TEXT, against, holdContrast } from "@fz/brick-wall/testing/contrast";
 import { KIND_IDS } from "../../rules/catalog/kinds";
 import { PORTAL_MARKS } from "../../rules/levels/legend";
 import { PALETTES } from "../../testing/roles";
+import { tileCommands } from "../art/kinds/brick";
 import { brickColor } from "./brick_colors";
 import { FIELD_ROLES, wallPalette } from "./palette";
 
 /** A color, named for what it draws. */
 type Named = readonly [string, number];
+
+/** Returns the color of the strip along the top of a tile in an ink, as the tile draws it: its last shape. */
+function stripOf(ink: number): number {
+  const cell = { x: 0, y: 0, width: 100, height: 100 };
+  return tileCommands(cell, ink).at(-1)?.color ?? NaN;
+}
 
 // The colors every wall game draws in are held in `@fz/brick-wall`'s own
 // contrast spec: the tints, steel, the fuzzball, the hot shot, the sparks
@@ -15,7 +22,11 @@ type Named = readonly [string, number];
 // each kind's color, in its first ink, and each pair of portals', since
 // a row's other inks are the library's tints; the rally's pill; the
 // guide's rings; and the streak the dash home leaves. The marks are cut
-// out in the field's color, so they keep 3:1 against every kind's color.
+// out in the field's color, so they keep 3:1 against every kind's color;
+// and since a tough brick's cracks run in from its tile's edges, two of
+// them across the lighter strip along its top, against each ink's strip
+// too. None crosses the darker lip along its foot, which they keep less
+// than 3:1 against in Midnight blue.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in, and the rally's number, text, 4.5:1 against its
 // pill.
@@ -42,6 +53,11 @@ describe("the field's contrast", () => {
       ]),
       ...kinds.flatMap(([name, color]) =>
         against(name, color, [["marks", palette.mark]]),
+      ),
+      ...palette.tints.flatMap((ink, tint) =>
+        against(`tile's strip in ink ${String(tint)}`, stripOf(ink), [
+          ["cracks", palette.mark],
+        ]),
       ),
       ...against("floor's band", palette.band, [
         ["lit springs", palette.springs.on],
