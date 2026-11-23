@@ -17,3 +17,15 @@ export function shotOf([aim, charge]: CertifiedShot): Shot {
   }
   return { aim, charge };
 }
+
+/**
+ * Returns a shot as a certificate's file keeps it, a pair of an aim and a
+ * charge, or null for anything else: the codec a page reads a file with,
+ * dropping what it can't trust.
+ */
+export function readCertifiedShot(value: unknown): CertifiedShot | null {
+  if (!Array.isArray(value) || value.length !== 2) return null;
+  const pair: readonly unknown[] = value;
+  const [aim, charge] = pair;
+  return isAim(aim) && isCharge(charge) ? [aim, charge] : null;
+}

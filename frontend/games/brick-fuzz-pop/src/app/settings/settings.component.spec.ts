@@ -1,4 +1,6 @@
 import { TestBed } from "@angular/core/testing";
+import type { CertificateFiles } from "@fz/brick-wall/app/certificates";
+import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { packState } from "@fz/game-ui/bug_report";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { installCompressionStreams } from "@fz/game-ui/testing";
@@ -7,7 +9,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { MemoryStorage, provideMemoryStorage } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { type UserEvent, userEvent } from "@testing-library/user-event";
-import { filesCertifying, loadsSettled } from "../../testing/certificates";
+import { filesCertifying } from "../../testing/certificates";
 import { type HeldLoad, OFFLINE, heldLoad } from "../../testing/loads";
 import { provideSpecPlay } from "../../testing/play";
 import {
@@ -15,10 +17,7 @@ import {
   provideBugReports,
 } from "../bug_report/bug_report_source";
 import { REPORT_TAG } from "../bug_report/report_state";
-import {
-  CERTIFICATE_FILES,
-  type CertificateFiles,
-} from "../debug/certificates.service";
+import { CERTIFICATE_FILES } from "../debug/certificates.service";
 import { DebugMenuComponent } from "../debug/debug_menu.component";
 import { GameService } from "../play/game.service";
 import { LOAD_DEBUG_MENU } from "../tokens";

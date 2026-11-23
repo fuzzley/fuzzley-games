@@ -1,5 +1,6 @@
 import type { Provider } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { FRAME_MS } from "@fz/core/testing";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
@@ -27,7 +28,7 @@ import {
   release,
   scriptedRounds,
 } from "../testing/play";
-import { filesCertifying, loadsSettled } from "../testing/certificates";
+import { filesCertifying } from "../testing/certificates";
 import { type HeldLoad, OFFLINE, heldLoad } from "../testing/loads";
 import { PALETTES } from "../testing/roles";
 import { AppComponent, HELP_FAILED_WORDS } from "./app.component";

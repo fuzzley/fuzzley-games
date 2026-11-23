@@ -1,38 +1,31 @@
 import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import {
+  type CertificateFiles,
+  readCertificates,
+} from "@fz/brick-wall/app/certificates";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { FRAME_MS } from "@fz/core/testing";
+import { loadsSettled } from "@fz/brick-wall/testing/settled";
 import { DEBUG_MENU } from "@fz/game-ui/debug_menu";
 import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
-import {
-  LEVEL_SETS,
-  LEVELS,
-  type LevelEntry,
-  levelsOf,
-} from "../../rules/levels/levels";
+import { LEVEL_SETS, LEVELS } from "../../rules/levels/levels";
+import { readCertifiedShot } from "../../rules/levels/certificate";
 import { playRound } from "../../rules/round/round";
-import {
-  TWO_SHOTS,
-  filesCertifying,
-  loadsSettled,
-} from "../../testing/certificates";
+import { TWO_SHOTS, filesCertifying } from "../../testing/certificates";
 import {
   SPEC_LEVELS,
-  STILL,
   playRoundOut,
   playUntilCard,
   provideSpecPlay,
 } from "../../testing/play";
-import { readCertificates } from "../../view/debug/certificates";
 import { GameService } from "../play/game.service";
 import { DebugService } from "./debug.service";
-import {
-  CERTIFICATE_FILES,
-  type CertificateFiles,
-  CertificatesService,
-  certificateFilesOf,
-} from "./certificates.service";
+import { CERTIFICATE_FILES, CertificatesService } from "./certificates.service";
+
+// What the certificates offer and play, and when they load, is
+// `@fz/brick-wall/app/certificates`' `DebugCertificates`, whose spec holds
+// it: this one holds the game's files, its codec and its game.
 
 /** A tall canvas, on which the debug menu's depth sets the field's. */
 const TALL: Viewport = {
@@ -45,14 +38,6 @@ const TALL: Viewport = {
 /** The set the specs' levels belong to, whose file a spec writes. */
 const SET_ID = SPEC_LEVELS[0]?.set.id ?? "";
 
-/**
- * Warm-up twice over, the second time as a set of another id, so a run
- * moves from one set's certificates to another's at level 10.
- */
-const TWO_SETS: readonly LevelEntry[] = levelsOf(
-  LEVEL_SETS.slice(0, 1).flatMap((set) => [set, { ...set, id: "again" }]),
-);
-
 /** Describes the service a spec reads, and the game it plays. */
 interface Certified {
   readonly certificates: CertificatesService;
@@ -61,18 +46,14 @@ interface Certified {
 
 /**
  * Returns the service over the specs' levels and the certificates files
- * handed it, where the debug menu is offered or not, once what it loads
- * has loaded.
+ * handed it, where the debug menu is offered, once what it loads has
+ * loaded.
  */
-async function certifiedWith(
-  files: CertificateFiles,
-  menu = true,
-  levels: readonly LevelEntry[] = SPEC_LEVELS,
-): Promise<Certified> {
+async function certifiedWith(files: CertificateFiles): Promise<Certified> {
   TestBed.configureTestingModule({
     providers: [
-      ...provideSpecPlay(undefined, levels),
-      { provide: DEBUG_MENU, useValue: menu },
+      ...provideSpecPlay(),
+      { provide: DEBUG_MENU, useValue: true },
       { provide: CERTIFICATE_FILES, useValue: files },
       CertificatesService,
     ],
@@ -102,19 +83,6 @@ function settled(): Promise<void> {
   return loadsSettled(TestBed.inject(ApplicationRef));
 }
 
-describe("certificateFilesOf", () => {
-  it("names each file a glob found by its set's id", () => {
-    const load = (): Promise<unknown> => Promise.resolve({});
-
-    const files = certificateFilesOf({
-      "../../rules/levels/certificates/warm-up.json": load,
-      "../../rules/levels/certificates/sparks.json": load,
-    });
-
-    expect(Object.keys(files)).toEqual(["warm-up", "sparks"]);
-  });
-});
-
 describe("CERTIFICATE_FILES", () => {
   it("holds no file but a set's", () => {
     const ids = LEVEL_SETS.map(({ id }) => id);
@@ -132,6 +100,7 @@ describe("CERTIFICATE_FILES", () => {
 
       const certificates = readCertificates(
         await TestBed.inject(CERTIFICATE_FILES)[setId]?.(),
+        readCertifiedShot,
       );
 
       expect(levels.map(({ data }) => certificates.get(data.id)?.size)).toEqual(
@@ -152,17 +121,6 @@ describe("CertificatesService", () => {
       depth: game.shape().depth,
       rounds: 2,
     });
-  });
-
-  it("offers the certificate of the level a new run starts at", async () => {
-    const { certificates, game } = await certifiedWith(
-      filesCertifying(fieldDepth, { level: "stripes" }),
-    );
-
-    await game.startAt(2);
-    await settled();
-
-    expect(certificates.offer()?.level).toBe(2);
   });
 
   it("plays the level's line the game ships to its Cleared card", async () => {
@@ -206,130 +164,5 @@ describe("CertificatesService", () => {
       12,
       { level: 1, depth: 13, rounds: 1 },
     ]);
-  });
-
-  it("offers none where the set has no file", async () => {
-    const { certificates } = await certifiedWith({});
-
-    expect(certificates.offer()).toBeNull();
-  });
-
-  it("offers none where the file holds no line on the field's depth", async () => {
-    const { certificates } = await certifiedWith(
-      fileOf({ "hello-wall": { "11": TWO_SHOTS, "22": TWO_SHOTS } }),
-    );
-
-    expect(certificates.offer()).toBeNull();
-  });
-
-  it("offers none where the file fails to load, and says why in the console", async () => {
-    const failure = new Error("The chunk failed to load.");
-    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    const { certificates } = await certifiedWith({
-      [SET_ID]: () => Promise.reject(failure),
-    });
-
-    expect([certificates.offer(), logged.mock.calls]).toEqual([
-      null,
-      [["The certificates failed to load.", failure]],
-    ]);
-  });
-
-  it("fetches no file while the debug menu isn't offered", async () => {
-    const load = vi.fn(() => Promise.resolve({}));
-
-    const { certificates } = await certifiedWith({ [SET_ID]: load }, false);
-
-    expect([certificates.offer(), load.mock.calls.length]).toEqual([null, 0]);
-  });
-
-  it("fetches a set's file once for all its levels", async () => {
-    const load = vi.fn(() => Promise.resolve({}));
-    const { game } = await certifiedWith({ [SET_ID]: load });
-
-    await game.startAt(2);
-    await settled();
-
-    expect(load).toHaveBeenCalledTimes(1);
-  });
-
-  it("fetches a set's file once, whatever its loader reads", async () => {
-    const load = vi.fn(() =>
-      Promise.resolve({ "hello-wall": { [String(fieldDepth())]: TWO_SHOTS } }),
-    );
-    const { game } = await certifiedWith({ [SET_ID]: load });
-    game.setRoom(TALL);
-    TestBed.inject(DebugService).setDepth(12);
-    TestBed.tick();
-
-    await settled();
-
-    expect(load).toHaveBeenCalledTimes(1);
-  });
-
-  it("offers none of the last set's certificates while the next set's load", async () => {
-    const { certificates, game } = await certifiedWith(
-      {
-        ...filesCertifying(fieldDepth),
-        again: () => new Promise<never>(() => undefined),
-      },
-      true,
-      TWO_SETS,
-    );
-
-    await game.startAt(10);
-    await settled();
-
-    expect(certificates.offer()).toBeNull();
-  });
-
-  it("keeps the set in play's certificates as the last set's arrive late", async () => {
-    let arrive: (lines: unknown) => void = () => undefined;
-    const { certificates, game } = await certifiedWith(
-      {
-        [SET_ID]: () =>
-          new Promise((resolve) => {
-            arrive = resolve;
-          }),
-        ...filesCertifying(fieldDepth, { set: "again" }),
-      },
-      true,
-      TWO_SETS,
-    );
-    await game.startAt(10);
-    await settled();
-
-    arrive({ "hello-wall": { [String(game.shape().depth)]: TWO_SHOTS } });
-    await settled();
-
-    expect(certificates.offer()).toEqual({
-      level: 10,
-      depth: game.shape().depth,
-      rounds: 2,
-    });
-  });
-
-  it("plays the level in play's line, its first shot let fly as the level waits", async () => {
-    const { certificates, game } = await certifiedWith(
-      filesCertifying(fieldDepth),
-    );
-
-    const started = await certificates.play();
-    game.tick(FRAME_MS, STILL);
-
-    expect([started, game.run().rounds]).toEqual([true, 1]);
-  });
-
-  it.each<[string, CertificateFiles, boolean]>([
-    ["the debug menu isn't offered", filesCertifying(fieldDepth), false],
-    ["the set has no file", {}, true],
-  ])("plays nothing where %s", async (_, files, menu) => {
-    const { certificates, game } = await certifiedWith(files, menu);
-    const run = game.run();
-
-    const started = await certificates.play();
-
-    expect([started, game.run()]).toEqual([false, run]);
   });
 });

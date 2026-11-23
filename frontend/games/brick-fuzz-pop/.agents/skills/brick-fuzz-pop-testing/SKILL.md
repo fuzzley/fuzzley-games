@@ -258,8 +258,9 @@ Phaser game. A new case uses what the spec already has:
   The menu loads its certificates from `CERTIFICATE_FILES`, which a spec
   hands a file of its own (`filesCertifying()`, in
   `src/testing/certificates.ts`). No pending task holds that load, so a
-  spec waits for the menu and its certificates with `loadsSettled()`, and
-  for the game's own files, a dynamic import, with `vi.waitFor()`.
+  spec waits for the menu and its certificates with
+  `@fz/brick-wall/testing/settled`'s `loadsSettled()`, and for the game's
+  own files, a dynamic import, with `vi.waitFor()`.
 - **Hold a load to see what shows meanwhile,** or once a chunk can't be
   fetched. A spec hands `LOAD_HELP` or `LOAD_DEBUG_MENU` a held load
   (`heldLoad()`, in `src/testing/loads.ts`) and lets it `arrive()` or

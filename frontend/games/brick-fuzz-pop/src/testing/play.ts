@@ -88,15 +88,14 @@ export function scriptedRounds(...script: readonly SpecRound[]): RoundPlayer {
 }
 
 /**
- * Returns the providers that hand `GameService` the specs' levels, or those
- * given, rounds played as a script says, and {@link SPEC_RANDOM}.
+ * Returns the providers that hand `GameService` the specs' levels, rounds
+ * played as a script says, and {@link SPEC_RANDOM}.
  */
 export function provideSpecPlay(
   rounds: RoundPlayer = scriptedRounds("step"),
-  levels: readonly LevelEntry[] = SPEC_LEVELS,
 ): Provider[] {
   return [
-    { provide: GAME_LEVELS, useValue: levels },
+    { provide: GAME_LEVELS, useValue: SPEC_LEVELS },
     { provide: PLAY_ROUND, useValue: rounds },
     { provide: GAME_RANDOM, useValue: SPEC_RANDOM },
   ];

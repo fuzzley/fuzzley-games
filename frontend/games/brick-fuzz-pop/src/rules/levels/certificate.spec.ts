@@ -1,4 +1,4 @@
-import { shotOf } from "./certificate";
+import { readCertifiedShot, shotOf } from "./certificate";
 
 describe("shotOf", () => {
   it("reads a certificate's pair as a shot", () => {
@@ -15,5 +15,22 @@ describe("shotOf", () => {
     expect(() => shotOf([0, charge])).toThrow(
       new RangeError(`${String(charge)} isn't a charge.`),
     );
+  });
+});
+
+describe("readCertifiedShot", () => {
+  it("reads a pair of an aim and a charge", () => {
+    expect(readCertifiedShot([656, 5])).toEqual([656, 5]);
+  });
+
+  it.each([
+    ["an aim past the last", [657, 2]],
+    ["an aim between two", [100.5, 2]],
+    ["a charge past the most", [100, 6]],
+    ["three numbers", [100, 2, 1]],
+    ["one", [100]],
+    ["no pair", { aim: 100, charge: 2 }],
+  ])("reads none from %s", (_, kept) => {
+    expect(readCertifiedShot(kept)).toBeNull();
   });
 });

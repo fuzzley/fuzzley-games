@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { lineOf, readCertificates } from "@fz/brick-wall/app/certificates";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { packState, unpackState } from "@fz/game-ui/bug_report";
 import { installCompressionStreams } from "@fz/game-ui/testing";
@@ -6,7 +7,10 @@ import { NO_INSETS } from "@fz/phaser/insets";
 import type { Viewport } from "@fz/phaser/layout";
 import { ConfirmService } from "@fz/ui/confirm";
 import { provideMemoryStorage } from "@fz/ui/testing";
-import type { CertifiedShot } from "../../rules/levels/certificate";
+import {
+  type CertifiedShot,
+  readCertifiedShot,
+} from "../../rules/levels/certificate";
 import warmUp from "../../rules/levels/certificates/warm-up.json";
 import { type RoundStart, playRound } from "../../rules/round/round";
 import type { Charge } from "../../rules/shot";
@@ -21,7 +25,6 @@ import {
   STILL,
   provideSpecPlay,
 } from "../../testing/play";
-import { lineOf, readCertificates } from "../../view/debug/certificates";
 import type { BoardCard } from "../board/board_card.component";
 import { DebugService } from "../debug/debug.service";
 import { GameService } from "../play/game.service";
@@ -63,7 +66,11 @@ type LongLine = readonly [
  */
 function lineFor(game: GameService): LongLine {
   const [first, second, third, ...rest] =
-    lineOf(readCertificates(warmUp), "hello-wall", game.shape().depth) ?? [];
+    lineOf(
+      readCertificates(warmUp, readCertifiedShot),
+      "hello-wall",
+      game.shape().depth,
+    ) ?? [];
   if (!first || !second || !third) {
     throw new Error(
       "No certificate of three shots holds the first level here.",
