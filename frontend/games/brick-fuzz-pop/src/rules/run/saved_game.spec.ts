@@ -316,6 +316,13 @@ describe("readStart", () => {
     expect(readStart(start, GIRDER, run)?.wall.lowestRow).toBe(0);
   });
 
+  it("drops a wall come down a row less than its jump brings it", () => {
+    const start = tamperedStart({ ...SUNK, lowestRow: 1, boon: "hot" });
+    const run = { ...THREE_ROUNDS, tally: { jumps: 1 } };
+
+    expect(readStart(start, GIRDER, run)).toBeNull();
+  });
+
   it.each([...PLACE_SPOILS, ...CREW_SPOILS, ...BOON_SPOILS])(
     "drops a start of %s",
     (_, change) => {

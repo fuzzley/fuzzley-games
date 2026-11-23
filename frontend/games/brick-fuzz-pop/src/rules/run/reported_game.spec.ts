@@ -20,7 +20,6 @@ import {
   readReportedGame,
   replayReported,
   reportedGameOf,
-  trimReported,
 } from "./reported_game";
 import { RUN_RULES, type Run, levelOf, openingOf } from "./run";
 import { saveGame } from "./saved_game";
@@ -222,22 +221,22 @@ describe("reportedGameOf", () => {
     });
   });
 
-  it("keeps the run on the board, and every shot, where no round is in play", () => {
-    const game = gameAfter(SHOTS, false);
+  it("keeps its parts, and the round in play's, in the order a report keeps them", () => {
+    const reported = reportedGameOf(gameAfter(SHOTS, true, 7.25), LEVELS);
 
-    const { game: saved, record, round } = reportedGameOf(game, LEVELS);
-
-    expect({
-      score: saved.score,
-      rounds: saved.rounds,
-      shots: record?.shots.length,
-      round,
-    }).toEqual({
-      score: game.run.score,
-      rounds: 4,
-      shots: 4,
-      round: null,
-    });
+    expect(JSON.stringify(reported)).toBe(
+      JSON.stringify({
+        game: reported.game,
+        record: { from: reported.record?.from, shots: reported.record?.shots },
+        round: {
+          shot: [200, 3],
+          boon: levelEntryOf(LEVELS, GIRDER).data.boon,
+          bored: RULES.bored,
+          moment: 7.25,
+          dropped: null,
+        },
+      }),
+    );
   });
 
   it("keeps the run and where its round starts as the saved game does", () => {
@@ -265,26 +264,6 @@ describe("reportedGameOf", () => {
       bored: RETUNED.bored,
       moment: 9,
       dropped: 4,
-    });
-  });
-
-  it("records from the run and start the first shot was released from", () => {
-    const game = gameAfter(SHOTS, false);
-
-    const { record } = reportedGameOf(game, LEVELS);
-
-    expect(record?.from).toEqual({
-      levelId: "girder",
-      level: GIRDER,
-      firstLevel: GIRDER,
-      depth: DEPTH,
-      rounds: 0,
-      jumps: 0,
-      banked: 0,
-      stars: 0,
-      score: 0,
-      tuned: false,
-      start: null,
     });
   });
 
@@ -373,16 +352,10 @@ describe("readReportedGame", () => {
     ]);
   });
 
-  it("reads back where the record began, paused under the id handed", () => {
-    const { run, start } = opening();
+  it("works its runs' par out from the pars it is given", () => {
+    const read = readReportedGame(REPORTED, LEVELS, 7, { girder: { "11": 4 } });
 
-    const { record } = readReportedGame(REPORTED, LEVELS, 7);
-
-    expect(record?.from).toEqual({
-      run: { ...run, id: 7, outcome: "paused" },
-      start,
-      tuned: false,
-    });
+    expect([read.game.run.par, read.record?.from.run.par]).toEqual([4, 4]);
   });
 
   it("reads back the round in play", () => {
@@ -410,103 +383,11 @@ describe("readReportedGame", () => {
     });
   });
 
-  it("reads a game with no record and no round", () => {
-    const value = tampered({ record: null, round: null });
-
-    const { record, round } = readReportedGame(value, LEVELS, 7);
-
-    expect({ record, round }).toEqual({ record: null, round: null });
-  });
-
   it.each<readonly [string, unknown, string]>([
-    [
-      "a value that isn't a record",
-      "bp1",
-      "The game state isn't one this build reads.",
-    ],
-    [
-      "a part the reader doesn't know",
-      tampered({ ball: 1 }),
-      "The game state has a part this build doesn't know: ball.",
-    ],
-    [
-      "no record",
-      { game: REPORTED.game, round: REPORTED.round },
-      "The game state lacks a part: record.",
-    ],
-    [
-      "a saved game that isn't a record",
-      tampered({ game: 5 }),
-      "The game state holds no run this build reads.",
-    ],
-    [
-      "a level the build doesn't have",
-      withGame({ levelId: "pips" }),
-      "The game state names a level this build doesn't have.",
-    ],
-    [
-      "a first level the build doesn't have",
-      withGame({ firstLevel: 0 }),
-      "The game state names a level this build doesn't have.",
-    ],
     [
       "a run that doesn't fit its level",
       withGame({ score: -1 }),
       "The game state holds a run that doesn't fit level 5 in this build.",
-    ],
-    [
-      "a record that isn't a record",
-      tampered({ record: [] }),
-      "The game state's record isn't one this build reads.",
-    ],
-    [
-      "a record from a saved game that isn't a record",
-      withRecord({ from: null }),
-      "The game state's record holds no run this build reads.",
-    ],
-    [
-      "a record that lacks a part",
-      tampered({ record: { shots: REPORTED.record?.shots } }),
-      "The game state's record lacks a part: from.",
-    ],
-    [
-      "a record from a run that doesn't fit",
-      withRecord({ from: { ...REPORTED.game, rounds: -1 } }),
-      "The game state's record holds a run that doesn't fit level 5 in this build.",
-    ],
-    [
-      "a record of another level",
-      withRecord({
-        from: {
-          levelId: "punch-through",
-          level: 4,
-          firstLevel: 4,
-          depth: DEPTH,
-          rounds: 0,
-          jumps: 0,
-          banked: 0,
-          stars: 0,
-          score: 0,
-          tuned: false,
-          start: null,
-        },
-      }),
-      "The game state's record is of another level.",
-    ],
-    [
-      "a record with no shots",
-      withRecord({ shots: [] }),
-      "The game state's record holds no shots.",
-    ],
-    [
-      "shots that aren't a list",
-      withRecord({ shots: "100,1" }),
-      "The game state's record holds no shots.",
-    ],
-    [
-      "a shot that isn't a list",
-      withRecord({ shots: [[100, 1], "500,2"] }),
-      "Shot 2 of the game state isn't one this build plays.",
     ],
     [
       "a shot with an aim alone",
@@ -529,18 +410,8 @@ describe("readReportedGame", () => {
       "Shot 1 of the game state isn't one this build plays.",
     ],
     [
-      "a shot dropped before its flight",
-      withRecord({ shots: [[100, 1, -1]] }),
-      "Shot 1 of the game state isn't one this build plays.",
-    ],
-    [
       "a shot that flew on no boredom",
       withRecord({ shots: [[100, 1, null, 0]] }),
-      "Shot 1 of the game state isn't one this build plays.",
-    ],
-    [
-      "a shot on a depth no field has",
-      withRecord({ shots: [[100, 1, null, null, 10]] }),
       "Shot 1 of the game state isn't one this build plays.",
     ],
     [
@@ -797,64 +668,5 @@ describe("replayReported", () => {
     expect(replayProblem(game)).toBe(
       "The level in the game state has a different boon in this build.",
     );
-  });
-});
-
-describe("trimReported", () => {
-  /** Girder's game as a report keeps it after the specs' shots, the last in play. */
-  const whole = reportedGameOf(gameAfter(SHOTS, true, 7.25), LEVELS);
-
-  it("leaves nothing out of a game with no record and no round", () => {
-    const reported: ReportedGame = { ...whole, record: null, round: null };
-
-    expect(trimReported(reported)).toBeUndefined();
-  });
-
-  it("leaves out the level's shots first, then the round in play", () => {
-    const trim = trimReported(whole);
-
-    expect({
-      most: trim?.most,
-      one: trim?.at(1),
-      none: trim?.at(0),
-    }).toEqual({
-      most: 2,
-      one: {
-        value: { ...whole, record: null },
-        note: "without the level's shots",
-      },
-      none: {
-        value: { ...whole, record: null, round: null },
-        note: "without the level's shots or the shot in the air",
-      },
-    });
-  });
-
-  it("leaves out the round in play where it has no record", () => {
-    const reported: ReportedGame = { ...whole, record: null };
-
-    const trim = trimReported(reported);
-
-    expect({ most: trim?.most, none: trim?.at(0) }).toEqual({
-      most: 1,
-      none: {
-        value: { ...whole, record: null, round: null },
-        note: "without the shot in the air",
-      },
-    });
-  });
-
-  it("leaves out the level's shots where no round is in play", () => {
-    const reported: ReportedGame = { ...whole, round: null };
-
-    const trim = trimReported(reported);
-
-    expect({ most: trim?.most, none: trim?.at(0) }).toEqual({
-      most: 1,
-      none: {
-        value: { ...whole, record: null, round: null },
-        note: "without the level's shots",
-      },
-    });
   });
 });

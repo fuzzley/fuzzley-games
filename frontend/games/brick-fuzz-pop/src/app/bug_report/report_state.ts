@@ -1,7 +1,8 @@
+import { trimReported } from "@fz/brick-wall/rules/reported";
 import { count, formatPoints } from "@fz/core/format";
 import type { ReportState } from "@fz/game-ui/bug_report";
 import type { LevelEntry } from "../../rules/levels/levels";
-import { reportedGameOf, trimReported } from "../../rules/run/reported_game";
+import { reportedGameOf } from "../../rules/run/reported_game";
 import type { GameService } from "../play/game.service";
 
 /** The tag Brick Fuzz Pop's reported states are packed under, `bp` and the version of their shape. */
