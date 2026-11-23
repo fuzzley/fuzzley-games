@@ -483,6 +483,15 @@ describe("RoundPlay's flight", () => {
     expect(offTrack(play, LONG, 0, 140)).toBeLessThan(HAIR);
   });
 
+  it("goes on at the speed the settings change to", () => {
+    const play = playing(bored);
+    playMs(play, 100, options({ speed: "normal" }));
+
+    playMs(play, 100, options({ speed: "fast" }));
+
+    expect(offTrack(play, bored, 0, 1.4 + 2.2)).toBeLessThan(HAIR);
+  });
+
   it("keeps its speed past eight seconds where the settings say", () => {
     const play = playing(LONG);
 
@@ -1929,6 +1938,19 @@ describe("RoundPlay's card", () => {
 
     expect(opensWithin(play, 5000)).toBeNull();
   });
+
+  it.each([-100, Number.NaN])(
+    "counts nothing of its wait for a frame of %d ms",
+    (deltaMs) => {
+      const play = playing(FLIGHT_FIXTURES.lost);
+      playUntilSettled(play);
+      play.advance(deltaMs, NORMAL);
+
+      const opened = playUntilOpens(play, NORMAL);
+
+      expect(opened.ms).toBe(800);
+    },
+  );
 
   it("waits out a pause", () => {
     const play = playing(FLIGHT_FIXTURES.lost);

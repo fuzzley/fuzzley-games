@@ -433,6 +433,95 @@ describe("Playback's moment", () => {
   });
 });
 
+describe("Playback's pace for a flight that quickens with its rally", () => {
+  /** A flight that strikes a brick every unit from 1 to 50, and lands at 60. */
+  const RALLY = roundOf(
+    [
+      { at: 0, kind: "leave", ball: 0 },
+      ...Array.from({ length: 50 }, (_, hit): Happening => ({
+        at: hit + 1,
+        kind: "hit",
+        ball: 0,
+        cell: 2,
+      })),
+      { at: 60, kind: "land", ball: 0 },
+    ],
+    [
+      [
+        { at: 0, x: 4.5, y: 0.25 },
+        { at: 30, x: 4.5, y: 30.25 },
+        { at: 60, x: 4.5, y: 0.25 },
+      ],
+    ],
+  );
+
+  /**
+   * A frame at the rally's pace: 14 units a second, 17 from the 10th
+   * strike, 20 from the 25th and 24 from the 45th, and three times as fast
+   * from the last, the 50th, to the floor.
+   */
+  const RALLY_FRAME = frameOf({
+    unitsPerSecond: 14,
+    byDistance: [
+      { from: 10, times: 17 / 14 },
+      { from: 25, times: 20 / 17 },
+      { from: 45, times: 24 / 20 },
+      { from: 50, times: 3 },
+    ],
+    byTime: [],
+  });
+
+  // How long the rally takes to reach its 10th, 25th, 45th and 50th strike,
+  // in milliseconds.
+  const TO_10TH = (10 / 14) * 1000;
+  const TO_25TH = TO_10TH + (15 / 17) * 1000;
+  const TO_45TH = TO_25TH + (20 / 20) * 1000;
+  const TO_50TH = TO_45TH + (5 / 24) * 1000;
+
+  it.each([
+    [10, TO_10TH, 17],
+    [25, TO_25TH, 20],
+    [45, TO_45TH, 24],
+  ])(
+    "quickens from strike %i, %i ms in, to %i units a second",
+    (strike, toStrikeMs, unitsPerSecond) => {
+      const { playback } = playing(RALLY);
+
+      playback.advance(toStrikeMs + 100, RALLY_FRAME);
+
+      expect(playback.moment).toBeCloseTo(strike + 0.1 * unitsPerSecond, 9);
+    },
+  );
+
+  it("dashes home at three times the speed from the last strike", () => {
+    const { playback } = playing(RALLY);
+
+    playback.advance(TO_50TH + 100, RALLY_FRAME);
+
+    expect(playback.moment).toBeCloseTo(50 + 0.1 * 72, 9);
+  });
+
+  it("lands as its time is up, and not before", () => {
+    const { playback } = playing(RALLY);
+    const flightMs = TO_50TH + (10 / 72) * 1000;
+    playback.advance(flightMs - 1, RALLY_FRAME);
+    const before = playback.phase;
+
+    playback.advance(2, RALLY_FRAME);
+
+    expect([before, playback.phase]).toEqual(["flying", "settling"]);
+  });
+
+  it("goes four times as fast at every speed, fast-forwarded", () => {
+    const { playback } = playing(RALLY);
+
+    playback.advance(250, { ...RALLY_FRAME, fastForward: 4 });
+
+    // 10 units at 56 a second, then the rest at 68.
+    expect(playback.moment).toBeCloseTo(10 + (0.25 - 10 / 56) * 68, 9);
+  });
+});
+
 describe("Playback's events", () => {
   it("reaches each event at or before the moment, in order, logged with what the game says it calls for", () => {
     const { playback } = playing();
@@ -686,6 +775,22 @@ describe("Playback's wall", () => {
     );
   });
 
+  it("hands on a wall of as many cells as the one it changes, after a bigger one", () => {
+    const bigger: Wall<Clay> = {
+      bricks: [...WALL.bricks, ...WALL.bricks],
+      rows: 2,
+      lowestRow: 6,
+    };
+    const { playback } = playing(HITTING, bigger);
+    playback.advance(1000, frameOf(PACE, 1, false));
+    playback.show(WALL);
+    playback.play(HITTING);
+
+    playback.advance(300, NORMAL);
+
+    expect(playback.view.wall.bricks).toHaveLength(COLUMNS);
+  });
+
   it("changes nothing of the wall it started on", () => {
     const { playback } = playing();
 
@@ -774,6 +879,19 @@ describe("Playback's landing", () => {
     playback.advance(1000, NORMAL);
 
     expect(playback.phase).toBe("still");
+  });
+
+  it.each([-100, Number.NaN])("settles none by a frame of %d ms", (deltaMs) => {
+    const { playback } = playing();
+    playback.advance(1000, NORMAL);
+    playback.advance(STEP_MS / 4, NORMAL);
+
+    playback.advance(deltaMs, NORMAL);
+
+    expect([playback.phase, playback.view.wallDrop]).toEqual([
+      "settling",
+      easeOutCubic(0.25),
+    ]);
   });
 
   it("plays nothing once the wall has come to rest", () => {
@@ -905,6 +1023,9 @@ describe("Playback, played on along another flight", () => {
     playback.playOn(DROPPED);
     playback.advance(100, NORMAL);
 
-    expect(script.heard.filter((heard) => heard === "hit")).toEqual([]);
+    expect([
+      playback.moment,
+      script.heard.filter((heard) => heard === "hit"),
+    ]).toEqual([10, []]);
   });
 });
