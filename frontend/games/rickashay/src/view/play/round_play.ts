@@ -152,8 +152,8 @@ export class RoundPlay {
     this.playback = new Playback(
       {
         ball: (ball) => (ball === 0 ? own : waiting(start)),
-        reach: (event) => {
-          this.takeIn(event);
+        reach: (event, quiet) => {
+          this.takeIn(event, quiet);
           return null;
         },
         isLanding: (event) => event.kind === "land",
@@ -250,15 +250,35 @@ export class RoundPlay {
   }
 
   /**
+   * Lands the flight in play at once, at the next frame played, with
+   * everything it would have done but its news, which the events it skips
+   * say nothing of; at any other time, does nothing, as the next flight
+   * starts afresh.
+   */
+  skip(): void {
+    this.playback.landAtOnce();
+  }
+
+  /**
+   * Lands the flight in the air at once as the page is hidden, which may
+   * never be seen again, so the run keeps all it would have done: at a frame
+   * of no time, paused or not, as a skip lands it, and returns what the
+   * frame came to; with no flight in the air, plays nothing.
+   */
+  landUnseen(options: Readonly<PlayOptions>): RoundChange {
+    if (this.phase !== "flying") return this.nothing();
+    this.playback.landAtOnce();
+    return this.advance(0, { ...options, paused: false });
+  }
+
+  /**
    * Plays the round on by a frame's time, as the frame's options say, and
    * returns what the frame came to, one record written again each frame.
    *
    * A frame of no time, less, or not a number plays none.
    */
   advance(deltaMs: number, options: Readonly<PlayOptions>): RoundChange {
-    const { change } = this;
-    change.news.length = 0;
-    change.opens = null;
+    const change = this.nothing();
     const round = this.played;
     if (round === null || options.paused) return change;
     const ms = deltaMs > 0 ? deltaMs : 0;
@@ -275,6 +295,14 @@ export class RoundPlay {
     const after = playback.phase;
     if (before === "flying" && after !== "flying") this.land(round);
     if (after === "still") this.rest(round);
+    return change;
+  }
+
+  /** Returns the frame's change, come to nothing yet. */
+  private nothing(): Change {
+    const { change } = this;
+    change.news.length = 0;
+    change.opens = null;
     return change;
   }
 
@@ -315,8 +343,12 @@ export class RoundPlay {
     return frame;
   }
 
-  /** Takes in what an event of the flight does to the fuzzball, the counts and the news. */
-  private takeIn(event: FlightEvent): void {
+  /**
+   * Takes in what an event of the flight does to the fuzzball and the
+   * counts, and the news of it, unless it is reached quietly, as a flight
+   * is landed at once.
+   */
+  private takeIn(event: FlightEvent, quiet: boolean): void {
     const { ball, tally, shown } = this;
     switch (event.kind) {
       case "turn":
@@ -333,6 +365,7 @@ export class RoundPlay {
       case "bounce-earned":
         tally.held = event.held;
         if (event.kept) tally.points += BOUNCE_POINTS;
+        if (quiet) return;
         this.change.news.push({
           kind: "earned",
           by: event.by,

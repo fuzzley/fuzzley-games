@@ -840,6 +840,113 @@ describe("RoundPlay's cards", () => {
   });
 });
 
+describe("RoundPlay, skipped", () => {
+  it("lands the flight at the next frame, with everything it would have done", () => {
+    const play = playing(rally);
+    play.advance(500, NORMAL);
+    play.skip();
+
+    play.advance(0, NORMAL);
+
+    expect([
+      play.phase,
+      play.view.wall,
+      play.soFar,
+      loggedEvents(play),
+    ]).toEqual([
+      "settling",
+      rally.round.next.wall,
+      {
+        rally: rally.round.flight.rally,
+        held: 0,
+        turns: rally.round.flight.turns,
+        points: rally.round.outcome.points,
+      },
+      rally.round.flight.events,
+    ]);
+  });
+
+  it("says nothing of the events it skips", () => {
+    const play = playing(rally);
+    play.skip();
+
+    const { news } = play.advance(FRAME_MS, NORMAL);
+
+    expect(news).toEqual([]);
+  });
+
+  it("says the round has ended as its wall comes to rest", () => {
+    const play = playing(rally);
+    play.skip();
+
+    const ms = playUntilEnded(play);
+
+    expect(ms).toBe(FRAME_MS + STEP_MS);
+  });
+
+  it("skips nothing while a round is aimed, the next flight playing from its start", () => {
+    const play = aimed(rally);
+    play.skip();
+    play.release(rally.round);
+
+    play.advance(500, NORMAL);
+
+    expect([play.phase, offTrack(play, rally, 7)]).toEqual([
+      "flying",
+      expect.closeTo(0, 9),
+    ]);
+  });
+
+  it("waits for a frame of the run under way", () => {
+    const play = playing(rally);
+    play.skip();
+
+    play.advance(FRAME_MS, options({ paused: true }));
+
+    expect(play.phase).toBe("flying");
+  });
+});
+
+describe("RoundPlay, landed unseen as the page is hidden", () => {
+  it("lands the flight in the air at once, though the run is paused, with everything it would have done", () => {
+    const play = playing(rally);
+    play.advance(500, NORMAL);
+
+    play.landUnseen(options({ paused: true }));
+
+    expect([play.phase, play.view.wall, play.soFar.points]).toEqual([
+      "settling",
+      rally.round.next.wall,
+      rally.round.outcome.points,
+    ]);
+  });
+
+  it("says nothing of the events it lands", () => {
+    const play = playing(rally);
+
+    const { news } = play.landUnseen(NORMAL);
+
+    expect(news).toEqual([]);
+  });
+
+  it("says the round has ended at once where motion is unwelcome", () => {
+    const play = playing(plain);
+
+    const { news } = play.landUnseen(options({ motion: false }));
+
+    expect(news).toEqual([{ kind: "ended", round: plain.round }]);
+  });
+
+  it("plays nothing with no flight in the air", () => {
+    const play = playing(cleared);
+    playUntilEnded(play, options({ motion: false }));
+
+    const { opens } = play.landUnseen(options({ motion: false }));
+
+    expect([opens, play.phase]).toEqual([null, "settling"]);
+  });
+});
+
 describe("RoundPlay, round after round", () => {
   it("aims the next round from where the last left it, its shot's count afresh", () => {
     const play = playing(jumped);
