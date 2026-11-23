@@ -15,6 +15,7 @@ import {
   castField,
   clearBrick,
   createContacts,
+  openHatches,
 } from "./cast";
 import type { Face, FaceOwner } from "./faces";
 import type { TurnOff } from "./events";
@@ -234,6 +235,31 @@ describe("cast", () => {
     });
   });
 
+  it("meets a hatch's bar coming down onto it, a radius over its cell", () => {
+    const field = fieldOf(5, ["....=...."]);
+
+    expect(metOf(castFrom(field, [4.5, 8], [0, -1]))).toEqual(
+      expected(8 - (6 + RADIUS), [brick(4, 0)]),
+    );
+  });
+
+  it("passes up through a hatch", () => {
+    const field = fieldOf(5, ["....=...."]);
+
+    expect(metOf(castFrom(field, [4.5, RADIUS], [0, 1]))).toEqual(
+      expected(DEPTH - 2 * RADIUS, ["ceiling"]),
+    );
+  });
+
+  it("meets a hatch's cut end flying sideways", () => {
+    // y = x + 2.25, from x = 3.75 to 4.
+    const field = fieldOf(5, ["....=...."]);
+
+    expect(metOf(castFrom(field, [2, 6.1], [1, 0]))).toEqual(
+      expected(1.85, [brick(4, 0)]),
+    );
+  });
+
   it("meets both a flat and the cut its end joins, where they join", () => {
     const field = fieldOf(5, ["....o...."]);
 
@@ -350,6 +376,28 @@ describe("clearBrick", () => {
   });
 });
 
+describe("openHatches", () => {
+  it("lets a cast fall through every hatch", () => {
+    const field = fieldOf(5, ["...==...."]);
+
+    openHatches(field);
+
+    expect(metOf(castFrom(field, [4, 8], [0, -1]))).toEqual(
+      expected(8 - RADIUS, ["floor"]),
+    );
+  });
+
+  it("leaves the bricks about a hatch faced as they were", () => {
+    const field = fieldOf(5, ["...o=o..."]);
+
+    openHatches(field);
+
+    expect(metOf(castFrom(field, [4.5, 5.5], [-1, 0]))).toEqual(
+      expected(0.5 - RADIUS, [brick(3, 0)]),
+    );
+  });
+});
+
 describe("cast, at a clump of bricks", () => {
   // A clump with an inside corner, an outside one and two bricks that touch
   // only at a corner, cast at from all round toward the middle of each of
@@ -413,7 +461,8 @@ function boundsOff(off: TurnOff, x: number): string[] {
 /**
  * Returns each leg of a fixture's flight that ends at a turn or its
  * landing: what a cast along it meets, from where the leg leaves, its bricks
- * broken as the flight broke them, and what the flight met there.
+ * broken as the flight broke them and its hatches opened where the flight
+ * opened them, and what the flight met there.
  */
 function legsOf(name: FixtureName): Leg[] {
   const { start, shot, round } = FLIGHT_FIXTURES[name];
@@ -449,11 +498,13 @@ function legsOf(name: FixtureName): Leg[] {
             clearBrick(field, event.cell);
           }
           break;
+        case "hatches-open":
+          openHatches(field);
+          break;
         case "shielded":
         case "bounce-earned":
         case "bounce-spent":
         case "hold":
-        case "hatches-open":
         case "bolt":
         case "teleport":
           break;
@@ -478,6 +529,7 @@ describe("cast, along the flights made by hand", () => {
     "bolt",
     "bored",
     "guard",
+    "hatch",
     "corner",
     "ramp",
     "gem",

@@ -12,7 +12,9 @@
 // their flats' ends, so the faces close round every clump of bricks and
 // leave a fuzzball's middle no way in. A ramp's long face, and each of a
 // gem's four, stands off its line by STAND_OFF, a radius out, and its
-// points are cut square by short flats.
+// points are cut square by short flats. A hatch is a bar along its cell's
+// top and nothing under it, so the bricks about it are faced as if it
+// weren't there (C7).
 
 import { AT_ONCE, COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import {
@@ -157,11 +159,15 @@ export const OVERLAP = AT_ONCE;
 /** How long the short flat is that cuts a ramp's or a gem's point square, from the point's side of its cell to its long face. */
 const TIP = STAND_OFF - RADIUS;
 
+/** The floor's line, a radius up, as {@link meetsAt} meets it: made once, so a cast makes nothing. */
+const FLOOR_LINE = { line: RADIUS, facing: 1, from: 0, to: COLUMNS } as const;
+
 /**
  * The shapes a field cell's brick takes, as its faces and those beside it
  * are built: none, the box of its cell, the side walls and the ceiling
  * beyond the field, which fill every side of their cells, a ramp by the
- * corner of its cell its right angle sits in, and a gem.
+ * corner of its cell its right angle sits in, a gem, and a hatch, which
+ * is only a bar along its cell's top.
  */
 export const SHAPE = {
   air: 0,
@@ -176,6 +182,7 @@ export const SHAPE = {
   /** A ramp whose right angle sits in its cell's ceilingward right corner, `7`. */
   rampCeilingwardRight: 6,
   gem: 7,
+  hatch: 8,
 } as const;
 
 /** A field cell's shape, one of {@link SHAPE}'s. */
@@ -191,6 +198,9 @@ const FILLS: Readonly<Record<Shape, number>> = {
   [SHAPE.rampCeilingwardLeft]: CEILINGWARD | LEFT,
   [SHAPE.rampCeilingwardRight]: CEILINGWARD | RIGHT,
   [SHAPE.gem]: 0,
+  // A hatch fills no side of its cell for a brick beside it, but joins a
+  // hatch beside it into one bar (hatchFaces()).
+  [SHAPE.hatch]: 0,
 };
 
 /** The corners of its cell each shape reaches, as `rules/grid`'s corner bits: no corner beside one it reaches is cut. */
@@ -211,6 +221,7 @@ const REACHES: Readonly<Record<Shape, number>> = {
   [SHAPE.rampCeilingwardRight]:
     FLOORWARD_RIGHT | CEILINGWARD_LEFT | CEILINGWARD_RIGHT,
   [SHAPE.gem]: 0,
+  [SHAPE.hatch]: 0,
 };
 
 /** Each side of a cell's opposite: the side of the cell beside it that faces it. */
@@ -247,8 +258,8 @@ export function fieldShapes(wall: Wall, depth: number): FieldShapes {
 
 /**
  * Returns the shape a brick's kind gives it: a ramp's, by the corner its
- * plates name, where its kind slants; a gem's, where it is faceted; and a
- * box where none of its traits shapes it.
+ * plates name, where its kind slants; a gem's, where it is faceted; a
+ * hatch's where it holds; and a box where none of its traits shapes it.
  */
 function shapeOf(brick: Brick): Shape {
   for (const trait of kindOf(brick.kind).traits) {
@@ -257,8 +268,9 @@ function shapeOf(brick: Brick): Shape {
         return rampOf(brick.plates);
       case "faceted":
         return SHAPE.gem;
-      case "never":
       case "holds":
+        return SHAPE.hatch;
+      case "never":
       case "springs":
       case "teleports":
       case "plated":
@@ -423,7 +435,48 @@ export function brickFaces(
       return rampFaces(field, column, row, shape, owner);
     case SHAPE.gem:
       return gemFaces(column, row, owner);
+    case SHAPE.hatch:
+      return hatchFaces(field, column, row, owner);
   }
+}
+
+/**
+ * Returns a hatch's faces: its bar, a flat across the top of its cell a
+ * radius up, where nothing stands on it, met only coming down, and a cut
+ * across each end where nothing stands beside it. A hatch beside it is one
+ * bar with it, so that end is not cut.
+ */
+function hatchFaces(
+  field: FieldShapes,
+  column: number,
+  row: number,
+  owner: BrickOwner,
+): BrickFace[] {
+  if (!isOpen(field, column, row, CEILINGWARD)) {
+    return [];
+  }
+  const faces: BrickFace[] = [
+    {
+      kind: "bar",
+      line: row + 1 + RADIUS,
+      from: column,
+      to: column + 1,
+      owner,
+    },
+  ];
+  for (const [side, x, facingX] of [
+    [LEFT, column, -1],
+    [RIGHT, column + 1, 1],
+  ] as const) {
+    if (
+      shapeAt(field, column + facingX, row) !== SHAPE.hatch &&
+      isOpen(field, column, row, side) &&
+      isFree(field, column, row, x, row + 1)
+    ) {
+      faces.push(cut(x, row + 1, facingX, 1, owner));
+    }
+  }
+  return faces;
 }
 
 /**
@@ -657,14 +710,7 @@ export function meetsAt(
         : meetsLine(x, dx, y, dy, face, bounds);
     }
     case "floor":
-      return meetsLine(
-        y,
-        dy,
-        x,
-        dx,
-        { line: RADIUS, facing: 1, from: 0, to: COLUMNS },
-        true,
-      );
+      return meetsLine(y, dy, x, dx, FLOOR_LINE, true);
     case "slant": {
       const { facingX, facingY } = face;
       const toward = facingX * dx + facingY * dy;
@@ -677,6 +723,8 @@ export function meetsAt(
       return withinEnds(t, x, dx, face);
     }
     case "bar":
+      // Met only coming down onto it.
+      return dy < 0 ? withinEnds((face.line - y) / dy, x, dx, face) : MISSED;
     case "eye":
       return MISSED;
   }
@@ -760,6 +808,7 @@ export function faceOrder(face: Face): number {
         (face.facingY > 0 ? 2 : 0)
       );
     case "bar":
+      return ownerOrder(face.owner) * 16 + 8;
     case "eye":
       return ownerOrder(face.owner) * 16;
   }

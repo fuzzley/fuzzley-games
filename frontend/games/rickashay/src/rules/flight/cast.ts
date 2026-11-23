@@ -41,8 +41,8 @@ const MOST_MET = 9 * 2 + 2;
 
 /**
  * Describes a field to cast fuzzballs through, as a flight's bricks stand:
- * made once as the flight starts, and changed as its bricks break, so it is
- * the flight's own and nothing else's.
+ * made once as the flight starts, and changed as its bricks break and its
+ * hatches open, so it is the flight's own and nothing else's.
  */
 export interface CastField extends FieldShapes {
   /** The faces each field cell's brick shows, by field cell. */
@@ -122,6 +122,20 @@ export function clearBrick(field: CastField, cell: number): void {
 }
 
 /**
+ * Opens every hatch in a field, as the hatches do at their last hold: a
+ * hatch's cell is air until the flight ends, and the bricks about it,
+ * faced as if it weren't there, are faced as they were.
+ */
+export function openHatches(field: CastField): void {
+  for (let cell = 0; cell < field.shapes.length; cell++) {
+    if (field.shapes[cell] === SHAPE.hatch) {
+      field.shapes[cell] = SHAPE.air;
+      reface(field, cell % COLUMNS, Math.floor(cell / COLUMNS));
+    }
+  }
+}
+
+/**
  * Builds again the faces of the bricks about a field cell, its own among
  * them, and the faces that reach into each cell they reach into.
  */
@@ -194,6 +208,7 @@ function reachesInto(face: BrickFace, column: number, row: number): boolean {
       );
     }
     case "bar":
+      return overlaps(face.from, face.to, face.line, face.line, column, row);
     case "eye":
       return false;
   }

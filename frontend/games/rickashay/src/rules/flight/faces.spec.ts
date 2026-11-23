@@ -68,7 +68,7 @@ function brickOwner(cell: number): { kind: "brick"; cell: number } {
   return { kind: "brick", cell };
 }
 
-/** Where a brick stands beside a ramp at column 4 of row 5, by its cell and the face it shows toward the ramp, if it shows one. */
+/** Where a brick stands beside the brick at column 4 of row 5, by its cell and the face it shows toward it, if it shows one. */
 const BESIDE = [
   ["below", 4, 4, "across 1"],
   ["above", 4, 6, "across -1"],
@@ -76,7 +76,7 @@ const BESIDE = [
   ["right", 5, 5, "up -1"],
 ] as const;
 
-/** Where a brick stands at a corner of a ramp at column 4 of row 5, by its cell and the cut it shows toward the ramp, if it shows one. */
+/** Where a brick stands at a corner of the brick at column 4 of row 5, by its cell and the cut it shows toward it, if it shows one. */
 const DIAGONAL = [
   ["below left", 3, 4, "slant 1 1"],
   ["below right", 5, 4, "slant -1 1"],
@@ -84,8 +84,8 @@ const DIAGONAL = [
   ["above right", 5, 6, "slant -1 -1"],
 ] as const;
 
-/** Returns where, of the places given, a brick shows its face toward a ramp at column 4 of row 5, the wall drawn as a picture whose lowest row stands in field row 4. */
-function towardRamp(
+/** Returns where, of the places given, a brick shows its face toward the brick at column 4 of row 5, the wall drawn as a picture whose lowest row stands in field row 4. */
+function facingMiddle(
   picture: readonly string[],
   places: readonly (readonly [string, number, number, string])[],
 ): string[] {
@@ -386,7 +386,7 @@ describe("brickFaces, of a ramp", () => {
     (letter, open) => {
       const picture = ["....o....", `...o${letter}o...`, "....o...."];
 
-      expect(towardRamp(picture, BESIDE)).toEqual(open);
+      expect(facingMiddle(picture, BESIDE)).toEqual(open);
     },
   );
 
@@ -400,7 +400,7 @@ describe("brickFaces, of a ramp", () => {
     (letter, cut) => {
       const picture = ["...o.o...", `....${letter}....`, "...o.o..."];
 
-      expect(towardRamp(picture, DIAGONAL)).toEqual(cut);
+      expect(facingMiddle(picture, DIAGONAL)).toEqual(cut);
     },
   );
 });
@@ -447,6 +447,63 @@ describe("brickFaces, of a gem", () => {
     expect(sidesOf(faces)).toEqual(
       expect.arrayContaining(["up 1", "slant 1 -1", "slant 1 1"]),
     );
+  });
+});
+
+describe("brickFaces, of a hatch", () => {
+  it("shows its bar, a flat across the top of its cell a radius up, and its ends cut", () => {
+    const faces = facesAt(["....=...."], 5, 4, 5);
+
+    expect(sidesOf(faces)).toEqual(["bar", "slant -1 1", "slant 1 1"]);
+    expect(faces[0]).toEqual({
+      kind: "bar",
+      line: 6 + RADIUS,
+      from: 4,
+      to: 5,
+      owner: brickOwner(cellOf(4, 0)),
+    });
+  });
+
+  it("makes one bar of hatches side by side, cut only at its ends", () => {
+    const left = facesAt(["...==...."], 5, 3, 5);
+    const right = facesAt(["...==...."], 5, 4, 5);
+
+    expect(sidesOf(left)).toEqual(["bar", "slant -1 1"]);
+    expect(sidesOf(right)).toEqual(["bar", "slant 1 1"]);
+  });
+
+  it("cuts no end against a side wall, or one a brick touches", () => {
+    const walled = facesAt(["=........"], 5, 0, 5);
+    const touched = facesAt(["....o....", "...=....."], 5, 3, 5);
+
+    expect(sidesOf(walled)).toEqual(["bar", "slant 1 1"]);
+    expect(sidesOf(touched)).toEqual(["bar", "slant -1 1"]);
+  });
+
+  it("shows nothing where a brick stands on it", () => {
+    expect(facesAt(["....o....", "....=...."], 5, 4, 5)).toEqual([]);
+  });
+
+  it("leaves the bricks beside it their faces toward it, as if it weren't there", () => {
+    const picture = ["....o....", "...o=o...", "....o...."];
+
+    expect(facingMiddle(picture, BESIDE)).toEqual([
+      "below",
+      "above",
+      "left",
+      "right",
+    ]);
+  });
+
+  it("leaves the bricks at its corners their cuts toward it, as if it weren't there", () => {
+    const picture = ["...o.o...", "....=....", "...o.o..."];
+
+    expect(facingMiddle(picture, DIAGONAL)).toEqual([
+      "below left",
+      "below right",
+      "above left",
+      "above right",
+    ]);
   });
 });
 
@@ -572,6 +629,16 @@ describe("meetsAt", () => {
     expect(meetsAt(floor, 40, 2.25, 0, -1)).toBe(2);
   });
 
+  it("meets a hatch's bar only coming down onto it, between its ends", () => {
+    // y = 3.25, from x = 2 to 3.
+    const bar = faceNamed(facesAt(["..=......"], 2, 2, 2), "bar");
+
+    expect(meetsAt(bar, 2.5, 4.25, 0, -1)).toBe(1);
+    expect(meetsAt(bar, 2.2, 4.25, 0.6, -0.8)).toBeCloseTo(1.25, 12);
+    expect(meetsAt(bar, 2.5, 2.25, 0, 1)).toBe(MISSED);
+    expect(meetsAt(bar, 3.5, 4.25, 0, -1)).toBe(MISSED);
+  });
+
   it("meets the floor only flying down", () => {
     const floor: Face = { kind: "floor" };
 
@@ -595,6 +662,14 @@ describe("faceOrder", () => {
 
     expect(order).toEqual([...order].sort((a, b) => a - b));
     expect(new Set(order).size).toBe(order.length);
+  });
+
+  it("lists a hatch's cuts, then its bar", () => {
+    const faces = facesAt(["....=...."], 5, 4, 5);
+
+    const listed = [...faces].sort((a, b) => faceOrder(a) - faceOrder(b));
+
+    expect(sidesOf(listed)).toEqual(["slant -1 1", "slant 1 1", "bar"]);
   });
 
   it("lists a brick's flats down, up, left and right, then its cuts", () => {
