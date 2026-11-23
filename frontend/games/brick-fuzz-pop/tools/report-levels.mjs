@@ -20,19 +20,20 @@
  *
  * Twelve depths' columns don't fit a terminal, so it plays the three the
  * specs hold the floors on, 11, 13 and 22 deep, unless `--depth` names
- * others, once for each.
+ * others, once for each, read as `yarn certify:levels` reads them
+ * (`readDepths()`, `@fz/dev/certify`).
  *
  * It exits with 1 where it fails, and with 2, saying why, for a command line
  * it can't read, before it plays anything.
  */
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readDepths } from "@fz/dev/certify";
 import { SEEDS_OPTION, printReport, readSeeds } from "@fz/dev/report";
 import {
   CONSOLE,
   importThroughVite,
   isStop,
-  misread,
   readArgs,
   stopWith,
 } from "@fz/dev/script";
@@ -185,23 +186,16 @@ function gameOf(api, request) {
   if (unfloored !== undefined) {
     throw new Error(`The set "${unfloored.set.id}" has no floor.`);
   }
-  /** @type {Map<string, number>} */
-  const depths = new Map();
-  for (const asked of request.depths ?? REPORT_DEPTHS.map(String)) {
-    const depth = Number(asked);
-    if (!api.depths.includes(depth)) {
-      return misread(
-        `--depth takes a whole number from ${String(api.depths[0])} to ${String(api.depths.at(-1))}, not "${asked}".`,
-        USAGE,
-      );
-    }
-    depths.set(headingOf(depth), depth);
-  }
+  const asked = readDepths(
+    request.depths ?? REPORT_DEPTHS.map(String),
+    api.depths,
+    USAGE,
+  );
+  if (isStop(asked)) return asked;
+  const depths = new Map(asked.map((depth) => [headingOf(depth), depth]));
   return {
     levels: api.levels,
-    depths: [...depths.keys()].sort(
-      (a, b) => (depths.get(a) ?? 0) - (depths.get(b) ?? 0),
-    ),
+    depths: [...depths.keys()],
     play: (level, heading, seed) => {
       const depth = depths.get(heading) ?? Number.NaN;
       return {
