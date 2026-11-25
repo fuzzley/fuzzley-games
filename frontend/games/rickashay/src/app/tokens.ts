@@ -2,8 +2,9 @@ import { InjectionToken } from "@angular/core";
 import type { ComponentLoad } from "@fz/ui/on_demand";
 import type { Round, RoundStart } from "../rules/flight/events";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
+import anglesMarks from "../rules/levels/marks/angles.json";
 import { playRound } from "../rules/round/round";
-import type { Marks } from "../rules/run/stars";
+import { type Marks, marksOf } from "../rules/run/stars";
 import type { Shot } from "../rules/shot";
 import type { FlightRules } from "../rules/tuning";
 import warmUpMarks from "./play/warm_up_marks.json";
@@ -16,15 +17,16 @@ export const GAME_LEVELS = new InjectionToken<readonly LevelEntry[]>(
 
 /**
  * Each level's par and rally mark on each depth, which the run's par, the
- * stars, the records and the "Rickashay!" call read.
+ * stars, the records and the "Rickashay!" call read: each set's marks as
+ * `yarn certify:levels` writes them, but Warm-up's.
  *
- * Until the scripts that certify the levels write each set's marks, the
- * game plays on `play/warm_up_marks.json`, a copy of the specs' fixture of
- * Warm-up's, every par one `parFrom()` writes.
+ * Warm-up plays on `play/warm_up_marks.json`, a copy of the specs' fixture
+ * of Warm-up's, every par one `parFrom()` writes, until its certified marks
+ * take its place.
  */
 export const GAME_MARKS = new InjectionToken<Marks>("GAME_MARKS", {
   providedIn: "root",
-  factory: () => warmUpMarks,
+  factory: () => marksOf([warmUpMarks, anglesMarks]),
 });
 
 /** Plays a round of a shot from where it starts, on the rules given, as the rules' `playRound()` does. */

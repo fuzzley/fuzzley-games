@@ -9,6 +9,7 @@ import {
 } from "@fz/brick-wall/rules/level_picture";
 import { unknownKey } from "@fz/core/json";
 import type { KindId } from "../catalog/kinds";
+import angles from "./angles.json";
 import { PICTURE_RULES } from "./level_rules";
 import warmUp from "./warm-up.json";
 
@@ -43,7 +44,7 @@ export interface LevelEntry {
 }
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [warmUp];
+export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, angles];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
 export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {

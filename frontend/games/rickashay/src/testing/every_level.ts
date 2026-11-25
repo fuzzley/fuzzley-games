@@ -17,8 +17,11 @@ import { variantOfSpec } from "@fz/core/testing";
 import { describe, expect, it } from "vitest";
 import type { KindId } from "../rules/catalog/kinds";
 import type { RoundStart } from "../rules/flight/events";
+import angles from "../rules/levels/certificates/angles.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
+import anglesLines from "../rules/levels/lines/angles.json";
 import warmUpLines from "../rules/levels/lines/warm-up.json";
+import anglesMarks from "../rules/levels/marks/angles.json";
 import warmUpMarks from "../rules/levels/marks/warm-up.json";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import { type Marks, marksOf } from "../rules/run/stars";
@@ -34,31 +37,37 @@ export { FLOOR_SEEDS } from "@fz/brick-wall/testing/holders";
 /** Every set's certificates, by the set's id, as `yarn certify:levels` writes them. */
 export const CERTIFICATES: Readonly<Record<string, holders.Certificates>> = {
   "warm-up": warmUp,
+  angles,
 };
 
 /** Every set's rally lines, by the set's id, as `yarn certify:levels` writes them: each level's line to its rally mark, by its id, then by the depth. */
 export const RALLY_LINES: Readonly<Record<string, holders.Certificates>> = {
   "warm-up": warmUpLines,
+  angles: anglesLines,
 };
 
 /** Every level's par and rally mark on every depth, from each set's marks as `yarn certify:levels` writes them. */
-export const MARKS: Marks = marksOf([warmUpMarks]);
+export const MARKS: Marks = marksOf([warmUpMarks, anglesMarks]);
 
 /** The depths the careless player is held to its floors on: the two shapes of the shallowest fields, and the deepest. */
 export const FLOOR_DEPTHS = [11, 13, 22] as const;
 
 /**
  * The depth each set's blind ceiling, sweet spots and rally marks are
- * checked on: the one where its drafts came nearest a check
- * (docs/rickashay/sketch/results.md), Warm-up's and Angles' blind on 18
- * (First bounce cleared 38 times in 100, here 45, and Springboard 70),
- * Tricks' sweet spot on 21 (Kaleidoscope, 0.75°) and Long rallies' on 12
- * (Greenhouse, 0.83°). One depth a set keeps its share of `sim` in CI's
- * budget; `yarn report:levels` checks every depth.
+ * checked on: the one where its levels come nearest a check.
+ *
+ * That is where they come nearest as certified, once they are, and as the
+ * sketch played the drafts until then (docs/rickashay/sketch/results.md):
+ * Warm-up's blind on 18 (First bounce, 45 times in 100 here, 38 in the
+ * sketch), Angles' blind on 21 (Bounce house, 70 here, where most of its
+ * sweet spots are narrowest too), Tricks' sweet spot on 21 (Kaleidoscope,
+ * 0.75°) and Long rallies' on 12 (Greenhouse, 0.83°). One depth a set
+ * keeps its share of `sim` in CI's budget; `yarn report:levels` checks
+ * every depth.
  */
 export const CHECK_DEPTHS = {
   "warm-up": 18,
-  angles: 18,
+  angles: 21,
   tricks: 21,
   "long-rallies": 12,
 } as const satisfies Readonly<Record<string, number>>;

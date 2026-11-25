@@ -1,5 +1,6 @@
 import { formatPoints } from "@fz/core/format";
 import { LEVELS } from "../rules/levels/levels";
+import anglesMarks from "../rules/levels/marks/angles.json";
 import warmUpMarks from "../rules/levels/marks/warm-up.json";
 import { describeAim } from "../rules/run/describe";
 import { SAVED_GAME_VERSION } from "../rules/run/saved_game";
@@ -15,7 +16,7 @@ import type { ScreenshotApi } from "./script_api";
  * A run kept on its level stores nothing the marks decide, so the page
  * takes it up alike by its own (`GAME_MARKS`), which may be other marks.
  */
-const MARKS = marksOf([warmUpMarks]);
+const MARKS = marksOf([warmUpMarks, anglesMarks]);
 
 /**
  * What the scripts under `tools/` take from the game, which they load

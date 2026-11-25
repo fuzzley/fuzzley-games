@@ -72,6 +72,17 @@ function bricksOf(level: Level): Brick[] {
   return level.bricks.filter((brick) => brick !== null);
 }
 
+/** Returns the wall of the level with an id in the figures of the design's table of the drafts: its rows, the bricks it needs, and their hits. */
+function wallFiguresOf(id: string): [number, number, number] {
+  const level = parseLevel(dataOf(id));
+  const bricks = bricksOf(level);
+  return [
+    level.rows,
+    bricks.filter(({ kind }) => kindOf(kind).needed).length,
+    bricks.reduce((sum, brick) => sum + brick.hits, 0),
+  ];
+}
+
 describe("parseLevel", () => {
   it("lays its wall out as the legend has it, from its lowest row up", () => {
     const level = parseLevel(dataWith(picture([], ["2#o.....@", "@........"])));
@@ -171,11 +182,11 @@ describe("levelEntryOf", () => {
 });
 
 describe("the sets", () => {
-  it("are played Warm-up first", () => {
-    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up"]);
+  it("are played Warm-up first, then Angles", () => {
+    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up", "angles"]);
   });
 
-  it("number Warm-up's levels 1 to 9, as the design's table of the drafts does", () => {
+  it("number Warm-up's levels 1 to 9 and Angles' 10 to 18, as the design's table of the drafts does", () => {
     expect(LEVELS.map(({ number, data }) => [number, data.name])).toEqual([
       [1, "First bounce"],
       [2, "Side door"],
@@ -186,6 +197,15 @@ describe("the sets", () => {
       [7, "Girders"],
       [8, "Attic"],
       [9, "Gatehouse"],
+      [10, "Launcher"],
+      [11, "Banked turn"],
+      [12, "Trapdoor"],
+      [13, "Springboard"],
+      [14, "Loft"],
+      [15, "Slalom"],
+      [16, "Skylight"],
+      [17, "Bounce house"],
+      [18, "Clockwork"],
     ]);
   });
 
@@ -201,19 +221,26 @@ describe("the sets", () => {
     ["girders", 15, 30, 60],
     ["attic", 17, 78, 117],
     ["gatehouse", 21, 64, 96],
+    ["launcher", 19, 92, 92],
+    ["banked-turn", 15, 36, 52],
+    ["trapdoor", 15, 54, 90],
+    ["loft", 17, 66, 132],
+    ["slalom", 23, 96, 138],
+    ["skylight", 15, 54, 132],
+    ["bounce-house", 17, 68, 68],
+    ["clockwork", 19, 73, 100],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {
-      const level = parseLevel(dataOf(id));
-      const bricks = bricksOf(level);
-
-      expect([
-        level.rows,
-        bricks.filter(({ kind }) => kindOf(kind).needed).length,
-        bricks.reduce((sum, brick) => sum + brick.hits, 0),
-      ]).toEqual([rows, needed, hits]);
+      expect(wallFiguresOf(id)).toEqual([rows, needed, hits]);
     },
   );
+
+  // Its draft's hits are 54: six of its bricks were made tough, so aims
+  // drawn blind clear it less.
+  it("build springboard as redrawn: 15 rows, 54 bricks needed, 60 hits", () => {
+    expect(wallFiguresOf("springboard")).toEqual([15, 54, 60]);
+  });
 });
 
 describe("every level of every set", () => {
