@@ -32,6 +32,12 @@
  * stand as many rows from the floor as the run kept it at every shape, and
  * through each turn, the field's depth whatever it is.
  *
+ * It does both again with Release with a button on, which adds Release to
+ * the bar and steps its link home down. So the bar's controls, which
+ * `@fz/dev/layout` holds inside the window on every page, are held there as
+ * a shot is aimed, as the level waits, and as a flight in the air shows
+ * them, as the run taken up paused does, with Release off and on.
+ *
  * It prints what is wrong and fails, or says the layout holds.
  */
 import { join } from "node:path";
@@ -219,6 +225,23 @@ export function inspectField(field) {
     );
   }
 
+  // The settings the check kept, read back from the bar, so a pass with
+  // Release with a button on can't check the bar without it, as it would
+  // where the shell dropped settings kept at a version it no longer reads.
+  const keptRelease = Reflect.get(window, "keptReleaseByButton");
+  const bar = document.querySelector("app-bar");
+  if (
+    typeof keptRelease === "boolean" &&
+    bar &&
+    bar.classList.contains("release-by-button") !== keptRelease
+  ) {
+    problems.push(
+      keptRelease
+        ? "The bar doesn't have Release with a button on, as the check kept it."
+        : "The bar has Release with a button on, which the check didn't keep.",
+    );
+  }
+
   const outcome = board.getAttribute("data-outcome");
   const wall = board.getAttribute("data-wall");
   // The row the run kept stands its wall on, where the page took one up,
@@ -257,58 +280,106 @@ export function inspectField(field) {
 }
 
 /**
- * Says, in the page before its own scripts, that it shows a level waiting
- * for its first shot, kept by no run. It is sent as its source, so it uses
- * nothing from this module.
+ * Settings as the game keeps them: where, and as storage keeps them.
+ *
+ * @typedef {{key: string, stored: string}} KeptSettings
  */
-export function keepingNone() {
+
+/**
+ * The settings the check's other passes keep, Release with a button on,
+ * which adds Release to the bar and steps its link home down: where the
+ * game keeps them, a copy of `SETTINGS_KEY` in
+ * `src/app/settings/settings.service.ts`, the shell's, which the scripts'
+ * entries can't import, and as storage keeps them, at `SETTINGS_VERSION`
+ * there, every other setting its default.
+ *
+ * @type {KeptSettings}
+ */
+const RELEASE_BY_BUTTON = {
+  key: "rickashay-settings",
+  stored: JSON.stringify({ version: 1, releaseByButton: true }),
+};
+
+/**
+ * Says, in the page before its own scripts, that it shows a level waiting
+ * for its first shot, kept by no run, and keeps the settings handed, if
+ * any, Release with a button on, saying so. It is sent as its source, so
+ * it uses nothing from this module.
+ *
+ * @param {KeptSettings | null} settings
+ */
+export function keepingNone(settings) {
+  if (settings) localStorage.setItem(settings.key, settings.stored);
   Reflect.set(window, "keptWallRow", null);
+  Reflect.set(window, "keptReleaseByButton", settings !== null);
 }
 
 /**
- * Keeps a run where the game keeps one, and says the row its wall stands
- * on for the inspection to read, in the page before its own scripts. It
- * is sent as its source, so it uses nothing from this module.
+ * Keeps a run where the game keeps one, and the settings handed, if any,
+ * Release with a button on, and says the row its wall stands on and
+ * whether it kept them for the inspection to read, in the page before its
+ * own scripts. It is sent as its source, so it uses nothing from this
+ * module.
  *
  * @param {string} key Where the game keeps the run.
  * @param {string} stored The run as storage keeps it.
  * @param {number} row The row its wall stands on.
+ * @param {KeptSettings | null} settings
  */
-export function keepRun(key, stored, row) {
+export function keepRun(key, stored, row, settings) {
   localStorage.setItem(key, stored);
+  if (settings) localStorage.setItem(settings.key, settings.stored);
   Reflect.set(window, "keptWallRow", row);
+  Reflect.set(window, "keptReleaseByButton", settings !== null);
 }
 
 /**
  * Returns what runs in the page before its own scripts: {@link keepRun},
  * handed where the game keeps a run, {@link LAYOUT_RUN} as storage keeps
- * it, and the row its wall stands on.
+ * it, the row its wall stands on, and the settings handed, if any.
  *
  * @param {ScreenshotApi} api
+ * @param {KeptSettings | null} settings
  * @returns {BeforeLoad<Parameters<typeof keepRun>>}
  */
-export function keepingRun(api) {
+export function keepingRun(api, settings) {
   const { saved, stored } = storedRun(api, LAYOUT_RUN);
   if (!saved.start) throw new Error("The run kept has no round played.");
   return {
     run: keepRun,
-    args: [SAVED_GAME_KEY, stored, saved.start.lowestRow],
+    args: [SAVED_GAME_KEY, stored, saved.start.lowestRow, settings],
   };
 }
 
 /**
+ * Returns the problems a pass found, each shape named for the pass.
+ *
+ * @param {LayoutProblem[]} problems
+ * @param {string} pass
+ * @returns {LayoutProblem[]}
+ */
+function namedFor(problems, pass) {
+  return problems.map(({ shape, problem }) => ({
+    shape: `${shape}, ${pass}`,
+    problem,
+  }));
+}
+
+/**
  * Checks the layout at each shape and turn as a level waits for its first
- * shot, and beside them again over a run kept, taken up paused, and returns
- * what is wrong, the second pass's shapes named for it. It keeps the run
- * first, so a run that can't be kept fails the check before Chrome opens a
- * page.
+ * shot, and beside them again over a run kept, taken up paused, each with
+ * Release with a button off and on, and returns what is wrong, each pass
+ * but the first's shapes named for it. It keeps the run first, so a run
+ * that can't be kept fails the check before Chrome opens a page.
  *
  * @param {DevToolsConnection} devtools
  * @param {string} url
  * @returns {Promise<LayoutProblem[]>}
  */
 async function checkBoth(devtools, url) {
-  const keeping = keepingRun(await loadScreenshotApi());
+  const api = await loadScreenshotApi();
+  const keeping = keepingRun(api, null);
+  const keepingWithRelease = keepingRun(api, RELEASE_BY_BUTTON);
   /** @type {LayoutCheck} */
   const check = {
     url,
@@ -316,22 +387,31 @@ async function checkBoth(devtools, url) {
     board: FIELD,
     inspect: inspectField,
   };
-  const [waiting, takenUp] = await whenAllSettle([
-    checkPhaserLayout(devtools, { ...check, before: keepingNone }),
-    checkPhaserLayout(devtools, { ...check, before: keeping }),
-  ]);
+  const [waiting, takenUp, waitingWithRelease, takenUpWithRelease] =
+    await whenAllSettle([
+      checkPhaserLayout(devtools, {
+        ...check,
+        before: { run: keepingNone, args: [null] },
+      }),
+      checkPhaserLayout(devtools, { ...check, before: keeping }),
+      checkPhaserLayout(devtools, {
+        ...check,
+        before: { run: keepingNone, args: [RELEASE_BY_BUTTON] },
+      }),
+      checkPhaserLayout(devtools, { ...check, before: keepingWithRelease }),
+    ]);
   return [
     ...waiting,
-    ...takenUp.map(({ shape, problem }) => ({
-      shape: `${shape}, a run taken up`,
-      problem,
-    })),
+    ...namedFor(takenUp, "a run taken up"),
+    ...namedFor(waitingWithRelease, "Release with a button on"),
+    ...namedFor(takenUpWithRelease, "a run taken up, Release with a button on"),
   ];
 }
 
 /**
  * What checks the layout: the field and its panels' places at each shape
- * and turn, as a level waits for its first shot and over a run taken up.
+ * and turn, as a level waits for its first shot and over a run taken up,
+ * with Release with a button off and on.
  *
  * @type {LayoutScript}
  */
@@ -339,7 +419,7 @@ const LAYOUT_SCRIPT = {
   game: "Rickashay",
   root: ROOT,
   check: checkBoth,
-  holds: `at each shape and turn, as a level waits for its first shot and over a run taken up: ${PHASER_CHECKED_AT}`,
+  holds: `at each shape and turn, as a level waits for its first shot and over a run taken up, with Release with a button off and on: ${PHASER_CHECKED_AT}`,
 };
 
 /**

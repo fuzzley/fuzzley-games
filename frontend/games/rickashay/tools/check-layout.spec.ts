@@ -237,6 +237,46 @@ describe("inspectField", () => {
   });
 });
 
+describe("inspectField, of the settings the check kept", () => {
+  /** Lays {@link UPRIGHT} out under a bar with Release with a button on or off, the check having said it kept it on or off. */
+  function settled(barHasRelease: boolean, kept: boolean): void {
+    lay(UPRIGHT);
+    const bar = document.createElement("app-bar");
+    bar.classList.toggle("release-by-button", barHasRelease);
+    document.body.prepend(bar);
+    Reflect.set(window, "keptReleaseByButton", kept);
+  }
+
+  afterEach(() => {
+    Reflect.deleteProperty(window, "keptReleaseByButton");
+  });
+
+  it.each([true, false])(
+    "finds nothing wrong with a bar whose Release with a button is as the check kept it, %s",
+    (release) => {
+      settled(release, release);
+
+      expect(inspectField(UPRIGHT.box)).toEqual([]);
+    },
+  );
+
+  it("says a bar without Release with a button, where the check kept it on", () => {
+    settled(false, true);
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "The bar doesn't have Release with a button on, as the check kept it.",
+    ]);
+  });
+
+  it("says a bar with Release with a button, where the check kept it off", () => {
+    settled(true, false);
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "The bar has Release with a button on, which the check didn't keep.",
+    ]);
+  });
+});
+
 describe("inspectField, over a run taken up", () => {
   /** {@link UPRIGHT} over a run taken up paused, its wall kept on row 4. */
   const TAKEN_UP: LaidField = {
@@ -270,10 +310,18 @@ describe("inspectField, over a run taken up", () => {
 });
 
 describe("what the page runs before its own scripts", () => {
+  /** Settings handed to keep, where a spec's own key keeps them. */
+  const SETTINGS = { key: "a-settings-key", stored: "some settings" };
+
+  afterEach(() => {
+    localStorage.clear();
+    Reflect.deleteProperty(window, "keptReleaseByButton");
+  });
+
   it("says, kept by no run, that the page shows a level waiting for its first shot", () => {
     Reflect.deleteProperty(window, "keptWallRow");
 
-    keepingNone();
+    keepingNone(null);
 
     expect(Reflect.get(window, "keptWallRow")).toBeNull();
   });
@@ -281,7 +329,7 @@ describe("what the page runs before its own scripts", () => {
   it("keeps a run where it is told and says the row its wall stands on", () => {
     localStorage.clear();
 
-    keepRun("a-key", "a run", 7);
+    keepRun("a-key", "a run", 7, null);
 
     expect([
       localStorage.getItem("a-key"),
@@ -291,7 +339,7 @@ describe("what the page runs before its own scripts", () => {
 
   it("keeps the layout's run where the game keeps one, as the game stores it, its wall on row 4", () => {
     localStorage.clear();
-    const { run, args } = keepingRun(SCREENSHOT_API);
+    const { run, args } = keepingRun(SCREENSHOT_API, null);
 
     run(...args);
 
@@ -299,6 +347,55 @@ describe("what the page runs before its own scripts", () => {
       localStorage.getItem(SAVED_GAME_KEY),
       Reflect.get(window, "keptWallRow"),
     ]).toEqual([storedRun(SCREENSHOT_API, LAYOUT_RUN).stored, 4]);
+  });
+
+  it("keeps the settings handed, kept by no run, and says Release with a button is on", () => {
+    keepingNone(SETTINGS);
+
+    expect([
+      localStorage.getItem(SETTINGS.key),
+      Reflect.get(window, "keptReleaseByButton"),
+      Reflect.get(window, "keptWallRow"),
+    ]).toEqual([SETTINGS.stored, true, null]);
+  });
+
+  it("keeps no settings, handed none, and says Release with a button is off", () => {
+    keepingNone(null);
+
+    expect([
+      localStorage.getItem(SETTINGS.key),
+      Reflect.get(window, "keptReleaseByButton"),
+    ]).toEqual([null, false]);
+  });
+
+  it("keeps the settings handed beside a run, and says Release with a button is on", () => {
+    keepRun("a-key", "a run", 7, SETTINGS);
+
+    expect([
+      localStorage.getItem("a-key"),
+      localStorage.getItem(SETTINGS.key),
+      Reflect.get(window, "keptReleaseByButton"),
+    ]).toEqual(["a run", SETTINGS.stored, true]);
+  });
+
+  it("keeps no settings beside a run, handed none, and says Release with a button is off", () => {
+    keepRun("a-key", "a run", 7, null);
+
+    expect([
+      localStorage.getItem(SETTINGS.key),
+      Reflect.get(window, "keptReleaseByButton"),
+    ]).toEqual([null, false]);
+  });
+
+  it("hands the settings on with the layout's run, kept beside it", () => {
+    const { run, args } = keepingRun(SCREENSHOT_API, SETTINGS);
+
+    run(...args);
+
+    expect([
+      localStorage.getItem(SETTINGS.key),
+      Reflect.get(window, "keptReleaseByButton"),
+    ]).toEqual([SETTINGS.stored, true]);
   });
 });
 

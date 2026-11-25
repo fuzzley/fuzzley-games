@@ -43,6 +43,14 @@ const HOME_BUTTON_BESIDE_RELEASE_MIN_WIDTH_PX =
 const RAIL_HOME_BUTTON_BESIDE_RELEASE_MIN_HEIGHT_PX = 434;
 
 /**
+ * The shortest phone on its side whose rail keeps the two figures in a card
+ * apiece beside Release, the link home in the overflow menu: the figures
+ * stacked and the five actions, each with its gap, take 390 px, as measured
+ * in Chrome.
+ */
+const RAIL_FIGURES_APART_BESIDE_RELEASE_MIN_HEIGHT_PX = 390;
+
+/**
  * Returns whether a media query matches in the document's window, as it
  * changes, or false where the document has no window that asks; it stops
  * listening as the injector it was made in is destroyed.
@@ -103,4 +111,29 @@ export function homeBesideRelease(
         return home;
     }
   });
+}
+
+/**
+ * Returns whether the rail sets its two figures in one card, the shots over
+ * the score, so its five actions stay on screen beneath them: while Release
+ * with a button is on, on a phone on its side too short for a card apiece.
+ * It follows the setting rather than Release's showing, as
+ * {@link homeBesideRelease} does, so the figures don't move as each shot is
+ * aimed.
+ *
+ * Call it in an injection context.
+ */
+export function figuresPairedBesideRelease(
+  releaseByButton: Signal<boolean>,
+): Signal<boolean> {
+  const viewport = inject(GameViewportService);
+  const belowFiguresApart = mediaMatches(
+    `(max-height: ${RAIL_FIGURES_APART_BESIDE_RELEASE_MIN_HEIGHT_PX - 0.02}px)`,
+  );
+  return computed(
+    () =>
+      releaseByButton() &&
+      viewport.barPlacement() === "end" &&
+      belowFiguresApart(),
+  );
 }

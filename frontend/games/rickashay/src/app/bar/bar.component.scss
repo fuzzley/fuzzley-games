@@ -84,3 +84,23 @@
 :host(.rail) {
   @include bar-figures-stacked;
 }
+
+// On a rail too short for a card apiece beside Release's five actions
+// (`figuresPairedBesideRelease()`), the shots over the score in one card,
+// each icon on its value, padded little enough for a six-figure score.
+// Though the library keeps `bar-figures-paired` off a rail, as the stacked
+// cards don't take its card away, here it comes after them, at a greater
+// weight, and takes their card away itself; the stacked cards' gap between
+// icon and value and the pair's padding across give the five actions and
+// a six-figure score their room.
+:host(.rail.paired) {
+  @include bar-figures-paired;
+
+  .metrics {
+    padding: var(--fz-space-1);
+  }
+
+  .metric {
+    gap: 0;
+  }
+}

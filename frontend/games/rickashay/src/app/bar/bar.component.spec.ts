@@ -63,6 +63,8 @@ interface RenderedBar {
   readonly heard: Readonly<Record<Output, Mock<() => void>>>;
   /** Each way the aim was nudged, in order. */
   readonly nudged: readonly Nudge[];
+  /** The bar's host, whose classes its stylesheet lays it out by. */
+  readonly host: HTMLElement;
 }
 
 /** Renders the bar, handed a level aiming but for what a spec says, and listens to it. */
@@ -82,7 +84,7 @@ async function renderBar(
     openSettings: vi.fn(),
   };
   const nudged: Nudge[] = [];
-  await render(BarComponent, {
+  const { fixture } = await render(BarComponent, {
     inputs: { ...AIMING, ...inputs },
     on: {
       ...heard,
@@ -91,7 +93,12 @@ async function renderBar(
       },
     },
   });
-  return { user: userEvent.setup(), heard, nudged };
+  return {
+    user: userEvent.setup(),
+    heard,
+    nudged,
+    host: fixture.nativeElement as HTMLElement,
+  };
 }
 
 /** Returns the terms of the figures the bar shows, in order. */
@@ -533,5 +540,30 @@ describe("BarComponent", () => {
 
       expect(homeLink()).toBeInTheDocument();
     });
+
+    // Where the figures land is check:layout's to hold; the class is what
+    // the stylesheet sets them in one card by.
+    it("sets the figures in one card on a phone on its side too short for a card apiece", async () => {
+      installFakeViewport(844, 389);
+
+      const { host } = await renderBar({ releaseByButton: true });
+
+      expect(host).toHaveClass("paired");
+    });
+
+    it.each([
+      ["on a phone on its side with room for a card apiece", 844, 390, true],
+      ["with Release off", 568, 320, false],
+      ["across the bottom of a phone held upright", 340, 385, true],
+    ] as const)(
+      "keeps the figures apart %s",
+      async (_, width, height, releaseByButton) => {
+        installFakeViewport(width, height);
+
+        const { host } = await renderBar({ releaseByButton });
+
+        expect(host).not.toHaveClass("paired");
+      },
+    );
   });
 });

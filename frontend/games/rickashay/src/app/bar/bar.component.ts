@@ -18,7 +18,7 @@ import { FuzzballComponent } from "@fz/ui/fuzzball";
 import { IconComponent } from "@fz/ui/icon";
 import { FastForwardComponent } from "./fast_forward.component";
 import { showsEveryFigure } from "./figures";
-import { homeBesideRelease } from "./release_room";
+import { figuresPairedBesideRelease, homeBesideRelease } from "./release_room";
 import { SkipComponent } from "./skip.component";
 
 /** Names an action the overflow menu offers. */
@@ -47,7 +47,8 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
  * leaving the board pauses the level, which dims them, and the keys do the
  * same from the board, Shift with Left or Right and Space. On a compact
  * screen Sound, Levels, New game, How to play and Settings move into the
- * overflow menu, as on the narrowest the link home does too.
+ * overflow menu, as on the narrowest the link home does too, and on the
+ * shortest rail with Release the figures share one card.
  */
 @Component({
   selector: "app-bar",
@@ -65,6 +66,7 @@ type MenuAction = "sound" | "levels" | "new-game" | "help" | "settings";
     "[class.rounds-and-score]": "!fitsEveryFigure()",
     "[class.rail]": 'viewport.barPlacement() === "end"',
     "[class.release-by-button]": "releaseByButton()",
+    "[class.paired]": "figuresPaired()",
   },
   templateUrl: "./bar.component.html",
   styleUrl: "./bar.component.scss",
@@ -159,6 +161,11 @@ export class BarComponent {
 
   /** The link home, a step smaller where Release with a button needs its room. */
   protected readonly home = homeBesideRelease(this.releaseByButton);
+
+  /** Whether the rail sets the shots over the score in one card, where Release with a button needs their room. */
+  protected readonly figuresPaired = figuresPairedBesideRelease(
+    this.releaseByButton,
+  );
 
   /** Pause's name, which it shows under the pointer, as it doesn't itself: Resume while the run is paused. */
   protected readonly pauseName = computed(() =>
