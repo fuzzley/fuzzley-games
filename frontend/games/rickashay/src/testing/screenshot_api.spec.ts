@@ -1,5 +1,7 @@
 import { DEPTHS } from "@fz/brick-wall/rules/field";
+import { formatPoints } from "@fz/core/format";
 import { LEVELS } from "../rules/levels/levels";
+import { describeAim } from "../rules/run/describe";
 import { SAVED_GAME_VERSION } from "../rules/run/saved_game";
 import { MARKS } from "./every_level";
 import { type KeptRun, keptRun } from "./kept_run";
@@ -19,6 +21,14 @@ describe("SCREENSHOT_API", () => {
     );
 
     expect(() => begun.map((run) => SCREENSHOT_API.keptRun(run))).not.toThrow();
+  });
+
+  it("writes points as the game does", () => {
+    expect(SCREENSHOT_API.formatPoints).toBe(formatPoints);
+  });
+
+  it("says an aim as the game says it as the keys turn it", () => {
+    expect(SCREENSHOT_API.aimWords(415)).toBe(describeAim(415));
   });
 
   it("hands the scripts the version a run is kept under", () => {

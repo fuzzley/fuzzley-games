@@ -22,10 +22,14 @@ export interface ScriptSavedGame {
   readonly start: { readonly lowestRow: number } | null;
 }
 
-/** Holds what `tools/check-layout.mjs` takes from the game, through `tools/stored_run.mjs`: a run kept, and the version it is kept under. */
+/** Holds what `tools/capture-screenshots.mjs` and `tools/check-layout.mjs` take from the game: a run kept, and how the page says it. */
 export interface ScreenshotApi {
   /** Returns a run as storage keeps it, for a page to take up. */
   readonly keptRun: (run: ScriptRun) => ScriptSavedGame;
+  /** Returns points as the game writes them, grouped in thousands. */
+  readonly formatPoints: (points: number) => string;
+  /** Returns what the game says of an aim, by its index, as the keys turn it: "111.75 degrees". */
+  readonly aimWords: (aim: number) => string;
   /** The version storage keeps a run under, which the page drops any other of. */
   readonly savedGameVersion: number;
 }

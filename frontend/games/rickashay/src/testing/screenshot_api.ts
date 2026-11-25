@@ -1,5 +1,7 @@
+import { formatPoints } from "@fz/core/format";
 import { LEVELS } from "../rules/levels/levels";
 import warmUpMarks from "../rules/levels/marks/warm-up.json";
+import { describeAim } from "../rules/run/describe";
 import { SAVED_GAME_VERSION } from "../rules/run/saved_game";
 import { marksOf } from "../rules/run/stars";
 import { keptRun } from "./kept_run";
@@ -18,9 +20,12 @@ const MARKS = marksOf([warmUpMarks]);
 /**
  * What the scripts under `tools/` take from the game, which they load
  * through Vite: a run kept among the game's levels, by their marks, for the
- * page to take up, and the version it is kept under.
+ * page to take up, the version it is kept under, points as the game writes
+ * them, and what it says of an aim the keys turn.
  */
 export const SCREENSHOT_API: ScreenshotApi = {
   keptRun: (run) => keptRun(LEVELS, MARKS, run),
+  formatPoints,
+  aimWords: describeAim,
   savedGameVersion: SAVED_GAME_VERSION,
 };

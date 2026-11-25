@@ -1,7 +1,8 @@
 /**
  * The runs the scripts hand a page to take up, kept by the rules through
  * `src/testing/screenshot_api.ts` and stored as the game stores one: the
- * one `check-layout.mjs` checks the layout over.
+ * one `capture-screenshots.mjs` shows and the one `check-layout.mjs` checks
+ * the layout over.
  */
 import { join } from "node:path";
 import { importThroughVite } from "@fz/dev/script";

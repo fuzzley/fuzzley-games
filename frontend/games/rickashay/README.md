@@ -20,6 +20,7 @@ yarn workspace rickashay dev    # dev server on http://localhost:9007
 yarn workspace rickashay test   # unit tests
 yarn workspace rickashay build  # production build in dist/
 yarn workspace rickashay check:layout  # the build's layout, in headless Chrome
+yarn workspace rickashay capture:screenshots  # the site's images, from yarn dev
 yarn workspace rickashay build:sounds  # write the sounds again
 ```
 
