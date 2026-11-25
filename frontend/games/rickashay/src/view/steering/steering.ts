@@ -3,9 +3,10 @@
 // nudges, which a shot is only an aim of, let fly as a press lets go, at
 // Space or by the bar's Release; and what the game's other keys ask of it.
 
-import type {
-  PointerAiming,
-  PointerRelease,
+import {
+  type PointerAiming,
+  type PointerRelease,
+  STRAIGHT_UP,
 } from "@fz/brick-wall/view/aim_settings";
 import {
   type AimFrame,
@@ -22,6 +23,16 @@ import { type FieldCommand, commandOfKey } from "./controls";
 /** Describes a key pressed as the steering reads it, as a `KeyboardEvent` has it, with Ctrl, Alt and Meta. */
 export type SteerKeyPress = KeyPress & ShortcutModifiers;
 
+/** Describes what the player's hands ask of a frame, which the game reads as it aims and flies a round. */
+export interface Steer extends AimFrame {
+  /**
+   * Whether the keys or a Nudge in the bar turned the aim this frame, which
+   * the announcer says; the wheel's nudges go unsaid, as a pointer's aim
+   * does.
+   */
+  keyed: boolean;
+}
+
 /**
  * Turns the player's keys, mouse and fingers, the wheel and the bar's
  * buttons into the shot being aimed, a frame at a time, as every wall
@@ -30,11 +41,21 @@ export type SteerKeyPress = KeyPress & ShortcutModifiers;
  * nothing builds as a press is held.
  *
  * It answers each other key with what the key asks of the game, once a
- * press, so the scene hands every key to it and passes on the answer.
- */
+ * press, so the scene hands every key to it and passes on the answer. */
 export class Steering {
   /** Turns the aim. */
   private readonly aiming: Aiming;
+  /** Whether a Nudge in the bar turned the aim since the last frame. */
+  private nudged = false;
+  // Written again each frame, so steering makes nothing.
+  private readonly frame: Steer = {
+    aim: STRAIGHT_UP,
+    release: false,
+    keyed: false,
+    touch: false,
+    touchX: 0,
+    touchY: 0,
+  };
 
   /** Starts with the aim straight up, pointed and held, on a field laid out on a canvas. */
   constructor(metrics: FieldMetrics, canvas: Viewport) {
@@ -107,6 +128,7 @@ export class Steering {
   /** Turns the aim an aim, a quarter of a degree, as a nudge's button in the bar does. */
   nudge(toward: Nudge): void {
     this.aiming.nudge(toward);
+    this.nudged = true;
   }
 
   /** Lets the shot fly at the aim, as the bar's Release does. */
@@ -125,10 +147,20 @@ export class Steering {
 
   /**
    * Returns the steering for a frame, the fuzzball waiting at a place
-   * across the floor, and starts the next frame's afresh; the object
-   * returned is the same each frame.
+   * across the floor, as `Aiming` reads it, keyed for a Nudge in the bar
+   * too, and starts the next frame's afresh; the object returned is the
+   * same each frame.
    */
-  read(from: number): Readonly<AimFrame> {
-    return this.aiming.read(from);
+  read(from: number): Readonly<Steer> {
+    const aimed = this.aiming.read(from);
+    const { frame } = this;
+    frame.aim = aimed.aim;
+    frame.release = aimed.release;
+    frame.keyed = aimed.keyed || this.nudged;
+    frame.touch = aimed.touch;
+    frame.touchX = aimed.touchX;
+    frame.touchY = aimed.touchY;
+    this.nudged = false;
+    return frame;
   }
 }

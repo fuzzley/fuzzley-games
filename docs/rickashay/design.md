@@ -1140,11 +1140,11 @@ since nothing here is timed either:
   row 8, 2 hits." It is the rules' own cast, so it is as true as the dots.
 - **The announcer says** each level begun, with its par and its rally
   mark, and those again as a turn of the screen changes them before the
-  first shot; the aim as the keys change it; each floor bounce earned ("Rally
-  10: a floor bounce."); each round's end ("A rally of 14. Broke 6. 5 rows
-  to the floor."); each jump; the danger line; the "Rickashay!" call; a
-  level cleared, with its stars; a pause, going on and the end. R reads the
-  wall's three lowest rows, from the floor.
+  first shot; the aim as the keys or the bar's Nudges change it; each floor
+  bounce earned ("Rally 10: a floor bounce."); each round's end ("A rally
+  of 14. Broke 6. 5 rows to the floor."); each jump; the danger line; the
+  "Rickashay!" call; a level cleared, with its stars; a pause, going on and
+  the end. R reads the wall's three lowest rows, from the floor.
 - **Color is never the only signal:** kinds by shape, hits by pips, bolts
   by slots, holds by dots, the floor bounces by springs lit and unlit and
   by a count.

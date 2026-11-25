@@ -438,6 +438,25 @@ describe("Steering's nudges and wheel", () => {
     },
   );
 
+  it("says the bar's nudge as the keys' turn, for the frame it is pressed in", () => {
+    const steering = steeringOf();
+
+    steering.nudge("left");
+
+    expect([frame(steering).keyed, frame(steering).keyed]).toEqual([
+      true,
+      false,
+    ]);
+  });
+
+  it("leaves the wheel's nudge unsaid", () => {
+    const steering = steeringOf();
+
+    steering.wheel(-100);
+
+    expect(frame(steering).keyed).toBe(false);
+  });
+
   it.each([
     ["away from the player, left", -100, STRAIGHT_UP + 1],
     ["toward the player, right", 100, STRAIGHT_UP - 1],

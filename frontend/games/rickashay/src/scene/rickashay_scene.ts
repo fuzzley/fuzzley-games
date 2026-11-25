@@ -9,7 +9,7 @@ import type {
   PointerAiming,
   PointerRelease,
 } from "@fz/brick-wall/view/aim_settings";
-import { type AimFrame, MOST_FINGERS } from "@fz/brick-wall/view/aiming";
+import { MOST_FINGERS } from "@fz/brick-wall/view/aiming";
 import {
   type FieldMetrics,
   type FieldShape,
@@ -55,7 +55,7 @@ import {
   waitingX,
 } from "../view/run_state";
 import type { FieldCommand } from "../view/steering/controls";
-import { Steering } from "../view/steering/steering";
+import { type Steer, Steering } from "../view/steering/steering";
 import { type GuideFlight, WallGuides } from "../view/field/guide";
 import { FIELD_ART, GUIDE_ART, WALL_ART } from "./atlas";
 import { LAYERS, type Layer } from "./layers";
@@ -80,7 +80,7 @@ export interface RickashaySceneOptions {
    * Moves the game on by the time a frame took, the shot aimed as the
    * player aims it: let fly where the aim frame says it was released.
    */
-  readonly tick: (deltaMs: number, aim: Readonly<AimFrame>) => void;
+  readonly tick: (deltaMs: number, aim: Readonly<Steer>) => void;
   /**
    * Returns the round in play as the view draws it at this moment, as
    * `RoundPlay`'s `view`, read once a frame after the tick.

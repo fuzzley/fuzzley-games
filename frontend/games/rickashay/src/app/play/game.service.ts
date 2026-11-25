@@ -18,7 +18,6 @@ import {
   type PointerRelease,
   STRAIGHT_UP,
 } from "@fz/brick-wall/view/aim_settings";
-import type { AimFrame } from "@fz/brick-wall/view/aiming";
 import type { FrameChange } from "@fz/brick-wall/view/rounds_played";
 import type { AwayReason } from "@fz/game-ui/play_room";
 import { GameViewportService } from "@fz/game-ui/viewport";
@@ -55,6 +54,7 @@ import {
 } from "../../view/play/round_play";
 import type { FlightSoFar, RoundView } from "../../view/run_state";
 import type { FieldCommand } from "../../view/steering/controls";
+import type { Steer } from "../../view/steering/steering";
 import type { ReadyCard } from "../board/board_card.component";
 import { DebugService } from "../debug/debug.service";
 import { SettingsService } from "../settings/settings.service";
@@ -318,12 +318,13 @@ export class GameService extends RoundDriver<
 
   /**
    * Moves the game on by the time a frame took, aimed as the player aims:
-   * says the aim as the keys move it, releases a shot let fly, on the
-   * numbers the debug menu tunes, or the next of a line while one plays,
-   * and plays the round on, taking what it came to into the run, and
-   * saying what its flight came to that the round's end didn't say.
+   * says the aim as the keys or the bar's Nudges move it, releases a shot
+   * let fly, on the numbers the debug menu tunes, or the next of a line
+   * while one plays, and plays the round on, taking what it came to into
+   * the run, and saying what its flight came to that the round's end
+   * didn't say.
    */
-  tick(deltaMs: number, aim: Readonly<AimFrame>): void {
+  tick(deltaMs: number, aim: Readonly<Steer>): void {
     this.aimedAt = aim.aim;
     if (aim.keyed) this.announcer.say(describeAim(aim.aim));
     const shot = this.line.next(this.run(), this.start());

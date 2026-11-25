@@ -1,5 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
+import { STRAIGHT_UP } from "@fz/brick-wall/view/aim_settings";
 import {
   MARGIN_CSS_PX,
   fieldMetrics,
@@ -22,10 +23,11 @@ import {
 } from "@fz/phaser/testing";
 import { viewport } from "@fz/phaser/testing/pure";
 import { paintRoles } from "@fz/style/testing";
+import { AnnouncerService } from "@fz/ui/announcer";
 import { figure } from "@fz/ui/testing";
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { JUMP_WORDS, rowsWaiting } from "../../rules/run/describe";
+import { JUMP_WORDS, describeAim, rowsWaiting } from "../../rules/run/describe";
 import { PALETTES } from "../../testing/roles";
 import {
   STILL,
@@ -259,6 +261,18 @@ describe("BoardComponent", () => {
         expect.not.objectContaining(straight ?? {}),
         straight,
       ]);
+    });
+
+    it("says the aim a Nudge leaves, as it says the keys' turn", async () => {
+      const rendered = await renderBoard();
+      const run = await runSceneOn(rendered);
+
+      rendered.component.nudge("left");
+      run.advance(FRAME_MS);
+
+      expect(TestBed.inject(AnnouncerService).message()).toBe(
+        describeAim(STRAIGHT_UP + 1),
+      );
     });
 
     it("releases the shot aimed, as the bar's Release asks", async () => {
