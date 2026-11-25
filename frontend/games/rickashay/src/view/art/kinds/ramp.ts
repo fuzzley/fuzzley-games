@@ -10,6 +10,7 @@
 
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { CEILINGWARD, RIGHT } from "@fz/brick-wall/rules/grid";
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -23,7 +24,6 @@ import {
 import { STAND_OFF } from "../../../rules/tuning";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame, detailed } from "../cells";
 import {
   FRAMES,
   type FrameName,

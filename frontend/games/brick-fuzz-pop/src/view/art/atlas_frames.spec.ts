@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -24,7 +25,6 @@ import {
 import { fuzzballFrames } from "./fuzzball_art";
 import { tileBody, tileRadius } from "./kinds/brick";
 import { cracksFrame } from "./kinds/tough";
-import { cellOf } from "./symbols";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -123,7 +123,7 @@ describe.each(ART_SCALES)(
     });
 
     it("draws every brick's frame within the chunky tile's rounded square, so no mark shows past it, but the zappers' and the plated bricks' steel", () => {
-      const cell = cellOf(scale);
+      const cell = cellArea(scale);
       const body = tileBody(cell);
       const radius = tileRadius(cell);
 
@@ -141,7 +141,7 @@ describe.each(ART_SCALES)(
     });
 
     it("sizes every brick's frame as a cell, in whole pixels", () => {
-      const { width, height } = cellOf(scale);
+      const { width, height } = cellArea(scale);
 
       expect(
         breaking(

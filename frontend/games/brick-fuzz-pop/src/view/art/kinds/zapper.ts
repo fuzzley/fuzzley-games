@@ -4,6 +4,7 @@
 // bolt is a zigzag; where two bolts cross, the cross's and the X's, their
 // shafts run straight, as two zigzags crossed would make a pinwheel.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import {
   type Area,
   type ArtScale,
@@ -18,14 +19,7 @@ import {
 import type { InkedKind, WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName } from "../frames";
-import {
-  EIGHTH,
-  bandAlong,
-  cellFrame,
-  crispEdge,
-  diamond,
-  pointAt,
-} from "../symbols";
+import { EIGHTH, bandAlong, crispEdge, diamond, pointAt } from "../symbols";
 
 /** The zappers, by the ids the palette keeps their inks under, which the catalog's are. */
 export type ZapperKind = Extract<

@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -16,7 +17,7 @@ import {
 import type { KindLook } from "../art";
 import { atlasFrames } from "../atlas_frames";
 import { FRAMES } from "../frames";
-import { bandAlong, cellOf } from "../symbols";
+import { bandAlong } from "../symbols";
 import { zapperArt } from "./zapper";
 
 const ZAPPER = ART_PALETTE.kinds.rowZapper;
@@ -136,7 +137,7 @@ describe("zapperArt's tile", () => {
     const { x, y, width, height } = inBillionths(
       outline ? extentOf(outline) : { x: NaN, y: NaN, width: NaN, height: NaN },
     );
-    const side = cellOf(scale).width;
+    const side = cellArea(scale).width;
     return [x, y, side - x - width, side - y - height];
   }
 

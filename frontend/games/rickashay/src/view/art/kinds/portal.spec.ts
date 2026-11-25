@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
 import { portalMark } from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
@@ -6,7 +7,6 @@ import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
 import type { WallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
-import { cellOf } from "../cells";
 import { FRAMES, type PortalMark } from "../frames";
 import { PORTAL_ART, PORTAL_GLOW, portalInks } from "./portal";
 
@@ -69,7 +69,7 @@ describe("PORTAL_ART's frames", () => {
     "draws pair %i as @fz/phaser's portal with a %s on its ring, in its inks, on no tile",
     (mark, badge, tint) => {
       expect(portalIn(mark).commands).toEqual(
-        portalMark(cellOf(ART_SCALE), badge, portalInks(tint, OWN), 2),
+        portalMark(cellArea(ART_SCALE), badge, portalInks(tint, OWN), 2),
       );
     },
   );
@@ -78,7 +78,7 @@ describe("PORTAL_ART's frames", () => {
     const scale = { unit: 72, pixelRatio: 3 };
 
     expect(portalIn(2, OWN, scale).commands).toEqual(
-      portalMark(cellOf(scale), "diamond", portalInks(1, OWN), 3),
+      portalMark(cellArea(scale), "diamond", portalInks(1, OWN), 3),
     );
   });
 });

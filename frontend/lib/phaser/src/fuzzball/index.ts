@@ -6,6 +6,7 @@ export {
   staticSparkCommands,
   wornSparks,
 } from "./combing";
+export { wornFlames } from "./flames";
 export {
   type EyesStyle,
   FUZZBALL_GRID,

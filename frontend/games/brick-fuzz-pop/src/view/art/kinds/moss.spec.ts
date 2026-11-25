@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { TINT, inkAt } from "@fz/brick-wall/view/inks";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import { mixColors } from "@fz/phaser/color";
@@ -26,7 +27,6 @@ import { PALETTES } from "../../../testing/roles";
 import { wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, THICK_HITS } from "../frames";
-import { cellOf } from "../symbols";
 import { tileBody, tileCommands, tileRadius } from "./brick";
 import { MOSS_ART, MOSS_TINT } from "./moss";
 
@@ -154,7 +154,7 @@ describe("MOSS_ART", () => {
 describe("a moss brick at 31 CSS pixels a unit, 2 to one", () => {
   const frame = framesAt(ART_SCALE);
   const cap = frame(FRAMES.mossCap);
-  const body = tileBody(cellOf(ART_SCALE));
+  const body = tileBody(cellArea(ART_SCALE));
   const foot = 0.27 * 62;
   const radius = 0.092 * 62;
   const scallops = shapesIn(cap, "circle", INKS.face);
@@ -174,7 +174,7 @@ describe("a moss brick at 31 CSS pixels a unit, 2 to one", () => {
 
   it("lays its cap's edge along its tile's, round its corners", () => {
     const [moss] = shapesIn(cap, "polygon", INKS.face);
-    const corner = tileRadius(cellOf(ART_SCALE));
+    const corner = tileRadius(cellArea(ART_SCALE));
 
     expect(
       moss?.points.filter(
@@ -323,7 +323,7 @@ describe.each(PIXEL_RATIOS)(
     const looks = everyScale(pixelRatio).map((scale) => {
       const frame = framesAt(scale);
       // The tile's face, over its lip, which shows under it.
-      const [face] = tileCommands(cellOf(scale), INKS.body).filter(
+      const [face] = tileCommands(cellArea(scale), INKS.body).filter(
         (command) =>
           command.kind === "roundRect" && command.color === INKS.body,
       );

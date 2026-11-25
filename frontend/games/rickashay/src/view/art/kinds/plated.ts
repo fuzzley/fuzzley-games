@@ -13,6 +13,7 @@
 // unless the face beside is plated too.
 
 import { FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
 import { bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
@@ -28,7 +29,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame, detailed } from "../cells";
 import {
   FRAMES,
   type FrameName,

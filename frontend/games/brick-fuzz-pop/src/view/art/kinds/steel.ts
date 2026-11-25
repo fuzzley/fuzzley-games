@@ -3,6 +3,7 @@
 // in the marks' color, as the palette has them (`kinds.steel.glyph`), under
 // `@fz/phaser/bricks`' `sheen()`.
 
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { rivets, sheen } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -14,7 +15,7 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { cellFrame, crispOutline, detailed } from "../symbols";
+import { crispOutline } from "../symbols";
 import { tileCommands } from "./brick";
 
 /** Where its bevelled frame lies in its cell, as shares of it: from across and down, wide and tall. */

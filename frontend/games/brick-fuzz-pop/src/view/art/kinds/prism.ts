@@ -2,6 +2,7 @@
 // faceted triangle on it, and three rays leaving it, each in a tint of its
 // own, `prism()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -23,7 +24,7 @@ import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
 import { itemAt } from "../../items";
-import { cellFrame, pointAt, turned } from "../symbols";
+import { pointAt, turned } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 
 /** How wide its glass's outline is, in field units, inside the chunky tile's edge, which its glass's is. */

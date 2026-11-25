@@ -1,75 +1,21 @@
-import { outlineRoundRect, polygon, rect } from "@fz/phaser/shapes";
+import { outlineRoundRect, polygon } from "@fz/phaser/shapes";
 import { billionths } from "../../testing/art_frames";
-import { FRAMES } from "./frames";
 import {
   bandAlong,
   boltMark,
-  cellFrame,
-  cellOf,
   crispEdge,
   crispOutline,
-  detailed,
   diamond,
   diePips,
   pointAt,
   turned,
 } from "./symbols";
 
-describe("detailed", () => {
-  it.each([
-    [58, 2, false],
-    [60, 2, true],
-    [62, 2, true],
-    [29, 1, false],
-    [30, 1, true],
-  ])(
-    "draws the finest detail at %i device pixels a unit, %i to a CSS pixel: %s",
-    (unit, pixelRatio, detail) => {
-      expect(detailed({ unit, pixelRatio })).toBe(detail);
-    },
-  );
-});
-
-describe("cellOf", () => {
-  it.each([
-    [62, 62],
-    [62.4, 62],
-    [0.4, 1],
-  ])(
-    "gives a unit of %f device pixels a cell %i pixels square",
-    (unit, side) => {
-      expect(cellOf({ unit, pixelRatio: 2 })).toEqual({
-        x: 0,
-        y: 0,
-        width: side,
-        height: side,
-      });
-    },
-  );
-});
-
 describe("pointAt", () => {
   it("gives the point at shares of an area across and down", () => {
     expect(pointAt({ x: 10, y: 20, width: 40, height: 80 }, 0.25, 0.5)).toEqual(
       { x: 20, y: 60 },
     );
-  });
-});
-
-describe("cellFrame", () => {
-  it("makes a frame the size of a cell, drawn in the cell", () => {
-    const frame = cellFrame(
-      FRAMES.steel,
-      { unit: 40, pixelRatio: 1 },
-      (cell) => [rect(cell, { color: 7 })],
-    );
-
-    expect(frame).toEqual({
-      name: "steel",
-      width: 40,
-      height: 40,
-      commands: [{ kind: "rect", x: 0, y: 0, width: 40, height: 40, color: 7 }],
-    });
   });
 });
 

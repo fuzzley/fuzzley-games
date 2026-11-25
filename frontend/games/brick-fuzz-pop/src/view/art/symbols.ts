@@ -1,7 +1,7 @@
-// What the bricks' art is laid out by: a brick's cell at a scale, whether a
-// scale draws the finest detail, by `@fz/phaser/bricks`' rule, a crack's width
-// and the ways along a tile's edges, an eighth of a turn and the lightning
-// bolt a brick is marked with; and, from `@fz/phaser/shapes`, the geometry it
+// What the bricks' art is laid out by, beside the cell
+// `@fz/brick-wall/view/art` lays a brick's frames in: a crack's width and the
+// ways along a tile's edges, an eighth of a turn and the lightning bolt a
+// brick is marked with; and, from `@fz/phaser/shapes`, the geometry it
 // shares with Brick Breaker's art, under the names its kinds take it by: a
 // point at shares of an area, an outline whose edges lie on whole device
 // pixels, a die's pips, a point turned, a diamond and a line drawn as a band.
@@ -9,19 +9,13 @@
 // (`docs/archive/brick-fuzz-pop/art/make-art.mjs`), each written as a share
 // of the cell its 100-unit square is.
 
-import { showsDetail } from "@fz/phaser/bricks";
 import {
-  type Area,
-  type ArtFrame,
-  type ArtScale,
-  type DrawCommand,
   type FillStyle,
   type Point,
   type PolygonCommand,
   placed,
   polygon,
 } from "@fz/phaser/shapes";
-import type { FrameName } from "./frames";
 
 export {
   bandAlong,
@@ -44,30 +38,6 @@ export const ACROSS: Point = { x: 1, y: 0 };
 
 /** The way along a tile's left or right edge, which a crack from it is cut along. */
 export const DOWN: Point = { x: 0, y: 1 };
-
-/** Returns whether a scale draws a brick's finest detail, its cracks, steel's rivets and the bomb's dots, by `showsDetail()`'s rule for a tile a unit wide. */
-export function detailed(scale: ArtScale): boolean {
-  return showsDetail(scale, 1);
-}
-
-/**
- * Returns a brick's cell at a scale, which each of its frames fills, so its
- * frames stack: a unit square, in whole device pixels, one at least.
- */
-export function cellOf(scale: ArtScale): Area {
-  const side = Math.max(1, Math.round(scale.unit));
-  return { x: 0, y: 0, width: side, height: side };
-}
-
-/** Returns a frame the size of a brick's cell, drawn in it. */
-export function cellFrame(
-  name: FrameName,
-  scale: ArtScale,
-  draw: (cell: Area) => readonly DrawCommand[],
-): ArtFrame {
-  const cell = cellOf(scale);
-  return { name, width: cell.width, height: cell.height, commands: draw(cell) };
-}
 
 /** The lightning bolt a brick is marked with, about its middle, two units tall. */
 const BOLT_MARK: readonly Point[] = [

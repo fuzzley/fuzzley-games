@@ -3,6 +3,7 @@
 // leaves as its fur lifts, the streak its dash home leaves, a spark off a
 // plated face or a shut lock, a portal's swirl, and a floor bounce's puff.
 
+import { shardFrame } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -27,9 +28,6 @@ export const EFFECT_FRAMES = {
   swirl: "swirl",
   puff: "puff",
 } as const satisfies Readonly<Record<string, string>>;
-
-/** How wide a shard is, in field units, as Brick Fuzz Pop's. */
-export const SHARD = 0.3;
 
 /** Says how the ring a fuzzball leaves is drawn, in field units: its line's middle at its widest, and its line, a CSS pixel at least. */
 export const RALLY_RING = {
@@ -71,23 +69,8 @@ export function effectFrames(
   palette: WallPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  const shard = widthOf(SHARD, scale);
   return [
-    {
-      name: EFFECT_FRAMES.shard,
-      width: shard,
-      height: shard,
-      commands: [
-        polygon(
-          [
-            { x: 0, y: shard },
-            { x: shard, y: 0.6 * shard },
-            { x: 0.35 * shard, y: 0 },
-          ],
-          { color: 0xffffff },
-        ),
-      ],
-    },
+    shardFrame(EFFECT_FRAMES.shard, scale),
     ringFrame(EFFECT_FRAMES.ring, RALLY_RING, palette.fuzzball, scale),
     streakFrame(EFFECT_FRAMES.streak, palette.streak.plain, scale),
     streakFrame(EFFECT_FRAMES.hotStreak, palette.streak.hot, scale),

@@ -3,6 +3,7 @@
 // card and the panels, and a floor bounce's spring, unlit and lit.
 
 import type { WallFrames } from "@fz/brick-wall/scene/atlas";
+import { cellArea } from "@fz/brick-wall/view/art";
 import type { Pictured } from "@fz/phaser/scene";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
 import type { KindId } from "../rules/catalog/kinds";
@@ -12,7 +13,6 @@ import {
   brickLayers,
   wallAtlasFrames,
 } from "../view/art/atlas_frames";
-import { cellOf } from "../view/art/cells";
 import { FRAMES } from "../view/art/frames";
 import type { WallPalette } from "../view/colors/palette";
 
@@ -58,7 +58,7 @@ export function pictureFrames(
   frames: readonly ArtFrame[],
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  const { width, height } = cellOf(scale);
+  const { width, height } = cellArea(scale);
   const commandsOf = (layer: string): ArtFrame["commands"] => {
     const frame = frames.find(({ name }) => name === layer);
     if (frame === undefined) {

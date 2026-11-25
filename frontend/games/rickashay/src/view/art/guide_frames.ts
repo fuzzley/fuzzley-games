@@ -4,6 +4,7 @@
 // round each brick the flight strikes on the way, a band of it along the
 // cell's edge, its corners cut as a tile's.
 
+import { cellArea, dotFrame } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -12,8 +13,7 @@ import {
   widthOf,
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../colors/palette";
-import { cellOf } from "./cells";
-import { bandIn, dotFrame } from "./field_frames";
+import { bandIn } from "./field_frames";
 import { FRAMES } from "./frames";
 import { CUT_TILE } from "./kinds/brick";
 
@@ -58,7 +58,7 @@ export function guideFrames(
   palette: WallPalette,
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  const cell = cellOf(scale);
+  const cell = cellArea(scale);
   const cut = CUT_TILE.cut * cell.width;
   const band = widthOf(GUIDE_STRUCK.band, scale);
   return [

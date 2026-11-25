@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { recordOf } from "@fz/core/records";
 import type { Pictured } from "@fz/phaser/scene";
 import type { ArtFrame, ArtScale } from "@fz/phaser/shapes";
@@ -9,7 +10,6 @@ import {
 import { LEGEND } from "../rules/levels/legend";
 import { type BrickLook, brickLayers } from "../view/art/art";
 import type { FrameName } from "../view/art/frames";
-import { cellOf } from "../view/art/symbols";
 
 /**
  * Returns a whole brick of a kind, in the first tint, plated as the
@@ -50,7 +50,7 @@ export function pictureFrames(
   frames: readonly ArtFrame[],
   scale: ArtScale,
 ): readonly ArtFrame[] {
-  const { width, height } = cellOf(scale);
+  const { width, height } = cellArea(scale);
   return BRICK_KIND_IDS.map((kind) => ({
     name: PICTURE_FRAMES.bricks[kind],
     width,

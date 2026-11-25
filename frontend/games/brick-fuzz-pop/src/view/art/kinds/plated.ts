@@ -9,6 +9,7 @@
 // past it; its steel stands out of the tile, as the art's does.
 
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
 import { TILE_SLAB, bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
@@ -30,7 +31,7 @@ import {
   type Plating,
 } from "../frames";
 import { itemAt } from "../../items";
-import { cellFrame, detailed, diePips, pointAt } from "../symbols";
+import { diePips, pointAt } from "../symbols";
 import { tileFrame } from "./brick";
 
 /** The tint of the tile under a plated brick's plates, which is its body in every palette. */

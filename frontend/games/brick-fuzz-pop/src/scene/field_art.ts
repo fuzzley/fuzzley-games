@@ -5,6 +5,7 @@
 // baked so it is round and sharp, where a live Graphics would draw it
 // unsmoothed and anew every frame.
 
+import { cellArea, dotFrame, shardFrame } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -20,7 +21,6 @@ import {
   widthOf,
 } from "@fz/phaser/shapes";
 import { FRAMES } from "../view/art/frames";
-import { cellOf } from "../view/art/symbols";
 import type { WallPalette } from "../view/colors/palette";
 import {
   GAUGE_PIP_CSS_PX,
@@ -95,9 +95,6 @@ const GAUGE_ARC_STEP = 4;
  * cell's edge, of a cell of 40, rounded 6.4 and 2.2 wide.
  */
 const GUIDE_PUNCH = { inset: 0.0225, corner: 0.16, width: 0.055 } as const;
-
-/** How wide a shard is, in field units. */
-const SHARD = 0.3;
 
 /** Says how a punch's streak is drawn, in field units: a cell long, and its head's width. */
 const STREAK = { length: 1, width: 0.14 } as const;
@@ -177,22 +174,11 @@ export function flightFrames(
       cssWidthOf(GAUGE_CSS_PX.ring, scale),
       palette,
     ),
-    shardFrame(scale),
+    shardFrame(FLIGHT_FRAMES.shard, scale),
     streakFrame(palette, scale),
     boltFrame(palette, scale),
     ringFrame(palette, scale),
   ];
-}
-
-/** Returns a frame of a dot that fills it, some device pixels wide, in a color. */
-function dotFrame(name: string, side: number, color: number): ArtFrame {
-  const half = side / 2;
-  return {
-    name,
-    width: side,
-    height: side,
-    commands: [circle({ x: half, y: half }, half, { color })],
-  };
 }
 
 /**
@@ -201,7 +187,7 @@ function dotFrame(name: string, side: number, color: number): ArtFrame {
  * color inside the band, each a CSS pixel wide at least.
  */
 function warningFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
-  const cell = cellOf(scale);
+  const cell = cellArea(scale);
   const band = widthOf(WARNING_FRAME.band, scale);
   const seam = widthOf(WARNING_FRAME.seam, scale);
   const corner = WARNING_FRAME.corner * cell.width;
@@ -251,7 +237,7 @@ function unlitPipFrame(
  * a cell, its outline in the guide's color, held inside it.
  */
 function punchFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
-  const cell = cellOf(scale);
+  const cell = cellArea(scale);
   const width = widthOf(GUIDE_PUNCH.width, scale);
   const edge = Math.max(GUIDE_PUNCH.inset * cell.width, width / 2);
   return {
@@ -336,26 +322,6 @@ function cssWidthOf(css: number, scale: ArtScale): number {
     Math.ceil(scale.pixelRatio),
     Math.round(css * scale.pixelRatio),
   );
-}
-
-/** Returns a shard: a sliver of a triangle in white, which a tint colors as its brick. */
-function shardFrame(scale: ArtScale): ArtFrame {
-  const side = widthOf(SHARD, scale);
-  return {
-    name: FLIGHT_FRAMES.shard,
-    width: side,
-    height: side,
-    commands: [
-      polygon(
-        [
-          { x: 0, y: side },
-          { x: side, y: 0.6 * side },
-          { x: 0.35 * side, y: 0 },
-        ],
-        { color: 0xffffff },
-      ),
-    ],
-  };
 }
 
 /**

@@ -2,6 +2,7 @@
 // disc cut out of its top right corner with a lightning bolt on it, for the
 // charge it gives, `wool()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -16,7 +17,7 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { boltMark, cellFrame, pointAt } from "../symbols";
+import { boltMark, pointAt } from "../symbols";
 import { tileCommands } from "./brick";
 
 /** Where its rows of stitches lie, down its cell, and each stitch's middle along a row, across it, as shares of the cell. */

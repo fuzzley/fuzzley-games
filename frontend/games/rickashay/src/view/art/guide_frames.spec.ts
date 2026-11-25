@@ -1,3 +1,4 @@
+import { cellArea, dotFrame } from "@fz/brick-wall/view/art";
 import { type ArtFrame, type Point, widthOf } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import {
@@ -7,8 +8,6 @@ import {
   octagon,
   pointInBillionths,
 } from "../../testing/art_frames";
-import { cellOf } from "./cells";
-import { dotFrame } from "./field_frames";
 import { FRAMES } from "./frames";
 import {
   GUIDE_DOT,
@@ -85,7 +84,7 @@ describe("guideFrames", () => {
 
   describe("the band round a struck brick", () => {
     const struck = frameNamed(FRAMES_DRAWN, GUIDE_FRAMES.struck);
-    const cell = cellOf(ART_SCALE);
+    const cell = cellArea(ART_SCALE);
     const band = widthOf(GUIDE_STRUCK.band, ART_SCALE);
     const seam = widthOf(GUIDE_STRUCK.seam, ART_SCALE);
 

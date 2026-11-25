@@ -1,3 +1,4 @@
+import { cellArea, dotFrame } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type Point,
@@ -13,7 +14,6 @@ import {
   pointInBillionths,
 } from "../../testing/art_frames";
 import { SPRING_UNITS } from "../field/springs";
-import { cellOf } from "./cells";
 import {
   COUNT_DOT,
   FIELD_FRAMES,
@@ -21,7 +21,6 @@ import {
   SPRING,
   SQUASHED,
   WARNING_FRAME,
-  dotFrame,
   fieldFrames,
   springFrames,
 } from "./field_frames";
@@ -67,17 +66,6 @@ function footOf(frame: ArtFrame): number {
   );
 }
 
-describe("dotFrame", () => {
-  it("fills its frame with a dot some pixels wide, in a color", () => {
-    expect(dotFrame("dot", 6, 0x123456)).toEqual({
-      name: "dot",
-      width: 6,
-      height: 6,
-      commands: [{ kind: "circle", x: 3, y: 3, radius: 3, color: 0x123456 }],
-    });
-  });
-});
-
 describe("fieldFrames", () => {
   it("names the grid's dot, the count's and the warning frame", () => {
     expect(FIELD.map((frame) => frame.name)).toEqual([
@@ -115,7 +103,7 @@ describe("fieldFrames", () => {
 
   describe("the warning frame", () => {
     const warning = frameNamed(FIELD, FIELD_FRAMES.warning);
-    const cell = cellOf(ART_SCALE);
+    const cell = cellArea(ART_SCALE);
     const band = widthOf(WARNING_FRAME.band, ART_SCALE);
     const seam = widthOf(WARNING_FRAME.seam, ART_SCALE);
     // The line the cut across the cell's top left corner runs along, x + y.

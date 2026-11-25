@@ -1,4 +1,5 @@
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { cellArea } from "@fz/brick-wall/view/art";
 import { bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
   type ArtFrame,
@@ -21,7 +22,6 @@ import {
 import { LEGEND } from "../../../rules/levels/legend";
 import type { WallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
-import { cellOf } from "../cells";
 import {
   FRAMES,
   PLATED_HITS,
@@ -310,7 +310,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keep every gap, bar, tooth, rivet and pip within the tile's body", () => {
       const past = scales.flatMap((scale) => {
-        const outline = bodyOutline(cellOf(scale), CUT_TILE);
+        const outline = bodyOutline(cellArea(scale), CUT_TILE);
         return PLATED_ART.frames(OWN, scale)
           .filter(({ commands }) =>
             commands.some((command) => {
@@ -328,7 +328,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keep the pips over the floorward plate's gap", () => {
       const touching = scales.flatMap((scale) => {
-        const { width } = cellOf(scale);
+        const { width } = cellArea(scale);
         const inner = width - Math.round(0.265 * width);
         return PLATINGS.flatMap((plating) =>
           ([2, 3] as const)
@@ -348,7 +348,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keep the pips between the sides' plates' gaps", () => {
       const touching = scales.flatMap((scale) => {
-        const { width } = cellOf(scale);
+        const { width } = cellArea(scale);
         const inner = width - Math.round(0.265 * width);
         return ([2, 3] as const)
           .filter((hits) =>
@@ -366,7 +366,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keep a pixel of the gap between the tile and each plate's bar", () => {
       const touching = scales.filter((scale) => {
-        const { width } = cellOf(scale);
+        const { width } = cellArea(scale);
         const inner = width - Math.round(0.265 * width);
         const [left, right, floorward] = drawnIn(
           platedIn("floorward-sides", 1, scale),

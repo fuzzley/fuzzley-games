@@ -4,6 +4,7 @@
 // their own, stacked over the tile, each cut out in the marks' color, the
 // field's, so they look cut out of the brick.
 
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import {
   type Area,
   type DrawCommand,
@@ -16,7 +17,6 @@ import {
   within,
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
-import { cellFrame, detailed } from "../cells";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
 import { itemAt } from "../items";
 import { tileBody } from "./brick";

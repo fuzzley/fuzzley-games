@@ -15,6 +15,7 @@
 // cuts an end where nothing stands beside it: a kind's look holds nothing
 // of the bricks about it, and the tint holds the holds.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -30,7 +31,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
 import {
   FRAMES,
   type FrameName,

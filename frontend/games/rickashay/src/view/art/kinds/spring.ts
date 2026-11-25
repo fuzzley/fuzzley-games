@@ -4,6 +4,7 @@
 // ink's, which a brick in a pink row shows too, and the coil a frame of its
 // own over it, cut out in the marks' color, the field's.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
 import {
   type Area,
@@ -16,7 +17,6 @@ import {
   widthOf,
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
 import { coilLines } from "../coil";
 import { FRAMES } from "../frames";
 

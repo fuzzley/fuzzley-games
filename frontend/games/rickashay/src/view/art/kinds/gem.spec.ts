@@ -1,4 +1,5 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { cellArea } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
 import { mixColors } from "@fz/phaser/color";
 import type {
@@ -21,7 +22,6 @@ import {
   scalesAt,
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
-import { cellOf } from "../cells";
 import { FRAMES, INKS, type Ink } from "../frames";
 import { tileBody } from "./brick";
 import { GEM_ART, gemFacets } from "./gem";
@@ -30,7 +30,7 @@ import { GEM_ART, gemFacets } from "./gem";
 const SLACK = 1e-9;
 
 /** How far either way of the middle of a side of a gem's tile's body the flat cutting a point square runs, at the specs' scale: as far as the flat a flight turns off there. */
-const TIP = (STAND_OFF - RADIUS) * cellOf(ART_SCALE).width;
+const TIP = (STAND_OFF - RADIUS) * cellArea(ART_SCALE).width;
 
 /** The specs' palette's third ink, which a gem in a wall's third row up takes. */
 const INK = inkAt(ART_PALETTE.tints, 2);
@@ -112,7 +112,7 @@ describe("GEM_ART's layers", () => {
 });
 
 describe("GEM_ART's frames", () => {
-  const body = tileBody(cellOf(ART_SCALE));
+  const body = tileBody(cellArea(ART_SCALE));
   const half = body.width / 2;
   const frame = gemAt(2, ART_SCALE);
   const { light, dark } = gemFacets(INK);

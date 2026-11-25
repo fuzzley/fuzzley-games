@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { eyesCommands, fuzzballCommands } from "@fz/phaser/fuzzball";
 import {
   type ArtFrame,
@@ -14,7 +15,7 @@ import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { type CageLook, FRAMES, type Ink } from "../frames";
-import { ACROSS, bandAlong, cellOf } from "../symbols";
+import { ACROSS, bandAlong } from "../symbols";
 import { tileBody, tileCommands } from "./brick";
 import { CAGE_ART } from "./cage";
 
@@ -68,7 +69,7 @@ function barAt(left: number, color: number = CAGE.glyph) {
 /** Returns the crack a hit cage shows at a scale, a band so wide. */
 function crackAt(scale: ArtScale, width: number): DrawCommand {
   return polygon(
-    bandAlong(within(tileBody(cellOf(scale)), CRACK), width, ACROSS),
+    bandAlong(within(tileBody(cellArea(scale)), CRACK), width, ACROSS),
     { color: ART_PALETTE.mark },
   );
 }
@@ -113,7 +114,7 @@ describe("CAGE_ART", () => {
     expect({
       tile: own.commands.slice(0, 3),
       inside: drawnIn(own, "roundRect", face).length,
-    }).toEqual({ tile: tileCommands(cellOf(ART_SCALE), body), inside: 1 });
+    }).toEqual({ tile: tileCommands(cellArea(ART_SCALE), body), inside: 1 });
   });
 
   it("fills its inside in its face's color, its edges on whole pixels", () => {

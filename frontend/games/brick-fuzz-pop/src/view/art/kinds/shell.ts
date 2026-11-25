@@ -4,6 +4,7 @@
 // frame of its own, in the shell's own tile, and its pips one for each count of
 // them, over it.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import type { KindInks } from "@fz/brick-wall/view/palette";
 import {
   type Area,
@@ -15,7 +16,7 @@ import {
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
 import { itemAt } from "../../items";
-import { boltMark, cellFrame, pointAt } from "../symbols";
+import { boltMark, pointAt } from "../symbols";
 import { tileCommands } from "./brick";
 
 /** Where its core lies in its cell, as shares of it: from across and down, wide and tall. */

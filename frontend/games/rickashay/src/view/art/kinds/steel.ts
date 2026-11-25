@@ -6,6 +6,7 @@
 // 2:1 against the steel; here they are cut out in the marks' color, the
 // field's, as Brick Fuzz Pop's are, which keeps 3:1 against it.
 
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { rivets, sheen } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -22,7 +23,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame, detailed } from "../cells";
 import { FRAMES } from "../frames";
 import { tileCommands } from "./brick";
 

@@ -5,6 +5,7 @@
 // and inside with its friend, a frame for each ink, under its bars, whole or
 // hit, drawn with `@fz/phaser/bricks`' `cagedFriend()` and `cageBars()`.
 
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { type CageBars, cageBars, cagedFriend } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -19,14 +20,7 @@ import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { type CageLook, FRAMES, type FrameName, INKS } from "../frames";
 import { itemAt } from "../../items";
-import {
-  ACROSS,
-  CRACK_WIDTH,
-  bandAlong,
-  cellFrame,
-  detailed,
-  pointAt,
-} from "../symbols";
+import { ACROSS, CRACK_WIDTH, bandAlong, pointAt } from "../symbols";
 import { tileBody, tileCommands } from "./brick";
 
 /** How far in its inside lies from each side of its cell, across and down, as shares of it. */

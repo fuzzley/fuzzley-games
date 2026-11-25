@@ -3,6 +3,7 @@
 // of the bricks around it that the spark leaves room for, `bomb()` in
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
+import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { bombMark } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -14,7 +15,6 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { cellFrame, detailed } from "../symbols";
 import { tileCommands } from "./brick";
 
 /**

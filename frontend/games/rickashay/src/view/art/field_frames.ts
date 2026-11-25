@@ -6,20 +6,19 @@
 // sharp where a live `Graphics` would draw it unsmoothed and anew each
 // frame.
 
+import { cellArea, dotFrame } from "@fz/brick-wall/view/art";
 import {
   type Area,
   type ArtFrame,
   type ArtScale,
   type DrawCommand,
   type LineStyle,
-  circle,
   inset,
   stroke,
   widthOf,
 } from "@fz/phaser/shapes";
 import { SPRING_UNITS } from "../field/springs";
 import type { WallPalette } from "../colors/palette";
-import { cellOf } from "./cells";
 import { coilLines } from "./coil";
 import { FRAMES } from "./frames";
 import { CUT_TILE } from "./kinds/brick";
@@ -121,24 +120,13 @@ export function springFrames(
   ];
 }
 
-/** Returns a frame of a dot that fills it, some device pixels wide, in a color. */
-export function dotFrame(name: string, side: number, color: number): ArtFrame {
-  const half = side / 2;
-  return {
-    name,
-    width: side,
-    height: side,
-    commands: [circle({ x: half, y: half }, half, { color })],
-  };
-}
-
 /**
  * Returns the warning frame: a cell, a band of the danger line's color in
  * along its edge, and a seam of the field's color inside the band, each a
  * CSS pixel wide at least, their corners cut as a tile's.
  */
 function warningFrame(palette: WallPalette, scale: ArtScale): ArtFrame {
-  const cell = cellOf(scale);
+  const cell = cellArea(scale);
   const band = widthOf(WARNING_FRAME.band, scale);
   const seam = widthOf(WARNING_FRAME.seam, scale);
   const cut = CUT_TILE.cut * cell.width;

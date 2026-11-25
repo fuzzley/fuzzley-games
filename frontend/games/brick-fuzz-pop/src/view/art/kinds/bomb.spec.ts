@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import {
   type ArtFrame,
   type ArtScale,
@@ -16,7 +17,6 @@ import {
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { FRAMES } from "../frames";
-import { cellOf } from "../symbols";
 import { BOMB_ART } from "./bomb";
 import { tileCommands } from "./brick";
 
@@ -64,7 +64,7 @@ describe("BOMB_ART", () => {
 
   it("stands on the chunky tile in its own body's color", () => {
     expect(bombIn(OWN_INKS).commands.slice(0, 3)).toEqual(
-      tileCommands(cellOf(ART_SCALE), OWN_INKS.kinds.bomb.body),
+      tileCommands(cellArea(ART_SCALE), OWN_INKS.kinds.bomb.body),
     );
   });
 

@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import type {
   Area,
@@ -21,7 +22,6 @@ import {
   scalesAt,
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
-import { cellOf } from "../cells";
 import { FRAMES, RAMP_CORNERS, type RampCorner } from "../frames";
 import { tileBody } from "./brick";
 import { RAMP_ART } from "./ramp";
@@ -158,7 +158,7 @@ describe("RAMP_ART's layers", () => {
 });
 
 describe("RAMP_ART's frames", () => {
-  const cell = cellOf(ART_SCALE);
+  const cell = cellArea(ART_SCALE);
   const lowLeft = rampAt("floorward-left", ART_SCALE);
 
   it("brings a frame for each corner, each a cell", () => {
@@ -211,7 +211,7 @@ describe("RAMP_ART's frames", () => {
     const scale = { unit: 128, pixelRatio: 2 };
 
     expect(
-      billionths(rimOf(rampAt("floorward-left", scale), cellOf(scale))),
+      billionths(rimOf(rampAt("floorward-left", scale), cellArea(scale))),
     ).toBe(4);
   });
 
@@ -241,7 +241,7 @@ describe.each(PIXEL_RATIOS)(
   (pixelRatio) => {
     const frames = scalesAt(pixelRatio).map((scale) => ({
       scale,
-      cell: cellOf(scale),
+      cell: cellArea(scale),
       frame: rampAt("floorward-left", scale),
     }));
 

@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import type {
   Area,
   ArtFrame,
@@ -16,7 +17,6 @@ import {
   distanceToSegment,
   pastOutline,
 } from "../../../testing/art_frames";
-import { cellOf } from "../cells";
 import { CRACKS, FRAMES, PIPS } from "../frames";
 import { tileCommands } from "./brick";
 import { TOUGH_ART } from "./tough";
@@ -289,7 +289,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keeps every crack on its tile's body as drawn, inside the cuts across its corners and off its lip", () => {
       const outside = drawn.flatMap(({ scale, cracks }) => {
-        const body = bodyOf(cellOf(scale));
+        const body = bodyOf(cellArea(scale));
         return cracks.flatMap((crack, i) =>
           crack.points
             .filter((point) => pastOutline(point, body) > SLACK)

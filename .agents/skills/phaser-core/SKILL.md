@@ -91,7 +91,8 @@ without knowing of it, changes its line in the same change, as
   face, baked as a frame of their own where a scene moves them as the
   fuzzball looks, `combedStrands()` and `sparkCommands()` its fur on end and
   the sparks about it, `fuzzballWearing()` its outline as one with what it
-  wears (`wornSparks()`), and `staticSparkCommands()` static's sparks.
+  wears (`wornSparks()`, `wornFlames()` the hot shot's crown of flame), and
+  `staticSparkCommands()` static's sparks.
 - **`bricks` draws a brick game's brick:** the slab it stands on
   (`slabCommands()`, with its `slabBody()`, `slabFace()` and `slabRadius()`,
   laid out by a `SlabShares`, whose `corner` rounds its corners and whose

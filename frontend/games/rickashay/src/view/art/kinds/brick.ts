@@ -5,6 +5,7 @@
 // the design's "The flight" has it, so the cut is the brick's own edge and
 // not a softened one.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
 import {
   type SlabShares,
@@ -14,7 +15,6 @@ import {
 } from "@fz/phaser/bricks";
 import type { Area, DrawCommand } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
 import { FRAMES, type FrameName, INKS } from "../frames";
 import { itemAt } from "../items";
 

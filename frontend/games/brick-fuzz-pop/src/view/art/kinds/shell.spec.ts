@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import type {
   Area,
   ArtFrame,
@@ -17,13 +18,12 @@ import {
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { FRAMES, THICK_HITS } from "../frames";
-import { cellOf } from "../symbols";
 import { SHELL_ART } from "./shell";
 
 const INKS = ART_PALETTE.kinds.shell;
 
 /** The cell the specs draw in, at a unit of 31 CSS pixels, 2 device pixels to one. */
-const CELL = cellOf(ART_SCALE).width;
+const CELL = cellArea(ART_SCALE).width;
 
 /** The most hits the catalog gives a shell brick. */
 const MOST_HITS = brickKind("shell").mostHits;

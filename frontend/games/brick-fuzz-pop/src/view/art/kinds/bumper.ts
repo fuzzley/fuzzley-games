@@ -4,10 +4,10 @@
 // `docs/archive/brick-fuzz-pop/art/make-art.mjs`, as `@fz/phaser/bricks`'
 // `bumperMark()` draws it.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { bumperMark } from "@fz/phaser/bricks";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { cellFrame } from "../symbols";
 
 /** A bumper's layers, made once. */
 const BUMPER_LAYERS = [FRAMES.bumper] as const;

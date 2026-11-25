@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -20,7 +21,6 @@ import {
   pointInBillionths,
   scalesAt,
 } from "../../../testing/art_frames";
-import { cellOf } from "../cells";
 import { FRAMES } from "../frames";
 import { tileCommands } from "./brick";
 import { STEEL_ART } from "./steel";
@@ -222,7 +222,7 @@ describe.each(PIXEL_RATIOS)(
     // palettes, so neither the frame nor a rivet lies on it.
     it("keeps its frame and its rivets on its body, off its strip and its lip", () => {
       const touching = scales.flatMap((scale) => {
-        const outlines = clearOfStripAndLip(cellOf(scale));
+        const outlines = clearOfStripAndLip(cellArea(scale));
         const bevel = bevelAt(scale).points.map((point) =>
           pastAll(point, outlines),
         );

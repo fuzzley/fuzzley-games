@@ -1,4 +1,5 @@
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
+import { cellArea } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
 import {
@@ -29,7 +30,7 @@ import { wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, PLATINGS, type PlatedHits, type Plating } from "../frames";
 import { itemAt } from "../../items";
-import { cellOf, diePips } from "../symbols";
+import { diePips } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 import { PLATED_ART, PLATED_TINT } from "./plated";
 
@@ -269,7 +270,7 @@ describe("PLATED_ART", () => {
 
 describe("a plated brick's plate toward the floor at 31 CSS pixels a unit, 2 to one", () => {
   const frame = platedIn("floorward", 1);
-  const cell = cellOf(ART_SCALE);
+  const cell = cellArea(ART_SCALE);
 
   it("lays a gap of its own face's color over the tile's bottom, from 0.265 of the cell up, on a whole pixel, round the tile's corners in order, and no further", () => {
     const [gap] = shapesIn(frame.commands, "polygon", face);
@@ -511,7 +512,7 @@ describe("a plated brick at every unit from 1 to 16 device pixels, too few to be
   it("keeps its plates' gaps within the tile's rounded square", () => {
     const breaking = scales
       .filter((scale) => {
-        const cell = cellOf(scale);
+        const cell = cellArea(scale);
         const body = tileBody(cell);
         const corner = tileRadius(cell);
         return PLATED_ART.frames(OWN_INKS, scale).some(({ commands }) =>

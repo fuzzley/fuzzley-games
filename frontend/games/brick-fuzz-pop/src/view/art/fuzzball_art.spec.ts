@@ -115,14 +115,6 @@ const ART_SPARKS = [
   { turn: 212, from: 16.4 },
 ] as const;
 
-/** The art's tongues of flame: which way each points, how far out its tip is, its width and its lean, on the fuzzball's grid. */
-const ART_FLAMES = [
-  { turn: -129, to: 20, width: 8.6, lean: 3 },
-  { turn: -104, to: 24, width: 9.6, lean: 1.2 },
-  { turn: -78, to: 21.6, width: 9, lean: -2.6 },
-  { turn: -53, to: 19.2, width: 8.2, lean: -3 },
-] as const;
-
 /**
  * Returns a point of a frame on the fuzzball's grid about the body's
  * middle, its frame's, turned back by degrees, to a billionth.
@@ -463,51 +455,14 @@ describe("fuzzballFrames", () => {
       expect(tongues.filter((tongue) => extentOf(tongue).y >= top)).toEqual([]);
     });
 
-    it.each(ART_FLAMES.map((flame, i) => ({ ...flame, i })))(
-      "draws the tongue pointing $turn° as the art's: rising from behind the body, swelling, then leaning as it narrows to its tip",
-      ({ turn, to, width, lean, i }) => {
-        const tongue = drawnIn(frame, "polygon", ART_PALETTE.spark)[i];
-        const points = tongue?.kind === "polygon" ? tongue.points : [];
-        const swell = (width / 2) * 0.5 ** 1.2 * 1.35;
-        const middle = 11.5 + (to - 11.5) / 2;
-
-        expect({
-          points: points.length,
-          shape: [0, 4, 8, 12, 16].map((at) => {
-            const point = points[at];
-            return point && onGrid(frame, point, turn);
-          }),
-        }).toEqual({
-          points: 17,
-          shape: [
-            pointAt(11.5, -0.35 * width),
-            pointAt(middle, lean / 4 - swell),
-            pointAt(to, lean),
-            pointAt(middle, lean / 4 + swell),
-            pointAt(11.5, 0.35 * width),
-          ],
-        });
-      },
-    );
+    it("outlines its tongues of flame in the mark, a line along each tongue's 17 edges, twice the outline's width", () => {
+      expect(
+        linesIn(frame, ART_PALETTE.mark).filter((line) => line.width === 4),
+      ).toHaveLength(4 * 17);
+    });
 
     it("outlines the fuzzball first, under its flames, two device pixels wider than its body", () => {
       expect(outlineOf(frame, ART_PALETTE.hotShot)).toBe(2);
-    });
-
-    it("outlines each tongue with a closed line round it in the mark, twice the outline's width", () => {
-      const tongues = drawnIn(frame, "polygon", ART_PALETTE.spark).flatMap(
-        (tongue) => (tongue.kind === "polygon" ? [tongue.points] : []),
-      );
-
-      const outlines = linesIn(frame, ART_PALETTE.mark)
-        .filter((line) => line.width === 4)
-        .map(({ from, to }) => [from, to]);
-
-      expect(outlines).toEqual(
-        tongues.flatMap((points) =>
-          points.map((point, j) => [point, points[(j + 1) % points.length]]),
-        ),
-      );
     });
 
     it("outlines it as one, every outline under every tongue and the body over them", () => {

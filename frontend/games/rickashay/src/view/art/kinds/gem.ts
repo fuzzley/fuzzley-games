@@ -9,6 +9,7 @@
 // facet does against the light palettes'.
 
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
 import { mixColors } from "@fz/phaser/color";
 import {
@@ -23,7 +24,6 @@ import {
 } from "@fz/phaser/shapes";
 import { STAND_OFF } from "../../../rules/tuning";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
 import { FRAMES, type FrameName, INKS } from "../frames";
 import { itemAt } from "../items";
 import { tileBody } from "./brick";

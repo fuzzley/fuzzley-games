@@ -1,3 +1,4 @@
+import { SHARD } from "@fz/brick-wall/view/art";
 import { type ArtFrame, extentOf, widthOf } from "@fz/phaser/shapes";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE, billionths } from "../../testing/art_frames";
@@ -6,7 +7,6 @@ import {
   EFFECT_FRAMES,
   PUFF,
   RALLY_RING,
-  SHARD,
   SPARK,
   STREAK_HEAD,
   SWIRL,

@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import type {
   ArtFrame,
   ArtScale,
@@ -17,7 +18,6 @@ import {
 } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { atlasFrames } from "../atlas_frames";
-import { cellOf } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 import { TOUGH_ART, cracksFrame, pipsFrame } from "./tough";
 
@@ -276,7 +276,7 @@ describe.each(PIXEL_RATIOS)(
 
     it("keeps every crack within its tile, round its corners", () => {
       const outside = drawn.flatMap(({ scale, cracks }) => {
-        const cell = cellOf(scale);
+        const cell = cellArea(scale);
         return cracks.flatMap((crack, i) =>
           crack.points
             .filter(

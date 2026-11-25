@@ -1,10 +1,11 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import { circle, stroke } from "@fz/phaser/shapes";
 import { drawnIn, frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { FRAMES } from "../frames";
-import { boltMark, cellOf } from "../symbols";
+import { boltMark } from "../symbols";
 import { tileCommands } from "./brick";
 import { WOOL_ART } from "./wool";
 
@@ -48,7 +49,7 @@ describe("WOOL_ART", () => {
     const own = frameNamed(WOOL_ART.frames(OWN_INKS, ART_SCALE), FRAMES.wool);
 
     expect(own.commands.slice(0, 3)).toEqual(
-      tileCommands(cellOf(ART_SCALE), OWN_INKS.kinds.wool.body),
+      tileCommands(cellArea(ART_SCALE), OWN_INKS.kinds.wool.body),
     );
   });
 

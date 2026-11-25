@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { bodyOutline } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -15,7 +16,6 @@ import {
   pastOutline,
 } from "../../testing/art_frames";
 import { atlasFrames, brickLayers, wallAtlasFrames } from "./atlas_frames";
-import { cellOf } from "./cells";
 import {
   CRACKS,
   FRAMES,
@@ -170,8 +170,8 @@ describe.each(ART_SCALES)(
     // A ramp stands on no tile, so its points reach the square corners of
     // the body a tile's corners are cut from.
     it("draws every brick's frame but a hatch's within the cut tile's body, a ramp's within its square body, so no mark shows past it", () => {
-      const cut = bodyOutline(cellOf(scale), CUT_TILE);
-      const square = outlineOf(tileBody(cellOf(scale)));
+      const cut = bodyOutline(cellArea(scale), CUT_TILE);
+      const square = outlineOf(tileBody(cellArea(scale)));
 
       expect(
         breaking(tiled, (frame) =>
@@ -184,7 +184,7 @@ describe.each(ART_SCALES)(
     });
 
     it("sizes every brick's frame as a cell, in whole pixels", () => {
-      const { width, height } = cellOf(scale);
+      const { width, height } = cellArea(scale);
 
       expect(
         breaking(

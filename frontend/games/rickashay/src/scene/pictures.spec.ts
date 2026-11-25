@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../testing/art_frames";
 import {
@@ -5,7 +6,6 @@ import {
   brickLayers,
   wallAtlasFrames,
 } from "../view/art/atlas_frames";
-import { cellOf } from "../view/art/cells";
 import { FRAMES as FRAME_NAMES } from "../view/art/frames";
 import { PICTURE_FRAMES, atlasWithPictures, pictureFrames } from "./pictures";
 
@@ -32,7 +32,7 @@ describe("PICTURE_FRAMES", () => {
 
 describe("pictureFrames", () => {
   it("draws each picture its frame names, in a brick's cell", () => {
-    const { width, height } = cellOf(ART_SCALE);
+    const { width, height } = cellArea(ART_SCALE);
 
     const frames = pictureFrames(FRAMES, ART_SCALE);
 

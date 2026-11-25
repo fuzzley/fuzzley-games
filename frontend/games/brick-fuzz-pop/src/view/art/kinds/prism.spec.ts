@@ -1,3 +1,4 @@
+import { cellArea } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type ArtFrame,
@@ -15,7 +16,7 @@ import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../../../testing/art_frames";
 import type { KindLook } from "../art";
 import { FRAMES } from "../frames";
-import { cellOf, turned } from "../symbols";
+import { turned } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 import { PRISM_ART } from "./prism";
 
@@ -83,7 +84,7 @@ describe("PRISM_ART", () => {
   });
 
   it("fills its glass in its own face's color, outlined 2 pixels wide in its body's, inside the chunky tile's edge", () => {
-    const cell = cellOf(ART_SCALE);
+    const cell = cellArea(ART_SCALE);
     const glass = inset(tileBody(cell), 1);
     const round = tileRadius(cell) - 1;
 
@@ -102,7 +103,7 @@ describe("PRISM_ART", () => {
     (scale) => {
       const outline = prismIn(OWN_INKS, scale).commands[1];
 
-      expect(outline && extentOf(outline)).toEqual(tileBody(cellOf(scale)));
+      expect(outline && extentOf(outline)).toEqual(tileBody(cellArea(scale)));
     },
   );
 
@@ -142,7 +143,7 @@ describe("PRISM_ART", () => {
   it("draws its glass's outline 0.03 of a cell wide, its rays 0.054, its triangle's outline 0.04 and its facets 0.026, 4, 7, 5 and 3 pixels at 128 device pixels a unit, 1 to a CSS pixel", () => {
     const scale = { unit: 128, pixelRatio: 1 };
     const large = prismIn(OWN_INKS, scale);
-    const cell = cellOf(scale);
+    const cell = cellArea(scale);
 
     expect({
       glass: large.commands[1],

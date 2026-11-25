@@ -5,6 +5,7 @@
 // `docs/rickashay/art/make-art.mjs`, as `@fz/phaser/bricks`' `portalMark()`
 // draws it. The two pairs differ in shape, not in their inks alone.
 
+import { cellFrame } from "@fz/brick-wall/view/art";
 import { mixColors } from "@fz/phaser/color";
 import {
   type PortalBadge,
@@ -14,7 +15,6 @@ import {
 import { brickColor } from "../../colors/brick_colors";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
-import { cellFrame } from "../cells";
 import {
   FRAMES,
   type FrameName,
