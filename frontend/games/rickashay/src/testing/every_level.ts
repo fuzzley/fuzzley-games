@@ -9,11 +9,10 @@
 
 import { type Aim, isAim } from "@fz/brick-wall/rules/aims";
 import { DEPTHS } from "@fz/brick-wall/rules/field";
-import { parFrom, parOf } from "@fz/brick-wall/rules/par";
+import { parOf } from "@fz/brick-wall/rules/par";
 import type { PlayedCarelessly } from "@fz/brick-wall/testing/careless";
 import * as holders from "@fz/brick-wall/testing/holders";
 import type { Line } from "@fz/brick-wall/testing/solver";
-import { isKeyOf } from "@fz/core/records";
 import { variantOfSpec } from "@fz/core/testing";
 import { describe, expect, it } from "vitest";
 import type { KindId } from "../rules/catalog/kinds";
@@ -23,8 +22,8 @@ import warmUpLines from "../rules/levels/lines/warm-up.json";
 import warmUpMarks from "../rules/levels/marks/warm-up.json";
 import { LEVELS, type LevelEntry } from "../rules/levels/levels";
 import { type Marks, marksOf } from "../rules/run/stars";
-import { PAR_SHARE } from "../rules/tuning";
 import { BLIND_CEILING, blindClears } from "./blind";
+import { CERTIFY_API } from "./certify_api";
 import { CARELESS_FLOORS, type RoundPlay, levelPlayOf } from "./line_play";
 import { ralliesOf, rallyLineHolds, rallyMarkFrom } from "./rally_mark";
 import { LEAST_SWEET_SPOT, sweetSpotOf } from "./sweet_spot";
@@ -70,16 +69,16 @@ export const FLOOR_SPECS: readonly holders.FloorSpec[] = holders.floorSpecsOf(
   FLOOR_DEPTHS,
 );
 
-/** Every spec in `every_check/`, a set each on its {@link CHECK_DEPTHS}, named `<set>_<depth>`: none of a set with no depth there. */
-export const CHECK_SPECS: readonly holders.FloorSpec[] = [
-  ...new Set(LEVELS.map(({ set }) => set.id)),
-].flatMap((setId) => {
-  if (!isKeyOf(setId, CHECK_DEPTHS)) {
-    return [];
-  }
-  const depth = CHECK_DEPTHS[setId];
-  return [{ name: `${setId}_${String(depth)}`, setId, depth }];
-});
+/** Every spec in `every_check/`, one for each set the game plays, on its depth in {@link CHECK_DEPTHS} and in that record's order, named `<set>_<depth>`: none of a set with no depth there. */
+export const CHECK_SPECS: readonly holders.FloorSpec[] = Object.entries(
+  CHECK_DEPTHS,
+)
+  .filter(([setId]) => LEVELS.some(({ set }) => set.id === setId))
+  .map(([setId, depth]) => ({
+    name: `${setId}_${String(depth)}`,
+    setId,
+    depth,
+  }));
 
 /** A level, so far as the checks name it and find what its set keeps of it. */
 export type CheckedLevel = Pick<holders.HeldLevel, "number" | "set" | "data">;
@@ -106,7 +105,7 @@ const CERTIFIED: holders.CertifiedLevels<LevelEntry, KindId, RoundStart, Aim> =
     readShot,
     linePlayOf: levelPlayOf,
     parOf: (entry, depth) => parOf(entry.data.id, depth, MARKS.par),
-    parFrom: (rounds) => parFrom(rounds, PAR_SHARE),
+    parFrom: CERTIFY_API.parFrom,
   };
 
 /** The levels as the careless player is held to their sets' floors, on {@link FLOOR_DEPTHS}: the games `yarn report:levels` plays first. */

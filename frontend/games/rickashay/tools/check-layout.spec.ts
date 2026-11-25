@@ -9,7 +9,15 @@ import {
   rectAttribute,
   roomInside,
 } from "@fz/phaser/layout";
-import { checkLayout, inspectField } from "./check-layout.mjs";
+import { SCREENSHOT_API } from "../src/testing/screenshot_api";
+import {
+  checkLayout,
+  inspectField,
+  keepRun,
+  keepingNone,
+  keepingRun,
+} from "./check-layout.mjs";
+import { LAYOUT_RUN, SAVED_GAME_KEY, storedRun } from "./stored_run.mjs";
 
 /** Describes what the board says of the field it laid out, as the inspection reads it, null for what it leaves unsaid. */
 interface LaidField {
@@ -155,12 +163,19 @@ describe("inspectField", () => {
     );
   });
 
+  it("leaves a field the board's own inspection found nowhere to that inspection, finding nothing", () => {
+    lay({ ...UPRIGHT, field: null });
+
+    const problems = inspectField();
+
+    expect(problems).toEqual([]);
+  });
+
   it.each([
-    ["data-field", { field: null }],
     ["--pixel-ratio", { ratio: null }],
     ["data-room", { room: null }],
   ])(
-    "leaves a board that doesn't say its %s to the board's own inspection, holding only its unit to 24 CSS px",
+    "leaves a board that doesn't say its %s to the library's inspections, holding only its unit to 24 CSS px",
     (_unsaid, unsaid) => {
       const box = { ...SIDEWAYS.box, unit: 23 };
 
@@ -251,6 +266,39 @@ describe("inspectField, over a run taken up", () => {
     expect(inspected({ ...TAKEN_UP, kept: undefined })).toEqual([
       "Nothing said which run the page shows.",
     ]);
+  });
+});
+
+describe("what the page runs before its own scripts", () => {
+  it("says, kept by no run, that the page shows a level waiting for its first shot", () => {
+    Reflect.deleteProperty(window, "keptWallRow");
+
+    keepingNone();
+
+    expect(Reflect.get(window, "keptWallRow")).toBeNull();
+  });
+
+  it("keeps a run where it is told and says the row its wall stands on", () => {
+    localStorage.clear();
+
+    keepRun("a-key", "a run", 7);
+
+    expect([
+      localStorage.getItem("a-key"),
+      Reflect.get(window, "keptWallRow"),
+    ]).toEqual(["a run", 7]);
+  });
+
+  it("keeps the layout's run where the game keeps one, as the game stores it, its wall on row 4", () => {
+    localStorage.clear();
+    const { run, args } = keepingRun(SCREENSHOT_API);
+
+    run(...args);
+
+    expect([
+      localStorage.getItem(SAVED_GAME_KEY),
+      Reflect.get(window, "keptWallRow"),
+    ]).toEqual([storedRun(SCREENSHOT_API, LAYOUT_RUN).stored, 4]);
   });
 });
 

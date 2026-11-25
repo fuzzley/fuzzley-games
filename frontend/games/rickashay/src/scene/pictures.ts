@@ -51,14 +51,21 @@ export type Pictures = Pictured<typeof PICTURE_FRAMES>;
  * Returns the frames {@link PICTURE_FRAMES} names, drawn from the art's
  * frames at a scale: each drawn kind's whole brick, in the first ink, its
  * layers one over another in a cell.
+ *
+ * It throws a `RangeError` for a layer the frames hold no frame of.
  */
 export function pictureFrames(
   frames: readonly ArtFrame[],
   scale: ArtScale,
 ): readonly ArtFrame[] {
   const { width, height } = cellOf(scale);
-  const commandsOf = (layer: string): ArtFrame["commands"] =>
-    frames.find((frame) => frame.name === layer)?.commands ?? [];
+  const commandsOf = (layer: string): ArtFrame["commands"] => {
+    const frame = frames.find(({ name }) => name === layer);
+    if (frame === undefined) {
+      throw new RangeError(`The art draws no frame named ${layer}.`);
+    }
+    return frame.commands;
+  };
   return WHOLE_BRICKS.map(({ kind, hits, plates }) => {
     const layers = brickLayers({ kind, tint: 0, hits, full: hits, plates });
     return {

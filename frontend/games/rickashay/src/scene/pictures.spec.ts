@@ -1,3 +1,4 @@
+import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../testing/art_frames";
 import {
   DRAWN_KINDS,
@@ -13,9 +14,7 @@ const FRAMES = wallAtlasFrames(ART_PALETTE, ART_SCALE);
 
 /** Returns the commands of the frames a brick's layers name, one over another. */
 function layered(layers: readonly string[]): unknown[] {
-  return layers.flatMap(
-    (layer) => FRAMES.find((frame) => frame.name === layer)?.commands ?? [],
-  );
+  return layers.flatMap((layer) => frameNamed(FRAMES, layer).commands);
 }
 
 describe("PICTURE_FRAMES", () => {
@@ -53,6 +52,19 @@ describe("pictureFrames", () => {
       layered(
         brickLayers({ kind: "tough", tint: 0, hits: 2, full: 2, plates: 0 }),
       ),
+    );
+  });
+});
+
+describe("pictureFrames, short of a layer", () => {
+  it("throws for a layer the frames hold no frame of, naming it", () => {
+    const layer = FRAME_NAMES.tile(0);
+    const short = FRAMES.filter(({ name }) => name !== layer);
+
+    const drawing = (): unknown => pictureFrames(short, ART_SCALE);
+
+    expect(drawing).toThrow(
+      new RangeError(`The art draws no frame named ${layer}.`),
     );
   });
 });

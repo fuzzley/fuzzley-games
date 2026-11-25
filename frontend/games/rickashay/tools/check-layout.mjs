@@ -122,7 +122,8 @@ export function inspectField(field) {
   const style = getComputedStyle(board);
   const ratio = parseFloat(style.getPropertyValue("--pixel-ratio"));
   const drawn = readRect(board.getAttribute("data-field"));
-  // The board's own inspection says where these are missing.
+  // The board's own inspection says where the ratio is missing, and hands
+  // no field where `data-field` is.
   if (!drawn || !Number.isFinite(ratio)) {
     return problems;
   }
@@ -260,7 +261,7 @@ export function inspectField(field) {
  * for its first shot, kept by no run. It is sent as its source, so it uses
  * nothing from this module.
  */
-function keepingNone() {
+export function keepingNone() {
   Reflect.set(window, "keptWallRow", null);
 }
 
@@ -273,7 +274,7 @@ function keepingNone() {
  * @param {string} stored The run as storage keeps it.
  * @param {number} row The row its wall stands on.
  */
-function keepRun(key, stored, row) {
+export function keepRun(key, stored, row) {
   localStorage.setItem(key, stored);
   Reflect.set(window, "keptWallRow", row);
 }
@@ -286,7 +287,7 @@ function keepRun(key, stored, row) {
  * @param {ScreenshotApi} api
  * @returns {BeforeLoad<Parameters<typeof keepRun>>}
  */
-function keepingRun(api) {
+export function keepingRun(api) {
   const { saved, stored } = storedRun(api, LAYOUT_RUN);
   if (!saved.start) throw new Error("The run kept has no round played.");
   return {
