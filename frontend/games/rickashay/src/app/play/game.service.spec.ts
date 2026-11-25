@@ -172,6 +172,17 @@ describe("GameService", () => {
       expect(said()).toBe(round && describeRound(round.outcome, game.start()));
     });
 
+    it("says the score once as the last level is cleared, in the run's end", async () => {
+      const game = gameOf("cleared");
+      await game.startAt(SPEC_LEVELS.length);
+
+      playUntilCard(game);
+
+      expect(said()).toBe(
+        "Level 3 cleared in 1 shot. 2 stars: cleared and within 5 shots. Every level cleared. Score 410.",
+      );
+    });
+
     it("plays a level until its card opens", () => {
       const game = gameOf("step", "cleared");
 

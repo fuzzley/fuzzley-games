@@ -28,7 +28,13 @@ import {
 } from "./describe";
 
 /** A level of par 9 cleared in 5 rounds, 1,640 points into its run. */
-const RUN = { level: 2, rounds: 5, par: 9, score: 1640 } as const;
+const RUN = {
+  level: 2,
+  rounds: 5,
+  par: 9,
+  score: 1640,
+  outcome: "cleared",
+} as const;
 
 /** Returns where a round starts on a field 11 deep, its wall pictured, its lowest row standing in a field row. */
 function startOf(picture: readonly string[], lowestRow = 1): RoundStart {
@@ -307,6 +313,14 @@ describe("describeCleared", () => {
     expect(describeCleared({ ...RUN, rounds: 1 }, stars, 10)).toBe(
       "Level 2 cleared in 1 shot. 1 star: cleared. Score 1,640.",
     );
+  });
+
+  it("leaves the score to the run's end for the last level, which wins the run", () => {
+    const stars = { cleared: true, par: true, mark: false };
+
+    expect(
+      describeCleared({ ...RUN, level: 9, outcome: "won" }, stars, 10),
+    ).toBe("Level 9 cleared in 5 shots. 2 stars: cleared and within 9 shots.");
   });
 });
 

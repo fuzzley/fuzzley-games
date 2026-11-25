@@ -115,7 +115,7 @@ export class RunWords implements RoundWords<
     return describeLevel(level, par, mark);
   }
 
-  /** Returns what is said as a level is cleared: its shots, the stars it earned by name, and the score. */
+  /** Returns what is said as a level is cleared: its shots, the stars it earned by name, and the score, which the last level's words leave to the run's end. */
   cleared(run: Run): string {
     const { levels, marks } = this;
     const mark = rallyMarkOf(levelIdOf(levels, run.level), run.depth, marks);

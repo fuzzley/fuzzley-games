@@ -180,16 +180,21 @@ export function starLabel(star: Star, par: number, mark: number): string {
  * Returns what is said as a level is cleared, the last among them: its
  * shots, the stars it earned, each by name, and the score: "Level 2
  * cleared in 5 shots. 2 stars: cleared and within 9 shots. Score 1,640."
+ * For the last level, which wins the run, it leaves the score out, because
+ * the run's end is said straight after and says it.
  */
 export function describeCleared(
-  run: Pick<Run, "level" | "rounds" | "par" | "score">,
+  run: Pick<Run, "level" | "rounds" | "par" | "score" | "outcome">,
   stars: StarFlags,
   mark: number,
 ): string {
   const earned = STARS.filter((star) => stars[star]).map((star) =>
     starWords(star, run.par, mark),
   );
-  return `Level ${String(run.level)} cleared in ${count(run.rounds, "shot", "shots")}. ${count(earned.length, "star", "stars")}: ${listed(earned)}. Score ${formatPoints(run.score)}.`;
+  const words = `Level ${String(run.level)} cleared in ${count(run.rounds, "shot", "shots")}. ${count(earned.length, "star", "stars")}: ${listed(earned)}.`;
+  return run.outcome === "won"
+    ? words
+    : `${words} Score ${formatPoints(run.score)}.`;
 }
 
 /** Returns how many rows wait over the ceiling, as the lintel says it: "5 rows waiting", or "No rows waiting". */
