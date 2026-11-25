@@ -25,6 +25,12 @@ interface LaidField {
   readonly outcome: string;
   /** The field row the wall's lowest row stands in, as `data-wall` says it. */
   readonly wall: number;
+  /**
+   * The row the run the page took up kept its wall on, as the check says it
+   * before the page loads, null for a level waiting for its first shot, or
+   * undefined where the check said nothing.
+   */
+  readonly kept: number | null | undefined;
   /** Where the field lies in the window, and its unit, as the board's own inspection hands it over. */
   readonly box: BoardBox;
 }
@@ -59,6 +65,7 @@ function laidOut(
     ratio,
     outcome: "ready",
     wall: thirdsOf(shape.depth).opensOn,
+    kept: null,
     box: { ...framed, left: framed.x, top: framed.y, unit: framed.width / 9 },
   };
 }
@@ -86,6 +93,8 @@ function lay(laid: LaidField): void {
   for (const [name, value] of Object.entries(properties)) {
     if (value !== null) board.style.setProperty(name, value);
   }
+  if (laid.kept === undefined) Reflect.deleteProperty(window, "keptWallRow");
+  else Reflect.set(window, "keptWallRow", laid.kept);
 }
 
 /** Returns what the inspection finds wrong with a field laid out on the page. */
@@ -209,6 +218,38 @@ describe("inspectField", () => {
   it("says a wall on another row than the level opens on at the field's depth", () => {
     expect(inspected({ ...UPRIGHT, wall: 5 })).toEqual([
       "The wall stands on row 5, where a level 16 rows deep opens on 6.",
+    ]);
+  });
+});
+
+describe("inspectField, over a run taken up", () => {
+  /** {@link UPRIGHT} over a run taken up paused, its wall kept on row 4. */
+  const TAKEN_UP: LaidField = {
+    ...UPRIGHT,
+    outcome: "paused",
+    wall: 4,
+    kept: 4,
+  };
+
+  it("finds nothing wrong with a run taken up paused, its wall on the row the run kept it on", () => {
+    expect(inspected(TAKEN_UP)).toEqual([]);
+  });
+
+  it("says a run kept that the page didn't take up paused", () => {
+    expect(inspected({ ...TAKEN_UP, outcome: "ready" })).toEqual([
+      "The run kept isn't taken up paused: it is ready.",
+    ]);
+  });
+
+  it("says a wall on another row than the run kept it on", () => {
+    expect(inspected({ ...TAKEN_UP, wall: 6 })).toEqual([
+      "The wall stands on row 6, where the run kept it on 4.",
+    ]);
+  });
+
+  it("says where nothing said which run the page shows", () => {
+    expect(inspected({ ...TAKEN_UP, kept: undefined })).toEqual([
+      "Nothing said which run the page shows.",
     ]);
   });
 });

@@ -27,6 +27,11 @@
  * rules begin a level with no round played again on a depth the field
  * takes.
  *
+ * Beside those pages, it does it all again over a run kept as the game
+ * keeps one, a round played, which each page takes up paused: the wall must
+ * stand as many rows from the floor as the run kept it at every shape, and
+ * through each turn, the field's depth whatever it is.
+ *
  * It prints what is wrong and fails, or says the layout holds.
  */
 import { join } from "node:path";
@@ -36,17 +41,27 @@ import {
   checkPhaserLayout,
   readRect,
   runLayoutScript,
+  whenAllSettle,
 } from "@fz/dev/layout";
+import {
+  LAYOUT_RUN,
+  SAVED_GAME_KEY,
+  loadScreenshotApi,
+  storedRun,
+} from "./stored_run.mjs";
 
-/** @import { BoardBox, LayoutScript, LayoutScriptOptions, PhaserBoard } from "@fz/dev/layout" */
+/** @import { DevToolsConnection } from "@fz/dev/chrome" */
+/** @import { BeforeLoad, BoardBox, LayoutCheck, LayoutProblem, LayoutScript, LayoutScriptOptions, PhaserBoard } from "@fz/dev/layout" */
+/** @import { ScreenshotApi } from "../src/testing/script_api.ts" */
 
 const ROOT = join(import.meta.dirname, "..");
 
 /**
  * The field, as `@fz/dev/layout` inspects a board drawn with Phaser, from
  * the lintel's top to the floor's band's bottom, its card Ready's as a
- * level waits for its first shot; and the panels' places beside it, laid
- * both, wherever the room spares them, or neither.
+ * level waits for its first shot, or Paused's over a run taken up; and the
+ * panels' places beside it, laid both, wherever the room spares them, or
+ * neither.
  *
  * @type {PhaserBoard}
  */
@@ -74,9 +89,10 @@ const FIELD = {
 /**
  * Returns what is wrong with the field's unit and shape, where it lies in
  * its room and where the wall stands, given where the field lies: on the
- * row a level opens on as it waits for its first shot. It runs in the page,
- * so it uses nothing from this module, and reads the board's rectangles
- * with `readRect()`, which is sent with it.
+ * row a level opens on as it waits for its first shot, or, where the page
+ * took up the run the check keeps (`LAYOUT_RUN`), on the row the run kept
+ * it on. It runs in the page, so it uses nothing from this module, and
+ * reads the board's rectangles with `readRect()`, which is sent with it.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -204,6 +220,26 @@ export function inspectField(field) {
 
   const outcome = board.getAttribute("data-outcome");
   const wall = board.getAttribute("data-wall");
+  // The row the run kept stands its wall on, where the page took one up,
+  // or null for a level waiting for its first shot, as `keepRun()` or
+  // `keepingNone()` says.
+  const keptRow = Reflect.get(window, "keptWallRow");
+  if (keptRow === undefined) {
+    problems.push("Nothing said which run the page shows.");
+    return problems;
+  }
+  if (typeof keptRow === "number") {
+    if (outcome !== "paused") {
+      problems.push(
+        `The run kept isn't taken up paused: it is ${String(outcome)}.`,
+      );
+    } else if (Number(wall) !== keptRow) {
+      problems.push(
+        `The wall stands on row ${String(wall)}, where the run kept it on ${keptRow}.`,
+      );
+    }
+    return problems;
+  }
   // `thirdsOf()`'s `opensOn`, in @fz/brick-wall/rules/wall, at the depth
   // the board laid the field out in: two jumps under the ceiling.
   const opensOn = laidDepth - 2 * Math.floor((laidDepth - 1) / 3);
@@ -220,22 +256,89 @@ export function inspectField(field) {
 }
 
 /**
+ * Says, in the page before its own scripts, that it shows a level waiting
+ * for its first shot, kept by no run. It is sent as its source, so it uses
+ * nothing from this module.
+ */
+function keepingNone() {
+  Reflect.set(window, "keptWallRow", null);
+}
+
+/**
+ * Keeps a run where the game keeps one, and says the row its wall stands
+ * on for the inspection to read, in the page before its own scripts. It
+ * is sent as its source, so it uses nothing from this module.
+ *
+ * @param {string} key Where the game keeps the run.
+ * @param {string} stored The run as storage keeps it.
+ * @param {number} row The row its wall stands on.
+ */
+function keepRun(key, stored, row) {
+  localStorage.setItem(key, stored);
+  Reflect.set(window, "keptWallRow", row);
+}
+
+/**
+ * Returns what runs in the page before its own scripts: {@link keepRun},
+ * handed where the game keeps a run, {@link LAYOUT_RUN} as storage keeps
+ * it, and the row its wall stands on.
+ *
+ * @param {ScreenshotApi} api
+ * @returns {BeforeLoad<Parameters<typeof keepRun>>}
+ */
+function keepingRun(api) {
+  const { saved, stored } = storedRun(api, LAYOUT_RUN);
+  if (!saved.start) throw new Error("The run kept has no round played.");
+  return {
+    run: keepRun,
+    args: [SAVED_GAME_KEY, stored, saved.start.lowestRow],
+  };
+}
+
+/**
+ * Checks the layout at each shape and turn as a level waits for its first
+ * shot, and beside them again over a run kept, taken up paused, and returns
+ * what is wrong, the second pass's shapes named for it. It keeps the run
+ * first, so a run that can't be kept fails the check before Chrome opens a
+ * page.
+ *
+ * @param {DevToolsConnection} devtools
+ * @param {string} url
+ * @returns {Promise<LayoutProblem[]>}
+ */
+async function checkBoth(devtools, url) {
+  const keeping = keepingRun(await loadScreenshotApi());
+  /** @type {LayoutCheck} */
+  const check = {
+    url,
+    ready: PHASER_CANVAS_READY,
+    board: FIELD,
+    inspect: inspectField,
+  };
+  const [waiting, takenUp] = await whenAllSettle([
+    checkPhaserLayout(devtools, { ...check, before: keepingNone }),
+    checkPhaserLayout(devtools, { ...check, before: keeping }),
+  ]);
+  return [
+    ...waiting,
+    ...takenUp.map(({ shape, problem }) => ({
+      shape: `${shape}, a run taken up`,
+      problem,
+    })),
+  ];
+}
+
+/**
  * What checks the layout: the field and its panels' places at each shape
- * and turn, as a level waits for its first shot.
+ * and turn, as a level waits for its first shot and over a run taken up.
  *
  * @type {LayoutScript}
  */
 const LAYOUT_SCRIPT = {
   game: "Rickashay",
   root: ROOT,
-  check: (devtools, url) =>
-    checkPhaserLayout(devtools, {
-      url,
-      ready: PHASER_CANVAS_READY,
-      board: FIELD,
-      inspect: inspectField,
-    }),
-  holds: `at each shape and turn, as a level waits for its first shot: ${PHASER_CHECKED_AT}`,
+  check: checkBoth,
+  holds: `at each shape and turn, as a level waits for its first shot and over a run taken up: ${PHASER_CHECKED_AT}`,
 };
 
 /**
