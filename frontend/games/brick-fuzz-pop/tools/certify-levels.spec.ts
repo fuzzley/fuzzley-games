@@ -11,7 +11,11 @@ import { LEVELS, parseLevel } from "../src/rules/levels/levels";
 import { PARS } from "../src/rules/run/stars";
 import { CERTIFY_API } from "../src/testing/certify_api";
 import { certificateOf } from "../src/testing/every_level";
-import { type CertifiedShot, replayLine } from "../src/testing/solver";
+import {
+  type CertifiedShot,
+  replayLine,
+  solveLevel,
+} from "../src/testing/solver";
 import { CERTIFY_GAME } from "./certify-levels.mjs";
 
 /** Returns the game's files in memory, none to begin with, for a spec to read back. */
@@ -74,6 +78,15 @@ describe("CERTIFY_GAME", () => {
 });
 
 describe("CERTIFY_API", () => {
+  it("solves a level by its number on a depth, as the solver solves that level there", () => {
+    const [, entry] = LEVELS;
+    const solved = solveLevel(parseLevel(entry!.data), 22);
+
+    const certified = CERTIFY_API.solve(2, 22);
+
+    expect(certified).toStrictEqual(solved);
+  });
+
   it("sets a level's par from its line's rounds as par.json keeps it", () => {
     const [entry] = LEVELS;
     const rounds = certificateOf(entry!, 11)!.length;
