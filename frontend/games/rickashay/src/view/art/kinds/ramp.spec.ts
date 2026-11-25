@@ -207,6 +207,27 @@ describe("RAMP_ART's frames", () => {
     ]).toEqual([2, 8.2]);
   });
 
+  it("lays its bright edge out as its wedge drawn in 2 pixels all round, cut 8.2 pixels in from its long face", () => {
+    // Where the edge's two long sides lie, as x less y: the long face lies
+    // at TIP of the cell, and they lie 2 pixels and 8.2 in from it, square
+    // to it.
+    const rimLine = TIP * 62 - 2 * Math.SQRT2;
+    const edgeLine = TIP * 62 - 8.2 * Math.SQRT2;
+
+    expect(
+      edgesIn(lowLeft).map(({ points }) => points.map(pointInBillionths)),
+    ).toEqual([
+      [
+        { x: 4, y: 4 },
+        { x: 4 + rimLine, y: 4 },
+        { x: 58, y: 58 - rimLine },
+        { x: 58, y: 58 },
+        { x: 58 + edgeLine, y: 58 },
+        { x: 4, y: 4 - edgeLine },
+      ].map(pointInBillionths),
+    ]);
+  });
+
   it("widens the rim to 0.03 of a unit, in whole pixels, where that is more than a CSS pixel: 4 at 128 pixels a unit", () => {
     const scale = { unit: 128, pixelRatio: 2 };
 

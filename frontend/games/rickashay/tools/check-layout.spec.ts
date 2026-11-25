@@ -448,6 +448,8 @@ describe("inspectField, of Coming next", () => {
     readonly hidden: number;
     /** The head of the words under the picture. */
     readonly words: number;
+    /** The gap the rows' style sets between them, in CSS px: 2 where left out, null for none, which Chrome reads as `normal`. */
+    readonly rowGap?: number | null;
   }
 
   /** Returns the heads of rows 12 CSS px tall and 2 apart, the first at a head. */
@@ -464,9 +466,12 @@ describe("inspectField, of Coming next", () => {
     words: 320,
   };
 
-  /** Lays {@link UPRIGHT} out with Coming next on it, its parts where a panel says, as Chrome measures them, its lines 4 CSS px apart and its rows 2. */
+  /** Lays {@link UPRIGHT} out with Coming next on it, its parts where a panel says, as Chrome measures them, its lines 4 CSS px apart and its rows as far as the panel says. */
   function panelled(panel: Panel): void {
     lay(UPRIGHT);
+    const { rowGap = 2 } = panel;
+    const rowsStyle =
+      rowGap === null ? "" : ` style="row-gap: ${String(rowGap)}px"`;
     const rows = '<span class="row"></span>'.repeat(
       panel.shown.length + panel.hidden,
     );
@@ -474,7 +479,7 @@ describe("inspectField, of Coming next", () => {
       "beforeend",
       `<fz-coming-next style="row-gap: 4px">
         <h2>Coming next</h2><p class="level"></p>
-        <div class="rows" style="row-gap: 2px">${rows}</div>
+        <div class="rows"${rowsStyle}>${rows}</div>
         <p></p><p></p>
       </fz-coming-next>`,
     );
@@ -528,6 +533,34 @@ describe("inspectField, of Coming next", () => {
 
     expect(inspectField(UPRIGHT.box)).toEqual([
       "Coming next leaves 15 CSS px empty between the level's name and its wall's picture.",
+    ]);
+  });
+
+  it("finds nothing wrong with a row's height over rows that stand with no gap between them, in a panel too short for them all: 12 CSS px", () => {
+    panelled({
+      ...STANDING,
+      rows: [164, 212],
+      shown: [176, 188, 200],
+      hidden: 8,
+      words: 216,
+      rowGap: null,
+    });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+
+  it("says a row's room left over rows that stand with no gap between them, where some are out of sight: 13 CSS px, room for one more", () => {
+    panelled({
+      ...STANDING,
+      rows: [164, 213],
+      shown: [177, 189, 201],
+      hidden: 8,
+      words: 217,
+      rowGap: null,
+    });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "Coming next leaves 13 CSS px empty between the level's name and its wall's picture.",
     ]);
   });
 

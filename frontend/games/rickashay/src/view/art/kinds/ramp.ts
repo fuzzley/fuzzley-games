@@ -110,7 +110,7 @@ function clipped(
   measure: (point: Point) => number,
 ): readonly Point[] {
   return outline.flatMap((point, i) => {
-    const next = outline[(i + 1) % outline.length] ?? point;
+    const next = itemAt(outline, (i + 1) % outline.length);
     const here = measure(point);
     const there = measure(next);
     const kept = here >= 0 ? [point] : [];
@@ -131,7 +131,7 @@ function shrunk(outline: readonly Point[], by: number): readonly Point[] {
   return outline.reduce<readonly Point[]>(
     (kept, from, i) =>
       clipped(kept, (point) => {
-        const to = outline[(i + 1) % outline.length] ?? from;
+        const to = itemAt(outline, (i + 1) % outline.length);
         return inside(from, to, point) - by;
       }),
     outline,

@@ -136,13 +136,12 @@ export function inspectField(field) {
   const shown = [...(rows?.children ?? [])]
     .map((row) => row.getBoundingClientRect())
     .filter((row) => box && row.left < box.right);
-  if (comingNext && rows && level && words && box && shown.length > 0) {
+  const [first] = shown;
+  if (comingNext && rows && level && words && box && first) {
     const gap = parseFloat(getComputedStyle(comingNext).rowGap) || 0;
     const rowGap = parseFloat(getComputedStyle(rows).rowGap) || 0;
     const room =
-      shown.length < rows.children.length
-        ? (shown[0]?.height ?? 0) + rowGap
-        : 1;
+      shown.length < rows.children.length ? first.height + rowGap : 1;
     const top = Math.min(...shown.map((row) => row.top));
     const bottom = Math.max(...shown.map((row) => row.bottom));
     const above = Math.round(top - level.getBoundingClientRect().bottom - gap);
