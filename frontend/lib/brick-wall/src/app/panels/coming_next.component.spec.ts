@@ -56,10 +56,11 @@ async function renderPanel(depth = 11): Promise<HTMLElement> {
   return screen.getByRole("region", { name: "Coming next" });
 }
 
-/** Returns the squares of the rows waiting, as the panel draws them. */
-function squaresIn(panel: HTMLElement): readonly HTMLElement[] {
+/** Returns the rows waiting, as the panel draws them, each its squares. */
+function rowsIn(panel: HTMLElement): readonly (readonly HTMLElement[])[] {
   return Array.from(
     panel.querySelectorAll<HTMLElement>("[aria-hidden='true'] > *"),
+    (row) => Array.from(row.querySelectorAll<HTMLElement>(":scope > *")),
   );
 }
 
@@ -89,25 +90,28 @@ describe("ComingNextComponent", () => {
   it("draws the rows waiting as squares hidden from assistive technology, nine a row", async () => {
     const panel = await renderPanel();
 
-    expect(squaresIn(panel)).toHaveLength(18);
+    expect(rowsIn(panel).map((row) => row.length)).toEqual([9, 9]);
   });
 
-  it("draws no squares where no row waits", async () => {
+  it("draws no rows where none waits", async () => {
     const panel = await renderPanel(13);
 
-    expect(squaresIn(panel)).toHaveLength(0);
+    expect(rowsIn(panel)).toEqual([]);
   });
 
-  it("draws each square in its brick's ink, the next row to come in lowest, and none where there is no brick", async () => {
+  // The stylesheet stacks the rows from the foot, so the first stands lowest.
+  it("draws each square in its brick's ink, the next row to come in first, and none where there is no brick", async () => {
     const panel = await renderPanel();
 
     expect(
-      squaresIn(panel).map((square) => square.style.getPropertyValue("--ink")),
+      rowsIn(panel).map((row) =>
+        row.map((square) => square.style.getPropertyValue("--ink")),
+      ),
     ).toEqual([
-      ...Array.from({ length: 9 }, () => INKS.slate),
-      ...Array.from({ length: 9 }, (_, column) =>
+      Array.from({ length: 9 }, (_, column) =>
         column % 2 === 0 ? INKS.pebble : "",
       ),
+      Array.from({ length: 9 }, () => INKS.slate),
     ]);
   });
 });

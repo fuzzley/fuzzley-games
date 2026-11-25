@@ -14,17 +14,32 @@
   color: var(--fz-muted);
 }
 
-// The rows waiting, nine squares a row in each brick's ink, the next to
-// come in at the foot and those that don't fit cut off at the head.
+// How many squares a row of the picture has, a wall's columns.
+$columns: 9;
+
+// How far apart the picture's squares stand.
+$gap: 2px;
+
+// The rows waiting, a square for each column in each brick's ink, the next
+// to come in at the foot. Those that don't fit whole wrap into a column
+// beside the first, which is cut off, so no row shows cut in two.
 .rows {
   --square: var(--fz-space-3);
 
-  display: grid;
-  grid-template-columns: repeat(9, var(--square));
-  grid-auto-rows: var(--square);
-  place-content: end center;
-  gap: 2px;
+  display: flex;
+  flex-flow: column-reverse wrap;
+  justify-self: center;
+  width: calc(#{$columns} * var(--square) + #{$columns - 1} * #{$gap});
+  gap: $gap;
   overflow: hidden;
+}
+
+.row {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat($columns, var(--square));
+  height: var(--square);
+  gap: $gap;
 }
 
 .square {

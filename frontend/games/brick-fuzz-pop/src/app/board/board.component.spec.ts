@@ -637,9 +637,12 @@ describe("BoardComponent", () => {
 
       const comingNext = screen.getByRole("region", { name: "Coming next" });
 
+      // The next row to come in first, as the panel stacks them from its foot.
       expect({
         inks: Array.from(
-          comingNext.querySelectorAll<HTMLElement>("[aria-hidden='true'] > *"),
+          comingNext.querySelectorAll<HTMLElement>(
+            "[aria-hidden='true'] > * > *",
+          ),
           (square) => square.style.getPropertyValue("--ink"),
         ),
         said: [
@@ -647,7 +650,8 @@ describe("BoardComponent", () => {
           describeBoon(game.levelBoon()),
         ].map((words) => within(comingNext).queryByText(words) !== null),
       }).toEqual({
-        inks: waitingRows(wall, depth)
+        inks: [...waitingRows(wall, depth)]
+          .reverse()
           .flat()
           .map((brick) =>
             brick === null ? "" : cssHex(brickColor(brick, game.palette())),

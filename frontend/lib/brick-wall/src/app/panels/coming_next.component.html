@@ -2,9 +2,11 @@
 <p class="level">{{ title() }}</p>
 <div class="rows" aria-hidden="true">
   @for (row of rows(); track $index) {
-    @for (ink of row; track $index) {
-      <span class="square" [style.--ink]="ink"></span>
-    }
+    <span class="row">
+      @for (ink of row; track $index) {
+        <span class="square" [style.--ink]="ink"></span>
+      }
+    </span>
   }
 </div>
 <p>{{ waiting() }}</p>

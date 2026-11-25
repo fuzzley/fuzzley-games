@@ -11,8 +11,8 @@ export interface PanelLevel {
 /**
  * Shows Coming next, the panel left of a wide room's field: the level's
  * number and name; the rows waiting over the ceiling, small squares in
- * each brick's ink, the next to come in lowest, as many as fit; how many
- * are left; and what the jump does, each in the game's words.
+ * each brick's ink, the next to come in lowest, as many whole rows as fit;
+ * how many are left; and what the jump does, each in the game's words.
  *
  * It is a region named by its heading, and takes no pointer, so a press
  * can start over it. The board lays it over its room with
@@ -50,13 +50,14 @@ export class ComingNextComponent<K extends string> {
   );
 
   /**
-   * The rows waiting over the ceiling, the furthest first: each brick's ink
-   * as CSS, or null where there is none.
+   * The rows waiting over the ceiling, the next to come in first, as the
+   * stylesheet stacks them from the foot: each brick's ink as CSS, or null
+   * where there is none.
    */
   protected readonly rows = computed(() => {
     const inkOf = this.inkOf();
-    return waitingRows(this.wall(), this.depth()).map((row) =>
-      row.map((brick) => (brick === null ? null : inkOf(brick))),
-    );
+    return [...waitingRows(this.wall(), this.depth())]
+      .reverse()
+      .map((row) => row.map((brick) => (brick === null ? null : inkOf(brick))));
   });
 }

@@ -125,24 +125,36 @@ export function inspectField(field) {
     );
   }
   // Coming next stands from its head, wherever the board shows it: its
-  // wall's picture under the level's name, cut at its own head where the
-  // panel is short, and the words under the picture.
+  // wall's picture under the level's name, as many whole rows as fit, none
+  // cut in two, and the words under the picture. Where the panel is short,
+  // less than a row's room is left above the rows that show.
   const comingNext = document.querySelector("fz-coming-next");
   const rows = comingNext?.querySelector(".rows");
   const level = rows?.previousElementSibling;
   const words = rows?.nextElementSibling;
-  const first = rows?.firstElementChild;
-  const last = rows?.lastElementChild;
-  if (comingNext && rows && level && words && first && last) {
+  const box = rows?.getBoundingClientRect();
+  const shown = [...(rows?.children ?? [])]
+    .map((row) => row.getBoundingClientRect())
+    .filter((row) => box && row.left < box.right);
+  if (comingNext && rows && level && words && box && shown.length > 0) {
     const gap = parseFloat(getComputedStyle(comingNext).rowGap) || 0;
-    const top = Math.max(
-      rows.getBoundingClientRect().top,
-      first.getBoundingClientRect().top,
-    );
-    const bottom = last.getBoundingClientRect().bottom;
+    const rowGap = parseFloat(getComputedStyle(rows).rowGap) || 0;
+    const room =
+      shown.length < rows.children.length
+        ? (shown[0]?.height ?? 0) + rowGap
+        : 1;
+    const top = Math.min(...shown.map((row) => row.top));
+    const bottom = Math.max(...shown.map((row) => row.bottom));
     const above = Math.round(top - level.getBoundingClientRect().bottom - gap);
     const below = Math.round(words.getBoundingClientRect().top - bottom - gap);
-    if (above > 1) {
+    if (
+      shown.some(
+        (row) => row.top < box.top - 0.5 || row.bottom > box.bottom + 0.5,
+      )
+    ) {
+      problems.push("Coming next cuts a row of its wall's picture in two.");
+    }
+    if (above > room) {
       problems.push(
         `Coming next leaves ${above} CSS px empty between the level's name and its wall's picture.`,
       );
