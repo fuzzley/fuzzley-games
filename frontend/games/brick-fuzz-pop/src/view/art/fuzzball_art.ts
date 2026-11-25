@@ -9,6 +9,7 @@
 // charge, so the triple shot is three of the player's frames and has none of
 // its own.
 
+import { itemAt } from "@fz/core/records";
 import {
   FUZZBALL_GRID,
   type Strand,
@@ -30,7 +31,6 @@ import type { Charge } from "../../rules/shot";
 import { MOST_CHARGE } from "../../rules/tuning";
 import type { WallPalette } from "../colors/palette";
 import { CHARGES, FRAMES, INKS } from "./frames";
-import { itemAt } from "../items";
 
 /**
  * How wide the fuzzball's grid is drawn, in field units, as the art draws

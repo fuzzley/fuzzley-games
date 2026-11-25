@@ -11,6 +11,7 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { CEILINGWARD, RIGHT } from "@fz/brick-wall/rules/grid";
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -30,7 +31,6 @@ import {
   RAMP_CORNERS,
   type RampCorner,
 } from "../frames";
-import { itemAt } from "../items";
 import { CUT_TILE, tileBody } from "./brick";
 
 const WHITE = 0xffffff;

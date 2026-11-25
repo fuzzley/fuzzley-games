@@ -45,11 +45,10 @@ import {
   setIdsOf,
   solveOnThreads,
   sorted,
-  waitForTurn,
   workspaceFiles,
 } from "@fz/dev/certify";
 import { isListOf, isRecord, isWhole } from "@fz/core/json";
-import { waitedWords, waitingWords } from "@fz/dev/queue";
+import { waitForTurn, waitedWords, waitingWords } from "@fz/dev/queue";
 import { CONSOLE, isStop, stopWith } from "@fz/dev/script";
 
 /** @import { CertifyApi, CertifyFiles, CertifyIo, CertifyLevel, Certificates, Certified, SolvedLine } from "@fz/dev/certify" */

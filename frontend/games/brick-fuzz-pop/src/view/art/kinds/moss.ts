@@ -7,13 +7,13 @@
 
 import { cellFrame } from "@fz/brick-wall/view/art";
 import { TINT, inkAt } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import { TILE_SLAB, scallopedCap, sproutMark } from "@fz/phaser/bricks";
 import { mixColors } from "@fz/phaser/color";
 import type { Area, ArtScale, DrawCommand } from "@fz/phaser/shapes";
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
-import { itemAt } from "../../items";
 import { diePips } from "../symbols";
 import { tileFrame } from "./brick";
 

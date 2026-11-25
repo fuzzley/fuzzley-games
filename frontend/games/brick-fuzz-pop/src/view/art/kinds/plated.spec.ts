@@ -2,6 +2,7 @@ import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { cellArea } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
 import { FIELD_ROLES } from "@fz/brick-wall/view/palette";
+import { itemAt } from "@fz/core/records";
 import {
   type ArtFrame,
   type ArtScale,
@@ -29,7 +30,6 @@ import { PALETTES } from "../../../testing/roles";
 import { wallPalette } from "../../colors/palette";
 import type { KindLook } from "../art";
 import { FRAMES, PLATINGS, type PlatedHits, type Plating } from "../frames";
-import { itemAt } from "../../items";
 import { diePips } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 import { PLATED_ART, PLATED_TINT } from "./plated";

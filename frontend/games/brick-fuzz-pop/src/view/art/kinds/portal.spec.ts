@@ -1,3 +1,4 @@
+import { itemAt } from "@fz/core/records";
 import {
   type ArtFrame,
   type ArtScale,
@@ -16,7 +17,6 @@ import {
   PIXEL_RATIOS,
   everyScale,
 } from "../../../testing/art_frames";
-import { itemAt } from "../../items";
 import type { KindLook } from "../art";
 import { FRAMES, type PortalMark } from "../frames";
 import { EIGHTH, diamond, turned } from "../symbols";

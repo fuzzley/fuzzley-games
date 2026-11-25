@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { count, formatPoints } from "@fz/core/format";
+import { count, formatPoints, ordinal } from "@fz/core/format";
 import {
   type HelpCatalog,
   HelpCatalogComponent,
@@ -37,23 +37,6 @@ const RALLY = `Each time your shot strikes a brick that can be broken, the rally
 
 /** What How to play says of the hot shot, from the tuning. */
 const HOT_SHOT = `A hot shot takes ${count(FLIGHT_RULES.hotHits, "hit", "hits")} off each brick it strikes. It starts with ${count(FLIGHT_RULES.hotBounces, "floor bounce", "floor bounces")}.`;
-
-/** Returns a count as an ordinal: "1st", "5th", "22nd". */
-function ordinal(n: number): string {
-  const tens = n % 100;
-  const units = n % 10;
-  const suffix =
-    tens >= 11 && tens <= 13
-      ? "th"
-      : units === 1
-        ? "st"
-        : units === 2
-          ? "nd"
-          : units === 3
-            ? "rd"
-            : "th";
-  return `${String(n)}${suffix}`;
-}
 
 /** Describes a row of How to play's scoring table: what scores, and how much. */
 interface ScoringRow {

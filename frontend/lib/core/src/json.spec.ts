@@ -11,7 +11,6 @@ import {
   listOf,
   unknownKey,
   withHigherCount,
-  withLowerCount,
 } from "./json";
 
 describe("isRecord", () => {
@@ -272,49 +271,5 @@ describe("withHigherCount", () => {
     withHigherCount(BESTS, "near", "normal", 1200);
 
     expect(BESTS["near"]?.normal).toBe(900);
-  });
-});
-
-describe("withLowerCount", () => {
-  /** Counts as a game's fewest rounds and most stars for each of its levels. */
-  const RECORDS: CountsById<"rounds" | "stars"> = {
-    near: { rounds: 9, stars: 2 },
-    far: { stars: 1 },
-  };
-
-  it("lowers an id's count under a key to a lower value", () => {
-    const counts = withLowerCount(RECORDS, "near", "rounds", 7);
-
-    expect(counts).toEqual({
-      near: { rounds: 7, stars: 2 },
-      far: { stars: 1 },
-    });
-  });
-
-  it("keeps a first count under a key an id holds none under", () => {
-    const counts = withLowerCount(RECORDS, "far", "rounds", 12);
-
-    expect(counts["far"]).toEqual({ stars: 1, rounds: 12 });
-  });
-
-  it("keeps a first count for an id it holds none for", () => {
-    const counts = withLowerCount(RECORDS, "new", "rounds", 12);
-
-    expect(counts["new"]).toEqual({ rounds: 12 });
-  });
-
-  it.each([
-    ["the same", 9],
-    ["a higher", 10],
-  ])("returns the same counts for %s value", (_, value) => {
-    const counts = withLowerCount(RECORDS, "near", "rounds", value);
-
-    expect(counts).toBe(RECORDS);
-  });
-
-  it("leaves the counts it was given as they were", () => {
-    withLowerCount(RECORDS, "near", "rounds", 7);
-
-    expect(RECORDS["near"]?.rounds).toBe(9);
   });
 });

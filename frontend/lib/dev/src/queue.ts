@@ -1,9 +1,7 @@
 // A queue kept in a folder, which the runs of a command wait in so that one
 // runs at a time, whichever process starts each, and the folder, shared by a
-// repository's worktrees, where the runs that take the whole machine queue.
-// The scripts that queue there: `yarn verify:changed`, through `./verify.ts`,
-// `yarn mutants`, through `./mutants.ts`, and a game's
-// `yarn certify:levels`, through `./certify.ts`.
+// repository's worktrees, where the runs that take the whole machine queue,
+// each joining it with `waitForTurn()`.
 
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -68,6 +66,18 @@ export async function queueFolder(folder: string): Promise<string> {
     { cwd: folder },
   );
   return join(stdout.trim(), MACHINE_QUEUE);
+}
+
+/**
+ * Waits for a run's turn in the queue the runs that take the whole machine
+ * wait in (`queueFolder()`), from a folder of the repository, and returns
+ * the function that leaves it.
+ */
+export async function waitForTurn(
+  root: string,
+  onWait: (ahead: number) => void,
+): Promise<() => void> {
+  return waitInQueue(await queueFolder(root), { onWait });
 }
 
 /**

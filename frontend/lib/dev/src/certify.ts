@@ -18,12 +18,7 @@ import {
   parentPort,
   workerData,
 } from "node:worker_threads";
-import {
-  queueFolder,
-  waitInQueue,
-  waitedWords,
-  waitingWords,
-} from "./queue.ts";
+import { waitForTurn, waitedWords, waitingWords } from "./queue.ts";
 import {
   CONSOLE,
   type Printer,
@@ -722,14 +717,6 @@ export function workspaceFiles(root: string): CertifyFiles {
 /** Returns whether reading a file failed because it isn't there. */
 function isMissingFile(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
-}
-
-/** Waits for a run's turn in the queue `yarn verify:changed` keeps, from a folder of the repository. */
-export async function waitForTurn(
-  root: string,
-  onWait: (ahead: number) => void,
-): Promise<() => void> {
-  return waitInQueue(await queueFolder(root), { onWait });
 }
 
 /**

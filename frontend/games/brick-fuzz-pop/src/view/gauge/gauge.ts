@@ -5,7 +5,7 @@
 // is the same size on every field.
 
 import type { FieldMetrics, Place } from "@fz/brick-wall/view/field_metrics";
-import { itemAt } from "../items";
+import { itemAt } from "@fz/core/records";
 
 /** How far the gauge's pips lie from the touch, in CSS pixels: about 12 mm, clear of a thumb's tip. */
 export const GAUGE_REACH_CSS_PX = 74;

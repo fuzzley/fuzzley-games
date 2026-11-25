@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { realpathSync } from "node:fs";
+import { realpathSync, rmSync } from "node:fs";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,6 +8,7 @@ import {
   type QueueIo,
   STALE_MS,
   queueFolder,
+  waitForTurn,
   waitInQueue,
   waitedWords,
   waitingWords,
@@ -289,30 +290,30 @@ describe("waitInQueue", () => {
   });
 });
 
-describe("queueFolder", () => {
-  /** Returns the real path of a repository of one commit, in a folder of a spec's own. */
-  async function repository(): Promise<string> {
-    const top = await mkdtemp(join(tmpdir(), "fz-queue-repo-"));
-    made.push(top);
-    execFileSync("git", ["init", "--quiet"], { cwd: top });
-    execFileSync(
-      "git",
-      [
-        "-c",
-        "user.name=Spec",
-        "-c",
-        "user.email=spec@example.com",
-        "commit",
-        "--quiet",
-        "--allow-empty",
-        "--message",
-        "Start",
-      ],
-      { cwd: top },
-    );
-    return realpathSync.native(top);
-  }
+/** Returns the real path of a repository of one commit, in a folder of a spec's own. */
+async function repository(): Promise<string> {
+  const top = await mkdtemp(join(tmpdir(), "fz-queue-repo-"));
+  made.push(top);
+  execFileSync("git", ["init", "--quiet"], { cwd: top });
+  execFileSync(
+    "git",
+    [
+      "-c",
+      "user.name=Spec",
+      "-c",
+      "user.email=spec@example.com",
+      "commit",
+      "--quiet",
+      "--allow-empty",
+      "--message",
+      "Start",
+    ],
+    { cwd: top },
+  );
+  return realpathSync.native(top);
+}
 
+describe("queueFolder", () => {
   it("finds the queue in the folder git keeps, from a folder below the top", async () => {
     const top = await repository();
     await mkdir(join(top, "frontend"));
@@ -338,6 +339,39 @@ describe("queueFolder", () => {
     made.push(folder);
 
     await expect(queueFolder(folder)).rejects.toThrow("not a git repository");
+  });
+});
+
+describe("waitForTurn", () => {
+  it("waits in the machine's queue of the repository a folder is in, and leaves it", async () => {
+    const top = await repository();
+    const queue = await queueFolder(top);
+    const heard: number[] = [];
+
+    const leave = await waitForTurn(top, (ahead) => {
+      heard.push(ahead);
+    });
+    const joined = await readdir(queue);
+    leave();
+
+    expect([heard, joined.length, await readdir(queue)]).toEqual([[], 1, []]);
+  });
+
+  it("says how many runs wait ahead of it, and waits for them", async () => {
+    const top = await repository();
+    const queue = await queueFolder(top);
+    const ahead = join(queue, "0".repeat(15));
+    await mkdir(queue, { recursive: true });
+    await writeFile(ahead, "");
+    const heard: number[] = [];
+
+    const leave = await waitForTurn(top, (count) => {
+      heard.push(count);
+      rmSync(ahead);
+    });
+    leave();
+
+    expect(heard).toEqual([1]);
   });
 });
 

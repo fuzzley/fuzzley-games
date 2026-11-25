@@ -16,6 +16,7 @@
 // of the bricks about it, and the tint holds the holds.
 
 import { cellFrame } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -37,7 +38,6 @@ import {
   HATCH_HOLDS,
   type HatchHolds,
 } from "../frames";
-import { itemAt } from "../items";
 
 /** Where the bar runs down its cell, as shares of it, the art's: from its top to its foot, and its bright edge along its top. */
 const BAR = { top: 0.02, foot: 0.2, edge: 0.06 } as const;

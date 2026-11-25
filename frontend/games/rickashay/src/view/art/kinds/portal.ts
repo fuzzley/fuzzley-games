@@ -6,6 +6,7 @@
 // draws it. The two pairs differ in shape, not in their inks alone.
 
 import { cellFrame } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { mixColors } from "@fz/phaser/color";
 import {
   type PortalBadge,
@@ -21,7 +22,6 @@ import {
   PORTAL_MARKS,
   type PortalMark,
 } from "../frames";
-import { itemAt } from "../items";
 
 /** How much of the field's text a portal's arms and badge take over its ring's ink, the art's. */
 export const PORTAL_GLOW = 0.34;

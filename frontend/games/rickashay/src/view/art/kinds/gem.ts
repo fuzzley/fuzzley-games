@@ -11,6 +11,7 @@
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { cellFrame } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -25,7 +26,6 @@ import {
 import { STAND_OFF } from "../../../rules/tuning";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, INKS } from "../frames";
-import { itemAt } from "../items";
 import { tileBody } from "./brick";
 
 const WHITE = 0xffffff;

@@ -3,6 +3,7 @@
 // own, `prism()` in `docs/archive/brick-fuzz-pop/art/make-art.mjs`.
 
 import { cellFrame } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { mixColors } from "@fz/phaser/color";
 import {
   type Area,
@@ -23,7 +24,6 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { FRAMES } from "../frames";
-import { itemAt } from "../../items";
 import { pointAt, turned } from "../symbols";
 import { tileBody, tileRadius } from "./brick";
 

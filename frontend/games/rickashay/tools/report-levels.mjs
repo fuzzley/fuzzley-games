@@ -29,8 +29,8 @@ import { availableParallelism } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isMainThread, parentPort, workerData } from "node:worker_threads";
-import { solveOnThreads, waitForTurn } from "@fz/dev/certify";
-import { waitedWords, waitingWords } from "@fz/dev/queue";
+import { solveOnThreads } from "@fz/dev/certify";
+import { waitForTurn, waitedWords, waitingWords } from "@fz/dev/queue";
 import {
   SEEDS_OPTION,
   SEED_STRIDE,

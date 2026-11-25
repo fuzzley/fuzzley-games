@@ -5,6 +5,7 @@
 // too.
 
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import {
   type Area,
   type DrawCommand,
@@ -16,7 +17,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
-import { itemAt } from "../../items";
 import { ACROSS, CRACK_WIDTH, DOWN, bandAlong, diePips } from "../symbols";
 import { tileBody, tileFrame } from "./brick";
 

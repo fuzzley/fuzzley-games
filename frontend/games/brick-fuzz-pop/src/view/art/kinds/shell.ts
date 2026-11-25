@@ -6,6 +6,7 @@
 
 import { cellFrame } from "@fz/brick-wall/view/art";
 import type { KindInks } from "@fz/brick-wall/view/palette";
+import { itemAt } from "@fz/core/records";
 import {
   type Area,
   type DrawCommand,
@@ -15,7 +16,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, THICK_HITS } from "../frames";
-import { itemAt } from "../../items";
 import { boltMark, pointAt } from "../symbols";
 import { tileCommands } from "./brick";
 

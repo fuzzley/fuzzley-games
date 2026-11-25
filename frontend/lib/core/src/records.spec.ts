@@ -1,4 +1,4 @@
-import { isKeyOf, isOneOf, keysOf, pick, recordOf } from "./records";
+import { isKeyOf, isOneOf, itemAt, keysOf, pick, recordOf } from "./records";
 
 describe("keysOf", () => {
   it("returns a record's keys in the order they were written", () => {
@@ -121,5 +121,21 @@ describe("recordOf", () => {
     recordOf(["back", "middle", "front"], (key) => made.push(key));
 
     expect(made).toEqual(["back", "middle", "front"]);
+  });
+});
+
+describe("itemAt", () => {
+  const frames = ["tile-0", "tile-1"];
+
+  it("gives the item at a place in a list", () => {
+    expect(itemAt(frames, 1)).toBe("tile-1");
+  });
+
+  it("gives an item that is itself undefined", () => {
+    expect(itemAt<string | undefined>([undefined], 0)).toBeUndefined();
+  });
+
+  it.each([-1, 2, 0.5])("refuses place %s, which the list hasn't", (at) => {
+    expect(() => itemAt(frames, at)).toThrow(RangeError);
   });
 });

@@ -1,7 +1,7 @@
 import { clamp, fadeAlpha, shareDone } from "@fz/core/math";
 import { type Playing, Turns } from "@fz/core/turns";
-import { onContextRestored } from "@fz/phaser/scene";
-import { type GameObjects, type Scene, Textures } from "phaser";
+import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
+import type { GameObjects, Scene, Textures } from "phaser";
 import type { Moving } from "../../rules/torus";
 import {
   type PointsFont,
@@ -236,20 +236,6 @@ function stampEach(
       STAMP,
     );
   }
-}
-
-/**
- * Returns the dynamic texture of a key: the one there, which an earlier scene
- * of the game may have made, or a new one.
- */
-function dynamicTexture(scene: Scene, key: string): Textures.DynamicTexture {
-  const textures = scene.textures;
-  const existing = textures.exists(key) ? textures.get(key) : null;
-  if (existing instanceof Textures.DynamicTexture) return existing;
-  if (existing) textures.remove(key);
-  const made = textures.addDynamicTexture(key, 2, 2);
-  if (!made) throw new Error(`The texture "${key}" could not be made.`);
-  return made;
 }
 
 /**

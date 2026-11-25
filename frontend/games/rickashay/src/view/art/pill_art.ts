@@ -7,6 +7,7 @@
 
 import { COLUMNS } from "@fz/brick-wall/rules/field";
 import type { Place } from "@fz/brick-wall/view/field_metrics";
+import { itemAt } from "@fz/core/records";
 import {
   type ArtFrame,
   type ArtScale,
@@ -20,7 +21,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { WallPalette } from "../colors/palette";
 import type { BallView } from "../run_state";
-import { itemAt } from "./items";
 
 /** Every digit a rally is written in, in order. */
 export const DIGITS = [

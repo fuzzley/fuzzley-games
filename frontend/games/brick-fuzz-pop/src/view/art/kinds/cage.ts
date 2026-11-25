@@ -6,6 +6,7 @@
 // hit, drawn with `@fz/phaser/bricks`' `cagedFriend()` and `cageBars()`.
 
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { type CageBars, cageBars, cagedFriend } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -19,7 +20,6 @@ import {
 import type { WallPalette } from "../../colors/palette";
 import type { KindArt } from "../art";
 import { type CageLook, FRAMES, type FrameName, INKS } from "../frames";
-import { itemAt } from "../../items";
 import { ACROSS, CRACK_WIDTH, bandAlong, pointAt } from "../symbols";
 import { tileBody, tileCommands } from "./brick";
 

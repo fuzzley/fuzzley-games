@@ -8,12 +8,7 @@ import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { constants } from "node:os";
 import { isAbsolute, join, normalize, resolve, sep } from "node:path";
-import {
-  queueFolder,
-  waitInQueue,
-  waitedWords,
-  waitingWords,
-} from "./queue.ts";
+import { waitForTurn, waitedWords, waitingWords } from "./queue.ts";
 import {
   CONSOLE,
   type Printer,
@@ -504,14 +499,6 @@ function endTree(child: ChildProcess, windows: boolean): void {
   } catch {
     // The group had ended already.
   }
-}
-
-/** Waits for a pass's turn in the queue `yarn verify:changed` keeps, from the frontend's folder. */
-async function waitForTurn(
-  root: string,
-  onWait: (ahead: number) => void,
-): Promise<() => void> {
-  return waitInQueue(await queueFolder(root), { onWait });
 }
 
 /** Calls `stop` with each signal a pass stops on that the process is sent, until the function it returns is called. */

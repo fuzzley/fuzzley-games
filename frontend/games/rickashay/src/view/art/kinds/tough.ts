@@ -5,6 +5,7 @@
 // field's, so they look cut out of the brick.
 
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import {
   type Area,
   type DrawCommand,
@@ -18,7 +19,6 @@ import {
 } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { CRACKS, FRAMES, type FrameName, INKS, PIPS } from "../frames";
-import { itemAt } from "../items";
 import { tileBody } from "./brick";
 
 /** Where a die's middle pip sits in its cell, how far apart its pips are and how round each is, as shares of the cell: the art's. */

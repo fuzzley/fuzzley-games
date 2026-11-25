@@ -137,24 +137,6 @@ export function withHigherCount<K extends string>(
 }
 
 /**
- * Returns the counts with an id's count under a key lowered to a value
- * lower than the one kept, as a level's fewest rounds is beaten, or the
- * same counts, not a copy, for a value no lower.
- */
-export function withLowerCount<K extends string>(
-  counts: CountsById<K>,
-  id: string,
-  key: K,
-  value: number,
-): CountsById<K> {
-  const kept = counts[id];
-  if (value >= (kept?.[key] ?? Infinity)) return counts;
-  const lowered: Partial<Record<K, number>> = { ...kept };
-  lowered[key] = value;
-  return { ...counts, [id]: lowered };
-}
-
-/**
  * Returns the counts a record read from JSON holds under the keys given,
  * each that is a count, or null for a value that isn't a record or holds
  * none.

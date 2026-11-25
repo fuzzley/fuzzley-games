@@ -4,6 +4,7 @@
 
 import { cellFrame } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import {
   TILE_SLAB,
   slabBody,
@@ -13,7 +14,6 @@ import {
 import type { Area, DrawCommand } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, INKS } from "../frames";
-import { itemAt } from "../../items";
 
 /** The plain tile's frames, by tint. */
 const TILE_FRAMES: readonly FrameName[] = INKS.map((ink) => FRAMES.tile(ink));

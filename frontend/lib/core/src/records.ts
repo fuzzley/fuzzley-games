@@ -54,3 +54,17 @@ export function recordOf<K extends string, V>(
   // Object.fromEntries() types its keys as strings; these are the keys given.
   return Object.fromEntries(entries) as Record<K, V>;
 }
+
+/**
+ * Returns the item at a place in a list that the code worked out, throwing a
+ * `RangeError` rather than handing back undefined for a place it hasn't.
+ */
+export function itemAt<T>(items: readonly T[], at: number): T {
+  if (!Number.isInteger(at) || at < 0 || at >= items.length) {
+    throw new RangeError(
+      `Nothing at ${String(at)} in a list of ${String(items.length)}`,
+    );
+  }
+  // The place is in the list, so this is its item, undefined only where T is.
+  return items[at] as T;
+}

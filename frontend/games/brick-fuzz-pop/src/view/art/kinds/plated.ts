@@ -11,6 +11,7 @@
 import { CEILINGWARD, FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import { TILE_SLAB, bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -30,7 +31,6 @@ import {
   PLATINGS,
   type Plating,
 } from "../frames";
-import { itemAt } from "../../items";
 import { diePips, pointAt } from "../symbols";
 import { tileFrame } from "./brick";
 

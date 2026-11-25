@@ -3,9 +3,9 @@
 // loading the art.
 
 import { inkAt } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import type { BrickKindId } from "../../rules/catalog/bricks";
 import type { Brick } from "../../rules/wall/wall";
-import { itemAt } from "../items";
 import type { InkedKind, WallPalette } from "./palette";
 
 /** Describes what a brick's color reads of it: its kind and its tint. */

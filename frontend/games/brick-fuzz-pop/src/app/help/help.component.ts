@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from "@angular/core";
-import { count, formatPoints } from "@fz/core/format";
+import { count, formatPoints, ordinal } from "@fz/core/format";
 import {
   type HelpCatalog,
   HelpCatalogComponent,
@@ -36,23 +36,6 @@ const CHARGE = `Each pip of charge takes 1 hit off a brick, and a fuzzball with 
 
 /** What How to play says of the two boons, from the tuning. */
 const BOONS = `The hot shot flies at full charge, and nothing drains it. The triple shot sends ${count(TRIPLE_MATES, "more fuzzball", "more fuzzballs")} out behind yours, with the same charge. A boon lasts 1 shot. If that shot makes the wall jump again, you get the boon again.`;
-
-/** Returns a count as an ordinal: "1st", "5th", "22nd". */
-function ordinal(n: number): string {
-  const tens = n % 100;
-  const units = n % 10;
-  const suffix =
-    tens >= 11 && tens <= 13
-      ? "th"
-      : units === 1
-        ? "st"
-        : units === 2
-          ? "nd"
-          : units === 3
-            ? "rd"
-            : "th";
-  return `${String(n)}${suffix}`;
-}
 
 /** Describes a row of How to play's scoring table: what scores, and how much. */
 interface ScoringRow {

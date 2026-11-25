@@ -39,3 +39,20 @@ export function tierWords(
     .map(({ from, times }) => `×${String(times)} from ${String(from)} ${noun}`)
     .join(", ");
 }
+
+/** Returns a count as an ordinal, as a player reads one: "1st", "5th", "22nd", "111th". */
+export function ordinal(n: number): string {
+  const tens = n % 100;
+  const units = n % 10;
+  const suffix =
+    tens >= 11 && tens <= 13
+      ? "th"
+      : units === 1
+        ? "st"
+        : units === 2
+          ? "nd"
+          : units === 3
+            ? "rd"
+            : "th";
+  return `${String(n)}${suffix}`;
+}

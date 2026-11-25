@@ -7,6 +7,7 @@
 
 import { cellFrame } from "@fz/brick-wall/view/art";
 import { inkAt } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import {
   type SlabShares,
   TILE_SLAB,
@@ -16,7 +17,6 @@ import {
 import type { Area, DrawCommand } from "@fz/phaser/shapes";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, INKS } from "../frames";
-import { itemAt } from "../items";
 
 /**
  * The tile's shares of its cell: Brick Fuzz Pop's square tile, its gap,

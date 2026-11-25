@@ -35,7 +35,7 @@ import {
   fuzzballShape,
   lookOffset,
 } from "@fz/style/fuzzball";
-import { recordOf } from "@fz/core/records";
+import { itemAt, recordOf } from "@fz/core/records";
 import type { Moving, Place } from "../../rules/torus";
 import { STRAY_RADIUS } from "../../rules/tuning";
 import type { BeltPalette } from "../colors/palette";
@@ -105,18 +105,6 @@ const EYES_FRAMES: Readonly<
 /** Returns the names of a seat's eyes' frames, one for each face. */
 function eyesNames(seat: Seat): Readonly<Record<FuzzballFace, string>> {
   return recordOf(FUZZBALL_FACES, (face) => `pilot-eyes-${seat}-${face}`);
-}
-
-/**
- * Returns the item of a list made once at an index the caller worked out.
- *
- * @throws {RangeError} For an index it holds no item at, as a lift that
- *   is no number gives.
- */
-function itemAt<T>(list: readonly T[], index: number): T {
-  const item = list[index];
-  if (item === undefined) throw new RangeError(`No item at ${String(index)}`);
-  return item;
 }
 
 /**

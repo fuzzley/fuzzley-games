@@ -9,11 +9,11 @@
 // in color alone.
 
 import { cellFrame } from "@fz/brick-wall/view/art";
+import { itemAt } from "@fz/core/records";
 import { portalMark } from "@fz/phaser/bricks";
 import { PORTAL_BADGES } from "../../../rules/levels/legend";
 import type { KindArt } from "../art";
 import { FRAMES, type FrameName, type PortalMark } from "../frames";
-import { itemAt } from "../../items";
 
 /** The marks, in order, each drawn in its pair's inks with its pair's badge. */
 const MARKS = [1, 2] as const satisfies readonly PortalMark[];

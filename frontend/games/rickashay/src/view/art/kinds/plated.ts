@@ -15,6 +15,7 @@
 import { FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { cellFrame, detailed } from "@fz/brick-wall/view/art";
 import { TINT } from "@fz/brick-wall/view/inks";
+import { itemAt } from "@fz/core/records";
 import { bodyOutline, plateTeeth } from "@fz/phaser/bricks";
 import {
   type Area,
@@ -36,7 +37,6 @@ import {
   PLATINGS,
   type Plating,
 } from "../frames";
-import { itemAt } from "../items";
 import { CUT_TILE, tileBody } from "./brick";
 
 /** Names a face a plate covers, by the quarter turns its plate is drawn turned from the one toward the floor, clockwise. */
