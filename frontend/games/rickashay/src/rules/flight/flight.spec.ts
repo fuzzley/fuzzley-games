@@ -513,9 +513,6 @@ describe("fly's trait rules", () => {
     return { ...TRAIT_RULES, [trait]: rule };
   }
 
-  /** The game's trait rules with a plated brick's made up for the spec: a strike on its plates alone takes nothing. */
-  const PLATED: TraitRules = { ...TRAIT_RULES, plated: STAND_INS.plated };
-
   // Two spring bricks at an inside corner, the one beside it a row under
   // the one over it.
   it("runs a brick's rules as a turn strikes it, as it breaks and as it meets it, brick by brick, floor up", () => {
@@ -556,7 +553,7 @@ describe("fly's trait rules", () => {
   });
 
   it("shields a brick its rules shield, which takes nothing and isn't a strike", () => {
-    const flown = flyAt({ picture: ["........v"], traits: PLATED });
+    const flown = flyAt({ picture: ["........v"] });
 
     expect([
       flown.flight.events.filter(
@@ -578,7 +575,6 @@ describe("fly's trait rules", () => {
       picture: ["....v...."],
       x: xToReach(60, [4, 5 - RADIUS]),
       degrees: 60,
-      traits: PLATED,
     });
 
     expect(eventsOf(flown, "shielded")).toEqual([
@@ -599,7 +595,6 @@ describe("fly's trait rules", () => {
         picture: [`....${brick}....`],
         x: 1.3,
         degrees: 60,
-        traits: PLATED,
       });
 
       expect(

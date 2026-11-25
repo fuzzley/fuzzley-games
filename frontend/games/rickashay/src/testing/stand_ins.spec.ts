@@ -1,7 +1,6 @@
-import { FLOORWARD, LEFT, RIGHT } from "@fz/brick-wall/rules/grid";
 import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import type { Brick, KindId } from "../rules/catalog/kinds";
-import type { Hooks, Struck } from "../rules/flight/hooks";
+import type { Hooks } from "../rules/flight/hooks";
 import { STAND_INS } from "./stand_ins";
 
 /** Returns a whole brick of a kind, with the plates, the tint and the twin given. */
@@ -27,18 +26,6 @@ function notingHooks(calls: string[]): Hooks {
   };
 }
 
-/** Returns what a strike on a plated brick with its lower face plated comes to, met on the sides given. */
-function strikePlated(sides: number): Struck {
-  const struck: Struck = {
-    cell: 0,
-    brick: brickOf("plated", { plates: FLOORWARD }),
-    sides,
-    shield: null,
-  };
-  STAND_INS.plated.struck?.(struck);
-  return struck;
-}
-
 describe("STAND_INS", () => {
   it.each([
     "never",
@@ -46,21 +33,10 @@ describe("STAND_INS", () => {
     "holds",
     "springs",
     "faceted",
+    "plated",
     "regrows",
   ] as const)("keeps the game's own rule for %s", (trait) => {
     expect(STAND_INS[trait]).toBe(TRAIT_RULES[trait]);
-  });
-
-  it("shields a plated brick where the turn met its plates alone", () => {
-    expect(strikePlated(FLOORWARD).shield).toBe("plate");
-  });
-
-  it.each([
-    ["a cut across a plated face and a bare one", FLOORWARD | LEFT],
-    ["a bare face", RIGHT],
-    ["a long 45° face, along no side", 0],
-  ])("strikes a plated brick met on %s", (_, sides) => {
-    expect(strikePlated(sides).shield).toBeNull();
   });
 
   it("shuts a lock by its tint's bolts", () => {

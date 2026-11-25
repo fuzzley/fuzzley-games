@@ -7,19 +7,11 @@ import type { TraitRules } from "../rules/flight/hooks";
 
 /**
  * The game's trait rules with the later kinds' made up for the specs: a
- * plated brick takes nothing where a turn met its plates alone, a lock is
- * shut by its tint's bolts, and a portal takes the fuzzball to its twin.
+ * lock is shut by its tint's bolts, and a portal takes the fuzzball to its
+ * twin.
  */
 export const STAND_INS: TraitRules = {
   ...TRAIT_RULES,
-  plated: {
-    struck: (struck) => {
-      const { sides, brick } = struck;
-      if (sides !== 0 && (brick.plates & sides) === sides) {
-        struck.shield = "plate";
-      }
-    },
-  },
   bolted: { bolts: ({ tint }) => tint },
   teleports: {
     entered: (hooks, _, { twin }) => {
