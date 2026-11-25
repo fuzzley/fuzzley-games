@@ -775,7 +775,7 @@ describe("RickashayScene", () => {
     });
 
     it("stamps nothing for a brick whose kind's art isn't drawn yet", async () => {
-      const wall = wallFrom(["o..=....."], WALL_LEGEND, { lowestRow: 3 });
+      const wall = wallFrom(["o..x....."], WALL_LEGEND, { lowestRow: 3 });
       const { shell } = await startBoard((each) => {
         each.round = viewOf(wall);
       });
@@ -784,8 +784,8 @@ describe("RickashayScene", () => {
 
       expect({
         brick: framesAt(metrics, depth, 3, 0).length,
-        hatch: framesAt(metrics, depth, 3, 3),
-      }).toEqual({ brick: 1, hatch: [] });
+        lock: framesAt(metrics, depth, 3, 3),
+      }).toEqual({ brick: 1, lock: [] });
     });
 
     it("frames each brick the level needs one step from losing it in the field's warning frame", async () => {
@@ -1429,7 +1429,7 @@ describe("RickashayScene", () => {
       expect({ x: camera.x, y: camera.y }).not.toEqual(rest);
     });
 
-    it("plays nothing for a hatch's dip, the hatches' swing or a lock's slide, whose bricks aren't drawn yet", async () => {
+    it("plays nothing for a hatch's dip or the hatches' swing, as the painter moves no brick it bakes, or a lock's slide, whose brick isn't drawn yet", async () => {
       const { scene, events, run } = await startPlaying();
 
       logEvent(

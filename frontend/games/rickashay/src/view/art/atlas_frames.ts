@@ -13,6 +13,7 @@ import { fuzzballFrames } from "./fuzzball_art";
 import { guideFrames } from "./guide_frames";
 import { PLAIN_ART } from "./kinds/brick";
 import { GEM_ART } from "./kinds/gem";
+import { HATCH_ART } from "./kinds/hatch";
 import { RAMP_ART } from "./kinds/ramp";
 import { SPRING_ART } from "./kinds/spring";
 import { STEEL_ART } from "./kinds/steel";
@@ -30,6 +31,7 @@ const BRICK_ART: Partial<Readonly<Record<KindId, KindArt>>> = {
   tough: TOUGH_ART,
   steel: STEEL_ART,
   ramp: RAMP_ART,
+  hatch: HATCH_ART,
   spring: SPRING_ART,
   gem: GEM_ART,
 };

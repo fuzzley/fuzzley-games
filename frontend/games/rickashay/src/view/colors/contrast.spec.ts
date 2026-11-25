@@ -33,6 +33,8 @@ function stripOf(ink: number): number {
 // palettes' field, lies inside a rim of the ramp's steel. A gem's outline
 // is its facets', its upper half lighter and its lower edges darker, so
 // each keeps 3:1 against the field in every ink.
+// A hatch's chevrons, and an open hatch's posts, lie on the field, which
+// they keep 3:1 against.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in, and the rally's number, text, 4.5:1 against its
 // pill.
@@ -63,6 +65,7 @@ describe("the field's contrast", () => {
             [`gem's dark facet in ink ${String(tint)}`, dark],
           ];
         }),
+        ["hatch's chevrons", palette.chevrons],
       ]),
       ...kinds.flatMap(([name, color]) =>
         against(name, color, [["marks", palette.mark]]),

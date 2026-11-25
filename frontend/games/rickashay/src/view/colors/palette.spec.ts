@@ -44,6 +44,10 @@ describe("wallPalette", () => {
     expect(wallPalette(ROLES, "light").guideRing).toBe(0x101010);
   });
 
+  it("draws a hatch's chevrons and an open hatch's posts in the field's muted text", () => {
+    expect(wallPalette(ROLES, "light").chevrons).toBe(0x707070);
+  });
+
   it("streaks the dash home in the fuzzball's accent, or a hot shot's danger color", () => {
     expect(wallPalette(ROLES, "light").streak).toEqual({
       plain: 0x00aa00,

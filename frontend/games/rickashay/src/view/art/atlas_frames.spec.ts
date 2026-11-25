@@ -21,12 +21,14 @@ import {
   FRAMES,
   FRAME_NAMES,
   FURS,
+  HATCH_HOLDS,
   INKS,
   PIPS,
   RAMP_CORNERS,
 } from "./frames";
 import { fuzzballFrames } from "./fuzzball_art";
 import { CUT_TILE, tileBody } from "./kinds/brick";
+import { HATCH_ART } from "./kinds/hatch";
 
 /** The largest atlas every device takes, a side. */
 const ATLAS_SIDE = 2048;
@@ -137,8 +139,15 @@ describe.each(ART_SCALES)(
     const fuzzballs = new Set(
       fuzzballFrames(ART_PALETTE, scale).map(({ name }) => name),
     );
+    const hatches = new Set(
+      HATCH_ART.frames(ART_PALETTE, scale).map(({ name }) => name),
+    );
     const bricks = frames.filter(({ name }) => !fuzzballs.has(name));
     const ramps = new Set<string>(RAMP_CORNERS.map(FRAMES.ramp));
+    // A hatch has no tile, and its bar runs the width of its cell, so
+    // hatches side by side draw one bar, as the flight meets them: its
+    // frames are held to their cell alone.
+    const tiled = bricks.filter(({ name }) => !hatches.has(name));
 
     it("draws every frame within its cell", () => {
       expect(
@@ -150,12 +159,12 @@ describe.each(ART_SCALES)(
 
     // A ramp stands on no tile, so its points reach the square corners of
     // the body a tile's corners are cut from.
-    it("draws every brick's frame within the cut tile's body, a ramp's within its square body, so no mark shows past it", () => {
+    it("draws every brick's frame but a hatch's within the cut tile's body, a ramp's within its square body, so no mark shows past it", () => {
       const cut = bodyOutline(cellOf(scale), CUT_TILE);
       const square = outlineOf(tileBody(cellOf(scale)));
 
       expect(
-        breaking(bricks, (frame) =>
+        breaking(tiled, (frame) =>
           frame.commands.every(
             (command) =>
               reachPast(command, ramps.has(frame.name) ? square : cut) <= SLACK,
@@ -269,13 +278,15 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, the spring brick's coil and 8 gems, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil and 8 gems, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
       ...CRACKS.map(FRAMES.cracks),
       FRAMES.steel,
       ...RAMP_CORNERS.map(FRAMES.ramp),
+      ...HATCH_HOLDS.map(FRAMES.hatch),
+      FRAMES.hatchOpen,
       FRAMES.spring,
       ...INKS.map(FRAMES.gem),
       ...FURS.map(FRAMES.fuzzball),
@@ -360,7 +371,7 @@ describe("brickLayers", () => {
 
   it("shows nothing for a brick whose kind's art isn't drawn yet", () => {
     expect(
-      brickLayers({ kind: "hatch", tint: 0, hits: 0, full: 0, plates: 0 }),
+      brickLayers({ kind: "lock", tint: 1, hits: 1, full: 1, plates: 0 }),
     ).toEqual([]);
   });
 });

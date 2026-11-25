@@ -87,6 +87,13 @@ function eventOf(
   return event;
 }
 
+/** Returns the tint of each hatch in the wall a level's play draws, the dots its bar has lost. */
+function hatchTints(play: RoundPlay): number[] {
+  return play.view.wall.bricks.flatMap((brick) =>
+    brick?.kind === "hatch" ? [brick.tint] : [],
+  );
+}
+
 /** Returns the events a level's play has handed on, in order. */
 function loggedEvents(play: RoundPlay): FlightEvent[] {
   const events: FlightEvent[] = [];
@@ -624,6 +631,44 @@ describe("What RoundPlay's flight does to the counts", () => {
     playUntilReached(play, eventOf(hatch, "hold", nth));
 
     expect(play.view.holdsLeft).toBe(left);
+  });
+
+  it.each([
+    [0, 1],
+    [1, 2],
+    [2, 3],
+  ])(
+    "shows every hatch's bar a dot fewer, or open, by its tint: after hold %i, %i",
+    (nth, tint) => {
+      const play = playing(hatch);
+
+      playUntilReached(play, eventOf(hatch, "hold", nth));
+
+      expect(hatchTints(play)).toEqual(Array<number>(9).fill(tint));
+    },
+  );
+
+  // The hatch fixture's wall holds one brick that isn't a hatch.
+  it("leaves every brick but a hatch as it was at a hold", () => {
+    const play = playing(hatch);
+    const before = play.view.wall.bricks.filter(
+      (brick) => brick !== null && brick.kind !== "hatch",
+    );
+
+    playUntilReached(play, eventOf(hatch, "hold"));
+
+    const after = play.view.wall.bricks.filter(
+      (brick) => brick !== null && brick.kind !== "hatch",
+    );
+    expect([before.length, after]).toEqual([1, before]);
+  });
+
+  it("shows the hatches whole on the wall the round leaves as the fuzzball lands", () => {
+    const play = playing(hatch);
+
+    playUntilLanded(play);
+
+    expect(hatchTints(play)).toEqual(Array<number>(9).fill(0));
   });
 
   it("draws a bolt at the turn that draws it", () => {

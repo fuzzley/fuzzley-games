@@ -2,9 +2,10 @@
 // playback, as the shell hands them: the round aimed, then, once it is
 // released, its flight at its pace and its wall's step or jump after it.
 // What each of the flight's events does to the frame the scene draws is
-// this game's own: a cell's hits, the fuzzball's heading, rally and fur,
-// the floor bounces in hand, the hatches' holds and the bolts drawn; and
-// what it calls for, effects/effects.ts's, is logged with it.
+// this game's own: a cell's hits, a hatch's dots, the fuzzball's heading,
+// rally and fur, the floor bounces in hand, the hatches' holds and the
+// bolts drawn; and what it calls for, effects/effects.ts's, is logged with
+// it.
 
 import type { LevelCard, RoundPhase } from "@fz/brick-wall/view/rounds_played";
 import { RADIUS } from "@fz/brick-wall/rules/field";
@@ -36,6 +37,7 @@ import {
   STRIKE_POINTS,
 } from "../../rules/tuning";
 import type { Fur } from "../art/frames";
+import { hatchTint } from "../art/hatch_tint";
 import {
   type EventEffects,
   QUIET,
@@ -538,13 +540,19 @@ function decided(round: Round): DecidedRound<KindId, FlightEvent> {
 /**
  * Says the bricks an event of a flight leaves, from the cells as the events
  * before it leave them: a strike leaves its brick the hits it took fewer,
- * or none once it breaks.
+ * or none once it breaks; and a hold leaves every hatch the look of the
+ * holds left, as its tint: a dot fewer on its bar, or open at the last,
+ * as the hatches open.
  */
 function leftBy(
   event: FlightEvent,
   cells: readonly (Brick | null)[],
   leave: (cell: number, brick: Brick | null) => void,
 ): void {
+  if (event.kind === "hold") {
+    showHatches(cells, hatchTint(event.left), leave);
+    return;
+  }
   if (event.kind !== "strike") return;
   const brick = cells[event.cell];
   if (!brick) return;
@@ -552,6 +560,17 @@ function leftBy(
     event.cell,
     event.broke ? null : { ...brick, hits: brick.hits - event.took },
   );
+}
+
+/** Says, through `leave`, every hatch among the cells with a tint, the look of the holds the hatches have left. */
+function showHatches(
+  cells: readonly (Brick | null)[],
+  tint: number,
+  leave: (cell: number, brick: Brick | null) => void,
+): void {
+  cells.forEach((brick, cell) => {
+    if (brick?.kind === "hatch") leave(cell, { ...brick, tint });
+  });
 }
 
 /** Returns how long a level's card waits after the round that ended it. */
