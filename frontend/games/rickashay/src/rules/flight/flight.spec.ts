@@ -637,9 +637,6 @@ describe("fly's floor bounces", () => {
     ".......3.",
   ];
 
-  /** The game's trait rules with a spring brick's made up for the spec: it earns a floor bounce as it breaks. */
-  const SPRINGS: TraitRules = { ...TRAIT_RULES, springs: STAND_INS.springs };
-
   /** Returns a flight's events that earn, keep and spend floor bounces. */
   function bouncesOf(flown: Flown): FlightEvent[] {
     return flown.flight.events.filter(
@@ -736,7 +733,7 @@ describe("fly's floor bounces", () => {
   it("earns a floor bounce through its hook as a brick's rules ask, after the rally's at the same strike", () => {
     const rules = { ...FLIGHT_RULES, firstBounce: 1 };
 
-    const flown = flyAt({ picture: ["........S"], rules, traits: SPRINGS });
+    const flown = flyAt({ picture: ["........S"], rules });
 
     expect(bouncesOf(flown).slice(0, 2)).toEqual([
       expect.objectContaining({ by: "rally", held: 1 }),
@@ -799,10 +796,9 @@ describe("fly's floor bounces", () => {
 });
 
 describe("fly's hatches and locks", () => {
-  /** The game's trait rules with a hatch's and a lock's made up for the spec: a hatch holds the fuzzball up as it meets it, and a lock is shut by its tint's bolts. */
+  /** The game's trait rules with a lock's made up for the spec: a lock is shut by its tint's bolts. */
   const HATCHES_AND_LOCKS: TraitRules = {
     ...TRAIT_RULES,
-    holds: STAND_INS.holds,
     bolted: STAND_INS.bolted,
   };
 
@@ -818,7 +814,7 @@ describe("fly's hatches and locks", () => {
   /** Two locks of a bolt, under two rows a shot at 45° never reaches. */
   const LOCKS = ["ooooooooo", "ooooooooo", ".x......x"];
 
-  /** Returns the flight of a shot by the hatches' and the locks' made-up rules. */
+  /** Returns the flight of a shot by the game's trait rules, a lock's made up. */
   function flyLocked(shot: PictureShot): Flown {
     return flyAt({ traits: HATCHES_AND_LOCKS, ...shot });
   }

@@ -1,6 +1,8 @@
 import type { TraitRules } from "../flight/hooks";
 import { FACETED_RULE } from "./traits/faceted";
+import { HOLDS_RULE } from "./traits/holds";
 import { SLANTS_RULE } from "./traits/slants";
+import { SPRINGS_RULE } from "./traits/springs";
 
 /**
  * What each brick trait does at the moments of a flight, typed so a trait
@@ -13,8 +15,8 @@ import { SLANTS_RULE } from "./traits/slants";
 export const TRAIT_RULES: TraitRules = {
   never: {},
   slants: SLANTS_RULE,
-  holds: {},
-  springs: {},
+  holds: HOLDS_RULE,
+  springs: SPRINGS_RULE,
   faceted: FACETED_RULE,
   teleports: {},
   plated: {},

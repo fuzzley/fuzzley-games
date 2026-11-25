@@ -123,19 +123,17 @@ describe("playRound()", () => {
     ]).toEqual([1, 2, 4]);
   });
 
-  // The fixture turns off the hatches' bars, which the stand-ins hold it
-  // up at and the game's own rules don't yet.
+  // The fixture meets a lock, which the stand-ins shut by its bolts, and
+  // the game's own rules don't yet.
   it("flies by the game's trait rules unless it is handed others", () => {
-    const { start, shot, rules } = FLIGHT_FIXTURES.hatch;
+    const { start, shot, rules } = FLIGHT_FIXTURES.bolt;
 
     const round = playRound(start, shot, rules);
 
     expect([
-      round.flight.events.some(
-        (event) => event.kind === "turn" && event.off === "bar",
-      ),
+      round.flight.events.some(({ kind }) => kind === "bolt"),
       round,
-    ]).toStrictEqual([true, playRound(start, shot, rules, TRAIT_RULES)]);
+    ]).toStrictEqual([false, playRound(start, shot, rules, TRAIT_RULES)]);
   });
 
   it("throws for an aim that isn't one of the 657", () => {

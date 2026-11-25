@@ -20,7 +20,7 @@ function levelFrom(picture: readonly string[]): Level {
 /** A level of one plain brick, which opens on row 5 of a field 11 deep, under the jump line. */
 const ONE_BRICK = levelFrom(["o........"]);
 
-/** A level of a spring brick, whose break earns a floor bounce by the stand-ins' rules. */
+/** A level of a spring brick, whose break earns a floor bounce. */
 const ONE_SPRING = levelFrom(["S........"]);
 
 /** A level of a row of plain bricks. */

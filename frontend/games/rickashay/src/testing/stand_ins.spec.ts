@@ -40,12 +40,16 @@ function strikePlated(sides: number): Struck {
 }
 
 describe("STAND_INS", () => {
-  it.each(["never", "slants", "faceted", "regrows"] as const)(
-    "keeps the game's own rule for %s",
-    (trait) => {
-      expect(STAND_INS[trait]).toBe(TRAIT_RULES[trait]);
-    },
-  );
+  it.each([
+    "never",
+    "slants",
+    "holds",
+    "springs",
+    "faceted",
+    "regrows",
+  ] as const)("keeps the game's own rule for %s", (trait) => {
+    expect(STAND_INS[trait]).toBe(TRAIT_RULES[trait]);
+  });
 
   it("shields a plated brick where the turn met its plates alone", () => {
     expect(strikePlated(FLOORWARD).shield).toBe("plate");
@@ -57,22 +61,6 @@ describe("STAND_INS", () => {
     ["a long 45° face, along no side", 0],
   ])("strikes a plated brick met on %s", (_, sides) => {
     expect(strikePlated(sides).shield).toBeNull();
-  });
-
-  it("earns a floor bounce as a spring brick breaks", () => {
-    const calls: string[] = [];
-
-    STAND_INS.springs.broken?.(notingHooks(calls), 0, brickOf("spring"));
-
-    expect(calls).toEqual(["earn"]);
-  });
-
-  it("holds the fuzzball up as it meets a hatch", () => {
-    const calls: string[] = [];
-
-    STAND_INS.holds.met?.(notingHooks(calls), 0, brickOf("hatch"));
-
-    expect(calls).toEqual(["hold"]);
   });
 
   it("shuts a lock by its tint's bolts", () => {
