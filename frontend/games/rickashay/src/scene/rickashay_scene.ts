@@ -398,10 +398,10 @@ export class RickashayScene extends Scene {
    * wall the view showed as the frame began, as the frame that reaches a
    * brick's break hands over a wall it has left, and one that reaches a
    * flight's last events the wall that comes down under where the flight's
-   * still shows. A hatch's dip and swing play nothing, as the wall's
-   * painter moves no brick it bakes, so a hatch's bar loses its dot and
-   * opens at once, as the wall the view hands over shows it; a lock's
-   * slide plays nothing till its brick is drawn.
+   * still shows. A hatch's dip and swing and a lock's slide play nothing,
+   * as the wall's painter moves no brick it bakes, so a hatch's bar loses
+   * its dot and opens at once, and a lock's bolt is drawn back at once, as
+   * the wall the view hands over shows them.
    */
   private flourish(
     flourish: Flourish,

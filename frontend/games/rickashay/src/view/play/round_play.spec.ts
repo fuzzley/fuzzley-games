@@ -11,15 +11,18 @@ import {
   STEP_MS,
 } from "@fz/brick-wall/view/timing";
 import type { FlightEvent, FlightEventKind } from "../../rules/flight/events";
+import { playRound } from "../../rules/round/round";
 import { BOUNCE_POINTS, FLIGHT_RULES, JUMP_POINTS } from "../../rules/tuning";
 import {
   FLIGHT_FIXTURES,
   type FixtureName,
   type FlightFixture,
 } from "../../testing/flight_fixtures";
+import { aimAt, startAt } from "../../testing/shots";
 import type { Beat, RoundNews } from "../run_state";
 import { flightEffects } from "../effects/effects";
 import type { SoundName } from "../effects/sounds";
+import { lockTint } from "../art/lock_tint";
 import { FLIGHT_PACE } from "./pace";
 import { type PlayOptions, RoundPlay } from "./round_play";
 
@@ -92,6 +95,14 @@ function hatchTints(play: RoundPlay): number[] {
   return play.view.wall.bricks.flatMap((brick) =>
     brick?.kind === "hatch" ? [brick.tint] : [],
   );
+}
+
+/** Returns the tint of each lock in the wall a level's play draws, by wall cell, or none where a lock broke. */
+function lockTints(
+  play: RoundPlay,
+  cells: readonly number[],
+): (number | null)[] {
+  return cells.map((cell) => play.view.wall.bricks[cell]?.tint ?? null);
 }
 
 /** Returns the events a level's play has handed on, in order. */
@@ -677,6 +688,78 @@ describe("What RoundPlay's flight does to the counts", () => {
     playUntilReached(play, eventOf(bolt, "bolt"));
 
     expect(play.view.boltsDrawn).toBe(1);
+  });
+
+  describe("at each bolt drawn", () => {
+    // At the lowest aim between the side walls, up to the ceiling and
+    // down, by rules that let it fly long unbored: a lock of 3 bolts in
+    // row 9, met shut at the 8th turn, and broken at the 15th; a lock of
+    // 1 bolt over it, met open at the 11th turn and broken; and a lock of
+    // 1 bolt waiting over the ceiling, in row 11.
+    const start = startAt(["x........", "x........", "z........"], {
+      lowestRow: 9,
+    });
+    const shot = { aim: aimAt(8) };
+    const rules = { ...FLIGHT_RULES, bored: 200 };
+    const fixture: FlightFixture = {
+      start,
+      shot,
+      rules,
+      round: playRound(start, shot, rules),
+    };
+    /** The wall cell of the lock of 1 bolt in the field. */
+    const ONE_BOLT = 9;
+    /** The locks' wall cells: the lock of 3 bolts, of 1 over it, and of 1 over the ceiling. */
+    const LOCKS = [0, ONE_BOLT, 18];
+
+    it.each([
+      [0, [lockTint(3, 1), lockTint(1, 1), 1]],
+      [1, [lockTint(3, 2), lockTint(1, 2), 1]],
+      [2, [lockTint(3, 3), null, 1]],
+    ])(
+      "shows each lock in the field a bolt more drawn back, by its tint, as far as its bolts go, and none over the ceiling: after bolt %i",
+      (nth, tints) => {
+        const play = playing(fixture);
+
+        playUntilReached(play, eventOf(fixture, "bolt", nth));
+
+        expect(lockTints(play, LOCKS)).toEqual(tints);
+      },
+    );
+
+    it("leaves a lock already open as it was, the same brick", () => {
+      const play = playing(fixture);
+      playUntilReached(play, eventOf(fixture, "bolt", 0));
+      const open = play.view.wall.bricks[ONE_BOLT];
+
+      playUntilReached(play, eventOf(fixture, "bolt", 1));
+
+      expect(play.view.wall.bricks[ONE_BOLT]).toBe(open);
+    });
+  });
+
+  it("leaves every brick but the locks as it was at a bolt drawn, whatever its tint", () => {
+    const play = playing(bolt);
+    const others = () =>
+      play.view.wall.bricks.filter((brick) => brick?.kind !== "lock");
+    const before = others();
+
+    playUntilReached(play, eventOf(bolt, "bolt"));
+
+    expect({
+      tinted: before.some((brick) => (brick?.tint ?? 0) > 0),
+      others: others(),
+    }).toEqual({ tinted: true, others: before });
+  });
+
+  it("shows every lock shut on the wall the round leaves as the fuzzball lands", () => {
+    const play = playing(bolt);
+    playUntilReached(play, eventOf(bolt, "bolt"));
+    const drawnBack = lockTints(play, [8]);
+
+    playUntilLanded(play);
+
+    expect([drawnBack, lockTints(play, [8])]).toEqual([[lockTint(1, 1)], [1]]);
   });
 
   it("shuts the hatches and the locks again as the fuzzball lands", () => {

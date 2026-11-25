@@ -1,11 +1,8 @@
 import { cellArea } from "@fz/brick-wall/view/art";
 import { frameNamed } from "@fz/phaser/testing/pure";
 import { ART_PALETTE, ART_SCALE } from "../testing/art_frames";
-import {
-  DRAWN_KINDS,
-  brickLayers,
-  wallAtlasFrames,
-} from "../view/art/atlas_frames";
+import { KIND_IDS } from "../rules/catalog/kinds";
+import { brickLayers, wallAtlasFrames } from "../view/art/atlas_frames";
 import { FRAMES as FRAME_NAMES } from "../view/art/frames";
 import { PICTURE_FRAMES, atlasWithPictures, pictureFrames } from "./pictures";
 
@@ -18,8 +15,8 @@ function layered(layers: readonly string[]): unknown[] {
 }
 
 describe("PICTURE_FRAMES", () => {
-  it("names a picture of each drawn kind of brick", () => {
-    expect(Object.keys(PICTURE_FRAMES.bricks)).toEqual(DRAWN_KINDS);
+  it("names a picture of each kind of brick", () => {
+    expect(Object.keys(PICTURE_FRAMES.bricks)).toEqual(KIND_IDS);
   });
 
   it("names a floor bounce's spring, unlit and lit, as the band draws it", () => {
@@ -51,6 +48,20 @@ describe("pictureFrames", () => {
     expect(tough?.commands).toEqual(
       layered(
         brickLayers({ kind: "tough", tint: 0, hits: 2, full: 2, plates: 0 }),
+      ),
+    );
+  });
+});
+
+describe("pictureFrames, of a lock", () => {
+  it("draws a lock as the legend first writes it, of 1 bolt, shut", () => {
+    const frames = pictureFrames(FRAMES, ART_SCALE);
+
+    const lock = frames.find((frame) => frame.name === "picture-lock");
+
+    expect(lock?.commands).toEqual(
+      layered(
+        brickLayers({ kind: "lock", tint: 1, hits: 1, full: 1, plates: 0 }),
       ),
     );
   });

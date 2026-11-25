@@ -26,6 +26,7 @@ import {
   fieldShape,
   toCanvas,
 } from "@fz/brick-wall/view/field_metrics";
+import { TINT } from "@fz/brick-wall/view/inks";
 import { RING_MS } from "@fz/brick-wall/view/timing";
 import { EventLog, type EventLogView } from "@fz/core/event_log";
 import type { Insets } from "@fz/phaser/insets";
@@ -53,6 +54,7 @@ import { FIELD_FRAMES } from "../view/art/field_frames";
 import { GUIDE_FRAMES } from "../view/art/guide_frames";
 import { FRAMES, FURS } from "../view/art/frames";
 import { eyesAt } from "../view/art/fuzzball_art";
+import { lockTint } from "../view/art/lock_tint";
 import { EFFECT_FRAMES } from "../view/art/effect_frames";
 import { PILL_FRAMES, digitAcross, pillPlace } from "../view/art/pill_art";
 import { brickColor } from "../view/colors/brick_colors";
@@ -774,18 +776,22 @@ describe("RickashayScene", () => {
       ).toEqual([FRAMES.pips(2)]);
     });
 
-    it("stamps nothing for a brick whose kind's art isn't drawn yet", async () => {
-      const wall = wallFrom(["o..x....."], WALL_LEGEND, { lowestRow: 3 });
+    // A lock of 3 bolts, 2 of them drawn back, as the view writes its look.
+    it("stamps a lock's tile and its slots, its bolts by the look the view gives it", async () => {
+      const wall = wallFrom(["o..z....."], WALL_LEGEND, { lowestRow: 3 });
+      const bricks = wall.bricks.map((brick) =>
+        brick?.kind === "lock"
+          ? { ...brick, tint: lockTint(brick.tint, 2) }
+          : brick,
+      );
       const { shell } = await startBoard((each) => {
-        each.round = viewOf(wall);
+        each.round = viewOf({ ...wall, bricks });
       });
-      const metrics = metricsAt();
-      const { depth } = shell.fieldShape;
 
-      expect({
-        brick: framesAt(metrics, depth, 3, 0).length,
-        lock: framesAt(metrics, depth, 3, 3),
-      }).toEqual({ brick: 1, lock: [] });
+      expect(framesAt(metricsAt(), shell.fieldShape.depth, 3, 3)).toEqual([
+        FRAMES.tile(TINT.violet),
+        FRAMES.lock("3-1"),
+      ]);
     });
 
     it("frames each brick the level needs one step from losing it in the field's warning frame", async () => {
@@ -1429,7 +1435,7 @@ describe("RickashayScene", () => {
       expect({ x: camera.x, y: camera.y }).not.toEqual(rest);
     });
 
-    it("plays nothing for a hatch's dip or the hatches' swing, as the painter moves no brick it bakes, or a lock's slide, whose brick isn't drawn yet", async () => {
+    it("plays nothing for a hatch's dip, the hatches' swing or a lock's slide, as the painter moves no brick it bakes", async () => {
       const { scene, events, run } = await startPlaying();
 
       logEvent(

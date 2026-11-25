@@ -2,13 +2,14 @@
 // playback, as the shell hands them: the round aimed, then, once it is
 // released, its flight at its pace and its wall's step or jump after it.
 // What each of the flight's events does to the frame the scene draws is
-// this game's own: a cell's hits, a hatch's dots, the fuzzball's heading,
-// rally and fur, the floor bounces in hand, the hatches' holds and the
-// bolts drawn; and what it calls for, effects/effects.ts's, is logged with
-// it.
+// this game's own: a cell's hits, a hatch's dots, a lock's bolts, the
+// fuzzball's heading, rally and fur, the floor bounces in hand, the
+// hatches' holds and the bolts drawn; and what it calls for,
+// effects/effects.ts's, is logged with it.
 
 import type { LevelCard, RoundPhase } from "@fz/brick-wall/view/rounds_played";
 import { RADIUS } from "@fz/brick-wall/rules/field";
+import { fieldRowOf } from "@fz/brick-wall/rules/grid";
 import { inDanger } from "@fz/brick-wall/rules/wall";
 import {
   type DecidedRound,
@@ -38,6 +39,7 @@ import {
 } from "../../rules/tuning";
 import type { Fur } from "../art/frames";
 import { hatchTint } from "../art/hatch_tint";
+import { lockTint } from "../art/lock_tint";
 import {
   type EventEffects,
   QUIET,
@@ -172,7 +174,9 @@ export class RoundPlay {
           return effects;
         },
         isLanding: (event) => event.kind === "land",
-        changesOf: leftBy,
+        changesOf: (event, cells, leave) => {
+          leftBy(event, cells, leave, this.aimed);
+        },
       },
       start.wall,
       { event: NO_EVENT, effects: QUIET },
@@ -538,19 +542,25 @@ function decided(round: Round): DecidedRound<KindId, FlightEvent> {
 }
 
 /**
- * Says the bricks an event of a flight leaves, from the cells as the events
- * before it leave them: a strike leaves its brick the hits it took fewer,
- * or none once it breaks; and a hold leaves every hatch the look of the
- * holds left, as its tint: a dot fewer on its bar, or open at the last,
- * as the hatches open.
+ * Says the bricks an event of a flight from a start leaves, from the cells
+ * as the events before it leave them: a strike leaves its brick the hits it
+ * took fewer, or none once it breaks; a hold leaves every hatch the look of
+ * the holds left, as its tint: a dot fewer on its bar, or open at the last,
+ * as the hatches open; and a bolt drawn leaves every lock in the field the
+ * look of the bolts drawn back, as its tint.
  */
 function leftBy(
   event: FlightEvent,
   cells: readonly (Brick | null)[],
   leave: (cell: number, brick: Brick | null) => void,
+  start: RoundStart,
 ): void {
   if (event.kind === "hold") {
     showHatches(cells, hatchTint(event.left), leave);
+    return;
+  }
+  if (event.kind === "bolt") {
+    showLocks(cells, event.drawn, start, leave);
     return;
   }
   if (event.kind !== "strike") return;
@@ -570,6 +580,25 @@ function showHatches(
 ): void {
   cells.forEach((brick, cell) => {
     if (brick?.kind === "hatch") leave(cell, { ...brick, tint });
+  });
+}
+
+/**
+ * Says, through `leave`, every lock among the cells that stands in the
+ * field of a start with the look of some bolts drawn back, as its tint, a
+ * slot more emptied, as far as its bolts go; a lock that is open already,
+ * or waits over the ceiling, where no bolt is drawn, stays as it is.
+ */
+function showLocks(
+  cells: readonly (Brick | null)[],
+  drawn: number,
+  { wall, depth }: RoundStart,
+  leave: (cell: number, brick: Brick | null) => void,
+): void {
+  cells.forEach((brick, cell) => {
+    if (brick?.kind !== "lock" || fieldRowOf(wall, cell) >= depth) return;
+    const tint = lockTint(brick.tint, drawn);
+    if (tint !== brick.tint) leave(cell, { ...brick, tint });
   });
 }
 

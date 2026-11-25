@@ -22,7 +22,9 @@ import {
   FRAME_NAMES,
   FURS,
   HATCH_HOLDS,
+  BOLTS,
   INKS,
+  LOCK_LOOKS,
   MOSS_HITS,
   PIPS,
   PLATED_HITS,
@@ -289,7 +291,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems, 2 portals, 6 plated bricks' plates, and a moss brick's cap and 2 dice of pips, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems, 2 portals, 6 plated bricks' plates, a moss brick's cap and 2 dice of pips, and 9 locks' slots, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
@@ -304,6 +306,7 @@ describe("atlasFrames", () => {
       ...PLATED_FRAMES,
       FRAMES.mossCap,
       ...MOSS_HITS.map(FRAMES.moss),
+      ...BOLTS.flatMap((bolts) => LOCK_LOOKS[bolts].map(FRAMES.lock)),
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,
@@ -311,7 +314,7 @@ describe("atlasFrames", () => {
     ]);
   });
 
-  it("leaves out only the cracks, the steel's and the ramps' rivets, and the plates' rivets and half their teeth at 29 CSS pixels a unit, where 31 shows them", () => {
+  it("leaves out only the cracks, the steel's and the ramps' rivets, the plates' rivets and half their teeth, and the shut bolts' keyholes at 29 CSS pixels a unit, where 31 shows them", () => {
     const small = atlasFrames(ART_PALETTE, { unit: 58, pixelRatio: 2 });
 
     const fewer = ART_FRAMES.filter(
@@ -323,6 +326,7 @@ describe("atlasFrames", () => {
       FRAMES.steel,
       ...RAMP_CORNERS.map(FRAMES.ramp),
       ...PLATED_FRAMES,
+      ...BOLTS.flatMap((bolts) => LOCK_LOOKS[bolts].slice(1).map(FRAMES.lock)),
     ]);
   });
 });
@@ -385,9 +389,9 @@ describe("brickLayers", () => {
     ).toEqual([FRAMES.tile(0), FRAMES.pips(2), FRAMES.cracks(1)]);
   });
 
-  it("shows nothing for a brick whose kind's art isn't drawn yet", () => {
+  it("shows a lock's tile and its slots, by its tint", () => {
     expect(
-      brickLayers({ kind: "lock", tint: 1, hits: 1, full: 1, plates: 0 }),
-    ).toEqual([]);
+      brickLayers({ kind: "lock", tint: 2, hits: 1, full: 1, plates: 0 }),
+    ).toEqual([FRAMES.tile(6), FRAMES.lock("2-2")]);
   });
 });

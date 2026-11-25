@@ -46,6 +46,9 @@ function stripOf(ink: number): number {
 // kind's color. The cap's scalloped foot, and the shadow under it, keep
 // less than 3:1 against that tile in every palette, as Brick Fuzz Pop's
 // do: the kind is told by its sprout and its cap's outline, which keep it.
+// A lock's slots are cut out of its violet tile in the marks' color, and
+// its bolts are steel in them, which the library's spec holds against the
+// field, the marks' color.
 describe("the field's contrast", () => {
   holdContrast(({ id, mode }) => {
     const palette = wallPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);

@@ -121,7 +121,7 @@ export const FRAMES = {
   mossCap: "moss-cap",
   /** A moss brick's pips for its hits left, below its cap. */
   moss: (hits: MossHits) => `moss-${hits}` as const,
-  /** A lock's tile and a slot for each of its bolts, those still shut in theirs. */
+  /** A lock's slot for each of its bolts, over its tile, each bolt shut in its slot or drawn back. */
   lock: (look: LockLook) => `lock-${look}` as const,
   /** The fuzzball, its fur lifted by its rally. */
   fuzzball: (fur: Fur) => `fuzzball-${fur}` as const,
