@@ -9,10 +9,6 @@ field drawn with Phaser in an Angular shell. Every game's, in
   skill.** It has the three Vitest projects and what runs in each, the
   helpers that draw a wall and fly a shot at it, and the mutation pass
   every change here ends with.
-- **Read it too before running `yarn certify:levels` because a replay
-  failed.** The failure's message says to certify again, which makes the
-  replay pass whatever broke it. Where the change wasn't meant to change
-  how a shot plays, the failed replay is the bug.
 - **Before adding a level, a set, a brick kind or a brick trait, read the
   `brick-fuzz-pop-content` skill.** It has the files each takes, the order
   they land in and the checks that hold each.

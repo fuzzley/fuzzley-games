@@ -4,6 +4,10 @@ These rules hold for `@fz/brick-wall`, what the wall games share, laid out
 in a game's own layers. The frontend's, in
 [frontend/AGENTS.md](../../AGENTS.md), and the repository's apply too.
 
+- **Before writing or changing a spec here, read the `brick-wall-testing`
+  skill.** It says which of the wall games' cases go in the specs here,
+  over the made-up games, and what the games' own specs share through the
+  testing entries.
 - **Nothing here names a game.** Doc comments speak of "a wall game", and
   specs use kinds made up for them, never a game's own. What differs
   between the games is data, a function or a type parameter

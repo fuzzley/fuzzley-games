@@ -33,6 +33,13 @@ These rules hold for every game under `frontend/games/`. The frontend's, in
 - **Before writing or changing a scene, read the `phaser-core` skill.** It
   has what a scene lets go of as it ends, since the host's one game
   outlives every scene, and how one hears the keys.
+- **In a game on `@fz/brick-wall`, read the library's
+  [`brick-wall-testing`](../lib/brick-wall/.agents/skills/brick-wall-testing/SKILL.md)
+  skill before running `yarn certify:levels` because a replay failed.**
+  Only an agent working in the library is offered it by name, so open it
+  at its path. The failure's message says to certify again, which makes
+  the replay pass whatever broke it. Where the change wasn't meant to
+  change how a shot plays, the failed replay is the bug.
 - **Saved games outlive the code.** What a game stores goes through
   `@fz/ui/storage`: settings and records as a `storedSignal()`, a game
   under way with `keepSaved()`. State a change adds to a game in play joins
