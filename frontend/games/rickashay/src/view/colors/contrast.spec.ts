@@ -40,7 +40,12 @@ function stripOf(ink: number): number {
 // band they stand in, and the rally's number, text, 4.5:1 against its
 // pill. Each pair of portals' arms keep 3:1 against its eye, and its
 // badge, in the arms' color, against the disc it is cut out on, in the
-// marks' color.
+// marks' color. A moss brick's cap, which tops its outline, keeps 3:1
+// against the field, and its sprout, cut out of the cap in the marks'
+// color, against the cap; its pips are the marks on its amber tile, its
+// kind's color. The cap's scalloped foot, and the shadow under it, keep
+// less than 3:1 against that tile in every palette, as Brick Fuzz Pop's
+// do: the kind is told by its sprout and its cap's outline, which keep it.
 describe("the field's contrast", () => {
   holdContrast(({ id, mode }) => {
     const palette = wallPalette(PALETTES.rolesIn(id, FIELD_ROLES), mode);
@@ -69,6 +74,7 @@ describe("the field's contrast", () => {
           ];
         }),
         ["hatch's chevrons", palette.chevrons],
+        ["moss's cap", palette.mossCap],
       ]),
       ...kinds.flatMap(([name, color]) =>
         against(name, color, [["marks", palette.mark]]),
@@ -78,6 +84,9 @@ describe("the field's contrast", () => {
           ["cracks", palette.mark],
         ]),
       ),
+      ...against("moss's cap", palette.mossCap, [
+        ["moss's sprout", palette.mark],
+      ]),
       ...against("floor's band", palette.band, [
         ["lit springs", palette.springs.on],
         ["unlit springs", palette.springs.off],

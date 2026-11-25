@@ -23,6 +23,7 @@ import {
   FURS,
   HATCH_HOLDS,
   INKS,
+  MOSS_HITS,
   PIPS,
   PLATED_HITS,
   PLATINGS,
@@ -288,7 +289,7 @@ describe("atlasFrames", () => {
     }).toEqual({ once: true, unnamed: [] });
   });
 
-  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems, 2 portals and 6 plated bricks' plates, then the fuzzball's", () => {
+  it("holds the bricks' frames in the catalog's order, 8 tiles, 5 pips, 5 cracks, the steel, 4 ramps, a hatch's 3 bars and its open one, the spring brick's coil, 8 gems, 2 portals, 6 plated bricks' plates, and a moss brick's cap and 2 dice of pips, then the fuzzball's", () => {
     expect(ART_FRAMES.map((frame) => frame.name)).toEqual([
       ...INKS.map(FRAMES.tile),
       ...PIPS.map(FRAMES.pips),
@@ -301,6 +302,8 @@ describe("atlasFrames", () => {
       ...INKS.map(FRAMES.gem),
       ...PORTAL_MARKS.map(FRAMES.portal),
       ...PLATED_FRAMES,
+      FRAMES.mossCap,
+      ...MOSS_HITS.map(FRAMES.moss),
       ...FURS.map(FRAMES.fuzzball),
       FRAMES.hotShot,
       FRAMES.eyes,

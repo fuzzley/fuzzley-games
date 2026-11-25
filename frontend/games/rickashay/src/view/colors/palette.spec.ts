@@ -2,6 +2,8 @@ import {
   FIELD_ROLES as WALL_ROLES,
   wallPalette as wallColors,
 } from "@fz/brick-wall/view/palette";
+import { TINT } from "@fz/brick-wall/view/inks";
+import { TILE_INKS, mixColors } from "@fz/phaser/color";
 import { FIELD_ROLES, type PaletteRoles, wallPalette } from "./palette";
 
 // Each role differs from the others, from white and black, and from every
@@ -58,6 +60,18 @@ describe("wallPalette", () => {
   it("draws a portal's eye in the page's color", () => {
     expect(wallPalette(ROLES, "dark").portalEye).toBe(0xeeeeee);
   });
+
+  it.each([
+    ["light", 0.12],
+    ["dark", 0.3],
+  ] as const)(
+    "draws a moss brick's cap in the green tile's ink of a %s palette with %f of white over it",
+    (mode, white) => {
+      expect(wallPalette(ROLES, mode).mossCap).toBe(
+        mixColors(0xffffff, TILE_INKS[mode][TINT.green] ?? NaN, white),
+      );
+    },
+  );
 });
 
 describe("FIELD_ROLES", () => {

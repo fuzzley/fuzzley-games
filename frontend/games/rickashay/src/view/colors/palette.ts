@@ -1,8 +1,9 @@
 // Rickashay's palette: the colors every wall game's field is drawn in, from
 // `@fz/brick-wall/view/palette`, and its own, after the design's art: the
 // floor bounces' springs, the rally's pill, the rings at the guide's turns,
-// the streak a fuzzball's dash home leaves, a hatch's chevrons and a portal's
-// eye. The hot shot is the library's `hotShot` and `spark`.
+// the streak a fuzzball's dash home leaves, a hatch's chevrons, a portal's
+// eye and a moss brick's cap. The hot shot is the library's `hotShot` and
+// `spark`.
 
 import {
   type PaletteRoles as WallRoles,
@@ -10,7 +11,8 @@ import {
   type WallPalette as WallColors,
   wallPalette as wallColors,
 } from "@fz/brick-wall/view/palette";
-import { colorNumber } from "@fz/phaser/color";
+import { TINT, inkAt } from "@fz/brick-wall/view/inks";
+import { colorNumber, mixColors } from "@fz/phaser/color";
 import type { ColorMode, PaletteRole } from "@fz/style/themes";
 
 /**
@@ -31,7 +33,7 @@ export const FIELD_ROLES: Readonly<Record<keyof PaletteRoles, PaletteRole>> = {
 /**
  * Describes the field's colors, as the numbers Phaser takes: those every
  * wall game draws in, and Rickashay's springs, pill, guide's rings, streak,
- * hatch's chevrons and portal's eye.
+ * hatch's chevrons, portal's eye and moss brick's cap.
  */
 export interface WallPalette extends WallColors {
   /**
@@ -59,7 +61,19 @@ export interface WallPalette extends WallColors {
   readonly chevrons: number;
   /** A portal's eye, inside its ring: the page's color, as the design's art draws it. */
   readonly portalEye: number;
+  /**
+   * A moss brick's cap, which its sprout is cut out of in the marks'
+   * color: the green tile's ink with 0.12 of white over it in a light
+   * palette and 0.3 in a dark one, as the design's art draws it.
+   */
+  readonly mossCap: number;
 }
+
+/** How much white a moss brick's cap takes over the green tile's ink, in each mode: the art's. */
+const MOSS_LIGHT: Readonly<Record<ColorMode, number>> = {
+  light: 0.12,
+  dark: 0.3,
+};
 
 /** Returns the field's colors in a palette's roles, with the inks of its mode. */
 export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
@@ -73,5 +87,10 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
     streak: { plain: colors.fuzzball, hot: colors.hotShot },
     chevrons: colorNumber(roles.fieldMuted),
     portalEye: colorNumber(roles.page),
+    mossCap: mixColors(
+      0xffffff,
+      inkAt(colors.tints, TINT.green),
+      MOSS_LIGHT[mode],
+    ),
   };
 }
