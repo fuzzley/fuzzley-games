@@ -12,7 +12,7 @@ import {
   settledPictures,
 } from "@fz/phaser/canvas";
 import { cssHex } from "@fz/phaser/color";
-import type { Brick } from "../../rules/catalog/kinds";
+import { type Brick, KIND_IDS } from "../../rules/catalog/kinds";
 import {
   CALL_WORDS,
   JUMP_WORDS,
@@ -27,7 +27,7 @@ import type {
 import { brickColor } from "../../view/colors/brick_colors";
 import { CALL_MS } from "../../view/effects/timing";
 import { showsEveryFigure } from "../bar/figures";
-import { HELP_KIND_IDS, kindPictures, kindWords } from "../help/kinds";
+import { kindPictures, kindWords } from "../help/kinds";
 import { ThisShotComponent } from "../panels/this_shot.component";
 import { GameService } from "../play/game.service";
 import { BoardCardComponent } from "./board_card.component";
@@ -113,8 +113,8 @@ export class BoardComponent {
     return (brick: Brick): string => cssHex(brickColor(brick, palette));
   });
 
-  /** Every kind of brick the shell lists, in the catalog's order, which In this wall lists those of the wall from. */
-  protected readonly kinds = HELP_KIND_IDS;
+  /** Every kind of brick, in the catalog's order, which In this wall lists those of the wall from. */
+  protected readonly kinds = KIND_IDS;
 
   /** Returns a kind of brick's name and what it does, as In this wall lists it. */
   protected readonly kindWords = kindWords;

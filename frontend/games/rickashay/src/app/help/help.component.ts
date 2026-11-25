@@ -6,7 +6,7 @@ import {
   helpEntries,
 } from "@fz/game-ui/help_catalog";
 import { HelpDialogComponent } from "@fz/game-ui/help_dialog";
-import type { KindId } from "../../rules/catalog/kinds";
+import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import { ROWS_READ } from "../../rules/run/describe";
 import {
   BOUNCE_POINTS,
@@ -17,7 +17,7 @@ import {
   STRIKE_POINTS,
   bounceRally,
 } from "../../rules/tuning";
-import { HELP_KIND_IDS, kindPictures, kindWords } from "./kinds";
+import { kindPictures, kindWords } from "./kinds";
 
 /**
  * The pictures How to play shows, each an image's URL: each drawn kind of
@@ -113,7 +113,7 @@ export class HelpComponent {
         heading: "Bricks",
         intro: null,
         entries: helpEntries(
-          HELP_KIND_IDS,
+          KIND_IDS,
           kindWords,
           (pictures && kindPictures(pictures.bricks)) ?? undefined,
         ),

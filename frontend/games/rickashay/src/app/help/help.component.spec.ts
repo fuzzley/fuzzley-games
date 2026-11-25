@@ -1,8 +1,8 @@
 import { render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
-import { kindOf } from "../../rules/catalog/kinds";
+import { KIND_IDS, kindOf } from "../../rules/catalog/kinds";
 import { type HelpPictures, HelpComponent } from "./help.component";
-import { HELP_KIND_IDS, HELP_KINDS } from "./kinds";
+import { HELP_KINDS } from "./kinds";
 
 /** Returns a picture as the scene encodes one, holding nothing but a name. */
 function pictureOf(name: string): string {
@@ -304,7 +304,7 @@ describe("HelpComponent", () => {
         .getAllByRole("listitem")
         .map((item) => item.textContent.replace(/\s+/g, " ").trim()),
     ).toEqual(
-      HELP_KIND_IDS.map((id) => `${kindOf(id).name}. ${HELP_KINDS[id].about}`),
+      KIND_IDS.map((id) => `${kindOf(id).name}. ${HELP_KINDS[id].about}`),
     );
   });
 
@@ -324,13 +324,13 @@ describe("HelpComponent", () => {
     await renderHelp(PICTURES);
 
     expect(
-      HELP_KIND_IDS.map((id) => {
+      KIND_IDS.map((id) => {
         const entry = screen.getByText(`${kindOf(id).name}.`).closest("li");
         return (
           entry && within(entry).getByRole("presentation").getAttribute("src")
         );
       }),
-    ).toEqual(HELP_KIND_IDS.map((id) => PICTURES.bricks[id]));
+    ).toEqual(KIND_IDS.map((id) => PICTURES.bricks[id]));
   });
 
   it("asks to close at its close button", async () => {

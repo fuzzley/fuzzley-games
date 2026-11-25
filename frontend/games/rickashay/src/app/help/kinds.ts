@@ -3,7 +3,6 @@
 // it into play adds a file and a line here.
 
 import type { KindWords } from "@fz/brick-wall/app/panels";
-import { isKeyOf } from "@fz/core/records";
 import { KIND_IDS, type KindId, kindOf } from "../../rules/catalog/kinds";
 import { BRICK_HELP } from "./kinds/brick";
 import { GEM_HELP } from "./kinds/gem";
@@ -23,7 +22,7 @@ export interface KindHelp {
   readonly about: string;
 }
 
-/** Every kind of brick the shell lists, by id. */
+/** Every kind of brick, by id, as the shell lists it. */
 export const HELP_KINDS = {
   brick: BRICK_HELP,
   tough: TOUGH_HELP,
@@ -38,16 +37,8 @@ export const HELP_KINDS = {
   lock: LOCK_HELP,
 } as const satisfies Readonly<Record<KindId, KindHelp>>;
 
-/** The id of a kind of brick the shell lists, such as "steel". */
-export type HelpKindId = keyof typeof HELP_KINDS;
-
-/** Every kind of brick the shell lists, in the catalog's order. */
-export const HELP_KIND_IDS: readonly HelpKindId[] = KIND_IDS.filter(
-  (id): id is HelpKindId => isKeyOf(id, HELP_KINDS),
-);
-
 /** Returns a kind of brick's name and what it does, as the shell lists it. */
-export function kindWords(id: HelpKindId): KindWords {
+export function kindWords(id: KindId): KindWords {
   return { name: kindOf(id).name, about: HELP_KINDS[id].about };
 }
 
@@ -70,13 +61,13 @@ type BakedPictures = Partial<Readonly<Record<KindId, string>>>;
  */
 export function kindPictures(
   bricks: BakedPictures,
-): Readonly<Record<HelpKindId, string>> | null {
+): Readonly<Record<KindId, string>> | null {
   return hasEveryKind(bricks) ? bricks : null;
 }
 
-/** Returns whether the scene baked a picture of every kind the shell lists. */
+/** Returns whether the scene baked a picture of every kind. */
 function hasEveryKind(
   bricks: BakedPictures,
-): bricks is BakedPictures & Readonly<Record<HelpKindId, string>> {
-  return HELP_KIND_IDS.every((id) => bricks[id] !== undefined);
+): bricks is BakedPictures & Readonly<Record<KindId, string>> {
+  return KIND_IDS.every((id) => bricks[id] !== undefined);
 }

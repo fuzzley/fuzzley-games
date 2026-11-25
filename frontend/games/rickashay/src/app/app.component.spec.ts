@@ -9,6 +9,7 @@ import { AnnouncerService } from "@fz/ui/announcer";
 import { type HeldLoad, OFFLINE, heldLoad } from "@fz/ui/testing";
 import { fireEvent, render, screen, within } from "@testing-library/angular";
 import { userEvent } from "@testing-library/user-event";
+import { KIND_IDS } from "../rules/catalog/kinds";
 import type { Pictures } from "../scene/pictures";
 import { PALETTES } from "../testing/roles";
 import {
@@ -26,7 +27,6 @@ import {
   provideBugReports,
 } from "./bug_report/bug_report_source";
 import { HelpComponent } from "./help/help.component";
-import { HELP_KIND_IDS } from "./help/kinds";
 import { GameService } from "./play/game.service";
 import { SettingsService } from "./settings/settings.service";
 import { LOAD_HELP } from "./tokens";
@@ -490,7 +490,7 @@ describe("AppComponent", () => {
         within(screen.getByRole("dialog", { name: "How to play" }))
           .getAllByRole("presentation")
           .map((img) => img.getAttribute("src")),
-      ).toEqual(HELP_KIND_IDS.map((kind) => bricks[kind]));
+      ).toEqual(KIND_IDS.map((kind) => bricks[kind]));
     });
 
     describe("on a slow connection", () => {

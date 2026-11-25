@@ -1,49 +1,14 @@
-import { isOneOf } from "@fz/core/records";
-import type { KindId } from "../../rules/catalog/kinds";
-import { LEVELS, parseLevel } from "../../rules/levels/levels";
+import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import { FLIGHT_RULES } from "../../rules/tuning";
-import { HELP_KIND_IDS, kindAbout, kindPictures, kindWords } from "./kinds";
+import { kindAbout, kindPictures, kindWords } from "./kinds";
 import { HATCH_HELP } from "./kinds/hatch";
 import { LOCK_HELP } from "./kinds/lock";
 import { MOSS_HELP } from "./kinds/moss";
-
-/** Each kind of brick a level of the game holds, once each. */
-const KINDS_IN_PLAY = new Set(
-  LEVELS.flatMap(({ data }) =>
-    parseLevel(data).bricks.flatMap((brick) =>
-      brick === null ? [] : [brick.kind],
-    ),
-  ),
-);
 
 /** Returns a picture as a scene hands one over, holding nothing but a kind's id. */
 function pictureOf(kind: KindId): string {
   return `data:image/png;base64,${btoa(kind)}`;
 }
-
-describe("HELP_KIND_IDS", () => {
-  it("lists every kind a level of the game holds", () => {
-    expect(
-      [...KINDS_IN_PLAY].filter((kind) => !isOneOf(kind, HELP_KIND_IDS)),
-    ).toEqual([]);
-  });
-
-  it("lists the kinds in the catalog's order", () => {
-    expect(HELP_KIND_IDS).toEqual([
-      "brick",
-      "tough",
-      "steel",
-      "ramp",
-      "hatch",
-      "spring",
-      "gem",
-      "portal",
-      "plated",
-      "moss",
-      "lock",
-    ]);
-  });
-});
 
 describe("kindWords", () => {
   it("names a kind as the catalog does, with what it does", () => {
@@ -100,14 +65,19 @@ describe("kindPictures", () => {
       lock: pictureOf("lock"),
     });
 
-    expect(HELP_KIND_IDS.map((kind) => pictures?.[kind])).toEqual(
-      HELP_KIND_IDS.map(pictureOf),
+    expect(KIND_IDS.map((kind) => pictures?.[kind])).toEqual(
+      KIND_IDS.map(pictureOf),
     );
   });
 
-  it("gives none while a kind listed has no picture", () => {
-    expect(
-      kindPictures({ brick: pictureOf("brick"), steel: pictureOf("steel") }),
-    ).toBeNull();
+  it.each(KIND_IDS)("gives none while %s has no picture", (missing) => {
+    const pictures = Object.fromEntries(
+      KIND_IDS.filter((kind) => kind !== missing).map((kind) => [
+        kind,
+        pictureOf(kind),
+      ]),
+    );
+
+    expect(kindPictures(pictures)).toBeNull();
   });
 });
