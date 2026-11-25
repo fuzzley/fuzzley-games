@@ -107,10 +107,10 @@ check's `LAYOUT_RUN` keep a run on a level by its number.
   fails while a set the game plays lacks its files, its floor, its depth or
   its specs, and `src/rules/levels/level_marks.spec.ts` while a level lacks
   its marks.
-- **Its kinds,** if it brings any in, are cataloged before its levels,
-  each with its `firstLevel` among them, and listed in How to play: a
-  level may hold only kinds `HELP_KINDS` lists, as
-  `src/app/help/kinds.spec.ts` holds.
+- **Its kinds,** if it brings any in, are cataloged, drawn and listed
+  before its levels, as "A Kind of Brick" says, each with its
+  `firstLevel` among them: `levelProblem()` refuses a kind in a level
+  before its first, and a kind's first level without it.
 - **Its time:** each set adds to `sim`, which CI's test job runs within
   its time limit, so time the set's `sim` specs on one worker
   (`--maxWorkers 1`), and `every_level/` with every set in, and say both

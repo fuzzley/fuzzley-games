@@ -12,6 +12,7 @@ import { unknownKey } from "@fz/core/json";
 import type { KindId } from "../catalog/kinds";
 import angles from "./angles.json";
 import { PICTURE_RULES } from "./level_rules";
+import longRallies from "./long-rallies.json";
 import tricks from "./tricks.json";
 import warmUp from "./warm-up.json";
 
@@ -41,7 +42,12 @@ export interface LevelSetData {
 export type LevelEntry = NumberedLevel<LevelSetData, LevelData>;
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, angles, tricks];
+export const LEVEL_SETS: readonly LevelSetData[] = [
+  warmUp,
+  angles,
+  tricks,
+  longRallies,
+];
 
 /** Every level, in the order they are played. */
 export const LEVELS: readonly LevelEntry[] = levelsOf(LEVEL_SETS);

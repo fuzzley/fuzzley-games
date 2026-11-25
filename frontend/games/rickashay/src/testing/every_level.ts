@@ -19,9 +19,11 @@ import { describe, expect, it } from "vitest";
 import type { KindId } from "../rules/catalog/kinds";
 import type { RoundStart } from "../rules/flight/events";
 import angles from "../rules/levels/certificates/angles.json";
+import longRallies from "../rules/levels/certificates/long-rallies.json";
 import tricks from "../rules/levels/certificates/tricks.json";
 import warmUp from "../rules/levels/certificates/warm-up.json";
 import anglesLines from "../rules/levels/lines/angles.json";
+import longRalliesLines from "../rules/levels/lines/long-rallies.json";
 import tricksLines from "../rules/levels/lines/tricks.json";
 import warmUpLines from "../rules/levels/lines/warm-up.json";
 import { LEVEL_MARKS } from "../rules/levels/level_marks";
@@ -40,6 +42,7 @@ export const CERTIFICATES: Readonly<Record<string, holders.Certificates>> = {
   "warm-up": warmUp,
   angles,
   tricks,
+  "long-rallies": longRallies,
 };
 
 /** Every set's rally lines, by the set's id, as `yarn certify:levels` writes them: each level's line to its rally mark, by its id, then by the depth. */
@@ -47,6 +50,7 @@ export const RALLY_LINES: Readonly<Record<string, holders.Certificates>> = {
   "warm-up": warmUpLines,
   angles: anglesLines,
   tricks: tricksLines,
+  "long-rallies": longRalliesLines,
 };
 
 /** Every level's par and rally mark on every depth, the game's own, which the certificates' pars and the rally lines are held to. */
@@ -59,14 +63,15 @@ export const FLOOR_DEPTHS = [11, 13, 22] as const;
  * The depth each set's blind ceiling, sweet spots and rally marks are
  * checked on: the one where its levels come nearest a check.
  *
- * That is where they come nearest as certified, once they are, and as the
- * sketch played the drafts until then (docs/rickashay/sketch/results.md):
- * Warm-up's blind on 18 (First bounce, 45 times in 100 here, 38 in the
- * sketch), Angles' blind on 21 (Bounce house, 70 here, where most of its
- * sweet spots are narrowest too), Tricks' sweet spot on 21 (Kaleidoscope,
- * 0.75° here as in the sketch, the least that passes) and Long rallies'
- * on 12 (Greenhouse, 0.83°). One depth a set keeps its share of `sim` in
- * CI's budget; `yarn report:levels` checks every depth.
+ * That is where they come nearest as certified, beside the sketch's
+ * figures for the drafts (docs/rickashay/sketch/results.md): Warm-up's
+ * blind on 18 (First bounce, 45 times in 100 here, 38 in the sketch),
+ * Angles' blind on 21 (Bounce house, 70 here, where most of its sweet
+ * spots are narrowest too), Tricks' sweet spot on 21 (Kaleidoscope, 0.75°
+ * here as in the sketch, the least that passes) and Long rallies' sweet
+ * spot on 12 (Greenhouse, 0.83° here as in the sketch). One depth a set
+ * keeps its share of `sim` in CI's budget; `yarn report:levels` checks
+ * every depth.
  */
 export const CHECK_DEPTHS = {
   "warm-up": 18,

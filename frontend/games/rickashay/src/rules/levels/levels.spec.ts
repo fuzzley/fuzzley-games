@@ -144,15 +144,16 @@ describe("parseLevel", () => {
 });
 
 describe("the sets", () => {
-  it("are played Warm-up first, then Angles, then Tricks", () => {
+  it("are played Warm-up first, then Angles, then Tricks, then Long rallies", () => {
     expect(LEVEL_SETS.map(({ id }) => id)).toEqual([
       "warm-up",
       "angles",
       "tricks",
+      "long-rallies",
     ]);
   });
 
-  it("number Warm-up's levels 1 to 9, Angles' 10 to 18 and Tricks' 19 to 27, as the design's table of the drafts does", () => {
+  it("number Warm-up's levels 1 to 9, Angles' 10 to 18, Tricks' 19 to 27 and Long rallies' 28 to 36, as the design's table of the drafts does", () => {
     expect(LEVELS.map(({ number, data }) => [number, data.name])).toEqual([
       [1, "First bounce"],
       [2, "Side door"],
@@ -181,6 +182,15 @@ describe("the sets", () => {
       [25, "Back door"],
       [26, "Prism hall"],
       [27, "Fun house"],
+      [28, "Moss garden"],
+      [29, "Combination"],
+      [30, "Greenhouse"],
+      [31, "Overgrown"],
+      [32, "Vault"],
+      [33, "Deadbolt"],
+      [34, "Thicket"],
+      [35, "Six-pack"],
+      [36, "The long way up"],
     ]);
   });
 
@@ -213,6 +223,15 @@ describe("the sets", () => {
     ["back-door", 13, 56, 86],
     ["prism-hall", 15, 68, 80],
     ["fun-house", 21, 69, 110],
+    ["moss-garden", 15, 54, 78],
+    ["combination", 15, 54, 100],
+    ["greenhouse", 15, 40, 68],
+    ["overgrown", 13, 58, 100],
+    ["vault", 15, 64, 138],
+    ["deadbolt", 19, 72, 136],
+    ["thicket", 15, 52, 86],
+    ["six-pack", 13, 44, 180],
+    ["the-long-way-up", 29, 99, 207],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {

@@ -5,6 +5,7 @@
 
 import { type Marks, marksOf } from "../run/stars";
 import anglesMarks from "./marks/angles.json";
+import longRalliesMarks from "./marks/long-rallies.json";
 import tricksMarks from "./marks/tricks.json";
 import warmUpMarks from "./marks/warm-up.json";
 
@@ -13,4 +14,5 @@ export const LEVEL_MARKS: Marks = marksOf([
   warmUpMarks,
   anglesMarks,
   tricksMarks,
+  longRalliesMarks,
 ]);
