@@ -345,6 +345,32 @@ describe("run", () => {
     expect(tableOf(out)[0]?.["A game's best rally"]).toBe("15 / 16 / -");
   });
 
+  it("writes 100 as the least of a level cleared in every game on every depth", async () => {
+    const api = apiOf({
+      figuresOf: (level, depth, _, games) => ({
+        ...fine(level, depth, games),
+        cleared: games,
+      }),
+    });
+
+    const { out } = await ran([], { api });
+
+    expect(tableOf(out)[0]?.["Its least"]).toBe("100");
+  });
+
+  it("writes 0 as the most blind of a level no aim drawn blind cleared on any depth", async () => {
+    const api = apiOf({
+      figuresOf: (level, depth, _, games) => ({
+        ...fine(level, depth, games),
+        blind: 0,
+      }),
+    });
+
+    const { out } = await ran([], { api });
+
+    expect(tableOf(out)[0]?.["Blind, most"]).toBe("0");
+  });
+
   it("judges a level by its count in 100 as played, though the table rounds it", async () => {
     const api = apiOf({
       figuresOf: fineBut(1, 16, () => ({ cleared: 179, clearedRounds: 179 })),

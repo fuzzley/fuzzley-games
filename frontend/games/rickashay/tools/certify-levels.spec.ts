@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type Aim, isAim } from "@fz/brick-wall/rules/aims";
 import { DANGER_ROW } from "@fz/brick-wall/rules/wall";
 import { replayLine } from "@fz/brick-wall/testing/solver";
@@ -24,6 +27,19 @@ import {
   marksText,
   rallyOf,
 } from "./certify-levels.mjs";
+
+/** Folders made for a spec, removed after it. */
+const made: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(
+    made
+      .splice(0)
+      .map((folder) =>
+        rm(folder, { recursive: true, force: true, maxRetries: 10 }),
+      ),
+  );
+});
 
 /** Where a made-up game keeps what the script reads and writes. */
 const GAME = {
@@ -359,6 +375,43 @@ describe("certifyLevels", () => {
       },
       second,
     });
+  });
+
+  it("keeps a level's line and its par on a depth its set kept no rally mark for, as a set certified before its marks were, and writes it none", async () => {
+    const files = memoryFiles({
+      "certificates/first.json": JSON.stringify({ bricks: { "11": [0, 1] } }),
+    });
+
+    await ran(["--level", "2", "--depth", "11"], { files });
+
+    expect({
+      line: heldAt(files, "certificates/first.json", "bricks", "11"),
+      par: heldAt(files, "marks/first.json", "par", "bricks", "11"),
+      mark: heldAt(files, "marks/first.json", "rally", "bricks"),
+      reaching: heldAt(files, "lines/first.json", "bricks"),
+    }).toEqual({ line: [0, 1], par: 3, mark: undefined, reaching: undefined });
+  });
+
+  it("reads and writes the game's own files where it is handed none, making the folder a set's first file goes in", async () => {
+    const root = await mkdtemp(join(tmpdir(), "rickashay-certify-"));
+    made.push(root);
+    const api = apiOf();
+
+    await certifyLevels(
+      ["--set", "second"],
+      { ...GAME, root },
+      {
+        load: () => Promise.resolve(api),
+        solve: inThread(api),
+        queue: () => Promise.resolve(() => undefined),
+        now: () => 0,
+        ...recordingPrinter(),
+      },
+    );
+
+    expect(
+      JSON.parse(await readFile(join(root, "lines/second.json"), "utf8")),
+    ).toEqual({ arc: { "11": [0], "12": [0] } });
   });
 
   it("drops the lines and marks of a level its set no longer has", async () => {

@@ -180,6 +180,15 @@ export class RickashayScene extends Scene {
   /** How the mouse and fingers aim, and how a press lets fly, as the steering was last told. */
   private aiming!: PointerAiming;
   private releasing!: PointerRelease;
+  /**
+   * The wall the view showed as the frame began, which its flourishes play
+   * on: the one drawn the frame before, or one the shell has shown since,
+   * as a level begun afresh.
+   *
+   * It holds every brick the frame's tick breaks, as a tick plays one frame
+   * and the view writes over a wall it handed on only two walls later.
+   */
+  private frameWall!: Wall;
   /** Where the fuzzball last waited, across the field, which the steering aims a pointer from while it flies too. */
   private from: number = FIRST_X;
   /** The view's log of events played from, and the latest of its events played. */
@@ -293,6 +302,7 @@ export class RickashayScene extends Scene {
     context.now = time;
     this.fit();
     this.followSettings();
+    this.frameWall = options.view().wall;
     options.tick(delta, this.steering.read(this.from));
     this.sounds.follow(options.sound());
     // The tick may have reshaped the field, between rounds.
@@ -385,8 +395,9 @@ export class RickashayScene extends Scene {
 
   /**
    * Plays one of an event's or a beat's flourishes, where it plays: on the
-   * wall drawn the frame before, as the frame that reaches a flight's last
-   * events hands over the wall that comes down under where the flight's
+   * wall the view showed as the frame began, as the frame that reaches a
+   * brick's break hands over a wall it has left, and one that reaches a
+   * flight's last events the wall that comes down under where the flight's
    * still shows. A hatch's dip and swing and a lock's slide play nothing
    * till their bricks are drawn.
    */
@@ -395,7 +406,7 @@ export class RickashayScene extends Scene {
     event: Readonly<FlightEvent> | null,
   ): void {
     const { now, view } = this.context;
-    const wall = this.wall.drawnWall() ?? view.wall;
+    const wall = this.frameWall;
     switch (flourish.kind) {
       case "swell":
         this.wall.swell(wall, flourish.cell, now);

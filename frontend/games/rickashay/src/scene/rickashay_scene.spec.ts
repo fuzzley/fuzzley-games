@@ -199,8 +199,12 @@ class FakeShell implements RickashaySceneOptions {
   readonly aims: Readonly<AimFrame>[] = [];
   readonly layouts: FieldMetrics[] = [];
   readonly commands: FieldCommand[] = [];
+  /** Runs in the first tick alone, before the play plays on, as a shell's does whose first tick reaches a flight's moments, a shot let fly as the scene starts. */
+  inFirstTick: () => void = () => undefined;
 
   readonly tick = (deltaMs: number, aim: Readonly<AimFrame>): void => {
+    this.inFirstTick();
+    this.inFirstTick = () => undefined;
     this.ticks.push(deltaMs);
     // The steering hands the same record each frame, so a copy is kept.
     this.aims.push({ ...aim });
@@ -309,6 +313,14 @@ function framesAt(
 function layersAt(wall: Wall, row: number, column: number): readonly string[] {
   const brick = wall.bricks[cellAt(wall, column, row)];
   return brick ? brickLayers(brick) : [];
+}
+
+/** Returns a wall with the brick in a wall cell gone, as a brick broken leaves it. */
+function withoutBrick(wall: Wall, cell: number): Wall {
+  return {
+    ...wall,
+    bricks: wall.bricks.map((brick, at) => (at === cell ? null : brick)),
+  };
 }
 
 /** Returns where an object stands among those of the layer it is in, back to front. */
@@ -1462,6 +1474,95 @@ describe("RickashayScene", () => {
       expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
     });
 
+    it("swirls a portal it draws the fuzzball into in its first frame, before it has drawn a wall, where the wall the frame began on stands it", async () => {
+      const events = eventLog();
+
+      const { scene } = await startBoard((shell) => {
+        shell.show({ events });
+        shell.inFirstTick = () => {
+          logTeleport(events);
+        };
+      });
+
+      const metrics = metricsAt();
+      expect(burstsShown(scene.effects.swirls.all)).toEqual([
+        toCanvas(metrics, 0.5, 5.5),
+        toCanvas(metrics, 8.5, 5.5),
+      ]);
+    });
+
+    it("bursts a brick broken in its first frame, before it has drawn a wall, into shards of its color, though the view's wall has lost it", async () => {
+      const events = eventLog();
+      const brick = brickIn(PLAIN.start.wall, TOUGH);
+      const tints = new Set<number>();
+
+      const { scene } = await startBoard((shell) => {
+        shell.show({ events });
+        shell.inFirstTick = () => {
+          logEvent(
+            events,
+            {
+              kind: "strike",
+              at: 1,
+              cell: TOUGH,
+              took: 2,
+              broke: true,
+              rally: 1,
+            },
+            { kind: "shards", cell: TOUGH },
+          );
+          shell.show({ wall: withoutBrick(PLAIN.start.wall, TOUGH) });
+        };
+      });
+
+      scene.effects.shards.forEachAlive((shard) => tints.add(shard.tint), null);
+      expect([...tints]).toEqual([brickColor(brick, LIGHT)]);
+    });
+
+    it("flashes a ramp of a wall the shell showed since the last frame, as a level begun afresh between frames shows one", async () => {
+      const { scene, events, run, shell } = await startPlaying();
+
+      shell.show({ wall: RAMPS });
+      logRampFlash(events);
+      run.advance(16);
+
+      expect(
+        scene.effects.ramps.flashes.all.filter(({ strip }) => strip.visible),
+      ).toHaveLength(1);
+    });
+
+    it("bursts no shards of a brick broken before the frame began, as a bug report's round flown on to its moment between frames leaves it", async () => {
+      const { scene, events, run, shell } = await startPlaying();
+
+      shell.show({ wall: withoutBrick(PLAIN.start.wall, TOUGH) });
+      logEvent(
+        events,
+        { kind: "strike", at: 1, cell: TOUGH, took: 2, broke: true, rally: 1 },
+        { kind: "shards", cell: TOUGH },
+      );
+      run.advance(16);
+
+      expect(scene.effects.shards.getAliveParticleCount()).toBe(0);
+    });
+
+    it("flashes no ramp sunk as the wall came down to the floor, as a bug report's round flown to its end between frames leaves it", async () => {
+      const { scene, events, run, shell } = await startPlaying((each) => {
+        each.show({ wall: RAMPS });
+      });
+      const sunk: Wall = {
+        ...withoutBrick(RAMPS, cellAt(RAMPS, 4, 5)),
+        lowestRow: RAMPS.lowestRow - 5,
+      };
+
+      shell.show({ wall: sunk });
+      logRampFlash(events);
+      run.advance(16);
+
+      expect(
+        scene.effects.ramps.flashes.all.filter(({ strip }) => strip.visible),
+      ).toHaveLength(0);
+    });
+
     it("leaves unplayed what the view's log held before the scene met it", async () => {
       const events = eventLog();
       logEvent(
@@ -1711,6 +1812,25 @@ describe("RickashayScene", () => {
         });
       },
     );
+
+    it("bursts a brick the round's flight breaks into shards of its color, as the play hands on its next copy of the wall", async () => {
+      const { shell, run, scene } = await startBoard();
+      const fixture = FLIGHT_FIXTURES.jumped;
+      const play = shell.aim(fixture);
+      run.advance(16);
+      const brick = brickIn(
+        fixture.start.wall,
+        cellAt(fixture.start.wall, 8, 5),
+      );
+      const shatter = vi.spyOn(scene.effects, "shatter");
+
+      play.release(fixture.round, RALLY_MARK);
+      run.advance(600 * 16, 16);
+
+      expect(shatter.mock.calls.map(([, , color]) => color)).toEqual([
+        brickColor(brick, LIGHT),
+      ]);
+    });
   });
 
   describe("the keys", () => {
