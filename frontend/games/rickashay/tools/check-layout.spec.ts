@@ -435,6 +435,123 @@ describe("inspectField, of the bar's title", () => {
   });
 });
 
+describe("inspectField, of Coming next", () => {
+  /** Says where Coming next's parts lie down the window, in CSS px, as Chrome measures them. */
+  interface Panel {
+    /** The level's name's foot. */
+    readonly level: number;
+    /** The picture's box, its head and foot. */
+    readonly rows: readonly [number, number];
+    /** The picture's first square's head, above its box's where the panel cuts it. */
+    readonly first: number;
+    /** Its last square's foot. */
+    readonly last: number;
+    /** The head of the words under the picture. */
+    readonly words: number;
+  }
+
+  /** Coming next at 1280 × 800, standing from its head, its picture whole under the level's name. */
+  const STANDING: Panel = {
+    level: 160,
+    rows: [164, 316],
+    first: 164,
+    last: 316,
+    words: 320,
+  };
+
+  /** Lays {@link UPRIGHT} out with Coming next on it, its parts where a panel says, as Chrome measures them, and its lines 4 CSS px apart. */
+  function panelled(panel: Panel): void {
+    lay(UPRIGHT);
+    document.querySelector("fz-wall-board")?.insertAdjacentHTML(
+      "beforeend",
+      `<fz-coming-next style="row-gap: 4px">
+        <h2>Coming next</h2><p class="level"></p>
+        <div class="rows"><span class="square"></span><span class="square"></span></div>
+        <p></p><p></p>
+      </fz-coming-next>`,
+    );
+    const at = (selector: string, top: number, bottom: number): void => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`No ${selector}.`);
+      vi.spyOn(element, "getBoundingClientRect").mockReturnValue(
+        new DOMRect(0, top, 300, bottom - top),
+      );
+    };
+    at(".level", panel.level - 20, panel.level);
+    at(".rows", ...panel.rows);
+    at(".square:first-child", panel.first, panel.first + 12);
+    at(".square:last-child", panel.last - 12, panel.last);
+    at(".rows + p", panel.words, panel.words + 21);
+  }
+
+  it("finds nothing wrong with Coming next standing from its head", () => {
+    panelled(STANDING);
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+
+  it("finds nothing wrong with a picture cut at its head, in a panel too short for it", () => {
+    panelled({
+      ...STANDING,
+      rows: [164, 214],
+      first: 62,
+      last: 214,
+      words: 218,
+    });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+
+  it("says room left empty between the level's name and the picture", () => {
+    panelled({
+      ...STANDING,
+      rows: [164, 674],
+      first: 521,
+      last: 674,
+      words: 678,
+    });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "Coming next leaves 357 CSS px empty between the level's name and its wall's picture.",
+    ]);
+  });
+
+  it("says room left empty between the picture and the words under it", () => {
+    panelled({ ...STANDING, rows: [164, 674], words: 678 });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "Coming next leaves 358 CSS px empty between its wall's picture and the words under it.",
+    ]);
+  });
+
+  it("says a picture cut at its head whose box stands low under the level's name", () => {
+    panelled({
+      ...STANDING,
+      rows: [200, 250],
+      first: 98,
+      last: 250,
+      words: 254,
+    });
+
+    expect(inspectField(UPRIGHT.box)).toEqual([
+      "Coming next leaves 36 CSS px empty between the level's name and its wall's picture.",
+    ]);
+  });
+
+  it("leaves Coming next be with no rows waiting to picture", () => {
+    panelled({
+      ...STANDING,
+      rows: [164, 674],
+      first: 521,
+      last: 674,
+      words: 678,
+    });
+    document.querySelector(".rows")?.replaceChildren();
+
+    expect(inspectField(UPRIGHT.box)).toEqual([]);
+  });
+});
+
 describe("checkLayout", () => {
   it("prints the usage asked for, naming the game, and exits with 0", async () => {
     const printer = recordingPrinter();

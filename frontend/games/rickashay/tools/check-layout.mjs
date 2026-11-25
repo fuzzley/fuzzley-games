@@ -32,7 +32,9 @@
  * stand as many rows from the floor as the run kept it at every shape, and
  * through each turn, the field's depth whatever it is. The run's score is
  * five figures long, and on every page the bar must show the game's name
- * whole wherever it shows it.
+ * whole wherever it shows it, and Coming next, wherever the board shows it,
+ * must stand from its head, its wall's picture under the level's name and
+ * the words under the picture, the room they leave below them.
  *
  * It does both again with Release with a button on, which adds Release to
  * the bar and steps its link home down. So the bar's controls, which
@@ -103,7 +105,8 @@ const FIELD = {
  * reads the board's rectangles with `readRect()`, which is sent with it.
  *
  * First it says the game's name cut short in the bar, wherever the bar
- * shows it, which beside the run kept's five-figure score it mustn't be.
+ * shows it, which beside the run kept's five-figure score it mustn't be,
+ * and room left empty inside Coming next, wherever the board shows it.
  *
  * @param {BoardBox} [field]
  * @returns {string[]}
@@ -121,6 +124,36 @@ export function inspectField(field) {
       `The bar cuts the game's name short: ${title.clientWidth} of its ${title.scrollWidth} CSS px show.`,
     );
   }
+  // Coming next stands from its head, wherever the board shows it: its
+  // wall's picture under the level's name, cut at its own head where the
+  // panel is short, and the words under the picture.
+  const comingNext = document.querySelector("fz-coming-next");
+  const rows = comingNext?.querySelector(".rows");
+  const level = rows?.previousElementSibling;
+  const words = rows?.nextElementSibling;
+  const first = rows?.firstElementChild;
+  const last = rows?.lastElementChild;
+  if (comingNext && rows && level && words && first && last) {
+    const gap = parseFloat(getComputedStyle(comingNext).rowGap) || 0;
+    const top = Math.max(
+      rows.getBoundingClientRect().top,
+      first.getBoundingClientRect().top,
+    );
+    const bottom = last.getBoundingClientRect().bottom;
+    const above = Math.round(top - level.getBoundingClientRect().bottom - gap);
+    const below = Math.round(words.getBoundingClientRect().top - bottom - gap);
+    if (above > 1) {
+      problems.push(
+        `Coming next leaves ${above} CSS px empty between the level's name and its wall's picture.`,
+      );
+    }
+    if (below > 1) {
+      problems.push(
+        `Coming next leaves ${below} CSS px empty between its wall's picture and the words under it.`,
+      );
+    }
+  }
+
   const board = document.querySelector("fz-wall-board");
   if (!field || !board) return problems;
   // `COLUMNS`, `LEAST_DEPTH` and `MOST_DEPTH`, in @fz/brick-wall/rules/field;

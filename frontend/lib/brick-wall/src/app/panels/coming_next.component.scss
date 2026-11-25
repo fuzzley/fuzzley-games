@@ -3,8 +3,11 @@
 :host {
   @include fz.board-panel;
 
-  // The rows waiting take the height the words leave.
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  // The rows waiting take what they need of the height the words leave,
+  // and all of it stands from the panel's head, so the picture sits under
+  // the level's name and the words under it, the room they leave below.
+  grid-template-rows: auto auto minmax(0, auto) auto auto;
+  align-content: start;
 }
 
 .level {
