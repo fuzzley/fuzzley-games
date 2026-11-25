@@ -50,6 +50,11 @@ function springsShown(lines: HTMLElement): readonly string[] {
   return Array.from(lines.querySelectorAll("img"), (spring) => spring.src);
 }
 
+/** Returns how many springs' places the lines hold empty, before the scene has drawn them. */
+function springsHeld(lines: HTMLElement): number {
+  return lines.querySelectorAll(".springs > .spring").length;
+}
+
 describe("ThisShotComponent", () => {
   it("heads its lines This shot", async () => {
     await renderLines();
@@ -84,14 +89,24 @@ describe("ThisShotComponent", () => {
   it("draws a spring for each floor bounce the shot can hold, those it has lit, hidden from assistive technology", async () => {
     const lines = await renderLines({ springs: SPRINGS });
 
-    expect(springsShown(lines)).toEqual([SPRINGS.on, SPRINGS.off, SPRINGS.off]);
-    expect(screen.queryAllByRole("presentation")).toEqual([]);
+    expect({
+      shown: springsShown(lines),
+      held: springsHeld(lines),
+      presentation: screen.queryAllByRole("presentation"),
+    }).toEqual({
+      shown: [SPRINGS.on, SPRINGS.off, SPRINGS.off],
+      held: 0,
+      presentation: [],
+    });
   });
 
-  it("draws no springs before the scene has drawn them", async () => {
+  it("draws no springs before the scene has drawn them, but holds each one's place", async () => {
     const lines = await renderLines();
 
-    expect(springsShown(lines)).toEqual([]);
+    expect({
+      shown: springsShown(lines),
+      held: springsHeld(lines),
+    }).toEqual({ shown: [], held: 3 });
   });
 
   it("fills the bar as far as the rally has come from the last floor bounce toward the next", async () => {

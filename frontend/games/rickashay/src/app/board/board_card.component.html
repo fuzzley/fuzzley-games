@@ -19,8 +19,14 @@
         </dl>
         @if (card.newKind; as newKind) {
           <div class="new-kind">
+            <!--
+              Its place held before the scene has drawn it, so nothing on
+              the card moves as it comes.
+            -->
             @if (newKind.picture; as picture) {
               <img class="picture" [src]="picture" alt="" />
+            } @else {
+              <span class="picture"></span>
             }
             <p>
               <strong>New: {{ newKind.name }}.</strong> {{ newKind.about }}

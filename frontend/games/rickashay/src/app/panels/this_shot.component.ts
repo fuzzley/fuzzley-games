@@ -44,15 +44,18 @@ export class ThisShotComponent {
     () => `${String(this.soFar().held)} of ${String(this.rules().mostBounces)}`,
   );
 
-  /** A spring for each floor bounce the shot can hold, as a picture's URL: lit for those it has. */
-  protected readonly springPictures = computed(() => {
-    const springs = this.springs();
-    if (springs === null) return [];
-    const { held } = this.soFar();
-    return Array.from({ length: this.rules().mostBounces }, (_, at) =>
-      at < held ? springs.on : springs.off,
-    );
-  });
+  /** A spring for each floor bounce the shot can hold, as a picture's URL, lit for those it has, or null for each before the scene has drawn them. */
+  protected readonly springPictures = computed(
+    (): readonly (string | null)[] => {
+      const springs = this.springs();
+      const { held } = this.soFar();
+      const length = this.rules().mostBounces;
+      if (springs === null) return Array.from({ length }, () => null);
+      return Array.from({ length }, (_, at) =>
+        at < held ? springs.on : springs.off,
+      );
+    },
+  );
 
   /** The rungs of the floor bounce ladder the shot's rally stands between. */
   private readonly rungs = computed(() =>

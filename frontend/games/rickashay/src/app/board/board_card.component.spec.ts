@@ -105,18 +105,24 @@ describe("BoardCardComponent", () => {
       );
     });
 
-    it("shows the new kind's picture once the scene has drawn it", async () => {
+    it("shows the new kind's picture once the scene has drawn it, in the place held for it", async () => {
       await renderCard(READY, { pictures: PICTURES });
+      const kind = screen.getByText("New: Tough brick.").closest(".new-kind");
 
-      expect(
-        screen.getByRole("group").querySelector("img")?.getAttribute("src"),
-      ).toBe("data:image/png;tough");
+      expect({
+        img: kind?.querySelector("img")?.getAttribute("src"),
+        held: kind?.querySelector("span.picture") ?? null,
+      }).toEqual({ img: "data:image/png;tough", held: null });
     });
 
-    it("shows no picture of a new kind before the scene has drawn one", async () => {
+    it("shows no picture of a new kind before the scene has drawn one, but holds its place", async () => {
       await renderCard(READY);
+      const kind = screen.getByText("New: Tough brick.").closest(".new-kind");
 
-      expect(screen.getByRole("group").querySelector("img")).toBeNull();
+      expect({
+        img: kind?.querySelector("img") ?? null,
+        held: kind?.firstElementChild?.matches("span.picture"),
+      }).toEqual({ img: null, held: true });
     });
 
     it("says nothing new where the level brings no kind in", async () => {

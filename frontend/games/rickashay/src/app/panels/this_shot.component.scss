@@ -44,7 +44,8 @@
   display: flex;
   gap: 2px;
 
-  img {
+  img,
+  .spring {
     width: var(--fz-space-5);
     height: var(--fz-space-5);
   }

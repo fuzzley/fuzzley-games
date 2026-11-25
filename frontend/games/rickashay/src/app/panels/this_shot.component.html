@@ -11,9 +11,17 @@
   <div class="figure">
     <dt>Floor bounces</dt>
     <dd>
+      <!--
+        Each spring's place held before the scene has drawn it, so the
+        figure beside them doesn't move as they come.
+      -->
       <span class="springs" aria-hidden="true">
         @for (spring of springPictures(); track $index) {
-          <img [src]="spring" alt="" />
+          @if (spring) {
+            <img [src]="spring" alt="" />
+          } @else {
+            <span class="spring"></span>
+          }
         }
       </span>
       {{ held() }}
