@@ -33,3 +33,13 @@ export const STREAK = 1.5;
 
 /** How long the "Rickaashay!" call shows over the field, moving across it where motion is welcome. */
 export const CALL_MS = 1200;
+
+/** How long the rally's number takes to ease back to its size as it pops into its next look. */
+export const RALLY_POP_MS = 200;
+
+/**
+ * How long each of the two waves a tongue of the rally's fire flickers by
+ * takes to rise and fall again: two lengths that keep step only every
+ * 11.6 seconds, so a tongue never flickers the same way twice running.
+ */
+export const FLICKER_MS = { slow: 430, fast: 270 } as const;

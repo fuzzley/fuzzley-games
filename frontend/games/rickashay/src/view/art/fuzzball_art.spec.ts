@@ -29,7 +29,6 @@ import {
   bodyFrameOf,
   eyesAt,
   eyesFrameOf,
-  furAt,
   fuzzballFrames,
   fuzzballGrid,
 } from "./fuzzball_art";
@@ -151,21 +150,6 @@ function offBy(drawn: LineCommand, about: LineCommand, middle: Point): number {
     ),
   );
 }
-
-describe("furAt", () => {
-  it.each([
-    [0, 0],
-    [9, 0],
-    [10, 1],
-    [24, 1],
-    [25, 2],
-    [44, 2],
-    [45, 3],
-    [162, 3],
-  ])("lifts the fur at a rally of %i to %i", (rally, fur) => {
-    expect(furAt(rally)).toBe(fur);
-  });
-});
 
 describe("bodyFrameOf", () => {
   it.each(FURS)(

@@ -129,7 +129,7 @@ export interface RickashaySceneOptions {
  * through its `Steering`, hands the shell each frame's time and aim, then
  * pulls the round to draw, plays the sounds of what it reached since the
  * last frame, and its flourishes where motion is welcome, and draws the
- * field, the rally faint on it, its springs, the wall, the guide, the
+ * field, the rally on it, its springs, the wall, the guide, the
  * flourishes and the fuzzball as they stand; a key the steering doesn't
  * take becomes a command.
  */
@@ -139,7 +139,7 @@ export class RickashayScene extends Scene {
 
   /** Draws the field, its band, its lintel, its frame and its lines. */
   field!: FieldPainter<KindId>;
-  /** Draws the rally, small and faint, under the danger line. */
+  /** Draws the rally under the danger line, in its look, and its fire. */
   rally!: RallyPainter;
   /** Draws the floor bounces' springs in the band. */
   springs!: SpringsPainter;

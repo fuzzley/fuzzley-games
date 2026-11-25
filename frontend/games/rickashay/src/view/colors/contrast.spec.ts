@@ -32,17 +32,24 @@ function stripOf(ink: number): number {
 // streaks, the sparks and the shards, keeps less than 3:1 against it in places,
 // and is told from it by the field round its strokes: the fuzzball, 0.5 wide,
 // is far wider than a stroke of 0.09, and what bursts is gone in a moment. The
-// marks are cut out in the field's color, so they keep 3:1 against every kind's
-// color; and since a tough brick's cracks run in from its tile's edges, two of
-// them across the lighter strip along its top, against each ink's strip too.
-// None crosses the darker lip along its foot, which they keep less than 3:1
-// against in Midnight blue, and steel's frame and rivets keep off its strip,
-// which they keep less than 3:1 against in the light palettes. A ramp's bright
-// edge, which keeps less than 3:1 against the light palettes' field, lies
-// inside a rim of the ramp's steel. A gem's outline is its facets', its upper
-// half lighter and its lower edges darker, so each keeps 3:1 against the field
-// in every ink. A hatch's chevrons, and an open hatch's posts, lie on the
-// field, which they keep 3:1 against.
+// number's looks from a rally of 10 keep 4.5:1 against the field too. The bold
+// digits are the field's text at full strength, and the bordered ones keep it
+// by their border, the color at their edge, in the field's text, filled in the
+// warning color from 25 and the hot shot's from 45. The fire's flames, in the
+// warning color, keep 3:1 against the field, the bar for graphics. The field's
+// text keeps less than 3:1 against the flames in every palette, so on fire a
+// cut in the field's color runs round the border, keeping 3:1 against the
+// flames and the border 4.5:1 against it. The marks are cut out in the field's
+// color, so they keep 3:1 against every kind's color; and since a tough brick's
+// cracks run in from its tile's edges, two of them across the lighter strip
+// along its top, against each ink's strip too. None crosses the darker lip
+// along its foot, which they keep less than 3:1 against in Midnight blue, and
+// steel's frame and rivets keep off its strip, which they keep less than 3:1
+// against in the light palettes. A ramp's bright edge, which keeps less than
+// 3:1 against the light palettes' field, lies inside a rim of the ramp's steel.
+// A gem's outline is its facets', its upper half lighter and its lower edges
+// darker, so each keeps 3:1 against the field in every ink. A hatch's chevrons,
+// and an open hatch's posts, lie on the field, which they keep 3:1 against.
 // The floor bounces' springs, lit and unlit, keep 3:1 against the floor's
 // band they stand in. Each pair of portals' arms keep 3:1 against its eye,
 // and its badge, in the arms' color, against the disc it is cut out on, in
@@ -118,7 +125,23 @@ describe("the field's contrast", () => {
       ...against(
         "field",
         palette.field,
-        [["rally's number, at its strength", rally]],
+        [
+          ["rally's number, at its strength", rally],
+          ["rally's bold number", palette.rally.color],
+          ["rally's border", palette.rally.border],
+        ],
+        TEXT,
+      ),
+      ...against("field", palette.field, [
+        ["rally's flames", palette.rally.flame],
+      ]),
+      ...against("rally's flames", palette.rally.flame, [
+        ["rally's cut round its border", palette.rally.cut],
+      ]),
+      ...against(
+        "rally's cut",
+        palette.rally.cut,
+        [["rally's border", palette.rally.border]],
         TEXT,
       ),
     ];

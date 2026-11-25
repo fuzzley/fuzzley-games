@@ -38,14 +38,25 @@ describe("wallPalette", () => {
     ["light", 0.65],
     ["dark", 0.55],
   ] as const)(
-    "draws the rally's number in the field's text, at a %s palette's strength, %f",
+    "draws the rally's number thin and bold in the field's text, thin at a %s palette's strength, %f",
     (mode, alpha) => {
-      expect(wallPalette(ROLES, mode).rally).toEqual({
-        color: 0x101010,
-        alpha,
-      });
+      const { color, alpha: strength } = wallPalette(ROLES, mode).rally;
+
+      expect({ color, strength }).toEqual({ color: 0x101010, strength: alpha });
     },
   );
+
+  it("fills the bordered rally in the warning color and the rally on fire in the hot shot's, each bordered in the field's text, over flames in the warning color cut out in the field's color", () => {
+    const { border, warm, hot, flame, cut } = wallPalette(ROLES, "light").rally;
+
+    expect({ border, warm, hot, flame, cut }).toEqual({
+      border: 0x101010,
+      warm: 0xffa500,
+      hot: 0xff0000,
+      flame: 0xffa500,
+      cut: 0xfafafa,
+    });
+  });
 
   it("rings the guide's turns in the guide's color, the field's text", () => {
     expect(wallPalette(ROLES, "light").guideRing).toBe(0x101010);

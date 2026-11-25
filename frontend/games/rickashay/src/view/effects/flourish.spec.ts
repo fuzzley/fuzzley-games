@@ -5,14 +5,17 @@ import { billionths } from "../../testing/art_frames";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import {
   KICK_SQUASH,
+  RALLY_POP,
   type StreakPlace,
   type Strip,
+  flickerHeight,
   kickHeight,
+  rallyPopScale,
   rampFaceOf,
   streakPlaceOf,
   swirlScale,
 } from "./flourish";
-import { STREAK } from "./timing";
+import { FLICKER_MS, STREAK } from "./timing";
 
 /** A wall of a ramp in each corner, low left to top right as the legend writes them, in field row 5, columns 1 to 4. */
 const RAMPS = wallFrom([".LJF7...."], WALL_LEGEND, { lowestRow: 5 });
@@ -114,5 +117,49 @@ describe("swirlScale", () => {
 
   it("spreads a swirl from nothing as its twin lets the fuzzball out", () => {
     expect([swirlScale(0, false), swirlScale(1, false)]).toEqual([0, 1]);
+  });
+});
+
+describe("rallyPopScale", () => {
+  it("draws the rally's number larger as it pops and at its size once the pop is over", () => {
+    expect([rallyPopScale(0), rallyPopScale(1)].map(billionths)).toEqual([
+      billionths(1 + RALLY_POP),
+      1,
+    ]);
+  });
+
+  it("settles it a little under its size on the way", () => {
+    expect(rallyPopScale(0.6)).toBeLessThan(1);
+  });
+});
+
+describe("flickerHeight", () => {
+  /** A time over which both waves come back into step, whatever their periods, in milliseconds: the two multiplied. */
+  const turn = FLICKER_MS.slow * FLICKER_MS.fast;
+
+  /** Returns the least and the most a tongue stands through a turn of both waves, a millisecond apart, each to a thousandth. */
+  function rangeOf(tongue: number): { least: number; most: number } {
+    let least = Infinity;
+    let most = -Infinity;
+    for (let now = 0; now < turn; now++) {
+      const height = flickerHeight(tongue, now);
+      least = Math.min(least, height);
+      most = Math.max(most, height);
+    }
+    return { least: Number(least.toFixed(3)), most: Number(most.toFixed(3)) };
+  }
+
+  it("stands each of nine tongues between three quarters of its height at rest and the whole of it, reaching both to a thousandth", () => {
+    expect(Array.from({ length: 9 }, (_, tongue) => rangeOf(tongue))).toEqual(
+      Array.from({ length: 9 }, () => ({ least: 0.75, most: 1 })),
+    );
+  });
+
+  it("flickers neighboring tongues apart", () => {
+    expect(flickerHeight(0, 100)).not.toBe(flickerHeight(1, 100));
+  });
+
+  it("flickers a tongue with time", () => {
+    expect(flickerHeight(0, 0)).not.toBe(flickerHeight(0, 100));
   });
 });

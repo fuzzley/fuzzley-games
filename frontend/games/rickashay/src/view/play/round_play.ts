@@ -33,11 +33,10 @@ import type {
 import {
   BOUNCE_POINTS,
   type FlightRules,
-  RALLY_MARKS,
   RALLY_STEPS,
   STRIKE_POINTS,
+  marksReached,
 } from "../../rules/tuning";
-import type { Fur } from "../art/frames";
 import { hatchTint } from "../art/hatch_tint";
 import { lockTint } from "../art/lock_tint";
 import {
@@ -398,7 +397,7 @@ export class RoundPlay {
         return;
       case "strike":
         ball.rally = event.rally;
-        ball.fur = furOf(event.rally);
+        ball.fur = marksReached(event.rally);
         tally.rally = event.rally;
         tally.points += STRIKE_POINTS * multiplierAt(event.rally, RALLY_STEPS);
         return;
@@ -477,14 +476,6 @@ export class RoundPlay {
   private logBeat(beat: Beat): void {
     if (!this.unseen) this.beatLog.next().beat = beat;
   }
-}
-
-/** Returns how far the fuzzball's fur has lifted at a rally: a step at each of `RALLY_MARKS` it has reached. */
-function furOf(rally: number): Fur {
-  const [first, second, third] = RALLY_MARKS;
-  if (rally >= third) return 3;
-  if (rally >= second) return 2;
-  return rally >= first ? 1 : 0;
 }
 
 /** Returns a fuzzball waiting where a round starts. */

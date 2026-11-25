@@ -60,8 +60,9 @@ export function atlasFrames(
  * Returns every frame the field's atlas holds, drawn in a palette at a
  * scale, which the scene's `WallAtlas` bakes: the bricks' and the
  * fuzzball's, then the field's own dots and warning frame, the floor
- * bounces' springs, the rally's digits, the guide's dot, ring and band
- * round a brick it strikes, and the flourishes'.
+ * bounces' springs, the rally's digits in each look and its fire's tongue,
+ * the guide's dot, ring and band round a brick it strikes, and the
+ * flourishes'.
  */
 export function wallAtlasFrames(
   palette: WallPalette,

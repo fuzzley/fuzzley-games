@@ -29,6 +29,24 @@ export const STAND_OFF = 0.3535533905932738;
 /** The rallies at which a flight's playback quickens and the fuzzball's fur lifts: its 10th, 25th and 45th strikes. */
 export const RALLY_MARKS = [10, 25, 45] as const;
 
+/** Every count of `RALLY_MARKS` a flight's rally may have reached, from none to all three. */
+export const MARK_COUNTS = [0, 1, 2, 3] as const satisfies readonly number[];
+
+/** How many of `RALLY_MARKS` a flight's rally has reached. */
+export type MarksReached = (typeof MARK_COUNTS)[number];
+
+/**
+ * Returns how many of `RALLY_MARKS` a flight's rally has reached: none to
+ * a rally of 9, then one more at each of 10, 25 and 45, where the
+ * fuzzball's fur lifts and the rally's number takes its next look.
+ */
+export function marksReached(rally: number): MarksReached {
+  const [first, second, third] = RALLY_MARKS;
+  if (rally >= third) return 3;
+  if (rally >= second) return 2;
+  return rally >= first ? 1 : 0;
+}
+
 /** The points a strike scores, before the rally's step. */
 export const STRIKE_POINTS = 10;
 

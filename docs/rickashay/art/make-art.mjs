@@ -1378,6 +1378,38 @@ function arrow(from, to, color, width) {
 }
 
 /**
+ * Writes the rally's number in the look the game draws it in at a rally,
+ * its digits 0.6 of a cell tall: thin, in the field's text at the game's
+ * strength, 0.55 in a dark palette and 0.65 in a light one, to 9; bold in
+ * it from 10; and from 25 bold, filled in the warning color and bordered
+ * in the field's text. The sheet draws no fire, which the game lights
+ * from 45.
+ *
+ * @param {any} pal
+ * @param {number} x
+ * @param {number} y
+ * @param {number} rally
+ * @param {number} cell
+ * @returns {string}
+ */
+function rallyText(pal, x, y, rally, cell) {
+  if (rally >= 45) {
+    throw new RangeError(`The sheet draws no rally on fire, as ${rally} is`);
+  }
+  const type = { size: 0.85 * cell, anchor: "middle" };
+  if (rally < 10) {
+    const strength = pal === DARK ? 0.55 : 0.65;
+    const fill = kit.mix(pal.field, pal.text, strength);
+    return kit.text(x, y, `${rally}`, { ...type, weight: 500, fill });
+  }
+  if (rally < 25) {
+    return kit.text(x, y, `${rally}`, { ...type, weight: 800, fill: pal.text });
+  }
+  const border = 2 * 0.03 * cell;
+  return `<text x="${num(x)}" y="${num(y)}" font-family="system-ui, sans-serif" font-size="${num(type.size)}" font-weight="800" text-anchor="middle" fill="${pal.warning}" stroke="${pal.text}" stroke-width="${num(border)}" stroke-linejoin="round" paint-order="stroke">${rally}</text>`;
+}
+
+/**
  * Draws a dashed run of straight lines.
  *
  * @param {Point[]} points
@@ -1955,19 +1987,13 @@ function wideScene(pal, symbols) {
   const size = sizeOf(look);
   const waiting = Math.max(0, level.bricks.length - (look.depth - state.base));
   const last = /** @type {Point} */ (trace[trace.length - 1]);
-  // The rally, small and faint, under the danger line, which runs a cell
-  // over the floor, where no brick stands in flight: the field's text at
-  // the game's strength, 0.55 in a dark palette and 0.65 in a light one,
-  // its digits 0.6 of a cell tall, halfway between the floor and the line.
+  // The rally, small under the danger line, which runs a cell over the
+  // floor, where no brick stands in flight, its digits 0.6 of a cell tall,
+  // halfway between the floor and the line, in its look.
   const [mx, my] = spot(look, C / 2, 0.2);
   const field = [
     fieldBack(pal, look, waiting),
-    kit.text(mx, my, `${shot.rally}`, {
-      size: 0.85 * look.cell,
-      weight: 500,
-      fill: kit.mix(pal.field, pal.text, pal === DARK ? 0.55 : 0.65),
-      anchor: "middle",
-    }),
+    rallyText(pal, mx, my, shot.rally, look.cell),
     drawBricks(pal, symbols, look, state, tints, {
       turns: shot.bounces,
       propped: shot.propped,
@@ -2157,7 +2183,7 @@ function fieldSheet(symbols) {
       kit.text(
         wideLeft,
         162,
-        "Its path so far, its rally faint under the danger line, the floor bounces it holds, and the panels a wide room has space for.",
+        "Its path so far, its rally under the danger line, bordered from 25, the floor bounces it holds, and the panels a wide room has space for.",
         { size: 14.5, fill: "#93a4bd" },
       ),
       at(MARGIN, top, phone.svg),

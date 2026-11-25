@@ -493,10 +493,10 @@ nine by eleven.
 
 - **A flight's rally is the bricks it has struck,** each strike one,
   whatever it took off the brick. It starts at nothing with every release.
-- **It is shown where the player is looking:** a small, faint number
-  under the danger line as it flies, where no brick covers it, so it is
-  read without looking away, and again in the bar or the panel ("Cards,
-  the bar and the panels").
+- **It is shown where the player is looking:** a small number under the
+  danger line as it flies, faint at first and bolder at each floor bounce
+  it earns, where no brick covers it, so it is read without looking away,
+  and again in the bar or the panel ("Cards, the bar and the panels").
 - **A floor bounce is earned at a rally of 10,** another at 25, another at
   45, then at 70, 100, 135 and on: the first costs ten strikes and each
   further one five more than the last.
@@ -1020,17 +1020,30 @@ fuzzball and commands.
 - **A floor bounce** is a small coiled spring. Three stand in the floor's
   band, at its right end, grey until earned and in the warning color once
   held.
-- **The rally** is a small, faint number fixed under the danger line,
-  across the field's middle, in the floor's row. No brick stands there
-  while the fuzzball flies: one the level doesn't need sinks into the
-  floor as it gets there, and one it needs loses the level. Anywhere
-  higher, the wall would cover it: at the middle as a level opens, and
-  low down wherever steel stands or the wall steps toward the line. Its
-  digits are 0.6 of a unit tall, in the field's text at 0.65 of its
-  strength, 0.55 in a dark palette, from the flight's first strike till
-  it lands. It lies under the fuzzball, which passes over it, and clear
-  of the lines. The guide, the jump line and the danger line are Brick
-  Fuzz Pop's.
+- **The rally** is a small number fixed under the danger line, across
+  the field's middle, in the floor's row. No brick stands there while the
+  fuzzball flies: one the level doesn't need sinks into the floor as it
+  gets there, and one it needs loses the level. Anywhere higher, the wall
+  would cover it: at the middle as a level opens, and low down wherever
+  steel stands or the wall steps toward the line. Its digits are 0.6 of a
+  unit tall, from the flight's first strike till it lands, and take a look
+  at each rally the fur lifts at, a shape added each time. To 9 they are
+  thin, in the field's text at 0.65 of its strength, 0.55 in a dark
+  palette. From 10 they are bold, their strokes 0.13 wide to the thin
+  ones' 0.09, at full strength. From 25 they are filled in the warning
+  color, the lit springs' and the sparks', and bordered in the field's
+  text. From 45 they are filled in the hot shot's color over a fire: a
+  tongue of the hot shot's flame, in the warning color, behind each
+  digit, one between each two and one at either end, rising from the
+  floor and flickering, the middle ones tallest, and a cut of the field's
+  color round the border stands the digits clear of it. Stepping into a
+  look, the number pops: drawn 0.12 larger, easing back to its size
+  in a fifth of a second. Bordered, it keeps a tenth of a unit clear of
+  the floor and the danger line, and clear of the danger line at its
+  thickest as it pops; its fire stands a fifth of a unit under the line.
+  It lies under the fuzzball, which passes over it, and clear of the
+  lines. The guide, the jump line and the danger line are Brick Fuzz
+  Pop's.
 - **The guide** is a line of dots along the flight to its third turn, a
   ring at each turn, fading for a unit and a half past the last.
 - **The fuzzball has five looks:** waiting, and to a rally of 9; from 10,
@@ -1043,9 +1056,13 @@ fuzzball and commands.
   springs and the guide's rings added, and the rally's number, at its
   strength over the field, 4.5:1 against the field, the bar for all text,
   as on a small phone on its side its digits stand about 17 CSS pixels
-  tall. What flies over
-  the number, the fuzzball and what bursts from the wall, keeps less
-  against it in places, and is told by the field round its strokes.
+  tall. What flies over the number, the fuzzball and what bursts from the
+  wall, keeps less against it in places, and is told by the field round
+  its strokes. Its bolder looks keep 4.5:1 against the field too, by the
+  bold digits' color and the bordered ones' border. Its fire keeps 3:1
+  against the field. The border, in the field's text, keeps less than 3:1
+  against the flames in every palette, so the cut round it, in the
+  field's color, keeps 3:1 against them.
 
 ### Flourishes
 
@@ -1055,11 +1072,13 @@ hatch's bar dips under a hold and loses a dot, and at the third every
 hatch swings down at once; a portal draws the fuzzball in and its twin
 lets it out; a lock's bolts slide a slot at each fourth turn; a plated
 face sparks. At a rally of 10, 25 and 45 a ring leaves the fuzzball, its fur
-lifts and a spring in the floor's band lights. A floor bounce spent kicks
-its spring and throws the fuzzball up with a puff. The dash home leaves a
+lifts, a spring in the floor's band lights and the rally's number pops into
+its next look; from 45 its fire flickers. A floor bounce spent kicks its
+spring and throws the fuzzball up with a puff. The dash home leaves a
 streak. The wall's step and its jump are Brick Fuzz Pop's. Without motion
-bricks vanish as they break and the fur changes at once; the flight, which
-is the game, still flies, and can be skipped.
+bricks vanish as they break, the fur and the number change at once and the
+number's fire stands still; the flight, which is the game, still flies, and
+can be skipped.
 
 ### Sound
 

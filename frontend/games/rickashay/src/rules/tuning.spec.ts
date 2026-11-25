@@ -3,6 +3,7 @@ import { multiplierAt } from "@fz/core/math";
 import {
   EYE,
   FLIGHT_RULES,
+  MARK_COUNTS,
   RALLY_MARKS,
   RALLY_STEPS,
   STAND_OFF,
@@ -10,6 +11,7 @@ import {
   STRIKE_POINTS,
   bounceRally,
   bounceRungs,
+  marksReached,
 } from "./tuning";
 
 /**
@@ -134,5 +136,26 @@ describe("bounceRungs", () => {
       from: 6,
       at: 14,
     });
+  });
+});
+
+describe("marksReached", () => {
+  it("counts from none of `RALLY_MARKS` to every one", () => {
+    expect(MARK_COUNTS).toEqual(
+      Array.from({ length: RALLY_MARKS.length + 1 }, (_, count) => count),
+    );
+  });
+
+  it.each([
+    [0, 0],
+    [9, 0],
+    [10, 1],
+    [24, 1],
+    [25, 2],
+    [44, 2],
+    [45, 3],
+    [162, 3],
+  ])("counts the marks a rally of %i has reached as %i", (rally, marks) => {
+    expect(marksReached(rally)).toBe(marks);
   });
 });

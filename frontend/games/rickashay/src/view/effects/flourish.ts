@@ -1,7 +1,8 @@
 // Where Rickashay's own flourishes play and how they move, which the scene
 // draws: a ramp's flash along its long face, the streak behind the
-// fuzzball dashing home, a spent floor bounce's spring kicking, and a
-// portal's swirl. A flourish every wall game plays moves by
+// fuzzball dashing home, a spent floor bounce's spring kicking, a portal's
+// swirl, the rally's number popping into its next look, and its fire
+// flickering. A flourish every wall game plays moves by
 // `@fz/brick-wall/view/easing`'s curves.
 
 import {
@@ -14,7 +15,7 @@ import { easeOutBack } from "@fz/brick-wall/view/easing";
 import { easeOutCubic, lerp } from "@fz/core/math";
 import type { Wall } from "../../rules/catalog/kinds";
 import type { BallView } from "../run_state";
-import { STREAK } from "./timing";
+import { FLICKER_MS, STREAK } from "./timing";
 
 /** Describes a strip a flash runs along: its middle on the field and its length, in field units, and its turn on the canvas, in radians. */
 export interface Strip {
@@ -97,3 +98,44 @@ export function swirlScale(done: number, inward: boolean): number {
 
 /** How opaque a floor bounce's puff starts, fading from there to nothing. */
 export const PUFF_ALPHA = 0.45;
+
+/**
+ * How much larger the rally's number is drawn as it pops into its next
+ * look, as a share of its size: as far as its bordered digits reach and
+ * still keep clear of the danger line at its thickest.
+ */
+export const RALLY_POP = 0.12;
+
+/**
+ * Returns how large the rally's number is drawn through its pop, as a
+ * share of its size, from 0 as it starts to 1 once it is over: larger as
+ * it steps into a look, then settling to its size, a little under it
+ * first, as a struck brick's swell does.
+ */
+export function rallyPopScale(done: number): number {
+  return lerp(1 + RALLY_POP, 1, easeOutBack(done));
+}
+
+/** How far a tongue of the rally's fire sinks as it flickers, as a share of its height at rest. */
+export const FLICKER = 0.25;
+
+/**
+ * How far apart in each wave neighboring tongues of the fire flicker, in
+ * radians: the golden angle, so no two near each other keep step.
+ */
+const TONGUE_PHASE = 2.399963;
+
+/**
+ * Returns how tall a tongue of the rally's fire stands at a moment, in the
+ * scene's time, as a share of its height at rest: between 1 − {@link FLICKER}
+ * and 1, by two waves of `FLICKER_MS`, each tongue, by its place from the
+ * left, on phases of its own, so neighbors rise and fall apart.
+ */
+export function flickerHeight(tongue: number, now: number): number {
+  const phase = tongue * TONGUE_PHASE;
+  const wave =
+    (Math.sin((2 * Math.PI * now) / FLICKER_MS.slow + phase) +
+      Math.sin((2 * Math.PI * now) / FLICKER_MS.fast + 2 * phase)) /
+    2;
+  return 1 - (FLICKER * (1 - wave)) / 2;
+}

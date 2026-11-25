@@ -56,14 +56,22 @@ import { FRAMES, FURS } from "../view/art/frames";
 import { eyesAt } from "../view/art/fuzzball_art";
 import { lockTint } from "../view/art/lock_tint";
 import { EFFECT_FRAMES } from "../view/art/effect_frames";
-import { RALLY_FRAMES, RALLY_PLACE, digitAcross } from "../view/art/rally_art";
+import {
+  RALLY_FRAMES,
+  RALLY_PLACE,
+  digitAcross,
+  tongueAcross,
+  tongueHeight,
+} from "../view/art/rally_art";
 import { brickColor } from "../view/colors/brick_colors";
 import { type WallPalette, wallPalette } from "../view/colors/palette";
 import { type Cue, type Flourish, QUIET } from "../view/effects/effects";
+import { RALLY_POP, flickerHeight } from "../view/effects/flourish";
 import { SOUNDS, type SoundName } from "../view/effects/sounds";
 import {
   KICK_MS,
   PORTAL_MS,
+  RALLY_POP_MS,
   RAMP_FLASH_MS,
   SPARK_MS,
   STREAK,
@@ -915,8 +923,8 @@ describe("RickashayScene", () => {
 
       const [tens, ones] = digitsAt(2);
       expect(shownOf(scene.rally.digits)).toEqual([
-        { frame: RALLY_FRAMES.digit(1), ...tens },
-        { frame: RALLY_FRAMES.digit(5), ...ones },
+        { frame: RALLY_FRAMES.digit("bold", 1), ...tens },
+        { frame: RALLY_FRAMES.digit("bold", 5), ...ones },
       ]);
     });
 
@@ -930,9 +938,9 @@ describe("RickashayScene", () => {
 
       const [hundreds, tens, ones] = digitsAt(3);
       expect(shownOf(scene.rally.digits)).toEqual([
-        { frame: RALLY_FRAMES.digit(1), ...hundreds },
-        { frame: RALLY_FRAMES.digit(0), ...tens },
-        { frame: RALLY_FRAMES.digit(0), ...ones },
+        { frame: RALLY_FRAMES.digit("fire", 1), ...hundreds },
+        { frame: RALLY_FRAMES.digit("fire", 0), ...tens },
+        { frame: RALLY_FRAMES.digit("fire", 0), ...ones },
       ]);
     });
 
@@ -945,7 +953,7 @@ describe("RickashayScene", () => {
       run.advance(16);
 
       expect(shownOf(scene.rally.digits)).toEqual([
-        { frame: RALLY_FRAMES.digit(4), ...digitsAt(1)[0] },
+        { frame: RALLY_FRAMES.digit("faint", 4), ...digitsAt(1)[0] },
       ]);
     });
 
@@ -973,13 +981,13 @@ describe("RickashayScene", () => {
         shell.fieldShape,
       );
       expect(shownOf(scene.rally.digits)).toEqual([
-        { frame: RALLY_FRAMES.digit(7), ...digitsAt(1, metrics)[0] },
+        { frame: RALLY_FRAMES.digit("faint", 7), ...digitsAt(1, metrics)[0] },
       ]);
     });
 
-    it("shows at the palette's strength, again as the palette changes", async () => {
+    it("shows thin at the palette's strength, again as the palette changes", async () => {
       const { scene, shell, run } = await startBoard((each) => {
-        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 21 }) });
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 7 }) });
       });
       const strengths = (): number[] =>
         scene.rally.digits
@@ -991,33 +999,237 @@ describe("RickashayScene", () => {
       run.advance(16);
 
       expect({ light, dark: strengths() }).toEqual({
-        light: [LIGHT.rally.alpha, LIGHT.rally.alpha],
-        dark: [DARK.rally.alpha, DARK.rally.alpha],
+        light: [LIGHT.rally.alpha],
+        dark: [DARK.rally.alpha],
       });
     });
 
-    it("scales its digits up from the atlas where the field's unit is past the most it bakes at", async () => {
+    it("scales its digits and its fire's width up from the atlas where the field's unit is past the most it bakes at", async () => {
       const canvas = { width: 1600, height: 2400 };
       const { scene, shell, run } = await startBoard(undefined, canvas);
       const metrics = metricsAt(canvas.width, canvas.height);
+      const size = metrics.unit / bakedScaleOf(metrics).unit;
 
-      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 2 }) });
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 45 }) });
       run.advance(16);
 
       expect({
         past: metrics.unit > bakedScaleOf(metrics).unit,
-        scale: scene.rally.digits[0]?.scale,
+        digits: scene.rally.digits
+          .filter((digit) => digit.visible)
+          .map((digit) => digit.scale),
+        flames: scene.rally.flames
+          .filter((flame) => flame.visible)
+          .map((flame) => flame.scaleX),
       }).toEqual({
         past: true,
-        scale: metrics.unit / bakedScaleOf(metrics).unit,
+        digits: [size, size],
+        flames: [size, size, size, size, size],
       });
     });
 
-    it("draws over the field and under the springs, the wall, the guide and the fuzzball, so all that plays passes over it", async () => {
+    it.each([
+      [10, "bold", 1, 0],
+      [24, "bold", 2, 4],
+      [25, "bordered", 2, 5],
+      [44, "bordered", 4, 4],
+      [45, "fire", 4, 5],
+    ] as const)(
+      "writes a rally of %i %s, at full strength",
+      async (rally, look, tens, ones) => {
+        const { scene, shell, run } = await startBoard();
+
+        shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally }) });
+        run.advance(16);
+
+        expect(
+          scene.rally.digits
+            .filter((digit) => digit.visible)
+            .map(({ frame, alpha }) => ({ frame: frame.name, alpha })),
+        ).toEqual([
+          { frame: RALLY_FRAMES.digit(look, tens), alpha: 1 },
+          { frame: RALLY_FRAMES.digit(look, ones), alpha: 1 },
+        ]);
+      },
+    );
+
+    it("burns its fire from 45 behind the number, a tongue behind each digit, one between and one at either end, standing on the floor by its foot and leaning out from the middle", async () => {
+      const { scene, shell, run } = await startBoard();
+      const metrics = metricsAt();
+      const middle = toCanvas(metrics, RALLY_PLACE.x, RALLY_PLACE.y);
+
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 45 }) });
+      run.advance(16);
+
+      expect(
+        scene.rally.flames
+          .filter((flame) => flame.visible)
+          .map(({ frame, x, y, originY, flipX }) => ({
+            frame: frame.name,
+            x,
+            y,
+            originY,
+            flipX,
+          })),
+      ).toEqual(
+        [true, true, false, false, false].map((flipX, at) => ({
+          frame: RALLY_FRAMES.flame,
+          x: Math.round(middle.x + tongueAcross(2, at) * metrics.unit),
+          y: Math.round(metrics.y + metrics.height),
+          originY: 1,
+          flipX,
+        })),
+      );
+    });
+
+    it.each([
+      ["under 45", ballAt(3, { y: 4, dx: 1, dy: 1, rally: 44 })],
+      ["once the fuzzball lands", ballAt(5)],
+    ])("burns no fire %s", async (_, ball) => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 50 }) });
+      });
+
+      shell.show({ ball });
+      run.advance(16);
+
+      expect(shownOf(scene.rally.flames)).toEqual([]);
+    });
+
+    it("pops the number larger about its middle as it steps into a look where motion is welcome, then eases it back to its size", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 9 }) });
+      });
+      const metrics = metricsAt();
+      const size = metrics.unit / bakedScaleOf(metrics).unit;
+      const [tens] = digitsAt(2);
+      const read = (): { scale: number; x: number } => {
+        const { scale, x } = firstOf(scene.rally.digits);
+        return { scale: billionths(scale), x };
+      };
+
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 10 }) });
+      run.advance(16);
+      const popped = read();
+      run.advance(RALLY_POP_MS);
+
+      const middle = toCanvas(metrics, RALLY_PLACE.x, RALLY_PLACE.y);
+      expect({ popped, settled: read() }).toEqual({
+        popped: {
+          scale: billionths(size * (1 + RALLY_POP)),
+          x: Math.round(
+            middle.x + digitAcross(2, 0) * metrics.unit * (1 + RALLY_POP),
+          ),
+        },
+        settled: { scale: billionths(size), x: tens?.x },
+      });
+    });
+
+    it.each([
+      ["where motion isn't welcome", false, 9],
+      ["as a new flight's number first shows", true, 0],
+    ])("takes its look at once %s", async (_, motion, before) => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.welcomesMotion = motion;
+        each.show({
+          ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: before }),
+        });
+      });
+      const metrics = metricsAt();
+
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 10 }) });
+      run.advance(16);
+
+      expect(firstOf(scene.rally.digits).scale).toBe(
+        metrics.unit / bakedScaleOf(metrics).unit,
+      );
+    });
+
+    it("flickers its fire where motion is welcome, each tongue its height at rest by its flicker at the frame's time", async () => {
+      const { scene, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 45 }) });
+      });
+      const metrics = metricsAt();
+      const size = metrics.unit / bakedScaleOf(metrics).unit;
+
+      run.advance(100);
+
+      const now = scene.time.now;
+      expect(
+        scene.rally.flames
+          .filter((flame) => flame.visible)
+          .map((flame) => billionths(flame.scaleY)),
+      ).toEqual(
+        [0, 1, 2, 3, 4].map((at) =>
+          billionths(size * (tongueHeight(2, at) * flickerHeight(at, now))),
+        ),
+      );
+    });
+
+    it("stands its fire still at rest where motion isn't welcome", async () => {
+      const { scene, run } = await startBoard((each) => {
+        each.welcomesMotion = false;
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 45 }) });
+      });
+      const metrics = metricsAt();
+      const size = metrics.unit / bakedScaleOf(metrics).unit;
+
+      run.advance(100);
+
+      expect(
+        scene.rally.flames
+          .filter((flame) => flame.visible)
+          .map((flame) => billionths(flame.scaleY)),
+      ).toEqual(
+        [0, 1, 2, 3, 4].map((at) => billionths(size * tongueHeight(2, at))),
+      );
+    });
+
+    it("stands the number at its size as motion stops being welcome in its pop", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 9 }) });
+      });
+      const metrics = metricsAt();
+      shell.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 10 }) });
+      run.advance(16);
+
+      shell.welcomesMotion = false;
+      run.advance(16);
+
+      expect(firstOf(scene.rally.digits).scale).toBe(
+        metrics.unit / bakedScaleOf(metrics).unit,
+      );
+    });
+
+    it("stands its fire at rest as motion stops being welcome", async () => {
+      const { scene, shell, run } = await startBoard((each) => {
+        each.show({ ball: ballAt(3, { y: 4, dx: 1, dy: 1, rally: 45 }) });
+      });
+      const metrics = metricsAt();
+      const size = metrics.unit / bakedScaleOf(metrics).unit;
+      run.advance(100);
+
+      shell.welcomesMotion = false;
+      run.advance(16);
+
+      expect(
+        scene.rally.flames
+          .filter((flame) => flame.visible)
+          .map((flame) => billionths(flame.scaleY)),
+      ).toEqual(
+        [0, 1, 2, 3, 4].map((at) => billionths(size * tongueHeight(2, at))),
+      );
+    });
+
+    it("draws over the field and under the springs, the wall, the guide and the fuzzball, so all that plays passes over it, and its fire under its digits", async () => {
       const { scene } = await startBoard();
       const rally = layerPlaceOf(scene, firstOf(scene.rally.digits));
+      const fire = firstOf(scene.rally.flames);
 
       expect({
+        fireUnder:
+          fire.displayList === firstOf(scene.rally.digits).displayList &&
+          placeAmong(fire) < placeAmong(firstOf(scene.rally.digits)),
         overField: rally > layerPlaceOf(scene, scene.field.ground),
         underSprings:
           rally < layerPlaceOf(scene, firstOf(scene.springs.springs)),
@@ -1025,6 +1237,7 @@ describe("RickashayScene", () => {
         underGuide: rally < layerPlaceOf(scene, firstOf(scene.guide.dots)),
         underFuzzball: rally < layerPlaceOf(scene, scene.balls.body),
       }).toEqual({
+        fireUnder: true,
         overField: true,
         underSprings: true,
         underWall: true,

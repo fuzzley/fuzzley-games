@@ -30,7 +30,6 @@ import {
   centered,
   widthOf,
 } from "@fz/phaser/shapes";
-import { RALLY_MARKS } from "../../rules/tuning";
 import type { WallPalette } from "../colors/palette";
 import type { BallView } from "../run_state";
 import { FRAMES, FURS, type FrameName, type Fur } from "./frames";
@@ -84,18 +83,6 @@ const FUZZBALL_NAMES = {
   2: FRAMES.fuzzball(2),
   3: FRAMES.fuzzball(3),
 } as const satisfies Readonly<Record<Fur, FrameName>>;
-
-/**
- * Returns how far the fuzzball's fur has lifted at a flight's rally: not at
- * all to a rally of 9, then a lift more at each of `RALLY_MARKS`, 10, 25
- * and 45, as each floor bounce of the ladder's first three is earned.
- */
-export function furAt(rally: number): Fur {
-  const [lifts, standsOn, sparks] = RALLY_MARKS;
-  if (rally >= sparks) return 3;
-  if (rally >= standsOn) return 2;
-  return rally >= lifts ? 1 : 0;
-}
 
 /** Returns the frame a fuzzball's body is drawn in: red-hot under its crown of flame for a hot shot, else at its fur's lift. */
 export function bodyFrameOf({

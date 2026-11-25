@@ -4,8 +4,10 @@ import {
   CALL_MS,
   DIP,
   DIP_MS,
+  FLICKER_MS,
   KICK_MS,
   PORTAL_MS,
+  RALLY_POP_MS,
   RAMP_FLASH_MS,
   SLIDE_MS,
   SPARK_MS,
@@ -22,6 +24,9 @@ describe("the flourishes' timings", () => {
     ["a portal's draw", PORTAL_MS],
     ["a bolt's slide", SLIDE_MS],
     ["a spring's kick", KICK_MS],
+    ["the rally's pop", RALLY_POP_MS],
+    ["the slower wave of the rally's flicker", FLICKER_MS.slow],
+    ["the faster wave of the rally's flicker", FLICKER_MS.fast],
   ])("keeps %s brisker than the wall's jump", (_, ms) => {
     expect(ms).toBeLessThan(JUMP_MS);
   });

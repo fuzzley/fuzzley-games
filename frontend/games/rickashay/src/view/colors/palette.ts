@@ -35,11 +35,30 @@ export interface WallPalette extends WallColors {
    */
   readonly springs: { readonly off: number; readonly on: number };
   /**
-   * The rally's number, small and faint, under the danger line: the
-   * field's text, shown at part strength, its `alpha`, as `RALLY_ALPHA`
-   * says.
+   * The rally's number under the danger line, in a look for each of
+   * `RALLY_MARKS` its flight has reached: thin in the field's text at part
+   * strength, its `alpha`, as `RALLY_ALPHA` says; bold in it at full
+   * strength from 10; filled in the warning color and bordered in the
+   * field's text from 25; and from 45 filled in the hot shot's color,
+   * bordered alike, over flames in the warning color, cut out of them in
+   * the field's color.
    */
-  readonly rally: { readonly color: number; readonly alpha: number };
+  readonly rally: {
+    /** The thin digits and the bold ones: the field's text. */
+    readonly color: number;
+    /** How strongly the thin digits show. */
+    readonly alpha: number;
+    /** The border round the bordered digits' strokes and those on fire: the field's text. */
+    readonly border: number;
+    /** What the bordered digits are filled in: the warning color, the lit springs' and the sparks'. */
+    readonly warm: number;
+    /** What the digits on fire are filled in: the hot shot's color. */
+    readonly hot: number;
+    /** The flames behind the digits on fire: the warning color. */
+    readonly flame: number;
+    /** The line round the border on fire, which cuts the digits out of the flames: the mark, the field's color. */
+    readonly cut: number;
+  };
   /** The ring at each of the guide's turns, in the guide's color. */
   readonly guideRing: number;
   /** The streak a fuzzball's dash home leaves, in its own color: the fuzzball's, or the hot shot's. */
@@ -85,7 +104,15 @@ export function wallPalette(roles: PaletteRoles, mode: ColorMode): WallPalette {
   return {
     ...colors,
     springs: { off: colorNumber(roles.fieldMuted), on: warning },
-    rally: { color: colors.text, alpha: RALLY_ALPHA[mode] },
+    rally: {
+      color: colors.text,
+      alpha: RALLY_ALPHA[mode],
+      border: colors.text,
+      warm: warning,
+      hot: colors.hotShot,
+      flame: warning,
+      cut: colors.mark,
+    },
     guideRing: colors.guide,
     streak: { plain: colors.fuzzball, hot: colors.hotShot },
     chevrons: colorNumber(roles.fieldMuted),

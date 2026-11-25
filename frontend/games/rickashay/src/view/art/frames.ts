@@ -2,6 +2,8 @@
 // them, as the design's "Look" draws each kind and the fuzzball: the art
 // bakes a frame under each name, and the scene draws a frame by its name.
 
+import type { MarksReached } from "../../rules/tuning";
+
 /** Every ink a palette gives the tiles and the gems, by a brick's tint, in order. */
 export const INKS = [
   0, 1, 2, 3, 4, 5, 6, 7,
@@ -88,8 +90,8 @@ export const LOCK_LOOKS = {
 /** A lock's look, such as "3-1", a lock of 3 bolts with 1 still shut. */
 export type LockLook = (typeof LOCK_LOOKS)[Bolts][number];
 
-/** Every lift of the fuzzball's fur, by its flight's rally: 0 waiting and to a rally of 9, then 1, 2 and 3 from each of `RALLY_MARKS`. */
-export const FURS = [0, 1, 2, 3] as const satisfies readonly number[];
+/** Every lift of the fuzzball's fur, by its flight's rally, as `marksReached()` counts the `RALLY_MARKS` it has reached: 0 waiting and to a rally of 9, then 1, 2 and 3 from each. */
+export const FURS = [0, 1, 2, 3] as const satisfies readonly MarksReached[];
 
 /** How far the fuzzball's fur has lifted. */
 export type Fur = (typeof FURS)[number];
