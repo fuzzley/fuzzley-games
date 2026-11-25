@@ -380,6 +380,32 @@ describe("GuidePainter", () => {
     ]).toEqual([0, 0, 0]);
   });
 
+  it("hides its layer whole while no guide shows, so a frame goes through none of its pool", async () => {
+    const painted = await paintGuide(dotsAt([3, 3]));
+
+    painted.context.guide = null;
+    painted.painter.draw(painted.context);
+
+    expect(painted.layer.visible).toBe(false);
+  });
+
+  it("keeps its layer hidden from the start while no guide shows", async () => {
+    const { layer } = await paintGuide(null);
+
+    expect(layer.visible).toBe(false);
+  });
+
+  it("shows its layer again with the next guide", async () => {
+    const painted = await paintGuide(dotsAt([3, 3]));
+    painted.context.guide = null;
+    painted.painter.draw(painted.context);
+
+    painted.context.guide = dotsAt([4, 4]);
+    painted.painter.draw(painted.context);
+
+    expect(painted.layer.visible).toBe(true);
+  });
+
   it("holds the most dots its art says, a ring for each turn it rings and a mark for each brick a line crosses on the deepest field, made once", async () => {
     const { painter } = await paintGuide(null);
 

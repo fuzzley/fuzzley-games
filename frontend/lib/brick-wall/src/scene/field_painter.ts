@@ -1,9 +1,15 @@
 // The field a wall game's wall stands in: its cells, the floor's band and
 // the grid's dots under the wall, the jump line, its count and the danger
 // line over it, and the lintel, the ceiling and the frame over everything.
+// The cells, the band, the dots and the two lines are drawn on textures,
+// so a frame draws an image of them rather than their shapes again.
 
 import { type PixelRect, framePixels } from "@fz/phaser/layout";
-import { dynamicTexture, onContextRestored } from "@fz/phaser/scene";
+import {
+  dynamicTexture,
+  onContextRestored,
+  whenSceneEnds,
+} from "@fz/phaser/scene";
 import { type ArtScale, dashes, widthOf } from "@fz/phaser/shapes";
 import type { GameObjects, Scene, Textures } from "phaser";
 import { COLUMNS, MOST_DEPTH } from "../rules/field";
@@ -36,6 +42,12 @@ import {
 /** The key of the texture the cells, the floor's band and the grid's dots are drawn on, once a layout. */
 export const FIELD_BAKE = "field-bake";
 
+/** The keys of the textures the jump line and the danger line are drawn on, each a strip across the field, again only as the lines change. */
+export const LINE_BAKES = {
+  jump: "jump-line-bake",
+  danger: "danger-line-bake",
+} as const;
+
 /** Says how a dashed line is drawn, in field units: its dashes, the gaps between them, and its width. */
 export interface DashedLine {
   readonly dash: number;
@@ -66,6 +78,27 @@ interface Span {
   readonly from: number;
   readonly to: number;
 }
+
+/** Names a line across the field: the jump line or the danger line. */
+type LineName = keyof typeof LINE_BAKES;
+
+/** Describes a strip a line across the field is drawn on: the texture, and the image that shows it. */
+interface LineStrip {
+  readonly bake: Textures.DynamicTexture;
+  readonly image: GameObjects.Image;
+}
+
+/** Describes where a line across the field runs on the canvas: its height and how thick it is drawn, in device pixels. */
+interface LineAt {
+  readonly y: number;
+  readonly thick: number;
+}
+
+/** Where the lines run before a layout: nowhere. */
+const NO_LINES: Readonly<Record<LineName, LineAt>> = {
+  jump: { y: 0, thick: 0 },
+  danger: { y: 0, thick: 0 },
+};
 
 /** Names the layers the field is drawn in: under the wall, over it, over the guide, and over everything. */
 export interface FieldLayers {
@@ -102,17 +135,26 @@ export function bandBounds(
   return { x, y: y + height, width, height: bandPixels(shape, unit) };
 }
 
+/** Makes the strip a line is drawn on, under a texture's key: the texture, and the image that shows it from its top left. */
+function lineStrip(scene: Scene, key: string): LineStrip {
+  return {
+    bake: dynamicTexture(scene, key),
+    image: scene.add.image(0, 0, key).setOrigin(0, 0),
+  };
+}
+
 /**
  * Draws a wall game's field: under the wall, its cells, the floor's band
  * and a dot at each corner its cells share, drawn on a texture, the bake,
  * which one image shows; over the wall, the jump line, with a dot for each
  * brick the level needs left under it once nine or fewer are, in threes,
  * over the guide, and the danger line, which brightens, solid and twice as
- * thick, while such a brick stands at or under the row over it; and over
- * everything, the lintel over the ceiling and the frame around them all,
- * so nothing that bursts from the wall or flies covers them. It draws them
- * again only once the layout, the scale, the palette, that count or the
- * danger changes, and the bake once a lost context is restored.
+ * thick, while such a brick stands at or under the row over it, each line
+ * drawn on a strip of its own; and over everything, the lintel over the
+ * ceiling and the frame around them all, so nothing that bursts from the
+ * wall or flies covers them. It draws them again only once the layout, the
+ * scale, the palette, that count or the danger changes, and the bake and
+ * the strips once a lost context is restored.
  */
 export class FieldPainter<K extends string> implements Painter<
   PaintContext<WallView<K>>
@@ -121,14 +163,21 @@ export class FieldPainter<K extends string> implements Painter<
   readonly ground: GameObjects.Image;
   /** Draws the lintel, the ceiling and the frame, over everything else. */
   readonly rim: GameObjects.Graphics;
-  /** Draws the jump line and the danger line. */
+  /**
+   * Holds the jump line's dashes and the danger line's, never shown itself:
+   * the strips show them, drawn from it.
+   */
   readonly lines: GameObjects.Graphics;
+  /** Show the jump line and the danger line, each drawn on a strip across the field from {@link lines}. */
+  readonly strips: Readonly<Record<LineName, GameObjects.Image>>;
   /** The jump line's count, a dot for each brick left under it, made once, from its end. */
   readonly countDots: readonly GameObjects.Image[];
 
   /** The texture the cells, the band and the dots are drawn on. */
   private readonly bake: Textures.DynamicTexture;
-  /** Whether the bake must be drawn again though nothing was laid out anew: once a lost context is restored. */
+  /** The strips the lines are drawn on. */
+  private readonly lineStrips: Readonly<Record<LineName, LineStrip>>;
+  /** Whether the bake and the strips must be drawn again though nothing was laid out anew: once a lost context is restored. */
   private lost = false;
   private metrics: FieldMetrics | null = null;
   private palette: WallPalette | null = null;
@@ -140,6 +189,8 @@ export class FieldPainter<K extends string> implements Painter<
   private jumpDashes: readonly Span[] = [];
   /** The danger line's dashes, worked out once a layout. */
   private dangerDashes: readonly Span[] = [];
+  /** Where each line runs, worked out once a layout, which its strip covers. */
+  private linesAt = NO_LINES;
   private wall: Wall<K> | null = null;
   /** How many bricks the jump line's count shows, 0 where it shows none. */
   private counted = 0;
@@ -156,18 +207,30 @@ export class FieldPainter<K extends string> implements Painter<
   ) {
     this.bake = dynamicTexture(scene, FIELD_BAKE);
     this.ground = scene.add.image(0, 0, FIELD_BAKE).setOrigin(0, 0);
-    this.lines = scene.add.graphics();
+    // Off the display list, so a frame never goes through it.
+    this.lines = scene.make.graphics({}, false);
+    this.lineStrips = {
+      jump: lineStrip(scene, LINE_BAKES.jump),
+      danger: lineStrip(scene, LINE_BAKES.danger),
+    };
+    this.strips = {
+      jump: this.lineStrips.jump.image,
+      danger: this.lineStrips.danger.image,
+    };
     this.rim = scene.add.graphics();
     this.countDots = Array.from({ length: MOST_COUNTED }, () =>
       scene.add.image(0, 0, ATLAS, art.countDot).setVisible(false),
     );
     layers.field.add(this.ground);
-    layers.lines.add(this.lines);
+    layers.lines.add([this.strips.jump, this.strips.danger]);
     layers.count.add([...this.countDots]);
     layers.rim.add(this.rim);
-    // The bake goes with a lost context; the atlas is baked anew.
+    // The bakes go with a lost context; the atlas is baked anew.
     onContextRestored(scene, () => {
       this.lost = true;
+    });
+    whenSceneEnds(scene, () => {
+      this.lines.destroy();
     });
   }
 
@@ -185,7 +248,7 @@ export class FieldPainter<K extends string> implements Painter<
     return false;
   }
 
-  /** Draws the field as the frame has it, again only where its layout, its scale, its palette, the jump line's count or the danger changed, and bakes it again once a lost context is restored. */
+  /** Draws the field as the frame has it, again only where its layout, its scale, its palette, the jump line's count or the danger changed, and bakes it and its lines again once a lost context is restored. */
   draw({
     view,
     shape,
@@ -206,22 +269,50 @@ export class FieldPainter<K extends string> implements Painter<
       this.thirds = thirdsOf(shape.depth);
       this.jumpDashes = spansAcross(metrics, JUMP_LINE);
       this.dangerDashes = spansAcross(metrics, DANGER_LINE);
+      this.linesAt = {
+        jump: {
+          y: metrics.y + this.thirds.jump * metrics.unit,
+          thick: widthOf(JUMP_LINE.width, metrics),
+        },
+        danger: {
+          y: metrics.y + (shape.depth - DANGER_ROW) * metrics.unit,
+          thick: widthOf(DANGER_LINE.width, metrics),
+        },
+      };
       this.clearance =
         (COUNT_PITCH + GROUP_GAP - this.art.countDotWidth) * metrics.unit;
       this.drawRim(metrics, shape, palette);
     }
-    if (laidOut || this.lost) this.bakeGround(metrics, shape, palette, baked);
-    if (!laidOut && view.wall === this.wall) return;
-    this.wall = view.wall;
-    const left = neededBelow(view.wall, this.thirds.jumpLine, this.rules);
-    const counted = left <= MOST_COUNTED ? left : 0;
-    const danger = inDanger(view.wall, this.rules);
-    if (!laidOut && counted === this.counted && danger === this.danger) {
+    const { lost } = this;
+    this.lost = false;
+    if (laidOut || lost) this.bakeGround(metrics, shape, palette, baked);
+    if (this.recount(view.wall, laidOut)) {
+      this.drawLines(metrics, palette, baked);
+    } else if (!lost) {
       return;
+    }
+    this.bakeStrip(this.lineStrips.jump, metrics, this.linesAt.jump);
+    this.bakeStrip(this.lineStrips.danger, metrics, this.linesAt.danger);
+  }
+
+  /**
+   * Counts the bricks the level needs under the jump line of a wall, and
+   * whether one is in danger, again only for a new wall or a new layout,
+   * and returns whether the lines must be drawn again: on a new layout, or
+   * as the count or the danger changes.
+   */
+  private recount(wall: Wall<K>, laidOut: boolean): boolean {
+    if (!laidOut && wall === this.wall) return false;
+    this.wall = wall;
+    const left = neededBelow(wall, this.thirds.jumpLine, this.rules);
+    const counted = left <= MOST_COUNTED ? left : 0;
+    const danger = inDanger(wall, this.rules);
+    if (!laidOut && counted === this.counted && danger === this.danger) {
+      return false;
     }
     this.counted = counted;
     this.danger = danger;
-    this.drawLines(metrics, shape, palette, baked);
+    return true;
   }
 
   /**
@@ -259,7 +350,6 @@ export class FieldPainter<K extends string> implements Painter<
       }
     }
     bake.render();
-    this.lost = false;
   }
 
   /** Draws the lintel over the cells, the ceiling, and the frame around them all, outside them. */
@@ -296,20 +386,19 @@ export class FieldPainter<K extends string> implements Painter<
   }
 
   /**
-   * Draws the jump line under the top third, and its count at its end, a
-   * dot for each brick left under it, from the end, where there is one;
-   * and the danger line along the top of the floor's row, dashed, or solid
-   * and twice as thick while a brick the level needs stands at or under the
-   * row over it.
+   * Draws on {@link lines} the jump line under the top third, and places
+   * its count at its end, a dot for each brick left under it, from the end,
+   * where there is one; and the danger line along the top of the floor's
+   * row, dashed, or solid and twice as thick while a brick the level needs
+   * stands at or under the row over it.
    */
   private drawLines(
     metrics: FieldMetrics,
-    shape: FieldShape,
     palette: WallPalette,
     baked: ArtScale,
   ): void {
-    const { x, y, width, unit } = metrics;
-    const jumpY = y + this.thirds.jump * unit;
+    const { x, width, unit } = metrics;
+    const { jump, danger } = this.linesAt;
     const counted = this.counted;
     const scale = unit / baked.unit;
     const graphics = this.lines.clear();
@@ -317,25 +406,50 @@ export class FieldPainter<K extends string> implements Painter<
     // The dashes stop half a dot's pitch short of the count's last dot.
     this.dashed(
       this.jumpDashes,
-      jumpY,
+      jump.y,
       counted > 0
         ? countDotX(metrics, counted - 1) - (COUNT_PITCH * unit) / 2
         : x + width,
-      widthOf(JUMP_LINE.width, metrics),
+      jump.thick,
     );
     this.countDots.forEach((dot, at) => {
-      placeDot(dot, countDotX(metrics, at), jumpY, scale).setVisible(
+      placeDot(dot, countDotX(metrics, at), jump.y, scale).setVisible(
         at < counted,
       );
     });
     graphics.fillStyle(palette.dangerLine);
-    const dangerY = y + (shape.depth - DANGER_ROW) * unit;
-    const thick = widthOf(DANGER_LINE.width, metrics);
     if (this.danger) {
-      graphics.fillRect(x, dangerY - thick, width, 2 * thick);
+      graphics.fillRect(x, danger.y - danger.thick, width, 2 * danger.thick);
     } else {
-      this.dashed(this.dangerDashes, dangerY, x + width, thick);
+      this.dashed(this.dangerDashes, danger.y, x + width, danger.thick);
     }
+  }
+
+  /**
+   * Draws a line on its strip from what {@link lines} holds, across the
+   * cells, on whole pixels, from the line's thickness over its height to as
+   * far under it, which holds it dashed and the danger line solid, and
+   * shows the strip there.
+   */
+  private bakeStrip(
+    { bake, image }: LineStrip,
+    { x, width }: FieldMetrics,
+    line: LineAt,
+  ): void {
+    const left = Math.floor(x);
+    const top = Math.floor(line.y - line.thick);
+    bake.setSize(
+      Math.ceil(x + width) - left,
+      Math.ceil(line.y + line.thick) - top,
+      false,
+    );
+    // The image takes up its frame again, so it keeps no size the strip had.
+    image.setFrame(image.frame.name).setPosition(left, top);
+    bake.clear();
+    // Drawn as far up and to the left as the strip stands from the canvas's
+    // corner, on whole pixels, so each shape covers the pixels it would.
+    bake.draw(this.lines, -left, -top);
+    bake.render();
   }
 
   /**

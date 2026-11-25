@@ -14,6 +14,7 @@ import { wallFrom } from "../rules/level_picture";
 import { type Wall, thirdsOf } from "../rules/wall";
 import {
   type BakeCommand,
+  drawsIn,
   fillsIn,
   recordBakes,
   stampsIn,
@@ -47,6 +48,7 @@ import {
   type FieldLayers,
   FieldPainter,
   JUMP_LINE,
+  LINE_BAKES,
   MOST_COUNTED,
   bandBounds,
 } from "./field_painter";
@@ -73,7 +75,7 @@ const TWO_UNDER = wallOf(["1.......2"], 5);
 /** A wall whose row over the floor's holds bricks the level needs in columns 0, 2 and 4, and moss, which it doesn't. */
 const ENDANGERING = wallOf(["1m1.1.m.."], 1);
 
-/** Describes a field painted in a scene, the context it was drawn from and what its bake was handed. */
+/** Describes a field painted in a scene, the context it was drawn from and what its bake and its strips were handed. */
 interface Painted {
   readonly run: SceneRun<HostedScene>;
   readonly painter: FieldPainter<MadeUpKind>;
@@ -82,6 +84,8 @@ interface Painted {
   readonly context: PaintContext<WallView<MadeUpKind>>;
   /** Returns what the field's bake was handed from the start. */
   readonly baked: () => BakeCommand[];
+  /** Returns what each line's strip was handed from the start. */
+  readonly stripsBaked: () => Record<keyof typeof LINE_BAKES, BakeCommand[]>;
 }
 
 /**
@@ -101,9 +105,15 @@ async function paintField(
   const { scene } = run;
   const { shape, metrics } = madeUpField(width, height);
   const atlas = new WallAtlas(scene, madeUpFrames, LIGHT_MADE_UP, metrics);
-  // The painter takes up the texture there under its key.
+  // The painter takes up the textures there under their keys.
   const bakes = recordBakes(dynamicTexture(scene, FIELD_BAKE));
   const baked = (): BakeCommand[] => bakes(FIELD_BAKE);
+  const jumpBakes = recordBakes(dynamicTexture(scene, LINE_BAKES.jump));
+  const dangerBakes = recordBakes(dynamicTexture(scene, LINE_BAKES.danger));
+  const stripsBaked = (): Record<keyof typeof LINE_BAKES, BakeCommand[]> => ({
+    jump: jumpBakes(LINE_BAKES.jump),
+    danger: dangerBakes(LINE_BAKES.danger),
+  });
   const layers = {
     field: scene.add.layer(),
     lines: scene.add.layer(),
@@ -121,7 +131,7 @@ async function paintField(
     motion: true,
   };
   painter.draw(context);
-  return { run, painter, layers, atlas, context, baked };
+  return { run, painter, layers, atlas, context, baked, stripsBaked };
 }
 
 /** Lays the field out again on a canvas of some CSS pixels, the atlas baked for it, and draws it. */
@@ -423,7 +433,7 @@ describe("FieldPainter", () => {
 
   describe("the lines", () => {
     it("draw the jump line's dashes under the top third, in the jump line's color", async () => {
-      const { painter, context, layers } = await paintField();
+      const { painter, context } = await paintField();
       const { metrics } = context;
       const { jumpLine } = thirdsOf(context.shape.depth);
       // At 31 px a unit, the art's 2.4 and 14 of a cell of 40.
@@ -432,13 +442,11 @@ describe("FieldPainter", () => {
       const dashes = rectsIn(painter.lines, LIGHT_MADE_UP.jumpLine);
 
       expect({
-        layer: layers.lines.list.includes(painter.lines),
         many: dashes.length > 5,
         rows: new Set(dashes.map(({ y, height }) => `${y} ${height}`)),
         from: (dashes[0]?.x ?? 0) - metrics.x,
         dash: dashes[0]?.width,
       }).toEqual({
-        layer: true,
         many: true,
         rows: new Set([
           `${rowFoot(metrics, jumpLine) - Math.floor(thick / 2)} ${thick}`,
@@ -574,6 +582,135 @@ describe("FieldPainter", () => {
       expect(
         rectsIn(painted.painter.lines, LIGHT_MADE_UP.dangerLine).length,
       ).toBeGreaterThan(5);
+    });
+  });
+
+  describe("the strips", () => {
+    it("show the lines in their layer, each across the cells from its thickness over it to as far under, the lines' shapes never shown themselves", async () => {
+      const { painter, context, layers, run } = await paintField();
+      const { metrics } = context;
+      const { jumpLine } = thirdsOf(context.shape.depth);
+      const { list } = layers.lines;
+      // At 31 px a unit, the jump line's 2.4 and the danger line's 2 of a
+      // cell of 40.
+      const thick = 2;
+
+      expect({
+        layer: [
+          list.indexOf(painter.strips.jump),
+          list.indexOf(painter.strips.danger),
+          list.length,
+        ],
+        listed: run.scene.children.exists(painter.lines),
+        jump: rectOf(painter.strips.jump),
+        danger: rectOf(painter.strips.danger),
+      }).toEqual({
+        layer: [0, 1, 2],
+        listed: false,
+        jump: {
+          x: metrics.x,
+          y: rowFoot(metrics, jumpLine) - thick,
+          width: metrics.width,
+          height: 2 * thick,
+        },
+        danger: {
+          x: metrics.x,
+          y: rowFoot(metrics, 1) - thick,
+          width: metrics.width,
+          height: 2 * thick,
+        },
+      });
+    });
+
+    it("stand and size each strip across a field laid out anew as across one painted there from the start, each image as big as its strip", async () => {
+      const painted = await paintField();
+      const started = await paintField(TWO_UNDER, 300, 700);
+      const strips = ({ painter }: Painted): unknown => ({
+        jump: rectOf(painter.strips.jump),
+        danger: rectOf(painter.strips.danger),
+      });
+
+      layOut(painted, 300, 700);
+
+      // An image's size is its own, kept from its frame as it last took it.
+      const { jump } = painted.painter.strips;
+      expect({
+        strips: strips(painted),
+        size: { width: jump.width, height: jump.height },
+      }).toEqual({
+        strips: strips(started),
+        size: { width: jump.displayWidth, height: jump.displayHeight },
+      });
+    });
+
+    it("clear each strip, draw the lines' shapes on it as far up and to the left as it stands, and render it", async () => {
+      const { painter, stripsBaked } = await paintField();
+      const { jump, danger } = painter.strips;
+
+      expect(stripsBaked()).toEqual({
+        jump: [
+          { kind: "clear", rect: null },
+          { kind: "draw", drawn: painter.lines, x: -jump.x, y: -jump.y },
+          { kind: "render" },
+        ],
+        danger: [
+          { kind: "clear", rect: null },
+          { kind: "draw", drawn: painter.lines, x: -danger.x, y: -danger.y },
+          { kind: "render" },
+        ],
+      });
+    });
+
+    it("draw the lines again as the danger line brightens", async () => {
+      const painted = await paintField(wallOf(["1m1.1.m.."], 2));
+
+      showWall(painted, ENDANGERING);
+
+      expect({
+        jump: drawsIn(painted.stripsBaked().jump).length,
+        danger: drawsIn(painted.stripsBaked().danger).length,
+      }).toEqual({ jump: 2, danger: 2 });
+    });
+
+    it("draw nothing again for a wall that leaves the lines as they were", async () => {
+      const painted = await paintField();
+
+      showWall(painted, wallOf(["1.......2"], 5));
+
+      expect({
+        jump: drawsIn(painted.stripsBaked().jump).length,
+        danger: drawsIn(painted.stripsBaked().danger).length,
+      }).toEqual({ jump: 1, danger: 1 });
+    });
+
+    it("leave the lines' shapes destroyed as the scene ends", async () => {
+      const { painter, run } = await paintField();
+
+      run.scene.scene.stop();
+      run.advance(20);
+
+      expect(painter.lines.scene).toBeUndefined();
+    });
+
+    it("draw the lines again once a lost context is restored, and the frame after it nothing", async () => {
+      const painted = await paintField();
+      await painted.run.loseContext();
+      await painted.run.restoreContext();
+
+      painted.painter.draw(painted.context);
+      const restored = painted.stripsBaked();
+      painted.painter.draw(painted.context);
+
+      expect({
+        restored: [
+          drawsIn(restored.jump).length,
+          drawsIn(restored.danger).length,
+        ],
+        after: [
+          drawsIn(painted.stripsBaked().jump).length,
+          drawsIn(painted.stripsBaked().danger).length,
+        ],
+      }).toEqual({ restored: [2, 2], after: [2, 2] });
     });
   });
 

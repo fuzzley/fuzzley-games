@@ -65,8 +65,9 @@ const NO_CELLS: readonly number[] = [];
  * as strongly as each shows, but where it would crowd the jump line's
  * count; a ring at each turn, where the game rings them; and a mark over
  * each brick the shot would strike, each from a pool made once, the rest
- * hidden. It draws them again only as the guide changes, or the wall or
- * the layout under a guide shown.
+ * hidden, and its layer hidden whole while no guide shows, so a frame then
+ * goes through none of them. It draws them again only as the guide changes,
+ * or the wall or the layout under a guide shown.
  */
 export class GuidePainter<K extends string> implements Painter<
   GuideContext<K>
@@ -89,7 +90,7 @@ export class GuidePainter<K extends string> implements Painter<
 
   constructor(
     scene: Scene,
-    layer: GameObjects.Layer,
+    private readonly layer: GameObjects.Layer,
     art: GuideArt,
     private readonly countClearance: CountClearance,
   ) {
@@ -106,6 +107,8 @@ export class GuidePainter<K extends string> implements Painter<
       scene.add.image(0, 0, ATLAS, art.dot).setVisible(false),
     );
     layer.add([...this.marks, ...this.rings, ...this.dots]);
+    // As no guide is drawn yet.
+    layer.setVisible(false);
   }
 
   /**
@@ -131,6 +134,7 @@ export class GuidePainter<K extends string> implements Painter<
       return;
     }
     drawn.guide = guide;
+    this.layer.setVisible(guide !== null);
     drawn.wall = view.wall;
     drawn.metrics = metrics;
     drawn.depth = shape.depth;

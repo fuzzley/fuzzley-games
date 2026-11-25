@@ -1263,7 +1263,7 @@ describe("WallScene", () => {
       expect({
         overDot: counted > layerPlaceOf(scene, dot),
         overPunch: counted > layerPlaceOf(scene, punch),
-        overLines: counted > layerPlaceOf(scene, scene.field.lines),
+        overLines: counted > layerPlaceOf(scene, scene.field.strips.jump),
         underShards: counted < layerPlaceOf(scene, scene.effects.shards),
       }).toEqual({
         overDot: true,

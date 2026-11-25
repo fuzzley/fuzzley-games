@@ -1,4 +1,7 @@
-import { type Bake, fillsIn, recordBakes, stampsIn } from "./bakes";
+import { type Bake, drawsIn, fillsIn, recordBakes, stampsIn } from "./bakes";
+
+/** Something a bake is handed to draw. */
+const LINES = { lines: true };
 
 /** A bake under a key that takes every command and draws nothing. */
 class QuietBake implements Bake {
@@ -9,6 +12,10 @@ class QuietBake implements Bake {
   }
 
   stamp(..._command: unknown[]): this {
+    return this;
+  }
+
+  draw(..._command: unknown[]): this {
     return this;
   }
 
@@ -36,6 +43,8 @@ describe("recordBakes", () => {
     bake.clear(1, 2, 3, 4);
     bake.stamp("atlas", 7);
     bake.fill(0x654321);
+    bake.draw(LINES, -3, -4);
+    bake.draw(LINES);
     bake.render();
 
     expect(baked("ground")).toEqual([
@@ -53,6 +62,8 @@ describe("recordBakes", () => {
         color: 0x654321,
         rect: { x: 0, y: 0, width: 0, height: 0 },
       },
+      { kind: "draw", drawn: LINES, x: -3, y: -4 },
+      { kind: "draw", drawn: LINES, x: 0, y: 0 },
       { kind: "render" },
     ]);
   });
@@ -102,10 +113,12 @@ describe("recordBakes", () => {
     const bake = new QuietBake("ground");
     vi.spyOn(bake, "fill");
     vi.spyOn(bake, "stamp");
+    vi.spyOn(bake, "draw");
     vi.spyOn(bake, "clear");
     vi.spyOn(bake, "render");
     bake.fill(1);
     bake.stamp("atlas", "a");
+    bake.draw(LINES);
     bake.clear();
     bake.render();
     const baked = recordBakes(bake);
@@ -121,12 +134,14 @@ describe("recordBakes", () => {
     const bake: Bake = {
       fill: () => undefined,
       stamp: () => undefined,
+      draw: () => undefined,
       clear: () => undefined,
       render: () => undefined,
     };
     const baked = recordBakes(bake);
 
     bake.fill(1);
+    bake.draw(LINES);
     bake.render();
 
     expect(baked("ground")).toEqual([]);
@@ -147,23 +162,26 @@ describe("recordBakes", () => {
   });
 });
 
-describe("stampsIn and fillsIn", () => {
+describe("stampsIn, drawsIn and fillsIn", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("pick out the stamps and the fills among a bake's commands, in order", () => {
+  it("pick out the stamps, the draws and the fills among a bake's commands, in order", () => {
     const bake = new QuietBake("ground");
     const baked = recordBakes(bake);
     bake.fill(1);
     bake.stamp("atlas", "a");
+    bake.draw(LINES, 1);
     bake.render();
     bake.stamp("atlas", "b");
+    bake.draw(LINES, 2);
     bake.fill(2);
 
     expect({
       stamps: stampsIn(baked("ground")).map(({ frame }) => frame),
+      draws: drawsIn(baked("ground")).map(({ x }) => x),
       fills: fillsIn(baked("ground")).map(({ color }) => color),
-    }).toEqual({ stamps: ["a", "b"], fills: [1, 2] });
+    }).toEqual({ stamps: ["a", "b"], draws: [1, 2], fills: [1, 2] });
   });
 });

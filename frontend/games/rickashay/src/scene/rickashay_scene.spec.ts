@@ -1109,7 +1109,7 @@ describe("RickashayScene", () => {
       const guide = layerPlaceOf(scene, firstOf(scene.guide.dots));
 
       expect({
-        overLines: guide > layerPlaceOf(scene, scene.field.lines),
+        overLines: guide > layerPlaceOf(scene, scene.field.strips.jump),
         underCount: guide < layerPlaceOf(scene, firstOf(scene.field.countDots)),
         underFuzzball: guide < layerPlaceOf(scene, scene.balls.body),
       }).toEqual({ overLines: true, underCount: true, underFuzzball: true });

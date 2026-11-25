@@ -6,8 +6,9 @@ import { vi } from "vitest";
 
 /**
  * Describes a command a bake was handed, in the bake's own pixels: a fill,
- * a stamp of a frame, a clear, of the whole bake where it names no
- * rectangle, or a render of what it was handed.
+ * a stamp of a frame, a draw of what it was handed to draw, a clear, of
+ * the whole bake where it names no rectangle, or a render of what it was
+ * handed.
  */
 export type BakeCommand =
   | {
@@ -21,6 +22,12 @@ export type BakeCommand =
       readonly x: number;
       readonly y: number;
       readonly scale: number;
+    }
+  | {
+      readonly kind: "draw";
+      readonly drawn: unknown;
+      readonly x: number;
+      readonly y: number;
     }
   | { readonly kind: "clear"; readonly rect: PixelRect | null }
   | { readonly kind: "render" };
@@ -42,6 +49,7 @@ export interface Bake {
     y?: number,
     config?: { readonly scale?: number },
   ): unknown;
+  draw(entries: unknown, x?: number, y?: number): unknown;
   clear(x?: number, y?: number, width?: number, height?: number): unknown;
   render(): unknown;
 }
@@ -60,11 +68,13 @@ type CallsPast = Readonly<Record<keyof Bake, number>>;
 export function recordBakes(bakes: Bake): (key: string) => BakeCommand[] {
   const fill = vi.spyOn(bakes, "fill");
   const stamp = vi.spyOn(bakes, "stamp");
+  const draw = vi.spyOn(bakes, "draw");
   const clear = vi.spyOn(bakes, "clear");
   const render = vi.spyOn(bakes, "render");
   const past: CallsPast = {
     fill: fill.mock.calls.length,
     stamp: stamp.mock.calls.length,
+    draw: draw.mock.calls.length,
     clear: clear.mock.calls.length,
     render: render.mock.calls.length,
   };
@@ -90,6 +100,13 @@ export function recordBakes(bakes: Bake): (key: string) => BakeCommand[] {
           y,
           scale: config?.scale ?? 1,
         },
+      ]);
+    });
+    draw.mock.calls.forEach(([drawn, x = 0, y = 0], at) => {
+      if (at < past.draw || keyOf(draw.mock.contexts[at]) !== key) return;
+      ordered.push([
+        draw.mock.invocationCallOrder[at] ?? 0,
+        { kind: "draw", drawn, x, y },
       ]);
     });
     clear.mock.calls.forEach(([x, y, width, height], at) => {
@@ -122,6 +139,15 @@ export function stampsIn(
 ): Extract<BakeCommand, { kind: "stamp" }>[] {
   return commands.flatMap((command) =>
     command.kind === "stamp" ? [command] : [],
+  );
+}
+
+/** Returns the draws among a bake's commands. */
+export function drawsIn(
+  commands: readonly BakeCommand[],
+): Extract<BakeCommand, { kind: "draw" }>[] {
+  return commands.flatMap((command) =>
+    command.kind === "draw" ? [command] : [],
   );
 }
 
