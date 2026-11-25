@@ -14,7 +14,9 @@ import {
 import { describeKind } from "../../rules/run/describe";
 import { BRICK_HELP } from "./kinds/brick";
 import { GEM_HELP } from "./kinds/gem";
+import { HATCH_HELP } from "./kinds/hatch";
 import { RAMP_HELP } from "./kinds/ramp";
+import { SPRING_HELP } from "./kinds/spring";
 import { STEEL_HELP } from "./kinds/steel";
 import { TOUGH_HELP } from "./kinds/tough";
 
@@ -30,6 +32,8 @@ export const HELP_KINDS = {
   tough: TOUGH_HELP,
   steel: STEEL_HELP,
   ramp: RAMP_HELP,
+  hatch: HATCH_HELP,
+  spring: SPRING_HELP,
   gem: GEM_HELP,
 } as const satisfies Partial<Readonly<Record<KindId, KindHelp>>>;
 

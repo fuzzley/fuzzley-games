@@ -26,6 +26,7 @@ import {
   provideBugReports,
 } from "./bug_report/bug_report_source";
 import { HelpComponent } from "./help/help.component";
+import { HELP_KIND_IDS } from "./help/kinds";
 import { GameService } from "./play/game.service";
 import { SettingsService } from "./settings/settings.service";
 import { LOAD_HELP } from "./tokens";
@@ -92,6 +93,11 @@ async function renderHeldHelp(): Promise<HeldHelpApp> {
 /** Renders the app as `renderApp()` does, with the debug menu offered, as at `?debug`. */
 async function renderDebugApp(): Promise<RenderedApp> {
   return renderAppWith([{ provide: DEBUG_MENU, useValue: true }]);
+}
+
+/** Returns a picture as the scene encodes one, holding nothing but a name. */
+function pictureOf(name: string): string {
+  return `data:image/png;base64,${btoa(name)}`;
 }
 
 /** Returns the bar's button a name names. */
@@ -459,16 +465,18 @@ describe("AppComponent", () => {
 
     it("shows the pictures the scene drew as it opens", async () => {
       const { game, settle } = await renderApp();
-      const picture = "data:image/png;base64,AAAA";
+      const bricks = {
+        brick: pictureOf("brick"),
+        tough: pictureOf("tough"),
+        steel: pictureOf("steel"),
+        ramp: pictureOf("ramp"),
+        hatch: pictureOf("hatch"),
+        spring: pictureOf("spring"),
+        gem: pictureOf("gem"),
+      };
       game.onPictures(() => ({
-        bricks: {
-          brick: picture,
-          tough: picture,
-          steel: picture,
-          ramp: picture,
-          gem: picture,
-        },
-        springs: { off: picture, on: picture },
+        bricks,
+        springs: { off: pictureOf("off"), on: pictureOf("on") },
       }));
 
       await userEvent.click(barButton("How to play"));
@@ -478,7 +486,7 @@ describe("AppComponent", () => {
         within(screen.getByRole("dialog", { name: "How to play" }))
           .getAllByRole("presentation")
           .map((img) => img.getAttribute("src")),
-      ).toEqual([picture, picture, picture, picture, picture]);
+      ).toEqual(HELP_KIND_IDS.map((kind) => bricks[kind]));
     });
 
     describe("on a slow connection", () => {

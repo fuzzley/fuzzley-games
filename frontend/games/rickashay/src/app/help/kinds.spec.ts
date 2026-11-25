@@ -3,6 +3,7 @@ import { KIND_IDS, type KindId } from "../../rules/catalog/kinds";
 import { LEVELS, parseLevel } from "../../rules/levels/levels";
 import { levelStart } from "../../rules/run/run";
 import { describeKind } from "../../rules/run/describe";
+import { FLIGHT_RULES } from "../../rules/tuning";
 import {
   HELP_KIND_IDS,
   holdsListedKinds,
@@ -10,6 +11,7 @@ import {
   kindPictures,
   kindWords,
 } from "./kinds";
+import { HATCH_HELP } from "./kinds/hatch";
 
 /** Each kind of brick a level of the game holds, once each. */
 const KINDS_IN_PLAY = new Set(
@@ -36,7 +38,15 @@ describe("HELP_KIND_IDS", () => {
   });
 
   it("lists the kinds in the catalog's order", () => {
-    expect(HELP_KIND_IDS).toEqual(["brick", "tough", "steel", "ramp", "gem"]);
+    expect(HELP_KIND_IDS).toEqual([
+      "brick",
+      "tough",
+      "steel",
+      "ramp",
+      "hatch",
+      "spring",
+      "gem",
+    ]);
   });
 });
 
@@ -46,6 +56,14 @@ describe("kindWords", () => {
       name: "Steel brick",
       about: "Can't be broken. A bounce off it doesn't add to your rally.",
     });
+  });
+});
+
+describe("HATCH_HELP", () => {
+  it("says the hatch's line, the hatches' holds between them", () => {
+    expect(HATCH_HELP.about).toBe(
+      `Lets the fuzzball up through. All the hatches bounce it back up ${String(FLIGHT_RULES.hatchHolds)} times a shot, then open.`,
+    );
   });
 });
 
@@ -86,6 +104,8 @@ describe("kindPictures", () => {
       tough: pictureOf("tough"),
       steel: pictureOf("steel"),
       ramp: pictureOf("ramp"),
+      hatch: pictureOf("hatch"),
+      spring: pictureOf("spring"),
       gem: pictureOf("gem"),
     });
 
