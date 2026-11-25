@@ -4,6 +4,7 @@ import { HOLDS_RULE } from "./traits/holds";
 import { PLATED_RULE } from "./traits/plated";
 import { SLANTS_RULE } from "./traits/slants";
 import { SPRINGS_RULE } from "./traits/springs";
+import { TELEPORTS_RULE } from "./traits/teleports";
 
 /**
  * What each brick trait does at the moments of a flight, typed so a trait
@@ -19,7 +20,7 @@ export const TRAIT_RULES: TraitRules = {
   holds: HOLDS_RULE,
   springs: SPRINGS_RULE,
   faceted: FACETED_RULE,
-  teleports: {},
+  teleports: TELEPORTS_RULE,
   plated: PLATED_RULE,
   regrows: {},
   bolted: {},

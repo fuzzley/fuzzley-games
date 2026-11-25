@@ -7,17 +7,9 @@ import type { TraitRules } from "../rules/flight/hooks";
 
 /**
  * The game's trait rules with the later kinds' made up for the specs: a
- * lock is shut by its tint's bolts, and a portal takes the fuzzball to its
- * twin.
+ * lock is shut by its tint's bolts.
  */
 export const STAND_INS: TraitRules = {
   ...TRAIT_RULES,
   bolted: { bolts: ({ tint }) => tint },
-  teleports: {
-    entered: (hooks, _, { twin }) => {
-      if (twin !== null) {
-        hooks.teleport(twin);
-      }
-    },
-  },
 };
