@@ -2,7 +2,7 @@ import { DEPTHS } from "@fz/brick-wall/rules/field";
 import { parFrom, parOf } from "@fz/brick-wall/rules/par";
 import { createRun } from "@fz/brick-wall/rules/run";
 import warmUpMarks from "../../testing/warm_up_marks.json";
-import { LEVELS } from "../levels/levels";
+import { WARM_UP_LEVELS } from "../../testing/warm_up_levels";
 import { PAR_SHARE } from "../tuning";
 import { UNTALLIED } from "./scoring";
 import {
@@ -113,13 +113,13 @@ describe("starsEarned", () => {
   ])(
     "reads the rally mark on the depth the level began on, a best rally of %i earning it: %s",
     (bestRally, earned) => {
-      const run = createRun({ id: 1, level: 4, depth: 22 }, LEVELS, {
+      const run = createRun({ id: 1, level: 4, depth: 22 }, WARM_UP_LEVELS, {
         pars: MARKS.par,
         untallied: UNTALLIED,
       });
       const play = { ...run, rounds: 9, tally: { ...UNTALLIED, bestRally } };
 
-      expect(starsEarned(play, LEVELS, MARKS)).toEqual({
+      expect(starsEarned(play, WARM_UP_LEVELS, MARKS)).toEqual({
         cleared: true,
         par: true,
         mark: earned,
@@ -136,7 +136,7 @@ describe("starsEarned", () => {
       tally: { ...UNTALLIED, bestRally: 7 },
     };
 
-    expect(starsEarned(play, LEVELS, MARKS)).toEqual({
+    expect(starsEarned(play, WARM_UP_LEVELS, MARKS)).toEqual({
       cleared: true,
       par: false,
       mark: false,
@@ -182,12 +182,12 @@ describe("withStarsEarned", () => {
 
 describe("the fixture of Warm-up's marks", () => {
   /** Every level's par on every depth, as the fixture holds them. */
-  const PARS = LEVELS.flatMap(({ data: { id } }) =>
+  const PARS = WARM_UP_LEVELS.flatMap(({ data: { id } }) =>
     DEPTHS.map((depth) => parOf(id, depth, MARKS.par)),
   );
 
   it("holds a rally mark of 1 or more for every level on every depth", () => {
-    const marks = LEVELS.flatMap(({ data: { id } }) =>
+    const marks = WARM_UP_LEVELS.flatMap(({ data: { id } }) =>
       DEPTHS.map((depth) => rallyMarkOf(id, depth, MARKS)),
     );
 

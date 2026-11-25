@@ -9,8 +9,9 @@ import {
 import { thirdsOf } from "@fz/brick-wall/rules/wall";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import warmUpMarks from "../../testing/warm_up_marks.json";
+import { WARM_UP_LEVELS } from "../../testing/warm_up_levels";
 import type { RoundOutcome } from "../flight/events";
-import { LEVELS, levelEntryOf, parseLevel } from "../levels/levels";
+import { levelEntryOf, parseLevel } from "../levels/levels";
 import { STAR_POINTS } from "../tuning";
 import {
   type Run,
@@ -27,7 +28,7 @@ import type { Marks } from "./stars";
 const MARKS: Marks = warmUpMarks;
 
 /** The run's rules over Warm-up's levels and marks. */
-const RULES = runRulesOf(LEVELS, MARKS);
+const RULES = runRulesOf(WARM_UP_LEVELS, MARKS);
 
 /** A round that leaves its level on, a rally of 1, as the plain round made by hand does. */
 const ON = FLIGHT_FIXTURES.plain.round.outcome;
@@ -43,7 +44,7 @@ const CLEARED = FLIGHT_FIXTURES.cleared.round.outcome;
 
 /** Returns a new run at a level, Side door unless another is given, on a field 11 deep, where its rally mark is 10. */
 function runAt(level = 2): Run {
-  return createRun({ id: 1, level, depth: 11 }, LEVELS, RULES);
+  return createRun({ id: 1, level, depth: 11 }, WARM_UP_LEVELS, RULES);
 }
 
 /** Returns a run on Side door with its level under way and rounds played, each released and landed. */
@@ -71,7 +72,11 @@ function clearing(run: Run): number {
 
 describe("runRulesOf", () => {
   it("starts a run with its par on the depth from the marks, nothing tallied", () => {
-    const run = createRun({ id: 7, level: 3, depth: 14 }, LEVELS, RULES);
+    const run = createRun(
+      { id: 7, level: 3, depth: 14 },
+      WARM_UP_LEVELS,
+      RULES,
+    );
 
     expect({ par: run.par, tally: run.tally }).toEqual({
       par: parOf("columns", 14, MARKS.par),
@@ -116,7 +121,7 @@ describe("starsOf", () => {
   it("names the stars a level cleared earned", () => {
     const run = cleared(underWay(RALLY, ...roundsOf(runAt().par)));
 
-    expect(starsOf(run, LEVELS, MARKS)).toEqual({
+    expect(starsOf(run, WARM_UP_LEVELS, MARKS)).toEqual({
       cleared: true,
       par: false,
       mark: true,
@@ -124,13 +129,17 @@ describe("starsOf", () => {
   });
 
   it("names the stars of the last level, clearing which won the run", () => {
-    const run = createRun({ id: 1, level: 9, depth: 11 }, LEVELS, RULES);
+    const run = createRun(
+      { id: 1, level: 9, depth: 11 },
+      WARM_UP_LEVELS,
+      RULES,
+    );
 
     const won = cleared(startLevel(run));
 
     expect({
       outcome: won.outcome,
-      stars: starsOf(won, LEVELS, MARKS),
+      stars: starsOf(won, WARM_UP_LEVELS, MARKS),
     }).toEqual({
       outcome: "won",
       stars: { cleared: true, par: true, mark: false },
@@ -138,21 +147,21 @@ describe("starsOf", () => {
   });
 
   it("names none for a level not yet cleared", () => {
-    expect(starsOf(underWay(RALLY), LEVELS, MARKS)).toBeNull();
+    expect(starsOf(underWay(RALLY), WARM_UP_LEVELS, MARKS)).toBeNull();
   });
 });
 
 describe("levelOf", () => {
   it("parses the level in play", () => {
-    expect(levelOf(runAt(5), LEVELS)).toEqual(
-      parseLevel(levelEntryOf(LEVELS, 5).data),
+    expect(levelOf(runAt(5), WARM_UP_LEVELS)).toEqual(
+      parseLevel(levelEntryOf(WARM_UP_LEVELS, 5).data),
     );
   });
 });
 
 describe("levelStart", () => {
   it("lays a level out with its wall where a jump would land it, the fuzzball at the floor's middle and a plain shot", () => {
-    const level = levelOf(runAt(5), LEVELS);
+    const level = levelOf(runAt(5), WARM_UP_LEVELS);
 
     expect(levelStart(level, 17)).toEqual({
       wall: {
@@ -169,8 +178,12 @@ describe("levelStart", () => {
 
 describe("openingOf", () => {
   it("lays the level in play out on the depth it began on", () => {
-    const run = createRun({ id: 1, level: 5, depth: 17 }, LEVELS, RULES);
-    const level = levelOf(run, LEVELS);
+    const run = createRun(
+      { id: 1, level: 5, depth: 17 },
+      WARM_UP_LEVELS,
+      RULES,
+    );
+    const level = levelOf(run, WARM_UP_LEVELS);
 
     expect(openingOf(run, level)).toEqual(levelStart(level, 17));
   });
