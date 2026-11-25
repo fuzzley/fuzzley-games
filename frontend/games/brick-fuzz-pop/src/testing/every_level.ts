@@ -1,4 +1,4 @@
-import { parFrom, parOf } from "@fz/brick-wall/rules/par";
+import { parOf } from "@fz/brick-wall/rules/par";
 import * as holders from "@fz/brick-wall/testing/holders";
 import { isFiniteNumber, isListOf } from "@fz/core/json";
 import type { BrickKindId } from "../rules/catalog/bricks";
@@ -10,8 +10,8 @@ import warmUp from "../rules/levels/certificates/warm-up.json";
 import { LEVELS, type LevelEntry, parseLevel } from "../rules/levels/levels";
 import type { RoundStart } from "../rules/round/round";
 import { PARS } from "../rules/run/stars";
-import { PAR_SHARE } from "../rules/tuning";
 import { CASUAL_FLOORS } from "./casual";
+import { CERTIFY_API } from "./certify_api";
 import { linePlayOf } from "./solver";
 import { SIM_TIMEOUT_MS } from "./timing";
 
@@ -64,7 +64,7 @@ const CERTIFIED: holders.CertifiedLevels<
   readShot,
   linePlayOf: linePlayOfEntry,
   parOf: (entry, depth) => parOf(entry.data.id, depth, PARS),
-  parFrom: (rounds) => parFrom(rounds, PAR_SHARE),
+  parFrom: CERTIFY_API.parFrom,
 };
 
 /** The levels as the careless player is held to their sets' floors, on {@link FLOOR_DEPTHS}: the games `yarn report:levels` plays first. */

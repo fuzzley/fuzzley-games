@@ -875,6 +875,27 @@ describe("runUntil", () => {
     );
   });
 
+  it("ends a command's shell on Windows where taskkill can't start, and says it stopped", async () => {
+    // Off Windows no taskkill starts. The script writes a file as it ends
+    // itself, in 2 s, so a run that waited for it would find the file.
+    const { command, folder } = await nodeRunning(
+      'import { writeFileSync } from "node:fs";\nsetTimeout(() => writeFileSync("done.txt", ""), 2000);\n',
+    );
+
+    const end = await runUntil(
+      command,
+      folder,
+      10_000,
+      AbortSignal.abort(),
+      "win32",
+    );
+
+    expect({ end, done: existsSync(join(folder, "done.txt")) }).toEqual({
+      end: "stopped",
+      done: false,
+    });
+  });
+
   it("rejects for a folder that isn't there", async () => {
     const { command, folder } = await nodeRunning("process.exit(0);");
 
@@ -883,6 +904,19 @@ describe("runUntil", () => {
       join(folder, "none"),
       10_000,
       new AbortController().signal,
+    );
+
+    await expect(ran).rejects.toThrow("ENOENT");
+  });
+
+  it("rejects for a folder that isn't there though it is stopped already", async () => {
+    const { command, folder } = await nodeRunning("process.exit(0);");
+
+    const ran = runUntil(
+      command,
+      join(folder, "none"),
+      10_000,
+      AbortSignal.abort(),
     );
 
     await expect(ran).rejects.toThrow("ENOENT");

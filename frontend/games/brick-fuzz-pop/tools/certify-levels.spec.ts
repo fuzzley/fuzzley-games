@@ -1,3 +1,4 @@
+import { parOf } from "@fz/brick-wall/rules/par";
 import { DANGER_ROW } from "@fz/brick-wall/rules/wall";
 import {
   type CertifyApi,
@@ -7,7 +8,9 @@ import {
 } from "@fz/dev/certify";
 import { recordingPrinter } from "@fz/dev/script";
 import { LEVELS, parseLevel } from "../src/rules/levels/levels";
+import { PARS } from "../src/rules/run/stars";
 import { CERTIFY_API } from "../src/testing/certify_api";
+import { certificateOf } from "../src/testing/every_level";
 import { type CertifiedShot, replayLine } from "../src/testing/solver";
 import { CERTIFY_GAME } from "./certify-levels.mjs";
 
@@ -68,4 +71,15 @@ describe("CERTIFY_GAME", () => {
       margin: true,
     });
   }, 30_000);
+});
+
+describe("CERTIFY_API", () => {
+  it("sets a level's par from its line's rounds as par.json keeps it", () => {
+    const [entry] = LEVELS;
+    const rounds = certificateOf(entry!, 11)!.length;
+
+    const par = CERTIFY_API.parFrom(rounds);
+
+    expect(par).toBe(parOf(entry!.data.id, 11, PARS));
+  });
 });

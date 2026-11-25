@@ -1,4 +1,12 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { MessageChannel } from "node:worker_threads";
@@ -21,6 +29,26 @@ import {
   solveOnThreads,
 } from "./certify.ts";
 import { recordingPrinter } from "./script.ts";
+
+/** Folders made for a spec, removed after it. */
+const made: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(
+    made
+      .splice(0)
+      .map((folder) =>
+        rm(folder, { recursive: true, force: true, maxRetries: 10 }),
+      ),
+  );
+});
+
+/** Returns a folder of a spec's own. */
+async function freshFolder(): Promise<string> {
+  const folder = await mkdtemp(join(tmpdir(), "fz-certify-"));
+  made.push(folder);
+  return folder;
+}
 
 /** Where a made-up game keeps what the pool reads and writes. */
 const GAME: CertifyGame = {
@@ -168,6 +196,21 @@ function queueOf(
         queued.left = true;
         queued.written = [...files.held.keys()];
       });
+    },
+  };
+}
+
+/** Returns a queue whose turn comes at once, and the folders a run has asked it for a turn from. */
+function askingQueue(): {
+  queue: NonNullable<CertifyIo["queue"]>;
+  asked: readonly string[];
+} {
+  const asked: string[] = [];
+  return {
+    asked,
+    queue: (root) => {
+      asked.push(root);
+      return Promise.resolve(() => undefined);
     },
   };
 }
@@ -394,6 +437,22 @@ describe("certificatesText", () => {
   "arc": {
     "11": [[1], [2]],
     "12": [[1, 2], [3]]
+  }
+}
+`);
+  });
+
+  it("breaks a line whose shots are objects with keys, a shot and a key a line, as Prettier keeps an object written broken", () => {
+    const text = certificatesText({ arc: { "11": [{ aim: 4, charge: 1 }] } });
+
+    expect(text).toBe(`{
+  "arc": {
+    "11": [
+      {
+        "aim": 4,
+        "charge": 1
+      }
+    ]
   }
 }
 `);
@@ -638,13 +697,53 @@ describe("certifyLevels", () => {
     });
   });
 
+  it("waits by default in the queue its repository's worktrees share, and leaves it once done", async () => {
+    const root = await freshFolder();
+    execFileSync("git", ["init", "--quiet"], { cwd: root });
+    const api = apiOf();
+
+    const code = await certifyLevels(
+      [],
+      { ...GAME, root },
+      {
+        load: () => Promise.resolve(api),
+        solve: inThread(api),
+        files: memoryFiles(),
+        now: () => 0,
+        ...recordingPrinter(),
+      },
+    );
+
+    expect({
+      code,
+      places: await readdir(join(root, ".git", "fz-verify-queue")),
+    }).toEqual({ code: 0, places: [] });
+  });
+
+  it("throws where it can't read a set's certificates for another reason than their being missing, before it waits its turn", async () => {
+    const root = await freshFolder();
+    await mkdir(join(root, FIRST), { recursive: true });
+    const api = apiOf();
+    const { queue, asked } = askingQueue();
+
+    const certifying = certifyLevels(
+      [],
+      { ...GAME, root },
+      {
+        load: () => Promise.resolve(api),
+        solve: inThread(api),
+        queue,
+        ...recordingPrinter(),
+      },
+    );
+
+    await expect(certifying).rejects.toThrow("EISDIR");
+    expect(asked).toEqual([]);
+  });
+
   it("throws, naming a set's certificates that aren't JSON, before it waits its turn or solves anything", async () => {
     const files = memoryFiles({ [SECOND]: "{\n<<<<<<< HEAD" });
-    const asked: string[] = [];
-    const queue: NonNullable<CertifyIo["queue"]> = (root) => {
-      asked.push(root);
-      return Promise.resolve(() => undefined);
-    };
+    const { queue, asked } = askingQueue();
 
     await expect(ran([], { files, queue })).rejects.toThrow(
       `${SECOND} isn't JSON.`,
@@ -761,27 +860,13 @@ describe("serveJobs", () => {
 });
 
 describe("a game certified on the pool's threads", () => {
-  /** Folders made for a spec, removed after it. */
-  const made: string[] = [];
-
-  afterEach(async () => {
-    await Promise.all(
-      made
-        .splice(0)
-        .map((folder) =>
-          rm(folder, { recursive: true, force: true, maxRetries: 10 }),
-        ),
-    );
-  });
-
   /**
    * Returns a made-up game in a folder of its own: its API, which the
    * script and each thread load through Vite, solving each level as
    * {@link lineFor} does, but throwing for a level numbered `cursed`.
    */
   async function gameOnDisk(cursed: number): Promise<CertifyGame> {
-    const root = await mkdtemp(join(tmpdir(), "fz-certify-"));
-    made.push(root);
+    const root = await freshFolder();
     await mkdir(join(root, "certificates"));
     await writeFile(
       join(root, "certify_api.ts"),

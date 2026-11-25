@@ -258,15 +258,17 @@ export async function runMutants(
 /**
  * Runs a command line in a folder, in the platform's shell, till it ends,
  * `limitMs` passes or `stop` aborts, and says which, ending the command
- * and every process it started in the last two cases.
+ * and every process it started in the last two cases, as `platform` ends
+ * them.
  */
 export function runUntil(
   command: string,
   folder: string,
   limitMs: number,
   stop: AbortSignal,
+  platform: NodeJS.Platform = process.platform,
 ): Promise<RunEnd> {
-  const windows = process.platform === "win32";
+  const windows = platform === "win32";
   return new Promise((resolvePromise, reject) => {
     // Off Windows, a group of its own, so ending it ends what it started:
     // Yarn, Vitest and Vitest's workers.

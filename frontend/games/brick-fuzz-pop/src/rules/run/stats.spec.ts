@@ -173,4 +173,20 @@ describe("STATS_RULES", () => {
       JSON.stringify({ stars: 2, points: 600, rounds: 10 }),
     );
   });
+
+  it("fills in the stars a level's kept records lack", () => {
+    const stats = statsOf(
+      { ...STORED, levels: { stripes: { points: 700, rounds: 9 } } },
+      LEVELS,
+      STATS_RULES,
+    );
+
+    const kept = withLevelCleared(stats, "stripes", NO_BETTER, STATS_RULES);
+
+    expect(kept.levels["stripes"]).toEqual({
+      points: 700,
+      rounds: 9,
+      stars: 1,
+    });
+  });
 });
