@@ -181,6 +181,7 @@
       type="button"
       class="fz-button fz-button-secondary fz-button-circle action"
       title="How to play"
+      [attr.aria-busy]="helpLoading() || null"
       (click)="openHelp.emit()"
     >
       <fz-icon name="help" />
@@ -190,6 +191,7 @@
   @if (viewport.isCompact()) {
     <fz-bar-overflow
       fzBarActions
+      [busy]="helpLoading()"
       [items]="overflowItems()"
       (choose)="chooseFromMenu($event)"
     />

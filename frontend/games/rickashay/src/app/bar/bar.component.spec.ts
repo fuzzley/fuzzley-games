@@ -22,6 +22,7 @@ interface BarInputs {
   readonly releaseByButton: boolean;
   readonly fast: boolean;
   readonly soundOn: boolean;
+  readonly helpLoading: boolean;
 }
 
 /** A level under way, its fifth shot aimed. */
@@ -39,6 +40,7 @@ const AIMING: BarInputs = {
   releaseByButton: false,
   fast: false,
   soundOn: true,
+  helpLoading: false,
 };
 
 /** Names one of the bar's outputs that carry nothing. */
@@ -318,6 +320,20 @@ describe("BarComponent", () => {
       expect(heard.skipFlight).toHaveBeenCalledOnce();
     });
 
+    // The ring is drawn from `aria-busy`, which jsdom's styles can't show.
+    it.each([
+      ["while it loads", true, "true"],
+      ["but while it loads", false, null],
+    ] as const)("marks How to play busy %s", async (_, helpLoading, busy) => {
+      await renderBar({ helpLoading });
+
+      expect(
+        screen
+          .getByRole("button", { name: "How to play" })
+          .getAttribute("aria-busy"),
+      ).toBe(busy);
+    });
+
     it.each([
       ["turns the sound off", "Sound", "toggleSound"],
       ["asks for the levels", "Levels", "openLevels"],
@@ -407,6 +423,22 @@ describe("BarComponent", () => {
         "Settings",
       ]);
     });
+
+    it.each([
+      ["while How to play loads", true, "true"],
+      ["but while How to play loads", false, null],
+    ] as const)(
+      "marks the menu's button busy %s",
+      async (_, helpLoading, busy) => {
+        await renderBar({ helpLoading });
+
+        expect(
+          screen
+            .getByRole("button", { name: "More actions" })
+            .getAttribute("aria-busy"),
+        ).toBe(busy);
+      },
+    );
 
     it.each([
       ["turns the sound off", "Turn sound off", "toggleSound"],

@@ -1,0 +1,115 @@
+@use "../styles" as *;
+@include help-text;
+@include help-controls;
+
+// A brick is square, so each picture's room is too.
+fz-help-catalog {
+  --fz-help-picture-width: 36px;
+  --fz-help-picture-height: 36px;
+}
+
+// Paragraphs follow the tables too, so each keeps as far from them as from
+// those above it.
+table {
+  margin-bottom: var(--fz-space-4);
+}
+
+// The drawings side by side where they fit, each as wide as it may be.
+.drawings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fz-space-3);
+  margin: 0 0 var(--fz-space-4);
+
+  svg {
+    flex: 1 1 160px;
+    max-width: 280px;
+    height: auto;
+    border-radius: var(--fz-radius-md);
+  }
+}
+
+// The field and what is on it, in the palette's field colors, as the
+// board draws them: a shot off a side in the fuzzball's accent, and off a
+// corner in the warning color.
+.field {
+  fill: var(--fz-field);
+}
+
+.mirrored {
+  fill: var(--fz-field);
+  opacity: 0.6;
+}
+
+.tile {
+  fill: var(--fz-field-muted);
+}
+
+.ghost {
+  fill: var(--fz-field-muted);
+  opacity: 0.35;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--fz-field-line);
+  stroke-width: 2;
+}
+
+.steel {
+  fill: var(--fz-field-line);
+}
+
+.wall {
+  stroke: var(--fz-field-line);
+  stroke-width: 6;
+}
+
+.turn-line {
+  fill: none;
+  stroke: var(--fz-field-text);
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.mirror,
+.swap {
+  stroke-linecap: round;
+  stroke-width: 4;
+}
+
+.mirror {
+  stroke: var(--fz-accent);
+}
+
+.swap {
+  stroke: var(--fz-warning);
+}
+
+.mirror-head {
+  fill: var(--fz-accent);
+}
+
+.swap-head {
+  fill: var(--fz-warning);
+}
+
+.aim {
+  stroke: var(--fz-accent);
+  stroke-dasharray: 6 6;
+  stroke-width: 2;
+}
+
+.target {
+  fill: none;
+  stroke: var(--fz-warning);
+  stroke-dasharray: 4 3;
+  stroke-width: 3;
+}
+
+.ball {
+  fill: var(--fz-accent);
+  fill-opacity: 0.3;
+  stroke: var(--fz-accent);
+  stroke-width: 2;
+}

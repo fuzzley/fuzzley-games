@@ -1,0 +1,229 @@
+<fz-help-dialog [open]="open()" (closed)="closed.emit()">
+  <p>
+    Aim the fuzzball and let it go. It bounces off the walls and the bricks
+    until it lands on the floor, and each brick it hits takes a hit. After each
+    shot, the wall moves down 1 row. Break every brick that can be broken to
+    clear the level. If one of them reaches the floor, you lose the level. The
+    game ends when you lose a level or clear them all.
+  </p>
+
+  <table aria-label="Controls">
+    <thead>
+      <tr>
+        <td></td>
+        <th scope="col">Mouse</th>
+        <th scope="col">Touch</th>
+        <th scope="col">Keyboard</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">Aim</th>
+        <td>Point</td>
+        <td>Touch and drag</td>
+        <td>
+          <kbd>←</kbd>&ngsp;<kbd>→</kbd> or <kbd>A</kbd>&ngsp;<kbd>D</kbd>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">Aim in small steps</th>
+        <td>Turn the wheel</td>
+        <td>Nudge</td>
+        <td><kbd>Shift</kbd> with the aim keys</td>
+      </tr>
+      <tr>
+        <th scope="row">Shoot</th>
+        <td>Click</td>
+        <td>Let go</td>
+        <td><kbd>Space</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Cancel</th>
+        <td>Right-click</td>
+        <td>Tap with a second finger</td>
+        <td></td>
+      </tr>
+      <tr>
+        <th scope="row">Fast-forward</th>
+        <td>Fast-forward</td>
+        <td>Fast-forward</td>
+        <td><kbd>F</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Skip</th>
+        <td>Skip</td>
+        <td>Skip</td>
+        <td><kbd>X</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Pause</th>
+        <td>Pause</td>
+        <td>Pause</td>
+        <td><kbd>P</kbd> or <kbd>Esc</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Resume</th>
+        <td>Resume</td>
+        <td>Resume</td>
+        <td><kbd>P</kbd> or <kbd>Enter</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Next level</th>
+        <td>Next level</td>
+        <td>Next level</td>
+        <td><kbd>Enter</kbd></td>
+      </tr>
+      <tr>
+        <th scope="row">Try again</th>
+        <td>Try again or New game</td>
+        <td>Try again or New game</td>
+        <td><kbd>Enter</kbd></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    <strong>Every hit bounces.</strong> The fuzzball never breaks through. It
+    bounces off every brick it hits, even one that breaks. Each time it changes
+    direction counts as a turn.
+  </p>
+  <p>
+    <strong>Cut corners.</strong> Every brick has its corners cut. Off a side,
+    the fuzzball bounces back like light from a mirror. Off a corner, a steep
+    shot leaves shallow, and a shallow one leaves steep. So a shot only ever
+    flies in 8 directions, all from your aim.
+  </p>
+  <!--
+    Drawn in the page's palette, so the drawings follow the player's. Each
+    is a picture to a screen reader, named for what it shows.
+  -->
+  <div class="drawings">
+    <svg
+      viewBox="0 0 300 200"
+      role="img"
+      aria-label="A brick with cut corners, one shot bouncing off its side and one off a corner."
+    >
+      <rect class="field" width="300" height="200" />
+      <polygon
+        class="tile"
+        points="118.8,80 181.2,80 190,88.8 190,151.2 181.2,160 118.8,160 110,151.2 110,88.8"
+      />
+      <polygon
+        class="turn-line"
+        points="110,60 190,60 210,80 210,160 190,180 110,180 90,160 90,80"
+      />
+      <line class="mirror" x1="104.6" y1="7.9" x2="130" y2="60" />
+      <line class="mirror" x1="130" y1="60" x2="150.2" y2="18.7" />
+      <polygon class="mirror-head" points="155.4,7.9 156.6,21.8 143.7,15.5" />
+      <circle class="ball" cx="130" cy="60" r="20" />
+      <line class="swap" x1="225.4" y1="17.9" x2="200" y2="70" />
+      <line class="swap" x1="200" y1="70" x2="252.1" y2="44.6" />
+      <polygon class="swap-head" points="262.9,39.3 255.3,51 249,38.1" />
+      <circle class="ball" cx="200" cy="70" r="20" />
+    </svg>
+    <svg
+      viewBox="0 0 200 200"
+      role="img"
+      aria-label="The 8 directions a shot aimed at 62 degrees can fly in."
+    >
+      <rect class="field" width="200" height="200" />
+      <circle class="ring" cx="100" cy="100" r="86" />
+      <line class="mirror" x1="100" y1="100" x2="128.2" y2="47" />
+      <polygon class="mirror-head" points="133.8,36.4 134.5,50.4 121.8,43.6" />
+      <line class="mirror" x1="100" y1="100" x2="71.8" y2="47" />
+      <polygon class="mirror-head" points="66.2,36.4 78.2,43.6 65.5,50.4" />
+      <line class="mirror" x1="100" y1="100" x2="71.8" y2="153" />
+      <polygon class="mirror-head" points="66.2,163.6 65.5,149.6 78.2,156.4" />
+      <line class="mirror" x1="100" y1="100" x2="128.2" y2="153" />
+      <polygon
+        class="mirror-head"
+        points="133.8,163.6 121.8,156.4 134.5,149.6"
+      />
+      <line class="swap" x1="100" y1="100" x2="153" y2="71.8" />
+      <polygon class="swap-head" points="163.6,66.2 156.4,78.2 149.6,65.5" />
+      <line class="swap" x1="100" y1="100" x2="47" y2="71.8" />
+      <polygon class="swap-head" points="36.4,66.2 50.4,65.5 43.6,78.2" />
+      <line class="swap" x1="100" y1="100" x2="47" y2="128.2" />
+      <polygon class="swap-head" points="36.4,133.8 43.6,121.8 50.4,134.5" />
+      <line class="swap" x1="100" y1="100" x2="153" y2="128.2" />
+      <polygon class="swap-head" points="163.6,133.8 149.6,134.5 156.4,121.8" />
+      <circle class="ball" cx="100" cy="100" r="12" />
+    </svg>
+  </div>
+  <p>
+    <strong>Banking.</strong> To reach a gap you can't hit straight, bounce off
+    a side wall. Picture the gap mirrored on the far side of the wall, and aim
+    at that, the way pool players do.
+  </p>
+  <div class="drawings">
+    <svg
+      viewBox="0 0 300 200"
+      role="img"
+      aria-label="A shot aimed at a gap's mirror image beyond the wall bounces into the gap."
+    >
+      <rect class="mirrored" width="150" height="200" />
+      <rect class="field" x="150" width="150" height="200" />
+      <rect class="ghost" x="126.5" y="31" width="22" height="18" rx="3" />
+      <rect class="ghost" x="101.5" y="31" width="22" height="18" rx="3" />
+      <rect class="ghost" x="51.5" y="31" width="22" height="18" rx="3" />
+      <rect class="ghost" x="26.5" y="31" width="22" height="18" rx="3" />
+      <rect class="ghost" x="1.5" y="31" width="22" height="18" rx="3" />
+      <rect class="tile" x="151.5" y="31" width="22" height="18" rx="3" />
+      <rect class="tile" x="176.5" y="31" width="22" height="18" rx="3" />
+      <rect class="tile" x="226.5" y="31" width="22" height="18" rx="3" />
+      <rect class="tile" x="251.5" y="31" width="22" height="18" rx="3" />
+      <rect class="tile" x="276.5" y="31" width="22" height="18" rx="3" />
+      <rect class="steel" x="222" y="104" width="34" height="18" rx="3" />
+      <line class="wall" x1="150" y1="0" x2="150" y2="200" />
+      <line class="aim" x1="265" y1="185" x2="87.5" y2="40" />
+      <circle class="target" cx="87.5" cy="40" r="11" />
+      <line class="mirror" x1="265" y1="185" x2="150" y2="91.1" />
+      <line class="mirror" x1="150" y1="91.1" x2="193.4" y2="55.6" />
+      <polygon class="mirror-head" points="202.7,48 198,61.2 188.9,50" />
+      <circle class="ball" cx="265" cy="183" r="10" />
+    </svg>
+  </div>
+  <p><strong>The rally.</strong> {{ rally }}</p>
+  <p>
+    <strong>The jump.</strong> When there's nothing left to break below the
+    dashed line, the wall jumps. It moves down a third of the screen instead of
+    1 row. A jump never loses a level, and it makes your next shot a hot shot.
+  </p>
+  <p><strong>The hot shot.</strong> {{ hotShot }}</p>
+  <p>
+    <strong>Scoring.</strong> Every strike scores, and the longer the rally, the
+    more each strike is worth.
+  </p>
+  <table aria-label="Scoring">
+    <tbody>
+      @for (row of scoring; track row.what) {
+        <tr>
+          <th scope="row">{{ row.what }}</th>
+          <td>{{ row.points }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p>
+    <strong>Stars.</strong> You get a star for clearing a level, one for
+    clearing it in par or fewer shots, and one for a shot whose rally reaches
+    the level's rally mark. Par and the rally mark depend on how many rows the
+    screen shows when the level starts.
+  </p>
+  <p>
+    <strong>No hurry.</strong> Nothing moves until you shoot. Fast-forward
+    speeds up shots and stays on until you turn it off. Skip ends a shot at
+    once, with everything it would have done. A fuzzball that goes too long
+    without hitting a brick gets bored and drops.
+  </p>
+  <p>
+    <strong>Playing by ear.</strong> With a screen reader, you hear the aim when
+    you change it with the keys. Press <kbd>G</kbd> to hear where the guide
+    goes, and <kbd>R</kbd> to hear the {{ rowsRead }} lowest rows that have
+    bricks in them.
+  </p>
+
+  @for (catalog of catalogs(); track catalog.id) {
+    <fz-help-catalog [catalog]="catalog" />
+  }
+</fz-help-dialog>
