@@ -1,4 +1,5 @@
 import { TestBed } from "@angular/core/testing";
+import { createRun } from "@fz/brick-wall/rules/run";
 import { FRAME_MS, playFor, playUntil } from "@fz/core/testing";
 import { installFakeViewport } from "@fz/game-ui/testing";
 import { NO_INSETS } from "@fz/phaser/insets";
@@ -17,6 +18,7 @@ import {
   describeRound,
   describeRows,
 } from "../../rules/run/describe";
+import { type Run, levelOf, openingOf, runRulesOf } from "../../rules/run/run";
 import type { Shot } from "../../rules/shot";
 import { FLIGHT_RULES, type FlightRules } from "../../rules/tuning";
 import { PALETTES } from "../../testing/roles";
@@ -24,6 +26,7 @@ import {
   RELEASE,
   SPEC_FLIGHTS,
   SPEC_LEVELS,
+  SPEC_MARKS,
   STILL,
   type SpecRound,
   playOut,
@@ -351,6 +354,93 @@ describe("GameService", () => {
       );
 
       expect(said()).toBe("Rickashay!");
+    });
+  });
+
+  // The Ready card shows a level's par and rally mark for the field's depth,
+  // which a turn of the screen can change before the level's first shot.
+  describe("the announcer, as the Ready card's par and rally mark change", () => {
+    /** A room 22 rows deep, where the run begins 13 deep. */
+    const DEEPEST: Viewport = {
+      width: 900,
+      height: 2400,
+      pixelRatio: 1,
+      insets: NO_INSETS,
+    };
+
+    /** A room 22 rows deep too, a little taller. */
+    const DEEPEST_TALLER: Viewport = { ...DEEPEST, height: 2500 };
+
+    /** A room 13 rows deep, an upright phone's, as the run begins on. */
+    const FIRST: Viewport = {
+      width: 390,
+      height: 640,
+      pixelRatio: 1,
+      insets: NO_INSETS,
+    };
+
+    /** Returns the game, level 2 begun and said on the first room's depth. */
+    async function levelSaid(): Promise<GameService> {
+      const game = gameOf();
+      await game.startAt(2);
+      return game;
+    }
+
+    it("says them as they are on the field's new depth", async () => {
+      const game = await levelSaid();
+
+      game.setRoom(DEEPEST);
+      TestBed.tick();
+
+      expect([said(), game.run().depth]).toEqual(["Par 6. Rally mark 15.", 22]);
+    });
+
+    it("says them once, not again as the room changes and they don't", async () => {
+      const game = await levelSaid();
+      game.setRoom(DEEPEST);
+      TestBed.tick();
+
+      game.setRoom(DEEPEST_TALLER);
+      TestBed.tick();
+
+      expect(said()).toBe("Par 6. Rally mark 15.");
+    });
+
+    it("says them again as they go back to those said as the level began", async () => {
+      const game = await levelSaid();
+      game.setRoom(DEEPEST);
+      TestBed.tick();
+
+      game.setRoom(FIRST);
+      TestBed.tick();
+
+      expect([said(), game.run().depth]).toEqual(["Par 9. Rally mark 11.", 13]);
+    });
+
+    it("says nothing of a level the page opened on, never said", () => {
+      const game = gameOf();
+      const before = said();
+
+      game.setRoom(DEEPEST);
+      TestBed.tick();
+
+      expect(said()).toBe(before);
+    });
+
+    it("says nothing of a run taken up, its level never said, as it goes on", async () => {
+      const game = await levelSaid();
+      const rules = runRulesOf(SPEC_LEVELS, SPEC_MARKS);
+      const run: Run = {
+        ...createRun({ id: 9, level: 1, depth: 13 }, SPEC_LEVELS, rules),
+        outcome: "paused",
+      };
+      const start = openingOf(run, levelOf(run, SPEC_LEVELS));
+      game.takeUp({ run, start, tuned: false });
+
+      game.resume();
+      TestBed.tick();
+
+      expect(said()).toBe("Resumed.");
     });
   });
 

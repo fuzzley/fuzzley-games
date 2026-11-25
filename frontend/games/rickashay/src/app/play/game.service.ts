@@ -2,8 +2,10 @@ import {
   Injectable,
   type Provider,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
 } from "@angular/core";
 import { waitingRows } from "@fz/brick-wall/app/panels";
 import { RunRecords } from "@fz/brick-wall/app/records";
@@ -27,9 +29,11 @@ import type { LevelEntry } from "../../rules/levels/levels";
 import {
   describeAim,
   describeGuide,
+  describeParAndMark,
   describeRows,
 } from "../../rules/run/describe";
 import type { ReadRound } from "../../rules/run/reported_game";
+import type { TakenUp } from "../../rules/run/saved_game";
 import { levelOf, openingOf, runRulesOf } from "../../rules/run/run";
 import type { LevelTally } from "../../rules/run/scoring";
 import { rallyMarkOf } from "../../rules/run/stars";
@@ -51,6 +55,7 @@ import {
 } from "../../view/play/round_play";
 import type { FlightSoFar, RoundView } from "../../view/run_state";
 import type { FieldCommand } from "../../view/steering/controls";
+import type { ReadyCard } from "../board/board_card.component";
 import { DebugService } from "../debug/debug.service";
 import { SettingsService } from "../settings/settings.service";
 import { ProgressService } from "../stats/progress.service";
@@ -81,6 +86,12 @@ interface GuideCast {
   readonly aim: Aim;
   readonly rules: FlightRules;
   readonly guide: Guide;
+}
+
+/** Describes a level's par and rally mark as the announcer last said them. */
+interface FiguresSaid {
+  readonly par: number;
+  readonly mark: number;
 }
 
 /** Describes how a frame plays the round, written again each frame. */
@@ -145,7 +156,8 @@ function rickashayDriving(
  * read the guide and the wall's lowest rows; fast-forward and the rest of
  * the settings; the field's palette; and a certificate's or a rally line
  * the debug menu plays. It plays on the numbers the debug menu tunes, at
- * the depth it sets.
+ * the depth it sets. It says the Ready card's par and rally mark again as
+ * another depth changes them before the level's first shot.
  *
  * The round's view changes every frame, so no signal holds it; the scene
  * reads it through {@link view}.
@@ -197,6 +209,8 @@ export class GameService extends RoundDriver<
   private readonly picturesState = signal<(() => Pictures) | null>(null);
   /** The words the run is said in, which hold what each frame's flight came to. */
   private readonly runWords: RunWords;
+  /** The par and rally mark the announcer last said, as a level began or the Ready card's changed, or null before any level is said. */
+  private figuresSaid: FiguresSaid | null = null;
 
   /** The best score of any run, as of the last that ended. */
   readonly best = computed(() => this.stats.stats().best);
@@ -293,6 +307,13 @@ export class GameService extends RoundDriver<
     words.follow(this.run);
     this.runWords = words;
     this.line = line;
+    effect(() => {
+      const card = this.boardCard();
+      if (card?.kind !== "ready") return;
+      untracked(() => {
+        this.sayChangedFigures(card);
+      });
+    });
   }
 
   /**
@@ -424,6 +445,25 @@ export class GameService extends RoundDriver<
   }
 
   /**
+   * Says the level in play as it begins, and keeps the par and rally mark
+   * it said, so the Ready card's are said again only as they change.
+   */
+  protected override sayLevel(): void {
+    super.sayLevel();
+    this.figuresSaid = { par: this.run().par, mark: this.rallyMark() };
+  }
+
+  /**
+   * Takes up a run storage kept, or a bug report did, as every wall game
+   * does, its level not said, so the Ready card's par and rally mark are
+   * said again only once a level is.
+   */
+  override takeUp(kept: TakenUp): void {
+    super.takeUp(kept);
+    this.figuresSaid = null;
+  }
+
+  /**
    * Returns the round a shot plays, through the game's round player, and
    * has its flight called out at the level's rally mark.
    */
@@ -502,6 +542,19 @@ export class GameService extends RoundDriver<
     if (this.callState() === null) return;
     this.callLeftMs -= deltaMs;
     if (this.callLeftMs <= 0) this.callState.set(null);
+  }
+
+  /**
+   * Says the Ready card's par and rally mark where they are no longer those
+   * said as its level began, or since, as the field takes another depth
+   * before the level's first shot, once for each change: none are said
+   * before a level is, as on a page just opened or a run taken up.
+   */
+  private sayChangedFigures({ par, mark }: ReadyCard): void {
+    const said = this.figuresSaid;
+    if (said === null || (said.par === par && said.mark === mark)) return;
+    this.announcer.say(describeParAndMark(par, mark));
+    this.figuresSaid = { par, mark };
   }
 
   /** Says what the guide shows of the shot being aimed, while one shows. */

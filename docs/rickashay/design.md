@@ -1139,7 +1139,8 @@ since nothing here is timed either:
   stands: "62 degrees. A brick in row 7, the right wall, a tough brick in
   row 8, 2 hits." It is the rules' own cast, so it is as true as the dots.
 - **The announcer says** each level begun, with its par and its rally
-  mark; the aim as the keys change it; each floor bounce earned ("Rally
+  mark, and those again as a turn of the screen changes them before the
+  first shot; the aim as the keys change it; each floor bounce earned ("Rally
   10: a floor bounce."); each round's end ("A rally of 14. Broke 6. 5 rows
   to the floor."); each jump; the danger line; the "Rickashay!" call; a
   level cleared, with its stars; a pause, going on and the end. R reads the

@@ -130,7 +130,16 @@ export function describeLevel(
   par: number,
   mark: number,
 ): string {
-  return `Level ${String(entry.number)}, ${entry.data.name}. Par ${String(par)}. Rally mark ${String(mark)}.`;
+  return `Level ${String(entry.number)}, ${entry.data.name}. ${describeParAndMark(par, mark)}`;
+}
+
+/**
+ * Returns a level's par and rally mark as they are said, as it begins and
+ * again as the field takes another depth before its first shot: "Par 9.
+ * Rally mark 15."
+ */
+export function describeParAndMark(par: number, mark: number): string {
+  return `Par ${String(par)}. Rally mark ${String(mark)}.`;
 }
 
 /** What the announcer says as a flight reaches the level's rally mark, the call the shell shows over the field too. */

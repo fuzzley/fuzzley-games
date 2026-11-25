@@ -17,6 +17,7 @@ import {
   describeJump,
   describeKind,
   describeLevel,
+  describeParAndMark,
   describePause,
   describeResume,
   describeRound,
@@ -260,6 +261,12 @@ describe("describeLevel", () => {
     expect(describeLevel(levelEntryOf(LEVELS, 2), 9, 10)).toBe(
       "Level 2, Side door. Par 9. Rally mark 10.",
     );
+  });
+});
+
+describe("describeParAndMark", () => {
+  it("says a level's par and its rally mark", () => {
+    expect(describeParAndMark(6, 15)).toBe("Par 6. Rally mark 15.");
   });
 });
 
