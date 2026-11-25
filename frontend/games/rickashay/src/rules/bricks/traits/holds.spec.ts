@@ -110,7 +110,7 @@ describe("HOLDS_RULE", () => {
     ]);
   });
 
-  it("holds the hatch fixture's flight up as the stand-ins held it", () => {
+  it("holds the hatch fixture's flight up as it was made by hand", () => {
     const { start, shot, rules, round } = FLIGHT_FIXTURES.hatch;
 
     const { flight } = fly(start, shot, rules, TRAIT_RULES);

@@ -2,7 +2,6 @@ import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
 import { keysOf } from "@fz/core/records";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { aimAt, near, startAt } from "../../testing/shots";
-import { STAND_INS } from "../../testing/stand_ins";
 import { playRound } from "../round/round";
 import { FLIGHT_RULES } from "../tuning";
 import type { Flight } from "./events";
@@ -41,10 +40,10 @@ describe("guideOf()", () => {
     "shows the %s fixture's round's own events to %i turns and the guide's length past",
     (name, turns) => {
       const { start, shot, rules } = FLIGHT_FIXTURES[name];
-      const { flight } = playRound(start, shot, rules, STAND_INS);
+      const { flight } = playRound(start, shot, rules);
       const end = endOf(flight, turns, rules.guidePast);
 
-      const guide = guideOf(start, shot, rules, turns, STAND_INS);
+      const guide = guideOf(start, shot, rules, turns);
 
       expect([guide.events, guide.length]).toEqual([
         flight.events.filter(({ at }) => at <= end),
@@ -57,9 +56,9 @@ describe("guideOf()", () => {
     "lays the %s fixture's guide of %i turns along its round's track",
     (name, turns) => {
       const { start, shot, rules } = FLIGHT_FIXTURES[name];
-      const { flight } = playRound(start, shot, rules, STAND_INS);
+      const { flight } = playRound(start, shot, rules);
 
-      const guide = guideOf(start, shot, rules, turns, STAND_INS);
+      const guide = guideOf(start, shot, rules, turns);
 
       expect(guide.track.waypoints).toEqual([
         ...flight.track.waypoints.filter(({ at }) => at < guide.length),

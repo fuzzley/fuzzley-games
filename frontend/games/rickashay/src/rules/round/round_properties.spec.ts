@@ -6,7 +6,6 @@ import {
   randomStart,
   unflown,
 } from "../../testing/cast_reference";
-import { STAND_INS } from "../../testing/stand_ins";
 import type { RoundStart } from "../flight/events";
 import { guideOf } from "../flight/guide";
 import type { Shot } from "../shot";
@@ -53,7 +52,7 @@ describe("playRound(), over random walls and every level's openings", () => {
       const rules = structuredClone(FLIGHT_RULES);
 
       for (const { start, shot } of rounds) {
-        playRound(start, shot, rules, STAND_INS);
+        playRound(start, shot, rules);
       }
 
       expect([rounds, rules]).toStrictEqual([handed, FLIGHT_RULES]);
@@ -65,14 +64,14 @@ describe("playRound(), over random walls and every level's openings", () => {
     (seed) => {
       const rounds = roundsOf(seed);
       const first = rounds.map(({ start, shot }) =>
-        playRound(start, shot, FLIGHT_RULES, STAND_INS),
+        playRound(start, shot, FLIGHT_RULES),
       );
 
       const again = rounds.map(({ start, shot }) =>
-        playRound(start, shot, FLIGHT_RULES, STAND_INS),
+        playRound(start, shot, FLIGHT_RULES),
       );
       const fresh = rounds.map(({ start, shot }) =>
-        playRound(unflown(start), shot, FLIGHT_RULES, STAND_INS),
+        playRound(unflown(start), shot, FLIGHT_RULES),
       );
 
       expect([again, fresh]).toStrictEqual([first, first]);
@@ -85,17 +84,17 @@ describe("playRound(), over random walls and every level's openings", () => {
       const rounds = roundsOf(seed);
       for (const { start } of rounds) {
         for (let aim = 0; aim < AIM_COUNT; aim += GUIDED_AIM_STEP) {
-          guideOf(start, { aim }, FLIGHT_RULES, GUIDE_TURNS, STAND_INS);
+          guideOf(start, { aim }, FLIGHT_RULES, GUIDE_TURNS);
         }
       }
 
       const played = rounds.map(({ start, shot }) =>
-        playRound(start, shot, FLIGHT_RULES, STAND_INS),
+        playRound(start, shot, FLIGHT_RULES),
       );
 
       expect(played).toStrictEqual(
         rounds.map(({ start, shot }) =>
-          playRound(unflown(start), shot, FLIGHT_RULES, STAND_INS),
+          playRound(unflown(start), shot, FLIGHT_RULES),
         ),
       );
     },

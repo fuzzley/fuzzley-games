@@ -102,7 +102,7 @@ describe("SPRINGS_RULE", () => {
   });
 
   it.each(["spring", "capped"] as const)(
-    "earns the %s fixture's floor bounces as the stand-ins earned them",
+    "earns the %s fixture's floor bounces as it was made by hand",
     (name) => {
       const { start, shot, rules, round } = FLIGHT_FIXTURES[name];
 

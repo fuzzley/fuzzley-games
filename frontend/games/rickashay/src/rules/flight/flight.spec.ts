@@ -10,7 +10,6 @@ import {
   FLIGHT_FIXTURES,
 } from "../../testing/flight_fixtures";
 import {
-  type PictureShot,
   SHOT_DEPTH,
   aimAt,
   eventsOf,
@@ -18,7 +17,6 @@ import {
   near,
   startAt,
 } from "../../testing/shots";
-import { STAND_INS } from "../../testing/stand_ins";
 import { FLIGHT_RULES, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
 import { type Flown, fly } from "./flight";
@@ -731,12 +729,6 @@ describe("fly's floor bounces", () => {
 });
 
 describe("fly's hatches and locks", () => {
-  /** The game's trait rules with a lock's made up for the spec: a lock is shut by its tint's bolts. */
-  const HATCHES_AND_LOCKS: TraitRules = {
-    ...TRAIT_RULES,
-    bolted: STAND_INS.bolted,
-  };
-
   /** A floor of hatches, under four empty rows and a brick by the ceiling. */
   const HATCH_FLOOR = [
     "o........",
@@ -748,11 +740,6 @@ describe("fly's hatches and locks", () => {
 
   /** Two locks of a bolt, under two rows a shot at 45° never reaches. */
   const LOCKS = ["ooooooooo", "ooooooooo", ".x......x"];
-
-  /** Returns the flight of a shot by the game's trait rules, a lock's made up. */
-  function flyLocked(shot: PictureShot): Flown {
-    return flyAt({ traits: HATCHES_AND_LOCKS, ...shot });
-  }
 
   /** Returns a flight's holds and the hatches opening. */
   function holdsOf(flown: Flown): FlightEvent[] {
@@ -771,7 +758,7 @@ describe("fly's hatches and locks", () => {
   // Up from x = 4.75 at 45° through the hatches in row 7, and down onto
   // their bar three times, under the ceiling, as the hatch fixture flies.
   it("is held up by the hatches' bar coming down, three times between them, every hatch opening at the third", () => {
-    const flown = flyLocked({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
+    const flown = flyAt({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
 
     const [first, second, third] = barsOf(flown);
     expect(holdsOf(flown)).toEqual([
@@ -793,7 +780,7 @@ describe("fly's hatches and locks", () => {
       "x........",
     ];
 
-    const flown = flyLocked({ picture, lowestRow: 0, x: 4.75, rules });
+    const flown = flyAt({ picture, lowestRow: 0, x: 4.75, rules });
 
     const third = barsOf(flown)[2];
     expect(
@@ -805,7 +792,7 @@ describe("fly's hatches and locks", () => {
 
   // Off the ceiling and the left wall, down through row 7 to land.
   it("falls through the hatches once they open", () => {
-    const flown = flyLocked({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
+    const flown = flyAt({ picture: HATCH_FLOOR, lowestRow: 7, x: 4.75 });
 
     expect(placesOf(flown).slice(-2)).toEqual([
       [near(4.25), near(CEILING)],
@@ -816,7 +803,7 @@ describe("fly's hatches and locks", () => {
   // Straight up through the joint of two hatches, and down onto both bars
   // at once, three times.
   it("holds once a turn however many bars it meets there, the first naming the hold", () => {
-    const flown = flyLocked({ picture: ["....==..."], x: 5, degrees: 90 });
+    const flown = flyAt({ picture: ["....==..."], x: 5, degrees: 90 });
 
     expect([
       eventsOf(flown.flight, "turn")[1]?.cells,
@@ -833,7 +820,7 @@ describe("fly's hatches and locks", () => {
 
   // Up at 30° under a lone hatch, and off the cut at its bar's right end.
   it("is held up by a turn off a bar's end, flying up", () => {
-    const flown = flyLocked({ picture: ["....=...."], x: 2.25, degrees: 30 });
+    const flown = flyAt({ picture: ["....=...."], x: 2.25, degrees: 30 });
 
     expect(holdsOf(flown)[0]).toEqual({
       at: barsOf(flown)[0],
@@ -887,7 +874,7 @@ describe("fly's hatches and locks", () => {
   // floor and the left wall, then the lock at column 1, as the bolt
   // fixture flies.
   it("turns off a lock still shut, which takes nothing, and draws its bolt at the fourth turn, opening it to a strike", () => {
-    const flown = flyLocked({ picture: LOCKS, x: 4.75, hot: true });
+    const flown = flyAt({ picture: LOCKS, x: 4.75, hot: true });
 
     const turns = eventsOf(flown.flight, "turn");
     expect(
@@ -912,9 +899,9 @@ describe("fly's hatches and locks", () => {
   it("runs no rules for a strike on a lock still shut", () => {
     const seen: number[] = [];
     const traits: TraitRules = {
-      ...HATCHES_AND_LOCKS,
+      ...TRAIT_RULES,
       bolted: {
-        ...HATCHES_AND_LOCKS.bolted,
+        ...TRAIT_RULES.bolted,
         struck: ({ cell }) => {
           seen.push(cell);
         },
@@ -929,7 +916,7 @@ describe("fly's hatches and locks", () => {
   // At the lowest aim, off the right wall, the left, the right, and the
   // lock at the foot of row 4 where the left wall would be.
   it("meets a lock at the turn that draws its bolt still shut, the bolt drawn after it", () => {
-    const flown = flyLocked({
+    const flown = flyAt({
       picture: ["x........"],
       lowestRow: 4,
       degrees: 8,
@@ -947,7 +934,7 @@ describe("fly's hatches and locks", () => {
   it("draws a bolt at every fourth turn only while a lock in the field is still shut", () => {
     const rules = { ...FLIGHT_RULES, bored: 120 };
 
-    const flown = flyLocked({
+    const flown = flyAt({
       picture: ["yoooooooo", "ooooooooo"],
       lowestRow: 9,
       degrees: 8,
@@ -967,7 +954,7 @@ describe("fly's hatches and locks", () => {
   // At the lowest aim, seven turns between the side walls before it is
   // bored, a lock waiting in row 11.
   it("draws no bolt for a lock waiting over the ceiling", () => {
-    const flown = flyLocked({
+    const flown = flyAt({
       picture: ["x........", "ooooooooo", "ooooooooo"],
       lowestRow: 9,
       degrees: 8,
@@ -1407,7 +1394,7 @@ describe("fly's fixtures", () => {
     (name) => {
       const { start, shot, rules, round } = FLIGHT_FIXTURES[name];
 
-      const { flight, wall } = fly(start, shot, rules, STAND_INS);
+      const { flight, wall } = fly(start, shot, rules, TRAIT_RULES);
 
       expect([
         flight,
@@ -1423,9 +1410,9 @@ describe("fly's fixtures", () => {
     (name) => {
       const { start, shot, rules } = FLIGHT_FIXTURES[name];
       const again = { ...start, wall: { ...start.wall } };
-      const first = fly(again, shot, rules, STAND_INS);
+      const first = fly(again, shot, rules, TRAIT_RULES);
 
-      const second = fly(again, shot, rules, STAND_INS);
+      const second = fly(again, shot, rules, TRAIT_RULES);
 
       expect(second).toEqual(first);
     },

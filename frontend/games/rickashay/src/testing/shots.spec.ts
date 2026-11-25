@@ -3,7 +3,6 @@ import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import type { FlightEvent } from "../rules/flight/events";
 import { fly } from "../rules/flight/flight";
 import { FLIGHT_RULES } from "../rules/tuning";
-import { STAND_INS } from "./stand_ins";
 import { aimAt, eventsOf, flyAt, near, startAt, timeless } from "./shots";
 
 /** A strike that breaks a brick. */
@@ -61,7 +60,7 @@ describe("startAt()", () => {
 });
 
 describe("flyAt()", () => {
-  /** A lock by the right wall, which a shot at 45° from the floor's middle meets off that wall: the game's traits let it strike, the stand-ins' shield it. */
+  /** A lock by the right wall, which a shot at 45° from the floor's middle meets off that wall: the game's traits shield it, still shut, and traits without the lock's bolts let it strike. */
   const LOCK = ["........x"];
 
   it("flies at 45° from the floor's middle, cool, by the game's rules and its bricks' traits", () => {
@@ -71,9 +70,16 @@ describe("flyAt()", () => {
   });
 
   it("flies by the bricks' traits it is given", () => {
-    const flown = flyAt({ picture: LOCK, traits: STAND_INS });
+    const game = flyAt({ picture: LOCK });
+    const unbolted = flyAt({
+      picture: LOCK,
+      traits: { ...TRAIT_RULES, bolted: {} },
+    });
 
-    expect(eventsOf(flown.flight, "shielded")).toHaveLength(1);
+    expect([
+      eventsOf(game.flight, "shielded"),
+      eventsOf(unbolted.flight, "shielded"),
+    ]).toEqual([[expect.objectContaining({ by: "lock" })], []]);
   });
 
   it("flies by the rules it is given, a hot shot taking as many hits as they say", () => {

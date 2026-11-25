@@ -1,7 +1,9 @@
 import type { TraitRules } from "../flight/hooks";
+import { BOLTED_RULE } from "./traits/bolted";
 import { FACETED_RULE } from "./traits/faceted";
 import { HOLDS_RULE } from "./traits/holds";
 import { PLATED_RULE } from "./traits/plated";
+import { REGROWS_RULE } from "./traits/regrows";
 import { SLANTS_RULE } from "./traits/slants";
 import { SPRINGS_RULE } from "./traits/springs";
 import { TELEPORTS_RULE } from "./traits/teleports";
@@ -22,6 +24,6 @@ export const TRAIT_RULES: TraitRules = {
   faceted: FACETED_RULE,
   teleports: TELEPORTS_RULE,
   plated: PLATED_RULE,
-  regrows: {},
-  bolted: {},
+  regrows: REGROWS_RULE,
+  bolted: BOLTED_RULE,
 };

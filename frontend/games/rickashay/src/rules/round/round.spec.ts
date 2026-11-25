@@ -1,9 +1,10 @@
 import { keysOf } from "@fz/core/records";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
 import { aimAt, near, startAt } from "../../testing/shots";
-import { STAND_INS } from "../../testing/stand_ins";
 import { TRAIT_RULES } from "../bricks/trait_rules";
+import type { Round } from "../flight/events";
 import { fly } from "../flight/flight";
+import type { TraitRules } from "../flight/hooks";
 import {
   BOUNCE_POINTS,
   FLIGHT_RULES,
@@ -12,16 +13,21 @@ import {
 } from "../tuning";
 import { playRound } from "./round";
 
+/** Returns how many bolts a round's flight drew. */
+function boltsIn({ flight }: Round): number {
+  return flight.events.filter(({ kind }) => kind === "bolt").length;
+}
+
 describe("playRound()", () => {
   it.each(keysOf(FLIGHT_FIXTURES))(
     "plays the flight fly() flies for the %s fixture",
     (name) => {
       const { start, shot, rules } = FLIGHT_FIXTURES[name];
 
-      const round = playRound(start, shot, rules, STAND_INS);
+      const round = playRound(start, shot, rules);
 
       expect(round.flight).toStrictEqual(
-        fly(start, shot, rules, STAND_INS).flight,
+        fly(start, shot, rules, TRAIT_RULES).flight,
       );
     },
   );
@@ -31,7 +37,7 @@ describe("playRound()", () => {
     (name) => {
       const { start, shot, rules, round } = FLIGHT_FIXTURES[name];
 
-      const played = playRound(start, shot, rules, STAND_INS);
+      const played = playRound(start, shot, rules);
 
       expect([played.outcome, played.next]).toEqual([
         round.outcome,
@@ -44,7 +50,7 @@ describe("playRound()", () => {
   it("scores its strikes and a jump", () => {
     const { start, shot, rules } = FLIGHT_FIXTURES.jumped;
 
-    const { outcome } = playRound(start, shot, rules, STAND_INS);
+    const { outcome } = playRound(start, shot, rules);
 
     expect(outcome.points).toBe(STRIKE_POINTS + JUMP_POINTS);
   });
@@ -53,7 +59,7 @@ describe("playRound()", () => {
   it("scores a floor bounce it earned and kept beside its strikes", () => {
     const { start, shot, rules } = FLIGHT_FIXTURES.spring;
 
-    const { outcome } = playRound(start, shot, rules, STAND_INS);
+    const { outcome } = playRound(start, shot, rules);
 
     expect(outcome.points).toBe(2 * STRIKE_POINTS + BOUNCE_POINTS);
   });
@@ -73,7 +79,7 @@ describe("playRound()", () => {
   it("makes the next shot a hot shot after a jump", () => {
     const { start, shot, rules } = FLIGHT_FIXTURES.jumped;
 
-    const round = playRound(start, shot, rules, STAND_INS);
+    const round = playRound(start, shot, rules);
 
     expect([round.outcome.jumped, round.next.hot]).toEqual([true, true]);
   });
@@ -81,7 +87,7 @@ describe("playRound()", () => {
   it("makes the shot after a hot shot that didn't jump a plain one", () => {
     const { start, shot, rules } = FLIGHT_FIXTURES.hot;
 
-    const round = playRound(start, shot, rules, STAND_INS);
+    const round = playRound(start, shot, rules);
 
     expect([start.hot, round.outcome.jumped, round.next.hot]).toEqual([
       true,
@@ -104,17 +110,21 @@ describe("playRound()", () => {
     ]).toEqual([1, 2, 4]);
   });
 
-  // The fixture meets a lock, which the stand-ins shut by its bolts, and
-  // the game's own rules don't yet.
+  // The fixture meets a lock, which the game's trait rules shut by its
+  // bolts, and rules without the lock's leave open.
   it("flies by the game's trait rules unless it is handed others", () => {
     const { start, shot, rules } = FLIGHT_FIXTURES.bolt;
+    const unbolted: TraitRules = { ...TRAIT_RULES, bolted: {} };
 
     const round = playRound(start, shot, rules);
+    const game = playRound(start, shot, rules, TRAIT_RULES);
+    const without = playRound(start, shot, rules, unbolted);
 
-    expect([
-      round.flight.events.some(({ kind }) => kind === "bolt"),
-      round,
-    ]).toStrictEqual([false, playRound(start, shot, rules, TRAIT_RULES)]);
+    expect([round, boltsIn(round), boltsIn(without)]).toStrictEqual([
+      game,
+      1,
+      0,
+    ]);
   });
 
   it("throws for an aim that isn't one of the 657", () => {

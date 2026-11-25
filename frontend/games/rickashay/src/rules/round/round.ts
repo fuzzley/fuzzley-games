@@ -23,7 +23,7 @@ import type { FlightRules } from "../tuning";
 /**
  * Returns the round a shot plays from where it starts: its whole flight,
  * decided as it is released, by the rules' numbers and the bricks' trait
- * rules, the game's own unless a spec hands in stand-ins; what it came to;
+ * rules, the game's own unless a spec hands in others; what it came to;
  * and where the next round starts.
  *
  * It changes nothing it is handed. It throws a `RangeError` for an aim

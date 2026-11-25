@@ -1,6 +1,7 @@
 import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { playCarelessly } from "@fz/brick-wall/testing/careless";
 import { replayLine, solveLine } from "@fz/brick-wall/testing/solver";
+import { TRAIT_RULES } from "../rules/bricks/trait_rules";
 import { WALL_RULES } from "../rules/bricks/wall_rules";
 import type { RoundStart } from "../rules/flight/events";
 import { WALL_LEGEND } from "../rules/levels/legend";
@@ -9,7 +10,6 @@ import { playRound } from "../rules/round/round";
 import { levelStart } from "../rules/run/run";
 import { FLIGHT_RULES } from "../rules/tuning";
 import { levelPlayOf, linePlayOf } from "./line_play";
-import { STAND_INS } from "./stand_ins";
 import { wallScore } from "./wall_score";
 
 /** Returns a level of a wall drawn as a picture. */
@@ -68,13 +68,13 @@ describe("linePlayOf", () => {
   });
 
   it("plays through the trait rules it is handed", () => {
-    const noSprings = { ...STAND_INS, springs: {} };
+    const noSprings = { ...TRAIT_RULES, springs: {} };
     const without = linePlayOf(ONE_SPRING, 11, FLIGHT_RULES, noSprings);
-    const standIns = linePlayOf(ONE_SPRING, 11, FLIGHT_RULES, STAND_INS);
+    const game = linePlayOf(ONE_SPRING, 11, FLIGHT_RULES, TRAIT_RULES);
 
     expect([
       without.play(without.opening, BREAKS_THE_SPRING).outcome,
-      standIns.play(standIns.opening, BREAKS_THE_SPRING).outcome,
+      game.play(game.opening, BREAKS_THE_SPRING).outcome,
     ]).toMatchObject([
       { broken: 1, earned: 0 },
       { broken: 1, earned: 1 },

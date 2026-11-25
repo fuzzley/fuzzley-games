@@ -7,7 +7,6 @@ import {
   unflown,
 } from "../../testing/cast_reference";
 import { near } from "../../testing/shots";
-import { STAND_INS } from "../../testing/stand_ins";
 import { playRound } from "../round/round";
 import type { Shot } from "../shot";
 import { FLIGHT_RULES } from "../tuning";
@@ -47,13 +46,13 @@ function shownBy({ events, length, track }: Guide): Shown {
 }
 
 /**
- * Returns what a guide should show of its round, played by the stand-in
+ * Returns what a guide should show of its round, played by the game's
  * trait rules: the round's own events, to the guide's length past the turn
  * it follows or to the landing, whichever comes first, and the place the
  * round's track passes then.
  */
 function shownByRound({ start, shot, turns }: Cast): Shown {
-  const { flight } = playRound(start, shot, FLIGHT_RULES, STAND_INS);
+  const { flight } = playRound(start, shot, FLIGHT_RULES);
   const turn = flight.events.filter(({ kind }) => kind === "turn")[turns - 1];
   const length = Math.min(
     (turn?.at ?? Number.POSITIVE_INFINITY) + FLIGHT_RULES.guidePast,
@@ -67,9 +66,9 @@ function shownByRound({ start, shot, turns }: Cast): Shown {
   };
 }
 
-/** Returns a guide cast by the stand-in trait rules. */
+/** Returns a guide cast by the game's trait rules. */
 function guideBy({ start, shot, turns }: Cast): Guide {
-  return guideOf(start, shot, FLIGHT_RULES, turns, STAND_INS);
+  return guideOf(start, shot, FLIGHT_RULES, turns);
 }
 
 describe("guideOf(), over random walls", () => {
@@ -81,7 +80,7 @@ describe("guideOf(), over random walls", () => {
       const rules = structuredClone(FLIGHT_RULES);
 
       for (const { start, shot, turns } of guides) {
-        guideOf(start, shot, rules, turns, STAND_INS);
+        guideOf(start, shot, rules, turns);
       }
 
       expect([guides, rules]).toStrictEqual([handed, FLIGHT_RULES]);
