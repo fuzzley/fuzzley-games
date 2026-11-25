@@ -12,7 +12,6 @@ import {
   type ArtScale,
   type DrawCommand,
   type LineStyle,
-  type Point,
   circle,
   inset,
   stroke,
@@ -21,6 +20,7 @@ import {
 import { SPRING_UNITS } from "../field/springs";
 import type { WallPalette } from "../colors/palette";
 import { cellOf } from "./cells";
+import { coilLines } from "./coil";
 import { FRAMES } from "./frames";
 import { CUT_TILE } from "./kinds/brick";
 import { CUT_GROWTH, cutOutline } from "./kinds/steel";
@@ -182,34 +182,15 @@ function coil(
   tall: number,
   style: LineStyle,
 ): readonly DrawCommand[] {
-  const middle = SPRING.across * side;
-  const half = SPRING.half * side;
   const foot = SPRING.foot * side;
-  const top = foot - (SPRING.foot - SPRING.top) * tall * side;
-  const step = (foot - top) / (SPRING.turns + 1);
-  const zigzag: Point[] = [{ x: middle, y: top }];
-  for (let turn = 0; turn < SPRING.turns; turn++) {
-    zigzag.push({
-      x: middle + (turn % 2 === 0 ? half : -half),
-      y: top + step * (turn + 1),
-    });
-  }
-  zigzag.push({ x: middle, y: foot });
-  return [
-    ...stroke(
-      [
-        { x: middle - half, y: top },
-        { x: middle + half, y: top },
-      ],
-      style,
-    ),
-    ...stroke(zigzag, style),
-    ...stroke(
-      [
-        { x: middle - half, y: foot },
-        { x: middle + half, y: foot },
-      ],
-      style,
-    ),
-  ];
+  const lines = coilLines({
+    middle: SPRING.across * side,
+    top: foot - (SPRING.foot - SPRING.top) * tall * side,
+    foot,
+    half: SPRING.half * side,
+    turns: SPRING.turns,
+  });
+  return [lines.top, lines.zigzag, lines.foot].flatMap((line) =>
+    stroke(line, style),
+  );
 }
