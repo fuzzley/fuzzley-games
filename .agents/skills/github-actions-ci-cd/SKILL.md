@@ -40,10 +40,10 @@ the Yarn it downloads and Yarn's package cache, each restored with
 4. **`test`** — the tests with each workspace's coverage floors
    (`test:coverage`), through `frontend/tools/run-tests.mjs`, in three
    jobs of about the same length: Asteroid Breaker and Brick Breaker, then
-   Brick Fuzz Pop and the Solitaire Collection, each pair one suite after
-   the other with all four cores (`--only … --jobs 1`), and every other
-   workspace four at a time (`--except …`), where a workspace added later
-   lands.
+   Brick Fuzz Pop, the Solitaire Collection and Rickashay, each job's
+   suites one after the other with all four cores (`--only … --jobs 1`),
+   and every other workspace four at a time (`--except …`), where a
+   workspace added later lands.
 5. **`build`** — `yarn build`, which builds the games in
    `frontend/games/` and copies the ones `frontend/site/games.json` lists
    into the site, then `yarn check:layout`, which opens each game's build

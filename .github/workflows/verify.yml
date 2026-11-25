@@ -111,11 +111,11 @@ jobs:
         run: yarn typecheck
 
   # The tests with coverage, failing below each workspace's floors, in three
-  # parts of about the same length: the four longest suites, two to a
-  # runner, each with all its cores, one after the other, and every other
-  # workspace, four at a time, so a workspace added later lands there. The
-  # last part leaves out exactly the four the pairs name, or a suite would
-  # run twice or nowhere.
+  # parts of about the same length: the five longest suites, two on one
+  # runner and three on another, each with all its cores, one after the
+  # other, and every other workspace, four at a time, so a workspace added
+  # later lands there. The last part leaves out exactly the five the first
+  # two name, or a suite would run twice or nowhere.
   test:
     needs: changes
     if: needs.changes.outputs.code == 'true'
@@ -128,10 +128,10 @@ jobs:
         include:
           - part: asteroid-breaker, brick-breaker
             args: --only asteroid-breaker,brick-breaker --jobs 1
-          - part: brick-fuzz-pop, solitaire
-            args: --only brick-fuzz-pop,solitaire --jobs 1
+          - part: brick-fuzz-pop, solitaire, rickashay
+            args: --only brick-fuzz-pop,solitaire,rickashay --jobs 1
           - part: the rest
-            args: --except solitaire,brick-breaker,asteroid-breaker,brick-fuzz-pop
+            args: --except solitaire,brick-breaker,asteroid-breaker,brick-fuzz-pop,rickashay
 
     steps:
       - name: Checkout fuzzley-games
