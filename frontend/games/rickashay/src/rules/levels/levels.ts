@@ -11,6 +11,7 @@ import { unknownKey } from "@fz/core/json";
 import type { KindId } from "../catalog/kinds";
 import angles from "./angles.json";
 import { PICTURE_RULES } from "./level_rules";
+import tricks from "./tricks.json";
 import warmUp from "./warm-up.json";
 
 /** Describes a level, ready to play: its wall as its picture lays it out. */
@@ -44,7 +45,7 @@ export interface LevelEntry {
 }
 
 /** Every set of levels, in the order they are played. */
-export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, angles];
+export const LEVEL_SETS: readonly LevelSetData[] = [warmUp, angles, tricks];
 
 /** Returns the levels of sets, in the order played, numbered from 1. */
 export function levelsOf(sets: readonly LevelSetData[]): LevelEntry[] {

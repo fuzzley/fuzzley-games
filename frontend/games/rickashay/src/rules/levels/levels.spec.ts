@@ -182,11 +182,15 @@ describe("levelEntryOf", () => {
 });
 
 describe("the sets", () => {
-  it("are played Warm-up first, then Angles", () => {
-    expect(LEVEL_SETS.map(({ id }) => id)).toEqual(["warm-up", "angles"]);
+  it("are played Warm-up first, then Angles, then Tricks", () => {
+    expect(LEVEL_SETS.map(({ id }) => id)).toEqual([
+      "warm-up",
+      "angles",
+      "tricks",
+    ]);
   });
 
-  it("number Warm-up's levels 1 to 9 and Angles' 10 to 18, as the design's table of the drafts does", () => {
+  it("number Warm-up's levels 1 to 9, Angles' 10 to 18 and Tricks' 19 to 27, as the design's table of the drafts does", () => {
     expect(LEVELS.map(({ number, data }) => [number, data.name])).toEqual([
       [1, "First bounce"],
       [2, "Side door"],
@@ -206,6 +210,15 @@ describe("the sets", () => {
       [16, "Skylight"],
       [17, "Bounce house"],
       [18, "Clockwork"],
+      [19, "Gems"],
+      [20, "Chandelier"],
+      [21, "Elevator"],
+      [22, "Shutters"],
+      [23, "Kaleidoscope"],
+      [24, "Awning"],
+      [25, "Back door"],
+      [26, "Prism hall"],
+      [27, "Fun house"],
     ]);
   });
 
@@ -229,6 +242,15 @@ describe("the sets", () => {
     ["skylight", 15, 54, 132],
     ["bounce-house", 17, 68, 68],
     ["clockwork", 19, 73, 100],
+    ["gems", 15, 60, 100],
+    ["chandelier", 15, 64, 64],
+    ["elevator", 17, 38, 76],
+    ["shutters", 15, 54, 96],
+    ["kaleidoscope", 15, 56, 56],
+    ["awning", 17, 54, 81],
+    ["back-door", 13, 56, 86],
+    ["prism-hall", 15, 68, 80],
+    ["fun-house", 21, 69, 110],
   ])(
     "build %s as its draft: %s rows, %s bricks needed, %s hits",
     (id, rows, needed, hits) => {

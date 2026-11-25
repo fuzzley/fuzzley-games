@@ -5,7 +5,12 @@
 
 import { type Marks, marksOf } from "../run/stars";
 import anglesMarks from "./marks/angles.json";
+import tricksMarks from "./marks/tricks.json";
 import warmUpMarks from "./marks/warm-up.json";
 
 /** Every level's par and rally mark on every depth, from each set's marks, in the order the sets are played. */
-export const LEVEL_MARKS: Marks = marksOf([warmUpMarks, anglesMarks]);
+export const LEVEL_MARKS: Marks = marksOf([
+  warmUpMarks,
+  anglesMarks,
+  tricksMarks,
+]);
