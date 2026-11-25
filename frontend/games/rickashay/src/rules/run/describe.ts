@@ -146,25 +146,21 @@ export function describeParAndMark(par: number, mark: number): string {
 export const CALL_WORDS = "Rickashay!";
 
 /**
- * What each kind of brick does, in a sentence or two, as the Ready card
- * says it of the kind a level brings in, by the rules' own numbers.
+ * What each kind of brick that How to play doesn't list yet does, in a
+ * sentence or two, as the Ready card says it of the kind a level brings
+ * in, by the rules' own numbers. A kind How to play lists says what it does
+ * there, so its line leaves this list as its entry is written.
  */
-const KIND_LINES: Readonly<Record<KindId, string>> = {
-  brick: "Breaks at 1 strike.",
-  tough: "Loses a pip at each strike.",
-  steel: "Can't be broken.",
-  ramp: "Sends the fuzzball off its slope at a right angle. Can't be broken.",
-  hatch: `Lets the fuzzball rise through. Holds it up on the way down, ${count(FLIGHT_RULES.hatchHolds, "time", "times")} a shot.`,
-  spring: "Gives your shot a floor bounce when it breaks.",
-  gem: "Bounces the fuzzball off at an angle from every side.",
-  portal: "Sends the fuzzball out of its twin, flying the same way.",
-  plated: "Loses a pip at each strike, but not on its steel.",
+const KIND_LINES = {
   moss: "Grows a pip back after each shot it survives.",
   lock: `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
-};
+} as const satisfies Partial<Readonly<Record<KindId, string>>>;
 
-/** Returns what a kind of brick does, as the Ready card says it of the kind a level brings in: "Loses a pip at each strike." */
-export function describeKind(kind: KindId): string {
+/** Names a kind of brick How to play doesn't list yet, such as "lock". */
+export type DescribedKind = keyof typeof KIND_LINES;
+
+/** Returns what a kind of brick How to play doesn't list yet does, as the Ready card says it of the kind a level brings in: "Grows a pip back after each shot it survives." */
+export function describeKind(kind: DescribedKind): string {
   return KIND_LINES[kind];
 }
 

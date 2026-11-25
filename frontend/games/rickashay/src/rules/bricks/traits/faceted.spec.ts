@@ -1,22 +1,18 @@
-import {
-  AIMS,
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-} from "@fz/brick-wall/rules/aims";
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import type { FlightEvent } from "../../flight/events";
-import { type Flown, fly } from "../../flight/flight";
-import { WALL_LEGEND } from "../../levels/legend";
-import { FLIGHT_RULES, STAND_OFF } from "../../tuning";
-import { TRAIT_RULES } from "../trait_rules";
-
-/** The depth of the field the specs fly in. */
-const DEPTH = 11;
+import type { Flown } from "../../flight/flight";
+import {
+  SHOT_DEPTH,
+  aimAt,
+  eventsOf,
+  flyAt,
+  near,
+} from "../../../testing/shots";
+import { STAND_OFF } from "../../tuning";
 
 /** The ceiling's flat, a radius under it. */
-const CEILING = DEPTH - RADIUS;
+const CEILING = SHOT_DEPTH - RADIUS;
 
 /** The gem's wall cell, a gem alone in column 4 of field row 5. */
 const GEM = cellOf(4, 0);
@@ -26,11 +22,6 @@ type Point = readonly [number, number];
 
 /** How far across and up from the gem's middle the fuzzball's middle meets one of its four long faces at the middle of the side the face stands off. */
 const TO_FACE = 0.25 + STAND_OFF / 2;
-
-/** Returns the aim at an angle, in degrees counter-clockwise from the floor on the right. */
-function aimAt(degrees: number): number {
-  return (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
-}
 
 /** Returns the heading of the aim at an angle. */
 function headingAt(degrees: number): Point {
@@ -53,30 +44,8 @@ function xToReach(degrees: number, [x, y]: Point, down: boolean): number {
 }
 
 /** Returns the flight of a shot at an angle at a gem alone in column 4 of field row 5, on a field 11 deep, by the game's own rules. */
-function flyAt(x: number, degrees: number): Flown {
-  const wall = wallFrom(["....G...."], WALL_LEGEND, { lowestRow: 5 });
-  return fly(
-    { wall, depth: DEPTH, x, hot: false },
-    { aim: aimAt(degrees) },
-    FLIGHT_RULES,
-    TRAIT_RULES,
-  );
-}
-
-/** Returns a flight's events of a kind. */
-function eventsOf<K extends FlightEvent["kind"]>(
-  { flight }: Flown,
-  kind: K,
-): Extract<FlightEvent, { readonly kind: K }>[] {
-  return flight.events.filter(
-    (event): event is Extract<FlightEvent, { readonly kind: K }> =>
-      event.kind === kind,
-  );
-}
-
-/** Returns a number matched as near as the flight's arithmetic finds it. */
-function near(value: number): number {
-  return expect.closeTo(value, 9) as number;
+function flyAtGem(x: number, degrees: number): Flown {
+  return flyAt({ picture: ["....G...."], x, degrees });
 }
 
 describe("a gem, flown by the game's own rules", () => {
@@ -95,13 +64,13 @@ describe("a gem, flown by the game's own rules", () => {
       const [dx, dy] = headingAt(degrees);
       const coming: Point = up > 0 ? [dx, -dy] : [dx, dy];
 
-      const flown = flyAt(xToReach(degrees, face, up > 0), degrees);
+      const flown = flyAtGem(xToReach(degrees, face, up > 0), degrees);
 
       expect([
-        eventsOf(flown, "turn")
+        eventsOf(flown.flight, "turn")
           .filter(({ off }) => off === "brick")
           .map((turn) => [turn.x, turn.y, turn.dx, turn.dy, turn.cells]),
-        eventsOf(flown, "strike"),
+        eventsOf(flown.flight, "strike"),
       ]).toEqual([
         [[near(face[0]), near(face[1]), ...swapped(coming), [GEM]]],
         [
@@ -121,13 +90,13 @@ describe("a gem, flown by the game's own rules", () => {
   it("takes its strike on the flat that cuts a point square, which mirrors the fuzzball", () => {
     const [dx, dy] = headingAt(90);
 
-    const flown = flyAt(4.5, 90);
+    const flown = flyAtGem(4.5, 90);
 
     expect([
-      eventsOf(flown, "turn")
+      eventsOf(flown.flight, "turn")
         .filter(({ off }) => off === "brick")
         .map((turn) => [turn.x, turn.y, turn.dx, turn.dy]),
-      eventsOf(flown, "strike").map(({ cell, broke }) => [cell, broke]),
+      eventsOf(flown.flight, "strike").map(({ cell, broke }) => [cell, broke]),
     ]).toEqual([[[near(4.5), near(5 - RADIUS), near(dx), -dy]], [[GEM, true]]]);
   });
 });

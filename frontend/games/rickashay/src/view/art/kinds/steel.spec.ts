@@ -18,6 +18,7 @@ import {
   octagon,
   pastOutline,
   pointInBillionths,
+  scalesAt,
 } from "../../../testing/art_frames";
 import { cellOf } from "../cells";
 import { FRAMES } from "../frames";
@@ -215,11 +216,7 @@ describe("STEEL_ART's frame", () => {
 describe.each(PIXEL_RATIOS)(
   "STEEL_ART's frame at every unit from 24 CSS pixels to 128 device pixels, %f to a CSS pixel",
   (pixelRatio) => {
-    const least = Math.ceil(24 * pixelRatio);
-    const scales = Array.from({ length: 128 - least + 1 }, (_, i) => ({
-      unit: least + i,
-      pixelRatio,
-    }));
+    const scales = scalesAt(pixelRatio);
 
     // The marks keep less than 3:1 against the steel's strip in the light
     // palettes, so neither the frame nor a rivet lies on it.

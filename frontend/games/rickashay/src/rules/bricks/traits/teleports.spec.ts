@@ -1,18 +1,11 @@
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { cellOf } from "@fz/brick-wall/rules/grid";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { FLIGHT_FIXTURES } from "../../../testing/flight_fixtures";
+import { eventsOf, flyAt } from "../../../testing/shots";
 import type { Brick } from "../../catalog/kinds";
-import type { Flight, FlightEvent } from "../../flight/events";
 import { fly } from "../../flight/flight";
 import type { Hooks } from "../../flight/hooks";
-import { WALL_LEGEND } from "../../levels/legend";
-import { FLIGHT_RULES } from "../../tuning";
 import { TRAIT_RULES } from "../trait_rules";
 import { TELEPORTS_RULE } from "./teleports";
-
-/** The aim at 45°, up and to the right. */
-const AT_45 = (45 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
 
 /** Returns a portal, its twin in the wall cell given, or none. */
 function portalOf(twin: number | null): Brick {
@@ -35,17 +28,6 @@ function enteredBy(portal: Brick): readonly string[] {
   };
   TELEPORTS_RULE.entered?.(hooks, 6, portal);
   return calls;
-}
-
-/** Returns a flight's events of a kind. */
-function eventsOf<K extends FlightEvent["kind"]>(
-  flight: Flight,
-  kind: K,
-): Extract<FlightEvent, { readonly kind: K }>[] {
-  return flight.events.filter(
-    (event): event is Extract<FlightEvent, { readonly kind: K }> =>
-      event.kind === kind,
-  );
 }
 
 describe("TELEPORTS_RULE", () => {
@@ -82,18 +64,14 @@ describe("TELEPORTS_RULE, flown", () => {
   // fuzzball flies on through its cell, off the right wall, the ceiling
   // and the left wall.
   it("passes a portal whose twin waits over the ceiling as air", () => {
-    const wall = wallFrom(
-      ["..@......", ...Array<string>(9).fill("........."), "......@.."],
-      WALL_LEGEND,
-      { lowestRow: 2 },
-    );
-
-    const { flight } = fly(
-      { wall, depth: 11, x: 4.5, hot: false },
-      { aim: AT_45 },
-      FLIGHT_RULES,
-      TRAIT_RULES,
-    );
+    const { flight, wall } = flyAt({
+      picture: [
+        "..@......",
+        ...Array<string>(9).fill("........."),
+        "......@..",
+      ],
+      lowestRow: 2,
+    });
 
     expect([
       eventsOf(flight, "teleport"),

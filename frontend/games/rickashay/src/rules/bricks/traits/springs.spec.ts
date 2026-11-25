@@ -1,37 +1,18 @@
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
 import { cellOf } from "@fz/brick-wall/rules/grid";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { FLIGHT_FIXTURES } from "../../../testing/flight_fixtures";
-import type { FlightEvent, RoundStart } from "../../flight/events";
+import { aimAt, flyAt, startAt, timeless } from "../../../testing/shots";
+import type { FlightEvent } from "../../flight/events";
 import { type Flown, fly } from "../../flight/flight";
-import { WALL_LEGEND } from "../../levels/legend";
 import { playRound } from "../../round/round";
-import { FLIGHT_RULES, type FlightRules } from "../../tuning";
+import { FLIGHT_RULES } from "../../tuning";
 import { TRAIT_RULES } from "../trait_rules";
 import { SPRINGS_RULE } from "./springs";
 
 /** A spring brick by the right wall, which a shot at 45° from the floor's middle meets off that wall. */
 const BY_THE_WALL = ["........S"];
 
-/** Returns where a round starts at a wall drawn as a picture, its lowest row in field row 5 of a field 11 deep, the fuzzball waiting at the floor's middle. */
-function startAt(picture: readonly string[], hot = false): RoundStart {
-  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow: 5 });
-  return { wall, depth: 11, x: 4.5, hot };
-}
-
 /** The shot at 45°. */
-const AT_45 = { aim: (45 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE };
-
-/** Returns the flight of a shot at 45° at a wall drawn as a picture, by the game's trait rules. */
-function flyAt(
-  picture: readonly string[],
-  {
-    hot = false,
-    rules = FLIGHT_RULES,
-  }: { hot?: boolean; rules?: FlightRules } = {},
-): Flown {
-  return fly(startAt(picture, hot), AT_45, rules, TRAIT_RULES);
-}
+const AT_45 = { aim: aimAt(45) };
 
 /** Returns a flight's strikes, and the floor bounces it earns and spends. */
 function bounceEventsOf(events: readonly FlightEvent[]): FlightEvent[] {
@@ -46,18 +27,13 @@ function bouncesOf({ flight }: Flown): FlightEvent[] {
   return bounceEventsOf(flight.events);
 }
 
-/** Returns an event without its moment, which the flight's arithmetic and a fixture's may round apart. */
-function timeless({ at: _, ...event }: FlightEvent): object {
-  return event;
-}
-
 describe("SPRINGS_RULE", () => {
   it("is the game's rule for a spring brick", () => {
     expect(TRAIT_RULES.springs).toBe(SPRINGS_RULE);
   });
 
   it("earns a floor bounce as a spring brick breaks, which the fuzzball spends on the floor", () => {
-    const flown = flyAt(BY_THE_WALL);
+    const flown = flyAt({ picture: BY_THE_WALL });
 
     const [strike] = bouncesOf(flown);
     expect(bouncesOf(flown)).toEqual([
@@ -78,7 +54,7 @@ describe("SPRINGS_RULE", () => {
   it("loses the floor bounce it earns while the fuzzball holds the most, still announcing it", () => {
     const rules = { ...FLIGHT_RULES, mostBounces: FLIGHT_RULES.hotBounces };
 
-    const flown = flyAt(BY_THE_WALL, { hot: true, rules });
+    const flown = flyAt({ picture: BY_THE_WALL, hot: true, rules });
 
     expect(
       flown.flight.events.filter(({ kind }) => kind === "bounce-earned"),

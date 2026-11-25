@@ -1,33 +1,33 @@
-import {
-  AIMS,
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-} from "@fz/brick-wall/rules/aims";
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { COLUMNS, RADIUS, SIDE_MARGIN } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { lowerWall } from "@fz/brick-wall/rules/wall";
 import { keysOf } from "@fz/core/records";
-import type { TraitKind, Wall } from "../catalog/kinds";
-import { WALL_LEGEND } from "../levels/legend";
+import type { TraitKind } from "../catalog/kinds";
 import { TRAIT_RULES } from "../bricks/trait_rules";
 import {
   FIXTURE_WALL_RULES,
   FLIGHT_FIXTURES,
 } from "../../testing/flight_fixtures";
+import {
+  type PictureShot,
+  SHOT_DEPTH,
+  aimAt,
+  eventsOf,
+  flyAt,
+  near,
+  startAt,
+} from "../../testing/shots";
 import { STAND_INS } from "../../testing/stand_ins";
-import { FLIGHT_RULES, type FlightRules, STAND_OFF } from "../tuning";
+import { FLIGHT_RULES, STAND_OFF } from "../tuning";
 import type { FlightEvent } from "./events";
-import { type FlightStop, type Flown, fly } from "./flight";
+import { type Flown, fly } from "./flight";
 import type { Hooks, TraitRule, TraitRules } from "./hooks";
-
-/** The depth of the field the specs fly in. */
-const DEPTH = 11;
 
 /** The side walls' flats and the ceiling's, a radius in from each. */
 const LEFT_WALL = RADIUS;
 const RIGHT_WALL = COLUMNS - RADIUS;
-const CEILING = DEPTH - RADIUS;
+const CEILING = SHOT_DEPTH - RADIUS;
 
 /**
  * A pair of portals, standing from row 2: one in column 6 of row 2, whose
@@ -40,11 +40,6 @@ const PORTALS = [
   "......@..",
 ];
 
-/** Returns the aim at an angle, in degrees counter-clockwise from the floor on the right. */
-function aimAt(degrees: number): number {
-  return (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
-}
-
 /** Returns an aim's heading. */
 function headingOf(aim: number): readonly [number, number] {
   const heading = AIMS[aim];
@@ -54,73 +49,14 @@ function headingOf(aim: number): readonly [number, number] {
   return heading;
 }
 
-/** Describes a shot a spec flies at a wall drawn as a picture. */
-interface PictureShot {
-  readonly picture?: readonly string[];
-  /** The field row the picture's lowest row stands in: 5 unless given. */
-  readonly lowestRow?: number;
-  /** Where the fuzzball waits: the floor's middle unless given. */
-  readonly x?: number;
-  /** The aim's angle, in degrees counter-clockwise from the floor on the right: 45° unless given. */
-  readonly degrees?: number;
-  readonly hot?: boolean;
-  readonly rules?: FlightRules;
-  /** The bricks' trait rules: the game's unless given. */
-  readonly traits?: TraitRules;
-  /** Where it stops short, as a guide's flight does: at its landing unless given. */
-  readonly stop?: FlightStop;
-}
-
-/** Returns a wall drawn as a picture, its lowest row standing in a field row. */
-function wallOf(picture: readonly string[], lowestRow: number): Wall {
-  return wallFrom(picture, WALL_LEGEND, { lowestRow });
-}
-
-/** Returns the flight of a shot at a wall drawn as a picture, in a field 11 deep, by the design's rules. */
-function flyAt({
-  picture = [],
-  lowestRow = 5,
-  x = 4.5,
-  degrees = 45,
-  hot = false,
-  rules = FLIGHT_RULES,
-  traits = TRAIT_RULES,
-  stop,
-}: PictureShot): Flown {
-  const wall = wallOf(picture, lowestRow);
-  return fly(
-    { wall, depth: DEPTH, x, hot },
-    { aim: aimAt(degrees) },
-    rules,
-    traits,
-    stop,
-  );
-}
-
-/** Returns a flight's events of a kind. */
-function eventsOf<K extends FlightEvent["kind"]>(
-  { flight }: Flown,
-  kind: K,
-): Extract<FlightEvent, { readonly kind: K }>[] {
-  return flight.events.filter(
-    (event): event is Extract<FlightEvent, { readonly kind: K }> =>
-      event.kind === kind,
-  );
-}
-
-/** Returns a number matched as near as the flight's arithmetic finds it. */
-function near(value: number): number {
-  return expect.closeTo(value, 9) as number;
-}
-
 /** Returns where a flight's turns were, as `[x, y]`. */
 function placesOf(flown: Flown): [number, number][] {
-  return eventsOf(flown, "turn").map(({ x, y }) => [x, y]);
+  return eventsOf(flown.flight, "turn").map(({ x, y }) => [x, y]);
 }
 
 /** Returns a flight's turns' headings, as `[dx, dy]`. */
 function headingsOf(flown: Flown): (readonly [number, number])[] {
-  return eventsOf(flown, "turn").map(({ dx, dy }) => [dx, dy]);
+  return eventsOf(flown.flight, "turn").map(({ dx, dy }) => [dx, dy]);
 }
 
 /** Returns where a shot at an angle must wait on the floor to fly straight to a place. */
@@ -140,7 +76,7 @@ describe("fly", () => {
     expect([
       placesOf(flown),
       headingsOf(flown),
-      eventsOf(flown, "turn").map(({ off }) => off),
+      eventsOf(flown.flight, "turn").map(({ off }) => off),
     ]).toEqual([
       [
         [near(RIGHT_WALL), near(4.5)],
@@ -160,7 +96,7 @@ describe("fly", () => {
     const flown = flyAt({ picture: ["........o"] });
 
     expect(
-      eventsOf(flown, "turn").map(({ off, cells }) => [off, cells]),
+      eventsOf(flown.flight, "turn").map(({ off, cells }) => [off, cells]),
     ).toEqual([
       ["wall", []],
       ["brick", [cellOf(8, 0)]],
@@ -172,7 +108,9 @@ describe("fly", () => {
   it("names a side wall what a turn was off where it meets the ceiling there too", () => {
     const flown = flyAt({ x: 2.25, degrees: 135 });
 
-    expect(eventsOf(flown, "turn").map(({ off, y }) => [off, y])).toEqual([
+    expect(
+      eventsOf(flown.flight, "turn").map(({ off, y }) => [off, y]),
+    ).toEqual([
       ["wall", near(2.25)],
       ["wall", near(CEILING)],
       ["wall", near(2.25)],
@@ -197,7 +135,7 @@ describe("fly", () => {
       x,
     });
 
-    expect(eventsOf(flown, "turn")).toEqual([
+    expect(eventsOf(flown.flight, "turn")).toEqual([
       expect.objectContaining({
         x: near(6.75),
         y: near(4.75),
@@ -227,7 +165,7 @@ describe("fly", () => {
       degrees: 60,
     });
 
-    expect(eventsOf(flown, "turn")[0]).toEqual(
+    expect(eventsOf(flown.flight, "turn")[0]).toEqual(
       expect.objectContaining({
         x: near(4),
         y: near(5 - RADIUS),
@@ -256,7 +194,7 @@ describe("fly", () => {
         degrees,
       });
 
-      expect(eventsOf(flown, "turn")[0]).toEqual(
+      expect(eventsOf(flown.flight, "turn")[0]).toEqual(
         expect.objectContaining({
           x: near(corner[0]),
           y: near(corner[1]),
@@ -276,7 +214,7 @@ describe("fly", () => {
 
     const flown = flyAt({ picture: ["..=......"], x: 2.5, degrees: 90 });
 
-    expect(eventsOf(flown, "turn").slice(0, 2)).toEqual([
+    expect(eventsOf(flown.flight, "turn").slice(0, 2)).toEqual([
       expect.objectContaining({ y: near(CEILING), dy: -dy, off: "ceiling" }),
       expect.objectContaining({
         x: near(2.5),
@@ -291,8 +229,8 @@ describe("fly", () => {
 
   it("lays its track from where it waits through each place it turns to where it lands", () => {
     const flown = flyAt({ picture: ["........o"] });
-    const turns = eventsOf(flown, "turn");
-    const [landing] = eventsOf(flown, "land");
+    const turns = eventsOf(flown.flight, "turn");
+    const [landing] = eventsOf(flown.flight, "land");
 
     expect(flown.flight.track).toEqual({
       ball: 0,
@@ -307,7 +245,7 @@ describe("fly", () => {
 
   it("lands where it reaches the floor, its flight's length and turns counted", () => {
     const flown = flyAt({});
-    const [landing] = eventsOf(flown, "land");
+    const [landing] = eventsOf(flown.flight, "land");
 
     expect([landing, flown.flight.length, flown.flight.turns]).toEqual([
       { at: near(21 * Math.SQRT2), kind: "land", x: near(8.5) },
@@ -327,7 +265,7 @@ describe("fly", () => {
     });
 
     expect([
-      eventsOf(flown, "land"),
+      eventsOf(flown.flight, "land"),
       flown.flight.track.waypoints.at(-1)?.x,
     ]).toEqual([[expect.objectContaining({ x: SIDE_MARGIN })], near(0.4)]);
   });
@@ -346,12 +284,7 @@ describe("fly", () => {
   });
 
   it("leaves the wall it is handed as it was", () => {
-    const start = {
-      wall: wallOf(["ooo2....."], 5),
-      depth: DEPTH,
-      x: 4.5,
-      hot: false,
-    };
+    const start = startAt(["ooo2....."]);
     const before = structuredClone(start.wall);
 
     fly(start, { aim: aimAt(100) }, FLIGHT_RULES, TRAIT_RULES);
@@ -373,7 +306,7 @@ describe("fly", () => {
   });
 
   it("throws for an aim that isn't one of the 657", () => {
-    const start = { wall: wallOf([], 5), depth: DEPTH, x: 4.5, hot: false };
+    const start = startAt([]);
 
     expect(() => fly(start, { aim: 657 }, FLIGHT_RULES, TRAIT_RULES)).toThrow(
       RangeError,
@@ -385,7 +318,7 @@ describe("fly's strikes", () => {
   it("strikes a brick it turns off, taking a hit, which breaks it", () => {
     const flown = flyAt({ picture: ["........o"] });
 
-    expect([eventsOf(flown, "strike"), flown.wall.bricks]).toEqual([
+    expect([eventsOf(flown.flight, "strike"), flown.wall.bricks]).toEqual([
       [
         {
           at: near(4.5 * Math.SQRT2),
@@ -403,7 +336,10 @@ describe("fly's strikes", () => {
   it("takes a pip off a tough brick, which holds", () => {
     const flown = flyAt({ picture: ["........3"] });
 
-    expect([eventsOf(flown, "strike"), flown.wall.bricks[8]?.hits]).toEqual([
+    expect([
+      eventsOf(flown.flight, "strike"),
+      flown.wall.bricks[8]?.hits,
+    ]).toEqual([
       [expect.objectContaining({ cell: 8, took: 1, broke: false })],
       2,
     ]);
@@ -412,7 +348,7 @@ describe("fly's strikes", () => {
   it("takes a hot shot's two hits a strike", () => {
     const flown = flyAt({ picture: ["........3"], hot: true });
 
-    expect(eventsOf(flown, "strike")).toEqual([
+    expect(eventsOf(flown.flight, "strike")).toEqual([
       expect.objectContaining({ cell: 8, took: 2, broke: false, rally: 1 }),
     ]);
   });
@@ -422,7 +358,7 @@ describe("fly's strikes", () => {
   it("flies through where a brick it broke stood", () => {
     const flown = flyAt({ picture: ["....o...."], degrees: 90, hot: true });
 
-    expect(eventsOf(flown, "turn").map(({ off }) => off)).toEqual([
+    expect(eventsOf(flown.flight, "turn").map(({ off }) => off)).toEqual([
       "brick",
       "floor",
       "ceiling",
@@ -439,7 +375,7 @@ describe("fly's strikes", () => {
     });
 
     expect(
-      eventsOf(flown, "strike").map(({ cell, rally }) => [cell, rally]),
+      eventsOf(flown.flight, "strike").map(({ cell, rally }) => [cell, rally]),
     ).toEqual([
       [cellOf(7, 0), 1],
       [cellOf(6, 1), 2],
@@ -459,7 +395,7 @@ describe("fly's strikes", () => {
     const flown = flyAt({ picture, x, degrees });
 
     expect([
-      eventsOf(flown, "strike"),
+      eventsOf(flown.flight, "strike"),
       flown.flight.rally,
       flown.flight.lastStrike,
     ]).toEqual([[], 0, null]);
@@ -481,7 +417,7 @@ describe("fly's strikes", () => {
       lowestRow: 4,
       x: 4.75,
     });
-    const moments = eventsOf(flown, "strike").map(({ at }) => at);
+    const moments = eventsOf(flown.flight, "strike").map(({ at }) => at);
 
     expect([flown.flight.marks, flown.flight.lastStrike]).toEqual([
       [moments[9]],
@@ -577,7 +513,7 @@ describe("fly's trait rules", () => {
       degrees: 60,
     });
 
-    expect(eventsOf(flown, "shielded")).toEqual([
+    expect(eventsOf(flown.flight, "shielded")).toEqual([
       expect.objectContaining({ cell: 4, by: "plate" }),
     ]);
   });
@@ -652,9 +588,13 @@ describe("fly's floor bounces", () => {
     const [dx, dy] = headingOf(aimAt(45));
 
     const flown = flyAt({ hot: true });
-    const turns = eventsOf(flown, "turn");
+    const turns = eventsOf(flown.flight, "turn");
 
-    expect([turns[3], bouncesOf(flown), eventsOf(flown, "land")]).toEqual([
+    expect([
+      turns[3],
+      bouncesOf(flown),
+      eventsOf(flown.flight, "land"),
+    ]).toEqual([
       expect.objectContaining({
         x: near(8.5),
         y: RADIUS,
@@ -671,7 +611,7 @@ describe("fly's floor bounces", () => {
   // which it spends on the floor before it strikes the column from under it.
   it("earns a floor bounce as its rally reaches the ladder's first rung, and spends it", () => {
     const flown = flyAt({ picture: RALLY, lowestRow: 4, x: 4.75 });
-    const strikes = eventsOf(flown, "strike");
+    const strikes = eventsOf(flown.flight, "strike");
 
     expect([strikes.length, bouncesOf(flown)]).toEqual([
       11,
@@ -714,7 +654,7 @@ describe("fly's floor bounces", () => {
     const flown = flyAt({ picture: RALLY, lowestRow: 4, x: 4.75, rules });
 
     expect(
-      eventsOf(flown, "bounce-earned")
+      eventsOf(flown.flight, "bounce-earned")
         .slice(0, 4)
         .map(({ held, kept }) => [held, kept]),
     ).toEqual([
@@ -823,7 +763,7 @@ describe("fly's hatches and locks", () => {
 
   /** Returns the moments of a flight's turns off a hatch's bar. */
   function barsOf(flown: Flown): number[] {
-    return eventsOf(flown, "turn")
+    return eventsOf(flown.flight, "turn")
       .filter(({ off }) => off === "bar")
       .map(({ at }) => at);
   }
@@ -879,8 +819,8 @@ describe("fly's hatches and locks", () => {
     const flown = flyLocked({ picture: ["....==..."], x: 5, degrees: 90 });
 
     expect([
-      eventsOf(flown, "turn")[1]?.cells,
-      eventsOf(flown, "hold").map(({ cell, left }) => [cell, left]),
+      eventsOf(flown.flight, "turn")[1]?.cells,
+      eventsOf(flown.flight, "hold").map(({ cell, left }) => [cell, left]),
     ]).toEqual([
       [cellOf(4, 0), cellOf(5, 0)],
       [
@@ -923,7 +863,7 @@ describe("fly's hatches and locks", () => {
     });
 
     expect([
-      eventsOf(flown, "turn").length > 3,
+      eventsOf(flown.flight, "turn").length > 3,
       holdsOf(flown).map(({ kind }) => kind),
     ]).toEqual([true, ["hold", "hold", "hold", "hatches-open"]]);
   });
@@ -949,7 +889,7 @@ describe("fly's hatches and locks", () => {
   it("turns off a lock still shut, which takes nothing, and draws its bolt at the fourth turn, opening it to a strike", () => {
     const flown = flyLocked({ picture: LOCKS, x: 4.75, hot: true });
 
-    const turns = eventsOf(flown, "turn");
+    const turns = eventsOf(flown.flight, "turn");
     expect(
       flown.flight.events.filter(
         ({ kind }) =>
@@ -1014,8 +954,8 @@ describe("fly's hatches and locks", () => {
       rules,
     });
 
-    const turns = eventsOf(flown, "turn");
-    expect([turns.length, eventsOf(flown, "bolt")]).toEqual([
+    const turns = eventsOf(flown.flight, "turn");
+    expect([turns.length, eventsOf(flown.flight, "bolt")]).toEqual([
       15,
       [
         { at: turns[3]?.at, kind: "bolt", drawn: 1 },
@@ -1033,7 +973,7 @@ describe("fly's hatches and locks", () => {
       degrees: 8,
     });
 
-    expect(eventsOf(flown, "bolt")).toEqual([]);
+    expect(eventsOf(flown.flight, "bolt")).toEqual([]);
   });
 
   // The flight of the lock of two bolts above, a hatch in its place, by
@@ -1053,7 +993,9 @@ describe("fly's hatches and locks", () => {
       traits,
     });
 
-    expect(eventsOf(flown, "bolt").map(({ drawn }) => drawn)).toEqual([1, 2]);
+    expect(eventsOf(flown.flight, "bolt").map(({ drawn }) => drawn)).toEqual([
+      1, 2,
+    ]);
   });
 });
 
@@ -1077,11 +1019,11 @@ describe("fly's portals", () => {
   it("takes the fuzzball through a portal's eye to the same place in its twin's, flying on the same way", () => {
     const flown = flyAt({ picture: TWINS, lowestRow: 2 });
 
-    const [teleport] = eventsOf(flown, "teleport");
+    const [teleport] = eventsOf(flown.flight, "teleport");
     expect([
       teleport,
       flown.flight.track.waypoints.slice(1, 4),
-      eventsOf(flown, "turn").map(({ off }) => off),
+      eventsOf(flown.flight, "turn").map(({ off }) => off),
     ]).toEqual([
       {
         at: near(2 * Math.SQRT2),
@@ -1142,7 +1084,7 @@ describe("fly's portals", () => {
   // Bored as it crosses into the eye in row 2, it yawns from its twin's.
   it("takes the fuzzball through a portal at the moment it is bored, before it yawns", () => {
     const [teleport] = eventsOf(
-      flyAt({ picture: TWINS, lowestRow: 2 }),
+      flyAt({ picture: TWINS, lowestRow: 2 }).flight,
       "teleport",
     );
     const rules = { ...FLIGHT_RULES, bored: teleport?.at ?? 0 };
@@ -1173,10 +1115,10 @@ describe("fly's way home", () => {
   it("yawns where it has flown the bored distance from its release without a strike, and drops straight to the floor", () => {
     const [dx, dy] = headingOf(aimAt(8));
     const flown = flyAt({ picture: HIGH_WALL, lowestRow: 9, degrees: 8 });
-    const turns = eventsOf(flown, "turn");
-    const [bored] = eventsOf(flown, "bored");
+    const turns = eventsOf(flown.flight, "turn");
+    const [bored] = eventsOf(flown.flight, "bored");
 
-    expect([turns.length, bored, eventsOf(flown, "land")]).toEqual([
+    expect([turns.length, bored, eventsOf(flown.flight, "land")]).toEqual([
       7,
       {
         at: FLIGHT_RULES.bored,
@@ -1204,7 +1146,7 @@ describe("fly's way home", () => {
 
     const flown = flyAt({ picture: ["........o"], hot: true, rules });
 
-    expect(eventsOf(flown, "bored").map(({ at }) => at)).toEqual([
+    expect(eventsOf(flown.flight, "bored").map(({ at }) => at)).toEqual([
       (flown.flight.lastStrike ?? 0) + 10,
     ]);
   });
@@ -1215,7 +1157,7 @@ describe("fly's way home", () => {
 
     const flown = flyAt({ picture: ["........#"], rules });
 
-    expect(eventsOf(flown, "bored").map(({ at }) => at)).toEqual([10]);
+    expect(eventsOf(flown.flight, "bored").map(({ at }) => at)).toEqual([10]);
   });
 
   // A hot shot holds its floor bounce, yet lands where it drops.
@@ -1233,7 +1175,7 @@ describe("fly's way home", () => {
   // Bored as it turns off the steel, it turns there first.
   it("plays a moment it meets as it is bored before it yawns", () => {
     const steel = ["........#"];
-    const [turn] = eventsOf(flyAt({ picture: steel }), "turn").slice(1);
+    const [turn] = eventsOf(flyAt({ picture: steel }).flight, "turn").slice(1);
     const rules = { ...FLIGHT_RULES, bored: turn?.at ?? 0 };
 
     const flown = flyAt({ picture: steel, rules });
@@ -1248,13 +1190,15 @@ describe("fly's way home", () => {
   // A strike at the moment it would be bored starts the count again.
   it("is kept from boredom by a strike at the moment it would yawn", () => {
     const brick = ["........o"];
-    const [strike] = eventsOf(flyAt({ picture: brick }), "strike");
+    const [strike] = eventsOf(flyAt({ picture: brick }).flight, "strike");
     const rules = { ...FLIGHT_RULES, bored: strike?.at ?? 0 };
 
     const flown = flyAt({ picture: brick, rules });
 
     expect(
-      eventsOf(flown, "bored").filter(({ at }) => at <= (strike?.at ?? 0)),
+      eventsOf(flown.flight, "bored").filter(
+        ({ at }) => at <= (strike?.at ?? 0),
+      ),
     ).toEqual([]);
   });
 
@@ -1268,7 +1212,7 @@ describe("fly's way home", () => {
       rules,
     });
 
-    expect(eventsOf(flown, "guard")).toEqual([
+    expect(eventsOf(flown.flight, "guard")).toEqual([
       expect.objectContaining({ at: 50, by: "length" }),
     ]);
   });
@@ -1283,9 +1227,10 @@ describe("fly's way home", () => {
       rules,
     });
 
-    expect([eventsOf(flown, "bored").length, eventsOf(flown, "guard")]).toEqual(
-      [1, []],
-    );
+    expect([
+      eventsOf(flown.flight, "bored").length,
+      eventsOf(flown.flight, "guard"),
+    ]).toEqual([1, []]);
   });
 
   // At 30°, into the joint of the steel brick's floorward flat and the cut
@@ -1301,7 +1246,7 @@ describe("fly's way home", () => {
       degrees: 30,
       rules,
     });
-    const turns = eventsOf(flown, "turn");
+    const turns = eventsOf(flown.flight, "turn");
 
     expect([turns.map(({ at }) => at), flown.flight.events.slice(-2)]).toEqual([
       [turns[0]?.at, near(turns[0]?.at ?? 0)],
@@ -1326,10 +1271,10 @@ describe("fly's way home", () => {
       degrees: 30,
     });
 
-    expect([eventsOf(flown, "turn").length, eventsOf(flown, "guard")]).toEqual([
-      2,
-      [],
-    ]);
+    expect([
+      eventsOf(flown.flight, "turn").length,
+      eventsOf(flown.flight, "guard"),
+    ]).toEqual([2, []]);
   });
 });
 
@@ -1376,7 +1321,7 @@ describe("fly's stop", () => {
   it("flies as it would without a stop, up to its stop", () => {
     const shot = { picture: ["........o"], hot: true };
     const whole = flyAt(shot);
-    const end = (eventsOf(whole, "turn")[2]?.at ?? 0) + 1.5;
+    const end = (eventsOf(whole.flight, "turn")[2]?.at ?? 0) + 1.5;
 
     const stopped = flyAt({ ...shot, stop: { turn: 3, past: 1.5 } });
 
@@ -1398,7 +1343,7 @@ describe("fly's stop", () => {
   // Bored as it turns off the steel, its second turn, it drops home.
   it("stops partway down its drop home, where it yawns short of its stop", () => {
     const steel = ["........#"];
-    const [, turn] = eventsOf(flyAt({ picture: steel }), "turn");
+    const [, turn] = eventsOf(flyAt({ picture: steel }).flight, "turn");
     const { at = 0, x = 0, y = 0 } = turn ?? {};
     const rules = { ...FLIGHT_RULES, bored: at };
 
@@ -1425,7 +1370,7 @@ describe("fly's stop", () => {
   // Bored as it turns off the steel, its second turn, it stops right there.
   it("yawns at the moment it stops, where it is bored then", () => {
     const steel = ["........#"];
-    const [, turn] = eventsOf(flyAt({ picture: steel }), "turn");
+    const [, turn] = eventsOf(flyAt({ picture: steel }).flight, "turn");
     const { at = 0, x = 0, y = 0 } = turn ?? {};
     const rules = { ...FLIGHT_RULES, bored: at };
 

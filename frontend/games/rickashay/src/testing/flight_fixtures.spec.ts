@@ -1,12 +1,9 @@
 import { COLUMNS, RADIUS } from "@fz/brick-wall/rules/field";
 import { keysOf } from "@fz/core/records";
-import type {
-  Flight,
-  FlightEvent,
-  FlightEventKind,
-} from "../rules/flight/events";
+import type { Flight, FlightEventKind } from "../rules/flight/events";
 import { FLIGHT_RULES, RALLY_MARKS } from "../rules/tuning";
 import { FLIGHT_FIXTURES, type FixtureName } from "./flight_fixtures";
+import { eventsOf } from "./shots";
 
 const NAMES = keysOf(FLIGHT_FIXTURES);
 
@@ -45,17 +42,6 @@ const PLACE_IN_MOMENT: Readonly<Record<FlightEventKind, number>> = {
 /** Returns a fixture's flight. */
 function flightOf(name: FixtureName): Flight {
   return FLIGHT_FIXTURES[name].round.flight;
-}
-
-/** Returns a flight's events of a kind. */
-function eventsOf<K extends FlightEventKind>(
-  flight: Flight,
-  kind: K,
-): Extract<FlightEvent, { readonly kind: K }>[] {
-  return flight.events.filter(
-    (event): event is Extract<FlightEvent, { readonly kind: K }> =>
-      event.kind === kind,
-  );
 }
 
 /** Returns each pair of a flight's events that follow each other. */

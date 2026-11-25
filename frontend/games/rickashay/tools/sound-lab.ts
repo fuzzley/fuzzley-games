@@ -13,6 +13,7 @@ import {
 import { FLIGHT_RULES, RALLY_MARKS, bounceRally } from "../src/rules/tuning";
 import spritemap from "../src/scene/sounds/sounds.json";
 import spriteUrl from "../src/scene/sounds/sounds.wav?url";
+import { FLIGHT_PACE, type FlightMoments, paceOf } from "../src/view/play/pace";
 import {
   RALLY_CENTS,
   SOUNDS,
@@ -53,17 +54,6 @@ const PLAYS: Readonly<Record<SoundName, string>> = {
   call: 'The "Rickashay!" call, as a flight reaches the level\'s rally mark.',
 };
 
-/**
- * A flight's speeds at Normal, in units a second, as the design's "The feel,
- * in numbers" sets them: from the release, then from its strikes at each of
- * `RALLY_MARKS`. The view's playback will hold them; until it does, the lab
- * keeps this copy.
- */
-const SPEEDS = [14, 17, 20, 24] as const satisfies readonly number[];
-
-/** How many times its speed a flight flies from its last strike, dashing home, as the design sets it. */
-const DASH = 3;
-
 /** How far apart the rally's notes are played in "The rally's notes", in seconds. */
 const NOTE_GAP_S = 0.25;
 
@@ -91,38 +81,22 @@ interface FlightCue {
   readonly rally?: number;
 }
 
-/** Describes where a flight's pace changes, in units flown: at each of `RALLY_MARKS` it reaches, and at its last strike, or at neither. */
-interface Pace {
-  readonly marks: readonly number[];
-  readonly lastStrike: number | null;
-}
-
-/** Returns a flight's speed at a point of it, in units a second. */
-function speedAt(flown: number, { marks, lastStrike }: Pace): number {
-  // Past the last speed, the flight keeps it.
-  const passed = Math.min(
-    marks.filter((at) => at <= flown).length,
-    SPEEDS.length - 1,
-  );
-  const speed = SPEEDS[passed] ?? SPEEDS[0];
-  return lastStrike !== null && flown >= lastStrike ? DASH * speed : speed;
-}
-
-/** Returns how long a flight takes to fly some units from its release, in seconds, at its pace. */
-function secondsTo(flown: number, pace: Pace): number {
-  const changes = [
-    ...pace.marks,
-    ...(pace.lastStrike === null ? [] : [pace.lastStrike]),
-  ]
-    .filter((at) => at < flown)
-    .sort((a, b) => a - b);
+/**
+ * Returns how long a flight takes to fly some units from its release, in
+ * seconds, at the pace the playback plays it at Normal (`paceOf()`): each
+ * change of pace, in units flown, on top of those before it.
+ */
+function secondsTo(flown: number, moments: FlightMoments): number {
+  const { unitsPerSecond, byDistance } = paceOf(moments, "normal", FLIGHT_PACE);
   let seconds = 0;
   let from = 0;
-  for (const to of [...changes, flown]) {
-    seconds += (to - from) / speedAt(from, pace);
-    from = to;
+  let speed = unitsPerSecond;
+  for (const change of byDistance.filter((mark) => mark.from < flown)) {
+    seconds += (change.from - from) / speed;
+    speed *= change.times;
+    from = change.from;
   }
-  return seconds;
+  return seconds + (flown - from) / speed;
 }
 
 /**
@@ -132,7 +106,7 @@ function secondsTo(flown: number, pace: Pace): number {
  */
 function flight(at: number, cues: readonly FlightCue[]): LabCue<SoundName>[] {
   const strikes = cues.filter(({ rally }) => rally !== undefined);
-  const pace: Pace = {
+  const moments: FlightMoments = {
     marks: RALLY_MARKS.flatMap(
       (mark) => strikes.find(({ rally }) => rally === mark)?.flown ?? [],
     ),
@@ -143,7 +117,7 @@ function flight(at: number, cues: readonly FlightCue[]): LabCue<SoundName>[] {
   };
   return cues.map(({ flown, cue }) => ({
     ...cue,
-    at: at + secondsTo(flown, pace),
+    at: at + secondsTo(flown, moments),
   }));
 }
 

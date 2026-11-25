@@ -447,19 +447,16 @@ describe("describeRows", () => {
 });
 
 describe("describeKind", () => {
-  it.each([
-    ["brick", "Breaks at 1 strike."],
-    ["tough", "Loses a pip at each strike."],
-    ["steel", "Can't be broken."],
-  ] as const)("says what a %s does", (kind, words) => {
-    expect(describeKind(kind)).toBe(words);
+  it("says what a moss brick does", () => {
+    expect(describeKind("moss")).toBe(
+      "Grows a pip back after each shot it survives.",
+    );
   });
 
-  it("says a hatch's holds and a lock's bolts by the rules' numbers", () => {
-    expect([describeKind("hatch"), describeKind("lock")]).toEqual([
-      `Lets the fuzzball rise through. Holds it up on the way down, ${String(FLIGHT_RULES.hatchHolds)} times a shot.`,
+  it("says a lock's bolts by the rules' numbers", () => {
+    expect(describeKind("lock")).toBe(
       `Slides a bolt back every ${String(FLIGHT_RULES.boltTurns)} turns of your shot. Once every bolt is back, 1 strike breaks it.`,
-    ]);
+    );
   });
 });
 

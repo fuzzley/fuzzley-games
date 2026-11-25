@@ -1,30 +1,12 @@
-import { AIMS_PER_DEGREE, FIRST_AIM_DEGREES } from "@fz/brick-wall/rules/aims";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
 import { type Waypoint, positionAt } from "@fz/brick-wall/rules/track";
 import { keysOf } from "@fz/core/records";
 import { FLIGHT_FIXTURES } from "../../testing/flight_fixtures";
+import { aimAt, near, startAt } from "../../testing/shots";
 import { STAND_INS } from "../../testing/stand_ins";
-import { WALL_LEGEND } from "../levels/legend";
 import { playRound } from "../round/round";
 import { FLIGHT_RULES } from "../tuning";
-import type { Flight, RoundStart } from "./events";
+import type { Flight } from "./events";
 import { type Guide, guideOf } from "./guide";
-
-/** Returns the aim at an angle, in degrees counter-clockwise from the floor on the right. */
-function aimAt(degrees: number): number {
-  return (degrees - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
-}
-
-/** Returns a number matched as near as the flight's arithmetic finds it. */
-function near(value: number): number {
-  return expect.closeTo(value, 9) as number;
-}
-
-/** Returns where a round starts on a field 11 deep, its fuzzball waiting at the floor's middle, at a wall drawn as a picture whose lowest row stands in field row 5. */
-function startAt(picture: readonly string[]): RoundStart {
-  const wall = wallFrom(picture, WALL_LEGEND, { lowestRow: 5 });
-  return { wall, depth: 11, x: 4.5, hot: false };
-}
 
 /** Returns where a guide of so many turns ends on a round's flight: so far past that turn, or at the landing where it lands first. */
 function endOf(flight: Flight, turns: number, past: number): number {

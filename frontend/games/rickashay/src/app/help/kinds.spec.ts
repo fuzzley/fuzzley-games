@@ -77,9 +77,7 @@ describe("kindAbout", () => {
   });
 
   it("says what a kind not listed does, as the rules have it", () => {
-    const unlisted = KIND_IDS.find((kind) => !isOneOf(kind, HELP_KIND_IDS))!;
-
-    expect(kindAbout(unlisted)).toBe(describeKind(unlisted));
+    expect(kindAbout("moss")).toBe(describeKind("moss"));
   });
 });
 

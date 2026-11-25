@@ -1,22 +1,12 @@
-import {
-  AIMS,
-  AIMS_PER_DEGREE,
-  FIRST_AIM_DEGREES,
-} from "@fz/brick-wall/rules/aims";
+import { AIMS } from "@fz/brick-wall/rules/aims";
 import { RADIUS } from "@fz/brick-wall/rules/field";
 import { cellOf } from "@fz/brick-wall/rules/grid";
-import { wallFrom } from "@fz/brick-wall/rules/level_picture";
-import type { FlightEvent } from "../../flight/events";
-import { type Flown, fly } from "../../flight/flight";
-import { WALL_LEGEND } from "../../levels/legend";
-import { FLIGHT_RULES, STAND_OFF } from "../../tuning";
-import { TRAIT_RULES } from "../trait_rules";
-
-/** The aim straight up. */
-const UP = (90 - FIRST_AIM_DEGREES) * AIMS_PER_DEGREE;
+import type { Flown } from "../../flight/flight";
+import { aimAt, eventsOf, flyAt, near } from "../../../testing/shots";
+import { STAND_OFF } from "../../tuning";
 
 /** How far across the aim straight up flies for each unit up: a rounding's worth, not nothing. */
-const UP_DX = AIMS[UP]?.[0] ?? NaN;
+const UP_DX = AIMS[aimAt(90)]?.[0] ?? NaN;
 
 /** How long the flat that cuts a ramp's point square is. */
 const TIP = STAND_OFF - RADIUS;
@@ -37,28 +27,19 @@ const RAMP_4 = cellOf(4, 0);
 
 /** Returns the flight of a shot straight up from an x at a row of ramps drawn as a picture, standing in field row 5 of a field 11 deep, by the game's own rules. */
 function flyUpAt(row: string, x: number): Flown {
-  const wall = wallFrom([row], WALL_LEGEND, { lowestRow: 5 });
-  return fly(
-    { wall, depth: 11, x, hot: false },
-    { aim: UP },
-    FLIGHT_RULES,
-    TRAIT_RULES,
-  );
+  return flyAt({ picture: [row], x, degrees: 90 });
 }
 
 /** Returns a flight's turns, each as where it was, the heading it left on and what it was off. */
 function turnsOf({ flight }: Flown): unknown[] {
-  return flight.events
-    .filter(
-      (event): event is Extract<FlightEvent, { readonly kind: "turn" }> =>
-        event.kind === "turn",
-    )
-    .map(({ x, y, dx, dy, off, cells }) => [x, y, dx, dy, off, cells]);
-}
-
-/** Returns a number matched as near as the flight's arithmetic finds it. */
-function near(value: number): number {
-  return expect.closeTo(value, 9) as number;
+  return eventsOf(flight, "turn").map(({ x, y, dx, dy, off, cells }) => [
+    x,
+    y,
+    dx,
+    dy,
+    off,
+    cells,
+  ]);
 }
 
 // Each ramp's long face is met a radius out from its long side, at the

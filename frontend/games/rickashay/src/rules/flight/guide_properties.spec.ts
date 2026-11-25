@@ -6,6 +6,7 @@ import {
   randomStart,
   unflown,
 } from "../../testing/cast_reference";
+import { near } from "../../testing/shots";
 import { STAND_INS } from "../../testing/stand_ins";
 import { playRound } from "../round/round";
 import type { Shot } from "../shot";
@@ -38,11 +39,6 @@ interface Shown {
   readonly events: readonly FlightEvent[];
   readonly length: number;
   readonly end: Waypoint | undefined;
-}
-
-/** Returns a number matched as near as the flight's arithmetic finds it. */
-function near(value: number): number {
-  return expect.closeTo(value, 9) as number;
 }
 
 /** Returns what a guide shows. */
