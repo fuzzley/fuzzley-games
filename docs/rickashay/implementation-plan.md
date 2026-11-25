@@ -1,8 +1,10 @@
 # Rickashay: the implementation plan
 
-Written 2026-11-22, as a companion to [`design.md`](design.md). That file says
-what the game is: its 27 decisions, its rules, its numbers, its levels and
-the seven choices you settled on 2026-11-10. This file says how to build it:
+Written 2026-11-22, as a companion to [`design.md`](design.md), and built by
+2026-11-25: [As built](#as-built-2026-11-25) says what the build decided. The
+design says what the game is: its 27 decisions, its rules, its numbers, its
+levels and the seven choices you settled on 2026-11-10. This file says how to
+build it:
 
 - your answers to the questions settled before any code, and the plan's
   own calls (§2);
@@ -42,6 +44,90 @@ Paths are relative to `frontend/` unless they start with `docs/`,
   ([stage 6](../agent-efficiency-audit/plan.md)).
 - The account's week, read with `/measure limits`: 73% used, resetting Wed
   Nov 25, 02:00 UTC.
+
+## As built (2026-11-25)
+
+Built from 2026-11-22 to 25 to this plan, by packages in worktrees of their
+own (§6), each commit reviewed. Part 1 merged into `main` on 2026-11-24, at
+8496d2a0. Part 2 through the feel gate (Q3), with its fixes (M2 and Q4),
+followed on 2026-11-25, at cbabc893, behind "In development". X1 to X4, Z1, Y1
+to Y3, D1, a fix to the skills and F1 then landed on `rickashay`. The work log
+(§7) is not merged. This plan describes the code as it was, so check a path
+against the tree before following one.
+
+What the build decided that the sections below don't say:
+
+- **The levels:** all thirty-six certified, and every set played on its
+  certified marks, listed once in `LEVEL_MARKS`. Warm-up's pars moved onto
+  them on 78 of its 108 level-depths, its rally marks on 103. Springboard was
+  redrawn (C17), no ceiling raised, as aims drawn blind cleared its draft 90
+  times in 100. The course it lays twice lost a spring brick and gained three
+  tough ones, and blind now clears it 43 times at most. The table gives each
+  set's nearest over `report:levels`' 40 games, against its floor, a blind
+  ceiling of 75 and a least sweet spot of 0.75°, and its `CHECK_DEPTHS`.
+
+  | Set          | Floor | Careless, least     | Blind, most      | Sweet spot, least   | Checks on |
+  | ------------ | ----- | ------------------- | ---------------- | ------------------- | --------- |
+  | Warm-up      | 90    | 95, Attic           | 45, First bounce | 1.25°, First bounce | 18 deep   |
+  | Angles       | 85    | 88, Slalom          | 73, Bounce house | 1.25°, Launcher     | 21 deep   |
+  | Tricks       | 80    | 88, Shutters        | 40, Kaleidoscope | 0.75°, Kaleidoscope | 21 deep   |
+  | Long rallies | 50    | 73, The long way up | 15, Greenhouse   | 0.83°, Greenhouse   | 12 deep   |
+
+- **The contracts,** beyond §4: every trait has its rule, so Rickashay's
+  stand-ins (`STAND_INS`) are gone. `BRICK_ART` and `HELP_KINDS` are whole
+  records over `KindId`, so a kind without art or words fails to compile. The
+  hatch's dots and the lock's bolts, which a flight changes, are tints that
+  `RoundPlay`'s `leftBy()` writes into the wall drawn. Their files stay out of
+  the art, so the main chunk doesn't take it:
+  `games/rickashay/src/view/art/hatch_tint.ts` and `lock_tint.ts`.
+- **Z1** lifted what the games wrote alike: the levels' list,
+  `CertificateLine`, Fast-forward, the benchmarks' times, a brick's cell, the
+  dot, the shard, the hot shot's flames, `itemAt()`, `ordinal()`,
+  `waitForTurn()` and the specs' held load. Drop and Skip stay each game's, as
+  they say different things.
+- **The bundle,** measured at 3dcdc140, as no commit body has these
+  figures after F1: the main chunk is 419.86 kB against Brick Fuzz Pop's
+  418.72, over §9's bar by 1.14 kB; the owner accepted an overshoot. The
+  page preloads two chunks beside it: the rules' 29.77 kB, preloaded at F1
+  too, and the effects' 17.59 kB, split out of the main chunk since F1
+  measured it at 436.33. The main chunk with its preloads is 467.22 kB,
+  against Brick Fuzz Pop's 452.74 with its rules' 34.02. The difference is
+  the game's own code and levels, which every page plays or shows. The
+  scene's chunk is 72.34 kB, under Brick Fuzz Pop's 72.54, and the
+  certificates load only at `?debug`.
+- **The times,** over all four sets, are within §9: `fly()` a median of
+  31.9 µs and a p99 of 629 µs, `sim` 53.9 to 54.5 s on one worker (about 59 to
+  79 on CI's runner), the replays 2.3 s and the suite 64.7 s. `guideOf()`'s
+  p99 to the fifth turn is over §9's 0.2 ms, at 217 µs plain, but under 1 ms.
+- **The frame** of level 36's longest flight at ×6, 0.2 ms faster after F1,
+  has a median of 3.75 to 3.77 ms in a full trace at 500×1400, under §9's 4.
+  At 1280×800 it is 4.04 to 4.07, as change detection and layout run in 29% of
+  frames. A window's drag stays at 88 ms a frame at ×6.
+- **Accessibility:** a load shifts nothing, and F1's input pass held for keys,
+  the mouse, a phone and the roles. Lighthouse scores 100 for accessibility and
+  best practices, and 92 for SEO, as `vite preview` answers `/robots.txt` with
+  the page.
+- **Left:** for `@fz/brick-wall`'s wall painter, which moves no brick it bakes
+  and hands a kind no neighbors, the hatch's dip and swing, a lock's bolt
+  sliding back, and a hatch bar's cut ends, drawn square. For Brick Fuzz Pop,
+  its last level's words, which say the score twice. And the lifts packages
+  named for later, which Z1 left: Brick Fuzz Pop's copies of the plated
+  brick's plates, the moss's cap, the pips and cracks, the guide's dots, the
+  cards' delay, the board's rows waiting and cards, the debug menu and
+  `check:layout`'s inspection; `portalInks()`, in Brick Breaker too;
+  `mediaMatches()`; `ladderCentsOf()`; and a helper for the folders `@fz/dev`'s
+  specs make.
+
+**Left for the owner,** beside §11's "What Z2 leaves for you":
+
+- The calls still open: an aim's precision, the hot shot's frequency, the
+  Ready card's size, "Rows left" against "rows waiting", and the last level's
+  Cleared card, which both games skip through the shared `RoundDriver`.
+- The catalog's blurb, which doesn't set Rickashay apart from Brick Fuzz Pop,
+  and the loose "them" in How to play's "clear them all".
+- A flight fixture whose moment closes with two of a floor bounce spent, the
+  hatches opening and a bolt drawn, so a spec runs the sort of those events.
+- The trademark search, before the game leaves "In development".
 
 ---
 
