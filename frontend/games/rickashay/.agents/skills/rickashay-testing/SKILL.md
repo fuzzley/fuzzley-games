@@ -79,13 +79,12 @@ Then:
 - **The fixtures are worked out by hand.** `FLIGHT_FIXTURES`
   (`src/testing/flight_fixtures.ts`) are rounds made by hand: each a start,
   a shot, the rules it is flown by and the round it plays, worked out by
-  the file's own flier as the design's "The flight" says. They fly by
-  `STAND_INS`, beside them in `src/testing/`: the game's trait rules, with
-  rules made up for the specs where a trait's own is still to write.
+  the file's own flier as the design's "The flight" says.
   `src/rules/flight/flight.spec.ts` and `src/rules/round/round.spec.ts`
-  hold `fly()` and `playRound()` to them, and the view, the scene and the
-  shell are specced against them. A change that moves a round means working
-  that fixture out again by hand.
+  hold `fly()` and `playRound()` to them, flown by the game's own trait
+  rules, `TRAIT_RULES` (`src/rules/bricks/trait_rules.ts`), and the view,
+  the scene and the shell are specced against them. A change that moves a
+  round means working that fixture out again by hand.
 - **Every flight is held to checks over seeded random walls.**
   `src/rules/flight/cast_properties.spec.ts` holds `cast()` to a scan of
   every face (`castByScan()`, `src/testing/cast_reference.ts`) and to the

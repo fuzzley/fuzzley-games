@@ -121,31 +121,37 @@ check's `LAYOUT_RUN` keep a run on a level by its number.
 A kind is its data in a file of its own in `src/rules/catalog/kinds/`, its
 place in `KIND_IDS` and `KINDS` (`src/rules/catalog/kinds.ts`), How to
 play's order and the order the levels bring the kinds in, and its
-characters in `LEGEND`. The compiler then asks for its line in every record
-keyed by a kind, `brick_colors.ts`' among them, and
+characters in `LEGEND`. `KINDS`, its colors in
+`src/view/colors/brick_colors.ts`, `BRICK_ART`
+(`src/view/art/atlas_frames.ts`) and `HELP_KINDS` (`src/app/help/kinds.ts`)
+are whole records, so the compiler asks for its line in each.
 `src/rules/catalog/kinds.spec.ts` lists every kind's fields by hand.
 
-It is drawn and brought into play in this order, a commit each:
+It comes before the levels that bring it in, in a commit or two:
 
-1. **Its traits' rules,** where a trait it has has none yet, as "A Trait"
+1. **The kind, its data, drawn and listed,** in one commit, as those
+   records take all of it together, a trait new with it holding `{}` in
+   `TRAIT_RULES`, as "A Trait" says:
+   - **Its art:** a `KindArt` (`src/view/art/art.ts`) in its own file of
+     `src/view/art/kinds/`, specced beside it, drawing the frames named
+     for it in `FRAMES` and `FRAME_NAMES` (`src/view/art/frames.ts`), in
+     the catalog's order in `BRICK_ART`. Its shards take its color, and a
+     color the player must tell from what it lies on is a pair in
+     `src/view/colors/contrast.spec.ts`.
+   - **Its words:** its line in a file of its own in
+     `src/app/help/kinds/`, in `HELP_KINDS`, which How to play, In this
+     wall and the Ready card read. Its `about` is a catalog line, as the
+     `player-text` skill says, and a number in it comes from the tuning.
+2. **Its traits' rules,** where a trait it has has none yet, as "A Trait"
    says.
-2. **Its art:** a `KindArt` (`src/view/art/art.ts`) in its own file of
-   `src/view/art/kinds/`, specced beside it, drawing the frames named for
-   it in `FRAMES` and `FRAME_NAMES` (`src/view/art/frames.ts`), and its line
-   in the art's record in `src/view/art/atlas_frames.ts`, in the catalog's
-   order. The color its
-   shards take is its line in `src/view/colors/brick_colors.ts`, and a
-   color the player must tell from what it lies on is a pair in
-   `src/view/colors/contrast.spec.ts`.
-3. **Its words:** its line in a file of its own in `src/app/help/kinds/`,
-   placed in `HELP_KINDS` (`src/app/help/kinds.ts`), which How to play, In
-   this wall and the Ready card read. Its `about` is a catalog line, as the
-   `player-text` skill says, and a number in it comes from the tuning.
-   Where the Ready card has said what the kind does from a line of its
-   own in `src/rules/run/describe.ts` till then, that line leaves it, as
-   its doc says; no check asks it to.
 
-Some specs list the drawn or listed kinds by hand, to edit with it:
+**A kind whose look a flight changes,** as a hatch's dots and a lock's
+bolts do, gets a `<kind>_tint.ts` of its own beside
+`src/view/art/hatch_tint.ts` and `src/view/art/lock_tint.ts`, outside its
+art, and a case in `leftBy()` (`src/view/play/round_play.ts`) for the
+event that changes it. Its picture shows the tint `tintOf()` gives it.
+
+Some specs list every kind by hand, to edit with a new one:
 `src/view/art/atlas_frames.spec.ts`' frames in order, the pictures
 `src/app/app.component.spec.ts` hands How to play, and
 `src/app/help/help.component.spec.ts` and `src/app/help/kinds.spec.ts`.
@@ -162,10 +168,9 @@ So do the docs that count the kinds, in `src/rules/catalog/kinds.ts` and
   and for its case in `shapeOf()`'s switch (`src/rules/flight/faces.ts`).
   `TraitRule`'s doc gives the moments a rule acts at and the `Hooks` it
   acts through.
-- **Where `STAND_INS`, in `src/testing/`, makes a rule up for the trait,**
-  which the specs and the flight fixtures fly by till its own is written,
-  the rule written takes that one's place: the stand-in goes, and its spec
-  lists the trait among those that keep the game's own rule.
+- **A spec that wants a trait without its rule** hands `flyAt()`
+  `traits: { ...TRAIT_RULES, <trait>: {} }`, or `playRound()` the same, as
+  `src/rules/round/round.spec.ts` does.
 - **A rule acts only on bricks of its kind,** so a wall without one flies
   as it did, and the sets whose walls hold none keep their certificates and
   marks.
